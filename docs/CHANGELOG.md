@@ -2,6 +2,22 @@
 
 > 형식: Phase/워크스트림 단위. 출처(검토 라운드·스펙) 명기. dualdb 자체 이력은 dualdb/CHANGELOG.md.
 
+## v3.5 공개 신뢰(Trust) 미니 라운드 — 2026-07-20 (스펙 aifc_v35_trust_planmode_260720 v1.0)
+
+**WS-T1 제3자 검증기** `tools/verify_track_record.py` (stdlib+git only — pip install 0):
+- 해시 앵커 대조 · git 불변성(수정/삭제 이벤트 0 + 원장 prefix-확장) · 시점 불변식 · Brier 독립 재계산.
+- **증명 2등급 정직 구분**: A급(baseline 이후 커밋 — 리모트 시계) / B급(baseline 포함 — 자기증명). 현행 [A 0 / B 21] PASS. 경계 = 공개 루트 커밋(스펙의 9a8dbae는 이력 스쿼시로 부재 — D1).
+- 조작 시뮬 3종(파일 변조·원장 행 삭제·마감 후 커밋) 전부 FAIL 검출 — test_verifier 5케이스 고정.
+
+**WS-T2 CI**: `.github/workflows/verify.yml` — src pytest + sync --check + 검증기 (시크릿 0, fetch-depth 0). README 배지.
+
+**WS-T3 즉시 푸시 규율**: P1_OPERATIONS·HARVEST_CALENDAR·post-FOMC 태스크 — "기록 직후 커밋+푸시 = 등급 A 성립 조건" (7/30부터). **OTS 실행(사용자 결정 9-4)**: 로컬 이중 차단(AppControl·OpenSSL3)으로 **CI 스탬프 봇**(ots-stamp.yml)이 .hashes 변경마다 비트코인 앵커 후 .ots 커밋백.
+
+**WS-T4 README**: "제3자 검증 방법" 섹션 — 3단계 안내 + 등급 한계 그대로 명시 (과장 금지).
+
+**WS-T5 FRED 복구 (사용자 승인)**: net.py **3단 폴백**(python→curl 기본 UA→공개DNS nslookup+`--resolve`) — 정밀 진단: 로컬 리졸버의 간헐 DNS 차단 + 서버측 파이썬 읽기 차단 2층 구조 (NETWORK_RECOVERY 2차 기록). **13시리즈 전 이력 ~99,000행 수집 성공** — 이중 소스 교차검증 재가동 (KNOWN_LIMITS 11 부분 상환).
+- 재가동 즉시 실측 발견: Yahoo↔FRED 2003~04 구간 3.11% 불일치 (벤더 원천 차이, 재수집 불변) — 센티널 교차검증 테스트는 §10.4대로 무수정 FAIL 유지, **정본 판정 사용자 결정 대기** (KNOWN_LIMITS 32).
+
 ## v3 수확 라운드 (2026-07-21 → 12-31) — 스펙 aifc_v3_harvest_planmode_260720 v1.0
 
 ### P-Op0 즉시 조치 — 2026-07-20

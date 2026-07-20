@@ -7,6 +7,16 @@ pip install anthropic pydantic typer python-frontmatter pyyaml pytest
 $env:ANTHROPIC_API_KEY = "<YOUR_API_KEY>"   # 또는 OS 암호화 저장(DPAPI) — 키를 파일·저장소에 평문으로 두지 않는다
 ```
 
+## 즉시 푸시 규율 (v3.5 WS-T3 — 공증 등급 A의 성립 조건, 2026-07-30~)
+
+**예측·해소 기록을 만들면 즉시 커밋 + `git push`한다. 커밋 지연 = 공증 공백.**
+공개 리포의 커밋 시각이 "질문 마감 전에 예측했다"의 외부 증거가 되려면, 기록 생성과
+푸시 사이 간격이 없어야 한다 (등급 체계: `tools/verify_track_record.py` 출력 참조).
+`.hashes` 갱신 시 OpenTimestamps 재스탬프(`ots stamp forecasts/.hashes` — .ots 함께 커밋).
+
+```powershell
+```
+
 실행은 항상 `src/` 디렉터리에서 (또는 PYTHONPATH에 src 추가):
 
 ```powershell

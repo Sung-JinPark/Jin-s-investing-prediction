@@ -1,0 +1,33 @@
+# v3.5 T3-OTS — .hashes 앵커를 OpenTimestamps로 비트코인에 스탬프 (사용자 승인 항목).
+# 로컬(Windows)은 AppControl·OpenSSL3 비호환으로 ots 실행 불가 → CI(ubuntu)가 스탬프 봇 역할.
+# .hashes가 변경된 푸시마다: 재스탬프 → .ots 커밋백. upgrade는 기회적(실패 무시).
+name: ots-stamp
+on:
+  push:
+    branches: [main]
+    paths: ["forecasts/.hashes"]
+  workflow_dispatch: {}        # 최초 1회 수동 트리거용
+
+jobs:
+  stamp:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install opentimestamps-client
+      - name: stamp + opportunistic upgrade
+        run: |
+          rm -f forecasts/.hashes.ots
+          ots stamp forecasts/.hashes
+          ots upgrade forecasts/.hashes.ots || true
+      - name: commit .ots back
+        run: |
+          git config user.name "ots-stamp-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add forecasts/.hashes.ots
+          git diff --cached --quiet || git commit -m "ots: .hashes 앵커 비트코인 스탬프"
+          git push

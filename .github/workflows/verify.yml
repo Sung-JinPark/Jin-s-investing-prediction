@@ -1,0 +1,25 @@
+# v3.5 WS-T2 — 공개 검증 CI. API 키 불필요 검사만 (LLM 호출 없음, 시크릿 0).
+name: verify
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # 검증기의 git 불변성·시점 검사는 전체 이력 필요
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: deps (시크릿 불필요 — import 경로용)
+        run: pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy pytest
+      - name: unit tests (src)
+        run: python -m pytest src/tests -q
+      - name: immutability drift check
+        run: cd src && python -m ai_fc sync --check
+      - name: track record verifier
+        run: python tools/verify_track_record.py

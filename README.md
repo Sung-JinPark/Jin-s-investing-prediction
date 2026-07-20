@@ -1,5 +1,9 @@
 # AI-FC — AI Superforecaster for Market Events
 
+[![verify](https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml/badge.svg)](https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml)
+![python](https://img.shields.io/badge/python-3.12-blue)
+![record](https://img.shields.io/badge/track_record-immutable%20%2B%20verifiable-informational)
+
 > **시장 이벤트 확률화 엔진.** 프론티어 LLM 리서치 파이프라인과 오픈웨이트 ML 앙상블로
 > "기한·임계값·판정기준이 있는 질문"에 확률을 매기고, **모든 예측을 불변 기록**으로 남겨
 > Brier 점수로 검증한다 — 예측을 사후에 고칠 수 없는, 감사 가능한 track record.
@@ -62,6 +66,26 @@ reports/       캘리브레이션 대시보드 · 리서치 노트
 ```
 
 핵심 문서: [ARCHITECTURE](docs/ARCHITECTURE.md) (업계 표준 대비 계층 지도) · [MODEL_REGISTRY](docs/MODEL_REGISTRY.md) + [모델 카드](docs/models/) · [DECISIONS](docs/DECISIONS.md) · [KNOWN_LIMITS](docs/KNOWN_LIMITS.md) (한계 정직 고지) · [CHANGELOG](docs/CHANGELOG.md) · 운영: [P1_OPERATIONS](docs/P1_OPERATIONS.md) · [FACTORY_GUIDE](questions/FACTORY_GUIDE.md) · [HARVEST_CALENDAR](questions/HARVEST_CALENDAR.md)
+
+## 제3자 검증 방법 — track record를 직접 확인하기
+
+이 저장소의 핵심 주장("예측을 사후에 고치지 않았다")은 **누구나 3단계로 검증**할 수 있다:
+
+```bash
+git clone https://github.com/Sung-JinPark/Jin-s-investing-prediction.git
+cd Jin-s-investing-prediction
+python tools/verify_track_record.py     # 표준 라이브러리 + git만 — pip install 불필요
+```
+
+검증기는 ① 전 예측 파일의 SHA-256 ↔ 해시 앵커 대조 ② git 이력상 수정/삭제 이벤트 0
+③ 커밋 시각 ≤ 질문 마감 ④ Brier 점수 독립 재계산 — 을 수행하고 결과를 **2등급으로 정직하게 구분**한다:
+
+- **A급 (강한 증명)**: 공개 baseline 커밋 **이후** 기록 — 리모트 고정 이력의 커밋 시각이 외부 증거
+- **B급 (약한 증명)**: baseline 커밋에 포함된 초기 기록 — 해시·내부 정합만 (자기증명임을 명시)
+
+초기 21건은 B급이며, 이후의 모든 기록은 A급으로 쌓인다 — **시간이 지날수록 공증력이 자란다.**
+`forecasts/.hashes`는 OpenTimestamps로 비트코인 블록체인에도 앵커된다
+(`ots verify forecasts/.hashes.ots` — 별도 도구 필요). CI(상단 배지)가 매 푸시마다 같은 검증을 수행한다.
 
 ## 현재 상태
 

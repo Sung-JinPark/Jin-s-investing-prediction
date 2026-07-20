@@ -18,7 +18,8 @@ URL = "https://fred.stlouisfed.org/graph/fredgraph.csv?id={sid}"
 
 
 def _rows(sid: str) -> list[tuple[str, float]]:
-    body = net.get(URL.format(sid=sid))
+    # WS-T5: 파이썬 시그니처 봇 필터 대응 — 실패 시 curl 폴백 (net.py 주석 참조)
+    body = net.get_with_curl_fallback(URL.format(sid=sid), timeout=30)
     net.save_raw("fred", sid, body, "csv")
     reader = csv.reader(io.StringIO(body.decode("utf-8")))
     header = next(reader)
