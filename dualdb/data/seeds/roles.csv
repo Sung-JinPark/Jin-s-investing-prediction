@@ -1,0 +1,11 @@
+role_code,name_kr,layer,description
+anchor,사이클 앵커,1,시대의 대장주 — 닷컴 CSCO ↔ AI NVDA
+equip,반도체 장비,1,AMAT·KLAC·ASML — 양 시대 동일 기업군
+memory,메모리,1,MU 트윈 — 1999-2001 정점후 -90%가 최우선 base rate
+foundry,파운드리/제조,1,닷컴 INTC(수직통합 대리) ↔ AI TSM
+network,네트워크/광,2,닷컴 JDSU·LU·NT ↔ AI AVGO·MRVL·CRDO·GLW
+infra_rent,인프라 임대,2,닷컴 Exodus·Level3 ↔ AI CRWV·NBIS·EQIX
+platform,플랫폼,3,MSFT·ORCL·IBM ↔ MSFT·GOOGL·AMZN·META
+app,애플리케이션,4,YHOO·EBAY·Pets.com ↔ PLTR·(OpenAI·Anthropic 비상장)
+overbuild,오버빌드,2,닷컴 통신광케이블(WCOM·GBLX) ↔ AI 전력·DC(CEG·OKLO·VRT)
+power,전력,2,AI 시대 신설 — 데이터센터 전력 병목

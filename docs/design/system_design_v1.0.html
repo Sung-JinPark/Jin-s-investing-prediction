@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 슈퍼포캐스터 주식예측 시스템 설계서 v1.0</title>
+<style>
+:root{--bg:#0a0e1a;--card:#131827;--card2:#1a2236;--card3:#232b44;--border:#2a3553;--line:#1e2740;--text:#e8ecf5;--muted:#8b95ad;--dim:#5a6a8a;--pos:#f87171;--neg:#60a5fa;--accent:#fbbf24;--ok:#34d399;--purple:#a78bfa;--danger:#ef4444;--sell:#fb923c;--cyan:#22d3ee;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;line-height:1.6;}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px 60px;}
+.cover{background:linear-gradient(150deg,#1a2236 0%,#0d1424 55%,#0d1a24 100%);border-radius:20px;padding:46px 42px;margin:20px 0;position:relative;overflow:hidden;border:1px solid var(--cyan);}
+.cover::before{content:'';position:absolute;top:-25%;right:-8%;width:500px;height:500px;background:radial-gradient(circle,rgba(34,211,238,0.09) 0%,transparent 70%);}
+.cover .badge{display:inline-block;background:var(--cyan);color:#0a0e1a;font-size:11px;font-weight:900;letter-spacing:2px;padding:5px 14px;border-radius:6px;position:relative;z-index:1;}
+.cover h1{font-size:34px;font-weight:900;margin:16px 0 10px;line-height:1.25;letter-spacing:-0.8px;position:relative;z-index:1;}
+.cover .subtitle{font-size:15px;color:var(--muted);max-width:740px;line-height:1.65;position:relative;z-index:1;}
+.cover .metabar{display:flex;gap:22px;margin-top:24px;flex-wrap:wrap;position:relative;z-index:1;padding-top:18px;border-top:1px solid rgba(255,255,255,0.08);}
+.cover .mb .k{color:var(--dim);text-transform:uppercase;letter-spacing:0.5px;font-size:10px;}
+.cover .mb .v{color:var(--text);font-weight:700;font-size:13.5px;margin-top:2px;}
+.cover .mb .v.cyan{color:var(--cyan);}
+.toc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;margin-bottom:22px;}
+.toc h2{font-size:13px;font-weight:800;color:var(--cyan);letter-spacing:1px;margin-bottom:12px;}
+.toc-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px 26px;}
+.toc-item{display:flex;gap:10px;font-size:12.5px;padding:5px 0;border-bottom:1px solid var(--line);}
+.toc-item .tn{color:var(--cyan);font-weight:800;min-width:22px;}
+.pos{color:var(--pos);}.neg{color:var(--neg);}.accent{color:var(--accent);}.ok{color:var(--ok);}.purple{color:var(--purple);}.danger{color:var(--danger);}.cyan{color:var(--cyan);}
+.sec{margin-bottom:26px;}
+.sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;padding-bottom:10px;border-bottom:2px solid var(--border);}
+.sec-head .sn{font-size:24px;font-weight:900;color:var(--cyan);line-height:1;}
+.sec-head h2{font-size:19px;font-weight:800;letter-spacing:-0.3px;}
+.sec-head .stag{margin-left:auto;font-size:10px;font-weight:800;padding:3px 10px;border-radius:10px;align-self:center;}
+.stag.core{background:rgba(34,211,238,0.15);color:var(--cyan);}
+.stag.design{background:rgba(167,139,250,0.18);color:var(--purple);}
+.stag.impl{background:rgba(52,211,153,0.18);color:var(--ok);}
+.stag.risk{background:rgba(239,68,68,0.18);color:var(--danger);}
+.panel{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:22px 26px;}
+.panel + .panel{margin-top:14px;}
+.panel p{font-size:13.5px;margin-bottom:12px;line-height:1.75;}
+.panel p:last-child{margin-bottom:0;}
+.panel .hl{color:var(--cyan);font-weight:700;}
+.panel .hla{color:var(--accent);font-weight:700;}
+.panel .hlr{color:var(--danger);font-weight:700;}
+.panel .hlg{color:var(--ok);font-weight:700;}
+.lead-quote{font-size:15px;line-height:1.7;border-left:4px solid var(--cyan);padding:6px 0 6px 18px;margin-bottom:16px;font-weight:600;}
+.stable{width:100%;border-collapse:collapse;font-size:12.5px;margin:12px 0;}
+.stable th{background:var(--card3);color:var(--cyan);padding:10px 12px;text-align:left;font-weight:700;font-size:11px;letter-spacing:0.3px;}
+.stable th.r,.stable td.r{text-align:right;}
+.stable th.c,.stable td.c{text-align:center;}
+.stable td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;}
+.stable tr:last-child td{border-bottom:none;}
+.stable .tk{font-weight:700;}
+.stable .up{color:var(--pos);}
+.stable .dn{color:var(--neg);}
+.stable .hlrow td{background:rgba(34,211,238,0.05);}
+.callout{padding:16px 20px;border-radius:10px;margin:16px 0;font-size:13px;line-height:1.75;border-left:4px solid var(--purple);background:linear-gradient(100deg,rgba(167,139,250,0.08),transparent);}
+.callout .ch{font-size:12px;font-weight:800;color:var(--purple);margin-bottom:6px;}
+.callout strong{color:var(--purple);}
+.callout.danger{border-left-color:var(--danger);background:linear-gradient(100deg,rgba(239,68,68,0.08),transparent);}
+.callout.danger .ch{color:var(--danger);}.callout.danger strong{color:var(--danger);}
+.callout.ok{border-left-color:var(--ok);background:linear-gradient(100deg,rgba(52,211,153,0.08),transparent);}
+.callout.ok .ch{color:var(--ok);}.callout.ok strong{color:var(--ok);}
+.callout.warn{border-left-color:var(--accent);background:linear-gradient(100deg,rgba(251,191,36,0.08),transparent);}
+.callout.warn .ch{color:var(--accent);}.callout.warn strong{color:var(--accent);}
+.callout.cyan{border-left-color:var(--cyan);background:linear-gradient(100deg,rgba(34,211,238,0.08),transparent);}
+.callout.cyan .ch{color:var(--cyan);}.callout.cyan strong{color:var(--cyan);}
+/* 아키텍처 다이어그램 */
+.arch{display:flex;flex-direction:column;gap:8px;margin:16px 0;}
+.arch-layer{display:flex;gap:10px;align-items:stretch;}
+.arch-tag{width:52px;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--card3);border-radius:8px;font-size:11px;font-weight:900;color:var(--cyan);}
+.arch-box{flex:1;background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;}
+.arch-box .ab-t{font-size:13.5px;font-weight:800;margin-bottom:3px;}
+.arch-box .ab-d{font-size:11px;color:var(--muted);line-height:1.5;}
+.arch-box.l1{border-left:4px solid var(--cyan);}
+.arch-box.l2{border-left:4px solid var(--purple);}
+.arch-box.l3{border-left:4px solid var(--accent);}
+.arch-box.l4{border-left:4px solid var(--purple);}
+.arch-box.l5{border-left:4px solid var(--sell);}
+.arch-box.l6{border-left:4px solid var(--ok);}
+.arch-box.l7{border-left:4px solid var(--danger);}
+.arch-arrow{text-align:center;color:var(--dim);font-size:14px;line-height:1;margin:-2px 0;}
+.codebox{background:#0d1220;border:1px solid var(--border);border-radius:10px;padding:16px 18px;font-family:'SF Mono','D2Coding',Consolas,monospace;font-size:11.5px;line-height:1.7;color:#c9d4e8;overflow-x:auto;white-space:pre;margin:12px 0;}
+.codebox .cm{color:#5a6a8a;}
+.codebox .kw{color:#a78bfa;}
+.codebox .st{color:#34d399;}
+.codebox .fn{color:#22d3ee;}
+.codebox .nm{color:#fbbf24;}
+.kbox{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:14px 0;}
+.kb{background:var(--card2);padding:14px 16px;}
+.kb .l{font-size:10px;color:var(--muted);text-transform:uppercase;}
+.kb .v{font-size:19px;font-weight:900;margin:4px 0 2px;}
+.kb .d{font-size:10.5px;color:var(--muted);}
+.pill{font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;white-space:nowrap;display:inline-block;}
+.p-p0{background:rgba(34,211,238,0.15);color:var(--cyan);}
+.p-p1{background:rgba(167,139,250,0.18);color:var(--purple);}
+.p-p2{background:rgba(251,191,36,0.2);color:var(--accent);}
+.p-p3{background:rgba(52,211,153,0.18);color:var(--ok);}
+.disc{font-size:11px;color:var(--dim);margin-top:28px;padding:16px 0;border-top:1px solid var(--border);line-height:1.7;}
+@media(max-width:900px){.toc-grid,.kbox{grid-template-columns:1fr 1fr;}.cover h1{font-size:25px;}}
+@media(max-width:600px){.kbox{grid-template-columns:1fr;}.toc-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<!-- ============ 표지 ============ -->
+<div class="cover">
+  <span class="badge">SYSTEM DESIGN DOCUMENT v1.0</span>
+  <h1>AI 슈퍼포캐스터 기반<br>주식시장 예측 시스템 설계서</h1>
+  <p class="subtitle">프론티어 LLM + 예측 스캐폴드 아키텍처로 시장 이벤트를 확률화하는 시스템. Astral Codex Ten "The AI Superforecasters Are Here"(2026.7)에서 검증된 기법 10가지를 해부하고, 주식시장 — 특히 나의 포트폴리오 EXIT 의사결정 — 에 적용하는 전체 설계.</p>
+  <div class="metabar">
+    <div class="mb"><div class="k">설계 기준</div><div class="v">2026.07.06</div></div>
+    <div class="mb"><div class="k">핵심 아키텍처</div><div class="v cyan">LLM + Scaffold + Ensemble</div></div>
+    <div class="mb"><div class="k">1차 목표</div><div class="v">EXIT 트리거 이벤트 확률화</div></div>
+    <div class="mb"><div class="k">검증 게이트</div><div class="v cyan">Brier &lt; 0.18 (50문항+)</div></div>
+    <div class="mb"><div class="k">참고 벤치마크</div><div class="v">질문당 5분 · $8 · 212출처</div></div>
+  </div>
+</div>
+<!-- ============ 목차 ============ -->
+<div class="toc">
+  <h2>📑 목차 — 13개 섹션</h2>
+  <div class="toc-grid">
+    <div class="toc-item"><span class="tn">01</span><span>원문 해부 — 슈퍼포캐스터 AI의 작동 원리</span></div>
+    <div class="toc-item"><span class="tn">08</span><span>포트폴리오 통합 — EXIT 트리거 질문화</span></div>
+    <div class="toc-item"><span class="tn">02</span><span>증거의 경계 — 검증된 것 vs 주장인 것</span></div>
+    <div class="toc-item"><span class="tn">09</span><span>기술 스택 &amp; 비용 설계</span></div>
+    <div class="toc-item"><span class="tn">03</span><span>설계 철학 — 이벤트 우선, 가격은 파생</span></div>
+    <div class="toc-item"><span class="tn">10</span><span>구현 로드맵 — Phase 0~3</span></div>
+    <div class="toc-item"><span class="tn">04</span><span>시스템 아키텍처 — 7 레이어</span></div>
+    <div class="toc-item"><span class="tn">11</span><span>검증 프레임워크 — 라이브 포워드 only</span></div>
+    <div class="toc-item"><span class="tn">05</span><span>모듈 상세 스펙</span></div>
+    <div class="toc-item"><span class="tn">12</span><span>리스크 &amp; 한계 — 정직한 평가</span></div>
+    <div class="toc-item"><span class="tn">06</span><span>추론 코어 — 프롬프트 설계</span></div>
+    <div class="toc-item"><span class="tn">13</span><span>결론 &amp; 다음 액션</span></div>
+    <div class="toc-item"><span class="tn">07</span><span>파이프라인 — 질문 1개의 생애주기</span></div>
+    <div class="toc-item"><span class="tn">—</span><span>—</span></div>
+  </div>
+</div>
+<!-- ============ 01 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">01</span><h2>원문 해부 — 슈퍼포캐스터 AI의 작동 원리</h2><span class="stag core">CORE</span></div>
+  <div class="panel">
+    <div class="lead-quote">AI 슈퍼포캐스터 = <span class="cyan">프론티어 LLM</span> + <span class="cyan">스캐폴드</span>(리서치 과정을 유도하는 프로그램: 프롬프트 체계, 도구, 서브에이전트 배치 규칙).</div>
+    <p>기사가 공개한 FutureSearch의 실제 작동 과정이 설계의 출발점이다. 감기 종식 프로젝트의 성공 확률 질문에 대해: <span class="hl">2분 만에 서브에이전트 3개 배치, 웹사이트 16개 리딩</span> → 5분에 최종 확률 7% 산출, <span class="hl">212개 출처 인용, 비용 $8</span>. 다른 AI(Preseen)는 8.8%, 인간 슈퍼포캐스터는 5~10% — 세 예측이 수렴했다.</p>
+    <p>가장 중요한 단서는 AI의 추론 구조다. 답변이 <span class="hla">"모든 조건이 동시에 성공해야 하는 conjunctive chain"</span>으로 구성됐다: ① 생물학적 난이도(base rate: 50년간 백신 실패) ② 타임라인 제약 ③ 채택률 불확실성 ④ 측정 불가능성. 각 조건의 확률을 곱해 낮은 최종 확률에 도달하는 <span class="hl">분해(decomposition) 기법</span> — 테틀록 슈퍼포캐스팅의 핵심을 그대로 구현한 것이다.</p>
+    <table class="stable">
+      <thead><tr><th>#</th><th>기법</th><th>기사 속 증거</th><th>주식시장 적용</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">1</td><td class="tk">정밀 질문화</td><td>기한·임계값 있는 해소가능 질문 요구</td><td>"NVDA 상승?"→"8/26 실적 DC매출 컨센 상회 확률"</td></tr>
+        <tr><td class="tk">2</td><td class="tk">스캐폴드 오케스트레이션</td><td>서브에이전트 3개, 16사이트/2분</td><td>실적·공시·매크로·수급 병렬 리서치</td></tr>
+        <tr><td class="tk">3</td><td class="tk">Outside view 우선</td><td>"50년 백신 실패" base rate 먼저</td><td>실적 서프라이즈율, 사이클 통계, 계절성</td></tr>
+        <tr><td class="tk">4</td><td class="tk">Conjunctive 분해</td><td>4개 조건 동시성공 확률 곱</td><td>시나리오 조건 트리 (금리×실적×수급)</td></tr>
+        <tr><td class="tk">5</td><td class="tk">대량 출처 근거화</td><td>212개 출처 인용</td><td>출처 그레이딩 (공시&gt;IB리서치&gt;언론&gt;SNS)</td></tr>
+        <tr><td class="tk">6</td><td class="tk">앙상블 수렴 체크</td><td>7% vs 8.8% vs 5~10% 비교</td><td>멀티모델·멀티런 중앙값 집계</td></tr>
+        <tr><td class="tk">7</td><td class="tk">캘리브레이션 벤치마크</td><td>Metaculus Elo·Brier, 월 0.9pt 개선</td><td>전 예측 DB화 → Brier 추적</td></tr>
+        <tr><td class="tk">8</td><td class="tk">인과 조건부 예측</td><td>각주1: 조건부 시장의 함정 지적</td><td>"인상 시 조정폭" 류 인과 시나리오</td></tr>
+        <tr><td class="tk">9</td><td class="tk">속도·폭의 우위</td><td>주당 수백 개 시장 자동 스캔</td><td>이벤트 캘린더 전수 스캔·자동 재예측</td></tr>
+        <tr><td class="tk">10</td><td class="tk">용량 인식</td><td>"쉬운 돈은 소진된다" 인정</td><td>edge 임계치 + 자금 상한 설계</td></tr>
+      </tbody>
+    </table>
+    <div class="callout cyan">
+      <div class="ch">💡 스캐폴딩의 가치 — 정량 근거</div>
+      Metaculus 분석: 예측 특화 스캐폴드는 <strong>베이스 모델 9개월치 발전과 동등</strong>한 성능 향상. 즉 같은 Claude라도 <strong>스캐폴드를 어떻게 짜느냐가 9개월치 모델 격차를 만든다</strong>. 이 설계서의 존재 이유다. AI는 월 0.9 Elo씩 개선 중이며, 1년 내 최고 인간을 능가하는 추세선 위에 있다.
+    </div>
+  </div>
+</div>
+<!-- ============ 02 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">02</span><h2>증거의 경계 — 검증된 것 vs 주장인 것</h2><span class="stag risk">HONESTY</span></div>
+  <div class="panel">
+    <p>설계 전에 <span class="hlr">기사 증거의 경계를 정직하게 긋는다</span>. 이것이 시스템 목표 설정을 좌우한다.</p>
+    <table class="stable">
+      <thead><tr><th>주장</th><th class="c">증거 수준</th><th>비고</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">이벤트 확률 예측력 = 인간 톱과 동률</td><td class="c up">✓ 검증</td><td>Metaculus Cup 3위(Preseen), 통계적 동률</td></tr>
+        <tr><td class="tk">금융 질문에서 AI 우위</td><td class="c up">✓ 검증</td><td>Market Pulse(금융 전용 대회) 봇 1위 — 전 인간 제침</td></tr>
+        <tr><td class="tk">예측시장 수익 ($35→$2M)</td><td class="c up">✓ 사례</td><td>단, 본인이 "용량 소진·재현 불가" 인정</td></tr>
+        <tr class="hlrow"><td class="tk">주식시장 +25% 초과수익</td><td class="c dn">? 주장</td><td>1개 업체(FutureSearch), Scott 본인도 "운일 수 있음" 명시</td></tr>
+        <tr><td class="tk">전 도메인 초인간화</td><td class="c dn">? 논쟁</td><td>Kapoor&amp;Narayanan: 예측은 irreducible error로 인간 수준이 한계라는 반론 존재</td></tr>
+      </tbody>
+    </table>
+    <div class="callout danger">
+      <div class="ch">🚨 설계상 결정적 함의</div>
+      검증된 능력은 <strong>"주가 맞히기"가 아니라 "이벤트 확률화"</strong>다. 주식 가격은 무한한 연속 변수의 집합이지만, 가격을 움직이는 <strong>개별 이벤트(실적 비트, FOMC 결정, 제품 출시, S-1 제출)는 예측시장형 질문으로 변환 가능</strong>하며 그것이 정확히 AI가 인간 톱과 동률로 검증된 영역이다. 또한 주식시장은 Kalshi류 예측시장보다 <strong>훨씬 효율적</strong>이라 쉬운 alpha가 적다 — 기대치를 여기에 맞춘다.
+    </div>
+    <div class="callout ok">
+      <div class="ch">✅ 따라서 시스템 목표의 서열</div>
+      <strong>1차(검증된 영역)</strong>: 나의 EXIT 트리거 이벤트를 확률화 — "MU 마진 반전 확률", "OpenAI S-1 제출 시점", "VIX 25+ 확률". 의사결정의 질을 즉시 높인다. <strong>2차(조건부 확장)</strong>: AI 확률 vs 시장내재확률의 괴리(edge) 검출 — 단 캘리브레이션 증명(Brier&lt;0.18, 50문항+) 후에만. <strong>3차(선택)</strong>: 마켓뉴트럴 페어 아이디어 — FutureSearch 방식, 가장 후순위.
+    </div>
+  </div>
+</div>
+<!-- ============ 03 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">03</span><h2>설계 철학 — 이벤트 우선, 가격은 파생</h2><span class="stag design">DESIGN</span></div>
+  <div class="panel">
+    <div class="lead-quote">"주가를 예측하지 말고, <span class="cyan">주가를 움직이는 이벤트</span>를 예측하라. 그리고 시장이 그 이벤트에 매긴 가격과 <span class="cyan">내 확률의 차이</span>가 임계치를 넘을 때만 움직여라."</div>
+    <table class="stable">
+      <thead><tr><th>원칙</th><th>내용</th><th>기사 근거</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">① 이벤트 → 가격</td><td>모든 예측 대상을 해소가능 이벤트 질문으로 변환</td><td>예측시장형 질문이 검증 영역</td></tr>
+        <tr><td class="tk">② Edge 없으면 무행동</td><td>|AI확률 − 시장내재확률| &gt; 임계치일 때만 시그널</td><td>"쉬운 돈 소진" — edge는 희소 자원</td></tr>
+        <tr><td class="tk">③ 캘리브레이션이 왕</td><td>예측을 안 맞히는 시스템은 즉시 발견되도록 전수 기록</td><td>Brier/Elo가 유일한 진실</td></tr>
+        <tr><td class="tk">④ 자동화된 폭</td><td>사람이 못 하는 것: 매주 수백 질문 스캔·재예측</td><td>AI의 속도·성실성 우위</td></tr>
+        <tr><td class="tk">⑤ 라이브 검증 only</td><td>LLM은 과거 결과를 학습에 내포 → 백테스트 무효</td><td>사전지식 오염 문제</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <div class="ch">⚠️ 원칙 ⑤가 특히 중요하다</div>
+      전통 퀀트는 백테스트로 검증하지만, <strong>LLM은 훈련 데이터에 과거 사건의 결과를 이미 알고 있어 과거 질문 백테스트가 원천적으로 오염</strong>된다. 따라서 이 시스템의 검증은 <strong>오직 미래형 라이브 포워드 테스트</strong>로만 가능하다 — 예측을 먼저 기록하고, 시간이 해소해 주기를 기다린다. 이것이 Phase 설계에서 "검증 기간"이 필수인 이유다.
+    </div>
+  </div>
+</div>
+<!-- ============ 04 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">04</span><h2>시스템 아키텍처 — 7 레이어</h2><span class="stag design">DESIGN</span></div>
+  <div class="panel">
+    <div class="arch">
+      <div class="arch-layer"><div class="arch-tag">L1</div><div class="arch-box l1"><div class="ab-t">질문 엔진 (Question Engine)</div><div class="ab-d">포트폴리오 전략·이벤트 캘린더 → 해소가능 예측질문 자동 생성. 기한·임계값·판정기준 검증. 애매하면 재작성 후 확인 (기사의 프롬프트 원칙)</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L2</div><div class="arch-box l2"><div class="ab-t">리서치 스캐폴드 (Research Scaffold)</div><div class="ab-d">오케스트레이터가 서브에이전트 N개 병렬 배치 — 실적/공시 에이전트, 매크로 에이전트, 수급 에이전트, 반대증거 에이전트. 웹검색·뉴스·SEC·FRED·실적캘린더 도구. 출처 그레이딩(공시&gt;IB&gt;언론&gt;SNS)</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L3</div><div class="arch-box l3"><div class="ab-t">추론 코어 (Reasoning Core)</div><div class="ab-d">① Outside view: base rate 라이브러리 조회 → ② Inside view 보정: 이번 사례의 차이점 → ③ Conjunctive/disjunctive 분해 → ④ Premortem(반대증거 3개) → ⑤ 확률 1% 단위 + 신뢰구간</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L4</div><div class="arch-box l4"><div class="ab-t">앙상블 레이어 (Ensemble)</div><div class="ab-d">모델 다양화(Claude·GPT·Gemini) × 프롬프트 변형 × K회 실행 → 중앙값/절사평균. 발산(σ&gt;임계) 시 자동 재조사 트리거 — 기사의 7% vs 8.8% 수렴체크 자동화</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L5</div><div class="arch-box l5"><div class="ab-t">엣지 검출기 (Edge Detector)</div><div class="ab-d">AI 확률 vs 시장내재확률 비교 — 옵션 IV 분포, Kalshi/Polymarket 가격, 애널리스트 컨센서스. |edge| &gt; 10%p AND 앙상블 수렴 시에만 시그널 발행</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L6</div><div class="arch-box l6"><div class="ab-t">사이징 &amp; 액션 (Sizing &amp; Action)</div><div class="ab-d">Fractional Kelly(Half-Kelly) 사이징 — 기존 나의 리스크 프레임과 동일. 상관·집중도 제약. 출력: 매매 시그널이 아니라 "확률 + edge + 권장 액션" 리포트</div></div></div>
+      <div class="arch-arrow">▼</div>
+      <div class="arch-layer"><div class="arch-tag">L7</div><div class="arch-box l7"><div class="ab-t">캘리브레이션 &amp; 로그 (Calibration DB)</div><div class="ab-d">전 예측 영구 기록 → 해소 시 Brier/log score 산출 → 캘리브레이션 커브 → 도메인별 skill 추적 → 못 맞히는 도메인 자동 차단. 시스템의 심장</div></div></div>
+    </div>
+    <div class="callout cyan">
+      <div class="ch">💡 레이어 간 피드백 루프</div>
+      L7의 캘리브레이션 데이터가 L3의 base rate 라이브러리와 L5의 edge 임계치를 지속 갱신한다. 예: 시스템이 "실적 비트" 도메인에서 Brier 0.14(우수)인데 "지정학" 도메인에서 0.24(무능)라면 → <strong>지정학 질문은 자동으로 시그널 발행 차단, 정보 제공만</strong>. 이것이 기사가 말한 "능력 범위(circle of competence)"의 기계적 구현이다.
+    </div>
+  </div>
+</div>
+<!-- ============ 05 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">05</span><h2>모듈 상세 스펙</h2><span class="stag design">DESIGN</span></div>
+  <div class="panel">
+    <table class="stable">
+      <thead><tr><th>모듈</th><th>입력</th><th>출력</th><th>핵심 구현 포인트</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">L1 질문 엔진</td><td>전략 문서, 이벤트 캘린더, 보유 종목</td><td>표준화된 질문 객체 {질문, 기한, 판정기준, 도메인}</td><td>LLM이 질문 초안 → 판정기준 rules-lawyer 체크 → 사용자 승인</td></tr>
+        <tr><td class="tk">L2 스캐폴드</td><td>질문 객체</td><td>근거 패키지 {출처 리스트, 핵심 사실, 반대증거}</td><td>서브에이전트 4종 병렬: 펀더멘털·매크로·수급·<span class="cyan">데블스애드버킷(반대증거 전담)</span></td></tr>
+        <tr><td class="tk">L3 추론 코어</td><td>질문 + 근거 패키지</td><td>확률 + 분해 트리 + 신뢰구간 + 근거 요약</td><td>base rate 라이브러리(실적 서프라이즈율, 사이클 통계 등 사전 구축)</td></tr>
+        <tr><td class="tk">L4 앙상블</td><td>동일 질문 K개 독립 실행 결과</td><td>집계 확률(중앙값) + 발산도 σ</td><td>K=5~9. σ&gt;8%p면 재조사. 모델 2종 이상</td></tr>
+        <tr><td class="tk">L5 엣지 검출</td><td>AI 확률 + 시장 데이터</td><td>edge 크기 + 방향 + 신뢰도</td><td>옵션 IV→내재확률 변환(Breeden-Litzenberger 근사), Kalshi API</td></tr>
+        <tr><td class="tk">L6 사이징</td><td>edge + 캘리브레이션 이력</td><td>액션 리포트 (확률·edge·Half-Kelly 권장 규모)</td><td>자동매매 아님 — 의사결정 보조 리포트가 기본. 실행은 사람</td></tr>
+        <tr><td class="tk">L7 캘리브레이션</td><td>전 예측 + 해소 결과</td><td>Brier, 캘리브레이션 커브, 도메인 skill</td><td>PostgreSQL. 예측 시점 스냅샷 불변 보존(사후 수정 불가)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- ============ 06 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">06</span><h2>추론 코어 — 프롬프트 설계</h2><span class="stag impl">IMPL</span></div>
+  <div class="panel">
+    <p>기사 말미의 단순 프롬프트("슈퍼포캐스터처럼 생각하고 확률로 답하라, 질문이 잘못됐으면 재작성 후 확인하라")를 <span class="hl">전체 추론 체계로 확장</span>한 시스템 프롬프트 v1.0:</p>
+    <div class="codebox"><span class="cm"># ── 슈퍼포캐스터 추론 코어 시스템 프롬프트 v1.0 ──</span>
+당신은 캘리브레이션이 검증된 슈퍼포캐스터입니다. 아래 절차를 엄격히 따르세요.
+<span class="nm">[0. 질문 검증]</span>
+- 기한·임계값·판정기준이 명확한가? 아니면 해소가능 형태로 재작성하고 진행 전 확인을 요청한다.
+- 조건부 질문이면: 상관관계가 아닌 <span class="st">인과적 조건부</span>("X를 실행했을 때")로 해석함을 명시한다.
+<span class="nm">[1. Outside View — 반드시 먼저]</span>
+- 이 질문이 속한 참조 클래스(reference class)를 정의한다.
+- 유사 사례의 base rate를 3개 이상 수집한다. (예: "최근 20분기 NVDA 실적 비트율 85%")
+- base rate 를 초기 anchor 확률로 설정한다.
+<span class="nm">[2. Inside View — 보정]</span>
+- 이번 사례가 base rate 와 다른 점을 증거와 함께 열거한다.
+- 각 증거가 anchor 를 몇 %p 움직이는지 명시하며 조정한다.
+<span class="nm">[3. 분해 — Conjunctive / Disjunctive]</span>
+- 사건 성립에 필요한 조건들을 트리로 분해한다.
+- 조건 각각의 확률을 추정하고, AND면 곱·OR면 합으로 결합한다.
+- 결합 결과와 [2]의 조정 결과가 다르면 원인을 규명한다.
+<span class="nm">[4. Premortem]</span>
+- "이 예측이 크게 틀렸다"고 가정하고, 가장 그럴듯한 원인 3개를 적는다.
+- 각 원인을 반영해 최종 확률을 재조정한다.
+<span class="nm">[5. 출력]</span>
+- 최종 확률: 1% 단위 (예: 23%, "약 20~25%" 금지)
+- 80% 신뢰구간, 핵심 근거 3줄, 확률을 바꿀 수 있는 관찰가능 지표 2개
+- 모든 사실 주장에 출처를 붙인다. 검증 못한 주장은 [미검증] 표기.</div>
+    <div class="callout">
+      <div class="ch">💡 데블스 애드버킷 서브에이전트</div>
+      스캐폴드의 서브에이전트 중 하나는 <strong>반대증거 수집 전담</strong>으로 설계한다. LLM의 확증편향(질문 프레임에 동조하는 경향)을 구조적으로 상쇄하는 장치다. 기사의 FutureSearch 답변이 훌륭했던 이유도 "성공 스토리"가 아니라 <strong>실패 조건들(생물학·타임라인·채택·측정)을 중심으로 추론</strong>했기 때문이다.
+    </div>
+  </div>
+</div>
+<!-- ============ 07 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">07</span><h2>파이프라인 — 질문 1개의 생애주기</h2><span class="stag impl">IMPL</span></div>
+  <div class="panel">
+    <p>기사 속 FutureSearch의 5분 흐름을 코드 구조로 번역하면:</p>
+    <div class="codebox"><span class="cm"># orchestrator.py — 질문 1개의 생애주기 (의사코드)</span>
+<span class="kw">async def</span> <span class="fn">forecast</span>(raw_question: str) -> ForecastReport:
+    <span class="cm"># [L1] 질문 정밀화 — 해소가능 형태 검증</span>
+    q = <span class="kw">await</span> question_engine.<span class="fn">formalize</span>(raw_question)
+    <span class="kw">if</span> q.needs_clarification: <span class="kw">return</span> ask_user(q.draft)
+    <span class="cm"># [L2] 스캐폴드 — 서브에이전트 4종 병렬 (기사: 3 subagents, 16 sites)</span>
+    evidence = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(
+        agent_fundamental.<span class="fn">research</span>(q),   <span class="cm"># 실적·공시·가이던스</span>
+        agent_macro.<span class="fn">research</span>(q),         <span class="cm"># 금리·CPI·유가</span>
+        agent_flow.<span class="fn">research</span>(q),          <span class="cm"># 수급·옵션·포지셔닝</span>
+        agent_devil.<span class="fn">research</span>(q),         <span class="cm"># ★ 반대증거 전담</span>
+    )
+    evidence = <span class="fn">grade_sources</span>(evidence)  <span class="cm"># 공시>IB>언론>SNS</span>
+    <span class="cm"># [L3+L4] 추론 × 앙상블 — K회 독립 실행</span>
+    probs = <span class="kw">await</span> asyncio.<span class="fn">gather</span>(*[
+        reasoning_core.<span class="fn">run</span>(q, evidence, model=m, seed=k)
+        <span class="kw">for</span> m <span class="kw">in</span> [<span class="st">"claude"</span>, <span class="st">"gpt"</span>] <span class="kw">for</span> k <span class="kw">in</span> range(3)   <span class="cm"># K=6</span>
+    ])
+    p_final = <span class="fn">median</span>(probs)
+    <span class="kw">if</span> <span class="fn">stdev</span>(probs) > 0.08:                <span class="cm"># 발산 → 재조사</span>
+        <span class="kw">return await</span> <span class="fn">forecast_deep</span>(q, evidence, probs)
+    <span class="cm"># [L5] 시장내재확률과 비교</span>
+    p_market = <span class="kw">await</span> edge_detector.<span class="fn">implied_prob</span>(q)  <span class="cm"># 옵션IV·Kalshi·컨센</span>
+    edge = p_final - p_market
+    <span class="cm"># [L6+L7] 리포트 생성 + 불변 기록</span>
+    report = <span class="fn">build_report</span>(q, p_final, edge, evidence,
+                          sizing=<span class="fn">half_kelly</span>(edge) <span class="kw">if</span> abs(edge) > 0.10 <span class="kw">else</span> <span class="st">None</span>)
+    <span class="kw">await</span> calibration_db.<span class="fn">record</span>(report, immutable=<span class="st">True</span>)
+    <span class="kw">return</span> report
+<span class="cm"># scheduler.py — 자동 재예측 (AI의 폭 우위 활용)</span>
+<span class="kw">for</span> q <span class="kw">in</span> active_questions:
+    <span class="kw">if</span> q.<span class="fn">near_deadline</span>() <span class="kw">or</span> news_monitor.<span class="fn">material_change</span>(q):
+        <span class="fn">forecast</span>(q)   <span class="cm"># 주간 정기 + 이벤트 트리거 재예측</span></div>
+    <div class="callout cyan">
+      <div class="ch">💡 비용 벤치마크</div>
+      기사 기준 상용 서비스는 질문당 <strong>$8/5분</strong>. 직접 구축 시 서브에이전트 4개 × 앙상블 6회 구성으로 질문당 <strong>$1.5~4 수준</strong>(API 요금, 검색 포함). 주 30문항 운영 = <strong>월 $200~500</strong>. 상용 대비 60~80% 절감하면서 나의 전략에 맞춤화된다.
+    </div>
+  </div>
+</div>
+<!-- ============ 08 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">08</span><h2>포트폴리오 통합 — EXIT 트리거의 질문화</h2><span class="stag core">KILLER APP</span></div>
+  <div class="panel">
+    <div class="lead-quote">이 시스템의 킬러 앱: 나의 EXIT 전략은 이미 <span class="cyan">예측 가능한 이진 이벤트들의 집합</span>이다. 트리거를 질문으로 변환하면, 시스템이 24시간 확률을 갱신하며 감시한다.</div>
+    <table class="stable">
+      <thead><tr><th>EXIT 트리거 (기존)</th><th>표준화 질문 (변환)</th><th>재예측 주기</th><th>액션 연결</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">OpenAI Public S-1</td><td>"2027-06-30까지 OpenAI가 public S-1을 제출할 확률"</td><td>주 1회 + 뉴스 트리거</td><td>EXIT 타이밍 조기경보</td></tr>
+        <tr class="hlrow"><td class="tk">메모리 마진 반전</td><td>"MU 차기 실적에서 총마진이 QoQ 하락할 확률"</td><td>실적 D-30부터 주 2회</td><td>메모리 익스포저 조정 (조기경보)</td></tr>
+        <tr><td class="tk">VIX 25+</td><td>"향후 90일 내 VIX 종가 25 상회 확률"</td><td>일 1회</td><td>사전 경보 (룰은 기계적 유지)</td></tr>
+        <tr><td class="tk">10/28 FOMC</td><td>"10/28 FOMC에서 25bp+ 인상 확률"</td><td>주 1회, D-14부터 일 1회</td><td>9~10월 조정 시나리오 검증</td></tr>
+        <tr class="hlrow"><td class="tk">NVDA 8/26 실적</td><td>"NVDA FQ3 DC매출이 컨센서스 +5% 이상 상회할 확률"</td><td>D-30부터 주 2회</td><td>반도체 사이클 분수령 판단</td></tr>
+        <tr><td class="tk">SOXX 추세</td><td>"연말까지 SOXX가 현 수준 −15% 이하로 마감할 확률"</td><td>주 1회</td><td>익스포저 조정 판단</td></tr>
+        <tr><td class="tk">크립토 광기 (EXIT 신호)</td><td>"90일 내 BTC 신고가 + 알트 시총 50%↑ 동시 발생 확률"</td><td>주 1회</td><td>자본순환 최종단계 감지</td></tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <div class="ch">✅ 기존 룰과의 관계 — 대체가 아니라 조기경보</div>
+      VIX 25+, 포트 −10% 같은 <strong>하드 룰은 그대로 기계적으로 유지</strong>한다. 시스템의 역할은 룰 발동 <strong>전에 확률 상승을 조기 감지</strong>하는 것 — 예: "VIX 25+ 확률이 2주 만에 15%→45%로 급등" 알림을 받으면, 룰 발동을 기다리지 않고 선제적으로 익스포저를 다듬을 수 있다. <strong>규율(룰) + 예지(확률)의 이중 구조</strong>다.
+    </div>
+  </div>
+</div>
+<!-- ============ 09 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">09</span><h2>기술 스택 &amp; 비용 설계</h2><span class="stag impl">IMPL</span></div>
+  <div class="panel">
+    <table class="stable">
+      <thead><tr><th>구성요소</th><th>선택</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">추론 LLM</td><td>Claude API (+GPT 앙상블용)</td><td>web search tool·extended thinking 내장, 서브에이전트 구성 용이</td></tr>
+        <tr><td class="tk">오케스트레이션</td><td>Python + asyncio</td><td>서브에이전트 병렬화. 자체 개발 역량으로 즉시 구현 가능</td></tr>
+        <tr><td class="tk">시장 데이터</td><td>yfinance / Polygon (옵션 IV)</td><td>내재확률 산출용. 무료→유료 단계 확장</td></tr>
+        <tr><td class="tk">예측시장 가격</td><td>Kalshi·Polymarket API</td><td>FOMC·선거류 질문의 시장내재확률 직접 조회</td></tr>
+        <tr><td class="tk">매크로 데이터</td><td>FRED API</td><td>금리·CPI·고용 base rate 라이브러리</td></tr>
+        <tr><td class="tk">예측 DB</td><td>PostgreSQL</td><td>불변 기록·Brier 산출·도메인 skill 집계</td></tr>
+        <tr><td class="tk">대시보드</td><td>HTML + Chart.js (다크·한국색상)</td><td>기존 dashboard_latest.html 체계와 통합</td></tr>
+        <tr><td class="tk">스케줄러/알림</td><td>cron + 텔레그램 봇</td><td>재예측 자동화 + 확률 급변 푸시</td></tr>
+      </tbody>
+    </table>
+    <div class="kbox">
+      <div class="kb"><div class="l">질문당 비용</div><div class="v cyan">$1.5~4</div><div class="d">상용($8) 대비 절감</div></div>
+      <div class="kb"><div class="l">월 운영비 (주30문항)</div><div class="v cyan">$200~500</div><div class="d">API+데이터</div></div>
+      <div class="kb"><div class="l">개발 공수</div><div class="v cyan">3~6주</div><div class="d">웹개발팀 1~2인 기준</div></div>
+      <div class="kb"><div class="l">1문항 소요</div><div class="v cyan">5~10분</div><div class="d">병렬 실행 시</div></div>
+    </div>
+  </div>
+</div>
+<!-- ============ 10 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">10</span><h2>구현 로드맵 — Phase 0~3</h2><span class="stag impl">IMPL</span></div>
+  <div class="panel">
+    <table class="stable">
+      <thead><tr><th class="c">Phase</th><th>기간</th><th>내용</th><th>완료 기준 (게이트)</th></tr></thead>
+      <tbody>
+        <tr><td class="c"><span class="pill p-p0">P0 수동</span></td><td class="tk">즉시~1주</td><td>Claude에 §06 프롬프트로 수동 예측 + 스프레드시트 기록. EXIT 트리거 7개 질문부터</td><td>질문 템플릿 확정, 첫 10개 예측 기록</td></tr>
+        <tr><td class="c"><span class="pill p-p1">P1 MVP</span></td><td class="tk">2~4주</td><td>Python 스캐폴드(서브에이전트 4종) + Postgres 로그 + 주간 자동 재예측</td><td>파이프라인 무인 동작, 30문항 축적</td></tr>
+        <tr><td class="c"><span class="pill p-p2">P2 앙상블+엣지</span></td><td class="tk">1~2개월</td><td>멀티모델 앙상블 + 옵션IV/Kalshi 내재확률 비교 + 대시보드 + 텔레그램 알림</td><td>해소 30개+ &amp; Brier &lt; 0.20</td></tr>
+        <tr><td class="c"><span class="pill p-p3">P3 검증·확장</span></td><td class="tk">3개월+</td><td>도메인 skill 분석 → 유능 도메인만 edge 시그널 활성화. (선택) 소액 실전</td><td>해소 50개+ &amp; Brier &lt; 0.18 &amp; 시장 대비 우위</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn">
+      <div class="ch">⚠️ 게이트의 의미 — 자금은 증명 후에</div>
+      P3 이전에는 <strong>어떤 예측도 실전 자금 결정의 단독 근거로 쓰지 않는다</strong>. 시스템이 자신의 캘리브레이션을 라이브로 증명(Brier &lt; 0.18, 50문항+)하기 전까지는 "참고 의견" 지위다. 이것이 기사 속 성공 사례들과 아마추어 실패를 가르는 규율이다.
+    </div>
+  </div>
+</div>
+<!-- ============ 11 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">11</span><h2>검증 프레임워크 — 라이브 포워드 only</h2><span class="stag risk">VERIFY</span></div>
+  <div class="panel">
+    <table class="stable">
+      <thead><tr><th>지표</th><th>정의</th><th class="c">목표</th><th>비교 기준</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">Brier Score</td><td>mean((p − outcome)²), 낮을수록 우수</td><td class="c up">&lt; 0.18</td><td>무지성 50%=0.25, 톱 인간≈0.12~0.15</td></tr>
+        <tr><td class="tk">캘리브레이션 커브</td><td>"70%라고 한 것들이 실제 70% 실현되나"</td><td class="c">기울기 1±0.15</td><td>과신/과소신 진단</td></tr>
+        <tr><td class="tk">시장 대비 우위</td><td>Brier(AI) vs Brier(시장내재확률)</td><td class="c up">AI &lt; 시장</td><td>edge가 진짜인지의 유일한 증거</td></tr>
+        <tr><td class="tk">도메인 skill</td><td>도메인별 Brier 분해</td><td class="c">실적·매크로 우수 기대</td><td>무능 도메인 자동 차단</td></tr>
+        <tr><td class="tk">발산도 추적</td><td>앙상블 σ와 오차의 상관</td><td class="c">σ↑ → 오차↑ 확인</td><td>σ를 신뢰도 지표로 승격</td></tr>
+      </tbody>
+    </table>
+    <div class="callout danger">
+      <div class="ch">🚨 백테스트 금지의 재확인</div>
+      "2024년 질문으로 테스트해보자"는 <strong>무효</strong>다 — LLM은 결과를 이미 안다. 유일한 검증은 <strong>예측 → 불변 기록 → 시간 경과 → 채점</strong>이다. 빠른 검증을 원하면 <strong>해소 주기가 짧은 질문(주간 경제지표, 실적 비트 여부)을 초기에 대량 투입</strong>해 표본을 빨리 쌓는다. 주 10문항 단기질문 운영 시 약 5~8주면 30문항 해소 도달.
+    </div>
+  </div>
+</div>
+<!-- ============ 12 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">12</span><h2>리스크 &amp; 한계 — 정직한 평가</h2><span class="stag risk">RISK</span></div>
+  <div class="panel">
+    <table class="stable">
+      <thead><tr><th>리스크</th><th>내용</th><th>완화</th></tr></thead>
+      <tbody>
+        <tr><td class="tk">① 시장 효율성</td><td>주식은 Kalshi보다 훨씬 효율적 — 옵션 IV엔 이미 집단지성 내재</td><td>목표를 "시장 이기기"가 아닌 "의사결정 확률화"로 설정</td></tr>
+        <tr><td class="tk">② 성과 주장의 불확실성</td><td>+25% 주장은 1개 업체·짧은 기간·운 가능성 (기사 스스로 명시)</td><td>P3 게이트 전 자금 미투입</td></tr>
+        <tr><td class="tk">③ LLM 편향</td><td>확증편향·최신뉴스 과대반영·질문 프레임 동조</td><td>데블스 에이전트 + 앙상블 + premortem 강제</td></tr>
+        <tr><td class="tk">④ 용량 소진</td><td>발견한 edge는 소진된다 (기사: Kalshi 사례)</td><td>edge를 상시 기대하지 않음, 임계치 10%p</td></tr>
+        <tr><td class="tk">⑤ 비용 폭주</td><td>재예측 주기 과밀 시 API 비용 급증</td><td>이벤트 트리거식 재예측, 월 예산 상한</td></tr>
+        <tr><td class="tk">⑥ 자동화 과신</td><td>시스템 확률을 맹신해 규율 붕괴</td><td>하드 룰(VIX·드로다운)은 확률과 무관하게 기계적 발동</td></tr>
+        <tr><td class="tk">⑦ 능력 상한 논쟁</td><td>예측엔 irreducible error가 있어 초인간화 불가 반론 존재</td><td>1년 내 데이터로 판명 — 시스템은 어느 쪽이든 유용</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<!-- ============ 13 ============ -->
+<div class="sec">
+  <div class="sec-head"><span class="sn">13</span><h2>결론 &amp; 다음 액션</h2><span class="stag core">NEXT</span></div>
+  <div class="panel">
+    <div class="lead-quote">기사가 증명한 것은 "AI가 주식으로 돈 번다"가 아니라 <span class="cyan">"AI가 이벤트 확률화에서 인간 톱에 도달했고, 금융 질문에서 특히 강하다"</span>는 것이다. 이 시스템은 그 검증된 능력을 나의 EXIT 의사결정에 직결시킨다.</div>
+    <p><span class="hl">이 설계의 차별점 3가지</span>: ① 검증된 영역(이벤트 예측)에 1차 목표를 두고, 미검증 영역(주가 초과수익)은 캘리브레이션 게이트 뒤로 배치했다. ② 기존 리스크 프레임(Half-Kelly, VIX·드로다운 하드룰)과 충돌 없이 <span class="hlg">조기경보 레이어</span>로 통합된다. ③ 자체 개발 역량으로 3~6주면 P1 MVP가 가능하고, 월 $200~500로 상시 운영된다.</p>
+    <table class="stable">
+      <thead><tr><th class="c">순서</th><th>즉시 실행 가능한 다음 액션</th></tr></thead>
+      <tbody>
+        <tr><td class="c tk">1</td><td>P0 시작 — §08의 EXIT 트리거 7개 질문을 §06 프롬프트로 첫 예측 (오늘 가능)</td></tr>
+        <tr><td class="c tk">2</td><td>예측 로그 시트 개설 — 질문·확률·근거·기한 불변 기록</td></tr>
+        <tr><td class="c tk">3</td><td>P1 착수 판단 — P0 1~2주 운영 후 자동화 가치 확인되면 개발 시작</td></tr>
+      </tbody>
+    </table>
+    <div class="callout ok">
+      <div class="ch">🎯 한 줄 결론</div>
+      <strong>"주가를 예측하는 기계"가 아니라 "나의 투자 판단을 확률의 언어로 번역하고, 캘리브레이션으로 스스로를 증명하는 기계"</strong>를 만든다. 기사의 기법 10가지 — 스캐폴드, base rate, 분해, 앙상블, 캘리브레이션 — 는 전부 이 한 문장을 위해 복무한다.
+    </div>
+  </div>
+</div>
+<div class="disc">
+  <strong>참고</strong>: 본 설계서는 Astral Codex Ten "The AI Superforecasters Are Here"(Scott Alexander, 2026.7.2)의 공개 정보를 기반으로 기법을 해부·재설계한 것입니다. FutureSearch·Preseen·Metaculus 관련 수치는 해당 기사 인용. 초과수익 주장은 검증되지 않았으며, 본 시스템은 투자 자문이 아닌 의사결정 보조 도구로 설계되었습니다. LLM 예측의 백테스트는 사전지식 오염으로 무효이며, 모든 성능 검증은 라이브 포워드 방식을 따릅니다.
+</div>
+</div>
+</body>
+</html>

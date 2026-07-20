@@ -1,0 +1,31 @@
+era_id,date,type,title,magnitude,cycle_month,source_url,note
+dotcom,1995-08-09,ipo,Netscape IPO,,-5,https://en.wikipedia.org/wiki/Netscape,버블 개막 관례 기점
+dotcom,1996-12-05,fed,그린스펀 비이성적 과열 발언,,11,https://www.federalreserve.gov/boarddocs/speeches/1996/19961205.htm,정점 39개월 전
+dotcom,1997-10-27,crash,아시아 위기 미니크래시,-7.2,21,https://en.wikipedia.org/wiki/October_27%2C_1997_mini-crash,다우 -7.2%
+dotcom,1998-08-31,crash,러시아·LTCM 급락,-8.6,31,https://en.wikipedia.org/wiki/1998_Russian_financial_crisis,나스닥 당일 -8.6%
+dotcom,1998-10-08,crash,LTCM 위기 저점,,33,https://en.wikipedia.org/wiki/Long-Term_Capital_Management,event 정렬 앵커 crisis_bottom
+dotcom,1998-09-29,fed,Fed 인하 1/3,,32,https://www.federalreserve.gov/fomc/,보험성 3연속 인하 개시
+dotcom,1998-11-03,geopolitics,중간선거,,34,https://en.wikipedia.org/wiki/1998_United_States_elections,event 정렬 앵커 midterm
+dotcom,1998-11-17,fed,Fed 인하 3/3,,34,https://www.federalreserve.gov/fomc/,인하 종료 → 멜트업
+dotcom,1999-06-30,fed,Fed 인상 개시,,41,https://www.federalreserve.gov/fomc/,정점 8.3개월 전
+dotcom,1999-11-01,product,Y2K 대비 유동성 공급,,46,https://en.wikipedia.org/wiki/Year_2000_problem,
+dotcom,2000-01-10,credit,AOL-타임워너 합병 발표,,48,https://en.wikipedia.org/wiki/AOL_Time_Warner,정점 2개월 전 과열 신호
+dotcom,2000-03-10,crash,나스닥 정점 5048.62,,50,https://en.wikipedia.org/wiki/Dot-com_bubble,M+50
+dotcom,2000-03-20,regulation,Barron's Burning Up 기사,,50,https://www.barrons.com/,닷컴 현금소진 폭로
+dotcom,2000-04-03,regulation,MS 반독점 판결,-7.6,51,https://en.wikipedia.org/wiki/United_States_v._Microsoft_Corp.,나스닥 당일 -7.6%
+dotcom,2002-10-09,crash,나스닥 바닥 1114.11,,81,https://en.wikipedia.org/wiki/Dot-com_bubble,-78.4%
+ai,2022-11-30,product,ChatGPT 공개,,-2,https://en.wikipedia.org/wiki/ChatGPT,AI 사이클 점화
+ai,2023-01-31,product,AI M+0 앵커,,0,https://finance.yahoo.com/quote/%5EIXIC/,11584.55
+ai,2023-05-24,product,NVDA 데이터센터 가이던스 쇼크,,4,https://www.nvidia.com/,AI capex 슈퍼사이클 개막
+ai,2025-01-27,crash,DeepSeek 쇼크,-3.1,24,https://en.wikipedia.org/wiki/DeepSeek,NVDA -17%
+ai,2025-04-08,crash,관세 쇼크 저점,,27,https://en.wikipedia.org/wiki/Tariffs_in_the_second_Trump_administration,사이클 최대 MDD -24.32% (event 정렬 후보 crisis_bottom)
+ai,2026-06-02,product,나스닥 ATH 27093.90,,41,https://finance.yahoo.com/quote/%5EIXIC/,현 사이클 고점
+ai,2026-06-05,crash,Broadcom 쇼크,-2.4,41,https://finance.yahoo.com/,AI 밸류 재평가
+ai,2026-06-08,ipo,OpenAI 기밀 S-1 제출 보도,,41,https://www.reuters.com/,IPO 2027 연기
+ai,2026-06-11,ipo,SpaceX 상장,,41,https://www.reuters.com/,메가 IPO — Q5 과열지수 입력
+ai,2026-07-06,crash,삼성 실적발 반도체 급락,,42,https://finance.yahoo.com/,SOXX 이틀 -12.9%
+ai,2026-07-10,ipo,SK하이닉스 미국 상장,,42,https://www.reuters.com/,
+ai,2026-07-13,geopolitics,이란 호르무즈 봉쇄 위협,,42,https://www.reuters.com/,유가 급등
+ai,2026-07-14,fed,6월 CPI 3.5% 감속,,42,https://www.bls.gov/news.release/cpi.nr0.htm,인상 우려 후퇴
+ai,2026-08-26,product,NVDA 실적 (예정),,43,https://investor.nvidia.com/,
+ai,2026-11-03,geopolitics,중간선거 (예정),,46,https://en.wikipedia.org/wiki/2026_United_States_elections,event 정렬 앵커 midterm

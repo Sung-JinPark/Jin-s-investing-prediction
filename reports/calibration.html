@@ -1,0 +1,61 @@
+<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
+<title>ai-fc 캘리브레이션</title><style>
+:root{--bg:#0a0e1a;--card:#131827;--border:#2a3553;--text:#e8ecf5;--muted:#8b95ad;
+--cyan:#22d3ee;--ok:#34d399;--warn:#fbbf24;--bad:#ef4444;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Malgun Gothic',system-ui,sans-serif;
+padding:30px;max-width:1000px;margin:0 auto;line-height:1.6}
+h1{font-size:22px;margin-bottom:4px}h2{font-size:15px;color:var(--cyan);margin:26px 0 10px}
+.sub{color:var(--muted);font-size:12px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 22px;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{text-align:left;color:var(--cyan);padding:6px 10px;font-size:11px}
+td{padding:6px 10px;border-top:1px solid var(--border)}
+.bar{height:14px;background:var(--cyan);border-radius:3px;display:inline-block;vertical-align:middle}
+.bar.ref{background:var(--muted);opacity:.4}
+.gate{display:inline-block;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:700;margin-right:8px}
+.pass{background:rgba(52,211,153,.2);color:var(--ok)}
+.fail{background:rgba(251,191,36,.15);color:var(--warn)}
+.blocked{color:var(--bad);font-weight:700}
+.note{font-size:11px;color:var(--muted);margin-top:8px}
+</style></head><body>
+<h1>캘리브레이션 대시보드</h1>
+<p class="sub">생성 2026-07-20 13:48 · 예측 21건 · 해소 2건 ·
+이달 비용 $6.88 / $100</p>
+
+<div class="card"><span class="gate fail">P2 게이트 (30+/&lt;0.20): 미달</span> <span class="gate fail">P3 게이트 (50+/&lt;0.18): 미달</span>
+<p style="margin-top:10px">전체 Brier: <b>0.2708</b>
+<span class="sub">(무지성 50% = 0.25 · 톱 인간 ≈ 0.12~0.15)</span></p>
+<p class="note">v_brier_primary (n=2, 제외 0건: failed) — 원장은 전량 채점 유지, 게이트 산정식 무변경</p>
+<p class="note">rolling Brier(윈도우 10): 표본 부족 (3+ 필요)</p>
+<p class="note">섀도 기록 표본 없음 (신규 예측부터 축적)</p><p class="note">⚠ 표본 30 미만 — 통계적으로 미성숙. 모든 수치는 참고용.</p></div>
+
+<h2>신뢰도 다이어그램 (캘리브레이션 커브) — "70%라고 한 것들이 실제 70% 실현되나"</h2>
+<div class="card"><table>
+<tr><th>확률 구간</th><th>n</th><th>평균 예측</th><th>실현율</th></tr><tr><td>40~49%</td><td>1</td><td><span class="bar" style="width:138px"></span> 46%</td><td><span class="bar" style="width:300px"></span> 100%</td></tr><tr><td>50~59%</td><td>1</td><td><span class="bar" style="width:150px"></span> 50%</td><td><span class="bar" style="width:2px"></span> 0%</td></tr></table>
+<p class="note">⚠ 표본 5 미만 — 다이어그램 해석 불가 구간 (빈 10개는 표본 5+부터 유의미). rolling 질문의 겹치는 윈도우는 독립 표본이 아님.</p></div>
+
+<h2>Murphy 분해 — Brier = Reliability − Resolution + Uncertainty</h2>
+<div class="card"><table>
+<tr><th>도메인</th><th>n</th><th>Brier</th><th>REL (낮을수록 보정 좋음)</th>
+<th>RES (높을수록 판별력)</th><th>UNC</th></tr><tr><td>(전체)</td><td>2</td><td>0.2708</td><td>0.2708</td><td>0.2500</td><td>0.2500</td></tr><tr><td>market-daily</td><td>2</td><td>0.2708</td><td>0.2708</td><td>0.2500</td><td>0.2500</td></tr></table>
+<p class="note">표시 계층 — 게이트 무관. 표본 소수 구간에선 분해가 불안정.</p></div>
+<h2>드라이버 일관성 점검 (WS9) — 조건부 정합은 사람 판단</h2><div class="card"><h3 style='color:var(--cyan);font-size:13px;margin:14px 0 6px'>ai-capex-cycle (15문) <span class="gate fail">점검 후보 — 그룹 내 확률 폭 큼 (정합 여부는 사람 판단)</span></h3><table><tr><th>질문</th><th>제목</th><th>최신 확률</th><th>기한/주기</th></tr><tr><td>nvda-dc-beat-2026aug</td><td>NVDA 8/26 실적 — DC매출 컨센서스 +5% 상회</td><td>20%</td><td>2026-08-26</td></tr><tr><td>mu-margin-qoq-next</td><td>MU 차기 실적 — 총마진 QoQ 하락</td><td>7%</td><td>2026-09-29</td></tr><tr><td>soxx-eoy-down15</td><td>SOXX 연말 종가 — 기준가 대비 −15% 이하</td><td>24%</td><td>2026-12-31</td></tr><tr><td>nvda-beat-any-2026aug</td><td>NVDA 8/26 실적 — 총매출 컨센 상회 (폭 무관)</td><td>—%</td><td>2026-08-26</td></tr><tr><td>nasdaq-ath-eoy-2026</td><td>NASDAQ — 연말까지 사이클 ATH(27,093.90) 종가 경신</td><td>62%</td><td>2026-12-31</td></tr><tr><td>nasdaq-corr10-augoct-2026</td><td>NASDAQ — 8~10월 중 고정 임계(−10%) 하회</td><td>57%</td><td>2026-10-31</td></tr><tr><td>nasdaq-eoy-above-jul9-2026</td><td>NASDAQ — 연말 종가 > 7/9 종가(26,206.89)</td><td>63%</td><td>2026-12-31</td></tr><tr><td>amd-eps-beat-2026q2</td><td>AMD Q2 2026 — 조정 EPS 컨센 상회</td><td>—%</td><td>2026-08-04</td></tr><tr><td>avgo-eps-beat-fq3-2026</td><td>AVGO FQ3 2026 — 조정 EPS 컨센 상회</td><td>—%</td><td>2026-09-03</td></tr><tr><td>asml-eps-beat-2026q3</td><td>ASML Q3 2026 — EPS 컨센 상회</td><td>—%</td><td>2026-10-14</td></tr><tr><td>tsmc-eps-beat-2026q3</td><td>TSMC Q3 2026 — EPS 컨센 상회</td><td>—%</td><td>2026-10-15</td></tr><tr><td>msft-eps-beat-fy27q1</td><td>MSFT FY27 Q1 — 조정 EPS 컨센 상회</td><td>—%</td><td>2026-10-28</td></tr><tr><td>googl-eps-beat-2026q3</td><td>GOOGL Q3 2026 — EPS 컨센 상회</td><td>—%</td><td>2026-10-28</td></tr><tr><td>meta-eps-beat-2026q3</td><td>META Q3 2026 — EPS 컨센 상회</td><td>—%</td><td>2026-10-28</td></tr><tr><td>amzn-eps-beat-2026q3</td><td>AMZN Q3 2026 — EPS 컨센 상회</td><td>—%</td><td>2026-10-29</td></tr></table><h3 style='color:var(--cyan);font-size:13px;margin:14px 0 6px'>fed-path (7문) <span class="gate fail">점검 후보 — 그룹 내 확률 폭 큼 (정합 여부는 사람 판단)</span></h3><table><tr><th>질문</th><th>제목</th><th>최신 확률</th><th>기한/주기</th></tr><tr><td>vix-25-90d</td><td>90일 내 VIX 종가 25 상회 (rolling)</td><td>42%</td><td>일 1회 (P0에서는 주 2회로 완화)</td></tr><tr><td>fomc-2026-10-28-hike</td><td>10/28 FOMC — 25bp 이상 인상</td><td>48%</td><td>2026-10-28</td></tr><tr><td>fomc-2026-07-29-hike</td><td>7/29 FOMC — 25bp 이상 인상</td><td>6%</td><td>2026-07-29</td></tr><tr><td>nasdaq-ath-eoy-2026</td><td>NASDAQ — 연말까지 사이클 ATH(27,093.90) 종가 경신</td><td>62%</td><td>2026-12-31</td></tr><tr><td>nasdaq-corr10-augoct-2026</td><td>NASDAQ — 8~10월 중 고정 임계(−10%) 하회</td><td>57%</td><td>2026-10-31</td></tr><tr><td>nasdaq-eoy-above-jul9-2026</td><td>NASDAQ — 연말 종가 > 7/9 종가(26,206.89)</td><td>63%</td><td>2026-12-31</td></tr><tr><td>cpi-jul2026-reaccel</td><td>7월분 CPI — 헤드라인 YoY 3.8% 이상 재가속</td><td>—%</td><td>2026-08-12</td></tr></table><h3 style='color:var(--cyan);font-size:13px;margin:14px 0 6px'>memory-cycle (2문)</h3><table><tr><th>질문</th><th>제목</th><th>최신 확률</th><th>기한/주기</th></tr><tr><td>mu-margin-qoq-next</td><td>MU 차기 실적 — 총마진 QoQ 하락</td><td>7%</td><td>2026-09-29</td></tr><tr><td>soxx-eoy-down15</td><td>SOXX 연말 종가 — 기준가 대비 −15% 이하</td><td>24%</td><td>2026-12-31</td></tr></table><h3 style='color:var(--cyan);font-size:13px;margin:14px 0 6px'>midterm-2026 (3문)</h3><table><tr><th>질문</th><th>제목</th><th>최신 확률</th><th>기한/주기</th></tr><tr><td>nasdaq-ath-eoy-2026</td><td>NASDAQ — 연말까지 사이클 ATH(27,093.90) 종가 경신</td><td>62%</td><td>2026-12-31</td></tr><tr><td>nasdaq-corr10-augoct-2026</td><td>NASDAQ — 8~10월 중 고정 임계(−10%) 하회</td><td>57%</td><td>2026-10-31</td></tr><tr><td>nasdaq-eoy-above-jul9-2026</td><td>NASDAQ — 연말 종가 > 7/9 종가(26,206.89)</td><td>63%</td><td>2026-12-31</td></tr></table><h3 style='color:var(--cyan);font-size:13px;margin:14px 0 6px'>vol-regime (1문)</h3><table><tr><th>질문</th><th>제목</th><th>최신 확률</th><th>기한/주기</th></tr><tr><td>vix-25-90d</td><td>90일 내 VIX 종가 25 상회 (rolling)</td><td>42%</td><td>일 1회 (P0에서는 주 2회로 완화)</td></tr></table><p class="note">같은 드라이버를 공유하는 질문들의 최신 확률 나열 — 자동 판정 없음. 참고 의견 (P3 게이트 전).</p></div>
+
+<h2>벤치마크 3자 비교 — LLM vs ML앙상블 vs 시장내재 (쌍대 표본만)</h2>
+<div class="card"><table>
+<tr><th>비교</th><th>쌍대 n</th><th>LLM Brier</th><th>비교대상 Brier</th><th>판정</th></tr><tr><td colspan="5">쌍대 표본 없음 (비교 대상 기록이 있는 해소 0건)</td></tr></table>
+<p class="note">원본: calibration/benchmark_ledger.csv (append-only). 비교 대상 부재 해소는 NULL로 제외 —
+불공정 비교 차단. edge 주장은 P3 게이트 + 쌍대 표본 축적 후에만. 참고 의견 (P3 게이트 전).</p></div>
+
+<h2>도메인별 Brier</h2>
+<div class="card"><table>
+<tr><th>도메인</th><th>n</th><th>Brier</th><th>낮을수록 우수</th></tr><tr><td>(전체)</td><td>2</td><td>0.2708</td><td><span class="bar" style="width:217px"></span></td></tr><tr><td>market-daily</td><td>2</td><td>0.2708</td><td><span class="bar" style="width:217px"></span></td></tr></table></div>
+
+<h2>도메인 skill — 무능 도메인 자동 차단 (Brier&gt;0.22 & n≥10)</h2>
+<div class="card"><table>
+<tr><th>도메인</th><th>n</th><th>Brier</th><th>상태</th></tr><tr><td>market-daily</td><td>2</td><td>0.2708</td><td>표본 부족</td></tr></table></div>
+
+<p class="note">본 대시보드는 파생 인덱스에서 생성됨 — 원본은 calibration/ledger.csv.
+P3 게이트 통과 전 모든 예측은 참고 의견.</p>
+</body></html>

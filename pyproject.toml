@@ -1,0 +1,40 @@
+# ai-fc 루트 프로젝트 선언 (v2 구조 개편 2026-07-20 — HF/업계 벤치마킹 기반)
+# 원칙: 파일 이동 0건 — src/ai_fc·dualdb/dualdb 현 위치 그대로 선언만 추가.
+# 기존 실행 경로(cd src && python -m ai_fc)와 uv run ai-fc 병존.
+# 주의: 휠(비-editable) 배포 금지 — config.py의 __file__ 루트 앵커가 파손됨 (벤치마킹 B-1).
+
+[project]
+name = "ai-fc"
+version = "0.2.0"
+description = "AI Superforecaster — 시장 이벤트 확률화 엔진 (P1, 참고 의견 — P3 게이트 전)"
+requires-python = ">=3.12"
+dependencies = [
+    "typer",
+    "anthropic",
+    "pydantic>=2",
+    "pyyaml",
+    "python-frontmatter",
+    "numpy",
+    "scipy",
+]
+
+[project.optional-dependencies]
+# 오픈웨이트 추론 레이어 (ai_fc ml) — 추론 전용, 학습 금지 (CLAUDE.md ML 게이트)
+ml = [
+    "torch",
+    "transformers",
+    "chronos-forecasting",
+]
+
+[project.scripts]
+ai-fc = "ai_fc.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.7,<1"]
+build-backend = "uv_build"          # 기본 module-root="src" → src/ai_fc 무이동 인식
+
+[tool.uv.workspace]
+members = ["dualdb"]
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests", "dualdb/tests"]

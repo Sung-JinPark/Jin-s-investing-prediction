@@ -1,0 +1,42 @@
+# dualdb 설정 — 시리즈 목록·앵커·경로 (코드 하드코딩 금지)
+anchors:
+  dotcom: { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09" }
+  ai:     { anchor_month: "2023-01", peak_date: null, bottom_date: null }
+
+paths:
+  db: db/dualdb.sqlite
+  raw: data/raw
+  seeds: data/seeds
+  reports: reports
+
+fred:
+  daily:   [NASDAQCOM, VIXCLS, DFF, DGS10, DGS2, T10Y2Y, BAMLH0A0HYM2, NFCI]
+  monthly: [FEDFUNDS, M2SL, CPIAUCSL, UNRATE, PAYEMS]
+
+# 지수 일간 백본 — Yahoo (Stooq는 JS 검증 벽으로 차단, CHANGELOG #6)
+yahoo_indices:
+  "^IXIC": "^IXIC"
+  "^SPX":  "^GSPC"
+  "^NDX":  "^NDX"
+  "^SOX":  "^SOX"
+  "^VIX":  "^VIX"
+  "^TNX":  "^TNX"   # 10y 수익률×10 — FRED DGS10 차단 시 금리 문맥 보조 (CHANGELOG #7)
+
+# Stooq 상폐종목 복원(yhoo.us 등)은 JS 벽으로 불가 — data_gap 기록 (원칙 3)
+stooq: {}
+
+yahoo_daily:
+  # 트윈 12 + AI측 — 상장~현재 전기간 (range=max)
+  [MSFT, INTC, CSCO, ORCL, QCOM, AMAT, KLAC, ASML, MU, TXN, IBM, AMZN,
+   NVDA, AVGO, TSM, AMD, MRVL, META, GOOGL, SMH, PLTR, VRT, CEG, EQIX]
+
+ritter:
+  page: "https://site.warrington.ufl.edu/ritter/ipo-data/"
+
+shiller:
+  url: "http://www.econ.yale.edu/~shiller/data/ie_data.xls"
+
+request:
+  delay_sec: 1.0
+  retries: 3
+  timeout: 60

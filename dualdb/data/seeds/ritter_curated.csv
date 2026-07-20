@@ -1,0 +1,15 @@
+year,ipo_count,tech_count,mean_first_day_ret,pct_negative_eps,proceeds_bil,source
+1995,461,205,21.5,33,30.2,site.warrington.ufl.edu/ritter/ipo-data/ IPO Statistics (근사 큐레이션 2026-07-15)
+1996,677,276,17.2,39,42.5,site.warrington.ufl.edu/ritter/ipo-data/
+1997,474,174,14.0,42,33.3,site.warrington.ufl.edu/ritter/ipo-data/
+1998,281,113,21.9,54,34.6,site.warrington.ufl.edu/ritter/ipo-data/
+1999,476,370,71.2,72,64.9,site.warrington.ufl.edu/ritter/ipo-data/ — 테크 IPO 적자비율 86%
+2000,380,260,56.3,80,64.8,site.warrington.ufl.edu/ritter/ipo-data/
+2001,80,24,14.2,49,34.2,site.warrington.ufl.edu/ritter/ipo-data/
+2002,66,20,9.1,42,22.0,site.warrington.ufl.edu/ritter/ipo-data/
+2003,63,18,11.7,44,15.2,site.warrington.ufl.edu/ritter/ipo-data/
+2021,311,126,32.1,79,118.5,site.warrington.ufl.edu/ritter/ipo-data/ — SPAC 제외 operating IPO
+2022,38,6,26.0,74,7.7,site.warrington.ufl.edu/ritter/ipo-data/
+2023,54,10,11.9,72,11.7,site.warrington.ufl.edu/ritter/ipo-data/
+2024,61,13,15.3,68,15.8,site.warrington.ufl.edu/ritter/ipo-data/
+2025,102,31,22.4,66,28.0,site.warrington.ufl.edu/ritter/ipo-data/ + 보도 종합 (근사)

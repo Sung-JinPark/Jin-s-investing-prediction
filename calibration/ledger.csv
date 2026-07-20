@@ -1,0 +1,3 @@
+resolved_date,question_id,forecast_id,forecast_date,probability,outcome,brier,domain,notes
+2026-07-10,spx-up-2026-07-08,2026-07-08_spx-up-2026-07-08_r1,2026-07-08,50,0,0.25,market-daily,Yahoo ^GSPC 공식 종가: 7/8=7482.71 < 7/7=7503.85 (2026-07-10 확인)
+2026-07-10,soxx-up-2026-07-08,2026-07-08_soxx-up-2026-07-08_r1,2026-07-08,46,1,0.2916,market-daily,Yahoo SOXX 공식 종가: 7/8=562.03 > 기준가 551.69 (2026-07-10 확인)

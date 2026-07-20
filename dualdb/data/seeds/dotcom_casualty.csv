@@ -1,0 +1,26 @@
+name,role_code,peak_mcap_bil,peak_date,outcome,months_after_index_peak,source
+Pets.com,app,0.4,2000-02,bankrupt,8,https://en.wikipedia.org/wiki/Pets.com
+Webvan,app,7.9,1999-12,bankrupt,16,https://en.wikipedia.org/wiki/Webvan
+eToys,app,10.3,1999-10,bankrupt,12,https://en.wikipedia.org/wiki/EToys.com
+Exodus Communications,infra_rent,32,2000-03,bankrupt,18,https://en.wikipedia.org/wiki/Exodus_Communications
+WorldCom,overbuild,186,1999-06,bankrupt,28,https://en.wikipedia.org/wiki/MCI_Inc.
+Global Crossing,overbuild,47,2000-02,bankrupt,22,https://en.wikipedia.org/wiki/Global_Crossing
+NorthPoint Communications,overbuild,2.4,2000-03,bankrupt,10,https://en.wikipedia.org/wiki/NorthPoint_Communications
+Covad,overbuild,4.9,2000-03,bankrupt,17,https://en.wikipedia.org/wiki/Covad
+PSINet,infra_rent,5.3,2000-03,bankrupt,15,https://en.wikipedia.org/wiki/PSINet
+Excite@Home,app,35,1999-04,bankrupt,18,https://en.wikipedia.org/wiki/Excite%40Home
+theGlobe.com,app,0.84,1998-11,bankrupt,17,https://en.wikipedia.org/wiki/TheGlobe.com
+drkoop.com,app,1.0,1999-07,acquired_distress,21,https://en.wikipedia.org/wiki/Drkoop.com
+Boo.com,app,0.39,1999-11,bankrupt,2,https://en.wikipedia.org/wiki/Boo.com
+Kozmo.com,app,0.3,2000-03,bankrupt,13,https://en.wikipedia.org/wiki/Kozmo.com
+Flooz.com,app,0.05,1999-11,bankrupt,17,https://en.wikipedia.org/wiki/Flooz.com
+GeoCities,app,4.6,1999-01,acquired_distress,-10,https://en.wikipedia.org/wiki/GeoCities
+Broadcast.com,app,5.0,1999-04,acquired_distress,-11,https://en.wikipedia.org/wiki/Broadcast.com
+Lucent,network,258,1999-12,minus95,31,https://en.wikipedia.org/wiki/Lucent
+Nortel,network,283,2000-09,minus95,31,https://en.wikipedia.org/wiki/Nortel
+JDS Uniphase,network,106,2000-03,minus95,31,https://en.wikipedia.org/wiki/JDSU
+Sun Microsystems,platform,200,2000-09,minus95,31,https://en.wikipedia.org/wiki/Sun_Microsystems
+Cisco,anchor,555,2000-03,minus95,31,https://en.wikipedia.org/wiki/Cisco (생존 — 정점후 -89%)
+Intel,foundry,500,2000-08,minus95,31,https://en.wikipedia.org/wiki/Intel (생존 — 정점후 -82%)
+Amazon,app,36,1999-12,minus95,18,https://en.wikipedia.org/wiki/Amazon_(company) (생존 — -94%)
+Yahoo,app,125,2000-01,minus95,18,https://en.wikipedia.org/wiki/Yahoo (생존 — -97%)

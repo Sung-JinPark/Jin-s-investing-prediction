@@ -1,0 +1,20 @@
+# 라인엔딩 표준화 (v2 구조 개편 2026-07-20 — 벤치마킹 ②-4)
+# 주의: git add --renormalize는 실행하지 않았다 — 불변 경로 보호 우선.
+* text=auto
+*.py   text eol=lf
+*.md   text eol=lf
+*.yaml text eol=lf
+*.yml  text eol=lf
+*.csv  text eol=lf
+*.sql  text eol=lf
+*.html text eol=lf
+*.toml text eol=lf
+*.bat  text eol=crlf
+*.zip  binary
+*.jsonl -text
+
+# 불변/원장 경로: 바이트 보존 — EOL 변환 금지 (해시 앵커 .hashes 보호)
+# 신규 클론에서 autocrlf가 forecasts를 CRLF로 바꿔 E1 오탐을 내는 것을 차단한다.
+forecasts/**       -text
+calibration/**     -text
+data/ml_history/** -text

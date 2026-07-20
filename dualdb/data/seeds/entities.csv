@@ -1,0 +1,33 @@
+era_id,ticker,name,role_code,status,data_ticker,is_twin,survivorship_note,source_note
+dotcom,CSCO,Cisco Systems,anchor,alive,CSCO,1,생존자 — 정점후 -89%,yahoo
+dotcom,INTC,Intel,foundry,alive,INTC,1,생존자 — 정점후 -82%,yahoo
+dotcom,MSFT,Microsoft,platform,alive,MSFT,1,생존자,yahoo
+dotcom,ORCL,Oracle,platform,alive,ORCL,1,생존자,yahoo
+dotcom,IBM,IBM,platform,alive,IBM,1,생존자,yahoo
+dotcom,QCOM,Qualcomm,network,alive,QCOM,1,생존자 — 1999년 +2619%,yahoo
+dotcom,AMAT,Applied Materials,equip,alive,AMAT,1,생존자,yahoo
+dotcom,KLAC,KLA,equip,alive,KLAC,1,생존자,yahoo
+dotcom,ASML,ASML,equip,alive,ASML,1,생존자 — 1995 상장,yahoo
+dotcom,MU,Micron,memory,alive,MU,1,생존자 — 2000정점후 -90% 최우선 base rate,yahoo
+dotcom,TXN,Texas Instruments,network,alive,TXN,1,생존자,yahoo
+dotcom,AMZN,Amazon,app,alive,AMZN,1,생존자 — 정점후 -94%,yahoo
+dotcom,YHOO,Yahoo,app,acquired,yhoo.us,0,-97% 후 2017 Verizon 피인수 — stooq 복원 시도,stooq
+dotcom,JDSU,JDS Uniphase,network,renamed,viav.us,0,-99% — VIAV로 개명,stooq
+dotcom,AOL,America Online,app,acquired,aol.us,0,TW 합병 — stooq 복원 시도,stooq
+dotcom,LU,Lucent,network,dead,,0,일간 무료 데이터 없음 — data_gap,curated
+dotcom,NT,Nortel,network,dead,,0,일간 무료 데이터 없음 — data_gap,curated
+dotcom,WCOM,WorldCom,overbuild,dead,,0,2002 파산 — 일간 무료 데이터 없음,curated
+dotcom,GBLX,Global Crossing,overbuild,dead,,0,2002 파산 — 일간 무료 데이터 없음,curated
+dotcom,EXDS,Exodus Communications,infra_rent,dead,,0,2001 파산 — 일간 무료 데이터 없음,curated
+ai,NVDA,NVIDIA,anchor,alive,NVDA,1,,yahoo
+ai,AVGO,Broadcom,network,alive,AVGO,0,,yahoo
+ai,TSM,TSMC ADR,foundry,alive,TSM,0,,yahoo
+ai,AMD,AMD,anchor,alive,AMD,0,,yahoo
+ai,MRVL,Marvell,network,alive,MRVL,0,,yahoo
+ai,META,Meta,platform,alive,META,0,,yahoo
+ai,GOOGL,Alphabet,platform,alive,GOOGL,0,,yahoo
+ai,SMH,VanEck Semis ETF,equip,alive,SMH,0,섹터 프록시,yahoo
+ai,PLTR,Palantir,app,alive,PLTR,0,,yahoo
+ai,VRT,Vertiv,overbuild,alive,VRT,0,DC 전력·냉각,yahoo
+ai,CEG,Constellation Energy,power,alive,CEG,0,원전 전력,yahoo
+ai,EQIX,Equinix,infra_rent,alive,EQIX,0,,yahoo

@@ -1,0 +1,705 @@
+version: 1
+updated: 2026-07-20
+questions:
+- id: nvda-dc-beat-2026aug
+  drivers: [ai-capex-cycle]
+  title: NVDA 8/26 실적 — DC매출 컨센서스 +5% 상회
+  question: 'NVIDIA가 2026-08-26(예정) 발표하는 분기 실적에서 Data Center 부문 매출이, 발표 직전 시점의 애널리스트 컨센서스 추정치를 +5% 이상
+    상회할 확률은?
+
+    '
+  deadline: 2026-08-26
+  resolution: 'YES = 발표된 DC 매출 >= 컨센서스 x 1.05. 컨센서스 기준: 발표일 D-1 시점 주요 집계(Visible Alpha/Bloomberg 컨센, 접근
+    불가 시 주요 언론이 인용한 컨센 중앙값)를 예측 기록에 스냅샷해 둔 값.
+
+    '
+  resolution_source: NVIDIA IR 보도자료 + 발표 전 컨센 스냅샷(예측 파일에 기록)
+  domain: earnings
+  cadence: D-30부터 주 2회
+  action_link: 반도체 사이클 분수령 판단
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+  - from: D-30
+    per_week: 2
+- id: mu-margin-qoq-next
+  tier: standard
+  drivers: [ai-capex-cycle, memory-cycle]
+  title: MU 차기 실적 — 총마진 QoQ 하락
+  question: 'Micron이 다음 분기 실적 발표에서 보고하는 GAAP 총마진(%)이 직전 분기 대비(QoQ) 하락할 확률은?
+
+    '
+  deadline: 2026-09-29
+  resolution: 'YES = 차기 발표 GAAP gross margin < 직전 분기 GAAP gross margin. 가이던스가 아닌 실제 보고치 기준. non-GAAP 병기
+    시에도 GAAP 우선.
+
+    '
+  resolution_source: Micron IR 보도자료 (10-Q/8-K)
+  domain: earnings
+  cadence: 실적 D-30부터 주 2회
+  action_link: 메모리 마진 반전 EXIT 트리거 (조기경보)
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+  - from: D-30
+    per_week: 2
+- id: vix-25-90d
+  tier: standard
+  drivers: [vol-regime, fed-path]
+  title: 90일 내 VIX 종가 25 상회 (rolling)
+  question: '예측일로부터 90일(달력일) 이내에 VIX 지수가 종가 기준 25.00을 1회 이상 상회할 확률은?
+
+    '
+  deadline: rolling-90d
+  resolution: YES = 윈도우 내 CBOE VIX 일간 종가 > 25.00 이 1일 이상 존재
+  resolution_source: CBOE 공식 VIX 종가 데이터
+  domain: volatility
+  cadence: 일 1회 (P0에서는 주 2회로 완화)
+  action_link: VIX 25+ 하드룰 조기경보 — 룰 자체는 기계적 유지
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 2
+- id: fomc-2026-10-28-hike
+  tier: standard
+  drivers: [fed-path]
+  title: 10/28 FOMC — 25bp 이상 인상
+  question: '2026-10-28 종료되는 FOMC 회의에서 연준이 연방기금금리 목표범위를 25bp 이상 인상할 확률은?
+
+    '
+  deadline: 2026-10-28
+  resolution: YES = FOMC 성명서 기준 목표범위 상단이 직전 대비 +25bp 이상
+  resolution_source: Federal Reserve 공식 성명서
+  domain: macro
+  cadence: 주 1회, D-14부터 일 1회
+  action_link: 9~10월 조정 시나리오 검증
+  status: active
+  created: 2026-07-08
+  notes: 회의 일정 2026-10-27~28 확인 완료 (Fed 공식 캘린더, r1 리서치 2026-07-08)
+  schedule:
+  - per_week: 1
+  - from: D-14
+    per_week: 3
+- id: openai-s1-2027h1
+  title: OpenAI Public S-1 — 2027-06-30까지
+  question: 'OpenAI(또는 그 상장 목적 지주회사)가 2027-06-30까지 미국 SEC에 공개 S-1(또는 직상장/SPAC 등 동등한 공개 상장 서류)을 제출할 확률은?
+
+    '
+  deadline: 2027-06-30
+  resolution: 'YES = SEC EDGAR에 공개 S-1/F-1 또는 직상장 등록서류 접수 확인. 비공개(confidential) 제출 보도만으로는 NO — 공개 파일링
+    기준.
+
+    '
+  resolution_source: SEC EDGAR
+  domain: corporate-event
+  cadence: 주 1회 + 뉴스 트리거
+  action_link: EXIT 타이밍 조기경보
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+- id: soxx-eoy-down15
+  tier: standard
+  drivers: [ai-capex-cycle, memory-cycle]
+  title: SOXX 연말 종가 — 기준가 대비 −15% 이하
+  question: 'SOXX(iShares Semiconductor ETF)의 2026년 마지막 거래일 종가가 기준가(reference price) 대비 −15% 이하일 확률은?
+
+    '
+  deadline: 2026-12-31
+  resolution: 'YES = 2026년 최종 거래일 SOXX 종가 <= 기준가 x 0.85. 기준가 = 첫 예측 실행일의 직전 거래일 종가 (첫 예측 파일에 스냅샷 — 이후
+    변경 금지).
+
+    '
+  resolution_source: 거래소 공식 종가
+  domain: market-regime
+  cadence: 주 1회
+  action_link: 익스포저 조정 판단
+  status: active
+  created: 2026-07-08
+  notes: '기준가 확정: $551.69 (2026-07-07 종가, r1 스냅샷 2026-07-08) → 임계값 $468.94. 이후 변경 금지'
+  schedule:
+  - per_week: 1
+- id: fomc-2026-07-29-hike
+  tier: standard
+  drivers: [fed-path]
+  title: 7/29 FOMC — 25bp 이상 인상
+  question: '2026-07-29 종료되는 FOMC 회의에서 연준이 연방기금금리 목표범위를 25bp 이상 인상할 확률은?
+
+    '
+  deadline: 2026-07-29
+  resolution: YES = FOMC 성명서 기준 목표범위 상단이 직전(3.50~3.75%) 대비 +25bp 이상
+  resolution_source: Federal Reserve 공식 성명서
+  domain: macro
+  cadence: D-14 이내 — 주 2회
+  action_link: 10/28 질문의 선행 정보 + 최초 초단기 채점 표본 (해소 3주)
+  status: active
+  created: 2026-07-08
+  notes: 시장내재확률 존재 (FedWatch 7/7 기준 인상 ~26.6%) — market_implied 기록 대상
+  schedule:
+  - per_week: 2
+- id: cpi-jun2026-accel
+  title: 6월분 CPI — 헤드라인 YoY 5월치(4.2%) 상회
+  question: '2026년 7월 중순 발표되는 6월분 CPI에서 헤드라인 YoY(%)가 5월분 확정치 4.2%를 상회할 확률은?
+
+    '
+  deadline: 2026-07-14
+  resolution: 'YES = BLS 보도자료의 6월분 headline CPI-U YoY가 4.3% 이상 (소수점 첫째 자리 공표치 기준, 4.2% 동률이면 NO). 5월치의
+    사후 수정과 무관하게 4.2%를 비교 기준으로 고정.
+
+    '
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: 발표 전 1~2회
+  action_link: 인플레 재가속 → FOMC 인상 → 반도체 리레이팅 연쇄의 최상류 지표
+  status: resolved
+  created: 2026-07-08
+  notes: '발표일 확정 2026-07-14 08:30 ET (BLS 일정, 2026-07-10 확인).
+    결과: NO — 6월분 headline YoY 3.5% (< 4.3%, 5월 4.2%에서 감속, bls.gov 2026-07-14).
+    단, 기한 내 예측 미실행으로 캘리브레이션 표본 아님 (원장 미기록) — 무예측 만료.'
+  schedule:
+  - per_week: 1
+- id: nfp-jul2026-below100k
+  title: 7월분 NFP — +10만 미만
+  question: '2026년 8월 초 발표되는 7월분 고용보고서에서 비농업 신규고용(NFP) 최초 공표치가 +10.0만 미만일 확률은?
+
+    '
+  deadline: 2026-08-07
+  resolution: YES = 최초 공표(initial print) 기준 NFP < +100,000 (이후 수정치 무관)
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: 발표 전 1~2회
+  action_link: 고용 급랭 지속 여부 — 10/28 인상 질문의 핵심 상쇄 변수
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+- id: nvda-beat-any-2026aug
+  drivers: [ai-capex-cycle]
+  title: NVDA 8/26 실적 — 총매출 컨센 상회 (폭 무관)
+  question: 'NVIDIA가 2026-08-26(예정) 발표하는 분기 실적에서 총매출이 발표 직전(D-1) 컨센서스를 상회할 확률은? (폭 무관 — +5% 질문과 별개)
+
+    '
+  deadline: 2026-08-26
+  resolution: 'YES = 발표 총매출 > D-1 컨센서스 스냅샷 (nvda-dc-beat-2026aug와 동일 스냅샷 공유). 동률이면 NO.
+
+    '
+  resolution_source: NVIDIA IR 보도자료 + D-1 컨센 스냅샷
+  domain: earnings
+  cadence: D-30부터 주 1회 (dc-beat 질문과 함께 실행)
+  action_link: 고확률 구간(80~90%대) 캘리브레이션 커브 검증용 — 9분기 연속 비트 base rate
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+  - from: D-30
+    per_week: 1
+- id: mu-margin-qoq-fq1fy27
+  title: MU FQ1 FY2027 — 총마진 QoQ 하락 (차차기)
+  question: 'Micron이 FQ1 FY2027 실적 발표(2026년 12월 하순 예상)에서 보고하는 GAAP 총마진(%)이 직전 분기(FQ4 FY2026) 대비 하락할 확률은?
+
+    '
+  deadline: null
+  resolution: YES = FQ1 FY2027 GAAP gross margin < FQ4 FY2026 GAAP gross margin (모두 보고치 기준)
+  resolution_source: Micron IR 보도자료 (10-Q/8-K)
+  domain: earnings
+  cadence: FQ4 발표(9/29) 후 주 1회
+  action_link: 메모리 마진 반전 감시의 연속성 — ASP 정점 컨센서스(Q3~Q4 2026)가 걸리는 분기 (r1 premortem 권고사항)
+  status: active
+  created: 2026-07-08
+  schedule:
+  - from_date: '2026-09-29'
+    per_week: 1
+- id: openai-public-flip-2026
+  title: OpenAI 공개 전환 — 2026-12-31까지
+  question: 'OpenAI(또는 그 상장 목적 법인)의 S-1이 2026-12-31까지 SEC EDGAR에 공개(public) 파일링으로 전환·접수될 확률은?
+
+    '
+  deadline: 2026-12-31
+  resolution: YES = 2026-12-31까지 EDGAR에서 공개 S-1/F-1 확인 (openai-s1-2027h1과 동일 판정 기준, 기한만 단축)
+  resolution_source: SEC EDGAR
+  domain: corporate-event
+  cadence: 주 1회 + 뉴스 트리거 (openai-s1-2027h1과 함께 실행)
+  action_link: 'EXIT 선행 신호 — 공개 전환 시 상장까지 수 주 (r1 권고: 더 이른 경보선)'
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+- id: spx-up-2026-07-08
+  title: S&P 500 — 7/8 상승 마감
+  question: S&P 500이 2026-07-08(미 동부) 정규장 종가 기준, 2026-07-07 종가 대비 상승 마감할 확률은?
+  deadline: 2026-07-08
+  resolution: YES = 7/8 종가 > 7/7 종가 (거래소 공식 종가). 동률이면 NO. 휴장이면 void
+  resolution_source: S&P/거래소 공식 종가
+  domain: market-daily
+  cadence: 1회성 (일간 인스턴스)
+  action_link: 없음 — 도메인 엣지 검증 실험 (사용자 요청 데모)
+  status: resolved
+  created: 2026-07-08
+  schedule:
+  - once: true
+- id: soxx-up-2026-07-08
+  title: SOXX — 7/8 반등 마감
+  question: SOXX가 2026-07-08(미 동부) 정규장 종가 기준, 2026-07-07 종가($551.69) 대비 상승 마감할 확률은?
+  deadline: 2026-07-08
+  resolution: YES = 7/8 종가 > $551.69. 동률이면 NO. 휴장이면 void
+  resolution_source: 거래소 공식 종가
+  domain: market-daily
+  cadence: 1회성 (일간 인스턴스)
+  action_link: 이틀 −12.9% 급락의 안정화 여부 — SOXX·VIX 조기경보 보조 정보
+  status: resolved
+  created: 2026-07-08
+  schedule:
+  - once: true
+- id: btc-alt-mania-90d
+  title: 90일 내 크립토 광기 신호 (rolling)
+  question: '예측일로부터 90일 이내에 (a) BTC가 사상 최고가(종가 기준)를 경신하고 AND (b) 알트코인 시가총액(TOTAL2)이 윈도우 시작일 대비 +50% 이상
+    상승하는 두 조건이 모두 발생할 확률은?
+
+    '
+  deadline: rolling-90d
+  resolution: 'YES = 윈도우 내 (a) BTC 일간 종가 > 기존 ATH AND (b) TOTAL2 >= 시작일 값 x 1.5 두 조건 모두 충족. 시작일 TOTAL2
+    값은 예측 파일에 스냅샷.
+
+    '
+  resolution_source: CoinMarketCap/TradingView TOTAL2, BTC 종가
+  domain: crypto
+  cadence: 주 1회
+  action_link: 자본순환 최종단계(광기) 감지 — EXIT 신호
+  status: active
+  created: 2026-07-08
+  schedule:
+  - per_week: 1
+
+# ── v4 오버레이 리포트 파생 질문 (2026-07-10 등록, 문서 참고 확률 → 정식 기록 전환) ──
+
+- id: nasdaq-ath-eoy-2026
+  drivers: [ai-capex-cycle, midterm-2026, fed-path]
+  title: NASDAQ — 연말까지 사이클 ATH(27,093.90) 종가 경신
+  question: 'NASDAQ Composite가 2026-12-31까지 일간 종가 기준 27,093.90(2026-06-02 사이클 ATH 종가)을
+    초과하는 날이 1일 이상 존재할 확률은?'
+  deadline: 2026-12-31
+  resolution: 'YES = 2026-12-31까지 ^IXIC 일간 종가 > 27,093.90이 1일 이상 존재. 임계값은 등록 시점에
+    고정 (이후 ATH 갱신과 무관)'
+  resolution_source: 거래소 공식 종가 (Yahoo ^IXIC 교차 확인)
+  domain: market-regime
+  cadence: 월 2회 + 이벤트 트리거
+  action_link: v4 오버레이 F1 — 멜트업 vs 이미-정점 경로 판별
+  status: active
+  created: 2026-07-10
+  schedule:
+  - per_week: 0.5
+
+- id: nasdaq-corr10-augoct-2026
+  tier: standard
+  drivers: [ai-capex-cycle, midterm-2026, fed-path]
+  title: NASDAQ — 8~10월 중 고정 임계(−10%) 하회
+  question: '2026-08-01~10-31 기간 중 NASDAQ Composite 일간 종가가 24,384.51(= 사이클 ATH 27,093.90
+    x 0.90) 이하로 마감하는 날이 1일 이상 존재할 확률은?'
+  deadline: 2026-10-31
+  resolution: 'YES = 해당 기간 ^IXIC 일간 종가 <= 24,384.51이 1일 이상 존재. 임계값 고정 (8월 전
+    ATH 갱신과 무관 — 등록 시점 기준)'
+  resolution_source: 거래소 공식 종가 (Yahoo ^IXIC 교차 확인)
+  domain: market-regime
+  cadence: 월 2회
+  action_link: v4 오버레이 F2 — 미드텀 전 조정 시나리오 (조정 후 회복 경로의 트리거)
+  status: active
+  created: 2026-07-10
+  schedule:
+  - per_week: 0.5
+
+- id: nasdaq-eoy-above-jul9-2026
+  drivers: [ai-capex-cycle, midterm-2026, fed-path]
+  title: NASDAQ — 연말 종가 > 7/9 종가(26,206.89)
+  question: 'NASDAQ Composite의 2026년 최종 거래일 종가가 26,206.89(2026-07-09 종가)를 초과할 확률은?'
+  deadline: 2026-12-31
+  resolution: 'YES = 2026년 최종 거래일 ^IXIC 종가 > 26,206.89'
+  resolution_source: 거래소 공식 종가 (Yahoo ^IXIC 교차 확인)
+  domain: market-regime
+  cadence: 월 2회
+  action_link: v4 오버레이 F3 — 연말 방향성 (미드텀 랠리 성패와 연동)
+  status: active
+  created: 2026-07-10
+  schedule:
+  - per_week: 0.5
+
+# ── WS1 질문 팩토리 v2 (2026-07-20 등록, FACTORY_GUIDE.md 규약 — 시리즈 E/M) ──
+# 발표일 근거: 실적 캘린더 리서치 2026-07-20 (AMD 확정=회사 보도자료, 나머지 추정=벤더 캘린더
+# — notes에 확정/추정 라벨 + D-30 재확인 표기). beat base rate: FactSet 5년 78%/10년 76%.
+
+- id: amd-eps-beat-2026q2
+  drivers: [ai-capex-cycle]
+  title: AMD Q2 2026 — 조정 EPS 컨센 상회
+  question: 'AMD가 2026-08-04(장후, 회사 확정) 발표하는 Q2 2026 실적에서 조정(non-GAAP) EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-08-04
+  resolution: 'YES = 발표 조정 EPS > 발표 전 마지막 예측 파일에 스냅샷된 컨센서스(주요 집계, 접근 불가 시 주요 언론 인용 중앙값). 동률 NO.'
+  resolution_source: AMD IR 보도자료 + 발표 전 컨센 스냅샷 (D-3 회차에서 확정)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 실적 시즌 EXIT 트리거 감시 + 캘리브레이션 표본 (팩토리 시리즈 E)
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) S&P 분기 EPS beat율 5년 78%/10년 76% (FactSet), AMD 최근 4분기 3/4 비트 — base rate [35,65] 밖. 발표일 확정 (amd.com 보도자료 2026-07-08).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: avgo-eps-beat-fq3-2026
+  drivers: [ai-capex-cycle]
+  title: AVGO FQ3 2026 — 조정 EPS 컨센 상회
+  question: 'Broadcom이 2026-09-03(장후 예상) 발표하는 FQ3 2026 실적에서 조정 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-09-03
+  resolution: 'YES = 발표 조정 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Broadcom IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: AI ASIC 사이클 감시 (6/4 쇼크 진원) + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78% + AVGO 최근 4분기 4/4 비트. 발표일 추정 (과거 9월 첫 목요일 패턴) — D-30 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: orcl-eps-beat-fq1-2027
+  title: ORCL FQ1 2027 — 조정 EPS 컨센 상회
+  question: 'Oracle이 2026년 9월 둘째 주(9/8~9/14 추정, 장후) 발표하는 FQ1 2027 실적에서 조정 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-09-14
+  resolution: 'YES = 발표 조정 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO. 기한(9/14)은 발표 예상 상한 — 실제 발표일에 판정.'
+  resolution_source: Oracle IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: OCI/AI 백로그 사이클 감시 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, ORCL 최근 4분기 3/4 비트. 발표일 벤더 불일치(9/8 vs 9/14) — 확정 시 D-30 재확인, 기한은 상한으로 설정.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: adbe-eps-beat-fq3-2026
+  title: ADBE FQ3 2026 — 조정 EPS 컨센 상회
+  question: 'Adobe가 2026-09-10(장후 추정) 발표하는 FQ3 2026 실적에서 조정 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-09-10
+  resolution: 'YES = 발표 조정 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Adobe IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 소프트웨어(AI 수익화 스토리) 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, ADBE 최근 4분기 4/4 비트. 발표일 추정 — D-30 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: asml-eps-beat-2026q3
+  drivers: [ai-capex-cycle]
+  title: ASML Q3 2026 — EPS 컨센 상회
+  question: 'ASML이 2026-10-14(개장 전, 연간 재무캘린더 관행상 준확정) 발표하는 Q3 2026 실적에서 EPS(ADR USD 기준 집계 컨센 대비)가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-14
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센 (ADR USD 기준 통일 — 환산 기준 스냅샷에 명기). 동률 NO.'
+  resolution_source: ASML IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 장비 사이클 선행 감시 (9월 DRAM 스팟 연계) + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, ASML 최근 4분기 3/4 비트. 발표일 준확정(복수 벤더 일치, 회사 캘린더 직접 확인은 실패) — D-30 재확인. 10/14 = 9월분 CPI 동일 발표일 (이벤트 밀집 주의).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: tsmc-eps-beat-2026q3
+  drivers: [ai-capex-cycle]
+  title: TSMC Q3 2026 — EPS 컨센 상회
+  question: 'TSMC가 2026-10-15(미국시간 개장 전 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-15
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센 (ADR USD 기준 통일). 동률 NO.'
+  resolution_source: TSMC IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 파운드리 = AI capex 실물 검증 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, TSMC 최근 4분기 4/4 비트. 발표일 추정 (공식 캘린더 3Q26 미게재 — NOT FOUND, 과거 패턴 10월 중순) — D-30 재확인 필수.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: msft-eps-beat-fy27q1
+  drivers: [ai-capex-cycle]
+  title: MSFT FY27 Q1 — 조정 EPS 컨센 상회
+  question: 'Microsoft가 2026-10-28(장후 추정) 발표하는 FY2027 Q1 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-28
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Microsoft IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 하이퍼스케일러 캐펙스/Azure 사이클 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, MSFT 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 공식 확정 시 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: googl-eps-beat-2026q3
+  drivers: [ai-capex-cycle]
+  title: GOOGL Q3 2026 — EPS 컨센 상회
+  question: 'Alphabet이 2026-10-28(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-28
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Alphabet IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 하이퍼스케일러 + 클라우드 백로그 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, GOOGL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: meta-eps-beat-2026q3
+  drivers: [ai-capex-cycle]
+  title: META Q3 2026 — EPS 컨센 상회
+  question: 'Meta가 2026-10-28(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-28
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Meta IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: AI capex 최대 증액 주체 감시 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, META 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: amzn-eps-beat-2026q3
+  drivers: [ai-capex-cycle]
+  title: AMZN Q3 2026 — EPS 컨센 상회
+  question: 'Amazon이 2026-10-29(장후 추정) 발표하는 Q3 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-29
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Amazon IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: AWS 가속 사이클 + 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, AMZN 최근 4분기 3/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: aapl-eps-beat-fq4-2026
+  title: AAPL FQ4 2026 — EPS 컨센 상회
+  question: 'Apple이 2026-10-29(장후 추정) 발표하는 FQ4 2026 실적에서 EPS가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-29
+  resolution: 'YES = 발표 EPS > 발표 전 마지막 예측 파일 스냅샷 컨센. 동률 NO.'
+  resolution_source: Apple IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 빅테크 이틀 집중일(10/28-29) 캘리브레이션 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) beat율 5년 78%, AAPL 최근 4분기 4/4 비트. 발표일 추정(WSH INFERRED) — 10월 초순 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+# ── 시리즈 M — 지표 서프라이즈 (발표일 OMB 공식 일정 확정) ──
+
+- id: cpi-jul2026-reaccel
+  drivers: [fed-path]
+  title: 7월분 CPI — 헤드라인 YoY 3.8% 이상 재가속
+  question: '2026-08-12 발표되는 7월분 CPI에서 헤드라인 YoY(%)가 3.8% 이상일 확률은? (6월분 확정치 3.5% 대비 +0.3%p 재가속)'
+  deadline: 2026-08-12
+  resolution: 'YES = BLS 공표 7월분 headline CPI-U YoY ≥ 3.8% (소수점 첫째 자리 공표치 기준). 3.7% 이하 NO.'
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 인플레 재가속 → 9월 인상 확률 → 리레이팅 연쇄 상류 지표
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) 6월 3.5%(−0.7%p 감속)·휘발유 −9.7% MoM 직후 +0.3%p 재가속은 base rate 낮음 (<35% 추정 — r1에서 정량화). 발표일 확정 (OMB PFEI 2026 일정).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: nfp-aug2026-below100k
+  title: 8월분 NFP — +10만 미만
+  question: '2026-09-04 발표되는 8월분 고용보고서에서 NFP 최초 공표치가 +10.0만 미만일 확률은?'
+  deadline: 2026-09-04
+  resolution: YES = 최초 공표(initial print) 기준 NFP < +100,000 (이후 수정치 무관)
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 고용 급랭 연속성 — 10/28 인상 질문의 상쇄 변수 (nfp-jul2026 후속)
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (b) 정보 우위 논거 — 컨센 확정(발표 전주) 이전에 실시간 대체 데이터(주간청구·ADP·ISM 고용·Challenger)로 방향 우위 확보 가능 (7월분 r1 리서치로 검증된 추적 체계 재사용). 발표일 확정 (OMB PFEI).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+# ── v3 WS-C 충전 질문 (2026-07-20 등록 — P2 도달용 11~12월 해소형, 날짜: OMB PFEI/Fed 공식 확정) ──
+
+- id: nfp-oct2026-below100k
+  title: 10월분 NFP — +10만 미만
+  question: '2026-11-06 발표되는 10월분 고용보고서에서 NFP 최초 공표치가 +10.0만 미만일 확률은?'
+  deadline: 2026-11-06
+  resolution: YES = 최초 공표(initial print) 기준 NFP < +100,000 (이후 수정치 무관)
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 고용 시리즈 연속성 (jul·aug 후속) + P2 표본
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (b) 실시간 대체 데이터(청구·ADP·ISM) 추적의 컨센 대비 정보 우위 — 7·8월분 시리즈와 동일 논거. 발표일 확정 (OMB PFEI CY2026 PDF 직접 판독, 2026-07-20). 셧다운 시 연기 가능 — D-30 재확인.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: cpi-oct2026-reaccel
+  drivers: [fed-path]
+  title: 10월분 CPI — 9월분 확정치 대비 재가속
+  question: '2026-11-10 발표되는 10월분 CPI 헤드라인 YoY(%)가 9월분 확정치(2026-10-14 공표)를 상회할 확률은?'
+  deadline: 2026-11-10
+  resolution: 'YES = 10월분 headline CPI-U YoY > 9월분 확정 공표치 (모두 소수점 첫째 자리 공표치 기준, 동률 NO). 비교 기준 = 10/14 최초 공표치로 고정 (사후 수정 무관).'
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 인플레 방향 시리즈 — 12월 FOMC 질문의 상류
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) 월간 재가속의 무조건부 base rate ~45%이나 감속 추세 진행 중엔 [35,65] 밖으로 이동 — r1에서 9월분 공표 후 정량화 (mu-margin-qoq와 동일한 상대 기준 구조 = 판정기준 불변). 발표일 확정 (OMB PFEI). 웹상 "11월분 CPI=12/18" 오정보 주의 — PFEI 정본 12/10.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: nvda-dc-beat-2026nov
+  drivers: [ai-capex-cycle]
+  title: NVDA Q3 FY27 — DC매출 컨센 +5% 상회
+  question: 'NVIDIA가 2026-11-18(추정, 과거 패턴) 발표하는 Q3 FY2027 실적에서 Data Center 매출이 발표 직전 컨센서스를 +5% 이상 상회할 확률은?'
+  deadline: 2026-11-18
+  resolution: 'YES = 발표 DC 매출 >= 발표 전 마지막 예측 파일 스냅샷 컨센 x 1.05 (nvda-dc-beat-2026aug와 동일 판정 구조).'
+  resolution_source: NVIDIA IR + 컨센 스냅샷 (D-3 회차)
+  domain: earnings
+  cadence: r1 + D-3
+  action_link: 8월 질문의 시리즈 후속 — AI capex 사이클 연속 감시
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) 최근 실측 DC 서프라이즈 폭 0~+3.4% (8월 질문 r2 리서치) — +5% 임계 도달 base rate 낮음 ([35,65] 밖). 발표일 추정 (과거 추수감사절 전주 수요일 패턴, 통상 3~4주 전 공지) — 10월 말 공식 재확인 필수.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: nfp-nov2026-below100k
+  title: 11월분 NFP — +10만 미만
+  question: '2026-12-04 발표되는 11월분 고용보고서에서 NFP 최초 공표치가 +10.0만 미만일 확률은?'
+  deadline: 2026-12-04
+  resolution: YES = 최초 공표(initial print) 기준 NFP < +100,000 (이후 수정치 무관)
+  resolution_source: BLS 공식 보도자료 (bls.gov)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 고용 시리즈 + 12월 FOMC 질문의 핵심 입력
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (b) 실시간 대체 데이터 추적 정보 우위 (시리즈 공통 논거). 발표일 확정 (OMB PFEI).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: fomc-2026-12-09-hike
+  drivers: [fed-path]
+  title: 12/9 FOMC — 25bp 이상 인상
+  question: '2026-12-09 종료되는 FOMC 회의(12/8~9, SEP 포함)에서 연준이 연방기금금리 목표범위를 25bp 이상 인상할 확률은?'
+  deadline: 2026-12-09
+  resolution: YES = FOMC 성명서 기준 목표범위 상단이 직전 대비 +25bp 이상
+  resolution_source: Federal Reserve 공식 성명서
+  domain: macro
+  cadence: r1 + D-3
+  action_link: fed-path 시리즈 종결(연내 3회의) — 연말 3건 질문의 상류
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) FOMC 인상 질문의 시장내재확률은 통상 극단 (7/29 5%·10/28 19% 실측) — 시리즈 실증. 회의일 확정 (Fed 공식 캘린더). 10/28 결과에 따라 r1에서 조건부 재평가.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: gdp-q3adv-2026-beat
+  title: Q3 GDP 속보치 — 컨센 상회
+  question: '2026-10-29 발표되는 Q3 2026 실질 GDP 속보치(advance, 연율 %)가 발표 직전 컨센서스를 상회할 확률은?'
+  deadline: 2026-10-29
+  resolution: 'YES = BEA 속보치(연율, 소수 첫째 자리) > 발표 전 마지막 예측 파일 스냅샷 컨센 중앙값. 동률 NO.'
+  resolution_source: BEA 보도자료 + 컨센 스냅샷 (D-3 회차)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 성장 vs 인플레 조합 판독 — 10월 말 이벤트 밀집일(10/29 AMZN·AAPL 동일)
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (b) 정보 우위 — GDPNow 류 nowcast의 실시간 추적 vs 컨센 확정(발표 전주) 시차. 발표일 확정 (OMB PFEI, 2차 추정 11/25·3차 12/23).'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+
+- id: santa-week-2026
+  title: 산타랠리 주간 — S&P500 연말 5거래일 상승
+  question: 'S&P500의 2026-12-31 종가가 2026-12-23 종가를 상회할 확률은? (연말 마지막 5거래일: 12/24·28·29·30·31)'
+  deadline: 2026-12-31
+  resolution: 'YES = 2026-12-31 S&P500 종가 > 2026-12-23 종가 (거래소 공식 종가, 동률 NO). 12/31 목요일 풀세션 확정 (NYSE 캘린더).'
+  resolution_source: 거래소 공식 종가 (2차 출처 대조 — WS-D)
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 시즌성 base rate 검증 표본 + 연말 3건과 동시 해소
+  status: active
+  created: 2026-07-20
+  notes: '등록필터: (a) 연말 랠리 주간 상승 base rate ~70~78% (Stock Trader''s Almanac 계열 — r1에서 정확 수치 검증·기록) — [35,65] 밖. 12/18 트리플위칭 직후 주간.'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
