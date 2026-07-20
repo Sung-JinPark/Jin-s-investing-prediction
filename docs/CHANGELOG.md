@@ -2,6 +2,14 @@
 
 > 형식: Phase/워크스트림 단위. 출처(검토 라운드·스펙) 명기. dualdb 자체 이력은 dualdb/CHANGELOG.md.
 
+## 회귀 감사 260720 발견사항 처리 (기준선 회차 F-01~F-05 + G-1, 사용자 승인) — 2026-07-20
+
+- **F-01 (정본 판정)**: ^IXIC 1995~2004 종가를 FRED NASDAQCOM으로 승격 (DECISIONS 9-5) — 교차 불일치 3.11%→**0.10%**, `test_dual_source_cross_check` **무수정 PASS 전환** (dualdb **39/39 전부 통과**, skip 0). 파생 재계산 완료 (Pearson 0.9056 불변 — 월말 지표 영향 미미 실증).
+- **F-02/G-1 (드라이런 회계)**: dry-run도 `dry:*` stage로 cost_log 기록 (orchestrator) + 7월 누락분 $1.20 백필 → 회계 = 실지출 **$8.08** 일치.
+- **F-03**: HARVEST_CALENDAR 12월에 mu-margin-qoq-fq1fy27 조건부 행 (9/29 후 확정).
+- **F-04**: KNOWN_LIMITS #16·#28 FRED 복구 반영, #32 해소 처리 (잔여 한계 정직 병기).
+- **F-05**: 수동 base_rates 4종 갱신은 계획대로 해당 질문 r1 리서치 부산물로 (7/28 AMD부터 — 별도 지출 없음).
+
 ## v3.5 공개 신뢰(Trust) 미니 라운드 — 2026-07-20 (스펙 aifc_v35_trust_planmode_260720 v1.0)
 
 **WS-T1 제3자 검증기** `tools/verify_track_record.py` (stdlib+git only — pip install 0):

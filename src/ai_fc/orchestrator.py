@@ -163,9 +163,18 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         if dry_run:
             (scratch / f"{stem}.md").write_text(content, encoding="utf-8")
             (scratch / f"{stem}_evidence.md").write_text(evidence, encoding="utf-8")
+            # 감사 260720 F-02: 드라이런도 실지출 — 월 예산 회계에 정직 편입
+            # (stage 접두 'dry:'로 구분 — 예측 기록은 없지만 비용은 프리플라이트가 본다)
+            for b in briefs:
+                queries.log_cost(conn, question_id, f"dry:research:{b.profile}",
+                                 config.RESEARCH_MODEL, b.input_tokens,
+                                 b.output_tokens, b.cost_usd)
+            dry_reasoning = budget.spent_usd - sum(b.cost_usd for b in briefs)
+            queries.log_cost(conn, question_id, "dry:reasoning",
+                             config.REASONING_MODEL, 0, 0, max(dry_reasoning, 0.0))
             return (f"[DRY] {question_id} r{rnd}: {agg.probability}% "
                     f"(CI {agg.ci80_lo}~{agg.ci80_hi}) 비용 ${budget.spent_usd:.2f} "
-                    f"→ 스크래치패드에만 기록")
+                    f"→ 스크래치패드에만 기록 (비용은 cost_log 편입)")
 
         target = _write_records(root, today.year, stem, content, evidence)
 
