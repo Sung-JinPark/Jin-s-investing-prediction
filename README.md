@@ -37,6 +37,18 @@ flowchart LR
     L --> G[캘리브레이션 리포트<br/>신뢰도 · Murphy 분해 · 게이트]
 ```
 
+## 예측 흐름 대시보드 (웹)
+
+**라이브**: https://sung-jinpark.github.io/Jin-s-investing-prediction/ (GitHub Pages — 매 푸시·주간 자동 재배포, 읽기 전용)
+
+커밋된 불변 파일에서 파생 인덱스를 재구축해 정적 사이트로 빌드한다(LLM 호출 없음·시크릿 0).
+6뷰: 개요 · 예측 흐름 차트(주간 시나리오 S1/S2/S3) · 질문 브라우저 · 질문 상세(회차 이력+추론) · 날짜 조회(as-of) · 캘리브레이션.
+
+```bash
+cd src && python -m ai_fc dashboard              # 로컬 스냅샷 reports/dashboard.html
+cd src && python -m ai_fc dashboard --serve --host 0.0.0.0   # LAN 서버 (팀 공유)
+```
+
 ## 빠른 시작
 
 ```bash

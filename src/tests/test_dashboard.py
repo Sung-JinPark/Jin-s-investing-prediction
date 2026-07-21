@@ -108,3 +108,14 @@ def test_write_dashboard(repo: Path) -> None:
     out = dashboard.write_dashboard(conn, repo)
     assert out.exists() and out.name == "dashboard.html"
     assert "window.__DATA__" in out.read_text(encoding="utf-8")
+
+
+def test_write_pages(repo: Path) -> None:
+    """GitHub Pages 빌드 — index.html(자기완결) + .nojekyll."""
+    conn = ingest.connect(repo / "db" / "index.db")
+    ingest.sync(conn, repo)
+    out_dir = repo / "_site"
+    index = dashboard.write_pages(conn, out_dir, repo)
+    assert index.name == "index.html"
+    assert (out_dir / ".nojekyll").exists()
+    assert "window.__DATA__" in index.read_text(encoding="utf-8")

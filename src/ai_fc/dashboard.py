@@ -212,6 +212,20 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     return out
 
 
+def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
+    """GitHub Pages 정적 배포용 — <out_dir>/index.html (자기완결 임베드) + .nojekyll.
+
+    CI에서 커밋된 불변 파일로 DB를 재구축(sync --rebuild)한 뒤 호출한다.
+    데이터는 전부 공개 repo에 이미 존재하는 예측 기록 — 새 노출 없음.
+    """
+    model = build_read_model(conn, root)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    index = out_dir / "index.html"
+    index.write_text(render_html(model, mode="embed"), encoding="utf-8")
+    (out_dir / ".nojekyll").write_text("", encoding="utf-8")  # _파일 무시 방지
+    return index
+
+
 # ── 서버 모드 (stdlib http.server — 읽기 전용, 라이브 재조회) ──
 
 def serve(root: Path, host: str, port: int) -> None:

@@ -243,13 +243,17 @@ def cmd_dashboard(
     serve: bool = typer.Option(False, "--serve", help="LAN 서버 구동 (stdlib http.server, 읽기 전용)"),
     host: str = typer.Option("127.0.0.1", "--host", help="바인드 주소 — 팀 공유는 0.0.0.0"),
     port: int = typer.Option(8899, "--port"),
+    pages_out: str = typer.Option(None, "--pages-out", help="GitHub Pages 정적 배포 디렉터리 (CI용)"),
     open_browser: bool = typer.Option(False, "--open"),
 ) -> None:
-    """예측 흐름 조회 대시보드 — 자기완결 HTML 스냅샷 또는 --serve LAN 서버 (읽기 전용).
+    """예측 흐름 조회 대시보드 — 스냅샷 / LAN 서버 / GitHub Pages 정적 빌드 (전부 읽기 전용).
 
-    스냅샷: reports/dashboard.html 생성 (브라우저로 열면 끝, 의존성 0).
-    서버:   python -m ai_fc dashboard --serve [--host 0.0.0.0]  ← 팀 공유 (LAN).
+    스냅샷: reports/dashboard.html (브라우저로 열면 끝, 의존성 0).
+    서버:   --serve [--host 0.0.0.0]  ← 팀 공유 (LAN).
+    Pages:  --pages-out <dir>  ← CI가 <dir>/index.html 생성 → github-pages 배포.
     """
+    from pathlib import Path as _P
+
     from . import dashboard as dash
 
     root = config.ROOT
@@ -261,6 +265,10 @@ def cmd_dashboard(
         return
     conn = _conn(root)
     ingest.sync(conn, root)
+    if pages_out:
+        out = dash.write_pages(conn, _P(pages_out), root)
+        typer.echo(f"Pages 빌드: {out}")
+        return
     out = dash.write_dashboard(conn, root)
     typer.echo(f"생성: {out.relative_to(root)}")
     typer.echo("팀 공유(LAN): python -m ai_fc dashboard --serve --host 0.0.0.0")
