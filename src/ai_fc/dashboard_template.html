@@ -380,55 +380,108 @@ function renderTrack(){
       <td class="r num">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</td></tr>`).join('')}</tbody></table></div></div>`));}
 }
 
-// ── 물어보기 (결정론 기간 질의 — LLM 미사용, 기존 데이터 조합) ──
+// ── 물어보기 (결정론 기간 질의 — LLM 미사용, 일별 그래프 중심) ──
 function weekDate(label){const [m,d]=label.split('/').map(Number);return new Date(2026,m-1,d);}
+function bizDates(s,e){const out=[];let d=new Date(s);while(d<=e){const w=d.getDay();if(w!==0&&w!==6)out.push(new Date(d));d.setDate(d.getDate()+1);}return out;}
+function interpAt(vals,wdts,t){ // 주간 앵커 → 임의 날짜 선형 보간 (일별화)
+  if(t<=wdts[0])return vals[0];
+  for(let i=0;i<wdts.length-1;i++){if(t>=wdts[i]&&t<=wdts[i+1]){const f=(t-wdts[i])/(wdts[i+1]-wdts[i]);return vals[i]+f*(vals[i+1]-vals[i]);}}
+  return vals[vals.length-1];
+}
+function drawDaily(host,sc,endIdx){
+  const NS='http://www.w3.org/2000/svg';
+  const wdts=sc.weeks.map(w=>weekDate(w));
+  const dates=bizDates(wdts[0],wdts[endIdx]);
+  const keys=['S1','S2','S3'];
+  const ser={};keys.forEach(k=>ser[k]=dates.map(t=>interpAt(sc.paths[k].values,wdts,t)));
+  const all=[].concat(...keys.map(k=>ser[k]));
+  let ymin=Math.min(...all),ymax=Math.max(...all);const pad=(ymax-ymin)*0.08||100;ymin-=pad;ymax+=pad;
+  const W=1000,H=350,ML=52,MR=118,MT=20,MB=32,PW=W-ML-MR,PH=H-MT-MB;
+  const t0=+dates[0],t1=+dates[dates.length-1];
+  const X=t=>ML+PW*((+t-t0)/Math.max(1,t1-t0)),Y=v=>MT+PH*(1-(v-ymin)/(ymax-ymin));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'#8b95a5','font-size':o.fs||10.5,'text-anchor':o.anc||'start','font-weight':o.w||400});e.textContent=s;return e;};
+  // y 그리드 (5분할)
+  for(let g=0;g<=4;g++){const v=ymin+(ymax-ymin)*g/4;svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'#eef1f4'}));
+    svg.appendChild(tx(ML-8,Y(v)+4,(Math.round(v/10)*10).toLocaleString(),{anc:'end',fill:'#a7b0bd'}));}
+  // 전고점 기준선 (범위 내일 때)
+  if(sc.ath<=ymax&&sc.ath>=ymin){svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'#c2c9d2','stroke-width':1,'stroke-dasharray':'5 4'}));
+    svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점',{fill:'#8b95a5'}));}
+  // 밴드 (상단 최대 ↔ 하단 최소 포락)
+  const up=dates.map((t,i)=>Math.max(ser.S1[i],ser.S2[i],ser.S3[i]));
+  const dn=dates.map((t,i)=>Math.min(ser.S1[i],ser.S2[i],ser.S3[i]));
+  let dband='';up.forEach((v,i)=>dband+=(i?'L':'M')+X(dates[i])+','+Y(v)+' ');
+  for(let i=dn.length-1;i>=0;i--)dband+='L'+X(dates[i])+','+Y(dn[i])+' ';
+  svg.appendChild(mk('path',{d:dband+'Z',fill:'#1f5f9e',opacity:.07}));
+  // 시나리오 3선
+  keys.forEach(k=>{const p=sc.paths[k];let d='';ser[k].forEach((v,i)=>d+=(i?'L':'M')+X(dates[i])+','+Y(v)+' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:p.color,'stroke-width':k==='S1'?2.4:1.6,'stroke-linejoin':'round',opacity:k==='S1'?1:.85}));
+    const ev=ser[k][ser[k].length-1];
+    svg.appendChild(mk('circle',{cx:X(dates[dates.length-1]),cy:Y(ev),r:3.4,fill:p.color,stroke:'#fff','stroke-width':1.5}));
+    svg.appendChild(tx(X(dates[dates.length-1])+8,Y(ev)+4,`${num(Math.round(ev))} ${p.prob}%`,{fill:p.color,fs:11,w:600}));});
+  // 시작점(현재)
+  svg.appendChild(mk('circle',{cx:X(dates[0]),cy:Y(ser.S1[0]),r:4,fill:'#0f1b2d',stroke:'#fff','stroke-width':1.5}));
+  svg.appendChild(tx(X(dates[0])-4,Y(ser.S1[0])-9,num(Math.round(sc.anchor)),{fill:'#0f1b2d',w:600,anc:'start'}));
+  // x축 월 눈금
+  let lastM=-1;dates.forEach(t=>{const m=t.getMonth();if(m!==lastM){lastM=m;
+    svg.appendChild(mk('line',{x1:X(t),y1:MT,x2:X(t),y2:MT+PH,stroke:'#f1f3f6'}));
+    svg.appendChild(tx(X(t),MT+PH+16,(m+1)+'월',{anc:'middle',fs:10,fill:'#8b95a5'}));}});
+  // 호버
+  const xh=mk('line',{stroke:'#b7bfca','stroke-width':1,opacity:0});svg.appendChild(xh);
+  const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
+  const tip=document.getElementById('tip');
+  ov.addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect();const mx=(e.clientX-r.left)*(W/r.width);
+    let bi=0,bd=1e15;dates.forEach((t,i)=>{const dd=Math.abs(X(t)-mx);if(dd<bd){bd=dd;bi=i;}});
+    xh.setAttribute('x1',X(dates[bi]));xh.setAttribute('x2',X(dates[bi]));xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);xh.setAttribute('opacity',.4);
+    tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';
+    const dd=dates[bi];
+    tip.innerHTML=`<b>${(dd.getMonth()+1)}/${dd.getDate()}</b><br>
+      <span style="color:${sc.paths.S1.color}">기본 ${num(Math.round(ser.S1[bi]))}</span><br>
+      <span style="color:${sc.paths.S2.color}">중립 ${num(Math.round(ser.S2[bi]))}</span><br>
+      <span style="color:${sc.paths.S3.color}">조정 ${num(Math.round(ser.S3[bi]))}</span>`;});
+  ov.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('opacity',0);});
+  host.appendChild(svg);
+}
 function renderAsk(){
   const sc=DATA.scenario;const now=DATA.meta.generated.slice(0,10);
   app().innerHTML='';
-  app().appendChild(el(`<div class="section-h">물어보기</div>
-    <div class="section-sub">현 기준(${now})으로 특정 기간까지의 시장 전망을 조회합니다 — 시나리오·모델 앙상블·해당 기간 확정 예정 예측을 종합</div>`));
-  const presets=[['8월말',7],['9월말',11],['10월말',16],['11월말',20],['연말 (12/31)',25]];
+  app().appendChild(el(`<div class="section-h">기간 주가 예측 · 나스닥</div>
+    <div class="section-sub">현 기준(${now}) 기간을 고르면 일별 전망 그래프로 보여드립니다</div>`));
+  const presets=[['8월말',7],['9월말',11],['10월말',16],['11월말',20],['연말 12/31',25]];
   const bar=el(`<div class="filterbar">
-    ${presets.map(([l,i])=>`<span class="chip ask-p" data-i="${i}" style="cursor:pointer;padding:7px 13px">${l}</span>`).join('')}
+    ${presets.map(([l,i])=>`<span class="chip ask-p" data-i="${i}" style="cursor:pointer;padding:8px 15px;font-size:12.5px">${l}</span>`).join('')}
     <span class="small muted">또는 날짜:</span><input type="date" id="ad" min="2026-07-14" max="2026-12-31" value="2026-12-31">
   </div>`);
   const out=el('<div id="ans"></div>');
   app().appendChild(bar);app().appendChild(out);
   const answer=i=>{
-    const wk=sc.weeks[i];const anchor=sc.anchor;
-    const lv=k=>sc.paths[k].values[i];
-    const vals=['S1','S2','S3'].map(lv);const lo=Math.min(...vals),hi=Math.max(...vals);
-    const dpct=v=>((v/anchor-1)*100);const sign=x=>(x>=0?'+':'')+x.toFixed(1)+'%';
-    // 이 기간 확정 예정 예측
+    const wk=sc.weeks[i],anchor=sc.anchor,lv=k=>sc.paths[k].values[i];
+    const vals=['S1','S2','S3'].map(lv),lo=Math.min(...vals),hi=Math.max(...vals);
+    const sign=v=>{const x=(v/anchor-1)*100;return (x>=0?'+':'')+x.toFixed(1)+'%';};
+    const band=(i===25)?` · 모델 앙상블 중앙값 <b class="num">${num(sc.bands.eoy_median)}</b>`:'';
     const wd=weekDate(wk);
-    const inWin=DATA.questions.filter(q=>q.deadline&&q.deadline>=now&&new Date(q.deadline)<=wd)
-      .sort((a,b)=>a.deadline<b.deadline?-1:1);
-    // 주요 일정
+    const inWin=DATA.questions.filter(q=>q.deadline&&q.deadline>=now&&new Date(q.deadline)<=wd).sort((a,b)=>a.deadline<b.deadline?-1:1);
     const evs=sc.events.filter(([xi])=>xi<=i+0.5&&xi>=0.5).map(([,l])=>l);
-    // 변동성 고 구간
-    const hiRisk=sc.risk.slice(0,i+1).map((r,j)=>r==='고'?sc.weeks[j]:null).filter(Boolean);
-    const band=(i===25)?`<div class="kpi-sub" style="margin-top:6px">모델 앙상블(Chronos) 연말 중앙값 <b class="num">${num(sc.bands.eoy_median)}</b> · 80% 구간 <b class="num">[${num(sc.bands.eoy_80[0])}–${num(sc.bands.eoy_80[1])}]</b></div>`:'';
     out.innerHTML=`
-    <div class="card"><div class="card-h">${wk}까지 · 나스닥 종합 전망</div>
-      <div class="grid g3" style="margin:4px 0 6px">
-        ${['S1','S2','S3'].map(k=>{const p=sc.paths[k];return `<div style="border-left:3px solid ${p.color};padding-left:12px">
-          <div class="num" style="font-size:22px;font-weight:600;color:${p.color}">${num(lv(k))}</div>
-          <div class="small" style="color:var(--ink2)">${esc(p.label)} · <b>${p.prob}%</b></div>
-          <div class="small muted num">현재 대비 ${sign(dpct(lv(k)))}</div></div>`;}).join('')}
-      </div>
-      <div class="kpi-sub">예상 범위 <b class="num">${num(lo)}–${num(hi)}</b> (시나리오 스프레드). 경로는 확률 가중 평균이 아닌 시나리오별 대표값입니다.</div>
-      ${band}
+    <div class="card"><div class="card-h">현재 → ${wk} · 일별 전망 그래프</div>
+      <div class="legend" style="margin-bottom:6px">
+        <span><b style="background:${sc.paths.S1.color}"></b>기본 ${sc.paths.S1.prob}%</span>
+        <span><b style="background:${sc.paths.S2.color}"></b>중립 ${sc.paths.S2.prob}%</span>
+        <span><b style="background:${sc.paths.S3.color}"></b>조정 ${sc.paths.S3.prob}%</span></div>
+      <div class="scroll"><div id="dchart" style="min-width:640px"></div></div>
+      <div class="kpi-sub" style="margin-top:8px">${wk} 예상 범위 <b class="num">${num(lo)}–${num(hi)}</b> · 현재 대비 기본 ${sign(lv('S1'))} / 조정 ${sign(lv('S3'))}${band}</div>
     </div>
     ${evs.length?`<div class="card" style="margin-top:14px"><div class="card-h">이 기간 주요 일정</div>
-      <div>${evs.map(e=>`<span class="chip">${esc(e)}</span>`).join('')}</div>
-      ${hiRisk.length?`<div class="kpi-sub" style="margin-top:10px">변동성 높음 예상 구간: ${hiRisk[0]} ~ ${hiRisk[hiRisk.length-1]}</div>`:''}</div>`:''}
+      <div>${evs.map(e=>`<span class="chip">${esc(e)}</span>`).join('')}</div></div>`:''}
     ${inWin.length?`<div class="card" style="margin-top:14px"><div class="card-h">이 기간 확정 예정 예측 (${inWin.length})</div>
       <div class="scroll"><table><tbody>${inWin.map(q=>`<tr class="click" data-q="${esc(q.id)}">
         <td>${esc(q.title)}</td><td class="r num muted small">${esc(q.deadline)}</td>
         <td class="r num" style="width:70px;color:var(--navy);font-weight:600">${p1(q.latest_prob)}</td></tr>`).join('')}</tbody></table></div></div>`:''}
-    <div class="kpi-sub" style="margin-top:14px;text-align:center">본 전망은 현 기준 예측 모델의 산출물이며 참고용입니다. 투자 자문이 아닙니다.</div>`;
+    <div class="kpi-sub" style="margin-top:14px;text-align:center">참고용 예측이며 투자 자문이 아닙니다. 경로는 시나리오별 대표값(확률 가중 평균 아님).</div>`;
+    drawDaily($('#dchart',out),sc,i);
     out.querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>location.hash='#q/'+tr.dataset.q);
-    bar.querySelectorAll('.ask-p').forEach(c=>c.style.borderColor=(+c.dataset.i===i)?'var(--navy)':'');
+    bar.querySelectorAll('.ask-p').forEach(c=>{const on=+c.dataset.i===i;c.style.borderColor=on?'var(--navy)':'';c.style.color=on?'var(--navy)':'';c.style.fontWeight=on?'600':'400';});
   };
   bar.querySelectorAll('.ask-p').forEach(c=>c.onclick=()=>{$('#ad',bar).value='';answer(+c.dataset.i);});
   $('#ad',bar).onchange=e=>{const t=new Date(e.target.value);let bi=0,bd=1e15;
