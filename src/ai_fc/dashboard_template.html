@@ -99,6 +99,7 @@ svg text{font-family:var(--sans)}
   <nav id="nav">
     <a data-v="overview">요약</a>
     <a data-v="flow">시장 전망</a>
+    <a data-v="ask">물어보기</a>
     <a data-v="questions">예측 목록</a>
     <a data-v="asof">시점 조회</a>
     <a data-v="track">적중 이력</a>
@@ -127,7 +128,7 @@ const num=v=>(v==null?'—':Number(v).toLocaleString());
 const esc=s=>(s==null?'':String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])));
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 
-const VIEWS={overview:renderOverview,flow:renderFlow,questions:renderQuestions,asof:renderAsof,track:renderTrack,q:renderDetail};
+const VIEWS={overview:renderOverview,flow:renderFlow,ask:renderAsk,questions:renderQuestions,asof:renderAsof,track:renderTrack,q:renderDetail};
 function route(){
   const h=(location.hash||'#overview').slice(1);const [v,arg]=h.split('/');
   document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('active',a.dataset.v===v));
@@ -377,6 +378,62 @@ function renderTrack(){
     <div class="scroll"><table><thead><tr><th>분야</th><th class="r">표본</th><th class="r">정확도 (Brier)</th></tr></thead>
     <tbody>${ds.map(r=>`<tr><td>${esc(r.domain)}</td><td class="r num muted">${r.n}</td>
       <td class="r num">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</td></tr>`).join('')}</tbody></table></div></div>`));}
+}
+
+// ── 물어보기 (결정론 기간 질의 — LLM 미사용, 기존 데이터 조합) ──
+function weekDate(label){const [m,d]=label.split('/').map(Number);return new Date(2026,m-1,d);}
+function renderAsk(){
+  const sc=DATA.scenario;const now=DATA.meta.generated.slice(0,10);
+  app().innerHTML='';
+  app().appendChild(el(`<div class="section-h">물어보기</div>
+    <div class="section-sub">현 기준(${now})으로 특정 기간까지의 시장 전망을 조회합니다 — 시나리오·모델 앙상블·해당 기간 확정 예정 예측을 종합</div>`));
+  const presets=[['8월말',7],['9월말',11],['10월말',16],['11월말',20],['연말 (12/31)',25]];
+  const bar=el(`<div class="filterbar">
+    ${presets.map(([l,i])=>`<span class="chip ask-p" data-i="${i}" style="cursor:pointer;padding:7px 13px">${l}</span>`).join('')}
+    <span class="small muted">또는 날짜:</span><input type="date" id="ad" min="2026-07-14" max="2026-12-31" value="2026-12-31">
+  </div>`);
+  const out=el('<div id="ans"></div>');
+  app().appendChild(bar);app().appendChild(out);
+  const answer=i=>{
+    const wk=sc.weeks[i];const anchor=sc.anchor;
+    const lv=k=>sc.paths[k].values[i];
+    const vals=['S1','S2','S3'].map(lv);const lo=Math.min(...vals),hi=Math.max(...vals);
+    const dpct=v=>((v/anchor-1)*100);const sign=x=>(x>=0?'+':'')+x.toFixed(1)+'%';
+    // 이 기간 확정 예정 예측
+    const wd=weekDate(wk);
+    const inWin=DATA.questions.filter(q=>q.deadline&&q.deadline>=now&&new Date(q.deadline)<=wd)
+      .sort((a,b)=>a.deadline<b.deadline?-1:1);
+    // 주요 일정
+    const evs=sc.events.filter(([xi])=>xi<=i+0.5&&xi>=0.5).map(([,l])=>l);
+    // 변동성 고 구간
+    const hiRisk=sc.risk.slice(0,i+1).map((r,j)=>r==='고'?sc.weeks[j]:null).filter(Boolean);
+    const band=(i===25)?`<div class="kpi-sub" style="margin-top:6px">모델 앙상블(Chronos) 연말 중앙값 <b class="num">${num(sc.bands.eoy_median)}</b> · 80% 구간 <b class="num">[${num(sc.bands.eoy_80[0])}–${num(sc.bands.eoy_80[1])}]</b></div>`:'';
+    out.innerHTML=`
+    <div class="card"><div class="card-h">${wk}까지 · 나스닥 종합 전망</div>
+      <div class="grid g3" style="margin:4px 0 6px">
+        ${['S1','S2','S3'].map(k=>{const p=sc.paths[k];return `<div style="border-left:3px solid ${p.color};padding-left:12px">
+          <div class="num" style="font-size:22px;font-weight:600;color:${p.color}">${num(lv(k))}</div>
+          <div class="small" style="color:var(--ink2)">${esc(p.label)} · <b>${p.prob}%</b></div>
+          <div class="small muted num">현재 대비 ${sign(dpct(lv(k)))}</div></div>`;}).join('')}
+      </div>
+      <div class="kpi-sub">예상 범위 <b class="num">${num(lo)}–${num(hi)}</b> (시나리오 스프레드). 경로는 확률 가중 평균이 아닌 시나리오별 대표값입니다.</div>
+      ${band}
+    </div>
+    ${evs.length?`<div class="card" style="margin-top:14px"><div class="card-h">이 기간 주요 일정</div>
+      <div>${evs.map(e=>`<span class="chip">${esc(e)}</span>`).join('')}</div>
+      ${hiRisk.length?`<div class="kpi-sub" style="margin-top:10px">변동성 높음 예상 구간: ${hiRisk[0]} ~ ${hiRisk[hiRisk.length-1]}</div>`:''}</div>`:''}
+    ${inWin.length?`<div class="card" style="margin-top:14px"><div class="card-h">이 기간 확정 예정 예측 (${inWin.length})</div>
+      <div class="scroll"><table><tbody>${inWin.map(q=>`<tr class="click" data-q="${esc(q.id)}">
+        <td>${esc(q.title)}</td><td class="r num muted small">${esc(q.deadline)}</td>
+        <td class="r num" style="width:70px;color:var(--navy);font-weight:600">${p1(q.latest_prob)}</td></tr>`).join('')}</tbody></table></div></div>`:''}
+    <div class="kpi-sub" style="margin-top:14px;text-align:center">본 전망은 현 기준 예측 모델의 산출물이며 참고용입니다. 투자 자문이 아닙니다.</div>`;
+    out.querySelectorAll('tr.click').forEach(tr=>tr.onclick=()=>location.hash='#q/'+tr.dataset.q);
+    bar.querySelectorAll('.ask-p').forEach(c=>c.style.borderColor=(+c.dataset.i===i)?'var(--navy)':'');
+  };
+  bar.querySelectorAll('.ask-p').forEach(c=>c.onclick=()=>{$('#ad',bar).value='';answer(+c.dataset.i);});
+  $('#ad',bar).onchange=e=>{const t=new Date(e.target.value);let bi=0,bd=1e15;
+    sc.weeks.forEach((w,j)=>{const dd=Math.abs(weekDate(w)-t);if(dd<bd){bd=dd;bi=j;}});answer(bi);};
+  answer(25);
 }
 
 // ── 부트 ──
