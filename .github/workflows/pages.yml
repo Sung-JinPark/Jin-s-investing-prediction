@@ -39,9 +39,9 @@ jobs:
         run: cd src && python -m ai_fc sync --rebuild
       - name: 대시보드 정적 빌드 (읽기 전용, API 키 불필요)
         run: cd src && python -m ai_fc dashboard --pages-out ../_site
+      # Pages는 repo Settings→Pages→Source="GitHub Actions"로 1회 수동 활성화 필요
+      # (토큰이 Pages를 생성할 권한이 없어 자동 활성화 불가 — 활성화 후 이 단계 정상)
       - uses: actions/configure-pages@v5
-        with:
-          enablement: true      # 첫 실행 시 Pages(소스=Actions) 자동 활성화
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
