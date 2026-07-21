@@ -238,6 +238,37 @@ def cmd_report(
         webbrowser.open(out.as_uri())
 
 
+@app.command("dashboard")
+def cmd_dashboard(
+    serve: bool = typer.Option(False, "--serve", help="LAN 서버 구동 (stdlib http.server, 읽기 전용)"),
+    host: str = typer.Option("127.0.0.1", "--host", help="바인드 주소 — 팀 공유는 0.0.0.0"),
+    port: int = typer.Option(8899, "--port"),
+    open_browser: bool = typer.Option(False, "--open"),
+) -> None:
+    """예측 흐름 조회 대시보드 — 자기완결 HTML 스냅샷 또는 --serve LAN 서버 (읽기 전용).
+
+    스냅샷: reports/dashboard.html 생성 (브라우저로 열면 끝, 의존성 0).
+    서버:   python -m ai_fc dashboard --serve [--host 0.0.0.0]  ← 팀 공유 (LAN).
+    """
+    from . import dashboard as dash
+
+    root = config.ROOT
+    if serve:
+        conn = _conn(root)
+        ingest.sync(conn, root)  # 최신화 후 서버는 매 요청 라이브 재조회
+        conn.close()
+        dash.serve(root, host, port)
+        return
+    conn = _conn(root)
+    ingest.sync(conn, root)
+    out = dash.write_dashboard(conn, root)
+    typer.echo(f"생성: {out.relative_to(root)}")
+    typer.echo("팀 공유(LAN): python -m ai_fc dashboard --serve --host 0.0.0.0")
+    if open_browser:
+        import webbrowser
+        webbrowser.open(out.as_uri())
+
+
 @app.command("quant")
 def cmd_quant(
     no_write: bool = typer.Option(False, "--no-write", help="base_rates 갱신 없이 콘솔만"),

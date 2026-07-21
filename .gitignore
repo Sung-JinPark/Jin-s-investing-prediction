@@ -8,6 +8,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .env
+# 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
+/reports/dashboard.html
 
 # 내부 검토·아카이브 산출물 — 로컬 보존 전용 (리포지토리 미포함)
 reports/audit/_local_only/

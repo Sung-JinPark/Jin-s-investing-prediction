@@ -35,6 +35,8 @@ python -m ai_fc report --open          # 캘리브레이션 대시보드
 python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (이상 시 종료코드 1)
 ```
 
+- `python -m ai_fc dashboard`: 예측 흐름 조회 대시보드 (읽기 전용, 자기완결 HTML) → `reports/dashboard.html`. 브라우저로 열면 끝, 의존성 0. 6뷰: 개요·흐름차트(주간 시나리오 S1/S2/S3)·질문브라우저·질문상세(회차 이력+추론)·날짜조회(as-of)·캘리브레이션
+  - **팀 공유(LAN)**: `python -m ai_fc dashboard --serve --host 0.0.0.0 [--port 8899]` — 표준 라이브러리 http.server, 읽기 전용(POST 차단), 매 요청 라이브 재조회. LAN 노출은 공개 예측 데이터만(시크릿 미포함)이나 신뢰 네트워크에서만 사용
 - `python -m ai_fc quant`: 정량 재적합 (오버레이·Hurst·LPPL·GBM·미드텀) → `base_rates/quant_auto.md`
 - `python -m ai_fc ml`: 오픈웨이트 추론 앙상블 (Chronos-Bolt + Chronos-2 공변량 + T5 샘플경로 + GBM 배리어 + FinBERT 감성 5피드, 전부 로컬 CPU) → `base_rates/ml_auto.md` + `data/ml_history/*.jsonl` 이력. **주 1회 실행 권장** (due의 ML 신선도 7일과 정합). 학습 없음 — 결합은 고정 중앙값. 최초 실행 시 HF 다운로드: bolt ~190MB, chronos-2 ~480MB, t5-small ~200MB
 - `python -m ai_fc market`: 시장내재확률 수집 (Kalshi→Polymarket 폴백, CBOE QQQ 옵션 BL) → `base_rates/market_auto.md`. 이후 예측 실행 시 frontmatter의 market_implied/edge가 자동 기입 (기록 전용 — edge 시그널은 P3 게이트 봉인)
