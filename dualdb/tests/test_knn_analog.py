@@ -176,7 +176,11 @@ def test_real_db_smoke(real_conn):
         "SELECT COUNT(*) c FROM model_run").fetchone()["c"] == n_runs
     assert res["asof"] >= "2026-01-01"          # AI 시대 최신 시점
     assert len(res["neighbors"]) == 5
-    assert res["n_dotcom_samples"] >= 90        # 닷컴 월말 표본 충분
+    assert res["n_pool_samples"] >= 90          # 아날로그 풀 월말 표본 충분
+    # 다중 시대 풀 활성 — dotcom 외 아날로그 시대 최소 1개 포함 (Phase 1-B)
+    assert res["n_eras"] >= 2, f"풀 시대 {res['pool_eras']} — 다중화 실패 의심"
+    assert "dotcom" in res["pool_eras"]
+    assert all(n.get("era") in knn_analog.ANALOG_ERAS for n in res["neighbors"])
     assert all(np.isfinite(n["distance"]) for n in res["neighbors"])
     md = knn_analog.render_md(res)
-    assert "한계" in md and "표본 n=1" in md
+    assert "한계" in md and "표본 n=" in md and "다중 아날로그" in md

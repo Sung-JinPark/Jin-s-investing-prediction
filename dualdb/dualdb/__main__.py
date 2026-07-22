@@ -61,8 +61,18 @@ def main() -> None:
     elif cmd == "export":
         from .export import base_rates_auto
         print(f"생성: {base_rates_auto.export(conn)}")
+    elif cmd == "context":
+        # 정합도 배선 (Phase 1-D): 아날로그·팩터·레짐을 kind:'context' run으로
+        # ai_fc data/ml_history에 append → 자동 예측 프롬프트(ml_digest)가 원재료로 주입.
+        from .export import context_bridge
+        path, payload = context_bridge.run(conn)
+        a = payload.get("analog") or {}
+        print(f"append: {path}")
+        print(f"  아날로그 최근접={a.get('closest_era')} 거리={a.get('distance')} "
+              f"풀={a.get('n_eras')}시대 · 팩터={payload['factor_tilt']} · 레짐 키={list((payload.get('regime') or {}))}")
     else:
-        print("사용법: python -m dualdb <rebuild|ingest [--since D]|derive|coverage|report>")
+        print("사용법: python -m dualdb "
+              "<rebuild|ingest [--since D]|derive|models|coverage|report|export|context>")
 
 
 if __name__ == "__main__":

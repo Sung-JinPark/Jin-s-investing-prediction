@@ -13,6 +13,9 @@ SENTINELS = {  # (series, date): (expected_close, tol)
     ("^IXIC", "2023-01-31"): (11584.55, 1.0),   # AI M+0
     ("^IXIC", "2026-06-02"): (27093.90, 1.0),   # AI ATH
     ("^IXIC", "2026-07-14"): (26107.01, 1.0),   # 최신 앵커
+    # 다중 시대 아날로그 정점 (Phase 1-A — 독립 검증 가능한 유명값)
+    ("^N225", "1989-12-29"): (38915.87, 1.0),   # 닛케이 사상 최고(2024년 전까지)
+    ("^SPX", "1972-12-11"): (119.12, 0.5),      # Nifty Fifty 정점
 }
 
 
@@ -87,3 +90,41 @@ def test_seed_minimums(conn):
         "SELECT COUNT(*) c FROM event WHERE era_id='dotcom'").fetchone()["c"] >= 13
     assert conn.execute(
         "SELECT COUNT(*) c FROM event WHERE era_id='ai'").fetchone()["c"] >= 12
+
+
+def test_ixic_fred_promotion(conn):
+    """DECISIONS 9-5: ^IXIC 1995~2004 종가 정본 = FRED NASDAQCOM (2,519행).
+
+    yahoo 재수집이 close를 raw로 되돌리면 교차검증이 3.11%로 회귀 —
+    promote_ixic_close가 ingest_indices 말미에서 항상 재적용됨을 보장한다.
+    """
+    row = conn.execute(
+        """SELECT COUNT(*) n FROM price_daily WHERE series='^IXIC'
+           AND date BETWEEN '1995-01-01' AND '2004-12-31'
+           AND source='fred-close+yahoo-ohlcv'""").fetchone()
+    assert row["n"] == 2519, f"9-5 승격 {row['n']}행 (기대 2519) — 재수집이 되돌렸을 수 있음"
+
+
+def test_multi_era_derived_coverage(conn):
+    """다중 시대 파생 커버리지 — derived_daily PK가 (series,date,era_id)임을 보증.
+
+    era_id 없는 PK면 겹침 창(dotcom 1995~2003 ∩ japan1989 1984~2003)의 ^IXIC 행이
+    나중 era에 덮여 dotcom 파생이 0으로 소실된다 (Phase 1-A 회귀). 각 아날로그 지수가
+    자기 시대의 파생을 보유하는지 확인한다.
+    """
+    if not conn.execute("SELECT 1 FROM derived_daily LIMIT 1").fetchone():
+        pytest.skip("derived_daily 비어 있음 — derive 후 실행")
+    # ^IXIC는 dotcom·ai 두 시대에 각각 파생 보유 (겹침 소실 방지 회귀 가드)
+    dot = conn.execute(
+        "SELECT COUNT(*) n FROM derived_daily WHERE series='^IXIC' AND era_id='dotcom'").fetchone()["n"]
+    ai = conn.execute(
+        "SELECT COUNT(*) n FROM derived_daily WHERE series='^IXIC' AND era_id='ai'").fetchone()["n"]
+    assert dot > 2000, f"^IXIC dotcom 파생 {dot}행 (기대 >2000) — PK 겹침 소실 의심"
+    assert ai > 500, f"^IXIC ai 파생 {ai}행"
+    # 신규 아날로그 지수가 자기 시대 파생 보유
+    for era, series in [("japan1989", "^N225"), ("crypto2021", "BTC-USD"),
+                        ("biotech2015", "IBB"), ("niftyfifty1972", "^SPX")]:
+        n = conn.execute(
+            "SELECT COUNT(*) n FROM derived_daily WHERE era_id=? AND series=?",
+            (era, series)).fetchone()["n"]
+        assert n > 500, f"{era}/{series} 파생 {n}행 (기대 >500)"

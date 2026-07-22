@@ -24,6 +24,7 @@ YAHOO_INDICES = _cfg["yahoo_indices"]
 YAHOO_DAILY = _cfg["yahoo_daily"]
 RITTER_PAGE = _cfg["ritter"]["page"]
 SHILLER_URL = _cfg["shiller"]["url"]
+FRENCH = _cfg["french"]
 
 REQ_DELAY = float(_cfg["request"]["delay_sec"])
 REQ_RETRIES = int(_cfg["request"]["retries"])

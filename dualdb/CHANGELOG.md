@@ -45,3 +45,34 @@
     M+43.5 → 단일 위상 단정 금지, 삼중 병기;
     (c) 트윈 12종은 생존 승자 표본 — 붕괴 base rate의 낙관적 하한.
     스펙 §8의 수치 모델 예외는 CLAUDE.md 원칙 5에 명문화 (DECISIONS.md 8-6).
+
+## 2026-07-21 DB 레이어 확장 (Phase 1 — 다중 시대 + 무료 통계 + 정합도 배선)
+
+목적: n=1(닷컴) 아날로그의 검정력 한계(KNOWN_LIMITS #2·R-4)를 다중 시대로 완화하고,
+무료 통계 레이어를 자동 예측 프롬프트에 **실제로 도달**시켜 정합도를 올린다.
+
+12. **다중 시대 아날로그 (1-A)**: config anchors에 index+window 필드 추가 —
+    japan1989(^N225)·niftyfifty1972(^SPX)·crypto2021(BTC-USD)·biotech2015(IBB).
+    `derive/daily.py` ERA_WINDOWS/ERA_INDEX를 config 기반 일반화, correction_episode를
+    시대별 자기 지수로 산출. 센티널 추가: Nikkei 1989-12-29=38,915.87 · S&P 1972-12-11=119.12.
+    v4.1 게이트(Pearson 0.9056·M+0~42) 무변 유지.
+13. **회귀 2건 발견·수정** (1-A 부작용 — 근본 원인까지 코드로 봉인):
+    (a) **derived_daily PK 겹침 충돌**: PK(series,date)라 겹침 창(dotcom 1995~2003 ∩
+    japan1989 1984~2003)의 ^IXIC 행이 나중 era에 덮여 dotcom 파생이 **0행 소실**.
+    PK를 (series,date,era_id)로 정정(correction_episode도 era_id 포함). 회귀 가드 테스트 추가.
+    (b) **^IXIC 9-5 FRED-종가 승격 소실**: 승격(DECISIONS 9-5, 2,519행)이 DB 일회성
+    변형이라 yahoo 재수집이 raw close로 되돌려 교차검증 3.11% 회귀. `yahoo.promote_ixic_close`로
+    **코드 편입** — ingest_indices 말미에서 항상 재적용(재구축 재현 보장). 교차검증 0.10% 복원.
+14. **Fama-French 팩터 (1-C)**: `ingest/french.py` 신규 — Kenneth French Data Library
+    5팩터(1963-07+)+모멘텀(1927+) CSV zip(무등록·무키, net.get). `factor_monthly` 테이블
+    (1,193행 1927~2026). 센티널: 1927-01 Mom=0.57 · 1963-07 Mkt-RF=-0.39.
+15. **k-NN 다중 시대 풀 (1-B)**: `models/knn_analog.py` 이웃 풀을 5개 아날로그 시대로 확장
+    (각 시대 자기 지수·척도무관 5차원, min-gap은 동일 시대 내에서만). z-표준화는 풀(과거) 전용.
+    실측: 현 AI 국면 최근접 이웃이 dotcom(3)+biotech2015(2) 두 독립 사이클에서 선택.
+    **CAPE/HY 차원 추가는 보류** — 교차 시대 데이터 부재(HY 2023+·CAPE 2023-09 종료·美 특화)로
+    강제 시 이웃 풀 전멸. R-4(가짜 차원 금지) 준수 → 현재 레짐 컨텍스트(1-D)로 이관.
+16. **정합도 배선 (1-D — 급소)**: `export/context_bridge.py` 신규 — 아날로그·팩터 기울기·레짐을
+    `kind:"context"` run으로 ai_fc `data/ml_history/*.jsonl`에 append(`python -m dualdb context`).
+    ai_fc `base_rates.ml_digest_with_meta` 확장 — 최신 context run(신선도 게이트)의 원재료
+    라인 주입. **질문 매핑 확률 없음**(R-4·앵커링 방지) — 전방수익률은 시장 base rate이며
+    준-앵커 주의 라벨 병기. 이 배선 없이는 `*_auto.md`가 자동 추론에 도달하지 않았음(탐색 확정).

@@ -1,7 +1,13 @@
 # dualdb 설정 — 시리즈 목록·앵커·경로 (코드 하드코딩 금지)
+# 각 era: anchor_month=M+0, peak/bottom, index=아날로그 지수(series), window=파생 계산 창
+# window는 각 사이클의 '버블 구간'으로 한정 (예: Nikkei는 2024+ 재돌파 제외).
 anchors:
-  dotcom: { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09" }
-  ai:     { anchor_month: "2023-01", peak_date: null, bottom_date: null }
+  dotcom:         { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09", index: "^IXIC",   window: ["1995-01-01", "2003-12-31"] }
+  ai:             { anchor_month: "2023-01", peak_date: null,         bottom_date: null,         index: "^IXIC",   window: ["2022-01-01", null] }
+  japan1989:      { anchor_month: "1985-01", peak_date: "1989-12-29", bottom_date: "2003-04-28", index: "^N225",   window: ["1984-01-01", "2003-12-31"] }
+  niftyfifty1972: { anchor_month: "1970-01", peak_date: "1972-12-11", bottom_date: "1974-10-03", index: "^SPX",    window: ["1970-01-01", "1976-12-31"] }
+  crypto2021:     { anchor_month: "2019-01", peak_date: "2021-11-10", bottom_date: "2022-11-21", index: "BTC-USD", window: ["2018-01-01", "2023-12-31"] }
+  biotech2015:    { anchor_month: "2013-01", peak_date: "2015-07-20", bottom_date: "2016-02-11", index: "IBB",     window: ["2012-01-01", "2017-12-31"] }
 
 paths:
   db: db/dualdb.sqlite
@@ -21,6 +27,10 @@ yahoo_indices:
   "^SOX":  "^SOX"
   "^VIX":  "^VIX"
   "^TNX":  "^TNX"   # 10y 수익률×10 — FRED DGS10 차단 시 금리 문맥 보조 (CHANGELOG #7)
+  # 다중 시대 아날로그 지수 (Phase 1 — n=1→다중)
+  "^N225":   "^N225"     # Nikkei (japan1989)
+  "BTC-USD": "BTC-USD"   # Bitcoin (crypto2021)
+  "IBB":     "IBB"       # iShares Nasdaq Biotech (biotech2015)
 
 # Stooq 상폐종목 복원(yhoo.us 등)은 JS 벽으로 불가 — data_gap 기록 (원칙 3)
 stooq: {}
@@ -35,6 +45,12 @@ ritter:
 
 shiller:
   url: "http://www.econ.yale.edu/~shiller/data/ie_data.xls"
+
+# Fama-French 팩터 (Kenneth French Data Library — 무등록·무키 CSV zip, JS 벽 없음)
+french:
+  base: "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/"
+  five_factor: "F-F_Research_Data_5_Factors_2x3_CSV.zip"   # Mkt-RF·SMB·HML·RMW·CMA·RF (1963-07+)
+  momentum: "F-F_Momentum_Factor_CSV.zip"                  # Mom (1927+)
 
 request:
   delay_sec: 1.0

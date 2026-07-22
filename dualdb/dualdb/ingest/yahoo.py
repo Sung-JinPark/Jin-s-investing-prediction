@@ -68,7 +68,33 @@ def ingest_indices(conn: sqlite3.Connection, since: str | None = None) -> dict[s
             " VALUES (?,?,?,?,?,?,?,?,?,?)", rows)
         counts[canonical] = len(rows)
     conn.commit()
+    counts["_ixic_promoted"] = promote_ixic_close(conn)
     return counts
+
+
+def promote_ixic_close(conn: sqlite3.Connection,
+                       d0: str = "1995-01-01", d1: str = "2004-12-31") -> int:
+    """DECISIONS 9-5 (감사 260720 F-01): ^IXIC 1995~2004 종가 정본 = FRED NASDAQCOM.
+
+    Yahoo 구형 나스닥 종가는 revision vintage 차이로 연준 재배포와 괴리(2003·2004 집중,
+    교차검증 3.11%). 앵커 6점은 양 벤더 일치 → 비앵커 괴리만 FRED로 정합(→0.10%).
+    OHLC·volume은 Yahoo 유지, close/adj_close만 교체하고 source를 표기한다.
+    **재현성**: yahoo 재수집이 close를 raw로 되돌리므로 ingest_indices 말미에서 항상
+    재적용 — DB 일회성 변형 금지(원칙: 재구축 재현). FRED 미수집이면 no-op(EXISTS 가드).
+    """
+    cur = conn.execute(
+        """UPDATE price_daily SET
+             close = (SELECT value FROM macro_daily m
+                      WHERE m.series_id='NASDAQCOM' AND m.date=price_daily.date),
+             adj_close = (SELECT value FROM macro_daily m
+                          WHERE m.series_id='NASDAQCOM' AND m.date=price_daily.date),
+             source = 'fred-close+yahoo-ohlcv'
+           WHERE series='^IXIC' AND date BETWEEN ? AND ?
+             AND EXISTS (SELECT 1 FROM macro_daily m
+                         WHERE m.series_id='NASDAQCOM' AND m.date=price_daily.date)""",
+        (d0, d1))
+    conn.commit()
+    return cur.rowcount
 
 
 def ingest(conn: sqlite3.Connection, since: str | None = None) -> dict[str, int]:

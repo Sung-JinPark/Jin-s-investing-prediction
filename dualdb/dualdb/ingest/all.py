@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import sqlite3
 
-from . import finra, fred, ritter, seeds, shiller, yahoo
+from . import finra, french, fred, ritter, seeds, shiller, yahoo
 
 
 def run(conn: sqlite3.Connection, since: str | None = None) -> dict[str, dict]:
@@ -12,7 +12,7 @@ def run(conn: sqlite3.Connection, since: str | None = None) -> dict[str, dict]:
     out["seeds"] = seeds.ingest(conn, since)     # 시드 먼저 (entity가 data_gap 기록 대상)
     steps = [("fred", fred.ingest), ("yahoo_indices", yahoo.ingest_indices),
              ("yahoo", yahoo.ingest), ("ritter", ritter.ingest), ("shiller", shiller.ingest),
-             ("finra", finra.ingest)]
+             ("finra", finra.ingest), ("french", french.ingest)]
     for name, fn in steps:
         try:
             out[name] = fn(conn, since)

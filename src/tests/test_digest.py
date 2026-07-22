@@ -66,6 +66,62 @@ def _ml_payload(run_ts: str) -> dict:
     }
 
 
+def _context_payload(run_ts: str) -> dict:
+    return {
+        "run_ts": run_ts, "kind": "context", "source": "dualdb",
+        "analog": {
+            "closest_era": "dotcom", "distance": 0.23,
+            "fwd_return_dist": {"m3": 0.0978, "m6": 0.2823, "m12": 0.4012, "n": 5},
+            "correction_depth_median": -0.1292,
+            "n_eras": 5, "pool_eras": ["dotcom", "biotech2015"],
+            "selected_eras": ["dotcom", "biotech2015"], "asof": "2026-07-20",
+        },
+        "factor_tilt": {"value_z": 0.57, "momentum_z": 0.33, "size_z": 0.19,
+                        "vintage": "2026-05-01"},
+        "regime": {"yield_curve_10y2y": 0.37, "yield_curve_inverted": False,
+                   "hy_spread_pct": 2.71, "hy_spread_pctile": 9.8, "hy_spread_n": 787,
+                   "cape_latest": 30.8, "cape_pctile": 94.8, "cape_vintage": "2023-09-01"},
+        "note": "과거 유사 시대 base rate — 질문 매핑 확률 아님(R-4, 준-앵커 주의)",
+    }
+
+
+def test_digest_injects_context_raw_material(repo: Path) -> None:
+    """context run이 있으면 아날로그·팩터·레짐 원재료 라인이 주입된다 (Phase 1-D)."""
+    conn = ingest.connect(repo / "db" / "index.db")
+    now = datetime.now().isoformat(timespec="seconds")
+    append_run(repo, _ml_payload(now))
+    append_run(repo, _context_payload(now))
+    ingest.sync(conn, repo)
+    d = base_rates.ml_digest(repo, conn, "fixture-coin-ath")
+    assert d is not None
+    assert "최근접 과거 사이클: dotcom" in d          # 아날로그 주입
+    assert "+28.2%" in d                               # 6M 전방수익률 중앙값
+    assert "가치(HML)" in d and "레짐" in d            # 팩터·레짐 주입
+    assert "R-4" in d                                  # 준-앵커 주의 라벨 필수
+    # 여전히 매핑 참조 확률은 미포함 (앵커링 방지 계약 — context도 동일)
+    assert "0.7317" not in d and "73%" not in d
+
+
+def test_digest_context_only_without_ml(repo: Path) -> None:
+    """ml run이 없어도(또는 stale) context 단독으로 주입된다."""
+    conn = ingest.connect(repo / "db" / "index.db")
+    now = datetime.now().isoformat(timespec="seconds")
+    append_run(repo, _context_payload(now))            # ml 없음
+    ingest.sync(conn, repo)
+    d = base_rates.ml_digest(repo, conn, "fixture-coin-ath")
+    assert d is not None
+    assert "아날로그·팩터·레짐 컨텍스트" in d           # context 단독 헤더
+    assert "최근접 과거 사이클: dotcom" in d
+
+
+def test_digest_stale_context_not_injected(repo: Path) -> None:
+    conn = ingest.connect(repo / "db" / "index.db")
+    old = (datetime.now() - timedelta(days=30)).isoformat(timespec="seconds")
+    append_run(repo, _context_payload(old))
+    ingest.sync(conn, repo)
+    assert base_rates.ml_digest(repo, conn, "fixture-coin-ath") is None
+
+
 def test_digest_contains_bands_not_mapped_probs(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     append_run(repo, _ml_payload(datetime.now().isoformat(timespec="seconds")))

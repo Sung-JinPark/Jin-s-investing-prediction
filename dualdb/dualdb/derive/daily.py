@@ -13,10 +13,12 @@ import numpy as np
 
 from .. import config
 
-ERA_WINDOWS = {  # era_id: (계산 창 시작, 끝 — 끝 None = 오늘)
-    "dotcom": ("1995-01-01", "2003-12-31"),
-    "ai": ("2022-01-01", None),
+# era 계산 창·아날로그 지수는 config.yaml anchors에서 (하드코딩 제거 — 다중 시대 일반화)
+ERA_WINDOWS = {  # era_id: (창 시작, 끝 — 끝 None = 오늘)
+    e: (m["window"][0], m["window"][1])
+    for e, m in config.ANCHORS.items() if m.get("window")
 }
+ERA_INDEX = {e: m.get("index", "^IXIC") for e, m in config.ANCHORS.items()}
 
 
 def _series_closes(conn: sqlite3.Connection, series: str) -> tuple[list[str], np.ndarray]:
@@ -104,12 +106,16 @@ def _month_ends(conn: sqlite3.Connection, series: str, d0: str, d1: str
            ORDER BY m""", (series, d0, d1))]
 
 
-def build_correction_episodes(conn: sqlite3.Connection, series: str = "^IXIC",
+def build_correction_episodes(conn: sqlite3.Connection,
                               threshold: float = -0.05) -> int:
-    """월말 종가 기준 고점→저점 -5%+ 에피소드 (v4.1·센티널 정의와 동일)."""
-    conn.execute("DELETE FROM correction_episode WHERE series=?", (series,))
+    """월말 종가 기준 고점→저점 -5%+ 에피소드 (v4.1·센티널 정의와 동일).
+
+    각 era는 자신의 아날로그 지수(ERA_INDEX)로 계산 — 다중 시대 일반화.
+    """
+    conn.execute("DELETE FROM correction_episode")  # 전량 재구축
     n = 0
     for era_id, (w0, w1) in ERA_WINDOWS.items():
+        series = ERA_INDEX[era_id]
         me = _month_ends(conn, series, w0, w1 or date.today().isoformat())
         if not me:
             continue

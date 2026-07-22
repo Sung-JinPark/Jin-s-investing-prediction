@@ -22,7 +22,9 @@ def append_run(root: Path, payload: dict) -> Path:
     d = history_dir(root)
     d.mkdir(parents=True, exist_ok=True)
     out = d / f"{payload['run_ts'][:4]}.jsonl"
-    with out.open("a", encoding="utf-8") as f:
+    # newline="" 로 LF 고정 — .gitattributes가 data/ml_history/** 를 -text(바이트 보존)로
+    # 두므로 Windows 텍스트모드 CRLF는 기존 LF run들과 EOL이 뒤섞여 드리프트를 낸다.
+    with out.open("a", encoding="utf-8", newline="") as f:
         f.write(json.dumps(payload, ensure_ascii=False, default=str) + "\n")
     return out
 

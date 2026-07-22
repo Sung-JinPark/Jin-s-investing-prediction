@@ -63,6 +63,14 @@ CREATE TABLE IF NOT EXISTS valuation_monthly (
   tier INTEGER NOT NULL, source TEXT, ingested_at TEXT,
   PRIMARY KEY(scope, date));
 
+-- Fama-French 팩터 월간 (Kenneth French Data Library, 무등록·무키 CSV zip).
+-- 값은 원본 그대로 월간 수익률 퍼센트(%). 5팩터 1963-07+ · 모멘텀 1927+.
+-- 추론 전용 참조(base rate) — 학습·가중치 갱신 없음. date = 'YYYY-MM-01'.
+CREATE TABLE IF NOT EXISTS factor_monthly (
+  date TEXT PRIMARY KEY,
+  mkt_rf REAL, smb REAL, hml REAL, rmw REAL, cma REAL, mom REAL, rf REAL,
+  source TEXT, ingested_at TEXT);
+
 CREATE TABLE IF NOT EXISTS fundamentals_annual (
   entity_id INTEGER REFERENCES entity(entity_id), fiscal_year INTEGER,
   revenue_mil REAL, gross_margin REAL, capex_mil REAL, eps REAL,
@@ -85,17 +93,20 @@ CREATE TABLE IF NOT EXISTS dotcom_casualty (
   months_after_index_peak REAL, source TEXT);
 
 -- ── 파생(derived 계층 — 전량 재계산 가능) ──────────
+-- PK에 era_id 포함: 같은 (series,date)라도 era-앵커가 다르면 cycle_day·norm_m0가
+-- 달라진다. 다중 시대 창이 겹칠 때(예: dotcom 1995~2003 ∩ japan1989 1984~2003의 ^IXIC)
+-- era_id 없는 PK는 나중 era가 앞 era 행을 덮어써 파생을 소실시킨다 (Phase1-A 회귀).
 CREATE TABLE IF NOT EXISTS derived_daily (
   series TEXT, date TEXT, era_id TEXT, cycle_day INTEGER,
   ret_1d REAL, vol_20d REAL, vol_60d REAL,
   ath_to_date REAL, drawdown REAL,
   dist_200dma REAL, rsi_14 REAL, norm_m0 REAL,
-  PRIMARY KEY(series, date));
+  PRIMARY KEY(series, date, era_id));
 
 CREATE TABLE IF NOT EXISTS correction_episode (
   series TEXT, era_id TEXT, peak_date TEXT, trough_date TEXT, recover_date TEXT,
   depth REAL, dur_days INTEGER, recover_days INTEGER, cycle_month_at_peak REAL,
-  PRIMARY KEY(series, peak_date));
+  PRIMARY KEY(series, era_id, peak_date));
 
 CREATE TABLE IF NOT EXISTS cycle_compare (
   method TEXT, cycle_index REAL, metric TEXT,
