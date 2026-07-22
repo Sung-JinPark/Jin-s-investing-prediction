@@ -92,6 +92,43 @@ def test_seed_minimums(conn):
         "SELECT COUNT(*) c FROM event WHERE era_id='ai'").fetchone()["c"] >= 12
 
 
+def test_dow1929_monthly_tier(conn):
+    """Phase 2: dow1929 월간 tier — 대공황 조정이 정확히 잡히고 일간 경로에서 제외.
+
+    센티널: 1929-09→1932-06 월평균 지수 깊이 ≈ -87% (일중 극값 -89%보다 완만 — 원천
+    해상도 한계 명기). k-NN 풀·일간 파생에는 절대 포함되지 않아야 한다 (가짜 일간
+    피처 금지).
+    """
+    row = conn.execute(
+        "SELECT peak_date, trough_date, depth FROM correction_episode"
+        " WHERE era_id='dow1929' ORDER BY depth ASC LIMIT 1").fetchone()
+    if row is None:
+        pytest.skip("dow1929 미수집 (FRED M1109BUSM293NNBR) — ingest 후 실행")
+    assert row["peak_date"] == "1929-09" and row["trough_date"] == "1932-06"
+    assert row["depth"] == pytest.approx(-0.871, abs=0.02)
+    # 일간 경로 제외 보증
+    from dualdb.derive.daily import ERA_MONTHLY, ERA_WINDOWS
+    from dualdb.models.knn_analog import ANALOG_ERAS
+    assert "dow1929" in ERA_MONTHLY
+    assert "dow1929" not in ERA_WINDOWS and "dow1929" not in ANALOG_ERAS
+    n = conn.execute(
+        "SELECT COUNT(*) n FROM derived_daily WHERE era_id='dow1929'").fetchone()["n"]
+    assert n == 0, f"dow1929 일간 파생 {n}행 — 월간 tier가 일간 경로에 누출"
+
+
+def test_usrec_recession_series(conn):
+    """Phase 2: NBER USREC(0/1, 1854+) — regime.recession_flag 실측 원천."""
+    r = conn.execute(
+        "SELECT COUNT(*) n, MIN(date) d0, MAX(date) d1 FROM macro_monthly"
+        " WHERE series_id='USREC'").fetchone()
+    if r["n"] == 0:
+        pytest.skip("USREC 미수집 — ingest 후 실행")
+    assert r["n"] > 2000 and r["d0"] <= "1860-01-01"
+    vals = {row["value"] for row in conn.execute(
+        "SELECT DISTINCT value FROM macro_monthly WHERE series_id='USREC'")}
+    assert vals <= {0.0, 1.0}
+
+
 def test_ixic_fred_promotion(conn):
     """DECISIONS 9-5: ^IXIC 1995~2004 종가 정본 = FRED NASDAQCOM (2,519행).
 

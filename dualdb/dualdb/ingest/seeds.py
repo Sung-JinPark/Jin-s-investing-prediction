@@ -36,22 +36,33 @@ def ingest(conn: sqlite3.Connection, since: str | None = None) -> dict[str, int]
             (era_id, a["anchor_month"], a.get("peak_date"), a.get("bottom_date"),
              "AI 정점·바닥 미확정 — NULL 유지" if era_id == "ai" else None))
 
-    # alignment: calendar_m M+0 ~ M+60
+    # alignment (long format): calendar_m M+0 ~ M+60 — 전 시대 era별 1행
+    n_align = 0
     for n in range(0, 61):
+        for era_id, a in config.ANCHORS.items():
+            conn.execute(
+                "INSERT OR REPLACE INTO alignment (method, cycle_index, event_name,"
+                " era_id, date) VALUES ('calendar_m', ?, '', ?, ?)",
+                (float(n), era_id, _month_add(a["anchor_month"], n)))
+            n_align += 1
+    # alignment: event — peak/bottom은 config anchors에서 전 시대 일반화 (미확정 = NULL).
+    # midterm(미 중간선거)·crisis_bottom(사이클 중반 위기 저점 — AI측은 derive가 실측
+    # 갱신)은 dotcom↔ai 특화 이벤트로 두 시대만 기록.
+    for era_id, a in config.ANCHORS.items():
+        for name, d in (("peak", a.get("peak_date")), ("bottom", a.get("bottom_date"))):
+            conn.execute(
+                "INSERT OR REPLACE INTO alignment (method, cycle_index, event_name,"
+                " era_id, date) VALUES ('event', 0, ?, ?, ?)", (name, era_id, d))
+            n_align += 1
+    for name, era_id, d in [("midterm", "dotcom", "1998-11-03"),
+                            ("midterm", "ai", "2026-11-03"),
+                            ("crisis_bottom", "dotcom", "1998-10-08"),
+                            ("crisis_bottom", "ai", None)]:
         conn.execute(
             "INSERT OR REPLACE INTO alignment (method, cycle_index, event_name,"
-            " dotcom_date, ai_date) VALUES ('calendar_m', ?, '', ?, ?)",
-            (float(n),
-             _month_add(config.ANCHORS["dotcom"]["anchor_month"], n),
-             _month_add(config.ANCHORS["ai"]["anchor_month"], n)))
-    # alignment: event (닷컴측 확정, AI측은 데이터에서 확정되는 항목은 derive가 갱신)
-    for name, dc, ai in [("midterm", "1998-11-03", "2026-11-03"),
-                         ("crisis_bottom", "1998-10-08", None),
-                         ("peak", "2000-03-10", None)]:
-        conn.execute(
-            "INSERT OR REPLACE INTO alignment (method, cycle_index, event_name,"
-            " dotcom_date, ai_date) VALUES ('event', 0, ?, ?, ?)", (name, dc, ai))
-    counts["alignment"] = 64
+            " era_id, date) VALUES ('event', 0, ?, ?, ?)", (name, era_id, d))
+        n_align += 1
+    counts["alignment"] = n_align
 
     for r in _load_csv(s / "roles.csv"):
         conn.execute(

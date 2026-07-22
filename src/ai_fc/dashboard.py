@@ -187,6 +187,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "cost_month": round(queries.month_cost(conn, now.year, now.month), 2),
         },
         "scenario": SCENARIO,
+        "analog_context": _latest_context_run(root),
         "questions": q_summary,
         "forecast_history": fc_hist,
         "resolutions": resolutions,
@@ -195,6 +196,19 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "calibration": calibration,
         "due": due_list,
     }
+
+
+def _latest_context_run(root: Path) -> dict | None:
+    """ml_history 최신 kind:'context' run — 다중 시대 오버레이·레짐 (커밋 데이터, 정적 안전)."""
+    try:
+        from .ml.history import iter_history
+        latest = None
+        for run in iter_history(root):
+            if run.get("kind") == "context":
+                latest = run
+        return latest
+    except Exception:  # noqa: BLE001 — 부재 시 대시보드는 해당 패널만 생략
+        return None
 
 
 def render_html(read_model: dict, mode: str = "embed") -> str:

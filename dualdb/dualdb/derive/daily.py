@@ -14,9 +14,18 @@ import numpy as np
 from .. import config
 
 # era 계산 창·아날로그 지수는 config.yaml anchors에서 (하드코딩 제거 — 다중 시대 일반화)
-ERA_WINDOWS = {  # era_id: (창 시작, 끝 — 끝 None = 오늘)
+# tier: monthly 시대(예: dow1929)는 일간 파생·k-NN 대상이 아니다 — 월간 지수로
+# 조정 에피소드만 산출 (ERA_MONTHLY). 일간 지표를 월간 간격에 적용하면 vol_20d 등이
+# 무의미해지므로 원천 해상도별로 경로를 분리한다 (정직성 — 가짜 일간 피처 금지).
+ERA_WINDOWS = {  # era_id: (창 시작, 끝 — 끝 None = 오늘) — 일간 tier만
     e: (m["window"][0], m["window"][1])
-    for e, m in config.ANCHORS.items() if m.get("window")
+    for e, m in config.ANCHORS.items()
+    if m.get("window") and m.get("tier") != "monthly"
+}
+ERA_MONTHLY = {  # era_id: (macro_monthly series_id, 창) — 월간 tier
+    e: (m["macro_series"], (m["window"][0], m["window"][1]))
+    for e, m in config.ANCHORS.items()
+    if m.get("tier") == "monthly" and m.get("macro_series")
 }
 ERA_INDEX = {e: m.get("index", "^IXIC") for e, m in config.ANCHORS.items()}
 
@@ -106,17 +115,34 @@ def _month_ends(conn: sqlite3.Connection, series: str, d0: str, d1: str
            ORDER BY m""", (series, d0, d1))]
 
 
+def _month_values_macro(conn: sqlite3.Connection, series_id: str, d0: str, d1: str
+                        ) -> list[tuple[str, float]]:
+    """macro_monthly 월간 값 — 월간 tier 시대(dow1929)용. (YYYY-MM, value)."""
+    return [(r["m"], r["v"]) for r in conn.execute(
+        """SELECT substr(date,1,7) m, value v FROM macro_monthly
+           WHERE series_id=? AND date BETWEEN ? AND ? ORDER BY date""",
+        (series_id, d0, d1))]
+
+
 def build_correction_episodes(conn: sqlite3.Connection,
                               threshold: float = -0.05) -> int:
     """월말 종가 기준 고점→저점 -5%+ 에피소드 (v4.1·센티널 정의와 동일).
 
     각 era는 자신의 아날로그 지수(ERA_INDEX)로 계산 — 다중 시대 일반화.
+    월간 tier 시대(ERA_MONTHLY)는 macro_monthly 값으로 동일 탐지 로직 적용
+    (월간 평균 지수라 일중 극값 대비 깊이가 완만함을 주의 — 원천 해상도 한계).
     """
     conn.execute("DELETE FROM correction_episode")  # 전량 재구축
     n = 0
-    for era_id, (w0, w1) in ERA_WINDOWS.items():
-        series = ERA_INDEX[era_id]
-        me = _month_ends(conn, series, w0, w1 or date.today().isoformat())
+    sources = [(era_id, ERA_INDEX[era_id], w0, w1)
+               for era_id, (w0, w1) in ERA_WINDOWS.items()]
+    sources += [(era_id, sid, w0, w1)
+                for era_id, (sid, (w0, w1)) in ERA_MONTHLY.items()]
+    for era_id, series, w0, w1 in sources:
+        if era_id in ERA_MONTHLY:
+            me = _month_values_macro(conn, series, w0, w1 or date.today().isoformat())
+        else:
+            me = _month_ends(conn, series, w0, w1 or date.today().isoformat())
         if not me:
             continue
         anchor = config.ANCHORS[era_id]["anchor_month"]
@@ -194,7 +220,8 @@ def fill_event_alignment(conn: sqlite3.Connection) -> None:
            AND date BETWEEN '2025-03-01' AND '2025-06-30' ORDER BY close LIMIT 1""").fetchone()
     if row:
         conn.execute(
-            "UPDATE alignment SET ai_date=? WHERE method='event' AND event_name='crisis_bottom'",
+            "UPDATE alignment SET date=? WHERE method='event'"
+            " AND event_name='crisis_bottom' AND era_id='ai'",
             (row["date"],))
         conn.commit()
 

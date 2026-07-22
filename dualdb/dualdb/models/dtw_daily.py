@@ -148,17 +148,22 @@ def _calendar_dotcom_month(ai_last: str) -> tuple[str, int]:
 
 def _upsert_alignment(conn: sqlite3.Connection, path: list[tuple[int, int]],
                       dc_dates: list[str], ai_dates: list[str]) -> int:
-    """method='dtw' 행 DELETE 후 재삽입 — AI 주 i당 닷컴 매핑 중앙값 1행."""
+    """method='dtw' 행 DELETE 후 재삽입 — AI 주 i당 (dotcom, ai) era 행 쌍.
+
+    long format: 같은 cycle_index의 era 행들이 한 정렬점 (반환값은 쌍 수 = AI 주 수).
+    """
     by_i: dict[int, list[int]] = {}
     for i, j in path:
         by_i.setdefault(i, []).append(j)
-    rows = [("dtw", float(i), "", dc_dates[js[len(js) // 2]], ai_dates[i])
-            for i, js in sorted(by_i.items())]
+    rows = []
+    for i, js in sorted(by_i.items()):
+        rows.append(("dtw", float(i), "", "dotcom", dc_dates[js[len(js) // 2]]))
+        rows.append(("dtw", float(i), "", "ai", ai_dates[i]))
     conn.execute("DELETE FROM alignment WHERE method='dtw'")
     conn.executemany(
-        "INSERT INTO alignment (method, cycle_index, event_name, dotcom_date, ai_date)"
+        "INSERT INTO alignment (method, cycle_index, event_name, era_id, date)"
         " VALUES (?,?,?,?,?)", rows)
-    return len(rows)
+    return len(by_i)
 
 
 def run(conn: sqlite3.Connection, series: str = SERIES, open_end: bool = True) -> dict:

@@ -50,6 +50,19 @@ def test_derived_invariants(conn):
 
 def test_ai_crisis_bottom_filled_from_data(conn):
     row = conn.execute(
-        "SELECT ai_date FROM alignment WHERE method='event' AND event_name='crisis_bottom'"
-    ).fetchone()
-    assert row is not None and row["ai_date"] is not None  # 실측으로 채워짐 (추정 금지)
+        "SELECT date FROM alignment WHERE method='event'"
+        " AND event_name='crisis_bottom' AND era_id='ai'").fetchone()
+    assert row is not None and row["date"] is not None  # 실측으로 채워짐 (추정 금지)
+
+
+def test_alignment_long_format_multi_era(conn):
+    """Phase 2 long-format 게이트 — 전 시대 calendar_m 행 + 시대별 peak 이벤트."""
+    eras = [r["era_id"] for r in conn.execute(
+        "SELECT DISTINCT era_id FROM alignment WHERE method='calendar_m'")]
+    assert len(eras) >= 7, f"calendar_m 시대 수 {len(eras)} (기대 7+): {eras}"
+    peak = {r["era_id"]: r["date"] for r in conn.execute(
+        "SELECT era_id, date FROM alignment WHERE method='event' AND event_name='peak'")}
+    assert peak.get("dotcom") == "2000-03-10"
+    assert peak.get("japan1989") == "1989-12-29"
+    assert peak.get("dow1929") == "1929-09-03"
+    assert peak.get("ai") is None      # 미확정 = NULL 유지 (추정 금지)

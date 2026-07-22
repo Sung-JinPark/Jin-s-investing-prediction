@@ -91,9 +91,10 @@ def syn_conn(tmp_path):
     _insert_synthetic_era(conn, "dotcom", date(1996, 1, 1), 420, 1.0)
     _insert_synthetic_era(conn, "ai", date(2023, 1, 2), 190, 0.5)
     # 타 method 무접촉 검증용 시드 — run()은 method='dtw'만 재기록해야 한다
-    conn.execute(
-        "INSERT INTO alignment (method, cycle_index, event_name, dotcom_date, ai_date)"
-        " VALUES ('calendar_m', 0.0, '', '1996-01-31', '2023-01-31')")
+    conn.executemany(
+        "INSERT INTO alignment (method, cycle_index, event_name, era_id, date)"
+        " VALUES ('calendar_m', 0.0, '', ?, ?)",
+        [("dotcom", "1996-01-31"), ("ai", "2023-01-31")])
     conn.commit()
     yield conn
     conn.close()
@@ -107,14 +108,17 @@ def test_run_synthetic_phase_and_records(syn_conn):
     assert out["phase_gap_months"] == pytest.approx(
         out["phase"]["cycle_months_dtw"] - out["calendar"]["cycle_months"],
         abs=0.11)  # 내부 일관성 (반올림 오차만)
-    # alignment: AI 주당 1행, 닷컴 매핑 단조 비감소
-    rows = syn_conn.execute(
-        "SELECT cycle_index, dotcom_date, ai_date FROM alignment"
-        " WHERE method='dtw' ORDER BY cycle_index").fetchall()
-    assert len(rows) == out["alignment_rows"] == out["weeks"]["ai"]
-    dc_seq = [r["dotcom_date"] for r in rows]
+    # alignment (long): AI 주당 (dotcom, ai) era 행 쌍, 닷컴 매핑 단조 비감소
+    dc_rows = syn_conn.execute(
+        "SELECT cycle_index, date FROM alignment"
+        " WHERE method='dtw' AND era_id='dotcom' ORDER BY cycle_index").fetchall()
+    ai_rows = syn_conn.execute(
+        "SELECT cycle_index, date FROM alignment"
+        " WHERE method='dtw' AND era_id='ai' ORDER BY cycle_index").fetchall()
+    assert len(dc_rows) == len(ai_rows) == out["alignment_rows"] == out["weeks"]["ai"]
+    dc_seq = [r["date"] for r in dc_rows]
     assert dc_seq == sorted(dc_seq)
-    assert rows[0]["cycle_index"] == 0.0
+    assert dc_rows[0]["cycle_index"] == 0.0
     # model_run 기록 + 재실행 멱등(alignment 중복 없음, model_run은 append 로그)
     assert syn_conn.execute(
         "SELECT COUNT(*) c FROM model_run WHERE model='dtw_daily'").fetchone()["c"] == 1
@@ -122,17 +126,14 @@ def test_run_synthetic_phase_and_records(syn_conn):
     assert out2["alignment_rows"] == out["alignment_rows"]
     n_align = syn_conn.execute(
         "SELECT COUNT(*) c FROM alignment WHERE method='dtw'").fetchone()["c"]
-    assert n_align == out["alignment_rows"]
+    assert n_align == out["alignment_rows"] * 2      # era 행 쌍
     assert syn_conn.execute(
         "SELECT COUNT(*) c FROM model_run WHERE model='dtw_daily'").fetchone()["c"] == 2
-    # event/calendar 등 타 method 행 무접촉 — fixture가 시드한 calendar_m 1행이
+    # event/calendar 등 타 method 행 무접촉 — fixture가 시드한 calendar_m 행 쌍이
     # run() 2회 후에도 그대로 남아야 한다 (DELETE는 method='dtw'만)
-    cal = syn_conn.execute(
-        "SELECT cycle_index, dotcom_date, ai_date FROM alignment"
-        " WHERE method='calendar_m'").fetchall()
-    assert len(cal) == 1
-    assert (cal[0]["dotcom_date"], cal[0]["ai_date"]) == ("1996-01-31", "2023-01-31")
-    assert cal[0]["cycle_index"] == 0.0
+    cal = {r["era_id"]: r["date"] for r in syn_conn.execute(
+        "SELECT era_id, date FROM alignment WHERE method='calendar_m'")}
+    assert cal == {"dotcom": "1996-01-31", "ai": "2023-01-31"}
 
 
 def test_run_insufficient_data_raises(tmp_path):
@@ -169,7 +170,8 @@ def test_real_db_smoke(real_conn):
     assert out["phase"]["run_first"] <= out["phase"]["dotcom_date"]
     n = real_conn.execute(
         "SELECT COUNT(*) c FROM alignment WHERE method='dtw'").fetchone()["c"]
-    assert n == out["alignment_rows"] == out["weeks"]["ai"]
+    assert n == out["alignment_rows"] * 2            # long format: era 행 쌍
+    assert out["alignment_rows"] == out["weeks"]["ai"]
     assert real_conn.execute(
         "SELECT COUNT(*) c FROM model_run WHERE model='dtw_daily'").fetchone()["c"] >= 1
     # 위상차 sanity: 캘린더 대비 ±24개월 이내 (그 밖이면 데이터·로직 점검 신호)

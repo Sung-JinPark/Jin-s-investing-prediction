@@ -2,12 +2,24 @@
 # 각 era: anchor_month=M+0, peak/bottom, index=아날로그 지수(series), window=파생 계산 창
 # window는 각 사이클의 '버블 구간'으로 한정 (예: Nikkei는 2024+ 재돌파 제외).
 anchors:
-  dotcom:         { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09", index: "^IXIC",   window: ["1995-01-01", "2003-12-31"] }
-  ai:             { anchor_month: "2023-01", peak_date: null,         bottom_date: null,         index: "^IXIC",   window: ["2022-01-01", null] }
-  japan1989:      { anchor_month: "1985-01", peak_date: "1989-12-29", bottom_date: "2003-04-28", index: "^N225",   window: ["1984-01-01", "2003-12-31"] }
-  niftyfifty1972: { anchor_month: "1970-01", peak_date: "1972-12-11", bottom_date: "1974-10-03", index: "^SPX",    window: ["1970-01-01", "1976-12-31"] }
-  crypto2021:     { anchor_month: "2019-01", peak_date: "2021-11-10", bottom_date: "2022-11-21", index: "BTC-USD", window: ["2018-01-01", "2023-12-31"] }
-  biotech2015:    { anchor_month: "2013-01", peak_date: "2015-07-20", bottom_date: "2016-02-11", index: "IBB",     window: ["2012-01-01", "2017-12-31"] }
+  dotcom:         { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09", index: "^IXIC",   window: ["1995-01-01", "2003-12-31"],
+                    perez: "installation frenzy 말기 → 전환점(2000-03)" }
+  ai:             { anchor_month: "2023-01", peak_date: null,         bottom_date: null,         index: "^IXIC",   window: ["2022-01-01", null],
+                    perez: "installation frenzy 후반 추정 — 미확정, 사후에만 확정 가능" }
+  japan1989:      { anchor_month: "1985-01", peak_date: "1989-12-29", bottom_date: "2003-04-28", index: "^N225",   window: ["1984-01-01", "2003-12-31"],
+                    perez: "신용·부동산 복합 버블 — Perez 기술서지 프레임 부분 적용" }
+  niftyfifty1972: { anchor_month: "1970-01", peak_date: "1972-12-11", bottom_date: "1974-10-03", index: "^SPX",    window: ["1970-01-01", "1976-12-31"],
+                    perez: "deployment 성숙기 밸류에이션 과열 — 설치기 버블 아님" }
+  crypto2021:     { anchor_month: "2019-01", peak_date: "2021-11-10", bottom_date: "2022-11-21", index: "BTC-USD", window: ["2018-01-01", "2023-12-31"],
+                    perez: "국지 frenzy → 전환점(2022) — 자산군 한정" }
+  biotech2015:    { anchor_month: "2013-01", peak_date: "2015-07-20", bottom_date: "2016-02-11", index: "IBB",     window: ["2012-01-01", "2017-12-31"],
+                    perez: "섹터 국지 과열 — Perez 프레임 비적용 소규모 사이클" }
+  # 월간 tier (Phase 2): 일간 데이터 부재 — 파생 5차원·k-NN 풀에서 제외,
+  # 조정 에피소드(월말 기준)만 산출. 원천: FRED NBER 매크로히스토리 월간 지수.
+  dow1929:        { anchor_month: "1925-01", peak_date: "1929-09-03", bottom_date: "1932-07-08",
+                    tier: monthly, macro_series: "M1109BUSM293NNBR",
+                    window: ["1920-01-01", "1939-12-31"],
+                    perez: "installation frenzy → 전환점(1929-10) — Perez 정전 사례" }
 
 paths:
   db: db/dualdb.sqlite
@@ -17,7 +29,9 @@ paths:
 
 fred:
   daily:   [NASDAQCOM, VIXCLS, DFF, DGS10, DGS2, T10Y2Y, BAMLH0A0HYM2, NFCI]
-  monthly: [FEDFUNDS, M2SL, CPIAUCSL, UNRATE, PAYEMS]
+  # USREC = NBER 침체 지표(0/1, 1854+) — regime.recession_flag 실측화 (Phase 2)
+  # M1109BUSM293NNBR = Dow 월간 지수(NBER 매크로히스토리 1914~1968) — dow1929 시대 원천
+  monthly: [FEDFUNDS, M2SL, CPIAUCSL, UNRATE, PAYEMS, USREC, M1109BUSM293NNBR]
 
 # 지수 일간 백본 — Yahoo (Stooq는 JS 검증 벽으로 차단, CHANGELOG #6)
 yahoo_indices:

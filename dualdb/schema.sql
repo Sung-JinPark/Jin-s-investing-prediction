@@ -23,12 +23,15 @@ CREATE TABLE IF NOT EXISTS entity (
   is_twin INTEGER DEFAULT 0,
   survivorship_note TEXT, source_note TEXT);
 
+-- long format (Phase 2): 시대별 1행 — 2-시대(dotcom_date/ai_date) 하드코딩 제거.
+-- 같은 (method, cycle_index, event_name)의 era 행들이 한 정렬점을 이룬다.
 CREATE TABLE IF NOT EXISTS alignment (
   method TEXT,                          -- 'calendar_m' | 'event' | 'dtw'
   cycle_index REAL,
   event_name TEXT DEFAULT '',
-  dotcom_date TEXT, ai_date TEXT,
-  PRIMARY KEY(method, cycle_index, event_name));
+  era_id TEXT,
+  date TEXT,                            -- 미확정(AI peak 등)은 NULL 유지
+  PRIMARY KEY(method, cycle_index, event_name, era_id));
 
 -- ── 원천(raw 계층 — 추정치·보간치 저장 금지) ─────────
 CREATE TABLE IF NOT EXISTS price_daily (
@@ -108,10 +111,11 @@ CREATE TABLE IF NOT EXISTS correction_episode (
   depth REAL, dur_days INTEGER, recover_days INTEGER, cycle_month_at_peak REAL,
   PRIMARY KEY(series, era_id, peak_date));
 
+-- long format (Phase 2): 시대별 1행 — ratio·zgap 등 쌍(pair) 파생치는 소비 시 계산.
 CREATE TABLE IF NOT EXISTS cycle_compare (
-  method TEXT, cycle_index REAL, metric TEXT,
-  dotcom_value REAL, ai_value REAL, ratio REAL, zgap REAL,
-  computed_at TEXT, PRIMARY KEY(method, cycle_index, metric));
+  method TEXT, cycle_index REAL, metric TEXT, era_id TEXT,
+  value REAL, computed_at TEXT,
+  PRIMARY KEY(method, cycle_index, metric, era_id));
 
 CREATE TABLE IF NOT EXISTS model_run (
   run_id INTEGER PRIMARY KEY, model TEXT, asof TEXT,

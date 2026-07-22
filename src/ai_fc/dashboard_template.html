@@ -68,6 +68,7 @@ tr.click{cursor:pointer} tr.click:hover td{background:var(--surface2)}
 .tag-pos{color:var(--pos)} .tag-neg{color:var(--neg)}
 .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
 .legend{display:flex;gap:20px;flex-wrap:wrap;font-size:12px;color:var(--ink2);align-items:center;margin-bottom:2px}
+.pill{display:inline-block;padding:4px 11px;border:1px solid var(--line);border-radius:999px;font-size:11.5px;color:var(--ink2);background:#fafbfc;margin:2px 4px 2px 0}
 .legend b{display:inline-block;width:18px;height:3px;border-radius:2px;vertical-align:middle;margin-right:6px}
 .filterbar{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
 select,input[type=text],input[type=date]{background:var(--surface);border:1px solid var(--border2);color:var(--ink);
@@ -202,6 +203,64 @@ function renderFlow(){
     </div></div>`);
   app().appendChild(w);
   drawFlow($('#chart',w),sc);
+  renderAnalogOverlay();
+}
+// ── 다중 시대 아날로그 오버레이 (context run — 참조 base rate, 예측 아님) ──
+const ERA_META={ai:['AI 현재','#163a5f',2.4],dotcom:['닷컴 1996','#94a3b8',1.4],
+  japan1989:['일본 1989','#8a6d9b',1.2],niftyfifty1972:['니프티50 1972','#a3616f',1.2],
+  crypto2021:['크립토 2021','#b0813f',1.2],biotech2015:['바이오 2015','#4f8a8b',1.2],
+  dow1929:['다우 1929','#6b7280',1.2]};
+function renderAnalogOverlay(){
+  const ctx=DATA.analog_context;if(!ctx||!ctx.overlay)return;
+  const o=ctx.overlay;const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
+  if(eras.length<2)return;
+  const legend=`<div class="legend">${eras.map(e=>`<span><b style="background:${ERA_META[e][1]};height:${e==='ai'?3:2}px"></b>${ERA_META[e][0]}</span>`).join('')}</div>`;
+  const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
+  const strip=[
+    rg.recession_flag!=null?`NBER 침체 ${rg.recession_flag?'진행중':'아님'}`:null,
+    br.pct_above_200dma!=null?`시장 폭(200일선 상회) ${br.pct_above_200dma}%`:null,
+    cc.ratio_pctile!=null?`대형주 집중 ${cc.ratio_pctile}백분위`:null,
+    ctx.perez_ai?`사이클 국면: ${esc(ctx.perez_ai.split(' — ')[0])} (추정)`:null
+  ].filter(Boolean).map(s=>`<span class="pill">${s}</span>`).join(' ');
+  const w=el(`<div><div class="card" style="margin-top:18px">
+    <div class="card-h">과거 혁신 사이클 비교 · 시작월=100 (로그 스케일)</div>
+    ${legend}<div class="scroll"><div id="ovchart" style="min-width:1000px"></div></div>
+    <div style="margin-top:10px">${strip}</div>
+    <div class="kpi-sub" style="margin-top:8px">각 사이클을 시작 시점 100으로 정규화한 참고 비교입니다. 과거 사이클은 예측이 아닌 참조이며, 시대 간 시장 구조 차이가 있습니다. 다우 1929는 월평균 지수 기준.</div>
+  </div></div>`);
+  app().appendChild(w);
+  drawOverlay($('#ovchart',w),o,eras);
+}
+function drawOverlay(host,o,eras){
+  const NS='http://www.w3.org/2000/svg';
+  const W=1160,H=430,ML=58,MR=120,MT=26,MB=34,CAP=108;
+  const PW=W-ML-MR,PH=H-MT-MB;
+  const lg=Math.log10,Y0=lg(55),Y1=lg(2100);
+  const X=m=>ML+PW*m/CAP,Y=v=>MT+PH*(1-(lg(v)-Y0)/(Y1-Y0));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+  const tx=(x,y,s,ob={})=>{const e=mk('text',{x,y,fill:ob.fill||'#8b95a5','font-size':ob.fs||11,'text-anchor':ob.anc||'start','font-weight':ob.w||400});e.textContent=s;return e;};
+  [100,200,400,800,1600].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:v===100?'#dfe3e9':'#eef1f4','stroke-width':1}));
+    svg.appendChild(tx(ML-8,Y(v)+4,String(v),{anc:'end',fill:'#a7b0bd'}));});
+  for(let m=0;m<=CAP;m+=12){svg.appendChild(tx(X(m),MT+PH+18,'M+'+m,{anc:'middle',fs:10,fill:m?'#a7b0bd':'#48566a'}));}
+  eras.forEach(e=>{const[label,color,sw]=ERA_META[e];const vals=o[e].slice(0,CAP+1);let d='';
+    vals.forEach((v,i)=>{d+=(i?'L':'M')+X(i)+','+Y(Math.max(v,60))+' ';});
+    svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':sw,'stroke-linejoin':'round',
+      'stroke-dasharray':e==='ai'?'':'0',opacity:e==='ai'?1:.75}));
+    if(e==='ai'){const last=vals[vals.length-1];const i=vals.length-1;
+      svg.appendChild(mk('circle',{cx:X(i),cy:Y(last),r:3.5,fill:color,stroke:'#fff','stroke-width':1.5}));
+      svg.appendChild(tx(X(i)+8,Y(last)+4,`AI 현재 M+${i}`,{fill:color,fs:11.5,w:600}));}});
+  const xh=mk('line',{stroke:'#b7bfca','stroke-width':1,opacity:0});svg.appendChild(xh);
+  const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
+  const tip=document.getElementById('tip');
+  ov.addEventListener('mousemove',ev=>{const r=svg.getBoundingClientRect();const mx=(ev.clientX-r.left)*(W/r.width);
+    const m=Math.max(0,Math.min(CAP,Math.round((mx-ML)/(PW/CAP))));
+    xh.setAttribute('x1',X(m));xh.setAttribute('x2',X(m));xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);xh.setAttribute('opacity',.45);
+    tip.style.display='block';tip.style.left=(ev.clientX+14)+'px';tip.style.top=(ev.clientY-10)+'px';
+    tip.innerHTML=`<b>M+${m}</b><br>`+eras.filter(e=>o[e][m]!=null).map(e=>
+      `<span style="color:${ERA_META[e][1]}">${ERA_META[e][0]} ${o[e][m]}</span>`).join('<br>');});
+  ov.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('opacity',0);});
+  host.appendChild(svg);
 }
 function drawFlow(host,sc){
   const NS='http://www.w3.org/2000/svg';

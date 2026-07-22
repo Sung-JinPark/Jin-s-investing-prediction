@@ -76,3 +76,38 @@
     ai_fc `base_rates.ml_digest_with_meta` 확장 — 최신 context run(신선도 게이트)의 원재료
     라인 주입. **질문 매핑 확률 없음**(R-4·앵커링 방지) — 전방수익률은 시장 base rate이며
     준-앵커 주의 라벨 병기. 이 배선 없이는 `*_auto.md`가 자동 추론에 도달하지 않았음(탐색 확정).
+
+## 2026-07-22 DB 레이어 확장 Phase 2 (부분 — 침체 실측·심층 역사·국면·폭)
+
+17. **NBER USREC 실측 침체 플래그**: fred monthly에 USREC(0/1, 1854+) 추가 —
+    context regime의 recession_flag를 금리커브 프록시에서 **실측**으로 전환
+    (USREC 부재 시에만 프록시 폴백 유지).
+18. **dow1929 월간 tier 시대**: FRED NBER 매크로히스토리 `M1109BUSM293NNBR`(Dow 월간
+    1914~1968)로 1920s 시대 추가. **tier: monthly** — 일간 데이터 부재라 파생 5차원·
+    k-NN 풀에서 원천 배제(ERA_MONTHLY 분리 경로, 가짜 일간 피처 금지), 조정 에피소드만
+    월간 값으로 산출. 센티널: 1929-09→1932-06 깊이 -87.1%(월평균 지수 — 일중 극값
+    -89% 대비 완만함을 명기). context digest에 [심층 역사] 라인으로 주입.
+19. **Perez 국면 프레임**: config anchors에 `perez` 필드(정본 — DB 컬럼 아닌 config).
+    AI 시대는 "installation frenzy 후반 **추정** — 미확정, 사후에만 확정 가능" 라벨로
+    digest 주입. 각 아날로그의 국면 성격도 명기(니프티=deployment 과열·biotech=프레임
+    비적용 등 — 모든 아날로그가 설치기 버블이 아님을 정직 고지).
+20. **시장 폭 프록시**: 추적 유니버스(yahoo_daily ~24종, AAPL·TSLA 미포함)의 200DMA
+    상회 비율을 context breadth로 주입. **시총가중 HHI·Mag7 비중 아님**(주식수 이력
+    부재) — 등가중 가격 프록시임을 라벨로 명기. 신규 테이블 없음(derived_daily에서 파생).
+21. **alignment·cycle_compare long-format 리팩터**: 2-시대 하드코딩 열
+    (dotcom_date/ai_date · dotcom_value/ai_value) 제거 → era_id별 1행
+    (PK에 era_id 포함). calendar_m은 전 시대(7시대×61개월=427행), event는
+    peak/bottom을 config anchors에서 전 시대 일반화(미확정 AI peak=NULL 유지·추정
+    금지), midterm·crisis_bottom은 dotcom↔ai 특화 유지(AI측 실측 2025-04-08).
+    DTW는 (dotcom, ai) era 행 쌍으로 기록. 소비자 갱신: seeds·fill_event_alignment·
+    dtw_daily·테스트 2건(스키마 마이그레이션 — 계약 불변). cycle_compare는 코드
+    소비자 0이라 스키마만 long 전환.
+22. **다중 시대 오버레이 → 대시보드**: context run에 `overlay`(시대별 월말 norm
+    M+0=100, dow1929는 월평균 정규화)·`concentration`(NDX/IXIC 가격 비율 백분위 —
+    시총 HHI 아님을 라벨 명기) 추가. 대시보드 '시장 전망'에 로그 스케일 다중 시대
+    비교 차트 + 레짐 pill 스트립(침체·폭·집중·Perez) 신설 — 커밋된 ml_history에서
+    읽으므로 Pages 정적 빌드 안전(LLM·키 0). 실측: 대형주 집중 98.7%ile(1995+).
+23. **AAII 심리 — 차단 상태 유지**: 회원 전용 데이터라 프로그램 수집 불가, 수동
+    파일(data/raw/manual/) 투입 대기. 자체 생성·추정 금지(§10.1 결측은 결측으로).
+    시총가중 집중도·HHI도 주식수 이력 부재로 보류 — NDX/IXIC 프록시로 대체(#22).
+    잔여: weekly/lppl의 dotcom·ai 리터럴 de-hardcode(소비 로직 — 다중 시대 확장 시).

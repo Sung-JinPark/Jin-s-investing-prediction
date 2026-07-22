@@ -127,8 +127,116 @@ def _regime(conn: sqlite3.Connection) -> dict:
         out["cape_latest"] = round(cape_row["cape"], 1)
         out["cape_pctile"] = round(float((arr <= cape_row["cape"]).mean() * 100), 1)
         out["cape_vintage"] = cape_row["date"]   # 빈티지 명기 (구형일 수 있음)
-    # recession_flag: USREC 미수집(Phase 2) — 금리커브 역전 프록시로 대체·명기
-    out["recession_flag_proxy"] = out.get("yield_curve_inverted")
+    # recession_flag: NBER USREC 실측 (Phase 2). 미수집이면 금리커브 역전 프록시로 폴백.
+    rec = conn.execute(
+        "SELECT date, value FROM macro_monthly WHERE series_id='USREC'"
+        " ORDER BY date DESC LIMIT 1").fetchone()
+    if rec:
+        out["recession_flag"] = bool(rec["value"])
+        out["recession_date"] = rec["date"]
+    else:
+        out["recession_flag_proxy"] = out.get("yield_curve_inverted")
+    return out
+
+
+def _breadth(conn: sqlite3.Connection) -> dict | None:
+    """시장 폭 프록시 — 추적 종목(config yahoo_daily) 중 200DMA 상회 비율.
+
+    한계(정직성): 시총가중 HHI·Mag7 비중은 주식수 이력 부재로 산출 불가 —
+    등가중 추적 유니버스(~24종, AAPL·TSLA 미포함)의 가격 폭 프록시일 뿐이다.
+    """
+    tickers = list(config.YAHOO_DAILY)
+    ph = ",".join("?" * len(tickers))
+    rows = conn.execute(
+        f"""SELECT d.series, d.date, d.dist_200dma FROM derived_daily d
+            JOIN (SELECT series, MAX(date) md FROM derived_daily
+                  WHERE era_id='ai' AND series IN ({ph}) GROUP BY series) t
+              ON d.series=t.series AND d.date=t.md
+            WHERE d.era_id='ai' AND d.dist_200dma IS NOT NULL""", tickers).fetchall()
+    if not rows:
+        return None
+    above = sum(1 for r in rows if r["dist_200dma"] > 0)
+    return {
+        "pct_above_200dma": round(above / len(rows) * 100, 1),
+        "n": len(rows),
+        "asof": max(r["date"] for r in rows),
+        "note": "등가중 추적 유니버스 프록시 — 시총가중 HHI 아님(주식수 이력 부재)",
+    }
+
+
+def _concentration(conn: sqlite3.Connection) -> dict | None:
+    """대형주 집중 프록시 — ^NDX(나스닥100)/^IXIC(컴포지트) 가격 비율.
+
+    한계(정직성): 시총 비중·HHI가 아니라 지수 가격 비율의 상대 추세다. 두 지수의
+    기준점 차이로 절대 수준은 무의미 — 백분위(1995+)·1년 변화만 의미를 갖는다.
+    """
+    rows = conn.execute(
+        """SELECT a.date d, a.close / b.close r FROM price_daily a
+           JOIN price_daily b ON b.date = a.date AND b.series = '^IXIC'
+           WHERE a.series = '^NDX' AND a.date >= '1995-01-01' ORDER BY a.date""").fetchall()
+    if len(rows) < 300:
+        return None
+    ratios = np.array([r["r"] for r in rows], dtype=float)
+    latest = ratios[-1]
+    yr_ago = ratios[-253] if len(ratios) > 253 else ratios[0]
+    return {
+        "ratio_pctile": round(float((ratios <= latest).mean() * 100), 1),
+        "chg_1y_pct": round(float(latest / yr_ago - 1) * 100, 1),
+        "asof": rows[-1]["d"],
+        "note": "NDX/IXIC 가격 비율 프록시 — 시총가중 HHI 아님",
+    }
+
+
+def _overlay(conn: sqlite3.Connection) -> dict:
+    """시대별 월말 norm_m0 배열 (M+0=100) — 대시보드 다중 시대 오버레이용.
+
+    일간 tier는 derived_daily 월말 norm_m0, 월간 tier(dow1929)는 macro_monthly를
+    앵커월=100으로 정규화. 값은 소수 1자리 (payload 크기 절제).
+    """
+    from ..derive.daily import ERA_MONTHLY, ERA_WINDOWS, ERA_INDEX
+    out: dict[str, list] = {}
+    for era_id in ERA_WINDOWS:
+        series = ERA_INDEX[era_id]
+        anchor = config.ANCHORS[era_id]["anchor_month"]
+        rows = conn.execute(
+            """SELECT substr(d.date,1,7) m, d.norm_m0 v FROM derived_daily d
+               JOIN (SELECT MAX(date) md FROM derived_daily
+                     WHERE series=? AND era_id=? GROUP BY substr(date,1,7)) t
+                 ON d.date = t.md
+               WHERE d.series=? AND d.era_id=? AND d.norm_m0 IS NOT NULL
+               ORDER BY d.date""", (series, era_id, series, era_id)).fetchall()
+        a = int(anchor[:4]) * 12 + int(anchor[5:7])
+        vals = [(int(r["m"][:4]) * 12 + int(r["m"][5:7]) - a, r["v"]) for r in rows]
+        vals = [(k, v) for k, v in vals if k >= 0]
+        if vals:
+            out[era_id] = [round(v, 1) for _, v in vals]
+    for era_id, (sid, (w0, w1)) in ERA_MONTHLY.items():
+        anchor = config.ANCHORS[era_id]["anchor_month"]
+        base = conn.execute(
+            "SELECT value FROM macro_monthly WHERE series_id=? AND substr(date,1,7)=?",
+            (sid, anchor)).fetchone()
+        if not base:
+            continue
+        rows = conn.execute(
+            """SELECT value v FROM macro_monthly WHERE series_id=?
+               AND substr(date,1,7) >= ? AND date <= ? ORDER BY date""",
+            (sid, anchor, w1)).fetchall()
+        out[era_id] = [round(r["v"] / base["value"] * 100, 1) for r in rows]
+    return out
+
+
+def _deep_history(conn: sqlite3.Connection) -> list[dict]:
+    """월간 tier 시대(dow1929 등)의 최심 조정 — 심층 역사 base rate."""
+    from ..derive.daily import ERA_MONTHLY
+    out = []
+    for era_id in ERA_MONTHLY:
+        row = conn.execute(
+            """SELECT peak_date, trough_date, depth FROM correction_episode
+               WHERE era_id=? ORDER BY depth ASC LIMIT 1""", (era_id,)).fetchone()
+        if row:
+            out.append({"era": era_id, "peak": row["peak_date"],
+                        "trough": row["trough_date"], "depth": row["depth"],
+                        "note": "월평균 지수 기준 — 일중 극값 대비 완만"})
     return out
 
 
@@ -140,6 +248,12 @@ def build_payload(conn: sqlite3.Connection) -> dict:
         "analog": _analog(conn),
         "factor_tilt": _factor_tilt(conn),
         "regime": _regime(conn),
+        "breadth": _breadth(conn),
+        "concentration": _concentration(conn),
+        "overlay": _overlay(conn),           # 대시보드 오버레이용 — 프롬프트 미주입
+        "deep_history": _deep_history(conn),
+        # Perez 국면은 config 정본(anchors.perez) — 추정 라벨 포함 문자열 그대로
+        "perez_ai": config.ANCHORS.get("ai", {}).get("perez"),
         "note": NOTE,
     }
 

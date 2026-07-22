@@ -102,6 +102,29 @@ def test_digest_injects_context_raw_material(repo: Path) -> None:
     assert "0.7317" not in d and "73%" not in d
 
 
+def test_digest_context_phase2_signals(repo: Path) -> None:
+    """Phase 2 신호 — 실측 침체 플래그·폭 프록시·심층 역사·Perez 국면 렌더."""
+    conn = ingest.connect(repo / "db" / "index.db")
+    now = datetime.now().isoformat(timespec="seconds")
+    p = _context_payload(now)
+    p["regime"]["recession_flag"] = False
+    p["regime"]["recession_date"] = "2026-06-01"
+    p["breadth"] = {"pct_above_200dma": 62.5, "n": 24, "asof": "2026-07-20",
+                    "note": "등가중 프록시"}
+    p["deep_history"] = [{"era": "dow1929", "peak": "1929-09", "trough": "1932-06",
+                          "depth": -0.871, "note": "월평균"}]
+    p["perez_ai"] = "installation frenzy 후반 추정 — 미확정"
+    append_run(repo, p)
+    ingest.sync(conn, repo)
+    d = base_rates.ml_digest(repo, conn, "fixture-coin-ath")
+    assert d is not None
+    assert "NBER 침체(USREC 2026-06-01) 아님" in d
+    assert "[폭] 추적 24종 중 200DMA 상회 62.5%" in d
+    assert "[심층 역사] dow1929" in d and "-87.1%" in d
+    assert "[Perez 국면]" in d and "추정" in d
+    # 구형 payload(신규 키 없음)와의 호환은 기존 테스트들이 보증
+
+
 def test_digest_context_only_without_ml(repo: Path) -> None:
     """ml run이 없어도(또는 stale) context 단독으로 주입된다."""
     conn = ingest.connect(repo / "db" / "index.db")

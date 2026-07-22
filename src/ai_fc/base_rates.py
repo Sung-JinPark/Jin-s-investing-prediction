@@ -83,8 +83,29 @@ def _format_context(run: dict) -> list[str]:
         if "cape_latest" in rg:
             parts.append(f"CAPE {rg['cape_latest']}({rg.get('cape_pctile')}%ile, "
                          f"빈티지 {rg.get('cape_vintage')})")
+        if "recession_flag" in rg:
+            parts.append(f"NBER 침체(USREC {rg.get('recession_date')}) "
+                         f"{'진행중' if rg['recession_flag'] else '아님'}")
         if parts:
             lines.append("- [레짐] " + " · ".join(parts))
+    br = run.get("breadth")
+    if br and br.get("pct_above_200dma") is not None:
+        lines.append(
+            f"- [폭] 추적 {br.get('n')}종 중 200DMA 상회 {br['pct_above_200dma']}% "
+            f"(asof {br.get('asof')}) — 등가중 프록시(시총가중 아님)")
+    cc = run.get("concentration")
+    if cc and cc.get("ratio_pctile") is not None:
+        lines.append(
+            f"- [집중] 대형주 비율(NDX/IXIC) {cc['ratio_pctile']}%ile(1995+) · "
+            f"1년 {cc['chg_1y_pct']:+.1f}% — 가격 비율 프록시(시총 비중 아님)")
+    dh = run.get("deep_history") or []
+    for h in dh:
+        lines.append(
+            f"- [심층 역사] {h.get('era')}: 최심 조정 {h.get('peak')}→{h.get('trough')} "
+            f"{_pct(h.get('depth'))} (월평균 지수 기준) — 참조 base rate")
+    pz = run.get("perez_ai")
+    if pz:
+        lines.append(f"- [Perez 국면] AI 시대: {pz}")
     return lines
 
 
