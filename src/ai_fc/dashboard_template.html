@@ -7,116 +7,167 @@
 <!--DATA-->
 <style>
 :root{
-  --bg:#ffffff; --surface:#ffffff; --surface2:#f6f8fa; --panelh:#f4f6f9;
-  --border:#e3e7ec; --border2:#cfd5dd; --hair:#edf0f4; --line:#e3e7ec;
-  --ink:#0f1622; --ink2:#525c6a; --ink3:#8892a0; --ink4:#aab2bd;
-  --dark:#0e1723; --dark2:#16212f; --darkln:#263242; --darktx:#93a0af;
-  --accent:#1d5fd0; --accent2:#1750b8; --accentlt:#5b8ef0;
-  --pos:#0f8a4c; --neg:#cf2f2a; --warn:#9a6600;
-  --s1:#1d5fd0; --s2:#0f8a4c; --s3:#cf2f2a; --analog:#98a3b1;
-  --radius:5px;
-  --sans:system-ui,-apple-system,'Segoe UI','Helvetica Neue','Malgun Gothic',Roboto,Arial,sans-serif;
-  --mono:'SF Mono','Segoe UI Mono','Roboto Mono','Consolas',ui-monospace,monospace;
-  --serif:var(--sans);
-  --shadow:0 1px 2px rgba(15,22,34,.05),0 1px 1px rgba(15,22,34,.03);
+  --ink:#06100d; --ink-2:#0b1714; --ink-3:#10231d;
+  --paper:#f3f6f0; --white:#ffffff; --text:#07110f;
+  --muted:#5c6b62; --muted2:#7c8a80;
+  --mint:#bcff71; --mint-deep:#4f7f26; --coral:#ff8066;
+  --blue:#2563d9; --navy:#2563d9; --teal:#2f8f84;
+  --line:rgba(7,17,15,0.14); --line2:rgba(7,17,15,0.08); --dark-line:rgba(255,255,255,0.13);
+  --pos:#4f7f26; --neg:#c4462c;
+  --panelh:#e9eee7;
+  --mono:'Geist Mono','SF Mono','Segoe UI Mono','Roboto Mono',Consolas,ui-monospace,monospace;
+  --sans:'Geist',Inter,system-ui,-apple-system,'Segoe UI','Apple SD Gothic Neo','Malgun Gothic',Roboto,Arial,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:13px;line-height:1.45;
+html{scroll-behavior:smooth}
+html,body{background:var(--paper);color:var(--text);font-family:var(--sans);font-size:14px;line-height:1.5;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
-.wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+.wrap{max-width:1540px;margin:0 auto;padding:clamp(40px,5vw,80px) clamp(20px,4vw,72px) clamp(72px,9vw,132px)}
 .mono{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
-.muted{color:var(--ink3)} .small{font-size:11px}
+.muted{color:var(--muted)} .small{font-size:11px}
+.mint{color:var(--mint-deep)} .coral{color:var(--coral)}
 
-/* 커맨드바 — 다크 (월가 터미널 앵커). 전폭 다크 + 흰색 데이터 바디 */
-.appbar{background:var(--dark);border-bottom:1px solid #050c14}
-.appbar-in{max-width:1240px;margin:0 auto;padding:0 22px;height:52px;display:flex;align-items:center;
-  justify-content:space-between;gap:18px}
-.brand{display:flex;align-items:center;gap:11px;min-width:0}
-.mk{width:19px;height:19px;border-radius:3px;background:linear-gradient(135deg,var(--accentlt),var(--accent));
-  display:flex;align-items:center;justify-content:center;flex:none}
-.mk::after{content:"";width:7px;height:7px;background:#fff;border-radius:1.5px;transform:rotate(45deg)}
-.wm{font-size:16px;font-weight:700;color:#fff;letter-spacing:-.01em;white-space:nowrap}
-.wm-sub{font-size:9px;font-weight:700;letter-spacing:.2em;color:var(--darktx);text-transform:uppercase;
-  border-left:1px solid var(--darkln);padding-left:11px;white-space:nowrap}
-.appbar-util{display:flex;align-items:center;gap:13px;font-family:var(--mono);font-size:11px;color:var(--darktx);white-space:nowrap}
-.appbar-util .phase{color:#c8d2dd;border:1px solid var(--darkln);border-radius:3px;padding:2.5px 8px;font-size:9.5px;
-  font-weight:700;letter-spacing:.07em;background:var(--dark2)}
+/* 헤더 — 어두운 잉크 커맨드바 */
+.appbar{background:var(--ink);border-bottom:1px solid var(--dark-line)}
+.appbar-in{max-width:1540px;margin:0 auto;padding:0 clamp(20px,4vw,72px);height:74px;display:flex;
+  align-items:center;justify-content:space-between;gap:18px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.mk{width:14px;height:14px;flex:none;border-radius:3px 9px 3px 9px;background:var(--mint);
+  box-shadow:0 0 22px rgba(188,255,113,.36)}
+.mk::after{content:none}
+.wm{font-family:var(--mono);font-size:12.5px;font-weight:700;letter-spacing:.05em;color:#fff;white-space:nowrap}
+.wm-sub{margin-left:2px;padding-left:16px;border-left:1px solid rgba(255,255,255,.19);
+  color:rgba(255,255,255,.42);font-family:var(--mono);font-size:9px;font-weight:500;letter-spacing:.06em;
+  text-transform:uppercase;white-space:nowrap}
+.appbar-util{display:flex;align-items:center;gap:11px;font-family:var(--mono);font-size:9.5px;letter-spacing:.06em;
+  color:rgba(255,255,255,.54);white-space:nowrap}
+.appbar-util .phase{color:var(--mint);border:1px solid rgba(188,255,113,.4);padding:3px 8px;font-size:9px;
+  font-weight:700;letter-spacing:.07em}
 .appbar-util .live{display:inline-flex;align-items:center;gap:6px}
-.appbar-util .live::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--pos);box-shadow:0 0 0 2px rgba(15,138,76,.25)}
-@media(max-width:720px){.wm-sub{display:none}}
-@media(max-width:560px){.appbar-util #asof{display:none}.appbar-in{padding:0 14px}.wrap{padding:0 14px}}
+.appbar-util .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--mint);
+  box-shadow:0 0 13px rgba(188,255,113,.55)}
+@media(max-width:760px){.wm-sub{display:none}.appbar-in{height:64px}}
+@media(max-width:560px){.appbar-util #asof{display:none}}
 
-/* 시장 지표 바 (인덱스 라인) */
-.mktstrip{display:flex;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);
-  border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-top:16px}
-.mkt{display:flex;flex-direction:column;gap:2px;padding:10px 16px;border-right:1px solid var(--hair);flex:1;min-width:128px}
-.mkt:last-child{border-right:none}
-.mkt .k{font-size:9px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink3)}
-.mkt .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:16px;font-weight:600;color:var(--ink);letter-spacing:-.01em}
-.mkt .v small{font-family:var(--sans);font-size:10.5px;font-weight:600;color:var(--ink3);margin-left:6px}
-.mkt.lead{flex:1.35;background:var(--surface2)}
-.mkt .v.up{color:var(--pos)} .mkt .v.up small{color:var(--pos)}
-.mkt .v.down{color:var(--neg)} .mkt .v.down small{color:var(--neg)}
+/* 시장 지표 바 — 어두운 잉크 그리드 */
+.mktstrip{display:grid;grid-template-columns:repeat(5,1fr);background:var(--ink);color:#fff;
+  border-bottom:1px solid var(--dark-line)}
+.mktstrip:empty{display:none}
+.mkt{padding:16px clamp(16px,3vw,48px);display:grid;grid-template-columns:1fr auto;gap:3px 12px;
+  align-items:baseline;border-right:1px solid var(--dark-line);min-width:0}
+.mkt:last-child{border-right:0}
+.mkt .k{grid-column:1;color:rgba(255,255,255,.5);font-family:var(--mono);font-size:9px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase}
+.mkt .v{grid-row:1/3;grid-column:2;font-family:var(--mono);font-variant-numeric:tabular-nums;
+  font-size:clamp(17px,1.5vw,23px);font-weight:560;letter-spacing:-.035em;color:#fff}
+.mkt .v small{grid-column:1;grid-row:2;display:block;font-family:var(--mono);font-size:9px;font-weight:500;
+  color:rgba(255,255,255,.45);margin:0}
+.mkt.lead .v{color:var(--mint)}
+.mkt .v.up{color:var(--mint)} .mkt .v.down{color:var(--coral)}
+.mkt .v.up small,.mkt .v.down small{color:rgba(255,255,255,.45)}
+@media(max-width:1050px){.mktstrip{grid-template-columns:repeat(3,1fr)}
+  .mkt:nth-child(3){border-right:0}.mkt:nth-child(n+4){border-top:1px solid var(--dark-line)}}
+@media(max-width:620px){.mktstrip{grid-template-columns:repeat(2,1fr)}
+  .mkt{padding:13px 16px}.mkt:nth-child(odd){border-right:1px solid var(--dark-line)}
+  .mkt:nth-child(even){border-right:0}.mkt:nth-child(n+3){border-top:1px solid var(--dark-line)}}
 
-/* 내비게이션 */
-nav{display:flex;gap:0;border-bottom:1px solid var(--border2);margin-top:18px}
-nav a{padding:10px 16px 11px;font-size:12.5px;color:var(--ink2);border-bottom:2px solid transparent;cursor:pointer;
-  font-weight:500;letter-spacing:.005em;transition:color .12s,border-color .12s;margin-bottom:-1px}
-nav a.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
-nav a:hover{color:var(--ink)}
+/* 내비게이션 — 어두운 탭 바 */
+nav{display:flex;gap:6px;padding:0 clamp(20px,4vw,72px);min-height:58px;overflow-x:auto;
+  background:var(--ink-2);border-bottom:1px solid var(--dark-line)}
+nav a{min-width:108px;padding:0 16px;display:inline-flex;align-items:center;justify-content:center;
+  white-space:nowrap;color:rgba(255,255,255,.55);border-bottom:3px solid transparent;cursor:pointer;
+  font-size:13px;transition:color .14s,background .14s}
+nav a:hover{color:#fff;background:rgba(255,255,255,.035)}
+nav a.active{color:#fff;background:rgba(255,255,255,.035);border-bottom-color:var(--mint)}
 
-/* 레이아웃 */
-.section-h{font-size:17px;color:var(--ink);margin:24px 0 2px;font-weight:700;letter-spacing:-.01em}
-.section-sub{font-size:12px;color:var(--ink3);margin-bottom:13px}
-.grid{display:grid;gap:11px}
+/* 편집형 헤딩 */
+.section-h{font-size:clamp(28px,3.4vw,46px);color:var(--text);margin:0 0 6px;font-weight:660;
+  letter-spacing:-.05em;line-height:1.03;text-wrap:balance}
+.section-sub{max-width:760px;color:var(--muted);font-size:clamp(14px,1.1vw,16px);line-height:1.7;
+  letter-spacing:-.01em;margin:0 0 clamp(26px,3.5vw,44px)}
+.eyebrow{margin:0 0 14px;color:var(--mint-deep);font-family:var(--mono);font-size:10px;font-weight:750;
+  letter-spacing:.15em;text-transform:uppercase}
+
+/* 레이아웃 그리드 */
+.grid{display:grid;gap:22px}
 .g4{grid-template-columns:repeat(4,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g2{grid-template-columns:repeat(2,1fr)}
-@media(max-width:820px){.g4,.g3,.g2{grid-template-columns:1fr 1fr}}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;box-shadow:var(--shadow)}
-.card-h{font-size:9.5px;color:var(--ink3);text-transform:uppercase;letter-spacing:.11em;font-weight:700;margin-bottom:10px}
-.kpi{font-family:var(--mono);font-size:26px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.02em}
-.kpi .u{font-size:12px;color:var(--ink3);font-weight:500;margin-left:5px;font-family:var(--sans);letter-spacing:0}
-.kpi-sub{font-size:11px;color:var(--ink3);margin-top:7px;line-height:1.5}
+@media(max-width:1050px){.g4{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+@media(max-width:760px){.g4,.g3,.g2{grid-template-columns:1fr}}
 
-/* 표 — 조밀·하드라인 (스프레드시트형) */
-table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;color:var(--ink3);padding:7px 10px;font-size:9.5px;font-weight:700;text-transform:uppercase;
-  letter-spacing:.06em;border-bottom:1px solid var(--border2);background:var(--panelh);white-space:nowrap}
+/* 밝은 분석 패널 (얇은 경계선·무둥근·무그림자) */
+.card{background:var(--white);border:1px solid var(--line);padding:clamp(22px,3vw,40px)}
+
+/* 어두운 통계 밴드 (요약 상단 — dark/light 대비) */
+.statband{display:grid;grid-template-columns:repeat(4,1fr);gap:0;background:var(--ink);border:1px solid var(--ink)}
+.statband .card{background:transparent;border:0;border-right:1px solid var(--dark-line);padding:clamp(22px,2.6vw,34px);color:#fff}
+.statband .card:last-child{border-right:0}
+.statband .card-h{color:rgba(255,255,255,.44)}
+.statband .kpi{color:var(--mint)}
+.statband .kpi .u{color:rgba(255,255,255,.4)}
+.statband .kpi-sub{color:rgba(255,255,255,.5)}
+@media(max-width:1050px){.statband{grid-template-columns:repeat(2,1fr)}
+  .statband .card:nth-child(2){border-right:0}.statband .card:nth-child(n+3){border-top:1px solid var(--dark-line)}}
+@media(max-width:640px){.statband{grid-template-columns:1fr}
+  .statband .card{border-right:0;border-top:1px solid var(--dark-line)}.statband .card:first-child{border-top:0}}
+
+.card-h{font-family:var(--mono);font-size:9.5px;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.1em;font-weight:600;margin-bottom:14px}
+.kpi{font-family:var(--mono);font-size:clamp(30px,3.4vw,44px);font-weight:540;color:var(--text);
+  font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-.045em}
+.kpi .u{font-size:13px;color:var(--muted);font-weight:500;margin-left:6px;font-family:var(--mono);letter-spacing:0}
+.kpi-sub{font-size:12px;color:var(--muted);margin-top:12px;line-height:1.6}
+
+/* 표 — 얇은 행 구분선·넉넉한 셀 여백 */
+table{width:100%;min-width:880px;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--muted);padding:14px 18px;font-family:var(--mono);font-size:9px;font-weight:600;
+  text-transform:uppercase;letter-spacing:.05em;background:var(--panelh);border-bottom:1px solid var(--line)}
 th.r,td.r{text-align:right}
-td{padding:8px 10px;border-bottom:1px solid var(--hair);color:var(--ink)}
-tbody tr:last-child td{border-bottom:none}
-tr.click{cursor:pointer} tr.click:hover td{background:var(--surface2)}
+td{padding:16px 18px;border-bottom:1px solid var(--line);color:var(--muted)}
+td b{display:block;color:var(--text);font-size:13px;line-height:1.45}
+tbody tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer} tr.click:hover td{background:#f4f7f2}
 .num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.table-shell,.scroll{overflow-x:auto}
 
 /* 요소 */
-.progress{height:5px;background:var(--hair);border-radius:2px;overflow:hidden;margin-top:9px}
-.progress > i{display:block;height:100%;background:var(--accent);border-radius:2px}
-.chip{display:inline-block;padding:2px 8px;margin:2px 4px 2px 0;border-radius:3px;background:var(--surface2);
-  border:1px solid var(--border);font-size:10.5px;color:var(--ink2);letter-spacing:.01em}
-.tag-pos{color:var(--pos)} .tag-neg{color:var(--neg)}
-.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;vertical-align:middle}
-.legend{display:flex;gap:17px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);align-items:center;margin-bottom:2px}
-.pill{display:inline-block;padding:3.5px 10px;border:1px solid var(--border);border-radius:3px;font-size:11px;
-  color:var(--ink2);background:var(--surface2);margin:3px 5px 0 0;letter-spacing:.01em}
-.legend b{display:inline-block;width:15px;height:2.5px;border-radius:2px;vertical-align:middle;margin-right:7px}
-.filterbar{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px;align-items:center}
-select,input[type=text],input[type=date]{background:var(--surface);border:1px solid var(--border2);color:var(--ink);
-  border-radius:4px;padding:7px 10px;font-size:12.5px;font-family:inherit}
-select:focus,input:focus{outline:2px solid rgba(29,95,208,.2);outline-offset:0;border-color:var(--accent)}
-.reasoning{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px;
-  font-size:12.5px;white-space:pre-wrap;line-height:1.72;color:var(--ink2);max-height:540px;overflow:auto}
-.rounds{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-.rnd{background:var(--surface);border:1px solid var(--border2);border-radius:4px;padding:9px 14px;cursor:pointer;text-align:center;transition:border-color .12s,box-shadow .12s}
-.rnd.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
-.rnd .p{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--accent)}
-.scroll{overflow-x:auto}
-.tip{position:fixed;pointer-events:none;background:var(--dark);border:1px solid var(--darkln);border-radius:4px;
-  padding:8px 11px;font-size:11.5px;display:none;z-index:20;line-height:1.65;color:#e6ebf0;box-shadow:0 8px 24px rgba(15,22,34,.28)}
-.tip b{color:#fff}
-.back{display:inline-block;font-size:12px;color:var(--accent);cursor:pointer;margin-bottom:4px;font-weight:500}
+.progress{height:7px;background:#e5eae3;overflow:hidden;margin-top:14px}
+.progress > i{display:block;height:100%;background:var(--mint-deep)}
+.chip{display:inline-block;padding:5px 8px;margin:3px 5px 0 0;background:var(--panelh);border:1px solid var(--line);
+  font-family:var(--mono);font-size:9px;letter-spacing:.03em;color:#42534b}
+.tag-pos{color:var(--pos)} .tag-neg{color:var(--coral)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;color:var(--muted);
+  align-items:center;margin-bottom:6px}
+.chart-panel .legend{color:rgba(255,255,255,.6)}
+.pill{display:inline-block;padding:6px 10px;border:1px solid var(--line);background:var(--panelh);
+  font-family:var(--mono);font-size:9px;letter-spacing:.04em;color:var(--muted);margin:4px 6px 0 0}
+.legend b{display:inline-block;width:16px;height:2.5px;vertical-align:middle;margin-right:8px}
+.filterbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px;align-items:center;padding:18px 20px;
+  background:var(--white);border:1px solid var(--line)}
+select,input[type=text],input[type=date]{height:40px;padding:0 12px;color:var(--text);background:var(--white);
+  border:1px solid var(--line);border-radius:0;font-family:inherit;font-size:13px}
+select:focus,input:focus{outline:2px solid var(--mint-deep);outline-offset:2px;border-color:var(--mint-deep)}
+.reasoning{background:var(--panelh);border:1px solid var(--line);padding:clamp(20px,3vw,40px);
+  font-size:13px;white-space:pre-wrap;line-height:1.8;color:#3e4b46;max-height:560px;overflow:auto}
+.rounds{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}
+.rnd{background:var(--white);border:1px solid var(--line);padding:11px 16px;cursor:pointer;text-align:center;
+  transition:border-color .14s}
+.rnd.sel{border-color:var(--mint-deep);box-shadow:inset 0 0 0 1px var(--mint-deep)}
+.rnd .p{font-family:var(--mono);font-size:20px;font-weight:560;color:var(--text)}
+.rnd .small{color:var(--muted);font-family:var(--mono)}
+.tip{position:fixed;pointer-events:none;background:var(--ink);border:1px solid var(--dark-line);
+  padding:9px 12px;font-family:var(--mono);font-size:11px;display:none;z-index:30;line-height:1.7;
+  color:#e6ebf0;box-shadow:0 12px 30px rgba(6,16,13,.4)}
+.tip b{color:var(--mint)}
+.back{display:inline-block;color:var(--mint-deep);cursor:pointer;margin-bottom:26px;font-size:12px;font-weight:660}
 .back:hover{text-decoration:underline}
-.loading{text-align:center;color:var(--ink3);padding:70px;font-size:14px}
-footer{border-top:1px solid var(--border);margin-top:42px;padding:20px 0 40px;font-size:11px;color:var(--ink3);line-height:1.8}
+.loading{text-align:center;color:var(--muted);padding:90px 20px;font-size:15px;font-family:var(--mono)}
+footer{margin-top:0;background:var(--ink);border-top:1px solid var(--dark-line);
+  padding:30px clamp(20px,4vw,72px);color:rgba(255,255,255,.45);font-family:var(--mono);font-size:9.5px;line-height:1.9}
+footer .muted{color:rgba(255,255,255,.55)}
 svg text{font-family:var(--sans)}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+  .rnd,nav a,tr.click{transition:none}}
 </style>
 </head>
 <body>
@@ -134,23 +185,23 @@ svg text{font-family:var(--sans)}
     </div>
   </div>
 </div>
+<div class="mktstrip" id="mktstrip"></div>
+<nav id="nav">
+  <a data-v="overview">요약</a>
+  <a data-v="flow">시장 전망</a>
+  <a data-v="ask">기간 조회</a>
+  <a data-v="questions">예측 목록</a>
+  <a data-v="asof">시점 조회</a>
+  <a data-v="track">적중 이력</a>
+</nav>
 <div class="wrap">
-  <div class="mktstrip" id="mktstrip"></div>
-  <nav id="nav">
-    <a data-v="overview">요약</a>
-    <a data-v="flow">시장 전망</a>
-    <a data-v="ask">기간 조회</a>
-    <a data-v="questions">예측 목록</a>
-    <a data-v="asof">시점 조회</a>
-    <a data-v="track">적중 이력</a>
-  </nav>
   <div id="app"><div class="loading">불러오는 중…</div></div>
-  <footer>
-    본 자료는 예측 모델의 산출물로 정보 제공을 목적으로 하며, 투자 자문이나 매매 권유가 아닙니다.
-    과거 적중 기록은 미래 성과를 보장하지 않습니다.<br>
-    <span class="muted">© Jin's Investing Prediction Solution · 확률 예측은 캘리브레이션으로 지속 검증됩니다.</span>
-  </footer>
 </div>
+<footer>
+  본 자료는 예측 모델의 산출물로 정보 제공을 목적으로 하며, 투자 자문이나 매매 권유가 아닙니다.
+  과거 적중 기록은 미래 성과를 보장하지 않습니다.<br>
+  <span class="muted">© Jin's Investing Prediction Solution · 확률 예측은 캘리브레이션으로 지속 검증됩니다.</span>
+</footer>
 <div class="tip" id="tip"></div>
 
 <script>
@@ -185,7 +236,10 @@ function renderOverview(){
   const target=50, prog=Math.min(100,(g.n_resolved||0)/target*100);
   app().innerHTML='';
   app().appendChild(el(`<div>
-    <div class="grid g4">
+    <p class="eyebrow">현재 시장 판단 · Overview</p>
+    <h1 class="section-h">시장 이벤트를 확률로 읽는다</h1>
+    <p class="section-sub">기한·임계값·판정기준이 정해진 예측을 확률화하고, 실제 결과로 지속 검증합니다.</p>
+    <div class="statband">
       <div class="card"><div class="card-h">진행 중 예측</div><div class="kpi">${m.n_questions}<span class="u">개 질문</span></div>
         <div class="kpi-sub">기록된 예측 ${m.n_forecasts}회</div></div>
       <div class="card"><div class="card-h">결과 확정</div><div class="kpi">${g.n_resolved||0}<span class="u">건</span></div>
@@ -195,7 +249,7 @@ function renderOverview(){
       <div class="card"><div class="card-h">이번 주 점검</div><div class="kpi">${(DATA.due||[]).length}<span class="u">건</span></div>
         <div class="kpi-sub">기한 도래·이벤트 트리거 재예측 대상</div></div>
     </div>
-    <div class="grid g2" style="margin-top:14px">
+    <div class="grid g2" style="margin-top:22px">
       <div class="card"><div class="card-h">연말 시장 전망 · 나스닥</div>${scenarioBars()}</div>
       <div class="card"><div class="card-h">검증 진행</div>
         <div class="kpi" style="font-size:22px">${g.n_resolved||0} <span class="u">/ ${target} 목표</span></div>
@@ -224,7 +278,7 @@ function scenarioBars(){
     return `<div style="display:flex;align-items:center;gap:12px;margin:9px 0">
       <b class="num" style="width:42px;font-family:var(--mono);font-size:15px;color:${p.color}">${p.prob}%</b>
       <span class="bar" style="height:8px;border-radius:4px;background:${p.color};width:${p.prob*2.0}px;display:inline-block"></span>
-      <span class="small" style="color:var(--ink2)">${esc(p.label)} · 종점 ${num(p.end)}</span></div>`;
+      <span class="small" style="color:var(--muted)">${esc(p.label)} · 종점 ${num(p.end)}</span></div>`;
   }).join('')+`<div class="kpi-sub" style="margin-top:10px">현재 ${num(Math.round(DATA.scenario.anchor))} → 연말 시나리오별 전망. 확률 합계 100%.</div>`;
 }
 
@@ -236,6 +290,7 @@ function renderFlow(){
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${sc.paths[k].color}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
     <span><b style="background:${sc.analog.color};height:2px"></b>과거 유사 사이클 (참조)</span></div>`;
   const w=el(`<div>
+    <p class="eyebrow">시장 전망 · Scenario Map</p>
     <div class="section-h">연말 시장 전망</div>
     <div class="section-sub">나스닥 종합 · 현재 ${num(sc.anchor)} 기준 주간 시나리오 경로 (${sc.asof} → 12/31)</div>
     <div class="card">${legend}<div class="scroll"><div id="chart" style="min-width:1000px"></div></div>
@@ -246,10 +301,10 @@ function renderFlow(){
   renderAnalogOverlay();
 }
 // ── 다중 시대 아날로그 오버레이 (context run — 참조 base rate, 예측 아님) ──
-const ERA_META={ai:['AI 현재','#1d5fd0',2.4],dotcom:['닷컴 1996','#8892a0',1.4],
-  japan1989:['일본 1989','#8a6d9b',1.2],niftyfifty1972:['니프티50 1972','#a3616f',1.2],
-  crypto2021:['크립토 2021','#b0813f',1.2],biotech2015:['바이오 2015','#4f8a8b',1.2],
-  dow1929:['다우 1929','#6b7280',1.2]};
+const ERA_META={ai:['AI 현재','#2563d9',3],dotcom:['닷컴 1996','#9aa79c',1],
+  japan1989:['일본 1989','#a2a0b2',1],niftyfifty1972:['니프티50 1972','#b3a1a6',1],
+  crypto2021:['크립토 2021','#bbac92',1],biotech2015:['바이오 2015','#93aeaa',1],
+  dow1929:['다우 1929','#a9adb2',1]};
 function renderAnalogOverlay(){
   const ctx=DATA.analog_context;if(!ctx||!ctx.overlay)return;
   const o=ctx.overlay;const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
@@ -264,7 +319,7 @@ function renderAnalogOverlay(){
   ].filter(Boolean).map(s=>`<span class="pill">${s}</span>`).join(' ');
   const w=el(`<div><div class="card" style="margin-top:18px">
     <div class="card-h">과거 혁신 사이클 비교 · 시작월=100 (로그 스케일)</div>
-    ${legend}<div class="scroll"><div id="ovchart" style="min-width:1000px"></div></div>
+    ${legend}<div class="scroll"><div id="ovchart" style="min-width:1240px"></div></div>
     <div style="margin-top:10px">${strip}</div>
     <div class="kpi-sub" style="margin-top:8px">각 사이클을 시작 시점 100으로 정규화한 참고 비교입니다. 과거 사이클은 예측이 아닌 참조이며, 시대 간 시장 구조 차이가 있습니다. 다우 1929는 월평균 지수 기준.</div>
   </div></div>`);
@@ -358,7 +413,7 @@ function renderQuestions(){
   const domains=[...new Set(DATA.questions.map(q=>q.domain))].sort();
   const themes=[...new Set(DATA.questions.flatMap(q=>q.drivers||[]))].sort();
   app().innerHTML='';
-  app().appendChild(el(`<div class="section-h">예측 목록</div><div class="section-sub">기한·임계값·판정기준이 정해진 예측 질문 — 클릭하면 근거와 회차 이력을 볼 수 있습니다</div>`));
+  app().appendChild(el(`<p class="eyebrow">예측 목록 · Registry</p><div class="section-h">예측 목록</div><div class="section-sub">기한·임계값·판정기준이 정해진 예측 질문 — 클릭하면 근거와 회차 이력을 볼 수 있습니다</div>`));
   const bar=el(`<div class="filterbar">
     <select id="fd"><option value="">전체 분야</option>${domains.map(d=>`<option>${esc(d)}</option>`).join('')}</select>
     <select id="fdr"><option value="">전체 테마</option>${themes.map(d=>`<option>${esc(d)}</option>`).join('')}</select>
@@ -435,7 +490,7 @@ function renderAsof(){
   const dates=[...DATA.questions.map(q=>q.latest_ts).filter(Boolean),...DATA.ml_runs.map(m=>m.run_ts)].map(s=>s.slice(0,10));
   const maxd=dates.reduce((a,b)=>a>b?a:b,'2026-07-08');
   app().innerHTML='';
-  app().appendChild(el(`<div class="section-h">시점 조회</div><div class="section-sub">특정 날짜 기준으로 그 시점의 예측을 재구성합니다</div>`));
+  app().appendChild(el(`<p class="eyebrow">시점 조회 · As-of</p><div class="section-h">시점 조회</div><div class="section-sub">특정 날짜 기준으로 그 시점의 예측을 재구성합니다</div>`));
   const bar=el(`<div class="filterbar"><input type="date" id="ad" value="${maxd}" max="${maxd}"><span class="small muted">이 날짜까지의 최신 예측</span></div>`);
   const cont=el('<div class="card" style="padding:6px 12px"><div class="scroll"><table id="atbl"></table></div></div>');
   app().appendChild(bar);app().appendChild(cont);
@@ -456,7 +511,7 @@ function renderAsof(){
 // ── 적중 이력 ──
 function renderTrack(){
   const c=DATA.calibration,g=c.gate;app().innerHTML='';
-  app().appendChild(el(`<div class="section-h">적중 이력</div><div class="section-sub">확정된 예측에 대한 정확도 검증 기록</div>`));
+  app().appendChild(el(`<p class="eyebrow">적중 이력 · Calibration</p><div class="section-h">적중 이력</div><div class="section-sub">확정된 예측에 대한 정확도 검증 기록</div>`));
   app().appendChild(el(`<div class="grid g3">
     <div class="card"><div class="card-h">정확도 점수 (Brier)</div><div class="kpi">${g.brier!=null?Number(g.brier).toFixed(3):'—'}</div>
       <div class="kpi-sub">0에 가까울수록 정확 · 표본 ${g.n_resolved||0}건</div></div>
@@ -545,7 +600,8 @@ function drawDaily(host,sc,endIdx){
 function renderAsk(){
   const sc=DATA.scenario;const now=DATA.meta.generated.slice(0,10);
   app().innerHTML='';
-  app().appendChild(el(`<div class="section-h">기간 주가 예측 · 나스닥</div>
+  app().appendChild(el(`<p class="eyebrow">기간 조회 · Range Projection</p>
+    <div class="section-h">기간 주가 예측 · 나스닥</div>
     <div class="section-sub">현 기준(${now}) 기간을 고르면 일별 전망 그래프로 보여드립니다</div>`));
   const presets=[['8월말',7],['9월말',11],['10월말',16],['11월말',20],['연말 12/31',25]];
   const bar=el(`<div class="filterbar">
@@ -614,9 +670,11 @@ function renderHeaderStrip(){
 }
 
 // ── 부트 ──
+const SCEN_COL={S1:'#2563d9',S2:'#4f7f26',S3:'#ff8066'};  // UI 표현 색만 재지정 (확률·값·가중치 불변)
 (async function(){
   DATA=await loadData();
   if(!DATA){app().innerHTML='<div class="loading">데이터를 불러오지 못했습니다.</div>';return;}
+  if(DATA.scenario&&DATA.scenario.paths){for(const k in SCEN_COL){if(DATA.scenario.paths[k])DATA.scenario.paths[k].color=SCEN_COL[k];}}
   document.getElementById('asof').textContent='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' KST';
   const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent=DATA.meta.phase+' 검증단계';
   renderHeaderStrip();
