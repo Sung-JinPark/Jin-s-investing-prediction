@@ -92,37 +92,40 @@ def test_ui_contract() -> None:
     assert "prefers-reduced-motion" in html
     assert "view-enter" in html, "화면 진입 전환 클래스 없음"
     assert "feature-grid" in html, "핵심 질문 카드 그리드 없음"
-    assert "analysis-panel" in html, "다크 분석 패널 없음"
+    assert "analysis-panel" in html, "분석 패널 없음"
     assert 'class="product-rail"' in html, "데스크톱 제품 rail 없음"
     assert 'class="mobile-drawer"' in html, "모바일 drawer 없음"
     assert 'class="overview-stage"' in html, "시장 브리핑 첫 화면 없음"
     assert 'aria-expanded="false"' in html and "setDrawer" in html
     assert 'class="site-header"' not in html, "구형 전체 너비 헤더가 남아 있음"
     assert "--blue:" not in html and "var(--blue)" not in html, "구형 파란 강조색이 남아 있음"
-    # 전체 제품은 ink 계열의 all-dark surface만 사용한다.
-    assert "--paper:" not in html and "var(--paper)" not in html
-    assert "background:#fff" not in html, "밝은 카드/표 surface가 다시 유입됨"
-    for dark_surface in (
-        "body{margin:0;color:var(--white-warm);background:radial-gradient(",
-        ".content-shell{min-height:100dvh;margin-left:var(--rail);background:transparent",
-        ".panel{min-width:0;padding:",
-        ".table-shell{overflow-x:auto;background:var(--glass)",
-        ".reasoning-panel{padding:0;overflow:hidden;background:var(--glass)",
+    # Mistral-inspired revision은 warm ivory와 흰 분석 surface를 사용한다.
+    for light_surface in (
+        "--paper:#fbfbf8",
+        "--surface:#fff",
+        "html{color-scheme:light",
+        ".product-rail{padding:0;color:#11110f",
+        ".overview-stage{min-height:calc(100dvh - 48px)",
+        ".panel{color:#11110f;background:#fff",
+        ".table-shell{background:#fff",
+        ".round-sidebar,.reasoning-panel,.resolution-card{color:#11110f;background:#fff",
     ):
-        assert dark_surface in html, f"all-dark UI 계약 누락: {dark_surface}"
-    assert "SCEN_DEEP" not in html, "다크 surface에서 대비가 낮은 구형 시나리오 색상"
-    # startup benchmark revision: atmospheric depth + keyboard-first navigation
-    assert "--violet:#a99bff" in html, "system ambient accent 없음"
+        assert light_surface in html, f"light intelligence UI 계약 누락: {light_surface}"
+    assert "SCEN_DEEP" not in html
+    assert "--violet:#a99bff" not in html, "구형 dark ambient violet이 남아 있음"
+    assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
     assert "<kbd>⌘ K</kbd>" in html
     assert "miniSparkline" in html and 'class="card-spark"' in html
-    assert 'class="stance-orbit"' in html
+    assert "signalMosaic" in html and 'class="signal-mosaic"' in html
+    assert "bindDynamicMotion" in html and "requestAnimationFrame(paint)" in html
+    assert "--tilt-x" in html and "pointermove" in html
     assert ".filter-bar{position:sticky" in html
     # 두 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
-    assert "clamp(72px" in html, "핵심 확률 대형 크기 없음"
+    assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
     assert "FEATURE_QIDS" in html
 
