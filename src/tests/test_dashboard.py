@@ -82,7 +82,7 @@ def test_template_self_contained() -> None:
 
 
 def test_ui_contract() -> None:
-    """UI 현대화 계약 (실행 명세 §8.5) — 구조·접근성·동적 전환 마커 존재."""
+    """UI 현대화 계약 — 제품 rail·첫 화면 briefing·접근성·동적 전환."""
     html = dashboard.TEMPLATE.read_text(encoding="utf-8")
     assert "<h1" in html, "대형 H1 없음"
     # 6개 실제 hash link
@@ -93,6 +93,12 @@ def test_ui_contract() -> None:
     assert "view-enter" in html, "화면 진입 전환 클래스 없음"
     assert "feature-grid" in html, "핵심 질문 카드 그리드 없음"
     assert "analysis-panel" in html, "다크 분석 패널 없음"
+    assert 'class="product-rail"' in html, "데스크톱 제품 rail 없음"
+    assert 'class="mobile-drawer"' in html, "모바일 drawer 없음"
+    assert 'class="overview-stage"' in html, "시장 브리핑 첫 화면 없음"
+    assert 'aria-expanded="false"' in html and "setDrawer" in html
+    assert 'class="site-header"' not in html, "구형 전체 너비 헤더가 남아 있음"
+    assert "--blue:" not in html and "var(--blue)" not in html, "구형 파란 강조색이 남아 있음"
     # 두 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
