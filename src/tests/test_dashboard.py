@@ -99,6 +99,18 @@ def test_ui_contract() -> None:
     assert 'aria-expanded="false"' in html and "setDrawer" in html
     assert 'class="site-header"' not in html, "구형 전체 너비 헤더가 남아 있음"
     assert "--blue:" not in html and "var(--blue)" not in html, "구형 파란 강조색이 남아 있음"
+    # 전체 제품은 ink 계열의 all-dark surface만 사용한다.
+    assert "--paper:" not in html and "var(--paper)" not in html
+    assert "background:#fff" not in html, "밝은 카드/표 surface가 다시 유입됨"
+    for dark_surface in (
+        "body{margin:0;color:#fff;background:var(--ink)",
+        ".content-shell{min-height:100dvh;margin-left:var(--rail);background:",
+        ".panel{min-width:0;padding:",
+        ".table-shell{overflow-x:auto;background:var(--ink-2)",
+        ".reasoning-panel{padding:0;overflow:hidden;background:var(--ink-2)",
+    ):
+        assert dark_surface in html, f"all-dark UI 계약 누락: {dark_surface}"
+    assert "SCEN_DEEP" not in html, "다크 surface에서 대비가 낮은 구형 시나리오 색상"
     # 두 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)

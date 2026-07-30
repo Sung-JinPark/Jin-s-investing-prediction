@@ -1,6 +1,6 @@
 # Codex → Claude Code UI 인수인계
 
-작성일: 2026-07-30 KST  
+작성일: 2026-07-30 KST · all-dark revision
 대상: Jin's Investing Prediction Solution  
 배포 URL: https://sung-jinpark.github.io/Jin-s-investing-prediction/  
 작업 성격: **UI 표현 계층 전면 재구축, 데이터·예측 로직 불변**
@@ -290,14 +290,13 @@ source of truth:
 --ink: #06100d;
 --ink-2: #0b1714;
 --ink-3: #10231d;
---paper: #eef2ec;
 --white: #ffffff;
 --lime: #bcff71;
---lime-deep: #5b8f2e;
+--lime-deep: #98dc55;
 --teal: #57d4c8;
 --coral: #ff8066;
 --slate: #94a3b8;
---muted: #718079;
+--muted: rgba(255,255,255,.48);
 ```
 
 역할:
@@ -308,8 +307,11 @@ source of truth:
 | 비교 경로, 보조 모델 | teal |
 | 하락, 위험, 오차 | coral |
 | 과거 참조, 중립 | slate 또는 white alpha |
-| dark surface | ink 계열 |
-| 읽기/표 surface | paper/white |
+| 최상위 배경 | ink |
+| 카드·표·필터 surface | ink-2 |
+| 입력·표 머리글·내부 surface | ink-3 |
+
+전체 제품은 **all-dark**다. `paper`, 흰 카드, 밝은 표 배경은 사용하지 않는다. 화면 구분은 밝기 반전이 아니라 `ink → ink-2 → ink-3`, 1px white-alpha border, 여백으로 만든다. 강조 색은 의미가 있는 데이터에만 쓴다.
 
 삭제한 색 체계:
 
@@ -582,8 +584,15 @@ python -m pytest src/tests/test_dashboard.py -q
 - 첫 화면은 market briefing
 - 운영 도구는 route 뒤
 - chart는 dark analysis surface
-- table은 paper workspace
+- table·filter·detail은 ink-2/ink-3 data workspace
 - 색은 lime/teal/coral/slate 역할 기반
+
+다음 회귀는 금지한다.
+
+- `--paper` 토큰 재도입
+- `background:#fff` 카드·표·입력
+- overview 아래에서 갑자기 밝아지는 section
+- 다크 배경에서 명도가 낮은 `SCEN_DEEP` 시나리오 색
 
 “기능이 보이게만” 만들기 위해 다시 작은 카드와 가로 탭을 쌓으면 이전 구식 dashboard로 회귀한다.
 
