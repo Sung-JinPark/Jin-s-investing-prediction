@@ -137,7 +137,11 @@ def test_ui_contract() -> None:
 def test_workspace_utility_contract() -> None:
     """부가기능은 기존 read-model 위에서만 동작하고 로컬 상태로 닫혀 있어야 한다."""
     html = dashboard.TEMPLATE.read_text(encoding="utf-8")
-    for element_id in ("utility-layer", "shortcut-layer", "toast-region", "focus-exit"):
+    for element_id in (
+        "utility-layer", "shortcut-layer", "toast-region", "focus-exit",
+        "route-progress-bar", "view-map", "quick-peek", "briefing-layer",
+        "briefing-content", "briefing-prev", "briefing-next",
+    ):
         assert f'id="{element_id}"' in html, f"워크스페이스 UI 누락: {element_id}"
     for behavior in (
         "jin-investing-ui-v1",
@@ -148,10 +152,21 @@ def test_workspace_utility_contract() -> None:
         "recordRecent",
         "toggleCurrentPin",
         "window.print()",
+        "briefingScenes",
+        "buildSectionNavigator",
+        "bindQuickPeek",
+        "IntersectionObserver",
+        "workspace-note",
+        "setMotion",
     ):
         assert behavior in html, f"워크스페이스 동작 누락: {behavior}"
     assert "body.focus-mode" in html
     assert "body.density-compact" in html
+    assert "body.motion-reduced" in html
+    assert "body.briefing-open" in html
+    assert "3 STEP BRIEFING" in html
+    assert "Shift B" in html and "Shift N" in html
+    assert "maxlength=\"700\"" in html
     assert "@media print" in html
     assert "COMMAND_ROUTES" in html and "commandCatalog" in html
     assert "data-command-index" in html

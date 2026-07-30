@@ -26,7 +26,7 @@
 html{scroll-behavior:smooth;color-scheme:dark;background:var(--night)}
 body{margin:0;color:var(--white-warm);background:radial-gradient(circle at 78% 4%,rgba(169,155,255,.055),transparent 25%),radial-gradient(circle at 20% 82%,rgba(87,212,200,.035),transparent 28%),var(--night);font-family:var(--sans);font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,black,transparent 82%)}
-body.drawer-open,body.command-open,body.utility-open,body.shortcut-open{overflow:hidden}
+body.drawer-open,body.command-open,body.utility-open,body.shortcut-open,body.briefing-open{overflow:hidden}
 button,input,select{font:inherit}
 button{color:inherit}
 button,a,input,select{-webkit-tap-highlight-color:transparent}
@@ -605,11 +605,69 @@ body.focus-mode .product-rail{transform:translateX(-101%)}body.focus-mode .conte
 .product-rail{transition:transform .28s cubic-bezier(.2,.8,.2,1)}.content-shell{transition:margin-left .28s cubic-bezier(.2,.8,.2,1)}
 body.density-compact .forecast-card{min-height:208px;padding:20px}body.density-compact .panel{padding:clamp(18px,2.4vw,28px)}body.density-compact th,body.density-compact td{padding-top:10px;padding-bottom:10px}body.density-compact .metric-ribbon>div,body.density-compact .range-returns>div,body.density-compact .track-kpis>div{padding:18px}
 
+/* experience layer v2 */
+.route-progress{height:3px;position:fixed;inset:0 0 auto var(--rail);z-index:80;pointer-events:none;background:rgba(17,17,15,.08);transition:left .28s cubic-bezier(.2,.8,.2,1)}
+.route-progress span{width:0;height:100%;display:block;background:linear-gradient(90deg,var(--orange),var(--amber),var(--crimson));box-shadow:0 0 14px rgba(255,79,23,.28);transition:width 80ms linear}
+body.focus-mode .route-progress{left:0}
+.view-map{width:38px;position:fixed;right:15px;top:50%;z-index:46;padding:9px 7px;display:grid;gap:5px;color:#11110f;background:rgba(255,255,255,.9);border:1px solid var(--line);box-shadow:8px 8px 0 rgba(17,17,15,.08);transform:translateY(-50%);transition:width .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s ease;backdrop-filter:blur(12px)}
+.view-map>div{display:grid;gap:5px}
+.view-map:hover,.view-map:focus-within{width:188px;box-shadow:12px 12px 0 rgba(255,79,23,.12)}
+.view-map button{min-height:30px;padding:0 7px;display:grid;grid-template-columns:17px minmax(0,1fr);gap:6px;align-items:center;color:#77746d;background:transparent;border:0;cursor:pointer;text-align:left;white-space:nowrap;overflow:hidden}
+.view-map button i{width:12px;height:2px;display:block;background:var(--line-strong);transition:width .18s ease,background .18s ease}
+.view-map button span{overflow:hidden;opacity:0;text-overflow:ellipsis;font-size:10px;transition:opacity .16s ease}
+.view-map:hover button span,.view-map:focus-within button span{opacity:1}
+.view-map button.is-active{color:#11110f}.view-map button.is-active i{width:17px;background:var(--orange)}
+.view-map button:focus-visible{outline-offset:0}
+.section-reveal{opacity:0;transform:translateY(18px);transition:opacity .36s ease,transform .36s cubic-bezier(.2,.8,.2,1)}
+.section-reveal.is-visible{opacity:1;transform:none}
+
+.overview-actions{margin-top:24px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.briefing-launch{min-height:44px;padding:0 15px;display:inline-flex;align-items:center;gap:14px;color:#fff;background:#11110f;border:1px solid #11110f;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:.09em;transition:transform .18s ease,box-shadow .18s ease}
+.briefing-launch span{color:var(--orange);font-size:13px}.briefing-launch:hover{transform:translateY(-2px);box-shadow:7px 7px 0 rgba(255,79,23,.2)}
+.overview-actions>small{color:#77746d;font-family:var(--mono);font-size:8px}
+
+.quick-peek{width:min(330px,calc(100vw - 28px));position:fixed;z-index:108;padding:18px;color:#11110f;background:#fff;border:1px solid #11110f;box-shadow:10px 10px 0 rgba(17,17,15,.12);pointer-events:none;animation:peek-in .16s ease-out}
+@keyframes peek-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+.peek-top{display:flex;align-items:center;justify-content:space-between;gap:14px;color:#77746d;font-family:var(--mono);font-size:8px;letter-spacing:.08em}.peek-top b{color:var(--crimson)}
+.peek-title{margin:14px 0 18px;font-size:18px;font-weight:650;letter-spacing:-.035em;line-height:1.25}
+.peek-metric{display:flex;align-items:flex-end;gap:8px}.peek-metric strong{font-family:var(--mono);font-size:52px;font-weight:530;letter-spacing:-.08em;line-height:.8}.peek-metric>span{color:#77746d;font-family:var(--mono);font-size:11px}
+.peek-meta{margin-top:18px;padding-top:13px;display:flex;justify-content:space-between;gap:14px;border-top:1px solid var(--line);color:#77746d;font-family:var(--mono);font-size:8px}
+.peek-drivers{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}.peek-drivers span{padding:5px 7px;color:#5f5d57;background:var(--paper);border:1px solid var(--line);font-size:8px}
+
+.note-editor{display:grid;gap:8px}.note-editor textarea{width:100%;min-height:124px;padding:13px;resize:vertical;color:#11110f;background:#fff;border:1px solid var(--line-strong);outline:0;font-size:12px;line-height:1.6}.note-editor textarea:focus{border-color:#11110f;box-shadow:0 0 0 2px rgba(255,79,23,.16)}
+.note-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#77746d;font-family:var(--mono);font-size:8px}.note-meta button{min-height:32px;padding:0 9px;color:#11110f;background:#fff;border:1px solid var(--line);cursor:pointer;font-family:var(--mono);font-size:8px}
+
+.briefing-layer{position:fixed;inset:0;z-index:130;padding:18px;display:grid;place-items:center}
+.briefing-scrim{position:absolute;inset:0;background:rgba(17,17,15,.58);border:0;backdrop-filter:blur(8px)}
+.briefing-sheet{width:min(1100px,calc(100vw - 36px));min-height:min(720px,calc(100dvh - 36px));position:relative;overflow:hidden;display:grid;grid-template-rows:auto 1fr auto;color:#11110f;background:linear-gradient(90deg,rgba(17,17,15,.055) 1px,transparent 1px),linear-gradient(rgba(17,17,15,.055) 1px,transparent 1px),var(--paper);background-size:48px 48px;border:1px solid #11110f;box-shadow:18px 18px 0 rgba(255,79,23,.2);animation:briefing-in .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes briefing-in{from{opacity:.55;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
+.briefing-head{min-height:72px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:rgba(255,255,255,.88);border-bottom:1px solid var(--line)}
+.briefing-head>div{display:flex;align-items:center;gap:13px}.briefing-head strong{font-size:13px;letter-spacing:.08em}.briefing-step-label{color:var(--crimson);font-family:var(--mono);font-size:8px;letter-spacing:.1em}
+.briefing-close{min-width:54px;min-height:40px;color:#11110f;background:var(--paper);border:1px solid var(--line-strong);cursor:pointer;font-family:var(--mono);font-size:8px}
+.briefing-progress{height:5px;position:absolute;inset:71px 0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line)}
+.briefing-progress i{background:rgba(255,255,255,.92);transition:background .18s ease}.briefing-progress i.is-complete{background:var(--orange)}.briefing-progress i.is-active{background:var(--amber)}
+.briefing-content{min-height:0;padding:clamp(42px,6vw,78px);display:grid;align-items:center}
+.briefing-scene{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:clamp(36px,7vw,94px);align-items:center;animation:scene-in .18s ease-out}
+@keyframes scene-in{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+.briefing-copy .eyebrow{margin-bottom:18px}.briefing-copy h2{max-width:720px;margin:0;font-size:clamp(42px,5.5vw,76px);font-weight:650;letter-spacing:-.06em;line-height:.94;word-break:keep-all}.briefing-copy h2 em{display:block;color:var(--orange);font-style:normal}
+.briefing-copy>p:last-of-type{max-width:680px;margin:22px 0 0;color:#66635d;font-size:14px;line-height:1.7}
+.briefing-detail{min-height:42px;margin-top:25px;padding:0 13px;color:#fff;background:#11110f;border:1px solid #11110f;cursor:pointer;font-size:10px}
+.briefing-visual{aspect-ratio:1;position:relative;display:grid;place-items:center;background:#11110f;border:1px solid #11110f;box-shadow:16px 16px 0 rgba(255,79,23,.18)}
+.briefing-visual::before{content:"";position:absolute;inset:12%;background:conic-gradient(var(--orange) calc(var(--brief-signal,50)*1%),rgba(255,255,255,.1) 0);clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%);transform:rotate(45deg);transition:background .25s ease}
+.briefing-visual::after{content:"";position:absolute;inset:27%;background:#11110f;border:1px solid rgba(255,255,255,.18);transform:rotate(45deg)}
+.briefing-visual b{position:relative;z-index:1;color:#fff;font-family:var(--mono);font-size:clamp(52px,6vw,84px);font-weight:520;letter-spacing:-.09em}.briefing-visual b small{color:var(--orange);font-size:15px;letter-spacing:0}
+.briefing-foot{min-height:76px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(255,255,255,.9);border-top:1px solid var(--line)}
+.briefing-foot small{color:#77746d;font-family:var(--mono);font-size:8px}.briefing-controls{display:flex;gap:8px}.briefing-controls button{min-width:112px;min-height:44px;padding:0 14px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font-size:10px}.briefing-controls button:last-child{color:#fff;background:#11110f;border-color:#11110f}.briefing-controls button:disabled{opacity:.35;cursor:default}
+
+body.motion-reduced .section-reveal{opacity:1;transform:none;transition:none}
+body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.motion-reduced .page-heading::after,body.motion-reduced .signal-mosaic i,body.motion-reduced .utility-panel,body.motion-reduced .quick-peek,body.motion-reduced .briefing-sheet,body.motion-reduced .briefing-scene{animation:none!important;transform:none!important;transition-duration:.01ms!important}
+
 @media(max-width:1279px){
   :root{--rail:76px}.product-rail{padding-inline:0}.rail-brand{padding-inline:0}.view-nav a{padding:0;grid-template-columns:1fr}.view-nav a::before{display:none}.view-nav a::after{right:auto}.rail-command{margin-inline:12px}.rail-status{margin-inline:12px;padding-inline:8px}.rail-utilities{display:none}
 }
 @media(max-width:1050px){
   .overview-hero{grid-template-columns:1fr}.stance-card{max-width:none;grid-template-columns:1fr}.stance-card>div,.stance-card p{grid-column:auto}.stance-main{grid-template-columns:1fr 116px}
+  .view-map{display:none}.briefing-scene{grid-template-columns:1fr minmax(190px,270px);gap:34px}.briefing-content{padding:44px}
 }
 @media(max-width:799px){
   .mobile-header{color:#11110f;background:rgba(251,251,248,.96);border-color:var(--line);box-shadow:none;backdrop-filter:blur(14px)}
@@ -620,14 +678,17 @@ body.density-compact .forecast-card{min-height:208px;padding:20px}body.density-c
   .forecast-card{min-height:244px}.page-heading{border-radius:0}.panel{border-radius:0}.command-palette{border-radius:2px}
   .utility-panel{width:100%;height:min(78dvh,680px);inset:auto 0 0;border:1px solid #11110f;border-bottom:0;box-shadow:0 -14px 0 rgba(17,17,15,.1);animation:utility-up .24s cubic-bezier(.2,.8,.2,1)}@keyframes utility-up{from{opacity:.7;transform:translateY(18px)}to{opacity:1;transform:none}}
   .shortcut-grid{grid-template-columns:1fr}.toast-region{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.toast{max-width:calc(100vw - 24px)}
-  body.focus-mode .content-shell{padding-top:0}.focus-exit{right:12px;top:12px}
+  body.focus-mode .content-shell{padding-top:0}.focus-exit{right:12px;top:12px}.route-progress{left:0}
+  .quick-peek{display:none!important}.overview-actions>small{display:none}
+  .briefing-layer{padding:0}.briefing-sheet{width:100%;height:100dvh;min-height:0;border:0;box-shadow:none}.briefing-content{padding:34px 20px;overflow:auto}.briefing-scene{grid-template-columns:1fr;gap:26px}.briefing-copy h2{font-size:clamp(40px,11vw,54px)}.briefing-visual{width:min(58vw,230px);justify-self:end}.briefing-foot{padding:12px max(14px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.briefing-foot small{display:none}.briefing-controls{width:100%}.briefing-controls button{min-width:0;flex:1}.note-editor textarea{font-size:16px}
 }
 @media(prefers-reduced-motion:reduce){
-  .signal-mosaic i,.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after,.utility-panel,.toast{transform:none!important;animation:none!important}
+  .signal-mosaic i,.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after,.utility-panel,.toast,.quick-peek,.briefing-sheet,.briefing-scene,.section-reveal{transform:none!important;animation:none!important;transition-duration:.01ms!important}
+  .section-reveal{opacity:1}
 }
 @media print{
   @page{margin:14mm}
-  .product-rail,.mobile-header,.market-strip,.command-layer,.utility-layer,.shortcut-layer,.toast-region,.focus-exit,.tip{display:none!important}
+  .product-rail,.mobile-header,.market-strip,.command-layer,.utility-layer,.shortcut-layer,.toast-region,.focus-exit,.tip,.route-progress,.view-map,.quick-peek,.briefing-layer{display:none!important}
   .content-shell{margin:0!important;padding:0!important}.app-shell{min-height:0}.app-shell>.view-enter{padding:0!important}.site-footer{padding:18px 0;background:#fff}
   body,html,.overview-page,.overview-stage,.overview-lower-inner{color:#111!important;background:#fff!important}.overview-stage{min-height:0}.overview-stage,.page-heading,.panel,.chart-panel,.table-shell{break-inside:avoid;box-shadow:none!important}
   body::before{opacity:.16}.forecast-card{break-inside:avoid}.view-enter{opacity:1!important;transform:none!important}
@@ -732,8 +793,30 @@ body.density-compact .forecast-card{min-height:208px;padding:20px}body.density-c
       <div><span>빠른 이동</span><kbd>⌘ / Ctrl K</kbd></div><div><span>검색</span><kbd>/</kbd></div>
       <div><span>단축키 도움말</span><kbd>?</kbd></div><div><span>현재 화면 고정</span><kbd>Shift P</kbd></div>
       <div><span>현재 화면 공유</span><kbd>Shift S</kbd></div><div><span>집중 모드</span><kbd>Shift F</kbd></div>
+      <div><span>3단계 브리핑</span><kbd>Shift B</kbd></div><div><span>현재 화면 메모</span><kbd>Shift N</kbd></div>
       <div><span>닫기 / 집중 모드 종료</span><kbd>Escape</kbd></div>
     </div>
+  </section>
+</div>
+<div class="route-progress" aria-hidden="true"><span id="route-progress-bar"></span></div>
+<nav class="view-map" id="view-map" aria-label="현재 화면 목차" hidden><div id="view-map-items"></div></nav>
+<aside class="quick-peek" id="quick-peek" role="tooltip" aria-hidden="true" hidden></aside>
+<div class="briefing-layer" id="briefing-layer" aria-hidden="true" hidden>
+  <button type="button" class="briefing-scrim" id="briefing-scrim" aria-label="브리핑 닫기"></button>
+  <section class="briefing-sheet" id="briefing-sheet" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
+    <header class="briefing-head">
+      <div><strong id="briefing-title">MARKET BRIEFING</strong><span class="briefing-step-label" id="briefing-step-label">01 / 03</span></div>
+      <button type="button" class="briefing-close" id="briefing-close" aria-label="브리핑 닫기">CLOSE</button>
+    </header>
+    <div class="briefing-progress" id="briefing-progress" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="briefing-content" id="briefing-content" aria-live="polite"></div>
+    <footer class="briefing-foot">
+      <small>← → 이동 · ESC 닫기 · 기존 예측 데이터를 요약한 보기입니다</small>
+      <div class="briefing-controls">
+        <button type="button" id="briefing-prev">← PREVIOUS</button>
+        <button type="button" id="briefing-next">NEXT →</button>
+      </div>
+    </footer>
   </section>
 </div>
 <button type="button" class="focus-exit" id="focus-exit" aria-label="집중 모드 종료" hidden>EXIT FOCUS · ESC</button>
@@ -752,16 +835,16 @@ const app=()=>document.getElementById('app');
 const pct=v=>(v==null?'—':Math.round(v*100)+'%');
 const p1=v=>(v==null?'—':v+'%');
 const num=v=>(v==null?'—':Number(v).toLocaleString());
-const esc=s=>(s==null?'':String(s).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])));
+const esc=s=>(s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function mount(root){
+  cleanupExperienceLayer();closeQuickPeek();
   root.classList.add('view-enter');app().innerHTML='';app().appendChild(root);
-  requestAnimationFrame(()=>{root.classList.add('is-ready');bindDynamicMotion(root);});
+  requestAnimationFrame(()=>{root.classList.add('is-ready');bindDynamicMotion(root);bindExperienceLayer(root);});
 }
 function bindDynamicMotion(root){
-  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const fine=window.matchMedia('(pointer: fine)').matches;
-  if(reduced||!fine)return;
+  if(!motionAllowed()||!fine)return;
   const stage=root.querySelector('.overview-stage'),mosaic=root.querySelector('.signal-mosaic');
   if(stage&&mosaic){
     const cells=[...mosaic.querySelectorAll('i')];let frame=0,lastEvent=null;
@@ -796,6 +879,8 @@ function bindDynamicMotion(root){
 const menuOpen=document.getElementById('menu-open'),menuClose=document.getElementById('menu-close');
 const drawer=document.getElementById('mobile-drawer'),drawerBackdrop=document.getElementById('drawer-backdrop');
 function setDrawer(open,restoreFocus=true){
+  if(open&&!briefingLayer.hidden)setBriefing(false,false);
+  if(open)closeQuickPeek();
   document.body.classList.toggle('drawer-open',open);
   menuOpen.setAttribute('aria-expanded',String(open));
   drawer.setAttribute('aria-hidden',String(!open));
@@ -809,13 +894,17 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.class
 document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
 // device-local workspace memory and utility layers
-const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:1,density:'comfortable',pins:[],recent:[]};
+const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:1,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{}};
 function loadUIState(){
   try{
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
-    if(!raw||raw.version!==1)return {...UI_DEFAULTS,pins:[],recent:[]};
-    return {...UI_DEFAULTS,...raw,pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[]};
-  }catch(_){return {...UI_DEFAULTS,pins:[],recent:[]};}
+    if(!raw||raw.version!==1)return {...UI_DEFAULTS,pins:[],recent:[],notes:{}};
+    const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
+      .filter(([k,v])=>/^#(overview|flow|ask|questions|asof|track|q\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
+    return {...UI_DEFAULTS,...raw,motion:raw.motion==='reduced'?'reduced':'adaptive',
+      pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[],notes};
+  }catch(_){return {...UI_DEFAULTS,pins:[],recent:[],notes:{}};}
 }
 function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));}catch(_){}}
 let UI_STATE=loadUIState(),toastTimer=0,utilityReturnFocus=null,shortcutReturnFocus=null;
@@ -824,6 +913,170 @@ const utilityContent=document.getElementById('utility-content'),utilityClose=doc
 const shortcutLayer=document.getElementById('shortcut-layer'),shortcutSheet=document.getElementById('shortcut-sheet');
 const shortcutClose=document.getElementById('shortcut-close'),focusExit=document.getElementById('focus-exit');
 const toastRegion=document.getElementById('toast-region');
+const routeProgressBar=document.getElementById('route-progress-bar'),viewMap=document.getElementById('view-map');
+const viewMapItems=document.getElementById('view-map-items'),quickPeek=document.getElementById('quick-peek');
+const briefingLayer=document.getElementById('briefing-layer'),briefingSheet=document.getElementById('briefing-sheet');
+const briefingContent=document.getElementById('briefing-content'),briefingClose=document.getElementById('briefing-close');
+const briefingPrev=document.getElementById('briefing-prev'),briefingNext=document.getElementById('briefing-next');
+const briefingStepLabel=document.getElementById('briefing-step-label'),briefingProgress=document.getElementById('briefing-progress');
+let viewObserver=null,revealObserver=null,viewScrollHandler=null,viewResizeHandler=null,viewSections=[];
+let peekTimer=0,peekAnchor=null,briefingIndex=0,briefingReturnFocus=null;
+function motionAllowed(){return UI_STATE.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;}
+function currentNoteKey(){return location.hash||'#overview';}
+function currentNote(){return UI_STATE.notes[currentNoteKey()]||'';}
+function saveCurrentNote(value){
+  const key=currentNoteKey(),note=String(value||'').slice(0,700),notes={...UI_STATE.notes};
+  if(note.trim())notes[key]=note;else delete notes[key];
+  UI_STATE.notes=Object.fromEntries(Object.entries(notes).slice(-20));saveUIState();
+}
+function openCurrentNote(){
+  setUtility(true);
+  requestAnimationFrame(()=>utilityContent.querySelector('#workspace-note')?.focus());
+}
+function copyCurrentNote(){
+  const note=currentNote();
+  if(!note)return showToast('복사할 메모가 없습니다.','warning');
+  copyText(note).then(()=>showToast('현재 화면 메모를 복사했습니다.')).catch(()=>showToast('메모를 복사하지 못했습니다.','warning'));
+}
+function setMotion(value){
+  UI_STATE.motion=value==='reduced'?'reduced':'adaptive';saveUIState();
+  document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
+  if(UI_STATE.motion==='reduced')document.querySelectorAll('.section-reveal').forEach(x=>x.classList.add('is-visible'));
+  if(!utilityLayer.hidden)renderUtilityPanel();
+  showToast(UI_STATE.motion==='reduced'?'움직임을 최소화했습니다.':'시스템 설정에 맞춰 움직임을 적용합니다.');
+}
+
+function cleanupExperienceLayer(){
+  viewObserver?.disconnect();revealObserver?.disconnect();viewObserver=null;revealObserver=null;
+  if(viewScrollHandler)window.removeEventListener('scroll',viewScrollHandler);
+  if(viewResizeHandler)window.removeEventListener('resize',viewResizeHandler);
+  viewScrollHandler=null;viewResizeHandler=null;viewSections=[];viewMap.hidden=true;viewMapItems.innerHTML='';
+}
+function sectionLabel(node,index){
+  const heading=node.querySelector('h1,h2,h3'),label=(heading?.textContent||node.getAttribute('aria-label')||`섹션 ${index+1}`).trim().replace(/\s+/g,' ');
+  return label.length>42?label.slice(0,41)+'…':label;
+}
+function updateViewPosition(){
+  const max=Math.max(1,document.documentElement.scrollHeight-window.innerHeight);
+  routeProgressBar.style.width=Math.max(0,Math.min(100,window.scrollY/max*100)).toFixed(2)+'%';
+  if(!viewSections.length)return;
+  let active=0;
+  viewSections.forEach((section,i)=>{if(section.node.getBoundingClientRect().top<=window.innerHeight*.34)active=i;});
+  viewMapItems.querySelectorAll('button').forEach((b,i)=>{const on=i===active;b.classList.toggle('is-active',on);if(on)b.setAttribute('aria-current','location');else b.removeAttribute('aria-current');});
+}
+function animateNumberElement(node){
+  if(!motionAllowed()||node.dataset.rolled)return;
+  const raw=node.textContent.trim(),match=raw.match(/^(-?[\d,]+(?:\.\d+)?)(.*)$/);if(!match)return;
+  const final=Number(match[1].replaceAll(',',''));if(!Number.isFinite(final))return;
+  node.dataset.rolled='1';node.setAttribute('aria-label',raw);
+  const decimals=(match[1].split('.')[1]||'').length,suffix=match[2],start=performance.now(),duration=420;
+  const paint=now=>{const t=Math.min(1,(now-start)/duration),eased=1-Math.pow(1-t,3),value=final*eased;
+    node.textContent=(decimals?value.toFixed(decimals):Math.round(value).toLocaleString())+suffix;
+    if(t<1)requestAnimationFrame(paint);else node.textContent=raw;
+  };
+  requestAnimationFrame(paint);
+}
+function animateNumbers(root){
+  root.querySelectorAll('.probability-row strong,.metric-ribbon strong,.track-kpis strong').forEach(animateNumberElement);
+}
+function buildSectionNavigator(root){
+  const selector='.overview-stage,.page-heading,.chart-panel,.panel,.table-shell,.metric-ribbon,.track-kpis,.reasoning-panel';
+  const raw=[...root.querySelectorAll(selector)];
+  const nodes=raw.filter(node=>!raw.some(parent=>parent!==node&&parent.contains(node)&&!parent.matches('.overview-stage,.page-heading')))
+    .filter(node=>node.getBoundingClientRect().height>90).slice(0,7);
+  viewSections=nodes.map((node,index)=>{const label=sectionLabel(node,index),id=`view-section-${document.body.dataset.view||'overview'}-${index}`;
+    node.id=node.id||id;return {node,label,id:node.id};});
+  if(viewSections.length<2){
+    viewMap.hidden=true;let frame=0;
+    viewScrollHandler=()=>{closeQuickPeek();if(frame)return;frame=requestAnimationFrame(()=>{frame=0;updateViewPosition();});};
+    viewResizeHandler=()=>updateViewPosition();
+    window.addEventListener('scroll',viewScrollHandler,{passive:true});window.addEventListener('resize',viewResizeHandler,{passive:true});
+    updateViewPosition();animateNumbers(root);return;
+  }
+  viewMapItems.innerHTML=viewSections.map((x,i)=>`<button type="button" data-section="${i}" aria-label="섹션 이동: ${esc(x.label)}"><i></i><span>${esc(x.label)}</span></button>`).join('');
+  viewMap.hidden=false;
+  viewMapItems.onclick=e=>{const b=e.target.closest('button[data-section]');if(!b)return;viewSections[Number(b.dataset.section)]?.node.scrollIntoView({behavior:motionAllowed()?'smooth':'auto',block:'start'});};
+  viewObserver=new IntersectionObserver(()=>updateViewPosition(),{rootMargin:'-18% 0px -62% 0px',threshold:[0,.15,.4]});
+  viewSections.forEach(x=>viewObserver.observe(x.node));
+  let frame=0;
+  viewScrollHandler=()=>{closeQuickPeek();if(frame)return;frame=requestAnimationFrame(()=>{frame=0;updateViewPosition();});};
+  viewResizeHandler=()=>updateViewPosition();
+  window.addEventListener('scroll',viewScrollHandler,{passive:true});window.addEventListener('resize',viewResizeHandler,{passive:true});
+  updateViewPosition();
+  if(!motionAllowed()){viewSections.forEach(x=>x.node.classList.add('section-reveal','is-visible'));return;}
+  revealObserver=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');revealObserver.unobserve(entry.target);}}),{rootMargin:'0px 0px -8% 0px',threshold:.08});
+  viewSections.forEach((x,i)=>{if(i===0)x.node.classList.add('is-visible');else{x.node.classList.add('section-reveal');revealObserver.observe(x.node);}});
+}
+function blockingLayerOpen(){
+  return !commandLayer.hidden||!utilityLayer.hidden||!shortcutLayer.hidden||!briefingLayer.hidden||document.body.classList.contains('drawer-open');
+}
+function closeQuickPeek(){
+  clearTimeout(peekTimer);peekTimer=0;
+  if(peekAnchor?.getAttribute('aria-describedby')==='quick-peek')peekAnchor.removeAttribute('aria-describedby');
+  peekAnchor=null;quickPeek.hidden=true;quickPeek.setAttribute('aria-hidden','true');
+}
+function showQuickPeek(anchor){
+  if(blockingLayerOpen()||window.matchMedia('(pointer: coarse)').matches)return;
+  const q=DATA?.questions?.find(x=>x.id===anchor.dataset.q);if(!q)return;
+  const d=latestDelta(q.id),delta=d==null?'첫 예측':(d>=0?`▲ +${d}%p`:`▼ ${d}%p`);
+  const drivers=(q.drivers||[]).slice(0,2);
+  quickPeek.innerHTML=`<div class="peek-top"><span>${esc(q.domain)} · R${q.n_rounds||1}</span><b>QUICK PEEK</b></div>
+    <h3 class="peek-title">${esc(q.title)}</h3>
+    <div class="peek-metric"><strong>${q.latest_prob==null?'—':q.latest_prob}</strong><span>% · ${esc(delta)}</span></div>
+    <div class="peek-meta"><span>DEADLINE</span><strong>${esc(q.deadline||'수시')}</strong></div>
+    ${drivers.length?`<div class="peek-drivers">${drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
+  peekAnchor=anchor;anchor.setAttribute('aria-describedby','quick-peek');quickPeek.hidden=false;quickPeek.setAttribute('aria-hidden','false');
+  requestAnimationFrame(()=>{const r=anchor.getBoundingClientRect(),w=quickPeek.offsetWidth,h=quickPeek.offsetHeight;
+    let left=r.right+14,top=r.top+(r.height-h)/2;if(left+w>window.innerWidth-14)left=r.left-w-14;
+    left=Math.max(14,Math.min(window.innerWidth-w-14,left));top=Math.max(14,Math.min(window.innerHeight-h-14,top));
+    quickPeek.style.left=left+'px';quickPeek.style.top=top+'px';
+  });
+}
+function bindQuickPeek(root){
+  root.querySelectorAll('[data-q]').forEach(node=>{
+    node.addEventListener('pointerenter',()=>{clearTimeout(peekTimer);peekTimer=setTimeout(()=>showQuickPeek(node),220);});
+    node.addEventListener('pointerleave',()=>{if(document.activeElement!==node)closeQuickPeek();});
+    node.addEventListener('focus',()=>showQuickPeek(node));node.addEventListener('blur',closeQuickPeek);
+  });
+}
+function bindExperienceLayer(root){buildSectionNavigator(root);bindQuickPeek(root);animateNumbers(root);}
+
+function briefingScenes(){
+  const sc=DATA.scenario,upProb=sc.paths.S1.prob+sc.paths.S2.prob,rangeProb=sc.paths.S3.prob;
+  const thesis=marketThesis(upProb,rangeProb),featured=featureQs()[0]||DATA.questions.find(q=>q.status==='active');
+  const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
+  return [
+    {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:upProb,unit:'%',description:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:upProb},
+    {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featured?.latest_prob??'—',unit:'%',description:featured?`R${featured.n_rounds||1} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'표시할 질문이 없습니다.',visual:featured?.latest_prob||0,qid:featured?.id},
+    {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:next?.latest_prob??'—',unit:'%',description:next?.title||'현재 등록된 판정 일정이 없습니다.',visual:next?.latest_prob||0,qid:next?.id}
+  ];
+}
+function renderBriefingStep(){
+  const scenes=briefingScenes(),scene=scenes[briefingIndex],total=scenes.length;
+  briefingStepLabel.textContent=String(briefingIndex+1).padStart(2,'0')+' / '+String(total).padStart(2,'0');
+  [...briefingProgress.children].forEach((x,i)=>{x.classList.toggle('is-complete',i<briefingIndex);x.classList.toggle('is-active',i===briefingIndex);});
+  briefingPrev.disabled=briefingIndex===0;briefingNext.textContent=briefingIndex===total-1?'DONE':'NEXT →';
+  briefingContent.innerHTML=`<div class="briefing-scene"><div class="briefing-copy">
+    <p class="eyebrow">${esc(scene.eyebrow)}</p><h2>${esc(scene.lead)}<em>${esc(scene.accent)}</em></h2>
+    <p>${esc(scene.description)}</p>${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
+    </div><div class="briefing-visual" style="--brief-signal:${Number(scene.visual)||0}"><b>${scene.metric}<small>${esc(scene.unit)}</small></b></div></div>`;
+  animateNumbers(briefingContent);
+}
+function setBriefing(open,restoreFocus=true){
+  if(open){
+    briefingReturnFocus=document.activeElement;closeQuickPeek();clearTimeout(toastTimer);toastRegion.innerHTML='';
+    if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
+    if(!commandLayer.hidden)setCommand(false,false);if(!utilityLayer.hidden)setUtility(false,false);if(!shortcutLayer.hidden)setShortcuts(false,false);
+    briefingIndex=0;renderBriefingStep();
+  }
+  briefingLayer.hidden=!open;briefingLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('briefing-open',open);
+  if(open)requestAnimationFrame(()=>briefingClose.focus());else if(restoreFocus&&briefingReturnFocus?.focus)briefingReturnFocus.focus();
+}
+function stepBriefing(delta){
+  const last=briefingScenes().length-1;
+  if(delta>0&&briefingIndex===last)return setBriefing(false);
+  briefingIndex=Math.max(0,Math.min(last,briefingIndex+delta));renderBriefingStep();
+}
 function currentDescriptor(){
   const hash=location.hash||'#overview';
   if(hash.startsWith('#q/')){
@@ -889,17 +1142,26 @@ function renderUtilityPanel(){
   const f=freshnessInfo(),questions=DATA?.questions||[],history=DATA?.forecast_history||{};
   const active=questions.filter(q=>q.status==='active').length,resolved=questions.length-active;
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
-  const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST';
+  const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST',note=currentNote();
   utilityContent.innerHTML=`<section class="utility-section"><div class="utility-label">Data status</div>
     <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>SELF-CONTAINED SNAPSHOT</small></div><strong>${esc(generated)}</strong></div>
     <div class="utility-stats"><div><span>QUESTIONS</span><strong>${questions.length}</strong></div><div><span>ACTIVE</span><strong>${active}</strong></div><div><span>RESOLVED</span><strong>${resolved}</strong></div><div><span>ROUNDS</span><strong>${rounds}</strong></div></div></section>
     <section class="utility-section"><div class="utility-label">View density</div><div class="segmented-control">
       <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">Comfortable</button>
       <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">Compact</button></div></section>
+    <section class="utility-section"><div class="utility-label">Motion</div><div class="segmented-control">
+      <button type="button" data-util="motion" data-value="adaptive" class="${UI_STATE.motion==='adaptive'?'active':''}">Adaptive</button>
+      <button type="button" data-util="motion" data-value="reduced" class="${UI_STATE.motion==='reduced'?'active':''}">Reduced</button></div></section>
     <section class="utility-section"><div class="utility-label">Workspace</div><div class="utility-list">
       <button type="button" data-util="pin">현재 화면 ${isCurrentPinned()?'고정 해제':'고정'}<span>${isCurrentPinned()?'★':'☆'}</span></button>
+      <button type="button" data-util="briefing">3단계 시장 브리핑<span>B</span></button>
       <button type="button" data-util="focus">${document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드 시작'}<span>F</span></button>
       <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
+    <section class="utility-section"><div class="utility-label">Research note · This device</div><div class="note-editor">
+      <label for="workspace-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">현재 화면 메모</label>
+      <textarea id="workspace-note" maxlength="700" placeholder="이 화면에 대한 판단, 확인할 조건, 다음 행동을 기록하세요.">${esc(note)}</textarea>
+      <div class="note-meta"><span id="note-save-state">현재 기기에 저장됨 · <b id="note-count">${note.length}</b>/700</span><button type="button" data-util="copy-note">메모 복사</button></div>
+    </div></section>
     <section class="utility-section"><div class="utility-label">Output</div><div class="utility-list">
       <button type="button" data-util="share">현재 화면 공유<span>↗</span></button>
       <button type="button" data-util="copy">링크 복사<span>⌘C</span></button>
@@ -908,6 +1170,7 @@ function renderUtilityPanel(){
 }
 function setUtility(open,restoreFocus=true){
   if(open){
+    closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);
     const fromDrawer=document.body.classList.contains('drawer-open');utilityReturnFocus=fromDrawer?menuOpen:document.activeElement;
     if(fromDrawer)setDrawer(false,false);if(!commandLayer.hidden)setCommand(false,false);if(!shortcutLayer.hidden)setShortcuts(false,false);
     renderUtilityPanel();
@@ -917,6 +1180,7 @@ function setUtility(open,restoreFocus=true){
 }
 function setShortcuts(open,restoreFocus=true){
   if(open){
+    closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);
     const fromUtility=!utilityLayer.hidden;
     shortcutReturnFocus=fromUtility?(utilityReturnFocus||document.querySelector('.rail-command')):document.activeElement;
     if(!commandLayer.hidden)setCommand(false,false);if(fromUtility)setUtility(false,false);if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
@@ -935,7 +1199,7 @@ function setDensity(value){
 }
 function printCurrentView(){setUtility(false,false);setTimeout(()=>window.print(),80);}
 function trapFocus(e,container){
-  if(e.key!=='Tab')return;const nodes=[...container.querySelectorAll('button,input,[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(e.key!=='Tab')return;const nodes=[...container.querySelectorAll('button,input,textarea,select,[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
   if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];
   if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
 }
@@ -945,12 +1209,21 @@ document.getElementById('shortcut-scrim').addEventListener('click',()=>setShortc
 shortcutClose.addEventListener('click',()=>setShortcuts(false));
 focusExit.addEventListener('click',()=>setFocusMode(false));
 utilityContent.addEventListener('click',e=>{const b=e.target.closest('button[data-util]');if(!b)return;const a=b.dataset.util;
-  if(a==='density')setDensity(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
-  else if(a==='shortcuts')setShortcuts(true);else if(a==='share')shareCurrentView(true);else if(a==='copy')shareCurrentView(false);else if(a==='summary')copyCurrentSummary();else if(a==='print')printCurrentView();
+  if(a==='density')setDensity(b.dataset.value);else if(a==='motion')setMotion(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
+  else if(a==='briefing')setBriefing(true);else if(a==='shortcuts')setShortcuts(true);else if(a==='copy-note')copyCurrentNote();
+  else if(a==='share')shareCurrentView(true);else if(a==='copy')shareCurrentView(false);else if(a==='summary')copyCurrentSummary();else if(a==='print')printCurrentView();
+});
+utilityContent.addEventListener('input',e=>{if(e.target.id!=='workspace-note')return;saveCurrentNote(e.target.value);
+  const count=utilityContent.querySelector('#note-count');if(count)count.textContent=e.target.value.length;
+  const state=utilityContent.querySelector('#note-save-state');if(state)state.firstChild.textContent='현재 기기에 저장됨 · ';
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
-  if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);
+  if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);else if(a==='briefing')setBriefing(true);
 });
+document.getElementById('briefing-scrim').addEventListener('click',()=>setBriefing(false));
+briefingClose.addEventListener('click',()=>setBriefing(false));
+briefingPrev.addEventListener('click',()=>stepBriefing(-1));briefingNext.addEventListener('click',()=>stepBriefing(1));
+briefingContent.addEventListener('click',e=>{const b=e.target.closest('[data-brief-q]');if(!b)return;setBriefing(false,false);location.hash='#q/'+b.dataset.briefQ;});
 
 // keyboard-first quick navigation
 const commandLayer=document.getElementById('command-layer'),commandInput=document.getElementById('command-input');
@@ -966,8 +1239,10 @@ const COMMAND_ROUTES=[
 ];
 function commandCatalog(){
   const actions=[
+    {id:'briefing',code:'B',title:'3단계 시장 브리핑',hint:'현재 데이터를 큰 장면으로 빠르게 읽기',group:'작업',search:'briefing tour story 브리핑',run:()=>setBriefing(true)},
     {id:'pin-current',code:isCurrentPinned()?'★':'☆',title:isCurrentPinned()?'현재 화면 고정 해제':'현재 화면 고정',hint:'브라우저에 즐겨찾기 저장',group:'작업',search:'pin favorite 고정',run:toggleCurrentPin},
     {id:'share-current',code:'↗',title:'현재 화면 공유',hint:'기기 공유 또는 링크 복사',group:'작업',search:'share copy link 공유',run:()=>shareCurrentView(true)},
+    {id:'current-note',code:'N',title:'현재 화면 메모',hint:'이 기기에 research note 저장',group:'작업',search:'note memo research 메모',run:openCurrentNote},
     {id:'data-status',code:'●',title:'데이터 상태',hint:'갱신 시각과 snapshot 범위',group:'작업',search:'data status freshness 갱신',run:()=>setUtility(true)},
     {id:'focus-mode',code:'F',title:document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드',hint:'navigation을 숨기고 내용에 집중',group:'작업',search:'focus present 집중',run:()=>setFocusMode(!document.body.classList.contains('focus-mode'))},
     {id:'density',code:'≡',title:'보기 밀도 전환',hint:`현재 ${UI_STATE.density}`,group:'작업',search:'density compact comfortable 밀도',run:()=>setDensity(UI_STATE.density==='compact'?'comfortable':'compact')},
@@ -1001,6 +1276,7 @@ function renderCommandResults(query=''){
 }
 function setCommand(open,restoreFocus=true){
   if(open&&document.body.classList.contains('drawer-open'))setDrawer(false,false);
+  if(open){closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);}
   if(open&&!utilityLayer.hidden)setUtility(false,false);
   if(open&&!shortcutLayer.hidden)setShortcuts(false,false);
   if(open)commandReturnFocus=document.activeElement;
@@ -1032,6 +1308,13 @@ document.addEventListener('keydown',e=>{
 });
 document.addEventListener('keydown',e=>{
   const editing=e.target?.matches?.('input,select,textarea,[contenteditable="true"]');
+  if(!briefingLayer.hidden){
+    if(e.key==='Tab'){trapFocus(e,briefingSheet);return;}
+    if(e.key==='Escape'){e.preventDefault();setBriefing(false);return;}
+    if(!editing&&e.key==='ArrowRight'){e.preventDefault();stepBriefing(1);return;}
+    if(!editing&&e.key==='ArrowLeft'){e.preventDefault();stepBriefing(-1);return;}
+    return;
+  }
   if(e.key==='Tab'){if(!utilityLayer.hidden)trapFocus(e,utilityPanel);else if(!shortcutLayer.hidden)trapFocus(e,shortcutSheet);return;}
   if(e.key==='Escape'){
     if(!utilityLayer.hidden){e.preventDefault();setUtility(false);return;}
@@ -1040,6 +1323,8 @@ document.addEventListener('keydown',e=>{
   }
   if(editing||!commandLayer.hidden||!utilityLayer.hidden||!shortcutLayer.hidden)return;
   if(e.key==='?'){e.preventDefault();setShortcuts(true);return;}
+  if(e.shiftKey&&e.key.toLowerCase()==='b'){e.preventDefault();setBriefing(true);return;}
+  if(e.shiftKey&&e.key.toLowerCase()==='n'){e.preventDefault();openCurrentNote();return;}
   if(e.shiftKey&&e.key.toLowerCase()==='p'){e.preventDefault();toggleCurrentPin();return;}
   if(e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();shareCurrentView(true);return;}
   if(e.shiftKey&&e.key.toLowerCase()==='f'){e.preventDefault();setFocusMode(!document.body.classList.contains('focus-mode'));}
@@ -1087,6 +1372,7 @@ function signalMosaic(prob){
 const VIEWS={overview:renderOverview,flow:renderFlow,ask:renderAsk,questions:renderQuestions,asof:renderAsof,track:renderTrack,q:renderDetail};
 function route(){
   const h=(location.hash||'#overview').slice(1);const [v,arg]=h.split('/');
+  closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);
   const navView=v==='q'?'questions':v;
   document.body.dataset.view=navView;
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
@@ -1116,6 +1402,7 @@ function renderOverview(){
         <p class="eyebrow">현재 시장 판단 · ${esc(m.generated.slice(0,10))}</p>
         <h1 id="market-thesis">${esc(thesis.lead)}<em>${esc(thesis.accent)}</em></h1>
         <p class="overview-deck">연말 시나리오와 최신 질문별 예측을 함께 표시합니다. 두 확률 체계는 서로 합산하지 않으며 참고 의견으로만 제공합니다.</p>
+        <div class="overview-actions"><button type="button" class="briefing-launch" data-action="briefing"><span>▶</span>3 STEP BRIEFING</button><small>← → 키로 30초 시장 요약 보기</small></div>
       </div>
       <aside class="stance-card" aria-label="현재 시장 태도">
         <div><span class="micro">CURRENT STANCE · ${esc(sc.asof)}</span><span class="stance-chip">LIVE</span></div>
@@ -1627,6 +1914,7 @@ function renderHeaderStrip(){
   DATA=await loadData();
   if(!DATA){app().innerHTML='<div class="loader-wrap">데이터를 불러오지 못했습니다.</div>';return;}
   document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
+  document.body.classList.toggle('motion-reduced',UI_STATE.motion==='reduced');
   try{if(sessionStorage.getItem('jin-focus')==='1'){document.body.classList.add('focus-mode');focusExit.hidden=false;}}catch(_){}
   const generated='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' KST';
   document.getElementById('asof').textContent=generated;
