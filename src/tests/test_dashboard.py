@@ -81,6 +81,26 @@ def test_template_self_contained() -> None:
         assert host not in html.lower(), f"CDN 흔적: {host}"
 
 
+def test_ui_contract() -> None:
+    """UI 현대화 계약 (실행 명세 §8.5) — 구조·접근성·동적 전환 마커 존재."""
+    html = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    assert "<h1" in html, "대형 H1 없음"
+    # 6개 실제 hash link
+    for v in ("overview", "flow", "ask", "questions", "asof", "track"):
+        assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
+    assert 'aria-current' in html, "aria-current 처리 없음"
+    assert "prefers-reduced-motion" in html
+    assert "view-enter" in html, "화면 진입 전환 클래스 없음"
+    assert "feature-grid" in html, "핵심 질문 카드 그리드 없음"
+    assert "analysis-panel" in html, "다크 분석 패널 없음"
+    # 두 SVG 생성 함수 유지
+    assert "function drawFlow" in html and "function drawOverlay" in html
+    # 핵심 확률 대형 타이포 (72px+ clamp)
+    assert "clamp(72px" in html, "핵심 확률 대형 크기 없음"
+    # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
+    assert "FEATURE_QIDS" in html
+
+
 def test_render_embed_vs_fetch(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)

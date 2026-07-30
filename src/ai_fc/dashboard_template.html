@@ -378,7 +378,7 @@ function renderOverview(){
     </div>
   </div>`));
   const fq=featureQs();
-  const fg=el('<div class="forecast-grid"></div>');
+  const fg=el('<div class="feature-grid forecast-grid"></div>');
   fq.forEach((q,i)=>{
     const d=latestDelta(q.id), dtxt=d==null?'신규':(d>=0?'▲ +'+d+'%p':'▼ '+d+'%p'), dcls=d==null?'':(d>=0?'up':'down');
     const c=el(`<button type="button" class="forecast-card tone-${i}" data-q="${esc(q.id)}">
@@ -449,7 +449,7 @@ function renderFlow(){
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
     <span><b style="background:${sc.analog.color}"></b>과거 유사 사이클</span></div>`;
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
-  const p1w=el(`<div class="chart-panel">
+  const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2>2026년 말까지 주간 시나리오</h2>${legend}</div>
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
@@ -475,7 +475,7 @@ function analogPanel(){
     cc.ratio_pctile!=null?['대형주 집중',cc.ratio_pctile+'%ile']:null,
     ctx.perez_ai?['사이클 국면',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
   ].filter(Boolean).slice(0,4);
-  const w=el(`<div class="chart-panel">
+  const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
     <div class="panel-head"><h2>시작월 = 100 · 로그 스케일</h2>${legend}</div>
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
@@ -621,7 +621,7 @@ function renderDetail(qid){
     </div>
     <div class="prob-orb"><strong>${latest}</strong><span>%</span><small>최신 예측 확률</small></div>
   </div>`));
-  const chartPanel=el(`<div class="chart-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
+  const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
     <div class="band-inline"><span><b style="background:#bcff71"></b>AI 예측</span><span><b style="background:#57d4c8"></b>모델 앙상블</span><span><b style="background:#e6c05a"></b>시장 반영</span></div></div>
     <div class="chart-wrap"><div id="hist"></div></div></div>`);
   root.appendChild(chartPanel);
@@ -821,7 +821,7 @@ function renderAsk(){
       <div><span>중립 (S2) · ${wk}</span><strong style="color:${CHART_COL.S2}">${sign(lv('S2'))}</strong><small>${num(Math.round(lv('S2')))}</small></div>
       <div><span>조정 (S3) · ${wk}</span><strong style="color:${CHART_COL.S3}">${sign(lv('S3'))}</strong><small>${num(Math.round(lv('S3')))}</small></div>
     </div>
-    <div class="chart-panel"><div class="panel-head"><h2>현재 → ${wk} · 일별 전망</h2>${legend}</div>
+    <div class="chart-panel analysis-panel"><div class="panel-head"><h2>현재 → ${wk} · 일별 전망</h2>${legend}</div>
       <div class="chart-wrap"><div id="dchart" style="min-width:640px"></div></div>
       <p class="chart-note">${wk} 예상 범위 ${num(lo)}–${num(hi)} · 경로는 시나리오별 대표값(확률 가중 평균 아님)입니다.</p>
     </div>
