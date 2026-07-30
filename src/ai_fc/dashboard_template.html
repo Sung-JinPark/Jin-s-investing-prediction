@@ -26,7 +26,7 @@
 html{scroll-behavior:smooth;color-scheme:dark;background:var(--night)}
 body{margin:0;color:var(--white-warm);background:radial-gradient(circle at 78% 4%,rgba(169,155,255,.055),transparent 25%),radial-gradient(circle at 20% 82%,rgba(87,212,200,.035),transparent 28%),var(--night);font-family:var(--sans);font-synthesis:none;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
 body::before{content:"";position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.22;background-image:linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);background-size:52px 52px;mask-image:linear-gradient(to bottom,black,transparent 82%)}
-body.drawer-open,body.command-open{overflow:hidden}
+body.drawer-open,body.command-open,body.utility-open,body.shortcut-open{overflow:hidden}
 button,input,select{font:inherit}
 button{color:inherit}
 button,a,input,select{-webkit-tap-highlight-color:transparent}
@@ -566,8 +566,47 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
 .tip{color:#fff;background:#11110f;border-color:#11110f;border-radius:2px;box-shadow:8px 8px 0 rgba(255,79,23,.22);backdrop-filter:none}.tip b{color:var(--amber)}
 .site-footer{color:#77746d;background:var(--paper-2);border-color:var(--line);backdrop-filter:none}.footer-brand{color:#11110f}
 
+/* workspace utilities */
+.rail-utilities{margin:8px 16px 0;display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border:1px solid var(--line-strong)}
+.utility-action{min-width:0;min-height:43px;padding:5px 2px;display:grid;place-items:center;gap:1px;color:#65635d;background:transparent;border:0;border-right:1px solid var(--line);cursor:pointer;font-family:var(--mono);transition:color .18s ease,background .18s ease}
+.utility-action:last-child{border-right:0}.utility-action>span{font-size:13px;line-height:1}.utility-action>small{font-size:7px;letter-spacing:.04em}
+.utility-action:hover,.utility-action:focus-visible{color:#11110f;background:#fff5eb}.utility-action[aria-pressed="true"]{color:#fff;background:#11110f}.utility-action[aria-pressed="true"]>span{color:var(--amber)}
+.rail-status{width:auto;text-align:left;cursor:pointer;font:inherit;transition:border-color .2s ease,transform .2s ease}.rail-status:hover{border-color:#11110f;transform:translateY(-2px)}
+.rail-live .freshness-label{color:var(--crimson)}.rail-status.status-aging .freshness-label,.drawer-meta.status-aging .freshness-label{color:#855400}.rail-status.status-stale .freshness-label,.drawer-meta.status-stale .freshness-label{color:var(--crimson)}
+.drawer-utilities{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line-strong)}
+.drawer-utilities .utility-action{min-height:48px}.drawer-meta{width:100%;text-align:left;background:transparent;cursor:pointer}
+
+.utility-layer,.shortcut-layer{position:fixed;inset:0;z-index:110}
+.utility-scrim{position:absolute;inset:0;background:rgba(17,17,15,.38);border:0;backdrop-filter:blur(4px)}
+.utility-panel{width:min(390px,100vw);height:100%;position:absolute;inset:0 0 0 auto;display:flex;flex-direction:column;color:#11110f;background:var(--paper);border-left:1px solid #11110f;box-shadow:-18px 0 0 rgba(17,17,15,.1);animation:utility-in .24s cubic-bezier(.2,.8,.2,1)}
+@keyframes utility-in{from{opacity:.7;transform:translateX(18px)}to{opacity:1;transform:none}}
+.utility-head{min-height:80px;padding:20px 22px;display:flex;align-items:center;justify-content:space-between;background:#fff;border-bottom:1px solid var(--line)}
+.utility-head div{display:grid;gap:4px}.utility-head span{color:var(--crimson);font-family:var(--mono);font-size:8px;letter-spacing:.12em}.utility-head h2{margin:0;font-size:22px;letter-spacing:-.04em}
+.utility-close,.shortcut-close{min-width:44px;min-height:40px;color:#11110f;background:var(--paper);border:1px solid var(--line-strong);cursor:pointer;font-family:var(--mono);font-size:8px}
+.utility-content{padding:20px 22px 36px;overflow:auto}
+.utility-section{padding:20px 0;border-bottom:1px solid var(--line)}.utility-section:first-child{padding-top:0}.utility-section:last-child{border-bottom:0}
+.utility-label{margin-bottom:12px;color:#77746d;font-family:var(--mono);font-size:8px;letter-spacing:.11em;text-transform:uppercase}
+.freshness-card{padding:18px;color:#fff;background:#11110f;border-left:5px solid var(--orange)}
+.freshness-card.status-aging{border-color:var(--amber)}.freshness-card.status-stale{border-color:var(--crimson)}
+.freshness-card>div{display:flex;justify-content:space-between;gap:16px;align-items:center}.freshness-card b{font-family:var(--mono);font-size:9px;letter-spacing:.08em}.freshness-card strong{margin-top:10px;display:block;font-size:18px}.freshness-card small{color:rgba(255,255,255,.56);font-family:var(--mono);font-size:8px}
+.utility-stats{margin-top:1px;display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.utility-stats>div{padding:14px;background:#fff}.utility-stats span,.utility-stats strong{display:block}.utility-stats span{color:#77746d;font-family:var(--mono);font-size:8px}.utility-stats strong{margin-top:7px;font-family:var(--mono);font-size:18px}
+.segmented-control{display:grid;grid-template-columns:repeat(2,1fr);border:1px solid var(--line-strong)}.segmented-control button{min-height:42px;color:#65635d;background:#fff;border:0;border-right:1px solid var(--line);cursor:pointer;font-size:12px}.segmented-control button:last-child{border:0}.segmented-control button.active{color:#fff;background:#11110f}
+.utility-list{display:grid;border:1px solid var(--line)}.utility-list button{min-height:48px;padding:0 14px;display:flex;align-items:center;justify-content:space-between;color:#11110f;background:#fff;border:0;border-bottom:1px solid var(--line);cursor:pointer;text-align:left}.utility-list button:last-child{border:0}.utility-list button:hover{background:#fff5eb}.utility-list button span{color:var(--orange);font-family:var(--mono)}
+
+.shortcut-layer{display:grid;place-items:center;padding:20px}.shortcut-sheet{width:min(620px,calc(100vw - 28px));position:relative;color:#11110f;background:#fff;border:1px solid #11110f;box-shadow:18px 18px 0 rgba(17,17,15,.12);animation:command-in .18s cubic-bezier(.2,.8,.2,1)}
+.shortcut-head{padding:18px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.shortcut-head h2{margin:0;font-size:21px}
+.shortcut-grid{padding:10px 20px 20px;display:grid;grid-template-columns:repeat(2,1fr);column-gap:24px}.shortcut-grid>div{min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--line);font-size:12px}
+.shortcut-grid kbd{white-space:nowrap}
+.toast-region{position:fixed;right:20px;bottom:20px;z-index:140;pointer-events:none}.toast{max-width:320px;min-height:48px;padding:14px 18px;display:flex;align-items:center;color:#fff;background:#11110f;border-left:4px solid var(--orange);box-shadow:10px 10px 0 rgba(255,79,23,.16);font-size:12px;animation:toast-in .18s ease-out}.toast.warning{border-color:var(--amber)}
+@keyframes toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.focus-exit{position:fixed;right:18px;top:18px;z-index:90;min-height:40px;padding:0 13px;color:#fff;background:#11110f;border:1px solid #11110f;cursor:pointer;font-family:var(--mono);font-size:8px;letter-spacing:.08em}
+body.focus-mode .product-rail{transform:translateX(-101%)}body.focus-mode .content-shell{margin-left:0}body.focus-mode .market-strip,body.focus-mode .mobile-header{display:none}body.focus-mode .app-shell{min-height:100dvh}
+.product-rail{transition:transform .28s cubic-bezier(.2,.8,.2,1)}.content-shell{transition:margin-left .28s cubic-bezier(.2,.8,.2,1)}
+body.density-compact .forecast-card{min-height:208px;padding:20px}body.density-compact .panel{padding:clamp(18px,2.4vw,28px)}body.density-compact th,body.density-compact td{padding-top:10px;padding-bottom:10px}body.density-compact .metric-ribbon>div,body.density-compact .range-returns>div,body.density-compact .track-kpis>div{padding:18px}
+
 @media(max-width:1279px){
-  :root{--rail:76px}.product-rail{padding-inline:0}.rail-brand{padding-inline:0}.view-nav a{padding:0;grid-template-columns:1fr}.view-nav a::before{display:none}.view-nav a::after{right:auto}.rail-command{margin-inline:12px}.rail-status{margin-inline:12px;padding-inline:8px}
+  :root{--rail:76px}.product-rail{padding-inline:0}.rail-brand{padding-inline:0}.view-nav a{padding:0;grid-template-columns:1fr}.view-nav a::before{display:none}.view-nav a::after{right:auto}.rail-command{margin-inline:12px}.rail-status{margin-inline:12px;padding-inline:8px}.rail-utilities{display:none}
 }
 @media(max-width:1050px){
   .overview-hero{grid-template-columns:1fr}.stance-card{max-width:none;grid-template-columns:1fr}.stance-card>div,.stance-card p{grid-column:auto}.stance-main{grid-template-columns:1fr 116px}
@@ -579,9 +618,19 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
   .drawer-head,.drawer-meta{color:#706f68;border-color:var(--line)}.market-strip{height:46px}.overview-stage{min-height:calc(100dvh - 110px);padding-top:22px}
   .overview-copy h1{font-size:clamp(42px,10.8vw,52px);font-weight:650;letter-spacing:-.05em;line-height:.98}.page-heading h1{font-size:clamp(38px,9.8vw,46px);letter-spacing:-.045em;line-height:1}.stance-main{grid-template-columns:1fr 106px}.signal-mosaic{width:106px}
   .forecast-card{min-height:244px}.page-heading{border-radius:0}.panel{border-radius:0}.command-palette{border-radius:2px}
+  .utility-panel{width:100%;height:min(78dvh,680px);inset:auto 0 0;border:1px solid #11110f;border-bottom:0;box-shadow:0 -14px 0 rgba(17,17,15,.1);animation:utility-up .24s cubic-bezier(.2,.8,.2,1)}@keyframes utility-up{from{opacity:.7;transform:translateY(18px)}to{opacity:1;transform:none}}
+  .shortcut-grid{grid-template-columns:1fr}.toast-region{right:12px;bottom:max(12px,env(safe-area-inset-bottom))}.toast{max-width:calc(100vw - 24px)}
+  body.focus-mode .content-shell{padding-top:0}.focus-exit{right:12px;top:12px}
 }
 @media(prefers-reduced-motion:reduce){
-  .signal-mosaic i,.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after{transform:none!important}
+  .signal-mosaic i,.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after,.utility-panel,.toast{transform:none!important;animation:none!important}
+}
+@media print{
+  @page{margin:14mm}
+  .product-rail,.mobile-header,.market-strip,.command-layer,.utility-layer,.shortcut-layer,.toast-region,.focus-exit,.tip{display:none!important}
+  .content-shell{margin:0!important;padding:0!important}.app-shell{min-height:0}.app-shell>.view-enter{padding:0!important}.site-footer{padding:18px 0;background:#fff}
+  body,html,.overview-page,.overview-stage,.overview-lower-inner{color:#111!important;background:#fff!important}.overview-stage{min-height:0}.overview-stage,.page-heading,.panel,.chart-panel,.table-shell{break-inside:avoid;box-shadow:none!important}
+  body::before{opacity:.16}.forecast-card{break-inside:avoid}.view-enter{opacity:1!important;transform:none!important}
 }
 </style>
 </head>
@@ -603,11 +652,16 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
     <button type="button" class="rail-command command-open" aria-label="빠른 이동 열기">
       <span>빠른 이동</span><kbd>⌘ K</kbd>
     </button>
-    <div class="rail-status">
-      <div class="rail-live"><span><i class="live-dot"></i>LIVE DATA</span><b id="phase">—</b></div>
+    <div class="rail-utilities" role="group" aria-label="현재 화면 도구">
+      <button type="button" class="utility-action pin-current" data-action="pin" aria-label="현재 화면 고정" aria-pressed="false"><span>☆</span><small>고정</small></button>
+      <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
+      <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
+    </div>
+    <button type="button" class="rail-status utility-open" data-action="utility" aria-label="데이터 상태 열기">
+      <div class="rail-live"><span><i class="live-dot"></i><span class="freshness-label">DATA STATUS</span></span><b id="phase">—</b></div>
       <p class="rail-index" id="rail-index">NASDAQ —</p>
       <p class="rail-asof" id="asof">갱신 시각 확인 중</p>
-    </div>
+    </button>
   </aside>
 
   <header class="mobile-header">
@@ -631,7 +685,12 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
       <a href="#asof" data-v="asof"><span class="rail-num">05</span><span class="rail-label">시점 조회</span></a>
       <a href="#track" data-v="track"><span class="rail-num">06</span><span class="rail-label">적중 이력</span></a>
     </nav>
-    <div class="drawer-meta"><span class="live-dot"></span> LIVE DATA<br><span id="drawer-asof">갱신 시각 확인 중</span></div>
+    <div class="drawer-utilities" role="group" aria-label="현재 화면 도구">
+      <button type="button" class="utility-action pin-current" data-action="pin" aria-label="현재 화면 고정" aria-pressed="false"><span>☆</span><small>고정</small></button>
+      <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
+      <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
+    </div>
+    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">DATA STATUS</span><br><span id="drawer-asof">갱신 시각 확인 중</span></button>
   </aside>
 
   <div class="content-shell">
@@ -658,6 +717,27 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
     <div class="command-foot"><span>↑↓ 이동 · Enter 열기</span><span>데이터와 화면을 한 번에 검색</span></div>
   </section>
 </div>
+<div class="utility-layer" id="utility-layer" aria-hidden="true" hidden>
+  <button type="button" class="utility-scrim" id="utility-scrim" aria-label="워크스페이스 설정 닫기"></button>
+  <aside class="utility-panel" id="utility-panel" role="dialog" aria-modal="true" aria-labelledby="utility-title">
+    <div class="utility-head"><div><span>WORKSPACE</span><h2 id="utility-title">보기 및 데이터</h2></div><button type="button" class="utility-close" id="utility-close" aria-label="워크스페이스 설정 닫기">CLOSE</button></div>
+    <div class="utility-content" id="utility-content"></div>
+  </aside>
+</div>
+<div class="shortcut-layer" id="shortcut-layer" aria-hidden="true" hidden>
+  <button type="button" class="utility-scrim" id="shortcut-scrim" aria-label="단축키 도움말 닫기"></button>
+  <section class="shortcut-sheet" id="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
+    <div class="shortcut-head"><h2 id="shortcut-title">키보드 단축키</h2><button type="button" class="shortcut-close" id="shortcut-close" aria-label="단축키 도움말 닫기">CLOSE</button></div>
+    <div class="shortcut-grid">
+      <div><span>빠른 이동</span><kbd>⌘ / Ctrl K</kbd></div><div><span>검색</span><kbd>/</kbd></div>
+      <div><span>단축키 도움말</span><kbd>?</kbd></div><div><span>현재 화면 고정</span><kbd>Shift P</kbd></div>
+      <div><span>현재 화면 공유</span><kbd>Shift S</kbd></div><div><span>집중 모드</span><kbd>Shift F</kbd></div>
+      <div><span>닫기 / 집중 모드 종료</span><kbd>Escape</kbd></div>
+    </div>
+  </section>
+</div>
+<button type="button" class="focus-exit" id="focus-exit" aria-label="집중 모드 종료" hidden>EXIT FOCUS · ESC</button>
+<div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 "use strict";
@@ -728,6 +808,150 @@ drawerBackdrop.addEventListener('click',()=>setDrawer(false));
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.classList.contains('drawer-open'))setDrawer(false);});
 document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
+// device-local workspace memory and utility layers
+const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:1,density:'comfortable',pins:[],recent:[]};
+function loadUIState(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
+    if(!raw||raw.version!==1)return {...UI_DEFAULTS,pins:[],recent:[]};
+    return {...UI_DEFAULTS,...raw,pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[]};
+  }catch(_){return {...UI_DEFAULTS,pins:[],recent:[]};}
+}
+function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));}catch(_){}}
+let UI_STATE=loadUIState(),toastTimer=0,utilityReturnFocus=null,shortcutReturnFocus=null;
+const utilityLayer=document.getElementById('utility-layer'),utilityPanel=document.getElementById('utility-panel');
+const utilityContent=document.getElementById('utility-content'),utilityClose=document.getElementById('utility-close');
+const shortcutLayer=document.getElementById('shortcut-layer'),shortcutSheet=document.getElementById('shortcut-sheet');
+const shortcutClose=document.getElementById('shortcut-close'),focusExit=document.getElementById('focus-exit');
+const toastRegion=document.getElementById('toast-region');
+function currentDescriptor(){
+  const hash=location.hash||'#overview';
+  if(hash.startsWith('#q/')){
+    const id=hash.slice(3),q=DATA?.questions?.find(x=>x.id===id);
+    return q?{hash,title:q.title,type:'question'}:null;
+  }
+  const r=COMMAND_ROUTES.find(x=>x.hash===hash);
+  return r?{hash,title:r.title,type:'route'}:null;
+}
+function descriptorExists(item){
+  if(!item?.hash)return false;
+  if(item.hash.startsWith('#q/'))return !!DATA?.questions?.some(q=>'#q/'+q.id===item.hash);
+  return COMMAND_ROUTES.some(r=>r.hash===item.hash);
+}
+function isCurrentPinned(){const d=currentDescriptor();return !!d&&UI_STATE.pins.some(x=>x.hash===d.hash);}
+function updateUtilityButtons(){
+  const pinned=isCurrentPinned();
+  document.querySelectorAll('.pin-current').forEach(b=>{b.setAttribute('aria-pressed',String(pinned));b.setAttribute('aria-label',pinned?'현재 화면 고정 해제':'현재 화면 고정');const s=b.querySelector('span');if(s)s.textContent=pinned?'★':'☆';});
+}
+function recordRecent(){
+  const d=currentDescriptor();if(!d)return;
+  UI_STATE.recent=[d,...UI_STATE.recent.filter(x=>x.hash!==d.hash&&descriptorExists(x))].slice(0,6);
+  saveUIState();updateUtilityButtons();
+}
+function toggleCurrentPin(){
+  const d=currentDescriptor();if(!d)return showToast('이 화면은 고정할 수 없습니다.','warning');
+  const on=UI_STATE.pins.some(x=>x.hash===d.hash);
+  UI_STATE.pins=on?UI_STATE.pins.filter(x=>x.hash!==d.hash):[d,...UI_STATE.pins.filter(x=>x.hash!==d.hash&&descriptorExists(x))].slice(0,8);
+  saveUIState();updateUtilityButtons();showToast(on?'고정을 해제했습니다.':'현재 화면을 고정했습니다.');
+  if(!commandLayer.hidden)renderCommandResults(commandInput.value);
+}
+function showToast(message,tone='success'){
+  clearTimeout(toastTimer);toastRegion.innerHTML=`<div class="toast ${tone==='warning'?'warning':''}" role="status">${esc(message)}</div>`;
+  toastTimer=setTimeout(()=>{toastRegion.innerHTML='';},2400);
+}
+function copyText(text){
+  if(navigator.clipboard?.writeText)return navigator.clipboard.writeText(text);
+  return new Promise((resolve,reject)=>{const t=document.createElement('textarea');t.value=text;t.setAttribute('readonly','');t.style.position='fixed';t.style.opacity='0';document.body.appendChild(t);t.select();
+    try{document.execCommand('copy')?resolve():reject(new Error('copy failed'));}catch(e){reject(e);}finally{t.remove();}});
+}
+async function shareCurrentView(nativeShare=true){
+  const d=currentDescriptor(),payload={title:d?.title||document.title,text:d?.title||document.title,url:location.href};
+  try{
+    if(nativeShare&&navigator.share){await navigator.share(payload);showToast('공유 메뉴를 열었습니다.');}
+    else{await copyText(payload.url);showToast('현재 화면 링크를 복사했습니다.');}
+  }catch(e){if(e?.name!=='AbortError')showToast('공유하지 못했습니다. 링크 복사를 이용해 주세요.','warning');}
+}
+function copyCurrentSummary(){
+  const d=currentDescriptor(),headline=document.querySelector('main h1')?.textContent.trim()||d?.title||document.title;
+  copyText(`${headline}\n${location.href}`).then(()=>showToast('화면 요약을 복사했습니다.')).catch(()=>showToast('요약을 복사하지 못했습니다.','warning'));
+}
+function freshnessInfo(){
+  const raw=DATA?.meta?.generated||'',stamp=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:raw+'+09:00');
+  const hours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/36e5):999;
+  return hours<=24?{label:'CURRENT',cls:'status-current'}:(hours<=72?{label:'AGING',cls:'status-aging'}:{label:'STALE',cls:'status-stale'});
+}
+function updateFreshnessBadges(){
+  const f=freshnessInfo();
+  document.querySelectorAll('.rail-status,.drawer-meta').forEach(x=>{x.classList.remove('status-current','status-aging','status-stale');x.classList.add(f.cls);});
+  document.querySelectorAll('.freshness-label').forEach(x=>x.textContent=f.label);
+}
+function renderUtilityPanel(){
+  const f=freshnessInfo(),questions=DATA?.questions||[],history=DATA?.forecast_history||{};
+  const active=questions.filter(q=>q.status==='active').length,resolved=questions.length-active;
+  const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
+  const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST';
+  utilityContent.innerHTML=`<section class="utility-section"><div class="utility-label">Data status</div>
+    <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>SELF-CONTAINED SNAPSHOT</small></div><strong>${esc(generated)}</strong></div>
+    <div class="utility-stats"><div><span>QUESTIONS</span><strong>${questions.length}</strong></div><div><span>ACTIVE</span><strong>${active}</strong></div><div><span>RESOLVED</span><strong>${resolved}</strong></div><div><span>ROUNDS</span><strong>${rounds}</strong></div></div></section>
+    <section class="utility-section"><div class="utility-label">View density</div><div class="segmented-control">
+      <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">Comfortable</button>
+      <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">Compact</button></div></section>
+    <section class="utility-section"><div class="utility-label">Workspace</div><div class="utility-list">
+      <button type="button" data-util="pin">현재 화면 ${isCurrentPinned()?'고정 해제':'고정'}<span>${isCurrentPinned()?'★':'☆'}</span></button>
+      <button type="button" data-util="focus">${document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드 시작'}<span>F</span></button>
+      <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
+    <section class="utility-section"><div class="utility-label">Output</div><div class="utility-list">
+      <button type="button" data-util="share">현재 화면 공유<span>↗</span></button>
+      <button type="button" data-util="copy">링크 복사<span>⌘C</span></button>
+      <button type="button" data-util="summary">화면 요약 복사<span>TXT</span></button>
+      <button type="button" data-util="print">인쇄 / PDF 저장<span>PDF</span></button></div></section>`;
+}
+function setUtility(open,restoreFocus=true){
+  if(open){
+    const fromDrawer=document.body.classList.contains('drawer-open');utilityReturnFocus=fromDrawer?menuOpen:document.activeElement;
+    if(fromDrawer)setDrawer(false,false);if(!commandLayer.hidden)setCommand(false,false);if(!shortcutLayer.hidden)setShortcuts(false,false);
+    renderUtilityPanel();
+  }
+  utilityLayer.hidden=!open;utilityLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('utility-open',open);
+  if(open)requestAnimationFrame(()=>utilityClose.focus());else if(restoreFocus&&utilityReturnFocus?.focus)utilityReturnFocus.focus();
+}
+function setShortcuts(open,restoreFocus=true){
+  if(open){
+    const fromUtility=!utilityLayer.hidden;
+    shortcutReturnFocus=fromUtility?(utilityReturnFocus||document.querySelector('.rail-command')):document.activeElement;
+    if(!commandLayer.hidden)setCommand(false,false);if(fromUtility)setUtility(false,false);if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
+  }
+  shortcutLayer.hidden=!open;shortcutLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('shortcut-open',open);
+  if(open)requestAnimationFrame(()=>shortcutClose.focus());else if(restoreFocus&&shortcutReturnFocus?.focus)shortcutReturnFocus.focus();
+}
+function setFocusMode(on){
+  document.body.classList.toggle('focus-mode',on);focusExit.hidden=!on;
+  try{if(on)sessionStorage.setItem('jin-focus','1');else sessionStorage.removeItem('jin-focus');}catch(_){}
+  if(!utilityLayer.hidden)renderUtilityPanel();showToast(on?'집중 모드를 켰습니다.':'집중 모드를 종료했습니다.');
+}
+function setDensity(value){
+  UI_STATE.density=value==='compact'?'compact':'comfortable';saveUIState();document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
+  if(!utilityLayer.hidden)renderUtilityPanel();showToast(UI_STATE.density==='compact'?'Compact 보기를 적용했습니다.':'Comfortable 보기를 적용했습니다.');
+}
+function printCurrentView(){setUtility(false,false);setTimeout(()=>window.print(),80);}
+function trapFocus(e,container){
+  if(e.key!=='Tab')return;const nodes=[...container.querySelectorAll('button,input,[href],[tabindex]:not([tabindex="-1"])')].filter(x=>!x.disabled&&x.offsetParent!==null);
+  if(!nodes.length)return;const first=nodes[0],last=nodes[nodes.length-1];
+  if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus();}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus();}
+}
+document.getElementById('utility-scrim').addEventListener('click',()=>setUtility(false));
+utilityClose.addEventListener('click',()=>setUtility(false));
+document.getElementById('shortcut-scrim').addEventListener('click',()=>setShortcuts(false));
+shortcutClose.addEventListener('click',()=>setShortcuts(false));
+focusExit.addEventListener('click',()=>setFocusMode(false));
+utilityContent.addEventListener('click',e=>{const b=e.target.closest('button[data-util]');if(!b)return;const a=b.dataset.util;
+  if(a==='density')setDensity(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
+  else if(a==='shortcuts')setShortcuts(true);else if(a==='share')shareCurrentView(true);else if(a==='copy')shareCurrentView(false);else if(a==='summary')copyCurrentSummary();else if(a==='print')printCurrentView();
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');if(!b)return;const a=b.dataset.action;
+  if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);
+});
+
 // keyboard-first quick navigation
 const commandLayer=document.getElementById('command-layer'),commandInput=document.getElementById('command-input');
 const commandResults=document.getElementById('command-results'),commandScrim=document.getElementById('command-scrim');
@@ -741,23 +965,44 @@ const COMMAND_ROUTES=[
   {hash:'#track',code:'06',title:'적중 이력',hint:'Brier와 캘리브레이션'}
 ];
 function commandCatalog(){
+  const actions=[
+    {id:'pin-current',code:isCurrentPinned()?'★':'☆',title:isCurrentPinned()?'현재 화면 고정 해제':'현재 화면 고정',hint:'브라우저에 즐겨찾기 저장',group:'작업',search:'pin favorite 고정',run:toggleCurrentPin},
+    {id:'share-current',code:'↗',title:'현재 화면 공유',hint:'기기 공유 또는 링크 복사',group:'작업',search:'share copy link 공유',run:()=>shareCurrentView(true)},
+    {id:'data-status',code:'●',title:'데이터 상태',hint:'갱신 시각과 snapshot 범위',group:'작업',search:'data status freshness 갱신',run:()=>setUtility(true)},
+    {id:'focus-mode',code:'F',title:document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드',hint:'navigation을 숨기고 내용에 집중',group:'작업',search:'focus present 집중',run:()=>setFocusMode(!document.body.classList.contains('focus-mode'))},
+    {id:'density',code:'≡',title:'보기 밀도 전환',hint:`현재 ${UI_STATE.density}`,group:'작업',search:'density compact comfortable 밀도',run:()=>setDensity(UI_STATE.density==='compact'?'comfortable':'compact')},
+    {id:'print',code:'PDF',title:'인쇄 / PDF 저장',hint:'현재 화면만 보고서로 출력',group:'작업',search:'print export pdf 인쇄',run:printCurrentView},
+    {id:'shortcuts',code:'?',title:'키보드 단축키',hint:'사용 가능한 명령 보기',group:'작업',search:'keyboard help shortcut 단축키',run:()=>setShortcuts(true)}
+  ];
+  const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,id:'pin-'+i,code:'★',hint:x.type==='question'?'고정한 예측 질문':'고정한 화면',group:'고정',search:x.title.toLowerCase()}));
+  const recent=UI_STATE.recent.filter(descriptorExists).map((x,i)=>({...x,id:'recent-'+i,code:'↺',hint:x.type==='question'?'최근 본 예측 질문':'최근 본 화면',group:'최근',search:x.title.toLowerCase()}));
   const routes=COMMAND_ROUTES.map(x=>({...x,group:'화면'}));
-  const qs=(DATA?.questions||[]).map(q=>({hash:'#q/'+q.id,code:(q.latest_prob==null?'—':q.latest_prob+'%'),title:q.title,hint:`${q.domain} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,...(q.drivers||[])].join(' ').toLowerCase()}));
-  return routes.concat(qs);
+  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#q/'+q.id,code:(q.latest_prob==null?'—':q.latest_prob+'%'),title:q.title,hint:`${q.domain} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,...(q.drivers||[])].join(' ').toLowerCase()}));
+  return actions.concat(pins,recent,routes,qs);
 }
+let activeCommandItems=[];
 function renderCommandResults(query=''){
   const needle=query.trim().toLowerCase();
-  const items=commandCatalog().filter(x=>!needle||x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle)).slice(0,10);
-  if(!items.length){commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.</div>';return;}
+  const catalog=commandCatalog();
+  let items;
+  if(needle)items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle)).slice(0,12);
+  else{
+    const limits={작업:7,고정:5,최근:4,화면:6,'예측 질문':3},counts={};
+    items=catalog.filter(x=>{counts[x.group]=(counts[x.group]||0)+1;return counts[x.group]<=limits[x.group];});
+  }
+  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.</div>';return;}
+  activeCommandItems=items;
   let group='';
   commandResults.innerHTML=items.map((x,i)=>{
     const heading=x.group!==group?`<div class="command-group">${esc(group=x.group)}</div>`:'';
-    return `${heading}<button type="button" class="command-result${i===0?' is-active':''}" data-hash="${esc(x.hash)}">
+    return `${heading}<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}">
       <i>${esc(x.code)}</i><span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></span><kbd>↵</kbd></button>`;
   }).join('');
 }
 function setCommand(open,restoreFocus=true){
   if(open&&document.body.classList.contains('drawer-open'))setDrawer(false,false);
+  if(open&&!utilityLayer.hidden)setUtility(false,false);
+  if(open&&!shortcutLayer.hidden)setShortcuts(false,false);
   if(open)commandReturnFocus=document.activeElement;
   commandLayer.hidden=!open;
   commandLayer.setAttribute('aria-hidden',String(!open));
@@ -771,7 +1016,9 @@ function bindCommandTriggers(){
 bindCommandTriggers();
 commandScrim.addEventListener('click',()=>setCommand(false));
 commandInput.addEventListener('input',e=>renderCommandResults(e.target.value));
-commandResults.addEventListener('click',e=>{const b=e.target.closest('button[data-hash]');if(!b)return;setCommand(false,false);location.hash=b.dataset.hash;});
+commandResults.addEventListener('click',e=>{const b=e.target.closest('button[data-command-index]');if(!b)return;const item=activeCommandItems[Number(b.dataset.commandIndex)];if(!item)return;
+  setCommand(false,false);if(item.run)item.run();else if(item.hash)location.hash=item.hash;
+});
 document.addEventListener('keydown',e=>{
   const target=e.target,editing=target?.matches?.('input,select,textarea,[contenteditable="true"]');
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();setCommand(commandLayer.hidden);return;}
@@ -782,6 +1029,20 @@ document.addEventListener('keydown',e=>{
   e.preventDefault();const buttons=[...commandResults.querySelectorAll('.command-result')];if(!buttons.length)return;
   let i=buttons.indexOf(document.activeElement);i=e.key==='ArrowDown'?Math.min(buttons.length-1,i+1):Math.max(0,i<0?0:i-1);
   buttons.forEach((b,j)=>b.classList.toggle('is-active',j===i));buttons[i].focus();
+});
+document.addEventListener('keydown',e=>{
+  const editing=e.target?.matches?.('input,select,textarea,[contenteditable="true"]');
+  if(e.key==='Tab'){if(!utilityLayer.hidden)trapFocus(e,utilityPanel);else if(!shortcutLayer.hidden)trapFocus(e,shortcutSheet);return;}
+  if(e.key==='Escape'){
+    if(!utilityLayer.hidden){e.preventDefault();setUtility(false);return;}
+    if(!shortcutLayer.hidden){e.preventDefault();setShortcuts(false);return;}
+    if(document.body.classList.contains('focus-mode')){e.preventDefault();setFocusMode(false);return;}
+  }
+  if(editing||!commandLayer.hidden||!utilityLayer.hidden||!shortcutLayer.hidden)return;
+  if(e.key==='?'){e.preventDefault();setShortcuts(true);return;}
+  if(e.shiftKey&&e.key.toLowerCase()==='p'){e.preventDefault();toggleCurrentPin();return;}
+  if(e.shiftKey&&e.key.toLowerCase()==='s'){e.preventDefault();shareCurrentView(true);return;}
+  if(e.shiftKey&&e.key.toLowerCase()==='f'){e.preventDefault();setFocusMode(!document.body.classList.contains('focus-mode'));}
 });
 
 // 차트 표현 색(light analysis surface용) — 확률·값·가중치 불변, 표현만
@@ -831,6 +1092,7 @@ function route(){
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   (VIEWS[v]||renderOverview)(arg);
+  recordRecent();
   if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
   if(!commandLayer.hidden)setCommand(false,false);
   window.scrollTo(0,0);
@@ -1364,10 +1626,13 @@ function renderHeaderStrip(){
 (async function(){
   DATA=await loadData();
   if(!DATA){app().innerHTML='<div class="loader-wrap">데이터를 불러오지 못했습니다.</div>';return;}
+  document.body.classList.toggle('density-compact',UI_STATE.density==='compact');
+  try{if(sessionStorage.getItem('jin-focus')==='1'){document.body.classList.add('focus-mode');focusExit.hidden=false;}}catch(_){}
   const generated='갱신 '+DATA.meta.generated.replace('T',' ').slice(0,16)+' KST';
   document.getElementById('asof').textContent=generated;
   document.getElementById('drawer-asof').textContent=generated;
   const ph=document.getElementById('phase');if(ph&&DATA.meta.phase)ph.textContent=DATA.meta.phase;
+  updateFreshnessBadges();updateUtilityButtons();
   renderHeaderStrip();
   route();
 })();

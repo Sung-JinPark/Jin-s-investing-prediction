@@ -134,6 +134,29 @@ def test_ui_contract() -> None:
     assert "FEATURE_QIDS" in html
 
 
+def test_workspace_utility_contract() -> None:
+    """부가기능은 기존 read-model 위에서만 동작하고 로컬 상태로 닫혀 있어야 한다."""
+    html = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    for element_id in ("utility-layer", "shortcut-layer", "toast-region", "focus-exit"):
+        assert f'id="{element_id}"' in html, f"워크스페이스 UI 누락: {element_id}"
+    for behavior in (
+        "jin-investing-ui-v1",
+        "localStorage",
+        "sessionStorage",
+        "navigator.share",
+        "navigator.clipboard",
+        "recordRecent",
+        "toggleCurrentPin",
+        "window.print()",
+    ):
+        assert behavior in html, f"워크스페이스 동작 누락: {behavior}"
+    assert "body.focus-mode" in html
+    assert "body.density-compact" in html
+    assert "@media print" in html
+    assert "COMMAND_ROUTES" in html and "commandCatalog" in html
+    assert "data-command-index" in html
+
+
 def test_render_embed_vs_fetch(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)
