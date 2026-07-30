@@ -12,6 +12,7 @@ REPO_ROOT = ROOT.parent                                 # .../ai-investing (expo
 _cfg = yaml.safe_load((ROOT / "config.yaml").read_text(encoding="utf-8"))
 
 ANCHORS = _cfg["anchors"]
+OVERLAY_MONTHS = int(_cfg.get("overlay_months", 60))   # 사이클 비교 오버레이 창(개월)
 DB_PATH = ROOT / _cfg["paths"]["db"]
 RAW_DIR = ROOT / _cfg["paths"]["raw"]
 SEEDS_DIR = ROOT / _cfg["paths"]["seeds"]

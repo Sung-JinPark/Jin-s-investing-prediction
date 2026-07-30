@@ -187,41 +187,63 @@ def _concentration(conn: sqlite3.Connection) -> dict | None:
     }
 
 
-def _overlay(conn: sqlite3.Connection) -> dict:
-    """시대별 월말 norm_m0 배열 (M+0=100) — 대시보드 다중 시대 오버레이용.
+def _month_index(ym: str) -> int:
+    return int(ym[:4]) * 12 + int(ym[5:7])
 
-    일간 tier는 derived_daily 월말 norm_m0, 월간 tier(dow1929)는 macro_monthly를
-    앵커월=100으로 정규화. 값은 소수 1자리 (payload 크기 절제).
+
+def _overlay(conn: sqlite3.Connection) -> dict:
+    """사이클 build-up 비교 배열 (시작월=100 정규화) — 대시보드 다중 시대 오버레이용.
+
+    비교 시작월 = overlay_start(없으면 anchor_month), 창 = config.OVERLAY_MONTHS(기본 60,
+    5년 build-up: 닷컴 1995~1999 · AI 2023~2027). anchor_month(v4.1 게이트·k-NN 앵커)와
+    **분리** — 게이트 무영향. 일간 tier는 price_daily 월말 종가, 월간 tier(dow1929)는
+    macro_monthly를 시작월=100으로 정규화. M+오프셋으로 매핑(월 결측 시에도 정렬 보존).
     """
     from ..derive.daily import ERA_MONTHLY, ERA_WINDOWS, ERA_INDEX
+    cap = config.OVERLAY_MONTHS
     out: dict[str, list] = {}
+
+    def normalized(rows, start_ym):
+        if not rows:
+            return None
+        base = rows[0][1]
+        if not base:
+            return None
+        s0 = _month_index(start_ym)
+        arr = [None] * (cap + 1)
+        for ym, v in rows:
+            k = _month_index(ym) - s0
+            if 0 <= k <= cap and v is not None:
+                arr[k] = round(v / base * 100, 1)
+        # 선두 연속 구간만 (결측 뒤는 절단 — 차트 단선 방지)
+        seq = []
+        for x in arr:
+            if x is None:
+                break
+            seq.append(x)
+        return seq or None
+
     for era_id in ERA_WINDOWS:
         series = ERA_INDEX[era_id]
-        anchor = config.ANCHORS[era_id]["anchor_month"]
+        a = config.ANCHORS[era_id]
+        start = a.get("overlay_start") or a["anchor_month"]
         rows = conn.execute(
-            """SELECT substr(d.date,1,7) m, d.norm_m0 v FROM derived_daily d
-               JOIN (SELECT MAX(date) md FROM derived_daily
-                     WHERE series=? AND era_id=? GROUP BY substr(date,1,7)) t
-                 ON d.date = t.md
-               WHERE d.series=? AND d.era_id=? AND d.norm_m0 IS NOT NULL
-               ORDER BY d.date""", (series, era_id, series, era_id)).fetchall()
-        a = int(anchor[:4]) * 12 + int(anchor[5:7])
-        vals = [(int(r["m"][:4]) * 12 + int(r["m"][5:7]) - a, r["v"]) for r in rows]
-        vals = [(k, v) for k, v in vals if k >= 0]
-        if vals:
-            out[era_id] = [round(v, 1) for _, v in vals]
-    for era_id, (sid, (w0, w1)) in ERA_MONTHLY.items():
-        anchor = config.ANCHORS[era_id]["anchor_month"]
-        base = conn.execute(
-            "SELECT value FROM macro_monthly WHERE series_id=? AND substr(date,1,7)=?",
-            (sid, anchor)).fetchone()
-        if not base:
-            continue
+            """SELECT substr(date,1,7) m, close c, MAX(date) FROM price_daily
+               WHERE series=? AND substr(date,1,7) >= ? GROUP BY substr(date,1,7)
+               ORDER BY m LIMIT ?""", (series, start, cap + 2)).fetchall()
+        s = normalized([(r["m"], r["c"]) for r in rows], start)
+        if s:
+            out[era_id] = s
+    for era_id, (sid, _w) in ERA_MONTHLY.items():
+        a = config.ANCHORS[era_id]
+        start = a.get("overlay_start") or a["anchor_month"]
         rows = conn.execute(
-            """SELECT value v FROM macro_monthly WHERE series_id=?
-               AND substr(date,1,7) >= ? AND date <= ? ORDER BY date""",
-            (sid, anchor, w1)).fetchall()
-        out[era_id] = [round(r["v"] / base["value"] * 100, 1) for r in rows]
+            """SELECT substr(date,1,7) m, value v FROM macro_monthly
+               WHERE series_id=? AND substr(date,1,7) >= ? AND value IS NOT NULL
+               ORDER BY date LIMIT ?""", (sid, start, cap + 2)).fetchall()
+        s = normalized([(r["m"], r["v"]) for r in rows], start)
+        if s:
+            out[era_id] = s
     return out
 
 

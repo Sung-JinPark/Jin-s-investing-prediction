@@ -1,10 +1,13 @@
 # dualdb 설정 — 시리즈 목록·앵커·경로 (코드 하드코딩 금지)
 # 각 era: anchor_month=M+0, peak/bottom, index=아날로그 지수(series), window=파생 계산 창
 # window는 각 사이클의 '버블 구간'으로 한정 (예: Nikkei는 2024+ 재돌파 제외).
+# overlay_start: 사이클 비교 오버레이 전용 시작월(=100 정규화). anchor_month(v4.1 게이트
+#   정본·k-NN 앵커)와 분리 — 게이트 무영향. 미지정 시 anchor_month 사용.
+overlay_months: 60      # 비교 창 = 5년 build-up (닷컴 1995~1999 · AI 2023~2027)
 anchors:
-  dotcom:         { anchor_month: "1996-01", peak_date: "2000-03-10", bottom_date: "2002-10-09", index: "^IXIC",   window: ["1995-01-01", "2003-12-31"],
+  dotcom:         { anchor_month: "1996-01", overlay_start: "1995-01", peak_date: "2000-03-10", bottom_date: "2002-10-09", index: "^IXIC",   window: ["1995-01-01", "2003-12-31"],
                     perez: "installation frenzy 말기 → 전환점(2000-03)" }
-  ai:             { anchor_month: "2023-01", peak_date: null,         bottom_date: null,         index: "^IXIC",   window: ["2022-01-01", null],
+  ai:             { anchor_month: "2023-01", overlay_start: "2023-01", peak_date: null,         bottom_date: null,         index: "^IXIC",   window: ["2022-01-01", null],
                     perez: "installation frenzy 후반 추정 — 미확정, 사후에만 확정 가능" }
   japan1989:      { anchor_month: "1985-01", peak_date: "1989-12-29", bottom_date: "2003-04-28", index: "^N225",   window: ["1984-01-01", "2003-12-31"],
                     perez: "신용·부동산 복합 버블 — Perez 기술서지 프레임 부분 적용" }

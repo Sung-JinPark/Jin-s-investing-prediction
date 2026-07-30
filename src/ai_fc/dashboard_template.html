@@ -755,17 +755,17 @@ function analogPanel(){
   ].filter(Boolean).slice(0,4);
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
-    <div class="panel-head"><h2>시작월 = 100 · 로그 스케일</h2>${legend}</div>
+    <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2>${legend}</div>
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
-    <p class="chart-note">각 사이클을 시작 시점 100으로 정규화한 참고 비교입니다. 과거 사이클은 예측이 아닌 참조이며 시대 간 시장 구조 차이가 있습니다. 다우 1929는 월평균 지수 기준.</p>
+    <p class="chart-note">닷컴 1995~1999 · AI 2023~2027 등 각 사이클의 5년 build-up 구간을 시작월 100으로 정규화(로그)한 참고 비교입니다. 과거 사이클은 예측이 아닌 참조이며 시대 간 시장 구조 차이가 있습니다. AI는 현재까지, 다우 1929는 월평균 지수 기준.</p>
   </div>`);
   w._eras=eras;
   return w;
 }
 function drawOverlay(host,o,eras){
   const NS='http://www.w3.org/2000/svg';
-  const W=1160,H=430,ML=58,MR=120,MT=26,MB=34,CAP=108;
+  const W=1160,H=430,ML=58,MR=120,MT=26,MB=34,CAP=60;
   const PW=W-ML-MR,PH=H-MT-MB;
   const lg=Math.log10,Y0=lg(55),Y1=lg(2100);
   const X=m=>ML+PW*m/CAP,Y=v=>MT+PH*(1-(lg(v)-Y0)/(Y1-Y0));
