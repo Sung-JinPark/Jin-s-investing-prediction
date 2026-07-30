@@ -40,6 +40,19 @@ DB schema, ingest, forecast registry, read model, chart 산식은 변경하지 �
 --teal: #247d78;
 ```
 
+### Typography refinement
+
+- display: `Segoe UI Variable Display` / `SF Pro Display` 우선 native variable stack
+- body: `Segoe UI Variable Text` / `SF Pro Text` 우선 native variable stack
+- 한국어 fallback: `Apple SD Gothic Neo` → `Noto Sans KR` → `Malgun Gothic`
+- 숫자·라벨: 기존 monospace stack 유지
+- overview headline: desktop `clamp(52px, 4.7vw, 72px)`, mobile `clamp(42px, 10.8vw, 52px)`
+- headline tracking: `-.055em` desktop, `-.05em` mobile
+- headline line-height: `.97` desktop, `.98` mobile
+
+외부 폰트를 로드하지 않는다. 저장된 report HTML도 동일하게 보이는 자기완결 원칙을 지키면서 각 운영체제의
+가장 정교한 native variable font를 사용한다.
+
 색상 역할을 임의로 바꾸지 않는다.
 
 - orange: 주 시나리오, 상승 신호, 현재 선택
@@ -96,4 +109,3 @@ fine pointer 환경에서 카드가 아주 작게 tilt되고, pointer 위치를 
 - command palette: white surface, 검색 input focus, 결과 렌더링 확인
 - signal mosaic: depth별 transform 확인
 - forecast card: pointer 기반 tilt, shadow, title shift, arrow reveal 확인
-

@@ -114,6 +114,10 @@ def test_ui_contract() -> None:
     assert "SCEN_DEEP" not in html
     assert "--violet:#a99bff" not in html, "구형 dark ambient violet이 남아 있음"
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
+    assert "--display:'Segoe UI Variable Display'" in html
+    assert "--sans:'Segoe UI Variable Text'" in html
+    assert "font-size:clamp(52px,4.7vw,72px)" in html
+    assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
     assert "<kbd>⌘ K</kbd>" in html
