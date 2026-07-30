@@ -247,8 +247,18 @@ def _overlay(conn: sqlite3.Connection) -> dict:
     return out
 
 
+# Tier-3 큐레이션 심층 사이클 — 무료 API에 월간 지수가 없어 파생 불가, 문서화된
+# 실측 앵커만 base rate로 인용(오버레이 선은 그리지 않음, 조작 금지). 출처 명기.
+CURATED_DEEP = [
+    {"era": "railway1845", "label": "철도 광기 (1차 산업혁명·Perez R2)",
+     "peak": "1845-08", "trough": "1850-04", "depth": -0.66, "buildup_pct": 97,
+     "tier": "curated", "source": "Campbell·Turner (British railway share index)",
+     "note": "build-up +97%(1843~45) → 붕괴 −66%(~1850). 월간 지수 무료 부재 — 문서 앵커만 참조"},
+]
+
+
 def _deep_history(conn: sqlite3.Connection) -> list[dict]:
-    """월간 tier 시대(dow1929 등)의 최심 조정 — 심층 역사 base rate."""
+    """월간 tier 시대(dow1929·electricity1900 등)의 최심 조정 + Tier-3 큐레이션 심층 사이클."""
     from ..derive.daily import ERA_MONTHLY
     out = []
     for era_id in ERA_MONTHLY:
@@ -259,6 +269,7 @@ def _deep_history(conn: sqlite3.Connection) -> list[dict]:
             out.append({"era": era_id, "peak": row["peak_date"],
                         "trough": row["trough_date"], "depth": row["depth"],
                         "note": "월평균 지수 기준 — 일중 극값 대비 완만"})
+    out.extend(CURATED_DEEP)
     return out
 
 

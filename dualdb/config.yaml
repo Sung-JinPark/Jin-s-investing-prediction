@@ -23,6 +23,12 @@ anchors:
                     tier: monthly, macro_series: "M1109BUSM293NNBR",
                     window: ["1920-01-01", "1939-12-31"],
                     perez: "installation frenzy → 전환점(1929-10) — Perez 정전 사례" }
+  # 전기혁명 (Perez R3 "철강·전기·중공업" 1875~) — 광의 시장 프록시 = Shiller S&P 콤포지트
+  # 월간(1871+). 전기화 build-up → 1906 정점 → 1907 패닉(NYSE ~−50%). 일간 데이터 부재 tier.
+  electricity1900: { anchor_month: "1901-01", overlay_start: "1901-01", peak_date: "1906-09", bottom_date: "1907-11",
+                    tier: monthly, macro_series: "SHILLER_SP",
+                    window: ["1896-01-01", "1914-12-31"],
+                    perez: "Age of Steel·Electricity·Heavy Engineering (R3) — 1907 패닉" }
 
 paths:
   db: db/dualdb.sqlite
