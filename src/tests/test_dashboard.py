@@ -103,14 +103,22 @@ def test_ui_contract() -> None:
     assert "--paper:" not in html and "var(--paper)" not in html
     assert "background:#fff" not in html, "밝은 카드/표 surface가 다시 유입됨"
     for dark_surface in (
-        "body{margin:0;color:#fff;background:var(--ink)",
-        ".content-shell{min-height:100dvh;margin-left:var(--rail);background:",
+        "body{margin:0;color:var(--white-warm);background:radial-gradient(",
+        ".content-shell{min-height:100dvh;margin-left:var(--rail);background:transparent",
         ".panel{min-width:0;padding:",
-        ".table-shell{overflow-x:auto;background:var(--ink-2)",
-        ".reasoning-panel{padding:0;overflow:hidden;background:var(--ink-2)",
+        ".table-shell{overflow-x:auto;background:var(--glass)",
+        ".reasoning-panel{padding:0;overflow:hidden;background:var(--glass)",
     ):
         assert dark_surface in html, f"all-dark UI 계약 누락: {dark_surface}"
     assert "SCEN_DEEP" not in html, "다크 surface에서 대비가 낮은 구형 시나리오 색상"
+    # startup benchmark revision: atmospheric depth + keyboard-first navigation
+    assert "--violet:#a99bff" in html, "system ambient accent 없음"
+    assert 'class="command-layer"' in html and 'role="dialog"' in html
+    assert 'aria-modal="true"' in html and "setCommand" in html
+    assert "<kbd>⌘ K</kbd>" in html
+    assert "miniSparkline" in html and 'class="card-spark"' in html
+    assert 'class="stance-orbit"' in html
+    assert ".filter-bar{position:sticky" in html
     # 두 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)

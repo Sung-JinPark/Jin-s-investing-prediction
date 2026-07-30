@@ -1,9 +1,32 @@
 # Codex → Claude Code UI 인수인계
 
-작성일: 2026-07-30 KST · all-dark revision
+작성일: 2026-07-30 KST · startup benchmark / Signal Glass revision
 대상: Jin's Investing Prediction Solution  
 배포 URL: https://sung-jinpark.github.io/Jin-s-investing-prediction/  
 작업 성격: **UI 표현 계층 전면 재구축, 데이터·예측 로직 불변**
+
+---
+
+## 0. Startup benchmark revision
+
+상세 리서치와 설계 근거:
+
+- `reports/md/codex_startup_benchmark_design_plan_260730.md`
+
+이번 revision은 기존 all-dark 구조를 유지하면서 Linear·Ramp·Mercury·Stripe·Clay·Retool·Attio·Raycast·Brex·Vercel의 공개 화면을 비교해 다음을 반영했다.
+
+- 220px glass product rail
+- 62px sticky intelligence bar
+- deep forest + mint + teal + restrained violet atmosphere
+- signal probability halo
+- 실제 `forecast_history` 기반 mini sparkline
+- 우선순위가 보이는 forecast bento
+- rounded glass panel·filter·table·detail
+- `Ctrl/⌘+K`·`/` 빠른 이동 command palette
+- mobile command trigger
+- all-dark surface 회귀 방지
+
+violet은 system atmosphere와 카드 깊이 구분 전용이다. 확률·시나리오·위험·sparkline 데이터 색에는 사용하지 않는다.
 
 ---
 
@@ -20,8 +43,8 @@
 총 219px를 사용하던 구조를 다음 제품 shell로 교체했다.
 
 ```text
-desktop  : 236px persistent product rail + compact live row + content stage
-tablet   : 84px compact rail + compact live row + content stage
+desktop  : 220px persistent glass rail + 62px sticky intelligence bar + content stage
+tablet   : 82px compact rail + 62px sticky intelligence bar + content stage
 mobile   : 64px mobile header + accessible drawer + compact live row
 ```
 
@@ -69,6 +92,9 @@ mobile   : 64px mobile header + accessible drawer + compact live row
 - `.mobile-drawer` 필수
 - `.overview-stage` 필수
 - drawer `aria-expanded` 및 `setDrawer()` 필수
+- `.command-layer`, `aria-modal`, `setCommand()` 필수
+- 실제 예측 이력 `.card-spark` 필수
+- sticky filter bar 필수
 - 구형 `.site-header` 금지
 - 구형 `--blue` token 금지
 
@@ -130,6 +156,11 @@ UI 작업으로 forecast나 calibration 값을 수정하지 말 것.
     </div>
   </div>
 
+  <div class="command-layer" id="command-layer" hidden>
+    <div class="command-scrim"></div>
+    <section class="command-dialog" role="dialog" aria-modal="true">...</section>
+  </div>
+
   <div class="tip" id="tip"></div>
 </body>
 ```
@@ -149,7 +180,7 @@ UI 작업으로 forecast나 calibration 값을 수정하지 말 것.
 
 ### desktop `>=1280px`
 
-- rail: 236px
+- rail: 220px
 - 브랜드, 번호, 메뉴명 모두 표시
 - 활성 메뉴 우측 lime indicator
 - rail 하단:
@@ -160,7 +191,7 @@ UI 작업으로 forecast나 calibration 값을 수정하지 말 것.
 
 ### tablet `800px~1279px`
 
-- rail: 84px
+- rail: 82px
 - 숫자 `01~06`만 표시
 - 접근 가능한 링크 이름은 DOM에 그대로 남아 있음
 - 활성 indicator 유지
@@ -269,13 +300,15 @@ nasdaq-ath-eoy-2026
 
 표현:
 
-- 하나의 dark grid
-- 3열
+- 실제 데이터 기반 3열 bento
+- 1열은 판단 우선순위를 위해 조금 더 넓음
 - probability 72~96px
-- bar는 모두 lime
+- bar는 확률 공통 기준으로 lime
+- sparkline은 `forecast_history`를 단순화한 실제 round 추이
+- sparkline 색은 lime/teal/slate
 - 상승 delta lime
 - 하락 delta coral
-- card 배경색은 통일
+- card 본체는 동일한 glass surface, 상단 ambient accent만 구분
 - hover는 최대 `translateY(-4px)`
 
 기존처럼 카드마다 coral/teal/lime bar를 임의로 할당하지 않는다.
@@ -290,12 +323,16 @@ source of truth:
 --ink: #06100d;
 --ink-2: #0b1714;
 --ink-3: #10231d;
+--glass: rgba(12,27,23,.72);
+--glass-strong: rgba(16,35,29,.88);
 --white: #ffffff;
+--white-warm: #f4f7f2;
 --lime: #bcff71;
 --lime-deep: #98dc55;
 --teal: #57d4c8;
 --coral: #ff8066;
 --slate: #94a3b8;
+--violet: #a99bff;
 --muted: rgba(255,255,255,.48);
 ```
 
@@ -307,6 +344,7 @@ source of truth:
 | 비교 경로, 보조 모델 | teal |
 | 하락, 위험, 오차 | coral |
 | 과거 참조, 중립 | slate 또는 white alpha |
+| system atmosphere, command UI | violet |
 | 최상위 배경 | ink |
 | 카드·표·필터 surface | ink-2 |
 | 입력·표 머리글·내부 surface | ink-3 |
@@ -404,54 +442,40 @@ dark page heading
 
 ---
 
-## 10. 반응형 실측
+## 10. 현재 revision 브라우저 실측
 
-공개본과 동일한 embedded read model로 실제 브라우저 렌더를 검사했다.
+공개본과 동일한 embedded read model로 Signal Glass revision을 실제 브라우저에서 렌더했다.
 
-### 1440×900
-
-```text
-rail width       236px
-H1 font          75.6px
-H1 bottom        y=412
-stance bottom    y=472
-forecast top     y=518
-forecast bottom  y=817
-forecast cards   3
-horizontal overflow 없음
-```
-
-기존 공개본:
+### 1280×720
 
 ```text
-forecast top     y≈688
-forecast bottom  y≈1049
-```
-
-따라서 핵심 카드 3개가 첫 화면 안에 완전히 들어온다.
-
-### 1024×768
-
-```text
-compact rail     84px
-forecast top     y=500
-forecast bottom  y=750
-card height      248px
-horizontal overflow 없음
-```
-
-### 390×844
-
-```text
-desktop rail     hidden
-mobile header    64px
-drawer width     330px
-drawer x         0 when open
-menu label       6개 모두 표시
-Escape close     정상
-focus return     menu-open
+rail width          220px
+intelligence bar     62px
+overview stage      1050×734
+H1                  627×238
+forecast top        y=463
+forecast grid       960×283
+forecast cards      3
+mini sparklines     3
+opaque bright panel 0
 horizontal overflow 0
 ```
+
+첫 viewport에서 시장 판단, 확률 halo, 핵심 예측 3개의 확률과 추이가 보인다. 카드의 아래 메타는 자연스럽게 다음 스크롤로 이어진다.
+
+### responsive contract
+
+CSS breakpoint와 DOM 계약:
+
+```text
+>=1280px        220px full rail
+800~1279px       82px compact rail
+<800px           64px mobile header + drawer
+drawer           min(86vw, 330px)
+mobile grid      1 column
+```
+
+이전 revision에서 검증한 drawer의 Escape, focus return, scroll lock 구현을 보존했다. 새 command trigger는 desktop rail, intelligence bar, mobile header에 각각 존재하며 모두 같은 `setCommand()`를 호출한다.
 
 ---
 
@@ -471,27 +495,34 @@ exit 0
 ```text
 src/tests/test_dashboard.py
 7 passed
+
+src/tests 전체
+139 passed
 ```
 
 ### browser
 
 검증 화면:
 
-- overview 1440×900
-- overview 1024×768
-- overview 390×844
-- mobile drawer open/close
+- overview 1280×720
+- command palette open/search/close
 - market flow
+- range query
 - questions
+- as-of
+- track record
+- question detail
 
-시장 전망:
+검증 결과:
 
 ```text
-SVG 2개
-첫 SVG  1000×483
-둘째 SVG 1240×460
-console error 0
-active nav = 02 시장 전망
+route 6개 전환 정상
+question row 38개
+command 검색 "NVDA" 결과 3개
+상세 hash #q/nvda-dc-beat-2026aug
+상세 최신 확률 20%
+모든 route horizontal overflow 0
+모든 route opaque bright panel 0
 ```
 
 ---
