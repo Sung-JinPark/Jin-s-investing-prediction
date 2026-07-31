@@ -84,22 +84,23 @@ document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click'
 document.querySelectorAll('#mobile-bottom-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
 // device-local workspace memory and utility layers
-const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:3,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false,lastSeenGeneratedAt:null,questionView:{preset:'all',sort:'priority',domain:'',driver:'',status:''}};
+const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:4,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false,lastSeenGeneratedAt:null,questionView:{preset:'all',sort:'priority',layout:'table',domain:'',driver:'',status:''}};
 function loadUIState(){
   try{
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
-    if(!raw||![1,2,3].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
+    if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
       .filter(([k,v])=>/^#(overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
-    return {...UI_DEFAULTS,...raw,version:3,motion:raw.motion==='reduced'?'reduced':'adaptive',
+    return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
       pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[],
       compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],compareCollapsed:!!raw.compareCollapsed,compareAutoExpanded:!!raw.compareAutoExpanded,
       lastSeenGeneratedAt:typeof raw.lastSeenGeneratedAt==='string'?raw.lastSeenGeneratedAt:null,notes,
       questionView:{
         preset:['all','review','moving','due','pinned'].includes(questionView.preset)?questionView.preset:'all',
         sort:['priority','deadline','probability','movement','updated'].includes(questionView.sort)?questionView.sort:'priority',
+        layout:['table','cards'].includes(questionView.layout)?questionView.layout:'table',
         domain:typeof questionView.domain==='string'?questionView.domain.slice(0,80):'',
         driver:typeof questionView.driver==='string'?questionView.driver.slice(0,80):'',
         status:['','active','resolved'].includes(questionView.status)?questionView.status:''
@@ -1018,13 +1019,20 @@ function renderFlow(){
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   paintFlow('ALL');
-  if(overlay)drawOverlay($('#ovchart',overlay),DATA.analog_context.overlay,overlay._eras);
+  if(overlay){
+    const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,DATA.analog_context.overlay,overlay._eras,focus);
+      overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
+    overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.onclick=()=>paintAnalog(b.dataset.analogFocus));
+    paintAnalog('ALL');
+  }
 }
 function analogPanel(){
   const ctx=DATA.analog_context;if(!ctx||!ctx.overlay)return null;
   const o=ctx.overlay;const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
   if(eras.length<2)return null;
-  const legend=`<div class="band-inline">${eras.map(e=>`<span><b style="background:${ERA_META[e][1]}"></b>${ERA_META[e][0]}</span>`).join('')}</div>`;
+  const focusControls=`<div class="flow-focus analog-focus" role="group" aria-label="과거 혁신 사이클 강조"><span>SPOTLIGHT</span>
+    <button type="button" data-analog-focus="ALL" aria-pressed="true"><i></i>전체</button>
+    ${eras.map(e=>`<button type="button" data-analog-focus="${e}" style="--focus-color:${ERA_META[e][1]}" aria-pressed="false"><i></i>${ERA_META[e][0]}</button>`).join('')}</div>`;
   const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
   const ctxItems=[
     rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
@@ -1034,44 +1042,62 @@ function analogPanel(){
   ].filter(Boolean).slice(0,4);
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
-    <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2>${legend}</div>
+    <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2><span class="count-chip">${eras.length}개 사이클</span></div>
+    ${focusControls}
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
-    <p class="chart-note">닷컴 1995~1999 · AI 2023~2027 등 각 사이클의 5년 build-up 구간을 시작월 100으로 정규화(로그)한 참고 비교입니다. 과거 사이클은 예측이 아닌 참조이며 시대 간 시장 구조 차이가 있습니다. AI는 현재까지, 다우 1929는 월평균 지수 기준.</p>
+    <p class="chart-note">닷컴 1995~1999 · AI 2023~2027 등 각 사이클의 5년 build-up 구간을 시작월 100으로 정규화(로그)한 참고 비교입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 월을 탐색할 수 있습니다. 과거 사이클은 예측이 아닌 참조이며 시대 간 시장 구조 차이가 있습니다.</p>
   </div>`);
   w._eras=eras;
   return w;
 }
-function drawOverlay(host,o,eras){
+function drawOverlay(host,o,eras,focus='ALL'){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=430,ML=58,MR=120,MT=26,MB=34,CAP=60;
   const PW=W-ML-MR,PH=H-MT-MB;
   const lg=Math.log10,Y0=lg(55),Y1=lg(2100);
   const X=m=>ML+PW*m/CAP,Y=v=>MT+PH*(1-(lg(v)-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','과거 혁신 사이클 정규화 비교. 좌우 화살표로 기준 월 이동');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,ob={})=>{const e=mk('text',{x,y,fill:ob.fill||'rgba(17,17,15,.58)','font-size':ob.fs||11,'text-anchor':ob.anc||'start','font-weight':ob.w||400});e.textContent=s;return e;};
+  const tx=(x,y,s,ob={})=>{const e=mk('text',{x,y,fill:ob.fill||'rgba(17,17,15,.58)','font-size':ob.fs||11,'text-anchor':ob.anc||'start','font-weight':ob.w||400,opacity:ob.opacity??1});e.textContent=s;return e;};
   [100,200,400,800,1600].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:v===100?'rgba(17,17,15,.22)':'rgba(17,17,15,.09)','stroke-width':1}));
     svg.appendChild(tx(ML-8,Y(v)+4,String(v),{anc:'end',fill:'rgba(17,17,15,.5)'}));});
   for(let m=0;m<=CAP;m+=12){svg.appendChild(tx(X(m),MT+PH+18,'M+'+m,{anc:'middle',fs:10,fill:m?'rgba(17,17,15,.48)':'rgba(17,17,15,.76)'}));}
-  eras.forEach(e=>{const[label,color,sw,dash,alpha]=ERA_META[e];const vals=o[e].slice(0,CAP+1);let d='';
+  eras.forEach(e=>{const[label,color,sw,dash,alpha]=ERA_META[e],on=focus==='ALL'||focus===e;const vals=o[e].slice(0,CAP+1);let d='';
     vals.forEach((v,i)=>{d+=(i?'L':'M')+X(i)+','+Y(Math.max(v,60))+' ';});
-    svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':sw,'stroke-linejoin':'round',
-      'stroke-dasharray':dash,opacity:alpha}));
+    svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?Math.max(2.4,sw):1.1,'stroke-linejoin':'round',
+      'stroke-dasharray':dash,opacity:on?alpha:.1}));
     if(e==='ai'){const last=vals[vals.length-1];const i=vals.length-1;
-      svg.appendChild(mk('circle',{cx:X(i),cy:Y(last),r:3.5,fill:color,stroke:'#0b1714','stroke-width':1.5}));
-      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(ERA_START.ai,i)} · M+${i}`,{fill:color,fs:11.5,w:600}));}});
-  const xh=mk('line',{stroke:'rgba(17,17,15,.32)','stroke-width':1,opacity:0});svg.appendChild(xh);
+      svg.appendChild(mk('circle',{cx:X(i),cy:Y(last),r:on?3.8:2.5,fill:color,stroke:'#fff','stroke-width':1.5,opacity:on?1:.12}));
+      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(ERA_START.ai,i)} · M+${i}`,{fill:color,fs:11.5,w:600,opacity:on?1:.12}));}});
+  const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
+  const markers=eras.map(e=>{const marker=mk('circle',{r:4.8,fill:ERA_META[e][1],stroke:'#fff','stroke-width':1.8});svg.appendChild(marker);return marker;});
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
-  const tip=document.getElementById('tip');
-  ov.addEventListener('mousemove',ev=>{const r=svg.getBoundingClientRect();const mx=(ev.clientX-r.left)*(W/r.width);
-    const m=Math.max(0,Math.min(CAP,Math.round((mx-ML)/(PW/CAP))));
-    xh.setAttribute('x1',X(m));xh.setAttribute('x2',X(m));xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);xh.setAttribute('opacity',.45);
-    tip.style.display='block';tip.style.left=(ev.clientX+14)+'px';tip.style.top=(ev.clientY-10)+'px';
-    tip.innerHTML=`<b>M+${m} · 시작월 대비</b><br>`+eras.filter(e=>o[e][m]!=null).map(e=>
-      `<span style="color:${ERA_META[e][1]}">${ERA_META[e][0]} · ${monthAt(ERA_START[e],m)} → ${o[e][m]}</span>`).join('<br>');});
-  ov.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('opacity',0);});
-  host.appendChild(svg);
+  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  const readout=document.createElement('div');readout.className='flow-readout analog-readout';
+  const visibleEras=focus==='ALL'?eras:eras.filter(e=>e===focus);
+  const maxIndex=focus==='ALL'?CAP:Math.min(CAP,Math.max(0,(o[focus]?.length||1)-1));
+  let cursorIndex=Math.min(maxIndex,Math.max(0,(o.ai?.length||1)-1));
+  const paintCursor=index=>{
+    cursorIndex=Math.max(0,Math.min(maxIndex,index));const x=X(cursorIndex);
+    xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
+    eras.forEach((e,i)=>{const value=o[e][cursorIndex];if(value!=null){markers[i].setAttribute('cx',x);markers[i].setAttribute('cy',Y(Math.max(value,60)));markers[i].style.display='';markers[i].style.opacity=String(focus==='ALL'||focus===e?1:.1);}else markers[i].style.display='none';});
+    const values=visibleEras.filter(e=>o[e][cursorIndex]!=null);
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED MONTH</span><strong>M+${cursorIndex}</strong><small>시작월 = 100 · 로그 비교</small></div>${values.map(e=>`<div><span>${esc(ERA_META[e][0])}</span><strong style="color:${ERA_META[e][1]}">${num(o[e][cursorIndex])}</strong><small>${esc(monthAt(ERA_START[e],cursorIndex))}</small></div>`).join('')}`;
+    svg.setAttribute('aria-label',`과거 혁신 사이클 비교, 선택 월 M+${cursorIndex}. 좌우 화살표로 이동`);
+  };
+  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),viewX=(event.clientX-rect.left)*(W/rect.width);
+    return Math.max(0,Math.min(maxIndex,Math.round((viewX-ML)/(PW/CAP))));};
+  ov.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){
+    tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
+    tip.innerHTML=`<b>M+${index} · 시작월 대비</b><br>`+visibleEras.filter(e=>o[e][index]!=null).map(e=>
+      `<span style="color:${ERA_META[e][1]}">${ERA_META[e][0]} · ${monthAt(ERA_START[e],index)} → ${o[e][index]}</span>`).join('<br>');}});
+  ov.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
+  ov.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
+    else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(maxIndex);}});
+  host.replaceChildren(svg,readout);paintCursor(cursorIndex);
 }
 function drawFlow(host,sc,focus='ALL'){
   const NS='http://www.w3.org/2000/svg';
@@ -1176,6 +1202,7 @@ function renderQuestions(){
   if(saved.domain&&!domains.includes(saved.domain))saved.domain='';
   if(saved.driver&&!themes.includes(saved.driver))saved.driver='';
   let activePreset=QUESTION_PRESETS.some(([id])=>id===saved.preset)?saved.preset:'all';
+  let activeLayout=['table','cards'].includes(saved.layout)?saved.layout:'table';
   const root=el('<div></div>');
   appendContextTabs(root,'research','questions');
   root.appendChild(el(`<div class="page-heading"><div>
@@ -1187,6 +1214,10 @@ function renderQuestions(){
     <span class="micro" id="qcount">결과에 표시됨</span></div></div>`));
   const researchControls=el(`<div class="research-controls">
     <div class="research-presets" role="group" aria-label="예측 질문 빠른 필터">${QUESTION_PRESETS.map(([id,label])=>`<button type="button" data-question-preset="${id}" aria-pressed="${id===activePreset}">${label}</button>`).join('')}</div>
+    <div class="research-display" role="group" aria-label="예측 목록 보기 방식">
+      <button type="button" data-question-layout="table" aria-pressed="${activeLayout==='table'}" aria-label="표 보기">▤ <span>TABLE</span></button>
+      <button type="button" data-question-layout="cards" aria-pressed="${activeLayout==='cards'}" aria-label="카드 보기">▦ <span>CARDS</span></button>
+    </div>
     <label class="research-sort">정렬<select id="fso" aria-label="예측 질문 정렬">
       <option value="priority">검토 우선순위</option><option value="deadline">판정일</option><option value="probability">확률 높은 순</option>
       <option value="movement">변동 큰 순</option><option value="updated">최신 회차</option>
@@ -1208,10 +1239,12 @@ function renderQuestions(){
   mount(root);
   $('#fd').value=saved.domain;$('#fdr').value=saved.driver;$('#fs').value=saved.status;$('#fso').value=saved.sort;
   const rememberResearchView=()=>{
-    UI_STATE.questionView={preset:activePreset,sort:$('#fso').value,domain:$('#fd').value,driver:$('#fdr').value,status:$('#fs').value};
+    UI_STATE.questionView={preset:activePreset,sort:$('#fso').value,layout:activeLayout,domain:$('#fd').value,driver:$('#fdr').value,status:$('#fs').value};
     saveUIState();
   };
   const draw=()=>{
+    root.classList.toggle('research-layout-cards',activeLayout==='cards');
+    researchControls.querySelectorAll('[data-question-layout]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.questionLayout===activeLayout)));
     const d=$('#fd').value,dr=$('#fdr').value,st=$('#fs').value,q=$('#fq').value.toLowerCase(),sort=$('#fso').value;
     const rows=sortResearchQuestions(DATA.questions.filter(x=>(!d||x.domain===d)&&(!dr||(x.drivers||[]).includes(dr))&&(!st||x.status===st)&&
       (!q||x.title.toLowerCase().includes(q))&&questionMatchesPreset(x,activePreset)),sort);
@@ -1251,6 +1284,9 @@ function renderQuestions(){
     activePreset=button.dataset.questionPreset;
     researchControls.querySelectorAll('[data-question-preset]').forEach(x=>x.setAttribute('aria-pressed',String(x===button)));
     draw();
+  });
+  researchControls.querySelectorAll('[data-question-layout]').forEach(button=>button.onclick=()=>{
+    activeLayout=button.dataset.questionLayout;draw();
   });
   draw();
   bar.querySelector('#freset').onclick=()=>{
@@ -1326,6 +1362,42 @@ function drawCompareHistory(host,questions){
 }
 
 // ── 예측 상세 ──
+function signedPoint(value){
+  if(!hasNumeric(value))return '기록 없음';
+  const rounded=Math.round(Number(value)*10)/10;
+  return `${rounded>0?'+':''}${rounded}%p`;
+}
+function confidenceBand(round){
+  return hasNumeric(round?.ci80_lo)&&hasNumeric(round?.ci80_hi)?`${Number(round.ci80_lo)}–${Number(round.ci80_hi)}%`:'기록 없음';
+}
+function reasoningText(round){
+  return round?.body?.trim()||'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
+}
+function evidenceDeltaMarkup(current,previous){
+  const method=current.method||current.model||'기록 없음';
+  if(!previous)return `<section class="round-delta baseline" aria-label="첫 예측 회차">
+    <div class="round-delta-head"><span>WHAT CHANGED</span><strong>첫 기준선</strong><p>이 회차가 이후 변화를 비교하는 기준입니다.</p></div>
+    <div class="round-delta-grid">
+      <div><span>예측 확률</span><strong>${p1(current.probability)}</strong><small>최초 기록</small></div>
+      <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>현재 범위</small></div>
+      <div><span>근거 출처</span><strong>${Number(current.sources_count)||0}</strong><small>등록 출처</small></div>
+      <div><span>산출 방법</span><strong>${esc(method)}</strong><small>현재 회차</small></div>
+    </div></section>`;
+  const delta=Number(current.probability)-Number(previous.probability),magnitude=Math.abs(delta);
+  const level=magnitude>=10?'큰 폭 재평가':magnitude>=5?'의미 있는 재평가':magnitude>0?'소폭 조정':'확률 유지';
+  const direction=delta>0?'상향':delta<0?'하향':'유지';
+  const currentSources=Number(current.sources_count)||0,previousSources=Number(previous.sources_count)||0,sourceDelta=currentSources-previousSources;
+  const previousMethod=previous.method||previous.model||'기록 없음',methodChanged=previousMethod!==method;
+  const sourceNote=methodChanged?`이전 기록 ${previousSources} · 집계 기준 상이`:`${previousSources} → ${currentSources}${sourceDelta?` · ${sourceDelta>0?'+':''}${sourceDelta}`:' · 유지'}`;
+  return `<section class="round-delta${magnitude>=5?' is-material':''}" aria-label="이전 회차 대비 변화">
+    <div class="round-delta-head"><span>WHAT CHANGED · R${previous.round} → R${current.round}</span><strong>${level}</strong><p>예측 확률을 ${direction} 조정했습니다. 아래 항목은 저장된 두 회차 기록의 직접 비교입니다.</p></div>
+    <div class="round-delta-grid">
+      <div><span>확률 변화</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${signedPoint(delta)}</strong><small>${p1(previous.probability)} → ${p1(current.probability)}</small></div>
+      <div><span>80% 구간</span><strong>${confidenceBand(current)}</strong><small>이전 ${confidenceBand(previous)}</small></div>
+      <div><span>근거 출처</span><strong>${currentSources}</strong><small>${sourceNote}</small></div>
+      <div><span>산출 방법</span><strong>${esc(method)}</strong><small>${methodChanged?`이전 ${esc(previousMethod)}`:'이전과 동일'}</small></div>
+    </div></section>`;
+}
 function renderDetail(qid){
   const q=DATA.questions.find(x=>x.id===qid);const hist=DATA.forecast_history[qid]||[];const res=DATA.resolutions[qid]||[];
   const root=el('<div></div>');
@@ -1350,6 +1422,9 @@ function renderDetail(qid){
     <div class="reasoning-panel">
       <div class="reasoning-top" id="rtop"></div>
       <div class="model-line" id="rmodel"></div>
+      <div class="round-delta-slot" id="round-delta"></div>
+      <div class="reasoning-compare-tools" id="reason-compare-tools"></div>
+      <div class="reasoning-compare" id="reason-compare" hidden></div>
       <pre class="reasoning-body" id="reason"></pre>
     </div></div>`);
   root.appendChild(layout);
@@ -1360,11 +1435,22 @@ function renderDetail(qid){
   mount(root);
   drawHistory($('#hist',chartPanel),hist,DATA.ml_runs.filter(r=>r.question_id===qid),DATA.market_runs.filter(r=>r.question_id===qid));
   const showReason=h=>{
+    const roundIndex=hist.findIndex(item=>item===h||(h.forecast_id&&item.forecast_id===h.forecast_id)),previous=roundIndex>0?hist[roundIndex-1]:null;
     $('#rtop',layout).innerHTML=`<div><span>예측 확률</span><strong>${h.probability}%</strong></div>
       <div><span>회차</span><strong>${h.round}R</strong></div>
       <div><span>출처</span><strong>${h.sources_count||0}</strong></div>`;
-    $('#rmodel',layout).textContent=`예측일 ${(h.forecast_ts||'').slice(0,10)} · ${h.round}회차`;
-    $('#reason',layout).textContent=h.body||'(근거 없음)';
+    $('#rmodel',layout).textContent=`예측일 ${(h.forecast_ts||'').slice(0,10)} · ${h.round}회차 · ${h.method||h.model||'산출 방법 기록 없음'}`;
+    $('#round-delta',layout).innerHTML=evidenceDeltaMarkup(h,previous);
+    const reason=$('#reason',layout),compare=$('#reason-compare',layout),tools=$('#reason-compare-tools',layout);
+    reason.textContent=reasoningText(h);reason.hidden=false;compare.hidden=true;compare.innerHTML='';
+    tools.innerHTML=previous?`<button type="button" class="reasoning-compare-toggle" aria-expanded="false">⇄ 이전 회차와 근거 나란히 보기</button>`:'';
+    const toggle=tools.querySelector('button');
+    if(toggle)toggle.onclick=()=>{
+      const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));
+      toggle.textContent=open?'현재 회차만 보기':'⇄ 이전 회차와 근거 나란히 보기';reason.hidden=open;compare.hidden=!open;
+      if(open)compare.innerHTML=`<section><header><span>PREVIOUS · R${previous.round}</span><strong>${p1(previous.probability)}</strong></header><pre>${esc(reasoningText(previous))}</pre></section>
+        <section><header><span>CURRENT · R${h.round}</span><strong>${p1(h.probability)}</strong></header><pre>${esc(reasoningText(h))}</pre></section>`;
+    };
     layout.querySelectorAll('#rnds button').forEach(b=>b.classList.toggle('active',+b.dataset.r===h.round));
   };
   const rn=$('#rnds',layout);

@@ -207,6 +207,14 @@ def test_workspace_utility_contract() -> None:
         "research-sort",
         "flow-readout",
         "paintCursor",
+        "evidenceDeltaMarkup",
+        "reasoningText",
+        "round-delta",
+        "reasoning-compare",
+        "data-question-layout",
+        "research-display",
+        "data-analog-focus",
+        "SELECTED MONTH",
     ):
         assert behavior in html, f"워크스페이스 동작 누락: {behavior}"
     assert "body.focus-mode" in html
@@ -237,6 +245,12 @@ def test_workspace_utility_contract() -> None:
     assert "REVIEW QUEUE" in html and "data-review-dismiss" in html
     assert "compareCollapsed" in html and "compareAutoExpanded" in html
     assert "questionView" in html and "검토 우선순위" in html
+    assert "version:4" in html and "layout:'table'" in html
+    assert "WHAT CHANGED · R${previous.round} → R${current.round}" in html
+    assert "이전 회차와 근거 나란히 보기" in html
+    assert "저장된 근거 원문이 없습니다" in html
+    assert "집계 기준 상이" in html and "const maxIndex=focus==='ALL'?CAP" in html
+    assert "research-layout-cards" in html and "analog-readout" in html
     assert "SELECTED WEEK" in html and "pointerdown" in html
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html
