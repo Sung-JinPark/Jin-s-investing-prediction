@@ -54,8 +54,15 @@
 
 - `python -m ai_fc resolve --draft` — 가격 임계형 질문(ml/mapping.QUESTION_MAPS 등재)의
   판정 초안(outcome·증빙값·소스·신뢰도)을 일괄 출력. **원장 무기록.**
+- macro/earnings 결정론형은
+  `resolve <qid> --draft --resolution-data <json>`으로 판정한다. JSON에는 서로 다른
+  1·2차 출처의 `actual`(earnings는 `reference`도)을 넣는다. 연산자·임계값·배수는 JSON이
+  아니라 **registry의 불변 판정 문언에서만** 읽는다.
+- 두 출처의 숫자·단위가 다르거나 출처가 같으면 `held`로 보류한다. 반올림 차이를 평균하거나
+  한쪽 값을 임의 채택하지 않는다. 지원하지 않는 주관적 판정은 `unsupported`로 명시한다.
 - 확정은 반드시 사람이: `resolve <qid> --outcome yes|no --evidence <근거>` (기존 confirm 경로).
-- 공시 수치형(EPS·CPI·NFP)은 초안 비대상 — 사람이 공식 발표를 확인해 판정.
+- 구조화 JSON 예시: `docs/examples/resolution_observations.example.json`.
+- 가격형은 아직 단일 시세 조회이므로 확정 전 거래소/공식 종가 2차 대조가 별도로 필요하다.
 
 ## 5. 등록 체크리스트 (신규 질문마다)
 

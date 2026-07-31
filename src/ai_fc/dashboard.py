@@ -177,7 +177,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             queries.resolved_forecast_ids(conn), now,
             latest_probs=queries.latest_probabilities(conn),
             ml_refs=queries.latest_ml_refs(conn, config.ML_REF_MAX_AGE_DAYS))
-        due_list = [{"qid": d.question_id, "kind": d.kind, "reason": d.reason} for d in due]
+        due_list = [{"qid": d.question_id, "kind": d.kind, "reason": d.reason,
+                     "overdue_days": d.overdue_days} for d in due]
     except Exception:  # noqa: BLE001
         due_list = []
 

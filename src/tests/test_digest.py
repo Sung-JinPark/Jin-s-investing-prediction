@@ -76,6 +76,19 @@ def _context_payload(run_ts: str) -> dict:
             "n_eras": 5, "pool_eras": ["dotcom", "biotech2015"],
             "selected_eras": ["dotcom", "biotech2015"], "asof": "2026-07-20",
         },
+        "event_context": {
+            "current_era": "ai", "asof": "2026-07-20", "cycle_month": 42,
+            "window_months": 6,
+            "events": [
+                {"era": "dotcom", "date": "1999-06-30", "type": "fed",
+                 "title": "Fed 인상 개시", "cycle_month": 41.0,
+                 "offset_months": -1.0, "source_url": "https://example.test/fed"},
+                {"era": "biotech2015", "date": "2016-02-11", "type": "bottom",
+                 "title": "IBB 저점", "cycle_month": 37.0,
+                 "offset_months": -5.0, "source_url": "https://example.test/ibb"},
+            ],
+            "note": "유사 사이클월의 과거 사건 서사 — 질문 매핑 확률·트윈 표본 아님",
+        },
         "factor_tilt": {"value_z": 0.57, "momentum_z": 0.33, "size_z": 0.19,
                         "vintage": "2026-05-01"},
         "regime": {"yield_curve_10y2y": 0.37, "yield_curve_inverted": False,
@@ -97,6 +110,8 @@ def test_digest_injects_context_raw_material(repo: Path) -> None:
     assert "최근접 과거 사이클: dotcom" in d          # 아날로그 주입
     assert "+28.2%" in d                               # 6M 전방수익률 중앙값
     assert "가치(HML)" in d and "레짐" in d            # 팩터·레짐 주입
+    assert "[이벤트 맥락] AI M+42" in d and "Fed 인상 개시" in d
+    assert "트윈 표본 아님" in d
     assert "R-4" in d                                  # 준-앵커 주의 라벨 필수
     # 여전히 매핑 참조 확률은 미포함 (앵커링 방지 계약 — context도 동일)
     assert "0.7317" not in d and "73%" not in d

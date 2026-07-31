@@ -35,6 +35,15 @@ python -m ai_fc report --open          # 캘리브레이션 대시보드
 python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (이상 시 종료코드 1)
 ```
 
+- `due`는 `resolve`를 먼저 표시하고, 같은 resolve 큐는 **기한/윈도우 경과일이 긴 순서**로
+  정렬한다. JSON 출력에는 `overdue_days`가 추가된다.
+- 가격 임계형 판정 초안: `python -m ai_fc resolve <qid> --draft`.
+- macro/earnings 수치형 판정 초안:
+  `python -m ai_fc resolve <qid> --draft --resolution-data ..\docs\examples\resolution_observations.example.json`.
+  관측 JSON은 1·2차 출처의 `actual`과 필요 시 `reference`만 제공한다. 판정 연산자와 임계는
+  registry 문언에서 추출하며, 숫자·단위·출처가 불일치하면 `held`로 보류한다.
+  초안은 어떤 경우에도 원장을 쓰지 않는다. 확정은 사람이 공식 근거를 검토한 뒤 기존
+  `resolve <qid> --outcome yes|no --evidence <URL·설명>` 경로로 수행한다.
 - `python -m ai_fc dashboard`: 예측 흐름 조회 대시보드 (읽기 전용, 자기완결 HTML) → `reports/dashboard.html`. 브라우저로 열면 끝, 의존성 0. 6뷰: 개요·흐름차트(주간 시나리오 S1/S2/S3)·질문브라우저·질문상세(회차 이력+추론)·날짜조회(as-of)·캘리브레이션
   - **팀 공유(LAN)**: `python -m ai_fc dashboard --serve --host 0.0.0.0 [--port 8899]` — 표준 라이브러리 http.server, 읽기 전용(POST 차단), 매 요청 라이브 재조회. LAN 노출은 공개 예측 데이터만(시크릿 미포함)이나 신뢰 네트워크에서만 사용
 - `python -m ai_fc quant`: 정량 재적합 (오버레이·Hurst·LPPL·GBM·미드텀) → `base_rates/quant_auto.md`

@@ -225,6 +225,8 @@ python -m ai_fc dashboard
 cd src
 python -m ai_fc forecast          # 새 예측 회차 생성
 python -m ai_fc resolve --draft   # 기계 판정 초안 — 최종 확정은 사람
+# macro/earnings는 두 출처 관측 JSON을 함께 제공
+python -m ai_fc resolve <qid> --draft --resolution-data ../docs/examples/resolution_observations.example.json
 python -m ai_fc report            # 캘리브레이션 보고서 생성
 python -m ai_fc dashboard --serve --host 0.0.0.0
 ```

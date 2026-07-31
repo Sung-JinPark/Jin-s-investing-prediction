@@ -64,6 +64,24 @@ def _format_context(run: dict) -> list[str]:
             f"{_pct(fr.get('m3'))}/{_pct(fr.get('m6'))}/{_pct(fr.get('m12'))} "
             f"(풀 {a.get('n_eras')}시대·선택 {sel}·n={fr.get('n')}){depth_s} "
             f"— **매핑 확률 아님, 과거 base rate 참조(R-4 준-앵커 주의)**")
+    ec = run.get("event_context")
+    if ec and ec.get("events"):
+        event_bits = []
+        for event in ec["events"]:
+            cm = event.get("cycle_month")
+            cm_text = "?" if cm is None else f"{float(cm):g}"
+            offset = event.get("offset_months")
+            offset_text = "" if offset is None else f", {float(offset):+g}개월"
+            source_text = (
+                f" [source: {event.get('source_url')}]"
+                if event.get("source_url") else " [미검증: source_url 없음]")
+            event_bits.append(
+                f"{event.get('era')} M+{cm_text} "
+                f"({event.get('date')}{offset_text}) {event.get('title')}{source_text}")
+        lines.append(
+            f"- [이벤트 맥락] AI M+{ec.get('cycle_month')} (asof {ec.get('asof')})와 "
+            f"±{ec.get('window_months')}개월: " + " · ".join(event_bits)
+            + " — **서사 원재료일 뿐 질문 매핑 확률·트윈 표본 아님**")
     ft = run.get("factor_tilt")
     if ft and any(ft.get(k) is not None for k in ("value_z", "momentum_z", "size_z")):
         z = lambda x: "—" if x is None else f"{x:+.2f}"  # noqa: E731

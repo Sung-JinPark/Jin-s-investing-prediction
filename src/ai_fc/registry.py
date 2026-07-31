@@ -176,15 +176,20 @@ def compute_due(
 
         # 1) 해소 due — fixed 기한 경과
         if q.deadline_kind == "fixed" and q.deadline and today > q.deadline:
+            overdue_days = (today - q.deadline).days
             due.append(DueItem(q.question_id, "resolve",
-                               f"기한 {q.deadline} 경과 — 판정 필요"))
+                               f"기한 {q.deadline} 경과 {overdue_days}일 — 판정 필요",
+                               overdue_days=overdue_days))
             continue  # 기한 지난 질문은 재예측 대상 아님
 
         # 2) 해소 due — rolling 윈도우 종료
         for fid, wend in open_windows.get(q.question_id, []):
             if fid not in resolved_forecast_ids and today > wend:
+                overdue_days = (today - wend).days
                 due.append(DueItem(q.question_id, "resolve",
-                                   f"rolling 윈도우 {wend} 종료 — {fid} 채점 필요"))
+                                   f"rolling 윈도우 {wend} 종료 {overdue_days}일 — "
+                                   f"{fid} 채점 필요",
+                                   overdue_days=overdue_days))
 
         # 3) 재예측 due
         if q.is_manual:
@@ -233,7 +238,21 @@ def compute_due(
                         f"≥ {ML_DIVERGENCE_PP}%p (재예측 후보 — 자동 실행 안 함){cls_txt}",
                         last))
 
-    return due
+    # WS-1 채점 회전율: resolve를 맨 앞에, 같은 resolve 유형은 오래 경과한 순서로.
+    # 나머지 유형의 상대 우선순위도 모든 소비자(CLI·대시보드·알림)에서 일관되게 유지한다.
+    kind_order = {
+        "resolve": 0, "forecast": 1, "divergence": 2,
+        "stale": 3, "manual-review": 4,
+    }
+    return sorted(
+        due,
+        key=lambda d: (
+            kind_order.get(d.kind, 9),
+            -(d.overdue_days or 0) if d.kind == "resolve" else 0,
+            d.last_forecast_ts.isoformat() if d.last_forecast_ts else "",
+            d.question_id,
+        ),
+    )
 
 
 # ── 한국어 cadence → schedule 제안 (보조 마이그레이션) ─────────────

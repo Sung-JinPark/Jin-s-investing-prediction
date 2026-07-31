@@ -111,3 +111,8 @@
     파일(data/raw/manual/) 투입 대기. 자체 생성·추정 금지(§10.1 결측은 결측으로).
     시총가중 집중도·HHI도 주식수 이력 부재로 보류 — NDX/IXIC 프록시로 대체(#22).
     잔여: weekly/lppl의 dotcom·ai 리터럴 de-hardcode(소비 로직 — 다중 시대 확장 시).
+24. **유사 사이클월 event digest 배선 (2026-07-31)**: 현 AI M+N을 계산해 k-NN 선택
+    아날로그 시대의 ±6개월 과거 사건을 `event_context`로 context payload에 추가.
+    시대별 최대 2건, `cycle_month` 실측 행만 사용하며 인접 사건 부재 시 결측 유지.
+    ai_fc digest에는 "서사 원재료·질문 매핑 확률/트윈 표본 아님" 라벨로 주입한다.
+    `entity.is_twin`과 결합·변경하지 않으며 기존 ml_history run은 불변.

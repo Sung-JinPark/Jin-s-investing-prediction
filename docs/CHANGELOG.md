@@ -2,6 +2,20 @@
 
 > 형식: Phase/워크스트림 단위. 출처(검토 라운드·스펙) 명기. dualdb 자체 이력은 dualdb/CHANGELOG.md.
 
+## Claude → Codex 백엔드 청사진 정밀 대조·P0/P1 실행 — 2026-07-31
+
+- **WS-1 수치형 판정 초안**: macro(FOMC·CPI·NFP·GDP)와 earnings(컨센/직전 값 비교)를
+  `--resolution-data`의 두 출처 관측값으로 판정. 연산자·임계·배수는 registry의 불변
+  판정 문언에서만 추출한다. 수치·단위 불일치/동일 출처는 `held`, 주관적 유형은
+  `unsupported`. 어떤 초안도 원장·예측 파일을 쓰지 않으며 최종 확정은 사람.
+- **WS-1 resolve 큐**: `compute_due`가 resolve를 최우선, 경과일 내림차순으로 반환.
+  read-model/JSON에 additive `overdue_days` 추가.
+- **WS-2 event context**: 현 AI M+N과 ±6개월인 과거 선택 시대 event를 시대별 최대
+  2건 digest에 주입. 질문 매핑 확률·트윈 표본으로 사용하지 않음.
+- **청사진 오류 교정**: k-NN 다중 시대 풀은 기존 CHANGELOG #15에서 이미 구현 완료.
+  CAPE/HY는 교차 시대 데이터가 없어 강제 차원 추가를 거부하고 현재 레짐 컨텍스트 유지.
+- 사용법·한계·DB 흐름·원 청사진에 구현 대조표와 구조화 JSON 예시를 추가.
+
 ## 회귀 감사 260720 발견사항 처리 (기준선 회차 F-01~F-05 + G-1, 사용자 승인) — 2026-07-20
 
 - **F-01 (정본 판정)**: ^IXIC 1995~2004 종가를 FRED NASDAQCOM으로 승격 (DECISIONS 9-5) — 교차 불일치 3.11%→**0.10%**, `test_dual_source_cross_check` **무수정 PASS 전환** (dualdb **39/39 전부 통과**, skip 0). 파생 재계산 완료 (Pearson 0.9056 불변 — 월말 지표 영향 미미 실증).

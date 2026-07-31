@@ -6,11 +6,13 @@ outcome 최종 결정과 확인은 사람이 한다 (원장 append 전 확인 �
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, timedelta
+from decimal import Decimal, InvalidOperation
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Any, Callable, Mapping, Optional
 
 import typer
 
@@ -39,6 +41,304 @@ class DraftVerdict:
     # v3 WS-D: 초안은 Yahoo 단일 소스 — 확정 전 2차 출처(WSJ/Nasdaq.com/거래소) 대조 필수.
     # 상수 True — 초안이 확정으로 오인되는 것을 구조적으로 방지 (7/14 Yahoo 일봉 철회 실사례).
     secondary_check_needed: bool = True
+    comparison_status: str = "pending"  # matched | held | pending | unsupported
+    comparison_log: str = ""
+
+
+@dataclass(frozen=True)
+class SourceObservation:
+    """판정용 한 출처의 구조화 관측값.
+
+    actual은 발표 실측치(또는 FOMC 변동 bp), reference는 earnings 비교 기준
+    (D-1 컨센서스·직전 분기 값)이다. 문자열 Decimal로 읽어 이중 출처의 숫자가
+    정확히 같은지 대조한다. 서로 다른 반올림값을 임의로 평균하지 않는다.
+    """
+
+    actual: Decimal
+    source: str
+    reference: Optional[Decimal] = None
+    observed_at: str = ""
+    unit: str = ""
+
+
+@dataclass(frozen=True)
+class ResolutionObservation:
+    """질문 하나의 독립된 1·2차 출처 관측값."""
+
+    question_id: str
+    primary: SourceObservation
+    secondary: SourceObservation
+
+
+@dataclass(frozen=True)
+class NumericRule:
+    """고정된 registry 판정 문언에서 보수적으로 추출한 수치 규칙."""
+
+    label: str
+    operator: str
+    threshold: Optional[Decimal] = None
+    reference_multiplier: Optional[Decimal] = None
+
+    @property
+    def needs_reference(self) -> bool:
+        return self.reference_multiplier is not None
+
+
+def _as_decimal(value: Any, field: str) -> Decimal:
+    if value is None or isinstance(value, bool):
+        raise ValueError(f"{field}는 유한한 숫자여야 함")
+    try:
+        out = Decimal(str(value))
+    except (InvalidOperation, ValueError) as exc:
+        raise ValueError(f"{field} 숫자 해석 실패: {value!r}") from exc
+    if not out.is_finite():
+        raise ValueError(f"{field}는 유한한 숫자여야 함")
+    return out
+
+
+def _source_observation(raw: Any, field: str) -> SourceObservation:
+    if not isinstance(raw, dict):
+        raise ValueError(f"{field}는 객체여야 함")
+    source = str(raw.get("source") or "").strip()
+    if not source:
+        raise ValueError(f"{field}.source 누락")
+    reference = raw.get("reference")
+    return SourceObservation(
+        actual=_as_decimal(raw.get("actual"), f"{field}.actual"),
+        reference=(_as_decimal(reference, f"{field}.reference")
+                   if reference is not None else None),
+        source=source,
+        observed_at=str(raw.get("observed_at") or "").strip(),
+        unit=str(raw.get("unit") or "").strip(),
+    )
+
+
+def load_resolution_observations(path: Path) -> dict[str, ResolutionObservation]:
+    """JSON 판정 관측값 로드.
+
+    허용 형태는 단일 객체, 객체 배열, 또는 ``{"observations": [...]}``.
+    원장은 전혀 건드리지 않으며 질문별 중복은 조용히 덮지 않고 거부한다.
+    """
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    if isinstance(raw, dict) and "observations" in raw:
+        items = raw["observations"]
+    elif isinstance(raw, list):
+        items = raw
+    else:
+        items = [raw]
+    if not isinstance(items, list):
+        raise ValueError("observations는 배열이어야 함")
+
+    out: dict[str, ResolutionObservation] = {}
+    for i, item in enumerate(items):
+        if not isinstance(item, dict):
+            raise ValueError(f"observations[{i}]는 객체여야 함")
+        qid = str(item.get("question_id") or "").strip()
+        if not qid:
+            raise ValueError(f"observations[{i}].question_id 누락")
+        if qid in out:
+            raise ValueError(f"중복 question_id 관측값: {qid}")
+        out[qid] = ResolutionObservation(
+            question_id=qid,
+            primary=_source_observation(item.get("primary"), f"{qid}.primary"),
+            secondary=_source_observation(item.get("secondary"), f"{qid}.secondary"),
+        )
+    return out
+
+
+def _numeric_rule(q) -> Optional[NumericRule]:
+    """판정 문언이 명시적인 macro/earnings 유형만 규칙으로 승격.
+
+    evidence 파일이 연산자·임계값을 정하게 두면 판정기준을 우회할 수 있으므로,
+    규칙은 오직 불변 registry 문언에서 읽는다. 모호한 문언은 지원하지 않는다.
+    """
+    import re
+
+    resolution = q.resolution.replace(",", "").replace("×", "x")
+    # YES 규칙만 읽는다. 뒤쪽의 "3.7% 이하 NO" 같은 반대 예시를 임계값으로
+    # 오인하면 판정이 뒤집히므로 첫 NO 토큰 이후는 규칙 추출에서 제외한다.
+    yes_clause = re.split(r"\bNO\b", resolution, maxsplit=1, flags=re.IGNORECASE)[0]
+    identity = f"{q.title}\n{resolution}"
+    if q.domain == "macro":
+        if "FOMC" in identity:
+            m = re.search(
+                r"\+?(\d+(?:\.\d+)?)\s*bp\s*이상", yes_clause, re.IGNORECASE)
+            if m:
+                return NumericRule("목표범위 상단 변동", "ge",
+                                   threshold=Decimal(m.group(1)))
+        if "NFP" in identity.upper():
+            m = re.search(
+                r"NFP\s*<\s*\+?(\d+(?:\.\d+)?)", yes_clause, re.IGNORECASE)
+            if m:
+                return NumericRule("NFP 최초 공표치", "lt",
+                                   threshold=Decimal(m.group(1)))
+        if "CPI" in identity.upper():
+            symbolic = re.search(
+                r"CPI(?:-U)?\s*YoY.*?(>=|≥|>|<=|≤|<)\s*"
+                r"(\d+(?:\.\d+)?)%",
+                yes_clause, re.IGNORECASE)
+            if symbolic:
+                op = {
+                    ">=": "ge", "≥": "ge", ">": "gt",
+                    "<=": "le", "≤": "le", "<": "lt",
+                }[symbolic.group(1)]
+                return NumericRule(
+                    "CPI-U YoY", op, threshold=Decimal(symbolic.group(2)))
+            m = re.search(
+                r"CPI(?:-U)?\s*YoY.*?(\d+(?:\.\d+)?)%\s*(이상|초과|이하|미만)",
+                yes_clause, re.IGNORECASE)
+            if m:
+                op = {"이상": "ge", "초과": "gt", "이하": "le", "미만": "lt"}[m.group(2)]
+                return NumericRule("CPI-U YoY", op, threshold=Decimal(m.group(1)))
+            if ">" in yes_clause:
+                return NumericRule(
+                    "CPI-U YoY vs 비교 기준", "gt",
+                    reference_multiplier=Decimal("1"))
+            if "<" in yes_clause:
+                return NumericRule(
+                    "CPI-U YoY vs 비교 기준", "lt",
+                    reference_multiplier=Decimal("1"))
+        if "GDP" in identity.upper() and ("컨센" in yes_clause.lower()
+                                          or "consensus" in yes_clause.lower()):
+            if ">" in yes_clause:
+                return NumericRule(
+                    "GDP 속보치 vs 컨센서스", "gt",
+                    reference_multiplier=Decimal("1"))
+            if "<" in yes_clause:
+                return NumericRule(
+                    "GDP 속보치 vs 컨센서스", "lt",
+                    reference_multiplier=Decimal("1"))
+        return None
+
+    if q.domain != "earnings":
+        return None
+    lowered = yes_clause.lower()
+    # actual >= D-1 consensus × multiplier (예: NVDA DC +5% beat).
+    mult = re.search(r"(?:>=|≥).*?(?:컨센|consensus).*?x\s*(\d+(?:\.\d+)?)", lowered)
+    if mult:
+        return NumericRule("발표 실적 vs 비교 기준", "ge",
+                           reference_multiplier=Decimal(mult.group(1)))
+    # Symbol이 없더라도 판정 문언의 "+N% 이상 상회"를 multiplier로 해석.
+    pct = re.search(r"(?:컨센|consensus).*?\+?(\d+(?:\.\d+)?)%\s*이상\s*상회", lowered)
+    if pct:
+        multiplier = Decimal("1") + Decimal(pct.group(1)) / Decimal("100")
+        return NumericRule("발표 실적 vs 비교 기준", "ge",
+                           reference_multiplier=multiplier)
+    if ">" in lowered and ("컨센" in lowered or "consensus" in lowered):
+        return NumericRule("발표 실적 vs 비교 기준", "gt",
+                           reference_multiplier=Decimal("1"))
+    if "<" in lowered and (
+            "gross margin" in lowered or "총마진" in lowered
+            or "직전" in lowered or "이전" in lowered):
+        return NumericRule("발표 실적 vs 직전 값", "lt",
+                           reference_multiplier=Decimal("1"))
+    return None
+
+
+def _decimal_text(value: Decimal) -> str:
+    text = format(value, "f")
+    return text.rstrip("0").rstrip(".") if "." in text else text
+
+
+def _compare(left: Decimal, operator: str, right: Decimal) -> bool:
+    return {
+        "ge": left >= right,
+        "gt": left > right,
+        "le": left <= right,
+        "lt": left < right,
+    }[operator]
+
+
+def _source_identity(source: str) -> str:
+    """URL이면 host, 서술형이면 정규화한 전체 문자열로 독립 출처를 구분."""
+    from urllib.parse import urlparse
+
+    parsed = urlparse(source)
+    return (parsed.hostname or source).casefold().removeprefix("www.")
+
+
+def numeric_machine_check(q, observation: Optional[ResolutionObservation], *,
+                          today: Optional[date] = None) -> DraftVerdict:
+    """macro/earnings 수치 판정 초안 — 두 독립 출처가 일치할 때만 outcome 산출."""
+    today = today or date.today()
+    if q.deadline_kind != "fixed" or q.deadline is None:
+        return DraftVerdict(
+            q.question_id, None, None, "", "", "low",
+            "고정 기한 수치형 질문만 지원", True, "unsupported",
+            "[unsupported] fixed deadline 없음")
+    if today <= q.deadline:
+        return DraftVerdict(
+            q.question_id, None, None, "", "", "low",
+            f"기한 미도래 ({q.deadline})", True, "pending",
+            f"[pending] 오늘 {today} ≤ 기한 {q.deadline}")
+
+    rule = _numeric_rule(q)
+    if rule is None:
+        return DraftVerdict(
+            q.question_id, None, None, "", "", "low",
+            "판정불가 유형 — registry 문언에서 안전한 수치 규칙을 추출하지 못함",
+            True, "unsupported",
+            "[unsupported] 주관적·모호한 판정은 사람 검토 필요")
+    if observation is None:
+        return DraftVerdict(
+            q.question_id, None, None, "", "", "low",
+            "구조화된 1·2차 출처 관측값 필요 (--resolution-data)",
+            True, "pending",
+            f"[pending] {rule.label}: 이중 출처 관측값 없음")
+
+    p, s = observation.primary, observation.secondary
+    held_reasons: list[str] = []
+    if _source_identity(p.source) == _source_identity(s.source):
+        held_reasons.append("1·2차 source가 동일")
+    if p.actual != s.actual:
+        held_reasons.append(
+            f"actual 불일치 {_decimal_text(p.actual)} ≠ {_decimal_text(s.actual)}")
+    if rule.needs_reference:
+        if p.reference is None or s.reference is None:
+            held_reasons.append("reference 누락")
+        elif p.reference != s.reference:
+            held_reasons.append(
+                f"reference 불일치 {_decimal_text(p.reference)} ≠ "
+                f"{_decimal_text(s.reference)}")
+    if not p.unit or not s.unit:
+        held_reasons.append("unit 누락")
+    elif p.unit.casefold() != s.unit.casefold():
+        held_reasons.append(f"unit 불일치 {p.unit!r} ≠ {s.unit!r}")
+    if not p.observed_at or not s.observed_at:
+        held_reasons.append("observed_at 누락")
+    elif p.observed_at != s.observed_at:
+        held_reasons.append(
+            f"observed_at 불일치 {p.observed_at!r} ≠ {s.observed_at!r}")
+
+    sources = f"{p.source} ↔ {s.source}"
+    if held_reasons:
+        return DraftVerdict(
+            q.question_id, None, None, "", sources, "low",
+            "수치 불일치 — 판정 보류·사람 검토", True, "held",
+            "[held] " + "; ".join(held_reasons))
+
+    if rule.needs_reference:
+        assert p.reference is not None  # held 분기에서 누락 차단
+        target = p.reference * rule.reference_multiplier
+        evidence_value = (
+            f"{rule.label}: actual {_decimal_text(p.actual)} vs 기준 "
+            f"{_decimal_text(p.reference)} × {_decimal_text(rule.reference_multiplier)}"
+            f" = {_decimal_text(target)}")
+    else:
+        assert rule.threshold is not None
+        target = rule.threshold
+        evidence_value = (
+            f"{rule.label}: actual {_decimal_text(p.actual)} vs 임계 "
+            f"{_decimal_text(target)}")
+    outcome = "yes" if _compare(p.actual, rule.operator, target) else "no"
+    stamp = f" ({p.observed_at})" if p.observed_at else ""
+    return DraftVerdict(
+        q.question_id, None, outcome, evidence_value, sources, "high",
+        f"두 출처 수치 일치{stamp}", False, "matched",
+        f"[matched] primary={p.source} secondary={s.source} "
+        f"actual={_decimal_text(p.actual)}"
+        + (f" reference={_decimal_text(p.reference)}"
+           if p.reference is not None else ""))
 
 
 def _default_fetch(symbol: str, start: date, end: date):
@@ -121,7 +421,9 @@ def machine_check(q, *, window_start: Optional[date] = None,
 def draft_verdicts(conn: sqlite3.Connection, root: Path,
                    question_id: Optional[str] = None,
                    fetch: Optional[Callable] = None,
-                   today: Optional[date] = None) -> list[DraftVerdict]:
+                   today: Optional[date] = None,
+                   observations: Optional[
+                       Mapping[str, ResolutionObservation]] = None) -> list[DraftVerdict]:
     """해소 대상(기한 경과 fixed + 윈도우 종료 rolling)의 기계 판정 초안 일괄 산출.
 
     원장·파일 무접촉 — 출력만. 확정은 resolve <qid> --outcome 경로로 사람이.
@@ -133,6 +435,16 @@ def draft_verdicts(conn: sqlite3.Connection, root: Path,
                and q.status == "active"]
     out: list[DraftVerdict] = []
     for q in targets:
+        # 결정론 수치형은 가격 매핑과 독립. bulk에서는 기한 경과만, qid 명시 시에는
+        # pending/unsupported 사유까지 보여 사용자가 관측값·판정 문언을 보완할 수 있게 한다.
+        if q.domain in {"macro", "earnings"}:
+            if (question_id is None
+                    and (q.deadline_kind != "fixed" or q.deadline is None
+                         or today <= q.deadline)):
+                continue
+            out.append(numeric_machine_check(
+                q, (observations or {}).get(q.question_id), today=today))
+            continue
         if q.deadline_kind == "fixed":
             if question_id is None and (q.deadline is None or today <= q.deadline):
                 continue  # 일괄 모드에선 기한 경과만

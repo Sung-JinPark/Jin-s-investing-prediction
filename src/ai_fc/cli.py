@@ -69,13 +69,13 @@ def cmd_due(
 
     if as_json:
         typer.echo(json.dumps(
-            [{"qid": d.question_id, "kind": d.kind, "reason": d.reason} for d in due],
+            [{"qid": d.question_id, "kind": d.kind, "reason": d.reason,
+              "overdue_days": d.overdue_days} for d in due],
             ensure_ascii=False, indent=2))
     else:
         if not due:
             typer.echo("due 없음 — 모든 질문이 cadence 내에 있음")
-        order = {"resolve": 0, "forecast": 1, "divergence": 2, "stale": 3, "manual-review": 4}
-        for d in sorted(due, key=lambda x: order.get(x.kind, 9)):
+        for d in due:
             typer.echo(f"[{d.kind:13s}] {d.question_id:28s} {d.reason}")
 
     # 수동 base rate 빈티지 경고 (AUDIT-260715 D-5 — 경고만, 차단 아님)
@@ -187,21 +187,33 @@ def cmd_resolve(
     outcome: str = typer.Option(None, "--outcome", help="yes | no | void"),
     forecast_id: str = typer.Option(None, "--forecast-id", help="rolling 인스턴스 지정"),
     evidence: str = typer.Option("", "--evidence", help="판정 근거 (URL·설명)"),
+    resolution_data: Path = typer.Option(
+        None, "--resolution-data",
+        help="macro/earnings 이중 출처 관측 JSON (--draft 전용)"),
     draft: bool = typer.Option(False, "--draft",
                                help="기계 판정 초안만 출력 (원장 무기록 — 확정은 사람)"),
     yes: bool = typer.Option(False, "--yes"),
 ) -> None:
     """해소 판정 보조: Brier 계산 후 확인받고 원장 append. --draft는 초안만."""
-    from .resolver import draft_verdicts, resolve_question
+    from .resolver import (draft_verdicts, load_resolution_observations,
+                           resolve_question)
 
     root = config.ROOT
     conn = _conn(root)
     ingest.sync(conn, root)
 
     if draft:
-        verdicts = draft_verdicts(conn, root, question_id)
+        observations = {}
+        if resolution_data is not None:
+            try:
+                observations = load_resolution_observations(resolution_data)
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                typer.echo(f"판정 관측 JSON 오류: {exc}", err=True)
+                raise typer.Exit(code=2) from exc
+        verdicts = draft_verdicts(
+            conn, root, question_id, observations=observations)
         if not verdicts:
-            typer.echo("기계 판정 초안 대상 없음 (가격 임계형 + 기한/윈도우 도래 질문만)")
+            typer.echo("기계 판정 초안 대상 없음 (가격·macro·earnings 결정론형 + 기한 도래만)")
             return
         typer.echo("기계 판정 초안 — 참고 의견 (P3 게이트 전) · 원장 무기록, 확정은 사람:")
         for v in verdicts:
@@ -209,8 +221,10 @@ def cmd_resolve(
             oc = v.outcome or "판정불가"
             typer.echo(f"  {v.question_id:28s}{fid} → {oc:6s} ({v.confidence}) "
                        f"{v.evidence_value} {v.note}")
-        typer.echo("⚠ 초안은 Yahoo 단일 소스 — 확정 전 2차 출처(WSJ/Nasdaq.com/거래소) "
-                   "대조 필수, 불일치 시 판정 보류·기록 (WS-D)")
+            if v.comparison_log:
+                typer.echo(f"    ↳ source-check {v.comparison_log}")
+        typer.echo("⚠ macro/earnings는 두 출처 수치가 일치할 때만 초안 판정. "
+                   "가격형은 여전히 2차 공식 출처 대조가 필요하며, 불일치는 held.")
         typer.echo("확정: python -m ai_fc resolve <qid> --outcome yes|no --evidence <근거>")
         return
 

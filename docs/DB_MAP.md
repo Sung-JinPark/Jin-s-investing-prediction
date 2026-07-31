@@ -82,6 +82,7 @@
 raw(L1) ─┬─ derive → derived_daily·correction_episode(L2) ─┐
          │                                                  ├─ models → model_run(L4)
          └─ french/shiller → factor·valuation(L1) ──────────┘        │
+   event(L3) ── 현 AI M+N 인접 과거 사건(event_context) ─────────────┤
                                                                       ▼
                           context_bridge → data/ml_history(kind:context) ─┐
                                                                           ▼
@@ -89,16 +90,17 @@ raw(L1) ─┬─ derive → derived_daily·correction_episode(L2) ─┐
                           ※ 매핑 확률 없이 base rate 맥락만 (R-4 앵커링 방지)
 ```
 
-**주의**: `entity`/`event`(L3)는 현재 **자동 예측 digest에 배선되지 않음** — 대시보드 타임라인·
-트윈 모델(Q14)·향후 확장용 사료(史料)다. 정합도(예측 정확도)에 직접 기여하는 경로는
-L2(조정·k-NN)·L1(팩터·레짐)뿐.
+**이벤트 배선**: `event`(L3)는 현 AI 사이클월 ±6개월의 과거 아날로그 사건을
+`event_context`로 선별해 digest에 **서사 원재료**로 주입한다. 사건을 확률로 변환하지 않고,
+`entity.is_twin`과도 결합하지 않아 트윈 base rate(Q14)를 오염시키지 않는다. 기존 context
+run은 불변이며, 다음 `python -m dualdb context` 실행부터 신규 필드가 들어간다.
 
 ## 4. 건강 진단 (2026-07-31)
 
 - ✅ **정량 레이어 매우 건강**: 가격/매크로/파생/팩터가 다중시대·심층역사(~1854)·최신까지 축적.
   조정 에피소드 41개·8시대 = 두꺼운 base-rate 라이브러리.
 - ⚠️ **얕은 곳**: `sentiment_weekly`(심리 결측 차원 미해소), `fundamentals_annual` 공백.
-  entity/event는 채웠으나 자동 예측 파이프라인 미배선.
+  entity의 비트윈 사료는 digest 미배선 상태지만, event는 서사 맥락으로 배선 완료.
 - ❗ **진짜 병목 = DB가 아니라 채점 회전율**: 예측 39·질문 38은 쌓였으나 해소 **6건**.
   P3 게이트(50 해소 + Brier<0.18)까지 표본이 병목. `resolve` 회전이 시스템 목표의 실제 율속단계.
 

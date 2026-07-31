@@ -3,6 +3,7 @@
 자동 예측 프롬프트 주입(ai_fc base_rates.ml_digest)이 읽는
 data/ml_history/YYYY.jsonl 에 kind:"context" run 1건을 append 한다. 내용:
 - analog: 다중 시대 k-NN 최근접 사이클·이후 3/6/12M 수익률 분포·유사 조정 깊이
+- event_context: 현 AI 사이클월 인근의 과거 아날로그 사건(서사 맥락만)
 - factor_tilt: 팩터 기울기 z (가치 HML·모멘텀 Mom·사이즈 SMB, 최근 12M vs 장기)
 - regime: 금리커브(T10Y2Y)·HY 스프레드(pctile)·CAPE(빈티지) — 기존 FRED 사용
 
@@ -26,6 +27,8 @@ from .. import config
 from ..models import knn_analog
 
 NOTE = "과거 유사 시대 base rate — 질문 매핑 확률 아님(R-4, 준-앵커 주의)"
+EVENT_WINDOW_MONTHS = 6
+EVENTS_PER_ERA = 2
 
 
 def _analog(conn: sqlite3.Connection) -> dict | None:
@@ -61,6 +64,85 @@ def _analog(conn: sqlite3.Connection) -> dict | None:
         "pool_eras": r["pool_eras"],
         "selected_eras": sel,
         "asof": r["asof"],
+    }
+
+
+def _month_distance(anchor_ym: str, asof: str) -> int:
+    """월 보간 없이 YYYY-MM 달력 오프셋만 계산."""
+    ay, am = int(anchor_ym[:4]), int(anchor_ym[5:7])
+    yy, mm = int(asof[:4]), int(asof[5:7])
+    return (yy - ay) * 12 + (mm - am)
+
+
+def _event_context(conn: sqlite3.Connection, analog: dict | None,
+                   *, window_months: int = EVENT_WINDOW_MONTHS,
+                   per_era: int = EVENTS_PER_ERA) -> dict | None:
+    """현 AI M+N 근처의 과거 사건을 선택하되 확률·트윈 표본으로 변환하지 않는다.
+
+    event 원천의 cycle_month가 있는 행만 사용한다. 인접 사건이 없으면 결측을 그대로
+    유지하고, 가장 가까운 먼 사건을 억지로 끌어오지 않는다.
+    """
+    try:
+        asof = (analog or {}).get("asof")
+        if not asof:
+            row = conn.execute(
+                """SELECT MAX(date) d FROM derived_daily
+                   WHERE era_id='ai' AND series=?""",
+                (config.ANCHORS["ai"]["index"],)).fetchone()
+            asof = row["d"] if row else None
+        if not asof:
+            return None
+        cycle_month = _month_distance(config.ANCHORS["ai"]["anchor_month"], asof)
+        eras = list(dict.fromkeys(
+            (analog or {}).get("selected_eras")
+            or (analog or {}).get("pool_eras")
+            or []))
+        if not eras:
+            eras = [r["era_id"] for r in conn.execute(
+                """SELECT DISTINCT era_id FROM event
+                   WHERE era_id != 'ai' AND cycle_month IS NOT NULL
+                   ORDER BY era_id""")]
+        if not eras:
+            return None
+
+        ph = ",".join("?" for _ in eras)
+        rows = conn.execute(
+            f"""SELECT era_id, date, type, title, cycle_month, source_url, note
+                FROM event
+                WHERE era_id IN ({ph}) AND cycle_month IS NOT NULL
+                  AND ABS(cycle_month - ?) <= ?
+                ORDER BY era_id, ABS(cycle_month - ?), date""",
+            (*eras, cycle_month, window_months, cycle_month)).fetchall()
+    except (KeyError, sqlite3.OperationalError, TypeError, ValueError):
+        return None
+
+    counts: dict[str, int] = {}
+    events: list[dict] = []
+    for row in rows:
+        era = row["era_id"]
+        if counts.get(era, 0) >= per_era:
+            continue
+        counts[era] = counts.get(era, 0) + 1
+        event_month = float(row["cycle_month"])
+        events.append({
+            "era": era,
+            "date": row["date"],
+            "type": row["type"],
+            "title": row["title"],
+            "cycle_month": event_month,
+            "offset_months": round(event_month - cycle_month, 1),
+            "source_url": row["source_url"],
+            "note": row["note"],
+        })
+    if not events:
+        return None
+    return {
+        "current_era": "ai",
+        "asof": asof,
+        "cycle_month": cycle_month,
+        "window_months": window_months,
+        "events": events,
+        "note": "유사 사이클월의 과거 사건 서사 — 질문 매핑 확률·트윈 표본 아님",
     }
 
 
@@ -274,11 +356,13 @@ def _deep_history(conn: sqlite3.Connection) -> list[dict]:
 
 
 def build_payload(conn: sqlite3.Connection) -> dict:
+    analog = _analog(conn)
     return {
         "run_ts": datetime.now().isoformat(timespec="seconds"),
         "kind": "context",
         "source": "dualdb",
-        "analog": _analog(conn),
+        "analog": analog,
+        "event_context": _event_context(conn, analog),
         "factor_tilt": _factor_tilt(conn),
         "regime": _regime(conn),
         "breadth": _breadth(conn),

@@ -121,3 +121,4 @@ class DueItem:
     kind: str  # forecast | resolve | manual-review | stale | divergence(표시만 — 자동 실행 없음)
     reason: str
     last_forecast_ts: Optional[datetime] = None
+    overdue_days: Optional[int] = None  # resolve 큐 우선순위용; 그 외 유형은 None
