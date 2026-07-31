@@ -147,6 +147,10 @@ def test_ui_contract() -> None:
     assert "decisionQueueCard" in html and "linkedSignalStrip" in html
     assert "bindHomeSignals" in html and "lastSeenGeneratedAt" in html
     assert 'class="skip-link"' in html and 'id="app" tabindex="-1"' in html
+    assert "const hasNumeric=" in html and "const roundLabel=" in html
+    assert "산출 전" in html
+    assert '<div class="probability-row"><strong>${q.latest_prob}</strong><span>%</span></div>' not in html
+    assert '<span>R${q.n_rounds}</span>' not in html
 
 
 def test_workspace_utility_contract() -> None:

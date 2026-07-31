@@ -8,7 +8,9 @@ let DATA=null;
 const $=(s,r=document)=>r.querySelector(s);
 const app=()=>document.getElementById('app');
 const pct=v=>(v==null?'—':Math.round(v*100)+'%');
-const p1=v=>(v==null?'—':v+'%');
+const hasNumeric=v=>v!==null&&v!==''&&Number.isFinite(Number(v));
+const p1=v=>(hasNumeric(v)?v+'%':'산출 전');
+const roundLabel=v=>(Number(v)>0?`R${v}`:'회차 없음');
 const num=v=>(v==null?'—':Number(v).toLocaleString());
 const esc=s=>(s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
@@ -293,7 +295,7 @@ function myRadarQuestions(){
 function myRadarPanel(){
   const qs=myRadarQuestions();
   return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">MY RADAR</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#questions">질문 찾기</a></div>
-    ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · R${q.n_rounds||0}</small></button>`).join('')}</div>`:
+    ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
     '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
 }
 const REVIEW_DISMISSED_KEY='jin-review-dismissed-v1';
@@ -328,7 +330,7 @@ function decisionQueueCard(items){
   return `<aside class="decision-queue-card" aria-labelledby="decision-queue-title">
     <div class="decision-queue-head"><div><span>${visitLabel}</span><h2 id="decision-queue-title">지금 다시 볼 질문</h2><small>변화 · 판정 임박 · MY RADAR</small></div><b>${items.length}</b></div>
     ${items.length?`<div class="decision-queue-items">${items.map(x=>`<button type="button" class="decision-queue-item" data-open-q="${esc(x.q.id)}">
-      <span>${esc(x.q.title)}<small>${esc(x.reasons.join(' · '))}</small></span><strong>${p1(x.q.latest_prob)}</strong></button>`).join('')}</div>`:
+      <span>${esc(x.q.title)}<small>${esc(x.reasons.join(' · '))}</small></span><strong class="${hasNumeric(x.q.latest_prob)?'':'pending-value'}">${p1(x.q.latest_prob)}</strong></button>`).join('')}</div>`:
       '<p class="decision-queue-empty">새로 확인할 큰 변화나 임박한 판정이 없습니다.</p>'}
   </aside>`;
 }
@@ -344,8 +346,9 @@ function linkedSignalStrip(upProb,decisionItems){
     <span><i></i>${label}</span><strong>${value}</strong></button>`).join('')}</div>`;
 }
 function homeFeatureQuestions(decisionItems){
-  const chosen=decisionItems.map(x=>x.q),fallback=featureQs();
-  return [...new Map([...chosen,...fallback].map(q=>[q.id,q])).values()].slice(0,3);
+  const chosen=decisionItems.map(x=>x.q).filter(q=>hasNumeric(q.latest_prob)),fallback=featureQs();
+  const available=(DATA?.questions||[]).filter(q=>q.status==='active'&&hasNumeric(q.latest_prob));
+  return [...new Map([...chosen,...fallback,...available].map(q=>[q.id,q])).values()].slice(0,3);
 }
 function bindHomeSignals(root){
   const controls=[...root.querySelectorAll('[data-home-signal]')],cards=[...root.querySelectorAll('[data-home-signals]')];
@@ -364,7 +367,7 @@ function reviewQueuePanel(){
   return `<section class="utility-section"><div class="review-queue" role="region" aria-labelledby="review-queue-title">
     <div class="review-queue-head"><div><span>DECISION SUPPORT</span><h3 id="review-queue-title">REVIEW QUEUE</h3><small>변화 · 판정 임박 · MY RADAR만 모았습니다.</small></div><b>${items.length}</b></div>
     ${items.length?`<div class="review-items">${items.map(({q,reasons})=>`<div class="review-item">
-      <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong>${p1(q.latest_prob)}</strong></button>
+      <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong class="${hasNumeric(q.latest_prob)?'':'pending-value'}">${p1(q.latest_prob)}</strong></button>
       <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(q.title)} 이번 세션에서 숨기기">×</button>
     </div>`).join('')}</div>`:'<p class="review-empty">지금 다시 확인할 변화나 임박한 판정이 없습니다.</p>'}
   </div></section>`;
@@ -409,7 +412,7 @@ function downloadQuestionCalendar(ids=null){
   if(!qs.length)return showToast('저장할 판정일이 없습니다.','warning');
   const stamp=generatedDay().replaceAll('-','')+'T000000Z';
   const base=location.origin+location.pathname;
-  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+q.title)}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · R${q.n_rounds||0}`)}\r\nURL:${icsEscape(base+'#q/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
+  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+q.title)}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · ${roundLabel(q.n_rounds)}`)}\r\nURL:${icsEscape(base+'#q/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
   const content=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Jin's Investing//Forecast Calendar//KO\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n${events}\r\nEND:VCALENDAR\r\n`;
   const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'})),a=document.createElement('a');
   a.href=url;a.download=ids?.length===1?`${ids[0]}-deadline.ics`:'jin-investing-deadlines.ics';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -488,10 +491,11 @@ function briefingScenes(){
   const sc=DATA.scenario,upProb=sc.paths.S1.prob+sc.paths.S2.prob,rangeProb=sc.paths.S3.prob;
   const thesis=marketThesis(upProb,rangeProb),featured=featureQs()[0]||DATA.questions.find(q=>q.status==='active');
   const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
+  const featuredReady=hasNumeric(featured?.latest_prob),nextReady=hasNumeric(next?.latest_prob);
   return [
     {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:upProb,unit:'%',description:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:upProb},
-    {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featured?.latest_prob??'—',unit:'%',description:featured?`R${featured.n_rounds||1} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'표시할 질문이 없습니다.',visual:featured?.latest_prob||0,qid:featured?.id},
-    {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:next?.latest_prob??'—',unit:'%',description:next?.title||'현재 등록된 판정 일정이 없습니다.',visual:next?.latest_prob||0,qid:next?.id}
+    {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
+    {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
   ];
 }
 function renderBriefingStep(){
@@ -502,7 +506,7 @@ function renderBriefingStep(){
   briefingContent.innerHTML=`<div class="briefing-scene"><div class="briefing-copy">
     <p class="eyebrow">${esc(scene.eyebrow)}</p><h2>${esc(scene.lead)}<em>${esc(scene.accent)}</em></h2>
     <p>${esc(scene.description)}</p>${scene.qid?`<button type="button" class="briefing-detail" data-brief-q="${esc(scene.qid)}">예측 상세 열기 ↗</button>`:''}
-    </div><div class="briefing-visual" style="--brief-signal:${Number(scene.visual)||0}"><b>${scene.metric}<small>${esc(scene.unit)}</small></b></div></div>`;
+    </div><div class="briefing-visual${scene.pending?' is-pending':''}" style="--brief-signal:${Number(scene.visual)||0}"><b>${scene.metric}<small>${esc(scene.unit)}</small></b></div></div>`;
   animateNumbers(briefingContent);
 }
 function setBriefing(open,restoreFocus=true){
@@ -719,7 +723,7 @@ function commandCatalog(){
   const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,id:'pin-'+i,code:'★',hint:x.type==='question'?'고정한 예측 질문':'고정한 화면',group:'고정',search:x.title.toLowerCase()}));
   const recent=UI_STATE.recent.filter(descriptorExists).map((x,i)=>({...x,id:'recent-'+i,code:'↺',hint:x.type==='question'?'최근 본 예측 질문':'최근 본 화면',group:'최근',search:x.title.toLowerCase()}));
   const routes=COMMAND_ROUTES.map(x=>({...x,group:'화면'}));
-  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#q/'+q.id,code:(q.latest_prob==null?'—':q.latest_prob+'%'),title:q.title,hint:`${humanDomain(q.domain)} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
+  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#q/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,hint:`${humanDomain(q.domain)} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
   return actions.concat(pins,recent,routes,qs);
 }
 let activeCommandItems=[];
@@ -899,13 +903,14 @@ function renderOverview(){
   fq.forEach((q,i)=>{
     const decision=decisionItems.find(x=>x.q.id===q.id);
     const signals=['market',...(decision?.signals||[])].join(' ');
-    const d=latestDelta(q.id), dtxt=d==null?'신규':(d>=0?'▲ +'+d+'%p':'▼ '+d+'%p'), dcls=d==null?'':(d>=0?'up':'down');
+    const available=hasNumeric(q.latest_prob),d=latestDelta(q.id);
+    const dtxt=!available?'예측 대기':d==null?'첫 예측':(d>=0?'▲ +'+d+'%p':'▼ '+d+'%p'),dcls=d==null?'':(d>=0?'up':'down');
     const c=el(`<article class="forecast-card forecast-module tone-${i}" data-q="${esc(q.id)}" data-home-signals="${esc(signals)}" role="group" aria-label="${esc(q.title)}">
       <div class="card-actions"><button type="button" class="question-action" data-pin-q="${esc(q.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(q.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div>
-      <div class="card-kicker"><span>${esc(humanDomain(q.domain))}${decision?.newSince?'<b class="new-round-badge">NEW ROUND</b>':''}</span><span>R${q.n_rounds}</span></div>
-      <div class="probability-row"><strong>${q.latest_prob}</strong><span>%</span></div>
+      <div class="card-kicker"><span>${esc(humanDomain(q.domain))}${decision?.newSince?'<b class="new-round-badge">NEW ROUND</b>':''}</span><span>${roundLabel(q.n_rounds)}</span></div>
+      <div class="probability-row${available?'':' is-pending'}">${available?`<strong>${q.latest_prob}</strong><span>%</span>`:'<strong>산출 전</strong>'}</div>
       ${miniSparkline(q,i)}
-      <div class="probability-track"><span style="width:${Math.min(100,q.latest_prob||0)}%"></span></div>
+      <div class="probability-track"><span style="width:${available?Math.min(100,q.latest_prob):0}%"></span></div>
       <p>${esc(q.title)}</p>
       <div class="card-foot"><span class="${dcls}">${dtxt}</span><span>${esc(q.deadline||'수시')}</span><a href="#q/${esc(q.id)}" aria-label="${esc(q.title)} 상세 보기">↗</a></div>
     </article>`);
@@ -1147,12 +1152,12 @@ function renderQuestions(){
       <td><b>${esc(x.title)}</b><small>${esc(x.id)}</small></td><td>${esc(humanDomain(x.domain))}</td>
       <td>${(x.drivers||[]).slice(0,2).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'—'}</td>
       <td class="r"><span class="table-prob">${p1(x.latest_prob)}</span></td>
-      <td class="r num">${x.n_rounds}</td>
+      <td class="r num">${Number(x.n_rounds)>0?x.n_rounds:'산출 전'}</td>
       <td class="r">${x.resolved?'<span class="status status-resolved">완료</span>':'<span class="status status-active">진행 중</span>'}</td>
       <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
     cards.innerHTML=rows.map(x=>{const delta=latestDelta(x.id),clock=deadlineWindow(x);
       return `<article class="mobile-question-card" data-q="${esc(x.id)}">
-        <div class="mobile-question-head"><span>${esc(humanDomain(x.domain))} · R${x.n_rounds||0}</span>${x.resolved?'<span class="status status-resolved">완료</span>':'<span class="status status-active">진행 중</span>'}</div>
+        <div class="mobile-question-head"><span>${esc(humanDomain(x.domain))} · ${roundLabel(x.n_rounds)}</span>${x.resolved?'<span class="status status-resolved">완료</span>':'<span class="status status-active">진행 중</span>'}</div>
         <h2>${esc(x.title)}</h2><div class="mobile-question-id">${esc(x.id)}</div>
         <div class="mobile-question-facts">
           <div><span>현재 확률</span><strong>${p1(x.latest_prob)}</strong></div>
@@ -1185,9 +1190,10 @@ function renderCompare(arg=''){
     <p class="page-lede">서로 다른 질문의 확률을 합산하지 않고, 변화 방향·판정 시점·회차 이력을 같은 틀에서 비교합니다.</p></div>
     <div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column"><span class="micro">SELECTED</span><strong style="font-family:var(--mono);font-size:46px;margin:10px 0">${qs.length}</strong><button type="button" class="calendar-action" data-calendar-selected>선택 일정 저장</button></div></div>`));
   const grid=el(`<div class="compare-grid" style="--compare-count:${qs.length}">${qs.map((q,i)=>{const d=latestDelta(q.id),clock=deadlineWindow(q);
-    return `<article class="compare-card" style="border-top:7px solid ${COMPARE_COLORS[i]}"><header><div><span class="radar-eyebrow">${esc(humanDomain(q.domain))} · R${q.n_rounds||0}</span><h2>${esc(q.title)}</h2></div><button type="button" data-remove-compare-page="${esc(q.id)}" aria-label="비교에서 제거">×</button></header>
-      <div class="compare-prob"><strong>${q.latest_prob==null?'—':q.latest_prob}</strong><span>%</span></div>
-      <div class="compare-facts"><div><span>직전 대비</span><strong class="${d>0?'edge-pos':d<0?'edge-neg':''}">${d==null?'첫 기준선':`${d>0?'+':''}${d}%p`}</strong></div>
+    const available=hasNumeric(q.latest_prob);
+    return `<article class="compare-card" style="border-top:7px solid ${COMPARE_COLORS[i]}"><header><div><span class="radar-eyebrow">${esc(humanDomain(q.domain))} · ${roundLabel(q.n_rounds)}</span><h2>${esc(q.title)}</h2></div><button type="button" data-remove-compare-page="${esc(q.id)}" aria-label="비교에서 제거">×</button></header>
+      <div class="compare-prob${available?'':' is-pending'}">${available?`<strong>${q.latest_prob}</strong><span>%</span>`:'<strong>산출 전</strong>'}</div>
+      <div class="compare-facts"><div><span>직전 대비</span><strong class="${d>0?'edge-pos':d<0?'edge-neg':''}">${!available?'비교 이력 없음':d==null?'첫 기준선':`${d>0?'+':''}${d}%p`}</strong></div>
         <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div><div><span>관찰 변수</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
       <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 레이더</button></footer></article>`;}).join('')}</div>`);
   root.appendChild(grid);
@@ -1243,14 +1249,14 @@ function renderDetail(qid){
   appendContextTabs(root,'research','questions');
   if(!q){root.appendChild(el('<p class="empty">해당 예측을 찾을 수 없습니다.</p>'));mount(root);return;}
   const back=el('<a class="back-button" href="#questions">← 예측 목록</a>');root.appendChild(back);
-  const latest=hist.length?hist[hist.length-1].probability:(q.latest_prob!=null?q.latest_prob:'—');
+  const latest=hist.length?hist[hist.length-1].probability:(hasNumeric(q.latest_prob)?q.latest_prob:null),available=hasNumeric(latest);
   root.appendChild(el(`<div class="detail-hero">
     <div><h1>${esc(q.title)}</h1>
       <div class="meta">${esc(humanDomain(q.domain))} · ${q.resolved?'완료':'진행 중'} · 기한 ${esc(q.deadline||'수시')}</div>
       <div class="tag-list" style="justify-content:flex-start">${(q.drivers||[]).map(d=>`<span class="tag">${esc(humanDriver(d))}</span>`).join(' ')}</div>
       <div class="detail-actions"><button type="button" data-pin-q="${esc(q.id)}" aria-pressed="false"><span data-pin-icon>☆</span> MY RADAR</button><button type="button" data-compare-q="${esc(q.id)}" aria-pressed="false">⇄ 비교 선택</button>${q.deadline?`<button type="button" data-calendar-q="${esc(q.id)}">CAL 판정일 저장</button>`:''}</div>
     </div>
-    <div class="prob-orb" style="--prob:${Number(latest)||0}"><strong>${latest}</strong><span>%</span><small>최신 예측 확률</small></div>
+    <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>최신 예측 확률</small></div>
   </div>`));
   const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
     <div class="band-inline"><span><b style="background:#ff4f17"></b>AI 예측</span><span><b style="background:#247d78"></b>모델 앙상블</span><span><b style="background:#706f68"></b>시장 반영</span></div></div>
