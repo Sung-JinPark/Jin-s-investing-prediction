@@ -84,19 +84,27 @@ document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click'
 document.querySelectorAll('#mobile-bottom-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
 // device-local workspace memory and utility layers
-const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:2,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false,lastSeenGeneratedAt:null};
+const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:3,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false,lastSeenGeneratedAt:null,questionView:{preset:'all',sort:'priority',domain:'',driver:'',status:''}};
 function loadUIState(){
   try{
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
-    if(!raw||![1,2].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[]};
+    if(!raw||![1,2,3].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
       .filter(([k,v])=>/^#(overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
-    return {...UI_DEFAULTS,...raw,version:2,motion:raw.motion==='reduced'?'reduced':'adaptive',
+    const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
+    return {...UI_DEFAULTS,...raw,version:3,motion:raw.motion==='reduced'?'reduced':'adaptive',
       pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[],
       compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],compareCollapsed:!!raw.compareCollapsed,compareAutoExpanded:!!raw.compareAutoExpanded,
-      lastSeenGeneratedAt:typeof raw.lastSeenGeneratedAt==='string'?raw.lastSeenGeneratedAt:null,notes};
-  }catch(_){return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[]};}
+      lastSeenGeneratedAt:typeof raw.lastSeenGeneratedAt==='string'?raw.lastSeenGeneratedAt:null,notes,
+      questionView:{
+        preset:['all','review','moving','due','pinned'].includes(questionView.preset)?questionView.preset:'all',
+        sort:['priority','deadline','probability','movement','updated'].includes(questionView.sort)?questionView.sort:'priority',
+        domain:typeof questionView.domain==='string'?questionView.domain.slice(0,80):'',
+        driver:typeof questionView.driver==='string'?questionView.driver.slice(0,80):'',
+        status:['','active','resolved'].includes(questionView.status)?questionView.status:''
+      }};
+  }catch(_){return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};}
 }
 function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));}catch(_){}}
 let UI_STATE=loadUIState(),toastTimer=0,utilityReturnFocus=null,shortcutReturnFocus=null;
@@ -337,13 +345,16 @@ function decisionQueueCard(items){
 function linkedSignalStrip(upProb,decisionItems){
   const pins=myRadarQuestions().length;
   const signals=[
-    ['market','시장 상승 경로',upProb+'%','var(--orange)'],
-    ['changed','확률 이동',decisionItems.filter(x=>x.signals.includes('changed')).length,'var(--crimson)'],
-    ['due','14일 내 판정',decisionItems.filter(x=>x.signals.includes('due')).length,'var(--amber)'],
-    ['pinned','MY RADAR',pins,'var(--teal)']
+    ['market','시장 상승 경로',upProb+'%','var(--orange)','연말 시나리오의 상승 두 경로 합계입니다. 질문별 확률과는 합산하지 않습니다.'],
+    ['changed','확률 이동',decisionItems.filter(x=>x.signals.includes('changed')).length,'var(--crimson)','직전 회차보다 움직인 질문만 강조합니다. 변화 폭은 방향 신호가 아니라 재검토 신호입니다.'],
+    ['due','14일 내 판정',decisionItems.filter(x=>x.signals.includes('due')).length,'var(--amber)','14일 안에 결과를 확인할 질문만 강조합니다. 판정 기준과 출처는 상세 화면에서 확인할 수 있습니다.'],
+    ['pinned','MY RADAR',pins,'var(--teal)',pins?'이 기기에 고정한 질문만 강조합니다. 개인 작업공간 정보는 외부로 전송되지 않습니다.':'아직 고정한 질문이 없습니다. 카드의 ☆ 버튼으로 개인 레이더를 만들 수 있습니다.']
   ];
-  return `<div class="linked-signal-strip" role="group" aria-label="홈 질문 강조 기준">${signals.map(([id,label,value,color],index)=>`<button type="button" class="linked-signal" data-home-signal="${id}" aria-pressed="${index===0}" style="--signal-color:${color}">
-    <span><i></i>${label}</span><strong>${value}</strong></button>`).join('')}</div>`;
+  return `<div class="linked-signal-console">
+    <div class="linked-signal-strip" role="group" aria-label="홈 질문 강조 기준">${signals.map(([id,label,value,color,copy],index)=>`<button type="button" class="linked-signal" data-home-signal="${id}" data-signal-label="${esc(label)}" data-signal-copy="${esc(copy)}" aria-pressed="${index===0}" style="--signal-color:${color}">
+      <span><i></i>${label}</span><strong>${value}</strong></button>`).join('')}</div>
+    <div class="signal-lens-readout" aria-live="polite"><span>ACTIVE LENS</span><strong>${signals[0][1]}</strong><p>${signals[0][4]}</p></div>
+  </div>`;
 }
 function homeFeatureQuestions(decisionItems){
   const chosen=decisionItems.map(x=>x.q).filter(q=>hasNumeric(q.latest_prob)),fallback=featureQs();
@@ -360,6 +371,8 @@ function bindHomeSignals(root){
       card.classList.toggle('is-signal-match',signal!=='market'&&match);
       card.classList.toggle('is-signal-muted',!match);
     });
+    const readout=root.querySelector('.signal-lens-readout');
+    if(readout)readout.innerHTML=`<span>ACTIVE LENS</span><strong>${esc(control.dataset.signalLabel)}</strong><p>${esc(control.dataset.signalCopy)}</p>`;
   }));
 }
 function reviewQueuePanel(){
@@ -995,7 +1008,7 @@ function renderFlow(){
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
-    <p class="chart-note">경로는 대표 시나리오 예시입니다. 확률은 예측 모델 앙상블 산출값이며, 시간 구조는 계절성·주요 이벤트 일정에 근거합니다. 하단 주간 변동성 위험도 표시.</p>
+    <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. 확률은 예측 모델 앙상블 산출값이며 시간 구조는 계절성·주요 이벤트 일정에 근거합니다.</p>
   </div>`);
   root.appendChild(p1w);
   const overlay=analogPanel();
@@ -1066,6 +1079,7 @@ function drawFlow(host,sc,focus='ALL'){
   const PW=W-ML-MR,PH=HCH-MT-MB,Y0=23500,Y1=30800;const n=sc.weeks.length;
   const X=i=>ML+PW*i/(n-1),Y=v=>MT+PH*(1-(v-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','2026년 말까지 주간 시나리오. 좌우 화살표로 기준 주차 이동');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
   const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.58)','font-size':o.fs||11,'text-anchor':o.anc||'start','font-weight':o.w||400,opacity:o.opacity??1});e.textContent=s;return e;};
   for(let v=24000;v<=30000;v+=1000){svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
@@ -1097,25 +1111,71 @@ function drawFlow(host,sc,focus='ALL'){
     const fill=r==='고'?'rgba(201,0,45,.76)':(r==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)');const tc=r==='고'?'#fff':(r==='중'?'#513300':'#174c49');
     svg.appendChild(mk('rect',{x:(i===0?X(0)-2:x),y:RY,width:(i===0?w/2+2:w),height:RH,rx:0,fill:fill,stroke:'rgba(17,17,15,.1)'}));
     svg.appendChild(tx(X(i),RY+18,r,{anc:'middle',fs:10.5,fill:tc,w:600}));});
-  const xh=mk('line',{stroke:'rgba(17,17,15,.38)','stroke-width':1,opacity:0});svg.appendChild(xh);
+  const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
+  const cursorMarkers=['S1','S2','S3'].map(k=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[k],stroke:'#fff','stroke-width':2});svg.appendChild(marker);return marker;});
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
-  const tip=document.getElementById('tip');
-  ov.addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect();const mx=(e.clientX-r.left)*(W/r.width);
-    const i=Math.max(0,Math.min(n-1,Math.round((mx-ML)/(PW/(n-1)))));
-    xh.setAttribute('x1',X(i));xh.setAttribute('x2',X(i));xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);xh.setAttribute('opacity',.45);
-    tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';
-    tip.innerHTML=`<b>${sc.weeks[i]}</b> · 변동성 ${sc.risk[i]}<br>
-      <span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(sc.paths.S1.values[i])}</span><br>
-      <span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(sc.paths.S2.values[i])}</span><br>
-      <span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(sc.paths.S3.values[i])}</span>`;});
-  ov.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('opacity',0);});
-  host.appendChild(svg);
+  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');
+  let cursorIndex=0;
+  const paintCursor=index=>{
+    cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=sc.weeks[cursorIndex],risk=sc.risk[cursorIndex];
+    xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
+    ['S1','S2','S3'].forEach((k,j)=>{cursorMarkers[j].setAttribute('cx',x);cursorMarkers[j].setAttribute('cy',Y(sc.paths[k].values[cursorIndex]));});
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(k=>`<div><span>${esc(sc.paths[k].label)}</span><strong style="color:${CHART_COL[k]}">${num(sc.paths[k].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[k].prob}%</small></div>`).join('')}`;
+    svg.setAttribute('aria-label',`주간 시나리오, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);
+  };
+  const indexFromPointer=e=>{const r=svg.getBoundingClientRect(),mx=(e.clientX-r.left)*(W/r.width);
+    return Math.max(0,Math.min(n-1,Math.round((mx-ML)/(PW/(n-1)))));};
+  ov.addEventListener('pointermove',e=>{const i=indexFromPointer(e);paintCursor(i);if(finePointer){
+      tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';
+      tip.innerHTML=`<b>${sc.weeks[i]}</b> · 변동성 ${sc.risk[i]}<br>
+        <span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(sc.paths.S1.values[i])}</span><br>
+        <span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(sc.paths.S2.values[i])}</span><br>
+        <span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(sc.paths.S3.values[i])}</span>`;
+    }});
+  ov.addEventListener('pointerdown',e=>{paintCursor(indexFromPointer(e));if(!finePointer)tip.style.display='none';svg.focus();});
+  ov.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('keydown',e=>{
+    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();paintCursor(cursorIndex+(e.key==='ArrowLeft'?-1:1));}
+    else if(e.key==='Home'){e.preventDefault();paintCursor(0);}else if(e.key==='End'){e.preventDefault();paintCursor(n-1);}
+  });
+  host.replaceChildren(svg,readout);paintCursor(0);
 }
 
 // ── 예측 목록 ──
+const QUESTION_PRESETS=[
+  ['all','전체'],['review','우선 검토'],['moving','확률 이동'],['due','30일 내 판정'],['pinned','MY RADAR']
+];
+function researchPriority(q){
+  const delta=latestDelta(q.id),days=q.deadline?dayDiff(generatedDay(),q.deadline):null;
+  const dueScore=days!=null&&days>=0&&days<=30?Math.max(0,360-days*8):0;
+  return dueScore+(delta==null?0:Math.abs(delta)*12)+(isQuestionPinned(q.id)?90:0)+(q.status==='active'?20:0);
+}
+function questionMatchesPreset(q,preset){
+  const delta=latestDelta(q.id),days=q.deadline?dayDiff(generatedDay(),q.deadline):null;
+  if(preset==='review')return researchPriority(q)>=90;
+  if(preset==='moving')return delta!=null&&delta!==0;
+  if(preset==='due')return q.status==='active'&&days!=null&&days>=0&&days<=30;
+  if(preset==='pinned')return isQuestionPinned(q.id);
+  return true;
+}
+function sortResearchQuestions(rows,sort){
+  const direction=(a,b)=>{
+    if(sort==='deadline')return String(a.deadline||'9999-12-31').localeCompare(String(b.deadline||'9999-12-31'));
+    if(sort==='probability')return (hasNumeric(b.latest_prob)?Number(b.latest_prob):-1)-(hasNumeric(a.latest_prob)?Number(a.latest_prob):-1);
+    if(sort==='movement')return Math.abs(latestDelta(b.id)||0)-Math.abs(latestDelta(a.id)||0);
+    if(sort==='updated')return String(b.latest_ts||'').localeCompare(String(a.latest_ts||''));
+    return researchPriority(b)-researchPriority(a);
+  };
+  return [...rows].sort((a,b)=>direction(a,b)||String(a.deadline||'').localeCompare(String(b.deadline||''))||a.title.localeCompare(b.title));
+}
 function renderQuestions(){
   const domains=[...new Set(DATA.questions.map(q=>q.domain))].sort();
   const themes=[...new Set(DATA.questions.flatMap(q=>q.drivers||[]))].sort();
+  const saved={...UI_DEFAULTS.questionView,...UI_STATE.questionView};
+  if(saved.domain&&!domains.includes(saved.domain))saved.domain='';
+  if(saved.driver&&!themes.includes(saved.driver))saved.driver='';
+  let activePreset=QUESTION_PRESETS.some(([id])=>id===saved.preset)?saved.preset:'all';
   const root=el('<div></div>');
   appendContextTabs(root,'research','questions');
   root.appendChild(el(`<div class="page-heading"><div>
@@ -1125,6 +1185,14 @@ function renderQuestions(){
   </div><div class="heading-stat" style="min-height:170px;justify-content:flex-end;display:flex;flex-direction:column">
     <span class="micro">등록 질문</span><strong style="color:var(--lime);font-family:var(--mono);font-size:clamp(28px,3vw,46px);margin:11px 0">${DATA.questions.length}</strong>
     <span class="micro" id="qcount">결과에 표시됨</span></div></div>`));
+  const researchControls=el(`<div class="research-controls">
+    <div class="research-presets" role="group" aria-label="예측 질문 빠른 필터">${QUESTION_PRESETS.map(([id,label])=>`<button type="button" data-question-preset="${id}" aria-pressed="${id===activePreset}">${label}</button>`).join('')}</div>
+    <label class="research-sort">정렬<select id="fso" aria-label="예측 질문 정렬">
+      <option value="priority">검토 우선순위</option><option value="deadline">판정일</option><option value="probability">확률 높은 순</option>
+      <option value="movement">변동 큰 순</option><option value="updated">최신 회차</option>
+    </select></label>
+  </div>`);
+  root.appendChild(researchControls);
   const bar=el(`<div class="filter-bar">
     <label class="search-field"><span>⌕</span><input type="text" id="fq" placeholder="질문 검색…" aria-label="질문 검색"></label>
     <label>분야<select id="fd" aria-label="분야"><option value="">전체</option>${domains.map(d=>`<option value="${esc(d)}">${esc(humanDomain(d))}</option>`).join('')}</select></label>
@@ -1138,10 +1206,15 @@ function renderQuestions(){
   const cards=el('<div class="mobile-question-list" id="question-mobile-list" aria-live="polite"></div>');
   root.appendChild(cont);root.appendChild(cards);
   mount(root);
+  $('#fd').value=saved.domain;$('#fdr').value=saved.driver;$('#fs').value=saved.status;$('#fso').value=saved.sort;
+  const rememberResearchView=()=>{
+    UI_STATE.questionView={preset:activePreset,sort:$('#fso').value,domain:$('#fd').value,driver:$('#fdr').value,status:$('#fs').value};
+    saveUIState();
+  };
   const draw=()=>{
-    const d=$('#fd').value,dr=$('#fdr').value,st=$('#fs').value,q=$('#fq').value.toLowerCase();
-    const rows=DATA.questions.filter(x=>(!d||x.domain===d)&&(!dr||(x.drivers||[]).includes(dr))&&(!st||x.status===st)&&
-      (!q||x.title.toLowerCase().includes(q)));
+    const d=$('#fd').value,dr=$('#fdr').value,st=$('#fs').value,q=$('#fq').value.toLowerCase(),sort=$('#fso').value;
+    const rows=sortResearchQuestions(DATA.questions.filter(x=>(!d||x.domain===d)&&(!dr||(x.drivers||[]).includes(dr))&&(!st||x.status===st)&&
+      (!q||x.title.toLowerCase().includes(q))&&questionMatchesPreset(x,activePreset)),sort);
     const qc=document.getElementById('qcount');if(qc)qc.textContent=`${rows.length}건 표시`;
     const probs=rows.map(x=>x.latest_prob).filter(Number.isFinite),med=median(probs);
     const rising=rows.filter(x=>(latestDelta(x.id)||0)>0).length,falling=rows.filter(x=>(latestDelta(x.id)||0)<0).length;
@@ -1171,9 +1244,19 @@ function renderQuestions(){
       tr.onclick=e=>{if(!e.target.closest('button'))go();};tr.onkeydown=e=>{if(e.key==='Enter'&&e.target===tr)go();};});
     root.querySelectorAll('[data-filter-driver]').forEach(b=>b.onclick=e=>{e.stopPropagation();$('#fdr').value=b.dataset.filterDriver;draw();});
     syncQuestionActions(root);bindQuickPeek(root);
+    rememberResearchView();
   };
-  ['#fd','#fdr','#fs'].forEach(s=>bar.querySelector(s).onchange=draw);bar.querySelector('#fq').oninput=draw;draw();
-  bar.querySelector('#freset').onclick=()=>{['#fd','#fdr','#fs','#fq'].forEach(s=>bar.querySelector(s).value='');draw();};
+  ['#fd','#fdr','#fs'].forEach(s=>bar.querySelector(s).onchange=draw);researchControls.querySelector('#fso').onchange=draw;bar.querySelector('#fq').oninput=draw;
+  researchControls.querySelectorAll('[data-question-preset]').forEach(button=>button.onclick=()=>{
+    activePreset=button.dataset.questionPreset;
+    researchControls.querySelectorAll('[data-question-preset]').forEach(x=>x.setAttribute('aria-pressed',String(x===button)));
+    draw();
+  });
+  draw();
+  bar.querySelector('#freset').onclick=()=>{
+    ['#fd','#fdr','#fs','#fq'].forEach(s=>bar.querySelector(s).value='');activePreset='all';researchControls.querySelector('#fso').value='priority';
+    researchControls.querySelectorAll('[data-question-preset]').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.questionPreset==='all')));draw();
+  };
 }
 
 // ── 예측 비교 작업공간 ──

@@ -199,6 +199,14 @@ def test_workspace_utility_contract() -> None:
         "dismissReviewQuestion",
         "renderAsofTimeMachine",
         "downloadQuestionCalendar",
+        "signal-lens-readout",
+        "researchPriority",
+        "questionMatchesPreset",
+        "sortResearchQuestions",
+        "data-question-preset",
+        "research-sort",
+        "flow-readout",
+        "paintCursor",
     ):
         assert behavior in html, f"워크스페이스 동작 누락: {behavior}"
     assert "body.focus-mode" in html
@@ -228,6 +236,8 @@ def test_workspace_utility_contract() -> None:
     assert "className='compare-readout'" in html
     assert "REVIEW QUEUE" in html and "data-review-dismiss" in html
     assert "compareCollapsed" in html and "compareAutoExpanded" in html
+    assert "questionView" in html and "검토 우선순위" in html
+    assert "SELECTED WEEK" in html and "pointerdown" in html
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
