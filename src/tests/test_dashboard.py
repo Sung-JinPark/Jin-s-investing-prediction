@@ -67,7 +67,7 @@ def test_template_self_contained() -> None:
     """
     import re
 
-    html = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    html = dashboard.load_template()
     assert "<!--DATA-->" in html
     assert "window.__DATA__" in html and "window.__DATA_URL__" in html
     assert "<link" not in html.lower(), "외부 스타일시트 링크 발견"
@@ -81,12 +81,23 @@ def test_template_self_contained() -> None:
         assert host not in html.lower(), f"CDN 흔적: {host}"
 
 
+def test_template_parts_bundle_and_budget() -> None:
+    """소스는 유지보수 가능한 파셜이며 최종 산출물은 자기완결·용량 예산 이내다."""
+    shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    assert "<!--STYLES-->" in shell and "<!--APP_SCRIPT-->" in shell
+    assert dashboard.DASHBOARD_STYLES.exists()
+    assert dashboard.DASHBOARD_SCRIPT.exists()
+    html = dashboard.load_template()
+    assert "<!--STYLES-->" not in html and "<!--APP_SCRIPT-->" not in html
+    assert len(dashboard.render_html({}, mode="embed").encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
+
+
 def test_ui_contract() -> None:
     """UI 현대화 계약 — 제품 rail·첫 화면 briefing·접근성·동적 전환."""
-    html = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
-    # 6개 실제 hash link
-    for v in ("overview", "flow", "ask", "questions", "asof", "track"):
+    # 5개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
+    for v in ("overview", "flow", "questions", "asof", "track"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
@@ -116,7 +127,7 @@ def test_ui_contract() -> None:
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
     assert "--display:'Segoe UI Variable Display'" in html
     assert "--sans:'Segoe UI Variable Text'" in html
-    assert "font-size:clamp(52px,4.7vw,72px)" in html
+    assert "font-size:clamp(46px,4.1vw,64px)" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
@@ -132,11 +143,15 @@ def test_ui_contract() -> None:
     assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
     assert "FEATURE_QIDS" in html
+    assert 'class="mobile-bottom-nav"' in html
+    assert "decisionQueueCard" in html and "linkedSignalStrip" in html
+    assert "bindHomeSignals" in html and "lastSeenGeneratedAt" in html
+    assert 'class="skip-link"' in html and 'id="app" tabindex="-1"' in html
 
 
 def test_workspace_utility_contract() -> None:
     """부가기능은 기존 read-model 위에서만 동작하고 로컬 상태로 닫혀 있어야 한다."""
-    html = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    html = dashboard.load_template()
     for element_id in (
         "utility-layer", "shortcut-layer", "toast-region", "focus-exit",
         "route-progress-bar", "view-map", "quick-peek", "briefing-layer",

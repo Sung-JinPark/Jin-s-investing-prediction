@@ -18,6 +18,10 @@ from . import config
 from .db import ingest, queries
 
 TEMPLATE = Path(__file__).parent / "dashboard_template.html"
+DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
+DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
+DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
+DASHBOARD_RAW_BUDGET_BYTES = 420_000
 
 # ── 시나리오 흐름 데이터 (정본: reports/md/nasdaq_weekly_scenario_v3_1_1) ──
 SCENARIO = {
@@ -211,14 +215,31 @@ def _latest_context_run(root: Path) -> dict | None:
         return None
 
 
-def render_html(read_model: dict, mode: str = "embed") -> str:
+def load_template() -> str:
+    """소스 partial을 외부 요청 없는 단일 HTML shell로 조립한다."""
     shell = TEMPLATE.read_text(encoding="utf-8")
+    styles = DASHBOARD_STYLES.read_text(encoding="utf-8")
+    script = DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->"):
+        if marker not in shell:
+            raise ValueError(f"dashboard template marker missing: {marker}")
+    return shell.replace("<!--STYLES-->", styles).replace("<!--APP_SCRIPT-->", script)
+
+
+def render_html(read_model: dict, mode: str = "embed") -> str:
+    shell = load_template()
     if mode == "embed":
         blob = json.dumps(read_model, ensure_ascii=False, default=str)
         data_script = f"<script>window.__DATA__ = {blob};</script>"
     else:
         data_script = '<script>window.__DATA_URL__ = "/api/data";</script>'
-    return shell.replace("<!--DATA-->", data_script)
+    html = shell.replace("<!--DATA-->", data_script)
+    if mode == "embed" and len(html.encode("utf-8")) > DASHBOARD_RAW_BUDGET_BYTES:
+        raise ValueError(
+            f"dashboard raw size budget exceeded: "
+            f"{len(html.encode('utf-8'))} > {DASHBOARD_RAW_BUDGET_BYTES}"
+        )
+    return html
 
 
 def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:

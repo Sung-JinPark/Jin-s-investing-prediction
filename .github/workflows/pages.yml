@@ -11,6 +11,7 @@ on:
       - "data/**"
       - "questions/**"
       - "src/ai_fc/dashboard*"
+      - "src/ai_fc/dashboard_parts/**"
       - ".github/workflows/pages.yml"
   schedule:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
