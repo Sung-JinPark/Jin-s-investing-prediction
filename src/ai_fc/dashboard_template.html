@@ -626,13 +626,17 @@ body.focus-mode .route-progress{left:0}
 .briefing-launch span{color:var(--orange);font-size:13px}.briefing-launch:hover{transform:translateY(-2px);box-shadow:7px 7px 0 rgba(255,79,23,.2)}
 .overview-actions>small{color:#77746d;font-family:var(--mono);font-size:8px}
 
-.quick-peek{width:min(330px,calc(100vw - 28px));position:fixed;z-index:108;padding:18px;color:#11110f;background:#fff;border:1px solid #11110f;box-shadow:10px 10px 0 rgba(17,17,15,.12);pointer-events:none;animation:peek-in .16s ease-out}
+.quick-peek{width:min(350px,calc(100vw - 28px));position:fixed;z-index:108;padding:18px;color:#11110f;background:#fff;border:1px solid #11110f;box-shadow:10px 10px 0 rgba(17,17,15,.12);pointer-events:none;animation:peek-in .16s ease-out}
 @keyframes peek-in{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
 .peek-top{display:flex;align-items:center;justify-content:space-between;gap:14px;color:#77746d;font-family:var(--mono);font-size:8px;letter-spacing:.08em}.peek-top b{color:var(--crimson)}
-.peek-title{margin:14px 0 18px;font-size:18px;font-weight:650;letter-spacing:-.035em;line-height:1.25}
-.peek-metric{display:flex;align-items:flex-end;gap:8px}.peek-metric strong{font-family:var(--mono);font-size:52px;font-weight:530;letter-spacing:-.08em;line-height:.8}.peek-metric>span{color:#77746d;font-family:var(--mono);font-size:11px}
-.peek-meta{margin-top:18px;padding-top:13px;display:flex;justify-content:space-between;gap:14px;border-top:1px solid var(--line);color:#77746d;font-family:var(--mono);font-size:8px}
-.peek-drivers{margin-top:10px;display:flex;gap:6px;flex-wrap:wrap}.peek-drivers span{padding:5px 7px;color:#5f5d57;background:var(--paper);border:1px solid var(--line);font-size:8px}
+.peek-summary{margin-top:14px;padding:15px;background:var(--paper);border-left:4px solid var(--orange)}
+.peek-summary>span,.peek-glance span,.peek-driver-label{display:block;color:#77746d;font-family:var(--mono);font-size:7px;letter-spacing:.1em}
+.peek-summary strong{margin-top:7px;display:block;font-size:15px;font-weight:650;letter-spacing:-.025em;line-height:1.35}
+.peek-summary p{margin-top:7px;color:#5f5d57;font-size:11px;line-height:1.55}
+.peek-glance{margin-top:12px;display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line)}
+.peek-glance>div{min-width:0;padding:11px}.peek-glance>div+div{border-left:1px solid var(--line)}
+.peek-glance strong{margin-top:5px;display:block;font-family:var(--mono);font-size:10px;font-weight:600;line-height:1.4}
+.peek-drivers{margin-top:12px}.peek-driver-list{margin-top:7px;display:flex;gap:6px;flex-wrap:wrap}.peek-driver-list span{padding:5px 7px;color:#5f5d57;background:#fff;border:1px solid var(--line);font-size:8px}
 
 .note-editor{display:grid;gap:8px}.note-editor textarea{width:100%;min-height:124px;padding:13px;resize:vertical;color:#11110f;background:#fff;border:1px solid var(--line-strong);outline:0;font-size:12px;line-height:1.6}.note-editor textarea:focus{border-color:#11110f;box-shadow:0 0 0 2px rgba(255,79,23,.16)}
 .note-meta{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#77746d;font-family:var(--mono);font-size:8px}.note-meta button{min-height:32px;padding:0 9px;color:#11110f;background:#fff;border:1px solid var(--line);cursor:pointer;font-family:var(--mono);font-size:8px}
@@ -1015,16 +1019,74 @@ function closeQuickPeek(){
   if(peekAnchor?.getAttribute('aria-describedby')==='quick-peek')peekAnchor.removeAttribute('aria-describedby');
   peekAnchor=null;quickPeek.hidden=true;quickPeek.setAttribute('aria-hidden','true');
 }
+const DRIVER_LABELS=Object.freeze({
+  'ai-capex-cycle':'AI 투자 사이클',
+  'memory-cycle':'메모리 업황',
+  'vol-regime':'변동성 국면',
+  'fed-path':'연준 정책 경로',
+  'midterm-2026':'2026 중간선거'
+});
+const DOMAIN_LABELS=Object.freeze({
+  'market-regime':'시장 국면',
+  'market-daily':'일간 시장',
+  'earnings':'실적',
+  'macro':'거시경제',
+  'volatility':'변동성',
+  'corporate-event':'기업 이벤트',
+  'crypto':'가상자산'
+});
+function quickPeekProbability(probability){
+  if(probability==null||probability==='')return {band:'데이터 대기',copy:'아직 확률이 없어 근거가 쌓이는 과정을 먼저 봐야 합니다.'};
+  const p=Number(probability);
+  if(!Number.isFinite(p))return {band:'데이터 대기',copy:'아직 확률이 없어 근거가 쌓이는 과정을 먼저 봐야 합니다.'};
+  if(p>=70)return {band:'뚜렷한 우세',copy:'현재 근거는 이 경로를 뚜렷한 우세로 보고 있습니다.'};
+  if(p>=55)return {band:'우세',copy:'현재는 우세한 쪽이지만 뒤집힐 여지를 함께 봐야 합니다.'};
+  if(p>=45)return {band:'경합',copy:'양쪽 가능성이 팽팽해 방향 확인이 더 필요합니다.'};
+  if(p>=30)return {band:'보조 경로',copy:'기본 경로는 아니지만 무시하기 어려운 가능성입니다.'};
+  return {band:'낮은 가능성',copy:'현재는 가능성이 낮은 보조 경로로 보고 있습니다.'};
+}
+function quickPeekTrend(delta){
+  if(delta==null)return '첫 회차라 변화보다 초기 기준선에 의미가 있습니다.';
+  const size=Math.abs(delta);
+  if(size===0)return '직전 회차와 같은 확률을 유지하고 있습니다.';
+  if(delta>=5)return `직전 회차보다 ${size}%p 올라 관찰 강도가 커졌습니다.`;
+  if(delta<=-5)return `직전 회차보다 ${size}%p 내려 우세도가 약해졌습니다.`;
+  return `직전 회차 대비 ${delta>0?'소폭 상승':'소폭 하락'}해 비슷한 범위를 유지합니다.`;
+}
+function deadlineWindow(q){
+  if(!q.deadline)return {short:'수시 판정',next:'새 데이터와 조건 충족 여부 확인'};
+  const asOf=String(DATA?.meta?.generated||'').slice(0,10);
+  const end=Date.parse(`${q.deadline}T00:00:00Z`),start=Date.parse(`${asOf}T00:00:00Z`);
+  if(!Number.isFinite(end)||!Number.isFinite(start))return {short:q.deadline,next:'판정 기준과 공식 자료 확인'};
+  const days=Math.round((end-start)/86400000);
+  if(days>30)return {short:`D-${days}`,next:'주간 변화와 핵심 근거 확인'};
+  if(days>7)return {short:`D-${days}`,next:'이벤트 변동과 판정 기준 확인'};
+  if(days>0)return {short:`D-${days}`,next:'판정 임박 · 근거 재확인'};
+  if(days===0)return {short:'D-DAY',next:'공식 자료와 해소 여부 확인'};
+  return {short:`D+${Math.abs(days)}`,next:'판정 시점 경과 · 해소 여부 확인'};
+}
+function quickPeekCopy(anchor,q){
+  const delta=latestDelta(q.id),prob=quickPeekProbability(q.latest_prob),deadline=deadlineWindow(q);
+  const context=anchor.classList.contains('forecast-card')?'WHY IT MATTERS':anchor.closest('.deadline-list')?'DECISION WINDOW':'FORECAST CONTEXT';
+  const drivers=(q.drivers||[]).slice(0,2).map(x=>DRIVER_LABELS[x]||String(x).replaceAll('-',' '));
+  return {
+    context,prob,deadline,drivers,
+    meta:`${DOMAIN_LABELS[q.domain]||q.domain} · ${q.latest_prob==null?'확률 대기':`${q.latest_prob}% 기준`}`,
+    trend:quickPeekTrend(delta),
+    round:q.n_rounds?`R${q.n_rounds} · ${delta==null?'첫 기준선':`직전 대비 ${delta>0?'+':''}${delta}%p`}`:'예측 대기'
+  };
+}
 function showQuickPeek(anchor){
   if(blockingLayerOpen()||window.matchMedia('(pointer: coarse)').matches)return;
   const q=DATA?.questions?.find(x=>x.id===anchor.dataset.q);if(!q)return;
-  const d=latestDelta(q.id),delta=d==null?'첫 예측':(d>=0?`▲ +${d}%p`:`▼ ${d}%p`);
-  const drivers=(q.drivers||[]).slice(0,2);
-  quickPeek.innerHTML=`<div class="peek-top"><span>${esc(q.domain)} · R${q.n_rounds||1}</span><b>QUICK PEEK</b></div>
-    <h3 class="peek-title">${esc(q.title)}</h3>
-    <div class="peek-metric"><strong>${q.latest_prob==null?'—':q.latest_prob}</strong><span>% · ${esc(delta)}</span></div>
-    <div class="peek-meta"><span>DEADLINE</span><strong>${esc(q.deadline||'수시')}</strong></div>
-    ${drivers.length?`<div class="peek-drivers">${drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div>`:''}`;
+  const view=quickPeekCopy(anchor,q);
+  quickPeek.innerHTML=`<div class="peek-top"><span>${esc(view.meta)}</span><b>${esc(view.context)}</b></div>
+    <div class="peek-summary"><span>한 줄 해석 · ${esc(view.prob.band)}</span><strong>${esc(view.prob.copy)}</strong><p>${esc(view.trend)}</p></div>
+    <div class="peek-glance">
+      <div><span>판정 시계</span><strong>${esc(view.deadline.short)}</strong></div>
+      <div><span>다음 확인</span><strong>${esc(view.deadline.next)}</strong></div>
+    </div>
+    ${view.drivers.length?`<div class="peek-drivers"><span class="peek-driver-label">관찰 변수</span><div class="peek-driver-list">${view.drivers.map(x=>`<span>${esc(x)}</span>`).join('')}</div></div>`:''}`;
   peekAnchor=anchor;anchor.setAttribute('aria-describedby','quick-peek');quickPeek.hidden=false;quickPeek.setAttribute('aria-hidden','false');
   requestAnimationFrame(()=>{const r=anchor.getBoundingClientRect(),w=quickPeek.offsetWidth,h=quickPeek.offsetHeight;
     let left=r.right+14,top=r.top+(r.height-h)/2;if(left+w>window.innerWidth-14)left=r.left-w-14;

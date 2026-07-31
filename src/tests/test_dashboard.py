@@ -155,6 +155,11 @@ def test_workspace_utility_contract() -> None:
         "briefingScenes",
         "buildSectionNavigator",
         "bindQuickPeek",
+        "quickPeekCopy",
+        "quickPeekProbability",
+        "deadlineWindow",
+        "DRIVER_LABELS",
+        "DOMAIN_LABELS",
         "IntersectionObserver",
         "workspace-note",
         "setMotion",
@@ -170,6 +175,10 @@ def test_workspace_utility_contract() -> None:
     assert "@media print" in html
     assert "COMMAND_ROUTES" in html and "commandCatalog" in html
     assert "data-command-index" in html
+    assert "WHY IT MATTERS" in html and "DECISION WINDOW" in html
+    assert "한 줄 해석" in html and "관찰 변수" in html
+    assert "probability==null||probability===''" in html
+    assert "peek-title" not in html and "peek-metric" not in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:
