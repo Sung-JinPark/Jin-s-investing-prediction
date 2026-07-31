@@ -29,3 +29,21 @@ ai,2026-07-13,geopolitics,이란 호르무즈 봉쇄 위협,,42,https://www.reut
 ai,2026-07-14,fed,6월 CPI 3.5% 감속,,42,https://www.bls.gov/news.release/cpi.nr0.htm,인상 우려 후퇴
 ai,2026-08-26,product,NVDA 실적 (예정),,43,https://investor.nvidia.com/,
 ai,2026-11-03,geopolitics,중간선거 (예정),,46,https://en.wikipedia.org/wiki/2026_United_States_elections,event 정렬 앵커 midterm
+japan1989,1985-09-22,macro,플라자 합의,,8,https://en.wikipedia.org/wiki/Plaza_Accord,엔고→금융완화 버블 촉발
+japan1989,1987-02-09,ipo,NTT 상장,,25,https://en.wikipedia.org/wiki/Nippon_Telegraph_and_Telephone,버블상징 IPO·시총 세계1위
+japan1989,1989-05-31,fed,BOJ 미에노 금리인상 개시,,52,https://en.wikipedia.org/wiki/Yasushi_Mieno,2.5%→최종 6.0%
+japan1989,1989-12-29,peak,"닛케이 정점 38,915",,59,https://en.wikipedia.org/wiki/Japanese_asset_price_bubble,사상 최고가
+japan1989,1990-10-01,crash,닛케이 1년내 반토막,-48,69,https://en.wikipedia.org/wiki/Japanese_asset_price_bubble,정점후 약 -48%
+crypto2021,2020-03-12,crash,코로나 블랙목요일,-50,14,https://en.wikipedia.org/wiki/Cryptocurrency_bubble,BTC 당일 약 -50%
+crypto2021,2021-04-14,ipo,코인베이스 직상장,,27,https://en.wikipedia.org/wiki/Coinbase,나스닥 직상장=정점 신호
+crypto2021,2021-11-10,peak,BTC 사상최고 약 $69k,,34,https://en.wikipedia.org/wiki/History_of_bitcoin,사이클 정점
+crypto2021,2022-05-09,crash,테라·루나 붕괴,,40,https://en.wikipedia.org/wiki/Terra_(blockchain),약 $40B 소멸
+crypto2021,2022-11-11,crash,FTX 파산,,46,https://en.wikipedia.org/wiki/Bankruptcy_of_FTX,최대 거래소 붕괴
+crypto2021,2022-11-21,bottom,BTC 저점 약 $15.5k,,46,https://en.wikipedia.org/wiki/History_of_bitcoin,사이클 바닥
+biotech2015,2015-07-20,peak,IBB 정점,,30,https://en.wikipedia.org/wiki/IShares_Biotechnology_ETF,바이오 사이클 정점
+biotech2015,2015-09-21,crash,클린턴 약가 규제 발언,,32,https://en.wikipedia.org/wiki/Turing_Pharmaceuticals,바이오 매도 촉발
+biotech2015,2015-10-21,crash,시트론 Valeant 공매도 리포트,,33,https://en.wikipedia.org/wiki/Valeant_Pharmaceuticals,붕괴 방아쇠
+biotech2015,2016-02-11,bottom,IBB 저점,-40,37,https://en.wikipedia.org/wiki/IShares_Biotechnology_ETF,정점후 약 -40% 바닥
+niftyfifty1972,1972-12-11,peak,S&P·니프티50 정점,,35,https://en.wikipedia.org/wiki/Nifty_Fifty,일방향 매수 정점
+niftyfifty1972,1973-10-06,macro,OPEC 석유 금수,,45,https://en.wikipedia.org/wiki/1973_oil_crisis,약세장 촉발
+niftyfifty1972,1974-10-03,bottom,S&P 저점,-48,57,https://en.wikipedia.org/wiki/1973%E2%80%931974_stock_market_crash,정점후 약 -48% 바닥

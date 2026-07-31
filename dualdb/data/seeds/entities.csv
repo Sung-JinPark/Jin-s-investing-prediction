@@ -31,3 +31,17 @@ ai,PLTR,Palantir,app,alive,PLTR,0,,yahoo
 ai,VRT,Vertiv,overbuild,alive,VRT,0,DC 전력·냉각,yahoo
 ai,CEG,Constellation Energy,power,alive,CEG,0,원전 전력,yahoo
 ai,EQIX,Equinix,infra_rent,alive,EQIX,0,,yahoo
+japan1989,NTT,Nippon Telegraph & Telephone,anchor,alive,,0,1987 IPO 버블상징·정점후 장기 -80%대,wikipedia
+japan1989,8604,Nomura Securities,platform,alive,,0,최대 증권사·생존,wikipedia
+japan1989,IBJ,Industrial Bank of Japan,platform,acquired,,0,2000 미즈호로 합병 소멸,wikipedia
+crypto2021,COIN,Coinbase,anchor,alive,,0,2021-04 직상장=정점신호·이후 -85%,wikipedia
+crypto2021,MSTR,MicroStrategy,platform,alive,,0,BTC 프록시 대장·생존,wikipedia
+crypto2021,FTX,FTX,app,dead,,0,2022-11 파산,wikipedia
+crypto2021,LUNA,Terra/LUNA,app,dead,,0,2022-05 약 $40B 붕괴,wikipedia
+biotech2015,GILD,Gilead Sciences,anchor,alive,,0,대장주·생존,wikipedia
+biotech2015,CELG,Celgene,platform,acquired,,0,2019 BMS 인수,wikipedia
+biotech2015,VRX,Valeant Pharmaceuticals,app,renamed,,0,2018 Bausch Health 개명·정점후 -90%,wikipedia
+niftyfifty1972,KO,Coca-Cola,anchor,alive,,0,원디시전 대표·생존,wikipedia
+niftyfifty1972,XRX,Xerox,platform,alive,,0,정점후 장기 쇠퇴,wikipedia
+niftyfifty1972,PRD,Polaroid,app,dead,,0,2001 파산,wikipedia
+niftyfifty1972,EK,Eastman Kodak,platform,dead,,0,2012 파산,wikipedia

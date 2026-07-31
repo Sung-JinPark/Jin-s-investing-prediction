@@ -134,7 +134,7 @@ questions:
   domain: macro
   cadence: D-14 이내 — 주 2회
   action_link: 10/28 질문의 선행 정보 + 최초 초단기 채점 표본 (해소 3주)
-  status: active
+  status: resolved
   created: 2026-07-08
   notes: 시장내재확률 존재 (FedWatch 7/7 기준 인상 ~26.6%) — market_implied 기록 대상
   schedule:
