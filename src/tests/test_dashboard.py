@@ -141,6 +141,7 @@ def test_workspace_utility_contract() -> None:
         "utility-layer", "shortcut-layer", "toast-region", "focus-exit",
         "route-progress-bar", "view-map", "quick-peek", "briefing-layer",
         "briefing-content", "briefing-prev", "briefing-next",
+        "compare-tray", "compare-items", "compare-open",
     ):
         assert f'id="{element_id}"' in html, f"워크스페이스 UI 누락: {element_id}"
     for behavior in (
@@ -163,6 +164,17 @@ def test_workspace_utility_contract() -> None:
         "IntersectionObserver",
         "workspace-note",
         "setMotion",
+        "changeRadarData",
+        "vintageReceipt",
+        "humanDomain",
+        "humanDriver",
+        "myRadarPanel",
+        "renderCompareTray",
+        "toggleCompareQuestion",
+        "renderCompare",
+        "drawCompareHistory",
+        "renderAsofTimeMachine",
+        "downloadQuestionCalendar",
     ):
         assert behavior in html, f"워크스페이스 동작 누락: {behavior}"
     assert "body.focus-mode" in html
@@ -178,6 +190,10 @@ def test_workspace_utility_contract() -> None:
     assert "WHY IT MATTERS" in html and "DECISION WINDOW" in html
     assert "한 줄 해석" in html and "관찰 변수" in html
     assert "probability==null||probability===''" in html
+    assert "WHAT CHANGED" in html and "MY RADAR" in html
+    assert "SCENARIO VINTAGE" in html and "As-of Time Machine" in html
+    assert 'class="filter-insights"' in html and 'class="flow-focus"' in html
+    assert "data-calendar-all" in html and "data-calendar-selected" in html
     assert "peek-title" not in html and "peek-metric" not in html
 
 
