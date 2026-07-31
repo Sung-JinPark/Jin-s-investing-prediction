@@ -21,6 +21,10 @@
   --mono:'Geist Mono','SF Mono','Segoe UI Mono','Roboto Mono',Consolas,ui-monospace,monospace;
   --display:'Segoe UI Variable Display','SF Pro Display','Inter Tight',system-ui,-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
   --sans:'Segoe UI Variable Text','SF Pro Text',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI','Apple SD Gothic Neo','Noto Sans KR','Malgun Gothic',sans-serif;
+  --type-micro:.625rem;
+  --type-caption:.6875rem;
+  --type-control:.6875rem;
+  --type-data:.8125rem;
 }
 *{box-sizing:border-box}
 html{scroll-behavior:smooth;color-scheme:dark;background:var(--night)}
@@ -653,6 +657,10 @@ body.focus-mode .route-progress{left:0}
 .flow-focus{margin:0 0 16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.flow-focus>span{margin-right:6px;color:#77746d;font-family:var(--mono);font-size:8px}.flow-focus button{min-height:34px;padding:0 10px;display:flex;align-items:center;gap:6px;color:#65635d;background:#fff;border:1px solid var(--line);cursor:pointer;font-size:9px}.flow-focus button i{width:8px;height:8px;display:block;background:var(--focus-color,#11110f)}.flow-focus button:hover,.flow-focus button[aria-pressed="true"]{color:#fff;background:#11110f;border-color:#11110f}
 .compare-tray{min-height:64px;position:fixed;z-index:105;left:calc(var(--rail) + 20px);right:20px;bottom:18px;padding:10px 12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:12px;align-items:center;color:#fff;background:#11110f;border:1px solid #11110f;box-shadow:12px 12px 0 rgba(255,79,23,.18)}.compare-tray[hidden]{display:none}.compare-tray>strong{font-family:var(--mono);font-size:9px;letter-spacing:.08em}.compare-items{min-width:0;display:flex;gap:6px;overflow:hidden}.compare-chip{max-width:220px;padding:7px 9px;display:flex;align-items:center;gap:7px;color:#11110f;background:#fff;border:0;cursor:pointer;font-size:9px;white-space:nowrap}.compare-chip span{overflow:hidden;text-overflow:ellipsis}.compare-chip b{color:var(--crimson);font-family:var(--mono)}.compare-tray-actions{display:flex;gap:6px}.compare-tray-actions button{min-height:38px;padding:0 12px;color:#fff;background:transparent;border:1px solid #65635d;cursor:pointer;font-family:var(--mono);font-size:8px}.compare-tray-actions .compare-open{color:#11110f;background:var(--orange);border-color:var(--orange)}
 .compare-grid{display:grid;grid-template-columns:repeat(var(--compare-count,3),1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.compare-card{min-width:0;padding:20px;color:#11110f;background:#fff}.compare-card header{min-height:86px;display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.compare-card h2{margin:7px 0 0;font-size:15px;line-height:1.35}.compare-card header button{flex:0 0 auto;color:#77746d;background:transparent;border:0;cursor:pointer}.compare-prob{margin:20px 0;display:flex;align-items:flex-end;gap:7px}.compare-prob strong{font-family:var(--mono);font-size:54px;font-weight:540;letter-spacing:-.08em;line-height:.82}.compare-prob span{font-family:var(--mono);font-size:11px}.compare-facts{display:grid;border-top:1px solid var(--line)}.compare-facts>div{padding:10px 0;display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);font-size:10px}.compare-facts span{color:#77746d}.compare-facts strong{text-align:right}.compare-card footer{margin-top:14px;display:flex;justify-content:space-between;gap:8px}.compare-card footer a{color:var(--crimson);font-size:9px}.compare-card footer button{color:#11110f;background:transparent;border:0;cursor:pointer;font-size:9px}
+.compare-toggle{min-height:40px;padding:0 10px;display:flex;align-items:center;gap:8px;color:#fff;background:transparent;border:1px solid #65635d;cursor:pointer;font-family:var(--mono);font-size:var(--type-micro)}.compare-toggle b{min-width:22px;padding:3px 5px;color:#11110f;background:var(--amber);font-size:var(--type-micro)}.compare-toggle i{font-style:normal;transition:transform .2s ease}.compare-tray{transition:left .22s ease,width .22s ease,box-shadow .22s ease}.compare-tray.is-collapsed{width:auto;left:auto;grid-template-columns:auto auto;box-shadow:8px 8px 0 rgba(255,79,23,.16)}.compare-tray.is-collapsed .compare-items,.compare-tray.is-collapsed #compare-clear{display:none}.compare-tray.is-collapsed .compare-toggle i{transform:rotate(180deg)}
+.mobile-question-list{display:none}.mobile-question-card{padding:18px;display:grid;gap:14px;color:#11110f;background:#fff;border:1px solid var(--line);border-top:5px solid var(--orange)}.mobile-question-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.mobile-question-head>span:first-child{color:#77746d;font-family:var(--mono);font-size:var(--type-micro)}.mobile-question-card h2{margin:0;font-size:18px;letter-spacing:-.035em;line-height:1.3}.mobile-question-id{margin-top:-8px;color:#85827b;font-family:var(--mono);font-size:var(--type-micro);overflow-wrap:anywhere}.mobile-question-facts{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}.mobile-question-facts>div{padding:11px;background:var(--paper)}.mobile-question-facts span,.mobile-question-facts strong{display:block}.mobile-question-facts span{color:#77746d;font-family:var(--mono);font-size:var(--type-micro)}.mobile-question-facts strong{margin-top:6px;font-family:var(--mono);font-size:15px}.mobile-question-tags{display:flex;gap:6px;flex-wrap:wrap}.mobile-question-actions{min-height:44px;display:grid;grid-template-columns:44px 44px minmax(0,1fr);gap:6px}.mobile-question-actions button,.mobile-question-actions a{min-height:44px;display:grid;place-items:center;color:#11110f;background:#fff;border:1px solid var(--line-strong);font-family:var(--mono);font-size:var(--type-control)}.mobile-question-actions button[aria-pressed="true"]{color:#fff;background:#11110f}.mobile-question-actions a{color:#fff;background:var(--orange);border-color:var(--orange)}
+.review-queue{padding:18px;color:#fff;background:#11110f;border-left:5px solid var(--orange)}.review-queue-head{margin-bottom:14px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px}.review-queue-head h3{margin:4px 0 0;font-size:20px}.review-queue-head span,.review-queue-head small{display:block;color:#aaa69d;font-family:var(--mono);font-size:var(--type-micro)}.review-queue-head b{color:var(--amber)}.review-items{display:grid;border-top:1px solid #3b3934}.review-item{display:grid;grid-template-columns:minmax(0,1fr) 36px;border-bottom:1px solid #3b3934}.review-open{min-height:64px;padding:10px 8px 10px 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;color:#fff;background:transparent;border:0;cursor:pointer;text-align:left}.review-open span{font-size:11px;line-height:1.4}.review-open small{margin-top:4px;display:block;color:#aaa69d;font-family:var(--mono);font-size:var(--type-micro)}.review-open strong{color:var(--amber);font-family:var(--mono);font-size:12px}.review-dismiss{color:#aaa69d;background:transparent;border:0;cursor:pointer;font-size:18px}.review-dismiss:hover,.review-dismiss:focus-visible{color:#fff;background:#2b2a26}.review-empty{margin:0;color:#aaa69d;font-size:11px;line-height:1.5}
+.compare-history-shell svg{display:block;touch-action:pan-y}.compare-history-shell svg:focus-visible{outline:2px solid var(--orange);outline-offset:3px}.compare-readout{margin-top:1px;display:grid;grid-template-columns:auto repeat(var(--compare-count,3),minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}.compare-readout>div{min-height:58px;padding:10px 12px;display:flex;flex-direction:column;justify-content:center;background:#fff}.compare-readout span,.compare-readout small{color:#77746d;font-family:var(--mono);font-size:var(--type-micro)}.compare-readout strong{margin-top:5px;font-family:var(--mono);font-size:14px}.compare-readout .compare-date{min-width:118px;color:#fff;background:#11110f}.compare-readout .compare-date strong{color:var(--amber)}
 .time-machine{margin-bottom:16px;padding:clamp(22px,3vw,34px);color:#11110f;background:#11110f;border:1px solid #11110f}.time-machine-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:20px;align-items:end;color:#fff}.time-machine-head h2{margin:6px 0 0;font-size:clamp(25px,3vw,40px);letter-spacing:-.05em}.time-machine-head output{display:block;font-family:var(--mono);font-size:20px;color:var(--amber)}.time-machine-date{margin-top:8px;display:flex;align-items:center;justify-content:flex-end;gap:8px;color:#aaa69d;font-family:var(--mono);font-size:7px}.time-machine-date input{min-height:34px;padding:0 8px;color:#fff;color-scheme:dark;background:#242420;border:1px solid #4b4943;font-family:var(--mono);font-size:9px}.time-scrubber{margin-top:22px;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:8px;align-items:center}.time-scrubber button{min-height:40px;color:#fff;background:#242420;border:1px solid #4b4943;cursor:pointer}.time-scrubber button:disabled{opacity:.3;cursor:default}.time-scrubber input{width:100%;padding:0;background:transparent;border:0;accent-color:var(--orange)}.time-summary{margin-top:18px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#4b4943;border:1px solid #4b4943}.time-summary>div{padding:14px;background:#fff}.time-summary span,.time-summary strong{display:block}.time-summary span{color:#77746d;font-family:var(--mono);font-size:7px}.time-summary strong{margin-top:7px;font-family:var(--mono);font-size:19px}.time-movers{margin-top:1px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:#4b4943}.time-movers button{min-height:64px;padding:10px 12px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;color:#11110f;background:#fff;border:0;cursor:pointer;text-align:left}.time-movers button:hover{background:#fff5eb}.time-movers span{font-size:10px;line-height:1.4}.time-movers strong{font-family:var(--mono);font-size:12px}
 .calendar-action{min-height:34px;padding:0 10px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font-family:var(--mono);font-size:8px}.calendar-action:hover{color:#fff;background:#11110f}
 
@@ -681,6 +689,56 @@ body.focus-mode .route-progress{left:0}
 .briefing-foot{min-height:76px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(255,255,255,.9);border-top:1px solid var(--line)}
 .briefing-foot small{color:#77746d;font-family:var(--mono);font-size:8px}.briefing-controls{display:flex;gap:8px}.briefing-controls button{min-width:112px;min-height:44px;padding:0 14px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font-size:10px}.briefing-controls button:last-child{color:#fff;background:#11110f;border-color:#11110f}.briefing-controls button:disabled{opacity:.35;cursor:default}
 
+/* legibility layer v3: keep dense information readable without changing hierarchy */
+.rail-brand-copy small,.rail-num,kbd,.rail-live b,.rail-asof,.market-strip span,.market-strip small,
+.micro,.stance-chip,.stance-main>.stance-orbit small,.signal-mosaic>b small,.card-spark>span,.vintage-note,.count-chip,.scenario-row span,.scenario-row small,
+.band-grid span,.metric-ribbon span,.band-inline span,.risk-legend,.context-grid span,
+.range-returns span,.range-returns small,.round-sidebar span,.round-sidebar small,.reasoning-top span,
+.model-line,.resolution-card span,.track-kpis span,.track-kpis small,.prob-orb small{
+  font-size:var(--type-micro);
+  line-height:1.4;
+}
+.rail-command,.command-trigger,.mobile-command,.menu-button,.drawer-close,
+.query-bar label,.filter-bar label,.asof-control,.drawer-meta{
+  font-size:var(--type-caption);
+  line-height:1.4;
+}
+input,select{font-size:.75rem}
+table{font-size:var(--type-data)}
+th{font-size:var(--type-caption);line-height:1.4}
+td{font-size:var(--type-data);line-height:1.5}
+td b{font-size:.875rem}
+td small{font-size:var(--type-micro);line-height:1.4}
+.tag,.status{padding:6px 8px;font-size:var(--type-micro);line-height:1.35}
+.command-group,.command-result>i,.command-foot,.site-footer{font-size:var(--type-micro);line-height:1.45}
+.command-result small{font-size:var(--type-micro);line-height:1.4}
+.utility-action>small{font-size:var(--type-micro);line-height:1.35}
+.utility-head span,.utility-label,.freshness-card b,.freshness-card small,.utility-stats span,
+.focus-exit,.overview-actions>small,.peek-top,.peek-summary>span,.peek-glance span,.peek-driver-label,
+.data-vintage>span,.radar-eyebrow,.insight-label,.data-vintage b,.radar-stats span,
+.radar-item span small,.radar-pin>span,.radar-pin>small,.filter-insights span{
+  font-size:var(--type-micro);
+  line-height:1.4;
+}
+.utility-close,.shortcut-close,.briefing-close,.briefing-launch,.briefing-step-label,.briefing-foot small{
+  font-size:var(--type-micro);
+}
+.peek-driver-list span{font-size:var(--type-micro)}
+.question-action{min-width:34px;min-height:34px;font-size:var(--type-control)}
+.detail-actions button{min-height:40px;font-size:var(--type-control)}
+.flow-focus>span{font-size:var(--type-micro)}
+.flow-focus button{min-height:36px;font-size:var(--type-control)}
+.compare-chip{font-size:var(--type-control)}
+.compare-tray>strong,.compare-tray-actions button,.compare-card footer a,.compare-card footer button{
+  font-size:var(--type-micro);
+}
+.compare-facts>div{font-size:var(--type-caption);line-height:1.45}
+.time-machine-date,.time-summary span{font-size:var(--type-micro)}
+.time-movers span{font-size:var(--type-caption);line-height:1.45}
+.calendar-action{min-height:36px;font-size:var(--type-control)}
+.note-meta,.note-meta button{font-size:var(--type-micro);line-height:1.4}
+.briefing-controls button{font-size:var(--type-control)}
+
 body.motion-reduced .section-reveal{opacity:1;transform:none;transition:none}
 body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.motion-reduced .page-heading::after,body.motion-reduced .signal-mosaic i,body.motion-reduced .utility-panel,body.motion-reduced .quick-peek,body.motion-reduced .briefing-sheet,body.motion-reduced .briefing-scene{animation:none!important;transform:none!important;transition-duration:.01ms!important}
 
@@ -704,6 +762,9 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
   .quick-peek{display:none!important}.overview-actions>small{display:none}
   .data-vintage{grid-template-columns:1fr auto}.data-vintage p{grid-column:1/3}.change-radar{grid-template-columns:1fr}.radar-pins,.compare-grid{grid-template-columns:1fr}.filter-insights{grid-template-columns:repeat(2,1fr)}
   .compare-tray{left:10px;right:10px;bottom:max(10px,env(safe-area-inset-bottom));grid-template-columns:1fr auto}.compare-tray>strong{display:none}.compare-items{grid-column:1/3}.compare-chip{max-width:44vw}.compare-tray-actions button{padding-inline:9px}
+  .question-table-shell{display:none}.mobile-question-list{display:grid;gap:10px}.mobile-question-facts{grid-template-columns:repeat(3,1fr)}
+  .compare-tray.is-collapsed{width:auto;left:auto;right:10px;grid-template-columns:auto auto}.compare-tray.is-collapsed .compare-toggle{grid-column:auto}.compare-tray.is-collapsed .compare-tray-actions{grid-column:auto}
+  .compare-readout{grid-template-columns:1fr}.compare-readout .compare-date{min-width:0}.review-queue{padding:16px}
   .time-machine-head{grid-template-columns:1fr}.time-summary,.time-movers{grid-template-columns:1fr}.question-actions{justify-content:flex-start}
   .briefing-layer{padding:0}.briefing-sheet{width:100%;height:100dvh;min-height:0;border:0;box-shadow:none}.briefing-content{padding:34px 20px;overflow:auto}.briefing-scene{grid-template-columns:1fr;gap:26px}.briefing-copy h2{font-size:clamp(40px,11vw,54px)}.briefing-visual{width:min(58vw,230px);justify-self:end}.briefing-foot{padding:12px max(14px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(14px,env(safe-area-inset-left))}.briefing-foot small{display:none}.briefing-controls{width:100%}.briefing-controls button{min-width:0;flex:1}.note-editor textarea{font-size:16px}
 }
@@ -827,7 +888,8 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
 <nav class="view-map" id="view-map" aria-label="현재 화면 목차" hidden><div id="view-map-items"></div></nav>
 <aside class="quick-peek" id="quick-peek" role="tooltip" aria-hidden="true" hidden></aside>
 <aside class="compare-tray" id="compare-tray" aria-label="예측 비교 선택" hidden>
-  <strong>COMPARE</strong><div class="compare-items" id="compare-items"></div>
+  <button type="button" class="compare-toggle" id="compare-toggle" aria-expanded="true" aria-controls="compare-items"><span>COMPARE</span><b id="compare-count">0</b><i>⌄</i></button>
+  <div class="compare-items" id="compare-items"></div>
   <div class="compare-tray-actions"><button type="button" id="compare-clear">초기화</button><button type="button" class="compare-open" id="compare-open">비교 보기</button></div>
 </aside>
 <div class="briefing-layer" id="briefing-layer" aria-hidden="true" hidden>
@@ -923,7 +985,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&document.body.class
 document.querySelectorAll('#mobile-nav a').forEach(a=>a.addEventListener('click',()=>setDrawer(false,false)));
 
 // device-local workspace memory and utility layers
-const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:1,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[]};
+const UI_KEY='jin-investing-ui-v1',UI_DEFAULTS={version:1,density:'comfortable',motion:'adaptive',pins:[],recent:[],notes:{},compare:[],compareCollapsed:false,compareAutoExpanded:false};
 function loadUIState(){
   try{
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
@@ -933,7 +995,7 @@ function loadUIState(){
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     return {...UI_DEFAULTS,...raw,motion:raw.motion==='reduced'?'reduced':'adaptive',
       pins:Array.isArray(raw.pins)?raw.pins.slice(0,8):[],recent:Array.isArray(raw.recent)?raw.recent.slice(0,6):[],
-      compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],notes};
+      compare:Array.isArray(raw.compare)?raw.compare.slice(0,3):[],compareCollapsed:!!raw.compareCollapsed,compareAutoExpanded:!!raw.compareAutoExpanded,notes};
   }catch(_){return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[]};}
 }
 function saveUIState(){try{localStorage.setItem(UI_KEY,JSON.stringify(UI_STATE));}catch(_){}}
@@ -947,6 +1009,7 @@ const routeProgressBar=document.getElementById('route-progress-bar'),viewMap=doc
 const viewMapItems=document.getElementById('view-map-items'),quickPeek=document.getElementById('quick-peek');
 const compareTray=document.getElementById('compare-tray'),compareItems=document.getElementById('compare-items');
 const compareOpen=document.getElementById('compare-open'),compareClear=document.getElementById('compare-clear');
+const compareToggle=document.getElementById('compare-toggle'),compareCount=document.getElementById('compare-count');
 const briefingLayer=document.getElementById('briefing-layer'),briefingSheet=document.getElementById('briefing-sheet');
 const briefingContent=document.getElementById('briefing-content'),briefingClose=document.getElementById('briefing-close');
 const briefingPrev=document.getElementById('briefing-prev'),briefingNext=document.getElementById('briefing-next');
@@ -1129,12 +1192,46 @@ function myRadarPanel(){
     ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · R${q.n_rounds||0}</small></button>`).join('')}</div>`:
     '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
 }
+const REVIEW_DISMISSED_KEY='jin-review-dismissed-v1';
+function reviewDismissedIds(){
+  try{const value=JSON.parse(sessionStorage.getItem(REVIEW_DISMISSED_KEY)||'[]');return Array.isArray(value)?value.filter(x=>typeof x==='string'):[];}catch(_){return [];}
+}
+function dismissReviewQuestion(qid){
+  const ids=[...new Set([...reviewDismissedIds(),qid])].slice(-40);
+  try{sessionStorage.setItem(REVIEW_DISMISSED_KEY,JSON.stringify(ids));}catch(_){}
+}
+function reviewQueueData(){
+  const dismissed=new Set(reviewDismissedIds()),today=generatedDay();
+  return (DATA?.questions||[]).map(q=>{
+    const delta=latestDelta(q.id),days=q.deadline?dayDiff(today,q.deadline):null,pinned=isQuestionPinned(q.id),reasons=[];
+    if(delta!=null&&Math.abs(delta)>=5)reasons.push(`직전 회차 대비 ${delta>0?'+':''}${delta}%p`);
+    if(q.status==='active'&&days!=null&&days>=0&&days<=14)reasons.push(days===0?'오늘 판정':`D-${days} 판정 임박`);
+    if(pinned)reasons.push('MY RADAR');
+    const score=(days!=null&&days>=0&&days<=14?120-days:0)+(delta==null?0:Math.abs(delta)*3)+(pinned?24:0);
+    return {q,reasons,score};
+  }).filter(x=>x.reasons.length&&!dismissed.has(x.q.id)).sort((a,b)=>b.score-a.score||String(a.q.deadline||'').localeCompare(String(b.q.deadline||''))).slice(0,5);
+}
+function reviewQueuePanel(){
+  const items=reviewQueueData();
+  return `<section class="utility-section"><div class="review-queue" role="region" aria-labelledby="review-queue-title">
+    <div class="review-queue-head"><div><span>DECISION SUPPORT</span><h3 id="review-queue-title">REVIEW QUEUE</h3><small>변화 · 판정 임박 · MY RADAR만 모았습니다.</small></div><b>${items.length}</b></div>
+    ${items.length?`<div class="review-items">${items.map(({q,reasons})=>`<div class="review-item">
+      <button type="button" class="review-open" data-open-q="${esc(q.id)}"><span>${esc(q.title)}<small>${esc(reasons.join(' · '))}</small></span><strong>${p1(q.latest_prob)}</strong></button>
+      <button type="button" class="review-dismiss" data-review-dismiss="${esc(q.id)}" aria-label="${esc(q.title)} 이번 세션에서 숨기기">×</button>
+    </div>`).join('')}</div>`:'<p class="review-empty">지금 다시 확인할 변화나 임박한 판정이 없습니다.</p>'}
+  </div></section>`;
+}
 function cleanCompareIds(ids=UI_STATE.compare){
   return [...new Set(ids)].filter(id=>DATA?.questions?.some(q=>q.id===id)).slice(0,3);
 }
 function isCompared(qid){return cleanCompareIds().includes(qid);}
 function setCompareQuestions(ids){
-  UI_STATE.compare=cleanCompareIds(ids);saveUIState();renderCompareTray();syncQuestionActions();
+  const prev=cleanCompareIds(),next=cleanCompareIds(ids);
+  UI_STATE.compare=next;
+  if(!next.length){UI_STATE.compareCollapsed=false;UI_STATE.compareAutoExpanded=false;}
+  else if(next.length===1&&!prev.length)UI_STATE.compareCollapsed=true;
+  else if(next.length>=2&&prev.length<2&&!UI_STATE.compareAutoExpanded){UI_STATE.compareCollapsed=false;UI_STATE.compareAutoExpanded=true;}
+  saveUIState();renderCompareTray();syncQuestionActions();
 }
 function toggleCompareQuestion(qid){
   const ids=cleanCompareIds(),on=ids.includes(qid);
@@ -1146,9 +1243,15 @@ function syncQuestionActions(root=document){
   root.querySelectorAll('[data-pin-q]').forEach(b=>{const on=isQuestionPinned(b.dataset.pinQ),icon=b.querySelector('[data-pin-icon]');b.setAttribute('aria-pressed',String(on));if(icon)icon.textContent=on?'★':'☆';else b.textContent=on?'★':'☆';});
   root.querySelectorAll('[data-compare-q]').forEach(b=>{const on=isCompared(b.dataset.compareQ);b.setAttribute('aria-pressed',String(on));});
 }
+function toggleCompareTray(){
+  UI_STATE.compareCollapsed=!UI_STATE.compareCollapsed;saveUIState();renderCompareTray();
+}
 function renderCompareTray(){
   if(!DATA)return;const ids=cleanCompareIds();UI_STATE.compare=ids;
   compareTray.hidden=!ids.length;
+  const collapsed=location.hash.startsWith('#compare/')||UI_STATE.compareCollapsed;
+  compareTray.classList.toggle('is-collapsed',collapsed);compareToggle.setAttribute('aria-expanded',String(!collapsed));compareCount.textContent=String(ids.length);
+  compareToggle.setAttribute('aria-label',collapsed?`비교 선택 ${ids.length}개 펼치기`:`비교 선택 ${ids.length}개 접기`);
   compareItems.innerHTML=ids.map(id=>{const q=DATA.questions.find(x=>x.id===id);return `<button type="button" class="compare-chip" data-remove-compare="${esc(id)}"><b>${p1(q.latest_prob)}</b><span>${esc(q.title)}</span><i>×</i></button>`;}).join('');
   compareOpen.disabled=ids.length<2;compareOpen.textContent=ids.length<2?'1개 더 선택':'비교 보기';
 }
@@ -1337,7 +1440,7 @@ function renderUtilityPanel(){
   const active=questions.filter(q=>q.status==='active').length,resolved=questions.length-active;
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
   const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST',note=currentNote(),pinnedQs=myRadarQuestions();
-  utilityContent.innerHTML=`<section class="utility-section"><div class="utility-label">Data status</div>
+  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label">Data status</div>
     <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>SELF-CONTAINED SNAPSHOT</small></div><strong>${esc(generated)}</strong></div>
     <div class="utility-stats"><div><span>QUESTIONS</span><strong>${questions.length}</strong></div><div><span>ACTIVE</span><strong>${active}</strong></div><div><span>RESOLVED</span><strong>${resolved}</strong></div><div><span>ROUNDS</span><strong>${rounds}</strong></div></div></section>
     <section class="utility-section"><div class="utility-label">View density</div><div class="segmented-control">
@@ -1405,7 +1508,8 @@ utilityClose.addEventListener('click',()=>setUtility(false));
 document.getElementById('shortcut-scrim').addEventListener('click',()=>setShortcuts(false));
 shortcutClose.addEventListener('click',()=>setShortcuts(false));
 focusExit.addEventListener('click',()=>setFocusMode(false));
-utilityContent.addEventListener('click',e=>{const q=e.target.closest('[data-open-q]');if(q){setUtility(false,false);location.hash='#q/'+q.dataset.openQ;return;}
+utilityContent.addEventListener('click',e=>{const dismiss=e.target.closest('[data-review-dismiss]');if(dismiss){dismissReviewQuestion(dismiss.dataset.reviewDismiss);renderUtilityPanel();showToast('이번 세션의 검토 큐에서 숨겼습니다.');return;}
+  const q=e.target.closest('[data-open-q]');if(q){setUtility(false,false);location.hash='#q/'+q.dataset.openQ;return;}
   const routeButton=e.target.closest('[data-util-route]');if(routeButton){setUtility(false,false);location.hash=routeButton.dataset.utilRoute;return;}
   const b=e.target.closest('button[data-util]');if(!b)return;const a=b.dataset.util;
   if(a==='density')setDensity(b.dataset.value);else if(a==='motion')setMotion(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
@@ -1429,6 +1533,7 @@ app().addEventListener('click',e=>{
 compareItems.addEventListener('click',e=>{const b=e.target.closest('[data-remove-compare]');if(b)toggleCompareQuestion(b.dataset.removeCompare);});
 compareClear.addEventListener('click',()=>setCompareQuestions([]));
 compareOpen.addEventListener('click',()=>{const ids=cleanCompareIds();if(ids.length>=2)location.hash='#compare/'+ids.join(',');});
+compareToggle.addEventListener('click',toggleCompareTray);
 document.getElementById('briefing-scrim').addEventListener('click',()=>setBriefing(false));
 briefingClose.addEventListener('click',()=>setBriefing(false));
 briefingPrev.addEventListener('click',()=>stepBriefing(-1));briefingNext.addEventListener('click',()=>stepBriefing(1));
@@ -1589,6 +1694,7 @@ function route(){
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   (VIEWS[v]||renderOverview)(arg);
+  renderCompareTray();
   recordRecent();
   if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
   if(!commandLayer.hidden)setCommand(false,false);
@@ -1856,8 +1962,9 @@ function renderQuestions(){
   </div>`);
   root.appendChild(bar);
   const insights=el('<div class="filter-insights" id="filter-insights" aria-live="polite"></div>');root.appendChild(insights);
-  const cont=el('<div class="table-shell"><table id="qtbl"></table></div>');
-  root.appendChild(cont);
+  const cont=el('<div class="table-shell question-table-shell"><table id="qtbl"></table></div>');
+  const cards=el('<div class="mobile-question-list" id="question-mobile-list" aria-live="polite"></div>');
+  root.appendChild(cont);root.appendChild(cards);
   mount(root);
   const draw=()=>{
     const d=$('#fd').value,dr=$('#fdr').value,st=$('#fs').value,q=$('#fq').value.toLowerCase();
@@ -1868,7 +1975,7 @@ function renderQuestions(){
     const rising=rows.filter(x=>(latestDelta(x.id)||0)>0).length,falling=rows.filter(x=>(latestDelta(x.id)||0)<0).length;
     const due30=rows.filter(x=>{const n=x.deadline?dayDiff(generatedDay(),x.deadline):null;return n!=null&&n>=0&&n<=30;}).length;
     insights.innerHTML=`<div><span>표시 질문</span><strong>${rows.length}</strong></div><div><span>확률 중앙값</span><strong>${med==null?'—':Math.round(med)+'%'}</strong></div><div><span>상승 / 하락</span><strong>${rising} / ${falling}</strong></div><div><span>30일 내 판정</span><strong>${due30}</strong></div>`;
-    $('#qtbl').innerHTML=`<thead><tr><th>예측 질문</th><th>분야</th><th>테마</th><th class="r">현재 확률</th><th class="r">회차</th><th class="r">상태</th><th class="r">작업</th></tr></thead>
+    $('#qtbl').innerHTML=`<thead><tr><th scope="col">예측 질문</th><th scope="col">분야</th><th scope="col">테마</th><th scope="col" class="r">현재 확률</th><th scope="col" class="r">회차</th><th scope="col" class="r">상태</th><th scope="col" class="r">작업</th></tr></thead>
     <tbody>${rows.map(x=>`<tr tabindex="0" data-q="${esc(x.id)}">
       <td><b>${esc(x.title)}</b><small>${esc(x.id)}</small></td><td>${esc(humanDomain(x.domain))}</td>
       <td>${(x.drivers||[]).slice(0,2).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'—'}</td>
@@ -1876,10 +1983,22 @@ function renderQuestions(){
       <td class="r num">${x.n_rounds}</td>
       <td class="r">${x.resolved?'<span class="status status-resolved">완료</span>':'<span class="status status-active">진행 중</span>'}</td>
       <td><div class="question-actions"><button type="button" class="question-action" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div></td></tr>`).join('')}</tbody>`;
+    cards.innerHTML=rows.map(x=>{const delta=latestDelta(x.id),clock=deadlineWindow(x);
+      return `<article class="mobile-question-card" data-q="${esc(x.id)}">
+        <div class="mobile-question-head"><span>${esc(humanDomain(x.domain))} · R${x.n_rounds||0}</span>${x.resolved?'<span class="status status-resolved">완료</span>':'<span class="status status-active">진행 중</span>'}</div>
+        <h2>${esc(x.title)}</h2><div class="mobile-question-id">${esc(x.id)}</div>
+        <div class="mobile-question-facts">
+          <div><span>현재 확률</span><strong>${p1(x.latest_prob)}</strong></div>
+          <div><span>직전 대비</span><strong class="${delta>0?'edge-pos':delta<0?'edge-neg':''}">${delta==null?'첫 기준선':`${delta>0?'+':''}${delta}%p`}</strong></div>
+          <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div>
+        </div>
+        <div class="mobile-question-tags">${(x.drivers||[]).slice(0,3).map(dv=>`<button type="button" class="tag tag-button" data-filter-driver="${esc(dv)}">${esc(humanDriver(dv))}</button>`).join(' ')||'<span class="tag">관찰 변수 없음</span>'}</div>
+        <div class="mobile-question-actions"><button type="button" data-pin-q="${esc(x.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" data-compare-q="${esc(x.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button><a href="#q/${esc(x.id)}">상세 근거 보기</a></div>
+      </article>`;}).join('')||'<p class="empty">조건에 맞는 예측 질문이 없습니다.</p>';
     $('#qtbl').querySelectorAll('tr[data-q]').forEach(tr=>{const go=()=>location.hash='#q/'+tr.dataset.q;
       tr.onclick=e=>{if(!e.target.closest('button'))go();};tr.onkeydown=e=>{if(e.key==='Enter'&&e.target===tr)go();};});
-    $('#qtbl').querySelectorAll('[data-filter-driver]').forEach(b=>b.onclick=e=>{e.stopPropagation();$('#fdr').value=b.dataset.filterDriver;draw();});
-    syncQuestionActions(cont);bindQuickPeek(cont);
+    root.querySelectorAll('[data-filter-driver]').forEach(b=>b.onclick=e=>{e.stopPropagation();$('#fdr').value=b.dataset.filterDriver;draw();});
+    syncQuestionActions(root);bindQuickPeek(root);
   };
   ['#fd','#fdr','#fs'].forEach(s=>bar.querySelector(s).onchange=draw);bar.querySelector('#fq').oninput=draw;draw();
   bar.querySelector('#freset').onclick=()=>{['#fd','#fdr','#fs','#fq'].forEach(s=>bar.querySelector(s).value='');draw();};
@@ -1904,27 +2023,49 @@ function renderCompare(arg=''){
         <div><span>판정 시계</span><strong>${esc(clock.short)}</strong></div><div><span>관찰 변수</span><strong>${esc((q.drivers||[]).slice(0,2).map(humanDriver).join(' · ')||'—')}</strong></div></div>
       <footer><a href="#q/${esc(q.id)}">상세 근거 보기</a><button type="button" data-pin-q="${esc(q.id)}"><span data-pin-icon>☆</span> 레이더</button></footer></article>`;}).join('')}</div>`);
   root.appendChild(grid);
-  const chart=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측 확률 회차 비교</h2><div class="band-inline">${qs.map((q,i)=>`<span><b style="background:${COMPARE_COLORS[i]}"></b>${esc(q.title.length>24?q.title.slice(0,24)+'…':q.title)}</span>`).join('')}</div></div><div class="chart-wrap"><div id="compare-history"></div></div><p class="chart-note">각 선은 해당 질문의 자체 회차 이력입니다. 질문 간 확률의 합이나 상대 성과를 뜻하지 않습니다.</p></div>`);
+  const chart=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>예측 확률 회차 비교</h2><div class="band-inline">${qs.map((q,i)=>`<span><b style="background:${COMPARE_COLORS[i]}"></b>${esc(q.title.length>24?q.title.slice(0,24)+'…':q.title)}</span>`).join('')}</div></div><div class="chart-wrap"><div id="compare-history" class="compare-history-shell"></div></div><p class="chart-note">커서 값은 선택 날짜 이전의 최신 회차입니다. 차트 위를 움직이거나 좌우 화살표로 날짜를 이동하세요. 질문 간 확률의 합이나 상대 성과를 뜻하지 않습니다.</p></div>`);
   root.appendChild(chart);mount(root);drawCompareHistory($('#compare-history',chart),qs);
   root.querySelectorAll('[data-remove-compare-page]').forEach(b=>b.onclick=()=>{const next=cleanCompareIds().filter(id=>id!==b.dataset.removeComparePage);setCompareQuestions(next);location.hash=next.length>=2?'#compare/'+next.join(','):'#questions';});
   root.querySelector('[data-calendar-selected]').onclick=()=>downloadQuestionCalendar(qs.map(q=>q.id));
 }
 function drawCompareHistory(host,questions){
-  const series=questions.map(q=>({q,values:DATA.forecast_history?.[q.id]||[]})).filter(x=>x.values.length);
+  const series=questions.map(q=>({q,values:[...(DATA.forecast_history?.[q.id]||[])].sort((a,b)=>String(a.forecast_ts||'').localeCompare(String(b.forecast_ts||'')))})).filter(x=>x.values.length);
   if(!series.length){host.innerHTML='<p class="empty">비교할 회차 이력이 없습니다.</p>';return;}
-  const dates=series.flatMap(s=>s.values.map(v=>(v.forecast_ts||'').slice(0,10))).filter(Boolean).sort();
+  const dates=[...new Set(series.flatMap(s=>s.values.map(v=>(v.forecast_ts||'').slice(0,10))).filter(Boolean))].sort();
   let t0=Date.parse(dates[0]),t1=Date.parse(dates[dates.length-1]);if(t0===t1){t0-=86400000;t1+=86400000;}
   const NS='http://www.w3.org/2000/svg',W=1000,H=300,ML=48,MR=24,MT=24,MB=34,PW=W-ML-MR,PH=H-MT-MB;
   const X=d=>ML+PW*(Date.parse(d)-t0)/(t1-t0),Y=p=>MT+PH*(1-p/100);
-  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('aria-label','선택한 예측 질문의 회차별 확률 비교');
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','선택한 예측 질문의 회차별 확률 비교. 좌우 화살표로 기준 날짜 이동');
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));return node;};
   const tx=(x,y,value,attrs={})=>{const node=mk('text',{x,y,fill:attrs.fill||'rgba(17,17,15,.54)','font-size':attrs.fs||10,'text-anchor':attrs.anc||'start'});node.textContent=value;return node;};
   [0,25,50,75,100].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));svg.appendChild(tx(ML-7,Y(v)+3,v+'%',{anc:'end'}));});
   series.forEach((s,index)=>{let d='';s.values.forEach((v,i)=>{const date=(v.forecast_ts||'').slice(0,10);d+=(i?'L':'M')+X(date)+','+Y(v.probability)+' ';});
     const color=COMPARE_COLORS[index];svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));
-    s.values.forEach(v=>{const date=(v.forecast_ts||'').slice(0,10);svg.appendChild(mk('circle',{cx:X(date),cy:Y(v.probability),r:4,fill:color}));svg.appendChild(tx(X(date),Y(v.probability)-9,v.probability+'%',{anc:'middle',fill:color,fs:10.5}));});});
-  svg.appendChild(tx(ML,MT+PH+20,new Date(t0).toISOString().slice(0,10),{fill:'rgba(17,17,15,.5)'}));
-  svg.appendChild(tx(ML+PW,MT+PH+20,new Date(t1).toISOString().slice(0,10),{anc:'end',fill:'rgba(17,17,15,.5)'}));host.appendChild(svg);
+    s.values.forEach(v=>{const date=(v.forecast_ts||'').slice(0,10);svg.appendChild(mk('circle',{cx:X(date),cy:Y(v.probability),r:3.4,fill:color,stroke:'#fff','stroke-width':1.4}));});});
+  svg.appendChild(tx(ML,MT+PH+20,dates[0],{fill:'rgba(17,17,15,.5)'}));
+  if(dates.length>1)svg.appendChild(tx(ML+PW,MT+PH+20,dates[dates.length-1],{anc:'end',fill:'rgba(17,17,15,.5)'}));
+  const cursor=mk('line',{x1:X(dates[dates.length-1]),y1:MT,x2:X(dates[dates.length-1]),y2:MT+PH,stroke:'#11110f','stroke-width':1.2,'stroke-dasharray':'4 3'});
+  svg.appendChild(cursor);
+  const markers=series.map((_,index)=>{const node=mk('circle',{r:5.5,fill:COMPARE_COLORS[index],stroke:'#fff','stroke-width':2});svg.appendChild(node);return node;});
+  const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent',style:'cursor:crosshair'});svg.appendChild(overlay);
+  const readout=document.createElement('div');readout.className='compare-readout';readout.style.setProperty('--compare-count',series.length);
+  const valueAt=(s,date)=>{let value=null;s.values.forEach(v=>{const d=(v.forecast_ts||'').slice(0,10);if(d&&d<=date)value=v;});return value;};
+  let cursorIndex=dates.length-1;
+  const paintCursor=index=>{
+    cursorIndex=Math.max(0,Math.min(dates.length-1,index));const date=dates[cursorIndex],x=X(date);
+    cursor.setAttribute('x1',x);cursor.setAttribute('x2',x);
+    const values=series.map((s,i)=>{const value=valueAt(s,date);if(value){markers[i].setAttribute('cx',x);markers[i].setAttribute('cy',Y(value.probability));markers[i].style.display='';}else markers[i].style.display='none';return value;});
+    readout.innerHTML=`<div class="compare-date"><span>AS OF</span><strong>${esc(date)}</strong></div>${series.map((s,i)=>{const value=values[i],record=(value?.forecast_ts||'').slice(0,10);
+      return `<div><span>${esc(s.q.title.length>28?s.q.title.slice(0,28)+'…':s.q.title)}</span><strong style="color:${COMPARE_COLORS[i]}">${value?p1(value.probability):'기록 없음'}</strong><small>${value?`최근 회차 ${esc(record)}`:'선택 날짜 이전 기록 없음'}</small></div>`;}).join('')}`;
+    svg.setAttribute('aria-label',`예측 확률 비교, 기준 날짜 ${date}. 좌우 화살표로 이동`);
+  };
+  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),viewX=(event.clientX-rect.left)*(W/rect.width);
+    return dates.reduce((best,date,index)=>Math.abs(X(date)-viewX)<Math.abs(X(dates[best])-viewX)?index:best,0);};
+  overlay.addEventListener('pointermove',event=>paintCursor(indexFromPointer(event)));
+  overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));svg.focus();});
+  svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
+    else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(dates.length-1);}});
+  host.replaceChildren(svg,readout);paintCursor(cursorIndex);
 }
 
 // ── 예측 상세 ──
@@ -2108,7 +2249,7 @@ function renderTrack(){
     <div class="deadline-list" style="border-top:1px solid var(--line)">${ds.map(r=>`<div style="padding:19px 0;display:grid;grid-template-columns:1fr auto;gap:6px;border-bottom:1px solid var(--line)">
       <span style="font-size:13px;font-weight:650">${esc(humanDomain(r.domain))}</span>
       <strong style="font-family:var(--mono);font-size:17px">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</strong>
-      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:9px">표본 ${r.n}건</small></div>`).join('')}</div></div>`));}
+      <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건</small></div>`).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
   mount(root);
 }

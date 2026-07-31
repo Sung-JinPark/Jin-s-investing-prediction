@@ -141,7 +141,8 @@ def test_workspace_utility_contract() -> None:
         "utility-layer", "shortcut-layer", "toast-region", "focus-exit",
         "route-progress-bar", "view-map", "quick-peek", "briefing-layer",
         "briefing-content", "briefing-prev", "briefing-next",
-        "compare-tray", "compare-items", "compare-open",
+        "compare-tray", "compare-items", "compare-open", "compare-toggle",
+        "compare-count", "question-mobile-list",
     ):
         assert f'id="{element_id}"' in html, f"워크스페이스 UI 누락: {element_id}"
     for behavior in (
@@ -173,6 +174,10 @@ def test_workspace_utility_contract() -> None:
         "toggleCompareQuestion",
         "renderCompare",
         "drawCompareHistory",
+        "toggleCompareTray",
+        "reviewQueueData",
+        "reviewQueuePanel",
+        "dismissReviewQuestion",
         "renderAsofTimeMachine",
         "downloadQuestionCalendar",
     ):
@@ -194,6 +199,18 @@ def test_workspace_utility_contract() -> None:
     assert "SCENARIO VINTAGE" in html and "As-of Time Machine" in html
     assert 'class="filter-insights"' in html and 'class="flow-focus"' in html
     assert "data-calendar-all" in html and "data-calendar-selected" in html
+    assert "legibility layer v3" in html
+    for token in ("--type-micro", "--type-caption", "--type-control", "--type-data"):
+        assert token in html, f"가독성 타이포 토큰 누락: {token}"
+    assert ".question-action{min-width:34px;min-height:34px" in html
+    assert "table{font-size:var(--type-data)}" in html
+    assert 'class="table-shell question-table-shell"' in html
+    assert 'class="mobile-question-card"' in html
+    assert "className='compare-readout'" in html
+    assert "REVIEW QUEUE" in html and "data-review-dismiss" in html
+    assert "compareCollapsed" in html and "compareAutoExpanded" in html
+    assert "overlay.addEventListener('pointermove'" in html
+    assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
 
 
