@@ -68,7 +68,7 @@ flowchart LR
 
 `.github/workflows/pages.yml`의 push 조건은 `branches: [main]`이며, 감시 경로는 `forecasts/**`, `calibration/**`, `data/**`, `questions/**`, 대시보드 소스, Pages 워크플로 자체다. 여기에 토요일 `30 1 * * 6` 일정과 수동 실행이 추가된다. 빌드는 checkout한 커밋에서 파생 SQLite를 `sync --rebuild`로 다시 만든 뒤 `_site`를 생성해 Pages artifact로 배포한다.
 
-최근 10회 Pages 실행은 모두 `main`이었다. 최신 실행은 `schedule`, run `30684647968`, head `ec24aa3`, 성공, 2026-08-01 04:48 UTC였고, 직전 push 실행은 `d8b2e69`, 그 전은 `5df32e2`였다. 라이브 페이지의 `2026-08-01 04:49 KST`는 표시 자체가 빌드 시각과 동일한 시간대 표기는 아니지만, 페이지의 시나리오 수치(기준일 2026-07-31, NASDAQ 25,373.85/화면 반올림 25,374, ATH 27,093.9, 경로 74/2/24)가 `origin/main`의 JSON과 일치한다.
+최근 10회 Pages 실행은 모두 `main`이었다. 최신 실행은 `schedule`, run `30684647968`, head `ec24aa3`, 성공, 2026-08-01 04:48 UTC였고, 직전 push 실행은 `d8b2e69`, 그 전은 `5df32e2`였다. 라이브 페이지의 `2026-08-01 04:49 KST` 표시는 run 시각 04:48 UTC와 거의 같고, 코드가 `datetime.now()`의 무시간대 값을 만든 뒤 JavaScript에서 `KST`를 덧붙인다(`dashboard.py:140`, `dashboard.js:679,1880`). 따라서 이 표시는 CI의 UTC를 KST로 잘못 이름 붙였을 가능성이 높아 배포 커밋 판정 근거로 쓰지 않았다. 대신 페이지의 시나리오 수치(기준일 2026-07-31, NASDAQ 25,373.85/화면 반올림 25,374, ATH 27,093.9, 경로 74/2/24)가 `origin/main`의 JSON과 일치하는 것을 확인했다.
 
 가설 판정은 다음과 같다.
 
