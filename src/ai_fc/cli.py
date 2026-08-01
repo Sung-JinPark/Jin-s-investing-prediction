@@ -31,6 +31,26 @@ def _sync_or_exit(conn, root: Path) -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("provider-guard")
+def cmd_provider_guard() -> None:
+    """CI-safe check that official provider config has an exact human approval."""
+    from .provider_governance import assert_official_provider_allowed
+
+    snapshot = (
+        config.OPENAI_OFFICIAL_MODEL
+        if config.OFFICIAL_LLM_PROVIDER == "openai"
+        else config.REASONING_MODEL
+    )
+    try:
+        assert_official_provider_allowed(
+            config.ROOT, config.OFFICIAL_LLM_PROVIDER, snapshot
+        )
+    except (PermissionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"official provider approved: {config.OFFICIAL_LLM_PROVIDER}:{snapshot}")
+
+
 @app.command("scenario")
 def cmd_scenario(
     asof: str | None = typer.Option(

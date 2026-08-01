@@ -23,5 +23,7 @@ jobs:
         run: cd src && python -m ai_fc sync --check
       - name: generated inventory drift check
         run: cd src && python -m ai_fc inventory --check
+      - name: official LLM provider approval guard
+        run: cd src && python -m ai_fc provider-guard
       - name: track record verifier
         run: python tools/verify_track_record.py

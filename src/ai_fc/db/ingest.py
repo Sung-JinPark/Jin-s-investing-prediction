@@ -31,7 +31,12 @@ def connect(db_path: Path) -> sqlite3.Connection:
                 "ALTER TABLE forecasts ADD COLUMN shadow_extremized INTEGER",
                 "ALTER TABLE forecasts ADD COLUMN ml_divergence_pp REAL",
                 "ALTER TABLE forecasts ADD COLUMN divergence_class TEXT",
-                "ALTER TABLE forecasts ADD COLUMN pipeline_tier TEXT"):
+                "ALTER TABLE forecasts ADD COLUMN pipeline_tier TEXT",
+                "ALTER TABLE cost_log ADD COLUMN provider TEXT NOT NULL DEFAULT 'anthropic'",
+                "ALTER TABLE cost_log ADD COLUMN snapshot TEXT",
+                "ALTER TABLE cost_log ADD COLUMN request_id TEXT",
+                "ALTER TABLE cost_log ADD COLUMN cached_input_tokens INTEGER NOT NULL DEFAULT 0",
+                "ALTER TABLE cost_log ADD COLUMN web_search_calls INTEGER NOT NULL DEFAULT 0"):
         try:
             conn.execute(ddl)
         except sqlite3.OperationalError:

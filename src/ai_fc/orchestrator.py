@@ -79,17 +79,41 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
     now = _now_kst()
     today = now.date()
     window_end = today + timedelta(days=q.rolling_days) if q.deadline_kind == "rolling" else None
+    from .provider_governance import assert_official_provider_allowed
+    requested_provider = config.OFFICIAL_LLM_PROVIDER
+    requested_snapshot = (
+        config.OPENAI_OFFICIAL_MODEL if requested_provider == "openai"
+        else config.REASONING_MODEL
+    )
+    assert_official_provider_allowed(root, requested_provider, requested_snapshot)
     monthly = queries.month_cost(conn, now.year, now.month)
     if monthly >= config.MONTHLY_BUDGET:
         raise PreflightError(f"월 예산 초과: ${monthly:.2f} >= ${config.MONTHLY_BUDGET:.2f}")
 
-    budget = PipelineBudget(limit_usd=budget_usd)
-    api_key = config.get_api_key()
-    if not api_key:
+    provider_monthly = queries.month_cost(conn, now.year, now.month, requested_provider)
+    provider_limit = (
+        config.OPENAI_MONTHLY_BUDGET if requested_provider == "openai"
+        else config.ANTHROPIC_MONTHLY_BUDGET
+    )
+    if provider_monthly >= provider_limit:
         raise PreflightError(
-            "API 키 없음 — ANTHROPIC_API_KEY 환경변수 또는 ~/.ai_fc/anthropic_key.dpapi 필요")
-    client = anthropic.Anthropic(api_key=api_key)
-    official_provider = AnthropicProvider(client)
+            f"{requested_provider} 월 예산 초과: ${provider_monthly:.2f} >= ${provider_limit:.2f}"
+        )
+
+    budget = PipelineBudget(limit_usd=budget_usd)
+    if requested_provider == "anthropic":
+        api_key = config.get_api_key()
+        if not api_key:
+            raise PreflightError(
+                "API 키 없음 — ANTHROPIC_API_KEY 환경변수 또는 "
+                "~/.ai_fc/anthropic_key.dpapi 필요")
+        client = anthropic.Anthropic(api_key=api_key)
+        official_provider = AnthropicProvider(client)
+    else:
+        official_provider = OpenAIResponsesProvider(
+            model=config.OPENAI_OFFICIAL_MODEL,
+            role="official",
+        )
     scratch = root / "db" / "scratch"
     scratch.mkdir(parents=True, exist_ok=True)
 
@@ -170,11 +194,16 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
             # (stage 접두 'dry:'로 구분 — 예측 기록은 없지만 비용은 프리플라이트가 본다)
             for b in briefs:
                 queries.log_cost(conn, question_id, f"dry:research:{b.profile}",
-                                 config.RESEARCH_MODEL, b.input_tokens,
-                                 b.output_tokens, b.cost_usd)
+                                 official_provider.identity.model, b.input_tokens,
+                                 b.output_tokens, b.cost_usd,
+                                 provider=official_provider.identity.provider,
+                                 snapshot=official_provider.identity.snapshot)
             dry_reasoning = budget.spent_usd - sum(b.cost_usd for b in briefs)
             queries.log_cost(conn, question_id, "dry:reasoning",
-                             config.REASONING_MODEL, 0, 0, max(dry_reasoning, 0.0))
+                             official_provider.identity.model, 0, 0,
+                             max(dry_reasoning, 0.0),
+                             provider=official_provider.identity.provider,
+                             snapshot=official_provider.identity.snapshot)
             return (f"[DRY] {question_id} r{rnd}: {agg.probability}% "
                     f"(CI {agg.ci80_lo}~{agg.ci80_hi}) 비용 ${budget.spent_usd:.2f} "
                     f"→ 스크래치패드에만 기록 (비용은 cost_log 편입)")
@@ -214,10 +243,22 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
 
         for b in briefs:
             queries.log_cost(conn, question_id, f"research:{b.profile}",
-                             config.RESEARCH_MODEL, b.input_tokens, b.output_tokens, b.cost_usd)
+                             official_provider.identity.model, b.input_tokens,
+                             b.output_tokens, b.cost_usd,
+                             provider=official_provider.identity.provider,
+                             snapshot=official_provider.identity.snapshot)
         reasoning_cost = budget.spent_usd - sum(b.cost_usd for b in briefs)
-        queries.log_cost(conn, question_id, "reasoning", config.REASONING_MODEL,
-                         0, 0, max(reasoning_cost, 0.0))
+        queries.log_cost(conn, question_id, "reasoning", official_provider.identity.model,
+                         0, 0, max(reasoning_cost, 0.0),
+                         provider=official_provider.identity.provider,
+                         snapshot=official_provider.identity.snapshot)
+        if shadow_observation is not None:
+            queries.log_cost(
+                conn, question_id, "shadow:forecast", shadow_observation.model,
+                0, 0, shadow_observation.cost_usd,
+                provider=shadow_observation.provider,
+                snapshot=shadow_observation.snapshot,
+            )
         ingest.sync(conn, root)
 
     return (f"{question_id} r{rnd}: {agg.probability}% (CI {agg.ci80_lo}~{agg.ci80_hi}) "
@@ -279,7 +320,7 @@ def _frontmatter(q: Question, agg: AggregateResult, stem: str, now: datetime,
         "question_snapshot": q.question,
         "timestamp": now.strftime("%Y-%m-%d %H:%M KST"),
         "phase": phase,
-        "model": config.REASONING_MODEL,
+        "model": identity.model,
         "provider": identity.provider,
         "model_snapshot": identity.snapshot,
         "provider_version": identity.version,

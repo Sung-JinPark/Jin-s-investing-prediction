@@ -268,20 +268,45 @@ def latest_divergence_classes(conn: sqlite3.Connection) -> dict[str, str]:
     return out
 
 
-def month_cost(conn: sqlite3.Connection, year: int, month: int) -> float:
-    row = conn.execute(
-        "SELECT COALESCE(SUM(cost_usd), 0) AS c FROM cost_log WHERE ts LIKE ?",
-        (f"{year:04d}-{month:02d}-%",),
-    ).fetchone()
+def month_cost(
+    conn: sqlite3.Connection, year: int, month: int, provider: str | None = None
+) -> float:
+    sql = "SELECT COALESCE(SUM(cost_usd), 0) AS c FROM cost_log WHERE ts LIKE ?"
+    params: list[object] = [f"{year:04d}-{month:02d}-%"]
+    if provider:
+        sql += " AND COALESCE(provider, 'anthropic') = ?"
+        params.append(provider)
+    row = conn.execute(sql, params).fetchone()
     return float(row["c"])
 
 
 def log_cost(conn: sqlite3.Connection, question_id: str, stage: str, model: str,
-             input_tokens: int, output_tokens: int, cost_usd: float) -> None:
+             input_tokens: int, output_tokens: int, cost_usd: float, *,
+             provider: str = "anthropic", snapshot: str | None = None,
+             request_id: str | None = None, cached_input_tokens: int = 0,
+             web_search_calls: int = 0) -> None:
     conn.execute(
-        "INSERT INTO cost_log (ts, question_id, stage, model, input_tokens, output_tokens, cost_usd)"
-        " VALUES (?,?,?,?,?,?,?)",
+        "INSERT INTO cost_log (ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,"
+        "provider,snapshot,request_id,cached_input_tokens,web_search_calls)"
+        " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
         (datetime.now().isoformat(timespec="seconds"), question_id, stage, model,
-         input_tokens, output_tokens, cost_usd),
+         input_tokens, output_tokens, cost_usd, provider, snapshot, request_id,
+         cached_input_tokens, web_search_calls),
     )
     conn.commit()
+
+
+def provider_cost_summary(conn: sqlite3.Connection) -> list[dict]:
+    """Auditable spend totals without merging provider identities."""
+    return [dict(row) for row in conn.execute(
+        """SELECT COALESCE(provider,'anthropic') AS provider,
+                  model,snapshot,COUNT(*) AS calls,
+                  SUM(input_tokens) AS input_tokens,
+                  SUM(output_tokens) AS output_tokens,
+                  SUM(cached_input_tokens) AS cached_input_tokens,
+                  SUM(web_search_calls) AS web_search_calls,
+                  ROUND(SUM(cost_usd),6) AS cost_usd
+           FROM cost_log
+           GROUP BY COALESCE(provider,'anthropic'),model,snapshot
+           ORDER BY provider,model,snapshot"""
+    )]

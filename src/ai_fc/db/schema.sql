@@ -115,8 +115,15 @@ CREATE TABLE IF NOT EXISTS cost_log (
     model           TEXT,
     input_tokens    INTEGER,
     output_tokens   INTEGER,
-    cost_usd        REAL
+    cost_usd        REAL,
+    provider        TEXT NOT NULL DEFAULT 'anthropic',
+    snapshot        TEXT,
+    request_id      TEXT,
+    cached_input_tokens INTEGER NOT NULL DEFAULT 0,
+    web_search_calls INTEGER NOT NULL DEFAULT 0
 );
+
+CREATE INDEX IF NOT EXISTS idx_cost_log_provider_month ON cost_log (provider, ts);
 
 -- ── ML/시장 확률 이력 (원본: data/ml_history/*.jsonl — 재구축 가능) ──
 

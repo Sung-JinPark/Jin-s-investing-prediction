@@ -96,6 +96,8 @@ OPENAI_SHADOW_QUESTION_IDS = frozenset(
     for q in os.environ.get("AI_FC_OPENAI_SHADOW_QUESTIONS", "").split(",")
     if q.strip()
 )
+OFFICIAL_LLM_PROVIDER = os.environ.get("AI_FC_OFFICIAL_LLM_PROVIDER", "anthropic").strip()
+OPENAI_OFFICIAL_MODEL = os.environ.get("AI_FC_OPENAI_OFFICIAL_MODEL", "").strip()
 
 WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
 # v3 WS-B 경량(lite) 티어 — 검색량·분량만 축소 (에이전트 수·데블스·스키마 불변, 헌법 준수).
@@ -112,6 +114,10 @@ DEFAULT_PIPELINE_BUDGET = float(os.environ.get("AI_FC_PIPELINE_BUDGET", "4.00"))
 # 함의: 월 실행 가능 예측 ~5~8회 — WS1 표본 속도 목표(월 8~12 해소)와 상충하므로
 # 우선순위 규율 필수 (FACTORY_GUIDE §3 개정). 초과 시 프리플라이트 자동 차단.
 MONTHLY_BUDGET = float(os.environ.get("AI_FC_MONTHLY_BUDGET", "20.00"))
+ANTHROPIC_MONTHLY_BUDGET = float(
+    os.environ.get("AI_FC_ANTHROPIC_MONTHLY_BUDGET", str(MONTHLY_BUDGET))
+)
+OPENAI_MONTHLY_BUDGET = float(os.environ.get("AI_FC_OPENAI_MONTHLY_BUDGET", "10.00"))
 
 # ── 알림 (선택) ───────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")
