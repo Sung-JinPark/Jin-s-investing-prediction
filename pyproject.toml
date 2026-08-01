@@ -11,6 +11,7 @@ requires-python = ">=3.12"
 dependencies = [
     "typer",
     "anthropic",
+    "openai>=1.68",
     "pydantic>=2",
     "pyyaml",
     "python-frontmatter",

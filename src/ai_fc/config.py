@@ -58,6 +58,11 @@ def get_api_key() -> str | None:
     return None
 
 
+def get_openai_api_key() -> str | None:
+    """Return the OpenAI key from the environment without persisting or printing it."""
+    return os.environ.get("OPENAI_API_KEY") or None
+
+
 # ── LLM ──────────────────────────────────────────────────────────
 REASONING_MODEL = os.environ.get("AI_FC_REASONING_MODEL", "claude-opus-4-8")
 # 추론 K회 실행 중앙값 (ARCHITECTURE §2-④ — "단일 실행은 불안정" 업계 공통 결론).
@@ -73,7 +78,19 @@ PROMPT_VERSION = "reasoning_core_v1"
 PRICES = {
     "claude-opus-4-8": (5.00, 25.00),
     "claude-sonnet-5": (3.00, 15.00),
+    # OpenAI list prices verified from official model cards on 2026-08-01.
+    "gpt-5.6-sol": (5.00, 30.00),
+    "gpt-5.6-terra": (2.00, 12.00),
+    "gpt-5.6-luna": (0.20, 1.20),
 }
+
+# A live OpenAI shadow is intentionally disabled until an actual dated snapshot id
+# is supplied.  Aliases such as gpt-5.6-sol are rejected by the provider adapter.
+OPENAI_SHADOW_MODEL = os.environ.get("AI_FC_OPENAI_SHADOW_MODEL", "").strip()
+OPENAI_SHADOW_PIPELINE_BUDGET = float(
+    os.environ.get("AI_FC_OPENAI_SHADOW_PIPELINE_BUDGET", "2.00")
+)
+OPENAI_REASONING_EFFORT = os.environ.get("AI_FC_OPENAI_REASONING_EFFORT", "high")
 
 WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
 # v3 WS-B 경량(lite) 티어 — 검색량·분량만 축소 (에이전트 수·데블스·스키마 불변, 헌법 준수).
