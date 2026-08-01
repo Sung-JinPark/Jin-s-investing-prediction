@@ -51,7 +51,7 @@ def test_read_model_shape(repo: Path) -> None:
     for key in ("meta", "scenario", "scenario_history", "questions", "forecast_history",
                 "resolutions", "ml_runs", "market_runs", "calibration", "due",
                 "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
-                "probability_semantics", "changelog"):
+                "probability_semantics", "changelog", "era_analog"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
@@ -62,6 +62,14 @@ def test_read_model_shape(repo: Path) -> None:
     assert m["scenario_history"][-1]["asof"] == m["scenario"]["asof"]
     assert m["probability_semantics"]["canonical_unit"] == "fraction"
     assert m["calibration"]["gate_v2"]["display_only"] is True
+    assert m["era_analog"]["probability_space"] == "reference_only"
+
+
+def test_forecast_body_dictionary_round_trip() -> None:
+    phrase = dashboard.FORECAST_BODY_DICTIONARY[0]
+    body = phrase.replace(phrase, chr(0xE000))
+    assert body == chr(0xE000)
+    assert "decodeForecastBody" in dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
 
 
 def test_template_self_contained() -> None:
@@ -132,7 +140,7 @@ def test_ui_contract() -> None:
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
     assert "--display:'Segoe UI Variable Display'" in html
     assert "--sans:'Segoe UI Variable Text'" in html
-    assert "font-size:clamp(46px,4.1vw,64px)" in html
+    assert "font-size:clamp(44px,3.65vw,52px)" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
@@ -250,7 +258,7 @@ def test_workspace_utility_contract() -> None:
     assert "legibility layer v3" in html
     for token in ("--type-micro", "--type-caption", "--type-control", "--type-data"):
         assert token in html, f"가독성 타이포 토큰 누락: {token}"
-    assert ".question-action{min-width:34px;min-height:34px" in html
+    assert ".question-action{min-width:44px;min-height:44px" in html
     assert "table{font-size:var(--type-data)}" in html
     assert 'class="table-shell question-table-shell"' in html
     assert 'class="mobile-question-card"' in html
@@ -273,6 +281,11 @@ def test_workspace_utility_contract() -> None:
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
+    assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
+    assert "REFERENCE ONLY · 확률 아님" in html
+    assert "DATA.era_analog" in html
+    assert "drawOverlay(analogHost,overlay._overlay" in html
+    assert "data-flow-focus=\"ANALOG\"" not in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:

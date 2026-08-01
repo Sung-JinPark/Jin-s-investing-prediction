@@ -889,6 +889,7 @@ document.addEventListener('keydown',e=>{
 
 // 차트 표현 색(light analysis surface용) — 확률·값·가중치 불변, 표현만
 const CHART_COL={S1:'#ff4f17',S2:'#ff9d19',S3:'#c9002d'};
+const CHART_LABEL_COL={S1:'#9b2c0b',S2:'#715000',S3:'#9e1332'};
 const FEATURE_QIDS=['nasdaq-corr10-augoct-2026','nasdaq-eoy-above-jul9-2026','nasdaq-ath-eoy-2026'];
 
 function latestDelta(qid){
@@ -1036,7 +1037,7 @@ function scenarioBars(){
     return `<div class="scenario-row">
       <div><b>${esc(p.label)}</b><small>종점 ${num(p.end)}</small></div>
       <div class="bar"><span style="width:${p.prob}%;background:${CHART_COL[k]}"></span></div>
-      <strong style="color:${CHART_COL[k]}">${p.prob}%</strong></div>`;
+      <strong style="color:${CHART_LABEL_COL[k]}">${p.prob}%</strong></div>`;
   }).join('')+`</div><div class="band-grid">
     <div><span>현재 지수</span><strong>${num(Math.round(DATA.scenario.anchor))}</strong></div>
     <div><span>전고점</span><strong>${num(DATA.scenario.ath)}</strong></div>
@@ -1075,12 +1076,10 @@ function renderFlow(){
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
-    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>GBM p5–p95 fan</span>':''}
-    <span><b style="background:#706f68"></b>과거 유사 사이클</span></div>`;
+    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>예측 구간 p5–p95 · 중앙값 p50</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
-    ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
-    <button type="button" data-flow-focus="ANALOG" style="--focus-color:#706f68" aria-pressed="false"><i></i>유사 사이클</button></div>`;
+    ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}</div>`;
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2>2026년 말까지 주간 시나리오</h2>${legend}</div>
@@ -1088,27 +1087,36 @@ function renderFlow(){
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
-    ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>SCENARIO LAB</span><strong>p5 · p25 · p50 · p75 · p95</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
+    ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p5–p95</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
     <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
-  root.appendChild(p1w);
   const overlay=analogPanel();
-  if(overlay)root.appendChild(overlay);
+  p1w.id='lab-future';p1w.setAttribute('role','tabpanel');p1w.setAttribute('aria-labelledby','lab-tab-future');
+  if(overlay){overlay.id='lab-history';overlay.setAttribute('role','tabpanel');overlay.setAttribute('aria-labelledby','lab-tab-history');overlay.hidden=true;}
+  const labTabs=el(`<div class="lab-tabs" role="tablist" aria-label="시장 지도 분석 공간">
+    <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>조건부 시나리오</small></button>
+    <button type="button" id="lab-tab-history" role="tab" aria-selected="false" aria-controls="lab-history" data-lab-tab="history" ${overlay?'':'disabled'}><span>02</span> 사이클 비교<small>reference-only</small></button>
+  </div>`);
+  root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);
   mount(root);
   const flowHost=$('#chart',p1w),paintFlow=focus=>{flowHost.innerHTML='';drawFlow(flowHost,sc,focus);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   paintFlow('ALL');
+  const activateLab=space=>{const history=space==='history'&&overlay;p1w.hidden=Boolean(history);if(overlay)overlay.hidden=!history;
+    labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===(history?'history':'future');b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
+  labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>b.onclick=()=>activateLab(b.dataset.labTab));
   if(overlay){
-    const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,DATA.analog_context.overlay,overlay._eras,focus);
+    const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,focus);
       overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
     overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.onclick=()=>paintAnalog(b.dataset.analogFocus));
     paintAnalog('ALL');
   }
 }
 function analogPanel(){
-  const ctx=DATA.analog_context;if(!ctx||!ctx.overlay)return null;
-  const o=ctx.overlay;const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
+  const model=DATA.era_analog;if(!model||model.status!=='ok'||!model.series?.length)return null;
+  const ctx=model.context||{};const o=Object.fromEntries(model.series.map(s=>[s.id,s.log10_index.map(v=>v==null?null:Math.round(100*Math.pow(10,v)*10)/10)]));
+  const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
   if(eras.length<2)return null;
   const focusControls=`<div class="flow-focus analog-focus" role="group" aria-label="과거 혁신 사이클 강조"><span>SPOTLIGHT</span>
     <button type="button" data-analog-focus="ALL" aria-pressed="true"><i></i>전체</button>
@@ -1123,12 +1131,14 @@ function analogPanel(){
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
     <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2><span class="count-chip">${eras.length}개 사이클</span></div>
+    <div class="reference-banner"><strong>REFERENCE ONLY · 확률 아님</strong><span>${esc(model.unit)} · anchor 기준 상대 개월</span></div>
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
-    <p class="chart-note"><strong>연도 표기는 버블 정점이 아니라 비교 시작점입니다.</strong> 크립토는 2019년 회복 시작을 M+0으로 두며, 주요 강세 구간은 2020~2021년, 이 사이클의 정점은 2021-11(M+34)입니다. 각 사이클을 시작월 100으로 정규화(로그)한 참고 비교이며, 과거 사이클은 예측이 아닙니다.</p>
+    <p class="chart-note"><strong>연도 표기는 버블 정점이 아니라 비교 시작점입니다.</strong> 크립토는 2019년 회복 시작을 M+0으로 두며, 주요 강세 구간은 2020~2021년, 이 사이클의 정점은 2021-11(M+34)입니다. 과거 곡선은 결과를 아는 hindsight 자료입니다. 질문 확률·시나리오 확률과 산술 결합하지 않습니다.</p>
+    <details class="analog-limit"><summary>Anchor 민감도와 한계</summary><p>${esc(model.anchor_sensitivity?.reason||'미산출')} ${esc((model.limitations||[]).join(' '))}</p></details>
   </div>`);
-  w._eras=eras;
+  w._eras=eras;w._overlay=o;
   return w;
 }
 function drawOverlay(host,o,eras,focus='ALL'){
@@ -1140,17 +1150,17 @@ function drawOverlay(host,o,eras,focus='ALL'){
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','과거 혁신 사이클 정규화 비교. 좌우 화살표로 기준 월 이동');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,ob={})=>{const e=mk('text',{x,y,fill:ob.fill||'rgba(17,17,15,.58)','font-size':ob.fs||11,'text-anchor':ob.anc||'start','font-weight':ob.w||400,opacity:ob.opacity??1});e.textContent=s;return e;};
+  const tx=(x,y,s,ob={})=>{const e=mk('text',{x,y,fill:ob.fill||'rgba(17,17,15,.66)','font-size':ob.fs||12,'text-anchor':ob.anc||'start','font-weight':ob.w||400,opacity:ob.opacity??1});e.textContent=s;return e;};
   [100,200,400,800,1600].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:v===100?'rgba(17,17,15,.22)':'rgba(17,17,15,.09)','stroke-width':1}));
     svg.appendChild(tx(ML-8,Y(v)+4,String(v),{anc:'end',fill:'rgba(17,17,15,.5)'}));});
-  for(let m=0;m<=CAP;m+=12){svg.appendChild(tx(X(m),MT+PH+18,'M+'+m,{anc:'middle',fs:10,fill:m?'rgba(17,17,15,.48)':'rgba(17,17,15,.76)'}));}
+  for(let m=0;m<=CAP;m+=12){svg.appendChild(tx(X(m),MT+PH+18,'M+'+m,{anc:'middle',fs:12,fill:m?'#5f5d57':'#34322e'}));}
   eras.forEach(e=>{const[label,color,sw,dash,alpha]=ERA_META[e],on=focus==='ALL'||focus===e;const vals=o[e].slice(0,CAP+1);let d='';
     vals.forEach((v,i)=>{d+=(i?'L':'M')+X(i)+','+Y(Math.max(v,60))+' ';});
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?Math.max(2.4,sw):1.1,'stroke-linejoin':'round',
       'stroke-dasharray':dash,opacity:on?alpha:.1}));
     if(e==='ai'){const last=vals[vals.length-1];const i=vals.length-1;
       svg.appendChild(mk('circle',{cx:X(i),cy:Y(last),r:on?3.8:2.5,fill:color,stroke:'#fff','stroke-width':1.5,opacity:on?1:.12}));
-      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(ERA_START.ai,i)} · M+${i}`,{fill:color,fs:11.5,w:600,opacity:on?1:.12}));}});
+      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(ERA_START.ai,i)} · M+${i}`,{fill:'#34322e',fs:12,w:650,opacity:on?1:.12}));}});
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
   const markers=eras.map(e=>{const marker=mk('circle',{r:4.8,fill:ERA_META[e][1],stroke:'#fff','stroke-width':1.8});svg.appendChild(marker);return marker;});
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
@@ -1187,9 +1197,9 @@ function drawFlow(host,sc,focus='ALL'){
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','2026년 말까지 주간 시나리오. 좌우 화살표로 기준 주차 이동');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.58)','font-size':o.fs||11,'text-anchor':o.anc||'start','font-weight':o.w||400,opacity:o.opacity??1});e.textContent=s;return e;};
+  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.66)','font-size':o.fs||12,'text-anchor':o.anc||'start','font-weight':o.w||400,opacity:o.opacity??1});e.textContent=s;return e;};
   for(let v=24000;v<=30000;v+=1000){svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
-    svg.appendChild(tx(ML-8,Y(v)+4,(v/1000)+'k',{anc:'end',fill:'rgba(17,17,15,.5)'}));}
+    svg.appendChild(tx(ML-8,Y(v)+4,(v/1000)+'k',{anc:'end',fill:'#5f5d57'}));}
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점 '+num(sc.ath),{fill:'rgba(17,17,15,.6)'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
@@ -1197,7 +1207,7 @@ function drawFlow(host,sc,focus='ALL'){
   sc.events.forEach(([xi,label,row])=>{const x=X(xi),ly=row===0?16:38;
     svg.appendChild(mk('line',{x1:x,y1:MT-10,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
     svg.appendChild(mk('circle',{cx:x,cy:ly+12,r:2.2,fill:'rgba(17,17,15,.55)'}));
-    svg.appendChild(tx(x,ly+7,label,{anc:'middle',fill:'rgba(17,17,15,.66)',fs:10.5}));});
+    svg.appendChild(tx(x,ly+7,label,{anc:'middle',fill:'#5f5d57',fs:12}));});
   const fan=sc.fan?.quantiles;
   if(fan?.p5?.length===n&&fan?.p95?.length===n){
     const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');for(let i=lower.length-1;i>=0;i--)d+='L'+X(i)+','+Y(lower[i])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
@@ -1205,25 +1215,20 @@ function drawFlow(host,sc,focus='ALL'){
     if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
     if(fan.p50){let median='';fan.p50.forEach((v,i)=>median+=(i?'L':'M')+X(i)+','+Y(v)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }
-  const clip=sc.analog.clip;let dA='';sc.analog.values.forEach((v,i)=>{dA+=(i?'L':'M')+X(i)+','+Y(Math.min(v,clip))+' ';});
-  const analogColor='#706f68',analogOn=focus==='ALL'||focus==='ANALOG';
-  svg.appendChild(mk('path',{d:dA,fill:'none',stroke:analogColor,'stroke-width':analogOn?2:1.2,'stroke-dasharray':'5 4',opacity:analogOn?.78:.09}));
-  const lastA=sc.analog.values[sc.analog.values.length-1];
-  if(lastA>clip)svg.appendChild(tx(X(n-1)-4,Y(clip)-6,'↗ +'+Math.round((lastA/sc.anchor-1)*100)+'%',{anc:'end',fill:analogColor,opacity:analogOn?1:.12}));
   ['S1','S2','S3'].forEach(k=>{const p=sc.paths[k],col=CHART_COL[k],on=focus==='ALL'||focus===k;let d='';p.values.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:col,'stroke-width':on?(k==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));
     const ev=p.values[p.values.length-1];
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(ev),r:on?4:2.5,fill:col,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));
-    svg.appendChild(tx(X(n-1)+8,Y(ev)+4,`${num(ev)} · ${p.prob}%`,{fill:col,fs:11.5,w:600,opacity:on?1:.12}));});
+    svg.appendChild(tx(X(n-1)+8,Y(ev)+4,`${num(ev)} · ${p.prob}%`,{fill:CHART_LABEL_COL[k],fs:12,w:700,opacity:on?1:.12}));});
   svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f','stroke':'#fff','stroke-width':1.5}));
   svg.appendChild(tx(X(0)-6,Y(sc.anchor)-10,num(Math.round(sc.anchor)),{fill:'#11110f',w:600}));
-  sc.weeks.forEach((w,i)=>svg.appendChild(tx(X(i),MT+PH+16,w,{anc:'middle',fs:10,fill:i?'rgba(17,17,15,.5)':'rgba(17,17,15,.76)'})));
+  sc.weeks.forEach((w,i)=>svg.appendChild(tx(X(i),MT+PH+16,w,{anc:'middle',fs:12,fill:i?'#5f5d57':'#34322e'})));
   const RY=HCH+8,RH=28,cw=PW/(n-1);
-  svg.appendChild(tx(ML-8,RY+19,'변동성',{anc:'end',fill:'rgba(17,17,15,.58)',fs:10.5}));
+  svg.appendChild(tx(ML-8,RY+19,'변동성',{anc:'end',fill:'#5f5d57',fs:12}));
   sc.risk.forEach((r,i)=>{const x=X(i)-cw/2+1,w=cw-2;
-    const fill=r==='고'?'rgba(201,0,45,.76)':(r==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)');const tc=r==='고'?'#fff':(r==='중'?'#513300':'#174c49');
+    const fill=r==='고'?'rgba(201,0,45,.92)':(r==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)');const tc=r==='고'?'#fff':(r==='중'?'#513300':'#174c49');
     svg.appendChild(mk('rect',{x:(i===0?X(0)-2:x),y:RY,width:(i===0?w/2+2:w),height:RH,rx:0,fill:fill,stroke:'rgba(17,17,15,.1)'}));
-    svg.appendChild(tx(X(i),RY+18,r,{anc:'middle',fs:10.5,fill:tc,w:600}));});
+    svg.appendChild(tx(X(i),RY+18,r,{anc:'middle',fs:12,fill:tc,w:700}));});
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
   const cursorMarkers=['S1','S2','S3'].map(k=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[k],stroke:'#fff','stroke-width':2});svg.appendChild(marker);return marker;});
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
@@ -1234,7 +1239,7 @@ function drawFlow(host,sc,focus='ALL'){
     cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=sc.weeks[cursorIndex],risk=sc.risk[cursorIndex];
     xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
     ['S1','S2','S3'].forEach((k,j)=>{cursorMarkers[j].setAttribute('cx',x);cursorMarkers[j].setAttribute('cy',Y(sc.paths[k].values[cursorIndex]));});
-    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(k=>`<div><span>${esc(sc.paths[k].label)}</span><strong style="color:${CHART_COL[k]}">${num(sc.paths[k].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[k].prob}%</small></div>`).join('')}`;
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(k=>`<div><span>${esc(sc.paths[k].label)}</span><strong style="color:${CHART_LABEL_COL[k]}">${num(sc.paths[k].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[k].prob}%</small></div>`).join('')}`;
     svg.setAttribute('aria-label',`주간 시나리오, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);
   };
   const indexFromPointer=e=>{const r=svg.getBoundingClientRect(),mx=(e.clientX-r.left)*(W/r.width);
@@ -1417,7 +1422,7 @@ function drawCompareHistory(host,questions){
   const X=d=>ML+PW*(Date.parse(d)-t0)/(t1-t0),Y=p=>MT+PH*(1-p/100);
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','선택한 예측 질문의 회차별 확률 비교. 좌우 화살표로 기준 날짜 이동');
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);Object.entries(attrs).forEach(([k,v])=>node.setAttribute(k,v));return node;};
-  const tx=(x,y,value,attrs={})=>{const node=mk('text',{x,y,fill:attrs.fill||'rgba(17,17,15,.54)','font-size':attrs.fs||10,'text-anchor':attrs.anc||'start'});node.textContent=value;return node;};
+  const tx=(x,y,value,attrs={})=>{const node=mk('text',{x,y,fill:attrs.fill||'#5f5d57','font-size':attrs.fs||12,'text-anchor':attrs.anc||'start'});node.textContent=value;return node;};
   [0,25,50,75,100].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));svg.appendChild(tx(ML-7,Y(v)+3,v+'%',{anc:'end'}));});
   series.forEach((s,index)=>{let d='';s.values.forEach((v,i)=>{const date=(v.forecast_ts||'').slice(0,10);d+=(i?'L':'M')+X(date)+','+Y(v.probability)+' ';});
     const color=COMPARE_COLORS[index];svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));
@@ -1449,6 +1454,17 @@ function drawCompareHistory(host,questions){
 }
 
 // ── 예측 상세 ──
+const BODY_DICTIONARY=[
+  '> **P1 참고 의견 — 자금 결정의 단독 근거 아님** (P3 게이트: 해소 50문항+ & Brier < 0.18 통과 전).',
+  '> **P0 참고 의견 — 자금 결정의 단독 근거 아님** (P3 게이트 통과 전).',
+  '## [4] Premortem — 이 예측이 크게 틀렸다면','## [1] Outside View — base rate','## [2] Inside View — 보정',
+  '## [0] 질문 검증','## [3] 분해 트리','## [5] 최종 출력','## [미검증] 항목','## 리서치 구성',
+  '| 증거 | 방향 | 조정 |','| 증거 | 방향 | 평가 |','|---|---|---|','- **핵심 근거 3줄**:','- **관찰 지표 2개**:',
+  '- **핵심 근거**:','- **관찰 지표**:','P1 참고 의견 — 자금 결정의 단독 근거 아님','P0 참고 의견 — 자금 결정의 단독 근거 아님',
+  'P3 게이트 통과 전','참조 클래스:','최종 확률','required_snapshots','NOT FOUND',
+  '확률','예측','근거','출처','판정','시나리오','시장','기준','해소','상승','하락','최종','질문','현재','발생','조정','리스크','참조','실적','전망','분기'
+];
+function decodeForecastBody(text){return BODY_DICTIONARY.reduce((value,phrase,index)=>value.split(String.fromCharCode(0xE000+index)).join(phrase),text||'');}
 function signedPoint(value){
   if(!hasNumeric(value))return '기록 없음';
   const rounded=Math.round(Number(value)*10)/10;
@@ -1458,7 +1474,7 @@ function confidenceBand(round){
   return hasNumeric(round?.ci80_lo)&&hasNumeric(round?.ci80_hi)?`${Number(round.ci80_lo)}–${Number(round.ci80_hi)}%`:'기록 없음';
 }
 function reasoningText(round){
-  return round?.body?.trim()||'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
+  return decodeForecastBody(round?.body).trim()||'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
 }
 function evidenceDeltaMarkup(current,previous){
   const method=current.method||current.model||'기록 없음';
@@ -1556,13 +1572,13 @@ function drawHistory(host,hist,mlRuns,mktRuns){
   const Y=p=>MT+PH*(1-p/100);
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.5)','font-size':o.fs||10,'text-anchor':o.anc||'start'});e.textContent=s;return e;};
+  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'#5f5d57','font-size':o.fs||12,'text-anchor':o.anc||'start'});e.textContent=s;return e;};
   [0,25,50,75,100].forEach(v=>{svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));svg.appendChild(tx(ML-6,Y(v)+3,v+'%',{anc:'end'}));});
   mlRuns.forEach(m=>svg.appendChild(mk('circle',{cx:toX(m.run_ts.slice(0,10)),cy:Y(Math.round(m.prob*100)),r:3.5,fill:'#247d78',opacity:.7})));
   mktRuns.forEach(m=>svg.appendChild(mk('circle',{cx:toX(m.run_ts.slice(0,10)),cy:Y(Math.round(m.prob*100)),r:3.5,fill:'#706f68',opacity:.75})));
   let d='';pts.forEach((p,i)=>d+=(i?'L':'M')+toX(p.t)+','+Y(p.p)+' ');
   svg.appendChild(mk('path',{d,fill:'none',stroke:'#ff4f17','stroke-width':2.4}));
-  pts.forEach(p=>{svg.appendChild(mk('circle',{cx:toX(p.t),cy:Y(p.p),r:4.5,fill:'#ff4f17'}));svg.appendChild(tx(toX(p.t),Y(p.p)-9,p.p+'%',{anc:'middle',fill:'#11110f',fs:11}));});
+  pts.forEach(p=>{svg.appendChild(mk('circle',{cx:toX(p.t),cy:Y(p.p),r:4.5,fill:'#ff4f17'}));svg.appendChild(tx(toX(p.t),Y(p.p)-9,p.p+'%',{anc:'middle',fill:'#11110f',fs:12}));});
   host.appendChild(svg);
 }
 
@@ -1744,7 +1760,7 @@ function drawDaily(host,sc,endIdx){
   const X=t=>ML+PW*((+t-t0)/Math.max(1,t1-t0)),Y=v=>MT+PH*(1-(v-ymin)/(ymax-ymin));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.56)','font-size':o.fs||10.5,'text-anchor':o.anc||'start','font-weight':o.w||400});e.textContent=s;return e;};
+  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'#5f5d57','font-size':o.fs||12,'text-anchor':o.anc||'start','font-weight':o.w||400});e.textContent=s;return e;};
   for(let g=0;g<=4;g++){const v=ymin+(ymax-ymin)*g/4;svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));
     svg.appendChild(tx(ML-8,Y(v)+4,(Math.round(v/10)*10).toLocaleString(),{anc:'end',fill:'rgba(17,17,15,.5)'}));}
   if(sc.ath<=ymax&&sc.ath>=ymin){svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
@@ -1758,12 +1774,12 @@ function drawDaily(host,sc,endIdx){
     svg.appendChild(mk('path',{d,fill:'none',stroke:col,'stroke-width':k==='S1'?2.6:1.8,'stroke-linejoin':'round',opacity:k==='S1'?1:.9}));
     const ev=ser[k][ser[k].length-1];
     svg.appendChild(mk('circle',{cx:X(dates[dates.length-1]),cy:Y(ev),r:3.4,fill:col,stroke:'#0b1714','stroke-width':1.5}));
-    svg.appendChild(tx(X(dates[dates.length-1])+8,Y(ev)+4,`${num(Math.round(ev))} ${sc.paths[k].prob}%`,{fill:col,fs:11,w:600}));});
+    svg.appendChild(tx(X(dates[dates.length-1])+8,Y(ev)+4,`${num(Math.round(ev))} ${sc.paths[k].prob}%`,{fill:CHART_LABEL_COL[k],fs:12,w:700}));});
   svg.appendChild(mk('circle',{cx:X(dates[0]),cy:Y(ser.S1[0]),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
   svg.appendChild(tx(X(dates[0])-4,Y(ser.S1[0])-9,num(Math.round(sc.anchor)),{fill:'#11110f',w:600,anc:'start'}));
   let lastM=-1;dates.forEach(t=>{const m=t.getMonth();if(m!==lastM){lastM=m;
     svg.appendChild(mk('line',{x1:X(t),y1:MT,x2:X(t),y2:MT+PH,stroke:'rgba(17,17,15,.08)'}));
-    svg.appendChild(tx(X(t),MT+PH+16,(m+1)+'월',{anc:'middle',fs:10,fill:'rgba(17,17,15,.56)'}));}});
+    svg.appendChild(tx(X(t),MT+PH+16,(m+1)+'월',{anc:'middle',fs:12,fill:'#5f5d57'}));}});
   const xh=mk('line',{stroke:'rgba(17,17,15,.38)','stroke-width':1,opacity:0});svg.appendChild(xh);
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
   const tip=document.getElementById('tip');
@@ -1809,9 +1825,9 @@ function renderAsk(){
     const legend=`<div class="band-inline">${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(['기본','중립','조정'][['S1','S2','S3'].indexOf(k)])} ${sc.paths[k].prob}%</span>`).join('')}</div>`;
     out.innerHTML=`
     <div class="range-returns">
-      <div><span>기본 (S1) · ${wk}</span><strong style="color:${CHART_COL.S1}">${sign(lv('S1'))}</strong><small>${num(Math.round(lv('S1')))}</small></div>
-      <div><span>중립 (S2) · ${wk}</span><strong style="color:${CHART_COL.S2}">${sign(lv('S2'))}</strong><small>${num(Math.round(lv('S2')))}</small></div>
-      <div><span>조정 (S3) · ${wk}</span><strong style="color:${CHART_COL.S3}">${sign(lv('S3'))}</strong><small>${num(Math.round(lv('S3')))}</small></div>
+      <div><span>기본 (S1) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S1}">${sign(lv('S1'))}</strong><small>${num(Math.round(lv('S1')))}</small></div>
+      <div><span>중립 (S2) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S2}">${sign(lv('S2'))}</strong><small>${num(Math.round(lv('S2')))}</small></div>
+      <div><span>조정 (S3) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S3}">${sign(lv('S3'))}</strong><small>${num(Math.round(lv('S3')))}</small></div>
     </div>
     <div class="chart-panel analysis-panel"><div class="panel-head"><h2>현재 → ${wk} · 일별 전망</h2>${legend}</div>
       <div class="chart-wrap"><div id="dchart" style="min-width:640px"></div></div>
@@ -1835,7 +1851,7 @@ function renderAsk(){
 
 // ── 시장 지표 바 ──
 function renderHeaderStrip(){
-  const sc=DATA.scenario||{},ctx=DATA.analog_context||{},rg=ctx.regime||{},br=ctx.breadth||{};
+  const sc=DATA.scenario||{},ctx=DATA.era_analog?.context||{},rg=ctx.regime||{},br=ctx.breadth||{};
   const anchor=sc.anchor,ath=sc.ath,corr=sc.corr10,vintage=scenarioVintage();
   const items=[];
   if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;

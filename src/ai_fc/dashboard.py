@@ -24,6 +24,39 @@ DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 420_000
 
+# Repeated immutable forecast headings dominate the self-contained Pages payload.
+# Private-use one-codepoint tokens preserve every character while avoiding an ADR-002
+# budget increase. dashboard.js expands the same ordered dictionary on read.
+FORECAST_BODY_DICTIONARY = (
+    "> **P1 참고 의견 — 자금 결정의 단독 근거 아님** (P3 게이트: 해소 50문항+ & Brier < 0.18 통과 전).",
+    "> **P0 참고 의견 — 자금 결정의 단독 근거 아님** (P3 게이트 통과 전).",
+    "## [4] Premortem — 이 예측이 크게 틀렸다면",
+    "## [1] Outside View — base rate",
+    "## [2] Inside View — 보정",
+    "## [0] 질문 검증",
+    "## [3] 분해 트리",
+    "## [5] 최종 출력",
+    "## [미검증] 항목",
+    "## 리서치 구성",
+    "| 증거 | 방향 | 조정 |",
+    "| 증거 | 방향 | 평가 |",
+    "|---|---|---|",
+    "- **핵심 근거 3줄**:",
+    "- **관찰 지표 2개**:",
+    "- **핵심 근거**:",
+    "- **관찰 지표**:",
+    "P1 참고 의견 — 자금 결정의 단독 근거 아님",
+    "P0 참고 의견 — 자금 결정의 단독 근거 아님",
+    "P3 게이트 통과 전",
+    "참조 클래스:",
+    "최종 확률",
+    "required_snapshots",
+    "NOT FOUND",
+    "확률", "예측", "근거", "출처", "판정", "시나리오", "시장", "기준", "해소",
+    "상승", "하락", "최종", "질문", "현재", "발생", "조정", "리스크", "참조",
+    "실적", "전망", "분기",
+)
+
 # ── 시나리오 흐름 데이터 (정본: reports/md/nasdaq_weekly_scenario_v3_1_1) ──
 SCENARIO = {
     "asof": "2026-07-14",
@@ -91,7 +124,10 @@ def _forecast_bodies(root: Path) -> dict[str, str]:
             continue
         try:
             post = frontmatter.load(str(path))
-            out[name] = post.content.strip()
+            body = post.content.strip()
+            for index, phrase in enumerate(FORECAST_BODY_DICTIONARY):
+                body = body.replace(phrase, chr(0xE000 + index))
+            out[name] = body
         except Exception:  # noqa: BLE001
             continue
     return out
@@ -190,6 +226,9 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
+    legacy_context = _latest_context_run(root)
+    from .era_analog import build_era_analog
+    era_analog = build_era_analog(legacy_context)
 
     # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
     from .model_registry import arena_rows
@@ -223,6 +262,9 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "method": scenario.get("method") or "미산출",
         "limitation": scenario.get("note") or "미산출",
         "commit": db_meta.get("head") or "미산출",
+        "lineage": _rows(conn.execute(
+            "SELECT upstream_type,upstream_id,relation FROM lineage_edge "
+            "WHERE downstream_id='scenario' ORDER BY edge_id")),
     }]
     asof_index = [{
         "asof": item.get("asof"), "generated_at": item.get("generated_at"),
@@ -238,7 +280,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
     } for previous, current in zip(scenario_history, scenario_history[1:])]
 
-    return {
+    model = {
         "meta": {
             "generated": now.isoformat(timespec="seconds"),
             "phase": gate.get("gate_p3") and "P3" or (gate.get("gate_p2") and "P2" or "P1"),
@@ -249,7 +291,10 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "scenario": scenario,
         "scenario_history": scenario_history,
-        "analog_context": _latest_context_run(root),
+        "analog_context": {
+            "status": era_analog["status"],
+            "migrated_to": "era_analog",
+        },
         "questions": q_summary,
         "forecast_history": fc_hist,
         "resolutions": resolutions,
@@ -276,7 +321,11 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "counts": probability_counts,
         },
         "changelog": changelog,
+        "era_analog": era_analog,
     }
+    from .read_model_contract import assert_valid
+    assert_valid(model)
+    return model
 
 
 def _latest_context_run(root: Path) -> dict | None:
