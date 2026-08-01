@@ -33,3 +33,11 @@
 | 9-3 | **WS1 등록 필터 규약** | created ≥ 2026-07-21 질문은 notes `등록필터:` 마커 필수 — (a) base rate/시장내재 [35,65] 밖 또는 (b) 정보 우위 논거. 집행: forecast 프리플라이트 오류 + sync W2 경고. 기존 질문 grandfather. 정본: questions/FACTORY_GUIDE.md | 기해소 2건(코인플립, Brier 0.25·0.29)의 실측 교훈 — 판별 불가 질문은 표본을 늘려도 게이트 증명에 기여하지 못함. 수치 진위 검증은 사람 몫(코드는 기재 강제만) |
 | 9-4 | **v3.5 신뢰 계층 결정 2건** (사용자 승인 2026-07-20) | ① WS-T5 FRED 경로 개선 포함 — curl 폴백(기본 UA — 실측상 서버가 파이썬 TLS+커스텀 UA만 필터, curl 기본 요청은 정상 응답. 공개 데이터·주 1회·robots 준수 = 정상 접근 복원) ② OpenTimestamps **실행** (스펙 기본 미실행을 뒤집음) — 로컬 환경 제약(AppControl·OpenSSL3)으로 **CI 스탬프 봇**(ots-stamp.yml)이 .hashes 변경마다 스탬프·커밋백 | 공증 완성형(제3자 시계) + Yahoo 단일 의존 완화. 증명 등급 체계는 tools/verify_track_record.py가 정본 |
 | 9-5 | **^IXIC 1995~2004 종가 정본 = FRED NASDAQCOM 승격** (감사 260720 F-01, 사용자 포괄 승인 "발견사항 다 진행" 2026-07-20) | 닷컴·2004 구간 price_daily의 close/adj_close 2,519행을 FRED 값으로 교체 (source='fred-close+yahoo-ohlcv' — OHLC·volume은 Yahoo 유지). 교차 불일치 3.11%→0.10%, 센티널 6점 전부 유지, cross-check 테스트 **무수정 PASS 전환** (§10.4 준수 — 데이터 정합으로 해소) | 증거: 센티널 3자 대조에서 양 벤더 앵커 일치 → 비앵커 괴리는 revision vintage 차이. 연준 재배포의 기관 출처 규율 채택. Stooq 제3소스는 JS 검증 게이트로 접근 불가(우회 안 함 — 원칙). 잔여 한계는 KNOWN_LIMITS 32 |
+
+## 2026-08-01 — LLM provider 거버넌스
+
+| # | 항목 | 결정 | 근거 |
+|---|---|---|---|
+| 10-1 | OpenAI provider 도입 | Responses API adapter와 shadow 병렬 경로만 도입. **공식 생산자는 Anthropic 유지** | 트랙레코드 연속성과 hindsight 금지 |
+| 10-2 | 모델 식별 | 날짜가 포함된 snapshot만 허용하고 이동 alias는 거부 | 재현성·버전별 점수 분리 |
+| 10-3 | 공식 전환 | 고유 해소 10+ paired 비교·비용 보고·사용자 승인·`approvals.csv` 정확 일치 전에는 CI가 차단 | ADR-003, Grand Blueprint WP-15 |

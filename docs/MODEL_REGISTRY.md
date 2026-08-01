@@ -19,4 +19,13 @@
 | 미드텀 시즌성 | src/ai_fc/quant | reference | **경로 리듬의 1차 근거** (v3.1.1 §3) | n=8~20 자체 산출 |
 | Hurst·오버레이·Pearson | src/ai_fc/quant | reference | 체제 진단 | 앵커 민감도 실측 완료 (T-9) |
 
+## LLM 공식·shadow 계보
+
+| model_id | provider | 상태 | 출력 계보 | 비고 |
+|---|---|---|---|---|
+| `llm.forecaster.anthropic` | Anthropic | **official** | 기존 forecast append-only 기록 | 공식 생산자 유지 |
+| `llm.forecaster.openai.<dated-snapshot>` | OpenAI Responses API | shadow 후보 | `calibration/provider_shadow_ledger.csv` 별도 기록 | alias 금지, 공식 확률과 결합 금지, 승인 전 전환 금지 |
+
+신규 forecast frontmatter는 `provider`, `model_snapshot`, `provider_version`을 기록한다. 점수와 비용은 provider/model snapshot별로 분리하며 과거 Anthropic 점수를 OpenAI 버전으로 재분류하지 않는다.
+
 **강등 절차** (8-7이 선례): 실측 근거 → DECISIONS 기록 → 렌더러 코드 게이트(문서 시정만으로는 재실행 침식) → KNOWN_LIMITS 갱신.

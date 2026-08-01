@@ -56,6 +56,16 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 - `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 월 상한 $100 — 환경변수 `AI_FC_MONTHLY_BUDGET`)
 - deadline이 null인 질문은 실행 거부됨 → 발표일 확인 후 registry에 deadline 기록하고 재실행
 
+## LLM provider 운영과 비용
+
+- 공식 provider 기본값은 `AI_FC_OFFICIAL_LLM_PROVIDER=anthropic`이다.
+- OpenAI shadow는 `AI_FC_OPENAI_SHADOW_MODEL`에 **날짜 snapshot**을 넣고 `AI_FC_OPENAI_SHADOW_QUESTIONS`에 신규 question id allowlist를 지정한 경우에만 실행한다. 이동 alias는 거부된다.
+- provider별 월 상한은 `AI_FC_ANTHROPIC_MONTHLY_BUDGET`, `AI_FC_OPENAI_MONTHLY_BUDGET`으로 분리한다.
+- `python -m ai_fc provider-guard`는 승인 없는 공식 전환을 검사한다. `calibration/approvals.csv`를 임의로 채우는 것은 사용자 승인을 대체하지 않는다.
+- OpenAI 결과는 `calibration/provider_shadow_ledger.csv`에만 append하고 공식 forecast와 결합하지 않는다.
+- 비용 감사는 `calibration/cost_log.csv`의 provider/model snapshot/request id/cached input/web search 열을 사용한다.
+- 장애 시 공식 provider를 `anthropic`으로 되돌린다. shadow ledger는 삭제하지 않는다.
+
 ## 매일 아침 due 다이제스트 (Windows Task Scheduler, 선택)
 
 관리자 PowerShell에서 1회:
