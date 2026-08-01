@@ -43,6 +43,11 @@ def connect(db_path: Path) -> sqlite3.Connection:
             pass  # 신규 DB(스키마에 포함) 또는 이미 추가됨 또는 테이블 미존재
     schema = (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
     conn.executescript(schema)
+    conn.execute(
+        "INSERT OR IGNORE INTO schema_migrations(version,name,checksum,applied_at) "
+        "VALUES (2,'quant-intelligence-additive-v2','schema.sql:v2',datetime('now'))"
+    )
+    conn.commit()
     conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
@@ -160,8 +165,27 @@ def _sync_all(conn: sqlite3.Connection, root: Path, report: DriftReport, now: st
     _sync_source_registry(conn, root, report, now)
     _rebuild_probability_records(conn, report, now)
     _rebuild_resolution_events(conn, report)
+    _rebuild_lineage_edges(conn, root, now)
     from ..model_registry import register_defaults
     register_defaults(conn, root)
+
+
+def _rebuild_lineage_edges(conn: sqlite3.Connection, root: Path, now: str) -> None:
+    """Rebuild deterministic read-index lineage; no source ledger is modified."""
+    context = repository_context(root)
+    conn.execute("DELETE FROM lineage_edge")
+    edges = (
+        ("lineage:forecast-read-model", "dataset", "forecasts/", "surface", "dashboard", "builds"),
+        ("lineage:scenario-read-model", "dataset", "data/scenarios/archive", "surface", "scenario", "builds"),
+        ("lineage:context-era", "dataset", "data/ml_history", "surface", "era_analog", "normalizes"),
+        ("lineage:provider-shadow-arena", "ledger", "calibration/provider_shadow_ledger.csv", "surface", "arena", "benchmarks"),
+    )
+    conn.executemany(
+        """INSERT INTO lineage_edge
+           (edge_id,upstream_type,upstream_id,downstream_type,downstream_id,
+            relation,commit_sha,created_at) VALUES (?,?,?,?,?,?,?,?)""",
+        [(*edge, context.head or "working-tree", now) for edge in edges],
+    )
 
 
 def _stored_repository_context(conn: sqlite3.Connection) -> RepositoryContext | None:

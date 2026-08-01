@@ -23,6 +23,21 @@ def test_inventory_is_generated_and_detects_source_drift(tmp_path: Path) -> None
     ingest.sync(conn, tmp_path)
     target = inventory.write_inventory(tmp_path, conn)
     assert target.exists()
+    assert (tmp_path / inventory.LICENSE_OUTPUT).exists()
+    assert (tmp_path / "docs" / "generated" / "read_model_v2.schema.json").exists()
     assert inventory.inventory_is_current(tmp_path, conn)
     registry.write_text("version: 1\nquestions: []\nupdated: changed\n", encoding="utf-8")
     assert not inventory.inventory_is_current(tmp_path, conn)
+
+
+def test_license_manifest_keeps_review_required_sources_restricted(tmp_path: Path) -> None:
+    registry = tmp_path / "data" / "source_registry.yaml"
+    registry.parent.mkdir()
+    registry.write_text(
+        "sources:\n  - id: vendor\n    provider: Vendor\n"
+        "    endpoint: https://example.test\n    license_status: review_required\n",
+        encoding="utf-8",
+    )
+    text = inventory.render_license_manifest(tmp_path)
+    assert "원시 재배포 금지" in text
+    assert "`review_required`" in text

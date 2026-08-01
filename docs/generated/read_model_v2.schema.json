@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jin-investing.local/schemas/read-model-v2.json",
+  "title": "Jin's Investing Prediction read-model v2",
+  "type": "object",
+  "required": [
+    "meta",
+    "scenario",
+    "scenario_history",
+    "questions",
+    "forecast_history",
+    "resolutions",
+    "ml_runs",
+    "market_runs",
+    "calibration",
+    "due",
+    "trust",
+    "arena",
+    "receipts",
+    "asof_index",
+    "clusters",
+    "corrections",
+    "probability_semantics",
+    "changelog",
+    "era_analog"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object"
+    },
+    "scenario": {
+      "type": "object"
+    },
+    "scenario_history": {
+      "type": "array"
+    },
+    "questions": {
+      "type": "array"
+    },
+    "forecast_history": {
+      "type": "object"
+    },
+    "resolutions": {
+      "type": "object"
+    },
+    "ml_runs": {
+      "type": "array"
+    },
+    "market_runs": {
+      "type": "array"
+    },
+    "calibration": {
+      "type": "object"
+    },
+    "due": {
+      "type": "array"
+    },
+    "trust": {
+      "type": "object"
+    },
+    "arena": {
+      "type": "array"
+    },
+    "receipts": {
+      "type": "array"
+    },
+    "asof_index": {
+      "type": "array"
+    },
+    "clusters": {
+      "type": "array"
+    },
+    "corrections": {
+      "type": "array"
+    },
+    "probability_semantics": {
+      "type": "object"
+    },
+    "changelog": {
+      "type": "array"
+    },
+    "era_analog": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space",
+        "unit",
+        "series"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "empty",
+            "blocked"
+          ]
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "unit": {
+          "const": "log10(index/100)"
+        },
+        "series": {
+          "type": "array"
+        }
+      }
+    }
+  },
+  "additionalProperties": true
+}

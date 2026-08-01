@@ -39,6 +39,8 @@ def iter_truth_files(root: Path) -> list[Path]:
         root / "calibration" / "benchmark_ledger.csv",
         root / "calibration" / "research_status_overrides.csv",
         root / "calibration" / "corrections.csv",
+        root / "calibration" / "approvals.csv",
+        root / "calibration" / "provider_shadow_ledger.csv",
         root / "data" / "source_registry.yaml",
     )
     candidates.extend(path for path in fixed if path.exists())

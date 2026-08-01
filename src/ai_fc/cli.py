@@ -51,6 +51,18 @@ def cmd_provider_guard() -> None:
     typer.echo(f"official provider approved: {config.OFFICIAL_LLM_PROVIDER}:{snapshot}")
 
 
+@app.command("security-check")
+def cmd_security_check() -> None:
+    """Fail CI when a source artifact resembles a committed API credential."""
+    from .security_audit import scan
+
+    findings = scan(config.ROOT)
+    if findings:
+        typer.echo("secret-like values found:\n" + "\n".join(findings), err=True)
+        raise typer.Exit(code=1)
+    typer.echo("secret pattern scan clean")
+
+
 @app.command("scenario")
 def cmd_scenario(
     asof: str | None = typer.Option(

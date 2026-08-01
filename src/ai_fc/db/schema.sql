@@ -17,6 +17,25 @@ CREATE TABLE IF NOT EXISTS db_meta (
     updated_at TEXT NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    checksum TEXT NOT NULL,
+    applied_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lineage_edge (
+    edge_id TEXT PRIMARY KEY,
+    upstream_type TEXT NOT NULL,
+    upstream_id TEXT NOT NULL,
+    downstream_type TEXT NOT NULL,
+    downstream_id TEXT NOT NULL,
+    relation TEXT NOT NULL,
+    commit_sha TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE (upstream_type, upstream_id, downstream_type, downstream_id, relation)
+);
+
 CREATE TABLE IF NOT EXISTS questions (
     question_id     TEXT PRIMARY KEY,
     title           TEXT,
