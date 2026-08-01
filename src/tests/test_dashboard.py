@@ -48,7 +48,7 @@ def test_read_model_shape(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)
     m = dashboard.build_read_model(conn, repo)
-    for key in ("meta", "scenario", "questions", "forecast_history",
+    for key in ("meta", "scenario", "scenario_history", "questions", "forecast_history",
                 "resolutions", "ml_runs", "market_runs", "calibration", "due"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
@@ -57,6 +57,7 @@ def test_read_model_shape(repo: Path) -> None:
     probs = {k: m["scenario"]["paths"][k]["prob"] for k in ("S1", "S2", "S3")}
     assert sum(probs.values()) == 100
     assert probs["S1"] <= 66  # 단조성: P(S1) ≤ P(F3)
+    assert m["scenario_history"][-1]["asof"] == m["scenario"]["asof"]
 
 
 def test_template_self_contained() -> None:
@@ -237,6 +238,9 @@ def test_workspace_utility_contract() -> None:
     assert "answer(25)" not in html
     assert "확률은 예측 모델 앙상블 산출값" not in html
     assert "gbm-daily-252d-v1" in html
+    assert "scenarioChangePanel" in html and "scenarioHistoryRows" in html
+    assert "SCENARIO CHANGE" in html and "MODEL RECEIPT" in html
+    assert "저장된 시나리오 수치의 차이만 요약" in html
     assert 'class="filter-insights"' in html and 'class="flow-focus"' in html
     assert "data-calendar-all" in html and "data-calendar-selected" in html
     assert "legibility layer v3" in html

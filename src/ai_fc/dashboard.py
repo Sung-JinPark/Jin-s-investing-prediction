@@ -183,6 +183,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         due_list = []
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
+    scenario_history = scenario_data.load_scenario_history(root, scenario)
 
     return {
         "meta": {
@@ -194,6 +195,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "cost_month": round(queries.month_cost(conn, now.year, now.month), 2),
         },
         "scenario": scenario,
+        "scenario_history": scenario_history,
         "analog_context": _latest_context_run(root),
         "questions": q_summary,
         "forecast_history": fc_hist,

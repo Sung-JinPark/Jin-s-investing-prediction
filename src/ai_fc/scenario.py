@@ -84,19 +84,78 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def load_latest_scenario(root: Path, fallback: dict[str, Any]) -> dict[str, Any]:
-    """최신 스냅샷을 읽고, 부재·손상 시 감사된 legacy vintage로 fail-safe."""
+    """최신 스냅샷을 읽고, 부재·손상 시 archive → legacy 순서로 fail-safe."""
     path = root / LATEST_RELATIVE_PATH
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
         return validate_scenario(payload)
     except (OSError, json.JSONDecodeError, ScenarioError):
-        legacy = deepcopy(fallback)
-        legacy.setdefault("schema_version", SCHEMA_VERSION)
-        legacy.setdefault("generated_at", "2026-07-15T00:00:00+00:00")
-        legacy.setdefault("method", "manual-audited-vintage")
-        legacy.setdefault("source", "reports/md/nasdaq_weekly_scenario_v3_1_1_260715.md")
-        legacy["fallback"] = True
-        return validate_scenario(legacy)
+        pass
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    if archive_dir.exists():
+        for archive in sorted(archive_dir.glob("*.json"), reverse=True):
+            try:
+                recovered = validate_scenario(json.loads(archive.read_text(encoding="utf-8")))
+                recovered = deepcopy(recovered)
+                recovered["recovered_from_archive"] = True
+                return recovered
+            except (OSError, json.JSONDecodeError, ScenarioError):
+                continue
+    legacy = deepcopy(fallback)
+    legacy.setdefault("schema_version", SCHEMA_VERSION)
+    legacy.setdefault("generated_at", "2026-07-15T00:00:00+00:00")
+    legacy.setdefault("method", "manual-audited-vintage")
+    legacy.setdefault("source", "reports/md/nasdaq_weekly_scenario_v3_1_1_260715.md")
+    legacy["fallback"] = True
+    return validate_scenario(legacy)
+
+
+def summarize_scenario(payload: dict[str, Any]) -> dict[str, Any]:
+    """정적 대시보드용 압축 요약 — 전체 주간 경로와 이벤트는 반복하지 않는다."""
+    valid = validate_scenario(payload)
+    return {
+        "asof": valid["asof"],
+        "generated_at": valid.get("generated_at"),
+        "anchor": valid["anchor"],
+        "bands": deepcopy(valid.get("bands", {})),
+        "paths": {
+            key: {
+                "prob": valid["paths"][key]["prob"],
+                "end": valid["paths"][key]["end"],
+            }
+            for key in ("S1", "S2", "S3")
+        },
+        "method": valid.get("method", "unknown"),
+    }
+
+
+def load_scenario_history(root: Path, latest: dict[str, Any], *,
+                          limit: int = 12) -> list[dict[str, Any]]:
+    """날짜별 아카이브에서 최신 N개 압축 요약을 읽는다.
+
+    손상 파일은 해당 날짜만 건너뛰고 latest는 항상 후보에 포함한다. 반환 순서는
+    오래된 날짜에서 최신 날짜 순이다.
+    """
+    if limit < 1:
+        return []
+    by_day: dict[str, dict[str, Any]] = {}
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    if archive_dir.exists():
+        for path in sorted(archive_dir.glob("*.json"), reverse=True):
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                summary = summarize_scenario(payload)
+            except (OSError, json.JSONDecodeError, ScenarioError, KeyError, TypeError):
+                continue
+            by_day[summary["asof"]] = summary
+            if len(by_day) >= limit:
+                break
+    try:
+        current = summarize_scenario(latest)
+        by_day[current["asof"]] = current
+    except (ScenarioError, KeyError, TypeError):
+        pass
+    return [by_day[day] for day in sorted(by_day)[-limit:]]
 
 
 def _week_dates(asof: date, end: date) -> list[date]:

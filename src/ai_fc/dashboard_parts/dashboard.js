@@ -275,6 +275,53 @@ function vintageReceipt(){
       :`시장 시나리오는 <strong>${esc(v.asof)}</strong> 확정 종가로 자동 생성됐습니다. 질문별 LLM 확률과는 분리된 모델 경로입니다.`;
   return `<div class="data-vintage is-${v.status}" role="${v.status==='stale'?'alert':'note'}"><span>SCENARIO VINTAGE</span><p>${copy}</p><b>${v.status.toUpperCase()}</b></div>`;
 }
+function scenarioHistoryRows(){
+  const rows=Array.isArray(DATA?.scenario_history)?DATA.scenario_history:[];
+  return rows.filter(row=>row&&row.asof&&row.paths?.S1&&row.paths?.S2&&row.paths?.S3)
+    .sort((a,b)=>String(a.asof).localeCompare(String(b.asof)));
+}
+function signedDelta(value,digits=0,suffix=''){
+  if(!Number.isFinite(value))return '기록 없음';
+  return `${value>0?'+':''}${Number(value).toFixed(digits)}${suffix}`;
+}
+function scenarioDeltaNarrative(base,current){
+  const s1=current.paths.S1.prob-base.paths.S1.prob,s3=current.paths.S3.prob-base.paths.S3.prob;
+  const median=(current.bands?.eoy_median??0)-(base.bands?.eoy_median??0);
+  if(s1>=3)return '상방 돌파 경로가 확대됐습니다.';
+  if(s3>=3)return '조정·횡보 경로가 확대됐습니다.';
+  if(Math.abs(median)>=250)return '연말 가격 중심이 이동했습니다.';
+  return '경로 분포는 큰 변화 없이 유지됐습니다.';
+}
+function scenarioStack(row,label){
+  const description=['S1','S2','S3'].map(k=>`${k} ${row.paths[k].prob}%`).join(', ');
+  return `<div class="scenario-stack-row"><span>${esc(label)}</span><div class="scenario-stack" role="img" aria-label="${esc(label+' 경로 분포 '+description)}">${['S1','S2','S3'].map(k=>`<i class="${k.toLowerCase()}" style="width:${row.paths[k].prob}%" title="${k} ${row.paths[k].prob}%"></i>`).join('')}</div><b>${row.paths.S1.prob}/${row.paths.S2.prob}/${row.paths.S3.prob}</b></div>`;
+}
+function scenarioDeltaBody(base,current){
+  const anchor=current.anchor-base.anchor,anchorPct=base.anchor?anchor/base.anchor*100:null;
+  const median=(current.bands?.eoy_median??0)-(base.bands?.eoy_median??0);
+  const s1=current.paths.S1.prob-base.paths.S1.prob,s3=current.paths.S3.prob-base.paths.S3.prob;
+  return `<div class="scenario-change-copy"><span>WHAT CHANGED · ${esc(base.asof)} → ${esc(current.asof)}</span><h2>${esc(scenarioDeltaNarrative(base,current))}</h2><p>저장된 시나리오 수치의 차이만 요약하며 뉴스나 이벤트를 원인으로 추론하지 않습니다.</p></div>
+    <div class="scenario-change-metrics">
+      <div><span>NASDAQ 앵커</span><strong class="${anchor>=0?'up':'down'}">${signedDelta(anchor,0)}</strong><small>${signedDelta(anchorPct,1,'%')}</small></div>
+      <div><span>연말 중앙값</span><strong class="${median>=0?'up':'down'}">${signedDelta(median,0)}</strong><small>${num(current.bands?.eoy_median)}</small></div>
+      <div><span>S1 · ATH 돌파</span><strong class="${s1>=0?'up':'down'}">${signedDelta(s1,0,'%p')}</strong><small>${current.paths.S1.prob}%</small></div>
+      <div><span>S3 · 조정·횡보</span><strong class="${s3>0?'down':s3<0?'improve':''}">${signedDelta(s3,0,'%p')}</strong><small>${current.paths.S3.prob}%</small></div>
+    </div>
+    <div class="scenario-stacks">${scenarioStack(base,'이전')}${scenarioStack(current,'현재')}</div>`;
+}
+function scenarioChangePanel(interactive=false){
+  const rows=scenarioHistoryRows();if(rows.length<2)return null;
+  const current=rows[rows.length-1],model=DATA?.scenario?.model||{};
+  const panel=el(`<section class="scenario-change" aria-labelledby="scenario-change-title"><div class="scenario-change-head"><div><span>SCENARIO CHANGE</span><strong id="scenario-change-title">시장 경로 변화 추적</strong></div><b>${rows.length} SNAPSHOTS</b></div>
+    <div class="scenario-change-body" data-scenario-delta aria-live="polite"></div>
+    ${interactive?`<div class="scenario-history-nav"><span>COMPARE FROM</span><div>${rows.slice(0,-1).map((row,index)=>`<button type="button" data-scenario-base="${index}" aria-pressed="${index===rows.length-2}">${esc(row.asof.slice(5))}</button>`).join('')}</div></div>
+    <details class="model-receipt"><summary>MODEL RECEIPT · 산식과 한계 보기</summary><div><span>METHOD <b>${esc(DATA.scenario.method||'기록 없음')}</b></span><span>LOOKBACK <b>${model.lookback_days??'기록 없음'}일</b></span><span>PATHS <b>${model.n_paths?num(model.n_paths):'기록 없음'}</b></span><span>SEED <b>${model.seed??'기록 없음'}</b></span></div><p>${esc(DATA.scenario.note||'모델 설명이 기록되지 않았습니다.')}</p><small>${esc(DATA.scenario.source||'출처 기록 없음')}</small></details>`:''}
+  </section>`);
+  const output=panel.querySelector('[data-scenario-delta]');
+  const render=index=>{output.innerHTML=scenarioDeltaBody(rows[index],current);panel.querySelectorAll('[data-scenario-base]').forEach(button=>button.setAttribute('aria-pressed',String(+button.dataset.scenarioBase===index)));};
+  panel.querySelectorAll('[data-scenario-base]').forEach(button=>button.onclick=()=>render(+button.dataset.scenarioBase));
+  render(rows.length-2);return panel;
+}
 function median(values){
   const a=values.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return null;
   const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;
@@ -963,6 +1010,7 @@ function renderOverview(){
 
   const lowerInner=el('<div class="overview-lower-inner"></div>');
   lowerInner.appendChild(el(vintageReceipt()));
+  const scenarioChange=scenarioChangePanel(false);if(scenarioChange)lowerInner.appendChild(scenarioChange);
   const lower=el('<div class="section-grid overview-lower"></div>');
   lower.appendChild(el(`<div class="panel">
     <div class="panel-head"><h2>연말 시나리오 분포</h2><span class="vintage-note">기준 ${esc(sc.asof)}</span></div>
@@ -1024,6 +1072,7 @@ function renderFlow(){
     <p class="page-lede">나스닥 종합 기준 주간 시나리오 3경로와 과거 혁신 사이클 비교입니다. 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
   </div></div>`));
   root.appendChild(el(vintageReceipt()));
+  const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
     <span><b style="background:#706f68"></b>과거 유사 사이클</span></div>`;
