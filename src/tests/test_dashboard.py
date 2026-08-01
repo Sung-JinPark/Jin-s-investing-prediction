@@ -260,6 +260,11 @@ def test_workspace_utility_contract() -> None:
     assert "저장된 근거 원문이 없습니다" in html
     assert "집계 기준 상이" in html and "const maxIndex=focus==='ALL'?CAP" in html
     assert "research-layout-cards" in html and "analog-readout" in html
+    assert "tip-series" in html and "--tip-series" in html
+    assert "크립토 2019 시작" in html and "2021-11(M+34)" in html
+    assert "crypto2021:['크립토 2019 시작','#1f6feb'" in html
+    assert "biotech2015:['바이오 2013','#a43c82'" in html
+    assert "dow1929:['다우 1925','#6b5845'" in html
     assert "SELECTED WEEK" in html and "pointerdown" in html
     assert "overlay.addEventListener('pointermove'" in html
     assert "event.key==='ArrowLeft'" in html

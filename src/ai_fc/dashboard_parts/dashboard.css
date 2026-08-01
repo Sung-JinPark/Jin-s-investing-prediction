@@ -573,6 +573,9 @@ td b{color:#2c2b27}td small{color:#85827b}.tag{color:#5f5d57;background:var(--pa
 .command-result{color:#4f4d48;border-radius:0}.command-result:hover,.command-result:focus-visible,.command-result.is-active{color:#11110f;background:#fff5eb;border-color:var(--orange)}
 .command-result>i{color:#fff;background:var(--orange);border-radius:0}.command-result small{color:#77746d}.command-empty{color:#77746d}.command-foot{color:#77746d;background:var(--paper-2);border-color:var(--line)}
 .tip{color:#fff;background:#11110f;border-color:#11110f;border-radius:2px;box-shadow:8px 8px 0 rgba(255,79,23,.22);backdrop-filter:none}.tip b{color:var(--amber)}
+.tip .tip-series{margin-top:4px;display:grid;grid-template-columns:9px minmax(0,1fr) auto;gap:8px;align-items:center;color:#fff;white-space:nowrap}
+.tip .tip-series>i{width:9px;height:9px;background:var(--tip-series);border:1px solid rgba(255,255,255,.78);box-shadow:0 0 0 1px rgba(0,0,0,.35)}
+.tip .tip-series>span{min-width:0;color:#fff}.tip .tip-series small{margin-left:6px;color:#bdb9b0}.tip .tip-series>strong{color:#fff;font-weight:700;font-variant-numeric:tabular-nums}
 .site-footer{color:#77746d;background:var(--paper-2);border-color:var(--line);backdrop-filter:none}.footer-brand{color:#11110f}
 
 /* workspace utilities */

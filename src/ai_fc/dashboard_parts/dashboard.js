@@ -1047,13 +1047,13 @@ function scenarioBars(){
 // 라벨은 시작정렬 차트에 맞춘 build-up 시작년(M+0 = 시작월). 툴팁은 실제 달력월 표시.
 const ERA_META={
   ai:['AI 2023','#ff4f17',3,'',1],
-  dotcom:['닷컴 1995','#247d78',2,'',.92],
-  japan1989:['일본 1985','#c9002d',2,'6 4',.86],
-  niftyfifty1972:['니프티50 1970','rgba(17,17,15,.68)',1.3,'3 4',.72],
-  crypto2021:['크립토 2019','rgba(17,17,15,.52)',1.3,'8 4',.62],
-  biotech2015:['바이오 2013','rgba(17,17,15,.38)',1.2,'2 5',.58],
-  dow1929:['다우 1925','rgba(17,17,15,.25)',1.2,'10 5',.52],
-  electricity1900:['전기 1901','#b8860b',1.4,'5 3',.7]
+  dotcom:['닷컴 1995','#247d78',2.2,'',.96],
+  japan1989:['일본 1985','#c9002d',2,'6 4',.92],
+  niftyfifty1972:['니프티50 1970','#6b4bc3',1.7,'3 4',.88],
+  crypto2021:['크립토 2019 시작','#1f6feb',1.9,'8 4',.94],
+  biotech2015:['바이오 2013','#a43c82',1.7,'2 5',.9],
+  dow1929:['다우 1925','#6b5845',1.8,'10 5',.88],
+  electricity1900:['전기 1901','#9a6700',1.7,'5 3',.9]
 };
 // 각 사이클 오버레이 시작월(M+0) — 툴팁의 실제 달력월 계산용 (config overlay_start와 정합)
 const ERA_START={ai:'2023-01',dotcom:'1995-01',japan1989:'1985-01',niftyfifty1972:'1970-01',
@@ -1124,7 +1124,7 @@ function analogPanel(){
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
-    <p class="chart-note">닷컴 1995~1999 · AI 2023~2027 등 각 사이클의 5년 build-up 구간을 시작월 100으로 정규화(로그)한 참고 비교입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 월을 탐색할 수 있습니다. 과거 사이클은 예측이 아닌 참조이며 시대 간 시장 구조 차이가 있습니다.</p>
+    <p class="chart-note"><strong>연도 표기는 버블 정점이 아니라 비교 시작점입니다.</strong> 크립토는 2019년 회복 시작을 M+0으로 두며, 주요 강세 구간은 2020~2021년, 이 사이클의 정점은 2021-11(M+34)입니다. 각 사이클을 시작월 100으로 정규화(로그)한 참고 비교이며, 과거 사이클은 예측이 아닙니다.</p>
   </div>`);
   w._eras=eras;
   return w;
@@ -1169,8 +1169,8 @@ function drawOverlay(host,o,eras,focus='ALL'){
     return Math.max(0,Math.min(maxIndex,Math.round((viewX-ML)/(PW/CAP))));};
   ov.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){
     tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
-    tip.innerHTML=`<b>M+${index} · 시작월 대비</b><br>`+visibleEras.filter(e=>o[e][index]!=null).map(e=>
-      `<span style="color:${ERA_META[e][1]}">${ERA_META[e][0]} · ${monthAt(ERA_START[e],index)} → ${o[e][index]}</span>`).join('<br>');}});
+    tip.innerHTML=`<b>M+${index} · 시작월 대비</b>`+visibleEras.filter(e=>o[e][index]!=null).map(e=>
+      `<span class="tip-series" style="--tip-series:${ERA_META[e][1]}"><i aria-hidden="true"></i><span>${esc(ERA_META[e][0])}<small>${esc(monthAt(ERA_START[e],index))}</small></span><strong>${num(o[e][index])}</strong></span>`).join('');}});
   ov.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
   ov.addEventListener('pointerleave',()=>{tip.style.display='none';});
   svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
