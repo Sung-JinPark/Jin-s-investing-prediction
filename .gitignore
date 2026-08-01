@@ -13,6 +13,12 @@ __pycache__/
 .venv/
 .tmp-pytest/
 .env
+# 재생성 가능한 정적 사이트와 OS·에디터 임시 잔재
+/_site/
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
 # 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
 /reports/dashboard.html
 
