@@ -9,6 +9,7 @@ import anthropic
 
 from . import config
 from .llm import PipelineBudget, Usage, reasoning_call
+from .llm_provider import LLMProvider
 from .models import EvidenceBrief, Question
 from .schemas import ForecastResult
 
@@ -63,4 +64,6 @@ def run_reasoning(client: anthropic.Anthropic, q: Question, briefs: list[Evidenc
                   aux_context: str | None = None) -> tuple[ForecastResult, Usage]:
     system = load_system_prompt(prompts_dir)
     user = build_user_prompt(q, briefs, today, window_end, aux_context)
+    if isinstance(client, LLMProvider):
+        return client.reasoning(system, user, budget)
     return reasoning_call(client, system, user, budget)

@@ -24,6 +24,7 @@ from .agents.base import run_research
 from .aggregator import AggregateResult, SingleRun
 from .db import ingest, queries
 from .llm import PipelineBudget
+from .llm_provider import AnthropicProvider, OpenAIResponsesProvider
 from .models import EvidenceBrief, Question
 from .registry import load_registry
 
@@ -88,13 +89,14 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         raise PreflightError(
             "API 키 없음 — ANTHROPIC_API_KEY 환경변수 또는 ~/.ai_fc/anthropic_key.dpapi 필요")
     client = anthropic.Anthropic(api_key=api_key)
+    official_provider = AnthropicProvider(client)
     scratch = root / "db" / "scratch"
     scratch.mkdir(parents=True, exist_ok=True)
 
     with _lock(root / "db" / ".ai_fc.lock"):
         # ── 리서치 (병렬) ──
         try:
-            briefs = run_research(client, q, n_agents, budget, today)
+            briefs = run_research(official_provider, q, n_agents, budget, today)
         except Exception:
             raise
         _dump_scratch(scratch, question_id, "briefs", "\n\n====\n\n".join(
@@ -115,7 +117,7 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         else:
             aggregator = SingleRun()
         agg: AggregateResult = aggregator.estimate(
-            client, q, briefs, root / "prompts", budget, today, window_end,
+            official_provider, q, briefs, root / "prompts", budget, today, window_end,
             aux_context=aux_context)
 
         # required_snapshots 확정 실패 시 기록 없이 중단
@@ -134,7 +136,7 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         if ml_ref is not None and not ml_ref.low_confidence:
             ml_divergence_pp = round(abs(agg.probability - ml_ref.prob * 100), 1)
             if ml_divergence_pp >= config.ML_DIVERGENCE_PP:
-                review = _divergence_review(client, q, agg, ml_ref, budget)
+                review = _divergence_review(official_provider, q, agg, ml_ref, budget)
                 div_note, div_class = review.note, review.divergence_class
 
         # ── 기록 렌더 + 검증 ──
@@ -144,7 +146,8 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         # 시장내재확률 — 있으면 기록 (edge 시그널 발행은 P3 게이트 봉인, 기록만)
         mi = queries.latest_market_implied(conn, question_id, config.MARKET_REF_MAX_AGE_DAYS)
         fm = _frontmatter(q, agg, stem, now, phase, budget, briefs, window_end, filled, mi,
-                          aux_context=aux_context, aux_meta=aux_meta)
+                          aux_context=aux_context, aux_meta=aux_meta,
+                          provider_identity=official_provider.identity)
         fm["ml_divergence_pp"] = ml_divergence_pp
         fm["divergence_note"] = div_note
         fm["divergence_class"] = div_class
@@ -176,7 +179,38 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
                     f"(CI {agg.ci80_lo}~{agg.ci80_hi}) 비용 ${budget.spent_usd:.2f} "
                     f"→ 스크래치패드에만 기록 (비용은 cost_log 편입)")
 
+        shadow_observation = None
+        shadow_error = None
+        if not dry_run:
+            from .provider_shadow import run_shadow, should_run_shadow
+            if should_run_shadow(question_id):
+                try:
+                    shadow_provider = OpenAIResponsesProvider(
+                        model=config.OPENAI_SHADOW_MODEL,
+                        role="shadow",
+                    )
+                    shadow_observation = run_shadow(
+                        shadow_provider,
+                        q,
+                        stem,
+                        root / "prompts",
+                        today,
+                        window_end,
+                        n_agents=n_agents,
+                        aux_context=aux_context,
+                    )
+                except Exception as exc:  # Shadow is fail-soft; official output stays valid.
+                    shadow_error = f"{type(exc).__name__}: {exc}"
+                    _dump_scratch(scratch, question_id, "openai-shadow-error", shadow_error)
+
         target = _write_records(root, today.year, stem, content, evidence)
+
+        if shadow_observation is not None:
+            from .provider_shadow import append_shadow
+            append_shadow(
+                root / "calibration" / "provider_shadow_ledger.csv",
+                shadow_observation,
+            )
 
         for b in briefs:
             queries.log_cost(conn, question_id, f"research:{b.profile}",
@@ -195,6 +229,7 @@ def _divergence_review(client, q: Question, agg: AggregateResult, ml_ref,
                        budget) -> "object":
     """WS6 사후 리뷰 — 확률 확정 후 ML 참조 공개, 괴리 분류·정당화만 요청."""
     from .llm import structured_call
+    from .llm_provider import LLMProvider
     from .schemas import DivergenceReview
 
     system = ("너의 예측 확률은 이미 확정되어 변경할 수 없다. 지금 처음 공개되는 "
@@ -205,7 +240,10 @@ def _divergence_review(client, q: Question, agg: AggregateResult, ml_ref,
             f"[ML 앙상블 참조] {ml_ref.prob:.0%} (run {ml_ref.run_ts})\n"
             f"[참조 모델 특성] 무조건부 zero-shot(이벤트 캘린더 무지)·경로 보정값 기준\n"
             "괴리의 가장 그럴듯한 구조적 원인을 divergence_class로 분류하고 note에 정당화하라.")
-    review, _usage = structured_call(client, system, user, budget, DivergenceReview)
+    if isinstance(client, LLMProvider):
+        review, _usage = client.structured(system, user, budget, DivergenceReview)
+    else:
+        review, _usage = structured_call(client, system, user, budget, DivergenceReview)
     return review
 
 
@@ -231,8 +269,10 @@ def _frontmatter(q: Question, agg: AggregateResult, stem: str, now: datetime,
                  window_end: date | None, filled: dict[str, str],
                  market_implied: tuple[float, str] | None = None,
                  aux_context: str | None = None,
-                 aux_meta: dict | None = None) -> dict:
+                 aux_meta: dict | None = None,
+                 provider_identity=None) -> dict:
     from .models import sha256_text
+    identity = provider_identity or AnthropicProvider(None).identity
     return {
         "forecast_id": stem,
         "question_id": q.question_id,
@@ -240,6 +280,9 @@ def _frontmatter(q: Question, agg: AggregateResult, stem: str, now: datetime,
         "timestamp": now.strftime("%Y-%m-%d %H:%M KST"),
         "phase": phase,
         "model": config.REASONING_MODEL,
+        "provider": identity.provider,
+        "model_snapshot": identity.snapshot,
+        "provider_version": identity.version,
         "prompt_version": config.PROMPT_VERSION,
         "probability": agg.probability,
         "ci80": [agg.ci80_lo, agg.ci80_hi],

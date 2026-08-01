@@ -8,6 +8,7 @@ import anthropic
 
 from .. import config
 from ..llm import PipelineBudget, research_call
+from ..llm_provider import LLMProvider
 from ..models import EvidenceBrief, Question
 from .profiles import PROFILE_SETS, get_profile
 
@@ -47,9 +48,14 @@ def run_research(client: anthropic.Anthropic, q: Question, n_agents: int,
     max_uses = config.LITE_SEARCH_MAX_USES if lite else None
 
     def one(profile: str) -> EvidenceBrief:
-        text, n_sources, usage = research_call(
-            client, get_profile(profile, words), user, budget,
-            max_search_uses=max_uses)
+        if isinstance(client, LLMProvider):
+            text, n_sources, usage = client.research(
+                get_profile(profile, words), user, budget,
+                max_search_uses=max_uses)
+        else:  # Backward-compatible seam used by existing tests and local callers.
+            text, n_sources, usage = research_call(
+                client, get_profile(profile, words), user, budget,
+                max_search_uses=max_uses)
         if not text:
             raise RuntimeError(f"{profile} 에이전트가 빈 보고서 반환")
         return EvidenceBrief(profile=profile, text=text, sources_count=n_sources,

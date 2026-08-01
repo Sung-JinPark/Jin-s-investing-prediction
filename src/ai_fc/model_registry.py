@@ -10,6 +10,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from . import config
 from .integrity import repository_context
 
 
@@ -78,6 +79,55 @@ def register_defaults(conn: sqlite3.Connection, root: Path) -> None:
              card.target, card.code_version, card.data_fingerprint,
              json.dumps(card.params, sort_keys=True), json.dumps(card.metrics, sort_keys=True),
              card.limitations, int(card.promotion_allowed), now, now),
+        )
+    llm_cards = [
+        ModelCard(
+            model_id="llm.forecaster.anthropic.claude-opus-4-8",
+            display_name="Claude official forecaster",
+            version=config.PROMPT_VERSION,
+            lifecycle=Lifecycle.BASELINE,
+            target="physical_event_probability",
+            code_version=context.head or "working-tree",
+            data_fingerprint=context.source_fingerprint,
+            params={
+                "provider": "anthropic",
+                "model": config.REASONING_MODEL,
+                "snapshot": config.REASONING_MODEL,
+                "role": "official",
+            },
+            limitations="공식 P1 생산자; 다른 provider 점수를 승계하거나 결합하지 않음",
+        )
+    ]
+    if config.OPENAI_SHADOW_MODEL:
+        llm_cards.append(ModelCard(
+            model_id=f"llm.forecaster.openai.{config.OPENAI_SHADOW_MODEL}",
+            display_name="OpenAI shadow forecaster",
+            version=config.PROMPT_VERSION,
+            lifecycle=Lifecycle.SHADOW,
+            target="physical_event_probability",
+            code_version=context.head or "working-tree",
+            data_fingerprint=context.source_fingerprint,
+            params={
+                "provider": "openai",
+                "model": config.OPENAI_SHADOW_MODEL,
+                "snapshot": config.OPENAI_SHADOW_MODEL,
+                "role": "shadow",
+            },
+            limitations="향후 allowlist 질문 전용; 공식 확률과 결합 금지",
+        ))
+    for card in llm_cards:
+        conn.execute(
+            """INSERT INTO model_registry
+               (model_id,display_name,version,lifecycle,target,code_version,data_fingerprint,
+                params_json,metrics_json,limitations,promotion_allowed,created_at,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+               ON CONFLICT(model_id) DO UPDATE SET
+                 data_fingerprint=excluded.data_fingerprint,
+                 params_json=excluded.params_json,updated_at=excluded.updated_at""",
+            (card.model_id, card.display_name, card.version, card.lifecycle.value,
+             card.target, card.code_version, card.data_fingerprint,
+             json.dumps(card.params, sort_keys=True), json.dumps(card.metrics, sort_keys=True),
+             card.limitations, 0, now, now),
         )
 
 

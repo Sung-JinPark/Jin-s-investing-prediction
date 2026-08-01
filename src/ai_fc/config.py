@@ -91,6 +91,11 @@ OPENAI_SHADOW_PIPELINE_BUDGET = float(
     os.environ.get("AI_FC_OPENAI_SHADOW_PIPELINE_BUDGET", "2.00")
 )
 OPENAI_REASONING_EFFORT = os.environ.get("AI_FC_OPENAI_REASONING_EFFORT", "high")
+OPENAI_SHADOW_QUESTION_IDS = frozenset(
+    q.strip()
+    for q in os.environ.get("AI_FC_OPENAI_SHADOW_QUESTIONS", "").split(",")
+    if q.strip()
+)
 
 WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
 # v3 WS-B 경량(lite) 티어 — 검색량·분량만 축소 (에이전트 수·데블스·스키마 불변, 헌법 준수).

@@ -27,6 +27,7 @@ KNOWN_KEYS = {
     "ml_divergence_pp", "divergence_note", "divergence_class",  # WS6 — 구파일 부재 허용
     "research_quality",  # WS7 출처 등급 분포 — 구파일 부재 허용
     "pipeline_tier",  # v3 WS-B — standard|lite, 구파일 부재 = standard 취급
+    "provider", "model_snapshot", "provider_version",  # WP-15 신규 기록 provenance
 }
 
 # WS6: 괴리 임계 (config.ML_DIVERGENCE_PP와 동일 값 — files는 config 무의존 원칙이라 상수 복제,
