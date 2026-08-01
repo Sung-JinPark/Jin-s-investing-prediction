@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import json
+import re
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
@@ -108,13 +109,17 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     # 예측 이력 — 질문별 회차 (forecasts 테이블 + 파일 본문)
     fc_hist: dict[str, list[dict]] = {}
     for r in conn.execute(
+        # The browser receives only fields used by the history/detail surfaces.  The
+        # database remains the complete audit index; redundant question_id and unused
+        # nullable research columns would otherwise consume the static Pages budget on
+        # every round.
         "SELECT forecast_id, question_id, round, forecast_ts, probability, ci80_lo, ci80_hi,"
-        " method, market_implied, edge, sources_count, shadow_extremized, model, phase"
-        " FROM forecasts ORDER BY question_id, round"
+        " method, sources_count, model FROM forecasts ORDER BY question_id, round"
     ):
         d = _row(r)
         d["body"] = bodies.get(d["forecast_id"], "")
-        fc_hist.setdefault(d["question_id"], []).append(d)
+        question_id = d.pop("question_id")
+        fc_hist.setdefault(question_id, []).append(d)
 
     # 해소 결과
     resolutions: dict[str, list[dict]] = {}
@@ -156,6 +161,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         gate_all = {}
     calibration = {
         "gate": gate, "gate_all": gate_all,
+        "gate_v2": queries.gate_status_v2(conn),
         "n_excluded": queries.n_excluded_from_primary(conn),
         "curve": _rows(queries.calibration_curve(conn)),
         "brier_by_domain": _rows(queries.brier_summary(conn)),
@@ -185,6 +191,53 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
 
+    # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
+    from .model_registry import arena_rows
+    clusters = queries.resolution_clusters(conn)
+    corrections = _rows(conn.execute(
+        "SELECT * FROM correction_ledger ORDER BY created_at,correction_id"))
+    probability_counts = _rows(conn.execute(
+        """SELECT probability_space,source_unit,COUNT(*) AS n
+           FROM probability_record GROUP BY probability_space,source_unit
+           ORDER BY probability_space,source_unit"""))
+    db_meta = {row["key"]: row["value"] for row in conn.execute(
+        "SELECT key,value FROM db_meta")}
+    trust_sources = queries.source_health(conn)
+    trust = {
+        "status": ("degraded" if any(item["status"] != "ok" for item in trust_sources)
+                   else "ok"),
+        "sources": trust_sources,
+        "index": {
+            "branch": db_meta.get("branch", "미산출"),
+            "head": db_meta.get("head", "미산출"),
+            "source_fingerprint": db_meta.get("source_fingerprint", "미산출"),
+            "schema_version": db_meta.get("schema_version", "미산출"),
+        },
+        "quarantine_count": sum(item["quarantine_count"] for item in trust_sources),
+    }
+    receipts = [{
+        "receipt_id": "scenario:current", "label": "현재 시장 시나리오",
+        "model": scenario.get("method") or "미산출",
+        "dataset": scenario.get("asof") or "미산출",
+        "source": scenario.get("source") or "미산출",
+        "method": scenario.get("method") or "미산출",
+        "limitation": scenario.get("note") or "미산출",
+        "commit": db_meta.get("head") or "미산출",
+    }]
+    asof_index = [{
+        "asof": item.get("asof"), "generated_at": item.get("generated_at"),
+        "snapshot_ref": f"scenario:{item.get('asof')}", "available": True,
+    } for item in scenario_history]
+    changelog = [{
+        "from": previous.get("asof"), "to": current.get("asof"),
+        "anchor_delta": round(float(current.get("anchor", 0)) - float(previous.get("anchor", 0)), 2),
+        "scenario_probability_delta": {
+            key: int(current.get("paths", {}).get(key, {}).get("prob", 0))
+                 - int(previous.get("paths", {}).get(key, {}).get("prob", 0))
+            for key in ("S1", "S2", "S3")
+        },
+    } for previous, current in zip(scenario_history, scenario_history[1:])]
+
     return {
         "meta": {
             "generated": now.isoformat(timespec="seconds"),
@@ -204,6 +257,25 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "market_runs": market_runs,
         "calibration": calibration,
         "due": due_list,
+        "trust": trust,
+        "arena": arena_rows(conn),
+        "receipts": receipts,
+        "asof_index": asof_index,
+        "clusters": clusters,
+        "corrections": corrections,
+        "probability_semantics": {
+            "canonical_unit": "fraction", "display_unit": "percent",
+            "spaces": {
+                "physical_event": "실제 사건 발생 확률",
+                "risk_neutral_terminal": "옵션가격 기반 위험중립 종점 분포",
+                "path_touch": "경로 중 임계값 접촉 확률",
+                "scenario_conditional": "시나리오 엔진 내부 조건부 가중치",
+                "reference_only": "결합 금지 참고값",
+            },
+            "guardrail": "서로 다른 probability_space는 산술 결합하지 않습니다.",
+            "counts": probability_counts,
+        },
+        "changelog": changelog,
     }
 
 
@@ -232,9 +304,13 @@ def load_template() -> str:
 
 
 def render_html(read_model: dict, mode: str = "embed") -> str:
-    shell = load_template()
+    shell = _compact_static_bundle(load_template())
     if mode == "embed":
-        blob = json.dumps(read_model, ensure_ascii=False, default=str)
+        # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
+        # removing JSON's repeated separator spaces keeps the established 420 KB budget.
+        blob = json.dumps(
+            read_model, ensure_ascii=False, default=str, separators=(",", ":")
+        )
         data_script = f"<script>window.__DATA__ = {blob};</script>"
     else:
         data_script = '<script>window.__DATA_URL__ = "/api/data";</script>'
@@ -245,6 +321,30 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f"{len(html.encode('utf-8'))} > {DASHBOARD_RAW_BUDGET_BYTES}"
         )
     return html
+
+
+def _compact_static_bundle(html: str) -> str:
+    """Compact authored static assets without parsing or rewriting JavaScript tokens."""
+    def compact_style(match: re.Match[str]) -> str:
+        body = re.sub(r"/\*.*?\*/", "", match.group(1), flags=re.S)
+        body = "".join(line.strip() for line in body.splitlines())
+        body = re.sub(r"\s*([{}:;,>])\s*", r"\1", body).replace(";}", "}")
+        return f"<style>{body}</style>"
+
+    def compact_script(match: re.Match[str]) -> str:
+        lines = []
+        for line in match.group(1).splitlines():
+            stripped = line.strip()
+            if stripped.startswith("//"):
+                continue
+            lines.append(stripped)
+        # The authored bundle uses explicit semicolons and has no ASI-sensitive bare
+        # return/throw lines (covered by the UI contract test), so line joins are safe.
+        return "<script>" + "".join(lines) + "</script>"
+
+    html = re.sub(r"<style>(.*?)</style>", compact_style, html, flags=re.S)
+    html = re.sub(r"<script>(.*?)</script>", compact_script, html, flags=re.S)
+    return "\n".join(line.strip() for line in html.splitlines() if line.strip())
 
 
 def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:

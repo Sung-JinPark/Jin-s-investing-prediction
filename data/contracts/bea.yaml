@@ -1,0 +1,17 @@
+schema_version: 1
+source_id: bea
+description: BEA published economic statistics and metadata.
+timezone: America/New_York
+calendar_id: US_FED
+cadence: release-calendar
+freshness_sla_hours: 24
+available_at_rule: Official BEA release timestamp; retrieved_at is not a substitute.
+revision_policy: Capture release payloads; use only captured vintages for historical replay.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: dataset, type: string}
+  - {name: series_id, type: string}
+  - {name: observation_time, type: string}
+  - {name: value, type: number, required: false}
+quality_checks: [schema, numeric-or-missing, release-calendar, duplicate-key, freshness]
+fallback: ALFRED counterpart where the economic definition is identical.

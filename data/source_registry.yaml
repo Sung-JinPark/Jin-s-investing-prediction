@@ -1,0 +1,79 @@
+version: 1
+sources:
+  - id: alfred
+    name: ALFRED real-time economic data
+    provider: Federal Reserve Bank of St. Louis
+    tier: official
+    endpoint: https://api.stlouisfed.org/fred/series/observations
+    cadence: release-calendar
+    freshness_sla_hours: 24
+    vintage_capability: native
+    license_status: approved
+    enabled: true
+    contract: data/contracts/alfred.yaml
+  - id: bls
+    name: BLS Public Data API
+    provider: U.S. Bureau of Labor Statistics
+    tier: official
+    endpoint: https://api.bls.gov/publicAPI/v2/timeseries/data/
+    cadence: release-calendar
+    freshness_sla_hours: 24
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/bls.yaml
+  - id: bea
+    name: BEA Data API
+    provider: U.S. Bureau of Economic Analysis
+    tier: official
+    endpoint: https://apps.bea.gov/api/data/
+    cadence: release-calendar
+    freshness_sla_hours: 24
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/bea.yaml
+  - id: treasury_fiscaldata
+    name: Treasury Fiscal Data API
+    provider: U.S. Department of the Treasury
+    tier: official
+    endpoint: https://api.fiscaldata.treasury.gov/services/api/fiscal_service/
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/treasury_fiscaldata.yaml
+  - id: nyfed_markets
+    name: New York Fed Markets API
+    provider: Federal Reserve Bank of New York
+    tier: official
+    endpoint: https://markets.newyorkfed.org/api/
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/nyfed_markets.yaml
+  - id: sec_edgar
+    name: SEC EDGAR Data APIs
+    provider: U.S. Securities and Exchange Commission
+    tier: official
+    endpoint: https://data.sec.gov/
+    cadence: intraday
+    freshness_sla_hours: 6
+    vintage_capability: native
+    license_status: approved
+    enabled: true
+    contract: data/contracts/sec_edgar.yaml
+  - id: yahoo_crosscheck
+    name: Yahoo Finance cross-check
+    provider: Yahoo
+    tier: public
+    endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: none
+    license_status: review_required
+    enabled: false
+    contract: data/contracts/yahoo_crosscheck.yaml

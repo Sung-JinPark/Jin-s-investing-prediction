@@ -45,6 +45,10 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
         for key in ("S1", "S2", "S3")
     )
     assert first["anchor"] > 0 and first["corr10"] == pytest.approx(first["ath"] * 0.9, abs=0.01)
+    assert first["fan"]["probability_space"] == "scenario_conditional"
+    assert set(first["fan"]["quantiles"]) == {"p5", "p25", "p50", "p75", "p95"}
+    assert all(len(values) == len(first["weeks"])
+               for values in first["fan"]["quantiles"].values())
 
 
 def test_validate_rejects_probability_or_length_drift() -> None:

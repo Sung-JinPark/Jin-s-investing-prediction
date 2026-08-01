@@ -11,11 +11,13 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime
+from datetime import date, datetime, time
 from pathlib import Path
 
 from .. import files as F
+from ..integrity import RepositoryContext, repository_context
 from ..models import sha256_file
+from ..probability import ProbabilityRecord, ProbabilitySpace, ProbabilityUnit
 from ..registry import load_registry
 
 
@@ -36,6 +38,7 @@ def connect(db_path: Path) -> sqlite3.Connection:
             pass  # 신규 DB(스키마에 포함) 또는 이미 추가됨 또는 테이블 미존재
     schema = (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
     conn.executescript(schema)
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 
@@ -54,7 +57,7 @@ class DriftReport:
 
 
 def sync(conn: sqlite3.Connection, root: Path, rebuild: bool = False,
-         force: bool = False) -> DriftReport:
+         force: bool = False, *, strict: bool = False) -> DriftReport:
     """파일 → DB. 멱등: 해시 동일 파일은 건너뜀. rebuild=True면 전체 재구축.
 
     AUDIT-260715 Q15: rebuild는 sync_meta(해시 기준선)를 지우므로, 지우기 **전에**
@@ -63,31 +66,393 @@ def sync(conn: sqlite3.Connection, root: Path, rebuild: bool = False,
     """
     report = DriftReport()
     now = datetime.now().isoformat(timespec="seconds")
+    context = repository_context(root)
+    stored = _stored_repository_context(conn)
+    if stored and (
+        stored.repo_id != context.repo_id
+        or stored.branch != context.branch
+        or (stored.head and context.head and stored.head != context.head)
+    ):
+        rebuild = True
+        force = True
+        report.warnings.append(
+            "W8 repository context changed; rebuilding the SQLite read index from source files"
+        )
 
     if rebuild:
         pre = _precheck_forecast_hashes(conn, root)
         if pre and not force:
-            for e in pre:
-                report.errors.append(e)
+            report.errors.extend(pre)
             report.errors.append(
                 "rebuild 중단: 위 불변성 위반이 재기준화로 세탁됩니다 — "
                 "원인 규명 후 정말 재기준화하려면 --force")
             return report
-        for e in pre:
-            report.warnings.append(f"[force 재기준화] {e}")
-        for table in ("questions", "forecasts", "resolutions", "ledger_lines", "sync_meta",
-                      "ml_forecasts", "ml_sentiment", "market_implied"):
-            conn.execute(f"DELETE FROM {table}")
+        report.warnings.extend(f"[force 재기준화] {issue}" for issue in pre)
+        staged = _memory_connection()
+        staged_report = DriftReport()
+        _sync_all(staged, root, staged_report, now)
+        report.errors.extend(staged_report.errors)
+        report.warnings.extend(staged_report.warnings)
+        if report.errors:
+            staged.close()
+            return report
+        _record_repository_context(staged, context, now)
+        staged.commit()
+        staged.backup(conn)
+        staged.close()
+        conn.commit()
+        _write_hash_anchor(conn, root)
+        return report
 
+    conn.execute("SAVEPOINT ai_fc_sync")
+    _sync_all(conn, root, report, now)
+    if report.errors:
+        if strict:
+            conn.execute("ROLLBACK TO ai_fc_sync")
+        conn.execute("RELEASE ai_fc_sync")
+        if not strict:
+            conn.commit()
+            _write_hash_anchor(conn, root)
+        return report
+    _record_repository_context(conn, context, now)
+    conn.execute("RELEASE ai_fc_sync")
+    conn.commit()
+    _write_hash_anchor(conn, root)
+    return report
+
+
+def _memory_connection() -> sqlite3.Connection:
+    conn = sqlite3.connect(":memory:")
+    conn.row_factory = sqlite3.Row
+    schema = (Path(__file__).parent / "schema.sql").read_text(encoding="utf-8")
+    conn.executescript(schema)
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def check(root: Path) -> tuple[DriftReport, dict[str, int]]:
+    """Validate all source inputs in an isolated database without touching the index."""
+    conn = _memory_connection()
+    report = DriftReport()
+    _sync_all(conn, root, report, datetime.now().isoformat(timespec="seconds"))
+    counts = {
+        "questions": int(conn.execute("SELECT COUNT(*) FROM questions").fetchone()[0]),
+        "forecasts": int(conn.execute("SELECT COUNT(*) FROM forecasts").fetchone()[0]),
+        "resolutions": int(conn.execute("SELECT COUNT(*) FROM resolutions").fetchone()[0]),
+    }
+    conn.close()
+    return report, counts
+
+
+def _sync_all(conn: sqlite3.Connection, root: Path, report: DriftReport, now: str) -> None:
     _sync_questions(conn, root, report)
     _sync_forecasts(conn, root, report, now)
     _sync_ledger(conn, root, report)
     _sync_benchmark(conn, root, report)
     _sync_ml_history(conn, root, report, now)
     _sync_status_overrides(conn, root, report)
-    _write_hash_anchor(conn, root)
-    conn.commit()
-    return report
+    _sync_corrections(conn, root, report)
+    _sync_source_registry(conn, root, report, now)
+    _rebuild_probability_records(conn, report, now)
+    _rebuild_resolution_events(conn, report)
+    from ..model_registry import register_defaults
+    register_defaults(conn, root)
+
+
+def _stored_repository_context(conn: sqlite3.Connection) -> RepositoryContext | None:
+    values = {row["key"]: row["value"] for row in conn.execute(
+        "SELECT key, value FROM db_meta WHERE key IN "
+        "('repo_id','branch','head','source_fingerprint')"
+    )}
+    if "repo_id" not in values:
+        return None
+    return RepositoryContext(
+        repo_id=values["repo_id"],
+        branch=values.get("branch", "detached-or-unversioned"),
+        head=values.get("head", ""),
+        source_fingerprint=values.get("source_fingerprint", ""),
+    )
+
+
+def _record_repository_context(
+    conn: sqlite3.Connection, context: RepositoryContext, now: str
+) -> None:
+    for key, value in (
+        ("schema_version", "2"),
+        ("repo_id", context.repo_id),
+        ("branch", context.branch),
+        ("head", context.head),
+        ("source_fingerprint", context.source_fingerprint),
+    ):
+        conn.execute(
+            "INSERT INTO db_meta(key,value,updated_at) VALUES (?,?,?) "
+            "ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=excluded.updated_at",
+            (key, value, now),
+        )
+
+
+def _sync_corrections(conn: sqlite3.Connection, root: Path, report: DriftReport) -> None:
+    import csv
+    import hashlib
+
+    path = root / "calibration" / "corrections.csv"
+    if not path.exists():
+        return
+    raw_lines = [line for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    data_lines = raw_lines[1:]
+    known = {row["line_no"]: row["line_hash"] for row in conn.execute(
+        "SELECT line_no,line_hash FROM correction_lines")}
+    if known and len(data_lines) < len(known):
+        report.errors.append(
+            f"E9 correction ledger shrank: DB {len(known)} rows > file {len(data_lines)} rows"
+        )
+    for line_no, line in enumerate(data_lines, start=1):
+        digest = hashlib.sha256(line.encode("utf-8")).hexdigest()
+        if line_no in known and known[line_no] != digest:
+            report.errors.append(f"E9 correction ledger row {line_no} was modified")
+        conn.execute(
+            "INSERT OR REPLACE INTO correction_lines(line_no,line_hash) VALUES (?,?)",
+            (line_no, digest),
+        )
+    with path.open(encoding="utf-8", newline="") as handle:
+        for row in csv.DictReader(handle):
+            required = ("correction_id", "target_table", "target_key", "field_name",
+                        "status", "reason", "created_at")
+            if any(not row.get(field) for field in required):
+                report.errors.append(f"E9 invalid correction row: {row!r}")
+                continue
+            conn.execute(
+                """INSERT OR IGNORE INTO correction_ledger
+                   (correction_id,target_table,target_key,field_name,old_value,new_value,
+                    status,reason,evidence_uri,created_at,approved_at,reviewer)
+                   VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+                tuple(row.get(field) or None for field in (
+                    "correction_id", "target_table", "target_key", "field_name",
+                    "old_value", "new_value", "status", "reason", "evidence_uri",
+                    "created_at", "approved_at", "reviewer")),
+            )
+
+
+def _sync_source_registry(
+    conn: sqlite3.Connection, root: Path, report: DriftReport, now: str
+) -> None:
+    import yaml
+
+    path = root / "data" / "source_registry.yaml"
+    if not path.exists():
+        return
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError) as exc:
+        report.errors.append(f"E10 source registry parse failed: {exc}")
+        return
+    conn.execute("DELETE FROM source_registry")
+    required = (
+        "id", "name", "provider", "tier", "cadence", "vintage_capability",
+        "license_status", "contract",
+    )
+    for source in payload.get("sources", []):
+        if any(source.get(field) in (None, "") for field in required):
+            report.errors.append(f"E10 incomplete source registry entry: {source!r}")
+            continue
+        contract = root / str(source["contract"])
+        if not contract.exists():
+            report.errors.append(f"E10 missing data contract: {source['contract']}")
+            continue
+        conn.execute(
+            """INSERT INTO source_registry
+               (source_id,name,provider,source_tier,endpoint,cadence,freshness_sla_hours,
+                vintage_capability,license_status,enabled,contract_path,updated_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (source["id"], source["name"], source["provider"], source["tier"],
+             source.get("endpoint"), source["cadence"], source.get("freshness_sla_hours"),
+             source["vintage_capability"], source["license_status"],
+             1 if source.get("enabled", True) else 0, source["contract"], now),
+        )
+
+
+def _record_id(*parts: object) -> str:
+    import hashlib
+
+    return hashlib.sha256("|".join(str(part) for part in parts).encode("utf-8")).hexdigest()[:32]
+
+
+def _put_probability(
+    conn: sqlite3.Connection,
+    report: DriftReport,
+    *,
+    entity_type: str,
+    entity_id: str,
+    value: float | int | None,
+    source_unit: ProbabilityUnit,
+    probability_space: ProbabilitySpace,
+    source_id: str,
+    asof: str | None,
+    now: str,
+) -> None:
+    if value is None:
+        return
+    try:
+        record = ProbabilityRecord.from_raw(
+            value,
+            source_unit=source_unit,
+            probability_space=probability_space,
+            source_id=source_id,
+            asof=asof,
+        )
+    except (TypeError, ValueError) as exc:
+        report.warnings.append(
+            f"Q1 quarantined probability {entity_type}/{entity_id}: {exc}"
+        )
+        return
+    conn.execute(
+        """INSERT INTO probability_record
+           (record_id,entity_type,entity_id,probability,raw_value,source_unit,
+            probability_space,source_id,asof,created_at)
+           VALUES (?,?,?,?,?,?,?,?,?,?)""",
+        (_record_id(entity_type, entity_id, probability_space.value, source_id),
+         entity_type, entity_id, record.probability, record.raw_value,
+         record.source_unit.value, record.probability_space.value,
+         record.source_id, record.asof, now),
+    )
+
+
+def _rebuild_probability_records(
+    conn: sqlite3.Connection, report: DriftReport, now: str
+) -> None:
+    conn.execute("DELETE FROM probability_record")
+    for row in conn.execute("SELECT forecast_id,probability,forecast_ts FROM forecasts"):
+        _put_probability(
+            conn, report, entity_type="forecast", entity_id=row["forecast_id"],
+            value=row["probability"], source_unit=ProbabilityUnit.PERCENT,
+            probability_space=ProbabilitySpace.PHYSICAL_EVENT, source_id="forecast:file",
+            asof=row["forecast_ts"], now=now)
+    for row in conn.execute(
+        "SELECT forecast_id,resolved_date,probability FROM resolutions"
+    ):
+        _put_probability(
+            conn, report, entity_type="resolution", entity_id=f"{row['forecast_id']}@{row['resolved_date']}",
+            value=row["probability"], source_unit=ProbabilityUnit.PERCENT,
+            probability_space=ProbabilitySpace.PHYSICAL_EVENT, source_id="calibration:ledger",
+            asof=row["resolved_date"], now=now)
+    for row in conn.execute(
+        "SELECT run_ts,question_id,model,kind,prob FROM ml_forecasts"
+    ):
+        space = (ProbabilitySpace.PATH_TOUCH if row["kind"] == "path_touch"
+                 else ProbabilitySpace.PHYSICAL_EVENT)
+        _put_probability(
+            conn, report, entity_type="ml_forecast",
+            entity_id=f"{row['run_ts']}|{row['question_id']}|{row['model']}|{row['kind']}",
+            value=row["prob"], source_unit=ProbabilityUnit.FRACTION,
+            probability_space=space, source_id=f"ml:{row['model']}",
+            asof=row["run_ts"], now=now)
+    for row in conn.execute(
+        "SELECT run_ts,question_id,source,prob FROM market_implied"
+    ):
+        _put_probability(
+            conn, report, entity_type="market_implied",
+            entity_id=f"{row['run_ts']}|{row['question_id']}|{row['source']}",
+            value=row["prob"], source_unit=ProbabilityUnit.FRACTION,
+            probability_space=ProbabilitySpace.REFERENCE_ONLY,
+            source_id=f"market:{row['source']}", asof=row["run_ts"], now=now)
+    for row in conn.execute("SELECT * FROM benchmark_scores"):
+        entity_id = f"{row['forecast_id']}@{row['resolved_date']}"
+        for prefix in ("llm", "ml", "market"):
+            _put_probability(
+                conn, report, entity_type="benchmark", entity_id=f"{entity_id}|{prefix}",
+                value=row[f"{prefix}_prob"], source_unit=ProbabilityUnit.FRACTION,
+                probability_space=(ProbabilitySpace.REFERENCE_ONLY if prefix == "market"
+                                   else ProbabilitySpace.PHYSICAL_EVENT),
+                source_id=f"benchmark:{prefix}", asof=row["resolved_date"], now=now)
+
+
+def _parse_event_time(value: str | None, fallback: date) -> datetime:
+    if value:
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError:
+            try:
+                return datetime.combine(date.fromisoformat(value[:10]), time.min)
+            except ValueError:
+                pass
+    return datetime.combine(fallback, time.min)
+
+
+def _weighted_probability(rows: list[dict], resolved: date) -> float | None:
+    if not rows:
+        return None
+    ordered = sorted(rows, key=lambda row: (row["ts"], row["round"] or 0, row["forecast_id"]))
+    resolution_end = datetime.combine(resolved, time.max)
+    weights: list[float] = []
+    for idx, row in enumerate(ordered):
+        end = ordered[idx + 1]["ts"] if idx + 1 < len(ordered) else resolution_end
+        weights.append(max(1.0, (end - row["ts"]).total_seconds()))
+    total = sum(weights)
+    return sum(row["probability"] * weight for row, weight in zip(ordered, weights)) / total
+
+
+def _rebuild_resolution_events(conn: sqlite3.Connection, report: DriftReport) -> None:
+    conn.execute("DELETE FROM score_observation")
+    conn.execute("DELETE FROM resolution_event")
+    grouped: dict[tuple[str, str], list[dict]] = {}
+    for row in conn.execute(
+        """SELECT r.*, f.round, f.forecast_ts,
+                  COALESCE(o.status, f.research_status, 'ok') AS effective_status
+           FROM resolutions r
+           LEFT JOIN forecasts f ON f.forecast_id=r.forecast_id
+           LEFT JOIN research_status_override o ON o.forecast_id=r.forecast_id
+           ORDER BY r.question_id,r.resolved_date,f.round,r.forecast_id"""
+    ):
+        key = (row["question_id"], row["resolved_date"])
+        resolved = date.fromisoformat(row["resolved_date"])
+        grouped.setdefault(key, []).append({
+            "forecast_id": row["forecast_id"],
+            "round": row["round"],
+            "ts": _parse_event_time(row["forecast_ts"] or row["forecast_date"], resolved),
+            "probability": float(row["probability"]) / 100.0,
+            "outcome": int(row["outcome"]),
+            "domain": row["domain"],
+            "eligible": row["effective_status"] != "failed",
+        })
+
+    for (question_id, resolved_text), rows in grouped.items():
+        outcomes = {row["outcome"] for row in rows}
+        if len(outcomes) != 1:
+            report.errors.append(
+                f"E8 inconsistent outcomes for {question_id}@{resolved_text}: {sorted(outcomes)}"
+            )
+            continue
+        outcome = outcomes.pop()
+        resolved = date.fromisoformat(resolved_text)
+        ordered = sorted(rows, key=lambda row: (row["ts"], row["round"] or 0))
+        representative = _weighted_probability(ordered, resolved)
+        primary_rows = [row for row in ordered if row["eligible"]]
+        primary_probability = _weighted_probability(primary_rows, resolved)
+        event_id = _record_id("resolution_event", question_id, resolved_text)
+        conn.execute(
+            """INSERT INTO resolution_event
+               (event_id,question_id,resolved_date,outcome,domain,forecast_count,
+                first_probability,latest_probability,representative_probability,
+                representative_brier,primary_forecast_count,primary_probability,primary_brier)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (event_id, question_id, resolved_text, outcome, ordered[0]["domain"], len(ordered),
+             ordered[0]["probability"], ordered[-1]["probability"], representative,
+             (representative - outcome) ** 2 if representative is not None else None,
+             len(primary_rows), primary_probability,
+             (primary_probability - outcome) ** 2 if primary_probability is not None else None),
+        )
+        resolution_end = datetime.combine(resolved, time.max)
+        for idx, row in enumerate(ordered):
+            end = ordered[idx + 1]["ts"] if idx + 1 < len(ordered) else resolution_end
+            weight = max(1.0, (end - row["ts"]).total_seconds())
+            conn.execute(
+                """INSERT INTO score_observation
+                   (event_id,forecast_id,forecast_ts,round,probability,outcome,brier,
+                    time_weight,eligible_primary) VALUES (?,?,?,?,?,?,?,?,?)""",
+                (event_id, row["forecast_id"], row["ts"].isoformat(timespec="seconds"),
+                 row["round"], row["probability"], outcome,
+                 (row["probability"] - outcome) ** 2, weight, 1 if row["eligible"] else 0),
+            )
 
 
 def _sync_benchmark(conn: sqlite3.Connection, root: Path, report: DriftReport) -> None:

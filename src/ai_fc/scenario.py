@@ -287,6 +287,18 @@ def build_scenario(dates: list[date], closes: list[float], *,
             "eoy_80": [int(round(float(np.percentile(terminal, 10)))),
                        int(round(float(np.percentile(terminal, 90))))],
         },
+        "fan": {
+            "probability_space": "scenario_conditional",
+            "quantiles": {
+                f"p{quantile}": [
+                    int(round(float(value)))
+                    for value in np.percentile(sampled, quantile, axis=0)
+                ]
+                for quantile in (5, 25, 50, 75, 95)
+            },
+            "monitoring": "daily-discrete",
+            "baseline_method": "gbm-daily-252d-v1",
+        },
         "weeks": [f"{day.month}/{day.day}" for day in week_dates],
         "paths": {
             key: {
@@ -316,6 +328,8 @@ def build_scenario(dates: list[date], closes: list[float], *,
                 "S2": "ATH 미돌파 AND 연말 종가 > 2026-07-09 고정 기준가",
                 "S3": "나머지 조정·횡보",
             },
+            "probability_space": "scenario_conditional",
+            "promotion_state": "champion-baseline; v2 alternatives remain shadow",
         },
         "note": (
             "확정 일봉 252거래일의 수익률로 생성한 고정 seed GBM 조건부 중앙 경로. "

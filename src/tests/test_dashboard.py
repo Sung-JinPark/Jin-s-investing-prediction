@@ -49,7 +49,9 @@ def test_read_model_shape(repo: Path) -> None:
     ingest.sync(conn, repo)
     m = dashboard.build_read_model(conn, repo)
     for key in ("meta", "scenario", "scenario_history", "questions", "forecast_history",
-                "resolutions", "ml_runs", "market_runs", "calibration", "due"):
+                "resolutions", "ml_runs", "market_runs", "calibration", "due",
+                "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
+                "probability_semantics", "changelog"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
@@ -58,6 +60,8 @@ def test_read_model_shape(repo: Path) -> None:
     assert sum(probs.values()) == 100
     assert probs["S1"] <= 66  # 단조성: P(S1) ≤ P(F3)
     assert m["scenario_history"][-1]["asof"] == m["scenario"]["asof"]
+    assert m["probability_semantics"]["canonical_unit"] == "fraction"
+    assert m["calibration"]["gate_v2"]["display_only"] is True
 
 
 def test_template_self_contained() -> None:

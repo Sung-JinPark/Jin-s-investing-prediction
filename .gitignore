@@ -4,9 +4,14 @@
 # dualdb: DB는 raw에서 재구축 가능, raw 원본은 대용량 — 둘 다 로컬 보존만
 /dualdb/db/
 /dualdb/data/raw/
+/data/raw/
+/data/quarantine/
+/data/facts/
 __pycache__/
 *.pyc
 .pytest_cache/
+.venv/
+.tmp-pytest/
 .env
 # 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
 /reports/dashboard.html

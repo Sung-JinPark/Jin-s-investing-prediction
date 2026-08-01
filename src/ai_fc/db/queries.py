@@ -115,6 +115,76 @@ def gate_status(conn: sqlite3.Connection) -> sqlite3.Row:
     return conn.execute("SELECT * FROM v_gate_status").fetchone()
 
 
+def gate_status_v2(conn: sqlite3.Connection) -> dict:
+    row = conn.execute("SELECT * FROM v_gate_status_v2").fetchone()
+    if row is None:
+        return {}
+    out = {key: row[key] for key in row.keys()}
+    from ..evaluation import clustered_bootstrap_mean
+    briers = [float(item["primary_brier"]) for item in conn.execute(
+        "SELECT primary_brier FROM resolution_event WHERE primary_brier IS NOT NULL"
+    )]
+    out["bootstrap"] = clustered_bootstrap_mean(briers, n_boot=10_000, seed=42)
+    out["display_only"] = True
+    return out
+
+
+def resolution_clusters(conn: sqlite3.Connection) -> list[dict]:
+    out: list[dict] = []
+    for row in conn.execute(
+        """SELECT e.*,
+                  (SELECT COUNT(*) FROM score_observation s WHERE s.event_id=e.event_id) AS row_count
+           FROM resolution_event e ORDER BY e.resolved_date,e.question_id"""
+    ):
+        event = {
+            "event_id": row["event_id"], "question_id": row["question_id"],
+            "resolved_date": row["resolved_date"], "outcome": row["outcome"],
+            "domain": row["domain"], "row_count": row["row_count"],
+            "first_probability": row["first_probability"],
+            "latest_probability": row["latest_probability"],
+            "representative_probability": row["representative_probability"],
+            "representative_brier": row["representative_brier"],
+            "primary_forecast_count": row["primary_forecast_count"],
+            "primary_probability": row["primary_probability"],
+            "primary_brier": row["primary_brier"],
+        }
+        event["rounds"] = [
+            {
+                "forecast_id": score["forecast_id"], "round": score["round"],
+                "probability": score["probability"], "brier": score["brier"],
+                "time_weight": score["time_weight"],
+                "eligible_primary": score["eligible_primary"],
+            }
+            for score in conn.execute(
+                "SELECT * FROM score_observation WHERE event_id=? ORDER BY round,forecast_ts",
+                (row["event_id"],),
+            )
+        ]
+        out.append(event)
+    return out
+
+
+def source_health(conn: sqlite3.Connection) -> list[dict]:
+    rows = []
+    for row in conn.execute("SELECT * FROM source_registry ORDER BY source_id"):
+        enabled = bool(row["enabled"])
+        rows.append({
+            "source_id": row["source_id"],
+            "name": row["name"],
+            "provider": row["provider"],
+            "status": "degraded" if enabled else "failed",
+            "state_label": "미산출" if enabled else "비활성",
+            "asof": None,
+            "freshness_sla_hours": row["freshness_sla_hours"],
+            "vintage_capability": row["vintage_capability"],
+            "license_status": row["license_status"],
+            "contract": row["contract_path"],
+            "fallback_used": False,
+            "quarantine_count": 0,
+        })
+    return rows
+
+
 def calibration_curve(conn: sqlite3.Connection) -> list[sqlite3.Row]:
     return list(conn.execute("SELECT * FROM v_calibration_curve ORDER BY decile"))
 

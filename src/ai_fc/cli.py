@@ -24,6 +24,13 @@ def _conn(root: Path):
     return ingest.connect(root / "db" / "index.db")
 
 
+def _sync_or_exit(conn, root: Path) -> None:
+    report = ingest.sync(conn, root, strict=True)
+    if not report.ok:
+        typer.echo(report.summary(), err=True)
+        raise typer.Exit(code=1)
+
+
 @app.command("scenario")
 def cmd_scenario(
     asof: str | None = typer.Option(
@@ -53,15 +60,46 @@ def cmd_sync(
 ) -> None:
     """파일(진실) → SQLite(파생 인덱스) 동기화."""
     root = config.ROOT
+    if check:
+        report, counts = ingest.check(root)
+        typer.echo(report.summary())
+        typer.echo(
+            f"질문 {counts['questions']} / 예측 {counts['forecasts']} / 해소 {counts['resolutions']}"
+        )
+        if not report.ok:
+            raise typer.Exit(code=1)
+        return
     conn = _conn(root)
-    report = ingest.sync(conn, root, rebuild=rebuild, force=force)
+    report = ingest.sync(conn, root, rebuild=rebuild, force=force, strict=True)
     typer.echo(report.summary())
     n_f = conn.execute("SELECT COUNT(*) AS n FROM forecasts").fetchone()["n"]
     n_q = conn.execute("SELECT COUNT(*) AS n FROM questions").fetchone()["n"]
     n_r = conn.execute("SELECT COUNT(*) AS n FROM resolutions").fetchone()["n"]
     typer.echo(f"질문 {n_q} / 예측 {n_f} / 해소 {n_r}")
-    if check and not report.ok:
+    if not report.ok:
         raise typer.Exit(code=1)
+    from .inventory import write_inventory
+    write_inventory(root, conn)
+
+
+@app.command("inventory")
+def cmd_inventory(
+    check: bool = typer.Option(False, "--check", help="생성 문서가 현재 원천/DB와 같은지 검사"),
+) -> None:
+    """원천 파일과 파생 인덱스의 자동 현황 문서를 생성한다."""
+    from .inventory import OUTPUT, inventory_is_current, write_inventory
+
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    if check:
+        if not inventory_is_current(root, conn):
+            typer.echo(f"inventory drift: {OUTPUT.as_posix()}", err=True)
+            raise typer.Exit(code=1)
+        typer.echo(f"inventory current: {OUTPUT.as_posix()}")
+        return
+    path = write_inventory(root, conn)
+    typer.echo(f"generated: {path.relative_to(root)}")
 
 
 @app.command("due")
@@ -73,9 +111,7 @@ def cmd_due(
     """재예측/해소 기한 도래 목록 (실행 전 sync 자동 수행)."""
     root = config.ROOT
     conn = _conn(root)
-    report = ingest.sync(conn, root)
-    if not report.ok:
-        typer.echo(report.summary(), err=True)
+    _sync_or_exit(conn, root)
 
     questions = load_registry(root / "questions" / "registry.yaml")
     due = compute_due(
@@ -177,7 +213,7 @@ def cmd_forecast(
 
     root = config.ROOT
     conn = _conn(root)
-    ingest.sync(conn, root)
+    _sync_or_exit(conn, root)
 
     if due_all:
         questions = load_registry(root / "questions" / "registry.yaml")
@@ -222,7 +258,7 @@ def cmd_resolve(
 
     root = config.ROOT
     conn = _conn(root)
-    ingest.sync(conn, root)
+    _sync_or_exit(conn, root)
 
     if draft:
         observations = {}
@@ -266,7 +302,7 @@ def cmd_report(
 
     root = config.ROOT
     conn = _conn(root)
-    ingest.sync(conn, root)
+    _sync_or_exit(conn, root)
     out = render_report(conn, root)
     typer.echo(f"생성: {out}")
     if open_browser:
@@ -295,12 +331,12 @@ def cmd_dashboard(
     root = config.ROOT
     if serve:
         conn = _conn(root)
-        ingest.sync(conn, root)  # 최신화 후 서버는 매 요청 라이브 재조회
+        _sync_or_exit(conn, root)  # 최신화 후 서버는 매 요청 라이브 재조회
         conn.close()
         dash.serve(root, host, port)
         return
     conn = _conn(root)
-    ingest.sync(conn, root)
+    _sync_or_exit(conn, root)
     if pages_out:
         out = dash.write_pages(conn, _P(pages_out), root)
         typer.echo(f"Pages 빌드: {out}")

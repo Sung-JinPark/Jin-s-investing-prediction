@@ -9,6 +9,14 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', '1');
 
+-- v2 metadata is deliberately separate from the legacy meta table.  It stores the
+-- provenance of the rebuildable read index, never source-of-truth business data.
+CREATE TABLE IF NOT EXISTS db_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS questions (
     question_id     TEXT PRIMARY KEY,
     title           TEXT,
@@ -167,19 +175,170 @@ CREATE TABLE IF NOT EXISTS benchmark_lines (
     line_hash       TEXT NOT NULL
 );
 
+-- Canonical 0..1 probability projection.  Legacy 0..100 columns stay untouched for
+-- backward compatibility; consumers of new analytics must use this table/view layer.
+CREATE TABLE IF NOT EXISTS probability_record (
+    record_id        TEXT PRIMARY KEY,
+    entity_type      TEXT NOT NULL,
+    entity_id        TEXT NOT NULL,
+    probability      REAL NOT NULL CHECK (probability >= 0.0 AND probability <= 1.0),
+    raw_value        REAL NOT NULL,
+    source_unit      TEXT NOT NULL CHECK (source_unit IN ('fraction', 'percent', 'bps', 'price')),
+    probability_space TEXT NOT NULL CHECK (probability_space IN (
+        'physical_event', 'risk_neutral_terminal', 'path_touch',
+        'scenario_conditional', 'reference_only')),
+    source_id        TEXT NOT NULL,
+    asof              TEXT,
+    created_at        TEXT NOT NULL,
+    UNIQUE (entity_type, entity_id, probability_space, source_id)
+);
+
+-- Source ledgers remain append-only.  A correction is a new reviewed assertion and
+-- never an UPDATE against calibration/*.csv.
+CREATE TABLE IF NOT EXISTS correction_ledger (
+    correction_id    TEXT PRIMARY KEY,
+    target_table     TEXT NOT NULL,
+    target_key       TEXT NOT NULL,
+    field_name       TEXT NOT NULL,
+    old_value        TEXT,
+    new_value        TEXT,
+    status           TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+    reason           TEXT NOT NULL,
+    evidence_uri     TEXT,
+    created_at       TEXT NOT NULL,
+    approved_at      TEXT,
+    reviewer         TEXT
+);
+CREATE TABLE IF NOT EXISTS correction_lines (
+    line_no INTEGER PRIMARY KEY,
+    line_hash TEXT NOT NULL
+);
+
+-- One real-world outcome can have several forecast rounds.  Gate v2 scores the event
+-- representative, while legacy row-level gates below are intentionally unchanged.
+CREATE TABLE IF NOT EXISTS resolution_event (
+    event_id          TEXT PRIMARY KEY,
+    question_id       TEXT NOT NULL,
+    resolved_date     TEXT NOT NULL,
+    outcome           INTEGER NOT NULL CHECK (outcome IN (0, 1)),
+    domain            TEXT,
+    forecast_count    INTEGER NOT NULL,
+    first_probability REAL CHECK (first_probability BETWEEN 0.0 AND 1.0),
+    latest_probability REAL CHECK (latest_probability BETWEEN 0.0 AND 1.0),
+    representative_probability REAL CHECK (representative_probability BETWEEN 0.0 AND 1.0),
+    representative_brier REAL CHECK (representative_brier BETWEEN 0.0 AND 1.0),
+    primary_forecast_count INTEGER NOT NULL DEFAULT 0,
+    primary_probability REAL CHECK (primary_probability BETWEEN 0.0 AND 1.0),
+    primary_brier REAL CHECK (primary_brier BETWEEN 0.0 AND 1.0),
+    UNIQUE (question_id, resolved_date)
+);
+
+CREATE TABLE IF NOT EXISTS score_observation (
+    event_id          TEXT NOT NULL,
+    forecast_id       TEXT NOT NULL,
+    forecast_ts       TEXT,
+    round             INTEGER,
+    probability       REAL NOT NULL CHECK (probability BETWEEN 0.0 AND 1.0),
+    outcome           INTEGER NOT NULL CHECK (outcome IN (0, 1)),
+    brier             REAL NOT NULL CHECK (brier BETWEEN 0.0 AND 1.0),
+    time_weight       REAL NOT NULL CHECK (time_weight >= 0.0),
+    eligible_primary INTEGER NOT NULL CHECK (eligible_primary IN (0, 1)),
+    PRIMARY KEY (event_id, forecast_id),
+    FOREIGN KEY (event_id) REFERENCES resolution_event(event_id)
+);
+
+CREATE TABLE IF NOT EXISTS source_registry (
+    source_id         TEXT PRIMARY KEY,
+    name              TEXT NOT NULL,
+    provider          TEXT NOT NULL,
+    source_tier       TEXT NOT NULL CHECK (source_tier IN ('official', 'licensed', 'public', 'curated')),
+    endpoint          TEXT,
+    cadence           TEXT NOT NULL,
+    freshness_sla_hours INTEGER,
+    vintage_capability TEXT NOT NULL CHECK (vintage_capability IN ('native', 'captured', 'none')),
+    license_status    TEXT NOT NULL CHECK (license_status IN ('approved', 'review_required', 'prohibited')),
+    enabled           INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+    contract_path     TEXT NOT NULL,
+    updated_at        TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS model_registry (
+    model_id          TEXT PRIMARY KEY,
+    display_name      TEXT NOT NULL,
+    version           TEXT NOT NULL,
+    lifecycle         TEXT NOT NULL CHECK (lifecycle IN (
+        'baseline', 'candidate', 'shadow', 'champion', 'demoted', 'retired')),
+    target            TEXT NOT NULL,
+    code_version      TEXT NOT NULL,
+    data_fingerprint  TEXT,
+    params_json       TEXT NOT NULL,
+    metrics_json      TEXT NOT NULL,
+    limitations       TEXT,
+    promotion_allowed INTEGER NOT NULL DEFAULT 0 CHECK (promotion_allowed IN (0, 1)),
+    created_at        TEXT NOT NULL,
+    updated_at        TEXT NOT NULL,
+    UNIQUE (display_name, version)
+);
+
 -- 쌍대 비교: 비교 대상이 존재하는 해소만 집계 (불공정 비교 차단)
+DROP VIEW IF EXISTS v_benchmark_corrected;
+CREATE VIEW v_benchmark_corrected AS
+SELECT bs.forecast_id, bs.resolved_date, bs.question_id,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='llm_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.llm_prob) AS llm_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='llm_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.llm_brier) AS llm_brier,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='ml_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.ml_prob) AS ml_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='ml_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.ml_brier) AS ml_brier,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='market_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.market_prob) AS market_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='market_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.market_brier) AS market_brier,
+       bs.ml_asof, bs.market_asof, bs.notes, bs.line_no
+FROM benchmark_scores bs;
+
+DROP VIEW IF EXISTS v_benchmark_valid;
+CREATE VIEW v_benchmark_valid AS
+SELECT * FROM v_benchmark_corrected
+WHERE (llm_prob IS NULL OR llm_prob BETWEEN 0.0 AND 1.0)
+  AND (llm_brier IS NULL OR llm_brier BETWEEN 0.0 AND 1.0)
+  AND (ml_prob IS NULL OR ml_prob BETWEEN 0.0 AND 1.0)
+  AND (ml_brier IS NULL OR ml_brier BETWEEN 0.0 AND 1.0)
+  AND (market_prob IS NULL OR market_prob BETWEEN 0.0 AND 1.0)
+  AND (market_brier IS NULL OR market_brier BETWEEN 0.0 AND 1.0);
+
 DROP VIEW IF EXISTS v_benchmark_pairwise;
 CREATE VIEW v_benchmark_pairwise AS
 SELECT 'llm_vs_ml' AS pair, COUNT(*) AS n,
        AVG(llm_brier) AS llm_brier, AVG(ml_brier) AS other_brier
-FROM benchmark_scores WHERE ml_brier IS NOT NULL
+FROM v_benchmark_valid WHERE ml_brier IS NOT NULL
 UNION ALL
 SELECT 'llm_vs_market', COUNT(*), AVG(llm_brier), AVG(market_brier)
-FROM benchmark_scores WHERE market_brier IS NOT NULL
+FROM v_benchmark_valid WHERE market_brier IS NOT NULL
 UNION ALL
 SELECT 'all_three', COUNT(*), AVG(llm_brier),
        (AVG(ml_brier) + AVG(market_brier)) / 2
-FROM benchmark_scores WHERE ml_brier IS NOT NULL AND market_brier IS NOT NULL;
+FROM v_benchmark_valid WHERE ml_brier IS NOT NULL AND market_brier IS NOT NULL;
 
 -- ── 뷰 ─────────────────────────────────────────────────────────
 
@@ -255,6 +414,18 @@ SELECT COUNT(*) AS n_resolved,
        (COUNT(*) >= 30 AND AVG(brier) < 0.20) AS gate_p2,
        (COUNT(*) >= 50 AND AVG(brier) < 0.18) AS gate_p3
 FROM resolutions;
+
+-- Display-only gate v2.  Promotion remains disabled until the user approves a gate
+-- policy change; the established row-level v_gate_status remains authoritative.
+DROP VIEW IF EXISTS v_gate_status_v2;
+CREATE VIEW v_gate_status_v2 AS
+SELECT COUNT(*) AS n_events,
+       AVG(primary_brier) AS brier,
+       (COUNT(*) >= 30 AND AVG(primary_brier) < 0.20) AS gate_p2_candidate,
+       (COUNT(*) >= 50 AND AVG(primary_brier) < 0.18) AS gate_p3_candidate,
+       0 AS promotion_enabled
+FROM resolution_event
+WHERE primary_brier IS NOT NULL;
 
 DROP VIEW IF EXISTS v_latest_forecast;
 CREATE VIEW v_latest_forecast AS

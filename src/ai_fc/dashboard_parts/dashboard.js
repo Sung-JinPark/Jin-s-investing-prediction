@@ -1075,6 +1075,7 @@ function renderFlow(){
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
+    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>GBM p5–p95 fan</span>':''}
     <span><b style="background:#706f68"></b>과거 유사 사이클</span></div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
@@ -1087,6 +1088,7 @@ function renderFlow(){
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
+    ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>SCENARIO LAB</span><strong>p5 · p25 · p50 · p75 · p95</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
     <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   root.appendChild(p1w);
@@ -1196,6 +1198,13 @@ function drawFlow(host,sc,focus='ALL'){
     svg.appendChild(mk('line',{x1:x,y1:MT-10,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
     svg.appendChild(mk('circle',{cx:x,cy:ly+12,r:2.2,fill:'rgba(17,17,15,.55)'}));
     svg.appendChild(tx(x,ly+7,label,{anc:'middle',fill:'rgba(17,17,15,.66)',fs:10.5}));});
+  const fan=sc.fan?.quantiles;
+  if(fan?.p5?.length===n&&fan?.p95?.length===n){
+    const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');for(let i=lower.length-1;i>=0;i--)d+='L'+X(i)+','+Y(lower[i])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
+    band(fan.p95,fan.p5,'#ff9d19',focus==='ALL'?.09:.025);
+    if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
+    if(fan.p50){let median='';fan.p50.forEach((v,i)=>median+=(i?'L':'M')+X(i)+','+Y(v)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
+  }
   const clip=sc.analog.clip;let dA='';sc.analog.values.forEach((v,i)=>{dA+=(i?'L':'M')+X(i)+','+Y(Math.min(v,clip))+' ';});
   const analogColor='#706f68',analogOn=focus==='ALL'||focus==='ANALOG';
   svg.appendChild(mk('path',{d:dA,fill:'none',stroke:analogColor,'stroke-width':analogOn?2:1.2,'stroke-dasharray':'5 4',opacity:analogOn?.78:.09}));
@@ -1593,7 +1602,8 @@ function renderAsofTimeMachine(){
   const dates=[...new Set([
     ...Object.values(DATA.forecast_history||{}).flat().map(h=>(h.forecast_ts||'').slice(0,10)),
     ...(DATA.ml_runs||[]).map(m=>(m.run_ts||'').slice(0,10)),
-    ...(DATA.market_runs||[]).map(m=>(m.run_ts||'').slice(0,10))
+    ...(DATA.market_runs||[]).map(m=>(m.run_ts||'').slice(0,10)),
+    ...(DATA.asof_index||[]).map(item=>(item.asof||'').slice(0,10))
   ].filter(Boolean))].sort();
   if(!dates.length)dates.push(generatedDay());
   const first=dates[0],maxd=dates[dates.length-1];
@@ -1646,7 +1656,7 @@ function renderAsofTimeMachine(){
 
 // ── 적중 이력 ──
 function renderTrack(){
-  const c=DATA.calibration,g=c.gate;
+  const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
   const root=el('<div></div>');
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">적중 이력 · Calibration</p>
@@ -1654,19 +1664,20 @@ function renderTrack(){
     <p class="page-lede">예측 확률과 실제 결과의 간격을 기록합니다. 표본이 충분해지기 전에는 성능 판단을 유보합니다.</p>
   </div></div>`));
   root.appendChild(el(`<div class="track-kpis">
-    <div><span>해결 표본</span><strong>${g.n_resolved||0}</strong><small>결과가 나온 예측</small></div>
-    <div><span>Brier</span><strong>${g.brier!=null?Number(g.brier).toFixed(3):'—'}</strong><small>0에 가까울수록 정확</small></div>
-    <div><span>검증 목표</span><strong>50</strong><small>도달 시 신뢰구간 공개</small></div>
-    <div><span>진행</span><strong>${Math.round(Math.min(100,(g.n_resolved||0)/50*100))}%</strong><small>목표 대비</small></div>
+    <div><span>예측 회차</span><strong>${g.n_resolved||0}</strong><small>투명성용 row 표본</small></div>
+    <div><span>고유 결과</span><strong>${unique}</strong><small>게이트 후보 표본 단위</small></div>
+    <div><span>대표 Brier</span><strong>${gv2.brier!=null?Number(gv2.brier).toFixed(3):'—'}</strong><small>시간가중 · 표시 전용</small></div>
+    <div><span>95% CI 상한</span><strong>${gv2.bootstrap?.ci_hi!=null?Number(gv2.bootstrap.ci_hi).toFixed(3):'—'}</strong><small>cluster bootstrap</small></div>
   </div>`));
-  if((g.n_resolved||0)<20)root.appendChild(el(`<p class="status-note">표본 ${g.n_resolved||0}건 — 아직 성능을 판단하기에 이릅니다. 해결 표본이 목표(50건)에 근접할수록 캘리브레이션 신뢰도가 올라갑니다.</p>`));
+  if(unique<30)root.appendChild(el(`<p class="status-note">고유 결과 ${unique}건 · 예측 회차 ${g.n_resolved||0}건 — 반복 업데이트를 독립 표본으로 세지 않습니다. 고유 결과 30건 전에는 신뢰도 곡선과 모델 우열 판정을 숨깁니다.</p>`));
   const cv=c.curve||[];
   const grid=el('<div class="section-grid"></div>');
-  if(cv.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>신뢰도 곡선</h2><span class="vintage-note">예측 대 실제</span></div>
+  if(cv.length&&unique>=30){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>신뢰도 곡선</h2><span class="vintage-note">예측 대 실제</span></div>
     <div class="table-shell" style="border:0"><table style="min-width:0"><caption class="sr-only">확률대별 예측 캘리브레이션</caption><thead><tr><th scope="col">확률대</th><th scope="col" class="r">표본</th><th scope="col" class="r">평균 예측</th><th scope="col" class="r">실제 적중</th></tr></thead>
     <tbody>${cv.map(r=>`<tr><td class="num">${r.decile*10}–${r.decile*10+10}%</td><td class="r num">${r.n}</td>
       <td class="r num">${pct(r.avg_forecast)}</td><td class="r num">${pct(r.avg_outcome)}</td></tr>`).join('')}</tbody></table></div>
     <p class="chart-note">평균 예측 확률과 실제 적중률이 가까울수록 잘 보정된 예측입니다.</p></div>`));}
+  else grid.appendChild(el(`<div class="panel insufficient-panel"><div class="panel-head"><h2>신뢰도 곡선</h2><span class="semantic-state">표본 부족</span></div><p>고유 결과가 30건에 도달하면 reliability curve와 Murphy decomposition을 공개합니다. 현재는 숫자를 과해석하지 않도록 의도적으로 숨겼습니다.</p></div>`));
   const ds=(c.domain_skill||[]).filter(r=>r.n>0);
   if(ds.length){grid.appendChild(el(`<div class="panel"><div class="panel-head"><h2>분야별 정확도</h2><span class="vintage-note">${ds.length}개 분야</span></div>
     <div class="deadline-list" style="border-top:1px solid var(--line)">${ds.map(r=>`<div style="padding:19px 0;display:grid;grid-template-columns:1fr auto;gap:6px;border-bottom:1px solid var(--line)">
@@ -1674,6 +1685,21 @@ function renderTrack(){
       <strong style="font-family:var(--mono);font-size:17px">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</strong>
       <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건</small></div>`).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
+  const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
+  root.appendChild(el(`<section class="intelligence-stack" aria-label="검증 상세">
+    <details class="trust-center" open><summary><span><b>Trust Center</b><small>출처 · 신선도 · 빈티지 · 계약</small></span><em>${trust.status==='ok'?'정상':'확인 필요'}</em></summary>
+      <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(s.vintage_capability)} vintage</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
+      <div class="index-receipt"><span>INDEX RECEIPT</span><code>${esc((trust.index?.source_fingerprint||'미산출').slice(0,16))}</code><small>${esc(trust.index?.branch||'미산출')}</small></div>
+    </details>
+    <div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state">승격 비활성</span></div>
+      <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
+    </div>
+    <div class="audit-grid">
+      <details class="panel receipt-card"><summary>MODEL RECEIPT · 현재 시나리오</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div><div><dt>커밋</dt><dd>${esc((receipt.commit||'미산출').slice(0,12))}</dd></div></dl><p>${esc(receipt.limitation||'미산출')}</p></details>
+      <details class="panel correction-card"><summary>정정 원장 · ${corrections.length}건</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state">${esc(row.status==='pending'?'보정 대기':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">정정 기록이 없습니다.</p>'}</details>
+      <details class="panel semantics-card"><summary>확률 시맨틱 범례</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
+    </div>
+  </section>`));
   mount(root);
 }
 
