@@ -14,7 +14,7 @@ import sqlite3
 from datetime import date, datetime
 from pathlib import Path
 
-from . import config
+from . import config, scenario as scenario_data
 from .db import ingest, queries
 
 TEMPLATE = Path(__file__).parent / "dashboard_template.html"
@@ -182,6 +182,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     except Exception:  # noqa: BLE001
         due_list = []
 
+    scenario = scenario_data.load_latest_scenario(root, SCENARIO)
+
     return {
         "meta": {
             "generated": now.isoformat(timespec="seconds"),
@@ -191,7 +193,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "n_resolved": gate.get("n_resolved", 0),
             "cost_month": round(queries.month_cost(conn, now.year, now.month), 2),
         },
-        "scenario": SCENARIO,
+        "scenario": scenario,
         "analog_context": _latest_context_run(root),
         "questions": q_summary,
         "forecast_history": fc_hist,

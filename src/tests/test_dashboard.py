@@ -232,6 +232,11 @@ def test_workspace_utility_contract() -> None:
     assert "probability==null||probability===''" in html
     assert "WHAT CHANGED" in html and "MY RADAR" in html
     assert "SCENARIO VINTAGE" in html and "As-of Time Machine" in html
+    assert "businessDayDiff" in html and "is-stale" in html
+    assert "askPresets" in html and "nearestWeekIndex" in html
+    assert "answer(25)" not in html
+    assert "확률은 예측 모델 앙상블 산출값" not in html
+    assert "gbm-daily-252d-v1" in html
     assert 'class="filter-insights"' in html and 'class="flow-focus"' in html
     assert "data-calendar-all" in html and "data-calendar-selected" in html
     assert "legibility layer v3" in html

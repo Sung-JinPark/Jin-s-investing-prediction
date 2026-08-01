@@ -248,17 +248,32 @@ function dayDiff(from,to){
   const a=Date.parse(`${from}T00:00:00Z`),b=Date.parse(`${to}T00:00:00Z`);
   return Number.isFinite(a)&&Number.isFinite(b)?Math.round((b-a)/86400000):null;
 }
+function businessDayDiff(from,to){
+  const start=new Date(`${from}T00:00:00Z`),end=new Date(`${to}T00:00:00Z`);
+  if(!Number.isFinite(+start)||!Number.isFinite(+end)||end<=start)return 0;
+  let count=0,cursor=new Date(start);
+  while(cursor<end){cursor.setUTCDate(cursor.getUTCDate()+1);const day=cursor.getUTCDay();if(day!==0&&day!==6)count++;}
+  return count;
+}
 function addIsoDays(value,days){
   const t=Date.parse(`${value}T00:00:00Z`);if(!Number.isFinite(t))return value;
   return new Date(t+days*86400000).toISOString().slice(0,10);
 }
 function scenarioVintage(){
-  const asof=DATA?.scenario?.asof||generatedDay(),days=dayDiff(asof,generatedDay());
-  return {asof,days:days==null?0:Math.max(0,days),frozen:days>0};
+  const scenario=DATA?.scenario||{},asof=scenario.asof||generatedDay();
+  const calendarDays=dayDiff(asof,generatedDay()),businessDays=businessDayDiff(asof,generatedDay());
+  const status=scenario.fallback||businessDays>3?'stale':businessDays>1?'aging':'current';
+  return {asof,calendarDays:calendarDays==null?0:Math.max(0,calendarDays),businessDays,status,
+    current:status==='current',method:scenario.method||'unknown',fallback:Boolean(scenario.fallback)};
 }
 function vintageReceipt(){
   const v=scenarioVintage();
-  return `<div class="data-vintage" role="note"><span>SCENARIO VINTAGE</span><p>시나리오는 <strong>${esc(v.asof)}</strong> 기준으로 고정되어 있습니다. 현재 데이터 스냅샷보다 ${v.days}일 이전이며 자동으로 다시 예측된 경로가 아닙니다.</p><b>${v.frozen?'FROZEN':'CURRENT'}</b></div>`;
+  const copy=v.status==='stale'
+    ?`마지막 유효 시장 기준은 <strong>${esc(v.asof)}</strong>입니다. ${v.fallback?'자동 스냅샷이 없어 감사용 과거 시나리오를 표시합니다.':`확정 거래일 ${v.businessDays}일이 지나 현재 판단에는 사용하지 않습니다.`}`
+    :v.status==='aging'
+      ?`시장 시나리오는 <strong>${esc(v.asof)}</strong> 확정 종가 기준입니다. 다음 자동 갱신 전까지 최신 종가와 차이가 날 수 있습니다.`
+      :`시장 시나리오는 <strong>${esc(v.asof)}</strong> 확정 종가로 자동 생성됐습니다. 질문별 LLM 확률과는 분리된 모델 경로입니다.`;
+  return `<div class="data-vintage is-${v.status}" role="${v.status==='stale'?'alert':'note'}"><span>SCENARIO VINTAGE</span><p>${copy}</p><b>${v.status.toUpperCase()}</b></div>`;
 }
 function median(values){
   const a=values.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return null;
@@ -345,8 +360,9 @@ function decisionQueueCard(items){
 }
 function linkedSignalStrip(upProb,decisionItems){
   const pins=myRadarQuestions().length;
+  const valid=Number.isFinite(upProb);
   const signals=[
-    ['market','시장 상승 경로',upProb+'%','var(--orange)','연말 시나리오의 상승 두 경로 합계입니다. 질문별 확률과는 합산하지 않습니다.'],
+    ['market','시장 상승 경로',valid?upProb+'%':'STALE','var(--orange)',valid?'연말 시나리오의 상승 두 경로 합계입니다. 질문별 확률과는 합산하지 않습니다.':'시나리오 기준일이 오래되어 현재 신호로 사용하지 않습니다. 시장 맵에서 마지막 유효 스냅샷은 확인할 수 있습니다.'],
     ['changed','확률 이동',decisionItems.filter(x=>x.signals.includes('changed')).length,'var(--crimson)','직전 회차보다 움직인 질문만 강조합니다. 변화 폭은 방향 신호가 아니라 재검토 신호입니다.'],
     ['due','14일 내 판정',decisionItems.filter(x=>x.signals.includes('due')).length,'var(--amber)','14일 안에 결과를 확인할 질문만 강조합니다. 판정 기준과 출처는 상세 화면에서 확인할 수 있습니다.'],
     ['pinned','MY RADAR',pins,'var(--teal)',pins?'이 기기에 고정한 질문만 강조합니다. 개인 작업공간 정보는 외부로 전송되지 않습니다.':'아직 고정한 질문이 없습니다. 카드의 ☆ 버튼으로 개인 레이더를 만들 수 있습니다.']
@@ -503,11 +519,14 @@ function bindExperienceLayer(root){buildSectionNavigator(root);bindQuickPeek(roo
 
 function briefingScenes(){
   const sc=DATA.scenario,upProb=sc.paths.S1.prob+sc.paths.S2.prob,rangeProb=sc.paths.S3.prob;
-  const thesis=marketThesis(upProb,rangeProb),featured=featureQs()[0]||DATA.questions.find(q=>q.status==='active');
+  const vintage=scenarioVintage(),thesis=vintage.status==='stale'
+    ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
+    :marketThesis(upProb,rangeProb);
+  const featured=featureQs()[0]||DATA.questions.find(q=>q.status==='active');
   const next=upcoming(1)[0]||featured,d=featured?latestDelta(featured.id):null;
   const featuredReady=hasNumeric(featured?.latest_prob),nextReady=hasNumeric(next?.latest_prob);
   return [
-    {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:upProb,unit:'%',description:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:upProb},
+    {eyebrow:'01 · MARKET STANCE',lead:thesis.lead,accent:thesis.accent,metric:vintage.status==='stale'?'STALE':upProb,unit:vintage.status==='stale'?'':'%',pending:vintage.status==='stale',description:vintage.status==='stale'?`보관된 ${vintage.asof} 경로는 시장 맵에서 확인할 수 있지만 현재 판단에는 사용하지 않습니다.`:`상승 경로 ${upProb}%와 조정·횡보 ${rangeProb}%를 분리해 읽습니다. 두 체계는 질문별 확률과 합산하지 않습니다.`,visual:vintage.status==='stale'?0:upProb},
     {eyebrow:'02 · FEATURED FORECAST',lead:'대표 예측의 현재 확률',accent:featured?.title||'진행 중인 질문',metric:featuredReady?featured.latest_prob:'산출 전',unit:featuredReady?'%':'',pending:!featuredReady,description:featuredReady?`${roundLabel(featured.n_rounds)} · ${d==null?'첫 예측':`직전 회차 대비 ${d>=0?'+':''}${d}%p`} · ${featured.domain}`:'아직 등록된 예측 회차가 없습니다.',visual:featuredReady?featured.latest_prob:0,qid:featured?.id},
     {eyebrow:'03 · NEXT DECISION',lead:'다음 판정일을 먼저 확인하세요.',accent:next?.deadline||'예정된 판정 없음',metric:nextReady?next.latest_prob:'산출 전',unit:nextReady?'%':'',pending:!nextReady,description:next?`${next.title}${nextReady?'':' · 아직 등록된 예측 회차 없음'}`:'현재 등록된 판정 일정이 없습니다.',visual:nextReady?next.latest_prob:0,qid:next?.id}
   ];
@@ -595,7 +614,11 @@ function copyCurrentSummary(){
 function freshnessInfo(){
   const raw=DATA?.meta?.generated||'',stamp=Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(raw)?raw:raw+'+09:00');
   const hours=Number.isFinite(stamp)?Math.max(0,(Date.now()-stamp)/36e5):999;
-  return hours<=24?{label:'CURRENT',cls:'status-current'}:(hours<=72?{label:'AGING',cls:'status-aging'}:{label:'STALE',cls:'status-stale'});
+  const base=hours<=24?{label:'CURRENT',cls:'status-current'}:(hours<=72?{label:'AGING',cls:'status-aging'}:{label:'STALE',cls:'status-stale'});
+  const scenarioStatus=scenarioVintage().status;
+  if(scenarioStatus==='stale')return {label:'STALE',cls:'status-stale'};
+  if(scenarioStatus==='aging'&&base.label==='CURRENT')return {label:'AGING',cls:'status-aging'};
+  return base;
 }
 function updateFreshnessBadges(){
   const f=freshnessInfo();
@@ -897,20 +920,23 @@ function marketThesis(upProb,rangeProb){
 function renderOverview(){
   const m=DATA.meta,sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob;
-  const thesis=marketThesis(upProb,rangeProb);
+  const vintage=scenarioVintage();
+  const thesis=vintage.status==='stale'
+    ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
+    :marketThesis(upProb,rangeProb);
   const decisionItems=selectDecisionItems({minAbsoluteDelta:1,limit:5});
   const root=el('<div class="overview-page"></div>');
   const stage=el(`<section class="overview-stage" aria-labelledby="market-thesis"><div class="stage-inner">
     <div class="overview-hero">
       <div class="overview-copy">
-        <p class="eyebrow">현재 시장 판단 · ${esc(m.generated.slice(0,10))}</p>
+        <p class="eyebrow">${vintage.status==='stale'?'보관된 시장 시나리오':'현재 시장 판단'} · ${esc(sc.asof)}</p>
         <h1 id="market-thesis">${esc(thesis.lead)}<em>${esc(thesis.accent)}</em></h1>
-        <p class="overview-deck">연말 시나리오와 최신 질문별 예측을 함께 표시합니다. 두 확률 체계는 서로 합산하지 않으며 참고 의견으로만 제공합니다.</p>
+        <p class="overview-deck">${vintage.status==='stale'?'아래 시장 경로는 마지막 유효 스냅샷으로만 표시합니다. 최신 질문별 예측은 별도 기준이며 두 확률 체계는 서로 합산하지 않습니다.':'연말 시나리오와 최신 질문별 예측을 함께 표시합니다. 두 확률 체계는 서로 합산하지 않으며 참고 의견으로만 제공합니다.'}</p>
         <div class="overview-actions"><button type="button" class="briefing-launch" data-action="briefing"><span>▶</span>3 STEP BRIEFING</button><small>← → 키로 30초 시장 요약 보기</small></div>
       </div>
       ${decisionQueueCard(decisionItems.slice(0,3))}
     </div>
-    ${linkedSignalStrip(upProb,decisionItems)}
+    ${linkedSignalStrip(vintage.status==='stale'?null:upProb,decisionItems)}
   </div></section>`);
   const fq=homeFeatureQuestions(decisionItems);
   const fg=el('<div class="feature-grid forecast-grid"></div>');
@@ -988,6 +1014,9 @@ function monthAt(ym,m){const t=(+ym.slice(0,4))*12+(+ym.slice(5,7)-1)+m;
   return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0');}
 function renderFlow(){
   const sc=DATA.scenario;
+  const methodCopy=sc.method==='gbm-daily-252d-v1'
+    ?'경로 확률은 확정 일봉 252거래일의 GBM 분류 결과이며 fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
+    :'경로 확률은 감사된 수동 시나리오의 보관값이며 현재 시장 판단에는 별도 최신성 확인이 필요합니다.';
   const root=el('<div></div>');
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">시장 전망 · Scenario Map</p>
@@ -1009,7 +1038,7 @@ function renderFlow(){
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
-    <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. 확률은 예측 모델 앙상블 산출값이며 시간 구조는 계절성·주요 이벤트 일정에 근거합니다.</p>
+    <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   root.appendChild(p1w);
   const overlay=analogPanel();
@@ -1600,7 +1629,27 @@ function renderTrack(){
 }
 
 // ── 기간 조회 ──
-function weekDate(label){const [m,d]=label.split('/').map(Number);return new Date(2026,m-1,d);}
+function weekDate(label,asof=DATA?.scenario?.asof){
+  const [m,d]=label.split('/').map(Number),base=new Date(`${asof}T00:00:00`),year=base.getFullYear();
+  return new Date(year,m-1,d);
+}
+function nearestWeekIndex(sc,target){
+  let best=0,distance=Infinity;
+  sc.weeks.forEach((week,index)=>{const delta=Math.abs(weekDate(week,sc.asof)-target);if(delta<distance){distance=delta;best=index;}});
+  return best;
+}
+function askPresets(sc){
+  const start=new Date(`${sc.asof}T00:00:00`),year=start.getFullYear(),rows=[],seen=new Set();
+  for(let month=start.getMonth();month<12;month++){
+    const target=new Date(year,month+1,0);
+    if(target<=start)continue;
+    const index=nearestWeekIndex(sc,target);
+    if(index<=0||seen.has(index))continue;
+    seen.add(index);
+    rows.push([month===11?'연말 12/31':`${month+1}월말`,index]);
+  }
+  return rows;
+}
 function bizDates(s,e){const out=[];let d=new Date(s);while(d<=e){const w=d.getDay();if(w!==0&&w!==6)out.push(new Date(d));d.setDate(d.getDate()+1);}return out;}
 function interpAt(vals,wdts,t){
   if(t<=wdts[0])return vals[0];
@@ -1657,17 +1706,19 @@ function drawDaily(host,sc,endIdx){
 }
 function renderAsk(){
   const sc=DATA.scenario;const now=DATA.meta.generated.slice(0,10);
+  const endIndex=sc.weeks.length-1,endDate=`${sc.asof.slice(0,4)}-12-31`;
   const root=el('<div></div>');
   appendContextTabs(root,'replay','ask');
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">기간 조회 · Range Projection</p>
     <h1>현시점에서 기간별 일별 전망을 그립니다</h1>
-    <p class="page-lede">현 기준 ${esc(now)}. 기간을 고르면 시나리오 3경로의 일별 궤적과 예상 범위를 보여줍니다. 참고 의견이며 투자 자문이 아닙니다.</p>
+    <p class="page-lede">시나리오 기준 ${esc(sc.asof)} · 질문 데이터 기준 ${esc(now)}. 기간을 고르면 3경로의 일별 궤적과 예상 범위를 보여줍니다. 참고 의견이며 투자 자문이 아닙니다.</p>
   </div></div>`));
-  const presets=[['8월말',7],['9월말',11],['10월말',16],['11월말',20],['연말 12/31',25]];
+  root.appendChild(el(vintageReceipt()));
+  const presets=askPresets(sc);
   const bar=el(`<div class="query-bar">
     <div class="preset-list">${presets.map(([l,i])=>`<button type="button" class="ask-p" data-i="${i}">${l}</button>`).join('')}</div>
-    <label>종료일<input type="date" id="ad" min="2026-07-14" max="2026-12-31" value="2026-12-31"></label>
+    <label>종료일<input type="date" id="ad" min="${esc(sc.asof)}" max="${endDate}" value="${endDate}"></label>
     <button type="button" class="calendar-action" id="ask-calendar">현재 기간 일정 저장</button>
   </div>`);
   const out=el('<div id="ans"></div>');
@@ -1677,7 +1728,7 @@ function renderAsk(){
     const wk=sc.weeks[i],anchor=sc.anchor,lv=k=>sc.paths[k].values[i];
     const vals=['S1','S2','S3'].map(lv),lo=Math.min(...vals),hi=Math.max(...vals);
     const sign=v=>{const x=(v/anchor-1)*100;return (x>=0?'+':'')+x.toFixed(1)+'%';};
-    const wd=weekDate(wk);
+    const wd=weekDate(wk,sc.asof);
     const inWin=DATA.questions.filter(q=>q.deadline&&q.deadline>=now&&new Date(q.deadline)<=wd).sort((a,b)=>a.deadline<b.deadline?-1:1);
     const evs=sc.events.filter(([xi])=>xi<=i+0.5&&xi>=0.5).map(([,l])=>l);
     const legend=`<div class="band-inline">${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(['기본','중립','조정'][['S1','S2','S3'].indexOf(k)])} ${sc.paths[k].prob}%</span>`).join('')}</div>`;
@@ -1703,18 +1754,17 @@ function renderAsk(){
     bar.querySelectorAll('.ask-p').forEach(c=>c.classList.toggle('on',+c.dataset.i===i));
   };
   bar.querySelectorAll('.ask-p').forEach(c=>c.onclick=()=>{$('#ad',bar).value='';answer(+c.dataset.i);});
-  $('#ad',bar).onchange=e=>{const t=new Date(e.target.value);let bi=0,bd=1e15;
-    sc.weeks.forEach((w,j)=>{const dd=Math.abs(weekDate(w)-t);if(dd<bd){bd=dd;bi=j;}});answer(bi);};
-  answer(25);
+  $('#ad',bar).onchange=e=>answer(nearestWeekIndex(sc,new Date(`${e.target.value}T00:00:00`)));
+  answer(endIndex);
 }
 
 // ── 시장 지표 바 ──
 function renderHeaderStrip(){
   const sc=DATA.scenario||{},ctx=DATA.analog_context||{},rg=ctx.regime||{},br=ctx.breadth||{};
-  const anchor=sc.anchor,ath=sc.ath,corr=sc.corr10;
+  const anchor=sc.anchor,ath=sc.ath,corr=sc.corr10,vintage=scenarioVintage();
   const items=[];
   if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;
-    items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vsAth!=null?`전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`:'',cls:vsAth!=null?(vsAth>=0?'up':'down'):''});}
+    items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vintage.status==='stale'?`보관값 · ${sc.asof}`:`${sc.asof} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`,cls:vintage.status==='stale'?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'52주 기준'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
   if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});

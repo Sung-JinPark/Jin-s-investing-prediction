@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
 
 import typer
@@ -15,12 +15,34 @@ import typer
 from . import config
 from .db import ingest, queries
 from .registry import compute_due, load_registry, propose_schedule
+from .scenario import refresh_scenario
 
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
 
 
 def _conn(root: Path):
     return ingest.connect(root / "db" / "index.db")
+
+
+@app.command("scenario")
+def cmd_scenario(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 확정 일봉으로 생성 (YYYY-MM-DD)"),
+    force: bool = typer.Option(
+        False, "--force", help="같은 시장 기준일이어도 스냅샷을 다시 생성"),
+) -> None:
+    """NASDAQ 시장 맵 시나리오를 공개 확정 일봉에서 재생성한다."""
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_scenario(config.ROOT, asof=cutoff, force=force)
+    state = "갱신" if changed else "변경 없음"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"S1/S2/S3 {payload['paths']['S1']['prob']}/"
+        f"{payload['paths']['S2']['prob']}/{payload['paths']['S3']['prob']}%"
+    )
 
 
 @app.command("sync")
