@@ -66,10 +66,16 @@ def test_read_model_shape(repo: Path) -> None:
 
 
 def test_forecast_body_dictionary_round_trip() -> None:
+    import re
+
     phrase = dashboard.FORECAST_BODY_DICTIONARY[0]
     body = phrase.replace(phrase, chr(0xE000))
     assert body == chr(0xE000)
-    assert "decodeForecastBody" in dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    assert "decodeForecastBody" in script
+    js_dictionary = re.search(r"const BODY_DICTIONARY=\[(.*?)\];", script, re.S)
+    assert js_dictionary is not None
+    assert tuple(re.findall(r"'([^']*)'", js_dictionary.group(1))) == dashboard.FORECAST_BODY_DICTIONARY
 
 
 def test_template_self_contained() -> None:
@@ -298,6 +304,16 @@ def test_render_embed_vs_fetch(repo: Path) -> None:
     fetch = dashboard.render_html({}, mode="fetch")
     assert "/api/data" in fetch
     assert "window.__DATA__ = {" not in fetch  # fetch 모드는 임베드 없음
+
+
+def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> None:
+    """실제 누적 원장으로도 Pages 산출물의 고정 용량 계약을 지킨다."""
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
+    html = dashboard.render_html(
+        dashboard.build_read_model(conn, dashboard.config.ROOT), mode="embed"
+    )
+    assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
 
 
 def test_server_is_read_only() -> None:
