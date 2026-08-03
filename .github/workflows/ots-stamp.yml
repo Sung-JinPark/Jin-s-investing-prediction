@@ -7,6 +7,10 @@ on:
     branches: [main]
     paths: ["forecasts/.hashes"]
   workflow_dispatch: {}        # 최초 1회 수동 트리거용
+  # Actions bot의 forecast 커밋은 push 워크플로를 재귀 호출하지 않으므로 명시 연결.
+  workflow_run:
+    workflows: ["investing-refresh"]
+    types: [completed]
 
 jobs:
   stamp:

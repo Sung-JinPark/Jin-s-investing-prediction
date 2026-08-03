@@ -35,3 +35,8 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     for workflow in (pages, verify):
         assert 'workflows: ["investing-refresh", "scenario-refresh"]' in workflow
         assert "types: [completed]" in workflow
+
+    ots = (ROOT / ".github" / "workflows" / "ots-stamp.yml").read_text(
+        encoding="utf-8"
+    )
+    assert 'workflows: ["investing-refresh"]' in ots

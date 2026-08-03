@@ -84,6 +84,8 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 Pages와 verify는 `workflow_run`으로 수집 워크플로 완료를 직접 구독한다. Pages 산출물은
 UI shell(`index.html`)과 캐시 가능한 로컬 `data.json`을 분리해 예측 이력이 늘어나도 단일
 HTML 용량 한도로 배포가 멈추지 않는다.
+예측 해시의 OpenTimestamps 스탬프도 같은 완료 이벤트를 구독해 봇이 만든 신규 예측을
+빠뜨리지 않는다.
 
 OpenAI 단계는 `OPENAI_API_KEY` secret을 그 단계에만 주입하며 로그나 파일에 출력하지 않는다.
 자동 실행 한도는 회당 `$1.50`, OpenAI/전역 월 `$10`, 검색 최대 4회, 출력 토큰 상한으로
