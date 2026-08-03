@@ -1,3 +1,4 @@
 correction_id,target_table,target_key,field_name,old_value,new_value,status,reason,evidence_uri,created_at,approved_at,reviewer
 CORR-260801-001,benchmark_scores,2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31,market_prob,22.0,,pending,원천 단위가 fraction 범위를 벗어나 성능 집계에서 격리; 원출처 quote 재확인 필요,,2026-08-01,,
 CORR-260801-002,benchmark_scores,2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31,market_prob,5.0,,pending,원천 단위가 fraction 범위를 벗어나 성능 집계에서 격리; 원출처 quote 재확인 필요,,2026-08-01,,
+CORR-260803-003,cross_asset_snapshots,2026-07-31,history.period_end_summary,"2006-01 partial monthly bar: NDX -6.7%; O price +87.3%; O total +160.8%; dividend effect +73.5pp","explicit 2005-12 endpoint: NDX -10.7%; O price +73.8%; O total +140.9%; dividend effect +67.1pp",approved,Yahoo 1mo 응답의 2006-01 진행 중 partial bar가 2000-12→2005-12 요약에 잘못 포함되어 명시적 label 경계로 정정,reports/md/cross_asset_and_ai_capital_cycle_blueprint_260803.md,2026-08-03,2026-08-03,Sung-Jin Park

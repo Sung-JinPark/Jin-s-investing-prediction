@@ -4,17 +4,26 @@
 닷컴버블 기간에는 Bitcoin이 존재하지 않았으므로 결측을 명시하고, Realty Income은
 가격수익과 배당 재투자 total-return proxy를 함께 보존한다. 미래 경로는 목표가격이나
 사건 확률이 아니라 사용자가 선택한 충격 가정 아래의 정규화 전이 지도다.
+
+Archive는 append-only다. 동일 as-of의 의미 내용 비교에서는 실행 시각·응답 지문 같은
+재수집 메타데이터와 영속화 메타데이터(snapshot_id/revision/correction_id/supersedes)를
+제외한다. 요청 정체성·품질 진단·계산값은 비교에 남긴다. 기존
+archive와 다른 내용은 승인된 corrections 행이 있을 때 별도 revision 파일로만 쓴다.
+``--force``도 기존 archive 바이트를 변경하지 않는다.
 """
 
 from __future__ import annotations
 
+import csv
 import json
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 
+from .market_session import completed_market_cutoff
 from .quant import feed
 
 SCHEMA_VERSION = 1
@@ -22,11 +31,20 @@ LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 HISTORY_START = date(2000, 12, 1)
 HISTORY_END = date(2006, 1, 2)
+HISTORY_PERIOD_START_LABEL = "2000-12"
+HISTORY_PERIOD_END_LABEL = "2005-12"
+DOTCOM_PEAK_START = date(2000, 3, 1)
 CURRENT_START = date(2014, 9, 1)
+SCENARIO_IDS = {"deleveraging", "easing_rotation", "soft_landing"}
+ASSET_IDS = {"nasdaq", "bitcoin", "realty_income"}
+BOOTSTRAP_REPETITIONS = 1_000
+BOOTSTRAP_BLOCK_DAYS = 10
+BOOTSTRAP_SEED = 20260803
+MAX_ABS_BETA = 3.0
 
 
 class CrossAssetError(ValueError):
-    """교차자산 입력 또는 스키마 오류."""
+    """교차자산 입력·스키마·불변 archive 오류."""
 
 
 def _round_path(values: list[float]) -> list[float]:
@@ -49,6 +67,8 @@ def _interpolate(keys: dict[int, float], horizon: int = 12) -> list[float]:
 
 def _returns(values: list[float]) -> np.ndarray:
     array = np.asarray(values, dtype=float)
+    if len(array) < 2 or not np.all(np.isfinite(array)) or np.any(array <= 0):
+        raise CrossAssetError("return inputs must be finite and positive")
     return np.diff(np.log(array))
 
 
@@ -90,21 +110,105 @@ def _aligned_daily(
     return common, *[[mapping[day] for day in common] for mapping in maps]
 
 
-def _metric(value: float | None) -> float | None:
-    return None if value is None else round(float(value), 3)
+def _weekly_last(dates: list[date], *series: list[float]
+                 ) -> tuple[list[date], list[list[float]]]:
+    """Common trading dates → each ISO week's last observed close (normally Friday)."""
+    last_by_week: dict[tuple[int, int], int] = {}
+    for index, day in enumerate(dates):
+        iso = day.isocalendar()
+        last_by_week[(iso.year, iso.week)] = index
+    indexes = [last_by_week[key] for key in sorted(last_by_week)]
+    return [dates[index] for index in indexes], [
+        [values[index] for index in indexes] for values in series
+    ]
 
 
-def _transmission_scenarios(btc_tail_beta: float | None, o_tail_beta: float | None
-                            ) -> dict[str, Any]:
-    """실측 tail beta를 제한적으로 사용하는 조건부 12개월 경로.
+def _bootstrap_beta_interval(asset: np.ndarray, market: np.ndarray, *, tail: bool,
+                             lookback: int, seed: int) -> dict[str, Any]:
+    asset = asset[-lookback:]
+    market = market[-lookback:]
+    length = len(market)
+    if length < max(30, BOOTSTRAP_BLOCK_DAYS * 2):
+        return {"p10": None, "p90": None, "samples": 0, "block_days": BOOTSTRAP_BLOCK_DAYS}
+    rng = np.random.default_rng(seed)
+    blocks = int(np.ceil(length / BOOTSTRAP_BLOCK_DAYS))
+    estimates: list[float] = []
+    max_start = max(1, length - BOOTSTRAP_BLOCK_DAYS + 1)
+    offsets = np.arange(BOOTSTRAP_BLOCK_DAYS)
+    for _ in range(BOOTSTRAP_REPETITIONS):
+        starts = rng.integers(0, max_start, size=blocks)
+        indexes = (starts[:, None] + offsets).reshape(-1)[:length]
+        boot_market = market[indexes]
+        boot_asset = asset[indexes]
+        mask = None
+        if tail:
+            cut = float(np.percentile(boot_market, 10))
+            mask = boot_market <= cut
+        estimate = _beta(boot_asset, boot_market, mask)
+        if estimate is not None:
+            estimates.append(float(estimate))
+    if not estimates:
+        return {"p10": None, "p90": None, "samples": 0, "block_days": BOOTSTRAP_BLOCK_DAYS}
+    return {
+        "p10": round(float(np.percentile(estimates, 10)), 3),
+        "p90": round(float(np.percentile(estimates, 90)), 3),
+        "samples": len(estimates),
+        "block_days": BOOTSTRAP_BLOCK_DAYS,
+    }
 
-    Beta의 불안정성을 줄이기 위해 자산별 합리적 범위로 winsorize한다. 유동성·금리
-    offset은 충격 가정을 가시화하는 고정 sensitivity이며 학습된 목표가격이 아니다.
-    """
-    btc_beta = float(np.clip(btc_tail_beta if btc_tail_beta is not None else 1.55, 1.2, 2.0))
-    o_beta = float(np.clip(o_tail_beta if o_tail_beta is not None else 0.55, 0.25, 0.8))
 
-    specs = {
+def _safe_beta(value: float | None, fallback: float) -> tuple[float, bool, bool]:
+    measured = value is not None
+    selected = float(value if measured else fallback)
+    clipped = abs(selected) > MAX_ABS_BETA
+    if clipped:
+        selected = float(np.sign(selected) * MAX_ABS_BETA)
+    return selected, clipped, not measured
+
+
+def _beta_audit(
+    btc_full: float | None, btc_tail: float | None,
+    o_full: float | None, o_tail: float | None,
+    btc_full_ci: dict[str, Any], btc_tail_ci: dict[str, Any],
+    o_full_ci: dict[str, Any], o_tail_ci: dict[str, Any],
+    tail_observations: int,
+) -> dict[str, Any]:
+    inputs = {
+        "bitcoin": {
+            "full_252d": (btc_full, 1.0, btc_full_ci, 252),
+            "downside_5y": (btc_tail, btc_full if btc_full is not None else 1.0,
+                            btc_tail_ci, tail_observations),
+        },
+        "realty_income": {
+            "full_252d": (o_full, 0.0, o_full_ci, 252),
+            "downside_5y": (o_tail, o_full if o_full is not None else 0.0,
+                            o_tail_ci, tail_observations),
+        },
+    }
+    audit: dict[str, Any] = {}
+    for asset, regimes in inputs.items():
+        audit[asset] = {}
+        for regime, (measured, fallback, interval, observations) in regimes.items():
+            used, clipped, fallback_used = _safe_beta(measured, float(fallback))
+            low = interval.get("p10")
+            high = interval.get("p90")
+            audit[asset][regime] = {
+                "measured": measured,
+                "used": round(used, 3),
+                "lower_clipped": False,
+                "beta_clipped": clipped,
+                "clip_upper_abs": MAX_ABS_BETA,
+                "fallback_used": fallback_used,
+                "bootstrap_10_90": [low, high],
+                "bootstrap_samples": interval.get("samples", 0),
+                "block_days": interval.get("block_days", BOOTSTRAP_BLOCK_DAYS),
+                "observations": observations,
+            }
+    return audit
+
+
+def _scenario_specs() -> dict[str, dict[str, Any]]:
+    return {
         "deleveraging": {
             "label": "동반 디레버리징",
             "short": "신용경색이 완화보다 빠른 경우",
@@ -130,26 +234,67 @@ def _transmission_scenarios(btc_tail_beta: float | None, o_tail_beta: float | No
             "assumptions": ["이익 성장 지속", "신용시장 안정", "완만한 위험자산 순환"],
         },
     }
+
+
+def _transmission_scenarios(beta_audit: dict[str, Any]) -> dict[str, Any]:
+    """Regime-specific measured beta + fixed, disclosed offsets.
+
+    At each month, NASDAQ below 100 uses the five-year downside beta; NASDAQ at
+    or above 100 uses the trailing 252-day full beta.  There is no lower clip.
+    Only an absolute safety cap can apply and every activation is persisted.
+    """
     scenarios: dict[str, Any] = {}
-    for scenario_id, spec in specs.items():
+    for scenario_id, spec in _scenario_specs().items():
         nasdaq = _interpolate(spec["nasdaq"])
-        btc_offset = _interpolate(spec["btc_offset"])
-        o_offset = _interpolate(spec["o_offset"])
-        bitcoin = [100 + (value - 100) * btc_beta + offset
-                   for value, offset in zip(nasdaq, btc_offset)]
-        realty = [100 + (value - 100) * o_beta + offset
-                  for value, offset in zip(nasdaq, o_offset)]
+        offsets = {
+            "bitcoin": _interpolate(spec["btc_offset"]),
+            "realty_income": _interpolate(spec["o_offset"]),
+        }
+        paths: dict[str, list[float]] = {"nasdaq": nasdaq}
+        paths_band: dict[str, dict[str, list[float]]] = {
+            "nasdaq": {"p10": list(nasdaq), "p90": list(nasdaq)}
+        }
+        beta_regime = ["downside_5y" if value < 100 else "full_252d" for value in nasdaq]
+        for asset in ("bitcoin", "realty_income"):
+            center: list[float] = []
+            lower: list[float] = []
+            upper: list[float] = []
+            for index, nasdaq_value in enumerate(nasdaq):
+                record = beta_audit[asset][beta_regime[index]]
+                used = float(record["used"])
+                interval = record["bootstrap_10_90"]
+                beta_low = float(interval[0] if interval[0] is not None else used)
+                beta_high = float(interval[1] if interval[1] is not None else used)
+                beta_low = float(np.clip(beta_low, -MAX_ABS_BETA, MAX_ABS_BETA))
+                beta_high = float(np.clip(beta_high, -MAX_ABS_BETA, MAX_ABS_BETA))
+                delta = nasdaq_value - 100
+                offset = offsets[asset][index]
+                center.append(100 + delta * used + offset)
+                candidates = [100 + delta * beta_low + offset, 100 + delta * beta_high + offset]
+                lower.append(min(candidates))
+                upper.append(max(candidates))
+            paths[asset] = _round_path(center)
+            paths_band[asset] = {"p10": _round_path(lower), "p90": _round_path(upper)}
         scenarios[scenario_id] = {
             "label": spec["label"],
             "short": spec["short"],
             "assumptions": spec["assumptions"],
-            "paths": {
-                "nasdaq": nasdaq,
-                "bitcoin": _round_path(bitcoin),
-                "realty_income": _round_path(realty),
-            },
+            "beta_regime_by_month": beta_regime,
+            "paths": paths,
+            "paths_band": paths_band,
+            "band_semantics": (
+                "beta 10–90% block-bootstrap sensitivity band; fixed liquidity/rate offsets "
+                "remain explicit assumptions, not sampled uncertainty"
+            ),
         }
     return scenarios
+
+
+def _period_bounds(period: Any) -> tuple[str, str]:
+    if not isinstance(period, str) or " to " not in period:
+        raise CrossAssetError("cross-asset history.period must be 'YYYY-MM to YYYY-MM'")
+    start, end = period.split(" to ", 1)
+    return start, end
 
 
 def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
@@ -161,22 +306,50 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
         raise CrossAssetError("invalid cross-asset asof") from exc
     if payload.get("probability_space") != "scenario_conditional":
         raise CrossAssetError("cross-asset probability_space must be scenario_conditional")
+    if payload.get("unit") != "index_100":
+        raise CrossAssetError("cross-asset unit must be index_100")
     history = payload.get("history") or {}
-    forecast = payload.get("forecast") or {}
-    if len(history.get("labels") or []) < 24:
+    history_labels = history.get("labels") or []
+    if len(history_labels) < 24:
         raise CrossAssetError("cross-asset history is incomplete")
+    period_start, period_end = _period_bounds(history.get("period"))
+    if period_start != history_labels[0] or period_end != history_labels[-1]:
+        raise CrossAssetError("cross-asset history period endpoints/labels mismatch")
+    history_series = history.get("series") or {}
+    if set(history_series) != {
+        "nasdaq_price", "realty_income_price", "realty_income_total_return"
+    } or any(len(values) != len(history_labels) for values in history_series.values()):
+        raise CrossAssetError("cross-asset history series mismatch")
+
+    forecast = payload.get("forecast") or {}
     labels = forecast.get("labels") or []
-    if len(labels) != 13:
-        raise CrossAssetError("cross-asset forecast must contain M0..M12")
+    if len(labels) != 13 or labels != [f"M+{month}" for month in range(13)]:
+        raise CrossAssetError("cross-asset forecast must contain ordered M0..M12")
     scenarios = forecast.get("scenarios") or {}
-    if set(scenarios) != {"deleveraging", "easing_rotation", "soft_landing"}:
+    if set(scenarios) != SCENARIO_IDS:
         raise CrossAssetError("cross-asset scenario set mismatch")
     for scenario in scenarios.values():
         paths = scenario.get("paths") or {}
-        if set(paths) != {"nasdaq", "bitcoin", "realty_income"}:
-            raise CrossAssetError("cross-asset path set mismatch")
+        bands = scenario.get("paths_band") or {}
+        if set(paths) != ASSET_IDS or set(bands) != ASSET_IDS:
+            raise CrossAssetError("cross-asset path or band set mismatch")
         if any(len(values) != len(labels) for values in paths.values()):
             raise CrossAssetError("cross-asset path length mismatch")
+        for band in bands.values():
+            if set(band) != {"p10", "p90"} or any(
+                len(values) != len(labels) for values in band.values()
+            ):
+                raise CrossAssetError("cross-asset band length mismatch")
+    weights = forecast.get("weights") or {}
+    if not weights.get("status") or not weights.get("display") or not weights.get("reason"):
+        raise CrossAssetError("cross-asset weights status/display/reason required")
+    if not isinstance(forecast.get("beta_audit"), dict):
+        raise CrossAssetError("cross-asset beta_audit required")
+    if not isinstance(payload.get("receipts"), list):
+        raise CrossAssetError("cross-asset receipts must be a list")
+    data_quality = (payload.get("diagnostics") or {}).get("data_quality")
+    if not isinstance(data_quality, dict) or "dropped_rows" not in data_quality:
+        raise CrossAssetError("cross-asset diagnostics.data_quality required")
     return payload
 
 
@@ -185,7 +358,9 @@ def build_cross_asset(*,
                       history_o_price: list[float], history_o_adjusted: list[float],
                       current_dates: list[date], current_nasdaq: list[float],
                       current_bitcoin: list[float], current_o_adjusted: list[float],
-                      anchors: dict[str, float],
+                      anchors: dict[str, float], receipts: list[dict[str, Any]] | None = None,
+                      data_quality: list[dict[str, Any]] | None = None,
+                      dotcom_peak_reference: dict[str, Any] | None = None,
                       generated_at: datetime | None = None) -> dict[str, Any]:
     """정렬된 실측 시계열로 직렬화 가능한 교차자산 read model을 만든다."""
     history_lengths = {len(history_dates), len(history_nasdaq), len(history_o_price),
@@ -197,18 +372,52 @@ def build_cross_asset(*,
     if len(history_dates) < 24 or len(current_dates) < 253:
         raise CrossAssetError("cross-asset series is too short")
 
+    raw_labels = [f"{day.year:04d}-{day.month:02d}" for day in history_dates]
+    if HISTORY_PERIOD_START_LABEL not in raw_labels or HISTORY_PERIOD_END_LABEL not in raw_labels:
+        raise CrossAssetError("required cross-asset history boundary is missing")
+    start_index = raw_labels.index(HISTORY_PERIOD_START_LABEL)
+    end_index = raw_labels.index(HISTORY_PERIOD_END_LABEL)
+    if end_index < start_index:
+        raise CrossAssetError("cross-asset history boundaries are reversed")
+    history_dates = history_dates[start_index:end_index + 1]
+    history_nasdaq = history_nasdaq[start_index:end_index + 1]
+    history_o_price = history_o_price[start_index:end_index + 1]
+    history_o_adjusted = history_o_adjusted[start_index:end_index + 1]
+    history_labels = raw_labels[start_index:end_index + 1]
+
     nasdaq_return = _returns(current_nasdaq)
     bitcoin_return = _returns(current_bitcoin)
     o_return = _returns(current_o_adjusted)
-    tail_cut = float(np.percentile(nasdaq_return[-1260:], 10))
-    tail_mask = nasdaq_return[-1260:] <= tail_cut
-    btc_tail = _beta(bitcoin_return[-1260:], nasdaq_return[-1260:], tail_mask)
-    o_tail = _beta(o_return[-1260:], nasdaq_return[-1260:], tail_mask)
+    tail_market = nasdaq_return[-1260:]
+    tail_cut = float(np.percentile(tail_market, 10))
+    tail_mask = tail_market <= tail_cut
+    btc_tail = _beta(bitcoin_return[-1260:], tail_market, tail_mask)
+    o_tail = _beta(o_return[-1260:], tail_market, tail_mask)
+    btc_full = _beta(bitcoin_return[-252:], nasdaq_return[-252:])
+    o_full = _beta(o_return[-252:], nasdaq_return[-252:])
 
-    history_labels = [f"{day.year:04d}-{day.month:02d}" for day in history_dates]
+    btc_full_ci = _bootstrap_beta_interval(
+        bitcoin_return, nasdaq_return, tail=False, lookback=252, seed=BOOTSTRAP_SEED)
+    o_full_ci = _bootstrap_beta_interval(
+        o_return, nasdaq_return, tail=False, lookback=252, seed=BOOTSTRAP_SEED + 1)
+    btc_tail_ci = _bootstrap_beta_interval(
+        bitcoin_return, nasdaq_return, tail=True, lookback=1260, seed=BOOTSTRAP_SEED + 2)
+    o_tail_ci = _bootstrap_beta_interval(
+        o_return, nasdaq_return, tail=True, lookback=1260, seed=BOOTSTRAP_SEED + 3)
+    beta_audit = _beta_audit(
+        btc_full, btc_tail, o_full, o_tail,
+        btc_full_ci, btc_tail_ci, o_full_ci, o_tail_ci, int(tail_mask.sum()))
+
+    weekly_dates, weekly = _weekly_last(
+        current_dates, current_nasdaq, current_bitcoin, current_o_adjusted)
+    weekly_nasdaq = _returns(weekly[0])
+    weekly_bitcoin = _returns(weekly[1])
+    weekly_o = _returns(weekly[2])
+
     nasdaq_index = _normalize(history_nasdaq)
     o_price_index = _normalize(history_o_price)
     o_total_index = _normalize(history_o_adjusted)
+    period_end_index = history_labels.index(HISTORY_PERIOD_END_LABEL)
     annual = []
     for year in range(2001, 2006):
         previous = f"{year - 1}-12"
@@ -224,6 +433,8 @@ def build_cross_asset(*,
                 (history_o_adjusted[i1] / history_o_adjusted[i0] - 1) * 100, 1),
         })
 
+    quality_rows = data_quality or []
+    quality_status = "degraded" if any(row.get("status") != "ok" for row in quality_rows) else "ok"
     made_at = generated_at or datetime.now(timezone.utc)
     payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
@@ -245,23 +456,43 @@ def build_cross_asset(*,
                 "realty_income_nasdaq": _corr(o_return[-252:], nasdaq_return[-252:]),
             },
             "beta_252d": {
-                "bitcoin_to_nasdaq": _beta(bitcoin_return[-252:], nasdaq_return[-252:]),
-                "realty_income_to_nasdaq": _beta(o_return[-252:], nasdaq_return[-252:]),
+                "bitcoin_to_nasdaq": btc_full,
+                "realty_income_to_nasdaq": o_full,
             },
             "downside_beta_5y": {
                 "threshold_nasdaq_daily_pct": round((np.exp(tail_cut) - 1) * 100, 2),
-                "bitcoin_to_nasdaq": _metric(btc_tail),
-                "realty_income_to_nasdaq": _metric(o_tail),
+                "bitcoin_to_nasdaq": btc_tail,
+                "realty_income_to_nasdaq": o_tail,
+                "bitcoin_ci_10_90": [btc_tail_ci.get("p10"), btc_tail_ci.get("p90")],
+                "realty_income_ci_10_90": [o_tail_ci.get("p10"), o_tail_ci.get("p90")],
                 "observations": int(tail_mask.sum()),
+            },
+            "weekly_52w": {
+                "through": weekly_dates[-1].isoformat(),
+                "return_basis": "last common close in each ISO week (normally Friday)",
+                "observations": min(52, len(weekly_nasdaq)),
+                "corr": {
+                    "bitcoin_nasdaq": _corr(weekly_bitcoin[-52:], weekly_nasdaq[-52:]),
+                    "realty_income_nasdaq": _corr(weekly_o[-52:], weekly_nasdaq[-52:]),
+                },
+                "beta": {
+                    "bitcoin_to_nasdaq": _beta(weekly_bitcoin[-52:], weekly_nasdaq[-52:]),
+                    "realty_income_to_nasdaq": _beta(weekly_o[-52:], weekly_nasdaq[-52:]),
+                },
             },
             "max_drawdown_since_alignment_pct": {
                 "nasdaq": _max_drawdown(current_nasdaq),
                 "bitcoin": _max_drawdown(current_bitcoin),
                 "realty_income_total_return": _max_drawdown(current_o_adjusted),
             },
+            "data_quality": {
+                "status": quality_status,
+                "dropped_rows": sum(int(row.get("dropped_rows", 0)) for row in quality_rows),
+                "sources": quality_rows,
+            },
         },
         "history": {
-            "period": "2000-12 to 2005-12",
+            "period": f"{history_labels[0]} to {history_labels[-1]}",
             "labels": history_labels,
             "series": {
                 "nasdaq_price": nasdaq_index,
@@ -273,33 +504,43 @@ def build_cross_asset(*,
                 "reason": "Bitcoin network launched in 2009; no 2001-2005 market price exists.",
             },
             "summary": {
-                "nasdaq_price_pct": round(nasdaq_index[-1] - 100, 1),
-                "realty_income_price_pct": round(o_price_index[-1] - 100, 1),
-                "realty_income_total_return_pct": round(o_total_index[-1] - 100, 1),
-                "realty_income_dividend_effect_pp": round(o_total_index[-1] - o_price_index[-1], 1),
+                "nasdaq_price_pct": round(nasdaq_index[period_end_index] - 100, 1),
+                "realty_income_price_pct": round(o_price_index[period_end_index] - 100, 1),
+                "realty_income_total_return_pct": round(o_total_index[period_end_index] - 100, 1),
+                "realty_income_dividend_effect_pp": round(
+                    o_total_index[period_end_index] - o_price_index[period_end_index], 1),
+                "nasdaq_from_dotcom_peak": dotcom_peak_reference or {
+                    "status": "not_computed", "start": "2000-03", "end": history_labels[-1]
+                },
                 "annual": annual,
             },
             "semantics": (
                 "NASDAQ과 O 가격은 월말 종가, O 총수익 proxy는 Yahoo 수정종가 비율이다. "
-                "세금·거래비용은 포함하지 않는다."
+                "2000-12 기준은 닷컴 정점(2000-03) 이후 이미 하락한 시점이며, 정점 기준 "
+                "NASDAQ 보조 수치를 별도 표시한다. 세금·거래비용은 포함하지 않는다."
             ),
         },
         "forecast": {
             "horizon_months": 12,
             "labels": [f"M+{month}" for month in range(13)],
             "default_scenario": "easing_rotation",
-            "scenarios": _transmission_scenarios(btc_tail, o_tail),
+            "scenarios": _transmission_scenarios(beta_audit),
+            "beta_audit": beta_audit,
             "semantics": (
-                "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니며, "
-                "실측 downside beta와 명시된 유동성·금리 offset을 사용한다. O 미래선은 "
+                "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니다. "
+                "각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 "
+                "252일 full beta를 사용한다. beta 하한은 강제하지 않고 절대값 3.0 안전 "
+                "상한만 감사한다. 반투명 band는 beta 10–90% block-bootstrap 민감도이며 "
+                "고정 liquidity/rate offset은 표본화하지 않은 명시 가정이다. O 미래선은 "
                 "주가 경로이며 현금배당을 포함하지 않는다."
             ),
             "weights": {
                 "status": "not_estimated",
                 "display": "가중치 미산출",
-                "reason": "충격 유형별 out-of-sample calibration이 없어 확률 가중치를 산출하지 않음",
+                "reason": "충격 유형별 캘리브레이션 부족",
             },
         },
+        "receipts": receipts or [],
         "sources": [
             {"id": "yahoo-chart", "label": "Yahoo Finance chart API", "role": "price_history",
              "url": "https://query1.finance.yahoo.com/v8/finance/chart/"},
@@ -322,36 +563,161 @@ def build_cross_asset(*,
     return validate_cross_asset(payload)
 
 
+def _comparison_text(payload: dict[str, Any]) -> str:
+    """Stable semantic bytes excluding run/persistence timestamps.
+
+    ``generated_at`` plus receipt ``fetched_at``/``response_sha256`` describe the
+    acquisition attempt, not the normalized observations. Yahoo can vary response
+    metadata while returning the same bars. Request identity, quality counts and every
+    calculated field remain in the comparison, so a same-asof observed-value change
+    still cannot silently overwrite an archive.
+    """
+    comparable = deepcopy(payload)
+    for field in ("generated_at", "snapshot_id", "revision", "correction_id", "supersedes"):
+        comparable.pop(field, None)
+    for receipt in comparable.get("receipts") or []:
+        if isinstance(receipt, dict):
+            receipt.pop("fetched_at", None)
+            receipt.pop("response_sha256", None)
+    return json.dumps(comparable, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _approved_correction_id(root: Path, asof: str) -> str | None:
+    path = root / "calibration" / "corrections.csv"
+    if not path.exists():
+        return None
+    with path.open(encoding="utf-8", newline="") as handle:
+        rows = [row for row in csv.DictReader(handle)
+                if row.get("target_table") == "cross_asset_snapshots"
+                and row.get("target_key") == asof
+                and row.get("status") == "approved"]
+    return rows[-1].get("correction_id") if rows else None
+
+
+def _load_archive(path: Path) -> tuple[str, dict[str, Any]]:
+    raw = path.read_text(encoding="utf-8")
+    return raw, json.loads(raw)
+
+
+def _persist_snapshot(root: Path, payload: dict[str, Any], *, force: bool
+                      ) -> tuple[Path, dict[str, Any], bool]:
+    """Persist without ever overwriting an existing archive byte."""
+    latest = root / LATEST_RELATIVE_PATH
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    asof = payload["asof"]
+    candidates = sorted(archive_dir.glob(f"{asof}*.json"))
+    target_compare = _comparison_text(payload)
+
+    for archive in candidates:
+        try:
+            raw, existing = _load_archive(archive)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if _comparison_text(existing) == target_compare:
+            latest_raw = latest.read_text(encoding="utf-8") if latest.exists() else ""
+            changed = latest_raw != raw
+            if changed or force:
+                latest.write_text(raw, encoding="utf-8")
+            return latest, existing, changed
+
+    if candidates:
+        correction_id = _approved_correction_id(root, asof)
+        if not correction_id:
+            raise CrossAssetError(
+                f"immutable archive conflict for {asof}; append an approved "
+                "calibration/corrections.csv row before creating a revision"
+            )
+        revision = max(int((item.get("revision") or 1)) for _, item in (
+            _load_archive(path) for path in candidates
+        )) + 1
+        payload = deepcopy(payload)
+        payload.update({
+            "snapshot_id": f"cross-asset:{asof}:r{revision}",
+            "revision": revision,
+            "correction_id": correction_id,
+            "supersedes": f"cross-asset:{asof}:r{revision - 1}",
+        })
+        archive = archive_dir / f"{asof}_{correction_id}.json"
+        serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+        if archive.exists():
+            raw, existing = _load_archive(archive)
+            if _comparison_text(existing) != _comparison_text(payload):
+                raise CrossAssetError(
+                    f"correction archive {archive.name} already exists with different content; "
+                    "append a new correction instead of overwriting"
+                )
+            latest.write_text(raw, encoding="utf-8")
+            return latest, existing, False
+        archive.write_text(serialized, encoding="utf-8")
+        latest.write_text(serialized, encoding="utf-8")
+        return latest, payload, True
+
+    payload = deepcopy(payload)
+    payload.update({"snapshot_id": f"cross-asset:{asof}:r1", "revision": 1})
+    archive = archive_dir / f"{asof}.json"
+    serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    archive.write_text(serialized, encoding="utf-8")
+    latest.write_text(serialized, encoding="utf-8")
+    return latest, payload, True
+
+
+def _dotcom_peak_reference(result: feed.YahooPriceSeriesResult) -> dict[str, Any]:
+    by_month = {
+        f"{day.year:04d}-{day.month:02d}": value
+        for day, value in zip(result.dates, result.closes)
+    }
+    start, end = "2000-03", HISTORY_PERIOD_END_LABEL
+    if start not in by_month or end not in by_month:
+        return {"status": "not_computed", "start": start, "end": end}
+    return {
+        "status": "ok", "start": start, "end": end,
+        "nasdaq_price_pct": round((by_month[end] / by_month[start] - 1) * 100, 1),
+        "caption": "닷컴 정점 월말을 100으로 둔 보조 비교",
+    }
+
+
 def refresh_cross_asset(root: Path, *, asof: date | None = None,
-                        force: bool = False) -> tuple[Path, dict[str, Any], bool]:
-    """공개 종가를 수집해 latest와 날짜별 교차자산 archive를 갱신한다."""
-    cutoff = asof or date.today()
-    history_n_dates, history_n_close, _ = feed.yahoo_price_series(
-        "^IXIC", HISTORY_START, HISTORY_END, "1mo")
-    history_o_dates, history_o_close, history_o_adjusted = feed.yahoo_price_series(
-        "O", HISTORY_START, HISTORY_END, "1mo")
-    h_n = {day: value for day, value in zip(history_n_dates, history_n_close)}
-    h_op = {day: value for day, value in zip(history_o_dates, history_o_close)}
-    h_oa = {day: value for day, value in zip(history_o_dates, history_o_adjusted)}
+                        force: bool = False, now: datetime | None = None
+                        ) -> tuple[Path, dict[str, Any], bool]:
+    """공개 확정 종가를 수집해 immutable archive와 latest를 갱신한다."""
+    safe_cutoff = completed_market_cutoff(asof or date.today(), now=now)
+    history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
+    history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
+    dotcom_n = feed.yahoo_price_series_detail("^IXIC", DOTCOM_PEAK_START, HISTORY_END, "1mo")
+    h_n = {day: value for day, value in zip(history_n.dates, history_n.closes)}
+    h_op = {day: value for day, value in zip(history_o.dates, history_o.closes)}
+    h_oa = {day: value for day, value in zip(history_o.dates, history_o.adjusted)}
     h_common = sorted(set(h_n) & set(h_op) & set(h_oa))
 
-    daily: dict[str, tuple[list[date], list[float], list[float]]] = {}
+    daily: dict[str, feed.YahooPriceSeriesResult] = {}
     for key, symbol in (("nasdaq", "^IXIC"), ("bitcoin", "BTC-USD"),
                         ("realty_income", "O")):
-        daily[key] = feed.yahoo_price_series(
-            symbol, CURRENT_START, cutoff + timedelta(days=1), "1d")
+        daily[key] = feed.yahoo_price_series_detail(
+            symbol, CURRENT_START, safe_cutoff + timedelta(days=1), "1d")
     common_dates, n_values, b_values, o_values = _aligned_daily(
-        (daily["nasdaq"][0], daily["nasdaq"][2]),
-        (daily["bitcoin"][0], daily["bitcoin"][2]),
-        (daily["realty_income"][0], daily["realty_income"][2]),
+        (daily["nasdaq"].dates, daily["nasdaq"].adjusted),
+        (daily["bitcoin"].dates, daily["bitcoin"].adjusted),
+        (daily["realty_income"].dates, daily["realty_income"].adjusted),
     )
-    completed = [idx for idx, day in enumerate(common_dates) if day <= cutoff]
+    completed = [idx for idx, day in enumerate(common_dates) if day <= safe_cutoff]
     if not completed:
         raise CrossAssetError("no completed common market date")
     last = completed[-1] + 1
     common_dates, n_values, b_values, o_values = (
         common_dates[:last], n_values[:last], b_values[:last], o_values[:last])
 
+    latest = root / LATEST_RELATIVE_PATH
+    if latest.exists() and not force:
+        try:
+            current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
+            if current["asof"] == common_dates[-1].isoformat():
+                return latest, current, False
+        except (OSError, json.JSONDecodeError, CrossAssetError):
+            pass
+
+    all_results = [history_n, history_o, dotcom_n, *daily.values()]
     payload = build_cross_asset(
         history_dates=h_common,
         history_nasdaq=[h_n[day] for day in h_common],
@@ -362,26 +728,14 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         current_bitcoin=b_values,
         current_o_adjusted=o_values,
         anchors={
-            key: {day: value for day, value in zip(series[0], series[1])}[common_dates[-1]]
-            for key, series in daily.items()
+            key: {day: value for day, value in zip(result.dates, result.closes)}[
+                common_dates[-1]] for key, result in daily.items()
         },
+        receipts=[result.receipt for result in all_results],
+        data_quality=[result.data_quality for result in all_results],
+        dotcom_peak_reference=_dotcom_peak_reference(dotcom_n),
     )
-
-    latest = root / LATEST_RELATIVE_PATH
-    if latest.exists() and not force:
-        try:
-            current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
-            if current["asof"] == payload["asof"]:
-                return latest, current, False
-        except (OSError, json.JSONDecodeError, CrossAssetError):
-            pass
-    archive = root / ARCHIVE_RELATIVE_DIR / f"{payload['asof']}.json"
-    latest.parent.mkdir(parents=True, exist_ok=True)
-    archive.parent.mkdir(parents=True, exist_ok=True)
-    serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
-    latest.write_text(serialized, encoding="utf-8")
-    archive.write_text(serialized, encoding="utf-8")
-    return latest, payload, True
+    return _persist_snapshot(root, payload, force=force)
 
 
 def load_cross_asset(root: Path) -> dict[str, Any]:
@@ -399,3 +753,35 @@ def load_cross_asset(root: Path) -> dict[str, Any]:
             "history": {},
             "forecast": {},
         }
+
+
+def load_cross_asset_history(root: Path, *, limit: int = 12) -> list[dict[str, Any]]:
+    """Strict latest와 별개로 원본·정정 archive의 감사 요약을 읽는다."""
+    rows: list[dict[str, Any]] = []
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    if not archive_dir.exists():
+        return rows
+    for path in archive_dir.glob("*.json"):
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+            diagnostics = payload.get("diagnostics") or {}
+            tail = diagnostics.get("downside_beta_5y") or {}
+            rows.append({
+                "snapshot_id": payload.get("snapshot_id") or f"cross-asset:{path.stem}:r1",
+                "asof": payload.get("asof"),
+                "generated_at": payload.get("generated_at"),
+                "revision": int(payload.get("revision") or 1),
+                "correction_id": payload.get("correction_id"),
+                "archive": str(path.relative_to(root)).replace("\\", "/"),
+                "corr_60d": deepcopy(diagnostics.get("corr_60d") or {}),
+                "downside_beta_5y": {
+                    "bitcoin_to_nasdaq": tail.get("bitcoin_to_nasdaq"),
+                    "realty_income_to_nasdaq": tail.get("realty_income_to_nasdaq"),
+                },
+            })
+        except (OSError, json.JSONDecodeError, TypeError, ValueError):
+            continue
+    rows.sort(key=lambda row: (
+        str(row.get("asof") or ""), int(row.get("revision") or 1),
+        str(row.get("generated_at") or "")))
+    return rows[-limit:]

@@ -10,6 +10,7 @@ def _minimal_model() -> dict:
         "series": [],
     }
     model["cross_asset"] = {
+        "status": "blocked",
         "probability_space": "scenario_conditional",
         "unit": "index_100",
         "history": {},
@@ -43,5 +44,6 @@ def test_json_schema_lists_all_additive_and_legacy_keys() -> None:
 
 def test_read_model_contract_rejects_cross_asset_semantic_drift() -> None:
     model = _minimal_model()
+    model["cross_asset"].pop("status")
     model["cross_asset"]["probability_space"] = "physical_event"
     assert any("cross_asset" in error for error in validate(model))

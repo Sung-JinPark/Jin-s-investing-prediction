@@ -16,6 +16,7 @@ from typing import Any
 import numpy as np
 
 from .quant import feed, mc
+from .market_session import completed_market_cutoff
 
 SCHEMA_VERSION = 1
 LATEST_RELATIVE_PATH = Path("data") / "scenarios" / "nasdaq_latest.json"
@@ -341,10 +342,11 @@ def build_scenario(dates: list[date], closes: list[float], *,
 
 
 def refresh_scenario(root: Path, *, asof: date | None = None,
-                     force: bool = False) -> tuple[Path, dict[str, Any], bool]:
+                     force: bool = False, now: datetime | None = None
+                     ) -> tuple[Path, dict[str, Any], bool]:
     """Yahoo 확정 일봉을 수집해 latest와 날짜별 archive를 갱신한다."""
     today = date.today()
-    cutoff = asof or today
+    cutoff = completed_market_cutoff(asof or today, now=now)
     dates, closes = feed.yahoo_series(
         "^IXIC", date(2023, 1, 1), cutoff + timedelta(days=1), "1d")
     aligned = [(day, close) for day, close in zip(dates, closes) if day <= cutoff]

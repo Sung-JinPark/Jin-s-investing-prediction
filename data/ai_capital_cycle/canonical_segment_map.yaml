@@ -1,0 +1,44 @@
+schema_version: 1
+map_version: 2026-08-03.v1
+status: preregistered
+effective_at: 2026-08-03
+change_policy: append a correction in calibration/corrections.csv; never rewrite a historical mapping in place
+principles:
+  - Map only issuer-reported segments and explicitly disclosed metrics.
+  - Never infer standalone AI revenue from cloud, advertising, or semiconductor revenue.
+  - Preserve the issuer label and filing period so restatements remain reconstructable.
+companies:
+  MSFT:
+    cik: "0000789019"
+    periods:
+      - {valid_from: 2022-Q3, valid_to: null, issuer_segments: [Productivity and Business Processes, Intelligent Cloud, More Personal Computing]}
+    ai_monetization_proxies:
+      - {canonical_metric: cloud_revenue, issuer_metric: Microsoft Cloud revenue, disclosure_kind: explicit_aggregate, ai_attribution: prohibited}
+      - {canonical_metric: azure_growth, issuer_metric: Azure and other cloud services growth, disclosure_kind: explicit_growth_only, ai_attribution: prohibited}
+    restatement_history: []
+  AMZN:
+    cik: "0001018724"
+    periods:
+      - {valid_from: 2022-Q1, valid_to: null, issuer_segments: [North America, International, AWS]}
+    ai_monetization_proxies:
+      - {canonical_metric: cloud_revenue, issuer_metric: AWS net sales, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+      - {canonical_metric: cloud_operating_income, issuer_metric: AWS operating income, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+    restatement_history: []
+  GOOGL:
+    cik: "0001652044"
+    periods:
+      - {valid_from: 2023-Q1, valid_to: null, issuer_segments: [Google Services, Google Cloud, Other Bets]}
+    ai_monetization_proxies:
+      - {canonical_metric: cloud_revenue, issuer_metric: Google Cloud revenues, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+      - {canonical_metric: cloud_operating_income, issuer_metric: Google Cloud operating income, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+    restatement_history: []
+  META:
+    cik: "0001326801"
+    periods:
+      - {valid_from: 2021-Q4, valid_to: null, issuer_segments: [Family of Apps, Reality Labs]}
+    ai_monetization_proxies:
+      - {canonical_metric: family_of_apps_revenue, issuer_metric: Family of Apps revenue, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+      - {canonical_metric: reality_labs_revenue, issuer_metric: Reality Labs revenue, disclosure_kind: explicit_segment, ai_attribution: prohibited}
+    restatement_history: []
+restatement_record_schema:
+  required: [company, announced_at, affected_periods, old_label, new_label, evidence_url, correction_id]

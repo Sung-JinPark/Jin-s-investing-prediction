@@ -233,6 +233,13 @@ python -m ai_fc cross-asset       # BTC·NASDAQ·Realty Income 전이 지도 갱
 python -m ai_fc dashboard --serve --host 0.0.0.0
 ```
 
+교차자산 지도는 가격 단위가 다른 NASDAQ·Bitcoin·Realty Income을 `현재=100`의 조건부
+민감도 경로로 비교합니다. 이는 목표가격이나 사건 확률이 아닙니다. 2026-08-03에는
+2006-01 진행 중 월봉이 2005-12 요약에 포함된 오류를 발견해 원본 archive는 그대로 보존하고
+승인 correction revision을 추가했습니다. 정정값과 재현 방법은
+[교차자산·AI 자본사이클 설계서](reports/md/cross_asset_and_ai_capital_cycle_blueprint_260803.md)에
+기록되어 있습니다.
+
 API 키는 `ANTHROPIC_API_KEY` 환경변수로만 주입합니다. 저장소와 예측 파일에는 시크릿을 기록하지 않습니다.
 
 ## 더 깊이 살펴보기

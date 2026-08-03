@@ -234,8 +234,9 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
     era_analog = build_era_analog(legacy_context)
-    from .cross_asset import load_cross_asset
+    from .cross_asset import load_cross_asset, load_cross_asset_history
     cross_asset = load_cross_asset(root)
+    cross_asset_history = load_cross_asset_history(root)
 
     # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
     from .model_registry import arena_rows
@@ -288,11 +289,19 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "lineage": _rows(conn.execute(
                 "SELECT upstream_type,upstream_id,relation FROM lineage_edge "
                 "WHERE downstream_id='cross_asset' ORDER BY edge_id")),
+            "requests": cross_asset.get("receipts") or [],
         })
     asof_index = [{
         "asof": item.get("asof"), "generated_at": item.get("generated_at"),
         "snapshot_ref": f"scenario:{item.get('asof')}", "available": True,
     } for item in scenario_history]
+    asof_index.extend({
+        "asof": item.get("asof"), "generated_at": item.get("generated_at"),
+        "snapshot_ref": f"cross-asset:{item.get('asof')}",
+        "snapshot_id": item.get("snapshot_id"), "archive": item.get("archive"),
+        "revision": item.get("revision"), "correction_id": item.get("correction_id"),
+        "available": True,
+    } for item in cross_asset_history)
     changelog = [{
         "from": previous.get("asof"), "to": current.get("asof"),
         "anchor_delta": round(float(current.get("anchor", 0)) - float(previous.get("anchor", 0)), 2),
@@ -302,6 +311,26 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             for key in ("S1", "S2", "S3")
         },
     } for previous, current in zip(scenario_history, scenario_history[1:])]
+    for previous, current in zip(cross_asset_history, cross_asset_history[1:]):
+        def _delta(group: str, field: str) -> float | None:
+            left = previous.get(group, {}).get(field)
+            right = current.get(group, {}).get(field)
+            if not isinstance(left, (int, float)) or not isinstance(right, (int, float)):
+                return None
+            return round(float(right) - float(left), 3)
+        changelog.append({
+            "kind": "cross_asset",
+            "from": previous.get("snapshot_id"), "to": current.get("snapshot_id"),
+            "asof": current.get("asof"), "correction_id": current.get("correction_id"),
+            "corr_60d_delta": {
+                "bitcoin_nasdaq": _delta("corr_60d", "bitcoin_nasdaq"),
+                "realty_income_nasdaq": _delta("corr_60d", "realty_income_nasdaq"),
+            },
+            "downside_beta_delta": {
+                "bitcoin_to_nasdaq": _delta("downside_beta_5y", "bitcoin_to_nasdaq"),
+                "realty_income_to_nasdaq": _delta("downside_beta_5y", "realty_income_to_nasdaq"),
+            },
+        })
 
     model = {
         "meta": {

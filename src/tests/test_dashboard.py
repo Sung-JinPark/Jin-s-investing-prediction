@@ -300,6 +300,10 @@ def test_workspace_utility_contract() -> None:
     assert "동반 디레버리징" in html and "data-cross-scenario" in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
     assert 'class="cross-anchor-strip"' in html
+    assert "가중치 미산출 — 충격 유형별 캘리브레이션 부족" in html
+    assert "paths_band" in html and "resolveEndpointLabels" in html
+    assert "aria-live','polite" in html and 'role="radiogroup"' in html
+    assert "model.history.period" in html and "label.endsWith('-06')" in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:

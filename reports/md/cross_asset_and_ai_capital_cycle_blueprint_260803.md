@@ -24,7 +24,14 @@
 
 | 구간 | NASDAQ 가격 | Realty Income 가격 | Realty Income 총수익 proxy |
 |---|---:|---:|---:|
-| 2000-12 → 2005-12 | -6.7% | +87.3% | +160.8% |
+| 2000-12 → 2005-12 | -10.7% | +73.8% | +140.9% |
+
+> **2026-08-03 정정:** 최초 스냅샷은 Yahoo `1mo` 응답의 2006-01 진행 중 partial
+> bar를 2000-12→2005-12 요약 종점으로 잘못 사용했다. 불변 원본
+> `data/cross_asset/archive/2026-07-31.json`은 보존하고 `CORR-260803-003` 승인 아래
+> revision 2를 추가했다. 정정 전 수치는 NASDAQ -6.7%, O 가격 +87.3%, O 총수익
+> +160.8%, 배당 효과 +73.5%p였고, 정정 후에는 각각 -10.7%, +73.8%, +140.9%,
+> +67.1%p다. 닷컴 정점 2000-03을 별도 기준으로 두면 NASDAQ은 2005-12까지 -51.8%다.
 
 연도별 결과:
 
@@ -74,11 +81,13 @@ IMF 연구는 2020년 이후 crypto와 글로벌 주식, 특히 기술주·소�
 |---|---:|---:|---:|---|
 | 동반 디레버리징 | 82.0 | 70.2 | 97.5 | 신용경색이 정책 완화보다 빠름 |
 | AI 조정 후 완화·순환 | 91.0 | 130.6 | 123.8 | 초기 투매 뒤 장기금리·달러 유동성 전환 |
-| 소프트랜딩·자산 순환 | 112.0 | 137.2 | 113.7 | 이익 성장·신용시장 안정 유지 |
+| 소프트랜딩·자산 순환 | 112.0 | 132.1 | 106.3 | 이익 성장·신용시장 안정 유지 |
 
 숫자는 현재=100인 sensitivity index다. 목표가격, 기대수익, 사건 확률이 아니다. NASDAQ
-충격 경로에 최근 5년 downside beta를 제한 범위로 적용하고, 명시한 유동성·금리 offset을
-더했다. 시나리오별 out-of-sample 표본이 충분하지 않아 가중치는 **가중치 미산출
+충격 경로에서 NASDAQ이 100 미만이면 최근 5년 downside beta, 100 이상이면 252일 full
+beta를 적용하고 명시한 유동성·금리 offset을 더했다. beta 하한은 강제하지 않으며 절대값
+3.0의 안전 상한만 감사한다. 10거래일 block bootstrap 1,000회에서 얻은 10–90% 민감도
+band를 모든 경로에 표시한다. 시나리오별 out-of-sample 표본이 충분하지 않아 가중치는 **가중치 미산출
 (충격 유형별 캘리브레이션 부족)** 상태로 보존하며 `null`을 화면에 노출하지 않는다.
 O 미래선에는 현금배당을 포함하지 않는다.
 
@@ -94,14 +103,16 @@ Yahoo chart API
 src/ai_fc/cross_asset.py
   ├─ 공통 거래일 정렬
   ├─ 60d/252d 상관
-  ├─ 252d beta / 5y downside beta
+  ├─ 252d full beta / 5y downside beta + 10일 block bootstrap
   ├─ 2001~2005 가격·총수익 proxy
-  └─ 3개 조건부 12개월 전이 경로
+  ├─ 3개 조건부 12개월 전이 경로 + 10–90% band
+  └─ 요청 URL·응답 SHA-256·수집시각·drop count 영수증
           │
           ▼
 data/cross_asset/
   ├─ cross_asset_latest.json
-  └─ archive/YYYY-MM-DD.json
+  ├─ archive/YYYY-MM-DD.json (원본 불변)
+  └─ archive/YYYY-MM-DD_CORR-*.json (승인 정정 revision)
           │
           ▼
 read-model.cross_asset → 시장전망 03 자산 전이
@@ -109,6 +120,7 @@ read-model.cross_asset → 시장전망 03 자산 전이
 
 자동 갱신은 `python -m ai_fc cross-asset`이며 일일 시장 시나리오 workflow와 주간
 OpenAI investing workflow 양쪽에 연결한다. 가격 계산 자체에는 OpenAI API 비용이 들지 않는다.
+미국 현지 장 마감 전 실행은 공통 completed-market-day helper가 진행 중 일봉을 제외한다.
 
 ## 3. Graph 2 — AI Capital Cycle Regime Map
 
@@ -208,6 +220,13 @@ Bubble pressure (bubble size)
 - 모바일은 사분면을 먼저, component table은 접힌 disclosure로 둔다.
 
 ## 4. 구현 우선순위
+
+Graph 2 구현 전에 아래 사전등록 산출물을 먼저 고정했다.
+
+- `data/ai_capital_cycle/canonical_segment_map.yaml`: 기업×기간 segment와 restatement 계약
+- `docs/design/ai_capital_cycle_data_contract_v1.md`: coverage 분모·partial·ALFRED vintage·robust-z 상수
+- `data/ai_capital_cycle/circular_finance_candidates.csv`: LLM 후보와 사람 승인 경계
+- `data/ai_capital_cycle/regime_link_rules.yaml`: 결과 관측 전 Graph 1 강화/약화 연결 규칙
 
 1. SEC Companyfacts와 FRED 원천 수집기 + append-only vintage 저장
 2. 공시 coverage와 정합성 검증, 결측·revision UI

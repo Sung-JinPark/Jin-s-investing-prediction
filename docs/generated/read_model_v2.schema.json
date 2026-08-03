@@ -116,6 +116,12 @@
         "forecast"
       ],
       "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "blocked"
+          ]
+        },
         "probability_space": {
           "const": "scenario_conditional"
         },
