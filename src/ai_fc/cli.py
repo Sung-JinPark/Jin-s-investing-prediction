@@ -9,6 +9,7 @@ import json
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import typer
 
@@ -49,6 +50,64 @@ def cmd_provider_guard() -> None:
         typer.echo(str(exc), err=True)
         raise typer.Exit(code=1) from exc
     typer.echo(f"official provider approved: {config.OFFICIAL_LLM_PROVIDER}:{snapshot}")
+
+
+@app.command("openai-smoke")
+def cmd_openai_smoke(
+    model: str | None = typer.Option(
+        None, "--model", help="승인된 OpenAI tier/snapshot (기본: 환경 설정)"
+    ),
+) -> None:
+    """최소 유료 호출로 OpenAI 키·모델·비용 원장 연결을 검증한다."""
+    from .llm import PipelineBudget
+    from .llm_provider import OpenAIResponsesProvider
+    from .provider_governance import assert_official_provider_allowed
+
+    root = config.ROOT
+    selected = (model or config.OPENAI_OFFICIAL_MODEL).strip()
+    if not selected:
+        typer.echo("AI_FC_OPENAI_OFFICIAL_MODEL 또는 --model이 필요합니다.", err=True)
+        raise typer.Exit(code=2)
+    try:
+        assert_official_provider_allowed(root, "openai", selected)
+    except (PermissionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    now = datetime.now(ZoneInfo(config.TZ_NAME))
+    provider_spend = queries.month_cost(conn, now.year, now.month, "openai")
+    if provider_spend >= config.OPENAI_MONTHLY_BUDGET:
+        typer.echo(
+            f"OpenAI 월 예산 초과: ${provider_spend:.2f} >= "
+            f"${config.OPENAI_MONTHLY_BUDGET:.2f}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    provider = OpenAIResponsesProvider(model=selected, role="official")
+    _text, usage = provider.smoke(PipelineBudget(limit_usd=0.10))
+    queries.log_cost(
+        conn,
+        "_system",
+        "smoke",
+        selected,
+        usage.input_tokens,
+        usage.output_tokens,
+        usage.cost_usd,
+        provider="openai",
+        snapshot=selected,
+        request_id=usage.request_id,
+        cached_input_tokens=usage.cached_input_tokens,
+        web_search_calls=usage.web_search_calls,
+        ledger_path=root / "calibration" / "cost_log.csv",
+    )
+    typer.echo(
+        f"OpenAI 연결 정상 · model={selected} · "
+        f"tokens={usage.input_tokens}+{usage.output_tokens} · "
+        f"estimated_cost=${usage.cost_usd:.6f}"
+    )
 
 
 @app.command("security-check")

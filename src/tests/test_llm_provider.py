@@ -68,6 +68,7 @@ class _FakeResponses:
         annotation = SimpleNamespace(type="url_citation", url="https://example.test/source")
         part = SimpleNamespace(text=self.output_text, annotations=[annotation])
         return SimpleNamespace(
+            id="resp_test_123",
             output_text=self.output_text,
             output=[SimpleNamespace(content=[part])],
             usage=SimpleNamespace(
@@ -78,9 +79,12 @@ class _FakeResponses:
         )
 
 
-def test_openai_adapter_rejects_moving_alias() -> None:
+def test_openai_adapter_accepts_explicit_tier_and_rejects_family_alias() -> None:
+    provider = OpenAIResponsesProvider(model="gpt-5.6-terra", client=object())
+    assert provider.identity.snapshot == "gpt-5.6-terra"
+
     with pytest.raises(SnapshotRequiredError):
-        OpenAIResponsesProvider(model="gpt-5.6-terra", client=object())
+        OpenAIResponsesProvider(model="gpt-5.6", client=object())
 
 
 def test_openai_responses_research_uses_web_search() -> None:
@@ -95,8 +99,25 @@ def test_openai_responses_research_uses_web_search() -> None:
     assert text == "evidence"
     assert sources == 1
     assert usage.cost_usd > 0
+    assert usage.request_id == "resp_test_123"
+    assert usage.cached_input_tokens == 20
     assert fake.kwargs["tools"] == [{"type": "web_search"}]
     assert fake.kwargs["model"].endswith("2026-08-01")
+
+
+def test_openai_tier_pricing_does_not_fall_back_to_sol() -> None:
+    fake = _FakeResponses("evidence")
+    provider = OpenAIResponsesProvider(
+        model="gpt-5.6-terra",
+        client=SimpleNamespace(responses=fake),
+    )
+
+    _text, _sources, usage = provider.research(
+        "system", "user", llm.PipelineBudget(2), 3
+    )
+
+    expected = ((100 - 20) * 2.0 + 20 * 2.0 * 0.1 + 50 * 12.0) / 1e6
+    assert usage.cost_usd == pytest.approx(expected)
 
 
 def test_openai_reasoning_enforces_common_output_contract() -> None:

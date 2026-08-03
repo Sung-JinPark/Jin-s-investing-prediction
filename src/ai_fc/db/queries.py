@@ -6,7 +6,12 @@ import json
 import sqlite3
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
+from pathlib import Path
 from typing import Optional
+from zoneinfo import ZoneInfo
+
+from .. import config
+from .. import files as F
 
 
 @dataclass(frozen=True)
@@ -284,12 +289,31 @@ def log_cost(conn: sqlite3.Connection, question_id: str, stage: str, model: str,
              input_tokens: int, output_tokens: int, cost_usd: float, *,
              provider: str = "anthropic", snapshot: str | None = None,
              request_id: str | None = None, cached_input_tokens: int = 0,
-             web_search_calls: int = 0) -> None:
+             web_search_calls: int = 0,
+             ledger_path: Path | None = None) -> None:
+    ts = datetime.now(ZoneInfo(config.TZ_NAME)).isoformat(timespec="seconds")
+    row = {
+        "ts": ts,
+        "question_id": question_id,
+        "stage": stage,
+        "model": model,
+        "input_tokens": input_tokens,
+        "output_tokens": output_tokens,
+        "cost_usd": f"{cost_usd:.8f}",
+        "provider": provider,
+        "snapshot": snapshot,
+        "request_id": request_id,
+        "cached_input_tokens": cached_input_tokens,
+        "web_search_calls": web_search_calls,
+    }
+    if ledger_path is not None:
+        # Source ledger first: if the DB write fails, the next sync can recover it.
+        F.append_cost_log_row(ledger_path, row)
     conn.execute(
         "INSERT INTO cost_log (ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,"
         "provider,snapshot,request_id,cached_input_tokens,web_search_calls)"
         " VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
-        (datetime.now().isoformat(timespec="seconds"), question_id, stage, model,
+        (ts, question_id, stage, model,
          input_tokens, output_tokens, cost_usd, provider, snapshot, request_id,
          cached_input_tokens, web_search_calls),
     )

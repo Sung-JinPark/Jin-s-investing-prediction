@@ -40,6 +40,12 @@ LEDGER_HEADER = [
     "probability", "outcome", "brier", "domain", "notes",
 ]
 
+COST_LOG_HEADER = [
+    "ts", "question_id", "stage", "model", "input_tokens", "output_tokens",
+    "cost_usd", "provider", "snapshot", "request_id", "cached_input_tokens",
+    "web_search_calls",
+]
+
 
 class ImmutabilityError(RuntimeError):
     """불변 파일을 덮어쓰려 하거나 변조가 감지됐을 때."""
@@ -231,6 +237,45 @@ def _csv_escape(value: str) -> str:
     if any(c in value for c in ',"\n'):
         return '"' + value.replace('"', '""') + '"'
     return value
+
+
+def parse_cost_log(path: Path) -> list[dict[str, Any]]:
+    """Read the durable API cost ledger used to rebuild the SQLite read index."""
+    if not path.exists():
+        return []
+    raw_lines = path.read_text(encoding="utf-8").splitlines()
+    if not raw_lines:
+        return []
+    reader = csv.DictReader(io.StringIO("\n".join(raw_lines)))
+    if reader.fieldnames != COST_LOG_HEADER:
+        raise ValueError(f"cost ledger header mismatch: {reader.fieldnames}")
+    rows: list[dict[str, Any]] = []
+    for i, rec in enumerate(reader, start=1):
+        rows.append({
+            **rec,
+            "input_tokens": int(rec["input_tokens"] or 0),
+            "output_tokens": int(rec["output_tokens"] or 0),
+            "cost_usd": float(rec["cost_usd"] or 0),
+            "cached_input_tokens": int(rec["cached_input_tokens"] or 0),
+            "web_search_calls": int(rec["web_search_calls"] or 0),
+            "line_no": i,
+            "line_hash": sha256_text(raw_lines[i]),
+        })
+    return rows
+
+
+def append_cost_log_row(path: Path, row: dict[str, Any]) -> None:
+    """Append one metered API call without rewriting prior spend history."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    exists = path.exists() and path.stat().st_size > 0
+    with open(path, "a", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=COST_LOG_HEADER)
+        if not exists:
+            writer.writeheader()
+        writer.writerow({
+            key: "" if row.get(key) is None else row.get(key, "")
+            for key in COST_LOG_HEADER
+        })
 
 
 # ── 벤치마크 3자 원장 (WS2 — append-only, 기존 원장과 별도 파일) ────

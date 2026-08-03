@@ -240,6 +240,7 @@ API 키는 `ANTHROPIC_API_KEY` 환경변수로만 주입합니다. 저장소와 
 - [의사결정 기록](docs/DECISIONS.md) — 중요한 설계 선택과 이유
 - [알려진 한계](docs/KNOWN_LIMITS.md) — 통계·데이터·운영상의 약점
 - [운영 가이드](docs/P1_OPERATIONS.md) — 일상 실행 절차
+- [OpenAI 자동 갱신 운영](docs/P1_OPERATIONS.md#github-자동-갱신) — 시장 데이터 수집, due 예측, 비용 원장, GitHub Actions
 - [질문 제작 가이드](questions/FACTORY_GUIDE.md) · [수확 캘린더](questions/HARVEST_CALENDAR.md)
 - [변경 이력](docs/CHANGELOG.md)
 

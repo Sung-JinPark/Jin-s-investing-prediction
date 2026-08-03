@@ -113,6 +113,9 @@ class EvidenceBrief:
     cost_usd: float
     input_tokens: int
     output_tokens: int
+    request_id: str | None = None
+    cached_input_tokens: int = 0
+    web_search_calls: int = 0
 
 
 @dataclass

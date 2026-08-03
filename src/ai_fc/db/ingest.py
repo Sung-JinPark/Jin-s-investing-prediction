@@ -159,6 +159,7 @@ def _sync_all(conn: sqlite3.Connection, root: Path, report: DriftReport, now: st
     _sync_forecasts(conn, root, report, now)
     _sync_ledger(conn, root, report)
     _sync_benchmark(conn, root, report)
+    _sync_cost_log(conn, root, report)
     _sync_ml_history(conn, root, report, now)
     _sync_status_overrides(conn, root, report)
     _sync_corrections(conn, root, report)
@@ -168,6 +169,50 @@ def _sync_all(conn: sqlite3.Connection, root: Path, report: DriftReport, now: st
     _rebuild_lineage_edges(conn, root, now)
     from ..model_registry import register_defaults
     register_defaults(conn, root)
+
+
+def _sync_cost_log(conn: sqlite3.Connection, root: Path, report: DriftReport) -> None:
+    """Rebuild metered API spend from its append-only CSV source ledger."""
+    path = root / "calibration" / "cost_log.csv"
+    try:
+        rows = F.parse_cost_log(path)
+    except (OSError, ValueError) as exc:
+        report.errors.append(f"E9 cost ledger parse failure: {exc}")
+        return
+
+    known = {
+        row["line_no"]: row["line_hash"]
+        for row in conn.execute("SELECT line_no,line_hash FROM cost_log_lines")
+    }
+    if known and len(rows) < len(known):
+        report.errors.append(
+            f"E9 cost ledger shrank: DB {len(known)} rows > file {len(rows)} rows"
+        )
+    for row in rows:
+        if row["line_no"] in known and known[row["line_no"]] != row["line_hash"]:
+            report.errors.append(
+                f"E9 cost ledger row {row['line_no']} changed; ledger is append-only"
+            )
+    if report.errors:
+        return
+
+    conn.execute("DELETE FROM cost_log")
+    for row in rows:
+        conn.execute(
+            """INSERT INTO cost_log
+               (ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,
+                provider,snapshot,request_id,cached_input_tokens,web_search_calls)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?,?)""",
+            (row["ts"], row["question_id"], row["stage"], row["model"],
+             row["input_tokens"], row["output_tokens"], row["cost_usd"],
+             row["provider"] or "anthropic", row["snapshot"] or None,
+             row["request_id"] or None, row["cached_input_tokens"],
+             row["web_search_calls"]),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO cost_log_lines (line_no,line_hash) VALUES (?,?)",
+            (row["line_no"], row["line_hash"]),
+        )
 
 
 def _rebuild_lineage_edges(conn: sqlite3.Connection, root: Path, now: str) -> None:

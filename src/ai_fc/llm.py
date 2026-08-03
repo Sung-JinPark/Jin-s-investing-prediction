@@ -25,6 +25,9 @@ class Usage:
     input_tokens: int = 0
     output_tokens: int = 0
     cost_usd: float = 0.0
+    request_id: str | None = None
+    cached_input_tokens: int = 0
+    web_search_calls: int = 0
 
 
 @dataclass

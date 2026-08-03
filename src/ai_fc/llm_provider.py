@@ -19,6 +19,7 @@ from .schemas import ForecastResult
 
 
 _DATED_SNAPSHOT = re.compile(r"^gpt-[a-z0-9.-]+-20\d{2}-\d{2}-\d{2}$")
+_EXPLICIT_TIER = re.compile(r"^gpt-\d+(?:\.\d+)*-(?:sol|terra|luna)$")
 
 
 class SnapshotRequiredError(ValueError):
@@ -30,11 +31,12 @@ class ProviderOutputError(RuntimeError):
 
 
 def require_dated_openai_snapshot(model: str) -> str:
-    """Fail closed on aliases so track-record identity cannot drift silently."""
-    if not _DATED_SNAPSHOT.fullmatch(model):
+    """Require an explicit GPT tier identity or a verified dated snapshot."""
+    if not (_EXPLICIT_TIER.fullmatch(model) or _DATED_SNAPSHOT.fullmatch(model)):
         raise SnapshotRequiredError(
-            "OpenAI forecast models require a verified dated snapshot id; "
-            f"moving alias is not allowed: {model or '<empty>'}"
+            "OpenAI forecast models require an explicit tier id (sol/terra/luna) "
+            "or a verified dated snapshot; family aliases are not allowed: "
+            f"{model or '<empty>'}"
         )
     return model
 
@@ -155,7 +157,7 @@ class AnthropicProvider:
 
 
 class OpenAIResponsesProvider:
-    """OpenAI Responses API adapter with built-in web search and strict snapshots.
+    """OpenAI Responses API adapter with built-in web search and strict identity.
 
     The SDK import is lazy so existing Anthropic-only installations and read-only
     dashboard jobs keep working.  Production construction requires the ``openai``
@@ -210,12 +212,25 @@ class OpenAIResponsesProvider:
         out = int(getattr(raw, "output_tokens", 0) or 0)
         details = getattr(raw, "input_tokens_details", None)
         cached = int(getattr(details, "cached_tokens", 0) or 0)
-        # Cached tokens use the official 90% discount.  Unknown snapshots inherit
-        # the base family price only after the operator maps it in config.PRICES.
-        family = self.identity.model.rsplit("-", 3)[0]
-        in_price, out_price = config.PRICES.get(family, (5.0, 30.0))
+        # Resolve explicit tier slugs directly; dated snapshots inherit their
+        # mapped base tier. Unknown identities fail expensive (Sol price).
+        price_key = self.identity.model
+        if price_key not in config.PRICES:
+            price_key = self.identity.model.rsplit("-", 3)[0]
+        in_price, out_price = config.PRICES.get(price_key, (5.0, 30.0))
         cost = ((inp - cached) * in_price + cached * in_price * 0.1 + out * out_price) / 1e6
-        return Usage(inp, out, cost)
+        web_search_calls = sum(
+            1 for item in (getattr(response, "output", []) or [])
+            if getattr(item, "type", "") == "web_search_call"
+        )
+        return Usage(
+            inp,
+            out,
+            cost,
+            request_id=str(getattr(response, "id", "") or "") or None,
+            cached_input_tokens=cached,
+            web_search_calls=web_search_calls,
+        )
 
     @staticmethod
     def _text(response: Any) -> str:
@@ -315,3 +330,20 @@ class OpenAIResponsesProvider:
             max_tokens=config.REASONING_MAX_TOKENS,
         )
         return validate_forecast_output(parsed), usage
+
+    def smoke(self, budget: PipelineBudget) -> tuple[str, Usage]:
+        """Perform a minimal billable connectivity check without web search."""
+        budget.ensure_room("openai:smoke")
+        response = self._create(
+            model=self.identity.snapshot,
+            instructions="You are a connectivity probe. Follow the output instruction exactly.",
+            input="Reply with READY only.",
+            reasoning={"effort": "none"},
+            max_output_tokens=32,
+        )
+        usage = self._usage(response)
+        budget.add(usage)
+        text = self._text(response)
+        if not text:
+            raise ProviderOutputError("OpenAI smoke check returned empty output")
+        return text, usage

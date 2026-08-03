@@ -33,7 +33,7 @@ def assert_official_provider_allowed(root: Path, provider: str, snapshot: str = 
     if provider != "openai":
         raise ProviderApprovalError(f"unsupported official LLM provider: {provider}")
     if not snapshot:
-        raise ProviderApprovalError("OpenAI official producer requires a dated snapshot")
+        raise ProviderApprovalError("OpenAI official producer requires an explicit model identity")
     target = f"openai:{snapshot}"
     rows = read_approvals(root / "calibration" / "approvals.csv")
     approved = any(
@@ -51,4 +51,3 @@ def assert_official_provider_allowed(root: Path, provider: str, snapshot: str = 
             "official provider switch blocked: append an explicit approved row for "
             f"{target} to calibration/approvals.csv"
         )
-

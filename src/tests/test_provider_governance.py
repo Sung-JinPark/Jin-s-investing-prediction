@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from ai_fc.db import ingest, queries
+from ai_fc import files as F
 from ai_fc.provider_governance import (
     APPROVAL_HEADER,
     ProviderApprovalError,
@@ -63,3 +64,23 @@ def test_cost_log_keeps_provider_identity_separate(tmp_path: Path) -> None:
     assert openai["cached_input_tokens"] == 4
     assert openai["web_search_calls"] == 2
 
+
+def test_cost_log_survives_a_fresh_sqlite_index(tmp_path: Path) -> None:
+    ledger = tmp_path / "calibration" / "cost_log.csv"
+    first = ingest.connect(tmp_path / "first.db")
+    queries.log_cost(
+        first, "q", "research:general", "gpt-5.6-terra", 100, 20, 0.004,
+        provider="openai", snapshot="gpt-5.6-terra", request_id="resp_1",
+        cached_input_tokens=25, web_search_calls=1, ledger_path=ledger,
+    )
+    first.close()
+
+    second = ingest.connect(tmp_path / "second.db")
+    report = ingest.DriftReport()
+    ingest._sync_cost_log(second, tmp_path, report)
+
+    assert report.ok
+    row = second.execute("SELECT * FROM cost_log").fetchone()
+    assert row["request_id"] == "resp_1"
+    assert row["cached_input_tokens"] == 25
+    assert F.parse_cost_log(ledger)[0]["cost_usd"] == pytest.approx(0.004)

@@ -41,3 +41,10 @@
 | 10-1 | OpenAI provider 도입 | Responses API adapter와 shadow 병렬 경로만 도입. **공식 생산자는 Anthropic 유지** | 트랙레코드 연속성과 hindsight 금지 |
 | 10-2 | 모델 식별 | 날짜가 포함된 snapshot만 허용하고 이동 alias는 거부 | 재현성·버전별 점수 분리 |
 | 10-3 | 공식 전환 | 고유 해소 10+ paired 비교·비용 보고·사용자 승인·`approvals.csv` 정확 일치 전에는 CI가 차단 | ADR-003, Grand Blueprint WP-15 |
+
+## 2026-08-03 — OpenAI 공식 자동 갱신 승인
+
+| # | 항목 | 결정 | 근거 |
+|---|---|---|---|
+| 10-4 | 공식 자동 생산자 전환 | 저장소 소유자의 명시 지시로 신규 자동 갱신에 `openai:gpt-5.6-terra`를 사용. 기존 Anthropic 예측은 그대로 보존하고 소급 재예측·재분류하지 않음. 10-3의 paired 10+ 대기 조건은 이번 직접 승인으로 예외 처리하되 모델 계보·비용 원장·회당/월간 한도·롤백 경로를 강제 | 사용자 지시 “open api key 로 investing fetch나 업데이트 다 진행할 수 있도록” (2026-08-03), `calibration/approvals.csv` |
+| 10-5 | 자동 운영 한도 | 주 1회, due 최대 1건, 2 research profiles(데블스 포함), 회당 $1.50, OpenAI/전역 월 $10, 검색 4회·출력 토큰 상한. 시장 원천 fetch는 결정론 수집기를 유지하고 OpenAI는 근거 조사·예측에 사용 | 비용 통제와 출처 재현성 |

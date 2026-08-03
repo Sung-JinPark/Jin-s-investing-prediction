@@ -5,7 +5,7 @@
 
 | 모델 | 위치 | 상태 | 용도 | 근거·이력 |
 |---|---|---|---|---|
-| LLM 파이프라인 (opus-4-8 + 웹서치) | src/ai_fc | **공식 예측 생산자** | rN 확률 (유일한 공식 확률) | 8-8. K회 중앙값 배관 보유(기본 K=1) |
+| LLM 파이프라인 (OpenAI gpt-5.6-terra + 웹서치) | src/ai_fc | **공식 자동 예측 생산자** | 신규 rN 확률 (유일한 공식 확률) | 2026-08-03 소유자 승인. K회 중앙값 배관 보유(기본 K=1) |
 | Chronos-Bolt-small | src/ai_fc/ml | reference | 연말 분위수 | 앙상블 멤버 |
 | Chronos-2 (공변량) | src/ai_fc/ml | reference | 연말 분위수 (VIX·TNX past-only) | 앙상블 멤버 |
 | Chronos-T5-small 샘플경로 | src/ai_fc/ml | reference | 경로 터치 MC — **브라운 브리지 보정값이 정본** (raw 병기) | v2 WS3 (2026-07-20): p=exp(−2·d₀·d₁/σ_w²) 결정론 보정, 9-1 비저촉 판정. σ_w 근사는 KNOWN_LIMITS 29 |
@@ -23,8 +23,9 @@
 
 | model_id | provider | 상태 | 출력 계보 | 비고 |
 |---|---|---|---|---|
-| `llm.forecaster.anthropic` | Anthropic | **official** | 기존 forecast append-only 기록 | 공식 생산자 유지 |
-| `llm.forecaster.openai.<dated-snapshot>` | OpenAI Responses API | shadow 후보 | `calibration/provider_shadow_ledger.csv` 별도 기록 | alias 금지, 공식 확률과 결합 금지, 승인 전 전환 금지 |
+| `llm.forecaster.anthropic` | Anthropic | historical official / fallback | 기존 forecast append-only 기록 | 과거 계보 유지, 재분류 금지 |
+| `llm.forecaster.openai.official.gpt-5.6-terra` | OpenAI Responses API | **official** | 2026-08-03 이후 신규 forecast | 승인 원장 정확 일치, family alias 금지 |
+| `llm.forecaster.openai.<model>` | OpenAI Responses API | shadow 후보 | `calibration/provider_shadow_ledger.csv` 별도 기록 | 공식 확률과 결합 금지, 승인 전 전환 금지 |
 
 신규 forecast frontmatter는 `provider`, `model_snapshot`, `provider_version`을 기록한다. 점수와 비용은 provider/model snapshot별로 분리하며 과거 Anthropic 점수를 OpenAI 버전으로 재분류하지 않는다.
 

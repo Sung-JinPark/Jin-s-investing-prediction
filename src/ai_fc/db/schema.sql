@@ -144,6 +144,11 @@ CREATE TABLE IF NOT EXISTS cost_log (
 
 CREATE INDEX IF NOT EXISTS idx_cost_log_provider_month ON cost_log (provider, ts);
 
+CREATE TABLE IF NOT EXISTS cost_log_lines (
+    line_no         INTEGER PRIMARY KEY,
+    line_hash       TEXT NOT NULL
+);
+
 -- ── ML/시장 확률 이력 (원본: data/ml_history/*.jsonl — 재구축 가능) ──
 
 CREATE TABLE IF NOT EXISTS ml_forecasts (

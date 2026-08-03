@@ -10,8 +10,8 @@ permissions:
   contents: write
 
 concurrency:
-  group: scenario-refresh
-  cancel-in-progress: true
+  group: investing-data-writer
+  cancel-in-progress: false
 
 jobs:
   refresh:

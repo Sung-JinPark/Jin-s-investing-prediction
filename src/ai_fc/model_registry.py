@@ -98,6 +98,35 @@ def register_defaults(conn: sqlite3.Connection, root: Path) -> None:
             limitations="공식 P1 생산자; 다른 provider 점수를 승계하거나 결합하지 않음",
         )
     ]
+    approved_openai_models: set[str] = set()
+    if config.OFFICIAL_LLM_PROVIDER == "openai" and config.OPENAI_OFFICIAL_MODEL:
+        approved_openai_models.add(config.OPENAI_OFFICIAL_MODEL)
+    from .provider_governance import read_approvals
+    for approval in read_approvals(root / "calibration" / "approvals.csv"):
+        target = approval.get("to_value", "")
+        if (
+            approval.get("action") == "official_llm_provider_change"
+            and approval.get("status") == "approved"
+            and target.startswith("openai:")
+        ):
+            approved_openai_models.add(target.removeprefix("openai:"))
+    for official_model in sorted(approved_openai_models):
+        llm_cards.append(ModelCard(
+            model_id=f"llm.forecaster.openai.official.{official_model}",
+            display_name="OpenAI official forecaster",
+            version=config.PROMPT_VERSION,
+            lifecycle=Lifecycle.BASELINE,
+            target="physical_event_probability",
+            code_version=context.head or "working-tree",
+            data_fingerprint=context.source_fingerprint,
+            params={
+                "provider": "openai",
+                "model": official_model,
+                "snapshot": official_model,
+                "role": "official",
+            },
+            limitations="공식 P1 생산자; 예측은 불변 신규 회차로만 기록하고 승인된 모델만 사용",
+        ))
     if config.OPENAI_SHADOW_MODEL:
         llm_cards.append(ModelCard(
             model_id=f"llm.forecaster.openai.{config.OPENAI_SHADOW_MODEL}",

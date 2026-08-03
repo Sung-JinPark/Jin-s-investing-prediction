@@ -61,7 +61,10 @@ def run_research(client: anthropic.Anthropic, q: Question, n_agents: int,
         return EvidenceBrief(profile=profile, text=text, sources_count=n_sources,
                              cost_usd=usage.cost_usd,
                              input_tokens=usage.input_tokens,
-                             output_tokens=usage.output_tokens)
+                             output_tokens=usage.output_tokens,
+                             request_id=usage.request_id,
+                             cached_input_tokens=usage.cached_input_tokens,
+                             web_search_calls=usage.web_search_calls)
 
     # 순차 실행 — 병렬 시 서버사이드 web_search 분당 한도를 버스트로 초과
     # ("Server tool use limit exceeded", 2026-07-15 실측). 벽시계보다 회수율 우선.

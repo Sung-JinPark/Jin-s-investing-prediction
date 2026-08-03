@@ -84,13 +84,13 @@ PRICES = {
     "gpt-5.6-luna": (0.20, 1.20),
 }
 
-# A live OpenAI shadow is intentionally disabled until an actual dated snapshot id
-# is supplied.  Aliases such as gpt-5.6-sol are rejected by the provider adapter.
+# A live OpenAI shadow is opt-in. Explicit Sol/Terra/Luna tier ids and verified
+# dated snapshots are accepted; moving family aliases such as gpt-5.6 are rejected.
 OPENAI_SHADOW_MODEL = os.environ.get("AI_FC_OPENAI_SHADOW_MODEL", "").strip()
 OPENAI_SHADOW_PIPELINE_BUDGET = float(
     os.environ.get("AI_FC_OPENAI_SHADOW_PIPELINE_BUDGET", "2.00")
 )
-OPENAI_REASONING_EFFORT = os.environ.get("AI_FC_OPENAI_REASONING_EFFORT", "high")
+OPENAI_REASONING_EFFORT = os.environ.get("AI_FC_OPENAI_REASONING_EFFORT", "medium")
 OPENAI_SHADOW_QUESTION_IDS = frozenset(
     q.strip()
     for q in os.environ.get("AI_FC_OPENAI_SHADOW_QUESTIONS", "").split(",")
@@ -105,8 +105,8 @@ WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
 LITE_SEARCH_MAX_USES = int(os.environ.get("AI_FC_LITE_SEARCH_MAX_USES", "4"))
 LITE_RESEARCH_WORDS = 450       # 표준 900 — profiles 공통 규칙의 분량 지시만 치환
 LLM_MAX_RETRIES = 3
-RESEARCH_MAX_TOKENS = 16000
-REASONING_MAX_TOKENS = 16000
+RESEARCH_MAX_TOKENS = int(os.environ.get("AI_FC_RESEARCH_MAX_TOKENS", "16000"))
+REASONING_MAX_TOKENS = int(os.environ.get("AI_FC_REASONING_MAX_TOKENS", "16000"))
 
 # ── 예산 (USD) ────────────────────────────────────────────────────
 DEFAULT_PIPELINE_BUDGET = float(os.environ.get("AI_FC_PIPELINE_BUDGET", "4.00"))

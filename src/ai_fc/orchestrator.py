@@ -116,6 +116,7 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         )
     scratch = root / "db" / "scratch"
     scratch.mkdir(parents=True, exist_ok=True)
+    cost_ledger = root / "calibration" / "cost_log.csv"
 
     with _lock(root / "db" / ".ai_fc.lock"):
         # ── 리서치 (병렬) ──
@@ -197,13 +198,18 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
                                  official_provider.identity.model, b.input_tokens,
                                  b.output_tokens, b.cost_usd,
                                  provider=official_provider.identity.provider,
-                                 snapshot=official_provider.identity.snapshot)
+                                 snapshot=official_provider.identity.snapshot,
+                                 request_id=b.request_id,
+                                 cached_input_tokens=b.cached_input_tokens,
+                                 web_search_calls=b.web_search_calls,
+                                 ledger_path=cost_ledger)
             dry_reasoning = budget.spent_usd - sum(b.cost_usd for b in briefs)
             queries.log_cost(conn, question_id, "dry:reasoning",
                              official_provider.identity.model, 0, 0,
                              max(dry_reasoning, 0.0),
                              provider=official_provider.identity.provider,
-                             snapshot=official_provider.identity.snapshot)
+                             snapshot=official_provider.identity.snapshot,
+                             ledger_path=cost_ledger)
             return (f"[DRY] {question_id} r{rnd}: {agg.probability}% "
                     f"(CI {agg.ci80_lo}~{agg.ci80_hi}) 비용 ${budget.spent_usd:.2f} "
                     f"→ 스크래치패드에만 기록 (비용은 cost_log 편입)")
@@ -246,18 +252,24 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
                              official_provider.identity.model, b.input_tokens,
                              b.output_tokens, b.cost_usd,
                              provider=official_provider.identity.provider,
-                             snapshot=official_provider.identity.snapshot)
+                             snapshot=official_provider.identity.snapshot,
+                             request_id=b.request_id,
+                             cached_input_tokens=b.cached_input_tokens,
+                             web_search_calls=b.web_search_calls,
+                             ledger_path=cost_ledger)
         reasoning_cost = budget.spent_usd - sum(b.cost_usd for b in briefs)
         queries.log_cost(conn, question_id, "reasoning", official_provider.identity.model,
                          0, 0, max(reasoning_cost, 0.0),
                          provider=official_provider.identity.provider,
-                         snapshot=official_provider.identity.snapshot)
+                         snapshot=official_provider.identity.snapshot,
+                         ledger_path=cost_ledger)
         if shadow_observation is not None:
             queries.log_cost(
                 conn, question_id, "shadow:forecast", shadow_observation.model,
                 0, 0, shadow_observation.cost_usd,
                 provider=shadow_observation.provider,
                 snapshot=shadow_observation.snapshot,
+                ledger_path=cost_ledger,
             )
         ingest.sync(conn, root)
 

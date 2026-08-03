@@ -1,1 +1,2 @@
 approved_at,action,from_value,to_value,scope,status,reviewer,reason,commit
+2026-08-03,official_llm_provider_change,anthropic,openai:gpt-5.6-terra,official_llm_provider,approved,Sung-JinPark,OpenAI API automated investing refresh requested by repository owner,user-request-2026-08-03
