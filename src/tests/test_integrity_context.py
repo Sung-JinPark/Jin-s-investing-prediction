@@ -19,3 +19,19 @@ def test_fingerprint_is_deterministic_and_tracks_truth_only(tmp_path: Path) -> N
     truth.write_text("version: 2\nquestions: []\n", encoding="utf-8")
     assert source_fingerprint(tmp_path) != first
     assert truth.resolve() in iter_truth_files(tmp_path)
+
+
+def test_fingerprint_normalizes_text_truth_but_preserves_immutable_bytes(tmp_path: Path) -> None:
+    scenario = tmp_path / "data" / "scenarios" / "latest.json"
+    scenario.parent.mkdir(parents=True)
+    scenario.write_bytes(b'{\r\n  "value": 1\r\n}\r\n')
+    windows_fingerprint = source_fingerprint(tmp_path)
+    scenario.write_bytes(b'{\n  "value": 1\n}\n')
+    assert source_fingerprint(tmp_path) == windows_fingerprint
+
+    forecast = tmp_path / "forecasts" / "2099" / "round.md"
+    forecast.parent.mkdir(parents=True)
+    forecast.write_bytes(b"immutable\r\n")
+    raw_fingerprint = source_fingerprint(tmp_path)
+    forecast.write_bytes(b"immutable\n")
+    assert source_fingerprint(tmp_path) != raw_fingerprint

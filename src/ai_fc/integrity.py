@@ -61,9 +61,16 @@ def source_fingerprint(root: Path) -> str:
     digest = hashlib.sha256()
     for path in iter_truth_files(root):
         rel = path.relative_to(root.resolve()).as_posix()
+        content = path.read_bytes()
+        # Git stores YAML/JSON truth files as text, but Python's Windows text writer
+        # can materialize CRLF while Linux Actions checks out LF.  Their semantic
+        # content is identical, so hash a canonical newline form.  Immutable
+        # forecasts and append-only CSV/JSONL ledgers stay byte-sensitive.
+        if path.suffix.lower() in {".json", ".yaml", ".yml"}:
+            content = content.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
         digest.update(rel.encode("utf-8"))
         digest.update(b"\0")
-        digest.update(path.read_bytes())
+        digest.update(content)
         digest.update(b"\0")
     return digest.hexdigest()
 

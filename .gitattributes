@@ -9,6 +9,7 @@
 *.sql  text eol=lf
 *.html text eol=lf
 *.toml text eol=lf
+*.json text eol=lf
 *.bat  text eol=crlf
 *.zip  binary
 *.ots  binary
