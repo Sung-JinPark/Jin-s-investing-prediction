@@ -1,2 +1,3 @@
 ts,question_id,stage,model,input_tokens,output_tokens,cost_usd,provider,snapshot,request_id,cached_input_tokens,web_search_calls
 2026-08-03T09:37:20+09:00,_system,smoke,gpt-5.6-terra,27,5,0.00011400,openai,gpt-5.6-terra,resp_09cdfd348e55d4d8006a6fe2bf409881988f806967da5c1b7b,0,0
+2026-08-03T09:43:09+09:00,_system,failed:unmetered-reserve,gpt-5.6-terra,0,0,1.50000000,openai,gpt-5.6-terra,,0,0

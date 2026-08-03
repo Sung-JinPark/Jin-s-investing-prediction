@@ -131,6 +131,10 @@ def test_openai_reasoning_enforces_common_output_contract() -> None:
 
     assert result.probability == 63
     assert fake.kwargs["text"]["format"]["strict"] is True
+    schema = fake.kwargs["text"]["format"]["schema"]
+    assert schema["additionalProperties"] is False
+    assert schema["$defs"]["Adjustment"]["additionalProperties"] is False
+    assert schema["$defs"]["SnapshotItem"]["additionalProperties"] is False
 
 
 def test_openai_reasoning_rejects_probability_outside_1_to_99() -> None:

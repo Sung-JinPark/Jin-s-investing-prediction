@@ -260,6 +260,20 @@ class OpenAIResponsesProvider:
     @staticmethod
     def _format(output_format: type) -> dict[str, Any]:
         schema = output_format.model_json_schema()
+
+        def close_objects(node: Any) -> None:
+            # Responses strict structured outputs require every object, including
+            # nested $defs, to reject undeclared keys explicitly.
+            if isinstance(node, dict):
+                if node.get("type") == "object":
+                    node["additionalProperties"] = False
+                for value in node.values():
+                    close_objects(value)
+            elif isinstance(node, list):
+                for value in node:
+                    close_objects(value)
+
+        close_objects(schema)
         return {
             "type": "json_schema",
             "name": output_format.__name__.lower(),

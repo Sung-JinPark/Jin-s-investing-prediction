@@ -123,6 +123,9 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         try:
             briefs = run_research(official_provider, q, n_agents, budget, today)
         except Exception:
+            _persist_failed_costs(
+                conn, root, question_id, official_provider.identity, budget
+            )
             raise
         _dump_scratch(scratch, question_id, "briefs", "\n\n====\n\n".join(
             f"[{b.profile}]\n{b.text}" for b in briefs))
@@ -141,15 +144,24 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
             aggregator = KRunMedian(config.REASONING_RUNS)
         else:
             aggregator = SingleRun()
-        agg: AggregateResult = aggregator.estimate(
-            official_provider, q, briefs, root / "prompts", budget, today, window_end,
-            aux_context=aux_context)
+        try:
+            agg: AggregateResult = aggregator.estimate(
+                official_provider, q, briefs, root / "prompts", budget, today, window_end,
+                aux_context=aux_context)
+        except Exception:
+            _persist_failed_costs(
+                conn, root, question_id, official_provider.identity, budget
+            )
+            raise
 
         # required_snapshots 확정 실패 시 기록 없이 중단
         filled = {s.name: s.value for s in agg.result.snapshots_filled}
         missing = [s for s in q.required_snapshots
                    if filled.get(s, "NOT FOUND").strip().upper() == "NOT FOUND"]
         if missing:
+            _persist_failed_costs(
+                conn, root, question_id, official_provider.identity, budget
+            )
             raise PreflightError(
                 f"필수 스냅샷 미확정: {missing} — 기록하지 않고 중단 (NOT FOUND ≠ 추측)")
 
@@ -161,7 +173,13 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
         if ml_ref is not None and not ml_ref.low_confidence:
             ml_divergence_pp = round(abs(agg.probability - ml_ref.prob * 100), 1)
             if ml_divergence_pp >= config.ML_DIVERGENCE_PP:
-                review = _divergence_review(official_provider, q, agg, ml_ref, budget)
+                try:
+                    review = _divergence_review(official_provider, q, agg, ml_ref, budget)
+                except Exception:
+                    _persist_failed_costs(
+                        conn, root, question_id, official_provider.identity, budget
+                    )
+                    raise
                 div_note, div_class = review.note, review.divergence_class
 
         # ── 기록 렌더 + 검증 ──
@@ -276,6 +294,27 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
     return (f"{question_id} r{rnd}: {agg.probability}% (CI {agg.ci80_lo}~{agg.ci80_hi}) "
             f"비용 ${budget.spent_usd:.2f} → {target.relative_to(root)}\n"
             f"  ※ P1 참고 의견 — 자금 결정의 단독 근거 아님 (P3 게이트 전)")
+
+
+def _persist_failed_costs(conn, root: Path, question_id: str, identity, budget) -> None:
+    """Persist successful API calls even when a later pipeline stage fails."""
+    ledger = root / "calibration" / "cost_log.csv"
+    for index, usage in enumerate(budget.calls, start=1):
+        queries.log_cost(
+            conn,
+            question_id,
+            f"failed:pipeline:{index}",
+            identity.model,
+            usage.input_tokens,
+            usage.output_tokens,
+            usage.cost_usd,
+            provider=identity.provider,
+            snapshot=identity.snapshot,
+            request_id=usage.request_id,
+            cached_input_tokens=usage.cached_input_tokens,
+            web_search_calls=usage.web_search_calls,
+            ledger_path=ledger,
+        )
 
 
 def _divergence_review(client, q: Question, agg: AggregateResult, ml_ref,

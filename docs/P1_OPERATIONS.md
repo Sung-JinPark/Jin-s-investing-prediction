@@ -84,6 +84,9 @@ OpenAI 단계는 `OPENAI_API_KEY` secret을 그 단계에만 주입하며 로그
 자동 실행 한도는 회당 `$1.50`, OpenAI/전역 월 `$10`, 검색 최대 4회, 출력 토큰 상한으로
 중첩 적용된다. 비용은 SQLite가 아니라 append-only `calibration/cost_log.csv`가 정본이므로
 새 Actions runner에서도 월간 사용액이 이어진다. 대시보드 수집·빌드는 API 키가 필요 없다.
+파이프라인 후반이 실패해도 이미 성공한 API 호출은 `failed:pipeline:*` 단계로 기록한다.
+provider가 usage를 반환하기 전에 실패한 과거 호출은 과소 집계를 피하기 위해
+`failed:unmetered-reserve`로 회당 상한을 보수적으로 예약하며 실제 청구액과 구분한다.
 
 수동 연결 검증(아주 작은 유료 호출):
 

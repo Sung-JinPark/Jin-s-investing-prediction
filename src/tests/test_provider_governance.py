@@ -11,6 +11,9 @@ from ai_fc.provider_governance import (
     ProviderApprovalError,
     assert_official_provider_allowed,
 )
+from ai_fc.llm import PipelineBudget, Usage
+from ai_fc.llm_provider import ProviderIdentity
+from ai_fc.orchestrator import _persist_failed_costs
 
 
 def test_established_anthropic_provider_needs_no_new_approval(tmp_path: Path) -> None:
@@ -84,3 +87,20 @@ def test_cost_log_survives_a_fresh_sqlite_index(tmp_path: Path) -> None:
     assert row["request_id"] == "resp_1"
     assert row["cached_input_tokens"] == 25
     assert F.parse_cost_log(ledger)[0]["cost_usd"] == pytest.approx(0.004)
+
+
+def test_failed_pipeline_usage_is_persisted_before_reraising(tmp_path: Path) -> None:
+    conn = ingest.connect(tmp_path / "index.db")
+    budget = PipelineBudget(1.5)
+    budget.add(Usage(120, 30, 0.002, "resp_failed", 20, 1))
+    identity = ProviderIdentity(
+        provider="openai", model="gpt-5.6-terra", snapshot="gpt-5.6-terra",
+        version="v1",
+    )
+
+    _persist_failed_costs(conn, tmp_path, "q", identity, budget)
+
+    row = F.parse_cost_log(tmp_path / "calibration" / "cost_log.csv")[0]
+    assert row["stage"] == "failed:pipeline:1"
+    assert row["request_id"] == "resp_failed"
+    assert row["web_search_calls"] == 1
