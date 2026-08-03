@@ -696,10 +696,19 @@ def _persist_receipt_bundle(root: Path, asof: str,
     directory.mkdir(parents=True, exist_ok=True)
     path = directory / f"{asof}_{fingerprint[:12]}.json"
     serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
-    if path.exists() and path.read_text(encoding="utf-8") != serialized:
-        raise CrossAssetError(f"immutable receipt conflict: {path}")
-    if not path.exists():
-        path.write_text(serialized, encoding="utf-8", newline="\n")
+    if path.exists():
+        existing = json.loads(path.read_text(encoding="utf-8"))
+        candidate = deepcopy(payload)
+        existing.pop("available_at", None)
+        candidate.pop("available_at", None)
+        for item in existing.get("requests") or []:
+            item.pop("fetched_at", None)
+        for item in candidate.get("requests") or []:
+            item.pop("fetched_at", None)
+        if existing != candidate:
+            raise CrossAssetError(f"immutable receipt conflict: {path}")
+        return path
+    path.write_text(serialized, encoding="utf-8", newline="\n")
     return path
 
 

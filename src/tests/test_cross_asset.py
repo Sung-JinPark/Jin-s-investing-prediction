@@ -11,6 +11,7 @@ import pytest
 from ai_fc.cross_asset import (
     CrossAssetError,
     _dotcom_peak_reference,
+    _persist_receipt_bundle,
     _persist_snapshot,
     build_cross_asset,
     refresh_cross_asset,
@@ -225,3 +226,20 @@ def test_dotcom_peak_reference_returns_measured_drawdown() -> None:
     reference = _dotcom_peak_reference(result)
     assert reference["status"] == "ok"
     assert reference["nasdaq_price_pct"] == -51.8
+
+
+def test_content_addressed_receipt_keeps_first_capture_time(tmp_path) -> None:
+    def result(fetched_at: str) -> YahooPriceSeriesResult:
+        return YahooPriceSeriesResult(
+            dates=[date(2026, 7, 31)], closes=[100.0], adjusted=[100.0],
+            receipt={
+                "request_url": "mock://same", "response_sha256": "same-body",
+                "fetched_at": fetched_at,
+            }, data_quality={"status": "ok"},
+        )
+
+    first = _persist_receipt_bundle(tmp_path, "2026-07-31", [result("2026-08-03T00:00:00Z")])
+    original = first.read_text(encoding="utf-8")
+    second = _persist_receipt_bundle(tmp_path, "2026-07-31", [result("2026-08-04T00:00:00Z")])
+    assert first == second
+    assert second.read_text(encoding="utf-8") == original
