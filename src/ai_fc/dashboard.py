@@ -22,7 +22,7 @@ TEMPLATE = Path(__file__).parent / "dashboard_template.html"
 DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
 DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
-DASHBOARD_RAW_BUDGET_BYTES = 420_000
+DASHBOARD_RAW_BUDGET_BYTES = 1_000_000
 
 # Repeated immutable forecast headings dominate the self-contained Pages payload.
 # Private-use one-codepoint tokens preserve every character while avoiding an ADR-002
@@ -361,13 +361,17 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template())
     if mode == "embed":
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
-        # removing JSON's repeated separator spaces keeps the established 420 KB budget.
+        # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
         blob = json.dumps(
             read_model, ensure_ascii=False, default=str, separators=(",", ":")
         )
         data_script = f"<script>window.__DATA__ = {blob};</script>"
-    else:
+    elif mode == "pages":
+        data_script = '<script>window.__DATA_URL__ = "data.json";</script>'
+    elif mode == "fetch":
         data_script = '<script>window.__DATA_URL__ = "/api/data";</script>'
+    else:
+        raise ValueError(f"unknown dashboard render mode: {mode}")
     html = shell.replace("<!--DATA-->", data_script)
     if mode == "embed" and len(html.encode("utf-8")) > DASHBOARD_RAW_BUDGET_BYTES:
         raise ValueError(
@@ -410,7 +414,7 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
 
 
 def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
-    """GitHub Pages 정적 배포용 — <out_dir>/index.html (자기완결 임베드) + .nojekyll.
+    """GitHub Pages static bundle with a cacheable local JSON data artifact.
 
     CI에서 커밋된 불변 파일로 DB를 재구축(sync --rebuild)한 뒤 호출한다.
     데이터는 전부 공개 repo에 이미 존재하는 예측 기록 — 새 노출 없음.
@@ -418,7 +422,11 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     model = build_read_model(conn, root)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
-    index.write_text(render_html(model, mode="embed"), encoding="utf-8")
+    index.write_text(render_html({}, mode="pages"), encoding="utf-8")
+    (out_dir / "data.json").write_text(
+        json.dumps(model, ensure_ascii=False, default=str, separators=(",", ":")),
+        encoding="utf-8",
+    )
     (out_dir / ".nojekyll").write_text("", encoding="utf-8")  # _파일 무시 방지
     return index
 

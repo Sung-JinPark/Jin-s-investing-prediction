@@ -26,3 +26,12 @@ def test_scenario_and_full_refresh_share_writer_lock() -> None:
 
     assert "group: investing-data-writer" in full
     assert "group: investing-data-writer" in scenario
+
+
+def test_bot_data_commits_trigger_pages_and_verification() -> None:
+    pages = (ROOT / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+    verify = (ROOT / ".github" / "workflows" / "verify.yml").read_text(encoding="utf-8")
+
+    for workflow in (pages, verify):
+        assert 'workflows: ["investing-refresh", "scenario-refresh"]' in workflow
+        assert "types: [completed]" in workflow

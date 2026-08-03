@@ -16,6 +16,9 @@ on:
   schedule:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
   workflow_dispatch:
+  workflow_run:
+    workflows: ["investing-refresh", "scenario-refresh"]
+    types: [completed]
 
 permissions:
   contents: read

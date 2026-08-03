@@ -80,6 +80,11 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 4. due 질문이 있으면 OpenAI로 최대 1건만 새 회차 예측한다.
 5. 비용 원장·데이터·예측·인벤토리를 커밋하고 Pages 재빌드를 유도한다.
 
+봇 커밋은 GitHub의 재귀 실행 차단 때문에 일반 `push` 이벤트를 발생시키지 않는다. 따라서
+Pages와 verify는 `workflow_run`으로 수집 워크플로 완료를 직접 구독한다. Pages 산출물은
+UI shell(`index.html`)과 캐시 가능한 로컬 `data.json`을 분리해 예측 이력이 늘어나도 단일
+HTML 용량 한도로 배포가 멈추지 않는다.
+
 OpenAI 단계는 `OPENAI_API_KEY` secret을 그 단계에만 주입하며 로그나 파일에 출력하지 않는다.
 자동 실행 한도는 회당 `$1.50`, OpenAI/전역 월 `$10`, 검색 최대 4회, 출력 토큰 상한으로
 중첩 적용된다. 비용은 SQLite가 아니라 append-only `calibration/cost_log.csv`가 정본이므로

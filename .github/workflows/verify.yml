@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_run:
+    workflows: ["investing-refresh", "scenario-refresh"]
+    types: [completed]
 
 jobs:
   verify:
