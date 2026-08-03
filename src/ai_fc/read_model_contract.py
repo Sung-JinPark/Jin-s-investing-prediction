@@ -7,6 +7,12 @@ from pathlib import Path
 from typing import Any
 
 from .cross_asset import CrossAssetError, validate_cross_asset
+from .ai_capital_cycle import validate_ai_regime
+from .market_extensions import (
+    MarketExtensionError,
+    validate_liquidity,
+    validate_scenario_tracker,
+)
 
 
 LEGACY_KEYS = {
@@ -33,6 +39,9 @@ V2_KEYS = {
     "changelog": list,
     "era_analog": dict,
     "cross_asset": dict,
+    "scenario_tracker": dict,
+    "liquidity": dict,
+    "ai_regime": dict,
 }
 
 
@@ -63,6 +72,16 @@ def schema() -> dict[str, Any]:
             "forecast": {"type": "object"},
         },
     }
+    for key in ("scenario_tracker", "liquidity", "ai_regime"):
+        properties[key] = {
+            "type": "object",
+            "required": ["status", "probability_space"],
+            "properties": {
+                "status": {"type": "string"},
+                "probability_space": {"const": "reference_only"},
+                "asof": {"type": ["string", "null"]},
+            },
+        }
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://jin-investing.local/schemas/read-model-v2.json",
@@ -99,6 +118,24 @@ def validate(model: dict[str, Any]) -> list[str]:
                 validate_cross_asset(cross_asset)
             except (CrossAssetError, TypeError, ValueError) as exc:
                 errors.append(f"cross_asset contract violation: {exc}")
+    reference_validators = {
+        "scenario_tracker": validate_scenario_tracker,
+        "liquidity": validate_liquidity,
+        "ai_regime": validate_ai_regime,
+    }
+    for key, validator in reference_validators.items():
+        payload = model.get(key)
+        if not isinstance(payload, dict):
+            continue
+        if payload.get("probability_space") != "reference_only":
+            errors.append(f"{key} probability_space must be reference_only")
+            continue
+        if payload.get("status") == "blocked":
+            continue
+        try:
+            validator(payload)
+        except (MarketExtensionError, KeyError, TypeError, ValueError) as exc:
+            errors.append(f"{key} contract violation: {exc}")
     return errors
 
 

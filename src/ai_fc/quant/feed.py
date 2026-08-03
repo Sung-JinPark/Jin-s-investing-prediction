@@ -25,6 +25,13 @@ class YahooPriceSeriesResult:
     data_quality: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class YahooDividendResult:
+    dates: list[date]
+    amounts: list[float]
+    receipt: dict[str, Any]
+
+
 def _get(url: str, timeout: int = 60, retries: int = 3) -> str:
     last: Exception | None = None
     for attempt in range(retries):
@@ -128,6 +135,39 @@ def yahoo_price_series(symbol: str, start: date, end: date, interval: str = "1mo
     """
     result = yahoo_price_series_detail(symbol, start, end, interval)
     return result.dates, result.closes, result.adjusted
+
+
+def yahoo_dividends(symbol: str, start: date, end: date) -> YahooDividendResult:
+    """Return explicit cash-dividend events with a reproducibility receipt."""
+    p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
+    p2 = int(datetime(end.year, end.month, end.day, tzinfo=timezone.utc).timestamp())
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}"
+           f"?interval=1d&period1={p1}&period2={p2}&events=div")
+    fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    raw = _get(url)
+    data = json.loads(raw)
+    results = data.get("chart", {}).get("result") or []
+    if not results:
+        raise ValueError(f"Yahoo returned no dividend result for {symbol}")
+    events = (results[0].get("events") or {}).get("dividends") or {}
+    rows: list[tuple[date, float]] = []
+    for event in events.values():
+        stamp, amount = event.get("date"), event.get("amount")
+        if not isinstance(stamp, (int, float)) or not isinstance(amount, (int, float)):
+            continue
+        if amount <= 0:
+            continue
+        rows.append((datetime.fromtimestamp(stamp, tz=timezone.utc).date(), float(amount)))
+    rows.sort()
+    return YahooDividendResult(
+        dates=[row[0] for row in rows], amounts=[row[1] for row in rows],
+        receipt={
+            "source": "yahoo-chart", "symbol": symbol, "interval": "dividend_events",
+            "request_url": url,
+            "response_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+            "fetched_at": fetched_at,
+        },
+    )
 
 
 def yahoo_series(symbol: str, start: date, end: date, interval: str = "1mo"

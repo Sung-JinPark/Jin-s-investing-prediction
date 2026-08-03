@@ -168,6 +168,54 @@ def cmd_cross_asset(
     )
 
 
+@app.command("market-extensions")
+def cmd_market_extensions(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 확정 주간으로 생성 (YYYY-MM-DD)"),
+) -> None:
+    """사전등록 Scenario Tracker와 reference-only 유동성 지도를 갱신한다."""
+    from .market_extensions import refresh_market_extensions
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    result = refresh_market_extensions(config.ROOT, asof=cutoff)
+    tracker = result["tracker"]
+    liquidity = result["liquidity"]
+    typer.echo(
+        f"시장 확장 기준 {tracker['asof']} · tracker "
+        f"{tracker['summary']['available']}/{tracker['summary']['total']} 신호 · "
+        f"liquidity zone {liquidity['zone']} · probability=표시 안 함"
+    )
+
+
+@app.command("ai-capital-cycle")
+def cmd_ai_capital_cycle(
+    asof: str | None = typer.Option(
+        None, "--asof", help="D0–D2 수집 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """SEC D1 layer와 D2 disclosure-coverage gate를 갱신한다."""
+    from .ai_capital_cycle import refresh_ai_capital_cycle
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    result = refresh_ai_capital_cycle(config.ROOT, asof=cutoff)
+    coverage = result["coverage"]
+    gate_label = (
+        "D3 map blocked"
+        if coverage["status"] == "insufficient"
+        else "D3 gate eligible"
+    )
+    typer.echo(
+        f"AI 자본사이클 D2 기준 {coverage['asof']} · coverage "
+        f"{coverage['coverage']:.0%}/{coverage['coverage_threshold']:.0%} · "
+        f"{gate_label}"
+    )
+
+
 @app.command("sync")
 def cmd_sync(
     rebuild: bool = typer.Option(False, "--rebuild", help="DB 전체 재구축 (불변성 사전대조 포함)"),

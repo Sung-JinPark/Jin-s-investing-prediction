@@ -23,7 +23,10 @@
     "probability_semantics",
     "changelog",
     "era_analog",
-    "cross_asset"
+    "cross_asset",
+    "scenario_tracker",
+    "liquidity",
+    "ai_regime"
   ],
   "properties": {
     "meta": {
@@ -133,6 +136,69 @@
         },
         "forecast": {
           "type": "object"
+        }
+      }
+    },
+    "scenario_tracker": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "asof": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "liquidity": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "asof": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ai_regime": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space"
+      ],
+      "properties": {
+        "status": {
+          "type": "string"
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "asof": {
+          "type": [
+            "string",
+            "null"
+          ]
         }
       }
     }

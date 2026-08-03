@@ -48,3 +48,15 @@ def test_yahoo_length_mismatch_raises_instead_of_zip_truncation(monkeypatch) -> 
 def test_get_rejects_zero_retry_configuration() -> None:
     with pytest.raises(RuntimeError, match="not attempted"):
         feed._get("https://example.invalid", retries=0)
+
+
+def test_yahoo_dividends_filters_invalid_events(monkeypatch) -> None:
+    raw = json.dumps({"chart": {"result": [{"events": {"dividends": {
+        "a": {"date": 1_700_000_000, "amount": 0.25},
+        "b": {"date": 1_700_086_400, "amount": 0},
+        "c": {"date": None, "amount": 0.25},
+    }}}]}})
+    monkeypatch.setattr(feed, "_get", lambda _url: raw)
+    result = feed.yahoo_dividends("O", date(2023, 1, 1), date(2024, 1, 1))
+    assert result.amounts == [0.25]
+    assert result.receipt["response_sha256"]

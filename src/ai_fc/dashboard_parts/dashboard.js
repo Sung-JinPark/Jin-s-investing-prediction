@@ -1100,24 +1100,31 @@ function renderFlow(){
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
+  const aiRegime=aiRegimePanel();
+  const liquidity=liquidityPanel();
   p1w.id='lab-future';p1w.setAttribute('role','tabpanel');p1w.setAttribute('aria-labelledby','lab-tab-future');
   if(overlay){overlay.id='lab-history';overlay.setAttribute('role','tabpanel');overlay.setAttribute('aria-labelledby','lab-tab-history');overlay.hidden=true;}
   if(crossAsset){crossAsset.id='lab-cross-asset';crossAsset.setAttribute('role','tabpanel');crossAsset.setAttribute('aria-labelledby','lab-tab-cross-asset');crossAsset.hidden=true;}
+  if(aiRegime){aiRegime.id='lab-ai-regime';aiRegime.setAttribute('role','tabpanel');aiRegime.setAttribute('aria-labelledby','lab-tab-ai-regime');aiRegime.hidden=true;}
+  if(liquidity){liquidity.id='lab-liquidity';liquidity.setAttribute('role','tabpanel');liquidity.setAttribute('aria-labelledby','lab-tab-liquidity');liquidity.hidden=true;}
   const labTabs=el(`<div class="lab-tabs" role="tablist" aria-label="시장 지도 분석 공간">
-    <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>조건부 시나리오</small></button>
+    <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>scenario-conditional</small></button>
     <button type="button" id="lab-tab-history" role="tab" aria-selected="false" aria-controls="lab-history" data-lab-tab="history" ${overlay?'':'disabled'}><span>02</span> 사이클 비교<small>reference-only</small></button>
-    <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 자산 전이<small>BTC · NASDAQ · O</small></button>
+    <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 자산 전이<small>scenario-conditional</small></button>
+    <button type="button" id="lab-tab-ai-regime" role="tab" aria-selected="false" aria-controls="lab-ai-regime" data-lab-tab="ai-regime" ${aiRegime?'':'disabled'}><span>04</span> 자본사이클<small>reference-only</small></button>
+    <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>05</span> 유동성<small>reference-only</small></button>
   </div>`);
-  root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);
+  root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
   const flowHost=$('#chart',p1w),paintFlow=focus=>{flowHost.innerHTML='';drawFlow(flowHost,sc,focus);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   paintFlow('ALL');
-  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset},active=available[space]?space:'future';
+  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future';
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
-  labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>b.onclick=()=>activateLab(b.dataset.labTab));
+  const availableTabs=[...labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)')];
+  availableTabs.forEach((b,index)=>{b.onclick=()=>activateLab(b.dataset.labTab);b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
   if(overlay){
     const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,focus);
       overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
@@ -1125,6 +1132,7 @@ function renderFlow(){
     paintAnalog('ALL');
   }
   if(crossAsset)bindCrossAsset(crossAsset);
+  if(liquidity)bindLiquidity(liquidity);
 }
 function analogPanel(){
   const model=DATA.era_analog;if(!model||model.status!=='ok'||!model.series?.length)return null;
@@ -1204,12 +1212,70 @@ function crossAssetPanel(){
       <div><span>하락꼬리 BTC beta</span><strong>${hasNumeric(beta.bitcoin_to_nasdaq)?Number(beta.bitcoin_to_nasdaq).toFixed(2):'산출 전'}</strong><small>${esc(ci(beta.bitcoin_ci_10_90,beta.observations))}</small></div>
       <div><span>하락꼬리 O beta</span><strong>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'산출 전'}</strong><small>${esc(ci(beta.realty_income_ci_10_90,beta.observations))}</small></div>
     </div>
+    ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
     <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다.</p>
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
   w._crossModel=model;w._defaultScenario=defaultScenario;
   return w;
+}
+function scenarioTrackerMarkup(model){
+  if(!model||model.status==='blocked')return `<section class="tracker-shell is-blocked"><div class="panel-head"><h3>Scenario Tracker</h3><span class="count-chip">원천 대기</span></div><p>주간 신호 스냅샷이 아직 없습니다. 기존 자산 전이 경로에는 임의 신호를 대입하지 않습니다.</p></section>`;
+  const stateLabel={deleveraging_support:'디레버리징 지지',easing_rotation_support:'완화·순환 지지',neutral:'중립',source_unavailable:'원천 미확보'};
+  const counts=model.summary?.counts||{};
+  return `<section class="tracker-shell" aria-labelledby="tracker-title"><div class="panel-head"><div><p class="eyebrow">PREREGISTERED CHECKLIST · 확률 아님</p><h3 id="tracker-title">Scenario Tracker</h3></div><span class="count-chip">주간 기준 ${esc(model.asof)}</span></div>
+    <div class="tracker-summary"><strong>${num(counts.deleveraging_support||0)} 디레버리징 · ${num(counts.easing_rotation_support||0)} 완화 · ${num(counts.neutral||0)} 중립</strong><span>${num(model.summary?.available)}/${num(model.summary?.total)} 신호 가동 · 가중 합산 없음</span></div>
+    <div class="tracker-grid">${(model.signals||[]).map(signal=>`<article class="tracker-card state-${signal.state}"><div><span>${esc(signal.id)}</span><i aria-hidden="true"></i></div><strong>${esc(signal.name)}</strong><small>${esc(stateLabel[signal.state]||signal.state)}</small>${signal.state==='source_unavailable'?`<p>${esc(signal.reason||'원천 미확보')}</p>`:`<p>${Object.entries(signal.metrics||{}).map(([key,value])=>`${esc(key.replaceAll('_',' '))} ${hasNumeric(value)?num(value):'–'}`).join(' · ')}</p>`}</article>`).join('')}</div>
+    <div class="asset-diagnostic-grid"><div><span>BTC 반감기 위치</span><strong>+${num(model.asset_diagnostics?.bitcoin?.months_since_halving)}개월</strong><small>200일선 대비 ${signedDelta(model.asset_diagnostics?.bitcoin?.price_vs_200dma_pct,1,'%')}</small></div><div><span>O 배당–10Y spread</span><strong>${signedDelta(model.asset_diagnostics?.realty_income?.dividend_yield_spread_pp,2,' pp')}</strong><small>금리Δ–O 수익 52주 corr ${num(model.asset_diagnostics?.realty_income?.rate_change_o_return_corr_52w)}</small></div></div>
+    <p class="tracker-warning">${esc(model.warning||'이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다.')}</p></section>`;
+}
+function aiRegimePanel(){
+  const model=DATA.ai_regime||{status:'blocked',coverage:0,coverage_threshold:.6,company_coverage:[],reason:'스냅샷 없음'};
+  const coverage=hasNumeric(model.coverage)?Number(model.coverage):0,threshold=hasNumeric(model.coverage_threshold)?Number(model.coverage_threshold):.6;
+  if(model.status==='blocked'||coverage<threshold){return el(`<div class="chart-panel analysis-panel ai-regime-panel">
+    <p class="eyebrow">AI CAPITAL CYCLE · D2 COVERAGE GATE</p>
+    <div class="panel-head"><div><h2>AI 자본사이클 레짐 지도</h2><p>Funding & Liquidity × AI Monetization Coverage</p></div><span class="count-chip">기준 ${esc(model.asof||'수집 전')}</span></div>
+    <div class="coverage-block-card" role="status"><span>MAP WITHHELD</span><strong>데이터 커버리지 부족</strong><p>현재 ${Math.round(coverage*100)}% · 지도 허용 기준 ${Math.round(threshold*100)}%</p><div class="coverage-meter"><i style="width:${Math.min(100,coverage*100)}%"></i></div><small>불완전한 축 좌표를 그리지 않습니다. 확률·fan·가중치는 표시하지 않습니다.</small></div>
+    <div class="company-coverage-grid">${(model.company_coverage||[]).map(row=>`<div><span>${esc(row.company)}</span><strong>${Math.round(Number(row.coverage||0)*100)}%</strong><small>filing segment 추출 대기</small></div>`).join('')}</div>
+    <div class="reference-banner"><strong>REFERENCE ONLY</strong><span>SEC entity-wide facts 수집 완료 · segment revenue 분리 전 D3 차단</span></div>
+    <p class="chart-note">백필 값은 향후 <strong>reconstructed</strong> 라벨로 실시간 수집 구간과 분리합니다. coverage 60%를 넘기 전에는 사분면·trail·waterfall을 생성하지 않습니다.</p>
+  </div>`);}
+  return el(`<div class="chart-panel analysis-panel ai-regime-panel"><p class="eyebrow">AI CAPITAL CYCLE · D3 GATE</p><div class="panel-head"><div><h2>AI 자본사이클 레짐 지도</h2><p>커버리지 게이트는 통과했지만 검증된 좌표 스냅샷이 없습니다.</p></div><span class="count-chip">기준 ${esc(model.asof||'수집 전')}</span></div><div class="coverage-block-card" role="status"><span>MAP WITHHELD</span><strong>검증 스냅샷 대기</strong><p>D3 산출물을 확인하기 전에는 좌표·trail·fan을 표시하지 않습니다.</p></div></div>`);
+}
+function liquidityPanel(){
+  const model=DATA.liquidity;
+  if(!model||model.status==='blocked'||!model.series?.labels?.length)return el(`<div class="chart-panel analysis-panel liquidity-panel"><p class="eyebrow">LIQUIDITY TIDE MAP · REFERENCE ONLY</p><div class="panel-head"><div><h2>유동성 조류 지도</h2><p>주간 원천 수집이 완료되면 Fed 순유동성과 BTC·NASDAQ 민감도를 같은 축에 표시합니다.</p></div><span class="count-chip">원천 대기</span></div><div class="coverage-block-card" role="status"><span>DATA WITHHELD</span><strong>검증 스냅샷 없음</strong><p>외부 원천 실패 시 이전 스냅샷만 유지하며 임의 값을 채우지 않습니다.</p></div><p class="tracker-warning">유동성 확장이 곧 상승을 뜻하지 않습니다. 시차 상관은 국면 의존 진단입니다.</p></div>`);
+  const zoneLabel={expansion:'확장',neutral:'중립',contraction:'수축'}[model.zone]||model.zone;
+  const lagRows=asset=>(model.lead_lag?.[asset]||[]).map(row=>`<tr><td>${row.lag_weeks}주</td><td>${row.correlation==null?`표본 축적 중 ${num(row.observations)}/${num(row.minimum_observations)}`:Number(row.correlation).toFixed(2)}</td><td>${num(row.observations)}</td></tr>`).join('');
+  const w=el(`<div class="chart-panel analysis-panel liquidity-panel">
+    <p class="eyebrow">LIQUIDITY TIDE MAP · REFERENCE ONLY</p>
+    <div class="panel-head"><div><h2>유동성 조류 지도</h2><p>Fed 순유동성과 BTC·NASDAQ 민감도를 같은 주간축에서 진단</p></div><span class="count-chip">주간 기준 ${esc(model.asof)}</span></div>
+    <div class="liquidity-zone zone-${esc(model.zone)}"><span>CURRENT ZONE</span><strong>${esc(zoneLabel)}</strong><small>Fed 순유동성 4주 변화 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
+    <div class="chart-wrap"><div id="liquidity-chart" style="min-width:980px"></div></div>
+    <div class="liquidity-source-grid"><div><span>실질 M2 YoY</span><strong>원천 미확보</strong><small>${esc(model.real_m2?.reason||'ALFRED vintage 필요')}</small></div><div><span>Stablecoin supply</span><strong>원천 미확보</strong><small>14일 D0 안정성·라이선스 게이트</small></div><div><span>BTC ETF flow</span><strong>원천 미확보</strong><small>2개 원천 교차검증·라이선스 게이트</small></div></div>
+    <details class="analog-limit liquidity-lag"><summary>0·4·8·12주 시차 상관 진단</summary><div class="lag-table-grid"><div><h3>NASDAQ</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('nasdaq')}</tbody></table></div></div><div><h3>Bitcoin</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('bitcoin')}</tbody></table></div></div></div></details>
+    <p class="tracker-warning">${esc(model.warning||'유동성 확장이 곧 상승을 뜻하지 않습니다. 시차 상관은 국면 의존 진단입니다.')}</p>
+  </div>`);w._liquidityModel=model;return w;
+}
+function bindLiquidity(panel){drawLiquidity($('#liquidity-chart',panel),panel._liquidityModel);}
+function drawLiquidity(host,model){
+  const NS='http://www.w3.org/2000/svg',W=1160,H=510,ML=58,MR=28,MT=34,MB=42,GAP=38,PANEL=170,PW=W-ML-MR;
+  const labels=model.series.labels,n=labels.length,z=model.series.fed_net_liquidity_z_52w,ndx=model.series.nasdaq_return_26w_pct,btc=model.series.bitcoin_return_26w_pct,zones=model.series.liquidity_zone;
+  const X=i=>ML+PW*i/Math.max(1,n-1),svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','유동성 조류 주간 차트. 좌우 화살표로 이동');
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'#5f5d57','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||500});node.textContent=value;return node;};
+  const panelTop=[MT,MT+PANEL+GAP],zoneColor={expansion:'#247d78',neutral:'#9a6700',contraction:'#c9002d'};
+  zones.forEach((zone,index)=>svg.appendChild(mk('rect',{x:X(index),y:panelTop[0],width:PW/Math.max(1,n-1)+1,height:PANEL*2+GAP,fill:zoneColor[zone]||'#aaa',opacity:.045})));
+  const scale=(values,top)=>{const nums=values.filter(hasNumeric).map(Number),lo=Math.min(...nums),hi=Math.max(...nums),pad=Math.max(1,(hi-lo)*.12);return value=>top+PANEL*(1-(Number(value)-(lo-pad))/Math.max(1,(hi+pad)-(lo-pad)));};
+  const yz=scale(z,panelTop[0]),yr=scale([...ndx,...btc],panelTop[1]);
+  [[z,'#6b4bc3',yz,panelTop[0],'Fed 순유동성 52주 z'],[ndx,'#ff4f17',yr,panelTop[1],'NASDAQ 26주 수익률'],[btc,'#1f6feb',yr,panelTop[1],'Bitcoin 26주 수익률']].forEach(([values,color,y,top,label])=>{let path='';values.forEach((value,index)=>{if(hasNumeric(value))path+=(path?'L':'M')+X(index)+','+y(value)+' ';});svg.appendChild(mk('path',{d:path,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));svg.appendChild(tx(ML,top-10,label,{fill:color,w:700}));});
+  panelTop.forEach(top=>svg.appendChild(mk('line',{x1:ML,y1:top+PANEL,x2:ML+PW,y2:top+PANEL,stroke:'rgba(17,17,15,.18)'})));
+  [0,Math.floor((n-1)/2),n-1].forEach(index=>svg.appendChild(tx(X(index),H-12,labels[index].slice(0,7),{anc:'middle'})));
+  const cursor=mk('line',{y1:panelTop[0],y2:panelTop[1]+PANEL,stroke:'rgba(17,17,15,.52)','stroke-dasharray':'4 3'});svg.appendChild(cursor);const overlay=mk('rect',{x:ML,y:panelTop[0],width:PW,height:panelTop[1]+PANEL-panelTop[0],fill:'transparent'});svg.appendChild(overlay);
+  const readout=document.createElement('div');readout.className='flow-readout liquidity-readout';readout.setAttribute('role','status');readout.setAttribute('aria-live','polite');let selected=n-1;
+  const paint=index=>{selected=Math.max(0,Math.min(n-1,index));cursor.setAttribute('x1',X(selected));cursor.setAttribute('x2',X(selected));readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(labels[selected])}</strong><small>${esc(({expansion:'확장',neutral:'중립',contraction:'수축'}[zones[selected]]||zones[selected]))} zone</small></div><div><span>Fed liquidity z</span><strong>${hasNumeric(z[selected])?Number(z[selected]).toFixed(2):'표본 축적 중'}</strong><small>52주 rolling</small></div><div><span>NASDAQ</span><strong>${hasNumeric(ndx[selected])?signedDelta(ndx[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div><div><span>Bitcoin</span><strong>${hasNumeric(btc[selected])?signedDelta(btc[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div>`;};
+  const fromPointer=event=>{const rect=svg.getBoundingClientRect(),x=(event.clientX-rect.left)*(W/rect.width);return Math.round((x-ML)/(PW/Math.max(1,n-1)));};overlay.addEventListener('pointermove',event=>paint(fromPointer(event)));overlay.addEventListener('pointerdown',event=>{paint(fromPointer(event));svg.focus();});svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});host.replaceChildren(svg,readout);paint(selected);
 }
 function bindCrossAsset(panel){
   const model=panel._crossModel;let view='scenario',scenarioId=panel._defaultScenario;

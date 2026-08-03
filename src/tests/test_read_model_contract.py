@@ -16,6 +16,10 @@ def _minimal_model() -> dict:
         "history": {},
         "forecast": {},
     }
+    for key in ("scenario_tracker", "liquidity", "ai_regime"):
+        model[key] = {
+            "status": "blocked", "probability_space": "reference_only", "asof": None,
+        }
     return model
 
 
@@ -47,3 +51,9 @@ def test_read_model_contract_rejects_cross_asset_semantic_drift() -> None:
     model["cross_asset"].pop("status")
     model["cross_asset"]["probability_space"] = "physical_event"
     assert any("cross_asset" in error for error in validate(model))
+
+
+def test_read_model_contract_rejects_new_reference_space_drift() -> None:
+    model = _minimal_model()
+    model["liquidity"]["probability_space"] = "scenario_conditional"
+    assert "liquidity probability_space must be reference_only" in validate(model)

@@ -69,7 +69,7 @@ flowchart LR
 | 화면 | 무엇을 볼 수 있나요? |
 |---|---|
 | **오늘의 판단** | 현재 시장 요약, 다시 볼 질문, 핵심 예측 확률 |
-| **시장 맵** | 연말 시나리오, 혁신 사이클, BTC·NASDAQ·Realty Income 조건부 전이 비교 |
+| **시장 맵** | 연말 시나리오, 혁신 사이클, BTC·NASDAQ·Realty Income 조건부 전이, AI 자본사이클 커버리지, 유동성 조류 지도 |
 | **예측 연구** | 전체 질문 검색, 분야·테마 필터, 질문별 근거와 회차 이력 |
 | **시점 리플레이** | 특정 날짜 당시의 예측과 이후 변화 |
 | **트랙레코드** | 해결된 예측, Brier 점수, 확률대별 캘리브레이션 |
@@ -230,8 +230,16 @@ python -m ai_fc resolve <qid> --draft --resolution-data ../docs/examples/resolut
 python -m ai_fc report            # 캘리브레이션 보고서 생성
 python -m ai_fc scenario          # NASDAQ 시장 경로 갱신
 python -m ai_fc cross-asset       # BTC·NASDAQ·Realty Income 전이 지도 갱신
+python -m ai_fc market-extensions # Scenario Tracker·유동성 조류 지도 주간 갱신
+python -m ai_fc ai-capital-cycle  # SEC 자본지출·공시 커버리지 월간 갱신
 python -m ai_fc dashboard --serve --host 0.0.0.0
 ```
+
+시장 맵은 다섯 공간을 분리해 보여줍니다. 01·03은 조건부 시나리오이고 02·04·05는
+참고용 진단입니다. Scenario Tracker는 일곱 방향 신호의 개수만 표시하며 점수나 확률로
+변환하지 않습니다. AI 자본사이클은 기업별 segment 공시 커버리지가 60%에 못 미치면
+좌표·trail·fan을 숨깁니다. 유동성 시차상관도 공통 주간 표본 156개 전에는 숫자 대신
+`표본 축적 중 n/156`을 표시합니다.
 
 교차자산 지도는 가격 단위가 다른 NASDAQ·Bitcoin·Realty Income을 `현재=100`의 조건부
 민감도 경로로 비교합니다. 이는 목표가격이나 사건 확률이 아닙니다. 2026-08-03에는

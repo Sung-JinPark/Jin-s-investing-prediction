@@ -1,0 +1,62 @@
+schema_version: 1
+rules_version: 2026-08-03.v1
+status: preregistered_before_outcome_observation
+preregistered_at: 2026-08-03
+probability_space: reference_only
+change_policy: append an approved calibration/corrections.csv row and issue a new rules_version
+states: [deleveraging_support, easing_rotation_support, neutral, source_unavailable]
+aggregation:
+  method: count_by_state_only
+  weighted_score: prohibited
+  probability_conversion: prohibited
+signals:
+  S1:
+    name: HY 스프레드 방향
+    source: fred
+    series: [BAMLH0A0HYM2]
+    deleveraging: {metric: four_week_change_bp, operator: gte, threshold: 50}
+    easing_rotation: {metric: drawdown_from_13w_peak_bp, operator: lte, threshold: -25}
+  S2:
+    name: 실질 10Y 금리
+    source: fred
+    series: [DFII10]
+    deleveraging: {metric: weekly_increases_last_4, operator: gte, threshold: 3}
+    easing_rotation: {metric: drawdown_from_13w_peak_bp, operator: lte, threshold: -30}
+  S3:
+    name: 달러 지수
+    source: fred
+    series: [DTWEXBGS]
+    deleveraging: {metric: four_week_change_pct, operator: gte, threshold: 2}
+    easing_rotation: {metric: four_week_change_pct, operator: lte, threshold: -2}
+  S4:
+    name: Fed 순유동성
+    source: fred
+    series: [WALCL, WTREGEN, RRPONTSYD]
+    formula: WALCL_millions - WTREGEN_millions - (RRPONTSYD_billions * 1000)
+    deleveraging: {metric: weekly_decreases_last_4, operator: gte, threshold: 3}
+    easing_rotation: {metric: four_week_change_pct, operator: gt, threshold: 0}
+  S5:
+    name: 스테이블코인 총액 증감
+    source: defillama_stablecoins
+    activation_gate: 14 consecutive daily schema-compatible fetches and approved license review
+    deleveraging: {metric: four_week_change_pct, operator: lt, threshold: 0}
+    easing_rotation: {metric: four_week_change_pct, operator: gte, threshold: 2}
+  S6:
+    name: BTC 현물 ETF 순유입
+    source: btc_etf_flows
+    activation_gate: two independent sources and approved redistribution license review
+    deleveraging: {metric: four_week_net_flow_usd, operator: lt, threshold: 0}
+    easing_rotation: {metric: four_week_net_flow_usd, operator: gt, threshold: 0}
+  S7:
+    name: NASDAQ 대비 BTC 상대강도
+    source: yahoo_crosscheck
+    deleveraging: {metric: relative_return_60d_pct, operator: lt, threshold: 0}
+    easing_rotation:
+      all:
+        - {metric: relative_return_60d_pct, operator: lt, threshold: 0}
+        - {metric: relative_return_20d_pct, operator: gt, threshold: 0}
+liquidity_zone:
+  shared_metric: fed_net_liquidity_four_week_change_pct
+  expansion: {operator: gte, threshold: 0.5}
+  contraction: {operator: lte, threshold: -0.5}
+  otherwise: neutral

@@ -237,6 +237,11 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     from .cross_asset import load_cross_asset, load_cross_asset_history
     cross_asset = load_cross_asset(root)
     cross_asset_history = load_cross_asset_history(root)
+    from .market_extensions import load_liquidity, load_scenario_tracker
+    from .ai_capital_cycle import load_ai_regime
+    scenario_tracker = load_scenario_tracker(root)
+    liquidity = load_liquidity(root)
+    ai_regime = load_ai_regime(root)
 
     # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
     from .model_registry import arena_rows
@@ -375,6 +380,9 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "changelog": changelog,
         "era_analog": era_analog,
         "cross_asset": cross_asset,
+        "scenario_tracker": scenario_tracker,
+        "liquidity": liquidity,
+        "ai_regime": ai_regime,
     }
     from .read_model_contract import assert_valid
     assert_valid(model)

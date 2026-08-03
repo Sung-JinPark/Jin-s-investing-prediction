@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "asof": "2026-08-03",
+  "generated_at": "2026-08-03T10:25:48+00:00",
+  "probability_space": "reference_only",
+  "model_version": "2026-08-03.v1",
+  "gate": "D2",
+  "status": "insufficient",
+  "coverage": 0.0,
+  "coverage_threshold": 0.6,
+  "companies": [
+    {
+      "company": "MSFT",
+      "cik": "0000789019",
+      "metrics": {
+        "capex": {
+          "status": "reported",
+          "taxonomy_tag": "PaymentsToAcquirePropertyPlantAndEquipment",
+          "fallbacks_checked": [
+            "PaymentsToAcquirePropertyPlantAndEquipment",
+            "PaymentsForAdditionsToPropertyPlantAndEquipment"
+          ]
+        },
+        "operating_cashflow": {
+          "status": "reported",
+          "taxonomy_tag": "NetCashProvidedByUsedInOperatingActivities",
+          "fallbacks_checked": [
+            "NetCashProvidedByUsedInOperatingActivities"
+          ]
+        },
+        "depreciation_amortization": {
+          "status": "missing",
+          "taxonomy_tag": null,
+          "fallbacks_checked": [
+            "DepreciationDepletionAndAmortization",
+            "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+          ]
+        },
+        "debt_issued": {
+          "status": "missing",
+          "taxonomy_tag": null,
+          "fallbacks_checked": [
+            "ProceedsFromIssuanceOfLongTermDebt",
+            "ProceedsFromIssuanceOfDebt"
+          ]
+        }
+      },
+      "segment_revenue": "requires_filing_level_dimension_extraction",
+      "explicit_ai_revenue": "not_inferred",
+      "coverage_numerator": 0.0,
+      "coverage_denominator": 2.0,
+      "partial_contribution": 0.0,
+      "disclosure_coverage": 0.0,
+      "coverage_formula_version": "2026-08-03.v1"
+    },
+    {
+      "company": "AMZN",
+      "cik": "0001018724",
+      "metrics": {
+        "capex": {
+          "status": "reported",
+          "taxonomy_tag": "PaymentsToAcquirePropertyPlantAndEquipment",
+          "fallbacks_checked": [
+            "PaymentsToAcquirePropertyPlantAndEquipment",
+            "PaymentsForAdditionsToPropertyPlantAndEquipment"
+          ]
+        },
+        "operating_cashflow": {
+          "status": "reported",
+          "taxonomy_tag": "NetCashProvidedByUsedInOperatingActivities",
+          "fallbacks_checked": [
+            "NetCashProvidedByUsedInOperatingActivities"
+          ]
+        },
+        "depreciation_amortization": {
+          "status": "reported",
+          "taxonomy_tag": "DepreciationDepletionAndAmortization",
+          "fallbacks_checked": [
+            "DepreciationDepletionAndAmortization",
+            "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+          ]
+        },
+        "debt_issued": {
+          "status": "reported",
+          "taxonomy_tag": "ProceedsFromIssuanceOfLongTermDebt",
+          "fallbacks_checked": [
+            "ProceedsFromIssuanceOfLongTermDebt",
+            "ProceedsFromIssuanceOfDebt"
+          ]
+        }
+      },
+      "segment_revenue": "requires_filing_level_dimension_extraction",
+      "explicit_ai_revenue": "not_inferred",
+      "coverage_numerator": 0.0,
+      "coverage_denominator": 2.0,
+      "partial_contribution": 0.0,
+      "disclosure_coverage": 0.0,
+      "coverage_formula_version": "2026-08-03.v1"
+    },
+    {
+      "company": "GOOGL",
+      "cik": "0001652044",
+      "metrics": {
+        "capex": {
+          "status": "reported",
+          "taxonomy_tag": "PaymentsToAcquirePropertyPlantAndEquipment",
+          "fallbacks_checked": [
+            "PaymentsToAcquirePropertyPlantAndEquipment",
+            "PaymentsForAdditionsToPropertyPlantAndEquipment"
+          ]
+        },
+        "operating_cashflow": {
+          "status": "reported",
+          "taxonomy_tag": "NetCashProvidedByUsedInOperatingActivities",
+          "fallbacks_checked": [
+            "NetCashProvidedByUsedInOperatingActivities"
+          ]
+        },
+        "depreciation_amortization": {
+          "status": "missing",
+          "taxonomy_tag": null,
+          "fallbacks_checked": [
+            "DepreciationDepletionAndAmortization",
+            "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+          ]
+        },
+        "debt_issued": {
+          "status": "missing",
+          "taxonomy_tag": null,
+          "fallbacks_checked": [
+            "ProceedsFromIssuanceOfLongTermDebt",
+            "ProceedsFromIssuanceOfDebt"
+          ]
+        }
+      },
+      "segment_revenue": "requires_filing_level_dimension_extraction",
+      "explicit_ai_revenue": "not_inferred",
+      "coverage_numerator": 0.0,
+      "coverage_denominator": 2.0,
+      "partial_contribution": 0.0,
+      "disclosure_coverage": 0.0,
+      "coverage_formula_version": "2026-08-03.v1"
+    },
+    {
+      "company": "META",
+      "cik": "0001326801",
+      "metrics": {
+        "capex": {
+          "status": "reported",
+          "taxonomy_tag": "PaymentsToAcquirePropertyPlantAndEquipment",
+          "fallbacks_checked": [
+            "PaymentsToAcquirePropertyPlantAndEquipment",
+            "PaymentsForAdditionsToPropertyPlantAndEquipment"
+          ]
+        },
+        "operating_cashflow": {
+          "status": "reported",
+          "taxonomy_tag": "NetCashProvidedByUsedInOperatingActivities",
+          "fallbacks_checked": [
+            "NetCashProvidedByUsedInOperatingActivities"
+          ]
+        },
+        "depreciation_amortization": {
+          "status": "reported",
+          "taxonomy_tag": "DepreciationDepletionAndAmortization",
+          "fallbacks_checked": [
+            "DepreciationDepletionAndAmortization",
+            "DepreciationDepletionAndAmortizationPropertyPlantAndEquipment"
+          ]
+        },
+        "debt_issued": {
+          "status": "reported",
+          "taxonomy_tag": "ProceedsFromIssuanceOfLongTermDebt",
+          "fallbacks_checked": [
+            "ProceedsFromIssuanceOfLongTermDebt",
+            "ProceedsFromIssuanceOfDebt"
+          ]
+        }
+      },
+      "segment_revenue": "requires_filing_level_dimension_extraction",
+      "explicit_ai_revenue": "not_inferred",
+      "coverage_numerator": 0.0,
+      "coverage_denominator": 2.0,
+      "partial_contribution": 0.0,
+      "disclosure_coverage": 0.0,
+      "coverage_formula_version": "2026-08-03.v1"
+    }
+  ],
+  "reason": "회사별 cloud/AI segment 수익을 filing dimension으로 아직 분리하지 못했습니다.",
+  "next_gate": "D3 blocked until filing-level segment extraction reaches 60% coverage"
+}

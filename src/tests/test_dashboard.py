@@ -304,6 +304,13 @@ def test_workspace_utility_contract() -> None:
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
+    assert 'data-lab-tab="ai-regime"' in html and 'data-lab-tab="liquidity"' in html
+    assert "Scenario Tracker" in html and "가중 합산 없음" in html
+    assert "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다" in html
+    assert "데이터 커버리지 부족" in html and "MAP WITHHELD" in html
+    assert "표본 축적 중 ${num(row.observations)}/${num(row.minimum_observations)}" in html
+    assert "유동성 확장이 곧 상승을 뜻하지 않습니다" in html
+    assert "function drawLiquidity" in html and "liquidity_zone" in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:

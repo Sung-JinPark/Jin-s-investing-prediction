@@ -15,6 +15,7 @@ archive와 다른 내용은 승인된 corrections 행이 있을 때 별도 revis
 from __future__ import annotations
 
 import csv
+import hashlib
 import json
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
@@ -29,6 +30,7 @@ from .quant import feed
 SCHEMA_VERSION = 1
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
+RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
 HISTORY_START = date(2000, 12, 1)
 HISTORY_END = date(2006, 1, 2)
 HISTORY_PERIOD_START_LABEL = "2000-12"
@@ -678,6 +680,29 @@ def _dotcom_peak_reference(result: feed.YahooPriceSeriesResult) -> dict[str, Any
     }
 
 
+def _persist_receipt_bundle(root: Path, asof: str,
+                            results: list[feed.YahooPriceSeriesResult]) -> Path:
+    """Append a content-addressed request receipt without storing raw responses."""
+    requests = [result.receipt for result in results]
+    identity = "|".join(sorted(str(item.get("response_sha256") or "") for item in requests))
+    fingerprint = hashlib.sha256(identity.encode()).hexdigest()
+    payload = {
+        "schema_version": 1, "asof": asof,
+        "available_at": max(str(item.get("fetched_at") or "") for item in requests),
+        "source_fingerprint": fingerprint,
+        "revision_vintage": "captured_current", "requests": requests,
+    }
+    directory = root / RECEIPT_RELATIVE_DIR
+    directory.mkdir(parents=True, exist_ok=True)
+    path = directory / f"{asof}_{fingerprint[:12]}.json"
+    serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    if path.exists() and path.read_text(encoding="utf-8") != serialized:
+        raise CrossAssetError(f"immutable receipt conflict: {path}")
+    if not path.exists():
+        path.write_text(serialized, encoding="utf-8", newline="\n")
+    return path
+
+
 def refresh_cross_asset(root: Path, *, asof: date | None = None,
                         force: bool = False, now: datetime | None = None
                         ) -> tuple[Path, dict[str, Any], bool]:
@@ -708,6 +733,9 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     common_dates, n_values, b_values, o_values = (
         common_dates[:last], n_values[:last], b_values[:last], o_values[:last])
 
+    all_results = [history_n, history_o, dotcom_n, *daily.values()]
+    _persist_receipt_bundle(root, common_dates[-1].isoformat(), all_results)
+
     latest = root / LATEST_RELATIVE_PATH
     if latest.exists() and not force:
         try:
@@ -717,7 +745,6 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         except (OSError, json.JSONDecodeError, CrossAssetError):
             pass
 
-    all_results = [history_n, history_o, dotcom_n, *daily.values()]
     payload = build_cross_asset(
         history_dates=h_common,
         history_nasdaq=[h_n[day] for day in h_common],

@@ -23,9 +23,17 @@ def test_scenario_and_full_refresh_share_writer_lock() -> None:
     scenario = (ROOT / ".github" / "workflows" / "scenario-refresh.yml").read_text(
         encoding="utf-8"
     )
+    ai_regime = (ROOT / ".github" / "workflows" / "ai-regime-refresh.yml").read_text(
+        encoding="utf-8"
+    )
 
     assert "group: investing-data-writer" in full
     assert "group: investing-data-writer" in scenario
+    assert "group: investing-data-writer" in ai_regime
+    assert "continue-on-error: true" in scenario
+    assert "continue-on-error: true" in ai_regime
+    assert "python -m ai_fc market-extensions" in scenario
+    assert "python -m ai_fc ai-capital-cycle" in ai_regime
 
 
 def test_bot_data_commits_trigger_pages_and_verification() -> None:
@@ -33,7 +41,7 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     verify = (ROOT / ".github" / "workflows" / "verify.yml").read_text(encoding="utf-8")
 
     for workflow in (pages, verify):
-        assert 'workflows: ["investing-refresh", "scenario-refresh"]' in workflow
+        assert 'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh"]' in workflow
         assert "types: [completed]" in workflow
 
     ots = (ROOT / ".github" / "workflows" / "ots-stamp.yml").read_text(

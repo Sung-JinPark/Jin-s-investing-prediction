@@ -1,0 +1,16 @@
+schema_version: 1
+source_id: fred_market_signals
+description: Current-vintage FRED observations for tracker and liquidity monitoring.
+endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv
+series_ids: [BAMLH0A0HYM2, DFII10, DTWEXBGS, WALCL, WTREGEN, RRPONTSYD, DGS10, BAMLC0A0CM, VIXCLS]
+enabled: true
+license_status: approved
+vintage_capability: captured
+point_in_time_scope: Operational observations captured from activation onward; historical current-vintage rows are not valid for backtests.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+units:
+  WALCL: millions_usd
+  WTREGEN: millions_usd
+  RRPONTSYD: billions_usd
+quality_checks: [http_200, csv_schema, numeric_or_missing, monotonic_date, sha256_receipt]
+fallback: Preserve the previous snapshot and mark stale; never manufacture a value.

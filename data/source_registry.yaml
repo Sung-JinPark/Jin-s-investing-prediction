@@ -77,3 +77,47 @@ sources:
     license_status: review_required
     enabled: false
     contract: data/contracts/yahoo_crosscheck.yaml
+  - id: fred_market_signals
+    name: FRED current-vintage market signals
+    provider: Federal Reserve Bank of St. Louis
+    tier: official
+    endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/fred_market_signals.yaml
+  - id: defillama_stablecoins
+    name: DefiLlama stablecoin supply candidate
+    provider: DefiLlama
+    tier: public
+    endpoint: https://stablecoins.llama.fi/stablecoincharts/all
+    cadence: daily-monitoring
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: review_required
+    enabled: false
+    contract: data/contracts/defillama_stablecoins.yaml
+  - id: btc_etf_flows
+    name: Bitcoin spot ETF flow candidate
+    provider: pending two-source review
+    tier: public
+    endpoint: pending
+    cadence: business-daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: review_required
+    enabled: false
+    contract: data/contracts/btc_etf_flows.yaml
+  - id: iea_eia_capacity
+    name: AI physical capacity candidate
+    provider: IEA and EIA
+    tier: official
+    endpoint: pending-machine-readable-contract
+    cadence: monthly
+    freshness_sla_hours: 744
+    vintage_capability: captured
+    license_status: review_required
+    enabled: false
+    contract: data/contracts/iea_eia_capacity.yaml

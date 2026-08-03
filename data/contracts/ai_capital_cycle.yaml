@@ -1,0 +1,20 @@
+schema_version: 1
+dataset_id: ai_capital_cycle
+description: SEC-first D1/D2 layer for the AI capital-cycle coverage gate.
+source_ids: [sec_edgar, alfred, fred_market_signals, iea_eia_capacity]
+enabled_stage: D0_D2
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+companyfacts_scope: Entity-wide standardized US-GAAP facts only; segment dimensions require filing-level extraction through canonical_segment_map.yaml.
+capex_tag_fallbacks:
+  - PaymentsToAcquirePropertyPlantAndEquipment
+  - PaymentsForAdditionsToPropertyPlantAndEquipment
+operating_cashflow_tag_fallbacks:
+  - NetCashProvidedByUsedInOperatingActivities
+depreciation_tag_fallbacks:
+  - DepreciationDepletionAndAmortization
+  - DepreciationDepletionAndAmortizationPropertyPlantAndEquipment
+debt_issued_tag_fallbacks:
+  - ProceedsFromIssuanceOfLongTermDebt
+  - ProceedsFromIssuanceOfDebt
+quality_checks: [http_200, company_cik_match, standard_tag_only, filing_available_at, source_sha256, no_segment_inference]
+fallback: Reduce disclosure coverage and block the regime map below 60%; never infer AI revenue.

@@ -10,6 +10,7 @@ import pytest
 
 from ai_fc.cross_asset import (
     CrossAssetError,
+    _dotcom_peak_reference,
     _persist_snapshot,
     build_cross_asset,
     refresh_cross_asset,
@@ -211,3 +212,16 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
         now=datetime(2026, 8, 3, 15, 0, tzinfo=ZoneInfo("America/New_York")),
     )
     assert payload["asof"] == "2026-07-31"
+    receipts = list((tmp_path / "data" / "cross_asset" / "receipts").glob("*.json"))
+    assert len(receipts) == 1
+
+
+def test_dotcom_peak_reference_returns_measured_drawdown() -> None:
+    rows = [date(2000, 3, 1), date(2005, 12, 1)]
+    result = YahooPriceSeriesResult(
+        dates=rows, closes=[100.0, 48.2], adjusted=[100.0, 48.2],
+        receipt={}, data_quality={"status": "ok"},
+    )
+    reference = _dotcom_peak_reference(result)
+    assert reference["status"] == "ok"
+    assert reference["nasdaq_price_pct"] == -51.8
