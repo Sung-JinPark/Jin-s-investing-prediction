@@ -143,6 +143,31 @@ def cmd_scenario(
     )
 
 
+@app.command("cross-asset")
+def cmd_cross_asset(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 공통 확정 일봉 (YYYY-MM-DD)"),
+    force: bool = typer.Option(
+        False, "--force", help="같은 시장 기준일이어도 스냅샷을 다시 생성"),
+) -> None:
+    """BTC·NASDAQ·Realty Income 조건부 전이 지도를 공개 가격에서 재생성한다."""
+    from .cross_asset import refresh_cross_asset
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_cross_asset(
+        config.ROOT, asof=cutoff, force=force)
+    state = "갱신" if changed else "변경 없음"
+    metrics = payload["diagnostics"]["corr_60d"]
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 공통 시장 기준 {payload['asof']} · "
+        f"60일 corr BTC/NDX {metrics['bitcoin_nasdaq']} · O/NDX "
+        f"{metrics['realty_income_nasdaq']}"
+    )
+
+
 @app.command("sync")
 def cmd_sync(
     rebuild: bool = typer.Option(False, "--rebuild", help="DB 전체 재구축 (불변성 사전대조 포함)"),

@@ -27,12 +27,14 @@ jobs:
         run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
       - name: Refresh NASDAQ scenario snapshot
         run: cd src && python -m ai_fc scenario
-      - name: Commit a new completed-market-day snapshot
+      - name: Refresh cross-asset transmission snapshot
+        run: cd src && python -m ai_fc cross-asset
+      - name: Commit new completed-market-day snapshots
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/scenarios
+          git add data/scenarios data/cross_asset
           if git diff --cached --quiet; then
             echo "No new completed market day; nothing to commit."
             exit 0

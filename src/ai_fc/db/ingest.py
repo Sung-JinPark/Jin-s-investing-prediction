@@ -223,6 +223,7 @@ def _rebuild_lineage_edges(conn: sqlite3.Connection, root: Path, now: str) -> No
         ("lineage:forecast-read-model", "dataset", "forecasts/", "surface", "dashboard", "builds"),
         ("lineage:scenario-read-model", "dataset", "data/scenarios/archive", "surface", "scenario", "builds"),
         ("lineage:context-era", "dataset", "data/ml_history", "surface", "era_analog", "normalizes"),
+        ("lineage:cross-asset-map", "dataset", "data/cross_asset/archive", "surface", "cross_asset", "builds"),
         ("lineage:provider-shadow-arena", "ledger", "calibration/provider_shadow_ledger.csv", "surface", "arena", "benchmarks"),
     )
     conn.executemany(

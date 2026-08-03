@@ -26,24 +26,38 @@ def _get(url: str, timeout: int = 60, retries: int = 3) -> str:
     raise last  # type: ignore[misc]
 
 
-def yahoo_series(symbol: str, start: date, end: date, interval: str = "1mo"
-                 ) -> tuple[list[date], list[float]]:
-    """Yahoo chart API에서 (일자, 종가) 시계열. 1mo는 월초 스탬프 = 해당 월."""
+def yahoo_price_series(symbol: str, start: date, end: date, interval: str = "1mo"
+                       ) -> tuple[list[date], list[float], list[float]]:
+    """Yahoo chart API의 일자·종가·수정종가 시계열.
+
+    ``adjclose``는 분할과 현금배당을 반영하므로 Realty Income 같은 고배당
+    자산의 가격수익과 총수익 proxy를 분리할 때만 명시적으로 사용한다.
+    공급자가 수정종가를 주지 않으면 종가로 fail-soft 한다.
+    """
     p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())
     p2 = int(datetime(end.year, end.month, end.day, tzinfo=timezone.utc).timestamp())
     url = (f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol)}"
-           f"?interval={interval}&period1={p1}&period2={p2}")
+           f"?interval={interval}&period1={p1}&period2={p2}&events=div%2Csplits")
     data = json.loads(_get(url))
     result = data["chart"]["result"][0]
     ts = result["timestamp"]
     closes = result["indicators"]["quote"][0]["close"]
-    dates, vals = [], []
-    for t, c in zip(ts, closes):
+    adjusted = result["indicators"].get("adjclose", [{}])[0].get("adjclose", closes)
+    dates, vals, adjusted_vals = [], [], []
+    for t, c, a in zip(ts, closes, adjusted):
         if c is None:
             continue
         dates.append(datetime.fromtimestamp(t, tz=timezone.utc).date())
         vals.append(float(c))
-    return dates, vals
+        adjusted_vals.append(float(a if a is not None else c))
+    return dates, vals, adjusted_vals
+
+
+def yahoo_series(symbol: str, start: date, end: date, interval: str = "1mo"
+                 ) -> tuple[list[date], list[float]]:
+    """Yahoo chart API에서 (일자, 종가) 시계열. 1mo는 월초 스탬프 = 해당 월."""
+    dates, closes, _ = yahoo_price_series(symbol, start, end, interval)
+    return dates, closes
 
 
 def monthly_closes(symbol: str, start: date, end: date) -> tuple[list[str], list[float]]:

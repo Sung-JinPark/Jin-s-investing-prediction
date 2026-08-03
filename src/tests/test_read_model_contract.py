@@ -9,6 +9,12 @@ def _minimal_model() -> dict:
         "unit": "log10(index/100)",
         "series": [],
     }
+    model["cross_asset"] = {
+        "probability_space": "scenario_conditional",
+        "unit": "index_100",
+        "history": {},
+        "forecast": {},
+    }
     return model
 
 
@@ -30,3 +36,12 @@ def test_json_schema_lists_all_additive_and_legacy_keys() -> None:
     assert contract["properties"]["era_analog"]["properties"]["probability_space"] == {
         "const": "reference_only"
     }
+    assert contract["properties"]["cross_asset"]["properties"]["probability_space"] == {
+        "const": "scenario_conditional"
+    }
+
+
+def test_read_model_contract_rejects_cross_asset_semantic_drift() -> None:
+    model = _minimal_model()
+    model["cross_asset"]["probability_space"] = "physical_event"
+    assert any("cross_asset" in error for error in validate(model))

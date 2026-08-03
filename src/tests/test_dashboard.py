@@ -52,7 +52,7 @@ def test_read_model_shape(repo: Path) -> None:
     for key in ("meta", "scenario", "scenario_history", "questions", "forecast_history",
                 "resolutions", "ml_runs", "market_runs", "calibration", "due",
                 "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
-                "probability_semantics", "changelog", "era_analog"):
+                "probability_semantics", "changelog", "era_analog", "cross_asset"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
@@ -64,6 +64,7 @@ def test_read_model_shape(repo: Path) -> None:
     assert m["probability_semantics"]["canonical_unit"] == "fraction"
     assert m["calibration"]["gate_v2"]["display_only"] is True
     assert m["era_analog"]["probability_space"] == "reference_only"
+    assert m["cross_asset"]["probability_space"] == "scenario_conditional"
 
 
 def test_forecast_body_dictionary_round_trip() -> None:
@@ -157,8 +158,9 @@ def test_ui_contract() -> None:
     assert "bindDynamicMotion" in html and "requestAnimationFrame(paint)" in html
     assert "--tilt-x" in html and "pointermove" in html
     assert ".filter-bar{position:sticky" in html
-    # 두 SVG 생성 함수 유지
+    # 시장 지도 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
+    assert "function drawCrossAsset" in html and "function drawCrossAssetHistory" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
     assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
@@ -293,6 +295,11 @@ def test_workspace_utility_contract() -> None:
     assert "DATA.era_analog" in html
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" not in html
+    assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
+    assert "BTC DATA GAP · 정상 결측" in html
+    assert "동반 디레버리징" in html and "data-cross-scenario" in html
+    assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
+    assert 'class="cross-anchor-strip"' in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:

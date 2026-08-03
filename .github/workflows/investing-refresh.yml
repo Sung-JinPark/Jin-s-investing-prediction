@@ -55,6 +55,11 @@ jobs:
         if: env.RUN_MODE == 'full'
         continue-on-error: true
         run: python -m ai_fc scenario
+      - name: Refresh BTC, Nasdaq and Realty Income transmission map
+        id: cross_asset
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc cross-asset
 
       - name: Verify the owner-approved OpenAI producer
         env:
@@ -97,7 +102,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/base_rates data/ml_history data/scenarios forecasts \
+          git add data/base_rates data/ml_history data/scenarios data/cross_asset forecasts \
             calibration/cost_log.csv docs/generated
           if git diff --cached --quiet; then
             echo "No investing data changes to commit."
@@ -116,6 +121,7 @@ jobs:
             "quant:${{ steps.quant.outcome }}" \
             "market:${{ steps.market.outcome }}" \
             "scenario:${{ steps.scenario.outcome }}" \
+            "cross_asset:${{ steps.cross_asset.outcome }}" \
             "openai:${{ steps.openai.outcome }}"; do
             name="${outcome%%:*}"
             state="${outcome#*:}"

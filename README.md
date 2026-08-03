@@ -69,7 +69,7 @@ flowchart LR
 | 화면 | 무엇을 볼 수 있나요? |
 |---|---|
 | **오늘의 판단** | 현재 시장 요약, 다시 볼 질문, 핵심 예측 확률 |
-| **시장 맵** | 연말 시나리오 경로, 주요 이벤트, 과거 혁신 사이클 비교 |
+| **시장 맵** | 연말 시나리오, 혁신 사이클, BTC·NASDAQ·Realty Income 조건부 전이 비교 |
 | **예측 연구** | 전체 질문 검색, 분야·테마 필터, 질문별 근거와 회차 이력 |
 | **시점 리플레이** | 특정 날짜 당시의 예측과 이후 변화 |
 | **트랙레코드** | 해결된 예측, Brier 점수, 확률대별 캘리브레이션 |
@@ -228,6 +228,8 @@ python -m ai_fc resolve --draft   # 기계 판정 초안 — 최종 확정은 �
 # macro/earnings는 두 출처 관측 JSON을 함께 제공
 python -m ai_fc resolve <qid> --draft --resolution-data ../docs/examples/resolution_observations.example.json
 python -m ai_fc report            # 캘리브레이션 보고서 생성
+python -m ai_fc scenario          # NASDAQ 시장 경로 갱신
+python -m ai_fc cross-asset       # BTC·NASDAQ·Realty Income 전이 지도 갱신
 python -m ai_fc dashboard --serve --host 0.0.0.0
 ```
 

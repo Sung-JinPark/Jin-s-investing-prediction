@@ -234,6 +234,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
     era_analog = build_era_analog(legacy_context)
+    from .cross_asset import load_cross_asset
+    cross_asset = load_cross_asset(root)
 
     # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
     from .model_registry import arena_rows
@@ -271,6 +273,22 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "SELECT upstream_type,upstream_id,relation FROM lineage_edge "
             "WHERE downstream_id='scenario' ORDER BY edge_id")),
     }]
+    if cross_asset.get("status") != "blocked":
+        receipts.append({
+            "receipt_id": "cross-asset:current",
+            "label": "BTC·NASDAQ·Realty Income 자산 전이",
+            "model": "downside-beta-plus-conditional-offset-v1",
+            "dataset": cross_asset.get("asof") or "미산출",
+            "source": " · ".join(
+                item.get("label", "") for item in cross_asset.get("sources", [])
+                if item.get("label")) or "미산출",
+            "method": "공통거래일 수정종가·하락꼬리 beta·조건부 sensitivity",
+            "limitation": cross_asset.get("forecast", {}).get("semantics") or "미산출",
+            "commit": db_meta.get("head") or "미산출",
+            "lineage": _rows(conn.execute(
+                "SELECT upstream_type,upstream_id,relation FROM lineage_edge "
+                "WHERE downstream_id='cross_asset' ORDER BY edge_id")),
+        })
     asof_index = [{
         "asof": item.get("asof"), "generated_at": item.get("generated_at"),
         "snapshot_ref": f"scenario:{item.get('asof')}", "available": True,
@@ -327,6 +345,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "changelog": changelog,
         "era_analog": era_analog,
+        "cross_asset": cross_asset,
     }
     from .read_model_contract import assert_valid
     assert_valid(model)

@@ -22,7 +22,8 @@
     "corrections",
     "probability_semantics",
     "changelog",
-    "era_analog"
+    "era_analog",
+    "cross_asset"
   ],
   "properties": {
     "meta": {
@@ -103,6 +104,29 @@
         },
         "series": {
           "type": "array"
+        }
+      }
+    },
+    "cross_asset": {
+      "type": "object",
+      "required": [
+        "probability_space",
+        "unit",
+        "history",
+        "forecast"
+      ],
+      "properties": {
+        "probability_space": {
+          "const": "scenario_conditional"
+        },
+        "unit": {
+          "const": "index_100"
+        },
+        "history": {
+          "type": "object"
+        },
+        "forecast": {
+          "type": "object"
         }
       }
     }
