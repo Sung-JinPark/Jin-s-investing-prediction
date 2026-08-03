@@ -39,7 +39,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/scenarios data/cross_asset data/signals data/liquidity
+          git add data/scenarios data/cross_asset
+          for optional_dir in data/signals data/liquidity; do
+            if [ -d "$optional_dir" ]; then
+              git add "$optional_dir"
+            fi
+          done
           if git diff --cached --quiet; then
             echo "No new completed market day; nothing to commit."
             exit 0

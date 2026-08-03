@@ -34,6 +34,7 @@ def test_scenario_and_full_refresh_share_writer_lock() -> None:
     assert "continue-on-error: true" in ai_regime
     assert "python -m ai_fc market-extensions" in scenario
     assert "python -m ai_fc ai-capital-cycle" in ai_regime
+    assert 'if [ -d "$optional_dir" ]' in scenario
 
 
 def test_bot_data_commits_trigger_pages_and_verification() -> None:
