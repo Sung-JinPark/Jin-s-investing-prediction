@@ -38,6 +38,7 @@ FRED_SERIES = (
 )
 DISPLAY_WEEKS = 78
 LEAD_LAG_MIN_WEEKS = 156
+TRACKER_BUDGET_BYTES = 8_000
 
 
 class MarketExtensionError(ValueError):
@@ -63,7 +64,7 @@ def fetch_fred_series(series_id: str, start: date) -> FredSeries:
     )
     fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
-        raw = feed._get(url, timeout=30, retries=2)
+        raw = feed.get_with_curl_fallback(url, timeout=30)
     except Exception as exc:  # noqa: BLE001 - preserve provider context for stale fallback
         raise MarketExtensionError(
             f"FRED {series_id} fetch failed; previous snapshot must remain active"
@@ -347,6 +348,8 @@ def validate_scenario_tracker(payload: dict[str, Any]) -> dict[str, Any]:
         raise MarketExtensionError("scenario_tracker contains invalid state")
     if any(key in payload for key in ("probability", "score", "weights")):
         raise MarketExtensionError("scenario_tracker score/probability fields are prohibited")
+    if len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > TRACKER_BUDGET_BYTES:
+        raise MarketExtensionError("scenario_tracker payload exceeds 8KB budget")
     return payload
 
 
@@ -474,11 +477,25 @@ def validate_liquidity(payload: dict[str, Any]) -> dict[str, Any]:
 
 def _comparable(payload: dict[str, Any]) -> str:
     value = deepcopy(payload)
-    value.pop("generated_at", None)
-    for receipt in value.get("receipts") or []:
-        if isinstance(receipt, dict):
-            receipt.pop("fetched_at", None)
-            receipt.pop("response_sha256", None)
+
+    def strip_transport_times(node: Any) -> None:
+        if isinstance(node, dict):
+            # These fields describe transport metadata, not a change in the
+            # published read-model. Yahoo response metadata can change its raw hash
+            # while all dated observations remain identical. Keep the first receipt
+            # byte-for-byte and compare the actual derived metrics/series instead.
+            for key in (
+                "generated_at", "fetched_at", "available_at",
+                "response_sha256", "source_fingerprint",
+            ):
+                node.pop(key, None)
+            for child in node.values():
+                strip_transport_times(child)
+        elif isinstance(node, list):
+            for child in node:
+                strip_transport_times(child)
+
+    strip_transport_times(value)
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
 
 

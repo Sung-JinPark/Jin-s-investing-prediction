@@ -52,7 +52,8 @@ def test_read_model_shape(repo: Path) -> None:
     for key in ("meta", "scenario", "scenario_history", "questions", "forecast_history",
                 "resolutions", "ml_runs", "market_runs", "calibration", "due",
                 "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
-                "probability_semantics", "changelog", "era_analog", "cross_asset"):
+                "probability_semantics", "changelog", "era_analog", "cross_asset",
+                "source_monitoring"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
@@ -311,6 +312,8 @@ def test_workspace_utility_contract() -> None:
     assert "표본 축적 중 ${num(row.observations)}/${num(row.minimum_observations)}" in html
     assert "유동성 확장이 곧 상승을 뜻하지 않습니다" in html
     assert "function drawLiquidity" in html and "liquidity_zone" in html
+    assert "monitor.consecutive_successful_days" in html
+    assert "자동 활성화 안 함" in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:

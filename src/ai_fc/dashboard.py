@@ -242,6 +242,16 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
     ai_regime = load_ai_regime(root)
+    try:
+        defillama_monitor = json.loads(
+            (root / "data/source_monitoring/defillama_stablecoins_status.json")
+            .read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        defillama_monitor = {
+            "status": "not_started", "consecutive_successful_days": 0,
+            "required_successful_days": 14, "license_status": "review_required",
+            "activation_eligible": False,
+        }
 
     # v2 additive intelligence surfaces. Existing keys remain backward-compatible.
     from .model_registry import arena_rows
@@ -383,6 +393,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "scenario_tracker": scenario_tracker,
         "liquidity": liquidity,
         "ai_regime": ai_regime,
+        "source_monitoring": {"defillama_stablecoins": defillama_monitor},
     }
     from .read_model_contract import assert_valid
     assert_valid(model)

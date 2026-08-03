@@ -60,3 +60,42 @@ def test_yahoo_dividends_filters_invalid_events(monkeypatch) -> None:
     result = feed.yahoo_dividends("O", date(2023, 1, 1), date(2024, 1, 1))
     assert result.amounts == [0.25]
     assert result.receipt["response_sha256"]
+
+
+def test_curl_fallback_preserves_source_response(monkeypatch) -> None:
+    monkeypatch.setattr(feed, "_python_path_blocked", False)
+
+    def timeout(*_args, **_kwargs):
+        raise TimeoutError
+
+    monkeypatch.setattr(feed, "_get", timeout)
+
+    class Result:
+        returncode = 0
+        stdout = b"DATE,VALUE\n2026-07-31,1.25\n"
+
+    monkeypatch.setattr(feed.subprocess, "run", lambda *args, **kwargs: Result())
+    text = feed.get_with_curl_fallback("https://fred.test/series.csv", timeout=1)
+    assert text == "DATE,VALUE\n2026-07-31,1.25\n"
+    assert feed._python_path_blocked is True
+
+
+def test_curl_fallback_uses_public_dns_for_same_https_url(monkeypatch) -> None:
+    monkeypatch.setattr(feed, "_python_path_blocked", True)
+    monkeypatch.setattr(feed, "_resolve_via_public_dns", lambda _host: "203.0.113.7")
+    commands = []
+
+    class Result:
+        def __init__(self, returncode, stdout=b""):
+            self.returncode = returncode
+            self.stdout = stdout
+
+    def run(command, **_kwargs):
+        commands.append(command)
+        return Result(0, b"ok") if "--resolve" in command else Result(6)
+
+    monkeypatch.setattr(feed.subprocess, "run", run)
+    text = feed.get_with_curl_fallback("https://fred.test/series.csv", timeout=1)
+    assert text == "ok"
+    assert commands[-1][-1] == "https://fred.test/series.csv"
+    assert "fred.test:443:203.0.113.7" in commands[-1]

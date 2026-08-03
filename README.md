@@ -232,6 +232,7 @@ python -m ai_fc scenario          # NASDAQ 시장 경로 갱신
 python -m ai_fc cross-asset       # BTC·NASDAQ·Realty Income 전이 지도 갱신
 python -m ai_fc market-extensions # Scenario Tracker·유동성 조류 지도 주간 갱신
 python -m ai_fc ai-capital-cycle  # SEC 자본지출·공시 커버리지 월간 갱신
+python -m ai_fc source-monitor    # 비활성 후보 원천의 D0 스키마 안정성 영수증 수집
 python -m ai_fc dashboard --serve --host 0.0.0.0
 ```
 

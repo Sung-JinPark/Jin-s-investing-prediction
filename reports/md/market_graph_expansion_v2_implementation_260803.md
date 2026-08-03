@@ -13,8 +13,8 @@
 |---|---|---|
 | M0 | 완료 | 이전 P0 정합성·정정 revision·archive 불변성·regime beta 테스트 유지 |
 | M1 | 완료 | 교차자산 경로 band, beta regime, 불확실성 라벨과 endpoint 충돌 회피 유지 |
-| M2 | 구현 완료·첫 운영 스냅샷 대기 | S1–S7 사전등록 YAML, count-only Tracker, S5·S6 원천 미확보 표기, BTC·O 진단, append-only path tracking, 주간 workflow 구현. 로컬 FRED DNS 실패로 첫 실데이터 스냅샷은 만들지 않음 |
-| M3 | 구현 완료·첫 운영 스냅샷 대기 | Fed 순유동성 zone, BTC·NASDAQ 26주 수익률, 0/4/8/12주 진단, 156주 표본 게이트, 15KB payload 제한, 05 탭 구현. ALFRED·stablecoin·ETF는 원천 게이트 미충족으로 제외 |
+| M2 | 완료 | S1–S7 사전등록 YAML, count-only Tracker, S5·S6 원천 미확보 표기, BTC·O 진단, append-only path tracking, 주간 workflow 구현. 공식 FRED URL의 전송 경로를 Python→curl→공개 DNS 순으로 복구해 2026-07-31 실데이터 스냅샷 생성 |
+| M3 | 완료 | Fed 순유동성 zone, BTC·NASDAQ 26주 수익률, 0/4/8/12주 진단, 156주 표본 게이트, 15KB payload 제한, 05 탭과 2026-07-31 실데이터 스냅샷 구현. ALFRED·stablecoin·ETF는 원천 게이트 미충족으로 제외 |
 | M4 | D0–D2 완료 | FRED·SEC·후보 원천 계약, SEC Companyfacts D1, 회사별 D2 공시 coverage 보고서와 archive 생성 |
 | M5 | **차단·미완료** | 4개 회사의 검증된 cloud/AI segment 매출 coverage가 0%로 60% 기준 미달. 좌표·8분기 trail·fan·waterfall을 생성하지 않고 04 탭에 `데이터 커버리지 부족`을 표시 |
 
@@ -70,6 +70,14 @@ FRED 과거값은 모니터링 활성화 이후의 운영 참고용이며 point-
 - `python -m ai_fc inventory --check`
 - GitHub Actions YAML 파싱 및 데이터 workflow dry-run
 
-첫 로컬 `market-extensions` 실데이터 실행은 FRED DNS 조회 실패로 중단되었다. 이는
-데이터를 임의 보간하지 않는 의도된 실패다. 주간 GitHub workflow의 첫 성공 전까지
-Tracker와 05 탭은 검증 스냅샷 대기 상태를 표시하며 M2·M3 운영 완료로 간주하지 않는다.
+최초 로컬·GitHub `market-extensions` 실행은 FRED Python TLS 요청 지연으로 중단됐다.
+저장소에서 이미 검증해 사용하던 동일 URL의 `curl`·공개 DNS 전송 fallback을 재사용했고,
+이후 2026-07-31 스냅샷 생성에 성공했다. Tracker는 디레버리징 0·완화/순환 1·중립 4,
+Liquidity zone은 4주 -0.29%의 `neutral`이다. 최소화 payload는 Tracker 7,430 bytes,
+Liquidity 7,308 bytes로 각각 8KB·15KB 예산 이내다. 시차상관 표본은 70–82주로
+156주에 미달하므로 수치가 아니라 `표본 축적 중 n/156` 상태를 유지한다.
+
+DefiLlama 후보 원천은 원시 공급량을 저장하지 않는 D0 health monitor를 추가했다.
+2026-08-03의 첫 성공 영수증으로 스키마 안정성 관측은 `1/14일`이며, 이후 매일
+append-only 영수증을 쌓는다. 14일을 채워도 `license_status: review_required`가 사람의
+승인으로 바뀌기 전에는 S5와 crypto 내부 유동성 게이지를 자동 활성화하지 않는다.

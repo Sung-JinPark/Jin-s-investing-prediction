@@ -216,6 +216,27 @@ def cmd_ai_capital_cycle(
     )
 
 
+@app.command("source-monitor")
+def cmd_source_monitor(
+    asof: str | None = typer.Option(
+        None, "--asof", help="후보 원천 D0 모니터링 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """비활성 후보 원천의 스키마 안정성 영수증만 수집한다."""
+    from .source_monitoring import collect_defillama_health
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, status, changed = collect_defillama_health(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · DefiLlama D0 "
+        f"{status['consecutive_successful_days']}/{status['required_successful_days']}일 · "
+        f"license={status['license_status']} · activation={status['activation_eligible']}"
+    )
+
+
 @app.command("sync")
 def cmd_sync(
     rebuild: bool = typer.Option(False, "--rebuild", help="DB 전체 재구축 (불변성 사전대조 포함)"),

@@ -6,6 +6,8 @@ import csv
 import hashlib
 import io
 import json
+import re
+import subprocess
 import time
 import urllib.parse
 import urllib.request
@@ -14,6 +16,7 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"}
+_python_path_blocked = False
 
 
 @dataclass(frozen=True)
@@ -45,6 +48,62 @@ def _get(url: str, timeout: int = 60, retries: int = 3) -> str:
     if last is None:
         raise RuntimeError("HTTP fetch was not attempted; retries must be at least 1")
     raise last
+
+
+def _resolve_via_public_dns(host: str, resolver: str = "1.1.1.1") -> str | None:
+    """Resolve an A record when the local resolver intermittently blocks a source."""
+    try:
+        result = subprocess.run(
+            ["nslookup", host, resolver], capture_output=True, text=True, timeout=15,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    addresses = [
+        value for value in re.findall(
+            r"Address:\s+(\d+\.\d+\.\d+\.\d+)", result.stdout or ""
+        ) if value != resolver
+    ]
+    return addresses[0] if addresses else None
+
+
+def get_with_curl_fallback(url: str, *, timeout: int = 30) -> str:
+    """Fetch text via Python, curl, then curl with a public-DNS resolution.
+
+    The fallback changes only the transport, not the official source or URL,
+    and preserves the exact response bytes used for receipt hashing.
+    """
+    global _python_path_blocked
+    if not _python_path_blocked:
+        try:
+            return _get(url, timeout=timeout, retries=2)
+        except Exception:  # noqa: BLE001 - use the verified transport fallback
+            _python_path_blocked = True
+
+    command = ["curl", "-sS", "--fail", "--max-time", str(timeout), url]
+    try:
+        result = subprocess.run(
+            command, capture_output=True, timeout=timeout + 5, check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise RuntimeError(f"curl transport unavailable for {url}") from exc
+    if result.returncode == 0 and result.stdout:
+        return result.stdout.decode("utf-8")
+
+    host = urllib.parse.urlparse(url).hostname
+    address = _resolve_via_public_dns(host) if host else None
+    if not host or not address:
+        raise RuntimeError(
+            f"curl failed ({result.returncode}) and public DNS did not resolve {host}"
+        )
+    resolved = subprocess.run(
+        ["curl", "-sS", "--fail", "--max-time", str(timeout),
+         "--resolve", f"{host}:443:{address}", url],
+        capture_output=True, timeout=timeout + 5, check=False,
+    )
+    if resolved.returncode != 0 or not resolved.stdout:
+        raise RuntimeError(f"curl --resolve failed ({resolved.returncode}) for {url}")
+    return resolved.stdout.decode("utf-8")
 
 
 def yahoo_price_series_detail(symbol: str, start: date, end: date,

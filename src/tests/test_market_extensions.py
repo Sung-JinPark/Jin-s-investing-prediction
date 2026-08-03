@@ -5,6 +5,10 @@ from datetime import date, datetime, timedelta, timezone
 import numpy as np
 
 from ai_fc.market_extensions import (
+    TRACKER_ARCHIVE,
+    TRACKER_LATEST,
+    MarketExtensionError,
+    _persist_json,
     FredSeries,
     build_liquidity,
     build_scenario_tracker,
@@ -82,3 +86,41 @@ def test_liquidity_zone_uses_preregistered_shared_thresholds() -> None:
     assert classify_liquidity_zone(.5, _rules()) == "expansion"
     assert classify_liquidity_zone(-.5, _rules()) == "contraction"
     assert classify_liquidity_zone(.1, _rules()) == "neutral"
+
+
+def test_tracker_budget_is_enforced() -> None:
+    asof, fred, prices, dividends = _data()
+    payload = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends)
+    payload["warning"] = "x" * 8_000
+    with np.testing.assert_raises_regex(MarketExtensionError, "8KB budget"):
+        validate_scenario_tracker(payload)
+
+
+def test_archive_retry_ignores_transport_metadata_but_not_metric_revision(tmp_path) -> None:
+    asof, fred, prices, dividends = _data()
+    first = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
+        generated_at=datetime(2026, 8, 3, tzinfo=timezone.utc))
+    _persist_json(tmp_path, TRACKER_LATEST, TRACKER_ARCHIVE, first)
+
+    retry = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
+        generated_at=datetime(2026, 8, 4, tzinfo=timezone.utc))
+    for signal in retry["signals"]:
+        if signal.get("available_at"):
+            signal["available_at"] = "2026-08-04T00:00:00+00:00"
+    _, persisted, changed = _persist_json(
+        tmp_path, TRACKER_LATEST, TRACKER_ARCHIVE, retry)
+    assert changed is False
+    assert persisted["generated_at"] == first["generated_at"]
+
+    retry["signals"][0]["source_fingerprint"] = "revised"
+    _, persisted, changed = _persist_json(
+        tmp_path, TRACKER_LATEST, TRACKER_ARCHIVE, retry)
+    assert changed is False
+    assert persisted["signals"][0]["source_fingerprint"] != "revised"
+
+    retry["signals"][0]["metrics"]["four_week_change_bp"] = 999
+    with np.testing.assert_raises_regex(MarketExtensionError, "immutable archive conflict"):
+        _persist_json(tmp_path, TRACKER_LATEST, TRACKER_ARCHIVE, retry)
