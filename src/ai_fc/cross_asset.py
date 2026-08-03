@@ -742,9 +742,6 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     common_dates, n_values, b_values, o_values = (
         common_dates[:last], n_values[:last], b_values[:last], o_values[:last])
 
-    all_results = [history_n, history_o, dotcom_n, *daily.values()]
-    _persist_receipt_bundle(root, common_dates[-1].isoformat(), all_results)
-
     latest = root / LATEST_RELATIVE_PATH
     if latest.exists() and not force:
         try:
@@ -753,6 +750,9 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
                 return latest, current, False
         except (OSError, json.JSONDecodeError, CrossAssetError):
             pass
+
+    all_results = [history_n, history_o, dotcom_n, *daily.values()]
+    _persist_receipt_bundle(root, common_dates[-1].isoformat(), all_results)
 
     payload = build_cross_asset(
         history_dates=h_common,

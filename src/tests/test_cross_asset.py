@@ -195,14 +195,22 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
             daily.append(cursor)
         cursor += timedelta(days=1)
 
+    fetch_count = 0
+
     def fake_detail(symbol, start, end, interval):
+        nonlocal fetch_count
+        fetch_count += 1
         dates = monthly if interval == "1mo" else daily
         values = list(np.linspace(100, 160, len(dates)))
         return YahooPriceSeriesResult(
             dates=dates,
             closes=values,
             adjusted=values,
-            receipt={"request_url": f"mock://{symbol}/{interval}"},
+            receipt={
+                "request_url": f"mock://{symbol}/{interval}",
+                "response_sha256": f"raw-response-{fetch_count}",
+                "fetched_at": f"2026-08-03T15:00:{fetch_count:02d}Z",
+            },
             data_quality={"status": "ok", "dropped_rows": 0},
         )
 
@@ -215,6 +223,15 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
     assert payload["asof"] == "2026-07-31"
     receipts = list((tmp_path / "data" / "cross_asset" / "receipts").glob("*.json"))
     assert len(receipts) == 1
+
+    _, rerun, changed = refresh_cross_asset(
+        tmp_path,
+        asof=date(2026, 8, 3),
+        now=datetime(2026, 8, 3, 15, 30, tzinfo=ZoneInfo("America/New_York")),
+    )
+    assert rerun["asof"] == payload["asof"]
+    assert changed is False
+    assert len(list((tmp_path / "data" / "cross_asset" / "receipts").glob("*.json"))) == 1
 
 
 def test_dotcom_peak_reference_returns_measured_drawdown() -> None:
