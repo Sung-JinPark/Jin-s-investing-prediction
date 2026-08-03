@@ -26,18 +26,21 @@ import numpy as np
 
 from .market_session import completed_market_cutoff
 from .quant import feed
+from . import realty_income
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
-HISTORY_START = date(2000, 12, 1)
+HISTORY_START = date(1998, 1, 1)
 HISTORY_END = date(2006, 1, 2)
 HISTORY_PERIOD_START_LABEL = "2000-12"
 HISTORY_PERIOD_END_LABEL = "2005-12"
 DOTCOM_PEAK_START = date(2000, 3, 1)
-CURRENT_START = date(2014, 9, 1)
-SCENARIO_IDS = {"deleveraging", "easing_rotation", "soft_landing"}
+CURRENT_START = date(2000, 1, 1)
+SCENARIO_IDS = {
+    "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high",
+}
 ASSET_IDS = {"nasdaq", "bitcoin", "realty_income"}
 BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_DAYS = 10
@@ -216,7 +219,6 @@ def _scenario_specs() -> dict[str, dict[str, Any]]:
             "short": "신용경색이 완화보다 빠른 경우",
             "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82},
             "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1},
-            "o_offset": {0: 0, 1: -1, 3: -2, 6: 1, 12: 6},
             "assumptions": ["AI 밸류에이션 급락", "달러 유동성 위축", "신용 스프레드 확대"],
         },
         "easing_rotation": {
@@ -224,7 +226,6 @@ def _scenario_specs() -> dict[str, dict[str, Any]]:
             "short": "초기 투매 뒤 금리·유동성이 전환되는 경우",
             "nasdaq": {0: 100, 1: 93, 3: 80, 6: 85, 12: 91},
             "btc_offset": {0: 0, 1: 0, 3: 4, 6: 22, 12: 45},
-            "o_offset": {0: 0, 1: 2, 3: 14, 6: 22, 12: 28},
             "assumptions": ["AI 투자 회수 우려", "장기금리 하락", "달러 유동성 재확대"],
         },
         "soft_landing": {
@@ -232,31 +233,50 @@ def _scenario_specs() -> dict[str, dict[str, Any]]:
             "short": "버블 붕괴가 아닌 완만한 멀티플 정상화",
             "nasdaq": {0: 100, 1: 97, 3: 95, 6: 103, 12: 112},
             "btc_offset": {0: 0, 1: 1, 3: 10, 6: 16, 12: 18},
-            "o_offset": {0: 0, 1: 1, 3: 5, 6: 6, 12: 8},
             "assumptions": ["이익 성장 지속", "신용시장 안정", "완만한 위험자산 순환"],
+        },
+        "rates_stay_high": {
+            "label": "금리가 안 내려오는 붕괴",
+            "short": "AI 디레이팅 뒤에도 장기금리·크레딧 부담이 남는 경우",
+            "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82},
+            "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1},
+            "assumptions": ["AI 밸류에이션 급락", "장기금리 고착", "크레딧 부담 지속"],
         },
     }
 
 
-def _transmission_scenarios(beta_audit: dict[str, Any]) -> dict[str, Any]:
-    """Regime-specific measured beta + fixed, disclosed offsets.
+def _transmission_scenarios(
+    beta_audit: dict[str, Any], realty_sensitivity: dict[str, Any],
+    macro_assumptions: dict[str, Any],
+) -> dict[str, Any]:
+    """Regime beta plus preregistered rate/credit assumptions for O.
 
     At each month, NASDAQ below 100 uses the five-year downside beta; NASDAQ at
     or above 100 uses the trailing 252-day full beta.  There is no lower clip.
-    Only an absolute safety cap can apply and every activation is persisted.
+    BTC keeps its disclosed legacy offset in this phase. Realty Income has no
+    fixed offset: measured and significance-gated rate/credit sensitivities are
+    applied to preregistered macro paths, with price carry fixed at zero.
     """
     scenarios: dict[str, Any] = {}
     for scenario_id, spec in _scenario_specs().items():
         nasdaq = _interpolate(spec["nasdaq"])
-        offsets = {
-            "bitcoin": _interpolate(spec["btc_offset"]),
-            "realty_income": _interpolate(spec["o_offset"]),
-        }
+        btc_offset = _interpolate(spec["btc_offset"])
+        macro = macro_assumptions["scenarios"][scenario_id]
+        delta_10y = _interpolate(macro["delta_10y_bp"])
+        delta_hy = _interpolate(macro["delta_hy_bp"])
+        rate_effect = float(
+            realty_sensitivity["beta_rate"]["used_effect_per_100bp_pct"])
+        credit_effect = float(
+            realty_sensitivity["beta_credit"]["used_effect_per_100bp_pct"])
+        carry = float(macro_assumptions.get("realty_income_price_carry_pct", 0))
         paths: dict[str, list[float]] = {"nasdaq": nasdaq}
         paths_band: dict[str, dict[str, list[float]]] = {
             "nasdaq": {"p10": list(nasdaq), "p90": list(nasdaq)}
         }
         beta_regime = ["downside_5y" if value < 100 else "full_252d" for value in nasdaq]
+        attributions: dict[str, list[float]] = {
+            "market_beta": [], "rate": [], "credit": [], "carry": [],
+        }
         for asset in ("bitcoin", "realty_income"):
             center: list[float] = []
             lower: list[float] = []
@@ -270,9 +290,27 @@ def _transmission_scenarios(beta_audit: dict[str, Any]) -> dict[str, Any]:
                 beta_low = float(np.clip(beta_low, -MAX_ABS_BETA, MAX_ABS_BETA))
                 beta_high = float(np.clip(beta_high, -MAX_ABS_BETA, MAX_ABS_BETA))
                 delta = nasdaq_value - 100
-                offset = offsets[asset][index]
-                center.append(100 + delta * used + offset)
-                candidates = [100 + delta * beta_low + offset, 100 + delta * beta_high + offset]
+                if asset == "bitcoin":
+                    offset = btc_offset[index]
+                    center.append(100 + delta * used + offset)
+                    candidates = [
+                        100 + delta * beta_low + offset,
+                        100 + delta * beta_high + offset,
+                    ]
+                else:
+                    market_component = delta * used
+                    rate_component = rate_effect * delta_10y[index] / 100
+                    credit_component = credit_effect * delta_hy[index] / 100
+                    center.append(
+                        100 + market_component + rate_component + credit_component + carry)
+                    candidates = [
+                        100 + delta * beta_low + rate_component + credit_component + carry,
+                        100 + delta * beta_high + rate_component + credit_component + carry,
+                    ]
+                    attributions["market_beta"].append(round(market_component, 2))
+                    attributions["rate"].append(round(rate_component, 2))
+                    attributions["credit"].append(round(credit_component, 2))
+                    attributions["carry"].append(round(carry, 2))
                 lower.append(min(candidates))
                 upper.append(max(candidates))
             paths[asset] = _round_path(center)
@@ -281,12 +319,18 @@ def _transmission_scenarios(beta_audit: dict[str, Any]) -> dict[str, Any]:
             "label": spec["label"],
             "short": spec["short"],
             "assumptions": spec["assumptions"],
+            "macro_assumptions": {
+                "rules_version": macro_assumptions["rules_version"],
+                "delta_10y_bp": delta_10y, "delta_hy_bp": delta_hy,
+                "rationale": macro["rationale"], "status": "preregistered",
+            },
+            "realty_income_attribution": attributions,
             "beta_regime_by_month": beta_regime,
             "paths": paths,
             "paths_band": paths_band,
             "band_semantics": (
-                "beta 10–90% block-bootstrap sensitivity band; fixed liquidity/rate offsets "
-                "remain explicit assumptions, not sampled uncertainty"
+                "market beta 10–90% block-bootstrap band; O rate/credit terms use only "
+                "significance-gated measured sensitivities and preregistered macro paths"
             ),
         }
     return scenarios
@@ -347,6 +391,19 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
         raise CrossAssetError("cross-asset weights status/display/reason required")
     if not isinstance(forecast.get("beta_audit"), dict):
         raise CrossAssetError("cross-asset beta_audit required")
+    sensitivity = forecast.get("realty_income_sensitivity") or {}
+    if not all(key in sensitivity for key in ("beta_rate", "beta_credit")):
+        raise CrossAssetError("cross-asset Realty Income sensitivity audit required")
+    if forecast.get("macro_assumptions_version") is None:
+        raise CrossAssetError("cross-asset macro assumptions version required")
+    for scenario_id, scenario in scenarios.items():
+        macro = scenario.get("macro_assumptions") or {}
+        if macro.get("status") != "preregistered":
+            raise CrossAssetError(f"{scenario_id} macro assumptions are not preregistered")
+        if any(len(macro.get(key) or []) != len(labels) for key in ("delta_10y_bp", "delta_hy_bp")):
+            raise CrossAssetError(f"{scenario_id} macro assumption path length mismatch")
+        if len((scenario.get("realty_income_attribution") or {}).get("market_beta") or []) != len(labels):
+            raise CrossAssetError(f"{scenario_id} Realty Income attribution length mismatch")
     if not isinstance(payload.get("receipts"), list):
         raise CrossAssetError("cross-asset receipts must be a list")
     data_quality = (payload.get("diagnostics") or {}).get("data_quality")
@@ -363,6 +420,10 @@ def build_cross_asset(*,
                       anchors: dict[str, float], receipts: list[dict[str, Any]] | None = None,
                       data_quality: list[dict[str, Any]] | None = None,
                       dotcom_peak_reference: dict[str, Any] | None = None,
+                      macro_assumptions: dict[str, Any] | None = None,
+                      realty_sensitivity: dict[str, Any] | None = None,
+                      realty_event_study: dict[str, Any] | None = None,
+                      history_preview: dict[str, Any] | None = None,
                       generated_at: datetime | None = None) -> dict[str, Any]:
     """정렬된 실측 시계열로 직렬화 가능한 교차자산 read model을 만든다."""
     history_lengths = {len(history_dates), len(history_nasdaq), len(history_o_price),
@@ -373,6 +434,17 @@ def build_cross_asset(*,
         raise CrossAssetError("cross-asset series length mismatch")
     if len(history_dates) < 24 or len(current_dates) < 253:
         raise CrossAssetError("cross-asset series is too short")
+    if macro_assumptions is None:
+        raise CrossAssetError("preregistered macro assumptions are required")
+    try:
+        realty_income.validate_macro_assumptions(macro_assumptions)
+        if set(macro_assumptions.get("scenarios") or {}) != SCENARIO_IDS:
+            raise CrossAssetError("macro assumption scenario set mismatch")
+        sensitivity = realty_sensitivity or {}
+        if not all(key in sensitivity for key in ("beta_rate", "beta_credit")):
+            raise CrossAssetError("measured Realty Income sensitivity is required")
+    except (AttributeError, realty_income.RealtyIncomeError) as exc:
+        raise CrossAssetError("invalid Realty Income v2 inputs") from exc
 
     raw_labels = [f"{day.year:04d}-{day.month:02d}" for day in history_dates]
     if HISTORY_PERIOD_START_LABEL not in raw_labels or HISTORY_PERIOD_END_LABEL not in raw_labels:
@@ -521,26 +593,59 @@ def build_cross_asset(*,
                 "2000-12 기준은 닷컴 정점(2000-03) 이후 이미 하락한 시점이며, 정점 기준 "
                 "NASDAQ 보조 수치를 별도 표시한다. 세금·거래비용은 포함하지 않는다."
             ),
+            "preview_1998": history_preview or {
+                "status": "source_unavailable", "labels": [], "series": {},
+            },
         },
         "forecast": {
             "horizon_months": 12,
             "labels": [f"M+{month}" for month in range(13)],
             "default_scenario": "easing_rotation",
-            "scenarios": _transmission_scenarios(beta_audit),
+            "scenarios": _transmission_scenarios(
+                beta_audit, sensitivity, macro_assumptions),
             "beta_audit": beta_audit,
+            "realty_income_sensitivity": {
+                "asof": sensitivity.get("asof"),
+                "status": sensitivity.get("status"),
+                "beta_rate": deepcopy(sensitivity["beta_rate"]),
+                "beta_credit": deepcopy(sensitivity["beta_credit"]),
+                "dividend_yield_ttm_pct": sensitivity.get("dividend_yield_ttm_pct"),
+                "spread_vs_10y_pp": sensitivity.get("spread_vs_10y_pp"),
+                "spread_percentile_since_2000": sensitivity.get(
+                    "spread_percentile_since_2000"),
+                "dividend_monitor": deepcopy(sensitivity.get("dividend_monitor") or {}),
+                "dividend_crosscheck": deepcopy(
+                    sensitivity.get("dividend_crosscheck") or {}),
+            },
+            "macro_assumptions_version": macro_assumptions["rules_version"],
             "semantics": (
                 "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니다. "
                 "각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 "
                 "252일 full beta를 사용한다. beta 하한은 강제하지 않고 절대값 3.0 안전 "
                 "상한만 감사한다. 반투명 band는 beta 10–90% block-bootstrap 민감도이며 "
-                "고정 liquidity/rate offset은 표본화하지 않은 명시 가정이다. O 미래선은 "
-                "주가 경로이며 현금배당을 포함하지 않는다."
+                "BTC의 기존 offset은 이번 단계에서 유지한다. O는 고정 offset 없이 측정된 "
+                "금리·크레딧 민감도와 사전 등록 macro 경로로만 유도한다. CI가 0을 "
+                "가로지르거나 n<156인 항은 0이다. O 미래선은 가격 경로이며 현금배당을 "
+                "포함하지 않는다."
             ),
             "weights": {
                 "status": "not_estimated",
                 "display": "가중치 미산출",
                 "reason": "충격 유형별 캘리브레이션 부족",
             },
+        },
+        "realty_income": {
+            "hypothesis": "닷컴형 상승은 완만한 충격·금리 하락·신용 안정·배당 유지의 조건부 결과",
+            "conditions_total": 4,
+            "event_study": realty_event_study or {
+                "status": "source_unavailable", "events": [],
+            },
+            "index_membership": {
+                "dotcom_period": "major_index_outside_small_reit",
+                "current": "sp_500_member_since_2015_04",
+                "source_url": "https://www.realtyincome.com/sites/realty-income/files/realty-income/quartly-and-annual/2016/Realty-Income-2016-Proxy-Statement.pdf",
+            },
+            "fixed_warning": "O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.",
         },
         "receipts": receipts or [],
         "sources": [
@@ -555,11 +660,19 @@ def build_cross_asset(*,
             {"id": "nareit-rates", "label": "Nareit — REITs and Interest Rates",
              "role": "reit_rate_regime_context",
              "url": "https://www.reit.com/investing/reits-and-interest-rates"},
+            {"id": "fred-rate-credit", "label": "FRED DGS10 · BAMLH0A0HYM2",
+             "role": "realty_income_rate_credit_sensitivity",
+             "url": "https://fred.stlouisfed.org/"},
+            {"id": "iyr-sector-fallback", "label": "IYR REIT sector fallback",
+             "role": "derived_sector_return_comparison",
+             "url": "https://query1.finance.yahoo.com/v8/finance/chart/IYR"},
         ],
         "limitations": [
             "AI 버블 충격은 역사적으로 동일한 표본이 없어 조건부 sensitivity로만 표현한다.",
             "BTC의 주식시장 동조성과 O의 금리 민감도는 국면에 따라 크게 바뀐다.",
             "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다.",
+            "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
+            "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다.",
         ],
     }
     return validate_cross_asset(payload)
@@ -680,8 +793,7 @@ def _dotcom_peak_reference(result: feed.YahooPriceSeriesResult) -> dict[str, Any
     }
 
 
-def _persist_receipt_bundle(root: Path, asof: str,
-                            results: list[feed.YahooPriceSeriesResult]) -> Path:
+def _persist_receipt_bundle(root: Path, asof: str, results: list[Any]) -> Path:
     """Append a content-addressed request receipt without storing raw responses."""
     requests = [result.receipt for result in results]
     identity = "|".join(sorted(str(item.get("response_sha256") or "") for item in requests))
@@ -751,8 +863,42 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         except (OSError, json.JSONDecodeError, CrossAssetError):
             pass
 
-    all_results = [history_n, history_o, dotcom_n, *daily.values()]
-    _persist_receipt_bundle(root, common_dates[-1].isoformat(), all_results)
+    snapshot_asof = common_dates[-1]
+    macro_assumptions = realty_income.load_macro_assumptions(root)
+    event_registry = realty_income.load_event_registry(root)
+    dividend_reference = realty_income.load_dividend_reference(root)
+    dividends = feed.yahoo_dividends(
+        "O", HISTORY_START, snapshot_asof + timedelta(days=1))
+    dividend_rows = realty_income.dividend_rows(dividends, asof=snapshot_asof)
+    history_o_full = feed.yahoo_price_series_detail(
+        "O", HISTORY_START, snapshot_asof + timedelta(days=1), "1mo")
+    fred = {
+        series_id: realty_income.fetch_fred_series(series_id, date(2000, 1, 1))
+        for series_id in ("DGS10", "DFII10", "BAMLH0A0HYM2", "BAMLC0A0CM", "FEDFUNDS")
+    }
+    sector: feed.YahooPriceSeriesResult | None = None
+    try:
+        sector = feed.yahoo_price_series_detail(
+            "IYR", date(2000, 6, 1), snapshot_asof + timedelta(days=1), "1d")
+    except Exception:  # noqa: BLE001 - D0 contract explicitly permits source reduction
+        sector = None
+
+    sensitivity = realty_income.build_rate_sensitivity(
+        asof=snapshot_asof, o=daily["realty_income"], nasdaq=daily["nasdaq"],
+        fred=fred, dividends=dividend_rows, history_o=history_o_full,
+        dividend_reference=dividend_reference)
+    event_study = realty_income.build_event_study(
+        asof=snapshot_asof, registry=event_registry, o=daily["realty_income"],
+        nasdaq=daily["nasdaq"], fred=fred, sector=sector)
+    preview = realty_income.build_history_preview(history_n, history_o, sector)
+
+    all_results: list[Any] = [
+        history_n, history_o, dotcom_n, history_o_full, *daily.values(), dividends,
+        *([sector] if sector else []),
+    ]
+    all_receipts = [result.receipt for result in all_results] + [
+        series.receipt for series in fred.values()
+    ]
 
     payload = build_cross_asset(
         history_dates=h_common,
@@ -767,10 +913,26 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
             key: {day: value for day, value in zip(result.dates, result.closes)}[
                 common_dates[-1]] for key, result in daily.items()
         },
-        receipts=[result.receipt for result in all_results],
-        data_quality=[result.data_quality for result in all_results],
+        receipts=all_receipts,
+        data_quality=[
+            result.data_quality for result in all_results
+            if hasattr(result, "data_quality")
+        ],
         dotcom_peak_reference=_dotcom_peak_reference(dotcom_n),
+        macro_assumptions=macro_assumptions,
+        realty_sensitivity=sensitivity,
+        realty_event_study=event_study,
+        history_preview=preview,
     )
+    _persist_receipt_bundle(
+        root, snapshot_asof.isoformat(), [*all_results, *fred.values()])
+    realty_income.append_dividends(root, dividend_rows)
+    realty_income.persist_derived(
+        root, realty_income.SENSITIVITY_LATEST,
+        realty_income.SENSITIVITY_ARCHIVE, sensitivity)
+    realty_income.persist_derived(
+        root, realty_income.EVENT_STUDY_LATEST,
+        realty_income.EVENT_STUDY_ARCHIVE, event_study)
     return _persist_snapshot(root, payload, force=force)
 
 

@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "asof": "2026-08-03",
+  "generated_at": "2026-08-03T23:29:47+00:00",
+  "probability_space": "reference_only",
+  "status": "ok",
+  "beta_rate": {
+    "measured_effect_per_100bp_pct": -8.372,
+    "bootstrap_10_90_pct": [
+      -10.646,
+      -6.259
+    ],
+    "used_effect_per_100bp_pct": -8.372,
+    "status": "eligible",
+    "observations": 156,
+    "minimum_observations": 156,
+    "bootstrap_samples": 1000,
+    "block_weeks": 4,
+    "market_control": "NASDAQ weekly log return"
+  },
+  "beta_credit": {
+    "measured_effect_per_100bp_pct": -6.062,
+    "bootstrap_10_90_pct": [
+      -7.841,
+      -4.362
+    ],
+    "used_effect_per_100bp_pct": -6.062,
+    "status": "eligible",
+    "observations": 156,
+    "minimum_observations": 156,
+    "bootstrap_samples": 1000,
+    "block_weeks": 4,
+    "market_control": "NASDAQ weekly log return"
+  },
+  "dividend_yield_ttm_pct": 5.11,
+  "spread_vs_10y_pp": 0.36,
+  "spread_percentile_since_2000": 0.3,
+  "spread_percentile_observations": 318,
+  "dividend_monitor": {
+    "status": "maintained_or_increased",
+    "c4_met": true,
+    "latest_ex_date": "2026-07-31",
+    "latest_amount": 0.271,
+    "latest_change": 0.0,
+    "cuts_last_12_events": 0,
+    "observations": 12,
+    "semantics": "ex-date cash events; available_at is first repository capture"
+  },
+  "dividend_crosscheck": {
+    "status": "direction_confirmed",
+    "basis": {
+      "official": "dividends paid per common share",
+      "yahoo": "cash dividend events grouped by ex-date",
+      "exact_total_equality_asserted": false
+    },
+    "annual": [
+      {
+        "year": 2001,
+        "official_paid_per_share": 1.121,
+        "yahoo_ex_date_sum": 1.089631
+      },
+      {
+        "year": 2002,
+        "official_paid_per_share": 1.151,
+        "yahoo_ex_date_sum": 1.11725
+      },
+      {
+        "year": 2003,
+        "official_paid_per_share": 1.181,
+        "yahoo_ex_date_sum": 1.144864
+      },
+      {
+        "year": 2004,
+        "official_paid_per_share": 1.241,
+        "yahoo_ex_date_sum": 1.209786
+      },
+      {
+        "year": 2005,
+        "official_paid_per_share": 1.346,
+        "yahoo_ex_date_sum": 1.312014
+      }
+    ],
+    "official_continuous_increase": true,
+    "yahoo_ex_date_continuous_increase": true,
+    "source_url": "https://www.realtyincome.com/sites/realty-income/files/2005-annual.pdf",
+    "source_sha256": "c63e52b42ac882cbe94fde447a589da6afa15e07852e2ddca88660b38b6bb688",
+    "source_pages": [
+      8,
+      9
+    ],
+    "warning": "The official table is dividends paid during the calendar year; Yahoo events are grouped by ex-date. Exact annual totals are therefore not asserted equal. The cross-check validates the continuous-increase direction and discloses the basis mismatch."
+  },
+  "observation_period": "2026-08-03",
+  "available_at": "2026-08-03T23:29:45+00:00",
+  "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2000-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10&cosd=2000-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2000-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM&cosd=2000-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=2000-01-01",
+  "source_fingerprint": "7e94b71e3b00789f0feee09a9fae1c6e82d9b3bb04190229fa943736af2199e2",
+  "revision_vintage": "captured_current",
+  "receipts": [
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2000-01-01",
+      "response_sha256": "b0e8f84b058e08606b0309c3cd8ddb2dbafc07b7c84bd6fa01f946447eeff9e2",
+      "fetched_at": "2026-08-03T23:28:53+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10&cosd=2000-01-01",
+      "response_sha256": "341b72cda143141c528b995342f32a8a18f5522f9974ac5c96e20b9addcb6c1f",
+      "fetched_at": "2026-08-03T23:29:41+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2000-01-01",
+      "response_sha256": "0bedf40236218c7f673bc0a24e2f0c325a0f1d57d03a89e52973fada4053b86a",
+      "fetched_at": "2026-08-03T23:29:44+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLC0A0CM",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM&cosd=2000-01-01",
+      "response_sha256": "718012c64027571f474a725b81d1b1702f14868b4e6b72bab363273484faed4e",
+      "fetched_at": "2026-08-03T23:29:44+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "FEDFUNDS",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=2000-01-01",
+      "response_sha256": "5fa4ac42fc0ea1edfb17d918cba65ae9ecf6b0739b3f3a49ad51d7c8dd045650",
+      "fetched_at": "2026-08-03T23:29:45+00:00",
+      "revision_vintage": "captured_current"
+    }
+  ],
+  "warning": "CI가 0을 가로지르거나 n<156이면 해당 민감도를 O 경로에서 0으로 둡니다."
+}

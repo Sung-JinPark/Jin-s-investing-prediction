@@ -9,6 +9,7 @@ from ai_fc.market_extensions import (
     TRACKER_LATEST,
     MarketExtensionError,
     _persist_json,
+    _persist_tracker,
     FredSeries,
     build_liquidity,
     build_scenario_tracker,
@@ -31,6 +32,8 @@ def _rules() -> dict:
             "S5": {"name": "stable", "activation_gate": "14 days"},
             "S6": {"name": "etf", "activation_gate": "two sources"},
             "S7": {"name": "relative", "deleveraging": {"metric": "relative_return_60d_pct", "operator": "lt", "threshold": 0}, "easing_rotation": {"all": [{"metric": "relative_return_60d_pct", "operator": "lt", "threshold": 0}, {"metric": "relative_return_20d_pct", "operator": "gt", "threshold": 0}]}},
+            "S8": {"name": "nominal", "easing_rotation": {"metric": "four_week_change_bp", "operator": "lte", "threshold": -25}, "rates_stay_high": {"metric": "four_week_change_bp", "operator": "gte", "threshold": 25}},
+            "S9": {"name": "dividend", "easing_rotation": {"metric": "c4_met", "operator": "gte", "threshold": 1}, "deleveraging": {"metric": "cuts_last_12_events", "operator": "gte", "threshold": 1}},
         },
         "liquidity_zone": {
             "expansion": {"operator": "gte", "threshold": .5},
@@ -68,10 +71,23 @@ def test_tracker_is_count_only_and_marks_unverified_sources_unavailable() -> Non
         rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
         generated_at=datetime(2026, 8, 3, tzinfo=timezone.utc))
     assert payload["probability_space"] == "reference_only"
-    assert payload["summary"]["available"] == 5
+    assert payload["summary"]["available"] == 7
+    assert payload["summary"]["total"] == 9
     assert [item["state"] for item in payload["signals"][4:6]] == ["source_unavailable"] * 2
+    assert payload["signals"][7]["state"] == "neutral"
+    assert payload["signals"][8]["state"] == "easing_rotation_support"
+    assert payload["realty_income_hypothesis"]["conditions_total"] == 4
+    assert all("request_url" not in receipt for receipt in payload["receipts"])
     assert not ({"probability", "score", "weights"} & payload.keys())
     validate_scenario_tracker(payload)
+
+
+def test_nominal_rate_signal_can_select_rates_stay_high() -> None:
+    asof, fred, prices, dividends = _data()
+    fred["DGS10"].values[-5:] = [3.0, 3.1, 3.2, 3.3, 3.5]
+    payload = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends)
+    assert payload["signals"][7]["state"] == "rates_stay_high_support"
 
 
 def test_liquidity_lead_lag_respects_156_week_gate() -> None:
@@ -124,3 +140,29 @@ def test_archive_retry_ignores_transport_metadata_but_not_metric_revision(tmp_pa
     retry["signals"][0]["metrics"]["four_week_change_bp"] = 999
     with np.testing.assert_raises_regex(MarketExtensionError, "immutable archive conflict"):
         _persist_json(tmp_path, TRACKER_LATEST, TRACKER_ARCHIVE, retry)
+
+
+def test_tracker_revision_uses_approved_correction_and_is_idempotent(tmp_path) -> None:
+    asof, fred, prices, dividends = _data()
+    first = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
+        generated_at=datetime(2026, 8, 3, tzinfo=timezone.utc))
+    _persist_tracker(tmp_path, first)
+    revised = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
+        generated_at=datetime(2026, 8, 4, tzinfo=timezone.utc))
+    revised["signals"][0]["metrics"]["four_week_change_bp"] = 99
+    ledger = tmp_path / "calibration/corrections.csv"
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(
+        "correction_id,target_table,target_key,status\n"
+        f"CORR-TEST,scenario_tracker_snapshots,{asof.isoformat()},approved\n",
+        encoding="utf-8",
+    )
+    _, persisted, changed = _persist_tracker(tmp_path, revised)
+    assert changed is True
+    assert persisted["revision"] == 2
+    assert persisted["correction_id"] == "CORR-TEST"
+    _, retry, changed = _persist_tracker(tmp_path, revised)
+    assert changed is False
+    assert retry["generated_at"] == persisted["generated_at"]

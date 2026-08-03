@@ -162,6 +162,10 @@ def test_ui_contract() -> None:
     # 시장 지도 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     assert "function drawCrossAsset" in html and "function drawCrossAssetHistory" in html
+    assert "사전 등록 가정" in html
+    assert "조건 4개" in html
+    assert "O 미래선은 가격 경로이며 배당 미포함" in html
+    assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
     assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조

@@ -237,7 +237,7 @@ python -m ai_fc dashboard --serve --host 0.0.0.0
 ```
 
 시장 맵은 다섯 공간을 분리해 보여줍니다. 01·03은 조건부 시나리오이고 02·04·05는
-참고용 진단입니다. Scenario Tracker는 일곱 방향 신호의 개수만 표시하며 점수나 확률로
+참고용 진단입니다. Scenario Tracker는 아홉 방향 신호의 개수만 표시하며 점수나 확률로
 변환하지 않습니다. AI 자본사이클은 기업별 segment 공시 커버리지가 60%에 못 미치면
 좌표·trail·fan을 숨깁니다. 유동성 시차상관도 공통 주간 표본 156개 전에는 숫자 대신
 `표본 축적 중 n/156`을 표시합니다.
@@ -247,7 +247,9 @@ python -m ai_fc dashboard --serve --host 0.0.0.0
 2006-01 진행 중 월봉이 2005-12 요약에 포함된 오류를 발견해 원본 archive는 그대로 보존하고
 승인 correction revision을 추가했습니다. 정정값과 재현 방법은
 [교차자산·AI 자본사이클 설계서](reports/md/cross_asset_and_ai_capital_cycle_blueprint_260803.md)에
-기록되어 있습니다.
+기록되어 있습니다. O 경로 v2는 고정 offset 대신 측정된 156주 금리·신용 민감도와 사전 등록
+거시 가정을 사용하며, 배당을 제외한 네 개 조건부 가격 경로를 표시합니다. 구현 결과와 게이트는
+[Realty Income 경로 v2 구현 보고서](reports/md/realty_income_path_v2_implementation_260804.md)에 있습니다.
 
 API 키는 `ANTHROPIC_API_KEY` 환경변수로만 주입합니다. 저장소와 예측 파일에는 시크릿을 기록하지 않습니다.
 

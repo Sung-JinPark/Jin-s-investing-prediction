@@ -1,0 +1,35 @@
+schema_version: 1
+registry_version: 2026-08-04.v1
+status: preregistered
+change_policy: additions or boundary changes require an approved calibration/corrections.csv row
+events:
+  - event_id: dotcom_easing
+    start: 2001-01-03
+    end: 2003-06-25
+    type: easing
+    description: Dot-com unwind with cumulative Federal Reserve easing
+  - event_id: tightening_2004_2006
+    start: 2004-06-30
+    end: 2006-06-29
+    type: tightening
+    description: Measured tightening cycle after the post-dot-com rate trough
+  - event_id: taper_2013
+    start: 2013-05-22
+    end: 2013-12-31
+    type: tightening
+    description: Taper repricing window
+  - event_id: hikes_2015_2018
+    start: 2015-12-16
+    end: 2018-12-19
+    type: tightening
+    description: Multi-year policy-rate normalization
+  - event_id: acute_crisis_2020
+    start: 2020-02-19
+    end: 2020-03-23
+    type: acute_crisis
+    description: COVID liquidity shock from equity peak to emergency trough
+  - event_id: hikes_2022_2023
+    start: 2022-03-16
+    end: 2023-07-26
+    type: tightening
+    description: Rapid inflation-response hiking cycle

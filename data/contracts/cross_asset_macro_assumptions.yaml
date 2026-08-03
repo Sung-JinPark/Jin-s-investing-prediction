@@ -1,0 +1,27 @@
+schema_version: 1
+rules_version: 2026-08-04.v1
+status: preregistered
+preregistered_at: 2026-08-04
+probability_space: scenario_conditional
+change_policy: append an approved calibration/corrections.csv row and issue a new rules_version
+units: basis_points_from_m0
+interpolation: linear_between_month_keys
+required_months: [0, 3, 6, 12]
+realty_income_price_carry_pct: 0
+scenarios:
+  deleveraging:
+    delta_10y_bp: {0: 0, 3: -30, 6: -60, 12: -80}
+    delta_hy_bp: {0: 0, 3: 250, 6: 300, 12: 150}
+    rationale: recessionary rate relief arrives alongside severe credit stress
+  easing_rotation:
+    delta_10y_bp: {0: 0, 3: -60, 6: -120, 12: -150}
+    delta_hy_bp: {0: 0, 3: 100, 6: 0, 12: -50}
+    rationale: policy and long-rate easing leads credit normalization
+  soft_landing:
+    delta_10y_bp: {0: 0, 3: 0, 6: 10, 12: 20}
+    delta_hy_bp: {0: 0, 3: 0, 6: 0, 12: 0}
+    rationale: modest rate normalization with stable credit
+  rates_stay_high:
+    delta_10y_bp: {0: 0, 3: 20, 6: 30, 12: 40}
+    delta_hy_bp: {0: 0, 3: 150, 6: 200, 12: 200}
+    rationale: AI de-rating occurs without duration relief and with persistent credit stress

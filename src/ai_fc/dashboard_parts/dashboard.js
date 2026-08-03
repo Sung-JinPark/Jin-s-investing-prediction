@@ -1166,13 +1166,19 @@ function crossAssetPanel(){
   const model=DATA.cross_asset;
   if(!model||model.status==='blocked'||!model.forecast?.scenarios||!model.history?.series)return null;
   const summary=model.history.summary||{},diag=model.diagnostics||{},corr60=diag.corr_60d||{},beta=diag.downside_beta_5y||{},weekly=diag.weekly_52w||{},anchors=model.anchors||{};
+  const sensitivity=model.forecast?.realty_income_sensitivity||{},rateSensitivity=sensitivity.beta_rate||{},creditSensitivity=sensitivity.beta_credit||{};
+  const realtyContext=model.realty_income||{},eventRows=realtyContext.event_study?.events||[],eventById=Object.fromEntries(eventRows.map(row=>[row.event_id,row]));
+  const dotcomEvent=eventById.dotcom_easing||{},tighteningEvent=eventById.tightening_2004_2006||{},acuteEvent=eventById.acute_crisis_2020||{};
+  const hypothesis=DATA.scenario_tracker?.realty_income_hypothesis||{},conditionLabels={C1:'신용 스트레스 비확대',C2:'장기금리 하락',C3:'실질금리 완화',C4:'배당 유지·증가'};
+  const eventPct=(row,key)=>hasNumeric(row?.returns_pct?.[key])?signedDelta(Number(row.returns_pct[key]),1,'%'):'관측 불가';
+  const eventBp=(row,key)=>hasNumeric(row?.macro_change_bp?.[key])?signedDelta(Number(row.macro_change_bp[key]),0,'bp'):'관측 불가';
   const scenarios=model.forecast.scenarios,defaultScenario=model.forecast.default_scenario||Object.keys(scenarios)[0];
   const pctText=value=>hasNumeric(value)?signedDelta(Number(value),1,'%'):'산출 전';
   const annual=summary.annual||[],period=model.history.period||`${model.history.labels?.[0]||'시작'} to ${model.history.labels?.at(-1)||'종료'}`;
   const periodCaption=period.replace(' to ',' → '),weights=model.forecast.weights||{};
   const weightText=weights.status&&weights.display&&weights.reason?`${weights.display} — ${weights.reason}`:'가중치 미산출 — 충격 유형별 캘리브레이션 부족';
   const ci=(range,n)=>`(10–90%: ${hasNumeric(range?.[0])?Number(range[0]).toFixed(2):'–'}–${hasNumeric(range?.[1])?Number(range[1]).toFixed(2):'–'}, n=${num(n)})`;
-  const peak=summary.nasdaq_from_dotcom_peak||{},weeklyCorr=weekly.corr||{},weeklyBeta=weekly.beta||{};
+  const peak=summary.nasdaq_from_dotcom_peak||{},weeklyCorr=weekly.corr||{},weeklyBeta=weekly.beta||{},year2005=(summary.annual||[]).find(row=>Number(row.year)===2005)||{};
   const w=el(`<div class="chart-panel analysis-panel cross-asset-panel">
     <p class="eyebrow">AI 충격 교차자산 지도 · Cross-asset Transmission</p>
     <div class="panel-head"><div><h2>Bitcoin · NASDAQ · Realty Income</h2><p>현재값 또는 비교 시작값을 100으로 맞춘 상대 경로</p></div><span class="count-chip">시장 기준 ${esc(model.asof)}</span></div>
@@ -1206,6 +1212,40 @@ function crossAssetPanel(){
       </div>
       <details class="analog-limit annual-return-table"><summary>연도별 실측 수익률 보기</summary><div class="table-shell"><table><thead><tr><th>연도</th><th>NASDAQ 가격</th><th>O 가격</th><th>O 총수익 proxy</th></tr></thead><tbody>${annual.map(row=>`<tr><td>${row.year}</td><td>${pctText(row.nasdaq_price_pct)}</td><td>${pctText(row.realty_income_price_pct)}</td><td>${pctText(row.realty_income_total_return_pct)}</td></tr>`).join('')}</tbody></table></div></details>
     </section>
+    <section class="realty-thesis-grid" aria-label="Realty Income 조건부 가설 점검">
+      <article class="realty-thesis-card history-card">
+        <p class="eyebrow">HISTORICAL CONDITIONS · 인과 추정 아님</p>
+        <h3>닷컴 때 왜 올랐나</h3>
+        <p>한 가지 원인으로 단정하지 않고, 당시 함께 관측된 네 조건을 분리해서 봅니다.</p>
+        <div class="realty-factor-grid">
+          <div><span>1 · 금리 완화</span><strong>${eventBp(dotcomEvent,'dgs10')}</strong><small>DGS10 · ${esc(dotcomEvent.start||'2001-01-03')} → ${esc(dotcomEvent.end||'2003-06-25')}</small></div>
+          <div><span>2 · 낮은 출발 밸류</span><strong>1998–99 약세 이후</strong><small>당시 정확한 yield spread는 원천 제약으로 미표시</small></div>
+          <div><span>3 · 배당 방어</span><strong>${eventPct(dotcomEvent,'realty_income_total_return')}</strong><small>O 가격 ${eventPct(dotcomEvent,'realty_income_price')} · 총수익 proxy</small></div>
+          <div><span>4 · 완만한 붕괴</span><strong>NASDAQ ${eventPct(dotcomEvent,'nasdaq_price')}</strong><small>2020 급성 위기 O ${eventPct(acuteEvent,'realty_income_price')}</small></div>
+        </div>
+        <p class="realty-counterexample"><strong>반례도 함께 표시:</strong> 2005년 O 가격 ${hasNumeric(year2005.realty_income_price_pct)?signedDelta(year2005.realty_income_price_pct,1,'%'):'관측 불가'} · 2004–2006 긴축 이벤트 ${eventPct(tighteningEvent,'realty_income_price')}. 닷컴 구간 상승을 모든 기술주 조정기에 반복되는 법칙으로 취급하지 않습니다.</p>
+      </article>
+      <article class="realty-thesis-card current-card">
+        <p class="eyebrow">CURRENT COMPARISON · ${esc(sensitivity.asof||model.asof)}</p>
+        <h3>2026년은 같은 조건인가</h3>
+        <div class="realty-table-shell"><table><tbody>
+          <tr><th>TTM 배당수익률</th><td>${hasNumeric(sensitivity.dividend_yield_ttm_pct)?Number(sensitivity.dividend_yield_ttm_pct).toFixed(2)+'%':'관측 불가'}</td></tr>
+          <tr><th>10Y 대비 spread</th><td>${hasNumeric(sensitivity.spread_vs_10y_pp)?signedDelta(sensitivity.spread_vs_10y_pp,2,' pp'):'관측 불가'}</td></tr>
+          <tr><th>2000년 이후 spread 위치</th><td>${hasNumeric(sensitivity.spread_percentile_since_2000)?Number(sensitivity.spread_percentile_since_2000).toFixed(1)+'%ile':'표본 축적 중'}</td></tr>
+          <tr><th>금리 100bp 민감도</th><td>${hasNumeric(rateSensitivity.measured_effect_per_100bp_pct)?signedDelta(rateSensitivity.measured_effect_per_100bp_pct,2,'%'):'추정 불가'} <small>${esc(rateSensitivity.status||'미산출')}</small></td></tr>
+          <tr><th>신용 100bp 민감도</th><td>${hasNumeric(creditSensitivity.used_effect_per_100bp_pct)?signedDelta(creditSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(creditSensitivity.status||'미산출')}</small></td></tr>
+          <tr><th>NASDAQ 하락꼬리 beta</th><td>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'관측 불가'} <small>최악 10% 일간</small></td></tr>
+          <tr><th>지수 편입 차이</th><td>${realtyContext.index_membership?.current==='sp_500_member_since_2015_04'?'현재 S&P 500 편입 · 2015-04 이후':'검증 대기'}</td></tr>
+        </tbody></table></div>
+      </article>
+      <article class="realty-thesis-card condition-card">
+        <p class="eyebrow">LIVE CHECKLIST · 확률 아님</p>
+        <div class="condition-score"><strong>${num(hypothesis.conditions_met||0)}</strong><span>/ ${num(hypothesis.conditions_total||4)}</span></div>
+        <h3>조건 4개 중 ${num(hypothesis.conditions_met||0)}개 충족</h3>
+        <div class="condition-list">${(hypothesis.conditions||[]).map(item=>`<div class="${item.met?'is-met':'is-open'}"><i aria-hidden="true"></i><span>${esc(conditionLabels[item.id]||item.id)}</span><strong>${item.met?'충족':'미충족'}</strong></div>`).join('')}</div>
+        <p>충족 개수는 O 상승 확률이나 기대수익률이 아니라, 사전 등록한 환경 조건의 현재 상태입니다.</p>
+      </article>
+    </section>
     <div class="cross-diagnostics">
       <div><span>60일 BTC↔NASDAQ</span><strong>${hasNumeric(corr60.bitcoin_nasdaq)?Number(corr60.bitcoin_nasdaq).toFixed(2):'산출 전'}</strong><small>일별 로그수익 상관</small></div>
       <div><span>60일 O↔NASDAQ</span><strong>${hasNumeric(corr60.realty_income_nasdaq)?Number(corr60.realty_income_nasdaq).toFixed(2):'산출 전'}</strong><small>배당 반영 수정종가</small></div>
@@ -1213,6 +1253,7 @@ function crossAssetPanel(){
       <div><span>하락꼬리 O beta</span><strong>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'산출 전'}</strong><small>${esc(ci(beta.realty_income_ci_10_90,beta.observations))}</small></div>
     </div>
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
+    <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
     <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다.</p>
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
@@ -1223,6 +1264,7 @@ function crossAssetPanel(){
 function scenarioTrackerMarkup(model){
   if(!model||model.status==='blocked')return `<section class="tracker-shell is-blocked"><div class="panel-head"><h3>Scenario Tracker</h3><span class="count-chip">원천 대기</span></div><p>주간 신호 스냅샷이 아직 없습니다. 기존 자산 전이 경로에는 임의 신호를 대입하지 않습니다.</p></section>`;
   const stateLabel={deleveraging_support:'디레버리징 지지',easing_rotation_support:'완화·순환 지지',neutral:'중립',source_unavailable:'원천 미확보'};
+  stateLabel.rates_stay_high_support='고금리 지속 지지';
   const counts=model.summary?.counts||{};
   const monitor=DATA.source_monitoring?.defillama_stablecoins;
   const unavailableReason=signal=>signal.id==='S5'&&monitor?`D0 안정성 ${num(monitor.consecutive_successful_days)}/${num(monitor.required_successful_days)}일 · license ${esc(monitor.license_status)}`:esc(signal.reason||'원천 미확보');
@@ -1284,8 +1326,9 @@ function drawLiquidity(host,model){
 function bindCrossAsset(panel){
   const model=panel._crossModel;let view='scenario',scenarioId=panel._defaultScenario;
   const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel);
-  const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId];
-    copy.innerHTML=`<div><span>선택 가정</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small></div><p>${scenario.assumptions.map(item=>`<span>${esc(item)}</span>`).join('')}</p>`;
+  const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId],macro=scenario.macro_assumptions||{},last=values=>Array.isArray(values)&&values.length?values.at(-1):null;
+    const macroChips=`<span>Δ10Y ${hasNumeric(last(macro.delta_10y_bp))?signedDelta(last(macro.delta_10y_bp),0,'bp'):'미산출'}</span><span>ΔHY ${hasNumeric(last(macro.delta_hy_bp))?signedDelta(last(macro.delta_hy_bp),0,'bp'):'미산출'}</span><span>사전 등록 가정</span>`;
+    copy.innerHTML=`<div><span>선택 가정</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small></div><p>${macroChips}${scenario.assumptions.map(item=>`<span>${esc(item)}</span>`).join('')}</p>`;
     drawCrossAsset(scenarioHost,model,scenarioId);
     panel.querySelectorAll('[data-cross-scenario]').forEach(button=>{const active=button.dataset.crossScenario===scenarioId;button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;});
   };

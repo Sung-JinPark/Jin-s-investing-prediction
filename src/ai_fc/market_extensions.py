@@ -30,7 +30,7 @@ TRACKER_LATEST = Path("data/signals/scenario_tracker_latest.json")
 TRACKER_ARCHIVE = Path("data/signals/archive")
 LIQUIDITY_LATEST = Path("data/liquidity/liquidity_latest.json")
 LIQUIDITY_ARCHIVE = Path("data/liquidity/archive")
-PATH_TRACKING = Path("data/cross_asset/path_tracking.csv")
+PATH_TRACKING = Path("data/cross_asset/path_tracking_v2.csv")
 RULES_PATH = Path("data/contracts/scenario_tracker_rules.yaml")
 FRED_SERIES = (
     "BAMLH0A0HYM2", "DFII10", "DTWEXBGS", "WALCL", "WTREGEN",
@@ -180,8 +180,15 @@ def _state(metrics: dict[str, float | int | None], rule: dict[str, Any]) -> str:
         _operator(metrics.get(deleveraging.get("metric")), deleveraging)
         if deleveraging else False
     )
+    rates_high = rule.get("rates_stay_high") or {}
+    rates_high_match = (
+        _operator(metrics.get(rates_high.get("metric")), rates_high)
+        if rates_high else False
+    )
     if easing_match:
         return "easing_rotation_support"
+    if rates_high_match:
+        return "rates_stay_high_support"
     if deleveraging_match:
         return "deleveraging_support"
     return "neutral"
@@ -207,6 +214,15 @@ def _common_meta(receipts: list[dict[str, Any]], observation_period: str) -> dic
         "source_fingerprint": hashlib.sha256("|".join(fingerprints).encode()).hexdigest(),
         "revision_vintage": "captured_current",
     }
+
+
+def _compact_receipt(receipt: dict[str, Any]) -> dict[str, Any]:
+    """Keep audit identity once; signal metadata already carries source URLs."""
+    fields = (
+        "source", "series_id", "symbol", "interval", "response_sha256",
+        "fetched_at", "revision_vintage",
+    )
+    return {key: receipt[key] for key in fields if receipt.get(key) not in (None, "")}
 
 
 def _relative_return(left: list[float], right: list[float], periods: int) -> float | None:
@@ -265,14 +281,27 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
         "relative_return_60d_pct": _round(_relative_return(btc, ndx, 60), 2),
         "relative_return_20d_pct": _round(_relative_return(btc, ndx, 20), 2),
     }
+    dgs = _numeric_tail(_weekly_series(fred["DGS10"], anchors), 60)
+    signal_metrics["S8"] = {
+        "four_week_change_bp": _round(_point_change_bp(dgs, 4), 1),
+    }
+    from .realty_income import build_dividend_monitor, dividend_rows
+    dividend_monitor = build_dividend_monitor(
+        dividend_rows(dividends, asof=asof), asof=asof)
+    signal_metrics["S9"] = {
+        "c4_met": int(bool(dividend_monitor["c4_met"])),
+        "cuts_last_12_events": int(dividend_monitor["cuts_last_12_events"]),
+        "latest_amount": dividend_monitor["latest_amount"],
+    }
     signal_sources = {
         "S1": [fred["BAMLH0A0HYM2"].receipt], "S2": [fred["DFII10"].receipt],
         "S3": [fred["DTWEXBGS"].receipt],
         "S4": [fred[key].receipt for key in ("WALCL", "WTREGEN", "RRPONTSYD")],
         "S7": [prices["nasdaq"].receipt, prices["bitcoin"].receipt],
+        "S8": [fred["DGS10"].receipt], "S9": [dividends.receipt],
     }
     signals = []
-    for signal_id in ("S1", "S2", "S3", "S4", "S5", "S6", "S7"):
+    for signal_id in tuple(f"S{index}" for index in range(1, 10)):
         rule = rules["signals"][signal_id]
         if signal_id in ("S5", "S6"):
             signals.append({
@@ -290,9 +319,11 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
         })
     counts = {
         state: sum(item["state"] == state for item in signals)
-        for state in ("deleveraging_support", "easing_rotation_support", "neutral")
+        for state in (
+            "deleveraging_support", "easing_rotation_support",
+            "rates_stay_high_support", "neutral",
+        )
     }
-    dgs = _numeric_tail(_weekly_series(fred["DGS10"], anchors), 60)
     o_weekly = _numeric_tail(_weekly_prices(prices["realty_income"], anchors, adjusted=True), 60)
     o_returns = list(np.diff(np.log(np.asarray(o_weekly, dtype=float))))
     rate_changes = list(np.diff(np.asarray(dgs, dtype=float)))
@@ -305,14 +336,27 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
     halving = date(2024, 4, 20)
     halving_months = max(0, (asof.year - halving.year) * 12 + asof.month - halving.month)
     btc_200dma = float(np.mean(btc[-200:])) if len(btc) >= 200 else None
+    by_id = {item["id"]: item for item in signals}
+    hypothesis_conditions = [
+        {"id": "C1", "signal": "S1", "met": by_id["S1"]["state"] != "deleveraging_support"},
+        {"id": "C2", "signal": "S8", "met": by_id["S8"]["state"] == "easing_rotation_support"},
+        {"id": "C3", "signal": "S2", "met": by_id["S2"]["state"] == "easing_rotation_support"},
+        {"id": "C4", "signal": "S9", "met": bool(dividend_monitor["c4_met"])},
+    ]
     payload = {
         "schema_version": 1, "asof": asof.isoformat(),
         "generated_at": (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
         "probability_space": "reference_only", "rules_version": rules["rules_version"],
         "status": "partial" if any(item["state"] == "source_unavailable" for item in signals) else "ok",
-        "summary": {"available": 5, "total": 7, "counts": counts,
+        "summary": {"available": sum(item["status"] == "available" for item in signals),
+                    "total": 9, "counts": counts,
                     "text": "방향 일치 신호 개수이며 가중 점수·확률이 아닙니다."},
         "signals": signals,
+        "realty_income_hypothesis": {
+            "conditions_met": sum(item["met"] for item in hypothesis_conditions),
+            "conditions_total": 4, "conditions": hypothesis_conditions,
+            "text": "조건 충족 개수이며 O 상승 확률이 아닙니다.",
+        },
         "asset_diagnostics": {
             "bitcoin": {
                 "halving_anchor": "2024-04-20", "months_since_halving": halving_months,
@@ -329,8 +373,9 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
                 "return_basis": "O adjusted-close weekly return vs DGS10 weekly change",
             },
         },
-        "receipts": [series.receipt for series in fred.values()]
-                    + [result.receipt for result in prices.values()] + [dividends.receipt],
+        "receipts": [_compact_receipt(series.receipt) for series in fred.values()]
+                    + [_compact_receipt(result.receipt) for result in prices.values()]
+                    + [_compact_receipt(dividends.receipt)],
         "warning": "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다.",
     }
     return validate_scenario_tracker(payload)
@@ -341,15 +386,18 @@ def validate_scenario_tracker(payload: dict[str, Any]) -> dict[str, Any]:
         raise MarketExtensionError("scenario_tracker must be reference_only")
     date.fromisoformat(payload["asof"])
     signals = payload.get("signals") or []
-    if [item.get("id") for item in signals] != [f"S{i}" for i in range(1, 8)]:
-        raise MarketExtensionError("scenario_tracker requires ordered S1..S7")
-    allowed = {"deleveraging_support", "easing_rotation_support", "neutral", "source_unavailable"}
+    if [item.get("id") for item in signals] != [f"S{i}" for i in range(1, 10)]:
+        raise MarketExtensionError("scenario_tracker requires ordered S1..S9")
+    allowed = {"deleveraging_support", "easing_rotation_support", "rates_stay_high_support", "neutral", "source_unavailable"}
     if any(item.get("state") not in allowed for item in signals):
         raise MarketExtensionError("scenario_tracker contains invalid state")
     if any(key in payload for key in ("probability", "score", "weights")):
         raise MarketExtensionError("scenario_tracker score/probability fields are prohibited")
-    if len(json.dumps(payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8")) > TRACKER_BUDGET_BYTES:
-        raise MarketExtensionError("scenario_tracker payload exceeds 8KB budget")
+    payload_bytes = len(json.dumps(
+        payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+    if payload_bytes > TRACKER_BUDGET_BYTES:
+        raise MarketExtensionError(
+            f"scenario_tracker payload exceeds 8KB budget ({payload_bytes} bytes)")
     return payload
 
 
@@ -428,7 +476,7 @@ def build_liquidity(*, rules: dict[str, Any], asof: date,
         "schema_version": 1, "asof": labels[-1],
         "generated_at": (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
         "status": "partial", "probability_space": "reference_only",
-        "rules_version": rules["rules_version"],
+        "rules_version": rules.get("liquidity_rules_version", rules["rules_version"]),
         "zone": classify_liquidity_zone(four_week_change, rules),
         "zone_metric": {"name": "fed_net_liquidity_four_week_change_pct",
                         "value": _round(four_week_change, 2)},
@@ -487,6 +535,7 @@ def _comparable(payload: dict[str, Any]) -> str:
             for key in (
                 "generated_at", "fetched_at", "available_at",
                 "response_sha256", "source_fingerprint",
+                "snapshot_id", "revision", "correction_id", "supersedes",
             ):
                 node.pop(key, None)
             for child in node.values():
@@ -497,6 +546,71 @@ def _comparable(payload: dict[str, Any]) -> str:
 
     strip_transport_times(value)
     return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _approved_tracker_correction(root: Path, asof: str) -> str | None:
+    ledger = root / "calibration/corrections.csv"
+    if not ledger.exists():
+        return None
+    with ledger.open(encoding="utf-8", newline="") as handle:
+        rows = [
+            row for row in csv.DictReader(handle)
+            if row.get("target_table") == "scenario_tracker_snapshots"
+            and row.get("target_key") == asof and row.get("status") == "approved"
+        ]
+    return rows[-1].get("correction_id") if rows else None
+
+
+def _persist_tracker(root: Path, payload: dict[str, Any]) -> tuple[Path, dict[str, Any], bool]:
+    latest = root / TRACKER_LATEST
+    archive_dir = root / TRACKER_ARCHIVE
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    candidates = sorted(archive_dir.glob(f"{payload['asof']}*.json"))
+    target = _comparable(payload)
+    for archive in candidates:
+        existing_raw = archive.read_text(encoding="utf-8")
+        existing = json.loads(existing_raw)
+        if _comparable(existing) == target:
+            changed = not latest.exists() or latest.read_text(encoding="utf-8") != existing_raw
+            if changed:
+                latest.write_text(existing_raw, encoding="utf-8", newline="\n")
+            return latest, existing, changed
+    if candidates:
+        correction_id = _approved_tracker_correction(root, payload["asof"])
+        if not correction_id:
+            raise MarketExtensionError(
+                f"immutable tracker archive conflict for {payload['asof']}; correction required")
+        revisions = [int(json.loads(path.read_text(encoding="utf-8")).get("revision") or 1)
+                     for path in candidates]
+        payload = deepcopy(payload)
+        revision = max(revisions) + 1
+        payload.update({
+            "snapshot_id": f"scenario-tracker:{payload['asof']}:r{revision}",
+            "revision": revision, "correction_id": correction_id,
+            "supersedes": f"scenario-tracker:{payload['asof']}:r{revision - 1}",
+        })
+        archive = archive_dir / f"{payload['asof']}_{correction_id}.json"
+    else:
+        payload = deepcopy(payload)
+        payload.update({
+            "snapshot_id": f"scenario-tracker:{payload['asof']}:r1", "revision": 1,
+        })
+        archive = archive_dir / f"{payload['asof']}.json"
+    serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+    if archive.exists():
+        existing_raw = archive.read_text(encoding="utf-8")
+        existing = json.loads(existing_raw)
+        if _comparable(existing) != _comparable(payload):
+            raise MarketExtensionError(f"immutable tracker correction conflict: {archive}")
+        changed = not latest.exists() or latest.read_text(encoding="utf-8") != existing_raw
+        if changed:
+            latest.write_text(existing_raw, encoding="utf-8", newline="\n")
+        return latest, existing, changed
+    else:
+        archive.write_text(serialized, encoding="utf-8", newline="\n")
+    latest.write_text(serialized, encoding="utf-8", newline="\n")
+    return latest, payload, True
 
 
 def _persist_json(root: Path, latest_relative: Path, archive_relative: Path,
@@ -529,6 +643,8 @@ def _append_path_tracking(root: Path, payload: dict[str, Any],
         return False
     origin = date.fromisoformat(cross["asof"])
     current = date.fromisoformat(payload["asof"])
+    if current < origin:
+        return False
     weeks = max(0, (current - origin).days // 7)
     month_index = min(12, int(round(weeks / 4.345)))
     scenarios = cross["forecast"]["scenarios"]
@@ -554,8 +670,9 @@ def _append_path_tracking(root: Path, payload: dict[str, Any],
     path.parent.mkdir(parents=True, exist_ok=True)
     fields = [
         "asof", "origin_asof", "weeks_elapsed", "scenario_month_index", "asset", "actual_index",
-        "deleveraging_path", "easing_rotation_path", "soft_landing_path",
+        "deleveraging_path", "easing_rotation_path", "soft_landing_path", "rates_stay_high_path",
         "deleveraging_abs_gap", "easing_rotation_abs_gap", "soft_landing_abs_gap",
+        "rates_stay_high_abs_gap",
     ]
     existing: dict[tuple[str, str, str], dict[str, str]] = {}
     if path.exists():
@@ -603,8 +720,7 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
         rules=rules, asof=weekly_asof, fred=fred, prices=prices, dividends=dividends)
     liquidity = build_liquidity(
         rules=rules, asof=weekly_asof, fred=fred, prices=prices)
-    tracker_path, tracker_payload, tracker_changed = _persist_json(
-        root, TRACKER_LATEST, TRACKER_ARCHIVE, tracker)
+    tracker_path, tracker_payload, tracker_changed = _persist_tracker(root, tracker)
     liquidity_path, liquidity_payload, liquidity_changed = _persist_json(
         root, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, liquidity)
     tracking_changed = _append_path_tracking(root, tracker_payload, prices)

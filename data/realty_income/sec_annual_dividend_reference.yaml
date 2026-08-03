@@ -1,0 +1,17 @@
+schema_version: 1
+source: Realty Income 2005 Annual Report
+source_url: https://www.realtyincome.com/sites/realty-income/files/2005-annual.pdf
+source_sha256: c63e52b42ac882cbe94fde447a589da6afa15e07852e2ddca88660b38b6bb688
+source_pages: [8, 9]
+basis: dividends_paid_per_common_share
+split_adjustment: all share and per-share values reflect the 2-for-1 split effective 2004-12-31
+annual:
+  2001: 1.121
+  2002: 1.151
+  2003: 1.181
+  2004: 1.241
+  2005: 1.346
+comparison_semantics: >-
+  The official table is dividends paid during the calendar year; Yahoo events are grouped by
+  ex-date. Exact annual totals are therefore not asserted equal. The cross-check validates the
+  continuous-increase direction and discloses the basis mismatch.

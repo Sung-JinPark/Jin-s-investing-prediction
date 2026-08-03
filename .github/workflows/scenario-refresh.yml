@@ -40,7 +40,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/scenarios data/cross_asset
-          for optional_dir in data/signals data/liquidity; do
+          for optional_dir in data/signals data/liquidity data/realty_income data/rate_events; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"
             fi

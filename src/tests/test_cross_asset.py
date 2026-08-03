@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 
 import numpy as np
 import pytest
+import yaml
 
 from ai_fc.cross_asset import (
     CrossAssetError,
@@ -17,12 +18,37 @@ from ai_fc.cross_asset import (
     refresh_cross_asset,
     validate_cross_asset,
 )
-from ai_fc.quant.feed import YahooPriceSeriesResult
+from ai_fc.quant.feed import YahooDividendResult, YahooPriceSeriesResult
+from ai_fc.realty_income import FredSeries
 
 
 ORIGINAL_2026_07_31_CANONICAL_SHA256 = (
     "16d8cfbb94565268b1b877bad46af2b72206164d7971bfcbdce07c02477ec792"
 )
+ROOT = Path(__file__).parents[2]
+
+
+def _macro_assumptions() -> dict:
+    return yaml.safe_load(
+        (ROOT / "data/contracts/cross_asset_macro_assumptions.yaml")
+        .read_text(encoding="utf-8"))
+
+
+def _realty_sensitivity(*, rate: float = -8.0, credit: float = 0.0) -> dict:
+    record = lambda used: {  # noqa: E731
+        "measured_effect_per_100bp_pct": used,
+        "bootstrap_10_90_pct": [used - 1, used + 1],
+        "used_effect_per_100bp_pct": used,
+        "status": "eligible" if used else "ci_crosses_zero",
+        "observations": 156,
+    }
+    return {
+        "asof": "2026-08-03", "status": "partial",
+        "beta_rate": record(rate), "beta_credit": record(credit),
+        "dividend_yield_ttm_pct": 5.5, "spread_vs_10y_pp": .8,
+        "spread_percentile_since_2000": 62.0,
+        "dividend_monitor": {"c4_met": True, "status": "maintained_or_increased"},
+    }
 
 
 def _months(start_year: int, start_month: int, count: int) -> list[date]:
@@ -57,6 +83,8 @@ def _fixture(*, history_count: int = 61) -> dict:
         current_bitcoin=bitcoin,
         current_o_adjusted=realty,
         anchors={"nasdaq": 25000, "bitcoin": 65000, "realty_income": 60},
+        macro_assumptions=_macro_assumptions(),
+        realty_sensitivity=_realty_sensitivity(),
         generated_at=datetime(2026, 8, 3, tzinfo=timezone.utc),
     )
 
@@ -69,7 +97,7 @@ def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(145.0)
     assert model["forecast"]["weights"]["status"] == "not_estimated"
     assert set(model["forecast"]["scenarios"]) == {
-        "deleveraging", "easing_rotation", "soft_landing"
+        "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high"
     }
     assert all(
         len(path) == 13
@@ -132,6 +160,36 @@ def test_easing_rotation_allows_divergence_after_initial_shock() -> None:
     assert paths["bitcoin"][3] < 100
     assert paths["bitcoin"][-1] > paths["nasdaq"][-1]
     assert paths["realty_income"][-1] > 100
+
+
+def test_realty_income_v2_keeps_initial_deleveraging_and_adds_refutation_path() -> None:
+    scenarios = _fixture()["forecast"]["scenarios"]
+    deleveraging = scenarios["deleveraging"]["paths"]["realty_income"]
+    rates_high = scenarios["rates_stay_high"]["paths"]["realty_income"]
+    easing = scenarios["easing_rotation"]["paths"]["realty_income"]
+    assert min(deleveraging[:4]) < 100
+    assert rates_high[-1] < easing[-1]
+    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][-1] == 40
+
+
+def test_cross_asset_requires_preregistered_macro_assumptions() -> None:
+    assumptions = _macro_assumptions()
+    assumptions["scenarios"]["deleveraging"]["delta_10y_bp"].pop(6)
+    with pytest.raises((CrossAssetError, KeyError)):
+        model = _fixture()
+        build_cross_asset(
+            history_dates=[date.fromisoformat(label + "-01") for label in model["history"]["labels"]],
+            history_nasdaq=model["history"]["series"]["nasdaq_price"],
+            history_o_price=model["history"]["series"]["realty_income_price"],
+            history_o_adjusted=model["history"]["series"]["realty_income_total_return"],
+            current_dates=[date(2020, 1, 1) + timedelta(days=i) for i in range(320)],
+            current_nasdaq=_price_path(320, .0004, .009),
+            current_bitcoin=_price_path(320, .0007, .016),
+            current_o_adjusted=_price_path(320, .00025, .004),
+            anchors={"nasdaq": 1, "bitcoin": 1, "realty_income": 1},
+            macro_assumptions=assumptions,
+            realty_sensitivity=_realty_sensitivity(),
+        )
 
 
 def test_cross_asset_validator_rejects_path_length_drift() -> None:
@@ -215,6 +273,44 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
         )
 
     monkeypatch.setattr("ai_fc.cross_asset.feed.yahoo_price_series_detail", fake_detail)
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.feed.yahoo_dividends",
+        lambda *_args, **_kwargs: YahooDividendResult(
+            [], [], {"request_url": "mock://dividends", "response_sha256": "div",
+                     "fetched_at": "2026-08-03T15:00:00Z"}),
+    )
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.load_macro_assumptions",
+        lambda _root: _macro_assumptions())
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.load_event_registry",
+        lambda _root: {"registry_version": "test", "events": []})
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.load_dividend_reference",
+        lambda _root: {"annual": {}, "source_url": "mock://dividend-reference"})
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.fetch_fred_series",
+        lambda series_id, _start: FredSeries(
+            series_id, daily, list(np.linspace(3, 4, len(daily))),
+            {"request_url": f"mock://{series_id}", "response_sha256": series_id,
+             "fetched_at": "2026-08-03T15:00:00Z"}))
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.dividend_rows", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.build_rate_sensitivity",
+        lambda **_kwargs: _realty_sensitivity())
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.build_event_study",
+        lambda **_kwargs: {"status": "partial", "events": []})
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.build_history_preview",
+        lambda *_args, **_kwargs: {"status": "ok", "labels": [], "series": {}})
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.append_dividends",
+        lambda *_args, **_kwargs: (tmp_path / "dividends.csv", False))
+    monkeypatch.setattr(
+        "ai_fc.cross_asset.realty_income.persist_derived",
+        lambda *_args, **_kwargs: (tmp_path / "derived.json", False))
     _, payload, _ = refresh_cross_asset(
         tmp_path,
         asof=date(2026, 8, 3),
