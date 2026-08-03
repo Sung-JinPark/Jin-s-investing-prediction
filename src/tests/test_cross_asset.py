@@ -18,8 +18,8 @@ from ai_fc.cross_asset import (
 from ai_fc.quant.feed import YahooPriceSeriesResult
 
 
-ORIGINAL_2026_07_31_SHA256 = (
-    "44e800b5ec406212b45a99c59de2b69d9eaf6c29e1d21b97750524d6cacf4bf4"
+ORIGINAL_2026_07_31_CANONICAL_SHA256 = (
+    "16d8cfbb94565268b1b877bad46af2b72206164d7971bfcbdce07c02477ec792"
 )
 
 
@@ -90,7 +90,11 @@ def test_committed_2026_07_31_original_archive_is_byte_immutable() -> None:
         / "archive"
         / "2026-07-31.json"
     )
-    assert hashlib.sha256(archive.read_bytes()).hexdigest() == ORIGINAL_2026_07_31_SHA256
+    # Git stores this text archive with LF. A pre-existing Windows worktree may
+    # retain CRLF bytes even though the committed blob is identical, so hash the
+    # canonical repository representation on every platform.
+    canonical = archive.read_bytes().replace(b"\r\n", b"\n")
+    assert hashlib.sha256(canonical).hexdigest() == ORIGINAL_2026_07_31_CANONICAL_SHA256
 
 
 def test_history_explicitly_excludes_2006_01_partial_bar() -> None:
