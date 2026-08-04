@@ -941,7 +941,8 @@ function contextTabs(group,current){
 }
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
 function route(){
-  const h=(location.hash||'#overview').slice(1);const [v,arg]=h.split('/');
+  const rawHash=location.hash||'#overview',lookupMatch=rawHash.match(/^#lookup=(\d{4}-\d{2}-\d{2})$/);
+  const h=lookupMatch?'flow':rawHash.slice(1);const [v,pathArg]=h.split('/');const arg=lookupMatch?lookupMatch[1]:pathArg;
   closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);
   const navView=(v==='q'||v==='compare')?'questions':(v==='ask'?'asof':v);
   document.body.dataset.view=navView;
@@ -1069,7 +1070,39 @@ const CROSS_META={
 };
 function monthAt(ym,m){const t=(+ym.slice(0,4))*12+(+ym.slice(5,7)-1)+m;
   return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0');}
-function renderFlow(){
+const LOOKUP_WEEKDAYS=['일요일','월요일','화요일','수요일','목요일','금요일','토요일'];
+function lookupDateLabel(mapped){
+  const requested=ForecastLookup.parseIso(mapped.requested),weekday=LOOKUP_WEEKDAYS[requested.getUTCDay()];
+  if(mapped.mapping==='exact')return `${mapped.requested} (${weekday} · D+${mapped.tradingDay} 거래일)`;
+  const relation=mapped.mapping==='previous'?'직전 거래일':'다음 산출 거래일';
+  return `${mapped.requested} (${weekday} — 휴장, ${relation} ${mapped.mapped.slice(5)} 기준 · D+${mapped.tradingDay} 거래일)`;
+}
+function lookupErrorMarkup(result){
+  const copy=result.reason==='out_of_range'?`시뮬레이션 범위 밖 (최대 ${result.max})`:
+    result.reason==='before_asof'?`기준일 ${result.asof} 이후 날짜를 선택해 주세요.`:
+    result.reason==='blocked'?'이 스냅샷에는 날짜별 분포가 없습니다.':'날짜 형식을 확인해 주세요.';
+  return `<div class="lookup-empty" role="status"><strong>${esc(copy)}</strong><span>달력 입력 또는 빠른 날짜를 사용해 다시 조회할 수 있습니다.</span></div>`;
+}
+function lookupCardMarkup(sc,mapped){
+  const table=sc.quantile_table,index=mapped.index,q=table.quantiles,model=sc.model||{};
+  const scenarioNames={S1:'S1 상승·ATH 돌파',S2:'S2 상승·ATH 미달',S3:'S3 조정·횡보'};
+  const shortNote=mapped.tradingDay<=5?'<p class="lookup-short-note">단기 구간일수록 모델 가정 민감도가 큽니다.</p>':'';
+  return `<article class="lookup-card" data-lookup-date="${esc(mapped.mapped)}">
+    <header><p class="eyebrow">DATE DISTRIBUTION · MODEL CONDITIONAL</p><h3>${esc(lookupDateLabel(mapped))}</h3></header>
+    <div class="lookup-metrics">
+      <div class="lookup-primary"><span>10–90% 구간</span><strong>${num(q.p10[index])} – ${num(q.p90[index])}</strong></div>
+      <div><span>25–75% 구간</span><strong>${num(q.p25[index])} – ${num(q.p75[index])}</strong></div>
+      <div><span>중앙값</span><strong>${num(q.p50[index])}</strong></div>
+      <div><span>현재가(${num(Math.round(sc.anchor))}) 상회</span><strong>${table.prob_above_anchor[index]}%</strong><small>모델 조건부 확률</small></div>
+      <div><span>ATH 상회</span><strong>${table.prob_above_ath[index]}%</strong><small>모델 조건부 확률</small></div>
+    </div>
+    ${shortNote}
+    <details class="lookup-scenarios"><summary>S1/S2/S3 조건부 중앙값 보기</summary><div>${['S1','S2','S3'].map(key=>`<p><span>${scenarioNames[key]}</span><strong>${num(table.per_scenario_p50[key][index])}</strong><small>${num(table.per_scenario_counts?.[key]||0)}경로</small></p>`).join('')}</div></details>
+    <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 목표가·사건확률·투자자문이 아닙니다.</p>
+    <footer>as_of ${esc(sc.asof)} 스냅샷 · seed ${esc(model.seed)} · ${num(model.n_paths)}경로 · ${esc(table.probability_space)}</footer>
+  </article>`;
+}
+function renderFlow(initialLookup){
   const sc=DATA.scenario;
   const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
     ?'경로 확률은 확정 일봉 252거래일의 GBM 분류 결과이며 fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
@@ -1088,10 +1121,19 @@ function renderFlow(){
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}</div>`;
+  const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
+  const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
+  const lookupWidget=lookupReady?`<section class="forecast-lookup" aria-labelledby="lookup-title">
+    <div class="lookup-heading"><div><p class="eyebrow">FORECAST LOOKUP</p><h3 id="lookup-title">날짜별 조건부 분포 조회</h3><p>서버 호출 없이 이 스냅샷에 미리 계산된 252거래일 분포를 조회합니다.</p></div><span>NO API · NO STORAGE</span></div>
+    <div class="lookup-controls"><label for="lookup-date">날짜 선택<input id="lookup-date" type="date" min="${esc(lookupTable.trading_days[0])}" max="${esc(lookupTable.trading_days.at(-1))}" value="${esc(initialLookup||quick.month)}"></label><button type="button" class="lookup-submit">분포 조회</button></div>
+    <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
+    <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
+  </section>`:'';
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2>향후 252거래일 조건부 시나리오</h2>${legend}</div>
     ${focusControls}
+    ${lookupWidget}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
@@ -1116,10 +1158,22 @@ function renderFlow(){
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
-  const flowHost=$('#chart',p1w),paintFlow=focus=>{flowHost.innerHTML='';drawFlow(flowHost,sc,focus);
+  let flowFocus='ALL',lookupMarker=null;
+  const flowHost=$('#chart',p1w),paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
-  paintFlow('ALL');
+  paintFlow(flowFocus);
+  const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w);
+  const runLookup=requested=>{if(!lookupResult||!lookupInput)return;lookupInput.value=requested||lookupInput.value;
+    const mapped=ForecastLookup.mapDate(sc.quantile_table,lookupInput.value,sc.asof);
+    lookupResult.innerHTML=mapped.ok?lookupCardMarkup(sc,mapped):lookupErrorMarkup(mapped);
+    lookupMarker=mapped.ok?mapped.mapped:null;paintFlow(flowFocus);
+    if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}`);
+  };
+  const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
+  p1w.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
+  if(lookupInput)lookupInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runLookup(lookupInput.value);}};
+  if(initialLookup)runLookup(initialLookup);
   const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future';
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
@@ -1448,7 +1502,7 @@ function drawOverlay(host,o,eras,focus='ALL'){
     else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(maxIndex);}});
   host.replaceChildren(svg,readout);paintCursor(cursorIndex);
 }
-function drawFlow(host,sc,focus='ALL'){
+function drawFlow(host,sc,focus='ALL',lookupDate=null){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=560,ML=58,MR=140,MT=72,MB=30,HCH=486;
   const fan=sc.fan?.quantiles||{},chartValues=[sc.ath,sc.corr10,
@@ -1483,6 +1537,12 @@ function drawFlow(host,sc,focus='ALL'){
     const ev=p.values[p.values.length-1];
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(ev),r:on?4:2.5,fill:col,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));
     svg.appendChild(tx(X(n-1)+8,Y(ev)+4,`${num(ev)} · ${p.prob}%`,{fill:CHART_LABEL_COL[k],fs:12,w:700,opacity:on?1:.12}));});
+  if(lookupDate&&sc.week_dates?.length===n){let position=0;
+    const next=sc.week_dates.findIndex(day=>day>=lookupDate);
+    if(next<0)position=n-1;else if(next===0||sc.week_dates[next]===lookupDate)position=next;else{const left=ForecastLookup.parseIso(sc.week_dates[next-1]),right=ForecastLookup.parseIso(sc.week_dates[next]),target=ForecastLookup.parseIso(lookupDate);position=next-1+(target-left)/(right-left);}
+    const markerX=X(position);svg.appendChild(mk('line',{x1:markerX,y1:MT-10,x2:markerX,y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));
+    svg.appendChild(mk('circle',{cx:markerX,cy:MT-13,r:4,fill:'#1f6feb',stroke:'#fff','stroke-width':1.5}));
+    svg.appendChild(tx(markerX,MT-23,'조회 '+lookupDate.slice(5),{anc:'middle',fill:'#174ea6',fs:12,w:750}));}
   svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f','stroke':'#fff','stroke-width':1.5}));
   svg.appendChild(tx(X(0)-6,Y(sc.anchor)-10,num(Math.round(sc.anchor)),{fill:'#11110f',w:600}));
   sc.weeks.forEach((w,i)=>svg.appendChild(tx(X(i),MT+PH+16,w,{anc:'middle',fs:12,fill:i?'#5f5d57':'#34322e'})));

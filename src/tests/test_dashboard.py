@@ -321,6 +321,17 @@ def test_workspace_utility_contract() -> None:
     assert "자동 활성화 안 함" in html
 
 
+def test_forecast_lookup_ui_contract() -> None:
+    html = dashboard.load_template()
+    for required in (
+        'type="date"', 'aria-live="polite"', "#lookup=", "10–90% 구간",
+        "25–75% 구간", "중앙값", "모델 조건부 확률",
+        "목표가·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
+    ):
+        assert required in html
+    assert "lookup-metrics" in html and "lookup-primary" in html
+
+
 def test_render_embed_vs_fetch(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)

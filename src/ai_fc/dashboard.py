@@ -21,6 +21,7 @@ from .db import ingest, queries
 TEMPLATE = Path(__file__).parent / "dashboard_template.html"
 DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
 DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
+DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 1_000_000
 
@@ -417,7 +418,10 @@ def load_template() -> str:
     """소스 partial을 외부 요청 없는 단일 HTML shell로 조립한다."""
     shell = TEMPLATE.read_text(encoding="utf-8")
     styles = DASHBOARD_STYLES.read_text(encoding="utf-8")
-    script = DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    script = "\n".join((
+        DASHBOARD_LOOKUP_SCRIPT.read_text(encoding="utf-8"),
+        DASHBOARD_SCRIPT.read_text(encoding="utf-8"),
+    ))
     for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->"):
         if marker not in shell:
             raise ValueError(f"dashboard template marker missing: {marker}")
