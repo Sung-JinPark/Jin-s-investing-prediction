@@ -347,6 +347,26 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
     assert changed is False
     assert len(list((tmp_path / "data" / "cross_asset" / "receipts").glob("*.json"))) == 1
 
+    fresh_root = tmp_path / "fresh_then_lagging"
+    _, fresh, _ = refresh_cross_asset(
+        fresh_root,
+        asof=date(2026, 8, 4),
+        now=datetime(2026, 8, 4, 10, 0, tzinfo=ZoneInfo("America/New_York")),
+    )
+    assert fresh["asof"] == "2026-08-03"
+    fresh_receipts = fresh_root / "data" / "cross_asset" / "receipts"
+    assert len(list(fresh_receipts.glob("*.json"))) == 1
+
+    daily[:] = [day for day in daily if day <= date(2026, 7, 31)]
+    _, retained, changed = refresh_cross_asset(
+        fresh_root,
+        asof=date(2026, 8, 4),
+        now=datetime(2026, 8, 4, 10, 30, tzinfo=ZoneInfo("America/New_York")),
+    )
+    assert retained["asof"] == "2026-08-03"
+    assert changed is False
+    assert len(list(fresh_receipts.glob("*.json"))) == 1
+
 
 def test_dotcom_peak_reference_returns_measured_drawdown() -> None:
     rows = [date(2000, 3, 1), date(2005, 12, 1)]

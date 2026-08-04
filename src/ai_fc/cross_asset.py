@@ -1009,7 +1009,10 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     if latest.exists() and not force:
         try:
             current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
-            if current["asof"] == common_dates[-1].isoformat():
+            fetched_asof = common_dates[-1].isoformat()
+            if current["asof"] >= fetched_asof:
+                if current["asof"] > fetched_asof:
+                    return latest, current, False
                 append_path_tracking_v2(root, current, daily)
                 return latest, current, False
         except (OSError, json.JSONDecodeError, CrossAssetError):
