@@ -15,6 +15,18 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     schema = (config.ROOT / "schema.sql").read_text(encoding="utf-8")
     conn.executescript(schema)
+    # CREATE TABLE IF NOT EXISTS cannot add the L0 dual-anchor columns to an
+    # existing local database.  Keep anchor_month as the model-compatible
+    # alias and migrate additively without rebuilding raw/derived tables.
+    era_columns = {row["name"] for row in conn.execute("PRAGMA table_info(era)")}
+    if "overlay_start" not in era_columns:
+        conn.execute("ALTER TABLE era ADD COLUMN overlay_start TEXT")
+    if "model_anchor" not in era_columns:
+        conn.execute("ALTER TABLE era ADD COLUMN model_anchor TEXT")
+    conn.execute(
+        "UPDATE era SET overlay_start=COALESCE(overlay_start, anchor_month), "
+        "model_anchor=COALESCE(model_anchor, anchor_month)")
+    conn.commit()
     return conn
 
 

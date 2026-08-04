@@ -4,7 +4,9 @@ PRAGMA journal_mode=WAL;
 -- ── 차원 ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS era (
   era_id TEXT PRIMARY KEY,              -- 'dotcom' | 'ai'
-  anchor_month TEXT NOT NULL,           -- '1996-01' | '2023-01'
+  anchor_month TEXT NOT NULL,           -- backward-compatible alias of model_anchor
+  overlay_start TEXT NOT NULL,          -- chart normalization/display start
+  model_anchor TEXT NOT NULL,           -- phase/model alignment anchor
   peak_date TEXT, bottom_date TEXT,     -- 닷컴: 2000-03-10 / 2002-10-09. AI: NULL(미확정)
   note TEXT);
 

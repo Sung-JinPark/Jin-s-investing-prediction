@@ -61,7 +61,18 @@ def schema() -> dict[str, Any]:
             "status": {"enum": ["ok", "empty", "blocked"]},
             "probability_space": {"const": "reference_only"},
             "unit": {"const": "log10(index/100)"},
-            "series": {"type": "array"},
+            "series": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "required": ["id", "overlay_start", "model_anchor"],
+                    "properties": {
+                        "id": {"type": "string"},
+                        "overlay_start": {"type": "string"},
+                        "model_anchor": {"type": "string"},
+                    },
+                },
+            },
         },
     }
     properties["cross_asset"] = {
@@ -146,6 +157,14 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("era_analog unit must be log10(index/100)")
         if not isinstance(era.get("series"), list):
             errors.append("era_analog series must be a list")
+        else:
+            for row in era["series"]:
+                if not isinstance(row, dict):
+                    continue
+                if not row.get("overlay_start") or not row.get("model_anchor"):
+                    errors.append(
+                        "era_analog series must consume overlay_start and model_anchor")
+                    break
     cross_asset = model.get("cross_asset")
     if isinstance(cross_asset, dict):
         if cross_asset.get("status") != "blocked":

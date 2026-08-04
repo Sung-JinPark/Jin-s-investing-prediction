@@ -31,9 +31,10 @@ def ingest(conn: sqlite3.Connection, since: str | None = None) -> dict[str, int]
     # era
     for era_id, a in config.ANCHORS.items():
         conn.execute(
-            "INSERT OR REPLACE INTO era (era_id, anchor_month, peak_date, bottom_date, note)"
-            " VALUES (?,?,?,?,?)",
-            (era_id, a["anchor_month"], a.get("peak_date"), a.get("bottom_date"),
+            "INSERT OR REPLACE INTO era (era_id, anchor_month, overlay_start, "
+            "model_anchor, peak_date, bottom_date, note) VALUES (?,?,?,?,?,?,?)",
+            (era_id, a["model_anchor"], a["overlay_start"], a["model_anchor"],
+             a.get("peak_date"), a.get("bottom_date"),
              "AI 정점·바닥 미확정 — NULL 유지" if era_id == "ai" else None))
 
     # alignment (long format): calendar_m M+0 ~ M+60 — 전 시대 era별 1행
@@ -60,7 +61,9 @@ def ingest(conn: sqlite3.Connection, since: str | None = None) -> dict[str, int]
                             ("crisis_bottom", "ai", None)]:
         conn.execute(
             "INSERT OR REPLACE INTO alignment (method, cycle_index, event_name,"
-            " era_id, date) VALUES ('event', 0, ?, ?, ?)", (name, era_id, d))
+            " era_id, date) VALUES ('event', 0, ?, ?, COALESCE(?, (SELECT date "
+            "FROM alignment WHERE method='event' AND cycle_index=0 AND "
+            "event_name=? AND era_id=?)))", (name, era_id, d, name, era_id))
         n_align += 1
     counts["alignment"] = n_align
 

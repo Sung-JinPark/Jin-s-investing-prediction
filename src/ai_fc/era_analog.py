@@ -12,14 +12,14 @@ from typing import Any
 
 
 ERA_ANCHORS = {
-    "ai": ("AI 2023", "2023-01", False),
-    "dotcom": ("닷컴 1995", "1995-01", True),
-    "japan1989": ("일본 1985", "1985-01", True),
-    "niftyfifty1972": ("니프티50 1970", "1970-01", True),
-    "crypto2021": ("크립토 2019 시작", "2019-01", True),
-    "biotech2015": ("바이오 2013", "2013-01", True),
-    "dow1929": ("다우 1925", "1925-01", True),
-    "electricity1900": ("전기 1901", "1901-01", True),
+    "ai": ("AI 2023", "2023-01", "2023-01", False),
+    "dotcom": ("닷컴 1995", "1995-01", "1996-01", True),
+    "japan1989": ("일본 1985", "1985-01", "1985-01", True),
+    "niftyfifty1972": ("니프티50 1970", "1970-01", "1970-01", True),
+    "crypto2021": ("크립토 2019 시작", "2019-01", "2019-01", True),
+    "biotech2015": ("바이오 2013", "2013-01", "2013-01", True),
+    "dow1929": ("다우 1925", "1925-01", "1925-01", True),
+    "electricity1900": ("전기 1901", "1901-01", "1901-01", True),
 }
 
 
@@ -37,8 +37,8 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
     for era_id, values in overlay.items():
         if not isinstance(values, list) or len(values) < 2:
             continue
-        label, anchor_month, result_known = ERA_ANCHORS.get(
-            era_id, (era_id, "미산출", era_id != "ai")
+        label, overlay_start, model_anchor, result_known = ERA_ANCHORS.get(
+            era_id, (era_id, "미산출", "미산출", era_id != "ai")
         )
         normalized = []
         for value in values[:61]:
@@ -50,13 +50,18 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
         series.append({
             "id": era_id,
             "label": label,
-            "anchor_month": anchor_month,
+            "anchor_month": model_anchor,
+            "overlay_start": overlay_start,
+            "model_anchor": model_anchor,
             "anchor_index": 100,
             "result_known": result_known,
             "available_through_m": len(normalized) - 1,
             "log10_index": normalized,
         })
     analog = context.get("analog") or {}
+    forward_dist = analog.get("fwd_return_dist") or {}
+    forward_cases = list(analog.get("forward_cases") or analog.get("neighbors") or [])
+    forward_n = int(forward_dist.get("n") or len(forward_cases) or 0)
     closest = analog.get("closest_era")
     selected = list(analog.get("selected_eras") or [])
     order = []
@@ -77,6 +82,16 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
         "probability_space": "reference_only",
         "unit": "log10(index/100)",
         "x_unit": "months_from_anchor",
+        "run_asof": analog.get("model_run_asof") or analog.get("asof"),
+        "model_run_id": analog.get("model_run_id"),
+        "forward_reference": {
+            "model": "knn_analog",
+            "n": forward_n,
+            "display_mode": "case_list" if 0 < forward_n < 20 else "summary",
+            "cases": forward_cases,
+            "median_emphasis_allowed": forward_n >= 20,
+            "anchor_sensitivity_status": "not_computed",
+        },
         "series": series,
         "similarity_ranking": ranking,
         "anchor_sensitivity": {
