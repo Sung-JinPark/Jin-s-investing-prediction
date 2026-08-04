@@ -1080,13 +1080,16 @@ function lookupDateLabel(mapped){
 function lookupErrorMarkup(result){
   const copy=result.reason==='out_of_range'?`시뮬레이션 범위 밖 (최대 ${result.max})`:
     result.reason==='before_asof'?`기준일 ${result.asof} 이후 날짜를 선택해 주세요.`:
-    result.reason==='blocked'?'이 스냅샷에는 날짜별 분포가 없습니다.':'날짜 형식을 확인해 주세요.';
+    result.reason==='blocked'?'이 스냅샷에는 날짜별 분포가 없습니다.':
+    result.reason==='parse_failed'?'날짜를 이해하지 못했습니다. 달력 입력을 사용해 주세요.':'날짜 형식을 확인해 주세요.';
   return `<div class="lookup-empty" role="status"><strong>${esc(copy)}</strong><span>달력 입력 또는 빠른 날짜를 사용해 다시 조회할 수 있습니다.</span></div>`;
 }
 function lookupCardMarkup(sc,mapped){
   const table=sc.quantile_table,index=mapped.index,q=table.quantiles,model=sc.model||{};
   const scenarioNames={S1:'S1 상승·ATH 돌파',S2:'S2 상승·ATH 미달',S3:'S3 조정·횡보'};
   const shortNote=mapped.tradingDay<=5?'<p class="lookup-short-note">단기 구간일수록 모델 가정 민감도가 큽니다.</p>':'';
+  const eventQuestions=(DATA.questions||[]).filter(question=>question.deadline===mapped.requested&&question.probability_space==='physical_event'&&hasNumeric(question.latest_prob));
+  const physicalEvents=eventQuestions.length?`<section class="lookup-physical-events" aria-label="별도 physical event 확률"><header><span>PHYSICAL EVENT · 별도 확률 공간</span><strong>시나리오 분포와 결합 금지</strong></header>${eventQuestions.map(question=>`<article><div><small>${esc(question.id)}</small><a href="#q/${esc(question.id)}">${esc(question.title)}</a></div><strong>p=${(Number(question.latest_prob)/100).toFixed(2)}</strong><small>${esc(question.probability_space)} · ${esc(String(question.latest_ts||'').slice(0,10)||'기준 미상')} 기준</small></article>`).join('')}</section>`:'';
   return `<article class="lookup-card" data-lookup-date="${esc(mapped.mapped)}">
     <header><p class="eyebrow">DATE DISTRIBUTION · MODEL CONDITIONAL</p><h3>${esc(lookupDateLabel(mapped))}</h3></header>
     <div class="lookup-metrics">
@@ -1098,6 +1101,7 @@ function lookupCardMarkup(sc,mapped){
     </div>
     ${shortNote}
     <details class="lookup-scenarios"><summary>S1/S2/S3 조건부 중앙값 보기</summary><div>${['S1','S2','S3'].map(key=>`<p><span>${scenarioNames[key]}</span><strong>${num(table.per_scenario_p50[key][index])}</strong><small>${num(table.per_scenario_counts?.[key]||0)}경로</small></p>`).join('')}</div></details>
+    ${physicalEvents}
     <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 목표가·사건확률·투자자문이 아닙니다.</p>
     <footer>as_of ${esc(sc.asof)} 스냅샷 · seed ${esc(model.seed)} · ${num(model.n_paths)}경로 · ${esc(table.probability_space)}</footer>
   </article>`;
@@ -1127,6 +1131,7 @@ function renderFlow(initialLookup){
     <div class="lookup-heading"><div><p class="eyebrow">FORECAST LOOKUP</p><h3 id="lookup-title">날짜별 조건부 분포 조회</h3><p>서버 호출 없이 이 스냅샷에 미리 계산된 252거래일 분포를 조회합니다.</p></div><span>NO API · NO STORAGE</span></div>
     <div class="lookup-controls"><label for="lookup-date">날짜 선택<input id="lookup-date" type="date" min="${esc(lookupTable.trading_days[0])}" max="${esc(lookupTable.trading_days.at(-1))}" value="${esc(initialLookup||quick.month)}"></label><button type="button" class="lookup-submit">분포 조회</button></div>
     <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
+    <div class="lookup-natural"><label for="lookup-natural">한 줄 날짜 입력<input id="lookup-natural" type="text" maxlength="40" placeholder="8/30 · 8월 30일 · 3개월 뒤 · 연말" autocomplete="off"></label><button type="button" class="lookup-natural-submit">날짜 해석</button><small>정규식 규칙 파서 · LLM 호출 없음</small></div>
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
   </section>`:'';
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
@@ -1173,6 +1178,10 @@ function renderFlow(initialLookup){
   const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
   p1w.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
   if(lookupInput)lookupInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runLookup(lookupInput.value);}};
+  const naturalInput=$('#lookup-natural',p1w),naturalSubmit=$('.lookup-natural-submit',p1w);
+  const runNatural=()=>{const parsed=ForecastLookup.parseQuery(naturalInput?.value,sc.asof);if(parsed.ok)runLookup(parsed.date);else{lookupResult.innerHTML=lookupErrorMarkup(parsed);lookupMarker=null;paintFlow(flowFocus);}};
+  if(naturalSubmit)naturalSubmit.onclick=runNatural;
+  if(naturalInput)naturalInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runNatural();}};
   if(initialLookup)runLookup(initialLookup);
   const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future';
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});

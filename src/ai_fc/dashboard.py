@@ -182,6 +182,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "drivers": q.drivers, "status": q.status,
             "deadline": q.deadline.isoformat() if q.deadline else None,
             "deadline_kind": q.deadline_kind,
+            "probability_space": "physical_event",
             "n_rounds": len(hist),
             "latest_prob": latest["probability"] if latest else None,
             "latest_ts": latest["forecast_ts"] if latest else None,

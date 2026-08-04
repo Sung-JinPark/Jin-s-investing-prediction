@@ -57,6 +57,7 @@ def test_read_model_shape(repo: Path) -> None:
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
+    assert m["questions"][0]["probability_space"] == "physical_event"
     # 시나리오 상수 3분할 (DECISIONS 8-1 정합)
     probs = {k: m["scenario"]["paths"][k]["prob"] for k in ("S1", "S2", "S3")}
     assert sum(probs.values()) == 100
@@ -327,6 +328,8 @@ def test_forecast_lookup_ui_contract() -> None:
         'type="date"', 'aria-live="polite"', "#lookup=", "10–90% 구간",
         "25–75% 구간", "중앙값", "모델 조건부 확률",
         "목표가·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
+        "8월 30일 · 3개월 뒤 · 연말", "정규식 규칙 파서 · LLM 호출 없음",
+        "PHYSICAL EVENT · 별도 확률 공간", "시나리오 분포와 결합 금지",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html

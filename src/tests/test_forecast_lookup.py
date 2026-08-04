@@ -53,6 +53,27 @@ def test_quick_dates_are_deterministic_calendar_dates() -> None:
     }
 
 
+def test_rule_parser_supports_registered_korean_and_short_forms() -> None:
+    cases = {
+        "8/30": "2026-08-30",
+        "8월30일": "2026-08-30",
+        "8월 30일": "2026-08-30",
+        "3개월 뒤": "2026-11-03",
+        "연말": "2026-12-31",
+    }
+    for raw, expected in cases.items():
+        result = _node(
+            f"ForecastLookup.parseQuery({json.dumps(raw, ensure_ascii=False)},'2026-08-03')")
+        assert result["ok"] is True
+        assert result["date"] == expected
+
+
+def test_rule_parser_rejects_unregistered_language() -> None:
+    result = _node(
+        f"ForecastLookup.parseQuery({json.dumps('다음 폭락 날', ensure_ascii=False)},'2026-08-03')")
+    assert result == {"ok": False, "reason": "parse_failed"}
+
+
 def test_lookup_helper_has_no_storage_or_network_dependency() -> None:
     source = SCRIPT.read_text(encoding="utf-8")
     for forbidden in ("localStorage", "sessionStorage", "fetch(", "XMLHttpRequest"):
