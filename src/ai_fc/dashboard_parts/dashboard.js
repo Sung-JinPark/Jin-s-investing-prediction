@@ -1133,14 +1133,23 @@ function lookupErrorMarkup(result){
     result.reason==='parse_failed'?'날짜를 이해하지 못했습니다. 달력 입력을 사용해 주세요.':'날짜 형식을 확인해 주세요.';
   return `<div class="lookup-empty" role="status"><strong>${esc(copy)}</strong><span>달력 입력 또는 빠른 날짜를 사용해 다시 조회할 수 있습니다.</span></div>`;
 }
+function horizonCoverageForDay(sc,tradingDay){
+  const buckets=sc?.horizon_coverage?.buckets||[];
+  const selected=buckets.find(bucket=>Number(tradingDay)<=Number(bucket.max_trading_days))||buckets.at(-1);
+  if(!selected)return {label:'미검증 구간',detail:'적중 기록 축적 중 (0일 · 0/60)',status:'accumulating'};
+  const n=Number(selected.observations||0),minimum=Number(selected.minimum_observations||60);
+  if(selected.inside_p10_p90_rate_pct==null||n<minimum)return {label:`${selected.label} 미검증 구간`,detail:`적중 기록 축적 중 (${n}일 · ${n}/${minimum})`,status:'accumulating'};
+  return {label:`${selected.label} 검증 표본`,detail:`p10–p90 적중률 ${selected.inside_p10_p90_rate_pct}% · n=${n}`,status:'verified'};
+}
 function lookupCardMarkup(sc,mapped){
   const table=sc.quantile_table,index=mapped.index,q=table.quantiles,model=sc.model||{};
+  const coverage=horizonCoverageForDay(sc,mapped.tradingDay);
   const scenarioNames={S1:'S1 상승·ATH 돌파',S2:'S2 상승·ATH 미달',S3:'S3 조정·횡보'};
   const shortNote=mapped.tradingDay<=5?'<p class="lookup-short-note">단기 구간일수록 모델 가정 민감도가 큽니다.</p>':'';
   const eventQuestions=(DATA.questions||[]).filter(question=>question.deadline===mapped.requested&&question.probability_space==='physical_event'&&hasNumeric(question.latest_prob));
   const physicalEvents=eventQuestions.length?`<section class="lookup-physical-events" aria-label="별도 physical event 확률"><header><span>PHYSICAL EVENT · 별도 확률 공간</span><strong>시나리오 분포와 결합 금지</strong></header>${eventQuestions.map(question=>`<article><div><small>${esc(question.id)}</small><a href="#q/${esc(question.id)}">${esc(question.title)}</a></div><strong>p=${(Number(question.latest_prob)/100).toFixed(2)}</strong><small>${esc(question.probability_space)} · ${esc(String(question.latest_ts||'').slice(0,10)||'기준 미상')} 기준</small></article>`).join('')}</section>`:'';
   return `<article class="lookup-card" data-lookup-date="${esc(mapped.mapped)}">
-    <header><p class="eyebrow">DATE DISTRIBUTION · MODEL CONDITIONAL</p><h3>${esc(lookupDateLabel(mapped))}</h3></header>
+    <header><div class="horizon-coverage-badge is-${coverage.status}"><strong>${esc(coverage.label)}</strong><span>${esc(coverage.detail)}</span></div><p class="eyebrow">DATE DISTRIBUTION · MODEL CONDITIONAL</p><h3>${esc(lookupDateLabel(mapped))}</h3></header>
     <div class="lookup-metrics">
       <div class="lookup-primary"><span>10–90% 구간</span><strong>${num(q.p10[index])} – ${num(q.p90[index])}</strong></div>
       <div><span>25–75% 구간</span><strong>${num(q.p25[index])} – ${num(q.p75[index])}</strong></div>
@@ -1205,7 +1214,7 @@ function renderFlow(initialLookup){
     <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
     ${focusControls}
     ${realismCards}
-    <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>모든 날짜는 이 기준일에서 출발한 한 번의 조건부 분포입니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 기간"><button type="button" data-flow-horizon="126" aria-pressed="true"><span>기본</span>6개월<small>${esc(sixMonthEnd||'')}</small></button><button type="button" data-flow-horizon="252" aria-pressed="false"><span>확장</span>2027년까지<small>${esc(fullHorizonEnd||'')}</small></button></div></div>
+    <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>모든 날짜는 이 기준일에서 출발한 한 번의 조건부 분포입니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 기간"><button type="button" data-flow-horizon="126" aria-pressed="true"><span>기본</span>6개월<small>${esc(sixMonthEnd||'')}</small><em>${esc(horizonCoverageForDay(sc,126).detail)}</em></button><button type="button" data-flow-horizon="252" aria-pressed="false"><span>확장</span>2027년까지<small>${esc(fullHorizonEnd||'')}</small><em>${esc(horizonCoverageForDay(sc,252).detail)}</em></button></div></div>
     ${lookupWidget}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
@@ -1248,7 +1257,7 @@ function renderFlow(initialLookup){
     lookupResult.innerHTML=mapped.ok?lookupCardMarkup(sc,mapped):lookupErrorMarkup(mapped);
     lookupMarker=mapped.ok?mapped.mapped:null;
     if(mapped.ok&&mapped.index>=126)flowHorizon=252;
-    if(rebaseNote&&mapped.ok){const remaining=sc.quantile_table.trading_days.length-mapped.index-1;rebaseNote.querySelector('small').textContent=`남은 시뮬 구간 D+${remaining}거래일까지 · ${mapped.mapped} → ${sc.quantile_table.trading_days.at(-1)} · as_of ${sc.asof}`;}
+    if(rebaseNote&&mapped.ok){const remaining=sc.quantile_table.trading_days.length-mapped.index-1,coverage=horizonCoverageForDay(sc,mapped.tradingDay);rebaseNote.querySelector('small').textContent=`남은 시뮬 구간 D+${remaining}거래일까지 · ${mapped.mapped} → ${sc.quantile_table.trading_days.at(-1)} · ${coverage.label} — ${coverage.detail} · as_of ${sc.asof}`;}
     syncLookupMode();
     paintFlow(flowFocus);
     if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}&mode=${lookupMode}`);

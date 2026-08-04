@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
@@ -92,6 +93,38 @@ def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> N
         encoding="utf-8").splitlines()
     assert len(lines) == 2
     assert "inside_p10_p90" in lines[0]
+    assert "horizon_trading_days" in lines[0]
+    coverage = scenario.summarize_horizon_coverage(tmp_path)
+    assert coverage["buckets"][0]["observations"] == 1
+    assert coverage["buckets"][0]["inside_p10_p90_rate_pct"] is None
+
+
+def test_horizon_coverage_hides_rates_until_sixty_observations(tmp_path: Path) -> None:
+    path = tmp_path / scenario.BAND_CALIBRATION_PATH
+    path.parent.mkdir(parents=True)
+    with path.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(
+            handle, fieldnames=scenario.BAND_CALIBRATION_FIELDS, lineterminator="\n"
+        )
+        writer.writeheader()
+        for index in range(61):
+            row = {field: "" for field in scenario.BAND_CALIBRATION_FIELDS}
+            row.update({
+                "asof": f"2026-10-{index + 1:02d}", "origin_asof": "2026-08-03",
+                "origin_snapshot_id": f"test:{index}", "horizon_trading_days": 21,
+                "actual_close": "100", "p10": "90", "p25": "95", "p50": "100",
+                "p75": "105", "p90": "110",
+                "inside_p10_p90": "true" if index < 48 else "false",
+                "p50_error_pct": "0", "probability_space": "scenario_conditional",
+            })
+            writer.writerow(row)
+    coverage = scenario.summarize_horizon_coverage(tmp_path)
+    one_month = next(row for row in coverage["buckets"] if row["id"] == "1m")
+    assert one_month["observations"] == 61
+    assert one_month["inside_p10_p90_rate_pct"] == pytest.approx(78.7)
+    assert next(row for row in coverage["buckets"] if row["id"] == "12m")[
+        "inside_p10_p90_rate_pct"
+    ] is None
 
 
 def test_nyse_calendar_skips_weekends_and_registered_holidays() -> None:

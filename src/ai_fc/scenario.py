@@ -32,9 +32,15 @@ N_PATHS = 20_000
 SEED = 42
 
 BAND_CALIBRATION_FIELDS = [
-    "asof", "origin_asof", "origin_snapshot_id", "actual_close", "p10", "p25",
+    "asof", "origin_asof", "origin_snapshot_id", "horizon_trading_days",
+    "actual_close", "p10", "p25",
     "p50", "p75", "p90", "inside_p10_p90", "p50_error_pct", "probability_space",
 ]
+HORIZON_COVERAGE_BUCKETS = (
+    ("1w", "1주", 5), ("1m", "1개월", 21), ("3m", "3개월", 63),
+    ("6m", "6개월", 126), ("12m", "12개월", 252),
+)
+HORIZON_COVERAGE_GATE = 60
 
 # 공식 기관이 날짜를 공개한 일정만 등록한다. 2027 FOMC는 연준이 명시한
 # tentative schedule이며, 아직 발표되지 않은 2027 고용·NVDA 실적일은 추정하지 않는다.
@@ -772,7 +778,7 @@ def _persist_scenario(root: Path, payload: dict[str, Any]) -> tuple[Path, dict[s
 
 
 def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> bool:
-    """Score the close against a prior immutable fan band without backfilling UI claims."""
+    """Score all eligible prior immutable fan bands without duplicating revisions."""
     candidates: list[dict[str, Any]] = []
     archive_dir = root / ARCHIVE_RELATIVE_DIR
     if archive_dir.exists():
@@ -789,18 +795,13 @@ def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> b
                 candidates.append(payload)
     if not candidates:
         return False
-    origin = max(candidates, key=lambda item: (item["asof"], int(item.get("revision") or 1)))
-    table = origin["quantile_table"]
-    index = table["trading_days"].index(asof.isoformat())
-    values = {key: table["quantiles"][key][index] for key in ("p10", "p25", "p50", "p75", "p90")}
-    row: dict[str, Any] = {
-        "asof": asof.isoformat(), "origin_asof": origin["asof"],
-        "origin_snapshot_id": origin.get("snapshot_id") or f"nasdaq-scenario:{origin['asof']}:r1",
-        "actual_close": round(float(actual_close), 2), **values,
-        "inside_p10_p90": str(values["p10"] <= actual_close <= values["p90"]).lower(),
-        "p50_error_pct": round((actual_close / values["p50"] - 1) * 100, 3),
-        "probability_space": "scenario_conditional",
-    }
+    latest_by_origin: dict[str, dict[str, Any]] = {}
+    for candidate in candidates:
+        current = latest_by_origin.get(candidate["asof"])
+        if current is None or int(candidate.get("revision") or 1) > int(
+            current.get("revision") or 1
+        ):
+            latest_by_origin[candidate["asof"]] = candidate
     path = root / BAND_CALIBRATION_PATH
     path.parent.mkdir(parents=True, exist_ok=True)
     existing: dict[tuple[str, str], dict[str, str]] = {}
@@ -810,18 +811,86 @@ def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> b
             if reader.fieldnames != BAND_CALIBRATION_FIELDS:
                 raise ScenarioError("band_calibration schema drift")
             existing = {(item["asof"], item["origin_snapshot_id"]): item for item in reader}
-    key = (row["asof"], row["origin_snapshot_id"])
-    text_row = {field: str(row[field]) for field in BAND_CALIBRATION_FIELDS}
-    if key in existing:
-        if existing[key] != text_row:
-            raise ScenarioError(f"append-only band calibration conflict for {key}")
+    rows: list[dict[str, Any]] = []
+    for origin in sorted(latest_by_origin.values(), key=lambda item: item["asof"]):
+        table = origin["quantile_table"]
+        index = table["trading_days"].index(asof.isoformat())
+        values = {
+            key: table["quantiles"][key][index]
+            for key in ("p10", "p25", "p50", "p75", "p90")
+        }
+        row: dict[str, Any] = {
+            "asof": asof.isoformat(), "origin_asof": origin["asof"],
+            "origin_snapshot_id": (
+                origin.get("snapshot_id") or f"nasdaq-scenario:{origin['asof']}:r1"
+            ),
+            "horizon_trading_days": index + 1,
+            "actual_close": round(float(actual_close), 2), **values,
+            "inside_p10_p90": str(
+                values["p10"] <= actual_close <= values["p90"]
+            ).lower(),
+            "p50_error_pct": round((actual_close / values["p50"] - 1) * 100, 3),
+            "probability_space": "scenario_conditional",
+        }
+        key = (row["asof"], row["origin_snapshot_id"])
+        text_row = {field: str(row[field]) for field in BAND_CALIBRATION_FIELDS}
+        if key in existing:
+            if existing[key] != text_row:
+                raise ScenarioError(f"append-only band calibration conflict for {key}")
+            continue
+        rows.append(row)
+    if not rows:
         return False
     with path.open("a", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=BAND_CALIBRATION_FIELDS, lineterminator="\n")
         if path.stat().st_size == 0:
             writer.writeheader()
-        writer.writerow(row)
+        writer.writerows(rows)
     return True
+
+
+def summarize_horizon_coverage(root: Path) -> dict[str, Any]:
+    """Expose validation coverage without publishing unstable hit rates."""
+    grouped = {bucket_id: [] for bucket_id, _, _ in HORIZON_COVERAGE_BUCKETS}
+    path = root / BAND_CALIBRATION_PATH
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != BAND_CALIBRATION_FIELDS:
+                raise ScenarioError("band_calibration schema drift")
+            for row in reader:
+                try:
+                    horizon = int(row["horizon_trading_days"])
+                except (KeyError, TypeError, ValueError):
+                    continue
+                for bucket_id, _, maximum in HORIZON_COVERAGE_BUCKETS:
+                    if horizon <= maximum:
+                        grouped[bucket_id].append(row)
+                        break
+    buckets = []
+    for bucket_id, label, maximum in HORIZON_COVERAGE_BUCKETS:
+        rows = grouped[bucket_id]
+        observations = len(rows)
+        hits = sum(row.get("inside_p10_p90") == "true" for row in rows)
+        rate = (
+            round(hits / observations * 100, 1)
+            if observations >= HORIZON_COVERAGE_GATE else None
+        )
+        buckets.append({
+            "id": bucket_id, "label": label, "max_trading_days": maximum,
+            "observations": observations, "minimum_observations": HORIZON_COVERAGE_GATE,
+            "inside_p10_p90_count": hits, "inside_p10_p90_rate_pct": rate,
+            "status": "verified" if rate is not None else "accumulating",
+        })
+    return {
+        "status": "accumulating" if any(
+            item["status"] == "accumulating" for item in buckets
+        ) else "verified",
+        "basis": "append-only realized closes scored against prior p10-p90 fan bands",
+        "gate": f"hide hit rate below {HORIZON_COVERAGE_GATE} observations per bucket",
+        "buckets": buckets,
+        "total_observations": sum(item["observations"] for item in buckets),
+    }
 
 
 def refresh_scenario(root: Path, *, asof: date | None = None,

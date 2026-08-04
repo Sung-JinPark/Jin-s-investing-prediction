@@ -1,1 +1,1 @@
-asof,origin_asof,origin_snapshot_id,actual_close,p10,p25,p50,p75,p90,inside_p10_p90,p50_error_pct,probability_space
+asof,origin_asof,origin_snapshot_id,horizon_trading_days,actual_close,p10,p25,p50,p75,p90,inside_p10_p90,p50_error_pct,probability_space

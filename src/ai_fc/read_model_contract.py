@@ -76,7 +76,7 @@ def schema() -> dict[str, Any]:
     }
     properties["scenario"] = {
         "type": "object",
-        "required": ["schema_version", "asof", "quantile_table"],
+        "required": ["schema_version", "asof", "quantile_table", "horizon_coverage"],
         "properties": {
             "schema_version": {"const": 2},
             "quantile_table": {
@@ -89,6 +89,11 @@ def schema() -> dict[str, Any]:
                     "probability_space": {"const": "scenario_conditional"},
                     "probability_label": {"const": "model_conditional"},
                 },
+            },
+            "horizon_coverage": {
+                "type": "object",
+                "required": ["status", "basis", "gate", "buckets"],
+                "properties": {"buckets": {"type": "array"}},
             },
         },
     }
@@ -144,6 +149,20 @@ def validate(model: dict[str, Any]) -> list[str]:
             validate_scenario(scenario)
         except (ScenarioError, KeyError, TypeError, ValueError) as exc:
             errors.append(f"scenario contract violation: {exc}")
+        coverage = scenario.get("horizon_coverage")
+        if not isinstance(coverage, dict) or not isinstance(coverage.get("buckets"), list):
+            errors.append("scenario horizon_coverage must contain buckets")
+        else:
+            for bucket in coverage["buckets"]:
+                observations = bucket.get("observations")
+                minimum = bucket.get("minimum_observations")
+                rate = bucket.get("inside_p10_p90_rate_pct")
+                if not isinstance(observations, int) or not isinstance(minimum, int):
+                    errors.append("horizon_coverage observations and gate must be integers")
+                    break
+                if observations < minimum and rate is not None:
+                    errors.append("horizon_coverage must hide hit rates below the gate")
+                    break
     reference_validators = {
         "scenario_tracker": validate_scenario_tracker,
         "liquidity": validate_liquidity,

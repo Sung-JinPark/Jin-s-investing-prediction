@@ -340,6 +340,8 @@ def test_forecast_lookup_ui_contract() -> None:
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT MODEL PROPERTY", "#lookup=${mapped.requested}&mode=${lookupMode}",
         "D일에 실제로 도달했을 때의 새 정보", "D일이 오면 그날의 스냅샷이 새로 계산됩니다",
+        "horizonCoverageForDay", "미검증 구간", "적중 기록 축적 중",
+        "inside_p10_p90_rate_pct", "0일 · 0/60",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html

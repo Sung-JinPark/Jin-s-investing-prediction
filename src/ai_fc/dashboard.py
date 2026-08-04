@@ -255,6 +255,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         due_list = []
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
+    scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
