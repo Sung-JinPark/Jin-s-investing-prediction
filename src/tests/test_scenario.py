@@ -45,6 +45,17 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
         len(first["paths"][key]["values"]) == len(first["weeks"])
         for key in ("S1", "S2", "S3")
     )
+    realism = first["path_realism"]
+    assert realism["selection_rule"].endswith("lowest original path index")
+    for key in ("S1", "S2", "S3"):
+        row = realism[key]
+        if row["status"] == "empty_scenario":
+            assert row["sample_count"] == 0 and row["sample_paths"] == []
+            continue
+        assert [sample["terminal_percentile"] for sample in row["sample_paths"]] == [25, 50, 75]
+        assert all(len(sample["values"]) == len(first["weeks"])
+                   for sample in row["sample_paths"])
+        assert 0 <= row["median_max_drawdown_pct"] <= row["p90_max_drawdown_pct"] <= 100
     assert first["anchor"] > 0 and first["corr10"] == pytest.approx(first["ath"] * 0.9, abs=0.01)
     event_calendar = first["event_calendar"]
     assert event_calendar[-1]["date"] == "2027-12-08"
@@ -112,6 +123,33 @@ def test_validate_rejects_probability_or_length_drift() -> None:
     payload["event_calendar"][1]["date"] = payload["event_calendar"][0]["date"]
     with pytest.raises(scenario.ScenarioError, match="ordered and unique"):
         scenario.validate_scenario(payload)
+
+    payload = _build()
+    payload["path_realism"]["S1"]["sample_paths"][0]["values"].pop()
+    with pytest.raises(scenario.ScenarioError, match="sample length mismatch"):
+        scenario.validate_scenario(payload)
+
+
+def test_path_realism_recomputes_drawdowns_and_samples_deterministically() -> None:
+    sampled = np.asarray([
+        [100, 110, 100, 120], [100, 105, 95, 110],
+        [100, 120, 108, 130], [100, 101, 90, 105],
+        [100, 98, 94, 103], [100, 115, 103, 125],
+    ], dtype=float)
+    future = np.repeat(sampled[:, 1:], 2, axis=1)
+    masks = {
+        "S1": np.asarray([True, True, True, False, False, False]),
+        "S2": np.asarray([False, False, False, True, True, True]),
+        "S3": np.asarray([True, False, False, True, False, True]),
+    }
+    first = scenario._path_realism(sampled, future, masks, 100.0)
+    second = scenario._path_realism(sampled, future, masks, 100.0)
+    assert first == second
+    expected = []
+    for path in np.column_stack((np.full(3, 100.0), future[masks["S1"]])):
+        expected.append(float(np.max(1 - path / np.maximum.accumulate(path)) * 100))
+    assert first["S1"]["median_max_drawdown_pct"] == round(float(np.median(expected)), 1)
+    assert len({sample["path_index"] for sample in first["S1"]["sample_paths"]}) == 3
 
 
 def test_load_latest_uses_valid_file_and_fails_safe(tmp_path: Path) -> None:

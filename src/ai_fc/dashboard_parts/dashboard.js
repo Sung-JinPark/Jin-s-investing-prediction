@@ -1171,11 +1171,14 @@ function renderFlow(initialLookup){
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
-    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
+    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 묶음 주별 중앙 경로 ${sc.paths[k].prob}%</span>`).join('')}
     ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
-    ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}</div>`;
+    ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
+    <button type="button" class="flow-sample-toggle" data-flow-samples aria-pressed="true"><i></i>실경로 오버레이</button></div>`;
+  const realism=sc.path_realism;
+  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH REALISM · SAME 20,000 PATHS</p><h3 id="path-realism-title">매끈한 선 아래의 실제 조정</h3><p>굵은 선은 각 묶음의 주별 중앙값이라 개별 경로의 요동이 상쇄됩니다. 얇은 회색선은 종점 25·50·75 백분위에 가장 가까운 실제 경로입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key];return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>중앙 최대낙폭 −${num(row.median_max_drawdown_pct)}%</strong><small>5% 이상 조정 경험 경로 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}% · n=${num(row.sample_count)}</small></article>`;}).join('')}</div><small>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로 · 최대낙폭은 양의 크기로 저장하고 화면에 음수로 표시</small></section>`:'';
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1199,13 +1202,14 @@ function renderFlow(initialLookup){
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
     ${focusControls}
+    ${realismCards}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>모든 날짜는 이 기준일에서 출발한 한 번의 조건부 분포입니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 기간"><button type="button" data-flow-horizon="126" aria-pressed="true"><span>기본</span>6개월<small>${esc(sixMonthEnd||'')}</small></button><button type="button" data-flow-horizon="252" aria-pressed="false"><span>확장</span>2027년까지<small>${esc(fullHorizonEnd||'')}</small></button></div></div>
     ${lookupWidget}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
     ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
-    <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
+    <p class="chart-note">굵은 선은 개별 가격 예측이 아니라 시나리오 묶음의 주별 중앙 경로입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
@@ -1225,13 +1229,14 @@ function renderFlow(initialLookup){
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
-  let flowFocus='ALL',lookupMarker=null,flowHorizon=126;
+  let flowFocus='ALL',lookupMarker=null,flowHorizon=126,showFlowSamples=true;
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
   const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon)));
     if(flowTitle)flowTitle.textContent=flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
-  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon);
+  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
+  const sampleToggle=p1w.querySelector('[data-flow-samples]');if(sampleToggle)sampleToggle.onclick=()=>{showFlowSamples=!showFlowSamples;sampleToggle.setAttribute('aria-pressed',String(showFlowSamples));paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.onclick=()=>{flowHorizon=Number(button.dataset.flowHorizon);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w);
@@ -1388,7 +1393,7 @@ function crossAssetPanel(){
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
-    <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다.</p>
+    <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다. 이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다.</p>
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
   w._crossModel=model;w._defaultScenario=defaultScenario;
@@ -1613,12 +1618,13 @@ function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
     return {index,label,eventX,labelX,lane};
   });
 }
-function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
+function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSamples=true){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=670,ML=58,MR=140,MT=176,MB=34,HCH=586;
   const endIndex=flowHorizonEndIndex(sc,horizonDays),n=endIndex+1,weeks=sc.weeks.slice(0,n),weekDates=(sc.week_dates||[]).slice(0,n),riskValues=sc.risk.slice(0,n);
   const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(0,n):values]));
-  const chartValues=[sc.ath,sc.corr10,...['S1','S2','S3'].flatMap(key=>(sc.paths[key]?.values||[]).slice(0,n)),...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).flatMap(row=>(row.values||[]).slice(0,n))):[];
+  const chartValues=[sc.ath,sc.corr10,...['S1','S2','S3'].flatMap(key=>(sc.paths[key]?.values||[]).slice(0,n)),...sampleValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
   const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
@@ -1642,6 +1648,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
     band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
     if(fan.p50){let median='';fan.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }
+  if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(0,n);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':1.05,'stroke-dasharray':sampleIndex===1?'none':(sampleIndex===0?'3 3':'7 3'),opacity:on?.34:.06,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
   ['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=path.values.slice(0,n),color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));svg.appendChild(tx(X(n-1)+8,Y(endValue)+4,`${num(endValue)} · ${path.prob}%`,{fill:CHART_LABEL_COL[key],fs:12,w:700,opacity:on?1:.12}));});

@@ -283,6 +283,26 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
         values = paths[key].get("values")
         if not isinstance(values, list) or len(values) != len(weeks):
             raise ScenarioError(f"scenario {key} values length mismatch")
+    realism = payload.get("path_realism")
+    if realism is not None:
+        if not isinstance(realism, dict) or not all(key in realism for key in ("S1", "S2", "S3")):
+            raise ScenarioError("scenario path_realism must contain S1/S2/S3")
+        for key in ("S1", "S2", "S3"):
+            row = realism[key]
+            if not isinstance(row, dict) or row.get("status") not in {"ok", "empty_scenario"}:
+                raise ScenarioError("scenario path_realism status is invalid")
+            if row["status"] == "empty_scenario":
+                continue
+            if any(not isinstance(row.get(field), (int, float)) or not 0 <= row[field] <= 100
+                   for field in ("median_max_drawdown_pct", "p90_max_drawdown_pct",
+                                 "share_with_5pct_pullback", "share_with_10pct_pullback")):
+                raise ScenarioError("scenario path_realism metrics are invalid")
+            samples = row.get("sample_paths")
+            if not isinstance(samples, list) or [item.get("terminal_percentile") for item in samples] != [25, 50, 75]:
+                raise ScenarioError("scenario path_realism sample percentiles are invalid")
+            if any(not isinstance(item.get("values"), list)
+                   or len(item["values"]) != len(weeks) for item in samples):
+                raise ScenarioError("scenario path_realism sample length mismatch")
     if not isinstance(risk, list) or len(risk) != len(weeks):
         raise ScenarioError("scenario risk length mismatch")
     events = payload.get("events")
@@ -431,6 +451,57 @@ def _representative(sampled: np.ndarray, mask: np.ndarray,
     return values
 
 
+def _path_realism(sampled: np.ndarray, future: np.ndarray,
+                  masks: dict[str, np.ndarray], anchor: float) -> dict[str, Any]:
+    """Summarize actual simulated paths without changing the median scenario lines."""
+    result: dict[str, Any] = {
+        "basis": "same GBM draw as scenario paths; daily max drawdown; weekly sample paths",
+        "selection_rule": (
+            "within each scenario choose the unused actual path nearest terminal "
+            "25/50/75 percentile; ties use the lowest original path index"
+        ),
+        "drawdown_unit": "positive_percent_magnitude",
+    }
+    for key, mask in masks.items():
+        indexes = np.flatnonzero(mask)
+        if not len(indexes):
+            result[key] = {
+                "status": "empty_scenario", "sample_count": 0,
+                "median_max_drawdown_pct": None, "p90_max_drawdown_pct": None,
+                "share_with_5pct_pullback": None,
+                "share_with_10pct_pullback": None, "sample_paths": [],
+            }
+            continue
+        daily = np.column_stack((np.full(len(indexes), anchor), future[mask]))
+        running_high = np.maximum.accumulate(daily, axis=1)
+        max_drawdowns = np.max(1.0 - daily / running_high, axis=1) * 100.0
+        terminals = sampled[indexes, -1]
+        chosen: set[int] = set()
+        sample_paths = []
+        for percentile in (25, 50, 75):
+            target = float(np.percentile(terminals, percentile))
+            order = sorted(
+                range(len(indexes)),
+                key=lambda local: (abs(float(terminals[local]) - target), int(indexes[local])),
+            )
+            local = next(candidate for candidate in order if candidate not in chosen)
+            chosen.add(local)
+            sample_paths.append({
+                "terminal_percentile": percentile,
+                "path_index": int(indexes[local]),
+                "values": [int(round(float(value))) for value in sampled[indexes[local]]],
+            })
+        result[key] = {
+            "status": "ok", "sample_count": int(len(indexes)),
+            "median_max_drawdown_pct": round(float(np.median(max_drawdowns)), 1),
+            "p90_max_drawdown_pct": round(float(np.percentile(max_drawdowns, 90)), 1),
+            "share_with_5pct_pullback": int(round(float((max_drawdowns >= 5).mean()) * 100)),
+            "share_with_10pct_pullback": int(round(float((max_drawdowns >= 10).mean()) * 100)),
+            "sample_paths": sample_paths,
+        }
+    return result
+
+
 def build_scenario(dates: list[date], closes: list[float], *,
                    generated_at: datetime | None = None,
                    n_paths: int = N_PATHS, seed: int = SEED,
@@ -486,6 +557,7 @@ def build_scenario(dates: list[date], closes: list[float], *,
         "S2": _representative(sampled, s2, 50),
         "S3": _representative(sampled, s3, 25),
     }
+    path_realism = _path_realism(sampled, future, masks, anchor)
     labels = {
         "S1": "상승·ATH 돌파",
         "S2": "상승·ATH 미달",
@@ -587,6 +659,7 @@ def build_scenario(dates: list[date], closes: list[float], *,
             }
             for key in ("S1", "S2", "S3")
         },
+        "path_realism": path_realism,
         "analog": {
             "label": "닷컴 아날로그 (참조선 — 시나리오 아님)",
             "color": "#706f68",

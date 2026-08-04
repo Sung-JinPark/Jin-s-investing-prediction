@@ -335,6 +335,8 @@ def test_forecast_lookup_ui_contract() -> None:
         "2027년까지", "flowHorizonEndIndex", "flowAxisTickIndexes",
         "2027년까지 주요 일정", "2027년 고용보고서·NVIDIA 실적일은 공식 발표 전",
         "flowEventLayout", "조회 · ",
+        "PATH REALISM · SAME 20,000 PATHS", "실경로 오버레이",
+        "묶음 주별 중앙 경로", "이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
