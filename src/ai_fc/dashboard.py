@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import html as html_lib
 import json
 import re
 import sqlite3
@@ -22,6 +23,7 @@ TEMPLATE = Path(__file__).parent / "dashboard_template.html"
 DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
 DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
+DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 1_000_000
 
@@ -116,11 +118,25 @@ def _rows(rs) -> list[dict]:
     return [_row(r) for r in rs]
 
 
-def _forecast_bodies(root: Path) -> dict[str, str]:
+def _change_note(body: str) -> str:
+    """Return one plain-language evidence sentence for the Decision Journal."""
+    for raw in body.splitlines():
+        line = re.sub(r"^[>#*+\-\d.\s]+", "", raw).strip()
+        line = re.sub(r"[`*_\[\]]", "", line)
+        if not line or line.startswith("|") or len(line) < 18:
+            continue
+        lowered = line.lower()
+        if any(token in lowered for token in ("투자 자금 결정", "p3 게이트", "question_snapshot", "required_snapshots")):
+            continue
+        return line[:180]
+    return "근거 문서에 기록된 조건을 재검토해 판단을 갱신했습니다."
+
+
+def _forecast_bodies(root: Path) -> dict[str, dict[str, str]]:
     """forecast_id → 본문 텍스트 (추론 전문 — 상세 뷰용). evidence·TEMPLATE 제외."""
     import frontmatter
 
-    out: dict[str, str] = {}
+    out: dict[str, dict[str, str]] = {}
     fdir = root / "forecasts"
     if not fdir.exists():
         return out
@@ -133,7 +149,11 @@ def _forecast_bodies(root: Path) -> dict[str, str]:
             body = post.content.strip()
             for index, phrase in enumerate(FORECAST_BODY_DICTIONARY):
                 body = body.replace(phrase, chr(0xE000 + index))
-            out[name] = body
+            out[name] = {
+                "body": body,
+                "change_note": _change_note(post.content.strip()),
+                "source_uri": path.relative_to(root).as_posix(),
+            }
         except Exception:  # noqa: BLE001
             continue
     return out
@@ -159,7 +179,10 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         " method, sources_count, model FROM forecasts ORDER BY question_id, round"
     ):
         d = _row(r)
-        d["body"] = bodies.get(d["forecast_id"], "")
+        record = bodies.get(d["forecast_id"], {})
+        d["body"] = record.get("body", "")
+        d["change_note"] = record.get("change_note", "")
+        d["source_uri"] = record.get("source_uri", "")
         question_id = d.pop("question_id")
         fc_hist.setdefault(question_id, []).append(d)
 
@@ -279,6 +302,15 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "quarantine_count": sum(item["quarantine_count"] for item in trust_sources),
     }
+    try:
+        ledger_audit = json.loads(
+            (root / "docs/generated/ledger_audit.json").read_text(encoding="utf-8"))
+        trust["ledgers"] = ledger_audit.get("ledgers", [])
+        trust["ledger_summary"] = ledger_audit.get("summary", {})
+        trust["ledger_audit_at"] = ledger_audit.get("generated_at")
+    except (OSError, json.JSONDecodeError, TypeError):
+        trust["ledgers"] = []
+        trust["ledger_summary"] = {"status": "audit_unavailable"}
     receipts = [{
         "receipt_id": "scenario:current", "label": "현재 시장 시나리오",
         "model": scenario.get("method") or "미산출",
@@ -421,6 +453,7 @@ def load_template() -> str:
     styles = DASHBOARD_STYLES.read_text(encoding="utf-8")
     script = "\n".join((
         DASHBOARD_LOOKUP_SCRIPT.read_text(encoding="utf-8"),
+        DASHBOARD_QR_SCRIPT.read_text(encoding="utf-8"),
         DASHBOARD_SCRIPT.read_text(encoding="utf-8"),
     ))
     for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->"):
@@ -431,6 +464,25 @@ def load_template() -> str:
 
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template())
+    scenario = read_model.get("scenario") or {}
+    asof = scenario.get("asof") or "latest registered snapshot"
+    og_title = f"Jin's Investing Prediction · {asof}"
+    og_description = "조건부 시장 시나리오를 불변 기록과 함께 읽습니다. 목표가·투자자문이 아닙니다."
+    og_image = "https://sung-jinpark.github.io/Jin-s-investing-prediction/og/market-snapshot.png"
+    og_meta = "\n".join((
+        f'<meta property="og:title" content="{html_lib.escape(og_title, quote=True)}">',
+        f'<meta property="og:description" content="{html_lib.escape(og_description, quote=True)}">',
+        '<meta property="og:type" content="website">',
+        '<meta property="og:url" content="https://sung-jinpark.github.io/Jin-s-investing-prediction/">',
+        f'<meta property="og:image" content="{og_image}">',
+        '<meta property="og:image:width" content="1200">',
+        '<meta property="og:image:height" content="630">',
+        '<meta name="twitter:card" content="summary_large_image">',
+        f'<meta name="twitter:title" content="{html_lib.escape(og_title, quote=True)}">',
+        f'<meta name="twitter:description" content="{html_lib.escape(og_description, quote=True)}">',
+        f'<meta name="twitter:image" content="{og_image}">',
+    ))
+    shell = shell.replace("<!--OG_META-->", og_meta)
     if mode == "embed":
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
@@ -485,6 +537,39 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     return out
 
 
+def _write_og_image(model: dict, target: Path) -> None:
+    """Render the social preview locally; no browser, CDN or remote font required."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    image = Image.new("RGB", (1200, 630), "#f2eee6")
+    draw = ImageDraw.Draw(image)
+    try:
+        title_font = ImageFont.truetype("DejaVuSans.ttf", 56)
+        label_font = ImageFont.truetype("DejaVuSans.ttf", 23)
+        metric_font = ImageFont.truetype("DejaVuSans.ttf", 43)
+    except OSError:
+        title_font = label_font = metric_font = ImageFont.load_default()
+    draw.rounded_rectangle((42, 38, 1158, 592), 30, fill="#fbf8f2", outline="#d8d0c4", width=2)
+    draw.rounded_rectangle((42, 38, 62, 592), 10, fill="#27705d")
+    draw.text((104, 92), "JIN'S INVESTING / PREDICTION", fill="#27705d", font=label_font)
+    draw.text((104, 145), "Market paths, with provenance.", fill="#151815", font=title_font)
+    scenario = model.get("scenario") or {}
+    paths = scenario.get("paths") or {}
+    labels = [("UPSIDE", paths.get("S1", {}).get("prob", 0), "#bf571b"),
+              ("RECOVERY", paths.get("S2", {}).get("prob", 0), "#c57a10"),
+              ("DOWNSIDE", paths.get("S3", {}).get("prob", 0), "#8d2943")]
+    for index, (label, value, color) in enumerate(labels):
+        left = 104 + index * 320
+        draw.text((left, 286), label, fill="#6c6a64", font=label_font)
+        draw.text((left, 326), f"{value}%", fill=color, font=metric_font)
+    draw.line((104, 433, 1094, 433), fill="#d8d0c4", width=2)
+    asof = scenario.get("asof") or "latest"
+    draw.text((104, 463), f"AS OF {asof}", fill="#474a45", font=label_font)
+    draw.text((104, 520), "CONDITIONAL SCENARIO  ·  NOT INVESTMENT ADVICE", fill="#7a4d10", font=label_font)
+    image.save(target, format="PNG", optimize=True)
+
+
 def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     """GitHub Pages static bundle with a cacheable local JSON data artifact.
 
@@ -494,7 +579,8 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     model = build_read_model(conn, root)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
-    index.write_text(render_html({}, mode="pages"), encoding="utf-8")
+    index.write_text(render_html(model, mode="pages"), encoding="utf-8")
+    _write_og_image(model, out_dir / "og" / "market-snapshot.png")
     (out_dir / "data.json").write_text(
         json.dumps(model, ensure_ascii=False, default=str, separators=(",", ":")),
         encoding="utf-8",

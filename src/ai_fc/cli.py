@@ -21,6 +21,40 @@ from .scenario import refresh_scenario
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
 
 
+@app.command("audit-ledgers")
+def cmd_audit_ledgers(
+    check: bool = typer.Option(False, "--check", help="Do not rewrite baseline/report files"),
+) -> None:
+    """Audit every registered append/archive ledger for growth and integrity."""
+    from .ledger_audit import audit_ledgers, has_violations
+
+    report = audit_ledgers(config.ROOT, write=not check)
+    summary = report["summary"]
+    typer.echo(
+        "ledger audit: "
+        f"accumulating={summary['accumulating']} stalled={summary['stalled']} "
+        f"inactive={summary['inactive']} violation={summary['violation']} "
+        f"planned={summary['planned']}"
+    )
+    if has_violations(report):
+        raise typer.Exit(code=1)
+
+
+@app.command("export-research-pack")
+def cmd_export_research_pack(
+    month: str | None = typer.Option(None, "--month", help="Pack month in YYYY-MM"),
+) -> None:
+    """Export registered ledgers to an immutable monthly Parquet research pack."""
+    from .research_pack import ResearchPackError, export_research_pack
+
+    try:
+        path = export_research_pack(config.ROOT, month)
+    except ResearchPackError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"research pack: {path.relative_to(config.ROOT)}")
+
+
 def _conn(root: Path):
     return ingest.connect(root / "db" / "index.db")
 

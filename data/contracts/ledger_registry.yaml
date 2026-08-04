@@ -1,0 +1,161 @@
+version: 1
+calendar_contract: data/contracts/nyse_holidays.yaml
+ledgers:
+  - id: forecast_records
+    path: forecasts/**/*.md
+    exclude: [forecasts/TEMPLATE.md, forecasts/**/TEMPLATE.md, forecasts/**/*_evidence.md]
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: forecast_frontmatter
+  - id: forecast_evidence
+    path: forecasts/**/*_evidence.md
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: markdown
+  - id: ml_market_history
+    path: data/ml_history/*.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: medium
+    schema_ref: jsonl
+  - id: calibration_ledger
+    path: calibration/ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: high
+    schema_ref: csv
+    timestamp_field: resolved_date
+  - id: corrections_ledger
+    path: calibration/corrections.csv
+    kind: append_csv
+    cadence: event
+    criticality: high
+    schema_ref: csv
+  - id: benchmark_ledger
+    path: calibration/benchmark_ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: medium
+    schema_ref: csv
+  - id: cost_ledger
+    path: calibration/cost_log.csv
+    kind: append_csv
+    cadence: event
+    criticality: low
+    schema_ref: csv
+  - id: provider_shadow_ledger
+    path: calibration/provider_shadow_ledger.csv
+    kind: append_csv
+    cadence: event
+    criticality: low
+    schema_ref: csv
+  - id: scenario_archive
+    path: data/scenarios/archive/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: high
+    schema_ref: scenario_archive
+  - id: scenario_latest
+    path: data/scenarios/nasdaq_latest.json
+    kind: singleton
+    cadence: trading_daily
+    criticality: high
+    schema_ref: scenario_latest
+  - id: cross_asset_archive
+    path: data/cross_asset/archive/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: high
+    schema_ref: cross_asset_archive
+  - id: cross_asset_latest
+    path: data/cross_asset/cross_asset_latest.json
+    kind: singleton
+    cadence: trading_daily
+    criticality: high
+    schema_ref: cross_asset_latest
+  - id: cross_asset_path_tracking
+    path: data/cross_asset/path_tracking.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: asof
+  - id: signal_archive
+    path: data/signals/archive/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+  - id: liquidity_archive
+    path: data/liquidity/archive/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+  - id: rate_event_archive
+    path: data/rate_events/archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: realty_rate_sensitivity_archive
+    path: data/realty_income/rate_sensitivity_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: realty_dividends
+    path: data/realty_income/dividends.csv
+    kind: append_csv
+    cadence: monthly
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: available_at
+  - id: ai_capital_archives
+    path: data/ai_capital_cycle/*_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+  - id: source_monitoring
+    path: data/source_monitoring/**/*.json
+    kind: archive_dir
+    cadence: trading_daily
+    criticality: low
+    schema_ref: json_object
+  - id: raw_receipts
+    path: data/raw/manifest.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned
+  - id: quarantine
+    path: data/quarantine/**/*.json
+    kind: archive_dir
+    cadence: event
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned
+  - id: bitemporal_facts
+    path: data/facts/**/*.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+    expected_state: planned
+  - id: forecast_timestamp_proof
+    path: forecasts/.hashes.ots
+    kind: singleton
+    cadence: weekly
+    criticality: high
+    schema_ref: binary
+  - id: research_pack
+    path: exports/research_pack_*/manifest.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: medium
+    schema_ref: json_object
+    expected_state: planned

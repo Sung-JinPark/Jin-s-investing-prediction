@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Jin's Investing Prediction Solution</title>
+<!--OG_META-->
 <!--DATA-->
 <style>
 <!--STYLES-->
@@ -21,7 +22,7 @@
       <a href="#overview" data-v="overview"><span class="rail-num">01</span><span class="rail-label">오늘의 판단</span></a>
       <a href="#flow" data-v="flow"><span class="rail-num">02</span><span class="rail-label">시장 맵</span></a>
       <a href="#questions" data-v="questions"><span class="rail-num">03</span><span class="rail-label">예측 연구</span></a>
-      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">시점 리플레이</span></a>
+      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">변경 일지</span></a>
       <a href="#track" data-v="track"><span class="rail-num">05</span><span class="rail-label">트랙레코드</span></a>
     </nav>
     <button type="button" class="rail-command command-open" aria-label="빠른 이동 열기">
@@ -56,7 +57,7 @@
       <a href="#overview" data-v="overview"><span class="rail-num">01</span><span class="rail-label">오늘의 판단</span></a>
       <a href="#flow" data-v="flow"><span class="rail-num">02</span><span class="rail-label">시장 맵</span></a>
       <a href="#questions" data-v="questions"><span class="rail-num">03</span><span class="rail-label">예측 연구</span></a>
-      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">시점 리플레이</span></a>
+      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">변경 일지</span></a>
       <a href="#track" data-v="track"><span class="rail-num">05</span><span class="rail-label">트랙레코드</span></a>
     </nav>
     <div class="drawer-utilities" role="group" aria-label="현재 화면 도구">
@@ -115,6 +116,25 @@
       <div><span>3단계 브리핑</span><kbd>Shift B</kbd></div><div><span>현재 화면 메모</span><kbd>Shift N</kbd></div>
       <div><span>닫기 / 집중 모드 종료</span><kbd>Escape</kbd></div>
     </div>
+  </section>
+</div>
+<div class="share-layer" id="share-layer" aria-hidden="true" hidden>
+  <button type="button" class="share-scrim" id="share-scrim" aria-label="공유 창 닫기"></button>
+  <section class="share-popover" id="share-popover" role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <header><div><span>SHARE SNAPSHOT</span><h2 id="share-title">현재 화면 공유</h2></div><button type="button" id="share-close" aria-label="공유 창 닫기">CLOSE</button></header>
+    <div class="share-summary" id="share-summary"></div>
+    <div class="share-grid" id="share-grid">
+      <button type="button" data-share-target="copy">링크 복사</button>
+      <a data-share-target="gmail" target="_blank" rel="noopener">Gmail</a>
+      <a data-share-target="mail">기본 메일</a>
+      <a data-share-target="naver-blog" target="_blank" rel="noopener">네이버 블로그</a>
+      <a data-share-target="naver-band" target="_blank" rel="noopener">네이버 밴드</a>
+      <a data-share-target="line" target="_blank" rel="noopener">LINE</a>
+      <a data-share-target="telegram" target="_blank" rel="noopener">Telegram</a>
+      <a data-share-target="x" target="_blank" rel="noopener">X</a>
+    </div>
+    <div class="share-qr"><div><strong>모바일에서 열기</strong><span>카메라로 QR을 스캔한 뒤 기기 공유 메뉴에서 카카오톡 등을 선택하세요.</span></div><canvas id="share-qr-canvas" width="188" height="188" aria-label="현재 화면 링크 QR 코드"></canvas></div>
+    <footer>외부 네트워크는 각 공유 대상을 직접 누를 때만 연결됩니다. 팝오버와 QR은 브라우저 안에서 생성됩니다.</footer>
   </section>
 </div>
 <div class="route-progress" aria-hidden="true"><span id="route-progress-bar"></span></div>

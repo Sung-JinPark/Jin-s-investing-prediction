@@ -17,6 +17,7 @@ dependencies = [
     "python-frontmatter",
     "numpy",
     "scipy",
+    "Pillow>=10",
     # Windows does not ship the IANA zoneinfo database used by Asia/Seoul.
     "tzdata; sys_platform == 'win32'",
 ]

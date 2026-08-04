@@ -112,7 +112,7 @@ let UI_STATE=loadUIState(),toastTimer=0,utilityReturnFocus=null,shortcutReturnFo
 const VISIT_SEEN_AT=UI_STATE.lastSeenGeneratedAt;
 function rememberVisitSnapshot(){if(!DATA?.meta?.generated)return;UI_STATE.lastSeenGeneratedAt=DATA.meta.generated;saveUIState();}
 function syncModalInert(){
-  const open=['command-layer','utility-layer','shortcut-layer','briefing-layer'].some(id=>!document.getElementById(id).hidden);
+  const open=['command-layer','utility-layer','shortcut-layer','briefing-layer','share-layer'].some(id=>!document.getElementById(id).hidden);
   document.querySelector('.product-shell').inert=open;document.getElementById('mobile-bottom-nav').inert=open;
 }
 const utilityLayer=document.getElementById('utility-layer'),utilityPanel=document.getElementById('utility-panel');
@@ -129,8 +129,9 @@ const briefingLayer=document.getElementById('briefing-layer'),briefingSheet=docu
 const briefingContent=document.getElementById('briefing-content'),briefingClose=document.getElementById('briefing-close');
 const briefingPrev=document.getElementById('briefing-prev'),briefingNext=document.getElementById('briefing-next');
 const briefingStepLabel=document.getElementById('briefing-step-label'),briefingProgress=document.getElementById('briefing-progress');
+const shareLayer=document.getElementById('share-layer'),sharePopover=document.getElementById('share-popover'),shareClose=document.getElementById('share-close'),shareSummary=document.getElementById('share-summary'),shareQrCanvas=document.getElementById('share-qr-canvas');
 let viewObserver=null,revealObserver=null,viewScrollHandler=null,viewResizeHandler=null,viewSections=[];
-let peekTimer=0,peekAnchor=null,briefingIndex=0,briefingReturnFocus=null;
+let peekTimer=0,peekAnchor=null,briefingIndex=0,briefingReturnFocus=null,shareReturnFocus=null;
 function motionAllowed(){return UI_STATE.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;}
 function currentNoteKey(){return location.hash||'#overview';}
 function currentNote(){return UI_STATE.notes[currentNoteKey()]||'';}
@@ -218,7 +219,7 @@ function buildSectionNavigator(root){
   viewSections.forEach((x,i)=>{if(i===0)x.node.classList.add('is-visible');else{x.node.classList.add('section-reveal');revealObserver.observe(x.node);}});
 }
 function blockingLayerOpen(){
-  return !commandLayer.hidden||!utilityLayer.hidden||!shortcutLayer.hidden||!briefingLayer.hidden||document.body.classList.contains('drawer-open');
+  return !commandLayer.hidden||!utilityLayer.hidden||!shortcutLayer.hidden||!briefingLayer.hidden||!shareLayer.hidden||document.body.classList.contains('drawer-open');
 }
 function closeQuickPeek(){
   clearTimeout(peekTimer);peekTimer=0;
@@ -654,6 +655,52 @@ async function shareCurrentView(nativeShare=true){
     else{await copyText(payload.url);showToast('현재 화면 링크를 복사했습니다.');}
   }catch(e){if(e?.name!=='AbortError')showToast('공유하지 못했습니다. 링크 복사를 이용해 주세요.','warning');}
 }
+function canonicalShareUrl(){
+  let url=new URL(location.href);url.search='';
+  if(url.href.length>200){url.hash='#overview';}
+  return url.href.slice(0,200);
+}
+function honestSharePayload(){
+  const descriptor=currentDescriptor(),screenTitle=document.querySelector('main h1')?.textContent.trim()||descriptor?.title||document.title;
+  const asof=DATA?.scenario?.asof||String(DATA?.meta?.generated||'').slice(0,10)||'등록 스냅샷';
+  const primary=document.querySelector('.lookup-metrics .lookup-primary strong')?.textContent.trim(),median=document.querySelector('.lookup-metrics>div:nth-child(2) strong')?.textContent.trim();
+  const distribution=primary?`10–90% 구간 ${primary}${median?` · 중앙값 ${median}`:''} (모델 조건부)\n`:'';
+  const url=canonicalShareUrl();
+  return {title:`${screenTitle} — Jin's Investing Prediction`,url,text:`${distribution}${screenTitle} — Jin's Investing Prediction\n시장 기준 ${asof} · 조건부 시나리오이며 목표가·투자자문이 아닙니다.\n${url}`};
+}
+function configureShareTargets(payload){
+  const encodedUrl=encodeURIComponent(payload.url),encodedTitle=encodeURIComponent(payload.title),encodedText=encodeURIComponent(payload.text);
+  const targets={
+    gmail:`https://mail.google.com/mail/?view=cm&fs=1&su=${encodedTitle}&body=${encodedText}`,
+    mail:`mailto:?subject=${encodedTitle}&body=${encodedText}`,
+    'naver-blog':`https://blog.naver.com/openapi/share?url=${encodedUrl}&title=${encodedTitle}`,
+    'naver-band':`https://band.us/plugin/share?body=${encodedText}&route=${encodedUrl}`,
+    line:`https://social-plugins.line.me/lineit/share?url=${encodedUrl}&text=${encodedText}`,
+    telegram:`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`,
+    x:`https://twitter.com/intent/tweet?text=${encodedText}&url=${encodedUrl}`
+  };
+  Object.entries(targets).forEach(([target,href])=>{const link=shareLayer.querySelector(`[data-share-target="${target}"]`);if(link)link.href=href;});
+  shareSummary.innerHTML=`<strong>${esc(payload.title)}</strong><p>${esc(payload.text.replace(`\n${payload.url}`,''))}</p><code>${esc(payload.url)}</code>`;
+  if(self.QrCreator&&shareQrCanvas)QrCreator.render({text:payload.url,size:188,ecLevel:'M',fill:'#1d2925',background:'#ffffff',radius:.15,quiet:2},shareQrCanvas);
+}
+function setShare(open,restoreFocus=true){
+  if(open){shareReturnFocus=document.activeElement;closeQuickPeek();if(document.body.classList.contains('drawer-open'))setDrawer(false,false);if(!commandLayer.hidden)setCommand(false,false);if(!utilityLayer.hidden)setUtility(false,false);if(!shortcutLayer.hidden)setShortcuts(false,false);if(!briefingLayer.hidden)setBriefing(false,false);configureShareTargets(honestSharePayload());}
+  shareLayer.hidden=!open;shareLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('share-open',open);syncModalInert();
+  if(open)requestAnimationFrame(()=>shareClose.focus());else if(restoreFocus&&shareReturnFocus?.focus)shareReturnFocus.focus();
+}
+async function enhancedShareCurrentView(nativeShare=true){
+  const payload=honestSharePayload();
+  try{
+    if(nativeShare&&navigator.share&&window.matchMedia('(pointer:coarse)').matches){await navigator.share(payload);showToast('기기 공유 메뉴를 열었습니다.');}
+    else if(!nativeShare){await copyText(payload.url);showToast('현재 화면 링크를 복사했습니다.');}
+    else setShare(true);
+  }catch(error){if(error?.name!=='AbortError')showToast('공유하지 못했습니다. 링크 복사를 이용해 주세요.','warning');}
+}
+shareCurrentView=enhancedShareCurrentView;
+shareClose.addEventListener('click',()=>setShare(false));document.getElementById('share-scrim').addEventListener('click',()=>setShare(false));
+shareLayer.addEventListener('click',event=>{const copy=event.target.closest('[data-share-target="copy"]');if(!copy)return;copyText(honestSharePayload().url).then(()=>showToast('현재 화면 링크를 복사했습니다.')).catch(()=>showToast('링크를 복사하지 못했습니다.','warning'));});
+document.addEventListener('keydown',event=>{if(shareLayer.hidden)return;if(event.key==='Tab')trapFocus(event,sharePopover);else if(event.key==='Escape'){event.preventDefault();setShare(false);}});
+
 function copyCurrentSummary(){
   const d=currentDescriptor(),headline=document.querySelector('main h1')?.textContent.trim()||d?.title||document.title;
   copyText(`${headline}\n${location.href}`).then(()=>showToast('화면 요약을 복사했습니다.')).catch(()=>showToast('요약을 복사하지 못했습니다.','warning'));
@@ -787,7 +834,7 @@ const COMMAND_ROUTES=[
   {hash:'#flow',code:'02',title:'시장 맵',hint:'시나리오 경로와 위험 구간'},
   {hash:'#questions',code:'03',title:'예측 연구',hint:'모든 질문과 라운드'},
   {hash:'#ask',code:'04A',title:'기간 조회',hint:'시점 리플레이의 기간별 전망'},
-  {hash:'#asof',code:'04B',title:'시점 타임머신',hint:'과거 시점 기준 상태'},
+  {hash:'#asof',code:'04B',title:'예측 변경 일지',hint:'변경 근거와 과거 시점 비교'},
   {hash:'#track',code:'05',title:'트랙레코드',hint:'Brier와 캘리브레이션'}
 ];
 function commandCatalog(){
@@ -941,9 +988,9 @@ function contextTabs(group,current){
 }
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
 function route(){
-  const rawHash=location.hash||'#overview',lookupMatch=rawHash.match(/^#lookup=(\d{4}-\d{2}-\d{2})$/);
-  const h=lookupMatch?'flow':rawHash.slice(1);const [v,pathArg]=h.split('/');const arg=lookupMatch?lookupMatch[1]:pathArg;
-  closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);
+  const rawHash=location.hash||'#overview',lookupMatch=rawHash.match(/^#lookup=(\d{4}-\d{2}-\d{2})$/),asofMatch=rawHash.match(/^#asof=(\d{4}-\d{2}-\d{2})$/),labParams=rawHash.startsWith('#lab=')?new URLSearchParams(rawHash.slice(1)):null;
+  const h=lookupMatch||labParams?'flow':(asofMatch?'asof':rawHash.slice(1));const [v,pathArg]=h.split('/');const arg=lookupMatch?{lookup:lookupMatch[1]}:(asofMatch?{mode:'replay',date:asofMatch[1]}:(labParams?{lab:labParams.get('lab'),scenario:labParams.get('scenario')}:pathArg));
+  closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
   const navView=(v==='q'||v==='compare')?'questions':(v==='ask'?'asof':v);
   document.body.dataset.view=navView;
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
@@ -1003,6 +1050,8 @@ function renderOverview(){
       <p>${esc(q.title)}</p>
       <div class="card-foot"><span class="${dcls}">${dtxt}</span><span>${esc(q.deadline||'수시')}</span><a href="#q/${esc(q.id)}" aria-label="${esc(q.title)} 상세 보기">↗</a></div>
     </article>`);
+    const journalHop=document.createElement('button');journalHop.type='button';journalHop.className='journal-hop';journalHop.textContent='변경 일지';journalHop.setAttribute('aria-label',`${q.title} 변경 일지 보기`);journalHop.onclick=event=>{event.stopPropagation();location.hash='#asof/'+q.id;};
+    c.querySelector('.card-foot')?.insertBefore(journalHop,c.querySelector('.card-foot a'));
     c.onclick=e=>{if(!e.target.closest('button,a'))location.hash='#q/'+q.id;};
     fg.appendChild(c);
   });
@@ -1107,6 +1156,8 @@ function lookupCardMarkup(sc,mapped){
   </article>`;
 }
 function renderFlow(initialLookup){
+  const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
+  initialLookup=initialState.lookup||null;
   const sc=DATA.scenario;
   const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
     ?'경로 확률은 확정 일봉 252거래일의 GBM 분류 결과이며 fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
@@ -1127,17 +1178,22 @@ function renderFlow(initialLookup){
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}</div>`;
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
+  if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
+  const sixMonthEnd=lookupReady?quick.sixMonth:sc.week_dates?.[Math.min(25,(sc.week_dates?.length||1)-1)];
+  const fullHorizonEnd=lookupReady?lookupTable.trading_days.at(-1):sc.week_dates?.at(-1);
   const lookupWidget=lookupReady?`<section class="forecast-lookup" aria-labelledby="lookup-title">
-    <div class="lookup-heading"><div><p class="eyebrow">FORECAST LOOKUP</p><h3 id="lookup-title">날짜별 조건부 분포 조회</h3><p>서버 호출 없이 이 스냅샷에 미리 계산된 252거래일 분포를 조회합니다.</p></div><span>NO API · NO STORAGE</span></div>
+    <div class="lookup-heading"><div><p class="eyebrow">CURRENT-ORIGIN LOOKUP</p><h3 id="lookup-title">현재 기준 미래 분포 조회</h3><p>${esc(sc.asof)}을 원점으로 만든 동일한 분포에서 선택 날짜의 단면을 조회합니다.</p></div><span>NO API · NO STORAGE</span></div>
+    <div class="lookup-scope-note"><strong>무엇을 보여주나요?</strong><span>미래 날짜에 새로 만든 전망이 아니라, 현재 스냅샷의 불확실성이 기간에 따라 얼마나 벌어지는지를 보여줍니다. 기본 차트는 6개월이며 이후 날짜를 조회하면 2027년 전체 보기로 전환됩니다.</span></div>
     <div class="lookup-controls"><label for="lookup-date">날짜 선택<input id="lookup-date" type="date" min="${esc(lookupTable.trading_days[0])}" max="${esc(lookupTable.trading_days.at(-1))}" value="${esc(initialLookup||quick.month)}"></label><button type="button" class="lookup-submit">분포 조회</button></div>
-    <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
+    <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['sixMonth','6개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
     <div class="lookup-natural"><label for="lookup-natural">한 줄 날짜 입력<input id="lookup-natural" type="text" maxlength="40" placeholder="8/30 · 8월 30일 · 3개월 뒤 · 연말" autocomplete="off"></label><button type="button" class="lookup-natural-submit">날짜 해석</button><small>정규식 규칙 파서 · LLM 호출 없음</small></div>
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
   </section>`:'';
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
-    <div class="panel-head"><h2>향후 252거래일 조건부 시나리오</h2>${legend}</div>
+    <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
     ${focusControls}
+    <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>모든 날짜는 이 기준일에서 출발한 한 번의 조건부 분포입니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 기간"><button type="button" data-flow-horizon="126" aria-pressed="true"><span>기본</span>6개월<small>${esc(sixMonthEnd||'')}</small></button><button type="button" data-flow-horizon="252" aria-pressed="false"><span>확장</span>2027년까지<small>${esc(fullHorizonEnd||'')}</small></button></div></div>
     ${lookupWidget}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
@@ -1163,16 +1219,22 @@ function renderFlow(initialLookup){
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
-  let flowFocus='ALL',lookupMarker=null;
-  const flowHost=$('#chart',p1w),paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker);
+  let flowFocus='ALL',lookupMarker=null,flowHorizon=126;
+  const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
+  const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon)));
+    if(flowTitle)flowTitle.textContent=flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
+  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
-  paintFlow(flowFocus);
+  p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.onclick=()=>{flowHorizon=Number(button.dataset.flowHorizon);syncFlowHorizon();paintFlow(flowFocus);});
+  syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w);
   const runLookup=requested=>{if(!lookupResult||!lookupInput)return;lookupInput.value=requested||lookupInput.value;
     const mapped=ForecastLookup.mapDate(sc.quantile_table,lookupInput.value,sc.asof);
     lookupResult.innerHTML=mapped.ok?lookupCardMarkup(sc,mapped):lookupErrorMarkup(mapped);
-    lookupMarker=mapped.ok?mapped.mapped:null;paintFlow(flowFocus);
+    lookupMarker=mapped.ok?mapped.mapped:null;
+    if(mapped.ok&&mapped.index>=126){flowHorizon=252;syncFlowHorizon();}
+    paintFlow(flowFocus);
     if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}`);
   };
   const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
@@ -1187,14 +1249,15 @@ function renderFlow(initialLookup){
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
   const availableTabs=[...labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)')];
-  availableTabs.forEach((b,index)=>{b.onclick=()=>activateLab(b.dataset.labTab);b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
+  availableTabs.forEach((b,index)=>{b.onclick=()=>{activateLab(b.dataset.labTab);history.replaceState(null,'',b.dataset.labTab==='future'?'#flow':`#lab=${b.dataset.labTab}`);};b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
   if(overlay){
     const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,focus);
       overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
     overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.onclick=()=>paintAnalog(b.dataset.analogFocus));
     paintAnalog('ALL');
   }
-  if(crossAsset)bindCrossAsset(crossAsset);
+  activateLab(initialState.lab||'future');
+  if(crossAsset)bindCrossAsset(crossAsset,initialState.scenario);
   if(liquidity)bindLiquidity(liquidity);
 }
 function analogPanel(){
@@ -1378,7 +1441,13 @@ function drawLiquidity(host,model){
   zones.forEach((zone,index)=>svg.appendChild(mk('rect',{x:X(index),y:panelTop[0],width:PW/Math.max(1,n-1)+1,height:PANEL*2+GAP,fill:zoneColor[zone]||'#aaa',opacity:.045})));
   const scale=(values,top)=>{const nums=values.filter(hasNumeric).map(Number),lo=Math.min(...nums),hi=Math.max(...nums),pad=Math.max(1,(hi-lo)*.12);return value=>top+PANEL*(1-(Number(value)-(lo-pad))/Math.max(1,(hi+pad)-(lo-pad)));};
   const yz=scale(z,panelTop[0]),yr=scale([...ndx,...btc],panelTop[1]);
-  [[z,'#6b4bc3',yz,panelTop[0],'Fed 순유동성 52주 z'],[ndx,'#ff4f17',yr,panelTop[1],'NASDAQ 26주 수익률'],[btc,'#1f6feb',yr,panelTop[1],'Bitcoin 26주 수익률']].forEach(([values,color,y,top,label])=>{let path='';values.forEach((value,index)=>{if(hasNumeric(value))path+=(path?'L':'M')+X(index)+','+y(value)+' ';});svg.appendChild(mk('path',{d:path,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));svg.appendChild(tx(ML,top-10,label,{fill:color,w:700}));});
+  const liquiditySeries=[
+    {values:z,color:'#6b4bc3',y:yz,top:panelTop[0],label:'Fed 순유동성 · 52주 z',labelX:ML},
+    {values:ndx,color:'#ff4f17',y:yr,top:panelTop[1],label:'NASDAQ · 26주 수익률',labelX:ML},
+    {values:btc,color:'#1f6feb',y:yr,top:panelTop[1],label:'BITCOIN · 26주 수익률',labelX:ML+235}
+  ];
+  liquiditySeries.forEach(({values,color,y})=>{let path='';values.forEach((value,index)=>{if(hasNumeric(value))path+=(path?'L':'M')+X(index)+','+y(value)+' ';});svg.appendChild(mk('path',{d:path,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));});
+  liquiditySeries.forEach(({color,top,label,labelX})=>{svg.appendChild(mk('line',{x1:labelX,y1:top-13,x2:labelX+20,y2:top-13,stroke:color,'stroke-width':3}));svg.appendChild(tx(labelX+27,top-9,label,{fill:color,w:750}));});
   panelTop.forEach(top=>svg.appendChild(mk('line',{x1:ML,y1:top+PANEL,x2:ML+PW,y2:top+PANEL,stroke:'rgba(17,17,15,.18)'})));
   [0,Math.floor((n-1)/2),n-1].forEach(index=>svg.appendChild(tx(X(index),H-12,labels[index].slice(0,7),{anc:'middle'})));
   const cursor=mk('line',{y1:panelTop[0],y2:panelTop[1]+PANEL,stroke:'rgba(17,17,15,.52)','stroke-dasharray':'4 3'});svg.appendChild(cursor);const overlay=mk('rect',{x:ML,y:panelTop[0],width:PW,height:panelTop[1]+PANEL-panelTop[0],fill:'transparent'});svg.appendChild(overlay);
@@ -1386,8 +1455,8 @@ function drawLiquidity(host,model){
   const paint=index=>{selected=Math.max(0,Math.min(n-1,index));cursor.setAttribute('x1',X(selected));cursor.setAttribute('x2',X(selected));readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(labels[selected])}</strong><small>${esc(({expansion:'확장',neutral:'중립',contraction:'수축'}[zones[selected]]||zones[selected]))} zone</small></div><div><span>Fed liquidity z</span><strong>${hasNumeric(z[selected])?Number(z[selected]).toFixed(2):'표본 축적 중'}</strong><small>52주 rolling</small></div><div><span>NASDAQ</span><strong>${hasNumeric(ndx[selected])?signedDelta(ndx[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div><div><span>Bitcoin</span><strong>${hasNumeric(btc[selected])?signedDelta(btc[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div>`;};
   const fromPointer=event=>{const rect=svg.getBoundingClientRect(),x=(event.clientX-rect.left)*(W/rect.width);return Math.round((x-ML)/(PW/Math.max(1,n-1)));};overlay.addEventListener('pointermove',event=>paint(fromPointer(event)));overlay.addEventListener('pointerdown',event=>{paint(fromPointer(event));svg.focus();});svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});host.replaceChildren(svg,readout);paint(selected);
 }
-function bindCrossAsset(panel){
-  const model=panel._crossModel;let view='scenario',scenarioId=panel._defaultScenario;
+function bindCrossAsset(panel,initialScenario){
+  const model=panel._crossModel;let view='scenario',scenarioId=model.forecast.scenarios?.[initialScenario]?initialScenario:panel._defaultScenario;
   const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel);
   const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId],macro=scenario.macro_assumptions||{},last=values=>Array.isArray(values)&&values.length?values.at(-1):null;
     const macroChips=`<span>Δ10Y ${hasNumeric(last(macro.delta_10y_bp))?signedDelta(last(macro.delta_10y_bp),0,'bp'):'미산출'}</span><span>ΔHY ${hasNumeric(last(macro.delta_hy_bp))?signedDelta(last(macro.delta_hy_bp),0,'bp'):'미산출'}</span><span>사전 등록 가정</span>`;
@@ -1401,7 +1470,7 @@ function bindCrossAsset(panel){
     if(view==='history'&&!historyHost.childElementCount)drawCrossAssetHistory(historyHost,model);
   };
   const shockButtons=[...panel.querySelectorAll('[data-cross-scenario]')];
-  shockButtons.forEach((button,index)=>{button.onclick=()=>{scenarioId=button.dataset.crossScenario;paintScenario();};button.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+shockButtons.length)%shockButtons.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%shockButtons.length;if(event.key==='Home')next=0;if(event.key==='End')next=shockButtons.length-1;if(next!=null){event.preventDefault();scenarioId=shockButtons[next].dataset.crossScenario;paintScenario();shockButtons[next].focus();}};});
+  shockButtons.forEach((button,index)=>{button.onclick=()=>{scenarioId=button.dataset.crossScenario;paintScenario();history.replaceState(null,'',`#lab=cross-asset&scenario=${encodeURIComponent(scenarioId)}`);};button.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+shockButtons.length)%shockButtons.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%shockButtons.length;if(event.key==='Home')next=0;if(event.key==='End')next=shockButtons.length-1;if(next!=null){event.preventDefault();scenarioId=shockButtons[next].dataset.crossScenario;paintScenario();shockButtons[next].focus();}};});
   panel.querySelectorAll('[data-cross-view]').forEach(button=>button.onclick=()=>setView(button.dataset.crossView));
   paintScenario();setView(view);
 }
@@ -1511,84 +1580,74 @@ function drawOverlay(host,o,eras,focus='ALL'){
     else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(maxIndex);}});
   host.replaceChildren(svg,readout);paintCursor(cursorIndex);
 }
-function drawFlow(host,sc,focus='ALL',lookupDate=null){
+function flowHorizonEndIndex(sc,horizonDays=126){
+  const fullLength=sc.week_dates?.length||sc.weeks?.length||0;if(fullLength<2)return Math.max(0,fullLength-1);
+  const tradingDays=sc.quantile_table?.trading_days||[];
+  if(horizonDays>=tradingDays.length||!tradingDays.length)return fullLength-1;
+  const target=tradingDays[Math.max(0,Math.min(tradingDays.length-1,horizonDays-1))];let end=0;
+  sc.week_dates.forEach((day,index)=>{if(day<=target)end=index;});
+  return Math.max(1,Math.min(fullLength-1,end));
+}
+function flowAxisTickIndexes(length,maxTicks=7){
+  if(length<=maxTicks)return Array.from({length},(_,index)=>index);
+  return [...new Set(Array.from({length:maxTicks},(_,index)=>Math.round(index*(length-1)/(maxTicks-1))))];
+}
+function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
   const NS='http://www.w3.org/2000/svg';
-  const W=1160,H=560,ML=58,MR=140,MT=72,MB=30,HCH=486;
-  const fan=sc.fan?.quantiles||{},chartValues=[sc.ath,sc.corr10,
-    ...['S1','S2','S3'].flatMap(k=>sc.paths[k]?.values||[]),...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const W=1160,H=590,ML=58,MR=140,MT=96,MB=30,HCH=506;
+  const endIndex=flowHorizonEndIndex(sc,horizonDays),n=endIndex+1,weeks=sc.weeks.slice(0,n),weekDates=(sc.week_dates||[]).slice(0,n),riskValues=sc.risk.slice(0,n);
+  const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(0,n):values]));
+  const chartValues=[sc.ath,sc.corr10,...['S1','S2','S3'].flatMap(key=>(sc.paths[key]?.values||[]).slice(0,n)),...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
-  const PW=W-ML-MR,PH=HCH-MT-MB;const n=sc.weeks.length;
-  const X=i=>ML+PW*i/(n-1),Y=v=>MT+PH*(1-(v-Y0)/(Y1-Y0));
+  const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
-  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','향후 252거래일 조건부 시나리오. 좌우 화살표로 기준 주차 이동');
-  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.66)','font-size':o.fs||12,'text-anchor':o.anc||'start','font-weight':o.w||400,opacity:o.opacity??1});e.textContent=s;return e;};
+  const horizonLabel=horizonDays===126?'6개월':'전체 252거래일';
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel} 조건부 시나리오. 좌우 화살표로 기준 주차 이동`);
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400,opacity:opts.opacity??1});node.textContent=value;return node;};
   const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
-  for(let v=Math.ceil(Y0/gridStep)*gridStep;v<=Y1;v+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
-    svg.appendChild(tx(ML-8,Y(v)+4,(v/1000)+'k',{anc:'end',fill:'#5f5d57'}));}
+  for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));svg.appendChild(tx(ML-8,Y(value)+4,(value/1000)+'k',{anc:'end',fill:'#5f5d57'}));}
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점 '+num(sc.ath),{fill:'rgba(17,17,15,.6)'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.corr10)+4,'−10% '+num(sc.corr10),{fill:'#c9002d'}));
-  sc.events.forEach(([xi,label,row])=>{const x=X(xi),ly=row===0?16:38;
-    svg.appendChild(mk('line',{x1:x,y1:MT-10,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
-    svg.appendChild(mk('circle',{cx:x,cy:ly+12,r:2.2,fill:'rgba(17,17,15,.55)'}));
-    svg.appendChild(tx(x,ly+7,label,{anc:'middle',fill:'#5f5d57',fs:12}));});
+  (sc.events||[]).filter(([index])=>index<=endIndex).forEach(([index,label,row])=>{const x=X(index),laneY=row===0?18:43;
+    svg.appendChild(mk('line',{x1:x,y1:MT-5,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
+    svg.appendChild(mk('circle',{cx:x,cy:laneY+10,r:2.2,fill:'rgba(17,17,15,.55)'}));svg.appendChild(tx(x,laneY+5,label,{anc:'middle',fill:'#4f4d47',fs:12,w:600}));});
   if(fan?.p10?.length===n&&fan?.p90?.length===n){
-    const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');for(let i=lower.length-1;i>=0;i--)d+='L'+X(i)+','+Y(lower[i])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
-    band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);
-    if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
-    if(fan.p50){let median='';fan.p50.forEach((v,i)=>median+=(i?'L':'M')+X(i)+','+Y(v)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
+    const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');for(let index=lower.length-1;index>=0;index--)d+='L'+X(index)+','+Y(lower[index])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
+    band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
+    if(fan.p50){let median='';fan.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }
-  ['S1','S2','S3'].forEach(k=>{const p=sc.paths[k],col=CHART_COL[k],on=focus==='ALL'||focus===k;let d='';p.values.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');
-    svg.appendChild(mk('path',{d,fill:'none',stroke:col,'stroke-width':on?(k==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));
-    const ev=p.values[p.values.length-1];
-    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(ev),r:on?4:2.5,fill:col,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));
-    svg.appendChild(tx(X(n-1)+8,Y(ev)+4,`${num(ev)} · ${p.prob}%`,{fill:CHART_LABEL_COL[k],fs:12,w:700,opacity:on?1:.12}));});
-  if(lookupDate&&sc.week_dates?.length===n){let position=0;
-    const next=sc.week_dates.findIndex(day=>day>=lookupDate);
-    if(next<0)position=n-1;else if(next===0||sc.week_dates[next]===lookupDate)position=next;else{const left=ForecastLookup.parseIso(sc.week_dates[next-1]),right=ForecastLookup.parseIso(sc.week_dates[next]),target=ForecastLookup.parseIso(lookupDate);position=next-1+(target-left)/(right-left);}
-    const markerX=X(position);svg.appendChild(mk('line',{x1:markerX,y1:MT-10,x2:markerX,y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));
-    svg.appendChild(mk('circle',{cx:markerX,cy:MT-13,r:4,fill:'#1f6feb',stroke:'#fff','stroke-width':1.5}));
-    svg.appendChild(tx(markerX,MT-23,'조회 '+lookupDate.slice(5),{anc:'middle',fill:'#174ea6',fs:12,w:750}));}
-  svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f','stroke':'#fff','stroke-width':1.5}));
-  svg.appendChild(tx(X(0)-6,Y(sc.anchor)-10,num(Math.round(sc.anchor)),{fill:'#11110f',w:600}));
-  sc.weeks.forEach((w,i)=>svg.appendChild(tx(X(i),MT+PH+16,w,{anc:'middle',fs:12,fill:i?'#5f5d57':'#34322e'})));
-  const RY=HCH+8,RH=28,cw=PW/(n-1);
-  svg.appendChild(tx(ML-8,RY+19,'변동성',{anc:'end',fill:'#5f5d57',fs:12}));
-  sc.risk.forEach((r,i)=>{const x=X(i)-cw/2+1,w=cw-2;
-    const fill=r==='고'?'rgba(201,0,45,.92)':(r==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)');const tc=r==='고'?'#fff':(r==='중'?'#513300':'#174c49');
-    svg.appendChild(mk('rect',{x:(i===0?X(0)-2:x),y:RY,width:(i===0?w/2+2:w),height:RH,rx:0,fill:fill,stroke:'rgba(17,17,15,.1)'}));
-    svg.appendChild(tx(X(i),RY+18,r,{anc:'middle',fs:12,fill:tc,w:700}));});
+  ['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=path.values.slice(0,n),color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
+    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));svg.appendChild(tx(X(n-1)+8,Y(endValue)+4,`${num(endValue)} · ${path.prob}%`,{fill:CHART_LABEL_COL[key],fs:12,w:700,opacity:on?1:.12}));});
+  if(lookupDate&&weekDates.length===n&&lookupDate<=weekDates.at(-1)){let position=0;const next=weekDates.findIndex(day=>day>=lookupDate);
+    if(next<0)position=n-1;else if(next===0||weekDates[next]===lookupDate)position=next;else{const left=ForecastLookup.parseIso(weekDates[next-1]),right=ForecastLookup.parseIso(weekDates[next]),target=ForecastLookup.parseIso(lookupDate);position=next-1+(target-left)/(right-left);}
+    const markerX=X(position),labelX=Math.max(ML+44,Math.min(ML+PW-44,markerX));svg.appendChild(mk('line',{x1:markerX,y1:MT-4,x2:markerX,y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));
+    svg.appendChild(mk('line',{x1:labelX,y1:78,x2:markerX,y2:MT-5,stroke:'#8bb3e8','stroke-width':1}));svg.appendChild(mk('rect',{x:labelX-42,y:58,width:84,height:22,rx:11,fill:'#eaf2ff',stroke:'#8bb3e8'}));
+    svg.appendChild(tx(labelX,73,'조회 '+lookupDate.slice(5),{anc:'middle',fill:'#174ea6',fs:12,w:750}));svg.appendChild(mk('circle',{cx:markerX,cy:MT-4,r:4,fill:'#1f6feb',stroke:'#fff','stroke-width':1.5}));}
+  svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));svg.appendChild(tx(X(0)-6,Y(sc.anchor)-10,num(Math.round(sc.anchor)),{fill:'#11110f',w:600}));
+  const tickIndexes=flowAxisTickIndexes(n,7);let priorTickYear='';tickIndexes.forEach((index,tickPosition)=>{const iso=weekDates[index]||'',year=iso.slice(0,4),yearChanged=year&&year!==priorTickYear;let label=weeks[index];
+    if(tickPosition===0)label='현재 · '+label;else if(yearChanged)label=year.slice(2)+'년 · '+label;priorTickYear=year||priorTickYear;
+    svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));svg.appendChild(tx(X(index),MT+PH+18,label,{anc:'middle',fs:12,fill:index?'#5f5d57':'#174c49',w:index?500:750}));});
+  const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'변동성',{anc:'end',fill:'#5f5d57',fs:12}));
+  let segmentStart=0;for(let index=1;index<=n;index++){if(index<n&&riskValues[index]===riskValues[segmentStart])continue;const end=index-1,risk=riskValues[segmentStart];
+    const left=segmentStart===0?X(0)-2:(X(segmentStart-1)+X(segmentStart))/2,right=end===n-1?X(end)+2:(X(end)+X(end+1))/2,width=Math.max(1,right-left);
+    const fill=risk==='고'?'rgba(201,0,45,.92)':(risk==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)'),textColor=risk==='고'?'#fff':(risk==='중'?'#513300':'#174c49');svg.appendChild(mk('rect',{x:left,y:RY,width,height:RH,fill,stroke:'rgba(17,17,15,.1)'}));
+    if(width>=28)svg.appendChild(tx(left+width/2,RY+18,risk,{anc:'middle',fs:12,fill:textColor,w:700}));segmentStart=index;}
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
-  const cursorMarkers=['S1','S2','S3'].map(k=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[k],stroke:'#fff','stroke-width':2});svg.appendChild(marker);return marker;});
-  const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
-  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
-  const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');
-  let cursorIndex=0;
-  const paintCursor=index=>{
-    cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=sc.weeks[cursorIndex],risk=sc.risk[cursorIndex];
-    xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
-    ['S1','S2','S3'].forEach((k,j)=>{cursorMarkers[j].setAttribute('cx',x);cursorMarkers[j].setAttribute('cy',Y(sc.paths[k].values[cursorIndex]));});
-    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(k=>`<div><span>${esc(sc.paths[k].label)}</span><strong style="color:${CHART_LABEL_COL[k]}">${num(sc.paths[k].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[k].prob}%</small></div>`).join('')}`;
-    svg.setAttribute('aria-label',`주간 시나리오, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);
-  };
-  const indexFromPointer=e=>{const r=svg.getBoundingClientRect(),mx=(e.clientX-r.left)*(W/r.width);
-    return Math.max(0,Math.min(n-1,Math.round((mx-ML)/(PW/(n-1)))));};
-  ov.addEventListener('pointermove',e=>{const i=indexFromPointer(e);paintCursor(i);if(finePointer){
-      tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';
-      tip.innerHTML=`<b>${sc.weeks[i]}</b> · 변동성 ${sc.risk[i]}<br>
-        <span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(sc.paths.S1.values[i])}</span><br>
-        <span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(sc.paths.S2.values[i])}</span><br>
-        <span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(sc.paths.S3.values[i])}</span>`;
-    }});
-  ov.addEventListener('pointerdown',e=>{paintCursor(indexFromPointer(e));if(!finePointer)tip.style.display='none';svg.focus();});
-  ov.addEventListener('pointerleave',()=>{tip.style.display='none';});
-  svg.addEventListener('keydown',e=>{
-    if(e.key==='ArrowLeft'||e.key==='ArrowRight'){e.preventDefault();paintCursor(cursorIndex+(e.key==='ArrowLeft'?-1:1));}
-    else if(e.key==='Home'){e.preventDefault();paintCursor(0);}else if(e.key==='End'){e.preventDefault();paintCursor(n-1);}
-  });
+  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[key],stroke:'#fff','stroke-width':2});svg.appendChild(marker);return marker;});
+  const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');let cursorIndex=0;
+  const paintCursor=index=>{cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=weeks[cursorIndex],risk=riskValues[cursorIndex];xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
+    ['S1','S2','S3'].forEach((key,markerIndex)=>{cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(sc.paths[key].values[cursorIndex]));});
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(key=>`<div><span>${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(sc.paths[key].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[key].prob}%</small></div>`).join('')}`;svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel}, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);};
+  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
+  overlay.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';tip.innerHTML=`<b>${weeks[index]}</b> · 변동성 ${riskValues[index]}<br><span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(sc.paths.S1.values[index])}</span><br><span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(sc.paths.S2.values[index])}</span><br><span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(sc.paths.S3.values[index])}</span>`;}});
+  overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}});
   host.replaceChildren(svg,readout);paintCursor(0);
 }
 
@@ -2006,6 +2065,48 @@ function renderAsofTimeMachine(){
 }
 
 // ── 적중 이력 ──
+function renderDecisionJournal(initial){
+  const state=initial&&typeof initial==='object'?initial:{question:initial};
+  const selectedQuestion=state.question||null;
+  const histories=DATA.forecast_history||{},questions=DATA.questions||[],qMap=Object.fromEntries(questions.map(q=>[q.id,q]));
+  const events=[];
+  Object.entries(histories).forEach(([qid,history])=>{
+    if(selectedQuestion&&qid!==selectedQuestion)return;
+    const sorted=[...(history||[])].sort((a,b)=>String(a.forecast_ts).localeCompare(String(b.forecast_ts)));
+    for(let i=1;i<sorted.length;i++){
+      const previous=sorted[i-1],current=sorted[i],delta=Number(current.probability)-Number(previous.probability);
+      if(!Number.isFinite(delta)||delta===0)continue;
+      events.push({qid,q:qMap[qid],previous,current,delta,date:String(current.forecast_ts||'').slice(0,10)});
+    }
+  });
+  events.sort((a,b)=>b.date.localeCompare(a.date)||Math.abs(b.delta)-Math.abs(a.delta));
+  const weekStart=raw=>{const d=new Date(`${raw}T12:00:00Z`),shift=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-shift);return d.toISOString().slice(0,10);};
+  const grouped=Object.groupBy?Object.groupBy(events,event=>weekStart(event.date)):events.reduce((out,event)=>{const key=weekStart(event.date);(out[key]||(out[key]=[])).push(event);return out;},{});
+  const allDates=[...new Set(Object.values(histories).flat().map(h=>String(h.forecast_ts||'').slice(0,10)).filter(Boolean))].sort();
+  const first=allDates[0]||generatedDay(),maxd=allDates.at(-1)||generatedDay();
+  const root=el('<div class="decision-journal-page"></div>');
+  appendContextTabs(root,'replay','asof');
+  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다.</p></div></div>`));
+  root.appendChild(el(`<section class="journal-provenance" aria-label="불변 기록 안내"><div><span>APPEND-ONLY PROVENANCE</span><strong>사후 수정이 불가능한 원본에서 생성됩니다</strong><p>기존 예측은 지우지 않고 새 라운드만 추가합니다. 원본 해시는 원장 감사에서 다시 검증됩니다.</p></div><dl><div><dt>인덱스</dt><dd>${esc((DATA.trust?.index?.head||'검증 대기').slice(0,12))}</dd></div><div><dt>원장 감사</dt><dd>${esc((DATA.trust?.ledger_audit_at||'검증 대기').slice(0,10))}</dd></div></dl></section>`));
+  const mode=el(`<div class="journal-mode" role="group" aria-label="일지 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 일지</button><button type="button" data-journal-mode="replay" aria-pressed="false">그날로 돌아가기</button></div>`);
+  root.appendChild(mode);
+  const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · ${events.length}건의 판단 변경</strong><span>주 단위로 묶고 변화 폭이 큰 기록을 먼저 보여줍니다.</span></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote>${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 문서 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>표시할 확률 변경이 없습니다.</strong><p>첫 라운드만 있거나 확률이 그대로인 질문은 변경 이벤트로 만들지 않습니다.</p></div>'}</div></section>`);
+  const replay=el(`<section class="journal-replay-panel" data-journal-panel="replay" hidden><div class="replay-controls"><label for="journal-date">기준일<input type="date" id="journal-date" min="${first}" max="${maxd}" value="${state.date||maxd}"></label><div class="replay-presets"><button type="button" data-replay-date="${first}">최초 기록</button><button type="button" data-replay-offset="-30">1개월 전</button><button type="button" data-replay-offset="-7">1주 전</button><button type="button" data-replay-date="${maxd}">최신</button></div></div><div id="journal-replay-summary" class="journal-replay-summary"></div><div class="table-shell"><table id="journal-replay-table"></table></div></section>`);
+  root.append(feed,replay);mount(root);
+  const rowsAt=D=>questions.filter(q=>!selectedQuestion||q.id===selectedQuestion).map(q=>{const hist=(histories[q.id]||[]).filter(h=>String(h.forecast_ts||'').slice(0,10)<=D);if(!hist.length)return null;const then=hist.at(-1),latest=(histories[q.id]||[]).at(-1)||then,ml=(DATA.ml_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1),market=(DATA.market_runs||[]).filter(m=>m.question_id===q.id&&String(m.run_ts||'').slice(0,10)<=D).at(-1);return {q,then,latest,ml,market,delta:Number(latest.probability)-Number(then.probability)};}).filter(Boolean);
+  const drawReplay=D=>{const rows=rowsAt(D),changed=rows.filter(row=>Math.abs(row.delta)>=1),average=rows.length?rows.reduce((sum,row)=>sum+Math.abs(row.delta),0)/rows.length:0,hasMl=rows.some(row=>row.ml),hasMarket=rows.some(row=>row.market);
+    $('#journal-replay-summary',replay).innerHTML=`<strong>${esc(D)} 이후 ${changed.length}개 질문의 판단이 바뀌었습니다.</strong><span>평균 절대 변화 ${average.toFixed(1)}%p · 과거 시점 이후 정보는 당시 값에서 제외했습니다.</span>`;
+    $('#journal-replay-table',replay).innerHTML=`<caption class="sr-only">${esc(D)} 당시와 현재 공식 확률 비교</caption><thead><tr><th>질문</th><th class="r">그날의 공식 확률</th>${hasMl?'<th class="r">그날의 모델 참고값</th>':''}${hasMarket?'<th class="r">그날의 시장 참고값</th>':''}<th class="r">현재 공식 확률</th><th class="r">변화</th></tr></thead><tbody>${rows.map(row=>`<tr><td><a href="#q/${esc(row.q.id)}">${esc(row.q.title)}</a></td><td class="r"><span class="table-prob">${row.then.probability}%</span></td>${hasMl?`<td class="r num">${row.ml?pct(row.ml.prob):'—'}</td>`:''}${hasMarket?`<td class="r num">${row.market?pct(row.market.prob):'—'}</td>`:''}<td class="r"><span class="table-prob">${row.latest.probability}%</span></td><td class="r num ${row.delta>0?'edge-pos':row.delta<0?'edge-neg':''}">${row.delta>0?'+':''}${row.delta.toFixed(0)}%p</td></tr>`).join('')}</tbody>`;
+  };
+  const setMode=next=>{const replayOn=next==='replay';feed.hidden=replayOn;replay.hidden=!replayOn;mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.journalMode===next)));if(replayOn)drawReplay($('#journal-date',replay).value);};
+  mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.onclick=()=>setMode(button.dataset.journalMode));
+  $('#journal-date',replay).onchange=event=>{drawReplay(event.target.value);history.replaceState(null,'',`#asof=${event.target.value}`);};
+  replay.querySelectorAll('[data-replay-date]').forEach(button=>button.onclick=()=>{const value=button.dataset.replayDate;$('#journal-date',replay).value=value;drawReplay(value);});
+  replay.querySelectorAll('[data-replay-offset]').forEach(button=>button.onclick=()=>{const d=new Date(`${maxd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+Number(button.dataset.replayOffset));const value=Math.max(Date.parse(first),d.getTime())===Date.parse(first)?first:d.toISOString().slice(0,10);$('#journal-date',replay).value=value;drawReplay(value);});
+  setMode(state.mode==='replay'?'replay':'feed');
+}
+VIEWS.asof=renderDecisionJournal;
+
 function renderTrack(){
   const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
   const root=el('<div></div>');
@@ -2037,6 +2138,8 @@ function renderTrack(){
       <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건</small></div>`).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
   const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
+  const ledgerRows=trust.ledgers||[],ledgerSummary=trust.ledger_summary||{};
+  if(ledgerRows.length)root.appendChild(el(`<section class="ledger-status-panel" aria-labelledby="ledger-status-title"><div class="panel-head"><div><p class="eyebrow">LEDGER ACCUMULATION</p><h2 id="ledger-status-title">데이터 원장이 실제로 쌓이고 있는가</h2></div><span class="semantic-state">위반 ${ledgerSummary.violation||0}</span></div><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span>${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>감사 시각 ${esc(trust.ledger_audit_at||'미산출')} · stalled는 운영 경고, violation은 불변성·스키마 위반입니다.</footer></section>`));
   root.appendChild(el(`<section class="intelligence-stack" aria-label="검증 상세">
     <details class="trust-center" open><summary><span><b>Trust Center</b><small>출처 · 신선도 · 빈티지 · 계약</small></span><em>${trust.status==='ok'?'정상':'확인 필요'}</em></summary>
       <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(s.vintage_capability)} vintage</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>

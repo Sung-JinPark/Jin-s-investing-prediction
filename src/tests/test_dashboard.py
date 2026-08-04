@@ -330,9 +330,36 @@ def test_forecast_lookup_ui_contract() -> None:
         "목표가·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
         "8월 30일 · 3개월 뒤 · 연말", "정규식 규칙 파서 · LLM 호출 없음",
         "PHYSICAL EVENT · 별도 확률 공간", "시나리오 분포와 결합 금지",
+        "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
+        'data-flow-horizon="126"', 'data-flow-horizon="252"',
+        "2027년까지", "flowHorizonEndIndex", "flowAxisTickIndexes",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
+    assert "mapped.index>=126" in html, "6개월 밖 조회는 전체 지평으로 확장해야 함"
+
+
+def test_liquidity_return_legends_use_separate_lanes() -> None:
+    html = dashboard.load_template()
+    assert "NASDAQ · 26주 수익률" in html
+    assert "BITCOIN · 26주 수익률" in html
+    assert "labelX:ML+235" in html, "NASDAQ/BITCOIN 범례가 같은 SVG 좌표를 쓰면 안 됨"
+
+
+def test_decision_journal_share_and_contrast_contract() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "예측 변경 일지", "그날로 돌아가기", "APPEND-ONLY PROVENANCE",
+        'role="feed"', "change_note", "#asof=", "share-popover",
+        "시장 기준 ${asof}", "조건부 시나리오이며 목표가·투자자문이 아닙니다",
+        "blog.naver.com/openapi/share", "band.us/plugin/share",
+        "social-plugins.line.me/lineit/share", "t.me/share/url", "QrCreator.render",
+    ):
+        assert required in html
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert '.cross-focus button[aria-checked="true"]' in css
+    assert "color:#5b3514!important" in css
+    assert "background:#fff0db!important" in css
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:
@@ -384,5 +411,12 @@ def test_write_pages(repo: Path) -> None:
     assert (out_dir / ".nojekyll").exists()
     assert "data.json" in index.read_text(encoding="utf-8")
     assert "<script>window.__DATA__ =" not in index.read_text(encoding="utf-8")
+    html = index.read_text(encoding="utf-8")
+    assert 'property="og:title"' in html and 'name="twitter:card"' in html
+    from PIL import Image
+    og = out_dir / "og" / "market-snapshot.png"
+    assert og.exists()
+    with Image.open(og) as image:
+        assert image.size == (1200, 630)
     payload = json.loads((out_dir / "data.json").read_text(encoding="utf-8"))
     assert payload["meta"]["n_questions"] >= 1

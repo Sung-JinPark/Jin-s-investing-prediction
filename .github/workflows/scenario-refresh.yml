@@ -25,8 +25,12 @@ jobs:
           python-version: "3.12"
       - name: Install lightweight scenario dependencies
         run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      - name: Capture pre-refresh ledger state
+        shell: bash
+        run: |
+          echo "SCENARIO_BEFORE_COUNT=$(find data/scenarios/archive -maxdepth 1 -type f -name '*.json' | wc -l)" >> "$GITHUB_ENV"
+          echo "SCENARIO_BEFORE_ASOF=$(python -c "import json; print(json.load(open('data/scenarios/nasdaq_latest.json', encoding='utf-8'))['asof'])")" >> "$GITHUB_ENV"
       - name: Refresh NASDAQ scenario snapshot
-        continue-on-error: true
         run: cd src && python -m ai_fc scenario
       - name: Refresh cross-asset transmission snapshot
         continue-on-error: true
@@ -34,12 +38,28 @@ jobs:
       - name: Refresh weekly tracker and liquidity snapshots
         continue-on-error: true
         run: cd src && python -m ai_fc market-extensions
+      - name: Audit ledgers and verify archive growth
+        shell: bash
+        run: |
+          (cd src && python -m ai_fc audit-ledgers)
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          latest = json.loads(Path('data/scenarios/nasdaq_latest.json').read_text(encoding='utf-8'))['asof']
+          count = len(list(Path('data/scenarios/archive').glob('*.json')))
+          before_asof = os.environ['SCENARIO_BEFORE_ASOF']
+          before_count = int(os.environ['SCENARIO_BEFORE_COUNT'])
+          if latest != before_asof and count <= before_count:
+              raise SystemExit(f'new asof {latest} did not increase archive count ({before_count} -> {count})')
+          print(f'scenario ledger self-check: {before_asof}/{before_count} -> {latest}/{count}')
+          PY
       - name: Commit new completed-market-day snapshots
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/scenarios data/cross_asset
+          git add docs/generated/ledger_audit.json docs/generated/ledger_audit.md docs/generated/ledger_manifest.json
           for optional_dir in data/signals data/liquidity data/realty_income data/rate_events; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"
