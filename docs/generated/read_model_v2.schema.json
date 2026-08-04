@@ -27,7 +27,8 @@
     "scenario_tracker",
     "liquidity",
     "ai_regime",
-    "method_changes"
+    "method_changes",
+    "calendar_events"
   ],
   "properties": {
     "meta": {
@@ -38,7 +39,8 @@
       "required": [
         "schema_version",
         "asof",
-        "quantile_table"
+        "quantile_table",
+        "horizon_coverage"
       ],
       "properties": {
         "schema_version": {
@@ -61,6 +63,20 @@
             },
             "probability_label": {
               "const": "model_conditional"
+            }
+          }
+        },
+        "horizon_coverage": {
+          "type": "object",
+          "required": [
+            "status",
+            "basis",
+            "gate",
+            "buckets"
+          ],
+          "properties": {
+            "buckets": {
+              "type": "array"
             }
           }
         }
@@ -235,6 +251,20 @@
     },
     "method_changes": {
       "type": "array"
+    },
+    "calendar_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "event_id",
+          "kind",
+          "date",
+          "status",
+          "title",
+          "source_url"
+        ]
+      }
     }
   },
   "additionalProperties": true

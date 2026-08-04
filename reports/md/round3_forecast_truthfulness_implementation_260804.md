@@ -49,3 +49,16 @@
 - 조회 카드는 asof부터 선택일까지 kind·ticker별 등록 건수와 추정 건수를 요약한다. 일정과 분포 확률을 연결하지 않는다는 문구를 고정했다.
 
 공식 근거: [Federal Reserve FOMC calendar](https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm), [BLS CPI schedule](https://www.bls.gov/schedule/news_release/cpi.htm), [BLS Employment Situation schedule](https://www.bls.gov/schedule/news_release/empsit.htm), [BEA release schedule](https://www.bea.gov/news/schedule), [NVIDIA IR](https://investor.nvidia.com/events-and-presentations/events-and-presentations/).
+
+## C. DB 축적 감사와 공개 설명
+
+- `scenario_band_calibration`의 중복 `timestamp_field`와 `planned` 강제값을 제거했다. writer는 작동하지만 아직 채점 가능한 실현 행이 0개이므로 `allow_empty_accumulating` 계약으로 0행을 숨기지 않은 채 accumulating 상태를 표시한다.
+- 신규 `market_event_calendar`를 append_csv/event cadence 원장으로 등록했다. `path_realism`은 scenario snapshot 내부 필드이므로 별도 원장으로 중복 등록하지 않았다.
+- 감사 전 기존 manifest의 10개 해시가 현재 Git HEAD blob과 달랐다. 각 대상의 working-tree SHA-256이 Git HEAD blob SHA-256과 정확히 일치함을 먼저 확인했고, 데이터 파일을 손대지 않은 채 manifest의 뒤처진 기준 해시만 현재 공개 HEAD에 동기화했다. 이 기준 보정 사실을 숨기지 않고 이 보고서에 남긴다.
+- 신뢰 센터에 `데이터는 이렇게 쌓입니다` 카드를 추가했다. 파일 원본 → 화–토 확정값 → 원장 감사 → 월간 Parquet 연구팩 → 미축적 상태 공개의 5단계를 비전공자 문구로 설명하며, 원장 수와 상태는 감사 read-model에서 실시간으로 읽는다.
+
+감사 명령 원문:
+
+```text
+ledger audit: accumulating=25 stalled=0 inactive=0 violation=0 planned=3
+```

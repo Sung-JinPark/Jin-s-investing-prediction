@@ -358,6 +358,17 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "mapped.index>=126" in html, "6개월 밖 조회는 전체 지평으로 확장해야 함"
 
 
+def test_data_growth_explainer_is_plain_language_and_live() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "데이터는 이렇게 쌓입니다", "파일이 원본입니다",
+        "화–토 새벽에 확정값을 확인합니다", "개 원장을 자동 감사합니다",
+        "월 1회 연구팩을 고정합니다", "없는 데이터도 숨기지 않습니다",
+        "ledgerSummary.accumulating", "ledgerSummary.stalled", "ledgerSummary.violation",
+    ):
+        assert required in html
+
+
 def test_liquidity_return_legends_use_separate_lanes() -> None:
     html = dashboard.load_template()
     assert "NASDAQ · 26주 수익률" in html

@@ -230,7 +230,9 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
                 stale = (today - latest).days > 10
             elif row["cadence"] == "monthly":
                 stale = (today - latest).days > 40
-        elif row["cadence"] not in {"event", "manual"} and expected not in {"planned", "frozen"}:
+        elif (row["cadence"] not in {"event", "manual"}
+              and expected not in {"planned", "frozen"}
+              and not row.get("allow_empty_accumulating")):
             stale = True
         violations = immutable_changes + schema_errors
         if csv_health["duplicate_rows"]:

@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-04T03:21:50+00:00",
+  "generated_at": "2026-08-04T05:10:12+00:00",
   "market_cutoff": "2026-08-03",
   "summary": {
-    "accumulating": 23,
+    "accumulating": 25,
     "stalled": 0,
     "inactive": 0,
     "violation": 0,
-    "planned": 4,
+    "planned": 3,
     "frozen": 1
   },
   "ledgers": [
@@ -184,7 +184,7 @@
       "criticality": "high",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 10,
+      "row_count": 12,
       "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],
@@ -251,7 +251,7 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "accumulating",
-      "file_count": 3,
+      "file_count": 5,
       "row_count": null,
       "latest_date": "2026-08-03",
       "missing_trading_days": [],
@@ -389,7 +389,7 @@
       "kind": "append_csv",
       "cadence": "trading_daily",
       "criticality": "medium",
-      "status": "planned",
+      "status": "accumulating",
       "file_count": 1,
       "row_count": 0,
       "latest_date": null,
@@ -399,6 +399,28 @@
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
       "growth_last_30d": []
+    },
+    {
+      "id": "market_event_calendar",
+      "path": "data/calendar/events.csv",
+      "kind": "append_csv",
+      "cadence": "event",
+      "criticality": "medium",
+      "status": "accumulating",
+      "file_count": 1,
+      "row_count": 53,
+      "latest_date": "2026-08-04",
+      "missing_trading_days": [],
+      "immutable_changes": [],
+      "schema_errors": [],
+      "duplicate_rows": 0,
+      "reversed_timestamps": 0,
+      "growth_last_30d": [
+        {
+          "date": "2026-08-04",
+          "count": 1
+        }
+      ]
     },
     {
       "id": "signal_archive",
@@ -622,7 +644,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-03",
+      "latest_date": "2026-08-04",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -630,7 +652,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-03",
+          "date": "2026-08-04",
           "count": 1
         }
       ]

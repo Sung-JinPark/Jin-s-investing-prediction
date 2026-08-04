@@ -63,6 +63,24 @@ ledgers:
     assert report["summary"]["frozen"] == 1
 
 
+def test_registered_empty_writer_can_report_accumulating_zero_rows(tmp_path: Path) -> None:
+    root = _root(tmp_path, """version: 1
+ledgers:
+  - id: calibration
+    path: data/calibration.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: asof
+    allow_empty_accumulating: true
+""")
+    (root / "data/calibration.csv").write_text("asof,value\n", encoding="utf-8")
+    report = audit_ledgers(root, write=False)
+    assert report["ledgers"][0]["status"] == "accumulating"
+    assert report["ledgers"][0]["row_count"] == 0
+
+
 def test_research_pack_normalizes_probability_and_provenance(
     tmp_path: Path, monkeypatch,
 ) -> None:

@@ -102,8 +102,7 @@ ledgers:
     criticality: medium
     schema_ref: csv
     timestamp_field: asof
-    expected_state: planned
-    timestamp_field: asof
+    allow_empty_accumulating: true
   - id: market_event_calendar
     path: data/calendar/events.csv
     kind: append_csv
