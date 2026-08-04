@@ -147,6 +147,13 @@ ledgers:
     cadence: monthly
     criticality: medium
     schema_ref: json_object
+  - id: dualdb_model_runs
+    path: dualdb/db/dualdb.sqlite
+    kind: singleton
+    cadence: weekly
+    criticality: high
+    schema_ref: dualdb_model_run
+    timestamp_field: model_run.asof
   - id: source_monitoring
     path: data/source_monitoring/defillama_stablecoins/*.json
     kind: archive_dir

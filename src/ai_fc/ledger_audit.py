@@ -7,6 +7,7 @@ import fnmatch
 import hashlib
 import json
 import re
+import sqlite3
 from collections import Counter
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -96,6 +97,25 @@ def _dates(paths: list[Path], timestamp_field: str | None = None) -> list[date]:
                             out.add(date.fromisoformat(str(value)[:10]))
                         except ValueError:
                             pass
+        elif path.suffix.lower() in {".sqlite", ".db"} and timestamp_field:
+            parts = timestamp_field.split(".")
+            if (len(parts) == 2
+                    and all(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", part)
+                            for part in parts)):
+                table, column = parts
+                try:
+                    uri = f"file:{path.resolve().as_posix()}?mode=ro"
+                    with sqlite3.connect(uri, uri=True) as conn:
+                        values = conn.execute(
+                            f'SELECT DISTINCT "{column}" FROM "{table}" '
+                            f'WHERE "{column}" IS NOT NULL').fetchall()
+                    for (value,) in values:
+                        try:
+                            out.add(date.fromisoformat(str(value)[:10]))
+                        except ValueError:
+                            pass
+                except sqlite3.Error:
+                    pass
         elif path.suffix.lower() == ".ots":
             out.add(datetime.fromtimestamp(path.stat().st_mtime, timezone.utc).date())
     return sorted(out)
@@ -142,6 +162,19 @@ def _schema_errors(path: Path, schema_ref: str) -> list[str]:
             return [] if isinstance(raw, dict) else ["JSON root is not an object"]
         except (OSError, json.JSONDecodeError) as exc:
             return [f"json: {type(exc).__name__}"]
+    if schema_ref == "dualdb_model_run":
+        required = {"run_id", "model", "asof", "params_json", "output_json", "created_at"}
+        try:
+            uri = f"file:{path.resolve().as_posix()}?mode=ro"
+            with sqlite3.connect(uri, uri=True) as conn:
+                columns = {row[1] for row in conn.execute("PRAGMA table_info(model_run)")}
+                count = int(conn.execute("SELECT COUNT(*) FROM model_run").fetchone()[0])
+            missing = sorted(required - columns)
+            if missing:
+                return [f"model_run missing columns: {missing}"]
+            return [] if count else ["model_run is empty"]
+        except sqlite3.Error as exc:
+            return [f"sqlite: {type(exc).__name__}"]
     if schema_ref in {"scenario_archive", "scenario_latest"}:
         try:
             raw = json.loads(path.read_text(encoding="utf-8"))

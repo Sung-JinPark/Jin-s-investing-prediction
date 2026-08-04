@@ -453,9 +453,25 @@ def _latest_context_run(root: Path) -> dict | None:
     try:
         from .ml.history import iter_history
         latest = None
+        latest_knn = None
         for run in iter_history(root):
             if run.get("kind") == "context":
                 latest = run
+            elif run.get("kind") == "dualdb_model_run" and run.get("model") == "knn_analog":
+                latest_knn = run
+        if latest_knn is None:
+            try:
+                latest_knn = json.loads(
+                    (root / "data/model_runs/knn_analog_latest.json")
+                    .read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                latest_knn = None
+        if latest is not None and latest_knn is not None:
+            latest = json.loads(json.dumps(latest))
+            analog = latest.setdefault("analog", {})
+            analog["model_run_asof"] = latest_knn.get("asof")
+            analog["model_run_id"] = latest_knn.get("run_id")
+            analog["forward_cases"] = latest_knn.get("neighbors") or []
         return latest
     except Exception:  # noqa: BLE001 — 부재 시 대시보드는 해당 패널만 생략
         return None
