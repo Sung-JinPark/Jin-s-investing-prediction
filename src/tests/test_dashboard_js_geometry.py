@@ -35,6 +35,38 @@ def test_cross_asset_endpoint_labels_keep_minimum_gap() -> None:
     assert ordered[-1] <= 200
 
 
+def test_flow_reference_and_scenario_labels_avoid_right_edge_collisions() -> None:
+    script_path = (
+        Path(__file__).parents[1]
+        / "ai_fc"
+        / "dashboard_parts"
+        / "dashboard.js"
+    )
+    source = script_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"function resolveEndpointLabels\([\s\S]+?\n}\nfunction drawIndexedCompare",
+        source,
+    )
+    assert match
+    helper = match.group(0).removesuffix("\nfunction drawIndexedCompare")
+    program = helper + """
+const rows=resolveEndpointLabels([
+  {key:'S1',y:92},{key:'S2',y:121},{key:'ath',y:122},
+  {key:'S3',y:188},{key:'corr10',y:189}
+],21,40,240);
+console.log(JSON.stringify(rows));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True, text=True
+    )
+    labels = json.loads(completed.stdout)
+    ordered = sorted(item["labelY"] for item in labels)
+    assert all(right - left >= 21 for left, right in zip(ordered, ordered[1:]))
+    assert ordered[0] >= 40 and ordered[-1] <= 240
+    assert "appendCalendarEventShape(group,mk,event.kind" in source
+    assert "class:'calendar-event-marker'" in source
+
+
 def test_flow_horizon_and_sparse_axis_geometry() -> None:
     script_path = (
         Path(__file__).parents[1]

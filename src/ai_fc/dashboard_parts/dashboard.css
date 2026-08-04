@@ -788,6 +788,8 @@ td small{font-size:var(--type-micro);line-height:1.4}
 .forecast-module{container-type:inline-size}
 @container (width < 420px){.mobile-question-facts,.compare-facts{grid-template-columns:1fr}.mobile-question-facts>div{min-height:62px}}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,tr:focus-visible,[tabindex]:focus-visible{outline:2px solid #fff;outline-offset:2px;box-shadow:0 0 0 4px var(--orange)}
+svg .calendar-event-marker:focus,svg .calendar-event-marker:focus-visible{outline:none;box-shadow:none}
+svg .calendar-event-marker:focus-visible .calendar-event-marker-shell{stroke:#1f6feb;stroke-width:2}
 
 /* decision ergonomics v5 */
 .linked-signal-console{margin-top:18px;display:grid;grid-template-columns:minmax(0,1.55fr) minmax(270px,.45fr);gap:1px;background:var(--line);border:1px solid var(--line)}
