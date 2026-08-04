@@ -65,6 +65,29 @@ FORECAST_BODY_DICTIONARY = (
     "| ↓ | −4%p |", "| base rate | 값 |", "| ↑ | +1%p |", "| ↑ | +3%p |", "| ↑ | +4%p |",
 )
 
+# Public UI copy must not imply a target-price product.  Historical ledgers and
+# archived model receipts remain byte-for-byte immutable; only the dashboard
+# read model is normalized at the presentation boundary.
+_PRESENTATION_COPY_REPLACEMENTS = (
+    ("목표가격", "단일 가격 제시"),
+    ("목표가", "단일 가격 제시"),
+)
+
+
+def _normalize_presentation_copy(value):
+    """Return a JSON-compatible copy with prohibited UI wording normalized."""
+    if isinstance(value, str):
+        for source, replacement in _PRESENTATION_COPY_REPLACEMENTS:
+            value = value.replace(source, replacement)
+        return value
+    if isinstance(value, dict):
+        return {key: _normalize_presentation_copy(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_normalize_presentation_copy(item) for item in value]
+    if isinstance(value, tuple):
+        return tuple(_normalize_presentation_copy(item) for item in value)
+    return value
+
 # ── 시나리오 흐름 데이터 (정본: reports/md/nasdaq_weekly_scenario_v3_1_1) ──
 SCENARIO = {
     "asof": "2026-07-14",
@@ -445,7 +468,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     }
     from .read_model_contract import assert_valid
     assert_valid(model)
-    return model
+    return _normalize_presentation_copy(model)
 
 
 def _latest_context_run(root: Path) -> dict | None:
@@ -497,7 +520,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     scenario = read_model.get("scenario") or {}
     asof = scenario.get("asof") or "latest registered snapshot"
     og_title = f"Jin's Investing Prediction · {asof}"
-    og_description = "조건부 시장 시나리오를 불변 기록과 함께 읽습니다. 목표가·투자자문이 아닙니다."
+    og_description = "조건부 시장 시나리오를 불변 기록과 함께 읽습니다. 단일 가격 제시·투자자문이 아닙니다."
     og_image = "https://sung-jinpark.github.io/Jin-s-investing-prediction/og/market-snapshot.png"
     og_meta = "\n".join((
         f'<meta property="og:title" content="{html_lib.escape(og_title, quote=True)}">',

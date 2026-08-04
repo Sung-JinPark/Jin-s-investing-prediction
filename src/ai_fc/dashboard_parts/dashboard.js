@@ -666,7 +666,7 @@ function honestSharePayload(){
   const primary=document.querySelector('.lookup-metrics .lookup-primary strong')?.textContent.trim(),median=document.querySelector('.lookup-metrics>div:nth-child(2) strong')?.textContent.trim();
   const distribution=primary?`10–90% 구간 ${primary}${median?` · 중앙값 ${median}`:''} (모델 조건부)\n`:'';
   const url=canonicalShareUrl();
-  return {title:`${screenTitle} — Jin's Investing Prediction`,url,text:`${distribution}${screenTitle} — Jin's Investing Prediction\n시장 기준 ${asof} · 조건부 시나리오이며 목표가·투자자문이 아닙니다.\n${url}`};
+  return {title:`${screenTitle} — Jin's Investing Prediction`,url,text:`${distribution}${screenTitle} — Jin's Investing Prediction\n시장 기준 ${asof} · 조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다.\n${url}`};
 }
 function configureShareTargets(payload){
   const encodedUrl=encodeURIComponent(payload.url),encodedTitle=encodeURIComponent(payload.title),encodedText=encodeURIComponent(payload.text);
@@ -1169,7 +1169,7 @@ function lookupCardMarkup(sc,mapped){
     ${lookupEventSummary(sc,mapped)}
     <details class="lookup-scenarios"><summary>S1/S2/S3 조건부 중앙값 보기</summary><div>${['S1','S2','S3'].map(key=>`<p><span>${scenarioNames[key]}</span><strong>${num(table.per_scenario_p50[key][index])}</strong><small>${num(table.per_scenario_counts?.[key]||0)}경로</small></p>`).join('')}</div></details>
     ${physicalEvents}
-    <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 목표가·사건확률·투자자문이 아닙니다.</p>
+    <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 단일 가격 제시·사건확률·투자자문이 아닙니다.</p>
     <footer>as_of ${esc(sc.asof)} 스냅샷 · seed ${esc(model.seed)} · ${num(model.n_paths)}경로 · ${esc(table.probability_space)}</footer>
   </article>`;
 }
@@ -1354,7 +1354,7 @@ function crossAssetPanel(){
   const w=el(`<div class="chart-panel analysis-panel cross-asset-panel">
     <p class="eyebrow">AI 충격 교차자산 지도 · Cross-asset Transmission</p>
     <div class="panel-head"><div><h2>Bitcoin · NASDAQ · Realty Income</h2><p>현재값 또는 비교 시작값을 100으로 맞춘 상대 경로</p></div><span class="count-chip">시장 기준 ${esc(model.asof)}</span></div>
-    <div class="reference-banner scenario-banner"><strong>CONDITIONAL PATH · 목표가격 아님</strong><span>${esc(model.forecast.semantics)}</span></div>
+    <div class="reference-banner scenario-banner"><strong>CONDITIONAL PATH · 단일 가격 제시 아님</strong><span>${esc(model.forecast.semantics)}</span></div>
     <div class="cross-anchor-strip" aria-label="비교 기준 현물 가격">
       <div><span>NASDAQ</span><strong>${num(anchors.nasdaq)}</strong></div>
       <div><span>BITCOIN</span><strong>$${num(anchors.bitcoin)}</strong></div>

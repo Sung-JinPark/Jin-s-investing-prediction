@@ -343,7 +343,7 @@ def test_forecast_lookup_ui_contract() -> None:
     for required in (
         'type="date"', 'aria-live="polite"', "#lookup=", "10–90% 구간",
         "25–75% 구간", "중앙값", "모델 조건부 확률",
-        "목표가·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
+        "단일 가격 제시·사건확률·투자자문이 아닙니다", "NO API · NO STORAGE",
         "8월 30일 · 3개월 뒤 · 연말", "정규식 규칙 파서 · LLM 호출 없음",
         "PHYSICAL EVENT · 별도 확률 공간", "시나리오 분포와 결합 금지",
         "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
@@ -390,7 +390,7 @@ def test_decision_journal_share_and_contrast_contract() -> None:
     for required in (
         "예측 변경 일지", "그날로 돌아가기", "APPEND-ONLY PROVENANCE",
         'role="feed"', "change_note", "#asof=", "share-popover",
-        "시장 기준 ${asof}", "조건부 시나리오이며 목표가·투자자문이 아닙니다",
+        "시장 기준 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
         "blog.naver.com/openapi/share", "band.us/plugin/share",
         "social-plugins.line.me/lineit/share", "t.me/share/url", "QrCreator.render",
     ):
@@ -470,3 +470,20 @@ def test_write_pages(repo: Path) -> None:
         assert image.size == (1200, 630)
     payload = json.loads((out_dir / "data.json").read_text(encoding="utf-8"))
     assert payload["meta"]["n_questions"] >= 1
+    public_text = index.read_text(encoding="utf-8") + json.dumps(payload, ensure_ascii=False)
+    assert "목표가" not in public_text
+    assert "목표가격" not in public_text
+    assert "불확실성" in public_text
+
+
+def test_presentation_copy_normalization_preserves_source_and_nested_shape() -> None:
+    source = {
+        "note": "확률·목표가격·목표가가 아니며 불확실성을 보존한다.",
+        "nested": ["목표가 아님", {"value": "불확실성"}],
+    }
+    normalized = dashboard._normalize_presentation_copy(source)
+    assert normalized == {
+        "note": "확률·단일 가격 제시·단일 가격 제시가 아니며 불확실성을 보존한다.",
+        "nested": ["단일 가격 제시 아님", {"value": "불확실성"}],
+    }
+    assert source["note"] == "확률·목표가격·목표가가 아니며 불확실성을 보존한다."
