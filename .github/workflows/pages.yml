@@ -38,7 +38,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: deps (시크릿 불필요 — import 경로용)
-        run: pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy
+        run: pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy "Pillow>=10"
       - name: 파생 인덱스 재구축 (불변 파일 → SQLite)
         run: cd src && python -m ai_fc sync --rebuild
       - name: 대시보드 정적 빌드 (읽기 전용, API 키 불필요)
