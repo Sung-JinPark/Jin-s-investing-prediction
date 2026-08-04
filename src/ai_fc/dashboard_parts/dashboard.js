@@ -1332,12 +1332,15 @@ function analogPanel(){
   w._eras=eras;w._overlay=o;w._eraStarts=starts;
   return w;
 }
+function betaGateNote(row){
+  if(row.status==='hysteresis_hold_1_of_2')return ' · 표본 1/2회 미달·이전 β 유지';
+  return row.gate_proximity==='at_boundary'?' · gate 경계(n=156)':'';
+}
 function crossAssetPanel(){
   const model=DATA.cross_asset;
   if(!model||model.status==='blocked'||!model.forecast?.scenarios||!model.history?.series)return null;
   const summary=model.history.summary||{},diag=model.diagnostics||{},corr60=diag.corr_60d||{},beta=diag.downside_beta_5y||{},weekly=diag.weekly_52w||{},anchors=model.anchors||{};
   const sensitivity=model.forecast?.realty_income_sensitivity||{},rateSensitivity=sensitivity.beta_rate||{},creditSensitivity=sensitivity.beta_credit||{};
-  const betaGateNote=row=>row.status==='hysteresis_hold_1_of_2'?' · 표본 1/2회 미달·이전 β 유지':(row.gate_proximity==='at_boundary'?' · gate 경계(n=156)':'');
   const realtyContext=model.realty_income||{},eventRows=realtyContext.event_study?.events||[],eventById=Object.fromEntries(eventRows.map(row=>[row.event_id,row]));
   const dotcomEvent=eventById.dotcom_easing||{},tighteningEvent=eventById.tightening_2004_2006||{},acuteEvent=eventById.acute_crisis_2020||{};
   const hypothesis=realtyContext.condition_summary||{},conditionLabels={C1:'신용 스트레스 비확대',C2:'장기금리 하락',C3:'실질금리 완화',C4:'배당 유지·증가'};
@@ -1424,6 +1427,7 @@ function crossAssetPanel(){
       <div><span>하락꼬리 BTC beta</span><strong>${hasNumeric(beta.bitcoin_to_nasdaq)?Number(beta.bitcoin_to_nasdaq).toFixed(2):'산출 전'}</strong><small>${esc(ci(beta.bitcoin_ci_10_90,beta.observations))}</small></div>
       <div><span>하락꼬리 O beta</span><strong>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'산출 전'}</strong><small>${esc(ci(beta.realty_income_ci_10_90,beta.observations))}</small></div>
     </div>
+    ${cohortResultsMarkup(DATA.o_entry_cohort)}
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
@@ -1432,6 +1436,24 @@ function crossAssetPanel(){
   </div>`);
   w._crossModel=model;w._defaultScenario=defaultScenario;
   return w;
+}
+function cohortResultsMarkup(model){
+  if(!model||model.status!=='ok'||!Array.isArray(model.summary))return '';
+  const rows=model.summary;
+  const pick=(sample,cohort,horizon,basis='total_return_proxy')=>rows.find(row=>row.sample===sample&&row.cohort===cohort&&Number(row.horizon_months)===horizon&&row.basis===basis)||{};
+  const value=(number,suffix='%')=>hasNumeric(number)?`${Number(number).toFixed(1)}${suffix}`:'관측 불가';
+  const main=[3,6,12,24,36].map(horizon=>pick('dotcom_1998_2005','all_months',horizon));
+  const oos=['oos_2008','oos_2020','oos_2022'].map(sample=>({sample,row:pick(sample,'all_months',12)}));
+  const signals=['nasdaq_drawdown_10','nasdaq_drawdown_20','nasdaq_drawdown_30','nasdaq_drawdown_40','after_first_fed_cut','after_hy_oas_peak','after_10y_26w_reversal'];
+  const signalLabel={nasdaq_drawdown_10:'NASDAQ −10% 이후',nasdaq_drawdown_20:'NASDAQ −20% 이후',nasdaq_drawdown_30:'NASDAQ −30% 이후',nasdaq_drawdown_40:'NASDAQ −40% 이후',after_first_fed_cut:'첫 Fed cut 이후',after_hy_oas_peak:'HY OAS 정점 후',after_10y_26w_reversal:'10Y 26주 추세 반전 후'};
+  return `<section class="cohort-shell" aria-labelledby="o-cohort-title">
+    <div class="panel-head"><div><p class="eyebrow">PREREGISTERED · REFERENCE ONLY</p><h3 id="o-cohort-title">O 월별 진입 cohort</h3><p>월말 신호 → 익월 첫 거래일 체결 · 왕복 비용 10bp · 보유 중 ex-date 배당만 재투자</p></div><span class="count-chip">as of ${esc(model.asof)}</span></div>
+    <div class="cohort-guard"><strong>진입 시점·가격을 추천하지 않습니다.</strong><span>historical cohort 결과이며 현재 진입상태 규칙은 아직 등록하지 않았습니다.</span></div>
+    <div class="cohort-headline">${oos.map(({sample,row})=>`<article><span>${esc(sample.replace('oos_',''))} OOS · 12개월</span><strong>${value(row.median_return_pct)}</strong><small>중앙 총수익 proxy · 적중 ${value(row.hit_rate_pct)} · 최악 ${value(row.worst_return_pct)} · 표본 n=${num(row.n||0)}</small></article>`).join('')}</div>
+    <div class="table-shell cohort-table"><table><thead><tr><th>보유</th><th>표본</th><th>중앙 총수익</th><th>적중률</th><th>최악</th><th>중앙 MDD</th><th>최악 MDD</th><th>중앙 회복일</th></tr></thead><tbody>${main.map(row=>`<tr><td>${num(row.horizon_months)}개월</td><td>n=${num(row.n||0)}</td><td>${value(row.median_return_pct)}</td><td>${value(row.hit_rate_pct)}</td><td>${value(row.worst_return_pct)}</td><td>${value(row.median_max_drawdown_pct)}</td><td>${value(row.worst_max_drawdown_pct)}</td><td>${hasNumeric(row.median_recovery_days)?`${num(row.median_recovery_days)}일`:'관측 불가'}</td></tr>`).join('')}</tbody></table></div>
+    <details class="analog-limit cohort-signals"><summary>닷컴 구간 신호별 12개월 cohort 보기</summary><div class="table-shell"><table><thead><tr><th>사전 등록 신호</th><th>표본</th><th>중앙 총수익</th><th>적중률</th><th>최악</th><th>미회복</th></tr></thead><tbody>${signals.map(signal=>{const row=pick('dotcom_1998_2005',signal,12);return `<tr><td>${esc(signalLabel[signal])}</td><td>n=${num(row.n||0)}</td><td>${value(row.median_return_pct)}</td><td>${value(row.hit_rate_pct)}</td><td>${value(row.worst_return_pct)}</td><td>${num(row.unrecovered_count||0)}</td></tr>`;}).join('')}</tbody></table></div></details>
+    <p class="chart-note">중앙값·적중률·최악 사례는 과거 표본 요약이며 미래 성과 확률이 아닙니다. 미완결 지평은 통계에서 제외하고 incomplete count로만 보존합니다.</p>
+  </section>`;
 }
 function scenarioTrackerMarkup(model){
   if(!model||model.status==='blocked')return `<section class="tracker-shell is-blocked"><div class="panel-head"><h3>Scenario Tracker</h3><span class="count-chip">원천 대기</span></div><p>주간 신호 스냅샷이 아직 없습니다. 기존 자산 전이 경로에는 임의 신호를 대입하지 않습니다.</p></section>`;

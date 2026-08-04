@@ -1,0 +1,64 @@
+schema_version: 1
+contract_id: o_entry_cohort_monthly_v1
+registered_at: "2026-08-04T10:00:00+09:00"
+status: preregistered_before_first_run
+probability_space: reference_only
+entry_state_rules_allowed: false
+
+samples:
+  in_sample:
+    id: dotcom_1998_2005
+    signal_month_start: 1998-01
+    signal_month_end: 2005-12
+  out_of_sample:
+    - {id: oos_2008, signal_month_start: 2008-01, signal_month_end: 2009-12}
+    - {id: oos_2020, signal_month_start: 2020-01, signal_month_end: 2021-12}
+    - {id: oos_2022, signal_month_start: 2022-01, signal_month_end: 2023-12}
+
+execution:
+  signal_timestamp: last_common_market_close_of_calendar_month
+  fill_timestamp: first_realty_income_trading_close_of_next_calendar_month
+  entry_cost_bps: 5
+  exit_cost_bps: 5
+  holding_months: [3, 6, 12, 24, 36]
+  exit_rule: first_realty_income_trading_close_on_or_after_calendar_month_anniversary
+  interpolation: forbidden
+
+return_bases:
+  price:
+    source: Yahoo chart unadjusted close
+  total_return_proxy:
+    source: Yahoo chart close plus captured cash-dividend events
+    rule: reinvest only dividends whose ex_date occurs after execution and on_or_before exit
+    availability_guard: no future dividend enters a signal or entry decision
+
+signals:
+  nasdaq_drawdown_10: {rule: current_close_over_trailing_peak_minus_one_lte, threshold_pct: -10}
+  nasdaq_drawdown_20: {rule: current_close_over_trailing_peak_minus_one_lte, threshold_pct: -20}
+  nasdaq_drawdown_30: {rule: current_close_over_trailing_peak_minus_one_lte, threshold_pct: -30}
+  nasdaq_drawdown_40: {rule: current_close_over_trailing_peak_minus_one_lte, threshold_pct: -40}
+  after_first_fed_cut:
+    source_series: DFF
+    rule: latest_daily_effective_rate_drop_gte_25bp_starts_easing_state_until_25bp_hike
+  after_hy_oas_peak:
+    source_series: BAMLH0A0HYM2
+    rule: current_oas_at_least_100bp_below_trailing_63_observation_peak
+    retreat_bp: 100
+    trailing_observations: 63
+  after_10y_26w_reversal:
+    source_series: DGS10
+    rule: first_cross_below_minus_25bp_126_observation_change_active_for_six_signal_months
+    threshold_bp: -25
+    lookback_observations: 126
+    active_signal_months: 6
+
+statistics:
+  publish: [median_return_pct, hit_rate_pct, worst_return_pct, median_max_drawdown_pct,
+            worst_max_drawdown_pct, median_recovery_days, unrecovered_count]
+  small_sample_rule: always_publish_n
+  incomplete_horizon_rule: exclude_from_statistics_and_publish_incomplete_count
+
+guardrails:
+  - "진입 시점·가격을 추천하지 않습니다"
+  - "cohort 결과는 reference_only이며 현재 진입상태 규칙이 아닙니다"
+  - "시장 beta와 HY beta 감쇠는 이 결과만으로 자동 도입하지 않습니다"

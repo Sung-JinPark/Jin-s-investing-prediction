@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-04T08:12:25+00:00",
+  "generated_at": "2026-08-04T09:32:21+00:00",
   "market_cutoff": "2026-08-03",
   "summary": {
-    "accumulating": 26,
+    "accumulating": 27,
     "stalled": 1,
     "inactive": 0,
     "violation": 0,
@@ -536,6 +536,28 @@
       "growth_last_30d": [
         {
           "date": "2026-08-03",
+          "count": 1
+        }
+      ]
+    },
+    {
+      "id": "realty_o_entry_cohort_archive",
+      "path": "data/realty_income/o_entry_cohort_archive/*.json",
+      "kind": "archive_dir",
+      "cadence": "monthly",
+      "criticality": "high",
+      "status": "accumulating",
+      "file_count": 1,
+      "row_count": null,
+      "latest_date": "2026-07-30",
+      "missing_trading_days": [],
+      "immutable_changes": [],
+      "schema_errors": [],
+      "duplicate_rows": 0,
+      "reversed_timestamps": 0,
+      "growth_last_30d": [
+        {
+          "date": "2026-07-30",
           "count": 1
         }
       ]

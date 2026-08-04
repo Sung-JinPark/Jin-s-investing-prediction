@@ -428,9 +428,11 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     """실제 누적 원장으로도 Pages 산출물의 고정 용량 계약을 지킨다."""
     conn = ingest.connect(tmp_path / "index.db")
     ingest.sync(conn, dashboard.config.ROOT)
-    html = dashboard.render_html(
-        dashboard.build_read_model(conn, dashboard.config.ROOT), mode="embed"
-    )
+    model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+    assert model["o_entry_cohort"]["entry_count"] == 840
+    assert "entries" not in model["o_entry_cohort"]
+    assert len(model["o_entry_cohort"]["summary"]) == 15
+    html = dashboard.render_html(model, mode="embed")
     assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
 
 
@@ -487,3 +489,15 @@ def test_presentation_copy_normalization_preserves_source_and_nested_shape() -> 
         "nested": ["단일 가격 제시 아님", {"value": "불확실성"}],
     }
     assert source["note"] == "확률·목표가격·목표가가 아니며 불확실성을 보존한다."
+
+
+def test_o_entry_cohort_ui_is_evidence_only() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "O 월별 진입 cohort", "PREREGISTERED · REFERENCE ONLY",
+        "진입 시점·가격을 추천하지 않습니다", "현재 진입상태 규칙은 아직 등록하지 않았습니다",
+        "월말 신호 → 익월 첫 거래일 체결", "cohortResultsMarkup(DATA.o_entry_cohort)",
+        "표본 n=${num(row.n||0)}", "미완결 지평은 통계에서 제외",
+    ):
+        assert required in html
+    assert "O_ENTRY_ATTRACTIVE" not in html

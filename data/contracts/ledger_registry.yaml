@@ -141,6 +141,13 @@ ledgers:
     criticality: medium
     schema_ref: csv
     timestamp_field: available_at
+  - id: realty_o_entry_cohort_archive
+    path: data/realty_income/o_entry_cohort_archive/*.json
+    kind: archive_dir
+    cadence: monthly
+    criticality: high
+    schema_ref: json_object
+    timestamp_field: generated_at
   - id: ai_capital_archives
     path: data/ai_capital_cycle/*_archive/*.json
     kind: archive_dir

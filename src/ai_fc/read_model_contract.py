@@ -43,6 +43,7 @@ V2_KEYS = {
     "scenario_tracker": dict,
     "liquidity": dict,
     "ai_regime": dict,
+    "o_entry_cohort": dict,
     "method_changes": list,
     "calendar_events": list,
 }
@@ -119,6 +120,15 @@ def schema() -> dict[str, Any]:
                 "asof": {"type": ["string", "null"]},
             },
         }
+    properties["o_entry_cohort"] = {
+        "type": "object",
+        "required": ["status", "probability_space", "entry_state_rules_registered"],
+        "properties": {
+            "status": {"enum": ["ok", "blocked"]},
+            "probability_space": {"const": "reference_only"},
+            "entry_state_rules_registered": {"const": False},
+        },
+    }
     properties["calendar_events"] = {
         "type": "array",
         "items": {
@@ -210,6 +220,16 @@ def validate(model: dict[str, Any]) -> list[str]:
             validator(payload)
         except (MarketExtensionError, KeyError, TypeError, ValueError) as exc:
             errors.append(f"{key} contract violation: {exc}")
+    cohort = model.get("o_entry_cohort")
+    if isinstance(cohort, dict) and cohort.get("status") != "blocked":
+        if cohort.get("probability_space") != "reference_only":
+            errors.append("o_entry_cohort must remain reference_only")
+        if cohort.get("entry_state_rules_registered") is not False:
+            errors.append("o_entry_cohort cannot expose entry-state rules in L2-2")
+        if not isinstance(cohort.get("summary"), list) or not cohort["summary"]:
+            errors.append("o_entry_cohort public summary required")
+        if "entries" in cohort:
+            errors.append("o_entry_cohort raw entries must not enter data.json")
     return errors
 
 

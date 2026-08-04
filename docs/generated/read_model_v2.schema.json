@@ -27,6 +27,7 @@
     "scenario_tracker",
     "liquidity",
     "ai_regime",
+    "o_entry_cohort",
     "method_changes",
     "calendar_events"
   ],
@@ -265,6 +266,28 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "o_entry_cohort": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space",
+        "entry_state_rules_registered"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ok",
+            "blocked"
+          ]
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "entry_state_rules_registered": {
+          "const": false
         }
       }
     },

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-04T08:12:25+00:00",
+  "baseline_at": "2026-08-04T09:32:21+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
     "calibration/corrections.csv": "69df6bf02c09ea2dc37cb39b85ea59bce9b6c3b4f4a78d713c5a76542b9b02af",
@@ -24,12 +24,13 @@
     "data/cross_asset/path_tracking.csv": "1c39695f8dfbc89f0f9b25d8754aca3e103d5f883137f274df01a59e585c5453",
     "data/cross_asset/path_tracking_v2.csv": "66ac2ccaaab3f1e48b9e32c55d606891d7076562ebc32ddd31a844226edc1ec4",
     "data/liquidity/archive/2026-07-31.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
-    "data/method_changes.jsonl": "41e73189154e389c7a0de041772c57344285899aa26d57f7f13e3b6172fee0e2",
+    "data/method_changes.jsonl": "c69876aa5c456f91a44a88b489f3a0353ab952c95abdf37f8f51d624a306a37d",
     "data/ml_history/2026.jsonl": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
     "data/rate_events/archive/2026-07-31.json": "3f4d9b8ac58cf488b20bb7ecdfe1d314aa662abb1728726c5ffbad79d0a837be",
     "data/rate_events/archive/2026-08-03.json": "b7640421a41f082617d8ceba4840cc51858cceda2b5df0e04ea25f9a8984362d",
     "data/rate_events/archive/2026-08-03_CORR-260804-007.json": "7032ee8453f64bd94668ed0d7ef3d28a1df8747aa3add52e10499a983bbde43c",
     "data/realty_income/dividends.csv": "da1c3154852167086e0deeda654b1965ecb38f14cbe8b76aba830d0496b6e026",
+    "data/realty_income/o_entry_cohort_archive/2026-07-30.json": "f5f116602ca2d646158b6c69fd0c7a7f4e495dbf64c97fdbc5f675884f8499b7",
     "data/realty_income/rate_sensitivity_archive/2026-07-31.json": "442037a6ae74503d5dd72bb9fc4118c49d43b7343607e83bafaf22612e0aa4db",
     "data/realty_income/rate_sensitivity_archive/2026-08-03.json": "d6864d95acdb4e81eff04c9992d1f07132ecdb0cb5b6964620ca35939ea718c5",
     "data/realty_income/rate_sensitivity_archive/2026-08-03_CORR-260804-009.json": "f8a3b2bb598b173248f3474c7c746a5d13a384038cd1847b13d9b6bf22e4c46e",

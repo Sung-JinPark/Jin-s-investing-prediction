@@ -290,9 +290,11 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     cross_asset_history = load_cross_asset_history(root)
     from .market_extensions import load_liquidity, load_scenario_tracker
     from .ai_capital_cycle import load_ai_regime
+    from .o_entry_cohort import load_cohort_summary
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
     ai_regime = load_ai_regime(root)
+    o_entry_cohort = load_cohort_summary(root)
     method_changes = []
     try:
         method_changes = [
@@ -463,6 +465,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "scenario_tracker": scenario_tracker,
         "liquidity": liquidity,
         "ai_regime": ai_regime,
+        "o_entry_cohort": o_entry_cohort,
         "source_monitoring": {"defillama_stablecoins": defillama_monitor},
         "method_changes": method_changes,
     }

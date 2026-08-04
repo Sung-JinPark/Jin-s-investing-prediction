@@ -202,6 +202,30 @@ def cmd_cross_asset(
     )
 
 
+@app.command("o-entry-cohort")
+def cmd_o_entry_cohort(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지 완결된 O cohort만 산출 (YYYY-MM-DD)"),
+) -> None:
+    """사전 등록된 Realty Income 월별 진입 cohort를 PIT 규칙으로 재생성한다."""
+    from .o_entry_cohort import refresh_cohort
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_cohort(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    main = [row for row in payload["summary"]
+            if row["sample"] == "dotcom_1998_2005" and row["cohort"] == "all_months"
+            and row["horizon_months"] == 12 and row["basis"] == "total_return_proxy"]
+    n = main[0]["n"] if main else 0
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 기준 {payload['asof']} · "
+        f"1998–2005 12개월 총수익 cohort n={n} · entry-state 규칙 없음"
+    )
+
+
 @app.command("market-extensions")
 def cmd_market_extensions(
     asof: str | None = typer.Option(
@@ -221,6 +245,28 @@ def cmd_market_extensions(
         f"시장 확장 기준 {tracker['asof']} · tracker "
         f"{tracker['summary']['available']}/{tracker['summary']['total']} 신호 · "
         f"liquidity zone {liquidity['zone']} · probability=표시 안 함"
+    )
+
+
+@app.command("segment-filing-inventory")
+def cmd_segment_filing_inventory(
+    asof: str | None = typer.Option(
+        None, "--asof", help="SEC filing accession 목록 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """L1-1 준비용 4사×최근 12개 10-Q/K accession만 목록화한다."""
+    from .segment_filing_inventory import refresh_inventory
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_inventory(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    counts = "/".join(str(payload["companies"][symbol]["filing_count"])
+                      for symbol in ("MSFT", "AMZN", "GOOGL", "META"))
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 4사 filing {counts} · "
+        "segment extraction not_started"
     )
 
 
