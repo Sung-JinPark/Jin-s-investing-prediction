@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
@@ -14,15 +15,18 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 
 from .quant import feed, mc
 from .market_session import completed_market_cutoff
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 LATEST_RELATIVE_PATH = Path("data") / "scenarios" / "nasdaq_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "scenarios" / "archive"
+CALENDAR_RELATIVE_PATH = Path("data") / "contracts" / "nyse_holidays.yaml"
 REFERENCE_PRICE = 26206.89  # F3 불변 기준가: 2026-07-09 ^IXIC 종가
 LOOKBACK_DAYS = 252
+FORECAST_HORIZON = 252
 N_PATHS = 20_000
 SEED = 42
 
@@ -51,6 +55,96 @@ class ScenarioError(ValueError):
     """시나리오 입력 또는 스키마가 안전 기준을 충족하지 않음."""
 
 
+def load_calendar_contract(root: Path) -> dict[str, Any]:
+    """Load the pre-registered NYSE holiday rules used for future date labels."""
+    path = root / CALENDAR_RELATIVE_PATH
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError) as exc:
+        raise ScenarioError(f"NYSE calendar contract unavailable: {path}") from exc
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise ScenarioError("unsupported NYSE calendar contract")
+    if payload.get("calendar") != "NYSE" or not isinstance(payload.get("rules"), list):
+        raise ScenarioError("invalid NYSE calendar contract")
+    return payload
+
+
+def _observed_fixed(day: date) -> date:
+    if day.weekday() == 5:
+        return day - timedelta(days=1)
+    if day.weekday() == 6:
+        return day + timedelta(days=1)
+    return day
+
+
+def _nth_weekday(year: int, month: int, weekday: int, ordinal: int) -> date:
+    cursor = date(year, month, 1)
+    offset = (weekday - cursor.weekday()) % 7
+    return cursor + timedelta(days=offset + 7 * (ordinal - 1))
+
+
+def _last_weekday(year: int, month: int, weekday: int) -> date:
+    if month == 12:
+        cursor = date(year + 1, 1, 1) - timedelta(days=1)
+    else:
+        cursor = date(year, month + 1, 1) - timedelta(days=1)
+    return cursor - timedelta(days=(cursor.weekday() - weekday) % 7)
+
+
+def _easter_sunday(year: int) -> date:
+    """Gregorian computus; NYSE Good Friday is Easter Sunday minus two days."""
+    a = year % 19
+    b, c = divmod(year, 100)
+    d, e = divmod(b, 4)
+    f = (b + 8) // 25
+    g = (b - f + 1) // 3
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = divmod(c, 4)
+    ell = (32 + 2 * e + 2 * i - h - k) % 7
+    m = (a + 11 * h + 22 * ell) // 451
+    month = (h + ell - 7 * m + 114) // 31
+    day = (h + ell - 7 * m + 114) % 31 + 1
+    return date(year, month, day)
+
+
+def _holiday_for_rule(year: int, rule: dict[str, Any]) -> date | None:
+    if year < int(rule.get("start_year", 1)):
+        return None
+    kind = rule.get("type")
+    if kind == "fixed":
+        day = date(year, int(rule["month"]), int(rule["day"]))
+        return _observed_fixed(day) if rule.get("observed") == "nearest_weekday" else day
+    if kind == "nth_weekday":
+        return _nth_weekday(
+            year, int(rule["month"]), int(rule["weekday"]), int(rule["ordinal"]))
+    if kind == "last_weekday":
+        return _last_weekday(year, int(rule["month"]), int(rule["weekday"]))
+    if kind == "easter_offset":
+        return _easter_sunday(year) + timedelta(days=int(rule["offset_days"]))
+    raise ScenarioError(f"unsupported NYSE holiday rule: {kind!r}")
+
+
+def future_trading_days(asof: date, count: int, calendar: dict[str, Any]) -> list[date]:
+    """Return deterministic future NYSE labels without an external calendar API."""
+    if count < 1:
+        return []
+    holidays: set[date] = set()
+    for year in range(asof.year, asof.year + 3):
+        for rule in calendar["rules"]:
+            holiday = _holiday_for_rule(year, rule)
+            if holiday is not None:
+                holidays.add(holiday)
+    for raw in calendar.get("one_off_closures") or []:
+        holidays.add(_iso_day(str(raw)))
+    out: list[date] = []
+    cursor = asof
+    while len(out) < count:
+        cursor += timedelta(days=1)
+        if cursor.weekday() < 5 and cursor not in holidays:
+            out.append(cursor)
+    return out
+
+
 def _iso_day(value: str) -> date:
     try:
         return date.fromisoformat(value)
@@ -58,11 +152,69 @@ def _iso_day(value: str) -> date:
         raise ScenarioError(f"invalid scenario asof: {value!r}") from exc
 
 
+_QUANTILE_KEYS = ("p05", "p10", "p25", "p50", "p75", "p90", "p95")
+
+
+def _blocked_quantile_table(asof: str, reason: str) -> dict[str, Any]:
+    return {
+        "status": "blocked",
+        "reason": reason,
+        "probability_space": "scenario_conditional",
+        "basis": "lookup unavailable for legacy manual vintage",
+        "asof": asof,
+        "trading_days": [],
+        "quantiles": {key: [] for key in _QUANTILE_KEYS},
+        "prob_above_anchor": [],
+        "prob_above_ath": [],
+        "probability_label": "model_conditional",
+        "per_scenario_p50": {key: [] for key in ("S1", "S2", "S3")},
+    }
+
+
+def _validate_quantile_table(table: Any, asof: date) -> None:
+    if not isinstance(table, dict):
+        raise ScenarioError("scenario quantile_table must be an object")
+    if table.get("probability_space") != "scenario_conditional":
+        raise ScenarioError("quantile_table probability_space must be scenario_conditional")
+    if table.get("probability_label") != "model_conditional":
+        raise ScenarioError("quantile_table probabilities must be labelled model_conditional")
+    if table.get("status") == "blocked":
+        if table.get("trading_days") != []:
+            raise ScenarioError("blocked quantile_table must not contain trading days")
+        return
+    days = table.get("trading_days")
+    quantiles = table.get("quantiles")
+    if not isinstance(days, list) or len(days) != FORECAST_HORIZON:
+        raise ScenarioError("quantile_table must contain 252 trading days")
+    parsed = [_iso_day(value) for value in days]
+    if parsed[0] <= asof or any(right <= left for left, right in zip(parsed, parsed[1:])):
+        raise ScenarioError("quantile_table trading_days must be strictly increasing after asof")
+    if not isinstance(quantiles, dict) or set(quantiles) != set(_QUANTILE_KEYS):
+        raise ScenarioError("quantile_table quantiles must be p05/p10/p25/p50/p75/p90/p95")
+    series = [quantiles[key] for key in _QUANTILE_KEYS]
+    arrays = series + [table.get("prob_above_anchor"), table.get("prob_above_ath")]
+    per_scenario = table.get("per_scenario_p50")
+    if not isinstance(per_scenario, dict) or set(per_scenario) != {"S1", "S2", "S3"}:
+        raise ScenarioError("quantile_table per_scenario_p50 must be S1/S2/S3")
+    arrays.extend(per_scenario.values())
+    if any(not isinstance(values, list) or len(values) != len(days) for values in arrays):
+        raise ScenarioError("quantile_table series length mismatch")
+    for index in range(len(days)):
+        values = [row[index] for row in series]
+        if any(not isinstance(value, (int, float)) for value in values):
+            raise ScenarioError("quantile_table values must be numeric")
+        if any(right < left for left, right in zip(values, values[1:])):
+            raise ScenarioError("quantile_table quantiles must be monotonic")
+    for key in ("prob_above_anchor", "prob_above_ath"):
+        if any(not isinstance(value, int) or not 0 <= value <= 100 for value in table[key]):
+            raise ScenarioError(f"quantile_table {key} must be integer percent")
+
+
 def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
     """대시보드가 신뢰할 수 있는 최소 시나리오 계약을 검증한다."""
     if payload.get("schema_version") != SCHEMA_VERSION:
         raise ScenarioError("unsupported scenario schema_version")
-    _iso_day(payload.get("asof", ""))
+    asof = _iso_day(payload.get("asof", ""))
     if not all(isinstance(payload.get(k), (int, float)) and payload[k] > 0
                for k in ("anchor", "ath", "corr10")):
         raise ScenarioError("scenario anchor/ath/corr10 must be positive")
@@ -81,6 +233,7 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
             raise ScenarioError(f"scenario {key} values length mismatch")
     if not isinstance(risk, list) or len(risk) != len(weeks):
         raise ScenarioError("scenario risk length mismatch")
+    _validate_quantile_table(payload.get("quantile_table"), asof)
     return payload
 
 
@@ -107,6 +260,10 @@ def load_latest_scenario(root: Path, fallback: dict[str, Any]) -> dict[str, Any]
     legacy.setdefault("generated_at", "2026-07-15T00:00:00+00:00")
     legacy.setdefault("method", "manual-audited-vintage")
     legacy.setdefault("source", "reports/md/nasdaq_weekly_scenario_v3_1_1_260715.md")
+    legacy.setdefault(
+        "quantile_table",
+        _blocked_quantile_table(legacy["asof"], "legacy vintage has no retained daily paths"),
+    )
     legacy["fallback"] = True
     return validate_scenario(legacy)
 
@@ -197,13 +354,9 @@ def _representative(sampled: np.ndarray, mask: np.ndarray,
 
 def build_scenario(dates: list[date], closes: list[float], *,
                    generated_at: datetime | None = None,
-                   n_paths: int = N_PATHS, seed: int = SEED) -> dict[str, Any]:
-    """확정 일봉으로 연말까지 세 개의 상호배타 경로를 생성한다.
-
-    S1 = 연말까지 현재 cycle ATH를 새로 돌파한 경로
-    S2 = ATH 미돌파이면서 연말 종가가 F3 고정 기준가를 상회한 경로
-    S3 = 나머지 조정·횡보 경로
-    """
+                   n_paths: int = N_PATHS, seed: int = SEED,
+                   calendar: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Build the year-end partition and a 252-session lookup from one GBM draw."""
     if len(dates) != len(closes) or len(closes) < LOOKBACK_DAYS + 1:
         raise ScenarioError("at least 253 aligned daily closes are required")
     if any(b <= a for a, b in zip(dates, dates[1:])):
@@ -215,28 +368,38 @@ def build_scenario(dates: list[date], closes: list[float], *,
     year_end = date(asof.year, 12, 31)
     if asof >= year_end:
         raise ScenarioError("year-end scenario requires an asof before December 31")
-    first_future = asof + timedelta(days=1)
-    horizon = int(np.busday_count(first_future, year_end + timedelta(days=1)))
-    if horizon < 2:
-        raise ScenarioError("scenario horizon is too short")
+    calendar = calendar or load_calendar_contract(Path(__file__).resolve().parents[2])
+    trading_days = future_trading_days(asof, FORECAST_HORIZON, calendar)
+    year_end_indexes = [index for index, day in enumerate(trading_days) if day <= year_end]
+    if len(year_end_indexes) < 2:
+        raise ScenarioError("scenario year-end partition horizon is too short")
+    year_end_index = year_end_indexes[-1]
 
     anchor = float(closes[-1])
     ath = float(max(closes))
     corr10 = ath * 0.9
+    # This is the only simulation call. Every weekly line and lookup statistic below
+    # is derived from the same paths, preserving fixed-seed determinism.
     future = mc.gbm_paths(
         closes, lookback=min(LOOKBACK_DAYS, len(closes) - 1),
-        horizon=horizon, n=n_paths, seed=seed)
-    week_dates = _week_dates(asof, year_end)
+        horizon=FORECAST_HORIZON, n=n_paths, seed=seed)
+
+    graph_indexes = list(range(4, FORECAST_HORIZON, 5))
+    if graph_indexes[-1] != FORECAST_HORIZON - 1:
+        graph_indexes.append(FORECAST_HORIZON - 1)
+    week_dates = [asof] + [trading_days[index] for index in graph_indexes]
     sampled = np.empty((n_paths, len(week_dates)), dtype=float)
     sampled[:, 0] = anchor
-    for column, target in enumerate(week_dates[1:], start=1):
-        sampled[:, column] = future[:, _future_index(asof, target, horizon)]
+    for column, index in enumerate(graph_indexes, start=1):
+        sampled[:, column] = future[:, index]
 
-    hit_ath = (future > ath).any(axis=1)
-    end_above_reference = future[:, -1] > REFERENCE_PRICE
+    classification = future[:, :year_end_index + 1]
+    hit_ath = (classification > ath).any(axis=1)
+    end_above_reference = classification[:, -1] > REFERENCE_PRICE
     s1 = hit_ath
     s2 = ~hit_ath & end_above_reference
     s3 = ~(s1 | s2)
+    masks = {"S1": s1, "S2": s2, "S3": s3}
     p1, p2, p3 = _partition_probabilities((s1, s2, s3))
 
     representative = {
@@ -253,29 +416,65 @@ def build_scenario(dates: list[date], closes: list[float], *,
     probs = {"S1": p1, "S2": p2, "S3": p3}
 
     risk: list[str] = []
-    for target in week_dates:
-        idx = _future_index(asof, target, horizon)
-        breach = 0.0 if idx < 0 else float((future[:, :idx + 1] <= corr10).any(axis=1).mean())
+    for column, target in enumerate(week_dates):
+        index = -1 if column == 0 else graph_indexes[column - 1]
+        breach = 0.0 if index < 0 else float((future[:, :index + 1] <= corr10).any(axis=1).mean())
         risk.append("고" if breach >= 0.35 else ("중" if breach >= 0.15 else "저"))
 
     events = []
     for row, (event_date, label) in enumerate(EVENTS_2026):
-        if asof <= event_date <= year_end:
-            events.append([
-                round(min(len(week_dates) - 1, (event_date - asof).days / 7), 2),
-                label, row % 2,
-            ])
+        if asof <= event_date <= trading_days[-1]:
+            nearest = min(range(len(week_dates)), key=lambda index: abs((week_dates[index] - event_date).days))
+            events.append([nearest, label, row % 2])
 
     analog = np.interp(
         np.linspace(0, len(_ANALOG_RATIOS) - 1, len(week_dates)),
         np.arange(len(_ANALOG_RATIOS)), _ANALOG_RATIOS) * anchor
-    terminal = future[:, -1]
+    terminal = classification[:, -1]
     made_at = generated_at or datetime.now(timezone.utc)
+
+    def round_index(values: np.ndarray) -> list[int]:
+        return [int(round(float(value) / 10) * 10) for value in values]
+
+    daily_quantiles = np.percentile(future, (5, 10, 25, 50, 75, 90, 95), axis=0)
+    fallback_percentiles = {"S1": 75, "S2": 50, "S3": 25}
+    conditional_medians = {
+        key: np.median(future[mask], axis=0) if bool(mask.any())
+        else np.percentile(future, fallback_percentiles[key], axis=0)
+        for key, mask in masks.items()
+    }
+    quantile_table = {
+        "status": "ok",
+        "probability_space": "scenario_conditional",
+        "basis": (
+            f"GBM daily 252d · {n_paths:,} paths · seed {seed} · asof close anchor; "
+            "probabilities are model-conditional, not event probabilities"
+        ),
+        "asof": asof.isoformat(),
+        "calendar": "NYSE pre-registered fixed holiday rules; emergency closures corrected next refresh",
+        "sampling": "daily D+1..D+252; no interpolation",
+        "trading_days": [day.isoformat() for day in trading_days],
+        "quantiles": {
+            key: round_index(daily_quantiles[index])
+            for index, key in enumerate(_QUANTILE_KEYS)
+        },
+        "prob_above_anchor": [
+            int(round(float(value) * 100)) for value in (future > anchor).mean(axis=0)
+        ],
+        "prob_above_ath": [
+            int(round(float(value) * 100)) for value in (future > ath).mean(axis=0)
+        ],
+        "probability_label": "model_conditional",
+        "per_scenario_p50": {
+            key: round_index(values) for key, values in conditional_medians.items()
+        },
+        "per_scenario_counts": {key: int(mask.sum()) for key, mask in masks.items()},
+    }
     payload: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "asof": asof.isoformat(),
         "generated_at": made_at.isoformat(timespec="seconds"),
-        "method": "gbm-daily-252d-v1",
+        "method": "gbm-daily-252d-v2-lookup",
         "source": "Yahoo Finance chart API · ^IXIC 확정 일봉",
         "anchor": round(anchor, 2),
         "ath": round(ath, 2),
@@ -295,12 +494,14 @@ def build_scenario(dates: list[date], closes: list[float], *,
                     int(round(float(value)))
                     for value in np.percentile(sampled, quantile, axis=0)
                 ]
-                for quantile in (5, 25, 50, 75, 95)
+                for quantile in (5, 10, 25, 50, 75, 90, 95)
             },
             "monitoring": "daily-discrete",
-            "baseline_method": "gbm-daily-252d-v1",
+            "baseline_method": "gbm-daily-252d-v2-lookup",
         },
+        "quantile_table": quantile_table,
         "weeks": [f"{day.month}/{day.day}" for day in week_dates],
+        "week_dates": [day.isoformat() for day in week_dates],
         "paths": {
             key: {
                 "label": labels[key],
@@ -321,7 +522,8 @@ def build_scenario(dates: list[date], closes: list[float], *,
         "events": events,
         "model": {
             "lookback_days": min(LOOKBACK_DAYS, len(closes) - 1),
-            "horizon_business_days": horizon,
+            "horizon_business_days": FORECAST_HORIZON,
+            "classification_date": trading_days[year_end_index].isoformat(),
             "n_paths": n_paths,
             "seed": seed,
             "partition": {
@@ -333,12 +535,87 @@ def build_scenario(dates: list[date], closes: list[float], *,
             "promotion_state": "champion-baseline; v2 alternatives remain shadow",
         },
         "note": (
-            "확정 일봉 252거래일의 수익률로 생성한 고정 seed GBM 조건부 중앙 경로. "
+            "확정 일봉 252거래일의 수익률로 생성한 고정 seed GBM 조건부 분포. "
             "fat tail·정책 이벤트·실적 서프라이즈를 직접 모형화하지 않으며 질문별 "
-            "LLM 확률과 합산하지 않는다. 참고 의견 — 투자 자문 아님."
+            "physical_event 확률과 합산하지 않는다. 목표가·사건확률·투자자문이 아니다."
         ),
     }
     return validate_scenario(payload)
+
+
+def _comparison_text(payload: dict[str, Any]) -> str:
+    comparable = deepcopy(payload)
+    for field in ("generated_at", "snapshot_id", "revision", "correction_id", "supersedes"):
+        comparable.pop(field, None)
+    return json.dumps(comparable, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _approved_correction_id(root: Path, asof: str) -> str | None:
+    ledger = root / "calibration" / "corrections.csv"
+    if not ledger.exists():
+        return None
+    with ledger.open(encoding="utf-8", newline="") as handle:
+        rows = [
+            row for row in csv.DictReader(handle)
+            if row.get("target_table") == "scenario_snapshots"
+            and row.get("target_key") == asof
+            and row.get("status") == "approved"
+        ]
+    return rows[-1].get("correction_id") if rows else None
+
+
+def _persist_scenario(root: Path, payload: dict[str, Any]) -> tuple[Path, dict[str, Any], bool]:
+    """Persist a same-asof model change as an approved revision, never an overwrite."""
+    latest = root / LATEST_RELATIVE_PATH
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    latest.parent.mkdir(parents=True, exist_ok=True)
+    archive_dir.mkdir(parents=True, exist_ok=True)
+    asof = payload["asof"]
+    candidates = sorted(archive_dir.glob(f"{asof}*.json"))
+    target = _comparison_text(payload)
+    for archive in candidates:
+        try:
+            raw = archive.read_text(encoding="utf-8")
+            existing = json.loads(raw)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if _comparison_text(existing) == target:
+            changed = not latest.exists() or latest.read_text(encoding="utf-8") != raw
+            if changed:
+                latest.write_text(raw, encoding="utf-8", newline="\n")
+            return latest, existing, changed
+    persisted = deepcopy(payload)
+    if candidates:
+        correction_id = _approved_correction_id(root, asof)
+        if not correction_id:
+            raise ScenarioError(
+                f"immutable scenario archive conflict for {asof}; approved correction required")
+        revisions = []
+        for path in candidates:
+            try:
+                revisions.append(int(json.loads(path.read_text(encoding="utf-8")).get("revision") or 1))
+            except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                continue
+        revision = max(revisions or [1]) + 1
+        persisted.update({
+            "snapshot_id": f"nasdaq-scenario:{asof}:r{revision}",
+            "revision": revision,
+            "correction_id": correction_id,
+            "supersedes": f"nasdaq-scenario:{asof}:r{revision - 1}",
+        })
+        archive = archive_dir / f"{asof}_{correction_id}.json"
+    else:
+        persisted.update({"snapshot_id": f"nasdaq-scenario:{asof}:r1", "revision": 1})
+        archive = archive_dir / f"{asof}.json"
+    serialized = json.dumps(persisted, ensure_ascii=False, indent=2) + "\n"
+    if archive.exists():
+        existing = json.loads(archive.read_text(encoding="utf-8"))
+        if _comparison_text(existing) != _comparison_text(persisted):
+            raise ScenarioError(f"immutable scenario revision conflict: {archive}")
+        return latest, existing, False
+    archive.write_text(serialized, encoding="utf-8", newline="\n")
+    latest.write_text(serialized, encoding="utf-8", newline="\n")
+    return latest, persisted, True
 
 
 def refresh_scenario(root: Path, *, asof: date | None = None,
@@ -354,7 +631,8 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
         raise ScenarioError("Yahoo returned no completed ^IXIC closes")
     dates = [item[0] for item in aligned]
     closes = [item[1] for item in aligned]
-    payload = build_scenario(dates, closes)
+    payload = build_scenario(
+        dates, closes, calendar=load_calendar_contract(root))
 
     latest = root / LATEST_RELATIVE_PATH
     if latest.exists() and not force:
@@ -365,10 +643,4 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
         except (OSError, json.JSONDecodeError, ScenarioError):
             pass
 
-    latest.parent.mkdir(parents=True, exist_ok=True)
-    archive = root / ARCHIVE_RELATIVE_DIR / f"{payload['asof']}.json"
-    archive.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
-    latest.write_text(text, encoding="utf-8")
-    archive.write_text(text, encoding="utf-8")
-    return latest, payload, True
+    return _persist_scenario(root, payload)

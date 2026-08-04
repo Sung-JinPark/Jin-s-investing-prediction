@@ -263,7 +263,8 @@ def test_workspace_utility_contract() -> None:
     assert "askPresets" in html and "nearestWeekIndex" in html
     assert "answer(25)" not in html
     assert "확률은 예측 모델 앙상블 산출값" not in html
-    assert "gbm-daily-252d-v1" in html
+    assert "gbm-daily-252d" in html
+    assert "조건부 구간 p10–p90" in html
     assert "scenarioChangePanel" in html and "scenarioHistoryRows" in html
     assert "SCENARIO CHANGE" in html and "MODEL RECEIPT" in html
     assert "저장된 시나리오 수치의 차이만 요약" in html

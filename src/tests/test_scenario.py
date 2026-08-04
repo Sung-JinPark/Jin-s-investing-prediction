@@ -38,7 +38,8 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert first == second
     assert first["asof"] == "2026-07-30"
     assert sum(first["paths"][key]["prob"] for key in ("S1", "S2", "S3")) == 100
-    assert first["weeks"][0] == "7/30" and first["weeks"][-1] == "12/31"
+    assert first["weeks"][0] == "7/30"
+    assert first["week_dates"][-1] > "2027-07-01"
     assert len(first["risk"]) == len(first["weeks"])
     assert all(
         len(first["paths"][key]["values"]) == len(first["weeks"])
@@ -46,9 +47,29 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     )
     assert first["anchor"] > 0 and first["corr10"] == pytest.approx(first["ath"] * 0.9, abs=0.01)
     assert first["fan"]["probability_space"] == "scenario_conditional"
-    assert set(first["fan"]["quantiles"]) == {"p5", "p25", "p50", "p75", "p95"}
+    assert set(first["fan"]["quantiles"]) == {
+        "p5", "p10", "p25", "p50", "p75", "p90", "p95"}
     assert all(len(values) == len(first["weeks"])
                for values in first["fan"]["quantiles"].values())
+    table = first["quantile_table"]
+    assert table["probability_space"] == "scenario_conditional"
+    assert table["probability_label"] == "model_conditional"
+    assert len(table["trading_days"]) == scenario.FORECAST_HORIZON
+    assert table["trading_days"][0] == "2026-07-31"
+    assert all(value % 10 == 0 for values in table["quantiles"].values() for value in values)
+    for index in range(scenario.FORECAST_HORIZON):
+        values = [table["quantiles"][key][index]
+                  for key in ("p05", "p10", "p25", "p50", "p75", "p90", "p95")]
+        assert values == sorted(values)
+    assert first == json.loads(json.dumps(second, ensure_ascii=False, sort_keys=True))
+
+
+def test_nyse_calendar_skips_weekends_and_registered_holidays() -> None:
+    calendar = scenario.load_calendar_contract(Path(__file__).parents[2])
+    days = scenario.future_trading_days(date(2026, 8, 27), 5, calendar)
+    assert days[:2] == [date(2026, 8, 28), date(2026, 8, 31)]
+    thanksgiving = scenario.future_trading_days(date(2026, 11, 25), 2, calendar)
+    assert thanksgiving == [date(2026, 11, 27), date(2026, 11, 30)]
 
 
 def test_validate_rejects_probability_or_length_drift() -> None:
@@ -60,6 +81,12 @@ def test_validate_rejects_probability_or_length_drift() -> None:
     payload = _build()
     payload["risk"].pop()
     with pytest.raises(scenario.ScenarioError, match="risk length"):
+        scenario.validate_scenario(payload)
+
+    payload = _build()
+    payload["quantile_table"]["quantiles"]["p10"][0] = (
+        payload["quantile_table"]["quantiles"]["p25"][0] + 10)
+    with pytest.raises(scenario.ScenarioError, match="must be monotonic"):
         scenario.validate_scenario(payload)
 
 
@@ -112,8 +139,10 @@ def test_history_is_compact_sorted_capped_and_skips_corruption(tmp_path: Path) -
     latest["asof"] = "2026-07-31"
 
     history = scenario.load_scenario_history(tmp_path, latest, limit=4)
+    # The synthetic 7/31 row reuses a 7/30 lookup calendar and is therefore
+    # correctly rejected; history still returns the newest four valid vintages.
     assert [row["asof"] for row in history] == [
-        "2026-07-28", "2026-07-29", "2026-07-30", "2026-07-31"]
+        "2026-07-27", "2026-07-28", "2026-07-29", "2026-07-30"]
     assert all("weeks" not in row and "events" not in row for row in history)
     assert set(history[-1]["paths"]["S1"]) == {"prob", "end"}
 
@@ -124,6 +153,11 @@ def test_history_limit_zero_returns_empty(tmp_path: Path) -> None:
 
 def test_refresh_skips_same_completed_market_day(tmp_path: Path, monkeypatch) -> None:
     days, closes = _series()
+    contract = scenario.load_calendar_contract(Path(__file__).parents[2])
+    contract_path = tmp_path / scenario.CALENDAR_RELATIVE_PATH
+    contract_path.parent.mkdir(parents=True)
+    import yaml
+    contract_path.write_text(yaml.safe_dump(contract), encoding="utf-8")
     monkeypatch.setattr(
         scenario.feed, "yahoo_series",
         lambda *_args, **_kwargs: (days, closes),
@@ -136,3 +170,17 @@ def test_refresh_skips_same_completed_market_day(tmp_path: Path, monkeypatch) ->
     _, second, changed = scenario.refresh_scenario(tmp_path, asof=days[-1])
     assert changed is False
     assert second == first
+
+
+def test_same_asof_archive_is_immutable_without_approved_revision(tmp_path: Path) -> None:
+    payload = _build()
+    path, persisted, changed = scenario._persist_scenario(tmp_path, payload)
+    assert path.exists() and changed is True
+    archive = tmp_path / scenario.ARCHIVE_RELATIVE_DIR / "2026-07-30.json"
+    original = archive.read_bytes()
+    drift = deepcopy(payload)
+    drift["quantile_table"]["quantiles"]["p50"][0] += 10
+    with pytest.raises(scenario.ScenarioError, match="approved correction required"):
+        scenario._persist_scenario(tmp_path, drift)
+    assert archive.read_bytes() == original
+    assert persisted["revision"] == 1

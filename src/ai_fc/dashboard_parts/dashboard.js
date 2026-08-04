@@ -1071,31 +1071,31 @@ function monthAt(ym,m){const t=(+ym.slice(0,4))*12+(+ym.slice(5,7)-1)+m;
   return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0');}
 function renderFlow(){
   const sc=DATA.scenario;
-  const methodCopy=sc.method==='gbm-daily-252d-v1'
+  const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
     ?'경로 확률은 확정 일봉 252거래일의 GBM 분류 결과이며 fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
     :'경로 확률은 감사된 수동 시나리오의 보관값이며 현재 시장 판단에는 별도 최신성 확인이 필요합니다.';
   const root=el('<div></div>');
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">시장 전망 · Scenario Map</p>
-    <h1>연말까지의 시장 경로를 확률로 그린다</h1>
-    <p class="page-lede">나스닥 종합 기준 주간 시나리오 3경로와 과거 혁신 사이클 비교입니다. 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
+    <h1>향후 12개월 시장 경로를 분포로 읽는다</h1>
+    <p class="page-lede">나스닥 종합 기준 조건부 시나리오 3경로와 과거 혁신 사이클 비교입니다. 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
   </div></div>`));
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(sc.paths[k].label)} ${sc.paths[k].prob}%</span>`).join('')}
-    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>예측 구간 p5–p95 · 중앙값 p50</span>':''}</div>`;
+    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}</div>`;
   const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
-    <div class="panel-head"><h2>2026년 말까지 주간 시나리오</h2>${legend}</div>
+    <div class="panel-head"><h2>향후 252거래일 조건부 시나리오</h2>${legend}</div>
     ${focusControls}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
-    ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p5–p95</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
+    ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
     <p class="chart-note">경로는 대표 시나리오 예시입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   const overlay=analogPanel();
@@ -1451,13 +1451,18 @@ function drawOverlay(host,o,eras,focus='ALL'){
 function drawFlow(host,sc,focus='ALL'){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=560,ML=58,MR=140,MT=72,MB=30,HCH=486;
-  const PW=W-ML-MR,PH=HCH-MT-MB,Y0=23500,Y1=30800;const n=sc.weeks.length;
+  const fan=sc.fan?.quantiles||{},chartValues=[sc.ath,sc.corr10,
+    ...['S1','S2','S3'].flatMap(k=>sc.paths[k]?.values||[]),...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
+  const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
+  const PW=W-ML-MR,PH=HCH-MT-MB;const n=sc.weeks.length;
   const X=i=>ML+PW*i/(n-1),Y=v=>MT+PH*(1-(v-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
-  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','2026년 말까지 주간 시나리오. 좌우 화살표로 기준 주차 이동');
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','향후 252거래일 조건부 시나리오. 좌우 화살표로 기준 주차 이동');
   const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
   const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'rgba(17,17,15,.66)','font-size':o.fs||12,'text-anchor':o.anc||'start','font-weight':o.w||400,opacity:o.opacity??1});e.textContent=s;return e;};
-  for(let v=24000;v<=30000;v+=1000){svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
+  const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
+  for(let v=Math.ceil(Y0/gridStep)*gridStep;v<=Y1;v+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
     svg.appendChild(tx(ML-8,Y(v)+4,(v/1000)+'k',{anc:'end',fill:'#5f5d57'}));}
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점 '+num(sc.ath),{fill:'rgba(17,17,15,.6)'}));
@@ -1467,10 +1472,9 @@ function drawFlow(host,sc,focus='ALL'){
     svg.appendChild(mk('line',{x1:x,y1:MT-10,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
     svg.appendChild(mk('circle',{cx:x,cy:ly+12,r:2.2,fill:'rgba(17,17,15,.55)'}));
     svg.appendChild(tx(x,ly+7,label,{anc:'middle',fill:'#5f5d57',fs:12}));});
-  const fan=sc.fan?.quantiles;
-  if(fan?.p5?.length===n&&fan?.p95?.length===n){
+  if(fan?.p10?.length===n&&fan?.p90?.length===n){
     const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((v,i)=>d+=(i?'L':'M')+X(i)+','+Y(v)+' ');for(let i=lower.length-1;i>=0;i--)d+='L'+X(i)+','+Y(lower[i])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
-    band(fan.p95,fan.p5,'#ff9d19',focus==='ALL'?.09:.025);
+    band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);
     if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
     if(fan.p50){let median='';fan.p50.forEach((v,i)=>median+=(i?'L':'M')+X(i)+','+Y(v)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }

@@ -33,7 +33,37 @@
       "type": "object"
     },
     "scenario": {
-      "type": "object"
+      "type": "object",
+      "required": [
+        "schema_version",
+        "asof",
+        "quantile_table"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 2
+        },
+        "quantile_table": {
+          "type": "object",
+          "required": [
+            "probability_space",
+            "basis",
+            "trading_days",
+            "quantiles",
+            "prob_above_anchor",
+            "prob_above_ath",
+            "per_scenario_p50"
+          ],
+          "properties": {
+            "probability_space": {
+              "const": "scenario_conditional"
+            },
+            "probability_label": {
+              "const": "model_conditional"
+            }
+          }
+        }
+      }
     },
     "scenario_history": {
       "type": "array"

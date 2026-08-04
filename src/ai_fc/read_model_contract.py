@@ -8,6 +8,7 @@ from typing import Any
 
 from .cross_asset import CrossAssetError, validate_cross_asset
 from .ai_capital_cycle import validate_ai_regime
+from .scenario import ScenarioError, validate_scenario
 from .market_extensions import (
     MarketExtensionError,
     validate_liquidity,
@@ -72,6 +73,24 @@ def schema() -> dict[str, Any]:
             "forecast": {"type": "object"},
         },
     }
+    properties["scenario"] = {
+        "type": "object",
+        "required": ["schema_version", "asof", "quantile_table"],
+        "properties": {
+            "schema_version": {"const": 2},
+            "quantile_table": {
+                "type": "object",
+                "required": [
+                    "probability_space", "basis", "trading_days", "quantiles",
+                    "prob_above_anchor", "prob_above_ath", "per_scenario_p50",
+                ],
+                "properties": {
+                    "probability_space": {"const": "scenario_conditional"},
+                    "probability_label": {"const": "model_conditional"},
+                },
+            },
+        },
+    }
     for key in ("scenario_tracker", "liquidity", "ai_regime"):
         properties[key] = {
             "type": "object",
@@ -118,6 +137,12 @@ def validate(model: dict[str, Any]) -> list[str]:
                 validate_cross_asset(cross_asset)
             except (CrossAssetError, TypeError, ValueError) as exc:
                 errors.append(f"cross_asset contract violation: {exc}")
+    scenario = model.get("scenario")
+    if isinstance(scenario, dict):
+        try:
+            validate_scenario(scenario)
+        except (ScenarioError, KeyError, TypeError, ValueError) as exc:
+            errors.append(f"scenario contract violation: {exc}")
     reference_validators = {
         "scenario_tracker": validate_scenario_tracker,
         "liquidity": validate_liquidity,
