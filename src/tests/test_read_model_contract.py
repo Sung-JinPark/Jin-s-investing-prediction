@@ -44,6 +44,8 @@ def test_json_schema_lists_all_additive_and_legacy_keys() -> None:
     assert contract["properties"]["cross_asset"]["properties"]["probability_space"] == {
         "const": "scenario_conditional"
     }
+    assert contract["properties"]["era_analog"]["properties"]["series"][
+        "items"]["required"] == ["id", "overlay_start", "model_anchor"]
 
 
 def test_read_model_contract_rejects_cross_asset_semantic_drift() -> None:

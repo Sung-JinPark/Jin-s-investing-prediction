@@ -71,6 +71,31 @@ def test_significance_gate_zeros_crossing_or_short_beta() -> None:
     assert status == "insufficient_sample_155_of_156"
 
 
+def test_significance_gate_requires_two_consecutive_sample_failures() -> None:
+    eligible = {
+        "used_effect_per_100bp_pct": -8.0,
+        "gate_hysteresis": {"consecutive_sample_failures": 0},
+    }
+    used, status = significance_gate(-7.5, -11, -3, 155, eligible)
+    assert (used, status) == (-8.0, "hysteresis_hold_1_of_2")
+    first_failure = {
+        "used_effect_per_100bp_pct": used,
+        "gate_hysteresis": {"consecutive_sample_failures": 1},
+    }
+    used, status = significance_gate(-7.0, -10, -2, 155, first_failure)
+    assert used == 0
+    assert status == "insufficient_sample_155_of_156"
+
+
+def test_hysteresis_does_not_delay_ci_failure() -> None:
+    previous = {
+        "used_effect_per_100bp_pct": -8.0,
+        "gate_hysteresis": {"consecutive_sample_failures": 0},
+    }
+    assert significance_gate(-7, -10, 2, 156, previous) == (
+        0.0, "ci_crosses_zero")
+
+
 def test_dividend_csv_is_append_only_and_detects_revision(tmp_path) -> None:
     path, changed = append_dividends(
         tmp_path, [_dividend("2026-06-01", .26), _dividend("2026-07-01", .26)])

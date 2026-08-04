@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import sqlite3
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pyarrow.parquet as pq
@@ -79,6 +81,36 @@ ledgers:
     report = audit_ledgers(root, write=False)
     assert report["ledgers"][0]["status"] == "accumulating"
     assert report["ledgers"][0]["row_count"] == 0
+
+
+def test_dualdb_model_run_weekly_cadence_detects_stalled_sqlite(tmp_path: Path) -> None:
+    root = _root(tmp_path, """version: 1
+ledgers:
+  - id: dualdb_model_runs
+    path: dualdb/db/dualdb.sqlite
+    kind: singleton
+    cadence: weekly
+    criticality: high
+    schema_ref: dualdb_model_run
+    timestamp_field: model_run.asof
+""")
+    database = root / "dualdb/db/dualdb.sqlite"
+    database.parent.mkdir(parents=True)
+    with sqlite3.connect(database) as conn:
+        conn.execute(
+            "CREATE TABLE model_run (run_id INTEGER PRIMARY KEY, model TEXT, "
+            "asof TEXT, params_json TEXT, output_json TEXT, created_at TEXT)")
+        conn.execute(
+            "INSERT INTO model_run VALUES (1,'knn_analog','2026-07-17','{}','{}',"
+            "'2026-07-17T00:00:00')")
+    report = audit_ledgers(
+        root, write=False,
+        now=datetime(2026, 8, 4, 12, tzinfo=timezone.utc),
+    )
+    row = report["ledgers"][0]
+    assert row["latest_date"] == "2026-07-17"
+    assert row["status"] == "stalled"
+    assert row["schema_errors"] == []
 
 
 def test_research_pack_normalizes_probability_and_provenance(

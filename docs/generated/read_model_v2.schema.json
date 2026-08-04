@@ -153,7 +153,26 @@
           "const": "log10(index/100)"
         },
         "series": {
-          "type": "array"
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "overlay_start",
+              "model_anchor"
+            ],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "overlay_start": {
+                "type": "string"
+              },
+              "model_anchor": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     },

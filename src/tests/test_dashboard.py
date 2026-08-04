@@ -307,6 +307,14 @@ def test_workspace_utility_contract() -> None:
     assert "peek-title" not in html and "peek-metric" not in html
     assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
     assert "REFERENCE ONLY · 확률 아님" in html
+    assert "KNN FORWARD · CASE LIST ONLY" in html
+    assert "forward n&lt;20" in html and "median emphasis disabled" in html
+    assert "run asof" in html
+    assert "표본 n=${num(row.sample_count)}" in html
+    assert "표본 1/2회 미달·이전 β 유지" in html
+    assert "gate 경계(n=156)" in html
+    assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" in html
+    assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" in html
     assert "DATA.era_analog" in html
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" not in html
