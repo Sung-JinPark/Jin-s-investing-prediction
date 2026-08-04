@@ -1295,7 +1295,8 @@ function crossAssetPanel(){
   const sensitivity=model.forecast?.realty_income_sensitivity||{},rateSensitivity=sensitivity.beta_rate||{},creditSensitivity=sensitivity.beta_credit||{};
   const realtyContext=model.realty_income||{},eventRows=realtyContext.event_study?.events||[],eventById=Object.fromEntries(eventRows.map(row=>[row.event_id,row]));
   const dotcomEvent=eventById.dotcom_easing||{},tighteningEvent=eventById.tightening_2004_2006||{},acuteEvent=eventById.acute_crisis_2020||{};
-  const hypothesis=DATA.scenario_tracker?.realty_income_hypothesis||{},conditionLabels={C1:'신용 스트레스 비확대',C2:'장기금리 하락',C3:'실질금리 완화',C4:'배당 유지·증가'};
+  const hypothesis=realtyContext.condition_summary||{},conditionLabels={C1:'신용 스트레스 비확대',C2:'장기금리 하락',C3:'실질금리 완화',C4:'배당 유지·증가'};
+  const evidenceText=item=>{const pairs=Object.entries(item.metrics||{}).filter(([,value])=>value!=null).slice(0,2);return pairs.length?pairs.map(([key,value])=>`${key} ${value}`).join(' · '):item.status||'근거 대기';};
   const eventPct=(row,key)=>hasNumeric(row?.returns_pct?.[key])?signedDelta(Number(row.returns_pct[key]),1,'%'):'관측 불가';
   const eventBp=(row,key)=>hasNumeric(row?.macro_change_bp?.[key])?signedDelta(Number(row.macro_change_bp[key]),0,'bp'):'관측 불가';
   const scenarios=model.forecast.scenarios,defaultScenario=model.forecast.default_scenario||Object.keys(scenarios)[0];
@@ -1359,7 +1360,7 @@ function crossAssetPanel(){
           <tr><th>10Y 대비 spread</th><td>${hasNumeric(sensitivity.spread_vs_10y_pp)?signedDelta(sensitivity.spread_vs_10y_pp,2,' pp'):'관측 불가'}</td></tr>
           <tr><th>2000년 이후 spread 위치</th><td>${hasNumeric(sensitivity.spread_percentile_since_2000)?Number(sensitivity.spread_percentile_since_2000).toFixed(1)+'%ile':'표본 축적 중'}</td></tr>
           <tr><th>금리 100bp 민감도</th><td>${hasNumeric(rateSensitivity.measured_effect_per_100bp_pct)?signedDelta(rateSensitivity.measured_effect_per_100bp_pct,2,'%'):'추정 불가'} <small>${esc(rateSensitivity.status||'미산출')}</small></td></tr>
-          <tr><th>신용 100bp 민감도</th><td>${hasNumeric(creditSensitivity.used_effect_per_100bp_pct)?signedDelta(creditSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(creditSensitivity.status||'미산출')}</small></td></tr>
+          <tr><th>신용 100bp 민감도</th><td>${hasNumeric(creditSensitivity.used_effect_per_100bp_pct)?signedDelta(creditSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(creditSensitivity.status||'미산출')}${creditSensitivity.gate_proximity==='at_boundary'?' · gate 경계(n=156)':''}</small></td></tr>
           <tr><th>NASDAQ 하락꼬리 beta</th><td>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'관측 불가'} <small>최악 10% 일간</small></td></tr>
           <tr><th>지수 편입 차이</th><td>${realtyContext.index_membership?.current==='sp_500_member_since_2015_04'?'현재 S&P 500 편입 · 2015-04 이후':'검증 대기'}</td></tr>
         </tbody></table></div>
@@ -1368,7 +1369,7 @@ function crossAssetPanel(){
         <p class="eyebrow">LIVE CHECKLIST · 확률 아님</p>
         <div class="condition-score"><strong>${num(hypothesis.conditions_met||0)}</strong><span>/ ${num(hypothesis.conditions_total||4)}</span></div>
         <h3>조건 4개 중 ${num(hypothesis.conditions_met||0)}개 충족</h3>
-        <div class="condition-list">${(hypothesis.conditions||[]).map(item=>`<div class="${item.met?'is-met':'is-open'}"><i aria-hidden="true"></i><span>${esc(conditionLabels[item.id]||item.id)}</span><strong>${item.met?'충족':'미충족'}</strong></div>`).join('')}</div>
+        <div class="condition-list">${(hypothesis.conditions||[]).map(item=>`<div class="${item.met?'is-met':'is-open'}"><i aria-hidden="true"></i><span>${esc(conditionLabels[item.id]||item.id)}<small>${esc(evidenceText(item))} · ${esc(item.as_of||'기준일 대기')}</small></span><strong>${item.met?'충족':'미충족'}</strong></div>`).join('')}</div>
         <p>충족 개수는 O 상승 확률이나 기대수익률이 아니라, 사전 등록한 환경 조건의 현재 상태입니다.</p>
       </article>
     </section>
@@ -1460,7 +1461,10 @@ function bindCrossAsset(panel,initialScenario){
   const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel);
   const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId],macro=scenario.macro_assumptions||{},last=values=>Array.isArray(values)&&values.length?values.at(-1):null;
     const macroChips=`<span>Δ10Y ${hasNumeric(last(macro.delta_10y_bp))?signedDelta(last(macro.delta_10y_bp),0,'bp'):'미산출'}</span><span>ΔHY ${hasNumeric(last(macro.delta_hy_bp))?signedDelta(last(macro.delta_hy_bp),0,'bp'):'미산출'}</span><span>사전 등록 가정</span>`;
-    copy.innerHTML=`<div><span>선택 가정</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small></div><p>${macroChips}${scenario.assumptions.map(item=>`<span>${esc(item)}</span>`).join('')}</p>`;
+    const attribution=scenario.realty_income_attribution||{},m3=3;
+    const attributionText=`M+3 O 기여 · 시장 ${signedDelta(Number(attribution.market_beta?.[m3]||0),1)} · 금리 ${signedDelta(Number(attribution.rate?.[m3]||0),1)} · 크레딧 ${signedDelta(Number(attribution.credit?.[m3]||0),1)}`;
+    const shared=scenario.path_linkage?.bitcoin==='shared_with_deleveraging_by_design'?'<em class="shared-path-badge">BTC 경로 공유 · 설계상 동일</em>':'';
+    copy.innerHTML=`<div><span>선택 가정</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small>${shared}</div><p>${macroChips}${scenario.assumptions.map(item=>`<span>${esc(item)}</span>`).join('')}</p><p class="cross-attribution">${esc(attributionText)}</p><p class="cross-interpretation">${esc(scenario.realty_income_interpretation||'')}</p>`;
     drawCrossAsset(scenarioHost,model,scenarioId);
     panel.querySelectorAll('[data-cross-scenario]').forEach(button=>{const active=button.dataset.crossScenario===scenarioId;button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;});
   };
@@ -2069,6 +2073,7 @@ function renderDecisionJournal(initial){
   const state=initial&&typeof initial==='object'?initial:{question:initial};
   const selectedQuestion=state.question||null;
   const histories=DATA.forecast_history||{},questions=DATA.questions||[],qMap=Object.fromEntries(questions.map(q=>[q.id,q]));
+  const methodEvents=selectedQuestion?[]:(DATA.method_changes||[]).filter(item=>item.kind==='method');
   const events=[];
   Object.entries(histories).forEach(([qid,history])=>{
     if(selectedQuestion&&qid!==selectedQuestion)return;
@@ -2088,6 +2093,7 @@ function renderDecisionJournal(initial){
   appendContextTabs(root,'replay','asof');
   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다.</p></div></div>`));
   root.appendChild(el(`<section class="journal-provenance" aria-label="불변 기록 안내"><div><span>APPEND-ONLY PROVENANCE</span><strong>사후 수정이 불가능한 원본에서 생성됩니다</strong><p>기존 예측은 지우지 않고 새 라운드만 추가합니다. 원본 해시는 원장 감사에서 다시 검증됩니다.</p></div><dl><div><dt>인덱스</dt><dd>${esc((DATA.trust?.index?.head||'검증 대기').slice(0,12))}</dd></div><div><dt>원장 감사</dt><dd>${esc((DATA.trust?.ledger_audit_at||'검증 대기').slice(0,10))}</dd></div></dl></section>`));
+  if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">METHOD CHANGE</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="일지 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 일지</button><button type="button" data-journal-mode="replay" aria-pressed="false">그날로 돌아가기</button></div>`);
   root.appendChild(mode);
   const feed=el(`<section class="journal-feed-panel" data-journal-panel="feed"><div class="journal-feed-intro"><strong>${selectedQuestion?esc(qMap[selectedQuestion]?.title||selectedQuestion):'전체 질문'} · ${events.length}건의 판단 변경</strong><span>주 단위로 묶고 변화 폭이 큰 기록을 먼저 보여줍니다.</span></div><div class="decision-feed" role="feed" aria-label="예측 변경 기록">${events.length?Object.entries(grouped).sort((a,b)=>b[0].localeCompare(a[0])).map(([week,items])=>`<section class="journal-week"><h2>${esc(week)} 주간</h2>${items.map(event=>{const positive=event.delta>0,source=event.current.source_uri?`https://github.com/sung-jinpark/Jin-s-investing-prediction/blob/main/${event.current.source_uri}`:'';return `<article class="journal-event" tabindex="0" aria-label="${esc(event.q?.title||event.qid)} ${positive?'상향':'하향'} ${Math.abs(event.delta)} 퍼센트포인트"><time>${esc(event.date)}</time><div><a class="journal-question" href="#q/${esc(event.qid)}">${esc(event.q?.title||event.qid)}</a><p><span class="journal-prob">${event.previous.probability}%</span><i>→</i><span class="journal-prob">${event.current.probability}%</span><b class="${positive?'edge-pos':'edge-neg'}">${positive?'+':''}${event.delta}%p</b></p>${event.current.change_note?`<blockquote>${esc(event.current.change_note)}</blockquote>`:''}${source?`<a class="journal-source" href="${esc(source)}" target="_blank" rel="noopener">근거 문서 ↗</a>`:''}</div></article>`;}).join('')}</section>`).join(''):'<div class="journal-empty"><strong>표시할 확률 변경이 없습니다.</strong><p>첫 라운드만 있거나 확률이 그대로인 질문은 변경 이벤트로 만들지 않습니다.</p></div>'}</div></section>`);

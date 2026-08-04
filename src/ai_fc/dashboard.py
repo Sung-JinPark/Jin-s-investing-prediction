@@ -267,6 +267,14 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
     ai_regime = load_ai_regime(root)
+    method_changes = []
+    try:
+        method_changes = [
+            json.loads(line) for line in (root / "data/method_changes.jsonl")
+            .read_text(encoding="utf-8").splitlines() if line.strip()
+        ]
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        method_changes = []
     try:
         defillama_monitor = json.loads(
             (root / "data/source_monitoring/defillama_stablecoins_status.json")
@@ -389,6 +397,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "n_forecasts": sum(len(v) for v in fc_hist.values()),
             "n_resolved": gate.get("n_resolved", 0),
             "cost_month": round(queries.month_cost(conn, now.year, now.month), 2),
+            "public_repository_url": config.PUBLIC_REPOSITORY_URL,
         },
         "scenario": scenario,
         "scenario_history": scenario_history,
@@ -428,6 +437,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "liquidity": liquidity,
         "ai_regime": ai_regime,
         "source_monitoring": {"defillama_stablecoins": defillama_monitor},
+        "method_changes": method_changes,
     }
     from .read_model_contract import assert_valid
     assert_valid(model)

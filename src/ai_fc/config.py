@@ -8,6 +8,10 @@ from pathlib import Path
 
 # 프로젝트 루트: src/ai_fc/config.py → 2단계 위
 ROOT = Path(__file__).resolve().parent.parent.parent
+PUBLIC_REPOSITORY_URL = os.getenv(
+    "AI_FC_PUBLIC_REPOSITORY_URL",
+    "https://github.com/sung-jinpark/Jin-s-investing-prediction",
+)
 
 FORECASTS_DIR = ROOT / "forecasts"
 QUESTIONS_REGISTRY = ROOT / "questions" / "registry.yaml"

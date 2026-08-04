@@ -20,6 +20,12 @@ ledgers:
     cadence: weekly
     criticality: medium
     schema_ref: jsonl
+  - id: method_changes
+    path: data/method_changes.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
   - id: calibration_ledger
     path: calibration/ledger.csv
     kind: append_csv
@@ -81,6 +87,22 @@ ledgers:
     cadence: trading_daily
     criticality: medium
     schema_ref: csv
+    expected_state: frozen
+  - id: cross_asset_path_tracking_v2
+    path: data/cross_asset/path_tracking_v2.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: high
+    schema_ref: csv
+    timestamp_field: asof
+  - id: scenario_band_calibration
+    path: data/scenarios/band_calibration.csv
+    kind: append_csv
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: asof
+    expected_state: planned
     timestamp_field: asof
   - id: signal_archive
     path: data/signals/archive/*.json

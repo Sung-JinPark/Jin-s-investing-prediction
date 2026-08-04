@@ -8,28 +8,34 @@ events:
     end: 2003-06-25
     type: easing
     description: Dot-com unwind with cumulative Federal Reserve easing
+    window_rationale: First 2001 easing action through the final cut before the 2004 tightening cycle
   - event_id: tightening_2004_2006
     start: 2004-06-30
     end: 2006-06-29
     type: tightening
     description: Measured tightening cycle after the post-dot-com rate trough
+    window_rationale: First through final target-rate increase in the 2004-2006 cycle
   - event_id: taper_2013
     start: 2013-05-22
     end: 2013-12-31
     type: tightening
     description: Taper repricing window
+    window_rationale: Bernanke taper testimony through the 2013 calendar year-end repricing window
   - event_id: hikes_2015_2018
     start: 2015-12-16
     end: 2018-12-19
     type: tightening
     description: Multi-year policy-rate normalization
+    window_rationale: First post-crisis hike through the final hike of the 2015-2018 cycle
   - event_id: acute_crisis_2020
     start: 2020-02-19
     end: 2020-03-23
     type: acute_crisis
     description: COVID liquidity shock from equity peak to emergency trough
+    window_rationale: US equity peak to acute-liquidity trough; a shock window rather than a full cycle
   - event_id: hikes_2022_2023
     start: 2022-03-16
     end: 2023-07-26
     type: tightening
     description: Rapid inflation-response hiking cycle
+    window_rationale: First 2022 hike through the final hike on 2023-07-26; boundaries intentionally unchanged

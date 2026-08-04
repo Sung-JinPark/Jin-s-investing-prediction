@@ -1,0 +1,1 @@
+{"event_id":"method:path-tracking-v2:2026-08-04","kind":"method","date":"2026-08-04","title":"교차자산 경로 추적 원장 v2 전환","snapshot_id":"cross-asset:2026-08-03:r2","reason":"기존 v1 원장은 동결하고 4개 시나리오와 origin_snapshot_id를 갖는 중복 안전 원장으로 신규 관측을 누적합니다.","report":"reports/md/round2_ledger_hy_ui_implementation_260804.md"}

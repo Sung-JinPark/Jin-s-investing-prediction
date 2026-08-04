@@ -14,8 +14,20 @@ from ai_fc.realty_income import (
     load_event_registry,
     load_dividend_reference,
     significance_gate,
+    fetch_hy_event_history,
     validate_macro_assumptions,
 )
+
+
+def test_hy_event_history_merges_pinned_legacy_capture() -> None:
+    primary = "DATE,BAMLH0A0HYM2\n2026-08-01,3.0\n"
+    legacy = "date,BAMLH0A0HYM2\n2000-01-03,5.0\n2001-01-03,7.0\n"
+    def fetch(url: str, **_kwargs) -> str:
+        return legacy if "raw.githubusercontent.com" in url else primary
+    result = fetch_hy_event_history(fetch_text=fetch)
+    assert result.dates[0] == date(2000, 1, 3)
+    assert result.receipt["history_status"] == "legacy_public_fred_capture_plus_current"
+    assert result.receipt["redistribution_policy"] == "derived_event_diagnostics_only"
 
 
 def _macro() -> dict:

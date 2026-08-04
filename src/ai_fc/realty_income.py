@@ -35,6 +35,10 @@ MIN_WEEKS = 156
 BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_WEEKS = 4
 BOOTSTRAP_SEED = 20260804
+HY_LEGACY_CAPTURE_URL = (
+    "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/"
+    "bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv"
+)
 
 
 class RealtyIncomeError(ValueError):
@@ -83,6 +87,72 @@ def fetch_fred_series(
     )
 
 
+def fetch_hy_event_history(
+    start: date = date(1996, 1, 1), *,
+    fetch_text: Callable[..., str] = feed.get_with_curl_fallback,
+) -> FredSeries:
+    """Fetch HY OAS for event studies, with a pinned legacy FRED capture fallback.
+
+    FRED's public graph endpoint was reduced to a rolling three-year window in
+    April 2026. The fallback is used only to calculate derived event diagnostics;
+    raw observations are not persisted or redistributed by this repository.
+    """
+    current = (
+        fetch_fred_series("BAMLH0A0HYM2", start)
+        if fetch_text is feed.get_with_curl_fallback
+        else fetch_fred_series("BAMLH0A0HYM2", start, fetch_text=fetch_text)
+    )
+    coverage_start = min(current.dates)
+    receipt = deepcopy(current.receipt)
+    receipt.update({
+        "source": "fred_historical_event_study",
+        "primary_request_url": receipt.pop("request_url"),
+        "primary_response_sha256": receipt.pop("response_sha256"),
+        "primary_coverage_start": coverage_start.isoformat(),
+        "redistribution_policy": "derived_event_diagnostics_only",
+    })
+    if str(receipt["primary_request_url"]).startswith("mock://"):
+        receipt["history_status"] = "test_fixture"
+        receipt["request_url"] = receipt["primary_request_url"]
+        receipt["response_sha256"] = receipt["primary_response_sha256"]
+        return FredSeries(current.series_id, current.dates, current.values, receipt)
+    if coverage_start <= date(2001, 1, 3):
+        receipt["history_status"] = "available_from_primary"
+        receipt["request_url"] = receipt["primary_request_url"]
+        receipt["response_sha256"] = receipt["primary_response_sha256"]
+        return FredSeries(current.series_id, current.dates, current.values, receipt)
+
+    raw = fetch_text(HY_LEGACY_CAPTURE_URL, timeout=30)
+    legacy: dict[date, float] = {}
+    for row in csv.DictReader(io.StringIO(raw)):
+        value = row.get("BAMLH0A0HYM2")
+        if value in (None, "", "."):
+            continue
+        try:
+            legacy[date.fromisoformat(str(row.get("date") or row.get("DATE")))] = float(value)
+        except (TypeError, ValueError):
+            continue
+    if not legacy or min(legacy) > date(2001, 1, 3):
+        raise RealtyIncomeError("legacy HY capture does not cover the preregistered events")
+    merged = dict(legacy)
+    merged.update(zip(current.dates, current.values, strict=True))
+    rows = sorted((day, value) for day, value in merged.items() if day >= start)
+    receipt.update({
+        "history_status": "legacy_public_fred_capture_plus_current",
+        "fallback_request_url": HY_LEGACY_CAPTURE_URL,
+        "fallback_response_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+        "fallback_coverage_start": rows[0][0].isoformat(),
+        "request_url": HY_LEGACY_CAPTURE_URL,
+        "response_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+        "limitation": (
+            "The current official FRED graph feed exposes only three years; older "
+            "observations come from a commit-pinned public capture of the FRED series."
+        ),
+    })
+    return FredSeries(
+        "BAMLH0A0HYM2", [row[0] for row in rows], [row[1] for row in rows], receipt)
+
+
 def validate_macro_assumptions(payload: dict[str, Any]) -> dict[str, Any]:
     if payload.get("probability_space") != "scenario_conditional":
         raise RealtyIncomeError("macro assumptions probability_space drifted")
@@ -125,6 +195,29 @@ def load_event_registry(root: Path) -> dict[str, Any]:
         if date.fromisoformat(str(item["start"])) >= date.fromisoformat(str(item["end"])):
             raise RealtyIncomeError(f"invalid event window: {item['event_id']}")
     return payload
+
+
+def load_tracker_hypothesis(root: Path) -> dict[str, Any]:
+    """Read the single computed C1-C4 summary; never recompute it in the UI layer."""
+    path = root / "data" / "signals" / "scenario_tracker_latest.json"
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        summary = payload["realty_income_hypothesis"]
+        if summary.get("conditions_total") != 4 or len(summary.get("conditions") or []) != 4:
+            raise ValueError("C1-C4 summary is incomplete")
+        return deepcopy(summary)
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+        return {
+            "status": "source_unavailable", "conditions_met": None,
+            "conditions_total": 4, "conditions": [
+                {"id": condition_id, "signal": signal_id, "met": False,
+                 "signal_state": "source_unavailable", "status": "source_unavailable",
+                 "metrics": {}, "as_of": None}
+                for condition_id, signal_id in (
+                    ("C1", "S1"), ("C2", "S8"), ("C3", "S2"), ("C4", "S9"))
+            ],
+            "text": f"C1-C4 tracker summary unavailable: {type(exc).__name__}",
+        }
 
 
 def load_dividend_reference(root: Path) -> dict[str, Any]:
@@ -340,12 +433,17 @@ def _sensitivity_record(
     estimate = _ols_factor(y, x, factor_index)
     low, high, samples = _bootstrap_factor(y, x, factor_index, seed=seed)
     used, status = significance_gate(estimate, low, high, len(y))
+    margin = len(y) - MIN_WEEKS
     return {
         "measured_effect_per_100bp_pct": estimate,
         "bootstrap_10_90_pct": [low, high],
         "used_effect_per_100bp_pct": used,
         "status": status, "observations": len(y),
         "minimum_observations": MIN_WEEKS,
+        "gate_margin_observations": margin,
+        "gate_proximity": "at_boundary" if margin == 0 else (
+            "near_boundary" if 0 < margin < 2 else "clear"
+        ),
         "bootstrap_samples": samples, "block_weeks": BOOTSTRAP_BLOCK_WEEKS,
         "market_control": "NASDAQ weekly log return",
     }
@@ -475,13 +573,16 @@ def build_event_study(
             "macro_change_bp": {"dgs10": d10, "hy_oas": dhy},
             "observations": {"realty_income": n_o, "nasdaq": n_ndx, "sector": n_sector,
                              "dgs10": n_rate, "hy_oas": n_hy},
-            "hy_status": "available" if dhy is not None else "history_unavailable_under_current_3y_window",
+            "hy_status": "available_full_history" if dhy is not None else "history_unavailable",
         })
+    hy_complete = bool(events) and all(
+        item["macro_change_bp"]["hy_oas"] is not None for item in events)
     return {
         "schema_version": 1, "asof": asof.isoformat(),
         "generated_at": (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
-        "probability_space": "reference_only", "status": "partial",
+        "probability_space": "reference_only", "status": "ok" if hy_complete else "partial",
         "registry_version": registry["registry_version"], "events": events,
+        "hy_history_receipt": deepcopy(fred["BAMLH0A0HYM2"].receipt),
         "sector_comparison": {
             "source": "IYR", "status": "available" if sector else "source_unavailable",
             "primary_willreitind": "unavailable_http_404",
@@ -555,7 +656,55 @@ def persist_derived(
         existing_raw = archive.read_text(encoding="utf-8")
         existing = json.loads(existing_raw)
         if _semantic_text(existing) != _semantic_text(payload):
-            raise RealtyIncomeError(f"immutable derived archive conflict: {archive}")
+            correction_id = None
+            ledger = root / "calibration" / "corrections.csv"
+            correction_table = {
+                EVENT_STUDY_LATEST: "rate_event_studies",
+                SENSITIVITY_LATEST: "realty_income_rate_sensitivity",
+            }.get(latest_relative)
+            if correction_table and ledger.exists():
+                with ledger.open(encoding="utf-8", newline="") as handle:
+                    corrections = [
+                        row for row in csv.DictReader(handle)
+                        if row.get("target_table") == correction_table
+                        and row.get("target_key") == payload["asof"]
+                        and row.get("status") == "approved"
+                    ]
+                correction_id = corrections[-1].get("correction_id") if corrections else None
+            if not correction_id:
+                raise RealtyIncomeError(f"immutable derived archive conflict: {archive}")
+            candidates = list((root / archive_relative).glob(f"{payload['asof']}*.json"))
+            revisions = []
+            for candidate in candidates:
+                try:
+                    revisions.append(int(json.loads(candidate.read_text(encoding="utf-8")).get("revision") or 1))
+                except (OSError, json.JSONDecodeError, TypeError, ValueError):
+                    continue
+            payload = deepcopy(payload)
+            revision = max(revisions or [1]) + 1
+            payload.update({
+                "snapshot_id": (
+                    f"rate-event-study:{payload['asof']}:r{revision}"
+                    if latest_relative == EVENT_STUDY_LATEST
+                    else f"realty-income-sensitivity:{payload['asof']}:r{revision}"
+                ),
+                "revision": revision, "correction_id": correction_id,
+                "supersedes": (
+                    f"rate-event-study:{payload['asof']}:r{revision - 1}"
+                    if latest_relative == EVENT_STUDY_LATEST
+                    else f"realty-income-sensitivity:{payload['asof']}:r{revision - 1}"
+                ),
+            })
+            archive = root / archive_relative / f"{payload['asof']}_{correction_id}.json"
+            serialized = json.dumps(payload, ensure_ascii=False, indent=2) + "\n"
+            if archive.exists():
+                revised = json.loads(archive.read_text(encoding="utf-8"))
+                if _semantic_text(revised) != _semantic_text(payload):
+                    raise RealtyIncomeError(f"immutable derived correction conflict: {archive}")
+            else:
+                archive.write_text(serialized, encoding="utf-8", newline="\n")
+            latest.write_text(serialized, encoding="utf-8", newline="\n")
+            return latest, True
         changed = not latest.exists() or latest.read_text(encoding="utf-8") != existing_raw
         if changed:
             latest.write_text(existing_raw, encoding="utf-8", newline="\n")

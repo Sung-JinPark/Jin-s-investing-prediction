@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-08-03",
-  "generated_at": "2026-08-03T23:03:46+00:00",
+  "asof": "2026-07-31",
+  "generated_at": "2026-08-04T03:06:41+00:00",
   "probability_space": "reference_only",
   "status": "ok",
   "registry_version": "2026-08-04.v1",
@@ -157,12 +157,6 @@
       "hy_status": "available_full_history"
     }
   ],
-  "sector_comparison": {
-    "source": "IYR",
-    "status": "available",
-    "primary_willreitind": "unavailable_http_404"
-  },
-  "warning": "사전 등록 사건의 구간 진단이며 인과 추정이나 미래 확률이 아닙니다.",
   "hy_history_receipt": {
     "source": "fred_historical_event_study",
     "series_id": "BAMLH0A0HYM2",
@@ -180,8 +174,10 @@
     "response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
     "limitation": "The current official FRED graph feed exposes only three years; older observations come from a commit-pinned public capture of the FRED series."
   },
-  "snapshot_id": "rate-event-study:2026-08-03:r2",
-  "revision": 2,
-  "correction_id": "CORR-260804-007",
-  "supersedes": "rate-event-study:2026-08-03:r1"
+  "sector_comparison": {
+    "source": "IYR",
+    "status": "available",
+    "primary_willreitind": "unavailable_http_404"
+  },
+  "warning": "사전 등록 사건의 구간 진단이며 인과 추정이나 미래 확률이 아닙니다."
 }

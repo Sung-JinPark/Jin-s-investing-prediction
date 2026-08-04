@@ -26,7 +26,8 @@
     "cross_asset",
     "scenario_tracker",
     "liquidity",
-    "ai_regime"
+    "ai_regime",
+    "method_changes"
   ],
   "properties": {
     "meta": {
@@ -231,6 +232,9 @@
           ]
         }
       }
+    },
+    "method_changes": {
+      "type": "array"
     }
   },
   "additionalProperties": true

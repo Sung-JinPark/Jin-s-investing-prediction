@@ -43,6 +43,7 @@ V2_KEYS = {
     "scenario_tracker": dict,
     "liquidity": dict,
     "ai_regime": dict,
+    "method_changes": list,
 }
 
 

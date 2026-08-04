@@ -64,6 +64,19 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert first == json.loads(json.dumps(second, ensure_ascii=False, sort_keys=True))
 
 
+def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> None:
+    payload = _build()
+    _, persisted, _ = scenario._persist_scenario(tmp_path, payload)
+    target = date.fromisoformat(persisted["quantile_table"]["trading_days"][0])
+    actual = persisted["quantile_table"]["quantiles"]["p50"][0]
+    assert scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual)
+    assert not scenario.append_band_calibration(tmp_path, asof=target, actual_close=actual)
+    lines = (tmp_path / "data/scenarios/band_calibration.csv").read_text(
+        encoding="utf-8").splitlines()
+    assert len(lines) == 2
+    assert "inside_p10_p90" in lines[0]
+
+
 def test_nyse_calendar_skips_weekends_and_registered_holidays() -> None:
     calendar = scenario.load_calendar_contract(Path(__file__).parents[2])
     days = scenario.future_trading_days(date(2026, 8, 27), 5, calendar)

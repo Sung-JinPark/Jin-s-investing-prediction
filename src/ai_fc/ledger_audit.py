@@ -209,7 +209,10 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
         for path in paths:
             rel = path.relative_to(root).as_posix()
             digest = _sha(path)
-            if rel in previous and previous[rel] != digest:
+            immutable_kind = row["kind"] in {"archive_dir", "immutable_files"}
+            if row.get("expected_state") == "frozen":
+                immutable_kind = True
+            if immutable_kind and rel in previous and previous[rel] != digest:
                 immutable_changes.append(rel)
             else:
                 all_hashes[rel] = digest
@@ -220,14 +223,14 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
         latest = days[-1] if days else None
         expected = row.get("expected_state")
         stale = False
-        if latest:
+        if latest and expected != "frozen":
             if row["cadence"] == "trading_daily":
                 stale = latest < last_market
             elif row["cadence"] == "weekly":
                 stale = (today - latest).days > 10
             elif row["cadence"] == "monthly":
                 stale = (today - latest).days > 40
-        elif row["cadence"] not in {"event", "manual"} and expected != "planned":
+        elif row["cadence"] not in {"event", "manual"} and expected not in {"planned", "frozen"}:
             stale = True
         violations = immutable_changes + schema_errors
         if csv_health["duplicate_rows"]:
@@ -236,8 +239,10 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
             violations.append(f"{csv_health['reversed_timestamps']} reversed CSV timestamp(s)")
         if violations:
             status = "violation"
-        elif not paths and expected == "planned":
+        elif expected == "planned" and (not paths or csv_health["rows"] == 0):
             status = "planned"
+        elif paths and expected == "frozen":
+            status = "frozen"
         elif not paths:
             status = "inactive"
         elif stale or gaps:
@@ -263,7 +268,7 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
         "schema_version": 1,
         "generated_at": stamp.astimezone(timezone.utc).isoformat(timespec="seconds"),
         "market_cutoff": last_market.isoformat(),
-        "summary": {key: counts.get(key, 0) for key in ("accumulating", "stalled", "inactive", "violation", "planned")},
+        "summary": {key: counts.get(key, 0) for key in ("accumulating", "stalled", "inactive", "violation", "planned", "frozen")},
         "ledgers": results,
     }
     if write:
@@ -281,7 +286,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         "# Ledger accumulation audit", "",
         f"- Generated: `{report['generated_at']}`",
         f"- Latest completed NYSE day: `{report['market_cutoff']}`",
-        f"- Result: accumulating {summary['accumulating']} · stalled {summary['stalled']} · inactive {summary['inactive']} · violation {summary['violation']} · planned {summary['planned']}", "",
+        f"- Result: accumulating {summary['accumulating']} · frozen {summary['frozen']} · stalled {summary['stalled']} · inactive {summary['inactive']} · violation {summary['violation']} · planned {summary['planned']}", "",
         "| Ledger | Cadence | Files / rows | Latest | Status | Finding |",
         "|---|---:|---:|---:|---:|---|",
     ]
@@ -299,7 +304,7 @@ def render_markdown(report: dict[str, Any]) -> str:
         if item["row_count"] is not None:
             count += f" / {item['row_count']}"
         lines.append(f"| `{item['id']}` | {item['cadence']} | {count} | {item['latest_date'] or '—'} | **{item['status']}** | {'; '.join(findings) or '—'} |")
-    lines += ["", "## Interpretation", "", "`stalled` is an operational warning, not an immutable-record violation. `planned` means the layer is registered before first ingestion. Existing file hash changes and schema failures are `violation` and fail the check gate.", ""]
+    lines += ["", "## Interpretation", "", "`frozen` is a deliberately retired ledger whose bytes remain immutable. `stalled` is an operational warning, not an immutable-record violation. `planned` means the layer is registered before first ingestion. Existing file hash changes and schema failures are `violation` and fail the check gate.", ""]
     return "\n".join(lines)
 
 

@@ -11,6 +11,7 @@ import yaml
 
 from ai_fc.cross_asset import (
     CrossAssetError,
+    append_path_tracking_v2,
     _dotcom_peak_reference,
     _persist_receipt_bundle,
     _persist_snapshot,
@@ -104,6 +105,23 @@ def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
         for scenario in model["forecast"]["scenarios"].values()
         for path in scenario["paths"].values()
     )
+
+
+def test_path_tracking_v2_appends_three_assets_once(tmp_path: Path) -> None:
+    model = _fixture()
+    _, persisted, _ = _persist_snapshot(tmp_path, model, force=False)
+    day = date.fromisoformat(persisted["asof"])
+    prices = {
+        asset: YahooPriceSeriesResult(
+            [day], [persisted["anchors"][asset]], [persisted["anchors"][asset]], {}, {})
+        for asset in ("nasdaq", "bitcoin", "realty_income")
+    }
+    assert append_path_tracking_v2(tmp_path, persisted, prices)
+    assert not append_path_tracking_v2(tmp_path, persisted, prices)
+    rows = (tmp_path / "data/cross_asset/path_tracking_v2.csv").read_text(
+        encoding="utf-8").splitlines()
+    assert len(rows) == 4
+    assert "origin_snapshot_id" in rows[0]
     assert all(
         len(bound) == 13
         for scenario in model["forecast"]["scenarios"].values()

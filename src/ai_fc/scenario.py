@@ -24,11 +24,17 @@ SCHEMA_VERSION = 2
 LATEST_RELATIVE_PATH = Path("data") / "scenarios" / "nasdaq_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "scenarios" / "archive"
 CALENDAR_RELATIVE_PATH = Path("data") / "contracts" / "nyse_holidays.yaml"
+BAND_CALIBRATION_PATH = Path("data") / "scenarios" / "band_calibration.csv"
 REFERENCE_PRICE = 26206.89  # F3 불변 기준가: 2026-07-09 ^IXIC 종가
 LOOKBACK_DAYS = 252
 FORECAST_HORIZON = 252
 N_PATHS = 20_000
 SEED = 42
+
+BAND_CALIBRATION_FIELDS = [
+    "asof", "origin_asof", "origin_snapshot_id", "actual_close", "p10", "p25",
+    "p50", "p75", "p90", "inside_p10_p90", "p50_error_pct", "probability_space",
+]
 
 # 2026년 확정 일정. 향후 연도는 별도 캘린더 공급자로 교체하되, 미확정 일정을
 # 자동 추정해 넣지 않는다.
@@ -618,6 +624,59 @@ def _persist_scenario(root: Path, payload: dict[str, Any]) -> tuple[Path, dict[s
     return latest, persisted, True
 
 
+def append_band_calibration(root: Path, *, asof: date, actual_close: float) -> bool:
+    """Score the close against a prior immutable fan band without backfilling UI claims."""
+    candidates: list[dict[str, Any]] = []
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    if archive_dir.exists():
+        for path in archive_dir.glob("*.json"):
+            try:
+                payload = validate_scenario(json.loads(path.read_text(encoding="utf-8")))
+            except (OSError, json.JSONDecodeError, ScenarioError):
+                continue
+            if (
+                payload["asof"] < asof.isoformat()
+                and asof.isoformat() in (payload.get("quantile_table") or {}).get(
+                    "trading_days", [])
+            ):
+                candidates.append(payload)
+    if not candidates:
+        return False
+    origin = max(candidates, key=lambda item: (item["asof"], int(item.get("revision") or 1)))
+    table = origin["quantile_table"]
+    index = table["trading_days"].index(asof.isoformat())
+    values = {key: table["quantiles"][key][index] for key in ("p10", "p25", "p50", "p75", "p90")}
+    row: dict[str, Any] = {
+        "asof": asof.isoformat(), "origin_asof": origin["asof"],
+        "origin_snapshot_id": origin.get("snapshot_id") or f"nasdaq-scenario:{origin['asof']}:r1",
+        "actual_close": round(float(actual_close), 2), **values,
+        "inside_p10_p90": str(values["p10"] <= actual_close <= values["p90"]).lower(),
+        "p50_error_pct": round((actual_close / values["p50"] - 1) * 100, 3),
+        "probability_space": "scenario_conditional",
+    }
+    path = root / BAND_CALIBRATION_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existing: dict[tuple[str, str], dict[str, str]] = {}
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != BAND_CALIBRATION_FIELDS:
+                raise ScenarioError("band_calibration schema drift")
+            existing = {(item["asof"], item["origin_snapshot_id"]): item for item in reader}
+    key = (row["asof"], row["origin_snapshot_id"])
+    text_row = {field: str(row[field]) for field in BAND_CALIBRATION_FIELDS}
+    if key in existing:
+        if existing[key] != text_row:
+            raise ScenarioError(f"append-only band calibration conflict for {key}")
+        return False
+    with path.open("a", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=BAND_CALIBRATION_FIELDS, lineterminator="\n")
+        if path.stat().st_size == 0:
+            writer.writeheader()
+        writer.writerow(row)
+    return True
+
+
 def refresh_scenario(root: Path, *, asof: date | None = None,
                      force: bool = False, now: datetime | None = None
                      ) -> tuple[Path, dict[str, Any], bool]:
@@ -639,8 +698,11 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
         try:
             current = validate_scenario(json.loads(latest.read_text(encoding="utf-8")))
             if current["asof"] == payload["asof"]:
+                append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])
                 return latest, current, False
         except (OSError, json.JSONDecodeError, ScenarioError):
             pass
 
-    return _persist_scenario(root, payload)
+    result = _persist_scenario(root, payload)
+    append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])
+    return result

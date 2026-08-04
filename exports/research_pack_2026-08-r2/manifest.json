@@ -1,7 +1,10 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-04T03:21:50+00:00",
-  "files": {
+  "month": "2026-08",
+  "generated_from_commit": "477275105af43565e2babdc4ee3e83980242b914",
+  "generated_at": "2026-08-04T11:38:29+09:00",
+  "source_manifest_sha256": "00de778192525a3e073ca18c62f04799d57ee0ae9ae02458277c62620f54fe8b",
+  "source_files": {
     "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
     "calibration/corrections.csv": "d78ee5839b4878cdcc3946e9e2ec6d488dea66946c1f5ce0c99505823c5eb5c4",
     "calibration/cost_log.csv": "f71db21b1fafdd329002692af3531efd9f88d6b31755a6bbe3d26fd01bffd83c",
@@ -39,8 +42,6 @@
     "data/signals/archive/2026-07-31_CORR-260804-005.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",
     "data/source_monitoring/defillama_stablecoins/2026-08-03.json": "68aefc6d2f176d1ab6fd4fd1986c3c2662637ea765075140f47b20bc31efcfaa",
     "data/source_monitoring/defillama_stablecoins_status.json": "4778fc11c778df4d808e9b2668f853750a5915ebbf24eefe3371d710909a6f23",
-    "exports/research_pack_2026-08-r2/manifest.json": "6d4e0beef7a44f494d396977c769d79b9c480c5ab5d26abf63d27e87aa81a114",
-    "exports/research_pack_2026-08/manifest.json": "8d2c4aa8b8ed0acf4cf03d1722083640fcc0970488012e47eb52b49073405842",
     "forecasts/.hashes.ots": "252b518ebd549536284d039533d76ed5fbcc02072d9f47e60697a45edf38ddfe",
     "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
     "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1_evidence.md": "70f747ade4947c2471128413045522b2b90de021d730ba54ca971efd2b2c06d3",
@@ -81,5 +82,192 @@
     "forecasts/2026/2026-07-20_soxx-eoy-down15_r2_evidence.md": "3c72790244f48707d11389d5eee69b9a766ee4b72a4465dfe46b8701196054e4",
     "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1.md": "bbfd38b98191e60c74c47b8ae4d6a360522fd36ce2b3adbaf7f30fe3f50d3e7e",
     "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1_evidence.md": "88f08f1b7f92efea0bca4c9c879ad38774164d36a1f2143539afe3324e4298a1"
-  }
+  },
+  "tables": [
+    {
+      "ledger_id": "forecast_records",
+      "file": "forecast_records.parquet",
+      "rows": 22,
+      "sha256": "0e4c9eb448899de05f07c01e6126f4a2129d5acc1a0b5c0547b631c23ff35801",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "forecast_evidence",
+      "file": "forecast_evidence.parquet",
+      "rows": 17,
+      "sha256": "52cf03bc2ab06a09106598781e71b730077565ffe787081963ee66f6575cecb5",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "ml_market_history",
+      "file": "ml_market_history.parquet",
+      "rows": 16,
+      "sha256": "584e8e48595d2da5c6fe31f83e863b51ffc701b9d077cd13e7eaa1cacc2e1e27",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "method_changes",
+      "file": "method_changes.parquet",
+      "rows": 1,
+      "sha256": "7ade9465d504ef7ed3cecaa7db8ff912035f5a7dff971a60535af826a6e83935",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "calibration_ledger",
+      "file": "calibration_ledger.parquet",
+      "rows": 6,
+      "sha256": "bb2f581768f78130df74bd2241fa1b13bfbbd8719f5d7f6f5ccfba48493276d1",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "corrections_ledger",
+      "file": "corrections_ledger.parquet",
+      "rows": 10,
+      "sha256": "6cca2d923b2497964f874b4a3d9fbf339ea24c7f05d697244b67797e21c57491",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "benchmark_ledger",
+      "file": "benchmark_ledger.parquet",
+      "rows": 6,
+      "sha256": "585e780dadb05644d75a05b5c14066e06c17bdca0d280a8f04694fa01c8608a0",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "cost_ledger",
+      "file": "cost_ledger.parquet",
+      "rows": 5,
+      "sha256": "84b4f2f826e0500941829c389b369410fe387f4e2ca62d208c6f31188c9c4dfa",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "scenario_archive",
+      "file": "scenario_archive.parquet",
+      "rows": 3,
+      "sha256": "470d0554c81e110eb86480fc0b33197ee964e886388aafc1864a12659f93a07d",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "scenario_latest",
+      "file": "scenario_latest.parquet",
+      "rows": 1,
+      "sha256": "196ef229b50bcf38608ae12a051f9e39e755b3609f84d14df4bad23163b00ae7",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "cross_asset_archive",
+      "file": "cross_asset_archive.parquet",
+      "rows": 6,
+      "sha256": "99d25f415f393aca8382f005e0c3372ebe03d616aaf27b3dfadd1d7a14a80187",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "cross_asset_latest",
+      "file": "cross_asset_latest.parquet",
+      "rows": 1,
+      "sha256": "13d4937f5b36e0ff027982355f48bc535c1b60a66a9302ef7d77ca5e7458ee39",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "cross_asset_path_tracking",
+      "file": "cross_asset_path_tracking.parquet",
+      "rows": 3,
+      "sha256": "7f5e8b7c335584f960e9fb58afd5adb1bf6bb0a6505d39a9a6c9b40d9edfbcca",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "cross_asset_path_tracking_v2",
+      "file": "cross_asset_path_tracking_v2.parquet",
+      "rows": 3,
+      "sha256": "3612e1cdb38a965386623c55825aa42291a2da7bcbc5c23ec48cb7cf1ecc56ec",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "signal_archive",
+      "file": "signal_archive.parquet",
+      "rows": 3,
+      "sha256": "1832e8e60b2f9101792f97493fbb84791fe317dfd3a2de9197a446f1de77ad1c",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "liquidity_archive",
+      "file": "liquidity_archive.parquet",
+      "rows": 1,
+      "sha256": "d5440b6f93d573469b410c186c385f2d67566e65937eaa511233ff38f61edeca",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "rate_event_archive",
+      "file": "rate_event_archive.parquet",
+      "rows": 3,
+      "sha256": "b6ab4d907a480178b309dbbd0b13296173a7a227b9579602d801de1bf31e23e4",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "realty_rate_sensitivity_archive",
+      "file": "realty_rate_sensitivity_archive.parquet",
+      "rows": 3,
+      "sha256": "bfca0dcf699da48d2a8f8a0f42594219bde004f170864ec6f3efb8070f4f97cb",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "realty_dividends",
+      "file": "realty_dividends.parquet",
+      "rows": 343,
+      "sha256": "8a32c6f15d0bd0dff96dc971ac6e041d80a55ae626951169fe966105baea3f10",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "ai_capital_archives",
+      "file": "ai_capital_archives.parquet",
+      "rows": 3,
+      "sha256": "8dbf32dc3dcfd4e8baa6f38495b628d61e69b0feefe9691d3d0a99c74d671620",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "source_monitoring",
+      "file": "source_monitoring.parquet",
+      "rows": 2,
+      "sha256": "e5c4f868162d23e11af7c21343bf852fd34bee76a3cdcb2ab9b8aeb5a7aa88f6",
+      "probability_space_column": true,
+      "derived_from_column": true
+    },
+    {
+      "ledger_id": "forecast_timestamp_proof",
+      "file": "forecast_timestamp_proof.parquet",
+      "rows": 1,
+      "sha256": "919e88afeea18e02ce83919a9488e1c80e6473c23f68fe6ddeade09d4007d73d",
+      "probability_space_column": true,
+      "derived_from_column": true
+    }
+  ],
+  "normalization": {
+    "probabilities": "fraction where a probability-like numeric field was in (1,100]",
+    "excluded_probability_names": "generic weight fields are never treated as probabilities",
+    "pending_units": "pending correction fields retain source values and are marked unit_review_pending",
+    "timestamps": "timezone-bearing *_at/timestamp/run_ts/generated_at values normalized to UTC ISO-8601",
+    "provenance": "every row contains source_file, source_sha256 and derived_from"
+  },
+  "pack_bytes": 311208,
+  "distribution": "repository"
 }

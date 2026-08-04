@@ -362,6 +362,17 @@ def test_decision_journal_share_and_contrast_contract() -> None:
     assert "background:#fff0db!important" in css
 
 
+def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "realtyContext.condition_summary", "M+3 O 기여", "BTC 경로 공유 · 설계상 동일",
+        "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
+    ):
+        assert required in html
+    changes = (dashboard.config.ROOT / "data/method_changes.jsonl").read_text(encoding="utf-8")
+    assert "교차자산 경로 추적 원장 v2 전환" in changes
+
+
 def test_render_embed_vs_fetch(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)

@@ -1,13 +1,14 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-04T01:38:05+00:00",
+  "generated_at": "2026-08-04T03:21:50+00:00",
   "market_cutoff": "2026-08-03",
   "summary": {
-    "accumulating": 21,
-    "stalled": 1,
+    "accumulating": 23,
+    "stalled": 0,
     "inactive": 0,
     "violation": 0,
-    "planned": 3
+    "planned": 4,
+    "frozen": 1
   },
   "ledgers": [
     {
@@ -133,6 +134,23 @@
       ]
     },
     {
+      "id": "method_changes",
+      "path": "data/method_changes.jsonl",
+      "kind": "jsonl",
+      "cadence": "event",
+      "criticality": "medium",
+      "status": "accumulating",
+      "file_count": 1,
+      "row_count": null,
+      "latest_date": null,
+      "missing_trading_days": [],
+      "immutable_changes": [],
+      "schema_errors": [],
+      "duplicate_rows": 0,
+      "reversed_timestamps": 0,
+      "growth_last_30d": []
+    },
+    {
       "id": "calibration_ledger",
       "path": "calibration/ledger.csv",
       "kind": "append_csv",
@@ -166,7 +184,7 @@
       "criticality": "high",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 4,
+      "row_count": 10,
       "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],
@@ -285,7 +303,7 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "accumulating",
-      "file_count": 3,
+      "file_count": 6,
       "row_count": null,
       "latest_date": "2026-08-03",
       "missing_trading_days": [],
@@ -332,10 +350,27 @@
       "kind": "append_csv",
       "cadence": "trading_daily",
       "criticality": "medium",
-      "status": "stalled",
+      "status": "frozen",
       "file_count": 1,
       "row_count": 3,
-      "latest_date": "2026-07-31",
+      "latest_date": null,
+      "missing_trading_days": [],
+      "immutable_changes": [],
+      "schema_errors": [],
+      "duplicate_rows": 0,
+      "reversed_timestamps": 0,
+      "growth_last_30d": []
+    },
+    {
+      "id": "cross_asset_path_tracking_v2",
+      "path": "data/cross_asset/path_tracking_v2.csv",
+      "kind": "append_csv",
+      "cadence": "trading_daily",
+      "criticality": "high",
+      "status": "accumulating",
+      "file_count": 1,
+      "row_count": 3,
+      "latest_date": "2026-08-03",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -343,10 +378,27 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-07-31",
+          "date": "2026-08-03",
           "count": 1
         }
       ]
+    },
+    {
+      "id": "scenario_band_calibration",
+      "path": "data/scenarios/band_calibration.csv",
+      "kind": "append_csv",
+      "cadence": "trading_daily",
+      "criticality": "medium",
+      "status": "planned",
+      "file_count": 1,
+      "row_count": 0,
+      "latest_date": null,
+      "missing_trading_days": [],
+      "immutable_changes": [],
+      "schema_errors": [],
+      "duplicate_rows": 0,
+      "reversed_timestamps": 0,
+      "growth_last_30d": []
     },
     {
       "id": "signal_archive",
@@ -355,7 +407,7 @@
       "cadence": "weekly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 2,
+      "file_count": 3,
       "row_count": null,
       "latest_date": "2026-07-31",
       "missing_trading_days": [],
@@ -399,7 +451,7 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 1,
+      "file_count": 3,
       "row_count": null,
       "latest_date": "2026-08-03",
       "missing_trading_days": [],
@@ -409,8 +461,12 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-03",
+          "date": "2026-07-31",
           "count": 1
+        },
+        {
+          "date": "2026-08-03",
+          "count": 2
         }
       ]
     },
@@ -421,7 +477,7 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 1,
+      "file_count": 3,
       "row_count": null,
       "latest_date": "2026-08-03",
       "missing_trading_days": [],
@@ -431,8 +487,12 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-03",
+          "date": "2026-07-31",
           "count": 1
+        },
+        {
+          "date": "2026-08-03",
+          "count": 2
         }
       ]
     },
@@ -582,7 +642,7 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 1,
+      "file_count": 2,
       "row_count": null,
       "latest_date": null,
       "missing_trading_days": [],

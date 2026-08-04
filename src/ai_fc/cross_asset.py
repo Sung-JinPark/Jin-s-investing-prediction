@@ -32,6 +32,7 @@ SCHEMA_VERSION = 2
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
+PATH_TRACKING_V2 = Path("data") / "cross_asset" / "path_tracking_v2.csv"
 HISTORY_START = date(1998, 1, 1)
 HISTORY_END = date(2006, 1, 2)
 HISTORY_PERIOD_START_LABEL = "2000-12"
@@ -46,6 +47,15 @@ BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_DAYS = 10
 BOOTSTRAP_SEED = 20260803
 MAX_ABS_BETA = 3.0
+
+PATH_TRACKING_V2_FIELDS = [
+    "asof", "origin_asof", "origin_snapshot_id", "weeks_elapsed",
+    "scenario_month_index", "asset", "actual_index",
+    "deleveraging_path", "easing_rotation_path", "soft_landing_path",
+    "rates_stay_high_path", "deleveraging_abs_gap",
+    "easing_rotation_abs_gap", "soft_landing_abs_gap",
+    "rates_stay_high_abs_gap",
+]
 
 
 class CrossAssetError(ValueError):
@@ -330,8 +340,21 @@ def _transmission_scenarios(
             "paths_band": paths_band,
             "band_semantics": (
                 "market beta 10–90% block-bootstrap band; O rate/credit terms use only "
-                "significance-gated measured sensitivities and preregistered macro paths"
+                "significance-gated measured sensitivities and preregistered macro paths. "
+                "Downside beta may already embed credit stress, so adding the HY term can "
+                "double-count part of the tail shock; current paths are unchanged."
             ),
+            "realty_income_interpretation": (
+                f"소프트랜딩 M+3 O 경로는 시장 {attributions['market_beta'][3]:+.1f}, "
+                f"금리 {attributions['rate'][3]:+.1f}, 크레딧 {attributions['credit'][3]:+.1f}의 "
+                "합성입니다. 현재는 시장 베타의 초기 약세를 금리·신용 효과가 상쇄하지 못합니다."
+                if scenario_id == "soft_landing" else
+                "O 경로는 시장 베타, 장기금리, HY 신용스프레드의 조건부 합성 결과입니다."
+            ),
+            "path_linkage": ({
+                "bitcoin": "shared_with_deleveraging_by_design",
+                "reason": "고금리 지속 구간의 BTC 경로는 디레버리징 경로를 의도적으로 공유합니다.",
+            } if scenario_id == "rates_stay_high" else {}),
         }
     return scenarios
 
@@ -404,6 +427,18 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
             raise CrossAssetError(f"{scenario_id} macro assumption path length mismatch")
         if len((scenario.get("realty_income_attribution") or {}).get("market_beta") or []) != len(labels):
             raise CrossAssetError(f"{scenario_id} Realty Income attribution length mismatch")
+        if "double-count" not in str(scenario.get("band_semantics") or ""):
+            raise CrossAssetError(f"{scenario_id} band overlap disclosure required")
+        if not scenario.get("realty_income_interpretation"):
+            raise CrossAssetError(f"{scenario_id} Realty Income interpretation required")
+    operator = (forecast.get("operator_decisions") or {}).get(
+        "credit_tail_overlap_damping") or {}
+    if operator.get("status") != "pending_operator_decision" or operator.get("applied") is not False:
+        raise CrossAssetError("credit-tail overlap decision must remain pending and unapplied")
+    conditions = ((payload.get("realty_income") or {}).get("condition_summary") or {}).get(
+        "conditions") or []
+    if [item.get("id") for item in conditions] != ["C1", "C2", "C3", "C4"]:
+        raise CrossAssetError("Realty Income condition summary requires ordered C1-C4 evidence")
     if not isinstance(payload.get("receipts"), list):
         raise CrossAssetError("cross-asset receipts must be a list")
     data_quality = (payload.get("diagnostics") or {}).get("data_quality")
@@ -423,6 +458,7 @@ def build_cross_asset(*,
                       macro_assumptions: dict[str, Any] | None = None,
                       realty_sensitivity: dict[str, Any] | None = None,
                       realty_event_study: dict[str, Any] | None = None,
+                      realty_hypothesis: dict[str, Any] | None = None,
                       history_preview: dict[str, Any] | None = None,
                       generated_at: datetime | None = None) -> dict[str, Any]:
     """정렬된 실측 시계열로 직렬화 가능한 교차자산 read model을 만든다."""
@@ -618,6 +654,16 @@ def build_cross_asset(*,
                     sensitivity.get("dividend_crosscheck") or {}),
             },
             "macro_assumptions_version": macro_assumptions["rules_version"],
+            "operator_decisions": {
+                "credit_tail_overlap_damping": {
+                    "status": "pending_operator_decision", "applied": False,
+                    "candidate_multiplier": 0.5,
+                    "reason": (
+                        "Downside beta may already contain credit stress. The optional HY "
+                        "damping factor is disclosed but requires operator approval."
+                    ),
+                }
+            },
             "semantics": (
                 "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니다. "
                 "각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 "
@@ -637,6 +683,16 @@ def build_cross_asset(*,
         "realty_income": {
             "hypothesis": "닷컴형 상승은 완만한 충격·금리 하락·신용 안정·배당 유지의 조건부 결과",
             "conditions_total": 4,
+            "condition_summary": realty_hypothesis or {
+                "status": "source_unavailable", "conditions_met": None,
+                "conditions_total": 4, "conditions": [
+                    {"id": condition_id, "signal": signal_id, "met": False,
+                     "signal_state": "source_unavailable", "status": "source_unavailable",
+                     "metrics": {}, "as_of": current_dates[-1].isoformat()}
+                    for condition_id, signal_id in (
+                        ("C1", "S1"), ("C2", "S8"), ("C3", "S2"), ("C4", "S9"))
+                ],
+            },
             "event_study": realty_event_study or {
                 "status": "source_unavailable", "events": [],
             },
@@ -824,6 +880,101 @@ def _persist_receipt_bundle(root: Path, asof: str, results: list[Any]) -> Path:
     return path
 
 
+def _tracking_origin(root: Path, current: dict[str, Any]) -> dict[str, Any]:
+    """Return the immutable origin used by the v2 path-performance ledger."""
+    path = root / PATH_TRACKING_V2
+    if not path.exists():
+        return current
+    with path.open(encoding="utf-8", newline="") as handle:
+        first = next(csv.DictReader(handle), None)
+    origin_id = (first or {}).get("origin_snapshot_id")
+    if not origin_id:
+        raise CrossAssetError("path_tracking_v2 is missing origin_snapshot_id")
+    for candidate in sorted((root / ARCHIVE_RELATIVE_DIR).glob("*.json")):
+        try:
+            payload = json.loads(candidate.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        if payload.get("snapshot_id") == origin_id:
+            return validate_cross_asset(payload)
+    raise CrossAssetError(f"path_tracking_v2 origin archive is missing: {origin_id}")
+
+
+def append_path_tracking_v2(
+    root: Path, current: dict[str, Any],
+    prices: dict[str, feed.YahooPriceSeriesResult],
+) -> bool:
+    """Append exactly one three-asset observation for a completed trading day.
+
+    The origin snapshot is pinned by ID in every row. Repeated refreshes are
+    byte-stable and a conflicting duplicate is rejected instead of overwritten.
+    """
+    current = validate_cross_asset(current)
+    origin = _tracking_origin(root, current)
+    current_day = date.fromisoformat(current["asof"])
+    origin_day = date.fromisoformat(origin["asof"])
+    if current_day < origin_day:
+        return False
+    weeks = max(0, (current_day - origin_day).days // 7)
+    month_index = min(12, int(round(weeks / 4.345)))
+    scenarios = origin["forecast"]["scenarios"]
+    rows: list[dict[str, Any]] = []
+    for asset in ("nasdaq", "bitcoin", "realty_income"):
+        result = prices[asset]
+        eligible = [
+            (day, value) for day, value in zip(result.dates, result.closes, strict=True)
+            if day <= current_day
+        ]
+        if not eligible:
+            raise CrossAssetError(f"no completed {asset} close for path tracking")
+        actual = eligible[-1][1] / float(origin["anchors"][asset]) * 100
+        row: dict[str, Any] = {
+            "asof": current_day.isoformat(), "origin_asof": origin_day.isoformat(),
+            "origin_snapshot_id": origin["snapshot_id"], "weeks_elapsed": weeks,
+            "scenario_month_index": month_index, "asset": asset,
+            "actual_index": round(actual, 3),
+        }
+        for scenario_id in (
+            "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high"
+        ):
+            expected = scenarios[scenario_id]["paths"][asset][month_index]
+            row[f"{scenario_id}_path"] = expected
+            row[f"{scenario_id}_abs_gap"] = round(abs(actual - expected), 3)
+        rows.append(row)
+
+    path = root / PATH_TRACKING_V2
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existing: dict[tuple[str, str, str], dict[str, str]] = {}
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as handle:
+            reader = csv.DictReader(handle)
+            if reader.fieldnames != PATH_TRACKING_V2_FIELDS:
+                raise CrossAssetError("path_tracking_v2 schema drift")
+            existing = {
+                (row["asof"], row["origin_snapshot_id"], row["asset"]): row
+                for row in reader
+            }
+    pending: list[dict[str, Any]] = []
+    for row in rows:
+        key = (row["asof"], row["origin_snapshot_id"], row["asset"])
+        text_row = {field: str(row[field]) for field in PATH_TRACKING_V2_FIELDS}
+        if key in existing:
+            if existing[key] != text_row:
+                raise CrossAssetError(f"append-only path_tracking_v2 conflict for {key}")
+            continue
+        pending.append(row)
+    if not pending:
+        return False
+    if len(pending) != 3:
+        raise CrossAssetError("path_tracking_v2 trading day must append all three assets")
+    with path.open("a", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=PATH_TRACKING_V2_FIELDS, lineterminator="\n")
+        if path.stat().st_size == 0:
+            writer.writeheader()
+        writer.writerows(pending)
+    return True
+
+
 def refresh_cross_asset(root: Path, *, asof: date | None = None,
                         force: bool = False, now: datetime | None = None
                         ) -> tuple[Path, dict[str, Any], bool]:
@@ -859,6 +1010,7 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         try:
             current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
             if current["asof"] == common_dates[-1].isoformat():
+                append_path_tracking_v2(root, current, daily)
                 return latest, current, False
         except (OSError, json.JSONDecodeError, CrossAssetError):
             pass
@@ -876,6 +1028,9 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         series_id: realty_income.fetch_fred_series(series_id, date(2000, 1, 1))
         for series_id in ("DGS10", "DFII10", "BAMLH0A0HYM2", "BAMLC0A0CM", "FEDFUNDS")
     }
+    event_hy = realty_income.fetch_hy_event_history(date(1996, 1, 1))
+    event_fred = dict(fred)
+    event_fred["BAMLH0A0HYM2"] = event_hy
     sector: feed.YahooPriceSeriesResult | None = None
     try:
         sector = feed.yahoo_price_series_detail(
@@ -889,7 +1044,8 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         dividend_reference=dividend_reference)
     event_study = realty_income.build_event_study(
         asof=snapshot_asof, registry=event_registry, o=daily["realty_income"],
-        nasdaq=daily["nasdaq"], fred=fred, sector=sector)
+        nasdaq=daily["nasdaq"], fred=event_fred, sector=sector)
+    hypothesis = realty_income.load_tracker_hypothesis(root)
     preview = realty_income.build_history_preview(history_n, history_o, sector)
 
     all_results: list[Any] = [
@@ -898,7 +1054,7 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     ]
     all_receipts = [result.receipt for result in all_results] + [
         series.receipt for series in fred.values()
-    ]
+    ] + [event_hy.receipt]
 
     payload = build_cross_asset(
         history_dates=h_common,
@@ -922,10 +1078,11 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         macro_assumptions=macro_assumptions,
         realty_sensitivity=sensitivity,
         realty_event_study=event_study,
+        realty_hypothesis=hypothesis,
         history_preview=preview,
     )
     _persist_receipt_bundle(
-        root, snapshot_asof.isoformat(), [*all_results, *fred.values()])
+        root, snapshot_asof.isoformat(), [*all_results, *fred.values(), event_hy])
     realty_income.append_dividends(root, dividend_rows)
     realty_income.persist_derived(
         root, realty_income.SENSITIVITY_LATEST,
@@ -933,7 +1090,9 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     realty_income.persist_derived(
         root, realty_income.EVENT_STUDY_LATEST,
         realty_income.EVENT_STUDY_ARCHIVE, event_study)
-    return _persist_snapshot(root, payload, force=force)
+    snapshot_path, persisted, changed = _persist_snapshot(root, payload, force=force)
+    append_path_tracking_v2(root, persisted, daily)
+    return snapshot_path, persisted, changed
 
 
 def load_cross_asset(root: Path) -> dict[str, Any]:

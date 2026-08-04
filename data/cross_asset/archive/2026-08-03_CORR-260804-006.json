@@ -1768,7 +1768,7 @@
           }
         },
         "band_semantics": "market beta 10–90% block-bootstrap band; O rate/credit terms use only significance-gated measured sensitivities and preregistered macro paths. Downside beta may already embed credit stress, so adding the HY term can double-count part of the tail shock; current paths are unchanged.",
-        "realty_income_interpretation": "소프트랜딩 M+3 O 경로는 시장 -2.4, 금리 -0.0, 크레딧 -0.0의 합성입니다. 현재는 시장 베타의 초기 약세를 금리·신용 효과가 상쇄하지 못합니다.",
+        "realty_income_interpretation": "소프트랜딩에서도 M+3 O 경로가 약할 수 있습니다. 주식시장 충격은 작지만 사전등록된 장기금리·신용 경로의 마이너스 효과가 초기 회복 효과보다 큽니다.",
         "path_linkage": {}
       },
       "rates_stay_high": {
@@ -2125,9 +2125,7 @@
         "minimum_observations": 156,
         "bootstrap_samples": 1000,
         "block_weeks": 4,
-        "market_control": "NASDAQ weekly log return",
-        "gate_margin_observations": 0,
-        "gate_proximity": "at_boundary"
+        "market_control": "NASDAQ weekly log return"
       },
       "beta_credit": {
         "measured_effect_per_100bp_pct": -6.062,
@@ -2141,9 +2139,7 @@
         "minimum_observations": 156,
         "bootstrap_samples": 1000,
         "block_weeks": 4,
-        "market_control": "NASDAQ weekly log return",
-        "gate_margin_observations": 0,
-        "gate_proximity": "at_boundary"
+        "market_control": "NASDAQ weekly log return"
       },
       "dividend_yield_ttm_pct": 5.11,
       "spread_vs_10y_pp": 0.36,
@@ -2627,8 +2623,8 @@
     "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
     "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다."
   ],
-  "snapshot_id": "cross-asset:2026-08-03:r4",
-  "revision": 4,
-  "correction_id": "CORR-260804-010",
-  "supersedes": "cross-asset:2026-08-03:r3"
+  "snapshot_id": "cross-asset:2026-08-03:r2",
+  "revision": 2,
+  "correction_id": "CORR-260804-006",
+  "supersedes": "cross-asset:2026-08-03:r1"
 }

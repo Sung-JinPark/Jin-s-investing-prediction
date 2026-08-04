@@ -2125,9 +2125,7 @@
         "minimum_observations": 156,
         "bootstrap_samples": 1000,
         "block_weeks": 4,
-        "market_control": "NASDAQ weekly log return",
-        "gate_margin_observations": 0,
-        "gate_proximity": "at_boundary"
+        "market_control": "NASDAQ weekly log return"
       },
       "beta_credit": {
         "measured_effect_per_100bp_pct": -6.062,
@@ -2141,9 +2139,7 @@
         "minimum_observations": 156,
         "bootstrap_samples": 1000,
         "block_weeks": 4,
-        "market_control": "NASDAQ weekly log return",
-        "gate_margin_observations": 0,
-        "gate_proximity": "at_boundary"
+        "market_control": "NASDAQ weekly log return"
       },
       "dividend_yield_ttm_pct": 5.11,
       "spread_vs_10y_pp": 0.36,
@@ -2627,8 +2623,8 @@
     "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
     "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다."
   ],
-  "snapshot_id": "cross-asset:2026-08-03:r4",
-  "revision": 4,
-  "correction_id": "CORR-260804-010",
-  "supersedes": "cross-asset:2026-08-03:r3"
+  "snapshot_id": "cross-asset:2026-08-03:r3",
+  "revision": 3,
+  "correction_id": "CORR-260804-008",
+  "supersedes": "cross-asset:2026-08-03:r2"
 }

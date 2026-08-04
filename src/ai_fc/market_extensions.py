@@ -22,7 +22,6 @@ from typing import Any
 import numpy as np
 import yaml
 
-from .cross_asset import load_cross_asset
 from .market_session import completed_market_cutoff
 from .quant import feed
 
@@ -30,7 +29,6 @@ TRACKER_LATEST = Path("data/signals/scenario_tracker_latest.json")
 TRACKER_ARCHIVE = Path("data/signals/archive")
 LIQUIDITY_LATEST = Path("data/liquidity/liquidity_latest.json")
 LIQUIDITY_ARCHIVE = Path("data/liquidity/archive")
-PATH_TRACKING = Path("data/cross_asset/path_tracking_v2.csv")
 RULES_PATH = Path("data/contracts/scenario_tracker_rules.yaml")
 FRED_SERIES = (
     "BAMLH0A0HYM2", "DFII10", "DTWEXBGS", "WALCL", "WTREGEN",
@@ -337,12 +335,22 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
     halving_months = max(0, (asof.year - halving.year) * 12 + asof.month - halving.month)
     btc_200dma = float(np.mean(btc[-200:])) if len(btc) >= 200 else None
     by_id = {item["id"]: item for item in signals}
-    hypothesis_conditions = [
-        {"id": "C1", "signal": "S1", "met": by_id["S1"]["state"] != "deleveraging_support"},
-        {"id": "C2", "signal": "S8", "met": by_id["S8"]["state"] == "easing_rotation_support"},
-        {"id": "C3", "signal": "S2", "met": by_id["S2"]["state"] == "easing_rotation_support"},
-        {"id": "C4", "signal": "S9", "met": bool(dividend_monitor["c4_met"])},
+    condition_specs = [
+        ("C1", "S1", by_id["S1"]["state"] != "deleveraging_support"),
+        ("C2", "S8", by_id["S8"]["state"] == "easing_rotation_support"),
+        ("C3", "S2", by_id["S2"]["state"] == "easing_rotation_support"),
+        ("C4", "S9", bool(dividend_monitor["c4_met"])),
     ]
+    hypothesis_conditions = []
+    for condition_id, signal_id, met in condition_specs:
+        signal = by_id[signal_id]
+        metric_items = list((signal.get("metrics") or {}).items())[:1]
+        hypothesis_conditions.append({
+            "id": condition_id, "signal": signal_id, "met": met,
+            "signal_state": signal["state"], "status": signal["status"],
+            "metrics": dict(metric_items),
+            "as_of": signal.get("as_of") or asof.isoformat(),
+        })
     payload = {
         "schema_version": 1, "asof": asof.isoformat(),
         "generated_at": (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
@@ -353,6 +361,7 @@ def build_scenario_tracker(*, rules: dict[str, Any], asof: date,
                     "text": "방향 일치 신호 개수이며 가중 점수·확률이 아닙니다."},
         "signals": signals,
         "realty_income_hypothesis": {
+            "status": "ok",
             "conditions_met": sum(item["met"] for item in hypothesis_conditions),
             "conditions_total": 4, "conditions": hypothesis_conditions,
             "text": "조건 충족 개수이며 O 상승 확률이 아닙니다.",
@@ -393,6 +402,16 @@ def validate_scenario_tracker(payload: dict[str, Any]) -> dict[str, Any]:
         raise MarketExtensionError("scenario_tracker contains invalid state")
     if any(key in payload for key in ("probability", "score", "weights")):
         raise MarketExtensionError("scenario_tracker score/probability fields are prohibited")
+    hypothesis = payload.get("realty_income_hypothesis") or {}
+    conditions = hypothesis.get("conditions") or []
+    if hypothesis.get("conditions_total") != 4 or [item.get("id") for item in conditions] != [
+        "C1", "C2", "C3", "C4"
+    ]:
+        raise MarketExtensionError("scenario_tracker requires ordered C1-C4 evidence")
+    if any(not all(key in item for key in (
+        "signal", "met", "signal_state", "status", "metrics", "as_of"
+    )) for item in conditions):
+        raise MarketExtensionError("scenario_tracker C1-C4 evidence is incomplete")
     payload_bytes = len(json.dumps(
         payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
     if payload_bytes > TRACKER_BUDGET_BYTES:
@@ -636,68 +655,6 @@ def _persist_json(root: Path, latest_relative: Path, archive_relative: Path,
     return latest, payload, True
 
 
-def _append_path_tracking(root: Path, payload: dict[str, Any],
-                          prices: dict[str, feed.YahooPriceSeriesResult]) -> bool:
-    cross = load_cross_asset(root)
-    if cross.get("status") == "blocked":
-        return False
-    origin = date.fromisoformat(cross["asof"])
-    current = date.fromisoformat(payload["asof"])
-    if current < origin:
-        return False
-    weeks = max(0, (current - origin).days // 7)
-    month_index = min(12, int(round(weeks / 4.345)))
-    scenarios = cross["forecast"]["scenarios"]
-    asset_map = {"nasdaq": "nasdaq", "bitcoin": "bitcoin", "realty_income": "realty_income"}
-    rows = []
-    for asset, source_key in asset_map.items():
-        result = prices[source_key]
-        by_date = {day: value for day, value in zip(result.dates, result.closes)}
-        eligible = [day for day in by_date if day <= current]
-        if not eligible:
-            continue
-        actual = by_date[max(eligible)] / float(cross["anchors"][asset]) * 100
-        rows.append({
-            "asof": current.isoformat(), "origin_asof": origin.isoformat(),
-            "weeks_elapsed": weeks, "scenario_month_index": month_index, "asset": asset,
-            "actual_index": round(actual, 3),
-            **{f"{scenario_id}_path": scenario["paths"][asset][month_index]
-               for scenario_id, scenario in scenarios.items()},
-            **{f"{scenario_id}_abs_gap": round(abs(actual - scenario["paths"][asset][month_index]), 3)
-               for scenario_id, scenario in scenarios.items()},
-        })
-    path = root / PATH_TRACKING
-    path.parent.mkdir(parents=True, exist_ok=True)
-    fields = [
-        "asof", "origin_asof", "weeks_elapsed", "scenario_month_index", "asset", "actual_index",
-        "deleveraging_path", "easing_rotation_path", "soft_landing_path", "rates_stay_high_path",
-        "deleveraging_abs_gap", "easing_rotation_abs_gap", "soft_landing_abs_gap",
-        "rates_stay_high_abs_gap",
-    ]
-    existing: dict[tuple[str, str, str], dict[str, str]] = {}
-    if path.exists():
-        with path.open(encoding="utf-8", newline="") as handle:
-            existing = {(row["asof"], row["origin_asof"], row["asset"]): row
-                        for row in csv.DictReader(handle)}
-    pending = []
-    for row in rows:
-        key = (row["asof"], row["origin_asof"], row["asset"])
-        text_row = {field: str(row[field]) for field in fields}
-        if key in existing:
-            if existing[key] != text_row:
-                raise MarketExtensionError(f"append-only path_tracking conflict for {key}")
-            continue
-        pending.append(row)
-    if not pending:
-        return False
-    with path.open("a", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
-        if path.stat().st_size == 0:
-            writer.writeheader()
-        writer.writerows(pending)
-    return True
-
-
 def refresh_market_extensions(root: Path, *, asof: date | None = None,
                               now: datetime | None = None) -> dict[str, Any]:
     cutoff = completed_market_cutoff(asof or date.today(), now=now)
@@ -723,13 +680,12 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
     tracker_path, tracker_payload, tracker_changed = _persist_tracker(root, tracker)
     liquidity_path, liquidity_payload, liquidity_changed = _persist_json(
         root, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, liquidity)
-    tracking_changed = _append_path_tracking(root, tracker_payload, prices)
     return {
         "tracker_path": tracker_path, "tracker": tracker_payload,
         "tracker_changed": tracker_changed,
         "liquidity_path": liquidity_path, "liquidity": liquidity_payload,
         "liquidity_changed": liquidity_changed,
-        "path_tracking_changed": tracking_changed,
+        "path_tracking_changed": False,
     }
 
 
