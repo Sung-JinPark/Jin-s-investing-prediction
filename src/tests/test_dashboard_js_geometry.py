@@ -26,7 +26,8 @@ def test_cross_asset_endpoint_labels_keep_minimum_gap() -> None:
         "[{key:'a',y:101},{key:'b',y:105},{key:'c',y:109}],16,40,200)))"
     )
     completed = subprocess.run(
-        ["node", "-e", program], check=True, capture_output=True, text=True
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8"
     )
     labels = json.loads(completed.stdout)
     ordered = sorted(item["labelY"] for item in labels)
@@ -63,8 +64,42 @@ console.log(JSON.stringify(rows));
     ordered = sorted(item["labelY"] for item in labels)
     assert all(right - left >= 21 for left, right in zip(ordered, ordered[1:]))
     assert ordered[0] >= 40 and ordered[-1] <= 240
-    assert "appendCalendarEventShape(group,mk,event.kind" in source
-    assert "class:'calendar-event-marker'" in source
+
+
+def test_flow_calendar_uses_readable_text_labels_and_groups_dense_earnings() -> None:
+    script_path = (
+        Path(__file__).parents[1]
+        / "ai_fc"
+        / "dashboard_parts"
+        / "dashboard.js"
+    )
+    source = script_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"function flowCalendarEventLabel\([\s\S]+?\n}\nfunction buildRebasedFlowModel",
+        source,
+    )
+    assert match, "calendar text helpers must remain standalone and testable"
+    helpers = match.group(0).removesuffix("\nfunction buildRebasedFlowModel")
+    program = helpers + r"""
+const events=[
+  {date:'2026-08-26',kind:'earnings',ticker:'NVDA',title:'NVIDIA FY27 Q2 실적'},
+  {date:'2026-09-16',kind:'fomc',title:'FOMC 결정·SEP'},
+  {date:'2026-10-28',kind:'earnings',ticker:'GOOGL',title:'Alphabet 분기 실적'},
+  {date:'2026-10-28',kind:'earnings',ticker:'META',title:'Meta 분기 실적'},
+  {date:'2026-10-28',kind:'earnings',ticker:'MSFT',title:'Microsoft 분기 실적'}
+];
+console.log(JSON.stringify(groupFlowCalendarEvents(events).map(flowCalendarEventLabel)));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8"
+    )
+    assert json.loads(completed.stdout) == [
+        "8/26 NVDA 실적",
+        "9/16 FOMC·SEP",
+        "10/28 빅테크 실적 3건",
+    ]
+    assert "appendCalendarEventShape" not in source
 
 
 def test_flow_horizon_and_sparse_axis_geometry() -> None:

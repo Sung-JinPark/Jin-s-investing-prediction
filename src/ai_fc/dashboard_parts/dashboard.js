@@ -1142,16 +1142,6 @@ function horizonCoverageForDay(sc,tradingDay){
   return {label:`${selected.label} 검증 표본`,detail:`p10–p90 적중률 ${selected.inside_p10_p90_rate_pct}% · n=${n}`,status:'verified'};
 }
 const EVENT_KIND_META={fomc:['FOMC','◇'],cpi:['CPI','□'],nfp:['고용','○'],gdp:['GDP','△'],earnings:['실적','⬡'],other:['기타','·']};
-function appendCalendarEventShape(group,mk,kind,x,y,size=4){
-  const common={fill:'none',stroke:'#4f5660','stroke-width':1.15,'vector-effect':'non-scaling-stroke'};let shape;
-  if(kind==='nfp')shape=mk('circle',{cx:x,cy:y,r:size,...common});
-  else if(kind==='cpi')shape=mk('rect',{x:x-size,y:y-size,width:size*2,height:size*2,rx:1,...common});
-  else if(kind==='fomc')shape=mk('polygon',{points:`${x},${y-size-1} ${x+size+1},${y} ${x},${y+size+1} ${x-size-1},${y}`,...common});
-  else if(kind==='gdp')shape=mk('polygon',{points:`${x},${y-size-1} ${x+size+1},${y+size} ${x-size-1},${y+size}`,...common});
-  else if(kind==='earnings')shape=mk('polygon',{points:`${x-size},${y-size*.55} ${x},${y-size} ${x+size},${y-size*.55} ${x+size},${y+size*.55} ${x},${y+size} ${x-size},${y+size*.55}`,...common});
-  else shape=mk('circle',{cx:x,cy:y,r:1.8,fill:'#4f5660',stroke:'none'});
-  group.appendChild(shape);return shape;
-}
 function lookupEventSummary(sc,mapped){
   const events=(sc.calendar_events||[]).filter(event=>event.date>sc.asof&&event.date<=mapped.mapped),counts=new Map();
   events.forEach(event=>{const key=event.kind==='earnings'?(event.ticker||'실적'):EVENT_KIND_META[event.kind]?.[0]||'기타';counts.set(key,(counts.get(key)||0)+1);});
@@ -1644,14 +1634,29 @@ function flowAxisTickIndexes(length,maxTicks=7){
 }
 function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
   const laneEnds=Array(laneCount).fill(-Infinity);
-  return (events||[]).filter(([index])=>index<=endIndex).map(([index,label])=>{
+  return (events||[]).filter(([index])=>index<=endIndex).map(([index,label,meta])=>{
     const eventX=X(index),half=Math.max(30,Math.min(82,String(label).length*6.2/2));
     const labelX=Math.max(minX+half,Math.min(maxX-half,eventX));
     let lane=laneEnds.findIndex(end=>labelX-half>=end+8);
     if(lane<0)lane=laneEnds.indexOf(Math.min(...laneEnds));
     laneEnds[lane]=labelX+half;
-    return {index,label,eventX,labelX,lane};
+    return {index,label,eventX,labelX,lane,meta};
   });
+}
+function flowCalendarEventLabel(event){
+  const parts=String(event.date||'').split('-'),md=parts.length===3?`${Number(parts[1])}/${Number(parts[2])}`:String(event.date||'');
+  const title=String(event.title||event.label||'').replace(/\s*\([^)]*추정[^)]*\)\s*/g,' ').trim(),count=Number(event.clusterCount||1);
+  if(event.kind==='earnings')return count>1?`${md} 빅테크 실적 ${count}건`:`${md} ${event.ticker||title.split(/\s+/)[0]||'기업'} 실적`;
+  if(event.kind==='fomc')return `${md} ${/SEP/i.test(title)?'FOMC·SEP':'FOMC'}`;
+  if(event.kind==='cpi')return `${md} CPI`;
+  if(event.kind==='nfp')return `${md} 고용`;
+  if(event.kind==='gdp'){const stage=title.match(/(속보|[23]차)/)?.[1];return `${md} GDP${stage?` ${stage}`:''}`;}
+  return `${md} ${title.slice(0,14)||'주요 일정'}`;
+}
+function groupFlowCalendarEvents(events){
+  const grouped=new Map();(events||[]).forEach((event,eventIndex)=>{const earnings=event.kind==='earnings',key=earnings?`${event.date}|earnings`:`${event.date}|${event.kind}|${eventIndex}`;
+    if(!grouped.has(key))grouped.set(key,{...event,clusterCount:1});else grouped.get(key).clusterCount+=1;});
+  return [...grouped.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.kind).localeCompare(String(b.kind)));
 }
 function buildRebasedFlowModel(sc,lookupDate){
   const table=sc?.quantile_table||{},days=Array.isArray(table.trading_days)?table.trading_days:[];
@@ -1693,9 +1698,11 @@ function drawRebasedFlow(host,sc,lookupDate){
   band(model.series.p90,model.series.p10,'#1f6feb',.10);band(model.series.p75,model.series.p25,'#1f6feb',.18);
   let median='';model.series.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#174ea6','stroke-width':2.5,'stroke-linejoin':'round'}));
   svg.appendChild(mk('line',{x1:X(0),y1:MT-8,x2:X(0),y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));svg.appendChild(mk('circle',{cx:X(0),cy:Y(100),r:5,fill:'#1f6feb',stroke:'#fff','stroke-width':2}));svg.appendChild(tx(X(0)+10,Y(100)-9,'D = 100',{fill:'#174ea6',w:800}));
-  const eventSlots=[];model.events.forEach(event=>{const eventX=X(event.index),near=eventSlots.filter(item=>Math.abs(item.x-eventX)<16),lane=near.length%3,markerY=76+lane*15;
-    svg.appendChild(mk('line',{x1:eventX,y1:markerY+5,x2:eventX,y2:MT-4,stroke:'rgba(17,17,15,.2)','stroke-width':1,'stroke-dasharray':'2 4'}));
-    const group=mk('g',{class:'calendar-event-marker',tabindex:'0',role:'img','aria-label':`${event.date} ${event.label} · ${event.status==='estimated'?'추정':'확정'}`});const title=mk('title',{});title.textContent=`${event.date} · ${event.label} · ${event.status==='estimated'?'추정':'확정'}`;group.appendChild(title);group.appendChild(mk('rect',{class:'calendar-event-marker-shell',x:eventX-7,y:markerY-10,width:14,height:14,rx:4,fill:'#f7f7f4',stroke:'#6b7280','stroke-width':1,'stroke-dasharray':event.status==='estimated'?'3 2':'none'}));appendCalendarEventShape(group,mk,event.kind,eventX,markerY-3,3.2);svg.appendChild(group);eventSlots.push({x:eventX,lane});});
+  const rebasedEvents=groupFlowCalendarEvents(model.events).map(event=>[event.index,flowCalendarEventLabel(event),event]);
+  flowEventLayout(rebasedEvents,model.dates.length-1,X,ML,ML+PW,3).forEach(({label,eventX,labelX,lane,meta})=>{const labelY=71+lane*15,circleY=labelY+5;
+    svg.appendChild(mk('line',{x1:eventX,y1:circleY+3,x2:eventX,y2:MT-4,stroke:'rgba(17,17,15,.2)','stroke-width':1,'stroke-dasharray':meta?.status==='estimated'?'2 4':'none'}));
+    if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.25)','stroke-width':1}));
+    svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.1,fill:'#5f6470'}));const eventText=tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:9,w:700});eventText.setAttribute('paint-order','stroke');eventText.setAttribute('stroke','#fff');eventText.setAttribute('stroke-width','3');svg.appendChild(eventText);});
   flowAxisTickIndexes(model.dates.length,6).forEach(index=>{svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.3)'}));svg.appendChild(tx(X(index),MT+PH+20,rebaseRelativeLabel(model.offsets[index],model.dates[index]),{anc:'middle',fill:index?'#5f5d57':'#174ea6',fs:11,w:index?600:800}));});
   const readout=document.createElement('div');readout.className='flow-readout rebase-readout';readout.style.setProperty('--flow-count','4');const last=model.dates.length-1;
   readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · D</small></div>${[['p10','10% 하단'],['p50','중앙값'],['p90','90% 상단']].map(([key,label])=>`<div><span>${label}</span><strong>${num(model.series[key][last])}</strong><small>${model.dates[last]} · 지수 100 기준</small></div>`).join('')}`;
@@ -1716,16 +1723,16 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel} 조건부 시나리오. 좌우 화살표로 기준 주차 이동`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400,opacity:opts.opacity??1});node.textContent=value;return node;};
-  let eventLegendX=ML;[['nfp','고용',48],['cpi','CPI',48],['fomc','FOMC',60],['gdp','GDP',50],['earnings','실적',48]].forEach(([kind,label,width])=>{appendCalendarEventShape(svg,mk,kind,eventLegendX+5,14,3.2);svg.appendChild(tx(eventLegendX+13,18,label,{fill:'#5f6470',fs:10,w:700}));eventLegendX+=width;});
-  svg.appendChild(tx(ML+PW,18,'실선 확정 · 점선 추정',{anc:'end',fill:'#77746d',fs:10,w:650}));
   const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
   for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));svg.appendChild(tx(ML-8,Y(value)+4,(value/1000)+'k',{anc:'end',fill:'#5f5d57'}));}
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
   const calendarInView=(sc.calendar_events||[]).filter(event=>event.date>=sc.asof&&event.date<=weekDates.at(-1)).map(event=>{let index=0,best=Infinity;weekDates.forEach((day,position)=>{const distance=Math.abs(Date.parse(day)-Date.parse(event.date));if(distance<best){best=distance;index=position;}});return {...event,index};});
-  if(calendarInView.length){const eventSlots=[];calendarInView.forEach(event=>{const eventX=X(event.index),near=eventSlots.filter(item=>Math.abs(item.x-eventX)<16),lane=near.length%5,markerY=31+lane*22;
-      svg.appendChild(mk('line',{x1:eventX,y1:markerY+7,x2:eventX,y2:MT-5,stroke:'rgba(17,17,15,.17)','stroke-width':1,'stroke-dasharray':'2 4'}));
-      const group=mk('g',{class:'calendar-event-marker',tabindex:'0',role:'img','aria-label':`${event.date} ${event.title} · ${event.status==='estimated'?'추정':'확정'}`});const title=mk('title',{});title.textContent=`${event.date} · ${event.title} · ${event.status==='estimated'?'추정':'확정'}`;group.appendChild(title);group.appendChild(mk('rect',{class:'calendar-event-marker-shell',x:eventX-8,y:markerY-9,width:16,height:16,rx:4,fill:'#f7f7f4',stroke:'#6b7280','stroke-width':1.1,'stroke-dasharray':event.status==='estimated'?'3 2':'none'}));appendCalendarEventShape(group,mk,event.kind,eventX,markerY-1,3.7);svg.appendChild(group);eventSlots.push({x:eventX,lane});});}
+  if(calendarInView.length){const textEvents=groupFlowCalendarEvents(calendarInView).map(event=>[event.index,flowCalendarEventLabel(event),event]);
+    flowEventLayout(textEvents,endIndex,X,ML,ML+PW,5).forEach(({label,eventX,labelX,lane,meta})=>{const labelY=22+lane*27,circleY=labelY+9;
+      svg.appendChild(mk('line',{x1:eventX,y1:circleY+3,x2:eventX,y2:MT-5,stroke:'rgba(17,17,15,.17)','stroke-width':1,'stroke-dasharray':meta?.status==='estimated'?'2 4':'none'}));
+      if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
+      svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.4,fill:meta?.status==='estimated'?'#8a8174':'#4f4d47'}));const eventText=tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:700});eventText.setAttribute('paint-order','stroke');eventText.setAttribute('stroke','#fff');eventText.setAttribute('stroke-width','4');eventText.setAttribute('stroke-linejoin','round');svg.appendChild(eventText);});}
   else flowEventLayout(sc.events,endIndex,X,ML,ML+PW).forEach(({label,eventX,labelX,lane})=>{const labelY=22+lane*25,circleY=labelY+9;
     svg.appendChild(mk('line',{x1:eventX,y1:MT-5,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
     if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
