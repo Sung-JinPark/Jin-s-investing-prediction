@@ -1,0 +1,51 @@
+schema_version: 1
+as_of: 2026-08-04
+policy:
+  probability_linkage: forbidden
+  confirmed_definition: institution_or_issuer_published_date
+  estimated_definition: prior_release_month_pattern_only
+  correction_method: append_new_row_with_supersedes
+sources:
+  - id: federal_reserve_fomc
+    authority: Board of Governors of the Federal Reserve System
+    kinds: [fomc]
+    url: https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm
+    official: true
+    access: free
+    cadence: annual_schedule
+    note: 2027 meeting dates remain tentative until the preceding meeting confirms them.
+  - id: bls_cpi
+    authority: U.S. Bureau of Labor Statistics
+    kinds: [cpi]
+    url: https://www.bls.gov/schedule/news_release/cpi.htm
+    official: true
+    access: free
+    cadence: monthly_schedule
+  - id: bls_employment
+    authority: U.S. Bureau of Labor Statistics
+    kinds: [nfp]
+    url: https://www.bls.gov/schedule/news_release/empsit.htm
+    official: true
+    access: free
+    cadence: monthly_schedule
+  - id: bea_gdp
+    authority: U.S. Bureau of Economic Analysis
+    kinds: [gdp]
+    url: https://www.bea.gov/news/schedule
+    official: true
+    access: free
+    cadence: release_schedule
+  - id: nvidia_ir
+    authority: NVIDIA Investor Relations
+    kinds: [earnings]
+    url: https://investor.nvidia.com/events-and-presentations/events-and-presentations/
+    official: true
+    access: free
+    cadence: issuer_notice
+  - id: issuer_ir
+    authority: Issuer investor-relations pages
+    kinds: [earnings]
+    url: https://www.sec.gov/edgar/search/
+    official: true
+    access: free
+    cadence: issuer_notice

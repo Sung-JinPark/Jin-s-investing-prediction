@@ -42,6 +42,14 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "forecasts").mkdir()
     (tmp_path / "calibration").mkdir()
     (tmp_path / "calibration" / "ledger.csv").write_text(LEDGER, encoding="utf-8")
+    project_root = Path(__file__).parents[2]
+    for relative in (
+        Path("data/contracts/calendar_sources.yaml"),
+        Path("data/calendar/events.csv"),
+    ):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((project_root / relative).read_bytes())
     return tmp_path
 
 
@@ -333,7 +341,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
         'data-flow-horizon="126"', 'data-flow-horizon="252"',
         "2027년까지", "flowHorizonEndIndex", "flowAxisTickIndexes",
-        "2027년까지 주요 일정", "2027년 고용보고서·NVIDIA 실적일은 공식 발표 전",
+        "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
         "flowEventLayout", "조회 · ",
         "PATH REALISM · SAME 20,000 PATHS", "실경로 오버레이",
         "묶음 주별 중앙 경로", "이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다",
@@ -342,6 +350,8 @@ def test_forecast_lookup_ui_contract() -> None:
         "D일에 실제로 도달했을 때의 새 정보", "D일이 오면 그날의 스냅샷이 새로 계산됩니다",
         "horizonCoverageForDay", "미검증 구간", "적중 기록 축적 중",
         "inside_p10_p90_rate_pct", "0일 · 0/60",
+        "lookupEventSummary", "일정과 분포 확률을 연결하지 않습니다",
+        "EVENT_KIND_META", "월 패턴 또는 연준의 공식 잠정 일정",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html

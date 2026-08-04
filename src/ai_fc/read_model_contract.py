@@ -44,6 +44,7 @@ V2_KEYS = {
     "liquidity": dict,
     "ai_regime": dict,
     "method_changes": list,
+    "calendar_events": list,
 }
 
 
@@ -107,6 +108,15 @@ def schema() -> dict[str, Any]:
                 "asof": {"type": ["string", "null"]},
             },
         }
+    properties["calendar_events"] = {
+        "type": "array",
+        "items": {
+            "type": "object",
+            "required": [
+                "event_id", "kind", "date", "status", "title", "source_url"
+            ],
+        },
+    }
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://jin-investing.local/schemas/read-model-v2.json",

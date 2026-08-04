@@ -104,6 +104,13 @@ ledgers:
     timestamp_field: asof
     expected_state: planned
     timestamp_field: asof
+  - id: market_event_calendar
+    path: data/calendar/events.csv
+    kind: append_csv
+    cadence: event
+    criticality: medium
+    schema_ref: csv
+    timestamp_field: registered_at
   - id: signal_archive
     path: data/signals/archive/*.json
     kind: archive_dir

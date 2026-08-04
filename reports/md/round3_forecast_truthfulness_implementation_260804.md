@@ -38,3 +38,14 @@
 - read-model은 1주·1개월·3개월·6개월·12개월 버킷별 표본 수와 p10–p90 적중 횟수를 제공한다.
 - 버킷 표본이 60개 미만이면 적중률 숫자는 데이터와 화면 모두에서 숨기고 `축적 중 n/60`만 표시한다.
 - 현재 원장은 0행이므로 모든 지평을 `미검증 구간 — 적중 기록 축적 중 (0일 · 0/60)`으로 표시한다. 6개월·12개월 버튼에도 같은 한계가 먼저 보인다.
+
+## D. 12개월 이벤트 캘린더
+
+- D0 계약은 연준 FOMC, BLS CPI, BLS 고용, BEA GDP, NVIDIA/기업 IR을 무료 공식 원천으로 등록한다. Yahoo 실적 캘린더는 사용하지 않는다.
+- `data/calendar/events.csv`는 2026-08-07부터 2027-07-29까지 53건을 등록했다. 구성은 FOMC 8, CPI 12, 고용 12, GDP 12, 실적 9건이다.
+- 기관·기업이 날짜를 공개한 19건은 `confirmed`, 2027 BLS/BEA 미공개 일정과 기업 발표 월 패턴 29건 및 연준이 명시한 2027 공식 잠정 일정 5건은 `estimated`다. 공식 페이지에 올라왔더라도 연준이 잠정이라고 명시한 2027 일정은 확정으로 과장하지 않았다.
+- 일정 정정은 기존 행을 고치지 않고 새 행의 `supersedes`가 과거 event_id를 가리킨다. `superseded_by`는 read-model에서 파생하므로 이전 CSV 바이트를 수정하지 않는다.
+- 차트 위 긴 일정 문자를 없애고 kind별 회색조 도형(◇ FOMC, □ CPI, ○ 고용, △ GDP, ⬡ 실적)으로 바꿨다. 추정 일정은 점선 테두리이며 키보드 포커스와 hover 제목을 제공한다.
+- 조회 카드는 asof부터 선택일까지 kind·ticker별 등록 건수와 추정 건수를 요약한다. 일정과 분포 확률을 연결하지 않는다는 문구를 고정했다.
+
+공식 근거: [Federal Reserve FOMC calendar](https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm), [BLS CPI schedule](https://www.bls.gov/schedule/news_release/cpi.htm), [BLS Employment Situation schedule](https://www.bls.gov/schedule/news_release/empsit.htm), [BEA release schedule](https://www.bea.gov/news/schedule), [NVIDIA IR](https://investor.nvidia.com/events-and-presentations/events-and-presentations/).

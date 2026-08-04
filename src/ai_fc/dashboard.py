@@ -256,6 +256,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
+    from .event_calendar import load_events
+    calendar_events = load_events(root)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
@@ -401,6 +403,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "public_repository_url": config.PUBLIC_REPOSITORY_URL,
         },
         "scenario": scenario,
+        "calendar_events": calendar_events,
         "scenario_history": scenario_history,
         "analog_context": {
             "status": era_analog["status"],

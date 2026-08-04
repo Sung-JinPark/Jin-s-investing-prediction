@@ -1141,6 +1141,14 @@ function horizonCoverageForDay(sc,tradingDay){
   if(selected.inside_p10_p90_rate_pct==null||n<minimum)return {label:`${selected.label} 미검증 구간`,detail:`적중 기록 축적 중 (${n}일 · ${n}/${minimum})`,status:'accumulating'};
   return {label:`${selected.label} 검증 표본`,detail:`p10–p90 적중률 ${selected.inside_p10_p90_rate_pct}% · n=${n}`,status:'verified'};
 }
+const EVENT_KIND_META={fomc:['FOMC','◇'],cpi:['CPI','□'],nfp:['고용','○'],gdp:['GDP','△'],earnings:['실적','⬡'],other:['기타','·']};
+function lookupEventSummary(sc,mapped){
+  const events=(sc.calendar_events||[]).filter(event=>event.date>sc.asof&&event.date<=mapped.mapped),counts=new Map();
+  events.forEach(event=>{const key=event.kind==='earnings'?(event.ticker||'실적'):EVENT_KIND_META[event.kind]?.[0]||'기타';counts.set(key,(counts.get(key)||0)+1);});
+  const body=counts.size?[...counts].map(([key,count])=>`${key} ${count}회`).join(' · '):'등록 일정 0회';
+  const estimated=events.filter(event=>event.status==='estimated').length;
+  return `<p class="lookup-event-summary"><strong>등록 일정 · 정보 표식만</strong><span>asof→${esc(mapped.mapped)} 사이: ${esc(body)}${estimated?` · 이 중 추정 ${estimated}건`:''}</span><small>일정과 분포 확률을 연결하지 않습니다.</small></p>`;
+}
 function lookupCardMarkup(sc,mapped){
   const table=sc.quantile_table,index=mapped.index,q=table.quantiles,model=sc.model||{};
   const coverage=horizonCoverageForDay(sc,mapped.tradingDay);
@@ -1158,6 +1166,7 @@ function lookupCardMarkup(sc,mapped){
       <div><span>ATH 상회</span><strong>${table.prob_above_ath[index]}%</strong><small>모델 조건부 확률</small></div>
     </div>
     ${shortNote}
+    ${lookupEventSummary(sc,mapped)}
     <details class="lookup-scenarios"><summary>S1/S2/S3 조건부 중앙값 보기</summary><div>${['S1','S2','S3'].map(key=>`<p><span>${scenarioNames[key]}</span><strong>${num(table.per_scenario_p50[key][index])}</strong><small>${num(table.per_scenario_counts?.[key]||0)}경로</small></p>`).join('')}</div></details>
     ${physicalEvents}
     <p class="lookup-warning">⚠ GBM 고정 가정의 조건부 분포입니다. 목표가·사건확률·투자자문이 아닙니다.</p>
@@ -1203,12 +1212,13 @@ function renderFlow(initialLookup){
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
     <div class="lookup-rebase-note" role="note" hidden><strong>재기준 분포의 한계</strong><span>이 분포는 오늘(asof) 시점 모델의 성질로 계산한 것입니다. D일에 실제로 도달했을 때의 새 정보(그날의 가격·변동성)는 반영되어 있지 않으며, D일이 오면 그날의 스냅샷이 새로 계산됩니다.</span><small></small></div>
   </section>`:'';
-  const eventCalendar=Array.isArray(sc.event_calendar)?sc.event_calendar:[];
+  const eventCalendar=Array.isArray(DATA.calendar_events)&&DATA.calendar_events.length?DATA.calendar_events:(Array.isArray(sc.event_calendar)?sc.event_calendar:[]);
+  sc.calendar_events=eventCalendar;
   const eventYears=[...new Set(eventCalendar.map(event=>event.date.slice(0,4)))];
   const evRibbon=eventCalendar.length?`<section class="market-event-calendar" aria-labelledby="market-event-title">
-    <div class="market-event-head"><div><p class="eyebrow">OFFICIAL CALENDAR</p><h3 id="market-event-title">2027년까지 주요 일정</h3></div><p>공식 발표일만 표시 · 전망성 표식 제외</p></div>
-    ${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'FOMC 잠정 일정':'공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>`<article class="event-card event-${esc(event.category)}"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-status ${event.status==='tentative'?'is-tentative':''}">${event.status==='tentative'?'잠정':'공개'}</span></div><strong>${esc(event.label)}</strong><small>${event.chart_visible?'차트 표시':'모델 범위 밖 · 일정만 표시'}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">${esc(event.source_name)} ↗</a></article>`).join('')}</div></div>`).join('')}
-    <p class="market-event-note">2027년 고용보고서·NVIDIA 실적일은 공식 발표 전이라 미표시합니다. 차트는 252거래일 모델 범위 안 일정만 좌표에 배치합니다.</p>
+    <div class="market-event-head"><div><p class="eyebrow">MARKET CALENDAR · APPEND ONLY</p><h3 id="market-event-title">2027년까지 주요 일정</h3></div><p>확정·추정 분리 · 전망성 해석 제외</p></div>
+    ${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'공식 일정 + 추정 분리':'기관·기업 공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>{const meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;return `<article class="event-card event-${esc(event.kind)} ${event.status==='estimated'?'is-estimated':''}" tabindex="0"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-shape" aria-hidden="true">${meta[1]}</span><span class="event-status ${event.status==='estimated'?'is-estimated':''}">${event.status==='estimated'?'추정':'확정'}</span></div><strong>${esc(event.title||event.label)}</strong><small>${esc(event.time_et?`${event.time_et} ET · `:'')}${esc(event.ticker||meta[0])}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">공식 근거 ↗</a></article>`;}).join('')}</div></div>`).join('')}
+    <p class="market-event-note">확정은 기관·기업이 날짜를 공개한 일정, 추정은 과거 발표 월 패턴 또는 연준의 공식 잠정 일정입니다. 마커는 정보 제공용이며 이벤트와 분포 확률을 연결하지 않습니다.</p>
   </section>`:`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
@@ -1643,9 +1653,9 @@ function buildRebasedFlowModel(sc,lookupDate){
   const quantileKeys=['p10','p25','p50','p75','p90'],series={};
   quantileKeys.forEach(key=>{const values=table.quantiles?.[key]||[];series[key]=offsets.map(offset=>offset===0?100:Number((Number(values[offset-1])/Number(sc.anchor)*100).toFixed(2)));});
   const dates=offsets.map(offset=>calendarDays[offset]);
-  const events=(sc.event_calendar||[]).filter(event=>event.date>=lookupDate&&event.date<=dates.at(-1)).map(event=>{
+  const events=(sc.calendar_events||sc.event_calendar||[]).filter(event=>event.date>=lookupDate&&event.date<=dates.at(-1)).map(event=>{
     let nearest=0,best=Infinity;dates.forEach((date,index)=>{const distance=Math.abs(Date.parse(date)-Date.parse(event.date));if(distance<best){best=distance;nearest=index;}});
-    return {index:nearest,date:event.date,label:event.label||event.title||event.kind||'',status:event.status||'confirmed'};
+    return {index:nearest,date:event.date,label:event.title||event.label||event.kind||'',status:event.status||'confirmed',kind:event.kind||event.category||'other'};
   });
   return {lookup_date:lookupDate,asof:sc.asof,remaining_trading_days:remaining,dates,offsets,series,events};
 }
@@ -1673,7 +1683,8 @@ function drawRebasedFlow(host,sc,lookupDate){
   band(model.series.p90,model.series.p10,'#1f6feb',.10);band(model.series.p75,model.series.p25,'#1f6feb',.18);
   let median='';model.series.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#174ea6','stroke-width':2.5,'stroke-linejoin':'round'}));
   svg.appendChild(mk('line',{x1:X(0),y1:MT-8,x2:X(0),y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));svg.appendChild(mk('circle',{cx:X(0),cy:Y(100),r:5,fill:'#1f6feb',stroke:'#fff','stroke-width':2}));svg.appendChild(tx(X(0)+10,Y(100)-9,'D = 100',{fill:'#174ea6',w:800}));
-  flowEventLayout(model.events.map(event=>[event.index,event.label]),model.dates.length-1,X,ML,ML+PW,3).forEach(({label,eventX,labelX,lane})=>{const labelY=76+lane*18;svg.appendChild(mk('line',{x1:eventX,y1:MT-4,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.12)','stroke-width':1,'stroke-dasharray':'2 4'}));svg.appendChild(mk('circle',{cx:eventX,cy:labelY+5,r:2.2,fill:'#6b7280'}));svg.appendChild(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:650}));});
+  const eventSlots=[];model.events.forEach(event=>{const eventX=X(event.index),near=eventSlots.filter(item=>Math.abs(item.x-eventX)<16),lane=near.length%3,markerY=76+lane*15,meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;
+    const group=mk('g',{tabindex:'0',role:'img','aria-label':`${event.date} ${event.label} · ${event.status==='estimated'?'추정':'확정'}`});const title=mk('title',{});title.textContent=`${event.date} · ${event.label} · ${event.status==='estimated'?'추정':'확정'}`;group.appendChild(title);group.appendChild(mk('line',{x1:eventX,y1:markerY+5,x2:eventX,y2:MT-4,stroke:'rgba(17,17,15,.2)','stroke-width':1,'stroke-dasharray':'2 4'}));group.appendChild(mk('rect',{x:eventX-7,y:markerY-10,width:14,height:14,rx:4,fill:'#f7f7f4',stroke:'#6b7280','stroke-width':1,'stroke-dasharray':event.status==='estimated'?'3 2':'none'}));group.appendChild(tx(eventX,markerY+1,meta[1],{anc:'middle',fill:'#4f4d47',fs:10,w:800}));svg.appendChild(group);eventSlots.push({x:eventX,lane});});
   flowAxisTickIndexes(model.dates.length,6).forEach(index=>{svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.3)'}));svg.appendChild(tx(X(index),MT+PH+20,rebaseRelativeLabel(model.offsets[index],model.dates[index]),{anc:'middle',fill:index?'#5f5d57':'#174ea6',fs:11,w:index?600:800}));});
   const readout=document.createElement('div');readout.className='flow-readout rebase-readout';readout.style.setProperty('--flow-count','4');const last=model.dates.length-1;
   readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · D</small></div>${[['p10','10% 하단'],['p50','중앙값'],['p90','90% 상단']].map(([key,label])=>`<div><span>${label}</span><strong>${num(model.series[key][last])}</strong><small>${model.dates[last]} · 지수 100 기준</small></div>`).join('')}`;
@@ -1700,7 +1711,10 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점 '+num(sc.ath),{fill:'rgba(17,17,15,.6)'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.corr10)+4,'−10% '+num(sc.corr10),{fill:'#c9002d'}));
-  flowEventLayout(sc.events,endIndex,X,ML,ML+PW).forEach(({label,eventX,labelX,lane})=>{const labelY=22+lane*25,circleY=labelY+9;
+  const calendarInView=(sc.calendar_events||[]).filter(event=>event.date>=sc.asof&&event.date<=weekDates.at(-1)).map(event=>{let index=0,best=Infinity;weekDates.forEach((day,position)=>{const distance=Math.abs(Date.parse(day)-Date.parse(event.date));if(distance<best){best=distance;index=position;}});return {...event,index};});
+  if(calendarInView.length){const eventSlots=[];calendarInView.forEach(event=>{const eventX=X(event.index),near=eventSlots.filter(item=>Math.abs(item.x-eventX)<16),lane=near.length%5,markerY=31+lane*22,meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;
+      const group=mk('g',{tabindex:'0',role:'img','aria-label':`${event.date} ${event.title} · ${event.status==='estimated'?'추정':'확정'}`});const title=mk('title',{});title.textContent=`${event.date} · ${event.title} · ${event.status==='estimated'?'추정':'확정'}`;group.appendChild(title);group.appendChild(mk('line',{x1:eventX,y1:markerY+7,x2:eventX,y2:MT-5,stroke:'rgba(17,17,15,.17)','stroke-width':1,'stroke-dasharray':'2 4'}));group.appendChild(mk('rect',{x:eventX-8,y:markerY-9,width:16,height:16,rx:4,fill:'#f7f7f4',stroke:'#6b7280','stroke-width':1.1,'stroke-dasharray':event.status==='estimated'?'3 2':'none'}));group.appendChild(tx(eventX,markerY+3,meta[1],{anc:'middle',fill:'#4f4d47',fs:11,w:800}));svg.appendChild(group);eventSlots.push({x:eventX,lane});});}
+  else flowEventLayout(sc.events,endIndex,X,ML,ML+PW).forEach(({label,eventX,labelX,lane})=>{const labelY=22+lane*25,circleY=labelY+9;
     svg.appendChild(mk('line',{x1:eventX,y1:MT-5,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
     if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
     svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.4,fill:'rgba(17,17,15,.55)'}));svg.appendChild(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:12,w:650}));});
