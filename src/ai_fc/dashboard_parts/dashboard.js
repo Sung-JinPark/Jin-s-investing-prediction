@@ -1196,7 +1196,7 @@ function renderFlow(initialLookup){
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     <button type="button" class="flow-sample-toggle" data-flow-samples aria-pressed="true"><i></i>실경로 오버레이</button></div>`;
   const realism=sc.path_realism;
-  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가까운 모의 표본 하나라 주간 요동을 보여주지만, 9/22 같은 굴곡 날짜에는 사건 예측 의미가 없습니다. 점선 p50이 날짜별 분포 중앙, 얇은 회색선이 다른 연속 표본입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>주별 표본 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 9/22 하락의 원인은 뉴스나 FOMC가 아니라 seed ${num(sc.model?.seed)} 모의 충격이며, 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다.</p><small>as_of ${esc(sc.asof)} · ${num(sc.model?.n_paths)}경로 · 표본 굴곡 날짜와 이벤트 캘린더는 인과 연결 금지</small></section>`:'';
+  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가까운 모의 표본 하나라 주간 요동을 보여주지만, 9/22 같은 굴곡 날짜에는 사건 예측 의미가 없습니다. 점선 p50이 날짜별 분포 중앙, 얇은 회색선이 다른 연속 표본입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)} · 표본 n=${num(row.sample_count)}</span><strong>주별 표본 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 9/22 하락의 원인은 뉴스나 FOMC가 아니라 seed ${num(sc.model?.seed)} 모의 충격이며, 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다.</p><small>as_of ${esc(sc.asof)} · ${num(sc.model?.n_paths)}경로 · 표본 굴곡 날짜와 이벤트 캘린더는 인과 연결 금지</small></section>`:'';
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1287,7 +1287,7 @@ function renderFlow(initialLookup){
   const availableTabs=[...labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)')];
   availableTabs.forEach((b,index)=>{b.onclick=()=>{activateLab(b.dataset.labTab);history.replaceState(null,'',b.dataset.labTab==='future'?'#flow':`#lab=${b.dataset.labTab}`);};b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
   if(overlay){
-    const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,focus);
+    const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,overlay._eraStarts,focus);
       overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
     overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.onclick=()=>paintAnalog(b.dataset.analogFocus));
     paintAnalog('ALL');
@@ -1299,12 +1299,18 @@ function renderFlow(initialLookup){
 function analogPanel(){
   const model=DATA.era_analog;if(!model||model.status!=='ok'||!model.series?.length)return null;
   const ctx=model.context||{};const o=Object.fromEntries(model.series.map(s=>[s.id,s.log10_index.map(v=>v==null?null:Math.round(100*Math.pow(10,v)*10)/10)]));
+  const starts=Object.fromEntries(model.series.map(s=>[s.id,s.overlay_start||s.anchor_month||ERA_START[s.id]]));
   const eras=Object.keys(ERA_META).filter(e=>o[e]&&o[e].length>1);
   if(eras.length<2)return null;
   const focusControls=`<div class="flow-focus analog-focus" role="group" aria-label="과거 혁신 사이클 강조"><span>SPOTLIGHT</span>
     <button type="button" data-analog-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${eras.map(e=>`<button type="button" data-analog-focus="${e}" style="--focus-color:${ERA_META[e][1]}" aria-pressed="false"><i></i>${ERA_META[e][0]}</button>`).join('')}</div>`;
   const rg=ctx.regime||{},br=ctx.breadth||{},cc=ctx.concentration||{};
+  const forward=model.forward_reference||{},smallForward=forward.n>0&&forward.n<20;
+  const forwardCases=Array.isArray(forward.cases)?forward.cases:[];
+  const horizonCell=(row,key)=>hasNumeric(row?.[key])?signedDelta(Number(row[key])*100,1,'%'):'관측 없음';
+  const forwardMarkup=smallForward?`<section class="analog-case-list" aria-label="KNN 소표본 사례 목록"><div><div><p class="eyebrow">KNN FORWARD · CASE LIST ONLY</p><h3>유사 국면 ${num(forward.n)}개 사례</h3></div><span class="count-chip">run asof ${esc(model.run_asof||'미산출')}</span></div><p>forward n&lt;20이므로 중앙값을 강조하지 않고 개별 사례만 표시합니다. 독립 표본이나 확률 분포가 아닙니다.</p><div>${forwardCases.map((row,index)=>`<article><strong>${esc(row.date||`사례 ${index+1}`)}</strong><span>1M ${horizonCell(row,'fwd_1m')}</span><span>3M ${horizonCell(row,'fwd_3m')}</span><span>6M ${horizonCell(row,'fwd_6m')}</span><span>12M ${horizonCell(row,'fwd_12m')}</span></article>`).join('')||'<p>사례 원장이 정적 읽기 모델에 아직 연결되지 않았습니다.</p>'}</div><small>anchor_sensitivity=not_computed · median emphasis disabled</small></section>`:'';
+  const dotcomAnchor=model.series.find(row=>row.id==='dotcom');
   const ctxItems=[
     rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
     br.pct_above_200dma!=null?['시장 폭','200일선 '+br.pct_above_200dma+'%']:null,
@@ -1314,14 +1320,16 @@ function analogPanel(){
   const w=el(`<div class="chart-panel analysis-panel">
     <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
     <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2><span class="count-chip">${eras.length}개 사이클</span></div>
-    <div class="reference-banner"><strong>REFERENCE ONLY · 확률 아님</strong><span>${esc(model.unit)} · anchor 기준 상대 개월</span></div>
+    <div class="reference-banner"><strong>REFERENCE ONLY · 확률 아님</strong><span>${esc(model.unit)} · run asof ${esc(model.run_asof||model.asof)}</span></div>
+    ${dotcomAnchor?`<div class="reference-banner"><strong>닷컴 앵커 분리</strong><span>overlay_start ${esc(dotcomAnchor.overlay_start)} · model_anchor ${esc(dotcomAnchor.model_anchor)}</span></div>`:''}
+    ${forwardMarkup}
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
     <p class="chart-note"><strong>연도 표기는 버블 정점이 아니라 비교 시작점입니다.</strong> 크립토는 2019년 회복 시작을 M+0으로 두며, 주요 강세 구간은 2020~2021년, 이 사이클의 정점은 2021-11(M+34)입니다. 과거 곡선은 결과를 아는 hindsight 자료입니다. 질문 확률·시나리오 확률과 산술 결합하지 않습니다.</p>
     <details class="analog-limit"><summary>Anchor 민감도와 한계</summary><p>${esc(model.anchor_sensitivity?.reason||'미산출')} ${esc((model.limitations||[]).join(' '))}</p></details>
   </div>`);
-  w._eras=eras;w._overlay=o;
+  w._eras=eras;w._overlay=o;w._eraStarts=starts;
   return w;
 }
 function crossAssetPanel(){
@@ -1329,6 +1337,7 @@ function crossAssetPanel(){
   if(!model||model.status==='blocked'||!model.forecast?.scenarios||!model.history?.series)return null;
   const summary=model.history.summary||{},diag=model.diagnostics||{},corr60=diag.corr_60d||{},beta=diag.downside_beta_5y||{},weekly=diag.weekly_52w||{},anchors=model.anchors||{};
   const sensitivity=model.forecast?.realty_income_sensitivity||{},rateSensitivity=sensitivity.beta_rate||{},creditSensitivity=sensitivity.beta_credit||{};
+  const betaGateNote=row=>row.status==='hysteresis_hold_1_of_2'?' · 표본 1/2회 미달·이전 β 유지':(row.gate_proximity==='at_boundary'?' · gate 경계(n=156)':'');
   const realtyContext=model.realty_income||{},eventRows=realtyContext.event_study?.events||[],eventById=Object.fromEntries(eventRows.map(row=>[row.event_id,row]));
   const dotcomEvent=eventById.dotcom_easing||{},tighteningEvent=eventById.tightening_2004_2006||{},acuteEvent=eventById.acute_crisis_2020||{};
   const hypothesis=realtyContext.condition_summary||{},conditionLabels={C1:'신용 스트레스 비확대',C2:'장기금리 하락',C3:'실질금리 완화',C4:'배당 유지·증가'};
@@ -1395,8 +1404,8 @@ function crossAssetPanel(){
           <tr><th>TTM 배당수익률</th><td>${hasNumeric(sensitivity.dividend_yield_ttm_pct)?Number(sensitivity.dividend_yield_ttm_pct).toFixed(2)+'%':'관측 불가'}</td></tr>
           <tr><th>10Y 대비 spread</th><td>${hasNumeric(sensitivity.spread_vs_10y_pp)?signedDelta(sensitivity.spread_vs_10y_pp,2,' pp'):'관측 불가'}</td></tr>
           <tr><th>2000년 이후 spread 위치</th><td>${hasNumeric(sensitivity.spread_percentile_since_2000)?Number(sensitivity.spread_percentile_since_2000).toFixed(1)+'%ile':'표본 축적 중'}</td></tr>
-          <tr><th>금리 100bp 민감도</th><td>${hasNumeric(rateSensitivity.measured_effect_per_100bp_pct)?signedDelta(rateSensitivity.measured_effect_per_100bp_pct,2,'%'):'추정 불가'} <small>${esc(rateSensitivity.status||'미산출')}</small></td></tr>
-          <tr><th>신용 100bp 민감도</th><td>${hasNumeric(creditSensitivity.used_effect_per_100bp_pct)?signedDelta(creditSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(creditSensitivity.status||'미산출')}${creditSensitivity.gate_proximity==='at_boundary'?' · gate 경계(n=156)':''}</small></td></tr>
+          <tr><th>금리 100bp 민감도</th><td>${hasNumeric(rateSensitivity.used_effect_per_100bp_pct)?signedDelta(rateSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(rateSensitivity.status||'미산출')}${betaGateNote(rateSensitivity)}</small></td></tr>
+          <tr><th>신용 100bp 민감도</th><td>${hasNumeric(creditSensitivity.used_effect_per_100bp_pct)?signedDelta(creditSensitivity.used_effect_per_100bp_pct,2,'%'):'0.00%'} <small>${esc(creditSensitivity.status||'미산출')}${betaGateNote(creditSensitivity)}</small></td></tr>
           <tr><th>NASDAQ 하락꼬리 beta</th><td>${hasNumeric(beta.realty_income_to_nasdaq)?Number(beta.realty_income_to_nasdaq).toFixed(2):'관측 불가'} <small>최악 10% 일간</small></td></tr>
           <tr><th>지수 편입 차이</th><td>${realtyContext.index_membership?.current==='sp_500_member_since_2015_04'?'현재 S&P 500 편입 · 2015-04 이후':'검증 대기'}</td></tr>
         </tbody></table></div>
@@ -1572,7 +1581,7 @@ function drawIndexedCompare(host,config){
   svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});
   host.replaceChildren(svg,readout);paint(selected);
 }
-function drawOverlay(host,o,eras,focus='ALL'){
+function drawOverlay(host,o,eras,starts=ERA_START,focus='ALL'){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=430,ML=58,MR=120,MT=26,MB=34,CAP=60;
   const PW=W-ML-MR,PH=H-MT-MB;
@@ -1591,7 +1600,7 @@ function drawOverlay(host,o,eras,focus='ALL'){
       'stroke-dasharray':dash,opacity:on?alpha:.1}));
     if(e==='ai'){const last=vals[vals.length-1];const i=vals.length-1;
       svg.appendChild(mk('circle',{cx:X(i),cy:Y(last),r:on?3.8:2.5,fill:color,stroke:'#fff','stroke-width':1.5,opacity:on?1:.12}));
-      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(ERA_START.ai,i)} · M+${i}`,{fill:'#34322e',fs:12,w:650,opacity:on?1:.12}));}});
+      svg.appendChild(tx(X(i)+8,Y(last)+4,`현재 ${monthAt(starts.ai,i)} · M+${i}`,{fill:'#34322e',fs:12,w:650,opacity:on?1:.12}));}});
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
   const markers=eras.map(e=>{const marker=mk('circle',{r:4.8,fill:ERA_META[e][1],stroke:'#fff','stroke-width':1.8});svg.appendChild(marker);return marker;});
   const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
@@ -1605,7 +1614,7 @@ function drawOverlay(host,o,eras,focus='ALL'){
     xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
     eras.forEach((e,i)=>{const value=o[e][cursorIndex];if(value!=null){markers[i].setAttribute('cx',x);markers[i].setAttribute('cy',Y(Math.max(value,60)));markers[i].style.display='';markers[i].style.opacity=String(focus==='ALL'||focus===e?1:.1);}else markers[i].style.display='none';});
     const values=visibleEras.filter(e=>o[e][cursorIndex]!=null);
-    readout.innerHTML=`<div class="flow-date"><span>SELECTED MONTH</span><strong>M+${cursorIndex}</strong><small>시작월 = 100 · 로그 비교</small></div>${values.map(e=>`<div><span>${esc(ERA_META[e][0])}</span><strong style="color:${ERA_META[e][1]}">${num(o[e][cursorIndex])}</strong><small>${esc(monthAt(ERA_START[e],cursorIndex))}</small></div>`).join('')}`;
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED MONTH</span><strong>M+${cursorIndex}</strong><small>시작월 = 100 · 로그 비교</small></div>${values.map(e=>`<div><span>${esc(ERA_META[e][0])}</span><strong style="color:${ERA_META[e][1]}">${num(o[e][cursorIndex])}</strong><small>${esc(monthAt(starts[e],cursorIndex))}</small></div>`).join('')}`;
     svg.setAttribute('aria-label',`과거 혁신 사이클 비교, 선택 월 M+${cursorIndex}. 좌우 화살표로 이동`);
   };
   const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),viewX=(event.clientX-rect.left)*(W/rect.width);
@@ -1613,7 +1622,7 @@ function drawOverlay(host,o,eras,focus='ALL'){
   ov.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){
     tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
     tip.innerHTML=`<b>M+${index} · 시작월 대비</b>`+visibleEras.filter(e=>o[e][index]!=null).map(e=>
-      `<span class="tip-series" style="--tip-series:${ERA_META[e][1]}"><i aria-hidden="true"></i><span>${esc(ERA_META[e][0])}<small>${esc(monthAt(ERA_START[e],index))}</small></span><strong>${num(o[e][index])}</strong></span>`).join('');}});
+      `<span class="tip-series" style="--tip-series:${ERA_META[e][1]}"><i aria-hidden="true"></i><span>${esc(ERA_META[e][0])}<small>${esc(monthAt(starts[e],index))}</small></span><strong>${num(o[e][index])}</strong></span>`).join('');}});
   ov.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
   ov.addEventListener('pointerleave',()=>{tip.style.display='none';});
   svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
