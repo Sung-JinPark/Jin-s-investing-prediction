@@ -351,13 +351,22 @@ def build_dividend_crosscheck(
 
 def significance_gate(
     estimate: float | None, low: float | None, high: float | None, observations: int,
+    previous: dict[str, Any] | None = None,
 ) -> tuple[float, str]:
     if estimate is None or low is None or high is None:
         return 0.0, "estimate_unavailable"
-    if observations < MIN_WEEKS:
-        return 0.0, f"insufficient_sample_{observations}_of_{MIN_WEEKS}"
     if low <= 0 <= high:
         return 0.0, "ci_crosses_zero"
+    if observations < MIN_WEEKS:
+        prior_used = (previous or {}).get("used_effect_per_100bp_pct")
+        prior_streak = int(
+            ((previous or {}).get("gate_hysteresis") or {})
+            .get("consecutive_sample_failures", 0)
+        )
+        if (isinstance(prior_used, (int, float)) and float(prior_used) != 0
+                and prior_streak < 1):
+            return round(float(prior_used), 3), "hysteresis_hold_1_of_2"
+        return 0.0, f"insufficient_sample_{observations}_of_{MIN_WEEKS}"
     return round(float(estimate), 3), "eligible"
 
 
@@ -429,11 +438,19 @@ def _bootstrap_factor(
 
 def _sensitivity_record(
     y: np.ndarray, x: np.ndarray, factor_index: int, *, seed: int,
+    previous: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     estimate = _ols_factor(y, x, factor_index)
     low, high, samples = _bootstrap_factor(y, x, factor_index, seed=seed)
-    used, status = significance_gate(estimate, low, high, len(y))
+    used, status = significance_gate(estimate, low, high, len(y), previous)
     margin = len(y) - MIN_WEEKS
+    prior_streak = int(
+        ((previous or {}).get("gate_hysteresis") or {})
+        .get("consecutive_sample_failures", 0)
+    )
+    sample_failed = status == "hysteresis_hold_1_of_2" or status.startswith(
+        "insufficient_sample_")
+    failure_streak = min(2, prior_streak + 1) if sample_failed else 0
     return {
         "measured_effect_per_100bp_pct": estimate,
         "bootstrap_10_90_pct": [low, high],
@@ -442,8 +459,15 @@ def _sensitivity_record(
         "minimum_observations": MIN_WEEKS,
         "gate_margin_observations": margin,
         "gate_proximity": "at_boundary" if margin == 0 else (
-            "near_boundary" if 0 < margin < 2 else "clear"
+            "near_boundary" if 0 < margin < 2 else (
+                "below_boundary" if margin < 0 else "clear"
+            )
         ),
+        "gate_hysteresis": {
+            "required_consecutive_failures": 2,
+            "consecutive_sample_failures": failure_streak,
+            "held_previous_effect": status == "hysteresis_hold_1_of_2",
+        },
         "bootstrap_samples": samples, "block_weeks": BOOTSTRAP_BLOCK_WEEKS,
         "market_control": "NASDAQ weekly log return",
     }
@@ -468,12 +492,17 @@ def build_rate_sensitivity(
     dividends: list[dict[str, Any]], history_o: feed.YahooPriceSeriesResult,
     dividend_reference: dict[str, Any] | None = None,
     generated_at: datetime | None = None,
+    previous: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     rate_y, rate_x = _regression_rows(o, nasdaq, fred["DGS10"])
     credit_y, credit_x = _regression_rows(
         o, nasdaq, fred["DGS10"], fred["BAMLH0A0HYM2"])
-    rate = _sensitivity_record(rate_y[-MIN_WEEKS:], rate_x[-MIN_WEEKS:], 1, seed=BOOTSTRAP_SEED)
-    credit = _sensitivity_record(credit_y, credit_x, 2, seed=BOOTSTRAP_SEED + 1)
+    rate = _sensitivity_record(
+        rate_y[-MIN_WEEKS:], rate_x[-MIN_WEEKS:], 1, seed=BOOTSTRAP_SEED,
+        previous=(previous or {}).get("beta_rate"))
+    credit = _sensitivity_record(
+        credit_y, credit_x, 2, seed=BOOTSTRAP_SEED + 1,
+        previous=(previous or {}).get("beta_credit"))
 
     latest_close = next(
         (value for day, value in reversed(list(zip(o.dates, o.closes, strict=True))) if day <= asof),
@@ -521,7 +550,7 @@ def build_rate_sensitivity(
         "source_fingerprint": hashlib.sha256("|".join(fingerprints).encode()).hexdigest(),
         "revision_vintage": "captured_current",
         "receipts": receipts,
-        "warning": "CI가 0을 가로지르거나 n<156이면 해당 민감도를 O 경로에서 0으로 둡니다.",
+        "warning": "CI가 0을 가로지르면 즉시 0, n<156은 2회 연속 미달 시 O 경로에서 0으로 둡니다.",
     }
 
 

@@ -1038,10 +1038,16 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     except Exception:  # noqa: BLE001 - D0 contract explicitly permits source reduction
         sector = None
 
+    previous_sensitivity = None
+    try:
+        previous_sensitivity = json.loads(
+            (root / realty_income.SENSITIVITY_LATEST).read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, TypeError, ValueError):
+        previous_sensitivity = None
     sensitivity = realty_income.build_rate_sensitivity(
         asof=snapshot_asof, o=daily["realty_income"], nasdaq=daily["nasdaq"],
         fred=fred, dividends=dividend_rows, history_o=history_o_full,
-        dividend_reference=dividend_reference)
+        dividend_reference=dividend_reference, previous=previous_sensitivity)
     event_study = realty_income.build_event_study(
         asof=snapshot_asof, registry=event_registry, o=daily["realty_income"],
         nasdaq=daily["nasdaq"], fred=event_fred, sector=sector)
