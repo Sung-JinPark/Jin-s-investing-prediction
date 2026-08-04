@@ -46,6 +46,12 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
         for key in ("S1", "S2", "S3")
     )
     assert first["anchor"] > 0 and first["corr10"] == pytest.approx(first["ath"] * 0.9, abs=0.01)
+    event_calendar = first["event_calendar"]
+    assert event_calendar[-1]["date"] == "2027-12-08"
+    assert len([row for row in event_calendar if row["date"].startswith("2027-")]) == 8
+    assert all(row["source_url"].startswith("https://") for row in event_calendar)
+    assert not any("저점 중위" in row["label"] for row in event_calendar)
+    assert all(row["chart_visible"] for row in event_calendar if row["date"] <= first["quantile_table"]["trading_days"][-1])
     assert first["fan"]["probability_space"] == "scenario_conditional"
     assert set(first["fan"]["quantiles"]) == {
         "p5", "p10", "p25", "p50", "p75", "p90", "p95"}
@@ -100,6 +106,11 @@ def test_validate_rejects_probability_or_length_drift() -> None:
     payload["quantile_table"]["quantiles"]["p10"][0] = (
         payload["quantile_table"]["quantiles"]["p25"][0] + 10)
     with pytest.raises(scenario.ScenarioError, match="must be monotonic"):
+        scenario.validate_scenario(payload)
+
+    payload = _build()
+    payload["event_calendar"][1]["date"] = payload["event_calendar"][0]["date"]
+    with pytest.raises(scenario.ScenarioError, match="ordered and unique"):
         scenario.validate_scenario(payload)
 
 

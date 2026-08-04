@@ -1189,7 +1189,13 @@ function renderFlow(initialLookup){
     <div class="lookup-natural"><label for="lookup-natural">한 줄 날짜 입력<input id="lookup-natural" type="text" maxlength="40" placeholder="8/30 · 8월 30일 · 3개월 뒤 · 연말" autocomplete="off"></label><button type="button" class="lookup-natural-submit">날짜 해석</button><small>정규식 규칙 파서 · LLM 호출 없음</small></div>
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
   </section>`:'';
-  const evRibbon=`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
+  const eventCalendar=Array.isArray(sc.event_calendar)?sc.event_calendar:[];
+  const eventYears=[...new Set(eventCalendar.map(event=>event.date.slice(0,4)))];
+  const evRibbon=eventCalendar.length?`<section class="market-event-calendar" aria-labelledby="market-event-title">
+    <div class="market-event-head"><div><p class="eyebrow">OFFICIAL CALENDAR</p><h3 id="market-event-title">2027년까지 주요 일정</h3></div><p>공식 발표일만 표시 · 전망성 표식 제외</p></div>
+    ${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'FOMC 잠정 일정':'공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>`<article class="event-card event-${esc(event.category)}"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-status ${event.status==='tentative'?'is-tentative':''}">${event.status==='tentative'?'잠정':'공개'}</span></div><strong>${esc(event.label)}</strong><small>${event.chart_visible?'차트 표시':'모델 범위 밖 · 일정만 표시'}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">${esc(event.source_name)} ↗</a></article>`).join('')}</div></div>`).join('')}
+    <p class="market-event-note">2027년 고용보고서·NVIDIA 실적일은 공식 발표 전이라 미표시합니다. 차트는 252거래일 모델 범위 안 일정만 좌표에 배치합니다.</p>
+  </section>`:`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
     ${focusControls}
@@ -1596,9 +1602,20 @@ function flowAxisTickIndexes(length,maxTicks=7){
   if(length<=maxTicks)return Array.from({length},(_,index)=>index);
   return [...new Set(Array.from({length:maxTicks},(_,index)=>Math.round(index*(length-1)/(maxTicks-1))))];
 }
+function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
+  const laneEnds=Array(laneCount).fill(-Infinity);
+  return (events||[]).filter(([index])=>index<=endIndex).map(([index,label])=>{
+    const eventX=X(index),half=Math.max(30,Math.min(82,String(label).length*6.2/2));
+    const labelX=Math.max(minX+half,Math.min(maxX-half,eventX));
+    let lane=laneEnds.findIndex(end=>labelX-half>=end+8);
+    if(lane<0)lane=laneEnds.indexOf(Math.min(...laneEnds));
+    laneEnds[lane]=labelX+half;
+    return {index,label,eventX,labelX,lane};
+  });
+}
 function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
   const NS='http://www.w3.org/2000/svg';
-  const W=1160,H=590,ML=58,MR=140,MT=96,MB=30,HCH=506;
+  const W=1160,H=670,ML=58,MR=140,MT=176,MB=34,HCH=586;
   const endIndex=flowHorizonEndIndex(sc,horizonDays),n=endIndex+1,weeks=sc.weeks.slice(0,n),weekDates=(sc.week_dates||[]).slice(0,n),riskValues=sc.risk.slice(0,n);
   const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(0,n):values]));
   const chartValues=[sc.ath,sc.corr10,...['S1','S2','S3'].flatMap(key=>(sc.paths[key]?.values||[]).slice(0,n)),...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
@@ -1616,9 +1633,10 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
   svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점 '+num(sc.ath),{fill:'rgba(17,17,15,.6)'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(tx(ML+PW+6,Y(sc.corr10)+4,'−10% '+num(sc.corr10),{fill:'#c9002d'}));
-  (sc.events||[]).filter(([index])=>index<=endIndex).forEach(([index,label,row])=>{const x=X(index),laneY=row===0?18:43;
-    svg.appendChild(mk('line',{x1:x,y1:MT-5,x2:x,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
-    svg.appendChild(mk('circle',{cx:x,cy:laneY+10,r:2.2,fill:'rgba(17,17,15,.55)'}));svg.appendChild(tx(x,laneY+5,label,{anc:'middle',fill:'#4f4d47',fs:12,w:600}));});
+  flowEventLayout(sc.events,endIndex,X,ML,ML+PW).forEach(({label,eventX,labelX,lane})=>{const labelY=22+lane*25,circleY=labelY+9;
+    svg.appendChild(mk('line',{x1:eventX,y1:MT-5,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
+    if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
+    svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.4,fill:'rgba(17,17,15,.55)'}));svg.appendChild(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:12,w:650}));});
   if(fan?.p10?.length===n&&fan?.p90?.length===n){
     const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');for(let index=lower.length-1;index>=0;index--)d+='L'+X(index)+','+Y(lower[index])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
     band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
@@ -1629,11 +1647,11 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126){
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));svg.appendChild(tx(X(n-1)+8,Y(endValue)+4,`${num(endValue)} · ${path.prob}%`,{fill:CHART_LABEL_COL[key],fs:12,w:700,opacity:on?1:.12}));});
   if(lookupDate&&weekDates.length===n&&lookupDate<=weekDates.at(-1)){let position=0;const next=weekDates.findIndex(day=>day>=lookupDate);
     if(next<0)position=n-1;else if(next===0||weekDates[next]===lookupDate)position=next;else{const left=ForecastLookup.parseIso(weekDates[next-1]),right=ForecastLookup.parseIso(weekDates[next]),target=ForecastLookup.parseIso(lookupDate);position=next-1+(target-left)/(right-left);}
-    const markerX=X(position),labelX=Math.max(ML+44,Math.min(ML+PW-44,markerX));svg.appendChild(mk('line',{x1:markerX,y1:MT-4,x2:markerX,y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));
-    svg.appendChild(mk('line',{x1:labelX,y1:78,x2:markerX,y2:MT-5,stroke:'#8bb3e8','stroke-width':1}));svg.appendChild(mk('rect',{x:labelX-42,y:58,width:84,height:22,rx:11,fill:'#eaf2ff',stroke:'#8bb3e8'}));
-    svg.appendChild(tx(labelX,73,'조회 '+lookupDate.slice(5),{anc:'middle',fill:'#174ea6',fs:12,w:750}));svg.appendChild(mk('circle',{cx:markerX,cy:MT-4,r:4,fill:'#1f6feb',stroke:'#fff','stroke-width':1.5}));}
+    const markerX=X(position),labelX=Math.max(ML+50,Math.min(ML+PW-50,markerX));svg.appendChild(mk('line',{x1:markerX,y1:MT-4,x2:markerX,y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));
+    svg.appendChild(mk('line',{x1:labelX,y1:164,x2:markerX,y2:MT-5,stroke:'#8bb3e8','stroke-width':1}));svg.appendChild(mk('rect',{x:labelX-48,y:138,width:96,height:26,rx:13,fill:'#eaf2ff',stroke:'#8bb3e8'}));
+    svg.appendChild(tx(labelX,155,'조회 · '+lookupDate.slice(5),{anc:'middle',fill:'#174ea6',fs:12,w:750}));svg.appendChild(mk('circle',{cx:markerX,cy:MT-4,r:4,fill:'#1f6feb',stroke:'#fff','stroke-width':1.5}));}
   svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));svg.appendChild(tx(X(0)-6,Y(sc.anchor)-10,num(Math.round(sc.anchor)),{fill:'#11110f',w:600}));
-  const tickIndexes=flowAxisTickIndexes(n,7);let priorTickYear='';tickIndexes.forEach((index,tickPosition)=>{const iso=weekDates[index]||'',year=iso.slice(0,4),yearChanged=year&&year!==priorTickYear;let label=weeks[index];
+  const tickIndexes=flowAxisTickIndexes(n,6);let priorTickYear='';tickIndexes.forEach((index,tickPosition)=>{const iso=weekDates[index]||'',year=iso.slice(0,4),yearChanged=year&&year!==priorTickYear;let label=weeks[index];
     if(tickPosition===0)label='현재 · '+label;else if(yearChanged)label=year.slice(2)+'년 · '+label;priorTickYear=year||priorTickYear;
     svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));svg.appendChild(tx(X(index),MT+PH+18,label,{anc:'middle',fs:12,fill:index?'#5f5d57':'#174c49',w:index?500:750}));});
   const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'변동성',{anc:'end',fill:'#5f5d57',fs:12}));

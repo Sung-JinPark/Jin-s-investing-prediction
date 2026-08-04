@@ -36,17 +36,63 @@ BAND_CALIBRATION_FIELDS = [
     "p50", "p75", "p90", "inside_p10_p90", "p50_error_pct", "probability_space",
 ]
 
-# 2026년 확정 일정. 향후 연도는 별도 캘린더 공급자로 교체하되, 미확정 일정을
-# 자동 추정해 넣지 않는다.
-EVENTS_2026: tuple[tuple[date, str], ...] = (
-    (date(2026, 8, 7), "8/7 고용"),
-    (date(2026, 8, 26), "8/26 NVDA"),
-    (date(2026, 9, 16), "9/15–16 FOMC"),
-    (date(2026, 9, 29), "9/29 미드텀 저점 중위"),
-    (date(2026, 10, 28), "10/27–28 FOMC"),
-    (date(2026, 11, 3), "11/3 중간선거"),
-    (date(2026, 12, 9), "12/8–9 FOMC·산타랠리"),
+# 공식 기관이 날짜를 공개한 일정만 등록한다. 2027 FOMC는 연준이 명시한
+# tentative schedule이며, 아직 발표되지 않은 2027 고용·NVDA 실적일은 추정하지 않는다.
+EVENT_SOURCES: dict[str, tuple[str, str]] = {
+    "bls": ("BLS Employment Situation", "https://www.bls.gov/schedule/news_release/empsit.htm"),
+    "fed": ("Federal Reserve FOMC calendars", "https://www.federalreserve.gov/monetarypolicy/fomccalendars.htm"),
+    "fec": ("Federal Election Commission", "https://www.fec.gov/introduction-campaign-finance/election-results-and-voting-information/"),
+    "nvidia": ("NVIDIA Investor Relations", "https://investor.nvidia.com/events-and-presentations/events-and-presentations/event-details/2026/NVIDIA-2nd-Quarter-FY27-Financial-Results/default.aspx"),
+}
+MARKET_EVENTS: tuple[tuple[date, str, str, str, str], ...] = (
+    (date(2026, 8, 7), "8/7 고용", "employment", "bls", "scheduled"),
+    (date(2026, 8, 26), "8/26 NVDA", "earnings", "nvidia", "scheduled"),
+    (date(2026, 9, 4), "9/4 고용", "employment", "bls", "scheduled"),
+    (date(2026, 9, 16), "9/15–16 FOMC·SEP", "fomc", "fed", "scheduled"),
+    (date(2026, 10, 2), "10/2 고용", "employment", "bls", "scheduled"),
+    (date(2026, 10, 28), "10/27–28 FOMC", "fomc", "fed", "scheduled"),
+    (date(2026, 11, 3), "11/3 중간선거", "election", "fec", "scheduled"),
+    (date(2026, 11, 6), "11/6 고용", "employment", "bls", "scheduled"),
+    (date(2026, 12, 4), "12/4 고용", "employment", "bls", "scheduled"),
+    (date(2026, 12, 9), "12/8–9 FOMC·SEP", "fomc", "fed", "scheduled"),
+    (date(2027, 1, 27), "1/26–27 FOMC", "fomc", "fed", "tentative"),
+    (date(2027, 3, 17), "3/16–17 FOMC·SEP", "fomc", "fed", "tentative"),
+    (date(2027, 4, 28), "4/27–28 FOMC", "fomc", "fed", "tentative"),
+    (date(2027, 6, 9), "6/8–9 FOMC·SEP", "fomc", "fed", "tentative"),
+    (date(2027, 7, 28), "7/27–28 FOMC", "fomc", "fed", "tentative"),
+    (date(2027, 9, 15), "9/14–15 FOMC·SEP", "fomc", "fed", "tentative"),
+    (date(2027, 10, 27), "10/26–27 FOMC", "fomc", "fed", "tentative"),
+    (date(2027, 12, 8), "12/7–8 FOMC·SEP", "fomc", "fed", "tentative"),
 )
+
+
+def build_event_calendar(
+    asof: date, trading_days: list[date], week_dates: list[date]
+) -> tuple[list[list[Any]], list[dict[str, Any]]]:
+    """Map published events to model weeks and retain out-of-horizon calendar rows."""
+    events: list[list[Any]] = []
+    event_calendar: list[dict[str, Any]] = []
+    for event_date, label, category, source_key, status in MARKET_EVENTS:
+        if event_date < asof:
+            continue
+        source_name, source_url = EVENT_SOURCES[source_key]
+        chart_visible = event_date <= trading_days[-1]
+        event_calendar.append({
+            "date": event_date.isoformat(),
+            "label": label,
+            "category": category,
+            "status": status,
+            "source_name": source_name,
+            "source_url": source_url,
+            "chart_visible": chart_visible,
+        })
+        if chart_visible:
+            nearest = min(
+                range(len(week_dates)),
+                key=lambda index: abs((week_dates[index] - event_date).days),
+            )
+            events.append([nearest, label, 0])
+    return events, event_calendar
 
 # 7/14 수동 시나리오의 닷컴 참조선 모양만 정규화해 최신 앵커에 재기준화한다.
 _ANALOG_VALUES = np.asarray([
@@ -239,6 +285,33 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
             raise ScenarioError(f"scenario {key} values length mismatch")
     if not isinstance(risk, list) or len(risk) != len(weeks):
         raise ScenarioError("scenario risk length mismatch")
+    events = payload.get("events")
+    if not isinstance(events, list) or any(
+        not isinstance(row, list) or len(row) < 3
+        or not isinstance(row[0], (int, float)) or not 0 <= row[0] < len(weeks)
+        or not isinstance(row[1], str) or not isinstance(row[2], int)
+        for row in events
+    ):
+        raise ScenarioError("scenario events must map labels to valid week indexes")
+    event_calendar = payload.get("event_calendar")
+    if event_calendar is not None:
+        if not isinstance(event_calendar, list):
+            raise ScenarioError("scenario event_calendar must be a list")
+        calendar_dates: list[str] = []
+        for event in event_calendar:
+            if not isinstance(event, dict):
+                raise ScenarioError("scenario event_calendar rows must be objects")
+            event_day = _iso_day(event.get("date", "")).isoformat()
+            if event.get("status") not in {"scheduled", "tentative"}:
+                raise ScenarioError("scenario event status must be scheduled or tentative")
+            if not all(isinstance(event.get(key), str) and event[key]
+                       for key in ("label", "category", "source_name", "source_url")):
+                raise ScenarioError("scenario event source metadata is required")
+            if not event["source_url"].startswith("https://"):
+                raise ScenarioError("scenario event sources must use https")
+            calendar_dates.append(event_day)
+        if calendar_dates != sorted(set(calendar_dates)):
+            raise ScenarioError("scenario event_calendar must be ordered and unique")
     _validate_quantile_table(payload.get("quantile_table"), asof)
     return payload
 
@@ -427,11 +500,7 @@ def build_scenario(dates: list[date], closes: list[float], *,
         breach = 0.0 if index < 0 else float((future[:, :index + 1] <= corr10).any(axis=1).mean())
         risk.append("고" if breach >= 0.35 else ("중" if breach >= 0.15 else "저"))
 
-    events = []
-    for row, (event_date, label) in enumerate(EVENTS_2026):
-        if asof <= event_date <= trading_days[-1]:
-            nearest = min(range(len(week_dates)), key=lambda index: abs((week_dates[index] - event_date).days))
-            events.append([nearest, label, row % 2])
+    events, event_calendar = build_event_calendar(asof, trading_days, week_dates)
 
     analog = np.interp(
         np.linspace(0, len(_ANALOG_RATIOS) - 1, len(week_dates)),
@@ -526,6 +595,11 @@ def build_scenario(dates: list[date], closes: list[float], *,
         },
         "risk": risk,
         "events": events,
+        "event_calendar": event_calendar,
+        "event_calendar_note": (
+            "2027 FOMC dates are Federal Reserve tentative dates. "
+            "2027 employment and NVIDIA earnings dates are omitted until officially published."
+        ),
         "model": {
             "lookback_days": min(LOOKBACK_DAYS, len(closes) - 1),
             "horizon_business_days": FORECAST_HORIZON,

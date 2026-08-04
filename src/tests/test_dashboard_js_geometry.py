@@ -58,7 +58,11 @@ const sc={
 console.log(JSON.stringify({
   six:flowHorizonEndIndex(sc,126),
   full:flowHorizonEndIndex(sc,252),
-  ticks:flowAxisTickIndexes(52,7)
+  ticks:flowAxisTickIndexes(52,6),
+  eventLanes:flowEventLayout(
+    [[1,'8/7 고용'],[2,'8/26 NVDA'],[3,'9/4 고용'],[4,'9/15–16 FOMC·SEP']],
+    51,index=>58+index*18,58,1020
+  ).map(row=>row.lane)
 }));
 """
     completed = subprocess.run(
@@ -67,5 +71,7 @@ console.log(JSON.stringify({
     result = json.loads(completed.stdout)
     assert result["six"] == 2
     assert result["full"] == 3
-    assert len(result["ticks"]) == 7
+    assert len(result["ticks"]) == 6
     assert result["ticks"][0] == 0 and result["ticks"][-1] == 51
+    assert len(set(result["eventLanes"])) >= 3
+    assert all(0 <= lane < 5 for lane in result["eventLanes"])

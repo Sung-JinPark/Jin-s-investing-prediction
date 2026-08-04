@@ -333,6 +333,8 @@ def test_forecast_lookup_ui_contract() -> None:
         "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
         'data-flow-horizon="126"', 'data-flow-horizon="252"',
         "2027년까지", "flowHorizonEndIndex", "flowAxisTickIndexes",
+        "2027년까지 주요 일정", "2027년 고용보고서·NVIDIA 실적일은 공식 발표 전",
+        "flowEventLayout", "조회 · ",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
