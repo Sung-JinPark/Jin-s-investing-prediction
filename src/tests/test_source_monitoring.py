@@ -2,8 +2,14 @@ from __future__ import annotations
 
 import json
 from datetime import date, datetime, timezone
+from pathlib import Path
+
+import yaml
 
 from ai_fc.source_monitoring import collect_defillama_health
+
+
+ROOT = Path(__file__).parents[2]
 
 
 def _contract(tmp_path) -> None:
@@ -55,3 +61,15 @@ def test_monitor_counts_consecutive_days_and_is_same_day_idempotent(tmp_path) ->
     assert status["consecutive_successful_days"] == 2
     assert retry == status
     assert changed is False
+
+
+def test_mutable_monitor_status_is_not_registered_as_immutable_archive() -> None:
+    registry = yaml.safe_load(
+        (ROOT / "data/contracts/ledger_registry.yaml").read_text(encoding="utf-8")
+    )["ledgers"]
+    receipts = next(row for row in registry if row["id"] == "source_monitoring")
+    status = next(row for row in registry if row["id"] == "source_monitoring_status")
+    assert receipts["kind"] == "archive_dir"
+    assert receipts["path"].endswith("defillama_stablecoins/*.json")
+    assert status["kind"] == "mutable_snapshot"
+    assert status["path"].endswith("defillama_stablecoins_status.json")

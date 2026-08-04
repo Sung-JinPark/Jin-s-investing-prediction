@@ -148,8 +148,14 @@ ledgers:
     criticality: medium
     schema_ref: json_object
   - id: source_monitoring
-    path: data/source_monitoring/**/*.json
+    path: data/source_monitoring/defillama_stablecoins/*.json
     kind: archive_dir
+    cadence: trading_daily
+    criticality: low
+    schema_ref: json_object
+  - id: source_monitoring_status
+    path: data/source_monitoring/defillama_stablecoins_status.json
+    kind: mutable_snapshot
     cadence: trading_daily
     criticality: low
     schema_ref: json_object
