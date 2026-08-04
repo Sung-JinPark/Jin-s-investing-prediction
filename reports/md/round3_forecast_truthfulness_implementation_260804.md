@@ -62,3 +62,29 @@
 ```text
 ledger audit: accumulating=25 stalled=0 inactive=0 violation=0 planned=3
 ```
+
+## 수용 기준 추적표
+
+| 단계 | 핵심 파일 | diff 요지 | 검증 | 충족 |
+|---|---|---|---|---|
+| B 경로 사실성 | `src/ai_fc/scenario.py`, scenario r3 archive, dashboard JS/CSS | 같은 20,000경로에서 MDD·5/10% pullback·결정적 25/50/75 표본 직렬화 | `test_build_scenario_is_deterministic_and_partitioned`, `test_validate_rejects_path_realism_drift`, UI 문자열 테스트 | ✅ |
+| A 날짜 재기준 | dashboard JS/CSS | `#lookup=&mode=rebase`, D=100, 동일 h 분위수 재인덱싱, 잔여 지평 축소 | `test_rebased_flow_uses_same_horizon_law_and_shortens_remaining_range`, Node syntax, 브라우저 딥링크 | ✅ |
+| E 지평 공시 | `scenario.py`, `band_calibration.csv`, read-model contract | 5개 지평 버킷, n<60 적중률 숨김, 장지평 배지 | `test_horizon_coverage_hides_rates_until_sixty_observations`, lookup UI contract | ✅ |
+| D 캘린더 | `event_calendar.py`, `events.csv`, `calendar_sources.yaml` | D0 6개 원천, append-only supersedes, 53건, 도형 마커·조회 요약 | `test_calendar_contract_and_twelve_month_events_are_registered`, `test_calendar_correction_is_an_appended_superseding_row`, 브라우저 포커스/추정 표식 | ✅ |
+| C 축적 감사 | ledger registry/audit/generated docs, Trust Center UI | 25 accumulating·0 stalled·0 violation·3 planned, 5단계 공개 카드 | audit `--check`, `test_registered_empty_writer_can_report_accumulating_zero_rows`, UI 문자열 테스트 | ✅ |
+
+## 최종 검증
+
+- 전체 테스트: `332 passed in 147.58s`
+- JavaScript 문법: `node --check` 통과
+- 감사 재검사: `accumulating=25 stalled=0 inactive=0 violation=0 planned=3`
+- Pages 산출물: `data.json` 275,486 bytes. Round 2 기준 250,264 bytes 대비 **+25,222 bytes**, 25 KiB(25,600 bytes) 한도 이내.
+- 데스크톱 1280: D=100 원점, 이벤트 도형, 팬 밴드, 잔여 233거래일 문구 확인. 콘솔 오류·경고 0.
+- 모바일 390: `body.scrollWidth=380 ≤ innerWidth=390`; 조회·배지·경로 사실성 카드는 본문 넘침 없음. 1000px SVG는 `.chart-wrap` 내부 의도적 가로 탐색만 허용. 콘솔 오류·경고 0.
+
+검증 캡처:
+
+- `reports/screenshots/round3_rebase_desktop_1280.png`
+- `reports/screenshots/round3_rebase_mobile_390.png`
+- `reports/screenshots/round3_path_realism_mobile_390.png`
+- `reports/screenshots/round3_lookup_coverage_mobile_390.png`
