@@ -27,6 +27,7 @@ CIKS = {
 }
 MODEL_PATH = Path("data/ai_capital_cycle/regime_model.yaml")
 CONTRACT_PATH = Path("data/contracts/ai_capital_cycle.yaml")
+TAG_CHAIN_PATH = Path("data/contracts/sec_tag_chains.yaml")
 CAPEX_LATEST = Path("data/ai_capital_cycle/company_capex_quarterly_latest.json")
 CAPEX_ARCHIVE = Path("data/ai_capital_cycle/company_capex_archive")
 COVERAGE_LATEST = Path("data/ai_capital_cycle/coverage_latest.json")
@@ -59,19 +60,14 @@ def _fetch_companyfacts(cik: str) -> tuple[dict[str, Any], dict[str, Any]]:
     }
 
 
-def _first_tag(facts: dict[str, Any], fallbacks: list[str]) -> tuple[str | None, dict[str, Any] | None]:
-    us_gaap = (facts.get("facts") or {}).get("us-gaap") or {}
-    for tag in fallbacks:
-        if tag in us_gaap:
-            return tag, us_gaap[tag]
-    return None, None
-
-
 def _quarterly_rows(symbol: str, cik: str, metric: str, tag: str,
                     node: dict[str, Any], receipt: dict[str, Any], *, asof: date
                     ) -> list[dict[str, Any]]:
     units = node.get("units") or {}
-    candidates = units.get("USD") or next(iter(units.values()), [])
+    # Companyfacts can expose the same concept in several units.  The D1
+    # contract is USD-only; accepting the first arbitrary unit would silently
+    # mix currencies or shares with dollars.
+    candidates = units.get("USD") or []
     rows = []
     for fact in candidates:
         if fact.get("form") not in ("10-Q", "10-K") or not fact.get("filed"):
@@ -104,6 +100,109 @@ def _quarterly_rows(symbol: str, cik: str, metric: str, tag: str,
     return list(latest_by_period.values())[-8:]
 
 
+def _legacy_tag_groups(contract: dict[str, Any]) -> dict[str, dict[str, Any]]:
+    """Translate the original global contract for backwards-compatible tests."""
+    return {
+        "capex": {"tags": contract["capex_tag_fallbacks"],
+                  "absence_status": "tag_missing"},
+        "operating_cashflow": {
+            "tags": contract["operating_cashflow_tag_fallbacks"],
+            "absence_status": "tag_missing",
+        },
+        "depreciation_amortization": {
+            "tags": contract["depreciation_tag_fallbacks"],
+            "absence_status": "tag_missing",
+        },
+        "debt_issued": {"tags": contract["debt_issued_tag_fallbacks"],
+                        "absence_status": "not_disclosed"},
+    }
+
+
+def _metric_contract(
+    symbol: str, metric: str, *, contract: dict[str, Any], tag_chains: dict[str, Any] | None,
+) -> tuple[list[str], str, int]:
+    legacy = _legacy_tag_groups(contract)[metric]
+    if not tag_chains:
+        return list(legacy["tags"]), str(legacy["absence_status"]), 400
+    company = ((tag_chains.get("companies") or {}).get(symbol) or {})
+    row = company.get(metric) or {}
+    tags = list(row.get("tags") or legacy["tags"])
+    absence = str(row.get("absence_status") or legacy["absence_status"])
+    if absence not in {"tag_missing", "not_disclosed"}:
+        raise MarketExtensionError(
+            f"invalid absence_status for {symbol}.{metric}: {absence}")
+    max_age = int(tag_chains.get("recency_guard_days", 400))
+    if max_age < 1:
+        raise MarketExtensionError("SEC tag recency_guard_days must be positive")
+    return tags, absence, max_age
+
+
+def _select_metric_tag(
+    symbol: str, cik: str, metric: str, facts: dict[str, Any],
+    receipt: dict[str, Any], *, fallbacks: list[str], absence_status: str,
+    max_age_days: int, asof: date,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Select the first fresh USD tag and retain an auditable failure state."""
+    us_gaap = (facts.get("facts") or {}).get("us-gaap") or {}
+    stale: list[dict[str, Any]] = []
+    unsupported: list[dict[str, Any]] = []
+    checked: list[dict[str, Any]] = []
+    for priority, tag in enumerate(fallbacks, start=1):
+        node = us_gaap.get(tag)
+        if not isinstance(node, dict):
+            checked.append({"tag": tag, "priority": priority, "status": "absent"})
+            continue
+        units = sorted((node.get("units") or {}).keys())
+        if "USD" not in units:
+            detail = {"tag": tag, "priority": priority,
+                      "status": "unit_unsupported", "units_found": units}
+            unsupported.append(detail)
+            checked.append(detail)
+            continue
+        rows = _quarterly_rows(
+            symbol, cik, metric, tag, node, receipt, asof=asof)
+        if not rows:
+            checked.append({"tag": tag, "priority": priority,
+                            "status": "no_pit_eligible_facts"})
+            continue
+        max_period = max(date.fromisoformat(row["observation_period"]) for row in rows)
+        age_days = (asof - max_period).days
+        if age_days > max_age_days:
+            detail = {
+                "tag": tag, "priority": priority, "status": "tag_stale",
+                "max_period": max_period.isoformat(), "age_days": age_days,
+            }
+            stale.append(detail)
+            checked.append(detail)
+            continue
+        checked.append({
+            "tag": tag, "priority": priority, "status": "collected",
+            "max_period": max_period.isoformat(), "age_days": age_days,
+        })
+        return rows, {
+            "status": "collected", "taxonomy_tag": tag,
+            "fallbacks_checked": fallbacks, "tag_checks": checked,
+            "max_period": max_period.isoformat(), "recency_days": age_days,
+            "recency_guard_days": max_age_days, "unit": "USD",
+            "coverage_eligible": True,
+        }
+    if stale:
+        failure, status = stale[0], "tag_stale"
+    elif unsupported:
+        failure, status = unsupported[0], "unit_unsupported"
+    else:
+        failure, status = {}, absence_status
+    return [], {
+        "status": status, "taxonomy_tag": failure.get("tag"),
+        "fallbacks_checked": fallbacks, "tag_checks": checked,
+        "max_period": failure.get("max_period"),
+        "recency_days": failure.get("age_days"),
+        "recency_guard_days": max_age_days,
+        "units_found": failure.get("units_found", []),
+        "coverage_eligible": False,
+    }
+
+
 def validate_regime_model(model: dict[str, Any]) -> dict[str, Any]:
     if model.get("probability_space") != "reference_only":
         raise MarketExtensionError("AI regime model must be reference_only")
@@ -120,30 +219,24 @@ def validate_regime_model(model: dict[str, Any]) -> dict[str, Any]:
 def build_ai_capital_cycle(*, model: dict[str, Any], contract: dict[str, Any],
                            companyfacts: dict[str, dict[str, Any]],
                            receipts: dict[str, dict[str, Any]],
-                           asof: date, generated_at: datetime | None = None
+                           asof: date, generated_at: datetime | None = None,
+                           tag_chains: dict[str, Any] | None = None,
                            ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
     validate_regime_model(model)
-    tag_groups = {
-        "capex": contract["capex_tag_fallbacks"],
-        "operating_cashflow": contract["operating_cashflow_tag_fallbacks"],
-        "depreciation_amortization": contract["depreciation_tag_fallbacks"],
-        "debt_issued": contract["debt_issued_tag_fallbacks"],
-    }
+    metric_names = tuple(_legacy_tag_groups(contract))
     records = []
     company_rows = []
     for symbol, cik in CIKS.items():
         facts, receipt = companyfacts[symbol], receipts[symbol]
         metrics = {}
-        for metric, fallbacks in tag_groups.items():
-            tag, node = _first_tag(facts, fallbacks)
-            metrics[metric] = {
-                "status": "reported" if tag else "missing", "taxonomy_tag": tag,
-                "fallbacks_checked": fallbacks,
-            }
-            if tag and node:
-                records.extend(
-                    _quarterly_rows(symbol, cik, metric, tag, node, receipt, asof=asof)
-                )
+        for metric in metric_names:
+            fallbacks, absence_status, max_age = _metric_contract(
+                symbol, metric, contract=contract, tag_chains=tag_chains)
+            metric_rows, metric_state = _select_metric_tag(
+                symbol, cik, metric, facts, receipt, fallbacks=fallbacks,
+                absence_status=absence_status, max_age_days=max_age, asof=asof)
+            metrics[metric] = metric_state
+            records.extend(metric_rows)
         # Companyfacts intentionally excludes issuer-specific segment dimensions.
         eligible_weight = 2.0
         reported_weight = 0.0
@@ -205,12 +298,14 @@ def validate_ai_regime(payload: dict[str, Any]) -> dict[str, Any]:
 def refresh_ai_capital_cycle(root: Path, *, asof: date | None = None) -> dict[str, Any]:
     model = yaml.safe_load((root / MODEL_PATH).read_text(encoding="utf-8"))
     contract = yaml.safe_load((root / CONTRACT_PATH).read_text(encoding="utf-8"))
+    tag_chains = yaml.safe_load((root / TAG_CHAIN_PATH).read_text(encoding="utf-8"))
     facts, receipts = {}, {}
     for symbol, cik in CIKS.items():
         facts[symbol], receipts[symbol] = _fetch_companyfacts(cik)
     cutoff = asof or date.today()
     capex, coverage, regime = build_ai_capital_cycle(
-        model=model, contract=contract, companyfacts=facts, receipts=receipts, asof=cutoff)
+        model=model, contract=contract, tag_chains=tag_chains,
+        companyfacts=facts, receipts=receipts, asof=cutoff)
     capex_result = _persist_json(root, CAPEX_LATEST, CAPEX_ARCHIVE, capex)
     coverage_result = _persist_json(root, COVERAGE_LATEST, COVERAGE_ARCHIVE, coverage)
     regime_result = _persist_json(root, REGIME_LATEST, REGIME_ARCHIVE, regime)
