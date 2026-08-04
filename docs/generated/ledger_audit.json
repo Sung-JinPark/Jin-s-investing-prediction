@@ -1,11 +1,11 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-04T09:32:21+00:00",
+  "generated_at": "2026-08-04T09:41:47+00:00",
   "market_cutoff": "2026-08-03",
   "summary": {
     "accumulating": 27,
-    "stalled": 1,
-    "inactive": 0,
+    "stalled": 0,
+    "inactive": 1,
     "violation": 0,
     "planned": 3,
     "frozen": 1
@@ -594,37 +594,16 @@
       "kind": "singleton",
       "cadence": "weekly",
       "criticality": "high",
-      "status": "stalled",
-      "file_count": 1,
+      "status": "inactive",
+      "file_count": 0,
       "row_count": null,
-      "latest_date": "2026-07-20",
+      "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
       "duplicate_rows": 0,
       "reversed_timestamps": 0,
-      "growth_last_30d": [
-        {
-          "date": "2026-07-13",
-          "count": 1
-        },
-        {
-          "date": "2026-07-15",
-          "count": 2
-        },
-        {
-          "date": "2026-07-17",
-          "count": 3
-        },
-        {
-          "date": "2026-07-19",
-          "count": 4
-        },
-        {
-          "date": "2026-07-20",
-          "count": 5
-        }
-      ]
+      "growth_last_30d": []
     },
     {
       "id": "source_monitoring",
