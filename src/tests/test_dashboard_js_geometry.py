@@ -75,3 +75,42 @@ console.log(JSON.stringify({
     assert result["ticks"][0] == 0 and result["ticks"][-1] == 51
     assert len(set(result["eventLanes"])) >= 3
     assert all(0 <= lane < 5 for lane in result["eventLanes"])
+
+
+def test_rebased_flow_uses_same_horizon_law_and_shortens_remaining_range() -> None:
+    script_path = (
+        Path(__file__).parents[1]
+        / "ai_fc"
+        / "dashboard_parts"
+        / "dashboard.js"
+    )
+    source = script_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"function buildRebasedFlowModel\([\s\S]+?\n}\nfunction rebaseRelativeLabel",
+        source,
+    )
+    assert match, "rebase model builder must remain a standalone testable helper"
+    helper = match.group(0).removesuffix("\nfunction rebaseRelativeLabel")
+    program = helper + r"""
+const days=Array.from({length:20},(_,i)=>`2026-08-${String(i+3).padStart(2,'0')}`);
+const quantiles={};
+['p10','p25','p50','p75','p90'].forEach((key,keyIndex)=>quantiles[key]=Array.from({length:20},(_,i)=>1000+(keyIndex*100)+(i+1)*10));
+const sc={asof:'2026-08-02',anchor:1000,quantile_table:{trading_days:days,quantiles},event_calendar:[]};
+const early=buildRebasedFlowModel(sc,days[0]);
+const middle=buildRebasedFlowModel(sc,days[6]);
+const late=buildRebasedFlowModel(sc,days[15]);
+console.log(JSON.stringify({
+  origins:[early.series.p10[0],middle.series.p50[0],late.series.p90[0]],
+  earlyStep:[early.series.p10[1],early.series.p50[1],early.series.p90[1]],
+  remaining:[early.remaining_trading_days,middle.remaining_trading_days,late.remaining_trading_days],
+  ends:[early.dates.at(-1),middle.dates.at(-1),late.dates.at(-1)]
+}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True, text=True
+    )
+    result = json.loads(completed.stdout)
+    assert result["origins"] == [100, 100, 100]
+    assert result["earlyStep"] == [105, 125, 145]
+    assert result["remaining"] == [19, 13, 4]
+    assert result["ends"] == ["2026-08-22"] * 3

@@ -337,6 +337,9 @@ def test_forecast_lookup_ui_contract() -> None:
         "flowEventLayout", "조회 · ",
         "PATH REALISM · SAME 20,000 PATHS", "실경로 오버레이",
         "묶음 주별 중앙 경로", "이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다",
+        "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
+        "D = 100 · CURRENT MODEL PROPERTY", "#lookup=${mapped.requested}&mode=${lookupMode}",
+        "D일에 실제로 도달했을 때의 새 정보", "D일이 오면 그날의 스냅샷이 새로 계산됩니다",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html

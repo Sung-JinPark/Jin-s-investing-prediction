@@ -988,8 +988,8 @@ function contextTabs(group,current){
 }
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
 function route(){
-  const rawHash=location.hash||'#overview',lookupMatch=rawHash.match(/^#lookup=(\d{4}-\d{2}-\d{2})$/),asofMatch=rawHash.match(/^#asof=(\d{4}-\d{2}-\d{2})$/),labParams=rawHash.startsWith('#lab=')?new URLSearchParams(rawHash.slice(1)):null;
-  const h=lookupMatch||labParams?'flow':(asofMatch?'asof':rawHash.slice(1));const [v,pathArg]=h.split('/');const arg=lookupMatch?{lookup:lookupMatch[1]}:(asofMatch?{mode:'replay',date:asofMatch[1]}:(labParams?{lab:labParams.get('lab'),scenario:labParams.get('scenario')}:pathArg));
+  const rawHash=location.hash||'#overview',lookupParams=rawHash.startsWith('#lookup=')?new URLSearchParams(rawHash.slice(1)):null,lookupDate=lookupParams?.get('lookup'),lookupMatch=lookupDate&&/^\d{4}-\d{2}-\d{2}$/.test(lookupDate),asofMatch=rawHash.match(/^#asof=(\d{4}-\d{2}-\d{2})$/),labParams=rawHash.startsWith('#lab=')?new URLSearchParams(rawHash.slice(1)):null;
+  const h=lookupMatch||labParams?'flow':(asofMatch?'asof':rawHash.slice(1));const [v,pathArg]=h.split('/');const arg=lookupMatch?{lookup:lookupDate,lookupMode:lookupParams.get('mode')==='current'?'current':'rebase'}:(asofMatch?{mode:'replay',date:asofMatch[1]}:(labParams?{lab:labParams.get('lab'),scenario:labParams.get('scenario')}:pathArg));
   closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
   const navView=(v==='q'||v==='compare')?'questions':(v==='ask'?'asof':v);
   document.body.dataset.view=navView;
@@ -1188,9 +1188,11 @@ function renderFlow(initialLookup){
     <div class="lookup-heading"><div><p class="eyebrow">CURRENT-ORIGIN LOOKUP</p><h3 id="lookup-title">현재 기준 미래 분포 조회</h3><p>${esc(sc.asof)}을 원점으로 만든 동일한 분포에서 선택 날짜의 단면을 조회합니다.</p></div><span>NO API · NO STORAGE</span></div>
     <div class="lookup-scope-note"><strong>무엇을 보여주나요?</strong><span>미래 날짜에 새로 만든 전망이 아니라, 현재 스냅샷의 불확실성이 기간에 따라 얼마나 벌어지는지를 보여줍니다. 기본 차트는 6개월이며 이후 날짜를 조회하면 2027년 전체 보기로 전환됩니다.</span></div>
     <div class="lookup-controls"><label for="lookup-date">날짜 선택<input id="lookup-date" type="date" min="${esc(lookupTable.trading_days[0])}" max="${esc(lookupTable.trading_days.at(-1))}" value="${esc(initialLookup||quick.month)}"></label><button type="button" class="lookup-submit">분포 조회</button></div>
+    <div class="lookup-mode-switch" role="group" aria-label="날짜 조회 차트 기준"><button type="button" data-lookup-mode="rebase" aria-pressed="true">선택일을 100으로 재기준</button><button type="button" data-lookup-mode="current" aria-pressed="false">현재 원점 유지</button></div>
     <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['sixMonth','6개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
     <div class="lookup-natural"><label for="lookup-natural">한 줄 날짜 입력<input id="lookup-natural" type="text" maxlength="40" placeholder="8/30 · 8월 30일 · 3개월 뒤 · 연말" autocomplete="off"></label><button type="button" class="lookup-natural-submit">날짜 해석</button><small>정규식 규칙 파서 · LLM 호출 없음</small></div>
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
+    <div class="lookup-rebase-note" role="note" hidden><strong>재기준 분포의 한계</strong><span>이 분포는 오늘(asof) 시점 모델의 성질로 계산한 것입니다. D일에 실제로 도달했을 때의 새 정보(그날의 가격·변동성)는 반영되어 있지 않으며, D일이 오면 그날의 스냅샷이 새로 계산됩니다.</span><small></small></div>
   </section>`:'';
   const eventCalendar=Array.isArray(sc.event_calendar)?sc.event_calendar:[];
   const eventYears=[...new Set(eventCalendar.map(event=>event.date.slice(0,4)))];
@@ -1229,27 +1231,31 @@ function renderFlow(initialLookup){
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
-  let flowFocus='ALL',lookupMarker=null,flowHorizon=126,showFlowSamples=true;
+  let flowFocus='ALL',lookupMarker=null,flowHorizon=126,showFlowSamples=true,lookupMode=initialState.lookupMode==='current'?'current':'rebase';
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
-  const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon)));
-    if(flowTitle)flowTitle.textContent=flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
-  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
+  const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});
+    if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 분포`:flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
+  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   const sampleToggle=p1w.querySelector('[data-flow-samples]');if(sampleToggle)sampleToggle.onclick=()=>{showFlowSamples=!showFlowSamples;sampleToggle.setAttribute('aria-pressed',String(showFlowSamples));paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.onclick=()=>{flowHorizon=Number(button.dataset.flowHorizon);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
-  const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w);
-  const runLookup=requested=>{if(!lookupResult||!lookupInput)return;lookupInput.value=requested||lookupInput.value;
+  const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w),rebaseNote=$('.lookup-rebase-note',p1w);
+  const syncLookupMode=()=>{p1w.querySelectorAll('[data-lookup-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lookupMode===lookupMode)));if(rebaseNote)rebaseNote.hidden=!(lookupMode==='rebase'&&lookupMarker);syncFlowHorizon();};
+  const runLookup=(requested,mode=lookupMode)=>{if(!lookupResult||!lookupInput)return;lookupMode=mode;lookupInput.value=requested||lookupInput.value;
     const mapped=ForecastLookup.mapDate(sc.quantile_table,lookupInput.value,sc.asof);
     lookupResult.innerHTML=mapped.ok?lookupCardMarkup(sc,mapped):lookupErrorMarkup(mapped);
     lookupMarker=mapped.ok?mapped.mapped:null;
-    if(mapped.ok&&mapped.index>=126){flowHorizon=252;syncFlowHorizon();}
+    if(mapped.ok&&mapped.index>=126)flowHorizon=252;
+    if(rebaseNote&&mapped.ok){const remaining=sc.quantile_table.trading_days.length-mapped.index-1;rebaseNote.querySelector('small').textContent=`남은 시뮬 구간 D+${remaining}거래일까지 · ${mapped.mapped} → ${sc.quantile_table.trading_days.at(-1)} · as_of ${sc.asof}`;}
+    syncLookupMode();
     paintFlow(flowFocus);
-    if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}`);
+    if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}&mode=${lookupMode}`);
   };
   const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
   p1w.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
+  p1w.querySelectorAll('[data-lookup-mode]').forEach(button=>button.onclick=()=>{lookupMode=button.dataset.lookupMode;lookupMarker?runLookup(lookupInput.value,lookupMode):(syncLookupMode(),paintFlow(flowFocus));});
   if(lookupInput)lookupInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runLookup(lookupInput.value);}};
   const naturalInput=$('#lookup-natural',p1w),naturalSubmit=$('.lookup-natural-submit',p1w);
   const runNatural=()=>{const parsed=ForecastLookup.parseQuery(naturalInput?.value,sc.asof);if(parsed.ok)runLookup(parsed.date);else{lookupResult.innerHTML=lookupErrorMarkup(parsed);lookupMarker=null;paintFlow(flowFocus);}};
@@ -1617,6 +1623,52 @@ function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
     laneEnds[lane]=labelX+half;
     return {index,label,eventX,labelX,lane};
   });
+}
+function buildRebasedFlowModel(sc,lookupDate){
+  const table=sc?.quantile_table||{},days=Array.isArray(table.trading_days)?table.trading_days:[];
+  const startIndex=days.indexOf(lookupDate);
+  if(startIndex<0||!Number.isFinite(Number(sc?.anchor))||Number(sc.anchor)<=0)return null;
+  const calendarDays=days.slice(startIndex),remaining=Math.max(0,calendarDays.length-1);
+  const offsets=[0];for(let offset=5;offset<=remaining;offset+=5)offsets.push(offset);
+  if(offsets.at(-1)!==remaining)offsets.push(remaining);
+  const quantileKeys=['p10','p25','p50','p75','p90'],series={};
+  quantileKeys.forEach(key=>{const values=table.quantiles?.[key]||[];series[key]=offsets.map(offset=>offset===0?100:Number((Number(values[offset-1])/Number(sc.anchor)*100).toFixed(2)));});
+  const dates=offsets.map(offset=>calendarDays[offset]);
+  const events=(sc.event_calendar||[]).filter(event=>event.date>=lookupDate&&event.date<=dates.at(-1)).map(event=>{
+    let nearest=0,best=Infinity;dates.forEach((date,index)=>{const distance=Math.abs(Date.parse(date)-Date.parse(event.date));if(distance<best){best=distance;nearest=index;}});
+    return {index:nearest,date:event.date,label:event.label||event.title||event.kind||'',status:event.status||'confirmed'};
+  });
+  return {lookup_date:lookupDate,asof:sc.asof,remaining_trading_days:remaining,dates,offsets,series,events};
+}
+function rebaseRelativeLabel(offset,iso){
+  const date=String(iso||'').slice(5).replace('-','/');
+  if(offset===0)return `D · ${date}`;
+  if(offset<15)return `D+${Math.max(1,Math.round(offset/5))}주 · ${date}`;
+  return `D+${Math.max(1,Math.round(offset/21))}개월 · ${date}`;
+}
+function drawRebasedFlow(host,sc,lookupDate){
+  const model=buildRebasedFlowModel(sc,lookupDate);if(!model)return drawFlow(host,sc,'ALL',lookupDate,252,false);
+  const NS='http://www.w3.org/2000/svg',W=1160,H=570,ML=68,MR=92,MT=118,MB=62;
+  const values=['p10','p25','p50','p75','p90'].flatMap(key=>model.series[key]).filter(Number.isFinite);
+  const low=Math.min(...values,100),high=Math.max(...values,100),pad=Math.max(2,(high-low)*.09);
+  const Y0=Math.floor((low-pad)/2)*2,Y1=Math.ceil((high+pad)/2)*2,PW=W-ML-MR,PH=H-MT-MB;
+  const X=index=>ML+PW*index/Math.max(1,model.dates.length-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
+  svg.setAttribute('aria-label',`${sc.asof} 모델 성질을 ${lookupDate} D=100으로 재기준한 조건부 분포, 남은 ${model.remaining_trading_days}거래일`);
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'#5f5d57','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||500});node.textContent=value;return node;};
+  svg.appendChild(tx(ML,28,'D = 100 · CURRENT MODEL PROPERTY',{fill:'#174ea6',fs:13,w:800}));
+  svg.appendChild(tx(ML,50,`선택일 ${lookupDate} · 마지막 산출일 ${model.dates.at(-1)} · 남은 ${model.remaining_trading_days}거래일`,{fill:'#5f6470',fs:12,w:620}));
+  const gridStep=Math.max(2,Math.ceil(((Y1-Y0)/6)/2)*2);for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));svg.appendChild(tx(ML-10,Y(value)+4,String(value),{anc:'end'}));}
+  const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');for(let index=lower.length-1;index>=0;index--)d+='L'+X(index)+','+Y(lower[index])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
+  band(model.series.p90,model.series.p10,'#1f6feb',.10);band(model.series.p75,model.series.p25,'#1f6feb',.18);
+  let median='';model.series.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#174ea6','stroke-width':2.5,'stroke-linejoin':'round'}));
+  svg.appendChild(mk('line',{x1:X(0),y1:MT-8,x2:X(0),y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));svg.appendChild(mk('circle',{cx:X(0),cy:Y(100),r:5,fill:'#1f6feb',stroke:'#fff','stroke-width':2}));svg.appendChild(tx(X(0)+10,Y(100)-9,'D = 100',{fill:'#174ea6',w:800}));
+  flowEventLayout(model.events.map(event=>[event.index,event.label]),model.dates.length-1,X,ML,ML+PW,3).forEach(({label,eventX,labelX,lane})=>{const labelY=76+lane*18;svg.appendChild(mk('line',{x1:eventX,y1:MT-4,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.12)','stroke-width':1,'stroke-dasharray':'2 4'}));svg.appendChild(mk('circle',{cx:eventX,cy:labelY+5,r:2.2,fill:'#6b7280'}));svg.appendChild(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:650}));});
+  flowAxisTickIndexes(model.dates.length,6).forEach(index=>{svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.3)'}));svg.appendChild(tx(X(index),MT+PH+20,rebaseRelativeLabel(model.offsets[index],model.dates[index]),{anc:'middle',fill:index?'#5f5d57':'#174ea6',fs:11,w:index?600:800}));});
+  const readout=document.createElement('div');readout.className='flow-readout rebase-readout';readout.style.setProperty('--flow-count','4');const last=model.dates.length-1;
+  readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · D</small></div>${[['p10','10% 하단'],['p50','중앙값'],['p90','90% 상단']].map(([key,label])=>`<div><span>${label}</span><strong>${num(model.series[key][last])}</strong><small>${model.dates[last]} · 지수 100 기준</small></div>`).join('')}`;
+  host.replaceChildren(svg,readout);
 }
 function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSamples=true){
   const NS='http://www.w3.org/2000/svg';
