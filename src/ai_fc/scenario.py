@@ -926,6 +926,11 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
     if latest.exists() and not force:
         try:
             current = validate_scenario(json.loads(latest.read_text(encoding="utf-8")))
+            if current["asof"] > payload["asof"]:
+                # Yahoo can temporarily lag the already-published completed day.
+                # A scheduled refresh must never move latest backwards or reopen
+                # an older immutable archive with a newly generated distribution.
+                return latest, current, False
             if current["asof"] == payload["asof"]:
                 append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])
                 return latest, current, False

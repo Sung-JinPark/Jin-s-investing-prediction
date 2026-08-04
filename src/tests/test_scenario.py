@@ -270,6 +270,28 @@ def test_refresh_skips_same_completed_market_day(tmp_path: Path, monkeypatch) ->
     assert second == first
 
 
+def test_refresh_never_regresses_when_feed_temporarily_lags(tmp_path: Path, monkeypatch) -> None:
+    days, closes = _series()
+    contract = scenario.load_calendar_contract(Path(__file__).parents[2])
+    contract_path = tmp_path / scenario.CALENDAR_RELATIVE_PATH
+    contract_path.parent.mkdir(parents=True)
+    import yaml
+    contract_path.write_text(yaml.safe_dump(contract), encoding="utf-8")
+    monkeypatch.setattr(
+        scenario.feed, "yahoo_series", lambda *_args, **_kwargs: (days, closes))
+    path, current, changed = scenario.refresh_scenario(tmp_path, asof=days[-1])
+    assert changed is True
+    latest_bytes = path.read_bytes()
+
+    monkeypatch.setattr(
+        scenario.feed, "yahoo_series", lambda *_args, **_kwargs: (days[:-1], closes[:-1]))
+    same_path, recovered, changed = scenario.refresh_scenario(
+        tmp_path, asof=days[-1])
+    assert changed is False
+    assert same_path == path and recovered["asof"] == current["asof"]
+    assert path.read_bytes() == latest_bytes
+
+
 def test_same_asof_archive_is_immutable_without_approved_revision(tmp_path: Path) -> None:
     payload = _build()
     path, persisted, changed = scenario._persist_scenario(tmp_path, payload)
