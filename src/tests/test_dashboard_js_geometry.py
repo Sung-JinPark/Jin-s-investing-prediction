@@ -192,18 +192,32 @@ def test_rebased_flow_uses_same_horizon_law_and_shortens_remaining_range() -> No
         source,
     )
     assert match, "rebase model builder must remain a standalone testable helper"
-    helper = match.group(0).removesuffix("\nfunction rebaseRelativeLabel")
+    display_match = re.search(
+        r"function flowDisplayPath\([\s\S]+?\n}\nfunction flowAxisTickIndexes",
+        source,
+    )
+    assert display_match
+    helper = (
+        display_match.group(0).removesuffix("\nfunction flowAxisTickIndexes")
+        + "\n"
+        + match.group(0).removesuffix("\nfunction rebaseRelativeLabel")
+    )
     program = helper + r"""
 const days=Array.from({length:20},(_,i)=>`2026-08-${String(i+3).padStart(2,'0')}`);
 const quantiles={};
 ['p10','p25','p50','p75','p90'].forEach((key,keyIndex)=>quantiles[key]=Array.from({length:20},(_,i)=>1000+(keyIndex*100)+(i+1)*10));
-const sc={asof:'2026-08-02',anchor:1000,quantile_table:{trading_days:days,quantiles},event_calendar:[]};
+const sc={asof:'2026-08-02',anchor:1000,week_dates:days,quantile_table:{trading_days:days,quantiles},event_calendar:[],paths:{
+  S1:{values:days.map((_,i)=>200+i*2)},S2:{values:days.map((_,i)=>200+i)},S3:{values:days.map((_,i)=>200-i)}
+}};
 const early=buildRebasedFlowModel(sc,days[0]);
 const middle=buildRebasedFlowModel(sc,days[6]);
 const late=buildRebasedFlowModel(sc,days[15]);
 console.log(JSON.stringify({
   origins:[early.series.p10[0],middle.series.p50[0],late.series.p90[0]],
   earlyStep:[early.series.p10[1],early.series.p50[1],early.series.p90[1]],
+  middleStep:middle.series.p50[1],
+  scenarioOrigins:Object.values(early.scenario_series).map(values=>values[0]),
+  scenarioSteps:Object.values(early.scenario_series).map(values=>values[1]),
   remaining:[early.remaining_trading_days,middle.remaining_trading_days,late.remaining_trading_days],
   ends:[early.dates.at(-1),middle.dates.at(-1),late.dates.at(-1)]
 }));
@@ -213,6 +227,9 @@ console.log(JSON.stringify({
     )
     result = json.loads(completed.stdout)
     assert result["origins"] == [100, 100, 100]
-    assert result["earlyStep"] == [105, 125, 145]
+    assert result["earlyStep"] == [104.95, 104.13, 103.55]
+    assert result["middleStep"] == 103.94
+    assert result["scenarioOrigins"] == [100, 100, 100]
+    assert result["scenarioSteps"] == [105, 102.5, 97.5]
     assert result["remaining"] == [19, 13, 4]
     assert result["ends"] == ["2026-08-22"] * 3

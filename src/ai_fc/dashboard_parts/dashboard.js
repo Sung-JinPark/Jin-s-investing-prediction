@@ -1189,14 +1189,14 @@ function renderFlow(initialLookup){
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
-    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 연속 대표 실경로 ${sc.paths[k].prob}%</span>`).join('')}
+    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 모의 표본경로 · 날짜 비예측 ${sc.paths[k].prob}%</span>`).join('')}
     ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     <button type="button" class="flow-sample-toggle" data-flow-samples aria-pressed="true"><i></i>실경로 오버레이</button></div>`;
   const realism=sc.path_realism;
-  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH REALISM · SAME 20,000 PATHS</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가장 가까운 한 개의 연속 실제 경로라 주간 상승·하락이 보존됩니다. 점선 p50은 날짜별 중앙값, 얇은 회색선은 종점 25·75 백분위 실제 경로입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>주별 대표경로 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점이 아닙니다. 현 GBM은 fat tail·AI 자본사이클·돌발 이벤트를 직접 모형화하지 않습니다.</p><small>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로 · 대표경로는 같은 모의 경로 안에서 선택</small></section>`:'';
+  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가까운 모의 표본 하나라 주간 요동을 보여주지만, 9/22 같은 굴곡 날짜에는 사건 예측 의미가 없습니다. 점선 p50이 날짜별 분포 중앙, 얇은 회색선이 다른 연속 표본입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>주별 표본 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 9/22 하락의 원인은 뉴스나 FOMC가 아니라 seed ${num(sc.model?.seed)} 모의 충격이며, 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다.</p><small>as_of ${esc(sc.asof)} · ${num(sc.model?.n_paths)}경로 · 표본 굴곡 날짜와 이벤트 캘린더는 인과 연결 금지</small></section>`:'';
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1210,7 +1210,7 @@ function renderFlow(initialLookup){
     <div class="lookup-chips" aria-label="빠른 날짜">${[['week','1주 뒤'],['month','1개월'],['quarter','3개월'],['sixMonth','6개월'],['yearEnd','연말']].map(([key,label])=>`<button type="button" data-lookup-quick="${esc(quick[key])}">${label}</button>`).join('')}</div>
     <div class="lookup-natural"><label for="lookup-natural">한 줄 날짜 입력<input id="lookup-natural" type="text" maxlength="40" placeholder="8/30 · 8월 30일 · 3개월 뒤 · 연말" autocomplete="off"></label><button type="button" class="lookup-natural-submit">날짜 해석</button><small>정규식 규칙 파서 · LLM 호출 없음</small></div>
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
-    <div class="lookup-rebase-note" role="note" hidden><strong>재기준 분포의 한계</strong><span>이 분포는 오늘(asof) 시점 모델의 성질로 계산한 것입니다. D일에 실제로 도달했을 때의 새 정보(그날의 가격·변동성)는 반영되어 있지 않으며, D일이 오면 그날의 스냅샷이 새로 계산됩니다.</span><small></small></div>
+    <div class="lookup-rebase-note" role="note" hidden><strong>재기준 그래프의 의미</strong><span>선택일 이후의 기존 분위수와 S1/S2/S3 모의 표본을 각각 100으로 다시 표시합니다. 선택일에 새로 계산한 전망은 아니며, D일의 실제 가격·변동성은 D일 스냅샷에서 반영됩니다.</span><small></small></div>
   </section>`:'';
   const eventCalendar=Array.isArray(DATA.calendar_events)&&DATA.calendar_events.length?DATA.calendar_events:(Array.isArray(sc.event_calendar)?sc.event_calendar:[]);
   sc.calendar_events=eventCalendar;
@@ -1230,7 +1230,7 @@ function renderFlow(initialLookup){
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
     ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
-    <p class="chart-note">굵은 선은 종점 중앙에 가까운 연속 대표 실경로이며 확정 가격 경로가 아닙니다. 점선 p50과 구간이 분포의 중심·불확실성을 나타냅니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
+    <p class="chart-note">굵은 선은 조정의 크기와 회복 가능성을 보여주는 모의 표본이며 굴곡 날짜 자체는 예측이 아닙니다. 점선 p50과 구간이 분포의 중심·불확실성을 나타냅니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
@@ -1253,7 +1253,7 @@ function renderFlow(initialLookup){
   let flowFocus='ALL',lookupMarker=null,flowHorizon=126,showFlowSamples=true,lookupMode=initialState.lookupMode==='current'?'current':'rebase';
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
   const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});
-    if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 분포`:flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
+    if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
   const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
@@ -1682,13 +1682,21 @@ function buildRebasedFlowModel(sc,lookupDate){
   const offsets=[0];for(let offset=5;offset<=remaining;offset+=5)offsets.push(offset);
   if(offsets.at(-1)!==remaining)offsets.push(remaining);
   const quantileKeys=['p10','p25','p50','p75','p90'],series={};
-  quantileKeys.forEach(key=>{const values=table.quantiles?.[key]||[];series[key]=offsets.map(offset=>offset===0?100:Number((Number(values[offset-1])/Number(sc.anchor)*100).toFixed(2)));});
+  quantileKeys.forEach(key=>{const values=table.quantiles?.[key]||[],base=Number(values[startIndex]);series[key]=offsets.map(offset=>{
+    const value=Number(values[startIndex+offset]);return offset===0?100:Number((value/base*100).toFixed(2));
+  });});
   const dates=offsets.map(offset=>calendarDays[offset]);
+  const pathDates=Array.isArray(sc.week_dates)?sc.week_dates:[],scenarioSeries={},scenarioBasisDates={};
+  const nearestPathIndex=target=>{let nearest=0,best=Infinity;pathDates.forEach((day,index)=>{const distance=Math.abs(Date.parse(day)-Date.parse(target));if(distance<best){best=distance;nearest=index;}});return nearest;};
+  ['S1','S2','S3'].forEach(key=>{const path=flowDisplayPath(sc,key);if(!pathDates.length||path.length!==pathDates.length)return;
+    const basisIndex=nearestPathIndex(lookupDate),base=Number(path[basisIndex]);if(!Number.isFinite(base)||base<=0)return;
+    scenarioBasisDates[key]=pathDates[basisIndex];scenarioSeries[key]=dates.map((day,index)=>{const value=Number(path[nearestPathIndex(day)]);return index===0?100:Number((value/base*100).toFixed(2));});
+  });
   const events=(sc.calendar_events||sc.event_calendar||[]).filter(event=>event.date>=lookupDate&&event.date<=dates.at(-1)).map(event=>{
     let nearest=0,best=Infinity;dates.forEach((date,index)=>{const distance=Math.abs(Date.parse(date)-Date.parse(event.date));if(distance<best){best=distance;nearest=index;}});
     return {index:nearest,date:event.date,label:event.title||event.label||event.kind||'',status:event.status||'confirmed',kind:event.kind||event.category||'other'};
   });
-  return {lookup_date:lookupDate,asof:sc.asof,remaining_trading_days:remaining,dates,offsets,series,events};
+  return {lookup_date:lookupDate,asof:sc.asof,remaining_trading_days:remaining,dates,offsets,series,scenario_series:scenarioSeries,scenario_basis_dates:scenarioBasisDates,events};
 }
 function rebaseRelativeLabel(offset,iso){
   const date=String(iso||'').slice(5).replace('-','/');
@@ -1698,30 +1706,36 @@ function rebaseRelativeLabel(offset,iso){
 }
 function drawRebasedFlow(host,sc,lookupDate){
   const model=buildRebasedFlowModel(sc,lookupDate);if(!model)return drawFlow(host,sc,'ALL',lookupDate,252,false);
-  const NS='http://www.w3.org/2000/svg',W=1160,H=570,ML=68,MR=92,MT=118,MB=62;
-  const values=['p10','p25','p50','p75','p90'].flatMap(key=>model.series[key]).filter(Number.isFinite);
+  const NS='http://www.w3.org/2000/svg',W=1160,H=610,ML=68,MR=140,MT=145,MB=62;
+  const scenarioKeys=['S1','S2','S3'];
+  const values=[...['p10','p25','p50','p75','p90'].flatMap(key=>model.series[key]),...scenarioKeys.flatMap(key=>model.scenario_series[key]||[])].filter(Number.isFinite);
   const low=Math.min(...values,100),high=Math.max(...values,100),pad=Math.max(2,(high-low)*.09);
   const Y0=Math.floor((low-pad)/2)*2,Y1=Math.ceil((high+pad)/2)*2,PW=W-ML-MR,PH=H-MT-MB;
   const X=index=>ML+PW*index/Math.max(1,model.dates.length-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
-  svg.setAttribute('aria-label',`${sc.asof} 모델 성질을 ${lookupDate} D=100으로 재기준한 조건부 분포, 남은 ${model.remaining_trading_days}거래일`);
+  svg.setAttribute('aria-label',`${sc.asof} 스냅샷의 분위수와 모의 표본을 ${lookupDate} D=100으로 재기준한 경로, 남은 ${model.remaining_trading_days}거래일`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'#5f5d57','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||500});node.textContent=value;return node;};
-  svg.appendChild(tx(ML,28,'D = 100 · CURRENT MODEL PROPERTY',{fill:'#174ea6',fs:13,w:800}));
-  svg.appendChild(tx(ML,50,`선택일 ${lookupDate} · 마지막 산출일 ${model.dates.at(-1)} · 남은 ${model.remaining_trading_days}거래일`,{fill:'#5f6470',fs:12,w:620}));
+  svg.appendChild(tx(ML,25,'D = 100 · CURRENT SNAPSHOT REINDEXED',{fill:'#174ea6',fs:13,w:800}));
+  svg.appendChild(tx(ML,47,`선택일 ${lookupDate} · 마지막 산출일 ${model.dates.at(-1)} · 남은 ${model.remaining_trading_days}거래일 · 선택일 새 전망 아님`,{fill:'#5f6470',fs:12,w:620}));
+  let legendX=ML;scenarioKeys.forEach(key=>{svg.appendChild(mk('line',{x1:legendX,y1:72,x2:legendX+18,y2:72,stroke:CHART_COL[key],'stroke-width':3}));svg.appendChild(tx(legendX+24,76,`${key} 모의 표본 ${sc.paths[key].prob}%`,{fill:CHART_LABEL_COL[key],fs:11,w:750}));legendX+=155;});
+  svg.appendChild(mk('line',{x1:legendX,y1:72,x2:legendX+18,y2:72,stroke:'#174ea6','stroke-width':2,'stroke-dasharray':'4 3'}));svg.appendChild(tx(legendX+24,76,'분위수 p50 · p10–p90',{fill:'#174ea6',fs:11,w:750}));
   const gridStep=Math.max(2,Math.ceil(((Y1-Y0)/6)/2)*2);for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));svg.appendChild(tx(ML-10,Y(value)+4,String(value),{anc:'end'}));}
   const band=(upper,lower,fill,opacity)=>{let d='';upper.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');for(let index=lower.length-1;index>=0;index--)d+='L'+X(index)+','+Y(lower[index])+' ';svg.appendChild(mk('path',{d:d+'Z',fill,opacity}));};
   band(model.series.p90,model.series.p10,'#1f6feb',.10);band(model.series.p75,model.series.p25,'#1f6feb',.18);
-  let median='';model.series.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#174ea6','stroke-width':2.5,'stroke-linejoin':'round'}));
+  let median='';model.series.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#174ea6','stroke-width':2,'stroke-linejoin':'round','stroke-dasharray':'4 3'}));
+  const rightLabels=[];scenarioKeys.forEach(key=>{const path=model.scenario_series[key]||[];if(path.length!==model.dates.length)return;let d='';path.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':key==='S1'?3:2.6,'stroke-linejoin':'round'}));
+    const endValue=path.at(-1);svg.appendChild(mk('circle',{cx:X(path.length-1),cy:Y(endValue),r:4,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.5}));rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)}`,color:CHART_LABEL_COL[key],opacity:1,weight:780,fontSize:11});});
+  resolveEndpointLabels(rightLabels,18,MT+10,MT+PH-10).forEach(item=>{const labelX=ML+PW+18;svg.appendChild(mk('path',{d:`M${ML+PW+4},${item.y} L${ML+PW+10},${item.y} L${labelX-3},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:.7}));const label=tx(labelX,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight});label.setAttribute('paint-order','stroke');label.setAttribute('stroke','#fff');label.setAttribute('stroke-width','4');svg.appendChild(label);});
   svg.appendChild(mk('line',{x1:X(0),y1:MT-8,x2:X(0),y2:MT+PH,stroke:'#1f6feb','stroke-width':2,'stroke-dasharray':'5 3'}));svg.appendChild(mk('circle',{cx:X(0),cy:Y(100),r:5,fill:'#1f6feb',stroke:'#fff','stroke-width':2}));svg.appendChild(tx(X(0)+10,Y(100)-9,'D = 100',{fill:'#174ea6',w:800}));
   const rebasedEvents=groupFlowCalendarEvents(model.events).map(event=>[event.index,flowCalendarEventLabel(event),event]);
-  flowEventLayout(rebasedEvents,model.dates.length-1,X,ML,ML+PW,3).forEach(({label,eventX,labelX,lane,meta})=>{const labelY=71+lane*15,circleY=labelY+5;
+  flowEventLayout(rebasedEvents,model.dates.length-1,X,ML,ML+PW,3).forEach(({label,eventX,labelX,lane,meta})=>{const labelY=99+lane*14,circleY=labelY+5;
     svg.appendChild(mk('line',{x1:eventX,y1:circleY+3,x2:eventX,y2:MT-4,stroke:'rgba(17,17,15,.2)','stroke-width':1,'stroke-dasharray':meta?.status==='estimated'?'2 4':'none'}));
     if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.25)','stroke-width':1}));
     svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.1,fill:'#5f6470'}));const eventText=tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:9,w:700});eventText.setAttribute('paint-order','stroke');eventText.setAttribute('stroke','#fff');eventText.setAttribute('stroke-width','3');svg.appendChild(eventText);});
   flowAxisTickIndexes(model.dates.length,6).forEach(index=>{svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.3)'}));svg.appendChild(tx(X(index),MT+PH+20,rebaseRelativeLabel(model.offsets[index],model.dates[index]),{anc:'middle',fill:index?'#5f5d57':'#174ea6',fs:11,w:index?600:800}));});
-  const readout=document.createElement('div');readout.className='flow-readout rebase-readout';readout.style.setProperty('--flow-count','4');const last=model.dates.length-1;
-  readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · D</small></div>${[['p10','10% 하단'],['p50','중앙값'],['p90','90% 상단']].map(([key,label])=>`<div><span>${label}</span><strong>${num(model.series[key][last])}</strong><small>${model.dates[last]} · 지수 100 기준</small></div>`).join('')}`;
+  const readout=document.createElement('div');readout.className='flow-readout rebase-readout';readout.style.setProperty('--flow-count','5');const last=model.dates.length-1;
+  readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · 새 전망 아님</small></div>${scenarioKeys.map(key=>`<div><span>${key} · ${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(model.scenario_series[key]?.[last])}</strong><small>${model.dates[last]} · 표본경로</small></div>`).join('')}<div><span>조건부 구간</span><strong>${num(model.series.p10[last])}–${num(model.series.p90[last])}</strong><small>p10–p90 · 각각 D=100</small></div>`;
   host.replaceChildren(svg,readout);
 }
 function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSamples=true){
