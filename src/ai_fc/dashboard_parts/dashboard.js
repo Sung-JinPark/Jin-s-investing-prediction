@@ -1189,14 +1189,14 @@ function renderFlow(initialLookup){
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
-    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 묶음 주별 중앙 경로 ${sc.paths[k].prob}%</span>`).join('')}
+    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 연속 대표 실경로 ${sc.paths[k].prob}%</span>`).join('')}
     ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     <button type="button" class="flow-sample-toggle" data-flow-samples aria-pressed="true"><i></i>실경로 오버레이</button></div>`;
   const realism=sc.path_realism;
-  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH REALISM · SAME 20,000 PATHS</p><h3 id="path-realism-title">매끈한 선 아래의 실제 조정</h3><p>굵은 선은 각 묶음의 주별 중앙값이라 개별 경로의 요동이 상쇄됩니다. 얇은 회색선은 종점 25·50·75 백분위에 가장 가까운 실제 경로입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key];return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>중앙 최대낙폭 −${num(row.median_max_drawdown_pct)}%</strong><small>5% 이상 조정 경험 경로 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}% · n=${num(row.sample_count)}</small></article>`;}).join('')}</div><small>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로 · 최대낙폭은 양의 크기로 저장하고 화면에 음수로 표시</small></section>`:'';
+  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH REALISM · SAME 20,000 PATHS</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가장 가까운 한 개의 연속 실제 경로라 주간 상승·하락이 보존됩니다. 점선 p50은 날짜별 중앙값, 얇은 회색선은 종점 25·75 백분위 실제 경로입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)}</span><strong>주별 대표경로 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점이 아닙니다. 현 GBM은 fat tail·AI 자본사이클·돌발 이벤트를 직접 모형화하지 않습니다.</p><small>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로 · 대표경로는 같은 모의 경로 안에서 선택</small></section>`:'';
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1230,7 +1230,7 @@ function renderFlow(initialLookup){
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
     ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
-    <p class="chart-note">굵은 선은 개별 가격 예측이 아니라 시나리오 묶음의 주별 중앙 경로입니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
+    <p class="chart-note">굵은 선은 종점 중앙에 가까운 연속 대표 실경로이며 확정 가격 경로가 아닙니다. 점선 p50과 구간이 분포의 중심·불확실성을 나타냅니다. 차트를 움직이거나 터치하고, 포커스한 뒤 좌우 화살표로 주차를 탐색할 수 있습니다. ${esc(methodCopy)}</p>
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
@@ -1628,6 +1628,22 @@ function flowHorizonEndIndex(sc,horizonDays=126){
   sc.week_dates.forEach((day,index)=>{if(day<=target)end=index;});
   return Math.max(1,Math.min(fullLength-1,end));
 }
+function flowDisplayPath(sc,key){
+  const row=sc?.path_realism?.[key]||{};
+  const explicit=row.representative_path?.values;
+  if(Array.isArray(explicit)&&explicit.length)return explicit;
+  const terminalMedian=(row.sample_paths||[]).find(sample=>Number(sample.terminal_percentile)===50)?.values;
+  if(Array.isArray(terminalMedian)&&terminalMedian.length)return terminalMedian;
+  return Array.isArray(sc?.paths?.[key]?.values)?sc.paths[key].values:[];
+}
+function flowPathStats(values,dates=[]){
+  let peak=null,maxDrawdown=0,downWeeks2027=0;
+  (values||[]).forEach((raw,index)=>{const value=Number(raw);if(!Number.isFinite(value))return;
+    if(peak==null||value>peak)peak=value;else maxDrawdown=Math.max(maxDrawdown,1-value/peak);
+    if(index>0&&value<Number(values[index-1])&&String(dates[index]||'').startsWith('2027-'))downWeeks2027+=1;
+  });
+  return {maxDrawdownPct:Number((maxDrawdown*100).toFixed(1)),downWeeks2027};
+}
 function flowAxisTickIndexes(length,maxTicks=7){
   if(length<=maxTicks)return Array.from({length},(_,index)=>index);
   return [...new Set(Array.from({length:maxTicks},(_,index)=>Math.round(index*(length-1)/(maxTicks-1))))];
@@ -1713,8 +1729,9 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   const W=1160,H=670,ML=58,MR=140,MT=176,MB=34,HCH=586;
   const endIndex=flowHorizonEndIndex(sc,horizonDays),n=endIndex+1,weeks=sc.weeks.slice(0,n),weekDates=(sc.week_dates||[]).slice(0,n),riskValues=sc.risk.slice(0,n);
   const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(0,n):values]));
-  const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).flatMap(row=>(row.values||[]).slice(0,n))):[];
-  const chartValues=[sc.ath,sc.corr10,...['S1','S2','S3'].flatMap(key=>(sc.paths[key]?.values||[]).slice(0,n)),...sampleValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const displayPaths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,flowDisplayPath(sc,key).slice(0,n)]));
+  const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).filter(row=>Number(row.terminal_percentile)!==50).flatMap(row=>(row.values||[]).slice(0,n))):[];
+  const chartValues=[sc.ath,sc.corr10,...Object.values(displayPaths).flat(),...sampleValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
   const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
@@ -1742,8 +1759,8 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
     band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
     if(fan.p50){let median='';fan.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }
-  if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(0,n);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':1.05,'stroke-dasharray':sampleIndex===1?'none':(sampleIndex===0?'3 3':'7 3'),opacity:on?.34:.06,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
-  const rightLabels=[];['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=path.values.slice(0,n),color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
+  if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).filter(row=>Number(row.terminal_percentile)!==50).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(0,n);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':1.05,'stroke-dasharray':sampleIndex===0?'3 3':'7 3',opacity:on?.34:.06,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
+  const rightLabels=[];['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=displayPaths[key],color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));rightLabels.push({key,y:Y(endValue),text:`${num(endValue)} · ${path.prob}%`,color:CHART_LABEL_COL[key],opacity:on?1:.12,weight:750,fontSize:12});});
   rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
@@ -1770,10 +1787,10 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
   const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');let cursorIndex=0;
   const paintCursor=index=>{cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=weeks[cursorIndex],risk=riskValues[cursorIndex];xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
-    ['S1','S2','S3'].forEach((key,markerIndex)=>{cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(sc.paths[key].values[cursorIndex]));});
-    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(key=>`<div><span>${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(sc.paths[key].values[cursorIndex])}</strong><small>경로 가중치 ${sc.paths[key].prob}%</small></div>`).join('')}`;svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel}, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);};
+    ['S1','S2','S3'].forEach((key,markerIndex)=>{cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(displayPaths[key][cursorIndex]));});
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(key=>`<div><span>${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(displayPaths[key][cursorIndex])}</strong><small>경로 가중치 ${sc.paths[key].prob}%</small></div>`).join('')}`;svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel}, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);};
   const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
-  overlay.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';tip.innerHTML=`<b>${weeks[index]}</b> · 변동성 ${riskValues[index]}<br><span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(sc.paths.S1.values[index])}</span><br><span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(sc.paths.S2.values[index])}</span><br><span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(sc.paths.S3.values[index])}</span>`;}});
+  overlay.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';tip.innerHTML=`<b>${weeks[index]}</b> · 변동성 ${riskValues[index]}<br><span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(displayPaths.S1[index])}</span><br><span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(displayPaths.S2[index])}</span><br><span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(displayPaths.S3[index])}</span>`;}});
   overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
   svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}});
   host.replaceChildren(svg,readout);paintCursor(0);

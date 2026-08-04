@@ -309,6 +309,14 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
             if any(not isinstance(item.get("values"), list)
                    or len(item["values"]) != len(weeks) for item in samples):
                 raise ScenarioError("scenario path_realism sample length mismatch")
+            representative = row.get("representative_path")
+            if representative is not None and (
+                not isinstance(representative, dict)
+                or representative.get("terminal_percentile") != 50
+                or representative.get("selection") != "nearest_terminal_median_continuous_path"
+                or representative.get("values") != samples[1].get("values")
+            ):
+                raise ScenarioError("scenario representative path is invalid")
     if not isinstance(risk, list) or len(risk) != len(weeks):
         raise ScenarioError("scenario risk length mismatch")
     events = payload.get("events")
@@ -459,7 +467,7 @@ def _representative(sampled: np.ndarray, mask: np.ndarray,
 
 def _path_realism(sampled: np.ndarray, future: np.ndarray,
                   masks: dict[str, np.ndarray], anchor: float) -> dict[str, Any]:
-    """Summarize actual simulated paths without changing the median scenario lines."""
+    """Summarize actual paths and identify a continuous display representative."""
     result: dict[str, Any] = {
         "basis": "same GBM draw as scenario paths; daily max drawdown; weekly sample paths",
         "selection_rule": (
@@ -476,6 +484,7 @@ def _path_realism(sampled: np.ndarray, future: np.ndarray,
                 "median_max_drawdown_pct": None, "p90_max_drawdown_pct": None,
                 "share_with_5pct_pullback": None,
                 "share_with_10pct_pullback": None, "sample_paths": [],
+                "representative_path": None,
             }
             continue
         daily = np.column_stack((np.full(len(indexes), anchor), future[mask]))
@@ -504,6 +513,10 @@ def _path_realism(sampled: np.ndarray, future: np.ndarray,
             "share_with_5pct_pullback": int(round(float((max_drawdowns >= 5).mean()) * 100)),
             "share_with_10pct_pullback": int(round(float((max_drawdowns >= 10).mean()) * 100)),
             "sample_paths": sample_paths,
+            "representative_path": next(
+                dict(path, selection="nearest_terminal_median_continuous_path")
+                for path in sample_paths if path["terminal_percentile"] == 50
+            ),
         }
     return result
 

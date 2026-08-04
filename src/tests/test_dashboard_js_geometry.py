@@ -144,6 +144,41 @@ console.log(JSON.stringify({
     assert all(0 <= lane < 5 for lane in result["eventLanes"])
 
 
+def test_flow_uses_one_continuous_terminal_median_path_and_keeps_2027_dips() -> None:
+    script_path = (
+        Path(__file__).parents[1]
+        / "ai_fc"
+        / "dashboard_parts"
+        / "dashboard.js"
+    )
+    source = script_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"function flowDisplayPath\([\s\S]+?\n}\nfunction flowAxisTickIndexes",
+        source,
+    )
+    assert match, "display path helpers must remain standalone and testable"
+    helpers = match.group(0).removesuffix("\nfunction flowAxisTickIndexes")
+    program = helpers + r"""
+const sc={
+  paths:{S1:{values:[100,101,102,103]}},
+  path_realism:{S1:{sample_paths:[
+    {terminal_percentile:25,values:[100,90,99,101]},
+    {terminal_percentile:50,values:[100,110,96,108]},
+    {terminal_percentile:75,values:[100,120,111,130]}
+  ]}}
+};
+const values=flowDisplayPath(sc,'S1');
+console.log(JSON.stringify({values,stats:flowPathStats(values,['2026-12-31','2027-01-08','2027-01-15','2027-01-22'])}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8"
+    )
+    result = json.loads(completed.stdout)
+    assert result["values"] == [100, 110, 96, 108]
+    assert result["stats"] == {"maxDrawdownPct": 12.7, "downWeeks2027": 1}
+
+
 def test_rebased_flow_uses_same_horizon_law_and_shortens_remaining_range() -> None:
     script_path = (
         Path(__file__).parents[1]

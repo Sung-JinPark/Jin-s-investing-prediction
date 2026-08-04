@@ -56,6 +56,9 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
         assert [sample["terminal_percentile"] for sample in row["sample_paths"]] == [25, 50, 75]
         assert all(len(sample["values"]) == len(first["weeks"])
                    for sample in row["sample_paths"])
+        assert row["representative_path"]["terminal_percentile"] == 50
+        assert row["representative_path"]["selection"] == "nearest_terminal_median_continuous_path"
+        assert row["representative_path"]["values"] == row["sample_paths"][1]["values"]
         assert 0 <= row["median_max_drawdown_pct"] <= row["p90_max_drawdown_pct"] <= 100
     assert first["anchor"] > 0 and first["corr10"] == pytest.approx(first["ath"] * 0.9, abs=0.01)
     event_calendar = first["event_calendar"]
