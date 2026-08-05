@@ -19,8 +19,14 @@ import yaml
 
 from .quant import feed, mc
 from .market_session import completed_market_cutoff
+from .scenario_structure import (
+    StructuralForecastError,
+    build_structural_forecast,
+    validate_structural_forecast,
+)
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
+SUPPORTED_SCHEMA_VERSIONS = {2, SCHEMA_VERSION}
 LATEST_RELATIVE_PATH = Path("data") / "scenarios" / "nasdaq_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "scenarios" / "archive"
 CALENDAR_RELATIVE_PATH = Path("data") / "contracts" / "nyse_holidays.yaml"
@@ -270,7 +276,8 @@ def _validate_quantile_table(table: Any, asof: date) -> None:
 
 def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
     """대시보드가 신뢰할 수 있는 최소 시나리오 계약을 검증한다."""
-    if payload.get("schema_version") != SCHEMA_VERSION:
+    schema_version = payload.get("schema_version")
+    if schema_version not in SUPPORTED_SCHEMA_VERSIONS:
         raise ScenarioError("unsupported scenario schema_version")
     asof = _iso_day(payload.get("asof", ""))
     if not all(isinstance(payload.get(k), (int, float)) and payload[k] > 0
@@ -347,6 +354,14 @@ def validate_scenario(payload: dict[str, Any]) -> dict[str, Any]:
         if calendar_dates != sorted(set(calendar_dates)):
             raise ScenarioError("scenario event_calendar must be ordered and unique")
     _validate_quantile_table(payload.get("quantile_table"), asof)
+    if schema_version >= 3:
+        try:
+            structural = validate_structural_forecast(
+                payload.get("structural_forecast"), len(weeks))
+        except StructuralForecastError as exc:
+            raise ScenarioError(f"scenario structural_forecast is invalid: {exc}") from exc
+        if structural.get("dates") != payload.get("week_dates"):
+            raise ScenarioError("scenario structural dates must match week_dates")
     return payload
 
 
@@ -369,7 +384,7 @@ def load_latest_scenario(root: Path, fallback: dict[str, Any]) -> dict[str, Any]
             except (OSError, json.JSONDecodeError, ScenarioError):
                 continue
     legacy = deepcopy(fallback)
-    legacy.setdefault("schema_version", SCHEMA_VERSION)
+    legacy.setdefault("schema_version", 2)
     legacy.setdefault("generated_at", "2026-07-15T00:00:00+00:00")
     legacy.setdefault("method", "manual-audited-vintage")
     legacy.setdefault("source", "reports/md/nasdaq_weekly_scenario_v3_1_1_260715.md")
@@ -524,7 +539,8 @@ def _path_realism(sampled: np.ndarray, future: np.ndarray,
 def build_scenario(dates: list[date], closes: list[float], *,
                    generated_at: datetime | None = None,
                    n_paths: int = N_PATHS, seed: int = SEED,
-                   calendar: dict[str, Any] | None = None) -> dict[str, Any]:
+                   calendar: dict[str, Any] | None = None,
+                   structural_root: Path | None = None) -> dict[str, Any]:
     """Build the year-end partition and a 252-session lookup from one GBM draw."""
     if len(dates) != len(closes) or len(closes) < LOOKBACK_DAYS + 1:
         raise ScenarioError("at least 253 aligned daily closes are required")
@@ -712,6 +728,8 @@ def build_scenario(dates: list[date], closes: list[float], *,
             "physical_event 확률과 합산하지 않는다. 목표가·사건확률·투자자문이 아니다."
         ),
     }
+    payload["structural_forecast"] = build_structural_forecast(
+        structural_root or Path(__file__).resolve().parents[2], payload)
     return validate_scenario(payload)
 
 
@@ -919,8 +937,13 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
         raise ScenarioError("Yahoo returned no completed ^IXIC closes")
     dates = [item[0] for item in aligned]
     closes = [item[1] for item in aligned]
+    structural_root = (
+        root if (root / "data/contracts/scenario_structural_forecast.yaml").exists()
+        else Path(__file__).resolve().parents[2]
+    )
     payload = build_scenario(
-        dates, closes, calendar=load_calendar_contract(root))
+        dates, closes, calendar=load_calendar_contract(root),
+        structural_root=structural_root)
 
     latest = root / LATEST_RELATIVE_PATH
     if latest.exists() and not force:
@@ -940,3 +963,30 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
     result = _persist_scenario(root, payload)
     append_band_calibration(root, asof=dates[-1], actual_close=closes[-1])
     return result
+
+
+def upgrade_scenario_structure(root: Path) -> tuple[Path, dict[str, Any], bool]:
+    """Append a v3 structural-path revision without refetching or resimulating.
+
+    The immutable v2 distribution, weights, quantiles, samples and calendar are
+    retained byte-for-value.  Only the additive structural display contract is
+    calculated from committed DB layers.
+    """
+    latest = root / LATEST_RELATIVE_PATH
+    try:
+        current = validate_scenario(json.loads(latest.read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError, ScenarioError) as exc:
+        raise ScenarioError("a valid latest scenario is required for structural upgrade") from exc
+    if current.get("schema_version") == SCHEMA_VERSION and current.get("structural_forecast"):
+        return latest, current, False
+    migrated = deepcopy(current)
+    migrated["schema_version"] = SCHEMA_VERSION
+    migrated["structural_forecast"] = build_structural_forecast(root, migrated)
+    migrated["method"] = "gbm-daily-252d-v2-lookup+db-structural-v1"
+    migrated["note"] = (
+        str(migrated.get("note") or "")
+        + " 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 "
+          "연도별 보정한 구조 경로이며 모의 표본이 아니다. 분포·경로 비중·physical_event "
+          "확률은 서로 결합하지 않는다."
+    ).strip()
+    return _persist_scenario(root, validate_scenario(migrated))

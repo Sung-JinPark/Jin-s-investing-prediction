@@ -28,21 +28,28 @@ from .market_session import completed_market_cutoff
 from .quant import feed
 from . import realty_income
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
+LEGACY_HORIZON_SCHEMA_VERSION = 3
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
 PATH_TRACKING_V2 = Path("data") / "cross_asset" / "path_tracking_v2.csv"
 HISTORY_START = date(1998, 1, 1)
-HISTORY_END = date(2006, 1, 2)
-HISTORY_PERIOD_START_LABEL = "2000-12"
-HISTORY_PERIOD_END_LABEL = "2005-12"
+HISTORY_END = date(2006, 4, 2)
+HISTORY_PERIOD_START_LABEL = "2001-03"
+HISTORY_PERIOD_END_LABEL = "2006-03"
 DOTCOM_PEAK_START = date(2000, 3, 1)
 CURRENT_START = date(2000, 1, 1)
-SCENARIO_IDS = {
+LEGACY_SCENARIO_IDS = {
     "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high",
 }
-ASSET_IDS = {"nasdaq", "bitcoin", "realty_income"}
+COUNTERFACTUAL_CASE_IDS = {
+    "btc_low_beta", "btc_regime_center", "btc_high_beta", "btc_full_beta",
+}
+LEGACY_ASSET_IDS = {"nasdaq", "bitcoin", "realty_income"}
+COUNTERFACTUAL_ASSET_IDS = {
+    "nasdaq", "bitcoin", "realty_income", "realty_income_total_return",
+}
 BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_DAYS = 10
 BOOTSTRAP_SEED = 20260803
@@ -378,7 +385,7 @@ def _transmission_scenarios(
     return scenarios
 
 
-def _forecast_model(
+def _legacy_forecast_model(
     beta_audit: dict[str, Any], sensitivity: dict[str, Any],
     macro_assumptions: dict[str, Any], *, source_snapshot_id: str | None = None,
 ) -> dict[str, Any]:
@@ -441,6 +448,164 @@ def _forecast_model(
     }
 
 
+def _beta_bound(record: dict[str, Any], index: int) -> float:
+    """Return an audited beta interval bound, falling back to the measured center."""
+    interval = record.get("bootstrap_10_90") or [None, None]
+    candidate = interval[index] if len(interval) > index else None
+    value = record.get("used") if candidate is None else candidate
+    return float(np.clip(float(value), -MAX_ABS_BETA, MAX_ABS_BETA))
+
+
+def _btc_counterfactual_path(
+    nasdaq_prices: list[float], *, downside_beta: float, upside_beta: float,
+) -> list[float]:
+    """Map observed monthly NASDAQ log returns into a synthetic BTC path.
+
+    This is deliberately a sensitivity transform rather than a historical BTC
+    backfill. Bitcoin had no market price in the 2001-03..2006-03 window.
+    """
+    returns = _returns(nasdaq_prices)
+    path = [100.0]
+    for market_return in returns:
+        beta = downside_beta if market_return < 0 else upside_beta
+        path.append(path[-1] * float(np.exp(beta * market_return)))
+    return _round_path(path)
+
+
+def _dotcom_counterfactual_model(
+    *, labels: list[str], nasdaq_prices: list[float], nasdaq_index: list[float],
+    o_price_index: list[float], o_total_index: list[float],
+    beta_audit: dict[str, Any], sensitivity: dict[str, Any],
+) -> dict[str, Any]:
+    """Build the 2001-03 anchored observed/counterfactual five-year comparison."""
+    btc = beta_audit["bitcoin"]
+    full, downside = btc["full_252d"], btc["downside_5y"]
+    case_rules = {
+        "btc_low_beta": {
+            "label": "BTC 낮은 동조",
+            "short": "하락월·상승월 모두 bootstrap 10% beta를 적용",
+            "downside_beta": _beta_bound(downside, 0),
+            "upside_beta": _beta_bound(full, 0),
+            "rule": "bootstrap_p10_by_return_sign",
+        },
+        "btc_regime_center": {
+            "label": "BTC 레짐 중심",
+            "short": "NASDAQ 하락월은 downside beta, 상승월은 최근 252일 full beta",
+            "downside_beta": float(downside["used"]),
+            "upside_beta": float(full["used"]),
+            "rule": "measured_center_by_return_sign",
+        },
+        "btc_high_beta": {
+            "label": "BTC 높은 동조 스트레스",
+            "short": "하락월·상승월 모두 bootstrap 90% beta를 적용",
+            "downside_beta": _beta_bound(downside, 1),
+            "upside_beta": _beta_bound(full, 1),
+            "rule": "bootstrap_p90_by_return_sign",
+        },
+        "btc_full_beta": {
+            "label": "BTC 고정 beta",
+            "short": "상승·하락월 구분 없이 최근 252일 full beta를 적용",
+            "downside_beta": float(full["used"]),
+            "upside_beta": float(full["used"]),
+            "rule": "measured_full_252d_all_months",
+        },
+    }
+    low_path = _btc_counterfactual_path(
+        nasdaq_prices,
+        downside_beta=case_rules["btc_low_beta"]["downside_beta"],
+        upside_beta=case_rules["btc_low_beta"]["upside_beta"],
+    )
+    high_path = _btc_counterfactual_path(
+        nasdaq_prices,
+        downside_beta=case_rules["btc_high_beta"]["downside_beta"],
+        upside_beta=case_rules["btc_high_beta"]["upside_beta"],
+    )
+    scenarios: dict[str, Any] = {}
+    for case_id, rule in case_rules.items():
+        bitcoin = _btc_counterfactual_path(
+            nasdaq_prices,
+            downside_beta=rule["downside_beta"],
+            upside_beta=rule["upside_beta"],
+        )
+        scenarios[case_id] = {
+            **rule,
+            "status": "counterfactual_not_observed",
+            "observed_assets": [
+                "nasdaq", "realty_income", "realty_income_total_return",
+            ],
+            "synthetic_assets": ["bitcoin"],
+            "paths": {
+                "nasdaq": list(nasdaq_index),
+                "bitcoin": bitcoin,
+                "realty_income": list(o_price_index),
+                "realty_income_total_return": list(o_total_index),
+            },
+            "paths_band": {
+                "bitcoin": {
+                    "p10": _round_path([
+                        min(low, high) for low, high in zip(low_path, high_path, strict=True)
+                    ]),
+                    "p90": _round_path([
+                        max(low, high) for low, high in zip(low_path, high_path, strict=True)
+                    ]),
+                }
+            },
+            "band_semantics": (
+                "BTC beta bootstrap 10-90 sensitivity envelope; not a confidence "
+                "interval, probability band, observed history, or price forecast."
+            ),
+        }
+    return {
+        "model_kind": "historical_counterfactual",
+        "horizon_months": FORECAST_HORIZON_MONTHS,
+        "labels": list(labels),
+        "elapsed_labels": [f"M+{month}" for month in range(len(labels))],
+        "shock_origin": {
+            "label": "2001-03 = 닷컴 붕괴 진행 기준점",
+            "definition": (
+                "NASDAQ 닷컴 정점 2000-03에서 12개월 지난 실측 월을 100으로 둔다. "
+                "비교 구간은 2001-03부터 2006-03까지 정확히 60개월이다."
+            ),
+            "calendar_date_status": "observed_history",
+        },
+        "default_scenario": "btc_regime_center",
+        "scenarios": scenarios,
+        "beta_audit": deepcopy(beta_audit),
+        "realty_income_sensitivity": {
+            "asof": sensitivity.get("asof"),
+            "status": sensitivity.get("status"),
+            "used_numerically": False,
+            "reason": "Realty Income lines use observed 2001-03..2006-03 prices only.",
+            "beta_rate": deepcopy(sensitivity["beta_rate"]),
+            "beta_credit": deepcopy(sensitivity["beta_credit"]),
+            "dividend_yield_ttm_pct": sensitivity.get("dividend_yield_ttm_pct"),
+            "spread_vs_10y_pp": sensitivity.get("spread_vs_10y_pp"),
+            "spread_percentile_since_2000": sensitivity.get(
+                "spread_percentile_since_2000"),
+            "dividend_monitor": deepcopy(sensitivity.get("dividend_monitor") or {}),
+            "dividend_crosscheck": deepcopy(
+                sensitivity.get("dividend_crosscheck") or {}),
+        },
+        "counterfactual_contract": {
+            "bitcoin_history_status": "not_available_before_2009",
+            "formula": "BTC_t = BTC_(t-1) * exp(beta_regime * NASDAQ_monthly_log_return)",
+            "return_regime": "negative NASDAQ month=downside_5y; nonnegative=full_252d",
+            "source_vintage": sensitivity.get("asof"),
+            "probability_interpretation": "none",
+        },
+        "semantics": (
+            "2001-03~2006-03 NASDAQ와 Realty Income은 실측 경로다. Bitcoin은 당시 "
+            "시장가격이 없으므로 현대 구간에서 측정한 beta를 닷컴기의 NASDAQ 월간 "
+            "로그수익에 적용한 반사실 민감도다. 사건확률·기대수익·단일 가격 제시가 아니다."
+        ),
+        "weights": {
+            "status": "not_applicable",
+            "display": "가중치 없음",
+            "reason": "반사실 민감도 사례를 확률 시나리오처럼 합산하지 않음",
+        },
+    }
+
+
 def _period_bounds(period: Any) -> tuple[str, str]:
     if not isinstance(period, str) or " to " not in period:
         raise CrossAssetError("cross-asset history.period must be 'YYYY-MM to YYYY-MM'")
@@ -450,14 +615,16 @@ def _period_bounds(period: Any) -> tuple[str, str]:
 
 def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
     schema_version = payload.get("schema_version")
-    if schema_version not in {2, SCHEMA_VERSION}:
+    if schema_version not in {2, LEGACY_HORIZON_SCHEMA_VERSION, SCHEMA_VERSION}:
         raise CrossAssetError("unsupported cross-asset schema_version")
     try:
         date.fromisoformat(payload["asof"])
     except (KeyError, TypeError, ValueError) as exc:
         raise CrossAssetError("invalid cross-asset asof") from exc
-    if payload.get("probability_space") != "scenario_conditional":
-        raise CrossAssetError("cross-asset probability_space must be scenario_conditional")
+    expected_space = "reference_only" if schema_version == SCHEMA_VERSION else "scenario_conditional"
+    if payload.get("probability_space") != expected_space:
+        raise CrossAssetError(
+            f"cross-asset probability_space must be {expected_space} for schema {schema_version}")
     if payload.get("unit") != "index_100":
         raise CrossAssetError("cross-asset unit must be index_100")
     history = payload.get("history") or {}
@@ -475,24 +642,72 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
 
     forecast = payload.get("forecast") or {}
     labels = forecast.get("labels") or []
-    horizon = 12 if schema_version == 2 else FORECAST_HORIZON_MONTHS
-    if len(labels) != horizon + 1 or labels != [f"M+{month}" for month in range(horizon + 1)]:
-        raise CrossAssetError(f"cross-asset forecast must contain ordered M0..M{horizon}")
     scenarios = forecast.get("scenarios") or {}
-    if set(scenarios) != SCENARIO_IDS:
-        raise CrossAssetError("cross-asset scenario set mismatch")
-    for scenario in scenarios.values():
-        paths = scenario.get("paths") or {}
-        bands = scenario.get("paths_band") or {}
-        if set(paths) != ASSET_IDS or set(bands) != ASSET_IDS:
-            raise CrossAssetError("cross-asset path or band set mismatch")
-        if any(len(values) != len(labels) for values in paths.values()):
-            raise CrossAssetError("cross-asset path length mismatch")
-        for band in bands.values():
+    if schema_version == SCHEMA_VERSION:
+        if forecast.get("model_kind") != "historical_counterfactual":
+            raise CrossAssetError("schema 4 requires historical_counterfactual model_kind")
+        if history_labels != labels or len(labels) != FORECAST_HORIZON_MONTHS + 1:
+            raise CrossAssetError("counterfactual labels must equal the 61 observed history months")
+        if labels[0] != HISTORY_PERIOD_START_LABEL or labels[-1] != HISTORY_PERIOD_END_LABEL:
+            raise CrossAssetError("counterfactual history must be 2001-03..2006-03")
+        if forecast.get("elapsed_labels") != [
+            f"M+{month}" for month in range(FORECAST_HORIZON_MONTHS + 1)
+        ]:
+            raise CrossAssetError("counterfactual elapsed labels must contain M0..M60")
+        if set(scenarios) != COUNTERFACTUAL_CASE_IDS:
+            raise CrossAssetError("counterfactual case set mismatch")
+        for case in scenarios.values():
+            paths = case.get("paths") or {}
+            bands = case.get("paths_band") or {}
+            if set(paths) != COUNTERFACTUAL_ASSET_IDS or set(bands) != {"bitcoin"}:
+                raise CrossAssetError("counterfactual path or sensitivity-band set mismatch")
+            if any(len(values) != len(labels) for values in paths.values()):
+                raise CrossAssetError("counterfactual path length mismatch")
+            if paths["nasdaq"] != history_series["nasdaq_price"]:
+                raise CrossAssetError("NASDAQ counterfactual baseline must remain observed history")
+            if paths["realty_income"] != history_series["realty_income_price"]:
+                raise CrossAssetError("Realty Income price must remain observed history")
+            if paths["realty_income_total_return"] != history_series[
+                "realty_income_total_return"
+            ]:
+                raise CrossAssetError("Realty Income total return must remain observed history")
+            if case.get("status") != "counterfactual_not_observed":
+                raise CrossAssetError("Bitcoin cases must disclose counterfactual status")
+            if case.get("synthetic_assets") != ["bitcoin"]:
+                raise CrossAssetError("Bitcoin must be the only synthetic asset")
+            band = bands["bitcoin"]
             if set(band) != {"p10", "p90"} or any(
                 len(values) != len(labels) for values in band.values()
             ):
-                raise CrossAssetError("cross-asset band length mismatch")
+                raise CrossAssetError("Bitcoin sensitivity band length mismatch")
+        contract = forecast.get("counterfactual_contract") or {}
+        if contract.get("bitcoin_history_status") != "not_available_before_2009":
+            raise CrossAssetError("pre-2009 Bitcoin data gap disclosure required")
+        if contract.get("probability_interpretation") != "none":
+            raise CrossAssetError("counterfactual comparison cannot expose probability")
+        if (forecast.get("realty_income_sensitivity") or {}).get(
+            "used_numerically") is not False:
+            raise CrossAssetError("current O sensitivities cannot alter observed dotcom history")
+    else:
+        horizon = 12 if schema_version == 2 else FORECAST_HORIZON_MONTHS
+        if len(labels) != horizon + 1 or labels != [
+            f"M+{month}" for month in range(horizon + 1)
+        ]:
+            raise CrossAssetError(f"cross-asset forecast must contain ordered M0..M{horizon}")
+        if set(scenarios) != LEGACY_SCENARIO_IDS:
+            raise CrossAssetError("cross-asset scenario set mismatch")
+        for scenario in scenarios.values():
+            paths = scenario.get("paths") or {}
+            bands = scenario.get("paths_band") or {}
+            if set(paths) != LEGACY_ASSET_IDS or set(bands) != LEGACY_ASSET_IDS:
+                raise CrossAssetError("cross-asset path or band set mismatch")
+            if any(len(values) != len(labels) for values in paths.values()):
+                raise CrossAssetError("cross-asset path length mismatch")
+            for band in bands.values():
+                if set(band) != {"p10", "p90"} or any(
+                    len(values) != len(labels) for values in band.values()
+                ):
+                    raise CrossAssetError("cross-asset band length mismatch")
     weights = forecast.get("weights") or {}
     if not weights.get("status") or not weights.get("display") or not weights.get("reason"):
         raise CrossAssetError("cross-asset weights status/display/reason required")
@@ -501,26 +716,27 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
     sensitivity = forecast.get("realty_income_sensitivity") or {}
     if not all(key in sensitivity for key in ("beta_rate", "beta_credit")):
         raise CrossAssetError("cross-asset Realty Income sensitivity audit required")
-    if forecast.get("macro_assumptions_version") is None:
-        raise CrossAssetError("cross-asset macro assumptions version required")
-    for scenario_id, scenario in scenarios.items():
-        macro = scenario.get("macro_assumptions") or {}
-        if macro.get("status") != "preregistered":
-            raise CrossAssetError(f"{scenario_id} macro assumptions are not preregistered")
-        if any(len(macro.get(key) or []) != len(labels) for key in ("delta_10y_bp", "delta_hy_bp")):
-            raise CrossAssetError(f"{scenario_id} macro assumption path length mismatch")
-        if len((scenario.get("realty_income_attribution") or {}).get("market_beta") or []) != len(labels):
-            raise CrossAssetError(f"{scenario_id} Realty Income attribution length mismatch")
-        if "double-count" not in str(scenario.get("band_semantics") or ""):
-            raise CrossAssetError(f"{scenario_id} band overlap disclosure required")
-        if not scenario.get("realty_income_interpretation"):
-            raise CrossAssetError(f"{scenario_id} Realty Income interpretation required")
-        if schema_version >= 3 and len(scenario.get("phase_notes") or []) != 3:
-            raise CrossAssetError(f"{scenario_id} five-year phase notes required")
-    operator = (forecast.get("operator_decisions") or {}).get(
-        "credit_tail_overlap_damping") or {}
-    if operator.get("status") != "pending_operator_decision" or operator.get("applied") is not False:
-        raise CrossAssetError("credit-tail overlap decision must remain pending and unapplied")
+    if schema_version != SCHEMA_VERSION:
+        if forecast.get("macro_assumptions_version") is None:
+            raise CrossAssetError("cross-asset macro assumptions version required")
+        for scenario_id, scenario in scenarios.items():
+            macro = scenario.get("macro_assumptions") or {}
+            if macro.get("status") != "preregistered":
+                raise CrossAssetError(f"{scenario_id} macro assumptions are not preregistered")
+            if any(len(macro.get(key) or []) != len(labels) for key in ("delta_10y_bp", "delta_hy_bp")):
+                raise CrossAssetError(f"{scenario_id} macro assumption path length mismatch")
+            if len((scenario.get("realty_income_attribution") or {}).get("market_beta") or []) != len(labels):
+                raise CrossAssetError(f"{scenario_id} Realty Income attribution length mismatch")
+            if "double-count" not in str(scenario.get("band_semantics") or ""):
+                raise CrossAssetError(f"{scenario_id} band overlap disclosure required")
+            if not scenario.get("realty_income_interpretation"):
+                raise CrossAssetError(f"{scenario_id} Realty Income interpretation required")
+            if schema_version >= 3 and len(scenario.get("phase_notes") or []) != 3:
+                raise CrossAssetError(f"{scenario_id} five-year phase notes required")
+        operator = (forecast.get("operator_decisions") or {}).get(
+            "credit_tail_overlap_damping") or {}
+        if operator.get("status") != "pending_operator_decision" or operator.get("applied") is not False:
+            raise CrossAssetError("credit-tail overlap decision must remain pending and unapplied")
     conditions = ((payload.get("realty_income") or {}).get("condition_summary") or {}).get(
         "conditions") or []
     if [item.get("id") for item in conditions] != ["C1", "C2", "C3", "C4"]:
@@ -556,12 +772,7 @@ def build_cross_asset(*,
         raise CrossAssetError("cross-asset series length mismatch")
     if len(history_dates) < 24 or len(current_dates) < 253:
         raise CrossAssetError("cross-asset series is too short")
-    if macro_assumptions is None:
-        raise CrossAssetError("preregistered macro assumptions are required")
     try:
-        realty_income.validate_macro_assumptions(macro_assumptions)
-        if set(macro_assumptions.get("scenarios") or {}) != SCENARIO_IDS:
-            raise CrossAssetError("macro assumption scenario set mismatch")
         sensitivity = realty_sensitivity or {}
         if not all(key in sensitivity for key in ("beta_rate", "beta_credit")):
             raise CrossAssetError("measured Realty Income sensitivity is required")
@@ -613,16 +824,13 @@ def build_cross_asset(*,
     nasdaq_index = _normalize(history_nasdaq)
     o_price_index = _normalize(history_o_price)
     o_total_index = _normalize(history_o_adjusted)
-    period_end_index = history_labels.index(HISTORY_PERIOD_END_LABEL)
+    period_end_index = len(history_labels) - 1
     annual = []
-    for year in range(2001, 2006):
-        previous = f"{year - 1}-12"
-        current = f"{year}-12"
-        if previous not in history_labels or current not in history_labels:
-            continue
-        i0, i1 = history_labels.index(previous), history_labels.index(current)
+    for year_index in range(1, 6):
+        i0, i1 = (year_index - 1) * 12, year_index * 12
         annual.append({
-            "year": year,
+            "year": year_index,
+            "period": f"{history_labels[i0]} to {history_labels[i1]}",
             "nasdaq_price_pct": round((history_nasdaq[i1] / history_nasdaq[i0] - 1) * 100, 1),
             "realty_income_price_pct": round((history_o_price[i1] / history_o_price[i0] - 1) * 100, 1),
             "realty_income_total_return_pct": round(
@@ -636,7 +844,7 @@ def build_cross_asset(*,
         "schema_version": SCHEMA_VERSION,
         "asof": current_dates[-1].isoformat(),
         "generated_at": made_at.isoformat(timespec="seconds"),
-        "probability_space": "scenario_conditional",
+        "probability_space": "reference_only",
         "unit": "index_100",
         "anchors": {key: round(float(value), 2) for key, value in anchors.items()},
         "diagnostics": {
@@ -697,7 +905,7 @@ def build_cross_asset(*,
             },
             "bitcoin": {
                 "status": "not_available",
-                "reason": "Bitcoin network launched in 2009; no 2001-2005 market price exists.",
+                "reason": "Bitcoin network launched in 2009; no 2001-03..2006-03 market price exists.",
             },
             "summary": {
                 "nasdaq_price_pct": round(nasdaq_index[period_end_index] - 100, 1),
@@ -719,7 +927,15 @@ def build_cross_asset(*,
                 "status": "source_unavailable", "labels": [], "series": {},
             },
         },
-        "forecast": _forecast_model(beta_audit, sensitivity, macro_assumptions),
+        "forecast": _dotcom_counterfactual_model(
+            labels=history_labels,
+            nasdaq_prices=nasdaq_index,
+            nasdaq_index=nasdaq_index,
+            o_price_index=o_price_index,
+            o_total_index=o_total_index,
+            beta_audit=beta_audit,
+            sensitivity=sensitivity,
+        ),
         "realty_income": {
             "hypothesis": "닷컴형 상승은 완만한 충격·금리 하락·신용 안정·배당 유지의 조건부 결과",
             "conditions_total": 4,
@@ -741,7 +957,10 @@ def build_cross_asset(*,
                 "current": "sp_500_member_since_2015_04",
                 "source_url": "https://www.realtyincome.com/sites/realty-income/files/realty-income/quartly-and-annual/2016/Realty-Income-2016-Proxy-Statement.pdf",
             },
-            "fixed_warning": "O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.",
+            "fixed_warning": (
+                "O 가격·총수익 proxy는 2001-03~2006-03 실측이다. "
+                "BTC만 현대 beta를 적용한 반사실 민감도다."
+            ),
         },
         "receipts": receipts or [],
         "sources": [
@@ -764,8 +983,9 @@ def build_cross_asset(*,
              "url": "https://query1.finance.yahoo.com/v8/finance/chart/IYR"},
         ],
         "limitations": [
-            "AI 버블 충격은 역사적으로 동일한 표본이 없어 조건부 sensitivity로만 표현한다.",
-            "BTC의 주식시장 동조성과 O의 금리 민감도는 국면에 따라 크게 바뀐다.",
+            "2001-03은 닷컴 정점이 아니라 2000-03 정점에서 12개월 지난 붕괴 진행 시점이다.",
+            "Bitcoin은 2009년 이전 실측 가격이 없어 현대 beta를 적용한 반사실 경로로만 표현한다.",
+            "BTC의 주식시장 동조성은 국면에 따라 크게 바뀌며 닷컴기에 같은 beta였다는 증거가 없다.",
             "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다.",
             "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
             "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다.",
@@ -887,23 +1107,133 @@ def upgrade_cross_asset_horizon(
     """
     latest = root / LATEST_RELATIVE_PATH
     current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
-    if current.get("schema_version") == SCHEMA_VERSION:
+    if int(current.get("schema_version") or 0) >= LEGACY_HORIZON_SCHEMA_VERSION:
         return latest, current, False
     assumptions = realty_income.load_macro_assumptions(root)
     old_forecast = current["forecast"]
     migrated = deepcopy(current)
     for field in ("snapshot_id", "revision", "correction_id", "supersedes"):
         migrated.pop(field, None)
-    migrated["schema_version"] = SCHEMA_VERSION
+    migrated["schema_version"] = LEGACY_HORIZON_SCHEMA_VERSION
     migrated["generated_at"] = (generated_at or datetime.now(timezone.utc)).isoformat(
         timespec="seconds")
-    migrated["forecast"] = _forecast_model(
+    migrated["forecast"] = _legacy_forecast_model(
         old_forecast["beta_audit"], old_forecast["realty_income_sensitivity"],
         assumptions, source_snapshot_id=current.get("snapshot_id"),
     )
     migrated["limitations"] = list(migrated.get("limitations") or []) + [
         "5년 조건부 경로는 기존 감사 스냅샷의 beta·O 민감도를 고정하고 사전 등록된 "
         "M24/M36/M48/M60 macro 가정만 확장한 계약 migration이다."
+    ]
+    return _persist_snapshot(root, validate_cross_asset(migrated), force=True)
+
+
+def upgrade_cross_asset_dotcom_counterfactual(
+    root: Path, *, generated_at: datetime | None = None,
+) -> tuple[Path, dict[str, Any], bool]:
+    """Replace the generic future narrative with the requested dotcom comparison.
+
+    Only the two observed monthly history feeds are reacquired. Current beta and
+    Realty Income sensitivity estimates remain pinned to the audited source
+    snapshot, so this migration cannot silently change the modern transmission
+    measurement while changing the historical comparison window.
+    """
+    latest = root / LATEST_RELATIVE_PATH
+    current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
+    if current.get("schema_version") == SCHEMA_VERSION:
+        return latest, current, False
+    history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
+    history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
+    h_n = {day: value for day, value in zip(history_n.dates, history_n.closes)}
+    h_op = {day: value for day, value in zip(history_o.dates, history_o.closes)}
+    h_oa = {day: value for day, value in zip(history_o.dates, history_o.adjusted)}
+    common = sorted(set(h_n) & set(h_op) & set(h_oa))
+    labels = [f"{day.year:04d}-{day.month:02d}" for day in common]
+    if HISTORY_PERIOD_START_LABEL not in labels or HISTORY_PERIOD_END_LABEL not in labels:
+        raise CrossAssetError("required dotcom counterfactual boundary is missing")
+    start, end = labels.index(HISTORY_PERIOD_START_LABEL), labels.index(
+        HISTORY_PERIOD_END_LABEL)
+    common = common[start:end + 1]
+    labels = labels[start:end + 1]
+    nasdaq_raw = [h_n[day] for day in common]
+    o_price_raw = [h_op[day] for day in common]
+    o_total_raw = [h_oa[day] for day in common]
+    nasdaq_index = _normalize(nasdaq_raw)
+    o_price_index = _normalize(o_price_raw)
+    o_total_index = _normalize(o_total_raw)
+    annual = []
+    for year_index in range(1, 6):
+        i0, i1 = (year_index - 1) * 12, year_index * 12
+        annual.append({
+            "year": year_index,
+            "period": f"{labels[i0]} to {labels[i1]}",
+            "nasdaq_price_pct": round((nasdaq_raw[i1] / nasdaq_raw[i0] - 1) * 100, 1),
+            "realty_income_price_pct": round(
+                (o_price_raw[i1] / o_price_raw[i0] - 1) * 100, 1),
+            "realty_income_total_return_pct": round(
+                (o_total_raw[i1] / o_total_raw[i0] - 1) * 100, 1),
+        })
+    migrated = deepcopy(current)
+    for field in ("snapshot_id", "revision", "correction_id", "supersedes"):
+        migrated.pop(field, None)
+    migrated["schema_version"] = SCHEMA_VERSION
+    migrated["generated_at"] = (generated_at or datetime.now(timezone.utc)).isoformat(
+        timespec="seconds")
+    migrated["probability_space"] = "reference_only"
+    migrated["history"] = {
+        "period": f"{labels[0]} to {labels[-1]}",
+        "labels": labels,
+        "series": {
+            "nasdaq_price": nasdaq_index,
+            "realty_income_price": o_price_index,
+            "realty_income_total_return": o_total_index,
+        },
+        "bitcoin": {
+            "status": "not_available",
+            "reason": "Bitcoin network launched in 2009; no 2001-03..2006-03 market price exists.",
+        },
+        "summary": {
+            "nasdaq_price_pct": round(nasdaq_index[-1] - 100, 1),
+            "realty_income_price_pct": round(o_price_index[-1] - 100, 1),
+            "realty_income_total_return_pct": round(o_total_index[-1] - 100, 1),
+            "realty_income_dividend_effect_pp": round(
+                o_total_index[-1] - o_price_index[-1], 1),
+            "nasdaq_from_dotcom_peak": _dotcom_peak_reference(history_n),
+            "annual": annual,
+        },
+        "semantics": (
+            "2001-03=100 actual monthly closes through 2006-03. O total return is "
+            "Yahoo adjusted-close public proxy; tax and transaction costs excluded."
+        ),
+        "preview_1998": deepcopy((current.get("history") or {}).get("preview_1998") or {
+            "status": "source_unavailable", "labels": [], "series": {},
+        }),
+    }
+    old_forecast = current["forecast"]
+    migrated["forecast"] = _dotcom_counterfactual_model(
+        labels=labels,
+        nasdaq_prices=nasdaq_index,
+        nasdaq_index=nasdaq_index,
+        o_price_index=o_price_index,
+        o_total_index=o_total_index,
+        beta_audit=old_forecast["beta_audit"],
+        sensitivity=old_forecast["realty_income_sensitivity"],
+    )
+    migrated["forecast"]["source_snapshot_id"] = current.get("snapshot_id")
+    migrated["receipts"] = list(migrated.get("receipts") or []) + [
+        history_n.receipt, history_o.receipt,
+    ]
+    realty = migrated.get("realty_income") or {}
+    realty["fixed_warning"] = (
+        "O price and total-return proxy are observed 2001-03..2006-03; "
+        "only Bitcoin is counterfactual."
+    )
+    migrated["realty_income"] = realty
+    migrated["limitations"] = [
+        "2001-03은 닷컴 정점이 아니라 2000-03 정점에서 12개월 지난 붕괴 진행 시점이다.",
+        "Bitcoin은 2009년 이전 실측 가격이 없어 현대 beta를 적용한 반사실 경로로만 표현한다.",
+        "BTC의 주식시장 동조성은 국면에 따라 크게 바뀌며 닷컴기에 같은 beta였다는 증거가 없다.",
+        "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다.",
     ]
     return _persist_snapshot(root, validate_cross_asset(migrated), force=True)
 
@@ -984,6 +1314,10 @@ def append_path_tracking_v2(
     byte-stable and a conflicting duplicate is rejected instead of overwritten.
     """
     current = validate_cross_asset(current)
+    if not (root / PATH_TRACKING_V2).exists() and current.get("schema_version") == SCHEMA_VERSION:
+        # Schema 4 is a historical counterfactual reference, not a live forecast
+        # origin. Existing v2 ledgers may keep scoring their immutable legacy origin.
+        return False
     origin = _tracking_origin(root, current)
     current_day = date.fromisoformat(current["asof"])
     origin_day = date.fromisoformat(origin["asof"])
@@ -1189,7 +1523,7 @@ def load_cross_asset(root: Path) -> dict[str, Any]:
             "schema_version": SCHEMA_VERSION,
             "status": "blocked",
             "reason": f"교차자산 스냅샷을 불러오지 못했습니다: {type(exc).__name__}",
-            "probability_space": "scenario_conditional",
+            "probability_space": "reference_only",
             "unit": "index_100",
             "history": {},
             "forecast": {},

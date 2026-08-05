@@ -74,7 +74,7 @@ def test_read_model_shape(repo: Path) -> None:
     assert m["probability_semantics"]["canonical_unit"] == "fraction"
     assert m["calibration"]["gate_v2"]["display_only"] is True
     assert m["era_analog"]["probability_space"] == "reference_only"
-    assert m["cross_asset"]["probability_space"] == "scenario_conditional"
+    assert m["cross_asset"]["probability_space"] == "reference_only"
 
 
 def test_forecast_body_dictionary_round_trip() -> None:
@@ -173,9 +173,9 @@ def test_ui_contract() -> None:
     # 시장 지도 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
     assert "function drawCrossAsset" in html and "function drawCrossAssetHistory" in html
-    assert "사전 등록 가정" in html
+    assert "BTC SENSITIVITY" in html
     assert "조건 4개" in html
-    assert "O 미래선은 가격 경로이며 배당 미포함" in html
+    assert "O 가격선과 총수익 proxy는 2001-03~2006-03 실측" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
     assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
@@ -257,7 +257,7 @@ def test_u1b_future_overlay_unique_questions_and_compare_contract() -> None:
     for title in (
         "향후 12개월 시장 경로는 어떤 분포인가",
         "과거 혁신 사이클은 현재와 얼마나 닮았나",
-        "AI 충격은 NDX·BTC·O로 어떻게 전이되는가",
+        "닷컴 붕괴 뒤 NDX·BTC·O는 어떻게 달라졌을까",
         "AI 자본 사이클을 지금 판정할 수 있는가",
         "유동성 조건은 위험 선호를 지지하는가",
     ):
@@ -428,10 +428,12 @@ def test_workspace_utility_contract() -> None:
     assert "KNN FORWARD · CASE LIST ONLY" in html
     assert "forward n&lt;20" in html and "median emphasis disabled" in html
     assert "run asof" in html
-    assert "전체 표본 중앙 최대낙폭" in html
+    assert "DB-CONDITIONED PATH · MONTHLY RISK WINDOW" in html
+    assert "상승·회복 사이의 조정을 역사 DB로 복원했습니다" in html
     assert "row.median_max_drawdown_pct" in html
     assert "representative_path?.values" not in html
-    assert "표본 n=${num(row.sample_count)}" in html
+    assert "AI 조정 DB" in html and "닷컴 조정 DB" in html
+    assert "data-flow-samples" not in html
     assert "표본 1/2회 미달·이전 β 유지" in html
     assert "gate 경계(n=156)" in html
     assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" in html
@@ -440,11 +442,11 @@ def test_workspace_utility_contract() -> None:
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" in html
     assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
-    assert "BTC DATA GAP · 정상 결측" in html
-    assert "동반 디레버리징" in html and "data-cross-scenario" in html
+    assert "BTC DATA GAP · 2009년 이전 실측 없음" in html
+    assert "BTC SENSITIVITY" in html and "data-cross-scenario" in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
-    assert 'class="cross-anchor-strip"' in html
-    assert "가중치 미산출 — 충격 유형별 캘리브레이션 부족" in html
+    assert 'class="reference-banner history-gap"' in html
+    assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" in html
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
@@ -469,16 +471,16 @@ def test_forecast_lookup_ui_contract() -> None:
         "8월 30일 · 3개월 뒤 · 연말", "정규식 규칙 파서 · LLM 호출 없음",
         "PHYSICAL EVENT · 별도 확률 공간", "시나리오 분포와 결합 금지",
         "현재 기준 미래 분포 조회", "미래 날짜에 새로 만든 전망이 아니라",
-        'data-flow-horizon="126"', 'data-flow-horizon="252"',
-        "2027년까지", "flowHorizonEndIndex", "flowAxisTickIndexes",
+        'data-flow-year="${row.year}"', "2026년 DB 조건부 구조 경로",
+        "2027년까지", "flowYearRange", "flowAxisTickIndexes",
         "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
         "flowEventLayout", "조회 · ",
-        "PATH ILLUSTRATION · DATE IS NOT A FORECAST", "실경로 오버레이",
-        "조건부 중심 경로", "5년 선은 등록된 연차 가정 사이를 연결한 민감도 경로",
-        "특정 9월 하락일은 데이터가 지정한 조정 시점이 아닙니다", "AI 버블 생존확률이나 붕괴 시점으로도 해석하지 않습니다", "flowDisplayPath", "flowPathStats",
+        "DB-CONDITIONED PATH · MONTHLY RISK WINDOW", "DB 조건부 구조 경로",
+        "월 단위 위험창", "2001-03 이후 실제 NASDAQ의 추가 하락·회복",
+        "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다", "AI 버블 붕괴일이 아니라", "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
-        "선택일 이후의 기존 분위수와 S1/S2/S3 모의 표본", "D일 스냅샷에서 반영됩니다",
+        "선택일 이후의 기존 분위수와 S1/S2/S3 DB 조건부 구조 경로", "D일 스냅샷에서 반영됩니다",
         "horizonCoverageForDay", "미검증 구간", "적중 기록 축적 중",
         "inside_p10_p90_rate_pct", "0일 · 0/60",
         "lookupEventSummary", "일정과 분포 확률을 연결하지 않습니다",
@@ -486,7 +488,8 @@ def test_forecast_lookup_ui_contract() -> None:
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
-    assert "mapped.index>=126" in html, "6개월 밖 조회는 전체 지평으로 확장해야 함"
+    assert "flowYear=Number(mapped.mapped.slice(0,4))" in html, "조회 날짜의 연도 차트로 전환해야 함"
+    assert "실경로 오버레이" not in html, "모의 표본을 기본 대표선으로 복원하면 안 됨"
 
 
 def test_u1d_mobile_layout_contract() -> None:
@@ -586,7 +589,7 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "M+3 O 기여", "BTC 초기 12개월 공유 · 이후 분기",
+        "realtyContext.condition_summary", "하락월 β", "Bitcoin만 beta 민감도",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
@@ -599,9 +602,9 @@ def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_vi
     for required in (
         "혁신사이클 대표 참조선 · 확률 아님",
         "data-reference-path':'innovation-cycle'",
-        "특정 9월 하락일은 데이터가 지정한 조정 시점이 아닙니다",
-        "AI 충격 후 5년",
-        "AI 충격 시작점부터 5개년 상대 경로",
+        "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다",
+        "실측 + BTC 반사실",
+        "2001-03부터 2006-03까지 5개년 비교",
         "tickIndexes:[0,12,24,36,48,60]",
     ):
         assert required in html

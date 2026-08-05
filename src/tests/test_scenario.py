@@ -83,6 +83,23 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
                   for key in ("p05", "p10", "p25", "p50", "p75", "p90", "p95")]
         assert values == sorted(values)
     assert first == json.loads(json.dumps(second, ensure_ascii=False, sort_keys=True))
+    assert first["schema_version"] == 3
+    structure = first["structural_forecast"]
+    assert structure["dates"] == first["week_dates"]
+    assert structure["path_kind"] == "structural_forecast_not_random_sample"
+    assert [row["year"] for row in structure["years"]] == [2026, 2027]
+    assert structure["years"][0]["path_diagnostics"]["S1"]["max_drawdown_pct"] <= -10
+    assert structure["years"][1]["path_diagnostics"]["S1"]["max_drawdown_pct"] <= -5
+    assert structure["evidence"]["physical_event"]["used_numerically"] is False
+    assert structure["evidence"]["ai_regime"]["used_numerically"] is False
+    assert structure["guardrails"]["simulation_sample_used_as_display_path"] is False
+
+
+def test_schema2_archive_remains_valid_after_structural_upgrade() -> None:
+    legacy = _build()
+    legacy["schema_version"] = 2
+    legacy.pop("structural_forecast")
+    assert scenario.validate_scenario(legacy)["schema_version"] == 2
 
 
 def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> None:

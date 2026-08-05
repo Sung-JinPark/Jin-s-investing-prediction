@@ -81,7 +81,7 @@ def schema() -> dict[str, Any]:
         "required": ["probability_space", "unit", "history", "forecast"],
         "properties": {
             "status": {"enum": ["ok", "blocked"]},
-            "probability_space": {"const": "scenario_conditional"},
+            "probability_space": {"enum": ["scenario_conditional", "reference_only"]},
             "unit": {"const": "index_100"},
             "history": {"type": "object"},
             "forecast": {"type": "object"},
@@ -91,7 +91,7 @@ def schema() -> dict[str, Any]:
         "type": "object",
         "required": ["schema_version", "asof", "quantile_table", "horizon_coverage"],
         "properties": {
-            "schema_version": {"const": 2},
+            "schema_version": {"enum": [2, 3]},
             "quantile_table": {
                 "type": "object",
                 "required": [

@@ -160,7 +160,11 @@ def test_flow_keeps_center_path_separate_from_continuous_correction_sample() -> 
     helpers = match.group(0).removesuffix("\nfunction flowAxisTickIndexes")
     program = helpers + r"""
 const sc={
+  week_dates:['2026-12-31','2027-01-08','2027-01-15','2027-01-22'],
   paths:{S1:{values:[100,101,102,103]}},
+  structural_forecast:{paths:{S1:{values:[100,96,108,101]}},years:[
+    {year:2026,start_index:0,end_index:0},{year:2027,start_index:1,end_index:3}
+  ]},
   path_realism:{S1:{sample_paths:[
     {terminal_percentile:25,values:[100,90,99,101]},
     {terminal_percentile:50,values:[100,110,96,108]},
@@ -169,15 +173,16 @@ const sc={
 };
 const values=flowDisplayPath(sc,'S1');
 const sample=sc.path_realism.S1.sample_paths[1].values;
-console.log(JSON.stringify({values,centerStats:flowPathStats(values,['2026-12-31','2027-01-08','2027-01-15','2027-01-22']),sampleStats:flowPathStats(sample,['2026-12-31','2027-01-08','2027-01-15','2027-01-22'])}));
+console.log(JSON.stringify({values,year:flowYearRange(sc,2027),centerStats:flowPathStats(values,sc.week_dates),sampleStats:flowPathStats(sample,sc.week_dates)}));
 """
     completed = subprocess.run(
         ["node", "-e", program], check=True, capture_output=True,
         text=True, encoding="utf-8"
     )
     result = json.loads(completed.stdout)
-    assert result["values"] == [100, 101, 102, 103]
-    assert result["centerStats"] == {"maxDrawdownPct": 0, "downWeeks2027": 0}
+    assert result["values"] == [100, 96, 108, 101]
+    assert result["year"] == {"start": 1, "end": 3, "year": 2027}
+    assert result["centerStats"] == {"maxDrawdownPct": 6.5, "downWeeks2027": 2}
     assert result["sampleStats"] == {"maxDrawdownPct": 12.7, "downWeeks2027": 1}
 
 

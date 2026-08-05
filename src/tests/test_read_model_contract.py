@@ -42,7 +42,7 @@ def test_json_schema_lists_all_additive_and_legacy_keys() -> None:
         "const": "reference_only"
     }
     assert contract["properties"]["cross_asset"]["properties"]["probability_space"] == {
-        "const": "scenario_conditional"
+        "enum": ["scenario_conditional", "reference_only"]
     }
     assert contract["properties"]["era_analog"]["properties"]["series"][
         "items"]["required"] == ["id", "overlay_start", "model_anchor"]

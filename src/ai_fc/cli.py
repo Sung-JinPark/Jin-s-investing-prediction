@@ -177,6 +177,24 @@ def cmd_scenario(
     )
 
 
+@app.command("scenario-structure")
+def cmd_scenario_structure() -> None:
+    """기존 분포를 재모의하지 않고 DB 조건부 연도별 구조 경로를 추가한다."""
+    from .scenario import upgrade_scenario_structure
+
+    path, payload, changed = upgrade_scenario_structure(config.ROOT)
+    state = "갱신" if changed else "변경 없음"
+    years = payload["structural_forecast"]["years"]
+    diagnostics = ", ".join(
+        f"{row['year']} S1 {row['path_diagnostics']['S1']['max_drawdown_pct']}%"
+        for row in years
+    )
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"DB 구조 경로 {diagnostics}"
+    )
+
+
 @app.command("cross-asset")
 def cmd_cross_asset(
     asof: str | None = typer.Option(
@@ -184,7 +202,7 @@ def cmd_cross_asset(
     force: bool = typer.Option(
         False, "--force", help="같은 시장 기준일이어도 스냅샷을 다시 생성"),
 ) -> None:
-    """BTC·NASDAQ·Realty Income 조건부 전이 지도를 공개 가격에서 재생성한다."""
+    """닷컴기 실측축과 BTC 반사실 민감도를 공개 가격에서 재생성한다."""
     from .cross_asset import refresh_cross_asset
 
     try:

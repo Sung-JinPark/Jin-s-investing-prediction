@@ -43,15 +43,21 @@ def test_l0_sec_snapshot_regression_constants() -> None:
         assert all(row.get("accession") for row in segment_rows)
 
 
-def test_l0_existing_market_regression_constants_are_unchanged() -> None:
+def test_l0_market_constants_remain_in_immutable_archive_after_new_comparison() -> None:
     cross = _json("data/cross_asset/cross_asset_latest.json")
+    legacy = _json("data/cross_asset/archive/2026-08-03_CORR-260805-013.json")
     scenario = _json("data/scenarios/nasdaq_latest.json")
     summary = cross["history"]["summary"]
+    legacy_summary = legacy["history"]["summary"]
     realism = scenario["path_realism"]["S1"]
     assert len(cross["history"]["labels"]) == 61
-    assert summary["nasdaq_price_pct"] == -10.7
-    assert summary["realty_income_price_pct"] == 73.8
-    assert summary["realty_income_total_return_pct"] == 140.9
+    assert cross["history"]["period"] == "2001-03 to 2006-03"
+    assert summary["nasdaq_price_pct"] == 27.1
+    assert summary["realty_income_price_pct"] == 82.7
+    assert summary["realty_income_total_return_pct"] == 151.5
+    assert legacy_summary["nasdaq_price_pct"] == -10.7
+    assert legacy_summary["realty_income_price_pct"] == 73.8
+    assert legacy_summary["realty_income_total_return_pct"] == 140.9
     assert realism["sample_count"] == 16_702
     assert (
         realism["median_max_drawdown_pct"],

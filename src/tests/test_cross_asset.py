@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -12,6 +13,7 @@ import yaml
 from ai_fc.cross_asset import (
     CrossAssetError,
     append_path_tracking_v2,
+    _legacy_forecast_model,
     _dotcom_peak_reference,
     _persist_receipt_bundle,
     _persist_snapshot,
@@ -67,7 +69,7 @@ def _price_path(count: int, drift: float, wave: float) -> list[float]:
 
 
 def _fixture(*, history_count: int = 61) -> dict:
-    history_dates = _months(2000, 12, history_count)
+    history_dates = _months(2001, 3, history_count)
     current_dates = [date(2020, 1, 1) + timedelta(days=index) for index in range(320)]
     nasdaq = _price_path(320, 0.0004, 0.009)
     bitcoin = _price_path(320, 0.0007, 0.016)
@@ -92,8 +94,14 @@ def _fixture(*, history_count: int = 61) -> dict:
 
 
 def _legacy_v2(model: dict) -> dict:
-    legacy = {**model, "schema_version": 2}
-    forecast = dict(model["forecast"])
+    legacy = deepcopy(model)
+    legacy["schema_version"] = 2
+    legacy["probability_space"] = "scenario_conditional"
+    forecast = _legacy_forecast_model(
+        model["forecast"]["beta_audit"],
+        model["forecast"]["realty_income_sensitivity"],
+        _macro_assumptions(),
+    )
     forecast["horizon_months"] = 12
     forecast["labels"] = forecast["labels"][:13]
     forecast.pop("shock_origin", None)
@@ -122,19 +130,22 @@ def _legacy_v2(model: dict) -> dict:
     return legacy
 
 
-def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
+def test_cross_asset_keeps_observed_history_and_btc_counterfactual_separate() -> None:
     model = _fixture()
-    assert model["probability_space"] == "scenario_conditional"
+    assert model["probability_space"] == "reference_only"
     assert model["history"]["bitcoin"]["status"] == "not_available"
     assert model["history"]["summary"]["nasdaq_price_pct"] == pytest.approx(-28.0)
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(145.0)
-    assert model["forecast"]["weights"]["status"] == "not_estimated"
-    assert model["schema_version"] == 3
+    assert model["forecast"]["weights"]["status"] == "not_applicable"
+    assert model["schema_version"] == 4
+    assert model["forecast"]["model_kind"] == "historical_counterfactual"
     assert model["forecast"]["horizon_months"] == 60
-    assert model["forecast"]["labels"][-1] == "M+60"
-    assert model["forecast"]["shock_origin"]["calendar_date_status"] == "not_forecast"
+    assert model["forecast"]["labels"] == model["history"]["labels"]
+    assert model["forecast"]["labels"][-1] == "2006-03"
+    assert model["forecast"]["elapsed_labels"][-1] == "M+60"
+    assert model["forecast"]["shock_origin"]["calendar_date_status"] == "observed_history"
     assert set(model["forecast"]["scenarios"]) == {
-        "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high"
+        "btc_low_beta", "btc_regime_center", "btc_high_beta", "btc_full_beta"
     }
     assert all(
         len(path) == 61
@@ -142,12 +153,12 @@ def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
         for path in scenario["paths"].values()
     )
     assert all(
-        len(scenario["phase_notes"]) == 3
+        scenario["synthetic_assets"] == ["bitcoin"]
         for scenario in model["forecast"]["scenarios"].values()
     )
 
 
-def test_path_tracking_v2_appends_three_assets_once(tmp_path: Path) -> None:
+def test_historical_counterfactual_never_starts_a_live_path_ledger(tmp_path: Path) -> None:
     model = _fixture()
     _, persisted, _ = _persist_snapshot(tmp_path, model, force=False)
     day = date.fromisoformat(persisted["asof"])
@@ -156,12 +167,8 @@ def test_path_tracking_v2_appends_three_assets_once(tmp_path: Path) -> None:
             [day], [persisted["anchors"][asset]], [persisted["anchors"][asset]], {}, {})
         for asset in ("nasdaq", "bitcoin", "realty_income")
     }
-    assert append_path_tracking_v2(tmp_path, persisted, prices)
     assert not append_path_tracking_v2(tmp_path, persisted, prices)
-    rows = (tmp_path / "data/cross_asset/path_tracking_v2.csv").read_text(
-        encoding="utf-8").splitlines()
-    assert len(rows) == 4
-    assert "origin_snapshot_id" in rows[0]
+    assert not (tmp_path / "data/cross_asset/path_tracking_v2.csv").exists()
     assert all(
         len(bound) == 61
         for scenario in model["forecast"]["scenarios"].values()
@@ -185,10 +192,12 @@ def test_committed_2026_07_31_original_archive_is_byte_immutable() -> None:
     assert hashlib.sha256(canonical).hexdigest() == ORIGINAL_2026_07_31_CANONICAL_SHA256
 
 
-def test_history_explicitly_excludes_2006_01_partial_bar() -> None:
+def test_history_is_exactly_2001_03_to_2006_03_and_excludes_next_bar() -> None:
     model = _fixture(history_count=62)
-    assert model["history"]["labels"][-1] == "2005-12"
-    assert model["history"]["period"] == "2000-12 to 2005-12"
+    assert len(model["history"]["labels"]) == 61
+    assert model["history"]["labels"][0] == "2001-03"
+    assert model["history"]["labels"][-1] == "2006-03"
+    assert model["history"]["period"] == "2001-03 to 2006-03"
     assert model["history"]["summary"]["nasdaq_price_pct"] == pytest.approx(-10.7)
     assert model["history"]["summary"]["realty_income_price_pct"] == pytest.approx(73.8)
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(140.9)
@@ -197,41 +206,55 @@ def test_history_explicitly_excludes_2006_01_partial_bar() -> None:
 
 def test_validator_rejects_period_label_mismatch() -> None:
     model = _fixture()
-    model["history"]["period"] = "2000-12 to 2006-01"
+    model["history"]["period"] = "2001-03 to 2006-04"
     with pytest.raises(CrossAssetError, match="period endpoints"):
         validate_cross_asset(model)
 
 
-def test_beta_regime_is_selected_by_nasdaq_path_level() -> None:
+def test_btc_case_beta_rules_come_from_audited_center_and_bootstrap_bounds() -> None:
     model = _fixture()
-    soft = model["forecast"]["scenarios"]["soft_landing"]
-    deleveraging = model["forecast"]["scenarios"]["deleveraging"]
-    assert soft["beta_regime_by_month"][6] == "full_252d"
-    assert deleveraging["beta_regime_by_month"][6] == "downside_5y"
-    btc_full = model["forecast"]["beta_audit"]["bitcoin"]["full_252d"]
-    assert btc_full["used"] == btc_full["measured"]
-    assert not btc_full["lower_clipped"]
+    audit = model["forecast"]["beta_audit"]["bitcoin"]
+    cases = model["forecast"]["scenarios"]
+    assert cases["btc_low_beta"]["downside_beta"] == audit["downside_5y"]["bootstrap_10_90"][0]
+    assert cases["btc_low_beta"]["upside_beta"] == audit["full_252d"]["bootstrap_10_90"][0]
+    assert cases["btc_regime_center"]["downside_beta"] == audit["downside_5y"]["used"]
+    assert cases["btc_regime_center"]["upside_beta"] == audit["full_252d"]["used"]
+    assert cases["btc_high_beta"]["downside_beta"] == audit["downside_5y"]["bootstrap_10_90"][1]
+    assert cases["btc_high_beta"]["upside_beta"] == audit["full_252d"]["bootstrap_10_90"][1]
 
 
-def test_easing_rotation_allows_divergence_after_initial_shock() -> None:
-    paths = _fixture()["forecast"]["scenarios"]["easing_rotation"]["paths"]
-    assert paths["bitcoin"][3] < 100
-    assert paths["bitcoin"][-1] > paths["nasdaq"][-1]
-    assert paths["realty_income"][-1] > 100
-
-
-def test_five_year_paths_keep_shock_origin_and_annual_checkpoints() -> None:
+def test_observed_assets_are_byte_equal_across_all_btc_cases() -> None:
     model = _fixture()
-    for scenario in model["forecast"]["scenarios"].values():
-        assert all(path[0] == 100 for path in scenario["paths"].values())
-        assert all(len(path) == 61 for path in scenario["paths"].values())
-        assert all(
-            len(scenario["macro_assumptions"][key]) == 61
-            for key in ("delta_10y_bp", "delta_hy_bp")
-        )
-    easing = model["forecast"]["scenarios"]["easing_rotation"]["paths"]
-    assert easing["nasdaq"][3] < easing["nasdaq"][12] < easing["nasdaq"][60]
-    assert easing["bitcoin"][60] > easing["nasdaq"][60]
+    history = model["history"]["series"]
+    for case in model["forecast"]["scenarios"].values():
+        assert case["paths"]["nasdaq"] == history["nasdaq_price"]
+        assert case["paths"]["realty_income"] == history["realty_income_price"]
+        assert case["paths"]["realty_income_total_return"] == history[
+            "realty_income_total_return"]
+
+
+def test_btc_center_path_compounds_observed_nasdaq_monthly_log_returns() -> None:
+    model = _fixture()
+    case = model["forecast"]["scenarios"]["btc_regime_center"]
+    nasdaq = model["history"]["series"]["nasdaq_price"]
+    expected_raw = [100.0]
+    for previous, current in zip(nasdaq[:-1], nasdaq[1:], strict=True):
+        market_return = np.log(current / previous)
+        beta = case["downside_beta"] if market_return < 0 else case["upside_beta"]
+        expected_raw.append(expected_raw[-1] * np.exp(beta * market_return))
+    assert case["paths"]["bitcoin"] == [round(value, 1) for value in expected_raw]
+
+
+def test_five_year_paths_keep_observed_anchor_and_no_btc_history_claim() -> None:
+    model = _fixture()
+    for case in model["forecast"]["scenarios"].values():
+        assert all(path[0] == 100 for path in case["paths"].values())
+        assert case["status"] == "counterfactual_not_observed"
+        assert "probability" in case["band_semantics"]
+    contract = model["forecast"]["counterfactual_contract"]
+    assert contract["bitcoin_history_status"] == "not_available_before_2009"
+    assert contract["probability_interpretation"] == "none"
+    assert model["forecast"]["realty_income_sensitivity"]["used_numerically"] is False
 
 
 def test_horizon_upgrade_reuses_audited_v2_inputs_and_appends_revision(tmp_path: Path) -> None:
@@ -260,40 +283,40 @@ def test_horizon_upgrade_reuses_audited_v2_inputs_and_appends_revision(tmp_path:
     assert upgraded["correction_id"] == "CORR-HORIZON"
 
 
-def test_realty_income_v2_keeps_initial_deleveraging_and_adds_refutation_path() -> None:
-    scenarios = _fixture()["forecast"]["scenarios"]
-    deleveraging = scenarios["deleveraging"]["paths"]["realty_income"]
-    rates_high = scenarios["rates_stay_high"]["paths"]["realty_income"]
-    easing = scenarios["easing_rotation"]["paths"]["realty_income"]
-    assert min(deleveraging[:4]) < 100
-    assert rates_high[-1] < easing[-1]
-    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][12] == 40
-    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][-1] == 10
+def test_realty_income_uses_observed_price_and_total_return_not_current_sensitivity() -> None:
+    model = _fixture()
+    scenarios = model["forecast"]["scenarios"]
+    for case in scenarios.values():
+        assert case["paths"]["realty_income"] == model["history"]["series"][
+            "realty_income_price"]
+        assert case["paths"]["realty_income_total_return"] == model["history"][
+            "series"]["realty_income_total_return"]
+    assert model["forecast"]["realty_income_sensitivity"]["used_numerically"] is False
 
 
-def test_cross_asset_requires_preregistered_macro_assumptions() -> None:
+def test_counterfactual_does_not_consume_generic_future_macro_assumptions() -> None:
     assumptions = _macro_assumptions()
     assumptions["scenarios"]["deleveraging"]["delta_10y_bp"].pop(6)
-    with pytest.raises((CrossAssetError, KeyError)):
-        model = _fixture()
-        build_cross_asset(
-            history_dates=[date.fromisoformat(label + "-01") for label in model["history"]["labels"]],
-            history_nasdaq=model["history"]["series"]["nasdaq_price"],
-            history_o_price=model["history"]["series"]["realty_income_price"],
-            history_o_adjusted=model["history"]["series"]["realty_income_total_return"],
-            current_dates=[date(2020, 1, 1) + timedelta(days=i) for i in range(320)],
-            current_nasdaq=_price_path(320, .0004, .009),
-            current_bitcoin=_price_path(320, .0007, .016),
-            current_o_adjusted=_price_path(320, .00025, .004),
-            anchors={"nasdaq": 1, "bitcoin": 1, "realty_income": 1},
-            macro_assumptions=assumptions,
-            realty_sensitivity=_realty_sensitivity(),
-        )
+    baseline = _fixture()
+    rebuilt = build_cross_asset(
+        history_dates=[date.fromisoformat(label + "-01") for label in baseline["history"]["labels"]],
+        history_nasdaq=baseline["history"]["series"]["nasdaq_price"],
+        history_o_price=baseline["history"]["series"]["realty_income_price"],
+        history_o_adjusted=baseline["history"]["series"]["realty_income_total_return"],
+        current_dates=[date(2020, 1, 1) + timedelta(days=i) for i in range(320)],
+        current_nasdaq=_price_path(320, .0004, .009),
+        current_bitcoin=_price_path(320, .0007, .016),
+        current_o_adjusted=_price_path(320, .00025, .004),
+        anchors={"nasdaq": 1, "bitcoin": 1, "realty_income": 1},
+        macro_assumptions=assumptions,
+        realty_sensitivity=_realty_sensitivity(),
+    )
+    assert "macro_assumptions_version" not in rebuilt["forecast"]
 
 
 def test_cross_asset_validator_rejects_path_length_drift() -> None:
     model = _fixture()
-    model["forecast"]["scenarios"]["soft_landing"]["paths"]["bitcoin"].pop()
+    model["forecast"]["scenarios"]["btc_regime_center"]["paths"]["bitcoin"].pop()
     with pytest.raises(CrossAssetError, match="length"):
         validate_cross_asset(model)
 
@@ -344,7 +367,7 @@ def test_approved_correction_creates_revision_without_overwriting_original(tmp_p
 
 
 def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
-    monthly = _months(2000, 3, 71)
+    monthly = _months(2000, 3, 74)
     daily = []
     cursor = date(2025, 7, 1)
     while cursor <= date(2026, 8, 3):
@@ -450,7 +473,7 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
 
 
 def test_dotcom_peak_reference_returns_measured_drawdown() -> None:
-    rows = [date(2000, 3, 1), date(2005, 12, 1)]
+    rows = [date(2000, 3, 1), date(2006, 3, 1)]
     result = YahooPriceSeriesResult(
         dates=rows, closes=[100.0, 48.2], adjusted=[100.0, 48.2],
         receipt={}, data_quality={"status": "ok"},
