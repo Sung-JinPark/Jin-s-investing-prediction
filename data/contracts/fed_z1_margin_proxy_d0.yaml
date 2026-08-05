@@ -1,0 +1,88 @@
+schema_version: 1
+source_id: fed_z1_margin_proxy
+contract_id: fed_z1_margin_proxy_d0_v1
+batch_id: s0_260805_d0_followup
+stage: D0
+priority: P1
+description: Federal Reserve Z.1 broker-dealer receivables due from customers, used only as a quarterly margin-credit proxy.
+provider: Board of Governors of the Federal Reserve System
+source_tier: official
+endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
+release_page: https://www.federalreserve.gov/releases/z1/release-dates.htm
+series_guide: https://www.federalreserve.gov/apps/fof/SearchResult.aspx?by=All&in=Table&search=663067003
+series_id: FL663067003
+table_id: L.216
+table_line: 36
+cadence: quarterly
+enabled: false
+collector_status: prohibited_until_d0_pass
+registry_status: not_registered_until_d0_pass
+model_use: prohibited
+probability_space: reference_only
+purpose: Low-frequency leverage context for dot-com analog and pre-correction diagnostics while FINRA permission is unresolved.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+storage_policy:
+  mode: append_only_after_activation
+  historical_backfill_vintage: reconstructed
+
+d0:
+  status: monitoring
+  started_at: 2026-08-05
+  window_end_exclusive: 2026-08-19
+  required_observation_days: 14
+  fetch_allowed: true
+  checks:
+    - http_200
+    - content_length_and_etag_stability
+    - series_id_presence
+    - table_and_line_mapping
+    - quarterly_release_timing
+    - schema_and_code_change_detection
+    - revision_behavior
+    - point_in_time_availability
+    - dotcom_history_coverage
+  initial_observation:
+    observed_at: 2026-08-05
+    http_status: 200
+    content_type: application/x-zip-compressed
+    content_length: 8075952
+    etag: "f9bf6262bbf9dc1:0"
+    last_modified: 2026-06-11T16:00:11Z
+    latest_reference_period: 2026-Q1
+    next_release_at: 2026-09-11T12:00:00-04:00
+    raw_payload_committed: false
+
+schema:
+  required_series:
+    - FL663067003
+  expected_units: millions_of_us_dollars
+  seasonal_adjustment: not_seasonally_adjusted
+  frequency: quarterly_end_of_period
+
+point_in_time:
+  observation_period: calendar_quarter_end
+  available_at: Federal Reserve Z.1 public release timestamp, generally 12:00 America/New_York; never the quarter end
+  revision_vintage: native_release_capture_after_activation
+  historical_use: Current-release history is reconstructed and must not be represented as native PIT history.
+
+license:
+  status: public_domain_with_attribution
+  terms_url: https://www.federalreserve.gov/disclaimer.htm
+  redistribution: permitted_for_board_produced_information
+  database_creation: permitted
+  automated_access: permitted_subject_to_reasonable_rate_limits
+  predictive_analytics_use: permitted_for_board_produced_information
+  attribution: Source Board of Governors of the Federal Reserve System, Financial Accounts of the United States Z.1; no Board endorsement implied.
+  caveat: Non-Board third-party material, photos, graphics, trademarks, and separately marked content are excluded.
+
+replacement_policy:
+  role: proxy_not_finra_margin_debt
+  resolution: If FINRA grants written permission covering retrieval, storage, redistribution, and predictive use, replace this proxy with the FINRA series after a separately approved contract migration.
+  comparability_warning: Quarterly broker-dealer customer receivables include margin loans and other receivables and must never be labelled as FINRA monthly margin debt.
+
+activation_gate:
+  - Fourteen calendar days of successful endpoint, schema, code-map, and release-timing monitoring through 2026-08-18.
+  - Confirm FL663067003 coverage through the dot-com comparison window and record revisions as reconstructed vintages.
+  - Contract review and source-registry registration in a separately approved S1 change.
+  - Collector, archive, receipt, PIT, attribution, and proxy-label tests must ship together; model use remains off until then.
+fallback: Preserve the last activated release with a stale flag; never interpolate the quarterly series into a synthetic monthly FINRA value.

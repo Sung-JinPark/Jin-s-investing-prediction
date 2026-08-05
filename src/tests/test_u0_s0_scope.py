@@ -10,10 +10,22 @@ CONTRACT_PATHS = (
     ROOT / "data/contracts/fred_nfci_d0.yaml",
     ROOT / "data/contracts/cftc_cot_bitcoin_d0.yaml",
 )
+FOLLOWUP_PATHS = (
+    ROOT / "data/contracts/fed_z1_margin_proxy_d0.yaml",
+    ROOT / "data/contracts/fred_stlfsi4_d0.yaml",
+)
 
 
 def _contracts() -> list[dict]:
     return [yaml.safe_load(path.read_text(encoding="utf-8")) for path in CONTRACT_PATHS]
+
+
+def _followups() -> list[dict]:
+    return [yaml.safe_load(path.read_text(encoding="utf-8")) for path in FOLLOWUP_PATHS]
+
+
+def _all_contracts() -> list[dict]:
+    return _contracts() + _followups()
 
 
 def test_s0_selects_exactly_three_p1_d0_contracts() -> None:
@@ -29,7 +41,7 @@ def test_s0_selects_exactly_three_p1_d0_contracts() -> None:
 
 
 def test_s0_contracts_are_disabled_and_have_no_collectors() -> None:
-    contracts = _contracts()
+    contracts = _all_contracts()
     assert all(item["enabled"] is False for item in contracts)
     assert all(item["model_use"] == "prohibited" for item in contracts)
     assert all(item["collector_status"] == "prohibited_until_d0_pass" for item in contracts)
@@ -44,6 +56,43 @@ def test_s0_contracts_are_disabled_and_have_no_collectors() -> None:
     for source_id in (item["source_id"] for item in contracts):
         assert source_id not in registry_text
         assert source_id not in source_code
+
+
+def test_s0_followup_keeps_exactly_three_parallel_d0_monitors() -> None:
+    by_id = {item["source_id"]: item for item in _all_contracts()}
+    monitoring = {source_id for source_id, item in by_id.items() if item["d0"]["status"] == "monitoring"}
+
+    assert monitoring == {"cftc_cot_bitcoin", "fed_z1_margin_proxy", "fred_stlfsi4"}
+    assert by_id["finra_margin_statistics"]["d0"]["status"] == "blocked_legal_terms"
+    assert by_id["fred_nfci"]["d0"]["status"] == "legal_review_required"
+    assert all(item["batch_id"] == "s0_260805_d0_followup" for item in _followups())
+    assert all(item["d0"]["fetch_allowed"] is True for item in _followups())
+    assert all(item["d0"]["initial_observation"]["raw_payload_committed"] is False for item in _followups())
+
+
+def test_z1_proxy_is_direct_board_data_and_cannot_masquerade_as_finra() -> None:
+    z1 = {item["source_id"]: item for item in _followups()}["fed_z1_margin_proxy"]
+
+    assert z1["series_id"] == "FL663067003"
+    assert z1["table_id"] == "L.216" and z1["table_line"] == 36
+    assert z1["endpoint"].startswith("https://www.federalreserve.gov/")
+    assert z1["license"]["status"] == "public_domain_with_attribution"
+    assert "never the quarter end" in z1["point_in_time"]["available_at"]
+    assert z1["replacement_policy"]["role"] == "proxy_not_finra_margin_debt"
+    assert "FINRA grants written permission" in z1["replacement_policy"]["resolution"]
+    assert "must never be labelled" in z1["replacement_policy"]["comparability_warning"]
+
+
+def test_stlfsi4_d0_is_ephemeral_and_rights_gated_before_activation() -> None:
+    stl = {item["source_id"]: item for item in _followups()}["fred_stlfsi4"]
+
+    assert stl["series_id"] == "STLFSI4"
+    assert stl["d0"]["fetch_scope"] == "ephemeral_schema_and_release_monitor_only"
+    assert stl["license"]["status"] == "copyrighted_citation_required_activation_review"
+    assert stl["license"]["database_creation"] == "prohibited_pending_source_specific_clarification"
+    assert stl["license"]["predictive_analytics_use"] == "prohibited_pending_source_specific_clarification"
+    assert "following Wednesday" in stl["point_in_time"]["available_at"]
+    assert "committing raw payloads" in stl["activation_gate"][0]
 
 
 def test_finra_and_nfci_are_legal_gated_before_fetch() -> None:
