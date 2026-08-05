@@ -13,6 +13,12 @@ const p1=v=>(hasNumeric(v)?v+'%':'산출 전');
 const roundLabel=v=>(Number(v)>0?`R${v}`:'회차 없음');
 const num=v=>(v==null?'—':Number(v).toLocaleString());
 const esc=s=>(s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
+const UI_TERMS={
+  as_of:'데이터 기준일',ATH:'사상 최고치',GBM:'고정 가정 경로 모형',p10_p90:'넓은 구간',p25_p75:'중심 구간',p50:'중앙값',
+  scenario_conditional:'시나리오 안의 조건부 값',physical_event:'사전등록 사건 확률',reference_only:'참고용',probability_space:'확률의 종류',
+  path_realism:'경로 현실성 검사',hazard:'위험 구간',regime:'시장 국면',coverage:'확보된 입력 비율',blocked:'판정 보류',vintage:'당시 공개본',PIT:'당시 정보 기준',reconstructed:'사후 복원 자료'
+};
+const plainTerm=value=>UI_TERMS[value]||value;
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function mount(root){
   cleanupExperienceLayer();closeQuickPeek();
@@ -994,7 +1000,7 @@ function enhanceChartScroll(root=document){
 }
 function contextTabs(group,current){
   const groups={
-    research:[['questions','질문 목록','#records'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
+    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
     replay:[['ask','기간 조회','#future/lookup'],['asof','AS-OF 타임머신','#records/journal']],
     track:[['track','요약과 Calibration','#trust']]
   };
@@ -1013,7 +1019,7 @@ function legacyRouteRedirect(rawHash){
   if(rawHash==='#questions')return '#records';
   if(rawHash==='#ask')return '#future/lookup';
   if(rawHash==='#asof')return '#records/journal';
-  if(rawHash==='#track')return '#trust';
+  if(rawHash==='#track')return '#records/performance';
   if(rawHash.startsWith('#q/'))return `#records/question/${rawHash.slice(3)}`;
   if(rawHash.startsWith('#compare/'))return `#records/compare/${rawHash.slice(9)}`;
   if(rawHash.startsWith('#asof/'))return `#records/journal/question/${rawHash.slice(6)}`;
@@ -1039,6 +1045,7 @@ function parseCanonicalRoute(rawHash){
     return {section:'future',view:'flow'};
   }
   if(parts[0]==='records'){
+    if(parts[1]==='performance')return {section:'records',view:'track',arg:{trackMode:'performance'}};
     if(parts[1]==='question'&&parts[2])return {section:'records',view:'q',arg:parts.slice(2).join('/')};
     if(parts[1]==='compare'&&parts[2])return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
     if(parts[1]==='journal'){
@@ -1048,7 +1055,7 @@ function parseCanonicalRoute(rawHash){
     }
     return {section:'records',view:'questions'};
   }
-  if(parts[0]==='trust')return {section:'trust',view:'track'};
+  if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust'}};
   return {section:'today',view:'overview'};
 }
 function route(){
@@ -1254,10 +1261,11 @@ function renderFlow(initialLookup){
   const eventCalendar=Array.isArray(DATA.calendar_events)&&DATA.calendar_events.length?DATA.calendar_events:(Array.isArray(sc.event_calendar)?sc.event_calendar:[]);
   sc.calendar_events=eventCalendar;
   const eventYears=[...new Set(eventCalendar.map(event=>event.date.slice(0,4)))];
+  const eventCounts={confirmed:eventCalendar.filter(event=>event.status!=='estimated').length,estimated:eventCalendar.filter(event=>event.status==='estimated').length};
   const evRibbon=eventCalendar.length?`<section class="market-event-calendar" aria-labelledby="market-event-title">
-    <div class="market-event-head"><div><p class="eyebrow">MARKET CALENDAR · APPEND ONLY</p><h3 id="market-event-title">2027년까지 주요 일정</h3></div><p>확정·추정 분리 · 전망성 해석 제외</p></div>
-    ${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'공식 일정 + 추정 분리':'기관·기업 공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>{const meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;return `<article class="event-card event-${esc(event.kind)} ${event.status==='estimated'?'is-estimated':''}" tabindex="0"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-shape" aria-hidden="true">${meta[1]}</span><span class="event-status ${event.status==='estimated'?'is-estimated':''}">${event.status==='estimated'?'추정':'확정'}</span></div><strong>${esc(event.title||event.label)}</strong><small>${esc(event.time_et?`${event.time_et} ET · `:'')}${esc(event.ticker||meta[0])}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">공식 근거 ↗</a></article>`;}).join('')}</div></div>`).join('')}
-    <p class="market-event-note">확정은 기관·기업이 날짜를 공개한 일정, 추정은 과거 발표 월 패턴 또는 연준의 공식 잠정 일정입니다. 마커는 정보 제공용이며 이벤트와 분포 확률을 연결하지 않습니다.</p>
+    <div class="market-event-head"><div><p class="eyebrow">MARKET CALENDAR · APPEND ONLY</p><h3 id="market-event-title">2027년까지 주요 일정</h3><p>확정·추정 분리 · 전망성 해석 제외</p></div><button type="button" class="event-summary-chip" data-event-summary-toggle data-badge-type="event-summary" aria-expanded="false"><strong>확정 ${eventCounts.confirmed} · 추정 ${eventCounts.estimated}</strong><span>일정 펼치기</span></button></div>
+    <div class="market-event-details" data-event-details hidden>${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'공식 일정 + 추정 분리':'기관·기업 공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>{const meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;return `<article class="event-card event-${esc(event.kind)} ${event.status==='estimated'?'is-estimated':''}" tabindex="0"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-shape" aria-hidden="true">${meta[1]}</span></div><strong>${esc(event.title||event.label)}</strong><small>${event.status==='estimated'?'추정 · ':'확정 · '}${esc(event.time_et?`${event.time_et} ET · `:'')}${esc(event.ticker||meta[0])}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">공식 근거 ↗</a></article>`;}).join('')}</div></div>`).join('')}
+      <p class="market-event-note">확정은 기관·기업이 날짜를 공개한 일정, 추정은 과거 발표 월 패턴 또는 연준의 공식 잠정 일정입니다. 마커는 정보 제공용이며 이벤트와 분포 확률을 연결하지 않습니다.</p></div>
   </section>`:`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2 id="flow-horizon-title">현재 기준 6개월 조건부 분포</h2>${legend}</div>
@@ -1280,10 +1288,10 @@ function renderFlow(initialLookup){
   if(aiRegime){aiRegime.id='lab-ai-regime';aiRegime.setAttribute('role','tabpanel');aiRegime.setAttribute('aria-label','AI 자본사이클 준비 상태');aiRegime.hidden=true;}
   if(liquidity){liquidity.id='lab-liquidity';liquidity.setAttribute('role','tabpanel');liquidity.setAttribute('aria-labelledby','lab-tab-liquidity');liquidity.hidden=true;}
   const labTabs=el(`<div class="lab-tabs" role="tablist" aria-label="시장 지도 분석 공간">
-    <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>scenario-conditional</small></button>
-    <button type="button" id="lab-tab-history" role="tab" aria-selected="false" aria-controls="lab-history" data-lab-tab="history" ${overlay?'':'disabled'}><span>02</span> 사이클 비교<small>reference-only</small></button>
-    <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 자산 전이<small>scenario-conditional</small></button>
-    <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>reference-only</small></button>
+    <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>${plainTerm('scenario_conditional')}</small></button>
+    <button type="button" id="lab-tab-history" role="tab" aria-selected="false" aria-controls="lab-history" data-lab-tab="history" ${overlay?'':'disabled'}><span>02</span> 사이클 비교<small>${plainTerm('reference_only')}</small></button>
+    <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 자산 전이<small>${plainTerm('scenario_conditional')}</small></button>
+    <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>${plainTerm('reference_only')}</small></button>
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
@@ -1295,6 +1303,8 @@ function renderFlow(initialLookup){
   if(lookupOpen)lookupOpen.onclick=()=>setLookupOverlay(true);else root.querySelector('[data-future-lookup-open]')?.setAttribute('hidden','');
   lookupLayer?.querySelectorAll('[data-future-lookup-close]').forEach(button=>button.onclick=()=>setLookupOverlay(false));
   if(lookupLayer)lookupLayer.onkeydown=event=>{if(event.key==='Escape')setLookupOverlay(false);};
+  const eventToggle=$('[data-event-summary-toggle]',p1w),eventDetails=$('[data-event-details]',p1w);
+  if(eventToggle&&eventDetails)eventToggle.onclick=()=>{const open=eventToggle.getAttribute('aria-expanded')!=='true';eventToggle.setAttribute('aria-expanded',String(open));eventDetails.hidden=!open;$('span',eventToggle).textContent=open?'일정 접기':'일정 펼치기';if(open)requestAnimationFrame(()=>enhanceChartScroll(eventDetails));};
   const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});
     if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
   const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
@@ -2344,16 +2354,21 @@ function renderDecisionJournal(initial){
 }
 VIEWS.asof=renderDecisionJournal;
 
-function renderTrack(){
+function renderTrack(initial){
+  const trackMode=initial?.trackMode==='performance'?'performance':initial?.trackMode==='operator'?'operator':'trust';
   const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
   const ai=DATA.ai_regime||{status:'blocked',coverage:0,coverage_threshold:.6},aiCoverage=Number(ai.coverage||0),aiThreshold=Number(ai.coverage_threshold||.6);
-  const root=el('<div class="track-page"></div>');
-  root.appendChild(el(`<section class="trust-readiness" aria-label="AI 자본사이클 준비 상태"><div><span>AI 자본사이클</span><strong>${ai.status==='blocked'||aiCoverage<aiThreshold?'준비 중 · 판정 보류':'검증 지도 준비'}</strong></div><p>필수 데이터 확보 ${Math.round(aiCoverage*100)}% · coverage≥${aiThreshold.toFixed(1)}에서 메뉴 자동 복귀 후보가 되며 검증 스냅샷 전 지도는 계속 숨깁니다.</p><a href="#future/ai-regime">상태 상세</a></section>`));
+  const root=el(`<div class="track-page" data-track-mode="${trackMode}"></div>`);
+  if(trackMode==='performance')appendContextTabs(root,'research','performance');
+  if(trackMode!=='performance')root.appendChild(el(`<section class="trust-readiness" aria-label="AI 자본사이클 준비 상태"><div><span>AI 자본사이클</span><strong>${ai.status==='blocked'||aiCoverage<aiThreshold?'준비 중 · 판정 보류':'검증 지도 준비'}</strong></div><p>확보된 입력 ${Math.round(aiCoverage*100)}% · 자동 복귀 기준 ${Math.round(aiThreshold*100)}% (coverage≥${aiThreshold.toFixed(1)})이며 검증 스냅샷 전 지도는 계속 숨깁니다.</p><a href="#future/ai-regime">상태 상세</a></section>`));
+  const heading=trackMode==='performance'?['성과 검증 · Calibration','확정된 질문의 성과를 어떻게 검증하는가','확률과 실제 결과의 간격을 기록합니다. 고유 결과가 충분해지기 전에는 성능 판단을 유보합니다.']:trackMode==='operator'?['OPERATOR MODE · AUDIT','운영 상태와 모델 후보를 점검합니다','일반 화면에서 숨긴 원장 경고·모델 후보·정정 대기를 운영 목적으로 확인합니다.']:['데이터와 신뢰 · Provenance','데이터 원장과 출처를 어떻게 믿을 수 있는가','원본·갱신 상태·출처·수집 영수증을 공개하고, 없는 데이터와 판정 보류 상태도 그대로 표시합니다.'];
   root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">적중 이력 · Calibration</p>
-    <h1>확정된 예측의 정확도를 검증합니다</h1>
-    <p class="page-lede">예측 확률과 실제 결과의 간격을 기록합니다. 표본이 충분해지기 전에는 성능 판단을 유보합니다.</p>
+    <p class="eyebrow">${heading[0]}</p>
+    <h1>${heading[1]}</h1>
+    <p class="page-lede">${heading[2]}</p>
   </div></div>`));
+  if(trackMode!=='performance')root.appendChild(el(`<nav class="trust-mode-note" aria-label="데이터와 신뢰 보기"><span>${trackMode==='operator'?'운영자 모드':'일반 모드'}</span>${trackMode==='operator'?'<a href="?mode=standard#trust">일반 모드로 돌아가기</a>':'<small>모델 후보와 갱신 due는 ?mode=operator에서만 표시합니다.</small>'}</nav>`));
+  if(trackMode==='performance'){
   root.appendChild(el(`<div class="track-kpis">
     <div><span>예측 회차</span><strong>${g.n_resolved||0}</strong><small>투명성용 row 표본</small></div>
     <div><span>고유 결과</span><strong>${unique}</strong><small>게이트 후보 표본 단위</small></div>
@@ -2376,24 +2391,29 @@ function renderTrack(){
       <strong style="font-family:var(--mono);font-size:17px">${r.brier!=null?Number(r.brier).toFixed(3):'—'}</strong>
       <small style="grid-column:1/3;color:var(--muted);font-family:var(--mono);font-size:var(--type-micro)">표본 ${r.n}건</small></div>`).join('')}</div></div>`));}
   if(grid.children.length)root.appendChild(grid);
+  }
+  if(trackMode!=='performance'){
   const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
   const ledgerRows=trust.ledgers||[],ledgerSummary=trust.ledger_summary||{};
-  if(ledgerRows.length)root.appendChild(el(`<section class="ledger-status-panel" aria-labelledby="ledger-status-title"><div class="panel-head"><div><p class="eyebrow">LEDGER ACCUMULATION</p><h2 id="ledger-status-title">데이터 원장이 실제로 쌓이고 있는가</h2></div><span class="semantic-state">위반 ${ledgerSummary.violation||0}</span></div><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span>${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>감사 시각 ${esc(trust.ledger_audit_at||'미산출')} · stalled는 운영 경고, violation은 불변성·스키마 위반입니다.</footer></section>`));
+  if(ledgerRows.length)root.appendChild(el(`<section class="ledger-status-panel" aria-labelledby="ledger-status-title"><div class="panel-head"><div><p class="eyebrow">LEDGER ACCUMULATION</p><h2 id="ledger-status-title">데이터 원장이 실제로 쌓이고 있는가</h2></div><span class="semantic-state" data-badge-type="state">위반 ${ledgerSummary.violation||0}</span></div><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>감사 시각 ${esc(trust.ledger_audit_at||'미산출')} · stalled는 운영 경고, violation은 불변성·스키마 위반입니다.</footer></section>`));
   root.appendChild(el(`<section class="data-growth-map" aria-labelledby="data-growth-title"><div class="data-growth-head"><div><p class="eyebrow">HOW THE DATA GROWS</p><h2 id="data-growth-title">데이터는 이렇게 쌓입니다</h2><p>웹 화면은 원본을 바꾸지 않고, 저장소에 쌓인 기록을 읽기 쉽게 다시 펼친 결과입니다.</p></div><dl><div><dt>축적 중</dt><dd>${num(ledgerSummary.accumulating||0)}</dd></div><div><dt>정체</dt><dd>${num(ledgerSummary.stalled||0)}</dd></div><div><dt>위반</dt><dd>${num(ledgerSummary.violation||0)}</dd></div><div><dt>계획</dt><dd>${num(ledgerSummary.planned||0)}</dd></div></dl></div><ol><li><span>01</span><div><strong>파일이 원본입니다</strong><p>JSON·CSV·Markdown을 새 행·새 스냅샷으로 남깁니다. SQLite는 언제든 다시 만들 수 있는 검색 사본입니다.</p></div></li><li><span>02</span><div><strong>화–토 새벽에 확정값을 확인합니다</strong><p>미국 장 마감 뒤 새 asof archive를 추가하고 latest를 갱신합니다. archive 증가가 없으면 작업이 실패합니다.</p></div></li><li><span>03</span><div><strong>${num(ledgerRows.length)}개 원장을 자동 감사합니다</strong><p>거래일 누락·스키마·중복·역순·SHA-256 불변성을 확인하며 violation은 CI를 멈춥니다.</p></div></li><li><span>04</span><div><strong>월 1회 연구팩을 고정합니다</strong><p>원본 해시와 함께 Parquet로 정규화해 캘리브레이션과 머신러닝의 재현 가능한 입력으로 씁니다.</p></div></li><li><span>05</span><div><strong>없는 데이터도 숨기지 않습니다</strong><p>표본 0행·planned·frozen 상태를 그대로 공개하고, 충분히 쌓이기 전에는 성능 숫자를 내보내지 않습니다.</p></div></li></ol></section>`));
+  if(trackMode==='operator')root.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
+  const arenaMarkup=trackMode==='operator'?`<div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state" data-badge-type="state">승격 비활성</span></div>
+      <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}" data-badge-type="state">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
+    </div>`:'';
   root.appendChild(el(`<section class="intelligence-stack" aria-label="검증 상세">
     <details class="trust-center" open><summary><span><b>Trust Center</b><small>출처 · 신선도 · 빈티지 · 계약</small></span><em>${trust.status==='ok'?'정상':'확인 필요'}</em></summary>
-      <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(s.vintage_capability)} vintage</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
+      <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}" data-badge-type="state">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(plainTerm(s.vintage_capability))}</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
       <div class="index-receipt"><span>INDEX RECEIPT</span><code>${esc((trust.index?.source_fingerprint||'미산출').slice(0,16))}</code><small>${esc(trust.index?.branch||'미산출')}</small></div>
     </details>
-    <div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state">승격 비활성</span></div>
-      <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
-    </div>
+    ${arenaMarkup}
     <div class="audit-grid">
       <details class="panel receipt-card"><summary>MODEL RECEIPT · 현재 시나리오</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div><div><dt>커밋</dt><dd>${esc((receipt.commit||'미산출').slice(0,12))}</dd></div></dl><p>${esc(receipt.limitation||'미산출')}</p></details>
-      <details class="panel correction-card"><summary>정정 원장 · ${corrections.length}건</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state">${esc(row.status==='pending'?'보정 대기':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">정정 기록이 없습니다.</p>'}</details>
+      <details class="panel correction-card"><summary>정정 원장 · ${corrections.length}건</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state" data-badge-type="state">${esc(row.status==='pending'?'보정 대기':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">정정 기록이 없습니다.</p>'}</details>
       <details class="panel semantics-card"><summary>확률 시맨틱 범례</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
     </div>
   </section>`));
+  }
   mount(root);
 }
 

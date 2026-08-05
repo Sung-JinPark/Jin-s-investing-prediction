@@ -213,7 +213,7 @@ def test_u1a_four_section_information_architecture_contract() -> None:
         "rawHash==='#questions')return '#records'",
         "rawHash==='#ask')return '#future/lookup'",
         "rawHash==='#asof')return '#records/journal'",
-        "rawHash==='#track')return '#trust'",
+        "rawHash==='#track')return '#records/performance'",
         "rawHash.startsWith('#q/')",
         "rawHash.startsWith('#compare/')",
         "rawHash.startsWith('#lookup=')",
@@ -264,7 +264,7 @@ def test_u1b_future_overlay_unique_questions_and_compare_contract() -> None:
         assert title in html
     assert 'data-lab-tab="ai-regime"' not in html
     assert "coverage≥${aiThreshold.toFixed(1)}" in script
-    assert "준비 중 · 판정 보류" in html and "메뉴 자동 복귀 후보" in html
+    assert "준비 중 · 판정 보류" in html and "자동 복귀 기준" in html
     assert "next.length===2&&!location.hash.startsWith('#records/compare/')" in script
     assert "location.hash='#records/compare/'+next.join(',')" in script
 
@@ -284,6 +284,27 @@ def test_u1b_browser_regression_evidence() -> None:
         assert row["passed"] is True
         assert row["hash"] == "#future/lookup"
         assert (evidence_dir / row["file"]).is_file()
+
+
+def test_u1c_split_surfaces_event_summary_and_glossary_contract() -> None:
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    assert "rawHash==='#track')return '#records/performance'" in script
+    assert "new URLSearchParams(location.search).get('mode')==='operator'" in script
+    assert "trackMode==='performance'" in script and "trackMode==='operator'" in script
+    assert 'href="?mode=standard#trust"' in html
+    assert 'data-event-summary-toggle' in html and 'data-event-details hidden' in html
+    assert 'class="event-status' not in script
+    assert 'data-badge-type="event-summary"' in html
+    for term in (
+        "as_of", "ATH", "GBM", "p10_p90", "p25_p75", "p50",
+        "scenario_conditional", "physical_event", "reference_only", "probability_space",
+        "path_realism", "hazard", "regime", "coverage", "blocked", "vintage", "PIT", "reconstructed",
+    ):
+        assert f"{term}:" in script or f"'{term}':" in script
+    assert "plainTerm('scenario_conditional')" in script
+    assert "plainTerm('reference_only')" in script
 
 
 def test_workspace_utility_contract() -> None:
@@ -497,6 +518,32 @@ def test_u1d_mobile_layout_regression_evidence() -> None:
     for row in results["results"]:
         assert row["passed"] is True
         assert (evidence_dir / row["file"]).is_file()
+
+
+def test_u1c_browser_regression_evidence() -> None:
+    project_root = Path(__file__).parents[2]
+    evidence_dir = project_root / "reports" / "screenshots" / "u1c_260805"
+    results = json.loads((evidence_dir / "results.json").read_text(encoding="utf-8"))
+
+    assert results["passed"] is True
+    surfaces = {surface["name"]: surface for surface in results["surfaces"]}
+    for name in ("performance", "trust", "operator"):
+        surface = surfaces[name]
+        assert surface["passed"] is True
+        assert len(surface["badgeTypes"]) <= 3
+    assert results["legacyTrack"]["passed"] is True
+    assert results["eventSummary"]["before"]["summaryChips"] == 1
+    assert results["eventSummary"]["before"]["eventStatusBadges"] == 0
+    assert results["eventSummary"]["before"]["detailsHidden"] is True
+    assert results["eventSummary"]["after"]["detailsHidden"] is False
+    assert results["eventSummary"]["after"]["eventCards"] > 0
+    for filename in (
+        "performance_1280.png",
+        "trust_1280.png",
+        "operator_1280.png",
+        "event_summary_1280.png",
+    ):
+        assert (evidence_dir / filename).is_file()
 
 
 def test_data_growth_explainer_is_plain_language_and_live() -> None:

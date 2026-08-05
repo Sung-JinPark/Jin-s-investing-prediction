@@ -1,0 +1,85 @@
+{
+  "generated_at": "2026-08-05T05:26:21.641Z",
+  "source": "local static build",
+  "surfaces": [
+    {
+      "name": "performance",
+      "url": "#records/performance",
+      "expectedH1": "확정된 질문의 성과를 어떻게 검증하는가",
+      "hash": "#records/performance",
+      "h1": "확정된 질문의 성과를 어떻게 검증하는가",
+      "mode": "performance",
+      "hasPerformance": true,
+      "hasLedger": false,
+      "hasArena": false,
+      "hasOperatorDue": false,
+      "badgeTypes": [],
+      "file": "performance_1280.png",
+      "passed": true
+    },
+    {
+      "name": "trust",
+      "url": "#trust",
+      "expectedH1": "데이터 원장과 출처를 어떻게 믿을 수 있는가",
+      "hash": "#trust",
+      "h1": "데이터 원장과 출처를 어떻게 믿을 수 있는가",
+      "mode": "trust",
+      "hasPerformance": false,
+      "hasLedger": true,
+      "hasArena": false,
+      "hasOperatorDue": false,
+      "badgeTypes": [
+        "state"
+      ],
+      "file": "trust_1280.png",
+      "passed": true
+    },
+    {
+      "name": "operator",
+      "url": "?mode=operator#trust",
+      "expectedH1": "운영 상태와 모델 후보를 점검합니다",
+      "hash": "#trust",
+      "h1": "운영 상태와 모델 후보를 점검합니다",
+      "mode": "operator",
+      "hasPerformance": false,
+      "hasLedger": true,
+      "hasArena": true,
+      "hasOperatorDue": true,
+      "badgeTypes": [
+        "state"
+      ],
+      "file": "operator_1280.png",
+      "passed": true
+    }
+  ],
+  "legacyTrack": {
+    "hash": "#records/performance",
+    "mode": "performance",
+    "passed": true
+  },
+  "eventSummary": {
+    "before": {
+      "summaryChips": 1,
+      "eventStatusBadges": 0,
+      "detailsHidden": true,
+      "summaryText": "확정 19 · 추정 34일정 펼치기",
+      "labTerms": [
+        "시나리오 안의 조건부 값",
+        "참고용",
+        "시나리오 안의 조건부 값",
+        "참고용"
+      ],
+      "badgeTypes": [
+        "event-summary"
+      ]
+    },
+    "after": {
+      "detailsHidden": false,
+      "eventCards": 53,
+      "expanded": "true"
+    },
+    "file": "event_summary_1280.png",
+    "passed": true
+  },
+  "passed": true
+}
