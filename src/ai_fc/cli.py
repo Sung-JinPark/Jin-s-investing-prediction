@@ -226,6 +226,20 @@ def cmd_o_entry_cohort(
     )
 
 
+@app.command("cross-asset-horizon")
+def cmd_cross_asset_horizon() -> None:
+    """감사된 최신 입력을 고정한 채 교차자산 조건부 지평만 5년으로 승격한다."""
+    from .cross_asset import upgrade_cross_asset_horizon
+
+    path, payload, changed = upgrade_cross_asset_horizon(config.ROOT)
+    state = "갱신" if changed else "변경 없음"
+    source = payload["forecast"].get("source_snapshot_id") or "현재 스냅샷"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"M0-M{payload['forecast']['horizon_months']} · 측정 입력 {source} 고정"
+    )
+
+
 @app.command("market-extensions")
 def cmd_market_extensions(
     asof: str | None = typer.Option(

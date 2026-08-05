@@ -17,6 +17,7 @@ from ai_fc.cross_asset import (
     _persist_snapshot,
     build_cross_asset,
     refresh_cross_asset,
+    upgrade_cross_asset_horizon,
     validate_cross_asset,
 )
 from ai_fc.quant.feed import YahooDividendResult, YahooPriceSeriesResult
@@ -90,6 +91,37 @@ def _fixture(*, history_count: int = 61) -> dict:
     )
 
 
+def _legacy_v2(model: dict) -> dict:
+    legacy = {**model, "schema_version": 2}
+    forecast = dict(model["forecast"])
+    forecast["horizon_months"] = 12
+    forecast["labels"] = forecast["labels"][:13]
+    forecast.pop("shock_origin", None)
+    forecast.pop("source_snapshot_id", None)
+    scenarios = {}
+    for scenario_id, row in forecast["scenarios"].items():
+        item = dict(row)
+        item.pop("phase_notes", None)
+        item["paths"] = {key: values[:13] for key, values in row["paths"].items()}
+        item["paths_band"] = {
+            key: {bound: values[:13] for bound, values in band.items()}
+            for key, band in row["paths_band"].items()
+        }
+        item["beta_regime_by_month"] = row["beta_regime_by_month"][:13]
+        item["realty_income_attribution"] = {
+            key: values[:13] for key, values in row["realty_income_attribution"].items()
+        }
+        item["macro_assumptions"] = {
+            **row["macro_assumptions"],
+            "delta_10y_bp": row["macro_assumptions"]["delta_10y_bp"][:13],
+            "delta_hy_bp": row["macro_assumptions"]["delta_hy_bp"][:13],
+        }
+        scenarios[scenario_id] = item
+    forecast["scenarios"] = scenarios
+    legacy["forecast"] = forecast
+    return legacy
+
+
 def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
     model = _fixture()
     assert model["probability_space"] == "scenario_conditional"
@@ -97,13 +129,21 @@ def test_cross_asset_keeps_history_and_conditional_paths_separate() -> None:
     assert model["history"]["summary"]["nasdaq_price_pct"] == pytest.approx(-28.0)
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(145.0)
     assert model["forecast"]["weights"]["status"] == "not_estimated"
+    assert model["schema_version"] == 3
+    assert model["forecast"]["horizon_months"] == 60
+    assert model["forecast"]["labels"][-1] == "M+60"
+    assert model["forecast"]["shock_origin"]["calendar_date_status"] == "not_forecast"
     assert set(model["forecast"]["scenarios"]) == {
         "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high"
     }
     assert all(
-        len(path) == 13
+        len(path) == 61
         for scenario in model["forecast"]["scenarios"].values()
         for path in scenario["paths"].values()
+    )
+    assert all(
+        len(scenario["phase_notes"]) == 3
+        for scenario in model["forecast"]["scenarios"].values()
     )
 
 
@@ -123,7 +163,7 @@ def test_path_tracking_v2_appends_three_assets_once(tmp_path: Path) -> None:
     assert len(rows) == 4
     assert "origin_snapshot_id" in rows[0]
     assert all(
-        len(bound) == 13
+        len(bound) == 61
         for scenario in model["forecast"]["scenarios"].values()
         for asset in scenario["paths_band"].values()
         for bound in asset.values()
@@ -180,6 +220,46 @@ def test_easing_rotation_allows_divergence_after_initial_shock() -> None:
     assert paths["realty_income"][-1] > 100
 
 
+def test_five_year_paths_keep_shock_origin_and_annual_checkpoints() -> None:
+    model = _fixture()
+    for scenario in model["forecast"]["scenarios"].values():
+        assert all(path[0] == 100 for path in scenario["paths"].values())
+        assert all(len(path) == 61 for path in scenario["paths"].values())
+        assert all(
+            len(scenario["macro_assumptions"][key]) == 61
+            for key in ("delta_10y_bp", "delta_hy_bp")
+        )
+    easing = model["forecast"]["scenarios"]["easing_rotation"]["paths"]
+    assert easing["nasdaq"][3] < easing["nasdaq"][12] < easing["nasdaq"][60]
+    assert easing["bitcoin"][60] > easing["nasdaq"][60]
+
+
+def test_horizon_upgrade_reuses_audited_v2_inputs_and_appends_revision(tmp_path: Path) -> None:
+    legacy = _legacy_v2(_fixture())
+    _, stored, _ = _persist_snapshot(tmp_path, legacy, force=False)
+    contract = tmp_path / "data/contracts/cross_asset_macro_assumptions.yaml"
+    contract.parent.mkdir(parents=True)
+    contract.write_text(
+        (ROOT / "data/contracts/cross_asset_macro_assumptions.yaml").read_text(
+            encoding="utf-8"), encoding="utf-8")
+    ledger = tmp_path / "calibration/corrections.csv"
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(
+        "correction_id,target_table,target_key,status\n"
+        f"CORR-HORIZON,cross_asset_snapshots,{stored['asof']},approved\n",
+        encoding="utf-8")
+
+    _, upgraded, changed = upgrade_cross_asset_horizon(
+        tmp_path, generated_at=datetime(2026, 8, 5, tzinfo=timezone.utc))
+
+    assert changed is True
+    assert upgraded["schema_version"] == 3
+    assert upgraded["forecast"]["source_snapshot_id"] == stored["snapshot_id"]
+    assert upgraded["forecast"]["horizon_months"] == 60
+    assert upgraded["revision"] == 2
+    assert upgraded["correction_id"] == "CORR-HORIZON"
+
+
 def test_realty_income_v2_keeps_initial_deleveraging_and_adds_refutation_path() -> None:
     scenarios = _fixture()["forecast"]["scenarios"]
     deleveraging = scenarios["deleveraging"]["paths"]["realty_income"]
@@ -187,7 +267,8 @@ def test_realty_income_v2_keeps_initial_deleveraging_and_adds_refutation_path() 
     easing = scenarios["easing_rotation"]["paths"]["realty_income"]
     assert min(deleveraging[:4]) < 100
     assert rates_high[-1] < easing[-1]
-    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][-1] == 40
+    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][12] == 40
+    assert scenarios["rates_stay_high"]["macro_assumptions"]["delta_10y_bp"][-1] == 10
 
 
 def test_cross_asset_requires_preregistered_macro_assumptions() -> None:

@@ -144,7 +144,7 @@ console.log(JSON.stringify({
     assert all(0 <= lane < 5 for lane in result["eventLanes"])
 
 
-def test_flow_uses_one_continuous_terminal_median_path_and_keeps_2027_dips() -> None:
+def test_flow_keeps_center_path_separate_from_continuous_correction_sample() -> None:
     script_path = (
         Path(__file__).parents[1]
         / "ai_fc"
@@ -168,15 +168,17 @@ const sc={
   ]}}
 };
 const values=flowDisplayPath(sc,'S1');
-console.log(JSON.stringify({values,stats:flowPathStats(values,['2026-12-31','2027-01-08','2027-01-15','2027-01-22'])}));
+const sample=sc.path_realism.S1.sample_paths[1].values;
+console.log(JSON.stringify({values,centerStats:flowPathStats(values,['2026-12-31','2027-01-08','2027-01-15','2027-01-22']),sampleStats:flowPathStats(sample,['2026-12-31','2027-01-08','2027-01-15','2027-01-22'])}));
 """
     completed = subprocess.run(
         ["node", "-e", program], check=True, capture_output=True,
         text=True, encoding="utf-8"
     )
     result = json.loads(completed.stdout)
-    assert result["values"] == [100, 110, 96, 108]
-    assert result["stats"] == {"maxDrawdownPct": 12.7, "downWeeks2027": 1}
+    assert result["values"] == [100, 101, 102, 103]
+    assert result["centerStats"] == {"maxDrawdownPct": 0, "downWeeks2027": 0}
+    assert result["sampleStats"] == {"maxDrawdownPct": 12.7, "downWeeks2027": 1}
 
 
 def test_rebased_flow_uses_same_horizon_law_and_shortens_remaining_range() -> None:

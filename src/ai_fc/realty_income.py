@@ -30,7 +30,7 @@ EVENT_STUDY_ARCHIVE = Path("data/rate_events/archive")
 SCENARIO_IDS = {
     "deleveraging", "easing_rotation", "soft_landing", "rates_stay_high",
 }
-REQUIRED_MONTHS = {0, 3, 6, 12}
+REQUIRED_MONTHS = {0, 3, 6, 12, 24, 36, 48, 60}
 MIN_WEEKS = 156
 BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_WEEKS = 4
@@ -165,7 +165,8 @@ def validate_macro_assumptions(payload: dict[str, Any]) -> dict[str, Any]:
             curve = scenario.get(key) or {}
             if set(curve) != REQUIRED_MONTHS or float(curve[0]) != 0:
                 raise RealtyIncomeError(
-                    f"{scenario_id}.{key} must contain M0/M3/M6/M12 and anchor at zero")
+                    f"{scenario_id}.{key} must contain M0/M3/M6/M12/M24/M36/M48/M60 "
+                    "and anchor at zero")
             if not all(math.isfinite(float(value)) for value in curve.values()):
                 raise RealtyIncomeError(f"{scenario_id}.{key} contains a non-finite value")
     if float(payload.get("realty_income_price_carry_pct", 0)) != 0:

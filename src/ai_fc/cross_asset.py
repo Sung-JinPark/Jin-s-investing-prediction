@@ -28,7 +28,7 @@ from .market_session import completed_market_cutoff
 from .quant import feed
 from . import realty_income
 
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
@@ -47,6 +47,7 @@ BOOTSTRAP_REPETITIONS = 1_000
 BOOTSTRAP_BLOCK_DAYS = 10
 BOOTSTRAP_SEED = 20260803
 MAX_ABS_BETA = 3.0
+FORECAST_HORIZON_MONTHS = 60
 
 PATH_TRACKING_V2_FIELDS = [
     "asof", "origin_asof", "origin_snapshot_id", "weeks_elapsed",
@@ -73,8 +74,9 @@ def _normalize(values: list[float]) -> list[float]:
     return _round_path([100.0 * value / anchor for value in values])
 
 
-def _interpolate(keys: dict[int, float], horizon: int = 12) -> list[float]:
+def _interpolate(keys: dict[int, float], horizon: int | None = None) -> list[float]:
     months = sorted(keys)
+    horizon = months[-1] if horizon is None else horizon
     if months[0] != 0 or months[-1] != horizon:
         raise CrossAssetError("scenario key points must span M0 to horizon")
     return _round_path(np.interp(range(horizon + 1), months, [keys[m] for m in months]))
@@ -227,30 +229,46 @@ def _scenario_specs() -> dict[str, dict[str, Any]]:
         "deleveraging": {
             "label": "동반 디레버리징",
             "short": "신용경색이 완화보다 빠른 경우",
-            "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82},
-            "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1},
+            "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82, 24: 96,
+                        36: 108, 48: 120, 60: 132},
+            "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1, 24: 5,
+                            36: 12, 48: 18, 60: 25},
             "assumptions": ["AI 밸류에이션 급락", "달러 유동성 위축", "신용 스프레드 확대"],
+            "phase_notes": ["M0–6 충격·강제매도", "M6–24 금리완화와 신용정상화 경쟁",
+                            "M24–60 점진 회복 가정"],
         },
         "easing_rotation": {
             "label": "AI 조정 후 완화·순환",
             "short": "초기 투매 뒤 금리·유동성이 전환되는 경우",
-            "nasdaq": {0: 100, 1: 93, 3: 80, 6: 85, 12: 91},
-            "btc_offset": {0: 0, 1: 0, 3: 4, 6: 22, 12: 45},
+            "nasdaq": {0: 100, 1: 93, 3: 80, 6: 85, 12: 91, 24: 116,
+                        36: 136, 48: 154, 60: 172},
+            "btc_offset": {0: 0, 1: 0, 3: 4, 6: 22, 12: 45, 24: 55,
+                            36: 65, 48: 75, 60: 80},
             "assumptions": ["AI 투자 회수 우려", "장기금리 하락", "달러 유동성 재확대"],
+            "phase_notes": ["M0–3 AI 투매", "M3–12 금리·유동성 전환",
+                            "M12–60 위험자산 순환·회복 가정"],
         },
         "soft_landing": {
             "label": "소프트랜딩·자산 순환",
             "short": "버블 붕괴가 아닌 완만한 멀티플 정상화",
-            "nasdaq": {0: 100, 1: 97, 3: 95, 6: 103, 12: 112},
-            "btc_offset": {0: 0, 1: 1, 3: 10, 6: 16, 12: 18},
+            "nasdaq": {0: 100, 1: 97, 3: 95, 6: 103, 12: 112, 24: 130,
+                        36: 146, 48: 162, 60: 178},
+            "btc_offset": {0: 0, 1: 1, 3: 10, 6: 16, 12: 18, 24: 25,
+                            36: 32, 48: 38, 60: 45},
             "assumptions": ["이익 성장 지속", "신용시장 안정", "완만한 위험자산 순환"],
+            "phase_notes": ["M0–6 멀티플 정상화", "M6–24 이익 성장 확인",
+                            "M24–60 완만한 확장 가정"],
         },
         "rates_stay_high": {
             "label": "금리가 안 내려오는 붕괴",
             "short": "AI 디레이팅 뒤에도 장기금리·크레딧 부담이 남는 경우",
-            "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82},
-            "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1},
+            "nasdaq": {0: 100, 1: 92, 3: 78, 6: 72, 12: 82, 24: 85,
+                        36: 96, 48: 108, 60: 120},
+            "btc_offset": {0: 0, 1: -1, 3: -3, 6: -4, 12: -1, 24: -5,
+                            36: 0, 48: 8, 60: 15},
             "assumptions": ["AI 밸류에이션 급락", "장기금리 고착", "크레딧 부담 지속"],
+            "phase_notes": ["M0–12 충격·고금리 고착", "M12–24 저점 재시험",
+                            "M24–60 지연 회복 가정"],
         },
     }
 
@@ -269,11 +287,11 @@ def _transmission_scenarios(
     """
     scenarios: dict[str, Any] = {}
     for scenario_id, spec in _scenario_specs().items():
-        nasdaq = _interpolate(spec["nasdaq"])
-        btc_offset = _interpolate(spec["btc_offset"])
+        nasdaq = _interpolate(spec["nasdaq"], FORECAST_HORIZON_MONTHS)
+        btc_offset = _interpolate(spec["btc_offset"], FORECAST_HORIZON_MONTHS)
         macro = macro_assumptions["scenarios"][scenario_id]
-        delta_10y = _interpolate(macro["delta_10y_bp"])
-        delta_hy = _interpolate(macro["delta_hy_bp"])
+        delta_10y = _interpolate(macro["delta_10y_bp"], FORECAST_HORIZON_MONTHS)
+        delta_hy = _interpolate(macro["delta_hy_bp"], FORECAST_HORIZON_MONTHS)
         rate_effect = float(
             realty_sensitivity["beta_rate"]["used_effect_per_100bp_pct"])
         credit_effect = float(
@@ -329,6 +347,7 @@ def _transmission_scenarios(
             "label": spec["label"],
             "short": spec["short"],
             "assumptions": spec["assumptions"],
+            "phase_notes": spec["phase_notes"],
             "macro_assumptions": {
                 "rules_version": macro_assumptions["rules_version"],
                 "delta_10y_bp": delta_10y, "delta_hy_bp": delta_hy,
@@ -342,7 +361,7 @@ def _transmission_scenarios(
                 "market beta 10–90% block-bootstrap band; O rate/credit terms use only "
                 "significance-gated measured sensitivities and preregistered macro paths. "
                 "Downside beta may already embed credit stress, so adding the HY term can "
-                "double-count part of the tail shock; current paths are unchanged."
+                "double-count part of the tail shock; no optional damping is applied."
             ),
             "realty_income_interpretation": (
                 f"소프트랜딩 M+3 O 경로는 시장 {attributions['market_beta'][3]:+.1f}, "
@@ -352,11 +371,74 @@ def _transmission_scenarios(
                 "O 경로는 시장 베타, 장기금리, HY 신용스프레드의 조건부 합성 결과입니다."
             ),
             "path_linkage": ({
-                "bitcoin": "shared_with_deleveraging_by_design",
-                "reason": "고금리 지속 구간의 BTC 경로는 디레버리징 경로를 의도적으로 공유합니다.",
+                "bitcoin": "shared_first_12_months_with_deleveraging_by_design",
+                "reason": "고금리 지속 BTC 경로는 초기 12개월만 디레버리징과 공유하고 이후 지연 회복을 가정합니다.",
             } if scenario_id == "rates_stay_high" else {}),
         }
     return scenarios
+
+
+def _forecast_model(
+    beta_audit: dict[str, Any], sensitivity: dict[str, Any],
+    macro_assumptions: dict[str, Any], *, source_snapshot_id: str | None = None,
+) -> dict[str, Any]:
+    return {
+        "horizon_months": FORECAST_HORIZON_MONTHS,
+        "labels": [f"M+{month}" for month in range(FORECAST_HORIZON_MONTHS + 1)],
+        "shock_origin": {
+            "label": "M+0 = AI 충격 가정 시작",
+            "definition": (
+                "AI 관련 밸류에이션 급락 또는 디레이팅이 교차자산 전이를 시작한 "
+                "조건부 원점이다. 실제 붕괴 날짜나 발생확률을 뜻하지 않는다."
+            ),
+            "calendar_date_status": "not_forecast",
+        },
+        "source_snapshot_id": source_snapshot_id,
+        "default_scenario": "easing_rotation",
+        "scenarios": _transmission_scenarios(
+            beta_audit, sensitivity, macro_assumptions),
+        "beta_audit": deepcopy(beta_audit),
+        "realty_income_sensitivity": {
+            "asof": sensitivity.get("asof"),
+            "status": sensitivity.get("status"),
+            "beta_rate": deepcopy(sensitivity["beta_rate"]),
+            "beta_credit": deepcopy(sensitivity["beta_credit"]),
+            "dividend_yield_ttm_pct": sensitivity.get("dividend_yield_ttm_pct"),
+            "spread_vs_10y_pp": sensitivity.get("spread_vs_10y_pp"),
+            "spread_percentile_since_2000": sensitivity.get(
+                "spread_percentile_since_2000"),
+            "dividend_monitor": deepcopy(sensitivity.get("dividend_monitor") or {}),
+            "dividend_crosscheck": deepcopy(
+                sensitivity.get("dividend_crosscheck") or {}),
+        },
+        "macro_assumptions_version": macro_assumptions["rules_version"],
+        "operator_decisions": {
+            "credit_tail_overlap_damping": {
+                "status": "pending_operator_decision", "applied": False,
+                "candidate_multiplier": 0.5,
+                "reason": (
+                    "Downside beta may already contain credit stress. The optional HY "
+                    "damping factor is disclosed but requires operator approval."
+                ),
+            }
+        },
+        "semantics": (
+            "M+0 충격 시작값=100의 5년 조건부 민감도 경로다. 실제 붕괴 날짜·확률·"
+            "목표가격·기대수익이 아니다. 월별 값은 사전 등록한 M0/M3/M6/M12/M24/"
+            "M36/M48/M60 가정 사이의 선형 연결이다. "
+            "각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 "
+            "252일 full beta를 사용한다. beta 하한은 강제하지 않고 절대값 3.0 안전 "
+            "상한만 감사한다. 반투명 band는 beta 10–90% block-bootstrap 민감도이며 "
+            "BTC의 공개 offset을 함께 표시한다. O는 고정 offset 없이 측정된 금리·"
+            "크레딧 민감도와 사전 등록 macro 경로로만 유도한다. CI가 0을 가로지르거나 "
+            "n<156인 항은 0이다. O 미래선은 가격 경로이며 현금배당을 포함하지 않는다."
+        ),
+        "weights": {
+            "status": "not_estimated",
+            "display": "가중치 미산출",
+            "reason": "충격 유형별 캘리브레이션 부족",
+        },
+    }
 
 
 def _period_bounds(period: Any) -> tuple[str, str]:
@@ -367,7 +449,8 @@ def _period_bounds(period: Any) -> tuple[str, str]:
 
 
 def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
-    if payload.get("schema_version") != SCHEMA_VERSION:
+    schema_version = payload.get("schema_version")
+    if schema_version not in {2, SCHEMA_VERSION}:
         raise CrossAssetError("unsupported cross-asset schema_version")
     try:
         date.fromisoformat(payload["asof"])
@@ -392,8 +475,9 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
 
     forecast = payload.get("forecast") or {}
     labels = forecast.get("labels") or []
-    if len(labels) != 13 or labels != [f"M+{month}" for month in range(13)]:
-        raise CrossAssetError("cross-asset forecast must contain ordered M0..M12")
+    horizon = 12 if schema_version == 2 else FORECAST_HORIZON_MONTHS
+    if len(labels) != horizon + 1 or labels != [f"M+{month}" for month in range(horizon + 1)]:
+        raise CrossAssetError(f"cross-asset forecast must contain ordered M0..M{horizon}")
     scenarios = forecast.get("scenarios") or {}
     if set(scenarios) != SCENARIO_IDS:
         raise CrossAssetError("cross-asset scenario set mismatch")
@@ -431,6 +515,8 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
             raise CrossAssetError(f"{scenario_id} band overlap disclosure required")
         if not scenario.get("realty_income_interpretation"):
             raise CrossAssetError(f"{scenario_id} Realty Income interpretation required")
+        if schema_version >= 3 and len(scenario.get("phase_notes") or []) != 3:
+            raise CrossAssetError(f"{scenario_id} five-year phase notes required")
     operator = (forecast.get("operator_decisions") or {}).get(
         "credit_tail_overlap_damping") or {}
     if operator.get("status") != "pending_operator_decision" or operator.get("applied") is not False:
@@ -633,53 +719,7 @@ def build_cross_asset(*,
                 "status": "source_unavailable", "labels": [], "series": {},
             },
         },
-        "forecast": {
-            "horizon_months": 12,
-            "labels": [f"M+{month}" for month in range(13)],
-            "default_scenario": "easing_rotation",
-            "scenarios": _transmission_scenarios(
-                beta_audit, sensitivity, macro_assumptions),
-            "beta_audit": beta_audit,
-            "realty_income_sensitivity": {
-                "asof": sensitivity.get("asof"),
-                "status": sensitivity.get("status"),
-                "beta_rate": deepcopy(sensitivity["beta_rate"]),
-                "beta_credit": deepcopy(sensitivity["beta_credit"]),
-                "dividend_yield_ttm_pct": sensitivity.get("dividend_yield_ttm_pct"),
-                "spread_vs_10y_pp": sensitivity.get("spread_vs_10y_pp"),
-                "spread_percentile_since_2000": sensitivity.get(
-                    "spread_percentile_since_2000"),
-                "dividend_monitor": deepcopy(sensitivity.get("dividend_monitor") or {}),
-                "dividend_crosscheck": deepcopy(
-                    sensitivity.get("dividend_crosscheck") or {}),
-            },
-            "macro_assumptions_version": macro_assumptions["rules_version"],
-            "operator_decisions": {
-                "credit_tail_overlap_damping": {
-                    "status": "pending_operator_decision", "applied": False,
-                    "candidate_multiplier": 0.5,
-                    "reason": (
-                        "Downside beta may already contain credit stress. The optional HY "
-                        "damping factor is disclosed but requires operator approval."
-                    ),
-                }
-            },
-            "semantics": (
-                "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니다. "
-                "각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 "
-                "252일 full beta를 사용한다. beta 하한은 강제하지 않고 절대값 3.0 안전 "
-                "상한만 감사한다. 반투명 band는 beta 10–90% block-bootstrap 민감도이며 "
-                "BTC의 기존 offset은 이번 단계에서 유지한다. O는 고정 offset 없이 측정된 "
-                "금리·크레딧 민감도와 사전 등록 macro 경로로만 유도한다. CI가 0을 "
-                "가로지르거나 n<156인 항은 0이다. O 미래선은 가격 경로이며 현금배당을 "
-                "포함하지 않는다."
-            ),
-            "weights": {
-                "status": "not_estimated",
-                "display": "가중치 미산출",
-                "reason": "충격 유형별 캘리브레이션 부족",
-            },
-        },
+        "forecast": _forecast_model(beta_audit, sensitivity, macro_assumptions),
         "realty_income": {
             "hypothesis": "닷컴형 상승은 완만한 충격·금리 하락·신용 안정·배당 유지의 조건부 결과",
             "conditions_total": 4,
@@ -834,6 +874,40 @@ def _persist_snapshot(root: Path, payload: dict[str, Any], *, force: bool
     return latest, payload, True
 
 
+def upgrade_cross_asset_horizon(
+    root: Path, *, generated_at: datetime | None = None,
+) -> tuple[Path, dict[str, Any], bool]:
+    """Reissue only the forecast contract from an audited latest snapshot.
+
+    This migration deliberately does not refetch prices, rates, dividends or credit
+    data.  It pins every measured beta and Realty Income sensitivity to the source
+    snapshot, then extends only the preregistered conditional horizon.  Same-asof
+    persistence still requires an approved correction and creates a new immutable
+    revision.
+    """
+    latest = root / LATEST_RELATIVE_PATH
+    current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
+    if current.get("schema_version") == SCHEMA_VERSION:
+        return latest, current, False
+    assumptions = realty_income.load_macro_assumptions(root)
+    old_forecast = current["forecast"]
+    migrated = deepcopy(current)
+    for field in ("snapshot_id", "revision", "correction_id", "supersedes"):
+        migrated.pop(field, None)
+    migrated["schema_version"] = SCHEMA_VERSION
+    migrated["generated_at"] = (generated_at or datetime.now(timezone.utc)).isoformat(
+        timespec="seconds")
+    migrated["forecast"] = _forecast_model(
+        old_forecast["beta_audit"], old_forecast["realty_income_sensitivity"],
+        assumptions, source_snapshot_id=current.get("snapshot_id"),
+    )
+    migrated["limitations"] = list(migrated.get("limitations") or []) + [
+        "5년 조건부 경로는 기존 감사 스냅샷의 beta·O 민감도를 고정하고 사전 등록된 "
+        "M24/M36/M48/M60 macro 가정만 확장한 계약 migration이다."
+    ]
+    return _persist_snapshot(root, validate_cross_asset(migrated), force=True)
+
+
 def _dotcom_peak_reference(result: feed.YahooPriceSeriesResult) -> dict[str, Any]:
     by_month = {
         f"{day.year:04d}-{day.month:02d}": value
@@ -916,7 +990,8 @@ def append_path_tracking_v2(
     if current_day < origin_day:
         return False
     weeks = max(0, (current_day - origin_day).days // 7)
-    month_index = min(12, int(round(weeks / 4.345)))
+    origin_horizon = int(origin.get("forecast", {}).get("horizon_months") or 12)
+    month_index = min(origin_horizon, int(round(weeks / 4.345)))
     scenarios = origin["forecast"]["scenarios"]
     rows: list[dict[str, Any]] = []
     for asset in ("nasdaq", "bitcoin", "realty_income"):

@@ -1234,14 +1234,16 @@ function renderFlow(initialLookup){
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
-    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 모의 표본경로 · 날짜 비예측 ${sc.paths[k].prob}%</span>`).join('')}
-    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}</div>`;
+    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} 조건부 중심 경로 · ${sc.paths[k].prob}%</span>`).join('')}
+    ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}
+    ${sc.analog?.values?.length?'<span><b style="background:#706f68"></b>혁신사이클 대표 참조선 · 확률 아님</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
+    ${sc.analog?.values?.length?'<button type="button" data-flow-focus="ANALOG" style="--focus-color:#706f68" aria-pressed="false"><i></i>혁신사이클 참조</button>':''}
     <button type="button" class="flow-sample-toggle" data-flow-samples aria-pressed="true"><i></i>실경로 오버레이</button></div>`;
   const realism=sc.path_realism;
-  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 선은 종점 중앙에 가까운 모의 표본 하나라 주간 요동을 보여주지만, 9/22 같은 굴곡 날짜에는 사건 예측 의미가 없습니다. 점선 p50이 날짜별 분포 중앙, 얇은 회색선이 다른 연속 표본입니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],stats=flowPathStats(flowDisplayPath(sc,key),sc.week_dates);return `<article><span>${key} · ${esc(sc.paths[key].label)} · 표본 n=${num(row.sample_count)}</span><strong>주별 표본 최대낙폭 −${num(stats.maxDrawdownPct)}%</strong><small>2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 9/22 하락의 원인은 뉴스나 FOMC가 아니라 seed ${num(sc.model?.seed)} 모의 충격이며, 2027년까지 AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다.</p><small>as_of ${esc(sc.asof)} · ${num(sc.model?.n_paths)}경로 · 표본 굴곡 날짜와 이벤트 캘린더는 인과 연결 금지</small></section>`:'';
+  const realismCards=realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>굵은 색 선은 시나리오별 조건부 중심 경로입니다. 얇은 회색선은 같은 분포에서 뽑은 연속 모의 사례라 조정의 크기와 회복 형태만 보여주며, 굴곡 날짜에는 사건 예측 의미가 없습니다. 회색 점선 혁신사이클 선은 과거 참조선으로 확률 계산에 섞지 않습니다.</p></div><div class="path-realism-grid">${['S1','S2','S3'].map(key=>{const row=realism[key],sample=row.sample_paths?.find(item=>Number(item.terminal_percentile)===50)?.values||row.sample_paths?.[0]?.values||[],stats=flowPathStats(sample,sc.week_dates),medianDrawdown=Math.abs(Number(row.median_max_drawdown_pct));return `<article><span>${key} · ${esc(sc.paths[key].label)} · 표본 n=${num(row.sample_count)}</span><strong>전체 표본 중앙 최대낙폭 −${num(medianDrawdown)}%</strong><small>대표 회색선의 2027 하락 주 ${num(stats.downWeeks2027)}회 · 전체 경로 중 5% 이상 조정 ${num(row.share_with_5pct_pullback)}% · 10% 이상 ${num(row.share_with_10pct_pullback)}%</small></article>`;}).join('')}</div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 경로 비중입니다.</strong> 특정 9월 하락일은 데이터가 지정한 조정 시점이 아닙니다. seed ${num(sc.model?.seed)} 모의 충격의 날짜를 시장 일정과 인과 연결하지 않으며, 2027년 AI 버블 생존확률이나 붕괴 시점으로도 해석하지 않습니다.</p><small>as_of ${esc(sc.asof)} · ${num(sc.model?.n_paths)}경로 · 표본 굴곡 날짜와 이벤트 캘린더는 인과 연결 금지</small></section>`:'';
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1403,6 +1405,7 @@ function crossAssetPanel(){
   const eventPct=(row,key)=>hasNumeric(row?.returns_pct?.[key])?signedDelta(Number(row.returns_pct[key]),1,'%'):'관측 불가';
   const eventBp=(row,key)=>hasNumeric(row?.macro_change_bp?.[key])?signedDelta(Number(row.macro_change_bp[key]),0,'bp'):'관측 불가';
   const scenarios=model.forecast.scenarios,defaultScenario=model.forecast.default_scenario||Object.keys(scenarios)[0];
+  const shockOrigin=model.forecast.shock_origin||{label:'M+0 = AI 충격 가정 시작',definition:'실제 붕괴 날짜나 발생확률이 아닌 조건부 비교 원점입니다.'};
   const pctText=value=>hasNumeric(value)?signedDelta(Number(value),1,'%'):'산출 전';
   const annual=summary.annual||[],period=model.history.period||`${model.history.labels?.[0]||'시작'} to ${model.history.labels?.at(-1)||'종료'}`;
   const periodCaption=period.replace(' to ',' → '),weights=model.forecast.weights||{};
@@ -1420,7 +1423,7 @@ function crossAssetPanel(){
       <small>${esc(model.asof)} 공통 확정 거래일 · 미래선은 위 현물값을 100으로 정규화 · 지수 100을 실제 가격으로 환산하지 마세요.</small>
     </div>
     <div class="cross-view-switch" role="group" aria-label="교차자산 보기">
-      <button type="button" data-cross-view="scenario" aria-pressed="true">AI 충격 12개월</button>
+      <button type="button" data-cross-view="scenario" aria-pressed="true">AI 충격 후 5년</button>
       <button type="button" data-cross-view="history" aria-pressed="false">실측 ${esc(periodCaption)}</button>
     </div>
     <section data-cross-panel="scenario">
@@ -1428,8 +1431,10 @@ function crossAssetPanel(){
         <span>SHOCK TYPE</span>${Object.entries(scenarios).map(([id,scenario])=>`<button type="button" role="radio" data-cross-scenario="${id}" aria-checked="${id===defaultScenario}" aria-pressed="${id===defaultScenario}" tabindex="${id===defaultScenario?0:-1}"><i></i>${esc(scenario.label)}</button>`).join('')}
       </div>
       <div class="cross-weight-badge" aria-label="시나리오 가중치 상태">${esc(weightText)}</div>
+      <div class="cross-shock-origin"><strong>${esc(shockOrigin.label)}</strong><span>${esc(shockOrigin.definition)}</span></div>
       <div class="cross-scenario-copy" id="cross-scenario-copy"></div>
       <div class="chart-wrap"><div id="cross-chart" style="min-width:980px"></div></div>
+      <div class="cross-five-year-table" id="cross-five-year-table" aria-live="polite"></div>
     </section>
     <section data-cross-panel="history" hidden>
       <div class="reference-banner history-gap"><strong>BTC DATA GAP · 정상 결측</strong><span>${esc(model.history.bitcoin?.reason||'2001–2005 Bitcoin 가격은 존재하지 않습니다.')}</span></div>
@@ -1486,7 +1491,7 @@ function crossAssetPanel(){
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> O 미래선은 가격 경로이며 배당 미포함. 닷컴형 상승은 조건부 결과였다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
-    <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다. 이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다.</p>
+    <p class="chart-note"><strong>해석:</strong> 동반 디레버리징에서는 세 자산이 함께 하락할 수 있습니다. 금리 하락과 달러 유동성 재확대가 뒤따르는 경우에만 Bitcoin과 Realty Income의 차별 반등 경로가 열립니다. O 미래선은 주가 경로로 현금배당을 포함하지 않습니다. 5년 선은 등록된 연차 가정 사이를 연결한 민감도 경로이며 실제 시장의 월별 요동이나 버블 붕괴 날짜를 예측하지 않습니다.</p>
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
   w._crossModel=model;w._defaultScenario=defaultScenario;
@@ -1578,15 +1583,24 @@ function drawLiquidity(host,model){
   const paint=index=>{selected=Math.max(0,Math.min(n-1,index));cursor.setAttribute('x1',X(selected));cursor.setAttribute('x2',X(selected));readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(labels[selected])}</strong><small>${esc(({expansion:'확장',neutral:'중립',contraction:'수축'}[zones[selected]]||zones[selected]))} zone</small></div><div><span>Fed liquidity z</span><strong>${hasNumeric(z[selected])?Number(z[selected]).toFixed(2):'표본 축적 중'}</strong><small>52주 rolling</small></div><div><span>NASDAQ</span><strong>${hasNumeric(ndx[selected])?signedDelta(ndx[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div><div><span>Bitcoin</span><strong>${hasNumeric(btc[selected])?signedDelta(btc[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div>`;};
   const fromPointer=event=>{const rect=svg.getBoundingClientRect(),x=(event.clientX-rect.left)*(W/rect.width);return Math.round((x-ML)/(PW/Math.max(1,n-1)));};overlay.addEventListener('pointermove',event=>paint(fromPointer(event)));overlay.addEventListener('pointerdown',event=>{paint(fromPointer(event));svg.focus();});svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});host.replaceChildren(svg,readout);paint(selected);
 }
+function crossFiveYearTableMarkup(model,scenario){
+  const labels=model.forecast?.labels||[],years=[0,12,24,36,48,60].filter(month=>month<labels.length),paths=scenario.paths||{};
+  const rowLabel=month=>month===0?'충격 원점':`${month/12}년 후`;
+  return `<section class="cross-yearly-compare" aria-labelledby="cross-yearly-title"><div class="panel-head"><div><p class="eyebrow">FIVE-YEAR CONDITIONAL COMPARISON</p><h3 id="cross-yearly-title">AI 충격 시작점부터 5개년 상대 경로</h3><p>M+0=100 · 연차값은 조건부 가정이며 실제 달력 날짜·사건확률·기대수익이 아닙니다.</p></div><span class="count-chip">${esc(scenario.label)}</span></div>
+    <div class="cross-phase-strip">${(scenario.phase_notes||[]).map((note,index)=>`<span><b>PHASE ${index+1}</b>${esc(note)}</span>`).join('')}</div>
+    <div class="table-shell"><table><thead><tr><th>경과</th><th>NASDAQ</th><th>Bitcoin</th><th>Realty Income</th></tr></thead><tbody>${years.map(month=>`<tr><td><strong>${rowLabel(month)}</strong><small>${esc(labels[month])}</small></td>${['nasdaq','bitcoin','realty_income'].map(key=>{const value=Number(paths[key]?.[month]);return `<td><strong style="color:${CROSS_META[key][1]}">${num(value)}</strong><small>${month===0?'비교 기준':signedDelta(value-100,1,' pt')}</small></td>`;}).join('')}</tr>`).join('')}</tbody></table></div>
+    <p class="chart-note">NASDAQ 경로는 충격 유형별 등록 곡선, BTC는 측정 beta와 공개 offset, O는 측정된 시장·금리·신용 민감도의 합성입니다. 장기 구간일수록 가정 민감도가 커집니다.</p></section>`;
+}
 function bindCrossAsset(panel,initialScenario){
   const model=panel._crossModel;let view='scenario',scenarioId=model.forecast.scenarios?.[initialScenario]?initialScenario:panel._defaultScenario;
-  const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel);
+  const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel),yearTable=$('#cross-five-year-table',panel);
   const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId],macro=scenario.macro_assumptions||{},last=values=>Array.isArray(values)&&values.length?values.at(-1):null;
     const macroChips=`<span>Δ10Y ${hasNumeric(last(macro.delta_10y_bp))?signedDelta(last(macro.delta_10y_bp),0,'bp'):'미산출'}</span><span>ΔHY ${hasNumeric(last(macro.delta_hy_bp))?signedDelta(last(macro.delta_hy_bp),0,'bp'):'미산출'}</span><span>사전 등록 가정</span>`;
     const attribution=scenario.realty_income_attribution||{},m3=3;
     const attributionText=`M+3 O 기여 · 시장 ${signedDelta(Number(attribution.market_beta?.[m3]||0),1)} · 금리 ${signedDelta(Number(attribution.rate?.[m3]||0),1)} · 크레딧 ${signedDelta(Number(attribution.credit?.[m3]||0),1)}`;
-    const shared=scenario.path_linkage?.bitcoin==='shared_with_deleveraging_by_design'?'<em class="shared-path-badge">BTC 경로 공유 · 설계상 동일</em>':'';
+    const shared=scenario.path_linkage?.bitcoin==='shared_first_12_months_with_deleveraging_by_design'?'<em class="shared-path-badge">BTC 초기 12개월 공유 · 이후 분기</em>':'';
     copy.innerHTML=`<div><span>선택 가정</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small>${shared}</div><p>${macroChips}${scenario.assumptions.map(item=>`<span>${esc(item)}</span>`).join('')}</p><p class="cross-attribution">${esc(attributionText)}</p><p class="cross-interpretation">${esc(scenario.realty_income_interpretation||'')}</p>`;
+    if(yearTable)yearTable.innerHTML=crossFiveYearTableMarkup(model,scenario);
     drawCrossAsset(scenarioHost,model,scenarioId);
     panel.querySelectorAll('[data-cross-scenario]').forEach(button=>{const active=button.dataset.crossScenario===scenarioId;button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;});
   };
@@ -1603,7 +1617,8 @@ function bindCrossAsset(panel,initialScenario){
 function drawCrossAsset(host,model,scenarioId){
   const scenario=model.forecast.scenarios[scenarioId];
   drawIndexedCompare(host,{labels:model.forecast.labels,series:scenario.paths,
-    bands:scenario.paths_band,keys:['nasdaq','bitcoin','realty_income'],title:`${scenario.label} 조건부 12개월 경로`,selected:0});
+    bands:scenario.paths_band,keys:['nasdaq','bitcoin','realty_income'],title:`${scenario.label} 조건부 5개년 경로`,selected:0,
+    tickIndexes:[0,12,24,36,48,60]});
 }
 function drawCrossAssetHistory(host,model){
   drawIndexedCompare(host,{labels:model.history.labels,series:model.history.series,
@@ -1630,7 +1645,9 @@ function drawIndexedCompare(host,config){
   const ticks=5;for(let i=0;i<=ticks;i++){const value=lo+(hi-lo)*i/ticks,y=Y(value);
     svg.appendChild(mk('line',{x1:ML,y1:y,x2:ML+PW,y2:y,stroke:value===100?'rgba(17,17,15,.28)':'rgba(17,17,15,.09)','stroke-width':value===100?1.4:1}));
     svg.appendChild(tx(ML-8,y+4,Math.round(value),{anc:'end'}));}
-  const labelIndexes=config.history
+  const labelIndexes=Array.isArray(config.tickIndexes)
+    ?config.tickIndexes.filter(index=>index>=0&&index<n)
+    :config.history
     ?config.labels.map((label,index)=>label.endsWith('-06')||index===0||index===n-1?index:null).filter(index=>index!=null)
     :[0,3,6,9,12].filter(index=>index<n);
   labelIndexes.forEach(index=>svg.appendChild(tx(X(index),MT+PH+24,config.history?config.labels[index].slice(0,4):config.labels[index],{anc:'middle'})));
@@ -1715,11 +1732,6 @@ function flowHorizonEndIndex(sc,horizonDays=126){
   return Math.max(1,Math.min(fullLength-1,end));
 }
 function flowDisplayPath(sc,key){
-  const row=sc?.path_realism?.[key]||{};
-  const explicit=row.representative_path?.values;
-  if(Array.isArray(explicit)&&explicit.length)return explicit;
-  const terminalMedian=(row.sample_paths||[]).find(sample=>Number(sample.terminal_percentile)===50)?.values;
-  if(Array.isArray(terminalMedian)&&terminalMedian.length)return terminalMedian;
   return Array.isArray(sc?.paths?.[key]?.values)?sc.paths[key].values:[];
 }
 function flowPathStats(values,dates=[]){
@@ -1830,14 +1842,15 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   const endIndex=flowHorizonEndIndex(sc,horizonDays),n=endIndex+1,weeks=sc.weeks.slice(0,n),weekDates=(sc.week_dates||[]).slice(0,n),riskValues=sc.risk.slice(0,n);
   const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(0,n):values]));
   const displayPaths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,flowDisplayPath(sc,key).slice(0,n)]));
-  const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).filter(row=>Number(row.terminal_percentile)!==50).flatMap(row=>(row.values||[]).slice(0,n))):[];
-  const chartValues=[sc.ath,sc.corr10,...Object.values(displayPaths).flat(),...sampleValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).flatMap(row=>(row.values||[]).slice(0,n))):[];
+  const analogValues=(sc.analog?.values||[]).slice(0,n).map(value=>Math.min(Number(value),Number(sc.analog?.clip||value))).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,...Object.values(displayPaths).flat(),...sampleValues,...analogValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
   const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   const horizonLabel=horizonDays===126?'6개월':'전체 252거래일';
-  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel} 조건부 시나리오. 좌우 화살표로 기준 주차 이동`);
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel} 조건부 시나리오와 혁신사이클 참조선. 좌우 화살표로 기준 주차 이동`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400,opacity:opts.opacity??1});node.textContent=value;return node;};
   const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
@@ -1859,7 +1872,11 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
     band(fan.p90,fan.p10,'#ff9d19',focus==='ALL'?.11:.025);if(fan.p25&&fan.p75)band(fan.p75,fan.p25,'#ff9d19',focus==='ALL'?.16:.04);
     if(fan.p50){let median='';fan.p50.forEach((value,index)=>median+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d:median,fill:'none',stroke:'#9a6700','stroke-width':1.4,'stroke-dasharray':'3 3',opacity:focus==='ALL'?.74:.12}));}
   }
-  if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).filter(row=>Number(row.terminal_percentile)!==50).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(0,n);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':1.05,'stroke-dasharray':sampleIndex===0?'3 3':'7 3',opacity:on?.34:.06,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
+  if(analogValues.length===n){const analogOn=focus==='ALL'||focus==='ANALOG';let analogPath='';analogValues.forEach((value,index)=>analogPath+=(index?'L':'M')+X(index)+','+Y(value)+' ');
+    svg.appendChild(mk('path',{d:analogPath,fill:'none',stroke:'#706f68','stroke-width':analogOn?2:1.1,'stroke-dasharray':'6 5','stroke-linejoin':'round',opacity:analogOn?.78:.08,'data-reference-path':'innovation-cycle'}));
+    const rawEnd=Number(sc.analog.values[Math.min(n-1,sc.analog.values.length-1)]),shownEnd=analogValues.at(-1);const label=rawEnd>shownEnd?`혁신사이클 참조 ↗ +${Math.round((rawEnd/sc.anchor-1)*100)}%`:'혁신사이클 참조';
+    const analogLabel=tx(X(n-1)-4,Y(shownEnd)-8,label,{anc:'end',fill:'#706f68',fs:11,w:700,opacity:analogOn?1:.1});analogLabel.setAttribute('paint-order','stroke');analogLabel.setAttribute('stroke','#fff');analogLabel.setAttribute('stroke-width','4');svg.appendChild(analogLabel);}
+  if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(0,n);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':Number(row.terminal_percentile)===50?1.25:1.0,'stroke-dasharray':sampleIndex===0?'3 3':'7 3',opacity:on?(Number(row.terminal_percentile)===50?.42:.28):.05,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
   const rightLabels=[];['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=displayPaths[key],color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));rightLabels.push({key,y:Y(endValue),text:`${num(endValue)} · ${path.prob}%`,color:CHART_LABEL_COL[key],opacity:on?1:.12,weight:750,fontSize:12});});
@@ -1888,9 +1905,9 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,horizonDays=126,showSample
   const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');let cursorIndex=0;
   const paintCursor=index=>{cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=weeks[cursorIndex],risk=riskValues[cursorIndex];xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
     ['S1','S2','S3'].forEach((key,markerIndex)=>{cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(displayPaths[key][cursorIndex]));});
-    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(key=>`<div><span>${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(displayPaths[key][cursorIndex])}</strong><small>경로 가중치 ${sc.paths[key].prob}%</small></div>`).join('')}`;svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel}, 선택 주차 ${week}, 변동성 ${risk}. 좌우 화살표로 이동`);};
+    readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(week)}</strong><small>변동성 ${esc(risk)}</small></div>${['S1','S2','S3'].map(key=>`<div><span>${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(displayPaths[key][cursorIndex])}</strong><small>경로 가중치 ${sc.paths[key].prob}%</small></div>`).join('')}`;svg.setAttribute('aria-label',`${sc.asof} 현재 기준 ${horizonLabel}, 선택 주차 ${week}, 변동성 ${risk}, 혁신사이클 선은 참조 전용. 좌우 화살표로 이동`);};
   const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
-  overlay.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';tip.innerHTML=`<b>${weeks[index]}</b> · 변동성 ${riskValues[index]}<br><span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(displayPaths.S1[index])}</span><br><span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(displayPaths.S2[index])}</span><br><span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(displayPaths.S3[index])}</span>`;}});
+  overlay.addEventListener('pointermove',event=>{const index=indexFromPointer(event);paintCursor(index);if(finePointer){tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';tip.innerHTML=`<b>${weeks[index]}</b> · 변동성 ${riskValues[index]}<br><span style="color:${CHART_COL.S1}">${esc(sc.paths.S1.label)} ${num(displayPaths.S1[index])}</span><br><span style="color:${CHART_COL.S2}">${esc(sc.paths.S2.label)} ${num(displayPaths.S2[index])}</span><br><span style="color:${CHART_COL.S3}">${esc(sc.paths.S3.label)} ${num(displayPaths.S3[index])}</span>${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;}});
   overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
   svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paintCursor(0);}else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}});
   host.replaceChildren(svg,readout);paintCursor(0);

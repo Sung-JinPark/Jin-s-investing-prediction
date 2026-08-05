@@ -34,13 +34,13 @@ def _macro() -> dict:
     return yaml.safe_load(
         """
 probability_space: scenario_conditional
-required_months: [0, 3, 6, 12]
+required_months: [0, 3, 6, 12, 24, 36, 48, 60]
 realty_income_price_carry_pct: 0
 scenarios:
-  deleveraging: {delta_10y_bp: {0: 0, 3: -30, 6: -60, 12: -80}, delta_hy_bp: {0: 0, 3: 250, 6: 300, 12: 150}}
-  easing_rotation: {delta_10y_bp: {0: 0, 3: -60, 6: -120, 12: -150}, delta_hy_bp: {0: 0, 3: 100, 6: 0, 12: -50}}
-  soft_landing: {delta_10y_bp: {0: 0, 3: 0, 6: 10, 12: 20}, delta_hy_bp: {0: 0, 3: 0, 6: 0, 12: 0}}
-  rates_stay_high: {delta_10y_bp: {0: 0, 3: 20, 6: 30, 12: 40}, delta_hy_bp: {0: 0, 3: 150, 6: 200, 12: 200}}
+  deleveraging: {delta_10y_bp: {0: 0, 3: -30, 6: -60, 12: -80, 24: -100, 36: -80, 48: -50, 60: -30}, delta_hy_bp: {0: 0, 3: 250, 6: 300, 12: 150, 24: 75, 36: 25, 48: 0, 60: 0}}
+  easing_rotation: {delta_10y_bp: {0: 0, 3: -60, 6: -120, 12: -150, 24: -125, 36: -75, 48: -25, 60: 0}, delta_hy_bp: {0: 0, 3: 100, 6: 0, 12: -50, 24: -75, 36: -50, 48: -25, 60: 0}}
+  soft_landing: {delta_10y_bp: {0: 0, 3: 0, 6: 10, 12: 20, 24: 10, 36: 0, 48: 0, 60: 0}, delta_hy_bp: {0: 0, 3: 0, 6: 0, 12: 0, 24: 0, 36: 0, 48: 0, 60: 0}}
+  rates_stay_high: {delta_10y_bp: {0: 0, 3: 20, 6: 30, 12: 40, 24: 60, 36: 50, 48: 30, 60: 10}, delta_hy_bp: {0: 0, 3: 150, 6: 200, 12: 200, 24: 175, 36: 125, 48: 75, 60: 25}}
 """
     )
 
@@ -59,7 +59,7 @@ def _dividend(day: str, amount: float) -> dict:
 def test_macro_contract_rejects_missing_key_month() -> None:
     payload = _macro()
     payload["scenarios"]["deleveraging"]["delta_10y_bp"].pop(6)
-    with pytest.raises(RealtyIncomeError, match="M0/M3/M6/M12"):
+    with pytest.raises(RealtyIncomeError, match="M0/M3/M6/M12/M24/M36/M48/M60"):
         validate_macro_assumptions(payload)
 
 

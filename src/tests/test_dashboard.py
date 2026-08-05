@@ -428,6 +428,9 @@ def test_workspace_utility_contract() -> None:
     assert "KNN FORWARD · CASE LIST ONLY" in html
     assert "forward n&lt;20" in html and "median emphasis disabled" in html
     assert "run asof" in html
+    assert "전체 표본 중앙 최대낙폭" in html
+    assert "row.median_max_drawdown_pct" in html
+    assert "representative_path?.values" not in html
     assert "표본 n=${num(row.sample_count)}" in html
     assert "표본 1/2회 미달·이전 β 유지" in html
     assert "gate 경계(n=156)" in html
@@ -435,7 +438,7 @@ def test_workspace_utility_contract() -> None:
     assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" in html
     assert "DATA.era_analog" in html
     assert "drawOverlay(analogHost,overlay._overlay" in html
-    assert "data-flow-focus=\"ANALOG\"" not in html
+    assert "data-flow-focus=\"ANALOG\"" in html
     assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
     assert "BTC DATA GAP · 정상 결측" in html
     assert "동반 디레버리징" in html and "data-cross-scenario" in html
@@ -471,8 +474,8 @@ def test_forecast_lookup_ui_contract() -> None:
         "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
         "flowEventLayout", "조회 · ",
         "PATH ILLUSTRATION · DATE IS NOT A FORECAST", "실경로 오버레이",
-        "모의 표본경로 · 날짜 비예측", "이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다",
-        "9/22 하락의 원인은 뉴스나 FOMC가 아니라", "AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다", "flowDisplayPath", "flowPathStats",
+        "조건부 중심 경로", "5년 선은 등록된 연차 가정 사이를 연결한 민감도 경로",
+        "특정 9월 하락일은 데이터가 지정한 조정 시점이 아닙니다", "AI 버블 생존확률이나 붕괴 시점으로도 해석하지 않습니다", "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
         "선택일 이후의 기존 분위수와 S1/S2/S3 모의 표본", "D일 스냅샷에서 반영됩니다",
@@ -583,12 +586,25 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "M+3 O 기여", "BTC 경로 공유 · 설계상 동일",
+        "realtyContext.condition_summary", "M+3 O 기여", "BTC 초기 12개월 공유 · 이후 분기",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
     changes = (dashboard.config.ROOT / "data/method_changes.jsonl").read_text(encoding="utf-8")
     assert "교차자산 경로 추적 원장 v2 전환" in changes
+
+
+def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_view() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "혁신사이클 대표 참조선 · 확률 아님",
+        "data-reference-path':'innovation-cycle'",
+        "특정 9월 하락일은 데이터가 지정한 조정 시점이 아닙니다",
+        "AI 충격 후 5년",
+        "AI 충격 시작점부터 5개년 상대 경로",
+        "tickIndexes:[0,12,24,36,48,60]",
+    ):
+        assert required in html
 
 
 def test_render_embed_vs_fetch(repo: Path) -> None:
