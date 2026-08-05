@@ -1,0 +1,195 @@
+{
+  "generated_at": "2026-08-05T04:48:36.159Z",
+  "source": "local static build",
+  "redirectsExpected": 15,
+  "redirectsPassed": 15,
+  "redirects": [
+    {
+      "name": "overview",
+      "legacy": "#overview",
+      "expected": "#today",
+      "expectedSection": "today",
+      "hash": "#today",
+      "section": "today",
+      "h1": "단기 조정 위험은 남아 있지만, 연말 상승 경로가 85%로 우세합니다.",
+      "passed": true
+    },
+    {
+      "name": "flow",
+      "legacy": "#flow",
+      "expected": "#future",
+      "expectedSection": "future",
+      "hash": "#future",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "history",
+      "legacy": "#lab=history",
+      "expected": "#future/history",
+      "expectedSection": "future",
+      "hash": "#future/history",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "cross_asset",
+      "legacy": "#lab=cross-asset",
+      "expected": "#future/cross-asset",
+      "expectedSection": "future",
+      "hash": "#future/cross-asset",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "ai_regime",
+      "legacy": "#lab=ai-regime",
+      "expected": "#future/ai-regime",
+      "expectedSection": "future",
+      "hash": "#future/ai-regime",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "liquidity",
+      "legacy": "#lab=liquidity",
+      "expected": "#future/liquidity",
+      "expectedSection": "future",
+      "hash": "#future/liquidity",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "questions",
+      "legacy": "#questions",
+      "expected": "#records",
+      "expectedSection": "records",
+      "hash": "#records",
+      "section": "records",
+      "h1": "예측 질문과 모든 라운드를 탐색합니다",
+      "passed": true
+    },
+    {
+      "name": "ask",
+      "legacy": "#ask",
+      "expected": "#future/range",
+      "expectedSection": "future",
+      "hash": "#future/range",
+      "section": "future",
+      "h1": "현시점에서 기간별 일별 전망을 그립니다",
+      "passed": true
+    },
+    {
+      "name": "asof",
+      "legacy": "#asof",
+      "expected": "#records/journal",
+      "expectedSection": "records",
+      "hash": "#records/journal",
+      "section": "records",
+      "h1": "예측 변경 일지",
+      "passed": true
+    },
+    {
+      "name": "track",
+      "legacy": "#track",
+      "expected": "#trust",
+      "expectedSection": "trust",
+      "hash": "#trust",
+      "section": "trust",
+      "h1": "확정된 예측의 정확도를 검증합니다",
+      "passed": true
+    },
+    {
+      "name": "question",
+      "legacy": "#q/nvda-dc-beat-2026aug",
+      "expected": "#records/question/nvda-dc-beat-2026aug",
+      "expectedSection": "records",
+      "hash": "#records/question/nvda-dc-beat-2026aug",
+      "section": "records",
+      "h1": "NVDA 8/26 실적 — DC매출 컨센서스 +5% 상회",
+      "passed": true
+    },
+    {
+      "name": "compare",
+      "legacy": "#compare/nvda-dc-beat-2026aug,mu-margin-qoq-next",
+      "expected": "#records/compare/nvda-dc-beat-2026aug,mu-margin-qoq-next",
+      "expectedSection": "records",
+      "hash": "#records/compare/nvda-dc-beat-2026aug,mu-margin-qoq-next",
+      "section": "records",
+      "h1": "질문의 확률과 시간 구조를 나란히 봅니다",
+      "passed": true
+    },
+    {
+      "name": "lookup_current",
+      "legacy": "#lookup=2026-11-03&mode=current",
+      "expected": "#future/lookup/2026-11-03/current",
+      "expectedSection": "future",
+      "hash": "#future/lookup/2026-11-03/current",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "lookup_rebase",
+      "legacy": "#lookup=2026-11-03&mode=rebase",
+      "expected": "#future/lookup/2026-11-03/rebase",
+      "expectedSection": "future",
+      "hash": "#future/lookup/2026-11-03/rebase",
+      "section": "future",
+      "h1": "향후 12개월 시장 경로를 분포로 읽는다",
+      "passed": true
+    },
+    {
+      "name": "asof_date",
+      "legacy": "#asof=2026-08-03",
+      "expected": "#records/journal/2026-08-03",
+      "expectedSection": "records",
+      "hash": "#records/journal/2026-08-03",
+      "section": "records",
+      "h1": "예측 변경 일지",
+      "passed": true
+    }
+  ],
+  "homeResults": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "hash": "#today",
+      "section": "today",
+      "viewportHeight": 720,
+      "documentHeight": 720,
+      "coreBottom": 619.78125,
+      "signals": 2,
+      "recentChanges": 3,
+      "nextEvents": 3,
+      "footerDisplay": "none",
+      "file": "today_1280.png",
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "hash": "#today",
+      "section": "today",
+      "viewportHeight": 844,
+      "documentHeight": 1486,
+      "coreBottom": 1080.5625,
+      "signals": 2,
+      "recentChanges": 3,
+      "nextEvents": 3,
+      "footerDisplay": "grid",
+      "file": "today_390.png",
+      "passed": true
+    }
+  ],
+  "passed": true
+}

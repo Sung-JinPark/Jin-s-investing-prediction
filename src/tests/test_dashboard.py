@@ -127,17 +127,17 @@ def test_ui_contract() -> None:
     """UI 현대화 계약 — 제품 rail·첫 화면 briefing·접근성·동적 전환."""
     html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
-    # 5개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
-    for v in ("overview", "flow", "questions", "asof", "track"):
+    # U1a의 4개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
+    for v in ("today", "future", "records", "trust"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
     assert "view-enter" in html, "화면 진입 전환 클래스 없음"
-    assert "feature-grid" in html, "핵심 질문 카드 그리드 없음"
+    assert "today-columns" in html, "오늘의 변경·이벤트 요약 그리드 없음"
     assert "analysis-panel" in html, "분석 패널 없음"
     assert 'class="product-rail"' in html, "데스크톱 제품 rail 없음"
     assert 'class="mobile-drawer"' in html, "모바일 drawer 없음"
-    assert 'class="overview-stage"' in html, "시장 브리핑 첫 화면 없음"
+    assert 'class="today-dashboard"' in html, "오늘의 무스크롤 브리핑 화면 없음"
     assert 'aria-expanded="false"' in html and "setDrawer" in html
     assert 'class="site-header"' not in html, "구형 전체 너비 헤더가 남아 있음"
     assert "--blue:" not in html and "var(--blue)" not in html, "구형 파란 강조색이 남아 있음"
@@ -153,6 +153,8 @@ def test_ui_contract() -> None:
         ".round-sidebar,.reasoning-panel,.resolution-card{color:#11110f;background:#fff",
     ):
         assert light_surface in html, f"light intelligence UI 계약 누락: {light_surface}"
+
+
     assert "SCEN_DEEP" not in html
     assert "--violet:#a99bff" not in html, "구형 dark ambient violet이 남아 있음"
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
@@ -187,6 +189,60 @@ def test_ui_contract() -> None:
     assert "산출 전" in html
     assert '<div class="probability-row"><strong>${q.latest_prob}</strong><span>%</span></div>' not in html
     assert '<span>R${q.n_rounds}</span>' not in html
+
+
+def test_u1a_four_section_information_architecture_contract() -> None:
+    html = dashboard.load_template()
+    shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+
+    for route, label in (
+        ("today", "오늘"),
+        ("future", "미래 탐색"),
+        ("records", "기록과 검증"),
+        ("trust", "데이터와 신뢰"),
+    ):
+        assert html.count(f'href="#{route}"') >= 3
+        assert label in html
+    for legacy in ("overview", "flow", "questions", "ask", "asof", "track"):
+        assert f'href="#{legacy}" data-v=' not in shell
+    for mapping in (
+        "rawHash==='#overview')return '#today'",
+        "rawHash==='#flow')return '#future'",
+        "rawHash==='#questions')return '#records'",
+        "rawHash==='#ask')return '#future/range'",
+        "rawHash==='#asof')return '#records/journal'",
+        "rawHash==='#track')return '#trust'",
+        "rawHash.startsWith('#q/')",
+        "rawHash.startsWith('#compare/')",
+        "rawHash.startsWith('#lookup=')",
+        "rawHash.startsWith('#lab=')",
+    ):
+        assert mapping in script
+    assert 'data-home-core="true"' in html
+    assert "핵심 신호 2개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
+    assert 'body[data-view="today"] .site-footer{display:none}' in css
+    assert ".today-page{min-height:calc(100dvh - 48px)" in css
+
+
+def test_u1a_route_and_home_render_evidence() -> None:
+    project_root = Path(__file__).parents[2]
+    evidence_dir = project_root / "reports" / "screenshots" / "u1a_260805"
+    results = json.loads((evidence_dir / "route_results.json").read_text(encoding="utf-8"))
+
+    assert results["passed"] is True
+    assert results["redirectsExpected"] == results["redirectsPassed"] == 15
+    assert all(row["passed"] and row["hash"] == row["expected"] for row in results["redirects"])
+    desktop = next(row for row in results["homeResults"] if row["viewport"]["width"] == 1280)
+    assert desktop["documentHeight"] <= desktop["viewportHeight"]
+    assert desktop["coreBottom"] <= desktop["viewportHeight"]
+    assert desktop["footerDisplay"] == "none"
+    for row in results["homeResults"]:
+        assert row["passed"] is True
+        assert row["signals"] == 2
+        assert row["recentChanges"] == row["nextEvents"] == 3
+        assert (evidence_dir / row["file"]).is_file()
 
 
 def test_workspace_utility_contract() -> None:
@@ -355,7 +411,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "모의 표본경로 · 날짜 비예측", "이 선은 충격 가정의 민감도 경로이며 실제 시장의 요동을 표현하지 않습니다",
         "9/22 하락의 원인은 뉴스나 FOMC가 아니라", "AI 버블이 생존할 확률이나 붕괴 시점도 아닙니다", "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
-        "D = 100 · CURRENT SNAPSHOT REINDEXED", "#lookup=${mapped.requested}&mode=${lookupMode}",
+        "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
         "선택일 이후의 기존 분위수와 S1/S2/S3 모의 표본", "D일 스냅샷에서 반영됩니다",
         "horizonCoverageForDay", "미검증 구간", "적중 기록 축적 중",
         "inside_p10_p90_rate_pct", "0일 · 0/60",

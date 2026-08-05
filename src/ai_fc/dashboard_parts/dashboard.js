@@ -61,8 +61,8 @@ function setDrawer(open,restoreFocus=true){
   if(open){closeQuickPeek();drawerReturnFocus=document.activeElement;}
   document.body.classList.toggle('drawer-open',open);
   menuOpen.setAttribute('aria-expanded',String(open));
-  mobileMore.setAttribute('aria-expanded',String(open));
-  mobileMore.classList.toggle('active',open||['asof','track'].includes(document.body.dataset.view));
+  mobileMore?.setAttribute('aria-expanded',String(open));
+  mobileMore?.classList.toggle('active',open);
   drawer.setAttribute('aria-hidden',String(!open));
   drawerBackdrop.setAttribute('aria-hidden',String(!open));
   document.querySelector('.content-shell').inert=open;
@@ -72,7 +72,7 @@ function setDrawer(open,restoreFocus=true){
   if(open)menuClose.focus();else if(restoreFocus)(drawerReturnFocus?.focus?drawerReturnFocus:menuOpen).focus();
 }
 menuOpen.addEventListener('click',()=>setDrawer(true));
-mobileMore.addEventListener('click',()=>setDrawer(!document.body.classList.contains('drawer-open')));
+mobileMore?.addEventListener('click',()=>setDrawer(!document.body.classList.contains('drawer-open')));
 menuClose.addEventListener('click',()=>setDrawer(false));
 drawerBackdrop.addEventListener('click',()=>setDrawer(false));
 document.addEventListener('keydown',e=>{
@@ -90,7 +90,7 @@ function loadUIState(){
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
@@ -133,7 +133,7 @@ const shareLayer=document.getElementById('share-layer'),sharePopover=document.ge
 let viewObserver=null,revealObserver=null,viewScrollHandler=null,viewResizeHandler=null,viewSections=[];
 let peekTimer=0,peekAnchor=null,briefingIndex=0,briefingReturnFocus=null,shareReturnFocus=null;
 function motionAllowed(){return UI_STATE.motion!=='reduced'&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;}
-function currentNoteKey(){return location.hash||'#overview';}
+function currentNoteKey(){return location.hash||'#today';}
 function currentNote(){return UI_STATE.notes[currentNoteKey()]||'';}
 function saveCurrentNote(value){
   const key=currentNoteKey(),note=String(value||'').slice(0,700),notes={...UI_STATE.notes};
@@ -351,10 +351,10 @@ function changeRadarPanel(){
       <i class="${x.delta>0?'up':'down'}">${x.delta>0?'+':''}${x.delta}%p</i><span>${esc(x.q.title)}<small>${esc(humanDomain(x.q.domain))} · ${x.days==null?'수시 판정':x.days<0?'판정 시점 경과':`D-${x.days}`}</small></span><strong>${p1(x.latest)}</strong></button>`).join(''):
       '<p class="empty">직전 회차 대비 변한 활성 질문이 없습니다.</p>'}</div></section>`);
 }
-function isQuestionPinned(qid){return UI_STATE.pins.some(x=>x.hash==='#q/'+qid);}
+function isQuestionPinned(qid){return UI_STATE.pins.some(x=>x.hash==='#records/question/'+qid||x.hash==='#q/'+qid);}
 function toggleQuestionPin(qid){
   const q=DATA?.questions?.find(x=>x.id===qid);if(!q)return;
-  const hash='#q/'+qid,on=isQuestionPinned(qid),d={hash,title:q.title,type:'question'};
+  const hash='#records/question/'+qid,on=isQuestionPinned(qid),d={hash,title:q.title,type:'question'};
   UI_STATE.pins=on?UI_STATE.pins.filter(x=>x.hash!==hash):[d,...UI_STATE.pins.filter(x=>x.hash!==hash&&descriptorExists(x))].slice(0,8);
   saveUIState();syncQuestionActions();renderCompareTray();
   const old=document.getElementById('my-radar');if(old)old.replaceWith(myRadarPanel());
@@ -362,11 +362,11 @@ function toggleQuestionPin(qid){
   if(!commandLayer.hidden)renderCommandResults(commandInput.value);
 }
 function myRadarQuestions(){
-  return UI_STATE.pins.filter(x=>x.type==='question').map(x=>DATA?.questions?.find(q=>'#q/'+q.id===x.hash)).filter(Boolean);
+  return UI_STATE.pins.filter(x=>x.type==='question').map(x=>DATA?.questions?.find(q=>'#records/question/'+q.id===x.hash||'#q/'+q.id===x.hash)).filter(Boolean);
 }
 function myRadarPanel(){
   const qs=myRadarQuestions();
-  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">MY RADAR</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#questions">질문 찾기</a></div>
+  return el(`<section class="my-radar" id="my-radar" aria-labelledby="my-radar-title"><div class="panel-head"><div><h2 id="my-radar-title">MY RADAR</h2><p>이 기기에 고정한 질문을 빠르게 다시 봅니다.</p></div><a class="text-button" href="#records">질문 찾기</a></div>
     ${qs.length?`<div class="radar-pins">${qs.slice(0,6).map(q=>`<button type="button" class="radar-pin" data-open-q="${esc(q.id)}"><span>${p1(q.latest_prob)} · ${esc(humanDomain(q.domain))}</span><b>${esc(q.title)}</b><small>${q.deadline?esc(q.deadline):'수시 판정'} · ${roundLabel(q.n_rounds)}</small></button>`).join('')}</div>`:
     '<div class="radar-empty">예측 상세 또는 목록의 ☆ 버튼으로 질문을 고정하면 여기에 표시됩니다.</div>'}</section>`);
 }
@@ -478,7 +478,7 @@ function toggleCompareTray(){
 function renderCompareTray(){
   if(!DATA)return;const ids=cleanCompareIds();UI_STATE.compare=ids;
   compareTray.hidden=!ids.length;
-  const collapsed=location.hash.startsWith('#compare/')||UI_STATE.compareCollapsed;
+  const collapsed=location.hash.startsWith('#records/compare/')||UI_STATE.compareCollapsed;
   compareTray.classList.toggle('is-collapsed',collapsed);compareToggle.setAttribute('aria-expanded',String(!collapsed));compareCount.textContent=String(ids.length);
   compareToggle.setAttribute('aria-label',collapsed?`비교 선택 ${ids.length}개 펼치기`:`비교 선택 ${ids.length}개 접기`);
   compareItems.innerHTML=ids.map(id=>{const q=DATA.questions.find(x=>x.id===id);return `<button type="button" class="compare-chip" data-remove-compare="${esc(id)}"><b>${p1(q.latest_prob)}</b><span>${esc(q.title)}</span><i>×</i></button>`;}).join('');
@@ -490,7 +490,7 @@ function downloadQuestionCalendar(ids=null){
   if(!qs.length)return showToast('저장할 판정일이 없습니다.','warning');
   const stamp=generatedDay().replaceAll('-','')+'T000000Z';
   const base=location.origin+location.pathname;
-  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+q.title)}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · ${roundLabel(q.n_rounds)}`)}\r\nURL:${icsEscape(base+'#q/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
+  const events=qs.map(q=>`BEGIN:VEVENT\r\nUID:${icsEscape(q.id)}@jin-investing\r\nDTSTAMP:${stamp}\r\nDTSTART;VALUE=DATE:${q.deadline.replaceAll('-','')}\r\nDTEND;VALUE=DATE:${addIsoDays(q.deadline,1).replaceAll('-','')}\r\nSUMMARY:${icsEscape('[예측 판정] '+q.title)}\r\nDESCRIPTION:${icsEscape(`현재 확률 ${p1(q.latest_prob)} · ${humanDomain(q.domain)} · ${roundLabel(q.n_rounds)}`)}\r\nURL:${icsEscape(base+'#records/question/'+q.id)}\r\nEND:VEVENT`).join('\r\n');
   const content=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Jin's Investing//Forecast Calendar//KO\r\nCALSCALE:GREGORIAN\r\nMETHOD:PUBLISH\r\n${events}\r\nEND:VCALENDAR\r\n`;
   const url=URL.createObjectURL(new Blob([content],{type:'text/calendar;charset=utf-8'})),a=document.createElement('a');
   a.href=url;a.download=ids?.length===1?`${ids[0]}-deadline.ics`:'jin-investing-deadlines.ics';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -607,19 +607,19 @@ function stepBriefing(delta){
   briefingIndex=Math.max(0,Math.min(last,briefingIndex+delta));renderBriefingStep();
 }
 function currentDescriptor(){
-  const hash=location.hash||'#overview';
-  if(hash.startsWith('#q/')){
-    const id=hash.slice(3),q=DATA?.questions?.find(x=>x.id===id);
+  const hash=location.hash||'#today';
+  if(hash.startsWith('#records/question/')){
+    const id=hash.slice(18),q=DATA?.questions?.find(x=>x.id===id);
     return q?{hash,title:q.title,type:'question'}:null;
   }
-  if(hash.startsWith('#compare/'))return {hash,title:'예측 질문 비교',type:'route'};
+  if(hash.startsWith('#records/compare/'))return {hash,title:'예측 질문 비교',type:'route'};
   const r=COMMAND_ROUTES.find(x=>x.hash===hash);
   return r?{hash,title:r.title,type:'route'}:null;
 }
 function descriptorExists(item){
   if(!item?.hash)return false;
-  if(item.hash.startsWith('#q/'))return !!DATA?.questions?.some(q=>'#q/'+q.id===item.hash);
-  if(item.hash.startsWith('#compare/'))return item.hash.slice(9).split(',').filter(id=>DATA?.questions?.some(q=>q.id===id)).length>=2;
+  if(item.hash.startsWith('#records/question/'))return !!DATA?.questions?.some(q=>'#records/question/'+q.id===item.hash);
+  if(item.hash.startsWith('#records/compare/'))return item.hash.slice(17).split(',').filter(id=>DATA?.questions?.some(q=>q.id===id)).length>=2;
   return COMMAND_ROUTES.some(r=>r.hash===item.hash);
 }
 function isCurrentPinned(){const d=currentDescriptor();return !!d&&UI_STATE.pins.some(x=>x.hash===d.hash);}
@@ -657,7 +657,7 @@ async function shareCurrentView(nativeShare=true){
 }
 function canonicalShareUrl(){
   let url=new URL(location.href);url.search='';
-  if(url.href.length>200){url.hash='#overview';}
+  if(url.href.length>200){url.hash='#today';}
   return url.href.slice(0,200);
 }
 function honestSharePayload(){
@@ -740,7 +740,7 @@ function renderUtilityPanel(){
       <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
     <section class="utility-section"><div class="utility-label">My Radar · ${pinnedQs.length}</div><div class="utility-list">
       ${pinnedQs.length?pinnedQs.slice(0,5).map(q=>`<button type="button" data-open-q="${esc(q.id)}">${esc(q.title)}<span>${p1(q.latest_prob)}</span></button>`).join(''):
-      '<button type="button" data-util-route="#questions">고정한 질문이 없습니다<span>＋</span></button>'}</div></section>
+      '<button type="button" data-util-route="#records">고정한 질문이 없습니다<span>＋</span></button>'}</div></section>
     <section class="utility-section"><div class="utility-label">Research note · This device</div><div class="note-editor">
       <label for="workspace-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">현재 화면 메모</label>
       <textarea id="workspace-note" maxlength="700" placeholder="이 화면에 대한 판단, 확인할 조건, 다음 행동을 기록하세요.">${esc(note)}</textarea>
@@ -795,7 +795,7 @@ document.getElementById('shortcut-scrim').addEventListener('click',()=>setShortc
 shortcutClose.addEventListener('click',()=>setShortcuts(false));
 focusExit.addEventListener('click',()=>setFocusMode(false));
 utilityContent.addEventListener('click',e=>{const dismiss=e.target.closest('[data-review-dismiss]');if(dismiss){dismissReviewQuestion(dismiss.dataset.reviewDismiss);renderUtilityPanel();showToast('이번 세션의 검토 큐에서 숨겼습니다.');return;}
-  const q=e.target.closest('[data-open-q]');if(q){setUtility(false,false);location.hash='#q/'+q.dataset.openQ;return;}
+  const q=e.target.closest('[data-open-q]');if(q){setUtility(false,false);location.hash='#records/question/'+q.dataset.openQ;return;}
   const routeButton=e.target.closest('[data-util-route]');if(routeButton){setUtility(false,false);location.hash=routeButton.dataset.utilRoute;return;}
   const b=e.target.closest('button[data-util]');if(!b)return;const a=b.dataset.util;
   if(a==='density')setDensity(b.dataset.value);else if(a==='motion')setMotion(b.dataset.value);else if(a==='pin'){toggleCurrentPin();renderUtilityPanel();}else if(a==='focus')setFocusMode(!document.body.classList.contains('focus-mode'));
@@ -810,7 +810,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-action]');
   if(a==='pin')toggleCurrentPin();else if(a==='share')shareCurrentView(true);else if(a==='utility')setUtility(true);else if(a==='briefing')setBriefing(true);
 });
 app().addEventListener('click',e=>{
-  const open=e.target.closest('[data-open-q]');if(open){e.preventDefault();location.hash='#q/'+open.dataset.openQ;return;}
+  const open=e.target.closest('[data-open-q]');if(open){e.preventDefault();location.hash='#records/question/'+open.dataset.openQ;return;}
   const pin=e.target.closest('[data-pin-q]');if(pin){e.preventDefault();e.stopPropagation();toggleQuestionPin(pin.dataset.pinQ);return;}
   const compare=e.target.closest('[data-compare-q]');if(compare){e.preventDefault();e.stopPropagation();toggleCompareQuestion(compare.dataset.compareQ);return;}
   const calendar=e.target.closest('[data-calendar-q]');if(calendar){e.preventDefault();e.stopPropagation();downloadQuestionCalendar([calendar.dataset.calendarQ]);return;}
@@ -818,31 +818,29 @@ app().addEventListener('click',e=>{
 });
 compareItems.addEventListener('click',e=>{const b=e.target.closest('[data-remove-compare]');if(b)toggleCompareQuestion(b.dataset.removeCompare);});
 compareClear.addEventListener('click',()=>setCompareQuestions([]));
-compareOpen.addEventListener('click',()=>{const ids=cleanCompareIds();if(ids.length>=2)location.hash='#compare/'+ids.join(',');});
+compareOpen.addEventListener('click',()=>{const ids=cleanCompareIds();if(ids.length>=2)location.hash='#records/compare/'+ids.join(',');});
 compareToggle.addEventListener('click',toggleCompareTray);
 document.getElementById('briefing-scrim').addEventListener('click',()=>setBriefing(false));
 briefingClose.addEventListener('click',()=>setBriefing(false));
 briefingPrev.addEventListener('click',()=>stepBriefing(-1));briefingNext.addEventListener('click',()=>stepBriefing(1));
-briefingContent.addEventListener('click',e=>{const b=e.target.closest('[data-brief-q]');if(!b)return;setBriefing(false,false);location.hash='#q/'+b.dataset.briefQ;});
+briefingContent.addEventListener('click',e=>{const b=e.target.closest('[data-brief-q]');if(!b)return;setBriefing(false,false);location.hash='#records/question/'+b.dataset.briefQ;});
 
 // keyboard-first quick navigation
 const commandLayer=document.getElementById('command-layer'),commandInput=document.getElementById('command-input');
 const commandResults=document.getElementById('command-results'),commandScrim=document.getElementById('command-scrim');
 let commandReturnFocus=null;
 const COMMAND_ROUTES=[
-  {hash:'#overview',code:'01',title:'오늘의 판단',hint:'시장 판단과 핵심 예측'},
-  {hash:'#flow',code:'02',title:'시장 맵',hint:'시나리오 경로와 위험 구간'},
-  {hash:'#questions',code:'03',title:'예측 연구',hint:'모든 질문과 라운드'},
-  {hash:'#ask',code:'04A',title:'기간 조회',hint:'시점 리플레이의 기간별 전망'},
-  {hash:'#asof',code:'04B',title:'예측 변경 일지',hint:'변경 근거와 과거 시점 비교'},
-  {hash:'#track',code:'05',title:'트랙레코드',hint:'Brier와 캘리브레이션'}
+  {hash:'#today',code:'01',title:'오늘',hint:'시장 판단과 핵심 신호'},
+  {hash:'#future',code:'02',title:'미래 탐색',hint:'시나리오 경로와 위험 구간'},
+  {hash:'#records',code:'03',title:'기록과 검증',hint:'질문·변경·결과 기록'},
+  {hash:'#trust',code:'04',title:'데이터와 신뢰',hint:'원장·근거·방법론'}
 ];
 function commandCatalog(){
   const actions=[
     {id:'briefing',code:'B',title:'3단계 시장 브리핑',hint:'현재 데이터를 큰 장면으로 빠르게 읽기',group:'작업',search:'briefing tour story 브리핑',run:()=>setBriefing(true)},
     {id:'pin-current',code:isCurrentPinned()?'★':'☆',title:isCurrentPinned()?'현재 화면 고정 해제':'현재 화면 고정',hint:'브라우저에 즐겨찾기 저장',group:'작업',search:'pin favorite 고정',run:toggleCurrentPin},
     {id:'share-current',code:'↗',title:'현재 화면 공유',hint:'기기 공유 또는 링크 복사',group:'작업',search:'share copy link 공유',run:()=>shareCurrentView(true)},
-    ...(cleanCompareIds().length>=2?[{id:'compare-selected',code:'⇄',title:'선택한 예측 비교',hint:`${cleanCompareIds().length}개 질문 나란히 보기`,group:'작업',search:'compare 비교',run:()=>location.hash='#compare/'+cleanCompareIds().join(',')}]:[]),
+    ...(cleanCompareIds().length>=2?[{id:'compare-selected',code:'⇄',title:'선택한 예측 비교',hint:`${cleanCompareIds().length}개 질문 나란히 보기`,group:'작업',search:'compare 비교',run:()=>location.hash='#records/compare/'+cleanCompareIds().join(',')}]:[]),
     {id:'calendar-all',code:'CAL',title:'판정일 캘린더 저장',hint:'활성 질문을 ICS로 내보내기',group:'작업',search:'calendar ics 일정 판정일',run:()=>downloadQuestionCalendar()},
     {id:'current-note',code:'N',title:'현재 화면 메모',hint:'이 기기에 research note 저장',group:'작업',search:'note memo research 메모',run:openCurrentNote},
     {id:'data-status',code:'●',title:'데이터 상태',hint:'갱신 시각과 snapshot 범위',group:'작업',search:'data status freshness 갱신',run:()=>setUtility(true)},
@@ -854,7 +852,7 @@ function commandCatalog(){
   const pins=UI_STATE.pins.filter(descriptorExists).map((x,i)=>({...x,id:'pin-'+i,code:'★',hint:x.type==='question'?'고정한 예측 질문':'고정한 화면',group:'고정',search:x.title.toLowerCase()}));
   const recent=UI_STATE.recent.filter(descriptorExists).map((x,i)=>({...x,id:'recent-'+i,code:'↺',hint:x.type==='question'?'최근 본 예측 질문':'최근 본 화면',group:'최근',search:x.title.toLowerCase()}));
   const routes=COMMAND_ROUTES.map(x=>({...x,group:'화면'}));
-  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#q/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,hint:`${humanDomain(q.domain)} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
+  const qs=(DATA?.questions||[]).map(q=>({id:'q-'+q.id,hash:'#records/question/'+q.id,code:(hasNumeric(q.latest_prob)?q.latest_prob+'%':'대기'),title:q.title,hint:`${humanDomain(q.domain)} · ${q.status==='active'?'진행 중':'완료'}`,group:'예측 질문',search:[q.title,q.id,q.domain,humanDomain(q.domain),...(q.drivers||[]),(q.drivers||[]).map(humanDriver)].join(' ').toLowerCase()}));
   return actions.concat(pins,recent,routes,qs);
 }
 let activeCommandItems=[];
@@ -994,27 +992,73 @@ function enhanceChartScroll(root=document){
 }
 function contextTabs(group,current){
   const groups={
-    research:[['questions','질문 목록'],['compare','비교 작업공간']],
-    replay:[['ask','기간 조회'],['asof','AS-OF 타임머신']],
-    track:[['track','요약과 Calibration']]
+    research:[['questions','질문 목록','#records'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
+    replay:[['ask','기간 조회','#future/range'],['asof','AS-OF 타임머신','#records/journal']],
+    track:[['track','요약과 Calibration','#trust']]
   };
   const items=(groups[group]||[]).filter(([id])=>id!=='compare'||cleanCompareIds().length>=2);
   if(items.length<2)return '';
-  return `<nav class="context-tabs" aria-label="${group==='replay'?'시점 리플레이':'예측 연구'} 세부 화면">${items.map(([id,label])=>{const href=id==='compare'?'#compare/'+cleanCompareIds().join(','):'#'+id;
+  return `<nav class="context-tabs" aria-label="${group==='replay'?'시점 리플레이':'예측 연구'} 세부 화면">${items.map(([id,label,href])=>{
     return `<a href="${href}" ${id===current?'aria-current="page"':''}>${label}</a>`;}).join('')}</nav>`;
 }
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
+function legacyRouteRedirect(rawHash){
+  if(!rawHash||rawHash==='#')return '#today';
+  if(/^#(?:today|future(?:\/|$)|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
+  if(rawHash==='#overview')return '#today';
+  if(rawHash==='#flow')return '#future';
+  if(rawHash==='#questions')return '#records';
+  if(rawHash==='#ask')return '#future/range';
+  if(rawHash==='#asof')return '#records/journal';
+  if(rawHash==='#track')return '#trust';
+  if(rawHash.startsWith('#q/'))return `#records/question/${rawHash.slice(3)}`;
+  if(rawHash.startsWith('#compare/'))return `#records/compare/${rawHash.slice(9)}`;
+  if(rawHash.startsWith('#asof/'))return `#records/journal/question/${rawHash.slice(6)}`;
+  const asofMatch=rawHash.match(/^#asof=(\d{4}-\d{2}-\d{2})$/);
+  if(asofMatch)return `#records/journal/${asofMatch[1]}`;
+  if(rawHash.startsWith('#lookup=')){
+    const params=new URLSearchParams(rawHash.slice(1)),date=params.get('lookup'),mode=params.get('mode')==='current'?'current':'rebase';
+    if(date&&/^\d{4}-\d{2}-\d{2}$/.test(date))return `#future/lookup/${date}/${mode}`;
+  }
+  if(rawHash.startsWith('#lab=')){
+    const params=new URLSearchParams(rawHash.slice(1)),lab=params.get('lab')||'future',scenario=params.get('scenario');
+    return lab==='future'?'#future':`#future/${encodeURIComponent(lab)}${scenario?`/${encodeURIComponent(scenario)}`:''}`;
+  }
+  return '#today';
+}
+function parseCanonicalRoute(rawHash){
+  const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
+  if(parts[0]==='today')return {section:'today',view:'overview'};
+  if(parts[0]==='future'){
+    if(parts[1]==='range')return {section:'future',view:'ask'};
+    if(parts[1]==='lookup'&&/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'future',view:'flow',arg:{lookup:parts[2],lookupMode:parts[3]==='current'?'current':'rebase'}};
+    if(['history','cross-asset','ai-regime','liquidity'].includes(parts[1]))return {section:'future',view:'flow',arg:{lab:parts[1],scenario:parts[2]||null}};
+    return {section:'future',view:'flow'};
+  }
+  if(parts[0]==='records'){
+    if(parts[1]==='question'&&parts[2])return {section:'records',view:'q',arg:parts.slice(2).join('/')};
+    if(parts[1]==='compare'&&parts[2])return {section:'records',view:'compare',arg:parts.slice(2).join('/')};
+    if(parts[1]==='journal'){
+      if(parts[2]==='question'&&parts[3])return {section:'records',view:'asof',arg:{question:parts.slice(3).join('/')}};
+      if(/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'records',view:'asof',arg:{mode:'replay',date:parts[2]}};
+      return {section:'records',view:'asof'};
+    }
+    return {section:'records',view:'questions'};
+  }
+  if(parts[0]==='trust')return {section:'trust',view:'track'};
+  return {section:'today',view:'overview'};
+}
 function route(){
-  const rawHash=location.hash||'#overview',lookupParams=rawHash.startsWith('#lookup=')?new URLSearchParams(rawHash.slice(1)):null,lookupDate=lookupParams?.get('lookup'),lookupMatch=lookupDate&&/^\d{4}-\d{2}-\d{2}$/.test(lookupDate),asofMatch=rawHash.match(/^#asof=(\d{4}-\d{2}-\d{2})$/),labParams=rawHash.startsWith('#lab=')?new URLSearchParams(rawHash.slice(1)):null;
-  const h=lookupMatch||labParams?'flow':(asofMatch?'asof':rawHash.slice(1));const [v,pathArg]=h.split('/');const arg=lookupMatch?{lookup:lookupDate,lookupMode:lookupParams.get('mode')==='current'?'current':'rebase'}:(asofMatch?{mode:'replay',date:asofMatch[1]}:(labParams?{lab:labParams.get('lab'),scenario:labParams.get('scenario')}:pathArg));
+  const enteredHash=location.hash||'#today',rawHash=legacyRouteRedirect(enteredHash);
+  if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
+  const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
   closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
-  const navView=(v==='q'||v==='compare')?'questions':(v==='ask'?'asof':v);
   document.body.dataset.view=navView;
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   document.querySelectorAll('.mobile-bottom-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
-  mobileMore.classList.toggle('active',['asof','track'].includes(navView));
+  mobileMore?.classList.toggle('active',false);
   (VIEWS[v]||renderOverview)(arg);
   requestAnimationFrame(()=>enhanceChartScroll(app()));
   renderCompareTray();
@@ -1032,66 +1076,31 @@ function marketThesis(upProb,rangeProb){
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:'핵심 이벤트 전까지 변동성 우위입니다.'};
 }
 function renderOverview(){
-  const m=DATA.meta,sc=DATA.scenario;
+  const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob;
   const vintage=scenarioVintage();
   const thesis=vintage.status==='stale'
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb);
-  const decisionItems=selectDecisionItems({minAbsoluteDelta:1,limit:5});
-  const root=el('<div class="overview-page"></div>');
-  const stage=el(`<section class="overview-stage" aria-labelledby="market-thesis"><div class="stage-inner">
-    <div class="overview-hero">
-      <div class="overview-copy">
-        <p class="eyebrow">${vintage.status==='stale'?'보관된 시장 시나리오':'현재 시장 판단'} · ${esc(sc.asof)}</p>
-        <h1 id="market-thesis">${esc(thesis.lead)}<em>${esc(thesis.accent)}</em></h1>
-        <p class="overview-deck">${vintage.status==='stale'?'아래 시장 경로는 마지막 유효 스냅샷으로만 표시합니다. 최신 질문별 예측은 별도 기준이며 두 확률 체계는 서로 합산하지 않습니다.':'연말 시나리오와 최신 질문별 예측을 함께 표시합니다. 두 확률 체계는 서로 합산하지 않으며 참고 의견으로만 제공합니다.'}</p>
-        <div class="overview-actions"><button type="button" class="briefing-launch" data-action="briefing"><span>▶</span>3 STEP BRIEFING</button><small>← → 키로 30초 시장 요약 보기</small></div>
-      </div>
-      ${decisionQueueCard(decisionItems.slice(0,3))}
+  const decisions=selectDecisionItems({minAbsoluteDelta:1,limit:8});
+  const recent=[...decisions].filter(item=>item.delta!=null||item.newSince).slice(0,3);
+  decisions.filter(item=>!recent.includes(item)).slice(0,3-recent.length).forEach(item=>recent.push(item));
+  const today=generatedDay(),calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
+  const fallbackEvents=upcoming(3).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
+  const events=calendar.length?calendar:fallbackEvents;
+  const status=vintage.status==='stale'?'갱신 필요':'정상';
+  const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
+    <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1><p>${vintage.status==='stale'?'마지막 유효 스냅샷이며 최신 질문 기록과 결합하지 않습니다.':'시나리오 조건부 분포와 공식 질문 확률은 서로 다른 공간이며 합산하지 않습니다.'}</p></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
+    <div class="today-signals" aria-label="핵심 신호 2개">
+      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`상승 경로 ${num(upProb)}%`}</strong><small>방어 경로 ${num(rangeProb)}% · ${esc(status)}</small></article>
+      <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
     </div>
-    ${linkedSignalStrip(vintage.status==='stale'?null:upProb,decisionItems)}
-  </div></section>`);
-  const fq=homeFeatureQuestions(decisionItems);
-  const fg=el('<div class="feature-grid forecast-grid"></div>');
-  fq.forEach((q,i)=>{
-    const decision=decisionItems.find(x=>x.q.id===q.id);
-    const signals=['market',...(decision?.signals||[])].join(' ');
-    const available=hasNumeric(q.latest_prob),d=latestDelta(q.id);
-    const dtxt=!available?'예측 대기':d==null?'첫 예측':(d>=0?'▲ +'+d+'%p':'▼ '+d+'%p'),dcls=d==null?'':(d>=0?'up':'down');
-    const c=el(`<article class="forecast-card forecast-module tone-${i}" data-q="${esc(q.id)}" data-home-signals="${esc(signals)}" role="group" aria-label="${esc(q.title)}">
-      <div class="card-actions"><button type="button" class="question-action" data-pin-q="${esc(q.id)}" aria-label="개인 레이더에 고정">☆</button><button type="button" class="question-action compare" data-compare-q="${esc(q.id)}" aria-label="비교 선택" aria-pressed="false">⇄</button></div>
-      <div class="card-kicker"><span>${esc(humanDomain(q.domain))}${decision?.newSince?'<b class="new-round-badge">NEW ROUND</b>':''}</span><span>${roundLabel(q.n_rounds)}</span></div>
-      <div class="probability-row${available?'':' is-pending'}">${available?`<strong>${q.latest_prob}</strong><span>%</span>`:'<strong>산출 전</strong>'}</div>
-      ${miniSparkline(q,i)}
-      <div class="probability-track"><span style="width:${available?Math.min(100,q.latest_prob):0}%"></span></div>
-      <p>${esc(q.title)}</p>
-      <div class="card-foot"><span class="${dcls}">${dtxt}</span><span>${esc(q.deadline||'수시')}</span><a href="#q/${esc(q.id)}" aria-label="${esc(q.title)} 상세 보기">↗</a></div>
-    </article>`);
-    const journalHop=document.createElement('button');journalHop.type='button';journalHop.className='journal-hop';journalHop.textContent='변경 일지';journalHop.setAttribute('aria-label',`${q.title} 변경 일지 보기`);journalHop.onclick=event=>{event.stopPropagation();location.hash='#asof/'+q.id;};
-    c.querySelector('.card-foot')?.insertBefore(journalHop,c.querySelector('.card-foot a'));
-    c.onclick=e=>{if(!e.target.closest('button,a'))location.hash='#q/'+q.id;};
-    fg.appendChild(c);
-  });
-  $('.stage-inner',stage).appendChild(fg);
-  bindHomeSignals(stage);
-  root.appendChild(stage);
-
-  const lowerInner=el('<div class="overview-lower-inner"></div>');
-  lowerInner.appendChild(el(vintageReceipt()));
-  const scenarioChange=scenarioChangePanel(false);if(scenarioChange)lowerInner.appendChild(scenarioChange);
-  const lower=el('<div class="section-grid overview-lower"></div>');
-  lower.appendChild(el(`<div class="panel">
-    <div class="panel-head"><h2>연말 시나리오 분포</h2><span class="vintage-note">기준 ${esc(sc.asof)}</span></div>
-    ${scenarioBars()}</div>`));
-  const up=upcoming(3);
-  const dl=el(`<div class="panel"><div class="panel-head"><h2>다가오는 판정일</h2><div style="display:flex;align-items:center;gap:7px"><span class="vintage-note">${up.length}건</span><button type="button" class="calendar-action" data-calendar-all>CAL 저장</button></div></div>
-    <div class="deadline-list">${up.map(u=>`<button type="button" data-q="${esc(u.id)}">
-      <time>${esc(u.deadline||'수시')}</time><span>${esc(u.title)}</span><strong>${p1(u.latest_prob)}</strong></button>`).join('')||'<p class="empty">예정된 판정이 없습니다.</p>'}</div></div>`);
-  dl.querySelectorAll('button[data-q]').forEach(b=>b.onclick=()=>location.hash='#q/'+b.dataset.q);
-  lower.appendChild(dl);
-  lowerInner.appendChild(lower);
-  root.appendChild(lowerInner);
+    <div class="today-columns">
+      <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>
+      <section aria-labelledby="today-events"><div class="today-section-head"><h2 id="today-events">다음 이벤트 3</h2><a href="#future">전체 일정</a></div><div class="today-list">${events.map(item=>`<a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"><time>${esc(String(item.date||'').slice(5))}</time><span>${esc(item.title||item.label||'일정')}</span><strong>${item.status==='estimated'?'추정':item.status==='question'?'판정':'확정'}</strong></a>`).join('')||'<p>예정된 이벤트가 없습니다.</p>'}</div></section>
+    </div>
+    <footer class="today-context"><span>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로</span><strong>조건부 분포 · 단일 가격 제시·사건확률·투자자문 아님</strong></footer>
+  </section></div>`);
   mount(root);
 }
 function upcoming(limit=6){
@@ -1288,7 +1297,7 @@ function renderFlow(initialLookup){
     if(rebaseNote&&mapped.ok){const remaining=sc.quantile_table.trading_days.length-mapped.index-1,coverage=horizonCoverageForDay(sc,mapped.tradingDay);rebaseNote.querySelector('small').textContent=`남은 시뮬 구간 D+${remaining}거래일까지 · ${mapped.mapped} → ${sc.quantile_table.trading_days.at(-1)} · ${coverage.label} — ${coverage.detail} · as_of ${sc.asof}`;}
     syncLookupMode();
     paintFlow(flowFocus);
-    if(mapped.ok)history.replaceState(null,'',`#lookup=${mapped.requested}&mode=${lookupMode}`);
+    if(mapped.ok)history.replaceState(null,'',`#future/lookup/${mapped.requested}/${lookupMode}`);
   };
   const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
   p1w.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
@@ -1303,7 +1312,7 @@ function renderFlow(initialLookup){
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
   const availableTabs=[...labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)')];
-  availableTabs.forEach((b,index)=>{b.onclick=()=>{activateLab(b.dataset.labTab);history.replaceState(null,'',b.dataset.labTab==='future'?'#flow':`#lab=${b.dataset.labTab}`);};b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
+  availableTabs.forEach((b,index)=>{b.onclick=()=>{activateLab(b.dataset.labTab);history.replaceState(null,'',b.dataset.labTab==='future'?'#future':`#future/${b.dataset.labTab}`);};b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
   if(overlay){
     const analogHost=$('#ovchart',overlay),paintAnalog=focus=>{analogHost.innerHTML='';drawOverlay(analogHost,overlay._overlay,overlay._eras,overlay._eraStarts,focus);
       overlay.querySelectorAll('[data-analog-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.analogFocus===focus)));};
@@ -2310,7 +2319,7 @@ function renderDecisionJournal(initial){
   };
   const setMode=next=>{const replayOn=next==='replay';feed.hidden=replayOn;replay.hidden=!replayOn;mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.journalMode===next)));if(replayOn)drawReplay($('#journal-date',replay).value);};
   mode.querySelectorAll('[data-journal-mode]').forEach(button=>button.onclick=()=>setMode(button.dataset.journalMode));
-  $('#journal-date',replay).onchange=event=>{drawReplay(event.target.value);history.replaceState(null,'',`#asof=${event.target.value}`);};
+  $('#journal-date',replay).onchange=event=>{drawReplay(event.target.value);history.replaceState(null,'',`#records/journal/${event.target.value}`);};
   replay.querySelectorAll('[data-replay-date]').forEach(button=>button.onclick=()=>{const value=button.dataset.replayDate;$('#journal-date',replay).value=value;drawReplay(value);});
   replay.querySelectorAll('[data-replay-offset]').forEach(button=>button.onclick=()=>{const d=new Date(`${maxd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+Number(button.dataset.replayOffset));const value=Math.max(Date.parse(first),d.getTime())===Date.parse(first)?first:d.toISOString().slice(0,10);$('#journal-date',replay).value=value;drawReplay(value);});
   setMode(state.mode==='replay'?'replay':'feed');

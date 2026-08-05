@@ -14,16 +14,15 @@
 <a class="skip-link" href="#app">본문으로 건너뛰기</a>
 <div class="product-shell">
   <aside class="product-rail" aria-label="제품 내비게이션">
-    <a class="rail-brand" href="#overview" aria-label="Jin's Investing 요약으로 이동">
+    <a class="rail-brand" href="#today" aria-label="Jin's Investing 오늘 화면으로 이동">
       <span class="brand-mark" aria-hidden="true"></span>
       <span class="rail-brand-copy"><strong>JIN'S INVESTING</strong><small>PREDICTION SYSTEM</small></span>
     </a>
     <nav class="view-nav" id="nav" aria-label="대시보드 화면">
-      <a href="#overview" data-v="overview"><span class="rail-num">01</span><span class="rail-label">오늘의 판단</span></a>
-      <a href="#flow" data-v="flow"><span class="rail-num">02</span><span class="rail-label">시장 맵</span></a>
-      <a href="#questions" data-v="questions"><span class="rail-num">03</span><span class="rail-label">예측 연구</span></a>
-      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">변경 일지</span></a>
-      <a href="#track" data-v="track"><span class="rail-num">05</span><span class="rail-label">트랙레코드</span></a>
+      <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
+      <a href="#future" data-v="future"><span class="rail-num">02</span><span class="rail-label">미래 탐색</span></a>
+      <a href="#records" data-v="records"><span class="rail-num">03</span><span class="rail-label">기록과 검증</span></a>
+      <a href="#trust" data-v="trust"><span class="rail-num">04</span><span class="rail-label">데이터와 신뢰</span></a>
     </nav>
     <button type="button" class="rail-command command-open" aria-label="빠른 이동 열기">
       <span>빠른 이동</span><kbd>⌘ K</kbd>
@@ -41,7 +40,7 @@
   </aside>
 
   <header class="mobile-header">
-    <a class="mobile-brand" href="#overview"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</a>
+    <a class="mobile-brand" href="#today"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</a>
     <div class="mobile-actions">
       <button type="button" class="mobile-command command-open" aria-label="빠른 이동 열기">⌕</button>
       <button type="button" class="menu-button" id="menu-open" aria-expanded="false" aria-controls="mobile-drawer">MENU</button>
@@ -54,11 +53,10 @@
       <button type="button" class="drawer-close" id="menu-close" aria-label="메뉴 닫기">CLOSE</button>
     </div>
     <nav class="view-nav" id="mobile-nav" aria-label="모바일 대시보드 화면">
-      <a href="#overview" data-v="overview"><span class="rail-num">01</span><span class="rail-label">오늘의 판단</span></a>
-      <a href="#flow" data-v="flow"><span class="rail-num">02</span><span class="rail-label">시장 맵</span></a>
-      <a href="#questions" data-v="questions"><span class="rail-num">03</span><span class="rail-label">예측 연구</span></a>
-      <a href="#asof" data-v="asof"><span class="rail-num">04</span><span class="rail-label">변경 일지</span></a>
-      <a href="#track" data-v="track"><span class="rail-num">05</span><span class="rail-label">트랙레코드</span></a>
+      <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
+      <a href="#future" data-v="future"><span class="rail-num">02</span><span class="rail-label">미래 탐색</span></a>
+      <a href="#records" data-v="records"><span class="rail-num">03</span><span class="rail-label">기록과 검증</span></a>
+      <a href="#trust" data-v="trust"><span class="rail-num">04</span><span class="rail-label">데이터와 신뢰</span></a>
     </nav>
     <div class="drawer-utilities" role="group" aria-label="현재 화면 도구">
       <button type="button" class="utility-action pin-current" data-action="pin" aria-label="현재 화면 고정" aria-pressed="false"><span>☆</span><small>고정</small></button>
@@ -79,10 +77,10 @@
   </div>
 </div>
 <nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="모바일 주요 화면">
-  <a href="#overview" data-v="overview"><span aria-hidden="true">●</span><small>오늘</small></a>
-  <a href="#flow" data-v="flow"><span aria-hidden="true">⌁</span><small>시장</small></a>
-  <a href="#questions" data-v="questions"><span aria-hidden="true">◇</span><small>예측</small></a>
-  <button type="button" id="mobile-more" aria-expanded="false" aria-controls="mobile-drawer"><span aria-hidden="true">＋</span><small>더보기</small></button>
+  <a href="#today" data-v="today"><span aria-hidden="true">●</span><small>오늘</small></a>
+  <a href="#future" data-v="future"><span aria-hidden="true">⌁</span><small>미래</small></a>
+  <a href="#records" data-v="records"><span aria-hidden="true">◇</span><small>기록</small></a>
+  <a href="#trust" data-v="trust"><span aria-hidden="true">＋</span><small>신뢰</small></a>
 </nav>
 <div class="tip" id="tip"></div>
 <div class="command-layer" id="command-layer" aria-hidden="true" hidden>
