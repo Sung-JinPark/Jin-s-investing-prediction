@@ -367,6 +367,40 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "mapped.index>=126" in html, "6개월 밖 조회는 전체 지평으로 확장해야 함"
 
 
+def test_u1d_mobile_layout_contract() -> None:
+    html = dashboard.load_template()
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    assert 'id="dchart" class="ask-daily-chart"' in html
+    assert 'id="dchart" style="min-width:640px"' not in html
+    assert ".ask-daily-chart{width:100%;min-width:0!important}" in css
+    assert ".detail-hero .prob-orb{margin:18px auto 34px}" in css
+    assert ".track-page .ledger-status-grid strong" in css
+    assert "overflow-wrap:anywhere" in css
+    assert "function enhanceChartScroll" in script
+    assert "가로로 밀어 전체 차트 탐색" in script
+    assert "chart-scroll-position" in script
+
+
+def test_u1d_mobile_layout_regression_evidence() -> None:
+    project_root = Path(__file__).parents[2]
+    evidence_dir = project_root / "reports" / "screenshots" / "u1d_260805"
+    results = json.loads((evidence_dir / "layout_results.json").read_text(encoding="utf-8"))
+
+    assert results["viewport"] == {"width": 390, "height": 844}
+    assert results["passed"] is True
+    assert {row["name"] for row in results["results"]} == {
+        "ask_responsive_chart",
+        "track_text_wrap",
+        "question_orb",
+        "flow_scroll_affordance",
+    }
+    for row in results["results"]:
+        assert row["passed"] is True
+        assert (evidence_dir / row["file"]).is_file()
+
+
 def test_data_growth_explainer_is_plain_language_and_live() -> None:
     html = dashboard.load_template()
     for required in (

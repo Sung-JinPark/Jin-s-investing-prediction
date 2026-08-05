@@ -975,6 +975,23 @@ function signalMosaic(prob){
 }
 
 const VIEWS={overview:renderOverview,flow:renderFlow,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
+function enhanceChartScroll(root=document){
+  root.querySelectorAll('.chart-wrap').forEach((wrap,index)=>{
+    let affordance=wrap.nextElementSibling;
+    if(!affordance?.classList.contains('chart-scroll-affordance')){
+      affordance=el(`<div class="chart-scroll-affordance" hidden aria-live="polite"><span>가로로 밀어 전체 차트 탐색</span><i><b></b></i><strong class="chart-scroll-position">0% · 시작</strong></div>`);
+      wrap.after(affordance);
+    }
+    const update=()=>{
+      const max=Math.max(0,wrap.scrollWidth-wrap.clientWidth),scrollable=max>2,ratio=scrollable?Math.max(0,Math.min(1,wrap.scrollLeft/max)):0;
+      wrap.classList.toggle('is-scrollable',scrollable);wrap.classList.toggle('is-at-start',!scrollable||ratio<=.02);wrap.classList.toggle('is-at-end',!scrollable||ratio>=.98);
+      affordance.hidden=!scrollable;
+      if(scrollable){affordance.style.setProperty('--scroll-progress',`${Math.max(8,ratio*100)}%`);$('.chart-scroll-position',affordance).textContent=`${Math.round(ratio*100)}% · ${ratio<=.02?'시작':ratio>=.98?'끝':'탐색 중'}`;}
+    };
+    if(!wrap.dataset.scrollAffordanceBound){wrap.dataset.scrollAffordanceBound='1';wrap.addEventListener('scroll',update,{passive:true});wrap.setAttribute('tabindex','0');wrap.setAttribute('role','region');wrap.setAttribute('aria-label',`가로로 스크롤하는 차트 ${index+1}`);}
+    update();requestAnimationFrame(update);
+  });
+}
 function contextTabs(group,current){
   const groups={
     research:[['questions','질문 목록'],['compare','비교 작업공간']],
@@ -999,6 +1016,7 @@ function route(){
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
   mobileMore.classList.toggle('active',['asof','track'].includes(navView));
   (VIEWS[v]||renderOverview)(arg);
+  requestAnimationFrame(()=>enhanceChartScroll(app()));
   renderCompareTray();
   recordRecent();
   if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
@@ -2301,7 +2319,7 @@ VIEWS.asof=renderDecisionJournal;
 
 function renderTrack(){
   const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
-  const root=el('<div></div>');
+  const root=el('<div class="track-page"></div>');
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">적중 이력 · Calibration</p>
     <h1>확정된 예측의 정확도를 검증합니다</h1>
@@ -2461,7 +2479,7 @@ function renderAsk(){
       <div><span>조정 (S3) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S3}">${sign(lv('S3'))}</strong><small>${num(Math.round(lv('S3')))}</small></div>
     </div>
     <div class="chart-panel analysis-panel"><div class="panel-head"><h2>현재 → ${wk} · 일별 전망</h2>${legend}</div>
-      <div class="chart-wrap"><div id="dchart" style="min-width:640px"></div></div>
+      <div class="chart-wrap"><div id="dchart" class="ask-daily-chart"></div></div>
       <p class="chart-note">${wk} 예상 범위 ${num(lo)}–${num(hi)} · 경로는 시나리오별 대표값(확률 가중 평균 아님)입니다.</p>
     </div>
     <div class="section-grid">

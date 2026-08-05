@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import yaml
@@ -75,9 +76,17 @@ def test_cftc_bitcoin_contract_pins_tff_dataset_and_pit_availability() -> None:
     assert "never Tuesday" in cftc["point_in_time"]["available_at"]
 
 
-def test_u0_audit_keeps_u1_gate_closed_without_full_screenshot_set() -> None:
+def test_u0_audit_releases_u1_gate_only_with_complete_capture_set() -> None:
     report = (ROOT / "reports/md/UX_AUDIT_260805.md").read_text(encoding="utf-8")
-    assert "상태: **PARTIAL — U1 승인 차단**" in report
-    assert "전 라우트별 1280/390 스크린샷 | **PARTIAL**" in report
-    assert "**U1 승인: 차단.**" in report
-    assert "UI 코드 무변경" in report
+    assert "상태: **PASS — U1 승인 해제**" in report
+    assert "전 라우트별 1280/390 스크린샷 | PASS" in report
+    assert "**U1 승인: 해제.**" in report
+
+    capture_dir = ROOT / "reports/screenshots/ux_audit_260805"
+    manifest = json.loads((capture_dir / "capture_results.json").read_text(encoding="utf-8"))
+    assert manifest["expected"] == manifest["captured"] == 30
+    assert manifest["failed"] == 0
+    assert {item["viewport"] for item in manifest["results"]} == {"1280", "390"}
+    assert len({item["route"] for item in manifest["results"]}) == 15
+    assert all(item["status"] == "captured" for item in manifest["results"])
+    assert all((capture_dir / item["file"]).is_file() for item in manifest["results"])

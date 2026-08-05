@@ -1,0 +1,87 @@
+{
+  "generated_at": "2026-08-05T04:32:12.752Z",
+  "source": "local static build",
+  "capture_policy": "fresh Chrome process and context per route; fonts.ready; viewport-only",
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "passed": true,
+  "results": [
+    {
+      "name": "ask_responsive_chart",
+      "viewportWidth": 390,
+      "documentScrollWidth": 390,
+      "chartWrap": {
+        "clientWidth": 304,
+        "scrollWidth": 304
+      },
+      "orb": null,
+      "trackTextOverflows": [],
+      "scrollableCharts": 0,
+      "affordances": 1,
+      "position": "",
+      "scrollableRect": null,
+      "scrollableParentClass": "",
+      "passed": true,
+      "hash": "#ask",
+      "file": "ask_responsive_chart_390.png"
+    },
+    {
+      "name": "track_text_wrap",
+      "viewportWidth": 390,
+      "documentScrollWidth": 390,
+      "chartWrap": null,
+      "orb": null,
+      "trackTextOverflows": [],
+      "scrollableCharts": 0,
+      "affordances": 0,
+      "position": "",
+      "scrollableRect": null,
+      "scrollableParentClass": "",
+      "passed": true,
+      "hash": "#track",
+      "file": "track_text_wrap_390.png"
+    },
+    {
+      "name": "question_orb",
+      "viewportWidth": 390,
+      "documentScrollWidth": 390,
+      "chartWrap": null,
+      "orb": {
+        "x": 88.9339828491211,
+        "right": 301.06600189208984,
+        "width": 212.13201904296875
+      },
+      "trackTextOverflows": [],
+      "scrollableCharts": 0,
+      "affordances": 1,
+      "position": "",
+      "scrollableRect": null,
+      "scrollableParentClass": "",
+      "passed": true,
+      "hash": "#q/nvda-dc-beat-2026aug",
+      "file": "question_orb_390.png"
+    },
+    {
+      "name": "flow_scroll_affordance",
+      "viewportWidth": 390,
+      "documentScrollWidth": 390,
+      "chartWrap": null,
+      "orb": null,
+      "trackTextOverflows": [],
+      "scrollableCharts": 1,
+      "affordances": 5,
+      "position": "50% · 탐색 중",
+      "scrollableRect": {
+        "x": 43,
+        "right": 347,
+        "width": 304
+      },
+      "scrollableParentClass": "chart-panel analysis-panel section-reveal",
+      "passed": true,
+      "hash": "#flow",
+      "file": "flow_scroll_affordance_390.png"
+    }
+  ]
+}

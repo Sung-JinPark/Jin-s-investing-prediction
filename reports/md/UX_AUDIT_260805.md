@@ -8,11 +8,11 @@
 
 데이터 기준: scenario `as_of=2026-08-03`, site update `2026-08-04`
 
-상태: **PARTIAL — U1 승인 차단**
+상태: **PASS — U1 승인 해제**
 
 ## 1. 범위와 판정
 
-이번 문서는 총집합 설계도의 **U0 감사만** 수행한다. UI, 라우팅, 대시보드 문자열, 차트, CSS 및 데이터 렌더링 코드는 변경하지 않았다. 라이브 DOM과 기존 1280/390px 증거를 이용한 전 화면 계측은 끝냈지만, 브라우저 캡처 백엔드가 모든 신규 라우트에서 `Page.captureScreenshot` 타임아웃을 반복해 **전체 라우트별 1280/390 스크린샷 세트는 미충족**이다. 따라서 이 문서는 설계 기준선으로 사용할 수 있으나, 총집합 설계도 §1.5의 “감사 승인 후 U1” 게이트는 열지 않는다.
+이번 문서는 총집합 설계도의 **U0 감사**를 수행한다. 최초 감사에서는 브라우저 캡처 백엔드의 `Page.captureScreenshot` 타임아웃 때문에 게이트를 닫았고, 검토자 J3 승인에 따라 2026-08-05에 보충 촬영을 수행했다. 각 라우트마다 새 Chromium 계열 브라우저 프로세스를 실행하고 1280/390px별 fresh context에서 `document.fonts.ready`와 두 번의 animation frame을 기다린 뒤 viewport-only로 촬영했다. **15개 라우트 × 2 viewport = 30장 전부 성공, 실패 0건**이므로 §1.5의 U1 게이트를 해제한다.
 
 판정 원칙은 다음과 같다.
 
@@ -55,26 +55,46 @@
 
 ## 3. 1280/390px 증거와 반응형 감사
 
-### 확보된 1280px 증거
+캡처 원장: [`capture_results.json`](../screenshots/ux_audit_260805/capture_results.json). 원장은 실제 URL·렌더된 hash·view·H1·viewport·문서 폭·실패 사유를 장별로 기록한다.
 
-![Round 3 rebase desktop 1280](../screenshots/round3_rebase_desktop_1280.png)
+| 라우트·상태 | 1280px | 390px | 결과 |
+|---|---|---|---|
+| `#overview` | [보기](../screenshots/ux_audit_260805/overview_1280.png) | [보기](../screenshots/ux_audit_260805/overview_390.png) | PASS |
+| `#flow` | [보기](../screenshots/ux_audit_260805/flow_future_1280.png) | [보기](../screenshots/ux_audit_260805/flow_future_390.png) | PASS |
+| `#lab=history` | [보기](../screenshots/ux_audit_260805/flow_history_1280.png) | [보기](../screenshots/ux_audit_260805/flow_history_390.png) | PASS |
+| `#lab=cross-asset` | [보기](../screenshots/ux_audit_260805/flow_cross_asset_1280.png) | [보기](../screenshots/ux_audit_260805/flow_cross_asset_390.png) | PASS |
+| `#lab=ai-regime` | [보기](../screenshots/ux_audit_260805/flow_ai_regime_1280.png) | [보기](../screenshots/ux_audit_260805/flow_ai_regime_390.png) | PASS |
+| `#lab=liquidity` | [보기](../screenshots/ux_audit_260805/flow_liquidity_1280.png) | [보기](../screenshots/ux_audit_260805/flow_liquidity_390.png) | PASS |
+| `#questions` | [보기](../screenshots/ux_audit_260805/questions_1280.png) | [보기](../screenshots/ux_audit_260805/questions_390.png) | PASS |
+| `#ask` | [보기](../screenshots/ux_audit_260805/ask_1280.png) | [보기](../screenshots/ux_audit_260805/ask_390.png) | PASS |
+| `#asof` | [보기](../screenshots/ux_audit_260805/asof_1280.png) | [보기](../screenshots/ux_audit_260805/asof_390.png) | PASS |
+| `#track` | [보기](../screenshots/ux_audit_260805/track_1280.png) | [보기](../screenshots/ux_audit_260805/track_390.png) | PASS |
+| `#q/{id}` | [보기](../screenshots/ux_audit_260805/question_detail_1280.png) | [보기](../screenshots/ux_audit_260805/question_detail_390.png) | PASS |
+| `#compare/{id,id}` | [보기](../screenshots/ux_audit_260805/compare_1280.png) | [보기](../screenshots/ux_audit_260805/compare_390.png) | PASS |
+| `#lookup=...&mode=current` | [보기](../screenshots/ux_audit_260805/lookup_current_1280.png) | [보기](../screenshots/ux_audit_260805/lookup_current_390.png) | PASS |
+| `#lookup=...&mode=rebase` | [보기](../screenshots/ux_audit_260805/lookup_rebase_1280.png) | [보기](../screenshots/ux_audit_260805/lookup_rebase_390.png) | PASS |
+| `#asof=YYYY-MM-DD` | [보기](../screenshots/ux_audit_260805/asof_snapshot_1280.png) | [보기](../screenshots/ux_audit_260805/asof_snapshot_390.png) | PASS |
 
-### 확보된 390px 증거
+보충 촬영은 30/30 성공했고 촬영 불가 라우트는 없다. 라이브 DOM과 이미지에서 다음 U1d 결함을 다시 확인했다.
 
-![Round 3 rebase mobile 390](../screenshots/round3_rebase_mobile_390.png)
+- 390px `#flow`, history, cross-asset, liquidity 차트는 내부 가로 스크롤이 있으나 스크롤 가능성·현재 위치 표시가 없다.
+- 390px `#ask` 차트의 고정 폭은 640px여서 화면보다 넓다.
+- 390px `#track`에서 텍스트 오버플로 4건이 관측됐다.
+- 질문 상세의 `.prob-orb`가 모바일 그리드에서 좌측 `x=-13`까지 밀린다.
+- 1280px와 390px의 문서 전체 폭은 viewport를 넘지 않아 결함 범위는 위 컴포넌트 내부로 한정된다.
 
-![Lookup coverage mobile 390](../screenshots/round3_lookup_coverage_mobile_390.png)
+### U1d 모바일 결함 회귀 결과
 
-![Path realism mobile 390](../screenshots/round3_path_realism_mobile_390.png)
+U0 기준선을 보존한 뒤 같은 390×844 viewport의 로컬 정적 빌드에서 네 결함을 다시 측정했다. 원장과 화면은 [`layout_results.json`](../screenshots/u1d_260805/layout_results.json)에 고정했다.
 
-라이브 DOM은 1280px와 390px로 각각 재계측했다. 다음 항목이 확인됐다.
+| 결함 | 변경 후 실측 | 화면 | 판정 |
+|---|---|---|---|
+| `#ask` 640px 고정 차트 | 컨테이너 `304px`, scroll width `304px` | [보기](../screenshots/u1d_260805/ask_responsive_chart_390.png) | PASS |
+| `#track` 텍스트 오버플로 4건 | 검사 대상 overflow `0건` | [보기](../screenshots/u1d_260805/track_text_wrap_390.png) | PASS |
+| 질문 상세 `.prob-orb` 음수 위치 | `x=88.9`, right=`301.1` (viewport `390`) | [보기](../screenshots/u1d_260805/question_orb_390.png) | PASS |
+| 가로 스크롤 어포던스 | 위치 `50% · 탐색 중`, 진행 막대와 양끝 fade 표시 | [보기](../screenshots/u1d_260805/flow_scroll_affordance_390.png) | PASS |
 
-- 390px `#flow`, history, cross-asset, liquidity 차트는 내부 가로 스크롤이 있다. 복잡한 차트를 잘라 버리지는 않지만, 현재 위치와 탐색 가능성을 더 명확히 알려야 한다.
-- 390px `#ask` 차트의 고정 폭은 640px여서 독립 화면 통합 필요성을 뒷받침한다.
-- 390px `#track`에서 텍스트 오버플로 4건, 질문 상세의 `.prob-orb` 좌측 시작점 `x=-13`이 관측됐다.
-- 1280px와 390px overview 본문은 치명적인 문서 전체 가로 오버플로가 없었다.
-
-**스크린샷 게이트 미충족:** 신규 전체 라우트 캡처는 동일한 브라우저에서 가시 영역·clip·새 탭을 달리해 반복했으나 `Page.captureScreenshot` 타임아웃으로 실패했다. 위 네 장은 기존 저장 증거이며, 전 라우트 12종 × 2 viewport를 대표하지 않는다. 가짜 캡처나 DOM을 이미지로 오인하는 대체물은 만들지 않았다. U1 전에 캡처 백엔드 복구 후 누락 세트를 보충하고 이 항목을 `PASS`로 바꿔야 한다.
+스크롤 안내는 실제 overflow가 있는 차트에만 노출되며 키보드 포커스·region 라벨·현재 위치를 함께 제공한다. 원본 U0 30장은 변경 전 기준선으로 그대로 보존한다.
 
 ## 4. 전문 용어 사전과 화면 대체어
 
@@ -173,11 +193,11 @@ U1 이후에도 다음 정보는 삭제할 수 없다. 위치 이동, 중복 축
 |---|---|---|
 | 전 라우트/상태 인벤토리 | PASS | §2의 15개 라우트·딥링크 상태 |
 | 라이브 1280/390 DOM 계측 | PASS | §2·§3 |
-| 전 라우트별 1280/390 스크린샷 | **PARTIAL** | 기존 4장만 확보, 캡처 백엔드 타임아웃 |
+| 전 라우트별 1280/390 스크린샷 | PASS | 15종 × 2 viewport = 30장, 실패 0; §3·capture 원장 |
 | 3초 첫인상 평가 | PASS | §2 |
 | 전문 용어 사전 | PASS | §4 |
 | 간결화 전·후 수치 | PASS | §5 |
 | §1.4 내비게이션 매핑 | PASS | §6 |
-| UI 코드 무변경 | PASS | 이번 커밋의 diff 범위로 검증 |
+| U0 기준선과 U1d 변경 분리 추적 | PASS | `ux_audit_260805`는 변경 전 기준선, `u1d_260805`는 변경 후 회귀 증거 |
 
-**U1 승인: 차단.** 누락된 전 라우트 1280/390 캡처 세트를 보충하고 사람이 U0 결정을 승인하기 전에는 UI 재편 커밋을 시작하지 않는다.
+**U1 승인: 해제.** 검토자 승인과 30/30 보충 촬영을 함께 충족했다. 이후 변경은 §7 가드레일과 U1a~d 분리 push 규칙을 계속 적용한다.
