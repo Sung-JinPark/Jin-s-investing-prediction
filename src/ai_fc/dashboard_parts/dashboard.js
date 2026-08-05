@@ -465,8 +465,10 @@ function setCompareQuestions(ids){
 function toggleCompareQuestion(qid){
   const ids=cleanCompareIds(),on=ids.includes(qid);
   if(!on&&ids.length>=3)return showToast('비교는 최대 3개까지 선택할 수 있습니다.','warning');
-  setCompareQuestions(on?ids.filter(id=>id!==qid):[...ids,qid]);
+  const next=on?ids.filter(id=>id!==qid):[...ids,qid];
+  setCompareQuestions(next);
   showToast(on?'비교 선택에서 제외했습니다.':'비교 선택에 추가했습니다.');
+  if(!on&&next.length===2&&!location.hash.startsWith('#records/compare/'))location.hash='#records/compare/'+next.join(',');
 }
 function syncQuestionActions(root=document){
   root.querySelectorAll('[data-pin-q]').forEach(b=>{const on=isQuestionPinned(b.dataset.pinQ),icon=b.querySelector('[data-pin-icon]');b.setAttribute('aria-pressed',String(on));if(icon)icon.textContent=on?'★':'☆';else b.textContent=on?'★':'☆';});
@@ -993,7 +995,7 @@ function enhanceChartScroll(root=document){
 function contextTabs(group,current){
   const groups={
     research:[['questions','질문 목록','#records'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
-    replay:[['ask','기간 조회','#future/range'],['asof','AS-OF 타임머신','#records/journal']],
+    replay:[['ask','기간 조회','#future/lookup'],['asof','AS-OF 타임머신','#records/journal']],
     track:[['track','요약과 Calibration','#trust']]
   };
   const items=(groups[group]||[]).filter(([id])=>id!=='compare'||cleanCompareIds().length>=2);
@@ -1004,11 +1006,12 @@ function contextTabs(group,current){
 function appendContextTabs(root,group,current){const html=contextTabs(group,current);if(html)root.appendChild(el(html));}
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
+  if(rawHash==='#future/range')return '#future/lookup';
   if(/^#(?:today|future(?:\/|$)|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
-  if(rawHash==='#ask')return '#future/range';
+  if(rawHash==='#ask')return '#future/lookup';
   if(rawHash==='#asof')return '#records/journal';
   if(rawHash==='#track')return '#trust';
   if(rawHash.startsWith('#q/'))return `#records/question/${rawHash.slice(3)}`;
@@ -1030,7 +1033,7 @@ function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
   if(parts[0]==='future'){
-    if(parts[1]==='range')return {section:'future',view:'ask'};
+    if(parts[1]==='lookup'&&!parts[2])return {section:'future',view:'flow',arg:{lookupOverlay:true}};
     if(parts[1]==='lookup'&&/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'future',view:'flow',arg:{lookup:parts[2],lookupMode:parts[3]==='current'?'current':'rebase'}};
     if(['history','cross-asset','ai-regime','liquidity'].includes(parts[1]))return {section:'future',view:'flow',arg:{lab:parts[1],scenario:parts[2]||null}};
     return {section:'future',view:'flow'};
@@ -1053,6 +1056,7 @@ function route(){
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
   closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
+  document.querySelector('.future-lookup-layer')?.remove();document.body.classList.remove('future-lookup-open');
   document.body.dataset.view=navView;
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
@@ -1200,6 +1204,13 @@ function lookupCardMarkup(sc,mapped){
     <footer>as_of ${esc(sc.asof)} 스냅샷 · seed ${esc(model.seed)} · ${num(model.n_paths)}경로 · ${esc(table.probability_space)}</footer>
   </article>`;
 }
+const FLOW_LAB_COPY={
+  future:['시장 전망 · Scenario Map','향후 12개월 시장 경로는 어떤 분포인가','나스닥 종합의 조건부 구간과 조정·회복 경로를 함께 봅니다.'],
+  history:['혁신 사이클 · Analog','과거 혁신 사이클은 현재와 얼마나 닮았나','닷컴·일본·크립토 등 과거 사례를 같은 시작점에서 비교합니다. 확률이 아닌 참고용 유사도입니다.'],
+  'cross-asset':['자산 전이 · Shock Map','AI 충격은 NDX·BTC·O로 어떻게 전이되는가','충격 가정별 자산 경로를 나란히 보되 시나리오 조건부 값과 실제 사건확률을 구분합니다.'],
+  'ai-regime':['AI 자본 사이클 · Coverage Gate','AI 자본 사이클을 지금 판정할 수 있는가','필수 데이터 커버리지가 기준에 못 미치면 지도를 그리지 않고 판정을 보류합니다.'],
+  liquidity:['유동성 · Tide Map','유동성 조건은 위험 선호를 지지하는가','주간 유동성·금융여건과 위험자산의 시차 관계를 참고용으로 점검합니다.']
+};
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
   initialLookup=initialState.lookup||null;
@@ -1209,10 +1220,10 @@ function renderFlow(initialLookup){
     :'경로 확률은 감사된 수동 시나리오의 보관값이며 현재 시장 판단에는 별도 최신성 확인이 필요합니다.';
   const root=el('<div></div>');
   root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">시장 전망 · Scenario Map</p>
-    <h1>향후 12개월 시장 경로를 분포로 읽는다</h1>
-    <p class="page-lede">나스닥 종합 기준 조건부 시나리오 3경로와 과거 혁신 사이클 비교입니다. 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
-  </div></div>`));
+    <p class="eyebrow" id="flow-page-eyebrow">${FLOW_LAB_COPY.future[0]}</p>
+    <h1 id="flow-page-title">${FLOW_LAB_COPY.future[1]}</h1>
+    <p class="page-lede" id="flow-page-lede">${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
+  </div><button type="button" class="future-lookup-open" data-future-lookup-open>날짜·기간 조회 <span>↗</span></button></div>`));
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
@@ -1239,6 +1250,7 @@ function renderFlow(initialLookup){
     <div class="lookup-result" aria-live="polite"><div class="lookup-empty"><strong>날짜를 선택하면 구간부터 표시합니다.</strong><span>없는 날짜를 보간하지 않고 실제 산출 거래일로 매핑합니다.</span></div></div>
     <div class="lookup-rebase-note" role="note" hidden><strong>재기준 그래프의 의미</strong><span>선택일 이후의 기존 분위수와 S1/S2/S3 모의 표본을 각각 100으로 다시 표시합니다. 선택일에 새로 계산한 전망은 아니며, D일의 실제 가격·변동성은 D일 스냅샷에서 반영됩니다.</span><small></small></div>
   </section>`:'';
+  const lookupOverlayMarkup=lookupReady?`<div class="future-lookup-layer" data-future-lookup-layer hidden aria-hidden="true"><button type="button" class="future-lookup-scrim" data-future-lookup-close aria-label="날짜·기간 조회 닫기"></button><section class="future-lookup-sheet" role="dialog" aria-modal="true" aria-labelledby="future-lookup-sheet-title"><header><div><span>FUTURE EXPLORER</span><h2 id="future-lookup-sheet-title">날짜·기간 조회</h2></div><button type="button" data-future-lookup-close>닫기</button></header>${lookupWidget}</section></div>`:'';
   const eventCalendar=Array.isArray(DATA.calendar_events)&&DATA.calendar_events.length?DATA.calendar_events:(Array.isArray(sc.event_calendar)?sc.event_calendar:[]);
   sc.calendar_events=eventCalendar;
   const eventYears=[...new Set(eventCalendar.map(event=>event.date.slice(0,4)))];
@@ -1252,7 +1264,6 @@ function renderFlow(initialLookup){
     ${focusControls}
     ${realismCards}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>모든 날짜는 이 기준일에서 출발한 한 번의 조건부 분포입니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 기간"><button type="button" data-flow-horizon="126" aria-pressed="true"><span>기본</span>6개월<small>${esc(sixMonthEnd||'')}</small><em>${esc(horizonCoverageForDay(sc,126).detail)}</em></button><button type="button" data-flow-horizon="252" aria-pressed="false"><span>확장</span>2027년까지<small>${esc(fullHorizonEnd||'')}</small><em>${esc(horizonCoverageForDay(sc,252).detail)}</em></button></div></div>
-    ${lookupWidget}
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
@@ -1266,19 +1277,24 @@ function renderFlow(initialLookup){
   p1w.id='lab-future';p1w.setAttribute('role','tabpanel');p1w.setAttribute('aria-labelledby','lab-tab-future');
   if(overlay){overlay.id='lab-history';overlay.setAttribute('role','tabpanel');overlay.setAttribute('aria-labelledby','lab-tab-history');overlay.hidden=true;}
   if(crossAsset){crossAsset.id='lab-cross-asset';crossAsset.setAttribute('role','tabpanel');crossAsset.setAttribute('aria-labelledby','lab-tab-cross-asset');crossAsset.hidden=true;}
-  if(aiRegime){aiRegime.id='lab-ai-regime';aiRegime.setAttribute('role','tabpanel');aiRegime.setAttribute('aria-labelledby','lab-tab-ai-regime');aiRegime.hidden=true;}
+  if(aiRegime){aiRegime.id='lab-ai-regime';aiRegime.setAttribute('role','tabpanel');aiRegime.setAttribute('aria-label','AI 자본사이클 준비 상태');aiRegime.hidden=true;}
   if(liquidity){liquidity.id='lab-liquidity';liquidity.setAttribute('role','tabpanel');liquidity.setAttribute('aria-labelledby','lab-tab-liquidity');liquidity.hidden=true;}
   const labTabs=el(`<div class="lab-tabs" role="tablist" aria-label="시장 지도 분석 공간">
     <button type="button" id="lab-tab-future" role="tab" aria-selected="true" aria-controls="lab-future" data-lab-tab="future"><span>01</span> 미래 분포<small>scenario-conditional</small></button>
     <button type="button" id="lab-tab-history" role="tab" aria-selected="false" aria-controls="lab-history" data-lab-tab="history" ${overlay?'':'disabled'}><span>02</span> 사이클 비교<small>reference-only</small></button>
     <button type="button" id="lab-tab-cross-asset" role="tab" aria-selected="false" aria-controls="lab-cross-asset" data-lab-tab="cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 자산 전이<small>scenario-conditional</small></button>
-    <button type="button" id="lab-tab-ai-regime" role="tab" aria-selected="false" aria-controls="lab-ai-regime" data-lab-tab="ai-regime" ${aiRegime?'':'disabled'}><span>04</span> 자본사이클<small>reference-only</small></button>
-    <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>05</span> 유동성<small>reference-only</small></button>
+    <button type="button" id="lab-tab-liquidity" role="tab" aria-selected="false" aria-controls="lab-liquidity" data-lab-tab="liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>reference-only</small></button>
   </div>`);
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
+  if(lookupOverlayMarkup)document.body.appendChild(el(lookupOverlayMarkup));
   let flowFocus='ALL',lookupMarker=null,flowHorizon=126,showFlowSamples=true,lookupMode=initialState.lookupMode==='current'?'current':'rebase';
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
+  const lookupLayer=document.querySelector('[data-future-lookup-layer]'),lookupScope=lookupLayer||p1w,lookupOpen=$('[data-future-lookup-open]',root);
+  const setLookupOverlay=open=>{if(!lookupLayer)return;lookupLayer.hidden=!open;lookupLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('future-lookup-open',open);if(open&&location.hash==='#future')history.replaceState(null,'','#future/lookup');if(!open&&location.hash==='#future/lookup')history.replaceState(null,'','#future');if(open)requestAnimationFrame(()=>$('#lookup-date',lookupLayer)?.focus());};
+  if(lookupOpen)lookupOpen.onclick=()=>setLookupOverlay(true);else root.querySelector('[data-future-lookup-open]')?.setAttribute('hidden','');
+  lookupLayer?.querySelectorAll('[data-future-lookup-close]').forEach(button=>button.onclick=()=>setLookupOverlay(false));
+  if(lookupLayer)lookupLayer.onkeydown=event=>{if(event.key==='Escape')setLookupOverlay(false);};
   const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowHorizon)===flowHorizon));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});
     if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:flowHorizon===126?'현재 기준 6개월 조건부 분포':`현재 기준 전체 조건부 분포 · ${fullHorizonEnd||'2027년'}`;};
   const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowHorizon,showFlowSamples);
@@ -1287,8 +1303,8 @@ function renderFlow(initialLookup){
   const sampleToggle=p1w.querySelector('[data-flow-samples]');if(sampleToggle)sampleToggle.onclick=()=>{showFlowSamples=!showFlowSamples;sampleToggle.setAttribute('aria-pressed',String(showFlowSamples));paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-horizon]').forEach(button=>button.onclick=()=>{flowHorizon=Number(button.dataset.flowHorizon);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
-  const lookupResult=$('.lookup-result',p1w),lookupInput=$('#lookup-date',p1w),rebaseNote=$('.lookup-rebase-note',p1w);
-  const syncLookupMode=()=>{p1w.querySelectorAll('[data-lookup-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lookupMode===lookupMode)));if(rebaseNote)rebaseNote.hidden=!(lookupMode==='rebase'&&lookupMarker);syncFlowHorizon();};
+  const lookupResult=$('.lookup-result',lookupScope),lookupInput=$('#lookup-date',lookupScope),rebaseNote=$('.lookup-rebase-note',lookupScope);
+  const syncLookupMode=()=>{lookupScope.querySelectorAll('[data-lookup-mode]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.lookupMode===lookupMode)));if(rebaseNote)rebaseNote.hidden=!(lookupMode==='rebase'&&lookupMarker);syncFlowHorizon();};
   const runLookup=(requested,mode=lookupMode)=>{if(!lookupResult||!lookupInput)return;lookupMode=mode;lookupInput.value=requested||lookupInput.value;
     const mapped=ForecastLookup.mapDate(sc.quantile_table,lookupInput.value,sc.asof);
     lookupResult.innerHTML=mapped.ok?lookupCardMarkup(sc,mapped):lookupErrorMarkup(mapped);
@@ -1300,16 +1316,18 @@ function renderFlow(initialLookup){
     if(mapped.ok)history.replaceState(null,'',`#future/lookup/${mapped.requested}/${lookupMode}`);
   };
   const lookupSubmit=$('.lookup-submit',p1w);if(lookupSubmit)lookupSubmit.onclick=()=>runLookup(lookupInput.value);
-  p1w.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
-  p1w.querySelectorAll('[data-lookup-mode]').forEach(button=>button.onclick=()=>{lookupMode=button.dataset.lookupMode;lookupMarker?runLookup(lookupInput.value,lookupMode):(syncLookupMode(),paintFlow(flowFocus));});
+  lookupScope.querySelectorAll('[data-lookup-quick]').forEach(button=>button.onclick=()=>runLookup(button.dataset.lookupQuick));
+  lookupScope.querySelectorAll('[data-lookup-mode]').forEach(button=>button.onclick=()=>{lookupMode=button.dataset.lookupMode;lookupMarker?runLookup(lookupInput.value,lookupMode):(syncLookupMode(),paintFlow(flowFocus));});
   if(lookupInput)lookupInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runLookup(lookupInput.value);}};
-  const naturalInput=$('#lookup-natural',p1w),naturalSubmit=$('.lookup-natural-submit',p1w);
+  const naturalInput=$('#lookup-natural',lookupScope),naturalSubmit=$('.lookup-natural-submit',lookupScope);
   const runNatural=()=>{const parsed=ForecastLookup.parseQuery(naturalInput?.value,sc.asof);if(parsed.ok)runLookup(parsed.date);else{lookupResult.innerHTML=lookupErrorMarkup(parsed);lookupMarker=null;paintFlow(flowFocus);}};
   if(naturalSubmit)naturalSubmit.onclick=runNatural;
   if(naturalInput)naturalInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runNatural();}};
   if(initialLookup)runLookup(initialLookup);
-  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future';
+  if(initialState.lookupOverlay||initialLookup)setLookupOverlay(true);
+  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future',copy=FLOW_LAB_COPY[active]||FLOW_LAB_COPY.future;
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
+    $('#flow-page-eyebrow',root).textContent=copy[0];$('#flow-page-title',root).textContent=copy[1];$('#flow-page-lede',root).textContent=`${copy[2]} 시나리오 기준 ${sc.asof} · 참고 의견이며 투자 자문이 아닙니다.`;
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
   const availableTabs=[...labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)')];
   availableTabs.forEach((b,index)=>{b.onclick=()=>{activateLab(b.dataset.labTab);history.replaceState(null,'',b.dataset.labTab==='future'?'#future':`#future/${b.dataset.labTab}`);};b.onkeydown=event=>{let next=null;if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+availableTabs.length)%availableTabs.length;if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%availableTabs.length;if(event.key==='Home')next=0;if(event.key==='End')next=availableTabs.length-1;if(next!=null){event.preventDefault();activateLab(availableTabs[next].dataset.labTab);availableTabs[next].focus();}};});
@@ -2328,7 +2346,9 @@ VIEWS.asof=renderDecisionJournal;
 
 function renderTrack(){
   const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
+  const ai=DATA.ai_regime||{status:'blocked',coverage:0,coverage_threshold:.6},aiCoverage=Number(ai.coverage||0),aiThreshold=Number(ai.coverage_threshold||.6);
   const root=el('<div class="track-page"></div>');
+  root.appendChild(el(`<section class="trust-readiness" aria-label="AI 자본사이클 준비 상태"><div><span>AI 자본사이클</span><strong>${ai.status==='blocked'||aiCoverage<aiThreshold?'준비 중 · 판정 보류':'검증 지도 준비'}</strong></div><p>필수 데이터 확보 ${Math.round(aiCoverage*100)}% · coverage≥${aiThreshold.toFixed(1)}에서 메뉴 자동 복귀 후보가 되며 검증 스냅샷 전 지도는 계속 숨깁니다.</p><a href="#future/ai-regime">상태 상세</a></section>`));
   root.appendChild(el(`<div class="page-heading"><div>
     <p class="eyebrow">적중 이력 · Calibration</p>
     <h1>확정된 예측의 정확도를 검증합니다</h1>

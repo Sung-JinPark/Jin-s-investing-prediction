@@ -211,7 +211,7 @@ def test_u1a_four_section_information_architecture_contract() -> None:
         "rawHash==='#overview')return '#today'",
         "rawHash==='#flow')return '#future'",
         "rawHash==='#questions')return '#records'",
-        "rawHash==='#ask')return '#future/range'",
+        "rawHash==='#ask')return '#future/lookup'",
         "rawHash==='#asof')return '#records/journal'",
         "rawHash==='#track')return '#trust'",
         "rawHash.startsWith('#q/')",
@@ -242,6 +242,47 @@ def test_u1a_route_and_home_render_evidence() -> None:
         assert row["passed"] is True
         assert row["signals"] == 2
         assert row["recentChanges"] == row["nextEvents"] == 3
+        assert (evidence_dir / row["file"]).is_file()
+
+
+def test_u1b_future_overlay_unique_questions_and_compare_contract() -> None:
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+
+    assert "rawHash==='#ask')return '#future/lookup'" in script
+    assert 'data-future-lookup-layer' in html and 'role="dialog" aria-modal="true"' in html
+    assert "setLookupOverlay" in script and "body.future-lookup-open" in css
+    assert ".future-lookup-sheet .lookup-heading h3{color:#11110f}" in css
+    for title in (
+        "향후 12개월 시장 경로는 어떤 분포인가",
+        "과거 혁신 사이클은 현재와 얼마나 닮았나",
+        "AI 충격은 NDX·BTC·O로 어떻게 전이되는가",
+        "AI 자본 사이클을 지금 판정할 수 있는가",
+        "유동성 조건은 위험 선호를 지지하는가",
+    ):
+        assert title in html
+    assert 'data-lab-tab="ai-regime"' not in html
+    assert "coverage≥${aiThreshold.toFixed(1)}" in script
+    assert "준비 중 · 판정 보류" in html and "메뉴 자동 복귀 후보" in html
+    assert "next.length===2&&!location.hash.startsWith('#records/compare/')" in script
+    assert "location.hash='#records/compare/'+next.join(',')" in script
+
+
+def test_u1b_browser_regression_evidence() -> None:
+    project_root = Path(__file__).parents[2]
+    evidence_dir = project_root / "reports" / "screenshots" / "u1b_260805"
+    results = json.loads((evidence_dir / "results.json").read_text(encoding="utf-8"))
+
+    assert results["passed"] is True
+    assert results["uniqueH1Count"] == 5
+    assert len(results["labResults"]) == 5 and all(row["passed"] for row in results["labResults"])
+    assert results["compareResult"]["passed"] is True
+    assert results["compareResult"]["clicks"] == 3
+    assert results["trustResult"]["passed"] is True
+    for row in results["overlayResults"]:
+        assert row["passed"] is True
+        assert row["hash"] == "#future/lookup"
         assert (evidence_dir / row["file"]).is_file()
 
 
@@ -383,7 +424,8 @@ def test_workspace_utility_contract() -> None:
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
-    assert 'data-lab-tab="ai-regime"' in html and 'data-lab-tab="liquidity"' in html
+    assert 'data-lab-tab="ai-regime"' not in html and 'data-lab-tab="liquidity"' in html
+    assert "aiRegime.id='lab-ai-regime'" in html and 'href="#future/ai-regime">상태 상세' in html
     assert "Scenario Tracker" in html and "가중 합산 없음" in html
     assert "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다" in html
     assert "데이터 커버리지 부족" in html and "MAP WITHHELD" in html

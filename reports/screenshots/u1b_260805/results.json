@@ -1,0 +1,88 @@
+{
+  "generated_at": "2026-08-05T05:06:21.439Z",
+  "source": "local static build",
+  "labResults": [
+    {
+      "lab": "future",
+      "expected": "향후 12개월 시장 경로는 어떤 분포인가",
+      "hash": "#future",
+      "h1": "향후 12개월 시장 경로는 어떤 분포인가",
+      "aiMenuTabs": 0,
+      "passed": true
+    },
+    {
+      "lab": "history",
+      "expected": "과거 혁신 사이클은 현재와 얼마나 닮았나",
+      "hash": "#future/history",
+      "h1": "과거 혁신 사이클은 현재와 얼마나 닮았나",
+      "aiMenuTabs": 0,
+      "passed": true
+    },
+    {
+      "lab": "cross-asset",
+      "expected": "AI 충격은 NDX·BTC·O로 어떻게 전이되는가",
+      "hash": "#future/cross-asset",
+      "h1": "AI 충격은 NDX·BTC·O로 어떻게 전이되는가",
+      "aiMenuTabs": 0,
+      "passed": true
+    },
+    {
+      "lab": "ai-regime",
+      "expected": "AI 자본 사이클을 지금 판정할 수 있는가",
+      "hash": "#future/ai-regime",
+      "h1": "AI 자본 사이클을 지금 판정할 수 있는가",
+      "aiMenuTabs": 0,
+      "passed": true
+    },
+    {
+      "lab": "liquidity",
+      "expected": "유동성 조건은 위험 선호를 지지하는가",
+      "hash": "#future/liquidity",
+      "h1": "유동성 조건은 위험 선호를 지지하는가",
+      "aiMenuTabs": 0,
+      "passed": true
+    }
+  ],
+  "uniqueH1Count": 5,
+  "overlayResults": [
+    {
+      "viewport": {
+        "width": 1280,
+        "height": 720
+      },
+      "hash": "#future/lookup",
+      "h1": "향후 12개월 시장 경로는 어떤 분포인가",
+      "overlayVisible": true,
+      "overlayTitle": "날짜·기간 조회",
+      "bodyLocked": true,
+      "file": "lookup_overlay_1280.png",
+      "passed": true
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "hash": "#future/lookup",
+      "h1": "향후 12개월 시장 경로는 어떤 분포인가",
+      "overlayVisible": true,
+      "overlayTitle": "날짜·기간 조회",
+      "bodyLocked": true,
+      "file": "lookup_overlay_390.png",
+      "passed": true
+    }
+  ],
+  "compareResult": {
+    "clicks": 3,
+    "hash": "#records/compare/nfp-jul2026-below100k,cpi-jul2026-reaccel",
+    "h1": "질문의 확률과 시간 구조를 나란히 봅니다",
+    "selected": 0,
+    "passed": true
+  },
+  "trustResult": {
+    "hash": "#trust",
+    "readiness": "AI 자본사이클준비 중 · 판정 보류필수 데이터 확보 0% · coverage≥0.6에서 메뉴 자동 복귀 후보가 되며 검증 스냅샷 전 지도는 계속 숨깁니다.상태 상세",
+    "passed": true
+  },
+  "passed": true
+}
