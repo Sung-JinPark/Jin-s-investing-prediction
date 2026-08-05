@@ -45,7 +45,10 @@
       ],
       "properties": {
         "schema_version": {
-          "const": 2
+          "enum": [
+            2,
+            3
+          ]
         },
         "quantile_table": {
           "type": "object",
@@ -193,7 +196,10 @@
           ]
         },
         "probability_space": {
-          "const": "scenario_conditional"
+          "enum": [
+            "scenario_conditional",
+            "reference_only"
+          ]
         },
         "unit": {
           "const": "index_100"
