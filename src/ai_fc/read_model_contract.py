@@ -9,6 +9,7 @@ from typing import Any
 from .cross_asset import CrossAssetError, validate_cross_asset
 from .ai_capital_cycle import validate_ai_regime
 from .scenario import ScenarioError, validate_scenario
+from .scenario_v4_shadow import ScenarioV4ShadowError, validate_shadow_payload
 from .market_extensions import (
     MarketExtensionError,
     validate_liquidity,
@@ -110,6 +111,15 @@ def schema() -> dict[str, Any]:
             },
         },
     }
+    properties["scenario_v4_shadow"] = {
+        "type": ["object", "null"],
+        "properties": {
+            "version": {"const": "rcfhs-sb-v1"},
+            "status": {"const": "shadow_only"},
+            "dashboard_toggle_default": {"const": "off"},
+            "promotion_state": {"const": "blocked_pending_rolling_origin_validation"},
+        },
+    }
     for key in ("scenario_tracker", "liquidity", "ai_regime"):
         properties[key] = {
             "type": "object",
@@ -202,6 +212,15 @@ def validate(model: dict[str, Any]) -> list[str]:
                 if observations < minimum and rate is not None:
                     errors.append("horizon_coverage must hide hit rates below the gate")
                     break
+    scenario_v4_shadow = model.get("scenario_v4_shadow")
+    if scenario_v4_shadow is not None:
+        if not isinstance(scenario_v4_shadow, dict):
+            errors.append("scenario_v4_shadow must be an object or null")
+        else:
+            try:
+                validate_shadow_payload(scenario_v4_shadow)
+            except (ScenarioV4ShadowError, KeyError, TypeError, ValueError) as exc:
+                errors.append(f"scenario_v4_shadow contract violation: {exc}")
     reference_validators = {
         "scenario_tracker": validate_scenario_tracker,
         "liquidity": validate_liquidity,

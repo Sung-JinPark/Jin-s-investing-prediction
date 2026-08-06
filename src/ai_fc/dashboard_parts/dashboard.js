@@ -1221,7 +1221,8 @@ const FLOW_LAB_COPY={
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
   initialLookup=initialState.lookup||null;
-  const sc=DATA.scenario;
+  const officialScenario=DATA.scenario,shadowScenario=DATA.scenario_v4_shadow;
+  let sc=officialScenario,shadowActive=false;
   const structural=sc.structural_forecast?.status==='ok'?sc.structural_forecast:null;
   const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
     ?'굵은 선의 굴곡은 혁신사이클 DB, 진폭은 다중시대 조정 DB, 연도 종점과 경로 비중은 기존 조건부 분포에서 가져옵니다. fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
@@ -1244,6 +1245,7 @@ function renderFlow(initialLookup){
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     ${sc.analog?.values?.length?'<button type="button" data-flow-focus="ANALOG" style="--focus-color:#706f68" aria-pressed="false"><i></i>혁신사이클 참조</button>':''}</div>`;
   const shapeControls=structural?`<div class="flow-shape-controls" role="group" aria-label="구조 굴곡 비교"><span>PATH LAYERS</span><button type="button" data-flow-baseline aria-pressed="true"><i></i>굴곡 전 GBM 같이 보기</button><small>기본 표시 · 회색 고스트 선은 같은 종점의 비교 기준</small></div>`:'';
+  const shadowControls=shadowScenario?.status==='shadow_only'?`<div class="flow-shadow-controls" role="group" aria-label="Scenario Graph V4 shadow toggle"><span>SCENARIO GRAPH V4</span><button type="button" data-flow-v4-shadow aria-pressed="false"><i></i>RCFHS-SB v1 shadow</button><small>default OFF · not official probability or champion</small></div>`:'';
   const realism=sc.path_realism;
   const structureEvidence=structural?.evidence||{},episodeEvidence=structureEvidence.correction_episodes||{},eventEvidence=structureEvidence.physical_event||{},proximity=eventEvidence.proximity_context||{},calibration=structural?.calibration||{},selection=structureEvidence.innovation_cycle?.selection_sensitivity||{},gbm=structural?.reproducibility?.gbm_parameters||{},trackerEvidence=DATA.scenario_tracker||{},liquidityEvidence=DATA.liquidity||{},aiRegimeEvidence=DATA.ai_regime||{};
   const realismCards=structural?`<section class="path-realism structural-evidence" aria-labelledby="path-realism-title">
@@ -1285,6 +1287,7 @@ function renderFlow(initialLookup){
     <div class="panel-head"><h2 id="flow-horizon-title">2026년 DB 조건부 구조 경로</h2>${legend}</div>
     ${focusControls}
     ${shapeControls}
+    ${shadowControls}
     ${realismCards}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함'}</em></button>`).join('')}</div></div>
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
@@ -1326,6 +1329,7 @@ function renderFlow(initialLookup){
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.onclick=()=>{showBaseline=!showBaseline;baselineButton.setAttribute('aria-pressed',String(showBaseline));baselineButton.lastChild.textContent=showBaseline?'굴곡 전 GBM 같이 보기':'굴곡 전 GBM 숨김';paintFlow(flowFocus);};
+  const shadowButton=$('[data-flow-v4-shadow]',p1w);if(shadowButton)shadowButton.onclick=()=>{shadowActive=!shadowActive;sc=shadowActive?shadowScenario:officialScenario;shadowButton.setAttribute('aria-pressed',String(shadowActive));shadowButton.lastChild.textContent=shadowActive?'RCFHS-SB v1 official':'RCFHS-SB v1 shadow';paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-year]').forEach(button=>button.onclick=()=>{flowYear=Number(button.dataset.flowYear);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',lookupScope),lookupInput=$('#lookup-date',lookupScope),rebaseNote=$('.lookup-rebase-note',lookupScope);
