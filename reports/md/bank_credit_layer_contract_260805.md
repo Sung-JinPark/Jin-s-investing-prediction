@@ -1,8 +1,7 @@
 # CREDIT-LIQ-260805 정밀 계약·실행 설계서
 
-작성일: 2026-08-06 KST  
-기준 커밋: `d12c069`  
-대상: 은행 신용·예대율·MMF 3개 `reference_only` 레이어  
+작성일: 2026-08-06 KST · 기준 커밋: `d12c069`
+대상: 은행 신용·예대율·MMF 3개 `reference_only` 레이어
 현재 단계: **P0 정찰·계약 완료 / P1 구현 미착수**
 
 > 이 문서는 진단용 데이터 레이어의 구현 계약이다. 사건확률, 목표가, 매매 신호 또는 투자자문을 만들지 않는다. `scenario_conditional`, `physical_event`와 산술 결합하지 않는다.
@@ -400,4 +399,3 @@ OPEN QUESTIONS:
 3. D-2: P4 후 O/시나리오 참고 링크를 승인할지.
 4. D-3: z 기준을 2000-01-01로 고정할지.
 5. D-4: source-aware cadence를 기존 토요일 workflow에 편입할지.
-
