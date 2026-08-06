@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-08-04T09:52:21+00:00`
-- Latest completed NYSE day: `2026-08-03`
-- Result: accumulating 27 · frozen 1 · stalled 0 · inactive 1 · violation 0 · planned 3
+- Generated: `2026-08-06T04:39:41+00:00`
+- Latest completed NYSE day: `2026-08-05`
+- Result: accumulating 22 · frozen 1 · stalled 5 · inactive 1 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -11,16 +11,16 @@
 | `ml_market_history` | weekly | 1 | 2026-08-03 | **accumulating** | — |
 | `method_changes` | event | 1 | — | **accumulating** | — |
 | `calibration_ledger` | event | 1 / 6 | 2026-07-31 | **accumulating** | — |
-| `corrections_ledger` | event | 1 / 12 | — | **accumulating** | — |
+| `corrections_ledger` | event | 1 / 19 | — | **accumulating** | — |
 | `benchmark_ledger` | event | 1 / 6 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 5 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 5 | 2026-08-03 | **accumulating** | — |
-| `scenario_latest` | trading_daily | 1 | 2026-08-03 | **accumulating** | — |
-| `cross_asset_archive` | trading_daily | 6 | 2026-08-03 | **accumulating** | — |
-| `cross_asset_latest` | trading_daily | 1 | 2026-08-03 | **accumulating** | — |
+| `scenario_archive` | trading_daily | 10 | 2026-08-03 | **stalled** | — |
+| `scenario_latest` | trading_daily | 1 | 2026-08-03 | **stalled** | — |
+| `cross_asset_archive` | trading_daily | 8 | 2026-08-03 | **stalled** | — |
+| `cross_asset_latest` | trading_daily | 1 | 2026-08-03 | **stalled** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 3 | 2026-08-03 | **accumulating** | — |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 3 | 2026-08-03 | **stalled** | — |
 | `scenario_band_calibration` | trading_daily | 1 / 0 | — | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 53 | 2026-08-04 | **accumulating** | — |
 | `signal_archive` | weekly | 3 | 2026-07-31 | **accumulating** | — |
@@ -31,12 +31,12 @@
 | `realty_o_entry_cohort_archive` | monthly | 1 | 2026-07-30 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **accumulating** | — |
 | `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 2 | 2026-08-04 | **accumulating** | — |
-| `source_monitoring_status` | trading_daily | 1 | 2026-08-04 | **accumulating** | — |
+| `source_monitoring` | trading_daily | 3 | 2026-08-05 | **accumulating** | — |
+| `source_monitoring_status` | trading_daily | 1 | 2026-08-05 | **accumulating** | — |
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-08-04 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-08-06 | **accumulating** | — |
 | `research_pack` | monthly | 2 | — | **accumulating** | — |
 
 ## Interpretation
