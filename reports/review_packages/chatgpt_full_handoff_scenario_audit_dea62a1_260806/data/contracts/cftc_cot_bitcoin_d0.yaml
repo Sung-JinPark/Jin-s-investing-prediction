@@ -1,0 +1,91 @@
+schema_version: 1
+source_id: cftc_cot_bitcoin
+contract_id: cftc_cot_bitcoin_d0_v1
+batch_id: s0_260804_p1
+stage: D0
+priority: P1
+description: CFTC Traders in Financial Futures, Futures Only, CME Bitcoin positioning candidate.
+provider: U.S. Commodity Futures Trading Commission
+source_tier: official
+dataset_id: gpe5-46if
+contract_market_code: "133741"
+endpoint: https://publicreporting.cftc.gov/resource/gpe5-46if.json
+dataset_page: https://publicreporting.cftc.gov/Commitments-of-Traders/Traders-in-Financial-Futures-Futures-Only/gpe5-46if
+query:
+  select: report_date_as_yyyy_mm_dd,cftc_contract_market_code,open_interest_all,dealer_positions_long_all,dealer_positions_short_all,asset_mgr_positions_long,asset_mgr_positions_short,lev_money_positions_long,lev_money_positions_short,other_rept_positions_long,other_rept_positions_short
+  where: cftc_contract_market_code='133741'
+  order: report_date_as_yyyy_mm_dd DESC
+  limit: 5
+cadence: weekly
+enabled: false
+collector_status: prohibited_until_d0_pass
+registry_status: not_registered_until_d0_pass
+model_use: prohibited
+probability_space: reference_only
+purpose: Leveraged positioning context for BTC correction and cross-asset challenger diagnostics.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+storage_policy:
+  mode: append_only_after_activation
+  historical_backfill_vintage: reconstructed
+
+d0:
+  status: monitoring
+  started_at: 2026-08-04
+  window_end_exclusive: 2026-08-18
+  required_observation_days: 14
+  fetch_allowed: true
+  checks:
+    - http_200
+    - dataset_id_stability
+    - contract_market_code_stability
+    - weekly_release_timing
+    - schema_stability
+    - missing_or_delayed_release
+    - point_in_time_availability
+  initial_observation:
+    observed_at: 2026-08-04
+    http_status: 200
+    response_sha256: 620ab9c9506c9675e52d198db01c2c7b3a89734418b9d031ef089bac46aa34e5
+    response_bytes: 2007
+    latest_report_date: 2026-07-28
+    latest_open_interest: 20019
+    rows_observed: 5
+    raw_payload_committed: false
+
+schema:
+  required_fields:
+    - report_date_as_yyyy_mm_dd
+    - cftc_contract_market_code
+    - open_interest_all
+    - dealer_positions_long_all
+    - dealer_positions_short_all
+    - asset_mgr_positions_long
+    - asset_mgr_positions_short
+    - lev_money_positions_long
+    - lev_money_positions_short
+    - other_rept_positions_long
+    - other_rept_positions_short
+
+point_in_time:
+  observation_period: Tuesday positions
+  available_at: CFTC Friday release timestamp, generally 15:30 America/New_York; never Tuesday report_date
+  revision_vintage: native_release_capture
+  historical_use: Historical files are immutable after publication according to the CFTC FAQ, but each row still uses its public release date for PIT joins.
+
+license:
+  status: public_domain_with_attribution
+  terms_url: https://www.cftc.gov/WebPolicy/index.htm
+  source_guide_url: https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm
+  redistribution: permitted_for_cftc_government_content
+  database_creation: permitted
+  automated_access: permitted_subject_to_reasonable_rate_limits
+  predictive_analytics_use: permitted_for_cftc_government_content
+  attribution: Source U.S. Commodity Futures Trading Commission; no CFTC endorsement implied.
+  caveat: Third-party material, seals, logos, and trademarks are excluded from the public-domain grant.
+
+activation_gate:
+  - Fourteen calendar days of successful release and schema monitoring through 2026-08-17.
+  - Explicit handling for delayed or holiday-shifted reports and reasonable API rate limits.
+  - Contract review and source-registry registration in a separately approved S1 change.
+  - Collector, archive, receipt, and PIT tests must ship together; model use remains off until then.
+fallback: Preserve the last captured release with a stale flag; never backdate Friday availability to Tuesday or synthesize positions.

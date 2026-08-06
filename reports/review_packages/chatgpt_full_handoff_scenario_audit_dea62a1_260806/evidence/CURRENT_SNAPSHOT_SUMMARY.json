@@ -1,0 +1,52 @@
+{
+  "base_commit": "dea62a1bd5c527ff16fb240377a6defd8f612934",
+  "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+  "asof": "2026-08-03",
+  "anchor": 25914.0,
+  "horizon_end": "2027-08-04",
+  "probability_space": "scenario_conditional",
+  "probabilities_pct": {
+    "S1": 83,
+    "S2": 2,
+    "S3": 15
+  },
+  "innovation_context": {
+    "context_asof": "2026-07-29",
+    "available_at": "2026-07-30T16:38:37",
+    "current_phase": 42,
+    "selected_eras": [
+      "biotech2015",
+      "dotcom",
+      "japan1989"
+    ]
+  },
+  "calibration": {
+    "target_depth_pct": 12.19,
+    "strength": 1.735781,
+    "native_ensemble_mdd_pct": -6.4,
+    "native_residual_mdd_pct": -10.2,
+    "native_endpoint_s1_mdd_pct": -5.7,
+    "calibrated_s1_mdd_pct": -12.2,
+    "common_strength_scope": "S1/S2/S3 and all display years"
+  },
+  "year_diagnostics": {
+    "2026": {
+      "risk_window": ["2026-08-31", "2026-11-24"],
+      "center_month": "2026-10",
+      "mdd_pct": {"S1": -12.2, "S2": -16.0, "S3": -20.4}
+    },
+    "2027": {
+      "risk_window": ["2027-06-25", "2027-07-19"],
+      "center_month": "2027-07",
+      "mdd_pct": {"S1": -7.8, "S2": -8.0, "S3": -8.0}
+    }
+  },
+  "legacy_reference": {
+    "source": "src/ai_fc/scenario.py::_ANALOG_VALUES",
+    "input_points": 26,
+    "rendered_points": 52,
+    "clip": 32392,
+    "raw_terminal": 37956,
+    "probability_space": "reference_only"
+  }
+}

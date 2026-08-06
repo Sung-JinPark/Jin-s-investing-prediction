@@ -1,0 +1,30 @@
+schema_version: 1
+rules_version: 2026-08-03.v1
+status: preregistered_before_outcome_observation
+preregistered_at: 2026-08-03
+probability_space: reference_only
+probability_output: prohibited_until_out_of_sample_calibration
+change_policy: append an approved correction in calibration/corrections.csv and issue a new version
+axes:
+  x: funding_and_liquidity
+  y: ai_monetization_coverage
+quadrants:
+  funded_expansion:
+    condition: x >= 0 and y >= 0
+    strengthen: [soft_landing]
+    weaken: [deleveraging]
+  crowded_monetization_gap:
+    condition: x >= 0 and y < 0
+    strengthen: [easing_rotation_volatility]
+    weaken: [soft_landing]
+  deleveraging_unwind:
+    condition: x < 0 and y < 0
+    strengthen: [deleveraging]
+    weaken: [easing_rotation, soft_landing]
+  policy_reflation_rotation:
+    condition: x < 0 and y >= 0
+    strengthen: [easing_rotation]
+    weaken: [deleveraging]
+display_contract:
+  allowed: [strengthens, weakens, neutral, insufficient_data]
+  forbidden: [scenario_probability, expected_return, target_price]

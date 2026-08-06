@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "asof": "2026-08-04",
+  "generated_at": "2026-08-04T09:23:05+00:00",
+  "status": "partial",
+  "probability_space": "reference_only",
+  "scope": "L1-1_preparation_only",
+  "companies": {
+    "MSFT": {
+      "cik": "0000789019",
+      "filing_count": 4,
+      "filings": [
+        {
+          "company": "MSFT",
+          "cik": "0000789019",
+          "form": "10-K",
+          "filing_date": "2026-07-29",
+          "report_date": "2025-06-30",
+          "accession": "0001193125-26-323660",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526323660/0001193125-26-323660-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "MSFT",
+          "cik": "0000789019",
+          "form": "10-Q",
+          "filing_date": "2026-04-29",
+          "report_date": "2025-03-31",
+          "accession": "0001193125-26-191507",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526191507/0001193125-26-191507-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "MSFT",
+          "cik": "0000789019",
+          "form": "10-Q",
+          "filing_date": "2026-01-28",
+          "report_date": "2024-12-31",
+          "accession": "0001193125-26-027207",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312526027207/0001193125-26-027207-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "MSFT",
+          "cik": "0000789019",
+          "form": "10-Q",
+          "filing_date": "2025-10-29",
+          "report_date": "2024-09-30",
+          "accession": "0001193125-25-256321",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/789019/000119312525256321/0001193125-25-256321-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        }
+      ],
+      "segment_extraction_status": "not_started"
+    },
+    "AMZN": {
+      "cik": "0001018724",
+      "filing_count": 4,
+      "filings": [
+        {
+          "company": "AMZN",
+          "cik": "0001018724",
+          "form": "10-Q",
+          "filing_date": "2026-07-31",
+          "report_date": "2025-06-30",
+          "accession": "0001018724-26-000026",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000026/0001018724-26-000026-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "AMZN",
+          "cik": "0001018724",
+          "form": "10-Q",
+          "filing_date": "2026-04-30",
+          "report_date": "2025-03-31",
+          "accession": "0001018724-26-000014",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000014/0001018724-26-000014-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "AMZN",
+          "cik": "0001018724",
+          "form": "10-K",
+          "filing_date": "2026-02-06",
+          "report_date": "2024-12-31",
+          "accession": "0001018724-26-000004",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872426000004/0001018724-26-000004-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "AMZN",
+          "cik": "0001018724",
+          "form": "10-Q",
+          "filing_date": "2025-10-31",
+          "report_date": "2024-09-30",
+          "accession": "0001018724-25-000123",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1018724/000101872425000123/0001018724-25-000123-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        }
+      ],
+      "segment_extraction_status": "not_started"
+    },
+    "GOOGL": {
+      "cik": "0001652044",
+      "filing_count": 4,
+      "filings": [
+        {
+          "company": "GOOGL",
+          "cik": "0001652044",
+          "form": "10-Q",
+          "filing_date": "2026-07-23",
+          "report_date": "2025-06-30",
+          "accession": "0001652044-26-000071",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000071/0001652044-26-000071-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "GOOGL",
+          "cik": "0001652044",
+          "form": "10-Q",
+          "filing_date": "2026-04-30",
+          "report_date": "2025-03-31",
+          "accession": "0001652044-26-000048",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000048/0001652044-26-000048-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "GOOGL",
+          "cik": "0001652044",
+          "form": "10-K",
+          "filing_date": "2026-02-05",
+          "report_date": "2024-12-31",
+          "accession": "0001652044-26-000018",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000018/0001652044-26-000018-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "GOOGL",
+          "cik": "0001652044",
+          "form": "10-Q",
+          "filing_date": "2025-10-30",
+          "report_date": "2024-09-30",
+          "accession": "0001652044-25-000091",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204425000091/0001652044-25-000091-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        }
+      ],
+      "segment_extraction_status": "not_started"
+    },
+    "META": {
+      "cik": "0001326801",
+      "filing_count": 6,
+      "filings": [
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-Q",
+          "filing_date": "2026-04-30",
+          "report_date": "2025-03-31",
+          "accession": "0001628280-26-028526",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026028526/0001628280-26-028526-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-K",
+          "filing_date": "2026-01-29",
+          "report_date": "2024-12-31",
+          "accession": "0001628280-26-003942",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828026003942/0001628280-26-003942-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-Q",
+          "filing_date": "2025-10-30",
+          "report_date": "2024-09-30",
+          "accession": "0001628280-25-047240",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828025047240/0001628280-25-047240-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-Q",
+          "filing_date": "2025-07-31",
+          "report_date": "2024-06-30",
+          "accession": "0001628280-25-036791",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000162828025036791/0001628280-25-036791-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-Q",
+          "filing_date": "2024-10-31",
+          "report_date": "2023-09-30",
+          "accession": "0001326801-24-000081",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000132680124000081/0001326801-24-000081-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        },
+        {
+          "company": "META",
+          "cik": "0001326801",
+          "form": "10-Q",
+          "filing_date": "2024-08-01",
+          "report_date": "2023-06-30",
+          "accession": "0001326801-24-000069",
+          "primary_document": null,
+          "filing_index_url": "https://www.sec.gov/Archives/edgar/data/1326801/000132680124000069/0001326801-24-000069-index.html",
+          "inventory_scope": "accession_only",
+          "segment_extraction_status": "not_started",
+          "segment_rows": []
+        }
+      ],
+      "segment_extraction_status": "not_started"
+    }
+  },
+  "receipts": [
+    {
+      "source": "committed_sec_companyfacts_fallback",
+      "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
+      "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
+      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "revision_vintage": "committed_filing_native_accessions",
+      "upstream_status": "sec_submissions_unavailable",
+      "upstream_error": "HTTPError"
+    },
+    {
+      "source": "committed_sec_companyfacts_fallback",
+      "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
+      "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
+      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "revision_vintage": "committed_filing_native_accessions",
+      "upstream_status": "sec_submissions_unavailable",
+      "upstream_error": "HTTPError"
+    },
+    {
+      "source": "committed_sec_companyfacts_fallback",
+      "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
+      "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
+      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "revision_vintage": "committed_filing_native_accessions",
+      "upstream_status": "sec_submissions_unavailable",
+      "upstream_error": "HTTPError"
+    },
+    {
+      "source": "committed_sec_companyfacts_fallback",
+      "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
+      "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
+      "fetched_at": "2026-08-04T09:23:05+00:00",
+      "revision_vintage": "committed_filing_native_accessions",
+      "upstream_status": "sec_submissions_unavailable",
+      "upstream_error": "HTTPError"
+    }
+  ],
+  "coverage_gate_effect": "none_segment_values_not_extracted",
+  "warning": "최근 12개 10-Q/K accession 목록만 보존하며 세그먼트 수치는 추출하지 않았습니다."
+}

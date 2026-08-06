@@ -1,0 +1,54 @@
+name: ai-regime-refresh
+
+on:
+  schedule:
+    - cron: "15 3 2 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lightweight D0-D2 dependencies
+        run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      - name: Refresh SEC facts and disclosure coverage
+        continue-on-error: true
+        env:
+          AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
+        run: cd src && python -m ai_fc ai-capital-cycle
+      - name: Refresh O rolling-entry cohort evidence
+        continue-on-error: true
+        run: cd src && python -m ai_fc o-entry-cohort
+      - name: Refresh L1 segment filing accession inventory only
+        continue-on-error: true
+        env:
+          AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
+        run: cd src && python -m ai_fc segment-filing-inventory
+      - name: Commit append-only D0-D2 snapshots
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/ai_capital_cycle
+          git add data/realty_income/o_entry_cohort_latest.json
+          git add data/realty_income/o_entry_cohort_archive
+          if git diff --cached --quiet; then
+            echo "No new monthly D0-D2 snapshot; previous snapshot remains available."
+            exit 0
+          fi
+          asof="$(python -c "import json; print(json.load(open('data/ai_capital_cycle/coverage_latest.json', encoding='utf-8'))['asof'])")"
+          git commit -m "data: refresh AI capital-cycle coverage ${asof}"
+          git push

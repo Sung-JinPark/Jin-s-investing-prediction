@@ -1,0 +1,1116 @@
+{
+  "schema_version": 1,
+  "asof": "2026-07-31",
+  "generated_at": "2026-08-03T02:13:21+00:00",
+  "probability_space": "scenario_conditional",
+  "unit": "index_100",
+  "anchors": {
+    "nasdaq": 25373.85,
+    "bitcoin": 62813.75,
+    "realty_income": 63.87
+  },
+  "diagnostics": {
+    "aligned_from": "2014-09-17",
+    "aligned_observations": 2985,
+    "return_basis": "daily log return on common US trading dates; adjusted close",
+    "corr_60d": {
+      "bitcoin_nasdaq": 0.442,
+      "realty_income_nasdaq": -0.38
+    },
+    "corr_252d": {
+      "bitcoin_nasdaq": 0.502,
+      "realty_income_nasdaq": -0.161
+    },
+    "beta_252d": {
+      "bitcoin_to_nasdaq": 1.179,
+      "realty_income_to_nasdaq": -0.145
+    },
+    "downside_beta_5y": {
+      "threshold_nasdaq_daily_pct": -1.68,
+      "bitcoin_to_nasdaq": 1.599,
+      "realty_income_to_nasdaq": 0.471,
+      "bitcoin_ci_10_90": [
+        0.661,
+        2.683
+      ],
+      "realty_income_ci_10_90": [
+        0.281,
+        0.672
+      ],
+      "observations": 126
+    },
+    "weekly_52w": {
+      "through": "2026-07-31",
+      "return_basis": "last common close in each ISO week (normally Friday)",
+      "observations": 52,
+      "corr": {
+        "bitcoin_nasdaq": 0.572,
+        "realty_income_nasdaq": 0.037
+      },
+      "beta": {
+        "bitcoin_to_nasdaq": 1.317,
+        "realty_income_to_nasdaq": 0.036
+      }
+    },
+    "max_drawdown_since_alignment_pct": {
+      "nasdaq": -36.4,
+      "bitcoin": -83.0,
+      "realty_income_total_return": -48.3
+    },
+    "data_quality": {
+      "status": "degraded",
+      "dropped_rows": 1,
+      "sources": [
+        {
+          "symbol": "^IXIC",
+          "status": "ok",
+          "input_rows": 62,
+          "output_rows": 62,
+          "dropped_rows": 0,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        },
+        {
+          "symbol": "O",
+          "status": "ok",
+          "input_rows": 62,
+          "output_rows": 62,
+          "dropped_rows": 0,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        },
+        {
+          "symbol": "^IXIC",
+          "status": "ok",
+          "input_rows": 71,
+          "output_rows": 71,
+          "dropped_rows": 0,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        },
+        {
+          "symbol": "^IXIC",
+          "status": "ok",
+          "input_rows": 2996,
+          "output_rows": 2996,
+          "dropped_rows": 0,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        },
+        {
+          "symbol": "BTC-USD",
+          "status": "degraded",
+          "input_rows": 4339,
+          "output_rows": 4338,
+          "dropped_rows": 1,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        },
+        {
+          "symbol": "O",
+          "status": "ok",
+          "input_rows": 2996,
+          "output_rows": 2996,
+          "dropped_rows": 0,
+          "adjusted_fallback": false,
+          "adjusted_fallback_rows": 0
+        }
+      ]
+    }
+  },
+  "history": {
+    "period": "2000-12 to 2005-12",
+    "labels": [
+      "2000-12",
+      "2001-01",
+      "2001-02",
+      "2001-03",
+      "2001-04",
+      "2001-05",
+      "2001-06",
+      "2001-07",
+      "2001-08",
+      "2001-09",
+      "2001-10",
+      "2001-11",
+      "2001-12",
+      "2002-01",
+      "2002-02",
+      "2002-03",
+      "2002-04",
+      "2002-05",
+      "2002-06",
+      "2002-07",
+      "2002-08",
+      "2002-09",
+      "2002-10",
+      "2002-11",
+      "2002-12",
+      "2003-01",
+      "2003-02",
+      "2003-03",
+      "2003-04",
+      "2003-05",
+      "2003-06",
+      "2003-07",
+      "2003-08",
+      "2003-09",
+      "2003-10",
+      "2003-11",
+      "2003-12",
+      "2004-01",
+      "2004-02",
+      "2004-03",
+      "2004-04",
+      "2004-05",
+      "2004-06",
+      "2004-07",
+      "2004-08",
+      "2004-09",
+      "2004-10",
+      "2004-11",
+      "2004-12",
+      "2005-01",
+      "2005-02",
+      "2005-03",
+      "2005-04",
+      "2005-05",
+      "2005-06",
+      "2005-07",
+      "2005-08",
+      "2005-09",
+      "2005-10",
+      "2005-11",
+      "2005-12"
+    ],
+    "series": {
+      "nasdaq_price": [
+        100.0,
+        112.2,
+        87.1,
+        74.5,
+        85.7,
+        85.4,
+        87.5,
+        82.1,
+        73.1,
+        60.7,
+        68.4,
+        78.1,
+        78.9,
+        78.3,
+        70.1,
+        74.7,
+        68.3,
+        65.4,
+        59.2,
+        53.8,
+        53.2,
+        47.4,
+        53.8,
+        59.9,
+        54.1,
+        53.5,
+        54.1,
+        54.3,
+        59.3,
+        64.6,
+        65.7,
+        70.2,
+        73.3,
+        72.3,
+        78.2,
+        79.3,
+        81.1,
+        83.6,
+        82.2,
+        80.7,
+        77.7,
+        80.4,
+        82.9,
+        76.4,
+        74.4,
+        76.8,
+        79.9,
+        84.9,
+        88.1,
+        83.5,
+        83.0,
+        80.9,
+        77.8,
+        83.7,
+        83.3,
+        88.4,
+        87.1,
+        87.1,
+        85.8,
+        90.4,
+        89.3
+      ],
+      "realty_income_price": [
+        100.0,
+        104.6,
+        101.3,
+        106.5,
+        115.0,
+        107.7,
+        118.8,
+        115.3,
+        115.4,
+        116.6,
+        115.0,
+        116.4,
+        118.2,
+        124.4,
+        124.2,
+        133.5,
+        135.7,
+        137.9,
+        148.4,
+        135.9,
+        135.9,
+        137.3,
+        134.5,
+        140.5,
+        140.7,
+        136.2,
+        139.3,
+        143.7,
+        151.2,
+        151.4,
+        153.1,
+        159.4,
+        158.7,
+        159.4,
+        158.4,
+        161.6,
+        160.8,
+        166.0,
+        174.1,
+        179.5,
+        153.8,
+        160.6,
+        167.8,
+        162.9,
+        177.3,
+        181.0,
+        192.9,
+        200.3,
+        203.3,
+        187.4,
+        189.1,
+        184.0,
+        193.8,
+        197.9,
+        201.3,
+        200.9,
+        191.6,
+        192.2,
+        179.1,
+        182.0,
+        173.8
+      ],
+      "realty_income_total_return": [
+        100.0,
+        105.3,
+        102.8,
+        108.8,
+        118.3,
+        111.6,
+        123.9,
+        120.9,
+        121.8,
+        123.9,
+        123.1,
+        125.4,
+        128.1,
+        135.7,
+        136.3,
+        147.3,
+        150.6,
+        153.9,
+        166.6,
+        153.4,
+        154.3,
+        156.7,
+        154.4,
+        162.2,
+        163.3,
+        159.0,
+        163.6,
+        169.7,
+        179.4,
+        180.5,
+        183.5,
+        192.0,
+        192.2,
+        194.0,
+        193.7,
+        198.6,
+        198.6,
+        206.0,
+        217.1,
+        224.9,
+        193.6,
+        203.2,
+        213.3,
+        208.2,
+        227.8,
+        233.6,
+        250.1,
+        260.8,
+        265.9,
+        246.3,
+        249.7,
+        244.1,
+        258.4,
+        265.0,
+        270.7,
+        271.4,
+        260.1,
+        262.2,
+        245.6,
+        250.9,
+        240.9
+      ]
+    },
+    "bitcoin": {
+      "status": "not_available",
+      "reason": "Bitcoin network launched in 2009; no 2001-2005 market price exists."
+    },
+    "summary": {
+      "nasdaq_price_pct": -10.7,
+      "realty_income_price_pct": 73.8,
+      "realty_income_total_return_pct": 140.9,
+      "realty_income_dividend_effect_pp": 67.1,
+      "nasdaq_from_dotcom_peak": {
+        "status": "ok",
+        "start": "2000-03",
+        "end": "2005-12",
+        "nasdaq_price_pct": -51.8,
+        "caption": "닷컴 정점 월말을 100으로 둔 보조 비교"
+      },
+      "annual": [
+        {
+          "year": 2001,
+          "nasdaq_price_pct": -21.1,
+          "realty_income_price_pct": 18.2,
+          "realty_income_total_return_pct": 28.1
+        },
+        {
+          "year": 2002,
+          "nasdaq_price_pct": -31.5,
+          "realty_income_price_pct": 19.0,
+          "realty_income_total_return_pct": 27.5
+        },
+        {
+          "year": 2003,
+          "nasdaq_price_pct": 50.0,
+          "realty_income_price_pct": 14.3,
+          "realty_income_total_return_pct": 21.6
+        },
+        {
+          "year": 2004,
+          "nasdaq_price_pct": 8.6,
+          "realty_income_price_pct": 26.5,
+          "realty_income_total_return_pct": 33.9
+        },
+        {
+          "year": 2005,
+          "nasdaq_price_pct": 1.4,
+          "realty_income_price_pct": -14.5,
+          "realty_income_total_return_pct": -9.4
+        }
+      ]
+    },
+    "semantics": "NASDAQ과 O 가격은 월말 종가, O 총수익 proxy는 Yahoo 수정종가 비율이다. 2000-12 기준은 닷컴 정점(2000-03) 이후 이미 하락한 시점이며, 정점 기준 NASDAQ 보조 수치를 별도 표시한다. 세금·거래비용은 포함하지 않는다."
+  },
+  "forecast": {
+    "horizon_months": 12,
+    "labels": [
+      "M+0",
+      "M+1",
+      "M+2",
+      "M+3",
+      "M+4",
+      "M+5",
+      "M+6",
+      "M+7",
+      "M+8",
+      "M+9",
+      "M+10",
+      "M+11",
+      "M+12"
+    ],
+    "default_scenario": "easing_rotation",
+    "scenarios": {
+      "deleveraging": {
+        "label": "동반 디레버리징",
+        "short": "신용경색이 완화보다 빠른 경우",
+        "assumptions": [
+          "AI 밸류에이션 급락",
+          "달러 유동성 위축",
+          "신용 스프레드 확대"
+        ],
+        "beta_regime_by_month": [
+          "full_252d",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y"
+        ],
+        "paths": {
+          "nasdaq": [
+            100.0,
+            92.0,
+            85.0,
+            78.0,
+            76.0,
+            74.0,
+            72.0,
+            73.7,
+            75.3,
+            77.0,
+            78.7,
+            80.3,
+            82.0
+          ],
+          "bitcoin": [
+            100.0,
+            86.2,
+            74.0,
+            61.8,
+            58.3,
+            54.7,
+            51.2,
+            54.4,
+            57.5,
+            60.7,
+            63.9,
+            67.0,
+            70.2
+          ],
+          "realty_income": [
+            100.0,
+            95.2,
+            91.4,
+            87.6,
+            87.7,
+            87.8,
+            87.8,
+            89.4,
+            91.1,
+            92.7,
+            94.3,
+            95.9,
+            97.5
+          ]
+        },
+        "paths_band": {
+          "nasdaq": {
+            "p10": [
+              100.0,
+              92.0,
+              85.0,
+              78.0,
+              76.0,
+              74.0,
+              72.0,
+              73.7,
+              75.3,
+              77.0,
+              78.7,
+              80.3,
+              82.0
+            ],
+            "p90": [
+              100.0,
+              92.0,
+              85.0,
+              78.0,
+              76.0,
+              74.0,
+              72.0,
+              73.7,
+              75.3,
+              77.0,
+              78.7,
+              80.3,
+              82.0
+            ]
+          },
+          "bitcoin": {
+            "p10": [
+              100.0,
+              77.5,
+              57.8,
+              38.0,
+              32.3,
+              26.5,
+              20.9,
+              25.9,
+              30.7,
+              35.8,
+              40.9,
+              45.6,
+              50.7
+            ],
+            "p90": [
+              100.0,
+              93.7,
+              88.1,
+              82.5,
+              80.8,
+              79.1,
+              77.5,
+              79.1,
+              80.7,
+              82.3,
+              83.9,
+              85.5,
+              87.1
+            ]
+          },
+          "realty_income": {
+            "p10": [
+              100.0,
+              93.6,
+              88.4,
+              83.2,
+              82.9,
+              82.5,
+              82.2,
+              84.1,
+              86.1,
+              88.0,
+              90.0,
+              92.0,
+              93.9
+            ],
+            "p90": [
+              100.0,
+              96.8,
+              94.3,
+              91.8,
+              92.3,
+              92.7,
+              93.1,
+              94.4,
+              95.8,
+              97.0,
+              98.3,
+              99.7,
+              100.9
+            ]
+          }
+        },
+        "band_semantics": "beta 10–90% block-bootstrap sensitivity band; fixed liquidity/rate offsets remain explicit assumptions, not sampled uncertainty"
+      },
+      "easing_rotation": {
+        "label": "AI 조정 후 완화·순환",
+        "short": "초기 투매 뒤 금리·유동성이 전환되는 경우",
+        "assumptions": [
+          "AI 투자 회수 우려",
+          "장기금리 하락",
+          "달러 유동성 재확대"
+        ],
+        "beta_regime_by_month": [
+          "full_252d",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y"
+        ],
+        "paths": {
+          "nasdaq": [
+            100.0,
+            93.0,
+            86.5,
+            80.0,
+            81.7,
+            83.3,
+            85.0,
+            86.0,
+            87.0,
+            88.0,
+            89.0,
+            90.0,
+            91.0
+          ],
+          "bitcoin": [
+            100.0,
+            88.8,
+            80.4,
+            72.0,
+            80.7,
+            89.3,
+            98.0,
+            103.4,
+            108.9,
+            114.3,
+            119.7,
+            125.2,
+            130.6
+          ],
+          "realty_income": [
+            100.0,
+            98.7,
+            101.6,
+            104.6,
+            108.1,
+            111.4,
+            114.9,
+            116.4,
+            117.9,
+            119.3,
+            120.8,
+            122.3,
+            123.8
+          ]
+        },
+        "paths_band": {
+          "nasdaq": {
+            "p10": [
+              100.0,
+              93.0,
+              86.5,
+              80.0,
+              81.7,
+              83.3,
+              85.0,
+              86.0,
+              87.0,
+              88.0,
+              89.0,
+              90.0,
+              91.0
+            ],
+            "p90": [
+              100.0,
+              93.0,
+              86.5,
+              80.0,
+              81.7,
+              83.3,
+              85.0,
+              86.0,
+              87.0,
+              88.0,
+              89.0,
+              90.0,
+              91.0
+            ]
+          },
+          "bitcoin": {
+            "p10": [
+              100.0,
+              81.2,
+              65.8,
+              50.3,
+              60.9,
+              71.2,
+              81.8,
+              88.2,
+              94.8,
+              101.3,
+              107.8,
+              114.4,
+              120.9
+            ],
+            "p90": [
+              100.0,
+              95.4,
+              93.1,
+              90.8,
+              97.9,
+              105.0,
+              112.1,
+              116.5,
+              121.1,
+              125.6,
+              130.0,
+              134.6,
+              139.1
+            ]
+          },
+          "realty_income": {
+            "p10": [
+              100.0,
+              97.3,
+              98.9,
+              100.6,
+              104.4,
+              108.1,
+              111.9,
+              113.6,
+              115.3,
+              116.9,
+              118.6,
+              120.3,
+              122.0
+            ],
+            "p90": [
+              100.0,
+              100.0,
+              104.2,
+              108.4,
+              111.6,
+              114.6,
+              117.8,
+              119.1,
+              120.3,
+              121.6,
+              122.9,
+              124.2,
+              125.5
+            ]
+          }
+        },
+        "band_semantics": "beta 10–90% block-bootstrap sensitivity band; fixed liquidity/rate offsets remain explicit assumptions, not sampled uncertainty"
+      },
+      "soft_landing": {
+        "label": "소프트랜딩·자산 순환",
+        "short": "버블 붕괴가 아닌 완만한 멀티플 정상화",
+        "assumptions": [
+          "이익 성장 지속",
+          "신용시장 안정",
+          "완만한 위험자산 순환"
+        ],
+        "beta_regime_by_month": [
+          "full_252d",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "downside_5y",
+          "full_252d",
+          "full_252d",
+          "full_252d",
+          "full_252d",
+          "full_252d",
+          "full_252d",
+          "full_252d",
+          "full_252d"
+        ],
+        "paths": {
+          "nasdaq": [
+            100.0,
+            97.0,
+            96.0,
+            95.0,
+            97.7,
+            100.3,
+            103.0,
+            104.5,
+            106.0,
+            107.5,
+            109.0,
+            110.5,
+            112.0
+          ],
+          "bitcoin": [
+            100.0,
+            96.2,
+            99.1,
+            102.0,
+            108.3,
+            114.4,
+            119.5,
+            121.6,
+            123.8,
+            125.8,
+            127.9,
+            130.1,
+            132.1
+          ],
+          "realty_income": [
+            100.0,
+            99.6,
+            101.1,
+            102.6,
+            104.2,
+            105.7,
+            105.6,
+            105.6,
+            105.8,
+            105.9,
+            106.0,
+            106.2,
+            106.3
+          ]
+        },
+        "paths_band": {
+          "nasdaq": {
+            "p10": [
+              100.0,
+              97.0,
+              96.0,
+              95.0,
+              97.7,
+              100.3,
+              103.0,
+              104.5,
+              106.0,
+              107.5,
+              109.0,
+              110.5,
+              112.0
+            ],
+            "p90": [
+              100.0,
+              97.0,
+              96.0,
+              95.0,
+              97.7,
+              100.3,
+              103.0,
+              104.5,
+              106.0,
+              107.5,
+              109.0,
+              110.5,
+              112.0
+            ]
+          },
+          "bitcoin": {
+            "p10": [
+              100.0,
+              93.0,
+              94.8,
+              96.6,
+              105.8,
+              114.3,
+              119.1,
+              120.9,
+              122.9,
+              124.7,
+              126.6,
+              128.5,
+              130.4
+            ],
+            "p90": [
+              100.0,
+              99.0,
+              102.9,
+              106.7,
+              110.5,
+              114.4,
+              120.3,
+              122.8,
+              125.4,
+              127.8,
+              130.3,
+              132.9,
+              135.3
+            ]
+          },
+          "realty_income": {
+            "p10": [
+              100.0,
+              99.0,
+              100.3,
+              101.6,
+              103.8,
+              105.6,
+              105.2,
+              105.2,
+              105.2,
+              105.1,
+              105.0,
+              105.1,
+              105.0
+            ],
+            "p90": [
+              100.0,
+              100.2,
+              101.9,
+              103.6,
+              104.7,
+              105.7,
+              105.9,
+              106.1,
+              106.5,
+              106.7,
+              106.9,
+              107.3,
+              107.5
+            ]
+          }
+        },
+        "band_semantics": "beta 10–90% block-bootstrap sensitivity band; fixed liquidity/rate offsets remain explicit assumptions, not sampled uncertainty"
+      }
+    },
+    "beta_audit": {
+      "bitcoin": {
+        "full_252d": {
+          "measured": 1.179,
+          "used": 1.179,
+          "lower_clipped": false,
+          "beta_clipped": false,
+          "clip_upper_abs": 3.0,
+          "fallback_used": false,
+          "bootstrap_10_90": [
+            1.03,
+            1.445
+          ],
+          "bootstrap_samples": 1000,
+          "block_days": 10,
+          "observations": 252
+        },
+        "downside_5y": {
+          "measured": 1.599,
+          "used": 1.599,
+          "lower_clipped": false,
+          "beta_clipped": false,
+          "clip_upper_abs": 3.0,
+          "fallback_used": false,
+          "bootstrap_10_90": [
+            0.661,
+            2.683
+          ],
+          "bootstrap_samples": 1000,
+          "block_days": 10,
+          "observations": 126
+        }
+      },
+      "realty_income": {
+        "full_252d": {
+          "measured": -0.145,
+          "used": -0.145,
+          "lower_clipped": false,
+          "beta_clipped": false,
+          "clip_upper_abs": 3.0,
+          "fallback_used": false,
+          "bootstrap_10_90": [
+            -0.25,
+            -0.041
+          ],
+          "bootstrap_samples": 1000,
+          "block_days": 10,
+          "observations": 252
+        },
+        "downside_5y": {
+          "measured": 0.471,
+          "used": 0.471,
+          "lower_clipped": false,
+          "beta_clipped": false,
+          "clip_upper_abs": 3.0,
+          "fallback_used": false,
+          "bootstrap_10_90": [
+            0.281,
+            0.672
+          ],
+          "bootstrap_samples": 1000,
+          "block_days": 10,
+          "observations": 126
+        }
+      }
+    },
+    "semantics": "현재값=100의 조건부 민감도 경로다. 확률·목표가격·기대수익이 아니다. 각 M+k에서 NASDAQ<100이면 최근 5년 downside beta, NASDAQ≥100이면 252일 full beta를 사용한다. beta 하한은 강제하지 않고 절대값 3.0 안전 상한만 감사한다. 반투명 band는 beta 10–90% block-bootstrap 민감도이며 고정 liquidity/rate offset은 표본화하지 않은 명시 가정이다. O 미래선은 주가 경로이며 현금배당을 포함하지 않는다.",
+    "weights": {
+      "status": "not_estimated",
+      "display": "가중치 미산출",
+      "reason": "충격 유형별 캘리브레이션 부족"
+    }
+  },
+  "receipts": [
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=975628800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "6085431449e54c9cde0d9f4c999e7f4a77836cb7ddbcd9d749eeae5a372ba0dc",
+      "fetched_at": "2026-08-03T02:13:16+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=975628800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "d4fb3e237c7196a7315aa5be073d85440367375f3c14b0de21408357abfe8c9e",
+      "fetched_at": "2026-08-03T02:13:17+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=951868800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "64285ad1b05a6b7996d4e29457f127f256ac44598231b52155a404df7f61d117",
+      "fetched_at": "2026-08-03T02:13:17+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "7118e5ea0380b899541ff7b9312c257e0092cda6203c46818396af48528dd96f",
+      "fetched_at": "2026-08-03T02:13:17+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "BTC-USD",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "96273c0b33ad578a12718c08949f19d10f1b9fd3e11954c6f22e59e7a3c345ff",
+      "fetched_at": "2026-08-03T02:13:18+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "00daab3aa7503e4d08c4334182d4bc5711c13c80883f1f928f407b7bcd2856d2",
+      "fetched_at": "2026-08-03T02:13:20+00:00"
+    }
+  ],
+  "sources": [
+    {
+      "id": "yahoo-chart",
+      "label": "Yahoo Finance chart API",
+      "role": "price_history",
+      "url": "https://query1.finance.yahoo.com/v8/finance/chart/"
+    },
+    {
+      "id": "realty-income-2005-10k",
+      "label": "Realty Income 2005 Form 10-K",
+      "role": "dividend_and_company_context",
+      "url": "https://www.sec.gov/Archives/edgar/data/726728/000110465906011663/a06-1908_110k.htm"
+    },
+    {
+      "id": "imf-crypto-cycle",
+      "label": "IMF — The Crypto Cycle and US Monetary Policy",
+      "role": "btc_equity_liquidity_transmission",
+      "url": "https://www.imf.org/-/media/files/publications/wp/2023/english/wpiea2023163-print-pdf.pdf"
+    },
+    {
+      "id": "nareit-rates",
+      "label": "Nareit — REITs and Interest Rates",
+      "role": "reit_rate_regime_context",
+      "url": "https://www.reit.com/investing/reits-and-interest-rates"
+    }
+  ],
+  "limitations": [
+    "AI 버블 충격은 역사적으로 동일한 표본이 없어 조건부 sensitivity로만 표현한다.",
+    "BTC의 주식시장 동조성과 O의 금리 민감도는 국면에 따라 크게 바뀐다.",
+    "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다."
+  ],
+  "snapshot_id": "cross-asset:2026-07-31:r2",
+  "revision": 2,
+  "correction_id": "CORR-260803-003",
+  "supersedes": "cross-asset:2026-07-31:r1"
+}

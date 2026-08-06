@@ -1,0 +1,8 @@
+repository=https://github.com/Sung-JinPark/Jin-s-investing-prediction.git
+base=6a0ce0d
+feature=311b2ad7004688677dc240058f1d0756fdce0762
+head=334b4e54bbe11ced37404415f5e9326996376cb5
+range=6a0ce0d..334b4e5
+verify_run=https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/30995504543
+pages_run=https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/30995376880
+live=https://sung-jinpark.github.io/Jin-s-investing-prediction/

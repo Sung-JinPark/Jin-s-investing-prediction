@@ -1,0 +1,18 @@
+schema_version: 1
+source_id: alfred
+description: Revision-aware FRED/ALFRED observations.
+timezone: America/New_York
+calendar_id: US_FED
+cadence: release-calendar
+freshness_sla_hours: 24
+available_at_rule: ALFRED realtime_start at the official release time; date-only fixtures use 08:30 ET.
+revision_policy: Native realtime_start/realtime_end intervals; preserve every vintage.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: series_id, type: string}
+  - {name: observation_time, type: string}
+  - {name: value, type: number, required: false}
+  - {name: realtime_start, type: string}
+  - {name: realtime_end, type: string, required: false}
+quality_checks: [schema, numeric-or-missing, vintage-order, duplicate-key, freshness]
+fallback: No final-vintage substitution is permitted in point-in-time evaluation.

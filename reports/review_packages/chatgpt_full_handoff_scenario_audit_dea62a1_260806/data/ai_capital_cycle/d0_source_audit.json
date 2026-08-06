@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "asof": "2026-08-03",
+  "gate": "D0",
+  "status": "partial",
+  "sources": [
+    {"id": "fred_market_signals", "http_status": 200, "schema": "csv", "status": "approved_for_current_monitoring", "transport": "python_then_curl_then_public_dns_same_url", "limitation": "historical rows are current-vintage, not backtest-safe"},
+    {"id": "alfred", "status": "contract_ready_key_unavailable", "limitation": "M2 historical vintage collection remains blocked without FRED_API_KEY"},
+    {"id": "sec_edgar", "http_status": 200, "schema": "companyfacts-json", "status": "approved_for_D1_D2", "limitation": "companyfacts excludes issuer-specific segment dimensions"},
+    {"id": "defillama_stablecoins", "http_status": 200, "schema": "json", "status": "monitoring_gate_not_met", "monitoring_days": 1, "monitor_status": "data/source_monitoring/defillama_stablecoins_status.json", "limitation": "14-day stability and license review incomplete"},
+    {"id": "btc_etf_flows", "status": "source_unavailable", "limitation": "two-source and license gate incomplete"},
+    {"id": "iea_eia_capacity", "status": "source_unavailable", "limitation": "machine-readable format and redistribution gate incomplete"}
+  ]
+}

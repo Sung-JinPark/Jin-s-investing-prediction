@@ -1,0 +1,63 @@
+From 334b4e54bbe11ced37404415f5e9326996376cb5 Mon Sep 17 00:00:00 2001
+From: Sung-JinPark <91ssjj@gmail.com>
+Date: Wed, 5 Aug 2026 18:58:31 +0900
+Subject: [PATCH 2/2] chore(generated): refresh inventory and read-model schema
+
+---
+ docs/generated/inventory.generated.md    |  6 +++---
+ docs/generated/read_model_v2.schema.json | 10 ++++++++--
+ 2 files changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/docs/generated/inventory.generated.md b/docs/generated/inventory.generated.md
+index 9f49a0f..b7813b4 100644
+--- a/docs/generated/inventory.generated.md
++++ b/docs/generated/inventory.generated.md
+@@ -3,14 +3,14 @@
+ > 이 문서는 정적 수기 현황표가 아닙니다. `ai-fc inventory`가 원천 파일과 재구축된
+ > 읽기 인덱스에서 결정론적으로 생성합니다. 숫자를 직접 수정하지 마세요.
+ 
+-- Source fingerprint: `58206b96b264cb1d6551f34b15762fa3df44ce2cc0cadc7d43ba362e6e5e738a`
++- Source fingerprint: `88270db0c67c2de5d765824a0e1cc3942bc58e1df4a4c7e848a8c72e7d034c2e`
+ - Registered questions: 38
+ - Forecast bodies: 22
+ - Evidence files: 17
+ - Resolution rows / unique events: 6 / 3
+ - Benchmark rows: 6
+-- Pending/approved correction rows: 13
+-- Source contracts: 25
++- Pending/approved correction rows: 15
++- Source contracts: 27
+ - DualDB configured eras: 8
+ 
+ ## SQLite read index
+diff --git a/docs/generated/read_model_v2.schema.json b/docs/generated/read_model_v2.schema.json
+index 2241cbe..e1485b0 100644
+--- a/docs/generated/read_model_v2.schema.json
++++ b/docs/generated/read_model_v2.schema.json
+@@ -45,7 +45,10 @@
+       ],
+       "properties": {
+         "schema_version": {
+-          "const": 2
++          "enum": [
++            2,
++            3
++          ]
+         },
+         "quantile_table": {
+           "type": "object",
+@@ -193,7 +196,10 @@
+           ]
+         },
+         "probability_space": {
+-          "const": "scenario_conditional"
++          "enum": [
++            "scenario_conditional",
++            "reference_only"
++          ]
+         },
+         "unit": {
+           "const": "index_100"
+-- 
+2.54.0.windows.1
+

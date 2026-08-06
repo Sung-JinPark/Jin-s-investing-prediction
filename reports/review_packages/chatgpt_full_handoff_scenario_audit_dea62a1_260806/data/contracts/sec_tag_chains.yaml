@@ -1,0 +1,59 @@
+schema_version: 1
+dataset_id: company_panel_quarterly_sec_tags
+taxonomy: us-gaap
+unit: USD
+recency_guard_days: 400
+semantics: Select the first PIT-eligible, USD-denominated tag whose latest period is no more than 400 days old.
+companies:
+  MSFT:
+    capex:
+      tags: [PaymentsToAcquirePropertyPlantAndEquipment, PaymentsForAdditionsToPropertyPlantAndEquipment]
+      absence_status: tag_missing
+    operating_cashflow:
+      tags: [NetCashProvidedByUsedInOperatingActivities]
+      absence_status: tag_missing
+    depreciation_amortization:
+      tags: [DepreciationDepletionAndAmortization, Depreciation, AmortizationOfIntangibleAssets]
+      absence_status: tag_missing
+    debt_issued:
+      tags: [ProceedsFromIssuanceOfLongTermDebt, ProceedsFromIssuanceOfDebt]
+      absence_status: not_disclosed
+  AMZN:
+    capex:
+      tags: [PaymentsToAcquireProductiveAssets, PaymentsToAcquirePropertyPlantAndEquipment, PaymentsForAdditionsToPropertyPlantAndEquipment]
+      absence_status: tag_missing
+    operating_cashflow:
+      tags: [NetCashProvidedByUsedInOperatingActivities]
+      absence_status: tag_missing
+    depreciation_amortization:
+      tags: [DepreciationDepletionAndAmortization, DepreciationAndAmortization, Depreciation]
+      absence_status: tag_missing
+    debt_issued:
+      tags: [ProceedsFromIssuanceOfLongTermDebt, ProceedsFromIssuanceOfDebt]
+      absence_status: not_disclosed
+  GOOGL:
+    capex:
+      tags: [PaymentsToAcquirePropertyPlantAndEquipment, PaymentsForAdditionsToPropertyPlantAndEquipment]
+      absence_status: tag_missing
+    operating_cashflow:
+      tags: [NetCashProvidedByUsedInOperatingActivities]
+      absence_status: tag_missing
+    depreciation_amortization:
+      tags: [DepreciationDepletionAndAmortization, Depreciation, AmortizationOfIntangibleAssets]
+      absence_status: tag_missing
+    debt_issued:
+      tags: [ProceedsFromIssuanceOfLongTermDebt, ProceedsFromIssuanceOfDebt]
+      absence_status: not_disclosed
+  META:
+    capex:
+      tags: [PaymentsToAcquirePropertyPlantAndEquipment, PaymentsForAdditionsToPropertyPlantAndEquipment]
+      absence_status: tag_missing
+    operating_cashflow:
+      tags: [NetCashProvidedByUsedInOperatingActivities]
+      absence_status: tag_missing
+    depreciation_amortization:
+      tags: [DepreciationDepletionAndAmortization, Depreciation, AmortizationOfIntangibleAssets]
+      absence_status: tag_missing
+    debt_issued:
+      tags: [ProceedsFromIssuanceOfLongTermDebt, ProceedsFromIssuanceOfDebt]
+      absence_status: not_disclosed

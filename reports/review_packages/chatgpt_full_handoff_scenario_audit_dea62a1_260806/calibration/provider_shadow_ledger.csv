@@ -1,0 +1,1 @@
+forecast_id,forecast_date,question_id,provider,model,snapshot,prompt_version,probability,ci80_lo,ci80_hi,sources_count,cost_usd,status,notes

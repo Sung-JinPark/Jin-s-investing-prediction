@@ -1,0 +1,94 @@
+# WS7 출처 등급 사전 — 도메인(호스트) 부분일치. 미등재 도메인은 unknown (T4 취급으로 보수 계산).
+# T1 공시·1차 / T2 IB·데이터 / T3 주요 언론 / T4 블로그·소셜·애그리게이터
+# 갱신은 자유 (base rate 파일과 동일 지위 — 예측 파일과 달리 가변). 값 변경 이력은 git.
+
+t1:
+  - sec.gov
+  - federalreserve.gov
+  - bls.gov
+  - bea.gov
+  - dol.gov
+  - treasury.gov
+  - whitehouse.gov
+  - stlouisfed.org
+  - philadelphiafed.org
+  - dallasfed.org
+  - minneapolisfed.org
+  - bis.org
+  - cboe.com
+  - nasdaq.com/press-release
+  - investor.  # 기업 IR 서브도메인 관례 (investor.qualcomm.com 등)
+  - ir.
+  - mediacenter.adp.com
+  - challengergray.com
+  - trendforce.com
+  - spglobal.com
+  - fred.stlouisfed.org
+
+t2:
+  - factset.com
+  - insight.factset.com
+  - goldmansachs.com
+  - jpmorgan.com
+  - morganstanley.com
+  - bofa.com
+  - capitaleconomics.com
+  - man.com
+  - blackrock.com
+  - deloitte.com
+  - kalshi.com
+  - polymarket.com
+  - cmegroup.com
+  - wallstreethorizon.com
+  - reveliolabs.com
+  - philadelphiafed  # SPF 경유 표기 변형
+
+t3:
+  - reuters.com
+  - bloomberg.com
+  - wsj.com
+  - ft.com
+  - cnbc.com
+  - cnn.com
+  - axios.com
+  - fortune.com
+  - forbes.com
+  - barrons.com
+  - marketwatch.com
+  - yahoo.com
+  - finance.yahoo.com
+  - pbs.org
+  - cbsnews.com
+  - chosun.com
+  - tradingeconomics.com
+  - investing.com
+  - morningstar.com
+  - etf.com
+  - stockanalysis.com
+  - marketbeat.com
+  - tipranks.com
+
+t4:
+  - seekingalpha.com
+  - substack.com
+  - medium.com
+  - reddit.com
+  - threads.com
+  - x.com
+  - twitter.com
+  - zerohedge.com
+  - intellectia.ai
+  - kavout.com
+  - truthsandnews.com
+  - biggo.com
+  - coinpedia.org
+  - cryptorank.io
+  - kucoin.com
+  - blockchain.news
+  - ainvest.com
+  - mises.org
+  - quantflowlab.com
+  - verifiedinvesting.com
+  - ycharts.com
+  - barchart.com
+  - alphaquery.com

@@ -1,0 +1,67 @@
+schema_version: 1
+source_id: fred_nfci
+contract_id: fred_nfci_d0_v1
+batch_id: s0_260804_p1
+stage: D0
+priority: P1
+description: National Financial Conditions Index candidate distributed by FRED and owned by the Federal Reserve Bank of Chicago.
+provider: Federal Reserve Bank of Chicago via FRED
+source_tier: official
+endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI
+series_page: https://fred.stlouisfed.org/series/NFCI
+cadence: weekly
+enabled: false
+collector_status: prohibited_until_d0_pass
+registry_status: not_registered_until_d0_pass
+model_use: prohibited
+probability_space: reference_only
+purpose: Financing-stress context and tracker challenger signal.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+storage_policy:
+  mode: append_only_after_activation
+  historical_backfill_vintage: reconstructed
+
+d0:
+  status: legal_review_required
+  started_at: 2026-08-04
+  window_end_exclusive: 2026-08-18
+  required_observation_days: 14
+  fetch_allowed: false
+  checks:
+    - Friday_observation_cadence
+    - release_timestamp_capture
+    - revision_behavior
+    - source_schema_stability
+    - underlying_owner_terms
+    - redistribution_rights
+    - model_use_rights
+  initial_observation:
+    observed_at: 2026-08-04
+    frequency: weekly_ending_friday
+    revision_notice: All observations are subject to revision.
+    fred_license_label: copyrighted_citation_required
+    transport_probe: not_run_due_to_legal_gate
+
+point_in_time:
+  observation_period: week_ending_friday
+  available_at: FRED or Chicago Fed release timestamp, never the observation-period date
+  revision_vintage: captured_after_activation
+  historical_use: Current-vintage history must not be represented as native PIT history.
+
+license:
+  status: legal_review_required
+  fred_terms_url: https://fred.stlouisfed.org/legal/terms/
+  owner_terms_url: https://www.chicagofed.org/utilities/legal-notices
+  copyright: Copyrighted; citation required, with underlying rights held by the Chicago Fed.
+  redistribution: permission_scope_unconfirmed
+  database_creation: permission_scope_unconfirmed
+  automated_access: permission_scope_unconfirmed
+  predictive_analytics_use: prohibited_pending_written_clarification
+  attribution: Federal Reserve Bank of Chicago, National Financial Conditions Index, retrieved via FRED.
+  rationale: FRED requires attribution for copyrighted series and restricts ML or AI use; the underlying owner's terms require permission beyond limited noncommercial reproduction.
+
+activation_gate:
+  - Written or authoritative source-specific confirmation covering automated retrieval, local storage, site display, and intended model use.
+  - Fourteen calendar days of release, revision, and schema observation after access is legally cleared.
+  - Contract review and source-registry registration in a separately approved S1 change.
+fallback: Keep NFCI unavailable; do not inherit the blanket status of another FRED contract or substitute a synthetic value.

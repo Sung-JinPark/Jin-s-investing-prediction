@@ -1,0 +1,216 @@
+{
+  "schema_version": 1,
+  "asof": "2026-07-31",
+  "generated_at": "2026-08-03T11:03:31+00:00",
+  "probability_space": "reference_only",
+  "rules_version": "2026-08-03.v1",
+  "status": "partial",
+  "summary": {
+    "available": 5,
+    "total": 7,
+    "counts": {
+      "deleveraging_support": 0,
+      "easing_rotation_support": 1,
+      "neutral": 4
+    },
+    "text": "방향 일치 신호 개수이며 가중 점수·확률이 아닙니다."
+  },
+  "signals": [
+    {
+      "id": "S1",
+      "name": "HY 스프레드 방향",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "four_week_change_bp": 10.0,
+        "drawdown_from_13w_peak_bp": 0.0
+      },
+      "observation_period": "2026-07-31",
+      "available_at": "2026-08-03T11:03:17+00:00",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2025-01-01",
+      "source_fingerprint": "c15ad22361b2870a2e2834e3df28124ed536748c2052236c2253650696f84007",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S2",
+      "name": "실질 10Y 금리",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "weekly_increases_last_4": 2,
+        "drawdown_from_13w_peak_bp": -2.0
+      },
+      "observation_period": "2026-07-31",
+      "available_at": "2026-08-03T11:03:25+00:00",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10&cosd=2025-01-01",
+      "source_fingerprint": "f4362fd3c19e85ef47c73c10e298738c754b2bc30e21fe25c6baf027e9457dcb",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S3",
+      "name": "달러 지수",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "four_week_change_pct": 0.02
+      },
+      "observation_period": "2026-07-31",
+      "available_at": "2026-08-03T11:03:26+00:00",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS&cosd=2025-01-01",
+      "source_fingerprint": "a176784f559930b479f1a0cc41dc7faf5412842cf6212ed4fdd10b12696965f5",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S4",
+      "name": "Fed 순유동성",
+      "state": "neutral",
+      "status": "available",
+      "metrics": {
+        "weekly_decreases_last_4": 2,
+        "four_week_change_pct": -0.29
+      },
+      "observation_period": "2026-07-31",
+      "available_at": "2026-08-03T11:03:27+00:00",
+      "source_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WALCL&cosd=2025-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=WTREGEN&cosd=2025-01-01 + https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYD&cosd=2025-01-01",
+      "source_fingerprint": "ac7d887c2bfd649e4d9f1f2cba2377158edeb4316c00650a52173410c1f6ecac",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "id": "S5",
+      "name": "스테이블코인 총액 증감",
+      "state": "source_unavailable",
+      "status": "원천 미확보",
+      "metrics": {},
+      "reason": "14 consecutive daily schema-compatible fetches and approved license review"
+    },
+    {
+      "id": "S6",
+      "name": "BTC 현물 ETF 순유입",
+      "state": "source_unavailable",
+      "status": "원천 미확보",
+      "metrics": {},
+      "reason": "two independent sources and approved redistribution license review"
+    },
+    {
+      "id": "S7",
+      "name": "NASDAQ 대비 BTC 상대강도",
+      "state": "easing_rotation_support",
+      "status": "available",
+      "metrics": {
+        "relative_return_60d_pct": -6.08,
+        "relative_return_20d_pct": 0.22
+      },
+      "observation_period": "2026-07-31",
+      "available_at": "2026-08-03T11:03:29+00:00",
+      "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1785542400&events=div%2Csplits + https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1785542400&events=div%2Csplits",
+      "source_fingerprint": "ac0ba51a1b8517482eeb51b56125203e859b5ba8c4eb9340c1b2950a2916d934",
+      "revision_vintage": "captured_current"
+    }
+  ],
+  "asset_diagnostics": {
+    "bitcoin": {
+      "halving_anchor": "2024-04-20",
+      "months_since_halving": 27,
+      "price_vs_200dma_pct": -12.0
+    },
+    "realty_income": {
+      "ttm_dividend_yield_pct": 5.5,
+      "dgs10_pct": 4.68,
+      "dividend_yield_spread_pp": 0.82,
+      "dgs10_four_week_change_bp": 19.0,
+      "rate_change_o_return_corr_52w": -0.348,
+      "return_basis": "O adjusted-close weekly return vs DGS10 weekly change"
+    }
+  },
+  "receipts": [
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2025-01-01",
+      "response_sha256": "3912f02eaac3bf6cbe351b8d551fcf5292fbabd1b17b66aa5c5d092834abfef2",
+      "fetched_at": "2026-08-03T11:03:17+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10&cosd=2025-01-01",
+      "response_sha256": "ae836d8f2a58310c84a93bab498e712950bf63abf8127e2c427b8379a3e0e1cd",
+      "fetched_at": "2026-08-03T11:03:25+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DTWEXBGS",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS&cosd=2025-01-01",
+      "response_sha256": "3c65dd685035ecc9c45a556800beb56f04f8fef42056a432b8259bbedd2c9fdd",
+      "fetched_at": "2026-08-03T11:03:26+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "WALCL",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WALCL&cosd=2025-01-01",
+      "response_sha256": "2dca3f01e9002145e96f8e97e171720ad0d328d71b0cddc051f6345cbe4f854f",
+      "fetched_at": "2026-08-03T11:03:26+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "WTREGEN",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WTREGEN&cosd=2025-01-01",
+      "response_sha256": "9fd3b6ec404e586d8f258534b08b781a8a9af9c1d018a79ba460c8aa2eb105c1",
+      "fetched_at": "2026-08-03T11:03:27+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "RRPONTSYD",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYD&cosd=2025-01-01",
+      "response_sha256": "3ae306d67cd50ddca6c8e2eb051319c22c9eed3a271246829a2b128e51b67c89",
+      "fetched_at": "2026-08-03T11:03:27+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2025-01-01",
+      "response_sha256": "0ee491e93696c83b3475691087dd1d239dc309f27141879e939c4d3d647e7e4e",
+      "fetched_at": "2026-08-03T11:03:28+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1735689600&period2=1785542400&events=div%2Csplits",
+      "response_sha256": "3f076f77184fa655470d219834f4de999515cae92e57eb679129a9544af89502",
+      "fetched_at": "2026-08-03T11:03:28+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "BTC-USD",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1735689600&period2=1785542400&events=div%2Csplits",
+      "response_sha256": "6e09a5317b8f38fc280ddcbfb5b396786a4da69ecba782edfe98d05af18a96d5",
+      "fetched_at": "2026-08-03T11:03:29+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1735689600&period2=1785542400&events=div%2Csplits",
+      "response_sha256": "ff976a3d8654baddb75c3257684fd3fbc89e57829a0424b893ac5a0d245ddce7",
+      "fetched_at": "2026-08-03T11:03:29+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "dividend_events",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1722384000&period2=1785542400&events=div",
+      "response_sha256": "a0f2ef5d2eac9a56d19c84b02f3f4780e9a75c3c502c12f83e2dc3a204296430",
+      "fetched_at": "2026-08-03T11:03:30+00:00"
+    }
+  ],
+  "warning": "이 체크리스트는 사전 등록된 방향 규칙이며 확률이 아닙니다."
+}

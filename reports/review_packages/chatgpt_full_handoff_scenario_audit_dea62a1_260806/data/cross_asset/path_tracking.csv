@@ -1,0 +1,4 @@
+asof,origin_asof,weeks_elapsed,scenario_month_index,asset,actual_index,deleveraging_path,easing_rotation_path,soft_landing_path,deleveraging_abs_gap,easing_rotation_abs_gap,soft_landing_abs_gap
+2026-07-31,2026-07-31,0,0,nasdaq,100.0,100.0,100.0,100.0,0.0,0.0,0.0
+2026-07-31,2026-07-31,0,0,bitcoin,100.0,100.0,100.0,100.0,0.0,0.0,0.0
+2026-07-31,2026-07-31,0,0,realty_income,100.0,100.0,100.0,100.0,0.0,0.0,0.0

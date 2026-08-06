@@ -1,0 +1,29 @@
+# 파생 인덱스·스크래치 (파일이 진실, DB는 재구축 가능)
+# 루트 db/만 — src/ai_fc/db/ 소스 패키지는 추적 대상
+/db/
+# dualdb: DB는 raw에서 재구축 가능, raw 원본은 대용량 — 둘 다 로컬 보존만
+/dualdb/db/
+/dualdb/data/raw/
+/data/raw/
+/data/quarantine/
+/data/facts/
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+.tmp-pytest/
+.env
+# 재생성 가능한 정적 사이트와 OS·에디터 임시 잔재
+/_site/
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+# 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
+/reports/dashboard.html
+
+# 내부 검토·아카이브 산출물 — 로컬 보존 전용 (리포지토리 미포함)
+reports/audit/_local_only/
+
+# Separate OpenAI Sites project with its own Git history and remote.
+/codex-forecast-demo/

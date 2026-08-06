@@ -1,0 +1,113 @@
+version: 2026-08-06.v3
+status: preregistered_before_structural_snapshot
+preregistered_at: 2026-08-06
+scope: nasdaq_scenario_display_path
+probability_space: scenario_conditional
+change_policy: append approved calibration/corrections.csv row and issue a new version
+
+innovation_cycle:
+  source: data/ml_history/*.jsonl
+  row_kind: context
+  required_fields: [analog.selected_eras, analog.correction_depth_median, overlay.ai]
+  minimum_selected_eras: 3
+  days_per_phase_month: 30.4375
+  aggregation: cross-era median at each fractional monthly phase
+  trend_removal: geometric endpoint detrend within each displayed calendar year
+  selection_rule:
+    id: knn-analog-pool-z-euclidean-k5-gap90-v1
+    implementation: dualdb/dualdb/models/knn_analog.py
+    candidate_pool: all configured daily analog eras except the current AI era
+    query_asof: latest complete AI five-feature vector available at the context run
+    features: [vol_20d, vol_60d, drawdown, dist_200dma, rsi_14]
+    standardization: pool-only z-score; current AI query excluded from fit
+    distance: euclidean
+    neighbors: 5
+    tie_break: stable source order
+    spacing: same-era neighbors must be at least 90 calendar days apart
+    selected_eras: sorted unique era labels among the five selected neighbors
+    future_outcomes_used_in_selection: false
+  sensitivity:
+    method: replace one selected era at a time with one non-selected candidate era
+    outputs: [origin_year_native_mdd_range, origin_year_calibrated_mdd_range, risk_window_center_month_range]
+    use: disclosure_only
+
+calibration:
+  target: origin-year S1 maximum drawdown
+  target_source: latest context analog.correction_depth_median
+  strength_bounds: [0.0, 5.0]
+  native_shape_strength: 1.0
+  required_disclosure:
+    - raw selected-era ensemble origin-year drawdown
+    - detrended residual origin-year drawdown
+    - native endpoint-preserving origin-year S1 drawdown
+    - calibrated origin-year S1 drawdown
+    - residual exponent amplification ratio
+    - common-strength dependence on the current S1 scenario weight
+    - scenario-specific calibration alternatives and feasibility
+    - calibrated depth is invariant to era selection while the risk-window center may move
+    - native and calibrated drawdowns for every one-era replacement alternative
+  endpoint_rule: preserve every scenario year-segment start and end anchor
+  forbidden:
+    - hand-drawn correction dates
+    - random sample path as the thick display line
+    - changing fan quantiles or S1/S2/S3 weights
+
+physical_event_reference:
+  question_id: nasdaq-corr10-augoct-2026
+  window: [2026-08-01, 2026-10-31]
+  probability_space: physical_event
+  use: separate evidence box only
+  used_numerically: false
+  proximity_context:
+    threshold_distance: signed percent from current scenario anchor
+    remaining_period: trading sessions in the registered window
+    mechanical_reference: driftless lower-barrier first-passage probability
+    mechanical_reference_use: interpretation only; never combined with the registered forecast
+
+reference_layers:
+  scenario_tracker:
+    source: data/signals/scenario_tracker_latest.json
+    used_numerically: false
+    reason: registered count states prohibit weighted-score or probability conversion
+  liquidity:
+    source: data/liquidity/liquidity_latest.json
+    used_numerically: false
+    reason: reference-only state does not identify path timing
+  ai_regime:
+    source: data/ai_capital_cycle/ai_regime_latest.json
+    activation_gate: coverage >= 0.6
+    below_gate_use: prohibited
+
+display:
+  default_year: 2026
+  split: calendar_year
+  exact_day_language: prohibited
+  baseline_ghost_line:
+    source: existing GBM scenario center paths before structural shaping
+    default_visible: true
+    user_toggle: true
+  structural_shape_badge: "굴곡=역사 중앙 형태 가정 — 발생 여부의 확률 진술 아님"
+  required_labels:
+    - DB 조건부 구조 경로
+    - 월 단위 위험창
+    - 사건확률과 결합 금지
+    - 목표가나 투자자문이 아님
+
+reproducibility:
+  required_gbm_parameters:
+    - lookback_days
+    - mu_daily_log_return
+    - sigma_daily_log_return
+    - mu_annualized_252
+    - sigma_annualized_252
+    - seed
+    - n_paths
+  required_code_refs:
+    - src/ai_fc/quant/mc.py::gbm_paths
+    - src/ai_fc/scenario.py::build_scenario
+    - src/ai_fc/scenario_structure.py::build_structural_forecast
+  review_package_requires:
+    - immediate prior immutable scenario revision
+    - current immutable scenario revision
+    - contract and implementation modules
+    - tests required by the implementation modules

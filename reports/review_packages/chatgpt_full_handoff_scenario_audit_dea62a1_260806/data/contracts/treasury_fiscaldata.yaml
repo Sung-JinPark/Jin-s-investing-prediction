@@ -1,0 +1,17 @@
+schema_version: 1
+source_id: treasury_fiscaldata
+description: U.S. Treasury Fiscal Data API observations.
+timezone: America/New_York
+calendar_id: US_GOV
+cadence: business-daily
+freshness_sla_hours: 48
+available_at_rule: API record_date plus the dataset publication schedule.
+revision_policy: Capture payload revisions with a new vintage; do not overwrite.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: dataset, type: string}
+  - {name: series_id, type: string}
+  - {name: record_date, type: string}
+  - {name: value, type: number, required: false}
+quality_checks: [schema, numeric-or-missing, business-calendar, duplicate-key, freshness]
+fallback: No unofficial fallback may silently replace Treasury data.

@@ -1,0 +1,18 @@
+﻿{
+    "package":  "chatgpt_full_handoff_scenario_audit_dea62a1_260806",
+    "created_at_kst":  "2026-08-06",
+    "base_commit":  "dea62a1bd5c527ff16fb240377a6defd8f612934",
+    "branch":  "main",
+    "snapshot_id":  "nasdaq-scenario:2026-08-03:r8",
+    "purpose":  "Full project handoff and independent NASDAQ structural-path audit",
+    "manifested_files":  412,
+    "manifested_bytes":  6054687,
+    "excludes":  [
+                     ".git",
+                     "dualdb/db/dualdb.sqlite",
+                     "__pycache__",
+                     ".pytest_cache",
+                     "prior review ZIPs",
+                     "secrets"
+                 ]
+}

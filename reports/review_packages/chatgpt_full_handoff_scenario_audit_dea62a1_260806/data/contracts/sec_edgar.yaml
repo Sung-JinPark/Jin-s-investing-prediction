@@ -1,0 +1,18 @@
+schema_version: 1
+source_id: sec_edgar
+description: SEC submissions and XBRL company facts.
+timezone: America/New_York
+calendar_id: US_SEC
+cadence: intraday
+freshness_sla_hours: 6
+available_at_rule: EDGAR accepted timestamp; filing period end is observation_time only.
+revision_policy: Accession-number immutable facts; amended filings create a new vintage.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: cik, type: string}
+  - {name: accession_number, type: string}
+  - {name: accepted_at, type: string}
+  - {name: observation_time, type: string}
+  - {name: value, type: number, required: false}
+quality_checks: [schema, accepted-time, accession-unique, unit-consistency, freshness]
+fallback: Company IR is evidence-only and cannot replace the accepted timestamp.

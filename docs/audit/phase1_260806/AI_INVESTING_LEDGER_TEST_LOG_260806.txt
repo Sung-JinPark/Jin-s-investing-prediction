@@ -1,0 +1,17 @@
+
+==================================== ERRORS ====================================
+_______________ ERROR collecting src/tests/test_ledger_audit.py ________________
+ImportError while importing test module '/mnt/data/ai_investing_handoff_260806/src/tests/test_ledger_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.13/importlib/__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src/tests/test_ledger_audit.py:8: in <module>
+    import pyarrow.parquet as pq
+E   ModuleNotFoundError: No module named 'pyarrow'
+=========================== short test summary info ============================
+ERROR src/tests/test_ledger_audit.py
+!!!!!!!!!!!!!!!!!!!! Interrupted: 1 error during collection !!!!!!!!!!!!!!!!!!!!
+1 error in 0.09s
+exit_status=2

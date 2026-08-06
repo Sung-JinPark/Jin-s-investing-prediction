@@ -1,0 +1,719 @@
+"""ai-fc CLI 진입점.
+
+사용: python -m ai_fc <command>  (src/ 디렉터리에서, 또는 PYTHONPATH=src)
+"""
+
+from __future__ import annotations
+
+import json
+import sys
+from datetime import date, datetime
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import typer
+
+from . import config
+from .db import ingest, queries
+from .registry import compute_due, load_registry, propose_schedule
+from .scenario import refresh_scenario
+
+app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
+
+
+@app.command("audit-ledgers")
+def cmd_audit_ledgers(
+    check: bool = typer.Option(False, "--check", help="Do not rewrite baseline/report files"),
+) -> None:
+    """Audit every registered append/archive ledger for growth and integrity."""
+    from .ledger_audit import audit_ledgers, has_violations
+
+    report = audit_ledgers(config.ROOT, write=not check)
+    summary = report["summary"]
+    typer.echo(
+        "ledger audit: "
+        f"accumulating={summary['accumulating']} stalled={summary['stalled']} "
+        f"inactive={summary['inactive']} violation={summary['violation']} "
+        f"planned={summary['planned']}"
+    )
+    if has_violations(report):
+        raise typer.Exit(code=1)
+
+
+@app.command("export-research-pack")
+def cmd_export_research_pack(
+    month: str | None = typer.Option(None, "--month", help="Pack month in YYYY-MM"),
+) -> None:
+    """Export registered ledgers to an immutable monthly Parquet research pack."""
+    from .research_pack import ResearchPackError, export_research_pack
+
+    try:
+        path = export_research_pack(config.ROOT, month)
+    except ResearchPackError as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"research pack: {path.relative_to(config.ROOT)}")
+
+
+def _conn(root: Path):
+    return ingest.connect(root / "db" / "index.db")
+
+
+def _sync_or_exit(conn, root: Path) -> None:
+    report = ingest.sync(conn, root, strict=True)
+    if not report.ok:
+        typer.echo(report.summary(), err=True)
+        raise typer.Exit(code=1)
+
+
+@app.command("provider-guard")
+def cmd_provider_guard() -> None:
+    """CI-safe check that official provider config has an exact human approval."""
+    from .provider_governance import assert_official_provider_allowed
+
+    snapshot = (
+        config.OPENAI_OFFICIAL_MODEL
+        if config.OFFICIAL_LLM_PROVIDER == "openai"
+        else config.REASONING_MODEL
+    )
+    try:
+        assert_official_provider_allowed(
+            config.ROOT, config.OFFICIAL_LLM_PROVIDER, snapshot
+        )
+    except (PermissionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(f"official provider approved: {config.OFFICIAL_LLM_PROVIDER}:{snapshot}")
+
+
+@app.command("openai-smoke")
+def cmd_openai_smoke(
+    model: str | None = typer.Option(
+        None, "--model", help="승인된 OpenAI tier/snapshot (기본: 환경 설정)"
+    ),
+) -> None:
+    """최소 유료 호출로 OpenAI 키·모델·비용 원장 연결을 검증한다."""
+    from .llm import PipelineBudget
+    from .llm_provider import OpenAIResponsesProvider
+    from .provider_governance import assert_official_provider_allowed
+
+    root = config.ROOT
+    selected = (model or config.OPENAI_OFFICIAL_MODEL).strip()
+    if not selected:
+        typer.echo("AI_FC_OPENAI_OFFICIAL_MODEL 또는 --model이 필요합니다.", err=True)
+        raise typer.Exit(code=2)
+    try:
+        assert_official_provider_allowed(root, "openai", selected)
+    except (PermissionError, ValueError) as exc:
+        typer.echo(str(exc), err=True)
+        raise typer.Exit(code=1) from exc
+
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    now = datetime.now(ZoneInfo(config.TZ_NAME))
+    provider_spend = queries.month_cost(conn, now.year, now.month, "openai")
+    if provider_spend >= config.OPENAI_MONTHLY_BUDGET:
+        typer.echo(
+            f"OpenAI 월 예산 초과: ${provider_spend:.2f} >= "
+            f"${config.OPENAI_MONTHLY_BUDGET:.2f}",
+            err=True,
+        )
+        raise typer.Exit(code=1)
+
+    provider = OpenAIResponsesProvider(model=selected, role="official")
+    _text, usage = provider.smoke(PipelineBudget(limit_usd=0.10))
+    queries.log_cost(
+        conn,
+        "_system",
+        "smoke",
+        selected,
+        usage.input_tokens,
+        usage.output_tokens,
+        usage.cost_usd,
+        provider="openai",
+        snapshot=selected,
+        request_id=usage.request_id,
+        cached_input_tokens=usage.cached_input_tokens,
+        web_search_calls=usage.web_search_calls,
+        ledger_path=root / "calibration" / "cost_log.csv",
+    )
+    typer.echo(
+        f"OpenAI 연결 정상 · model={selected} · "
+        f"tokens={usage.input_tokens}+{usage.output_tokens} · "
+        f"estimated_cost=${usage.cost_usd:.6f}"
+    )
+
+
+@app.command("security-check")
+def cmd_security_check() -> None:
+    """Fail CI when a source artifact resembles a committed API credential."""
+    from .security_audit import scan
+
+    findings = scan(config.ROOT)
+    if findings:
+        typer.echo("secret-like values found:\n" + "\n".join(findings), err=True)
+        raise typer.Exit(code=1)
+    typer.echo("secret pattern scan clean")
+
+
+@app.command("scenario")
+def cmd_scenario(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 확정 일봉으로 생성 (YYYY-MM-DD)"),
+    force: bool = typer.Option(
+        False, "--force", help="같은 시장 기준일이어도 스냅샷을 다시 생성"),
+) -> None:
+    """NASDAQ 시장 맵 시나리오를 공개 확정 일봉에서 재생성한다."""
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_scenario(config.ROOT, asof=cutoff, force=force)
+    state = "갱신" if changed else "변경 없음"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"S1/S2/S3 {payload['paths']['S1']['prob']}/"
+        f"{payload['paths']['S2']['prob']}/{payload['paths']['S3']['prob']}%"
+    )
+
+
+@app.command("scenario-structure")
+def cmd_scenario_structure() -> None:
+    """기존 분포를 재모의하지 않고 DB 조건부 연도별 구조 경로를 추가한다."""
+    from .scenario import upgrade_scenario_structure
+
+    path, payload, changed = upgrade_scenario_structure(config.ROOT)
+    state = "갱신" if changed else "변경 없음"
+    years = payload["structural_forecast"]["years"]
+    diagnostics = ", ".join(
+        f"{row['year']} S1 {row['path_diagnostics']['S1']['max_drawdown_pct']}%"
+        for row in years
+    )
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"DB 구조 경로 {diagnostics}"
+    )
+
+
+@app.command("cross-asset")
+def cmd_cross_asset(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 공통 확정 일봉 (YYYY-MM-DD)"),
+    force: bool = typer.Option(
+        False, "--force", help="같은 시장 기준일이어도 스냅샷을 다시 생성"),
+) -> None:
+    """닷컴기 실측축과 BTC 반사실 민감도를 공개 가격에서 재생성한다."""
+    from .cross_asset import refresh_cross_asset
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_cross_asset(
+        config.ROOT, asof=cutoff, force=force)
+    state = "갱신" if changed else "변경 없음"
+    metrics = payload["diagnostics"]["corr_60d"]
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 공통 시장 기준 {payload['asof']} · "
+        f"60일 corr BTC/NDX {metrics['bitcoin_nasdaq']} · O/NDX "
+        f"{metrics['realty_income_nasdaq']}"
+    )
+
+
+@app.command("o-entry-cohort")
+def cmd_o_entry_cohort(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지 완결된 O cohort만 산출 (YYYY-MM-DD)"),
+) -> None:
+    """사전 등록된 Realty Income 월별 진입 cohort를 PIT 규칙으로 재생성한다."""
+    from .o_entry_cohort import refresh_cohort
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_cohort(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    main = [row for row in payload["summary"]
+            if row["sample"] == "dotcom_1998_2005" and row["cohort"] == "all_months"
+            and row["horizon_months"] == 12 and row["basis"] == "total_return_proxy"]
+    n = main[0]["n"] if main else 0
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 기준 {payload['asof']} · "
+        f"1998–2005 12개월 총수익 cohort n={n} · entry-state 규칙 없음"
+    )
+
+
+@app.command("cross-asset-horizon")
+def cmd_cross_asset_horizon() -> None:
+    """감사된 최신 입력을 고정한 채 교차자산 조건부 지평만 5년으로 승격한다."""
+    from .cross_asset import upgrade_cross_asset_horizon
+
+    path, payload, changed = upgrade_cross_asset_horizon(config.ROOT)
+    state = "갱신" if changed else "변경 없음"
+    source = payload["forecast"].get("source_snapshot_id") or "현재 스냅샷"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 시장 기준 {payload['asof']} · "
+        f"M0-M{payload['forecast']['horizon_months']} · 측정 입력 {source} 고정"
+    )
+
+
+@app.command("market-extensions")
+def cmd_market_extensions(
+    asof: str | None = typer.Option(
+        None, "--asof", help="이 날짜까지의 마지막 확정 주간으로 생성 (YYYY-MM-DD)"),
+) -> None:
+    """사전등록 Scenario Tracker와 reference-only 유동성 지도를 갱신한다."""
+    from .market_extensions import refresh_market_extensions
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    result = refresh_market_extensions(config.ROOT, asof=cutoff)
+    tracker = result["tracker"]
+    liquidity = result["liquidity"]
+    typer.echo(
+        f"시장 확장 기준 {tracker['asof']} · tracker "
+        f"{tracker['summary']['available']}/{tracker['summary']['total']} 신호 · "
+        f"liquidity zone {liquidity['zone']} · probability=표시 안 함"
+    )
+
+
+@app.command("segment-filing-inventory")
+def cmd_segment_filing_inventory(
+    asof: str | None = typer.Option(
+        None, "--asof", help="SEC filing accession 목록 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """L1-1 준비용 4사×최근 12개 10-Q/K accession만 목록화한다."""
+    from .segment_filing_inventory import refresh_inventory
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, payload, changed = refresh_inventory(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    counts = "/".join(str(payload["companies"][symbol]["filing_count"])
+                      for symbol in ("MSFT", "AMZN", "GOOGL", "META"))
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 4사 filing {counts} · "
+        "segment extraction not_started"
+    )
+
+
+@app.command("ai-capital-cycle")
+def cmd_ai_capital_cycle(
+    asof: str | None = typer.Option(
+        None, "--asof", help="D0–D2 수집 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """SEC D1 layer와 D2 disclosure-coverage gate를 갱신한다."""
+    from .ai_capital_cycle import refresh_ai_capital_cycle
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    result = refresh_ai_capital_cycle(config.ROOT, asof=cutoff)
+    coverage = result["coverage"]
+    gate_label = (
+        "D3 map blocked"
+        if coverage["status"] == "insufficient"
+        else "D3 gate eligible"
+    )
+    typer.echo(
+        f"AI 자본사이클 D2 기준 {coverage['asof']} · coverage "
+        f"{coverage['coverage']:.0%}/{coverage['coverage_threshold']:.0%} · "
+        f"{gate_label}"
+    )
+
+
+@app.command("source-monitor")
+def cmd_source_monitor(
+    asof: str | None = typer.Option(
+        None, "--asof", help="후보 원천 D0 모니터링 기준일 (YYYY-MM-DD)"),
+) -> None:
+    """비활성 후보 원천의 스키마 안정성 영수증만 수집한다."""
+    from .source_monitoring import collect_defillama_health
+
+    try:
+        cutoff = date.fromisoformat(asof) if asof else None
+    except ValueError as exc:
+        raise typer.BadParameter("--asof는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    path, status, changed = collect_defillama_health(config.ROOT, asof=cutoff)
+    state = "갱신" if changed else "변경 없음"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · DefiLlama D0 "
+        f"{status['consecutive_successful_days']}/{status['required_successful_days']}일 · "
+        f"license={status['license_status']} · activation={status['activation_eligible']}"
+    )
+
+
+@app.command("sync")
+def cmd_sync(
+    rebuild: bool = typer.Option(False, "--rebuild", help="DB 전체 재구축 (불변성 사전대조 포함)"),
+    force: bool = typer.Option(False, "--force", help="rebuild 사전대조 불일치를 무시하고 재기준화"),
+    check: bool = typer.Option(False, "--check", help="드리프트 검사만 — 이상 시 비정상 종료"),
+) -> None:
+    """파일(진실) → SQLite(파생 인덱스) 동기화."""
+    root = config.ROOT
+    if check:
+        report, counts = ingest.check(root)
+        typer.echo(report.summary())
+        typer.echo(
+            f"질문 {counts['questions']} / 예측 {counts['forecasts']} / 해소 {counts['resolutions']}"
+        )
+        if not report.ok:
+            raise typer.Exit(code=1)
+        return
+    conn = _conn(root)
+    report = ingest.sync(conn, root, rebuild=rebuild, force=force, strict=True)
+    typer.echo(report.summary())
+    n_f = conn.execute("SELECT COUNT(*) AS n FROM forecasts").fetchone()["n"]
+    n_q = conn.execute("SELECT COUNT(*) AS n FROM questions").fetchone()["n"]
+    n_r = conn.execute("SELECT COUNT(*) AS n FROM resolutions").fetchone()["n"]
+    typer.echo(f"질문 {n_q} / 예측 {n_f} / 해소 {n_r}")
+    if not report.ok:
+        raise typer.Exit(code=1)
+    from .inventory import write_inventory
+    write_inventory(root, conn)
+
+
+@app.command("inventory")
+def cmd_inventory(
+    check: bool = typer.Option(False, "--check", help="생성 문서가 현재 원천/DB와 같은지 검사"),
+) -> None:
+    """원천 파일과 파생 인덱스의 자동 현황 문서를 생성한다."""
+    from .inventory import OUTPUT, inventory_is_current, write_inventory
+
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    if check:
+        if not inventory_is_current(root, conn):
+            typer.echo(f"inventory drift: {OUTPUT.as_posix()}", err=True)
+            raise typer.Exit(code=1)
+        typer.echo(f"inventory current: {OUTPUT.as_posix()}")
+        return
+    path = write_inventory(root, conn)
+    typer.echo(f"generated: {path.relative_to(root)}")
+
+
+@app.command("due")
+def cmd_due(
+    as_json: bool = typer.Option(False, "--json"),
+    explain: bool = typer.Option(False, "--explain", help="질문별 다음 due 근거 표시"),
+    notify: bool = typer.Option(False, "--notify", help="텔레그램 다이제스트 발송"),
+) -> None:
+    """재예측/해소 기한 도래 목록 (실행 전 sync 자동 수행)."""
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+
+    questions = load_registry(root / "questions" / "registry.yaml")
+    due = compute_due(
+        questions,
+        queries.latest_forecasts(conn),
+        queries.open_rolling_windows(conn),
+        queries.resolved_forecast_ids(conn),
+        datetime.now(),
+        latest_probs=queries.latest_probabilities(conn),
+        ml_refs=queries.latest_ml_refs(conn, config.ML_REF_MAX_AGE_DAYS),
+        divergence_classes=queries.latest_divergence_classes(conn),
+    )
+
+    if as_json:
+        typer.echo(json.dumps(
+            [{"qid": d.question_id, "kind": d.kind, "reason": d.reason,
+              "overdue_days": d.overdue_days} for d in due],
+            ensure_ascii=False, indent=2))
+    else:
+        if not due:
+            typer.echo("due 없음 — 모든 질문이 cadence 내에 있음")
+        for d in due:
+            typer.echo(f"[{d.kind:13s}] {d.question_id:28s} {d.reason}")
+
+    # 수동 base rate 빈티지 경고 (AUDIT-260715 D-5 — 경고만, 차단 아님)
+    from .base_rates import scan_stale_base_rates
+    stale = scan_stale_base_rates(root, config.BASE_RATE_VINTAGE_WARN_DAYS)
+    for name, last in stale:
+        typer.echo(f"[빈티지 경고 ] base_rates/{name:24s} 최신 수집일 {last} "
+                   f"({config.BASE_RATE_VINTAGE_WARN_DAYS}일+ 경과 — 갱신 검토)")
+
+    if explain:
+        from .registry import active_interval_days
+        typer.echo("\n── 질문별 다음 due 근거 ──")
+        lf = queries.latest_forecasts(conn)
+        for q in questions:
+            if q.status != "active":
+                continue
+            interval = active_interval_days(q, datetime.now().date())
+            last = lf.get(q.question_id)
+            typer.echo(f"{q.question_id:28s} 간격={interval if interval else 'manual/once'}일 "
+                       f"마지막={last.date() if last else '없음'}")
+
+    if notify:
+        from .notify import send_digest
+        send_digest(due)
+
+
+@app.command("migrate-schedule")
+def cmd_migrate_schedule(
+    write: bool = typer.Option(False, "--write", help="registry.yaml에 schedule 필드 기록"),
+) -> None:
+    """한국어 cadence → schedule 필드 제안 (1회성 보조 마이그레이션).
+
+    --write 없이 실행하면 제안만 표시. --write 시 registry.yaml 갱신
+    (registry는 가변 — 단, git diff로 검토할 것).
+    """
+    root = config.ROOT
+    registry_path = root / "questions" / "registry.yaml"
+    questions = load_registry(registry_path)
+
+    proposals: dict[str, list] = {}
+    for q in questions:
+        if q.schedule:
+            continue  # 이미 있음
+        prop = propose_schedule(q.cadence_raw)
+        marker = json.dumps(prop, ensure_ascii=False) if prop else "(해석 불가 — manual 유지)"
+        typer.echo(f"{q.question_id:28s} {q.cadence_raw!r}\n{'':30s}→ {marker}")
+        if prop:
+            proposals[q.question_id] = prop
+
+    if not write:
+        typer.echo("\n--write로 registry.yaml에 반영 (반영 후 git diff로 검토 권장)")
+        return
+
+    import yaml
+    data = yaml.safe_load(registry_path.read_text(encoding="utf-8"))
+    for q in data["questions"]:
+        if q["id"] in proposals and "schedule" not in q:
+            q["schedule"] = proposals[q["id"]]
+    registry_path.write_text(
+        yaml.safe_dump(data, allow_unicode=True, sort_keys=False, width=100),
+        encoding="utf-8")
+    typer.echo(f"\n{len(proposals)}개 질문에 schedule 기록 완료 — git diff로 검토하세요")
+
+
+@app.command("forecast")
+def cmd_forecast(
+    question_id: str = typer.Argument(None),
+    due_all: bool = typer.Option(False, "--due", help="due 질문 전체 실행"),
+    max_n: int = typer.Option(3, "--max"),
+    agents: int = typer.Option(2, "--agents", help="리서치 에이전트 수 (2 또는 4)"),
+    budget: float = typer.Option(config.DEFAULT_PIPELINE_BUDGET, "--budget"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="스크래치패드에만 기록 (forecasts/ 무접촉)"),
+    yes: bool = typer.Option(False, "--yes", help="확인 프롬프트 생략"),
+) -> None:
+    """질문 예측 실행: 리서치 → 추론 → 불변 기록 → DB 동기화."""
+    from .orchestrator import run_forecast
+
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+
+    if due_all:
+        questions = load_registry(root / "questions" / "registry.yaml")
+        due = compute_due(questions, queries.latest_forecasts(conn),
+                          queries.open_rolling_windows(conn),
+                          queries.resolved_forecast_ids(conn), datetime.now())
+        # divergence는 의도적으로 제외 — "재예측 트리거 후보"일 뿐, 실행은 인간 결정 (ML 게이트)
+        targets = [d.question_id for d in due if d.kind == "forecast"][:max_n]
+        if not targets:
+            typer.echo("예측 due 없음")
+            return
+    elif question_id:
+        targets = [question_id]
+    else:
+        typer.echo("question_id 또는 --due 필요", err=True)
+        raise typer.Exit(code=2)
+
+    for qid in targets:
+        if not yes and not dry_run:
+            typer.confirm(f"{qid} 예측을 실행할까요? (예상 비용 ~${budget:.2f} 이내)", abort=True)
+        result = run_forecast(conn, root, qid, n_agents=agents,
+                              budget_usd=budget, dry_run=dry_run)
+        typer.echo(result)
+
+
+@app.command("resolve")
+def cmd_resolve(
+    question_id: str = typer.Argument(None),
+    outcome: str = typer.Option(None, "--outcome", help="yes | no | void"),
+    forecast_id: str = typer.Option(None, "--forecast-id", help="rolling 인스턴스 지정"),
+    evidence: str = typer.Option("", "--evidence", help="판정 근거 (URL·설명)"),
+    resolution_data: Path = typer.Option(
+        None, "--resolution-data",
+        help="macro/earnings 이중 출처 관측 JSON (--draft 전용)"),
+    draft: bool = typer.Option(False, "--draft",
+                               help="기계 판정 초안만 출력 (원장 무기록 — 확정은 사람)"),
+    yes: bool = typer.Option(False, "--yes"),
+) -> None:
+    """해소 판정 보조: Brier 계산 후 확인받고 원장 append. --draft는 초안만."""
+    from .resolver import (draft_verdicts, load_resolution_observations,
+                           resolve_question)
+
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+
+    if draft:
+        observations = {}
+        if resolution_data is not None:
+            try:
+                observations = load_resolution_observations(resolution_data)
+            except (OSError, ValueError, json.JSONDecodeError) as exc:
+                typer.echo(f"판정 관측 JSON 오류: {exc}", err=True)
+                raise typer.Exit(code=2) from exc
+        verdicts = draft_verdicts(
+            conn, root, question_id, observations=observations)
+        if not verdicts:
+            typer.echo("기계 판정 초안 대상 없음 (가격·macro·earnings 결정론형 + 기한 도래만)")
+            return
+        typer.echo("기계 판정 초안 — 참고 의견 (P3 게이트 전) · 원장 무기록, 확정은 사람:")
+        for v in verdicts:
+            fid = f" [{v.forecast_id}]" if v.forecast_id else ""
+            oc = v.outcome or "판정불가"
+            typer.echo(f"  {v.question_id:28s}{fid} → {oc:6s} ({v.confidence}) "
+                       f"{v.evidence_value} {v.note}")
+            if v.comparison_log:
+                typer.echo(f"    ↳ source-check {v.comparison_log}")
+        typer.echo("⚠ macro/earnings는 두 출처 수치가 일치할 때만 초안 판정. "
+                   "가격형은 여전히 2차 공식 출처 대조가 필요하며, 불일치는 held.")
+        typer.echo("확정: python -m ai_fc resolve <qid> --outcome yes|no --evidence <근거>")
+        return
+
+    if not question_id:
+        typer.echo("question_id 필요 (--draft 없이 실행 시)", err=True)
+        raise typer.Exit(code=2)
+    resolve_question(conn, root, question_id, outcome=outcome,
+                     forecast_id=forecast_id, evidence=evidence, assume_yes=yes)
+
+
+@app.command("report")
+def cmd_report(
+    open_browser: bool = typer.Option(False, "--open"),
+) -> None:
+    """캘리브레이션 HTML 대시보드 생성."""
+    from .report import render_report
+
+    root = config.ROOT
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    out = render_report(conn, root)
+    typer.echo(f"생성: {out}")
+    if open_browser:
+        import webbrowser
+        webbrowser.open(out.as_uri())
+
+
+@app.command("dashboard")
+def cmd_dashboard(
+    serve: bool = typer.Option(False, "--serve", help="LAN 서버 구동 (stdlib http.server, 읽기 전용)"),
+    host: str = typer.Option("127.0.0.1", "--host", help="바인드 주소 — 팀 공유는 0.0.0.0"),
+    port: int = typer.Option(8899, "--port"),
+    pages_out: str = typer.Option(None, "--pages-out", help="GitHub Pages 정적 배포 디렉터리 (CI용)"),
+    open_browser: bool = typer.Option(False, "--open"),
+) -> None:
+    """예측 흐름 조회 대시보드 — 스냅샷 / LAN 서버 / GitHub Pages 정적 빌드 (전부 읽기 전용).
+
+    스냅샷: reports/dashboard.html (브라우저로 열면 끝, 의존성 0).
+    서버:   --serve [--host 0.0.0.0]  ← 팀 공유 (LAN).
+    Pages:  --pages-out <dir>  ← CI가 <dir>/index.html 생성 → github-pages 배포.
+    """
+    from pathlib import Path as _P
+
+    from . import dashboard as dash
+
+    root = config.ROOT
+    if serve:
+        conn = _conn(root)
+        _sync_or_exit(conn, root)  # 최신화 후 서버는 매 요청 라이브 재조회
+        conn.close()
+        dash.serve(root, host, port)
+        return
+    conn = _conn(root)
+    _sync_or_exit(conn, root)
+    if pages_out:
+        out = dash.write_pages(conn, _P(pages_out), root)
+        typer.echo(f"Pages 빌드: {out}")
+        return
+    out = dash.write_dashboard(conn, root)
+    typer.echo(f"생성: {out.relative_to(root)}")
+    typer.echo("팀 공유(LAN): python -m ai_fc dashboard --serve --host 0.0.0.0")
+    if open_browser:
+        import webbrowser
+        webbrowser.open(out.as_uri())
+
+
+@app.command("quant")
+def cmd_quant(
+    no_write: bool = typer.Option(False, "--no-write", help="base_rates 갱신 없이 콘솔만"),
+) -> None:
+    """정량 도구 재적합 (오버레이·Hurst·DTW·LPPL·GBM·미드텀) → base_rates 자동 갱신."""
+    from .quant.runner import run_all, write_base_rates
+
+    typer.echo("원시 데이터 수집·재적합 중 (Yahoo·FRED, ~30초)...")
+    results, md = run_all()
+    typer.echo(md)
+    if not no_write:
+        out = write_base_rates(config.ROOT, md)
+        typer.echo(f"\nbase_rates 갱신: {out.relative_to(config.ROOT)}")
+
+
+@app.command("ml")
+def cmd_ml(
+    no_write: bool = typer.Option(False, "--no-write", help="base_rates 갱신 없이 콘솔만"),
+) -> None:
+    """오픈웨이트 추론 (Chronos 분위수·FinBERT 감성) → 이력 기록 + base_rates 갱신. 학습 없음."""
+    from .ml.runner import run_all, run_and_record, write_base_rates
+
+    typer.echo("오픈웨이트 추론 중 (최초 실행 시 HF 모델 다운로드)...")
+    if no_write:
+        _, md = run_all()
+        typer.echo(md)
+        return
+    root = config.ROOT
+    conn = _conn(root)
+    _, md = run_and_record(root, conn)
+    typer.echo(md)
+    out = write_base_rates(root, md)
+    typer.echo(f"\nbase_rates 갱신: {out.relative_to(root)} · 이력: data/ml_history/")
+
+
+@app.command("market")
+def cmd_market(
+    no_write: bool = typer.Option(False, "--no-write", help="base_rates 갱신 없이 콘솔만"),
+) -> None:
+    """시장내재확률 수집 (Kalshi·Polymarket·CBOE 옵션) → 이력 기록. 참조 전용 — P3 게이트 봉인."""
+    from .market.runner import run_all, run_and_record, render_md, write_base_rates
+
+    typer.echo("시장내재확률 수집 중 (무료·무인증 소스, fail-soft)...")
+    if no_write:
+        typer.echo(render_md(run_all()))
+        return
+    root = config.ROOT
+    conn = _conn(root)
+    _, md = run_and_record(root, conn)
+    typer.echo(md)
+    out = write_base_rates(root, md)
+    typer.echo(f"\nbase_rates 갱신: {out.relative_to(root)} · 이력: data/ml_history/")
+
+
+@app.command("notify")
+def cmd_notify(test: bool = typer.Option(False, "--test")) -> None:
+    """텔레그램 연결 테스트."""
+    from .notify import send_message
+    ok = send_message("ai-fc 알림 테스트 ✅" if test else "ai-fc")
+    typer.echo("발송 성공" if ok else "발송 실패 (토큰/챗ID 확인)")
+
+
+def main() -> None:
+    if sys.platform == "win32":
+        sys.stdout.reconfigure(encoding="utf-8")  # 한국어 콘솔 출력
+        sys.stderr.reconfigure(encoding="utf-8")
+    app()
+
+
+if __name__ == "__main__":
+    main()

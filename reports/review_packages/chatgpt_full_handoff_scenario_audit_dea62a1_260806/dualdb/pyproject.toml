@@ -1,0 +1,18 @@
+# dualdb — 닷컴↔AI 이중시대 비교 DB (ai-fc 워크스페이스 멤버)
+[project]
+name = "dualdb"
+version = "0.2.0"
+description = "닷컴↔AI 이중시대 일간 비교 DB — base rate 공급자 (P4 모델 4종 포함)"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pyyaml",
+]
+
+[build-system]
+requires = ["uv_build>=0.7,<1"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-root = ""                    # dualdb/dualdb/ 플랫 레이아웃 그대로
