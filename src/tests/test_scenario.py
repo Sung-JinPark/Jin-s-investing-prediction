@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import csv
 import json
+import subprocess
+import sys
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -84,6 +86,15 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
         assert values == sorted(values)
     assert first == json.loads(json.dumps(second, ensure_ascii=False, sort_keys=True))
     assert first["schema_version"] == 3
+    parameters = first["model"]["gbm_parameters"]
+    assert parameters["lookback_days"] == scenario.LOOKBACK_DAYS
+    assert parameters["estimation_end"] == first["asof"]
+    assert parameters["mu_annualized_252"] == pytest.approx(
+        parameters["mu_daily_log_return"] * 252, abs=1e-9
+    )
+    assert parameters["sigma_annualized_252"] == pytest.approx(
+        parameters["sigma_daily_log_return"] * np.sqrt(252), abs=1e-9
+    )
     structure = first["structural_forecast"]
     assert structure["dates"] == first["week_dates"]
     assert structure["path_kind"] == "structural_forecast_not_random_sample"
@@ -93,6 +104,20 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert structure["evidence"]["physical_event"]["used_numerically"] is False
     assert structure["evidence"]["ai_regime"]["used_numerically"] is False
     assert structure["guardrails"]["simulation_sample_used_as_display_path"] is False
+    assert structure["guardrails"]["structural_shape_occurrence_probability_claimed"] is False
+    assert structure["guardrails"]["baseline_ghost_line_default_visible"] is True
+    assert structure["calibration"]["residual_exponent_amplification_ratio"] > 1
+    assert structure["calibration"]["native_ensemble_origin_year_max_drawdown_pct"] < 0
+    assert structure["calibration"]["native_residual_origin_year_drawdown_pct"] < 0
+    assert set(structure["calibration"]["scenario_specific_alternatives"]) == {"S1", "S2", "S3"}
+    selection = structure["evidence"]["innovation_cycle"]
+    assert selection["selection_preregistration"]["future_outcomes_used_in_selection"] is False
+    assert selection["selection_sensitivity"]["alternative_count"] >= 1
+    proximity = structure["evidence"]["physical_event"]["proximity_context"]
+    if proximity["status"] == "ok":
+        assert proximity["probability_space"] == "mechanical_reference"
+        assert proximity["used_numerically"] is False
+    assert structure["reproducibility"]["gbm_parameters"] == parameters
 
 
 def test_schema2_archive_remains_valid_after_structural_upgrade() -> None:
@@ -100,6 +125,33 @@ def test_schema2_archive_remains_valid_after_structural_upgrade() -> None:
     legacy["schema_version"] = 2
     legacy.pop("structural_forecast")
     assert scenario.validate_scenario(legacy)["schema_version"] == 2
+
+
+def test_structural_v2_revision_preserves_distribution_weights_and_endpoints() -> None:
+    root = Path(__file__).parents[2]
+    latest = json.loads((root / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8"))
+    prior = json.loads((
+        root / "data/scenarios/archive/2026-08-03_CORR-260805-014.json"
+    ).read_text(encoding="utf-8"))
+    assert latest["correction_id"] == "CORR-260806-018"
+    assert latest["structural_forecast"]["version"] == "2026-08-06.v2"
+    assert [latest["paths"][key]["prob"] for key in ("S1", "S2", "S3")] == [83, 2, 15]
+    assert [latest["paths"][key]["end"] for key in ("S1", "S2", "S3")] == [32239, 29577, 26667]
+    for field in ("fan", "quantile_table", "path_realism"):
+        assert latest[field] == prior[field]
+
+
+def test_public_snapshot_reproduces_partition_and_all_quantile_cells() -> None:
+    root = Path(__file__).parents[2]
+    completed = subprocess.run(
+        [sys.executable, "tools/reproduce_scenario_snapshot.py"],
+        cwd=root, check=True, capture_output=True, text=True, encoding="utf-8",
+    )
+    result = json.loads(completed.stdout)
+    assert result["passed"] is True
+    assert result["probabilities_reproduced"] == [83, 2, 15]
+    assert result["quantile_cells_checked"] == 1764
+    assert result["quantile_mismatches"] == 0
 
 
 def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> None:

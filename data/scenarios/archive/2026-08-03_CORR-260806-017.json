@@ -4950,11 +4950,11 @@
       "recovery": "same-source refetch; anchor matched; distribution not regenerated"
     }
   },
-  "note": "확정 일봉 252거래일의 수익률로 생성한 고정 seed GBM 조건부 분포. fat tail·정책 이벤트·실적 서프라이즈를 직접 모형화하지 않으며 질문별 physical_event 확률과 합산하지 않는다. 목표가·사건확률·투자자문이 아니다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다.",
-  "snapshot_id": "nasdaq-scenario:2026-08-03:r7",
-  "revision": 7,
-  "correction_id": "CORR-260806-018",
-  "supersedes": "nasdaq-scenario:2026-08-03:r6",
+  "note": "확정 일봉 252거래일의 수익률로 생성한 고정 seed GBM 조건부 분포. fat tail·정책 이벤트·실적 서프라이즈를 직접 모형화하지 않으며 질문별 physical_event 확률과 합산하지 않는다. 목표가·사건확률·투자자문이 아니다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다. 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event 확률은 서로 결합하지 않는다.",
+  "snapshot_id": "nasdaq-scenario:2026-08-03:r6",
+  "revision": 6,
+  "correction_id": "CORR-260806-017",
+  "supersedes": "nasdaq-scenario:2026-08-03:r5",
   "structural_forecast": {
     "status": "ok",
     "version": "2026-08-06.v2",
@@ -5273,7 +5273,6 @@
       "strength": 1.735781,
       "residual_exponent_amplification_ratio": 1.74,
       "native_shape_strength": 1.0,
-      "native_ensemble_origin_year_max_drawdown_pct": -6.4,
       "native_residual_origin_year_drawdown_pct": -10.2,
       "native_shape_origin_year_s1_max_drawdown_pct": -5.7,
       "calibrated_origin_year_s1_max_drawdown_pct": -12.2,

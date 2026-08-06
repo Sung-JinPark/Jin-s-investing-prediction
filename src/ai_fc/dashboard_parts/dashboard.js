@@ -1236,15 +1236,24 @@ function renderFlow(initialLookup){
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
     ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} DB 조건부 구조 경로 · ${sc.paths[k].prob}%</span>`).join('')}
+    ${structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중심 경로</span>':''}
     ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}
     ${sc.analog?.values?.length?'<span><b style="background:#706f68"></b>혁신사이클 대표 참조선 · 확률 아님</span>':''}</div>`;
   const focusControls=`<div class="flow-focus" role="group" aria-label="시나리오 경로 강조"><span>SPOTLIGHT</span>
     <button type="button" data-flow-focus="ALL" aria-pressed="true"><i></i>전체</button>
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     ${sc.analog?.values?.length?'<button type="button" data-flow-focus="ANALOG" style="--focus-color:#706f68" aria-pressed="false"><i></i>혁신사이클 참조</button>':''}</div>`;
+  const shapeControls=structural?`<div class="flow-shape-controls" role="group" aria-label="구조 굴곡 비교"><span>PATH LAYERS</span><button type="button" data-flow-baseline aria-pressed="true"><i></i>굴곡 전 GBM 같이 보기</button><small>기본 표시 · 회색 고스트 선은 같은 종점의 비교 기준</small></div>`:'';
   const realism=sc.path_realism;
-  const structureEvidence=structural?.evidence||{},episodeEvidence=structureEvidence.correction_episodes||{},eventEvidence=structureEvidence.physical_event||{},trackerEvidence=DATA.scenario_tracker||{},liquidityEvidence=DATA.liquidity||{},aiRegimeEvidence=DATA.ai_regime||{};
-  const realismCards=structural?`<section class="path-realism structural-evidence" aria-labelledby="path-realism-title"><div><p class="eyebrow">DB-CONDITIONED PATH · MONTHLY RISK WINDOW</p><h3 id="path-realism-title">상승·회복 사이의 조정을 역사 DB로 복원했습니다</h3><p>굵은 선은 무작위 모의 표본이 아닙니다. 선택 혁신시대의 월별 굴곡을 연도별로 추출하고, 커밋된 조정 깊이 중앙값에 맞춘 구조 경로입니다. 회색 점선은 원래 혁신사이클 대표 참조선이고 확률 계산에는 섞지 않습니다.</p></div><div class="path-realism-grid structural-year-grid">${structural.years.map(row=>`<article><span>${row.year} · ${esc(row.start_date)}~${esc(row.end_date)}</span><strong>${esc(row.analog_risk_window.center_month)} 중심 월 단위 위험창</strong><small>${esc(row.analog_risk_window.start)}~${esc(row.analog_risk_window.end)} · S1 ${num(row.path_diagnostics.S1.max_drawdown_pct)}% · S2 ${num(row.path_diagnostics.S2.max_drawdown_pct)}% · S3 ${num(row.path_diagnostics.S3.max_drawdown_pct)}%</small></article>`).join('')}</div><div class="structure-source-grid"><span><b>AI 조정 DB</b>${num(episodeEvidence.ai?.episodes)}회 · 중앙 ${num(episodeEvidence.ai?.median_depth_pct)}%</span><span><b>닷컴 조정 DB</b>${num(episodeEvidence.dotcom?.episodes)}회 · 중앙 ${num(episodeEvidence.dotcom?.median_depth_pct)}%</span><span><b>혁신시대 풀</b>${num(structureEvidence.innovation_cycle?.pool_era_count)}개 · 중앙 ${num(structureEvidence.innovation_cycle?.correction_depth_median_pct)}%</span><span><b>선택 위상</b>M+${num(structureEvidence.innovation_cycle?.current_phase)} · ${esc((structureEvidence.innovation_cycle?.selected_eras||[]).join(' · '))}</span><span><b>시장 상태 신호</b>${num(trackerEvidence.summary?.available)}/${num(trackerEvidence.summary?.total)} · 확률 환산 안 함</span><span><b>유동성</b>${esc(liquidityEvidence.zone||'미산출')} · 4주 ${num(liquidityEvidence.zone_metric?.value)}%</span><span><b>AI 레짐</b>${esc(aiRegimeEvidence.status||'미산출')} · coverage ${num(Number(aiRegimeEvidence.coverage||0)*100)}%</span></div><div class="physical-event-separation"><span>PHYSICAL EVENT · 별도 확률 공간</span><strong>8–10월 −10% 종가 발생 ${num(eventEvidence.probability_pct)}%</strong><small>80% 구간 ${num(eventEvidence.ci80_pct?.[0])}–${num(eventEvidence.ci80_pct?.[1])}% · 구조 경로·S1/S2/S3 비중과 결합 금지</small></div><p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 조건부 경로 비중입니다.</strong> 과거 DB의 해상도는 월 단위라 특정 9월 하락일이나 저점 거래일을 지정하지 않습니다. 2027년 조정창도 AI 버블 붕괴일이 아니라 선택 시대 중앙 위상의 되돌림 구간입니다.</p><small>as_of ${esc(sc.asof)} · 구조 경로 v${esc(structural.version)} · 단일 가격이나 투자자문이 아님 · AI regime ${esc(structureEvidence.ai_regime?.status||'미산출')}은 수치 입력 제외</small></section>`:(realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>현재 스냅샷은 구조 경로가 없어 기존 조건부 중심선만 표시합니다.</p></div></section>`:'');
+  const structureEvidence=structural?.evidence||{},episodeEvidence=structureEvidence.correction_episodes||{},eventEvidence=structureEvidence.physical_event||{},proximity=eventEvidence.proximity_context||{},calibration=structural?.calibration||{},selection=structureEvidence.innovation_cycle?.selection_sensitivity||{},gbm=structural?.reproducibility?.gbm_parameters||{},trackerEvidence=DATA.scenario_tracker||{},liquidityEvidence=DATA.liquidity||{},aiRegimeEvidence=DATA.ai_regime||{};
+  const realismCards=structural?`<section class="path-realism structural-evidence" aria-labelledby="path-realism-title">
+    <div><p class="eyebrow">DB-CONDITIONED PATH · MONTHLY RISK WINDOW</p><h3 id="path-realism-title">상승·회복 사이의 조정을 역사 DB로 복원했습니다</h3><p>굵은 선은 무작위 모의 표본이 아닙니다. 선택 혁신시대의 월별 굴곡을 연도별로 추출하고, 커밋된 조정 깊이 중앙값에 맞춘 구조 경로입니다. 회색 고스트 선은 굴곡 적용 전 GBM 중심 경로, 회색 점선은 혁신사이클 대표 참조선입니다.</p></div>
+    <div class="structural-shape-warning" role="note"><strong>굴곡=역사 중앙 형태 가정</strong><span>발생 여부의 확률 진술이 아닙니다. 화면의 조정 모양을 S1/S2/S3에서 100% 발생하는 사건으로 읽지 마세요.</span></div>
+    <div class="path-realism-grid structural-year-grid">${structural.years.map(row=>`<article><span>${row.year} · ${esc(row.start_date)}~${esc(row.end_date)}</span><strong>${esc(row.analog_risk_window.center_month)} 중심 월 단위 위험창</strong><small>${esc(row.analog_risk_window.start)}~${esc(row.analog_risk_window.end)} · S1 ${num(row.path_diagnostics.S1.max_drawdown_pct)}% · S2 ${num(row.path_diagnostics.S2.max_drawdown_pct)}% · S3 ${num(row.path_diagnostics.S3.max_drawdown_pct)}%</small></article>`).join('')}</div>
+    <div class="structure-source-grid"><span><b>AI 조정 DB</b>${num(episodeEvidence.ai?.episodes)}회 · 중앙 ${num(episodeEvidence.ai?.median_depth_pct)}%</span><span><b>닷컴 조정 DB</b>${num(episodeEvidence.dotcom?.episodes)}회 · 중앙 ${num(episodeEvidence.dotcom?.median_depth_pct)}%</span><span><b>선택 3시대 원형 → 목표</b>${num(calibration.native_ensemble_origin_year_max_drawdown_pct)}% → −${num(calibration.target_depth_pct)}%</span><span><b>기하 detrend 잔차</b>${num(calibration.native_residual_origin_year_drawdown_pct)}% · 지수 ${num(calibration.residual_exponent_amplification_ratio)}×</span><span><b>화면 S1 낙폭</b>원형 ${num(calibration.native_shape_origin_year_s1_max_drawdown_pct)}% · 보정 ${num(calibration.calibrated_origin_year_s1_max_drawdown_pct)}%</span><span><b>공용 strength</b>S1 ${num(sc.paths.S1.prob)}% 의존 근사 · 시나리오별 대안 병기</span><span><b>시대 교체 민감도</b>${num(selection.alternative_count)}안 · 낙폭 ${num(selection.origin_year_native_s1_mdd_range_pct?.[0])}~${num(selection.origin_year_native_s1_mdd_range_pct?.[1])}%</span><span><b>선택 위상</b>M+${num(structureEvidence.innovation_cycle?.current_phase)} · ${esc((structureEvidence.innovation_cycle?.selected_eras||[]).join(' · '))}</span><span><b>GBM 추세 가정</b>연 μ ${signedDelta(Number(gbm.mu_annualized_252||0)*100,1,'%')} · 연 σ ${num(Number(gbm.sigma_annualized_252||0)*100)}%</span><span><b>AI 레짐</b>${esc(aiRegimeEvidence.status||'미산출')} · coverage ${num(Number(aiRegimeEvidence.coverage||0)*100)}% · 수치 제외</span></div>
+    <div class="physical-event-separation"><span>PHYSICAL EVENT · 별도 확률 공간</span><strong>8–10월 −10% 종가 발생 ${num(eventEvidence.probability_pct)}%</strong><small>80% 구간 ${num(eventEvidence.ci80_pct?.[0])}–${num(eventEvidence.ci80_pct?.[1])}% · 임계까지 ${num(proximity.threshold_distance_pct)}% · 잔여 ${num(proximity.remaining_trading_sessions)}거래일</small>${proximity.status==='ok'?`<em>무드리프트 기계적 기준 ≈${num(proximity.driftless_mechanical_touch_pct)}% · 해석 보조일 뿐 등록 확률과 결합하지 않음</em>`:''}</div>
+    <p class="model-scope"><strong>${esc(sc.paths.S1.prob)}%는 ‘2026년 말까지 ATH 돌파’ 조건부 경로 비중이며, 종점은 trailing 252거래일 μ의 추세 지속 가정을 상속합니다.</strong> 과거 DB의 해상도는 월 단위라 특정 9월 하락일이나 저점 거래일을 지정하지 않습니다. 2027년 조정창도 AI 버블 붕괴일이 아니라 선택 시대 중앙 위상의 되돌림 구간입니다.</p><small>as_of ${esc(sc.asof)} · 구조 경로 v${esc(structural.version)} · seed ${num(structural.reproducibility?.seed)} · ${num(structural.reproducibility?.n_paths)}경로 · 단일 가격이나 투자자문이 아님</small>
+  </section>`:(realism?.S1?`<section class="path-realism" aria-labelledby="path-realism-title"><div><p class="eyebrow">PATH ILLUSTRATION · DATE IS NOT A FORECAST</p><h3 id="path-realism-title">상승 경로에도 조정은 남아 있습니다</h3><p>현재 스냅샷은 구조 경로가 없어 기존 조건부 중심선만 표시합니다.</p></div></section>`:'');
   const lookupTable=sc.quantile_table,lookupReady=lookupTable?.status==='ok'&&lookupTable.trading_days?.length;
   const quick=lookupReady?ForecastLookup.quickDates(sc.asof):{};
   if(lookupReady)quick.sixMonth=lookupTable.trading_days[Math.min(125,lookupTable.trading_days.length-1)];
@@ -1273,6 +1282,7 @@ function renderFlow(initialLookup){
   const p1w=el(`<div class="chart-panel analysis-panel">
     <div class="panel-head"><h2 id="flow-horizon-title">2026년 DB 조건부 구조 경로</h2>${legend}</div>
     ${focusControls}
+    ${shapeControls}
     ${realismCards}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함'}</em></button>`).join('')}</div></div>
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
@@ -1299,7 +1309,7 @@ function renderFlow(initialLookup){
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
   if(lookupOverlayMarkup)document.body.appendChild(el(lookupOverlayMarkup));
-  let flowFocus='ALL',lookupMarker=null,flowYear=Number(structural?.years?.[0]?.year||sc.asof.slice(0,4)),lookupMode=initialState.lookupMode==='current'?'current':'rebase';
+  let flowFocus='ALL',showBaseline=true,lookupMarker=null,flowYear=Number(structural?.years?.[0]?.year||sc.asof.slice(0,4)),lookupMode=initialState.lookupMode==='current'?'current':'rebase';
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
   const lookupLayer=document.querySelector('[data-future-lookup-layer]'),lookupScope=lookupLayer||p1w,lookupOpen=$('[data-future-lookup-open]',root);
   const setLookupOverlay=open=>{if(!lookupLayer)return;lookupLayer.hidden=!open;lookupLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('future-lookup-open',open);if(open&&location.hash==='#future')history.replaceState(null,'','#future/lookup');if(!open&&location.hash==='#future/lookup')history.replaceState(null,'','#future');if(open)requestAnimationFrame(()=>$('#lookup-date',lookupLayer)?.focus());};
@@ -1308,11 +1318,12 @@ function renderFlow(initialLookup){
   if(lookupLayer)lookupLayer.onkeydown=event=>{if(event.key==='Escape')setLookupOverlay(false);};
   const eventToggle=$('[data-event-summary-toggle]',p1w),eventDetails=$('[data-event-details]',p1w);
   if(eventToggle&&eventDetails)eventToggle.onclick=()=>{const open=eventToggle.getAttribute('aria-expanded')!=='true';eventToggle.setAttribute('aria-expanded',String(open));eventDetails.hidden=!open;$('span',eventToggle).textContent=open?'일정 접기':'일정 펼치기';if(open)requestAnimationFrame(()=>enhanceChartScroll(eventDetails));};
-  const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-year]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowYear)===flowYear));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});
+  const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-year]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowYear)===flowYear));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);
     if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:`${flowYear}년 DB 조건부 구조 경로${flowYear===2027?' · 8월까지':''}`;};
-  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowYear,false);
+  const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowYear,false,showBaseline);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
+  const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.onclick=()=>{showBaseline=!showBaseline;baselineButton.setAttribute('aria-pressed',String(showBaseline));baselineButton.lastChild.textContent=showBaseline?'굴곡 전 GBM 같이 보기':'굴곡 전 GBM 숨김';paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-year]').forEach(button=>button.onclick=()=>{flowYear=Number(button.dataset.flowYear);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',lookupScope),lookupInput=$('#lookup-date',lookupScope),rebaseNote=$('.lookup-rebase-note',lookupScope);
@@ -1836,16 +1847,17 @@ function drawRebasedFlow(host,sc,lookupDate){
   readout.innerHTML=`<div class="flow-date"><span>REBASED ORIGIN</span><strong>100</strong><small>${lookupDate} · 새 전망 아님</small></div>${scenarioKeys.map(key=>`<div><span>${key} · ${esc(sc.paths[key].label)}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(model.scenario_series[key]?.[last])}</strong><small>${model.dates[last]} · DB 구조 경로</small></div>`).join('')}<div><span>조건부 구간</span><strong>${num(model.series.p10[last])}–${num(model.series.p90[last])}</strong><small>p10–p90 · 각각 D=100</small></div>`;
   host.replaceChildren(svg,readout);
 }
-function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSamples=false){
+function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSamples=false,showBaseline=true){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=670,ML=58,MR=140,MT=176,MB=34,HCH=586;
   const range=flowYearRange(sc,displayYear),startIndex=range.start,endIndex=range.end,n=endIndex-startIndex+1;
   const weeks=sc.weeks.slice(startIndex,endIndex+1),weekDates=(sc.week_dates||[]).slice(startIndex,endIndex+1),riskValues=sc.risk.slice(startIndex,endIndex+1);
   const fanAll=sc.fan?.quantiles||{},fan=Object.fromEntries(Object.entries(fanAll).map(([key,values])=>[key,Array.isArray(values)?values.slice(startIndex,endIndex+1):values]));
   const displayPaths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,flowDisplayPath(sc,key).slice(startIndex,endIndex+1)]));
+  const baselinePaths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,(sc.paths?.[key]?.values||[]).slice(startIndex,endIndex+1)]));
   const sampleValues=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).flatMap(row=>(row.values||[]).slice(startIndex,endIndex+1))):[];
   const analogValues=(sc.analog?.values||[]).slice(startIndex,endIndex+1).map(value=>Math.min(Number(value),Number(sc.analog?.clip||value))).filter(Number.isFinite);
-  const chartValues=[sc.ath,sc.corr10,...Object.values(displayPaths).flat(),...sampleValues,...analogValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,...Object.values(displayPaths).flat(),...(showBaseline?Object.values(baselinePaths).flat():[]),...sampleValues,...analogValues,...(fan.p10||[]),...(fan.p90||[])].filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
   const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
@@ -1883,6 +1895,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
     const rawEnd=Number(sc.analog.values[Math.min(endIndex,sc.analog.values.length-1)]),shownEnd=analogValues.at(-1);const label=rawEnd>shownEnd?`혁신사이클 참조 ↗ +${Math.round((rawEnd/sc.anchor-1)*100)}%`:'혁신사이클 참조';
     const analogLabel=tx(X(n-1)-4,Y(shownEnd)-8,label,{anc:'end',fill:'#706f68',fs:11,w:700,opacity:analogOn?1:.1});analogLabel.setAttribute('paint-order','stroke');analogLabel.setAttribute('stroke','#fff');analogLabel.setAttribute('stroke-width','4');svg.appendChild(analogLabel);}
   if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(startIndex,endIndex+1);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':Number(row.terminal_percentile)===50?1.25:1.0,'stroke-dasharray':sampleIndex===0?'3 3':'7 3',opacity:on?(Number(row.terminal_percentile)===50?.42:.28):.05,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
+  if(showBaseline)['S1','S2','S3'].forEach(key=>{const values=baselinePaths[key],on=focus==='ALL'||focus===key;if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#697078','stroke-width':1.45,'stroke-dasharray':'2 5','stroke-linecap':'round','stroke-linejoin':'round',opacity:on?.62:.08,'data-baseline-path':key}));});
   const rightLabels=[];['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=displayPaths[key],color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));rightLabels.push({key,y:Y(endValue),text:`${num(endValue)} · ${path.prob}%`,color:CHART_LABEL_COL[key],opacity:on?1:.12,weight:750,fontSize:12});});
@@ -2164,6 +2177,10 @@ function evidenceDeltaMarkup(current,previous){
       <div><span>산출 방법</span><strong>${esc(method)}</strong><small>${methodChanged?`이전 ${esc(previousMethod)}`:'이전과 동일'}</small></div>
     </div></section>`;
 }
+function physicalEventContextMarkup(q){
+  const context=q?.proximity_context||{};if(q?.probability_space!=='physical_event'||context.status!=='ok')return '';
+  return `<section class="question-proximity" aria-label="사전등록 사건 임계 근접도"><div><span>THRESHOLD CONTEXT · 결합 금지</span><strong>임계까지 ${num(context.threshold_distance_pct)}%</strong></div><div><span>남은 판정 구간</span><strong>${num(context.remaining_trading_sessions)}거래일</strong></div><div><span>${esc(context.label||'무드리프트 기계적 기준')}</span><strong>≈${num(context.driftless_mechanical_touch_pct)}%</strong></div><p>임계 거리와 기간만으로 만든 해석 보조값입니다. 등록된 사건 확률이나 다른 확률공간과 합산하지 않습니다.</p></section>`;
+}
 function renderDetail(qid){
   const q=DATA.questions.find(x=>x.id===qid);const hist=DATA.forecast_history[qid]||[];const res=DATA.resolutions[qid]||[];
   const root=el('<div></div>');
@@ -2179,6 +2196,7 @@ function renderDetail(qid){
     </div>
     <div class="prob-orb${available?'':' is-pending'}" style="--prob:${available?Number(latest):0}"><strong>${available?latest:'산출 전'}</strong>${available?'<span>%</span>':''}<small>최신 예측 확률</small></div>
   </div>`));
+  const proximityMarkup=physicalEventContextMarkup(q);if(proximityMarkup)root.appendChild(el(proximityMarkup));
   const chartPanel=el(`<div class="chart-panel analysis-panel"><div class="panel-head"><h2>AI · 모델 · 시장 확률 추이</h2>
     <div class="band-inline"><span><b style="background:#ff4f17"></b>AI 예측</span><span><b style="background:#247d78"></b>모델 앙상블</span><span><b style="background:#706f68"></b>시장 반영</span></div></div>
     <div class="chart-wrap"><div id="hist"></div></div></div>`);

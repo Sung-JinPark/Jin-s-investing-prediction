@@ -485,11 +485,19 @@ def test_forecast_lookup_ui_contract() -> None:
         "inside_p10_p90_rate_pct", "0일 · 0/60",
         "lookupEventSummary", "일정과 분포 확률을 연결하지 않습니다",
         "EVENT_KIND_META", "월 패턴 또는 연준의 공식 잠정 일정",
+        "굴곡=역사 중앙 형태 가정", "발생 여부의 확률 진술이 아닙니다",
+        "굴곡 전 GBM 같이 보기", "data-flow-baseline", "baseline-swatch",
+        "선택 3시대 원형 → 목표", "기하 detrend 잔차", "공용 strength",
+        "무드리프트 기계적 기준", "임계까지 ${num(proximity.threshold_distance_pct)}%",
+        "trailing 252거래일 μ의 추세 지속 가정", "physicalEventContextMarkup",
+        "등록된 사건 확률이나 다른 확률공간과 합산하지 않습니다",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
     assert "flowYear=Number(mapped.mapped.slice(0,4))" in html, "조회 날짜의 연도 차트로 전환해야 함"
     assert "실경로 오버레이" not in html, "모의 표본을 기본 대표선으로 복원하면 안 됨"
+    assert "data-baseline-path" in html
+    assert "showBaseline=true" in html
 
 
 def test_u1d_mobile_layout_contract() -> None:

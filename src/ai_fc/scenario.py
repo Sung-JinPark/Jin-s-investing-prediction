@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import csv
 import json
+import math
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -20,6 +21,7 @@ import yaml
 from .quant import feed, mc
 from .market_session import completed_market_cutoff
 from .scenario_structure import (
+    STRUCTURAL_CONTRACT_VERSION,
     StructuralForecastError,
     build_structural_forecast,
     validate_structural_forecast,
@@ -563,6 +565,11 @@ def build_scenario(dates: list[date], closes: list[float], *,
     anchor = float(closes[-1])
     ath = float(max(closes))
     corr10 = ath * 0.9
+    log_returns = np.diff(np.log(np.asarray(closes, dtype=float)))[
+        -min(LOOKBACK_DAYS, len(closes) - 1):
+    ]
+    mu_daily = float(log_returns.mean())
+    sigma_daily = float(log_returns.std(ddof=1))
     # This is the only simulation call. Every weekly line and lookup statistic below
     # is derived from the same paths, preserving fixed-seed determinism.
     future = mc.gbm_paths(
@@ -714,6 +721,15 @@ def build_scenario(dates: list[date], closes: list[float], *,
             "classification_date": trading_days[year_end_index].isoformat(),
             "n_paths": n_paths,
             "seed": seed,
+            "gbm_parameters": {
+                "lookback_days": min(LOOKBACK_DAYS, len(closes) - 1),
+                "return_basis": "daily close-to-close log return",
+                "mu_daily_log_return": round(mu_daily, 12),
+                "sigma_daily_log_return": round(sigma_daily, 12),
+                "mu_annualized_252": round(mu_daily * 252.0, 10),
+                "sigma_annualized_252": round(sigma_daily * math.sqrt(252.0), 10),
+                "estimation_end": asof.isoformat(),
+            },
             "partition": {
                 "S1": "연말까지 현재 cycle ATH 신규 돌파",
                 "S2": "ATH 미돌파 AND 연말 종가 > 2026-07-09 고정 기준가",
@@ -966,27 +982,66 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
 
 
 def upgrade_scenario_structure(root: Path) -> tuple[Path, dict[str, Any], bool]:
-    """Append a v3 structural-path revision without refetching or resimulating.
+    """Append a v3 structural-path revision without resimulating the distribution.
 
     The immutable v2 distribution, weights, quantiles, samples and calendar are
-    retained byte-for-value.  Only the additive structural display contract is
-    calculated from committed DB layers.
+    retained byte-for-value.  If an older snapshot predates GBM parameter
+    serialization, its exact lookback parameters are recovered from the same
+    official price source and anchor-checked; no paths are regenerated.
     """
     latest = root / LATEST_RELATIVE_PATH
     try:
         current = validate_scenario(json.loads(latest.read_text(encoding="utf-8")))
     except (OSError, json.JSONDecodeError, ScenarioError) as exc:
         raise ScenarioError("a valid latest scenario is required for structural upgrade") from exc
-    if current.get("schema_version") == SCHEMA_VERSION and current.get("structural_forecast"):
+    current_structure = current.get("structural_forecast") or {}
+    if (
+        current.get("schema_version") == SCHEMA_VERSION
+        and current_structure.get("version") == STRUCTURAL_CONTRACT_VERSION
+        and isinstance(
+            (current_structure.get("calibration") or {}).get(
+                "native_ensemble_origin_year_max_drawdown_pct"
+            ), (int, float)
+        )
+    ):
         return latest, current, False
     migrated = deepcopy(current)
+    if not (migrated.get("model") or {}).get("gbm_parameters"):
+        asof = date.fromisoformat(migrated["asof"])
+        start = asof - timedelta(days=LOOKBACK_DAYS * 3)
+        source_dates, source_closes = feed.yahoo_series(
+            "^IXIC", start, asof + timedelta(days=1), "1d"
+        )
+        aligned = [
+            (day, close) for day, close in zip(source_dates, source_closes)
+            if day <= asof
+        ]
+        if len(aligned) < LOOKBACK_DAYS + 1 or aligned[-1][0] != asof:
+            raise ScenarioError("cannot recover exact GBM parameters at scenario asof")
+        if abs(float(aligned[-1][1]) - float(migrated["anchor"])) > 0.05:
+            raise ScenarioError("GBM parameter recovery anchor does not match snapshot")
+        closes = np.asarray([float(close) for _, close in aligned], dtype=float)
+        returns = np.diff(np.log(closes))[-LOOKBACK_DAYS:]
+        mu_daily = float(returns.mean())
+        sigma_daily = float(returns.std(ddof=1))
+        migrated.setdefault("model", {})["gbm_parameters"] = {
+            "lookback_days": LOOKBACK_DAYS,
+            "return_basis": "daily close-to-close log return",
+            "mu_daily_log_return": round(mu_daily, 12),
+            "sigma_daily_log_return": round(sigma_daily, 12),
+            "mu_annualized_252": round(mu_daily * 252.0, 10),
+            "sigma_annualized_252": round(sigma_daily * math.sqrt(252.0), 10),
+            "estimation_end": asof.isoformat(),
+            "recovery": "same-source refetch; anchor matched; distribution not regenerated",
+        }
     migrated["schema_version"] = SCHEMA_VERSION
     migrated["structural_forecast"] = build_structural_forecast(root, migrated)
-    migrated["method"] = "gbm-daily-252d-v2-lookup+db-structural-v1"
+    migrated["method"] = "gbm-daily-252d-v2-lookup+db-structural-v2"
     migrated["note"] = (
         str(migrated.get("note") or "")
         + " 굵은 표시 경로는 선택 혁신시대 중앙 위상과 다중시대 조정 깊이로 "
-          "연도별 보정한 구조 경로이며 모의 표본이 아니다. 분포·경로 비중·physical_event "
+          "연도별 보정한 구조 경로이며 모의 표본이 아니다. 회색 고스트 선은 보정 전 "
+          "GBM 중심 경로다. 굴곡은 발생확률 진술이 아니며 분포·경로 비중·physical_event "
           "확률은 서로 결합하지 않는다."
     ).strip()
     return _persist_scenario(root, validate_scenario(migrated))

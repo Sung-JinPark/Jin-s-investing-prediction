@@ -279,6 +279,14 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
+    structural_event = (
+        ((scenario.get("structural_forecast") or {}).get("evidence") or {})
+        .get("physical_event") or {}
+    )
+    if structural_event.get("question_id"):
+        for row in q_summary:
+            if row["id"] == structural_event["question_id"]:
+                row["proximity_context"] = structural_event.get("proximity_context")
     from .event_calendar import load_events
     calendar_events = load_events(root)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
