@@ -195,6 +195,19 @@ def cmd_scenario_structure() -> None:
     )
 
 
+@app.command("scenario-v4-shadow")
+def cmd_scenario_v4_shadow() -> None:
+    """Build the RCFHS-SB v1 candidate as a shadow artifact only."""
+    from .scenario_v4_shadow import refresh_shadow
+
+    path, payload, changed = refresh_shadow(config.ROOT)
+    state = "updated" if changed else "unchanged"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · source "
+        f"{payload.get('source_snapshot_id')} · promotion {payload['promotion_state']}"
+    )
+
+
 @app.command("cross-asset")
 def cmd_cross_asset(
     asof: str | None = typer.Option(
