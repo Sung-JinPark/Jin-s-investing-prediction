@@ -110,9 +110,20 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert structure["calibration"]["native_ensemble_origin_year_max_drawdown_pct"] < 0
     assert structure["calibration"]["native_residual_origin_year_drawdown_pct"] < 0
     assert set(structure["calibration"]["scenario_specific_alternatives"]) == {"S1", "S2", "S3"}
+    assert structure["calibration"]["depth_invariant_to_selection"] is True
+    assert structure["calibration"]["selection_moves"] == "risk_window_center_month_only"
     selection = structure["evidence"]["innovation_cycle"]
     assert selection["selection_preregistration"]["future_outcomes_used_in_selection"] is False
     assert selection["selection_sensitivity"]["alternative_count"] >= 1
+    sensitivity = selection["selection_sensitivity"]
+    assert sensitivity["calibrated_depth_invariant"] is True
+    calibrated_range = sensitivity["origin_year_calibrated_s1_mdd_range_pct"]
+    assert calibrated_range == pytest.approx([-12.2, -12.1], abs=0.1)
+    assert all(
+        row["calibration_status"] == "ok"
+        and row["origin_year_calibrated_s1_mdd_pct"] == pytest.approx(-12.19, abs=0.2)
+        for row in sensitivity["alternatives"]
+    )
     proximity = structure["evidence"]["physical_event"]["proximity_context"]
     if proximity["status"] == "ok":
         assert proximity["probability_space"] == "mechanical_reference"
@@ -127,18 +138,23 @@ def test_schema2_archive_remains_valid_after_structural_upgrade() -> None:
     assert scenario.validate_scenario(legacy)["schema_version"] == 2
 
 
-def test_structural_v2_revision_preserves_distribution_weights_and_endpoints() -> None:
+def test_structural_v3_revision_preserves_distribution_weights_and_endpoints() -> None:
     root = Path(__file__).parents[2]
     latest = json.loads((root / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8"))
+    r7 = json.loads((
+        root / "data/scenarios/archive/2026-08-03_CORR-260806-018.json"
+    ).read_text(encoding="utf-8"))
     prior = json.loads((
         root / "data/scenarios/archive/2026-08-03_CORR-260805-014.json"
     ).read_text(encoding="utf-8"))
-    assert latest["correction_id"] == "CORR-260806-018"
-    assert latest["structural_forecast"]["version"] == "2026-08-06.v2"
+    assert latest["correction_id"] == "CORR-260806-019"
+    assert latest["structural_forecast"]["version"] == "2026-08-06.v3"
     assert [latest["paths"][key]["prob"] for key in ("S1", "S2", "S3")] == [83, 2, 15]
     assert [latest["paths"][key]["end"] for key in ("S1", "S2", "S3")] == [32239, 29577, 26667]
     for field in ("fan", "quantile_table", "path_realism"):
         assert latest[field] == prior[field]
+    assert latest["structural_forecast"]["paths"] == r7["structural_forecast"]["paths"]
+    assert latest["structural_forecast"]["years"] == r7["structural_forecast"]["years"]
 
 
 def test_public_snapshot_reproduces_partition_and_all_quantile_cells() -> None:

@@ -29,7 +29,7 @@ AI_REGIME_PATH = Path("data/ai_capital_cycle/ai_regime_latest.json")
 TRACKER_PATH = Path("data/signals/scenario_tracker_latest.json")
 LIQUIDITY_PATH = Path("data/liquidity/liquidity_latest.json")
 QUESTION_ID = "nasdaq-corr10-augoct-2026"
-STRUCTURAL_CONTRACT_VERSION = "2026-08-06.v2"
+STRUCTURAL_CONTRACT_VERSION = "2026-08-06.v3"
 
 
 class StructuralForecastError(ValueError):
@@ -347,7 +347,8 @@ def _month_offset(left: str, right: str) -> int:
 def _selection_sensitivity(
     scenario: dict[str, Any], overlay: dict[str, Any], selected: list[str],
     candidates: list[str], current_phase: int, dates: list[date], asof: date,
-    phase_days: float, base_raw: list[float],
+    phase_days: float, base_raw: list[float], target_depth_pct: float,
+    strength_bounds: list[Any],
 ) -> dict[str, Any]:
     origin_indexes = [index for index, day in enumerate(dates) if day.year == asof.year]
     base_window = _analog_window(base_raw, dates, origin_indexes)
@@ -361,26 +362,65 @@ def _selection_sensitivity(
             raw = _analog_shape(overlay, eras, current_phase, dates, asof, phase_days)
             native = _structural_paths(scenario, dates, raw, 1.0)["S1"]
             diagnostics = _max_drawdown(native, dates, origin_indexes)
+            calibrated = _calibration_strength_for_key(
+                scenario, dates, raw, asof.year, target_depth_pct,
+                strength_bounds, "S1",
+            )
+            calibrated_mdd: float | None = None
+            if calibrated.get("status") == "ok" and calibrated.get("strength") is not None:
+                calibrated_values = _structural_paths(
+                    scenario, dates, raw, float(calibrated["strength"])
+                )["S1"]
+                calibrated_mdd = float(
+                    _max_drawdown(calibrated_values, dates, origin_indexes)["max_drawdown_pct"]
+                )
             window = _analog_window(raw, dates, origin_indexes)
             alternatives.append({
                 "removed": removed,
                 "added": added,
                 "selected_eras": eras,
                 "origin_year_native_s1_mdd_pct": diagnostics["max_drawdown_pct"],
+                "origin_year_calibrated_s1_mdd_pct": calibrated_mdd,
+                "calibrated_strength": calibrated.get("strength"),
+                "calibration_status": calibrated.get("status"),
                 "risk_window_center_month": window["center_month"],
                 "center_shift_months": _month_offset(
                     base_window["center_month"], window["center_month"]
                 ),
             })
     mdds = [float(row["origin_year_native_s1_mdd_pct"]) for row in alternatives]
+    calibrated_mdds = [
+        float(row["origin_year_calibrated_s1_mdd_pct"])
+        for row in alternatives
+        if isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+    ]
     shifts = [int(row["center_shift_months"]) for row in alternatives]
+    tolerance_pct = 0.2
+    calibrated_depth_invariant = bool(alternatives) and len(calibrated_mdds) == len(
+        alternatives
+    ) and all(
+        abs(abs(value) - target_depth_pct) <= tolerance_pct
+        for value in calibrated_mdds
+    )
     return {
         "method": "one-selected-era replaced by one non-selected candidate era",
         "use": "disclosure_only",
+        "depth_interpretation": (
+            "native range varies by selected eras; every displayed alternative is "
+            "recalibrated to the committed correction-depth base rate"
+        ),
+        "selection_moves": "risk_window_center_month_only",
+        "calibrated_depth_target_pct": round(-target_depth_pct, 2),
+        "calibrated_depth_tolerance_pct": tolerance_pct,
+        "calibrated_depth_invariant": calibrated_depth_invariant,
         "base_risk_window_center_month": base_window["center_month"],
         "alternative_count": len(alternatives),
         "origin_year_native_s1_mdd_range_pct": (
             [round(min(mdds), 1), round(max(mdds), 1)] if mdds else None
+        ),
+        "origin_year_calibrated_s1_mdd_range_pct": (
+            [round(min(calibrated_mdds), 1), round(max(calibrated_mdds), 1)]
+            if calibrated_mdds else None
         ),
         "risk_window_center_shift_range_months": (
             [min(shifts), max(shifts)] if shifts else None
@@ -454,8 +494,12 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
     ]
     selection_sensitivity = _selection_sensitivity(
         scenario, overlay, selected, candidates, current_phase, dates, asof,
-        phase_days, raw,
+        phase_days, raw, target_depth_pct, contract["calibration"]["strength_bounds"],
     )
+    if selection_sensitivity["calibrated_depth_invariant"] is not True:
+        raise StructuralForecastError(
+            "selection alternatives do not preserve the calibrated depth base rate"
+        )
     year_rows = []
     for year in sorted({day.year for day in dates}):
         indexes = [index for index, day in enumerate(dates) if day.year == year]
@@ -516,6 +560,8 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
             "native_residual_origin_year_drawdown_pct": native_residual_mdd["max_drawdown_pct"],
             "native_shape_origin_year_s1_max_drawdown_pct": native_origin_mdd["max_drawdown_pct"],
             "calibrated_origin_year_s1_max_drawdown_pct": calibrated_origin_mdd["max_drawdown_pct"],
+            "depth_invariant_to_selection": True,
+            "selection_moves": "risk_window_center_month_only",
             "common_strength_scope": "S1/S2/S3 and all display years",
             "common_strength_approximation": (
                 "calibrated to origin-year S1; interpretation depends on the current "
@@ -648,6 +694,26 @@ def validate_structural_forecast(payload: Any, expected_length: int) -> dict[str
         calibration = payload.get("calibration") or {}
         if not isinstance(calibration.get("residual_exponent_amplification_ratio"), (int, float)):
             raise StructuralForecastError("structural amplification disclosure is missing")
+        if calibration.get("depth_invariant_to_selection") is not True:
+            raise StructuralForecastError("calibrated depth-selection invariance is missing")
+        if calibration.get("selection_moves") != "risk_window_center_month_only":
+            raise StructuralForecastError("selection movement disclosure is invalid")
+        sensitivity = (evidence.get("innovation_cycle") or {}).get(
+            "selection_sensitivity"
+        ) or {}
+        if sensitivity.get("calibrated_depth_invariant") is not True:
+            raise StructuralForecastError("selection sensitivity depth gate failed")
+        if not isinstance(
+            sensitivity.get("origin_year_calibrated_s1_mdd_range_pct"), list
+        ):
+            raise StructuralForecastError("calibrated selection range is missing")
+        alternatives = sensitivity.get("alternatives") or []
+        if not alternatives or any(
+            row.get("calibration_status") != "ok"
+            or not isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+            for row in alternatives
+        ):
+            raise StructuralForecastError("calibrated selection alternatives are incomplete")
         selection = (evidence.get("innovation_cycle") or {}).get("selection_preregistration") or {}
         if selection.get("future_outcomes_used_in_selection") is not False:
             raise StructuralForecastError("innovation-era selection rule is not preregistered")

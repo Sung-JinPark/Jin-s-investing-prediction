@@ -618,6 +618,19 @@ def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_vi
         assert required in html
 
 
+def test_structural_calibration_selection_invariance_is_visible() -> None:
+    html = dashboard.load_template()
+    for required in (
+        "시대 선택은 위치, base rate는 깊이를 정합니다",
+        "시대를 교체하면 위험창 중심월은 움직이지만",
+        "시대 교체별 native·calibrated 낙폭 비교",
+        "Native · 보정 전",
+        "Calibrated · 화면",
+        "origin_year_calibrated_s1_mdd_pct",
+    ):
+        assert required in html
+
+
 def test_render_embed_vs_fetch(repo: Path) -> None:
     conn = ingest.connect(repo / "db" / "index.db")
     ingest.sync(conn, repo)

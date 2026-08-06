@@ -1,4 +1,4 @@
-version: 2026-08-06.v2
+version: 2026-08-06.v3
 status: preregistered_before_structural_snapshot
 preregistered_at: 2026-08-06
 scope: nasdaq_scenario_display_path
@@ -28,7 +28,7 @@ innovation_cycle:
     future_outcomes_used_in_selection: false
   sensitivity:
     method: replace one selected era at a time with one non-selected candidate era
-    outputs: [origin_year_native_mdd_range, risk_window_center_month_range]
+    outputs: [origin_year_native_mdd_range, origin_year_calibrated_mdd_range, risk_window_center_month_range]
     use: disclosure_only
 
 calibration:
@@ -44,6 +44,8 @@ calibration:
     - residual exponent amplification ratio
     - common-strength dependence on the current S1 scenario weight
     - scenario-specific calibration alternatives and feasibility
+    - calibrated depth is invariant to era selection while the risk-window center may move
+    - native and calibrated drawdowns for every one-era replacement alternative
   endpoint_rule: preserve every scenario year-segment start and end anchor
   forbidden:
     - hand-drawn correction dates
