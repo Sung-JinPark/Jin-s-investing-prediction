@@ -313,6 +313,26 @@
           "source_url"
         ]
       }
+    },
+    "scenario_v4_shadow": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "properties": {
+        "version": {
+          "const": "rcfhs-sb-v1"
+        },
+        "status": {
+          "const": "shadow_only"
+        },
+        "dashboard_toggle_default": {
+          "const": "off"
+        },
+        "promotion_state": {
+          "const": "blocked_pending_rolling_origin_validation"
+        }
+      }
     }
   },
   "additionalProperties": true
