@@ -1,0 +1,179 @@
+{
+  "schema_version": 1,
+  "delivery": "AI_INVESTING_SCENARIO_V5_DELIVERY_260807.zip",
+  "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
+  "file_count_excluding_manifest": 33,
+  "files": [
+    {
+      "path": "data/contracts/scenario_v5_event_impact.yaml",
+      "bytes": 606,
+      "sha256": "6aa047248082d0223b7ae11814adefe3716abe6426910a3b3b99985c5f67a207"
+    },
+    {
+      "path": "data/contracts/scenario_v5_evidence_view.yaml",
+      "bytes": 1722,
+      "sha256": "177b95bbdf1280bfeaeaba349cf38eb0944e5a823f0957674d3536e76cf23e8e"
+    },
+    {
+      "path": "data/contracts/scenario_v5_model.yaml",
+      "bytes": 3442,
+      "sha256": "161bdb21e22649b1cf3b8c4908964ff2c1de91cc4f4d334ee01a457abac7ea34"
+    },
+    {
+      "path": "data/scenario_views/approved/README.md",
+      "bytes": 295,
+      "sha256": "4419f973b6f7013f7c4fca5697ac184d94efb752f80f17b89aa07aa76e7f60b9"
+    },
+    {
+      "path": "data/scenario_views/archive/README.md",
+      "bytes": 144,
+      "sha256": "cc2ee61064ad119c834e5133e0336b288f4b749f2c25e16e4fab3aafde3711d1"
+    },
+    {
+      "path": "data/scenario_views/proposed/README.md",
+      "bytes": 206,
+      "sha256": "031087e8e49f23194b00f5c6e9af220f01e7b025e6aa2642e6c45ccc2913ee83"
+    },
+    {
+      "path": "data/scenario_views/receipts/README.md",
+      "bytes": 103,
+      "sha256": "952fda819e7dc5efd1acece4b4af50dfe186f05f37d4ce6bd54ae8cd939246c0"
+    },
+    {
+      "path": "data/scenarios/candidates/archive/scenario_v5_evidence_conditioned_legacy_prior_v1_20260803_bd8027342831.json",
+      "bytes": 230278,
+      "sha256": "c43668aa1e501d0d37676e1075ee805b3465a3c1d7a0386faa9a2a6ed72bd5e0"
+    },
+    {
+      "path": "data/scenarios/candidates/receipts/scenario_v5_evidence_conditioned_legacy_prior_v1_bd8027342831.json",
+      "bytes": 520,
+      "sha256": "ea50b3faaa6e02b3a13e9261a9f44a9d2cebf544e0840c19bf77934e9d1d9680"
+    },
+    {
+      "path": "data/scenarios/candidates/scenario_v5_evidence_conditioned_legacy_prior_v1_latest.json",
+      "bytes": 230278,
+      "sha256": "c43668aa1e501d0d37676e1075ee805b3465a3c1d7a0386faa9a2a6ed72bd5e0"
+    },
+    {
+      "path": "docs/audit/scenario_v5/PROTECTED_HASHES_BASELINE.json",
+      "bytes": 13340,
+      "sha256": "be1c17eda8a28df4625e997c8df0f2cb766e6e40c4b4a3d1fcd18e864a3791dd"
+    },
+    {
+      "path": "docs/audit/scenario_v5/ROLLING_ORIGIN_FRAMEWORK.json",
+      "bytes": 857,
+      "sha256": "89e073cefdd3c8b8d8f2a5e33981a0baaee47a97874eb27c8940c48cff0b5065"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_DIFF_AND_ROLLBACK.md",
+      "bytes": 723,
+      "sha256": "328e4f978ed2f92d4d02e0c4ffb9efbc0e598316014f17273a9c0aa8e027a560"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_EVIDENCE_VIEW_REPORT.csv",
+      "bytes": 4048,
+      "sha256": "de894ce32dd175ed6503e59e3ee0f195454a35dd74950ae9c5d25ea81ed31a93"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_IMPLEMENTATION_REPORT.md",
+      "bytes": 6352,
+      "sha256": "c08381b36e6d74ec35071cfd1679e7bc443f89d0f7ca40b2d90096050a1e23b0"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_PATH_REALISM_REPORT.csv",
+      "bytes": 632,
+      "sha256": "1d03a3cd4885af707e85136d3930911e3867a9f2db6c6ac75688eac3830433e8"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_PROTECTED_HASHES.json",
+      "bytes": 27425,
+      "sha256": "dec00a839f23bf311e29765a0e75f1d438348163776cdead718daf94f3888923"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_TEST_REPORT.md",
+      "bytes": 503,
+      "sha256": "b9d132a912612a542930a29f9a100b5083494b065433219af66cb4e2b3156814"
+    },
+    {
+      "path": "docs/audit/scenario_v5/SCENARIO_V5_VIEW_FIT_REPORT.csv",
+      "bytes": 601,
+      "sha256": "2ce42f546ce4dc2a324f40edc808312b978a98e76e653edec779ac329ef9df36"
+    },
+    {
+      "path": "docs/generated/read_model_v2.schema.json",
+      "bytes": 7105,
+      "sha256": "acbbcbbe3c6d260acec4fa5fc85ee5d4a6464e8b8c2fdd0544cd666170d1ea3b"
+    },
+    {
+      "path": "reports/dashboard.html",
+      "bytes": 918881,
+      "sha256": "33fa257ca334486d6aa26644beac538559a8b797a20f46b3f124bfdec30b42e6"
+    },
+    {
+      "path": "src/ai_fc/cli.py",
+      "bytes": 31433,
+      "sha256": "46aef098b35165458a0438ec65554db4b78010509d5cb027edd36eb768c5496b"
+    },
+    {
+      "path": "src/ai_fc/dashboard.py",
+      "bytes": 34458,
+      "sha256": "f51bea06e7246cedc3d070a178a4a558616c9db4a8432a5d76f0678e6d517675"
+    },
+    {
+      "path": "src/ai_fc/dashboard_parts/dashboard.css",
+      "bytes": 183758,
+      "sha256": "664913fb5496b60e805136a31622d0471f6505ab8b2a2c23db0a7b93d2c74017"
+    },
+    {
+      "path": "src/ai_fc/dashboard_parts/dashboard.js",
+      "bytes": 298851,
+      "sha256": "a8ee1b5dc11253f2bff6db44d530ab4bb7f01c7bd1062608ecadbaee555e8f33"
+    },
+    {
+      "path": "src/ai_fc/read_model_contract.py",
+      "bytes": 11268,
+      "sha256": "2e8c390affd90a1d0feab318801740f43de395a74755b97bdf3702d38b717224"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/__init__.py",
+      "bytes": 284,
+      "sha256": "4582b743d4a6f673515f6c77671b8c49c72feae73f58a938019f667c9579d8a3"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/artifact.py",
+      "bytes": 12256,
+      "sha256": "2c573caf33fb930d3472384b8cb659a646feee531e7b08e5bf779a9a2ab90576"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/audit.py",
+      "bytes": 19400,
+      "sha256": "d6e561228b2b484e0dc403e7e79fdc16f9d8584a36711866abc5357a5ec26b74"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/contracts.py",
+      "bytes": 2953,
+      "sha256": "4e93ee2f9748a1050f5c6f97f72f0a6ac33a52f9509eb6f149fc05787b986226"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/engine.py",
+      "bytes": 17592,
+      "sha256": "c10047cde2b7272a6042963b2015dfd10a5a8f32f7af7b4e5eb0c247602b1fde"
+    },
+    {
+      "path": "src/ai_fc/scenario_v5/evidence.py",
+      "bytes": 13884,
+      "sha256": "a500adeff4ec468631fa417c76c2ba2dd6f442a47c766ee0561613a94fbb1eb4"
+    },
+    {
+      "path": "src/tests/test_scenario_v5.py",
+      "bytes": 6423,
+      "sha256": "07807a1dfabf75640661bc3ff45310f98358334796a9e46b66f401c2398e43e0"
+    }
+  ],
+  "excluded": [
+    "official scenario snapshots and archives",
+    "forecast/calibration ledgers",
+    "unrelated dirty-worktree files",
+    "Python bytecode and caches"
+  ]
+}

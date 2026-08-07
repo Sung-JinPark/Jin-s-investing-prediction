@@ -29,7 +29,8 @@
     "ai_regime",
     "o_entry_cohort",
     "method_changes",
-    "calendar_events"
+    "calendar_events",
+    "scenario_v5"
   ],
   "properties": {
     "meta": {
@@ -312,6 +313,29 @@
           "title",
           "source_url"
         ]
+      }
+    },
+    "scenario_v5": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "candidate_id"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "degraded",
+            "unavailable"
+          ]
+        },
+        "candidate_id": {
+          "const": "scenario_v5_evidence_conditioned_legacy_prior_v1"
+        }
       }
     }
   },

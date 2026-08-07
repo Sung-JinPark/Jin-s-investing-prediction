@@ -46,6 +46,7 @@ V2_KEYS = {
     "o_entry_cohort": dict,
     "method_changes": list,
     "calendar_events": list,
+    "scenario_v5": dict,
 }
 
 
@@ -107,6 +108,17 @@ def schema() -> dict[str, Any]:
                 "type": "object",
                 "required": ["status", "basis", "gate", "buckets"],
                 "properties": {"buckets": {"type": "array"}},
+            },
+        },
+    }
+    properties["scenario_v5"] = {
+        "type": "object",
+        "required": ["schema_version", "status", "candidate_id"],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["ok", "degraded", "unavailable"]},
+            "candidate_id": {
+                "const": "scenario_v5_evidence_conditioned_legacy_prior_v1"
             },
         },
     }
@@ -202,6 +214,28 @@ def validate(model: dict[str, Any]) -> list[str]:
                 if observations < minimum and rate is not None:
                     errors.append("horizon_coverage must hide hit rates below the gate")
                     break
+    scenario_v5 = model.get("scenario_v5")
+    if isinstance(scenario_v5, dict) and scenario_v5.get("status") in {"ok", "degraded"}:
+        if scenario_v5.get("banner") != "RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION":
+            errors.append("scenario_v5 research-candidate banner is required")
+        identity = scenario_v5.get("identity") or {}
+        if identity.get("prior_engine") != "legacy_gbm_reproduced_v1":
+            errors.append("scenario_v5 must disclose the legacy reproduced prior")
+        if identity.get("is_rcfhs") is not False:
+            errors.append("scenario_v5 cannot claim RCFHS")
+        conditional = scenario_v5.get("conditional_distribution") or {}
+        scenarios = conditional.get("scenarios") or {}
+        probabilities = [
+            scenarios.get(key, {}).get("probability") for key in ("S1", "S2", "S3")
+        ]
+        if (not all(isinstance(value, (int, float)) and 0 <= value <= 1
+                    for value in probabilities)
+                or abs(sum(probabilities) - 1.0) > 1e-10):
+            errors.append("scenario_v5 probabilities must be fractions summing to one")
+        same_shape = conditional.get("same_shape_diagnostics") or {}
+        if (conditional.get("representative_lines_visible")
+                is not bool(same_shape.get("gate_pass"))):
+            errors.append("scenario_v5 same-shape visibility gate mismatch")
     reference_validators = {
         "scenario_tracker": validate_scenario_tracker,
         "liquidity": validate_liquidity,

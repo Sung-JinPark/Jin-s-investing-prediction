@@ -195,6 +195,68 @@ def cmd_scenario_structure() -> None:
     )
 
 
+@app.command("scenario-v5-build")
+def cmd_scenario_v5_build(
+    force: bool = typer.Option(False, "--force", help="Rewrite even when inputs are unchanged"),
+) -> None:
+    """Build the additive Evidence-Conditioned Scenario V5 research candidate."""
+    from .scenario_v5.artifact import ScenarioV5Error, build_candidate
+    from .scenario_v5.audit import build_reports, capture_protected_baseline
+
+    capture_protected_baseline(config.ROOT)
+    try:
+        path, payload, changed = build_candidate(config.ROOT, force=force)
+        build_reports(config.ROOT)
+    except (ScenarioV5Error, FileNotFoundError, KeyError, TypeError, ValueError) as exc:
+        typer.echo(f"Scenario V5 build blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    state = "updated" if changed else "no-op"
+    scenarios = payload["conditional_distribution"]["scenarios"]
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} | "
+        f"S1/S2/S3={scenarios['S1']['probability']:.4f}/"
+        f"{scenarios['S2']['probability']:.4f}/{scenarios['S3']['probability']:.4f} | "
+        f"ESS={payload['posterior_diagnostics']['effective_sample_size']:.1f} | "
+        "RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION"
+    )
+
+
+@app.command("scenario-v5-verify")
+def cmd_scenario_v5_verify(
+    path: Path | None = typer.Option(None, "--path", help="Candidate JSON to verify"),
+) -> None:
+    """Verify V5 schema, probability, provenance, and source-snapshot integrity."""
+    from .scenario_v5.artifact import verify_candidate
+
+    result = verify_candidate(config.ROOT, path)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("scenario-v5-backtest")
+def cmd_scenario_v5_backtest() -> None:
+    """Materialize the PIT-safe rolling-origin framework without fabricated scores."""
+    from .scenario_v5.audit import rolling_origin_framework
+
+    path = rolling_origin_framework(config.ROOT)
+    typer.echo(
+        f"framework only: {path.relative_to(config.ROOT)} | "
+        "promotion blocked pending approved PIT rolling origins"
+    )
+
+
+@app.command("scenario-v5-report-views")
+def cmd_scenario_v5_report_views() -> None:
+    """Print every V5 evidence view and its numerical-use decision."""
+    from .scenario_v5.audit import report_views
+
+    payload = report_views(config.ROOT)
+    typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
+    if payload["status"] != "ok":
+        raise typer.Exit(code=1)
+
+
 @app.command("cross-asset")
 def cmd_cross_asset(
     asof: str | None = typer.Option(
