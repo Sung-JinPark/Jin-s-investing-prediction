@@ -183,7 +183,7 @@ def build_reports(root: Path, *, test_summary: dict[str, Any] | None = None) -> 
         f"- `{row['view_id']}`: `{row['probability_space']}`; {row.get('blocked_reason')}"
         for row in reference_views
     )
-    legacy_probabilities = {"S1": 0.83, "S2": 0.02, "S3": 0.15}
+    legacy_probabilities = candidate["source_snapshot"]["legacy_displayed_probabilities"]
     posterior_delta = {
         key: probabilities[key]["probability"] - legacy_probabilities[key]
         for key in ("S1", "S2", "S3")
@@ -194,7 +194,7 @@ def build_reports(root: Path, *, test_summary: dict[str, Any] | None = None) -> 
         "# Scenario V5 Implementation Report\n\n"
         "## Result\n\n"
         "Built an evidence-conditioned research candidate without mutating the official snapshot. "
-        "The candidate honestly retains the reproduced legacy GBM prior because the long-history "
+        "The candidate honestly retains the reproduced legacy GBM process because the long-history "
         "store lacks the approved row-level PIT/vintage/hash contract required for RCFHS.\n\n"
         "## Identity and governance\n\n"
         f"- Candidate: `{candidate['candidate_id']}`\n"
@@ -203,6 +203,8 @@ def build_reports(root: Path, *, test_summary: dict[str, Any] | None = None) -> 
         f"- Dirty-worktree review-only: `{candidate['build_context']['review_only']}`\n"
         f"- Protected inputs unchanged: `{comparison['ok']}`\n"
         f"- Candidate verification: `{verification['ok']}`\n\n"
+        f"- Prior sample extension: source prefix `{candidate['prior']['source_path_count']}` paths; "
+        f"deterministic same-RNG sample `{candidate['prior']['path_count']}` paths.\n\n"
         "## Evidence separation\n\n"
         f"- Numerical physical views: `{sum(bool(row['used_numerically']) for row in evidence_rows)}`\n"
         f"- Reference/blocked views: `{sum(not bool(row['used_numerically']) for row in evidence_rows)}`\n"
@@ -214,6 +216,9 @@ def build_reports(root: Path, *, test_summary: dict[str, Any] | None = None) -> 
         f"- S1/S2/S3 probabilities: `{probabilities['S1']['probability']:.6f}` / "
         f"`{probabilities['S2']['probability']:.6f}` / `{probabilities['S3']['probability']:.6f}`\n"
         f"- Same-shape gate pass: `{same_shape['gate_pass']}`\n"
+        f"- Scenario ESS gate pass: "
+        f"`{candidate['conditional_distribution']['distribution_gates']['scenario_ess_pass']}` "
+        f"(minimum `{candidate['conditional_distribution']['distribution_gates']['scenario_weighted_ess_minimum']:.0f}`).\n"
         "- Representatives are actual simulated member paths selected by deterministic centrality gates.\n\n"
         "## Promotion\n\n"
         "Promotion remains blocked pending rolling-origin validation and explicit human approval.\n\n"
@@ -248,18 +253,22 @@ def build_reports(root: Path, *, test_summary: dict[str, Any] | None = None) -> 
         "### 8. Does 2027 continuously inherit the 2026 state?\n\n"
         "Yes. The artifact contains one ordered anchor plus 252-session path with no calendar-year "
         "reset; 2027-01-04 is the next stored session after 2026-12-31.\n\n"
-        "### 9. How did posterior scenario weights differ from 83/2/15?\n\n"
+        "### 9. How did posterior scenario weights differ from the source snapshot display?\n\n"
         f"S1 `{probabilities['S1']['probability']:.6f}` ({posterior_delta['S1']:+.6f}), "
         f"S2 `{probabilities['S2']['probability']:.6f}` ({posterior_delta['S2']:+.6f}), "
         f"S3 `{probabilities['S3']['probability']:.6f}` ({posterior_delta['S3']:+.6f}) versus "
-        "legacy displayed fractions 0.83/0.02/0.15.\n\n"
+        f"source displayed fractions {legacy_probabilities['S1']:.2f}/"
+        f"{legacy_probabilities['S2']:.2f}/{legacy_probabilities['S3']:.2f}.\n\n"
         "### 10. Which report cluster tilted the posterior?\n\n"
         "None. No approved report view exists, so report-cluster numerical strength and posterior "
         "tilt are exactly zero. Proposed report files are structurally blocked.\n\n"
         "### 11. Are ESS and view conflicts safe?\n\n"
         f"Overall ESS is `{candidate['posterior_diagnostics']['effective_sample_size']:.2f}`; maximum "
         f"path weight is `{candidate['posterior_diagnostics']['maximum_path_weight']:.8f}` and top-1% "
-        f"share is `{candidate['posterior_diagnostics']['top_one_percent_weight_share']:.6f}`. All "
+        f"share is `{candidate['posterior_diagnostics']['top_one_percent_weight_share']:.6f}`. "
+        f"Scenario ESS values are S1 `{probabilities['S1']['weighted_effective_sample_size']:.2f}`, "
+        f"S2 `{probabilities['S2']['weighted_effective_sample_size']:.2f}`, and "
+        f"S3 `{probabilities['S3']['weighted_effective_sample_size']:.2f}`. All "
         "three view residuals are inside their declared tolerances.\n\n"
         "### 12. Is the official artifact unchanged?\n\n"
         f"Yes. Official SHA-256 remains `{candidate['source_snapshot']['sha256']}` and the full "

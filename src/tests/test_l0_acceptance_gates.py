@@ -46,7 +46,7 @@ def test_l0_sec_snapshot_regression_constants() -> None:
 def test_l0_market_constants_remain_in_immutable_archive_after_new_comparison() -> None:
     cross = _json("data/cross_asset/cross_asset_latest.json")
     legacy = _json("data/cross_asset/archive/2026-08-03_CORR-260805-013.json")
-    scenario = _json("data/scenarios/nasdaq_latest.json")
+    scenario = _json("data/scenarios/archive/2026-08-03_CORR-260806-019.json")
     summary = cross["history"]["summary"]
     legacy_summary = legacy["history"]["summary"]
     realism = scenario["path_realism"]["S1"]

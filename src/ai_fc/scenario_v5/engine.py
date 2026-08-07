@@ -13,10 +13,15 @@ from scipy.special import logsumexp
 QUANTILES = (5, 10, 25, 50, 75, 90, 95)
 
 
-def reproduce_legacy_prior(snapshot: dict[str, Any]) -> tuple[np.ndarray, list[str]]:
+def reproduce_legacy_prior(
+    snapshot: dict[str, Any], *, n_paths: int | None = None,
+) -> tuple[np.ndarray, list[str]]:
     model = snapshot["model"]
     params = model["gbm_parameters"]
-    n_paths = int(model["n_paths"])
+    source_path_count = int(model["n_paths"])
+    path_count = source_path_count if n_paths is None else int(n_paths)
+    if path_count < source_path_count:
+        raise ValueError("extended prior cannot contain fewer paths than the source sample")
     horizon = int(model["horizon_business_days"])
     seed = int(model["seed"])
     anchor = float(snapshot["anchor"])
@@ -26,7 +31,7 @@ def reproduce_legacy_prior(snapshot: dict[str, Any]) -> tuple[np.ndarray, list[s
     if len(dates) != horizon:
         raise ValueError("snapshot trading-day count does not match model horizon")
     rng = np.random.default_rng(seed)
-    shocks = rng.standard_normal((n_paths, horizon))
+    shocks = rng.standard_normal((path_count, horizon))
     ratios = np.exp(np.cumsum(mu - sigma ** 2 / 2.0 + sigma * shocks, axis=1))
     paths = anchor * ratios
     if not np.isfinite(paths).all() or float(paths.min()) <= 0:
@@ -346,6 +351,12 @@ def build_conditional_outputs(paths: np.ndarray, dates: list[str], weights: np.n
             },
         }
     same_shape = _same_shape(representatives, model_contract["same_shape_gate"])
+    scenario_ess_minimum = float(
+        model_contract["entropy_pooling"]["scenario_weighted_ess_minimum"])
+    scenario_ess_pass = all(
+        row["weighted_effective_sample_size"] >= scenario_ess_minimum
+        for row in scenario_rows.values()
+    )
     above_anchor = (paths > float(snapshot["anchor"])).T @ weights
     above_ath = (paths > float(snapshot["ath"])).T @ weights
     corr10_touch = np.maximum.accumulate(
@@ -358,5 +369,11 @@ def build_conditional_outputs(paths: np.ndarray, dates: list[str], weights: np.n
         "unconditional_prob_touch_corr10": [0.0, *[float(value) for value in corr10_touch]],
         "scenarios": scenario_rows,
         "same_shape_diagnostics": same_shape,
-        "representative_lines_visible": same_shape["gate_pass"],
+        "distribution_gates": {
+            "scenario_weighted_ess_minimum": scenario_ess_minimum,
+            "scenario_ess_pass": scenario_ess_pass,
+            "same_shape_pass": same_shape["gate_pass"],
+            "overall_pass": scenario_ess_pass and same_shape["gate_pass"],
+        },
+        "representative_lines_visible": scenario_ess_pass and same_shape["gate_pass"],
     }

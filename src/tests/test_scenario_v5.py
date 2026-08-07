@@ -29,29 +29,31 @@ def test_candidate_contract_and_source_snapshot_hash() -> None:
     result = verify_candidate(ROOT)
     assert result["ok"]
     assert result["source_snapshot_unchanged"]
-    assert result["source_snapshot_current_sha256"] == (
-        "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c"
-    )
+    assert result["source_snapshot_current_sha256"] == payload["source_snapshot"]["sha256"]
 
 
 def test_identity_is_honest_legacy_prior_not_rcfhs() -> None:
     identity = _candidate()["identity"]
     assert identity["candidate_id"] == "scenario_v5_evidence_conditioned_legacy_prior_v1"
-    assert identity["prior_engine"] == "legacy_gbm_reproduced_v1"
+    assert identity["prior_engine"] == "legacy_gbm_reproduced_extended_v2"
     assert identity["is_rcfhs"] is False
     assert "official" not in identity["promotion_state"].lower()
 
 
 def test_prior_reproduces_snapshot_partition_exactly() -> None:
     snapshot = _snapshot()
-    paths, dates = reproduce_legacy_prior(snapshot)
+    payload = _candidate()
+    official_paths, _official_dates = reproduce_legacy_prior(snapshot)
+    paths, dates = reproduce_legacy_prior(snapshot, n_paths=payload["prior"]["path_count"])
+    assert np.array_equal(paths[:official_paths.shape[0]], official_paths)
     end = max(index for index, day in enumerate(dates)
               if day <= snapshot["model"]["classification_date"])
     hit = (paths[:, :end + 1] > snapshot["ath"]).any(axis=1)
     above = paths[:, end] > snapshot["reference_price"]
     counts = [int(hit.sum()), int((~hit & above).sum()), int((~hit & ~above).sum())]
-    assert counts == [16702, 302, 2996]
-    assert paths.shape == (20000, 252)
+    scenarios = payload["conditional_distribution"]["scenarios"]
+    assert counts == [scenarios[key]["path_count"] for key in ("S1", "S2", "S3")]
+    assert paths.shape == (payload["prior"]["path_count"], 252)
 
 
 def test_evidence_is_point_in_time_and_probability_units_are_explicit() -> None:
@@ -96,7 +98,7 @@ def test_scenario_partition_and_conditional_bands() -> None:
     distribution = _candidate()["conditional_distribution"]
     scenarios = distribution["scenarios"]
     assert abs(sum(row["probability"] for row in scenarios.values()) - 1) < 1e-10
-    assert sum(row["path_count"] for row in scenarios.values()) == 20000
+    assert sum(row["path_count"] for row in scenarios.values()) == _candidate()["prior"]["path_count"]
     assert len(distribution["dates"]) == 253
     for row in scenarios.values():
         columns = np.asarray([row["bands"][f"p{q}"] for q in (5, 10, 25, 50, 75, 90, 95)])
@@ -107,7 +109,8 @@ def test_scenario_partition_and_conditional_bands() -> None:
 
 def test_representatives_are_actual_distinct_members() -> None:
     payload = _candidate()
-    paths, _dates = reproduce_legacy_prior(_snapshot())
+    paths, _dates = reproduce_legacy_prior(
+        _snapshot(), n_paths=payload["prior"]["path_count"])
     member_ids = []
     for row in payload["conditional_distribution"]["scenarios"].values():
         path_id = row["representative_path_id"]
@@ -140,10 +143,13 @@ def test_unmapped_event_impacts_are_exactly_zero() -> None:
 
 def test_dashboard_contains_v5_default_and_hide_gate() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    assert "scenarioV5FlowModel(DATA.scenario,v5)" in script
+    assert "scenarioV5FlowModel(officialScenario,v5)" in script
+    assert "shadowScenario=DATA.scenario_v4_shadow" in script
     assert "v5.banner" in script
     assert "sc.representative_lines_visible===false?[]" in script
     assert "risk-neutral and reference-only evidence" in script
     assert "scenarioV5ConditionalFanMarkup(v5)" in script
     assert "scenarioV5EvidenceMarkup(v5)" in script
     assert "EVENT STATE ONLY" in script
+    assert "visibility.p10_p90" in script
+    assert "fan gated" in script

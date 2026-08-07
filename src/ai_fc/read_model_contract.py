@@ -229,8 +229,8 @@ def validate(model: dict[str, Any]) -> list[str]:
         if scenario_v5.get("banner") != "RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION":
             errors.append("scenario_v5 research-candidate banner is required")
         identity = scenario_v5.get("identity") or {}
-        if identity.get("prior_engine") != "legacy_gbm_reproduced_v1":
-            errors.append("scenario_v5 must disclose the legacy reproduced prior")
+        if identity.get("prior_engine") != "legacy_gbm_reproduced_extended_v2":
+            errors.append("scenario_v5 must disclose the extended reproduced legacy prior")
         if identity.get("is_rcfhs") is not False:
             errors.append("scenario_v5 cannot claim RCFHS")
         conditional = scenario_v5.get("conditional_distribution") or {}
@@ -243,9 +243,12 @@ def validate(model: dict[str, Any]) -> list[str]:
                 or abs(sum(probabilities) - 1.0) > 1e-10):
             errors.append("scenario_v5 probabilities must be fractions summing to one")
         same_shape = conditional.get("same_shape_diagnostics") or {}
+        distribution_gates = conditional.get("distribution_gates") or {}
         if (conditional.get("representative_lines_visible")
-                is not bool(same_shape.get("gate_pass"))):
-            errors.append("scenario_v5 same-shape visibility gate mismatch")
+                is not bool(distribution_gates.get("overall_pass"))):
+            errors.append("scenario_v5 distribution visibility gate mismatch")
+        if distribution_gates.get("same_shape_pass") is not bool(same_shape.get("gate_pass")):
+            errors.append("scenario_v5 same-shape gate disclosure mismatch")
     scenario_v4_shadow = model.get("scenario_v4_shadow")
     if scenario_v4_shadow is not None:
         if not isinstance(scenario_v4_shadow, dict):

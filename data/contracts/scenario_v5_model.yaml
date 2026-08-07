@@ -1,10 +1,10 @@
-version: 2026-08-07.v1
+version: 2026-08-07.v2
 status: research_candidate
 display_name: Evidence-Conditioned Market Outlook · Research Candidate
 identity:
   candidate_id: scenario_v5_evidence_conditioned_legacy_prior_v1
   model_family: evidence_conditioned_joint_path_ensemble
-  prior_engine: legacy_gbm_reproduced_v1
+  prior_engine: legacy_gbm_reproduced_extended_v2
   view_update_engine: entropy_pooling_v1
   event_engine: calibrated_event_state_v1
   scenario_partition: nasdaq_outcome_partition_v1
@@ -13,8 +13,9 @@ identity:
   promotion_state: blocked_pending_rolling_origin_validation
 prior:
   horizon_sessions: 252
-  path_count: 20000
+  path_count: 40000
   source: data/scenarios/nasdaq_latest.json model.gbm_parameters
+  extension_policy: preserve_the_official_sample_prefix_then_extend_same_rng_stream
   continuous_across_calendar_years: true
   path_dtype: float64
 evidence:

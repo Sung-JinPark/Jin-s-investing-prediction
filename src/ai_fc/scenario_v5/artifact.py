@@ -65,7 +65,8 @@ def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     if payload.get("candidate_id") != CANDIDATE_ID:
         errors.append("candidate_id mismatch")
     identity = payload.get("identity") or {}
-    if identity.get("prior_engine") != "legacy_gbm_reproduced_v1" or identity.get("is_rcfhs") is not False:
+    if (identity.get("prior_engine") != "legacy_gbm_reproduced_extended_v2"
+            or identity.get("is_rcfhs") is not False):
         errors.append("honest legacy-prior identity required")
     if payload.get("status") not in {"ok", "degraded"}:
         errors.append("candidate status invalid")
@@ -85,6 +86,19 @@ def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
             errors.append(f"{key} representative length mismatch")
         if row.get("representative_selection", {}).get("member_path") is not True:
             errors.append(f"{key} representative is not an actual member")
+    distribution = payload.get("conditional_distribution", {})
+    distribution_gates = distribution.get("distribution_gates") or {}
+    scenario_ess_minimum = distribution_gates.get("scenario_weighted_ess_minimum")
+    if not isinstance(scenario_ess_minimum, (int, float)) or scenario_ess_minimum < 200:
+        errors.append("scenario weighted ESS minimum is missing or below the registered gate")
+    elif any(
+        not isinstance(scenarios.get(key, {}).get("weighted_effective_sample_size"), (int, float))
+        or scenarios[key]["weighted_effective_sample_size"] < scenario_ess_minimum
+        for key in ("S1", "S2", "S3")
+    ):
+        errors.append("scenario weighted ESS gate failed")
+    if distribution_gates.get("overall_pass") is not True:
+        errors.append("conditional distribution gates failed")
     for view in payload.get("evidence_views", []):
         target = view.get("target")
         if view.get("unit") == "fraction" and target is not None and not 0 <= target <= 1:
@@ -96,10 +110,12 @@ def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     posterior = payload.get("posterior_diagnostics", {})
     if not posterior.get("converged") or not posterior.get("gates_pass"):
         errors.append("entropy-pooling solver/gates failed")
-    same_shape = payload.get("conditional_distribution", {}).get("same_shape_diagnostics", {})
-    visible = payload.get("conditional_distribution", {}).get("representative_lines_visible")
-    if visible is not bool(same_shape.get("gate_pass")):
-        errors.append("same-shape visibility gate mismatch")
+    same_shape = distribution.get("same_shape_diagnostics", {})
+    visible = distribution.get("representative_lines_visible")
+    if visible is not bool(distribution_gates.get("overall_pass")):
+        errors.append("conditional-distribution visibility gate mismatch")
+    if distribution_gates.get("same_shape_pass") is not bool(same_shape.get("gate_pass")):
+        errors.append("same-shape gate disclosure mismatch")
     expected_hash = canonical_hash(_comparable(payload))
     if payload.get("canonical_sha256") and payload["canonical_sha256"] != expected_hash:
         errors.append("canonical_sha256 mismatch")
@@ -112,7 +128,8 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     contracts = load_contracts(root)
     model_contract = contracts["scenario_v5_model"]
     identity = deepcopy(model_contract["identity"])
-    paths, dates = reproduce_legacy_prior(snapshot)
+    paths, dates = reproduce_legacy_prior(
+        snapshot, n_paths=int(model_contract["prior"]["path_count"]))
     evidence = build_evidence_registry(root, snapshot, contracts)
     matrix, numerical_views = condition_matrix(paths, dates, snapshot, evidence)
     weights, posterior = entropy_pool(
@@ -141,6 +158,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "corr10": snapshot["corr10"],
             "reference_price": snapshot["reference_price"],
             "classification_date": snapshot["model"]["classification_date"],
+            "legacy_displayed_probabilities": {
+                key: float(snapshot["paths"][key]["prob"]) / 100.0
+                for key in ("S1", "S2", "S3")
+            },
         },
         "pit_integrity": {
             "market_data_asof": snapshot["asof"],
@@ -155,8 +176,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "prior": {
             "engine": identity["prior_engine"],
             "path_count": int(paths.shape[0]),
+            "source_path_count": int(snapshot["model"]["n_paths"]),
             "horizon_sessions": int(paths.shape[1]),
             "seed": snapshot["model"]["seed"],
+            "extension_policy": model_contract["prior"]["extension_policy"],
             "continuous_across_calendar_years": True,
             "event_jump_policy": "J_t = 0 until an approved mapping exists",
             "parameters": snapshot["model"]["gbm_parameters"],

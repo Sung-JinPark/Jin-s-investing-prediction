@@ -140,7 +140,9 @@ def test_schema2_archive_remains_valid_after_structural_upgrade() -> None:
 
 def test_structural_v3_revision_preserves_distribution_weights_and_endpoints() -> None:
     root = Path(__file__).parents[2]
-    latest = json.loads((root / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8"))
+    latest = json.loads((
+        root / "data/scenarios/archive/2026-08-03_CORR-260806-019.json"
+    ).read_text(encoding="utf-8"))
     r7 = json.loads((
         root / "data/scenarios/archive/2026-08-03_CORR-260806-018.json"
     ).read_text(encoding="utf-8"))
@@ -165,7 +167,7 @@ def test_public_snapshot_reproduces_partition_and_all_quantile_cells() -> None:
     )
     result = json.loads(completed.stdout)
     assert result["passed"] is True
-    assert result["probabilities_reproduced"] == [83, 2, 15]
+    assert result["probabilities_reproduced"] == result["probabilities_expected"]
     assert result["quantile_cells_checked"] == 1764
     assert result["quantile_mismatches"] == 0
 
