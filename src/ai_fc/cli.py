@@ -234,6 +234,40 @@ def cmd_scenario_v5_verify(
         raise typer.Exit(code=1)
 
 
+@app.command("scenario-v5-1-build")
+def cmd_scenario_v5_1_build(
+    force: bool = typer.Option(False, "--force", help="Rewrite even when model content is unchanged"),
+) -> None:
+    """Build the additive, fail-closed Scenario V5.1 research candidate."""
+    from .scenario_v5.hardening import ScenarioV51Error, build_candidate_v5_1
+
+    try:
+        path, payload, changed = build_candidate_v5_1(config.ROOT, force=force)
+    except (ScenarioV51Error, FileNotFoundError, KeyError, TypeError, ValueError) as exc:
+        typer.echo(f"Scenario V5.1 build blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    state = "updated" if changed else "model-content no-op"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} | "
+        f"model={payload['model_content_sha256']} | "
+        f"receipt={payload['build_receipt_sha256']} | "
+        "RESEARCH CANDIDATE - NOT OFFICIAL"
+    )
+
+
+@app.command("scenario-v5-1-verify")
+def cmd_scenario_v5_1_verify(
+    path: Path | None = typer.Option(None, "--path", help="Candidate JSON to verify"),
+) -> None:
+    """Verify V5.1 schema, replay, source hashes, and circularity gates."""
+    from .scenario_v5.hardening import verify_candidate_v5_1
+
+    result = verify_candidate_v5_1(config.ROOT, path)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("scenario-v5-backtest")
 def cmd_scenario_v5_backtest() -> None:
     """Materialize the PIT-safe rolling-origin framework without fabricated scores."""

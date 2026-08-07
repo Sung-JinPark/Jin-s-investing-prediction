@@ -40,6 +40,12 @@ EVENT_FORECASTS = {
     "fomc-2026-10-28-hike": "2026-10-28",
 }
 
+FORECAST_HORIZON_STARTS = {
+    "nasdaq-ath-eoy-2026": "2026-07-10",
+    "nasdaq-corr10-augoct-2026": "2026-08-01",
+    "nasdaq-eoy-above-jul9-2026": "2026-07-10",
+}
+
 
 def _aware(value: datetime, tz: ZoneInfo) -> datetime:
     return value.replace(tzinfo=tz) if value.tzinfo is None else value.astimezone(tz)
@@ -123,7 +129,8 @@ def _latest_registered_forecasts(root: Path, knowledge_cutoff: datetime,
             "target_asset": "^IXIC" if is_direct_path_view else "event_state",
             "as_of": cutoff.isoformat(timespec="seconds"),
             "available_at": available_at.isoformat(timespec="seconds"),
-            "horizon_start": "2026-08-04",
+            "horizon_start": FORECAST_HORIZON_STARTS.get(
+                question_id, available_at.date().isoformat()),
             "horizon_end": question.deadline.isoformat() if question.deadline else "2026-12-31",
             "view_kind": mapping["view_kind"],
             "condition": mapping["condition"],
@@ -192,7 +199,8 @@ def _latest_market_views(root: Path, knowledge_cutoff: datetime,
             "target_asset": "^IXIC" if question_id.startswith("nasdaq-") else "event_state",
             "as_of": knowledge_cutoff.isoformat(timespec="seconds"),
             "available_at": run_ts.isoformat(timespec="seconds"),
-            "horizon_start": "2026-08-04",
+            "horizon_start": FORECAST_HORIZON_STARTS.get(
+                question_id, run_ts.date().isoformat()),
             "horizon_end": str((item.get("detail") or {}).get("expiry") or "2026-10-28"),
             "view_kind": "terminal_probability" if is_options else "event_probability",
             "condition": question_id,
