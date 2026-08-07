@@ -1,0 +1,576 @@
+{
+  "schema_version": 1,
+  "period": "2027 continuation",
+  "thresholds": {
+    "maximum_correlation": 0.98,
+    "minimum_wasserstein": 0.02,
+    "minimum_energy": 0.02
+  },
+  "scenarios": {
+    "S1": {
+      "post_classification_return_distribution": {
+        "p05": -0.10030105411556593,
+        "p50": 0.13497442269729032,
+        "p95": 0.4375944707789698,
+        "mean": 0.1472587222527006,
+        "annualized_volatility": 0.18480627880009898,
+        "mean_maximum_drawdown": -0.11377189214828633,
+        "count": 36148
+      },
+      "p50_2027_return": 0.13736839073602436
+    },
+    "S2": {
+      "post_classification_return_distribution": {
+        "p05": -0.12870904807734662,
+        "p50": 0.1307327165280725,
+        "p95": 0.46494532583164505,
+        "mean": 0.1533132027766959,
+        "annualized_volatility": 0.18556615209823793,
+        "mean_maximum_drawdown": -0.11500155359161254,
+        "count": 405
+      },
+      "p50_2027_return": 0.1348129003851839
+    },
+    "S3": {
+      "post_classification_return_distribution": {
+        "p05": -0.09658374575420306,
+        "p50": 0.1373874533725512,
+        "p95": 0.44477184251159313,
+        "mean": 0.15054785674001067,
+        "annualized_volatility": 0.18497385023731916,
+        "mean_maximum_drawdown": -0.11364866528770286,
+        "count": 3447
+      },
+      "p50_2027_return": 0.12721304008783707
+    }
+  },
+  "pairs": [
+    {
+      "pair": "S1/S2",
+      "normalized_p50_level_correlation": 0.9951143664516613,
+      "wasserstein_return_distance": 0.011826379142091932,
+      "energy_return_distance": 0.021909929169076293,
+      "terminal_volatility_difference": 0.012253392157351245,
+      "conditional_max_drawdown_difference": 0.001229661443326216,
+      "distinctness_gate_pass": true
+    },
+    {
+      "pair": "S1/S3",
+      "normalized_p50_level_correlation": 0.9989291168535912,
+      "wasserstein_return_distance": 0.004508813052627847,
+      "energy_return_distance": 0.008419482498087097,
+      "terminal_volatility_difference": 0.0005651050425706239,
+      "conditional_max_drawdown_difference": 0.00012322686058346966,
+      "distinctness_gate_pass": false
+    },
+    {
+      "pair": "S2/S3",
+      "normalized_p50_level_correlation": 0.9928596379846517,
+      "wasserstein_return_distance": 0.011745763684694079,
+      "energy_return_distance": 0.0203769497280193,
+      "terminal_volatility_difference": 0.012818497199921869,
+      "conditional_max_drawdown_difference": 0.0013528883039096856,
+      "distinctness_gate_pass": true
+    }
+  ],
+  "distinct_three_scenario_continuation_allowed": false,
+  "gate_pass": false,
+  "display_disclosure": "2026: scenario-specific conditional distribution; 2027: common-model continuation; scenario-specific starting level only",
+  "prior_sensitivity": {
+    "schema_version": 1,
+    "status": "PARTIAL_LEGACY_PRIOR_ONLY",
+    "warning": "Exact trough dates are seed-unstable and are not forecasts.",
+    "drift_shrinkage_prior": [
+      {
+        "drift_retention": 0.0,
+        "S1": {
+          "probability": 0.7526,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26381.685398720234
+        },
+        "S2": {
+          "probability": 0.0128,
+          "conditional_p50_trough_date": "2026-10-26",
+          "conditional_p50_trough_level": 24831.37019008678
+        },
+        "S3": {
+          "probability": 0.2346,
+          "conditional_p50_trough_date": "2027-08-06",
+          "conditional_p50_trough_level": 23059.20165464341
+        },
+        "correction": {
+          "any_touch_probability": 0.67695,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "drift_retention": 0.5,
+        "S1": {
+          "probability": 0.83795,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26382.52155473373
+        },
+        "S2": {
+          "probability": 0.0132,
+          "conditional_p50_trough_date": "2026-10-20",
+          "conditional_p50_trough_level": 24797.875165136073
+        },
+        "S3": {
+          "probability": 0.14885,
+          "conditional_p50_trough_date": "2027-01-06",
+          "conditional_p50_trough_level": 23918.836789758956
+        },
+        "correction": {
+          "any_touch_probability": 0.48605,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "drift_retention": 1.0,
+        "S1": {
+          "probability": 0.9037,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26386.40556876461
+        },
+        "S2": {
+          "probability": 0.010125,
+          "conditional_p50_trough_date": "2026-10-02",
+          "conditional_p50_trough_level": 24804.022042992878
+        },
+        "S3": {
+          "probability": 0.086175,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24110.852577383455
+        },
+        "correction": {
+          "any_touch_probability": 0.31725,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      }
+    ],
+    "path_count": [
+      {
+        "path_count": 40000,
+        "S1": {
+          "probability": 0.9037,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26386.40556876461
+        },
+        "S2": {
+          "probability": 0.010125,
+          "conditional_p50_trough_date": "2026-10-02",
+          "conditional_p50_trough_level": 24804.022042992878
+        },
+        "S3": {
+          "probability": 0.086175,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24110.852577383455
+        },
+        "correction": {
+          "any_touch_probability": 0.31725,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "path_count": 100000,
+        "S1": {
+          "probability": 0.90351,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.152009482223
+        },
+        "S2": {
+          "probability": 0.01051,
+          "conditional_p50_trough_date": "2026-10-19",
+          "conditional_p50_trough_level": 24864.43811500145
+        },
+        "S3": {
+          "probability": 0.08598,
+          "conditional_p50_trough_date": "2026-12-04",
+          "conditional_p50_trough_level": 24142.526790205324
+        },
+        "correction": {
+          "any_touch_probability": 0.31827,
+          "first_touch_unique_dates": 251,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "path_count": 200000,
+        "S1": {
+          "probability": 0.904015,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.43845338848
+        },
+        "S2": {
+          "probability": 0.010195,
+          "conditional_p50_trough_date": "2026-10-19",
+          "conditional_p50_trough_level": 24874.29331224288
+        },
+        "S3": {
+          "probability": 0.08579,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24149.670838087703
+        },
+        "correction": {
+          "any_touch_probability": 0.317755,
+          "first_touch_unique_dates": 251,
+          "exact_date_stable": false
+        }
+      }
+    ],
+    "seeds": [
+      {
+        "seed": 42,
+        "S1": {
+          "probability": 0.9037,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26386.40556876461
+        },
+        "S2": {
+          "probability": 0.010125,
+          "conditional_p50_trough_date": "2026-10-02",
+          "conditional_p50_trough_level": 24804.022042992878
+        },
+        "S3": {
+          "probability": 0.086175,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24110.852577383455
+        },
+        "correction": {
+          "any_touch_probability": 0.31725,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 43,
+        "S1": {
+          "probability": 0.904475,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26386.46984111468
+        },
+        "S2": {
+          "probability": 0.0099,
+          "conditional_p50_trough_date": "2026-10-07",
+          "conditional_p50_trough_level": 24813.05316130825
+        },
+        "S3": {
+          "probability": 0.085625,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24142.346936110025
+        },
+        "correction": {
+          "any_touch_probability": 0.314875,
+          "first_touch_unique_dates": 249,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 44,
+        "S1": {
+          "probability": 0.90315,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26383.999344778204
+        },
+        "S2": {
+          "probability": 0.0096,
+          "conditional_p50_trough_date": "2026-10-26",
+          "conditional_p50_trough_level": 24784.24296293627
+        },
+        "S3": {
+          "probability": 0.08725,
+          "conditional_p50_trough_date": "2026-12-03",
+          "conditional_p50_trough_level": 24122.713628426012
+        },
+        "correction": {
+          "any_touch_probability": 0.318125,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 45,
+        "S1": {
+          "probability": 0.902725,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26382.839002410623
+        },
+        "S2": {
+          "probability": 0.009325,
+          "conditional_p50_trough_date": "2026-10-21",
+          "conditional_p50_trough_level": 24756.357931231996
+        },
+        "S3": {
+          "probability": 0.08795,
+          "conditional_p50_trough_date": "2026-11-23",
+          "conditional_p50_trough_level": 24098.773612057506
+        },
+        "correction": {
+          "any_touch_probability": 0.32105,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 46,
+        "S1": {
+          "probability": 0.904075,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.743233243455
+        },
+        "S2": {
+          "probability": 0.01045,
+          "conditional_p50_trough_date": "2026-10-19",
+          "conditional_p50_trough_level": 24743.626952327293
+        },
+        "S3": {
+          "probability": 0.085475,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24145.573111299353
+        },
+        "correction": {
+          "any_touch_probability": 0.316575,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 47,
+        "S1": {
+          "probability": 0.904525,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26379.982894731293
+        },
+        "S2": {
+          "probability": 0.010125,
+          "conditional_p50_trough_date": "2026-10-20",
+          "conditional_p50_trough_level": 24792.02293929359
+        },
+        "S3": {
+          "probability": 0.08535,
+          "conditional_p50_trough_date": "2026-12-10",
+          "conditional_p50_trough_level": 24159.047756203097
+        },
+        "correction": {
+          "any_touch_probability": 0.320975,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 48,
+        "S1": {
+          "probability": 0.9047,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.849359286054
+        },
+        "S2": {
+          "probability": 0.0097,
+          "conditional_p50_trough_date": "2026-10-12",
+          "conditional_p50_trough_level": 24721.055225647273
+        },
+        "S3": {
+          "probability": 0.0856,
+          "conditional_p50_trough_date": "2026-12-04",
+          "conditional_p50_trough_level": 24201.344084280154
+        },
+        "correction": {
+          "any_touch_probability": 0.317425,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 49,
+        "S1": {
+          "probability": 0.9054,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.58111669156
+        },
+        "S2": {
+          "probability": 0.008925,
+          "conditional_p50_trough_date": "2026-10-29",
+          "conditional_p50_trough_level": 24776.899681785388
+        },
+        "S3": {
+          "probability": 0.085675,
+          "conditional_p50_trough_date": "2026-12-07",
+          "conditional_p50_trough_level": 24112.936119806676
+        },
+        "correction": {
+          "any_touch_probability": 0.31725,
+          "first_touch_unique_dates": 249,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 50,
+        "S1": {
+          "probability": 0.903625,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26384.581326194344
+        },
+        "S2": {
+          "probability": 0.0099,
+          "conditional_p50_trough_date": "2026-10-08",
+          "conditional_p50_trough_level": 24866.29684146608
+        },
+        "S3": {
+          "probability": 0.086475,
+          "conditional_p50_trough_date": "2026-11-25",
+          "conditional_p50_trough_level": 24095.673967217546
+        },
+        "correction": {
+          "any_touch_probability": 0.314125,
+          "first_touch_unique_dates": 249,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "seed": 51,
+        "S1": {
+          "probability": 0.90155,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26381.609695275616
+        },
+        "S2": {
+          "probability": 0.010975,
+          "conditional_p50_trough_date": "2026-10-16",
+          "conditional_p50_trough_level": 24820.59490071485
+        },
+        "S3": {
+          "probability": 0.087475,
+          "conditional_p50_trough_date": "2026-12-11",
+          "conditional_p50_trough_level": 24172.658277720908
+        },
+        "correction": {
+          "any_touch_probability": 0.31935,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      }
+    ],
+    "source_refresh": [
+      {
+        "source_path": "data/scenarios/archive/2026-08-03_CORR-260806-019.json",
+        "source_sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+        "asof": "2026-08-03",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+        "S1": {
+          "probability": 0.833125,
+          "conditional_p50_trough_date": "2026-08-04",
+          "conditional_p50_trough_level": 25952.012334077623
+        },
+        "S2": {
+          "probability": 0.015375,
+          "conditional_p50_trough_date": "2026-10-06",
+          "conditional_p50_trough_level": 24714.474088932995
+        },
+        "S3": {
+          "probability": 0.1515,
+          "conditional_p50_trough_date": "2026-11-30",
+          "conditional_p50_trough_level": 24027.27607218874
+        },
+        "correction": {
+          "any_touch_probability": 0.43775,
+          "first_touch_unique_dates": 251,
+          "exact_date_stable": false
+        }
+      },
+      {
+        "source_path": "data/scenarios/nasdaq_latest.json",
+        "source_sha256": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
+        "asof": "2026-08-06",
+        "snapshot_id": "nasdaq-scenario:2026-08-06:r1",
+        "S1": {
+          "probability": 0.9037,
+          "conditional_p50_trough_date": "2026-08-07",
+          "conditional_p50_trough_level": 26386.40556876461
+        },
+        "S2": {
+          "probability": 0.010125,
+          "conditional_p50_trough_date": "2026-10-02",
+          "conditional_p50_trough_level": 24804.022042992878
+        },
+        "S3": {
+          "probability": 0.086175,
+          "conditional_p50_trough_date": "2026-12-01",
+          "conditional_p50_trough_level": 24110.852577383455
+        },
+        "correction": {
+          "any_touch_probability": 0.31725,
+          "first_touch_unique_dates": 250,
+          "exact_date_stable": false
+        }
+      }
+    ],
+    "seed_stability": {
+      "conditional_p50_trough_dates": {
+        "S1": [
+          "2026-08-07"
+        ],
+        "S2": [
+          "2026-10-02",
+          "2026-10-07",
+          "2026-10-08",
+          "2026-10-12",
+          "2026-10-16",
+          "2026-10-19",
+          "2026-10-20",
+          "2026-10-21",
+          "2026-10-26",
+          "2026-10-29"
+        ],
+        "S3": [
+          "2026-11-23",
+          "2026-11-25",
+          "2026-12-01",
+          "2026-12-03",
+          "2026-12-04",
+          "2026-12-07",
+          "2026-12-10",
+          "2026-12-11"
+        ]
+      },
+      "scenario_probability_ranges": {
+        "S1": [
+          0.90155,
+          0.9054
+        ],
+        "S2": [
+          0.008925,
+          0.010975
+        ],
+        "S3": [
+          0.08535,
+          0.08795
+        ]
+      },
+      "exact_date_stability_pass": false
+    },
+    "lookback": {
+      "requested": [
+        252,
+        504,
+        756,
+        1260
+      ],
+      "status": "BLOCKED",
+      "reason": "no approved PIT long-history rows with the V6 provenance contract"
+    },
+    "challengers": {
+      "EWMA_filtered_historical_simulation": "BLOCKED_NO_APPROVED_PIT_HISTORY",
+      "GARCH_filtered_historical_simulation": "BLOCKED_NO_APPROVED_PIT_HISTORY",
+      "RCFHS_stationary_bootstrap": "BLOCKED_NO_APPROVED_PIT_HISTORY"
+    },
+    "block_length_distribution": "BLOCKED_NO_APPROVED_PIT_HISTORY",
+    "regime_threshold": "BLOCKED_NO_APPROVED_PIT_HISTORY",
+    "evidence_strength_tolerance": "INVARIANT_NO_APPROVED_NUMERICAL_VIEWS",
+    "leave_one_view_out": [],
+    "leave_one_cluster_out": []
+  }
+}

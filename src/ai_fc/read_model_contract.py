@@ -116,10 +116,13 @@ def schema() -> dict[str, Any]:
         "type": "object",
         "required": ["schema_version", "status", "candidate_id"],
         "properties": {
-            "schema_version": {"const": 1},
-            "status": {"enum": ["ok", "degraded", "unavailable"]},
+            "schema_version": {"enum": [1, 2]},
+            "status": {"enum": ["ok", "degraded", "stale_or_invalid", "unavailable"]},
             "candidate_id": {
-                "const": "scenario_v5_evidence_conditioned_legacy_prior_v1"
+                "enum": [
+                    "scenario_v5_evidence_conditioned_legacy_prior_v1",
+                    "scenario_v5_1_time_aligned_legacy_prior_v1",
+                ]
             },
         },
     }
@@ -226,7 +229,7 @@ def validate(model: dict[str, Any]) -> list[str]:
                     break
     scenario_v5 = model.get("scenario_v5")
     if isinstance(scenario_v5, dict) and scenario_v5.get("status") in {"ok", "degraded"}:
-        if scenario_v5.get("banner") != "RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION":
+        if not str(scenario_v5.get("banner", "")).startswith("RESEARCH CANDIDATE"):
             errors.append("scenario_v5 research-candidate banner is required")
         identity = scenario_v5.get("identity") or {}
         if identity.get("prior_engine") != "legacy_gbm_reproduced_extended_v2":

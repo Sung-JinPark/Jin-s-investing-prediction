@@ -186,7 +186,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     """18개 질의 + registry + 예측 이력 + ml/market 이력 → 대시보드 read-model."""
     from .registry import compute_due, load_registry
 
-    now = datetime.now()
+    now = datetime.now().astimezone()
     questions = load_registry(root / "questions" / "registry.yaml")
     qmap = {q.question_id: q for q in questions}
     bodies = _forecast_bodies(root)
@@ -279,14 +279,15 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
-    from .scenario_v5 import load_candidate as load_scenario_v5_candidate
-    scenario_v5 = load_scenario_v5_candidate(root)
-    if scenario_v5 is None:
+    from .scenario_v5 import load_current_candidate as load_scenario_v5_candidate
+    scenario_v5 = load_scenario_v5_candidate(root, now, maximum_age_trading_days=1)
+    if scenario_v5.get("status") == "unavailable":
         scenario_v5 = {
-            "schema_version": 1,
+            **scenario_v5,
+            "schema_version": 2,
             "status": "unavailable",
-            "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
-            "reason": (
+            "candidate_id": "scenario_v5_1_time_aligned_legacy_prior_v1",
+            "reason": scenario_v5.get("reason") or (
                 "No valid fresh Scenario V5 research candidate; "
                 "the official legacy fallback remains active."
             ),
