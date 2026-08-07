@@ -1,0 +1,248 @@
+.........................F........................F.F....FF............. [ 22%]
+........................................................................ [ 44%]
+........................................................................ [ 66%]
+.................................................................F.F.... [ 89%]
+...................................                                      [100%]
+=================================== FAILURES ===================================
+________________ test_parquet_duckdb_store_matches_python_asof _________________
+
+    @staticmethod
+    def _deps():
+        try:
+>           import duckdb  # type: ignore
+            ^^^^^^^^^^^^^
+E           ModuleNotFoundError: No module named 'duckdb'
+
+src/ai_fc/facts.py:89: ModuleNotFoundError
+
+The above exception was the direct cause of the following exception:
+
+tmp_path = PosixPath('/tmp/pytest-of-root/pytest-5/test_parquet_duckdb_store_matc0')
+
+    def test_parquet_duckdb_store_matches_python_asof(tmp_path) -> None:
+        facts = [
+            _fact(100.0, "2025-04-30T08:30:00", "2025-05-29T08:30:00"),
+            _fact(101.0, "2025-05-29T08:30:00", None),
+        ]
+        store = ParquetFactStore(tmp_path)
+>       paths = store.append(facts)
+                ^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_bitemporal_facts.py:41: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+src/ai_fc/facts.py:97: in append
+    _, pa, pq = self._deps()
+                ^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+    @staticmethod
+    def _deps():
+        try:
+            import duckdb  # type: ignore
+            import pyarrow as pa  # type: ignore
+            import pyarrow.parquet as pq  # type: ignore
+        except ImportError as exc:  # pragma: no cover - optional dependency
+>           raise RuntimeError("install ai-fc[pit] for Parquet/DuckDB fact storage") from exc
+E           RuntimeError: install ai-fc[pit] for Parquet/DuckDB fact storage
+
+src/ai_fc/facts.py:93: RuntimeError
+___________________ test_u1a_route_and_home_render_evidence ____________________
+
+    def test_u1a_route_and_home_render_evidence() -> None:
+        project_root = Path(__file__).parents[2]
+        evidence_dir = project_root / "reports" / "screenshots" / "u1a_260805"
+>       results = json.loads((evidence_dir / "route_results.json").read_text(encoding="utf-8"))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_dashboard.py:232: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1a_260805/route_results.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1a_260805/route_results.json'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+_____________________ test_u1b_browser_regression_evidence _____________________
+
+    def test_u1b_browser_regression_evidence() -> None:
+        project_root = Path(__file__).parents[2]
+        evidence_dir = project_root / "reports" / "screenshots" / "u1b_260805"
+>       results = json.loads((evidence_dir / "results.json").read_text(encoding="utf-8"))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_dashboard.py:275: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1b_260805/results.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1b_260805/results.json'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+__________________ test_u1d_mobile_layout_regression_evidence __________________
+
+    def test_u1d_mobile_layout_regression_evidence() -> None:
+        project_root = Path(__file__).parents[2]
+        evidence_dir = project_root / "reports" / "screenshots" / "u1d_260805"
+>       results = json.loads((evidence_dir / "layout_results.json").read_text(encoding="utf-8"))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_dashboard.py:522: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1d_260805/layout_results.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1d_260805/layout_results.json'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+_____________________ test_u1c_browser_regression_evidence _____________________
+
+    def test_u1c_browser_regression_evidence() -> None:
+        project_root = Path(__file__).parents[2]
+        evidence_dir = project_root / "reports" / "screenshots" / "u1c_260805"
+>       results = json.loads((evidence_dir / "results.json").read_text(encoding="utf-8"))
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_dashboard.py:540: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1c_260805/results.json')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1c_260805/results.json'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+________ test_u0_audit_releases_u1_gate_only_with_complete_capture_set _________
+
+    def test_u0_audit_releases_u1_gate_only_with_complete_capture_set() -> None:
+>       report = (ROOT / "reports/md/UX_AUDIT_260805.md").read_text(encoding="utf-8")
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src/tests/test_u0_s0_scope.py:129: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+/usr/lib/python3.13/pathlib/_local.py:548: in read_text
+    return PathBase.read_text(self, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+/usr/lib/python3.13/pathlib/_abc.py:632: in read_text
+    with self.open(mode='r', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = PosixPath('/mnt/data/ai_investing_handoff_260806/reports/md/UX_AUDIT_260805.md')
+mode = 'r', buffering = -1, encoding = 'utf-8', errors = None, newline = None
+
+    def open(self, mode='r', buffering=-1, encoding=None,
+             errors=None, newline=None):
+        """
+        Open the file pointed to by this path and return a file object, as
+        the built-in open() function does.
+        """
+        if "b" not in mode:
+            encoding = io.text_encoding(encoding)
+>       return io.open(self, mode, buffering, encoding, errors, newline)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/md/UX_AUDIT_260805.md'
+
+/usr/lib/python3.13/pathlib/_local.py:539: FileNotFoundError
+____________________________ test_real_repo_passes _____________________________
+
+    def test_real_repo_passes() -> None:
+        code, out = _run(REPO)
+>       assert code == 0, out
+E       AssertionError: ==============================================================
+E         AI-FC track record 검증기 — 읽기 전용 · stdlib + git
+E         ==============================================================
+E         [1] 해시 앵커 (forecasts/.hashes ↔ SHA-256 재계산)
+E           ok    예측 파일 22건 해시 전건 일치
+E         [2] git 불변성 (공개 이력 전체)
+E         
+E       assert 1 == 0
+
+src/tests/test_verifier.py:70: AssertionError
+=========================== short test summary info ============================
+FAILED src/tests/test_bitemporal_facts.py::test_parquet_duckdb_store_matches_python_asof - RuntimeError: install ai-fc[pit] for Parquet/DuckDB fact storage
+FAILED src/tests/test_dashboard.py::test_u1a_route_and_home_render_evidence - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1a_260805/route_results.json'
+FAILED src/tests/test_dashboard.py::test_u1b_browser_regression_evidence - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1b_260805/results.json'
+FAILED src/tests/test_dashboard.py::test_u1d_mobile_layout_regression_evidence - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1d_260805/layout_results.json'
+FAILED src/tests/test_dashboard.py::test_u1c_browser_regression_evidence - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/screenshots/u1c_260805/results.json'
+FAILED src/tests/test_u0_s0_scope.py::test_u0_audit_releases_u1_gate_only_with_complete_capture_set - FileNotFoundError: [Errno 2] No such file or directory: '/mnt/data/ai_investing_handoff_260806/reports/md/UX_AUDIT_260805.md'
+FAILED src/tests/test_verifier.py::test_real_repo_passes - AssertionError: ==============================================================
+  AI-FC track record 검증기 — 읽기 전용 · stdlib + git
+  ==============================================================
+  [1] 해시 앵커 (forecasts/.hashes ↔ SHA-256 재계산)
+    ok    예측 파일 22건 해시 전건 일치
+  [2] git 불변성 (공개 이력 전체)
+  
+assert 1 == 0
+7 failed, 316 passed in 23.65s
+exit_status=1

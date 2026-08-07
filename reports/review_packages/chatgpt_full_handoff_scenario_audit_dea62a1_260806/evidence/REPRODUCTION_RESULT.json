@@ -1,0 +1,8 @@
+{
+  "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+  "probabilities_expected": [83, 2, 15],
+  "probabilities_reproduced": [83, 2, 15],
+  "quantile_cells_checked": 1764,
+  "quantile_mismatches": 0,
+  "passed": true
+}

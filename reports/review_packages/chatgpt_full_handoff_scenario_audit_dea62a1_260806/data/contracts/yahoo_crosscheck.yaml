@@ -1,0 +1,16 @@
+schema_version: 1
+source_id: yahoo_crosscheck
+description: Non-vintage market-price cross-check; disabled pending rights review.
+timezone: America/New_York
+calendar_id: XNAS
+cadence: business-daily
+freshness_sla_hours: 48
+available_at_rule: Exchange close plus publication latency; never backdate retrieved history.
+revision_policy: No native vintage; historical backfill is valid only after retrieved_at.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: symbol, type: string}
+  - {name: observation_time, type: string}
+  - {name: close, type: number, minimum: 0}
+quality_checks: [schema, positive-price, exchange-calendar, duplicate-key, freshness]
+fallback: Official exchange or licensed feed preferred.

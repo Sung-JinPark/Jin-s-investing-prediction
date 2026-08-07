@@ -1,0 +1,345 @@
+diff --git a/src/ai_fc/files.py b/src/ai_fc/files.py
+index 9d9de6d..0e7569b 100644
+--- a/src/ai_fc/files.py
++++ b/src/ai_fc/files.py
+@@ -163,8 +163,11 @@ def validate_new_record(fm: dict[str, Any]) -> list[str]:
+     ci = fm.get("ci80")
+     if ci is not None:
+         if (not isinstance(ci, list) or len(ci) != 2
+-                or not all(isinstance(x, int) for x in ci) or ci[0] > ci[1]):
++                or not all(isinstance(x, int) for x in ci)
++                or not (1 <= ci[0] <= ci[1] <= 99)):
+             errors.append(f"ci80은 [lo, hi] 정수쌍이어야 함: {ci!r}")
++        elif isinstance(p, int) and not ci[0] <= p <= ci[1]:
++            errors.append(f"ci80은 probability를 포함해야 함: {ci[0]} <= {p} <= {ci[1]}")
+     for key in ("forecast_id", "question_id", "timestamp", "phase", "model", "prompt_version"):
+         if not fm.get(key):
+             errors.append(f"필수 키 누락: {key}")
+diff --git a/src/ai_fc/llm_provider.py b/src/ai_fc/llm_provider.py
+index 93b69ab..69e5470 100644
+--- a/src/ai_fc/llm_provider.py
++++ b/src/ai_fc/llm_provider.py
+@@ -15,7 +15,7 @@ from typing import Any, Protocol, runtime_checkable
+ 
+ from . import config, llm
+ from .llm import PipelineBudget, Usage
+-from .schemas import ForecastResult
++from .schemas import ForecastResult, validate_forecast_consistency
+ 
+ 
+ _DATED_SNAPSHOT = re.compile(r"^gpt-[a-z0-9.-]+-20\d{2}-\d{2}-\d{2}$")
+@@ -45,6 +45,7 @@ def validate_forecast_output(value: Any) -> ForecastResult:
+     """Enforce the provider-independent 1..99 probability result contract."""
+     try:
+         result = value if isinstance(value, ForecastResult) else ForecastResult.model_validate(value)
++        validate_forecast_consistency(result)
+     except Exception as exc:  # Pydantic keeps the field-level detail in the cause.
+         raise ProviderOutputError(f"forecast output schema mismatch: {exc}") from exc
+     if not 1 <= result.probability <= 99:
+@@ -53,6 +54,11 @@ def validate_forecast_output(value: Any) -> ForecastResult:
+         raise ProviderOutputError(
+             f"ci80 must satisfy 1 <= lo <= hi <= 99: {result.ci80_lo}, {result.ci80_hi}"
+         )
++    if not result.ci80_lo <= result.probability <= result.ci80_hi:
++        raise ProviderOutputError(
++            "ci80 must contain probability: "
++            f"{result.ci80_lo} <= {result.probability} <= {result.ci80_hi}"
++        )
+     return result
+ 
+ 
+diff --git a/src/ai_fc/orchestrator.py b/src/ai_fc/orchestrator.py
+index a3cfcaf..7f6fd01 100644
+--- a/src/ai_fc/orchestrator.py
++++ b/src/ai_fc/orchestrator.py
+@@ -27,6 +27,7 @@ from .llm import PipelineBudget
+ from .llm_provider import AnthropicProvider, OpenAIResponsesProvider
+ from .models import EvidenceBrief, Question
+ from .registry import load_registry
++from .schemas import validate_forecast_consistency
+ 
+ 
+ class PreflightError(RuntimeError):
+@@ -53,6 +54,12 @@ def _now_kst() -> datetime:
+     return datetime.now(ZoneInfo(config.TZ_NAME)).replace(tzinfo=None)
+ 
+ 
++def _assert_official_forecast_open(q: Question, now: datetime) -> None:
++    """Block new official revisions after the fixed KST deadline date."""
++    if q.deadline_kind == "fixed" and q.deadline and now.date() > q.deadline:
++        raise PreflightError(f"{q.question_id}는 기한({q.deadline}) 경과 — resolve 대상")
++
++
+ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
+                  n_agents: int = 2, budget_usd: float = config.DEFAULT_PIPELINE_BUDGET,
+                  dry_run: bool = False) -> str:
+@@ -62,21 +69,20 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
+     # ── 프리플라이트 (쓰기·과금 전 전부 검증) ──
+     if q is None:
+         raise PreflightError(f"registry에 없는 질문: {question_id}")
++    now = _now_kst()
+     if q.status != "active":
+         raise PreflightError(f"{question_id}는 active가 아님 (status={q.status})")
+     if q.deadline_kind == "tbd":
+         raise PreflightError(
+             f"{question_id}의 deadline이 미확정(null) — 발표일을 확인해 registry에 "
+             f"deadline을 기록한 뒤 재실행하세요 (판정기준 불변 원칙상 자동 기록하지 않음)")
+-    if q.deadline_kind == "fixed" and q.deadline and date.today() > q.deadline:
+-        raise PreflightError(f"{question_id}는 기한({q.deadline}) 경과 — resolve 대상")
++    _assert_official_forecast_open(q, now)
+     # WS1 등록 필터 (v2): 컷오프 이후 신규 질문은 판별가능성 근거 필수
+     from .registry import factory_filter_violation
+     violation = factory_filter_violation(q)
+     if violation:
+         raise PreflightError(f"등록필터 위반 — {violation}")
+ 
+-    now = _now_kst()
+     today = now.date()
+     window_end = today + timedelta(days=q.rolling_days) if q.deadline_kind == "rolling" else None
+     from .provider_governance import assert_official_provider_allowed
+@@ -148,6 +154,12 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
+             agg: AggregateResult = aggregator.estimate(
+                 official_provider, q, briefs, root / "prompts", budget, today, window_end,
+                 aux_context=aux_context)
++            validate_forecast_consistency(
++                agg.result,
++                final_probability=agg.probability,
++                ci80_lo=agg.ci80_lo,
++                ci80_hi=agg.ci80_hi,
++            )
+         except Exception:
+             _persist_failed_costs(
+                 conn, root, question_id, official_provider.identity, budget
+@@ -256,6 +268,13 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
+                     shadow_error = f"{type(exc).__name__}: {exc}"
+                     _dump_scratch(scratch, question_id, "openai-shadow-error", shadow_error)
+ 
++        try:
++            _assert_official_forecast_open(q, _now_kst())
++        except PreflightError:
++            _persist_failed_costs(
++                conn, root, question_id, official_provider.identity, budget
++            )
++            raise
+         target = _write_records(root, today.year, stem, content, evidence)
+ 
+         if shadow_observation is not None:
+diff --git a/src/ai_fc/schemas.py b/src/ai_fc/schemas.py
+index 7da9ffc..d3a5185 100644
+--- a/src/ai_fc/schemas.py
++++ b/src/ai_fc/schemas.py
+@@ -6,15 +6,19 @@ key-value는 명시적 아이템 리스트로 표현한다.
+ 
+ from __future__ import annotations
+ 
++import math
+ from typing import Literal
+ 
+-from pydantic import BaseModel, Field
++from pydantic import BaseModel, Field, model_validator
++
++
++FORECAST_ARITHMETIC_TOLERANCE_PP = 0.5
+ 
+ 
+ class Adjustment(BaseModel):
+     evidence: str = Field(description="증거 한 줄 (출처 포함)")
+     direction: Literal["up", "down"]
+-    delta_pp: float = Field(description="anchor 대비 조정 폭 (%p, 양수)")
++    delta_pp: float = Field(gt=0, description="anchor 대비 조정 폭 (%p, 양수)")
+ 
+ 
+ class SnapshotItem(BaseModel):
+@@ -44,15 +48,61 @@ class ForecastResult(BaseModel):
+     question_check: str = Field(description="[0] 질문 검증 — 해소가능성 확인 요지")
+     reference_class: str = Field(description="[1] 참조 클래스 정의")
+     base_rates: list[str] = Field(description="[1] base rate 3개+ (출처 포함)")
+-    anchor_pct: int = Field(description="[1] outside view anchor (%)")
++    anchor_pct: int = Field(ge=1, le=99, description="[1] outside view anchor (%)")
+     adjustments: list[Adjustment] = Field(description="[2] inside view 보정 항목들")
+     decomposition: str = Field(description="[3] 분해 트리 (텍스트)")
+     premortem: list[str] = Field(description="[4] 틀릴 이유 3가지")
+-    probability: int = Field(description="[5] 최종 확률, 1~99 정수")
+-    ci80_lo: int
+-    ci80_hi: int
++    probability: int = Field(ge=1, le=99, description="[5] 최종 확률, 1~99 정수")
++    ci80_lo: int = Field(ge=1, le=99)
++    ci80_hi: int = Field(ge=1, le=99)
+     key_reasons: list[str] = Field(description="핵심 근거 3줄")
+     observables: list[str] = Field(description="확률을 바꿀 관찰 지표 2개")
+     snapshots_filled: list[SnapshotItem] = Field(
+         description="required_snapshots 각각의 확정 값")
+     unverified_notes: list[str] = Field(description="[미검증] 표기 대상 목록")
++
++    @model_validator(mode="after")
++    def validate_probability_contract(self) -> "ForecastResult":
++        validate_forecast_consistency(self)
++        return self
++
++
++def validate_forecast_consistency(
++    result: ForecastResult,
++    *,
++    final_probability: int | None = None,
++    ci80_lo: int | None = None,
++    ci80_hi: int | None = None,
++) -> None:
++    """Validate the v1 integer-percent forecast contract without normalization."""
++    point = result.probability if final_probability is None else final_probability
++    low = result.ci80_lo if ci80_lo is None else ci80_lo
++    high = result.ci80_hi if ci80_hi is None else ci80_hi
++
++    if not all(isinstance(value, int) and 1 <= value <= 99 for value in (low, point, high)):
++        raise ValueError(f"probability and ci80 values must be integers in 1..99: {low}, {point}, {high}")
++    if low > high:
++        raise ValueError(f"ci80 must satisfy low <= high: {low}, {high}")
++    if not low <= point <= high:
++        raise ValueError(f"ci80 must contain probability: {low} <= {point} <= {high}")
++
++    seen: set[tuple[str, str, float]] = set()
++    signed_total = 0.0
++    for adjustment in result.adjustments:
++        key = (adjustment.evidence.strip(), adjustment.direction, adjustment.delta_pp)
++        if key in seen:
++            raise ValueError(f"duplicate adjustment: {adjustment.evidence!r}")
++        seen.add(key)
++        signed_total += adjustment.delta_pp if adjustment.direction == "up" else -adjustment.delta_pp
++
++    expected = result.anchor_pct + signed_total
++    if not math.isclose(
++        expected,
++        point,
++        rel_tol=0.0,
++        abs_tol=FORECAST_ARITHMETIC_TOLERANCE_PP,
++    ):
++        raise ValueError(
++            "anchor + signed adjustments must equal final probability within "
++            f"{FORECAST_ARITHMETIC_TOLERANCE_PP:g}%p: expected {expected:g}, got {point}"
++        )
+diff --git a/src/tests/test_llm_provider.py b/src/tests/test_llm_provider.py
+index 269ec88..fe01899 100644
+--- a/src/tests/test_llm_provider.py
++++ b/src/tests/test_llm_provider.py
+@@ -45,7 +45,9 @@ def _forecast_payload(probability: int = 63) -> dict:
+         "reference_class": "동일 유형 사건",
+         "base_rates": ["a", "b", "c"],
+         "anchor_pct": 55,
+-        "adjustments": [],
++        "adjustments": [
++            {"evidence": "등록된 가공 증거", "direction": "up", "delta_pp": 8.0}
++        ],
+         "decomposition": "분해",
+         "premortem": ["a", "b", "c"],
+         "probability": probability,
+diff --git a/src/tests/test_provider_shadow.py b/src/tests/test_provider_shadow.py
+index c40e9c2..000a3b7 100644
+--- a/src/tests/test_provider_shadow.py
++++ b/src/tests/test_provider_shadow.py
+@@ -7,7 +7,7 @@ from ai_fc.llm import PipelineBudget, Usage
+ from ai_fc.llm_provider import ProviderIdentity
+ from ai_fc.models import Question
+ from ai_fc.provider_shadow import append_shadow, read_shadow, run_shadow
+-from ai_fc.schemas import ForecastResult
++from ai_fc.schemas import Adjustment, ForecastResult
+ 
+ 
+ class FakeProvider:
+@@ -32,7 +32,7 @@ class FakeProvider:
+             reference_class="base",
+             base_rates=["a", "b", "c"],
+             anchor_pct=50,
+-            adjustments=[],
++            adjustments=[Adjustment(evidence="fixture", direction="up", delta_pp=11.0)],
+             decomposition="tree",
+             premortem=["a", "b", "c"],
+             probability=61,
+diff --git a/src/tests/test_sprint2.py b/src/tests/test_sprint2.py
+index f048ba6..72a461e 100644
+--- a/src/tests/test_sprint2.py
++++ b/src/tests/test_sprint2.py
+@@ -3,6 +3,7 @@
+ from __future__ import annotations
+ 
+ import textwrap
++from datetime import datetime
+ from pathlib import Path
+ 
+ import pytest
+@@ -139,6 +140,77 @@ def test_tbd_deadline_aborts(repo: Path, monkeypatch) -> None:
+         orch.run_forecast(conn, repo, "fixture-tbd")
+ 
+ 
++@pytest.mark.parametrize(
++    "now",
++    [
++        datetime(2099, 12, 30, 23, 59, 59),
++        datetime(2099, 12, 31, 23, 59, 59),
++    ],
++    ids=["before-deadline", "deadline-day-kst"],
++)
++def test_official_write_allowed_through_kst_deadline_date(
++    repo: Path, monkeypatch, now: datetime
++) -> None:
++    _patch_estimate(monkeypatch, _fake_result())
++    monkeypatch.setattr(orch, "_now_kst", lambda: now)
++    conn = ingest.connect(repo / "db" / "index.db")
++
++    message = orch.run_forecast(conn, repo, "fixture-coin-ath", dry_run=False)
++
++    assert "35%" in message
++    assert len(list(F.iter_forecast_files(repo / "forecasts"))) == 1
++
++
++def test_expired_active_question_cannot_write_official_revision(
++    repo: Path, monkeypatch
++) -> None:
++    monkeypatch.setattr(orch, "_now_kst", lambda: datetime(2100, 1, 1, 0, 0, 0))
++    conn = ingest.connect(repo / "db" / "index.db")
++    ledger = repo / "calibration" / "ledger.csv"
++    ledger_before = ledger.read_bytes()
++
++    with pytest.raises(orch.PreflightError, match="기한.*경과"):
++        orch.run_forecast(conn, repo, "fixture-coin-ath", dry_run=False)
++
++    assert list(F.iter_forecast_files(repo / "forecasts")) == []
++    assert ledger.read_bytes() == ledger_before
++
++
++def test_official_write_rechecks_deadline_after_forecast_work(
++    repo: Path, monkeypatch
++) -> None:
++    _patch_estimate(monkeypatch, _fake_result())
++    calls = 0
++
++    def advancing_clock() -> datetime:
++        nonlocal calls
++        calls += 1
++        if calls == 1:
++            return datetime(2099, 12, 31, 23, 59, 59)
++        return datetime(2100, 1, 1, 0, 0, 0)
++
++    monkeypatch.setattr(orch, "_now_kst", advancing_clock)
++    conn = ingest.connect(repo / "db" / "index.db")
++
++    with pytest.raises(orch.PreflightError, match="기한.*경과"):
++        orch.run_forecast(conn, repo, "fixture-coin-ath", dry_run=False)
++
++    assert list(F.iter_forecast_files(repo / "forecasts")) == []
++
++
++def test_inconsistent_aggregate_is_rejected_before_official_write(
++    repo: Path, monkeypatch
++) -> None:
++    invalid = _fake_result().model_copy(update={"probability": 36})
++    _patch_estimate(monkeypatch, invalid)
++    conn = ingest.connect(repo / "db" / "index.db")
++
++    with pytest.raises(ValueError, match="signed adjustments"):
++        orch.run_forecast(conn, repo, "fixture-coin-ath", dry_run=False)
++
++    assert list(F.iter_forecast_files(repo / "forecasts")) == []
++
++
+ def test_lockfile_blocks_double_run(repo: Path, monkeypatch) -> None:
+     _patch_estimate(monkeypatch, _fake_result())
+     conn = ingest.connect(repo / "db" / "index.db")

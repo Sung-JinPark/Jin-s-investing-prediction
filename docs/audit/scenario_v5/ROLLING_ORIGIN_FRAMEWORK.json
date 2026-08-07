@@ -1,0 +1,29 @@
+{
+  "schema_version": 1,
+  "status": "framework_only_blocked",
+  "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
+  "horizons_sessions": [
+    21,
+    63,
+    126,
+    252
+  ],
+  "minimum_origin_requirements": {
+    "source_response_sha256": true,
+    "observation_available_at": true,
+    "source_vintage": true,
+    "forecast_as_of": true,
+    "fixed_model_contract_per_fold": true
+  },
+  "metrics": [
+    "log_score",
+    "brier_score",
+    "crps",
+    "interval_coverage",
+    "pit_uniformity",
+    "scenario_calibration",
+    "path_realism"
+  ],
+  "blocked_reason": "The repository does not yet contain enough approved rolling origins with row-level response hashes, source vintages, and available_at timestamps. Fabricated backtest scores are prohibited.",
+  "promotion_requires_human_approval": true
+}

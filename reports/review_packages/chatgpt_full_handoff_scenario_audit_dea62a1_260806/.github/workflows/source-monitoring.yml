@@ -1,0 +1,44 @@
+name: source-monitoring
+
+on:
+  schedule:
+    - cron: "45 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lightweight source-monitor dependencies
+        run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      - name: Record candidate-source schema health
+        continue-on-error: true
+        run: cd src && python -m ai_fc source-monitor
+      - name: Commit append-only D0 health receipts
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ -d data/source_monitoring ]; then
+            git add data/source_monitoring
+          fi
+          if git diff --cached --quiet; then
+            echo "No new D0 health receipt; candidate source remains disabled."
+            exit 0
+          fi
+          asof="$(python -c "import json; print(json.load(open('data/source_monitoring/defillama_stablecoins_status.json', encoding='utf-8'))['asof'])")"
+          git commit -m "data: monitor candidate sources ${asof}"
+          git push

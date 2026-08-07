@@ -1,0 +1,72 @@
+version: 2026-08-07.v1
+schema_version: 1
+status: research_candidate_contract
+canonical_probability_unit: fraction
+required_fields:
+  - schema_version
+  - view_id
+  - origin_type
+  - source_id
+  - source_path
+  - source_sha256
+  - origin_release_id
+  - dependency_cluster_id
+  - target_asset
+  - as_of
+  - available_at
+  - horizon_start
+  - horizon_end
+  - view_kind
+  - condition
+  - unit
+  - probability_space
+  - quality
+  - physical_translation_status
+  - used_numerically
+  - approval_status
+origin_types:
+  - registered_forecast
+  - market_implied
+  - analyst_consensus
+  - strategist_report
+  - macro_consensus
+  - state_signal
+  - historical_base_rate
+view_kinds:
+  - terminal_probability
+  - barrier_probability
+  - terminal_level
+  - return_range
+  - volatility_target
+  - tail_probability
+  - event_probability
+  - directional_driver
+  - state_observation
+units:
+  - fraction
+  - index_level
+  - annualized_volatility
+  - return_fraction
+  - z_score
+  - categorical
+probability_spaces:
+  - physical_event
+  - risk_neutral_terminal
+  - scenario_conditional
+  - reference_only
+  - not_applicable
+approval_statuses: [auto_validated, human_approved, proposed, blocked]
+physical_translation_statuses: [not_required, calibrated, blocked, reference_only]
+numerical_use:
+  minimum_effective_strength: 0.05
+  require_source_hash: true
+  require_mapping: true
+  require_approved_source_status: true
+  prohibit_reference_only: true
+  prohibit_untranslated_risk_neutral: true
+  prohibit_proposed_report_views: true
+  strict_available_at_boundary: true
+deduplication:
+  revision_rule: latest_valid_revision
+  keys: [origin_release_id, dependency_cluster_id, target_asset, horizon_end, view_kind]
+  cluster_strength_cap: 0.35

@@ -279,6 +279,18 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
+    from .scenario_v5 import load_candidate as load_scenario_v5_candidate
+    scenario_v5 = load_scenario_v5_candidate(root)
+    if scenario_v5 is None:
+        scenario_v5 = {
+            "schema_version": 1,
+            "status": "unavailable",
+            "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
+            "reason": (
+                "No valid fresh Scenario V5 research candidate; "
+                "the official legacy fallback remains active."
+            ),
+        }
     from .scenario_v4_shadow import load_shadow
     scenario_v4_shadow = load_shadow(root)
     structural_event = (
@@ -438,6 +450,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
             "public_repository_url": config.PUBLIC_REPOSITORY_URL,
         },
         "scenario": scenario,
+        "scenario_v5": scenario_v5,
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,

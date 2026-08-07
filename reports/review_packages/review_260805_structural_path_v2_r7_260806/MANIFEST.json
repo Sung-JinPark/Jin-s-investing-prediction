@@ -1,0 +1,138 @@
+﻿{
+    "package":  "review_260805_structural_path_v2_r7_260806",
+    "base_commit":  "334b4e54bbe11ced37404415f5e9326996376cb5",
+    "snapshot_id":  "nasdaq-scenario:2026-08-03:r7",
+    "created_at":  "2026-08-06 KST",
+    "files":  [
+                  {
+                      "path":  "BASE_COMMIT.txt",
+                      "bytes":  42,
+                      "sha256":  "787563cce15ce96f7087478d77bcfdb224072b6584e4250d226ecebda011902c"
+                  },
+                  {
+                      "path":  "calibration/corrections.csv",
+                      "bytes":  7596,
+                      "sha256":  "152546229794f3a6b863bda830d0f6b9a3397ae14dd600e5757529fa1314fc9d"
+                  },
+                  {
+                      "path":  "data/contracts/scenario_structural_forecast.yaml",
+                      "bytes":  4407,
+                      "sha256":  "b4229c0040fab2829b2dad1c6f71f7fee223aaa0e97f292e7d711e3a27d79ff9"
+                  },
+                  {
+                      "path":  "data/method_changes.jsonl",
+                      "bytes":  2011,
+                      "sha256":  "42d498474540283dab5abc9fa47000e45ec5a1be668a6da3ea06ebd59406d9ac"
+                  },
+                  {
+                      "path":  "data/scenarios/archive/2026-08-03_CORR-260805-014.json",
+                      "bytes":  89736,
+                      "sha256":  "90a53604e882e6de6eefbe42b94ecaa5906c6510e8f7622c84572e774ab7237e"
+                  },
+                  {
+                      "path":  "data/scenarios/archive/2026-08-03_CORR-260806-016.json",
+                      "bytes":  97455,
+                      "sha256":  "8f812b9841e3ab1b6ea34911896c70685e51a146fe57cf8bc129552b549a9dec"
+                  },
+                  {
+                      "path":  "data/scenarios/archive/2026-08-03_CORR-260806-017.json",
+                      "bytes":  97850,
+                      "sha256":  "7ae26632f58d023f0fac329d5c9237899b4c94c6d1ec83cbeb6038d0ab5c8141"
+                  },
+                  {
+                      "path":  "data/scenarios/archive/2026-08-03_CORR-260806-018.json",
+                      "bytes":  98248,
+                      "sha256":  "4f6bea9a288dff99a634f231ea2b684abff666a0b4bde4f31b9f58681a0d3fcb"
+                  },
+                  {
+                      "path":  "data/scenarios/nasdaq_latest.json",
+                      "bytes":  98248,
+                      "sha256":  "4f6bea9a288dff99a634f231ea2b684abff666a0b4bde4f31b9f58681a0d3fcb"
+                  },
+                  {
+                      "path":  "docs/generated/inventory.generated.md",
+                      "bytes":  1358,
+                      "sha256":  "f1792321c694197f413dc949bbf6185653ac2b17e202a09c14b4e81adaa9d921"
+                  },
+                  {
+                      "path":  "dualdb/dualdb/export/context_bridge.py",
+                      "bytes":  16943,
+                      "sha256":  "5fb9ec0720217e8508124168d8cf8e8bc9cbe31f5942c1de5a9ca6b763532ddb"
+                  },
+                  {
+                      "path":  "dualdb/dualdb/models/knn_analog.py",
+                      "bytes":  14972,
+                      "sha256":  "45f9243eb4184a6088584fd656d972c1b38fe1d31bc2cabd7d83cf851c1b5b6b"
+                  },
+                  {
+                      "path":  "frozen_context.json",
+                      "bytes":  26808,
+                      "sha256":  "28989271f1b34f88cc7b16594aeaeb67c29ab500bf2694556ed496e0c94cb3b9"
+                  },
+                  {
+                      "path":  "reports/md/review_260805_g1_g2_decision_drafts.md",
+                      "bytes":  3592,
+                      "sha256":  "b114fa6ddda302de7a3797f08fcd228e10d574cf98df14bb22ff0619e03d2441"
+                  },
+                  {
+                      "path":  "reports/md/review_260805_structural_path_v2_implementation.md",
+                      "bytes":  9680,
+                      "sha256":  "15fe83857147849ffe37f90777f0bfb613e42a80820110ea11bd61764f874811"
+                  },
+                  {
+                      "path":  "REPRODUCTION_RESULT.json",
+                      "bytes":  268,
+                      "sha256":  "ae0de47eb9dece0679a42738b82f1cbf4e849ecabbb4ef82759374cbab0bc77e"
+                  },
+                  {
+                      "path":  "src/ai_fc/dashboard.py",
+                      "bytes":  33917,
+                      "sha256":  "ec294bb487ef432db670d758f20b591bfecf9c3f44d22f97179d6342fa261e16"
+                  },
+                  {
+                      "path":  "src/ai_fc/dashboard_parts/dashboard.css",
+                      "bytes":  178915,
+                      "sha256":  "9dd19fd7f8f871f02e556cff095d30916150c4786580569e6fb1b6f3441a86dc"
+                  },
+                  {
+                      "path":  "src/ai_fc/dashboard_parts/dashboard.js",
+                      "bytes":  287798,
+                      "sha256":  "ff9e23cc0f23472d4d84924d13425db9dd47e5cb5411e8c58042fc092e6ec9bd"
+                  },
+                  {
+                      "path":  "src/ai_fc/quant/mc.py",
+                      "bytes":  2781,
+                      "sha256":  "052cb93543dfc045b1ffb7d261b4d3e690b7630c6bb88b673af5fabe53d27b70"
+                  },
+                  {
+                      "path":  "src/ai_fc/scenario.py",
+                      "bytes":  49028,
+                      "sha256":  "4b38183838e8d32bd22ce1757eef1051e74e74f14e5d2a74607a9c2c6175bea2"
+                  },
+                  {
+                      "path":  "src/ai_fc/scenario_structure.py",
+                      "bytes":  31102,
+                      "sha256":  "8e882eedddd2344497083fbae8148858583b0f7ac77402db4f628cb76057b737"
+                  },
+                  {
+                      "path":  "src/tests/test_dashboard.py",
+                      "bytes":  35007,
+                      "sha256":  "70ed5da45da0bdefb09dd362c0f0ded3a11cf93b1f4b92b3282a3fba0f7c6e73"
+                  },
+                  {
+                      "path":  "src/tests/test_dashboard_js_geometry.py",
+                      "bytes":  9427,
+                      "sha256":  "cd62f0468219e4d203ea5949e1da0e2e42ff5007bcffcae5656bcee5cbfa6007"
+                  },
+                  {
+                      "path":  "src/tests/test_scenario.py",
+                      "bytes":  17727,
+                      "sha256":  "ed957a11388b1b01f1397485ba6293c9b3f6ee048cd87f5676bb72a4a74d7889"
+                  },
+                  {
+                      "path":  "tools/reproduce_scenario_snapshot.py",
+                      "bytes":  3256,
+                      "sha256":  "fecf7bfc477f4f2410a5419aace6294d46b4487020436b8f620bff15857a1347"
+                  }
+              ]
+}

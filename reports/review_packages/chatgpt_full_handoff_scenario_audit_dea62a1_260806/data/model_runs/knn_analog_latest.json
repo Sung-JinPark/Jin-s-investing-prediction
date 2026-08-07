@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "kind": "dualdb_model_run",
+  "source": "dualdb/db/dualdb.sqlite:model_run",
+  "model": "knn_analog",
+  "run_id": 5,
+  "asof": "2026-07-17",
+  "exported_at": "2026-08-04T00:00:00+09:00",
+  "n": 5,
+  "neighbors": [
+    {"date": "1998-07-31", "distance": 0.2894, "fwd_1m": -0.1993, "fwd_3m": -0.0615, "fwd_6m": 0.3406, "fwd_12m": 0.4012},
+    {"date": "1997-11-28", "distance": 0.4016, "fwd_1m": -0.0222, "fwd_3m": 0.0978, "fwd_6m": 0.1007, "fwd_12m": 0.2180},
+    {"date": "1996-06-28", "distance": 0.6920, "fwd_1m": -0.0954, "fwd_3m": 0.0380, "fwd_6m": 0.0898, "fwd_12m": 0.2136},
+    {"date": "1999-09-30", "distance": 0.6957, "fwd_1m": 0.0802, "fwd_3m": 0.4700, "fwd_6m": 0.6233, "fwd_12m": 0.3759},
+    {"date": "1997-02-28", "distance": 0.7688, "fwd_1m": -0.0703, "fwd_3m": 0.0698, "fwd_6m": 0.2080, "fwd_12m": 0.3434}
+  ],
+  "display_contract": "forward n<20: case_list_only; median_emphasis_disabled",
+  "anchor_sensitivity": "not_computed"
+}

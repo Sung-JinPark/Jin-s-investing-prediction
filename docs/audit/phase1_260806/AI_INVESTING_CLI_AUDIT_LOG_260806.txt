@@ -1,0 +1,13 @@
+## security-check
+secret pattern scan clean
+security_exit=0
+
+## audit-ledgers --check
+ledger audit: accumulating=21 stalled=5 inactive=1 violation=0 planned=4
+ledger_exit=0
+
+## sync --check
+[경고] Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range
+[경고] Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range
+질문 38 / 예측 22 / 해소 6
+sync_exit=0

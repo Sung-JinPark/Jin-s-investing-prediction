@@ -1,0 +1,36 @@
+{
+  "observations": [
+    {
+      "question_id": "nfp-example-below100k",
+      "primary": {
+        "actual": 90000,
+        "unit": "jobs",
+        "observed_at": "2099-08-01",
+        "source": "https://official.example/nfp-release"
+      },
+      "secondary": {
+        "actual": 90000,
+        "unit": "jobs",
+        "observed_at": "2099-08-01",
+        "source": "https://independent.example/nfp-check"
+      }
+    },
+    {
+      "question_id": "earnings-example-eps-beat",
+      "primary": {
+        "actual": 2.1,
+        "reference": 2.0,
+        "unit": "USD/share",
+        "observed_at": "2099-08-26",
+        "source": "https://issuer.example/earnings-release"
+      },
+      "secondary": {
+        "actual": 2.1,
+        "reference": 2.0,
+        "unit": "USD/share",
+        "observed_at": "2099-08-26",
+        "source": "https://filing.example/8-k"
+      }
+    }
+  ]
+}

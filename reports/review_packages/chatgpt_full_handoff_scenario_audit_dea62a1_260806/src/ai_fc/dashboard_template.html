@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jin's Investing Prediction Solution</title>
+<!--OG_META-->
+<!--DATA-->
+<style>
+<!--STYLES-->
+</style>
+</head>
+<body>
+<a class="skip-link" href="#app">본문으로 건너뛰기</a>
+<div class="product-shell">
+  <aside class="product-rail" aria-label="제품 내비게이션">
+    <a class="rail-brand" href="#today" aria-label="Jin's Investing 오늘 화면으로 이동">
+      <span class="brand-mark" aria-hidden="true"></span>
+      <span class="rail-brand-copy"><strong>JIN'S INVESTING</strong><small>PREDICTION SYSTEM</small></span>
+    </a>
+    <nav class="view-nav" id="nav" aria-label="대시보드 화면">
+      <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
+      <a href="#future" data-v="future"><span class="rail-num">02</span><span class="rail-label">미래 탐색</span></a>
+      <a href="#records" data-v="records"><span class="rail-num">03</span><span class="rail-label">기록과 검증</span></a>
+      <a href="#trust" data-v="trust"><span class="rail-num">04</span><span class="rail-label">데이터와 신뢰</span></a>
+    </nav>
+    <button type="button" class="rail-command command-open" aria-label="빠른 이동 열기">
+      <span>빠른 이동</span><kbd>⌘ K</kbd>
+    </button>
+    <div class="rail-utilities" role="group" aria-label="현재 화면 도구">
+      <button type="button" class="utility-action pin-current" data-action="pin" aria-label="현재 화면 고정" aria-pressed="false"><span>☆</span><small>고정</small></button>
+      <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
+      <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
+    </div>
+    <button type="button" class="rail-status utility-open" data-action="utility" aria-label="데이터 상태 열기">
+      <div class="rail-live"><span><i class="live-dot"></i><span class="freshness-label">DATA STATUS</span></span><b id="phase">—</b></div>
+      <p class="rail-index" id="rail-index">NASDAQ —</p>
+      <p class="rail-asof" id="asof">갱신 시각 확인 중</p>
+    </button>
+  </aside>
+
+  <header class="mobile-header">
+    <a class="mobile-brand" href="#today"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</a>
+    <div class="mobile-actions">
+      <button type="button" class="mobile-command command-open" aria-label="빠른 이동 열기">⌕</button>
+      <button type="button" class="menu-button" id="menu-open" aria-expanded="false" aria-controls="mobile-drawer">MENU</button>
+    </div>
+  </header>
+  <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true"></div>
+  <aside class="mobile-drawer" id="mobile-drawer" aria-label="모바일 내비게이션" aria-hidden="true">
+    <div class="drawer-head">
+      <span class="mobile-brand"><span class="brand-mark" aria-hidden="true"></span>JIN'S / PREDICTION</span>
+      <button type="button" class="drawer-close" id="menu-close" aria-label="메뉴 닫기">CLOSE</button>
+    </div>
+    <nav class="view-nav" id="mobile-nav" aria-label="모바일 대시보드 화면">
+      <a href="#today" data-v="today"><span class="rail-num">01</span><span class="rail-label">오늘</span></a>
+      <a href="#future" data-v="future"><span class="rail-num">02</span><span class="rail-label">미래 탐색</span></a>
+      <a href="#records" data-v="records"><span class="rail-num">03</span><span class="rail-label">기록과 검증</span></a>
+      <a href="#trust" data-v="trust"><span class="rail-num">04</span><span class="rail-label">데이터와 신뢰</span></a>
+    </nav>
+    <div class="drawer-utilities" role="group" aria-label="현재 화면 도구">
+      <button type="button" class="utility-action pin-current" data-action="pin" aria-label="현재 화면 고정" aria-pressed="false"><span>☆</span><small>고정</small></button>
+      <button type="button" class="utility-action" data-action="share" aria-label="현재 화면 공유"><span>↗</span><small>공유</small></button>
+      <button type="button" class="utility-action utility-open" data-action="utility" aria-label="보기 및 데이터 설정"><span>≡</span><small>보기</small></button>
+    </div>
+    <button type="button" class="drawer-meta utility-open" data-action="utility" aria-label="데이터 상태 열기"><span class="live-dot"></span> <span class="freshness-label">DATA STATUS</span><br><span id="drawer-asof">갱신 시각 확인 중</span></button>
+  </aside>
+
+  <div class="content-shell">
+    <div class="market-strip" id="mktstrip" aria-label="현재 시장 요약"></div>
+    <main class="app-shell" id="app" tabindex="-1"><div class="loader-wrap"><div class="loader"></div>불러오는 중…</div></main>
+    <footer class="site-footer">
+      <div class="footer-brand"><span class="brand-mark"></span>JIN'S INVESTING</div>
+      <p>정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다 · 과거 기록은 미래 성과를 보장하지 않습니다</p>
+      <p>확률 예측은 캘리브레이션으로 지속 검증됩니다</p>
+    </footer>
+  </div>
+</div>
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="모바일 주요 화면">
+  <a href="#today" data-v="today"><span aria-hidden="true">●</span><small>오늘</small></a>
+  <a href="#future" data-v="future"><span aria-hidden="true">⌁</span><small>미래</small></a>
+  <a href="#records" data-v="records"><span aria-hidden="true">◇</span><small>기록</small></a>
+  <a href="#trust" data-v="trust"><span aria-hidden="true">＋</span><small>신뢰</small></a>
+</nav>
+<div class="tip" id="tip"></div>
+<div class="command-layer" id="command-layer" aria-hidden="true" hidden>
+  <button type="button" class="command-scrim" id="command-scrim" aria-label="빠른 이동 닫기"></button>
+  <section class="command-palette" role="dialog" aria-modal="true" aria-labelledby="command-title">
+    <div class="command-head">
+      <span aria-hidden="true">⌕</span>
+      <input type="text" id="command-input" placeholder="화면 또는 예측 질문 검색…" autocomplete="off">
+      <kbd>ESC</kbd>
+    </div>
+    <h2 id="command-title" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">빠른 이동</h2>
+    <div class="command-results" id="command-results"></div>
+    <div class="command-foot"><span>↑↓ 이동 · Enter 열기</span><span>데이터와 화면을 한 번에 검색</span></div>
+  </section>
+</div>
+<div class="utility-layer" id="utility-layer" aria-hidden="true" hidden>
+  <button type="button" class="utility-scrim" id="utility-scrim" aria-label="워크스페이스 설정 닫기"></button>
+  <aside class="utility-panel" id="utility-panel" role="dialog" aria-modal="true" aria-labelledby="utility-title">
+    <div class="utility-head"><div><span>WORKSPACE</span><h2 id="utility-title">보기 및 데이터</h2></div><button type="button" class="utility-close" id="utility-close" aria-label="워크스페이스 설정 닫기">CLOSE</button></div>
+    <div class="utility-content" id="utility-content"></div>
+  </aside>
+</div>
+<div class="shortcut-layer" id="shortcut-layer" aria-hidden="true" hidden>
+  <button type="button" class="utility-scrim" id="shortcut-scrim" aria-label="단축키 도움말 닫기"></button>
+  <section class="shortcut-sheet" id="shortcut-sheet" role="dialog" aria-modal="true" aria-labelledby="shortcut-title">
+    <div class="shortcut-head"><h2 id="shortcut-title">키보드 단축키</h2><button type="button" class="shortcut-close" id="shortcut-close" aria-label="단축키 도움말 닫기">CLOSE</button></div>
+    <div class="shortcut-grid">
+      <div><span>빠른 이동</span><kbd>⌘ / Ctrl K</kbd></div><div><span>검색</span><kbd>/</kbd></div>
+      <div><span>단축키 도움말</span><kbd>?</kbd></div><div><span>현재 화면 고정</span><kbd>Shift P</kbd></div>
+      <div><span>현재 화면 공유</span><kbd>Shift S</kbd></div><div><span>집중 모드</span><kbd>Shift F</kbd></div>
+      <div><span>3단계 브리핑</span><kbd>Shift B</kbd></div><div><span>현재 화면 메모</span><kbd>Shift N</kbd></div>
+      <div><span>닫기 / 집중 모드 종료</span><kbd>Escape</kbd></div>
+    </div>
+  </section>
+</div>
+<div class="share-layer" id="share-layer" aria-hidden="true" hidden>
+  <button type="button" class="share-scrim" id="share-scrim" aria-label="공유 창 닫기"></button>
+  <section class="share-popover" id="share-popover" role="dialog" aria-modal="true" aria-labelledby="share-title">
+    <header><div><span>SHARE SNAPSHOT</span><h2 id="share-title">현재 화면 공유</h2></div><button type="button" id="share-close" aria-label="공유 창 닫기">CLOSE</button></header>
+    <div class="share-summary" id="share-summary"></div>
+    <div class="share-grid" id="share-grid">
+      <button type="button" data-share-target="copy">링크 복사</button>
+      <a data-share-target="gmail" target="_blank" rel="noopener">Gmail</a>
+      <a data-share-target="mail">기본 메일</a>
+      <a data-share-target="naver-blog" target="_blank" rel="noopener">네이버 블로그</a>
+      <a data-share-target="naver-band" target="_blank" rel="noopener">네이버 밴드</a>
+      <a data-share-target="line" target="_blank" rel="noopener">LINE</a>
+      <a data-share-target="telegram" target="_blank" rel="noopener">Telegram</a>
+      <a data-share-target="x" target="_blank" rel="noopener">X</a>
+    </div>
+    <div class="share-qr"><div><strong>모바일에서 열기</strong><span>카메라로 QR을 스캔한 뒤 기기 공유 메뉴에서 카카오톡 등을 선택하세요.</span></div><canvas id="share-qr-canvas" width="188" height="188" aria-label="현재 화면 링크 QR 코드"></canvas></div>
+    <footer>외부 네트워크는 각 공유 대상을 직접 누를 때만 연결됩니다. 팝오버와 QR은 브라우저 안에서 생성됩니다.</footer>
+  </section>
+</div>
+<div class="route-progress" aria-hidden="true"><span id="route-progress-bar"></span></div>
+<nav class="view-map" id="view-map" aria-label="현재 화면 목차" hidden><div id="view-map-items"></div></nav>
+<aside class="quick-peek" id="quick-peek" role="tooltip" aria-hidden="true" hidden></aside>
+<aside class="compare-tray" id="compare-tray" aria-label="예측 비교 선택" hidden>
+  <button type="button" class="compare-toggle" id="compare-toggle" aria-expanded="true" aria-controls="compare-items"><span>COMPARE</span><b id="compare-count">0</b><i>⌄</i></button>
+  <div class="compare-items" id="compare-items"></div>
+  <div class="compare-tray-actions"><button type="button" id="compare-clear">초기화</button><button type="button" class="compare-open" id="compare-open">비교 보기</button></div>
+</aside>
+<div class="briefing-layer" id="briefing-layer" aria-hidden="true" hidden>
+  <button type="button" class="briefing-scrim" id="briefing-scrim" aria-label="브리핑 닫기"></button>
+  <section class="briefing-sheet" id="briefing-sheet" role="dialog" aria-modal="true" aria-labelledby="briefing-title">
+    <header class="briefing-head">
+      <div><strong id="briefing-title">MARKET BRIEFING</strong><span class="briefing-step-label" id="briefing-step-label">01 / 03</span></div>
+      <button type="button" class="briefing-close" id="briefing-close" aria-label="브리핑 닫기">CLOSE</button>
+    </header>
+    <div class="briefing-progress" id="briefing-progress" aria-hidden="true"><i></i><i></i><i></i></div>
+    <div class="briefing-content" id="briefing-content" aria-live="polite"></div>
+    <footer class="briefing-foot">
+      <small>← → 이동 · ESC 닫기 · 기존 예측 데이터를 요약한 보기입니다</small>
+      <div class="briefing-controls">
+        <button type="button" id="briefing-prev">← PREVIOUS</button>
+        <button type="button" id="briefing-next">NEXT →</button>
+      </div>
+    </footer>
+  </section>
+</div>
+<button type="button" class="focus-exit" id="focus-exit" aria-label="집중 모드 종료" hidden>EXIT FOCUS · ESC</button>
+<div class="toast-region" id="toast-region" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+<!--APP_SCRIPT-->
+</script>
+</body>
+</html>

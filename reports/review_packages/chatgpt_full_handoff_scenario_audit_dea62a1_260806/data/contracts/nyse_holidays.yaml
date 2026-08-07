@@ -1,0 +1,59 @@
+version: 1
+calendar: NYSE
+timezone: America/New_York
+registered_at: 2026-08-03
+scope: future-label-generation-only
+rules:
+  - id: new_year
+    type: fixed
+    month: 1
+    day: 1
+    observed: nearest_weekday
+  - id: martin_luther_king_jr
+    type: nth_weekday
+    month: 1
+    weekday: 0
+    ordinal: 3
+    start_year: 1998
+  - id: washington_birthday
+    type: nth_weekday
+    month: 2
+    weekday: 0
+    ordinal: 3
+  - id: good_friday
+    type: easter_offset
+    offset_days: -2
+  - id: memorial_day
+    type: last_weekday
+    month: 5
+    weekday: 0
+  - id: juneteenth
+    type: fixed
+    month: 6
+    day: 19
+    observed: nearest_weekday
+    start_year: 2022
+  - id: independence_day
+    type: fixed
+    month: 7
+    day: 4
+    observed: nearest_weekday
+  - id: labor_day
+    type: nth_weekday
+    month: 9
+    weekday: 0
+    ordinal: 1
+  - id: thanksgiving
+    type: nth_weekday
+    month: 11
+    weekday: 3
+    ordinal: 4
+  - id: christmas
+    type: fixed
+    month: 12
+    day: 25
+    observed: nearest_weekday
+one_off_closures: []
+notes:
+  - Early closes remain trading days.
+  - Emergency closures are not inferred; the next completed-market refresh corrects labels.

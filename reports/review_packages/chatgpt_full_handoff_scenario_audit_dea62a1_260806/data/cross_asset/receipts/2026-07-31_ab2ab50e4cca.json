@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "asof": "2026-07-31",
+  "available_at": "2026-08-03T10:56:31+00:00",
+  "source_fingerprint": "ab2ab50e4cca5dd0ea39359d6736e566acac46c5727f9de02d4877d2fd51427a",
+  "revision_vintage": "captured_current",
+  "requests": [
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=975628800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "6a01bf212a44e75faa133f3032dc40555a46698cb23574743234ec14498d6d6b",
+      "fetched_at": "2026-08-03T10:56:30+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=975628800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "9a85a652866ae69b544e9ced020dc6df92cbf91867279fe8833f0b4ff0b616a1",
+      "fetched_at": "2026-08-03T10:56:30+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=951868800&period2=1136160000&events=div%2Csplits",
+      "response_sha256": "4ad67c6c7876ae374211a094dee4378b6a11a5fead9775d3001753dff56e23a4",
+      "fetched_at": "2026-08-03T10:56:30+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "98e92aec1d620f03b2c3e1f5b0de93a2d41111915537e289398a888a0d532822",
+      "fetched_at": "2026-08-03T10:56:30+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "BTC-USD",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "a1926fd24460a8e0ab5ac0be56b95a50ce0e4a1bd6bdfdad3c26326f466c9d5c",
+      "fetched_at": "2026-08-03T10:56:31+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=1409529600&period2=1785715200&events=div%2Csplits",
+      "response_sha256": "fe8b968c80ea81c27bd8f73761557d9df7c3ecb9121a8de7f4aace1e70aad5ba",
+      "fetched_at": "2026-08-03T10:56:31+00:00"
+    }
+  ]
+}

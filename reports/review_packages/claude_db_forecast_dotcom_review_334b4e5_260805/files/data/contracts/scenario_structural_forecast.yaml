@@ -1,0 +1,56 @@
+version: 2026-08-05.v1
+status: preregistered_before_structural_snapshot
+preregistered_at: 2026-08-05
+scope: nasdaq_scenario_display_path
+probability_space: scenario_conditional
+change_policy: append approved calibration/corrections.csv row and issue a new version
+
+innovation_cycle:
+  source: data/ml_history/*.jsonl
+  row_kind: context
+  required_fields: [analog.selected_eras, analog.correction_depth_median, overlay.ai]
+  minimum_selected_eras: 3
+  days_per_phase_month: 30.4375
+  aggregation: cross-era median at each fractional monthly phase
+  trend_removal: geometric endpoint detrend within each displayed calendar year
+
+calibration:
+  target: origin-year S1 maximum drawdown
+  target_source: latest context analog.correction_depth_median
+  strength_bounds: [0.0, 5.0]
+  endpoint_rule: preserve every scenario year-segment start and end anchor
+  forbidden:
+    - hand-drawn correction dates
+    - random sample path as the thick display line
+    - changing fan quantiles or S1/S2/S3 weights
+
+physical_event_reference:
+  question_id: nasdaq-corr10-augoct-2026
+  window: [2026-08-01, 2026-10-31]
+  probability_space: physical_event
+  use: separate evidence box only
+  used_numerically: false
+
+reference_layers:
+  scenario_tracker:
+    source: data/signals/scenario_tracker_latest.json
+    used_numerically: false
+    reason: registered count states prohibit weighted-score or probability conversion
+  liquidity:
+    source: data/liquidity/liquidity_latest.json
+    used_numerically: false
+    reason: reference-only state does not identify path timing
+  ai_regime:
+    source: data/ai_capital_cycle/ai_regime_latest.json
+    activation_gate: coverage >= 0.6
+    below_gate_use: prohibited
+
+display:
+  default_year: 2026
+  split: calendar_year
+  exact_day_language: prohibited
+  required_labels:
+    - DB 조건부 구조 경로
+    - 월 단위 위험창
+    - 사건확률과 결합 금지
+    - 목표가나 투자자문이 아님

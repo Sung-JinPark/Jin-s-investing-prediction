@@ -1,0 +1,60 @@
+schema_version: 1
+contract_version: 2026-08-05.v1
+status: preregistered
+preregistered_at: 2026-08-05
+probability_space: reference_only
+model_kind: historical_counterfactual
+
+comparison_window:
+  anchor: 2001-03
+  end: 2006-03
+  horizon_months: 60
+  observations: 61
+  anchor_definition: >-
+    The observed NASDAQ and Realty Income month closes at 2001-03 are normalized
+    to 100. This is twelve months after the NASDAQ dotcom peak month of 2000-03,
+    not a claim that every bubble bursts at the same lag.
+
+observed_assets:
+  nasdaq:
+    symbol: ^IXIC
+    basis: monthly_close
+  realty_income:
+    symbol: O
+    basis: monthly_close
+  realty_income_total_return:
+    symbol: O
+    basis: yahoo_adjusted_close_public_proxy
+
+bitcoin:
+  status: counterfactual_not_observed
+  data_gap: Bitcoin launched in 2009; no market price exists in 2001-03..2006-03.
+  formula: BTC_t = BTC_(t-1) * exp(beta_regime * NASDAQ_monthly_log_return)
+  regime_rule:
+    negative_nasdaq_month: downside_5y
+    nonnegative_nasdaq_month: full_252d
+  cases:
+    btc_low_beta:
+      downside_beta: downside_5y.bootstrap_p10
+      upside_beta: full_252d.bootstrap_p10
+    btc_regime_center:
+      downside_beta: downside_5y.measured_used
+      upside_beta: full_252d.measured_used
+    btc_high_beta:
+      downside_beta: downside_5y.bootstrap_p90
+      upside_beta: full_252d.bootstrap_p90
+    btc_full_beta:
+      downside_beta: full_252d.measured_used
+      upside_beta: full_252d.measured_used
+
+guardrails:
+  - Never label the Bitcoin series as observed or historical price.
+  - Never interpolate missing observed months.
+  - NASDAQ and Realty Income paths must be identical across every Bitcoin case.
+  - Current Realty Income rate and credit sensitivities are audit context only and cannot alter history.
+  - The beta envelope is sensitivity analysis, not a confidence interval or probability band.
+  - Do not assign scenario weights, event probabilities, expected returns, or target prices.
+
+change_policy: >-
+  Append an approved calibration/corrections.csv row and issue a new immutable
+  cross-asset snapshot revision before changing the window, cases, or formula.

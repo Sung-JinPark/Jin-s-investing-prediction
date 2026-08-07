@@ -1,0 +1,595 @@
+{
+  "generated_at": "2026-08-06 KST",
+  "scope": "static handoff audit; no live trading or investment recommendation",
+  "package": {
+    "entries": 413,
+    "compressed_bytes": 1462678,
+    "uncompressed_bytes": 6097335,
+    "backslash_entry_count": 403,
+    "encrypted_entry_count": 0,
+    "manifest_entries": 412,
+    "manifest_bytes": 6054700,
+    "sha256_mismatches": [],
+    "base_commit": "dea62a1bd5c527ff16fb240377a6defd8f612934",
+    "missing_reproducibility_prerequisites": [
+      "reports/screenshots/u1a_260805/route_results.json",
+      "reports/screenshots/u1b_260805/results.json",
+      "reports/screenshots/u1c_260805/results.json",
+      "reports/screenshots/u1d_260805/layout_results.json",
+      "reports/md/UX_AUDIT_260805.md",
+      ".git/",
+      "dualdb/db/dualdb.sqlite (source package exclusion)",
+      "dualdb/data/raw/ and source datasets (source package exclusion)"
+    ]
+  },
+  "inventory": {
+    "python_files": 171,
+    "python_loc": 28333,
+    "functions": 1203,
+    "classes": 82,
+    "test_functions": 368,
+    "ast_parse_errors": []
+  },
+  "tests": {
+    "manifest_verification": {
+      "checked": 412,
+      "mismatches": 0
+    },
+    "snapshot_reproduction": {
+      "probabilities": [
+        83,
+        2,
+        15
+      ],
+      "quantile_cells": 1764,
+      "mismatches": 0
+    },
+    "dualdb": {
+      "passed": 24,
+      "skipped": 30,
+      "skip_reason": "raw price/derived/factor data absent from handoff package"
+    },
+    "main_excluding_ledger_audit": {
+      "passed": 316,
+      "failed": 7,
+      "failure_classes": {
+        "duckdb_optional_dependency": 1,
+        "omitted_ui_audit_evidence": 5,
+        "omitted_git_history": 1
+      }
+    },
+    "ledger_audit": {
+      "collection_blocked": true,
+      "reason": "pyarrow not installed in runtime; dependency unavailable from package index"
+    },
+    "package_claim": "383 passed on full source repository per evidence/VALIDATION_RESULTS.md; not independently reproducible from this ZIP alone"
+  },
+  "questions": {
+    "total": 38,
+    "status": {
+      "active": 34,
+      "resolved": 4
+    },
+    "domains": {
+      "earnings": 16,
+      "volatility": 1,
+      "macro": 11,
+      "corporate-event": 2,
+      "market-regime": 5,
+      "market-daily": 2,
+      "crypto": 1
+    },
+    "tiers": {
+      "standard": 18,
+      "lite": 20
+    },
+    "official_forecast_records": 22,
+    "unique_forecast_questions": 15,
+    "providers": {
+      "anthropic/claude": 21,
+      "openai": 1
+    },
+    "active_without_forecast_count": 22,
+    "active_without_forecast": [
+      "adbe-eps-beat-fq3-2026",
+      "amd-eps-beat-2026q2",
+      "amzn-eps-beat-2026q3",
+      "asml-eps-beat-2026q3",
+      "avgo-eps-beat-fq3-2026",
+      "cpi-jul2026-reaccel",
+      "cpi-oct2026-reaccel",
+      "fomc-2026-12-09-hike",
+      "gdp-q3adv-2026-beat",
+      "googl-eps-beat-2026q3",
+      "meta-eps-beat-2026q3",
+      "msft-eps-beat-fy27q1",
+      "mu-margin-qoq-fq1fy27",
+      "nfp-aug2026-below100k",
+      "nfp-nov2026-below100k",
+      "nfp-oct2026-below100k",
+      "nvda-beat-any-2026aug",
+      "nvda-dc-beat-2026nov",
+      "openai-public-flip-2026",
+      "orcl-eps-beat-fq1-2027",
+      "santa-week-2026",
+      "tsmc-eps-beat-2026q3"
+    ],
+    "overdue_active": [
+      {
+        "id": "amd-eps-beat-2026q2",
+        "deadline": "2026-08-04"
+      }
+    ]
+  },
+  "calibration": {
+    "rows": 6,
+    "unique_questions": 3,
+    "mean_brier": 0.097167,
+    "median_brier": 0.01845,
+    "question_revision_counts": {
+      "spx-up-2026-07-08": 1,
+      "soxx-up-2026-07-08": 1,
+      "fomc-2026-07-29-hike": 4
+    }
+  },
+  "latest_context": {
+    "run_ts": "2026-07-30T16:38:37",
+    "asof": "2026-07-29",
+    "closest_era": "japan1989",
+    "distance": 0.4524,
+    "selected_eras": [
+      "biotech2015",
+      "dotcom",
+      "japan1989"
+    ],
+    "pool_eras": [
+      "biotech2015",
+      "crypto2021",
+      "dotcom",
+      "japan1989",
+      "niftyfifty1972"
+    ],
+    "fwd_return_dist": {
+      "m3": 0.0639,
+      "m6": 0.1316,
+      "m12": 0.3888,
+      "n": 5
+    },
+    "correction_depth_median": -0.1219,
+    "neighbor_rows_serialized": false
+  },
+  "scenario": {
+    "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+    "asof": "2026-08-03",
+    "anchor": 25913.9,
+    "ath": 27093.9,
+    "reference_price": 26206.89,
+    "probabilities": {
+      "S1": 83,
+      "S2": 2,
+      "S3": 15
+    },
+    "sample_counts": {
+      "S1": 16702,
+      "S2": 302,
+      "S3": 2996
+    },
+    "gbm_parameters": {
+      "lookback_days": 252,
+      "return_basis": "daily close-to-close log return",
+      "mu_daily_log_return": 0.000811282145,
+      "sigma_daily_log_return": 0.01168922722,
+      "mu_annualized_252": 0.2044431004,
+      "sigma_annualized_252": 0.1855607294,
+      "estimation_end": "2026-08-03",
+      "recovery": "same-source refetch; anchor matched; distribution not regenerated"
+    },
+    "calibration": {
+      "target": "S1 origin-year maximum drawdown",
+      "target_depth_pct": 12.19,
+      "target_source": "latest innovation context correction_depth_median",
+      "strength": 1.735781,
+      "residual_exponent_amplification_ratio": 1.74,
+      "native_shape_strength": 1.0,
+      "native_ensemble_origin_year_max_drawdown_pct": -6.4,
+      "native_residual_origin_year_drawdown_pct": -10.2,
+      "native_shape_origin_year_s1_max_drawdown_pct": -5.7,
+      "calibrated_origin_year_s1_max_drawdown_pct": -12.2,
+      "depth_invariant_to_selection": true,
+      "selection_moves": "risk_window_center_month_only",
+      "common_strength_scope": "S1/S2/S3 and all display years",
+      "common_strength_approximation": "calibrated to origin-year S1; interpretation depends on the current S1 weight of 83%",
+      "scenario_specific_alternatives": {
+        "S1": {
+          "status": "ok",
+          "strength": 1.735781,
+          "achieved_depth_pct": 12.2,
+          "depth_at_lower_bound_pct": 0.0,
+          "depth_at_upper_bound_pct": 38.2
+        },
+        "S2": {
+          "status": "ok",
+          "strength": 1.320724,
+          "achieved_depth_pct": 12.1,
+          "depth_at_lower_bound_pct": 0.0,
+          "depth_at_upper_bound_pct": 40.9
+        },
+        "S3": {
+          "status": "ok",
+          "strength": 0.81916,
+          "achieved_depth_pct": 12.2,
+          "depth_at_lower_bound_pct": 6.9,
+          "depth_at_upper_bound_pct": 44.0
+        }
+      },
+      "endpoint_rule": "preserve each scenario's existing year-segment endpoints"
+    },
+    "years": [
+      {
+        "year": 2026,
+        "start_index": 0,
+        "end_index": 21,
+        "start_date": "2026-08-03",
+        "end_date": "2026-12-31",
+        "coverage": "partial_year",
+        "analog_risk_window": {
+          "start": "2026-08-31",
+          "end": "2026-11-24",
+          "center_month": "2026-10",
+          "basis": "selected-era median detrended residual; monthly phase resolution",
+          "exact_day_forecast": false
+        },
+        "path_diagnostics": {
+          "S1": {
+            "max_drawdown_pct": -12.2,
+            "peak_date": "2026-08-03",
+            "trough_date": "2026-10-20",
+            "recovery_date": "2026-11-24",
+            "recovery_status": "within_display_year"
+          },
+          "S2": {
+            "max_drawdown_pct": -16.0,
+            "peak_date": "2026-08-03",
+            "trough_date": "2026-10-27",
+            "recovery_date": "2026-12-09",
+            "recovery_status": "within_display_year"
+          },
+          "S3": {
+            "max_drawdown_pct": -20.4,
+            "peak_date": "2026-08-03",
+            "trough_date": "2026-10-27",
+            "recovery_date": null,
+            "recovery_status": "not_within_display_year"
+          }
+        }
+      },
+      {
+        "year": 2027,
+        "start_index": 22,
+        "end_index": 51,
+        "start_date": "2027-01-08",
+        "end_date": "2027-08-04",
+        "coverage": "partial_year",
+        "analog_risk_window": {
+          "start": "2027-06-25",
+          "end": "2027-07-19",
+          "center_month": "2027-07",
+          "basis": "selected-era median detrended residual; monthly phase resolution",
+          "exact_day_forecast": false
+        },
+        "path_diagnostics": {
+          "S1": {
+            "max_drawdown_pct": -7.8,
+            "peak_date": "2027-06-03",
+            "trough_date": "2027-07-02",
+            "recovery_date": null,
+            "recovery_status": "not_within_display_year"
+          },
+          "S2": {
+            "max_drawdown_pct": -8.0,
+            "peak_date": "2027-06-03",
+            "trough_date": "2027-07-02",
+            "recovery_date": null,
+            "recovery_status": "not_within_display_year"
+          },
+          "S3": {
+            "max_drawdown_pct": -8.0,
+            "peak_date": "2027-06-03",
+            "trough_date": "2027-07-02",
+            "recovery_date": null,
+            "recovery_status": "not_within_display_year"
+          }
+        }
+      }
+    ],
+    "selection_sensitivity": {
+      "method": "one-selected-era replaced by one non-selected candidate era",
+      "use": "disclosure_only",
+      "depth_interpretation": "native range varies by selected eras; every displayed alternative is recalibrated to the committed correction-depth base rate",
+      "selection_moves": "risk_window_center_month_only",
+      "calibrated_depth_target_pct": -12.19,
+      "calibrated_depth_tolerance_pct": 0.2,
+      "calibrated_depth_invariant": true,
+      "base_risk_window_center_month": "2026-10",
+      "alternative_count": 6,
+      "origin_year_native_s1_mdd_range_pct": [
+        -14.5,
+        -2.9
+      ],
+      "origin_year_calibrated_s1_mdd_range_pct": [
+        -12.2,
+        -12.1
+      ],
+      "risk_window_center_shift_range_months": [
+        -2,
+        1
+      ],
+      "alternatives": [
+        {
+          "removed": "biotech2015",
+          "added": "crypto2021",
+          "selected_eras": [
+            "crypto2021",
+            "dotcom",
+            "japan1989"
+          ],
+          "origin_year_native_s1_mdd_pct": -14.5,
+          "origin_year_calibrated_s1_mdd_pct": -12.1,
+          "calibrated_strength": 0.852922,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-09",
+          "center_shift_months": -1
+        },
+        {
+          "removed": "biotech2015",
+          "added": "niftyfifty1972",
+          "selected_eras": [
+            "dotcom",
+            "japan1989",
+            "niftyfifty1972"
+          ],
+          "origin_year_native_s1_mdd_pct": -2.9,
+          "origin_year_calibrated_s1_mdd_pct": -12.1,
+          "calibrated_strength": 2.502549,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-11",
+          "center_shift_months": 1
+        },
+        {
+          "removed": "dotcom",
+          "added": "crypto2021",
+          "selected_eras": [
+            "biotech2015",
+            "crypto2021",
+            "japan1989"
+          ],
+          "origin_year_native_s1_mdd_pct": -6.9,
+          "origin_year_calibrated_s1_mdd_pct": -12.2,
+          "calibrated_strength": 1.626812,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-11",
+          "center_shift_months": 1
+        },
+        {
+          "removed": "dotcom",
+          "added": "niftyfifty1972",
+          "selected_eras": [
+            "biotech2015",
+            "japan1989",
+            "niftyfifty1972"
+          ],
+          "origin_year_native_s1_mdd_pct": -4.3,
+          "origin_year_calibrated_s1_mdd_pct": -12.1,
+          "calibrated_strength": 2.448281,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-08",
+          "center_shift_months": -2
+        },
+        {
+          "removed": "japan1989",
+          "added": "crypto2021",
+          "selected_eras": [
+            "biotech2015",
+            "crypto2021",
+            "dotcom"
+          ],
+          "origin_year_native_s1_mdd_pct": -10.7,
+          "origin_year_calibrated_s1_mdd_pct": -12.2,
+          "calibrated_strength": 1.121205,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-09",
+          "center_shift_months": -1
+        },
+        {
+          "removed": "japan1989",
+          "added": "niftyfifty1972",
+          "selected_eras": [
+            "biotech2015",
+            "dotcom",
+            "niftyfifty1972"
+          ],
+          "origin_year_native_s1_mdd_pct": -3.6,
+          "origin_year_calibrated_s1_mdd_pct": -12.2,
+          "calibrated_strength": 2.887325,
+          "calibration_status": "ok",
+          "risk_window_center_month": "2026-10",
+          "center_shift_months": 0
+        }
+      ]
+    },
+    "structural_pair_metrics_by_year": {
+      "2026": {
+        "S1-S2": {
+          "max_abs_normalized_factor_diff": 3.4835540616562355e-05,
+          "max_abs_normalized_factor_diff_pct": 0.0034835540616562355,
+          "normalized_factor_correlation": 0.9999999608767286,
+          "weekly_log_return_correlation": 0.9999993921782009
+        },
+        "S1-S3": {
+          "max_abs_normalized_factor_diff": 3.325832143474816e-05,
+          "max_abs_normalized_factor_diff_pct": 0.003325832143474816,
+          "normalized_factor_correlation": 0.9999999579619229,
+          "weekly_log_return_correlation": 0.9999996071859875
+        },
+        "S2-S3": {
+          "max_abs_normalized_factor_diff": 3.1664954865284756e-05,
+          "max_abs_normalized_factor_diff_pct": 0.0031664954865284756,
+          "normalized_factor_correlation": 0.9999999492605549,
+          "weekly_log_return_correlation": 0.9999994364650886
+        }
+      },
+      "2027": {
+        "S1-S2": {
+          "max_abs_normalized_factor_diff": 3.115548718679584e-05,
+          "max_abs_normalized_factor_diff_pct": 0.003115548718679584,
+          "normalized_factor_correlation": 0.9999998647595196,
+          "weekly_log_return_correlation": 0.9999984282780906
+        },
+        "S1-S3": {
+          "max_abs_normalized_factor_diff": 3.3602617530714696e-05,
+          "max_abs_normalized_factor_diff_pct": 0.0033602617530714696,
+          "normalized_factor_correlation": 0.999999869290015,
+          "weekly_log_return_correlation": 0.9999981729669251
+        },
+        "S2-S3": {
+          "max_abs_normalized_factor_diff": 2.9311196672487938e-05,
+          "max_abs_normalized_factor_diff_pct": 0.002931119667248794,
+          "normalized_factor_correlation": 0.9999998420289423,
+          "weekly_log_return_correlation": 0.9999982881923052
+        }
+      }
+    },
+    "original_gbm_path_return_correlations": {
+      "S1-S2": -0.4665452318515508,
+      "S1-S3": -0.7644216075658109,
+      "S2-S3": 0.5211185707854716
+    },
+    "structural_full_horizon_return_correlations": {
+      "S1-S2": 0.9947358814554431,
+      "S1-S3": 0.9783688168178475,
+      "S2-S3": 0.9927967367877183
+    },
+    "checkpoints": [
+      {
+        "date": "2026-08-03",
+        "S1": 25914,
+        "S2": 25914,
+        "S3": 25914
+      },
+      {
+        "date": "2026-08-31",
+        "S1": 24561,
+        "S2": 24187,
+        "S3": 23755
+      },
+      {
+        "date": "2026-09-29",
+        "S1": 25459,
+        "S2": 24690,
+        "S3": 23815
+      },
+      {
+        "date": "2026-10-27",
+        "S1": 22793,
+        "S2": 21769,
+        "S3": 20622
+      },
+      {
+        "date": "2026-11-24",
+        "S1": 25957,
+        "S2": 24413,
+        "S3": 22713
+      },
+      {
+        "date": "2026-12-31",
+        "S1": 28730,
+        "S2": 26508,
+        "S3": 24113
+      }
+    ],
+    "note_disclosure_duplicate_count": 5,
+    "archive_note_duplicate_counts": [
+      {
+        "file": "2026-08-03_CORR-260805-014.json",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r4",
+        "count": 1
+      },
+      {
+        "file": "2026-08-03_CORR-260806-016.json",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r5",
+        "count": 2
+      },
+      {
+        "file": "2026-08-03_CORR-260806-017.json",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r6",
+        "count": 3
+      },
+      {
+        "file": "2026-08-03_CORR-260806-018.json",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r7",
+        "count": 4
+      },
+      {
+        "file": "2026-08-03_CORR-260806-019.json",
+        "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+        "count": 5
+      }
+    ],
+    "legacy_reference_line": {
+      "source": "src/ai_fc/scenario.py::_ANALOG_VALUES",
+      "hardcoded_points": 26,
+      "ui_label": "혁신사이클 대표 참조선 · 확률 아님",
+      "serialized_label": "닷컴 아날로그 (참조선 — 시나리오 아님)",
+      "clip": 32392
+    }
+  },
+  "cli_audits": {
+    "security_check": {
+      "status": "pass",
+      "message": "secret pattern scan clean"
+    },
+    "ledger_audit": {
+      "status": "pass",
+      "summary": {
+        "accumulating": 21,
+        "stalled": 5,
+        "inactive": 1,
+        "violation": 0,
+        "planned": 4,
+        "frozen": 1
+      },
+      "stalled_ledgers": [
+        "scenario_archive",
+        "scenario_latest",
+        "cross_asset_archive",
+        "cross_asset_latest",
+        "cross_asset_path_tracking_v2"
+      ],
+      "inactive_ledgers": [
+        "dualdb_model_runs"
+      ]
+    },
+    "sync_check": {
+      "status": "pass_with_warnings",
+      "questions": 38,
+      "forecasts": 22,
+      "resolutions": 6,
+      "warnings": [
+        {
+          "forecast_id": "2026-07-10_fomc-2026-07-29-hike_r1",
+          "field": "market_prob",
+          "value": 22.0,
+          "expected_unit": "fraction [0,1]",
+          "action": "quarantined"
+        },
+        {
+          "forecast_id": "2026-07-20_fomc-2026-07-29-hike_r4",
+          "field": "market_prob",
+          "value": 5.0,
+          "expected_unit": "fraction [0,1]",
+          "action": "quarantined"
+        }
+      ]
+    }
+  }
+}

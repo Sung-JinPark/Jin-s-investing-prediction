@@ -1,0 +1,467 @@
+-- ai-fc SQLite 파생 인덱스. 언제든 파일에서 재구축 가능 (sync --rebuild).
+-- schema_version: 1
+
+PRAGMA journal_mode = WAL;
+
+CREATE TABLE IF NOT EXISTS meta (
+    key TEXT PRIMARY KEY,
+    value TEXT
+);
+INSERT OR IGNORE INTO meta (key, value) VALUES ('schema_version', '1');
+
+-- v2 metadata is deliberately separate from the legacy meta table.  It stores the
+-- provenance of the rebuildable read index, never source-of-truth business data.
+CREATE TABLE IF NOT EXISTS db_meta (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    version INTEGER PRIMARY KEY,
+    name TEXT NOT NULL,
+    checksum TEXT NOT NULL,
+    applied_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS lineage_edge (
+    edge_id TEXT PRIMARY KEY,
+    upstream_type TEXT NOT NULL,
+    upstream_id TEXT NOT NULL,
+    downstream_type TEXT NOT NULL,
+    downstream_id TEXT NOT NULL,
+    relation TEXT NOT NULL,
+    commit_sha TEXT,
+    created_at TEXT NOT NULL,
+    UNIQUE (upstream_type, upstream_id, downstream_type, downstream_id, relation)
+);
+
+CREATE TABLE IF NOT EXISTS questions (
+    question_id     TEXT PRIMARY KEY,
+    title           TEXT,
+    question        TEXT,
+    deadline_kind   TEXT CHECK (deadline_kind IN ('fixed', 'rolling', 'tbd')),
+    deadline        TEXT,           -- ISO date, fixed일 때
+    rolling_days    INTEGER,
+    resolution      TEXT,
+    resolution_source TEXT,
+    domain          TEXT,           -- enum 아님 (market-daily 등 신설 가능)
+    cadence_raw     TEXT,
+    schedule_json   TEXT,           -- 정규화 스케줄, '[]' = manual
+    action_link     TEXT,
+    status          TEXT,
+    created         TEXT,
+    notes           TEXT,
+    required_snapshots_json TEXT,
+    src_hash        TEXT            -- 질문 블록 해시 (판정기준 변경 감지)
+);
+
+CREATE TABLE IF NOT EXISTS forecasts (
+    forecast_id     TEXT PRIMARY KEY,   -- 파일명 stem
+    question_id     TEXT NOT NULL,
+    round           INTEGER NOT NULL,
+    forecast_ts     TEXT,               -- ISO datetime (KST naive)
+    probability     INTEGER NOT NULL,
+    ci80_lo         INTEGER,
+    ci80_hi         INTEGER,
+    window_end      TEXT,               -- rolling 인스턴스 키
+    snapshots_json  TEXT,
+    market_implied  REAL,
+    edge            REAL,
+    model           TEXT,
+    prompt_version  TEXT,
+    phase           TEXT,
+    method          TEXT,
+    sources_count   INTEGER,
+    path            TEXT NOT NULL,
+    file_sha256     TEXT NOT NULL,
+    ingested_at     TEXT,
+    research_status TEXT,           -- ok|ok_low_primary|degraded|failed (구파일 NULL=ok)
+    shadow_extremized INTEGER,      -- WS8: 섀도 가상 Brier용 (표시 전용 열의 DB 적재)
+    ml_divergence_pp REAL,          -- WS6: 기록 시점 |rN − ML앙상블| (%p)
+    divergence_class TEXT,          -- WS6: ≥15%p 시 분류 (enum 4종)
+    pipeline_tier   TEXT,           -- v3 WS-B: standard|lite (티어별 Brier 분해용)
+    UNIQUE (question_id, round)
+);
+CREATE INDEX IF NOT EXISTS idx_forecasts_qid_window ON forecasts (question_id, window_end);
+
+CREATE TABLE IF NOT EXISTS resolutions (
+    forecast_id     TEXT NOT NULL,
+    resolved_date   TEXT NOT NULL,
+    question_id     TEXT,
+    forecast_date   TEXT,
+    probability     INTEGER,
+    outcome         INTEGER,
+    brier           REAL,
+    domain          TEXT,
+    notes           TEXT,
+    ledger_line     INTEGER,
+    PRIMARY KEY (forecast_id, resolved_date)
+);
+
+CREATE TABLE IF NOT EXISTS ledger_lines (
+    line_no         INTEGER PRIMARY KEY,  -- 1-based, 헤더 제외
+    line_hash       TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS sync_meta (
+    file            TEXT PRIMARY KEY,     -- 루트 상대 경로
+    sha256          TEXT NOT NULL,
+    mtime           REAL,
+    ingested_at     TEXT
+);
+
+-- AUDIT-260715 8-2(c): 소급 리서치 상태 판정 — 예측 파일은 불변이므로 메타로만.
+-- 원천: calibration/research_status_overrides.csv (git 추적, 사유 필수)
+CREATE TABLE IF NOT EXISTS research_status_override (
+    forecast_id     TEXT PRIMARY KEY,
+    status          TEXT NOT NULL,      -- degraded | failed
+    reason          TEXT,
+    created_at      TEXT NOT NULL       -- 시점 불변식: created_at < 해소일 (E4)
+);
+
+-- overrides.csv 행 해시 (원장급 규율 — RE-AUDIT U-2: 축소·변조 = E5)
+CREATE TABLE IF NOT EXISTS override_lines (
+    line_no         INTEGER PRIMARY KEY,
+    line_hash       TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS cost_log (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    ts              TEXT,
+    question_id     TEXT,
+    stage           TEXT,               -- research | reasoning
+    model           TEXT,
+    input_tokens    INTEGER,
+    output_tokens   INTEGER,
+    cost_usd        REAL,
+    provider        TEXT NOT NULL DEFAULT 'anthropic',
+    snapshot        TEXT,
+    request_id      TEXT,
+    cached_input_tokens INTEGER NOT NULL DEFAULT 0,
+    web_search_calls INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_cost_log_provider_month ON cost_log (provider, ts);
+
+CREATE TABLE IF NOT EXISTS cost_log_lines (
+    line_no         INTEGER PRIMARY KEY,
+    line_hash       TEXT NOT NULL
+);
+
+-- ── ML/시장 확률 이력 (원본: data/ml_history/*.jsonl — 재구축 가능) ──
+
+CREATE TABLE IF NOT EXISTS ml_forecasts (
+    run_ts          TEXT NOT NULL,
+    question_id     TEXT NOT NULL,
+    model           TEXT NOT NULL,      -- bolt | c2 | t5 | gbm | ensemble
+    kind            TEXT NOT NULL,      -- terminal | path_touch
+    prob            REAL NOT NULL,
+    threshold       REAL,
+    horizon_weeks   INTEGER,
+    detail_json     TEXT,
+    PRIMARY KEY (run_ts, question_id, model, kind)
+);
+
+CREATE TABLE IF NOT EXISTS ml_sentiment (
+    run_ts          TEXT NOT NULL,
+    feed            TEXT NOT NULL,
+    n_headlines     INTEGER,
+    score           REAL,
+    PRIMARY KEY (run_ts, feed)
+);
+
+CREATE TABLE IF NOT EXISTS market_implied (
+    run_ts          TEXT NOT NULL,
+    question_id     TEXT NOT NULL,
+    source          TEXT NOT NULL,      -- kalshi | polymarket | options_bl
+    prob            REAL NOT NULL,
+    detail_json     TEXT,
+    PRIMARY KEY (run_ts, question_id, source)
+);
+
+-- ── 벤치마크 3자 원장 (WS2 — 원본: calibration/benchmark_ledger.csv) ──
+-- edge 증명의 전제 배관: LLM vs ML앙상블 vs 시장내재의 Brier를 나란히 채점.
+-- 기록·표시 전용 — 게이트 산정식(v_gate_status)과 무관 (참고 의견, P3 게이트 전).
+
+CREATE TABLE IF NOT EXISTS benchmark_scores (
+    forecast_id     TEXT NOT NULL,
+    resolved_date   TEXT NOT NULL,
+    question_id     TEXT,
+    llm_prob        REAL,
+    llm_brier       REAL,
+    ml_prob         REAL,               -- NULL = 예측 시점 이전 ML 참조 부재 (정직)
+    ml_brier        REAL,
+    market_prob     REAL,               -- NULL = 기록된 시장내재 부재
+    market_brier    REAL,
+    ml_asof         TEXT,               -- 사용한 ML run_ts (룩어헤드 차단 증빙)
+    market_asof     TEXT,               -- frontmatter 기록 시점 (예측일)
+    notes           TEXT,
+    line_no         INTEGER,
+    PRIMARY KEY (forecast_id, resolved_date)
+);
+
+CREATE TABLE IF NOT EXISTS benchmark_lines (
+    line_no         INTEGER PRIMARY KEY,
+    line_hash       TEXT NOT NULL
+);
+
+-- Canonical 0..1 probability projection.  Legacy 0..100 columns stay untouched for
+-- backward compatibility; consumers of new analytics must use this table/view layer.
+CREATE TABLE IF NOT EXISTS probability_record (
+    record_id        TEXT PRIMARY KEY,
+    entity_type      TEXT NOT NULL,
+    entity_id        TEXT NOT NULL,
+    probability      REAL NOT NULL CHECK (probability >= 0.0 AND probability <= 1.0),
+    raw_value        REAL NOT NULL,
+    source_unit      TEXT NOT NULL CHECK (source_unit IN ('fraction', 'percent', 'bps', 'price')),
+    probability_space TEXT NOT NULL CHECK (probability_space IN (
+        'physical_event', 'risk_neutral_terminal', 'path_touch',
+        'scenario_conditional', 'reference_only')),
+    source_id        TEXT NOT NULL,
+    asof              TEXT,
+    created_at        TEXT NOT NULL,
+    UNIQUE (entity_type, entity_id, probability_space, source_id)
+);
+
+-- Source ledgers remain append-only.  A correction is a new reviewed assertion and
+-- never an UPDATE against calibration/*.csv.
+CREATE TABLE IF NOT EXISTS correction_ledger (
+    correction_id    TEXT PRIMARY KEY,
+    target_table     TEXT NOT NULL,
+    target_key       TEXT NOT NULL,
+    field_name       TEXT NOT NULL,
+    old_value        TEXT,
+    new_value        TEXT,
+    status           TEXT NOT NULL CHECK (status IN ('pending', 'approved', 'rejected')),
+    reason           TEXT NOT NULL,
+    evidence_uri     TEXT,
+    created_at       TEXT NOT NULL,
+    approved_at      TEXT,
+    reviewer         TEXT
+);
+CREATE TABLE IF NOT EXISTS correction_lines (
+    line_no INTEGER PRIMARY KEY,
+    line_hash TEXT NOT NULL
+);
+
+-- One real-world outcome can have several forecast rounds.  Gate v2 scores the event
+-- representative, while legacy row-level gates below are intentionally unchanged.
+CREATE TABLE IF NOT EXISTS resolution_event (
+    event_id          TEXT PRIMARY KEY,
+    question_id       TEXT NOT NULL,
+    resolved_date     TEXT NOT NULL,
+    outcome           INTEGER NOT NULL CHECK (outcome IN (0, 1)),
+    domain            TEXT,
+    forecast_count    INTEGER NOT NULL,
+    first_probability REAL CHECK (first_probability BETWEEN 0.0 AND 1.0),
+    latest_probability REAL CHECK (latest_probability BETWEEN 0.0 AND 1.0),
+    representative_probability REAL CHECK (representative_probability BETWEEN 0.0 AND 1.0),
+    representative_brier REAL CHECK (representative_brier BETWEEN 0.0 AND 1.0),
+    primary_forecast_count INTEGER NOT NULL DEFAULT 0,
+    primary_probability REAL CHECK (primary_probability BETWEEN 0.0 AND 1.0),
+    primary_brier REAL CHECK (primary_brier BETWEEN 0.0 AND 1.0),
+    UNIQUE (question_id, resolved_date)
+);
+
+CREATE TABLE IF NOT EXISTS score_observation (
+    event_id          TEXT NOT NULL,
+    forecast_id       TEXT NOT NULL,
+    forecast_ts       TEXT,
+    round             INTEGER,
+    probability       REAL NOT NULL CHECK (probability BETWEEN 0.0 AND 1.0),
+    outcome           INTEGER NOT NULL CHECK (outcome IN (0, 1)),
+    brier             REAL NOT NULL CHECK (brier BETWEEN 0.0 AND 1.0),
+    time_weight       REAL NOT NULL CHECK (time_weight >= 0.0),
+    eligible_primary INTEGER NOT NULL CHECK (eligible_primary IN (0, 1)),
+    PRIMARY KEY (event_id, forecast_id),
+    FOREIGN KEY (event_id) REFERENCES resolution_event(event_id)
+);
+
+CREATE TABLE IF NOT EXISTS source_registry (
+    source_id         TEXT PRIMARY KEY,
+    name              TEXT NOT NULL,
+    provider          TEXT NOT NULL,
+    source_tier       TEXT NOT NULL CHECK (source_tier IN ('official', 'licensed', 'public', 'curated')),
+    endpoint          TEXT,
+    cadence           TEXT NOT NULL,
+    freshness_sla_hours INTEGER,
+    vintage_capability TEXT NOT NULL CHECK (vintage_capability IN ('native', 'captured', 'none')),
+    license_status    TEXT NOT NULL CHECK (license_status IN ('approved', 'review_required', 'prohibited')),
+    enabled           INTEGER NOT NULL DEFAULT 1 CHECK (enabled IN (0, 1)),
+    contract_path     TEXT NOT NULL,
+    updated_at        TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS model_registry (
+    model_id          TEXT PRIMARY KEY,
+    display_name      TEXT NOT NULL,
+    version           TEXT NOT NULL,
+    lifecycle         TEXT NOT NULL CHECK (lifecycle IN (
+        'baseline', 'candidate', 'shadow', 'champion', 'demoted', 'retired')),
+    target            TEXT NOT NULL,
+    code_version      TEXT NOT NULL,
+    data_fingerprint  TEXT,
+    params_json       TEXT NOT NULL,
+    metrics_json      TEXT NOT NULL,
+    limitations       TEXT,
+    promotion_allowed INTEGER NOT NULL DEFAULT 0 CHECK (promotion_allowed IN (0, 1)),
+    created_at        TEXT NOT NULL,
+    updated_at        TEXT NOT NULL,
+    UNIQUE (display_name, version)
+);
+
+-- 쌍대 비교: 비교 대상이 존재하는 해소만 집계 (불공정 비교 차단)
+DROP VIEW IF EXISTS v_benchmark_corrected;
+CREATE VIEW v_benchmark_corrected AS
+SELECT bs.forecast_id, bs.resolved_date, bs.question_id,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='llm_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.llm_prob) AS llm_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='llm_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.llm_brier) AS llm_brier,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='ml_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.ml_prob) AS ml_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='ml_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.ml_brier) AS ml_brier,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='market_prob' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.market_prob) AS market_prob,
+       COALESCE((SELECT CAST(c.new_value AS REAL) FROM correction_ledger c
+                 WHERE c.target_table='benchmark_scores'
+                   AND c.target_key=bs.forecast_id || '@' || bs.resolved_date
+                   AND c.field_name='market_brier' AND c.status='approved'
+                 ORDER BY c.approved_at DESC LIMIT 1), bs.market_brier) AS market_brier,
+       bs.ml_asof, bs.market_asof, bs.notes, bs.line_no
+FROM benchmark_scores bs;
+
+DROP VIEW IF EXISTS v_benchmark_valid;
+CREATE VIEW v_benchmark_valid AS
+SELECT * FROM v_benchmark_corrected
+WHERE (llm_prob IS NULL OR llm_prob BETWEEN 0.0 AND 1.0)
+  AND (llm_brier IS NULL OR llm_brier BETWEEN 0.0 AND 1.0)
+  AND (ml_prob IS NULL OR ml_prob BETWEEN 0.0 AND 1.0)
+  AND (ml_brier IS NULL OR ml_brier BETWEEN 0.0 AND 1.0)
+  AND (market_prob IS NULL OR market_prob BETWEEN 0.0 AND 1.0)
+  AND (market_brier IS NULL OR market_brier BETWEEN 0.0 AND 1.0);
+
+DROP VIEW IF EXISTS v_benchmark_pairwise;
+CREATE VIEW v_benchmark_pairwise AS
+SELECT 'llm_vs_ml' AS pair, COUNT(*) AS n,
+       AVG(llm_brier) AS llm_brier, AVG(ml_brier) AS other_brier
+FROM v_benchmark_valid WHERE ml_brier IS NOT NULL
+UNION ALL
+SELECT 'llm_vs_market', COUNT(*), AVG(llm_brier), AVG(market_brier)
+FROM v_benchmark_valid WHERE market_brier IS NOT NULL
+UNION ALL
+SELECT 'all_three', COUNT(*), AVG(llm_brier),
+       (AVG(ml_brier) + AVG(market_brier)) / 2
+FROM v_benchmark_valid WHERE ml_brier IS NOT NULL AND market_brier IS NOT NULL;
+
+-- ── 뷰 ─────────────────────────────────────────────────────────
+
+DROP VIEW IF EXISTS v_brier;
+CREATE VIEW v_brier AS
+SELECT '(전체)' AS domain, COUNT(*) AS n, AVG(brier) AS brier FROM resolutions
+UNION ALL
+SELECT domain, COUNT(*) AS n, AVG(brier) AS brier FROM resolutions GROUP BY domain;
+
+-- AUDIT-260715 8-2(c) 활성 (사용자 위임 결정 2026-07-15):
+-- 원장은 전량 채점(투명·append-only 유지). 대표 Brier·게이트는 primary
+-- (research_status='failed' 제외 — frontmatter 또는 메타 오버라이드) 기준.
+-- primary가 더 보수적: 표본 n이 작아져 게이트 통과가 늦어진다.
+DROP VIEW IF EXISTS v_brier_all;
+CREATE VIEW v_brier_all AS SELECT * FROM v_brier;
+
+DROP VIEW IF EXISTS v_brier_primary;
+CREATE VIEW v_brier_primary AS
+SELECT '(전체)' AS domain, COUNT(*) AS n, AVG(r.brier) AS brier
+FROM resolutions r
+LEFT JOIN forecasts f ON f.forecast_id = r.forecast_id
+LEFT JOIN research_status_override o ON o.forecast_id = r.forecast_id
+WHERE COALESCE(o.status, f.research_status, 'ok') != 'failed'
+UNION ALL
+SELECT r.domain, COUNT(*) AS n, AVG(r.brier) AS brier
+FROM resolutions r
+LEFT JOIN forecasts f ON f.forecast_id = r.forecast_id
+LEFT JOIN research_status_override o ON o.forecast_id = r.forecast_id
+WHERE COALESCE(o.status, f.research_status, 'ok') != 'failed' GROUP BY r.domain;
+
+-- 도메인 차단: primary/all 양쪽 평가 — 하나라도 걸리면 차단 (RE-AUDIT U-2:
+-- failed 밀집 도메인이 primary 단독 평가에서 무능을 은폐하는 채널 차단)
+DROP VIEW IF EXISTS v_domain_skill;
+CREATE VIEW v_domain_skill AS
+SELECT a.domain, a.n AS n, a.brier AS brier,
+       p.n AS n_primary, p.brier AS brier_primary,
+       ((a.brier > 0.22 AND a.n >= 10)
+        OR (COALESCE(p.brier, 0) > 0.22 AND COALESCE(p.n, 0) >= 10)) AS blocked
+FROM (SELECT domain, COUNT(*) n, AVG(brier) brier
+      FROM resolutions GROUP BY domain) a
+LEFT JOIN (SELECT r.domain, COUNT(*) n, AVG(r.brier) brier
+           FROM resolutions r
+           LEFT JOIN forecasts f ON f.forecast_id = r.forecast_id
+           LEFT JOIN research_status_override o ON o.forecast_id = r.forecast_id
+           WHERE COALESCE(o.status, f.research_status, 'ok') != 'failed'
+           GROUP BY r.domain) p ON p.domain = a.domain;
+
+DROP VIEW IF EXISTS v_calibration_curve;
+CREATE VIEW v_calibration_curve AS
+SELECT MIN(probability / 10, 9) AS decile,
+       COUNT(*) AS n,
+       AVG(probability) / 100.0 AS avg_forecast,
+       AVG(outcome) AS avg_outcome
+FROM resolutions GROUP BY decile;
+
+-- 게이트 판정은 primary 기준 (8-2(c) — failed 예측 제외라 표본이 작아져 더 보수적).
+-- 전량 기준은 v_gate_status_all로 참조 가능.
+DROP VIEW IF EXISTS v_gate_status;
+CREATE VIEW v_gate_status AS
+SELECT COUNT(*) AS n_resolved,
+       AVG(r.brier) AS brier,
+       (COUNT(*) >= 30 AND AVG(r.brier) < 0.20) AS gate_p2,
+       (COUNT(*) >= 50 AND AVG(r.brier) < 0.18) AS gate_p3
+FROM resolutions r
+LEFT JOIN forecasts f ON f.forecast_id = r.forecast_id
+LEFT JOIN research_status_override o ON o.forecast_id = r.forecast_id
+WHERE COALESCE(o.status, f.research_status, 'ok') != 'failed';
+
+DROP VIEW IF EXISTS v_gate_status_all;
+CREATE VIEW v_gate_status_all AS
+SELECT COUNT(*) AS n_resolved,
+       AVG(brier) AS brier,
+       (COUNT(*) >= 30 AND AVG(brier) < 0.20) AS gate_p2,
+       (COUNT(*) >= 50 AND AVG(brier) < 0.18) AS gate_p3
+FROM resolutions;
+
+-- Display-only gate v2.  Promotion remains disabled until the user approves a gate
+-- policy change; the established row-level v_gate_status remains authoritative.
+DROP VIEW IF EXISTS v_gate_status_v2;
+CREATE VIEW v_gate_status_v2 AS
+SELECT COUNT(*) AS n_events,
+       AVG(primary_brier) AS brier,
+       (COUNT(*) >= 30 AND AVG(primary_brier) < 0.20) AS gate_p2_candidate,
+       (COUNT(*) >= 50 AND AVG(primary_brier) < 0.18) AS gate_p3_candidate,
+       0 AS promotion_enabled
+FROM resolution_event
+WHERE primary_brier IS NOT NULL;
+
+DROP VIEW IF EXISTS v_latest_forecast;
+CREATE VIEW v_latest_forecast AS
+SELECT question_id,
+       MAX(round) AS last_round,
+       MAX(forecast_ts) AS last_ts,
+       MAX(window_end) AS last_window_end
+FROM forecasts GROUP BY question_id;

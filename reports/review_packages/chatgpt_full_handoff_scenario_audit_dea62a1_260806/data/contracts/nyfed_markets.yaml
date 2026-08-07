@@ -1,0 +1,16 @@
+schema_version: 1
+source_id: nyfed_markets
+description: New York Fed reference-rate and market-operation data.
+timezone: America/New_York
+calendar_id: US_FED
+cadence: business-daily
+freshness_sla_hours: 48
+available_at_rule: Official publication timestamp for the relevant market-data series.
+revision_policy: Capture subsequent payloads as new vintages.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: series_id, type: string}
+  - {name: observation_time, type: string}
+  - {name: value, type: number, required: false}
+quality_checks: [schema, numeric-or-missing, business-calendar, duplicate-key, freshness]
+fallback: FRED mirror is cross-check only unless the release-time equivalence is proven.

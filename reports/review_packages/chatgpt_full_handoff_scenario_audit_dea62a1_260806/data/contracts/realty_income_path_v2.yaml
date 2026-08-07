@@ -1,0 +1,34 @@
+schema_version: 1
+source_id: realty_income_path_v2
+status: D0_validated_partial
+checked_at: 2026-08-04
+probability_space: scenario_conditional
+price_source: yahoo_crosscheck
+dividend_source: yahoo_crosscheck
+fred_series: [DGS10, DFII10, BAMLH0A0HYM2, BAMLC0A0CM, FEDFUNDS]
+beta_model:
+  frequency: weekly_last_observation
+  minimum_observations: 156
+  confidence_interval: block_bootstrap_p10_p90
+  bootstrap_repetitions: 1000
+  bootstrap_block_weeks: 4
+  sign_gate: use_zero_when_p10_lte_zero_lte_p90
+  market_control: NASDAQ weekly log return
+  units: percent_O_price_effect_per_100bp_change
+sector_comparison:
+  primary:
+    source: fred_market_signals
+    series: WILLREITIND
+    status: unavailable_http_404
+  fallback:
+    source: yahoo_crosscheck
+    symbol: IYR
+    status: enabled_derived_return_only
+    history_start: 2000-06
+  failure_policy: omit comparison line and render sector source unavailable
+dividend_availability_semantics: available_at is first repository capture, not the corporate declaration timestamp
+sec_dividend_crosscheck:
+  file: data/realty_income/sec_annual_dividend_reference.yaml
+  gate: compare annual monotonic direction; do not assert equality across paid-date and ex-date bases
+redistribution_policy: publish derived diagnostics only; do not republish raw ICE index or Yahoo price histories
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]

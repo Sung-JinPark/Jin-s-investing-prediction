@@ -1,0 +1,80 @@
+schema_version: 1
+source_id: fred_stlfsi4
+contract_id: fred_stlfsi4_d0_v1
+batch_id: s0_260805_d0_followup
+stage: D0
+priority: P1
+description: St. Louis Fed Financial Stress Index version 4 candidate distributed through FRED.
+provider: Federal Reserve Bank of St. Louis via FRED
+source_tier: official
+endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv?id=STLFSI4
+series_page: https://fred.stlouisfed.org/series/STLFSI4
+series_id: STLFSI4
+cadence: weekly
+enabled: false
+collector_status: prohibited_until_d0_pass
+registry_status: not_registered_until_d0_pass
+model_use: prohibited
+probability_space: reference_only
+purpose: Financing-stress context and tracker challenger signal while NFCI rights remain under review.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+storage_policy:
+  mode: append_only_after_activation
+  historical_backfill_vintage: reconstructed
+
+d0:
+  status: monitoring
+  started_at: 2026-08-05
+  window_end_exclusive: 2026-08-19
+  required_observation_days: 14
+  fetch_allowed: true
+  fetch_scope: ephemeral_schema_and_release_monitor_only
+  checks:
+    - http_200
+    - series_id_stability
+    - csv_schema_stability
+    - weekly_release_timing
+    - missing_or_delayed_release
+    - revision_behavior
+    - point_in_time_availability
+    - fred_terms_change
+  initial_observation:
+    observed_at: 2026-08-05
+    http_status: 200
+    content_type: application/csv
+    content_length: 31724
+    latest_observation_period: 2026-07-24
+    latest_value: -0.8263
+    page_updated_at: 2026-07-29T10:04:00-05:00
+    next_release_date: 2026-08-05
+    raw_payload_committed: false
+
+schema:
+  required_fields: [observation_date, STLFSI4]
+  expected_units: index
+  seasonal_adjustment: not_seasonally_adjusted
+  frequency: weekly_ending_friday
+
+point_in_time:
+  observation_period: week_ending_friday
+  available_at: Actual St. Louis Fed or FRED publication timestamp, normally the following Wednesday; never the Friday observation date
+  revision_vintage: native_release_capture_after_activation
+  historical_use: Current-vintage history must be labelled reconstructed and must not be represented as native PIT history.
+
+license:
+  status: copyrighted_citation_required_activation_review
+  fred_terms_url: https://fred.stlouisfed.org/legal/terms/
+  owner_terms_url: https://www.stlouisfed.org/about-us/legal-information
+  redistribution: citation_required_and_activation_review
+  database_creation: prohibited_pending_source_specific_clarification
+  automated_access: d0_ephemeral_probe_only_pending_activation_review
+  predictive_analytics_use: prohibited_pending_source_specific_clarification
+  attribution: Federal Reserve Bank of St. Louis, St. Louis Fed Financial Stress Index STLFSI4, retrieved via FRED.
+  rationale: The series is labelled Copyrighted - Citation Required, while current FRED terms separately restrict storage and use in software or machine-learning systems; D0 may observe transport and release behavior but may not activate a collector or model use.
+
+activation_gate:
+  - Fourteen calendar days of ephemeral endpoint, schema, release, and revision monitoring through 2026-08-18 without committing raw payloads.
+  - Written or authoritative source-specific clarification covering automated retrieval, local storage, public display, and intended predictive use.
+  - Contract review and source-registry registration in a separately approved S1 change.
+  - Collector, archive, receipt, PIT, attribution, and stale-state tests must ship together; model use remains off until then.
+fallback: Keep STLFSI4 unavailable if rights remain unresolved; NFCI stays in legal review and no synthetic stress value is substituted.

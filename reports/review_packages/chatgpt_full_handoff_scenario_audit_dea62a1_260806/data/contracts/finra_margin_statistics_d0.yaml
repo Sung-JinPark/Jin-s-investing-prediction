@@ -1,0 +1,65 @@
+schema_version: 1
+source_id: finra_margin_statistics
+contract_id: finra_margin_statistics_d0_v1
+batch_id: s0_260804_p1
+stage: D0
+priority: P1
+description: FINRA monthly margin-account debit and free-credit balance statistics candidate.
+provider: Financial Industry Regulatory Authority
+source_tier: official
+endpoint: https://www.finra.org/rules-guidance/key-topics/margin-accounts/margin-statistics
+historical_download: https://www.finra.org/sites/default/files/2021-03/margin-statistics.xlsx
+cadence: monthly
+enabled: false
+collector_status: prohibited_until_d0_pass
+registry_status: not_registered_until_d0_pass
+model_use: prohibited
+probability_space: reference_only
+purpose: Historical leverage context for AI-cycle and pre-correction diagnostics.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+storage_policy:
+  mode: append_only_after_activation
+  historical_backfill_vintage: reconstructed
+
+d0:
+  status: blocked_legal_terms
+  started_at: 2026-08-04
+  window_end_exclusive: 2026-08-18
+  required_observation_days: 14
+  fetch_allowed: false
+  checks:
+    - publication_timing
+    - source_schema_stability
+    - revision_behavior
+    - point_in_time_availability
+    - redistribution_rights
+    - predictive_use_rights
+  initial_observation:
+    observed_at: 2026-08-04
+    publication_rule: Generally published in the third week following the reference month.
+    history_start: 1997-01
+    transport_probe: not_run_due_to_legal_gate
+
+point_in_time:
+  observation_period: calendar_month_end
+  available_at: FINRA publication timestamp, never the reference month end
+  revision_vintage: reconstructed
+  historical_use: Historical rows must be labelled vintage=reconstructed and are not native PIT observations.
+
+license:
+  status: blocked_legal_terms
+  terms_url: https://www.finra.org/terms-of-use
+  permission_url: https://www.finra.org/contact-finra/permission-use-finra-copyrighted-material
+  copyright: FINRA copyrighted material; all rights reserved.
+  redistribution: prohibited_without_written_permission
+  database_creation: prohibited_without_written_permission
+  automated_access: prohibited_without_written_permission
+  predictive_analytics_use: prohibited_without_written_permission
+  attribution: Required if permission is granted; exact wording to be agreed with FINRA.
+  rationale: FINRA terms prohibit bulk copying or data mining, database creation from the website, and use with predictive analytics or AI.
+
+activation_gate:
+  - Written FINRA permission explicitly covering automated retrieval, local database storage, redistribution, and predictive-model use.
+  - Fourteen calendar days of documented publication and schema observation after permission is obtained.
+  - Contract review and source-registry registration in a separately approved S1 change.
+fallback: Keep the signal unavailable; do not scrape, backfill, proxy, or infer margin debt.

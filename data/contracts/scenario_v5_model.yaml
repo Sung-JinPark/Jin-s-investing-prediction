@@ -1,0 +1,110 @@
+version: 2026-08-07.v2
+status: research_candidate
+display_name: Evidence-Conditioned Market Outlook · Research Candidate
+identity:
+  candidate_id: scenario_v5_evidence_conditioned_legacy_prior_v1
+  model_family: evidence_conditioned_joint_path_ensemble
+  prior_engine: legacy_gbm_reproduced_extended_v2
+  view_update_engine: entropy_pooling_v1
+  event_engine: calibrated_event_state_v1
+  scenario_partition: nasdaq_outcome_partition_v1
+  representative_rule: actual_weighted_medoid_v2
+  is_rcfhs: false
+  promotion_state: blocked_pending_rolling_origin_validation
+prior:
+  horizon_sessions: 252
+  path_count: 40000
+  source: data/scenarios/nasdaq_latest.json model.gbm_parameters
+  extension_policy: preserve_the_official_sample_prefix_then_extend_same_rng_stream
+  continuous_across_calendar_years: true
+  path_dtype: float64
+evidence:
+  target_asset: ^IXIC
+  base_strength:
+    registered_forecast: 1.0
+    market_implied: 0.35
+    analyst_consensus: 0.25
+    strategist_report: 0.20
+    macro_consensus: 0.25
+    state_signal: 0.15
+    historical_base_rate: 0.10
+  default_quality:
+    registered_forecast:
+      source_tier: t2
+      source_quality: 0.80
+      calibration_reliability: 0.35
+      independence_weight: 0.75
+      coverage_weight: 1.0
+    market_implied:
+      source_tier: t2
+      source_quality: 0.80
+      calibration_reliability: 0.25
+      independence_weight: 0.65
+      coverage_weight: 0.80
+    strategist_report:
+      source_tier: t3
+      source_quality: 0.55
+      calibration_reliability: 0.20
+      independence_weight: 0.50
+      coverage_weight: 0.75
+  freshness_half_life_days:
+    registered_forecast: 120
+    market_implied: 3
+    analyst_consensus: 30
+    strategist_report: 60
+    macro_consensus: 14
+    state_signal: 14
+    historical_base_rate: 365
+  maximum_total_report_strength: 0.25
+  maximum_single_report_cluster_strength: 0.08
+entropy_pooling:
+  solver: scipy_lbfgsb_soft_dual_v1
+  loss: quadratic_soft_constraint
+  maximum_iterations: 500
+  gradient_tolerance: 1.0e-10
+  probability_tolerance_floor: 0.05
+  numerical_tolerance: 1.0e-10
+  overall_ess_minimum: 1000
+  scenario_weighted_ess_minimum: 200
+  maximum_single_path_weight: 0.005
+  maximum_top_one_percent_weight_share: 0.35
+scenario:
+  classification_date_source: official_snapshot_model_classification_date
+  ath_rule: daily_close_strictly_above_snapshot_ath_before_or_on_classification
+  positive_reference_rule: terminal_close_strictly_above_snapshot_reference_price
+  conditional_band_ess:
+    representative_p50: 200
+    p25_p75: 500
+    p10_p90: 1000
+    p05_p95: 2000
+representative:
+  minimum_relative_path_weight: 0.05
+  terminal_percentile: [35, 65]
+  ordinary_metric_percentile: [10, 90]
+  wide_metric_percentile: [5, 95]
+  continuation_metric_percentile: [10, 90]
+  score_weights:
+    trajectory: 1.0
+    terminal: 0.35
+    daily_volatility: 0.25
+    weekly_volatility: 0.25
+    maximum_drawdown: 0.35
+    underwater: 0.20
+    direction_changes: 0.20
+    continuation: 0.35
+    posterior_weight_penalty: 0.05
+same_shape_gate:
+  weekly_return_correlation_high: 0.98
+  turning_point_overlap_high: 0.75
+  normalized_trajectory_distance_low: 0.02
+dashboard:
+  maximum_candidate_age_days: 7
+  mode_priority:
+    - valid_fresh_v5_candidate
+    - valid_legacy_actual_member_diagnostic
+    - official_legacy_snapshot_fallback
+  candidate_banner: RESEARCH CANDIDATE · NOT OFFICIAL · NOT CHAMPION
+rolling_origin:
+  status: framework_only
+  horizons_sessions: [21, 63, 126, 252]
+  promotion_requires_human_approval: true

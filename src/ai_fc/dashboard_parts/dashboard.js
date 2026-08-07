@@ -1218,13 +1218,56 @@ const FLOW_LAB_COPY={
   'ai-regime':['AI 자본 사이클 · Coverage Gate','AI 자본 사이클을 지금 판정할 수 있는가','필수 데이터 커버리지가 기준에 못 미치면 지도를 그리지 않고 판정을 보류합니다.'],
   liquidity:['유동성 · Tide Map','유동성 조건은 위험 선호를 지지하는가','주간 유동성·금융여건과 위험자산의 시차 관계를 참고용으로 점검합니다.']
 };
+function scenarioV5FlowModel(legacy,candidate){
+  if(!candidate||candidate.status!=='ok')return legacy;
+  const distribution=candidate.conditional_distribution||{},allDates=distribution.dates||[];
+  const scenarios=distribution.scenarios||{},bands=distribution.unconditional_bands||{};
+  if(allDates.length!==253||!['S1','S2','S3'].every(key=>scenarios[key]?.representative_path_values?.length===allDates.length))return legacy;
+  const indexes=[0];for(let index=5;index<allDates.length;index+=5)indexes.push(index);if(indexes.at(-1)!==allDates.length-1)indexes.push(allDates.length-1);
+  const pick=values=>indexes.map(index=>values[index]);
+  const labels={S1:'ATH breakout',S2:'No ATH; above reference',S3:'No ATH; at/below reference'};
+  const risk=(distribution.unconditional_prob_touch_corr10||[]).map(value=>Number(value)>=.35?'고':(Number(value)>=.15?'중':'저'));
+  return {
+    ...legacy,asof:candidate.asof,method:'scenario-v5-evidence-conditioned-legacy-prior-v1',
+    source:'Registered physical forecasts with separated risk-neutral and reference-only evidence',
+    note:'Research candidate using entropy pooling over a reproduced legacy GBM prior. Not official and not champion.',
+    anchor:Number(candidate.source_snapshot.anchor),ath:Number(candidate.source_snapshot.ath),corr10:Number(candidate.source_snapshot.corr10),
+    weeks:indexes.map(index=>{const day=allDates[index]||'';return `${Number(day.slice(5,7))}/${Number(day.slice(8,10))}`;}),week_dates:indexes.map(index=>allDates[index]),
+    paths:Object.fromEntries(['S1','S2','S3'].map(key=>[key,{label:labels[key],prob:Number((Number(scenarios[key].probability)*100).toFixed(1)),color:scenarios[key].color,end:Math.round(Number(scenarios[key].representative_path_values.at(-1))),values:pick(scenarios[key].representative_path_values)}])),
+    fan:{probability_space:'scenario_conditional',monitoring:'daily-discrete',baseline_method:'evidence-conditioned-posterior',quantiles:Object.fromEntries(Object.entries(bands).map(([key,values])=>[key,pick(values)]))},
+    quantile_table:{status:'ok',probability_space:'scenario_conditional',probability_label:'model_conditional',basis:'Scenario V5 posterior',trading_days:allDates.slice(1),quantiles:Object.fromEntries(Object.entries(bands).map(([key,values])=>[key,values.slice(1)])),prob_above_anchor:(distribution.unconditional_prob_above_anchor||[]).slice(1).map(value=>Number((Number(value)*100).toFixed(1))),prob_above_ath:(distribution.unconditional_prob_above_ath||[]).slice(1).map(value=>Number((Number(value)*100).toFixed(1))),per_scenario_p50:Object.fromEntries(['S1','S2','S3'].map(key=>[key,scenarios[key].bands.p50.slice(1)])),per_scenario_counts:Object.fromEntries(['S1','S2','S3'].map(key=>[key,scenarios[key].path_count]))},
+    risk:pick(risk),events:legacy.events,calendar_events:legacy.calendar_events,horizon_coverage:legacy.horizon_coverage,
+    model:{lookback_days:legacy.model?.lookback_days,horizon_business_days:252,classification_date:candidate.source_snapshot.classification_date,n_paths:candidate.prior.path_count,seed:candidate.prior.seed,probability_space:'scenario_conditional',promotion_state:candidate.promotion.state},
+    analog:null,path_realism:null,structural_forecast:null,scenario_v5_candidate:true,
+    representative_lines_visible:distribution.representative_lines_visible,same_shape_diagnostics:distribution.same_shape_diagnostics,
+    evidence_views:candidate.evidence_views,posterior_diagnostics:candidate.posterior_diagnostics,banner:candidate.banner,canonical_sha256:candidate.canonical_sha256
+  };
+}
+function scenarioV5ConditionalFanMarkup(candidate){
+  const scenarios=candidate?.conditional_distribution?.scenarios||{},keys=['S1','S2','S3'];
+  if(!keys.every(key=>scenarios[key]?.bands?.p10?.length))return '';
+  const indexes=[0];for(let index=5;index<253;index+=5)indexes.push(index);if(indexes.at(-1)!==252)indexes.push(252);
+  const pick=values=>indexes.map(index=>Number(values[index]));
+  const all=keys.flatMap(key=>[...pick(scenarios[key].bands.p10),...pick(scenarios[key].bands.p90),...pick(scenarios[key].representative_path_values)]);
+  const low=Math.min(...all),high=Math.max(...all),W=320,H=132,P=10,X=index=>P+(W-P*2)*index/(indexes.length-1),Y=value=>P+(H-P*2)*(1-(value-low)/Math.max(1,high-low));
+  const line=values=>values.map((value,index)=>`${index?'L':'M'}${X(index).toFixed(1)},${Y(value).toFixed(1)}`).join(' ');
+  return `<section class="scenario-v5-fans" aria-labelledby="scenario-v5-fans-title"><div class="scenario-v5-section-head"><div><span>CONDITIONAL DISTRIBUTIONS</span><h3 id="scenario-v5-fans-title">시나리오별 fan과 actual representative</h3></div><small>세 패널 공통 y축 · ESS gate 적용 / p50 / actual member</small></div><div class="scenario-v5-fan-grid">${keys.map(key=>{const row=scenarios[key],p50=pick(row.bands.p50),member=pick(row.representative_path_values),visibility=row.band_visibility||{},bandKeys=visibility.p10_p90?['p10','p90']:(visibility.p25_p75?['p25','p75']:null),lower=bandKeys?pick(row.bands[bandKeys[0]]):null,upper=bandKeys?pick(row.bands[bandKeys[1]]):null;let band='';if(bandKeys){band=line(upper);for(let index=lower.length-1;index>=0;index--)band+=` L${X(index).toFixed(1)},${Y(lower[index]).toFixed(1)}`;}return `<article><header><div><strong style="color:${esc(row.color)}">${key}</strong><span>${esc(row.label)}</span></div><b>${(Number(row.probability)*100).toFixed(1)}%</b></header><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${key} conditional fan and actual member path">${bandKeys?`<path d="${band} Z" fill="${esc(row.color)}" opacity=".12"></path>`:''}<path d="${line(p50)}" fill="none" stroke="#6b7280" stroke-width="1.4" stroke-dasharray="4 3"></path><path d="${line(member)}" fill="none" stroke="${esc(row.color)}" stroke-width="2.4" stroke-linejoin="round"></path></svg><footer><span>${bandKeys?`${bandKeys[0]} ${num(Math.round(lower.at(-1)))}`:'fan gated'}</span><span>p50 ${num(Math.round(p50.at(-1)))}</span><span>${bandKeys?`${bandKeys[1]} ${num(Math.round(upper.at(-1)))}`:'ESS < 500'}</span><span>ESS ${num(row.weighted_effective_sample_size)}</span></footer></article>`;}).join('')}</div></section>`;
+}
+function scenarioV5EvidenceMarkup(candidate){
+  const views=candidate?.evidence_views||[];if(!views.length)return '';
+  const state=row=>row.used_numerically?'USED':(row.view_kind==='event_probability'&&row.origin_type==='registered_forecast'?'EVENT STATE ONLY':'REFERENCE');
+  return `<section class="scenario-v5-evidence" aria-labelledby="scenario-v5-evidence-title"><div class="scenario-v5-section-head"><div><span>EVIDENCE VIEW REGISTRY</span><h3 id="scenario-v5-evidence-title">무엇이 경로를 움직였고 무엇이 참고값인가</h3></div><small>probability unit = fraction · PIT source hash recorded</small></div><div class="scenario-v5-evidence-grid">${views.map(row=>`<article class="is-${state(row).toLowerCase().replaceAll(' ','-')}"><header><span>${esc(state(row))}</span><b>${hasNumeric(row.target)?(Number(row.target)*100).toFixed(1)+'%':'–'}</b></header><strong>${esc(row.source_id)}</strong><small>${esc(row.probability_space)} · ${esc(row.view_kind)}</small><p>${esc(row.used_numerically?row.condition:(row.blocked_reason||'numerical use blocked'))}</p></article>`).join('')}</div><footer>승인된 report view: ${(views.filter(row=>['strategist_report','analyst_consensus','macro_consensus'].includes(row.origin_type)&&row.used_numerically)).length} · 보고서 문장을 임의 숫자로 변환하지 않았습니다.</footer></section>`;
+}
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
   initialLookup=initialState.lookup||null;
+  const v5=DATA.scenario_v5?.status==='ok'?DATA.scenario_v5:null;
   const officialScenario=DATA.scenario,shadowScenario=DATA.scenario_v4_shadow;
-  let sc=officialScenario,shadowActive=false;
+  let sc=scenarioV5FlowModel(officialScenario,v5),shadowActive=false;
   const structural=sc.structural_forecast?.status==='ok'?sc.structural_forecast:null;
-  const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
+  const methodCopy=sc.scenario_v5_candidate
+    ?'세 대표선은 사후 가중 조건부분포에서 선택된 서로 다른 실제 모의 경로입니다. 선의 모양이 다시 같아지면 same-shape gate가 대표선을 숨깁니다.'
+    :String(sc.method||'').startsWith('gbm-daily-252d')
     ?'굵은 선의 굴곡은 혁신사이클 DB, 진폭은 다중시대 조정 DB, 연도 종점과 경로 비중은 기존 조건부 분포에서 가져옵니다. fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
     :'경로 확률은 감사된 수동 시나리오의 보관값이며 현재 시장 판단에는 별도 최신성 확인이 필요합니다.';
   const root=el('<div></div>');
@@ -1233,10 +1276,12 @@ function renderFlow(initialLookup){
     <h1 id="flow-page-title">${FLOW_LAB_COPY.future[1]}</h1>
     <p class="page-lede" id="flow-page-lede">${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
   </div><button type="button" class="future-lookup-open" data-future-lookup-open>날짜·기간 조회 <span>↗</span></button></div>`));
+  if(v5&&sc.scenario_v5_candidate){const numerical=(v5.evidence_views||[]).filter(row=>row.used_numerically),references=(v5.evidence_views||[]).filter(row=>!row.used_numerically),shape=v5.conditional_distribution?.same_shape_diagnostics||{};
+    root.appendChild(el(`<section class="scenario-v5-banner" aria-label="Scenario V5 research candidate"><div><span>EVIDENCE-CONDITIONED MARKET OUTLOOK</span><strong>${esc(v5.banner)}</strong><small>${esc(v5.candidate_id)} · ${esc(v5.identity?.prior_engine)} · as_of ${esc(v5.asof)}</small></div><div class="scenario-v5-stats"><span><b>${numerical.length}</b> physical views used</span><span><b>${references.length}</b> reference/blocked</span><span><b>${num(v5.posterior_diagnostics?.effective_sample_size)}</b> posterior ESS</span><span><b>${shape.gate_pass?'PASS':'HIDDEN'}</b> same-shape gate</span></div><p>등록 전망은 물리확률 제약으로 반영했습니다. 옵션 내재확률은 위험중립 참고값으로만 보존하고, 승인된 이벤트 충격 매핑이 없어 모든 이벤트 가격 점프는 0입니다. 장기 DB의 PIT 계약이 미완성이므로 RCFHS가 아닌 재현된 legacy GBM prior를 사용합니다.</p></section>`));}
   root.appendChild(el(vintageReceipt()));
   const scenarioChange=scenarioChangePanel(true);if(scenarioChange)root.appendChild(scenarioChange);
   const legend=`<div class="band-inline">
-    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} DB 조건부 구조 경로 · ${sc.paths[k].prob}%</span>`).join('')}
+    ${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${k} ${sc.scenario_v5_candidate?'actual member path':'DB 조건부 구조 경로'} · ${sc.paths[k].prob}%</span>`).join('')}
     ${structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중심 경로</span>':''}
     ${sc.fan?.quantiles?'<span><b class="fan-swatch"></b>조건부 구간 p10–p90 · 중앙값 p50</span>':''}
     ${sc.analog?.values?.length?'<span><b style="background:#706f68"></b>혁신사이클 대표 참조선 · 확률 아님</span>':''}</div>`;
@@ -1284,17 +1329,19 @@ function renderFlow(initialLookup){
       <p class="market-event-note">확정은 기관·기업이 날짜를 공개한 일정, 추정은 과거 발표 월 패턴 또는 연준의 공식 잠정 일정입니다. 마커는 정보 제공용이며 이벤트와 분포 확률을 연결하지 않습니다.</p></div>
   </section>`:`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
   const p1w=el(`<div class="chart-panel analysis-panel">
-    <div class="panel-head"><h2 id="flow-horizon-title">2026년 DB 조건부 구조 경로</h2>${legend}</div>
+    <div class="panel-head"><h2 id="flow-horizon-title">${sc.scenario_v5_candidate?'2026년 Evidence-conditioned actual member paths':'2026년 DB 조건부 구조 경로'}</h2>${legend}</div>
     ${focusControls}
     ${shapeControls}
     ${shadowControls}
     ${realismCards}
-    <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함'}</em></button>`).join('')}</div></div>
+    <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>${sc.scenario_v5_candidate?'사후 분포의 실제 멤버 경로와 조건부 팬을 연도별로 봅니다.':'분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.'}</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sc.model?.classification_date||sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:(sc.week_dates||[]).find(day=>String(day).startsWith(String(Number(sc.asof.slice(0,4))+1)))||'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${sc.scenario_v5_candidate?'252거래일 사후 경로':(row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함')}</em></button>`).join('')}</div></div>
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
+    ${v5?scenarioV5ConditionalFanMarkup(v5):''}
+    ${v5?scenarioV5EvidenceMarkup(v5):''}
     ${evRibbon}
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
     ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
-    <p class="chart-note">굵은 선은 DB 조건부 구조 경로이며 모의 표본을 대표선으로 쓰지 않습니다. 월 단위 위험창의 위치와 낙폭·회복 형태를 보되 특정 거래일 저점으로 읽지 마세요. 점선 p50과 팬 구간은 별도의 조건부 분포입니다. ${esc(methodCopy)}</p>
+    <p class="chart-note">${sc.scenario_v5_candidate?'굵은 선은 각각 실제 모의 경로 멤버이며 합성 중앙선이나 공통 residual이 아닙니다. 팬은 증거로 재가중된 사후 분포입니다. 이벤트 일정은 가격 점프를 만들지 않습니다.':'굵은 선은 DB 조건부 구조 경로이며 모의 표본을 대표선으로 쓰지 않습니다.'} ${esc(methodCopy)}</p>
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
@@ -1314,7 +1361,7 @@ function renderFlow(initialLookup){
   root.appendChild(labTabs);root.appendChild(p1w);if(overlay)root.appendChild(overlay);if(crossAsset)root.appendChild(crossAsset);if(aiRegime)root.appendChild(aiRegime);if(liquidity)root.appendChild(liquidity);
   mount(root);
   if(lookupOverlayMarkup)document.body.appendChild(el(lookupOverlayMarkup));
-  let flowFocus='ALL',showBaseline=true,lookupMarker=null,flowYear=Number(structural?.years?.[0]?.year||sc.asof.slice(0,4)),lookupMode=initialState.lookupMode==='current'?'current':'rebase';
+  let flowFocus='ALL',showBaseline=!sc.scenario_v5_candidate,lookupMarker=null,flowYear=Number(structural?.years?.[0]?.year||sc.asof.slice(0,4)),lookupMode=initialState.lookupMode==='current'?'current':'rebase';
   const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
   const lookupLayer=document.querySelector('[data-future-lookup-layer]'),lookupScope=lookupLayer||p1w,lookupOpen=$('[data-future-lookup-open]',root);
   const setLookupOverlay=open=>{if(!lookupLayer)return;lookupLayer.hidden=!open;lookupLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('future-lookup-open',open);if(open&&location.hash==='#future')history.replaceState(null,'','#future/lookup');if(!open&&location.hash==='#future/lookup')history.replaceState(null,'','#future');if(open)requestAnimationFrame(()=>$('#lookup-date',lookupLayer)?.focus());};
@@ -1324,12 +1371,12 @@ function renderFlow(initialLookup){
   const eventToggle=$('[data-event-summary-toggle]',p1w),eventDetails=$('[data-event-details]',p1w);
   if(eventToggle&&eventDetails)eventToggle.onclick=()=>{const open=eventToggle.getAttribute('aria-expanded')!=='true';eventToggle.setAttribute('aria-expanded',String(open));eventDetails.hidden=!open;$('span',eventToggle).textContent=open?'일정 접기':'일정 펼치기';if(open)requestAnimationFrame(()=>enhanceChartScroll(eventDetails));};
   const syncFlowHorizon=()=>{p1w.querySelectorAll('[data-flow-year]').forEach(button=>{button.setAttribute('aria-pressed',String(Number(button.dataset.flowYear)===flowYear));button.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);});const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.disabled=lookupMode==='rebase'&&Boolean(lookupMarker);
-    if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:`${flowYear}년 DB 조건부 구조 경로${flowYear===2027?' · 8월까지':''}`;};
+    if(flowTitle)flowTitle.textContent=lookupMode==='rebase'&&lookupMarker?`${lookupMarker.slice(0,10)} = 100 재기준 경로`:(sc.scenario_v5_candidate?`${flowYear}년 Evidence-conditioned actual member paths`:`${flowYear}년 DB 조건부 구조 경로${flowYear===2027?' · 8월까지':''}`);};
   const paintFlow=focus=>{flowFocus=focus;flowHost.innerHTML='';if(lookupMode==='rebase'&&lookupMarker)drawRebasedFlow(flowHost,sc,lookupMarker);else drawFlow(flowHost,sc,focus,lookupMarker,flowYear,false,showBaseline);
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.onclick=()=>{showBaseline=!showBaseline;baselineButton.setAttribute('aria-pressed',String(showBaseline));baselineButton.lastChild.textContent=showBaseline?'굴곡 전 GBM 같이 보기':'굴곡 전 GBM 숨김';paintFlow(flowFocus);};
-  const shadowButton=$('[data-flow-v4-shadow]',p1w);if(shadowButton)shadowButton.onclick=()=>{shadowActive=!shadowActive;sc=shadowActive?shadowScenario:officialScenario;shadowButton.setAttribute('aria-pressed',String(shadowActive));shadowButton.lastChild.textContent=shadowActive?'RCFHS-SB v1 official':'RCFHS-SB v1 shadow';paintFlow(flowFocus);};
+  const shadowButton=$('[data-flow-v4-shadow]',p1w);if(shadowButton)shadowButton.onclick=()=>{shadowActive=!shadowActive;sc=shadowActive?shadowScenario:scenarioV5FlowModel(officialScenario,v5);shadowButton.setAttribute('aria-pressed',String(shadowActive));shadowButton.lastChild.textContent=shadowActive?'RCFHS-SB v1 shadow active':'RCFHS-SB v1 shadow';paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-year]').forEach(button=>button.onclick=()=>{flowYear=Number(button.dataset.flowYear);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',lookupScope),lookupInput=$('#lookup-date',lookupScope),rebaseNote=$('.lookup-rebase-note',lookupScope);
@@ -1902,7 +1949,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
     const analogLabel=tx(X(n-1)-4,Y(shownEnd)-8,label,{anc:'end',fill:'#706f68',fs:11,w:700,opacity:analogOn?1:.1});analogLabel.setAttribute('paint-order','stroke');analogLabel.setAttribute('stroke','#fff');analogLabel.setAttribute('stroke-width','4');svg.appendChild(analogLabel);}
   if(showSamples)['S1','S2','S3'].forEach(key=>{const on=focus==='ALL'||focus===key;(sc.path_realism?.[key]?.sample_paths||[]).forEach((row,sampleIndex)=>{const values=(row.values||[]).slice(startIndex,endIndex+1);if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':Number(row.terminal_percentile)===50?1.25:1.0,'stroke-dasharray':sampleIndex===0?'3 3':'7 3',opacity:on?(Number(row.terminal_percentile)===50?.42:.28):.05,'data-sample-path':`${key}-${row.terminal_percentile}`}));});});
   if(showBaseline)['S1','S2','S3'].forEach(key=>{const values=baselinePaths[key],on=focus==='ALL'||focus===key;if(values.length!==n)return;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');svg.appendChild(mk('path',{d,fill:'none',stroke:'#697078','stroke-width':1.45,'stroke-dasharray':'2 5','stroke-linecap':'round','stroke-linejoin':'round',opacity:on?.62:.08,'data-baseline-path':key}));});
-  const rightLabels=[];['S1','S2','S3'].forEach(key=>{const path=sc.paths[key],values=displayPaths[key],color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
+  const rightLabels=[];(sc.representative_lines_visible===false?[]:['S1','S2','S3']).forEach(key=>{const path=sc.paths[key],values=displayPaths[key],color=CHART_COL[key],on=focus==='ALL'||focus===key;let d='';values.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');
     svg.appendChild(mk('path',{d,fill:'none',stroke:color,'stroke-width':on?(key==='S1'?3:2.6):1.2,'stroke-linejoin':'round',opacity:on?1:.1}));const endValue=values.at(-1);
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:on?4:2.5,fill:color,stroke:'#0b1714','stroke-width':1.5,opacity:on?1:.12}));rightLabels.push({key,y:Y(endValue),text:`${num(endValue)} · ${path.prob}%`,color:CHART_LABEL_COL[key],opacity:on?1:.12,weight:750,fontSize:12});});
   rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
@@ -1926,7 +1973,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
     const fill=risk==='고'?'rgba(201,0,45,.92)':(risk==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)'),textColor=risk==='고'?'#fff':(risk==='중'?'#513300':'#174c49');svg.appendChild(mk('rect',{x:left,y:RY,width,height:RH,fill,stroke:'rgba(17,17,15,.1)'}));
     if(width>=28)svg.appendChild(tx(left+width/2,RY+18,risk,{anc:'middle',fs:12,fill:textColor,w:700}));segmentStart=index;}
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3',opacity:1});svg.appendChild(xh);
-  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[key],stroke:'#fff','stroke-width':2});svg.appendChild(marker);return marker;});
+  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.4,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:sc.representative_lines_visible===false?0:1});svg.appendChild(marker);return marker;});
   const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
   const readout=document.createElement('div');readout.className='flow-readout';readout.style.setProperty('--flow-count','4');let cursorIndex=0;
   const paintCursor=index=>{cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex),week=weeks[cursorIndex],risk=riskValues[cursorIndex];xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);

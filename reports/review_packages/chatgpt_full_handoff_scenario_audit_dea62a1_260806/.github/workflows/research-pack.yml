@@ -1,0 +1,58 @@
+name: monthly-research-pack
+
+on:
+  schedule:
+    - cron: "20 2 1 * *"
+  workflow_dispatch:
+    inputs:
+      month:
+        description: Optional YYYY-MM override
+        required: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[pit]"
+      - name: Export immutable Parquet pack
+        shell: bash
+        run: |
+          month="${{ inputs.month }}"
+          if [ -n "$month" ]; then
+            (cd src && python -m ai_fc export-research-pack --month "$month")
+          else
+            (cd src && python -m ai_fc export-research-pack)
+          fi
+      - name: Commit pack or publish oversized pack as Release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pack="$(find exports -maxdepth 1 -type d -name 'research_pack_*' | sort | tail -1)"
+          bytes="$(du -sb "$pack" | cut -f1)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if [ "$bytes" -le 52428800 ]; then
+            git add "$pack"
+            git diff --cached --quiet || git commit -m "data: publish $(basename "$pack")"
+            git diff HEAD^ --quiet 2>/dev/null || git push
+          else
+            archive="${pack}.zip"
+            python -m zipfile -c "$archive" "$pack"/*
+            tag="$(basename "$pack" | tr '_' '-')"
+            gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" --title "$(basename "$pack")" --notes "Immutable monthly research pack; repository threshold exceeded."
+            gh release upload "$tag" "$archive" --clobber
+          fi

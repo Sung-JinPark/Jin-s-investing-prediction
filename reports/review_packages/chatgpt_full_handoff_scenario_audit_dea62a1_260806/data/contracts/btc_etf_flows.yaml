@@ -1,0 +1,8 @@
+schema_version: 1
+source_id: btc_etf_flows
+enabled: false
+status: source_and_license_gate_not_met
+license_status: review_required
+activation_gate: Two independent sources must reconcile and redistribution terms must be approved.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+fallback: Render source_unavailable; do not scrape or infer flows from price.

@@ -1,0 +1,15 @@
+version: 2026-08-07.v1
+status: research_candidate_contract
+minimum_samples: 30
+shrinkage: empirical_bayes_to_zero
+estimated_date_policy: sample_within_declared_window
+unmapped_event_policy:
+  event_state_allowed: true
+  price_jump: 0
+  posterior_price_weighting: false
+approved_mappings: []
+blocked_reason: >-
+  The repository has event calendars and event probabilities, but no approved
+  point-in-time surprise-conditioned ^IXIC impact library meeting the minimum
+  sample and licensing gates. Event states remain auditable reference outputs;
+  J_t is exactly zero until an approved mapping is appended.

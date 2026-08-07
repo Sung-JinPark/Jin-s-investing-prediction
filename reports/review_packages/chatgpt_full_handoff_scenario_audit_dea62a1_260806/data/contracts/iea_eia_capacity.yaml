@@ -1,0 +1,9 @@
+schema_version: 1
+source_id: iea_eia_capacity
+enabled: false
+status: machine_readable_format_gate_not_met
+providers: [International Energy Agency, U.S. Energy Information Administration]
+license_status: review_required
+activation_gate: Stable machine-readable table, documented revision behavior, and approved redistribution scope.
+common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
+fallback: Exclude physical-capacity component and reduce coverage; no manual interpolation.

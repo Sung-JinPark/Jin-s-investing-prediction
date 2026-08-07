@@ -1,0 +1,17 @@
+schema_version: 1
+source_id: bls
+description: BLS public time-series releases captured at publication.
+timezone: America/New_York
+calendar_id: US_FED
+cadence: release-calendar
+freshness_sla_hours: 24
+available_at_rule: Official BLS release timestamp from the release calendar.
+revision_policy: Capture each release payload; never infer a historical vintage from current data.
+missing_statuses: [미산출, 표본부족, stale, 수집실패]
+fields:
+  - {name: series_id, type: string}
+  - {name: year, type: integer}
+  - {name: period, type: string}
+  - {name: value, type: number, required: false}
+quality_checks: [schema, period-format, numeric-or-missing, duplicate-key, freshness]
+fallback: ALFRED mirror may be used only when its vintage semantics are preserved.

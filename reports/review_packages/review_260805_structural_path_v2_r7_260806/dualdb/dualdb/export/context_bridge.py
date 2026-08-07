@@ -1,0 +1,398 @@
+"""dualdb → ai_fc ml_history 'context' 브리지 (정합도 배선 — Phase 1-D, 급소).
+
+자동 예측 프롬프트 주입(ai_fc base_rates.ml_digest)이 읽는
+data/ml_history/YYYY.jsonl 에 kind:"context" run 1건을 append 한다. 내용:
+- analog: 다중 시대 k-NN 최근접 사이클·이후 3/6/12M 수익률 분포·유사 조정 깊이
+- event_context: 현 AI 사이클월 인근의 과거 아날로그 사건(서사 맥락만)
+- factor_tilt: 팩터 기울기 z (가치 HML·모멘텀 Mom·사이즈 SMB, 최근 12M vs 장기)
+- regime: 금리커브(T10Y2Y)·HY 스프레드(pctile)·CAPE(빈티지) — 기존 FRED 사용
+
+정직성 (헌법):
+- **질문 매핑 확률 없음** (R-4·base_rates.py L3-6). 전방수익률은 시장 전체 base rate
+  이지 질문별 확률이 아니며, F1/F3 지평과 겹치므로 준-앵커 주의 라벨을 단다.
+- 학습·가중치 갱신 없음 — 결정론 집계·추론 전용 (원칙 5·8-6, ML 게이트 비저촉).
+- append-only(파일이 진실). ml_history DB 파생은 sync --rebuild로 재구축.
+"""
+
+from __future__ import annotations
+
+import json
+import sqlite3
+from datetime import datetime
+from pathlib import Path
+
+import numpy as np
+
+from .. import config
+from ..models import knn_analog
+
+NOTE = "과거 유사 시대 base rate — 질문 매핑 확률 아님(R-4, 준-앵커 주의)"
+EVENT_WINDOW_MONTHS = 6
+EVENTS_PER_ERA = 2
+
+
+def _analog(conn: sqlite3.Connection) -> dict | None:
+    """다중 시대 k-NN 최근접 사이클 + 전방수익률 분포 + 유사 조정 깊이 중앙값."""
+    try:
+        r = knn_analog.run(conn, record=False)   # model_run 무오염
+    except Exception:  # noqa: BLE001 — derive 전이면 아날로그 생략(fail-soft)
+        return None
+    nbs = r["neighbors"]
+    if not nbs:
+        return None
+    m = r["median_fwd"]
+    # 선택된 시대들의 조정 에피소드 깊이 중앙값 (base rate: "이 아날로그들의 조정 깊이")
+    sel = r.get("selected_eras", [])
+    depth_med = None
+    if sel:
+        ph = ",".join("?" * len(sel))
+        depths = [row["depth"] for row in conn.execute(
+            f"SELECT depth FROM correction_episode WHERE era_id IN ({ph}) AND depth IS NOT NULL",
+            sel)]
+        if depths:
+            depth_med = round(float(np.median(depths)), 4)
+    return {
+        "closest_era": nbs[0]["era"],
+        "distance": nbs[0]["distance"],
+        "fwd_return_dist": {
+            "m3": m["fwd_3m"]["median"], "m6": m["fwd_6m"]["median"],
+            "m12": m["fwd_12m"]["median"],
+            "n": m["fwd_12m"]["n"],
+        },
+        "correction_depth_median": depth_med,
+        "n_eras": r["n_eras"],
+        "pool_eras": r["pool_eras"],
+        "selected_eras": sel,
+        "asof": r["asof"],
+    }
+
+
+def _month_distance(anchor_ym: str, asof: str) -> int:
+    """월 보간 없이 YYYY-MM 달력 오프셋만 계산."""
+    ay, am = int(anchor_ym[:4]), int(anchor_ym[5:7])
+    yy, mm = int(asof[:4]), int(asof[5:7])
+    return (yy - ay) * 12 + (mm - am)
+
+
+def _event_context(conn: sqlite3.Connection, analog: dict | None,
+                   *, window_months: int = EVENT_WINDOW_MONTHS,
+                   per_era: int = EVENTS_PER_ERA) -> dict | None:
+    """현 AI M+N 근처의 과거 사건을 선택하되 확률·트윈 표본으로 변환하지 않는다.
+
+    event 원천의 cycle_month가 있는 행만 사용한다. 인접 사건이 없으면 결측을 그대로
+    유지하고, 가장 가까운 먼 사건을 억지로 끌어오지 않는다.
+    """
+    try:
+        asof = (analog or {}).get("asof")
+        if not asof:
+            row = conn.execute(
+                """SELECT MAX(date) d FROM derived_daily
+                   WHERE era_id='ai' AND series=?""",
+                (config.ANCHORS["ai"]["index"],)).fetchone()
+            asof = row["d"] if row else None
+        if not asof:
+            return None
+        cycle_month = _month_distance(config.ANCHORS["ai"]["anchor_month"], asof)
+        eras = list(dict.fromkeys(
+            (analog or {}).get("selected_eras")
+            or (analog or {}).get("pool_eras")
+            or []))
+        if not eras:
+            eras = [r["era_id"] for r in conn.execute(
+                """SELECT DISTINCT era_id FROM event
+                   WHERE era_id != 'ai' AND cycle_month IS NOT NULL
+                   ORDER BY era_id""")]
+        if not eras:
+            return None
+
+        ph = ",".join("?" for _ in eras)
+        rows = conn.execute(
+            f"""SELECT era_id, date, type, title, cycle_month, source_url, note
+                FROM event
+                WHERE era_id IN ({ph}) AND cycle_month IS NOT NULL
+                  AND ABS(cycle_month - ?) <= ?
+                ORDER BY era_id, ABS(cycle_month - ?), date""",
+            (*eras, cycle_month, window_months, cycle_month)).fetchall()
+    except (KeyError, sqlite3.OperationalError, TypeError, ValueError):
+        return None
+
+    counts: dict[str, int] = {}
+    events: list[dict] = []
+    for row in rows:
+        era = row["era_id"]
+        if counts.get(era, 0) >= per_era:
+            continue
+        counts[era] = counts.get(era, 0) + 1
+        event_month = float(row["cycle_month"])
+        events.append({
+            "era": era,
+            "date": row["date"],
+            "type": row["type"],
+            "title": row["title"],
+            "cycle_month": event_month,
+            "offset_months": round(event_month - cycle_month, 1),
+            "source_url": row["source_url"],
+            "note": row["note"],
+        })
+    if not events:
+        return None
+    return {
+        "current_era": "ai",
+        "asof": asof,
+        "cycle_month": cycle_month,
+        "window_months": window_months,
+        "events": events,
+        "note": "유사 사이클월의 과거 사건 서사 — 질문 매핑 확률·트윈 표본 아님",
+    }
+
+
+def _factor_z(conn: sqlite3.Connection, col: str, window: int = 12) -> float | None:
+    """최근 window개월 팩터 평균의 z — 장기 롤링 window평균 분포 대비 (기울기 국면)."""
+    vals = [r[col] for r in conn.execute(
+        f"SELECT {col} FROM factor_monthly WHERE {col} IS NOT NULL ORDER BY date")]
+    arr = np.array(vals, dtype=float)
+    if len(arr) < window * 2:
+        return None
+    roll = np.convolve(arr, np.ones(window) / window, mode="valid")  # window월 이동평균
+    sd = roll.std(ddof=1)
+    if sd == 0:
+        return None
+    return round(float((roll[-1] - roll.mean()) / sd), 2)
+
+
+def _factor_tilt(conn: sqlite3.Connection) -> dict:
+    return {
+        "value_z": _factor_z(conn, "hml"),
+        "momentum_z": _factor_z(conn, "mom"),
+        "size_z": _factor_z(conn, "smb"),
+        "vintage": (conn.execute(
+            "SELECT MAX(date) d FROM factor_monthly WHERE hml IS NOT NULL").fetchone()
+            or {"d": None})["d"],
+    }
+
+
+def _latest_macro(conn: sqlite3.Connection, series_id: str) -> tuple[str, float] | None:
+    row = conn.execute(
+        "SELECT date, value FROM macro_daily WHERE series_id=? AND value IS NOT NULL"
+        " ORDER BY date DESC LIMIT 1", (series_id,)).fetchone()
+    return (row["date"], row["value"]) if row else None
+
+
+def _pctile(conn: sqlite3.Connection, series_id: str, value: float) -> tuple[float, int]:
+    vals = [r["value"] for r in conn.execute(
+        "SELECT value FROM macro_daily WHERE series_id=? AND value IS NOT NULL", (series_id,))]
+    arr = np.array(vals, dtype=float)
+    return round(float((arr <= value).mean() * 100), 1), len(arr)
+
+
+def _regime(conn: sqlite3.Connection) -> dict:
+    out: dict = {}
+    yc = _latest_macro(conn, "T10Y2Y")
+    if yc:
+        out["yield_curve_10y2y"] = round(yc[1], 2)
+        out["yield_curve_inverted"] = yc[1] < 0
+        out["yield_curve_date"] = yc[0]
+    hy = _latest_macro(conn, "BAMLH0A0HYM2")
+    if hy:
+        pct, n = _pctile(conn, "BAMLH0A0HYM2", hy[1])
+        out["hy_spread_pct"] = round(hy[1], 2)
+        out["hy_spread_pctile"] = pct
+        out["hy_spread_n"] = n            # 표본 크기(2023+ 한정) 병기 — 정직성
+        out["hy_spread_date"] = hy[0]
+    cape_row = conn.execute(
+        "SELECT date, cape FROM valuation_monthly WHERE cape IS NOT NULL"
+        " ORDER BY date DESC LIMIT 1").fetchone()
+    if cape_row:
+        capes = [r["cape"] for r in conn.execute(
+            "SELECT cape FROM valuation_monthly WHERE cape IS NOT NULL")]
+        arr = np.array(capes, dtype=float)
+        out["cape_latest"] = round(cape_row["cape"], 1)
+        out["cape_pctile"] = round(float((arr <= cape_row["cape"]).mean() * 100), 1)
+        out["cape_vintage"] = cape_row["date"]   # 빈티지 명기 (구형일 수 있음)
+    # recession_flag: NBER USREC 실측 (Phase 2). 미수집이면 금리커브 역전 프록시로 폴백.
+    rec = conn.execute(
+        "SELECT date, value FROM macro_monthly WHERE series_id='USREC'"
+        " ORDER BY date DESC LIMIT 1").fetchone()
+    if rec:
+        out["recession_flag"] = bool(rec["value"])
+        out["recession_date"] = rec["date"]
+    else:
+        out["recession_flag_proxy"] = out.get("yield_curve_inverted")
+    return out
+
+
+def _breadth(conn: sqlite3.Connection) -> dict | None:
+    """시장 폭 프록시 — 추적 종목(config yahoo_daily) 중 200DMA 상회 비율.
+
+    한계(정직성): 시총가중 HHI·Mag7 비중은 주식수 이력 부재로 산출 불가 —
+    등가중 추적 유니버스(~24종, AAPL·TSLA 미포함)의 가격 폭 프록시일 뿐이다.
+    """
+    tickers = list(config.YAHOO_DAILY)
+    ph = ",".join("?" * len(tickers))
+    rows = conn.execute(
+        f"""SELECT d.series, d.date, d.dist_200dma FROM derived_daily d
+            JOIN (SELECT series, MAX(date) md FROM derived_daily
+                  WHERE era_id='ai' AND series IN ({ph}) GROUP BY series) t
+              ON d.series=t.series AND d.date=t.md
+            WHERE d.era_id='ai' AND d.dist_200dma IS NOT NULL""", tickers).fetchall()
+    if not rows:
+        return None
+    above = sum(1 for r in rows if r["dist_200dma"] > 0)
+    return {
+        "pct_above_200dma": round(above / len(rows) * 100, 1),
+        "n": len(rows),
+        "asof": max(r["date"] for r in rows),
+        "note": "등가중 추적 유니버스 프록시 — 시총가중 HHI 아님(주식수 이력 부재)",
+    }
+
+
+def _concentration(conn: sqlite3.Connection) -> dict | None:
+    """대형주 집중 프록시 — ^NDX(나스닥100)/^IXIC(컴포지트) 가격 비율.
+
+    한계(정직성): 시총 비중·HHI가 아니라 지수 가격 비율의 상대 추세다. 두 지수의
+    기준점 차이로 절대 수준은 무의미 — 백분위(1995+)·1년 변화만 의미를 갖는다.
+    """
+    rows = conn.execute(
+        """SELECT a.date d, a.close / b.close r FROM price_daily a
+           JOIN price_daily b ON b.date = a.date AND b.series = '^IXIC'
+           WHERE a.series = '^NDX' AND a.date >= '1995-01-01' ORDER BY a.date""").fetchall()
+    if len(rows) < 300:
+        return None
+    ratios = np.array([r["r"] for r in rows], dtype=float)
+    latest = ratios[-1]
+    yr_ago = ratios[-253] if len(ratios) > 253 else ratios[0]
+    return {
+        "ratio_pctile": round(float((ratios <= latest).mean() * 100), 1),
+        "chg_1y_pct": round(float(latest / yr_ago - 1) * 100, 1),
+        "asof": rows[-1]["d"],
+        "note": "NDX/IXIC 가격 비율 프록시 — 시총가중 HHI 아님",
+    }
+
+
+def _month_index(ym: str) -> int:
+    return int(ym[:4]) * 12 + int(ym[5:7])
+
+
+def _overlay(conn: sqlite3.Connection) -> dict:
+    """사이클 build-up 비교 배열 (시작월=100 정규화) — 대시보드 다중 시대 오버레이용.
+
+    비교 시작월 = overlay_start(없으면 anchor_month), 창 = config.OVERLAY_MONTHS(기본 60,
+    5년 build-up: 닷컴 1995~1999 · AI 2023~2027). anchor_month(v4.1 게이트·k-NN 앵커)와
+    **분리** — 게이트 무영향. 일간 tier는 price_daily 월말 종가, 월간 tier(dow1929)는
+    macro_monthly를 시작월=100으로 정규화. M+오프셋으로 매핑(월 결측 시에도 정렬 보존).
+    """
+    from ..derive.daily import ERA_MONTHLY, ERA_WINDOWS, ERA_INDEX
+    cap = config.OVERLAY_MONTHS
+    out: dict[str, list] = {}
+
+    def normalized(rows, start_ym):
+        if not rows:
+            return None
+        base = rows[0][1]
+        if not base:
+            return None
+        s0 = _month_index(start_ym)
+        arr = [None] * (cap + 1)
+        for ym, v in rows:
+            k = _month_index(ym) - s0
+            if 0 <= k <= cap and v is not None:
+                arr[k] = round(v / base * 100, 1)
+        # 선두 연속 구간만 (결측 뒤는 절단 — 차트 단선 방지)
+        seq = []
+        for x in arr:
+            if x is None:
+                break
+            seq.append(x)
+        return seq or None
+
+    for era_id in ERA_WINDOWS:
+        series = ERA_INDEX[era_id]
+        a = config.ANCHORS[era_id]
+        start = a.get("overlay_start") or a["anchor_month"]
+        rows = conn.execute(
+            """SELECT substr(date,1,7) m, close c, MAX(date) FROM price_daily
+               WHERE series=? AND substr(date,1,7) >= ? GROUP BY substr(date,1,7)
+               ORDER BY m LIMIT ?""", (series, start, cap + 2)).fetchall()
+        s = normalized([(r["m"], r["c"]) for r in rows], start)
+        if s:
+            out[era_id] = s
+    for era_id, (sid, _w) in ERA_MONTHLY.items():
+        a = config.ANCHORS[era_id]
+        start = a.get("overlay_start") or a["anchor_month"]
+        rows = conn.execute(
+            """SELECT substr(date,1,7) m, value v FROM macro_monthly
+               WHERE series_id=? AND substr(date,1,7) >= ? AND value IS NOT NULL
+               ORDER BY date LIMIT ?""", (sid, start, cap + 2)).fetchall()
+        s = normalized([(r["m"], r["v"]) for r in rows], start)
+        if s:
+            out[era_id] = s
+    return out
+
+
+# Tier-3 큐레이션 심층 사이클 — 무료 API에 월간 지수가 없어 파생 불가, 문서화된
+# 실측 앵커만 base rate로 인용(오버레이 선은 그리지 않음, 조작 금지). 출처 명기.
+CURATED_DEEP = [
+    {"era": "railway1845", "label": "철도 광기 (1차 산업혁명·Perez R2)",
+     "peak": "1845-08", "trough": "1850-04", "depth": -0.66, "buildup_pct": 97,
+     "tier": "curated", "source": "Campbell·Turner (British railway share index)",
+     "note": "build-up +97%(1843~45) → 붕괴 −66%(~1850). 월간 지수 무료 부재 — 문서 앵커만 참조"},
+]
+
+
+def _deep_history(conn: sqlite3.Connection) -> list[dict]:
+    """월간 tier 시대(dow1929·electricity1900 등)의 최심 조정 + Tier-3 큐레이션 심층 사이클."""
+    from ..derive.daily import ERA_MONTHLY
+    out = []
+    for era_id in ERA_MONTHLY:
+        row = conn.execute(
+            """SELECT peak_date, trough_date, depth FROM correction_episode
+               WHERE era_id=? ORDER BY depth ASC LIMIT 1""", (era_id,)).fetchone()
+        if row:
+            out.append({"era": era_id, "peak": row["peak_date"],
+                        "trough": row["trough_date"], "depth": row["depth"],
+                        "note": "월평균 지수 기준 — 일중 극값 대비 완만"})
+    out.extend(CURATED_DEEP)
+    return out
+
+
+def build_payload(conn: sqlite3.Connection) -> dict:
+    analog = _analog(conn)
+    return {
+        "run_ts": datetime.now().isoformat(timespec="seconds"),
+        "kind": "context",
+        "source": "dualdb",
+        "analog": analog,
+        "event_context": _event_context(conn, analog),
+        "factor_tilt": _factor_tilt(conn),
+        "regime": _regime(conn),
+        "breadth": _breadth(conn),
+        "concentration": _concentration(conn),
+        "overlay": _overlay(conn),           # 대시보드 오버레이용 — 프롬프트 미주입
+        "deep_history": _deep_history(conn),
+        # Perez 국면은 config 정본(anchors.perez) — 추정 라벨 포함 문자열 그대로
+        "perez_ai": config.ANCHORS.get("ai", {}).get("perez"),
+        "note": NOTE,
+    }
+
+
+def _append(payload: dict) -> Path:
+    d = config.REPO_ROOT / "data" / "ml_history"
+    d.mkdir(parents=True, exist_ok=True)
+    out = d / f"{payload['run_ts'][:4]}.jsonl"
+    line = json.dumps(payload, ensure_ascii=False, default=str) + "\n"
+    # newline="" 로 LF 고정 — .gitattributes가 data/ml_history/** 를 -text(바이트 보존)로
+    # 두므로 Windows 텍스트모드 CRLF는 기존 LF run들과 뒤섞여 EOL 드리프트를 낸다.
+    with out.open("a", encoding="utf-8", newline="") as f:
+        f.write(line)
+    return out
+
+
+def run(conn: sqlite3.Connection) -> tuple[Path, dict]:
+    """payload 1회 산출 → append. (경로, payload) 반환 (콘솔 미리보기 겸용)."""
+    payload = build_payload(conn)
+    return _append(payload), payload
+
+
+def export(conn: sqlite3.Connection) -> Path:
+    """kind:'context' run을 ai_fc data/ml_history/YYYY.jsonl 에 append (append-only)."""
+    return run(conn)[0]

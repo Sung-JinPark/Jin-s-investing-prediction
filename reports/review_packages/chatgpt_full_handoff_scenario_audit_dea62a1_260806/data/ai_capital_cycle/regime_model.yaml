@@ -1,0 +1,33 @@
+schema_version: 1
+model_version: 2026-08-03.v1
+status: preregistered_before_outcome_observation
+probability_space: reference_only
+change_policy: append an approved correction and issue a new model_version
+coverage_gate: 0.60
+robust_z:
+  company_window_quarters: 20
+  company_min_quarters: 12
+  macro_window_years: 10
+  winsor_z_bounds: [-3, 3]
+  center: rolling_median
+  scale: 1.4826_x_rolling_MAD
+percentile:
+  start: 2010-01-01
+  window: expanding_since_start
+funding_liquidity:
+  - {component: real_10y, series_id: DFII10, weight: -0.25, vintage: captured_current}
+  - {component: hy_spread, series_id: BAMLH0A0HYM2, weight: -0.25, vintage: captured_current}
+  - {component: ig_spread, series_id: BAMLC0A0CM, weight: -0.15, vintage: captured_current}
+  - {component: vix, series_id: VIXCLS, weight: -0.15, vintage: captured_current}
+  - {component: real_m2_yoy, series_id: M2SL, weight: 0.20, vintage: alfred_native_required}
+ai_monetization_coverage:
+  - {component: cloud_revenue_yoy, weight: 0.35}
+  - {component: fcf_margin, weight: 0.25}
+  - {component: earnings_minus_capex_growth, weight: 0.20}
+  - {component: disclosure_coverage_breadth, weight: 0.20}
+map:
+  trail_quarters: 8
+  backfill_vintage_label: reconstructed
+  live_vintage_label: captured_live
+  waterfall_default_components: 3
+  render_map_below_coverage_gate: false
