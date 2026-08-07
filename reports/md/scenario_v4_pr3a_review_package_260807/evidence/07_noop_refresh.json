@@ -1,0 +1,10 @@
+{
+  "status": "pass",
+  "first_refresh_changed": true,
+  "second_refresh_changed": false,
+  "bytes_unchanged": true,
+  "first_file_sha256": "7c1f9eeecbee454ff230dc7c9b3823ce20adbd7459ad5a46474fbd3525280f98",
+  "second_file_sha256": "7c1f9eeecbee454ff230dc7c9b3823ce20adbd7459ad5a46474fbd3525280f98",
+  "first_canonical_sha256": "2b0895ccc58ec44b585305f0afa6b974aa15546d05676af0250e75044c68ed57",
+  "second_canonical_sha256": "2b0895ccc58ec44b585305f0afa6b974aa15546d05676af0250e75044c68ed57"
+}

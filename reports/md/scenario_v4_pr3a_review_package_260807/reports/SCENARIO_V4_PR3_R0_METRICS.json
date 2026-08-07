@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "batch": "PR3A-R0",
+  "measured_at_kst": "2026-08-07",
+  "gate": "PASS",
+  "repository": {
+    "root": "C:/workspace/ai-investing-pr3",
+    "branch": "codex/scenario-v4-pr3-remediation",
+    "head": "0c14900fec2f1276e799df09f68c8270fd5d9646",
+    "pr2_merge_is_ancestor": true,
+    "initial_protected_manifest_file_count": 112,
+    "initial_protected_manifest_sha256": "ca969fd197f650d19d30658da41af833e78877178b5eabcd888eee5df06190b1"
+  },
+  "documents": {
+    "required_read": 12,
+    "required_present": 12,
+    "delivery_manifest_entries": 10,
+    "delivery_manifest_valid": 10
+  },
+  "artifacts": {
+    "official_path": "data/scenarios/nasdaq_latest.json",
+    "official_sha256_before": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+    "pr2_shadow_path": "data/scenarios/shadow/rcfhs_sb_v1_latest.json",
+    "pr2_shadow_sha256": "cd2bb86b37b2e9cbe6c5c370e3bbd3cc6f21a8953727732c8b4fc27590ee70ca"
+  },
+  "model_identity": {
+    "decision": "CONFIRMED",
+    "declared_version": "rcfhs-sb-v1",
+    "actual_source_method": "gbm-daily-252d-v2-lookup+db-structural-v2",
+    "approved_pit_history": false,
+    "observable_regime": false,
+    "state_conditioned_drift": false,
+    "ewma_volatility": false,
+    "garch11_volatility": false,
+    "standardized_empirical_residuals": false,
+    "stationary_block_bootstrap": false,
+    "residual_source_date_lineage": false,
+    "continuous_rcfhs_recursion": false,
+    "adaptive_simulation": false,
+    "rolling_origin_validation": false,
+    "rcfhs_name_supported": false
+  },
+  "legacy_reproduction": {
+    "decision": "CONFIRMED",
+    "seed": 42,
+    "n_paths": 20000,
+    "horizon_sessions": 252,
+    "mu_daily_log_return": 0.000811282145,
+    "sigma_daily_log_return": 0.01168922722,
+    "anchor": 25913.9,
+    "ath": 27093.9,
+    "reference_price": 26206.89,
+    "classification_date": "2026-12-31",
+    "future_matrix_shape": [20000, 252],
+    "weekly_matrix_shape": [20000, 52],
+    "future_matrix_sha256": "de810442b5e1a6d4f9c589b2d34a2cab3040397fd89928990d055254356756c9",
+    "member_counts": {"S1": 16702, "S2": 302, "S3": 2996},
+    "probabilities_expected_percent": [83, 2, 15],
+    "probabilities_reproduced_percent": [83, 2, 15],
+    "partition_exhaustive_and_disjoint": true,
+    "daily_quantile_cells_checked": 1764,
+    "daily_quantile_mismatches": 0,
+    "retained_sample_path_cell_mismatches": 0,
+    "weekly_global_fan_mismatches": {
+      "p05": 0,
+      "p10": 0,
+      "p25": 0,
+      "p50": 0,
+      "p75": 1,
+      "p90": 0,
+      "p95": 0
+    },
+    "weekly_global_fan_sha256": "6049358d5713766a7983ca6352f4eab8e01fc0aa5abf73c453705e490f112729",
+    "precision_warning": "One integer p75 weekly cell differs by one index point when replayed from serialized parameters; all published daily rounded-to-10 quantiles and retained actual-member samples reproduce exactly."
+  },
+  "pr2_coarse_fan_crossing": {
+    "decision": "CONFIRMED",
+    "basis": "terminal-percentile actual member paths, not pointwise quantiles",
+    "S1": {"p25_gt_p50": 16, "p50_gt_p75": 5, "any": 19, "points": 52, "ratio": 0.36538461538461536},
+    "S2": {"p25_gt_p50": 26, "p50_gt_p75": 3, "any": 28, "points": 52, "ratio": 0.5384615384615384},
+    "S3": {"p25_gt_p50": 20, "p50_gt_p75": 8, "any": 27, "points": 52, "ratio": 0.5192307692307693},
+    "safe_to_render_as_quantile_fan": false
+  },
+  "reconstructed_conditional_quantiles": {
+    "decision": "CONFIRMED",
+    "quantiles": ["p05", "p10", "p25", "p50", "p75", "p90", "p95"],
+    "S1": {
+      "sample_count": 16702,
+      "shape": [7, 52],
+      "sha256": "46cc8244169bb651604f73b7f6342b01310ad398c4fbd22d3f9bfec83e9a2398",
+      "monotonicity_violations": 0,
+      "terminal": {"p05": 24180, "p10": 25803, "p25": 28659, "p50": 32239, "p75": 36377, "p90": 40491, "p95": 43312}
+    },
+    "S2": {
+      "sample_count": 302,
+      "shape": [7, 52],
+      "sha256": "2b65e69bface717387b1895d9193e1fe5f07157a9b32f3797ccc27eb099b310e",
+      "monotonicity_violations": 0,
+      "terminal": {"p05": 23613, "p10": 24738, "p25": 26406, "p50": 29577, "p75": 33251, "p90": 36454, "p95": 37820}
+    },
+    "S3": {
+      "sample_count": 2996,
+      "shape": [7, 52],
+      "sha256": "8c5228a6562d869053881aa317bb7b5b3599c6de96ae093d8284cb3814e757ec",
+      "monotonicity_violations": 0,
+      "terminal": {"p05": 20579, "p10": 21870, "p25": 23978, "p50": 26667, "p75": 29608, "p90": 32356, "p95": 34030}
+    }
+  },
+  "sample_size_gate": {
+    "decision": "CONFIRMED",
+    "thresholds": {"representative_and_p50": 200, "p25_p75": 500, "p10_p90": 1000, "p05_p95": 2000},
+    "S1": ["representative", "p50", "p25_p75", "p10_p90", "p05_p95"],
+    "S2": ["representative", "p50"],
+    "S3": ["representative", "p50", "p25_p75", "p10_p90", "p05_p95"]
+  },
+  "representative_centrality": {
+    "decision": "CONFIRMED",
+    "selection_rule": "nearest_terminal_median_continuous_path",
+    "S1": {
+      "global_path_index": 13853,
+      "actual_member": true,
+      "percentiles": {"terminal_return": 50.00299365345467, "ann_daily_vol": 42.86612381750688, "ann_weekly_vol": 92.6146569273141, "maximum_drawdown": 80.34666507005149, "longest_underwater_sessions": 56.226799185726264, "down_periods": 27.85594539576099, "sign_changes": 98.11399832355406, "maximum_1day_loss": 27.694288109208475, "maximum_5day_loss": 47.530235899892226}
+    },
+    "S2": {
+      "global_path_index": 18673,
+      "actual_member": true,
+      "percentiles": {"terminal_return": 49.83443708609271, "ann_daily_vol": 69.70198675496688, "ann_weekly_vol": 72.35099337748345, "maximum_drawdown": 91.22516556291392, "longest_underwater_sessions": 91.72185430463577, "down_periods": 83.44370860927152, "sign_changes": 10.264900662251655, "maximum_1day_loss": 51.82119205298014, "maximum_5day_loss": 86.25827814569537}
+    },
+    "S3": {
+      "global_path_index": 1674,
+      "actual_member": true,
+      "percentiles": {"terminal_return": 50.016688918558074, "ann_daily_vol": 99.98331108144193, "ann_weekly_vol": 73.81508678237651, "maximum_drawdown": 73.01401869158879, "longest_underwater_sessions": 51.48531375166889, "down_periods": 71.42857142857143, "sign_changes": 60.7977303070761, "maximum_1day_loss": 99.31575433911883, "maximum_5day_loss": 81.52536715620828}
+    }
+  },
+  "path_realism": {
+    "decision": "CONFIRMED",
+    "full_horizon_weekly_return_correlations": {
+      "legacy_structural": {"S1-S2": 0.9947358814554431, "S1-S3": 0.9783688168178475, "S2-S3": 0.9927967367877183},
+      "pr2_actual_member": {"S1-S2": 0.15041875701780943, "S1-S3": 0.053081958983051174, "S2-S3": -0.016977709225646814}
+    },
+    "year_2027": {
+      "date_range": ["2027-01-08", "2027-08-04"],
+      "legacy_structural": {
+        "return_correlations": {"S1-S2": 0.9999984282780906, "S1-S3": 0.9999981729669251, "S2-S3": 0.9999982881923052},
+        "S1": {"ann_realized_vol": 0.08537730022676095, "maximum_drawdown": 0.07831585441085753, "down_periods": 5, "sign_changes": 3, "longest_underwater_period": 9},
+        "S2": {"ann_realized_vol": 0.0853656283754134, "maximum_drawdown": 0.07954278818757754, "down_periods": 5, "sign_changes": 3, "longest_underwater_period": 9},
+        "S3": {"ann_realized_vol": 0.08537620819717039, "maximum_drawdown": 0.07986923734165463, "down_periods": 5, "sign_changes": 3, "longest_underwater_period": 9}
+      },
+      "pr2_actual_member": {
+        "return_correlations": {"S1-S2": -0.029120229960611484, "S1-S3": 0.2129681896236658, "S2-S3": -0.38521182789616576},
+        "S1": {"ann_realized_vol": 0.20003224055087604, "maximum_drawdown": 0.07014566992156235, "down_periods": 13, "sign_changes": 21, "longest_underwater_period": 19},
+        "S2": {"ann_realized_vol": 0.16169219403223958, "maximum_drawdown": 0.06898784808197778, "down_periods": 10, "sign_changes": 11, "longest_underwater_period": 6},
+        "S3": {"ann_realized_vol": 0.16904965006504932, "maximum_drawdown": 0.08474052718286651, "down_periods": 15, "sign_changes": 15, "longest_underwater_period": 9}
+      }
+    }
+  },
+  "dashboard": {
+    "decision": "CONFIRMED",
+    "scenario_conditional_fans_references": 0,
+    "renders_global_sc_fan": true,
+    "shadow_active_visible_label": "RCFHS-SB v1 official",
+    "model_dependent_metadata_recomputed_on_toggle": false,
+    "duplicate_display_and_baseline_path_possible": true
+  },
+  "determinism_and_freshness": {
+    "decision": "CONFIRMED",
+    "generated_at_changed": true,
+    "canonical_content_without_generated_at_equal": true,
+    "full_payload_equal": false,
+    "first_refresh_changed": true,
+    "second_refresh_changed": true,
+    "refresh_file_sha_equal": false,
+    "stale_source_blocked": false,
+    "loader_returned_stale_source_snapshot_id": "nasdaq-scenario:2026-08-03:r8"
+  },
+  "tests": [
+    {"command": "uv run python tools/reproduce_scenario_snapshot.py", "exit_code": 1, "classification": "BLOCKED_BY_ENVIRONMENT", "summary": "uv executable not installed"},
+    {"command": "python tools/reproduce_scenario_snapshot.py", "exit_code": 0, "classification": "PASS", "summary": "probabilities 83/2/15, 1764 cells, mismatch 0"},
+    {"command": "python -m pytest src/tests/test_scenario.py src/tests/test_scenario_v4_shadow.py -q", "exit_code": 0, "classification": "PASS", "summary": "18 passed"},
+    {"command": "python -m pytest src/tests/test_dashboard.py src/tests/test_dashboard_js_geometry.py src/tests/test_read_model_contract.py -q", "exit_code": 0, "classification": "PASS", "summary": "39 passed"}
+  ]
+}

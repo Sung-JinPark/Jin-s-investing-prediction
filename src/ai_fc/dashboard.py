@@ -279,8 +279,9 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
-    from .scenario_v4_shadow import load_shadow
+    from .scenario_v4_shadow import load_shadow, load_shadow_state
     scenario_v4_shadow = load_shadow(root)
+    scenario_v4_shadow_state = load_shadow_state(root)
     structural_event = (
         ((scenario.get("structural_forecast") or {}).get("evidence") or {})
         .get("physical_event") or {}
@@ -439,6 +440,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "scenario": scenario,
         "scenario_v4_shadow": scenario_v4_shadow,
+        "scenario_v4_shadow_state": scenario_v4_shadow_state,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,
         "analog_context": {

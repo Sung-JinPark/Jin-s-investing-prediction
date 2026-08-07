@@ -1,0 +1,12 @@
+{
+  "status": "pass",
+  "checks": {
+    "explicit_shadow_banner": true,
+    "explicit_not_rcfhs_official_champion": true,
+    "joint_unconditional_panel": true,
+    "state_driven_view_model": true,
+    "legacy_invalid_active_label_absent": true,
+    "legacy_invalid_toggle_label_absent": true,
+    "diagnostic_wrapper_default_hidden": true
+  }
+}

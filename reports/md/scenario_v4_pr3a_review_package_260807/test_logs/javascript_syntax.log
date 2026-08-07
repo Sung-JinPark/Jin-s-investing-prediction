@@ -1,0 +1,6 @@
+command: node --check src/ai_fc/dashboard_parts/dashboard.js
+exit_code: 0
+--- stdout ---
+NO_STDOUT
+--- stderr ---
+NO_STDERR

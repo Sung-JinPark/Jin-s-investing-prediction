@@ -1,0 +1,6 @@
+command: git diff --check HEAD -- AGENTS.md data/scenarios/shadow src/ai_fc src/tests tools/reproduce_scenario_snapshot.py tools/verify_scenario_shadow_package.py docs/audit/phase3_260807/PR3A_R1_SEMANTIC_HOTFIX_REPORT.md docs/audit/phase3_260807/PR3A_R2_LEGACY_DIAGNOSTIC_IMPLEMENTATION.md docs/audit/phase3_260807/PR3A_R2_REPRESENTATIVE_METRICS.csv docs/audit/phase3_260807/PR3A_R2_REPRODUCTION_RECEIPT.json docs/audit/phase3_260807/PR3A_R3_DASHBOARD_REPORT.md docs/audit/phase3_260807/PR3A_R4_REVIEW_PACKAGE_REPORT.md docs/audit/phase3_260807/SCENARIO_V4_PR3_R0_BASELINE_CHARACTERIZATION.md docs/audit/phase3_260807/SCENARIO_V4_PR3_R0_IMPLEMENTATION_MAP.csv docs/audit/phase3_260807/SCENARIO_V4_PR3_R0_METRICS.json
+exit_code: 0
+--- stdout ---
+NO_STDOUT
+--- stderr ---
+NO_STDERR

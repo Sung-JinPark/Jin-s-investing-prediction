@@ -1,0 +1,48 @@
+{
+  "schema_version": 1,
+  "batch": "PR3A-R2",
+  "candidate_id": "legacy_gbm_actual_member_v1",
+  "status": "PASS",
+  "source": {
+    "relative_path": "data/scenarios/nasdaq_latest.json",
+    "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+    "sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+    "asof": "2026-08-03"
+  },
+  "reproduction": {
+    "seed": 42,
+    "n_paths": 20000,
+    "horizon_sessions": 252,
+    "future_matrix_shape": [20000, 252],
+    "weekly_matrix_shape": [20000, 52],
+    "matrix_summary_sha256": "de810442b5e1a6d4f9c589b2d34a2cab3040397fd89928990d055254356756c9",
+    "member_counts": {"S1": 16702, "S2": 302, "S3": 2996},
+    "probability_percent": {"S1": 83, "S2": 2, "S3": 15},
+    "probability_percent_rounding": {
+      "method": "nearest_integer_then_largest_share_receives_residual",
+      "independently_rounded_percent": {"S1": 84, "S2": 2, "S3": 15},
+      "residual_percentage_points": -1,
+      "adjusted_scenario": "S1"
+    },
+    "quantile_cells_checked": 1764,
+    "quantile_mismatches": 0,
+    "retained_member_cells_checked": 468,
+    "retained_member_mismatches": 0
+  },
+  "artifact": {
+    "relative_path": "data/scenarios/shadow/legacy_gbm_actual_member_v1_latest.json",
+    "size_bytes": 34996,
+    "file_sha256": "922a3c7c2200f2a55f360becdc29c0d190104bc70e1bf80a4de28cb08c843411",
+    "canonical_payload_sha256": "2b0895ccc58ec44b585305f0afa6b974aa15546d05676af0250e75044c68ed57",
+    "config_sha256": "693050dff6cd34e10d3bd9cfb8ec0041c6db24be21f740c948eabb388864a322",
+    "first_refresh_changed": true,
+    "second_refresh_changed": false,
+    "second_refresh_file_sha_unchanged": true
+  },
+  "sample_gates": {
+    "S1": ["p05", "p10", "p25", "p50", "p75", "p90", "p95"],
+    "S2": ["p50"],
+    "S3": ["p05", "p10", "p25", "p50", "p75", "p90", "p95"]
+  },
+  "official_snapshot_changed": false
+}

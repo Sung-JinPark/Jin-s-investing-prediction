@@ -1,0 +1,7 @@
+{
+  "status": "pass_with_documented_exception",
+  "checked_count": 40,
+  "violations": [],
+  "documented_allowlist_omission": "src/tests/test_scenario_v4_shadow.py",
+  "reason": "paired behavior tests for the explicitly allowed compatibility module"
+}

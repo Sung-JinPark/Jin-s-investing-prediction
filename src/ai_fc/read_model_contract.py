@@ -114,10 +114,19 @@ def schema() -> dict[str, Any]:
     properties["scenario_v4_shadow"] = {
         "type": ["object", "null"],
         "properties": {
-            "version": {"const": "rcfhs-sb-v1"},
-            "status": {"const": "shadow_only"},
-            "dashboard_toggle_default": {"const": "off"},
-            "promotion_state": {"const": "blocked_pending_rolling_origin_validation"},
+            "schema_version": {"const": 2},
+            "status": {"enum": ["shadow_only", "stale_source", "blocked_missing_data"]},
+            "candidate_id": {"type": "string"},
+        },
+    }
+    properties["scenario_v4_shadow_state"] = {
+        "type": "object",
+        "required": ["status", "display_allowed"],
+        "properties": {
+            "status": {"type": "string"},
+            "display_allowed": {"type": "boolean"},
+            "reason": {"type": ["string", "null"]},
+            "candidate_id": {"type": ["string", "null"]},
         },
     }
     for key in ("scenario_tracker", "liquidity", "ai_regime"):

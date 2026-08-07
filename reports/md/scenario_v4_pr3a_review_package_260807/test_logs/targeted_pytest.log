@@ -1,0 +1,8 @@
+command: C:\Users\91ssj\AppData\Local\Programs\Python\Python312\python.exe -m pytest src\tests\test_dashboard.py src\tests\test_dashboard_js_geometry.py src\tests\test_inventory.py src\tests\test_read_model_contract.py src\tests\test_scenario.py src\tests\test_scenario_legacy_actual_member.py src\tests\test_scenario_legacy_reproduction.py src\tests\test_scenario_shadow_dashboard.py src\tests\test_scenario_shadow_persistence.py src\tests\test_scenario_v4_shadow.py -q
+exit_code: 0
+--- stdout ---
+........................................................................ [ 74%]
+.........................                                                [100%]
+97 passed in 33.17s
+--- stderr ---
+NO_STDERR

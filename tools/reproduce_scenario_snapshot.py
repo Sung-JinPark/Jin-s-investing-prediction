@@ -10,61 +10,34 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
 
-import numpy as np
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "src"))
 
-
-QUANTILES = ((5, "p05"), (10, "p10"), (25, "p25"), (50, "p50"),
-             (75, "p75"), (90, "p90"), (95, "p95"))
-
-
-def _round_probabilities(masks: tuple[np.ndarray, np.ndarray, np.ndarray]) -> list[int]:
-    raw = [float(mask.mean() * 100.0) for mask in masks]
-    rounded = [int(round(value)) for value in raw]
-    rounded[int(np.argmax(raw))] += 100 - sum(rounded)
-    return rounded
+from ai_fc.scenario_shadow.legacy_reproduction import reproduce_legacy_snapshot
 
 
 def verify(path: Path) -> dict[str, object]:
     payload = json.loads(path.read_text(encoding="utf-8"))
-    model = payload["model"]
-    parameters = model["gbm_parameters"]
-    n = int(model["n_paths"])
-    horizon = int(model["horizon_business_days"])
-    rng = np.random.default_rng(int(model["seed"]))
-    shocks = rng.standard_normal((n, horizon))
-    mu = float(parameters["mu_daily_log_return"])
-    sigma = float(parameters["sigma_daily_log_return"])
-    ratios = np.exp(np.cumsum(mu - sigma ** 2 / 2.0 + sigma * shocks, axis=1))
-    future = float(payload["anchor"]) * ratios
-
-    trading_days = payload["quantile_table"]["trading_days"]
-    classification_index = trading_days.index(model["classification_date"])
-    classification = future[:, :classification_index + 1]
-    s1 = (classification > float(payload["ath"])).any(axis=1)
-    s2 = ~s1 & (classification[:, -1] > float(payload["reference_price"]))
-    s3 = ~(s1 | s2)
-    reproduced_probabilities = _round_probabilities((s1, s2, s3))
+    reproduction = reproduce_legacy_snapshot(payload)
+    verification = reproduction.verification
     expected_probabilities = [payload["paths"][key]["prob"] for key in ("S1", "S2", "S3")]
-
-    expected_quantiles = payload["quantile_table"]["quantiles"]
-    reproduced_quantiles = {
-        key: [int(round(float(value) / 10.0) * 10) for value in np.percentile(future, q, axis=0)]
-        for q, key in QUANTILES
-    }
-    quantile_mismatches = sum(
-        left != right
-        for key in expected_quantiles
-        for left, right in zip(expected_quantiles[key], reproduced_quantiles[key])
-    )
+    reproduced_probabilities = [
+        reproduction.probability_percent[key] for key in ("S1", "S2", "S3")
+    ]
     result: dict[str, object] = {
         "snapshot_id": payload.get("snapshot_id"),
         "probabilities_expected": expected_probabilities,
         "probabilities_reproduced": reproduced_probabilities,
-        "quantile_cells_checked": len(expected_quantiles) * horizon,
-        "quantile_mismatches": quantile_mismatches,
-        "passed": reproduced_probabilities == expected_probabilities and quantile_mismatches == 0,
+        "member_counts": reproduction.counts,
+        "future_matrix_shape": list(reproduction.future_daily.shape),
+        "weekly_matrix_shape": list(reproduction.sampled_weekly.shape),
+        "quantile_cells_checked": verification["quantile_cells_checked"],
+        "quantile_mismatches": verification["quantile_mismatches"],
+        "retained_member_mismatches": verification["retained_member_mismatches"],
+        "passed": verification["passed"],
     }
     return result
 

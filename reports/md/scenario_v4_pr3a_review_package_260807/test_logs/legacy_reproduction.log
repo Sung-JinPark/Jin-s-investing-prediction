@@ -1,0 +1,35 @@
+command: C:\Users\91ssj\AppData\Local\Programs\Python\Python312\python.exe tools/reproduce_scenario_snapshot.py
+exit_code: 0
+--- stdout ---
+{
+  "snapshot_id": "nasdaq-scenario:2026-08-03:r8",
+  "probabilities_expected": [
+    83,
+    2,
+    15
+  ],
+  "probabilities_reproduced": [
+    83,
+    2,
+    15
+  ],
+  "member_counts": {
+    "S1": 16702,
+    "S2": 302,
+    "S3": 2996
+  },
+  "future_matrix_shape": [
+    20000,
+    252
+  ],
+  "weekly_matrix_shape": [
+    20000,
+    52
+  ],
+  "quantile_cells_checked": 1764,
+  "quantile_mismatches": 0,
+  "retained_member_mismatches": 0,
+  "passed": true
+}
+--- stderr ---
+NO_STDERR

@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "retired_candidate_id": "rcfhs-sb-v1",
+  "reason": "model_identity_mismatch_not_actual_rcfhs",
+  "original_relative_path": "data/scenarios/shadow/rcfhs_sb_v1_latest.json",
+  "archive_relative_path": "data/scenarios/shadow/archive/rcfhs_sb_v1_misidentified_20260807_cd2bb86b.json",
+  "original_sha256": "cd2bb86b37b2e9cbe6c5c370e3bbd3cc6f21a8953727732c8b4fc27590ee70ca",
+  "replacement_candidate_id": "legacy_gbm_actual_member_v1",
+  "official_snapshot_affected": false,
+  "retired_at": "2026-08-07T00:00:00+09:00",
+  "promotion_state": "retired_never_eligible"
+}

@@ -1,0 +1,7 @@
+{
+  "status": "pass",
+  "relative_path": "data/scenarios/nasdaq_latest.json",
+  "before_sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+  "after_sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+  "expected_sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c"
+}

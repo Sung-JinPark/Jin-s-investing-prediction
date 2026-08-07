@@ -1,0 +1,15 @@
+{
+  "status": "pass",
+  "retired_artifact": {
+    "relative_path": "data/scenarios/shadow/archive/rcfhs_sb_v1_misidentified_20260807_cd2bb86b.json",
+    "sha256": "cd2bb86b37b2e9cbe6c5c370e3bbd3cc6f21a8953727732c8b4fc27590ee70ca",
+    "expected_sha256": "cd2bb86b37b2e9cbe6c5c370e3bbd3cc6f21a8953727732c8b4fc27590ee70ca"
+  },
+  "new_candidate": {
+    "relative_path": "data/scenarios/shadow/legacy_gbm_actual_member_v1_latest.json",
+    "file_sha256": "922a3c7c2200f2a55f360becdc29c0d190104bc70e1bf80a4de28cb08c843411",
+    "expected_file_sha256": "922a3c7c2200f2a55f360becdc29c0d190104bc70e1bf80a4de28cb08c843411",
+    "canonical_payload_sha256": "2b0895ccc58ec44b585305f0afa6b974aa15546d05676af0250e75044c68ed57",
+    "expected_canonical_payload_sha256": "2b0895ccc58ec44b585305f0afa6b974aa15546d05676af0250e75044c68ed57"
+  }
+}

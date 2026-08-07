@@ -1,0 +1,12 @@
+{
+  "branch": "codex/scenario-v4-pr3-remediation",
+  "head": "0c14900fec2f1276e799df09f68c8270fd5d9646",
+  "pr2_merge_base": "0c14900fec2f1276e799df09f68c8270fd5d9646",
+  "candidate_identity": "legacy_gbm_actual_member_v1",
+  "candidate_classification": [
+    "shadow_only",
+    "not_rcfhs",
+    "not_official",
+    "not_champion"
+  ]
+}

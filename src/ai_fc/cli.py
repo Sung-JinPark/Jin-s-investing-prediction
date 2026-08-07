@@ -197,14 +197,28 @@ def cmd_scenario_structure() -> None:
 
 @app.command("scenario-v4-shadow")
 def cmd_scenario_v4_shadow() -> None:
-    """Build the RCFHS-SB v1 candidate as a shadow artifact only."""
-    from .scenario_v4_shadow import refresh_shadow
+    """Reject the retired PR2 candidate without writing an artifact."""
+    from .scenario_v4_shadow import RETIRED_CANDIDATE_ID, RETIRED_REASON
 
-    path, payload, changed = refresh_shadow(config.ROOT)
+    typer.echo(
+        f"{RETIRED_CANDIDATE_ID} was retired: {RETIRED_REASON}; "
+        "no artifact was written",
+        err=True,
+    )
+    raise typer.Exit(code=2)
+
+
+@app.command("scenario-legacy-actual-shadow")
+def cmd_scenario_legacy_actual_shadow() -> None:
+    """Build the deterministic Legacy GBM actual-member diagnostic."""
+    from .scenario_shadow.legacy_actual_member import build_and_write_legacy_diagnostic
+
+    path, payload, changed = build_and_write_legacy_diagnostic(config.ROOT)
     state = "updated" if changed else "unchanged"
     typer.echo(
-        f"{state}: {path.relative_to(config.ROOT)} · source "
-        f"{payload.get('source_snapshot_id')} · promotion {payload['promotion_state']}"
+        f"{state}: {path.relative_to(config.ROOT)} · candidate "
+        f"{payload['candidate_id']} · canonical "
+        f"{payload['reproducibility']['canonical_payload_sha256']}"
     )
 
 

@@ -1,0 +1,6 @@
+{
+  "status": "pass",
+  "loader_status": "stale_source",
+  "display_allowed": false,
+  "reason": "source snapshot_id mismatch"
+}

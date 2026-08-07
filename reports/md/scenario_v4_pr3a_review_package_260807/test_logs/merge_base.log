@@ -1,0 +1,6 @@
+command: git merge-base --is-ancestor 0c14900fec2f1276e799df09f68c8270fd5d9646 HEAD
+exit_code: 0
+--- stdout ---
+NO_STDOUT
+--- stderr ---
+NO_STDERR

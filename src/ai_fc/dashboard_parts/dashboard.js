@@ -1218,11 +1218,65 @@ const FLOW_LAB_COPY={
   'ai-regime':['AI 자본 사이클 · Coverage Gate','AI 자본 사이클을 지금 판정할 수 있는가','필수 데이터 커버리지가 기준에 못 미치면 지도를 그리지 않고 판정을 보류합니다.'],
   liquidity:['유동성 · Tide Map','유동성 조건은 위험 선호를 지지하는가','주간 유동성·금융여건과 위험자산의 시차 관계를 참고용으로 점검합니다.']
 };
+function buildScenarioChartViewModel({mode,official,candidate,candidateState}){
+  if(mode==='legacy_actual_member_diagnostic'){
+    if(!candidate||candidate.status!=='shadow_only'||candidateState?.display_allowed===false)return {mode,status:candidateState?.status||'missing',displayAllowed:false,warnings:[candidateState?.reason||'diagnostic candidate unavailable']};
+    const source=candidate.source||{},officialWeights=candidate.official_weights?.values||{},impliedWeights=candidate.candidate_implied_weights?.values||{};
+    return {
+      mode,candidateId:candidate.candidate_id,family:candidate.model_identity?.family,status:candidate.status,promotionState:candidate.promotion_state,
+      title:'LEGACY GBM ACTUAL-MEMBER · SHADOW DIAGNOSTIC',subtitle:'NOT RCFHS · NOT OFFICIAL · NOT CHAMPION',methodLabel:'Exact legacy GBM replay · pointwise conditional distributions',
+      asof:source.asof,sourceStatus:candidateState?.status||'shadow_only',sourceSnapshotId:source.snapshot_id,sourceSha256:source.snapshot_sha256,
+      canonicalHash:candidate.reproducibility?.canonical_payload_sha256,officialWeights,impliedWeights,weekDates:candidate.week_dates||[],
+      representativeSeries:candidate.representatives||{},conditionalDistributions:candidate.scenario_distributions||{},unconditionalDistribution:candidate.unconditional_distribution||{},
+      sampleGates:candidate.diagnostics?.sample_gates||{},yearRanges:candidate.year_slices||{},supportsStructuralBaseline:false,supportsLookup:false,
+      warnings:Object.entries(candidate.scenario_distributions||{}).flatMap(([key,row])=>Object.values(row.blocked_quantiles||{}).map(reason=>`${key}: ${reason}`)),
+      accessibilityText:`${candidate.candidate_id}, shadow diagnostic, not RCFHS, not official, actual ensemble members with scenario conditional quantiles`,displayAllowed:true
+    };
+  }
+  return {
+    mode:'official_legacy',candidateId:official?.snapshot_id||'official-legacy',family:'legacy_gbm',status:'official_legacy',promotionState:'official_snapshot',
+    title:'Official Legacy Scenario',subtitle:'기존 공식 기준선',methodLabel:official?.method,asof:official?.asof,sourceStatus:'current',
+    officialWeights:Object.fromEntries(['S1','S2','S3'].map(key=>[key,Number(official?.paths?.[key]?.prob||0)/100])),impliedWeights:null,
+    supportsStructuralBaseline:Boolean(official?.structural_forecast),supportsLookup:Boolean(official?.quantile_table?.trading_days?.length),displayAllowed:true
+  };
+}
+function diagnosticPanelMarkup(vm){
+  const canonical=String(vm.canonicalHash||'').slice(0,12),sourceSha=String(vm.sourceSha256||'').slice(0,12);
+  const scenarioCards=['S1','S2','S3'].map(key=>{const row=vm.conditionalDistributions[key]||{},available=row.available_quantiles||[],blocked=Object.values(row.blocked_quantiles||{}),official=Number(vm.officialWeights[key]||0)*100,implied=Number(vm.impliedWeights[key]||0)*100;
+    return `<article class="diagnostic-scenario-card" data-diagnostic-scenario="${key}"><header><span>${key} CONDITIONAL</span><strong>n=${num(row.sample_count)}</strong><small>official ${num(official)}% · reproduced ${num(implied)}%</small></header><div class="diagnostic-mini-chart" data-diagnostic-chart="${key}" role="img" aria-label="${key} conditional distribution and actual representative"></div><p><b>${available.join(' · ')}</b>${blocked.length?`<em role="note">${blocked.join(' · ')}</em>`:'<em>all preregistered bands available</em>'}</p></article>`;}).join('');
+  return `<section class="flow-diagnostic-view" data-flow-diagnostic-view hidden aria-label="${esc(vm.accessibilityText)}">
+    <header class="diagnostic-identity-banner"><div><span>${esc(vm.title)}</span><strong>${esc(vm.subtitle)}</strong><small>${esc(vm.candidateId)} · ${esc(vm.promotionState)}</small></div><div><span>source ${esc(vm.asof)} · ${esc(vm.sourceStatus)}</span><code>source ${esc(sourceSha)} · canonical ${esc(canonical)}</code></div></header>
+    <div class="diagnostic-explainer" role="note"><strong>대표선은 p50이 아니라 cohort의 실제 ensemble member 한 개입니다.</strong><span>굵은 선의 모양은 확률 차이나 정확한 일별 예측을 뜻하지 않습니다. official weight는 비교값이고 reproduced weight와 분리됩니다.</span></div>
+    <section class="diagnostic-overview"><div><p class="eyebrow">D=100 · ACTUAL MEMBER COMPARISON</p><h3>동일 원점·동일 축 대표경로 비교</h3></div><div data-diagnostic-overview-chart role="img" aria-label="D equals 100 actual representative comparison"></div></section>
+    <section class="diagnostic-scenario-grid" aria-label="Scenario conditional small multiples">${scenarioCards}</section>
+    <section class="diagnostic-unconditional"><div><p class="eyebrow">SEPARATE PROBABILITY SPACE</p><h3>Legacy joint unconditional distribution</h3><p>전체 joint sample에서 직접 계산하며 scenario conditional quantile의 가중평균이 아닙니다.</p></div><div data-diagnostic-unconditional-chart role="img" aria-label="Legacy joint unconditional distribution"></div></section>
+    ${vm.warnings.length?`<div class="diagnostic-warning-list" role="note"><strong>표본 gate</strong>${vm.warnings.map(warning=>`<span>${esc(warning)}</span>`).join('')}</div>`:''}
+  </section>`;
+}
+function diagnosticPathD(values,X,Y){let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});return d;}
+function drawDiagnosticDistribution(host,{dates,distribution,representative,color,label}){
+  const NS='http://www.w3.org/2000/svg',mk=(tag,attrs,text)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);if(text!=null)node.textContent=text;return node;};host.innerHTML='';const quantiles=distribution?.quantiles||{},series=[...Object.values(quantiles),...(representative?.weekly_values?[representative.weekly_values]:[])].flat().filter(Number.isFinite);if(!series.length){host.appendChild(el('<p class="diagnostic-empty">표시 가능한 분포 없음</p>'));return;}
+  const W=760,H=230,P={l:46,r:18,t:18,b:34},n=dates.length,min=Math.min(...series),max=Math.max(...series),pad=Math.max(1,(max-min)*.08),lo=min-pad,hi=max+pad,X=i=>P.l+(W-P.l-P.r)*(i/Math.max(1,n-1)),Y=v=>P.t+(H-P.t-P.b)*(1-(v-lo)/(hi-lo));
+  const svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':`${label} pointwise distribution${representative?' and actual representative':''}`});
+  [0,.5,1].forEach(step=>svg.appendChild(mk('line',{x1:P.l,y1:Y(lo+(hi-lo)*step),x2:W-P.r,y2:Y(lo+(hi-lo)*step),stroke:'#d7d4cc','stroke-width':1})));
+  const band=(lowKey,highKey,opacity,name)=>{const low=quantiles[lowKey],high=quantiles[highKey];if(!Array.isArray(low)||!Array.isArray(high))return;let d='';high.forEach((value,index)=>d+=(index?'L':'M')+X(index)+','+Y(value)+' ');[...low].reverse().forEach((value,index)=>{const original=low.length-1-index;d+='L'+X(original)+','+Y(value)+' ';});d+='Z';svg.appendChild(mk('path',{d,fill:color,opacity,'data-quantile-band':name}));};
+  band('p10','p90',.12,'p10-p90');band('p25','p75',.22,'p25-p75');
+  if(Array.isArray(quantiles.p50))svg.appendChild(mk('path',{d:diagnosticPathD(quantiles.p50,X,Y),fill:'none',stroke:color,'stroke-width':1.8,'stroke-dasharray':'5 4','data-p50':'true'}));
+  if(representative?.weekly_values)svg.appendChild(mk('path',{d:diagnosticPathD(representative.weekly_values,X,Y),fill:'none',stroke:color,'stroke-width':3.1,'stroke-linecap':'round','stroke-linejoin':'round','data-representative':representative.path_id}));
+  svg.appendChild(mk('text',{x:P.l,y:H-10,fill:'#666','font-size':11},dates[0]||''));svg.appendChild(mk('text',{x:W-P.r,y:H-10,fill:'#666','font-size':11,'text-anchor':'end'},dates.at(-1)||''));host.appendChild(svg);
+}
+function drawDiagnosticPanels(panel,vm){
+  const NS='http://www.w3.org/2000/svg',mk=(tag,attrs,text)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);if(text!=null)node.textContent=text;return node;},dates=vm.weekDates||[],representatives=vm.representativeSeries||{},distributions=vm.conditionalDistributions||{};
+  const overview=panel.querySelector('[data-diagnostic-overview-chart]');if(overview){const normalized={};['S1','S2','S3'].forEach(key=>{const values=representatives[key]?.weekly_values||[],first=Number(values[0]);normalized[key]=values.map(value=>100*Number(value)/first);});const all=Object.values(normalized).flat().filter(Number.isFinite),W=900,H=300,P={l:48,r:22,t:18,b:38},lo=Math.min(...all)*.97,hi=Math.max(...all)*1.03,X=i=>P.l+(W-P.l-P.r)*(i/Math.max(1,dates.length-1)),Y=v=>P.t+(H-P.t-P.b)*(1-(v-lo)/(hi-lo)),svg=mk('svg',{viewBox:`0 0 ${W} ${H}`,role:'img','aria-label':vm.accessibilityText});[0,.5,1].forEach(step=>svg.appendChild(mk('line',{x1:P.l,y1:Y(lo+(hi-lo)*step),x2:W-P.r,y2:Y(lo+(hi-lo)*step),stroke:'#d7d4cc','stroke-width':1})));['S1','S2','S3'].forEach(key=>svg.appendChild(mk('path',{d:diagnosticPathD(normalized[key],X,Y),fill:'none',stroke:CHART_COL[key],'stroke-width':3,'data-overview-representative':key})));svg.appendChild(mk('text',{x:P.l,y:H-12,fill:'#666','font-size':11},dates[0]||''));svg.appendChild(mk('text',{x:W-P.r,y:H-12,fill:'#666','font-size':11,'text-anchor':'end'},dates.at(-1)||''));overview.innerHTML='';overview.appendChild(svg);}
+  ['S1','S2','S3'].forEach(key=>{const host=panel.querySelector(`[data-diagnostic-chart="${key}"]`);if(host)drawDiagnosticDistribution(host,{dates,distribution:distributions[key],representative:representatives[key],color:CHART_COL[key],label:key});});
+  const unconditional=panel.querySelector('[data-diagnostic-unconditional-chart]');if(unconditional)drawDiagnosticDistribution(unconditional,{dates,distribution:vm.unconditionalDistribution,representative:null,color:'#435567',label:'Legacy joint unconditional'});
+}
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
   initialLookup=initialState.lookup||null;
-  const officialScenario=DATA.scenario,shadowScenario=DATA.scenario_v4_shadow;
+  const officialScenario=DATA.scenario,shadowScenario=DATA.scenario_v4_shadow,shadowState=DATA.scenario_v4_shadow_state||{};
   let sc=officialScenario,shadowActive=false;
+  const diagnosticVm=buildScenarioChartViewModel({mode:'legacy_actual_member_diagnostic',official:officialScenario,candidate:shadowScenario,candidateState:shadowState});
   const structural=sc.structural_forecast?.status==='ok'?sc.structural_forecast:null;
   const methodCopy=String(sc.method||'').startsWith('gbm-daily-252d')
     ?'굵은 선의 굴곡은 혁신사이클 DB, 진폭은 다중시대 조정 DB, 연도 종점과 경로 비중은 기존 조건부 분포에서 가져옵니다. fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.'
@@ -1245,7 +1299,7 @@ function renderFlow(initialLookup){
     ${['S1','S2','S3'].map(k=>`<button type="button" data-flow-focus="${k}" style="--focus-color:${CHART_COL[k]}" aria-pressed="false"><i></i>${esc(sc.paths[k].label)}</button>`).join('')}
     ${sc.analog?.values?.length?'<button type="button" data-flow-focus="ANALOG" style="--focus-color:#706f68" aria-pressed="false"><i></i>혁신사이클 참조</button>':''}</div>`;
   const shapeControls=structural?`<div class="flow-shape-controls" role="group" aria-label="구조 굴곡 비교"><span>PATH LAYERS</span><button type="button" data-flow-baseline aria-pressed="true"><i></i>굴곡 전 GBM 같이 보기</button><small>기본 표시 · 회색 고스트 선은 같은 종점의 비교 기준</small></div>`:'';
-  const shadowControls=shadowScenario?.status==='shadow_only'?`<div class="flow-shadow-controls" role="group" aria-label="Scenario Graph V4 shadow toggle"><span>SCENARIO GRAPH V4</span><button type="button" data-flow-v4-shadow aria-pressed="false"><i></i>RCFHS-SB v1 shadow</button><small>default OFF · not official probability or champion</small></div>`:'';
+  const shadowControls=diagnosticVm.displayAllowed?`<div class="flow-shadow-controls" role="group" aria-label="Legacy scenario diagnostic toggle"><span>SCENARIO DIAGNOSTIC</span><button type="button" data-flow-v4-shadow aria-pressed="false"><i></i>Legacy GBM diagnostic · shadow</button><small>default OFF · not RCFHS · not official · not champion</small></div>`:(shadowState.status&&shadowState.status!=='missing'?`<div class="flow-shadow-controls is-blocked" role="note"><span>SCENARIO DIAGNOSTIC BLOCKED</span><button type="button" disabled aria-disabled="true"><i></i>${esc(shadowState.status)}</button><small>${esc(shadowState.reason||'candidate is not displayable')}</small></div>`:'');
   const realism=sc.path_realism;
   const structureEvidence=structural?.evidence||{},episodeEvidence=structureEvidence.correction_episodes||{},eventEvidence=structureEvidence.physical_event||{},proximity=eventEvidence.proximity_context||{},calibration=structural?.calibration||{},selection=structureEvidence.innovation_cycle?.selection_sensitivity||{},gbm=structural?.reproducibility?.gbm_parameters||{},trackerEvidence=DATA.scenario_tracker||{},liquidityEvidence=DATA.liquidity||{},aiRegimeEvidence=DATA.ai_regime||{};
   const realismCards=structural?`<section class="path-realism structural-evidence" aria-labelledby="path-realism-title">
@@ -1283,11 +1337,13 @@ function renderFlow(initialLookup){
     <div class="market-event-details" data-event-details hidden>${eventYears.map(year=>`<div class="market-event-year"><div class="market-event-year-label"><strong>${esc(year)}</strong><span>${year==='2027'?'공식 일정 + 추정 분리':'기관·기업 공개 일정'}</span></div><div class="event-track">${eventCalendar.filter(event=>event.date.startsWith(year)).map(event=>{const meta=EVENT_KIND_META[event.kind]||EVENT_KIND_META.other;return `<article class="event-card event-${esc(event.kind)} ${event.status==='estimated'?'is-estimated':''}" tabindex="0"><div><time datetime="${esc(event.date)}">${esc(event.date.slice(5).replace('-','/'))}</time><span class="event-shape" aria-hidden="true">${meta[1]}</span></div><strong>${esc(event.title||event.label)}</strong><small>${event.status==='estimated'?'추정 · ':'확정 · '}${esc(event.time_et?`${event.time_et} ET · `:'')}${esc(event.ticker||meta[0])}</small><a href="${esc(event.source_url)}" target="_blank" rel="noopener">공식 근거 ↗</a></article>`;}).join('')}</div></div>`).join('')}
       <p class="market-event-note">확정은 기관·기업이 날짜를 공개한 일정, 추정은 과거 발표 월 패턴 또는 연준의 공식 잠정 일정입니다. 마커는 정보 제공용이며 이벤트와 분포 확률을 연결하지 않습니다.</p></div>
   </section>`:`<div class="event-track">${sc.events.map(([xi,label])=>`<div><time>${esc(sc.weeks[Math.max(0,Math.min(sc.weeks.length-1,Math.round(xi)))]||'')}</time><span>${esc(label)}</span></div>`).join('')}</div>`;
+  const diagnosticMarkup=diagnosticVm.displayAllowed?diagnosticPanelMarkup(diagnosticVm):'';
   const p1w=el(`<div class="chart-panel analysis-panel">
+    ${shadowControls}
+    <div data-flow-official-view>
     <div class="panel-head"><h2 id="flow-horizon-title">2026년 DB 조건부 구조 경로</h2>${legend}</div>
     ${focusControls}
     ${shapeControls}
-    ${shadowControls}
     ${realismCards}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함'}</em></button>`).join('')}</div></div>
     <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
@@ -1295,6 +1351,8 @@ function renderFlow(initialLookup){
     <div class="risk-legend"><span><i class="lo"></i>변동성 저</span><span><i class="mid"></i>중</span><span><i class="hi"></i>고</span></div>
     ${sc.fan?.quantiles?`<div class="scenario-semantics"><span>미래 분포</span><strong>중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90</strong><small>${esc(sc.fan.probability_space)} · ${esc(sc.fan.monitoring||'미산출')} monitoring</small></div>`:''}
     <p class="chart-note">굵은 선은 DB 조건부 구조 경로이며 모의 표본을 대표선으로 쓰지 않습니다. 월 단위 위험창의 위치와 낙폭·회복 형태를 보되 특정 거래일 저점으로 읽지 마세요. 점선 p50과 팬 구간은 별도의 조건부 분포입니다. ${esc(methodCopy)}</p>
+    </div>
+    ${diagnosticMarkup}
   </div>`);
   const overlay=analogPanel();
   const crossAsset=crossAssetPanel();
@@ -1315,7 +1373,7 @@ function renderFlow(initialLookup){
   mount(root);
   if(lookupOverlayMarkup)document.body.appendChild(el(lookupOverlayMarkup));
   let flowFocus='ALL',showBaseline=true,lookupMarker=null,flowYear=Number(structural?.years?.[0]?.year||sc.asof.slice(0,4)),lookupMode=initialState.lookupMode==='current'?'current':'rebase';
-  const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w);
+  const flowHost=$('#chart',p1w),flowTitle=$('#flow-horizon-title',p1w),officialFlowView=$('[data-flow-official-view]',p1w),diagnosticFlowView=$('[data-flow-diagnostic-view]',p1w);
   const lookupLayer=document.querySelector('[data-future-lookup-layer]'),lookupScope=lookupLayer||p1w,lookupOpen=$('[data-future-lookup-open]',root);
   const setLookupOverlay=open=>{if(!lookupLayer)return;lookupLayer.hidden=!open;lookupLayer.setAttribute('aria-hidden',String(!open));document.body.classList.toggle('future-lookup-open',open);if(open&&location.hash==='#future')history.replaceState(null,'','#future/lookup');if(!open&&location.hash==='#future/lookup')history.replaceState(null,'','#future');if(open)requestAnimationFrame(()=>$('#lookup-date',lookupLayer)?.focus());};
   if(lookupOpen)lookupOpen.onclick=()=>setLookupOverlay(true);else root.querySelector('[data-future-lookup-open]')?.setAttribute('hidden','');
@@ -1329,7 +1387,7 @@ function renderFlow(initialLookup){
     p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flowFocus===focus)));};
   p1w.querySelectorAll('[data-flow-focus]').forEach(b=>b.onclick=()=>paintFlow(b.dataset.flowFocus));
   const baselineButton=$('[data-flow-baseline]',p1w);if(baselineButton)baselineButton.onclick=()=>{showBaseline=!showBaseline;baselineButton.setAttribute('aria-pressed',String(showBaseline));baselineButton.lastChild.textContent=showBaseline?'굴곡 전 GBM 같이 보기':'굴곡 전 GBM 숨김';paintFlow(flowFocus);};
-  const shadowButton=$('[data-flow-v4-shadow]',p1w);if(shadowButton)shadowButton.onclick=()=>{shadowActive=!shadowActive;sc=shadowActive?shadowScenario:officialScenario;shadowButton.setAttribute('aria-pressed',String(shadowActive));shadowButton.lastChild.textContent=shadowActive?'RCFHS-SB v1 official':'RCFHS-SB v1 shadow';paintFlow(flowFocus);};
+  const shadowButton=$('[data-flow-v4-shadow]',p1w);if(shadowButton)shadowButton.onclick=()=>{shadowActive=!shadowActive;shadowButton.setAttribute('aria-pressed',String(shadowActive));shadowButton.lastChild.textContent=shadowActive?'Legacy GBM diagnostic · shadow active':'Legacy GBM diagnostic · shadow';if(officialFlowView)officialFlowView.hidden=shadowActive;if(diagnosticFlowView){diagnosticFlowView.hidden=!shadowActive;if(shadowActive)drawDiagnosticPanels(diagnosticFlowView,diagnosticVm);}if(lookupOpen)lookupOpen.hidden=shadowActive;$('#flow-page-eyebrow',root).textContent=shadowActive?'LEGACY GBM · SHADOW DIAGNOSTIC':FLOW_LAB_COPY.future[0];$('#flow-page-title',root).textContent=shadowActive?diagnosticVm.title:FLOW_LAB_COPY.future[1];$('#flow-page-lede',root).textContent=shadowActive?`${diagnosticVm.subtitle} · source ${diagnosticVm.asof} · representative is an actual member, not p50.`:`${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${sc.asof} · 참고 의견이며 투자 자문이 아닙니다.`;if(!shadowActive)paintFlow(flowFocus);};
   p1w.querySelectorAll('[data-flow-year]').forEach(button=>button.onclick=()=>{flowYear=Number(button.dataset.flowYear);syncFlowHorizon();paintFlow(flowFocus);});
   syncFlowHorizon();paintFlow(flowFocus);
   const lookupResult=$('.lookup-result',lookupScope),lookupInput=$('#lookup-date',lookupScope),rebaseNote=$('.lookup-rebase-note',lookupScope);
@@ -1354,7 +1412,7 @@ function renderFlow(initialLookup){
   if(naturalInput)naturalInput.onkeydown=event=>{if(event.key==='Enter'){event.preventDefault();runNatural();}};
   if(initialLookup)runLookup(initialLookup);
   if(initialState.lookupOverlay||initialLookup)setLookupOverlay(true);
-  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future',copy=FLOW_LAB_COPY[active]||FLOW_LAB_COPY.future;
+  const activateLab=space=>{const available={future:p1w,history:overlay,'cross-asset':crossAsset,'ai-regime':aiRegime,liquidity},active=available[space]?space:'future',copy=active==='future'&&shadowActive?['LEGACY GBM · SHADOW DIAGNOSTIC',diagnosticVm.title,diagnosticVm.subtitle]:(FLOW_LAB_COPY[active]||FLOW_LAB_COPY.future);
     Object.entries(available).forEach(([key,panel])=>{if(panel)panel.hidden=key!==active;});
     $('#flow-page-eyebrow',root).textContent=copy[0];$('#flow-page-title',root).textContent=copy[1];$('#flow-page-lede',root).textContent=`${copy[2]} 시나리오 기준 ${sc.asof} · 참고 의견이며 투자 자문이 아닙니다.`;
     labTabs.querySelectorAll('[data-lab-tab]').forEach(b=>{const on=b.dataset.labTab===active;b.setAttribute('aria-selected',String(on));b.tabIndex=on?0:-1;});};
