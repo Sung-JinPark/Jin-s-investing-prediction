@@ -291,6 +291,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
                 "the official legacy fallback remains active."
             ),
         }
+    from .scenario_v4_shadow import load_shadow
+    scenario_v4_shadow = load_shadow(root)
     structural_event = (
         ((scenario.get("structural_forecast") or {}).get("evidence") or {})
         .get("physical_event") or {}
@@ -449,6 +451,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "scenario": scenario,
         "scenario_v5": scenario_v5,
+        "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,
         "analog_context": {

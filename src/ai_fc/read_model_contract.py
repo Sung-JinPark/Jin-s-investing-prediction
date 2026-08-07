@@ -9,6 +9,7 @@ from typing import Any
 from .cross_asset import CrossAssetError, validate_cross_asset
 from .ai_capital_cycle import validate_ai_regime
 from .scenario import ScenarioError, validate_scenario
+from .scenario_v4_shadow import ScenarioV4ShadowError, validate_shadow_payload
 from .market_extensions import (
     MarketExtensionError,
     validate_liquidity,
@@ -120,6 +121,15 @@ def schema() -> dict[str, Any]:
             "candidate_id": {
                 "const": "scenario_v5_evidence_conditioned_legacy_prior_v1"
             },
+        },
+    }
+    properties["scenario_v4_shadow"] = {
+        "type": ["object", "null"],
+        "properties": {
+            "version": {"const": "rcfhs-sb-v1"},
+            "status": {"const": "shadow_only"},
+            "dashboard_toggle_default": {"const": "off"},
+            "promotion_state": {"const": "blocked_pending_rolling_origin_validation"},
         },
     }
     for key in ("scenario_tracker", "liquidity", "ai_regime"):
@@ -236,6 +246,15 @@ def validate(model: dict[str, Any]) -> list[str]:
         if (conditional.get("representative_lines_visible")
                 is not bool(same_shape.get("gate_pass"))):
             errors.append("scenario_v5 same-shape visibility gate mismatch")
+    scenario_v4_shadow = model.get("scenario_v4_shadow")
+    if scenario_v4_shadow is not None:
+        if not isinstance(scenario_v4_shadow, dict):
+            errors.append("scenario_v4_shadow must be an object or null")
+        else:
+            try:
+                validate_shadow_payload(scenario_v4_shadow)
+            except (ScenarioV4ShadowError, KeyError, TypeError, ValueError) as exc:
+                errors.append(f"scenario_v4_shadow contract violation: {exc}")
     reference_validators = {
         "scenario_tracker": validate_scenario_tracker,
         "liquidity": validate_liquidity,

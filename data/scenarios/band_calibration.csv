@@ -1,1 +1,2 @@
 asof,origin_asof,origin_snapshot_id,horizon_trading_days,actual_close,p10,p25,p50,p75,p90,inside_p10_p90,p50_error_pct,probability_space
+2026-08-06,2026-08-03,nasdaq-scenario:2026-08-03:r8,3,26348.35,25310,25620,25970,26330,26650,true,1.457,scenario_conditional
