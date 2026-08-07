@@ -324,17 +324,24 @@
       ],
       "properties": {
         "schema_version": {
-          "const": 1
+          "enum": [
+            1,
+            2
+          ]
         },
         "status": {
           "enum": [
             "ok",
             "degraded",
+            "stale_or_invalid",
             "unavailable"
           ]
         },
         "candidate_id": {
-          "const": "scenario_v5_evidence_conditioned_legacy_prior_v1"
+          "enum": [
+            "scenario_v5_evidence_conditioned_legacy_prior_v1",
+            "scenario_v5_1_time_aligned_legacy_prior_v1"
+          ]
         }
       }
     },
