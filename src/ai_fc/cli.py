@@ -268,6 +268,66 @@ def cmd_scenario_v5_1_verify(
         raise typer.Exit(code=1)
 
 
+@app.command("scenario-v5-2-build")
+def cmd_scenario_v5_2_build(
+    force: bool = typer.Option(False, "--force", help="Rewrite even when model content is unchanged"),
+) -> None:
+    """Build the macro-actualized historical-shape research candidate."""
+    from .scenario_v5_2 import build_candidate
+    from .scenario_v5_2.engine import ScenarioV52Error
+
+    try:
+        path, payload, changed = build_candidate(config.ROOT, force=force)
+    except (ScenarioV52Error, FileNotFoundError, KeyError, TypeError, ValueError) as exc:
+        typer.echo(f"Scenario V5.2 build blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    state = "updated" if changed else "model-content no-op"
+    probabilities = payload["ablations"]["full_evidence"]["probabilities"]
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} | "
+        f"model={payload['model_content_sha256']} | "
+        f"P(-10% touch)={probabilities['first_touch_minus_10_by_october_end']:.4f} | "
+        "RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION"
+    )
+
+
+@app.command("scenario-v5-2-verify")
+def cmd_scenario_v5_2_verify(
+    path: Path | None = typer.Option(None, "--path", help="Candidate JSON to verify"),
+    replay: bool = typer.Option(True, "--replay/--no-replay", help="Regenerate deterministic model output"),
+) -> None:
+    """Verify V5.2 PIT, replay, probability, circularity, and display gates."""
+    from .scenario_v5_2 import verify_candidate
+
+    result = verify_candidate(config.ROOT, path, replay=replay)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("scenario-v5-2-learn-event")
+def cmd_scenario_v5_2_learn_event(
+    input_path: Path = typer.Option(..., "--input", help="Normalized event JSON"),
+) -> None:
+    """Append one PIT-safe macro event, rebuild V5.2, and refresh both dashboards."""
+    from . import dashboard as dash
+    from .scenario_v5_2.event_learning import EventLearningError, learn_event
+
+    resolved = input_path if input_path.is_absolute() else config.ROOT / input_path
+    try:
+        receipt = learn_event(config.ROOT, resolved)
+        conn = _conn(config.ROOT)
+        try:
+            dashboard_path = dash.write_dashboard(conn, config.ROOT)
+        finally:
+            conn.close()
+    except (EventLearningError, FileNotFoundError, KeyError, TypeError, ValueError) as exc:
+        typer.echo(f"Scenario V5.2 event learning blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    receipt["repository_dashboard_path"] = dashboard_path.relative_to(config.ROOT).as_posix()
+    typer.echo(json.dumps(receipt, ensure_ascii=False, indent=2))
+
+
 @app.command("scenario-v5-backtest")
 def cmd_scenario_v5_backtest() -> None:
     """Materialize the PIT-safe rolling-origin framework without fabricated scores."""

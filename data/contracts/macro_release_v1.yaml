@@ -1,0 +1,36 @@
+schema_version: 1
+contract_id: macro_release_v1
+canonical_probability_unit: fraction
+required:
+  - release_id
+  - publisher
+  - reference_period
+  - published_at
+  - available_at
+  - retrieved_at
+  - source_url
+  - raw_source_path
+  - units
+  - actual
+  - revisions
+validation:
+  timezone_aware_timestamps: true
+  available_at_lte_candidate_as_of: true
+  probability_bounds: [0.0, 1.0]
+  missing_value_policy: reject_required_field
+  silent_zero_fill: false
+  silent_clipping: false
+  revision_policy: preserve_prior_and_revised_values
+labor_required_fields:
+  - nonfarm_payroll_change
+  - unemployment_rate
+  - labor_force_participation_rate
+  - employment_population_ratio
+  - temporary_layoffs
+  - temporary_layoffs_change
+  - average_hourly_earnings
+  - average_hourly_earnings_yoy
+  - average_weekly_hours
+consensus_contract:
+  storage: separate_from_actual
+  required_metadata: [source_url, unit, status]

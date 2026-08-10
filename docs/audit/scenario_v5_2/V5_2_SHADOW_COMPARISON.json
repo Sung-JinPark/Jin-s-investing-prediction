@@ -1,0 +1,26 @@
+{
+  "baseline_candidate_id": "scenario_v5_2_macro_actualized_historical_shape_v1",
+  "baseline_model_content_sha256": "6542e0401070d19bfd2040598b94e918f0c1bf03f65b80f49f2e2017d5de1f51",
+  "baseline_source_sha256": "984d7172564e306c0a8085c3cdfb1245a6b2338878408802bfc1e3996887275e",
+  "candidate_id": "scenario_v5_2_dotcom_weighted_event_adaptive_v2",
+  "comparable_anchor": true,
+  "comparable_distribution_seed": true,
+  "changed_inputs": [
+    "stronger_full_rate_probability_repricing",
+    "S1_weighted_dotcom_single_cycle_likelihood",
+    "append_only_event_learning_boundary"
+  ],
+  "metric_deltas": {
+    "terminal_above_anchor_2026": 0.04866528830518313,
+    "terminal_above_v51_reference_2026": 0.04625947631166083,
+    "new_ath_by_2026": 0.016084572760461158,
+    "first_touch_minus_10_by_october_end": -0.035971570415019305,
+    "terminal_above_anchor_2027": 0.023730712717288993
+  },
+  "scenario_probability_deltas": {
+    "S1": 0.05946097718723509,
+    "S2": -0.04812230859836633,
+    "S3": -0.011338668588868506
+  },
+  "official_snapshot_overwritten": false
+}

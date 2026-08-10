@@ -1,0 +1,130 @@
+{
+  "rule": "2026-state cohorts; each 2027 pair must pass >=2 median and >=3 distribution diagnostics",
+  "partition_information_cutoff": "2026-12-31",
+  "partition_uses_2027_outcomes": false,
+  "scenario_medians": {
+    "S1": {
+      "terminal_return_2027": 0.3695656557365711,
+      "maximum_drawdown": -0.16731417416012676,
+      "recovery_days": 50.0,
+      "annualized_volatility": 0.19949508281437872
+    },
+    "S2": {
+      "terminal_return_2027": 0.13652185083605614,
+      "maximum_drawdown": -0.24318464692528816,
+      "recovery_days": 90.0,
+      "annualized_volatility": 0.22891253325079147
+    },
+    "S3": {
+      "terminal_return_2027": 0.26810428073500797,
+      "maximum_drawdown": -0.19556157495919527,
+      "recovery_days": 55.0,
+      "annualized_volatility": 0.20808169569811172
+    }
+  },
+  "pairs": [
+    {
+      "pair": "S1-S2",
+      "absolute_differences": {
+        "terminal_return_2027": 0.23304380490051493,
+        "maximum_drawdown": 0.0758704727651614,
+        "recovery_days": 40.0,
+        "annualized_volatility": 0.02941745043641275
+      },
+      "metric_gates": {
+        "terminal_return_2027": true,
+        "maximum_drawdown": true,
+        "recovery_days": true,
+        "annualized_volatility": true
+      },
+      "distinct_metric_count": 4,
+      "distribution_diagnostics": {
+        "normalized_p50_level_correlation": 0.9818061934504243,
+        "weekly_return_correlation": -0.12739864939609896,
+        "terminal_wasserstein": 0.237452040143033,
+        "terminal_energy": 0.35686597449486224,
+        "mdd_distribution_distance": 0.07474847486999148,
+        "volatility_distribution_distance": 0.039057969705712396
+      },
+      "distribution_gates": {
+        "normalized_p50_level_correlation": true,
+        "weekly_return_correlation": true,
+        "terminal_wasserstein": true,
+        "terminal_energy": true,
+        "mdd_distribution_distance": true,
+        "volatility_distribution_distance": true
+      },
+      "distribution_gate_count": 6,
+      "gate_pass": true
+    },
+    {
+      "pair": "S1-S3",
+      "absolute_differences": {
+        "terminal_return_2027": 0.1014613750015631,
+        "maximum_drawdown": 0.02824740079906851,
+        "recovery_days": 5.0,
+        "annualized_volatility": 0.008586612883732997
+      },
+      "metric_gates": {
+        "terminal_return_2027": true,
+        "maximum_drawdown": true,
+        "recovery_days": false,
+        "annualized_volatility": false
+      },
+      "distinct_metric_count": 2,
+      "distribution_diagnostics": {
+        "normalized_p50_level_correlation": 0.9711054223485709,
+        "weekly_return_correlation": -0.19414031428085723,
+        "terminal_wasserstein": 0.1269598244384038,
+        "terminal_energy": 0.18123002058457677,
+        "mdd_distribution_distance": 0.02010872208287382,
+        "volatility_distribution_distance": 0.01243020447183488
+      },
+      "distribution_gates": {
+        "normalized_p50_level_correlation": true,
+        "weekly_return_correlation": true,
+        "terminal_wasserstein": true,
+        "terminal_energy": true,
+        "mdd_distribution_distance": true,
+        "volatility_distribution_distance": true
+      },
+      "distribution_gate_count": 6,
+      "gate_pass": true
+    },
+    {
+      "pair": "S2-S3",
+      "absolute_differences": {
+        "terminal_return_2027": 0.13158242989895183,
+        "maximum_drawdown": 0.04762307196609289,
+        "recovery_days": 35.0,
+        "annualized_volatility": 0.020830837552679754
+      },
+      "metric_gates": {
+        "terminal_return_2027": true,
+        "maximum_drawdown": true,
+        "recovery_days": true,
+        "annualized_volatility": true
+      },
+      "distinct_metric_count": 4,
+      "distribution_diagnostics": {
+        "normalized_p50_level_correlation": 0.9869604876972198,
+        "weekly_return_correlation": -0.20887771277761089,
+        "terminal_wasserstein": 0.11056540131229346,
+        "terminal_energy": 0.18687593567777497,
+        "mdd_distribution_distance": 0.05534229833879574,
+        "volatility_distribution_distance": 0.02718248367396988
+      },
+      "distribution_gates": {
+        "normalized_p50_level_correlation": true,
+        "weekly_return_correlation": true,
+        "terminal_wasserstein": true,
+        "terminal_energy": true,
+        "mdd_distribution_distance": true,
+        "volatility_distribution_distance": true
+      },
+      "distribution_gate_count": 6,
+      "gate_pass": true
+    }
+  ],
+  "gate_pass": true
+}

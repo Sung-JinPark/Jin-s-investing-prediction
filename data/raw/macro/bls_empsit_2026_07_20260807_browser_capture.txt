@@ -1,0 +1,20 @@
+capture_type: browser_accessibility_dom_text
+source_url: https://www.bls.gov/news.release/archives/empsit_08072026.htm
+publisher: U.S. Bureau of Labor Statistics
+release_id: BLS_EMPSIT_2026_07_2026_08_07
+release_available_at: 2026-08-07T12:30:00+00:00
+captured_at: 2026-08-10T00:30:00+00:00
+note: The BLS origin rejected a command-line download. These facts were captured
+  from the official archive page in the browser and are normalized separately.
+
+Official release facts used by Scenario V5.2
+- Total nonfarm payroll employment changed by -23,000 in July 2026.
+- The unemployment rate was 4.1 percent.
+- Temporary layoffs increased by 153,000 to 921,000.
+- The labor force participation rate was 61.4 percent.
+- The employment-population ratio was 58.9 percent.
+- Average hourly earnings were $37.62 and increased 3.2 percent over 12 months.
+- The average workweek was 34.3 hours.
+- May payrolls were revised from +129,000 to +63,000 (-66,000).
+- June payrolls were revised from +57,000 to +20,000 (-37,000).
+- The combined May-June revision was -103,000.

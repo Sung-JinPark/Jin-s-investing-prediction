@@ -1,0 +1,33 @@
+schema_version: 2
+contract_id: report_view_v2
+canonical_probability_unit: fraction
+required:
+  - view_id
+  - publisher
+  - report_id
+  - published_at
+  - available_at
+  - retrieved_at
+  - source_path
+  - source_sha256
+  - target_asset
+  - horizon_start
+  - horizon_end
+  - view_kind
+  - unit
+  - probability_space
+  - dependency_cluster_id
+  - origin_release_id
+  - used_numerically
+numerical_use_gates:
+  human_approval_receipt_required: true
+  calibrated_physical_translation_required: true
+  point_in_time_gate_required: true
+  independent_origin_required: true
+  dependency_cluster_cap: 0.35
+  duplicate_origin_strength: 0.0
+  narrative_to_number_conversion: forbidden
+  endogenous_scenario_ancestor: reference_only
+probability_spaces:
+  allowed: [physical_event, risk_neutral_terminal, path_touch, scenario_conditional, reference_only]
+  mixing_without_translation: forbidden

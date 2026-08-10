@@ -1,0 +1,38 @@
+{
+  "release_id": "BLS_EMPSIT_2026_07_2026_08_07",
+  "actual": {
+    "nonfarm_payroll_change": -23000,
+    "unemployment_rate": 0.041,
+    "labor_force_participation_rate": 0.614,
+    "employment_population_ratio": 0.589,
+    "temporary_layoffs": 921000,
+    "temporary_layoffs_change": 153000,
+    "average_hourly_earnings": 37.62,
+    "average_hourly_earnings_yoy": 0.032,
+    "average_weekly_hours": 34.3
+  },
+  "revisions": [
+    {
+      "reference_period": "2026-05",
+      "prior_payroll_change": 129000,
+      "revised_payroll_change": 63000,
+      "revision": -66000
+    },
+    {
+      "reference_period": "2026-06",
+      "prior_payroll_change": 57000,
+      "revised_payroll_change": 20000,
+      "revision": -37000
+    }
+  ],
+  "combined_revision": -103000,
+  "consensus": {
+    "nonfarm_payroll_change": 85000,
+    "unit": "persons",
+    "source_url": "https://www.kiplinger.com/investing/economy/jobs-report-july-2026-what-to-expect",
+    "status": "separate_secondary_source"
+  },
+  "missing_fields": [],
+  "available_at_lte_candidate_cutoff": true,
+  "gate_pass": true
+}

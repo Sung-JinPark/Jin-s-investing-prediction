@@ -25,7 +25,10 @@ DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
 DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
-DASHBOARD_RAW_BUDGET_BYTES = 1_000_000
+# V5.2 adds a bounded, down-sampled total-mixture projection (including five
+# actual members per scenario) to the self-contained snapshot.  The 2.5% cap
+# increase is explicit and remains enforced by the repository-budget test.
+DASHBOARD_RAW_BUDGET_BYTES = 1_025_000
 
 # Repeated immutable forecast headings dominate the self-contained Pages payload.
 # Private-use one-codepoint tokens preserve every character while avoiding an ADR-002
@@ -292,6 +295,10 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
                 "the official legacy fallback remains active."
             ),
         }
+    from .scenario_v5_2.artifact import dashboard_projection as load_scenario_v5_2_projection
+    scenario_v5_2 = load_scenario_v5_2_projection(
+        root, now, maximum_age_trading_days=1
+    )
     from .scenario_v4_shadow import load_shadow
     scenario_v4_shadow = load_shadow(root)
     structural_event = (
@@ -452,6 +459,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "scenario": scenario,
         "scenario_v5": scenario_v5,
+        "scenario_v5_2": scenario_v5_2,
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,

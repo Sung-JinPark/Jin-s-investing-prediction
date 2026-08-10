@@ -20,3 +20,4 @@
 forecasts/**       -text
 calibration/**     -text
 data/ml_history/** -text
+data/raw/**        -text

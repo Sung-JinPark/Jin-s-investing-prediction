@@ -1,0 +1,46 @@
+{
+  "method": "inverse_distance_weighted_dotcom_knn_case_list",
+  "single_cycle_limitation": true,
+  "cycle_count": 1,
+  "neighbor_count": 5,
+  "forward_return_targets": {
+    "one_month": -0.08470678284254124,
+    "three_month": 0.0841471793710907,
+    "six_month": 0.2689310861123795,
+    "twelve_month": 0.3183835005860082
+  },
+  "target_dates": {
+    "one_month": "2026-09-07",
+    "three_month": "2026-11-09",
+    "six_month": "2027-02-08",
+    "twelve_month": "2027-08-09"
+  },
+  "scenario_strength": {
+    "S1": 0.28,
+    "S2": 0.04,
+    "S3": 0.06
+  },
+  "strength_gate": true,
+  "dependency_cap": 0.35,
+  "joint_growth_risk_policy_relief_score": 0.411247433508063,
+  "no_repeat_condition_definition": "no first touch of -10% through October end and year-end above anchor",
+  "prior_no_repeat_condition_probability": 0.703625,
+  "compatibility_median_by_scenario": {
+    "S1": 0.2685411511457996,
+    "S2": -1.1248162870561904,
+    "S3": 0.17892798584118066
+  },
+  "mean_log_adjustment_by_scenario": {
+    "S1": 0.060454630559040524,
+    "S2": -0.019261804339358868,
+    "S3": 0.0024850580206624198
+  },
+  "one_month_negative_target_preserved": true,
+  "forced_endpoint": false,
+  "forced_october_direction": false,
+  "no_repeat_probability_before_dotcom": 0.6712826624490635,
+  "no_repeat_probability_after_dotcom": 0.6846899488689258,
+  "S1_no_repeat_probability_before_dotcom": 0.9778033550813618,
+  "S1_no_repeat_probability_after_dotcom": 0.9786207177708667,
+  "S1_probability_increment": 0.019429730394711797
+}

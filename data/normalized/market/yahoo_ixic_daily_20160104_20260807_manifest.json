@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "dataset_id": "YAHOO_IXIC_DAILY_20160104_20260807",
+  "symbol": "^IXIC",
+  "source_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?period1=1451606400&period2=1786147200&interval=1d&events=history",
+  "raw_source_path": "data/raw/market/yahoo_ixic_daily_20160104_20260807.json",
+  "raw_sha256": "193e84ada6cbcbcab519c98cd8cd523a158b32ad02531ed3deb1b729f539e7cc",
+  "price_unit": "index_points",
+  "first_session": "2016-01-04",
+  "last_session": "2026-08-07",
+  "row_count": 2664,
+  "last_close": 26690.619140625,
+  "availability_rule": "Daily close becomes available after that session close; no rows after candidate as_of are admitted."
+}

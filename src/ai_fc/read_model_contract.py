@@ -126,6 +126,15 @@ def schema() -> dict[str, Any]:
             },
         },
     }
+    properties["scenario_v5_2"] = {
+        "type": "object",
+        "required": ["schema_version", "status", "candidate_id", "runtime_gate"],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["ok", "degraded", "stale_or_invalid", "unavailable"]},
+            "candidate_id": {"const": "scenario_v5_2_dotcom_weighted_event_adaptive_v2"},
+        },
+    }
     properties["scenario_v4_shadow"] = {
         "type": ["object", "null"],
         "properties": {
@@ -252,6 +261,28 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("scenario_v5 distribution visibility gate mismatch")
         if distribution_gates.get("same_shape_pass") is not bool(same_shape.get("gate_pass")):
             errors.append("scenario_v5 same-shape gate disclosure mismatch")
+    scenario_v52 = model.get("scenario_v5_2")
+    if isinstance(scenario_v52, dict):
+        if scenario_v52.get("candidate_id") != "scenario_v5_2_dotcom_weighted_event_adaptive_v2":
+            errors.append("scenario_v5_2 candidate id mismatch")
+        runtime = scenario_v52.get("runtime_gate") or {}
+        active = scenario_v52.get("status") in {"ok", "degraded"}
+        if active is not bool(runtime.get("display_eligible")):
+            errors.append("scenario_v5_2 runtime/display state mismatch")
+        if active:
+            scenarios = ((scenario_v52.get("conditional_small_multiples") or {})
+                         .get("scenarios") or {})
+            probabilities = [scenarios.get(key, {}).get("probability")
+                             for key in ("S1", "S2", "S3")]
+            if (not all(isinstance(value, (int, float)) and not isinstance(value, bool)
+                        and 0 <= value <= 1 for value in probabilities)
+                    or abs(sum(probabilities) - 1.0) > 1e-10):
+                errors.append("scenario_v5_2 probabilities must be fractions summing to one")
+            display = scenario_v52.get("display_contract") or {}
+            if display.get("main_chart") != "total_mixture_p50_and_bands":
+                errors.append("scenario_v5_2 main chart must be total mixture")
+            if display.get("main_chart_scenario_lines") is not False:
+                errors.append("scenario_v5_2 scenario lines cannot enter the main chart")
     scenario_v4_shadow = model.get("scenario_v4_shadow")
     if scenario_v4_shadow is not None:
         if not isinstance(scenario_v4_shadow, dict):
