@@ -421,3 +421,23 @@ def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
     comparison = compare_protected_hashes(before, protected_hashes(ROOT))
     assert comparison["ok"], comparison
     assert comparison["added"] == comparison["removed"] == comparison["changed"] == []
+
+
+def test_protected_hashes_normalize_git_text_eol_but_keep_ledgers_byte_exact(
+    tmp_path: Path,
+) -> None:
+    archive = tmp_path / "data/cross_asset/archive/sample.json"
+    archive.parent.mkdir(parents=True)
+    archive.write_bytes(b'{\r\n  "value": 1\r\n}\r\n')
+    archive_crlf = protected_hashes(tmp_path)["files"][archive.relative_to(tmp_path).as_posix()]
+    archive.write_bytes(b'{\n  "value": 1\n}\n')
+    archive_lf = protected_hashes(tmp_path)["files"][archive.relative_to(tmp_path).as_posix()]
+    assert archive_crlf == archive_lf
+
+    ledger = tmp_path / "calibration/ledger.csv"
+    ledger.parent.mkdir(parents=True)
+    ledger.write_bytes(b"a,b\r\n1,2\r\n")
+    ledger_crlf = protected_hashes(tmp_path)["files"][ledger.relative_to(tmp_path).as_posix()]
+    ledger.write_bytes(b"a,b\n1,2\n")
+    ledger_lf = protected_hashes(tmp_path)["files"][ledger.relative_to(tmp_path).as_posix()]
+    assert ledger_crlf != ledger_lf

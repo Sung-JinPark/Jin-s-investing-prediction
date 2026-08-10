@@ -1,6 +1,21 @@
 {
   "before": {
     "algorithm": "sha256",
+    "canonicalization": {
+      "lf_text_roots": [
+        "data/scenarios",
+        "questions/registry.yaml",
+        "data/signals",
+        "data/liquidity",
+        "data/cross_asset",
+        "data/ai_capital_cycle"
+      ],
+      "byte_exact_roots": [
+        "forecasts",
+        "calibration",
+        "data/ml_history"
+      ]
+    },
     "protected_roots": [
       "data/scenarios/nasdaq_latest.json",
       "data/scenarios/archive",
@@ -95,8 +110,8 @@
       "data/cross_asset/archive/2026-08-03_CORR-260804-006.json": "ebde96a43bc4b87b9562b38b6066e2ed4283a46bb7fa48da4e13d775034e5fd2",
       "data/cross_asset/archive/2026-08-03_CORR-260804-008.json": "1b2214b586842c80a5b9d2b1b0315679bddb35dd400363356d647287d7519b90",
       "data/cross_asset/archive/2026-08-03_CORR-260804-010.json": "165eee53f53d57dd1acc1252a6e157794e0830bef007666ad438a7b8ffee2e56",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "fa4608b3af02043b4f31261518db41a018acc7335ff2c32a3f3c3752bc648e52",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "49245ae5161fa39c6e625bb7479c67027e3c01411ae16d8c3f2e8ab6c43637cc",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "d217a2729d9e4905e5e10b26b7902002e540a0d0310686551285c7305251bd96",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "25e98d5895fbc89a9d3a321a3bb1e287edc550432cbeb175e9e1be743df9e2e2",
       "data/cross_asset/archive/2026-08-05.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
       "data/cross_asset/archive/2026-08-06.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
       "data/cross_asset/cross_asset_latest.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
@@ -128,10 +143,25 @@
       "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
     },
     "missing_roots": [],
-    "manifest_sha256": "428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316"
+    "manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
   },
   "after": {
     "algorithm": "sha256",
+    "canonicalization": {
+      "lf_text_roots": [
+        "data/scenarios",
+        "questions/registry.yaml",
+        "data/signals",
+        "data/liquidity",
+        "data/cross_asset",
+        "data/ai_capital_cycle"
+      ],
+      "byte_exact_roots": [
+        "forecasts",
+        "calibration",
+        "data/ml_history"
+      ]
+    },
     "protected_roots": [
       "data/scenarios/nasdaq_latest.json",
       "data/scenarios/archive",
@@ -226,8 +256,8 @@
       "data/cross_asset/archive/2026-08-03_CORR-260804-006.json": "ebde96a43bc4b87b9562b38b6066e2ed4283a46bb7fa48da4e13d775034e5fd2",
       "data/cross_asset/archive/2026-08-03_CORR-260804-008.json": "1b2214b586842c80a5b9d2b1b0315679bddb35dd400363356d647287d7519b90",
       "data/cross_asset/archive/2026-08-03_CORR-260804-010.json": "165eee53f53d57dd1acc1252a6e157794e0830bef007666ad438a7b8ffee2e56",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "fa4608b3af02043b4f31261518db41a018acc7335ff2c32a3f3c3752bc648e52",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "49245ae5161fa39c6e625bb7479c67027e3c01411ae16d8c3f2e8ab6c43637cc",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "d217a2729d9e4905e5e10b26b7902002e540a0d0310686551285c7305251bd96",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "25e98d5895fbc89a9d3a321a3bb1e287edc550432cbeb175e9e1be743df9e2e2",
       "data/cross_asset/archive/2026-08-05.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
       "data/cross_asset/archive/2026-08-06.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
       "data/cross_asset/cross_asset_latest.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
@@ -259,14 +289,14 @@
       "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
     },
     "missing_roots": [],
-    "manifest_sha256": "428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316"
+    "manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
   },
   "comparison": {
     "ok": true,
     "added": [],
     "removed": [],
     "changed": [],
-    "before_manifest_sha256": "428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316",
-    "after_manifest_sha256": "428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316"
+    "before_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b",
+    "after_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
   }
 }

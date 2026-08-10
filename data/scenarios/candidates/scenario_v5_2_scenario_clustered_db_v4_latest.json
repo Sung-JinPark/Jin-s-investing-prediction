@@ -26691,12 +26691,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "5ae4dfe981712b35f97b01b023b1e64138cf7adc9a4ebfb34a5b4565afcf5846",
-  "generated_at": "2026-08-10T08:32:16+00:00",
+  "generated_at": "2026-08-10T08:53:54+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "5ae4dfe981712b35f97b01b023b1e64138cf7adc9a4ebfb34a5b4565afcf5846",
-    "generated_at": "2026-08-10T08:32:16+00:00",
+    "generated_at": "2026-08-10T08:53:54+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -26718,6 +26718,21 @@
     },
     "protected_before": {
       "algorithm": "sha256",
+      "canonicalization": {
+        "lf_text_roots": [
+          "data/scenarios",
+          "questions/registry.yaml",
+          "data/signals",
+          "data/liquidity",
+          "data/cross_asset",
+          "data/ai_capital_cycle"
+        ],
+        "byte_exact_roots": [
+          "forecasts",
+          "calibration",
+          "data/ml_history"
+        ]
+      },
       "protected_roots": [
         "data/scenarios/nasdaq_latest.json",
         "data/scenarios/archive",
@@ -26812,8 +26827,8 @@
         "data/cross_asset/archive/2026-08-03_CORR-260804-006.json": "ebde96a43bc4b87b9562b38b6066e2ed4283a46bb7fa48da4e13d775034e5fd2",
         "data/cross_asset/archive/2026-08-03_CORR-260804-008.json": "1b2214b586842c80a5b9d2b1b0315679bddb35dd400363356d647287d7519b90",
         "data/cross_asset/archive/2026-08-03_CORR-260804-010.json": "165eee53f53d57dd1acc1252a6e157794e0830bef007666ad438a7b8ffee2e56",
-        "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "fa4608b3af02043b4f31261518db41a018acc7335ff2c32a3f3c3752bc648e52",
-        "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "49245ae5161fa39c6e625bb7479c67027e3c01411ae16d8c3f2e8ab6c43637cc",
+        "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "d217a2729d9e4905e5e10b26b7902002e540a0d0310686551285c7305251bd96",
+        "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "25e98d5895fbc89a9d3a321a3bb1e287edc550432cbeb175e9e1be743df9e2e2",
         "data/cross_asset/archive/2026-08-05.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
         "data/cross_asset/archive/2026-08-06.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
         "data/cross_asset/cross_asset_latest.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
@@ -26845,15 +26860,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
       },
       "missing_roots": [],
-      "manifest_sha256": "428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316"
+      "manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
     },
     "build_context": {
-      "head": "b0515610dfa762e985698cf50b21b6b0b2484ff9",
+      "head": "bdd2f0f0c1e8f9b534e9e84897dd00f5353b0440",
       "branch": "agent/l0-batch1-validation-review-260806",
       "dirty": true,
-      "status_entry_count": 23,
+      "status_entry_count": 7,
       "python": "3.12.10"
     }
   },
-  "build_receipt_sha256": "39b1f58d5be2a5d563dad82ab2a43c7752beeb40f96c819ff83184c1e4ca6e18"
+  "build_receipt_sha256": "b6352266ec4d95c83e9a72c4936998c59a8cfdcb2f5815696d77384e5a875e36"
 }
