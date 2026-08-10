@@ -132,9 +132,7 @@ def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
 def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
     payload = _candidate()
     dotcom = payload["dotcom_scenario_weighting"]
-    assert dotcom["scenario_strength"] == {"S1": .60, "S2": .02, "S3": .03}
-    assert dotcom["scenario_strength"]["S1"] > dotcom["scenario_strength"]["S3"] \
-        > dotcom["scenario_strength"]["S2"]
+    assert dotcom["scenario_strength"] == {"S1": .60, "S2": 0.0, "S3": 0.0}
     assert dotcom["one_month_negative_target_preserved"] is True
     assert dotcom["forward_return_targets"]["one_month"] < 0
     assert dotcom["single_cycle_limitation"] is True
@@ -146,33 +144,43 @@ def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
     increment = payload["component_ablations"]["dotcom_upside_increment"]
     assert increment["scenario_strength"] == dotcom["scenario_strength"]
     assert dotcom["dependency_cap"] == .60
-    assert dotcom["generator_routing_multiplier"]["S1"] == 1.0
     shares = dotcom["path_engine_share_by_scenario"]
-    key = "dotcom_neighbor_episode_with_local_residual"
-    assert shares["S1"][key] > shares["S2"][key]
-    assert shares["S1"][key] > shares["S3"][key]
+    assert shares["S1"]["S1_dotcom_expansion_cluster"] == 1.0
+    assert shares["S2"]["S2_modern_baseline_cluster"] == 1.0
+    assert shares["S3"]["S3_macro_tightening_stress_cluster"] == 1.0
 
 
-def test_dotcom_generator_uses_frozen_daily_source_and_exact_50_30_20_mix() -> None:
+def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
     payload = _candidate()
     generator = payload["model"]["generator_audit"]
     assert generator["engine_mixture_probability"] == {
-        "dotcom_neighbor_episode_with_local_residual": .50,
-        "regime_conditioned_stationary_bootstrap": .30,
-        "general_historical_episode_resampling": .20,
+        "S1_dotcom_expansion_cluster": 1 / 3,
+        "S2_modern_baseline_cluster": 1 / 3,
+        "S3_macro_tightening_stress_cluster": 1 / 3,
     }
     assert generator["path_count_by_engine"] == {
-        "dotcom_neighbor_episode_with_local_residual": 4000,
-        "regime_conditioned_stationary_bootstrap": 2400,
-        "general_historical_episode_resampling": 1600,
+        "S1_dotcom_expansion_cluster": 3000,
+        "S2_modern_baseline_cluster": 3000,
+        "S3_macro_tightening_stress_cluster": 3000,
     }
-    episode = generator["dotcom_episode"]
-    assert episode["registered_target_max_abs_error"] <= .00011
-    assert episode["local_residual_scale"] == .35
-    assert episode["forced_endpoint"] is False and episode["forced_date"] is False
-    assert set(episode["neighbor_probabilities"]) == {
-        "1998-07-31", "1997-11-28", "1996-06-28", "1999-09-30", "1997-02-28",
-    }
+    assert generator["cluster_assignment_information_set"] == "origin_state_features_only"
+    assert generator["individual_origin_outcome_selection"] is False
+    assert generator["gate_pass"]
+    scenarios = generator["scenarios"]
+    assert [scenarios[key]["source_group"] for key in ("S1", "S2", "S3")] == [
+        "dotcom_price_state_db",
+        "modern_general_market_state_db",
+        "macro_tightening_financial_conditions_db",
+    ]
+    assert all(row["clustering_uses_forward_outcomes"] is False
+               for row in scenarios.values())
+    assert all(row["outcomes_used_after_assignment_for_cluster_label_only"] is True
+               for row in scenarios.values())
+    assert all(len(row["cluster_assignments_sha256"]) == 64 for row in scenarios.values())
+    returns = [scenarios[key]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
+               for key in ("S1", "S2", "S3")]
+    assert returns[0] > returns[1] > returns[2]
+    assert returns[0] - returns[2] > .50
 
 
 def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:
@@ -293,7 +301,9 @@ def test_dependency_cap_circularity_and_2027_distinctness_gates() -> None:
                     if row["evidence_id"] == "v5_1_ancestor_candidate")
     assert ancestor["used_numerically"] is False
     assert payload["distinctness_2027"]["gate_pass"]
-    assert payload["distinctness_2027"]["partition_information_cutoff"] == "2026-12-31"
+    assert payload["distinctness_2027"]["partition_information_cutoff"] \
+        == "historical_origin_state_only"
+    assert payload["distinctness_2027"]["partition_uses_forward_outcomes_for_assignment"] is False
     assert payload["distinctness_2027"]["partition_uses_2027_outcomes"] is False
     assert all(row["distinct_metric_count"] >= 2
                for row in payload["distinctness_2027"]["pairs"])
@@ -324,20 +334,27 @@ def test_seed_path_count_and_block_length_sensitivity_primitives() -> None:
     replay, dates_replay, engines_replay, _, audit_replay = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.10
     )
-    seed_variant, _, _, _, _ = generate_prior(
+    seed_variant, _, _, _, seed_audit = generate_prior(
         ROOT, inputs, seed=72, path_count_per_engine=80, block_restart_probability=.10
     )
     block_variant, _, _, _, _ = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.20
     )
-    assert a.shape == (160, len(dates_a))
+    assert a.shape == (240, len(dates_a))
     assert np.array_equal(a, replay)
     assert dates_a == dates_replay and np.array_equal(engines_a, engines_replay)
     assert audit_a == audit_replay
+    assert {
+        key: row["cluster_assignments_sha256"]
+        for key, row in audit_a["scenarios"].items()
+    } == {
+        key: row["cluster_assignments_sha256"]
+        for key, row in seed_audit["scenarios"].items()
+    }
     assert audit_a["path_count_by_engine"] == {
-        "dotcom_neighbor_episode_with_local_residual": 80,
-        "regime_conditioned_stationary_bootstrap": 48,
-        "general_historical_episode_resampling": 32,
+        "S1_dotcom_expansion_cluster": 80,
+        "S2_modern_baseline_cluster": 80,
+        "S3_macro_tightening_stress_cluster": 80,
     }
     assert not np.array_equal(a, seed_variant)
     assert not np.array_equal(a, block_variant)
@@ -385,7 +402,8 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
     p = _candidate(); p["circularity_control"]["realized_event_return_coefficient"] = .01; mutations.append((p, "double counted"))
     p = _candidate(); p["distinctness_2027"]["gate_pass"] = False; mutations.append((p, "distinctness"))
     p = _candidate(); p["display_contract"]["october_2_exact_date_forecast"] = True; mutations.append((p, "October 2"))
-    p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["dotcom_neighbor_episode_with_local_residual"] = .90; mutations.append((p, "concentrated"))
+    p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S1_dotcom_expansion_cluster"] = .90; p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S2_modern_baseline_cluster"] = .10; mutations.append((p, "isolated"))
+    p = _candidate(); p["model"]["generator_audit"]["scenarios"]["S1"]["clustering_uses_forward_outcomes"] = True; mutations.append((p, "cluster audit"))
     p = _candidate(); p["evidence_registry"][0]["approved_cap"] = .90; mutations.append((p, "unauthorized"))
     for payload, expected in mutations:
         result = validate_candidate(_rehash(payload), ROOT, replay=False)

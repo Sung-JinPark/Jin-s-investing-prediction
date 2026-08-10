@@ -13,7 +13,7 @@
   "horizon_start": "2026-08-10",
   "horizon_end": "2026-12-31",
   "view_kind": "scenario_specific_soft_likelihood",
-  "condition": "S1 receives stronger dotcom compatibility; no new -10% touch through October and year-end above anchor receives a separate small interaction likelihood",
+  "condition": "S1 alone receives dotcom compatibility; S2/S3 use independent database clusters; no new -10% touch through October and year-end above anchor receives a separate interaction likelihood",
   "unit": "fraction",
   "probability_space": "scenario_conditional",
   "dependency_cluster_id": "dotcom_single_cycle_analog",
@@ -21,7 +21,7 @@
   "used_numerically": true,
   "human_approval_receipt": "explicit_user_message_2026_08_10",
   "effective_strength": 0.60,
-  "scenario_strength": {"S1": 0.60, "S2": 0.02, "S3": 0.03},
+  "scenario_strength": {"S1": 0.60, "S2": 0.00, "S3": 0.00},
   "recent_state": {
     "lookback_sessions": 60,
     "maximum_drawdown": -0.09784345920225213,

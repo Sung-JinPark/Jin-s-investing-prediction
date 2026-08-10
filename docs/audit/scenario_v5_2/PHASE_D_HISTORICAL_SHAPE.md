@@ -1,7 +1,9 @@
-# Phase D — Historical-shape prior
+# Phase D — Scenario-specific database clusters
 
 Gate: **PASS**
 
-Three deterministic engines use only sessions available by the cutoff: 4,000 frozen dotcom-neighbor episodes with 0.35-scale local centered residuals (50%), 2,400 regime-conditioned stationary-bootstrap paths (30%), and 1,600 general contiguous historical episodes (20%). The five dotcom anchors and their inverse-distance probabilities are preserved, and reconstructed 1/3/6/12-month targets agree with the registered kNN run within 0.00011. No endpoint, trough date, or scenario probability is forced. The simulation starts after the August 7 close and extends through 2027-12-31.
+Each scenario has 3,000 paths from a different historical database cohort. S1 uses the selected dotcom expansion price-state cluster, S2 the selected 2016-2026 modern general-market baseline cluster, and S3 the selected 1990-2026 tightening/financial-stress cluster. Deterministic k-medoids uses only features observable at each historical origin. Forward returns and drawdowns are withheld until assignments are frozen, then used only to label and select whole clusters. No individual origin is chosen by its forward result.
 
-General-history raw SHA-256: `193e84ada6cbcbcab519c98cd8cd523a158b32ad02531ed3deb1b729f539e7cc`. Dotcom daily raw SHA-256: `d03689edc3bd36da3d634276043fb5a532793c0bf342d1450aa9cd34e34322e0`. Seed: `520807`. Main p50 is the pointwise weighted median with no artificial wiggle. Seven actual members plus an actual dotted medoid carry path texture.
+Selected 252-session median returns are S1 0.2801, S2 0.2279, and S3 -0.4751. Selected medoids are 1999-10-14, 2021-10-20, and 2000-07-07. Assignment hashes and complete inventories are in `SCENARIO_CLUSTER_AUDIT.json`. No endpoint or turning date is forced.
+
+General-history raw SHA-256: `193e84ada6cbcbcab519c98cd8cd523a158b32ad02531ed3deb1b729f539e7cc`. Dotcom daily raw SHA-256: `d03689edc3bd36da3d634276043fb5a532793c0bf342d1450aa9cd34e34322e0`. Macro-cluster raw SHA-256: `7d7c85b3c6bece1226395a86e79d32a4b333f416f99e18592a516a6135e2b25e`. Seed: `520807`. Main p50 is the pointwise weighted median with no artificial wiggle. Seven actual members plus an actual dotted medoid carry path texture.

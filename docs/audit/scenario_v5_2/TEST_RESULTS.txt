@@ -1,6 +1,5 @@
-TARGETED FINAL: 55 passed in 13.83s (src/tests/test_scenario_v5_2.py, test_read_model_contract.py, test_dashboard.py)
-DETERMINISTIC REPLAY: PASS
-FULL FINAL: 453 passed in 154.60s (python -m pytest -q)
-COMPILE: PASS (scenario_v5_2 package and dotcom exporter)
-DIFF_CHECK: PASS (git diff --check)
-VISUAL: local file URL blocked by in-app Browser security policy; DOM/SVG/responsive semantic tests PASS; no policy bypass attempted
+Scenario V5.2 targeted model/dashboard suite: 23 passed in 8.19s.
+Final full repository suite: 453 passed in 146.79s.
+Strict candidate replay verification: PASS.
+An earlier full-suite run found one dashboard raw-size budget regression (452 passed, 1 failed); the projection was bounded to rendered fields and the complete suite then passed.
+A separate initial full-suite attempt ended at the 124-second command limit before results and is classified as an execution-limit event, not a test failure.

@@ -2,6 +2,6 @@
 
 Gate: **PASS**
 
-Full-mixture probabilities are S1 65.53%, S2 17.07%, S3 17.41%. These are derived cohort weights, not manually entered probabilities. Every pair differs on at least two registered metrics (2027 terminal return, maximum drawdown, recovery time, annualized volatility).
+Full-mixture probabilities are S1 58.40%, S2 37.18%, S3 4.42%. These are evidence-conditioned weights over three immutable database-generator cohorts, not manually entered probabilities and not output-based path labels. Every pair passes the registered median and distribution-distance gates.
 
-Main chart semantics: total mixture. Scenario semantics: conditional small multiples. 2027 distinctness gate: `True`.
+Main chart semantics: total mixture. Scenario semantics: conditional small multiples from S1 dotcom, S2 modern baseline, and S3 macro-tightening databases. 2027 distinctness gate: `True`.

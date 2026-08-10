@@ -1,7 +1,7 @@
 {
   "ok": true,
   "errors": [],
-  "candidate_id": "scenario_v5_2_dotcom_dominant_generator_v3",
-  "model_content_sha256": "0971e7cd5ae60ef92f723ea8ac8debbd4d2b3bed05bed81a0d0bd0d31a8bddc6",
+  "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+  "model_content_sha256": "45cac498d5a12d88287dc9d08147509e437c08c656b01c6cf7576ea701d3c97c",
   "replay_checked": true
 }

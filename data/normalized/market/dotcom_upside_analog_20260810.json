@@ -17,8 +17,8 @@
   },
   "scenario_strength": {
     "S1": 0.60,
-    "S2": 0.02,
-    "S3": 0.03
+    "S2": 0.00,
+    "S3": 0.00
   },
   "dependency_cluster_id": "dotcom_single_cycle_analog",
   "dependency_cap": 0.60,
@@ -33,7 +33,8 @@
     "one historical cycle; not an independent base-rate sample",
     "five neighbors are dependent observations from the same cycle",
     "the one-month target is negative and is not suppressed or cherry-picked",
-    "scenario-specific soft likelihood only; no forced endpoint or date",
+    "S1-only soft likelihood; S2/S3 use independent database clusters",
+    "no forced endpoint or date",
     "0.60 is an explicit research-only model-risk override above the default 0.35 cap"
   ]
 }

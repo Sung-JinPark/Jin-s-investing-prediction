@@ -1,26 +1,26 @@
 {
-  "baseline_candidate_id": "scenario_v5_2_dotcom_weighted_event_adaptive_v2",
-  "baseline_model_content_sha256": "1a75071a1ae48592d794b58ed5a2148d18fed2c985456bf1edbe9bd610f86671",
-  "baseline_source_sha256": "d6942422b5ade8d252a61f3797233f28c1e50b0839f7adc990f910779ebe5a24",
-  "candidate_id": "scenario_v5_2_dotcom_dominant_generator_v3",
+  "baseline_candidate_id": "scenario_v5_2_dotcom_dominant_generator_v3",
+  "baseline_model_content_sha256": "0971e7cd5ae60ef92f723ea8ac8debbd4d2b3bed05bed81a0d0bd0d31a8bddc6",
+  "baseline_source_sha256": "8a7f90d26e4555d420c7143b1ea30b120ec71e5f12049c028b775454bd77599a",
+  "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
   "comparable_anchor": true,
   "comparable_distribution_seed": true,
   "changed_inputs": [
-    "S1_dotcom_strength_0.28_to_0.60",
-    "S2_S3_dotcom_strength_reduced_to_0.02_0.03",
-    "prior_generator_50pct_dotcom_30pct_regime_20pct_general"
+    "output_partition_replaced_by_frozen_preoutcome_cluster_labels",
+    "S1_dotcom_S2_modern_S3_macro_tightening_distinct_databases",
+    "dotcom_likelihood_isolated_to_S1_at_0.60"
   ],
   "metric_deltas": {
-    "terminal_above_anchor_2026": 0.10475528219892516,
-    "terminal_above_v51_reference_2026": 0.09606813011654469,
-    "new_ath_by_2026": 0.023108548594700018,
-    "first_touch_minus_10_by_october_end": 0.02861764325525415,
-    "terminal_above_anchor_2027": 0.05076082857632169
+    "terminal_above_anchor_2026": -0.08776408590352835,
+    "terminal_above_v51_reference_2026": -0.08500368861042085,
+    "new_ath_by_2026": -0.018466643549171824,
+    "first_touch_minus_10_by_october_end": -0.008146940034562539,
+    "terminal_above_anchor_2027": -0.08263000837594947
   },
   "scenario_probability_deltas": {
-    "S1": 0.18710804563793776,
-    "S2": -0.06952396947298747,
-    "S3": -0.11758407616495026
+    "S1": -0.07130482012326111,
+    "S2": 0.2011742539013227,
+    "S3": -0.1298694337780617
   },
   "official_snapshot_overwritten": false
 }

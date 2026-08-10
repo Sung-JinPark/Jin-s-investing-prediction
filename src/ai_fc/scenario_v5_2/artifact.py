@@ -315,12 +315,12 @@ def validate_candidate(
         errors.append("insufficient event map was not fail-closed")
     generator = payload.get("model", {}).get("generator_audit", {})
     expected_mixture = {
-        "dotcom_neighbor_episode_with_local_residual": .50,
-        "regime_conditioned_stationary_bootstrap": .30,
-        "general_historical_episode_resampling": .20,
+        "S1_dotcom_expansion_cluster": 1.0 / 3.0,
+        "S2_modern_baseline_cluster": 1.0 / 3.0,
+        "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
     }
     if generator.get("engine_mixture_probability") != expected_mixture:
-        errors.append("three-engine 50/30/20 mixture contract mismatch")
+        errors.append("three-scenario equal simulation-pool contract mismatch")
     counts = generator.get("path_count_by_engine", {})
     if set(counts) != set(expected_mixture) \
             or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
@@ -329,12 +329,36 @@ def validate_candidate(
                     for value in counts.values())
                 and sum(counts.values()) != payload.get("model", {}).get("path_count")) \
             or counts != payload.get("model", {}).get("path_count_by_engine"):
-        errors.append("three-engine path counts are invalid")
-    dotcom_generator = generator.get("dotcom_episode", {})
-    if dotcom_generator.get("forced_endpoint") is not False \
-            or dotcom_generator.get("forced_date") is not False \
-            or float(dotcom_generator.get("registered_target_max_abs_error", 1)) > .00011:
-        errors.append("dotcom episode source/shape gate failed")
+        errors.append("three-scenario database path counts are invalid")
+    cluster_scenarios = generator.get("scenarios", {})
+    expected_groups = {
+        "S1": "dotcom_price_state_db",
+        "S2": "modern_general_market_state_db",
+        "S3": "macro_tightening_financial_conditions_db",
+    }
+    if generator.get("method") != "deterministic_k_medoids_then_cluster_level_outcome_labeling" \
+            or generator.get("cluster_assignment_information_set") != "origin_state_features_only" \
+            or generator.get("individual_origin_outcome_selection") is not False \
+            or generator.get("gate_pass") is not True \
+            or set(cluster_scenarios) != set(expected_groups):
+        errors.append("scenario cluster construction contract failed")
+    else:
+        for scenario, expected_group in expected_groups.items():
+            row = cluster_scenarios[scenario]
+            if row.get("source_group") != expected_group \
+                    or row.get("clustering_uses_forward_outcomes") is not False \
+                    or row.get("outcomes_used_after_assignment_for_cluster_label_only") is not True \
+                    or len(str(row.get("cluster_assignments_sha256", ""))) != 64 \
+                    or row.get("sampling", {}).get("forced_endpoint") is not False \
+                    or row.get("sampling", {}).get("forced_turning_date") is not False:
+                errors.append(f"scenario {scenario} cluster audit failed")
+        selected_returns = [
+            cluster_scenarios[name]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
+            for name in ("S1", "S2", "S3")
+        ]
+        if not (selected_returns[0] > selected_returns[1] > selected_returns[2] \
+                and selected_returns[0] - selected_returns[2] > .50):
+            errors.append("scenario cluster outcomes are not dramatically ordered")
     sensitivity = payload.get("sensitivity_analysis", {})
     sensitivity_rows = sensitivity.get("rows", [])
     if [row.get("S1_strength") for row in sensitivity_rows] != [.28, .45, .60] \
@@ -348,25 +372,26 @@ def validate_candidate(
 
     dotcom = payload.get("dotcom_scenario_weighting", {})
     strengths = dotcom.get("scenario_strength", {})
-    if set(strengths) != {"S1", "S2", "S3"} or not (
-        strengths.get("S1", 0) > strengths.get("S3", 0) > strengths.get("S2", 0)
-    ):
+    if strengths != {"S1": .60, "S2": 0.0, "S3": 0.0}:
         errors.append("dotcom S1/S2/S3 weighting gate failed")
     if strengths and max(strengths.values()) > float(dotcom.get("dependency_cap", 0)):
         errors.append("dotcom dependency cap exceeded")
-    if strengths != {"S1": .60, "S2": .02, "S3": .03} \
+    if strengths != {"S1": .60, "S2": 0.0, "S3": 0.0} \
             or not math.isclose(float(dotcom.get("dependency_cap", 0)), .60):
-        errors.append("dotcom 0.60/0.02/0.03 override contract mismatch")
+        errors.append("dotcom 0.60/0.00/0.00 override contract mismatch")
     shares = dotcom.get("path_engine_share_by_scenario", {})
-    dotcom_engine = "dotcom_neighbor_episode_with_local_residual"
     try:
-        if not (
-            shares["S1"][dotcom_engine] > shares["S2"][dotcom_engine]
-            and shares["S1"][dotcom_engine] > shares["S3"][dotcom_engine]
-            and all(math.isclose(sum(row.values()), 1.0, abs_tol=1e-10)
-                    for row in shares.values())
+        own_engines = {
+            "S1": "S1_dotcom_expansion_cluster",
+            "S2": "S2_modern_baseline_cluster",
+            "S3": "S3_macro_tightening_stress_cluster",
+        }
+        if not all(
+            math.isclose(shares[scenario][engine], 1.0, abs_tol=1e-10)
+            and math.isclose(sum(shares[scenario].values()), 1.0, abs_tol=1e-10)
+            for scenario, engine in own_engines.items()
         ):
-            errors.append("dotcom generator is not concentrated in S1")
+            errors.append("scenario paths are not isolated to their database generators")
     except (KeyError, TypeError, ValueError):
         errors.append("dotcom scenario generator-share audit is invalid")
     if not dotcom.get("one_month_negative_target_preserved"):
@@ -492,7 +517,16 @@ def dashboard_projection(
         },
         "evidence_scores": payload["evidence_scores"],
         "evidence_attribution": payload["evidence_attribution"],
-        "dotcom_scenario_weighting": payload["dotcom_scenario_weighting"],
+        "dotcom_scenario_weighting": {
+            # The complete cluster inventory and path-generator audit remain in
+            # the candidate/audit pack.  The dashboard receives only fields it
+            # renders, preserving the existing standalone size budget.
+            "scenario_strength": payload["dotcom_scenario_weighting"]["scenario_strength"],
+            "forward_return_targets": payload["dotcom_scenario_weighting"]["forward_return_targets"],
+            "S1_probability_increment": payload["dotcom_scenario_weighting"]["S1_probability_increment"],
+            "forced_endpoint": payload["dotcom_scenario_weighting"]["forced_endpoint"],
+            "forced_october_direction": payload["dotcom_scenario_weighting"]["forced_october_direction"],
+        },
         "event_learning": payload["event_learning"],
         "shadow_comparison": payload["shadow_comparison"],
         "ablations": {

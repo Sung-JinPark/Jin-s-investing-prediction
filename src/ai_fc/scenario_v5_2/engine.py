@@ -18,16 +18,17 @@ import numpy as np
 from scipy.stats import energy_distance, wasserstein_distance
 
 from ai_fc.scenario_v5.contracts import canonical_hash, file_hash
+from ai_fc.scenario_v5_2.clustering import ScenarioClusterError, build_clustered_prior
 
 
-CANDIDATE_ID = "scenario_v5_2_dotcom_dominant_generator_v3"
+CANDIDATE_ID = "scenario_v5_2_scenario_clustered_db_v4"
 CANDIDATE_RELATIVE = Path(
     "data/scenarios/candidates/"
-    "scenario_v5_2_dotcom_dominant_generator_v3_latest.json"
+    "scenario_v5_2_scenario_clustered_db_v4_latest.json"
 )
 SHADOW_V52_RELATIVE = Path(
     "data/scenarios/candidates/"
-    "scenario_v5_2_dotcom_weighted_event_adaptive_v2_latest.json"
+    "scenario_v5_2_dotcom_dominant_generator_v3_latest.json"
 )
 LEGACY_V52_RELATIVE = Path(
     "data/scenarios/candidates/"
@@ -38,7 +39,7 @@ KNOWLEDGE_CUTOFF = "2026-08-10T00:00:00+00:00"
 ANCHOR = 26690.62
 ATH = 27093.90
 REFERENCE_PRICE = 26206.89
-PATH_COUNT_PER_ENGINE = 4000
+PATH_COUNT_PER_ENGINE = 3000
 SEED = 520807
 QUANTILES = (0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95)
 QUANTILE_NAMES = ("p5", "p10", "p25", "p50", "p75", "p90", "p95")
@@ -57,6 +58,8 @@ SOURCE_PATHS = (
     "data/scenario_views/approved/scenario_v5_2_dotcom_upside_260810.json",
     "data/raw/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
     "data/normalized/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
+    "data/raw/market/dualdb_macro_cluster_daily_19900102_20260804.json",
+    "data/normalized/market/dualdb_macro_cluster_daily_19900102_20260804.json",
 )
 
 
@@ -134,6 +137,7 @@ def load_inputs(root: Path) -> dict[str, Any]:
     dotcom = _read_json(root / SOURCE_PATHS[9])
     dotcom_view = _read_json(root / SOURCE_PATHS[10])
     dotcom_history = _read_json(root / SOURCE_PATHS[12])
+    macro_cluster_history = _read_json(root / SOURCE_PATHS[14])
     shadow_v52 = _read_json(root / SHADOW_V52_RELATIVE)
     legacy_v52 = _read_json(root / LEGACY_V52_RELATIVE)
     from .event_learning import event_score_summary
@@ -183,6 +187,15 @@ def load_inputs(root: Path) -> dict[str, Any]:
             or dotcom_history.get("first_session") != "1995-01-03" \
             or dotcom_history.get("last_session") != "2004-12-31":
         raise ScenarioV52Error("dotcom daily source coverage mismatch")
+    macro_raw = root / macro_cluster_history.get("raw_source_path", "")
+    if macro_raw != root / SOURCE_PATHS[13] or not macro_raw.is_file():
+        raise ScenarioV52Error("macro cluster raw source path mismatch")
+    if file_hash(macro_raw) != macro_cluster_history.get("raw_sha256"):
+        raise ScenarioV52Error("macro cluster raw source hash mismatch")
+    if set(macro_cluster_history.get("series", {})) != {
+        "NASDAQCOM", "DFF", "DGS2", "DGS10", "T10Y2Y", "VIXCLS", "NFCI",
+    }:
+        raise ScenarioV52Error("macro cluster series coverage mismatch")
     if dotcom_model_run.get("model") != "knn_analog":
         raise ScenarioV52Error("dotcom analog must come from the registered kNN run")
     if dotcom.get("probability_unit") != "fraction":
@@ -194,9 +207,9 @@ def load_inputs(root: Path) -> dict[str, Any]:
         for key, value in dotcom.get("scenario_strength", {}).items()
     }
     if set(strengths) != {"S1", "S2", "S3"} or not (
-        strengths["S1"] > strengths["S3"] > strengths["S2"]
+        strengths["S1"] == .60 and strengths["S2"] == strengths["S3"] == 0.0
     ):
-        raise ScenarioV52Error("dotcom scenario strengths must be S1 > S3 > S2")
+        raise ScenarioV52Error("dotcom evidence must be isolated to S1 at strength 0.60")
     if max(strengths.values()) > _validate_fraction(
         dotcom.get("dependency_cap"), "dotcom.dependency_cap"
     ):
@@ -215,6 +228,7 @@ def load_inputs(root: Path) -> dict[str, Any]:
     for label, row in (
         ("dotcom", dotcom), ("dotcom_view", dotcom_view),
         ("dotcom_history", dotcom_history),
+        ("macro_cluster_history", macro_cluster_history),
     ):
         if _aware(str(row["available_at"])) > cutoff:
             raise ScenarioV52Error(f"future {label} evidence")
@@ -227,6 +241,7 @@ def load_inputs(root: Path) -> dict[str, Any]:
         "dotcom": dotcom,
         "dotcom_view": dotcom_view,
         "dotcom_history": dotcom_history,
+        "macro_cluster_history": macro_cluster_history,
         "dotcom_model_run": dotcom_model_run,
         "event_updates": event_updates,
         "knowledge_cutoff": cutoff.isoformat(),
@@ -271,156 +286,6 @@ def _historical_returns(
     return returns, dates, values
 
 
-def _stationary_bootstrap(
-    history: np.ndarray, horizon: int, count: int, rng: np.random.Generator,
-    restart_probability: float = .10,
-) -> np.ndarray:
-    indexes = rng.integers(0, len(history), size=count)
-    sampled = np.empty((count, horizon), dtype=float)
-    for column in range(horizon):
-        restart = rng.random(count) < restart_probability
-        if column:
-            indexes = np.where(restart, rng.integers(0, len(history), size=count),
-                               (indexes + 1) % len(history))
-        sampled[:, column] = history[indexes]
-    return sampled
-
-
-def _analog_episode_resample(
-    history: np.ndarray, horizon: int, count: int, rng: np.random.Generator,
-) -> np.ndarray:
-    if len(history) <= horizon:
-        raise ScenarioV52Error("history too short for analog episode resampling")
-    starts = rng.integers(0, len(history) - horizon, size=count)
-    offsets = np.arange(horizon)
-    return history[starts[:, None] + offsets[None, :]]
-
-
-def _regime_conditioned_bootstrap(
-    history: np.ndarray, levels: np.ndarray, horizon: int, count: int,
-    rng: np.random.Generator, restart_probability: float,
-) -> tuple[np.ndarray, dict[str, Any]]:
-    """Bootstrap from historical starts nearest the current observable regime."""
-    if len(history) != len(levels) - 1 or len(history) < 252:
-        raise ScenarioV52Error("history is insufficient for regime conditioning")
-    state_rows: list[tuple[int, float, float, float]] = []
-    for end in range(60, len(levels)):
-        window = levels[end - 60:end + 1]
-        returns20 = np.diff(np.log(levels[end - 20:end + 1]))
-        state_rows.append((
-            min(end, len(history) - 1),
-            float(returns20.std(ddof=1) * math.sqrt(252.0)),
-            float(window[-1] / window[0] - 1.0),
-            float((window / np.maximum.accumulate(window) - 1.0).min()),
-        ))
-    states = np.asarray([row[1:] for row in state_rows], dtype=float)
-    current = states[-1]
-    scales = np.maximum(
-        (np.quantile(states, .75, axis=0) - np.quantile(states, .25, axis=0)) / 1.349,
-        np.asarray([.02, .03, .02]),
-    )
-    distances = np.sqrt(np.mean(np.square((states - current) / scales), axis=1))
-    eligible_count = max(64, int(math.ceil(len(states) * .25)))
-    eligible_rows = np.argsort(distances, kind="stable")[:eligible_count]
-    eligible = np.asarray([state_rows[index][0] for index in eligible_rows], dtype=int)
-    indexes = rng.choice(eligible, size=count, replace=True)
-    sampled = np.empty((count, horizon), dtype=float)
-    for column in range(horizon):
-        restart = rng.random(count) < restart_probability
-        if column:
-            indexes = np.where(
-                restart, rng.choice(eligible, size=count, replace=True),
-                (indexes + 1) % len(history),
-            )
-        sampled[:, column] = history[indexes]
-    return sampled, {
-        "state_features": ["annualized_volatility_20d", "return_60d", "drawdown_60d"],
-        "current_state": [float(value) for value in current],
-        "eligible_start_count": int(len(eligible)),
-        "eligible_fraction": float(len(eligible) / len(states)),
-        "selection": "nearest_25pct_robust_scaled_distance",
-    }
-
-
-def _dotcom_history(
-    root: Path, manifest: dict[str, Any],
-) -> tuple[np.ndarray, list[str], np.ndarray]:
-    rows = manifest.get("rows", [])
-    dates = [str(row["date"]) for row in rows]
-    levels = np.asarray([
-        _finite_number(row["close"], f"dotcom_history.{row['date']}.close")
-        for row in rows
-    ], dtype=float)
-    if len(rows) != int(manifest["row_count"]) or dates != sorted(set(dates)):
-        raise ScenarioV52Error("dotcom normalized rows are not unique and sorted")
-    if dates[0] != "1995-01-03" or dates[-1] != "2004-12-31" \
-            or not np.isfinite(levels).all() or float(levels.min()) <= 0:
-        raise ScenarioV52Error("dotcom normalized levels are invalid")
-    return np.diff(np.log(levels)), dates, levels
-
-
-def _dotcom_episode_resample(
-    returns: np.ndarray, dates: list[str], horizon: int, count: int,
-    rng: np.random.Generator, neighbors: list[dict[str, Any]],
-    restart_probability: float,
-) -> tuple[np.ndarray, dict[str, Any]]:
-    if not neighbors:
-        raise ScenarioV52Error("dotcom generator requires registered neighbors")
-    horizons = {"fwd_1m": 21, "fwd_3m": 63, "fwd_6m": 126, "fwd_12m": 252}
-    starts: list[int] = []
-    distances: list[float] = []
-    validation_deltas: dict[str, dict[str, float]] = {}
-    for row in neighbors:
-        try:
-            start = dates.index(str(row["date"]))
-        except ValueError as exc:
-            raise ScenarioV52Error(f"dotcom neighbor is absent: {row['date']}") from exc
-        if start + horizon > len(returns):
-            raise ScenarioV52Error(f"dotcom episode too short: {row['date']}")
-        starts.append(start)
-        distances.append(_finite_number(row["distance"], f"neighbor.{row['date']}.distance"))
-        validation_deltas[str(row["date"])] = {
-            name: float(np.exp(returns[start:start + sessions].sum()) - 1.0)
-                  - _finite_number(row[name], f"neighbor.{row['date']}.{name}")
-            for name, sessions in horizons.items()
-        }
-    if max(abs(value) for row in validation_deltas.values() for value in row.values()) > .00011:
-        raise ScenarioV52Error("dotcom daily history disagrees with registered kNN targets")
-    inverse = 1.0 / np.asarray(distances, dtype=float)
-    probabilities = inverse / inverse.sum()
-    choices = rng.choice(len(starts), size=count, replace=True, p=probabilities)
-    base = np.vstack([
-        returns[starts[choice]:starts[choice] + horizon] for choice in choices
-    ])
-    rolling_mean = np.convolve(returns, np.ones(20) / 20.0, mode="same")
-    centered_residuals = returns - rolling_mean
-    residuals = _stationary_bootstrap(
-        centered_residuals, horizon, count, rng,
-        restart_probability=restart_probability,
-    )
-    residual_scale = .35
-    sampled = base + residual_scale * residuals
-    counts = np.bincount(choices, minlength=len(starts))
-    return sampled, {
-        "method": "inverse_distance_neighbor_episode_plus_local_centered_residual",
-        "base_episode_share": 1.0,
-        "local_residual_scale": residual_scale,
-        "forced_endpoint": False,
-        "forced_date": False,
-        "neighbor_probabilities": {
-            str(row["date"]): float(probabilities[index])
-            for index, row in enumerate(neighbors)
-        },
-        "sample_counts": {
-            str(row["date"]): int(counts[index])
-            for index, row in enumerate(neighbors)
-        },
-        "registered_target_max_abs_error": float(max(
-            abs(value) for row in validation_deltas.values() for value in row.values()
-        )),
-    }
-
-
 def generate_prior(
     root: Path, inputs: dict[str, Any], *, seed: int = SEED,
     path_count_per_engine: int = PATH_COUNT_PER_ENGINE, block_restart_probability: float = .10,
@@ -429,63 +294,47 @@ def generate_prior(
     horizon = len(dates) - 1
     if not 0 < block_restart_probability <= 1:
         raise ScenarioV52Error("block restart probability must be in (0,1]")
-    history, history_dates, history_levels = _historical_returns(root, inputs["history_manifest"])
-    total_count = path_count_per_engine * 2
-    dotcom_count = path_count_per_engine
-    regime_count = int(round(total_count * .30))
-    general_count = total_count - dotcom_count - regime_count
-    if min(dotcom_count, regime_count, general_count) <= 0:
-        raise ScenarioV52Error("path count too small for 50/30/20 generator mixture")
-    dotcom_returns, dotcom_dates, _ = _dotcom_history(root, inputs["dotcom_history"])
-    dotcom_paths, dotcom_audit = _dotcom_episode_resample(
-        dotcom_returns, dotcom_dates, horizon, dotcom_count,
-        np.random.default_rng(seed), inputs["dotcom_model_run"]["neighbors"],
-        block_restart_probability,
+    _, history_dates, history_levels = _historical_returns(
+        root, inputs["history_manifest"]
     )
-    regime, regime_audit = _regime_conditioned_bootstrap(
-        history, history_levels, horizon, regime_count,
-        np.random.default_rng(seed + 1), block_restart_probability,
-    )
-    general = _analog_episode_resample(
-        history, horizon, general_count, np.random.default_rng(seed + 2)
-    )
-    log_returns = np.vstack((dotcom_paths, regime, general))
-    paths = np.column_stack((
-        np.full(log_returns.shape[0], ANCHOR),
-        ANCHOR * np.exp(np.cumsum(log_returns, axis=1)),
-    ))
-    if not np.isfinite(paths).all() or float(paths.min()) <= 0:
-        raise ScenarioV52Error("historical prior has invalid levels")
-    engines = np.concatenate((
-        np.zeros(dotcom_count, dtype=int),
-        np.ones(regime_count, dtype=int),
-        np.full(general_count, 2, dtype=int),
-    ))
+    try:
+        paths, engines, cluster_audit = build_clustered_prior(
+            history_dates,
+            history_levels,
+            inputs["dotcom_history"],
+            inputs["macro_cluster_history"],
+            horizon=horizon,
+            count_per_scenario=path_count_per_engine,
+            seed=seed,
+            restart_probability=block_restart_probability,
+            anchor=ANCHOR,
+        )
+    except ScenarioClusterError as exc:
+        raise ScenarioV52Error(f"scenario cluster gate failed: {exc}") from exc
     historical_actual = {
         "dates": history_dates[-60:],
         "values": [round(float(value), 2) for value in history_levels[-60:]],
         "role": "historical_actual_through_anchor",
     }
     generator_audit = {
-        "method": "three_engine_dotcom_dominant_prior",
-        "path_count": int(total_count),
+        **cluster_audit,
+        "path_count": int(paths.shape[0]),
         "path_count_by_engine": {
-            "dotcom_neighbor_episode_with_local_residual": int(dotcom_count),
-            "regime_conditioned_stationary_bootstrap": int(regime_count),
-            "general_historical_episode_resampling": int(general_count),
+            "S1_dotcom_expansion_cluster": int((engines == 0).sum()),
+            "S2_modern_baseline_cluster": int((engines == 1).sum()),
+            "S3_macro_tightening_stress_cluster": int((engines == 2).sum()),
         },
         "engine_mixture_probability": {
-            "dotcom_neighbor_episode_with_local_residual": .50,
-            "regime_conditioned_stationary_bootstrap": .30,
-            "general_historical_episode_resampling": .20,
+            "S1_dotcom_expansion_cluster": 1.0 / 3.0,
+            "S2_modern_baseline_cluster": 1.0 / 3.0,
+            "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
         },
         "dotcom_source_dataset_id": inputs["dotcom_history"]["dataset_id"],
         "dotcom_source_available_at": inputs["dotcom_history"]["available_at"],
-        "dotcom_episode": dotcom_audit,
-        "regime_conditioning": regime_audit,
+        "macro_source_dataset_id": inputs["macro_cluster_history"]["dataset_id"],
+        "macro_source_available_at": inputs["macro_cluster_history"]["available_at"],
         "general_history_start": history_dates[0],
         "general_history_end": history_dates[-1],
-        "gate_pass": True,
     }
     return paths, dates, engines, historical_actual, generator_audit
 
@@ -664,36 +513,51 @@ def _normalise_weights(log_weights: np.ndarray) -> tuple[np.ndarray, dict[str, A
 def build_weights(
     paths: np.ndarray, dates: list[str], engines: np.ndarray,
     scores: dict[str, Any], dotcom: dict[str, Any],
+    cluster_audit: dict[str, Any],
 ) -> dict[str, Any]:
     if engines.shape != (paths.shape[0],) or not set(np.unique(engines)).issubset({0, 1, 2}):
         raise ScenarioV52Error("path-engine labels do not match the three-engine prior")
     metrics = _path_metrics(paths, dates)
-    masks = _scenario_masks(metrics)
-    growth_feature = (
-        -0.45 * _robust_z(metrics["terminal_return_2026"])
-        -0.30 * _robust_z(metrics["early_return"])
-        -0.20 * _robust_z(metrics["maximum_drawdown"])
-        +0.05 * _robust_z(metrics["annualized_volatility"])
-    )
-    policy_feature = (
-        +0.50 * _robust_z(metrics["terminal_return_2026"])
-        +0.30 * _robust_z(metrics["early_return"])
-        -0.20 * _robust_z(metrics["annualized_volatility"])
-    )
-    cross_feature = (
-        +0.55 * _robust_z(metrics["terminal_return_2027"])
-        -0.25 * _robust_z(metrics["annualized_volatility"])
-        -0.20 * _robust_z(metrics["recovery_days"])
-    )
-    inflation_feature = (
-        -0.55 * _robust_z(metrics["terminal_return_2026"])
-        -0.20 * _robust_z(metrics["early_return"])
-        +0.25 * _robust_z(metrics["annualized_volatility_2026"])
-    )
+    masks = _engine_masks(engines)
     growth_score = float(scores["labor_growth_risk"]["bounded_score"])
     policy_score = float(scores["policy_relief"]["bounded_score"])
     cross_score = float(scores["cross_asset_relief"]["bounded_score"])
     inflation_score = float(scores["inflation_risk"]["bounded_score"])
+
+    base_scores = cluster_audit.get("base_scenario_scores", {})
+    if set(base_scores) != {"S1", "S2", "S3"}:
+        raise ScenarioV52Error("cluster prior lacks three base scenario scores")
+    validated_base_scores = {
+        scenario: _finite_number(value, f"base_scenario_scores.{scenario}")
+        for scenario, value in base_scores.items()
+    }
+    if min(validated_base_scores.values()) <= 0:
+        raise ScenarioV52Error("cluster base scenario scores must be positive")
+    base_prior_log = sum(
+        math.log(validated_base_scores[scenario]) * mask.astype(float)
+        for scenario, mask in masks.items()
+    )
+
+    # Evidence changes scenario probabilities through explicitly different
+    # causal channels.  It never reclassifies an individual simulated path.
+    growth_coefficients = {"S1": -.20, "S2": .05, "S3": .45}
+    policy_coefficients = {"S1": .40, "S2": .05, "S3": -.40}
+    cross_coefficients = {"S1": .10, "S2": .05, "S3": -.10}
+    inflation_coefficients = {"S1": -.15, "S2": 0.0, "S3": .35}
+    balance_score = max(0.0, 1.0 - abs(growth_score - policy_score))
+    balance_coefficients = {"S1": 0.0, "S2": .12, "S3": 0.0}
+
+    def scenario_component(coefficients: dict[str, float], score: float) -> np.ndarray:
+        return sum(
+            coefficients[scenario] * score * mask.astype(float)
+            for scenario, mask in masks.items()
+        )
+
+    growth_log = scenario_component(growth_coefficients, growth_score)
+    policy_log = scenario_component(policy_coefficients, policy_score)
+    cross_log = scenario_component(cross_coefficients, cross_score)
+    inflation_log = scenario_component(inflation_coefficients, inflation_score)
+    balance_log = scenario_component(balance_coefficients, balance_score)
 
     horizon_dates = {
         "one_month": "2026-09-07",
@@ -738,50 +602,40 @@ def build_weights(
     strengths = {
         key: float(dotcom["scenario_strength"][key]) for key in ("S1", "S2", "S3")
     }
-    scenario_strength = sum(
-        strengths[key] * mask.astype(float) for key, mask in masks.items()
-    )
-    generator_routing_multiplier = {
-        key: math.sqrt(strengths[key] / strengths["S1"])
-        for key in ("S1", "S2", "S3")
-    }
-    dotcom_engine = (engines == 0).astype(float)
-    generator_routing_log = dotcom_engine * sum(
-        math.log(generator_routing_multiplier[key]) * mask.astype(float)
-        for key, mask in masks.items()
-    )
+    if strengths["S1"] <= 0 or strengths["S2"] != 0 or strengths["S3"] != 0:
+        raise ScenarioV52Error("dotcom likelihood must be positive for S1 and zero elsewhere")
     s1_no_repeat = masks["S1"].astype(float) * joint_relief * no_repeat_feature
-    # Preserve the full multi-horizon analog (including its negative 1m target)
-    # while reserving part of S1's capped strength for the approved interaction.
-    dotcom_log_adjustment = generator_routing_log \
-        + scenario_strength * (.40 * dotcom_compatibility) \
-        + strengths["S1"] * (.60 * s1_no_repeat)
+    # The registered analog applies only inside the independently generated S1
+    # cohort.  The positive intercept makes strength sensitivity monotonic;
+    # compatibility and no-repeat terms only reshape S1 internally.
+    dotcom_log_adjustment = strengths["S1"] * masks["S1"].astype(float) * (
+        .35 + .25 * dotcom_compatibility + .40 * joint_relief * no_repeat_feature
+    )
 
     base_full_log = (
-        0.45 * growth_score * growth_feature
-        + 0.32 * policy_score * policy_feature
-        + 0.12 * cross_score * cross_feature
-        + 0.15 * inflation_score * inflation_feature
+        base_prior_log + growth_log + policy_log + cross_log
+        + inflation_log + balance_log
     )
     logs = {
-        "prior_only": np.zeros(paths.shape[0]),
-        "policy_only": 0.32 * policy_score * policy_feature,
-        "labor_only": 0.45 * growth_score * growth_feature,
-        "labor_rate": 0.45 * growth_score * growth_feature
-                      + 0.32 * policy_score * policy_feature,
+        "prior_only": base_prior_log,
+        "policy_only": base_prior_log + policy_log,
+        "labor_only": base_prior_log + growth_log,
+        "labor_rate": base_prior_log + growth_log + policy_log,
         "full_without_dotcom": base_full_log,
         "full_evidence": base_full_log + dotcom_log_adjustment,
     }
     result: dict[str, Any] = {"metrics": metrics, "features": {
-        "growth_risk": growth_feature,
-        "policy_relief": policy_feature,
-        "cross_asset_relief": cross_feature,
-        "inflation_risk": inflation_feature,
+        "base_prior_log": base_prior_log,
+        "growth_risk": growth_log,
+        "policy_relief": policy_log,
+        "cross_asset_relief": cross_log,
+        "inflation_risk": inflation_log,
+        "balanced_state": balance_log,
         "dotcom_compatibility": dotcom_compatibility,
         "no_repeat_correction": no_repeat_feature,
         "no_repeat_condition": no_repeat_condition,
         "dotcom_log_adjustment": dotcom_log_adjustment,
-        "dotcom_generator_routing_log": generator_routing_log,
+        "full_evidence_log": logs["full_evidence"],
     }}
     for name, log_weights in logs.items():
         weights, diagnostics = _normalise_weights(log_weights)
@@ -794,9 +648,11 @@ def build_weights(
         "forward_return_targets": targets,
         "target_dates": horizon_dates,
         "scenario_strength": strengths,
-        "generator_routing_multiplier": generator_routing_multiplier,
-        "generator_routing_rule": "sqrt(scenario_strength / S1_strength) on dotcom-engine paths",
-        "strength_gate": strengths["S1"] > strengths["S3"] > strengths["S2"],
+        "generator_routing_rule": "S1-only soft likelihood; S2 and S3 receive exactly zero",
+        "strength_gate": (
+            math.isclose(strengths["S1"], .60)
+            and strengths["S2"] == 0.0 and strengths["S3"] == 0.0
+        ),
         "dependency_cap": float(dotcom["dependency_cap"]),
         "joint_growth_risk_policy_relief_score": joint_relief,
         "no_repeat_condition_definition": (
@@ -812,6 +668,22 @@ def build_weights(
         "one_month_negative_target_preserved": targets["one_month"] < 0,
         "forced_endpoint": False,
         "forced_october_direction": False,
+    }
+    result["scenario_layer_contract"] = {
+        "path_partition": "immutable generator labels",
+        "S1": "dotcom price-state expansion cluster plus S1-only analog likelihood",
+        "S2": "modern general-market baseline cluster plus balanced macro evidence",
+        "S3": "macro tightening and financial-conditions stress cluster",
+        "shared_database_cluster": False,
+        "outcome_based_path_reclassification": False,
+        "base_scenario_scores": validated_base_scores,
+        "evidence_coefficients": {
+            "labor_growth_risk": growth_coefficients,
+            "policy_relief": policy_coefficients,
+            "cross_asset_relief": cross_coefficients,
+            "inflation_risk": inflation_coefficients,
+            "balanced_state": balance_coefficients,
+        },
     }
     return result
 
@@ -835,17 +707,14 @@ def _bands(paths: np.ndarray, weights: np.ndarray) -> dict[str, list[float]]:
     return result
 
 
-def _scenario_masks(metrics: dict[str, np.ndarray]) -> dict[str, np.ndarray]:
-    # The partition is frozen at the 2026 state boundary.  No 2027 result is
-    # inspected to decide membership, preventing look-ahead in continuation.
-    robust = ((metrics["terminal_return_2026"] >= .08)
-              & (metrics["maximum_drawdown_2026"] > -.15))
-    stress = (~robust) & ((metrics["terminal_return_2026"] < -.03)
-                          | (metrics["maximum_drawdown_2026"] <= -.20))
-    mixed = ~(robust | stress)
-    masks = {"S1": robust, "S2": stress, "S3": mixed}
+def _engine_masks(engines: np.ndarray) -> dict[str, np.ndarray]:
+    masks = {
+        "S1": engines == 0,
+        "S2": engines == 1,
+        "S3": engines == 2,
+    }
     if any(not mask.any() for mask in masks.values()):
-        raise ScenarioV52Error("fixed economic scenario classifier produced an empty cohort")
+        raise ScenarioV52Error("scenario-specific database generator produced an empty cohort")
     if not np.all(sum(mask.astype(int) for mask in masks.values()) == 1):
         raise ScenarioV52Error("scenario cohorts do not form a partition")
     return masks
@@ -993,9 +862,9 @@ def _scenario_outputs(
     metrics: dict[str, np.ndarray], masks: dict[str, np.ndarray],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     labels = {
-        "S1": "2026 resilient state: return >= 8%, drawdown > -15%",
-        "S2": "2026 stress state: return < -3% or drawdown <= -20%",
-        "S3": "2026 mixed transition state",
+        "S1": "dotcom expansion price-state cluster conditional",
+        "S2": "modern general-market baseline cluster conditional",
+        "S3": "macro tightening and financial-stress cluster conditional",
     }
     scenarios: dict[str, Any] = {}
     summary: dict[str, dict[str, float]] = {}
@@ -1097,8 +966,10 @@ def _scenario_outputs(
                              and sum(distribution_gates.values()) >= 3,
             })
     distinctness = {
-        "rule": "2026-state cohorts; each 2027 pair must pass >=2 median and >=3 distribution diagnostics",
-        "partition_information_cutoff": "2026-12-31",
+        "rule": "pre-outcome state-cluster cohorts; each 2027 pair must pass >=2 median and >=3 distribution diagnostics",
+        "partition_information_cutoff": "historical_origin_state_only",
+        "partition_uses_forward_outcomes_for_assignment": False,
+        "cluster_labels_use_forward_outcomes_after_assignment": True,
         "partition_uses_2027_outcomes": False,
         "scenario_medians": summary,
         "pairs": pairs,
@@ -1174,7 +1045,7 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "approved_cap": float(inputs["dotcom"]["dependency_cap"]),
             "scenario_strength": inputs["dotcom"]["scenario_strength"],
             "used_numerically": True,
-            "role": "S1_strong_S2_S3_weak_soft_likelihood",
+            "role": "S1_only_soft_likelihood_S2_S3_exactly_zero",
             "single_cycle_limitation": True,
         },
         {
@@ -1201,6 +1072,39 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "used_numerically": False,
             "role": "approval_receipt_for_same_dotcom_dependency_cluster",
         },
+        {
+            "evidence_id": "modern_nasdaq_baseline_cluster_source",
+            "origin_release_id": inputs["history_manifest"]["dataset_id"],
+            "source_path": SOURCE_PATHS[5],
+            "source_sha256": file_hash(root / SOURCE_PATHS[5]),
+            "available_at": "2026-08-07T20:00:00+00:00",
+            "dependency_cluster_id": "modern_general_market_state_db",
+            "effective_strength": .25,
+            "used_numerically": True,
+            "role": "S2_only_state_cluster_and_path_generator",
+        },
+        {
+            "evidence_id": "macro_tightening_cluster_source",
+            "origin_release_id": inputs["macro_cluster_history"]["dataset_id"],
+            "source_path": SOURCE_PATHS[14],
+            "source_sha256": file_hash(root / SOURCE_PATHS[14]),
+            "available_at": inputs["macro_cluster_history"]["available_at"],
+            "dependency_cluster_id": "macro_tightening_financial_conditions_db",
+            "effective_strength": .35,
+            "used_numerically": True,
+            "role": "S3_only_tightening_stress_cluster_and_path_generator",
+        },
+        {
+            "evidence_id": "v5_2_v3_shadow_candidate",
+            "origin_release_id": inputs["shadow_v52"]["candidate_id"],
+            "source_path": SHADOW_V52_RELATIVE.as_posix(),
+            "source_sha256": file_hash(root / SHADOW_V52_RELATIVE),
+            "available_at": inputs["shadow_v52"]["as_of"],
+            "dependency_cluster_id": "scenario_ancestor",
+            "effective_strength": 0.0,
+            "used_numerically": False,
+            "role": "shadow_validation_reference_only",
+        },
     ]
     for event in inputs["event_updates"]["events"]:
         registry.append({
@@ -1224,9 +1128,11 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     inputs = load_inputs(root)
     paths, dates, engines, historical_actual, generator_audit = generate_prior(root, inputs)
     scores = evidence_scores(inputs)
-    weighting = build_weights(paths, dates, engines, scores, inputs["dotcom"])
+    weighting = build_weights(
+        paths, dates, engines, scores, inputs["dotcom"], generator_audit
+    )
     metrics = weighting["metrics"]
-    masks = _scenario_masks(metrics)
+    masks = _engine_masks(engines)
     ablations: dict[str, Any] = {}
     for name in ("prior_only", "labor_only", "labor_rate", "full_evidence"):
         weights = weighting[name]["weights"]
@@ -1283,16 +1189,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         }
     event_reaction_zero = np.zeros(paths.shape[0])
     no_event_weights, _ = _normalise_weights(
-        0.45 * float(scores["labor_growth_risk"]["bounded_score"])
-        * weighting["features"]["growth_risk"]
-        + 0.32 * float(scores["policy_relief"]["bounded_score"])
-        * weighting["features"]["policy_relief"]
-        + 0.12 * float(scores["cross_asset_relief"]["bounded_score"])
-        * weighting["features"]["cross_asset_relief"]
-        + 0.15 * float(scores["inflation_risk"]["bounded_score"])
-        * weighting["features"]["inflation_risk"]
-        + weighting["features"]["dotcom_log_adjustment"]
-        + event_reaction_zero
+        weighting["features"]["full_evidence_log"] + event_reaction_zero
     )
     event_double_count_gate = bool(np.array_equal(no_event_weights, full_weights))
     evidence = _evidence_registry(root, inputs)
@@ -1317,13 +1214,13 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     dotcom_audit["generator"] = generator_audit
     dotcom_audit["path_engine_share_by_scenario"] = {
         scenario: {
-            "dotcom_neighbor_episode_with_local_residual": float(
+            "S1_dotcom_expansion_cluster": float(
                 full_weights[mask & (engines == 0)].sum() / full_weights[mask].sum()
             ),
-            "regime_conditioned_stationary_bootstrap": float(
+            "S2_modern_baseline_cluster": float(
                 full_weights[mask & (engines == 1)].sum() / full_weights[mask].sum()
             ),
-            "general_historical_episode_resampling": float(
+            "S3_macro_tightening_stress_cluster": float(
                 full_weights[mask & (engines == 2)].sum() / full_weights[mask].sum()
             ),
         }
@@ -1338,9 +1235,9 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "comparable_anchor": inputs["shadow_v52"]["anchor"]["close"] == ANCHOR,
         "comparable_distribution_seed": inputs["shadow_v52"]["model"]["seed"] == SEED,
         "changed_inputs": [
-            "S1_dotcom_strength_0.28_to_0.60",
-            "S2_S3_dotcom_strength_reduced_to_0.02_0.03",
-            "prior_generator_50pct_dotcom_30pct_regime_20pct_general",
+            "output_partition_replaced_by_frozen_preoutcome_cluster_labels",
+            "S1_dotcom_S2_modern_S3_macro_tightening_distinct_databases",
+            "dotcom_likelihood_isolated_to_S1_at_0.60",
         ],
         "metric_deltas": {
             key: ablations["full_evidence"]["probabilities"][key] - shadow_full[key]
@@ -1361,18 +1258,18 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         else:
             sensitivity_dotcom = dict(inputs["dotcom"])
             sensitivity_dotcom["scenario_strength"] = {
-                "S1": s1_strength, "S2": .02, "S3": .03,
+                "S1": s1_strength, "S2": 0.0, "S3": 0.0,
             }
             sensitivity_weighting = build_weights(
-                paths, dates, engines, scores, sensitivity_dotcom
+                paths, dates, engines, scores, sensitivity_dotcom, generator_audit
             )
             sensitivity_metrics = _probability_metrics(
                 paths, dates, sensitivity_weighting["full_evidence"]["weights"], masks
             )
         sensitivity_rows.append({
             "S1_strength": s1_strength,
-            "S2_strength": .02,
-            "S3_strength": .03,
+            "S2_strength": 0.0,
+            "S3_strength": 0.0,
             "scenario_probabilities": sensitivity_metrics["scenario_probabilities"],
             "terminal_above_anchor_2026": sensitivity_metrics["terminal_above_anchor_2026"],
             "first_touch_minus_10_by_october_end": sensitivity_metrics[
@@ -1398,7 +1295,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "schema_version": 1,
         "artifact_type": "scenario_v5_2_research_candidate",
         "candidate_id": CANDIDATE_ID,
-        "status": "RESEARCH_CANDIDATE_AGGRESSIVE_DOTCOM_OVERRIDE_LIMITED_EVENT_MAP",
+        "status": "RESEARCH_CANDIDATE_SCENARIO_SPECIFIC_DB_CLUSTERS_LIMITED_EVENT_MAP",
         "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
         "as_of": inputs["knowledge_cutoff"],
         "knowledge_cutoff": inputs["knowledge_cutoff"],
@@ -1420,18 +1317,18 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "historical_transport_step": ANCHOR / float(inputs["v51"]["source_snapshot"]["anchor"]) - 1.0,
         },
         "model": {
-            "model_id": "dotcom_dominant_three_engine_historical_shape_v3",
+            "model_id": "scenario_specific_database_clusters_v4",
             "seed": SEED,
             "path_count": int(paths.shape[0]),
             "path_count_by_engine": {
-                "dotcom_neighbor_episode_with_local_residual": int((engines == 0).sum()),
-                "regime_conditioned_stationary_bootstrap": int((engines == 1).sum()),
-                "general_historical_episode_resampling": int((engines == 2).sum()),
+                "S1_dotcom_expansion_cluster": int((engines == 0).sum()),
+                "S2_modern_baseline_cluster": int((engines == 1).sum()),
+                "S3_macro_tightening_stress_cluster": int((engines == 2).sum()),
             },
             "engine_mixture_probability": {
-                "dotcom_neighbor_episode_with_local_residual": .50,
-                "regime_conditioned_stationary_bootstrap": .30,
-                "general_historical_episode_resampling": .20,
+                "S1_dotcom_expansion_cluster": 1.0 / 3.0,
+                "S2_modern_baseline_cluster": 1.0 / 3.0,
+                "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
             },
             "generator_audit": generator_audit,
             "history_start": inputs["history_manifest"]["first_session"],
@@ -1448,6 +1345,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         },
         "evidence_scores": scores,
         "evidence_registry": evidence,
+        "scenario_layer_contract": weighting["scenario_layer_contract"],
         "dependency_control": {
             "default_cluster_cap": .35,
             "approved_cluster_overrides": {
@@ -1463,6 +1361,8 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 {"id": "cme_fed_funds_futures", "effective_strength": .25, "cap": .35, "gate_pass": True},
                 {"id": "post_jobs_market_state", "effective_strength": .10, "cap": .35, "gate_pass": True},
                 {"id": "dotcom_single_cycle_analog", "effective_strength": .60, "cap": .60, "gate_pass": True},
+                {"id": "modern_general_market_state_db", "effective_strength": .25, "cap": .35, "gate_pass": True},
+                {"id": "macro_tightening_financial_conditions_db", "effective_strength": .35, "cap": .35, "gate_pass": True},
                 {"id": "scenario_ancestor", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
                 *[
                     {"id": key, "effective_strength": value, "cap": .35, "gate_pass": value <= .35}
@@ -1580,7 +1480,11 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "fake_wiggle": False,
             "october_2_exact_date_forecast": False,
             "percent_conversion_boundary": "dashboard_only",
-            "dotcom_weight_disclosure": "S1 0.60 override; S2 0.02; S3 0.03; research only",
+            "dotcom_weight_disclosure": "S1 0.60 override; S2 0.00; S3 0.00; research only",
+            "scenario_database_disclosure": (
+                "S1 dotcom expansion cluster; S2 modern baseline cluster; "
+                "S3 macro tightening and financial-stress cluster"
+            ),
         },
         "source_hashes": {
             **{path: source_file_hash(root, path) for path in SOURCE_PATHS},

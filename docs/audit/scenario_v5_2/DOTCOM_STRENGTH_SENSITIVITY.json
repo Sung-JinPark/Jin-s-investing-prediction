@@ -3,47 +3,47 @@
   "rows": [
     {
       "S1_strength": 0.28,
-      "S2_strength": 0.02,
-      "S3_strength": 0.03,
+      "S2_strength": 0.0,
+      "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.6214893867848825,
-        "S2": 0.1932174871864761,
-        "S3": 0.1852931260286414
+        "S1": 0.5487352774151661,
+        "S2": 0.40333271169463497,
+        "S3": 0.04793201089019875
       },
-      "terminal_above_anchor_2026": 0.850426905804024,
-      "first_touch_minus_10_by_october_end": 0.24088001038843043,
-      "year_end_p50": 30181.837009312934,
-      "effective_sample_size_fraction": 0.8717355905971946,
+      "terminal_above_anchor_2026": 0.7550562381183228,
+      "first_touch_minus_10_by_october_end": 0.21191055936832248,
+      "year_end_p50": 29128.076712005106,
+      "effective_sample_size_fraction": 0.7121448213766438,
       "weight_gates_pass": true
     },
     {
       "S1_strength": 0.45,
-      "S2_strength": 0.02,
-      "S3_strength": 0.03,
+      "S2_strength": 0.0,
+      "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.6409528602120556,
-        "S2": 0.17967820282093827,
-        "S3": 0.17936893696700626
+        "S1": 0.5672855869264462,
+        "S2": 0.38675276147139814,
+        "S3": 0.04596165160215564
       },
-      "terminal_above_anchor_2026": 0.8520476004461659,
-      "first_touch_minus_10_by_october_end": 0.2242966044129753,
-      "year_end_p50": 30211.03180028388,
-      "effective_sample_size_fraction": 0.8341717520789118,
+      "terminal_above_anchor_2026": 0.7613352057225438,
+      "first_touch_minus_10_by_october_end": 0.20856284748044643,
+      "year_end_p50": 29165.51152616594,
+      "effective_sample_size_fraction": 0.6960831359504562,
       "weight_gates_pass": true
     },
     {
       "S1_strength": 0.6,
-      "S2_strength": 0.02,
-      "S3_strength": 0.03,
+      "S2_strength": 0.0,
+      "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.6552815832139056,
-        "S2": 0.17066021902069,
-        "S3": 0.17405819776540454
+        "S1": 0.5839767630906445,
+        "S2": 0.3718344729220127,
+        "S3": 0.044188763987342845
       },
-      "terminal_above_anchor_2026": 0.8548400400125519,
-      "first_touch_minus_10_by_october_end": 0.21370263010415533,
-      "year_end_p50": 30246.22016678794,
-      "effective_sample_size_fraction": 0.8052562721441395,
+      "terminal_above_anchor_2026": 0.7670759541090235,
+      "first_touch_minus_10_by_october_end": 0.2055556900695928,
+      "year_end_p50": 29206.741038518576,
+      "effective_sample_size_fraction": 0.6786288643240143,
       "weight_gates_pass": true
     }
   ],
