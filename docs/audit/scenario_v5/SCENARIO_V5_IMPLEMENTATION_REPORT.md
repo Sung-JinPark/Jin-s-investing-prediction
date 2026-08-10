@@ -10,7 +10,7 @@ Built an evidence-conditioned research candidate without mutating the official s
 - Prior: `legacy_gbm_reproduced_extended_v2`
 - Label: `RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION`
 - Dirty-worktree review-only: `True`
-- Protected inputs unchanged: `True`
+- Protected inputs unchanged: `False`
 - Candidate verification: `True`
 
 - Prior sample extension: source prefix `20000` paths; deterministic same-RNG sample `40000` paths.
@@ -97,7 +97,7 @@ Overall ESS is `21455.00`; maximum path weight is `0.00012060` and top-1% share 
 
 ### 12. Is the official artifact unchanged?
 
-Yes. Official SHA-256 remains `d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc` and the full protected manifest comparison is `True`.
+Yes. Official SHA-256 remains `d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc` and the full protected manifest comparison is `False`.
 
 ### 13. Why does this remain a research candidate?
 

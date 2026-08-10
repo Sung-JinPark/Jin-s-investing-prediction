@@ -25,7 +25,10 @@ DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
 DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
 DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
-DASHBOARD_RAW_BUDGET_BYTES = 1_000_000
+# V5.2 adds a bounded, down-sampled total-mixture projection (including five
+# actual members per scenario) to the self-contained snapshot.  The 2.5% cap
+# increase is explicit and remains enforced by the repository-budget test.
+DASHBOARD_RAW_BUDGET_BYTES = 1_025_000
 
 # Repeated immutable forecast headings dominate the self-contained Pages payload.
 # Private-use one-codepoint tokens preserve every character while avoiding an ADR-002
@@ -281,17 +284,28 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
     from .scenario_v5 import load_current_candidate as load_scenario_v5_candidate
     scenario_v5 = load_scenario_v5_candidate(root, now, maximum_age_trading_days=1)
-    if scenario_v5.get("status") == "unavailable":
+    if (scenario_v5.get("status") == "unavailable"
+            or scenario_v5.get("runtime_gate", {}).get("display_eligible") is False):
+        runtime_gate = scenario_v5.get("runtime_gate") or {
+            "display_eligible": False,
+            "reasons": [scenario_v5.get("reason") or "candidate unavailable"],
+        }
         scenario_v5 = {
-            **scenario_v5,
             "schema_version": 2,
-            "status": "unavailable",
+            "status": scenario_v5.get("status", "unavailable"),
             "candidate_id": "scenario_v5_1_time_aligned_legacy_prior_v1",
             "reason": scenario_v5.get("reason") or (
-                "No valid fresh Scenario V5 research candidate; "
-                "the official legacy fallback remains active."
+                "No valid fresh Scenario V5.1 research candidate; "
+                "the current V5.2 candidate or official legacy fallback remains active."
             ),
+            "asof": scenario_v5.get("asof"),
+            "generated_at": scenario_v5.get("generated_at"),
+            "runtime_gate": runtime_gate,
         }
+    from .scenario_v5_2.artifact import dashboard_projection as load_scenario_v5_2_projection
+    scenario_v5_2 = load_scenario_v5_2_projection(
+        root, now, maximum_age_trading_days=1
+    )
     from .scenario_v4_shadow import load_shadow
     scenario_v4_shadow = load_shadow(root)
     structural_event = (
@@ -452,6 +466,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         },
         "scenario": scenario,
         "scenario_v5": scenario_v5,
+        "scenario_v5_2": scenario_v5_2,
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,

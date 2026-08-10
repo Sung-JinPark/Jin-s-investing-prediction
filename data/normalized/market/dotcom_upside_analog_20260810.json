@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "dataset_id": "DOTCOM_UPSIDE_ANALOG_20260810",
+  "as_of": "2026-07-17",
+  "available_at": "2026-08-04T00:00:00+09:00",
+  "source_path": "data/model_runs/knn_analog_latest.json",
+  "source_sha256": "200ae94fc95bfd4c5cb03514eb8b222ac4ee2d67415233ebfad4a71e28a99e4f",
+  "method": "inverse_distance_weighted_dotcom_knn_case_list",
+  "cycle_count": 1,
+  "neighbor_count": 5,
+  "probability_unit": "fraction",
+  "forward_return_targets": {
+    "one_month": -0.08470678284254124,
+    "three_month": 0.0841471793710907,
+    "six_month": 0.2689310861123795,
+    "twelve_month": 0.3183835005860082
+  },
+  "scenario_strength": {
+    "S1": 0.60,
+    "S2": 0.00,
+    "S3": 0.00
+  },
+  "dependency_cluster_id": "dotcom_single_cycle_analog",
+  "dependency_cap": 0.60,
+  "default_dependency_cap": 0.35,
+  "approved_override": {
+    "cap": 0.60,
+    "scope": "S1 dotcom single-cycle research challenger only",
+    "approval_receipt": "explicit_user_message_2026_08_10",
+    "official_or_champion_use": false
+  },
+  "limitations": [
+    "one historical cycle; not an independent base-rate sample",
+    "five neighbors are dependent observations from the same cycle",
+    "the one-month target is negative and is not suppressed or cherry-picked",
+    "S1-only soft likelihood; S2/S3 use independent database clusters",
+    "no forced endpoint or date",
+    "0.60 is an explicit research-only model-risk override above the default 0.35 cap"
+  ]
+}

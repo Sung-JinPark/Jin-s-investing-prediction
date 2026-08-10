@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "view_id": "human_model_risk:dotcom_upside_no_repeat_correction_260810",
+  "origin_type": "human_model_risk_instruction",
+  "publisher": "repository owner",
+  "report_id": "codex-thread-dotcom-upside-260810",
+  "title": "S1-specific dotcom-cycle and no-repeat-correction research view",
+  "published_at": "2026-08-10T00:00:00+00:00",
+  "available_at": "2026-08-10T00:00:00+00:00",
+  "retrieved_at": "2026-08-10T00:00:00+00:00",
+  "source_path": "data/normalized/market/dotcom_upside_analog_20260810.json",
+  "target_asset": "^IXIC",
+  "horizon_start": "2026-08-10",
+  "horizon_end": "2026-12-31",
+  "view_kind": "scenario_specific_soft_likelihood",
+  "condition": "S1 alone receives dotcom compatibility; S2/S3 use independent database clusters; no new -10% touch through October and year-end above anchor receives a separate interaction likelihood",
+  "unit": "fraction",
+  "probability_space": "scenario_conditional",
+  "dependency_cluster_id": "dotcom_single_cycle_analog",
+  "origin_release_id": "user_instruction_2026_08_10",
+  "used_numerically": true,
+  "human_approval_receipt": "explicit_user_message_2026_08_10",
+  "applicable_candidate_ids": [
+    "scenario_v5_2_scenario_clustered_db_v4"
+  ],
+  "effective_strength": 0.60,
+  "scenario_strength": {"S1": 0.60, "S2": 0.00, "S3": 0.00},
+  "recent_state": {
+    "lookback_sessions": 60,
+    "maximum_drawdown": -0.09784345920225213,
+    "return": 0.01091870260670258,
+    "distance_from_peak": -0.014884577125689247,
+    "interpretation": "a near-10% correction already occurred; this is a weak no-repeat view, not a deterministic floor"
+  },
+  "guards": {
+    "official_use": false,
+    "champion_use": false,
+    "forced_october_direction": false,
+    "forced_endpoint": false,
+    "dependency_cap": 0.60,
+    "default_dependency_cap": 0.35,
+    "override_scope": "research-only S1 dotcom challenger"
+  }
+}

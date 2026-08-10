@@ -16,6 +16,12 @@ CONTRACT_FILES = (
     "data/contracts/scenario_v5_event_impact.yaml",
 )
 
+# V5 and V5.1 are historical shadow candidates whose pre-jobs information set
+# is part of their audit identity.  The mutable latest snapshot moved forward
+# after those candidates were defined, so replay must use the immutable vintage
+# whose bytes match the source hash recorded by the original build.
+V5_SOURCE_SNAPSHOT = "data/scenarios/archive/2026-08-06.json"
+
 PROTECTED_PATHS = (
     "data/scenarios/nasdaq_latest.json",
     "data/scenarios/archive",
@@ -23,6 +29,19 @@ PROTECTED_PATHS = (
     "calibration",
     "questions/registry.yaml",
     "data/ml_history",
+    "data/signals",
+    "data/liquidity",
+    "data/cross_asset",
+    "data/ai_capital_cycle",
+)
+
+# These protected roots are tracked as text with LF in .gitattributes.  Hash
+# their working-tree content in the same canonical form Git places in a fresh
+# Linux checkout, while byte-protected forecasts/calibration/ML ledgers remain
+# exact.  This prevents core.autocrlf from creating false immutability alarms.
+LF_CANONICAL_PROTECTED_PATHS = (
+    "data/scenarios",
+    "questions/registry.yaml",
     "data/signals",
     "data/liquidity",
     "data/cross_asset",
@@ -56,6 +75,19 @@ def file_hash(path: Path) -> str:
     return digest.hexdigest()
 
 
+def _protected_file_hash(root: Path, path: Path) -> str:
+    relative = path.relative_to(root).as_posix()
+    canonical_lf = any(
+        relative == prefix or relative.startswith(f"{prefix}/")
+        for prefix in LF_CANONICAL_PROTECTED_PATHS
+    )
+    if not canonical_lf:
+        return file_hash(path)
+    digest = hashlib.sha256()
+    digest.update(path.read_bytes().replace(b"\r\n", b"\n"))
+    return digest.hexdigest()
+
+
 def _files_under(root: Path, relative: str) -> Iterable[Path]:
     target = root / relative
     if target.is_file():
@@ -73,9 +105,19 @@ def protected_hashes(root: Path) -> dict[str, Any]:
             missing.append(relative)
         for path in matched:
             key = path.relative_to(root).as_posix()
-            files[key] = file_hash(path)
+            files[key] = _protected_file_hash(root, path)
     return {
         "algorithm": "sha256",
+        "canonicalization": {
+            "lf_text_roots": list(LF_CANONICAL_PROTECTED_PATHS),
+            "byte_exact_roots": [
+                relative for relative in PROTECTED_PATHS
+                if not any(
+                    relative == prefix or relative.startswith(f"{prefix}/")
+                    for prefix in LF_CANONICAL_PROTECTED_PATHS
+                )
+            ],
+        },
         "protected_roots": list(PROTECTED_PATHS),
         "files": files,
         "missing_roots": missing,

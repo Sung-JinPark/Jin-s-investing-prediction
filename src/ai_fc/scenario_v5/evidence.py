@@ -221,7 +221,9 @@ def _latest_market_views(root: Path, knowledge_cutoff: datetime,
     return rows
 
 
-def _report_views(root: Path, knowledge_cutoff: datetime) -> list[dict[str, Any]]:
+def _report_views(
+    root: Path, knowledge_cutoff: datetime, candidate_id: str,
+) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
     for folder, approval in (("approved", "human_approved"), ("proposed", "proposed")):
         base = root / "data/scenario_views" / folder
@@ -229,6 +231,15 @@ def _report_views(root: Path, knowledge_cutoff: datetime) -> list[dict[str, Any]
             continue
         for path in sorted(base.glob("*.json")):
             payload = json.loads(path.read_text(encoding="utf-8"))
+            applicable = payload.get("applicable_candidate_ids")
+            if applicable is not None:
+                if (not isinstance(applicable, list) or not applicable
+                        or not all(isinstance(item, str) and item for item in applicable)):
+                    raise ValueError(
+                        f"invalid applicable_candidate_ids: {path.relative_to(root).as_posix()}"
+                    )
+                if candidate_id not in applicable:
+                    continue
             available_raw = payload.get("available_at")
             available = datetime.fromisoformat(str(available_raw)) if available_raw else None
             if available is None or available.tzinfo is None or available > knowledge_cutoff:
@@ -255,7 +266,10 @@ def build_evidence_registry(root: Path, snapshot: dict[str, Any],
     rows = (
         _latest_registered_forecasts(root, generated, model_contract)
         + _latest_market_views(root, generated, model_contract)
-        + _report_views(root, generated)
+        + _report_views(
+            root, generated,
+            str(model_contract["identity"]["candidate_id"]),
+        )
     )
     seen: set[str] = set()
     for row in rows:

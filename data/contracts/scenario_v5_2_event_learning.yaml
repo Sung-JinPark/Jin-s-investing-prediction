@@ -1,0 +1,38 @@
+schema_version: 1
+contract_id: scenario_v5_2_event_learning
+ledger_path: data/scenarios/candidates/event_learning/events.jsonl
+append_only: true
+canonical_probability_unit: fraction
+allowed_event_kinds: [cpi, nfp, fomc, gdp, earnings]
+required:
+  - event_id
+  - revision_id
+  - kind
+  - reference_period
+  - published_at
+  - available_at
+  - as_of
+  - retrieved_at
+  - source_url
+  - source_sha256
+  - actual
+  - consensus
+  - unit_metadata
+validation:
+  timezone_aware_timestamps: true
+  available_at_lte_as_of: true
+  silent_zero_fill: false
+  silent_clipping: false
+  explicit_supersedes_for_correction: true
+  duplicate_revision: idempotent_only
+adapters:
+  cpi: inflation_surprise
+  nfp: labor_growth_surprise
+  fomc: full_target_distribution_repricing
+  gdp: growth_surprise
+  earnings: reference_only_without_approved_asset_mapping
+post_append_actions:
+  - rebuild_research_candidate
+  - verify_candidate
+  - rebuild_dashboard_projection
+  - write_learning_receipt

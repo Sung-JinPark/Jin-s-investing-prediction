@@ -6,7 +6,7 @@
   "banner": "RESEARCH CANDIDATE · NOT OFFICIAL · NO APPROVED NUMERICAL VIEWS",
   "asof": "2026-08-06",
   "knowledge_cutoff": "2026-08-07T04:06:20+00:00",
-  "generated_at": "2026-08-07T08:27:37+00:00",
+  "generated_at": "2026-08-10T08:32:05+00:00",
   "identity": {
     "candidate_id": "scenario_v5_1_time_aligned_legacy_prior_v1",
     "model_family": "v5_1_time_aligned_evidence_conditioned_joint_path_ensemble",
@@ -19,7 +19,7 @@
     "promotion_state": "research_candidate_degraded_no_approved_numerical_views"
   },
   "source_snapshot": {
-    "path": "data/scenarios/nasdaq_latest.json",
+    "path": "data/scenarios/archive/2026-08-06.json",
     "sha256": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
     "asof": "2026-08-06",
     "snapshot_id": "nasdaq-scenario:2026-08-06:r1",
@@ -644,7 +644,7 @@
       "origin_type": "market_implied",
       "source_id": "polymarket",
       "source_path": "data/ml_history/2026.jsonl",
-      "source_sha256": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
+      "source_sha256": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
       "origin_release_id": "2026-08-03T09:33:58+00:00",
       "dependency_cluster_id": "common:market:polymarket:fomc-2026-10-28-hike",
       "target_asset": "event_state",
@@ -676,7 +676,7 @@
         ],
         "note": "상호배타 아웃컴 YES 가격 합산"
       },
-      "record_sha256": "7d02b0548135ab2b30495abcebc40382eaad10818bfe709b1c99c3b38cc480e2",
+      "record_sha256": "1709d1a11a3d5744b10fbfcb5c9d1b70005c4cbc00965cdbb0774b302a8ae372",
       "question_id": null,
       "original_forecast_asof": "2026-08-03T09:33:58+00:00",
       "original_horizon_start": "2026-08-03",
@@ -739,7 +739,7 @@
       "origin_type": "market_implied",
       "source_id": "options_bl",
       "source_path": "data/ml_history/2026.jsonl",
-      "source_sha256": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
+      "source_sha256": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
       "origin_release_id": "2026-08-03T09:33:58+00:00",
       "dependency_cluster_id": "common:market:options_bl:nasdaq-eoy-above-jul9-2026",
       "target_asset": "^IXIC",
@@ -774,7 +774,7 @@
         "index_spot": 25373.853515625,
         "proxy_note": "^IXIC→QQQ 비율 프록시"
       },
-      "record_sha256": "69699f291f02c5a32ee8bb4ffec5e43f3a09817ecb2a332b1488d41acced95c7",
+      "record_sha256": "005e51f729bcdfd11cb33ca45525d1c34b355f08f41918c3e13672889cc60914",
       "question_id": "nasdaq-eoy-above-jul9-2026",
       "original_forecast_asof": "2026-08-03T09:33:58+00:00",
       "original_horizon_start": "2026-07-10",
@@ -837,7 +837,7 @@
       "origin_type": "market_implied",
       "source_id": "options_bl",
       "source_path": "data/ml_history/2026.jsonl",
-      "source_sha256": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
+      "source_sha256": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
       "origin_release_id": "2026-08-03T09:33:58+00:00",
       "dependency_cluster_id": "common:market:options_bl:nasdaq-ath-eoy-2026",
       "target_asset": "^IXIC",
@@ -873,7 +873,7 @@
         "proxy_note": "^IXIC→QQQ 비율 프록시",
         "terminal_only_for_path": true
       },
-      "record_sha256": "548e5715f2ef253534a993fdd62287e9cf06df2919b3fd513f91694af685258a",
+      "record_sha256": "e0d4522bd70fdb1eb52385eb46063dba129d34ba490ab1cb98066f9ebab5ad97",
       "question_id": "nasdaq-ath-eoy-2026",
       "original_forecast_asof": "2026-08-03T09:33:58+00:00",
       "original_horizon_start": "2026-07-10",
@@ -10721,22 +10721,22 @@
     "official_snapshot_mutated": false,
     "v6_promotion_allowed": false
   },
-  "model_content_sha256": "b3302fcb9dbc54957a65a5df3d0933cd209da1b645ab1f2cb3898bae152fbe68",
+  "model_content_sha256": "aeeb399e22fcbf06da8d53bdefc788618f84760b15e43f711bf2b1eb542295a0",
   "build_receipt": {
     "artifact_type": "scenario_v5_1_research_candidate",
     "candidate_id": "scenario_v5_1_time_aligned_legacy_prior_v1",
-    "model_content_sha256": "b3302fcb9dbc54957a65a5df3d0933cd209da1b645ab1f2cb3898bae152fbe68",
-    "generated_at": "2026-08-07T08:27:37+00:00",
+    "model_content_sha256": "aeeb399e22fcbf06da8d53bdefc788618f84760b15e43f711bf2b1eb542295a0",
+    "generated_at": "2026-08-10T08:32:05+00:00",
     "source_snapshot_sha256": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
     "build_context": {
-      "head": "b2033137dadd0c7ad9bb364852222ee25b420c42",
+      "head": "b0515610dfa762e985698cf50b21b6b0b2484ff9",
       "branch": "agent/l0-batch1-validation-review-260806",
       "dirty": true,
-      "status_entries": 18,
+      "status_entries": 23,
       "python": "3.12.10"
     }
   },
-  "build_receipt_sha256": "5f1e75da1a99e488b4ca62b4160bd5a85820c726537f42ee0859487603c9a984",
+  "build_receipt_sha256": "db8c3b9bb4a8b50307a07c2963017708b1ead3930745021366f2b65b831febdc",
   "validation": {
     "ok": true,
     "errors": []

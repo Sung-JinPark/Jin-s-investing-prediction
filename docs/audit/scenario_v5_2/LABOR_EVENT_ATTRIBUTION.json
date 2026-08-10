@@ -1,0 +1,292 @@
+{
+  "evidence_scores": {
+    "labor_growth_risk": {
+      "raw": 0.9464000000000001,
+      "bounded_score": 0.7381489105254494,
+      "components": {
+        "base_labor_growth_risk_raw": 0.9464000000000001,
+        "event_learning_increment_raw": 0.0,
+        "payroll_surprise_z": -1.08,
+        "combined_revision_z": -1.03,
+        "temporary_layoff_change_z": 0.306
+      },
+      "interpretation": "positive means more growth risk"
+    },
+    "policy_relief": {
+      "raw": 0.6286666666666667,
+      "bounded_score": 0.5571334288298516,
+      "expected_hike_count_delta_by_meeting": {
+        "2026-09-30": -0.11700000000000005,
+        "2026-10-28": -0.14,
+        "2026-12-09": -0.19800000000000018
+      },
+      "aggregate_hike_probability_delta_by_meeting": {
+        "2026-09-30": -0.117,
+        "2026-10-28": -0.095,
+        "2026-12-09": -0.072
+      },
+      "components": {
+        "expected_hike_count_relief_raw": 0.15166666666666676,
+        "aggregate_probability_relief_raw": 0.9466666666666668,
+        "base_policy_relief_raw": 0.6286666666666667,
+        "event_learning_increment_raw": 0.0
+      },
+      "interpretation": "positive means less expected tightening after jobs"
+    },
+    "inflation_risk": {
+      "raw": 0.0,
+      "bounded_score": 0.0,
+      "interpretation": "positive means a hotter-than-consensus inflation update"
+    },
+    "cross_asset_relief": {
+      "raw": 0.321,
+      "bounded_score": 0.310410846605886,
+      "nasdaq_event_return_coefficient": 0.0,
+      "interpretation": "weak state view; realized Nasdaq return is excluded"
+    },
+    "event_learning": {
+      "active_event_count": 0,
+      "numerical_event_count": 0,
+      "raw_weighted_scores": {
+        "growth_risk": 0.0,
+        "policy_relief": 0.0,
+        "inflation_risk": 0.0
+      },
+      "bounded_scores": {
+        "growth_risk": 0.0,
+        "policy_relief": 0.0,
+        "inflation_risk": 0.0
+      },
+      "events": [],
+      "dependency_cluster_strength": {}
+    }
+  },
+  "attribution": {
+    "terminal_above_anchor_2026": {
+      "pre_jobs_same_anchor_counterfactual": 0.6869273814566093,
+      "labor_growth_risk_effect": -0.026296747068432547,
+      "policy_relief_effect": 0.02525040463587125,
+      "cross_asset_state_effect": 0.00019193739375689134,
+      "event_and_cross_asset_effect": 0.00019193739375689134,
+      "dotcom_upside_effect": 0.047810175215246664,
+      "post_jobs_full": 0.7338831516330515,
+      "total_change": 0.04695577017644226,
+      "additivity_residual": 0.0
+    },
+    "terminal_above_v51_reference_2026": {
+      "pre_jobs_same_anchor_counterfactual": 0.7147492323434042,
+      "labor_growth_risk_effect": -0.026243297538993904,
+      "policy_relief_effect": 0.02524008851546744,
+      "cross_asset_state_effect": -5.858461934793446e-06,
+      "event_and_cross_asset_effect": -5.858461934793446e-06,
+      "dotcom_upside_effect": 0.046130410628938745,
+      "post_jobs_full": 0.7598705754868816,
+      "total_change": 0.04512134314347749,
+      "additivity_residual": 0.0
+    },
+    "new_ath_by_2026": {
+      "pre_jobs_same_anchor_counterfactual": 0.9186479346371542,
+      "labor_growth_risk_effect": -0.0019065748097810697,
+      "policy_relief_effect": 0.0017714035663582983,
+      "cross_asset_state_effect": 0.00029942895478785037,
+      "event_and_cross_asset_effect": 0.00029942895478785037,
+      "dotcom_upside_effect": 0.01559763218148158,
+      "post_jobs_full": 0.9344098245300009,
+      "total_change": 0.01576188989284666,
+      "additivity_residual": 0.0
+    },
+    "first_touch_minus_10_by_october_end": {
+      "pre_jobs_same_anchor_counterfactual": 0.3359861143754212,
+      "labor_growth_risk_effect": 0.027484699039880767,
+      "policy_relief_effect": -0.026344806883982663,
+      "cross_asset_state_effect": -0.00042340615510838564,
+      "event_and_cross_asset_effect": -0.00042340615510838564,
+      "dotcom_upside_effect": -0.047436763739144405,
+      "post_jobs_full": 0.2892658366370665,
+      "total_change": -0.04672027773835469,
+      "additivity_residual": 0.0
+    },
+    "terminal_above_anchor_2027": {
+      "pre_jobs_same_anchor_counterfactual": 0.7892815552595356,
+      "labor_growth_risk_effect": -0.026775742823073156,
+      "policy_relief_effect": 0.0249170710357689,
+      "cross_asset_state_effect": 0.004014229709767503,
+      "event_and_cross_asset_effect": 0.004014229709767503,
+      "dotcom_upside_effect": 0.03466374158962349,
+      "post_jobs_full": 0.8261008547716223,
+      "total_change": 0.036819299512086734,
+      "additivity_residual": 0.0
+    }
+  },
+  "circularity_control": {
+    "v5_1_ancestor_used_numerically": false,
+    "narrative_reports_used_numerically": false,
+    "realized_event_return_coefficient": 0.0,
+    "future_event_jump": 0.0,
+    "full_equals_explicit_zero_event_reaction": true,
+    "gate_pass": true
+  },
+  "component_ablations": {
+    "policy_only": {
+      "included_evidence": [
+        "policy_relief"
+      ],
+      "probabilities": {
+        "terminal_above_anchor_2026": 0.7061613092608603,
+        "terminal_above_v51_reference_2026": 0.7340614930987505,
+        "new_ath_by_2026": 0.9198726011399493,
+        "first_touch_minus_10_by_october_end": 0.3160158280417309,
+        "terminal_above_anchor_2027": 0.8065942160764624,
+        "year_end_p50": 29143.663567609856,
+        "scenario_probabilities": {
+          "S1": 0.7960710809850124,
+          "S2": 0.1523697224351475,
+          "S3": 0.051559196579840344
+        }
+      },
+      "weight_diagnostics": {
+        "normalization": "explicit_log_sum_exp",
+        "weight_sum": 1.0,
+        "effective_sample_size": 4548.183117328999,
+        "effective_sample_size_fraction": 0.5053536797032221,
+        "maximum_path_weight": 0.0002653570269950041,
+        "top_one_percent_weight_share": 0.02388213242955037,
+        "entropy": 8.627474543973104,
+        "relative_entropy_from_uniform": 0.4775053123452512,
+        "gates": {
+          "ess_at_least_20pct": true,
+          "maximum_weight_at_most_0_005": true,
+          "top_one_percent_share_at_most_0_10": true
+        },
+        "gates_pass": true
+      }
+    },
+    "growth_only": {
+      "included_evidence": [
+        "labor_growth_risk"
+      ],
+      "probabilities": {
+        "terminal_above_anchor_2026": 0.6606306343881767,
+        "terminal_above_v51_reference_2026": 0.6885059348044102,
+        "new_ath_by_2026": 0.9167413598273731,
+        "first_touch_minus_10_by_october_end": 0.36347081341530196,
+        "terminal_above_anchor_2027": 0.7625058124364624,
+        "year_end_p50": 28753.43848925704,
+        "scenario_probabilities": {
+          "S1": 0.6929189118056414,
+          "S2": 0.19384684372489758,
+          "S3": 0.11323424446946093
+        }
+      },
+      "weight_diagnostics": {
+        "normalization": "explicit_log_sum_exp",
+        "weight_sum": 0.9999999999999998,
+        "effective_sample_size": 5654.667091292012,
+        "effective_sample_size_fraction": 0.6282963434768902,
+        "maximum_path_weight": 0.0002309729706018805,
+        "top_one_percent_weight_share": 0.02078756735416924,
+        "entropy": 8.825259284376687,
+        "relative_entropy_from_uniform": 0.27972057194166866,
+        "gates": {
+          "ess_at_least_20pct": true,
+          "maximum_weight_at_most_0_005": true,
+          "top_one_percent_share_at_most_0_10": true
+        },
+        "gates_pass": true
+      }
+    },
+    "combined_growth_and_policy": {
+      "included_evidence": [
+        "labor_growth_risk",
+        "policy_relief"
+      ],
+      "probabilities": {
+        "terminal_above_anchor_2026": 0.685881039024048,
+        "terminal_above_v51_reference_2026": 0.7137460233198777,
+        "new_ath_by_2026": 0.9185127633937314,
+        "first_touch_minus_10_by_october_end": 0.3371260065313193,
+        "terminal_above_anchor_2027": 0.7874228834722313,
+        "year_end_p50": 28955.587145490004,
+        "scenario_probabilities": {
+          "S1": 0.7491539048471715,
+          "S2": 0.17244927628857334,
+          "S3": 0.0783968188642549
+        }
+      },
+      "weight_diagnostics": {
+        "normalization": "explicit_log_sum_exp",
+        "weight_sum": 0.9999999999999998,
+        "effective_sample_size": 5024.146153189967,
+        "effective_sample_size_fraction": 0.5582384614655519,
+        "maximum_path_weight": 0.00024971796828239057,
+        "top_one_percent_weight_share": 0.022474617145415147,
+        "entropy": 8.725433272253294,
+        "relative_entropy_from_uniform": 0.3795465840650625,
+        "gates": {
+          "ess_at_least_20pct": true,
+          "maximum_weight_at_most_0_005": true,
+          "top_one_percent_share_at_most_0_10": true
+        },
+        "gates_pass": true
+      }
+    },
+    "macro_full_without_dotcom": {
+      "included_evidence": [
+        "labor_growth_risk",
+        "policy_relief",
+        "cross_asset_relief",
+        "event_learning"
+      ],
+      "probabilities": {
+        "terminal_above_anchor_2026": 0.6860729764178048,
+        "terminal_above_v51_reference_2026": 0.7137401648579429,
+        "new_ath_by_2026": 0.9188121923485193,
+        "first_touch_minus_10_by_october_end": 0.3367026003762109,
+        "terminal_above_anchor_2027": 0.7914371131819988,
+        "year_end_p50": 28957.488560669426,
+        "scenario_probabilities": {
+          "S1": 0.7416193388547943,
+          "S2": 0.18544389637160202,
+          "S3": 0.07293676477360395
+        }
+      },
+      "weight_diagnostics": {
+        "normalization": "explicit_log_sum_exp",
+        "weight_sum": 0.9999999999999999,
+        "effective_sample_size": 5087.25960945231,
+        "effective_sample_size_fraction": 0.5652510677169232,
+        "maximum_path_weight": 0.00024720644628493135,
+        "top_one_percent_weight_share": 0.02224858016564383,
+        "entropy": 8.73148561779343,
+        "relative_entropy_from_uniform": 0.3734942385249269,
+        "gates": {
+          "ess_at_least_20pct": true,
+          "maximum_weight_at_most_0_005": true,
+          "top_one_percent_share_at_most_0_10": true
+        },
+        "gates_pass": true
+      }
+    },
+    "dotcom_upside_increment": {
+      "included_evidence": [
+        "dotcom_S1_weighted_upside_view"
+      ],
+      "scenario_strength": {
+        "S1": 0.6,
+        "S2": 0.0,
+        "S3": 0.0
+      },
+      "probability_increment": {
+        "terminal_above_anchor_2026": 0.047810175215246664,
+        "terminal_above_v51_reference_2026": 0.046130410628938745,
+        "new_ath_by_2026": 0.01559763218148158,
+        "first_touch_minus_10_by_october_end": -0.047436763739144405,
+        "terminal_above_anchor_2027": 0.03466374158962349
+      }
+    },
+    "report_view_increment": {
+      "numerical_report_views": 1,
+      "reason": "explicitly approved dotcom view; same-cluster approval row has zero extra strength"
+    }
+  }
+}

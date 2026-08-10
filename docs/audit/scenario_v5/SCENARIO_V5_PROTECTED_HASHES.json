@@ -1,5 +1,5 @@
 {
-  "captured_at": "2026-08-07T06:55:08+00:00",
+  "captured_at": "2026-08-10T08:55:54+00:00",
   "before": {
     "algorithm": "sha256",
     "protected_roots": [
@@ -128,6 +128,21 @@
   },
   "after": {
     "algorithm": "sha256",
+    "canonicalization": {
+      "lf_text_roots": [
+        "data/scenarios",
+        "questions/registry.yaml",
+        "data/signals",
+        "data/liquidity",
+        "data/cross_asset",
+        "data/ai_capital_cycle"
+      ],
+      "byte_exact_roots": [
+        "forecasts",
+        "calibration",
+        "data/ml_history"
+      ]
+    },
     "protected_roots": [
       "data/scenarios/nasdaq_latest.json",
       "data/scenarios/archive",
@@ -141,7 +156,7 @@
       "data/ai_capital_cycle"
     ],
     "files": {
-      "data/scenarios/nasdaq_latest.json": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
+      "data/scenarios/nasdaq_latest.json": "a27c0f75ce9b97a0f626b0a6dc5c86bdd91471440a3d144fd6893bc3cf952719",
       "data/scenarios/archive/2026-07-30.json": "20933ac3e67058fa078220c0c7ecb64d5b3f8d369089c77fa02dbf7b5c405fec",
       "data/scenarios/archive/2026-07-31.json": "7234228a445f28c911b1c33eefda42de55a41e3b210d20719d54bbc7cecd5189",
       "data/scenarios/archive/2026-08-03.json": "e891d5c4b8df55f51f48e685b8e5e038ce13a82367cff578898daa09f66b0acd",
@@ -153,8 +168,9 @@
       "data/scenarios/archive/2026-08-03_CORR-260806-018.json": "4f6bea9a288dff99a634f231ea2b684abff666a0b4bde4f31b9f58681a0d3fcb",
       "data/scenarios/archive/2026-08-03_CORR-260806-019.json": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
       "data/scenarios/archive/2026-08-06.json": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
-      "forecasts/.hashes": "3c09bfcde9f43c622318c3e9d7360d4d3edd4bca1315f432428d5aad6c462b99",
-      "forecasts/.hashes.ots": "252b518ebd549536284d039533d76ed5fbcc02072d9f47e60697a45edf38ddfe",
+      "data/scenarios/archive/2026-08-07.json": "a27c0f75ce9b97a0f626b0a6dc5c86bdd91471440a3d144fd6893bc3cf952719",
+      "forecasts/.hashes": "aa941a1e4c7e7b0b6910381607b8c8e38822c8ab5d1576195a63c47b404d34c7",
+      "forecasts/.hashes.ots": "6aa3400da406ad4fae5b0f05fa96a45c017e12b8aa433a000156751924925b1a",
       "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
       "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1_evidence.md": "70f747ade4947c2471128413045522b2b90de021d730ba54ca971efd2b2c06d3",
       "forecasts/2026/2026-07-08_fomc-2026-10-28-hike_r1.md": "81dcd6a50564cec111f889f17c4d322a4ac3d9360b45095731a17ff60e9630c7",
@@ -194,35 +210,40 @@
       "forecasts/2026/2026-07-20_soxx-eoy-down15_r2_evidence.md": "3c72790244f48707d11389d5eee69b9a766ee4b72a4465dfe46b8701196054e4",
       "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1.md": "bbfd38b98191e60c74c47b8ae4d6a360522fd36ce2b3adbaf7f30fe3f50d3e7e",
       "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1_evidence.md": "88f08f1b7f92efea0bca4c9c879ad38774164d36a1f2143539afe3324e4298a1",
+      "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1.md": "72a6c5805b3421d3e21ab5324637df4ce6a161c1047ac1b560007ae3c354c4c8",
+      "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1_evidence.md": "206cdf1c1a9ef67910121167748135b4c596ee78f1ba2fd258b0439457f93806",
       "forecasts/2026/retro/TEMPLATE.md": "88986ced25755230ba0ff130d6399e585496b00a015919ca9741d0acb4d49166",
       "forecasts/TEMPLATE.md": "50e4dd86067f01d6303660cd4f4bcf5ddbb06bb12d7cea34726cca04362f1d18",
       "calibration/approvals.csv": "0d2aa93483c74cfbcb3308f8792528ab5573a8cd3c712fc78e78827674e817ec",
       "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
       "calibration/corrections.csv": "c875c68631ade3e73da4492fd5d3e378b42258f1f47f4b196c6ee28fc0db8d94",
-      "calibration/cost_log.csv": "f71db21b1fafdd329002692af3531efd9f88d6b31755a6bbe3d26fd01bffd83c",
+      "calibration/cost_log.csv": "00be8e4478da20d8a391f970e58eedaa6d42fd2e23b575145b246b78547ceed5",
       "calibration/ledger.csv": "aa180a76ca49ec59cc10a35d62c0ca3abafdb01f467a9111639e3259a5d7cd0e",
       "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
       "calibration/research_status_overrides.csv": "8bc6e87d8a062840758d7db554a56b4cf58fe083d386e05e57d76efc3aa5735e",
       "questions/registry.yaml": "561e6b742aae4c72a3d96af9f984f6c376a061ea99b2ddd825fdf97ad088eeba",
-      "data/ml_history/2026.jsonl": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
+      "data/ml_history/2026.jsonl": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
       "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
       "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
       "data/signals/archive/2026-07-31_CORR-260804-005.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",
-      "data/signals/scenario_tracker_latest.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",
+      "data/signals/archive/2026-08-07.json": "49410c5db4d86023ff1556ac5b8b41de6aeb38cc844c2384849c013934bf40f7",
+      "data/signals/scenario_tracker_latest.json": "49410c5db4d86023ff1556ac5b8b41de6aeb38cc844c2384849c013934bf40f7",
       "data/liquidity/archive/2026-07-31.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
-      "data/liquidity/liquidity_latest.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
+      "data/liquidity/archive/2026-08-07.json": "79a2c5da46e63f4feb1d71d2400fec5387102fe9335440d51e1de27f84c89c08",
+      "data/liquidity/liquidity_latest.json": "79a2c5da46e63f4feb1d71d2400fec5387102fe9335440d51e1de27f84c89c08",
       "data/cross_asset/archive/2026-07-31.json": "16d8cfbb94565268b1b877bad46af2b72206164d7971bfcbdce07c02477ec792",
       "data/cross_asset/archive/2026-07-31_CORR-260803-003.json": "2bb101c5d6f5ef5e8fec1ee7c0a03f003ed94608a637772c481e515789974660",
       "data/cross_asset/archive/2026-08-03.json": "7aa3b2dae6ae09d0ac5e69df6cc4fba06a89ad8efbb7ab4a57b7847a4a93588e",
       "data/cross_asset/archive/2026-08-03_CORR-260804-006.json": "ebde96a43bc4b87b9562b38b6066e2ed4283a46bb7fa48da4e13d775034e5fd2",
       "data/cross_asset/archive/2026-08-03_CORR-260804-008.json": "1b2214b586842c80a5b9d2b1b0315679bddb35dd400363356d647287d7519b90",
       "data/cross_asset/archive/2026-08-03_CORR-260804-010.json": "165eee53f53d57dd1acc1252a6e157794e0830bef007666ad438a7b8ffee2e56",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "fa4608b3af02043b4f31261518db41a018acc7335ff2c32a3f3c3752bc648e52",
-      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "49245ae5161fa39c6e625bb7479c67027e3c01411ae16d8c3f2e8ab6c43637cc",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json": "d217a2729d9e4905e5e10b26b7902002e540a0d0310686551285c7305251bd96",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "25e98d5895fbc89a9d3a321a3bb1e287edc550432cbeb175e9e1be743df9e2e2",
       "data/cross_asset/archive/2026-08-05.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
-      "data/cross_asset/cross_asset_latest.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
+      "data/cross_asset/archive/2026-08-06.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
+      "data/cross_asset/cross_asset_latest.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
       "data/cross_asset/path_tracking.csv": "1c39695f8dfbc89f0f9b25d8754aca3e103d5f883137f274df01a59e585c5453",
-      "data/cross_asset/path_tracking_v2.csv": "43c13c60f1ebe27cd460c6400c7f3343b14ced877f38539ac52991258db379ca",
+      "data/cross_asset/path_tracking_v2.csv": "a9fa219be3f094ff9a91dc0d7743170c3fab907b6f2dffe806b4a9f319ff2a2e",
       "data/cross_asset/receipts/2026-07-31_0f40b3636e5e.json": "b5dc815b2eac1b0a46dcbe10c7a8f21350f9e34ec37eb4abbb09f88023b4595c",
       "data/cross_asset/receipts/2026-07-31_ab2ab50e4cca.json": "c9d22350ab144bf7371618a6a63f205cf619df5b79a1aca7cf6d8394d14f8e64",
       "data/cross_asset/receipts/2026-07-31_b1e7c681fd2b.json": "c1d0e76d97e657c1fb31fd29df95c7251dcc6d9bf73ec1c4710f8353e043a5c7",
@@ -231,6 +252,7 @@
       "data/cross_asset/receipts/2026-08-03_632d3830250e.json": "b9f4b8c3f21827df64b8003e658cf1abd2d448f7e1974da49cb1a03a2ca785ac",
       "data/cross_asset/receipts/2026-08-03_64f9280a5c9b.json": "da67978260f7e64dbf040ef8e0a130cf3b4df38d4820a370d0ad539bc74222bb",
       "data/cross_asset/receipts/2026-08-05_a400bc2107b3.json": "c956a07653374c8569a86325f5155ec7cfd478f8a45ddaf89ce78ab94157f000",
+      "data/cross_asset/receipts/2026-08-06_d671e81c005d.json": "e9040f776da1118567d15ff689cac4dd2a73ba04c051dea45e58e29247041aea",
       "data/ai_capital_cycle/ai_regime_latest.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
       "data/ai_capital_cycle/canonical_segment_map.yaml": "e21be70a85473fd2d7c185b6a8c276f7266d5111142bc1a46a4928609b1d356c",
       "data/ai_capital_cycle/circular_finance_candidates.csv": "5801a917659c430654829d4d60a50944933d289958c0b1f606c2548a23d42b65",
@@ -248,14 +270,34 @@
       "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
     },
     "missing_roots": [],
-    "manifest_sha256": "2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4"
+    "manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
   },
   "comparison": {
-    "ok": true,
-    "added": [],
+    "ok": false,
+    "added": [
+      "data/cross_asset/archive/2026-08-06.json",
+      "data/cross_asset/receipts/2026-08-06_d671e81c005d.json",
+      "data/liquidity/archive/2026-08-07.json",
+      "data/scenarios/archive/2026-08-07.json",
+      "data/signals/archive/2026-08-07.json",
+      "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1.md",
+      "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1_evidence.md"
+    ],
     "removed": [],
-    "changed": [],
+    "changed": [
+      "calibration/cost_log.csv",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-013.json",
+      "data/cross_asset/archive/2026-08-03_CORR-260805-015.json",
+      "data/cross_asset/cross_asset_latest.json",
+      "data/cross_asset/path_tracking_v2.csv",
+      "data/liquidity/liquidity_latest.json",
+      "data/ml_history/2026.jsonl",
+      "data/scenarios/nasdaq_latest.json",
+      "data/signals/scenario_tracker_latest.json",
+      "forecasts/.hashes",
+      "forecasts/.hashes.ots"
+    ],
     "before_manifest_sha256": "2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4",
-    "after_manifest_sha256": "2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4"
+    "after_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
   }
 }

@@ -20,7 +20,7 @@ from typing import Any, Iterable
 import numpy as np
 from scipy.stats import energy_distance, wasserstein_distance
 
-from .contracts import canonical_hash, file_hash, load_contracts
+from .contracts import V5_SOURCE_SNAPSHOT, canonical_hash, file_hash, load_contracts
 from .engine import build_conditional_outputs, entropy_pool, reproduce_legacy_prior
 from .evidence import build_evidence_registry, event_states
 
@@ -113,6 +113,11 @@ def validate_approved_report_view(payload: dict[str, Any]) -> list[str]:
         "historical_reliability_status", "used_numerically",
     }
     errors = [f"missing {key}" for key in sorted(required - payload.keys())]
+    applicable = payload.get("applicable_candidate_ids")
+    if (applicable is not None
+            and (not isinstance(applicable, list) or not applicable
+                 or not all(isinstance(item, str) and item for item in applicable))):
+        errors.append("applicable_candidate_ids must be a non-empty string list")
     if payload.get("used_numerically") is not True:
         errors.append("approved report view must explicitly request numerical use")
     if payload.get("probability_space") != "physical_event":
@@ -145,6 +150,11 @@ def load_report_views_v5_1(root: Path, cutoff: datetime) -> list[dict[str, Any]]
             continue
         for path in sorted(base.glob("*.json")):
             row = json.loads(path.read_text(encoding="utf-8"))
+            applicable = row.get("applicable_candidate_ids")
+            if (isinstance(applicable, list)
+                    and all(isinstance(item, str) and item for item in applicable)
+                    and CANDIDATE_ID not in applicable):
+                continue
             row["source_path"] = path.relative_to(root).as_posix()
             row["source_sha256"] = file_hash(path)
             errors = validate_approved_report_view(row) if folder == "approved" else []
@@ -583,10 +593,15 @@ def _number(value: Any, label: str, errors: list[str], *, positive: bool = False
 
 def validate_candidate_v5_1(payload: dict[str, Any], root: Path | None = None) -> dict[str, Any]:
     errors: list[str] = []
+    source_snapshot = payload.get("source_snapshot")
+    if not isinstance(source_snapshot, dict):
+        source_snapshot = {}
     if payload.get("candidate_id") != CANDIDATE_ID:
         errors.append("candidate_id mismatch")
     if payload.get("identity", {}).get("is_rcfhs") is not False:
         errors.append("legacy-prior identity must not claim RCFHS")
+    if source_snapshot.get("path") != V5_SOURCE_SNAPSHOT:
+        errors.append("source snapshot must use the registered immutable V5 vintage")
     dates = payload.get("conditional_distribution", {}).get("dates", [])
     try:
         parsed_dates = [date.fromisoformat(day) for day in dates]
@@ -690,8 +705,8 @@ def validate_candidate_v5_1(payload: dict[str, Any], root: Path | None = None) -
     if payload.get("build_receipt_sha256") != expected_receipt_hash:
         errors.append("build_receipt_sha256 mismatch")
     if root is not None:
-        source = payload.get("source_snapshot", {})
-        snapshot_path = root / str(source.get("path", ""))
+        source = source_snapshot
+        snapshot_path = root / V5_SOURCE_SNAPSHOT
         if not snapshot_path.is_file() or file_hash(snapshot_path) != source.get("sha256"):
             errors.append("source snapshot hash changed")
         else:
@@ -723,7 +738,7 @@ def validate_candidate_v5_1(payload: dict[str, Any], root: Path | None = None) -
 def assemble_candidate_v5_1(root: Path, *, now: datetime | None = None) -> dict[str, Any]:
     now = now or datetime.now(timezone.utc)
     now = _aware(now)
-    snapshot_path = root / "data/scenarios/nasdaq_latest.json"
+    snapshot_path = root / V5_SOURCE_SNAPSHOT
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
     contracts = load_contracts(root)
     model_contract = contracts["scenario_v5_model"]

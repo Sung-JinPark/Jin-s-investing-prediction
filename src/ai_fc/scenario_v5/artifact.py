@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 
-from .contracts import canonical_hash, file_hash, load_contracts
+from .contracts import V5_SOURCE_SNAPSHOT, canonical_hash, file_hash, load_contracts
 from .engine import (
     build_conditional_outputs,
     condition_matrix,
@@ -62,12 +62,17 @@ def _comparable(payload: dict[str, Any]) -> dict[str, Any]:
 
 def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
     errors: list[str] = []
+    source_snapshot = payload.get("source_snapshot")
+    if not isinstance(source_snapshot, dict):
+        source_snapshot = {}
     if payload.get("candidate_id") != CANDIDATE_ID:
         errors.append("candidate_id mismatch")
     identity = payload.get("identity") or {}
     if (identity.get("prior_engine") != "legacy_gbm_reproduced_extended_v2"
             or identity.get("is_rcfhs") is not False):
         errors.append("honest legacy-prior identity required")
+    if source_snapshot.get("path") != V5_SOURCE_SNAPSHOT:
+        errors.append("source snapshot must use the registered immutable V5 vintage")
     if payload.get("status") not in {"ok", "degraded"}:
         errors.append("candidate status invalid")
     scenarios = payload.get("conditional_distribution", {}).get("scenarios", {})
@@ -123,7 +128,7 @@ def validate_candidate(payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def assemble_candidate(root: Path) -> dict[str, Any]:
-    snapshot_path = root / "data/scenarios/nasdaq_latest.json"
+    snapshot_path = root / V5_SOURCE_SNAPSHOT
     snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
     contracts = load_contracts(root)
     model_contract = contracts["scenario_v5_model"]
@@ -275,7 +280,10 @@ def verify_candidate(root: Path, path: Path | None = None) -> dict[str, Any]:
     payload = json.loads(candidate_path.read_text(encoding="utf-8"))
     result = validate_candidate(payload)
     result["path"] = candidate_path.as_posix()
-    result["source_snapshot_current_sha256"] = file_hash(root / "data/scenarios/nasdaq_latest.json")
+    snapshot_path = root / V5_SOURCE_SNAPSHOT
+    result["source_snapshot_current_sha256"] = (
+        file_hash(snapshot_path) if snapshot_path.is_file() else None
+    )
     result["source_snapshot_unchanged"] = (
         result["source_snapshot_current_sha256"] == payload["source_snapshot"]["sha256"])
     result["ok"] = bool(result["ok"] and result["source_snapshot_unchanged"])

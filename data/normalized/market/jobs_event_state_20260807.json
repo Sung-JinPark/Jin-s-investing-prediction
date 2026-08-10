@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "event_id": "US_JOBS_2026_08_07",
+  "probability_unit": "fraction",
+  "as_of": "2026-08-07T20:00:00+00:00",
+  "available_at": "2026-08-08T04:35:00+00:00",
+  "sources": [
+    "https://apnews.com/article/9636095906bbb689a1f612bce9a07343",
+    "https://www.investing.com/central-banks/fed-rate-monitor"
+  ],
+  "observations": {
+    "nasdaq_composite_close": 26690.62,
+    "nasdaq_composite_change": 342.26,
+    "nasdaq_composite_return": 0.013,
+    "us_10y_yield": 0.04658,
+    "us_10y_yield_change": -0.00012,
+    "vix_close": 14.90,
+    "vix_change": -0.25,
+    "dollar_index": 99.48,
+    "dollar_index_change": -0.33
+  },
+  "numerical_use": {
+    "nasdaq_event_return": "anchor_only_historical_realization",
+    "future_event_jump": 0.0,
+    "cross_asset_state": "weak_soft_view",
+    "reason": "The simulation starts after the August 7 close, so the realized Nasdaq move cannot be applied again as a future jump."
+  }
+}

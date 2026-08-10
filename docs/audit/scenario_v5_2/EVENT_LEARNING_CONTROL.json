@@ -1,0 +1,34 @@
+{
+  "contract": {
+    "mode": "append_only_event_then_deterministic_candidate_rebuild",
+    "ledger_path": "data/scenarios/candidates/event_learning/events.jsonl",
+    "supported_events": [
+      "cpi",
+      "nfp",
+      "fomc",
+      "gdp",
+      "earnings"
+    ],
+    "active_event_count": 0,
+    "numerical_event_count": 0,
+    "corrections_require_supersedes": true,
+    "instant_means": "after a validated normalized release is explicitly ingested",
+    "background_scraping_or_unbounded_self_training": false
+  },
+  "score_state": {
+    "active_event_count": 0,
+    "numerical_event_count": 0,
+    "raw_weighted_scores": {
+      "growth_risk": 0.0,
+      "policy_relief": 0.0,
+      "inflation_risk": 0.0
+    },
+    "bounded_scores": {
+      "growth_risk": 0.0,
+      "policy_relief": 0.0,
+      "inflation_risk": 0.0
+    },
+    "events": [],
+    "dependency_cluster_strength": {}
+  }
+}
