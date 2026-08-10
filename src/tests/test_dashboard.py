@@ -442,10 +442,10 @@ def test_workspace_utility_contract() -> None:
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" in html
     assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
-    assert "BTC DATA GAP · 2009년 이전 실측 없음" in html
+    assert "Bitcoin</span><strong>가정 경로" in html
     assert "BTC SENSITIVITY" in html and "data-cross-scenario" in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
-    assert 'class="reference-banner history-gap"' in html
+    assert 'class="plain-insight" aria-label="자산 비교 읽는 법"' in html
     assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" in html
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
@@ -459,7 +459,7 @@ def test_workspace_utility_contract() -> None:
     assert "유동성 확장이 곧 상승을 뜻하지 않습니다" in html
     assert "function drawLiquidity" in html and "liquidity_zone" in html
     assert "monitor.consecutive_successful_days" in html
-    assert "자동 활성화 안 함" in html
+    assert "자동 반영하지 않음" in html
 
 
 def test_forecast_lookup_ui_contract() -> None:
@@ -502,8 +502,33 @@ def test_forecast_lookup_ui_contract() -> None:
 
 def test_v5_2_future_route_mounts_rendered_outlook() -> None:
     html = dashboard.load_template()
-    assert "mount(renderScenarioV52(candidate52));" in html
+    assert "renderScenarioV52(candidate52,initialState);" in html
+    assert "root.appendChild(labTabs)" in html and "mount(root);" in html
     assert "return renderScenarioV52(candidate52)" not in html
+
+
+def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> None:
+    html = dashboard.load_template()
+    assert "month:['다음 1개월',1],quarter:['3개월',3]" in html
+    for required in (
+        "scenarioV52UnifiedChart",
+        'data-scale="log"',
+        'data-scenario-p50="${key}"',
+        'data-v52-range="${key}"',
+        "다음 1개월",
+        "2026 연말",
+        "2027 연말",
+        "세 시나리오 한눈에",
+        "연구 코호트 가중치",
+        "S1에만 강하게 적용했습니다",
+        "Bitcoin</span><strong>가정 경로",
+        "유동성이 늘고 줄어든 구간",
+        "bindCrossAsset(crossAsset,initialState.scenario)",
+        "bindLiquidity(liquidity)",
+    ):
+        assert required in html
+    assert "CONDITIONAL SMALL MULTIPLES" not in html
+    assert "compareTray.hidden=!ids.length||!location.hash.startsWith('#records')" in html
 
 
 def test_u1d_mobile_layout_contract() -> None:

@@ -8,6 +8,7 @@ This is the single repository location for review packages and frozen handoff ma
 - `current/scenario_v5/`: V5 delivery ZIP and SHA-256 sidecar.
 - `current/scenario_v5_1/`: V5.1 final-review ZIP and SHA-256 sidecar.
 - `current/scenario_v5_2/`: V5.2 final-review ZIP and SHA-256 sidecar.
+- `current/scenario_v5_3/`: V5.3 UI remediation review ZIP and SHA-256 sidecar.
 - `archive/packages/`: historical public review ZIPs.
 - `archive/extracted/`: frozen extracted snapshots retained for review provenance.
 - `archive/local_only/`: ignored local-only review notes and ZIPs; never included in the public index.
@@ -19,6 +20,7 @@ Generate the scenario packages with their registered builders, then rebuild and 
 
 ```powershell
 $env:PYTHONPATH='src'
+python scripts/build_scenario_v5_3_ui_review_pack.py
 python scripts/build_review_index.py
 python scripts/build_review_index.py --check
 ```

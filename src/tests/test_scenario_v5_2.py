@@ -390,17 +390,17 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     css = (ROOT / "src/ai_fc/dashboard_parts/dashboard.css").read_text(encoding="utf-8")
     assert "renderScenarioV52" in script
-    assert "PRIMARY · TOTAL MIXTURE" in script
-    assert "CONDITIONAL ON THIS SCENARIO" in script
-    assert "NOT THE OVERALL FORECAST" in script
-    assert 'data-path-role="mixture-p50"' in script
-    assert 'data-path-role="weighted-medoid"' in script
-    assert "exact_date_forecast=false" in script
-    assert "DOTCOM SCENARIO WEIGHT" in script
-    assert "EVENT ADAPTATION" in script
-    assert "S1 강·S2/S3 약" in script
-    assert "scenario-v52-scenarios" in css
-    assert "@media(max-width:900px)" in css
+    assert "SAME SCALE · LOG VIEW" in script
+    assert 'data-scale="log"' in script
+    assert 'data-scenario-p50="${key}"' in script
+    assert 'data-path-role="${key}-actual-medoid"' in script
+    assert "연구 코호트 가중치" in script
+    assert "특정 날짜 확정 아님" in script
+    assert "S1에만 강하게 적용했습니다" in script
+    assert "CONDITIONAL SMALL MULTIPLES" not in script
+    assert ".scenario-v52-range" in css
+    assert ".scenario-v52-readout" in css
+    assert "@media(max-width:620px)" in css
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:

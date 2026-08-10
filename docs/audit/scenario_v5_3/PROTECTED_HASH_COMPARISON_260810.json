@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "algorithm": "sha256",
+  "checked_at": "2026-08-10",
+  "before_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b",
+  "after_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b",
+  "unchanged": true,
+  "changed_file_count": 0,
+  "missing_roots": [],
+  "protected_scope": [
+    "data/scenarios/nasdaq_latest.json",
+    "data/scenarios/archive",
+    "forecasts",
+    "calibration",
+    "questions/registry.yaml",
+    "data/ml_history",
+    "data/signals",
+    "data/liquidity",
+    "data/cross_asset",
+    "data/ai_capital_cycle"
+  ]
+}
