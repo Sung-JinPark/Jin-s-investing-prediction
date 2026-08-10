@@ -6,14 +6,14 @@
       "S2_strength": 0.0,
       "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.5487352774151661,
-        "S2": 0.40333271169463497,
-        "S3": 0.04793201089019875
+        "S1": 0.767132900136281,
+        "S2": 0.16713240899718265,
+        "S3": 0.06573469086653647
       },
-      "terminal_above_anchor_2026": 0.7550562381183228,
-      "first_touch_minus_10_by_october_end": 0.21191055936832248,
-      "year_end_p50": 29128.076712005106,
-      "effective_sample_size_fraction": 0.7121448213766438,
+      "terminal_above_anchor_2026": 0.7085846310138824,
+      "first_touch_minus_10_by_october_end": 0.314279014032294,
+      "year_end_p50": 29168.698715270893,
+      "effective_sample_size_fraction": 0.5341865547703524,
       "weight_gates_pass": true
     },
     {
@@ -21,14 +21,14 @@
       "S2_strength": 0.0,
       "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.5672855869264462,
-        "S2": 0.38675276147139814,
-        "S3": 0.04596165160215564
+        "S1": 0.7822044243994709,
+        "S2": 0.15631533711867085,
+        "S3": 0.06148023848185824
       },
-      "terminal_above_anchor_2026": 0.7613352057225438,
-      "first_touch_minus_10_by_october_end": 0.20856284748044643,
-      "year_end_p50": 29165.51152616594,
-      "effective_sample_size_fraction": 0.6960831359504562,
+      "terminal_above_anchor_2026": 0.7221011130693473,
+      "first_touch_minus_10_by_october_end": 0.300891448452161,
+      "year_end_p50": 29296.342530229336,
+      "effective_sample_size_fraction": 0.5139565852081812,
       "weight_gates_pass": true
     },
     {
@@ -36,14 +36,14 @@
       "S2_strength": 0.0,
       "S3_strength": 0.0,
       "scenario_probabilities": {
-        "S1": 0.5839767630906445,
-        "S2": 0.3718344729220127,
-        "S3": 0.044188763987342845
+        "S1": 0.7951744847706872,
+        "S2": 0.1470065191879762,
+        "S3": 0.057818996041336744
       },
-      "terminal_above_anchor_2026": 0.7670759541090235,
-      "first_touch_minus_10_by_october_end": 0.2055556900695928,
-      "year_end_p50": 29206.741038518576,
-      "effective_sample_size_fraction": 0.6786288643240143,
+      "terminal_above_anchor_2026": 0.7338831516330515,
+      "first_touch_minus_10_by_october_end": 0.2892658366370665,
+      "year_end_p50": 29413.945486967554,
+      "effective_sample_size_fraction": 0.4956399911146295,
       "weight_gates_pass": true
     }
   ],

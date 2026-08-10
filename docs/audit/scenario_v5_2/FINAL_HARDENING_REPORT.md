@@ -18,12 +18,12 @@ The research candidate passes PIT, probability-unit, explicit dependency-overrid
 
 ## Quantitative outcome
 
-Full-evidence probabilities are S1 58.40%, S2 37.18%, and S3 4.42%. Conditional 2027 terminal p50 levels are S1 37,141.35, S2 33,305.09, and S3 13,163.70.
+Full-evidence probabilities are S1 79.52%, S2 14.70%, and S3 5.78%. Conditional 2027 terminal p50 levels are S1 37,161.84, S2 34,121.14, and S3 13,163.70.
 
 ## Hashes
 
-- Candidate model: `45cac498d5a12d88287dc9d08147509e437c08c656b01c6cf7576ea701d3c97c`
-- Receipt: `22da3ca4cb8658b3bbf1e87eab8a9b0d587a91be63c75a01a273021bd96846b2`
+- Candidate model: `36880a86d29e653e5fd28c706deb4f2584c282c0f007d12aeaa196413c2f6402`
+- Receipt: `4c0c772b79609d94f932b10318ab1c13e95de9868f741f6b32f0ee5e7f3c089b`
 - Protected before/after: `2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4` / `2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4`
 - Protected unchanged: `True`
 

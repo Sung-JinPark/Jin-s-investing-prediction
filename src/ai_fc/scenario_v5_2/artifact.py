@@ -359,6 +359,12 @@ def validate_candidate(
         if not (selected_returns[0] > selected_returns[1] > selected_returns[2] \
                 and selected_returns[0] - selected_returns[2] > .50):
             errors.append("scenario cluster outcomes are not dramatically ordered")
+        s2_return_126d = cluster_scenarios["S2"]["selected_cluster"][
+            "outcome_medians"
+        ]["forward_return_126d"]
+        if abs(float(s2_return_126d)) >= .05 \
+                or generator.get("label_gates", {}).get("S2_sideways_126d") is not True:
+            errors.append("S2 selected cluster is not a sideways middle regime")
     sensitivity = payload.get("sensitivity_analysis", {})
     sensitivity_rows = sensitivity.get("rows", [])
     if [row.get("S1_strength") for row in sensitivity_rows] != [.28, .45, .60] \

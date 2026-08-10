@@ -181,6 +181,10 @@ def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
                for key in ("S1", "S2", "S3")]
     assert returns[0] > returns[1] > returns[2]
     assert returns[0] - returns[2] > .50
+    assert abs(scenarios["S2"]["selected_cluster"]["outcome_medians"][
+        "forward_return_126d"
+    ]) < .05
+    assert generator["label_gates"]["S2_sideways_126d"] is True
 
 
 def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:

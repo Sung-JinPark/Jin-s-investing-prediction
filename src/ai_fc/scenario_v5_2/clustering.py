@@ -268,7 +268,7 @@ def _current_macro_features(
 
 
 def _select_cluster(
-    scenario: str, audits: list[dict[str, Any]], all_outcomes: np.ndarray,
+    scenario: str, audits: list[dict[str, Any]],
 ) -> int:
     eligible = [row for row in audits if row["origin_count"] >= 5]
     if scenario == "S1":
@@ -278,10 +278,13 @@ def _select_cluster(
             + .20 * row["outcome_medians"]["maximum_drawdown_252d"]
         ))
     elif scenario == "S2":
-        eligible = [row for row in eligible if row["origin_count"] >= 10]
-        reference = float(np.median(all_outcomes[:, 1]))
+        eligible = [
+            row for row in eligible
+            if row["origin_count"] >= 10
+            and .05 < row["outcome_medians"]["forward_return_252d"] < .35
+        ]
         selected = min(eligible, key=lambda row: (
-            abs(row["outcome_medians"]["forward_return_252d"] - reference),
+            abs(row["outcome_medians"]["forward_return_126d"]),
             -row["origin_count"],
         ))
     elif scenario == "S3":
@@ -402,8 +405,11 @@ def build_clustered_prior(
             "features": PRICE_FEATURES,
             "clusters": 5,
             "current": current_price_features,
-            "residual_scale": .20,
-            "selection_rule": "closest to all-origin median 252d return; n>=10",
+            "residual_scale": .30,
+            "selection_rule": (
+                "minimum absolute cluster-level 126d return among moderate "
+                "positive 252d clusters; n>=10"
+            ),
         },
         "S3": {
             "source_group": "macro_tightening_financial_conditions_db",
@@ -426,12 +432,11 @@ def build_clustered_prior(
     for offset, (scenario, config) in enumerate(configurations.items()):
         rows = config["rows"]
         features = np.asarray([row["features"] for row in rows])
-        outcomes = np.asarray([row["outcomes"] for row in rows])
         labels, medoids, center, scale = deterministic_k_medoids(
             features, int(config["clusters"])
         )
         clusters = _cluster_audit(rows, labels, medoids, config["features"])
-        selected = _select_cluster(scenario, clusters, outcomes)
+        selected = _select_cluster(scenario, clusters)
         sampled, sampling = _sample_cluster_paths(
             rows, labels, selected, config["levels"], config["current"],
             center, scale, horizon, count_per_scenario,
@@ -461,6 +466,7 @@ def build_clustered_prior(
     }
     label_gates = {
         "S1_positive_252d": medians["S1"]["forward_return_252d"] > .15,
+        "S2_sideways_126d": abs(medians["S2"]["forward_return_126d"]) < .05,
         "S2_moderate_252d": .05 < medians["S2"]["forward_return_252d"] < .35,
         "S3_negative_252d": medians["S3"]["forward_return_252d"] < -.15,
         "S3_stress_drawdown": medians["S3"]["maximum_drawdown_252d"] < -.30,
