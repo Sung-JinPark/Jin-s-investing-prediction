@@ -13,3 +13,12 @@ def test_secret_scan_ignores_environment_variable_names(tmp_path: Path) -> None:
     source = tmp_path / "sample.py"
     source.write_text("key = os.environ['OPENAI_API_KEY']\n", encoding="utf-8")
     assert scan(tmp_path) == []
+
+
+def test_secret_scan_does_not_match_sk_inside_public_url_slug(tmp_path: Path) -> None:
+    source = tmp_path / "capture.html"
+    source.write_text(
+        '<a href="/analysis/the-leverage-risk-wall-street-can-afford-123">public</a>\n',
+        encoding="utf-8",
+    )
+    assert scan(tmp_path) == []

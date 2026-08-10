@@ -20,6 +20,9 @@
   "origin_release_id": "user_instruction_2026_08_10",
   "used_numerically": true,
   "human_approval_receipt": "explicit_user_message_2026_08_10",
+  "applicable_candidate_ids": [
+    "scenario_v5_2_scenario_clustered_db_v4"
+  ],
   "effective_strength": 0.60,
   "scenario_strength": {"S1": 0.60, "S2": 0.00, "S3": 0.00},
   "recent_state": {

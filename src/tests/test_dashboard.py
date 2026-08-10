@@ -651,6 +651,8 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     assert model["o_entry_cohort"]["entry_count"] == 840
     assert "entries" not in model["o_entry_cohort"]
     assert len(model["o_entry_cohort"]["summary"]) == 15
+    if model["scenario_v5"]["runtime_gate"]["display_eligible"] is False:
+        assert "conditional_distribution" not in model["scenario_v5"]
     html = dashboard.render_html(model, mode="embed")
     assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
 

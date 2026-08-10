@@ -22,9 +22,9 @@ Full-evidence probabilities are S1 79.52%, S2 14.70%, and S3 5.78%. Conditional 
 
 ## Hashes
 
-- Candidate model: `36880a86d29e653e5fd28c706deb4f2584c282c0f007d12aeaa196413c2f6402`
-- Receipt: `4c0c772b79609d94f932b10318ab1c13e95de9868f741f6b32f0ee5e7f3c089b`
-- Protected before/after: `2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4` / `2e2f879733f4f6bc8d350af9a683917161234dd4ba2f59cbf4a4fef463d712d4`
+- Candidate model: `5ae4dfe981712b35f97b01b023b1e64138cf7adc9a4ebfb34a5b4565afcf5846`
+- Receipt: `39b1f58d5be2a5d563dad82ab2a43c7752beeb40f96c819ff83184c1e4ca6e18`
+- Protected before/after: `428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316` / `428553d481c8b0f060c10cf880d83f2a43da95754b8dbe59a43af6a44f02f316`
 - Protected unchanged: `True`
 
 ## Known limitation

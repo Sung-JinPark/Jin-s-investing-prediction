@@ -16,6 +16,12 @@ CONTRACT_FILES = (
     "data/contracts/scenario_v5_event_impact.yaml",
 )
 
+# V5 and V5.1 are historical shadow candidates whose pre-jobs information set
+# is part of their audit identity.  The mutable latest snapshot moved forward
+# after those candidates were defined, so replay must use the immutable vintage
+# whose bytes match the source hash recorded by the original build.
+V5_SOURCE_SNAPSHOT = "data/scenarios/archive/2026-08-06.json"
+
 PROTECTED_PATHS = (
     "data/scenarios/nasdaq_latest.json",
     "data/scenarios/archive",

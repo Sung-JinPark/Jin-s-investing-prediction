@@ -20,7 +20,8 @@ def _candidate() -> dict:
 
 
 def _snapshot() -> dict:
-    return json.loads((ROOT / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8"))
+    source = _candidate()["source_snapshot"]["path"]
+    return json.loads((ROOT / source).read_text(encoding="utf-8"))
 
 
 def test_candidate_contract_and_source_snapshot_hash() -> None:
@@ -59,6 +60,10 @@ def test_prior_reproduces_snapshot_partition_exactly() -> None:
 def test_evidence_is_point_in_time_and_probability_units_are_explicit() -> None:
     payload = _candidate()
     cutoff = datetime.fromisoformat(payload["knowledge_cutoff"])
+    assert all(
+        row["view_id"] != "human_model_risk:dotcom_upside_no_repeat_correction_260810"
+        for row in payload["evidence_views"]
+    )
     for row in payload["evidence_views"]:
         available = datetime.fromisoformat(row["available_at"])
         assert available.tzinfo is not None

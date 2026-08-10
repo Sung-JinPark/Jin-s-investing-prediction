@@ -38,7 +38,12 @@ def _rehash(payload: dict) -> dict:
 
 
 def test_v5_1_candidate_is_strict_and_source_exact() -> None:
-    result = validate_candidate_v5_1(_candidate(), ROOT)
+    candidate = _candidate()
+    assert all(
+        row["view_id"] != "human_model_risk:dotcom_upside_no_repeat_correction_260810"
+        for row in candidate["evidence_views"]
+    )
+    result = validate_candidate_v5_1(candidate, ROOT)
     assert result["ok"], result["errors"]
 
 
@@ -154,8 +159,13 @@ def test_future_and_naive_available_at_fail() -> None:
 
 def test_runtime_loader_current_and_stale_states() -> None:
     generated = datetime.fromisoformat(_candidate()["generated_at"])
-    current = load_current_candidate(ROOT, generated + timedelta(minutes=1), 1)
-    assert current["runtime_gate"]["display_eligible"]
+    relaxed = load_current_candidate(ROOT, generated + timedelta(minutes=1), 5)
+    assert relaxed["runtime_gate"]["display_eligible"]
+    strict = load_current_candidate(ROOT, generated + timedelta(minutes=1), 1)
+    assert strict["status"] == "stale_or_invalid"
+    assert strict["runtime_gate"]["display_eligible"] is False
+    assert any("candidate is stale" in reason
+               for reason in strict["runtime_gate"]["reasons"])
     stale = load_current_candidate(ROOT, datetime(2026, 8, 12, 8, tzinfo=timezone.utc), 1)
     assert stale["status"] == "stale_or_invalid"
     assert stale["runtime_gate"]["display_eligible"] is False
@@ -206,6 +216,12 @@ def test_approved_report_contract_rejects_llm_only_or_incomplete_rows() -> None:
     errors = validate_approved_report_view({"used_numerically": True, "probability_space": "physical_event"})
     assert errors
     assert any("human_approval_receipt" in error or "human approval" in error for error in errors)
+    scoped = validate_approved_report_view({
+        "used_numerically": True,
+        "probability_space": "physical_event",
+        "applicable_candidate_ids": "scenario_v5_2_scenario_clustered_db_v4",
+    })
+    assert "applicable_candidate_ids must be a non-empty string list" in scoped
 
 
 def test_model_content_hash_is_deterministic_and_receipt_is_separate() -> None:

@@ -1,0 +1,8 @@
+{
+  "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
+  "canonical_sha256": "7e9fbcbbf4a292cfb836d53ba97aa7126afc86258362c46b852b0d147207f4d4",
+  "source_snapshot_sha256": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
+  "artifact": "data/scenarios/candidates/scenario_v5_evidence_conditioned_legacy_prior_v1_latest.json",
+  "archive": "data/scenarios/candidates/archive/scenario_v5_evidence_conditioned_legacy_prior_v1_20260806_7e9fbcbbf4a2.json",
+  "review_only": true
+}

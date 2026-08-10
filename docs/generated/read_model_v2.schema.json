@@ -345,6 +345,31 @@
         }
       }
     },
+    "scenario_v5_2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "candidate_id",
+        "runtime_gate"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "degraded",
+            "stale_or_invalid",
+            "unavailable"
+          ]
+        },
+        "candidate_id": {
+          "const": "scenario_v5_2_scenario_clustered_db_v4"
+        }
+      }
+    },
     "scenario_v4_shadow": {
       "type": [
         "object",

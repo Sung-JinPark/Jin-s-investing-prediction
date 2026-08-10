@@ -1,5 +1,2 @@
-Final strengthened S2 targeted model/dashboard suite: 23 passed in 6.47s.
-Final full repository suite after locking the sideways-middle gate: 453 passed in 101.77s.
-Strict candidate replay verification: PASS.
-An earlier full-suite run found one dashboard raw-size budget regression (452 passed, 1 failed); the projection was bounded to rendered fields and all later complete suites passed.
-A separate initial full-suite attempt ended at the 124-second command limit before results and is classified as an execution-limit event, not a test failure.
+python -m pytest src/tests -q
+400 passed in 88.11s
