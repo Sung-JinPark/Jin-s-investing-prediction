@@ -1,0 +1,39 @@
+Scenario V5.3 UI remediation verification
+Date: 2026-08-10 KST
+
+[PASS] JavaScript syntax
+Command: node --check src\ai_fc\dashboard_parts\dashboard.js
+
+[PASS] Targeted UI and Scenario V5.2 tests
+Command: python -m pytest src/tests/test_dashboard.py src/tests/test_scenario_v5_2.py -q
+Result: 54 passed in 7.61s
+
+[PASS] Full regression
+Command: python -m pytest -q
+Result after the final label fix: 459 passed in 99.07s
+
+[PASS] Static Pages build
+Command: cd src; python -m ai_fc dashboard --pages-out ..\_site
+Result: Pages build produced _site\index.html
+
+[PASS] Browser functional checks
+- Default range: next 1 month
+- Default endpoint: 2026-09-04
+- Unified chart scale: log
+- Conditional scenario p50 paths: 3
+- 2026 and 2027 controls: visible and functional
+- Direct #future/cross-asset: NASDAQ, Bitcoin, Realty Income present
+- Direct #future/liquidity: liquidity SVG and asset return series present
+- NaN or Infinity in visible main content: none
+- Persistent comparison alert outside records route: hidden
+
+[PASS] Protected roots
+Before manifest SHA-256: d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b
+After manifest SHA-256:  d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b
+Changed protected files: 0
+
+[DISCLOSED] Model status
+Candidate status: degraded
+Eligible historical hard-event count: 1
+Preferred minimum: 60
+Direct event return kernel used: false
