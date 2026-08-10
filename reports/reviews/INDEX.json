@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "review_root": "reports/reviews",
+  "public_zip_count": 13,
+  "packages": [
+    {
+      "path": "reports/reviews/archive/packages/chatgpt_full_handoff_scenario_audit_dea62a1_260806.zip",
+      "bytes": 1462679,
+      "sha256": "97f77688173e2719fa9e7f7c8df538b00b59d8d264f3d574706658c17101c9d7",
+      "zip_member_count": 413,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/claude_ai_bubble_dotcom_realty_review_48fc893_260804.zip",
+      "bytes": 1722348,
+      "sha256": "b4b332bc507269c65dd9ee946899755dccabc857a139495f2fc4fbc4372d26f1",
+      "zip_member_count": 260,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/claude_db_forecast_dotcom_review_334b4e5_260805.zip",
+      "bytes": 381022,
+      "sha256": "41fecdc2f18368acb577794e8404dd03e406d235ad1774733715f364dcd32d93",
+      "zip_member_count": 38,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/l0_acceptance_review_48fc893_260804.zip",
+      "bytes": 425922,
+      "sha256": "985c4d722ae92011c8d4a30dccdca0361d2f3c2ecc18ac907bb1e7d4c23e2870",
+      "zip_member_count": 48,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/l0_acceptance_review_FINAL_48fc893_260804.zip",
+      "bytes": 425975,
+      "sha256": "c6ed06ec19365bf2c9ca0a025d2e7a292d3747022c0924a1a832861639402489",
+      "zip_member_count": 48,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/l0_batch1_independent_review_260806.zip",
+      "bytes": 134713,
+      "sha256": "a8fea6ba04d23b04ec752a77db405b89056fa6b14a966b4d866a6fdd2974f2a1",
+      "zip_member_count": 33,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/review_260805_structural_path_v2_r7_260806.zip",
+      "bytes": 299438,
+      "sha256": "e11dd23215f8aabfbc6d0081375e1095a120faab22118339d95a338b64e6c999",
+      "zip_member_count": 32,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/round2_ledger_hy_ui_review_278fac6_260804.zip",
+      "bytes": 930289,
+      "sha256": "2e7e5cf3073911784e931a9236c816f9634c2883732cb082a64c5fbb0d7a57ef",
+      "zip_member_count": 40,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/share_journal_ledger_lookup_review_ea00f4f_260804.zip",
+      "bytes": 633434,
+      "sha256": "145a8373c9de0ef3cbe206f2f32aaa4b33ecb3f71e8c501352dede4b1b865983",
+      "zip_member_count": 67,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/archive/packages/u0_s0_ux_external_sources_review_d349c65_260805.zip",
+      "bytes": 204914,
+      "sha256": "1b32eb43d2c204267721b6bfd283b2fe3a5eb8e9d551f7bc1a1fe48a307bd364",
+      "zip_member_count": 19,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/current/scenario_v5/AI_INVESTING_SCENARIO_V5_DELIVERY_260807.zip",
+      "bytes": 1253580,
+      "sha256": "4a3f7b2c8881d80f96da7c6260bcf50173d028bd1881b0f8ae1597565082cc83",
+      "zip_member_count": 47,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/current/scenario_v5_1/AI_INVESTING_SCENARIO_V5_1_FINAL_REVIEW_PACK_260807.zip",
+      "bytes": 1065455,
+      "sha256": "3558b9f43cbe892934e1e4f6cca0ccf3f5cad875f1be4dc41f39155431827247",
+      "zip_member_count": 45,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/current/scenario_v5_2/AI_INVESTING_SCENARIO_V5_2_FINAL_REVIEW_PACK_260810.zip",
+      "bytes": 1777305,
+      "sha256": "d6b6f18e1174c64393334fd75f45c504940782394e0d6ecce24401c255e87f40",
+      "zip_member_count": 101,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    }
+  ],
+  "extracted_snapshots": [
+    {
+      "path": "reports/reviews/archive/extracted/chatgpt_full_handoff_scenario_audit_dea62a1_260806",
+      "file_count": 414
+    },
+    {
+      "path": "reports/reviews/archive/extracted/claude_db_forecast_dotcom_review_334b4e5_260805",
+      "file_count": 35
+    },
+    {
+      "path": "reports/reviews/archive/extracted/l0_batch1_independent_review_260806",
+      "file_count": 31
+    },
+    {
+      "path": "reports/reviews/archive/extracted/review_260805_structural_path_v2_r7_260806",
+      "file_count": 27
+    }
+  ],
+  "excluded": [
+    "reports/reviews/archive/local_only",
+    "dualdb/data/raw"
+  ]
+}

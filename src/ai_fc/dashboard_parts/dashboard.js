@@ -1288,7 +1288,11 @@ function renderScenarioV52(candidate){
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
   initialLookup=initialState.lookup||null;
-  const candidate52=DATA.scenario_v5_2||null;if(candidate52&&['ok','degraded'].includes(candidate52.status)&&candidate52.runtime_gate?.display_eligible!==false)return renderScenarioV52(candidate52);
+  const candidate52=DATA.scenario_v5_2||null;
+  if(candidate52&&['ok','degraded'].includes(candidate52.status)&&candidate52.runtime_gate?.display_eligible!==false){
+    mount(renderScenarioV52(candidate52));
+    return;
+  }
   const candidateData=DATA.scenario_v5||null,v5=candidateData&&['ok','degraded'].includes(candidateData.status)&&candidateData.runtime_gate?.display_eligible!==false?candidateData:null;
   const officialScenario=DATA.scenario,shadowScenario=DATA.scenario_v4_shadow;
   let sc=scenarioV5FlowModel(officialScenario,v5),shadowActive=false;

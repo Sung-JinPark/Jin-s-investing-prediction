@@ -20,6 +20,7 @@ from .contracts import compare_protected_hashes, file_hash, protected_hashes
 AUDIT_RELATIVE = "docs/audit/scenario_v5"
 BASELINE_NAME = "PROTECTED_HASHES_BASELINE.json"
 DELIVERY_NAME = "AI_INVESTING_SCENARIO_V5_DELIVERY_260807.zip"
+DELIVERY_RELATIVE = Path("reports/reviews/current/scenario_v5") / DELIVERY_NAME
 DELIVERY_PATHS = (
     "data/contracts/scenario_v5_event_impact.yaml",
     "data/contracts/scenario_v5_evidence_view.yaml",
@@ -372,7 +373,7 @@ def create_delivery_zip(root: Path) -> tuple[Path, Path]:
     } for path in sorted(files)]
     _write_json(manifest_path, {
         "schema_version": 1,
-        "delivery": DELIVERY_NAME,
+        "delivery": DELIVERY_RELATIVE.as_posix(),
         "candidate_id": "scenario_v5_evidence_conditioned_legacy_prior_v1",
         "file_count_excluding_manifest": len(rows),
         "files": rows,
@@ -384,9 +385,14 @@ def create_delivery_zip(root: Path) -> tuple[Path, Path]:
         ],
     })
     files.add(manifest_path)
-    zip_path = root / DELIVERY_NAME
+    zip_path = root / DELIVERY_RELATIVE
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED,
                          compresslevel=9) as archive:
         for path in sorted(files):
             archive.write(path, path.relative_to(root).as_posix())
+    delivery_hash = file_hash(zip_path)
+    zip_path.with_suffix(zip_path.suffix + ".sha256").write_text(
+        f"{delivery_hash}  {DELIVERY_NAME}\n", encoding="utf-8", newline="\n",
+    )
     return zip_path, manifest_path

@@ -500,6 +500,12 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "showBaseline=true" in html
 
 
+def test_v5_2_future_route_mounts_rendered_outlook() -> None:
+    html = dashboard.load_template()
+    assert "mount(renderScenarioV52(candidate52));" in html
+    assert "return renderScenarioV52(candidate52)" not in html
+
+
 def test_u1d_mobile_layout_contract() -> None:
     html = dashboard.load_template()
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")

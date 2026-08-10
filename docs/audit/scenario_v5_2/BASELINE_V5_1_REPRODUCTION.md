@@ -18,6 +18,15 @@ Captured before V5.2 source changes on 2026-08-10 (Asia/Seoul).
 
 Only one V5.1 final-review ZIP exists. Its SHA-256 is `3558b9f43cbe892934e1e4f6cca0ccf3f5cad875f1be4dc41f39155431827247`; there is no `(1)` duplicate to compare.
 
+## Post-merge workspace relocation
+
+The baseline facts above are historical and remain unchanged. Review artifacts were later relocated without content changes into the canonical review tree:
+
+- V4 PR3 delivery directory: `reports/reviews/current/scenario_v4/AI_INVESTING_SCENARIO_V4_PR3_DELIVERY_PACK_260807/`
+- V5.1 ZIP and sidecar: `reports/reviews/current/scenario_v5_1/`
+- V5.2 ZIP and sidecar: `reports/reviews/current/scenario_v5_2/`
+- Canonical prompt and audit working files remain under `prompts/scenario_v4/` and `docs/audit/phase3_260807/`.
+
 ## V5.1 candidate identity
 
 - Candidate: `scenario_v5_1_time_aligned_legacy_prior_v1`

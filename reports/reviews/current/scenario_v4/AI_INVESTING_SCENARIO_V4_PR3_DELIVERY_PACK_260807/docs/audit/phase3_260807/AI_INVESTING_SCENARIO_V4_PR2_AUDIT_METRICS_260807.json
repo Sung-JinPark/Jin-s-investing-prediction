@@ -1,0 +1,392 @@
+{
+  "review_date_kst": "2026-08-07",
+  "package": {
+    "name": "scenario_v4_shadow_pr2_260807_001.zip",
+    "entries": 26,
+    "sha256": "d55d04af0f111499d29535e8fe58fd905857c6bcfe8e5abf46d26f3150a26588"
+  },
+  "snapshots": {
+    "official_path": "data/scenarios/nasdaq_latest.json",
+    "official_sha256": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
+    "shadow_path": "data/scenarios/shadow/rcfhs_sb_v1_latest.json",
+    "shadow_sha256": "cd2bb86b37b2e9cbe6c5c370e3bbd3cc6f21a8953727732c8b4fc27590ee70ca"
+  },
+  "pr": {
+    "number": 2,
+    "merged": true,
+    "merge_commit": "0c14900fec2f1276e799df09f68c8270fd5d9646",
+    "files_changed": 13,
+    "insertions": 5837,
+    "deletions": 7
+  },
+  "independent_tests": {
+    "scenario_and_v4_shadow": "18 passed",
+    "dashboard_collection": "BLOCKED_BY_ENVIRONMENT: python-frontmatter missing",
+    "claimed_package_result": "51 passed"
+  },
+  "legacy_reproduction": {
+    "counts": {
+      "S1": 16702,
+      "S2": 302,
+      "S3": 2996
+    },
+    "probabilities": [
+      83,
+      2,
+      15
+    ],
+    "quantile_cells_checked": 1764,
+    "quantile_mismatches": 0,
+    "full_member_matrix_reconstructable": true
+  },
+  "coarse_fan_monotonicity_violations": {
+    "S1": {
+      "p25_gt_p50": 16,
+      "p50_gt_p75": 5,
+      "any": 19,
+      "points": 52,
+      "first_dates": [
+        "2026-08-10",
+        "2026-08-17",
+        "2026-08-24",
+        "2026-08-31",
+        "2026-09-08",
+        "2026-09-15",
+        "2026-09-22",
+        "2026-09-29",
+        "2026-10-06",
+        "2026-10-13"
+      ]
+    },
+    "S2": {
+      "p25_gt_p50": 26,
+      "p50_gt_p75": 3,
+      "any": 28,
+      "points": 52,
+      "first_dates": [
+        "2026-08-10",
+        "2026-08-17",
+        "2026-08-24",
+        "2026-09-08",
+        "2026-09-15",
+        "2026-10-06",
+        "2026-10-13",
+        "2026-10-20",
+        "2026-10-27",
+        "2026-11-03"
+      ]
+    },
+    "S3": {
+      "p25_gt_p50": 20,
+      "p50_gt_p75": 8,
+      "any": 27,
+      "points": 52,
+      "first_dates": [
+        "2026-08-10",
+        "2026-08-17",
+        "2026-08-24",
+        "2026-08-31",
+        "2026-09-08",
+        "2026-09-15",
+        "2026-09-22",
+        "2026-09-29",
+        "2026-10-06",
+        "2026-10-13"
+      ]
+    }
+  },
+  "coarse_fan_vs_true_conditional": {
+    "S1": {
+      "p25": {
+        "mae": 1295.3076923076924,
+        "max_abs": 2943.0,
+        "end_diff": 0.0
+      },
+      "p50": {
+        "mae": 975.2307692307693,
+        "max_abs": 3778.0,
+        "end_diff": 0.0
+      },
+      "p75": {
+        "mae": 1090.326923076923,
+        "max_abs": 3199.0,
+        "end_diff": 0.0
+      },
+      "actual_coverage_sorted_band": {
+        "median": 0.4746736917734403,
+        "min": 0.0,
+        "max": 0.7461381870434678,
+        "end": 0.4999401269309065
+      }
+    },
+    "S2": {
+      "p25": {
+        "mae": 929.1923076923077,
+        "max_abs": 2454.0,
+        "end_diff": -14.0
+      },
+      "p50": {
+        "mae": 998.7115384615385,
+        "max_abs": 2925.0,
+        "end_diff": -26.0
+      },
+      "p75": {
+        "mae": 969.5,
+        "max_abs": 4045.0,
+        "end_diff": 3.0
+      },
+      "actual_coverage_sorted_band": {
+        "median": 0.4370860927152318,
+        "min": 0.0,
+        "max": 0.7615894039735099,
+        "end": 0.5
+      }
+    },
+    "S3": {
+      "p25": {
+        "mae": 980.6538461538462,
+        "max_abs": 2945.0,
+        "end_diff": 0.0
+      },
+      "p50": {
+        "mae": 1510.3846153846155,
+        "max_abs": 3085.0,
+        "end_diff": 0.0
+      },
+      "p75": {
+        "mae": 678.2884615384615,
+        "max_abs": 1725.0,
+        "end_diff": -1.0
+      },
+      "actual_coverage_sorted_band": {
+        "median": 0.5365487316421895,
+        "min": 0.0,
+        "max": 0.9085447263017357,
+        "end": 0.4993324432576769
+      }
+    }
+  },
+  "selected_representative_metric_percentiles": {
+    "S1": {
+      "terminal_return": {
+        "value": 0.24408101038040075,
+        "percentile": 50.00299365345468
+      },
+      "ann_daily_vol": {
+        "value": 0.18378780416060325,
+        "percentile": 42.86612381750689
+      },
+      "ann_weekly_vol": {
+        "value": 0.2143190869670798,
+        "percentile": 92.6146569273141
+      },
+      "mdd_magnitude": {
+        "value": 0.1760773500810503,
+        "percentile": 80.3466650700515
+      },
+      "total_underwater_sessions": {
+        "value": 222.0,
+        "percentile": 55.02335049694648
+      },
+      "longest_underwater_sessions": {
+        "value": 97.0,
+        "percentile": 56.226799185726264
+      },
+      "down_week_count": {
+        "value": 23.0,
+        "percentile": 60.15147886480661
+      },
+      "direction_change_count": {
+        "value": 32.0,
+        "percentile": 98.11399832355407
+      },
+      "largest_1d_loss_magnitude": {
+        "value": 0.028761032184709108,
+        "percentile": 27.69428810920848
+      },
+      "largest_5d_loss_magnitude": {
+        "value": 0.06148090813534863,
+        "percentile": 47.53023589989223
+      }
+    },
+    "S2": {
+      "terminal_return": {
+        "value": 0.14034303026258765,
+        "percentile": 49.83443708609272
+      },
+      "ann_daily_vol": {
+        "value": 0.18908005619748822,
+        "percentile": 69.7019867549669
+      },
+      "ann_weekly_vol": {
+        "value": 0.19374482623651462,
+        "percentile": 72.35099337748345
+      },
+      "mdd_magnitude": {
+        "value": 0.1950202602861023,
+        "percentile": 91.22516556291392
+      },
+      "total_underwater_sessions": {
+        "value": 229.0,
+        "percentile": 49.83443708609272
+      },
+      "longest_underwater_sessions": {
+        "value": 141.0,
+        "percentile": 91.72185430463577
+      },
+      "down_week_count": {
+        "value": 22.0,
+        "percentile": 36.258278145695364
+      },
+      "direction_change_count": {
+        "value": 20.0,
+        "percentile": 10.264900662251657
+      },
+      "largest_1d_loss_magnitude": {
+        "value": 0.03210162202444941,
+        "percentile": 51.82119205298014
+      },
+      "largest_5d_loss_magnitude": {
+        "value": 0.07351340424025077,
+        "percentile": 86.25827814569537
+      }
+    },
+    "S3": {
+      "terminal_return": {
+        "value": 0.02904933212434857,
+        "percentile": 50.016688918558074
+      },
+      "ann_daily_vol": {
+        "value": 0.2111990894263146,
+        "percentile": 99.98331108144191
+      },
+      "ann_weekly_vol": {
+        "value": 0.1967772073395312,
+        "percentile": 73.8150867823765
+      },
+      "mdd_magnitude": {
+        "value": 0.2005718621224304,
+        "percentile": 73.01401869158877
+      },
+      "total_underwater_sessions": {
+        "value": 237.0,
+        "percentile": 39.0520694259012
+      },
+      "longest_underwater_sessions": {
+        "value": 164.0,
+        "percentile": 51.48531375166889
+      },
+      "down_week_count": {
+        "value": 30.0,
+        "percentile": 92.9739652870494
+      },
+      "direction_change_count": {
+        "value": 26.0,
+        "percentile": 60.797730307076094
+      },
+      "largest_1d_loss_magnitude": {
+        "value": 0.04722171111571022,
+        "percentile": 99.31575433911881
+      },
+      "largest_5d_loss_magnitude": {
+        "value": 0.07529222387075296,
+        "percentile": 81.52536715620828
+      }
+    }
+  },
+  "path_realism_2027": {
+    "legacy_structural": {
+      "S1": {
+        "ann_weekly_vol": 0.08537730022676095,
+        "mdd": 0.07831585441085753,
+        "down_weeks": 5,
+        "direction_changes": 3,
+        "n_weeks": 30
+      },
+      "S2": {
+        "ann_weekly_vol": 0.0853656283754134,
+        "mdd": 0.07954278818757754,
+        "down_weeks": 5,
+        "direction_changes": 3,
+        "n_weeks": 30
+      },
+      "S3": {
+        "ann_weekly_vol": 0.08537620819717039,
+        "mdd": 0.07986923734165463,
+        "down_weeks": 5,
+        "direction_changes": 3,
+        "n_weeks": 30
+      }
+    },
+    "shadow_actual_member": {
+      "S1": {
+        "ann_weekly_vol": 0.20003224055087604,
+        "mdd": 0.07014566992156235,
+        "down_weeks": 13,
+        "direction_changes": 21,
+        "n_weeks": 30
+      },
+      "S2": {
+        "ann_weekly_vol": 0.16169219403223958,
+        "mdd": 0.06898784808197778,
+        "down_weeks": 10,
+        "direction_changes": 11,
+        "n_weeks": 30
+      },
+      "S3": {
+        "ann_weekly_vol": 0.16904965006504932,
+        "mdd": 0.08474052718286651,
+        "down_weeks": 15,
+        "direction_changes": 15,
+        "n_weeks": 30
+      }
+    },
+    "legacy_pointwise": {
+      "S1": {
+        "ann_weekly_vol": 0.004758764398126453,
+        "mdd": 0.0,
+        "down_weeks": 0,
+        "direction_changes": 0,
+        "n_weeks": 30
+      },
+      "S2": {
+        "ann_weekly_vol": 0.0253519221315896,
+        "mdd": 0.005045917852457338,
+        "down_weeks": 4,
+        "direction_changes": 7,
+        "n_weeks": 30
+      },
+      "S3": {
+        "ann_weekly_vol": 0.013638266051393804,
+        "mdd": 0.0029643527204502584,
+        "down_weeks": 1,
+        "direction_changes": 2,
+        "n_weeks": 30
+      }
+    }
+  },
+  "return_correlations": {
+    "legacy_structural_2027": {
+      "S1-S2": 0.9999984282780906,
+      "S1-S3": 0.9999981729669251,
+      "S2-S3": 0.9999982881923052
+    },
+    "shadow_actual_member_full": {
+      "S1-S2": 0.15041875701780943,
+      "S1-S3": 0.053081958983051174,
+      "S2-S3": -0.016977709225646814
+    },
+    "shadow_actual_member_2027": {
+      "S1-S2": -0.029120229960611484,
+      "S1-S3": 0.2129681896236658,
+      "S2-S3": -0.38521182789616576
+    }
+  },
+  "model_identity": {
+    "declared_version": "rcfhs-sb-v1",
+    "source_method": "gbm-daily-252d-v2-lookup+db-structural-v2",
+    "nested_model_promotion_state": "champion-baseline; v2 alternatives remain shadow",
+    "top_level_promotion_state": "blocked_pending_rolling_origin_validation",
+    "actual_rcfhs_engine_present": false
+  }
+}

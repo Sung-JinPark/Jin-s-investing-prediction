@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from ai_fc.scenario_v5.artifact import CANDIDATE_RELATIVE, validate_candidate, verify_candidate
+from ai_fc.scenario_v5.audit import DELIVERY_RELATIVE
 from ai_fc.scenario_v5.engine import reproduce_legacy_prior
 
 
@@ -22,6 +23,10 @@ def _candidate() -> dict:
 def _snapshot() -> dict:
     source = _candidate()["source_snapshot"]["path"]
     return json.loads((ROOT / source).read_text(encoding="utf-8"))
+
+
+def test_delivery_package_uses_central_review_tree() -> None:
+    assert DELIVERY_RELATIVE.parent.as_posix() == "reports/reviews/current/scenario_v5"
 
 
 def test_candidate_contract_and_source_snapshot_hash() -> None:
