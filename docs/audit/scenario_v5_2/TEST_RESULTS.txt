@@ -1,3 +1,6 @@
-Targeted Scenario V5.2 (final tree): 20 passed in 1.90s
-Full repository suite (final tree): 451 passed in 91.91s
-Deterministic replay verification: PASS (ok=true, replay_checked=true)
+TARGETED FINAL: 55 passed in 13.83s (src/tests/test_scenario_v5_2.py, test_read_model_contract.py, test_dashboard.py)
+DETERMINISTIC REPLAY: PASS
+FULL FINAL: 453 passed in 154.60s (python -m pytest -q)
+COMPILE: PASS (scenario_v5_2 package and dotcom exporter)
+DIFF_CHECK: PASS (git diff --check)
+VISUAL: local file URL blocked by in-app Browser security policy; DOM/SVG/responsive semantic tests PASS; no policy bypass attempted

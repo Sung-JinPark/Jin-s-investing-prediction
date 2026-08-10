@@ -23,6 +23,7 @@ from ai_fc.scenario_v5.contracts import (
 from .engine import (
     CANDIDATE_ID,
     CANDIDATE_RELATIVE,
+    SHADOW_V52_RELATIVE,
     LEGACY_V52_RELATIVE,
     KNOWLEDGE_CUTOFF,
     QUANTILE_NAMES,
@@ -165,8 +166,18 @@ def validate_candidate(
         strength = row.get("effective_strength")
         if isinstance(strength, bool) or not isinstance(strength, (int, float)):
             errors.append(f"invalid evidence strength: {row.get('evidence_id')}")
-        elif float(strength) < 0 or float(strength) > .35:
-            errors.append(f"dependency cap exceeded: {row.get('evidence_id')}")
+        else:
+            approved_cap = row.get("approved_cap", .35)
+            if isinstance(approved_cap, bool) or not isinstance(approved_cap, (int, float)) \
+                    or not 0 <= float(approved_cap) <= 1:
+                errors.append(f"invalid approved evidence cap: {row.get('evidence_id')}")
+            elif "approved_cap" in row and (
+                row.get("dependency_cluster_id") != "dotcom_single_cycle_analog"
+                or not math.isclose(float(approved_cap), .60)
+            ):
+                errors.append(f"unauthorized evidence-cap override: {row.get('evidence_id')}")
+            elif float(strength) < 0 or float(strength) > float(approved_cap):
+                errors.append(f"dependency cap exceeded: {row.get('evidence_id')}")
 
     if root is not None:
         for relative in SOURCE_PATHS:
@@ -176,12 +187,13 @@ def validate_candidate(
             elif payload.get("source_hashes", {}).get(relative) \
                     != source_file_hash(root, relative):
                 errors.append(f"source hash mismatch: {relative}")
-        legacy_path = root / LEGACY_V52_RELATIVE
-        if not legacy_path.is_file():
-            errors.append(f"shadow baseline missing: {LEGACY_V52_RELATIVE}")
-        elif payload.get("source_hashes", {}).get(LEGACY_V52_RELATIVE.as_posix()) \
-                != file_hash(legacy_path):
-            errors.append("shadow baseline source hash mismatch")
+        for baseline in (SHADOW_V52_RELATIVE, LEGACY_V52_RELATIVE):
+            baseline_path = root / baseline
+            if not baseline_path.is_file():
+                errors.append(f"shadow baseline missing: {baseline}")
+            elif payload.get("source_hashes", {}).get(baseline.as_posix()) \
+                    != file_hash(baseline_path):
+                errors.append(f"shadow baseline source hash mismatch: {baseline}")
         if receipt.get("protected_before"):
             comparison = compare_protected_hashes(
                 receipt["protected_before"], protected_hashes(root)
@@ -301,6 +313,33 @@ def validate_candidate(
     if payload.get("model", {}).get("hard_event_mapping", {}).get("status") \
             != "REFERENCE_ONLY_INSUFFICIENT_N":
         errors.append("insufficient event map was not fail-closed")
+    generator = payload.get("model", {}).get("generator_audit", {})
+    expected_mixture = {
+        "dotcom_neighbor_episode_with_local_residual": .50,
+        "regime_conditioned_stationary_bootstrap": .30,
+        "general_historical_episode_resampling": .20,
+    }
+    if generator.get("engine_mixture_probability") != expected_mixture:
+        errors.append("three-engine 50/30/20 mixture contract mismatch")
+    counts = generator.get("path_count_by_engine", {})
+    if set(counts) != set(expected_mixture) \
+            or any(isinstance(value, bool) or not isinstance(value, int) or value <= 0
+                   for value in counts.values()) \
+            or (all(isinstance(value, int) and not isinstance(value, bool)
+                    for value in counts.values())
+                and sum(counts.values()) != payload.get("model", {}).get("path_count")) \
+            or counts != payload.get("model", {}).get("path_count_by_engine"):
+        errors.append("three-engine path counts are invalid")
+    dotcom_generator = generator.get("dotcom_episode", {})
+    if dotcom_generator.get("forced_endpoint") is not False \
+            or dotcom_generator.get("forced_date") is not False \
+            or float(dotcom_generator.get("registered_target_max_abs_error", 1)) > .00011:
+        errors.append("dotcom episode source/shape gate failed")
+    sensitivity = payload.get("sensitivity_analysis", {})
+    sensitivity_rows = sensitivity.get("rows", [])
+    if [row.get("S1_strength") for row in sensitivity_rows] != [.28, .45, .60] \
+            or not sensitivity.get("gate_pass"):
+        errors.append("S1 0.28/0.45/0.60 sensitivity gate failed")
 
     for key, row in payload.get("evidence_attribution", {}).items():
         residual = row.get("additivity_residual")
@@ -315,6 +354,21 @@ def validate_candidate(
         errors.append("dotcom S1/S2/S3 weighting gate failed")
     if strengths and max(strengths.values()) > float(dotcom.get("dependency_cap", 0)):
         errors.append("dotcom dependency cap exceeded")
+    if strengths != {"S1": .60, "S2": .02, "S3": .03} \
+            or not math.isclose(float(dotcom.get("dependency_cap", 0)), .60):
+        errors.append("dotcom 0.60/0.02/0.03 override contract mismatch")
+    shares = dotcom.get("path_engine_share_by_scenario", {})
+    dotcom_engine = "dotcom_neighbor_episode_with_local_residual"
+    try:
+        if not (
+            shares["S1"][dotcom_engine] > shares["S2"][dotcom_engine]
+            and shares["S1"][dotcom_engine] > shares["S3"][dotcom_engine]
+            and all(math.isclose(sum(row.values()), 1.0, abs_tol=1e-10)
+                    for row in shares.values())
+        ):
+            errors.append("dotcom generator is not concentrated in S1")
+    except (KeyError, TypeError, ValueError):
+        errors.append("dotcom scenario generator-share audit is invalid")
     if not dotcom.get("one_month_negative_target_preserved"):
         errors.append("dotcom one-month correction evidence was cherry-picked")
     if dotcom.get("forced_endpoint") is not False \

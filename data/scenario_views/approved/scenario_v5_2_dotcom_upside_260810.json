@@ -20,8 +20,8 @@
   "origin_release_id": "user_instruction_2026_08_10",
   "used_numerically": true,
   "human_approval_receipt": "explicit_user_message_2026_08_10",
-  "effective_strength": 0.28,
-  "scenario_strength": {"S1": 0.28, "S2": 0.04, "S3": 0.06},
+  "effective_strength": 0.60,
+  "scenario_strength": {"S1": 0.60, "S2": 0.02, "S3": 0.03},
   "recent_state": {
     "lookback_sessions": 60,
     "maximum_drawdown": -0.09784345920225213,
@@ -34,6 +34,8 @@
     "champion_use": false,
     "forced_october_direction": false,
     "forced_endpoint": false,
-    "dependency_cap": 0.35
+    "dependency_cap": 0.60,
+    "default_dependency_cap": 0.35,
+    "override_scope": "research-only S1 dotcom challenger"
   }
 }

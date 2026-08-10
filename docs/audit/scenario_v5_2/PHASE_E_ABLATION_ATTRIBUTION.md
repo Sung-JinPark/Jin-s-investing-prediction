@@ -4,9 +4,9 @@ Gate: **PASS**
 
 | View | P(EoY > anchor) | P(-10% touch by Oct end) | P(new ATH by EoY) | ESS |
 |---|---:|---:|---:|---:|
-| prior_only | 76.68% | 17.10% | 94.85% | 8000.0 |
-| labor_only | 67.96% | 23.70% | 91.76% | 7340.4 |
-| labor_rate | 73.10% | 19.68% | 93.64% | 7869.6 |
-| full_evidence | 75.01% | 18.51% | 94.14% | 7878.6 |
+| prior_only | 88.25% | 34.50% | 97.14% | 8000.0 |
+| labor_only | 83.48% | 39.96% | 95.59% | 7541.3 |
+| labor_rate | 86.33% | 36.52% | 96.54% | 7916.3 |
+| full_evidence | 85.48% | 21.37% | 96.45% | 6442.1 |
 
-For P(EoY > anchor), labor growth-risk contributes -8.71%, policy relief 5.14%, cross/event state 0.68%, and the dotcom S1-weighted view 1.23%. Additivity residual is 0. S1/S2/S3 dotcom strengths are 0.28/0.04/0.06. The negative one-month analog target remains in the distance function. All ESS, maximum-weight, top-1%, entropy and normalization gates pass.
+For P(EoY > anchor), labor growth-risk contributes -4.77%, policy relief 2.85%, cross/event state 0.49%, and the dotcom S1-weighted view -1.34%. Additivity residual is 0. S1/S2/S3 dotcom strengths are 0.60/0.02/0.03. The negative one-month analog target remains in the distance function. All ESS, maximum-weight, top-1%, entropy and normalization gates pass.

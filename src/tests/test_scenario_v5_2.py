@@ -132,7 +132,7 @@ def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
 def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
     payload = _candidate()
     dotcom = payload["dotcom_scenario_weighting"]
-    assert dotcom["scenario_strength"] == {"S1": .28, "S2": .04, "S3": .06}
+    assert dotcom["scenario_strength"] == {"S1": .60, "S2": .02, "S3": .03}
     assert dotcom["scenario_strength"]["S1"] > dotcom["scenario_strength"]["S3"] \
         > dotcom["scenario_strength"]["S2"]
     assert dotcom["one_month_negative_target_preserved"] is True
@@ -145,6 +145,43 @@ def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
         > dotcom["S1_no_repeat_probability_before_dotcom"]
     increment = payload["component_ablations"]["dotcom_upside_increment"]
     assert increment["scenario_strength"] == dotcom["scenario_strength"]
+    assert dotcom["dependency_cap"] == .60
+    assert dotcom["generator_routing_multiplier"]["S1"] == 1.0
+    shares = dotcom["path_engine_share_by_scenario"]
+    key = "dotcom_neighbor_episode_with_local_residual"
+    assert shares["S1"][key] > shares["S2"][key]
+    assert shares["S1"][key] > shares["S3"][key]
+
+
+def test_dotcom_generator_uses_frozen_daily_source_and_exact_50_30_20_mix() -> None:
+    payload = _candidate()
+    generator = payload["model"]["generator_audit"]
+    assert generator["engine_mixture_probability"] == {
+        "dotcom_neighbor_episode_with_local_residual": .50,
+        "regime_conditioned_stationary_bootstrap": .30,
+        "general_historical_episode_resampling": .20,
+    }
+    assert generator["path_count_by_engine"] == {
+        "dotcom_neighbor_episode_with_local_residual": 4000,
+        "regime_conditioned_stationary_bootstrap": 2400,
+        "general_historical_episode_resampling": 1600,
+    }
+    episode = generator["dotcom_episode"]
+    assert episode["registered_target_max_abs_error"] <= .00011
+    assert episode["local_residual_scale"] == .35
+    assert episode["forced_endpoint"] is False and episode["forced_date"] is False
+    assert set(episode["neighbor_probabilities"]) == {
+        "1998-07-31", "1997-11-28", "1996-06-28", "1999-09-30", "1997-02-28",
+    }
+
+
+def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:
+    sensitivity = _candidate()["sensitivity_analysis"]
+    assert sensitivity["gate_pass"]
+    assert [row["S1_strength"] for row in sensitivity["rows"]] == [.28, .45, .60]
+    probabilities = [row["scenario_probabilities"]["S1"] for row in sensitivity["rows"]]
+    assert probabilities == sorted(probabilities) and len(set(probabilities)) == 3
+    assert all(row["weight_gates_pass"] for row in sensitivity["rows"])
 
 
 def _cpi_event(revision_id: str = "cpi-2026-08-r1") -> dict:
@@ -248,7 +285,9 @@ def test_dependency_cap_circularity_and_2027_distinctness_gates() -> None:
     payload = _candidate()
     dependency = payload["dependency_control"]
     assert dependency["gate_pass"]
-    assert all(row["effective_strength"] <= dependency["cluster_cap"]
+    assert dependency["default_cluster_cap"] == .35
+    assert dependency["approved_cluster_overrides"]["dotcom_single_cycle_analog"]["cap"] == .60
+    assert all(row["effective_strength"] <= row["cap"]
                for row in dependency["clusters"])
     ancestor = next(row for row in payload["evidence_registry"]
                     if row["evidence_id"] == "v5_1_ancestor_candidate")
@@ -279,21 +318,27 @@ def test_pre_post_comparison_includes_paths_probabilities_and_timing() -> None:
 
 def test_seed_path_count_and_block_length_sensitivity_primitives() -> None:
     inputs = load_inputs(ROOT)
-    a, dates_a, engines_a, _ = generate_prior(
+    a, dates_a, engines_a, _, audit_a = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.10
     )
-    replay, dates_replay, engines_replay, _ = generate_prior(
+    replay, dates_replay, engines_replay, _, audit_replay = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.10
     )
-    seed_variant, _, _, _ = generate_prior(
+    seed_variant, _, _, _, _ = generate_prior(
         ROOT, inputs, seed=72, path_count_per_engine=80, block_restart_probability=.10
     )
-    block_variant, _, _, _ = generate_prior(
+    block_variant, _, _, _, _ = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.20
     )
     assert a.shape == (160, len(dates_a))
     assert np.array_equal(a, replay)
     assert dates_a == dates_replay and np.array_equal(engines_a, engines_replay)
+    assert audit_a == audit_replay
+    assert audit_a["path_count_by_engine"] == {
+        "dotcom_neighbor_episode_with_local_residual": 80,
+        "regime_conditioned_stationary_bootstrap": 48,
+        "general_historical_episode_resampling": 32,
+    }
     assert not np.array_equal(a, seed_variant)
     assert not np.array_equal(a, block_variant)
     assert np.isfinite(a).all() and (a > 0).all()
@@ -340,6 +385,8 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
     p = _candidate(); p["circularity_control"]["realized_event_return_coefficient"] = .01; mutations.append((p, "double counted"))
     p = _candidate(); p["distinctness_2027"]["gate_pass"] = False; mutations.append((p, "distinctness"))
     p = _candidate(); p["display_contract"]["october_2_exact_date_forecast"] = True; mutations.append((p, "October 2"))
+    p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["dotcom_neighbor_episode_with_local_residual"] = .90; mutations.append((p, "concentrated"))
+    p = _candidate(); p["evidence_registry"][0]["approved_cap"] = .90; mutations.append((p, "unauthorized"))
     for payload, expected in mutations:
         result = validate_candidate(_rehash(payload), ROOT, replay=False)
         assert not result["ok"]

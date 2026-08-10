@@ -20,8 +20,12 @@ from scipy.stats import energy_distance, wasserstein_distance
 from ai_fc.scenario_v5.contracts import canonical_hash, file_hash
 
 
-CANDIDATE_ID = "scenario_v5_2_dotcom_weighted_event_adaptive_v2"
+CANDIDATE_ID = "scenario_v5_2_dotcom_dominant_generator_v3"
 CANDIDATE_RELATIVE = Path(
+    "data/scenarios/candidates/"
+    "scenario_v5_2_dotcom_dominant_generator_v3_latest.json"
+)
+SHADOW_V52_RELATIVE = Path(
     "data/scenarios/candidates/"
     "scenario_v5_2_dotcom_weighted_event_adaptive_v2_latest.json"
 )
@@ -51,6 +55,8 @@ SOURCE_PATHS = (
     "data/model_runs/knn_analog_latest.json",
     "data/normalized/market/dotcom_upside_analog_20260810.json",
     "data/scenario_views/approved/scenario_v5_2_dotcom_upside_260810.json",
+    "data/raw/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
+    "data/normalized/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
 )
 
 
@@ -116,8 +122,9 @@ def load_inputs(root: Path) -> dict[str, Any]:
     for relative in SOURCE_PATHS:
         if not (root / relative).is_file():
             raise ScenarioV52Error(f"missing V5.2 source: {relative}")
-    if not (root / LEGACY_V52_RELATIVE).is_file():
-        raise ScenarioV52Error(f"missing V5.2 shadow baseline: {LEGACY_V52_RELATIVE}")
+    for baseline in (SHADOW_V52_RELATIVE, LEGACY_V52_RELATIVE):
+        if not (root / baseline).is_file():
+            raise ScenarioV52Error(f"missing V5.2 shadow baseline: {baseline}")
     labor = _read_json(root / SOURCE_PATHS[1])
     rates = _read_json(root / SOURCE_PATHS[3])
     history_manifest = _read_json(root / SOURCE_PATHS[5])
@@ -126,6 +133,8 @@ def load_inputs(root: Path) -> dict[str, Any]:
     dotcom_model_run = _read_json(root / SOURCE_PATHS[8])
     dotcom = _read_json(root / SOURCE_PATHS[9])
     dotcom_view = _read_json(root / SOURCE_PATHS[10])
+    dotcom_history = _read_json(root / SOURCE_PATHS[12])
+    shadow_v52 = _read_json(root / SHADOW_V52_RELATIVE)
     legacy_v52 = _read_json(root / LEGACY_V52_RELATIVE)
     from .event_learning import event_score_summary
 
@@ -164,6 +173,16 @@ def load_inputs(root: Path) -> dict[str, Any]:
         raise ScenarioV52Error("historical last close does not match post-event anchor")
     if file_hash(root / dotcom["source_path"]) != dotcom["source_sha256"]:
         raise ScenarioV52Error("dotcom analog source hash mismatch")
+    dotcom_raw = root / dotcom_history.get("raw_source_path", "")
+    if dotcom_raw != root / SOURCE_PATHS[11] or not dotcom_raw.is_file():
+        raise ScenarioV52Error("dotcom daily raw source path mismatch")
+    if file_hash(dotcom_raw) != dotcom_history.get("raw_sha256"):
+        raise ScenarioV52Error("dotcom daily raw source hash mismatch")
+    if dotcom_history.get("series") != "^IXIC" \
+            or dotcom_history.get("row_count") != 2519 \
+            or dotcom_history.get("first_session") != "1995-01-03" \
+            or dotcom_history.get("last_session") != "2004-12-31":
+        raise ScenarioV52Error("dotcom daily source coverage mismatch")
     if dotcom_model_run.get("model") != "knn_analog":
         raise ScenarioV52Error("dotcom analog must come from the registered kNN run")
     if dotcom.get("probability_unit") != "fraction":
@@ -182,12 +201,21 @@ def load_inputs(root: Path) -> dict[str, Any]:
         dotcom.get("dependency_cap"), "dotcom.dependency_cap"
     ):
         raise ScenarioV52Error("dotcom dependency cap exceeded")
+    override = dotcom.get("approved_override", {})
+    if not math.isclose(float(dotcom.get("dependency_cap", 0)), .60) \
+            or not math.isclose(float(override.get("cap", 0)), .60) \
+            or not override.get("approval_receipt") \
+            or override.get("official_or_champion_use") is not False:
+        raise ScenarioV52Error("dotcom 0.60 research override is not explicitly bounded")
     if dotcom_view.get("used_numerically") is not True \
             or not dotcom_view.get("human_approval_receipt"):
         raise ScenarioV52Error("dotcom numerical view lacks explicit human approval")
     if dotcom_view.get("scenario_strength") != dotcom.get("scenario_strength"):
         raise ScenarioV52Error("dotcom view and normalized strengths disagree")
-    for label, row in (("dotcom", dotcom), ("dotcom_view", dotcom_view)):
+    for label, row in (
+        ("dotcom", dotcom), ("dotcom_view", dotcom_view),
+        ("dotcom_history", dotcom_history),
+    ):
         if _aware(str(row["available_at"])) > cutoff:
             raise ScenarioV52Error(f"future {label} evidence")
     return {
@@ -198,8 +226,11 @@ def load_inputs(root: Path) -> dict[str, Any]:
         "v51": v51,
         "dotcom": dotcom,
         "dotcom_view": dotcom_view,
+        "dotcom_history": dotcom_history,
+        "dotcom_model_run": dotcom_model_run,
         "event_updates": event_updates,
         "knowledge_cutoff": cutoff.isoformat(),
+        "shadow_v52": shadow_v52,
         "legacy_v52": legacy_v52,
     }
 
@@ -242,11 +273,12 @@ def _historical_returns(
 
 def _stationary_bootstrap(
     history: np.ndarray, horizon: int, count: int, rng: np.random.Generator,
+    restart_probability: float = .10,
 ) -> np.ndarray:
     indexes = rng.integers(0, len(history), size=count)
     sampled = np.empty((count, horizon), dtype=float)
     for column in range(horizon):
-        restart = rng.random(count) < 0.10
+        restart = rng.random(count) < restart_probability
         if column:
             indexes = np.where(restart, rng.integers(0, len(history), size=count),
                                (indexes + 1) % len(history))
@@ -264,38 +296,160 @@ def _analog_episode_resample(
     return history[starts[:, None] + offsets[None, :]]
 
 
+def _regime_conditioned_bootstrap(
+    history: np.ndarray, levels: np.ndarray, horizon: int, count: int,
+    rng: np.random.Generator, restart_probability: float,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Bootstrap from historical starts nearest the current observable regime."""
+    if len(history) != len(levels) - 1 or len(history) < 252:
+        raise ScenarioV52Error("history is insufficient for regime conditioning")
+    state_rows: list[tuple[int, float, float, float]] = []
+    for end in range(60, len(levels)):
+        window = levels[end - 60:end + 1]
+        returns20 = np.diff(np.log(levels[end - 20:end + 1]))
+        state_rows.append((
+            min(end, len(history) - 1),
+            float(returns20.std(ddof=1) * math.sqrt(252.0)),
+            float(window[-1] / window[0] - 1.0),
+            float((window / np.maximum.accumulate(window) - 1.0).min()),
+        ))
+    states = np.asarray([row[1:] for row in state_rows], dtype=float)
+    current = states[-1]
+    scales = np.maximum(
+        (np.quantile(states, .75, axis=0) - np.quantile(states, .25, axis=0)) / 1.349,
+        np.asarray([.02, .03, .02]),
+    )
+    distances = np.sqrt(np.mean(np.square((states - current) / scales), axis=1))
+    eligible_count = max(64, int(math.ceil(len(states) * .25)))
+    eligible_rows = np.argsort(distances, kind="stable")[:eligible_count]
+    eligible = np.asarray([state_rows[index][0] for index in eligible_rows], dtype=int)
+    indexes = rng.choice(eligible, size=count, replace=True)
+    sampled = np.empty((count, horizon), dtype=float)
+    for column in range(horizon):
+        restart = rng.random(count) < restart_probability
+        if column:
+            indexes = np.where(
+                restart, rng.choice(eligible, size=count, replace=True),
+                (indexes + 1) % len(history),
+            )
+        sampled[:, column] = history[indexes]
+    return sampled, {
+        "state_features": ["annualized_volatility_20d", "return_60d", "drawdown_60d"],
+        "current_state": [float(value) for value in current],
+        "eligible_start_count": int(len(eligible)),
+        "eligible_fraction": float(len(eligible) / len(states)),
+        "selection": "nearest_25pct_robust_scaled_distance",
+    }
+
+
+def _dotcom_history(
+    root: Path, manifest: dict[str, Any],
+) -> tuple[np.ndarray, list[str], np.ndarray]:
+    rows = manifest.get("rows", [])
+    dates = [str(row["date"]) for row in rows]
+    levels = np.asarray([
+        _finite_number(row["close"], f"dotcom_history.{row['date']}.close")
+        for row in rows
+    ], dtype=float)
+    if len(rows) != int(manifest["row_count"]) or dates != sorted(set(dates)):
+        raise ScenarioV52Error("dotcom normalized rows are not unique and sorted")
+    if dates[0] != "1995-01-03" or dates[-1] != "2004-12-31" \
+            or not np.isfinite(levels).all() or float(levels.min()) <= 0:
+        raise ScenarioV52Error("dotcom normalized levels are invalid")
+    return np.diff(np.log(levels)), dates, levels
+
+
+def _dotcom_episode_resample(
+    returns: np.ndarray, dates: list[str], horizon: int, count: int,
+    rng: np.random.Generator, neighbors: list[dict[str, Any]],
+    restart_probability: float,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    if not neighbors:
+        raise ScenarioV52Error("dotcom generator requires registered neighbors")
+    horizons = {"fwd_1m": 21, "fwd_3m": 63, "fwd_6m": 126, "fwd_12m": 252}
+    starts: list[int] = []
+    distances: list[float] = []
+    validation_deltas: dict[str, dict[str, float]] = {}
+    for row in neighbors:
+        try:
+            start = dates.index(str(row["date"]))
+        except ValueError as exc:
+            raise ScenarioV52Error(f"dotcom neighbor is absent: {row['date']}") from exc
+        if start + horizon > len(returns):
+            raise ScenarioV52Error(f"dotcom episode too short: {row['date']}")
+        starts.append(start)
+        distances.append(_finite_number(row["distance"], f"neighbor.{row['date']}.distance"))
+        validation_deltas[str(row["date"])] = {
+            name: float(np.exp(returns[start:start + sessions].sum()) - 1.0)
+                  - _finite_number(row[name], f"neighbor.{row['date']}.{name}")
+            for name, sessions in horizons.items()
+        }
+    if max(abs(value) for row in validation_deltas.values() for value in row.values()) > .00011:
+        raise ScenarioV52Error("dotcom daily history disagrees with registered kNN targets")
+    inverse = 1.0 / np.asarray(distances, dtype=float)
+    probabilities = inverse / inverse.sum()
+    choices = rng.choice(len(starts), size=count, replace=True, p=probabilities)
+    base = np.vstack([
+        returns[starts[choice]:starts[choice] + horizon] for choice in choices
+    ])
+    rolling_mean = np.convolve(returns, np.ones(20) / 20.0, mode="same")
+    centered_residuals = returns - rolling_mean
+    residuals = _stationary_bootstrap(
+        centered_residuals, horizon, count, rng,
+        restart_probability=restart_probability,
+    )
+    residual_scale = .35
+    sampled = base + residual_scale * residuals
+    counts = np.bincount(choices, minlength=len(starts))
+    return sampled, {
+        "method": "inverse_distance_neighbor_episode_plus_local_centered_residual",
+        "base_episode_share": 1.0,
+        "local_residual_scale": residual_scale,
+        "forced_endpoint": False,
+        "forced_date": False,
+        "neighbor_probabilities": {
+            str(row["date"]): float(probabilities[index])
+            for index, row in enumerate(neighbors)
+        },
+        "sample_counts": {
+            str(row["date"]): int(counts[index])
+            for index, row in enumerate(neighbors)
+        },
+        "registered_target_max_abs_error": float(max(
+            abs(value) for row in validation_deltas.values() for value in row.values()
+        )),
+    }
+
+
 def generate_prior(
     root: Path, inputs: dict[str, Any], *, seed: int = SEED,
     path_count_per_engine: int = PATH_COUNT_PER_ENGINE, block_restart_probability: float = .10,
-) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any]]:
+) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any], dict[str, Any]]:
     dates = [ANCHOR_DATE.isoformat(), *_business_dates(date(2026, 8, 10), date(2027, 12, 31))]
     horizon = len(dates) - 1
     if not 0 < block_restart_probability <= 1:
         raise ScenarioV52Error("block restart probability must be in (0,1]")
     history, history_dates, history_levels = _historical_returns(root, inputs["history_manifest"])
-    # The registered production challenger uses a 10-session expected block.
-    # Sensitivity callers may vary it explicitly; the primitive keeps the value visible.
-    if not math.isclose(block_restart_probability, .10):
-        stationary_rng = np.random.default_rng(seed)
-        indexes = stationary_rng.integers(0, len(history), size=path_count_per_engine)
-        stationary = np.empty((path_count_per_engine, horizon), dtype=float)
-        for column in range(horizon):
-            restart = stationary_rng.random(path_count_per_engine) < block_restart_probability
-            if column:
-                indexes = np.where(
-                    restart,
-                    stationary_rng.integers(0, len(history), size=path_count_per_engine),
-                    (indexes + 1) % len(history),
-                )
-            stationary[:, column] = history[indexes]
-    else:
-        stationary = _stationary_bootstrap(
-            history, horizon, path_count_per_engine, np.random.default_rng(seed)
-        )
-    analog = _analog_episode_resample(
-        history, horizon, path_count_per_engine, np.random.default_rng(seed + 1)
+    total_count = path_count_per_engine * 2
+    dotcom_count = path_count_per_engine
+    regime_count = int(round(total_count * .30))
+    general_count = total_count - dotcom_count - regime_count
+    if min(dotcom_count, regime_count, general_count) <= 0:
+        raise ScenarioV52Error("path count too small for 50/30/20 generator mixture")
+    dotcom_returns, dotcom_dates, _ = _dotcom_history(root, inputs["dotcom_history"])
+    dotcom_paths, dotcom_audit = _dotcom_episode_resample(
+        dotcom_returns, dotcom_dates, horizon, dotcom_count,
+        np.random.default_rng(seed), inputs["dotcom_model_run"]["neighbors"],
+        block_restart_probability,
     )
-    log_returns = np.vstack((stationary, analog))
+    regime, regime_audit = _regime_conditioned_bootstrap(
+        history, history_levels, horizon, regime_count,
+        np.random.default_rng(seed + 1), block_restart_probability,
+    )
+    general = _analog_episode_resample(
+        history, horizon, general_count, np.random.default_rng(seed + 2)
+    )
+    log_returns = np.vstack((dotcom_paths, regime, general))
     paths = np.column_stack((
         np.full(log_returns.shape[0], ANCHOR),
         ANCHOR * np.exp(np.cumsum(log_returns, axis=1)),
@@ -303,15 +457,37 @@ def generate_prior(
     if not np.isfinite(paths).all() or float(paths.min()) <= 0:
         raise ScenarioV52Error("historical prior has invalid levels")
     engines = np.concatenate((
-        np.zeros(path_count_per_engine, dtype=int),
-        np.ones(path_count_per_engine, dtype=int),
+        np.zeros(dotcom_count, dtype=int),
+        np.ones(regime_count, dtype=int),
+        np.full(general_count, 2, dtype=int),
     ))
     historical_actual = {
         "dates": history_dates[-60:],
         "values": [round(float(value), 2) for value in history_levels[-60:]],
         "role": "historical_actual_through_anchor",
     }
-    return paths, dates, engines, historical_actual
+    generator_audit = {
+        "method": "three_engine_dotcom_dominant_prior",
+        "path_count": int(total_count),
+        "path_count_by_engine": {
+            "dotcom_neighbor_episode_with_local_residual": int(dotcom_count),
+            "regime_conditioned_stationary_bootstrap": int(regime_count),
+            "general_historical_episode_resampling": int(general_count),
+        },
+        "engine_mixture_probability": {
+            "dotcom_neighbor_episode_with_local_residual": .50,
+            "regime_conditioned_stationary_bootstrap": .30,
+            "general_historical_episode_resampling": .20,
+        },
+        "dotcom_source_dataset_id": inputs["dotcom_history"]["dataset_id"],
+        "dotcom_source_available_at": inputs["dotcom_history"]["available_at"],
+        "dotcom_episode": dotcom_audit,
+        "regime_conditioning": regime_audit,
+        "general_history_start": history_dates[0],
+        "general_history_end": history_dates[-1],
+        "gate_pass": True,
+    }
+    return paths, dates, engines, historical_actual, generator_audit
 
 
 def _robust_z(values: np.ndarray) -> np.ndarray:
@@ -486,8 +662,11 @@ def _normalise_weights(log_weights: np.ndarray) -> tuple[np.ndarray, dict[str, A
 
 
 def build_weights(
-    paths: np.ndarray, dates: list[str], scores: dict[str, Any], dotcom: dict[str, Any],
+    paths: np.ndarray, dates: list[str], engines: np.ndarray,
+    scores: dict[str, Any], dotcom: dict[str, Any],
 ) -> dict[str, Any]:
+    if engines.shape != (paths.shape[0],) or not set(np.unique(engines)).issubset({0, 1, 2}):
+        raise ScenarioV52Error("path-engine labels do not match the three-engine prior")
     metrics = _path_metrics(paths, dates)
     masks = _scenario_masks(metrics)
     growth_feature = (
@@ -562,10 +741,20 @@ def build_weights(
     scenario_strength = sum(
         strengths[key] * mask.astype(float) for key, mask in masks.items()
     )
+    generator_routing_multiplier = {
+        key: math.sqrt(strengths[key] / strengths["S1"])
+        for key in ("S1", "S2", "S3")
+    }
+    dotcom_engine = (engines == 0).astype(float)
+    generator_routing_log = dotcom_engine * sum(
+        math.log(generator_routing_multiplier[key]) * mask.astype(float)
+        for key, mask in masks.items()
+    )
     s1_no_repeat = masks["S1"].astype(float) * joint_relief * no_repeat_feature
     # Preserve the full multi-horizon analog (including its negative 1m target)
     # while reserving part of S1's capped strength for the approved interaction.
-    dotcom_log_adjustment = scenario_strength * (.40 * dotcom_compatibility) \
+    dotcom_log_adjustment = generator_routing_log \
+        + scenario_strength * (.40 * dotcom_compatibility) \
         + strengths["S1"] * (.60 * s1_no_repeat)
 
     base_full_log = (
@@ -592,6 +781,7 @@ def build_weights(
         "no_repeat_correction": no_repeat_feature,
         "no_repeat_condition": no_repeat_condition,
         "dotcom_log_adjustment": dotcom_log_adjustment,
+        "dotcom_generator_routing_log": generator_routing_log,
     }}
     for name, log_weights in logs.items():
         weights, diagnostics = _normalise_weights(log_weights)
@@ -604,6 +794,8 @@ def build_weights(
         "forward_return_targets": targets,
         "target_dates": horizon_dates,
         "scenario_strength": strengths,
+        "generator_routing_multiplier": generator_routing_multiplier,
+        "generator_routing_rule": "sqrt(scenario_strength / S1_strength) on dotcom-engine paths",
         "strength_gate": strengths["S1"] > strengths["S3"] > strengths["S2"],
         "dependency_cap": float(dotcom["dependency_cap"]),
         "joint_growth_risk_policy_relief_score": joint_relief,
@@ -979,9 +1171,23 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "available_at": inputs["dotcom"]["available_at"],
             "dependency_cluster_id": inputs["dotcom"]["dependency_cluster_id"],
             "effective_strength": float(inputs["dotcom"]["scenario_strength"]["S1"]),
+            "approved_cap": float(inputs["dotcom"]["dependency_cap"]),
             "scenario_strength": inputs["dotcom"]["scenario_strength"],
             "used_numerically": True,
             "role": "S1_strong_S2_S3_weak_soft_likelihood",
+            "single_cycle_limitation": True,
+        },
+        {
+            "evidence_id": "dotcom_daily_path_generator_source",
+            "origin_release_id": inputs["dotcom_history"]["dataset_id"],
+            "source_path": SOURCE_PATHS[12],
+            "source_sha256": file_hash(root / SOURCE_PATHS[12]),
+            "available_at": inputs["dotcom_history"]["available_at"],
+            "dependency_cluster_id": inputs["dotcom"]["dependency_cluster_id"],
+            "effective_strength": 0.0,
+            "approved_cap": float(inputs["dotcom"]["dependency_cap"]),
+            "used_numerically": True,
+            "role": "path_generator_source_under_same_dotcom_cluster_no_extra_strength",
             "single_cycle_limitation": True,
         },
         {
@@ -1016,9 +1222,9 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
 
 def assemble_candidate(root: Path) -> dict[str, Any]:
     inputs = load_inputs(root)
-    paths, dates, engines, historical_actual = generate_prior(root, inputs)
+    paths, dates, engines, historical_actual, generator_audit = generate_prior(root, inputs)
     scores = evidence_scores(inputs)
-    weighting = build_weights(paths, dates, scores, inputs["dotcom"])
+    weighting = build_weights(paths, dates, engines, scores, inputs["dotcom"])
     metrics = weighting["metrics"]
     masks = _scenario_masks(metrics)
     ablations: dict[str, Any] = {}
@@ -1108,35 +1314,91 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         ablations["full_evidence"]["probabilities"]["scenario_probabilities"]["S1"]
         - full_without_dotcom_metrics["scenario_probabilities"]["S1"]
     )
-    legacy_full = inputs["legacy_v52"]["ablations"]["full_evidence"]["probabilities"]
+    dotcom_audit["generator"] = generator_audit
+    dotcom_audit["path_engine_share_by_scenario"] = {
+        scenario: {
+            "dotcom_neighbor_episode_with_local_residual": float(
+                full_weights[mask & (engines == 0)].sum() / full_weights[mask].sum()
+            ),
+            "regime_conditioned_stationary_bootstrap": float(
+                full_weights[mask & (engines == 1)].sum() / full_weights[mask].sum()
+            ),
+            "general_historical_episode_resampling": float(
+                full_weights[mask & (engines == 2)].sum() / full_weights[mask].sum()
+            ),
+        }
+        for scenario, mask in masks.items()
+    }
+    shadow_full = inputs["shadow_v52"]["ablations"]["full_evidence"]["probabilities"]
     shadow_comparison = {
-        "baseline_candidate_id": inputs["legacy_v52"]["candidate_id"],
-        "baseline_model_content_sha256": inputs["legacy_v52"]["model_content_sha256"],
-        "baseline_source_sha256": file_hash(root / LEGACY_V52_RELATIVE),
+        "baseline_candidate_id": inputs["shadow_v52"]["candidate_id"],
+        "baseline_model_content_sha256": inputs["shadow_v52"]["model_content_sha256"],
+        "baseline_source_sha256": file_hash(root / SHADOW_V52_RELATIVE),
         "candidate_id": CANDIDATE_ID,
-        "comparable_anchor": inputs["legacy_v52"]["anchor"]["close"] == ANCHOR,
-        "comparable_distribution_seed": inputs["legacy_v52"]["model"]["seed"] == SEED,
+        "comparable_anchor": inputs["shadow_v52"]["anchor"]["close"] == ANCHOR,
+        "comparable_distribution_seed": inputs["shadow_v52"]["model"]["seed"] == SEED,
         "changed_inputs": [
-            "stronger_full_rate_probability_repricing",
-            "S1_weighted_dotcom_single_cycle_likelihood",
-            "append_only_event_learning_boundary",
+            "S1_dotcom_strength_0.28_to_0.60",
+            "S2_S3_dotcom_strength_reduced_to_0.02_0.03",
+            "prior_generator_50pct_dotcom_30pct_regime_20pct_general",
         ],
         "metric_deltas": {
-            key: ablations["full_evidence"]["probabilities"][key] - legacy_full[key]
+            key: ablations["full_evidence"]["probabilities"][key] - shadow_full[key]
             for key in probability_keys
         },
         "scenario_probability_deltas": {
             key: ablations["full_evidence"]["probabilities"]["scenario_probabilities"][key]
-                 - legacy_full["scenario_probabilities"][key]
+                 - shadow_full["scenario_probabilities"][key]
             for key in ("S1", "S2", "S3")
         },
         "official_snapshot_overwritten": False,
     }
+    sensitivity_rows: list[dict[str, Any]] = []
+    for s1_strength in (.28, .45, .60):
+        if math.isclose(s1_strength, .60):
+            sensitivity_weighting = weighting
+            sensitivity_metrics = ablations["full_evidence"]["probabilities"]
+        else:
+            sensitivity_dotcom = dict(inputs["dotcom"])
+            sensitivity_dotcom["scenario_strength"] = {
+                "S1": s1_strength, "S2": .02, "S3": .03,
+            }
+            sensitivity_weighting = build_weights(
+                paths, dates, engines, scores, sensitivity_dotcom
+            )
+            sensitivity_metrics = _probability_metrics(
+                paths, dates, sensitivity_weighting["full_evidence"]["weights"], masks
+            )
+        sensitivity_rows.append({
+            "S1_strength": s1_strength,
+            "S2_strength": .02,
+            "S3_strength": .03,
+            "scenario_probabilities": sensitivity_metrics["scenario_probabilities"],
+            "terminal_above_anchor_2026": sensitivity_metrics["terminal_above_anchor_2026"],
+            "first_touch_minus_10_by_october_end": sensitivity_metrics[
+                "first_touch_minus_10_by_october_end"
+            ],
+            "year_end_p50": sensitivity_metrics["year_end_p50"],
+            "effective_sample_size_fraction": sensitivity_weighting[
+                "full_evidence"
+            ]["diagnostics"]["effective_sample_size_fraction"],
+            "weight_gates_pass": sensitivity_weighting[
+                "full_evidence"
+            ]["diagnostics"]["gates_pass"],
+        })
+    sensitivity_gate = (
+        all(row["weight_gates_pass"] for row in sensitivity_rows)
+        and all(
+            later["scenario_probabilities"]["S1"]
+            > earlier["scenario_probabilities"]["S1"]
+            for earlier, later in zip(sensitivity_rows, sensitivity_rows[1:])
+        )
+    )
     candidate = {
         "schema_version": 1,
         "artifact_type": "scenario_v5_2_research_candidate",
         "candidate_id": CANDIDATE_ID,
-        "status": "RESEARCH_CANDIDATE_LIMITED_EVENT_MAP",
+        "status": "RESEARCH_CANDIDATE_AGGRESSIVE_DOTCOM_OVERRIDE_LIMITED_EVENT_MAP",
         "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
         "as_of": inputs["knowledge_cutoff"],
         "knowledge_cutoff": inputs["knowledge_cutoff"],
@@ -1158,17 +1420,20 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "historical_transport_step": ANCHOR / float(inputs["v51"]["source_snapshot"]["anchor"]) - 1.0,
         },
         "model": {
-            "model_id": "dotcom_weighted_event_adaptive_historical_shape_v2",
+            "model_id": "dotcom_dominant_three_engine_historical_shape_v3",
             "seed": SEED,
             "path_count": int(paths.shape[0]),
             "path_count_by_engine": {
-                "stationary_block_bootstrap": int((engines == 0).sum()),
-                "analog_episode_resampling": int((engines == 1).sum()),
+                "dotcom_neighbor_episode_with_local_residual": int((engines == 0).sum()),
+                "regime_conditioned_stationary_bootstrap": int((engines == 1).sum()),
+                "general_historical_episode_resampling": int((engines == 2).sum()),
             },
             "engine_mixture_probability": {
-                "stationary_block_bootstrap": .5,
-                "analog_episode_resampling": .5,
+                "dotcom_neighbor_episode_with_local_residual": .50,
+                "regime_conditioned_stationary_bootstrap": .30,
+                "general_historical_episode_resampling": .20,
             },
+            "generator_audit": generator_audit,
             "history_start": inputs["history_manifest"]["first_session"],
             "history_end": inputs["history_manifest"]["last_session"],
             "history_observations": inputs["history_manifest"]["row_count"],
@@ -1184,15 +1449,23 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "evidence_scores": scores,
         "evidence_registry": evidence,
         "dependency_control": {
-            "cluster_cap": .35,
+            "default_cluster_cap": .35,
+            "approved_cluster_overrides": {
+                "dotcom_single_cycle_analog": {
+                    "cap": .60,
+                    "scope": "research-only S1 challenger",
+                    "approval_receipt": inputs["dotcom"]["approved_override"]["approval_receipt"],
+                    "official_or_champion_use": False,
+                },
+            },
             "clusters": [
-                {"id": "bls_empsit_2026_07", "effective_strength": .30, "gate_pass": True},
-                {"id": "cme_fed_funds_futures", "effective_strength": .25, "gate_pass": True},
-                {"id": "post_jobs_market_state", "effective_strength": .10, "gate_pass": True},
-                {"id": "dotcom_single_cycle_analog", "effective_strength": .28, "gate_pass": True},
-                {"id": "scenario_ancestor", "effective_strength": 0.0, "gate_pass": True},
+                {"id": "bls_empsit_2026_07", "effective_strength": .30, "cap": .35, "gate_pass": True},
+                {"id": "cme_fed_funds_futures", "effective_strength": .25, "cap": .35, "gate_pass": True},
+                {"id": "post_jobs_market_state", "effective_strength": .10, "cap": .35, "gate_pass": True},
+                {"id": "dotcom_single_cycle_analog", "effective_strength": .60, "cap": .60, "gate_pass": True},
+                {"id": "scenario_ancestor", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
                 *[
-                    {"id": key, "effective_strength": value, "gate_pass": value <= .35}
+                    {"id": key, "effective_strength": value, "cap": .35, "gate_pass": value <= .35}
                     for key, value in inputs["event_updates"]["dependency_cluster_strength"].items()
                 ],
             ],
@@ -1291,6 +1564,12 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             },
         },
         "shadow_comparison": shadow_comparison,
+        "sensitivity_analysis": {
+            "design": "same paths, evidence and routing rule; vary S1 strength only",
+            "rows": sensitivity_rows,
+            "monotonic_S1_probability_gate": sensitivity_gate,
+            "gate_pass": sensitivity_gate,
+        },
         "distinctness_2027": distinctness,
         "display_contract": {
             "main_chart": "total_mixture_p50_and_bands",
@@ -1301,10 +1580,11 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "fake_wiggle": False,
             "october_2_exact_date_forecast": False,
             "percent_conversion_boundary": "dashboard_only",
-            "dotcom_weight_disclosure": "S1 strong; S2 and S3 weak",
+            "dotcom_weight_disclosure": "S1 0.60 override; S2 0.02; S3 0.03; research only",
         },
         "source_hashes": {
             **{path: source_file_hash(root, path) for path in SOURCE_PATHS},
+            SHADOW_V52_RELATIVE.as_posix(): file_hash(root / SHADOW_V52_RELATIVE),
             LEGACY_V52_RELATIVE.as_posix(): file_hash(root / LEGACY_V52_RELATIVE),
         },
         "protected_write_contract": {

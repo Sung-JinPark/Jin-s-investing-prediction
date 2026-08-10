@@ -1,0 +1,56 @@
+{
+  "method": "three_engine_dotcom_dominant_prior",
+  "path_count": 8000,
+  "path_count_by_engine": {
+    "dotcom_neighbor_episode_with_local_residual": 4000,
+    "regime_conditioned_stationary_bootstrap": 2400,
+    "general_historical_episode_resampling": 1600
+  },
+  "engine_mixture_probability": {
+    "dotcom_neighbor_episode_with_local_residual": 0.5,
+    "regime_conditioned_stationary_bootstrap": 0.3,
+    "general_historical_episode_resampling": 0.2
+  },
+  "dotcom_source_dataset_id": "DUALDB_IXIC_DOTCOM_DAILY_NORMALIZED_19950103_20041231",
+  "dotcom_source_available_at": "2026-07-30T16:33:42+09:00",
+  "dotcom_episode": {
+    "method": "inverse_distance_neighbor_episode_plus_local_centered_residual",
+    "base_episode_share": 1.0,
+    "local_residual_scale": 0.35,
+    "forced_endpoint": false,
+    "forced_date": false,
+    "neighbor_probabilities": {
+      "1998-07-31": 0.34115251198142627,
+      "1997-11-28": 0.24584048049657561,
+      "1996-06-28": 0.14267274128240573,
+      "1999-09-30": 0.14191395280641766,
+      "1997-02-28": 0.12842031343317478
+    },
+    "sample_counts": {
+      "1998-07-31": 1349,
+      "1997-11-28": 1032,
+      "1996-06-28": 585,
+      "1999-09-30": 536,
+      "1997-02-28": 498
+    },
+    "registered_target_max_abs_error": 4.624056977976798e-05
+  },
+  "regime_conditioning": {
+    "state_features": [
+      "annualized_volatility_20d",
+      "return_60d",
+      "drawdown_60d"
+    ],
+    "current_state": [
+      0.22993813732906,
+      0.02309166366078763,
+      -0.09784345920225213
+    ],
+    "eligible_start_count": 651,
+    "eligible_fraction": 0.25,
+    "selection": "nearest_25pct_robust_scaled_distance"
+  },
+  "general_history_start": "2016-01-04",
+  "general_history_end": "2026-08-07",
+  "gate_pass": true
+}

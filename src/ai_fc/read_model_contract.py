@@ -132,7 +132,7 @@ def schema() -> dict[str, Any]:
         "properties": {
             "schema_version": {"const": 1},
             "status": {"enum": ["ok", "degraded", "stale_or_invalid", "unavailable"]},
-            "candidate_id": {"const": "scenario_v5_2_dotcom_weighted_event_adaptive_v2"},
+            "candidate_id": {"const": "scenario_v5_2_dotcom_dominant_generator_v3"},
         },
     }
     properties["scenario_v4_shadow"] = {
@@ -263,7 +263,7 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("scenario_v5 same-shape gate disclosure mismatch")
     scenario_v52 = model.get("scenario_v5_2")
     if isinstance(scenario_v52, dict):
-        if scenario_v52.get("candidate_id") != "scenario_v5_2_dotcom_weighted_event_adaptive_v2":
+        if scenario_v52.get("candidate_id") != "scenario_v5_2_dotcom_dominant_generator_v3":
             errors.append("scenario_v5_2 candidate id mismatch")
         runtime = scenario_v52.get("runtime_gate") or {}
         active = scenario_v52.get("status") in {"ok", "degraded"}

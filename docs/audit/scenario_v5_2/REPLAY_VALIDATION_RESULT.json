@@ -1,7 +1,7 @@
 {
   "ok": true,
   "errors": [],
-  "candidate_id": "scenario_v5_2_dotcom_weighted_event_adaptive_v2",
-  "model_content_sha256": "1a75071a1ae48592d794b58ed5a2148d18fed2c985456bf1edbe9bd610f86671",
+  "candidate_id": "scenario_v5_2_dotcom_dominant_generator_v3",
+  "model_content_sha256": "0971e7cd5ae60ef92f723ea8ac8debbd4d2b3bed05bed81a0d0bd0d31a8bddc6",
   "replay_checked": true
 }
