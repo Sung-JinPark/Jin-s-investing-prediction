@@ -28,6 +28,7 @@ from .engine import (
 
 AUDIT_RELATIVE = Path("docs/audit/scenario_v5_2")
 PACKAGE_NAME = "AI_INVESTING_SCENARIO_V5_2_FINAL_REVIEW_PACK_260810.zip"
+PACKAGE_RELATIVE = Path("reports/reviews/current/scenario_v5_2") / PACKAGE_NAME
 
 
 def _load_candidate(root: Path) -> dict[str, Any]:
@@ -419,11 +420,12 @@ def build_review_package(root: Path) -> tuple[Path, str]:
     manifest = audit / "MANIFEST.sha256"
     manifest.write_text("\n".join(manifest_lines) + "\n", encoding="utf-8", newline="\n")
     scope.add(manifest)
-    package = root / PACKAGE_NAME
+    package = root / PACKAGE_RELATIVE
+    package.parent.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as archive:
         for path in sorted(scope):
             archive.write(path, path.relative_to(root).as_posix())
     package_hash = file_hash(package)
-    hash_path = root / f"{PACKAGE_NAME}.sha256"
+    hash_path = package.with_suffix(package.suffix + ".sha256")
     hash_path.write_text(f"{package_hash}  {PACKAGE_NAME}\n", encoding="utf-8", newline="\n")
     return package, package_hash

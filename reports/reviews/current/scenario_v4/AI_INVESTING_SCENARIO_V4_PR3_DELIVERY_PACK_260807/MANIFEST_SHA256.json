@@ -1,0 +1,52 @@
+[
+  {
+    "relative_path": "AGENTS_SCENARIO_V4_PR3_TEMPLATE_260807.md",
+    "size_bytes": 5654,
+    "sha256": "5e0b67c825d5428ce4cfb1a8f0e39aecb550f152b9c09596dc4199631c67f562"
+  },
+  {
+    "relative_path": "AI_INVESTING_SCENARIO_V4_PR3_README_260807.md",
+    "size_bytes": 3311,
+    "sha256": "3494ddb3ad467909e121538d94e7d75f4126990b258ba165e21793ea5971dd0c"
+  },
+  {
+    "relative_path": "docs/audit/phase3_260807/AI_INVESTING_SCENARIO_V4_PR2_AUDIT_METRICS_260807.json",
+    "size_bytes": 9967,
+    "sha256": "c9a7f4932401559753c876459395360d3b3333cda3004e82ef52e10d28a84b03"
+  },
+  {
+    "relative_path": "docs/audit/phase3_260807/AI_INVESTING_SCENARIO_V4_PR2_DEEP_AUDIT_260807.md",
+    "size_bytes": 29632,
+    "sha256": "898373f2a298ab01878738b79a6195cfe6bdeaa2064f40fcbbf5407a81a8a62f"
+  },
+  {
+    "relative_path": "docs/audit/phase3_260807/AI_INVESTING_SCENARIO_V4_PR2_DEFECT_REGISTER_260807.csv",
+    "size_bytes": 10103,
+    "sha256": "ee04325b3ca190464f9bcd64a208bb0c36bf51f5e15188f247b957c11922d1f3"
+  },
+  {
+    "relative_path": "prompts/scenario_v4/AI_INVESTING_SCENARIO_V4_CODEX_LAUNCHER_260806.md",
+    "size_bytes": 1839,
+    "sha256": "6cf53fb460d9ca3f2c19e27cfb05a3968ab3b87d80ad6fffa14b162828c32ccb"
+  },
+  {
+    "relative_path": "prompts/scenario_v4/AI_INVESTING_SCENARIO_V4_CODEX_MASTER_PROMPT_260806.md",
+    "size_bytes": 58908,
+    "sha256": "e995506fa76664dd0ade7e805bb92e17eb45651876c8f0f78ef6602eb074f0ba"
+  },
+  {
+    "relative_path": "prompts/scenario_v4/AI_INVESTING_SCENARIO_V4_MODEL_DECISION_260806.md",
+    "size_bytes": 2599,
+    "sha256": "e0fc35b9d544e223545e8a81939c46ea1606497943ec3e83bf5397c28f58baf3"
+  },
+  {
+    "relative_path": "prompts/scenario_v4/AI_INVESTING_SCENARIO_V4_PR3_CODEX_BATCH_COMMANDS_260807.md",
+    "size_bytes": 11419,
+    "sha256": "96436fe5c1adafb92e9f28949b49cd2ca330440557798b312672eb04a9936c76"
+  },
+  {
+    "relative_path": "prompts/scenario_v4/AI_INVESTING_SCENARIO_V4_PR3_REMEDIATION_MASTER_PROMPT_260807.md",
+    "size_bytes": 43323,
+    "sha256": "22099600b5b5ad361f06446eeb69a612cfc799f1a8d4facda2c057486dc1fd43"
+  }
+]

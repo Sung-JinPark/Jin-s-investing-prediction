@@ -23,7 +23,7 @@ Thumbs.db
 /reports/dashboard.html
 
 # 내부 검토·아카이브 산출물 — 로컬 보존 전용 (리포지토리 미포함)
-reports/audit/_local_only/
+/reports/reviews/archive/local_only/
 
 # Separate OpenAI Sites project with its own Git history and remote.
 /codex-forecast-demo/

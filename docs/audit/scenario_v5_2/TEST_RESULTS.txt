@@ -1,2 +1,7 @@
-python -m pytest src/tests -q
-401 passed in 75.28s
+Validation run: 2026-08-10 KST
+Targeted: python -m pytest src/tests/test_dashboard.py src/tests/test_dashboard_js_geometry.py src/tests/test_scenario_v5_2.py -q
+Result: 59 passed in 11.62s
+Full suite attempt 1: terminated by shell timeout at 124s; no test failure was reported.
+Full suite retry: python -m pytest -q
+Result: 458 passed in 154.49s
+Classification: no code defects, environment failures, or missing-artifact failures. The first full-suite attempt was an execution-time-limit event only.

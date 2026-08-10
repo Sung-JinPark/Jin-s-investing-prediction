@@ -13,7 +13,7 @@ import yaml
 
 from ai_fc.scenario_v5.contracts import canonical_hash, compare_protected_hashes, protected_hashes
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
-from ai_fc.scenario_v5_2.audit import render_dashboard
+from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
     CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, generate_prior, load_inputs,
 )
@@ -34,6 +34,10 @@ def _rehash(payload: dict) -> dict:
     payload["build_receipt"]["model_content_sha256"] = payload["model_content_sha256"]
     payload["build_receipt_sha256"] = canonical_hash(payload["build_receipt"])
     return payload
+
+
+def test_review_package_uses_central_review_tree() -> None:
+    assert PACKAGE_RELATIVE.parent.as_posix() == "reports/reviews/current/scenario_v5_2"
 
 
 def test_candidate_passes_strict_validation_and_sources() -> None:
