@@ -85,6 +85,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert payload["model_use"] is False
     assert payload["official_forecast_input"] is False
     assert len(payload["charts"]) == 9
+    assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "yield_curve", "valuation_proxy", "margin_credit_proxy",
     }
@@ -126,6 +127,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert 'href="#statistics" data-v="statistics"' in template
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
+    assert "한눈에 보는 의미" in script
+    assert "해석할 때 주의" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow

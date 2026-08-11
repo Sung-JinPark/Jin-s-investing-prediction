@@ -1022,7 +1022,7 @@ function renderStatistics(){
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const sourceLinks=(chart.source_ids||[]).map(id=>{const source=sources.find(row=>row.series_id===id);return source?`<a href="${esc(source.source_url)}" target="_blank" rel="noreferrer">${esc(id)} ↗</a>`:`<span>${esc(id)}</span>`;}).join('');
-    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart)}</div><div class="statistics-insight"><strong>이 숫자의 한계</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
+    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div><div class="statistics-insight"><strong>해석할 때 주의</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>원천·갱신일·재구성 상태 보기</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.series_id)}</strong><span>${esc(row.title)}</span></div><p>${esc(row.provider)} · 최신 관측 ${esc(row.latest_observation)} · ${num(row.row_count)}개 · ${esc(row.vintage)}</p><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원천 열기 ↗</a></article>`).join('')}</div><p>제외: FINRA margin debt는 자동수집·재배포 권한 미확보, Moody’s Baa 스프레드는 독점 재배포 제한, 유료 forward P/E는 재현 가능한 공개 이력이 없어 사용하지 않았습니다.</p></details>`));
@@ -1322,13 +1322,20 @@ function scenarioModelModeNav(active,candidate){
   const hard=candidate?.model?.hard_event_mapping||{},governance=candidate?.governance||{},eligible=['ok','degraded'].includes(candidate?.status)&&candidate?.runtime_gate?.display_eligible!==false;
   return `<nav class="scenario-model-mode" aria-label="전망 모델 선택"><a href="#future" ${active==='champion'?'aria-current="page"':''}><span>기본 전망</span><strong>${esc(DATA.scenario?.method||'champion')}</strong><small>승격된 기준 모델 · 기본 노출</small></a><a href="#future/research" ${active==='research'?'aria-current="page"':''} ${eligible?'':'aria-disabled="true"'}><span>연구 후보</span><strong>Scenario V5.2</strong><small>${eligible?`적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)} · ${esc(candidate.status)}`:`표시 게이트 차단 · ${esc(governance.promotion_state||'NOT_CHAMPION')}`}</small></a></nav>`;
 }
-// V5.2 paths are stored at monthly checkpoints (including the anchor), not as
-// daily observations.  Keep the UI range in calendar checkpoints so a
-// "1 month" selection cannot accidentally expose the complete 2027 path.
-const V52_RANGE_META={month:['다음 1개월',1],quarter:['3개월',3],year2026:['2026 연말',null],year2027:['2027 연말',null]};
+// V5.2 paths are daily observations. Resolve month controls by calendar date,
+// never by array index: index 3 is three days, not three months.
+const V52_RANGE_META={month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}],year2026:['2026 연말',null],year2027:['2027 연말',null]};
+function scenarioV52CalendarEnd(dates,months){
+  if(!dates.length)return 0;
+  const start=new Date(`${dates[0]}T00:00:00Z`),target=new Date(start);
+  target.setUTCMonth(target.getUTCMonth()+Number(months||0));
+  const targetDay=target.toISOString().slice(0,10),found=dates.findLastIndex(day=>day<=targetDay);
+  return found>=0?found:dates.length-1;
+}
 function scenarioV52Range(candidate,key='month'){
   const dates=candidate?.conditional_small_multiples?.dates||candidate?.distribution?.dates||[];
-  let end=V52_RANGE_META[key]?.[1]??dates.length-1;
+  const rule=V52_RANGE_META[key]?.[1];
+  let end=rule?.months?scenarioV52CalendarEnd(dates,rule.months):dates.length-1;
   if(key==='year2026'){const found=dates.findLastIndex(day=>day<='2026-12-31');end=found>=0?found:end;}
   if(key==='year2027'){const found=dates.findLastIndex(day=>day<='2027-12-31');end=found>=0?found:end;}
   end=Math.max(1,Math.min(end,dates.length-1));

@@ -321,6 +321,51 @@ def build_statistics_lab(
                "전체 미국 기업이익 통계로 NASDAQ 기술기업만의 이익은 아닙니다.",
                [_series("닷컴", "dotcom", dot_profit, "#8d2943"), _series("현재", "current", cur_profit, "#28756a")], ["CPATAX"]),
     ]
+
+    def chart_last(chart_index: int, series_index: int) -> float:
+        return float(charts[chart_index]["series"][series_index]["points"][-1]["value"])
+
+    chart_insights = {
+        "m2_nasdaq": (
+            f"같은 경과월에 현재 NASDAQ은 시작 대비 {chart_last(0, 2):.0f}, M2는 {chart_last(0, 3):.0f}입니다. "
+            f"닷컴 당시 NASDAQ {chart_last(0, 0):.0f}, M2 {chart_last(0, 1):.0f}와 비교해 주가가 유동성보다 얼마나 앞섰는지 봅니다."
+        ),
+        "nasdaq_per_m2": (
+            f"현재 유동성 대비 NASDAQ 지수는 {chart_last(1, 1):.0f}, 닷컴 당시 같은 구간은 {chart_last(1, 0):.0f}입니다. "
+            "100보다 높을수록 통화량 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
+        ),
+        "yield_curve": (
+            f"현재 장단기 금리차는 {chart_last(2, 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last(2, 0):+.1f}%p입니다. "
+            "0 아래는 금리 역전, 0 위는 정상 기울기이며 경기 방향을 단독으로 확정하지는 않습니다."
+        ),
+        "policy_rate": (
+            f"현재 정책금리는 {chart_last(3, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(3, 0):.1f}%입니다. "
+            "금리가 높을수록 미래 이익의 할인 부담과 기업 조달비용이 커지는 방향입니다."
+        ),
+        "valuation_proxy": (
+            f"현재 기업가치/세후이익 대용치는 {chart_last(4, 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last(4, 0):.1f}배입니다. "
+            "높을수록 이익에 비해 시장가치가 비싸다는 뜻이지만 NASDAQ 공식 PER은 아닙니다."
+        ),
+        "margin_credit_proxy": (
+            f"현재 증권담보 신용 대용치는 시작 대비 {chart_last(5, 1):.0f}, 닷컴 당시에는 {chart_last(5, 0):.0f}입니다. "
+            "상승 속도가 빠를수록 레버리지 확대와 가격 충격 민감도가 커질 가능성을 뜻합니다."
+        ),
+        "consumer_credit_growth": (
+            f"현재 소비자신용 증가율은 {chart_last(6, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(6, 0):+.1f}%입니다. "
+            "빠른 증가는 소비를 지지할 수 있지만 동시에 가계 부채 부담도 키웁니다."
+        ),
+        "loan_standards": (
+            f"현재 대출기준 강화 응답은 {chart_last(7, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(7, 0):+.1f}%입니다. "
+            "양수와 상승은 더 많은 은행이 대출을 조인다는 뜻이고, 음수는 완화 쪽입니다."
+        ),
+        "profit_growth": (
+            f"현재 세후 기업이익 증가율은 {chart_last(8, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(8, 0):+.1f}%입니다. "
+            "이익이 늘면 밸류에이션을 지지하지만 주가가 이익보다 빨리 오르면 부담은 다시 커집니다."
+        ),
+    }
+    for chart in charts:
+        chart["insight"] = chart_insights[chart["id"]]
+
     source_meta = []
     for series_id, spec in FRED_SERIES.items():
         rows = source_rows[series_id]
@@ -396,8 +441,8 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
     if len(ids) != len(set(ids)):
         raise StatisticsLabError("statistics chart ids must be unique")
     for chart in charts:
-        if not chart.get("caveat") or not chart.get("source_ids"):
-            raise StatisticsLabError(f"chart {chart.get('id')} missing caveat/source")
+        if not chart.get("insight") or not chart.get("caveat") or not chart.get("source_ids"):
+            raise StatisticsLabError(f"chart {chart.get('id')} missing insight/caveat/source")
         for series in chart.get("series", []):
             periods = [int(point["period"]) for point in series.get("points", [])]
             values = [float(point["value"]) for point in series.get("points", [])]
@@ -412,6 +457,19 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
         digest = str(row.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
             raise StatisticsLabError(f"source {row.get('series_id')} hash invalid")
+
+
+def _semantic_snapshot(value: Any) -> Any:
+    """Remove collector-clock metadata before deciding whether data changed."""
+    if isinstance(value, dict):
+        return {
+            key: _semantic_snapshot(item)
+            for key, item in value.items()
+            if key not in {"generated_at", "available_at"}
+        }
+    if isinstance(value, list):
+        return [_semantic_snapshot(item) for item in value]
+    return value
 
 
 def refresh_statistics_lab(
@@ -440,10 +498,8 @@ def refresh_statistics_lab(
             previous = json.loads(latest.read_text(encoding="utf-8"))
         except (OSError, json.JSONDecodeError):
             previous = None
-    previous_semantic = dict(previous or {})
-    previous_semantic.pop("generated_at", None)
-    current_semantic = dict(payload)
-    current_semantic.pop("generated_at", None)
+    previous_semantic = _semantic_snapshot(previous or {})
+    current_semantic = _semantic_snapshot(payload)
     changed = previous_semantic != current_semantic
     if previous is not None and not changed:
         validate_statistics_lab(previous)

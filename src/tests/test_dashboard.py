@@ -515,7 +515,9 @@ def test_future_default_is_champion_and_v5_2_requires_explicit_research_route() 
 
 def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> None:
     html = dashboard.load_template()
-    assert "month:['다음 1개월',1],quarter:['3개월',3]" in html
+    assert "month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}]" in html
+    assert "function scenarioV52CalendarEnd(dates,months)" in html
+    assert "index 3 is three days, not three months" in html
     for required in (
         "scenarioV52UnifiedChart",
         'data-scale="log"',
