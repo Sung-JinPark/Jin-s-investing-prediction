@@ -108,11 +108,33 @@ def test_growth_risk_policy_relief_and_attribution_are_separate() -> None:
 
 def test_event_day_return_is_anchor_only_and_zero_future_jump() -> None:
     payload = _candidate()
-    assert payload["anchor"]["event_day_return_role"] == "historical_anchor_only"
+    assert payload["anchor"]["event_day_return_role"] == \
+        "latest_completed_market_anchor_only"
     assert payload["anchor"]["future_event_jump"] == 0
     assert payload["circularity_control"]["realized_event_return_coefficient"] == 0
     assert payload["circularity_control"]["full_equals_explicit_zero_event_reaction"] is True
     assert payload["circularity_control"]["gate_pass"] is True
+
+
+def test_forecast_anchor_tracks_latest_completed_official_snapshot() -> None:
+    payload = _candidate()
+    official = json.loads(
+        (ROOT / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8")
+    )
+    assert payload["anchor"]["date"] == official["asof"]
+    assert math.isclose(payload["anchor"]["close"], official["anchor"])
+    assert payload["distribution"]["forecast_boundary"] == official["asof"]
+    assert payload["forecast_time_transport"]["source_snapshot_id"] == \
+        official["snapshot_id"]
+    assert payload["forecast_time_transport"]["historical_transport_step"] == 0.0
+
+
+def test_valuation_is_fail_closed_without_vintage_complete_cross_era_history() -> None:
+    gate = _candidate()["model"]["valuation_and_earnings_gate"]
+    assert gate["status"] == \
+        "REFERENCE_ONLY_MISSING_POINT_IN_TIME_CROSS_ERA_HISTORY"
+    assert gate["stale_Cyclically_adjusted_PE_substitution"] is False
+    assert gate["fabricated_low_PER_feature"] is False
 
 
 def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
@@ -150,32 +172,32 @@ def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
     assert increment["scenario_strength"] == dotcom["scenario_strength"]
     assert dotcom["dependency_cap"] == .60
     shares = dotcom["path_engine_share_by_scenario"]
-    assert shares["S1"]["S1_dotcom_expansion_cluster"] == 1.0
-    assert shares["S2"]["S2_modern_baseline_cluster"] == 1.0
-    assert shares["S3"]["S3_macro_tightening_stress_cluster"] == 1.0
+    assert shares["S1"]["S1_dotcom_easing_multilayer"] == 1.0
+    assert shares["S2"]["S2_balanced_soft_landing_layer"] == 1.0
+    assert shares["S3"]["S3_tightening_stress_layer"] == 1.0
 
 
 def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
     payload = _candidate()
     generator = payload["model"]["generator_audit"]
     assert generator["engine_mixture_probability"] == {
-        "S1_dotcom_expansion_cluster": 1 / 3,
-        "S2_modern_baseline_cluster": 1 / 3,
-        "S3_macro_tightening_stress_cluster": 1 / 3,
+        "S1_dotcom_easing_multilayer": 1 / 3,
+        "S2_balanced_soft_landing_layer": 1 / 3,
+        "S3_tightening_stress_layer": 1 / 3,
     }
     assert generator["path_count_by_engine"] == {
-        "S1_dotcom_expansion_cluster": 3000,
-        "S2_modern_baseline_cluster": 3000,
-        "S3_macro_tightening_stress_cluster": 3000,
+        "S1_dotcom_easing_multilayer": 3000,
+        "S2_balanced_soft_landing_layer": 3000,
+        "S3_tightening_stress_layer": 3000,
     }
     assert generator["cluster_assignment_information_set"] == "origin_state_features_only"
     assert generator["individual_origin_outcome_selection"] is False
     assert generator["gate_pass"]
     scenarios = generator["scenarios"]
     assert [scenarios[key]["source_group"] for key in ("S1", "S2", "S3")] == [
-        "dotcom_price_state_db",
-        "modern_general_market_state_db",
-        "macro_tightening_financial_conditions_db",
+        "dotcom_expansion_cycle_db",
+        "balanced_soft_landing_macro_db",
+        "tightening_financial_stress_macro_db",
     ]
     assert all(row["clustering_uses_forward_outcomes"] is False
                for row in scenarios.values())
@@ -188,8 +210,10 @@ def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
     assert returns[0] - returns[2] > .50
     assert abs(scenarios["S2"]["selected_cluster"]["outcome_medians"][
         "forward_return_126d"
-    ]) < .05
-    assert generator["label_gates"]["S2_sideways_126d"] is True
+    ]) < .08
+    assert generator["label_gates"]["S2_moderate_126d"] is True
+    assert generator["macro_regime_cohorts_disjoint"] is True
+    assert not any(generator["macro_regime_cohort_origin_overlap"].values())
 
 
 def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:
@@ -228,12 +252,12 @@ def test_abc_weight_spaces_and_generator_block_provenance_are_separate() -> None
     assert .55 <= s1["realized_dotcom_session_share"] <= .65
     assert len(s1["block_provenance_sha256"]) == 64
     assert {row["source"] for row in s1["block_provenance_sample"]} \
-        == {"dotcom", "modern_growth"}
+        == {"dotcom", "easing_macro"}
     assert len(set(s1["block_selection_seed_streams"].values())) == 3
     assert all(row["sampling"]["residual_scale"] == 1.0
                for row in generator["scenarios"].values())
     assert generator["promotion_sample_gates"] == {
-        "S1": True, "S2": False, "S3": False,
+        "S1": True, "S2": True, "S3": False,
     }
     assert generator["promotion_sample_gate_pass"] is False
     assert payload["distinctness"]["sample_adequacy"]["gate_pass"] is False
@@ -259,6 +283,19 @@ def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
         "paths_unchanged_by_distinctness_evaluation"
     ] is True
     assert distinctness["descriptive_checks"]["medoid_path_ids_unique"] is True
+    assert distinctness["descriptive_checks_pass"] is True
+    assert distinctness["descriptive_checks"][
+        "S1_has_historical_short_correction_and_reacceleration"
+    ] is True
+    assert distinctness["descriptive_checks"][
+        "S2_has_balanced_mean_reversion_not_S1_copy"
+    ] is True
+    assert distinctness["descriptive_checks"][
+        "S3_has_drawdown_then_failed_relief"
+    ] is True
+    assert next(row for row in distinctness["pairs"] if row["pair"] == "S1-S2")[
+        "standardized_log_path_dtw"
+    ] >= .15
     assert len({
         row["central_path_bundle"]["medoid_path_id"]
         for row in payload["conditional_small_multiples"]["scenarios"].values()
@@ -430,7 +467,7 @@ def test_pre_post_comparison_includes_paths_probabilities_and_timing() -> None:
     assert before["first_touch_distribution"]["cdf"] != after["first_touch_distribution"]["cdf"]
 
 
-def test_seed_path_count_and_block_length_sensitivity_primitives() -> None:
+def test_seed_path_count_and_independent_phase_sampling_primitives() -> None:
     inputs = load_inputs(ROOT)
     a, dates_a, engines_a, _, audit_a = generate_prior(
         ROOT, inputs, seed=71, path_count_per_engine=80, block_restart_probability=.10
@@ -456,18 +493,20 @@ def test_seed_path_count_and_block_length_sensitivity_primitives() -> None:
         for key, row in seed_audit["scenarios"].items()
     }
     assert audit_a["path_count_by_engine"] == {
-        "S1_dotcom_expansion_cluster": 80,
-        "S2_modern_baseline_cluster": 80,
-        "S3_macro_tightening_stress_cluster": 80,
+        "S1_dotcom_easing_multilayer": 80,
+        "S2_balanced_soft_landing_layer": 80,
+        "S3_tightening_stress_layer": 80,
     }
     assert not np.array_equal(a, seed_variant)
-    assert not np.array_equal(a, block_variant)
+    assert np.array_equal(a, block_variant)
+    assert audit_a["legacy_block_restart_probability_active"] is False
+    assert audit_a["restart_policy"] == "independent_preregistered_phase_pools"
     assert np.isfinite(a).all() and (a > 0).all()
 
 
 def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     fresh = dashboard_projection(
-        ROOT, datetime.fromisoformat("2026-08-10T04:00:00+00:00"),
+        ROOT, datetime.fromisoformat("2026-08-11T04:00:00+00:00"),
         maximum_age_trading_days=1,
     )
     assert fresh["runtime_gate"]["display_eligible"] is True
@@ -477,21 +516,31 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     assert fresh["governance"]["gates"]["direct_event_observations"] == {
         "observations": 1, "minimum": 60, "pass": False,
     }
-    assert fresh["governance"]["gates"]["band_calibration"]["observations"] == 3
+    calibration_rows = (
+        ROOT / "data/scenarios/band_calibration.csv"
+    ).read_text(encoding="utf-8").splitlines()[1:]
+    assert fresh["governance"]["gates"]["band_calibration"]["observations"] == \
+        len(calibration_rows)
     assert fresh["governance"]["gates"]["human_approval"]["approval_run_id"] is None
-    assert fresh["model"]["cluster_disclosure"]["S2"] == {
-        "source_group": "modern_general_market_state_db",
-        "source_origin_count": 100,
-        "selected_cluster_origin_count": 16,
-        "simulation_path_count": 3000,
-    }
+    s2 = fresh["model"]["cluster_disclosure"]["S2"]
+    assert s2["source_group"] == "balanced_soft_landing_macro_db"
+    assert s2["source_origin_count"] == 119
+    assert s2["selected_cluster_origin_count"] == 99
+    assert s2["simulation_path_count"] == 3000
+    assert s2["generator"] == "balanced_soft_landing_phase_sampler_v2"
+    assert fresh["model"]["database_layer_gate"][
+        "macro_regime_cohorts_disjoint"
+    ] is True
+    assert fresh["model"]["database_layer_gate"][
+        "unique_block_provenance_count"
+    ] == 3
     dotcom = fresh["dotcom_scenario_weighting"]
     assert dotcom["dependency_cap"] == .60
     assert dotcom["requested_sensitivity_policy"]["0.80"] == \
         "blocked_above_dependency_cap"
     assert len(fresh["distribution"]["dates"]) < len(_candidate()["distribution"]["dates"])
     stale = dashboard_projection(
-        ROOT, datetime.fromisoformat("2026-08-12T04:00:00+00:00"),
+        ROOT, datetime.fromisoformat("2026-08-13T04:00:00+00:00"),
         maximum_age_trading_days=1,
     )
     assert stale["status"] == "stale_or_invalid"
@@ -526,6 +575,19 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "@media(max-width:620px)" in css
 
 
+def test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2() -> None:
+    workflows = [
+        ROOT / ".github/workflows/scenario-refresh.yml",
+        ROOT / ".github/workflows/investing-refresh.yml",
+        ROOT / ".github/workflows/ai-regime-refresh.yml",
+    ]
+    for workflow in workflows:
+        source = workflow.read_text(encoding="utf-8")
+        assert "scenario-v5-2-build --force" in source
+        assert "scenario-v5-2-verify --replay" in source
+        assert source.index("scenario-v5-2-build --force") < source.index("git add")
+
+
 def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() -> None:
     rows = [json.loads(line) for line in (ROOT / "data/method_changes.jsonl")
             .read_text(encoding="utf-8").splitlines() if line.strip()]
@@ -542,6 +604,13 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() 
     redesign_row = next(row for row in rows if row["event_id"] == redesign)
     assert redesign_row["contract"] == "data/contracts/scenario_v5_2_weights.yaml"
     assert redesign_row["official_snapshot_overwritten"] is False
+    multilayer = "method:scenario-v5-2-independent-multilayer-db:2026-08-11:r5"
+    assert multilayer in ids
+    multilayer_row = next(row for row in rows if row["event_id"] == multilayer)
+    assert multilayer_row["supersedes"].endswith(":r4")
+    assert multilayer_row["candidate_model_content_sha256"] == \
+        _candidate()["model_content_sha256"]
+    assert multilayer_row["official_snapshot_overwritten"] is False
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:
@@ -551,7 +620,7 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
     p = _candidate(); p["circularity_control"]["realized_event_return_coefficient"] = .01; mutations.append((p, "double counted"))
     p = _candidate(); p["distinctness_2027"]["gate_pass"] = False; mutations.append((p, "distinctness"))
     p = _candidate(); p["display_contract"]["october_2_exact_date_forecast"] = True; mutations.append((p, "October 2"))
-    p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S1_dotcom_expansion_cluster"] = .90; p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S2_modern_baseline_cluster"] = .10; mutations.append((p, "isolated"))
+    p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S1_dotcom_easing_multilayer"] = .90; p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S2_balanced_soft_landing_layer"] = .10; mutations.append((p, "isolated"))
     p = _candidate(); p["model"]["generator_audit"]["scenarios"]["S1"]["clustering_uses_forward_outcomes"] = True; mutations.append((p, "cluster audit"))
     p = _candidate(); p["evidence_registry"][0]["approved_cap"] = .90; mutations.append((p, "unauthorized"))
     p = _candidate(); p["weight_spaces"]["B_generator_dotcom_block_share"]["value"] = .80; mutations.append((p, "A/B/C"))

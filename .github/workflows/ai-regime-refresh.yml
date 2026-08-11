@@ -37,12 +37,18 @@ jobs:
         env:
           AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
         run: cd src && python -m ai_fc segment-filing-inventory
+      - name: Rebuild and replay-verify the protected-hash-bound V5.2 candidate
+        run: |
+          cd src
+          python -m ai_fc scenario-v5-2-build --force
+          python -m ai_fc scenario-v5-2-verify --replay
       - name: Commit append-only D0-D2 snapshots
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ai_capital_cycle
+          git add data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json
           git add data/realty_income/o_entry_cohort_latest.json
           git add data/realty_income/o_entry_cohort_archive
           if git diff --cached --quiet; then

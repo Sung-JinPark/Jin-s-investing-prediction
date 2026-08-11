@@ -1,0 +1,285 @@
+{
+  "path_count_per_scenario": 600,
+  "seeds": [
+    {
+      "seed": 520807,
+      "scenario_probabilities": {
+        "S1": 0.6312499830028637,
+        "S2": 0.3211620262685483,
+        "S3": 0.04758799072858795
+      },
+      "p50_return_checkpoints": {
+        "S1": {
+          "21": 0.04965414816141389,
+          "63": 0.0992401075733722,
+          "126": 0.24597667645037857,
+          "252": 0.5886112799178138
+        },
+        "S2": {
+          "21": 0.011336566928756397,
+          "63": -0.007418336479257492,
+          "126": 0.031194479558736443,
+          "252": 0.06209110166792686
+        },
+        "S3": {
+          "21": -0.009085588869797712,
+          "63": -0.12664636490272618,
+          "126": -0.175757251049245,
+          "252": -0.3163789376192835
+        }
+      },
+      "medoid_path_ids": {
+        "S1": "path_00217",
+        "S2": "path_00725",
+        "S3": "path_01588"
+      },
+      "legacy_2027_gate_pass": true,
+      "descriptive_checks": {
+        "cumulative_return_order_S1_gt_S2_gt_S3": true,
+        "S1_and_S2_drawdown_below_S3": true,
+        "S1_drawdown_below_80pct_of_S3": true,
+        "S1_and_S2_downside_semivolatility_below_S3": true,
+        "S1_recovery_faster_than_S2_and_S3": true,
+        "S1_has_historical_short_correction_and_reacceleration": true,
+        "S2_has_balanced_mean_reversion_not_S1_copy": true,
+        "S3_has_drawdown_then_failed_relief": true,
+        "S1_S2_standardized_path_dtw_at_least_0_15": true,
+        "macro_regime_origin_sets_disjoint": true,
+        "independent_residual_provenance": true,
+        "medoid_path_ids_unique": true,
+        "paths_unchanged_by_distinctness_evaluation": true
+      },
+      "pairs": [
+        {
+          "pair": "S1-S2",
+          "p50_log_level_correlation": 0.8660113016106402,
+          "p50_first_difference_correlation": 0.013014253232227777,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.26720709430037065,
+            "median": 0.02486463165041441,
+            "maximum": 0.2459105901102414
+          },
+          "standardized_log_path_dtw": 0.2596967840767333,
+          "terminal_wasserstein_2026": 0.2018137774471006,
+          "terminal_wasserstein_2027": 0.9842955027801937,
+          "first_touch_minus_10_ks": 0.0347236719
+        },
+        {
+          "pair": "S1-S3",
+          "p50_log_level_correlation": -0.9422552977357672,
+          "p50_first_difference_correlation": 0.014732190360792225,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.24148910867322868,
+            "median": -0.02762328855305567,
+            "maximum": 0.27142645861016085
+          },
+          "standardized_log_path_dtw": 1.6582599489484307,
+          "terminal_wasserstein_2026": 0.2975320457320221,
+          "terminal_wasserstein_2027": 1.4235285470271295,
+          "first_touch_minus_10_ks": 0.9586096614
+        },
+        {
+          "pair": "S2-S3",
+          "p50_log_level_correlation": -0.7414208024507444,
+          "p50_first_difference_correlation": 0.10637539099456098,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.18870937271781868,
+            "median": 0.06606899832680878,
+            "maximum": 0.21603375455028656
+          },
+          "standardized_log_path_dtw": 1.3966057371955887,
+          "terminal_wasserstein_2026": 0.13170441312134198,
+          "terminal_wasserstein_2027": 0.4400305547580404,
+          "first_touch_minus_10_ks": 0.9933333333
+        }
+      ]
+    },
+    {
+      "seed": 520814,
+      "scenario_probabilities": {
+        "S1": 0.6339282075117351,
+        "S2": 0.3188294324504497,
+        "S3": 0.04724236003781502
+      },
+      "p50_return_checkpoints": {
+        "S1": {
+          "21": 0.044031948302437396,
+          "63": 0.09781301445976154,
+          "126": 0.24461889607659937,
+          "252": 0.5765178928027899
+        },
+        "S2": {
+          "21": 0.011655780195439558,
+          "63": -0.008454655605602213,
+          "126": 0.02459066143836308,
+          "252": 0.06668597432356393
+        },
+        "S3": {
+          "21": -0.009085588869797712,
+          "63": -0.1136676480351525,
+          "126": -0.17521136639014,
+          "252": -0.3131366000490059
+        }
+      },
+      "medoid_path_ids": {
+        "S1": "path_00022",
+        "S2": "path_00638",
+        "S3": "path_01468"
+      },
+      "legacy_2027_gate_pass": true,
+      "descriptive_checks": {
+        "cumulative_return_order_S1_gt_S2_gt_S3": true,
+        "S1_and_S2_drawdown_below_S3": true,
+        "S1_drawdown_below_80pct_of_S3": true,
+        "S1_and_S2_downside_semivolatility_below_S3": true,
+        "S1_recovery_faster_than_S2_and_S3": true,
+        "S1_has_historical_short_correction_and_reacceleration": true,
+        "S2_has_balanced_mean_reversion_not_S1_copy": true,
+        "S3_has_drawdown_then_failed_relief": true,
+        "S1_S2_standardized_path_dtw_at_least_0_15": true,
+        "macro_regime_origin_sets_disjoint": true,
+        "independent_residual_provenance": true,
+        "medoid_path_ids_unique": true,
+        "paths_unchanged_by_distinctness_evaluation": true
+      },
+      "pairs": [
+        {
+          "pair": "S1-S2",
+          "p50_log_level_correlation": 0.8712366097112554,
+          "p50_first_difference_correlation": 0.022516505231188238,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.2531833838654604,
+            "median": 0.018376248383174396,
+            "maximum": 0.2103029771584744
+          },
+          "standardized_log_path_dtw": 0.2629424565628479,
+          "terminal_wasserstein_2026": 0.19639757418943554,
+          "terminal_wasserstein_2027": 0.9851256990782733,
+          "first_touch_minus_10_ks": 0.0446752183
+        },
+        {
+          "pair": "S1-S3",
+          "p50_log_level_correlation": -0.9442620672882291,
+          "p50_first_difference_correlation": -0.0716587509358022,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.2035127958124989,
+            "median": -0.09932087852482557,
+            "maximum": 0.07882954797620652
+          },
+          "standardized_log_path_dtw": 1.6707147772083826,
+          "terminal_wasserstein_2026": 0.2898367573387149,
+          "terminal_wasserstein_2027": 1.4284477671515738,
+          "first_touch_minus_10_ks": 0.938658115
+        },
+        {
+          "pair": "S2-S3",
+          "p50_log_level_correlation": -0.7530870503222165,
+          "p50_first_difference_correlation": 0.16598833485234657,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.18285174918535885,
+            "median": 0.05594527629535042,
+            "maximum": 0.3171917122723844
+          },
+          "standardized_log_path_dtw": 1.4139574209458656,
+          "terminal_wasserstein_2026": 0.12830776482396924,
+          "terminal_wasserstein_2027": 0.44421985002294473,
+          "first_touch_minus_10_ks": 0.9833333333000001
+        }
+      ]
+    },
+    {
+      "seed": 520820,
+      "scenario_probabilities": {
+        "S1": 0.6323754122122989,
+        "S2": 0.32018183614335904,
+        "S3": 0.04744275164434221
+      },
+      "p50_return_checkpoints": {
+        "S1": {
+          "21": 0.0488733495137994,
+          "63": 0.09799734888136724,
+          "126": 0.24568518827962782,
+          "252": 0.5935444736765203
+        },
+        "S2": {
+          "21": 0.011336566928756397,
+          "63": -0.01111626481512984,
+          "126": 0.029824335290825177,
+          "252": 0.06641621663340902
+        },
+        "S3": {
+          "21": -0.009085588869797712,
+          "63": -0.13061892155371435,
+          "126": -0.18178858340495652,
+          "252": -0.3167903180967695
+        }
+      },
+      "medoid_path_ids": {
+        "S1": "path_00536",
+        "S2": "path_01002",
+        "S3": "path_01761"
+      },
+      "legacy_2027_gate_pass": true,
+      "descriptive_checks": {
+        "cumulative_return_order_S1_gt_S2_gt_S3": true,
+        "S1_and_S2_drawdown_below_S3": true,
+        "S1_drawdown_below_80pct_of_S3": true,
+        "S1_and_S2_downside_semivolatility_below_S3": true,
+        "S1_recovery_faster_than_S2_and_S3": true,
+        "S1_has_historical_short_correction_and_reacceleration": true,
+        "S2_has_balanced_mean_reversion_not_S1_copy": true,
+        "S3_has_drawdown_then_failed_relief": true,
+        "S1_S2_standardized_path_dtw_at_least_0_15": true,
+        "macro_regime_origin_sets_disjoint": true,
+        "independent_residual_provenance": true,
+        "medoid_path_ids_unique": true,
+        "paths_unchanged_by_distinctness_evaluation": true
+      },
+      "pairs": [
+        {
+          "pair": "S1-S2",
+          "p50_log_level_correlation": 0.8725191035357501,
+          "p50_first_difference_correlation": 0.00472028531876337,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.24047754312196,
+            "median": -0.01778726035189925,
+            "maximum": 0.26195980481195985
+          },
+          "standardized_log_path_dtw": 0.2539710509175824,
+          "terminal_wasserstein_2026": 0.21008013819075227,
+          "terminal_wasserstein_2027": 0.9988355873095482,
+          "first_touch_minus_10_ks": 0.027654728200000006
+        },
+        {
+          "pair": "S1-S3",
+          "p50_log_level_correlation": -0.935747861879731,
+          "p50_first_difference_correlation": -0.04265796861566573,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.17440475607377737,
+            "median": -0.02826825819255047,
+            "maximum": 0.12644842094636252
+          },
+          "standardized_log_path_dtw": 1.6602839520545503,
+          "terminal_wasserstein_2026": 0.29948945586388276,
+          "terminal_wasserstein_2027": 1.436787954659942,
+          "first_touch_minus_10_ks": 0.9645294426
+        },
+        {
+          "pair": "S2-S3",
+          "p50_log_level_correlation": -0.7382719084918233,
+          "p50_first_difference_correlation": 0.16554377355569094,
+          "rolling_63d_first_difference_correlation": {
+            "minimum": -0.06079620083260037,
+            "median": 0.08023115136320103,
+            "maximum": 0.2719152063520176
+          },
+          "standardized_log_path_dtw": 1.420958842166689,
+          "terminal_wasserstein_2026": 0.13247959682453905,
+          "terminal_wasserstein_2027": 0.43836628047604853,
+          "first_touch_minus_10_ks": 0.9866666667
+        }
+      ]
+    }
+  ],
+  "required_orders_hold_all_seeds": true
+}

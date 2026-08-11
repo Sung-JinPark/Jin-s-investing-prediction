@@ -315,10 +315,23 @@ def validate_candidate(
             or research_distinctness.get("threshold_gate_evaluated") is not False \
             or research_distinctness.get("gate_pass") is not None \
             or research_distinctness.get("promotion_eligible") is not False \
+            or research_distinctness.get("schema_version") != 2 \
+            or research_distinctness.get("descriptive_checks_pass") is not True \
             or research_distinctness.get("descriptive_checks", {}).get(
                 "paths_unchanged_by_distinctness_evaluation"
             ) is not True:
         errors.append("30-day report-only distinctness contract failed")
+    required_shape_checks = {
+        "S1_has_historical_short_correction_and_reacceleration",
+        "S2_has_balanced_mean_reversion_not_S1_copy",
+        "S3_has_drawdown_then_failed_relief",
+        "S1_S2_standardized_path_dtw_at_least_0_15",
+        "macro_regime_origin_sets_disjoint",
+        "independent_residual_provenance",
+    }
+    shape_checks = research_distinctness.get("descriptive_checks", {})
+    if any(shape_checks.get(name) is not True for name in required_shape_checks):
+        errors.append("independent scenario path-shape gate failed")
     circularity = payload.get("circularity_control", {})
     if not circularity.get("gate_pass"):
         errors.append("circularity gate failed")
@@ -333,9 +346,9 @@ def validate_candidate(
         errors.append("insufficient event map was not fail-closed")
     generator = payload.get("model", {}).get("generator_audit", {})
     expected_mixture = {
-        "S1_dotcom_expansion_cluster": 1.0 / 3.0,
-        "S2_modern_baseline_cluster": 1.0 / 3.0,
-        "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
+        "S1_dotcom_easing_multilayer": 1.0 / 3.0,
+        "S2_balanced_soft_landing_layer": 1.0 / 3.0,
+        "S3_tightening_stress_layer": 1.0 / 3.0,
     }
     if generator.get("engine_mixture_probability") != expected_mixture:
         errors.append("three-scenario equal simulation-pool contract mismatch")
@@ -350,9 +363,9 @@ def validate_candidate(
         errors.append("three-scenario database path counts are invalid")
     cluster_scenarios = generator.get("scenarios", {})
     expected_groups = {
-        "S1": "dotcom_price_state_db",
-        "S2": "modern_general_market_state_db",
-        "S3": "macro_tightening_financial_conditions_db",
+        "S1": "dotcom_expansion_cycle_db",
+        "S2": "balanced_soft_landing_macro_db",
+        "S3": "tightening_financial_stress_macro_db",
     }
     if generator.get("method") != "deterministic_k_medoids_then_cluster_level_outcome_labeling" \
             or generator.get("cluster_assignment_information_set") != "origin_state_features_only" \
@@ -384,6 +397,19 @@ def validate_candidate(
                 ) \
                 or len(str(s1_sampling.get("block_provenance_sha256", ""))) != 64:
             errors.append("S1 phase-block generator or provenance contract failed")
+        if cluster_scenarios["S2"].get("sampling", {}).get("generator") \
+                != "balanced_soft_landing_phase_sampler_v2" \
+                or cluster_scenarios["S3"].get("sampling", {}).get("generator") \
+                != "tightening_stress_phase_sampler_v2":
+            errors.append("S2/S3 independent generator contract failed")
+        provenance_hashes = {
+            row.get("sampling", {}).get("block_provenance_sha256")
+            for row in cluster_scenarios.values()
+        }
+        if len(provenance_hashes) != 3 or None in provenance_hashes \
+                or generator.get("macro_regime_cohorts_disjoint") is not True \
+                or any(generator.get("macro_regime_cohort_origin_overlap", {}).values()):
+            errors.append("scenario database layers or residual provenance are not independent")
         selected_returns = [
             cluster_scenarios[name]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
             for name in ("S1", "S2", "S3")
@@ -394,8 +420,8 @@ def validate_candidate(
         s2_return_126d = cluster_scenarios["S2"]["selected_cluster"][
             "outcome_medians"
         ]["forward_return_126d"]
-        if abs(float(s2_return_126d)) >= .05 \
-                or generator.get("label_gates", {}).get("S2_sideways_126d") is not True:
+        if abs(float(s2_return_126d)) >= .08 \
+                or generator.get("label_gates", {}).get("S2_moderate_126d") is not True:
             errors.append("S2 selected cluster is not a sideways middle regime")
     sensitivity = payload.get("sensitivity_analysis", {})
     sensitivity_rows = sensitivity.get("rows", [])
@@ -440,9 +466,9 @@ def validate_candidate(
     shares = dotcom.get("path_engine_share_by_scenario", {})
     try:
         own_engines = {
-            "S1": "S1_dotcom_expansion_cluster",
-            "S2": "S2_modern_baseline_cluster",
-            "S3": "S3_macro_tightening_stress_cluster",
+            "S1": "S1_dotcom_easing_multilayer",
+            "S2": "S2_balanced_soft_landing_layer",
+            "S3": "S3_tightening_stress_layer",
         }
         if not all(
             math.isclose(shares[scenario][engine], 1.0, abs_tol=1e-10)
@@ -594,9 +620,9 @@ def dashboard_projection(
     indexes = _sample_indexes(len(dates))
     generator = payload["model"]["generator_audit"]
     engine_by_scenario = {
-        "S1": "S1_dotcom_expansion_cluster",
-        "S2": "S2_modern_baseline_cluster",
-        "S3": "S3_macro_tightening_stress_cluster",
+        "S1": "S1_dotcom_easing_multilayer",
+        "S2": "S2_balanced_soft_landing_layer",
+        "S3": "S3_tightening_stress_layer",
     }
     cluster_disclosure = {
         key: {
@@ -608,6 +634,17 @@ def dashboard_projection(
             "simulation_path_count": payload["model"]["path_count_by_engine"][
                 engine_by_scenario[key]
             ],
+            "generator": generator["scenarios"][key]["sampling"]["generator"],
+            "phase_cycle": generator["scenarios"][key]["sampling"]["phase_cycle"],
+            "unique_sampled_source_origins": generator["scenarios"][key][
+                "sampling"
+            ]["unique_source_origins"],
+            "block_provenance_sha256": generator["scenarios"][key][
+                "sampling"
+            ]["block_provenance_sha256"],
+            "selected_outcome_medians": generator["scenarios"][key][
+                "selected_cluster"
+            ]["outcome_medians"],
         }
         for key in ("S1", "S2", "S3")
     }
@@ -632,10 +669,29 @@ def dashboard_projection(
         "governance": _promotion_disclosure(root, payload),
         "anchor": payload["anchor"],
         "model": {
+            "model_id": payload["model"]["model_id"],
             "path_count": payload["model"]["path_count"],
             "seed": payload["model"]["seed"],
             "hard_event_mapping": payload["model"]["hard_event_mapping"],
             "cluster_disclosure": cluster_disclosure,
+            "valuation_and_earnings_gate": payload["model"][
+                "valuation_and_earnings_gate"
+            ],
+            "database_layer_gate": {
+                "macro_regime_cohort_origin_counts": generator[
+                    "macro_regime_cohort_origin_counts"
+                ],
+                "macro_regime_cohort_origin_overlap": generator[
+                    "macro_regime_cohort_origin_overlap"
+                ],
+                "macro_regime_cohorts_disjoint": generator[
+                    "macro_regime_cohorts_disjoint"
+                ],
+                "unique_block_provenance_count": len({
+                    row["sampling"]["block_provenance_sha256"]
+                    for row in generator["scenarios"].values()
+                }),
+            },
         },
         "weight_spaces": payload["weight_spaces"],
         "evidence_scores": payload["evidence_scores"],
@@ -685,6 +741,7 @@ def dashboard_projection(
             "partition_information_cutoff": payload["distinctness_2027"]["partition_information_cutoff"],
         },
         "distinctness": payload["distinctness"],
+        "scenario_layer_contract": payload["scenario_layer_contract"],
         "distribution": {
             "dates": [dates[index] for index in indexes],
             "bands": {

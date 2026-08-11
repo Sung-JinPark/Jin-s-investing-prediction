@@ -3,24 +3,26 @@
   "baseline_model_content_sha256": "0971e7cd5ae60ef92f723ea8ac8debbd4d2b3bed05bed81a0d0bd0d31a8bddc6",
   "baseline_source_sha256": "8a7f90d26e4555d420c7143b1ea30b120ec71e5f12049c028b775454bd77599a",
   "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
-  "comparable_anchor": true,
+  "comparable_anchor": false,
   "comparable_distribution_seed": true,
   "changed_inputs": [
-    "output_partition_replaced_by_frozen_preoutcome_cluster_labels",
-    "S1_dotcom_S2_modern_S3_macro_tightening_distinct_databases",
+    "latest_completed_official_market_anchor_transport",
+    "mutually_exclusive_macro_origin_regime_cohorts",
+    "S1_dotcom_plus_easing_S2_balanced_S3_tightening_stress_databases",
+    "independent_phase_block_pools_and_residual_provenance",
     "dotcom_likelihood_isolated_to_S1_at_0.60"
   ],
   "metric_deltas": {
-    "terminal_above_anchor_2026": -0.024422274632327934,
-    "terminal_above_v51_reference_2026": -0.02699260215514465,
-    "new_ath_by_2026": 0.015395359341398462,
-    "first_touch_minus_10_by_october_end": -0.0605809535172723,
-    "terminal_above_anchor_2027": 0.0297065656810811
+    "terminal_above_anchor_2026": 0.0017890652732382994,
+    "terminal_above_v51_reference_2026": 0.021605920946728308,
+    "new_ath_by_2026": 0.007184082173813389,
+    "first_touch_minus_10_by_october_end": -0.1125315867870838,
+    "terminal_above_anchor_2027": -0.0023521222814396614
   },
   "scenario_probability_deltas": {
-    "S1": 0.14385934211567553,
-    "S2": -0.026500477098115677,
-    "S3": -0.11735886501756004
+    "S1": -0.02543964170525692,
+    "S2": 0.15172813792855844,
+    "S3": -0.12628849622330168
   },
   "official_snapshot_overwritten": false
 }
