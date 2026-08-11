@@ -32,6 +32,23 @@ MACRO_FEATURES = (
     "vix_level",
     "nfci_z_score",
 )
+SCENARIO_FEATURES = {
+    "S1": (
+        *PRICE_FEATURES,
+        "fed_funds_change_63d_pp",
+        "two_year_yield_change_63d_pp",
+        "nfci_z_score",
+    ),
+    "S2": (
+        *PRICE_FEATURES,
+        "fed_funds_change_63d_pp",
+        "ten_two_curve_pp",
+        "ten_year_yield_pp",
+        "vix_level",
+        "nfci_z_score",
+    ),
+    "S3": MACRO_FEATURES,
+}
 SCENARIO_MACRO_REGIMES = ("easing_expansion", "balanced_soft_landing", "tightening_stress")
 OUTCOME_FIELDS = (
     "forward_return_126d",
@@ -290,6 +307,61 @@ def _current_macro_features(
             _asof_value(series, "NFCI", session),
         ], dtype=float),
     ))
+
+
+def _scenario_feature_subset(values: np.ndarray, scenario: str) -> np.ndarray:
+    names = SCENARIO_FEATURES.get(scenario)
+    if names is None:
+        raise ScenarioClusterError(f"unknown feature schema: {scenario}")
+    indexes = [MACRO_FEATURES.index(name) for name in names]
+    return values[np.asarray(indexes, dtype=int)]
+
+
+def _episode_rows(
+    dates: list[str], levels: np.ndarray,
+    series: dict[str, tuple[list[str], np.ndarray]], horizon: int,
+    *, scenario: str, episodes: list[dict[str, Any]], step: int = 10,
+) -> list[dict[str, Any]]:
+    """Build scenario-specific rows only inside preregistered episode windows."""
+    if scenario not in SCENARIO_FEATURES:
+        raise ScenarioClusterError(f"unknown episode scenario: {scenario}")
+    rows: list[dict[str, Any]] = []
+    for index in range(200, len(levels) - horizon, step):
+        session = dates[index]
+        episode = next(
+            (row for row in episodes if str(row["start"]) <= session <= str(row["end"])),
+            None,
+        )
+        if episode is None:
+            continue
+        lag_session = dates[index - 63]
+        full = np.concatenate((
+            _price_features(levels, index),
+            np.asarray([
+                _asof_value(series, "DFF", session)
+                - _asof_value(series, "DFF", lag_session),
+                _asof_value(series, "DGS2", session)
+                - _asof_value(series, "DGS2", lag_session),
+                _asof_value(series, "T10Y2Y", session),
+                _asof_value(series, "DGS10", session),
+                _asof_value(series, "VIXCLS", session),
+                _asof_value(series, "NFCI", session),
+            ], dtype=float),
+        ))
+        rows.append({
+            "index": index,
+            "date": session,
+            "scenario": scenario,
+            "episode_id": str(episode["id"]),
+            "episode_group": str(episode["group"]),
+            "features": _scenario_feature_subset(full, scenario),
+            "outcomes": _outcomes(levels, index, horizon),
+        })
+    if len(rows) < 30:
+        raise ScenarioClusterError(
+            f"{scenario} preregistered episode pool has fewer than 30 origins"
+        )
+    return rows
 
 
 def _select_cluster(
@@ -699,6 +771,394 @@ def _sample_phase_preserving_s1(
     }
 
 
+def _runs(labels: list[str]) -> list[tuple[str, int, int]]:
+    result: list[tuple[str, int, int]] = []
+    start = 0
+    for index in range(1, len(labels) + 1):
+        if index == len(labels) or labels[index] != labels[start]:
+            result.append((labels[start], start, index))
+            start = index
+    return result
+
+
+def _merge_short_phase_runs(labels: list[str], minimum: int) -> list[str]:
+    labels = list(labels)
+    for _ in range(20):
+        runs = _runs(labels)
+        short = next((row for row in runs if row[2] - row[1] < minimum), None)
+        if short is None or len(runs) == 1:
+            break
+        index = runs.index(short)
+        neighbors = []
+        if index:
+            neighbors.append(runs[index - 1])
+        if index + 1 < len(runs):
+            neighbors.append(runs[index + 1])
+        target = max(neighbors, key=lambda row: row[2] - row[1])[0]
+        labels[short[1]:short[2]] = [target] * (short[2] - short[1])
+    return labels
+
+
+def _phase_labels(scenario: str, returns: np.ndarray) -> list[str]:
+    if len(returns) < 12:
+        raise ScenarioClusterError("episode is too short for phase extraction")
+    rolling = np.convolve(returns, np.ones(10), mode="full")[:len(returns)]
+    rolling[:9] = np.cumsum(returns[:9])
+    lower, upper = np.quantile(rolling, [.30, .70])
+    labels: list[str] = []
+    adverse_seen = False
+    relief_seen = False
+    for value in rolling:
+        if scenario == "S1":
+            if value <= lower:
+                label = "correction"
+                adverse_seen = True
+            else:
+                label = "reacceleration" if adverse_seen else "acceleration"
+        elif scenario == "S2":
+            if value <= lower:
+                label = "mean_reversion"
+                adverse_seen = True
+            elif value >= upper and adverse_seen:
+                label = "normalization"
+            else:
+                label = "steady_drift"
+        elif scenario == "S3":
+            if value >= upper:
+                label = "failed_relief"
+                relief_seen = True
+            elif value <= lower:
+                label = "stress_persistence" if relief_seen else "drawdown"
+            else:
+                label = "stress_persistence" if relief_seen else "drawdown"
+        else:
+            raise ScenarioClusterError(f"unknown phase scenario: {scenario}")
+        labels.append(label)
+    return _merge_short_phase_runs(labels, 3)
+
+
+def _episode_segment_library(
+    *, scenario: str, episodes: list[dict[str, Any]], source_dates: list[str],
+    source_levels: np.ndarray, maximum_segment_sessions: int,
+) -> tuple[dict[str, list[dict[str, Any]]], list[dict[str, Any]]]:
+    source_returns = np.diff(np.log(source_levels))
+    phases = {
+        "S1": ("acceleration", "correction", "reacceleration"),
+        "S2": ("steady_drift", "mean_reversion", "normalization"),
+        "S3": ("drawdown", "failed_relief", "stress_persistence"),
+    }[scenario]
+    library: dict[str, list[dict[str, Any]]] = {phase: [] for phase in phases}
+    episode_kernels: list[dict[str, Any]] = []
+    for episode in episodes:
+        indexes = [
+            index for index, session in enumerate(source_dates[:-1])
+            if str(episode["start"]) <= session <= str(episode["end"])
+        ]
+        if len(indexes) < 12 or indexes != list(range(indexes[0], indexes[-1] + 1)):
+            raise ScenarioClusterError(f"episode coverage is incomplete: {episode['id']}")
+        values = source_returns[indexes].copy()
+        # S2 transports the episode's realized deviations, not its historical
+        # endpoint.  This keeps the observed sideways/mean-reversion geometry
+        # while avoiding a hidden bullish drift imported from a later outcome.
+        # No path endpoint is set: recombined observed deviations still have a
+        # full distribution of terminal values.
+        if scenario == "S2":
+            values -= float(values.mean())
+        labels = _phase_labels(scenario, values)
+        for phase, start, stop in _runs(labels):
+            cursor = start
+            while cursor < stop:
+                end = min(stop, cursor + maximum_segment_sessions)
+                if end - cursor >= 3:
+                    absolute_start = indexes[0] + cursor
+                    library[phase].append({
+                        "returns": values[cursor:end].copy(),
+                        "duration": end - cursor,
+                        "episode_id": str(episode["id"]),
+                        "episode_group": str(episode["group"]),
+                        "start_date": source_dates[absolute_start],
+                        "end_date": source_dates[absolute_start + end - cursor - 1],
+                    })
+                cursor = end
+        episode_levels = np.exp(np.r_[0.0, np.cumsum(values)])
+        drawdowns = episode_levels / np.maximum.accumulate(episode_levels) - 1.0
+        trough = int(np.argmin(drawdowns))
+        prior_peak = float(np.max(episode_levels[:trough + 1]))
+        recovered = np.flatnonzero(episode_levels[trough:] >= prior_peak)
+        episode_kernels.append({
+            "episode_id": str(episode["id"]),
+            "maximum_drawdown": float(drawdowns.min()),
+            "time_to_trough": trough,
+            "recovery_or_censor_duration": int(recovered[0]) if recovered.size
+            else len(episode_levels) - trough - 1,
+            "recovery_censored": not bool(recovered.size),
+        })
+    missing = [phase for phase, rows in library.items() if len(rows) < 3]
+    if missing:
+        raise ScenarioClusterError(f"insufficient empirical phase segments: {missing}")
+    return library, episode_kernels
+
+
+def _kernel_summary_from_paths(log_returns: np.ndarray) -> dict[str, float]:
+    levels = np.exp(np.c_[np.zeros(len(log_returns)), np.cumsum(log_returns, axis=1)])
+    running = np.maximum.accumulate(levels, axis=1)
+    drawdowns = levels / running - 1.0
+    maximum = drawdowns.min(axis=1)
+    troughs = drawdowns.argmin(axis=1)
+    recovery: list[int] = []
+    for row, trough in zip(levels, troughs, strict=True):
+        peak = float(np.max(row[:trough + 1]))
+        hits = np.flatnonzero(row[trough:] >= peak)
+        recovery.append(int(hits[0]) if hits.size else len(row) - int(trough) - 1)
+    return {
+        "maximum_drawdown_median": float(np.median(maximum)),
+        "time_to_trough_median": float(np.median(troughs)),
+        "recovery_or_censor_duration_median": float(np.median(recovery)),
+    }
+
+
+def _empirical_distribution(values: list[float]) -> dict[str, float]:
+    array = np.asarray(values, dtype=float)
+    return {
+        "p05": float(np.quantile(array, .05)),
+        "p50": float(np.median(array)),
+        "p95": float(np.quantile(array, .95)),
+    }
+
+
+def _sample_empirical_episode_paths(
+    *, scenario: str, episodes: list[dict[str, Any]], source_dates: list[str],
+    source_levels: np.ndarray, horizon: int, count: int, seed: int,
+    structural_adapter: dict[str, Any], dotcom_share: float = 0.0,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Sample variable-length observed segments without a fixed phase template."""
+    library, episode_kernels = _episode_segment_library(
+        scenario=scenario,
+        episodes=episodes,
+        source_dates=source_dates,
+        source_levels=source_levels,
+        maximum_segment_sessions=84,
+    )
+    rng = np.random.default_rng(seed + {"S1": 41003, "S2": 42013, "S3": 43019}[scenario])
+    phase_names = tuple(library)
+    empirical_phase_counts = np.asarray([len(library[name]) for name in phase_names], dtype=float)
+    phase_probabilities = empirical_phase_counts / empirical_phase_counts.sum()
+    phase_index = {name: index for index, name in enumerate(phase_names)}
+    transition_counts = np.zeros((len(phase_names), len(phase_names)), dtype=float)
+    for episode in episodes:
+        sequence = sorted(
+            [
+                (row["start_date"], phase)
+                for phase, rows in library.items() for row in rows
+                if row["episode_id"] == episode["id"]
+            ],
+            key=lambda row: row[0],
+        )
+        for (_, left), (_, right) in zip(sequence, sequence[1:]):
+            transition_counts[phase_index[left], phase_index[right]] += 1.0
+    transition_probabilities = np.empty_like(transition_counts)
+    for index, counts in enumerate(transition_counts):
+        transition_probabilities[index] = (
+            counts / counts.sum() if counts.sum() else phase_probabilities
+        )
+    current_start_phase = {
+        "S1": "acceleration", "S2": "steady_drift", "S3": "drawdown",
+    }[scenario]
+    start_probabilities = phase_probabilities * .30
+    start_probabilities[phase_index[current_start_phase]] += .70
+    sampled = np.empty((count, horizon), dtype=float)
+    provenance: list[list[Any]] = []
+    origin_counts: dict[str, int] = {}
+    sampled_durations: dict[str, list[int]] = {name: [] for name in phase_names}
+    group_sessions: dict[str, int] = {}
+    group_blocks: dict[str, int] = {}
+    phase_blocks: dict[str, int] = {name: 0 for name in phase_names}
+    phase_sequences: list[str] = []
+    adverse_starts: list[int] = []
+    adverse_durations: list[int] = []
+    group_multipliers = structural_adapter["episode_group_weight_multipliers"][scenario]
+    duration_tilts = structural_adapter["phase_duration_selection_tilts"][scenario]
+    adverse_phase = {"S1": "correction", "S2": "mean_reversion", "S3": "drawdown"}[scenario]
+    for path_index in range(count):
+        cursor = 0
+        sequence: list[str] = []
+        first_adverse: int | None = None
+        first_adverse_duration: int | None = None
+        phase = str(rng.choice(phase_names, p=start_probabilities))
+        while cursor < horizon:
+            candidates = library[phase]
+            durations = np.asarray([row["duration"] for row in candidates], dtype=float)
+            median_duration = max(float(np.median(durations)), 1.0)
+            weights = np.asarray([
+                float(group_multipliers.get(str(row["episode_group"]), 1.0))
+                * math.exp(float(duration_tilts.get(phase, 0.0))
+                           * (float(row["duration"]) / median_duration - 1.0))
+                for row in candidates
+            ], dtype=float)
+            if scenario == "S1":
+                dotcom = np.asarray([
+                    str(row["episode_group"]) == "dotcom" for row in candidates
+                ])
+                if dotcom.any() and (~dotcom).any():
+                    weights[dotcom] *= dotcom_share / float(weights[dotcom].sum())
+                    weights[~dotcom] *= (1.0 - dotcom_share) / float(weights[~dotcom].sum())
+            if not np.isfinite(weights).all() or float(weights.sum()) <= 0:
+                raise ScenarioClusterError("invalid empirical episode selection weights")
+            probabilities = weights / float(weights.sum())
+            choice = int(rng.choice(len(candidates), p=probabilities))
+            row = candidates[choice]
+            length = min(int(row["duration"]), horizon - cursor)
+            sampled[path_index, cursor:cursor + length] = row["returns"][:length]
+            sequence.append(phase)
+            sampled_durations[phase].append(length)
+            group = str(row["episode_group"])
+            group_sessions[group] = group_sessions.get(group, 0) + length
+            group_blocks[group] = group_blocks.get(group, 0) + 1
+            phase_blocks[phase] += 1
+            if phase == adverse_phase and first_adverse is None:
+                first_adverse, first_adverse_duration = cursor, length
+            origin = f"{row['episode_id']}:{row['start_date']}"
+            origin_counts[origin] = origin_counts.get(origin, 0) + 1
+            provenance.append([
+                path_index, len(sequence) - 1, phase, length,
+                row["episode_id"], row["episode_group"], row["start_date"], row["end_date"],
+            ])
+            cursor += length
+            phase = str(rng.choice(
+                phase_names, p=transition_probabilities[phase_index[phase]]
+            ))
+        phase_sequences.append(">".join(sequence[:8]))
+        adverse_starts.append(horizon if first_adverse is None else first_adverse)
+        adverse_durations.append(0 if first_adverse_duration is None else first_adverse_duration)
+    probabilities = np.asarray(list(origin_counts.values()), dtype=float)
+    probabilities /= probabilities.sum()
+    empirical_durations = {
+        phase: [int(row["duration"]) for row in rows]
+        for phase, rows in library.items()
+    }
+    duration_audit = {
+        phase: {
+            "empirical": {
+                "count": len(empirical_durations[phase]),
+                "minimum": min(empirical_durations[phase]),
+                "p50": float(np.median(empirical_durations[phase])),
+                "maximum": max(empirical_durations[phase]),
+                "variance": float(np.var(empirical_durations[phase])),
+            },
+            "sampled": {
+                "count": len(sampled_durations[phase]),
+                "p50": float(np.median(sampled_durations[phase])),
+                "variance": float(np.var(sampled_durations[phase])),
+            },
+        }
+        for phase in phase_names
+    }
+    generated_kernel = _kernel_summary_from_paths(sampled[:, :min(252, horizon)])
+    empirical_kernel = {
+        "maximum_drawdown": _empirical_distribution([
+            row["maximum_drawdown"] for row in episode_kernels
+        ]),
+        "time_to_trough": _empirical_distribution([
+            row["time_to_trough"] for row in episode_kernels
+        ]),
+        "recovery_or_censor_duration": _empirical_distribution([
+            row["recovery_or_censor_duration"] for row in episode_kernels
+        ]),
+    }
+    kernel_checks = {
+        metric: bounds["p05"] <= generated_kernel[f"{metric}_median"] <= bounds["p95"]
+        for metric, bounds in empirical_kernel.items()
+    }
+    residual_payload = [
+        [phase, row["episode_id"], row["start_date"], row["duration"],
+         [round(float(value), 12) for value in row["returns"]]]
+        for phase, rows in library.items() for row in rows
+    ]
+    return sampled, {
+        "generator": f"{scenario.lower()}_empirical_variable_episode_sampler_v3",
+        "fixed_phase_template": False,
+        "phase_sampling": "empirical_occurrence_distribution_with_observed_duration_segments",
+        "phase_transition_policy": "empirical_with_current_state_start_no_fixed_cycle",
+        "current_state_start_phase": current_start_phase,
+        "current_state_start_probability": 0.70,
+        "empirical_transition_counts": {
+            left: {
+                right: int(transition_counts[phase_index[left], phase_index[right]])
+                for right in phase_names
+            }
+            for left in phase_names
+        },
+        "phase_names": list(phase_names),
+        "phase_duration_distribution": duration_audit,
+        "phase_cycle": [
+            {
+                "phase": phase,
+                "duration_source": "empirical_distribution",
+                "minimum_sessions": duration_audit[phase]["empirical"]["minimum"],
+                "median_sessions": duration_audit[phase]["empirical"]["p50"],
+                "maximum_sessions": duration_audit[phase]["empirical"]["maximum"],
+            }
+            for phase in phase_names
+        ],
+        "phase_repetition_gate": {
+            "first_adverse_phase_start_variance": float(np.var(adverse_starts)),
+            "adverse_phase_duration_variance": float(np.var(adverse_durations)),
+            "unique_phase_sequence_count": len(set(phase_sequences)),
+            "gate_pass": (
+                float(np.var(adverse_starts)) >= 1.0
+                and float(np.var(adverse_durations)) >= 1.0
+                and len(set(phase_sequences)) >= 3
+            ),
+        },
+        "episode_ids": [str(row["id"]) for row in episodes],
+        "episode_count": len(episodes),
+        "drift_transport": (
+            "episode_native_mean_removed_shape_only" if scenario == "S2"
+            else "native_observed_log_returns"
+        ),
+        "episode_group_weight_multipliers": group_multipliers,
+        "source_session_counts": group_sessions,
+        "source_block_counts": group_blocks,
+        "phase_block_counts": phase_blocks,
+        "realized_dotcom_session_share": (
+            group_sessions.get("dotcom", 0) / max(sum(group_sessions.values()), 1)
+            if scenario == "S1" else 0.0
+        ),
+        "phase_duration_selection_tilts": duration_tilts,
+        "structural_event_update_applied": structural_adapter["structural_update_applied"],
+        "probability_only_event_update": False,
+        "unique_source_origins": len(origin_counts),
+        "episode_sampling_ess": float(1.0 / np.square(probabilities).sum()),
+        "maximum_episode_probability": float(probabilities.max()),
+        "block_provenance_sha256": hashlib.sha256(
+            json.dumps(provenance, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "block_provenance_sample": [
+            {
+                "path_index": row[0], "segment_index": row[1], "phase": row[2],
+                "sessions": row[3], "episode_id": row[4], "episode_group": row[5],
+                "source_start_date": row[6], "source_end_date": row[7],
+            }
+            for row in provenance[:18]
+        ],
+        "residual_pool_sha256": hashlib.sha256(
+            json.dumps(residual_payload, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "residual_scale": 1.0,
+        "residual_policy": f"{scenario}_observed_episode_segments_only_no_cross_pool",
+        "kernel_audit": {
+            "empirical_episode_count": len(episode_kernels),
+            "empirical": empirical_kernel,
+            "generated": generated_kernel,
+            "checks": kernel_checks,
+            "gate_pass": all(kernel_checks.values()),
+            "failure_action": "report_only_and_promotion_blocked",
+        },
+        "forced_endpoint": False,
+        "forced_turning_date": False,
+    }
+
+
 def build_clustered_prior(
     general_dates: list[str], general_levels: np.ndarray,
     dotcom_manifest: dict[str, Any], macro_manifest: dict[str, Any],
@@ -707,34 +1167,45 @@ def build_clustered_prior(
     generator_dotcom_share: float | None = None,
     residual_scale_override: float | None = None,
     allow_shadow_cap_exceed: bool = False,
+    separation_contract: dict[str, Any] | None = None,
+    structural_adapter: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, dict[str, Any]]:
     if count_per_scenario < 20:
         raise ScenarioClusterError("at least 20 paths per scenario are required")
-    dotcom_dates = [str(row["date"]) for row in dotcom_manifest["rows"]]
-    dotcom_levels = np.asarray([
-        _finite(row["close"], f"dotcom.{row['date']}")
-        for row in dotcom_manifest["rows"]
-    ])
+    if separation_contract is None or structural_adapter is None:
+        raise ScenarioClusterError("complete-separation contract and adapter are required")
+    if residual_scale_override is not None \
+            and not math.isclose(float(residual_scale_override), 1.0):
+        raise ScenarioClusterError(
+            "complete-separation residual pools cannot be amplitude-rescaled"
+        )
     macro_dates, macro_levels, macro_series = _macro_source(macro_manifest)
-    current_price_features = _price_features(general_levels, len(general_levels) - 1)
-    current_macro_features = _current_macro_features(
+    current_macro_full = _current_macro_features(
         macro_dates, macro_levels, macro_series
     )
-    macro_regime_rows = {
-        regime: _macro_regime_rows(
-            macro_dates, macro_levels, macro_series, horizon, regime=regime
-        ) for regime in SCENARIO_MACRO_REGIMES
+    episode_contracts = separation_contract.get("episode_libraries", {})
+    feature_contracts = separation_contract.get("scenario_feature_schemas", {})
+    if set(episode_contracts) != {"S1", "S2", "S3"}:
+        raise ScenarioClusterError("complete-separation episode libraries are incomplete")
+    for scenario, names in SCENARIO_FEATURES.items():
+        if tuple(feature_contracts.get(scenario, {}).get("active_coordinates", [])) != names:
+            raise ScenarioClusterError(f"{scenario} code and contract feature schemas differ")
+    scenario_rows = {
+        scenario: _episode_rows(
+            macro_dates, macro_levels, macro_series, horizon,
+            scenario=scenario,
+            episodes=list(episode_contracts[scenario]["episodes"]),
+        )
+        for scenario in ("S1", "S2", "S3")
     }
     macro_origin_sets = {
-        regime: {row["date"] for row in rows}
-        for regime, rows in macro_regime_rows.items()
+        scenario: {row["date"] for row in rows}
+        for scenario, rows in scenario_rows.items()
     }
     macro_origin_overlaps = {
         f"{left}__{right}": len(macro_origin_sets[left] & macro_origin_sets[right])
         for left, right in (
-            ("easing_expansion", "balanced_soft_landing"),
-            ("easing_expansion", "tightening_stress"),
-            ("balanced_soft_landing", "tightening_stress"),
+            ("S1", "S2"), ("S1", "S3"), ("S2", "S3"),
         )
     }
     if any(macro_origin_overlaps.values()):
@@ -755,25 +1226,25 @@ def build_clustered_prior(
         raise ScenarioClusterError("active B generator share exceeds the 0.60 cap")
     configurations = {
         "S1": {
-            "source_group": "dotcom_expansion_cycle_db",
-            "dates": dotcom_dates,
-            "levels": dotcom_levels,
-            "rows": _price_rows(dotcom_dates, dotcom_levels, horizon),
-            "features": PRICE_FEATURES,
+            "source_group": episode_contracts["S1"]["source_group"],
+            "dates": macro_dates,
+            "levels": macro_levels,
+            "rows": scenario_rows["S1"],
+            "features": SCENARIO_FEATURES["S1"],
             "clusters": 5,
-            "current": current_price_features,
+            "current": _scenario_feature_subset(current_macro_full, "S1"),
             "residual_scale": float(generators["S1"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S1"]["selected_cluster_minimum_origins"]),
             "selection_rule": "maximum cluster-level expansion score",
         },
         "S2": {
-            "source_group": "balanced_soft_landing_macro_db",
+            "source_group": episode_contracts["S2"]["source_group"],
             "dates": macro_dates,
             "levels": macro_levels,
-            "rows": macro_regime_rows["balanced_soft_landing"],
-            "features": MACRO_FEATURES,
+            "rows": scenario_rows["S2"],
+            "features": SCENARIO_FEATURES["S2"],
             "clusters": 4,
-            "current": current_macro_features,
+            "current": _scenario_feature_subset(current_macro_full, "S2"),
             "residual_scale": float(generators["S2"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S2"]["selected_cluster_minimum_origins"]),
             "selection_rule": (
@@ -782,13 +1253,13 @@ def build_clustered_prior(
             ),
         },
         "S3": {
-            "source_group": "tightening_financial_stress_macro_db",
+            "source_group": episode_contracts["S3"]["source_group"],
             "dates": macro_dates,
             "levels": macro_levels,
-            "rows": macro_regime_rows["tightening_stress"],
-            "features": MACRO_FEATURES,
+            "rows": scenario_rows["S3"],
+            "features": SCENARIO_FEATURES["S3"],
             "clusters": 4,
-            "current": current_macro_features,
+            "current": _scenario_feature_subset(current_macro_full, "S3"),
             "residual_scale": float(generators["S3"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S3"]["selected_cluster_minimum_origins"]),
             "selection_rule": "minimum cluster-level stress score",
@@ -827,116 +1298,41 @@ def build_clustered_prior(
             "outcomes_used_after_assignment_for_cluster_label_only": True,
             "cluster_inventory": clusters,
         }
-    easing_rows = macro_regime_rows["easing_expansion"]
-    easing_features = np.asarray([row["features"] for row in easing_rows])
-    easing_labels, easing_medoids, easing_center, easing_scale = deterministic_k_medoids(
-        easing_features, 4
-    )
-    easing_clusters = _cluster_audit(
-        easing_rows, easing_labels, easing_medoids, MACRO_FEATURES
-    )
-    easing_growth_cluster = _select_cluster(
-        "S1", easing_clusters, int(configurations["S1"]["minimum_origins"])
-    )
-    easing_selected = next(
-        row for row in easing_clusters if row["cluster_id"] == easing_growth_cluster
-    )
-    audit_scenarios["S1"]["auxiliary_easing_layer"] = {
-        "source_group": "falling_rate_loose_financial_conditions_db",
-        "feature_names": list(MACRO_FEATURES),
-        "origin_count": len(easing_rows),
-        "cluster_count": 4,
-        "selected_cluster_id": easing_growth_cluster,
-        "selected_cluster": easing_selected,
-        "cluster_assignments_sha256": _assignment_hash(easing_rows, easing_labels),
-        "clustering_uses_forward_outcomes": False,
-        "outcomes_used_after_assignment_for_cluster_label_only": True,
-    }
     log_return_blocks: list[np.ndarray] = []
     engine_blocks: list[np.ndarray] = []
     for offset, scenario in enumerate(("S1", "S2", "S3")):
         state = cluster_state[scenario]
         config = state["config"]
-        if scenario == "S1":
-            sampled, sampling = _sample_phase_preserving_s1(
-                dotcom_rows=state["rows"], dotcom_labels=state["labels"],
-                dotcom_cluster=state["selected"], dotcom_dates=dotcom_dates,
-                dotcom_levels=dotcom_levels,
-                easing_rows=easing_rows,
-                easing_labels=easing_labels,
-                easing_growth_cluster=easing_growth_cluster,
-                easing_dates=macro_dates, easing_levels=macro_levels,
-                horizon=horizon, count=count_per_scenario, seed=seed,
-                dotcom_share=active_b,
-                allow_shadow_cap_exceed=allow_shadow_cap_exceed,
-            )
-            sampling.update({
-                "selected_origin_count": int(
-                    audit_scenarios[scenario]["selected_cluster"]["origin_count"]
-                ),
-                "simulation_path_count": count_per_scenario,
-                "auxiliary_easing_growth_cluster_id": easing_growth_cluster,
-            })
-            members = np.flatnonzero(state["labels"] == state["selected"])
-            selected_features = np.asarray([
-                state["rows"][int(index)]["features"] for index in members
-            ])
-            distances = np.linalg.norm(
-                (selected_features - state["center"]) / state["scale"]
-                - (config["current"] - state["center"])[None, :] / state["scale"],
-                axis=1,
-            )
-            sampling.update({
-                "current_to_selected_medoid_distance": float(distances.min()),
-                "current_state_similarity": float(math.exp(
-                    -float(distances.min()) / math.sqrt(len(config["current"]))
-                )),
-                "sampled_origin_count": int(sampling["unique_source_origins"]),
-            })
-        elif scenario == "S2":
-            residual_scale = (
-                float(residual_scale_override)
-                if residual_scale_override is not None
-                else float(config["residual_scale"])
-            )
-            sampled, sampling = _sample_balanced_regime_paths(
-                rows=state["rows"], labels=state["labels"],
-                selected_cluster=state["selected"], source_dates=config["dates"],
-                source_levels=config["levels"], horizon=horizon,
-                count=count_per_scenario, seed=seed,
-                shadow_amplitude_scale=residual_scale,
-            )
-        else:
-            residual_scale = (
-                float(residual_scale_override)
-                if residual_scale_override is not None
-                else float(config["residual_scale"])
-            )
-            sampled, sampling = _sample_stress_regime_paths(
-                rows=state["rows"], labels=state["labels"],
-                selected_cluster=state["selected"], source_dates=config["dates"],
-                source_levels=config["levels"], horizon=horizon,
-                count=count_per_scenario, seed=seed,
-                shadow_amplitude_scale=residual_scale,
-            )
-        if scenario != "S1":
-            sampling.update({
-                "selected_origin_count": int(
-                    audit_scenarios[scenario]["selected_cluster"]["origin_count"]
-                ),
-                "simulation_path_count": count_per_scenario,
-                "sampled_origin_count": int(sampling["unique_source_origins"]),
-                "current_state_similarity": float(math.exp(
-                    -float(np.min(np.linalg.norm(
-                        (np.asarray([
-                            state["rows"][int(index)]["features"]
-                            for index in np.flatnonzero(state["labels"] == state["selected"])
-                        ]) - state["center"]) / state["scale"]
-                        - (config["current"] - state["center"])[None, :] / state["scale"],
-                        axis=1,
-                    ))) / math.sqrt(len(config["current"]))
-                )),
-            })
+        sampled, sampling = _sample_empirical_episode_paths(
+            scenario=scenario,
+            episodes=list(episode_contracts[scenario]["episodes"]),
+            source_dates=macro_dates,
+            source_levels=macro_levels,
+            horizon=horizon,
+            count=count_per_scenario,
+            seed=seed,
+            structural_adapter=structural_adapter,
+            dotcom_share=active_b if scenario == "S1" else 0.0,
+        )
+        members = np.flatnonzero(state["labels"] == state["selected"])
+        selected_features = np.asarray([
+            state["rows"][int(index)]["features"] for index in members
+        ])
+        distances = np.linalg.norm(
+            (selected_features - state["center"]) / state["scale"]
+            - (config["current"] - state["center"])[None, :] / state["scale"],
+            axis=1,
+        )
+        sampling.update({
+            "selected_origin_count": int(
+                audit_scenarios[scenario]["selected_cluster"]["origin_count"]
+            ),
+            "simulation_path_count": count_per_scenario,
+            "sampled_origin_count": int(sampling["unique_source_origins"]),
+            "current_state_similarity": float(math.exp(
+                -float(distances.min()) / math.sqrt(len(config["current"]))
+            )),
+        })
         audit_scenarios[scenario]["sampling"] = sampling
         log_return_blocks.append(sampled)
         engine_blocks.append(np.full(count_per_scenario, scenario_index[scenario], dtype=int))
@@ -983,19 +1379,10 @@ def build_clustered_prior(
         "cluster_assignment_information_set": "origin_state_features_only",
         "forward_outcome_use": "cluster_labeling_after_assignments_are_frozen",
         "individual_origin_outcome_selection": False,
-        "macro_regime_pre_screens": {
-            "easing_expansion": (
-                "(DFF 63-session change < -0.10pp OR DGS2 change < -0.25pp) "
-                "AND no simultaneous tightening signal AND NFCI < 0.75"
-            ),
-            "balanced_soft_landing": (
-                "no easing or tightening signal AND VIX 12-32 AND NFCI < 0.75"
-            ),
-            "tightening_stress": (
-                "DFF 63-session change > 0.10pp OR DGS2 change > 0.25pp; "
-                "conflicting rate signals route here conservatively"
-            ),
-        },
+        "episode_library_policy": (
+            "preregistered non-overlapping historical intervals; scenario-specific "
+            "feature schemas; outcomes withheld until assignments freeze"
+        ),
         "macro_asof_join": "backward_only; source_date <= state_date",
         "scenario_path_count": count_per_scenario,
         "generator_weight_contract_id": weight_contract["contract_id"],
@@ -1005,12 +1392,38 @@ def build_clustered_prior(
         "B_generator_dotcom_block_share": active_b,
         "B_above_cap_shadow_only": active_b > cap_b,
         "C_mixture_probability": "derived_after_evidence_weighting",
-        "easing_growth_auxiliary_cluster_id": easing_growth_cluster,
         "macro_regime_cohort_origin_counts": {
             key: len(value) for key, value in macro_origin_sets.items()
         },
         "macro_regime_cohort_origin_overlap": macro_origin_overlaps,
         "macro_regime_cohorts_disjoint": not any(macro_origin_overlaps.values()),
+        "episode_interval_overlap_count": 0,
+        "episode_ids_by_scenario": {
+            scenario: [str(row["id"]) for row in episode_contracts[scenario]["episodes"]]
+            for scenario in ("S1", "S2", "S3")
+        },
+        "feature_schemas_by_scenario": {
+            scenario: list(SCENARIO_FEATURES[scenario])
+            for scenario in ("S1", "S2", "S3")
+        },
+        "feature_schemas_distinct": len({
+            tuple(SCENARIO_FEATURES[scenario]) for scenario in ("S1", "S2", "S3")
+        }) == 3,
+        "residual_pool_hashes_unique": len({
+            row["sampling"]["residual_pool_sha256"]
+            for row in audit_scenarios.values()
+        }) == 3,
+        "fixed_phase_template_prohibited": True,
+        "fixed_phase_template_active": False,
+        "phase_repetition_gates_pass": all(
+            row["sampling"]["phase_repetition_gate"]["gate_pass"]
+            for row in audit_scenarios.values()
+        ),
+        "kernel_gates_pass": all(
+            row["sampling"]["kernel_audit"]["gate_pass"]
+            for row in audit_scenarios.values()
+        ),
+        "structural_event_adapter": structural_adapter,
         "base_scenario_scores": base_scores,
         "scenarios": audit_scenarios,
         "label_gates": label_gates,
@@ -1026,8 +1439,26 @@ def build_clustered_prior(
             for row in audit_scenarios.values()
         ),
         "research_sample_exception": (
-            "S3 remains report-only below its requested promotion origin count; "
-            "overlapping origins and forward-outcome pooling are not used to inflate n"
+            "promotion origin minimum not met for "
+            + ", ".join(
+                f"{scenario}={row['selected_cluster']['origin_count']}/"
+                f"{row['requested_promotion_minimum_origins']}"
+                for scenario, row in audit_scenarios.items()
+                if row["selected_cluster"]["origin_count"]
+                < row["requested_promotion_minimum_origins"]
+            )
+            + "; overlapping origins and forward-outcome pooling are not used to inflate n"
+        ),
+        "promotion_structural_gate_pass": (
+            all(
+                row["selected_cluster"]["origin_count"]
+                >= row["requested_promotion_minimum_origins"]
+                for row in audit_scenarios.values()
+            )
+            and all(
+                row["sampling"]["kernel_audit"]["gate_pass"]
+                for row in audit_scenarios.values()
+            )
         ),
         "gate_pass": all(label_gates.values()),
     }

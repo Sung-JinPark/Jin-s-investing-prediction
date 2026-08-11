@@ -1,1 +1,5 @@
-469 passed in 188.18s; targeted 64 passed in 29.19s; deterministic replay PASS; protected hash PASS; JS syntax PASS; inventory PASS; provider guard PASS; security scan PASS; track-record PASS; static Pages build PASS; ledger audit has one pre-existing cross_asset archive violation outside this change.
+Collection: 473 tests.
+Partitioned full run: src/tests 419 passed in 214.57s; dualdb/tests 54 passed in 66.36s; combined 473 passed.
+Targeted Scenario V5.2: 36 passed in 20.21s.
+Monolithic attempt retained in evidence: interrupted after 355.73s by output-pipe OSError; not counted as a pass.
+JavaScript syntax: pass. Static dashboard build: pass. Browser desktop/mobile: pass; console errors/warnings: 0.

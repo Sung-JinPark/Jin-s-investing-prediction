@@ -1,28 +1,28 @@
 {
-  "checked_at": "2026-08-11T07:20:00+00:00",
-  "url": "http://127.0.0.1:8765/?audit=multilayer#future/research",
-  "viewport": {
-    "desktop_inner_width": 1280,
-    "mobile_iframe_width": 390
+  "checked_at": "2026-08-11T09:00:00+00:00",
+  "url": "http://127.0.0.1:8765/#future/research",
+  "viewports": {
+    "desktop": {"width": 1280, "height": 900, "horizontal_overflow_px": 0},
+    "mobile": {"width": 390, "height": 844, "horizontal_overflow_px": 0}
   },
   "display_gate": {
     "research_candidate_visible": true,
-    "legacy_fallback_banner_count": 0,
     "status": "degraded",
     "direct_event_observations": "1/60",
-    "champion_default_unchanged": true
+    "band_calibration": "6/60",
+    "champion_default": "gbm-daily-252d-v2-lookup",
+    "champion_default_unchanged": true,
+    "research_route": "#future/research"
   },
   "chart": {
     "scale": "log",
     "history_share": 0.25,
     "forecast_share": 0.75,
     "scenario_p50_svg_path_count": 3,
-    "unique_scenario_p50_svg_path_count": 3,
-    "three_month_readout": {
-      "S1": "+9.2%",
-      "S2": "-0.6%",
-      "S3": "-12.8%"
-    }
+    "actual_medoid_svg_path_count": 3,
+    "three_month_readout": {"S1": "+12.5%", "S2": "-0.2%", "S3": "-12.0%"},
+    "legacy_zero_hash_copy_visible": false,
+    "browser_console_errors_or_warnings": 0
   },
   "restored_panels": {
     "past_cycles": true,
@@ -30,9 +30,13 @@
     "liquidity": true
   },
   "screenshots": [
-    "browser_future_research_1280_viewport.jpg",
-    "browser_future_research_390.jpg",
-    "browser_future_research_390_graph.jpg"
+    "future_champion_1280.png",
+    "future_research_1280.png",
+    "future_research_chart_1280.png",
+    "future_research_390.png",
+    "future_research_chart_390.png",
+    "future_cross_asset_1280.png",
+    "future_liquidity_1280.png"
   ],
   "gate_pass": true
 }

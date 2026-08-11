@@ -191,7 +191,7 @@ def test_ui_contract() -> None:
     assert '<span>R${q.n_rounds}</span>' not in html
 
 
-def test_u1a_four_section_information_architecture_contract() -> None:
+def test_u1a_five_section_information_architecture_contract() -> None:
     html = dashboard.load_template()
     shell = dashboard.TEMPLATE.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -200,6 +200,7 @@ def test_u1a_four_section_information_architecture_contract() -> None:
     for route, label in (
         ("today", "오늘"),
         ("future", "미래 탐색"),
+        ("statistics", "통계 비교"),
         ("records", "기록과 검증"),
         ("trust", "데이터와 신뢰"),
     ):

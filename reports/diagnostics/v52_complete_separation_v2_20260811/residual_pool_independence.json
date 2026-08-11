@@ -1,0 +1,157 @@
+{
+  "note": "All scenarios use independent full-scale observed episode residual pools. No amplitude rescaling is used to manufacture distinctness.",
+  "rows": {
+    "S1": {
+      "residual_scale": 1.0,
+      "residual_pool_sha256": "3f0119605863aad1f480f2c4a13e8403aadf00ad9ff75b72868b49e66594c142",
+      "residual_policy": "S1_observed_episode_segments_only_no_cross_pool",
+      "episode_ids": [
+        "S1_dotcom_opening",
+        "S1_dotcom_reacceleration",
+        "S1_dotcom_melt_up",
+        "S1_easing_rally_2019",
+        "S1_easing_rally_2020_21",
+        "S1_ai_expansion_2023_25"
+      ],
+      "phase_repetition_gate": {
+        "first_adverse_phase_start_variance": 526.7692262222222,
+        "adverse_phase_duration_variance": 51.97393766666667,
+        "unique_phase_sequence_count": 20,
+        "gate_pass": true
+      },
+      "kernel_audit": {
+        "empirical_episode_count": 6,
+        "empirical": {
+          "maximum_drawdown": {
+            "p05": -0.23083984735482066,
+            "p50": -0.14811522149254625,
+            "p95": -0.08390875272027376
+          },
+          "time_to_trough": {
+            "p05": 26.25,
+            "p50": 85.5,
+            "p95": 492.25
+          },
+          "recovery_or_censor_duration": {
+            "p05": 17.5,
+            "p50": 48.5,
+            "p95": 61.0
+          }
+        },
+        "generated": {
+          "maximum_drawdown_median": -0.14167542004418476,
+          "time_to_trough_median": 140.0,
+          "recovery_or_censor_duration_median": 27.0
+        },
+        "checks": {
+          "maximum_drawdown": true,
+          "time_to_trough": true,
+          "recovery_or_censor_duration": true
+        },
+        "gate_pass": true,
+        "failure_action": "report_only_and_promotion_blocked"
+      }
+    },
+    "S2": {
+      "residual_scale": 1.0,
+      "residual_pool_sha256": "3303158bc6cbf089d5230dd70d0899622d14430e0631a755ae03dd547b79d390",
+      "residual_policy": "S2_observed_episode_segments_only_no_cross_pool",
+      "episode_ids": [
+        "S2_soft_landing_1994_95",
+        "S2_midcycle_2004_05",
+        "S2_sideways_recovery_2016",
+        "S2_pre_easing_2019"
+      ],
+      "phase_repetition_gate": {
+        "first_adverse_phase_start_variance": 735.7117198888888,
+        "adverse_phase_duration_variance": 75.68822655555556,
+        "unique_phase_sequence_count": 984,
+        "gate_pass": true
+      },
+      "kernel_audit": {
+        "empirical_episode_count": 4,
+        "empirical": {
+          "maximum_drawdown": {
+            "p05": -0.15286591137553202,
+            "p50": -0.12839427559606276,
+            "p95": -0.11968637062599505
+          },
+          "time_to_trough": {
+            "p05": 56.45,
+            "p50": 99.0,
+            "p95": 112.64999999999999
+          },
+          "recovery_or_censor_duration": {
+            "p05": 11.550000000000002,
+            "p50": 104.0,
+            "p95": 137.8
+          }
+        },
+        "generated": {
+          "maximum_drawdown_median": -0.1492994053392367,
+          "time_to_trough_median": 195.0,
+          "recovery_or_censor_duration_median": 38.0
+        },
+        "checks": {
+          "maximum_drawdown": true,
+          "time_to_trough": false,
+          "recovery_or_censor_duration": true
+        },
+        "gate_pass": false,
+        "failure_action": "report_only_and_promotion_blocked"
+      }
+    },
+    "S3": {
+      "residual_scale": 1.0,
+      "residual_pool_sha256": "cd039e018099a8ec4251179d8d784c4be78354983a0bd99f4f9b5f82e3869ffc",
+      "residual_policy": "S3_observed_episode_segments_only_no_cross_pool",
+      "episode_ids": [
+        "S3_dotcom_bust_2000_02",
+        "S3_gfc_2008_09",
+        "S3_taper_2013",
+        "S3_q4_2018",
+        "S3_tightening_2022"
+      ],
+      "phase_repetition_gate": {
+        "first_adverse_phase_start_variance": 26980.366584888885,
+        "adverse_phase_duration_variance": 120.36739455555553,
+        "unique_phase_sequence_count": 38,
+        "gate_pass": true
+      },
+      "kernel_audit": {
+        "empirical_episode_count": 5,
+        "empirical": {
+          "maximum_drawdown": {
+            "p05": -0.7231869688237353,
+            "p50": -0.34810077813147433,
+            "p95": -0.08497321961870573
+          },
+          "time_to_trough": {
+            "p05": 29.2,
+            "p50": 197.0,
+            "p95": 576.1999999999999
+          },
+          "recovery_or_censor_duration": {
+            "p05": 1.0,
+            "p50": 1.0,
+            "p95": 8.2
+          }
+        },
+        "generated": {
+          "maximum_drawdown_median": -0.4901438142072617,
+          "time_to_trough_median": 231.0,
+          "recovery_or_censor_duration_median": 21.0
+        },
+        "checks": {
+          "maximum_drawdown": true,
+          "time_to_trough": true,
+          "recovery_or_censor_duration": false
+        },
+        "gate_pass": false,
+        "failure_action": "report_only_and_promotion_blocked"
+      }
+    }
+  },
+  "unique_hash_count": 3,
+  "fixed_phase_template_active": false
+}

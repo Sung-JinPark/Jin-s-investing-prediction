@@ -327,10 +327,12 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     cross_asset = load_cross_asset(root)
     cross_asset_history = load_cross_asset_history(root)
     from .market_extensions import load_liquidity, load_scenario_tracker
+    from .statistics_lab import statistics_dashboard_projection
     from .ai_capital_cycle import load_ai_regime
     from .o_entry_cohort import load_cohort_summary
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
+    statistics_lab = statistics_dashboard_projection(root)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -525,6 +527,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "scenario_tracker": scenario_tracker,
         "band_calibration": band_calibration,
         "liquidity": liquidity,
+        "statistics_lab": statistics_lab,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
         "source_monitoring": {"defillama_stablecoins": defillama_monitor},

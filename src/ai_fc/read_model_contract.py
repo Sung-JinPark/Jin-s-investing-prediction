@@ -10,6 +10,7 @@ from .cross_asset import CrossAssetError, validate_cross_asset
 from .ai_capital_cycle import validate_ai_regime
 from .scenario import ScenarioError, validate_scenario
 from .scenario_v4_shadow import ScenarioV4ShadowError, validate_shadow_payload
+from .statistics_lab import StatisticsLabError, validate_statistics_lab
 from .market_extensions import (
     MarketExtensionError,
     validate_liquidity,
@@ -44,6 +45,7 @@ V2_KEYS = {
     "scenario_tracker": dict,
     "band_calibration": dict,
     "liquidity": dict,
+    "statistics_lab": dict,
     "ai_regime": dict,
     "o_entry_cohort": dict,
     "method_changes": list,
@@ -171,6 +173,22 @@ def schema() -> dict[str, Any]:
                 "asof": {"type": ["string", "null"]},
             },
         }
+    properties["statistics_lab"] = {
+        "type": "object",
+        "required": [
+            "schema_version", "status", "probability_space", "model_use",
+            "official_forecast_input", "charts", "sources", "refresh_policy",
+        ],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["ok", "blocked"]},
+            "probability_space": {"const": "reference_only"},
+            "model_use": {"const": False},
+            "official_forecast_input": {"const": False},
+            "charts": {"type": "array"},
+            "sources": {"type": "array"},
+        },
+    }
     properties["o_entry_cohort"] = {
         "type": "object",
         "required": ["status", "probability_space", "entry_state_rules_registered"],
@@ -233,6 +251,12 @@ def validate(model: dict[str, Any]) -> list[str]:
                 validate_cross_asset(cross_asset)
             except (CrossAssetError, TypeError, ValueError) as exc:
                 errors.append(f"cross_asset contract violation: {exc}")
+    statistics_lab = model.get("statistics_lab")
+    if isinstance(statistics_lab, dict) and statistics_lab.get("status") == "ok":
+        try:
+            validate_statistics_lab(statistics_lab)
+        except (StatisticsLabError, KeyError, TypeError, ValueError) as exc:
+            errors.append(f"statistics_lab contract violation: {exc}")
     scenario = model.get("scenario")
     if isinstance(scenario, dict):
         try:

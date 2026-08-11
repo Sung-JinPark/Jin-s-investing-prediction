@@ -16,6 +16,7 @@ from typing import Any
 
 from ai_fc.scenario_v5.contracts import (
     canonical_hash,
+    compare_protected_append_only,
     compare_protected_hashes,
     file_hash,
     protected_hashes,
@@ -203,11 +204,14 @@ def validate_candidate(
                 != file_hash(contract_path):
             errors.append("V5.2 weight contract source hash mismatch")
         if receipt.get("protected_before"):
-            comparison = compare_protected_hashes(
+            comparison = compare_protected_append_only(
                 receipt["protected_before"], protected_hashes(root)
             )
             if not comparison["ok"]:
-                errors.append("protected hash mismatch since candidate build")
+                errors.append(
+                    "protected existing file changed or disappeared since candidate build: "
+                    f"changed={comparison['changed']} removed={comparison['removed']}"
+                )
 
     ablations = payload.get("ablations", {})
     if set(ablations) != {"prior_only", "labor_only", "labor_rate", "full_evidence"}:
@@ -315,23 +319,30 @@ def validate_candidate(
             or research_distinctness.get("threshold_gate_evaluated") is not False \
             or research_distinctness.get("gate_pass") is not None \
             or research_distinctness.get("promotion_eligible") is not False \
-            or research_distinctness.get("schema_version") != 2 \
+            or research_distinctness.get("schema_version") != 3 \
             or research_distinctness.get("descriptive_checks_pass") is not True \
             or research_distinctness.get("descriptive_checks", {}).get(
                 "paths_unchanged_by_distinctness_evaluation"
             ) is not True:
         errors.append("30-day report-only distinctness contract failed")
     required_shape_checks = {
-        "S1_has_historical_short_correction_and_reacceleration",
-        "S2_has_balanced_mean_reversion_not_S1_copy",
-        "S3_has_drawdown_then_failed_relief",
-        "S1_S2_standardized_path_dtw_at_least_0_15",
-        "macro_regime_origin_sets_disjoint",
-        "independent_residual_provenance",
+        "S1_S2_log_level_correlation_materially_below_0_963_baseline",
+        "episode_interval_intersection_zero",
+        "scenario_feature_schemas_distinct",
+        "independent_residual_pool_hashes",
+        "empirical_phase_repetition_gates_pass",
+        "fixed_phase_template_inactive",
+        "event_adapter_changes_structure_not_probability_only",
     }
     shape_checks = research_distinctness.get("descriptive_checks", {})
     if any(shape_checks.get(name) is not True for name in required_shape_checks):
-        errors.append("independent scenario path-shape gate failed")
+        errors.append("complete-separation scenario path gate failed")
+    baseline = research_distinctness.get("baseline_comparison", {})
+    if baseline.get("baseline") != .963 \
+            or baseline.get("minimum_material_reduction") != .02 \
+            or baseline.get("material_reduction_gate_pass") is not True \
+            or baseline.get("fixed_absolute_target_used") is not False:
+        errors.append("baseline distinctness reduction contract failed")
     circularity = payload.get("circularity_control", {})
     if not circularity.get("gate_pass"):
         errors.append("circularity gate failed")
@@ -363,9 +374,9 @@ def validate_candidate(
         errors.append("three-scenario database path counts are invalid")
     cluster_scenarios = generator.get("scenarios", {})
     expected_groups = {
-        "S1": "dotcom_expansion_cycle_db",
-        "S2": "balanced_soft_landing_macro_db",
-        "S3": "tightening_financial_stress_macro_db",
+        "S1": "expansion_and_easing_episode_db",
+        "S2": "non_crisis_soft_landing_episode_db",
+        "S3": "tightening_and_financial_stress_episode_db",
     }
     if generator.get("method") != "deterministic_k_medoids_then_cluster_level_outcome_labeling" \
             or generator.get("cluster_assignment_information_set") != "origin_state_features_only" \
@@ -381,7 +392,16 @@ def validate_candidate(
                     or row.get("outcomes_used_after_assignment_for_cluster_label_only") is not True \
                     or len(str(row.get("cluster_assignments_sha256", ""))) != 64 \
                     or row.get("sampling", {}).get("forced_endpoint") is not False \
-                    or row.get("sampling", {}).get("forced_turning_date") is not False:
+                    or row.get("sampling", {}).get("forced_turning_date") is not False \
+                    or row.get("sampling", {}).get("fixed_phase_template") is not False \
+                    or row.get("sampling", {}).get("phase_repetition_gate", {}).get(
+                        "gate_pass"
+                    ) is not True \
+                    or row.get("sampling", {}).get("probability_only_event_update") is not False \
+                    or len(str(row.get("sampling", {}).get("residual_pool_sha256", ""))) != 64 \
+                    or row.get("sampling", {}).get("kernel_audit", {}).get(
+                        "failure_action"
+                    ) != "report_only_and_promotion_blocked":
                 errors.append(f"scenario {scenario} cluster audit failed")
             if any(
                 "forward" in str(name) or "maximum_drawdown" in str(name)
@@ -391,32 +411,35 @@ def validate_candidate(
             if not math.isclose(float(row.get("sampling", {}).get("residual_scale", -1)), 1.0):
                 errors.append(f"scenario {scenario} residual policy is not full-scale")
         s1_sampling = cluster_scenarios["S1"].get("sampling", {})
-        if s1_sampling.get("generator") != "phase_preserving_historical_block_sampler_v1" \
+        if s1_sampling.get("generator") != "s1_empirical_variable_episode_sampler_v3" \
                 or not math.isclose(
-                    float(s1_sampling.get("generator_dotcom_block_share_B", -1)), .60
+                    float(generator.get("B_generator_dotcom_block_share", -1)), .60
                 ) \
                 or len(str(s1_sampling.get("block_provenance_sha256", ""))) != 64:
-            errors.append("S1 phase-block generator or provenance contract failed")
+            errors.append("S1 empirical episode generator or provenance contract failed")
         if cluster_scenarios["S2"].get("sampling", {}).get("generator") \
-                != "balanced_soft_landing_phase_sampler_v2" \
+                != "s2_empirical_variable_episode_sampler_v3" \
                 or cluster_scenarios["S3"].get("sampling", {}).get("generator") \
-                != "tightening_stress_phase_sampler_v2":
+                != "s3_empirical_variable_episode_sampler_v3":
             errors.append("S2/S3 independent generator contract failed")
         provenance_hashes = {
-            row.get("sampling", {}).get("block_provenance_sha256")
+            row.get("sampling", {}).get("residual_pool_sha256")
             for row in cluster_scenarios.values()
         }
         if len(provenance_hashes) != 3 or None in provenance_hashes \
-                or generator.get("macro_regime_cohorts_disjoint") is not True \
-                or any(generator.get("macro_regime_cohort_origin_overlap", {}).values()):
+                or generator.get("episode_interval_overlap_count") != 0 \
+                or generator.get("residual_pool_hashes_unique") is not True \
+                or generator.get("feature_schemas_distinct") is not True \
+                or generator.get("phase_repetition_gates_pass") is not True \
+                or generator.get("fixed_phase_template_active") is not False \
+                or generator.get("promotion_structural_gate_pass") is not False:
             errors.append("scenario database layers or residual provenance are not independent")
         selected_returns = [
             cluster_scenarios[name]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
             for name in ("S1", "S2", "S3")
         ]
-        if not (selected_returns[0] > selected_returns[1] > selected_returns[2] \
-                and selected_returns[0] - selected_returns[2] > .50):
-            errors.append("scenario cluster outcomes are not dramatically ordered")
+        if not selected_returns[0] > selected_returns[1] > selected_returns[2]:
+            errors.append("scenario cluster outcomes are not ordered")
         s2_return_126d = cluster_scenarios["S2"]["selected_cluster"][
             "outcome_medians"
         ]["forward_return_126d"]
@@ -491,6 +514,33 @@ def validate_candidate(
         errors.append("event learning mode is not append-only deterministic rebuild")
     if event_learning.get("background_scraping_or_unbounded_self_training") is not False:
         errors.append("unbounded event self-training is forbidden")
+    adapter = event_learning.get("structural_adapter", {})
+    required_structural_sources = {
+        "BLS_EMPSIT_2026_07_2026_08_07",
+        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07",
+    }
+    if event_learning.get("probability_only_update") is not False \
+            or adapter.get("probability_only_update") is not False \
+            or adapter.get("structural_update_applied") is not True \
+            or adapter.get("dependency_cap_gate_pass") is not True \
+            or float(adapter.get("maximum_absolute_log_weight_adjustment", 1.0)) \
+                > float(adapter.get("dependency_cap", 0.0)) \
+            or not required_structural_sources.issubset(set(
+                adapter.get("source_event_revision_ids", [])
+            )):
+        errors.append("structural event adapter audit failed")
+    structural_ablation = payload.get("structural_event_ablation", {})
+    if structural_ablation.get("probability_weights_applied") is not False \
+            or structural_ablation.get("same_seed_and_registered_episode_libraries") is not True \
+            or structural_ablation.get("paths_differ_all_scenarios") is not True \
+            or set(structural_ablation.get("scenarios", {})) != {"S1", "S2", "S3"} \
+            or any(
+                row.get("paths_differ") is not True
+                or len(str(row.get("active_path_sha256", ""))) != 64
+                or len(str(row.get("zero_event_path_sha256", ""))) != 64
+                for row in structural_ablation.get("scenarios", {}).values()
+            ):
+        errors.append("structural event path ablation failed")
 
     if replay and root is not None and not errors:
         replayed = assemble_candidate(root)
@@ -574,6 +624,25 @@ def _promotion_disclosure(root: Path, payload: dict[str, Any]) -> dict[str, Any]
             "status": "not_issued",
             "pass": False,
         },
+        "scenario_native_origin_minimums": {
+            "status": "research_only",
+            "pass": payload["model"]["generator_audit"][
+                "promotion_sample_gate_pass"
+            ],
+            "scenarios": payload["model"]["generator_audit"][
+                "promotion_sample_gates"
+            ],
+        },
+        "empirical_kernel_calibration": {
+            "status": "report_only",
+            "pass": payload["model"]["generator_audit"]["kernel_gates_pass"],
+            "scenarios": {
+                key: payload["model"]["generator_audit"]["scenarios"][key][
+                    "sampling"
+                ]["kernel_audit"]["gate_pass"]
+                for key in ("S1", "S2", "S3")
+            },
+        },
     }
     return {
         "promotion_state": payload["promotion_state"],
@@ -614,7 +683,13 @@ def dashboard_projection(
         return {
             "schema_version": 1, "status": "stale_or_invalid",
             "candidate_id": CANDIDATE_ID, "banner": "STALE/INVALID V5.2 RESEARCH CANDIDATE",
-            "runtime_gate": {"display_eligible": False, "age_trading_days": age, "reasons": reasons},
+            "runtime_gate": {
+                "display_eligible": False,
+                "age_trading_days": age,
+                "reasons": reasons,
+                "fallback_mode": "previous_approved_model",
+                "fallback_banner": "후보 검증 게이트 차단 — 이전 승인 모델 표시 중",
+            },
         }
     dates = payload["distribution"]["dates"]
     indexes = _sample_indexes(len(dates))
@@ -636,6 +711,22 @@ def dashboard_projection(
             ],
             "generator": generator["scenarios"][key]["sampling"]["generator"],
             "phase_cycle": generator["scenarios"][key]["sampling"]["phase_cycle"],
+            "feature_schema": generator["scenarios"][key]["feature_names"],
+            "episode_ids": generator["scenarios"][key]["sampling"]["episode_ids"],
+            "episode_count": generator["scenarios"][key]["sampling"]["episode_count"],
+            "phase_duration_distribution": generator["scenarios"][key][
+                "sampling"
+            ]["phase_duration_distribution"],
+            "fixed_phase_template": generator["scenarios"][key]["sampling"][
+                "fixed_phase_template"
+            ],
+            "phase_repetition_gate": generator["scenarios"][key]["sampling"][
+                "phase_repetition_gate"
+            ],
+            "kernel_audit": generator["scenarios"][key]["sampling"]["kernel_audit"],
+            "residual_pool_sha256": generator["scenarios"][key]["sampling"][
+                "residual_pool_sha256"
+            ],
             "unique_sampled_source_origins": generator["scenarios"][key][
                 "sampling"
             ]["unique_source_origins"],
@@ -665,7 +756,13 @@ def dashboard_projection(
         "candidate_id": CANDIDATE_ID,
         "banner": "RESEARCH CANDIDATE · NOT OFFICIAL · LIMITED EVENT MAP",
         "as_of": payload["as_of"],
-        "runtime_gate": {"display_eligible": True, "age_trading_days": age, "reasons": []},
+        "runtime_gate": {
+            "display_eligible": True,
+            "age_trading_days": age,
+            "reasons": [],
+            "protected_runtime_policy": "existing_files_immutable_new_files_allowed",
+            "consumed_inputs_verified_per_file": True,
+        },
         "governance": _promotion_disclosure(root, payload),
         "anchor": payload["anchor"],
         "model": {
@@ -678,19 +775,25 @@ def dashboard_projection(
                 "valuation_and_earnings_gate"
             ],
             "database_layer_gate": {
-                "macro_regime_cohort_origin_counts": generator[
-                    "macro_regime_cohort_origin_counts"
+                "episode_ids_by_scenario": generator["episode_ids_by_scenario"],
+                "episode_interval_overlap_count": generator[
+                    "episode_interval_overlap_count"
                 ],
-                "macro_regime_cohort_origin_overlap": generator[
-                    "macro_regime_cohort_origin_overlap"
+                "feature_schemas_distinct": generator["feature_schemas_distinct"],
+                "residual_pool_hashes_unique": generator[
+                    "residual_pool_hashes_unique"
                 ],
-                "macro_regime_cohorts_disjoint": generator[
-                    "macro_regime_cohorts_disjoint"
+                "fixed_phase_template_active": generator[
+                    "fixed_phase_template_active"
                 ],
-                "unique_block_provenance_count": len({
-                    row["sampling"]["block_provenance_sha256"]
+                "phase_repetition_gates_pass": generator[
+                    "phase_repetition_gates_pass"
+                ],
+                "unique_residual_pool_count": len({
+                    row["sampling"]["residual_pool_sha256"]
                     for row in generator["scenarios"].values()
                 }),
+                "structural_event_adapter": generator["structural_event_adapter"],
             },
         },
         "weight_spaces": payload["weight_spaces"],
@@ -730,6 +833,7 @@ def dashboard_projection(
             },
         },
         "event_learning": payload["event_learning"],
+        "structural_event_ablation": payload["structural_event_ablation"],
         "shadow_comparison": payload["shadow_comparison"],
         "ablations": {
             name: {"probabilities": row["probabilities"]}

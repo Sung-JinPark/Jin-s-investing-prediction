@@ -96,7 +96,7 @@ function loadUIState(){
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(today|future(?:\/|$)|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics$|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
@@ -840,8 +840,9 @@ let commandReturnFocus=null;
 const COMMAND_ROUTES=[
   {hash:'#today',code:'01',title:'오늘',hint:'시장 판단과 핵심 신호'},
   {hash:'#future',code:'02',title:'미래 탐색',hint:'시나리오 경로와 위험 구간'},
-  {hash:'#records',code:'03',title:'기록과 검증',hint:'질문·변경·결과 기록'},
-  {hash:'#trust',code:'04',title:'데이터와 신뢰',hint:'원장·근거·방법론'}
+  {hash:'#statistics',code:'03',title:'통계 비교',hint:'닷컴과 현재의 유동성·금리·가치·신용'},
+  {hash:'#records',code:'04',title:'기록과 검증',hint:'질문·변경·결과 기록'},
+  {hash:'#trust',code:'05',title:'데이터와 신뢰',hint:'원장·근거·방법론'}
 ];
 function commandCatalog(){
   const actions=[
@@ -980,7 +981,56 @@ function signalMosaic(prob){
   return `<div class="signal-mosaic" role="img" aria-label="상승 경로 신호 ${safe}%">${cells}<b>${safe}<small>%</small></b></div>`;
 }
 
-const VIEWS={overview:renderOverview,flow:renderFlow,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
+function statisticsValue(unit,value){
+  const n=Number(value);
+  if(!Number.isFinite(n))return '—';
+  if(unit==='multiple')return `${n.toFixed(1)}×`;
+  if(unit==='cycle_start_100')return `${n.toFixed(0)}`;
+  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent')return `${n>=0?'+':''}${n.toFixed(1)}%`;
+  return n.toFixed(1);
+}
+function statisticsChartSvg(chart){
+  const series=(chart.series||[]).filter(row=>(row.points||[]).length),points=series.flatMap(row=>row.points||[]);
+  if(!points.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
+  const W=980,H=360,ML=62,MR=24,MT=28,MB=46,PW=W-ML-MR,PH=H-MT-MB;
+  const maxPeriod=Math.max(1,...points.map(row=>Number(row.period)||0));
+  const rawValues=points.map(row=>Number(row.value)).filter(Number.isFinite),rawMin=Math.min(...rawValues),rawMax=Math.max(...rawValues);
+  const span=Math.max(Math.abs(rawMax-rawMin),Math.abs(rawMax)*.08,1),low=rawMin-span*.12,high=rawMax+span*.12;
+  const X=value=>ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(Number(value)-low)/(high-low));
+  const yTicks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
+  const xTicks=[0,12,24,36,maxPeriod].filter((value,index,array)=>value<=maxPeriod&&array.indexOf(value)===index).sort((a,b)=>a-b);
+  const line=values=>values.map((row,index)=>`${index?'L':'M'}${X(row.period).toFixed(1)},${Y(row.value).toFixed(1)}`).join(' ');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)} 닷컴과 현재 비교 차트">
+    ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${Y(value).toFixed(1)}" y2="${Y(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(Y(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,value))}</text>`).join('')}
+    ${low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
+    ${xTicks.map(value=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">M+${value}</text>`).join('')}
+    ${series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.2'}" stroke-dasharray="${row.era==='current'?'none':'6 5'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
+  </svg>`;
+}
+function renderStatistics(){
+  const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
+  root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">유동성·금리·기업가치·신용을 같은 경과월로 맞춰 비교합니다. 과거와 닮았는지 확인하는 참고 통계이며 예측확률이나 투자 신호가 아닙니다.</p></div></div>`));
+  if(stats.status!=='ok'){
+    root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
+  }
+  const alignment=stats.cycle_alignment||{},sources=stats.sources||[],charts=stats.charts||[];
+  root.appendChild(el(`<section class="statistics-summary" aria-label="통계 비교 기준"><article><span>비교 시작</span><strong>닷컴 ${esc(alignment.dotcom_start)}<br>현재 ${esc(alignment.current_start)}</strong></article><article><span>같은 시간축</span><strong>M+0 ~ M+${num(alignment.comparison_months||0)}</strong></article><article><span>그래프</span><strong>${num(charts.length)}개</strong></article><article><span>데이터 기준</span><strong>${esc(stats.as_of||'—')}</strong></article></section>`));
+  root.appendChild(el(`<section class="statistics-notice" role="note"><div><span>주 1회 DB 확인</span><strong>매주 공개 원천을 다시 확인합니다</strong></div><p>일간·월간·분기 통계의 원래 발표 주기는 바꾸지 않습니다. 과거 값은 최신 릴리스로 재구성한 역사이며 당시 시점의 원본 빈티지가 아닙니다.</p></section>`));
+  const categories=[['all','전체'],['liquidity','유동성'],['rates','금리'],['valuation','기업가치'],['credit','신용']];
+  root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
+  const grid=el('<div class="statistics-grid"></div>');
+  charts.forEach((chart,index)=>{
+    const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
+    const sourceLinks=(chart.source_ids||[]).map(id=>{const source=sources.find(row=>row.series_id===id);return source?`<a href="${esc(source.source_url)}" target="_blank" rel="noreferrer">${esc(id)} ↗</a>`:`<span>${esc(id)}</span>`;}).join('');
+    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart)}</div><div class="statistics-insight"><strong>이 숫자의 한계</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
+  });
+  root.appendChild(grid);
+  root.appendChild(el(`<details class="statistics-sources"><summary>원천·갱신일·재구성 상태 보기</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.series_id)}</strong><span>${esc(row.title)}</span></div><p>${esc(row.provider)} · 최신 관측 ${esc(row.latest_observation)} · ${num(row.row_count)}개 · ${esc(row.vintage)}</p><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원천 열기 ↗</a></article>`).join('')}</div><p>제외: FINRA margin debt는 자동수집·재배포 권한 미확보, Moody’s Baa 스프레드는 독점 재배포 제한, 유료 forward P/E는 재현 가능한 공개 이력이 없어 사용하지 않았습니다.</p></details>`));
+  mount(root);
+  root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);});
+}
+
+const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
 function enhanceChartScroll(root=document){
   root.querySelectorAll('.chart-wrap').forEach((wrap,index)=>{
     let affordance=wrap.nextElementSibling;
@@ -1013,7 +1063,7 @@ function appendContextTabs(root,group,current){const html=contextTabs(group,curr
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
-  if(/^#(?:today|future(?:\/|$)|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
+  if(/^#(?:today|future(?:\/|$)|statistics$|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
@@ -1038,6 +1088,7 @@ function legacyRouteRedirect(rawHash){
 function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
+  if(parts[0]==='statistics')return {section:'statistics',view:'statistics'};
   if(parts[0]==='future'){
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};
     if(parts[1]==='lookup'&&!parts[2])return {section:'future',view:'flow',arg:{lookupOverlay:true}};
@@ -1263,9 +1314,9 @@ function scenarioV5EvidenceMarkup(candidate){
   return `<section class="scenario-v5-evidence" aria-labelledby="scenario-v5-evidence-title"><div class="scenario-v5-section-head"><div><span>EVIDENCE VIEW REGISTRY</span><h3 id="scenario-v5-evidence-title">무엇이 경로를 움직였고 무엇이 참고값인가</h3></div><small>probability unit = fraction · PIT source hash recorded</small></div><div class="scenario-v5-evidence-grid">${views.map(row=>`<article class="is-${state(row).toLowerCase().replaceAll(' ','-')}"><header><span>${esc(state(row))}</span><b>${hasNumeric(row.target)?(Number(row.target)*100).toFixed(1)+'%':'–'}</b></header><strong>${esc(row.source_id)}</strong><small>${esc(row.probability_space)} · ${esc(row.view_kind)}</small><p>${esc(row.used_numerically?row.condition:(row.blocked_reason||'numerical use blocked'))}</p></article>`).join('')}</div><footer>승인된 report view: ${(views.filter(row=>['strategist_report','analyst_consensus','macro_consensus'].includes(row.origin_type)&&row.used_numerically)).length} · 보고서 문장을 임의 숫자로 변환하지 않았습니다.</footer></section>`;
 }
 const V52_SCENARIO_META={
-  S1:{title:'확장 경로',copy:'닷컴 블록 60% + 금리완화 거시 블록 40%',color:'#ef3b24'},
-  S2:{title:'균형 경로',copy:'금리 중립·중간 변동성의 연착륙 거시 블록',color:'#ee8a10'},
-  S3:{title:'스트레스 경로',copy:'금리상승·금융 스트레스와 실패한 반등 블록',color:'#bf0040'}
+  S1:{title:'확장 경로',copy:'닷컴·완화·AI 확장 6개 등록 에피소드',color:'#ef3b24'},
+  S2:{title:'균형 경로',copy:'비위기 연착륙·횡보 4개 등록 에피소드',color:'#ee8a10'},
+  S3:{title:'스트레스 경로',copy:'닷컴 붕괴·GFC·긴축 5개 등록 에피소드',color:'#bf0040'}
 };
 function scenarioModelModeNav(active,candidate){
   const hard=candidate?.model?.hard_event_mapping||{},governance=candidate?.governance||{},eligible=['ok','degraded'].includes(candidate?.status)&&candidate?.runtime_gate?.display_eligible!==false;
@@ -1345,6 +1396,34 @@ function renderScenarioV52(candidate,initialState={}){
     <section class="scenario-v52-timing"><div class="scenario-v52-section-title"><p class="eyebrow">조정 시점 범위</p><h2>−10%선을 처음 만나는 시기</h2><p>정확한 날짜 예측이 아니라, 조정이 발생한 경로들의 시점 분포입니다.</p></div><div>${(touch.density||[]).map((value,index)=>`<i title="${esc(touch.dates[index])}" style="height:${Math.max(1,Number(value)/Math.max(...(touch.density||[]),1e-12)*100)}%"></i>`).join('')}</div><p>중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')} · 특정 날짜 확정 아님</p></section>
     <details class="scenario-v52-method"><summary>계산 근거와 한계 자세히 보기</summary><div><article><strong>세 DB는 어떻게 다른가</strong><p>S1은 닷컴 60%와 완화 국면 40%를 acceleration→correction→reacceleration 순환으로 생성합니다. S2는 중립 금리·중간 VIX·완화된 금융여건에서 drift→mean reversion→normalization을, S3는 긴축 국면에서 drawdown→failed relief→stress persistence를 사용합니다.</p></article><article><strong>데이터가 정말 겹치지 않는가</strong><p>완화 ${num(layerGate.macro_regime_cohort_origin_counts?.easing_expansion||0)}개 · 균형 ${num(layerGate.macro_regime_cohort_origin_counts?.balanced_soft_landing||0)}개 · 긴축 ${num(layerGate.macro_regime_cohort_origin_counts?.tightening_stress||0)}개 기준일이며, 쌍별 겹침은 모두 0입니다. 각 생성기는 별도 블록 provenance를 가집니다.</p></article><article><strong>왜 p50은 매끄러운가</strong><p>수천 경로의 날짜별 중앙값이므로 흔들림이 상쇄됩니다. 현실적인 질감은 차트의 가는 점선인 실제 중심 경로로 확인합니다.</p></article><article><strong>승격 4조건</strong><p>직접 사건 ${num(promotionGates.direct_event_observations?.observations||0)}/${num(promotionGates.direct_event_observations?.minimum||60)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)} · walk-forward ${esc(promotionGates.walk_forward?.status||'not_approved')} · 승인 run_id ${esc(promotionGates.human_approval?.approval_run_id||'없음')}. champion_eligible=${String(governance.champion_eligible===true)}.</p></article><article><strong>닷컴 강도 감도</strong><p>계산 완료 ${sensitivity.map(row=>`${Number(row.S1_strength).toFixed(2)}→S1 ${weightPct(row.scenario_probabilities?.S1)}`).join(' · ')}. 요청 기준 0.40/0.60은 cap 이내이며 0.80은 사전등록 cap 0.60을 넘어 계산·적용하지 않습니다.</p></article><article><strong>이 전망의 지위</strong><p>${esc(candidate.banner)} · official/champion이 아닌 연구 후보입니다. 모델 식별자 ${esc(candidate.model?.model_id||candidate.candidate_id)}.</p></article><article><strong>재현 식별값</strong><p>${esc(candidate.model_content_sha256)}</p></article></div></details>
   </div>`);
+  const baselineAudit=distinctness.baseline_comparison||{},adapter=layerGate.structural_event_adapter||{};
+  const legacyInsights=$('#scenario-v52-insights-title',outlook)?.closest('.scenario-v52-insights');
+  if(legacyInsights)legacyInsights.innerHTML=`<div class="scenario-v52-section-title"><p class="eyebrow">숫자의 뜻</p><h2 id="scenario-v52-insights-title">복잡한 지표를 이렇게 읽으세요</h2></div><div>
+    <article><span>고용 위험 / 금리 완화</span><strong>${pp(terminalAttr.labor_growth_risk_effect)} / ${pp(terminalAttr.policy_relief_effect)}</strong><p>고용 둔화가 성장 위험을 높이는 효과와 금리 부담 완화 효과를 서로 다른 항으로 계산합니다.</p></article>
+    <article><span>닷컴 사이클 강도</span><strong>S1 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)}</strong><p>닷컴 구간은 상승 시나리오 S1의 등록 에피소드 원천에만 사용합니다. S2와 S3에는 닷컴 강도를 넣지 않습니다.</p></article>
+    <article><span>A · B · C 분리</span><strong>A ${Number(weightSpaces.A_evidence_strength?.value||0).toFixed(2)} · B ${Number(weightSpaces.B_generator_dotcom_block_share?.value||0).toFixed(2)} · C ${weightPct(weightSpaces.C_mixture_probability?.value?.S1)}</strong><p>A는 생성 후 S1 증거 강도, B는 S1 생성에 쓰인 등록 닷컴 에피소드 세션 목표 비중(실현 ${weightPct(weightSpaces.B_generator_dotcom_block_share?.realized_session_share)}), C는 계산된 연구 코호트 질량입니다. 서로 같은 확률이 아닙니다.</p></article>
+    <article><span>경로 가중치</span><strong>${['S1','S2','S3'].map(key=>`${key} ${weightPct(scenarios[key]?.probability)}`).join(' · ')}</strong><p>각기 다른 에피소드 DB에서 생성된 연구 코호트 질량입니다. 상승·중립·하락의 보정된 발생확률로 해석하지 않습니다.</p></article>
+    <article><span>DB 레이어 분리</span><strong>교차 구간 ${num(layerGate.episode_interval_overlap_count||0)} · 잔차 풀 ${num(layerGate.unique_residual_pool_count||0)}개</strong><p>입력 변수 스키마 분리 ${String(layerGate.feature_schemas_distinct===true)} · 잔차 원천 해시 분리 ${String(layerGate.residual_pool_hashes_unique===true)} · 고정 국면 틀 사용 ${String(layerGate.fixed_phase_template_active===true)}.</p></article>
+    <article><span>PER · 밸류에이션</span><strong>CAPE · SEC EPS 수치 반영 보류</strong><p>시점별 원본 빈티지가 없어 낡은 CAPE나 다른 SEC 패널을 대용하지 않았습니다. 데이터가 갖춰질 때까지 D0 차단 상태입니다.</p></article>
+    <article><span>발표 반영</span><strong>구조 입력 ${num(adapter.source_event_revision_ids?.length||0)}개 · 신규 원장 ${num(events.numerical_event_count||0)}건</strong><p>현재 고용·금리 근거는 에피소드 선택 가중치와 국면 길이에 반영했습니다. 이후 발표는 출처·발표시각·수정관계를 검증해 append-only 원장에 추가한 뒤 재빌드합니다.</p></article>
+    <article><span>가산 잔차</span><strong>정의상 0</strong><p>총효과를 구성요소 합으로 정의한 항등 분해이므로 0입니다. 독립적인 적합도 검정이나 별도 예측 성과가 아닙니다.</p></article>
+  </div>`;
+  const separationInsight=el(`<section class="scenario-v52-insights" aria-labelledby="scenario-v52-separation-title"><div class="scenario-v52-section-title"><p class="eyebrow">세 경로가 달라진 근거</p><h2 id="scenario-v52-separation-title">같은 DB를 색만 바꾼 그래프가 아닙니다</h2></div><div>
+    ${['S1','S2','S3'].map(key=>{const row=clusters[key]||{},kernel=row.kernel_audit||{};return `<article><span>${key} · ${esc(V52_SCENARIO_META[key].title)}</span><strong>${num(row.episode_count||0)}개 국면 · 변수 ${num(row.feature_schema?.length||0)}개</strong><p>${key==='S1'?'닷컴·완화·AI 확장 구간':key==='S2'?'비위기 연착륙·횡보 구간':'긴축·금융 스트레스 구간'}만 사용합니다. 고정된 꺾임 날짜 없이 실제 구간 길이와 전환을 다시 뽑습니다. 커널 점검 ${kernel.gate_pass?'통과':'미통과·승격 차단'}.</p></article>`;}).join('')}
+    <article><span>경로 유사성</span><strong>${Number(baselineAudit.baseline||0).toFixed(3)} → ${Number(baselineAudit.redesigned_shadow||0).toFixed(3)}</strong><p>S1·S2 p50 로그 경로 상관입니다. 사전 기준보다 실질적으로 낮아졌고, 특정 목표 상관값을 맞추기 위해 선을 변형하지 않았습니다.</p></article>
+    <article><span>발표 반영 방식</span><strong>${adapter.structural_update_applied?'구조 선택에 반영':'새 수치 없음'}</strong><p>고용·금리·물가 수치는 확률만 덧칠하지 않고, 어느 과거 구간을 얼마나 선택할지와 국면 길이 선호를 바꿉니다.</p></article>
+    <article><span>데이터 한계</span><strong>CAPE·SEC EPS는 아직 보류</strong><p>과거 시점별 원본이 없어 낡은 CAPE나 설비투자 자료를 PER·이익수정 데이터처럼 대신 쓰지 않았습니다.</p></article>
+  </div></section>`);
+  $('.scenario-v52-timing',outlook)?.before(separationInsight);
+  const methodDetails=$('.scenario-v52-method',outlook);
+  if(methodDetails)methodDetails.innerHTML=`<summary>계산 근거와 한계 자세히 보기</summary><div>
+    <article><strong>공유되는 것은 두 가지뿐</strong><p>현재 지수 기준점과 거래일 달력만 공유합니다. 특징 변수, 과거 에피소드, 잔차 풀, 국면 길이와 전환 규칙은 S1/S2/S3별로 분리했습니다.</p></article>
+    <article><strong>에피소드가 겹치지 않는가</strong><p>교차 시나리오 날짜 겹침 ${num(layerGate.episode_interval_overlap_count||0)}건 · 독립 잔차 풀 ${num(layerGate.unique_residual_pool_count||0)}개 · 특징 스키마 분리 ${String(layerGate.feature_schemas_distinct===true)}.</p></article>
+    <article><strong>고정 꺾임을 썼는가</strong><p>fixed_phase_template_active=${String(layerGate.fixed_phase_template_active===true)}. 관측된 연속 국면의 길이 분포와 전환 빈도로 샘플링하며, 끝값이나 특정 날짜를 강제하지 않습니다.</p></article>
+    <article><strong>승격을 막는 항목</strong><p>직접 사건 ${num(promotionGates.direct_event_observations?.observations||0)}/${num(promotionGates.direct_event_observations?.minimum||60)} · 원천 표본 ${String(promotionGates.scenario_native_origin_minimums?.pass===true)} · 커널 ${String(promotionGates.empirical_kernel_calibration?.pass===true)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)} · 승인 run_id ${esc(promotionGates.human_approval?.approval_run_id||'없음')}.</p></article>
+    <article><strong>p50이 매끄러운 이유</strong><p>수천 경로의 날짜별 중앙값이라 흔들림이 상쇄됩니다. 점선은 실제 모의 경로 중 중앙에 가까운 멤버이며, p50에 가짜 흔들림을 넣지 않습니다.</p></article>
+    <article><strong>재현 식별값</strong><p>${esc(candidate.model_content_sha256)}</p></article>
+  </div>`;
   const historyPanel=analogPanel(),crossAsset=crossAssetPanel(),liquidity=liquidityPanel();
   if(historyPanel){historyPanel.id='lab-history';historyPanel.setAttribute('role','tabpanel');historyPanel.setAttribute('aria-labelledby','lab-tab-history');historyPanel.hidden=true;}
   if(crossAsset){crossAsset.id='lab-cross-asset';crossAsset.setAttribute('role','tabpanel');crossAsset.setAttribute('aria-labelledby','lab-tab-cross-asset');crossAsset.hidden=true;}
@@ -1388,7 +1467,7 @@ function renderFlow(initialLookup){
     <p class="page-lede" id="flow-page-lede">${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
   </div><button type="button" class="future-lookup-open" data-future-lookup-open>날짜·기간 조회 <span>↗</span></button></div>`));
   root.appendChild(el(scenarioModelModeNav('champion',candidate52)));
-  if(initialState.modelView==='research'&&!candidate52Eligible)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.2 research route unavailable"><div><span>SCENARIO V5.2 DISPLAY GATE</span><strong>연구 후보를 표시할 수 없습니다</strong><small>${esc((candidate52?.runtime_gate?.reasons||['candidate unavailable']).join(' · '))}</small></div><p>기본 champion 전망을 유지합니다.</p></section>`));
+  if(initialState.modelView==='research'&&!candidate52Eligible)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.2 candidate validation fallback"><div><span>SCENARIO V5.2 DISPLAY GATE</span><strong>${esc(candidate52?.runtime_gate?.fallback_banner||'후보 검증 게이트 차단 — 이전 승인 모델 표시 중')}</strong><small>${esc((candidate52?.runtime_gate?.reasons||['candidate unavailable']).join(' · '))}</small></div><p>현재 보이는 그래프는 V5.2 후보가 아니라 이전 승인 모델입니다. 조용한 폴백을 허용하지 않습니다.</p></section>`));
   if(candidateData&&candidateData.runtime_gate?.display_eligible===false)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.1 stale candidate"><div><span>SCENARIO V5.1 RUNTIME GATE</span><strong>${esc(candidateData.banner||'STALE/INVALID CANDIDATE')}</strong><small>${esc((candidateData.runtime_gate?.reasons||[candidateData.reason]).filter(Boolean).join(' · '))}</small></div><p>V5.1 표시를 중단하고 official legacy fallback을 사용합니다.</p></section>`));
   if(v5&&sc.scenario_v5_candidate){const numerical=(v5.evidence_views||[]).filter(row=>row.used_numerically),references=(v5.evidence_views||[]).filter(row=>!row.used_numerically),shape=v5.conditional_distribution?.same_shape_diagnostics||{};
     root.appendChild(el(`<section class="scenario-v5-banner" aria-label="Scenario V5 current candidate banner"><div><span>EVIDENCE-CONDITIONED MARKET OUTLOOK · V5.1</span><strong>${esc(v5.banner)}</strong><small>${esc(v5.candidate_id)} · ${esc(v5.identity?.prior_engine)} · as_of ${esc(v5.asof)}</small></div><div class="scenario-v5-stats"><span><b>${numerical.length}</b> physical views used</span><span><b>${references.length}</b> reference/blocked</span><span><b>${num(v5.posterior_diagnostics?.effective_sample_size)}</b> posterior ESS</span><span><b>${shape.gate_pass?'PASS':'HIDDEN'}</b> member shape gate</span></div><p>내생·started-window 전망은 수치 입력에서 차단했습니다. 옵션은 위험중립 참고값이고, 이벤트 가격 점프는 승인 매핑이 없어 0입니다. ${esc(v5.display_contract?.continuation_disclosure||'')}</p></section>`));}

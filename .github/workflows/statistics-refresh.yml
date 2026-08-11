@@ -1,0 +1,45 @@
+name: statistics-refresh
+
+on:
+  schedule:
+    # 미국 금요일 장 마감 뒤 토요일 00:20 UTC (09:20 KST).
+    - cron: "20 0 * * 6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install statistics pipeline
+        run: pip install -e "." pytest
+      - name: Refresh public dot-com comparison statistics
+        run: python -m ai_fc statistics-refresh
+      - name: Validate statistics database and dashboard contract
+        run: pytest -q src/tests/test_statistics_lab.py src/tests/test_dashboard.py
+      - name: Commit changed statistics snapshot
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/statistics
+          if git diff --cached --quiet; then
+            echo "No statistics changes to commit."
+            exit 0
+          fi
+          git commit -m "data: weekly dotcom statistics refresh $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main

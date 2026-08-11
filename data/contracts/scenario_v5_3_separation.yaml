@@ -1,0 +1,219 @@
+schema_version: 1
+contract_id: scenario_v5_3_complete_separation_v1
+status: preregistered_research_only
+candidate_id: scenario_v5_2_scenario_clustered_db_v4
+official_or_champion_use: false
+shared_runtime_inputs_allowed: [current_index_anchor, trading_calendar]
+all_other_state_must_be_scenario_specific: true
+
+baseline:
+  source_model: pre_complete_separation_v5_2
+  S1_S2_p50_log_level_correlation: 0.963
+  acceptance_rule: redesigned_shadow_value_must_be_materially_lower_than_baseline
+  fixed_numeric_target_prohibited: true
+  minimum_material_reduction: 0.02
+
+source_mapping:
+  historical_price_macro_panel:
+    path: data/normalized/market/dualdb_macro_cluster_daily_19900102_20260804.json
+    available_at_field: available_at
+    numerical_status: active_for_historical_episode_coordinates
+    fields: [NASDAQCOM, DFF, DGS2, DGS10, T10Y2Y, VIXCLS, NFCI]
+  market_implied_rate_distribution:
+    path: data/normalized/rates/fed_rate_monitor_pre_post_jobs_20260807.json
+    probability_unit: fraction
+    numerical_status: active_for_current_event_adapter_only
+    historical_cross_era_status: blocked_missing_vintages
+    mapping_correction: scenario_tracker_S8_is_long_rate_direction_not_market_implied_probability
+  labor_release:
+    path: data/normalized/macro/bls_empsit_2026_07_20260807.json
+    numerical_status: active_for_current_event_adapter_only
+    historical_cross_era_status: blocked_missing_release_vintages
+  scenario_tracker_S8:
+    path: data/signals/scenario_tracker_latest.json
+    field: signals[id=S8]
+    meaning: long_term_rate_direction
+    numerical_status: reference_only_not_a_rate_probability
+  shiller_cape_proxy:
+    intended_path: data/normalized/valuation/shiller_cape_monthly_vintage.json
+    source: Yale_Professor_Robert_Shiller_public_monthly_data
+    numerical_status: D0_blocked_source_not_present_and_no_vintage_capture
+    prohibited_substitute: stale_2023_CAPE_or_factor_value_z
+  sec_eps_revision_panel:
+    intended_path: data/normalized/earnings/sec_large_cap_eps_revision_panel.json
+    existing_sec_panel: data/ai_capital_cycle/company_capex_quarterly_latest.json
+    numerical_status: D0_blocked_existing_panel_is_capex_not_eps_or_guidance
+  stlfsi_stress:
+    contract_path: data/contracts/fred_stlfsi4_d0.yaml
+    numerical_status: D0_reference_only_not_present_in_historical_panel
+  nfci_stress:
+    contract_path: data/contracts/fred_nfci_d0.yaml
+    numerical_status: active_historical_proxy_from_macro_panel
+
+scenario_feature_schemas:
+  S1:
+    active_coordinates:
+      - annualized_volatility_20d
+      - annualized_volatility_60d
+      - return_60d
+      - drawdown_60d
+      - distance_from_200d_mean
+      - fed_funds_change_63d_pp
+      - two_year_yield_change_63d_pp
+      - nfci_z_score
+    current_event_adapter_coordinates:
+      - market_implied_policy_relief
+      - labor_growth_risk
+    blocked_D0_coordinates:
+      - vintage_cape_low_valuation
+      - sec_eps_upward_revision_breadth
+  S2:
+    active_coordinates:
+      - annualized_volatility_20d
+      - annualized_volatility_60d
+      - return_60d
+      - drawdown_60d
+      - distance_from_200d_mean
+      - fed_funds_change_63d_pp
+      - ten_two_curve_pp
+      - ten_year_yield_pp
+      - vix_level
+      - nfci_z_score
+    current_event_adapter_coordinates:
+      - balanced_growth_policy_state
+      - inflation_risk
+    blocked_D0_coordinates:
+      - vintage_cape_average_band
+      - sec_eps_stability_breadth
+  S3:
+    active_coordinates:
+      - annualized_volatility_20d
+      - annualized_volatility_60d
+      - return_60d
+      - drawdown_60d
+      - distance_from_200d_mean
+      - fed_funds_change_63d_pp
+      - two_year_yield_change_63d_pp
+      - ten_two_curve_pp
+      - ten_year_yield_pp
+      - vix_level
+      - nfci_z_score
+    current_event_adapter_coordinates:
+      - delayed_easing_or_tightening_risk
+      - labor_growth_risk
+      - inflation_risk
+    blocked_D0_coordinates:
+      - vintage_cape_high_valuation
+      - sec_eps_downward_revision_breadth
+      - stlfsi4_stress
+
+episode_libraries:
+  S1:
+    source_group: expansion_and_easing_episode_db
+    drift_transport: native_observed_log_returns
+    baseline_dotcom_session_share: 0.60
+    episodes:
+      - {id: S1_dotcom_opening, source: macro_panel, start: '1995-07-03', end: '1996-12-31', group: dotcom}
+      - {id: S1_dotcom_reacceleration, source: macro_panel, start: '1998-09-01', end: '1999-06-30', group: dotcom}
+      - {id: S1_dotcom_melt_up, source: macro_panel, start: '1999-07-01', end: '2000-03-10', group: dotcom}
+      - {id: S1_easing_rally_2019, source: macro_panel, start: '2019-06-03', end: '2020-02-19', group: easing}
+      - {id: S1_easing_rally_2020_21, source: macro_panel, start: '2020-03-24', end: '2021-12-31', group: easing}
+      - {id: S1_ai_expansion_2023_25, source: macro_panel, start: '2023-01-03', end: '2025-07-31', group: ai_expansion}
+    phase_names: [acceleration, correction, reacceleration]
+  S2:
+    source_group: non_crisis_soft_landing_episode_db
+    drift_transport: subtract_each_episode_native_mean_to_retain_shape_without_importing_direction
+    episodes:
+      - {id: S2_soft_landing_1994_95, source: macro_panel, start: '1994-07-01', end: '1995-06-30', group: soft_landing}
+      - {id: S2_midcycle_2004_05, source: macro_panel, start: '2004-06-01', end: '2005-12-30', group: soft_landing}
+      - {id: S2_sideways_recovery_2016, source: macro_panel, start: '2016-02-12', end: '2016-12-30', group: balanced}
+      - {id: S2_pre_easing_2019, source: macro_panel, start: '2019-01-02', end: '2019-05-31', group: balanced}
+    phase_names: [steady_drift, mean_reversion, normalization]
+  S3:
+    source_group: tightening_and_financial_stress_episode_db
+    drift_transport: native_observed_log_returns
+    episodes:
+      - {id: S3_dotcom_bust_2000_02, source: macro_panel, start: '2000-03-13', end: '2002-10-09', group: stress}
+      - {id: S3_gfc_2008_09, source: macro_panel, start: '2008-01-02', end: '2009-03-09', group: stress}
+      - {id: S3_taper_2013, source: macro_panel, start: '2013-05-22', end: '2013-09-05', group: tightening}
+      - {id: S3_q4_2018, source: macro_panel, start: '2018-10-01', end: '2018-12-24', group: tightening}
+      - {id: S3_tightening_2022, source: macro_panel, start: '2022-01-03', end: '2022-10-14', group: tightening}
+    phase_names: [drawdown, failed_relief, stress_persistence]
+
+episode_separation:
+  interval_intersection_allowed_across_scenarios: false
+  source_session_intersection_allowed_across_scenarios: false
+  residual_pool_intersection_allowed: false
+  shared_episode_id_allowed: false
+
+phase_duration_model:
+  fixed_template_prohibited: true
+  extraction: rolling_10_session_log_return_state_then_contiguous_run_length
+  minimum_segment_sessions: 3
+  maximum_segment_sessions: 84
+  path_sampling: empirical_segment_duration_and_transition_sampling
+  duration_tilt_uses_only_observed_segments: true
+  repetition_gate:
+    first_adverse_phase_start_variance_minimum: 1.0
+    adverse_phase_duration_variance_minimum: 1.0
+    unique_phase_sequence_minimum: 3
+
+event_adapter:
+  contract_version: structural_event_adapter_v1
+  available_at_lte_as_of_required: true
+  probability_only_update_prohibited: true
+  dependency_cluster_cap: 0.35
+  rules:
+    policy_relief:
+      S1_easing_episode_log_weight: 0.20
+      S1_reacceleration_duration_tilt: 0.20
+      S3_tightening_episode_log_weight: -0.20
+    labor_growth_risk:
+      S1_expansion_episode_log_weight: -0.20
+      S2_soft_landing_episode_log_weight: -0.10
+      S2_balanced_episode_log_weight: -0.05
+      S2_mean_reversion_duration_tilt: 0.10
+      S3_stress_episode_log_weight: 0.20
+      S3_drawdown_duration_tilt: 0.20
+    inflation_risk:
+      S1_expansion_episode_log_weight: -0.15
+      S2_balanced_episode_log_weight: -0.10
+      S3_tightening_episode_log_weight: 0.30
+      S3_stress_persistence_duration_tilt: 0.15
+    balanced_policy_relief:
+      S2_soft_landing_episode_log_weight: 0.15
+  audit_required:
+    - episode_weight_multipliers_before_after
+    - phase_duration_selection_before_after
+    - structural_update_applied
+    - source_event_revision_ids
+
+kernel_gate:
+  metrics: [maximum_drawdown, time_to_trough, recovery_or_censor_duration]
+  comparison: generated_median_inside_empirical_p05_p95
+  failure_action: report_only_and_promotion_blocked
+
+distinctness:
+  mode: report_only_until_30_approved_trading_days
+  metrics:
+    - p50_log_level_correlation
+    - p50_first_difference_correlation
+    - standardized_log_path_dtw
+    - terminal_wasserstein_2026
+    - terminal_wasserstein_2027
+    - phase_repetition_variance
+    - episode_interval_intersection
+    - residual_pool_hash_uniqueness
+    - seed_stability_three_seeds
+    - asof_stability_five_vintages_or_explicit_D0
+
+prohibitions:
+  fake_wiggle: true
+  fixed_phase_template: true
+  forced_endpoint: true
+  forced_exact_turning_date: true
+  forward_outcome_cluster_assignment: true
+  silent_probability_normalization: true
+  official_snapshot_write: true
+  official_ledger_rewrite: true
+  archive_write: true

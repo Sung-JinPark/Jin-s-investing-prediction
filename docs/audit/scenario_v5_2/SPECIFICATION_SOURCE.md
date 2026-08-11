@@ -12,11 +12,9 @@ no fake p50 wiggle, no October 2 exact-date forecast, and unchanged official
 snapshot/ledger/archive bytes.
 
 The owner's later instructions supersede the shared-generator design. S1, S2,
-and S3 must use different database layers. The implemented partition uses
-dotcom plus easing-expansion for S1, balanced soft-landing macro origins for
-S2, and tightening/financial-stress origins for S3. Macro origin dates are
-mutually exclusive before clustering and the three phase samplers have separate
-block provenance. Clustering is deterministic and uses origin-state features only.
+and S3 use different feature schemas, preregistered non-overlapping episode
+libraries, empirical phase-duration distributions, transition matrices, and
+residual pools. Clustering is deterministic and uses origin-state features only.
 Forward outcomes are withheld until assignments are frozen and are then used
 only to label whole clusters. Dotcom strength is 0.60 for S1 and exactly zero
 for S2/S3. The ordinary dependency cap remains 0.35; the single-cycle dotcom

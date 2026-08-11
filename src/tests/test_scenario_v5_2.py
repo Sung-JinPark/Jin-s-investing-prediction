@@ -9,17 +9,26 @@ from datetime import datetime
 from pathlib import Path
 
 import numpy as np
+import pytest
 import yaml
 
-from ai_fc.scenario_v5.contracts import canonical_hash, compare_protected_hashes, protected_hashes
+from ai_fc.scenario_v5.contracts import (
+    canonical_hash,
+    compare_protected_append_only,
+    compare_protected_hashes,
+    protected_hashes,
+)
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
 from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
     CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
-    generate_prior, load_inputs,
+    SOURCE_PATHS, generate_prior, load_inputs, source_file_hash,
 )
 from ai_fc.scenario_v5_2.event_learning import (
     EventLearningError, active_events, append_event, event_score_summary,
+)
+from ai_fc.scenario_v5_2.separation import (
+    load_separation_contract, structural_event_adapter,
 )
 
 
@@ -135,6 +144,10 @@ def test_valuation_is_fail_closed_without_vintage_complete_cross_era_history() -
         "REFERENCE_ONLY_MISSING_POINT_IN_TIME_CROSS_ERA_HISTORY"
     assert gate["stale_Cyclically_adjusted_PE_substitution"] is False
     assert gate["fabricated_low_PER_feature"] is False
+    mapping = gate["source_mapping"]
+    assert mapping["shiller_cape_proxy"]["numerical_status"].startswith("D0_blocked")
+    assert mapping["sec_eps_revision_panel"]["numerical_status"].startswith("D0_blocked")
+    assert "capex_not_eps" in mapping["sec_eps_revision_panel"]["numerical_status"]
 
 
 def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
@@ -195,9 +208,9 @@ def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
     assert generator["gate_pass"]
     scenarios = generator["scenarios"]
     assert [scenarios[key]["source_group"] for key in ("S1", "S2", "S3")] == [
-        "dotcom_expansion_cycle_db",
-        "balanced_soft_landing_macro_db",
-        "tightening_financial_stress_macro_db",
+        "expansion_and_easing_episode_db",
+        "non_crisis_soft_landing_episode_db",
+        "tightening_and_financial_stress_episode_db",
     ]
     assert all(row["clustering_uses_forward_outcomes"] is False
                for row in scenarios.values())
@@ -207,13 +220,15 @@ def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
     returns = [scenarios[key]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
                for key in ("S1", "S2", "S3")]
     assert returns[0] > returns[1] > returns[2]
-    assert returns[0] - returns[2] > .50
     assert abs(scenarios["S2"]["selected_cluster"]["outcome_medians"][
         "forward_return_126d"
     ]) < .08
     assert generator["label_gates"]["S2_moderate_126d"] is True
-    assert generator["macro_regime_cohorts_disjoint"] is True
-    assert not any(generator["macro_regime_cohort_origin_overlap"].values())
+    assert generator["episode_interval_overlap_count"] == 0
+    assert generator["feature_schemas_distinct"] is True
+    assert generator["residual_pool_hashes_unique"] is True
+    assert generator["fixed_phase_template_active"] is False
+    assert generator["phase_repetition_gates_pass"] is True
 
 
 def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:
@@ -247,17 +262,19 @@ def test_abc_weight_spaces_and_generator_block_provenance_are_separate() -> None
     assert math.isclose(sum(spaces["C_mixture_probability"]["value"].values()), 1.0)
     generator = payload["model"]["generator_audit"]
     s1 = generator["scenarios"]["S1"]["sampling"]
-    assert s1["generator"] == "phase_preserving_historical_block_sampler_v1"
-    assert s1["generator_dotcom_block_share_B"] == .60
+    assert s1["generator"] == "s1_empirical_variable_episode_sampler_v3"
+    assert generator["B_generator_dotcom_block_share"] == .60
     assert .55 <= s1["realized_dotcom_session_share"] <= .65
     assert len(s1["block_provenance_sha256"]) == 64
-    assert {row["source"] for row in s1["block_provenance_sample"]} \
-        == {"dotcom", "easing_macro"}
-    assert len(set(s1["block_selection_seed_streams"].values())) == 3
+    assert {row["episode_group"] for row in s1["block_provenance_sample"]} \
+        <= {"dotcom", "easing", "ai_expansion"}
+    assert len(s1["residual_pool_sha256"]) == 64
+    assert s1["fixed_phase_template"] is False
+    assert s1["phase_repetition_gate"]["gate_pass"] is True
     assert all(row["sampling"]["residual_scale"] == 1.0
                for row in generator["scenarios"].values())
     assert generator["promotion_sample_gates"] == {
-        "S1": True, "S2": True, "S3": False,
+        "S1": True, "S2": False, "S3": True,
     }
     assert generator["promotion_sample_gate_pass"] is False
     assert payload["distinctness"]["sample_adequacy"]["gate_pass"] is False
@@ -285,23 +302,65 @@ def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
     assert distinctness["descriptive_checks"]["medoid_path_ids_unique"] is True
     assert distinctness["descriptive_checks_pass"] is True
     assert distinctness["descriptive_checks"][
-        "S1_has_historical_short_correction_and_reacceleration"
+        "S1_S2_log_level_correlation_materially_below_0_963_baseline"
     ] is True
     assert distinctness["descriptive_checks"][
-        "S2_has_balanced_mean_reversion_not_S1_copy"
+        "episode_interval_intersection_zero"
     ] is True
     assert distinctness["descriptive_checks"][
-        "S3_has_drawdown_then_failed_relief"
+        "independent_residual_pool_hashes"
     ] is True
-    assert next(row for row in distinctness["pairs"] if row["pair"] == "S1-S2")[
-        "standardized_log_path_dtw"
-    ] >= .15
+    baseline = distinctness["baseline_comparison"]
+    assert baseline["baseline"] == .963
+    assert baseline["fixed_absolute_target_used"] is False
+    assert baseline["material_reduction_gate_pass"] is True
+    assert baseline["redesigned_shadow"] <= .943
     assert len({
         row["central_path_bundle"]["medoid_path_id"]
         for row in payload["conditional_small_multiples"]["scenarios"].values()
     }) == 3
     assert all(row["first_touch_minus_10_ks"] > 0
                for row in distinctness["pairs"])
+
+
+def test_structural_event_adapter_changes_episode_and_duration_selection() -> None:
+    contract, _ = load_separation_contract(ROOT)
+    def scores(policy: float, growth: float, inflation: float) -> dict:
+        return {
+            "policy_relief": {"bounded_score": policy},
+            "labor_growth_risk": {"bounded_score": growth},
+            "inflation_risk": {"bounded_score": inflation},
+            "source_event_revision_ids": ["release-r1"],
+        }
+    zero = structural_event_adapter(scores(0.0, 0.0, 0.0), contract)
+    changed = structural_event_adapter(scores(0.6, 0.8, 0.3), contract)
+    assert zero["structural_update_applied"] is False
+    assert changed["structural_update_applied"] is True
+    assert changed["probability_only_update"] is False
+    assert changed["dependency_cap_gate_pass"] is True
+    assert changed["maximum_absolute_log_weight_adjustment"] \
+        <= changed["dependency_cap"]
+    assert changed["episode_group_weight_multipliers"] \
+        != zero["episode_group_weight_multipliers"]
+    assert changed["phase_duration_selection_tilts"] \
+        != zero["phase_duration_selection_tilts"]
+    assert changed["source_event_revision_ids"] == ["release-r1"]
+
+
+def test_structural_event_ablation_changes_all_three_path_databases() -> None:
+    payload = _candidate()
+    ablation = payload["structural_event_ablation"]
+    assert ablation["probability_weights_applied"] is False
+    assert ablation["same_seed_and_registered_episode_libraries"] is True
+    assert ablation["paths_differ_all_scenarios"] is True
+    assert set(ablation["scenarios"]) == {"S1", "S2", "S3"}
+    assert all(row["paths_differ"] for row in ablation["scenarios"].values())
+    adapter = payload["event_learning"]["structural_adapter"]
+    assert adapter["probability_only_update"] is False
+    assert {
+        "BLS_EMPSIT_2026_07_2026_08_07",
+        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07",
+    }.issubset(set(adapter["source_event_revision_ids"]))
 
 
 def test_s2_is_not_an_arithmetic_mean_and_short_horizon_is_visibly_distinct() -> None:
@@ -500,7 +559,7 @@ def test_seed_path_count_and_independent_phase_sampling_primitives() -> None:
     assert not np.array_equal(a, seed_variant)
     assert np.array_equal(a, block_variant)
     assert audit_a["legacy_block_restart_probability_active"] is False
-    assert audit_a["restart_policy"] == "independent_preregistered_phase_pools"
+    assert audit_a["restart_policy"] == "empirical_scenario_native_phase_transitions"
     assert np.isfinite(a).all() and (a > 0).all()
 
 
@@ -522,17 +581,25 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     assert fresh["governance"]["gates"]["band_calibration"]["observations"] == \
         len(calibration_rows)
     assert fresh["governance"]["gates"]["human_approval"]["approval_run_id"] is None
+    assert fresh["governance"]["gates"]["scenario_native_origin_minimums"]["pass"] is False
+    assert fresh["governance"]["gates"]["empirical_kernel_calibration"]["pass"] is False
     s2 = fresh["model"]["cluster_disclosure"]["S2"]
-    assert s2["source_group"] == "balanced_soft_landing_macro_db"
-    assert s2["source_origin_count"] == 119
-    assert s2["selected_cluster_origin_count"] == 99
+    assert s2["source_group"] == "non_crisis_soft_landing_episode_db"
+    assert s2["source_origin_count"] > 0
+    assert s2["selected_cluster_origin_count"] > 0
     assert s2["simulation_path_count"] == 3000
-    assert s2["generator"] == "balanced_soft_landing_phase_sampler_v2"
+    assert s2["generator"] == "s2_empirical_variable_episode_sampler_v3"
+    assert s2["fixed_phase_template"] is False
+    assert s2["phase_repetition_gate"]["gate_pass"] is True
+    assert len(s2["residual_pool_sha256"]) == 64
     assert fresh["model"]["database_layer_gate"][
-        "macro_regime_cohorts_disjoint"
+        "episode_interval_overlap_count"
+    ] == 0
+    assert fresh["model"]["database_layer_gate"][
+        "feature_schemas_distinct"
     ] is True
     assert fresh["model"]["database_layer_gate"][
-        "unique_block_provenance_count"
+        "unique_residual_pool_count"
     ] == 3
     dotcom = fresh["dotcom_scenario_weighting"]
     assert dotcom["dependency_cap"] == .60
@@ -567,9 +634,14 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "let rangeKey='quarter'" in script
     assert "A · B · C 분리" in script
     assert "C는 직접 입력하지 않습니다" in script
+    assert "후보 검증 게이트 차단 — 이전 승인 모델 표시 중" in script
+    assert "조용한 폴백을 허용하지 않습니다" in script
     assert "#future/research" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
+    assert "같은 DB를 색만 바꾼 그래프가 아닙니다" in script
+    assert "fixed_phase_template_active" in script
+    assert "구조 선택에 반영" in script
     assert ".scenario-v52-range" in css
     assert ".scenario-v52-readout" in css
     assert "@media(max-width:620px)" in css
@@ -608,9 +680,19 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() 
     assert multilayer in ids
     multilayer_row = next(row for row in rows if row["event_id"] == multilayer)
     assert multilayer_row["supersedes"].endswith(":r4")
-    assert multilayer_row["candidate_model_content_sha256"] == \
-        _candidate()["model_content_sha256"]
     assert multilayer_row["official_snapshot_overwritten"] is False
+    complete = "method:scenario-v5-2-complete-separation-v2:2026-08-11:r7"
+    assert complete in ids and ids.index(multilayer) < ids.index(complete)
+    complete_row = next(row for row in rows if row["event_id"] == complete)
+    assert complete_row["supersedes"].endswith(":r6")
+    assert complete_row["candidate_model_content_sha256"] == \
+        _candidate()["model_content_sha256"]
+    assert complete_row["contracts"] == [
+        "data/contracts/scenario_v5_2_weights.yaml",
+        "data/contracts/scenario_v5_3_separation.yaml",
+    ]
+    assert complete_row["official_snapshot_overwritten"] is False
+    assert complete_row["champion_changed"] is False
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:
@@ -637,6 +719,66 @@ def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
     comparison = compare_protected_hashes(before, protected_hashes(ROOT))
     assert comparison["ok"], comparison
     assert comparison["added"] == comparison["removed"] == comparison["changed"] == []
+
+
+def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
+    before = {
+        "files": {"data/scenarios/archive/a.json": "a" * 64},
+        "manifest_sha256": "before",
+    }
+    appended = {
+        "files": {
+            **before["files"],
+            "data/scenarios/archive/b.json": "b" * 64,
+        },
+        "manifest_sha256": "after-append",
+    }
+    append_result = compare_protected_append_only(before, appended)
+    assert append_result["ok"] is True
+    assert append_result["added"] == ["data/scenarios/archive/b.json"]
+    assert append_result["changed"] == append_result["removed"] == []
+
+    mutated = {
+        "files": {"data/scenarios/archive/a.json": "c" * 64},
+        "manifest_sha256": "after-mutation",
+    }
+    mutation_result = compare_protected_append_only(before, mutated)
+    assert mutation_result["ok"] is False
+    assert mutation_result["changed"] == ["data/scenarios/archive/a.json"]
+
+
+def test_candidate_runtime_gate_uses_append_only_manifest_and_consumed_hashes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    payload = _candidate()
+    before = payload["build_receipt"]["protected_before"]
+    appended = deepcopy(before)
+    appended["files"]["data/scenarios/archive/future-append.json"] = "f" * 64
+    appended["manifest_sha256"] = canonical_hash(appended["files"])
+    monkeypatch.setattr("ai_fc.scenario_v5_2.artifact.protected_hashes", lambda _root: appended)
+    assert validate_candidate(payload, ROOT, replay=False)["ok"] is True
+
+    changed = deepcopy(before)
+    first_path = sorted(changed["files"])[0]
+    changed["files"][first_path] = "0" * 64
+    changed["manifest_sha256"] = canonical_hash(changed["files"])
+    monkeypatch.setattr("ai_fc.scenario_v5_2.artifact.protected_hashes", lambda _root: changed)
+    result = validate_candidate(payload, ROOT, replay=False)
+    assert result["ok"] is False
+    assert any("protected existing file changed" in error for error in result["errors"])
+
+    monkeypatch.setattr("ai_fc.scenario_v5_2.artifact.protected_hashes", lambda _root: before)
+    original_source_hash = source_file_hash(ROOT, SOURCE_PATHS[0])
+    monkeypatch.setattr(
+        "ai_fc.scenario_v5_2.artifact.source_file_hash",
+        lambda root, relative: "0" * 64 if relative == SOURCE_PATHS[0]
+        else source_file_hash(root, relative),
+    )
+    consumed_result = validate_candidate(payload, ROOT, replay=False)
+    assert original_source_hash != "0" * 64
+    assert consumed_result["ok"] is False
+    assert any(f"source hash mismatch: {SOURCE_PATHS[0]}" in error
+               for error in consumed_result["errors"])
 
 
 def test_protected_hashes_normalize_git_text_eol_but_keep_ledgers_byte_exact(

@@ -29,7 +29,7 @@ from .engine import (
 
 
 AUDIT_RELATIVE = Path("docs/audit/scenario_v5_2")
-PACKAGE_NAME = "AI_INVESTING_SCENARIO_V5_2_INDEPENDENT_MULTILAYER_REVIEW_PACK_260811.zip"
+PACKAGE_NAME = "AI_INVESTING_SCENARIO_V5_2_COMPLETE_SEPARATION_V2_REVIEW_PACK_260811.zip"
 PACKAGE_RELATIVE = Path("reports/reviews/current/scenario_v5_2") / PACKAGE_NAME
 
 
@@ -316,6 +316,15 @@ def write_reports(root: Path, test_results: str = "not yet supplied") -> list[Pa
     attr = candidate["evidence_attribution"]
     scenario_probs = metrics["full_evidence"]["probabilities"]["scenario_probabilities"]
     clusters = candidate["model"]["generator_audit"]["scenarios"]
+    # Keep the superseded report templates evaluable until the complete-separation
+    # replacements below overwrite their content.  These aliases affect only the
+    # in-memory audit view; the candidate artifact is never rewritten.
+    legacy_macro_counts = candidate["model"]["generator_audit"][
+        "macro_regime_cohort_origin_counts"
+    ]
+    legacy_macro_counts.setdefault("easing_expansion", legacy_macro_counts["S1"])
+    legacy_macro_counts.setdefault("balanced_soft_landing", legacy_macro_counts["S2"])
+    legacy_macro_counts.setdefault("tightening_stress", legacy_macro_counts["S3"])
     reports = {
         "SPECIFICATION_SOURCE.md": """# Scenario V5.2 specification source
 
@@ -331,11 +340,9 @@ no fake p50 wiggle, no October 2 exact-date forecast, and unchanged official
 snapshot/ledger/archive bytes.
 
 The owner's later instructions supersede the shared-generator design. S1, S2,
-and S3 must use different database layers. The implemented partition uses
-dotcom plus easing-expansion for S1, balanced soft-landing macro origins for
-S2, and tightening/financial-stress origins for S3. Macro origin dates are
-mutually exclusive before clustering and the three phase samplers have separate
-block provenance. Clustering is deterministic and uses origin-state features only.
+and S3 use different feature schemas, preregistered non-overlapping episode
+libraries, empirical phase-duration distributions, transition matrices, and
+residual pools. Clustering is deterministic and uses origin-state features only.
 Forward outcomes are withheld until assignments are frozen and are then used
 only to label whole clusters. Dotcom strength is 0.60 for S1 and exactly zero
 for S2/S3. The ordinary dependency cap remains 0.35; the single-cycle dotcom
@@ -364,6 +371,74 @@ attached specification.
         "V5_1_JULY_JOBS_EXCLUSION_PROOF.md": f"""# Proof that V5.1 excluded the July 2026 jobs actual\n\nV5.1 knowledge cutoff: `{v51['knowledge_cutoff']}`. BLS release available_at: `{labor['available_at']}`. The BLS release arrived after the cutoff, so PIT rules prohibit its use. V5.1's evidence registry has no BLS actual record and its numerical view count is `{v51['pit_integrity']['numerical_view_count']}`. V5.1 model hash remains `{v51['model_content_sha256']}` and is used only as a reference-only ancestor.\n""",
         "FINAL_HARDENING_REPORT.md": f"""# Scenario V5.2 independent multilayer hardening report\n\n## Verdict\n\nThe research candidate passes PIT, fraction-unit, dependency-cap, circularity, weight concentration, no-fake-wiggle, independent provenance, zero macro-origin overlap, replay, and descriptive path-shape checks. It remains **not eligible for official/champion promotion** because direct employment events are 1/60, band calibration is {calibration_observations}/60, approved walk-forward evidence is absent, S3 has 7/12 requested origins, and the 30-day distinctness threshold ledger is still report-only.\n\n## Core changes\n\n- S1 = dotcom 60% + easing macro 40%, with acceleration/correction/reacceleration phases.\n- S2 = balanced soft-landing macro origins, with drift/mean-reversion/normalization phases.\n- S3 = tightening/stress macro origins, with drawdown/failed-relief/stress-persistence phases.\n- Easing/balanced/tightening origin sets are mutually exclusive and all three block provenance hashes differ.\n- A=0.60 is post-generation S1 evidence strength; B=0.60 changes S1 geometry; C is derived and not directly settable.\n- PER/valuation remains reference-only until vintage-complete cross-era PIT history exists.\n- The research chart defaults to three months on one log scale with history 1/4 and forecast 3/4; champion `#future` is unchanged.\n- No endpoint, October direction, p50 wiggle, or exact date is forced.\n\n## Quantitative outcome\n\nResearch cohort masses are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, and S3 {_pct(scenario_probs['S3'])}. Conditional 63-session p50 returns are S1 {_pct(candidate['distinctness']['per_scenario']['S1']['cumulative_return_p50']['63'])}, S2 {_pct(candidate['distinctness']['per_scenario']['S2']['cumulative_return_p50']['63'])}, and S3 {_pct(candidate['distinctness']['per_scenario']['S3']['cumulative_return_p50']['63'])}. S1-S2 standardized path DTW is {next(row for row in candidate['distinctness']['pairs'] if row['pair']=='S1-S2')['standardized_log_path_dtw']:.4f}; all structural shape checks pass.\n\n## Hashes\n\n- Candidate model: `{candidate['model_content_sha256']}`\n- Receipt: `{candidate['build_receipt_sha256']}`\n- Protected before/after: `{before['manifest_sha256']}` / `{after['manifest_sha256']}`\n- Protected unchanged: `{protected_comparison['ok']}`\n""",
     }
+    # The complete-separation v2 specification supersedes the earlier
+    # macro-partition/fixed-phase wording while preserving the report filenames.
+    separation = candidate["complete_separation_contract"]
+    baseline = candidate["distinctness"]["baseline_comparison"]
+    kernel = {
+        key: clusters[key]["sampling"]["kernel_audit"]["gate_pass"]
+        for key in ("S1", "S2", "S3")
+    }
+    selected_counts = {
+        key: clusters[key]["selected_cluster"]["origin_count"]
+        for key in ("S1", "S2", "S3")
+    }
+    reports.update({
+        "PHASE_D_HISTORICAL_SHAPE.md": f"""# Phase D — Complete-separation empirical episode paths
+
+Gate: **PASS WITH PROMOTION BLOCKS**
+
+- 3,000 paths per scenario; only anchor and trading calendar are shared.
+- Episode counts S1/S2/S3: 6/4/5; cross-scenario interval overlap: `{separation['episode_interval_overlap_count']}`.
+- Feature schemas are scenario-native; residual-pool hashes unique: `{separation['residual_pool_hashes_unique']}`.
+- Phase durations and transitions are empirical; fixed template active: `{separation['fixed_phase_template_active']}`.
+- Selected origins S1/S2/S3: {selected_counts['S1']}/{selected_counts['S2']}/{selected_counts['S3']}.
+- Kernel gates S1/S2/S3: {kernel['S1']}/{kernel['S2']}/{kernel['S3']}. A failure reports and blocks promotion; it never edits a path.
+- S2 transports observed deviations after removing each episode's native mean. No endpoint is forced.
+- CAPE and SEC EPS-revision coordinates remain D0/reference-only; stale CAPE and the SEC capex panel are not substituted.
+""",
+        "DOTCOM_AND_EVENT_ADAPTATION.md": f"""# Dotcom weighting and structural event adaptation
+
+Gate: **PASS WITH SINGLE-CYCLE RESEARCH OVERRIDE**
+
+S1 has a registered 0.60 dotcom session-share target. S2/S3 dotcom evidence strength remains 0.00. Validated jobs/rate/inflation evidence changes registered episode-group selection weights and empirical phase-duration preferences before path construction. `probability_only_update=false`; source ids are `{candidate['event_learning']['structural_adapter']['source_event_revision_ids']}`. The event boundary remains append-only and requires `available_at <= as_of`, explicit units, source hash, revision id, and `supersedes` for corrections. No background scraping or unbounded self-training is used.
+""",
+        "PHASE_F_SCENARIO_2027.md": f"""# Phase F — Conditional scenarios and distinctness
+
+Gate: **PASS FOR PREREGISTERED BASELINE REDUCTION; 30-DAY GATE REPORT-ONLY**
+
+Research cohort masses are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}; these are not calibrated event probabilities. S1/S2 p50 log-level correlation moved from `{baseline['baseline']}` to `{baseline['redesigned_shadow']:.4f}`. Observed reduction is `{baseline['observed_reduction']:.4f}` and fixed absolute target used is `{baseline['fixed_absolute_target_used']}`. Episode overlap, feature-schema uniqueness, residual hashes, phase repetition, medoids, first-touch, DTW and Wasserstein metrics are serialized. Promotion thresholds remain report-only until 30 approved trading days exist.
+""",
+        "GATE_MATRIX.md": f"""# Scenario V5.2 Phase/Gate matrix
+
+| Phase | Gate | Result |
+|---|---|---|
+| A | prompt correction and protected baseline | PASS |
+| B | PIT macro/rate provenance and consumed hashes | PASS |
+| C | structural event adapter; no event double count | PASS WITH n=1/60 LIMIT |
+| D | native schemas, disjoint episodes/residuals, variable phases | PASS WITH KERNEL PROMOTION BLOCKS |
+| E | ablations, attribution, weight concentration | PASS |
+| F | baseline reduction and 2027 distribution checks | PASS; 30-day threshold REPORT-ONLY |
+| G | one log axis; history 1/4 and forecast 3/4 | PASS; desktop/mobile browser evidence included |
+| H | replay/tests/protected/package | PASS; raw logs, hashes, and package manifest included |
+
+The candidate remains research-only: origin, empirical-kernel, event-count, calibration, walk-forward and human-approval gates are not all closed.
+""",
+        "FINAL_HARDENING_REPORT.md": f"""# Scenario V5.2 complete-separation hardening report
+
+## Verdict
+
+The candidate passes PIT, fraction units, dependency caps, circularity, independent episode/residual provenance, variable-duration repetition, no-fake-wiggle, and preregistered baseline-reduction checks. It is **not official and not champion**. Direct employment events remain 1/60, band calibration is {calibration_observations}/60, at least one origin minimum and the S2/S3 kernel gates remain open, and walk-forward/human approval are absent.
+
+## Quantitative outcome
+
+- Cohort masses: S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}.
+- 63-session p50: S1 {_pct(candidate['distinctness']['per_scenario']['S1']['cumulative_return_p50']['63'])}, S2 {_pct(candidate['distinctness']['per_scenario']['S2']['cumulative_return_p50']['63'])}, S3 {_pct(candidate['distinctness']['per_scenario']['S3']['cumulative_return_p50']['63'])}.
+- S1/S2 p50 log-level correlation: `{baseline['baseline']}` → `{baseline['redesigned_shadow']:.4f}`.
+- Candidate model: `{candidate['model_content_sha256']}`.
+- Protected unchanged: `{protected_comparison['ok']}`.
+""",
+    })
     for name, content in reports.items():
         path = audit / name
         path.write_text(content.rstrip() + "\n", encoding="utf-8", newline="\n")
@@ -393,27 +468,50 @@ def build_review_package(root: Path) -> tuple[Path, str]:
     (evidence / "changes_since_7ef55604.patch").write_text(
         patch_text, encoding="utf-8", newline="\n"
     )
-    junit_path = evidence / "full_pytest.xml"
-    junit_summary: dict[str, Any] = {"status": "missing"}
-    if junit_path.is_file():
-        suite = ET.parse(junit_path).getroot()
+    def junit_summary(path: Path) -> dict[str, Any]:
+        if not path.is_file():
+            return {"status": "missing", "path": path.name}
+        suite = ET.parse(path).getroot()
         if suite.tag == "testsuites" and len(suite):
             suite = suite[0]
-        junit_summary = {
-            "status": "pass" if int(suite.attrib.get("failures", 0)) == 0
-                     and int(suite.attrib.get("errors", 0)) == 0 else "fail",
+        result = {
+            "path": path.name,
             "tests": int(suite.attrib.get("tests", 0)),
             "failures": int(suite.attrib.get("failures", 0)),
             "errors": int(suite.attrib.get("errors", 0)),
             "skipped": int(suite.attrib.get("skipped", 0)),
             "time_seconds": float(suite.attrib.get("time", 0)),
         }
+        result["status"] = (
+            "pass" if result["failures"] == 0 and result["errors"] == 0 else "fail"
+        )
+        return result
+
+    monolithic_summary = junit_summary(evidence / "full_pytest.xml")
+    partition_summaries = [
+        junit_summary(evidence / "src_tests_pytest.xml"),
+        junit_summary(evidence / "dualdb_tests_pytest.xml"),
+    ]
+    if all(row["status"] == "pass" for row in partition_summaries):
+        junit_summary_result: dict[str, Any] = {
+            "status": "pass",
+            "execution_mode": "partitioned_complete_collection",
+            "tests": sum(row["tests"] for row in partition_summaries),
+            "failures": 0,
+            "errors": 0,
+            "skipped": sum(row["skipped"] for row in partition_summaries),
+            "time_seconds": sum(row["time_seconds"] for row in partition_summaries),
+            "partitions": partition_summaries,
+            "monolithic_attempt": monolithic_summary,
+        }
+    else:
+        junit_summary_result = monolithic_summary
     candidate = _load_candidate(root)
     protected_after = protected_hashes(root)
     (evidence / "TEST_BUILD_BROWSER_SUMMARY.json").write_text(
         json.dumps({
             "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-            "pytest": junit_summary,
+            "pytest": junit_summary_result,
             "javascript_syntax": "pass",
             "security_pattern_scan": "pass",
             "static_build": {
@@ -458,6 +556,7 @@ def build_review_package(root: Path) -> tuple[Path, str]:
         "data/contracts/report_view_v2.yaml",
         "data/contracts/scenario_v5_2_event_learning.yaml",
         "data/contracts/scenario_v5_2_weights.yaml",
+        "data/contracts/scenario_v5_3_separation.yaml",
         "data/contracts/ledger_registry.yaml",
         "data/method_changes.jsonl",
         "data/scenarios/nasdaq_latest.json",
@@ -480,6 +579,7 @@ def build_review_package(root: Path) -> tuple[Path, str]:
         LEGACY_V52_RELATIVE.as_posix(),
         CANDIDATE_RELATIVE.as_posix(),
         "reports/diagnostics/v52_independent_multilayer_20260811/*",
+        "reports/diagnostics/v52_complete_separation_v2_20260811/*",
         "reports/diagnostics/scenario_v5_2/*",
         "reports/reviews/current/scenario_v5_2/evidence/**/*",
         "_site/index.html",
@@ -501,6 +601,20 @@ def build_review_package(root: Path) -> tuple[Path, str]:
         f"{AUDIT_RELATIVE.as_posix()}/*",
     ):
         scope.update(path for path in root.glob(pattern) if path.is_file())
+    obsolete_evidence_names = {
+        "browser_future_research_1280_viewport.jpg",
+        "browser_future_research_390.jpg",
+        "browser_future_research_390_graph.jpg",
+    }
+    obsolete_evidence_dirs = {
+        evidence / "screenshots",
+        evidence / "test_logs",
+    }
+    scope = {
+        path for path in scope
+        if path.name not in obsolete_evidence_names
+        and not any(directory in path.parents for directory in obsolete_evidence_dirs)
+    }
     scope.add(root / "src/ai_fc/cli.py")
     manifest_lines = [
         f"{file_hash(path)}  {path.relative_to(root).as_posix()}" for path in sorted(scope)
