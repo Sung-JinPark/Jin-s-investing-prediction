@@ -48,6 +48,12 @@
     "macro_tightening_pre_screen": "DFF 63-session change > 0.10pp OR DGS2 change > 0.25pp",
     "macro_asof_join": "backward_only; source_date <= state_date",
     "scenario_path_count": 3000,
+    "generator_weight_contract_id": "scenario_v5_2_distinct_path_weights_v1",
+    "A_evidence_strength": 0.6,
+    "B_generator_dotcom_block_share": 0.6,
+    "B_above_cap_shadow_only": false,
+    "C_mixture_probability": "derived_after_evidence_weighting",
+    "modern_growth_auxiliary_cluster_id": 4,
     "base_scenario_scores": {
       "S1": 0.6540607651101356,
       "S2": 0.1521426294471857,
@@ -90,6 +96,8 @@
           ]
         },
         "selection_rule": "maximum cluster-level growth score",
+        "selected_cluster_minimum_origins": 15,
+        "requested_promotion_minimum_origins": 15,
         "cluster_assignments_sha256": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
@@ -211,58 +219,253 @@
           }
         ],
         "sampling": {
-          "selected_origin_count": 63,
-          "simulation_path_count": 3000,
-          "episode_sampling_ess": 62.238077808158884,
-          "maximum_episode_probability": 0.02066571330577172,
-          "current_to_selected_medoid_distance": 0.323664410736698,
-          "current_state_similarity": 0.8652410634030252,
-          "residual_scale": 0.3,
-          "sampled_origin_count": 63,
-          "top_sampled_origins": [
+          "generator": "phase_preserving_historical_block_sampler_v1",
+          "phase_cycle": [
             {
-              "date": "2003-05-21",
-              "count": 65
+              "phase": "acceleration",
+              "sessions": 63
             },
             {
-              "date": "1999-09-15",
-              "count": 63
+              "phase": "correction",
+              "sessions": 21
             },
             {
-              "date": "1998-02-13",
-              "count": 63
-            },
-            {
-              "date": "1997-05-15",
-              "count": 63
-            },
-            {
-              "date": "1998-01-14",
-              "count": 62
-            },
-            {
-              "date": "1996-12-13",
-              "count": 62
-            },
-            {
-              "date": "1998-06-16",
-              "count": 61
-            },
-            {
-              "date": "1999-06-16",
-              "count": 59
-            },
-            {
-              "date": "1998-03-17",
-              "count": 57
-            },
-            {
-              "date": "2003-04-22",
-              "count": 56
+              "phase": "reacceleration",
+              "sessions": 42
             }
           ],
+          "generator_dotcom_block_share_B": 0.6,
+          "above_cap_shadow_only": false,
+          "realized_dotcom_session_share": 0.6010767123287671,
+          "source_session_counts": {
+            "dotcom": 658179,
+            "modern_growth": 436821
+          },
+          "source_block_counts": {
+            "dotcom": 16168,
+            "modern_growth": 10832
+          },
+          "phase_block_counts": {
+            "acceleration": 9000,
+            "correction": 9000,
+            "reacceleration": 9000
+          },
+          "unique_source_origins": 154,
+          "episode_sampling_ess": 101.87924584202706,
+          "maximum_episode_probability": 0.02185185185185185,
+          "top_source_origins": [
+            {
+              "source_origin": "dotcom:1999-09-15",
+              "block_count": 590
+            },
+            {
+              "source_origin": "dotcom:1998-09-15",
+              "block_count": 520
+            },
+            {
+              "source_origin": "dotcom:1997-11-12",
+              "block_count": 481
+            },
+            {
+              "source_origin": "modern_growth:2020-10-20",
+              "block_count": 454
+            },
+            {
+              "source_origin": "modern_growth:2024-03-25",
+              "block_count": 447
+            },
+            {
+              "source_origin": "dotcom:1997-03-17",
+              "block_count": 444
+            },
+            {
+              "source_origin": "modern_growth:2020-09-21",
+              "block_count": 428
+            },
+            {
+              "source_origin": "dotcom:1998-05-15",
+              "block_count": 420
+            },
+            {
+              "source_origin": "dotcom:1996-08-15",
+              "block_count": 416
+            },
+            {
+              "source_origin": "dotcom:1999-11-12",
+              "block_count": 398
+            },
+            {
+              "source_origin": "dotcom:1997-04-16",
+              "block_count": 394
+            },
+            {
+              "source_origin": "dotcom:1997-06-16",
+              "block_count": 392
+            }
+          ],
+          "block_provenance_sha256": "1d852ca06f68e6928896ac3cd805f76fe41c04a9e516ef0b1769251c738169a1",
+          "block_provenance_sample": [
+            {
+              "path_index": 0,
+              "cycle": 0,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "dotcom",
+              "source_start_date": "1999-12-14"
+            },
+            {
+              "path_index": 0,
+              "cycle": 0,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "modern_growth",
+              "source_start_date": "2021-02-22"
+            },
+            {
+              "path_index": 0,
+              "cycle": 0,
+              "phase": "reacceleration",
+              "sessions": 42,
+              "source": "modern_growth",
+              "source_start_date": "2024-10-23"
+            },
+            {
+              "path_index": 0,
+              "cycle": 1,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "dotcom",
+              "source_start_date": "1999-10-14"
+            },
+            {
+              "path_index": 0,
+              "cycle": 1,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "modern_growth",
+              "source_start_date": "2020-08-20"
+            },
+            {
+              "path_index": 0,
+              "cycle": 1,
+              "phase": "reacceleration",
+              "sessions": 42,
+              "source": "modern_growth",
+              "source_start_date": "2020-04-22"
+            },
+            {
+              "path_index": 0,
+              "cycle": 2,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "modern_growth",
+              "source_start_date": "2019-09-20"
+            },
+            {
+              "path_index": 0,
+              "cycle": 2,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "dotcom",
+              "source_start_date": "2002-03-21"
+            },
+            {
+              "path_index": 0,
+              "cycle": 2,
+              "phase": "reacceleration",
+              "sessions": 29,
+              "source": "modern_growth",
+              "source_start_date": "2020-10-20"
+            },
+            {
+              "path_index": 1,
+              "cycle": 0,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "dotcom",
+              "source_start_date": "1997-06-16"
+            },
+            {
+              "path_index": 1,
+              "cycle": 0,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "modern_growth",
+              "source_start_date": "2017-02-17"
+            },
+            {
+              "path_index": 1,
+              "cycle": 0,
+              "phase": "reacceleration",
+              "sessions": 42,
+              "source": "dotcom",
+              "source_start_date": "1998-05-15"
+            },
+            {
+              "path_index": 1,
+              "cycle": 1,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "dotcom",
+              "source_start_date": "1997-04-16"
+            },
+            {
+              "path_index": 1,
+              "cycle": 1,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "dotcom",
+              "source_start_date": "1997-11-12"
+            },
+            {
+              "path_index": 1,
+              "cycle": 1,
+              "phase": "reacceleration",
+              "sessions": 42,
+              "source": "modern_growth",
+              "source_start_date": "2020-10-20"
+            },
+            {
+              "path_index": 1,
+              "cycle": 2,
+              "phase": "acceleration",
+              "sessions": 63,
+              "source": "dotcom",
+              "source_start_date": "1998-09-15"
+            },
+            {
+              "path_index": 1,
+              "cycle": 2,
+              "phase": "correction",
+              "sessions": 21,
+              "source": "modern_growth",
+              "source_start_date": "2018-03-21"
+            },
+            {
+              "path_index": 1,
+              "cycle": 2,
+              "phase": "reacceleration",
+              "sessions": 29,
+              "source": "dotcom",
+              "source_start_date": "2003-11-18"
+            }
+          ],
+          "residual_scale": 1.0,
+          "residual_policy": "full_realized_returns_inside_phase_blocks",
+          "block_selection_seed_streams": {
+            "source": 530814,
+            "dotcom": 530816,
+            "modern_growth": 530844
+          },
           "forced_endpoint": false,
-          "forced_turning_date": false
+          "forced_turning_date": false,
+          "phase_boundaries_are_generator_structure_not_exact_date_forecasts": true,
+          "selected_origin_count": 63,
+          "simulation_path_count": 3000,
+          "auxiliary_modern_growth_cluster_id": 4,
+          "current_to_selected_medoid_distance": 0.323664410736698,
+          "current_state_similarity": 0.8652410634030252,
+          "sampled_origin_count": 154
         },
         "smoothed_cluster_prevalence": 0.5714285714285714,
         "base_scenario_score": 0.6540607651101356
@@ -303,6 +506,8 @@
           ]
         },
         "selection_rule": "minimum absolute cluster-level 126d return among moderate positive 252d clusters; n>=10",
+        "selected_cluster_minimum_origins": 15,
+        "requested_promotion_minimum_origins": 20,
         "cluster_assignments_sha256": "14238b45674852451cbb5d27f847e1ebba1284fbed243c93e4f64eefadb7e2a8",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
@@ -430,7 +635,12 @@
           "maximum_episode_probability": 0.11079473498400903,
           "current_to_selected_medoid_distance": 2.216035484316949,
           "current_state_similarity": 0.37119000794022544,
-          "residual_scale": 0.3,
+          "residual_scale": 1.0,
+          "residual_policy": "winsorized_source_residuals_p01_p99",
+          "residual_trim_bounds": [
+            -0.03752191755666182,
+            0.03438718543927343
+          ],
           "sampled_origin_count": 16,
           "top_sampled_origins": [
             {
@@ -528,6 +738,8 @@
           ]
         },
         "selection_rule": "minimum cluster-level stress score; n>=5",
+        "selected_cluster_minimum_origins": 7,
+        "requested_promotion_minimum_origins": 12,
         "cluster_assignments_sha256": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
@@ -656,7 +868,12 @@
           "maximum_episode_probability": 0.19519401008940665,
           "current_to_selected_medoid_distance": 4.4981927392646375,
           "current_state_similarity": 0.25762347970420313,
-          "residual_scale": 0.65,
+          "residual_scale": 1.0,
+          "residual_policy": "winsorized_source_residuals_p01_p99",
+          "residual_trim_bounds": [
+            -0.03849308023048577,
+            0.03959687725798828
+          ],
           "sampled_origin_count": 7,
           "top_sampled_origins": [
             {
@@ -703,6 +920,13 @@
       "S3_stress_drawdown": true,
       "ordered_252d": true
     },
+    "promotion_sample_gates": {
+      "S1": true,
+      "S2": false,
+      "S3": false
+    },
+    "promotion_sample_gate_pass": false,
+    "research_sample_exception": "S2/S3 remain report-only below requested promotion origin counts; overlapping origins and forward-outcome pooling are not used to inflate n",
     "gate_pass": true,
     "path_count": 9000,
     "path_count_by_engine": {
@@ -720,7 +944,9 @@
     "macro_source_dataset_id": "DUALDB_MACRO_CLUSTER_DAILY_NORMALIZED_19900102_20260804",
     "macro_source_available_at": "2026-08-06T09:15:52+09:00",
     "general_history_start": "2016-01-04",
-    "general_history_end": "2026-08-07"
+    "general_history_end": "2026-08-07",
+    "weight_contract_path": "data/contracts/scenario_v5_2_weights.yaml",
+    "weight_contract_sha256": "b6407150f639e1d1c84884170bd7725c859eabdbb614df343f991c08a017c780"
   },
   "distinctness_2027": {
     "rule": "pre-outcome state-cluster cohorts; each 2027 pair must pass >=2 median and >=3 distribution diagnostics",
@@ -730,47 +956,51 @@
     "partition_uses_2027_outcomes": false,
     "scenario_medians": {
       "S1": {
-        "terminal_return_2027": 0.39231844944567823,
-        "maximum_drawdown": -0.27440703108609826,
+        "terminal_return_2027": 0.755071651843611,
+        "maximum_drawdown": -0.17758779503248556,
         "recovery_days": 47.0,
-        "annualized_volatility": 0.26575426341452696
+        "annualized_volatility": 0.23699654370396753,
+        "downside_semivolatility": 0.16300704287788986
       },
       "S2": {
-        "terminal_return_2027": 0.2783942892064482,
-        "maximum_drawdown": -0.2278603147314864,
-        "recovery_days": 81.0,
-        "annualized_volatility": 0.24740763939566102
+        "terminal_return_2027": 0.2633883312352987,
+        "maximum_drawdown": -0.2596188183239292,
+        "recovery_days": 82.0,
+        "annualized_volatility": 0.31159268320311695,
+        "downside_semivolatility": 0.21918447311529643
       },
       "S3": {
-        "terminal_return_2027": -0.5068042711643662,
-        "maximum_drawdown": -0.6553023004651644,
+        "terminal_return_2027": -0.5172272246408189,
+        "maximum_drawdown": -0.6588380134622336,
         "recovery_days": 95.0,
-        "annualized_volatility": 0.4708183468513254
+        "annualized_volatility": 0.49383265349193045,
+        "downside_semivolatility": 0.3541046754258855
       }
     },
     "pairs": [
       {
         "pair": "S1-S2",
         "absolute_differences": {
-          "terminal_return_2027": 0.11392416023923002,
-          "maximum_drawdown": 0.046546716354611856,
-          "recovery_days": 34.0,
-          "annualized_volatility": 0.018346624018865942
+          "terminal_return_2027": 0.4916833206083123,
+          "maximum_drawdown": 0.08203102329144363,
+          "recovery_days": 35.0,
+          "annualized_volatility": 0.07459613949914942,
+          "downside_semivolatility": 0.05617743023740657
         },
         "metric_gates": {
           "terminal_return_2027": true,
           "maximum_drawdown": true,
           "recovery_days": true,
-          "annualized_volatility": false
+          "annualized_volatility": true
         },
-        "distinct_metric_count": 3,
+        "distinct_metric_count": 4,
         "distribution_diagnostics": {
-          "normalized_p50_level_correlation": 0.9741707058607045,
-          "weekly_return_correlation": 0.15153974198677383,
-          "terminal_wasserstein": 0.12114622510776014,
-          "terminal_energy": 0.15649400060622506,
-          "mdd_distribution_distance": 0.06262568472516399,
-          "volatility_distribution_distance": 0.03600885961731322
+          "normalized_p50_level_correlation": 0.9440325983457266,
+          "weekly_return_correlation": 0.11564880485817658,
+          "terminal_wasserstein": 0.5066828692861622,
+          "terminal_energy": 0.6456252490488603,
+          "mdd_distribution_distance": 0.07138180511558213,
+          "volatility_distribution_distance": 0.06636534964567711
         },
         "distribution_gates": {
           "normalized_p50_level_correlation": true,
@@ -786,10 +1016,11 @@
       {
         "pair": "S1-S3",
         "absolute_differences": {
-          "terminal_return_2027": 0.8991227206100445,
-          "maximum_drawdown": 0.3808952693790661,
+          "terminal_return_2027": 1.27229887648443,
+          "maximum_drawdown": 0.481250218429748,
           "recovery_days": 48.0,
-          "annualized_volatility": 0.20506408343679844
+          "annualized_volatility": 0.2568361097879629,
+          "downside_semivolatility": 0.1910976325479956
         },
         "metric_gates": {
           "terminal_return_2027": true,
@@ -799,12 +1030,12 @@
         },
         "distinct_metric_count": 4,
         "distribution_diagnostics": {
-          "normalized_p50_level_correlation": -0.9502348229000962,
-          "weekly_return_correlation": 0.08158882705779819,
-          "terminal_wasserstein": 0.8227128543919906,
-          "terminal_energy": 0.9984138687826708,
-          "mdd_distribution_distance": 0.3130199772227395,
-          "volatility_distribution_distance": 0.17942667161156547
+          "normalized_p50_level_correlation": -0.8925731543151342,
+          "weekly_return_correlation": -0.1741280338649043,
+          "terminal_wasserstein": 1.1272358497007207,
+          "terminal_energy": 1.2700665148550476,
+          "mdd_distribution_distance": 0.42269611943660906,
+          "volatility_distribution_distance": 0.24075483787310378
         },
         "distribution_gates": {
           "normalized_p50_level_correlation": true,
@@ -820,10 +1051,11 @@
       {
         "pair": "S2-S3",
         "absolute_differences": {
-          "terminal_return_2027": 0.7851985603708145,
-          "maximum_drawdown": 0.427441985733678,
-          "recovery_days": 14.0,
-          "annualized_volatility": 0.22341070745566438
+          "terminal_return_2027": 0.7806155558761176,
+          "maximum_drawdown": 0.3992191951383044,
+          "recovery_days": 13.0,
+          "annualized_volatility": 0.1822399702888135,
+          "downside_semivolatility": 0.13492020231058904
         },
         "metric_gates": {
           "terminal_return_2027": true,
@@ -833,12 +1065,12 @@
         },
         "distinct_metric_count": 3,
         "distribution_diagnostics": {
-          "normalized_p50_level_correlation": -0.9160173405979735,
-          "weekly_return_correlation": -0.17654979582712038,
-          "terminal_wasserstein": 0.8128741349846775,
-          "terminal_energy": 0.9842325606883432,
-          "mdd_distribution_distance": 0.37452034218429175,
-          "volatility_distribution_distance": 0.21442242218156407
+          "normalized_p50_level_correlation": -0.905142137478931,
+          "weekly_return_correlation": 0.06470003459403438,
+          "terminal_wasserstein": 0.7674784900383854,
+          "terminal_energy": 0.9430059064492199,
+          "mdd_distribution_distance": 0.3513143143210271,
+          "volatility_distribution_distance": 0.17438948822742667
         },
         "distribution_gates": {
           "normalized_p50_level_correlation": true,

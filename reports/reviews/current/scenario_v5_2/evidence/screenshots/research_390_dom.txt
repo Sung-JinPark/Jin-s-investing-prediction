@@ -1,0 +1,269 @@
+- link "본문으로 건너뛰기":
+  - /url: "#app"
+- banner:
+  - link "JIN'S / PREDICTION":
+    - /url: "#today"
+    - text: JIN'S / PREDICTION
+  - button "빠른 이동 열기": ⌕
+- complementary:
+  - generic: JIN'S / PREDICTION
+  - button: CLOSE
+  - navigation:
+    - link:
+      - /url: "#today"
+      - generic: "01"
+      - generic: 오늘
+    - link:
+      - /url: "#future"
+      - generic: "02"
+      - generic: 미래 탐색
+    - link:
+      - /url: "#records"
+      - generic: "03"
+      - generic: 기록과 검증
+    - link:
+      - /url: "#trust"
+      - generic: "04"
+      - generic: 데이터와 신뢰
+  - button:
+    - generic: ☆
+    - generic: 고정
+  - button:
+    - generic: ↗
+    - generic: 공유
+  - button:
+    - generic: ≡
+    - generic: 보기
+  - button: AGING 갱신 2026-08-11 11:37 KST
+- generic "현재 시장 요약":
+  - generic: NASDAQ 종합
+  - strong: 26,691
+  - generic: 전고점 ATH
+  - strong: 27,094
+  - generic: −10% 조정선
+  - strong: 24,385
+  - text: ↗
+- main:
+  - paragraph: 미래 탐색 · 연구 후보
+  - heading "Scenario V5.2 조건부 경로" [level=1]
+  - paragraph: 서로 다른 데이터 군집의 세 경로를 공통 로그축으로 비교합니다. 보정된 발생확률이나 champion이 아닙니다.
+  - navigation "전망 모델 선택":
+    - link "기본 전망 gbm-daily-252d-v2-lookup 승격된 기준 모델 · 기본 노출":
+      - /url: "#future"
+      - generic: 기본 전망
+      - strong: gbm-daily-252d-v2-lookup
+      - generic: 승격된 기준 모델 · 기본 노출
+    - link "연구 후보 Scenario V5.2 적격 사건 1/60 · degraded":
+      - /url: "#future/research"
+      - generic: 연구 후보
+      - strong: Scenario V5.2
+      - generic: 적격 사건 1/60 · degraded
+  - status "연구 후보 승격 상태":
+    - generic: 비승격 연구 후보
+    - strong: 적격 사건 1/60 · degraded · 보정되지 않음
+    - paragraph: champion이 아니며 기본 화면에 사용하지 않습니다. band calibration 3/60 · 구분성 report_only 0/30 · 승인 run_id 없음.
+  - tablist "미래 탐색 화면":
+    - tab "01 전망 그래프 3개월·1개월·2026·2027" [selected]:
+      - generic: "01"
+      - text: 전망 그래프
+      - generic: 3개월·1개월·2026·2027
+    - tab "02 과거 사이클 참고 비교":
+      - generic: "02"
+      - text: 과거 사이클
+      - generic: 참고 비교
+    - tab "03 BTC · Realty Income 자산 비교":
+      - generic: "03"
+      - text: BTC · Realty Income
+      - generic: 자산 비교
+    - tab "04 유동성 시장 자금 흐름":
+      - generic: "04"
+      - text: 유동성
+      - generic: 시장 자금 흐름
+  - tabpanel "01 전망 그래프 3개월·1개월·2026·2027":
+    - region "전망 기준 요약":
+      - generic: 시장 기준일
+      - strong: 2026-08-10
+      - generic: 현재 지수
+      - strong: 26,691
+      - generic: 모의 경로
+      - strong: 9,000개
+      - generic: 상태
+      - strong: 비승격 연구 후보
+    - paragraph: SAME SCALE · LOG VIEW
+    - heading "3개월 · 세 시나리오 한눈에" [level=2]
+    - generic: 로그 스케일
+    - group "전망 기간":
+      - button "다음 1개월"
+      - button "3개월" [pressed]
+      - button "2026 연말"
+      - button "2027 연말"
+    - generic: S1 확장 경로
+    - generic: 닷컴 가격 국면과 성장 지표를 중심으로 찾은 상승 군집
+    - emphasis: 역사 군집 n=63 · 모의 3,000경로
+    - generic: S2 균형 경로
+    - generic: 현대 시장과 거시 지표를 함께 본 횡보·회복 군집
+    - emphasis: 역사 군집 n=16 · 모의 3,000경로
+    - generic: S3 스트레스 경로
+    - generic: 긴축·금융여건 악화 지표를 중심으로 찾은 방어 군집
+    - emphasis: 역사 군집 n=7 · 모의 3,000경로
+    - generic: 선 읽는 법
+    - generic: 굵은 선=p50 · 점선=실제 중심 경로 · 회색 영역=전체 중심 구간
+    - emphasis: 과거 1/4 · 전망 3/4 시간축
+    - img "3개월 S1 S2 S3 통합 로그 스케일 전망":
+      - generic: 23,767
+      - generic: 25,553
+      - generic: 27,473
+      - generic: 29,538
+      - generic: 31,758
+      - generic: 26-06-25
+      - generic: 26-07-16
+      - generic: 26-10-30
+      - generic: 전망 시작
+    - generic: 선택 기간
+    - strong: 3개월
+    - generic: 2026-10-30 기준
+    - generic: S1 · 확장 경로
+    - strong: 30,310
+    - generic: +13.6% · 연구 코호트 가중치 80%
+    - generic: S2 · 균형 경로
+    - strong: 26,710
+    - generic: +0.1% · 연구 코호트 가중치 14%
+    - generic: S3 · 스트레스 경로
+    - strong: 24,191
+    - generic: "-9.4% · 연구 코호트 가중치 6%"
+    - paragraph: 세 선은 같은 축과 같은 시작점에서 비교합니다. p50에 인위적인 흔들림을 넣지 않았고, 점선은 실제 모의 경로의 중심 사례입니다. 특정 날짜의 가격을 약속하는 차트가 아닙니다.
+    - region "그래프에서 바로 확인할 네 가지":
+      - paragraph: 연구 후보 결과 비율
+      - heading "그래프에서 바로 확인할 네 가지" [level=2]
+      - paragraph: 보정되지 않은 모의 경로 비율을 정수로 반올림했습니다. 코호트 가중치나 공식 사건확률과 결합하지 않습니다.
+      - article:
+        - text: 2026 연말
+        - strong: 83%
+        - paragraph: 현재 지수보다 높게 끝난 모의 경로 비율
+      - article:
+        - text: 2027 연말
+        - strong: 92%
+        - paragraph: 현재 지수보다 높게 끝난 모의 경로 비율
+      - article:
+        - text: 2026 최고치
+        - strong: 98%
+        - paragraph: 연말까지 새 최고치를 한 번이라도 넘은 비율
+      - article:
+        - text: −10% 조정
+        - strong: 15%
+        - paragraph: 10월 말까지 조정선을 한 번이라도 만난 비율
+    - region "복잡한 지표를 이렇게 읽으세요":
+      - paragraph: 숫자의 뜻
+      - heading "복잡한 지표를 이렇게 읽으세요" [level=2]
+      - article:
+        - text: 고용과 금리
+        - strong: "-3.5%p / +3.4%p"
+        - paragraph: 고용 약화는 성장 위험을 높였고, 금리 부담 완화는 거의 같은 크기로 이를 상쇄했습니다.
+      - article:
+        - text: 닷컴 유사도
+        - strong: S1 0.60
+        - paragraph: 승인 계약 data/scenario_views/approved/scenario_v5_2_dotcom_upside_260810.json · cap 0.60. 0.40은 cap 이내, 0.60은 현재값, 0.80은 cap 초과로 차단합니다.
+      - article:
+        - text: A · B · C 분리
+        - strong: A 0.60 · B 0.60 · C 80%
+        - paragraph: A는 생성 후 S1 증거 강도, B는 S1 생성기의 닷컴 위상 블록 비중, C는 계산 결과인 S1 연구 코호트 질량입니다. C는 직접 입력하지 않습니다.
+      - article:
+        - text: 경로 가중치
+        - strong: S1 80% · S2 14% · S3 6%
+        - paragraph: 서로 다른 역사 DB 군집을 섞는 연구 가중치입니다. 상승·중립·하락의 보정된 발생확률이라는 뜻은 아닙니다.
+      - article:
+        - text: 발표 반영
+        - strong: 0건 수치 반영
+        - paragraph: 새 CPI·고용·FOMC·GDP·실적은 출처와 발표 시각 검증을 통과한 뒤에만 다음 빌드에 반영됩니다.
+      - article:
+        - text: 가산 잔차
+        - strong: 정의상 0
+        - paragraph: 총변화를 구성요소 합으로 정의한 항등 분해입니다. 독립적인 적합도 검증 결과라는 뜻이 아닙니다.
+    - paragraph: 조정 시점 범위
+    - heading "−10%선을 처음 만나는 시기" [level=2]
+    - paragraph: 정확한 날짜 예측이 아니라, 조정이 발생한 경로들의 시점 분포입니다.
+    - generic "2026-08-07"
+    - generic "2026-08-10"
+    - generic "2026-08-11"
+    - generic "2026-08-12"
+    - generic "2026-08-13"
+    - generic "2026-08-14"
+    - generic "2026-08-17"
+    - generic "2026-08-18"
+    - generic "2026-08-19"
+    - generic "2026-08-20"
+    - generic "2026-08-21"
+    - generic "2026-08-24"
+    - generic "2026-08-25"
+    - generic "2026-08-26"
+    - generic "2026-08-27"
+    - generic "2026-08-28"
+    - generic "2026-08-31"
+    - generic "2026-09-01"
+    - generic "2026-09-02"
+    - generic "2026-09-03"
+    - generic "2026-09-04"
+    - generic "2026-09-07"
+    - generic "2026-09-08"
+    - generic "2026-09-09"
+    - generic "2026-09-10"
+    - generic "2026-09-11"
+    - generic "2026-09-14"
+    - generic "2026-09-15"
+    - generic "2026-09-16"
+    - generic "2026-09-17"
+    - generic "2026-09-18"
+    - generic "2026-09-21"
+    - generic "2026-09-22"
+    - generic "2026-09-23"
+    - generic "2026-09-24"
+    - generic "2026-09-25"
+    - generic "2026-09-28"
+    - generic "2026-09-29"
+    - generic "2026-09-30"
+    - generic "2026-10-01"
+    - generic "2026-10-02"
+    - generic "2026-10-05"
+    - generic "2026-10-06"
+    - generic "2026-10-07"
+    - generic "2026-10-08"
+    - generic "2026-10-09"
+    - generic "2026-10-12"
+    - generic "2026-10-13"
+    - generic "2026-10-14"
+    - generic "2026-10-15"
+    - generic "2026-10-16"
+    - generic "2026-10-19"
+    - generic "2026-10-20"
+    - generic "2026-10-21"
+    - generic "2026-10-22"
+    - generic "2026-10-23"
+    - generic "2026-10-26"
+    - generic "2026-10-27"
+    - generic "2026-10-28"
+    - generic "2026-10-29"
+    - generic "2026-10-30"
+    - paragraph: 중앙 시점 2026-09-07 · 빠른 25% 2026-08-25 · 늦은 25% 2026-09-15 · 특정 날짜 확정 아님
+    - generic "계산 근거와 한계 자세히 보기 ＋"
+  - text: ＋ ＋
+- contentinfo:
+  - generic: JIN'S INVESTING
+  - paragraph: 정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다 · 과거 기록은 미래 성과를 보장하지 않습니다
+  - paragraph: 확률 예측은 캘리브레이션으로 지속 검증됩니다
+- navigation "모바일 주요 화면":
+  - link "오늘":
+    - /url: "#today"
+    - generic: ●
+    - generic: 오늘
+  - link "미래":
+    - /url: "#future"
+    - generic: ⌁
+    - generic: 미래
+  - link "기록":
+    - /url: "#records"
+    - generic: ◇
+    - generic: 기록
+  - link "신뢰":
+    - /url: "#trust"
+    - generic: ＋
+    - generic: 신뢰

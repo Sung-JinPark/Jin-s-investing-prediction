@@ -1,7 +1,1 @@
-Validation run: 2026-08-10 KST
-Targeted: python -m pytest src/tests/test_dashboard.py src/tests/test_dashboard_js_geometry.py src/tests/test_scenario_v5_2.py -q
-Result: 59 passed in 11.62s
-Full suite attempt 1: terminated by shell timeout at 124s; no test failure was reported.
-Full suite retry: python -m pytest -q
-Result: 458 passed in 154.49s
-Classification: no code defects, environment failures, or missing-artifact failures. The first full-suite attempt was an execution-time-limit event only.
+full: 466 passed in 118.17s; targeted scenario_v5_2: 29 passed in 3.82s; node --check: pass; git diff --check: pass; security scan: clean; candidate replay: pass (698a811944ade9b01be7475aa30d075c5755cd115637301399a30e18a928a2b2); ledger: new V5.2 ledgers accumulating/valid; one pre-existing protected cross_asset_archive violation remains out of scope

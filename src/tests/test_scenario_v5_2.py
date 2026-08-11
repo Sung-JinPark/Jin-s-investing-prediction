@@ -15,7 +15,8 @@ from ai_fc.scenario_v5.contracts import canonical_hash, compare_protected_hashes
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
 from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
-    CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, generate_prior, load_inputs,
+    CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
+    generate_prior, load_inputs,
 )
 from ai_fc.scenario_v5_2.event_learning import (
     EventLearningError, active_events, append_event, event_score_summary,
@@ -194,10 +195,103 @@ def test_three_scenarios_use_distinct_frozen_database_clusters() -> None:
 def test_dotcom_strength_sensitivity_is_monotonic_and_concentrated() -> None:
     sensitivity = _candidate()["sensitivity_analysis"]
     assert sensitivity["gate_pass"]
-    assert [row["S1_strength"] for row in sensitivity["rows"]] == [.28, .45, .60]
+    assert [row["S1_strength"] for row in sensitivity["rows"]] == [.40, .60]
     probabilities = [row["scenario_probabilities"]["S1"] for row in sensitivity["rows"]]
-    assert probabilities == sorted(probabilities) and len(set(probabilities)) == 3
+    assert probabilities == sorted(probabilities) and len(set(probabilities)) == 2
     assert all(row["weight_gates_pass"] for row in sensitivity["rows"])
+    assert [row["B_generator_dotcom_block_share"]
+            for row in sensitivity["B_generator_rows"]] == [.40, .60]
+    assert sensitivity["above_cap_shadow_only"] == [.70, .80]
+    assert sensitivity["above_cap_never_active"] is True
+
+
+def test_abc_weight_spaces_and_generator_block_provenance_are_separate() -> None:
+    payload = _candidate()
+    contract = yaml.safe_load(
+        (ROOT / "data/contracts/scenario_v5_2_weights.yaml").read_text(encoding="utf-8")
+    )
+    spaces = payload["weight_spaces"]
+    assert contract["weight_spaces"]["A_evidence_strength"]["active"] == .60
+    assert contract["weight_spaces"]["B_generator_dotcom_block_share"]["active"] == .60
+    assert spaces["A_evidence_strength"] == {
+        "value": .60, "role": "post_generation_S1_likelihood",
+        "changes_path_geometry": False,
+    }
+    assert spaces["B_generator_dotcom_block_share"]["value"] == .60
+    assert spaces["B_generator_dotcom_block_share"]["changes_path_geometry"] is True
+    assert spaces["C_mixture_probability"]["directly_settable"] is False
+    assert math.isclose(sum(spaces["C_mixture_probability"]["value"].values()), 1.0)
+    generator = payload["model"]["generator_audit"]
+    s1 = generator["scenarios"]["S1"]["sampling"]
+    assert s1["generator"] == "phase_preserving_historical_block_sampler_v1"
+    assert s1["generator_dotcom_block_share_B"] == .60
+    assert .55 <= s1["realized_dotcom_session_share"] <= .65
+    assert len(s1["block_provenance_sha256"]) == 64
+    assert {row["source"] for row in s1["block_provenance_sample"]} \
+        == {"dotcom", "modern_growth"}
+    assert len(set(s1["block_selection_seed_streams"].values())) == 3
+    assert all(row["sampling"]["residual_scale"] == 1.0
+               for row in generator["scenarios"].values())
+    assert generator["promotion_sample_gates"] == {
+        "S1": True, "S2": False, "S3": False,
+    }
+    assert generator["promotion_sample_gate_pass"] is False
+    assert payload["distinctness"]["sample_adequacy"]["gate_pass"] is False
+    assert payload["distinctness"]["sample_adequacy"][
+        "failure_is_promotion_blocking_not_path_mutating"
+    ] is True
+
+
+def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
+    payload = _candidate()
+    distinctness = payload["distinctness"]
+    assert distinctness["operational_mode"] == "report_only"
+    assert distinctness["threshold_calibration"] == {
+        "observations": 0, "minimum": 30,
+        "upper_bound_rule": "shadow_distribution_p75",
+        "lower_bound_rule": "shadow_distribution_p25",
+        "threshold_run_id": None,
+    }
+    assert distinctness["threshold_gate_evaluated"] is False
+    assert distinctness["gate_pass"] is None
+    assert distinctness["promotion_eligible"] is False
+    assert distinctness["descriptive_checks"][
+        "paths_unchanged_by_distinctness_evaluation"
+    ] is True
+    assert distinctness["descriptive_checks"]["medoid_path_ids_unique"] is True
+    assert len({
+        row["central_path_bundle"]["medoid_path_id"]
+        for row in payload["conditional_small_multiples"]["scenarios"].values()
+    }) == 3
+    assert all(row["first_touch_minus_10_ks"] > 0
+               for row in distinctness["pairs"])
+
+
+def test_s2_is_not_an_arithmetic_mean_and_short_horizon_is_visibly_distinct() -> None:
+    scenarios = _candidate()["conditional_small_multiples"]["scenarios"]
+    s1 = np.asarray(scenarios["S1"]["bands"]["p50"])
+    s2 = np.asarray(scenarios["S2"]["bands"]["p50"])
+    s3 = np.asarray(scenarios["S3"]["bands"]["p50"])
+    assert not np.allclose(s2, (s1 + s3) / 2.0, rtol=1e-5, atol=1e-5)
+    anchor = s1[0]
+    one_month_returns = np.asarray([s1[21], s2[21], s3[21]]) / anchor - 1.0
+    assert one_month_returns[0] > one_month_returns[1] > one_month_returns[2]
+    assert one_month_returns.max() - one_month_returns.min() > .05
+
+
+def test_generator_dependency_cap_blocks_above_060_outside_shadow() -> None:
+    inputs = load_inputs(ROOT)
+    with np.testing.assert_raises_regex(ScenarioV52Error, "0.60 cap"):
+        generate_prior(
+            ROOT, inputs, path_count_per_engine=30,
+            generator_dotcom_share=.70,
+        )
+    paths, _, engines, _, audit = generate_prior(
+        ROOT, inputs, path_count_per_engine=30,
+        generator_dotcom_share=.70, allow_shadow_cap_exceed=True,
+    )
+    assert paths.shape[0] == 90 and set(engines) == {0, 1, 2}
+    assert audit["B_above_cap_shadow_only"] is True
 
 
 def _cpi_event(revision_id: str = "cpi-2026-08-r1") -> dict:
@@ -250,10 +344,12 @@ def test_event_learning_rejects_future_vintage_and_bad_correction(tmp_path: Path
         append_event(tmp_path, wrong)
 
 
-def test_main_is_mixture_and_scenarios_are_conditional_small_multiples(tmp_path: Path) -> None:
+def test_distribution_spaces_stay_separate_while_research_ui_is_shared_scale(tmp_path: Path) -> None:
     payload = _candidate()
     assert payload["distribution"]["probability_space"] == "total_path_mixture"
-    assert payload["display_contract"]["main_chart_scenario_lines"] is False
+    assert payload["display_contract"]["main_chart_scenario_lines"] is True
+    assert payload["display_contract"]["main_chart"] == \
+        "shared_log_axis_three_conditional_p50_with_total_mixture_band"
     assert payload["conditional_small_multiples"]["probability_space"] == "scenario_conditional"
     assert set(payload["conditional_small_multiples"]["scenarios"]) == {"S1", "S2", "S3"}
     dashboard = render_dashboard(tmp_path, payload)
@@ -272,7 +368,7 @@ def test_p50_has_no_fake_wiggle_and_bundle_is_actual_members() -> None:
     payload = _candidate()
     display = payload["display_contract"]
     bundle = payload["distribution"]["central_path_bundle"]
-    assert display["primary_line"] == "total_mixture_weighted_p50"
+    assert display["primary_line"] == "three_scenario_conditional_p50_lines"
     assert display["fake_wiggle"] is False
     assert bundle["fake_wiggle_applied"] is False
     assert bundle["p50_smoothing"].startswith("none")
@@ -419,6 +515,9 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "0.80은 cap 초과로 차단" in script
     assert "정의상 0" in script
     assert "Math.round(Number(value)*100)" in script
+    assert "let rangeKey='quarter'" in script
+    assert "A · B · C 분리" in script
+    assert "C는 직접 입력하지 않습니다" in script
     assert "#future/research" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
@@ -438,6 +537,11 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() 
     correction_row = next(row for row in rows if row["event_id"] == correction)
     assert correction_row["supersedes"] == introduction
     assert "1/60" in correction_row["reason"] and "3/60" in correction_row["reason"]
+    redesign = "method:scenario-v5-2-distinct-path-generators:2026-08-11"
+    assert redesign in ids and ids.index(correction) < ids.index(redesign)
+    redesign_row = next(row for row in rows if row["event_id"] == redesign)
+    assert redesign_row["contract"] == "data/contracts/scenario_v5_2_weights.yaml"
+    assert redesign_row["official_snapshot_overwritten"] is False
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:
@@ -450,6 +554,8 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
     p = _candidate(); p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S1_dotcom_expansion_cluster"] = .90; p["dotcom_scenario_weighting"]["path_engine_share_by_scenario"]["S2"]["S2_modern_baseline_cluster"] = .10; mutations.append((p, "isolated"))
     p = _candidate(); p["model"]["generator_audit"]["scenarios"]["S1"]["clustering_uses_forward_outcomes"] = True; mutations.append((p, "cluster audit"))
     p = _candidate(); p["evidence_registry"][0]["approved_cap"] = .90; mutations.append((p, "unauthorized"))
+    p = _candidate(); p["weight_spaces"]["B_generator_dotcom_block_share"]["value"] = .80; mutations.append((p, "A/B/C"))
+    p = _candidate(); p["distinctness"]["threshold_gate_evaluated"] = True; mutations.append((p, "report-only"))
     for payload, expected in mutations:
         result = validate_candidate(_rehash(payload), ROOT, replay=False)
         assert not result["ok"]

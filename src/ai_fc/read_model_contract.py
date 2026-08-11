@@ -296,10 +296,11 @@ def validate(model: dict[str, Any]) -> list[str]:
                     or abs(sum(probabilities) - 1.0) > 1e-10):
                 errors.append("scenario_v5_2 probabilities must be fractions summing to one")
             display = scenario_v52.get("display_contract") or {}
-            if display.get("main_chart") != "total_mixture_p50_and_bands":
-                errors.append("scenario_v5_2 main chart must be total mixture")
-            if display.get("main_chart_scenario_lines") is not False:
-                errors.append("scenario_v5_2 scenario lines cannot enter the main chart")
+            if display.get("main_chart") != \
+                    "shared_log_axis_three_conditional_p50_with_total_mixture_band":
+                errors.append("scenario_v5_2 main chart semantic contract mismatch")
+            if display.get("main_chart_scenario_lines") is not True:
+                errors.append("scenario_v5_2 shared chart must contain scenario lines")
     band_calibration = model.get("band_calibration")
     if isinstance(band_calibration, dict):
         observations = band_calibration.get("observations")

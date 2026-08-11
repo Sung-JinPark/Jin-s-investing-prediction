@@ -1,0 +1,127 @@
+{
+  "schema_version": 1,
+  "contract_path": "data/contracts/scenario_v5_2_weights.yaml",
+  "operational_mode": "report_only",
+  "status": "REPORT_ONLY_INSUFFICIENT_30_TRADING_DAY_SHADOW_HISTORY",
+  "threshold_calibration": {
+    "observations": 0,
+    "minimum": 30,
+    "upper_bound_rule": "shadow_distribution_p75",
+    "lower_bound_rule": "shadow_distribution_p25",
+    "threshold_run_id": null
+  },
+  "threshold_gate_evaluated": false,
+  "gate_pass": null,
+  "promotion_eligible": false,
+  "sample_adequacy": {
+    "gate_pass": false,
+    "scenarios": {
+      "S1": true,
+      "S2": false,
+      "S3": false
+    },
+    "failure_is_promotion_blocking_not_path_mutating": true,
+    "reason": "S2/S3 remain report-only below requested promotion origin counts; overlapping origins and forward-outcome pooling are not used to inflate n"
+  },
+  "failure_action": "display_warning_and_stop_promotion_without_path_mutation",
+  "per_scenario": {
+    "S1": {
+      "cumulative_return_p50": {
+        "63": 0.14174377596983168,
+        "126": 0.20822252256672663,
+        "252": 0.4796363429619974
+      },
+      "maximum_drawdown_p50": -0.17758779503248556,
+      "downside_semivolatility_p50": 0.16300704287788986,
+      "recovery_days_p50": 47.0,
+      "medoid_path_id": "path_02840",
+      "selected_origin_count": 63,
+      "requested_promotion_minimum_origins": 15,
+      "episode_sampling_ess": 101.87924584202706
+    },
+    "S2": {
+      "cumulative_return_p50": {
+        "63": -0.007677240374433048,
+        "126": 0.023477420459462866,
+        "252": 0.15414285124049587
+      },
+      "maximum_drawdown_p50": -0.2596188183239292,
+      "downside_semivolatility_p50": 0.21918447311529643,
+      "recovery_days_p50": 82.0,
+      "medoid_path_id": "path_04955",
+      "selected_origin_count": 16,
+      "requested_promotion_minimum_origins": 20,
+      "episode_sampling_ess": 14.708034725695068
+    },
+    "S3": {
+      "cumulative_return_p50": {
+        "63": -0.08671454099719661,
+        "126": -0.29154844374058975,
+        "252": -0.4875835227808596
+      },
+      "maximum_drawdown_p50": -0.6588380134622336,
+      "downside_semivolatility_p50": 0.3541046754258855,
+      "recovery_days_p50": 95.0,
+      "medoid_path_id": "path_06334",
+      "selected_origin_count": 7,
+      "requested_promotion_minimum_origins": 12,
+      "episode_sampling_ess": 6.468860816199646
+    }
+  },
+  "pairs": [
+    {
+      "pair": "S1-S2",
+      "p50_log_level_correlation": 0.9629447502461339,
+      "p50_first_difference_correlation": 0.12037913530126332,
+      "rolling_63d_first_difference_correlation": {
+        "minimum": -0.05498975724106707,
+        "median": 0.12355211043380948,
+        "maximum": 0.32750782983276205
+      },
+      "standardized_log_path_dtw": 0.09244795811340602,
+      "terminal_wasserstein_2026": 0.14152589929037604,
+      "terminal_wasserstein_2027": 0.5066828692861622,
+      "first_touch_minus_10_ks": 0.46661108389999995
+    },
+    {
+      "pair": "S1-S3",
+      "p50_log_level_correlation": -0.9537207856029933,
+      "p50_first_difference_correlation": -0.036551723476751403,
+      "rolling_63d_first_difference_correlation": {
+        "minimum": -0.1949094049856812,
+        "median": -0.07044414505013308,
+        "maximum": 0.2959069065881062
+      },
+      "standardized_log_path_dtw": 1.727411006729426,
+      "terminal_wasserstein_2026": 0.3240989409437001,
+      "terminal_wasserstein_2027": 1.1272358497007207,
+      "first_touch_minus_10_ks": 0.8312777506
+    },
+    {
+      "pair": "S2-S3",
+      "p50_log_level_correlation": -0.92320521914266,
+      "p50_first_difference_correlation": 0.03510751171484275,
+      "rolling_63d_first_difference_correlation": {
+        "minimum": -0.1521727808097626,
+        "median": 0.0465036002336076,
+        "maximum": 0.23041137353358232
+      },
+      "standardized_log_path_dtw": 1.7388631974096989,
+      "terminal_wasserstein_2026": 0.20744583942352945,
+      "terminal_wasserstein_2027": 0.7674784900383854,
+      "first_touch_minus_10_ks": 0.38566666660000004
+    }
+  ],
+  "descriptive_checks": {
+    "cumulative_return_order_S1_gt_S2_gt_S3": true,
+    "maximum_drawdown_severity_order_S1_lt_S2_lt_S3": true,
+    "S1_drawdown_below_80pct_of_S3": true,
+    "downside_semivolatility_order_S1_lt_S2_lt_S3": true,
+    "recovery_speed_order_S1_lt_S2_lt_S3": true,
+    "medoid_path_ids_unique": true,
+    "paths_unchanged_by_distinctness_evaluation": true
+  },
+  "descriptive_checks_pass": true,
+  "seed_stability": "reported_in_external_shadow_diagnostic",
+  "asof_state_cluster_stability": "reported_in_external_shadow_diagnostic"
+}
