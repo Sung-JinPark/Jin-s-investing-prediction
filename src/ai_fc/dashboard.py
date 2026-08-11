@@ -9,6 +9,7 @@
 
 from __future__ import annotations
 
+import csv
 import html as html_lib
 import json
 import re
@@ -332,6 +333,25 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     liquidity = load_liquidity(root)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
+    band_calibration_path = root / "data/scenarios/band_calibration.csv"
+    band_calibration_rows: list[dict[str, str]] = []
+    try:
+        with band_calibration_path.open(encoding="utf-8", newline="") as handle:
+            band_calibration_rows = list(csv.DictReader(handle))
+    except OSError:
+        band_calibration_rows = []
+    band_calibration = {
+        "status": "ready" if len(band_calibration_rows) >= 60 else "accumulating",
+        "probability_space": "scenario_conditional",
+        "source_path": "data/scenarios/band_calibration.csv",
+        "observations": len(band_calibration_rows),
+        "minimum_observations": 60,
+        "gate_pass": len(band_calibration_rows) >= 60,
+        "latest_asof": (
+            band_calibration_rows[-1].get("asof") if band_calibration_rows else None
+        ),
+        "rows": band_calibration_rows,
+    }
     method_changes = []
     try:
         method_changes = [
@@ -503,6 +523,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "era_analog": era_analog,
         "cross_asset": cross_asset,
         "scenario_tracker": scenario_tracker,
+        "band_calibration": band_calibration,
         "liquidity": liquidity,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,

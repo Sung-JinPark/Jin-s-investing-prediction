@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "review_root": "reports/reviews",
-  "public_zip_count": 14,
+  "public_zip_count": 15,
   "packages": [
     {
       "path": "reports/reviews/archive/packages/chatgpt_full_handoff_scenario_audit_dea62a1_260806.zip",
@@ -104,6 +104,14 @@
       "bytes": 1777305,
       "sha256": "d6b6f18e1174c64393334fd75f45c504940782394e0d6ecce24401c255e87f40",
       "zip_member_count": 101,
+      "zip_crc": "pass",
+      "sidecar": "verified"
+    },
+    {
+      "path": "reports/reviews/current/scenario_v5_3/AI_INVESTING_SCENARIO_V5_3_ACCEPTANCE_EVIDENCE_PACK_260811.zip",
+      "bytes": 19340409,
+      "sha256": "7e8893eec7dfaa117753b997ddc03e1220a0f326097b36fa5de3f1fa2954c1f1",
+      "zip_member_count": 63,
       "zip_crc": "pass",
       "sidecar": "verified"
     },

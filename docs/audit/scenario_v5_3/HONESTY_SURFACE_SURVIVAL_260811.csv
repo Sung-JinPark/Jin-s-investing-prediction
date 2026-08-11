@@ -1,0 +1,12 @@
+surface,payload_key_or_contract,status,disposition
+forecast_change_journal,method_changes,PASS,moved_not_deleted
+scenario_history,scenario_history,PASS,moved_not_deleted
+band_calibration,band_calibration,PASS,new_explicit_top_level_projection
+scenario_tracker,scenario_tracker,PASS,moved_not_deleted
+calendar,calendar_events,PASS,moved_not_deleted
+cross_asset,cross_asset,PASS,route_future_cross_asset
+liquidity,liquidity,PASS,route_future_liquidity
+path_realism,scenario.path_realism,PASS,retained
+horizon_coverage,scenario.horizon_coverage,PASS,retained
+quantile_lookup,scenario.quantile_table,PASS,retained
+legacy_routes,legacyRouteRedirect,PASS,15_of_15

@@ -500,9 +500,14 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "showBaseline=true" in html
 
 
-def test_v5_2_future_route_mounts_rendered_outlook() -> None:
+def test_future_default_is_champion_and_v5_2_requires_explicit_research_route() -> None:
     html = dashboard.load_template()
     assert "renderScenarioV52(candidate52,initialState);" in html
+    assert "if(initialState.modelView==='research'&&candidate52Eligible)" in html
+    assert "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}" in html
+    assert "let sc=officialScenario,shadowActive=false" in html
+    assert "shadowActive?shadowScenario:officialScenario" in html
+    assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
     assert "root.appendChild(labTabs)" in html and "mount(root);" in html
     assert "return renderScenarioV52(candidate52)" not in html
 
@@ -513,6 +518,9 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
     for required in (
         "scenarioV52UnifiedChart",
         'data-scale="log"',
+        'data-history-share="0.25"',
+        'data-forecast-share="0.75"',
+        'data-time-zone="forecast"',
         'data-scenario-p50="${key}"',
         'data-v52-range="${key}"',
         "다음 1개월",
@@ -520,7 +528,12 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "2027 연말",
         "세 시나리오 한눈에",
         "연구 코호트 가중치",
-        "S1에만 강하게 적용했습니다",
+        "0.80은 cap 초과로 차단",
+        "정의상 0",
+        "적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)}",
+        "band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)}",
+        "S2 역사 묶음은 n=${num(clusters.S2?.selected_cluster_origin_count||0)}",
+        "보정되지 않은 모의 경로 비율을 정수로 반올림했습니다",
         "Bitcoin</span><strong>가정 경로",
         "유동성이 늘고 줄어든 구간",
         "bindCrossAsset(crossAsset,initialState.scenario)",
@@ -529,6 +542,41 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         assert required in html
     assert "CONDITIONAL SMALL MULTIPLES" not in html
     assert "compareTray.hidden=!ids.length||!location.hash.startsWith('#records')" in html
+
+
+def test_v53_honesty_surfaces_survive_without_deletion() -> None:
+    conn = ingest.connect(dashboard.config.DB_PATH)
+    try:
+        model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+    finally:
+        conn.close()
+    required = {
+        "method_changes", "scenario_history", "band_calibration", "scenario_tracker",
+        "calendar_events", "cross_asset", "liquidity",
+    }
+    assert required <= set(model)
+    assert model["method_changes"]
+    assert model["scenario_history"]
+    assert model["band_calibration"]["observations"] == len(
+        model["band_calibration"]["rows"]
+    )
+    assert "path_realism" in model["scenario"]
+    assert "horizon_coverage" in model["scenario"]
+
+
+def test_v53_legacy_hash_redirect_matrix_is_complete() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    for contract in (
+        "rawHash==='#flow')return '#future'",
+        "rawHash==='#questions')return '#records'",
+        "rawHash==='#track')return '#records/performance'",
+        "rawHash==='#asof')return '#records/journal'",
+        "rawHash.startsWith('#lookup=')",
+        "rawHash.startsWith('#lab=')",
+        "rawHash.startsWith('#q/')",
+        "rawHash.startsWith('#compare/')",
+    ):
+        assert contract in script
 
 
 def test_u1d_mobile_layout_contract() -> None:

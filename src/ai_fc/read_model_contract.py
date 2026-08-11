@@ -42,6 +42,7 @@ V2_KEYS = {
     "era_analog": dict,
     "cross_asset": dict,
     "scenario_tracker": dict,
+    "band_calibration": dict,
     "liquidity": dict,
     "ai_regime": dict,
     "o_entry_cohort": dict,
@@ -133,6 +134,22 @@ def schema() -> dict[str, Any]:
             "schema_version": {"const": 1},
             "status": {"enum": ["ok", "degraded", "stale_or_invalid", "unavailable"]},
             "candidate_id": {"const": "scenario_v5_2_scenario_clustered_db_v4"},
+        },
+    }
+    properties["band_calibration"] = {
+        "type": "object",
+        "required": [
+            "status", "probability_space", "source_path", "observations",
+            "minimum_observations", "gate_pass", "rows",
+        ],
+        "properties": {
+            "status": {"enum": ["accumulating", "ready"]},
+            "probability_space": {"const": "scenario_conditional"},
+            "source_path": {"const": "data/scenarios/band_calibration.csv"},
+            "observations": {"type": "integer"},
+            "minimum_observations": {"const": 60},
+            "gate_pass": {"type": "boolean"},
+            "rows": {"type": "array"},
         },
     }
     properties["scenario_v4_shadow"] = {
@@ -283,6 +300,19 @@ def validate(model: dict[str, Any]) -> list[str]:
                 errors.append("scenario_v5_2 main chart must be total mixture")
             if display.get("main_chart_scenario_lines") is not False:
                 errors.append("scenario_v5_2 scenario lines cannot enter the main chart")
+    band_calibration = model.get("band_calibration")
+    if isinstance(band_calibration, dict):
+        observations = band_calibration.get("observations")
+        rows = band_calibration.get("rows")
+        minimum = band_calibration.get("minimum_observations")
+        if (not isinstance(observations, int) or isinstance(observations, bool)
+                or not isinstance(rows, list) or observations != len(rows)):
+            errors.append("band_calibration observation count mismatch")
+        if minimum != 60:
+            errors.append("band_calibration promotion minimum must remain 60")
+        if band_calibration.get("gate_pass") is not bool(
+                isinstance(observations, int) and observations >= 60):
+            errors.append("band_calibration gate disclosure mismatch")
     scenario_v4_shadow = model.get("scenario_v4_shadow")
     if scenario_v4_shadow is not None:
         if not isinstance(scenario_v4_shadow, dict):

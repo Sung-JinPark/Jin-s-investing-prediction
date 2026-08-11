@@ -376,6 +376,23 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     )
     assert fresh["runtime_gate"]["display_eligible"] is True
     assert fresh["status"] == "degraded"
+    assert fresh["governance"]["champion_eligible"] is False
+    assert fresh["governance"]["default_surface"] == "research_only_explicit_route"
+    assert fresh["governance"]["gates"]["direct_event_observations"] == {
+        "observations": 1, "minimum": 60, "pass": False,
+    }
+    assert fresh["governance"]["gates"]["band_calibration"]["observations"] == 3
+    assert fresh["governance"]["gates"]["human_approval"]["approval_run_id"] is None
+    assert fresh["model"]["cluster_disclosure"]["S2"] == {
+        "source_group": "modern_general_market_state_db",
+        "source_origin_count": 100,
+        "selected_cluster_origin_count": 16,
+        "simulation_path_count": 3000,
+    }
+    dotcom = fresh["dotcom_scenario_weighting"]
+    assert dotcom["dependency_cap"] == .60
+    assert dotcom["requested_sensitivity_policy"]["0.80"] == \
+        "blocked_above_dependency_cap"
     assert len(fresh["distribution"]["dates"]) < len(_candidate()["distribution"]["dates"])
     stale = dashboard_projection(
         ROOT, datetime.fromisoformat("2026-08-12T04:00:00+00:00"),
@@ -392,15 +409,35 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "renderScenarioV52" in script
     assert "SAME SCALE · LOG VIEW" in script
     assert 'data-scale="log"' in script
+    assert 'data-history-share="0.25"' in script
+    assert 'data-forecast-share="0.75"' in script
+    assert 'data-time-zone="forecast"' in script
     assert 'data-scenario-p50="${key}"' in script
     assert 'data-path-role="${key}-actual-medoid"' in script
     assert "연구 코호트 가중치" in script
     assert "특정 날짜 확정 아님" in script
-    assert "S1에만 강하게 적용했습니다" in script
+    assert "0.80은 cap 초과로 차단" in script
+    assert "정의상 0" in script
+    assert "Math.round(Number(value)*100)" in script
+    assert "#future/research" in script
+    assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
     assert ".scenario-v52-range" in css
     assert ".scenario-v52-readout" in css
     assert "@media(max-width:620px)" in css
+
+
+def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() -> None:
+    rows = [json.loads(line) for line in (ROOT / "data/method_changes.jsonl")
+            .read_text(encoding="utf-8").splitlines() if line.strip()]
+    ids = [row["event_id"] for row in rows]
+    introduction = "method:scenario-v5-2-research-surface:2026-08-10"
+    correction = "method:future-default-champion-gate:2026-08-11"
+    assert introduction in ids and correction in ids
+    assert ids.index(introduction) < ids.index(correction)
+    correction_row = next(row for row in rows if row["event_id"] == correction)
+    assert correction_row["supersedes"] == introduction
+    assert "1/60" in correction_row["reason"] and "3/60" in correction_row["reason"]
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:

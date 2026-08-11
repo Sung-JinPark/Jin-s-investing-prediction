@@ -151,9 +151,11 @@ def test_unmapped_event_impacts_are_exactly_zero() -> None:
     }
 
 
-def test_dashboard_contains_v5_default_and_hide_gate() -> None:
+def test_dashboard_keeps_v5_as_non_default_research_support() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    assert "scenarioV5FlowModel(officialScenario,v5)" in script
+    assert "function scenarioV5FlowModel(legacy,candidate)" in script
+    assert "let sc=officialScenario,shadowActive=false" in script
+    assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in script
     assert "shadowScenario=DATA.scenario_v4_shadow" in script
     assert "v5.banner" in script
     assert "sc.representative_lines_visible===false?[]" in script

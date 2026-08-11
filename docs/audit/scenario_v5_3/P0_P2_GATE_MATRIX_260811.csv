@@ -1,0 +1,13 @@
+priority,gate,status,evidence
+P0-A,full_recomputable_evidence_pack,PASS,reports/reviews/current/scenario_v5_3/AI_INVESTING_SCENARIO_V5_3_ACCEPTANCE_EVIDENCE_PACK_260811.zip
+P0-B,champion_is_default_future_model,PASS,#future browser QA and default-model contract test
+P0-B,v52_is_explicit_research_only,PASS,#future/research and fixed non-promotion banner
+P1-A,method_change_append_only_record,PASS,data/method_changes.jsonl two ordered events
+P1-B,integer_candidate_outcome_display,PASS,73/83/93/29 browser observation
+P1-B,additivity_residual_identity_label,PASS,definitionally-zero UI copy
+P1-C,honesty_surfaces_survive,PASS,HONESTY_SURFACE_SURVIVAL_260811.csv
+P2,dotcom_contract_and_sensitivity_disclosure,PASS,0.40 in-cap inactive; 0.60 active; 0.80 blocked
+P2,s2_cluster_sample_disclosure,PASS,source 100; selected n=16; simulations 3000
+P2,legacy_hash_redirects,PASS,15/15 browser checks
+P2,weekly_weight_change_journal,PASS,method changes and scenario history retained
+UI,history_25_forecast_75_axis,PASS,SVG 0.25/0.75 and browser screenshot
