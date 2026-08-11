@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-08-11T03:16:49+00:00`
+- Generated: `2026-08-11T07:37:51+00:00`
 - Latest completed NYSE day: `2026-08-10`
-- Result: accumulating 25 · frozen 1 · stalled 4 · inactive 1 · violation 0 · planned 3
+- Result: accumulating 25 · frozen 1 · stalled 4 · inactive 0 · violation 1 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -17,7 +17,7 @@
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 13 | 2026-08-10 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
 | `scenario_latest` | trading_daily | 1 | 2026-08-10 | **accumulating** | — |
-| `cross_asset_archive` | trading_daily | 11 | 2026-08-07 | **stalled** | missing trading days: 2026-08-04 |
+| `cross_asset_archive` | trading_daily | 11 | 2026-08-07 | **violation** | missing trading days: 2026-08-04; immutable file changed |
 | `cross_asset_latest` | trading_daily | 1 | 2026-08-07 | **stalled** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
 | `cross_asset_path_tracking_v2` | trading_daily | 1 / 12 | 2026-08-07 | **stalled** | — |
@@ -30,13 +30,13 @@
 | `realty_dividends` | monthly | 1 / 343 | 2026-08-03 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 1 | 2026-07-30 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **accumulating** | — |
-| `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 8 | 2026-08-10 | **accumulating** | — |
-| `source_monitoring_status` | trading_daily | 1 | 2026-08-10 | **accumulating** | — |
+| `dualdb_model_runs` | weekly | 1 | 2026-07-20 | **stalled** | — |
+| `source_monitoring` | trading_daily | 9 | 2026-08-11 | **accumulating** | — |
+| `source_monitoring_status` | trading_daily | 1 | 2026-08-11 | **accumulating** | — |
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-08-11 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-08-10 | **accumulating** | — |
 | `research_pack` | monthly | 2 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |

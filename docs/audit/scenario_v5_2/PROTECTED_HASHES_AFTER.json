@@ -28,7 +28,7 @@
     "data/ai_capital_cycle"
   ],
   "files": {
-    "data/scenarios/nasdaq_latest.json": "a27c0f75ce9b97a0f626b0a6dc5c86bdd91471440a3d144fd6893bc3cf952719",
+    "data/scenarios/nasdaq_latest.json": "cadf36328f56d097d7c97bcade679f877b15f6db46b92c050b880d5cd0667959",
     "data/scenarios/archive/2026-07-30.json": "20933ac3e67058fa078220c0c7ecb64d5b3f8d369089c77fa02dbf7b5c405fec",
     "data/scenarios/archive/2026-07-31.json": "7234228a445f28c911b1c33eefda42de55a41e3b210d20719d54bbc7cecd5189",
     "data/scenarios/archive/2026-08-03.json": "e891d5c4b8df55f51f48e685b8e5e038ce13a82367cff578898daa09f66b0acd",
@@ -41,6 +41,7 @@
     "data/scenarios/archive/2026-08-03_CORR-260806-019.json": "7526638e1b11a04e91112a673fbbca91c00ceb4c00cb1211774532f05d796f9c",
     "data/scenarios/archive/2026-08-06.json": "d8754e6a7d1eed4aa46c17625b7ba1e7b1554a4e9799404128d64e3277be75bc",
     "data/scenarios/archive/2026-08-07.json": "a27c0f75ce9b97a0f626b0a6dc5c86bdd91471440a3d144fd6893bc3cf952719",
+    "data/scenarios/archive/2026-08-10.json": "cadf36328f56d097d7c97bcade679f877b15f6db46b92c050b880d5cd0667959",
     "forecasts/.hashes": "aa941a1e4c7e7b0b6910381607b8c8e38822c8ab5d1576195a63c47b404d34c7",
     "forecasts/.hashes.ots": "6aa3400da406ad4fae5b0f05fa96a45c017e12b8aa433a000156751924925b1a",
     "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
@@ -113,9 +114,10 @@
     "data/cross_asset/archive/2026-08-03_CORR-260805-015.json": "25e98d5895fbc89a9d3a321a3bb1e287edc550432cbeb175e9e1be743df9e2e2",
     "data/cross_asset/archive/2026-08-05.json": "c7eac02e64c13df52df933f4c6ecd88c56c0e72b46ba0c312e5b6e7c69a052d0",
     "data/cross_asset/archive/2026-08-06.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
-    "data/cross_asset/cross_asset_latest.json": "0008ae7325fa7d1861686bdc766b5a344b740fc813247550a6548840f3b75579",
+    "data/cross_asset/archive/2026-08-07.json": "3498d69c053a9bef51dcf59b13189fe99244eb7afc56b54580db861849aa388b",
+    "data/cross_asset/cross_asset_latest.json": "3498d69c053a9bef51dcf59b13189fe99244eb7afc56b54580db861849aa388b",
     "data/cross_asset/path_tracking.csv": "1c39695f8dfbc89f0f9b25d8754aca3e103d5f883137f274df01a59e585c5453",
-    "data/cross_asset/path_tracking_v2.csv": "a9fa219be3f094ff9a91dc0d7743170c3fab907b6f2dffe806b4a9f319ff2a2e",
+    "data/cross_asset/path_tracking_v2.csv": "07c8cf0deee0bd26c28c724defdc7a4425fae4df514ae9bec7e63c092bdd84c5",
     "data/cross_asset/receipts/2026-07-31_0f40b3636e5e.json": "b5dc815b2eac1b0a46dcbe10c7a8f21350f9e34ec37eb4abbb09f88023b4595c",
     "data/cross_asset/receipts/2026-07-31_ab2ab50e4cca.json": "c9d22350ab144bf7371618a6a63f205cf619df5b79a1aca7cf6d8394d14f8e64",
     "data/cross_asset/receipts/2026-07-31_b1e7c681fd2b.json": "c1d0e76d97e657c1fb31fd29df95c7251dcc6d9bf73ec1c4710f8353e043a5c7",
@@ -125,6 +127,7 @@
     "data/cross_asset/receipts/2026-08-03_64f9280a5c9b.json": "da67978260f7e64dbf040ef8e0a130cf3b4df38d4820a370d0ad539bc74222bb",
     "data/cross_asset/receipts/2026-08-05_a400bc2107b3.json": "c956a07653374c8569a86325f5155ec7cfd478f8a45ddaf89ce78ab94157f000",
     "data/cross_asset/receipts/2026-08-06_d671e81c005d.json": "e9040f776da1118567d15ff689cac4dd2a73ba04c051dea45e58e29247041aea",
+    "data/cross_asset/receipts/2026-08-07_db146282fada.json": "7906aa80e4bcd7c5daa68f93e5f6141fd6a70851ccaebcec42fc4040a4f6aa17",
     "data/ai_capital_cycle/ai_regime_latest.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
     "data/ai_capital_cycle/canonical_segment_map.yaml": "e21be70a85473fd2d7c185b6a8c276f7266d5111142bc1a46a4928609b1d356c",
     "data/ai_capital_cycle/circular_finance_candidates.csv": "5801a917659c430654829d4d60a50944933d289958c0b1f606c2548a23d42b65",
@@ -142,5 +145,5 @@
     "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
   },
   "missing_roots": [],
-  "manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
+  "manifest_sha256": "47e056f2b85389f7a07de2f0d4ac029dfada9274ebb9d44fd2f451720021938a"
 }

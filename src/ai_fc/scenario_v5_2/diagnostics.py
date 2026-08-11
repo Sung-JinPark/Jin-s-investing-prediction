@@ -35,7 +35,7 @@ from .engine import (
 
 
 BASELINE_COMMIT = "7ef55604b468104ef80f968c9e0791c37cb0eda1"
-OUTPUT_RELATIVE = Path("reports/diagnostics/v52_distinctness_baseline_20260811")
+OUTPUT_RELATIVE = Path("reports/diagnostics/v52_independent_multilayer_20260811")
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -180,7 +180,10 @@ def build_diagnostics(root: Path) -> list[Path]:
         residual_rows.append({"residual_scale": scale, **_variant_summary(*variant)})
     residual_target = output / "residual_scale_ablation.json"
     _write_json(residual_target, {
-        "note": "S1 uses full realized phase blocks; the override applies to S2/S3 residuals.",
+        "note": (
+            "All scenarios use independent full realized phase blocks. The scale grid is a "
+            "shadow-only geometry sensitivity and never changes the active 1.00 policy."
+        ),
         "rows": residual_rows,
     })
 
@@ -272,7 +275,7 @@ def build_diagnostics(root: Path) -> list[Path]:
     call_graph_target.write_text(
         "# V5.2 call graph and coordinate audit\n\n"
         "- `build_clustered_prior` freezes state-feature k-medoids assignments before cluster outcomes are read.\n"
-        "- S1 uses the phase-preserving block sampler; S2 and S3 use their own selected DB clusters and RNG streams.\n"
+        "- S1/S2/S3 use separate phase samplers, mutually exclusive macro origin sets, block provenance, and RNG streams.\n"
         "- A changes post-generation likelihood, B changes S1 block provenance, and C is derived by `build_weights`.\n"
         "- `_central_bundle` selects actual simulated members; scenario path IDs use global pool indexes.\n"
         "- The dashboard SVG allocates history 0.25 and forecast 0.75 in its actual X-coordinate function.\n"
@@ -290,7 +293,7 @@ def build_diagnostics(root: Path) -> list[Path]:
         f"- Protected manifest unchanged: `{comparison['ok']}`\n"
         "- Gate A contradiction: `false`\n"
         "- Threshold gate: `report_only` until 30 approved trading-day observations\n"
-        "- Requested promotion origin counts are 15/20/12; actual S2=16 and S3=7 remain promotion-blocking\n"
+        "- Requested promotion origin counts are 15/20/12; actual selected counts are 63/99/7, so S3 remains promotion-blocking\n"
         "- Above-cap A/B 0.70 and 0.80 rows are shadow-only and never active\n"
         "- Five-as-of output is explicitly a structural stability audit because five independent PIT vintages do not exist\n",
         encoding="utf-8", newline="\n",

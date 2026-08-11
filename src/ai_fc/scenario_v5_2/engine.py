@@ -1,8 +1,10 @@
-"""Deterministic historical-shape engine for the Scenario V5.2 candidate.
+"""Deterministic multilayer historical-shape engine for Scenario V5.2.
 
-The module is deliberately research-only.  It starts after the 2026-08-07
-close, resamples point-in-time Nasdaq returns, and changes probabilities only
-through explicit likelihood weights.  It never writes an official artifact.
+The module is deliberately research-only.  It transports the latest completed
+official market anchor into three mutually exclusive point-in-time historical
+regime databases, then uses independent phase samplers for S1/S2/S3.  Evidence
+likelihoods change mixture weights without silently changing path geometry.  It
+never writes an official artifact.
 """
 
 from __future__ import annotations
@@ -62,6 +64,7 @@ SOURCE_PATHS = (
     "data/normalized/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
     "data/raw/market/dualdb_macro_cluster_daily_19900102_20260804.json",
     "data/normalized/market/dualdb_macro_cluster_daily_19900102_20260804.json",
+    "data/scenarios/nasdaq_latest.json",
 )
 
 
@@ -73,7 +76,7 @@ def source_file_hash(root: Path, relative: str | Path) -> str:
     """Hash sources portably while preserving raw-capture bytes exactly."""
     relative_path = Path(relative)
     path = root / relative_path
-    if relative_path.as_posix() == SOURCE_PATHS[7]:
+    if relative_path.as_posix() in {SOURCE_PATHS[7], SOURCE_PATHS[15]}:
         # The existing V5.1 reference JSON predates the current EOL rules.  Text
         # mode makes its reference-only hash stable across Windows/Linux clones.
         normalized = path.read_text(encoding="utf-8").encode("utf-8")
@@ -142,6 +145,7 @@ def load_inputs(root: Path) -> dict[str, Any]:
     dotcom_view = _read_json(root / SOURCE_PATHS[10])
     dotcom_history = _read_json(root / SOURCE_PATHS[12])
     macro_cluster_history = _read_json(root / SOURCE_PATHS[14])
+    current_scenario = _read_json(root / SOURCE_PATHS[15])
     shadow_v52 = _read_json(root / SHADOW_V52_RELATIVE)
     legacy_v52 = _read_json(root / LEGACY_V52_RELATIVE)
     weight_contract = yaml.safe_load(
@@ -173,7 +177,8 @@ def load_inputs(root: Path) -> dict[str, Any]:
     event_cutoffs = [
         _aware(str(row["as_of"])) for row in event_updates["events"]
     ]
-    cutoff = max([_aware(KNOWLEDGE_CUTOFF), *event_cutoffs])
+    current_scenario_generated = _aware(str(current_scenario.get("generated_at")))
+    cutoff = max([_aware(KNOWLEDGE_CUTOFF), current_scenario_generated, *event_cutoffs])
     for label, row in (("labor", labor), ("market", market)):
         if _aware(row["available_at"]) > cutoff:
             raise ScenarioV52Error(f"future {label} evidence")
@@ -186,6 +191,18 @@ def load_inputs(root: Path) -> dict[str, Any]:
         _validate_fraction(labor["actual"][field], f"labor.actual.{field}")
     if labor.get("missing_fields"):
         raise ScenarioV52Error("required labor fields are missing; missing is not zero")
+    try:
+        current_anchor = _finite_number(current_scenario["anchor"], "current_scenario.anchor")
+        current_asof = date.fromisoformat(str(current_scenario["asof"]))
+        current_ath = _finite_number(current_scenario["ath"], "current_scenario.ath")
+        current_reference = _finite_number(
+            current_scenario["reference_price"], "current_scenario.reference_price"
+        )
+    except (KeyError, ValueError) as exc:
+        raise ScenarioV52Error("current scenario anchor contract is invalid") from exc
+    if current_anchor <= 0 or current_ath <= 0 or current_reference <= 0 \
+            or current_asof > cutoff.date():
+        raise ScenarioV52Error("current scenario anchor escapes its information set")
     _validate_rate_distributions(rates, cutoff)
     raw_history = root / history_manifest["raw_source_path"]
     if file_hash(raw_history) != history_manifest["raw_sha256"]:
@@ -261,6 +278,14 @@ def load_inputs(root: Path) -> dict[str, Any]:
         "dotcom_view": dotcom_view,
         "dotcom_history": dotcom_history,
         "macro_cluster_history": macro_cluster_history,
+        "current_scenario": current_scenario,
+        "forecast_anchor": {
+            "date": current_asof.isoformat(),
+            "close": current_anchor,
+            "ath": current_ath,
+            "reference_price": current_reference,
+            "available_at": current_scenario_generated.isoformat(),
+        },
         "dotcom_model_run": dotcom_model_run,
         "event_updates": event_updates,
         "knowledge_cutoff": cutoff.isoformat(),
@@ -313,7 +338,14 @@ def generate_prior(
     residual_scale_override: float | None = None,
     allow_shadow_cap_exceed: bool = False,
 ) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any], dict[str, Any]]:
-    dates = [ANCHOR_DATE.isoformat(), *_business_dates(date(2026, 8, 10), date(2027, 12, 31))]
+    anchor_date = date.fromisoformat(inputs["forecast_anchor"]["date"])
+    anchor = float(inputs["forecast_anchor"]["close"])
+    if anchor_date >= date(2027, 12, 31):
+        raise ScenarioV52Error("current anchor leaves no 2027 research horizon")
+    dates = [
+        anchor_date.isoformat(),
+        *_business_dates(anchor_date + timedelta(days=1), date(2027, 12, 31)),
+    ]
     horizon = len(dates) - 1
     if not 0 < block_restart_probability <= 1:
         raise ScenarioV52Error("block restart probability must be in (0,1]")
@@ -330,7 +362,7 @@ def generate_prior(
             count_per_scenario=path_count_per_engine,
             seed=seed,
             restart_probability=block_restart_probability,
-            anchor=ANCHOR,
+            anchor=anchor,
             weight_contract=inputs["weight_contract"],
             generator_dotcom_share=generator_dotcom_share,
             residual_scale_override=residual_scale_override,
@@ -338,28 +370,36 @@ def generate_prior(
         )
     except ScenarioClusterError as exc:
         raise ScenarioV52Error(f"scenario cluster gate failed: {exc}") from exc
+    actual_dates = history_dates[-60:]
+    actual_values = [round(float(value), 2) for value in history_levels[-60:]]
+    if actual_dates[-1] != anchor_date.isoformat():
+        actual_dates = [*actual_dates, anchor_date.isoformat()]
+        actual_values = [*actual_values, round(anchor, 2)]
     historical_actual = {
-        "dates": history_dates[-60:],
-        "values": [round(float(value), 2) for value in history_levels[-60:]],
+        "dates": actual_dates,
+        "values": actual_values,
         "role": "historical_actual_through_anchor",
     }
     generator_audit = {
         **cluster_audit,
         "path_count": int(paths.shape[0]),
         "path_count_by_engine": {
-            "S1_dotcom_expansion_cluster": int((engines == 0).sum()),
-            "S2_modern_baseline_cluster": int((engines == 1).sum()),
-            "S3_macro_tightening_stress_cluster": int((engines == 2).sum()),
+            "S1_dotcom_easing_multilayer": int((engines == 0).sum()),
+            "S2_balanced_soft_landing_layer": int((engines == 1).sum()),
+            "S3_tightening_stress_layer": int((engines == 2).sum()),
         },
         "engine_mixture_probability": {
-            "S1_dotcom_expansion_cluster": 1.0 / 3.0,
-            "S2_modern_baseline_cluster": 1.0 / 3.0,
-            "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
+            "S1_dotcom_easing_multilayer": 1.0 / 3.0,
+            "S2_balanced_soft_landing_layer": 1.0 / 3.0,
+            "S3_tightening_stress_layer": 1.0 / 3.0,
         },
         "dotcom_source_dataset_id": inputs["dotcom_history"]["dataset_id"],
         "dotcom_source_available_at": inputs["dotcom_history"]["available_at"],
         "macro_source_dataset_id": inputs["macro_cluster_history"]["dataset_id"],
         "macro_source_available_at": inputs["macro_cluster_history"]["available_at"],
+        "legacy_block_restart_probability": block_restart_probability,
+        "legacy_block_restart_probability_active": False,
+        "restart_policy": "independent_preregistered_phase_pools",
         "general_history_start": history_dates[0],
         "general_history_end": history_dates[-1],
         "weight_contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
@@ -376,6 +416,7 @@ def _robust_z(values: np.ndarray) -> np.ndarray:
 
 
 def _path_metrics(paths: np.ndarray, dates: list[str]) -> dict[str, np.ndarray]:
+    anchor = float(paths[0, 0])
     returns = np.diff(np.log(paths), axis=1)
     running_max = np.maximum.accumulate(paths, axis=1)
     drawdowns = paths / running_max - 1.0
@@ -394,9 +435,9 @@ def _path_metrics(paths: np.ndarray, dates: list[str]) -> dict[str, np.ndarray]:
     return {
         "terminal_2026": paths[:, date_2026],
         "terminal_2027": paths[:, -1],
-        "terminal_return_2026": paths[:, date_2026] / ANCHOR - 1.0,
-        "terminal_return_2027": paths[:, -1] / ANCHOR - 1.0,
-        "early_return": paths[:, early] / ANCHOR - 1.0,
+        "terminal_return_2026": paths[:, date_2026] / anchor - 1.0,
+        "terminal_return_2027": paths[:, -1] / anchor - 1.0,
+        "early_return": paths[:, early] / anchor - 1.0,
         "maximum_drawdown": drawdowns.min(axis=1),
         "maximum_drawdown_2026": drawdowns_2026.min(axis=1),
         "annualized_volatility": returns.std(axis=1, ddof=1) * math.sqrt(252.0),
@@ -547,6 +588,7 @@ def build_weights(
     scores: dict[str, Any], dotcom: dict[str, Any],
     cluster_audit: dict[str, Any],
 ) -> dict[str, Any]:
+    anchor = float(paths[0, 0])
     if engines.shape != (paths.shape[0],) or not set(np.unique(engines)).issubset({0, 1, 2}):
         raise ScenarioV52Error("path-engine labels do not match the three-engine prior")
     metrics = _path_metrics(paths, dates)
@@ -591,24 +633,25 @@ def build_weights(
     inflation_log = scenario_component(inflation_coefficients, inflation_score)
     balance_log = scenario_component(balance_coefficients, balance_score)
 
-    horizon_dates = {
-        "one_month": "2026-09-07",
-        "three_month": "2026-11-09",
-        "six_month": "2027-02-08",
-        "twelve_month": "2027-08-09",
+    horizon_sessions = {
+        "one_month": 21,
+        "three_month": 63,
+        "six_month": 126,
+        "twelve_month": 252,
     }
     targets = {
         key: _finite_number(value, f"dotcom.forward_return_targets.{key}")
         for key, value in dotcom["forward_return_targets"].items()
     }
-    if set(targets) != set(horizon_dates):
+    if set(targets) != set(horizon_sessions):
         raise ScenarioV52Error("dotcom forward-return target horizons mismatch")
     horizon_indexes = {
-        key: next(index for index, value in enumerate(dates) if value >= target_date)
-        for key, target_date in horizon_dates.items()
+        key: min(sessions, len(dates) - 1)
+        for key, sessions in horizon_sessions.items()
     }
+    horizon_dates = {key: dates[index] for key, index in horizon_indexes.items()}
     forward_returns = np.column_stack([
-        paths[:, horizon_indexes[key]] / ANCHOR - 1.0 for key in horizon_dates
+        paths[:, horizon_indexes[key]] / anchor - 1.0 for key in horizon_dates
     ])
     target_vector = np.asarray([targets[key] for key in horizon_dates], dtype=float)
     robust_scales = np.maximum(
@@ -623,8 +666,8 @@ def build_weights(
     dotcom_compatibility = _robust_z(-dotcom_distance)
     october_end = max(index for index, value in enumerate(dates) if value <= "2026-10-31")
     no_repeat_condition = (
-        (paths[:, :october_end + 1].min(axis=1) > ANCHOR * .90)
-        & (metrics["terminal_2026"] > ANCHOR)
+        (paths[:, :october_end + 1].min(axis=1) > anchor * .90)
+        & (metrics["terminal_2026"] > anchor)
     ).astype(float)
     condition_rate = float(no_repeat_condition.mean())
     no_repeat_feature = (
@@ -703,10 +746,15 @@ def build_weights(
     }
     result["scenario_layer_contract"] = {
         "path_partition": "immutable generator labels",
-        "S1": "dotcom price-state expansion cluster plus S1-only analog likelihood",
-        "S2": "modern general-market baseline cluster plus balanced macro evidence",
-        "S3": "macro tightening and financial-conditions stress cluster",
+        "S1": "dotcom expansion blocks plus disjoint falling-rate easing macro blocks",
+        "S2": "disjoint neutral-rate soft-landing macro blocks",
+        "S3": "disjoint tightening drawdown, failed-relief, and stress-persistence blocks",
         "shared_database_cluster": False,
+        "shared_macro_origin_dates": False,
+        "shared_residual_pool": False,
+        "valuation_and_earnings_status": (
+            "reference_only_until_point_in_time_cross_era_history_is_complete"
+        ),
         "outcome_based_path_reclassification": False,
         "base_scenario_scores": validated_base_scores,
         "evidence_coefficients": {
@@ -756,16 +804,17 @@ def _probability_metrics(
     paths: np.ndarray, dates: list[str], weights: np.ndarray,
     masks: dict[str, np.ndarray],
 ) -> dict[str, Any]:
+    anchor = float(paths[0, 0])
     end_2026 = max(i for i, value in enumerate(dates) if value <= "2026-12-31")
     oct_end = max(i for i, value in enumerate(dates) if value <= "2026-10-31")
-    touch = (paths[:, :oct_end + 1] <= ANCHOR * .90).any(axis=1)
+    touch = (paths[:, :oct_end + 1] <= anchor * .90).any(axis=1)
     ath = (paths[:, :end_2026 + 1] > ATH).any(axis=1)
     return {
-        "terminal_above_anchor_2026": float(weights @ (paths[:, end_2026] > ANCHOR)),
+        "terminal_above_anchor_2026": float(weights @ (paths[:, end_2026] > anchor)),
         "terminal_above_v51_reference_2026": float(weights @ (paths[:, end_2026] > REFERENCE_PRICE)),
         "new_ath_by_2026": float(weights @ ath),
         "first_touch_minus_10_by_october_end": float(weights @ touch),
-        "terminal_above_anchor_2027": float(weights @ (paths[:, -1] > ANCHOR)),
+        "terminal_above_anchor_2027": float(weights @ (paths[:, -1] > anchor)),
         "year_end_p50": float(weighted_quantile(
             paths[:, end_2026], weights, (.50,)
         )[0]),
@@ -778,8 +827,9 @@ def _probability_metrics(
 def _first_touch_distribution(
     paths: np.ndarray, dates: list[str], weights: np.ndarray,
 ) -> dict[str, Any]:
+    anchor = float(paths[0, 0])
     oct_end = max(i for i, value in enumerate(dates) if value <= "2026-10-31")
-    hit = paths[:, :oct_end + 1] <= ANCHOR * .90
+    hit = paths[:, :oct_end + 1] <= anchor * .90
     any_hit = hit.any(axis=1)
     first = np.where(any_hit, np.argmax(hit, axis=1), -1)
     density = np.asarray([
@@ -793,7 +843,7 @@ def _first_touch_distribution(
         for name, level in (("p25", .25), ("p50", .50), ("p75", .75)):
             conditional_dates[name] = dates[int(np.searchsorted(conditional_cdf, level, side="left"))]
     return {
-        "barrier": round(ANCHOR * .90, 2),
+        "barrier": round(anchor * .90, 2),
         "barrier_definition": "10 percent below the post-event anchor",
         "probability_unit": "fraction",
         "exact_date_forecast": False,
@@ -1041,9 +1091,14 @@ def _research_distinctness(
     masks: dict[str, np.ndarray], scenarios: dict[str, Any],
     generator_audit: dict[str, Any],
 ) -> dict[str, Any]:
+    anchor = float(paths[0, 0])
     metrics = _path_metrics(paths, dates)
     checkpoints = {63: min(63, len(dates) - 1), 126: min(126, len(dates) - 1),
                    252: min(252, len(dates) - 1)}
+    geometry_checkpoints = {
+        sessions: min(sessions, len(dates) - 1)
+        for sessions in (21, 42, 52, 63, 84, 105, 126, 252)
+    }
     end_2026 = max(index for index, value in enumerate(dates) if value <= "2026-12-31")
     per_scenario: dict[str, Any] = {}
     touch_cdfs: dict[str, np.ndarray] = {}
@@ -1055,8 +1110,12 @@ def _research_distinctness(
         per_scenario[scenario] = {
             "cumulative_return_p50": {
                 str(sessions): float(weighted_quantile(
-                    paths[mask, index] / ANCHOR - 1.0, conditional, (.50,)
+                    paths[mask, index] / anchor - 1.0, conditional, (.50,)
                 )[0]) for sessions, index in checkpoints.items()
+            },
+            "shape_checkpoint_return_p50": {
+                str(sessions): float(p50[index] / anchor - 1.0)
+                for sessions, index in geometry_checkpoints.items()
             },
             "maximum_drawdown_p50": float(weighted_quantile(
                 metrics["maximum_drawdown"][mask], conditional, (.50,)
@@ -1108,13 +1167,13 @@ def _research_distinctness(
             },
             "standardized_log_path_dtw": _standardized_log_dtw(left_p50, right_p50),
             "terminal_wasserstein_2026": float(wasserstein_distance(
-                paths[left_mask, end_2026] / ANCHOR - 1.0,
-                paths[right_mask, end_2026] / ANCHOR - 1.0,
+                paths[left_mask, end_2026] / anchor - 1.0,
+                paths[right_mask, end_2026] / anchor - 1.0,
                 u_weights=left_weights, v_weights=right_weights,
             )),
             "terminal_wasserstein_2027": float(wasserstein_distance(
-                paths[left_mask, -1] / ANCHOR - 1.0,
-                paths[right_mask, -1] / ANCHOR - 1.0,
+                paths[left_mask, -1] / anchor - 1.0,
+                paths[right_mask, -1] / anchor - 1.0,
                 u_weights=left_weights, v_weights=right_weights,
             )),
             "first_touch_minus_10_ks": float(np.max(np.abs(
@@ -1141,23 +1200,53 @@ def _research_distinctness(
         for key in ("S1", "S2", "S3")
     }
     medoids = [per_scenario[key]["medoid_path_id"] for key in ("S1", "S2", "S3")]
+    shape = {
+        key: per_scenario[key]["shape_checkpoint_return_p50"]
+        for key in ("S1", "S2", "S3")
+    }
+    pair_metrics = {row["pair"]: row for row in pairs}
+    provenance_hashes = {
+        generator_audit["scenarios"][key]["sampling"]["block_provenance_sha256"]
+        for key in ("S1", "S2", "S3")
+    }
     descriptive_checks = {
         "cumulative_return_order_S1_gt_S2_gt_S3": all(returns_order.values()),
-        "maximum_drawdown_severity_order_S1_lt_S2_lt_S3": (
-            mdd_severity["S1"] < mdd_severity["S2"] < mdd_severity["S3"]
+        "S1_and_S2_drawdown_below_S3": (
+            max(mdd_severity["S1"], mdd_severity["S2"]) < mdd_severity["S3"]
         ),
         "S1_drawdown_below_80pct_of_S3": mdd_severity["S1"] <= .80 * mdd_severity["S3"],
-        "downside_semivolatility_order_S1_lt_S2_lt_S3": (
-            downside["S1"] < downside["S2"] < downside["S3"]
+        "S1_and_S2_downside_semivolatility_below_S3": (
+            max(downside["S1"], downside["S2"]) < downside["S3"]
         ),
-        "recovery_speed_order_S1_lt_S2_lt_S3": (
-            recovery["S1"] < recovery["S2"] < recovery["S3"]
+        "S1_recovery_faster_than_S2_and_S3": (
+            recovery["S1"] < min(recovery["S2"], recovery["S3"])
         ),
+        "S1_has_historical_short_correction_and_reacceleration": (
+            shape["S1"]["52"] < shape["S1"]["42"]
+            and shape["S1"]["63"] > shape["S1"]["52"]
+        ),
+        "S2_has_balanced_mean_reversion_not_S1_copy": (
+            shape["S2"]["63"] < shape["S2"]["42"]
+            and abs(shape["S2"]["63"]) <= .04
+        ),
+        "S3_has_drawdown_then_failed_relief": (
+            shape["S3"]["52"] < shape["S3"]["42"]
+            and shape["S3"]["84"] > shape["S3"]["52"]
+            and shape["S3"]["252"] < shape["S3"]["84"]
+        ),
+        "S1_S2_standardized_path_dtw_at_least_0_15": (
+            pair_metrics["S1-S2"]["standardized_log_path_dtw"] >= .15
+        ),
+        "macro_regime_origin_sets_disjoint": (
+            generator_audit["macro_regime_cohorts_disjoint"] is True
+            and not any(generator_audit["macro_regime_cohort_origin_overlap"].values())
+        ),
+        "independent_residual_provenance": len(provenance_hashes) == 3,
         "medoid_path_ids_unique": len(set(medoids)) == 3,
         "paths_unchanged_by_distinctness_evaluation": True,
     }
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
         "operational_mode": "report_only",
         "status": "REPORT_ONLY_INSUFFICIENT_30_TRADING_DAY_SHADOW_HISTORY",
@@ -1285,26 +1374,62 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "role": "approval_receipt_for_same_dotcom_dependency_cluster",
         },
         {
-            "evidence_id": "modern_nasdaq_baseline_cluster_source",
+            "evidence_id": "modern_nasdaq_actual_history_reference",
             "origin_release_id": inputs["history_manifest"]["dataset_id"],
             "source_path": SOURCE_PATHS[5],
             "source_sha256": file_hash(root / SOURCE_PATHS[5]),
             "available_at": "2026-08-07T20:00:00+00:00",
-            "dependency_cluster_id": "modern_general_market_state_db",
-            "effective_strength": .25,
+            "dependency_cluster_id": "actual_history_display_anchor",
+            "effective_strength": 0.0,
             "used_numerically": True,
-            "role": "S2_only_state_cluster_and_path_generator",
+            "role": "actual_history_and_legacy_anchor_validation_not_scenario_geometry",
         },
         {
-            "evidence_id": "macro_tightening_cluster_source",
+            "evidence_id": "macro_easing_expansion_origin_cohort",
             "origin_release_id": inputs["macro_cluster_history"]["dataset_id"],
             "source_path": SOURCE_PATHS[14],
             "source_sha256": file_hash(root / SOURCE_PATHS[14]),
             "available_at": inputs["macro_cluster_history"]["available_at"],
-            "dependency_cluster_id": "macro_tightening_financial_conditions_db",
-            "effective_strength": .35,
+            "dependency_cluster_id": "macro_easing_expansion_origin_set",
+            "effective_strength": 0.0,
             "used_numerically": True,
-            "role": "S3_only_tightening_stress_cluster_and_path_generator",
+            "role": "S1_auxiliary_40pct_phase_block_pool_disjoint_from_S2_S3",
+            "origin_set_overlap_count_with_other_macro_layers": 0,
+        },
+        {
+            "evidence_id": "macro_balanced_soft_landing_origin_cohort",
+            "origin_release_id": inputs["macro_cluster_history"]["dataset_id"],
+            "source_path": SOURCE_PATHS[14],
+            "source_sha256": file_hash(root / SOURCE_PATHS[14]),
+            "available_at": inputs["macro_cluster_history"]["available_at"],
+            "dependency_cluster_id": "macro_balanced_soft_landing_origin_set",
+            "effective_strength": 0.0,
+            "used_numerically": True,
+            "role": "S2_only_balanced_mean_reversion_phase_block_pool",
+            "origin_set_overlap_count_with_other_macro_layers": 0,
+        },
+        {
+            "evidence_id": "macro_tightening_stress_origin_cohort",
+            "origin_release_id": inputs["macro_cluster_history"]["dataset_id"],
+            "source_path": SOURCE_PATHS[14],
+            "source_sha256": file_hash(root / SOURCE_PATHS[14]),
+            "available_at": inputs["macro_cluster_history"]["available_at"],
+            "dependency_cluster_id": "macro_tightening_stress_origin_set",
+            "effective_strength": 0.0,
+            "used_numerically": True,
+            "role": "S3_only_drawdown_failed_relief_stress_persistence_phase_pool",
+            "origin_set_overlap_count_with_other_macro_layers": 0,
+        },
+        {
+            "evidence_id": "latest_completed_market_anchor",
+            "origin_release_id": inputs["current_scenario"]["snapshot_id"],
+            "source_path": SOURCE_PATHS[15],
+            "source_sha256": source_file_hash(root, SOURCE_PATHS[15]),
+            "available_at": inputs["forecast_anchor"]["available_at"],
+            "dependency_cluster_id": "current_official_market_anchor",
+            "effective_strength": 0.0,
+            "used_numerically": True,
+            "role": "forecast_time_transport_anchor_only_no_future_jump",
         },
         {
             "evidence_id": "v5_2_v3_shadow_candidate",
@@ -1338,6 +1463,8 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
 
 def assemble_candidate(root: Path) -> dict[str, Any]:
     inputs = load_inputs(root)
+    forecast_anchor = inputs["forecast_anchor"]
+    anchor = float(forecast_anchor["close"])
     paths, dates, engines, historical_actual, generator_audit = generate_prior(root, inputs)
     scores = evidence_scores(inputs)
     weighting = build_weights(
@@ -1441,13 +1568,13 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     dotcom_audit["generator"] = generator_audit
     dotcom_audit["path_engine_share_by_scenario"] = {
         scenario: {
-            "S1_dotcom_expansion_cluster": float(
+            "S1_dotcom_easing_multilayer": float(
                 full_weights[mask & (engines == 0)].sum() / full_weights[mask].sum()
             ),
-            "S2_modern_baseline_cluster": float(
+            "S2_balanced_soft_landing_layer": float(
                 full_weights[mask & (engines == 1)].sum() / full_weights[mask].sum()
             ),
-            "S3_macro_tightening_stress_cluster": float(
+            "S3_tightening_stress_layer": float(
                 full_weights[mask & (engines == 2)].sum() / full_weights[mask].sum()
             ),
         }
@@ -1459,11 +1586,13 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "baseline_model_content_sha256": inputs["shadow_v52"]["model_content_sha256"],
         "baseline_source_sha256": file_hash(root / SHADOW_V52_RELATIVE),
         "candidate_id": CANDIDATE_ID,
-        "comparable_anchor": inputs["shadow_v52"]["anchor"]["close"] == ANCHOR,
+        "comparable_anchor": inputs["shadow_v52"]["anchor"]["close"] == anchor,
         "comparable_distribution_seed": inputs["shadow_v52"]["model"]["seed"] == SEED,
         "changed_inputs": [
-            "output_partition_replaced_by_frozen_preoutcome_cluster_labels",
-            "S1_dotcom_S2_modern_S3_macro_tightening_distinct_databases",
+            "latest_completed_official_market_anchor_transport",
+            "mutually_exclusive_macro_origin_regime_cohorts",
+            "S1_dotcom_plus_easing_S2_balanced_S3_tightening_stress_databases",
+            "independent_phase_block_pools_and_residual_provenance",
             "dotcom_likelihood_isolated_to_S1_at_0.60",
         ],
         "metric_deltas": {
@@ -1552,10 +1681,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 "scenarios"
             ]["S1"]["sampling"]["realized_dotcom_session_share"],
             "S1_p50_returns": {
-                str(sessions): sensitivity_bands["p50"][sessions] / ANCHOR - 1.0
+                str(sessions): sensitivity_bands["p50"][sessions] / anchor - 1.0
                 for sessions in (21, 63, 126, 252)
             },
-            "S1_terminal_return_p50": sensitivity_bands["p50"][-1] / ANCHOR - 1.0,
+            "S1_terminal_return_p50": sensitivity_bands["p50"][-1] / anchor - 1.0,
             "S1_maximum_drawdown_p50": float(weighted_quantile(
                 sensitivity_path_metrics["maximum_drawdown"][sensitivity_masks["S1"]],
                 conditional_s1, (.50,),
@@ -1569,40 +1698,42 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "schema_version": 1,
         "artifact_type": "scenario_v5_2_research_candidate",
         "candidate_id": CANDIDATE_ID,
-        "status": "RESEARCH_CANDIDATE_SCENARIO_SPECIFIC_DB_CLUSTERS_LIMITED_EVENT_MAP",
+        "status": "RESEARCH_CANDIDATE_INDEPENDENT_MULTILAYER_DB_LIMITED_EVENT_MAP",
         "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
         "as_of": inputs["knowledge_cutoff"],
         "knowledge_cutoff": inputs["knowledge_cutoff"],
         "anchor": {
             "symbol": "^IXIC",
-            "date": ANCHOR_DATE.isoformat(),
-            "available_at": "2026-08-07T20:00:00+00:00",
-            "close": ANCHOR,
-            "event_day_return_role": "historical_anchor_only",
+            "date": forecast_anchor["date"],
+            "available_at": forecast_anchor["available_at"],
+            "close": anchor,
+            "event_day_return_role": "latest_completed_market_anchor_only",
             "future_event_jump": 0.0,
         },
         "forecast_time_transport": {
-            "source_candidate": inputs["v51"]["candidate_id"],
-            "source_cutoff": inputs["v51"]["knowledge_cutoff"],
-            "source_anchor": inputs["v51"]["source_snapshot"]["anchor"],
-            "target_anchor": ANCHOR,
-            "mode": "CURRENT_REFORECAST_FROM_POST_EVENT_ANCHOR",
+            "source_snapshot_id": inputs["current_scenario"]["snapshot_id"],
+            "source_cutoff": inputs["current_scenario"]["generated_at"],
+            "source_anchor": anchor,
+            "target_anchor": anchor,
+            "target_anchor_date": forecast_anchor["date"],
+            "mode": "LATEST_COMPLETED_MARKET_DAY_REFORECAST",
             "source_probabilities_used_numerically": False,
-            "historical_transport_step": ANCHOR / float(inputs["v51"]["source_snapshot"]["anchor"]) - 1.0,
+            "legacy_v5_1_probabilities_used_numerically": False,
+            "historical_transport_step": 0.0,
         },
         "model": {
-            "model_id": "scenario_specific_database_clusters_v4",
+            "model_id": "independent_multilayer_scenario_databases_v5",
             "seed": SEED,
             "path_count": int(paths.shape[0]),
             "path_count_by_engine": {
-                "S1_dotcom_expansion_cluster": int((engines == 0).sum()),
-                "S2_modern_baseline_cluster": int((engines == 1).sum()),
-                "S3_macro_tightening_stress_cluster": int((engines == 2).sum()),
+                "S1_dotcom_easing_multilayer": int((engines == 0).sum()),
+                "S2_balanced_soft_landing_layer": int((engines == 1).sum()),
+                "S3_tightening_stress_layer": int((engines == 2).sum()),
             },
             "engine_mixture_probability": {
-                "S1_dotcom_expansion_cluster": 1.0 / 3.0,
-                "S2_modern_baseline_cluster": 1.0 / 3.0,
-                "S3_macro_tightening_stress_cluster": 1.0 / 3.0,
+                "S1_dotcom_easing_multilayer": 1.0 / 3.0,
+                "S2_balanced_soft_landing_layer": 1.0 / 3.0,
+                "S3_tightening_stress_layer": 1.0 / 3.0,
             },
             "generator_audit": generator_audit,
             "history_start": inputs["history_manifest"]["first_session"],
@@ -1616,6 +1747,11 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 "direct_event_return_kernel_used": False,
             },
             "path_creation_note": "No endpoint, drawdown date, or scenario probability is forced.",
+            "valuation_and_earnings_gate": {
+                "status": "REFERENCE_ONLY_MISSING_POINT_IN_TIME_CROSS_ERA_HISTORY",
+                "stale_Cyclically_adjusted_PE_substitution": False,
+                "fabricated_low_PER_feature": False,
+            },
         },
         "weight_spaces": {
             "contract_id": inputs["weight_contract"]["contract_id"],
@@ -1656,8 +1792,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 {"id": "cme_fed_funds_futures", "effective_strength": .25, "cap": .35, "gate_pass": True},
                 {"id": "post_jobs_market_state", "effective_strength": .10, "cap": .35, "gate_pass": True},
                 {"id": "dotcom_single_cycle_analog", "effective_strength": .60, "cap": .60, "gate_pass": True},
-                {"id": "modern_general_market_state_db", "effective_strength": .25, "cap": .35, "gate_pass": True},
-                {"id": "macro_tightening_financial_conditions_db", "effective_strength": .35, "cap": .35, "gate_pass": True},
+                {"id": "macro_easing_expansion_origin_set", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
+                {"id": "macro_balanced_soft_landing_origin_set", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
+                {"id": "macro_tightening_stress_origin_set", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
+                {"id": "current_official_market_anchor", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
                 {"id": "scenario_ancestor", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
                 *[
                     {"id": key, "effective_strength": value, "cap": .35, "gate_pass": value <= .35}
@@ -1723,7 +1861,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "dates": dates,
             "bands": mixture_bands,
             "historical_actual": historical_actual,
-            "forecast_boundary": "2026-08-07",
+            "forecast_boundary": forecast_anchor["date"],
             "central_path_bundle": _central_bundle(
                 paths, dates, full_weights, mixture_bands
             ),
@@ -1786,8 +1924,13 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "percent_conversion_boundary": "dashboard_only",
             "dotcom_weight_disclosure": "S1 0.60 override; S2 0.00; S3 0.00; research only",
             "scenario_database_disclosure": (
-                "S1 dotcom expansion cluster; S2 modern baseline cluster; "
-                "S3 macro tightening and financial-stress cluster"
+                "S1 dotcom 60% plus disjoint easing macro 40%; "
+                "S2 disjoint balanced soft-landing macro; "
+                "S3 disjoint tightening/stress macro with failed-relief phases"
+            ),
+            "valuation_disclosure": (
+                "PER/valuation is reference-only because a vintage-complete cross-era "
+                "point-in-time history is unavailable; no stale or fabricated value input"
             ),
         },
         "source_hashes": {

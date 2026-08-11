@@ -6,8 +6,8 @@ The three scenario databases are not randomly mixed and paths are never reclassi
 
 | Scenario | Source group | Origins / selected | Medoid | Median 126d | Median 252d | Median horizon | Median horizon MDD | Current similarity |
 |---|---|---:|---|---:|---:|---:|---:|---:|
-| S1 | dotcom_price_state_db | 94 / 63 | 1999-10-14 | 0.1381 | 0.2801 | 0.3915 | -0.2955 | 0.8652 |
-| S2 | modern_general_market_state_db | 100 / 16 | 2019-01-22 | 0.0161 | 0.1889 | 0.2716 | -0.2220 | 0.3712 |
-| S3 | macro_tightening_financial_conditions_db | 162 / 7 | 2000-07-07 | -0.2473 | -0.4751 | -0.5116 | -0.6671 | 0.2576 |
+| S1 | dotcom_expansion_cycle_db | 94 / 63 | 1999-10-14 | 0.1381 | 0.2801 | 0.3961 | -0.2955 | 0.8652 |
+| S2 | balanced_soft_landing_macro_db | 119 / 99 | 2015-03-19 | 0.0667 | 0.1286 | 0.2133 | -0.1733 | 0.4669 |
+| S3 | tightening_financial_stress_macro_db | 162 / 7 | 2000-07-07 | -0.2473 | -0.4751 | -0.5102 | -0.6671 | 0.2576 |
 
-Posterior scenario probabilities are S1 79.91%, S2 14.42%, and S3 5.67%. The severe S3 distribution is intentionally low-probability because the current state has low similarity to the selected stress cluster. Complete feature medians, every cluster outcome summary, assignment hashes, sampling ESS, and pairwise 2027 distribution distances are in `SCENARIO_CLUSTER_AUDIT.json`.
+Posterior scenario probabilities are S1 62.98%, S2 32.24%, and S3 4.78%. The severe S3 distribution is intentionally low-probability because the current state has low similarity to the selected stress cluster. Complete feature medians, every cluster outcome summary, assignment hashes, sampling ESS, and pairwise 2027 distribution distances are in `SCENARIO_CLUSTER_AUDIT.json`.

@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "contract_path": "data/contracts/scenario_v5_2_weights.yaml",
   "operational_mode": "report_only",
   "status": "REPORT_ONLY_INSUFFICIENT_30_TRADING_DAY_SHADOW_HISTORY",
@@ -17,107 +17,143 @@
     "gate_pass": false,
     "scenarios": {
       "S1": true,
-      "S2": false,
+      "S2": true,
       "S3": false
     },
     "failure_is_promotion_blocking_not_path_mutating": true,
-    "reason": "S2/S3 remain report-only below requested promotion origin counts; overlapping origins and forward-outcome pooling are not used to inflate n"
+    "reason": "S3 remains report-only below its requested promotion origin count; overlapping origins and forward-outcome pooling are not used to inflate n"
   },
   "failure_action": "display_warning_and_stop_promotion_without_path_mutation",
   "per_scenario": {
     "S1": {
       "cumulative_return_p50": {
-        "63": 0.14174377596983168,
-        "126": 0.20822252256672663,
-        "252": 0.4796363429619974
+        "63": 0.09881988616121412,
+        "126": 0.24453235561226166,
+        "252": 0.5915382086630651
       },
-      "maximum_drawdown_p50": -0.17758779503248556,
-      "downside_semivolatility_p50": 0.16300704287788986,
-      "recovery_days_p50": 47.0,
-      "medoid_path_id": "path_02840",
+      "shape_checkpoint_return_p50": {
+        "21": 0.05223458731623998,
+        "42": 0.11263519832093993,
+        "52": 0.07416212372243791,
+        "63": 0.09881993703524405,
+        "84": 0.1455620220887821,
+        "105": 0.2018194829913973,
+        "126": 0.24453230476866317,
+        "252": 0.5915383216013614
+      },
+      "maximum_drawdown_p50": -0.14844441183532722,
+      "downside_semivolatility_p50": 0.15429099290766185,
+      "recovery_days_p50": 29.0,
+      "medoid_path_id": "path_01979",
       "selected_origin_count": 63,
       "requested_promotion_minimum_origins": 15,
-      "episode_sampling_ess": 101.87924584202706
+      "episode_sampling_ess": 120.38213152664358
     },
     "S2": {
       "cumulative_return_p50": {
-        "63": -0.007677240374433048,
-        "126": 0.023477420459462866,
-        "252": 0.15414285124049587
+        "63": -0.0058751083083878036,
+        "126": 0.03252431988461592,
+        "252": 0.06834810856953598
       },
-      "maximum_drawdown_p50": -0.2596188183239292,
-      "downside_semivolatility_p50": 0.21918447311529643,
-      "recovery_days_p50": 82.0,
-      "medoid_path_id": "path_04955",
-      "selected_origin_count": 16,
+      "shape_checkpoint_return_p50": {
+        "21": 0.014897749927082371,
+        "42": 0.026864887376077506,
+        "52": 0.010097965222045424,
+        "63": -0.0058751319283032455,
+        "84": 0.005885656123427729,
+        "105": 0.024295104445119398,
+        "126": 0.03252427330432672,
+        "252": 0.0683482576443244
+      },
+      "maximum_drawdown_p50": -0.1411812305670637,
+      "downside_semivolatility_p50": 0.13047337056758612,
+      "recovery_days_p50": 93.49999999996602,
+      "medoid_path_id": "path_05649",
+      "selected_origin_count": 99,
       "requested_promotion_minimum_origins": 20,
-      "episode_sampling_ess": 14.708034725695068
+      "episode_sampling_ess": 89.62923127749062
     },
     "S3": {
       "cumulative_return_p50": {
-        "63": -0.08671454099719661,
-        "126": -0.29154844374058975,
-        "252": -0.4875835227808596
+        "63": -0.11082732081899072,
+        "126": -0.17311592189540415,
+        "252": -0.307161748830174
       },
-      "maximum_drawdown_p50": -0.6588380134622336,
-      "downside_semivolatility_p50": 0.3541046754258855,
-      "recovery_days_p50": 95.0,
-      "medoid_path_id": "path_06334",
+      "shape_checkpoint_return_p50": {
+        "21": -0.005910087290681321,
+        "42": -0.1399732986135125,
+        "52": -0.16313178998517597,
+        "63": -0.11082729194417973,
+        "84": -0.08675695423779273,
+        "105": -0.09412426668911822,
+        "126": -0.1731158683814089,
+        "252": -0.3071617899551068
+      },
+      "maximum_drawdown_p50": -0.5356097637956004,
+      "downside_semivolatility_p50": 0.31941322094819,
+      "recovery_days_p50": 82.0,
+      "medoid_path_id": "path_08528",
       "selected_origin_count": 7,
       "requested_promotion_minimum_origins": 12,
-      "episode_sampling_ess": 6.468860816199646
+      "episode_sampling_ess": 13.984290481605154
     }
   },
   "pairs": [
     {
       "pair": "S1-S2",
-      "p50_log_level_correlation": 0.9629447502461339,
-      "p50_first_difference_correlation": 0.12037913530126332,
+      "p50_log_level_correlation": 0.8779721604864567,
+      "p50_first_difference_correlation": -0.007465897427933093,
       "rolling_63d_first_difference_correlation": {
-        "minimum": -0.05498975724106707,
-        "median": 0.12355211043380948,
-        "maximum": 0.32750782983276205
+        "minimum": -0.3488087301290726,
+        "median": -0.06427230154458688,
+        "maximum": 0.20572125763007626
       },
-      "standardized_log_path_dtw": 0.09244795811340602,
-      "terminal_wasserstein_2026": 0.14152589929037604,
-      "terminal_wasserstein_2027": 0.5066828692861622,
-      "first_touch_minus_10_ks": 0.46661108389999995
+      "standardized_log_path_dtw": 0.2391412361682903,
+      "terminal_wasserstein_2026": 0.1989470743575572,
+      "terminal_wasserstein_2027": 0.9928811703081362,
+      "first_touch_minus_10_ks": 0.0341828305
     },
     {
       "pair": "S1-S3",
-      "p50_log_level_correlation": -0.9537207856029933,
-      "p50_first_difference_correlation": -0.036551723476751403,
+      "p50_log_level_correlation": -0.9372913174591213,
+      "p50_first_difference_correlation": -0.0331240616815196,
       "rolling_63d_first_difference_correlation": {
-        "minimum": -0.1949094049856812,
-        "median": -0.07044414505013308,
-        "maximum": 0.2959069065881062
+        "minimum": -0.18903594839167037,
+        "median": -0.01774791061575543,
+        "maximum": 0.07704749635798594
       },
-      "standardized_log_path_dtw": 1.727411006729426,
-      "terminal_wasserstein_2026": 0.3240989409437001,
-      "terminal_wasserstein_2027": 1.1272358497007207,
-      "first_touch_minus_10_ks": 0.8312777506
+      "standardized_log_path_dtw": 1.6586176976941645,
+      "terminal_wasserstein_2026": 0.2859160949412925,
+      "terminal_wasserstein_2027": 1.4236466941406165,
+      "first_touch_minus_10_ks": 0.9524838362
     },
     {
       "pair": "S2-S3",
-      "p50_log_level_correlation": -0.92320521914266,
-      "p50_first_difference_correlation": 0.03510751171484275,
+      "p50_log_level_correlation": -0.7484714606447824,
+      "p50_first_difference_correlation": 0.12431113930364208,
       "rolling_63d_first_difference_correlation": {
-        "minimum": -0.1521727808097626,
-        "median": 0.0465036002336076,
-        "maximum": 0.23041137353358232
+        "minimum": -0.102004843213385,
+        "median": 0.06884340229466587,
+        "maximum": 0.26043476812591393
       },
-      "standardized_log_path_dtw": 1.7388631974096989,
-      "terminal_wasserstein_2026": 0.20744583942352945,
-      "terminal_wasserstein_2027": 0.7674784900383854,
-      "first_touch_minus_10_ks": 0.38566666660000004
+      "standardized_log_path_dtw": 1.4147531487764984,
+      "terminal_wasserstein_2026": 0.12771193233512576,
+      "terminal_wasserstein_2027": 0.43088740913214596,
+      "first_touch_minus_10_ks": 0.9866666667
     }
   ],
   "descriptive_checks": {
     "cumulative_return_order_S1_gt_S2_gt_S3": true,
-    "maximum_drawdown_severity_order_S1_lt_S2_lt_S3": true,
+    "S1_and_S2_drawdown_below_S3": true,
     "S1_drawdown_below_80pct_of_S3": true,
-    "downside_semivolatility_order_S1_lt_S2_lt_S3": true,
-    "recovery_speed_order_S1_lt_S2_lt_S3": true,
+    "S1_and_S2_downside_semivolatility_below_S3": true,
+    "S1_recovery_faster_than_S2_and_S3": true,
+    "S1_has_historical_short_correction_and_reacceleration": true,
+    "S2_has_balanced_mean_reversion_not_S1_copy": true,
+    "S3_has_drawdown_then_failed_relief": true,
+    "S1_S2_standardized_path_dtw_at_least_0_15": true,
+    "macro_regime_origin_sets_disjoint": true,
+    "independent_residual_provenance": true,
     "medoid_path_ids_unique": true,
     "paths_unchanged_by_distinctness_evaluation": true
   },

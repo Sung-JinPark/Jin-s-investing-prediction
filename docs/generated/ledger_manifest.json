@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-11T03:16:49+00:00",
+  "baseline_at": "2026-08-11T07:37:51+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
     "calibration/corrections.csv": "c875c68631ade3e73da4492fd5d3e378b42258f1f47f4b196c6ee28fc0db8d94",
@@ -30,7 +30,7 @@
     "data/cross_asset/path_tracking_v2.csv": "07c8cf0deee0bd26c28c724defdc7a4425fae4df514ae9bec7e63c092bdd84c5",
     "data/liquidity/archive/2026-07-31.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
     "data/liquidity/archive/2026-08-07.json": "79a2c5da46e63f4feb1d71d2400fec5387102fe9335440d51e1de27f84c89c08",
-    "data/method_changes.jsonl": "d43bcf0d91313f6aea1945e10dca49ea26b628db0b675c8907a06b95bc36b73f",
+    "data/method_changes.jsonl": "81e6530313752f874c903b1da6e21a1e94955865c342f009949f8df0f337fbf2",
     "data/ml_history/2026.jsonl": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
     "data/rate_events/archive/2026-07-31.json": "3f4d9b8ac58cf488b20bb7ecdfe1d314aa662abb1728726c5ffbad79d0a837be",
     "data/rate_events/archive/2026-08-03.json": "b7640421a41f082617d8ceba4840cc51858cceda2b5df0e04ea25f9a8984362d",
@@ -73,7 +73,8 @@
     "data/source_monitoring/defillama_stablecoins/2026-08-08.json": "7fa8e22af32fd2f74ea365b5df37634e2c0cdd211f71c231178de75f796d82a4",
     "data/source_monitoring/defillama_stablecoins/2026-08-09.json": "6291d3dea1b9abec3da3530a7d69124326060b20cb6c4b15419d9a12cf21f810",
     "data/source_monitoring/defillama_stablecoins/2026-08-10.json": "69e36ccd25394aad5feade2fbcb82177c043b077c0cd420b60d1c5ed07b28301",
-    "data/source_monitoring/defillama_stablecoins_status.json": "a0a7dc09c4e64d7a2d7e6cba756285b7ceaa4b789c13a1f171a57c452623fbc8",
+    "data/source_monitoring/defillama_stablecoins/2026-08-11.json": "ad88891abed49a865aef55c3256de13e165a82e6f647dbae8047e18147397250",
+    "data/source_monitoring/defillama_stablecoins_status.json": "12f53f1849fdb395e574a8637b7d70ee9bc734b27fc3c9eb6dc4da2f53e2db8e",
     "dualdb/db/dualdb.sqlite": "16df77243dba5522c28aca271d43c32d04013b1d3a01e8fe92a8587ea94e4a1c",
     "exports/research_pack_2026-08-r2/manifest.json": "4572c64810e600cf70cbb2da14132911249606b552140bf400806ef1a5dcc0e6",
     "exports/research_pack_2026-08/manifest.json": "25d6478aaafdcebae8d1aed84c3db8f17404bb42dea5394cb4068c80e44226b6",
@@ -119,7 +120,7 @@
     "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1_evidence.md": "88f08f1b7f92efea0bca4c9c879ad38774164d36a1f2143539afe3324e4298a1",
     "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1.md": "72a6c5805b3421d3e21ab5324637df4ce6a161c1047ac1b560007ae3c354c4c8",
     "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1_evidence.md": "206cdf1c1a9ef67910121167748135b4c596ee78f1ba2fd258b0439457f93806",
-    "reports/diagnostics/scenario_v5_2/distinctness_shadow.jsonl": "a5aa102cca34099c2369dc7a2d26aa4599d27f3ba45a8aaaa839b4cdc3506c6d",
+    "reports/diagnostics/scenario_v5_2/distinctness_shadow.jsonl": "d63277ea0c459b337b59c15310184d7f341ade9d1c7dae8271854385a11dbab9",
     "reports/diagnostics/v52_distinctness_baseline_20260811/A_B_sensitivity_grid.json": "4b3e2b44b520c184d55c108bf9a0a85f2eb87f6d1a9f5bf90c71cbc406029dc8"
   }
 }

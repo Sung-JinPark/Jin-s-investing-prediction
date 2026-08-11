@@ -38,6 +38,11 @@ jobs:
       - name: Refresh weekly tracker and liquidity snapshots
         continue-on-error: true
         run: cd src && python -m ai_fc market-extensions
+      - name: Rebuild and replay-verify the protected-hash-bound V5.2 candidate
+        run: |
+          cd src
+          python -m ai_fc scenario-v5-2-build --force
+          python -m ai_fc scenario-v5-2-verify --replay
       - name: Audit ledgers and verify archive growth
         shell: bash
         run: |

@@ -1,0 +1,80 @@
+{
+  "dates": [
+    "2026-08-04",
+    "2026-08-05",
+    "2026-08-06",
+    "2026-08-07",
+    "2026-08-10"
+  ],
+  "available_vintage_count": 1,
+  "status": "STRUCTURAL_ASSIGNMENT_STABILITY_ONLY_NOT_A_PIT_BACKTEST",
+  "reason": "Only one approved row-level source vintage exists for this candidate cutoff.",
+  "assignment_hashes": [
+    {
+      "asof_proxy": "2026-08-04",
+      "hashes": {
+        "S1": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "S2": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "S3": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e"
+      },
+      "pairwise_jaccard_to_current": {
+        "S1": 1.0,
+        "S2": 1.0,
+        "S3": 1.0
+      }
+    },
+    {
+      "asof_proxy": "2026-08-05",
+      "hashes": {
+        "S1": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "S2": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "S3": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e"
+      },
+      "pairwise_jaccard_to_current": {
+        "S1": 1.0,
+        "S2": 1.0,
+        "S3": 1.0
+      }
+    },
+    {
+      "asof_proxy": "2026-08-06",
+      "hashes": {
+        "S1": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "S2": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "S3": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e"
+      },
+      "pairwise_jaccard_to_current": {
+        "S1": 1.0,
+        "S2": 1.0,
+        "S3": 1.0
+      }
+    },
+    {
+      "asof_proxy": "2026-08-07",
+      "hashes": {
+        "S1": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "S2": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "S3": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e"
+      },
+      "pairwise_jaccard_to_current": {
+        "S1": 1.0,
+        "S2": 1.0,
+        "S3": 1.0
+      }
+    },
+    {
+      "asof_proxy": "2026-08-10",
+      "hashes": {
+        "S1": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "S2": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "S3": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e"
+      },
+      "pairwise_jaccard_to_current": {
+        "S1": 1.0,
+        "S2": 1.0,
+        "S3": 1.0
+      }
+    }
+  ],
+  "fabricated_rolling_vintages": false
+}

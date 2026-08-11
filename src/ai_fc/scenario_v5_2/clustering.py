@@ -32,6 +32,7 @@ MACRO_FEATURES = (
     "vix_level",
     "nfci_z_score",
 )
+SCENARIO_MACRO_REGIMES = ("easing_expansion", "balanced_soft_landing", "tightening_stress")
 OUTCOME_FIELDS = (
     "forward_return_126d",
     "forward_return_252d",
@@ -210,10 +211,19 @@ def _macro_source(
     return price_dates, price_levels, parsed
 
 
-def _macro_tightening_rows(
+def _macro_regime_rows(
     dates: list[str], levels: np.ndarray,
-    series: dict[str, tuple[list[str], np.ndarray]], horizon: int,
+    series: dict[str, tuple[list[str], np.ndarray]], horizon: int, *, regime: str,
 ) -> list[dict[str, Any]]:
+    """Build mutually exclusive, origin-time macro cohorts.
+
+    The screens use only values available at each historical origin.  Forward
+    outcomes stay hidden until deterministic clustering is complete.  Easing,
+    balanced, and tightening rows are deliberately disjoint so the three
+    scenario generators cannot silently reuse the same origin episodes.
+    """
+    if regime not in SCENARIO_MACRO_REGIMES:
+        raise ScenarioClusterError(f"unknown macro regime: {regime}")
     rows: list[dict[str, Any]] = []
     for index in range(200, len(levels) - horizon, 21):
         session = dates[index]
@@ -222,9 +232,23 @@ def _macro_tightening_rows(
             - _asof_value(series, "DFF", lag_session)
         two_year_change = _asof_value(series, "DGS2", session) \
             - _asof_value(series, "DGS2", lag_session)
-        # Pre-outcome screen only: a tightening candidate enters before clustering
-        # when either the policy rate or the two-year yield has risen materially.
-        if not (rate_change > .10 or two_year_change > .25):
+        vix = _asof_value(series, "VIXCLS", session)
+        nfci = _asof_value(series, "NFCI", session)
+        easing_signal = rate_change < -.10 or two_year_change < -.25
+        tightening = rate_change > .10 or two_year_change > .25
+        # Conflicting rate signals are conservatively routed to tightening,
+        # never duplicated into the upside easing library.
+        easing = easing_signal and not tightening and nfci < .75
+        balanced = (
+            not easing and not tightening
+            and 12.0 <= vix <= 32.0 and nfci < .75
+        )
+        eligible = {
+            "easing_expansion": easing,
+            "balanced_soft_landing": balanced,
+            "tightening_stress": tightening,
+        }[regime]
+        if not eligible:
             continue
         macro_features = np.concatenate((
             _price_features(levels, index),
@@ -233,18 +257,19 @@ def _macro_tightening_rows(
                 two_year_change,
                 _asof_value(series, "T10Y2Y", session),
                 _asof_value(series, "DGS10", session),
-                _asof_value(series, "VIXCLS", session),
-                _asof_value(series, "NFCI", session),
+                vix,
+                nfci,
             ], dtype=float),
         ))
         rows.append({
             "index": index,
             "date": session,
+            "regime": regime,
             "features": macro_features,
             "outcomes": _outcomes(levels, index, horizon),
         })
     if len(rows) < 60:
-        raise ScenarioClusterError("macro tightening pool has fewer than 60 origins")
+        raise ScenarioClusterError(f"macro {regime} pool has fewer than 60 origins")
     return rows
 
 
@@ -378,6 +403,159 @@ def _sample_cluster_paths(
     }
 
 
+def _conditional_block_pool(
+    rows: list[dict[str, Any]], labels: np.ndarray, selected_cluster: int,
+    source_dates: list[str], source_levels: np.ndarray, *, length: int,
+    lower_quantile: float, upper_quantile: float,
+) -> tuple[np.ndarray, list[str]]:
+    """Return realized blocks inside a preregistered cluster quantile slice."""
+    if not 0.0 <= lower_quantile < upper_quantile <= 1.0:
+        raise ScenarioClusterError("invalid conditional block quantiles")
+    members = np.flatnonzero(labels == selected_cluster)
+    source_returns = np.diff(np.log(source_levels))
+    blocks: list[np.ndarray] = []
+    starts: list[str] = []
+    for member in members:
+        origin = int(rows[int(member)]["index"])
+        for offset in range(0, 253 - length + 1, 21):
+            start, stop = origin + offset, origin + offset + length
+            if stop <= len(source_returns):
+                blocks.append(source_returns[start:stop])
+                starts.append(source_dates[start])
+    if len(blocks) < 12:
+        raise ScenarioClusterError("conditional block library has fewer than 12 blocks")
+    matrix = np.vstack(blocks)
+    cumulative = matrix.sum(axis=1)
+    lower, upper = np.quantile(cumulative, [lower_quantile, upper_quantile])
+    selected = np.flatnonzero((cumulative >= lower) & (cumulative <= upper))
+    if len(selected) < 8:
+        raise ScenarioClusterError("conditional block slice has fewer than 8 blocks")
+    return matrix[selected], [starts[int(index)] for index in selected]
+
+
+def _sample_balanced_regime_paths(
+    *, rows: list[dict[str, Any]], labels: np.ndarray, selected_cluster: int,
+    source_dates: list[str], source_levels: np.ndarray, horizon: int,
+    count: int, seed: int, shadow_amplitude_scale: float = 1.0,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Generate S2 from a neutral drift/mean-reversion/normalization cycle."""
+    phase_contract = (
+        ("steady_drift", 42, .30, .65),
+        ("mean_reversion", 21, .00, .40),
+        ("normalization", 42, .35, .70),
+    )
+    pools: dict[str, tuple[np.ndarray, list[str]]] = {}
+    for phase, length, lower, upper in phase_contract:
+        pools[phase] = _conditional_block_pool(
+            rows, labels, selected_cluster, source_dates, source_levels,
+            length=length, lower_quantile=lower, upper_quantile=upper,
+        )
+    rng = np.random.default_rng(seed + 20011)
+    sampled = np.empty((count, horizon), dtype=float)
+    origin_counts: dict[str, int] = {}
+    provenance: list[list[Any]] = []
+    for row in range(count):
+        cursor = 0
+        cycle = 0
+        while cursor < horizon:
+            for phase, registered_length, _, _ in phase_contract:
+                if cursor >= horizon:
+                    break
+                pool, starts = pools[phase]
+                choice = int(rng.integers(0, len(pool)))
+                length = min(registered_length, horizon - cursor)
+                sampled[row, cursor:cursor + length] = (
+                    pool[choice, :length] * shadow_amplitude_scale
+                )
+                start = starts[choice]
+                origin_counts[start] = origin_counts.get(start, 0) + 1
+                provenance.append([row, cycle, phase, length, start])
+                cursor += length
+            cycle += 1
+    probabilities = np.asarray(list(origin_counts.values()), dtype=float)
+    probabilities /= probabilities.sum()
+    return sampled, {
+        "generator": "balanced_soft_landing_phase_sampler_v2",
+        "phase_cycle": [
+            {"phase": phase, "sessions": length, "return_quantiles": [lower, upper]}
+            for phase, length, lower, upper in phase_contract
+        ],
+        "unique_source_origins": len(origin_counts),
+        "episode_sampling_ess": float(1.0 / np.square(probabilities).sum()),
+        "maximum_episode_probability": float(probabilities.max()),
+        "block_provenance_sha256": hashlib.sha256(
+            json.dumps(provenance, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "residual_scale": shadow_amplitude_scale,
+        "residual_policy": "independent_full_realized_balanced_blocks",
+        "forced_endpoint": False,
+        "forced_turning_date": False,
+    }
+
+
+def _sample_stress_regime_paths(
+    *, rows: list[dict[str, Any]], labels: np.ndarray, selected_cluster: int,
+    source_dates: list[str], source_levels: np.ndarray, horizon: int,
+    count: int, seed: int, shadow_amplitude_scale: float = 1.0,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Generate S3 from tightening drawdown, failed-relief, and persistence blocks."""
+    phase_contract = (
+        ("drawdown", 42, .10, .45),
+        ("failed_relief", 42, .70, 1.00),
+        ("stress_persistence", 42, .30, .60),
+    )
+    pools: dict[str, tuple[np.ndarray, list[str]]] = {}
+    for phase, length, lower, upper in phase_contract:
+        pools[phase] = _conditional_block_pool(
+            rows, labels, selected_cluster, source_dates, source_levels,
+            length=length, lower_quantile=lower, upper_quantile=upper,
+        )
+    rng = np.random.default_rng(seed + 30011)
+    sampled = np.empty((count, horizon), dtype=float)
+    origin_counts: dict[str, int] = {}
+    phase_counts = {phase: 0 for phase, *_ in phase_contract}
+    provenance: list[list[Any]] = []
+    for row in range(count):
+        cursor = 0
+        cycle = 0
+        while cursor < horizon:
+            for phase, registered_length, _, _ in phase_contract:
+                if cursor >= horizon:
+                    break
+                pool, starts = pools[phase]
+                choice = int(rng.integers(0, len(pool)))
+                length = min(registered_length, horizon - cursor)
+                sampled[row, cursor:cursor + length] = (
+                    pool[choice, :length] * shadow_amplitude_scale
+                )
+                start = starts[choice]
+                origin_counts[start] = origin_counts.get(start, 0) + 1
+                phase_counts[phase] += 1
+                provenance.append([row, cycle, phase, length, start])
+                cursor += length
+            cycle += 1
+    probabilities = np.asarray(list(origin_counts.values()), dtype=float)
+    probabilities /= probabilities.sum()
+    return sampled, {
+        "generator": "tightening_stress_phase_sampler_v2",
+        "phase_cycle": [
+            {"phase": phase, "sessions": length, "return_quantiles": [lower, upper]}
+            for phase, length, lower, upper in phase_contract
+        ],
+        "phase_block_counts": phase_counts,
+        "unique_source_origins": len(origin_counts),
+        "episode_sampling_ess": float(1.0 / np.square(probabilities).sum()),
+        "maximum_episode_probability": float(probabilities.max()),
+        "block_provenance_sha256": hashlib.sha256(
+            json.dumps(provenance, separators=(",", ":")).encode()
+        ).hexdigest(),
+        "residual_scale": shadow_amplitude_scale,
+        "residual_policy": "independent_full_realized_tightening_stress_blocks",
+        "forced_endpoint": False,
+        "forced_turning_date": False,
+    }
+
+
 def _phase_pool(
     rows: list[dict[str, Any]], labels: np.ndarray, selected_cluster: int,
     source_dates: list[str], source_levels: np.ndarray, *, phase: str, length: int,
@@ -418,8 +596,8 @@ def _phase_pool(
 def _sample_phase_preserving_s1(
     *, dotcom_rows: list[dict[str, Any]], dotcom_labels: np.ndarray,
     dotcom_cluster: int, dotcom_dates: list[str], dotcom_levels: np.ndarray,
-    modern_rows: list[dict[str, Any]], modern_labels: np.ndarray,
-    modern_growth_cluster: int, modern_dates: list[str], modern_levels: np.ndarray,
+    easing_rows: list[dict[str, Any]], easing_labels: np.ndarray,
+    easing_growth_cluster: int, easing_dates: list[str], easing_levels: np.ndarray,
     horizon: int, count: int, seed: int, dotcom_share: float,
     allow_shadow_cap_exceed: bool = False,
 ) -> tuple[np.ndarray, dict[str, Any]]:
@@ -427,28 +605,28 @@ def _sample_phase_preserving_s1(
             or (dotcom_share > .60 and not allow_shadow_cap_exceed):
         raise ScenarioClusterError("active S1 dotcom generator share exceeds 0.60 cap")
     phase_contract = (
-        ("acceleration", 63), ("correction", 21), ("reacceleration", 42),
+        ("acceleration", 42), ("correction", 10), ("reacceleration", 74),
     )
     pools: dict[str, dict[str, tuple[np.ndarray, list[str]]]] = {
-        "dotcom": {}, "modern_growth": {},
+        "dotcom": {}, "easing_macro": {},
     }
     for phase, length in phase_contract:
         pools["dotcom"][phase] = _phase_pool(
             dotcom_rows, dotcom_labels, dotcom_cluster, dotcom_dates,
             dotcom_levels, phase=phase, length=length,
         )
-        pools["modern_growth"][phase] = _phase_pool(
-            modern_rows, modern_labels, modern_growth_cluster, modern_dates,
-            modern_levels, phase=phase, length=length,
+        pools["easing_macro"][phase] = _phase_pool(
+            easing_rows, easing_labels, easing_growth_cluster, easing_dates,
+            easing_levels, phase=phase, length=length,
         )
     source_rng = np.random.default_rng(seed + 10007)
     block_rngs = {
         "dotcom": np.random.default_rng(seed + 10009),
-        "modern_growth": np.random.default_rng(seed + 10037),
+        "easing_macro": np.random.default_rng(seed + 10037),
     }
     sampled = np.empty((count, horizon), dtype=float)
-    source_sessions = {"dotcom": 0, "modern_growth": 0}
-    source_blocks = {"dotcom": 0, "modern_growth": 0}
+    source_sessions = {"dotcom": 0, "easing_macro": 0}
+    source_blocks = {"dotcom": 0, "easing_macro": 0}
     phase_blocks = {phase: 0 for phase, _ in phase_contract}
     origin_counts: dict[str, int] = {}
     provenance_rows: list[list[Any]] = []
@@ -461,7 +639,7 @@ def _sample_phase_preserving_s1(
                 if cursor >= horizon:
                     break
                 length = min(registered_length, horizon - cursor)
-                source = "dotcom" if source_rng.random() < dotcom_share else "modern_growth"
+                source = "dotcom" if source_rng.random() < dotcom_share else "easing_macro"
                 pool, start_dates = pools[source][phase]
                 choice = int(block_rngs[source].integers(0, len(pool)))
                 sampled[row, cursor:cursor + length] = pool[choice, :length]
@@ -513,7 +691,7 @@ def _sample_phase_preserving_s1(
         "block_selection_seed_streams": {
             "source": seed + 10007,
             "dotcom": seed + 10009,
-            "modern_growth": seed + 10037,
+            "easing_macro": seed + 10037,
         },
         "forced_endpoint": False,
         "forced_turning_date": False,
@@ -542,6 +720,27 @@ def build_clustered_prior(
     current_macro_features = _current_macro_features(
         macro_dates, macro_levels, macro_series
     )
+    macro_regime_rows = {
+        regime: _macro_regime_rows(
+            macro_dates, macro_levels, macro_series, horizon, regime=regime
+        ) for regime in SCENARIO_MACRO_REGIMES
+    }
+    macro_origin_sets = {
+        regime: {row["date"] for row in rows}
+        for regime, rows in macro_regime_rows.items()
+    }
+    macro_origin_overlaps = {
+        f"{left}__{right}": len(macro_origin_sets[left] & macro_origin_sets[right])
+        for left, right in (
+            ("easing_expansion", "balanced_soft_landing"),
+            ("easing_expansion", "tightening_stress"),
+            ("balanced_soft_landing", "tightening_stress"),
+        )
+    }
+    if any(macro_origin_overlaps.values()):
+        raise ScenarioClusterError(
+            f"scenario macro cohorts overlap: {macro_origin_overlaps}"
+        )
     generators = weight_contract.get("scenario_generators", {})
     spaces = weight_contract.get("weight_spaces", {})
     if set(generators) != {"S1", "S2", "S3"}:
@@ -556,7 +755,7 @@ def build_clustered_prior(
         raise ScenarioClusterError("active B generator share exceeds the 0.60 cap")
     configurations = {
         "S1": {
-            "source_group": "dotcom_price_state_db",
+            "source_group": "dotcom_expansion_cycle_db",
             "dates": dotcom_dates,
             "levels": dotcom_levels,
             "rows": _price_rows(dotcom_dates, dotcom_levels, horizon),
@@ -565,36 +764,34 @@ def build_clustered_prior(
             "current": current_price_features,
             "residual_scale": float(generators["S1"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S1"]["selected_cluster_minimum_origins"]),
-            "selection_rule": "maximum cluster-level growth score",
+            "selection_rule": "maximum cluster-level expansion score",
         },
         "S2": {
-            "source_group": "modern_general_market_state_db",
-            "dates": general_dates,
-            "levels": general_levels,
-            "rows": _price_rows(general_dates, general_levels, horizon),
-            "features": PRICE_FEATURES,
-            "clusters": 5,
-            "current": current_price_features,
+            "source_group": "balanced_soft_landing_macro_db",
+            "dates": macro_dates,
+            "levels": macro_levels,
+            "rows": macro_regime_rows["balanced_soft_landing"],
+            "features": MACRO_FEATURES,
+            "clusters": 4,
+            "current": current_macro_features,
             "residual_scale": float(generators["S2"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S2"]["selected_cluster_minimum_origins"]),
             "selection_rule": (
                 "minimum absolute cluster-level 126d return among moderate "
-                "positive 252d clusters; n>=10"
+                "positive 252d clusters"
             ),
         },
         "S3": {
-            "source_group": "macro_tightening_financial_conditions_db",
+            "source_group": "tightening_financial_stress_macro_db",
             "dates": macro_dates,
             "levels": macro_levels,
-            "rows": _macro_tightening_rows(
-                macro_dates, macro_levels, macro_series, horizon
-            ),
+            "rows": macro_regime_rows["tightening_stress"],
             "features": MACRO_FEATURES,
             "clusters": 4,
             "current": current_macro_features,
             "residual_scale": float(generators["S3"]["residual_policy"]["scale"]),
             "minimum_origins": int(generators["S3"]["selected_cluster_minimum_origins"]),
-            "selection_rule": "minimum cluster-level stress score; n>=5",
+            "selection_rule": "minimum cluster-level stress score",
         },
     }
     audit_scenarios: dict[str, Any] = {}
@@ -630,10 +827,31 @@ def build_clustered_prior(
             "outcomes_used_after_assignment_for_cluster_label_only": True,
             "cluster_inventory": clusters,
         }
-    modern_growth_cluster = _select_cluster(
-        "S1", cluster_state["S2"]["clusters"],
-        int(configurations["S1"]["minimum_origins"]),
+    easing_rows = macro_regime_rows["easing_expansion"]
+    easing_features = np.asarray([row["features"] for row in easing_rows])
+    easing_labels, easing_medoids, easing_center, easing_scale = deterministic_k_medoids(
+        easing_features, 4
     )
+    easing_clusters = _cluster_audit(
+        easing_rows, easing_labels, easing_medoids, MACRO_FEATURES
+    )
+    easing_growth_cluster = _select_cluster(
+        "S1", easing_clusters, int(configurations["S1"]["minimum_origins"])
+    )
+    easing_selected = next(
+        row for row in easing_clusters if row["cluster_id"] == easing_growth_cluster
+    )
+    audit_scenarios["S1"]["auxiliary_easing_layer"] = {
+        "source_group": "falling_rate_loose_financial_conditions_db",
+        "feature_names": list(MACRO_FEATURES),
+        "origin_count": len(easing_rows),
+        "cluster_count": 4,
+        "selected_cluster_id": easing_growth_cluster,
+        "selected_cluster": easing_selected,
+        "cluster_assignments_sha256": _assignment_hash(easing_rows, easing_labels),
+        "clustering_uses_forward_outcomes": False,
+        "outcomes_used_after_assignment_for_cluster_label_only": True,
+    }
     log_return_blocks: list[np.ndarray] = []
     engine_blocks: list[np.ndarray] = []
     for offset, scenario in enumerate(("S1", "S2", "S3")):
@@ -644,10 +862,10 @@ def build_clustered_prior(
                 dotcom_rows=state["rows"], dotcom_labels=state["labels"],
                 dotcom_cluster=state["selected"], dotcom_dates=dotcom_dates,
                 dotcom_levels=dotcom_levels,
-                modern_rows=cluster_state["S2"]["rows"],
-                modern_labels=cluster_state["S2"]["labels"],
-                modern_growth_cluster=modern_growth_cluster,
-                modern_dates=general_dates, modern_levels=general_levels,
+                easing_rows=easing_rows,
+                easing_labels=easing_labels,
+                easing_growth_cluster=easing_growth_cluster,
+                easing_dates=macro_dates, easing_levels=macro_levels,
                 horizon=horizon, count=count_per_scenario, seed=seed,
                 dotcom_share=active_b,
                 allow_shadow_cap_exceed=allow_shadow_cap_exceed,
@@ -657,7 +875,7 @@ def build_clustered_prior(
                     audit_scenarios[scenario]["selected_cluster"]["origin_count"]
                 ),
                 "simulation_path_count": count_per_scenario,
-                "auxiliary_modern_growth_cluster_id": modern_growth_cluster,
+                "auxiliary_easing_growth_cluster_id": easing_growth_cluster,
             })
             members = np.flatnonzero(state["labels"] == state["selected"])
             selected_features = np.asarray([
@@ -675,19 +893,50 @@ def build_clustered_prior(
                 )),
                 "sampled_origin_count": int(sampling["unique_source_origins"]),
             })
+        elif scenario == "S2":
+            residual_scale = (
+                float(residual_scale_override)
+                if residual_scale_override is not None
+                else float(config["residual_scale"])
+            )
+            sampled, sampling = _sample_balanced_regime_paths(
+                rows=state["rows"], labels=state["labels"],
+                selected_cluster=state["selected"], source_dates=config["dates"],
+                source_levels=config["levels"], horizon=horizon,
+                count=count_per_scenario, seed=seed,
+                shadow_amplitude_scale=residual_scale,
+            )
         else:
             residual_scale = (
                 float(residual_scale_override)
                 if residual_scale_override is not None
                 else float(config["residual_scale"])
             )
-            sampled, sampling = _sample_cluster_paths(
-                state["rows"], state["labels"], state["selected"],
-                config["levels"], config["current"], state["center"],
-                state["scale"], horizon, count_per_scenario,
-                np.random.default_rng(seed + offset * 101), residual_scale,
-                restart_probability,
+            sampled, sampling = _sample_stress_regime_paths(
+                rows=state["rows"], labels=state["labels"],
+                selected_cluster=state["selected"], source_dates=config["dates"],
+                source_levels=config["levels"], horizon=horizon,
+                count=count_per_scenario, seed=seed,
+                shadow_amplitude_scale=residual_scale,
             )
+        if scenario != "S1":
+            sampling.update({
+                "selected_origin_count": int(
+                    audit_scenarios[scenario]["selected_cluster"]["origin_count"]
+                ),
+                "simulation_path_count": count_per_scenario,
+                "sampled_origin_count": int(sampling["unique_source_origins"]),
+                "current_state_similarity": float(math.exp(
+                    -float(np.min(np.linalg.norm(
+                        (np.asarray([
+                            state["rows"][int(index)]["features"]
+                            for index in np.flatnonzero(state["labels"] == state["selected"])
+                        ]) - state["center"]) / state["scale"]
+                        - (config["current"] - state["center"])[None, :] / state["scale"],
+                        axis=1,
+                    ))) / math.sqrt(len(config["current"]))
+                )),
+            })
         audit_scenarios[scenario]["sampling"] = sampling
         log_return_blocks.append(sampled)
         engine_blocks.append(np.full(count_per_scenario, scenario_index[scenario], dtype=int))
@@ -697,7 +946,7 @@ def build_clustered_prior(
     }
     label_gates = {
         "S1_positive_252d": medians["S1"]["forward_return_252d"] > .15,
-        "S2_sideways_126d": abs(medians["S2"]["forward_return_126d"]) < .05,
+        "S2_moderate_126d": abs(medians["S2"]["forward_return_126d"]) < .08,
         "S2_moderate_252d": .05 < medians["S2"]["forward_return_252d"] < .35,
         "S3_negative_252d": medians["S3"]["forward_return_252d"] < -.15,
         "S3_stress_drawdown": medians["S3"]["maximum_drawdown_252d"] < -.30,
@@ -734,9 +983,19 @@ def build_clustered_prior(
         "cluster_assignment_information_set": "origin_state_features_only",
         "forward_outcome_use": "cluster_labeling_after_assignments_are_frozen",
         "individual_origin_outcome_selection": False,
-        "macro_tightening_pre_screen": (
-            "DFF 63-session change > 0.10pp OR DGS2 change > 0.25pp"
-        ),
+        "macro_regime_pre_screens": {
+            "easing_expansion": (
+                "(DFF 63-session change < -0.10pp OR DGS2 change < -0.25pp) "
+                "AND no simultaneous tightening signal AND NFCI < 0.75"
+            ),
+            "balanced_soft_landing": (
+                "no easing or tightening signal AND VIX 12-32 AND NFCI < 0.75"
+            ),
+            "tightening_stress": (
+                "DFF 63-session change > 0.10pp OR DGS2 change > 0.25pp; "
+                "conflicting rate signals route here conservatively"
+            ),
+        },
         "macro_asof_join": "backward_only; source_date <= state_date",
         "scenario_path_count": count_per_scenario,
         "generator_weight_contract_id": weight_contract["contract_id"],
@@ -746,7 +1005,12 @@ def build_clustered_prior(
         "B_generator_dotcom_block_share": active_b,
         "B_above_cap_shadow_only": active_b > cap_b,
         "C_mixture_probability": "derived_after_evidence_weighting",
-        "modern_growth_auxiliary_cluster_id": modern_growth_cluster,
+        "easing_growth_auxiliary_cluster_id": easing_growth_cluster,
+        "macro_regime_cohort_origin_counts": {
+            key: len(value) for key, value in macro_origin_sets.items()
+        },
+        "macro_regime_cohort_origin_overlap": macro_origin_overlaps,
+        "macro_regime_cohorts_disjoint": not any(macro_origin_overlaps.values()),
         "base_scenario_scores": base_scores,
         "scenarios": audit_scenarios,
         "label_gates": label_gates,
@@ -762,7 +1026,7 @@ def build_clustered_prior(
             for row in audit_scenarios.values()
         ),
         "research_sample_exception": (
-            "S2/S3 remain report-only below requested promotion origin counts; "
+            "S3 remains report-only below its requested promotion origin count; "
             "overlapping origins and forward-outcome pooling are not used to inflate n"
         ),
         "gate_pass": all(label_gates.values()),

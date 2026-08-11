@@ -1,25 +1,27 @@
-# Scenario V5.2 distinct-path hardening report
+# Scenario V5.2 independent multilayer hardening report
 
 ## Verdict
 
-The research candidate passes PIT, fraction-unit, dependency-cap, circularity, weight concentration, no-fake-wiggle, generator provenance, seed stability, and descriptive distinctness checks. It remains **not eligible for official/champion promotion** because direct employment events are 1/60, band calibration is 3/60, approved walk-forward evidence is absent, and the 30-day distinctness threshold ledger is accumulating.
+The research candidate passes PIT, fraction-unit, dependency-cap, circularity, weight concentration, no-fake-wiggle, independent provenance, zero macro-origin overlap, replay, and descriptive path-shape checks. It remains **not eligible for official/champion promotion** because direct employment events are 1/60, band calibration is 6/60, approved walk-forward evidence is absent, S3 has 7/12 requested origins, and the 30-day distinctness threshold ledger is still report-only.
 
 ## Core changes
 
-- A=0.60 is post-generation S1 evidence strength.
-- B=0.60 is the S1 dotcom phase-block share and changes path geometry.
-- C is the derived research cohort mass and cannot be set directly.
-- S1/S2/S3 use separate generators, source inventories, global medoid IDs, and full-scale residual policies.
-- The research chart defaults to three months on one log scale; champion `#future` is unchanged.
+- S1 = dotcom 60% + easing macro 40%, with acceleration/correction/reacceleration phases.
+- S2 = balanced soft-landing macro origins, with drift/mean-reversion/normalization phases.
+- S3 = tightening/stress macro origins, with drawdown/failed-relief/stress-persistence phases.
+- Easing/balanced/tightening origin sets are mutually exclusive and all three block provenance hashes differ.
+- A=0.60 is post-generation S1 evidence strength; B=0.60 changes S1 geometry; C is derived and not directly settable.
+- PER/valuation remains reference-only until vintage-complete cross-era PIT history exists.
+- The research chart defaults to three months on one log scale with history 1/4 and forecast 3/4; champion `#future` is unchanged.
 - No endpoint, October direction, p50 wiggle, or exact date is forced.
 
 ## Quantitative outcome
 
-Research cohort masses are S1 79.91%, S2 14.42%, and S3 5.67%. Conditional terminal p50 levels are S1 46,843.95, S2 33,720.62, and S3 12,885.50.
+Research cohort masses are S1 62.98%, S2 32.24%, and S3 4.78%. Conditional 63-session p50 returns are S1 9.88%, S2 -0.59%, and S3 -11.08%. S1-S2 standardized path DTW is 0.2391; all structural shape checks pass.
 
 ## Hashes
 
-- Candidate model: `698a811944ade9b01be7475aa30d075c5755cd115637301399a30e18a928a2b2`
-- Receipt: `5a7e74034858576bc4a117382c6d2390ec1d15a8739ec1a4318b66c30ec524ea`
-- Protected before/after: `d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b` / `d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b`
+- Candidate model: `d8beb7e8b413e3073913264913f0a328ac48b548d0285346a219c384f08214df`
+- Receipt: `68672680d357dcf7468205bfd8a57f4274519caa7b11427b6931bd864b849684`
+- Protected before/after: `47e056f2b85389f7a07de2f0d4ac029dfada9274ebb9d44fd2f451720021938a` / `47e056f2b85389f7a07de2f0d4ac029dfada9274ebb9d44fd2f451720021938a`
 - Protected unchanged: `True`

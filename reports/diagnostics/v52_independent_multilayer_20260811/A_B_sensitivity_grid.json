@@ -1,0 +1,299 @@
+{
+  "active": {
+    "A": 0.6,
+    "B": 0.6
+  },
+  "cap": 0.6,
+  "above_cap_never_active": true,
+  "path_count_per_scenario": 400,
+  "rows": [
+    {
+      "A_evidence_strength": 0.4,
+      "B_generator_dotcom_block_share": 0.4,
+      "mode": "within_cap",
+      "eligible_for_active_use": true,
+      "C_mixture_probability": {
+        "S1": 0.6123232798861984,
+        "S2": 0.33764619723355915,
+        "S3": 0.05003052288024236
+      },
+      "S1_p50_return": {
+        "21": 0.04946119648026159,
+        "63": 0.08742284742729844,
+        "126": 0.2291955001419974,
+        "252": 0.5625995199811771
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.6,
+      "B_generator_dotcom_block_share": 0.4,
+      "mode": "within_cap",
+      "eligible_for_active_use": true,
+      "C_mixture_probability": {
+        "S1": 0.6348615621362366,
+        "S2": 0.31801652926776514,
+        "S3": 0.04712190859599826
+      },
+      "S1_p50_return": {
+        "21": 0.0488733495137994,
+        "63": 0.08625614541737892,
+        "126": 0.22618920055060543,
+        "252": 0.5590079960675325
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.7,
+      "B_generator_dotcom_block_share": 0.4,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6461011690163263,
+        "S2": 0.30822741807133214,
+        "S3": 0.04567141291234156
+      },
+      "S1_p50_return": {
+        "21": 0.0488733495137994,
+        "63": 0.08574922575796284,
+        "126": 0.2249831588775384,
+        "252": 0.5583984186204742
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.8,
+      "B_generator_dotcom_block_share": 0.4,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.65729746664776,
+        "S2": 0.29847602697093545,
+        "S3": 0.044226506381304556
+      },
+      "S1_p50_return": {
+        "21": 0.04607274016115026,
+        "63": 0.0857226246524061,
+        "126": 0.2248258002249479,
+        "252": 0.5577708573274058
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.4,
+      "B_generator_dotcom_block_share": 0.6,
+      "mode": "within_cap",
+      "eligible_for_active_use": true,
+      "C_mixture_probability": {
+        "S1": 0.6112695740644808,
+        "S2": 0.3385639200300205,
+        "S3": 0.05016650590549859
+      },
+      "S1_p50_return": {
+        "21": 0.05696832819919506,
+        "63": 0.10530740762110447,
+        "126": 0.2517423724139791,
+        "252": 0.5853790582609173
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.6,
+      "B_generator_dotcom_block_share": 0.6,
+      "mode": "within_cap",
+      "eligible_for_active_use": true,
+      "C_mixture_probability": {
+        "S1": 0.6333129857718406,
+        "S2": 0.3193652584883656,
+        "S3": 0.047321755739793685
+      },
+      "S1_p50_return": {
+        "21": 0.054755565813008555,
+        "63": 0.10252215947025589,
+        "126": 0.24690059653915886,
+        "252": 0.5805991018567571
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.7,
+      "B_generator_dotcom_block_share": 0.6,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6443197600244295,
+        "S2": 0.3097789323630726,
+        "S3": 0.04590130761249796
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10216023456929824,
+        "126": 0.24573277053886344,
+        "252": 0.5792608039828224
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.8,
+      "B_generator_dotcom_block_share": 0.6,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6552949875090744,
+        "S2": 0.3002200818267914,
+        "S3": 0.04448493066413438
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10145549260376874,
+        "126": 0.24278454378354652,
+        "252": 0.576220784680161
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.4,
+      "B_generator_dotcom_block_share": 0.7,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6090158382850825,
+        "S2": 0.3405268063113006,
+        "S3": 0.05045735540361679
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10473604584681806,
+        "126": 0.2635086783296905,
+        "252": 0.6374831307777791
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.6,
+      "B_generator_dotcom_block_share": 0.7,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6301058863242692,
+        "S2": 0.3221584747854508,
+        "S3": 0.04773563889028008
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10287921374625242,
+        "126": 0.260643626862171,
+        "252": 0.6355030343993506
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.7,
+      "B_generator_dotcom_block_share": 0.7,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6406800857609171,
+        "S2": 0.31294889875641974,
+        "S3": 0.04637101548266316
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10266977687292389,
+        "126": 0.25900372490410484,
+        "252": 0.6315878012575205
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.8,
+      "B_generator_dotcom_block_share": 0.7,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6512522384530322,
+        "S2": 0.3037411053350935,
+        "S3": 0.045006656211874295
+      },
+      "S1_p50_return": {
+        "21": 0.05343787442929382,
+        "63": 0.10182978139885845,
+        "126": 0.2575815024154553,
+        "252": 0.6293761628617094
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.4,
+      "B_generator_dotcom_block_share": 0.8,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6095921579667009,
+        "S2": 0.3400248619365336,
+        "S3": 0.050382980096765555
+      },
+      "S1_p50_return": {
+        "21": 0.05451915317066458,
+        "63": 0.10510621334386405,
+        "126": 0.27068835418585246,
+        "252": 0.6668387620819598
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.6,
+      "B_generator_dotcom_block_share": 0.8,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6308754229561201,
+        "S2": 0.3214882485276033,
+        "S3": 0.047636328516276444
+      },
+      "S1_p50_return": {
+        "21": 0.0492367730685912,
+        "63": 0.1037349450855769,
+        "126": 0.2667274121020793,
+        "252": 0.6645079807063305
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.7,
+      "B_generator_dotcom_block_share": 0.8,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6415276118100723,
+        "S2": 0.3122107477849876,
+        "S3": 0.04626164040494009
+      },
+      "S1_p50_return": {
+        "21": 0.0492367730685912,
+        "63": 0.10258622692166752,
+        "126": 0.26590764845477555,
+        "252": 0.663341278696411
+      },
+      "weight_gates_pass": true
+    },
+    {
+      "A_evidence_strength": 0.8,
+      "B_generator_dotcom_block_share": 0.8,
+      "mode": "shadow_only_cap_exceeded",
+      "eligible_for_active_use": false,
+      "C_mixture_probability": {
+        "S1": 0.6521671459122195,
+        "S2": 0.3029442686709665,
+        "S3": 0.04488858541681406
+      },
+      "S1_p50_return": {
+        "21": 0.0492367730685912,
+        "63": 0.10208904851217393,
+        "126": 0.2645375041868643,
+        "252": 0.6627493104319044
+      },
+      "weight_gates_pass": true
+    }
+  ]
+}
