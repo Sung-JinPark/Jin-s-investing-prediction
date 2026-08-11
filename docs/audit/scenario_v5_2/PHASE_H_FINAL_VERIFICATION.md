@@ -4,8 +4,8 @@ Gate: **PASS WITH BROWSER-ENVIRONMENT LIMITATION**
 
 - Strict candidate validation: `True`.
 - Deterministic replay validation: `True`.
-- Model hash: `5ae4dfe981712b35f97b01b023b1e64138cf7adc9a4ebfb34a5b4565afcf5846`.
-- Build receipt hash: `b6352266ec4d95c83e9a72c4936998c59a8cfdcb2f5815696d77384e5a875e36`.
+- Model hash: `698a811944ade9b01be7475aa30d075c5755cd115637301399a30e18a928a2b2`.
+- Build receipt hash: `5a7e74034858576bc4a117382c6d2390ec1d15a8739ec1a4318b66c30ec524ea`.
 - Protected manifest before: `d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b`.
 - Protected manifest after: `d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b`.
 - Protected comparison: `True`; added=[], removed=[], changed=[].

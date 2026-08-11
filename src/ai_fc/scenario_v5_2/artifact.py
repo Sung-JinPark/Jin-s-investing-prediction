@@ -29,6 +29,7 @@ from .engine import (
     KNOWLEDGE_CUTOFF,
     QUANTILE_NAMES,
     SOURCE_PATHS,
+    WEIGHT_CONTRACT_RELATIVE,
     ScenarioV52Error,
     assemble_candidate,
     source_file_hash,
@@ -195,6 +196,12 @@ def validate_candidate(
             elif payload.get("source_hashes", {}).get(baseline.as_posix()) \
                     != file_hash(baseline_path):
                 errors.append(f"shadow baseline source hash mismatch: {baseline}")
+        contract_path = root / WEIGHT_CONTRACT_RELATIVE
+        if not contract_path.is_file():
+            errors.append("V5.2 weight contract missing")
+        elif payload.get("source_hashes", {}).get(WEIGHT_CONTRACT_RELATIVE.as_posix()) \
+                != file_hash(contract_path):
+            errors.append("V5.2 weight contract source hash mismatch")
         if receipt.get("protected_before"):
             comparison = compare_protected_hashes(
                 receipt["protected_before"], protected_hashes(root)
@@ -247,12 +254,13 @@ def validate_candidate(
                 break
 
     display = payload.get("display_contract", {})
-    if display.get("main_chart") != "total_mixture_p50_and_bands":
+    if display.get("main_chart") != \
+            "shared_log_axis_three_conditional_p50_with_total_mixture_band":
         errors.append("main chart contract mismatch")
-    if display.get("main_chart_scenario_lines") is not False:
-        errors.append("scenario lines leaked into main chart")
-    if display.get("scenario_surface") != "S1_S2_S3_conditional_small_multiples":
-        errors.append("scenario small-multiple contract mismatch")
+    if display.get("main_chart_scenario_lines") is not True:
+        errors.append("scenario lines are missing from the shared-scale chart")
+    if display.get("scenario_surface") != "S1_S2_S3_conditional_p50_shared_scale":
+        errors.append("scenario shared-scale contract mismatch")
     if display.get("fake_wiggle") is not False:
         errors.append("fake p50 wiggle is forbidden")
     if display.get("october_2_exact_date_forecast") is not False:
@@ -302,6 +310,15 @@ def validate_candidate(
 
     if not payload.get("distinctness_2027", {}).get("gate_pass"):
         errors.append("2027 distinctness gate failed")
+    research_distinctness = payload.get("distinctness", {})
+    if research_distinctness.get("operational_mode") != "report_only" \
+            or research_distinctness.get("threshold_gate_evaluated") is not False \
+            or research_distinctness.get("gate_pass") is not None \
+            or research_distinctness.get("promotion_eligible") is not False \
+            or research_distinctness.get("descriptive_checks", {}).get(
+                "paths_unchanged_by_distinctness_evaluation"
+            ) is not True:
+        errors.append("30-day report-only distinctness contract failed")
     circularity = payload.get("circularity_control", {})
     if not circularity.get("gate_pass"):
         errors.append("circularity gate failed")
@@ -353,6 +370,20 @@ def validate_candidate(
                     or row.get("sampling", {}).get("forced_endpoint") is not False \
                     or row.get("sampling", {}).get("forced_turning_date") is not False:
                 errors.append(f"scenario {scenario} cluster audit failed")
+            if any(
+                "forward" in str(name) or "maximum_drawdown" in str(name)
+                for name in row.get("feature_names", [])
+            ):
+                errors.append(f"scenario {scenario} cluster feature leaks an outcome")
+            if not math.isclose(float(row.get("sampling", {}).get("residual_scale", -1)), 1.0):
+                errors.append(f"scenario {scenario} residual policy is not full-scale")
+        s1_sampling = cluster_scenarios["S1"].get("sampling", {})
+        if s1_sampling.get("generator") != "phase_preserving_historical_block_sampler_v1" \
+                or not math.isclose(
+                    float(s1_sampling.get("generator_dotcom_block_share_B", -1)), .60
+                ) \
+                or len(str(s1_sampling.get("block_provenance_sha256", ""))) != 64:
+            errors.append("S1 phase-block generator or provenance contract failed")
         selected_returns = [
             cluster_scenarios[name]["selected_cluster"]["outcome_medians"]["forward_return_252d"]
             for name in ("S1", "S2", "S3")
@@ -368,9 +399,29 @@ def validate_candidate(
             errors.append("S2 selected cluster is not a sideways middle regime")
     sensitivity = payload.get("sensitivity_analysis", {})
     sensitivity_rows = sensitivity.get("rows", [])
-    if [row.get("S1_strength") for row in sensitivity_rows] != [.28, .45, .60] \
+    if [row.get("S1_strength") for row in sensitivity_rows] != [.40, .60] \
             or not sensitivity.get("gate_pass"):
-        errors.append("S1 0.28/0.45/0.60 sensitivity gate failed")
+        errors.append("S1 A-space 0.40/0.60 sensitivity gate failed")
+    generator_rows = sensitivity.get("B_generator_rows", [])
+    if [row.get("B_generator_dotcom_block_share") for row in generator_rows] != [.40, .60] \
+            or sensitivity.get("above_cap_shadow_only") != [.70, .80] \
+            or sensitivity.get("above_cap_never_active") is not True:
+        errors.append("S1 B-space sensitivity/cap gate failed")
+
+    spaces = payload.get("weight_spaces", {})
+    try:
+        a_value = float(spaces["A_evidence_strength"]["value"])
+        b_value = float(spaces["B_generator_dotcom_block_share"]["value"])
+        c_value = spaces["C_mixture_probability"]["value"]
+        if not math.isclose(a_value, .60) or not math.isclose(b_value, .60) \
+                or spaces["A_evidence_strength"]["changes_path_geometry"] is not False \
+                or spaces["B_generator_dotcom_block_share"]["changes_path_geometry"] is not True \
+                or spaces["C_mixture_probability"]["directly_settable"] is not False \
+                or any(not 0.0 <= float(value) <= 1.0 for value in c_value.values()) \
+                or not math.isclose(sum(c_value.values()), 1.0, abs_tol=1e-10):
+            errors.append("A/B/C weight-space contract failed")
+    except (KeyError, TypeError, ValueError):
+        errors.append("A/B/C weight-space contract is invalid")
 
     for key, row in payload.get("evidence_attribution", {}).items():
         residual = row.get("additivity_residual")
@@ -586,6 +637,7 @@ def dashboard_projection(
             "hard_event_mapping": payload["model"]["hard_event_mapping"],
             "cluster_disclosure": cluster_disclosure,
         },
+        "weight_spaces": payload["weight_spaces"],
         "evidence_scores": payload["evidence_scores"],
         "evidence_attribution": payload["evidence_attribution"],
         "dotcom_scenario_weighting": {
@@ -598,12 +650,23 @@ def dashboard_projection(
             "forced_endpoint": payload["dotcom_scenario_weighting"]["forced_endpoint"],
             "forced_october_direction": payload["dotcom_scenario_weighting"]["forced_october_direction"],
             "dependency_cap": payload["dotcom_scenario_weighting"]["dependency_cap"],
+            "A_evidence_strength": payload["dotcom_scenario_weighting"]["A_evidence_strength"],
+            "B_generator_dotcom_block_share": payload["dotcom_scenario_weighting"][
+                "B_generator_dotcom_block_share"
+            ],
+            "B_realized_dotcom_session_share": payload["dotcom_scenario_weighting"][
+                "B_realized_dotcom_session_share"
+            ],
+            "C_mixture_probability": payload["dotcom_scenario_weighting"][
+                "C_mixture_probability"
+            ],
             "approval_contract_path": (
                 "data/scenario_views/approved/"
                 "scenario_v5_2_dotcom_upside_260810.json"
             ),
             "approval_receipt": "explicit_user_message_2026_08_10",
             "computed_sensitivity_rows": payload["sensitivity_analysis"]["rows"],
+            "generator_sensitivity_rows": payload["sensitivity_analysis"]["B_generator_rows"],
             "requested_sensitivity_policy": {
                 "0.40": "within_registered_cap_not_active",
                 "0.60": "active_registered_research_strength",
@@ -621,6 +684,7 @@ def dashboard_projection(
             "gate_pass": payload["distinctness_2027"]["gate_pass"],
             "partition_information_cutoff": payload["distinctness_2027"]["partition_information_cutoff"],
         },
+        "distinctness": payload["distinctness"],
         "distribution": {
             "dates": [dates[index] for index in indexes],
             "bands": {

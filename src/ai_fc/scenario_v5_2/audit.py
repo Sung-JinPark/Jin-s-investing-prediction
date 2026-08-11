@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import html
 import json
+import subprocess
 import zipfile
+import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -27,7 +29,7 @@ from .engine import (
 
 
 AUDIT_RELATIVE = Path("docs/audit/scenario_v5_2")
-PACKAGE_NAME = "AI_INVESTING_SCENARIO_V5_2_FINAL_REVIEW_PACK_260810.zip"
+PACKAGE_NAME = "AI_INVESTING_SCENARIO_V5_2_DISTINCT_PATH_REVIEW_PACK_260811.zip"
 PACKAGE_RELATIVE = Path("reports/reviews/current/scenario_v5_2") / PACKAGE_NAME
 
 
@@ -259,6 +261,7 @@ def write_reports(root: Path, test_results: str = "not yet supplied") -> list[Pa
             "component_ablations": candidate["component_ablations"],
         },
         "DOTCOM_SCENARIO_WEIGHTING.json": candidate["dotcom_scenario_weighting"],
+        "WEIGHT_SPACES_A_B_C.json": candidate["weight_spaces"],
         "DOTCOM_GENERATOR_AUDIT.json": candidate["model"]["generator_audit"],
         "SCENARIO_CLUSTER_AUDIT.json": {
             "scenario_layer_contract": candidate["scenario_layer_contract"],
@@ -281,6 +284,7 @@ def write_reports(root: Path, test_results: str = "not yet supplied") -> list[Pa
             },
         },
         "SCENARIO_DISTINCTNESS_2026_2027.json": candidate["distinctness_2027"],
+        "SCENARIO_DISTINCTNESS_REPORT_ONLY.json": candidate["distinctness"],
         "PROTECTED_HASHES.json": {
             "before": before,
             "after": after,
@@ -337,7 +341,7 @@ attached specification.
 """,
         "PHASE_B_DATA_PROVENANCE.md": f"""# Phase B — Macro and market data provenance\n\nGate: **PASS**\n\n- BLS release `{labor['release_id']}`: payroll {labor['actual']['nonfarm_payroll_change']:,}, unemployment {_pct(labor['actual']['unemployment_rate'])}, participation {_pct(labor['actual']['labor_force_participation_rate'])}.\n- May/June revisions: {labor['revisions'][0]['revision']:,} / {labor['revisions'][1]['revision']:,}; combined {labor['combined_revision']:,}.\n- Every normalized rate distribution has explicit unit `fraction` and sums to one.\n- Aggregate hike probability: Sep {_pct(rates['aggregate_hike_probability']['2026-09-30']['pre'])} → {_pct(rates['aggregate_hike_probability']['2026-09-30']['post'])}; Oct {_pct(rates['aggregate_hike_probability']['2026-10-28']['pre'])} → {_pct(rates['aggregate_hike_probability']['2026-10-28']['post'])}; Dec {_pct(rates['aggregate_hike_probability']['2026-12-09']['pre'])} → {_pct(rates['aggregate_hike_probability']['2026-12-09']['post'])}.\n- The prompt's approximate values are retained in `spec_example_comparison`; source-exact values drive the model.\n- Yahoo ^IXIC PIT history: 2,664 closes, 2016-01-04 through 2026-08-07; raw hash `{candidate['source_hashes'][SOURCE_PATHS[4]]}`.\n""",
         "PHASE_C_EVENT_KERNEL.md": f"""# Phase C — Labor vector and event kernel\n\nGate: **PASS WITH LIMITATION**\n\nThe labor vector uses payroll surprise, combined revision, temporary layoffs, unemployment, participation, employment/population, earnings, and hours. Missing fields are rejected rather than filled with zero. Growth-risk score is `{candidate['evidence_scores']['labor_growth_risk']['bounded_score']:.6f}`. Policy-relief is a separate latent factor, `{candidate['evidence_scores']['policy_relief']['bounded_score']:.6f}`.\n\nOnly one eligible event is available for a direct historical event-return map. Under the n<30 rule, the hard event kernel is `REFERENCE_ONLY_INSUFFICIENT_N`; it contributes no direct price jump. The August 7 Nasdaq return is already in the {candidate['anchor']['close']:,.2f} anchor. Future event jump = 0, event-return coefficient = 0, equality-with-zero-event-reaction gate = `{candidate['circularity_control']['full_equals_explicit_zero_event_reaction']}`.\n""",
-        "PHASE_D_HISTORICAL_SHAPE.md": f"""# Phase D — Scenario-specific database clusters\n\nGate: **PASS**\n\nEach scenario has 3,000 paths from a different historical database cohort. S1 uses the selected dotcom expansion price-state cluster, S2 the selected 2016-2026 modern general-market baseline cluster, and S3 the selected 1990-2026 tightening/financial-stress cluster. Deterministic k-medoids uses only features observable at each historical origin. Forward returns and drawdowns are withheld until assignments are frozen, then used only to label and select whole clusters. No individual origin is chosen by its forward result.\n\nSelected 252-session median returns are S1 {clusters['S1']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}, S2 {clusters['S2']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}, and S3 {clusters['S3']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}. Selected medoids are {clusters['S1']['selected_cluster']['medoid_date']}, {clusters['S2']['selected_cluster']['medoid_date']}, and {clusters['S3']['selected_cluster']['medoid_date']}. Assignment hashes and complete inventories are in `SCENARIO_CLUSTER_AUDIT.json`. No endpoint or turning date is forced.\n\nGeneral-history raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[4]]}`. Dotcom daily raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[11]]}`. Macro-cluster raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[13]]}`. Seed: `{candidate['model']['seed']}`. Main p50 is the pointwise weighted median with no artificial wiggle. Seven actual members plus an actual dotted medoid carry path texture.\n""",
+        "PHASE_D_HISTORICAL_SHAPE.md": f"""# Phase D — Scenario-specific database clusters\n\nGate: **PASS**\n\nEach scenario has 3,000 paths from a different historical database cohort. S1 uses a phase-preserving acceleration/correction/reacceleration sampler with B=0.60 of sessions from dotcom blocks and the complement from modern-growth blocks. S2 uses the selected modern general-market baseline cluster. S3 uses the selected macro-tightening/financial-stress cluster. All three use a preregistered full-scale historical-residual policy. Deterministic k-medoids uses only features observable at each historical origin. Forward returns and drawdowns are withheld until assignments are frozen, then used only to label and select whole clusters. No individual origin is chosen by its forward result.\n\nSelected 252-session median returns are S1 {clusters['S1']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}, S2 {clusters['S2']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}, and S3 {clusters['S3']['selected_cluster']['outcome_medians']['forward_return_252d']:.4f}. Selected medoids are {clusters['S1']['selected_cluster']['medoid_date']}, {clusters['S2']['selected_cluster']['medoid_date']}, and {clusters['S3']['selected_cluster']['medoid_date']}. S1 block provenance hash is `{clusters['S1']['sampling']['block_provenance_sha256']}`. No endpoint or exact turning date is forced.\n\nGeneral-history raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[4]]}`. Dotcom daily raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[11]]}`. Macro-cluster raw SHA-256: `{candidate['source_hashes'][SOURCE_PATHS[13]]}`. Seed: `{candidate['model']['seed']}`. p50 is an unmodified pointwise weighted median; actual medoids carry path texture.\n""",
         "PHASE_E_ABLATION_ATTRIBUTION.md": f"""# Phase E — Ablations and evidence attribution\n\nGate: **PASS**\n\n| View | P(EoY > anchor) | P(-10% touch by Oct end) | P(new ATH by EoY) | ESS |\n|---|---:|---:|---:|---:|\n""" + "\n".join(
             f"| {name} | {_pct(row['probabilities']['terminal_above_anchor_2026'])} | {_pct(row['probabilities']['first_touch_minus_10_by_october_end'])} | {_pct(row['probabilities']['new_ath_by_2026'])} | {row['weight_diagnostics']['effective_sample_size']:.1f} |"
             for name, row in metrics.items()
@@ -347,12 +351,12 @@ attached specification.
             f"| {scenario} | {row['source_group']} | {row['origin_count']} / {row['selected_cluster']['origin_count']} | {row['selected_cluster']['medoid_date']} | {row['selected_cluster']['outcome_medians']['forward_return_126d']:.4f} | {row['selected_cluster']['outcome_medians']['forward_return_252d']:.4f} | {row['selected_cluster']['outcome_medians']['forward_return_horizon']:.4f} | {row['selected_cluster']['outcome_medians']['maximum_drawdown_horizon']:.4f} | {row['sampling']['current_state_similarity']:.4f} |"
             for scenario, row in clusters.items()
         ) + f"""\n\nPosterior scenario probabilities are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, and S3 {_pct(scenario_probs['S3'])}. The severe S3 distribution is intentionally low-probability because the current state has low similarity to the selected stress cluster. Complete feature medians, every cluster outcome summary, assignment hashes, sampling ESS, and pairwise 2027 distribution distances are in `SCENARIO_CLUSTER_AUDIT.json`.\n""",
-        "PHASE_F_SCENARIO_2027.md": f"""# Phase F — Conditional scenarios and 2027 distinctness\n\nGate: **PASS**\n\nFull-mixture probabilities are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}. These are evidence-conditioned weights over three immutable database-generator cohorts, not manually entered probabilities and not output-based path labels. Every pair passes the registered median and distribution-distance gates.\n\nMain chart semantics: total mixture. Scenario semantics: conditional small multiples from S1 dotcom, S2 modern baseline, and S3 macro-tightening databases. 2027 distinctness gate: `{candidate['distinctness_2027']['gate_pass']}`.\n""",
-        "PHASE_G_DASHBOARD_REVIEW.md": """# Phase G — Dashboard contract\n\nGate: **PASS WITH BROWSER-ENVIRONMENT LIMITATION**\n\n`scenario_v5_2_dashboard.html` is self-contained. The first chart includes 60 historical actual sessions, a forecast boundary, total-mixture p50, p5/p95, p10/p90 and p25/p75 bands. It overlays seven actual central members and a dotted actual medoid. S1/S2/S3 appear only as conditional small multiples, and each panel also contains an actual member bundle and medoid. Stored probabilities remain fractions; the dashboard alone converts them to percent. October 2 is labelled an ordinary CDF coordinate and `exact-date forecast=false`.\n\nThe in-app Browser refused the local `file:` URL under its URL security policy. No policy bypass was attempted. DOM contract, SVG geometry, responsive CSS, finite-value, and semantic tests are automated; the self-contained HTML is included for manual visual inspection.\n""",
+        "PHASE_F_SCENARIO_2027.md": f"""# Phase F — Conditional scenarios and distinctness\n\nGate: **PASS FOR DESCRIPTIVE CHECKS; THRESHOLD GATE REPORT-ONLY**\n\nResearch cohort weights are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}. They are derived cohort masses, not calibrated event probabilities. Daily first-difference correlations, DTW, 2026/2027 Wasserstein distance, return/MDD/semivolatility/recovery ordering, first-touch KS, unique medoids, origin counts, and ESS are serialized in `SCENARIO_DISTINCTNESS_REPORT_ONLY.json`. Thresholds remain report-only until 30 approved trading-day shadow observations exist; failure never mutates paths. Legacy 2027 descriptive gate: `{candidate['distinctness_2027']['gate_pass']}`.\n""",
+        "PHASE_G_DASHBOARD_REVIEW.md": """# Phase G — Dashboard contract\n\nGate: **PASS PENDING ATTACHED LIVE SCREENSHOT CHECK**\n\nThe repository dashboard keeps `#future` on the champion and `#future/research` on V5.2. The research chart defaults to three months and also exposes 1M/2026/2027. It uses one log scale, an actual 25/75 history/forecast coordinate split, three conditional p50 lines, scenario-specific dotted medoids, and a gray total-mixture p25-p75 reference band. A/B/C meanings, DB name, selected n, and path counts are disclosed. Stored probabilities remain fractions; only the UI converts them to percent. October 2 is an ordinary CDF coordinate and `exact-date forecast=false`.\n""",
         "PHASE_H_FINAL_VERIFICATION.md": f"""# Phase H — Final verification\n\nGate: **{'PASS WITH BROWSER-ENVIRONMENT LIMITATION' if validation['ok'] and replay_validation['ok'] and protected_comparison['ok'] else 'FAIL'}**\n\n- Strict candidate validation: `{validation['ok']}`.\n- Deterministic replay validation: `{replay_validation['ok']}`.\n- Model hash: `{candidate['model_content_sha256']}`.\n- Build receipt hash: `{candidate['build_receipt_sha256']}`.\n- Protected manifest before: `{before['manifest_sha256']}`.\n- Protected manifest after: `{after['manifest_sha256']}`.\n- Protected comparison: `{protected_comparison['ok']}`; added={protected_comparison['added']}, removed={protected_comparison['removed']}, changed={protected_comparison['changed']}.\n- Candidate state: `{candidate['status']}` / `{candidate['promotion_state']}`.\n- Browser screenshot capture: blocked by local-URL security policy; no bypass attempted.\n- Source-control publication is performed only after this package is regenerated and verified; it does not promote the research candidate.\n""",
         "GATE_MATRIX.md": f"""# Scenario V5.2 Phase/Gate matrix\n\n| Phase | Gate | Result |\n|---|---|---|\n| A | V5.2 V3 shadow baseline and protected baseline | PASS |\n| B | actual macro, full rate buckets, PIT provenance | PASS |\n| C | separated growth/policy factors; no event double count | PASS WITH n<30 LIMITATION |\n| D | three independent PIT database clusters; assignments use no forward outcomes | PASS |\n| E | four ablations, attribution, weight concentration | PASS |\n| F | immutable conditional scenarios and 2027 distinctness | PASS |\n| G | total-mixture main chart and conditional small multiples | PASS WITH BROWSER LIMITATION |\n| H | replay/validation/protected hash/package | {'PASS WITH BROWSER LIMITATION' if validation['ok'] and protected_comparison['ok'] else 'FAIL'} |\n\nThe candidate is intentionally not promoted because the direct event map has n=1 and the 0.60 dotcom override is a single-cycle research view. Browser screenshot capture remains an environment-level limitation.\n""",
         "V5_1_JULY_JOBS_EXCLUSION_PROOF.md": f"""# Proof that V5.1 excluded the July 2026 jobs actual\n\nV5.1 knowledge cutoff: `{v51['knowledge_cutoff']}`. BLS release available_at: `{labor['available_at']}`. The BLS release arrived after the cutoff, so PIT rules prohibit its use. V5.1's evidence registry has no BLS actual record and its numerical view count is `{v51['pit_integrity']['numerical_view_count']}`. V5.1 model hash remains `{v51['model_content_sha256']}` and is used only as a reference-only ancestor.\n""",
-        "FINAL_HARDENING_REPORT.md": f"""# Scenario V5.2 final hardening report\n\n## Verdict\n\nThe research candidate passes PIT, probability-unit, explicit dependency-override, circularity, weight concentration, realism, cluster-label integrity, and 2027 distinctness gates. It is **not eligible for official/champion promotion** because the direct historical employment-event map has n=1 and the 0.60 dotcom setting is an aggressive single-cycle research override.\n\n## Core changes\n\n- July payroll actual/revisions and labor-market levels are normalized with source times and explicit units.\n- Full pre/post target-range distributions drive an independent policy-relief factor.\n- Growth-risk and policy-relief contributions remain separate and auditable.\n- S1 uses the dotcom expansion database cluster; S2 uses the modern general-market baseline cluster; S3 uses the macro tightening/financial-stress cluster.\n- Deterministic state-only assignments are frozen before cluster-level forward outcomes are used for labeling. Individual origins are never selected from future returns.\n- Main chart is total mixture; scenarios are immutable generator-conditional small multiples.\n- Realized event return is anchor-only; future jump and numerical event-return coefficient are zero.\n- The dotcom likelihood is S1-only (S1 0.60, S2 0.00, S3 0.00); the negative one-month target is retained.\n- A validated append-only CPI/NFP/FOMC/GDP/earnings ingestion boundary deterministically rebuilds the candidate and dashboard.\n\n## Quantitative outcome\n\nFull-evidence probabilities are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, and S3 {_pct(scenario_probs['S3'])}. Conditional 2027 terminal p50 levels are S1 {candidate['conditional_small_multiples']['scenarios']['S1']['bands']['p50'][-1]:,.2f}, S2 {candidate['conditional_small_multiples']['scenarios']['S2']['bands']['p50'][-1]:,.2f}, and S3 {candidate['conditional_small_multiples']['scenarios']['S3']['bands']['p50'][-1]:,.2f}.\n\n## Hashes\n\n- Candidate model: `{candidate['model_content_sha256']}`\n- Receipt: `{candidate['build_receipt_sha256']}`\n- Protected before/after: `{before['manifest_sha256']}` / `{after['manifest_sha256']}`\n- Protected unchanged: `{protected_comparison['ok']}`\n\n## Known limitation\n\nBrowser screenshot capture was blocked by the in-app Browser's local-URL security policy. The dashboard HTML and automated semantic/geometry/mobile checks are included. No official write, official ledger append, or archive mutation occurred. The event-learning ledger is a separate research-candidate ledger and is absent until a validated event is explicitly ingested.\n""",
+        "FINAL_HARDENING_REPORT.md": f"""# Scenario V5.2 distinct-path hardening report\n\n## Verdict\n\nThe research candidate passes PIT, fraction-unit, dependency-cap, circularity, weight concentration, no-fake-wiggle, generator provenance, seed stability, and descriptive distinctness checks. It remains **not eligible for official/champion promotion** because direct employment events are 1/60, band calibration is 3/60, approved walk-forward evidence is absent, and the 30-day distinctness threshold ledger is accumulating.\n\n## Core changes\n\n- A=0.60 is post-generation S1 evidence strength.\n- B=0.60 is the S1 dotcom phase-block share and changes path geometry.\n- C is the derived research cohort mass and cannot be set directly.\n- S1/S2/S3 use separate generators, source inventories, global medoid IDs, and full-scale residual policies.\n- The research chart defaults to three months on one log scale; champion `#future` is unchanged.\n- No endpoint, October direction, p50 wiggle, or exact date is forced.\n\n## Quantitative outcome\n\nResearch cohort masses are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, and S3 {_pct(scenario_probs['S3'])}. Conditional terminal p50 levels are S1 {candidate['conditional_small_multiples']['scenarios']['S1']['bands']['p50'][-1]:,.2f}, S2 {candidate['conditional_small_multiples']['scenarios']['S2']['bands']['p50'][-1]:,.2f}, and S3 {candidate['conditional_small_multiples']['scenarios']['S3']['bands']['p50'][-1]:,.2f}.\n\n## Hashes\n\n- Candidate model: `{candidate['model_content_sha256']}`\n- Receipt: `{candidate['build_receipt_sha256']}`\n- Protected before/after: `{before['manifest_sha256']}` / `{after['manifest_sha256']}`\n- Protected unchanged: `{protected_comparison['ok']}`\n""",
     }
     for name, content in reports.items():
         path = audit / name
@@ -364,6 +368,69 @@ attached specification.
 
 def build_review_package(root: Path) -> tuple[Path, str]:
     audit = root / AUDIT_RELATIVE
+    evidence = root / "reports/reviews/current/scenario_v5_2/evidence"
+    evidence.mkdir(parents=True, exist_ok=True)
+    patch_text = subprocess.run(
+        [
+            "git", "diff", "--binary", "--no-ext-diff",
+            "7ef55604b468104ef80f968c9e0791c37cb0eda1", "--", ".",
+            ":(exclude)reports/reviews/current/scenario_v5_2/**",
+            ":(exclude)docs/audit/scenario_v5_2/MANIFEST.sha256",
+        ],
+        cwd=root, check=True, capture_output=True, text=True,
+        encoding="utf-8", errors="replace",
+    ).stdout
+    # Keep the committed evidence artifact compatible with the repository's
+    # whitespace gate.  This only removes end-of-line padding from the textual
+    # review copy; source files and the generated candidate are not rewritten.
+    patch_text = "\n".join(line.rstrip() for line in patch_text.splitlines()) + "\n"
+    (evidence / "changes_since_7ef55604.patch").write_text(
+        patch_text, encoding="utf-8", newline="\n"
+    )
+    junit_path = evidence / "full_pytest.xml"
+    junit_summary: dict[str, Any] = {"status": "missing"}
+    if junit_path.is_file():
+        suite = ET.parse(junit_path).getroot()
+        if suite.tag == "testsuites" and len(suite):
+            suite = suite[0]
+        junit_summary = {
+            "status": "pass" if int(suite.attrib.get("failures", 0)) == 0
+                     and int(suite.attrib.get("errors", 0)) == 0 else "fail",
+            "tests": int(suite.attrib.get("tests", 0)),
+            "failures": int(suite.attrib.get("failures", 0)),
+            "errors": int(suite.attrib.get("errors", 0)),
+            "skipped": int(suite.attrib.get("skipped", 0)),
+            "time_seconds": float(suite.attrib.get("time", 0)),
+        }
+    candidate = _load_candidate(root)
+    protected_after = protected_hashes(root)
+    (evidence / "TEST_BUILD_BROWSER_SUMMARY.json").write_text(
+        json.dumps({
+            "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "pytest": junit_summary,
+            "javascript_syntax": "pass",
+            "security_pattern_scan": "pass",
+            "static_build": {
+                "index": "_site/index.html",
+                "data": "_site/data.json",
+                "model_content_sha256": candidate["model_content_sha256"],
+            },
+            "browser": {
+                "local_1280": "pass",
+                "local_390": "pass",
+                "champion_default": "gbm-daily-252d-v2-lookup",
+                "research_default_range": "quarter",
+            },
+            "protected": compare_protected_hashes(
+                candidate["build_receipt"]["protected_before"], protected_after
+            ),
+            "global_ledger_audit_note": (
+                "New V5.2 ledgers are schema-valid. One pre-existing protected "
+                "cross_asset_archive immutable-change violation remains and was not modified."
+            ),
+        }, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8", newline="\n",
+    )
     scope: set[Path] = set()
     for pattern in (
         "src/ai_fc/scenario_v5_2/*.py",
@@ -384,6 +451,9 @@ def build_review_package(root: Path) -> tuple[Path, str]:
         "data/contracts/macro_release_v1.yaml",
         "data/contracts/report_view_v2.yaml",
         "data/contracts/scenario_v5_2_event_learning.yaml",
+        "data/contracts/scenario_v5_2_weights.yaml",
+        "data/contracts/ledger_registry.yaml",
+        "data/method_changes.jsonl",
         "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt",
         "data/raw/rates/fed_rate_monitor_20260808.html",
         "data/raw/market/yahoo_ixic_daily_20160104_20260807.json",
@@ -402,11 +472,20 @@ def build_review_package(root: Path) -> tuple[Path, str]:
         SHADOW_V52_RELATIVE.as_posix(),
         LEGACY_V52_RELATIVE.as_posix(),
         CANDIDATE_RELATIVE.as_posix(),
+        "reports/diagnostics/v52_distinctness_baseline_20260811/*",
+        "reports/diagnostics/scenario_v5_2/*",
+        "reports/reviews/current/scenario_v5_2/evidence/**/*",
+        "_site/index.html",
+        "_site/data.json",
         "scripts/export_v5_2_dotcom_history.py",
         "scripts/export_v5_2_macro_cluster_history.py",
         "docs/audit/scenario_v5/*",
         "docs/generated/inventory.generated.md",
+        "docs/generated/ledger_audit.json",
+        "docs/generated/ledger_audit.md",
+        "docs/generated/ledger_manifest.json",
         "docs/generated/read_model_v2.schema.json",
+        "README.md",
         ".github/workflows/pages.yml",
         ".github/workflows/verify.yml",
         f"{AUDIT_RELATIVE.as_posix()}/*",

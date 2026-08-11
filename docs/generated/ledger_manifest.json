@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-08T03:06:36+00:00",
+  "baseline_at": "2026-08-11T02:41:18+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
     "calibration/corrections.csv": "c875c68631ade3e73da4492fd5d3e378b42258f1f47f4b196c6ee28fc0db8d94",
-    "calibration/cost_log.csv": "f71db21b1fafdd329002692af3531efd9f88d6b31755a6bbe3d26fd01bffd83c",
+    "calibration/cost_log.csv": "00be8e4478da20d8a391f970e58eedaa6d42fd2e23b575145b246b78547ceed5",
     "calibration/ledger.csv": "aa180a76ca49ec59cc10a35d62c0ca3abafdb01f467a9111639e3259a5d7cd0e",
     "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
     "data/ai_capital_cycle/company_capex_archive/2026-08-03.json": "4024c23dd9a909b304eef7fddd8d6b3858e6feb9f16528683abac4d8e57fe4df",
@@ -29,8 +29,8 @@
     "data/cross_asset/path_tracking_v2.csv": "a9fa219be3f094ff9a91dc0d7743170c3fab907b6f2dffe806b4a9f319ff2a2e",
     "data/liquidity/archive/2026-07-31.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
     "data/liquidity/archive/2026-08-07.json": "79a2c5da46e63f4feb1d71d2400fec5387102fe9335440d51e1de27f84c89c08",
-    "data/method_changes.jsonl": "42d498474540283dab5abc9fa47000e45ec5a1be668a6da3ea06ebd59406d9ac",
-    "data/ml_history/2026.jsonl": "abde128f2e6b74f40c0f520201e2a080407daac93b6639ca11e85df03c51f7f3",
+    "data/method_changes.jsonl": "d43bcf0d91313f6aea1945e10dca49ea26b628db0b675c8907a06b95bc36b73f",
+    "data/ml_history/2026.jsonl": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
     "data/rate_events/archive/2026-07-31.json": "3f4d9b8ac58cf488b20bb7ecdfe1d314aa662abb1728726c5ffbad79d0a837be",
     "data/rate_events/archive/2026-08-03.json": "b7640421a41f082617d8ceba4840cc51858cceda2b5df0e04ea25f9a8984362d",
     "data/rate_events/archive/2026-08-03_CORR-260804-007.json": "7032ee8453f64bd94668ed0d7ef3d28a1df8747aa3add52e10499a983bbde43c",
@@ -66,11 +66,14 @@
     "data/source_monitoring/defillama_stablecoins/2026-08-05.json": "54baa2843562b304926643b9079feaf4965e7ff38c650a1419b6aca401cebe32",
     "data/source_monitoring/defillama_stablecoins/2026-08-06.json": "d0cda5c7aa033092b0b8415bcadd0ade7226ffd0844d2f0a5d1be7096d9b5b25",
     "data/source_monitoring/defillama_stablecoins/2026-08-07.json": "bccfb676f04d4bd23d4d2a4745764fb83422d4cb5a9f63296a6b172d8f6d7a3b",
-    "data/source_monitoring/defillama_stablecoins_status.json": "6d023e30e83ea64e00e6dc75b382b2fba229c5d4e3bdb025559760c1ca08d61b",
-    "dualdb/db/dualdb.sqlite": "f06945371a470eed3d564d56f9652a1655d5a0bd30869843dfe29ec9b9df7490",
+    "data/source_monitoring/defillama_stablecoins/2026-08-08.json": "7fa8e22af32fd2f74ea365b5df37634e2c0cdd211f71c231178de75f796d82a4",
+    "data/source_monitoring/defillama_stablecoins/2026-08-09.json": "6291d3dea1b9abec3da3530a7d69124326060b20cb6c4b15419d9a12cf21f810",
+    "data/source_monitoring/defillama_stablecoins/2026-08-10.json": "69e36ccd25394aad5feade2fbcb82177c043b077c0cd420b60d1c5ed07b28301",
+    "data/source_monitoring/defillama_stablecoins_status.json": "a0a7dc09c4e64d7a2d7e6cba756285b7ceaa4b789c13a1f171a57c452623fbc8",
+    "dualdb/db/dualdb.sqlite": "16df77243dba5522c28aca271d43c32d04013b1d3a01e8fe92a8587ea94e4a1c",
     "exports/research_pack_2026-08-r2/manifest.json": "4572c64810e600cf70cbb2da14132911249606b552140bf400806ef1a5dcc0e6",
     "exports/research_pack_2026-08/manifest.json": "25d6478aaafdcebae8d1aed84c3db8f17404bb42dea5394cb4068c80e44226b6",
-    "forecasts/.hashes.ots": "252b518ebd549536284d039533d76ed5fbcc02072d9f47e60697a45edf38ddfe",
+    "forecasts/.hashes.ots": "6aa3400da406ad4fae5b0f05fa96a45c017e12b8aa433a000156751924925b1a",
     "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
     "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1_evidence.md": "70f747ade4947c2471128413045522b2b90de021d730ba54ca971efd2b2c06d3",
     "forecasts/2026/2026-07-08_fomc-2026-10-28-hike_r1.md": "81dcd6a50564cec111f889f17c4d322a4ac3d9360b45095731a17ff60e9630c7",
@@ -109,6 +112,10 @@
     "forecasts/2026/2026-07-20_soxx-eoy-down15_r2.md": "deb2c7dc8a43b068da984b072bcc96a649932a6cf4b6b231494fc72178c7ac5c",
     "forecasts/2026/2026-07-20_soxx-eoy-down15_r2_evidence.md": "3c72790244f48707d11389d5eee69b9a766ee4b72a4465dfe46b8701196054e4",
     "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1.md": "bbfd38b98191e60c74c47b8ae4d6a360522fd36ce2b3adbaf7f30fe3f50d3e7e",
-    "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1_evidence.md": "88f08f1b7f92efea0bca4c9c879ad38774164d36a1f2143539afe3324e4298a1"
+    "forecasts/2026/2026-08-03_aapl-eps-beat-fq4-2026_r1_evidence.md": "88f08f1b7f92efea0bca4c9c879ad38774164d36a1f2143539afe3324e4298a1",
+    "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1.md": "72a6c5805b3421d3e21ab5324637df4ce6a161c1047ac1b560007ae3c354c4c8",
+    "forecasts/2026/2026-08-08_adbe-eps-beat-fq3-2026_r1_evidence.md": "206cdf1c1a9ef67910121167748135b4c596ee78f1ba2fd258b0439457f93806",
+    "reports/diagnostics/scenario_v5_2/distinctness_shadow.jsonl": "a5aa102cca34099c2369dc7a2d26aa4599d27f3ba45a8aaaa839b4cdc3506c6d",
+    "reports/diagnostics/v52_distinctness_baseline_20260811/A_B_sensitivity_grid.json": "4b3e2b44b520c184d55c108bf9a0a85f2eb87f6d1a9f5bf90c71cbc406029dc8"
   }
 }

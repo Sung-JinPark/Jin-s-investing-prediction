@@ -207,3 +207,16 @@ ledgers:
     criticality: medium
     schema_ref: json_object
     expected_state: planned
+  - id: scenario_v5_2_distinctness_shadow
+    path: reports/diagnostics/scenario_v5_2/distinctness_shadow.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: scenario_v5_2_sensitivity_grid
+    path: reports/diagnostics/v52_distinctness_baseline_*/A_B_sensitivity_grid.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object

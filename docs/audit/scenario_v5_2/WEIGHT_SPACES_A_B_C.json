@@ -1,0 +1,25 @@
+{
+  "contract_id": "scenario_v5_2_distinct_path_weights_v1",
+  "contract_path": "data/contracts/scenario_v5_2_weights.yaml",
+  "A_evidence_strength": {
+    "value": 0.6,
+    "role": "post_generation_S1_likelihood",
+    "changes_path_geometry": false
+  },
+  "B_generator_dotcom_block_share": {
+    "value": 0.6,
+    "realized_session_share": 0.6010767123287671,
+    "role": "S1_phase_block_source_share",
+    "changes_path_geometry": true
+  },
+  "C_mixture_probability": {
+    "value": {
+      "S1": 0.7991409253295811,
+      "S2": 0.14415974192257433,
+      "S3": 0.05669933274784451
+    },
+    "role": "derived_research_cohort_mass",
+    "directly_settable": false,
+    "calibrated_event_probability": false
+  }
+}

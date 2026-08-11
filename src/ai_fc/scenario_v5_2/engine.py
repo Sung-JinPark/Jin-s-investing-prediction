@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import yaml
 from scipy.stats import energy_distance, wasserstein_distance
 
 from ai_fc.scenario_v5.contracts import canonical_hash, file_hash
@@ -22,6 +23,7 @@ from ai_fc.scenario_v5_2.clustering import ScenarioClusterError, build_clustered
 
 
 CANDIDATE_ID = "scenario_v5_2_scenario_clustered_db_v4"
+WEIGHT_CONTRACT_RELATIVE = Path("data/contracts/scenario_v5_2_weights.yaml")
 CANDIDATE_RELATIVE = Path(
     "data/scenarios/candidates/"
     "scenario_v5_2_scenario_clustered_db_v4_latest.json"
@@ -128,6 +130,8 @@ def load_inputs(root: Path) -> dict[str, Any]:
     for baseline in (SHADOW_V52_RELATIVE, LEGACY_V52_RELATIVE):
         if not (root / baseline).is_file():
             raise ScenarioV52Error(f"missing V5.2 shadow baseline: {baseline}")
+    if not (root / WEIGHT_CONTRACT_RELATIVE).is_file():
+        raise ScenarioV52Error("missing Scenario V5.2 weight contract")
     labor = _read_json(root / SOURCE_PATHS[1])
     rates = _read_json(root / SOURCE_PATHS[3])
     history_manifest = _read_json(root / SOURCE_PATHS[5])
@@ -140,6 +144,21 @@ def load_inputs(root: Path) -> dict[str, Any]:
     macro_cluster_history = _read_json(root / SOURCE_PATHS[14])
     shadow_v52 = _read_json(root / SHADOW_V52_RELATIVE)
     legacy_v52 = _read_json(root / LEGACY_V52_RELATIVE)
+    weight_contract = yaml.safe_load(
+        (root / WEIGHT_CONTRACT_RELATIVE).read_text(encoding="utf-8")
+    )
+    spaces = weight_contract.get("weight_spaces", {})
+    if weight_contract.get("candidate_id") != CANDIDATE_ID \
+            or weight_contract.get("probability_unit") != "fraction" \
+            or weight_contract.get("official_or_champion_use") is not False:
+        raise ScenarioV52Error("invalid V5.2 weight contract identity")
+    for name in ("A_evidence_strength", "B_generator_dotcom_block_share"):
+        active = _validate_fraction(spaces.get(name, {}).get("active"), f"{name}.active")
+        cap = _validate_fraction(spaces.get(name, {}).get("cap"), f"{name}.cap")
+        if active > cap or not math.isclose(cap, .60):
+            raise ScenarioV52Error(f"{name} exceeds the preregistered 0.60 cap")
+    if spaces.get("C_mixture_probability", {}).get("directly_settable") is not False:
+        raise ScenarioV52Error("C mixture probability must be derived, not configured")
     from .event_learning import event_score_summary
 
     event_updates = event_score_summary(root)
@@ -247,6 +266,7 @@ def load_inputs(root: Path) -> dict[str, Any]:
         "knowledge_cutoff": cutoff.isoformat(),
         "shadow_v52": shadow_v52,
         "legacy_v52": legacy_v52,
+        "weight_contract": weight_contract,
     }
 
 
@@ -289,6 +309,9 @@ def _historical_returns(
 def generate_prior(
     root: Path, inputs: dict[str, Any], *, seed: int = SEED,
     path_count_per_engine: int = PATH_COUNT_PER_ENGINE, block_restart_probability: float = .10,
+    generator_dotcom_share: float | None = None,
+    residual_scale_override: float | None = None,
+    allow_shadow_cap_exceed: bool = False,
 ) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any], dict[str, Any]]:
     dates = [ANCHOR_DATE.isoformat(), *_business_dates(date(2026, 8, 10), date(2027, 12, 31))]
     horizon = len(dates) - 1
@@ -308,6 +331,10 @@ def generate_prior(
             seed=seed,
             restart_probability=block_restart_probability,
             anchor=ANCHOR,
+            weight_contract=inputs["weight_contract"],
+            generator_dotcom_share=generator_dotcom_share,
+            residual_scale_override=residual_scale_override,
+            allow_shadow_cap_exceed=allow_shadow_cap_exceed,
         )
     except ScenarioClusterError as exc:
         raise ScenarioV52Error(f"scenario cluster gate failed: {exc}") from exc
@@ -335,6 +362,8 @@ def generate_prior(
         "macro_source_available_at": inputs["macro_cluster_history"]["available_at"],
         "general_history_start": history_dates[0],
         "general_history_end": history_dates[-1],
+        "weight_contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
+        "weight_contract_sha256": file_hash(root / WEIGHT_CONTRACT_RELATIVE),
     }
     return paths, dates, engines, historical_actual, generator_audit
 
@@ -372,6 +401,9 @@ def _path_metrics(paths: np.ndarray, dates: list[str]) -> dict[str, np.ndarray]:
         "maximum_drawdown_2026": drawdowns_2026.min(axis=1),
         "annualized_volatility": returns.std(axis=1, ddof=1) * math.sqrt(252.0),
         "annualized_volatility_2026": returns_2026.std(axis=1, ddof=1) * math.sqrt(252.0),
+        "downside_semivolatility": np.sqrt(
+            np.mean(np.square(np.minimum(returns, 0.0)), axis=1)
+        ) * math.sqrt(252.0),
         "time_underwater": (drawdowns < -.02).mean(axis=1),
         "direction_changes": (
             np.sign(returns[:, 1:]) * np.sign(returns[:, :-1]) < 0
@@ -777,7 +809,12 @@ def _first_touch_distribution(
 
 def _central_bundle(
     paths: np.ndarray, dates: list[str], weights: np.ndarray, bands: dict[str, list[float]],
+    path_ids: np.ndarray | None = None,
 ) -> dict[str, Any]:
+    if path_ids is None:
+        path_ids = np.arange(paths.shape[0])
+    if path_ids.shape != (paths.shape[0],):
+        raise ScenarioV52Error("central bundle path ID map is not aligned")
     sample_columns = np.arange(0, paths.shape[1], 5)
     metrics = _path_metrics(paths, dates)
     bounds = {
@@ -822,7 +859,7 @@ def _central_bundle(
             for key, value in row_metrics.items()
         }
         member_diagnostics.append({
-            "path_id": f"path_{index:05d}", "metrics": row_metrics,
+            "path_id": f"path_{int(path_ids[index]):05d}", "metrics": row_metrics,
             "realism_gates": row_gates, "gate_pass": all(row_gates.values()),
         })
     return {
@@ -830,11 +867,11 @@ def _central_bundle(
         "selection_rule": "actual weighted central members spanning terminal p20-p80",
         "fake_wiggle_applied": False,
         "p50_smoothing": "none; pointwise weighted distribution median",
-        "medoid_path_id": f"path_{medoid:05d}",
+        "medoid_path_id": f"path_{int(path_ids[medoid]):05d}",
         "medoid_values": [round(float(value), 2) for value in paths[medoid]],
         "members": [
             {
-                "path_id": f"path_{index:05d}",
+                "path_id": f"path_{int(path_ids[index]):05d}",
                 "values": [round(float(value), 2) for value in paths[index]],
             }
             for index in members
@@ -879,7 +916,8 @@ def _scenario_outputs(
             "path_count": int(mask.sum()),
             "bands": scenario_bands,
             "central_path_bundle": _central_bundle(
-                cohort_paths, dates, conditional, scenario_bands
+                cohort_paths, dates, conditional, scenario_bands,
+                np.flatnonzero(mask),
             ),
         }
         summary[scenario] = {
@@ -891,6 +929,8 @@ def _scenario_outputs(
                 metrics["recovery_days"][mask], conditional, (.5,))[0]),
             "annualized_volatility": float(weighted_quantile(
                 metrics["annualized_volatility"][mask], conditional, (.5,))[0]),
+            "downside_semivolatility": float(weighted_quantile(
+                metrics["downside_semivolatility"][mask], conditional, (.5,))[0]),
         }
     pairs: list[dict[str, Any]] = []
     keys = list(scenarios)
@@ -976,6 +1016,178 @@ def _scenario_outputs(
         "gate_pass": all(row["gate_pass"] for row in pairs),
     }
     return scenarios, distinctness
+
+
+def _standardized_log_dtw(left: np.ndarray, right: np.ndarray) -> float:
+    left_log = np.log(left)
+    right_log = np.log(right)
+    left_z = (left_log - left_log.mean()) / max(float(left_log.std(ddof=1)), 1e-12)
+    right_z = (right_log - right_log.mean()) / max(float(right_log.std(ddof=1)), 1e-12)
+    previous = np.full(len(right_z) + 1, np.inf)
+    previous[0] = 0.0
+    for left_value in left_z:
+        current = np.full(len(right_z) + 1, np.inf)
+        for index, right_value in enumerate(right_z, start=1):
+            cost = abs(float(left_value - right_value))
+            current[index] = cost + min(
+                current[index - 1], previous[index], previous[index - 1]
+            )
+        previous = current
+    return float(previous[-1] / max(len(left_z), len(right_z)))
+
+
+def _research_distinctness(
+    paths: np.ndarray, dates: list[str], weights: np.ndarray,
+    masks: dict[str, np.ndarray], scenarios: dict[str, Any],
+    generator_audit: dict[str, Any],
+) -> dict[str, Any]:
+    metrics = _path_metrics(paths, dates)
+    checkpoints = {63: min(63, len(dates) - 1), 126: min(126, len(dates) - 1),
+                   252: min(252, len(dates) - 1)}
+    end_2026 = max(index for index, value in enumerate(dates) if value <= "2026-12-31")
+    per_scenario: dict[str, Any] = {}
+    touch_cdfs: dict[str, np.ndarray] = {}
+    for scenario, mask in masks.items():
+        conditional = weights[mask] / weights[mask].sum()
+        p50 = np.asarray(scenarios[scenario]["bands"]["p50"], dtype=float)
+        touch = _first_touch_distribution(paths[mask], dates, conditional)
+        touch_cdfs[scenario] = np.asarray(touch["cdf"], dtype=float)
+        per_scenario[scenario] = {
+            "cumulative_return_p50": {
+                str(sessions): float(weighted_quantile(
+                    paths[mask, index] / ANCHOR - 1.0, conditional, (.50,)
+                )[0]) for sessions, index in checkpoints.items()
+            },
+            "maximum_drawdown_p50": float(weighted_quantile(
+                metrics["maximum_drawdown"][mask], conditional, (.50,)
+            )[0]),
+            "downside_semivolatility_p50": float(weighted_quantile(
+                metrics["downside_semivolatility"][mask], conditional, (.50,)
+            )[0]),
+            "recovery_days_p50": float(weighted_quantile(
+                metrics["recovery_days"][mask], conditional, (.50,)
+            )[0]),
+            "medoid_path_id": scenarios[scenario]["central_path_bundle"]["medoid_path_id"],
+            "selected_origin_count": int(
+                generator_audit["scenarios"][scenario]["selected_cluster"]["origin_count"]
+            ),
+            "requested_promotion_minimum_origins": int(
+                generator_audit["scenarios"][scenario][
+                    "requested_promotion_minimum_origins"
+                ]
+            ),
+            "episode_sampling_ess": float(
+                generator_audit["scenarios"][scenario]["sampling"]["episode_sampling_ess"]
+            ),
+        }
+    pairs: list[dict[str, Any]] = []
+    for left, right in (("S1", "S2"), ("S1", "S3"), ("S2", "S3")):
+        left_mask, right_mask = masks[left], masks[right]
+        left_weights = weights[left_mask] / weights[left_mask].sum()
+        right_weights = weights[right_mask] / weights[right_mask].sum()
+        left_p50 = np.asarray(scenarios[left]["bands"]["p50"], dtype=float)
+        right_p50 = np.asarray(scenarios[right]["bands"]["p50"], dtype=float)
+        left_diff = np.diff(np.log(left_p50))
+        right_diff = np.diff(np.log(right_p50))
+        rolling_correlations = [
+            float(np.corrcoef(left_diff[start:start + 63], right_diff[start:start + 63])[0, 1])
+            for start in range(0, len(left_diff) - 62, 21)
+        ]
+        pairs.append({
+            "pair": f"{left}-{right}",
+            "p50_log_level_correlation": float(np.corrcoef(
+                np.log(left_p50), np.log(right_p50)
+            )[0, 1]),
+            "p50_first_difference_correlation": float(np.corrcoef(
+                left_diff, right_diff
+            )[0, 1]),
+            "rolling_63d_first_difference_correlation": {
+                "minimum": min(rolling_correlations),
+                "median": float(np.median(rolling_correlations)),
+                "maximum": max(rolling_correlations),
+            },
+            "standardized_log_path_dtw": _standardized_log_dtw(left_p50, right_p50),
+            "terminal_wasserstein_2026": float(wasserstein_distance(
+                paths[left_mask, end_2026] / ANCHOR - 1.0,
+                paths[right_mask, end_2026] / ANCHOR - 1.0,
+                u_weights=left_weights, v_weights=right_weights,
+            )),
+            "terminal_wasserstein_2027": float(wasserstein_distance(
+                paths[left_mask, -1] / ANCHOR - 1.0,
+                paths[right_mask, -1] / ANCHOR - 1.0,
+                u_weights=left_weights, v_weights=right_weights,
+            )),
+            "first_touch_minus_10_ks": float(np.max(np.abs(
+                touch_cdfs[left] - touch_cdfs[right]
+            ))),
+        })
+    returns_order = {
+        str(sessions): (
+            per_scenario["S1"]["cumulative_return_p50"][str(sessions)]
+            > per_scenario["S2"]["cumulative_return_p50"][str(sessions)]
+            > per_scenario["S3"]["cumulative_return_p50"][str(sessions)]
+        ) for sessions in checkpoints
+    }
+    mdd_severity = {
+        key: abs(per_scenario[key]["maximum_drawdown_p50"])
+        for key in ("S1", "S2", "S3")
+    }
+    downside = {
+        key: per_scenario[key]["downside_semivolatility_p50"]
+        for key in ("S1", "S2", "S3")
+    }
+    recovery = {
+        key: per_scenario[key]["recovery_days_p50"]
+        for key in ("S1", "S2", "S3")
+    }
+    medoids = [per_scenario[key]["medoid_path_id"] for key in ("S1", "S2", "S3")]
+    descriptive_checks = {
+        "cumulative_return_order_S1_gt_S2_gt_S3": all(returns_order.values()),
+        "maximum_drawdown_severity_order_S1_lt_S2_lt_S3": (
+            mdd_severity["S1"] < mdd_severity["S2"] < mdd_severity["S3"]
+        ),
+        "S1_drawdown_below_80pct_of_S3": mdd_severity["S1"] <= .80 * mdd_severity["S3"],
+        "downside_semivolatility_order_S1_lt_S2_lt_S3": (
+            downside["S1"] < downside["S2"] < downside["S3"]
+        ),
+        "recovery_speed_order_S1_lt_S2_lt_S3": (
+            recovery["S1"] < recovery["S2"] < recovery["S3"]
+        ),
+        "medoid_path_ids_unique": len(set(medoids)) == 3,
+        "paths_unchanged_by_distinctness_evaluation": True,
+    }
+    return {
+        "schema_version": 1,
+        "contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
+        "operational_mode": "report_only",
+        "status": "REPORT_ONLY_INSUFFICIENT_30_TRADING_DAY_SHADOW_HISTORY",
+        "threshold_calibration": {
+            "observations": 0,
+            "minimum": 30,
+            "upper_bound_rule": "shadow_distribution_p75",
+            "lower_bound_rule": "shadow_distribution_p25",
+            "threshold_run_id": None,
+        },
+        "threshold_gate_evaluated": False,
+        "gate_pass": None,
+        "promotion_eligible": False,
+        "sample_adequacy": {
+            "gate_pass": generator_audit["promotion_sample_gate_pass"],
+            "scenarios": {
+                key: generator_audit["promotion_sample_gates"][key]
+                for key in ("S1", "S2", "S3")
+            },
+            "failure_is_promotion_blocking_not_path_mutating": True,
+            "reason": generator_audit["research_sample_exception"],
+        },
+        "failure_action": "display_warning_and_stop_promotion_without_path_mutation",
+        "per_scenario": per_scenario,
+        "pairs": pairs,
+        "descriptive_checks": descriptive_checks,
+        "descriptive_checks_pass": all(descriptive_checks.values()),
+        "seed_stability": "reported_in_external_shadow_diagnostic",
+        "asof_state_cluster_stability": "reported_in_external_shadow_diagnostic",
+    }
 
 
 def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any]]:
@@ -1160,6 +1372,9 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     scenarios, distinctness = _scenario_outputs(
         paths, dates, full_weights, metrics, masks
     )
+    research_distinctness = _research_distinctness(
+        paths, dates, full_weights, masks, scenarios, generator_audit
+    )
     attribution: dict[str, Any] = {}
     probability_keys = [
         "terminal_above_anchor_2026", "terminal_above_v51_reference_2026",
@@ -1211,6 +1426,18 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         ablations["full_evidence"]["probabilities"]["scenario_probabilities"]["S1"]
         - full_without_dotcom_metrics["scenario_probabilities"]["S1"]
     )
+    dotcom_audit["A_evidence_strength"] = float(
+        inputs["weight_contract"]["weight_spaces"]["A_evidence_strength"]["active"]
+    )
+    dotcom_audit["B_generator_dotcom_block_share"] = float(
+        generator_audit["B_generator_dotcom_block_share"]
+    )
+    dotcom_audit["B_realized_dotcom_session_share"] = float(
+        generator_audit["scenarios"]["S1"]["sampling"]["realized_dotcom_session_share"]
+    )
+    dotcom_audit["C_mixture_probability"] = {
+        key: float(full_weights[mask].sum()) for key, mask in masks.items()
+    }
     dotcom_audit["generator"] = generator_audit
     dotcom_audit["path_engine_share_by_scenario"] = {
         scenario: {
@@ -1251,7 +1478,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "official_snapshot_overwritten": False,
     }
     sensitivity_rows: list[dict[str, Any]] = []
-    for s1_strength in (.28, .45, .60):
+    for s1_strength in (.40, .60):
         if math.isclose(s1_strength, .60):
             sensitivity_weighting = weighting
             sensitivity_metrics = ablations["full_evidence"]["probabilities"]
@@ -1291,6 +1518,53 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             for earlier, later in zip(sensitivity_rows, sensitivity_rows[1:])
         )
     )
+    b_sensitivity_rows: list[dict[str, Any]] = []
+    for generator_share in (.40, .60):
+        if math.isclose(generator_share, .60):
+            sensitivity_paths = paths
+            sensitivity_dates = dates
+            sensitivity_engines = engines
+            sensitivity_generator_audit = generator_audit
+            sensitivity_weighting = weighting
+        else:
+            sensitivity_paths, sensitivity_dates, sensitivity_engines, _, \
+                sensitivity_generator_audit = generate_prior(
+                    root, inputs, generator_dotcom_share=generator_share
+                )
+            sensitivity_weighting = build_weights(
+                sensitivity_paths, sensitivity_dates, sensitivity_engines,
+                scores, inputs["dotcom"], sensitivity_generator_audit,
+            )
+        sensitivity_masks = _engine_masks(sensitivity_engines)
+        sensitivity_weights = sensitivity_weighting["full_evidence"]["weights"]
+        sensitivity_bands = _bands(
+            sensitivity_paths[sensitivity_masks["S1"]],
+            sensitivity_weights[sensitivity_masks["S1"]]
+            / sensitivity_weights[sensitivity_masks["S1"]].sum(),
+        )
+        sensitivity_path_metrics = _path_metrics(sensitivity_paths, sensitivity_dates)
+        conditional_s1 = sensitivity_weights[sensitivity_masks["S1"]] \
+            / sensitivity_weights[sensitivity_masks["S1"]].sum()
+        b_sensitivity_rows.append({
+            "B_generator_dotcom_block_share": generator_share,
+            "status": "active" if math.isclose(generator_share, .60) else "within_cap_shadow",
+            "realized_dotcom_session_share": sensitivity_generator_audit[
+                "scenarios"
+            ]["S1"]["sampling"]["realized_dotcom_session_share"],
+            "S1_p50_returns": {
+                str(sessions): sensitivity_bands["p50"][sessions] / ANCHOR - 1.0
+                for sessions in (21, 63, 126, 252)
+            },
+            "S1_terminal_return_p50": sensitivity_bands["p50"][-1] / ANCHOR - 1.0,
+            "S1_maximum_drawdown_p50": float(weighted_quantile(
+                sensitivity_path_metrics["maximum_drawdown"][sensitivity_masks["S1"]],
+                conditional_s1, (.50,),
+            )[0]),
+            "C_mixture_probability": {
+                key: float(sensitivity_weights[mask].sum())
+                for key, mask in sensitivity_masks.items()
+            },
+        })
     candidate = {
         "schema_version": 1,
         "artifact_type": "scenario_v5_2_research_candidate",
@@ -1342,6 +1616,27 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 "direct_event_return_kernel_used": False,
             },
             "path_creation_note": "No endpoint, drawdown date, or scenario probability is forced.",
+        },
+        "weight_spaces": {
+            "contract_id": inputs["weight_contract"]["contract_id"],
+            "contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
+            "A_evidence_strength": {
+                "value": dotcom_audit["A_evidence_strength"],
+                "role": "post_generation_S1_likelihood",
+                "changes_path_geometry": False,
+            },
+            "B_generator_dotcom_block_share": {
+                "value": dotcom_audit["B_generator_dotcom_block_share"],
+                "realized_session_share": dotcom_audit["B_realized_dotcom_session_share"],
+                "role": "S1_phase_block_source_share",
+                "changes_path_geometry": True,
+            },
+            "C_mixture_probability": {
+                "value": dotcom_audit["C_mixture_probability"],
+                "role": "derived_research_cohort_mass",
+                "directly_settable": False,
+                "calibrated_event_probability": False,
+            },
         },
         "evidence_scores": scores,
         "evidence_registry": evidence,
@@ -1465,18 +1760,27 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         },
         "shadow_comparison": shadow_comparison,
         "sensitivity_analysis": {
-            "design": "same paths, evidence and routing rule; vary S1 strength only",
+            "design": "A varies likelihood on fixed paths; B varies S1 phase-block geometry",
             "rows": sensitivity_rows,
+            "B_generator_rows": b_sensitivity_rows,
+            "above_cap_shadow_only": [0.70, 0.80],
+            "above_cap_never_active": True,
             "monotonic_S1_probability_gate": sensitivity_gate,
             "gate_pass": sensitivity_gate,
         },
         "distinctness_2027": distinctness,
+        "distinctness": research_distinctness,
         "display_contract": {
-            "main_chart": "total_mixture_p50_and_bands",
-            "main_chart_scenario_lines": False,
-            "scenario_surface": "S1_S2_S3_conditional_small_multiples",
-            "primary_line": "total_mixture_weighted_p50",
-            "secondary_lines": "seven_actual_central_members_plus_dotted_medoid",
+            "main_chart": "shared_log_axis_three_conditional_p50_with_total_mixture_band",
+            "main_chart_scenario_lines": True,
+            "scenario_surface": "S1_S2_S3_conditional_p50_shared_scale",
+            "primary_line": "three_scenario_conditional_p50_lines",
+            "secondary_lines": "scenario_actual_medoids_plus_total_mixture_p25_p75_band",
+            "probability_space_separation": {
+                "scenario_lines": "scenario_conditional",
+                "gray_band": "total_path_mixture",
+                "cohort_weights": "research_cohort_weight_not_calibrated_event_probability",
+            },
             "fake_wiggle": False,
             "october_2_exact_date_forecast": False,
             "percent_conversion_boundary": "dashboard_only",
@@ -1490,6 +1794,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             **{path: source_file_hash(root, path) for path in SOURCE_PATHS},
             SHADOW_V52_RELATIVE.as_posix(): file_hash(root / SHADOW_V52_RELATIVE),
             LEGACY_V52_RELATIVE.as_posix(): file_hash(root / LEGACY_V52_RELATIVE),
+            WEIGHT_CONTRACT_RELATIVE.as_posix(): file_hash(root / WEIGHT_CONTRACT_RELATIVE),
         },
         "protected_write_contract": {
             "official_snapshot": "read_only",

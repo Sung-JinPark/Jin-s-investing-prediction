@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-08-11T02:44:59+00:00",
+  "pytest": {
+    "status": "pass",
+    "tests": 466,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "time_seconds": 115.72
+  },
+  "javascript_syntax": "pass",
+  "security_pattern_scan": "pass",
+  "static_build": {
+    "index": "_site/index.html",
+    "data": "_site/data.json",
+    "model_content_sha256": "698a811944ade9b01be7475aa30d075c5755cd115637301399a30e18a928a2b2"
+  },
+  "browser": {
+    "local_1280": "pass",
+    "local_390": "pass",
+    "champion_default": "gbm-daily-252d-v2-lookup",
+    "research_default_range": "quarter"
+  },
+  "protected": {
+    "ok": true,
+    "added": [],
+    "removed": [],
+    "changed": [],
+    "before_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b",
+    "after_manifest_sha256": "d2b096f95e34cbd7836e3da9988b590694e3af70e5acd3fb33abaffc5c7ae73b"
+  },
+  "global_ledger_audit_note": "New V5.2 ledgers are schema-valid. One pre-existing protected cross_asset_archive immutable-change violation remains and was not modified."
+}

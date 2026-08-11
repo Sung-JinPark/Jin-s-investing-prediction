@@ -1,7 +1,5 @@
-# Phase F — Conditional scenarios and 2027 distinctness
+# Phase F — Conditional scenarios and distinctness
 
-Gate: **PASS**
+Gate: **PASS FOR DESCRIPTIVE CHECKS; THRESHOLD GATE REPORT-ONLY**
 
-Full-mixture probabilities are S1 79.52%, S2 14.70%, S3 5.78%. These are evidence-conditioned weights over three immutable database-generator cohorts, not manually entered probabilities and not output-based path labels. Every pair passes the registered median and distribution-distance gates.
-
-Main chart semantics: total mixture. Scenario semantics: conditional small multiples from S1 dotcom, S2 modern baseline, and S3 macro-tightening databases. 2027 distinctness gate: `True`.
+Research cohort weights are S1 79.91%, S2 14.42%, S3 5.67%. They are derived cohort masses, not calibrated event probabilities. Daily first-difference correlations, DTW, 2026/2027 Wasserstein distance, return/MDD/semivolatility/recovery ordering, first-touch KS, unique medoids, origin counts, and ESS are serialized in `SCENARIO_DISTINCTNESS_REPORT_ONLY.json`. Thresholds remain report-only until 30 approved trading-day shadow observations exist; failure never mutates paths. Legacy 2027 descriptive gate: `True`.

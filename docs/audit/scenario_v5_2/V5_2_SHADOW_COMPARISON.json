@@ -11,16 +11,16 @@
     "dotcom_likelihood_isolated_to_S1_at_0.60"
   ],
   "metric_deltas": {
-    "terminal_above_anchor_2026": -0.12095688837950036,
-    "terminal_above_v51_reference_2026": -0.1146881327743855,
-    "new_ath_by_2026": -0.03008879278011689,
-    "first_touch_minus_10_by_october_end": 0.07556320653291118,
-    "terminal_above_anchor_2027": -0.06751462487044912
+    "terminal_above_anchor_2026": -0.024422274632327934,
+    "terminal_above_v51_reference_2026": -0.02699260215514465,
+    "new_ath_by_2026": 0.015395359341398462,
+    "first_touch_minus_10_by_october_end": -0.0605809535172723,
+    "terminal_above_anchor_2027": 0.0297065656810811
   },
   "scenario_probability_deltas": {
-    "S1": 0.13989290155678158,
-    "S2": -0.023653699832713815,
-    "S3": -0.11623920172406779
+    "S1": 0.14385934211567553,
+    "S2": -0.026500477098115677,
+    "S3": -0.11735886501756004
   },
   "official_snapshot_overwritten": false
 }

@@ -1,0 +1,314 @@
+- link "본문으로 건너뛰기":
+  - /url: "#app"
+- complementary "제품 내비게이션":
+  - link "Jin's Investing 오늘 화면으로 이동":
+    - /url: "#today"
+    - strong: JIN'S INVESTING
+    - generic: PREDICTION SYSTEM
+  - navigation "대시보드 화면":
+    - link "↗ 01 오늘":
+      - /url: "#today"
+      - text: ↗
+      - generic: "01"
+      - generic: 오늘
+    - link "↗ 02 미래 탐색":
+      - /url: "#future"
+      - text: ↗
+      - generic: "02"
+      - generic: 미래 탐색
+    - link "↗ 03 기록과 검증":
+      - /url: "#records"
+      - text: ↗
+      - generic: "03"
+      - generic: 기록과 검증
+    - link "↗ 04 데이터와 신뢰":
+      - /url: "#trust"
+      - text: ↗
+      - generic: "04"
+      - generic: 데이터와 신뢰
+  - button "빠른 이동 열기":
+    - generic: 빠른 이동
+    - generic: ⌘ K
+  - group "현재 화면 도구":
+    - button "현재 화면 고정":
+      - generic: ☆
+      - generic: 고정
+    - button "현재 화면 공유":
+      - generic: ↗
+      - generic: 공유
+    - button "보기 및 데이터 설정":
+      - generic: ≡
+      - generic: 보기
+  - button "데이터 상태 열기":
+    - generic: AGING
+    - generic: P1
+    - paragraph: NASDAQ 26,691
+    - paragraph: 갱신 2026-08-11 11:14 KST
+- text: ↗ ↗ ↗ ↗
+- generic "현재 시장 요약":
+  - generic: NASDAQ 종합
+  - strong: 26,691
+  - generic: 전고점 ATH
+  - strong: 27,094
+  - generic: −10% 조정선
+  - strong: 24,385
+  - generic: 시장 폭
+  - strong: 58.3%
+  - generic: 경기 국면
+  - strong: 확장
+  - button "빠른 이동 열기":
+    - text: ↗
+    - generic: 빠른 이동
+    - generic: ⌘ K
+- main:
+  - paragraph: 시장 전망 · Scenario Map
+  - heading "향후 12개월 시장 경로는 어떤 분포인가" [level=1]
+  - paragraph: 나스닥 종합의 조건부 구간과 조정·회복 경로를 함께 봅니다. 시나리오 기준 2026-08-07 · 참고 의견이며 투자 자문이 아닙니다.
+  - button "날짜·기간 조회 ↗"
+  - navigation "전망 모델 선택":
+    - link "기본 전망 gbm-daily-252d-v2-lookup 승격된 기준 모델 · 기본 노출":
+      - /url: "#future"
+      - generic: 기본 전망
+      - strong: gbm-daily-252d-v2-lookup
+      - generic: 승격된 기준 모델 · 기본 노출
+    - link "연구 후보 Scenario V5.2 적격 사건 1/60 · degraded":
+      - /url: "#future/research"
+      - generic: 연구 후보
+      - strong: Scenario V5.2
+      - generic: 적격 사건 1/60 · degraded
+  - region "Scenario V5.1 stale candidate":
+    - generic: SCENARIO V5.1 RUNTIME GATE
+    - strong: STALE/INVALID CANDIDATE
+    - generic: "candidate is stale: 3 trading days old"
+    - paragraph: V5.1 표시를 중단하고 official legacy fallback을 사용합니다.
+  - note:
+    - generic: SCENARIO VINTAGE
+    - paragraph:
+      - text: 시장 시나리오는
+      - strong: 2026-08-07
+      - text: 확정 종가 기준입니다. 다음 자동 갱신 전까지 최신 종가와 차이가 날 수 있습니다.
+    - generic: AGING
+  - region "시장 경로 변화 추적":
+    - generic: SCENARIO CHANGE
+    - strong: 시장 경로 변화 추적
+    - generic: 3 SNAPSHOTS
+    - text: WHAT CHANGED · 2026-08-06 → 2026-08-07
+    - heading "상방 돌파 경로가 확대됐습니다." [level=2]
+    - paragraph: 저장된 시나리오 수치의 차이만 요약하며 뉴스나 이벤트를 원인으로 추론하지 않습니다.
+    - generic: NASDAQ 앵커
+    - strong: "+342"
+    - generic: +1.3%
+    - generic: 연말 중앙값
+    - strong: "+339"
+    - generic: 29,086
+    - generic: S1 · ATH 돌파
+    - strong: +3%p
+    - generic: 94%
+    - generic: S3 · 조정·횡보
+    - strong: "-3%p"
+    - generic: 5%
+    - generic: 이전
+    - img "이전 경로 분포 S1 91%, S2 1%, S3 8%":
+      - generic "S1 91%"
+      - generic "S2 1%"
+      - generic "S3 8%"
+    - generic: 91/1/8
+    - generic: 현재
+    - img "현재 경로 분포 S1 94%, S2 1%, S3 5%":
+      - generic "S1 94%"
+      - generic "S2 1%"
+      - generic "S3 5%"
+    - generic: 94/1/5
+    - generic: COMPARE FROM
+    - button "08-03"
+    - button "08-06" [pressed]
+    - generic "MODEL RECEIPT · 산식과 한계 보기"
+  - tablist "시장 지도 분석 공간":
+    - tab "01 미래 분포 시나리오 안의 조건부 값" [selected]:
+      - generic: "01"
+      - text: 미래 분포
+      - generic: 시나리오 안의 조건부 값
+    - tab "02 사이클 비교 참고용":
+      - generic: "02"
+      - text: 사이클 비교
+      - generic: 참고용
+    - tab "03 자산 전이 참고용":
+      - generic: "03"
+      - text: 자산 전이
+      - generic: 참고용
+    - tab "04 유동성 참고용":
+      - generic: "04"
+      - text: 유동성
+      - generic: 참고용
+  - tabpanel "01 미래 분포 시나리오 안의 조건부 값":
+    - heading "2026년 DB 조건부 구조 경로" [level=2]
+    - generic: S1 DB 조건부 구조 경로 · 94%
+    - generic: S2 DB 조건부 구조 경로 · 1%
+    - generic: S3 DB 조건부 구조 경로 · 5%
+    - generic: 굴곡 적용 전 GBM 중심 경로
+    - generic: 조건부 구간 p10–p90 · 중앙값 p50
+    - generic: 혁신사이클 대표 참조선 · 확률 아님
+    - group "시나리오 경로 강조":
+      - generic: SPOTLIGHT
+      - button "전체" [pressed]: 전체
+      - button "상승·ATH 돌파": 상승·ATH 돌파
+      - button "상승·ATH 미달": 상승·ATH 미달
+      - button "조정·횡보": 조정·횡보
+      - button "혁신사이클 참조": 혁신사이클 참조
+    - group "구조 굴곡 비교":
+      - generic: PATH LAYERS
+      - button "굴곡 전 GBM 같이 보기" [pressed]: 굴곡 전 GBM 같이 보기
+      - generic: 기본 표시 · 회색 고스트 선은 같은 종점의 비교 기준
+    - group "Scenario Graph V4 legacy diagnostic toggle":
+      - generic: SCENARIO GRAPH V4
+      - button "Legacy actual-member diagnostic": Legacy actual-member diagnostic
+      - generic: default OFF · not RCFHS · not official probability or champion
+    - region "상승·회복 사이의 조정을 역사 DB로 복원했습니다":
+      - paragraph: DB-CONDITIONED PATH · MONTHLY RISK WINDOW
+      - heading "상승·회복 사이의 조정을 역사 DB로 복원했습니다" [level=3]
+      - paragraph: 굵은 선은 무작위 모의 표본이 아닙니다. 선택 혁신시대의 월별 굴곡을 연도별로 추출하고, 커밋된 조정 깊이 중앙값에 맞춘 구조 경로입니다. 회색 고스트 선은 굴곡 적용 전 GBM 중심 경로, 회색 점선은 혁신사이클 대표 참조선입니다.
+      - note:
+        - strong: 굴곡=역사 중앙 형태 가정
+        - generic: 발생 여부의 확률 진술이 아닙니다. 화면의 조정 모양을 S1/S2/S3에서 100% 발생하는 사건으로 읽지 마세요.
+      - article:
+        - generic: 2026 · 2026-08-07~2026-12-30
+        - strong: 2026-10 중심 월 단위 위험창
+        - generic: 2026-09-04~2026-11-23 · S1 -12.1% · S2 -17% · S3 -20.7%
+      - article:
+        - generic: 2027 · 2027-01-07~2027-08-10
+        - strong: 2027-07 중심 월 단위 위험창
+        - generic: 2027-07-01~2027-07-23 · S1 -7% · S2 -6.8% · S3 -7%
+      - note:
+        - strong: 시대 선택은 위치, base rate는 깊이를 정합니다
+        - generic: 시대를 교체하면 위험창 중심월은 움직이지만, 화면 낙폭은 모든 조합을 조정 base rate −12.19%에 다시 맞춥니다. 아래 native 범위는 보정 전 민감도입니다.
+      - generic: AI 조정 DB
+      - text: 5회 · 중앙 -10.4%
+      - generic: 닷컴 조정 DB
+      - text: 6회 · 중앙 -12.3%
+      - generic: 선택 3시대 원형 → 목표
+      - text: "-6.9% → −12.19%"
+      - generic: 기하 detrend 잔차
+      - text: "-10.6% · 지수 1.62×"
+      - generic: 화면 S1 낙폭
+      - text: 원형 -6.5% · 보정 -12.1%
+      - generic: 공용 strength
+      - text: S1 94% 의존 근사 · 시나리오별 대안 병기
+      - generic: 시대 교체 native
+      - text: 6안 · -14.4~-3%
+      - generic: 시대 교체 calibrated
+      - text: "-12.2~-12.1% · 깊이 고정"
+      - generic: 선택 위상
+      - text: M+42 · biotech2015 · dotcom · japan1989
+      - generic: GBM 추세 가정
+      - text: 연 μ +23.2% · 연 σ 18.494%
+      - generic: AI 레짐
+      - text: blocked · coverage 0% · 수치 제외
+      - generic "시대 교체별 native·calibrated 낙폭 비교"
+      - generic: PHYSICAL EVENT · 별도 확률 공간
+      - strong: 8–10월 −10% 종가 발생 57%
+      - generic: 80% 구간 44–70% · 임계까지 -8.6% · 잔여 59거래일
+      - emphasis: 무드리프트 기계적 기준 ≈31% · 해석 보조일 뿐 등록 확률과 결합하지 않음
+      - paragraph:
+        - strong: 94%는 ‘2026년 말까지 ATH 돌파’ 조건부 경로 비중이며, 종점은 trailing 252거래일 μ의 추세 지속 가정을 상속합니다.
+        - text: 과거 DB의 해상도는 월 단위라 특정 9월 하락일이나 저점 거래일을 지정하지 않습니다. 2027년 조정창도 AI 버블 붕괴일이 아니라 선택 시대 중앙 위상의 되돌림 구간입니다.
+      - text: as_of 2026-08-07 · 구조 경로 v2026-08-06.v3 · seed 42 · 20,000경로 · 단일 가격이나 투자자문이 아님
+    - generic: CURRENT ORIGIN
+    - strong: 2026-08-07
+    - generic: 분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.
+    - group "미래 분포 표시 연도":
+      - button "현재 2026년 2026-08-07~2026-12-30 DB 조정창 포함" [pressed]:
+        - generic: 현재
+        - text: 2026년
+        - generic: 2026-08-07~2026-12-30
+        - emphasis: DB 조정창 포함
+      - button "다음 2027년 2027-01-07~2027-08-10 현 252거래일 지평 · 8월까지":
+        - generic: 다음
+        - text: 2027년
+        - generic: 2027-01-07~2027-08-10
+        - emphasis: 현 252거래일 지평 · 8월까지
+    - region "가로로 스크롤하는 차트 1":
+      - img "2026-08-07 현재 기준 2026년 2026-08-07부터 2026-12-30까지, 선택 주차 8/7, −10%선 누적 터치확률 저.":
+        - generic: 20k
+        - generic: 22.5k
+        - generic: 25k
+        - generic: 27.5k
+        - generic: 30k
+        - generic: 32.5k
+        - generic: 35k
+        - generic: 2026-10 중심 · DB 조정 위험창
+        - generic: 8/7 고용
+        - generic: 8/12 CPI
+        - generic: 8/26 NVDA 실적
+        - generic: 8/26 GDP 2차
+        - generic: 9/4 고용
+        - generic: 9/11 CPI
+        - generic: 9/16 FOMC·SEP
+        - generic: 9/30 GDP 3차
+        - generic: 10/2 고용
+        - generic: 10/14 CPI
+        - generic: 10/28 빅테크 실적 3건
+        - generic: 10/28 FOMC
+        - generic: 10/29 빅테크 실적 2건
+        - generic: 10/29 GDP 속보
+        - generic: 11/6 고용
+        - generic: 11/10 CPI
+        - generic: 11/18 NVDA 실적
+        - generic: 11/25 GDP 2차
+        - generic: 12/4 고용
+        - generic: 12/9 FOMC·SEP
+        - generic: 12/10 CPI
+        - generic: 12/23 GDP 3차
+        - generic: 혁신사이클 참조
+        - generic: 29,300 · 94%
+        - generic: ATH 27,093.9
+        - generic: 26,405 · 1%
+        - generic: −10% 24,384.51
+        - generic: 24,345 · 5%
+        - generic: 26,691
+        - generic: 현재 · 8/7
+        - generic: 9/4
+        - generic: 10/5
+        - generic: 11/2
+        - generic: 12/1
+        - generic: 12/30
+        - generic: −10%선 누적 터치확률
+        - generic: 저
+        - generic: 중
+      - generic: SELECTED WEEK
+      - strong: 8/7
+      - generic: −10%선 누적 터치확률 저
+      - generic: 상승·ATH 돌파
+      - strong: 26,691
+      - generic: 시나리오 질량 94%
+      - generic: 상승·ATH 미달
+      - strong: 26,691
+      - generic: 시나리오 질량 1%
+      - generic: 조정·횡보
+      - strong: 26,691
+      - generic: 시나리오 질량 5%
+    - generic: 가로로 밀어 전체 차트 탐색
+    - strong: 0% · 시작
+    - region "2027년까지 주요 일정":
+      - paragraph: MARKET CALENDAR · APPEND ONLY
+      - heading "2027년까지 주요 일정" [level=3]
+      - paragraph: 확정·추정 분리 · 전망성 해석 제외
+      - button "확정 19 · 추정 34 일정 펼치기":
+        - strong: 확정 19 · 추정 34
+        - generic: 일정 펼치기
+    - generic: −10%선 누적 터치확률 저
+    - generic: 중
+    - generic: 고
+    - generic: 미래 분포
+    - strong: 중앙값 p50 · 안쪽 p25–p75 · 바깥 p10–p90
+    - generic: scenario_conditional · daily-discrete monitoring
+    - paragraph: 굵은 선은 DB 조건부 구조 경로이며 모의 표본을 대표선으로 쓰지 않습니다. 굵은 선의 굴곡은 혁신사이클 DB, 진폭은 다중시대 조정 DB, 연도 종점과 경로 비중은 기존 조건부 분포에서 가져옵니다. fat tail과 돌발 이벤트를 직접 모형화하지 않습니다.
+  - text: ＋ ＋
+- contentinfo:
+  - generic: JIN'S INVESTING
+  - paragraph: 정보 제공 목적 · 투자 자문이나 매매 권유가 아닙니다 · 과거 기록은 미래 성과를 보장하지 않습니다
+  - paragraph: 확률 예측은 캘리브레이션으로 지속 검증됩니다
+- navigation "현재 화면 목차":
+  - 'button "섹션 이동: 향후 12개월 시장 경로는 어떤 분포인가"':
+    - generic: 향후 12개월 시장 경로는 어떤 분포인가
+  - 'button "섹션 이동: 2026년 DB 조건부 구조 경로"':
+    - generic: 2026년 DB 조건부 구조 경로
