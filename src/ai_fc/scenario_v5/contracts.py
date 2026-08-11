@@ -139,3 +139,31 @@ def compare_protected_hashes(before: dict[str, Any], after: dict[str, Any]) -> d
         "before_manifest_sha256": before.get("manifest_sha256"),
         "after_manifest_sha256": after.get("manifest_sha256"),
     }
+
+
+def compare_protected_append_only(
+    before: dict[str, Any], after: dict[str, Any],
+) -> dict[str, Any]:
+    """Verify an historical protected manifest without rejecting later appends.
+
+    Every file that existed in ``before`` must still exist with the same hash.
+    Files first observed in ``after`` are disclosed but allowed.  This is the
+    runtime rule for a research candidate: unrelated append-only ledger growth
+    must not invalidate a candidate, while deletion or mutation of any byte the
+    candidate was built alongside remains fail-closed.
+    """
+    old = before.get("files", {})
+    new = after.get("files", {})
+    added = sorted(set(new) - set(old))
+    removed = sorted(set(old) - set(new))
+    changed = sorted(path for path in set(old) & set(new) if old[path] != new[path])
+    return {
+        "ok": not (removed or changed),
+        "append_only_consistent": not (removed or changed),
+        "new_files_allowed": True,
+        "added": added,
+        "removed": removed,
+        "changed": changed,
+        "before_manifest_sha256": before.get("manifest_sha256"),
+        "after_manifest_sha256": after.get("manifest_sha256"),
+    }

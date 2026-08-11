@@ -13,7 +13,68 @@
     "numerical_event_count": 0,
     "corrections_require_supersedes": true,
     "instant_means": "after a validated normalized release is explicitly ingested",
-    "background_scraping_or_unbounded_self_training": false
+    "background_scraping_or_unbounded_self_training": false,
+    "structural_adapter": {
+      "adapter_id": "structural_event_adapter_v1",
+      "inputs": {
+        "policy_relief": 0.5571334288298516,
+        "labor_growth_risk": 0.7381489105254494,
+        "inflation_risk": 0.0
+      },
+      "episode_group_log_weight_adjustments": {
+        "S1": {
+          "dotcom": -0.1476297821050899,
+          "easing": -0.03620309633911957,
+          "ai_expansion": -0.1476297821050899
+        },
+        "S2": {
+          "soft_landing": 0.009755123271932786,
+          "balanced": -0.036907445526272474
+        },
+        "S3": {
+          "stress": 0.1476297821050899,
+          "tightening": -0.11142668576597033
+        }
+      },
+      "episode_group_weight_multipliers": {
+        "S1": {
+          "dotcom": 0.862750461484179,
+          "easing": 0.9644443984644033,
+          "ai_expansion": 0.862750461484179
+        },
+        "S2": {
+          "soft_landing": 1.0098028595852302,
+          "balanced": 0.963765332014316
+        },
+        "S3": {
+          "stress": 1.1590837033917227,
+          "tightening": 0.8945569727584688
+        }
+      },
+      "phase_duration_selection_tilts": {
+        "S1": {
+          "reacceleration": 0.11142668576597033
+        },
+        "S2": {
+          "mean_reversion": 0.07381489105254495
+        },
+        "S3": {
+          "drawdown": 0.1476297821050899,
+          "stress_persistence": 0.0
+        }
+      },
+      "structural_update_applied": true,
+      "dependency_cap": 0.35,
+      "maximum_absolute_log_weight_adjustment": 0.1476297821050899,
+      "dependency_cap_gate_pass": true,
+      "probability_only_update": false,
+      "source_event_revision_ids": [
+        "BLS_EMPSIT_2026_07_2026_08_07",
+        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07"
+      ],
+      "available_at_lte_as_of_verified_upstream": true
+    },
+    "probability_only_update": false
   },
   "score_state": {
     "active_event_count": 0,

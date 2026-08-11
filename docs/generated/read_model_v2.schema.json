@@ -27,6 +27,7 @@
     "scenario_tracker",
     "band_calibration",
     "liquidity",
+    "statistics_lab",
     "ai_regime",
     "o_entry_cohort",
     "method_changes",
@@ -291,6 +292,45 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "statistics_lab": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "probability_space",
+        "model_use",
+        "official_forecast_input",
+        "charts",
+        "sources",
+        "refresh_policy"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "blocked"
+          ]
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "model_use": {
+          "const": false
+        },
+        "official_forecast_input": {
+          "const": false
+        },
+        "charts": {
+          "type": "array"
+        },
+        "sources": {
+          "type": "array"
         }
       }
     },

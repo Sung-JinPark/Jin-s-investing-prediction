@@ -1,9 +1,10 @@
-schema_version: 2
-contract_id: scenario_v5_2_multilayer_path_weights_v2
+schema_version: 3
+contract_id: scenario_v5_2_complete_separation_weights_v3
 status: preregistered_research_only
 candidate_id: scenario_v5_2_scenario_clustered_db_v4
 probability_unit: fraction
 official_or_champion_use: false
+separation_contract: data/contracts/scenario_v5_3_separation.yaml
 
 weight_spaces:
   A_evidence_strength:
@@ -40,10 +41,10 @@ scenario_generators:
       name: full_scale_phase_preserving
       scale: 1.00
       trimming: winsorize_source_residuals_p01_p99
-    phase_cycle:
-      - {name: acceleration, sessions: 42, selection: source_block_log_return_at_or_above_p60}
-      - {name: correction, sessions: 10, selection: source_block_log_return_below_zero_and_at_or_below_p40}
-      - {name: reacceleration, sessions: 74, selection: source_block_log_return_at_or_above_p55}
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S1_episodes
+      phases: [acceleration, correction, reacceleration]
     phase_assignment_uses_future_outcome_for_current_origin: false
   S2:
     database: balanced_soft_landing_macro_db
@@ -54,15 +55,15 @@ scenario_generators:
       - balanced_growth_policy_overlay
     selected_cluster_minimum_origins: 15
     requested_promotion_minimum_origins: 20
-    sample_status: selected balanced cluster currently exceeds the requested promotion origin minimum
+    sample_status: selected balanced cluster is research-usable but remains below the requested promotion origin minimum
     residual_policy:
       name: independent_full_realized_balanced_blocks
       scale: 1.00
       trimming: none_active_realized_blocks
-    phase_cycle:
-      - {name: steady_drift, sessions: 42, return_quantiles: [0.30, 0.65]}
-      - {name: mean_reversion, sessions: 21, return_quantiles: [0.00, 0.40]}
-      - {name: normalization, sessions: 42, return_quantiles: [0.35, 0.70]}
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S2_episodes
+      phases: [steady_drift, mean_reversion, normalization]
   S3:
     database: tightening_financial_stress_macro_db
     state_coordinates:
@@ -77,16 +78,14 @@ scenario_generators:
       name: independent_full_realized_tightening_stress_blocks
       scale: 1.00
       trimming: none_active_realized_blocks
-    phase_cycle:
-      - {name: drawdown, sessions: 42, return_quantiles: [0.10, 0.45]}
-      - {name: failed_relief, sessions: 42, return_quantiles: [0.70, 1.00]}
-      - {name: stress_persistence, sessions: 42, return_quantiles: [0.30, 0.60]}
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S3_episodes
+      phases: [drawdown, failed_relief, stress_persistence]
 
 database_layer_separation:
-  macro_origin_partition: mutually_exclusive_before_clustering
-  easing_rule: (DFF_63d_lt_minus_0_10pp_or_DGS2_63d_lt_minus_0_25pp)_and_no_simultaneous_tightening_signal_and_NFCI_lt_0_75
-  balanced_rule: not_easing_not_tightening_VIX_12_to_32_NFCI_lt_0_75
-  tightening_rule: DFF_63d_gt_0_10pp_or_DGS2_63d_gt_0_25pp
+  construction: preregistered_nonoverlapping_episode_libraries_then_scenario_native_feature_clustering
+  shared_runtime_inputs_allowed: [current_index_anchor, trading_calendar]
   shared_origin_dates_allowed: false
   shared_residual_pool_allowed: false
   outcome_use: cluster_label_only_after_origin_state_assignments_freeze
@@ -112,6 +111,9 @@ sensitivity_grid:
 distinctness:
   mode_until_calibrated: report_only
   minimum_shadow_trading_days: 30
+  baseline_S1_S2_p50_log_level_correlation: 0.963
+  material_reduction_rule: redesigned_shadow_value_at_least_0.02_below_baseline
+  arbitrary_absolute_target_prohibited: true
   threshold_method:
     upper_bounds: shadow_distribution_p75
     lower_bounds: shadow_distribution_p25
@@ -130,9 +132,9 @@ distinctness:
     - S1_and_S2_maximum_drawdown_below_S3
     - S1_and_S2_downside_semivolatility_below_S3
     - S1_recovery_faster_than_S2_and_S3
-    - S1_short_correction_then_reacceleration
-    - S2_balanced_mean_reversion
-    - S3_drawdown_failed_relief_stress_persistence
+    - phase_repetition_variance
+    - episode_interval_intersection
+    - residual_pool_hash_uniqueness
     - first_touch_minus_10_ks
     - medoid_id_uniqueness
     - seed_stability

@@ -49,7 +49,10 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
 
     assert '"Pillow>=10"' in pages, "Pages OG image build requires Pillow"
     for workflow in (pages, verify):
-        assert 'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh"]' in workflow
+        assert (
+            'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh"]'
+            in workflow
+        )
         assert "types: [completed]" in workflow
 
     ots = (ROOT / ".github" / "workflows" / "ots-stamp.yml").read_text(

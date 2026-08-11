@@ -12,12 +12,14 @@ on:
       - "questions/**"
       - "src/ai_fc/dashboard*"
       - "src/ai_fc/dashboard_parts/**"
+      - "src/ai_fc/statistics_lab.py"
+      - "data/contracts/statistics_lab_v1.yaml"
       - ".github/workflows/pages.yml"
   schedule:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
   workflow_dispatch:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh"]
     types: [completed]
 
 permissions:

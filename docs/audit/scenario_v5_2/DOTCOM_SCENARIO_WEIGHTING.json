@@ -25,32 +25,32 @@
   "dependency_cap": 0.6,
   "joint_growth_risk_policy_relief_score": 0.411247433508063,
   "no_repeat_condition_definition": "no first touch of -10% through October end and year-end above anchor",
-  "prior_no_repeat_condition_probability": 0.5335555555555556,
+  "prior_no_repeat_condition_probability": 0.4831111111111111,
   "compatibility_median_by_scenario": {
-    "S1": -0.16012531545175374,
-    "S2": 0.4167359394036949,
-    "S3": -0.7468603329041551
+    "S1": -0.04114354781156916,
+    "S2": 0.43265949763641154,
+    "S3": -0.8763198008615025
   },
   "mean_log_adjustment_by_scenario": {
-    "S1": 0.24914451128648155,
+    "S1": 0.2647321586573291,
     "S2": 0.0,
     "S3": 0.0
   },
   "one_month_negative_target_preserved": true,
   "forced_endpoint": false,
   "forced_october_direction": false,
-  "no_repeat_probability_before_dotcom": 0.7809178591494488,
-  "no_repeat_probability_after_dotcom": 0.8046852179388998,
-  "S1_no_repeat_probability_before_dotcom": 0.9326666666666648,
-  "S1_no_repeat_probability_after_dotcom": 0.9356788690273493,
-  "S1_probability_increment": 0.062330572982187804,
+  "no_repeat_probability_before_dotcom": 0.7045829556022204,
+  "no_repeat_probability_after_dotcom": 0.7413728471330479,
+  "S1_no_repeat_probability_before_dotcom": 0.8819999999999985,
+  "S1_no_repeat_probability_after_dotcom": 0.8883003767439946,
+  "S1_probability_increment": 0.0554199085471031,
   "A_evidence_strength": 0.6,
   "B_generator_dotcom_block_share": 0.6,
-  "B_realized_dotcom_session_share": 0.6000897435897435,
+  "B_realized_dotcom_session_share": 0.5827335164835165,
   "C_mixture_probability": {
-    "S1": 0.6298419415086487,
-    "S2": 0.32238835694924844,
-    "S3": 0.04776970154210286
+    "S1": 0.7488449739422544,
+    "S2": 0.13830367206221728,
+    "S3": 0.11285135399552829
   },
   "generator": {
     "method": "deterministic_k_medoids_then_cluster_level_outcome_labeling",
@@ -58,499 +58,708 @@
     "cluster_assignment_information_set": "origin_state_features_only",
     "forward_outcome_use": "cluster_labeling_after_assignments_are_frozen",
     "individual_origin_outcome_selection": false,
-    "macro_regime_pre_screens": {
-      "easing_expansion": "(DFF 63-session change < -0.10pp OR DGS2 change < -0.25pp) AND no simultaneous tightening signal AND NFCI < 0.75",
-      "balanced_soft_landing": "no easing or tightening signal AND VIX 12-32 AND NFCI < 0.75",
-      "tightening_stress": "DFF 63-session change > 0.10pp OR DGS2 change > 0.25pp; conflicting rate signals route here conservatively"
-    },
+    "episode_library_policy": "preregistered non-overlapping historical intervals; scenario-specific feature schemas; outcomes withheld until assignments freeze",
     "macro_asof_join": "backward_only; source_date <= state_date",
     "scenario_path_count": 3000,
-    "generator_weight_contract_id": "scenario_v5_2_multilayer_path_weights_v2",
+    "generator_weight_contract_id": "scenario_v5_2_complete_separation_weights_v3",
     "A_evidence_strength": 0.6,
     "B_generator_dotcom_block_share": 0.6,
     "B_above_cap_shadow_only": false,
     "C_mixture_probability": "derived_after_evidence_weighting",
-    "easing_growth_auxiliary_cluster_id": 0,
     "macro_regime_cohort_origin_counts": {
-      "easing_expansion": 109,
-      "balanced_soft_landing": 119,
-      "tightening_stress": 162
+      "S1": 193,
+      "S2": 99,
+      "S3": 128
     },
     "macro_regime_cohort_origin_overlap": {
-      "easing_expansion__balanced_soft_landing": 0,
-      "easing_expansion__tightening_stress": 0,
-      "balanced_soft_landing__tightening_stress": 0
+      "S1__S2": 0,
+      "S1__S3": 0,
+      "S2__S3": 0
     },
     "macro_regime_cohorts_disjoint": true,
+    "episode_interval_overlap_count": 0,
+    "episode_ids_by_scenario": {
+      "S1": [
+        "S1_dotcom_opening",
+        "S1_dotcom_reacceleration",
+        "S1_dotcom_melt_up",
+        "S1_easing_rally_2019",
+        "S1_easing_rally_2020_21",
+        "S1_ai_expansion_2023_25"
+      ],
+      "S2": [
+        "S2_soft_landing_1994_95",
+        "S2_midcycle_2004_05",
+        "S2_sideways_recovery_2016",
+        "S2_pre_easing_2019"
+      ],
+      "S3": [
+        "S3_dotcom_bust_2000_02",
+        "S3_gfc_2008_09",
+        "S3_taper_2013",
+        "S3_q4_2018",
+        "S3_tightening_2022"
+      ]
+    },
+    "feature_schemas_by_scenario": {
+      "S1": [
+        "annualized_volatility_20d",
+        "annualized_volatility_60d",
+        "return_60d",
+        "drawdown_60d",
+        "distance_from_200d_mean",
+        "fed_funds_change_63d_pp",
+        "two_year_yield_change_63d_pp",
+        "nfci_z_score"
+      ],
+      "S2": [
+        "annualized_volatility_20d",
+        "annualized_volatility_60d",
+        "return_60d",
+        "drawdown_60d",
+        "distance_from_200d_mean",
+        "fed_funds_change_63d_pp",
+        "ten_two_curve_pp",
+        "ten_year_yield_pp",
+        "vix_level",
+        "nfci_z_score"
+      ],
+      "S3": [
+        "annualized_volatility_20d",
+        "annualized_volatility_60d",
+        "return_60d",
+        "drawdown_60d",
+        "distance_from_200d_mean",
+        "fed_funds_change_63d_pp",
+        "two_year_yield_change_63d_pp",
+        "ten_two_curve_pp",
+        "ten_year_yield_pp",
+        "vix_level",
+        "nfci_z_score"
+      ]
+    },
+    "feature_schemas_distinct": true,
+    "residual_pool_hashes_unique": true,
+    "fixed_phase_template_prohibited": true,
+    "fixed_phase_template_active": false,
+    "phase_repetition_gates_pass": true,
+    "kernel_gates_pass": false,
+    "structural_event_adapter": {
+      "adapter_id": "structural_event_adapter_v1",
+      "inputs": {
+        "policy_relief": 0.5571334288298516,
+        "labor_growth_risk": 0.7381489105254494,
+        "inflation_risk": 0.0
+      },
+      "episode_group_log_weight_adjustments": {
+        "S1": {
+          "dotcom": -0.1476297821050899,
+          "easing": -0.03620309633911957,
+          "ai_expansion": -0.1476297821050899
+        },
+        "S2": {
+          "soft_landing": 0.009755123271932786,
+          "balanced": -0.036907445526272474
+        },
+        "S3": {
+          "stress": 0.1476297821050899,
+          "tightening": -0.11142668576597033
+        }
+      },
+      "episode_group_weight_multipliers": {
+        "S1": {
+          "dotcom": 0.862750461484179,
+          "easing": 0.9644443984644033,
+          "ai_expansion": 0.862750461484179
+        },
+        "S2": {
+          "soft_landing": 1.0098028595852302,
+          "balanced": 0.963765332014316
+        },
+        "S3": {
+          "stress": 1.1590837033917227,
+          "tightening": 0.8945569727584688
+        }
+      },
+      "phase_duration_selection_tilts": {
+        "S1": {
+          "reacceleration": 0.11142668576597033
+        },
+        "S2": {
+          "mean_reversion": 0.07381489105254495
+        },
+        "S3": {
+          "drawdown": 0.1476297821050899,
+          "stress_persistence": 0.0
+        }
+      },
+      "structural_update_applied": true,
+      "dependency_cap": 0.35,
+      "maximum_absolute_log_weight_adjustment": 0.1476297821050899,
+      "dependency_cap_gate_pass": true,
+      "probability_only_update": false,
+      "source_event_revision_ids": [
+        "BLS_EMPSIT_2026_07_2026_08_07",
+        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07"
+      ],
+      "available_at_lte_as_of_verified_upstream": true
+    },
     "base_scenario_scores": {
-      "S1": 0.6540607651101356,
-      "S2": 0.40384219213668426,
-      "S3": 0.06615160275395157
+      "S1": 0.6222317178529744,
+      "S2": 0.14092317299103727,
+      "S3": 0.12711914916770067
     },
     "scenarios": {
       "S1": {
-        "source_group": "dotcom_expansion_cycle_db",
+        "source_group": "expansion_and_easing_episode_db",
         "feature_names": [
           "annualized_volatility_20d",
           "annualized_volatility_60d",
           "return_60d",
           "drawdown_60d",
-          "distance_from_200d_mean"
+          "distance_from_200d_mean",
+          "fed_funds_change_63d_pp",
+          "two_year_yield_change_63d_pp",
+          "nfci_z_score"
         ],
-        "origin_count": 94,
+        "origin_count": 193,
         "cluster_count": 5,
         "selected_cluster_id": 0,
         "selected_cluster": {
           "cluster_id": 0,
-          "origin_count": 63,
-          "medoid_date": "1999-10-14",
+          "origin_count": 167,
+          "medoid_date": "2024-05-16",
           "feature_medians": {
-            "annualized_volatility_20d": 0.20984397986178843,
-            "annualized_volatility_60d": 0.21078877057836465,
-            "return_60d": 0.06934528462487188,
-            "drawdown_60d": -0.08850600103085193,
-            "distance_from_200d_mean": 0.09026918433791797
+            "annualized_volatility_20d": 0.17044287775800654,
+            "annualized_volatility_60d": 0.17101739661078888,
+            "return_60d": 0.06585422180129741,
+            "drawdown_60d": -0.07277390299284592,
+            "distance_from_200d_mean": 0.10807796475812226,
+            "fed_funds_change_63d_pp": 0.0,
+            "two_year_yield_change_63d_pp": -0.010000000000000009,
+            "nfci_z_score": -0.511
           },
           "outcome_medians": {
-            "forward_return_126d": 0.1380913344263608,
-            "forward_return_252d": 0.28006351768212534,
-            "forward_return_horizon": 0.39611262761211696,
+            "forward_return_126d": 0.11648414535806273,
+            "forward_return_252d": 0.25621998657463974,
+            "forward_return_horizon": 0.3356739842230305,
             "maximum_drawdown_252d": -0.16553656486410773,
-            "maximum_drawdown_horizon": -0.29545984857887553
+            "maximum_drawdown_horizon": -0.2431846312238245
           },
           "forward_252d_iqr": [
-            0.13816123488190557,
-            0.4339825754841483
+            0.13651129466441936,
+            0.37251726446490185
           ]
         },
         "selection_rule": "maximum cluster-level expansion score",
         "selected_cluster_minimum_origins": 15,
         "requested_promotion_minimum_origins": 15,
-        "cluster_assignments_sha256": "49808c740ed87112ce43aef97df88429917714b2f5e1b9566c24f00548b6c55d",
+        "cluster_assignments_sha256": "5c21eaca7a79428ccf4eea5b02db8028c8367e7f7a97fced9b6b04ea23da51cf",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
         "cluster_inventory": [
           {
             "cluster_id": 0,
-            "origin_count": 63,
-            "medoid_date": "1999-10-14",
+            "origin_count": 167,
+            "medoid_date": "2024-05-16",
             "feature_medians": {
-              "annualized_volatility_20d": 0.20984397986178843,
-              "annualized_volatility_60d": 0.21078877057836465,
-              "return_60d": 0.06934528462487188,
-              "drawdown_60d": -0.08850600103085193,
-              "distance_from_200d_mean": 0.09026918433791797
+              "annualized_volatility_20d": 0.17044287775800654,
+              "annualized_volatility_60d": 0.17101739661078888,
+              "return_60d": 0.06585422180129741,
+              "drawdown_60d": -0.07277390299284592,
+              "distance_from_200d_mean": 0.10807796475812226,
+              "fed_funds_change_63d_pp": 0.0,
+              "two_year_yield_change_63d_pp": -0.010000000000000009,
+              "nfci_z_score": -0.511
             },
             "outcome_medians": {
-              "forward_return_126d": 0.1380913344263608,
-              "forward_return_252d": 0.28006351768212534,
-              "forward_return_horizon": 0.39611262761211696,
+              "forward_return_126d": 0.11648414535806273,
+              "forward_return_252d": 0.25621998657463974,
+              "forward_return_horizon": 0.3356739842230305,
               "maximum_drawdown_252d": -0.16553656486410773,
-              "maximum_drawdown_horizon": -0.29545984857887553
+              "maximum_drawdown_horizon": -0.2431846312238245
             },
             "forward_252d_iqr": [
-              0.13816123488190557,
-              0.4339825754841483
+              0.13651129466441936,
+              0.37251726446490185
             ]
           },
           {
             "cluster_id": 1,
-            "origin_count": 6,
-            "medoid_date": "2000-12-12",
+            "origin_count": 2,
+            "medoid_date": "2020-03-30",
             "feature_medians": {
-              "annualized_volatility_20d": 0.5816068953937603,
-              "annualized_volatility_60d": 0.5400927064543399,
-              "return_60d": -0.22232960507170246,
-              "drawdown_60d": -0.3303580679950583,
-              "distance_from_200d_mean": -0.2622806672849
+              "annualized_volatility_20d": 0.7769301893831493,
+              "annualized_volatility_60d": 0.59356979340214,
+              "return_60d": -0.11744182005722698,
+              "drawdown_60d": -0.3011567476607335,
+              "distance_from_200d_mean": -0.030382778595476778,
+              "fed_funds_change_63d_pp": -1.475,
+              "two_year_yield_change_63d_pp": -1.355,
+              "nfci_z_score": 0.28049999999999997
             },
             "outcome_medians": {
-              "forward_return_126d": -0.2201028526259674,
-              "forward_return_252d": -0.23355322794541428,
-              "forward_return_horizon": -0.4161964836505842,
-              "maximum_drawdown_252d": -0.4435793690811799,
-              "maximum_drawdown_horizon": -0.5117888960037879
+              "forward_return_126d": 0.41236094474637763,
+              "forward_return_252d": 0.6526839101480734,
+              "forward_return_horizon": 0.8578367697383632,
+              "maximum_drawdown_252d": -0.11805226086639176,
+              "maximum_drawdown_horizon": -0.11805226086639176
             },
             "forward_252d_iqr": [
-              -0.30340907806557293,
-              -0.1097768682222654
+              0.6400023063764484,
+              0.6653655139196983
             ]
           },
           {
             "cluster_id": 2,
             "origin_count": 5,
-            "medoid_date": "2000-02-14",
+            "medoid_date": "2020-05-27",
             "feature_medians": {
-              "annualized_volatility_20d": 0.3285379469387748,
-              "annualized_volatility_60d": 0.29102390787461335,
-              "return_60d": 0.35149064504387684,
-              "drawdown_60d": -0.09779843385013842,
-              "distance_from_200d_mean": 0.3687705372782617
+              "annualized_volatility_20d": 0.29947671005227267,
+              "annualized_volatility_60d": 0.610839839898686,
+              "return_60d": -0.05936111481443451,
+              "drawdown_60d": -0.25567829216830085,
+              "distance_from_200d_mean": 0.06518572065093164,
+              "fed_funds_change_63d_pp": -1.53,
+              "two_year_yield_change_63d_pp": -1.0200000000000005,
+              "nfci_z_score": -0.068
             },
             "outcome_medians": {
-              "forward_return_126d": 0.06320590425740402,
-              "forward_return_252d": -0.33627479966946405,
-              "forward_return_horizon": -0.4817383964965216,
-              "maximum_drawdown_252d": -0.5460422848223871,
-              "maximum_drawdown_horizon": -0.6753964449691203
+              "forward_return_126d": 0.3011624484173929,
+              "forward_return_252d": 0.574504772065396,
+              "forward_return_horizon": 0.6847542848114427,
+              "maximum_drawdown_252d": -0.11805226086639176,
+              "maximum_drawdown_horizon": -0.11805226086639176
             },
             "forward_252d_iqr": [
-              -0.4505618358963914,
-              -0.17915759058812986
+              0.45957018218597656,
+              0.6323734596693904
             ]
           },
           {
             "cluster_id": 3,
-            "origin_count": 5,
-            "medoid_date": "2000-04-13",
+            "origin_count": 4,
+            "medoid_date": "1998-10-27",
             "feature_medians": {
-              "annualized_volatility_20d": 0.5584514840667686,
-              "annualized_volatility_60d": 0.44530072146797145,
-              "return_60d": -0.17626681127982646,
-              "drawdown_60d": -0.28296128621522487,
-              "distance_from_200d_mean": 0.003562226553703418
+              "annualized_volatility_20d": 0.4497856131246495,
+              "annualized_volatility_60d": 0.41709523131037185,
+              "return_60d": -0.06501369356328063,
+              "drawdown_60d": -0.2453517598234234,
+              "distance_from_200d_mean": -0.0347347679404163,
+              "fed_funds_change_63d_pp": -0.395,
+              "two_year_yield_change_63d_pp": -1.0750000000000002,
+              "nfci_z_score": -0.013
             },
             "outcome_medians": {
-              "forward_return_126d": -0.16039804304741323,
-              "forward_return_252d": -0.42190068327027297,
-              "forward_return_horizon": -0.5028269267737747,
-              "maximum_drawdown_252d": -0.6166253769296811,
-              "maximum_drawdown_horizon": -0.6670643581843745
+              "forward_return_126d": 0.4597477282571455,
+              "forward_return_252d": 0.6843145931933449,
+              "forward_return_horizon": 1.6181299405254754,
+              "maximum_drawdown_252d": -0.13069387812098532,
+              "maximum_drawdown_horizon": -0.18600927599446143
             },
             "forward_252d_iqr": [
-              -0.46171996176341246,
-              0.676987801753163
+              0.6656459298242136,
+              0.732686452698869
             ]
           },
           {
             "cluster_id": 4,
             "origin_count": 15,
-            "medoid_date": "2002-09-19",
+            "medoid_date": "2000-01-05",
             "feature_medians": {
-              "annualized_volatility_20d": 0.3566516648945789,
-              "annualized_volatility_60d": 0.36607859905322027,
-              "return_60d": -0.1457454055154881,
-              "drawdown_60d": -0.2170420605080995,
-              "distance_from_200d_mean": -0.19796814012203146
+              "annualized_volatility_20d": 0.298677368011237,
+              "annualized_volatility_60d": 0.28779208607806966,
+              "return_60d": 0.33938300937986043,
+              "drawdown_60d": -0.07811176460501723,
+              "distance_from_200d_mean": 0.28313347567006364,
+              "fed_funds_change_63d_pp": 0.20000000000000018,
+              "two_year_yield_change_63d_pp": 0.4400000000000004,
+              "nfci_z_score": -0.209
             },
             "outcome_medians": {
-              "forward_return_126d": -0.0345055535780443,
-              "forward_return_252d": -0.2037897630579918,
-              "forward_return_horizon": -0.138074355282105,
-              "maximum_drawdown_252d": -0.3437262536595137,
-              "maximum_drawdown_horizon": -0.45900707980071676
+              "forward_return_126d": 0.04742777306521617,
+              "forward_return_252d": -0.15236871271252395,
+              "forward_return_horizon": -0.3673803853137454,
+              "maximum_drawdown_252d": -0.43041068648462355,
+              "maximum_drawdown_horizon": -0.6753964449691203
             },
             "forward_252d_iqr": [
-              -0.2760207408925613,
-              0.3090766265892414
+              -0.3482709649633329,
+              0.7629303306515325
             ]
           }
         ],
-        "auxiliary_easing_layer": {
-          "source_group": "falling_rate_loose_financial_conditions_db",
-          "feature_names": [
-            "annualized_volatility_20d",
-            "annualized_volatility_60d",
-            "return_60d",
-            "drawdown_60d",
-            "distance_from_200d_mean",
-            "fed_funds_change_63d_pp",
-            "two_year_yield_change_63d_pp",
-            "ten_two_curve_pp",
-            "ten_year_yield_pp",
-            "vix_level",
-            "nfci_z_score"
-          ],
-          "origin_count": 109,
-          "cluster_count": 4,
-          "selected_cluster_id": 0,
-          "selected_cluster": {
-            "cluster_id": 0,
-            "origin_count": 87,
-            "medoid_date": "1998-02-06",
-            "feature_medians": {
-              "annualized_volatility_20d": 0.17042419881247314,
-              "annualized_volatility_60d": 0.16558836994664416,
-              "return_60d": 0.06514660028163344,
-              "drawdown_60d": -0.07134744800230519,
-              "distance_from_200d_mean": 0.08260395745169702,
-              "fed_funds_change_63d_pp": -0.19000000000000017,
-              "two_year_yield_change_63d_pp": -0.3700000000000001,
-              "ten_two_curve_pp": 0.76,
-              "ten_year_yield_pp": 5.26,
-              "vix_level": 17.45,
-              "nfci_z_score": -0.553
-            },
-            "outcome_medians": {
-              "forward_return_126d": 0.10596864477663148,
-              "forward_return_252d": 0.21203678429231654,
-              "forward_return_horizon": 0.2970875585374342,
-              "maximum_drawdown_252d": -0.15053029833157594,
-              "maximum_drawdown_horizon": -0.17325455012548663
-            },
-            "forward_252d_iqr": [
-              0.08877680976849656,
-              0.34909651667535113
-            ]
-          },
-          "cluster_assignments_sha256": "d827c4bbb15e2323d70b22f6ef0a11872ef4dd74ff480741ad42e20d54b84a1d",
-          "clustering_uses_forward_outcomes": false,
-          "outcomes_used_after_assignment_for_cluster_label_only": true
-        },
         "sampling": {
-          "generator": "phase_preserving_historical_block_sampler_v1",
+          "generator": "s1_empirical_variable_episode_sampler_v3",
+          "fixed_phase_template": false,
+          "phase_sampling": "empirical_occurrence_distribution_with_observed_duration_segments",
+          "phase_transition_policy": "empirical_with_current_state_start_no_fixed_cycle",
+          "current_state_start_phase": "acceleration",
+          "current_state_start_probability": 0.7,
+          "empirical_transition_counts": {
+            "acceleration": {
+              "acceleration": 0,
+              "correction": 1,
+              "reacceleration": 2
+            },
+            "correction": {
+              "acceleration": 0,
+              "correction": 0,
+              "reacceleration": 53
+            },
+            "reacceleration": {
+              "acceleration": 0,
+              "correction": 51,
+              "reacceleration": 1
+            }
+          },
+          "phase_names": [
+            "acceleration",
+            "correction",
+            "reacceleration"
+          ],
+          "phase_duration_distribution": {
+            "acceleration": {
+              "empirical": {
+                "count": 3,
+                "minimum": 11,
+                "p50": 13.0,
+                "maximum": 16,
+                "variance": 4.222222222222222
+              },
+              "sampled": {
+                "count": 2130,
+                "p50": 13.0,
+                "variance": 4.456822059115256
+              }
+            },
+            "correction": {
+              "empirical": {
+                "count": 53,
+                "minimum": 3,
+                "p50": 10.0,
+                "maximum": 40,
+                "variance": 50.13527945888216
+              },
+              "sampled": {
+                "count": 28571,
+                "p50": 10.0,
+                "variance": 50.820912657745026
+              }
+            },
+            "reacceleration": {
+              "empirical": {
+                "count": 58,
+                "minimum": 3,
+                "p50": 18.0,
+                "maximum": 84,
+                "variance": 379.3151010701545
+              },
+              "sampled": {
+                "count": 30087,
+                "p50": 18.0,
+                "variance": 406.9592667741652
+              }
+            }
+          },
           "phase_cycle": [
             {
               "phase": "acceleration",
-              "sessions": 42
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 11,
+              "median_sessions": 13.0,
+              "maximum_sessions": 16
             },
             {
               "phase": "correction",
-              "sessions": 10
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 10.0,
+              "maximum_sessions": 40
             },
             {
               "phase": "reacceleration",
-              "sessions": 74
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 18.0,
+              "maximum_sessions": 84
             }
           ],
-          "generator_dotcom_block_share_B": 0.6,
-          "above_cap_shadow_only": false,
-          "realized_dotcom_session_share": 0.6000897435897435,
+          "phase_repetition_gate": {
+            "first_adverse_phase_start_variance": 526.7692262222222,
+            "adverse_phase_duration_variance": 51.97393766666667,
+            "unique_phase_sequence_count": 20,
+            "gate_pass": true
+          },
+          "episode_ids": [
+            "S1_dotcom_opening",
+            "S1_dotcom_reacceleration",
+            "S1_dotcom_melt_up",
+            "S1_easing_rally_2019",
+            "S1_easing_rally_2020_21",
+            "S1_ai_expansion_2023_25"
+          ],
+          "episode_count": 6,
+          "drift_transport": "native_observed_log_returns",
+          "episode_group_weight_multipliers": {
+            "dotcom": 0.862750461484179,
+            "easing": 0.9644443984644033,
+            "ai_expansion": 0.862750461484179
+          },
           "source_session_counts": {
-            "dotcom": 655298,
-            "easing_macro": 436702
+            "easing": 236653,
+            "dotcom": 636345,
+            "ai_expansion": 219002
           },
           "source_block_counts": {
-            "dotcom": 16168,
-            "easing_macro": 10832
+            "easing": 12730,
+            "dotcom": 36477,
+            "ai_expansion": 11581
           },
           "phase_block_counts": {
-            "acceleration": 9000,
-            "correction": 9000,
-            "reacceleration": 9000
+            "acceleration": 2130,
+            "correction": 28571,
+            "reacceleration": 30087
           },
-          "unique_source_origins": 276,
-          "episode_sampling_ess": 120.38213152664358,
-          "maximum_episode_probability": 0.022407407407407407,
-          "top_source_origins": [
-            {
-              "source_origin": "dotcom:1996-07-17",
-              "block_count": 605
-            },
-            {
-              "source_origin": "dotcom:1999-09-15",
-              "block_count": 573
-            },
-            {
-              "source_origin": "dotcom:2003-07-22",
-              "block_count": 483
-            },
-            {
-              "source_origin": "dotcom:1997-08-14",
-              "block_count": 445
-            },
-            {
-              "source_origin": "dotcom:1997-03-17",
-              "block_count": 442
-            },
-            {
-              "source_origin": "dotcom:1998-05-15",
-              "block_count": 426
-            },
-            {
-              "source_origin": "dotcom:1997-06-16",
-              "block_count": 416
-            },
-            {
-              "source_origin": "dotcom:1996-10-15",
-              "block_count": 414
-            },
-            {
-              "source_origin": "dotcom:1999-11-12",
-              "block_count": 411
-            },
-            {
-              "source_origin": "dotcom:1998-08-14",
-              "block_count": 404
-            },
-            {
-              "source_origin": "dotcom:1997-05-15",
-              "block_count": 403
-            },
-            {
-              "source_origin": "dotcom:1998-01-14",
-              "block_count": 403
-            }
-          ],
-          "block_provenance_sha256": "f3e9988c5a5a7f0cbf1d308a099d5eb79d8d89579f86c63d3445d1585979e28f",
+          "realized_dotcom_session_share": 0.5827335164835165,
+          "phase_duration_selection_tilts": {
+            "reacceleration": 0.11142668576597033
+          },
+          "structural_event_update_applied": true,
+          "probability_only_event_update": false,
+          "unique_source_origins": 114,
+          "episode_sampling_ess": 95.08483452369258,
+          "maximum_episode_probability": 0.01891820754096203,
+          "block_provenance_sha256": "8120c1c173bcb0a329aa5d6cd4a050f463595ad35b7812038059e98690b01335",
           "block_provenance_sample": [
             {
               "path_index": 0,
-              "cycle": 0,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "dotcom",
-              "source_start_date": "2000-05-15"
-            },
-            {
-              "path_index": 0,
-              "cycle": 0,
-              "phase": "correction",
-              "sessions": 10,
-              "source": "easing_macro",
-              "source_start_date": "1999-05-10"
-            },
-            {
-              "path_index": 0,
-              "cycle": 0,
+              "segment_index": 0,
               "phase": "reacceleration",
-              "sessions": 74,
-              "source": "easing_macro",
-              "source_start_date": "2020-03-19"
+              "sessions": 16,
+              "episode_id": "S1_easing_rally_2019",
+              "episode_group": "easing",
+              "source_start_date": "2019-08-27",
+              "source_end_date": "2019-09-18"
             },
             {
               "path_index": 0,
-              "cycle": 1,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "dotcom",
-              "source_start_date": "1999-10-14"
-            },
-            {
-              "path_index": 0,
-              "cycle": 1,
+              "segment_index": 1,
               "phase": "correction",
-              "sessions": 10,
-              "source": "easing_macro",
-              "source_start_date": "1994-02-09"
+              "sessions": 6,
+              "episode_id": "S1_dotcom_melt_up",
+              "episode_group": "dotcom",
+              "source_start_date": "2000-01-27",
+              "source_end_date": "2000-02-03"
             },
             {
               "path_index": 0,
-              "cycle": 1,
+              "segment_index": 2,
               "phase": "reacceleration",
-              "sessions": 74,
-              "source": "easing_macro",
-              "source_start_date": "1993-07-14"
+              "sessions": 6,
+              "episode_id": "S1_dotcom_melt_up",
+              "episode_group": "dotcom",
+              "source_start_date": "1999-10-06",
+              "source_end_date": "1999-10-13"
             },
             {
               "path_index": 0,
-              "cycle": 2,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "easing_macro",
-              "source_start_date": "1992-11-11"
+              "segment_index": 3,
+              "phase": "correction",
+              "sessions": 8,
+              "episode_id": "S1_dotcom_opening",
+              "episode_group": "dotcom",
+              "source_start_date": "1995-11-15",
+              "source_end_date": "1995-11-27"
             },
             {
               "path_index": 0,
-              "cycle": 2,
-              "phase": "correction",
-              "sessions": 10,
-              "source": "dotcom",
-              "source_start_date": "2002-03-21"
+              "segment_index": 4,
+              "phase": "reacceleration",
+              "sessions": 13,
+              "episode_id": "S1_dotcom_opening",
+              "episode_group": "dotcom",
+              "source_start_date": "1995-09-01",
+              "source_end_date": "1995-09-20"
             },
             {
               "path_index": 0,
-              "cycle": 2,
-              "phase": "reacceleration",
-              "sessions": 60,
-              "source": "easing_macro",
-              "source_start_date": "1998-01-07"
-            },
-            {
-              "path_index": 1,
-              "cycle": 0,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "dotcom",
-              "source_start_date": "1997-06-16"
-            },
-            {
-              "path_index": 1,
-              "cycle": 0,
+              "segment_index": 5,
               "phase": "correction",
-              "sessions": 10,
-              "source": "easing_macro",
-              "source_start_date": "1991-04-17"
+              "sessions": 15,
+              "episode_id": "S1_ai_expansion_2023_25",
+              "episode_group": "ai_expansion",
+              "source_start_date": "2025-03-27",
+              "source_end_date": "2025-04-16"
             },
             {
-              "path_index": 1,
-              "cycle": 0,
+              "path_index": 0,
+              "segment_index": 6,
               "phase": "reacceleration",
-              "sessions": 74,
-              "source": "dotcom",
-              "source_start_date": "1998-09-15"
+              "sessions": 30,
+              "episode_id": "S1_ai_expansion_2023_25",
+              "episode_group": "ai_expansion",
+              "source_start_date": "2023-01-03",
+              "source_end_date": "2023-02-14"
             },
             {
-              "path_index": 1,
-              "cycle": 1,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "dotcom",
-              "source_start_date": "1997-05-15"
-            },
-            {
-              "path_index": 1,
-              "cycle": 1,
+              "path_index": 0,
+              "segment_index": 7,
               "phase": "correction",
-              "sessions": 10,
-              "source": "dotcom",
-              "source_start_date": "1997-08-14"
+              "sessions": 16,
+              "episode_id": "S1_dotcom_reacceleration",
+              "episode_group": "dotcom",
+              "source_start_date": "1999-02-08",
+              "source_end_date": "1999-03-02"
             },
             {
-              "path_index": 1,
-              "cycle": 1,
+              "path_index": 0,
+              "segment_index": 8,
               "phase": "reacceleration",
-              "sessions": 74,
-              "source": "easing_macro",
-              "source_start_date": "1996-10-08"
+              "sessions": 12,
+              "episode_id": "S1_easing_rally_2019",
+              "episode_group": "easing",
+              "source_start_date": "2020-02-03",
+              "source_end_date": "2020-02-19"
             },
             {
-              "path_index": 1,
-              "cycle": 2,
-              "phase": "acceleration",
-              "sessions": 42,
-              "source": "dotcom",
-              "source_start_date": "1998-09-15"
-            },
-            {
-              "path_index": 1,
-              "cycle": 2,
+              "path_index": 0,
+              "segment_index": 9,
               "phase": "correction",
-              "sessions": 10,
-              "source": "easing_macro",
-              "source_start_date": "1991-11-13"
+              "sessions": 11,
+              "episode_id": "S1_ai_expansion_2023_25",
+              "episode_group": "ai_expansion",
+              "source_start_date": "2024-12-26",
+              "source_end_date": "2025-01-13"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 10,
+              "phase": "reacceleration",
+              "sessions": 84,
+              "episode_id": "S1_easing_rally_2020_21",
+              "episode_group": "easing",
+              "source_start_date": "2020-03-24",
+              "source_end_date": "2020-07-22"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 11,
+              "phase": "correction",
+              "sessions": 19,
+              "episode_id": "S1_dotcom_melt_up",
+              "episode_group": "dotcom",
+              "source_start_date": "1999-07-19",
+              "source_end_date": "1999-08-12"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 12,
+              "phase": "reacceleration",
+              "sessions": 72,
+              "episode_id": "S1_ai_expansion_2023_25",
+              "episode_group": "ai_expansion",
+              "source_start_date": "2025-04-17",
+              "source_end_date": "2025-07-31"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 13,
+              "phase": "correction",
+              "sessions": 16,
+              "episode_id": "S1_dotcom_reacceleration",
+              "episode_group": "dotcom",
+              "source_start_date": "1999-02-08",
+              "source_end_date": "1999-03-02"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 14,
+              "phase": "reacceleration",
+              "sessions": 40,
+              "episode_id": "S1_dotcom_reacceleration",
+              "episode_group": "dotcom",
+              "source_start_date": "1998-10-16",
+              "source_end_date": "1999-02-05"
             },
             {
               "path_index": 1,
-              "cycle": 2,
+              "segment_index": 0,
+              "phase": "correction",
+              "sessions": 17,
+              "episode_id": "S1_dotcom_opening",
+              "episode_group": "dotcom",
+              "source_start_date": "1995-09-21",
+              "source_end_date": "1995-10-13"
+            },
+            {
+              "path_index": 1,
+              "segment_index": 1,
               "phase": "reacceleration",
-              "sessions": 60,
-              "source": "dotcom",
-              "source_start_date": "2003-03-21"
+              "sessions": 55,
+              "episode_id": "S1_dotcom_opening",
+              "episode_group": "dotcom",
+              "source_start_date": "1996-08-01",
+              "source_end_date": "1996-10-17"
+            },
+            {
+              "path_index": 1,
+              "segment_index": 2,
+              "phase": "correction",
+              "sessions": 19,
+              "episode_id": "S1_dotcom_melt_up",
+              "episode_group": "dotcom",
+              "source_start_date": "1999-07-19",
+              "source_end_date": "1999-08-12"
             }
           ],
+          "residual_pool_sha256": "3f0119605863aad1f480f2c4a13e8403aadf00ad9ff75b72868b49e66594c142",
           "residual_scale": 1.0,
-          "residual_policy": "full_realized_returns_inside_phase_blocks",
-          "block_selection_seed_streams": {
-            "source": 530814,
-            "dotcom": 530816,
-            "easing_macro": 530844
+          "residual_policy": "S1_observed_episode_segments_only_no_cross_pool",
+          "kernel_audit": {
+            "empirical_episode_count": 6,
+            "empirical": {
+              "maximum_drawdown": {
+                "p05": -0.23083984735482066,
+                "p50": -0.14811522149254625,
+                "p95": -0.08390875272027376
+              },
+              "time_to_trough": {
+                "p05": 26.25,
+                "p50": 85.5,
+                "p95": 492.25
+              },
+              "recovery_or_censor_duration": {
+                "p05": 17.5,
+                "p50": 48.5,
+                "p95": 61.0
+              }
+            },
+            "generated": {
+              "maximum_drawdown_median": -0.14167542004418476,
+              "time_to_trough_median": 140.0,
+              "recovery_or_censor_duration_median": 27.0
+            },
+            "checks": {
+              "maximum_drawdown": true,
+              "time_to_trough": true,
+              "recovery_or_censor_duration": true
+            },
+            "gate_pass": true,
+            "failure_action": "report_only_and_promotion_blocked"
           },
           "forced_endpoint": false,
           "forced_turning_date": false,
-          "phase_boundaries_are_generator_structure_not_exact_date_forecasts": true,
-          "selected_origin_count": 63,
+          "selected_origin_count": 167,
           "simulation_path_count": 3000,
-          "auxiliary_easing_growth_cluster_id": 0,
-          "current_to_selected_medoid_distance": 0.323664410736698,
-          "current_state_similarity": 0.8652410634030252,
-          "sampled_origin_count": 276
+          "sampled_origin_count": 114,
+          "current_state_similarity": 0.7005129504848964
         },
-        "smoothed_cluster_prevalence": 0.5714285714285714,
-        "base_scenario_score": 0.6540607651101356
+        "smoothed_cluster_prevalence": 0.7889908256880734,
+        "base_scenario_score": 0.6222317178529744
       },
       "S2": {
-        "source_group": "balanced_soft_landing_macro_db",
+        "source_group": "non_crisis_soft_landing_episode_db",
         "feature_names": [
           "annualized_volatility_20d",
           "annualized_volatility_60d",
@@ -558,214 +767,528 @@
           "drawdown_60d",
           "distance_from_200d_mean",
           "fed_funds_change_63d_pp",
-          "two_year_yield_change_63d_pp",
           "ten_two_curve_pp",
           "ten_year_yield_pp",
           "vix_level",
           "nfci_z_score"
         ],
-        "origin_count": 119,
+        "origin_count": 99,
         "cluster_count": 4,
-        "selected_cluster_id": 0,
+        "selected_cluster_id": 2,
         "selected_cluster": {
-          "cluster_id": 0,
-          "origin_count": 99,
-          "medoid_date": "2015-03-19",
+          "cluster_id": 2,
+          "origin_count": 16,
+          "medoid_date": "2004-09-02",
           "feature_medians": {
-            "annualized_volatility_20d": 0.13417766393054062,
-            "annualized_volatility_60d": 0.1436704655097795,
-            "return_60d": 0.062228970875911394,
-            "drawdown_60d": -0.05265484738557047,
-            "distance_from_200d_mean": 0.08799183529358179,
-            "fed_funds_change_63d_pp": 0.0,
-            "two_year_yield_change_63d_pp": 0.020000000000000018,
-            "ten_two_curve_pp": 1.48,
-            "ten_year_yield_pp": 2.52,
-            "vix_level": 16.21,
-            "nfci_z_score": -0.591
+            "annualized_volatility_20d": 0.18942109713087926,
+            "annualized_volatility_60d": 0.21444392432737913,
+            "return_60d": -0.04357331535125891,
+            "drawdown_60d": -0.14297195641334326,
+            "distance_from_200d_mean": -0.02421959918387845,
+            "fed_funds_change_63d_pp": 0.255,
+            "ten_two_curve_pp": 1.5950000000000002,
+            "ten_year_yield_pp": 4.17,
+            "vix_level": 15.405000000000001,
+            "nfci_z_score": -0.6875
           },
           "outcome_medians": {
-            "forward_return_126d": 0.06670000494865125,
-            "forward_return_252d": 0.12862822370902727,
-            "forward_return_horizon": 0.21325396920928763,
-            "maximum_drawdown_252d": -0.13700197778413548,
-            "maximum_drawdown_horizon": -0.17325455012548663
+            "forward_return_126d": 0.07404264672490479,
+            "forward_return_252d": 0.16251034503874429,
+            "forward_return_horizon": 0.23655746003924627,
+            "maximum_drawdown_252d": -0.12585730418575614,
+            "maximum_drawdown_horizon": -0.12585730418575614
           },
           "forward_252d_iqr": [
-            0.01243862871589485,
-            0.2342935762771996
+            0.10095028638669845,
+            0.2282667821318144
           ]
         },
         "selection_rule": "minimum absolute cluster-level 126d return among moderate positive 252d clusters",
         "selected_cluster_minimum_origins": 15,
         "requested_promotion_minimum_origins": 20,
-        "cluster_assignments_sha256": "cf451e02b49fac0cef214c9de4318e4907c8af2bd42993e15c9e612110a4b8a2",
+        "cluster_assignments_sha256": "43028f9bd45a441fabfd15526c172339dd1174e53896e1c481c163887351401e",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
         "cluster_inventory": [
           {
             "cluster_id": 0,
-            "origin_count": 99,
-            "medoid_date": "2015-03-19",
+            "origin_count": 80,
+            "medoid_date": "2005-08-16",
             "feature_medians": {
-              "annualized_volatility_20d": 0.13417766393054062,
-              "annualized_volatility_60d": 0.1436704655097795,
-              "return_60d": 0.062228970875911394,
-              "drawdown_60d": -0.05265484738557047,
-              "distance_from_200d_mean": 0.08799183529358179,
-              "fed_funds_change_63d_pp": 0.0,
-              "two_year_yield_change_63d_pp": 0.020000000000000018,
-              "ten_two_curve_pp": 1.48,
-              "ten_year_yield_pp": 2.52,
-              "vix_level": 16.21,
-              "nfci_z_score": -0.591
+              "annualized_volatility_20d": 0.11156360256583336,
+              "annualized_volatility_60d": 0.12434420901932651,
+              "return_60d": 0.04209419448208496,
+              "drawdown_60d": -0.054307173353765226,
+              "distance_from_200d_mean": 0.03562975875992469,
+              "fed_funds_change_63d_pp": 0.46499999999999997,
+              "ten_two_curve_pp": 0.6799999999999999,
+              "ten_year_yield_pp": 4.26,
+              "vix_level": 12.97,
+              "nfci_z_score": -0.601
             },
             "outcome_medians": {
-              "forward_return_126d": 0.06670000494865125,
-              "forward_return_252d": 0.12862822370902727,
-              "forward_return_horizon": 0.21325396920928763,
-              "maximum_drawdown_252d": -0.13700197778413548,
-              "maximum_drawdown_horizon": -0.17325455012548663
+              "forward_return_126d": 0.08679488484651898,
+              "forward_return_252d": 0.2317890504012835,
+              "forward_return_horizon": 0.3647052643218941,
+              "maximum_drawdown_252d": -0.07863031665729814,
+              "maximum_drawdown_horizon": -0.136847921446889
             },
             "forward_252d_iqr": [
-              0.01243862871589485,
-              0.2342935762771996
+              0.08770972580494457,
+              0.3281933339002367
             ]
           },
           {
             "cluster_id": 1,
-            "origin_count": 1,
-            "medoid_date": "1990-10-16",
+            "origin_count": 2,
+            "medoid_date": "2019-01-07",
             "feature_medians": {
-              "annualized_volatility_20d": 0.23619071470683425,
-              "annualized_volatility_60d": 0.2331799313843298,
-              "return_60d": -0.2680820439006837,
-              "drawdown_60d": -0.2694129531934,
-              "distance_from_200d_mean": -0.23128026063340712,
-              "fed_funds_change_63d_pp": -0.009999999999999787,
-              "two_year_yield_change_63d_pp": -0.21000000000000085,
-              "ten_two_curve_pp": 0.87,
-              "ten_year_yield_pp": 8.79,
-              "vix_level": 31.45,
-              "nfci_z_score": 0.437
+              "annualized_volatility_20d": 0.35284835010348653,
+              "annualized_volatility_60d": 0.32072375339148806,
+              "return_60d": -0.08714013803352627,
+              "drawdown_60d": -0.19083513047379308,
+              "distance_from_200d_mean": -0.07111768095866838,
+              "fed_funds_change_63d_pp": 0.21499999999999986,
+              "ten_two_curve_pp": 0.165,
+              "ten_year_yield_pp": 2.72,
+              "vix_level": 21.1,
+              "nfci_z_score": -0.4585
             },
             "outcome_medians": {
-              "forward_return_126d": 0.5711344641101279,
-              "forward_return_252d": 0.6411934611602754,
-              "forward_return_horizon": 0.9035152409046214,
-              "maximum_drawdown_252d": -0.0747687312980384,
-              "maximum_drawdown_horizon": -0.0747687312980384
+              "forward_return_126d": 0.1777314339167102,
+              "forward_return_252d": 0.33212722333788147,
+              "forward_return_horizon": 0.44153459007707174,
+              "maximum_drawdown_252d": -0.10178588926996568,
+              "maximum_drawdown_horizon": -0.3011567476607335
             },
             "forward_252d_iqr": [
-              0.6411934611602754,
-              0.6411934611602754
+              0.3307884510834907,
+              0.33346599559227225
             ]
           },
           {
             "cluster_id": 2,
-            "origin_count": 15,
-            "medoid_date": "2011-12-13",
+            "origin_count": 16,
+            "medoid_date": "2004-09-02",
             "feature_medians": {
-              "annualized_volatility_20d": 0.30307013494185314,
-              "annualized_volatility_60d": 0.2492845563238693,
-              "return_60d": 0.005342734449060638,
-              "drawdown_60d": -0.11375592625109743,
-              "distance_from_200d_mean": 0.022277395711814307,
-              "fed_funds_change_63d_pp": 0.0,
-              "two_year_yield_change_63d_pp": -0.04999999999999999,
-              "ten_two_curve_pp": 1.65,
-              "ten_year_yield_pp": 2.04,
-              "vix_level": 23.41,
-              "nfci_z_score": -0.288
+              "annualized_volatility_20d": 0.18942109713087926,
+              "annualized_volatility_60d": 0.21444392432737913,
+              "return_60d": -0.04357331535125891,
+              "drawdown_60d": -0.14297195641334326,
+              "distance_from_200d_mean": -0.02421959918387845,
+              "fed_funds_change_63d_pp": 0.255,
+              "ten_two_curve_pp": 1.5950000000000002,
+              "ten_year_yield_pp": 4.17,
+              "vix_level": 15.405000000000001,
+              "nfci_z_score": -0.6875
             },
             "outcome_medians": {
-              "forward_return_126d": 0.11536355272879462,
-              "forward_return_252d": 0.15200424926432676,
-              "forward_return_horizon": 0.24703080633835084,
-              "maximum_drawdown_252d": -0.1201222070281851,
-              "maximum_drawdown_horizon": -0.18633782610512428
+              "forward_return_126d": 0.07404264672490479,
+              "forward_return_252d": 0.16251034503874429,
+              "forward_return_horizon": 0.23655746003924627,
+              "maximum_drawdown_252d": -0.12585730418575614,
+              "maximum_drawdown_horizon": -0.12585730418575614
             },
             "forward_252d_iqr": [
-              0.09475100318120688,
-              0.2573695451115746
+              0.10095028638669845,
+              0.2282667821318144
             ]
           },
           {
             "cluster_id": 3,
-            "origin_count": 4,
-            "medoid_date": "2009-07-16",
+            "origin_count": 1,
+            "medoid_date": "1994-09-29",
             "feature_medians": {
-              "annualized_volatility_20d": 0.19977437882463764,
-              "annualized_volatility_60d": 0.22473174962064874,
-              "return_60d": 0.140164975543687,
-              "drawdown_60d": -0.06239361673566468,
-              "distance_from_200d_mean": 0.1853121885804483,
-              "fed_funds_change_63d_pp": -0.010000000000000009,
-              "two_year_yield_change_63d_pp": 0.044999999999999984,
-              "ten_two_curve_pp": 2.4850000000000003,
-              "ten_year_yield_pp": 3.57,
-              "vix_level": 23.564999999999998,
-              "nfci_z_score": 0.471
+              "annualized_volatility_20d": 0.1007517999440027,
+              "annualized_volatility_60d": 0.08663382746126655,
+              "return_60d": 0.08322396576319546,
+              "drawdown_60d": -0.02991035882156523,
+              "distance_from_200d_mean": 0.00991172216588243,
+              "fed_funds_change_63d_pp": -1.1900000000000004,
+              "ten_two_curve_pp": 1.04,
+              "ten_year_yield_pp": 7.64,
+              "vix_level": 13.97,
+              "nfci_z_score": -0.724
             },
             "outcome_medians": {
-              "forward_return_126d": 0.12871638150809095,
-              "forward_return_252d": 0.11001687968719498,
-              "forward_return_horizon": 0.3161628606819815,
-              "maximum_drawdown_252d": -0.17325455012548663,
-              "maximum_drawdown_horizon": -0.17325455012548663
+              "forward_return_126d": 0.07574999341533428,
+              "forward_return_252d": 0.3788948297205468,
+              "forward_return_horizon": 0.4008612742644928,
+              "maximum_drawdown_252d": -0.07516495389008226,
+              "maximum_drawdown_horizon": -0.07863031665729814
             },
             "forward_252d_iqr": [
-              0.02646927089803952,
-              0.12985116592515022
+              0.3788948297205468,
+              0.3788948297205468
             ]
           }
         ],
         "sampling": {
-          "generator": "balanced_soft_landing_phase_sampler_v2",
+          "generator": "s2_empirical_variable_episode_sampler_v3",
+          "fixed_phase_template": false,
+          "phase_sampling": "empirical_occurrence_distribution_with_observed_duration_segments",
+          "phase_transition_policy": "empirical_with_current_state_start_no_fixed_cycle",
+          "current_state_start_phase": "steady_drift",
+          "current_state_start_probability": 0.7,
+          "empirical_transition_counts": {
+            "steady_drift": {
+              "steady_drift": 7,
+              "mean_reversion": 18,
+              "normalization": 22
+            },
+            "mean_reversion": {
+              "steady_drift": 18,
+              "mean_reversion": 2,
+              "normalization": 4
+            },
+            "normalization": {
+              "steady_drift": 20,
+              "mean_reversion": 6,
+              "normalization": 2
+            }
+          },
+          "phase_names": [
+            "steady_drift",
+            "mean_reversion",
+            "normalization"
+          ],
+          "phase_duration_distribution": {
+            "steady_drift": {
+              "empirical": {
+                "count": 48,
+                "minimum": 3,
+                "p50": 5.0,
+                "maximum": 50,
+                "variance": 69.10026041666667
+              },
+              "sampled": {
+                "count": 57189,
+                "p50": 5.0,
+                "variance": 63.28321177882593
+              }
+            },
+            "mean_reversion": {
+              "empirical": {
+                "count": 26,
+                "minimum": 3,
+                "p50": 7.5,
+                "maximum": 34,
+                "variance": 67.1671597633136
+              },
+              "sampled": {
+                "count": 31249,
+                "p50": 8.0,
+                "variance": 72.21345210218797
+              }
+            },
+            "normalization": {
+              "empirical": {
+                "count": 29,
+                "minimum": 3,
+                "p50": 7.0,
+                "maximum": 28,
+                "variance": 36.506539833531505
+              },
+              "sampled": {
+                "count": 33704,
+                "p50": 7.0,
+                "variance": 36.087532406609775
+              }
+            }
+          },
           "phase_cycle": [
             {
               "phase": "steady_drift",
-              "sessions": 42,
-              "return_quantiles": [
-                0.3,
-                0.65
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 5.0,
+              "maximum_sessions": 50
             },
             {
               "phase": "mean_reversion",
-              "sessions": 21,
-              "return_quantiles": [
-                0.0,
-                0.4
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 7.5,
+              "maximum_sessions": 34
             },
             {
               "phase": "normalization",
-              "sessions": 42,
-              "return_quantiles": [
-                0.35,
-                0.7
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 7.0,
+              "maximum_sessions": 28
             }
           ],
-          "unique_source_origins": 174,
-          "episode_sampling_ess": 89.62923127749062,
-          "maximum_episode_probability": 0.025484848484848485,
-          "block_provenance_sha256": "f5079c8879ca755796cd29a63808236e4b31c014ffda085cc9f3c5a4d115a06f",
+          "phase_repetition_gate": {
+            "first_adverse_phase_start_variance": 735.7117198888888,
+            "adverse_phase_duration_variance": 75.68822655555556,
+            "unique_phase_sequence_count": 984,
+            "gate_pass": true
+          },
+          "episode_ids": [
+            "S2_soft_landing_1994_95",
+            "S2_midcycle_2004_05",
+            "S2_sideways_recovery_2016",
+            "S2_pre_easing_2019"
+          ],
+          "episode_count": 4,
+          "drift_transport": "episode_native_mean_removed_shape_only",
+          "episode_group_weight_multipliers": {
+            "soft_landing": 1.0098028595852302,
+            "balanced": 0.963765332014316
+          },
+          "source_session_counts": {
+            "balanced": 372190,
+            "soft_landing": 719810
+          },
+          "source_block_counts": {
+            "balanced": 40076,
+            "soft_landing": 82066
+          },
+          "phase_block_counts": {
+            "steady_drift": 57189,
+            "mean_reversion": 31249,
+            "normalization": 33704
+          },
+          "realized_dotcom_session_share": 0.0,
+          "phase_duration_selection_tilts": {
+            "mean_reversion": 0.07381489105254495
+          },
+          "structural_event_update_applied": true,
+          "probability_only_event_update": false,
+          "unique_source_origins": 103,
+          "episode_sampling_ess": 102.64096180029716,
+          "maximum_episode_probability": 0.01258371403775933,
+          "block_provenance_sha256": "cfdde59834b669baa3e9f4c74c27e0e3fa63b84043e06d2f2444b254253d10c1",
+          "block_provenance_sample": [
+            {
+              "path_index": 0,
+              "segment_index": 0,
+              "phase": "steady_drift",
+              "sessions": 3,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-08-01",
+              "source_end_date": "2016-08-03"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 1,
+              "phase": "mean_reversion",
+              "sessions": 9,
+              "episode_id": "S2_soft_landing_1994_95",
+              "episode_group": "soft_landing",
+              "source_start_date": "1995-01-25",
+              "source_end_date": "1995-02-06"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 2,
+              "phase": "steady_drift",
+              "sessions": 3,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-10-24",
+              "source_end_date": "2016-10-26"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 3,
+              "phase": "mean_reversion",
+              "sessions": 6,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-08-24",
+              "source_end_date": "2016-08-31"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 4,
+              "phase": "normalization",
+              "sessions": 13,
+              "episode_id": "S2_midcycle_2004_05",
+              "episode_group": "soft_landing",
+              "source_start_date": "2004-09-09",
+              "source_end_date": "2004-09-27"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 5,
+              "phase": "steady_drift",
+              "sessions": 8,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-12-20",
+              "source_end_date": "2016-12-30"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 6,
+              "phase": "normalization",
+              "sessions": 10,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-05-24",
+              "source_end_date": "2016-06-07"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 7,
+              "phase": "steady_drift",
+              "sessions": 3,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-08-01",
+              "source_end_date": "2016-08-03"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 8,
+              "phase": "mean_reversion",
+              "sessions": 19,
+              "episode_id": "S2_pre_easing_2019",
+              "episode_group": "balanced",
+              "source_start_date": "2019-05-06",
+              "source_end_date": "2019-05-31"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 9,
+              "phase": "steady_drift",
+              "sessions": 3,
+              "episode_id": "S2_midcycle_2004_05",
+              "episode_group": "soft_landing",
+              "source_start_date": "2005-12-20",
+              "source_end_date": "2005-12-22"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 10,
+              "phase": "mean_reversion",
+              "sessions": 11,
+              "episode_id": "S2_midcycle_2004_05",
+              "episode_group": "soft_landing",
+              "source_start_date": "2005-03-14",
+              "source_end_date": "2005-03-29"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 11,
+              "phase": "normalization",
+              "sessions": 19,
+              "episode_id": "S2_midcycle_2004_05",
+              "episode_group": "soft_landing",
+              "source_start_date": "2005-10-28",
+              "source_end_date": "2005-11-23"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 12,
+              "phase": "steady_drift",
+              "sessions": 3,
+              "episode_id": "S2_sideways_recovery_2016",
+              "episode_group": "balanced",
+              "source_start_date": "2016-07-05",
+              "source_end_date": "2016-07-07"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 13,
+              "phase": "mean_reversion",
+              "sessions": 3,
+              "episode_id": "S2_soft_landing_1994_95",
+              "episode_group": "soft_landing",
+              "source_start_date": "1994-10-24",
+              "source_end_date": "1994-10-26"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 14,
+              "phase": "steady_drift",
+              "sessions": 4,
+              "episode_id": "S2_soft_landing_1994_95",
+              "episode_group": "soft_landing",
+              "source_start_date": "1995-05-08",
+              "source_end_date": "1995-05-11"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 15,
+              "phase": "mean_reversion",
+              "sessions": 3,
+              "episode_id": "S2_pre_easing_2019",
+              "episode_group": "balanced",
+              "source_start_date": "2019-03-26",
+              "source_end_date": "2019-03-28"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 16,
+              "phase": "steady_drift",
+              "sessions": 7,
+              "episode_id": "S2_soft_landing_1994_95",
+              "episode_group": "soft_landing",
+              "source_start_date": "1994-07-01",
+              "source_end_date": "1994-07-12"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 17,
+              "phase": "normalization",
+              "sessions": 13,
+              "episode_id": "S2_pre_easing_2019",
+              "episode_group": "balanced",
+              "source_start_date": "2019-01-02",
+              "source_end_date": "2019-01-18"
+            }
+          ],
+          "residual_pool_sha256": "3303158bc6cbf089d5230dd70d0899622d14430e0631a755ae03dd547b79d390",
           "residual_scale": 1.0,
-          "residual_policy": "independent_full_realized_balanced_blocks",
+          "residual_policy": "S2_observed_episode_segments_only_no_cross_pool",
+          "kernel_audit": {
+            "empirical_episode_count": 4,
+            "empirical": {
+              "maximum_drawdown": {
+                "p05": -0.15286591137553202,
+                "p50": -0.12839427559606276,
+                "p95": -0.11968637062599505
+              },
+              "time_to_trough": {
+                "p05": 56.45,
+                "p50": 99.0,
+                "p95": 112.64999999999999
+              },
+              "recovery_or_censor_duration": {
+                "p05": 11.550000000000002,
+                "p50": 104.0,
+                "p95": 137.8
+              }
+            },
+            "generated": {
+              "maximum_drawdown_median": -0.1492994053392367,
+              "time_to_trough_median": 195.0,
+              "recovery_or_censor_duration_median": 38.0
+            },
+            "checks": {
+              "maximum_drawdown": true,
+              "time_to_trough": false,
+              "recovery_or_censor_duration": true
+            },
+            "gate_pass": false,
+            "failure_action": "report_only_and_promotion_blocked"
+          },
           "forced_endpoint": false,
           "forced_turning_date": false,
-          "selected_origin_count": 99,
+          "selected_origin_count": 16,
           "simulation_path_count": 3000,
-          "sampled_origin_count": 174,
-          "current_state_similarity": 0.46687693717873263
+          "sampled_origin_count": 103,
+          "current_state_similarity": 0.3354642512795518
         },
-        "smoothed_cluster_prevalence": 0.7482014388489209,
-        "base_scenario_score": 0.40384219213668426
+        "smoothed_cluster_prevalence": 0.17647058823529413,
+        "base_scenario_score": 0.14092317299103727
       },
       "S3": {
-        "source_group": "tightening_financial_stress_macro_db",
+        "source_group": "tightening_and_financial_stress_episode_db",
         "feature_names": [
           "annualized_volatility_20d",
           "annualized_volatility_60d",
@@ -779,210 +1302,527 @@
           "vix_level",
           "nfci_z_score"
         ],
-        "origin_count": 162,
+        "origin_count": 128,
         "cluster_count": 4,
-        "selected_cluster_id": 2,
+        "selected_cluster_id": 3,
         "selected_cluster": {
-          "cluster_id": 2,
-          "origin_count": 7,
-          "medoid_date": "2000-07-07",
+          "cluster_id": 3,
+          "origin_count": 29,
+          "medoid_date": "2000-11-16",
           "feature_medians": {
-            "annualized_volatility_20d": 0.4901369976263154,
-            "annualized_volatility_60d": 0.4318546792463648,
-            "return_60d": -0.0482450359588551,
-            "drawdown_60d": -0.21976626642668706,
-            "distance_from_200d_mean": 0.02690885847350666,
-            "fed_funds_change_63d_pp": 0.3700000000000001,
-            "two_year_yield_change_63d_pp": -0.08999999999999986,
-            "ten_two_curve_pp": -0.28,
-            "ten_year_yield_pp": 5.97,
-            "vix_level": 22.48,
-            "nfci_z_score": -0.088
+            "annualized_volatility_20d": 0.516630164789609,
+            "annualized_volatility_60d": 0.5387384055599712,
+            "return_60d": -0.20692164293942295,
+            "drawdown_60d": -0.3272895790707028,
+            "distance_from_200d_mean": -0.23604791781923817,
+            "fed_funds_change_63d_pp": -0.009999999999999787,
+            "two_year_yield_change_63d_pp": -0.46999999999999975,
+            "ten_two_curve_pp": 0.21,
+            "ten_year_yield_pp": 5.19,
+            "vix_level": 26.55,
+            "nfci_z_score": -0.185
           },
           "outcome_medians": {
-            "forward_return_126d": -0.24730286565640258,
-            "forward_return_252d": -0.4750724179974579,
-            "forward_return_horizon": -0.510189463594547,
-            "maximum_drawdown_252d": -0.6166253769296811,
-            "maximum_drawdown_horizon": -0.6670643581843745
+            "forward_return_126d": -0.16039804304741323,
+            "forward_return_252d": -0.23590230182702088,
+            "forward_return_horizon": -0.3886297242318104,
+            "maximum_drawdown_252d": -0.45900707980071676,
+            "maximum_drawdown_horizon": -0.5163091717305295
           },
           "forward_252d_iqr": [
-            -0.5031018368641167,
-            -0.4055409526607305
+            -0.39745279637402153,
+            -0.03703799125062479
           ]
         },
         "selection_rule": "minimum cluster-level stress score",
         "selected_cluster_minimum_origins": 7,
         "requested_promotion_minimum_origins": 12,
-        "cluster_assignments_sha256": "580e17d5b8c56afa15f0650ad561d135190dd34e69c055569730945888e41e1e",
+        "cluster_assignments_sha256": "a2d70417fb98040097f4a0bae9740246fc572524d81dec00a6dd576a8c9bdb33",
         "clustering_uses_forward_outcomes": false,
         "outcomes_used_after_assignment_for_cluster_label_only": true,
         "cluster_inventory": [
           {
             "cluster_id": 0,
-            "origin_count": 141,
-            "medoid_date": "2018-05-18",
+            "origin_count": 87,
+            "medoid_date": "2002-02-19",
             "feature_medians": {
-              "annualized_volatility_20d": 0.14777994363996777,
-              "annualized_volatility_60d": 0.1549061049606435,
-              "return_60d": 0.04315373006485301,
-              "drawdown_60d": -0.06677158575790587,
-              "distance_from_200d_mean": 0.06255750100540669,
-              "fed_funds_change_63d_pp": 0.25,
-              "two_year_yield_change_63d_pp": 0.3599999999999999,
-              "ten_two_curve_pp": 0.51,
-              "ten_year_yield_pp": 4.58,
-              "vix_level": 15.95,
-              "nfci_z_score": -0.576
+              "annualized_volatility_20d": 0.281170886678294,
+              "annualized_volatility_60d": 0.2831598568511067,
+              "return_60d": -0.03779010453490739,
+              "drawdown_60d": -0.14875846318966424,
+              "distance_from_200d_mean": -0.061279549758058605,
+              "fed_funds_change_63d_pp": -0.030000000000000027,
+              "two_year_yield_change_63d_pp": 0.12,
+              "ten_two_curve_pp": 1.36,
+              "ten_year_yield_pp": 3.92,
+              "vix_level": 22.58,
+              "nfci_z_score": -0.377
             },
             "outcome_medians": {
-              "forward_return_126d": 0.06859863774807828,
-              "forward_return_252d": 0.14796266788071932,
-              "forward_return_horizon": 0.1899968674950403,
-              "maximum_drawdown_252d": -0.13700197778413548,
-              "maximum_drawdown_horizon": -0.15629679393267348
+              "forward_return_126d": -0.10331309483227236,
+              "forward_return_252d": -0.2081314051616071,
+              "forward_return_horizon": -0.05088852988691439,
+              "maximum_drawdown_252d": -0.3846973772139596,
+              "maximum_drawdown_horizon": -0.42264221343545794
             },
             "forward_252d_iqr": [
-              0.03447766203879565,
-              0.3048438414400354
+              -0.3102989774060737,
+              0.10812495343538508
             ]
           },
           {
             "cluster_id": 1,
-            "origin_count": 4,
-            "medoid_date": "2008-09-15",
+            "origin_count": 5,
+            "medoid_date": "2008-11-03",
             "feature_medians": {
-              "annualized_volatility_20d": 0.25213936057140396,
-              "annualized_volatility_60d": 0.23550971322526254,
-              "return_60d": -0.0671432650294082,
-              "drawdown_60d": -0.14108195836528054,
-              "distance_from_200d_mean": -0.11279755698588267,
-              "fed_funds_change_63d_pp": 0.26500000000000024,
-              "two_year_yield_change_63d_pp": -0.11999999999999988,
-              "ten_two_curve_pp": 1.6099999999999999,
-              "ten_year_yield_pp": 3.72,
-              "vix_level": 28.4,
-              "nfci_z_score": 0.993
+              "annualized_volatility_20d": 0.7442549478738323,
+              "annualized_volatility_60d": 0.6213249187395791,
+              "return_60d": -0.28489706308769314,
+              "drawdown_60d": -0.386266286827487,
+              "distance_from_200d_mean": -0.2599100938024119,
+              "fed_funds_change_63d_pp": -1.5699999999999998,
+              "two_year_yield_change_63d_pp": -1.09,
+              "ten_two_curve_pp": 2.2,
+              "ten_year_yield_pp": 3.68,
+              "vix_level": 53.68,
+              "nfci_z_score": 2.967
             },
             "outcome_medians": {
-              "forward_return_126d": 0.010353870603206083,
-              "forward_return_252d": 0.26151012551105535,
-              "forward_return_horizon": 0.24480265583784044,
-              "maximum_drawdown_252d": -0.2630552948159185,
-              "maximum_drawdown_horizon": -0.30767041680160606
+              "forward_return_126d": 0.13700947864317659,
+              "forward_return_252d": 0.38808974205762636,
+              "forward_return_horizon": 0.4373034124414221,
+              "maximum_drawdown_252d": -0.2322347159854271,
+              "maximum_drawdown_horizon": -0.2322347159854271
             },
             "forward_252d_iqr": [
-              -0.0703316674137616,
-              0.5773503878289041
+              0.2222787184398003,
+              0.4869808710907191
             ]
           },
           {
             "cluster_id": 2,
             "origin_count": 7,
-            "medoid_date": "2000-07-07",
+            "medoid_date": "2009-01-30",
             "feature_medians": {
-              "annualized_volatility_20d": 0.4901369976263154,
-              "annualized_volatility_60d": 0.4318546792463648,
-              "return_60d": -0.0482450359588551,
-              "drawdown_60d": -0.21976626642668706,
-              "distance_from_200d_mean": 0.02690885847350666,
-              "fed_funds_change_63d_pp": 0.3700000000000001,
-              "two_year_yield_change_63d_pp": -0.08999999999999986,
-              "ten_two_curve_pp": -0.28,
-              "ten_year_yield_pp": 5.97,
-              "vix_level": 22.48,
-              "nfci_z_score": -0.088
+              "annualized_volatility_20d": 0.40755506651221063,
+              "annualized_volatility_60d": 0.4940522008156271,
+              "return_60d": -0.1447637473715917,
+              "drawdown_60d": -0.24074549552303282,
+              "distance_from_200d_mean": -0.2539973415941741,
+              "fed_funds_change_63d_pp": -0.31000000000000005,
+              "two_year_yield_change_63d_pp": -0.8500000000000001,
+              "ten_two_curve_pp": 1.92,
+              "ten_year_yield_pp": 2.89,
+              "vix_level": 44.84,
+              "nfci_z_score": 2.14
             },
             "outcome_medians": {
-              "forward_return_126d": -0.24730286565640258,
-              "forward_return_252d": -0.4750724179974579,
-              "forward_return_horizon": -0.510189463594547,
-              "maximum_drawdown_252d": -0.6166253769296811,
-              "maximum_drawdown_horizon": -0.6670643581843745
+              "forward_return_126d": 0.24788998835855636,
+              "forward_return_252d": 0.4430707265570011,
+              "forward_return_horizon": 0.4688392951635094,
+              "maximum_drawdown_252d": -0.2029703903349228,
+              "maximum_drawdown_horizon": -0.2029703903349228
             },
             "forward_252d_iqr": [
-              -0.5031018368641167,
-              -0.4055409526607305
+              0.2840151432613064,
+              0.4919826483535772
             ]
           },
           {
             "cluster_id": 3,
-            "origin_count": 10,
-            "medoid_date": "2022-07-20",
+            "origin_count": 29,
+            "medoid_date": "2000-11-16",
             "feature_medians": {
-              "annualized_volatility_20d": 0.31639752454402653,
-              "annualized_volatility_60d": 0.31480988127056686,
-              "return_60d": -0.07954126512203014,
-              "drawdown_60d": -0.1823809072337037,
-              "distance_from_200d_mean": -0.1085871513322722,
-              "fed_funds_change_63d_pp": 1.25,
-              "two_year_yield_change_63d_pp": 0.9549999999999998,
-              "ten_two_curve_pp": -0.38,
-              "ten_year_yield_pp": 3.3200000000000003,
-              "vix_level": 23.994999999999997,
-              "nfci_z_score": -0.1895
+              "annualized_volatility_20d": 0.516630164789609,
+              "annualized_volatility_60d": 0.5387384055599712,
+              "return_60d": -0.20692164293942295,
+              "drawdown_60d": -0.3272895790707028,
+              "distance_from_200d_mean": -0.23604791781923817,
+              "fed_funds_change_63d_pp": -0.009999999999999787,
+              "two_year_yield_change_63d_pp": -0.46999999999999975,
+              "ten_two_curve_pp": 0.21,
+              "ten_year_yield_pp": 5.19,
+              "vix_level": 26.55,
+              "nfci_z_score": -0.185
             },
             "outcome_medians": {
-              "forward_return_126d": 0.009788001092027043,
-              "forward_return_252d": 0.20176571162514123,
-              "forward_return_horizon": 0.3579072398924803,
-              "maximum_drawdown_252d": -0.16750475168840961,
-              "maximum_drawdown_horizon": -0.16750475168840961
+              "forward_return_126d": -0.16039804304741323,
+              "forward_return_252d": -0.23590230182702088,
+              "forward_return_horizon": -0.3886297242318104,
+              "maximum_drawdown_252d": -0.45900707980071676,
+              "maximum_drawdown_horizon": -0.5163091717305295
             },
             "forward_252d_iqr": [
-              0.12335106980465693,
-              0.25988338334270444
+              -0.39745279637402153,
+              -0.03703799125062479
             ]
           }
         ],
         "sampling": {
-          "generator": "tightening_stress_phase_sampler_v2",
+          "generator": "s3_empirical_variable_episode_sampler_v3",
+          "fixed_phase_template": false,
+          "phase_sampling": "empirical_occurrence_distribution_with_observed_duration_segments",
+          "phase_transition_policy": "empirical_with_current_state_start_no_fixed_cycle",
+          "current_state_start_phase": "drawdown",
+          "current_state_start_probability": 0.7,
+          "empirical_transition_counts": {
+            "drawdown": {
+              "drawdown": 0,
+              "failed_relief": 2,
+              "stress_persistence": 2
+            },
+            "failed_relief": {
+              "drawdown": 0,
+              "failed_relief": 0,
+              "stress_persistence": 31
+            },
+            "stress_persistence": {
+              "drawdown": 0,
+              "failed_relief": 29,
+              "stress_persistence": 2
+            }
+          },
+          "phase_names": [
+            "drawdown",
+            "failed_relief",
+            "stress_persistence"
+          ],
+          "phase_duration_distribution": {
+            "drawdown": {
+              "empirical": {
+                "count": 4,
+                "minimum": 10,
+                "p50": 22.0,
+                "maximum": 29,
+                "variance": 46.6875
+              },
+              "sampled": {
+                "count": 2146,
+                "p50": 22.0,
+                "variance": 46.45104505315162
+              }
+            },
+            "failed_relief": {
+              "empirical": {
+                "count": 31,
+                "minimum": 4,
+                "p50": 10.0,
+                "maximum": 39,
+                "variance": 60.50780437044745
+              },
+              "sampled": {
+                "count": 29689,
+                "p50": 9.0,
+                "variance": 61.65140092229037
+              }
+            },
+            "stress_persistence": {
+              "empirical": {
+                "count": 36,
+                "minimum": 3,
+                "p50": 17.0,
+                "maximum": 74,
+                "variance": 270.69444444444446
+              },
+              "sampled": {
+                "count": 32044,
+                "p50": 17.0,
+                "variance": 253.23528597576038
+              }
+            }
+          },
           "phase_cycle": [
             {
               "phase": "drawdown",
-              "sessions": 42,
-              "return_quantiles": [
-                0.1,
-                0.45
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 10,
+              "median_sessions": 22.0,
+              "maximum_sessions": 29
             },
             {
               "phase": "failed_relief",
-              "sessions": 42,
-              "return_quantiles": [
-                0.7,
-                1.0
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 4,
+              "median_sessions": 10.0,
+              "maximum_sessions": 39
             },
             {
               "phase": "stress_persistence",
-              "sessions": 42,
-              "return_quantiles": [
-                0.3,
-                0.6
-              ]
+              "duration_source": "empirical_distribution",
+              "minimum_sessions": 3,
+              "median_sessions": 17.0,
+              "maximum_sessions": 74
             }
           ],
-          "phase_block_counts": {
-            "drawdown": 9000,
-            "failed_relief": 9000,
-            "stress_persistence": 9000
+          "phase_repetition_gate": {
+            "first_adverse_phase_start_variance": 26980.366584888885,
+            "adverse_phase_duration_variance": 120.36739455555553,
+            "unique_phase_sequence_count": 38,
+            "gate_pass": true
           },
-          "unique_source_origins": 24,
-          "episode_sampling_ess": 13.984290481605154,
-          "maximum_episode_probability": 0.13322222222222221,
-          "block_provenance_sha256": "73d5f2b5f41bc88665710009f913d3504fdb9a9a159f280d402d8af697dfaf6a",
+          "episode_ids": [
+            "S3_dotcom_bust_2000_02",
+            "S3_gfc_2008_09",
+            "S3_taper_2013",
+            "S3_q4_2018",
+            "S3_tightening_2022"
+          ],
+          "episode_count": 5,
+          "drift_transport": "native_observed_log_returns",
+          "episode_group_weight_multipliers": {
+            "stress": 1.1590837033917227,
+            "tightening": 0.8945569727584688
+          },
+          "source_session_counts": {
+            "stress": 860304,
+            "tightening": 231696
+          },
+          "source_block_counts": {
+            "stress": 48371,
+            "tightening": 15508
+          },
+          "phase_block_counts": {
+            "drawdown": 2146,
+            "failed_relief": 29689,
+            "stress_persistence": 32044
+          },
+          "realized_dotcom_session_share": 0.0,
+          "phase_duration_selection_tilts": {
+            "drawdown": 0.1476297821050899,
+            "stress_persistence": 0.0
+          },
+          "structural_event_update_applied": true,
+          "probability_only_event_update": false,
+          "unique_source_origins": 71,
+          "episode_sampling_ess": 69.3455527256516,
+          "maximum_episode_probability": 0.01687565553624822,
+          "block_provenance_sha256": "02f328336f231f92226fbe097cd37ea17e64bfaef32d51212ebc8d0eec8833bc",
+          "block_provenance_sample": [
+            {
+              "path_index": 0,
+              "segment_index": 0,
+              "phase": "stress_persistence",
+              "sessions": 35,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2002-05-24",
+              "source_end_date": "2002-07-15"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 1,
+              "phase": "failed_relief",
+              "sessions": 19,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2000-08-10",
+              "source_end_date": "2000-09-06"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 2,
+              "phase": "stress_persistence",
+              "sessions": 15,
+              "episode_id": "S3_gfc_2008_09",
+              "episode_group": "stress",
+              "source_start_date": "2009-01-13",
+              "source_end_date": "2009-02-03"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 3,
+              "phase": "failed_relief",
+              "sessions": 10,
+              "episode_id": "S3_q4_2018",
+              "episode_group": "tightening",
+              "source_start_date": "2018-11-27",
+              "source_end_date": "2018-12-11"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 4,
+              "phase": "stress_persistence",
+              "sessions": 6,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2000-06-30",
+              "source_end_date": "2000-07-10"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 5,
+              "phase": "failed_relief",
+              "sessions": 5,
+              "episode_id": "S3_q4_2018",
+              "episode_group": "tightening",
+              "source_start_date": "2018-11-06",
+              "source_end_date": "2018-11-12"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 6,
+              "phase": "stress_persistence",
+              "sessions": 5,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2001-11-27",
+              "source_end_date": "2001-12-03"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 7,
+              "phase": "failed_relief",
+              "sessions": 10,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2002-03-01",
+              "source_end_date": "2002-03-14"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 8,
+              "phase": "stress_persistence",
+              "sessions": 12,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2000-12-14",
+              "source_end_date": "2001-01-02"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 9,
+              "phase": "failed_relief",
+              "sessions": 4,
+              "episode_id": "S3_gfc_2008_09",
+              "episode_group": "stress",
+              "source_start_date": "2009-02-04",
+              "source_end_date": "2009-02-09"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 10,
+              "phase": "stress_persistence",
+              "sessions": 24,
+              "episode_id": "S3_tightening_2022",
+              "episode_group": "tightening",
+              "source_start_date": "2022-02-10",
+              "source_end_date": "2022-03-16"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 11,
+              "phase": "failed_relief",
+              "sessions": 19,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2001-01-03",
+              "source_end_date": "2001-01-30"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 12,
+              "phase": "stress_persistence",
+              "sessions": 16,
+              "episode_id": "S3_gfc_2008_09",
+              "episode_group": "stress",
+              "source_start_date": "2009-02-13",
+              "source_end_date": "2009-03-09"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 13,
+              "phase": "failed_relief",
+              "sessions": 39,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2001-10-02",
+              "source_end_date": "2001-11-26"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 14,
+              "phase": "stress_persistence",
+              "sessions": 40,
+              "episode_id": "S3_gfc_2008_09",
+              "episode_group": "stress",
+              "source_start_date": "2008-05-19",
+              "source_end_date": "2008-07-15"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 15,
+              "phase": "failed_relief",
+              "sessions": 21,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2001-04-10",
+              "source_end_date": "2001-05-09"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 16,
+              "phase": "stress_persistence",
+              "sessions": 3,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2002-08-09",
+              "source_end_date": "2002-08-13"
+            },
+            {
+              "path_index": 0,
+              "segment_index": 17,
+              "phase": "failed_relief",
+              "sessions": 5,
+              "episode_id": "S3_dotcom_bust_2000_02",
+              "episode_group": "stress",
+              "source_start_date": "2001-06-27",
+              "source_end_date": "2001-07-03"
+            }
+          ],
+          "residual_pool_sha256": "cd039e018099a8ec4251179d8d784c4be78354983a0bd99f4f9b5f82e3869ffc",
           "residual_scale": 1.0,
-          "residual_policy": "independent_full_realized_tightening_stress_blocks",
+          "residual_policy": "S3_observed_episode_segments_only_no_cross_pool",
+          "kernel_audit": {
+            "empirical_episode_count": 5,
+            "empirical": {
+              "maximum_drawdown": {
+                "p05": -0.7231869688237353,
+                "p50": -0.34810077813147433,
+                "p95": -0.08497321961870573
+              },
+              "time_to_trough": {
+                "p05": 29.2,
+                "p50": 197.0,
+                "p95": 576.1999999999999
+              },
+              "recovery_or_censor_duration": {
+                "p05": 1.0,
+                "p50": 1.0,
+                "p95": 8.2
+              }
+            },
+            "generated": {
+              "maximum_drawdown_median": -0.4901438142072617,
+              "time_to_trough_median": 231.0,
+              "recovery_or_censor_duration_median": 21.0
+            },
+            "checks": {
+              "maximum_drawdown": true,
+              "time_to_trough": true,
+              "recovery_or_censor_duration": false
+            },
+            "gate_pass": false,
+            "failure_action": "report_only_and_promotion_blocked"
+          },
           "forced_endpoint": false,
           "forced_turning_date": false,
-          "selected_origin_count": 7,
+          "selected_origin_count": 29,
           "simulation_path_count": 3000,
-          "sampled_origin_count": 24,
-          "current_state_similarity": 0.25762347970420313
+          "sampled_origin_count": 71,
+          "current_state_similarity": 0.2652176218857982
         },
-        "smoothed_cluster_prevalence": 0.06593406593406594,
-        "base_scenario_score": 0.06615160275395157
+        "smoothed_cluster_prevalence": 0.22972972972972974,
+        "base_scenario_score": 0.12711914916770067
       }
     },
     "label_gates": {
@@ -995,11 +1835,12 @@
     },
     "promotion_sample_gates": {
       "S1": true,
-      "S2": true,
-      "S3": false
+      "S2": false,
+      "S3": true
     },
     "promotion_sample_gate_pass": false,
-    "research_sample_exception": "S3 remains report-only below its requested promotion origin count; overlapping origins and forward-outcome pooling are not used to inflate n",
+    "research_sample_exception": "promotion origin minimum not met for S2=16/20; overlapping origins and forward-outcome pooling are not used to inflate n",
+    "promotion_structural_gate_pass": false,
     "gate_pass": true,
     "path_count": 9000,
     "path_count_by_engine": {
@@ -1018,11 +1859,75 @@
     "macro_source_available_at": "2026-08-06T09:15:52+09:00",
     "legacy_block_restart_probability": 0.1,
     "legacy_block_restart_probability_active": false,
-    "restart_policy": "independent_preregistered_phase_pools",
+    "restart_policy": "empirical_scenario_native_phase_transitions",
     "general_history_start": "2016-01-04",
     "general_history_end": "2026-08-07",
     "weight_contract_path": "data/contracts/scenario_v5_2_weights.yaml",
-    "weight_contract_sha256": "bb2847f2285baf92e83e40dcdc214e465d124de51cc3684a45a91c7d4d821dbe"
+    "weight_contract_sha256": "b5e47b796c0ea697fd5d0fa12c85239380ab979957f5b4f7d4d05ba32a1bc128",
+    "separation_contract_path": "data/contracts/scenario_v5_3_separation.yaml",
+    "separation_contract_sha256": "043183fed87777faa933b0f7ec8d70c6dd4fba0a7f32f85ebcbfacb2e53e2e9d",
+    "separation_contract_audit": {
+      "contract_id": "scenario_v5_3_complete_separation_v1",
+      "feature_schema_hashable": {
+        "S1": [
+          "annualized_volatility_20d",
+          "annualized_volatility_60d",
+          "return_60d",
+          "drawdown_60d",
+          "distance_from_200d_mean",
+          "fed_funds_change_63d_pp",
+          "two_year_yield_change_63d_pp",
+          "nfci_z_score"
+        ],
+        "S2": [
+          "annualized_volatility_20d",
+          "annualized_volatility_60d",
+          "return_60d",
+          "drawdown_60d",
+          "distance_from_200d_mean",
+          "fed_funds_change_63d_pp",
+          "ten_two_curve_pp",
+          "ten_year_yield_pp",
+          "vix_level",
+          "nfci_z_score"
+        ],
+        "S3": [
+          "annualized_volatility_20d",
+          "annualized_volatility_60d",
+          "return_60d",
+          "drawdown_60d",
+          "distance_from_200d_mean",
+          "fed_funds_change_63d_pp",
+          "two_year_yield_change_63d_pp",
+          "ten_two_curve_pp",
+          "ten_year_yield_pp",
+          "vix_level",
+          "nfci_z_score"
+        ]
+      },
+      "episode_counts": {
+        "S1": 6,
+        "S2": 4,
+        "S3": 5
+      },
+      "cross_scenario_interval_overlaps": [],
+      "cross_scenario_interval_overlap_count": 0,
+      "D0_blocked_features": {
+        "S1": [
+          "vintage_cape_low_valuation",
+          "sec_eps_upward_revision_breadth"
+        ],
+        "S2": [
+          "vintage_cape_average_band",
+          "sec_eps_stability_breadth"
+        ],
+        "S3": [
+          "vintage_cape_high_valuation",
+          "sec_eps_downward_revision_breadth",
+          "stlfsi4_stress"
+        ]
+      }
+    }
   },
   "path_engine_share_by_scenario": {
     "S1": {

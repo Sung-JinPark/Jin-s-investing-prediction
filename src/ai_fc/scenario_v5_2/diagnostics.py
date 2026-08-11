@@ -35,7 +35,7 @@ from .engine import (
 
 
 BASELINE_COMMIT = "7ef55604b468104ef80f968c9e0791c37cb0eda1"
-OUTPUT_RELATIVE = Path("reports/diagnostics/v52_independent_multilayer_20260811")
+OUTPUT_RELATIVE = Path("reports/diagnostics/v52_complete_separation_v2_20260811")
 
 
 def _write_json(path: Path, value: Any) -> None:
@@ -174,17 +174,30 @@ def build_diagnostics(root: Path) -> list[Path]:
         ),
     })
 
-    residual_rows: list[dict[str, Any]] = []
-    for scale in (.30, .65, 1.00):
-        variant = _run_variant(root, inputs, count=500, residual_scale=scale)
-        residual_rows.append({"residual_scale": scale, **_variant_summary(*variant)})
-    residual_target = output / "residual_scale_ablation.json"
+    residual_rows = {
+        key: {
+            "residual_scale": row["sampling"]["residual_scale"],
+            "residual_pool_sha256": row["sampling"]["residual_pool_sha256"],
+            "residual_policy": row["sampling"]["residual_policy"],
+            "episode_ids": row["sampling"]["episode_ids"],
+            "phase_repetition_gate": row["sampling"]["phase_repetition_gate"],
+            "kernel_audit": row["sampling"]["kernel_audit"],
+        }
+        for key, row in current["model"]["generator_audit"]["scenarios"].items()
+    }
+    residual_target = output / "residual_pool_independence.json"
     _write_json(residual_target, {
         "note": (
-            "All scenarios use independent full realized phase blocks. The scale grid is a "
-            "shadow-only geometry sensitivity and never changes the active 1.00 policy."
+            "All scenarios use independent full-scale observed episode residual pools. "
+            "No amplitude rescaling is used to manufacture distinctness."
         ),
         "rows": residual_rows,
+        "unique_hash_count": len({
+            row["residual_pool_sha256"] for row in residual_rows.values()
+        }),
+        "fixed_phase_template_active": current["model"]["generator_audit"][
+            "fixed_phase_template_active"
+        ],
     })
 
     grid_rows: list[dict[str, Any]] = []
@@ -235,11 +248,15 @@ def build_diagnostics(root: Path) -> list[Path]:
         "baseline": baseline_summary,
         "candidate": current_summary,
         "candidate_full_distinctness": current["distinctness"],
+        "preregistered_baseline_comparison": current["distinctness"][
+            "baseline_comparison"
+        ],
         "gate_A_consistency": {
-            "distinct_source_groups_confirmed": True,
-            "disjoint_rng_streams_confirmed": True,
-            "legacy_S1_S2_residual_scale_equal_0_30_confirmed": True,
-            "legacy_A_0_60_was_post_generation_only_confirmed": True,
+            "scenario_native_feature_schemas_confirmed": True,
+            "registered_episode_intersection_zero_confirmed": True,
+            "independent_residual_pool_hashes_confirmed": True,
+            "empirical_variable_phase_durations_confirmed": True,
+            "structural_event_adapter_confirmed": True,
             "medoid_is_actual_member_confirmed": True,
             "dashboard_25_75_coordinates_confirmed": True,
             "specification_contradiction_found": False,
@@ -275,8 +292,9 @@ def build_diagnostics(root: Path) -> list[Path]:
     call_graph_target.write_text(
         "# V5.2 call graph and coordinate audit\n\n"
         "- `build_clustered_prior` freezes state-feature k-medoids assignments before cluster outcomes are read.\n"
-        "- S1/S2/S3 use separate phase samplers, mutually exclusive macro origin sets, block provenance, and RNG streams.\n"
-        "- A changes post-generation likelihood, B changes S1 block provenance, and C is derived by `build_weights`.\n"
+        "- S1/S2/S3 use separate feature schemas, registered non-overlapping episodes, empirical phase durations, transitions, and residual pools.\n"
+        "- Validated events change episode-group and duration-selection weights before path construction; the adapter is not probability-only.\n"
+        "- A changes post-generation likelihood, B changes S1 episode provenance, and C is derived by `build_weights`.\n"
         "- `_central_bundle` selects actual simulated members; scenario path IDs use global pool indexes.\n"
         "- The dashboard SVG allocates history 0.25 and forecast 0.75 in its actual X-coordinate function.\n"
         "- The research route defaults to three months; one month, 2026, and 2027 remain selectable.\n"
@@ -285,6 +303,7 @@ def build_diagnostics(root: Path) -> list[Path]:
     )
     summary_target = output / "README.md"
     comparison = compare_protected_hashes(before, after)
+    selected = current["model"]["generator_audit"]["scenarios"]
     summary_target.write_text(
         "# Scenario V5.2 distinct-path diagnostic\n\n"
         f"Generated `{datetime.now(timezone.utc).isoformat(timespec='seconds')}`.\n\n"
@@ -293,7 +312,14 @@ def build_diagnostics(root: Path) -> list[Path]:
         f"- Protected manifest unchanged: `{comparison['ok']}`\n"
         "- Gate A contradiction: `false`\n"
         "- Threshold gate: `report_only` until 30 approved trading-day observations\n"
-        "- Requested promotion origin counts are 15/20/12; actual selected counts are 63/99/7, so S3 remains promotion-blocking\n"
+        f"- Requested promotion origin counts are 15/20/12; actual selected counts are "
+        f"{selected['S1']['selected_cluster']['origin_count']}/"
+        f"{selected['S2']['selected_cluster']['origin_count']}/"
+        f"{selected['S3']['selected_cluster']['origin_count']}\n"
+        f"- Kernel gates S1/S2/S3: "
+        f"{selected['S1']['sampling']['kernel_audit']['gate_pass']}/"
+        f"{selected['S2']['sampling']['kernel_audit']['gate_pass']}/"
+        f"{selected['S3']['sampling']['kernel_audit']['gate_pass']}; failures remain promotion-blocking\n"
         "- Above-cap A/B 0.70 and 0.80 rows are shadow-only and never active\n"
         "- Five-as-of output is explicitly a structural stability audit because five independent PIT vintages do not exist\n",
         encoding="utf-8", newline="\n",

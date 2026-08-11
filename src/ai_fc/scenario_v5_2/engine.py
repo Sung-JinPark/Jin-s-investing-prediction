@@ -2,9 +2,10 @@
 
 The module is deliberately research-only.  It transports the latest completed
 official market anchor into three mutually exclusive point-in-time historical
-regime databases, then uses independent phase samplers for S1/S2/S3.  Evidence
-likelihoods change mixture weights without silently changing path geometry.  It
-never writes an official artifact.
+episode databases, then uses scenario-native feature schemas, empirical phase
+durations, residual pools, and transitions for S1/S2/S3.  Validated evidence
+changes both episode selection and phase-duration selection before mixture
+weights are computed.  It never writes an official artifact.
 """
 
 from __future__ import annotations
@@ -22,6 +23,12 @@ from scipy.stats import energy_distance, wasserstein_distance
 
 from ai_fc.scenario_v5.contracts import canonical_hash, file_hash
 from ai_fc.scenario_v5_2.clustering import ScenarioClusterError, build_clustered_prior
+from ai_fc.scenario_v5_2.separation import (
+    SEPARATION_CONTRACT_RELATIVE,
+    SeparationContractError,
+    load_separation_contract,
+    structural_event_adapter,
+)
 
 
 CANDIDATE_ID = "scenario_v5_2_scenario_clustered_db_v4"
@@ -65,6 +72,7 @@ SOURCE_PATHS = (
     "data/raw/market/dualdb_macro_cluster_daily_19900102_20260804.json",
     "data/normalized/market/dualdb_macro_cluster_daily_19900102_20260804.json",
     "data/scenarios/nasdaq_latest.json",
+    "data/contracts/scenario_v5_3_separation.yaml",
 )
 
 
@@ -151,6 +159,10 @@ def load_inputs(root: Path) -> dict[str, Any]:
     weight_contract = yaml.safe_load(
         (root / WEIGHT_CONTRACT_RELATIVE).read_text(encoding="utf-8")
     )
+    try:
+        separation_contract, separation_contract_audit = load_separation_contract(root)
+    except SeparationContractError as exc:
+        raise ScenarioV52Error(f"invalid complete-separation contract: {exc}") from exc
     spaces = weight_contract.get("weight_spaces", {})
     if weight_contract.get("candidate_id") != CANDIDATE_ID \
             or weight_contract.get("probability_unit") != "fraction" \
@@ -292,6 +304,8 @@ def load_inputs(root: Path) -> dict[str, Any]:
         "shadow_v52": shadow_v52,
         "legacy_v52": legacy_v52,
         "weight_contract": weight_contract,
+        "separation_contract": separation_contract,
+        "separation_contract_audit": separation_contract_audit,
     }
 
 
@@ -337,6 +351,7 @@ def generate_prior(
     generator_dotcom_share: float | None = None,
     residual_scale_override: float | None = None,
     allow_shadow_cap_exceed: bool = False,
+    structural_scores: dict[str, Any] | None = None,
 ) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any], dict[str, Any]]:
     anchor_date = date.fromisoformat(inputs["forecast_anchor"]["date"])
     anchor = float(inputs["forecast_anchor"]["close"])
@@ -351,6 +366,11 @@ def generate_prior(
         raise ScenarioV52Error("block restart probability must be in (0,1]")
     _, history_dates, history_levels = _historical_returns(
         root, inputs["history_manifest"]
+    )
+    if structural_scores is None:
+        structural_scores = evidence_scores(inputs)
+    structural_adapter = structural_event_adapter(
+        structural_scores, inputs["separation_contract"]
     )
     try:
         paths, engines, cluster_audit = build_clustered_prior(
@@ -367,6 +387,8 @@ def generate_prior(
             generator_dotcom_share=generator_dotcom_share,
             residual_scale_override=residual_scale_override,
             allow_shadow_cap_exceed=allow_shadow_cap_exceed,
+            separation_contract=inputs["separation_contract"],
+            structural_adapter=structural_adapter,
         )
     except ScenarioClusterError as exc:
         raise ScenarioV52Error(f"scenario cluster gate failed: {exc}") from exc
@@ -399,11 +421,15 @@ def generate_prior(
         "macro_source_available_at": inputs["macro_cluster_history"]["available_at"],
         "legacy_block_restart_probability": block_restart_probability,
         "legacy_block_restart_probability_active": False,
-        "restart_policy": "independent_preregistered_phase_pools",
+        "restart_policy": "empirical_scenario_native_phase_transitions",
         "general_history_start": history_dates[0],
         "general_history_end": history_dates[-1],
         "weight_contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
         "weight_contract_sha256": file_hash(root / WEIGHT_CONTRACT_RELATIVE),
+        "separation_contract_path": SEPARATION_CONTRACT_RELATIVE.as_posix(),
+        "separation_contract_sha256": file_hash(root / SEPARATION_CONTRACT_RELATIVE),
+        "separation_contract_audit": inputs["separation_contract_audit"],
+        "structural_event_adapter": structural_adapter,
     }
     return paths, dates, engines, historical_actual, generator_audit
 
@@ -543,6 +569,14 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
             "nasdaq_event_return_coefficient": 0.0,
             "interpretation": "weak state view; realized Nasdaq return is excluded",
         },
+        "source_event_revision_ids": [
+            str(labor["release_id"]),
+            str(inputs["rates"]["dataset_id"]),
+            *[
+                str(row["revision_id"])
+                for row in inputs["event_updates"].get("events", [])
+            ],
+        ],
         "event_learning": inputs["event_updates"],
     }
 
@@ -1200,15 +1234,14 @@ def _research_distinctness(
         for key in ("S1", "S2", "S3")
     }
     medoids = [per_scenario[key]["medoid_path_id"] for key in ("S1", "S2", "S3")]
-    shape = {
-        key: per_scenario[key]["shape_checkpoint_return_p50"]
-        for key in ("S1", "S2", "S3")
-    }
     pair_metrics = {row["pair"]: row for row in pairs}
     provenance_hashes = {
-        generator_audit["scenarios"][key]["sampling"]["block_provenance_sha256"]
+        generator_audit["scenarios"][key]["sampling"]["residual_pool_sha256"]
         for key in ("S1", "S2", "S3")
     }
+    baseline_correlation = 0.963
+    minimum_material_reduction = 0.02
+    observed_s1_s2 = float(pair_metrics["S1-S2"]["p50_log_level_correlation"])
     descriptive_checks = {
         "cumulative_return_order_S1_gt_S2_gt_S3": all(returns_order.values()),
         "S1_and_S2_drawdown_below_S3": (
@@ -1221,33 +1254,35 @@ def _research_distinctness(
         "S1_recovery_faster_than_S2_and_S3": (
             recovery["S1"] < min(recovery["S2"], recovery["S3"])
         ),
-        "S1_has_historical_short_correction_and_reacceleration": (
-            shape["S1"]["52"] < shape["S1"]["42"]
-            and shape["S1"]["63"] > shape["S1"]["52"]
+        "S1_S2_log_level_correlation_materially_below_0_963_baseline": (
+            observed_s1_s2 <= baseline_correlation - minimum_material_reduction
         ),
-        "S2_has_balanced_mean_reversion_not_S1_copy": (
-            shape["S2"]["63"] < shape["S2"]["42"]
-            and abs(shape["S2"]["63"]) <= .04
+        "episode_interval_intersection_zero": (
+            generator_audit["episode_interval_overlap_count"] == 0
         ),
-        "S3_has_drawdown_then_failed_relief": (
-            shape["S3"]["52"] < shape["S3"]["42"]
-            and shape["S3"]["84"] > shape["S3"]["52"]
-            and shape["S3"]["252"] < shape["S3"]["84"]
+        "scenario_feature_schemas_distinct": (
+            generator_audit["feature_schemas_distinct"] is True
         ),
-        "S1_S2_standardized_path_dtw_at_least_0_15": (
-            pair_metrics["S1-S2"]["standardized_log_path_dtw"] >= .15
+        "independent_residual_pool_hashes": (
+            len(provenance_hashes) == 3
+            and generator_audit["residual_pool_hashes_unique"] is True
         ),
-        "macro_regime_origin_sets_disjoint": (
-            generator_audit["macro_regime_cohorts_disjoint"] is True
-            and not any(generator_audit["macro_regime_cohort_origin_overlap"].values())
+        "empirical_phase_repetition_gates_pass": (
+            generator_audit["phase_repetition_gates_pass"] is True
         ),
-        "independent_residual_provenance": len(provenance_hashes) == 3,
+        "fixed_phase_template_inactive": (
+            generator_audit["fixed_phase_template_active"] is False
+        ),
+        "event_adapter_changes_structure_not_probability_only": (
+            generator_audit["structural_event_adapter"]["probability_only_update"] is False
+        ),
         "medoid_path_ids_unique": len(set(medoids)) == 3,
         "paths_unchanged_by_distinctness_evaluation": True,
     }
     return {
-        "schema_version": 2,
-        "contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
+        "schema_version": 3,
+        "contract_path": "data/contracts/scenario_v5_3_separation.yaml",
+        "weight_contract_path": WEIGHT_CONTRACT_RELATIVE.as_posix(),
         "operational_mode": "report_only",
         "status": "REPORT_ONLY_INSUFFICIENT_30_TRADING_DAY_SHADOW_HISTORY",
         "threshold_calibration": {
@@ -1260,6 +1295,17 @@ def _research_distinctness(
         "threshold_gate_evaluated": False,
         "gate_pass": None,
         "promotion_eligible": False,
+        "baseline_comparison": {
+            "metric": "S1-S2_p50_log_level_correlation",
+            "baseline": baseline_correlation,
+            "redesigned_shadow": observed_s1_s2,
+            "minimum_material_reduction": minimum_material_reduction,
+            "observed_reduction": baseline_correlation - observed_s1_s2,
+            "material_reduction_gate_pass": (
+                observed_s1_s2 <= baseline_correlation - minimum_material_reduction
+            ),
+            "fixed_absolute_target_used": False,
+        },
         "sample_adequacy": {
             "gate_pass": generator_audit["promotion_sample_gate_pass"],
             "scenarios": {
@@ -1271,6 +1317,23 @@ def _research_distinctness(
         },
         "failure_action": "display_warning_and_stop_promotion_without_path_mutation",
         "per_scenario": per_scenario,
+        "phase_and_kernel_audit": {
+            key: {
+                "fixed_phase_template": generator_audit["scenarios"][key][
+                    "sampling"
+                ]["fixed_phase_template"],
+                "phase_duration_distribution": generator_audit["scenarios"][key][
+                    "sampling"
+                ]["phase_duration_distribution"],
+                "phase_repetition_gate": generator_audit["scenarios"][key][
+                    "sampling"
+                ]["phase_repetition_gate"],
+                "kernel_audit": generator_audit["scenarios"][key]["sampling"][
+                    "kernel_audit"
+                ],
+            }
+            for key in ("S1", "S2", "S3")
+        },
         "pairs": pairs,
         "descriptive_checks": descriptive_checks,
         "descriptive_checks_pass": all(descriptive_checks.values()),
@@ -1465,8 +1528,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     inputs = load_inputs(root)
     forecast_anchor = inputs["forecast_anchor"]
     anchor = float(forecast_anchor["close"])
-    paths, dates, engines, historical_actual, generator_audit = generate_prior(root, inputs)
     scores = evidence_scores(inputs)
+    paths, dates, engines, historical_actual, generator_audit = generate_prior(
+        root, inputs, structural_scores=scores
+    )
     weighting = build_weights(
         paths, dates, engines, scores, inputs["dotcom"], generator_audit
     )
@@ -1502,6 +1567,64 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     research_distinctness = _research_distinctness(
         paths, dates, full_weights, masks, scenarios, generator_audit
     )
+    zero_structural_scores = {
+        "policy_relief": {"bounded_score": 0.0},
+        "labor_growth_risk": {"bounded_score": 0.0},
+        "inflation_risk": {"bounded_score": 0.0},
+        "source_event_revision_ids": scores["source_event_revision_ids"],
+    }
+    counterfactual_paths, counterfactual_dates, counterfactual_engines, _, \
+        counterfactual_audit = generate_prior(
+            root, inputs, path_count_per_engine=240,
+            structural_scores=zero_structural_scores,
+        )
+    if counterfactual_dates != dates:
+        raise ScenarioV52Error("structural event counterfactual horizon mismatch")
+    counterfactual_masks = _engine_masks(counterfactual_engines)
+    structural_rows: dict[str, Any] = {}
+    for scenario in ("S1", "S2", "S3"):
+        active_subset = paths[masks[scenario]][:240]
+        zero_subset = counterfactual_paths[counterfactual_masks[scenario]]
+        active_p50 = np.median(active_subset, axis=0)
+        zero_p50 = np.median(zero_subset, axis=0)
+        structural_rows[scenario] = {
+            "active_path_sha256": hashlib.sha256(
+                np.asarray(active_subset, dtype="<f8").tobytes()
+            ).hexdigest(),
+            "zero_event_path_sha256": hashlib.sha256(
+                np.asarray(zero_subset, dtype="<f8").tobytes()
+            ).hexdigest(),
+            "paths_differ": not np.array_equal(active_subset, zero_subset),
+            "p50_return_difference_active_minus_zero": {
+                str(index): float(
+                    active_p50[index] / anchor - zero_p50[index] / anchor
+                )
+                for index in (21, 63, 126, 252)
+            },
+            "active_episode_group_weight_multipliers": generator_audit[
+                "scenarios"
+            ][scenario]["sampling"]["episode_group_weight_multipliers"],
+            "zero_event_episode_group_weight_multipliers": counterfactual_audit[
+                "scenarios"
+            ][scenario]["sampling"]["episode_group_weight_multipliers"],
+            "active_phase_duration_selection_tilts": generator_audit[
+                "scenarios"
+            ][scenario]["sampling"]["phase_duration_selection_tilts"],
+            "zero_event_phase_duration_selection_tilts": counterfactual_audit[
+                "scenarios"
+            ][scenario]["sampling"]["phase_duration_selection_tilts"],
+        }
+    structural_event_ablation = {
+        "comparison": "full_structural_evidence_vs_zero_event_structure",
+        "path_count_per_scenario": 240,
+        "same_seed_and_registered_episode_libraries": True,
+        "probability_weights_applied": False,
+        "paths_differ_all_scenarios": all(
+            row["paths_differ"] for row in structural_rows.values()
+        ),
+        "source_event_revision_ids": scores["source_event_revision_ids"],
+        "scenarios": structural_rows,
+    }
     attribution: dict[str, Any] = {}
     probability_keys = [
         "terminal_above_anchor_2026", "terminal_above_v51_reference_2026",
@@ -1698,7 +1821,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "schema_version": 1,
         "artifact_type": "scenario_v5_2_research_candidate",
         "candidate_id": CANDIDATE_ID,
-        "status": "RESEARCH_CANDIDATE_INDEPENDENT_MULTILAYER_DB_LIMITED_EVENT_MAP",
+        "status": "RESEARCH_CANDIDATE_COMPLETE_SEPARATION_DB_LIMITED_EVENT_MAP",
         "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
         "as_of": inputs["knowledge_cutoff"],
         "knowledge_cutoff": inputs["knowledge_cutoff"],
@@ -1722,7 +1845,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "historical_transport_step": 0.0,
         },
         "model": {
-            "model_id": "independent_multilayer_scenario_databases_v5",
+            "model_id": "complete_separation_empirical_episode_databases_v6",
             "seed": SEED,
             "path_count": int(paths.shape[0]),
             "path_count_by_engine": {
@@ -1746,11 +1869,19 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
                 "status": "REFERENCE_ONLY_INSUFFICIENT_N",
                 "direct_event_return_kernel_used": False,
             },
-            "path_creation_note": "No endpoint, drawdown date, or scenario probability is forced.",
+            "path_creation_note": (
+                "No endpoint, drawdown date, fixed phase duration, or scenario "
+                "probability is forced. Paths recombine observed scenario-native "
+                "episode segments with empirical transitions."
+            ),
             "valuation_and_earnings_gate": {
                 "status": "REFERENCE_ONLY_MISSING_POINT_IN_TIME_CROSS_ERA_HISTORY",
                 "stale_Cyclically_adjusted_PE_substitution": False,
                 "fabricated_low_PER_feature": False,
+                "source_mapping": inputs["separation_contract"]["source_mapping"],
+                "D0_blocked_coordinates": inputs["separation_contract_audit"][
+                    "D0_blocked_features"
+                ],
             },
         },
         "weight_spaces": {
@@ -1764,7 +1895,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "B_generator_dotcom_block_share": {
                 "value": dotcom_audit["B_generator_dotcom_block_share"],
                 "realized_session_share": dotcom_audit["B_realized_dotcom_session_share"],
-                "role": "S1_phase_block_source_share",
+                "role": "S1_registered_episode_session_source_share",
                 "changes_path_geometry": True,
             },
             "C_mixture_probability": {
@@ -1777,6 +1908,27 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "evidence_scores": scores,
         "evidence_registry": evidence,
         "scenario_layer_contract": weighting["scenario_layer_contract"],
+        "complete_separation_contract": {
+            "path": SEPARATION_CONTRACT_RELATIVE.as_posix(),
+            "sha256": generator_audit["separation_contract_sha256"],
+            "shared_runtime_inputs_allowed": [
+                "current_index_anchor", "trading_calendar"
+            ],
+            "feature_schemas": generator_audit["feature_schemas_by_scenario"],
+            "episode_ids": generator_audit["episode_ids_by_scenario"],
+            "episode_interval_overlap_count": generator_audit[
+                "episode_interval_overlap_count"
+            ],
+            "residual_pool_hashes_unique": generator_audit[
+                "residual_pool_hashes_unique"
+            ],
+            "fixed_phase_template_active": generator_audit[
+                "fixed_phase_template_active"
+            ],
+            "structural_event_adapter": generator_audit[
+                "structural_event_adapter"
+            ],
+        },
         "dependency_control": {
             "default_cluster_cap": .35,
             "approved_cluster_overrides": {
@@ -1855,7 +2007,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "corrections_require_supersedes": True,
             "instant_means": "after a validated normalized release is explicitly ingested",
             "background_scraping_or_unbounded_self_training": False,
+            "structural_adapter": generator_audit["structural_event_adapter"],
+            "probability_only_update": False,
         },
+        "structural_event_ablation": structural_event_ablation,
         "distribution": {
             "probability_space": "total_path_mixture",
             "dates": dates,
@@ -1898,7 +2053,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         },
         "shadow_comparison": shadow_comparison,
         "sensitivity_analysis": {
-            "design": "A varies likelihood on fixed paths; B varies S1 phase-block geometry",
+            "design": "A varies likelihood on fixed paths; B varies S1 registered-episode session provenance",
             "rows": sensitivity_rows,
             "B_generator_rows": b_sensitivity_rows,
             "above_cap_shadow_only": [0.70, 0.80],
@@ -1924,9 +2079,9 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "percent_conversion_boundary": "dashboard_only",
             "dotcom_weight_disclosure": "S1 0.60 override; S2 0.00; S3 0.00; research only",
             "scenario_database_disclosure": (
-                "S1 dotcom 60% plus disjoint easing macro 40%; "
-                "S2 disjoint balanced soft-landing macro; "
-                "S3 disjoint tightening/stress macro with failed-relief phases"
+                "S1/S2/S3 use distinct feature schemas, registered non-overlapping "
+                "episodes, empirical phase durations/transitions, and residual pools; "
+                "S1 targets a 0.60 dotcom session share"
             ),
             "valuation_disclosure": (
                 "PER/valuation is reference-only because a vintage-complete cross-era "

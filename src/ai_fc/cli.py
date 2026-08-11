@@ -449,6 +449,19 @@ def cmd_market_extensions(
     )
 
 
+@app.command("statistics-refresh")
+def cmd_statistics_refresh() -> None:
+    """닷컴과 현재 사이클의 공개 통계 비교 DB를 주간 갱신한다."""
+    from .statistics_lab import refresh_statistics_lab
+
+    path, payload, changed = refresh_statistics_lab(config.ROOT)
+    state = "갱신" if changed else "변경 없음"
+    typer.echo(
+        f"{state}: {path.relative_to(config.ROOT)} · 기준 {payload['as_of']} · "
+        f"차트 {len(payload['charts'])}개 · model_use=false"
+    )
+
+
 @app.command("segment-filing-inventory")
 def cmd_segment_filing_inventory(
     asof: str | None = typer.Option(

@@ -1,19 +1,49 @@
 {
-  "generated_at": "2026-08-11T07:38:27+00:00",
+  "generated_at": "2026-08-11T09:10:37+00:00",
   "pytest": {
     "status": "pass",
-    "tests": 469,
+    "execution_mode": "partitioned_complete_collection",
+    "tests": 473,
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "time_seconds": 188.177
+    "time_seconds": 280.931,
+    "partitions": [
+      {
+        "path": "src_tests_pytest.xml",
+        "tests": 419,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "time_seconds": 214.571,
+        "status": "pass"
+      },
+      {
+        "path": "dualdb_tests_pytest.xml",
+        "tests": 54,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0,
+        "time_seconds": 66.36,
+        "status": "pass"
+      }
+    ],
+    "monolithic_attempt": {
+      "path": "full_pytest.xml",
+      "tests": 358,
+      "failures": 0,
+      "errors": 1,
+      "skipped": 0,
+      "time_seconds": 355.73,
+      "status": "fail"
+    }
   },
   "javascript_syntax": "pass",
   "security_pattern_scan": "pass",
   "static_build": {
     "index": "_site/index.html",
     "data": "_site/data.json",
-    "model_content_sha256": "d8beb7e8b413e3073913264913f0a328ac48b548d0285346a219c384f08214df"
+    "model_content_sha256": "af81a99886090687ec6b0a4da27c58017837a5bae2a3b01f329c399e8be81bd8"
   },
   "browser": {
     "local_1280": "pass",

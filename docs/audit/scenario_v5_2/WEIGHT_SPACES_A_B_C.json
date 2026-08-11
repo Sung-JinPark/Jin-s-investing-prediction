@@ -1,5 +1,5 @@
 {
-  "contract_id": "scenario_v5_2_multilayer_path_weights_v2",
+  "contract_id": "scenario_v5_2_complete_separation_weights_v3",
   "contract_path": "data/contracts/scenario_v5_2_weights.yaml",
   "A_evidence_strength": {
     "value": 0.6,
@@ -8,15 +8,15 @@
   },
   "B_generator_dotcom_block_share": {
     "value": 0.6,
-    "realized_session_share": 0.6000897435897435,
-    "role": "S1_phase_block_source_share",
+    "realized_session_share": 0.5827335164835165,
+    "role": "S1_registered_episode_session_source_share",
     "changes_path_geometry": true
   },
   "C_mixture_probability": {
     "value": {
-      "S1": 0.6298419415086487,
-      "S2": 0.32238835694924844,
-      "S3": 0.04776970154210286
+      "S1": 0.7488449739422544,
+      "S2": 0.13830367206221728,
+      "S3": 0.11285135399552829
     },
     "role": "derived_research_cohort_mass",
     "directly_settable": false,

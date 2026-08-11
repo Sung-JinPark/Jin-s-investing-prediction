@@ -1,5 +1,5 @@
 # Phase F — Conditional scenarios and distinctness
 
-Gate: **PASS FOR DESCRIPTIVE CHECKS; THRESHOLD GATE REPORT-ONLY**
+Gate: **PASS FOR PREREGISTERED BASELINE REDUCTION; 30-DAY GATE REPORT-ONLY**
 
-Research cohort weights are S1 62.98%, S2 32.24%, S3 4.78%. They are derived cohort masses, not calibrated event probabilities. Daily first-difference correlations, DTW, 2026/2027 Wasserstein distance, return/MDD/semivolatility/recovery ordering, first-touch KS, unique medoids, origin counts, and ESS are serialized in `SCENARIO_DISTINCTNESS_REPORT_ONLY.json`. Thresholds remain report-only until 30 approved trading-day shadow observations exist; failure never mutates paths. Legacy 2027 descriptive gate: `True`.
+Research cohort masses are S1 74.88%, S2 13.83%, S3 11.29%; these are not calibrated event probabilities. S1/S2 p50 log-level correlation moved from `0.963` to `-0.9795`. Observed reduction is `1.9425` and fixed absolute target used is `False`. Episode overlap, feature-schema uniqueness, residual hashes, phase repetition, medoids, first-touch, DTW and Wasserstein metrics are serialized. Promotion thresholds remain report-only until 30 approved trading days exist.
