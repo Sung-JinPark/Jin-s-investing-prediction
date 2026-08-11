@@ -1,94 +1,71 @@
-<h1 align="center">Jin's Investing Prediction</h1>
+# Jin's Investing Prediction
 
-<p align="center"><strong>시장 전망을 그래프로 보고, 근거와 결과까지 확인하는 투자 리서치 솔루션</strong></p>
+시장 전망을 그래프로 보고, 사용한 데이터와 예측 기록까지 확인하는 투자 리서치 대시보드입니다.
 
-<p align="center">
-<a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/"><strong>라이브 대시보드</strong></a> ·
-<a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future">미래 전망 바로 보기</a> ·
-<a href="forecasts/2026/">공개 예측 기록</a>
-</p>
+[라이브 대시보드](https://sung-jinpark.github.io/Jin-s-investing-prediction/) · [기본 미래 전망](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future) · [Scenario V5.2 연구 후보](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future/research) · [공개 예측 기록](forecasts/2026/)
 
-<p align="center">
-<a href="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml"><img src="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml/badge.svg" alt="verify"></a>
-<img src="https://img.shields.io/badge/python-3.12-blue" alt="Python 3.12">
-<img src="https://img.shields.io/badge/forecast-research%20candidate-informational" alt="Research candidate">
-</p>
+> 이 저장소는 투자 리서치와 확률 예측을 위한 시스템입니다. 자동매매·주문 실행·수익 보장 서비스가 아닙니다.
 
-## 한눈에 보는 기능
+## 화면 구성
 
 | 화면 | 바로 알 수 있는 것 |
 |---|---|
-| **오늘** | 현재 시장 상태와 다시 확인할 핵심 질문 |
-| **미래 전망** | 다음 1개월·3개월·2026·2027의 세 가지 NASDAQ 경로 |
-| **자산 비교** | NASDAQ·Bitcoin·Realty Income의 움직임 차이 |
-| **유동성** | 시장 자금 흐름과 NASDAQ·Bitcoin 수익률의 동행 구간 |
-| **기록과 검증** | 예측이 언제, 왜 바뀌었고 실제로 맞았는지 |
-| **데이터와 신뢰** | 출처, 기준일, 누락 데이터와 검증 상태 |
+| 오늘 | 현재 시장 상태와 핵심 신호 |
+| 미래 탐색 | 승격된 champion GBM의 기본 전망과 날짜별 분포 |
+| 연구 후보 | 서로 다른 역사 DB 군집으로 만든 V5.2의 S1·S2·S3 조건부 경로 |
+| 자산 비교 | NASDAQ·Bitcoin·Realty Income의 움직임 차이 |
+| 유동성 | 시장 자금 흐름과 NASDAQ·Bitcoin 수익률의 동행 구간 |
+| 기록과 검증 | 예측이 언제 공개됐고 실제 결과와 얼마나 맞았는지 |
+| 데이터와 신뢰 | 출처, 기준시각, 데이터 누락과 검증 상태 |
 
-대시보드는 정적 읽기 전용 사이트입니다. 웹페이지에서 주문을 내거나 예측 원장을 수정하지 않습니다.
+## 기본 전망과 연구 후보는 다릅니다
 
-## 미래 전망 그래프 읽는 법
+`#future`의 기본 화면은 승격된 기준 모델 `gbm-daily-252d-v2-lookup`입니다. Scenario V5.2는 아직 champion이 아니므로 `#future/research`에서만 명시적으로 선택해 볼 수 있습니다.
 
-세 시나리오는 같은 모델을 색만 바꾼 선이 아닙니다. 서로 다른 역사 데이터 군집을 사용합니다.
+V5.2의 현재 제한은 화면 상단에 항상 표시됩니다.
 
-| 경로 | 주로 보는 데이터 | 화면에서의 의미 |
+- 직접 적격 사건: 1/60
+- band calibration: 3/60
+- walk-forward 승인: 없음
+- 사람 승인 원장의 `run_id`: 없음
+- 상태: `degraded`, 보정되지 않은 연구 후보
+
+따라서 V5.2의 결과 비율과 S1·S2·S3 가중치는 공식 사건확률이나 매매 신호로 해석하면 안 됩니다. 화면에서는 과정밀을 피하기 위해 결과 비율을 정수 %로 표시합니다.
+
+## V5.2 그래프 읽는 법
+
+세 경로는 하나의 로그 축에 겹쳐 비교합니다. 시간축은 과거 약 1/4, 전망 약 3/4로 배치해 앞으로의 차이를 더 길게 볼 수 있습니다.
+
+| 경로 | 주로 사용하는 역사 데이터 군집 | 현재 선택 군집 |
 |---|---|---|
-| **S1 확장** | 닷컴 가격 국면, 성장 지표, 정책 완화 | 상승이 이어지는 경우의 경로 |
-| **S2 균형** | 현대 시장, 거시 지표, 회복 국면 | 횡보와 완만한 회복 경로 |
-| **S3 스트레스** | 긴축, 금리 부담, 금융여건 악화 | 큰 조정과 회복 지연 경로 |
+| S1 확장 | 닷컴 가격 국면과 성장 지표 | 63개 역사 원점, 3,000개 모의 경로 |
+| S2 균형 | 현대 시장과 거시 균형 국면 | 16개 역사 원점, 3,000개 모의 경로 |
+| S3 스트레스 | 긴축·금리 부담·금융여건 악화 국면 | 7개 역사 원점, 3,000개 모의 경로 |
 
-그래프에서는 세 경로를 하나의 로그 스케일에 겹쳐 보여줍니다.
+- 굵은 선: 날짜별 조건부 중앙값 `p50`
+- 가는 점선: 실제 모의 경로 가운데 중앙값과 가까운 한 경로
+- 회색 영역: 전체 mixture의 중심 구간
+- 가중치: 역사 군집을 섞는 연구 가중치이며 보정된 상승·중립·하락 발생확률이 아님
 
-- **굵은 선**: 해당 군집의 날짜별 중앙값(p50)
-- **가는 점선**: 실제 모의 경로 중 중심에 가까운 사례
-- **회색 영역**: 전체 혼합 전망의 중심 범위
-- **경로 가중치**: 역사 군집을 섞는 연구 가중치이며, 상승·중립·하락의 보정된 발생확률은 아닙니다.
+닷컴 강도는 승인된 연구 계약에 따라 S1에만 `0.60`을 적용하고 S2·S3에는 적용하지 않습니다. dependency cap도 `0.60`입니다. `0.40`은 cap 이내의 비교값, `0.60`은 현재값이며, `0.80`은 cap을 초과하므로 계산하거나 적용하지 않습니다.
 
-닷컴 유사도 강도 `0.60`은 S1에만 적용되고 S2·S3에는 적용되지 않습니다. 기존 시나리오별 DB, 가중치, 고용 성장위험과 금리 정책완화의 분리 구조는 유지됩니다.
+새 CPI·고용·FOMC·GDP·실적은 출처, `available_at`, 기준시각과 단위를 검증한 뒤 다음 빌드에서만 반영됩니다. 발표일의 실제 가격 반응을 새 anchor와 미래 점프로 중복 반영하지 않습니다.
 
-## 숫자를 쉽게 해석하는 원칙
+## 정직성 원칙
 
-대시보드는 복잡한 모델명을 먼저 보여주지 않습니다. 고객 화면에서는 다음 순서로 설명합니다.
+- 저장 확률 단위는 `[0, 1]`의 fraction이며 UI에서만 %로 변환합니다.
+- 예측 기준시각 이후에 공개된 데이터나 수정치는 과거 전망에 소급 사용하지 않습니다.
+- 예측·수정·방법 변경 원장은 append-only입니다.
+- HOLD, 만료, 미승인 또는 degraded 연구 후보는 공식 forecast ledger에 쓰지 않습니다.
+- 구조 경로와 확률을 바꾸는 변경은 기존 결과와 shadow 비교 후에만 승격할 수 있습니다.
+- 데이터가 없으면 임의 숫자를 만들지 않고 미산출 또는 수집 중으로 표시합니다.
 
-1. **숫자** — 현재 산출값
-2. **뜻** — 무엇을 측정하는지
-3. **주의점** — 확률인지, 참고 지표인지, 아직 검증 중인지
-
-예를 들어 고용 약화는 성장 위험을 높일 수 있지만, 금리 부담 완화는 기술주 가치평가에 반대 방향으로 작용할 수 있습니다. 두 효과는 따로 계산하고 화면에서도 따로 설명합니다.
-
-## Bitcoin·Realty Income·유동성
-
-- NASDAQ과 Realty Income은 2001년 3월 이후 실제 가격을 사용합니다.
-- Bitcoin은 2009년 이전 실측 가격이 없으므로 현대 민감도를 적용한 참고 경로만 표시합니다.
-- 자산 가격은 시작값을 `100`으로 맞춰 방향과 회복 속도를 비교합니다.
-- 유동성 화면의 `0`은 최근 1년 평균입니다. 양수는 평균보다 많은 자금, 음수는 적은 자금을 뜻합니다.
-- 유동성과 가격이 함께 움직여도 인과관계나 상승 보장을 뜻하지 않습니다.
-
-## 예측 기록을 신뢰할 수 있는 이유
-
-- 공개된 예측은 기존 파일을 고치지 않고 새 회차로 추가합니다.
-- 결과가 나온 모든 회차를 Brier 점수로 채점합니다.
-- 당시 공개되지 않은 데이터는 예측에 사용할 수 없습니다.
-- 공식 예측과 연구 후보, 참고 지표를 분리해 표시합니다.
-- 데이터가 없으면 임의 숫자를 만들지 않고 `산출 전` 또는 `수집 전`으로 표시합니다.
-
-다음 명령으로 공개 기록의 해시와 Git 이력을 직접 검증할 수 있습니다.
-
-```bash
-git clone https://github.com/Sung-JinPark/Jin-s-investing-prediction.git
-cd Jin-s-investing-prediction
-python tools/verify_track_record.py
-```
-
-## 개발자 빠른 시작
+## 로컬 검증
 
 ```bash
 uv sync
-
-# 전체 검증
 uv run pytest -q
 
-# 로컬 대시보드
 cd src
 python -m ai_fc dashboard --serve --host 127.0.0.1
 ```
@@ -96,27 +73,29 @@ python -m ai_fc dashboard --serve --host 127.0.0.1
 주요 명령:
 
 ```bash
-uv run ai-fc due               # 갱신·판정 대상 확인
-uv run ai-fc sync --check      # 원장과 파생 인덱스 검증
-uv run ai-fc scenario          # NASDAQ 연구 경로 갱신
-uv run ai-fc cross-asset       # 교차자산 지도 갱신
-uv run ai-fc market-extensions # 유동성·시장 신호 갱신
+uv run ai-fc due               # 갱신·판정 대기 확인
+uv run ai-fc sync --check      # 저장·파생 인덱스 검증
+uv run ai-fc scenario          # NASDAQ 기준 전망 갱신
+uv run ai-fc cross-asset       # 교차자산 지표 갱신
+uv run ai-fc market-extensions # 유동성·거시 신호 갱신
+```
+
+공개 예측 기록은 다음 명령으로 Git 이력과 함께 검증할 수 있습니다.
+
+```bash
+python tools/verify_track_record.py
 ```
 
 ## 저장소 구조
 
 | 경로 | 역할 |
 |---|---|
-| `questions/` | 무엇을 언제 어떤 기준으로 판정할지 정의 |
-| `forecasts/` | 공개된 예측 회차와 근거 |
+| `questions/` | 예측 질문과 판정 기준 |
+| `forecasts/` | 공개 예측 revision과 근거 |
 | `calibration/` | 결과·점수·벤치마크 원장 |
 | `data/` | 시장 데이터와 연구 후보 산출물 |
-| `src/ai_fc/` | 예측·검증·대시보드 엔진 |
-| `docs/` | 설계, 감사 결과와 알려진 한계 |
+| `src/ai_fc/` | 예측·검증·대시보드 코드 |
+| `docs/` | 설계와 감사 보고서 |
 | `reports/reviews/` | 현재 및 과거 검토 패키지 |
 
-자세한 기술 문서는 [아키텍처](docs/ARCHITECTURE.md), [모델 레지스트리](docs/MODEL_REGISTRY.md), [알려진 한계](docs/KNOWN_LIMITS.md)에서 확인할 수 있습니다.
-
----
-
-> 본 저장소와 대시보드는 투자 자문, 매매 권유 또는 수익 보장 서비스가 아닙니다. 연구 후보와 과거 사례는 미래 성과를 보장하지 않습니다.
+자세한 내용은 [아키텍처](docs/ARCHITECTURE.md), [모델 레지스트리](docs/MODEL_REGISTRY.md), [알려진 한계](docs/KNOWN_LIMITS.md)에서 확인할 수 있습니다.

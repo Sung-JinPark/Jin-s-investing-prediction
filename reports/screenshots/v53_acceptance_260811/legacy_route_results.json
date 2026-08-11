@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "passed": true,
+  "redirectsExpected": 15,
+  "redirectsPassed": 15,
+  "results": [
+    {
+      "input": "#overview",
+      "expected": "#today",
+      "actual": "#today",
+      "pass": true
+    },
+    {
+      "input": "#flow",
+      "expected": "#future",
+      "actual": "#future",
+      "pass": true
+    },
+    {
+      "input": "#questions",
+      "expected": "#records",
+      "actual": "#records",
+      "pass": true
+    },
+    {
+      "input": "#ask",
+      "expected": "#future/lookup",
+      "actual": "#future/lookup",
+      "pass": true
+    },
+    {
+      "input": "#asof",
+      "expected": "#records/journal",
+      "actual": "#records/journal",
+      "pass": true
+    },
+    {
+      "input": "#track",
+      "expected": "#records/performance",
+      "actual": "#records/performance",
+      "pass": true
+    },
+    {
+      "input": "#q/nasdaq-ath",
+      "expected": "#records/question/nasdaq-ath",
+      "actual": "#records/question/nasdaq-ath",
+      "pass": true
+    },
+    {
+      "input": "#compare/a,b",
+      "expected": "#records/compare/a,b",
+      "actual": "#records/compare/a,b",
+      "pass": true
+    },
+    {
+      "input": "#asof/any-question",
+      "expected": "#records/journal/question/any-question",
+      "actual": "#records/journal/question/any-question",
+      "pass": true
+    },
+    {
+      "input": "#asof=2026-08-07",
+      "expected": "#records/journal/2026-08-07",
+      "actual": "#records/journal/2026-08-07",
+      "pass": true
+    },
+    {
+      "input": "#lookup=2026-09-04",
+      "expected": "#future/lookup/2026-09-04/rebase",
+      "actual": "#future/lookup/2026-09-04/rebase",
+      "pass": true
+    },
+    {
+      "input": "#lookup=2026-09-04&mode=current",
+      "expected": "#future/lookup/2026-09-04/current",
+      "actual": "#future/lookup/2026-09-04/current",
+      "pass": true
+    },
+    {
+      "input": "#lab=future",
+      "expected": "#future",
+      "actual": "#future",
+      "pass": true
+    },
+    {
+      "input": "#lab=cross-asset",
+      "expected": "#future/cross-asset",
+      "actual": "#future/cross-asset",
+      "pass": true
+    },
+    {
+      "input": "#lab=liquidity",
+      "expected": "#future/liquidity",
+      "actual": "#future/liquidity",
+      "pass": true
+    }
+  ]
+}

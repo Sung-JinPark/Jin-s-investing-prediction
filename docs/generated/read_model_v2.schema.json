@@ -25,6 +25,7 @@
     "era_analog",
     "cross_asset",
     "scenario_tracker",
+    "band_calibration",
     "liquidity",
     "ai_regime",
     "o_entry_cohort",
@@ -231,6 +232,44 @@
             "string",
             "null"
           ]
+        }
+      }
+    },
+    "band_calibration": {
+      "type": "object",
+      "required": [
+        "status",
+        "probability_space",
+        "source_path",
+        "observations",
+        "minimum_observations",
+        "gate_pass",
+        "rows"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "accumulating",
+            "ready"
+          ]
+        },
+        "probability_space": {
+          "const": "scenario_conditional"
+        },
+        "source_path": {
+          "const": "data/scenarios/band_calibration.csv"
+        },
+        "observations": {
+          "type": "integer"
+        },
+        "minimum_observations": {
+          "const": 60
+        },
+        "gate_pass": {
+          "type": "boolean"
+        },
+        "rows": {
+          "type": "array"
         }
       }
     },

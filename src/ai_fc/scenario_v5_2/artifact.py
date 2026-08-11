@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import math
 import os
@@ -462,6 +463,49 @@ def _sample_bundle(bundle: dict[str, Any], indexes: list[int]) -> dict[str, Any]
     }
 
 
+def _promotion_disclosure(root: Path, payload: dict[str, Any]) -> dict[str, Any]:
+    """Expose the four non-promotion gates without mutating any ledger."""
+    calibration_path = root / "data/scenarios/band_calibration.csv"
+    calibration_rows: list[dict[str, str]] = []
+    if calibration_path.is_file():
+        with calibration_path.open(encoding="utf-8", newline="") as handle:
+            calibration_rows = list(csv.DictReader(handle))
+    hard_event = payload["model"]["hard_event_mapping"]
+    event_observations = int(hard_event["eligible_historical_event_count"])
+    event_minimum = int(hard_event["preferred_minimum"])
+    gates = {
+        "direct_event_observations": {
+            "observations": event_observations,
+            "minimum": event_minimum,
+            "pass": (
+                event_observations >= event_minimum
+                and hard_event.get("direct_event_return_kernel_used") is True
+            ),
+        },
+        "band_calibration": {
+            "observations": len(calibration_rows),
+            "minimum": 60,
+            "latest_asof": calibration_rows[-1]["asof"] if calibration_rows else None,
+            "pass": len(calibration_rows) >= 60,
+        },
+        "walk_forward": {
+            "status": "not_approved",
+            "pass": False,
+        },
+        "human_approval": {
+            "approval_run_id": None,
+            "status": "not_issued",
+            "pass": False,
+        },
+    }
+    return {
+        "promotion_state": payload["promotion_state"],
+        "champion_eligible": all(row["pass"] for row in gates.values()),
+        "default_surface": "research_only_explicit_route",
+        "gates": gates,
+    }
+
+
 def dashboard_projection(
     root: Path, now: datetime, *, maximum_age_trading_days: int = 1,
 ) -> dict[str, Any]:
@@ -497,6 +541,25 @@ def dashboard_projection(
         }
     dates = payload["distribution"]["dates"]
     indexes = _sample_indexes(len(dates))
+    generator = payload["model"]["generator_audit"]
+    engine_by_scenario = {
+        "S1": "S1_dotcom_expansion_cluster",
+        "S2": "S2_modern_baseline_cluster",
+        "S3": "S3_macro_tightening_stress_cluster",
+    }
+    cluster_disclosure = {
+        key: {
+            "source_group": generator["scenarios"][key]["source_group"],
+            "source_origin_count": generator["scenarios"][key]["origin_count"],
+            "selected_cluster_origin_count": generator["scenarios"][key][
+                "selected_cluster"
+            ]["origin_count"],
+            "simulation_path_count": payload["model"]["path_count_by_engine"][
+                engine_by_scenario[key]
+            ],
+        }
+        for key in ("S1", "S2", "S3")
+    }
     scenarios: dict[str, Any] = {}
     for key, row in payload["conditional_small_multiples"]["scenarios"].items():
         scenarios[key] = {
@@ -515,11 +578,13 @@ def dashboard_projection(
         "banner": "RESEARCH CANDIDATE · NOT OFFICIAL · LIMITED EVENT MAP",
         "as_of": payload["as_of"],
         "runtime_gate": {"display_eligible": True, "age_trading_days": age, "reasons": []},
+        "governance": _promotion_disclosure(root, payload),
         "anchor": payload["anchor"],
         "model": {
             "path_count": payload["model"]["path_count"],
             "seed": payload["model"]["seed"],
             "hard_event_mapping": payload["model"]["hard_event_mapping"],
+            "cluster_disclosure": cluster_disclosure,
         },
         "evidence_scores": payload["evidence_scores"],
         "evidence_attribution": payload["evidence_attribution"],
@@ -532,6 +597,18 @@ def dashboard_projection(
             "S1_probability_increment": payload["dotcom_scenario_weighting"]["S1_probability_increment"],
             "forced_endpoint": payload["dotcom_scenario_weighting"]["forced_endpoint"],
             "forced_october_direction": payload["dotcom_scenario_weighting"]["forced_october_direction"],
+            "dependency_cap": payload["dotcom_scenario_weighting"]["dependency_cap"],
+            "approval_contract_path": (
+                "data/scenario_views/approved/"
+                "scenario_v5_2_dotcom_upside_260810.json"
+            ),
+            "approval_receipt": "explicit_user_message_2026_08_10",
+            "computed_sensitivity_rows": payload["sensitivity_analysis"]["rows"],
+            "requested_sensitivity_policy": {
+                "0.40": "within_registered_cap_not_active",
+                "0.60": "active_registered_research_strength",
+                "0.80": "blocked_above_dependency_cap",
+            },
         },
         "event_learning": payload["event_learning"],
         "shadow_comparison": payload["shadow_comparison"],
