@@ -1314,9 +1314,9 @@ function scenarioV5EvidenceMarkup(candidate){
   return `<section class="scenario-v5-evidence" aria-labelledby="scenario-v5-evidence-title"><div class="scenario-v5-section-head"><div><span>EVIDENCE VIEW REGISTRY</span><h3 id="scenario-v5-evidence-title">무엇이 경로를 움직였고 무엇이 참고값인가</h3></div><small>probability unit = fraction · PIT source hash recorded</small></div><div class="scenario-v5-evidence-grid">${views.map(row=>`<article class="is-${state(row).toLowerCase().replaceAll(' ','-')}"><header><span>${esc(state(row))}</span><b>${hasNumeric(row.target)?(Number(row.target)*100).toFixed(1)+'%':'–'}</b></header><strong>${esc(row.source_id)}</strong><small>${esc(row.probability_space)} · ${esc(row.view_kind)}</small><p>${esc(row.used_numerically?row.condition:(row.blocked_reason||'numerical use blocked'))}</p></article>`).join('')}</div><footer>승인된 report view: ${(views.filter(row=>['strategist_report','analyst_consensus','macro_consensus'].includes(row.origin_type)&&row.used_numerically)).length} · 보고서 문장을 임의 숫자로 변환하지 않았습니다.</footer></section>`;
 }
 const V52_SCENARIO_META={
-  S1:{title:'확장 경로',copy:'닷컴·완화·AI 확장 6개 등록 에피소드',color:'#ef3b24'},
-  S2:{title:'균형 경로',copy:'비위기 연착륙·횡보 4개 등록 에피소드',color:'#ee8a10'},
-  S3:{title:'스트레스 경로',copy:'닷컴 붕괴·GFC·긴축 5개 등록 에피소드',color:'#bf0040'}
+  S1:{title:'확장 경로',copy:'닷컴·완화·AI 확장 6개 등록 에피소드',color:'#147a5b'},
+  S2:{title:'균형 경로',copy:'비위기 연착륙·횡보 4개 등록 에피소드',color:'#d98600'},
+  S3:{title:'스트레스 경로',copy:'닷컴 붕괴·GFC·긴축 5개 등록 에피소드',color:'#be123c'}
 };
 function scenarioModelModeNav(active,candidate){
   const hard=candidate?.model?.hard_event_mapping||{},governance=candidate?.governance||{},eligible=['ok','degraded'].includes(candidate?.status)&&candidate?.runtime_gate?.display_eligible!==false;
@@ -1357,6 +1357,7 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
   const yTicks=Array.from({length:5},(_,index)=>Math.exp(logLo+(logHi-logLo)*index/4));
   const xTicks=[0,Math.floor(Math.max(0,histLength-1)/2),...(range.dates.length>4?[Math.max(0,histLength-1),histLength+Math.floor(range.dates.length/2)]:[]),n-1].filter((value,index,array)=>array.indexOf(value)===index&&value<n);
   const boundary=histLength?X(histLength):null;
+  const endpointLabel=key=>{const values=scenarioSeries[key],start=Number(values[histLength]),end=Number(values.at(-1)),change=(end/start-1)*100;return `${key} ${change>=0?'+':''}${change.toFixed(1)}%`;};
   return `<svg viewBox="0 0 ${W} ${H}" role="img" data-scale="log" data-history-share="0.25" data-forecast-share="0.75" aria-label="${esc(range.label)} S1 S2 S3 통합 로그 스케일 전망">
     <rect x="${ML}" y="${MT}" width="${(PW*historyShare).toFixed(1)}" height="${H-MT-MB}" fill="#f5f3ee" opacity=".58" data-time-zone="history"/>
     <rect x="${boundaryX.toFixed(1)}" y="${MT}" width="${(PW*forecastShare).toFixed(1)}" height="${H-MT-MB}" fill="#fff8ef" opacity=".52" data-time-zone="forecast"/>
@@ -1367,11 +1368,12 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
     ${histValues.length?`<path d="${line([...histValues,range.dates.length?[histValues.at(-1)]:[]].flat())}" fill="none" stroke="#34322e" stroke-width="2.2" data-path-role="historical-actual"/>`:''}
     ${keys.map(key=>`<path d="${line(medoids[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="1.2" stroke-dasharray="4 6" opacity=".34" data-path-role="${key}-actual-medoid"/>`).join('')}
     ${keys.map(key=>`<path d="${line(scenarioSeries[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="3.2" stroke-linejoin="round" data-scenario-p50="${key}"/>`).join('')}
+    ${keys.map(key=>`<circle cx="${X(n-1).toFixed(1)}" cy="${Y(scenarioSeries[key].at(-1)).toFixed(1)}" r="4.5" fill="${V52_SCENARIO_META[key].color}"/><text x="${(X(n-1)-10).toFixed(1)}" y="${(Y(scenarioSeries[key].at(-1))-9).toFixed(1)}" text-anchor="end" fill="${V52_SCENARIO_META[key].color}" font-weight="700" data-scenario-end-label="${key}">${endpointLabel(key)}</text>`).join('')}
   </svg>`;
 }
 function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
   const range=scenarioV52Range(candidate,rangeKey),scenarios=candidate?.conditional_small_multiples?.scenarios||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
-  return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'–')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100;return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
+  return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'—')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100,direction=change>1?'상승':change< -1?'하락':'중립';return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${direction} · ${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
 }
 function renderScenarioV52(candidate,initialState={}){
   const root=el('<div></div>'),scenarios=candidate.conditional_small_multiples?.scenarios||{},touch=candidate.first_touch_distribution||{},attr=candidate.evidence_attribution||{},ablations=candidate.ablations||{},dotcom=candidate.dotcom_scenario_weighting||{},events=candidate.event_learning||{},governance=candidate.governance||{},hard=candidate.model?.hard_event_mapping||{},clusters=candidate.model?.cluster_disclosure||{},layerGate=candidate.model?.database_layer_gate||{},valuationGate=candidate.model?.valuation_and_earnings_gate||{},promotionGates=governance.gates||{},sensitivity=dotcom.computed_sensitivity_rows||[],weightSpaces=candidate.weight_spaces||{},distinctness=candidate.distinctness||{};
