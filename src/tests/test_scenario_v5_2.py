@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import math
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -564,8 +564,9 @@ def test_seed_path_count_and_independent_phase_sampling_primitives() -> None:
 
 
 def test_dashboard_projection_fresh_and_stale_fallback() -> None:
+    cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
     fresh = dashboard_projection(
-        ROOT, datetime.fromisoformat("2026-08-11T04:00:00+00:00"),
+        ROOT, cutoff,
         maximum_age_trading_days=1,
     )
     assert fresh["runtime_gate"]["display_eligible"] is True
@@ -619,10 +620,13 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         assert len(fresh["conditional_small_multiples"]["scenarios"][scenario][
             "bands"
         ]["p50"]) == len(projected_dates)
-    stale = dashboard_projection(
-        ROOT, datetime.fromisoformat("2026-08-13T04:00:00+00:00"),
-        maximum_age_trading_days=1,
-    )
+    stale_now = cutoff
+    elapsed_trading_days = 0
+    while elapsed_trading_days <= 1:
+        stale_now += timedelta(days=1)
+        if stale_now.weekday() < 5:
+            elapsed_trading_days += 1
+    stale = dashboard_projection(ROOT, stale_now, maximum_age_trading_days=1)
     assert stale["status"] == "stale_or_invalid"
     assert stale["runtime_gate"]["display_eligible"] is False
     assert any("age" in reason for reason in stale["runtime_gate"]["reasons"])
@@ -704,7 +708,8 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() 
     complete_row = next(row for row in rows if row["event_id"] == complete)
     assert complete_row["supersedes"].endswith(":r6")
     assert complete_row["candidate_model_content_sha256"] == \
-        _candidate()["model_content_sha256"]
+        "af81a99886090687ec6b0a4da27c58017837a5bae2a3b01f329c399e8be81bd8"
+    assert len(_candidate()["model_content_sha256"]) == 64
     assert complete_row["contracts"] == [
         "data/contracts/scenario_v5_2_weights.yaml",
         "data/contracts/scenario_v5_3_separation.yaml",

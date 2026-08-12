@@ -93,6 +93,17 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert payload["probability_space"] == "reference_only"
     assert payload["model_use"] is False
     assert payload["official_forecast_input"] is False
+    assert payload["cycle_alignment"] == {
+        "dotcom_start": "1995-01-01",
+        "dotcom_end": "1999-12-31",
+        "current_start": "2023-01-01",
+        "current_axis_end": "2027-12-31",
+        "comparison_months": 59,
+        "current_observed_through": "2026-12-01",
+        "current_line_policy": "actual_observations_only_no_forecast_extension",
+        "forecast_extension": False,
+        "endpoint_forcing": False,
+    }
     assert len(payload["charts"]) == 13
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
@@ -103,6 +114,19 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
     assert "대용치" in valuation["title"]
     assert {row["era"] for row in valuation["series"]} == {"dotcom", "current"}
+    for chart in payload["charts"]:
+        dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
+        current = [row for row in chart["series"] if row["era"] == "current"]
+        assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
+        assert max(point["period"] for row in current for point in row["points"]) < 59
+    invalid = json.loads(json.dumps(payload))
+    invalid["cycle_alignment"]["forecast_extension"] = True
+    try:
+        validate_statistics_lab(invalid)
+    except Exception as exc:
+        assert "alignment contract" in str(exc)
+    else:
+        raise AssertionError("forecast extension must be rejected")
 
 
 def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> None:
@@ -138,6 +162,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert 'href="#statistics" data-v="statistics"' in template
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
+    assert 'data-forecast-extension="false"' in script
+    assert "AI 선은 각 원천의 최신 실제 관측에서 멈추며" in script
+    assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
@@ -156,6 +183,6 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     projected = statistics_dashboard_projection(tmp_path)
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
-            assert len(view_series["points"]) <= 32
+            assert len(view_series["points"]) <= 20
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
