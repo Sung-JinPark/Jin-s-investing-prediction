@@ -1,0 +1,38 @@
+schema_version: 1
+contract_id: dashboard_payload_split_v1
+status: active
+
+budgets:
+  embed_html_max_bytes: 900000
+  future_paths_json_max_bytes: 240000
+
+future_paths:
+  filename: future_paths.json
+  load_policy: fetch_only_on_future_route_entry
+  base_payload_content: scenario_v5_2_status_governance_semantic_reference_and_checkpoints_only
+  deferred_keys:
+    - scenario_v5_2
+    - scenario_v4_shadow
+    - cross_asset
+    - era_analog
+    - liquidity
+    - ai_regime
+  fetch_failure:
+    silent_fallback: prohibited
+    research_route: render_summary_and_explicit_failure_banner
+    champion_route: render_champion_and_explicit_auxiliary_data_banner
+
+immutable_reference_policy:
+  validation_key: [candidate_id, model_version, rules_version]
+  artifact_hash_role: informational_provenance_only
+  prohibited: binding_append_only_method_records_to_a_hash_that_changes_on_data_refresh
+
+projection_integrity:
+  purpose: preserve_generator_shape_at_the_customer_display_boundary
+  source_series: conditional_scenario_p50
+  first_110_sessions_sampling_stride_maximum: 5
+  later_sessions_sampling_stride_maximum: 20
+  first_three_month_observations_minimum: 14
+  first_three_month_direction_run_minimum: {S1: 3, S2: 10, S3: 4}
+  downsample_to_twenty_sessions_for_first_three_months: prohibited
+  test: test_projection_preserves_direction_changes

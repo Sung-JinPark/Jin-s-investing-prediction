@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "measured_at": "2026-08-12T16:26:00+09:00",
+  "base_commit": "d4f140a867ca4cdcf7d357daf57bdbe6e75236eb",
+  "payload": {
+    "embedded_html_bytes": 881860,
+    "embedded_html_budget_bytes": 900000,
+    "pages_index_bytes": 563572,
+    "base_data_json_bytes": 318479,
+    "future_paths_json_bytes": 156529,
+    "future_paths_budget_bytes": 240000,
+    "deferred_keys": [
+      "scenario_v5_2",
+      "scenario_v4_shadow",
+      "cross_asset",
+      "era_analog",
+      "liquidity",
+      "ai_regime"
+    ]
+  },
+  "display_promotion": {
+    "default_route": "research_candidate",
+    "gate_pass": true,
+    "passed": [
+      "append_only_method_disclosure",
+      "persistent_unambiguous_banner",
+      "operator_approval_receipt",
+      "render_proof_for_desktop_and_mobile",
+      "candidate_runtime_gate_display_eligible",
+      "semantic_reference_match"
+    ],
+    "pending": [],
+    "explicit_research_route": "#future/research"
+  },
+  "projection": {
+    "through": "2026-11-10",
+    "observations": 14,
+    "direction_runs": {"S1": 3, "S2": 11, "S3": 5},
+    "returns_pct": {"S1": 13.251, "S2": -0.298, "S3": -13.169},
+    "terminal_separation_S1_S3_pp": 26.421,
+    "log_level_correlation": {
+      "S1_S2": -0.701665,
+      "S1_S3": -0.939186,
+      "S2_S3": 0.819410
+    }
+  },
+  "separation": {
+    "baseline_S1_S2_log_level_correlation": 0.963,
+    "redesigned_shadow_S1_S2_log_level_correlation": -0.9652095866974268,
+    "episode_interval_overlap_count": 0,
+    "feature_schemas_distinct": true,
+    "unique_residual_pool_count": 3,
+    "fixed_phase_template_active": false,
+    "phase_repetition_gates_pass": true,
+    "event_adapter_dependency_cap": 0.35,
+    "event_adapter_maximum_absolute_adjustment": 0.1476297821050899,
+    "event_adapter_gate_pass": true,
+    "probability_only_update": false
+  },
+  "render": {
+    "backend": "playwright_bundled_chromium",
+    "routes": 15,
+    "viewports": [1280, 390],
+    "captures": 30,
+    "failures": 0,
+    "gate_pass": true
+  },
+  "tests": {
+    "passed": 485,
+    "failed": 0,
+    "duration_seconds": 345.43,
+    "junit": "tests/full_suite.xml"
+  }
+}
