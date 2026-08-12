@@ -16,8 +16,11 @@ from typing import Any, Callable
 LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 ARCHIVE_RELATIVE = Path("data/statistics/archive")
 CONTRACT_RELATIVE = Path("data/contracts/statistics_lab_v1.yaml")
-DOTCOM_START = date(1997, 1, 1)
+DOTCOM_START = date(1995, 1, 1)
+DOTCOM_END = date(1999, 12, 31)
 CURRENT_START = date(2023, 1, 1)
+CURRENT_AXIS_END = date(2027, 12, 31)
+COMPARISON_MONTHS = 59
 FRED_ENDPOINT = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
 USER_AGENT = "JinsInvestingStatisticsLab/1.0 (+public research dashboard)"
@@ -291,7 +294,7 @@ def build_statistics_lab(
     }
     monthly["FL663067003"] = _monthly(source_rows["FL663067003"], "last")
     latest_current = max(date.fromisoformat(row["date"]) for row in monthly["NASDAQCOM"])
-    comparison_months = max(0, (latest_current.year - CURRENT_START.year) * 12 + latest_current.month - 1)
+    comparison_months = COMPARISON_MONTHS
 
     dot_nasdaq, cur_nasdaq = _cycle_series(monthly["NASDAQCOM"], comparison_months, indexed=True)
     dot_m2, cur_m2 = _cycle_series(monthly["M2SL"], comparison_months, indexed=True)
@@ -474,8 +477,13 @@ def build_statistics_lab(
         "as_of": max(row["latest_observation"] for row in source_meta),
         "cycle_alignment": {
             "dotcom_start": DOTCOM_START.isoformat(),
+            "dotcom_end": DOTCOM_END.isoformat(),
             "current_start": CURRENT_START.isoformat(),
+            "current_axis_end": CURRENT_AXIS_END.isoformat(),
             "comparison_months": comparison_months,
+            "current_observed_through": latest_current.isoformat(),
+            "current_line_policy": "actual_observations_only_no_forecast_extension",
+            "forecast_extension": False,
             "endpoint_forcing": False,
         },
         "charts": charts,
@@ -503,6 +511,19 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
         raise StatisticsLabError("statistics lab must be reference_only")
     if payload.get("model_use") is not False or payload.get("official_forecast_input") is not False:
         raise StatisticsLabError("statistics lab cannot feed model or official forecast")
+    alignment = payload.get("cycle_alignment") or {}
+    expected_alignment = {
+        "dotcom_start": DOTCOM_START.isoformat(),
+        "dotcom_end": DOTCOM_END.isoformat(),
+        "current_start": CURRENT_START.isoformat(),
+        "current_axis_end": CURRENT_AXIS_END.isoformat(),
+        "comparison_months": COMPARISON_MONTHS,
+        "current_line_policy": "actual_observations_only_no_forecast_extension",
+        "forecast_extension": False,
+        "endpoint_forcing": False,
+    }
+    if any(alignment.get(key) != value for key, value in expected_alignment.items()):
+        raise StatisticsLabError("statistics cycle alignment contract invalid")
     charts = payload.get("charts")
     if not isinstance(charts, list) or len(charts) < 8:
         raise StatisticsLabError("statistics lab requires at least eight charts")
@@ -519,6 +540,8 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
                 raise StatisticsLabError(f"chart {chart['id']} periods invalid")
             if not all(math.isfinite(value) for value in values):
                 raise StatisticsLabError(f"chart {chart['id']} has non-finite values")
+            if max(periods) > COMPARISON_MONTHS:
+                raise StatisticsLabError(f"chart {chart['id']} exceeds the five-year axis")
     sources = payload.get("sources")
     if not isinstance(sources, list) or len(sources) != len(FRED_SERIES) + 1:
         raise StatisticsLabError("statistics source registry incomplete")
@@ -619,8 +642,8 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
-            if len(points) > 32:
-                stride = math.ceil((len(points) - 1) / 31)
+            if len(points) > 20:
+                stride = math.ceil((len(points) - 1) / 19)
                 display_points = points[::stride]
                 if display_points[-1] is not points[-1]:
                     display_points.append(points[-1])

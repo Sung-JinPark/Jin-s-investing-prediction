@@ -7,10 +7,15 @@ official_forecast_input: false
 description: Public-source statistical comparisons between the dot-com cycle and the current AI cycle.
 
 cycle_alignment:
-  dotcom_start: 1997-01-01
+  dotcom_start: 1995-01-01
+  dotcom_end: 1999-12-31
   current_start: 2023-01-01
+  current_axis_end: 2027-12-31
+  comparison_months: 59
   rule: elapsed_calendar_month
   endpoint_forcing: false
+  forecast_extension: false
+  current_line_policy: actual_observations_only_no_forecast_extension
   interpretation: Descriptive alignment only; not a forecast or probability.
 
 sources:
