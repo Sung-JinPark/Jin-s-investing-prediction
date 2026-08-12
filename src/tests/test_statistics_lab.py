@@ -12,9 +12,11 @@ from ai_fc.statistics_lab import (
     _parse_fred_csv,
     _parse_z1,
     build_statistics_lab,
+    load_ipo_reference,
     load_statistics_lab,
     refresh_statistics_lab,
     statistics_dashboard_projection,
+    validate_ipo_reference,
     validate_statistics_lab,
 )
 
@@ -76,6 +78,20 @@ def _payload_inputs() -> tuple[dict, dict]:
     return rows, receipts
 
 
+def _repo_ipo_reference() -> dict:
+    root = Path(__file__).resolve().parents[2]
+    return load_ipo_reference(root)
+
+
+def _install_ipo_reference(root: Path) -> None:
+    target = root / "data/statistics/ipo/ipo_comparison_v1.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(
+        json.dumps(_repo_ipo_reference(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+
 def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
     parsed = _parse_fred_csv(
         b"observation_date,M2SL\n2026-01-01,22000\n2026-02-01,.\n", "M2SL"
@@ -87,7 +103,10 @@ def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
 def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     rows, receipts = _payload_inputs()
     payload = build_statistics_lab(
-        rows, generated_at="2026-08-11T00:00:00+00:00", receipts=receipts
+        rows,
+        generated_at="2026-08-11T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
     )
     validate_statistics_lab(payload)
     assert payload["probability_space"] == "reference_only"
@@ -104,13 +123,23 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 13
+    assert len(payload["charts"]) == 19
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "yield_curve", "valuation_proxy", "margin_credit_proxy",
         "household_debt_service", "unemployment_rate", "inflation_rate",
         "financial_conditions",
+        "internet_vs_ai_core_ipos", "technology_ipo_count",
+        "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
+        "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
     }
+    ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
+    assert ipo_chart["series"][0]["points"][-1]["value"] == 273
+    assert ipo_chart["series"][1]["points"][-1] == {
+        "period": 36, "date": "2026-05-14", "value": 1
+    }
+    assert ipo_chart["detail_rows"][0]["label"] == "Astera Labs · Tempus AI"
+    assert payload["ipo_comparison"]["classification"]["ai_core_limit"].startswith("This is a conservative")
     valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
     assert "대용치" in valuation["title"]
     assert {row["era"] for row in valuation["series"]} == {"dotcom", "current"}
@@ -131,6 +160,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
 
 def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> None:
     rows, _ = _payload_inputs()
+    _install_ipo_reference(tmp_path)
 
     def fred_fetcher(series_id: str):
         raw = f"fixture:{series_id}".encode()
@@ -163,10 +193,12 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
     assert 'data-forecast-extension="false"' in script
-    assert "AI 선은 각 원천의 최신 실제 관측에서 멈추며" in script
+    assert "AI 선은 최신 실제 관측에서 멈추며" in script
     assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" in script
+    assert "IPO·상장" in script
+    assert "statistics-detail-rows" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
@@ -175,7 +207,10 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
 def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_path: Path) -> None:
     rows, receipts = _payload_inputs()
     payload = build_statistics_lab(
-        rows, generated_at="2026-08-11T00:00:00+00:00", receipts=receipts
+        rows,
+        generated_at="2026-08-11T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
     )
     latest = tmp_path / "data/statistics/dotcom_statistics_latest.json"
     latest.parent.mkdir(parents=True)
@@ -186,3 +221,15 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
             assert len(view_series["points"]) <= 20
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
+
+
+def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
+    payload = _repo_ipo_reference()
+    validate_ipo_reference(payload)
+    assert payload["coverage"]["current_axis_end"] == 2027
+    assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
+    assert len(payload["sources"]) == 8
+    assert all(source["raw_sha256"] for source in payload["sources"])
+    sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
+    assert len(sec_sources) == 6
+    assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)

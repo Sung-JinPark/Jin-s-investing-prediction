@@ -16,6 +16,7 @@ from typing import Any, Callable
 LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 ARCHIVE_RELATIVE = Path("data/statistics/archive")
 CONTRACT_RELATIVE = Path("data/contracts/statistics_lab_v1.yaml")
+IPO_REFERENCE_RELATIVE = Path("data/statistics/ipo/ipo_comparison_v1.json")
 DOTCOM_START = date(1995, 1, 1)
 DOTCOM_END = date(1999, 12, 31)
 CURRENT_START = date(2023, 1, 1)
@@ -281,9 +282,64 @@ def _series(label: str, era: str, points: list[dict[str, Any]], color: str) -> d
     return {"label": label, "era": era, "color": color, "points": points}
 
 
+def validate_ipo_reference(payload: dict[str, Any]) -> None:
+    if payload.get("schema_version") != 1 or payload.get("status") != "active_reference_only":
+        raise StatisticsLabError("IPO reference schema/status invalid")
+    if payload.get("probability_space") != "reference_only":
+        raise StatisticsLabError("IPO reference must be reference_only")
+    if payload.get("model_use") is not False or payload.get("official_forecast_input") is not False:
+        raise StatisticsLabError("IPO reference cannot feed model or official forecast")
+    coverage = payload.get("coverage") or {}
+    if coverage.get("current_line_policy") != "actual_observations_only_no_forecast_extension":
+        raise StatisticsLabError("IPO reference cannot contain forecast extension")
+    charts = payload.get("charts")
+    sources = payload.get("sources")
+    if not isinstance(charts, list) or len(charts) < 4:
+        raise StatisticsLabError("IPO reference requires at least four charts")
+    if not isinstance(sources, list) or len(sources) < 2:
+        raise StatisticsLabError("IPO reference source registry incomplete")
+    source_ids = {str(row.get("series_id")) for row in sources}
+    if len(source_ids) != len(sources):
+        raise StatisticsLabError("IPO reference source ids must be unique")
+    for source in sources:
+        digest = str(source.get("raw_sha256", ""))
+        if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+            raise StatisticsLabError(f"IPO source {source.get('series_id')} hash invalid")
+    chart_ids: set[str] = set()
+    for chart in charts:
+        chart_id = str(chart.get("id", ""))
+        if not chart_id or chart_id in chart_ids:
+            raise StatisticsLabError("IPO chart ids must be non-empty and unique")
+        chart_ids.add(chart_id)
+        if not chart.get("insight") or not chart.get("caveat"):
+            raise StatisticsLabError(f"IPO chart {chart_id} missing insight/caveat")
+        if not set(chart.get("source_ids") or []).issubset(source_ids):
+            raise StatisticsLabError(f"IPO chart {chart_id} has unknown source")
+        for series in chart.get("series") or []:
+            periods = [int(point["period"]) for point in series.get("points") or []]
+            values = [float(point["value"]) for point in series.get("points") or []]
+            if not periods or periods != sorted(set(periods)) or max(periods) > COMPARISON_MONTHS:
+                raise StatisticsLabError(f"IPO chart {chart_id} periods invalid")
+            if not all(math.isfinite(value) and value >= 0 for value in values if chart.get("unit") == "count"):
+                raise StatisticsLabError(f"IPO chart {chart_id} count invalid")
+
+
+def load_ipo_reference(root: Path) -> dict[str, Any]:
+    path = root / IPO_REFERENCE_RELATIVE
+    if not path.is_file():
+        raise StatisticsLabError(f"IPO reference missing: {path}")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise StatisticsLabError("IPO reference cannot be read") from exc
+    validate_ipo_reference(payload)
+    return payload
+
+
 def build_statistics_lab(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
+    ipo_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     missing = sorted((set(FRED_SERIES) | {"FL663067003"}) - set(source_rows))
     if missing:
@@ -437,6 +493,20 @@ def build_statistics_lab(
     }
     for chart in charts:
         chart["insight"] = chart_insights[chart["id"]]
+    if ipo_reference is not None:
+        validate_ipo_reference(ipo_reference)
+        ipo_charts = []
+        for spec in ipo_reference["charts"]:
+            chart = _chart(
+                str(spec["id"]), str(spec["title"]), str(spec["category"]),
+                str(spec["unit"]), str(spec["description"]), str(spec["caveat"]),
+                spec["series"], list(spec["source_ids"]),
+            )
+            chart["insight"] = str(spec["insight"])
+            if spec.get("detail_rows"):
+                chart["detail_rows"] = spec["detail_rows"]
+            ipo_charts.append(chart)
+        charts = ipo_charts + charts
 
     source_meta = []
     for series_id, spec in FRED_SERIES.items():
@@ -466,6 +536,8 @@ def build_statistics_lab(
         "vintage": "current_release_reconstructed",
         "proxy_warning": "not_FINRA_monthly_margin_debt",
     })
+    if ipo_reference is not None:
+        source_meta.extend(ipo_reference["sources"])
     payload = {
         "schema_version": 1,
         "dataset_id": "dotcom_statistics_lab_v1",
@@ -488,6 +560,12 @@ def build_statistics_lab(
         },
         "charts": charts,
         "sources": source_meta,
+        "ipo_comparison": {
+            "status": ipo_reference["status"],
+            "as_of": ipo_reference["as_of"],
+            "coverage": ipo_reference["coverage"],
+            "classification": ipo_reference["classification"],
+        } if ipo_reference is not None else None,
         "vintage_warning": "latest-release reconstructed history; not native point-in-time vintages",
         "refresh_policy": {
             "check_cadence": "weekly",
@@ -543,12 +621,19 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
             if max(periods) > COMPARISON_MONTHS:
                 raise StatisticsLabError(f"chart {chart['id']} exceeds the five-year axis")
     sources = payload.get("sources")
-    if not isinstance(sources, list) or len(sources) != len(FRED_SERIES) + 1:
+    if not isinstance(sources, list) or len(sources) < len(FRED_SERIES) + 1:
         raise StatisticsLabError("statistics source registry incomplete")
+    source_ids = [str(row.get("series_id")) for row in sources]
+    if len(source_ids) != len(set(source_ids)):
+        raise StatisticsLabError("statistics source ids must be unique")
+    known_sources = set(source_ids)
     for row in sources:
         digest = str(row.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
             raise StatisticsLabError(f"source {row.get('series_id')} hash invalid")
+    for chart in charts:
+        if not set(chart.get("source_ids") or []).issubset(known_sources):
+            raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -580,7 +665,12 @@ def refresh_statistics_lab(
     z1_raw = fetch_z1(Z1_ENDPOINT)
     source_rows["FL663067003"] = _parse_z1(z1_raw)
     receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
-    payload = build_statistics_lab(source_rows, generated_at=generated_at, receipts=receipts)
+    payload = build_statistics_lab(
+        source_rows,
+        generated_at=generated_at,
+        receipts=receipts,
+        ipo_reference=load_ipo_reference(root),
+    )
 
     latest = root / LATEST_RELATIVE
     latest.parent.mkdir(parents=True, exist_ok=True)

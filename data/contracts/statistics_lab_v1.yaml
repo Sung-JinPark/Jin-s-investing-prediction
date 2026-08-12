@@ -43,6 +43,26 @@ sources:
     label: Household margin loans and other receivables due to brokers
     unit: millions_usd
     role: margin_credit_proxy_not_finra_margin_debt
+  university_of_florida_ipo_initiative:
+    technology_tables: https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf
+    internet_registry: https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx
+    native_frequency: annual
+    reviewed_through: 2025-12-31
+    role: comparable_technology_ipo_market_series
+  sec_edgar:
+    endpoint: https://www.sec.gov/Archives/edgar/data/
+    forms: [424B4]
+    native_frequency: event
+    role: reviewed_ai_core_ipo_minimum_cohort
+    reviewed_through: 2026-08-12
+
+ipo_classification:
+  comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.
+  ai_core_rule: AI or ML product, semiconductor, data, healthcare platform, or compute infrastructure must be central to the final prospectus summary.
+  required_evidence: final SEC 424B4 accession
+  exclusions: [ADR, SPAC, REIT, direct_listing, offer_price_below_5_usd, incidental_AI_feature]
+  disclosure: Conservative reviewed minimum, not a keyword census or forecast.
+  snapshot_path: data/statistics/ipo/ipo_comparison_v1.json
 
 vintage_policy:
   historical_rows: current_release_reconstructed
@@ -56,6 +76,7 @@ publication_policy:
   latest_path: data/statistics/dotcom_statistics_latest.json
   archive_path: data/statistics/archive
   archive_mode: append_only
+  ipo_native_frequency: annual_with_event_review
 
 excluded_sources:
   finra_margin_statistics:

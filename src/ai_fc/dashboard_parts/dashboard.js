@@ -1007,6 +1007,7 @@ function signalMosaic(prob){
 function statisticsValue(unit,value){
   const n=Number(value);
   if(!Number.isFinite(n))return '—';
+  if(unit==='count')return `${Math.round(n).toLocaleString('ko-KR')}건`;
   if(unit==='multiple')return `${n.toFixed(1)}×`;
   if(unit==='cycle_start_100')return `${n.toFixed(0)}`;
   if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent')return `${n>=0?'+':''}${n.toFixed(1)}%`;
@@ -1031,23 +1032,25 @@ function statisticsChartSvg(chart,alignment={}){
     ${xTicks.map(value=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">M+${value}</text>`).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">AI 실제 관측 종료</text>`:''}
     ${series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.2'}" stroke-dasharray="${row.era==='current'?'none':'6 5'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
+    ${chart.category==='ipo'?series.flatMap(row=>(row.points||[]).map(point=>`<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="4" fill="#fff" stroke="${esc(row.color||'#111')}" stroke-width="2"/>`)).join(''):''}
   </svg>`;
 }
 function renderStatistics(){
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
-  root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">닷컴 1995~1999와 AI 2023~2027을 같은 5년 축으로 비교합니다. AI 선은 각 원천의 최신 실제 관측에서 멈추며 2027년까지 예측값으로 연장하지 않습니다.</p></div></div>`));
+  root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기부터 유동성·금리·기업가치·신용까지 닷컴 1995~1999와 AI 2023~2027을 같은 5년 축으로 비교합니다. AI 선은 최신 실제 관측에서 멈추며 예측값으로 연장하지 않습니다.</p></div></div>`));
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
   const alignment=stats.cycle_alignment||{},sources=stats.sources||[],charts=stats.charts||[];
   root.appendChild(el(`<section class="statistics-summary" aria-label="통계 비교 기준"><article><span>비교 구간</span><strong>닷컴 1995~1999<br>AI 2023~2027 축</strong></article><article><span>AI 실선</span><strong>각 원천 최신 실제치까지만<br>예측 연장 없음</strong></article><article><span>같은 시간축</span><strong>M+0 ~ M+${num(alignment.comparison_months||0)}</strong></article><article><span>데이터 기준</span><strong>${esc(stats.as_of||'—')}</strong></article></section>`));
-  const categories=[['all','전체'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
+  const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
   const grid=el('<div class="statistics-grid"></div>');
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const sourceLinks=(chart.source_ids||[]).map(id=>{const source=sources.find(row=>row.series_id===id);return source?`<a href="${esc(source.source_url)}" target="_blank" rel="noreferrer">${esc(id)} ↗</a>`:`<span>${esc(id)}</span>`;}).join('');
-    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div><div class="statistics-insight"><strong>해석할 때 주의</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
+    const detailRows=(chart.detail_rows||[]).length?`<div class="statistics-detail-rows" aria-label="AI 핵심 IPO 구성">${chart.detail_rows.map(row=>`<article><span>${esc(row.period)}</span><strong>${esc(row.label)}</strong><b>${esc(row.value)}</b></article>`).join('')}</div>`:'';
+    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>${detailRows}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div><div class="statistics-insight"><strong>해석할 때 주의</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>원천·갱신일·재구성 상태 보기</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.series_id)}</strong><span>${esc(row.title)}</span></div><p>${esc(row.provider)} · 최신 관측 ${esc(row.latest_observation)} · ${num(row.row_count)}개 · ${esc(row.vintage)}</p><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원천 열기 ↗</a></article>`).join('')}</div><p>제외: FINRA margin debt는 자동수집·재배포 권한 미확보, Moody’s Baa 스프레드는 독점 재배포 제한, 유료 forward P/E는 재현 가능한 공개 이력이 없어 사용하지 않았습니다.</p></details>`));
