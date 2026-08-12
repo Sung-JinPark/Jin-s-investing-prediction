@@ -1090,6 +1090,7 @@ function parseCanonicalRoute(rawHash){
   if(parts[0]==='today')return {section:'today',view:'overview'};
   if(parts[0]==='statistics')return {section:'statistics',view:'statistics'};
   if(parts[0]==='future'){
+    if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};
     if(parts[1]==='lookup'&&!parts[2])return {section:'future',view:'flow',arg:{lookupOverlay:true}};
     if(parts[1]==='lookup'&&/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'future',view:'flow',arg:{lookup:parts[2],lookupMode:parts[3]==='current'?'current':'rebase'}};
@@ -1320,7 +1321,7 @@ const V52_SCENARIO_META={
 };
 function scenarioCustomerViewNav(active,candidate){
   const eligible=candidate&&['ok','degraded'].includes(candidate.status)&&candidate.runtime_gate?.display_eligible!==false;
-  return `<nav class="scenario-customer-view" aria-label="전망 화면 전환"><a href="#future" ${active==='market'?'aria-current="page"':''}>시장 전망</a><a href="#future/research" ${active==='scenarios'?'aria-current="page"':''} ${eligible?'':'aria-disabled="true"'}>세 가지 경로</a></nav>`;
+  return `<nav class="scenario-customer-view" aria-label="전망 화면 전환"><a href="#future" ${active==='scenarios'?'aria-current="page"':''} ${eligible?'':'aria-disabled="true"'}>세 가지 경로</a><a href="#future/champion" ${active==='market'?'aria-current="page"':''}>기존 시장 전망</a></nav>`;
 }
 // V5.2 paths are daily observations. Resolve month controls by calendar date,
 // never by array index: index 3 is three days, not three months.
@@ -1442,7 +1443,11 @@ function renderFlow(initialLookup){
   initialLookup=initialState.lookup||null;
   const candidate52=DATA.scenario_v5_2||null;
   const candidate52Eligible=candidate52&&['ok','degraded'].includes(candidate52.status)&&candidate52.runtime_gate?.display_eligible!==false;
-  if(initialState.modelView==='research'&&candidate52Eligible){
+  // The customer-facing #future route shows the independently generated paths.
+  // This is a display decision only: the registered champion remains available
+  // at #future/champion and no official probability or ledger is promoted here.
+  const candidate52Requested=initialState.modelView!=='champion'&&!initialState.lookup&&!initialState.lookupOverlay;
+  if(candidate52Requested&&candidate52Eligible){
     renderScenarioV52(candidate52,initialState);
     return;
   }
@@ -1462,7 +1467,7 @@ function renderFlow(initialLookup){
     <p class="page-lede" id="flow-page-lede">${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
   </div><button type="button" class="future-lookup-open" data-future-lookup-open>날짜·기간 조회 <span>↗</span></button></div>`));
   root.appendChild(el(scenarioCustomerViewNav('market',candidate52)));
-  if(initialState.modelView==='research'&&!candidate52Eligible)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.2 candidate validation fallback"><div><span>SCENARIO V5.2 DISPLAY GATE</span><strong>${esc(candidate52?.runtime_gate?.fallback_banner||'후보 검증 게이트 차단 — 이전 승인 모델 표시 중')}</strong><small>${esc((candidate52?.runtime_gate?.reasons||['candidate unavailable']).join(' · '))}</small></div><p>현재 보이는 그래프는 V5.2 후보가 아니라 이전 승인 모델입니다. 조용한 폴백을 허용하지 않습니다.</p></section>`));
+  if(candidate52Requested&&!candidate52Eligible)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.2 candidate validation fallback"><div><span>SCENARIO V5.2 DISPLAY GATE</span><strong>${esc(candidate52?.runtime_gate?.fallback_banner||'후보 검증 게이트 차단 — 이전 승인 모델 표시 중')}</strong><small>${esc((candidate52?.runtime_gate?.reasons||['candidate unavailable']).join(' · '))}</small></div><p>현재 보이는 그래프는 V5.2 후보가 아니라 이전 승인 모델입니다. 조용한 폴백을 허용하지 않습니다.</p></section>`));
   if(candidateData&&candidateData.runtime_gate?.display_eligible===false)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.1 stale candidate"><div><span>SCENARIO V5.1 RUNTIME GATE</span><strong>${esc(candidateData.banner||'STALE/INVALID CANDIDATE')}</strong><small>${esc((candidateData.runtime_gate?.reasons||[candidateData.reason]).filter(Boolean).join(' · '))}</small></div><p>V5.1 표시를 중단하고 official legacy fallback을 사용합니다.</p></section>`));
   if(v5&&sc.scenario_v5_candidate){const numerical=(v5.evidence_views||[]).filter(row=>row.used_numerically),references=(v5.evidence_views||[]).filter(row=>!row.used_numerically),shape=v5.conditional_distribution?.same_shape_diagnostics||{};
     root.appendChild(el(`<section class="scenario-v5-banner" aria-label="Scenario V5 current candidate banner"><div><span>EVIDENCE-CONDITIONED MARKET OUTLOOK · V5.1</span><strong>${esc(v5.banner)}</strong><small>${esc(v5.candidate_id)} · ${esc(v5.identity?.prior_engine)} · as_of ${esc(v5.asof)}</small></div><div class="scenario-v5-stats"><span><b>${numerical.length}</b> physical views used</span><span><b>${references.length}</b> reference/blocked</span><span><b>${num(v5.posterior_diagnostics?.effective_sample_size)}</b> posterior ESS</span><span><b>${shape.gate_pass?'PASS':'HIDDEN'}</b> member shape gate</span></div><p>내생·started-window 전망은 수치 입력에서 차단했습니다. 옵션은 위험중립 참고값이고, 이벤트 가격 점프는 승인 매핑이 없어 0입니다. ${esc(v5.display_contract?.continuation_disclosure||'')}</p></section>`));}

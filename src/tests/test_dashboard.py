@@ -501,11 +501,14 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "showBaseline=true" in html
 
 
-def test_future_default_is_champion_and_v5_2_requires_explicit_research_route() -> None:
+def test_future_default_uses_independent_paths_and_preserves_champion_route() -> None:
     html = dashboard.load_template()
     assert "renderScenarioV52(candidate52,initialState);" in html
-    assert "if(initialState.modelView==='research'&&candidate52Eligible)" in html
+    assert "const candidate52Requested=initialState.modelView!=='champion'" in html
+    assert "if(candidate52Requested&&candidate52Eligible)" in html
+    assert "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}" in html
     assert "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}" in html
+    assert '<a href="#future/champion"' in html
     assert "let sc=officialScenario,shadowActive=false" in html
     assert "shadowActive?shadowScenario:officialScenario" in html
     assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
