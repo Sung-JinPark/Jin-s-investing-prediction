@@ -569,8 +569,26 @@ def verify_candidate(root: Path, path: Path | None = None, *, replay: bool = Tru
     return result
 
 
-def _sample_indexes(length: int, step: int = 20) -> list[int]:
-    indexes = list(range(0, length, step))
+def _sample_indexes(
+    length: int, step: int = 5, *, near_term_length: int = 110,
+    long_term_step: int = 20,
+) -> list[int]:
+    """Keep weekly path shape in the bounded dashboard projection.
+
+    The prior 20-session stride reduced a three-month horizon to four points,
+    hiding the scenario-native drawdowns and rebounds that remain present in
+    the daily research artifact.  Five sessions preserves those visible path
+    differences through the near-term/current-year view.  The long horizon
+    remains monthly so the standalone dashboard stays inside its fixed payload
+    budget.
+    """
+    if length <= 0:
+        return []
+    if step <= 0 or long_term_step <= 0 or near_term_length <= 0:
+        raise ValueError("dashboard projection sampling parameters must be positive")
+    dense_end = min(length, near_term_length)
+    indexes = list(range(0, dense_end, step))
+    indexes.extend(range(dense_end, length, long_term_step))
     if indexes[-1] != length - 1:
         indexes.append(length - 1)
     return indexes
