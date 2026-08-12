@@ -24,9 +24,13 @@ sources:
       FEDFUNDS: {native_frequency: monthly, unit: percent, aggregation: last}
       TOTALSL: {native_frequency: monthly, unit: millions_usd, aggregation: last}
       TDSP: {native_frequency: quarterly, unit: percent, aggregation: last}
+      BOGZ1FL010000346Q: {native_frequency: quarterly, unit: percent, aggregation: last}
       DRTSCILM: {native_frequency: quarterly, unit: percent, aggregation: last}
       NCBEILQ027S: {native_frequency: quarterly, unit: millions_usd, aggregation: last}
       CPATAX: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last}
+      UNRATE: {native_frequency: monthly, unit: percent, aggregation: last}
+      CPIAUCSL: {native_frequency: monthly, unit: index_1982_1984_100, aggregation: last}
+      NFCI: {native_frequency: weekly, unit: standard_deviation_index, aggregation: mean}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s

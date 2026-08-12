@@ -538,10 +538,14 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "정의상 0",
         "적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)}",
         "band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)}",
-        "완화 ${num(layerGate.macro_regime_cohort_origin_counts?.easing_expansion||0)}개",
-        "쌍별 겹침은 모두 0입니다",
-        "당시 공개본 기준의 시대횡단 이력이 없어 참고 정보로만 표시합니다",
-        "보정되지 않은 모의 경로 비율을 정수로 반올림했습니다",
+        "세 가지 시장 경로",
+        "닷컴 + 완화 + AI 성장",
+        "연착륙 + 중립 금융여건",
+        "긴축 + 신용 위험 + 성장 둔화",
+        "서로 다른 3개 군집",
+        "분석 방법과 세부 통계",
+        "모두 보정되지 않은 모의 경로 비율입니다",
+        "function scenarioCustomerViewNav",
         "Bitcoin</span><strong>가정 경로",
         "유동성이 늘고 줄어든 구간",
         "bindCrossAsset(crossAsset,initialState.scenario)",
@@ -647,15 +651,17 @@ def test_u1c_browser_regression_evidence() -> None:
         assert (evidence_dir / filename).is_file()
 
 
-def test_data_growth_explainer_is_plain_language_and_live() -> None:
+def test_data_trust_pipeline_is_visual_plain_language_and_live() -> None:
     html = dashboard.load_template()
     for required in (
-        "데이터는 이렇게 쌓입니다", "파일이 원본입니다",
-        "화–토 새벽에 확정값을 확인합니다", "개 원장을 자동 감사합니다",
-        "월 1회 연구팩을 고정합니다", "없는 데이터도 숨기지 않습니다",
+        "현재 데이터 상태", "공개 데이터가 그래프가 되기까지",
+        "공개 원천 수집", "시점·형식 검사", "변경 이력 보관", "화면과 모델 분리",
+        "원장별 상세 상태", "데이터 출처 상세", "확률 숫자 읽는 법",
         "ledgerSummary.accumulating", "ledgerSummary.stalled", "ledgerSummary.violation",
     ):
         assert required in html
+    assert "매주 공개 원천을 다시 확인합니다" not in html
+    assert "Trust Center" not in html
 
 
 def test_liquidity_return_legends_use_separate_lanes() -> None:

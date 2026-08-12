@@ -2,7 +2,7 @@
 
 시장 전망을 그래프로 보고, 사용한 데이터와 예측 기록까지 확인하는 투자 리서치 대시보드입니다.
 
-[라이브 대시보드](https://sung-jinpark.github.io/Jin-s-investing-prediction/) · [기본 미래 전망](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future) · [닷컴 통계 비교](https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics) · [Scenario V5.2 연구 후보](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future/research) · [공개 예측 기록](forecasts/2026/)
+[라이브 대시보드](https://sung-jinpark.github.io/Jin-s-investing-prediction/) · [시장 전망](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future) · [세 가지 경로](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future/research) · [닷컴 통계 비교](https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics) · [공개 예측 기록](forecasts/2026/)
 
 > 이 저장소는 투자 리서치와 확률 예측을 위한 시스템입니다. 자동매매·주문 실행·수익 보장 서비스가 아닙니다.
 
@@ -11,9 +11,9 @@
 | 화면 | 바로 알 수 있는 것 |
 |---|---|
 | 오늘 | 현재 시장 상태와 핵심 신호 |
-| 미래 탐색 | 승격된 champion GBM의 기본 전망과 날짜별 분포 |
-| 연구 후보 | 서로 다른 특징·에피소드·잔차·국면 전환으로 만든 V5.2의 S1·S2·S3 경로 |
-| 통계 비교 | 닷컴과 현재의 M2·NASDAQ·장단기금리·기업가치·신용을 같은 경과월로 비교 |
+| 시장 전망 | 승격된 기준 모델의 전망과 날짜별 분포 |
+| 세 가지 경로 | 확장·균형·스트레스에 맞는 서로 다른 DB로 만든 S1·S2·S3 경로 |
+| 통계 비교 | 닷컴과 현재의 유동성·금리·경기·기업가치·신용을 같은 경과월로 비교 |
 | 자산 비교 | NASDAQ·Bitcoin·Realty Income의 움직임 차이 |
 | 유동성 | 시장 자금 흐름과 NASDAQ·Bitcoin 수익률의 동행 구간 |
 | 기록과 검증 | 예측이 언제 공개됐고 실제 결과와 얼마나 맞았는지 |
@@ -21,15 +21,15 @@
 
 ## 닷컴 통계 비교
 
-`#statistics`에는 1997년 1월과 2023년 1월을 각각 M+0으로 맞춘 9개 비교 그래프가 있습니다. M2와 NASDAQ, NASDAQ/M2, 10년−2년 금리차, 연방기금금리, 기업가치/세후이익 PER 대용치, Fed Z.1 증권담보 신용대출 대용치, 소비자신용 증가율, 기업대출 심사기준, 세후 기업이익 증가율을 볼 수 있습니다. 각 그래프 아래에는 현재와 닷컴 시기의 차이를 1~2줄로 요약한 `한눈에 보는 의미`와 별도의 해석 주의사항을 표시합니다.
+`#statistics`에는 1997년 1월과 2023년 1월을 각각 M+0으로 맞춘 13개 비교 그래프가 있습니다. 기존 유동성·금리·기업가치·신용 지표에 가계 원리금 부담, 실업률, 소비자물가 상승률, Chicago Fed 금융여건지수를 추가했습니다. 데스크톱에서는 두 그래프씩 나란히 보이며, 각 그래프 아래에 현재와 닷컴 시기의 차이를 1~2줄로 설명합니다.
 
 통계 DB는 매주 토요일 공개 원천을 확인하지만 일간·월간·분기 발표주기를 인위적으로 주간화하지 않습니다. 최신 릴리스로 재구성한 과거이므로 당시 원본 빈티지로 표시하지 않으며, 모든 값은 `reference_only`, `model_use=false`입니다. FINRA margin debt와 독점 신용스프레드·유료 forward P/E는 재배포 권한이 없어 수집하지 않습니다.
 
-## 기본 전망과 연구 후보는 다릅니다
+## 시장 전망과 세 가지 경로
 
 `#future`의 기본 화면은 승격된 기준 모델 `gbm-daily-252d-v2-lookup`입니다. Scenario V5.2는 아직 champion이 아니므로 `#future/research`에서만 명시적으로 선택해 볼 수 있습니다.
 
-V5.2의 현재 제한은 화면 상단에 항상 표시됩니다.
+V5.2의 현재 제한은 고객용 그래프를 가리지 않도록 화면 맨 아래 `분석 방법과 세부 통계`에 표시됩니다.
 
 - 직접 적격 사건: 1/60
 - band calibration: 6/60
