@@ -1,0 +1,201 @@
+{
+  "schema_version": 1,
+  "dataset_id": "dotcom_ai_ipo_comparison_v1",
+  "status": "active_reference_only",
+  "probability_space": "reference_only",
+  "model_use": false,
+  "official_forecast_input": false,
+  "as_of": "2026-05-14",
+  "coverage": {
+    "dotcom_years": [1995, 1996, 1997, 1998, 1999],
+    "current_years": [2023, 2024, 2025, 2026],
+    "current_axis_end": 2027,
+    "current_line_policy": "actual_observations_only_no_forecast_extension"
+  },
+  "classification": {
+    "comparable_market_series": "Jay Ritter technology-company IPO definition, consistently applied by calendar year",
+    "internet_series": "Jay Ritter Internet flag in the 1975-2025 IPO workbook",
+    "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
+    "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
+    "reviewed_through": "2026-08-12",
+    "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI used a direct listing. Both are excluded by the pre-registered traditional-IPO rule."
+  },
+  "charts": [
+    {
+      "id": "internet_vs_ai_core_ipos",
+      "title": "인터넷 IPO vs AI 핵심기업 IPO",
+      "category": "ipo",
+      "unit": "count",
+      "description": "닷컴기의 인터넷 기업 IPO와 현재의 엄격한 AI 핵심기업 IPO 최소 집계를 연도별로 비교합니다.",
+      "caveat": "인터넷과 AI는 산업 분류가 같지 않습니다. AI 수치는 단순 키워드가 아니라 SEC 투자설명서를 직접 확인한 보수적 최소치라 실제 관련 기업 수보다 적을 수 있습니다.",
+      "insight": "1999년 인터넷 IPO는 273건까지 폭증했습니다. 엄격 기준 AI 핵심기업은 2024년 2건, 2025년 3건, 2026년 8월 12일 현재 1건으로 상장 공급은 닷컴 말기보다 훨씬 적습니다.",
+      "source_ids": ["RITTER_INTERNET_IPO_2025", "SEC_ASTERA_424B4", "SEC_TEMPUS_424B4", "SEC_COREWEAVE_424B4", "SEC_AMBIQ_424B4", "SEC_WHITEFIBER_424B4", "SEC_CEREBRAS_424B4"],
+      "series": [
+        {
+          "label": "닷컴 인터넷 IPO",
+          "era": "dotcom",
+          "color": "#c70039",
+          "points": [
+            {"period": 0, "date": "1995-12-31", "value": 13},
+            {"period": 12, "date": "1996-12-31", "value": 19},
+            {"period": 24, "date": "1997-12-31", "value": 16},
+            {"period": 36, "date": "1998-12-31", "value": 40},
+            {"period": 48, "date": "1999-12-31", "value": 273}
+          ]
+        },
+        {
+          "label": "현재 AI 핵심 IPO",
+          "era": "current",
+          "color": "#ff6a1a",
+          "points": [
+            {"period": 0, "date": "2023-12-31", "value": 0},
+            {"period": 12, "date": "2024-12-31", "value": 2},
+            {"period": 24, "date": "2025-12-31", "value": 3},
+            {"period": 36, "date": "2026-05-14", "value": 1}
+          ]
+        }
+      ],
+      "detail_rows": [
+        {"period": "2024", "label": "Astera Labs · Tempus AI", "value": "2건"},
+        {"period": "2025", "label": "CoreWeave · Ambiq Micro · WhiteFiber", "value": "3건"},
+        {"period": "2026 YTD", "label": "Cerebras", "value": "1건"}
+      ]
+    },
+    {
+      "id": "technology_ipo_count",
+      "title": "미국 기술기업 IPO 수",
+      "category": "ipo",
+      "unit": "count",
+      "description": "같은 Ritter 기술기업 정의로 전통 IPO 건수를 비교해 상장 공급의 과열 정도를 봅니다.",
+      "caveat": "공모가 5달러 미만, ADR, SPAC, REIT, 폐쇄형펀드 등은 제외됩니다. 2026~2027 값은 아직 없으며 선을 연장하지 않습니다.",
+      "insight": "기술 IPO는 1999년 370건이었지만 2025년은 31건입니다. 현재 주가 열기와 별개로 신규 상장 공급은 닷컴 정점의 약 8% 수준입니다.",
+      "source_ids": ["RITTER_TECH_IPO_2025"],
+      "series": [
+        {"label": "닷컴 기술 IPO", "era": "dotcom", "color": "#c70039", "points": [
+          {"period": 0, "date": "1995-12-31", "value": 205}, {"period": 12, "date": "1996-12-31", "value": 276}, {"period": 24, "date": "1997-12-31", "value": 174}, {"period": 36, "date": "1998-12-31", "value": 113}, {"period": 48, "date": "1999-12-31", "value": 370}
+        ]},
+        {"label": "현재 기술 IPO", "era": "current", "color": "#ff6a1a", "points": [
+          {"period": 0, "date": "2023-12-31", "value": 9}, {"period": 12, "date": "2024-12-31", "value": 14}, {"period": 24, "date": "2025-12-31", "value": 31}
+        ]}
+      ]
+    },
+    {
+      "id": "technology_ipo_first_day_return",
+      "title": "기술 IPO 첫날 평균 수익률",
+      "category": "ipo",
+      "unit": "percent",
+      "description": "공모가에서 첫 거래일 종가까지의 동일가중 평균 상승률로 IPO 열기를 비교합니다.",
+      "caveat": "첫날 급등은 상장 수요와 공모가 책정의 결과이며 이후 장기수익을 보장하지 않습니다. 연간 표본 수 차이도 큽니다.",
+      "insight": "1999년 기술 IPO의 첫날 평균은 86.7%였습니다. 2024년 41.1%, 2025년 33.4%도 뜨겁지만 닷컴 정점의 절반 이하여서 과열의 강도는 아직 다릅니다.",
+      "source_ids": ["RITTER_TECH_IPO_2025"],
+      "series": [
+        {"label": "닷컴 기술 IPO", "era": "dotcom", "color": "#8d2943", "points": [
+          {"period": 0, "date": "1995-12-31", "value": 30.8}, {"period": 12, "date": "1996-12-31", "value": 20.2}, {"period": 24, "date": "1997-12-31", "value": 16.9}, {"period": 36, "date": "1998-12-31", "value": 39.1}, {"period": 48, "date": "1999-12-31", "value": 86.7}
+        ]},
+        {"label": "현재 기술 IPO", "era": "current", "color": "#28756a", "points": [
+          {"period": 0, "date": "2023-12-31", "value": -5.6}, {"period": 12, "date": "2024-12-31", "value": 41.1}, {"period": 24, "date": "2025-12-31", "value": 33.4}
+        ]}
+      ]
+    },
+    {
+      "id": "technology_ipo_price_to_sales",
+      "title": "기술 IPO 공모가 기준 P/S",
+      "category": "ipo",
+      "unit": "multiple",
+      "description": "상장 직전 매출 대비 공모가 기준 시가총액의 중앙값으로 신규 기술주의 가격 부담을 비교합니다.",
+      "caveat": "연도별 중앙값이며 기존 상장 대형 AI 기업의 P/S가 아닙니다. 이 표는 직접상장을 포함해 IPO 건수 표와 표본 수가 조금 다릅니다.",
+      "insight": "1999년 기술 IPO 중앙 P/S는 26.5배, 2025년은 11.8배입니다. 현재 신규 기술주도 비싸지만 닷컴 정점의 공모시장 가격 배수보다는 낮습니다.",
+      "source_ids": ["RITTER_TECH_IPO_2025"],
+      "series": [
+        {"label": "닷컴 기술 IPO", "era": "dotcom", "color": "#c70039", "points": [
+          {"period": 0, "date": "1995-12-31", "value": 4.6}, {"period": 12, "date": "1996-12-31", "value": 6.8}, {"period": 24, "date": "1997-12-31", "value": 5.2}, {"period": 36, "date": "1998-12-31", "value": 8.4}, {"period": 48, "date": "1999-12-31", "value": 26.5}
+        ]},
+        {"label": "현재 기술 IPO", "era": "current", "color": "#ff6a1a", "points": [
+          {"period": 0, "date": "2023-12-31", "value": 13.6}, {"period": 12, "date": "2024-12-31", "value": 9.4}, {"period": 24, "date": "2025-12-31", "value": 11.8}
+        ]}
+      ]
+    },
+    {
+      "id": "technology_ipo_profitable_share",
+      "title": "흑자 기술 IPO 비중",
+      "category": "ipo",
+      "unit": "percent",
+      "description": "상장 전 최근 12개월 이익이 양수인 기술기업의 비중으로 IPO의 수익 기반을 비교합니다.",
+      "caveat": "회계상 최근 12개월 이익 기준이며 현금흐름·향후 성장률·사업의 질을 대신하지 않습니다.",
+      "insight": "1999년 흑자 기술 IPO 비중은 14%, 2025년은 24%입니다. 현재도 적자 상장이 많지만 닷컴 정점보다는 이익 기반이 조금 더 두껍습니다.",
+      "source_ids": ["RITTER_TECH_IPO_2025"],
+      "series": [
+        {"label": "닷컴 흑자 비중", "era": "dotcom", "color": "#8d2943", "points": [
+          {"period": 0, "date": "1995-12-31", "value": 71}, {"period": 12, "date": "1996-12-31", "value": 47}, {"period": 24, "date": "1997-12-31", "value": 50}, {"period": 36, "date": "1998-12-31", "value": 36}, {"period": 48, "date": "1999-12-31", "value": 14}
+        ]},
+        {"label": "현재 흑자 비중", "era": "current", "color": "#28756a", "points": [
+          {"period": 0, "date": "2023-12-31", "value": 33}, {"period": 12, "date": "2024-12-31", "value": 20}, {"period": 24, "date": "2025-12-31", "value": 24}
+        ]}
+      ]
+    },
+    {
+      "id": "all_ipo_negative_earnings_share",
+      "title": "적자 IPO 비중",
+      "category": "ipo",
+      "unit": "percent",
+      "description": "미국 전체 운영회사 IPO 중 상장 전 최근 12개월 EPS가 음수인 비중을 비교합니다.",
+      "caveat": "기술기업만의 수치가 아니며, 이익이 음수라는 사실만으로 실패를 뜻하지 않습니다. 표본과 회계처리 차이를 함께 봐야 합니다.",
+      "insight": "적자 IPO 비중은 1999년 76%, 2025년 53%입니다. 현재도 적자기업 상장은 흔하지만 닷컴 정점처럼 시장 전체가 적자 발행에 쏠린 수준은 아닙니다.",
+      "source_ids": ["RITTER_TECH_IPO_2025"],
+      "series": [
+        {"label": "닷컴 적자 비중", "era": "dotcom", "color": "#8d2943", "points": [
+          {"period": 0, "date": "1995-12-31", "value": 30}, {"period": 12, "date": "1996-12-31", "value": 41}, {"period": 24, "date": "1997-12-31", "value": 36}, {"period": 36, "date": "1998-12-31", "value": 46}, {"period": 48, "date": "1999-12-31", "value": 76}
+        ]},
+        {"label": "현재 적자 비중", "era": "current", "color": "#28756a", "points": [
+          {"period": 0, "date": "2023-12-31", "value": 65}, {"period": 12, "date": "2024-12-31", "value": 64}, {"period": 24, "date": "2025-12-31", "value": 53}
+        ]}
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "series_id": "RITTER_TECH_IPO_2025",
+      "title": "Technology Stock IPOs, 1980-2025",
+      "provider": "Jay R. Ritter, University of Florida IPO Initiative",
+      "unit": "annual_counts_returns_ratios",
+      "native_frequency": "annual",
+      "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf",
+      "available_at": "2026-02-20T00:00:00Z",
+      "latest_observation": "2025-12-31",
+      "row_count": 46,
+      "raw_sha256": "4b46b97a921ac46b26b1c95fca3222eb8998f0ac0b1b20196a6779b9afcab252",
+      "vintage": "reviewed_2025_annual_tables"
+    },
+    {
+      "series_id": "RITTER_INTERNET_IPO_2025",
+      "title": "Internet IPO flag, U.S. IPOs 1975-2025",
+      "provider": "Jay R. Ritter and Tim Loughran, University of Florida",
+      "unit": "issuer_rows",
+      "native_frequency": "annual",
+      "source_url": "https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx",
+      "available_at": "2026-01-19T00:00:00Z",
+      "latest_observation": "2025-12-31",
+      "row_count": 16030,
+      "raw_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
+      "vintage": "reviewed_2025_workbook"
+    },
+    {
+      "series_id": "SEC_ASTERA_424B4", "title": "Astera Labs final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1736297/000119312524073873/0001193125-24-073873-index.htm", "available_at": "2024-03-21T16:24:47Z", "latest_observation": "2024-03-21", "row_count": 1, "raw_sha256": "ca6095b49dda71670d2879d9ce1a00aafc641743c5c26c7cd4f3de17e7d42c61", "vintage": "SEC_accession_0001193125-24-073873"
+    },
+    {
+      "series_id": "SEC_TEMPUS_424B4", "title": "Tempus AI final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1717115/000119312524161989/0001193125-24-161989-index.htm", "available_at": "2024-06-17T06:07:46Z", "latest_observation": "2024-06-17", "row_count": 1, "raw_sha256": "06c9c6a8d8024f148ca9c5f977d847e00aba4593c95518f5366949c27a9b892f", "vintage": "SEC_accession_0001193125-24-161989"
+    },
+    {
+      "series_id": "SEC_COREWEAVE_424B4", "title": "CoreWeave final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1769628/000119312525067651/0001193125-25-067651-index.htm", "available_at": "2025-03-31T06:08:15Z", "latest_observation": "2025-03-31", "row_count": 1, "raw_sha256": "9aa819af2b114d898d5034f9f4bb0ff1c1591d0122173e6a0b382fa8dbeec004", "vintage": "SEC_accession_0001193125-25-067651"
+    },
+    {
+      "series_id": "SEC_AMBIQ_424B4", "title": "Ambiq Micro final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1500412/000119312525169401/0001193125-25-169401-index.htm", "available_at": "2025-07-30T18:06:08Z", "latest_observation": "2025-07-31", "row_count": 1, "raw_sha256": "1d0ac9d469d2eecc2717322b460e74c477b04a7e38c9f1a10c11f442f37c77c6", "vintage": "SEC_accession_0001193125-25-169401"
+    },
+    {
+      "series_id": "SEC_WHITEFIBER_424B4", "title": "WhiteFiber final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2042022/000121390025073279/0001213900-25-073279-index.htm", "available_at": "2025-08-08T06:10:19Z", "latest_observation": "2025-08-08", "row_count": 1, "raw_sha256": "c961ca0f226784b099ea107488f7df37731b1107b03d44f2e49e36287af75d6e", "vintage": "SEC_accession_0001213900-25-073279"
+    },
+    {
+      "series_id": "SEC_CEREBRAS_424B4", "title": "Cerebras final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2021728/000162828026035214/0001628280-26-035214-index.htm", "available_at": "2026-05-14T00:00:00Z", "latest_observation": "2026-05-14", "row_count": 1, "raw_sha256": "16dc7581e12f99826fd9a364c3b62f837886431467d78e5b51e855e93cbe1403", "vintage": "SEC_accession_0001628280-26-035214"
+    }
+  ]
+}
