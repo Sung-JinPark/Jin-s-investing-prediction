@@ -14,6 +14,7 @@ from ai_fc.statistics_lab import (
     build_statistics_lab,
     load_statistics_lab,
     refresh_statistics_lab,
+    statistics_dashboard_projection,
     validate_statistics_lab,
 )
 
@@ -31,16 +32,24 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "FEDFUNDS": 5.0,
             "TOTALSL": 1_000_000.0,
             "TDSP": 12.0,
+            "BOGZ1FL010000346Q": 12.0,
             "DRTSCILM": 5.0,
             "NCBEILQ027S": 8_000_000.0,
             "CPATAX": 600.0,
+            "UNRATE": 4.0,
+            "CPIAUCSL": 160.0,
+            "NFCI": -0.3,
         }[series_id]
-        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "DRTSCILM"} else 0.0)
+        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI"} else 0.0)
         value = baseline * growth
         if series_id == "T10Y2Y":
             value = ((offset % 30) - 12) / 10
         elif series_id == "DRTSCILM":
             value = ((offset % 20) - 6) * 2.0
+        elif series_id == "UNRATE":
+            value = 3.5 + (offset % 18) / 10.0
+        elif series_id == "NFCI":
+            value = ((offset % 24) - 14) / 10.0
         rows.append({"date": date(year, month, 1).isoformat(), "value": value})
     return rows
 
@@ -84,10 +93,12 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert payload["probability_space"] == "reference_only"
     assert payload["model_use"] is False
     assert payload["official_forecast_input"] is False
-    assert len(payload["charts"]) == 9
+    assert len(payload["charts"]) == 13
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "yield_curve", "valuation_proxy", "margin_credit_proxy",
+        "household_debt_service", "unemployment_rate", "inflation_rate",
+        "financial_conditions",
     }
     valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
     assert "대용치" in valuation["title"]
@@ -132,3 +143,19 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
+
+
+def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_path: Path) -> None:
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows, generated_at="2026-08-11T00:00:00+00:00", receipts=receipts
+    )
+    latest = tmp_path / "data/statistics/dotcom_statistics_latest.json"
+    latest.parent.mkdir(parents=True)
+    latest.write_text(json.dumps(payload), encoding="utf-8")
+    projected = statistics_dashboard_projection(tmp_path)
+    for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
+        for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
+            assert len(view_series["points"]) <= 32
+            assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
+            assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]

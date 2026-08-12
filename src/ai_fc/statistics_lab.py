@@ -65,6 +65,13 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "quarterly",
         "aggregation": "last",
     },
+    "BOGZ1FL010000346Q": {
+        "title": "Household debt service and principal payments as a percent of income",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "percent",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
     "DRTSCILM": {
         "title": "Banks tightening C&I standards, large and middle-market firms",
         "provider": "Board of Governors of the Federal Reserve System (US)",
@@ -85,6 +92,27 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "unit": "billions_usd_saar",
         "native_frequency": "quarterly",
         "aggregation": "last",
+    },
+    "UNRATE": {
+        "title": "Civilian unemployment rate",
+        "provider": "U.S. Bureau of Labor Statistics",
+        "unit": "percent",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "CPIAUCSL": {
+        "title": "Consumer Price Index for All Urban Consumers",
+        "provider": "U.S. Bureau of Labor Statistics",
+        "unit": "index_1982_1984_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "NFCI": {
+        "title": "Chicago Fed National Financial Conditions Index",
+        "provider": "Federal Reserve Bank of Chicago",
+        "unit": "standard_deviation_index",
+        "native_frequency": "weekly",
+        "aggregation": "mean",
     },
 }
 
@@ -282,6 +310,15 @@ def build_statistics_lab(
     dot_standards, cur_standards = _cycle_series(monthly["DRTSCILM"], comparison_months)
     profit_growth = _yoy(monthly["CPATAX"])
     dot_profit, cur_profit = _cycle_series(profit_growth, comparison_months)
+    dot_debt_service, cur_debt_service = _cycle_series(
+        monthly["BOGZ1FL010000346Q"], comparison_months
+    )
+    dot_unemployment, cur_unemployment = _cycle_series(monthly["UNRATE"], comparison_months)
+    inflation = _yoy(monthly["CPIAUCSL"])
+    dot_inflation, cur_inflation = _cycle_series(inflation, comparison_months)
+    dot_financial_conditions, cur_financial_conditions = _cycle_series(
+        monthly["NFCI"], comparison_months
+    )
 
     charts = [
         _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
@@ -320,6 +357,22 @@ def build_statistics_lab(
                "밸류에이션 분모인 세후 기업이익이 실제로 얼마나 성장했는지 비교합니다.",
                "전체 미국 기업이익 통계로 NASDAQ 기술기업만의 이익은 아닙니다.",
                [_series("닷컴", "dotcom", dot_profit, "#8d2943"), _series("현재", "current", cur_profit, "#28756a")], ["CPATAX"]),
+        _chart("household_debt_service", "가계 원리금 상환 부담", "credit", "percent",
+               "가계가 가처분소득 중 원리금 상환에 쓰는 비율을 닷컴기와 현재로 비교합니다.",
+               "Fed Z.1 분기 추정치이며 최신 릴리스가 과거값과 분류를 수정할 수 있습니다.",
+               [_series("닷컴", "dotcom", dot_debt_service, "#8d2943"), _series("현재", "current", cur_debt_service, "#28756a")], ["BOGZ1FL010000346Q"]),
+        _chart("unemployment_rate", "실업률", "economy", "percent",
+               "공식 U-3 실업률로 고용시장의 냉각 정도를 닷컴기와 현재 같은 경과월에 비교합니다.",
+               "월별 가계조사 지표이며 취업 포기자와 불완전취업을 모두 포함하는 광의 실업률은 아닙니다.",
+               [_series("닷컴", "dotcom", dot_unemployment, "#8d2943"), _series("현재", "current", cur_unemployment, "#28756a")], ["UNRATE"]),
+        _chart("inflation_rate", "소비자물가 상승률", "economy", "percent_yoy",
+               "도시소비자 CPI의 전년동월 대비 상승률로 물가 압력이 얼마나 다른지 비교합니다.",
+               "전체 CPI이며 근원물가나 개인별 체감물가와는 다를 수 있습니다.",
+               [_series("닷컴", "dotcom", dot_inflation, "#8d2943"), _series("현재", "current", cur_inflation, "#28756a")], ["CPIAUCSL"]),
+        _chart("financial_conditions", "금융여건지수", "rates", "standard_deviation_index",
+               "자금시장·채권·주식·은행 변수를 합친 Chicago Fed NFCI로 금융환경의 긴축 정도를 비교합니다.",
+               "0보다 높으면 역사 평균보다 긴축적, 낮으면 완화적이라는 뜻이며 주가 방향을 단독 예측하지 않습니다.",
+               [_series("닷컴", "dotcom", dot_financial_conditions, "#8d2943"), _series("현재", "current", cur_financial_conditions, "#28756a")], ["NFCI"]),
     ]
 
     def chart_last(chart_index: int, series_index: int) -> float:
@@ -361,6 +414,22 @@ def build_statistics_lab(
         "profit_growth": (
             f"현재 세후 기업이익 증가율은 {chart_last(8, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(8, 0):+.1f}%입니다. "
             "이익이 늘면 밸류에이션을 지지하지만 주가가 이익보다 빨리 오르면 부담은 다시 커집니다."
+        ),
+        "household_debt_service": (
+            f"현재 가계 원리금 부담은 가처분소득의 {chart_last(9, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(9, 0):.1f}%입니다. "
+            "높을수록 금리와 부채가 소비 여력을 더 많이 잠식한다는 뜻입니다."
+        ),
+        "unemployment_rate": (
+            f"현재 실업률은 {chart_last(10, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(10, 0):.1f}%입니다. "
+            "상승하면 고용 냉각 신호지만 금리 인하 기대와 성장 둔화를 함께 봐야 합니다."
+        ),
+        "inflation_rate": (
+            f"현재 CPI 상승률은 {chart_last(11, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(11, 0):+.1f}%입니다. "
+            "낮아지면 금리 부담 완화 여지가 커지지만 수요 둔화가 원인인지도 확인해야 합니다."
+        ),
+        "financial_conditions": (
+            f"현재 NFCI는 {chart_last(12, 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last(12, 0):+.2f}입니다. "
+            "0 아래는 평균보다 완화적, 0 위는 긴축적이어서 시장이 받는 자금 압력을 직관적으로 보여줍니다."
         ),
     }
     for chart in charts:
@@ -550,6 +619,13 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
+            if len(points) > 32:
+                stride = math.ceil((len(points) - 1) / 31)
+                display_points = points[::stride]
+                if display_points[-1] is not points[-1]:
+                    display_points.append(points[-1])
+            else:
+                display_points = points
             chart_view["series"].append({
                 "label": series["label"],
                 "era": series["era"],
@@ -557,7 +633,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                 "latest_date": points[-1].get("date") if points else None,
                 "points": [
                     {"period": point["period"], "value": point["value"]}
-                    for point in points
+                    for point in display_points
                 ],
             })
         projected["charts"].append(chart_view)
