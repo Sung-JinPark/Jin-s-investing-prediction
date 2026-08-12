@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "branch": "codex/route-governance-remediation",
+  "base_commit": "d4f140a867ca4cdcf7d357daf57bdbe6e75236eb",
+  "commit_created": false,
+  "pushed": false,
+  "pull_request_created": false,
+  "merged": false,
+  "live_deployed": false,
+  "approval_received": true,
+  "approval_receipt": "data/display_promotions/approval_receipts.jsonl#display-approval:future-v52:2026-08-12:r1",
+  "reason": "Approval is recorded. This pack captures the final pre-commit state; actual SCM and live deployment outcomes are reported after execution."
+}

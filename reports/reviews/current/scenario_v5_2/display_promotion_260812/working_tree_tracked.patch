@@ -1,0 +1,674 @@
+diff --git a/data/method_changes.jsonl b/data/method_changes.jsonl
+index e05640e..c6b2150 100644
+--- a/data/method_changes.jsonl
++++ b/data/method_changes.jsonl
+@@ -13,3 +13,5 @@
+ {"event_id":"method:scenario-v5-2-complete-separation-v2:2026-08-11:r7","kind":"method","date":"2026-08-11","occurred_at":"2026-08-11T22:30:00+09:00","title":"Scenario V5.2 완전 분리 에피소드 DB와 구조적 이벤트 어댑터 도입","snapshot_id":"scenario_v5_2_scenario_clustered_db_v4","reason":"S1/S2/S3를 특징 스키마, 비중첩 등록 에피소드, 경험적 국면 지속기간·전환, 잔차 풀까지 분리했습니다. S1 닷컴 세션 목표 0.60은 유지하고 S2는 에피소드 고유 평균을 제거한 실제 편차를 운반합니다. 고용·금리·물가 증거는 확률만 바꾸지 않고 에피소드와 국면 길이 선택을 바꾸며, 동일 시드 zero-event 반사실에서 세 시나리오 경로 해시가 모두 달라짐을 검증했습니다. S2 원점 16/20 및 S2/S3 커널 실패는 report-only·promotion blocked로 유지합니다.","contracts":["data/contracts/scenario_v5_2_weights.yaml","data/contracts/scenario_v5_3_separation.yaml"],"report":"reports/diagnostics/v52_complete_separation_v2_20260811/README.md","candidate_model_content_sha256":"af81a99886090687ec6b0a4da27c58017837a5bae2a3b01f329c399e8be81bd8","official_snapshot_overwritten":false,"champion_changed":false,"fixed_phase_template_active":false,"episode_interval_overlap_count":0,"supersedes":"method:scenario-v5-2-independent-multilayer-db:2026-08-11:r6"}
+ {"event_id":"method:dotcom-statistics-lab:2026-08-11:r1","kind":"method","date":"2026-08-11","occurred_at":"2026-08-11T18:43:26+09:00","title":"닷컴 대 현재 공개 통계 비교 카테고리와 주간 DB 도입","snapshot_id":"dotcom_statistics_lab_v1","reason":"1997-01과 2023-01을 같은 경과월로 정렬해 M2·NASDAQ·장단기금리·정책금리·공개 PER 대용치·Fed Z.1 마진신용 대용치·소비자신용·은행 대출기준·기업이익을 비교합니다. FINRA와 Moody’s 및 유료 forward P/E는 재배포 권한 문제로 제외했습니다. 최신 릴리스 재구성 역사임을 표시하고 모든 통계는 reference_only, model_use=false, official_forecast_input=false로 격리했습니다.","contract":"data/contracts/statistics_lab_v1.yaml","report":"docs/research/dotcom_statistics_sources_20260811.md","official_snapshot_overwritten":false,"champion_changed":false,"probability_changed":false}
+ {"event_id":"method:dotcom-statistics-five-year-observed-only:2026-08-12:r2","kind":"method","date":"2026-08-12","occurred_at":"2026-08-12T09:20:00+09:00","title":"닷컴·AI 5년 비교축과 AI 실제관측 종료 규칙 도입","snapshot_id":"dotcom_statistics_lab_v1","reason":"비교 계약을 닷컴 1995-01~1999-12와 AI 2023-01~2027-12의 동일 M+0~M+59 축으로 정정했습니다. 닷컴은 5년 전체 실제 이력을 표시하고 AI 시리즈는 각 공개 원천의 최신 실제 관측에서 종료하며 2027년까지 예측·보간·끝점 강제를 하지 않습니다. reference_only, model_use=false, official_forecast_input=false 격리는 유지됩니다.","contract":"data/contracts/statistics_lab_v1.yaml","official_snapshot_overwritten":false,"champion_changed":false,"probability_changed":false,"forecast_extension":false,"supersedes":"method:dotcom-statistics-lab:2026-08-11:r1"}
++{"event_id":"method:scenario-v5-2-display-promotion-contract:2026-08-12:r8","kind":"method","date":"2026-08-12","occurred_at":"2026-08-12T15:00:00+09:00","title":"Scenario V5.2 표시 승격 계약과 시맨틱 참조 도입","snapshot_id":"scenario_v5_2_scenario_clustered_db_v4","reason":"모델 승격과 고객 기본 라우트 표시 결정을 분리했습니다. 표시 승격은 공시·상시 배너·운영자 승인 영수증·1280/390 렌더 증명이 모두 있을 때만 활성화되며 후보 blocked 또는 요건 소실 시 champion으로 자동 회수됩니다. 현재 운영자 승인 영수증은 pending입니다. 새 candidate refresh에 따라 변하는 artifact hash는 정보용 provenance로만 보존하고 불변 검증 키는 candidate_id, model_version, rules_version으로 고정합니다.","contract":"data/contracts/display_promotion.yaml","semantic_reference":{"candidate_id":"scenario_v5_2_scenario_clustered_db_v4","model_version":"complete_separation_empirical_episode_databases_v6","rules_version":"weights-v3+complete-separation-v1"},"candidate_model_content_sha256_info":"acf91105f215ea6f33528068af00cef5ffcfc546f25dedd9603e885272d86bce","artifact_hash_role":"informational_only","display_promotion_status":"pending_operator_approval","official_snapshot_overwritten":false,"champion_changed":false,"probability_changed":false,"supersedes":"method:scenario-v5-2-complete-separation-v2:2026-08-11:r7"}
++{"event_id":"method:scenario-v5-2-display-promotion-approved:2026-08-12:r9","kind":"method","date":"2026-08-12","occurred_at":"2026-08-12T16:16:45+09:00","title":"Scenario V5.2 표시 승격 운영자 승인","snapshot_id":"scenario_v5_2_scenario_clustered_db_v4","reason":"저장소 운영자가 표시 승격, commit, push, PR, merge와 웹사이트 반영을 명시적으로 승인했습니다. 이는 champion 모델 승격이나 공식 확률 변경이 아닙니다. 연구 후보 배너와 적격 사건 1/60·비보정 공시를 유지하고, runtime blocked 또는 표시 승격 게이트 소실 시 #future 기본값을 champion으로 자동 회수합니다.","contract":"data/contracts/display_promotion.yaml","approval_receipt":"data/display_promotions/approval_receipts.jsonl#display-approval:future-v52:2026-08-12:r1","semantic_reference":{"candidate_id":"scenario_v5_2_scenario_clustered_db_v4","model_version":"complete_separation_empirical_episode_databases_v6","rules_version":"weights-v3+complete-separation-v1"},"candidate_model_content_sha256_info":"acf91105f215ea6f33528068af00cef5ffcfc546f25dedd9603e885272d86bce","artifact_hash_role":"informational_only","display_promotion_status":"approved","official_snapshot_overwritten":false,"champion_changed":false,"probability_changed":false,"supersedes":"method:scenario-v5-2-display-promotion-contract:2026-08-12:r8"}
+diff --git a/pyproject.toml b/pyproject.toml
+index bc95daf..a21924a 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -33,6 +33,9 @@ pit = [
+     "duckdb>=1.3",
+     "pyarrow>=18",
+ ]
++screenshot = [
++    "playwright>=1.48,<2",
++]
+ 
+ [project.scripts]
+ ai-fc = "ai_fc.cli:main"
+diff --git a/src/ai_fc/dashboard.py b/src/ai_fc/dashboard.py
+index 68ef520..5adad14 100644
+--- a/src/ai_fc/dashboard.py
++++ b/src/ai_fc/dashboard.py
+@@ -14,7 +14,7 @@ import html as html_lib
+ import json
+ import re
+ import sqlite3
+-from datetime import date, datetime
++from datetime import date, datetime, timedelta
+ from pathlib import Path
+ 
+ from . import config, scenario as scenario_data
+@@ -26,10 +26,15 @@ DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
+ DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
+ DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
+ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
+-# V5.2 adds a bounded, down-sampled total-mixture projection (including five
+-# actual members per scenario) to the self-contained snapshot.  The 2.5% cap
+-# increase is explicit and remains enforced by the repository-budget test.
+-DASHBOARD_RAW_BUDGET_BYTES = 1_025_000
++# Route-specific path arrays are loaded only when the future surface is opened.
++# The shell plus summary payload must remain below this lowered fixed ceiling.
++DASHBOARD_RAW_BUDGET_BYTES = 900_000
++FUTURE_PATHS_BUDGET_BYTES = 240_000
++FUTURE_PATHS_FILENAME = "future_paths.json"
++FUTURE_DEFERRED_KEYS = (
++    "scenario_v5_2", "scenario_v4_shadow", "cross_asset", "era_analog",
++    "liquidity", "ai_regime",
++)
+ 
+ # Repeated immutable forecast headings dominate the self-contained Pages payload.
+ # Private-use one-codepoint tokens preserve every character while avoiding an ADR-002
+@@ -307,6 +312,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
+     scenario_v5_2 = load_scenario_v5_2_projection(
+         root, now, maximum_age_trading_days=1
+     )
++    from .display_promotion import load_display_promotion
++    display_promotion = load_display_promotion(root, scenario_v5_2)
+     from .scenario_v4_shadow import load_shadow
+     scenario_v4_shadow = load_shadow(root)
+     structural_event = (
+@@ -489,6 +496,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
+         "scenario": scenario,
+         "scenario_v5": scenario_v5,
+         "scenario_v5_2": scenario_v5_2,
++        "display_promotion": display_promotion,
+         "scenario_v4_shadow": scenario_v4_shadow,
+         "calendar_events": calendar_events,
+         "scenario_history": scenario_history,
+@@ -582,6 +590,110 @@ def load_template() -> str:
+     return shell.replace("<!--STYLES-->", styles).replace("<!--APP_SCRIPT-->", script)
+ 
+ 
++def _future_path_checkpoints(candidate: dict) -> list[dict]:
++    dates = (candidate.get("distribution") or {}).get("dates") or []
++    scenarios = ((candidate.get("conditional_small_multiples") or {})
++                 .get("scenarios") or {})
++    if not dates or not scenarios:
++        return []
++    as_of = datetime.fromisoformat(str(candidate["as_of"])).date()
++    observed_dates = [date.fromisoformat(value) for value in dates]
++    targets = (
++        ("1개월", as_of + timedelta(days=30)),
++        ("3개월", as_of + timedelta(days=90)),
++        ("2026년 말", date(2026, 12, 31)),
++        ("2027년 말", observed_dates[-1]),
++    )
++    checkpoints = []
++    used: set[int] = set()
++    anchor_value = (candidate.get("anchor") or {})
++    anchor = float((anchor_value.get("close") or 0)
++                   if isinstance(anchor_value, dict) else anchor_value or 0)
++    for label, target in targets:
++        index = min(
++            range(len(observed_dates)),
++            key=lambda item: abs(observed_dates[item] - target),
++        )
++        if index in used:
++            continue
++        used.add(index)
++        values = {
++            key: round(float(row["bands"]["p50"][index]), 2)
++            for key, row in scenarios.items() if row.get("bands", {}).get("p50")
++        }
++        checkpoints.append({
++            "label": label,
++            "date": dates[index],
++            "p50": values,
++            "return_from_anchor": {
++                key: round(value / anchor - 1.0, 6) if anchor else None
++                for key, value in values.items()
++            },
++        })
++    return checkpoints
++
++
++def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
++    """Move route-only arrays into a bounded lazy artifact without mutating input."""
++    existing = (read_model.get("scenario_v5_2") or {}).get("deferred_paths") or {}
++    if existing.get("required"):
++        return read_model, None
++    base = dict(read_model)
++    deferred = {
++        key: base.pop(key) for key in FUTURE_DEFERRED_KEYS if key in base
++    }
++    candidate = deferred.get("scenario_v5_2") or {}
++    if candidate:
++        model = candidate.get("model") or {}
++        base["scenario_v5_2"] = {
++            "schema_version": candidate.get("schema_version"),
++            "status": candidate.get("status"),
++            "candidate_id": candidate.get("candidate_id"),
++            "semantic_reference": candidate.get("semantic_reference"),
++            "banner": candidate.get("banner"),
++            "as_of": candidate.get("as_of"),
++            "runtime_gate": candidate.get("runtime_gate"),
++            "governance": candidate.get("governance"),
++            "anchor": candidate.get("anchor"),
++            "model": {
++                "model_id": model.get("model_id"),
++                "path_count": model.get("path_count"),
++                "hard_event_mapping": model.get("hard_event_mapping"),
++            },
++            "path_checkpoints": _future_path_checkpoints(candidate),
++            "deferred_paths": {
++                "required": True,
++                "loaded": False,
++                "url": FUTURE_PATHS_FILENAME,
++                "failure_mode": "summary_with_explicit_banner",
++            },
++        }
++    era = deferred.get("era_analog") or {}
++    context = era.get("context") or {}
++    base["era_analog"] = {
++        "status": era.get("status"),
++        "context": {
++            "regime": context.get("regime") or {},
++            "breadth": context.get("breadth") or {},
++        },
++        "deferred": True,
++    }
++    payload = {
++        "schema_version": 1,
++        "contract_id": "future_paths_v1",
++        "semantic_reference": candidate.get("semantic_reference"),
++        "data": deferred,
++    }
++    payload_size = len(json.dumps(
++        payload, ensure_ascii=False, default=str, separators=(",", ":")
++    ).encode("utf-8"))
++    if payload_size > FUTURE_PATHS_BUDGET_BYTES:
++        raise ValueError(
++            f"future paths budget exceeded: {payload_size} > {FUTURE_PATHS_BUDGET_BYTES}"
++        )
++    return base, payload
++
++
+ def render_html(read_model: dict, mode: str = "embed") -> str:
+     shell = _compact_static_bundle(load_template())
+     scenario = read_model.get("scenario") or {}
+@@ -604,16 +716,26 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
+     ))
+     shell = shell.replace("<!--OG_META-->", og_meta)
+     if mode == "embed":
++        read_model, _ = split_future_paths(read_model)
+         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
+         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
+         blob = json.dumps(
+             read_model, ensure_ascii=False, default=str, separators=(",", ":")
+         )
+-        data_script = f"<script>window.__DATA__ = {blob};</script>"
++        data_script = (
++            f'<script>window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
++            f"window.__DATA__ = {blob};</script>"
++        )
+     elif mode == "pages":
+-        data_script = '<script>window.__DATA_URL__ = "data.json";</script>'
++        data_script = (
++            '<script>window.__DATA_URL__ = "data.json";'
++            f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";</script>'
++        )
+     elif mode == "fetch":
+-        data_script = '<script>window.__DATA_URL__ = "/api/data";</script>'
++        data_script = (
++            '<script>window.__DATA_URL__ = "/api/data";'
++            'window.__FUTURE_PATHS_URL__ = "/api/future-paths";</script>'
++        )
+     else:
+         raise ValueError(f"unknown dashboard render mode: {mode}")
+     html = shell.replace("<!--DATA-->", data_script)
+@@ -651,9 +773,18 @@ def _compact_static_bundle(html: str) -> str:
+ 
+ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
+     model = build_read_model(conn, root)
++    base, future_paths = split_future_paths(model)
+     out = root / "reports" / "dashboard.html"
+     out.parent.mkdir(parents=True, exist_ok=True)
+-    out.write_text(render_html(model, mode="embed"), encoding="utf-8")
++    out.write_text(render_html(base, mode="embed"), encoding="utf-8")
++    if future_paths is not None:
++        (out.parent / FUTURE_PATHS_FILENAME).write_text(
++            json.dumps(
++                future_paths, ensure_ascii=False, default=str,
++                separators=(",", ":"),
++            ),
++            encoding="utf-8",
++        )
+     return out
+ 
+ 
+@@ -697,14 +828,23 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
+     데이터는 전부 공개 repo에 이미 존재하는 예측 기록 — 새 노출 없음.
+     """
+     model = build_read_model(conn, root)
++    base, future_paths = split_future_paths(model)
+     out_dir.mkdir(parents=True, exist_ok=True)
+     index = out_dir / "index.html"
+     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
+     _write_og_image(model, out_dir / "og" / "market-snapshot.png")
+     (out_dir / "data.json").write_text(
+-        json.dumps(model, ensure_ascii=False, default=str, separators=(",", ":")),
++        json.dumps(base, ensure_ascii=False, default=str, separators=(",", ":")),
+         encoding="utf-8",
+     )
++    if future_paths is not None:
++        (out_dir / FUTURE_PATHS_FILENAME).write_text(
++            json.dumps(
++                future_paths, ensure_ascii=False, default=str,
++                separators=(",", ":"),
++            ),
++            encoding="utf-8",
++        )
+     (out_dir / ".nojekyll").write_text("", encoding="utf-8")  # _파일 무시 방지
+     return index
+ 
+@@ -733,11 +873,22 @@ def serve(root: Path, host: str, port: int) -> None:
+                 # 매 요청마다 라이브 재조회 (읽기 전용 — 새 연결, 쓰기 없음)
+                 conn = ingest.connect(db_path)
+                 try:
+-                    model = build_read_model(conn, root)
++                    model, _ = split_future_paths(build_read_model(conn, root))
+                 finally:
+                     conn.close()
+                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
+                 self._send(body, "application/json; charset=utf-8")
++            elif self.path.startswith("/api/future-paths"):
++                conn = ingest.connect(db_path)
++                try:
++                    _, future_paths = split_future_paths(build_read_model(conn, root))
++                finally:
++                    conn.close()
++                body = json.dumps(
++                    future_paths, ensure_ascii=False, default=str,
++                    separators=(",", ":"),
++                ).encode("utf-8")
++                self._send(body, "application/json; charset=utf-8")
+             else:
+                 self.send_error(404)
+ 
+diff --git a/src/ai_fc/dashboard_parts/dashboard.css b/src/ai_fc/dashboard_parts/dashboard.css
+index 96c218e..189633f 100644
+--- a/src/ai_fc/dashboard_parts/dashboard.css
++++ b/src/ai_fc/dashboard_parts/dashboard.css
+@@ -1059,6 +1059,7 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
+ .method-change-feed time,.method-change-feed small{font-family:var(--mono);color:var(--muted)}
+ .method-change-feed article p{margin:5px 0;color:var(--muted);line-height:1.55}
+ .method-change-feed article a{display:inline-block;margin-left:12px;font-size:12px;font-weight:700;color:var(--accent)}
++@media(max-width:760px){.method-change-feed{min-width:0;padding:14px}.method-change-feed article{min-width:0;grid-template-columns:1fr;gap:4px}.method-change-feed article>div{min-width:0}.method-change-feed small{overflow-wrap:anywhere}.method-change-feed article a{margin:6px 0 0}}
+ 
+ /* U1d: measured mobile layout repairs and horizontal-chart affordance. */
+ .ask-daily-chart{width:100%;min-width:0!important}
+@@ -1110,6 +1111,7 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
+ /* Scenario V5.2 customer view: one shared log scale, plain-language insight cards, restored research tabs. */
+ .scenario-model-mode{margin:0 0 14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.scenario-model-mode a{min-width:0;padding:13px 15px;display:grid;gap:5px;color:#35332f;text-decoration:none;border:1px solid var(--line);border-left:4px solid #8c877e;background:#fff}.scenario-model-mode a[aria-current="page"]{border-left-color:#247d78;background:#f1f8f5}.scenario-model-mode a[aria-disabled="true"]{color:#77726a;background:#f4f2ed}.scenario-model-mode span{color:#6f6b63;font:760 10px/1 var(--mono);letter-spacing:.06em}.scenario-model-mode strong{overflow:hidden;font-size:14px;text-overflow:ellipsis;white-space:nowrap}.scenario-model-mode small{color:var(--muted);font-size:11px;line-height:1.45}
+ .scenario-v52-risk-banner{margin:0 0 16px;padding:15px 17px;display:grid;grid-template-columns:minmax(230px,.8fr) minmax(0,1.2fr);align-items:center;gap:12px 22px;border:1px solid #d8a244;border-left:6px solid #b96a00;background:#fff8e7}.scenario-v52-risk-banner>div{display:grid;gap:5px}.scenario-v52-risk-banner span{color:#8a4d13;font:800 10px/1 var(--mono);letter-spacing:.07em}.scenario-v52-risk-banner strong{font-size:16px}.scenario-v52-risk-banner p{margin:0;color:#67543b;font-size:12px;line-height:1.6}
++.future-paths-checkpoints{margin:16px 0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.future-paths-checkpoints article{padding:15px;border:1px solid var(--line);background:#fff}.future-paths-checkpoints article>span,.future-paths-checkpoints small{color:var(--muted);font-size:11px}.future-paths-checkpoints article>div{margin:10px 0;display:grid;gap:5px}.future-paths-checkpoints strong{font:780 15px/1.2 var(--mono)}.future-paths-actions{display:flex;flex-wrap:wrap;gap:8px}.future-paths-actions button,.future-paths-actions a{min-height:42px;padding:0 16px;display:inline-flex;align-items:center;border:1px solid #11110f;background:#11110f;color:#fff;font-weight:750;text-decoration:none;cursor:pointer}.future-paths-actions a{background:#fff;color:#11110f}
+ .scenario-v52-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}.scenario-v52-overview{margin:0 0 14px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;border:1px solid var(--line);background:var(--line)}.scenario-v52-overview>div{padding:14px 16px;display:grid;gap:5px;background:#fff}.scenario-v52-overview span{color:var(--muted);font-size:12px}.scenario-v52-overview strong{font:780 20px/1.1 var(--mono)}
+ .scenario-v52-main{min-width:0;overflow:hidden;padding:clamp(18px,2.5vw,30px);border-top:5px solid #11110f}.scenario-v52-range{width:max-content;max-width:100%;margin:18px 0 14px;display:flex;flex-wrap:wrap;border:1px solid var(--line-strong);background:#fff}.scenario-v52-range button{min-height:42px;padding:0 16px;color:#5f5d57;background:#fff;border:0;border-right:1px solid var(--line-strong);font-size:13px;font-weight:720;cursor:pointer}.scenario-v52-range button:last-child{border-right:0}.scenario-v52-range button[aria-pressed="true"]{color:#fff;background:#11110f}.scenario-v52-range button:hover,.scenario-v52-range button:focus-visible{box-shadow:inset 0 -3px var(--orange)}
+ .scenario-v52-legend{margin:0 0 12px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.scenario-v52-legend>span{min-width:0;padding:11px 12px;display:grid;grid-template-columns:10px 1fr;gap:3px 8px;border:1px solid var(--line);background:#fbfaf6}.scenario-v52-legend i{width:9px;height:9px;margin-top:3px;border-radius:50%}.scenario-v52-legend b{font-size:13px}.scenario-v52-legend small,.scenario-v52-legend em{grid-column:2;color:var(--muted);font-size:11px;line-height:1.4}.scenario-v52-legend em{color:#766a5c;font:650 9px/1.4 var(--mono);font-style:normal}.scenario-v52-legend .is-path-key i{border:1px dashed #7c756b;background:transparent}
+@@ -1118,5 +1120,5 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
+ .scenario-v52-section-title{margin-bottom:14px}.scenario-v52-section-title h2{margin:4px 0 6px;font-size:clamp(21px,2.4vw,30px);letter-spacing:-.04em}.scenario-v52-section-title>p:not(.eyebrow){margin:0;color:var(--muted);font-size:13px}.scenario-v52-outcomes,.scenario-v52-insights{margin:16px 0;padding:clamp(18px,2.5vw,28px);border:1px solid var(--line);background:#fff}.scenario-v52-outcomes>div:last-child{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.scenario-v52-insights>div:last-child{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:8px}.scenario-v52-outcomes article,.scenario-v52-insights article{min-width:0;padding:16px;border:1px solid var(--line);background:#fbfaf6}.scenario-v52-outcomes article span,.scenario-v52-insights article span{color:var(--muted);font-size:12px}.scenario-v52-outcomes article strong,.scenario-v52-insights article strong{margin:8px 0;display:block;font:800 clamp(21px,2.6vw,31px)/1.05 var(--mono)}.scenario-v52-outcomes article strong{color:#a33d1c}.scenario-v52-outcomes article p,.scenario-v52-insights article p{margin:0;color:#65635d;font-size:12px;line-height:1.55}.scenario-v52-insights article{border-top:4px solid #11110f}.scenario-v52-insights article:nth-child(2){border-top-color:#ef3b24}.scenario-v52-insights article:nth-child(3){border-top-color:#ee8a10}.scenario-v52-insights article:nth-child(4){border-top-color:#247d78}.scenario-v52-insights article:nth-child(5){border-top-color:#8a8174}.scenario-v52-insights article strong{font-size:18px;line-height:1.25}
+ .scenario-v52-timing{padding:clamp(18px,2.5vw,28px)}.scenario-v52-timing>div:nth-child(2){height:100px}.scenario-v52-method{margin:16px 0;border:1px solid var(--line);background:#fff}.scenario-v52-method>summary{min-height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:13px;font-weight:750}.scenario-v52-method>summary::after{content:'＋';color:var(--orange);font:800 17px/1 var(--mono)}.scenario-v52-method[open]>summary::after{content:'−'}.scenario-v52-method>div{padding:0 16px 16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.scenario-v52-method>div>article{padding:14px;border:1px solid var(--line);background:#fbfaf6}.scenario-v52-method article strong{font-size:13px}.scenario-v52-method article p{margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+ .plain-insight{margin:14px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid #ced8d4;background:#ced8d4}.plain-insight article{min-width:0;padding:14px 16px;background:#f5faf7}.plain-insight span{color:#247d78;font:760 10px/1.2 var(--mono);letter-spacing:.05em}.plain-insight strong{margin:6px 0;display:block;font-size:15px}.plain-insight p{margin:0;color:#626862;font-size:12px;line-height:1.55}.cross-asset-details,.liquidity-details{background:#fbfaf6}.cross-asset-details>summary,.liquidity-details>summary{font-size:14px}.cross-asset-details>.realty-thesis-grid{padding:0 16px}.cross-asset-details>.cross-diagnostics,.cross-asset-details>.cohort-shell,.cross-asset-details>.tracker-shell{margin-inline:16px}.liquidity-details>.liquidity-source-grid,.liquidity-details>.liquidity-lag{margin-inline:16px}.liquidity-details>.liquidity-lag{margin-bottom:16px}
+-@media(max-width:980px){.scenario-v52-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-legend{grid-template-columns:repeat(2,minmax(0,1fr))}}
+-@media(max-width:620px){html,body{max-width:100%;overflow-x:hidden}.scenario-model-mode,.scenario-v52-tabs,.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child,.scenario-v52-legend,.plain-insight{grid-template-columns:1fr}.scenario-v52-risk-banner{grid-template-columns:1fr}.scenario-v52-range{width:100%}.scenario-v52-range button{min-width:50%;flex:1;border-bottom:1px solid var(--line-strong)}.scenario-v52-chart{min-height:240px;overflow-x:auto}.scenario-v52-chart svg{min-width:760px}.scenario-v52-method>div{grid-template-columns:1fr}.cross-asset-details>.realty-thesis-grid,.cross-asset-details>.cross-diagnostics,.cross-asset-details>.cohort-shell,.cross-asset-details>.tracker-shell,.liquidity-details>.liquidity-source-grid,.liquidity-details>.liquidity-lag{margin-inline:10px}.cross-asset-details>.realty-thesis-grid{padding:0}}
++@media(max-width:980px){.scenario-v52-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child,.future-paths-checkpoints{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-legend{grid-template-columns:repeat(2,minmax(0,1fr))}}
++@media(max-width:620px){html,body{max-width:100%;overflow-x:hidden}.scenario-model-mode,.scenario-v52-tabs,.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child,.scenario-v52-legend,.plain-insight,.future-paths-checkpoints{grid-template-columns:1fr}.scenario-v52-risk-banner{grid-template-columns:1fr}.scenario-v52-range{width:100%}.scenario-v52-range button{min-width:50%;flex:1;border-bottom:1px solid var(--line-strong)}.scenario-v52-chart{min-height:240px;overflow-x:auto}.scenario-v52-chart svg{min-width:760px}.scenario-v52-method>div{grid-template-columns:1fr}.cross-asset-details>.realty-thesis-grid,.cross-asset-details>.cross-diagnostics,.cross-asset-details>.cohort-shell,.cross-asset-details>.tracker-shell,.liquidity-details>.liquidity-source-grid,.liquidity-details>.liquidity-lag{margin-inline:10px}.cross-asset-details>.realty-thesis-grid{padding:0}}
+diff --git a/src/ai_fc/dashboard_parts/dashboard.js b/src/ai_fc/dashboard_parts/dashboard.js
+index 5ae9f2f..9c352e9 100644
+--- a/src/ai_fc/dashboard_parts/dashboard.js
++++ b/src/ai_fc/dashboard_parts/dashboard.js
+@@ -4,6 +4,29 @@ async function loadData(){
+   if(window.__DATA_URL__){ const r = await fetch(window.__DATA_URL__); return await r.json(); }
+   return null;
+ }
++let FUTURE_PATHS_PROMISE=null,FUTURE_PATHS_ERROR=null;
++function semanticReferenceMatches(left={},right={}){
++  return ['candidate_id','model_version','rules_version'].every(key=>left?.[key]&&left[key]===right?.[key]);
++}
++async function ensureFuturePaths(){
++  const summary=DATA?.scenario_v5_2||{},deferred=summary.deferred_paths||{};
++  if(!deferred.required||deferred.loaded)return true;
++  if(FUTURE_PATHS_PROMISE)return FUTURE_PATHS_PROMISE;
++  FUTURE_PATHS_PROMISE=(async()=>{
++    const url=window.__FUTURE_PATHS_URL__||deferred.url;
++    if(!url)throw new Error('future paths URL missing');
++    const response=await fetch(url,{cache:'no-store'});
++    if(!response.ok)throw new Error(`future paths HTTP ${response.status}`);
++    const payload=await response.json();
++    if(payload?.contract_id!=='future_paths_v1'||!payload.data?.scenario_v5_2)throw new Error('future paths contract invalid');
++    if(!semanticReferenceMatches(summary.semantic_reference,payload.semantic_reference))throw new Error('future paths semantic reference mismatch');
++    Object.assign(DATA,payload.data);
++    DATA.scenario_v5_2.deferred_paths={...deferred,loaded:true,loaded_at:new Date().toISOString()};
++    FUTURE_PATHS_ERROR=null;
++    return true;
++  })().catch(error=>{FUTURE_PATHS_ERROR=String(error?.message||error);FUTURE_PATHS_PROMISE=null;throw error;});
++  return FUTURE_PATHS_PROMISE;
++}
+ let DATA=null;
+ const $=(s,r=document)=>r.querySelector(s);
+ const app=()=>document.getElementById('app');
+@@ -1113,7 +1136,15 @@ function parseCanonicalRoute(rawHash){
+   if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust'}};
+   return {section:'today',view:'overview'};
+ }
+-function route(){
++function renderFuturePathsLoadState(summary,error=null){
++  const checkpoints=summary?.path_checkpoints||[],failed=!!error;
++  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색 · 연구 후보</p><h1>${failed?'상세 경로를 불러오지 못했습니다':'상세 경로를 불러오는 중입니다'}</h1><p class="page-lede">${failed?'아래 값은 기본 데이터에 남긴 체크포인트 요약입니다. 실패를 숨기고 다른 모델로 바꾸지 않습니다.':'기본 화면에는 상태와 체크포인트만 보관하고, 상세 경로는 이 화면에 들어올 때만 불러옵니다.'}</p></div></div><section class="scenario-v52-risk-banner" role="${failed?'alert':'status'}"><div><span>${failed?'FETCH FAILED · EXPLICIT FALLBACK':'ROUTE DATA · LAZY LOAD'}</span><strong>${esc(summary?.banner||'RESEARCH CANDIDATE')}</strong></div><p>${failed?`${esc(error)} · 네트워크가 복구되면 다시 시도하거나 기존 시장 전망을 확인하세요.`:'연구 후보 · degraded · 적격 사건 1/60 · 보정되지 않음'}</p></section><section class="future-paths-checkpoints" aria-label="연구 후보 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>보정된 사건 확률이 아닌 조건부 p50 요약</small></article>`).join('')||'<p>체크포인트 요약이 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>상세 경로 다시 불러오기</button><a href="#future/champion">기존 시장 전망 보기</a></div>':''}</div>`);
++  mount(root);
++  root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;route();});
++}
++let ROUTE_EPOCH=0;
++async function route(){
++  const epoch=++ROUTE_EPOCH;
+   const enteredHash=location.hash||'#today',rawHash=legacyRouteRedirect(enteredHash);
+   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
+   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
+@@ -1125,6 +1156,23 @@ function route(){
+   document.querySelectorAll('.mobile-bottom-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
+     if(on)a.setAttribute('aria-current','page');else a.removeAttribute('aria-current');});
+   mobileMore?.classList.toggle('active',false);
++  const displayPromotionActive=DATA?.display_promotion?.gate_pass===true;
++  const researchPathsRequested=v==='flow'&&(
++    arg?.modelView==='research'||
++    (!arg?.modelView&&!arg?.lookup&&!arg?.lookupOverlay&&displayPromotionActive)||
++    ['history','cross-asset','ai-regime','liquidity'].includes(arg?.lab)
++  );
++  if(researchPathsRequested&&DATA?.scenario_v5_2?.deferred_paths?.required&&!DATA.scenario_v5_2.deferred_paths.loaded){
++    const summary=DATA.scenario_v5_2;
++    renderFuturePathsLoadState(summary);
++    try{await ensureFuturePaths();}
++    catch(error){
++      if(epoch!==ROUTE_EPOCH)return;
++      if(arg?.modelView==='champion')DATA.future_paths_error=String(error?.message||error);
++      else{renderFuturePathsLoadState(summary,error);return;}
++    }
++    if(epoch!==ROUTE_EPOCH)return;
++  }
+   (VIEWS[v]||renderOverview)(arg);
+   requestAnimationFrame(()=>enhanceChartScroll(app()));
+   renderCompareTray();
+@@ -1323,7 +1371,9 @@ const V52_SCENARIO_META={
+ };
+ function scenarioCustomerViewNav(active,candidate){
+   const eligible=candidate&&['ok','degraded'].includes(candidate.status)&&candidate.runtime_gate?.display_eligible!==false;
+-  return `<nav class="scenario-customer-view" aria-label="전망 화면 전환"><a href="#future" ${active==='scenarios'?'aria-current="page"':''} ${eligible?'':'aria-disabled="true"'}>세 가지 경로</a><a href="#future/champion" ${active==='market'?'aria-current="page"':''}>기존 시장 전망</a></nav>`;
++  const promoted=DATA?.display_promotion?.gate_pass===true;
++  const researchHref=promoted?'#future':'#future/research',championHref=promoted?'#future/champion':'#future';
++  return `<nav class="scenario-customer-view" aria-label="전망 화면 전환"><a href="${researchHref}" ${active==='scenarios'?'aria-current="page"':''} ${eligible?'':'aria-disabled="true"'}>세 가지 경로</a><a href="${championHref}" ${active==='market'?'aria-current="page"':''}>기존 시장 전망</a></nav>`;
+ }
+ // V5.2 paths are daily observations. Resolve month controls by calendar date,
+ // never by array index: index 3 is three days, not three months.
+@@ -1383,6 +1433,7 @@ function renderScenarioV52(candidate,initialState={}){
+   const pct=value=>`${Math.round(Number(value)*100)}%`,pp=value=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%p`,weightPct=value=>`${Math.round(Number(value||0)*100)}%`;
+   const full=ablations.full_evidence?.probabilities||{},terminalAttr=attr.terminal_above_anchor_2026||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
+   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow" id="v52-page-eyebrow">미래 탐색</p><h1 id="v52-page-title">세 가지 시장 경로</h1><p class="page-lede" id="v52-page-lede">상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.</p></div></div>`));
++  root.appendChild(el(`<section class="scenario-v52-risk-banner" data-display-promotion-banner="persistent" role="note"><div><span>DISPLAY PROMOTION · MODEL PROMOTION 아님</span><strong>연구 후보 · degraded · 적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)}</strong></div><p>보정되지 않은 연구 코호트 경로이며 champion이 아닙니다. 후보가 blocked되거나 표시 승인 요건이 사라지면 기존 시장 전망으로 자동 복귀합니다.</p></section>`));
+   root.appendChild(el(scenarioCustomerViewNav('scenarios',candidate)));
+   const outlook=el(`<div id="lab-future" role="tabpanel" aria-labelledby="lab-tab-future">
+     <section class="scenario-v52-overview" aria-label="전망 기준 요약"><div><span>기준일</span><strong>${esc(candidate.as_of.slice(0,10))}</strong></div><div><span>현재 지수</span><strong>${num(Math.round(anchor))}</strong></div><div><span>검토 경로</span><strong>${num(candidate.model.path_count)}개</strong></div><div><span>사용 DB</span><strong>서로 다른 3개 군집</strong></div></section>
+@@ -1445,10 +1496,11 @@ function renderFlow(initialLookup){
+   initialLookup=initialState.lookup||null;
+   const candidate52=DATA.scenario_v5_2||null;
+   const candidate52Eligible=candidate52&&['ok','degraded'].includes(candidate52.status)&&candidate52.runtime_gate?.display_eligible!==false;
+-  // The customer-facing #future route shows the independently generated paths.
+-  // This is a display decision only: the registered champion remains available
+-  // at #future/champion and no official probability or ledger is promoted here.
+-  const candidate52Requested=initialState.modelView!=='champion'&&!initialState.lookup&&!initialState.lookupOverlay;
++  const displayPromotion=DATA.display_promotion||{},displayPromotionActive=displayPromotion.gate_pass===true;
++  const explicitResearch=initialState.modelView==='research'||['history','cross-asset','ai-regime','liquidity'].includes(initialState.lab);
++  // The default route changes only after the separate display-promotion gates pass.
++  // Explicit #future/research remains available while approval is pending.
++  const candidate52Requested=(explicitResearch||(!initialState.modelView&&displayPromotionActive))&&!initialState.lookup&&!initialState.lookupOverlay;
+   if(candidate52Requested&&candidate52Eligible){
+     renderScenarioV52(candidate52,initialState);
+     return;
+@@ -1469,6 +1521,8 @@ function renderFlow(initialLookup){
+     <p class="page-lede" id="flow-page-lede">${FLOW_LAB_COPY.future[2]} 시나리오 기준 ${esc(sc.asof)} · 참고 의견이며 투자 자문이 아닙니다.</p>
+   </div><button type="button" class="future-lookup-open" data-future-lookup-open>날짜·기간 조회 <span>↗</span></button></div>`));
+   root.appendChild(el(scenarioCustomerViewNav('market',candidate52)));
++  if(!displayPromotionActive&&!initialState.modelView&&!initialState.lookup&&!initialState.lookupOverlay){const failed=Object.entries(displayPromotion.gates||{}).filter(([,pass])=>pass!==true).map(([name])=>name);root.appendChild(el(`<section class="scenario-v5-banner is-stale" role="status" aria-label="표시 승격 승인 대기"><div><span>DISPLAY PROMOTION PENDING</span><strong>기존 champion을 기본 화면에 표시합니다</strong><small>${esc(failed.join(' · ')||'표시 승격 계약 확인 대기')}</small></div><p>연구 후보는 <a href="#future/research">세 가지 경로</a>에서 명시적으로 볼 수 있습니다. 모델 승격이나 공식 확률 변경은 아닙니다.</p></section>`));}
++  if(DATA.future_paths_error)root.appendChild(el(`<section class="scenario-v5-banner is-stale" role="alert" aria-label="미래 상세 데이터 로드 실패"><div><span>FUTURE PATHS FETCH FAILED</span><strong>기존 시장 전망만 표시 중</strong><small>${esc(DATA.future_paths_error)}</small></div><p>V5.2·교차자산·유동성 상세를 불러오지 못했습니다. 실패를 숨기지 않으며 연구 후보로 조용히 전환하지 않습니다.</p></section>`));
+   if(candidate52Requested&&!candidate52Eligible)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.2 candidate validation fallback"><div><span>SCENARIO V5.2 DISPLAY GATE</span><strong>${esc(candidate52?.runtime_gate?.fallback_banner||'후보 검증 게이트 차단 — 이전 승인 모델 표시 중')}</strong><small>${esc((candidate52?.runtime_gate?.reasons||['candidate unavailable']).join(' · '))}</small></div><p>현재 보이는 그래프는 V5.2 후보가 아니라 이전 승인 모델입니다. 조용한 폴백을 허용하지 않습니다.</p></section>`));
+   if(candidateData&&candidateData.runtime_gate?.display_eligible===false)root.appendChild(el(`<section class="scenario-v5-banner is-stale" aria-label="Scenario V5.1 stale candidate"><div><span>SCENARIO V5.1 RUNTIME GATE</span><strong>${esc(candidateData.banner||'STALE/INVALID CANDIDATE')}</strong><small>${esc((candidateData.runtime_gate?.reasons||[candidateData.reason]).filter(Boolean).join(' · '))}</small></div><p>V5.1 표시를 중단하고 official legacy fallback을 사용합니다.</p></section>`));
+   if(v5&&sc.scenario_v5_candidate){const numerical=(v5.evidence_views||[]).filter(row=>row.used_numerically),references=(v5.evidence_views||[]).filter(row=>!row.used_numerically),shape=v5.conditional_distribution?.same_shape_diagnostics||{};
+@@ -1813,7 +1867,11 @@ function liquidityPanel(){
+     </details>
+   </div>`);w._liquidityModel=model;return w;
+ }
+-function bindLiquidity(panel){drawLiquidity($('#liquidity-chart',panel),panel._liquidityModel);}
++function bindLiquidity(panel){
++  const model=panel?._liquidityModel,host=$('#liquidity-chart',panel);
++  if(!host||!model?.series?.labels?.length)return;
++  drawLiquidity(host,model);
++}
+ function drawLiquidity(host,model){
+   const NS='http://www.w3.org/2000/svg',W=1160,H=510,ML=58,MR=28,MT=34,MB=42,GAP=38,PANEL=170,PW=W-ML-MR;
+   const labels=model.series.labels,n=labels.length,z=model.series.fed_net_liquidity_z_52w,ndx=model.series.nasdaq_return_26w_pct,btc=model.series.bitcoin_return_26w_pct,zones=model.series.liquidity_zone;
+diff --git a/src/ai_fc/scenario_v5_2/artifact.py b/src/ai_fc/scenario_v5_2/artifact.py
+index 365f98b..2957325 100644
+--- a/src/ai_fc/scenario_v5_2/artifact.py
++++ b/src/ai_fc/scenario_v5_2/artifact.py
+@@ -37,6 +37,10 @@ from .engine import (
+ )
+ 
+ 
++SEMANTIC_MODEL_VERSION = "complete_separation_empirical_episode_databases_v6"
++SEMANTIC_RULES_VERSION = "weights-v3+complete-separation-v1"
++
++
+ def _git_context(root: Path) -> dict[str, Any]:
+     def run(*args: str) -> str:
+         return subprocess.run(
+@@ -772,6 +776,11 @@ def dashboard_projection(
+         "schema_version": 1,
+         "status": "degraded" if "LIMITED" in payload["status"] else "ok",
+         "candidate_id": CANDIDATE_ID,
++        "semantic_reference": {
++            "candidate_id": CANDIDATE_ID,
++            "model_version": SEMANTIC_MODEL_VERSION,
++            "rules_version": SEMANTIC_RULES_VERSION,
++        },
+         "banner": "RESEARCH CANDIDATE · NOT OFFICIAL · LIMITED EVENT MAP",
+         "as_of": payload["as_of"],
+         "runtime_gate": {
+diff --git a/src/tests/test_dashboard.py b/src/tests/test_dashboard.py
+index 0143f17..d19fbd5 100644
+--- a/src/tests/test_dashboard.py
++++ b/src/tests/test_dashboard.py
+@@ -501,14 +501,19 @@ def test_forecast_lookup_ui_contract() -> None:
+     assert "showBaseline=true" in html
+ 
+ 
+-def test_future_default_uses_independent_paths_and_preserves_champion_route() -> None:
++def test_future_default_is_display_gated_and_preserves_both_model_routes() -> None:
+     html = dashboard.load_template()
+     assert "renderScenarioV52(candidate52,initialState);" in html
+-    assert "const candidate52Requested=initialState.modelView!=='champion'" in html
++    assert "const displayPromotion=DATA.display_promotion||{}" in html
++    assert "displayPromotionActive=displayPromotion.gate_pass===true" in html
++    assert "const explicitResearch=initialState.modelView==='research'" in html
++    assert "const candidate52Requested=(explicitResearch||" in html
+     assert "if(candidate52Requested&&candidate52Eligible)" in html
+     assert "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}" in html
+     assert "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}" in html
+-    assert '<a href="#future/champion"' in html
++    assert "championHref=promoted?'#future/champion':'#future'" in html
++    assert "researchHref=promoted?'#future':'#future/research'" in html
++    assert "DISPLAY PROMOTION PENDING" in html
+     assert "let sc=officialScenario,shadowActive=false" in html
+     assert "shadowActive?shadowScenario:officialScenario" in html
+     assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
+@@ -733,9 +738,11 @@ def test_render_embed_vs_fetch(repo: Path) -> None:
+     model = dashboard.build_read_model(conn, repo)
+     embed = dashboard.render_html(model, mode="embed")
+     assert "window.__DATA__ = {" in embed
+-    assert "fixture-coin-ath" in embed  # 데이터가 실제로 임베드됨
++    assert "fixture-coin-ath" in embed  # base question data remains embedded
++    assert "future_paths.json" in embed
+     fetch = dashboard.render_html({}, mode="fetch")
+     assert "/api/data" in fetch
++    assert "/api/future-paths" in fetch
+     assert "window.__DATA__ = {" not in fetch  # fetch 모드는 임베드 없음
+ 
+ 
+@@ -753,6 +760,32 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
+     assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
+ 
+ 
++def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
++    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
++    try:
++        model = dashboard.build_read_model(conn, dashboard.config.ROOT)
++    finally:
++        conn.close()
++    base, future = dashboard.split_future_paths(model)
++    assert future is not None
++    assert future["contract_id"] == "future_paths_v1"
++    assert future["semantic_reference"] == base["scenario_v5_2"]["semantic_reference"]
++    assert "conditional_small_multiples" not in base["scenario_v5_2"]
++    assert future["data"]["scenario_v5_2"]["conditional_small_multiples"]
++    assert base["scenario_v5_2"]["deferred_paths"] == {
++        "required": True,
++        "loaded": False,
++        "url": "future_paths.json",
++        "failure_mode": "summary_with_explicit_banner",
++    }
++    assert base["scenario_v5_2"]["path_checkpoints"]
++    assert len(json.dumps(future, ensure_ascii=False, default=str,
++                          separators=(",", ":")).encode("utf-8")) \
++        <= dashboard.FUTURE_PATHS_BUDGET_BYTES
++    assert len(dashboard.render_html(model, mode="embed").encode("utf-8")) \
++        <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
++
++
+ def test_server_is_read_only() -> None:
+     """serve() 핸들러가 쓰기 메서드(POST)를 405로 차단하는지 소스 계약 검증."""
+     src = inspect.getsource(dashboard.serve)
+@@ -760,6 +793,18 @@ def test_server_is_read_only() -> None:
+     assert "read-only" in src
+     # /api/data는 새 연결로 조회만 (쓰기 함수 미호출)
+     assert "build_read_model" in src and "conn.close()" in src
++    assert "/api/future-paths" in src
++
++
++def test_render_evidence_pipeline_uses_playwright_not_direct_cdp() -> None:
++    source = (
++        dashboard.config.ROOT / "tools/capture_dashboard_screenshots.py"
++    ).read_text(encoding="utf-8")
++    assert "from playwright.sync_api" in source
++    assert "playwright.chromium.launch" in source
++    assert "Page.captureScreenshot" not in source
++    assert "new_cdp_session" not in source
++    assert "len(rows) == 30" in source
+ 
+ 
+ def test_write_dashboard(repo: Path) -> None:
+@@ -768,6 +813,7 @@ def test_write_dashboard(repo: Path) -> None:
+     out = dashboard.write_dashboard(conn, repo)
+     assert out.exists() and out.name == "dashboard.html"
+     assert "window.__DATA__" in out.read_text(encoding="utf-8")
++    assert (out.parent / "future_paths.json").exists()
+ 
+ 
+ def test_write_pages(repo: Path) -> None:
+@@ -779,6 +825,8 @@ def test_write_pages(repo: Path) -> None:
+     assert index.name == "index.html"
+     assert (out_dir / ".nojekyll").exists()
+     assert "data.json" in index.read_text(encoding="utf-8")
++    assert "future_paths.json" in index.read_text(encoding="utf-8")
++    assert (out_dir / "future_paths.json").exists()
+     assert "<script>window.__DATA__ =" not in index.read_text(encoding="utf-8")
+     html = index.read_text(encoding="utf-8")
+     assert 'property="og:title"' in html and 'name="twitter:card"' in html
+@@ -789,6 +837,10 @@ def test_write_pages(repo: Path) -> None:
+         assert image.size == (1200, 630)
+     payload = json.loads((out_dir / "data.json").read_text(encoding="utf-8"))
+     assert payload["meta"]["n_questions"] >= 1
++    future_payload = json.loads(
++        (out_dir / "future_paths.json").read_text(encoding="utf-8")
++    )
++    assert future_payload["contract_id"] == "future_paths_v1"
+     public_text = index.read_text(encoding="utf-8") + json.dumps(payload, ensure_ascii=False)
+     assert "목표가" not in public_text
+     assert "목표가격" not in public_text
+diff --git a/src/tests/test_scenario_v5_2.py b/src/tests/test_scenario_v5_2.py
+index 9a6cf41..01bf973 100644
+--- a/src/tests/test_scenario_v5_2.py
++++ b/src/tests/test_scenario_v5_2.py
+@@ -571,6 +571,11 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
+     )
+     assert fresh["runtime_gate"]["display_eligible"] is True
+     assert fresh["status"] == "degraded"
++    assert fresh["semantic_reference"] == {
++        "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
++        "model_version": "complete_separation_empirical_episode_databases_v6",
++        "rules_version": "weights-v3+complete-separation-v1",
++    }
+     assert fresh["governance"]["champion_eligible"] is False
+     assert fresh["governance"]["default_surface"] == "research_only_explicit_route"
+     assert fresh["governance"]["gates"]["direct_event_observations"] == {
+@@ -632,6 +637,35 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
+     assert any("age" in reason for reason in stale["runtime_gate"]["reasons"])
+ 
+ 
++def test_projection_preserves_direction_changes() -> None:
++    cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
++    projected = dashboard_projection(
++        ROOT, cutoff, maximum_age_trading_days=1,
++    )
++    dates = projected["conditional_small_multiples"]["dates"]
++    end = max(index for index, day in enumerate(dates) if day <= "2026-11-10")
++    assert end + 1 >= 14
++
++    expected_minimum_runs = {"S1": 3, "S2": 10, "S3": 4}
++    returns = {}
++    for scenario, minimum in expected_minimum_runs.items():
++        values = projected["conditional_small_multiples"]["scenarios"][
++            scenario
++        ]["bands"]["p50"][:end + 1]
++        direction_runs = []
++        for left, right in zip(values, values[1:]):
++            sign = 1 if right > left else -1 if right < left else 0
++            if sign and (not direction_runs or direction_runs[-1] != sign):
++                direction_runs.append(sign)
++        assert len(direction_runs) >= minimum, (scenario, direction_runs)
++        returns[scenario] = values[-1] / values[0] - 1
++
++    assert returns["S1"] > .10
++    assert abs(returns["S2"]) < .02
++    assert returns["S3"] < -.10
++    assert returns["S1"] - returns["S3"] > .25
++
++
+ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
+     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+     css = (ROOT / "src/ai_fc/dashboard_parts/dashboard.css").read_text(encoding="utf-8")
+@@ -716,6 +750,30 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision()
+     ]
+     assert complete_row["official_snapshot_overwritten"] is False
+     assert complete_row["champion_changed"] is False
++    display_contract = (
++        "method:scenario-v5-2-display-promotion-contract:2026-08-12:r8"
++    )
++    assert display_contract in ids and ids.index(complete) < ids.index(display_contract)
++    display_row = next(row for row in rows if row["event_id"] == display_contract)
++    assert display_row["semantic_reference"] == {
++        "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
++        "model_version": "complete_separation_empirical_episode_databases_v6",
++        "rules_version": "weights-v3+complete-separation-v1",
++    }
++    assert display_row["artifact_hash_role"] == "informational_only"
++    assert display_row["display_promotion_status"] == "pending_operator_approval"
++    assert display_row["champion_changed"] is False
++    approval = "method:scenario-v5-2-display-promotion-approved:2026-08-12:r9"
++    assert approval in ids and ids.index(display_contract) < ids.index(approval)
++    approval_row = next(row for row in rows if row["event_id"] == approval)
++    assert approval_row["supersedes"] == display_contract
++    assert approval_row["display_promotion_status"] == "approved"
++    assert approval_row["champion_changed"] is False
++    receipt = json.loads((
++        ROOT / "data/display_promotions/approval_receipts.jsonl"
++    ).read_text(encoding="utf-8").splitlines()[-1])
++    assert receipt["receipt_id"] in approval_row["approval_receipt"]
++    assert receipt["semantic_reference"] == display_row["semantic_reference"]
+ 
+ 
+ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:

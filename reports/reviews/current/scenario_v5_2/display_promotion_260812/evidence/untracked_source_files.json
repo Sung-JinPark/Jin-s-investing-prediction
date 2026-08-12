@@ -1,0 +1,10 @@
+{
+  "files": [
+    "data/contracts/dashboard_payload.yaml",
+    "data/contracts/display_promotion.yaml",
+    "src/ai_fc/display_promotion.py",
+    "src/tests/test_display_promotion.py",
+    "tools/capture_dashboard_screenshots.py"
+  ],
+  "note": "Full contents are included under source/. Tracked edits are also represented in working_tree_tracked.patch."
+}

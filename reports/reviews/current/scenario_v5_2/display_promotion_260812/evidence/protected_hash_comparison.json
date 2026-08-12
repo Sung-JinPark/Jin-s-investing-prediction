@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "ok": true,
+  "added": [],
+  "removed": [],
+  "changed": [],
+  "before_manifest_sha256": "8a19adb89387ca208c93791166816cad79874f2e8a0b7fd2a456cc4471f1e3a7",
+  "after_manifest_sha256": "8a19adb89387ca208c93791166816cad79874f2e8a0b7fd2a456cc4471f1e3a7",
+  "source": "candidate.build_receipt.protected_before compared with scenario_v5.contracts.protected_hashes(ROOT)"
+}
