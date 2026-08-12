@@ -55,13 +55,28 @@ sources:
     native_frequency: event
     role: reviewed_ai_core_ipo_minimum_cohort
     reviewed_through: 2026-08-12
+  renaissance_capital_ai_research:
+    tracker: https://www.renaissancecapital.com/IPO-Center/AI-IPOs-Tracker
+    dependency_method: https://www.renaissancecapital.com/IPO-Center/News/111245/Looking-for-AI-IPOs-Introducing-IPO-Pros-new-AI-Screen
+    native_frequency: event_and_continuous_research
+    role: broad_market_recognized_ai_ipo_cohort
+    reviewed_through: 2026-08-12
+  accel_globalscape:
+    report: https://www.accel.com/globalscape
+    native_frequency: annual_research
+    role: named_software_ai_ipo_cohort
+    reviewed_through: 2025-12-31
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.
+  ai_broad_rule: Completed traditional U.S. IPO explicitly included in public AI-focused IPO coverage or a named software/AI IPO cohort. Include infrastructure, applications, and AI-differentiated software.
+  ai_broad_dependency_floor: 2
+  ai_broad_dependency_scale: Renaissance Capital 1=minimal, 2=basic, 3=moderate, 4=significant, 5=AI-centric.
+  ai_broad_disclosure: Market-narrative cohort, not a pure-play count or complete keyword census.
   ai_core_rule: AI or ML product, semiconductor, data, healthcare platform, or compute infrastructure must be central to the final prospectus summary.
   required_evidence: final SEC 424B4 accession
-  exclusions: [ADR, SPAC, REIT, direct_listing, offer_price_below_5_usd, incidental_AI_feature]
-  disclosure: Conservative reviewed minimum, not a keyword census or forecast.
+  exclusions: [ADR, SPAC, REIT, direct_listing, offer_price_below_5_usd, minimal_or_incidental_AI_usage]
+  disclosure: Broad market-recognized count and conservative core minimum are stored separately; neither is a forecast.
   snapshot_path: data/statistics/ipo/ipo_comparison_v1.json
 
 vintage_policy:

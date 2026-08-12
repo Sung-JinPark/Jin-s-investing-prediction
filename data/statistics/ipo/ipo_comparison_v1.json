@@ -5,7 +5,7 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "as_of": "2026-05-14",
+  "as_of": "2026-08-12",
   "coverage": {
     "dotcom_years": [1995, 1996, 1997, 1998, 1999],
     "current_years": [2023, 2024, 2025, 2026],
@@ -15,21 +15,70 @@
   "classification": {
     "comparable_market_series": "Jay Ritter technology-company IPO definition, consistently applied by calendar year",
     "internet_series": "Jay Ritter Internet flag in the 1975-2025 IPO workbook",
+    "ai_broad_series": "Market-recognized broad cohort: completed traditional U.S. IPOs explicitly included in public AI-focused IPO coverage or a named software/AI IPO cohort. AI infrastructure, applications, and AI-differentiated software are included; minimal/incidental use is excluded.",
+    "ai_broad_threshold": "Renaissance Capital dependency logic tiers 2-5 (basic adoption through AI-centric) or equivalent explicit AI investment narrative in the cited public cohort research.",
+    "ai_broad_limit": "This is a reviewed market-narrative cohort, not a complete keyword census. It is intentionally broader than the AI-core minimum and should not be read as a pure-play count.",
     "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
     "reviewed_through": "2026-08-12",
-    "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI used a direct listing. Both are excluded by the pre-registered traditional-IPO rule."
+    "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage."
   },
+  "ai_broad_cohort": [
+    {
+      "year": 2023,
+      "issuers": [
+        {"name": "Arm Holdings", "ticker": "ARM", "dependency_tier": 4, "core_member": false, "basis": "AI semiconductor infrastructure", "evidence_source_id": "RC_AI_MARKET_2024"},
+        {"name": "Klaviyo", "ticker": "KVYO", "dependency_tier": 3, "core_member": false, "basis": "AI-differentiated marketing software", "evidence_source_id": "RC_AI_MARKET_2024"}
+      ]
+    },
+    {
+      "year": 2024,
+      "issuers": [
+        {"name": "Astera Labs", "ticker": "ALAB", "dependency_tier": 4, "core_member": true, "basis": "AI data-center connectivity", "evidence_source_id": "RC_AI_MARKET_2024"},
+        {"name": "Reddit", "ticker": "RDDT", "dependency_tier": 2, "core_member": false, "basis": "AI data licensing and platform narrative", "evidence_source_id": "RC_AI_MARKET_2024"},
+        {"name": "Rubrik", "ticker": "RBRK", "dependency_tier": 3, "core_member": false, "basis": "AI-enabled data security", "evidence_source_id": "RC_AI_MARKET_2024"},
+        {"name": "Ibotta", "ticker": "IBTA", "dependency_tier": 2, "core_member": false, "basis": "AI-enabled promotion platform", "evidence_source_id": "RC_AI_MARKET_2024"},
+        {"name": "Tempus AI", "ticker": "TEM", "dependency_tier": 5, "core_member": true, "basis": "AI-enabled precision medicine", "evidence_source_id": "SEC_TEMPUS_424B4"}
+      ]
+    },
+    {
+      "year": 2025,
+      "issuers": [
+        {"name": "Navan", "ticker": "NAVN", "dependency_tier": 3, "core_member": false, "basis": "AI-differentiated travel and expense software", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "Circle Internet Group", "ticker": "CRCL", "dependency_tier": 2, "core_member": false, "basis": "AI-era financial software cohort", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "CoreWeave", "ticker": "CRWV", "dependency_tier": 5, "core_member": true, "basis": "AI cloud infrastructure", "evidence_source_id": "SEC_COREWEAVE_424B4"},
+        {"name": "Ambiq Micro", "ticker": "AMBQ", "dependency_tier": 4, "core_member": true, "basis": "AI-at-the-edge semiconductor platform", "evidence_source_id": "SEC_AMBIQ_424B4"},
+        {"name": "WhiteFiber", "ticker": "WYFI", "dependency_tier": 5, "core_member": true, "basis": "AI cloud and high-performance compute infrastructure", "evidence_source_id": "SEC_WHITEFIBER_424B4"},
+        {"name": "Netskope", "ticker": "NTSK", "dependency_tier": 3, "core_member": false, "basis": "AI-enabled cybersecurity", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "Via Transportation", "ticker": "VIA", "dependency_tier": 3, "core_member": false, "basis": "AI-driven transit software", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "Figma", "ticker": "FIG", "dependency_tier": 3, "core_member": false, "basis": "AI-enabled design software", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "Innoscripta", "ticker": "INNO", "dependency_tier": 3, "core_member": false, "basis": "AI-differentiated enterprise software", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"},
+        {"name": "SailPoint", "ticker": "SAIL", "dependency_tier": 3, "core_member": false, "basis": "AI-enabled identity security", "evidence_source_id": "ACCEL_GLOBALSCAPE_2025"}
+      ]
+    },
+    {
+      "year": 2026,
+      "through": "2026-08-12",
+      "issuers": [
+        {"name": "Rank One Computing", "ticker": "ROC", "dependency_tier": 5, "core_member": false, "basis": "AI biometric software", "evidence_source_id": "RC_ROC_2026"},
+        {"name": "Cerebras Systems", "ticker": "CBRS", "dependency_tier": 5, "core_member": true, "basis": "AI semiconductors and compute", "evidence_source_id": "SEC_CEREBRAS_424B4"},
+        {"name": "VIDA Global", "ticker": "VIDA", "dependency_tier": 5, "core_member": false, "basis": "AI agent operating system", "evidence_source_id": "RC_AI_WEEK_2026"},
+        {"name": "Csquare", "ticker": "CSQR", "dependency_tier": 3, "core_member": false, "basis": "AI data-center infrastructure", "evidence_source_id": "RC_AI_TRACKER_2026"},
+        {"name": "Standard Nuclear", "ticker": "STDN", "dependency_tier": 2, "core_member": false, "basis": "AI-linked power infrastructure", "evidence_source_id": "RC_AI_TRACKER_2026"}
+      ]
+    }
+  ],
   "charts": [
     {
       "id": "internet_vs_ai_core_ipos",
-      "title": "인터넷 IPO vs AI 핵심기업 IPO",
+      "title": "인터넷 IPO vs 광의 AI 연관 IPO",
       "category": "ipo",
       "unit": "count",
-      "description": "닷컴기의 인터넷 기업 IPO와 현재의 엄격한 AI 핵심기업 IPO 최소 집계를 연도별로 비교합니다.",
-      "caveat": "인터넷과 AI는 산업 분류가 같지 않습니다. AI 수치는 단순 키워드가 아니라 SEC 투자설명서를 직접 확인한 보수적 최소치라 실제 관련 기업 수보다 적을 수 있습니다.",
-      "insight": "1999년 인터넷 IPO는 273건까지 폭증했습니다. 엄격 기준 AI 핵심기업은 2024년 2건, 2025년 3건, 2026년 8월 12일 현재 1건으로 상장 공급은 닷컴 말기보다 훨씬 적습니다.",
-      "source_ids": ["RITTER_INTERNET_IPO_2025", "SEC_ASTERA_424B4", "SEC_TEMPUS_424B4", "SEC_COREWEAVE_424B4", "SEC_AMBIQ_424B4", "SEC_WHITEFIBER_424B4", "SEC_CEREBRAS_424B4"],
+      "scale": "log1p",
+      "description": "닷컴기의 인터넷 IPO와 AI 인프라·응용·AI 차별화 소프트웨어까지 포함한 현재의 광의 AI 연관 IPO를 비교합니다. 엄격한 AI 핵심 최소치도 보조선으로 남깁니다.",
+      "caveat": "인터넷과 AI는 산업 분류가 같지 않으며 광의선은 순수 AI 기업 수가 아닙니다. 작은 현재값도 보이도록 세로축은 log(1+x)를 사용합니다. 단순 언급·SPAC·ADR·REIT·직접상장은 제외했습니다.",
+      "insight": "기준을 현실적으로 넓히면 AI 연관 IPO는 2023년 2건, 2024년 5건, 2025년 10건, 2026년 8월 12일까지 5건입니다. 엄격 핵심치보다 많지만 1999년 인터넷 IPO 273건과는 여전히 큰 차이가 있습니다.",
+      "source_ids": ["RITTER_INTERNET_IPO_2025", "RC_AI_MARKET_2024", "RC_AI_SCREEN_2025", "ACCEL_GLOBALSCAPE_2025", "RC_AI_TRACKER_2026", "RC_AI_WEEK_2026", "RC_ROC_2026", "SEC_ASTERA_424B4", "SEC_TEMPUS_424B4", "SEC_COREWEAVE_424B4", "SEC_AMBIQ_424B4", "SEC_WHITEFIBER_424B4", "SEC_CEREBRAS_424B4"],
       "series": [
         {
           "label": "닷컴 인터넷 IPO",
@@ -44,21 +93,33 @@
           ]
         },
         {
-          "label": "현재 AI 핵심 IPO",
+          "label": "현재 광의 AI 연관 IPO",
           "era": "current",
           "color": "#ff6a1a",
+          "points": [
+            {"period": 0, "date": "2023-12-31", "value": 2},
+            {"period": 12, "date": "2024-12-31", "value": 5},
+            {"period": 24, "date": "2025-12-31", "value": 10},
+            {"period": 36, "date": "2026-08-12", "value": 5}
+          ]
+        },
+        {
+          "label": "현재 AI 핵심 최소치",
+          "era": "current",
+          "color": "#28756a",
           "points": [
             {"period": 0, "date": "2023-12-31", "value": 0},
             {"period": 12, "date": "2024-12-31", "value": 2},
             {"period": 24, "date": "2025-12-31", "value": 3},
-            {"period": 36, "date": "2026-05-14", "value": 1}
+            {"period": 36, "date": "2026-08-12", "value": 1}
           ]
         }
       ],
       "detail_rows": [
-        {"period": "2024", "label": "Astera Labs · Tempus AI", "value": "2건"},
-        {"period": "2025", "label": "CoreWeave · Ambiq Micro · WhiteFiber", "value": "3건"},
-        {"period": "2026 YTD", "label": "Cerebras", "value": "1건"}
+        {"period": "2023", "label": "Arm · Klaviyo", "value": "광의 2 · 핵심 0"},
+        {"period": "2024", "label": "Astera · Reddit · Rubrik · Ibotta · Tempus", "value": "광의 5 · 핵심 2"},
+        {"period": "2025", "label": "Navan · Circle · CoreWeave · Ambiq · WhiteFiber · Netskope · Via · Figma · Innoscripta · SailPoint", "value": "광의 10 · 핵심 3"},
+        {"period": "2026 YTD", "label": "Rank One · Cerebras · VIDA · Csquare · Standard Nuclear", "value": "광의 5 · 핵심 1"}
       ]
     },
     {
@@ -178,6 +239,84 @@
       "row_count": 16030,
       "raw_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
       "vintage": "reviewed_2025_workbook"
+    },
+    {
+      "series_id": "RC_AI_MARKET_2024",
+      "title": "Interested in AI? Look no further than the IPO market",
+      "provider": "Renaissance Capital",
+      "unit": "named_ai_related_ipo_cohort",
+      "native_frequency": "event_research",
+      "source_url": "https://www.renaissancecapital.com/IPO-Center/News/104363/Interested-in-AI-Look-no-further-than-the-IPO-market",
+      "available_at": "2024-04-24T00:00:00Z",
+      "latest_observation": "2024-04-24",
+      "row_count": 6,
+      "raw_sha256": "e40318408a4cfdcc9218b49d2e399417d234d62c4a22ad19d3d996cb6c6f9d20",
+      "vintage": "downloaded_2026-08-12"
+    },
+    {
+      "series_id": "RC_AI_SCREEN_2025",
+      "title": "Introducing IPO Pro's AI Screen",
+      "provider": "Renaissance Capital",
+      "unit": "ai_dependency_methodology",
+      "native_frequency": "methodology",
+      "source_url": "https://www.renaissancecapital.com/IPO-Center/News/111245/Looking-for-AI-IPOs-Introducing-IPO-Pros-new-AI-Screen",
+      "available_at": "2025-05-30T00:00:00Z",
+      "latest_observation": "2025-05-30",
+      "row_count": 5,
+      "raw_sha256": "4649171fb4077a2f8d495845801366876411bfeb5d76d5c673b2b254c8ff36ce",
+      "vintage": "downloaded_2026-08-12"
+    },
+    {
+      "series_id": "ACCEL_GLOBALSCAPE_2025",
+      "title": "Accel 2025 Globalscape: Race for Compute",
+      "provider": "Accel",
+      "unit": "named_software_ai_ipo_cohort",
+      "native_frequency": "annual_research",
+      "source_url": "https://www.accel.com/globalscape",
+      "available_at": "2025-11-12T00:00:00Z",
+      "latest_observation": "2025-12-31",
+      "row_count": 8,
+      "raw_sha256": "7ce65ec1e273f0d057aad8acb536177165e8629fd71afcc57d06e65fef065aaf",
+      "vintage": "report_downloaded_2026-08-12"
+    },
+    {
+      "series_id": "RC_AI_TRACKER_2026",
+      "title": "AI IPO Tracker",
+      "provider": "Renaissance Capital",
+      "unit": "issuer_dependency_ratings",
+      "native_frequency": "continuous",
+      "source_url": "https://www.renaissancecapital.com/IPO-Center/AI-IPOs-Tracker",
+      "available_at": "2026-08-12T00:00:00Z",
+      "latest_observation": "2026-08-12",
+      "row_count": 159,
+      "raw_sha256": "402373e79f685a6f0ff82ca584628a4e669f542ad3e5f22fa7a98ba70c55c368",
+      "vintage": "downloaded_2026-08-12"
+    },
+    {
+      "series_id": "RC_AI_WEEK_2026",
+      "title": "Cerebras raises $5.6 billion in the largest AI IPO ever",
+      "provider": "Renaissance Capital",
+      "unit": "named_ai_ipo_cohort",
+      "native_frequency": "event_research",
+      "source_url": "https://www.renaissancecapital.com/IPO-Center/News/119105/US-IPO-Weekly-Recap-Cerebras-raises-%245.6-billion-in-the-largest-AI-IPO-ever",
+      "available_at": "2026-05-15T00:00:00Z",
+      "latest_observation": "2026-05-15",
+      "row_count": 2,
+      "raw_sha256": "ace1a268d36be66921e8e47d9bfa1e02d081efd5c5d25af215ad4d0c3b16f22c",
+      "vintage": "downloaded_2026-08-12"
+    },
+    {
+      "series_id": "RC_ROC_2026",
+      "title": "Rank One Computing prices upsized IPO",
+      "provider": "Renaissance Capital",
+      "unit": "issuer_event",
+      "native_frequency": "event_research",
+      "source_url": "https://www.renaissancecapital.com/IPO-Center/News/117155/Facial-recognition-software-provider-Rank-One-Computing-prices-upsized-IPO-",
+      "available_at": "2026-02-20T00:00:00Z",
+      "latest_observation": "2026-02-20",
+      "row_count": 1,
+      "raw_sha256": "d4fa685293c18f9609625bcc20128c26f35bb3d1c191b125a172a6c299a16aee",
+      "vintage": "downloaded_2026-08-12"
     },
     {
       "series_id": "SEC_ASTERA_424B4", "title": "Astera Labs final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1736297/000119312524073873/0001193125-24-073873-index.htm", "available_at": "2024-03-21T16:24:47Z", "latest_observation": "2024-03-21", "row_count": 1, "raw_sha256": "ca6095b49dda71670d2879d9ce1a00aafc641743c5c26c7cd4f3de17e7d42c61", "vintage": "SEC_accession_0001193125-24-073873"

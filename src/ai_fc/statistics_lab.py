@@ -305,6 +305,36 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
         digest = str(source.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
             raise StatisticsLabError(f"IPO source {source.get('series_id')} hash invalid")
+    broad_cohort = payload.get("ai_broad_cohort")
+    expected_years = [int(year) for year in coverage.get("current_years") or []]
+    if not isinstance(broad_cohort, list) or [row.get("year") for row in broad_cohort] != expected_years:
+        raise StatisticsLabError("IPO broad cohort years must match current coverage")
+    broad_counts: dict[int, int] = {}
+    core_member_counts: dict[int, int] = {}
+    broad_tickers: set[str] = set()
+    for year_row in broad_cohort:
+        year = int(year_row["year"])
+        issuers = year_row.get("issuers")
+        if not isinstance(issuers, list) or not issuers:
+            raise StatisticsLabError(f"IPO broad cohort {year} issuers missing")
+        broad_counts[year] = len(issuers)
+        core_member_counts[year] = 0
+        for issuer in issuers:
+            ticker = str(issuer.get("ticker", "")).strip()
+            tier = issuer.get("dependency_tier")
+            evidence_source_id = str(issuer.get("evidence_source_id", ""))
+            core_member = issuer.get("core_member")
+            if not ticker or ticker in broad_tickers:
+                raise StatisticsLabError("IPO broad cohort tickers must be non-empty and unique")
+            if not isinstance(tier, int) or not 2 <= tier <= 5:
+                raise StatisticsLabError(f"IPO broad cohort {ticker} dependency tier invalid")
+            if evidence_source_id not in source_ids:
+                raise StatisticsLabError(f"IPO broad cohort {ticker} evidence source unknown")
+            if not isinstance(core_member, bool):
+                raise StatisticsLabError(f"IPO broad cohort {ticker} core membership must be explicit")
+            if core_member:
+                core_member_counts[year] += 1
+            broad_tickers.add(ticker)
     chart_ids: set[str] = set()
     for chart in charts:
         chart_id = str(chart.get("id", ""))
@@ -322,6 +352,23 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
                 raise StatisticsLabError(f"IPO chart {chart_id} periods invalid")
             if not all(math.isfinite(value) and value >= 0 for value in values if chart.get("unit") == "count"):
                 raise StatisticsLabError(f"IPO chart {chart_id} count invalid")
+    comparison = next((chart for chart in charts if chart.get("id") == "internet_vs_ai_core_ipos"), None)
+    if comparison is None:
+        raise StatisticsLabError("IPO broad/core comparison chart missing")
+    broad_series = next(
+        (series for series in comparison["series"] if series.get("label") == "현재 광의 AI 연관 IPO"), None
+    )
+    core_series = next(
+        (series for series in comparison["series"] if series.get("label") == "현재 AI 핵심 최소치"), None
+    )
+    if broad_series is None or core_series is None:
+        raise StatisticsLabError("IPO broad/core comparison series missing")
+    broad_points = {int(point["date"][:4]): int(point["value"]) for point in broad_series["points"]}
+    core_points = {int(point["date"][:4]): int(point["value"]) for point in core_series["points"]}
+    if broad_points != broad_counts:
+        raise StatisticsLabError("IPO broad series does not reconcile to reviewed issuer cohort")
+    if core_points != core_member_counts:
+        raise StatisticsLabError("IPO core minimum must reconcile to marked broad-cohort members")
 
 
 def load_ipo_reference(root: Path) -> dict[str, Any]:
@@ -503,6 +550,8 @@ def build_statistics_lab(
                 spec["series"], list(spec["source_ids"]),
             )
             chart["insight"] = str(spec["insight"])
+            if spec.get("scale"):
+                chart["scale"] = str(spec["scale"])
             if spec.get("detail_rows"):
                 chart["detail_rows"] = spec["detail_rows"]
             ipo_charts.append(chart)
@@ -721,11 +770,22 @@ def load_statistics_lab(root: Path) -> dict[str, Any]:
 
 
 def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
-    """Return the complete public meaning with compact chart coordinates."""
+    """Return customer-facing meaning with compact chart coordinates."""
     payload = load_statistics_lab(root)
     if payload.get("status") != "ok":
         return payload
-    projected = {key: value for key, value in payload.items() if key != "charts"}
+    projected = {
+        key: value for key, value in payload.items()
+        if key not in {"charts", "ipo_comparison"}
+    }
+    public_source_keys = {
+        "series_id", "title", "provider", "source_url", "latest_observation",
+        "row_count", "vintage", "raw_sha256",
+    }
+    projected["sources"] = [
+        {key: value for key, value in source.items() if key in public_source_keys}
+        for source in payload["sources"]
+    ]
     projected["charts"] = []
     for chart in payload["charts"]:
         chart_view = {key: value for key, value in chart.items() if key != "series"}

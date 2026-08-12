@@ -7,8 +7,11 @@ import zipfile
 from datetime import date
 from pathlib import Path
 
+import pytest
+
 from ai_fc.statistics_lab import (
     FRED_SERIES,
+    StatisticsLabError,
     _parse_fred_csv,
     _parse_z1,
     build_statistics_lab,
@@ -134,11 +137,19 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
+    assert ipo_chart["scale"] == "log1p"
     assert ipo_chart["series"][0]["points"][-1]["value"] == 273
     assert ipo_chart["series"][1]["points"][-1] == {
-        "period": 36, "date": "2026-05-14", "value": 1
+        "period": 36, "date": "2026-08-12", "value": 5
     }
-    assert ipo_chart["detail_rows"][0]["label"] == "Astera Labs · Tempus AI"
+    assert ipo_chart["series"][2]["points"][-1] == {
+        "period": 36, "date": "2026-08-12", "value": 1
+    }
+    assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
+    assert [len(row["issuers"]) for row in _repo_ipo_reference()["ai_broad_cohort"]] == [2, 5, 10, 5]
+    assert payload["ipo_comparison"]["classification"]["ai_broad_limit"].startswith(
+        "This is a reviewed market-narrative"
+    )
     assert payload["ipo_comparison"]["classification"]["ai_core_limit"].startswith("This is a conservative")
     valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
     assert "대용치" in valuation["title"]
@@ -199,6 +210,7 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "해석할 때 주의" in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" in script
+    assert 'data-stat-scale="${useLog?\'log1p\':\'linear\'}"' in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
@@ -228,8 +240,31 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 8
+    assert len(payload["sources"]) == 14
     assert all(source["raw_sha256"] for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 6
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
+    broad = payload["ai_broad_cohort"]
+    assert [row["year"] for row in broad] == [2023, 2024, 2025, 2026]
+    assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 5]
+    assert all(2 <= issuer["dependency_tier"] <= 5 for row in broad for issuer in row["issuers"])
+    assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 1]
+
+
+def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
+    payload = _repo_ipo_reference()
+    invalid_count = json.loads(json.dumps(payload))
+    invalid_count["ai_broad_cohort"][0]["issuers"].pop()
+    with pytest.raises(StatisticsLabError, match="does not reconcile"):
+        validate_ipo_reference(invalid_count)
+
+    invalid_tier = json.loads(json.dumps(payload))
+    invalid_tier["ai_broad_cohort"][0]["issuers"][0]["dependency_tier"] = 1
+    with pytest.raises(StatisticsLabError, match="dependency tier invalid"):
+        validate_ipo_reference(invalid_tier)
+
+    invalid_core = json.loads(json.dumps(payload))
+    invalid_core["ai_broad_cohort"][1]["issuers"][0]["core_member"] = False
+    with pytest.raises(StatisticsLabError, match="marked broad-cohort members"):
+        validate_ipo_reference(invalid_core)
