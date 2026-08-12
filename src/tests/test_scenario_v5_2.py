@@ -660,6 +660,11 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "@media(max-width:620px)" in css
 
 
+def test_pages_rebuilds_when_v5_2_projection_changes() -> None:
+    workflow = (ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
+    assert '- "src/ai_fc/scenario_v5_2/**"' in workflow
+
+
 def test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2() -> None:
     workflows = [
         ROOT / ".github/workflows/scenario-refresh.yml",
