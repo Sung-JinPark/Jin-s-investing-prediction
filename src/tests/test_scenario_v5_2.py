@@ -605,7 +605,20 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     assert dotcom["dependency_cap"] == .60
     assert dotcom["requested_sensitivity_policy"]["0.80"] == \
         "blocked_above_dependency_cap"
-    assert len(fresh["distribution"]["dates"]) < len(_candidate()["distribution"]["dates"])
+    source_dates = _candidate()["distribution"]["dates"]
+    projected_dates = fresh["distribution"]["dates"]
+    dense_end = min(len(source_dates), 110)
+    expected_indexes = list(range(0, dense_end, 5))
+    expected_indexes.extend(range(dense_end, len(source_dates), 20))
+    if expected_indexes[-1] != len(source_dates) - 1:
+        expected_indexes.append(len(source_dates) - 1)
+    assert projected_dates == [source_dates[index] for index in expected_indexes]
+    assert len(projected_dates) < len(source_dates)
+    assert len([date for date in projected_dates if date <= "2026-11-10"]) >= 13
+    for scenario in ("S1", "S2", "S3"):
+        assert len(fresh["conditional_small_multiples"]["scenarios"][scenario][
+            "bands"
+        ]["p50"]) == len(projected_dates)
     stale = dashboard_projection(
         ROOT, datetime.fromisoformat("2026-08-13T04:00:00+00:00"),
         maximum_age_trading_days=1,
