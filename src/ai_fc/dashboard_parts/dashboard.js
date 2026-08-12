@@ -1021,14 +1021,17 @@ function statisticsChartSvg(chart,alignment={}){
   const maxPeriod=Math.max(1,Number(alignment.comparison_months)||0,...points.map(row=>Number(row.period)||0));
   const currentPoints=series.filter(row=>row.era==='current').flatMap(row=>row.points||[]),currentEnd=currentPoints.length?Math.max(...currentPoints.map(row=>Number(row.period)||0)):null;
   const rawValues=points.map(row=>Number(row.value)).filter(Number.isFinite),rawMin=Math.min(...rawValues),rawMax=Math.max(...rawValues);
-  const span=Math.max(Math.abs(rawMax-rawMin),Math.abs(rawMax)*.08,1),low=rawMin-span*.12,high=rawMax+span*.12;
-  const X=value=>ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(Number(value)-low)/(high-low));
+  const useLog=chart.scale==='log1p'&&rawMin>=0,transform=value=>useLog?Math.log1p(Number(value)):Number(value),inverse=value=>useLog?Math.expm1(value):value;
+  const transformed=rawValues.map(transform),transformedMin=Math.min(...transformed),transformedMax=Math.max(...transformed);
+  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),low=useLog?0:transformedMin-span*.12,high=transformedMax+span*.12;
+  const X=value=>ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(transform(value)-low)/(high-low));
   const yTicks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
   const xTicks=[0,12,24,36,48,maxPeriod].filter((value,index,array)=>value<=maxPeriod&&array.indexOf(value)===index).sort((a,b)=>a-b);
   const line=values=>values.map((row,index)=>`${index?'L':'M'}${X(row.period).toFixed(1)},${Y(row.value).toFixed(1)}`).join(' ');
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)} 닷컴 1995~1999와 AI 2023~2027 비교 차트. AI 선은 실제 관측에서 종료" data-forecast-extension="false">
-    ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${Y(value).toFixed(1)}" y2="${Y(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(Y(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,value))}</text>`).join('')}
-    ${low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
+  const tickY=value=>MT+PH*(1-(value-low)/(high-low));
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)} 닷컴 1995~1999와 AI 2023~2027 비교 차트. ${useLog?'세로축 log(1+x). ':''}AI 선은 실제 관측에서 종료" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}">
+    ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${tickY(value).toFixed(1)}" y2="${tickY(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(tickY(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,inverse(value)))}</text>`).join('')}
+    ${!useLog&&low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
     ${xTicks.map(value=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">M+${value}</text>`).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">AI 실제 관측 종료</text>`:''}
     ${series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.2'}" stroke-dasharray="${row.era==='current'?'none':'6 5'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
@@ -1049,7 +1052,7 @@ function renderStatistics(){
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const sourceLinks=(chart.source_ids||[]).map(id=>{const source=sources.find(row=>row.series_id===id);return source?`<a href="${esc(source.source_url)}" target="_blank" rel="noreferrer">${esc(id)} ↗</a>`:`<span>${esc(id)}</span>`;}).join('');
-    const detailRows=(chart.detail_rows||[]).length?`<div class="statistics-detail-rows" aria-label="AI 핵심 IPO 구성">${chart.detail_rows.map(row=>`<article><span>${esc(row.period)}</span><strong>${esc(row.label)}</strong><b>${esc(row.value)}</b></article>`).join('')}</div>`:'';
+    const detailRows=(chart.detail_rows||[]).length?`<div class="statistics-detail-rows" aria-label="AI 연관 IPO 구성과 핵심 최소치">${chart.detail_rows.map(row=>`<article><span>${esc(row.period)}</span><strong>${esc(row.label)}</strong><b>${esc(row.value)}</b></article>`).join('')}</div>`:'';
     grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>${detailRows}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div><div class="statistics-insight"><strong>해석할 때 주의</strong><p>${esc(chart.caveat)}</p><div>${sourceLinks}</div></div></section>`));
   });
   root.appendChild(grid);
