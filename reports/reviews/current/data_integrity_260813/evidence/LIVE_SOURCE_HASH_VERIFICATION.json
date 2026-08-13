@@ -1,0 +1,357 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-08-13T11:23:42+00:00",
+  "live_transport_source_count": 22,
+  "live_exact_match_count": 22,
+  "gate_pass": true,
+  "rows": [
+    {
+      "series_id": "M2SL",
+      "status": "match",
+      "stored_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
+      "live_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL&cosd=1995-01-01",
+      "bytes": 6995,
+      "parsed_rows": 378
+    },
+    {
+      "series_id": "DABSHNO",
+      "status": "match",
+      "stored_sha256": "54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d",
+      "live_sha256": "54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DABSHNO&cosd=1995-01-01",
+      "bytes": 2447,
+      "parsed_rows": 125
+    },
+    {
+      "series_id": "NASDAQCOM",
+      "status": "match",
+      "stored_sha256": "f82b1b19cbaa7f05918b4851092597d287ffc2033c11fb8b82aeba75a11b4b1b",
+      "live_sha256": "f82b1b19cbaa7f05918b4851092597d287ffc2033c11fb8b82aeba75a11b4b1b",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=1995-01-01",
+      "bytes": 164026,
+      "parsed_rows": 7956
+    },
+    {
+      "series_id": "T10Y2Y",
+      "status": "match",
+      "stored_sha256": "04f22f6955adb0b4d7562371271cededf70950f5f3ea416f90dab0f280e1a280",
+      "live_sha256": "04f22f6955adb0b4d7562371271cededf70950f5f3ea416f90dab0f280e1a280",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y&cosd=1995-01-01",
+      "bytes": 131660,
+      "parsed_rows": 7909
+    },
+    {
+      "series_id": "FEDFUNDS",
+      "status": "match",
+      "stored_sha256": "6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20",
+      "live_sha256": "6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=1995-01-01",
+      "bytes": 6090,
+      "parsed_rows": 379
+    },
+    {
+      "series_id": "TOTALSL",
+      "status": "match",
+      "stored_sha256": "88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51",
+      "live_sha256": "88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TOTALSL&cosd=1995-01-01",
+      "bytes": 11365,
+      "parsed_rows": 378
+    },
+    {
+      "series_id": "TDSP",
+      "status": "match",
+      "stored_sha256": "6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9",
+      "live_sha256": "6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TDSP&cosd=1995-01-01",
+      "bytes": 1804,
+      "parsed_rows": 85
+    },
+    {
+      "series_id": "BOGZ1FL010000346Q",
+      "status": "match",
+      "stored_sha256": "5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0",
+      "live_sha256": "5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL010000346Q&cosd=1995-01-01",
+      "bytes": 3752,
+      "parsed_rows": 124
+    },
+    {
+      "series_id": "DRTSCILM",
+      "status": "match",
+      "stored_sha256": "b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165",
+      "live_sha256": "b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DRTSCILM&cosd=1995-01-01",
+      "bytes": 2057,
+      "parsed_rows": 127
+    },
+    {
+      "series_id": "NCBEILQ027S",
+      "status": "match",
+      "stored_sha256": "0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7",
+      "live_sha256": "0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NCBEILQ027S&cosd=1995-01-01",
+      "bytes": 2512,
+      "parsed_rows": 125
+    },
+    {
+      "series_id": "CPATAX",
+      "status": "match",
+      "stored_sha256": "07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69",
+      "live_sha256": "07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPATAX&cosd=1995-01-01",
+      "bytes": 2487,
+      "parsed_rows": 125
+    },
+    {
+      "series_id": "UNRATE",
+      "status": "match",
+      "stored_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
+      "live_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE&cosd=1995-01-01",
+      "bytes": 5711,
+      "parsed_rows": 378
+    },
+    {
+      "series_id": "CPIAUCSL",
+      "status": "match",
+      "stored_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
+      "live_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=1995-01-01",
+      "bytes": 7220,
+      "parsed_rows": 378
+    },
+    {
+      "series_id": "NFCI",
+      "status": "match",
+      "stored_sha256": "7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d",
+      "live_sha256": "7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=1995-01-01",
+      "bytes": 29567,
+      "parsed_rows": 1649
+    },
+    {
+      "series_id": "BOGZ1LM893064105Q",
+      "status": "match",
+      "stored_sha256": "cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497",
+      "live_sha256": "cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1LM893064105Q&cosd=1995-01-01",
+      "bytes": 2531,
+      "parsed_rows": 125
+    },
+    {
+      "series_id": "HQMCB10YR",
+      "status": "match",
+      "stored_sha256": "6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0",
+      "live_sha256": "6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=HQMCB10YR&cosd=1995-01-01",
+      "bytes": 6091,
+      "parsed_rows": 379
+    },
+    {
+      "series_id": "GS10",
+      "status": "match",
+      "stored_sha256": "c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b",
+      "live_sha256": "c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1995-01-01",
+      "bytes": 6086,
+      "parsed_rows": 379
+    },
+    {
+      "series_id": "DCOILWTICO",
+      "status": "match",
+      "stored_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
+      "live_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO&cosd=1995-01-01",
+      "bytes": 139199,
+      "parsed_rows": 7930
+    },
+    {
+      "series_id": "WPU10260314",
+      "status": "match",
+      "stored_sha256": "467b2b49eee43e7c343185547b2457198c4560414e363e44eb77a72ca4269fa7",
+      "live_sha256": "467b2b49eee43e7c343185547b2457198c4560414e363e44eb77a72ca4269fa7",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU10260314&cosd=1995-01-01",
+      "bytes": 7204,
+      "parsed_rows": 377
+    },
+    {
+      "series_id": "GACDFSA066MSFRBPHI",
+      "status": "match",
+      "stored_sha256": "dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea",
+      "live_sha256": "dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GACDFSA066MSFRBPHI&cosd=1995-01-01",
+      "bytes": 6057,
+      "parsed_rows": 379
+    },
+    {
+      "series_id": "SPASTT01KRM661N",
+      "status": "match",
+      "stored_sha256": "202695d3b3921024da2766f8d1677118f2efb6e45039780b80ee76d5bb69012f",
+      "live_sha256": "202695d3b3921024da2766f8d1677118f2efb6e45039780b80ee76d5bb69012f",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SPASTT01KRM661N&cosd=1995-01-01",
+      "bytes": 8102,
+      "parsed_rows": 378
+    },
+    {
+      "series_id": "FL663067003",
+      "status": "match",
+      "stored_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
+      "live_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
+      "request_url": "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip",
+      "bytes": 8075952,
+      "parsed_rows": 125
+    },
+    {
+      "series_id": "RITTER_TECH_IPO_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "4b46b97a921ac46b26b1c95fca3222eb8998f0ac0b1b20196a6779b9afcab252",
+      "request_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf"
+    },
+    {
+      "series_id": "RITTER_INTERNET_IPO_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
+      "request_url": "https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx"
+    },
+    {
+      "series_id": "RC_AI_MARKET_2024",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "e40318408a4cfdcc9218b49d2e399417d234d62c4a22ad19d3d996cb6c6f9d20",
+      "request_url": "https://www.renaissancecapital.com/IPO-Center/News/104363/Interested-in-AI-Look-no-further-than-the-IPO-market"
+    },
+    {
+      "series_id": "RC_AI_SCREEN_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "4649171fb4077a2f8d495845801366876411bfeb5d76d5c673b2b254c8ff36ce",
+      "request_url": "https://www.renaissancecapital.com/IPO-Center/News/111245/Looking-for-AI-IPOs-Introducing-IPO-Pros-new-AI-Screen"
+    },
+    {
+      "series_id": "ACCEL_GLOBALSCAPE_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "7ce65ec1e273f0d057aad8acb536177165e8629fd71afcc57d06e65fef065aaf",
+      "request_url": "https://www.accel.com/globalscape"
+    },
+    {
+      "series_id": "RC_AI_TRACKER_2026",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "402373e79f685a6f0ff82ca584628a4e669f542ad3e5f22fa7a98ba70c55c368",
+      "request_url": "https://www.renaissancecapital.com/IPO-Center/AI-IPOs-Tracker"
+    },
+    {
+      "series_id": "RC_AI_WEEK_2026",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "ace1a268d36be66921e8e47d9bfa1e02d081efd5c5d25af215ad4d0c3b16f22c",
+      "request_url": "https://www.renaissancecapital.com/IPO-Center/News/119105/US-IPO-Weekly-Recap-Cerebras-raises-%245.6-billion-in-the-largest-AI-IPO-ever"
+    },
+    {
+      "series_id": "RC_ROC_2026",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "d4fa685293c18f9609625bcc20128c26f35bb3d1c191b125a172a6c299a16aee",
+      "request_url": "https://www.renaissancecapital.com/IPO-Center/News/117155/Facial-recognition-software-provider-Rank-One-Computing-prices-upsized-IPO-"
+    },
+    {
+      "series_id": "SEC_ASTERA_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "ca6095b49dda71670d2879d9ce1a00aafc641743c5c26c7cd4f3de17e7d42c61",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/1736297/000119312524073873/0001193125-24-073873-index.htm"
+    },
+    {
+      "series_id": "SEC_TEMPUS_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "06c9c6a8d8024f148ca9c5f977d847e00aba4593c95518f5366949c27a9b892f",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/1717115/000119312524161989/0001193125-24-161989-index.htm"
+    },
+    {
+      "series_id": "SEC_COREWEAVE_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "9aa819af2b114d898d5034f9f4bb0ff1c1591d0122173e6a0b382fa8dbeec004",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/1769628/000119312525067651/0001193125-25-067651-index.htm"
+    },
+    {
+      "series_id": "SEC_AMBIQ_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "1d0ac9d469d2eecc2717322b460e74c477b04a7e38c9f1a10c11f442f37c77c6",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/1500412/000119312525169401/0001193125-25-169401-index.htm"
+    },
+    {
+      "series_id": "SEC_WHITEFIBER_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "c961ca0f226784b099ea107488f7df37731b1107b03d44f2e49e36287af75d6e",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/2042022/000121390025073279/0001213900-25-073279-index.htm"
+    },
+    {
+      "series_id": "SEC_CEREBRAS_424B4",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "16dc7581e12f99826fd9a364c3b62f837886431467d78e5b51e855e93cbe1403",
+      "request_url": "https://www.sec.gov/Archives/edgar/data/2021728/000162828026035214/0001628280-26-035214-index.htm"
+    },
+    {
+      "series_id": "RITTER_IPO_SALES_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4",
+      "request_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Sales.pdf"
+    },
+    {
+      "series_id": "RITTER_IPO_UNDERPRICING_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460",
+      "request_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf"
+    },
+    {
+      "series_id": "OPENAI_2026_FUNDING",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "e6c1a0585135895bca4703ec96fc396c366b3af0529369688ae2161492ace00e",
+      "request_url": "https://openai.com/index/accelerating-the-next-phase-ai/"
+    },
+    {
+      "series_id": "ANTHROPIC_2026_SERIES_H",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "3a2c221fcec3f7b70368145f03f82a15c51c4e82d9dd32c37fd37071b06fce2a",
+      "request_url": "https://www.anthropic.com/news/series-h"
+    },
+    {
+      "series_id": "SK_HYNIX_AI_MEMORY_2026",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "cb22f61d8c5352b73516a81a5f8baf28f21407a1121048488346a39352372e52",
+      "request_url": "https://news.skhynix.com/en/ai-competition-next-challenge/"
+    },
+    {
+      "series_id": "HKEX_HORIZON_9660_2024",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "90983578c7d55c5f0723fa862c45ab7e2dd0999de057d6ded6a26e70c444f882",
+      "request_url": "https://www.hkexnews.hk/listedco/listconews/sehk/2024/1023/2024102300943.pdf"
+    },
+    {
+      "series_id": "HKEX_BLACK_SESAME_2533_2024",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "94a66f290ddfea5a460b46c50e7cad2d873f69b5faf3d4811ecfe663ac030102",
+      "request_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2024/0807/2024080700994.pdf"
+    },
+    {
+      "series_id": "SSE_MOORE_THREADS_688795_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "8933681cc4b055dbdc2ac14b6a9531ef084688b668fbb049f516d9a1b113a61e",
+      "request_url": "https://www.sse.com.cn/disclosure/announcement/listing/ipo/c/c_20251204_10800678.shtml"
+    },
+    {
+      "series_id": "SSE_METAX_688802_2025",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "92928dc3819470cf4f4cceb6d2a8c8daa3ec1611ac91d158b7c3fe48ff23790b",
+      "request_url": "https://www.sse.com.cn/disclosure/announcement/listing/ipo/c/c_20251216_10801769.shtml"
+    },
+    {
+      "series_id": "SSE_AI_CHIP_COHORT_2026",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "e6197b15c01c18451bdcb00527508ce3071e32798ee022b093d2fd782a2e40ea",
+      "request_url": "https://www.sse.com.cn/cpc/cpctheme/4th20thcpc/4th20thcpcgcxx/c/c_20260310_10811398.shtml"
+    },
+    {
+      "series_id": "NAHB_HMI",
+      "status": "snapshot_receipt_only_not_live_refetched",
+      "stored_sha256": "3b5f48ce5a5dc78ecd53b129a86de310256457f1ac67a058a01ce1c28d97cb1a",
+      "request_url": "https://www.nahb.org/news-and-economics/housing-economics/indices/housing-market-index"
+    }
+  ]
+}

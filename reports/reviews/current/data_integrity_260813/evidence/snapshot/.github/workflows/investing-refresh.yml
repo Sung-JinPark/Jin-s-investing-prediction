@@ -1,0 +1,139 @@
+name: investing-refresh
+
+on:
+  schedule:
+    # 미국 금요일 장 마감 뒤 토요일 02:15 UTC (11:15 KST).
+    - cron: "15 2 * * 6"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "smoke=키/모델 최소 검증, full=수집+due 예측"
+        required: true
+        default: "full"
+        type: choice
+        options:
+          - smoke
+          - full
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'full' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install forecast engine
+        run: pip install -e "."
+      - name: Rebuild the derived index from durable ledgers
+        run: python -m ai_fc sync --rebuild
+
+      - name: Refresh Yahoo and FRED quantitative base rates
+        id: quant
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc quant
+      - name: Refresh Kalshi, Polymarket, CBOE and Yahoo market references
+        id: market
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc market
+      - name: Refresh completed-market-day Nasdaq scenario
+        id: scenario
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc scenario
+      - name: Refresh BTC, Nasdaq and Realty Income transmission map
+        id: cross_asset
+        if: env.RUN_MODE == 'full'
+        continue-on-error: true
+        run: python -m ai_fc cross-asset
+
+      - name: Rebuild and replay-verify the protected-hash-bound V5.2 candidate
+        if: env.RUN_MODE == 'full'
+        run: |
+          python -m ai_fc scenario-v5-2-build --force
+          python -m ai_fc scenario-v5-2-verify --replay
+
+      - name: Verify the owner-approved OpenAI producer
+        env:
+          AI_FC_OFFICIAL_LLM_PROVIDER: openai
+          AI_FC_OPENAI_OFFICIAL_MODEL: gpt-5.6-terra
+        run: python -m ai_fc provider-guard
+
+      - name: Run the metered OpenAI update
+        id: openai
+        continue-on-error: true
+        env:
+          # The secret exists only in this billable step and is never written or printed.
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          AI_FC_OFFICIAL_LLM_PROVIDER: openai
+          AI_FC_OPENAI_OFFICIAL_MODEL: gpt-5.6-terra
+          AI_FC_OPENAI_REASONING_EFFORT: medium
+          AI_FC_PIPELINE_BUDGET: "1.50"
+          AI_FC_MONTHLY_BUDGET: "10.00"
+          AI_FC_OPENAI_MONTHLY_BUDGET: "10.00"
+          AI_FC_SEARCH_MAX_USES: "4"
+          AI_FC_LITE_SEARCH_MAX_USES: "3"
+          AI_FC_RESEARCH_MAX_TOKENS: "6000"
+          AI_FC_REASONING_MAX_TOKENS: "5000"
+        shell: bash
+        run: |
+          if [[ "$RUN_MODE" == "smoke" ]]; then
+            python -m ai_fc openai-smoke
+          else
+            python -m ai_fc forecast --due --max 1 --agents 2 --budget 1.50 --yes
+          fi
+
+      - name: Refresh generated inventory
+        if: always()
+        continue-on-error: true
+        run: python -m ai_fc inventory
+
+      - name: Commit durable updates
+        if: always()
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/base_rates data/ml_history data/scenarios data/cross_asset forecasts \
+            calibration/cost_log.csv docs/generated
+          if git diff --cached --quiet; then
+            echo "No investing data changes to commit."
+            exit 0
+          fi
+          git commit -m "data: automated investing refresh $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main
+
+      - name: Report partial refresh failures after preserving completed work
+        if: always()
+        shell: bash
+        run: |
+          failed=0
+          for outcome in \
+            "quant:${{ steps.quant.outcome }}" \
+            "market:${{ steps.market.outcome }}" \
+            "scenario:${{ steps.scenario.outcome }}" \
+            "cross_asset:${{ steps.cross_asset.outcome }}" \
+            "openai:${{ steps.openai.outcome }}"; do
+            name="${outcome%%:*}"
+            state="${outcome#*:}"
+            if [[ "$state" == "failure" ]]; then
+              echo "::error title=${name} refresh failed::Inspect the preceding step log."
+              failed=1
+            fi
+          done
+          exit "$failed"

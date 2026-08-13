@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "dataset_id": "nahb_hmi_history_reference_v1",
+  "status": "active_reference_only",
+  "probability_space": "reference_only",
+  "model_use": false,
+  "official_forecast_input": false,
+  "as_of": "2026-07-31",
+  "definition": "NAHB/Wells Fargo Housing Market Index; values above 50 mean more builders view conditions as good than poor.",
+  "rows": [
+    {"date":"1995-01-01","value":40},{"date":"1995-02-01","value":42},{"date":"1995-03-01","value":40},{"date":"1995-04-01","value":42},{"date":"1995-05-01","value":43},{"date":"1995-06-01","value":45},{"date":"1995-07-01","value":49},{"date":"1995-08-01","value":50},{"date":"1995-09-01","value":51},{"date":"1995-10-01","value":55},{"date":"1995-11-01","value":52},{"date":"1995-12-01","value":53},
+    {"date":"1996-01-01","value":54},{"date":"1996-02-01","value":49},{"date":"1996-03-01","value":59},{"date":"1996-04-01","value":60},{"date":"1996-05-01","value":61},{"date":"1996-06-01","value":59},{"date":"1996-07-01","value":58},{"date":"1996-08-01","value":56},{"date":"1996-09-01","value":55},{"date":"1996-10-01","value":56},{"date":"1996-11-01","value":54},{"date":"1996-12-01","value":55},
+    {"date":"1997-01-01","value":54},{"date":"1997-02-01","value":52},{"date":"1997-03-01","value":57},{"date":"1997-04-01","value":56},{"date":"1997-05-01","value":55},{"date":"1997-06-01","value":56},{"date":"1997-07-01","value":55},{"date":"1997-08-01","value":58},{"date":"1997-09-01","value":59},{"date":"1997-10-01","value":59},{"date":"1997-11-01","value":58},{"date":"1997-12-01","value":60},
+    {"date":"1998-01-01","value":60},{"date":"1998-02-01","value":65},{"date":"1998-03-01","value":66},{"date":"1998-04-01","value":67},{"date":"1998-05-01","value":67},{"date":"1998-06-01","value":70},{"date":"1998-07-01","value":71},{"date":"1998-08-01","value":72},{"date":"1998-09-01","value":71},{"date":"1998-10-01","value":73},{"date":"1998-11-01","value":77},{"date":"1998-12-01","value":78},
+    {"date":"1999-01-01","value":75},{"date":"1999-02-01","value":71},{"date":"1999-03-01","value":71},{"date":"1999-04-01","value":71},{"date":"1999-05-01","value":75},{"date":"1999-06-01","value":77},{"date":"1999-07-01","value":75},{"date":"1999-08-01","value":72},{"date":"1999-09-01","value":72},{"date":"1999-10-01","value":69},{"date":"1999-11-01","value":70},{"date":"1999-12-01","value":70},
+    {"date":"2000-01-01","value":69},{"date":"2000-02-01","value":68},{"date":"2000-03-01","value":64},{"date":"2000-04-01","value":63},{"date":"2000-05-01","value":63},{"date":"2000-06-01","value":58},{"date":"2000-07-01","value":59},{"date":"2000-08-01","value":60},{"date":"2000-09-01","value":60},{"date":"2000-10-01","value":62},{"date":"2000-11-01","value":63},{"date":"2000-12-01","value":57},
+    {"date":"2023-01-01","value":35},{"date":"2023-02-01","value":42},{"date":"2023-03-01","value":44},{"date":"2023-04-01","value":45},{"date":"2023-05-01","value":50},{"date":"2023-06-01","value":55},{"date":"2023-07-01","value":56},{"date":"2023-08-01","value":50},{"date":"2023-09-01","value":44},{"date":"2023-10-01","value":40},{"date":"2023-11-01","value":34},{"date":"2023-12-01","value":37},
+    {"date":"2024-01-01","value":44},{"date":"2024-02-01","value":48},{"date":"2024-03-01","value":51},{"date":"2024-04-01","value":51},{"date":"2024-05-01","value":45},{"date":"2024-06-01","value":43},{"date":"2024-07-01","value":41},{"date":"2024-08-01","value":39},{"date":"2024-09-01","value":41},{"date":"2024-10-01","value":43},{"date":"2024-11-01","value":46},{"date":"2024-12-01","value":46},
+    {"date":"2025-01-01","value":47},{"date":"2025-02-01","value":42},{"date":"2025-03-01","value":39},{"date":"2025-04-01","value":40},{"date":"2025-05-01","value":34},{"date":"2025-06-01","value":32},{"date":"2025-07-01","value":33},{"date":"2025-08-01","value":32},{"date":"2025-09-01","value":32},{"date":"2025-10-01","value":37},{"date":"2025-11-01","value":38},{"date":"2025-12-01","value":39},
+    {"date":"2026-01-01","value":37},{"date":"2026-02-01","value":37},{"date":"2026-03-01","value":38},{"date":"2026-04-01","value":34},{"date":"2026-05-01","value":37},{"date":"2026-06-01","value":36},{"date":"2026-07-01","value":34}
+  ],
+  "source": {
+    "series_id": "NAHB_HMI",
+    "title": "NAHB/Wells Fargo Housing Market Index national history",
+    "provider": "National Association of Home Builders",
+    "unit": "index_0_100",
+    "native_frequency": "monthly",
+    "source_url": "https://www.nahb.org/news-and-economics/housing-economics/indices/housing-market-index",
+    "available_at": "2026-07-31T00:00:00Z",
+    "latest_observation": "2026-07-01",
+    "row_count": 103,
+    "raw_sha256": "3b5f48ce5a5dc78ecd53b129a86de310256457f1ac67a058a01ce1c28d97cb1a",
+    "vintage": "NAHB_2026-07_table2_history_xls"
+  }
+}

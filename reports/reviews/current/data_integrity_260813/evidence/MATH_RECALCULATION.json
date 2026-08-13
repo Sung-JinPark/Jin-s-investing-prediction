@@ -1,0 +1,265 @@
+{
+  "schema_version": 1,
+  "statistics_contract_valid": true,
+  "ipo_reference_contract_valid": true,
+  "kospi_formula_reconciles_to_live_raw_rows": true,
+  "kospi_lead_diagnostics": [
+    {
+      "lead_months": 0,
+      "observations": 377,
+      "correlation": 0.4012
+    },
+    {
+      "lead_months": 1,
+      "observations": 377,
+      "correlation": 0.0279
+    },
+    {
+      "lead_months": 2,
+      "observations": 377,
+      "correlation": 0.0703
+    },
+    {
+      "lead_months": 3,
+      "observations": 376,
+      "correlation": 0.1292
+    }
+  ],
+  "ipo_actual_broad_counts": {
+    "2023": 2,
+    "2024": 5,
+    "2025": 10,
+    "2026": 5
+  },
+  "ipo_influence_inclusive_expected": {
+    "2023": 2,
+    "2024": 5,
+    "2025": 10,
+    "2026": 6
+  },
+  "ipo_influence_inclusive_stored": {
+    "2023": 2,
+    "2024": 5,
+    "2025": 10,
+    "2026": 6
+  },
+  "ipo_influence_reconciles": true,
+  "multi_year_stress": {
+    "single_graph_count": 1,
+    "historical_composite": {
+      "labels": [
+        "시작",
+        "1년",
+        "2년",
+        "3년"
+      ],
+      "center_index": [
+        100.0,
+        91.3,
+        74.2,
+        62.6
+      ],
+      "q25_index": [
+        100.0,
+        89.6,
+        67.3,
+        49.1
+      ],
+      "q75_index": [
+        100.0,
+        93.4,
+        82.2,
+        69.4
+      ],
+      "observations_by_horizon": [
+        4,
+        4,
+        4,
+        3
+      ],
+      "method": "pointwise_median_and_linear_interquartile_quantiles_in_log_index_space"
+    },
+    "btc_center": {
+      "beta": 1.599,
+      "index": [
+        100.0,
+        86.5,
+        62.1,
+        47.3
+      ]
+    },
+    "realty_income_center": {
+      "beta": 0.471,
+      "index": [
+        100.0,
+        95.8,
+        86.9,
+        80.2
+      ]
+    },
+    "beta_observations": 126,
+    "official_forecast_input": false
+  },
+  "scenario_v5_2": {
+    "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+    "status": "RESEARCH_CANDIDATE_COMPLETE_SEPARATION_DB_LIMITED_EVENT_MAP",
+    "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
+    "probability_unit": "fraction",
+    "path_count": 9000,
+    "paths_per_scenario": 3000,
+    "dotcom_generator_share_s1": 0.6,
+    "macro_origin_overlap": {
+      "S1__S2": 0,
+      "S1__S3": 0,
+      "S2__S3": 0
+    },
+    "dependency_cap_gate_pass": true,
+    "official_snapshot_overwritten": false,
+    "sample_adequacy": {
+      "gate_pass": false,
+      "scenarios": {
+        "S1": true,
+        "S2": false,
+        "S3": true
+      },
+      "failure_is_promotion_blocking_not_path_mutating": true,
+      "reason": "promotion origin minimum not met for S2=16/20; overlapping origins and forward-outcome pooling are not used to inflate n"
+    },
+    "threshold_calibration": {
+      "observations": 0,
+      "minimum": 30,
+      "upper_bound_rule": "shadow_distribution_p75",
+      "lower_bound_rule": "shadow_distribution_p25",
+      "threshold_run_id": null
+    },
+    "kernel_gates_pass": false,
+    "conditional_63d_returns": {
+      "S1": 0.12406725956676087,
+      "S2": -0.003387948751612281,
+      "S3": -0.12132224651242784
+    },
+    "source_hashes_all_match": true,
+    "source_hash_rows": [
+      {
+        "path": "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt",
+        "expected": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
+        "actual": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
+        "match": true
+      },
+      {
+        "path": "data/normalized/macro/bls_empsit_2026_07_20260807.json",
+        "expected": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
+        "actual": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
+        "match": true
+      },
+      {
+        "path": "data/raw/rates/fed_rate_monitor_20260808.html",
+        "expected": "ab24fda33373de8d1cf0ada19627049350101ad556718da9463f8d76b3557791",
+        "actual": "ab24fda33373de8d1cf0ada19627049350101ad556718da9463f8d76b3557791",
+        "match": true
+      },
+      {
+        "path": "data/normalized/rates/fed_rate_monitor_pre_post_jobs_20260807.json",
+        "expected": "72955fea982521c0eaaecfc5cea37654be858672b2199b08496b73612cb97e5c",
+        "actual": "72955fea982521c0eaaecfc5cea37654be858672b2199b08496b73612cb97e5c",
+        "match": true
+      },
+      {
+        "path": "data/raw/market/yahoo_ixic_daily_20160104_20260807.json",
+        "expected": "193e84ada6cbcbcab519c98cd8cd523a158b32ad02531ed3deb1b729f539e7cc",
+        "actual": "193e84ada6cbcbcab519c98cd8cd523a158b32ad02531ed3deb1b729f539e7cc",
+        "match": true
+      },
+      {
+        "path": "data/normalized/market/yahoo_ixic_daily_20160104_20260807_manifest.json",
+        "expected": "b0378e9d30608a56d4d5e4aefbbbc242469dab3b22b5f3878bc85c42f3fc3e59",
+        "actual": "b0378e9d30608a56d4d5e4aefbbbc242469dab3b22b5f3878bc85c42f3fc3e59",
+        "match": true
+      },
+      {
+        "path": "data/normalized/market/jobs_event_state_20260807.json",
+        "expected": "a73b8cb2b5496e75c9d95e0122e8a4701a1dd986d86e346f1826c631ed4c3343",
+        "actual": "a73b8cb2b5496e75c9d95e0122e8a4701a1dd986d86e346f1826c631ed4c3343",
+        "match": true
+      },
+      {
+        "path": "data/scenarios/candidates/scenario_v5_1_time_aligned_legacy_prior_v1_latest.json",
+        "expected": "f99ccf044e5a8979895ec4b2bcf560ee2521d71f75e652b548183ca309d25bb6",
+        "actual": "f99ccf044e5a8979895ec4b2bcf560ee2521d71f75e652b548183ca309d25bb6",
+        "match": true
+      },
+      {
+        "path": "data/model_runs/knn_analog_latest.json",
+        "expected": "200ae94fc95bfd4c5cb03514eb8b222ac4ee2d67415233ebfad4a71e28a99e4f",
+        "actual": "200ae94fc95bfd4c5cb03514eb8b222ac4ee2d67415233ebfad4a71e28a99e4f",
+        "match": true
+      },
+      {
+        "path": "data/normalized/market/dotcom_upside_analog_20260810.json",
+        "expected": "5a7154aa5c1f4d97cd8fc4db198576f71868ca172fc5df77bc8022096698d04a",
+        "actual": "5a7154aa5c1f4d97cd8fc4db198576f71868ca172fc5df77bc8022096698d04a",
+        "match": true
+      },
+      {
+        "path": "data/scenario_views/approved/scenario_v5_2_dotcom_upside_260810.json",
+        "expected": "94a880342d24e94d464236f418e26bd4e54b4a0f88b70470bf47fc032422d4e7",
+        "actual": "94a880342d24e94d464236f418e26bd4e54b4a0f88b70470bf47fc032422d4e7",
+        "match": true
+      },
+      {
+        "path": "data/raw/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
+        "expected": "d03689edc3bd36da3d634276043fb5a532793c0bf342d1450aa9cd34e34322e0",
+        "actual": "d03689edc3bd36da3d634276043fb5a532793c0bf342d1450aa9cd34e34322e0",
+        "match": true
+      },
+      {
+        "path": "data/normalized/market/dualdb_ixic_dotcom_daily_19950103_20041231.json",
+        "expected": "034d913f99ffd9154e262b9f71118d030d4fa67acb523f5d38128798f81c3c41",
+        "actual": "034d913f99ffd9154e262b9f71118d030d4fa67acb523f5d38128798f81c3c41",
+        "match": true
+      },
+      {
+        "path": "data/raw/market/dualdb_macro_cluster_daily_19900102_20260804.json",
+        "expected": "7d7c85b3c6bece1226395a86e79d32a4b333f416f99e18592a516a6135e2b25e",
+        "actual": "7d7c85b3c6bece1226395a86e79d32a4b333f416f99e18592a516a6135e2b25e",
+        "match": true
+      },
+      {
+        "path": "data/normalized/market/dualdb_macro_cluster_daily_19900102_20260804.json",
+        "expected": "969cc8a30c731bdfadb7f3aea36c228c588d53b99e4f172154c3d45d66e177b5",
+        "actual": "969cc8a30c731bdfadb7f3aea36c228c588d53b99e4f172154c3d45d66e177b5",
+        "match": true
+      },
+      {
+        "path": "data/scenarios/nasdaq_latest.json",
+        "expected": "733ee1c35c0ac9df331cd126fe4e4a7ba2485daefc85b6d8d8617d5d48ea735f",
+        "actual": "733ee1c35c0ac9df331cd126fe4e4a7ba2485daefc85b6d8d8617d5d48ea735f",
+        "match": true
+      },
+      {
+        "path": "data/contracts/scenario_v5_3_separation.yaml",
+        "expected": "043183fed87777faa933b0f7ec8d70c6dd4fba0a7f32f85ebcbfacb2e53e2e9d",
+        "actual": "043183fed87777faa933b0f7ec8d70c6dd4fba0a7f32f85ebcbfacb2e53e2e9d",
+        "match": true
+      },
+      {
+        "path": "data/scenarios/candidates/scenario_v5_2_dotcom_dominant_generator_v3_latest.json",
+        "expected": "8a7f90d26e4555d420c7143b1ea30b120ec71e5f12049c028b775454bd77599a",
+        "actual": "8a7f90d26e4555d420c7143b1ea30b120ec71e5f12049c028b775454bd77599a",
+        "match": true
+      },
+      {
+        "path": "data/scenarios/candidates/scenario_v5_2_macro_actualized_historical_shape_v1_latest.json",
+        "expected": "984d7172564e306c0a8085c3cdfb1245a6b2338878408802bfc1e3996887275e",
+        "actual": "984d7172564e306c0a8085c3cdfb1245a6b2338878408802bfc1e3996887275e",
+        "match": true
+      },
+      {
+        "path": "data/contracts/scenario_v5_2_weights.yaml",
+        "expected": "b5e47b796c0ea697fd5d0fa12c85239380ab979957f5b4f7d4d05ba32a1bc128",
+        "actual": "b5e47b796c0ea697fd5d0fa12c85239380ab979957f5b4f7d4d05ba32a1bc128",
+        "match": true
+      }
+    ]
+  }
+}

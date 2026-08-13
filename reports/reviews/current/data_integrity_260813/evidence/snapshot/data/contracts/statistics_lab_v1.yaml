@@ -1,0 +1,145 @@
+schema_version: 1
+contract_id: dotcom_statistics_lab_v1
+status: active_reference_only
+probability_space: reference_only
+model_use: prohibited
+official_forecast_input: false
+description: Public-source statistical comparisons between the dot-com cycle and the current AI cycle.
+
+cycle_alignment:
+  dotcom_start: 1995-01-01
+  dotcom_end: 1999-12-31
+  current_start: 2023-01-01
+  current_axis_end: 2027-12-31
+  comparison_months: 59
+  rule: elapsed_calendar_month
+  endpoint_forcing: false
+  forecast_extension: false
+  current_line_policy: actual_observations_only_no_forecast_extension
+  interpretation: Descriptive alignment only; not a forecast or probability.
+
+sources:
+  fred:
+    endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv
+    provider: Federal Reserve Bank of St. Louis
+    series:
+      M2SL: {native_frequency: monthly, unit: billions_usd, aggregation: last}
+      DABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_currency_deposits_and_money_market_fund_shares}
+      NASDAQCOM: {native_frequency: daily_close, unit: index, aggregation: last}
+      T10Y2Y: {native_frequency: daily, unit: percent, aggregation: mean}
+      FEDFUNDS: {native_frequency: monthly, unit: percent, aggregation: last}
+      TOTALSL: {native_frequency: monthly, unit: millions_usd, aggregation: last}
+      TDSP: {native_frequency: quarterly, unit: percent, aggregation: last}
+      BOGZ1FL010000346Q: {native_frequency: quarterly, unit: percent, aggregation: last}
+      DRTSCILM: {native_frequency: quarterly, unit: percent, aggregation: last}
+      NCBEILQ027S: {native_frequency: quarterly, unit: millions_usd, aggregation: last}
+      CPATAX: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last}
+      UNRATE: {native_frequency: monthly, unit: percent, aggregation: last}
+      CPIAUCSL: {native_frequency: monthly, unit: index_1982_1984_100, aggregation: last}
+      NFCI: {native_frequency: weekly, unit: standard_deviation_index, aggregation: mean}
+      BOGZ1LM893064105Q: {native_frequency: quarterly, unit: millions_usd, aggregation: last, role: total_us_corporate_equity_market_value_denominator}
+      HQMCB10YR: {native_frequency: monthly, unit: percent, aggregation: last, role: high_quality_corporate_bond_yield}
+      GS10: {native_frequency: monthly, unit: percent, aggregation: last, role: corporate_spread_treasury_reference}
+      DCOILWTICO: {native_frequency: daily, unit: dollars_per_barrel, aggregation: mean, role: inflation_leading_indicator}
+      WPU10260314: {native_frequency: monthly, unit: index_1982_100, aggregation: last, role: copper_inflation_leading_indicator}
+      GACDFSA066MSFRBPHI: {native_frequency: monthly, unit: diffusion_index, aggregation: last, role: public_manufacturing_diffusion_proxy_not_ISM_PMI}
+      SPASTT01KRM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: OECD_Korea_share_price_proxy_for_KOSPI_relative_strength}
+  federal_reserve_z1:
+    endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
+    table: F4.6.s
+    series: FL663067003.Q
+    label: Household margin loans and other receivables due to brokers
+    unit: millions_usd
+    role: margin_credit_proxy_not_finra_margin_debt
+  university_of_florida_ipo_initiative:
+    technology_tables: https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf
+    internet_registry: https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx
+    native_frequency: annual
+    reviewed_through: 2025-12-31
+    role: comparable_technology_ipo_market_series
+  sec_edgar:
+    endpoint: https://www.sec.gov/Archives/edgar/data/
+    forms: [424B4]
+    native_frequency: event
+    role: reviewed_ai_core_ipo_minimum_cohort
+    reviewed_through: 2026-08-12
+  renaissance_capital_ai_research:
+    tracker: https://www.renaissancecapital.com/IPO-Center/AI-IPOs-Tracker
+    dependency_method: https://www.renaissancecapital.com/IPO-Center/News/111245/Looking-for-AI-IPOs-Introducing-IPO-Pros-new-AI-Screen
+    native_frequency: event_and_continuous_research
+    role: broad_market_recognized_ai_ipo_cohort
+    reviewed_through: 2026-08-12
+  accel_globalscape:
+    report: https://www.accel.com/globalscape
+    native_frequency: annual_research
+    role: named_software_ai_ipo_cohort
+    reviewed_through: 2025-12-31
+  nahb_hmi:
+    page: https://www.nahb.org/news-and-economics/housing-economics/indices/housing-market-index
+    snapshot_path: data/statistics/reference/nahb_hmi_history_v1.json
+    native_frequency: monthly
+    role: housing_recession_warning_component
+
+qualitative_ipo_policy:
+  completed_ipo_numerator: aggregate_post_issue_market_value_at_first_closing_price
+  market_denominator: BOGZ1LM893064105Q_total_us_corporate_equities_market_value
+  private_frontier_watchlist: separate_non_ipo_reference_point_never_added_to_completed_ipo_series
+  listed_ai_beneficiary_watchlist: qualitative_capital_map_and_separate_influence_inclusive_diagnostic_never_added_to_actual_completed_ipo_count
+  influence_inclusive_count: actual_US_AI_related_IPOs_plus_explicit_existing_listed_AI_beneficiaries_not_an_IPO_count
+  global_ai_chip_completed_ipos: separate_china_and_hong_kong_watchlist_never_added_to_us_ritter_series
+  cross_market_value_policy: preserve_local_currency_and_do_not_sum_without_a_common_point_in_time_fx_and_market_denominator
+  small_issuer_definition: inflation_adjusted_LTM_sales_below_USD_100m_in_2024_purchasing_power
+  completed_ipo_exclusions: [OpenAI_private_company, Anthropic_private_company, SK_hynix_existing_listed_company]
+  qualitative_inclusions:
+    listed_ai_beneficiary: [SK_hynix]
+    completed_china_hong_kong_ai_chip_ipos: [Horizon_Robotics, Black_Sesame_International, Moore_Threads, MetaX_Integrated_Circuits]
+
+macro_warning_policy:
+  first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}
+  corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
+  inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
+  recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
+  kospi_ai_cycle_candidate: {ratio: SPASTT01KRM661N_divided_by_NASDAQCOM, cycle_index: start_month_equals_100, diagnostics: [same_month_return_correlation, KOSPI_leads_1_month, KOSPI_leads_2_months, KOSPI_leads_3_months], optimized_lag_selection: prohibited, probability_output: prohibited}
+
+ipo_classification:
+  comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.
+  ai_broad_rule: Completed traditional U.S. IPO explicitly included in public AI-focused IPO coverage or a named software/AI IPO cohort. Include infrastructure, applications, and AI-differentiated software.
+  ai_broad_dependency_floor: 2
+  ai_broad_dependency_scale: Renaissance Capital 1=minimal, 2=basic, 3=moderate, 4=significant, 5=AI-centric.
+  ai_broad_disclosure: Market-narrative cohort, not a pure-play count or complete keyword census.
+  ai_core_rule: AI or ML product, semiconductor, data, healthcare platform, or compute infrastructure must be central to the final prospectus summary.
+  required_evidence: final SEC 424B4 accession
+  exclusions: [ADR, SPAC, REIT, direct_listing, offer_price_below_5_usd, minimal_or_incidental_AI_usage]
+  disclosure: Broad market-recognized count and conservative core minimum are stored separately; neither is a forecast.
+  snapshot_path: data/statistics/ipo/ipo_comparison_v1.json
+
+vintage_policy:
+  historical_rows: current_release_reconstructed
+  available_at: collector_fetch_timestamp
+  warning: Historical rows are reconstructed from the latest release and are not native point-in-time vintages.
+
+liquidity_ratio_policy:
+  m2_ratio: NASDAQCOM_divided_by_M2SL
+  household_liquid_assets_ratio: NASDAQCOM_divided_by_DABSHNO
+  household_liquid_assets_components: [checkable_deposits_and_currency, time_and_savings_deposits, money_market_fund_shares]
+  double_count_guard: DABSHNO_must_not_be_added_to_M2SL_because_deposit_components_overlap
+  interpretation: Descriptive cycle-start indexed ratio; not investable cash, fair value, or a trading signal.
+
+publication_policy:
+  cadence: weekly_check
+  schedule: Saturday 00:20 UTC
+  native_frequency_preserved: true
+  latest_path: data/statistics/dotcom_statistics_latest.json
+  archive_path: data/statistics/archive
+  archive_mode: append_only
+  ipo_native_frequency: annual_with_event_review
+
+excluded_sources:
+  finra_margin_statistics:
+    reason: redistribution_and_automated_access_permission_not_granted
+    replacement: federal_reserve_z1_FL663067003_proxy
+  moodys_baa_spread:
+    reason: proprietary_redistribution_restriction
+  paid_index_forward_pe:
+    reason: no_redistribution_rights_or_reproducible_public_history
+    replacement: NCBEILQ027S_divided_by_CPATAX_reference_proxy
