@@ -1,0 +1,259 @@
+{
+  "stored_hash": "50ae7e62deb356501dc26be418f9297d0357149054bdab5ab6f2b3cdcdb82313",
+  "replay_hash": "ac6b0c5a7613ef683890ed1f61e50a0d29adeb67951ed109618efa3af76d086b",
+  "difference_count": 37,
+  "numeric_count": 25,
+  "non_numeric_count": 12,
+  "max_abs_numeric_diff": 4.440892098500626e-16,
+  "top_numeric": [
+    {
+      "path": "/distinctness/baseline_comparison/observed_reduction",
+      "kind": "numeric",
+      "old": 1.925886345603232,
+      "new": 1.9258863456032325,
+      "abs_diff": 4.440892098500626e-16
+    },
+    {
+      "path": "/distinctness/baseline_comparison/redesigned_shadow",
+      "kind": "numeric",
+      "old": -0.9628863456032322,
+      "new": -0.9628863456032324,
+      "abs_diff": 2.220446049250313e-16
+    },
+    {
+      "path": "/distinctness/pairs/0/p50_log_level_correlation",
+      "kind": "numeric",
+      "old": -0.9628863456032322,
+      "new": -0.9628863456032324,
+      "abs_diff": 2.220446049250313e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/1/distribution_diagnostics/normalized_p50_level_correlation",
+      "kind": "numeric",
+      "old": -0.9892681921254275,
+      "new": -0.9892681921254277,
+      "abs_diff": 2.220446049250313e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/2/absolute_differences/annualized_volatility",
+      "kind": "numeric",
+      "old": 0.25632342577019873,
+      "new": 0.25632342577019895,
+      "abs_diff": 2.220446049250313e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/0/absolute_differences/annualized_volatility",
+      "kind": "numeric",
+      "old": 0.08703062523143731,
+      "new": 0.08703062523143751,
+      "abs_diff": 1.942890293094024e-16
+    },
+    {
+      "path": "/distinctness_2027/scenario_medians/S2/annualized_volatility",
+      "kind": "numeric",
+      "old": 0.1367210253545678,
+      "new": 0.1367210253545676,
+      "abs_diff": 1.942890293094024e-16
+    },
+    {
+      "path": "/distinctness/pairs/0/terminal_wasserstein_2027",
+      "kind": "numeric",
+      "old": 0.9546338515388347,
+      "new": 0.9546338515388346,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness/pairs/1/terminal_wasserstein_2026",
+      "kind": "numeric",
+      "old": 0.3858536371072901,
+      "new": 0.38585363710729,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness/pairs/2/p50_log_level_correlation",
+      "kind": "numeric",
+      "old": 0.9567412877877203,
+      "new": 0.9567412877877202,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/0/distribution_diagnostics/normalized_p50_level_correlation",
+      "kind": "numeric",
+      "old": -0.9761186651272294,
+      "new": -0.9761186651272296,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/0/distribution_diagnostics/terminal_wasserstein",
+      "kind": "numeric",
+      "old": 0.9546338515388347,
+      "new": 0.9546338515388346,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness_2027/pairs/2/distribution_diagnostics/normalized_p50_level_correlation",
+      "kind": "numeric",
+      "old": 0.9700826986231909,
+      "new": 0.970082698623191,
+      "abs_diff": 1.1102230246251565e-16
+    },
+    {
+      "path": "/distinctness/pairs/1/p50_first_difference_correlation",
+      "kind": "numeric",
+      "old": 0.188657067991521,
+      "new": 0.18865706799152104,
+      "abs_diff": 5.551115123125783e-17
+    },
+    {
+      "path": "/distinctness/pairs/2/terminal_wasserstein_2027",
+      "kind": "numeric",
+      "old": 0.4738084135076489,
+      "new": 0.47380841350764885,
+      "abs_diff": 5.551115123125783e-17
+    },
+    {
+      "path": "/distinctness_2027/pairs/2/distribution_diagnostics/mdd_distribution_distance",
+      "kind": "numeric",
+      "old": 0.3902596116964508,
+      "new": 0.39025961169645085,
+      "abs_diff": 5.551115123125783e-17
+    },
+    {
+      "path": "/distinctness_2027/pairs/2/distribution_diagnostics/terminal_wasserstein",
+      "kind": "numeric",
+      "old": 0.4738084135076489,
+      "new": 0.47380841350764885,
+      "abs_diff": 5.551115123125783e-17
+    },
+    {
+      "path": "/conditional_small_multiples/scenarios/S3/central_path_bundle/maximum_pair_return_correlation",
+      "kind": "numeric",
+      "old": 0.06234235090797052,
+      "new": 0.062342350907970565,
+      "abs_diff": 4.163336342344337e-17
+    },
+    {
+      "path": "/distribution/central_path_bundle/maximum_pair_return_correlation",
+      "kind": "numeric",
+      "old": 0.1148517900840837,
+      "new": 0.11485179008408374,
+      "abs_diff": 4.163336342344337e-17
+    },
+    {
+      "path": "/conditional_small_multiples/scenarios/S1/central_path_bundle/maximum_pair_return_correlation",
+      "kind": "numeric",
+      "old": 0.10324225772158437,
+      "new": 0.10324225772158434,
+      "abs_diff": 2.7755575615628914e-17
+    },
+    {
+      "path": "/distinctness/pairs/0/terminal_wasserstein_2026",
+      "kind": "numeric",
+      "old": 0.2144330924714934,
+      "new": 0.21443309247149336,
+      "abs_diff": 2.7755575615628914e-17
+    },
+    {
+      "path": "/sensitivity_analysis/B_generator_rows/0/C_mixture_probability/S3",
+      "kind": "numeric",
+      "old": 0.11203688885924135,
+      "new": 0.11203688885924132,
+      "abs_diff": 2.7755575615628914e-17
+    },
+    {
+      "path": "/conditional_small_multiples/scenarios/S2/central_path_bundle/maximum_pair_return_correlation",
+      "kind": "numeric",
+      "old": 0.10971920099928877,
+      "new": 0.10971920099928875,
+      "abs_diff": 1.3877787807814457e-17
+    },
+    {
+      "path": "/distinctness/pairs/2/p50_first_difference_correlation",
+      "kind": "numeric",
+      "old": 0.07579527579330289,
+      "new": 0.0757952757933029,
+      "abs_diff": 1.3877787807814457e-17
+    },
+    {
+      "path": "/distinctness/pairs/0/p50_first_difference_correlation",
+      "kind": "numeric",
+      "old": -0.01614550997599961,
+      "new": -0.016145509975999617,
+      "abs_diff": 6.938893903907228e-18
+    }
+  ],
+  "non_numeric": [
+    {
+      "path": "/dotcom_scenario_weighting/generator/separation_contract_audit/feature_schema_hashable/S1",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/dotcom_scenario_weighting/generator/separation_contract_audit/feature_schema_hashable/S2",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/dotcom_scenario_weighting/generator/separation_contract_audit/feature_schema_hashable/S3",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/model/generator_audit/separation_contract_audit/feature_schema_hashable/S1",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/model/generator_audit/separation_contract_audit/feature_schema_hashable/S2",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/model/generator_audit/separation_contract_audit/feature_schema_hashable/S3",
+      "kind": "type",
+      "old": "list",
+      "new": "tuple"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S1/active_path_sha256",
+      "kind": "value",
+      "old": "60eb315b2b56cd72ad595a0101dfb58bf468a5a5ad2562debd4b79383b179604",
+      "new": "039a68e22820de7a5abb71327f21d94405930cdb1783aa2c3470a01a2b5bfe73"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S1/zero_event_path_sha256",
+      "kind": "value",
+      "old": "2e013a5bae93fba55633d17761f431d44d36008879cd77f492a781a832951b9f",
+      "new": "e4675059f59448e90ba696512398d949d93f32e3d9649e41936ca03ea0b24498"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S2/active_path_sha256",
+      "kind": "value",
+      "old": "f10a4b527e6442e91985b759e7680574127d8c5122da6197b1116a51936f4b0e",
+      "new": "f0f41e138e375a94b92dfb86f244ff5543c0c5c68b27634c025ccad4995d95a6"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S2/zero_event_path_sha256",
+      "kind": "value",
+      "old": "f229e111e2a02a8fc9f9945109211ff0c9239e82543c183e2dca91dfa32b0a76",
+      "new": "a06d3ab31b58400b6f0f5c3b90b2257f8459b52b9b15d61e0652a52d213c35f3"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S3/active_path_sha256",
+      "kind": "value",
+      "old": "c9741dc9a8fcfb9587b8d2fb51c611829b8ef82e37e872cf9e907d5785267029",
+      "new": "44f32e6b05ce9d3c184e40ff88f151816f45fda08057db19420057512741dce6"
+    },
+    {
+      "path": "/structural_event_ablation/scenarios/S3/zero_event_path_sha256",
+      "kind": "value",
+      "old": "03bb8705a4ce7e12a3f81188ea0914c3c0beeb0676aea37b4c19fa5babacb2c6",
+      "new": "dd30ef792da1af36aa3f3d22de9392fa43577d2b05d48bfebf196a5958ea7118"
+    }
+  ]
+}

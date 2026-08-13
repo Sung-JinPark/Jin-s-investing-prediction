@@ -1,0 +1,154 @@
+schema_version: 3
+contract_id: scenario_v5_2_complete_separation_weights_v3
+status: preregistered_research_only
+candidate_id: scenario_v5_2_scenario_clustered_db_v4
+probability_unit: fraction
+official_or_champion_use: false
+separation_contract: data/contracts/scenario_v5_3_separation.yaml
+
+weight_spaces:
+  A_evidence_strength:
+    meaning: approved dotcom view contribution to S1 path likelihoods after generation
+    active: 0.60
+    cap: 0.60
+    changes_path_geometry: false
+    applies_to: S1_only
+  B_generator_dotcom_block_share:
+    meaning: share of S1 forecast sessions drawn from preregistered dotcom phase blocks
+    active: 0.60
+    cap: 0.60
+    changes_path_geometry: true
+    applies_to: S1_only
+    complement: easing_macro_phase_blocks
+  C_mixture_probability:
+    meaning: evidence-weighted cohort mass in the total research mixture
+    directly_settable: false
+    probability_space: research_cohort_weight_not_calibrated_event_probability
+
+scenario_generators:
+  S1:
+    database: dotcom_expansion_plus_easing_macro_db
+    cluster_source: dotcom_expansion_cycle_db
+    auxiliary_source: falling_rate_loose_financial_conditions_db
+    state_coordinates:
+      - dotcom_price_state
+      - falling_policy_rate_or_two_year_yield
+      - loose_financial_conditions
+      - policy_relief_probability_overlay
+    selected_cluster_minimum_origins: 15
+    requested_promotion_minimum_origins: 15
+    residual_policy:
+      name: full_scale_phase_preserving
+      scale: 1.00
+      trimming: winsorize_source_residuals_p01_p99
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S1_episodes
+      phases: [acceleration, correction, reacceleration]
+    phase_assignment_uses_future_outcome_for_current_origin: false
+  S2:
+    database: balanced_soft_landing_macro_db
+    state_coordinates:
+      - stable_policy_rate_and_two_year_yield
+      - moderate_vix
+      - loose_or_neutral_financial_conditions
+      - balanced_growth_policy_overlay
+    selected_cluster_minimum_origins: 15
+    requested_promotion_minimum_origins: 20
+    sample_status: selected balanced cluster is research-usable but remains below the requested promotion origin minimum
+    residual_policy:
+      name: independent_full_realized_balanced_blocks
+      scale: 1.00
+      trimming: none_active_realized_blocks
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S2_episodes
+      phases: [steady_drift, mean_reversion, normalization]
+  S3:
+    database: tightening_financial_stress_macro_db
+    state_coordinates:
+      - rising_policy_rate_or_two_year_yield
+      - restrictive_financial_conditions
+      - growth_and_inflation_risk_overlay
+      - failed_relief_state
+    selected_cluster_minimum_origins: 7
+    requested_promotion_minimum_origins: 12
+    research_exception: selected k4 stress cluster has 7 origins; do not densify overlapping origins to manufacture 12
+    residual_policy:
+      name: independent_full_realized_tightening_stress_blocks
+      scale: 1.00
+      trimming: none_active_realized_blocks
+    phase_duration_model:
+      fixed_template: false
+      source: empirical_contiguous_run_length_from_registered_S3_episodes
+      phases: [drawdown, failed_relief, stress_persistence]
+
+database_layer_separation:
+  construction: preregistered_nonoverlapping_episode_libraries_then_scenario_native_feature_clustering
+  shared_runtime_inputs_allowed: [current_index_anchor, trading_calendar]
+  shared_origin_dates_allowed: false
+  shared_residual_pool_allowed: false
+  outcome_use: cluster_label_only_after_origin_state_assignments_freeze
+
+valuation_and_earnings:
+  numerical_status: blocked_missing_point_in_time_cross_era_history
+  rule: do_not_substitute_stale_CAPE_or_factor_value_z_for_forward_PER
+  display_disclosure: valuation_and_earnings_are_reference_only_until_vintage_complete
+
+dependency_caps:
+  dotcom_single_cycle_analog: 0.60
+  any_non_dotcom_era: 0.40
+  enforcement: reject_non_shadow_above_cap
+
+sensitivity_grid:
+  A_values: [0.40, 0.60, 0.70, 0.80]
+  B_values: [0.40, 0.60, 0.70, 0.80]
+  active_or_eligible_maximum: 0.60
+  above_cap_mode: shadow_only_never_active
+  seeds: [520807, 520814, 520820]
+  residual_scale_ablation: [0.30, 0.65, 1.00]
+
+distinctness:
+  mode_until_calibrated: report_only
+  minimum_shadow_trading_days: 30
+  baseline_S1_S2_p50_log_level_correlation: 0.963
+  material_reduction_rule: redesigned_shadow_value_at_least_0.02_below_baseline
+  arbitrary_absolute_target_prohibited: true
+  threshold_method:
+    upper_bounds: shadow_distribution_p75
+    lower_bounds: shadow_distribution_p25
+    requires_run_id: true
+  failure_action:
+    mutate_paths: false
+    display_research_warning: true
+    promotion_eligible: false
+  metrics:
+    - p50_log_level_correlation
+    - p50_first_difference_correlation
+    - standardized_log_path_dtw
+    - terminal_wasserstein_2026
+    - terminal_wasserstein_2027
+    - cumulative_return_order_63_126_252
+    - S1_and_S2_maximum_drawdown_below_S3
+    - S1_and_S2_downside_semivolatility_below_S3
+    - S1_recovery_faster_than_S2_and_S3
+    - phase_repetition_variance
+    - episode_interval_intersection
+    - residual_pool_hash_uniqueness
+    - first_touch_minus_10_ks
+    - medoid_id_uniqueness
+    - seed_stability
+    - asof_state_cluster_stability
+    - selected_origin_count
+    - episode_sampling_ess
+
+prohibitions:
+  fake_wiggle: true
+  forced_endpoint: true
+  forced_exact_turning_date: true
+  exact_date_forecast: true
+  forward_outcome_cluster_assignment: true
+  silent_probability_normalization: true
+  official_snapshot_write: true
+  official_ledger_write: true
+  archive_write: true
