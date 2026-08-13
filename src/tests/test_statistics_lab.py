@@ -11,8 +11,10 @@ from pathlib import Path
 import pytest
 
 from ai_fc.statistics_lab import (
+    FRED_ENDPOINT,
     FRED_SERIES,
     StatisticsLabError,
+    _fetch_fred,
     _parse_fred_csv,
     _parse_z1,
     _request,
@@ -92,6 +94,24 @@ def test_public_request_stays_fail_closed_after_retry_budget(
     with pytest.raises(StatisticsLabError, match="failed after 3 attempts"):
         _request("https://example.test/source", timeout=1)
     assert len(calls) == 3
+
+
+def test_fred_fetch_uses_same_url_transport_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[tuple[str, int]] = []
+
+    def fetched(url: str, *, timeout: int) -> str:
+        seen.append((url, timeout))
+        return "observation_date,M2SL\n2026-07-01,22000.5\n"
+
+    monkeypatch.setattr(
+        "ai_fc.statistics_lab.feed.get_with_curl_fallback", fetched,
+    )
+    rows, raw = _fetch_fred("M2SL")
+    assert seen == [(f"{FRED_ENDPOINT}?id=M2SL&cosd=1995-01-01", 45)]
+    assert rows == [{"date": "2026-07-01", "value": 22000.5}]
+    assert raw == b"observation_date,M2SL\n2026-07-01,22000.5\n"
 
 
 def _rows(series_id: str) -> list[dict[str, float | str]]:
