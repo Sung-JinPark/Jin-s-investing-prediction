@@ -150,7 +150,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 26
+    assert len(payload["charts"]) == 27
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -160,7 +160,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "internet_vs_ai_core_ipos", "technology_ipo_count",
         "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
-        "ipo_market_absorption", "small_issuer_ipo_share",
+        "ipo_market_absorption", "small_issuer_ipo_share", "global_ai_capital_map",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
     }
@@ -174,6 +174,18 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "period": 36, "date": "2026-08-12", "value": 1
     }
     assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
+    capital_map = next(chart for chart in payload["charts"] if chart["id"] == "global_ai_capital_map")
+    assert capital_map["series"][0]["points"] == [
+        {"period": 12, "date": "2024-12-31", "value": 2},
+        {"period": 24, "date": "2025-12-31", "value": 2},
+    ]
+    assert capital_map["series"][1]["points"] == [
+        {"period": 36, "date": "2026-08-13", "value": 1}
+    ]
+    assert "SK하이닉스" in capital_map["insight"]
+    absorption = next(chart for chart in payload["charts"] if chart["id"] == "ipo_market_absorption")
+    assert any(row["period"] == "질적 포함" and row["label"] == "SK하이닉스" for row in absorption["detail_rows"])
+    assert any(row["period"] == "글로벌 IPO" for row in absorption["detail_rows"])
     assert [len(row["issuers"]) for row in _repo_ipo_reference()["ai_broad_cohort"]] == [2, 5, 10, 5]
     assert payload["ipo_comparison"]["classification"]["ai_broad_limit"].startswith(
         "This is a reviewed market-narrative"
@@ -197,8 +209,10 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     for chart in payload["charts"]:
         dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
         current = [row for row in chart["series"] if row["era"] == "current"]
-        assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
-        assert max(point["period"] for row in current for point in row["points"]) < 59
+        if dotcom:
+            assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
+        if current:
+            assert max(point["period"] for row in current for point in row["points"]) < 59
     invalid = json.loads(json.dumps(payload))
     invalid["cycle_alignment"]["forecast_extension"] = True
     try:
@@ -286,7 +300,7 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 18
+    assert len(payload["sources"]) == 24
     assert all(source["raw_sha256"] for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 6
@@ -296,6 +310,11 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 5]
     assert all(2 <= issuer["dependency_tier"] <= 5 for row in broad for issuer in row["issuers"])
     assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 1]
+    qualitative = payload["qualitative_ipo"]
+    assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["name"] == "SK hynix"
+    assert [row["name"] for row in qualitative["global_ai_chip_completed_ipos"]["members"]] == [
+        "Horizon Robotics", "Black Sesame International", "Moore Threads", "MetaX Integrated Circuits"
+    ]
 
 
 def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
@@ -314,3 +333,8 @@ def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
     invalid_core["ai_broad_cohort"][1]["issuers"][0]["core_member"] = False
     with pytest.raises(StatisticsLabError, match="marked broad-cohort members"):
         validate_ipo_reference(invalid_core)
+
+    invalid_watch = json.loads(json.dumps(payload))
+    invalid_watch["qualitative_ipo"]["listed_ai_beneficiary_watchlist"]["semantics"] = "ipo_count"
+    with pytest.raises(StatisticsLabError, match="listed AI beneficiary watchlist semantics invalid"):
+        validate_ipo_reference(invalid_watch)

@@ -1130,9 +1130,11 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   html{scroll-padding-top:110px}
   .mobile-header{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
   .mobile-brand{min-width:0;max-width:calc(100% - 58px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .market-strip{padding-inline:max(8px,env(safe-area-inset-left));overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-  .market-strip::-webkit-scrollbar{display:none}
-  .market-strip>div{min-width:max-content;flex:0 0 auto;padding-inline:11px}
+  .market-strip{height:58px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;overflow:hidden}
+  .market-strip>div,.market-strip>div:first-child{min-width:0;padding:7px 9px;display:grid;grid-template-columns:minmax(0,1fr);align-content:center;align-items:center;gap:3px;border-right:1px solid var(--line)}
+  .market-strip>div:nth-child(3){border-right:0}
+  .market-strip span{min-width:0;display:block;overflow:hidden;color:#77746d;font-size:9px;line-height:1.1;text-overflow:ellipsis;white-space:nowrap}
+  .market-strip strong{min-width:0;display:block;overflow:hidden;font-size:12px;line-height:1.1;text-overflow:ellipsis;white-space:nowrap}
   .app-shell>.view-enter:not(.overview-page){padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   .overview-stage,.overview-lower-inner{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
   .page-heading{grid-template-columns:minmax(0,1fr);gap:18px}
@@ -1175,7 +1177,10 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 @media(max-width:359px){
   .mobile-header{height:60px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
   .content-shell{padding-top:60px}
-  .market-strip{top:60px}
+  .market-strip{height:54px;top:60px}
+  .market-strip>div,.market-strip>div:first-child{padding-inline:7px}
+  .market-strip span{font-size:8px}
+  .market-strip strong{font-size:11px}
   .mobile-brand{font-size:9px;letter-spacing:.04em}
   .app-shell>.view-enter:not(.overview-page),.overview-stage,.overview-lower-inner{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
   .page-heading{padding:24px 16px}

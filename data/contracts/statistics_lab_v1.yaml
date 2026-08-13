@@ -83,8 +83,14 @@ qualitative_ipo_policy:
   completed_ipo_numerator: aggregate_post_issue_market_value_at_first_closing_price
   market_denominator: BOGZ1LM893064105Q_total_us_corporate_equities_market_value
   private_frontier_watchlist: separate_non_ipo_reference_point_never_added_to_completed_ipo_series
+  listed_ai_beneficiary_watchlist: qualitative_capital_map_only_never_added_to_completed_ipo_counts
+  global_ai_chip_completed_ipos: separate_china_and_hong_kong_watchlist_never_added_to_us_ritter_series
+  cross_market_value_policy: preserve_local_currency_and_do_not_sum_without_a_common_point_in_time_fx_and_market_denominator
   small_issuer_definition: inflation_adjusted_LTM_sales_below_USD_100m_in_2024_purchasing_power
-  explicit_exclusions: [OpenAI_from_completed_IPO, Anthropic_from_completed_IPO, SK_hynix_existing_listed_company]
+  completed_ipo_exclusions: [OpenAI_private_company, Anthropic_private_company, SK_hynix_existing_listed_company]
+  qualitative_inclusions:
+    listed_ai_beneficiary: [SK_hynix]
+    completed_china_hong_kong_ai_chip_ipos: [Horizon_Robotics, Black_Sesame_International, Moore_Threads, MetaX_Integrated_Circuits]
 
 macro_warning_policy:
   first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}

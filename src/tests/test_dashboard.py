@@ -877,3 +877,11 @@ def test_o_entry_cohort_ui_is_evidence_only() -> None:
     ):
         assert required in html
     assert "O_ENTRY_ATTRACTIVE" not in html
+
+
+def test_mobile_market_strip_uses_three_non_overlapping_cells() -> None:
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert ".market-strip{height:58px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr))" in css
+    assert ".market-strip>div,.market-strip>div:first-child{min-width:0;padding:7px 9px;display:grid" in css
+    assert ".market-strip span{min-width:0;display:block;overflow:hidden" in css
+    assert ".market-strip strong{min-width:0;display:block;overflow:hidden" in css
