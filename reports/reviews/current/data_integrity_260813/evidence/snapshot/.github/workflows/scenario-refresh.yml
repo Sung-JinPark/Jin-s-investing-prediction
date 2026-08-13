@@ -60,6 +60,8 @@ jobs:
               raise SystemExit(f'new asof {latest} did not increase archive count ({before_count} -> {count})')
           print(f'scenario ledger self-check: {before_asof}/{before_count} -> {latest}/{count}')
           PY
+      - name: Refresh generated repository inventory
+        run: cd src && python -m ai_fc inventory
       - name: Commit new completed-market-day snapshots
         shell: bash
         run: |
@@ -67,6 +69,7 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/scenarios data/cross_asset
           git add docs/generated/ledger_audit.json docs/generated/ledger_audit.md docs/generated/ledger_manifest.json
+          git add docs/generated/inventory.generated.md
           for optional_dir in data/signals data/liquidity data/realty_income data/rate_events; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"

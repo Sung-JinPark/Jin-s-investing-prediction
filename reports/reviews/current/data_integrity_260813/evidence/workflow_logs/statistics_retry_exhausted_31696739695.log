@@ -1,0 +1,535 @@
+refresh	Set up job	﻿2026-08-13T11:43:10.9198387Z Current runner version: '2.336.0'
+refresh	Set up job	2026-08-13T11:43:10.9216425Z ##[group]Runner Image Provisioner
+refresh	Set up job	2026-08-13T11:43:10.9217158Z Hosted Compute Agent
+refresh	Set up job	2026-08-13T11:43:10.9217563Z Version: 20260707.563
+refresh	Set up job	2026-08-13T11:43:10.9218035Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+refresh	Set up job	2026-08-13T11:43:10.9218558Z Build Date: 2026-07-07T19:33:50Z
+refresh	Set up job	2026-08-13T11:43:10.9219024Z Worker ID: {cfbb473b-4f9a-4fb1-bc6c-c1d35562e660}
+refresh	Set up job	2026-08-13T11:43:10.9219508Z Azure Region: centralus
+refresh	Set up job	2026-08-13T11:43:10.9219919Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:43:10.9220895Z ##[group]Operating System
+refresh	Set up job	2026-08-13T11:43:10.9221309Z Ubuntu
+refresh	Set up job	2026-08-13T11:43:10.9221678Z 24.04.4
+refresh	Set up job	2026-08-13T11:43:10.9222040Z LTS
+refresh	Set up job	2026-08-13T11:43:10.9222397Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:43:10.9222811Z ##[group]Runner Image
+refresh	Set up job	2026-08-13T11:43:10.9223191Z Image: ubuntu-24.04
+refresh	Set up job	2026-08-13T11:43:10.9223606Z Version: 20260720.247.2
+refresh	Set up job	2026-08-13T11:43:10.9224337Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+refresh	Set up job	2026-08-13T11:43:10.9225711Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+refresh	Set up job	2026-08-13T11:43:10.9226344Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:43:10.9227117Z ##[group]GITHUB_TOKEN Permissions
+refresh	Set up job	2026-08-13T11:43:10.9228814Z Contents: write
+refresh	Set up job	2026-08-13T11:43:10.9229248Z Metadata: read
+refresh	Set up job	2026-08-13T11:43:10.9229627Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:43:10.9231072Z Secret source: Actions
+refresh	Set up job	2026-08-13T11:43:10.9231864Z Prepare workflow directory
+refresh	Set up job	2026-08-13T11:43:10.9478641Z Prepare all required actions
+refresh	Set up job	2026-08-13T11:43:10.9520078Z Getting action download info
+refresh	Set up job	2026-08-13T11:43:11.1751033Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+refresh	Set up job	2026-08-13T11:43:12.5201598Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+refresh	Set up job	2026-08-13T11:43:12.8966813Z Complete job name: refresh
+refresh	Run actions/checkout@v4	﻿2026-08-13T11:43:12.9482067Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9488079Z ##[group]Run actions/checkout@v4
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9488637Z with:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9488940Z   fetch-depth: 0
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9489288Z   repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9491544Z   token: ***
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9491853Z   ssh-strict: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9492196Z   ssh-user: git
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9492510Z   persist-credentials: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9492826Z   clean: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9493165Z   sparse-checkout-cone-mode: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9493515Z   fetch-tags: false
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9493848Z   show-progress: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9494179Z   lfs: false
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9494469Z   submodules: false
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9495173Z   set-safe-directory: true
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9495553Z   allow-unsafe-pr-checkout: false
+refresh	Run actions/checkout@v4	2026-08-13T11:43:12.9496130Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0269205Z Syncing repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0270920Z ##[group]Getting Git version info
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0271708Z Working directory is '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0272589Z [command]/usr/bin/git version
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0523997Z git version 2.54.0
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0539139Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0550421Z Temporarily overriding HOME='/home/runner/work/_temp/06c7e891-576c-417b-9340-5e1f6db9b12d' before making global git config changes
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0552406Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0553870Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0587032Z Deleting the contents of '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0595365Z ##[group]Initializing the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.0598223Z [command]/usr/bin/git init /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1652069Z hint: Using 'master' as the name for the initial branch. This default branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1652902Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1653491Z hint: to use in all of your new repositories, which will suppress this warning,
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1653983Z hint: call:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1654354Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1655037Z hint: 	git config --global init.defaultBranch <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1655586Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1656053Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1656624Z hint: 'development'. The just-created branch can be renamed via this command:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1657119Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1657409Z hint: 	git branch -m <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1657767Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1658163Z hint: Disable this message with "git config set advice.defaultBranchName false"
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1658869Z Initialized empty Git repository in /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/.git/
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1661521Z [command]/usr/bin/git remote add origin https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1719980Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1720719Z ##[group]Disabling automatic garbage collection
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1722432Z [command]/usr/bin/git config --local gc.auto 0
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1746302Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1746931Z ##[group]Setting up auth
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1750575Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.1773795Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2532836Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2557493Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2700595Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2724326Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2867690Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2893447Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2894030Z ##[group]Fetching the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:43:13.2901001Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4839395Z From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4846552Z  * [new branch]      agent/l0-batch1-validation-review-260806 -> origin/agent/l0-batch1-validation-review-260806
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4847722Z  * [new branch]      codex/ai-capital-cohort-mobile-strip -> origin/codex/ai-capital-cohort-mobile-strip
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4848727Z  * [new branch]      codex/broad-ai-ipo-statistics -> origin/codex/broad-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4849611Z  * [new branch]      codex/customer-ui-statistics-expansion -> origin/codex/customer-ui-statistics-expansion
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4850445Z  * [new branch]      codex/data-integrity-stress-kospi -> origin/codex/data-integrity-stress-kospi
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4851233Z  * [new branch]      codex/default-independent-scenarios -> origin/codex/default-independent-scenarios
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4852029Z  * [new branch]      codex/dotcom-ai-ipo-statistics -> origin/codex/dotcom-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4853083Z  * [new branch]      codex/future-outlook-ux-v53 -> origin/codex/future-outlook-ux-v53
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4853805Z  * [new branch]      codex/household-liquid-assets-ratio -> origin/codex/household-liquid-assets-ratio
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4854467Z  * [new branch]      codex/ipo-quality-macro-stress -> origin/codex/ipo-quality-macro-stress
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4855242Z  * [new branch]      codex/mobile-ui-overlap-fix -> origin/codex/mobile-ui-overlap-fix
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4855941Z  * [new branch]      codex/publish-route-review-pack -> origin/codex/publish-route-review-pack
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4856539Z  * [new branch]      codex/route-governance-remediation -> origin/codex/route-governance-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4857084Z  * [new branch]      codex/scenario-pages-trigger -> origin/codex/scenario-pages-trigger
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4857650Z  * [new branch]      codex/scenario-path-resolution -> origin/codex/scenario-path-resolution
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4858181Z  * [new branch]      codex/scenario-range-stat-insights -> origin/codex/scenario-range-stat-insights
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4858713Z  * [new branch]      codex/scenario-v4-pr3-remediation -> origin/codex/scenario-v4-pr3-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4859236Z  * [new branch]      codex/scenario-visual-directions -> origin/codex/scenario-visual-directions
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4859735Z  * [new branch]      codex/statistics-five-year-cycle -> origin/codex/statistics-five-year-cycle
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4860240Z  * [new branch]      codex/statistics-refresh-retry -> origin/codex/statistics-refresh-retry
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4860715Z  * [new branch]      codex/ui-sidebar-overhaul -> origin/codex/ui-sidebar-overhaul
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4861279Z  * [new branch]      codex/v52-multilayer-scenario-generators -> origin/codex/v52-multilayer-scenario-generators
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4861865Z  * [new branch]      codex/v53-evidence-remediation -> origin/codex/v53-evidence-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4862459Z  * [new branch]      codex/work         -> origin/codex/work
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4862772Z  * [new branch]      main               -> origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4863322Z  * [new tag]         l0-accepted-260804 -> l0-accepted-260804
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4896650Z [command]/usr/bin/git branch --list --remote origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4922265Z   origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4932517Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4952587Z e8c641f5272c0240ccf6bb827bd3720d24f5e6a2
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4955141Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4955695Z ##[group]Determining the checkout info
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4956561Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.4961869Z [command]/usr/bin/git sparse-checkout disable
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.8363193Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.8392107Z ##[group]Checking out the ref
+refresh	Run actions/checkout@v4	2026-08-13T11:43:16.8394877Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:43:17.1797792Z Switched to a new branch 'main'
+refresh	Run actions/checkout@v4	2026-08-13T11:43:17.1798355Z branch 'main' set up to track 'origin/main'.
+refresh	Run actions/checkout@v4	2026-08-13T11:43:17.1824151Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:43:17.1864190Z [command]/usr/bin/git log -1 --format=%H
+refresh	Run actions/checkout@v4	2026-08-13T11:43:17.1886712Z e8c641f5272c0240ccf6bb827bd3720d24f5e6a2
+refresh	Run actions/setup-python@v5	﻿2026-08-13T11:43:17.2084190Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2085659Z ##[group]Run actions/setup-python@v5
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2085920Z with:
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2086149Z   python-version: 3.12
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2086404Z   check-latest: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2088275Z   token: ***
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2088500Z   update-environment: true
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2088743Z   allow-prereleases: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2089142Z   freethreaded: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.2089357Z ##[endgroup]
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.3054493Z ##[group]Installed versions
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.3120684Z (node:2023) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.3121507Z (Use `node --trace-deprecation ...` to show where the warning was created)
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.3122076Z Successfully set up CPython (3.12.13)
+refresh	Run actions/setup-python@v5	2026-08-13T11:43:17.3122641Z ##[endgroup]
+refresh	Install statistics pipeline	﻿2026-08-13T11:43:17.3237034Z ##[group]Run pip install -e "." pytest
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3237424Z ^[[36;1mpip install -e "." pytest^[[0m
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3272210Z shell: /usr/bin/bash -e {0}
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3272500Z env:
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3272795Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3273229Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3273588Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3273953Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3274280Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3274601Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Install statistics pipeline	2026-08-13T11:43:17.3275152Z ##[endgroup]
+refresh	Install statistics pipeline	2026-08-13T11:43:20.4601500Z Obtaining file:///home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Install statistics pipeline	2026-08-13T11:43:20.4614393Z   Installing build dependencies: started
+refresh	Install statistics pipeline	2026-08-13T11:43:21.3726939Z   Installing build dependencies: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:43:21.3731598Z   Checking if build backend supports build_editable: started
+refresh	Install statistics pipeline	2026-08-13T11:43:21.4128972Z   Checking if build backend supports build_editable: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:43:21.4134061Z   Getting requirements to build editable: started
+refresh	Install statistics pipeline	2026-08-13T11:43:21.4357004Z   Getting requirements to build editable: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:43:21.4361537Z   Preparing editable metadata (pyproject.toml): started
+refresh	Install statistics pipeline	2026-08-13T11:43:21.4639055Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:43:21.5805666Z Collecting pytest
+refresh	Install statistics pipeline	2026-08-13T11:43:21.6391052Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.6667306Z Collecting typer (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.6766591Z   Downloading typer-0.27.1-py3-none-any.whl.metadata (16 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.7158106Z Collecting anthropic (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.7258091Z   Downloading anthropic-0.121.0-py3-none-any.whl.metadata (3.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.8007544Z Collecting openai>=1.68 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.8107255Z   Downloading openai-3.0.0-py3-none-any.whl.metadata (39 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.9335041Z Collecting pydantic>=2 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:21.9438449Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.0195369Z Collecting pyyaml (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.0296860Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.0803344Z Collecting python-frontmatter (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.0906190Z   Downloading python_frontmatter-1.3.0-py3-none-any.whl.metadata (4.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.2883824Z Collecting numpy (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.2986063Z   Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.3903174Z Collecting scipy (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.4009658Z   Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.5821785Z Collecting pillow>=10 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.5924131Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.7599198Z Collecting iniconfig>=1.0.1 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:43:22.7701960Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.0089305Z Collecting packaging>=22 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.0191546Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.1486869Z Collecting pluggy<2,>=1.5 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.1588276Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.1819934Z Collecting pygments>=2.7.2 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.1919153Z   Downloading pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.3331275Z Collecting anyio<5,>=4.10.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.3434240Z   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.5752033Z Collecting distro<2,>=1.7.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:23.5857026Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.0431879Z Collecting httpx2<3,>=2.7.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.0536881Z   Downloading httpx2-2.10.0-py3-none-any.whl.metadata (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.2299284Z Collecting jiter<1,>=0.10.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.2402662Z   Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.3213492Z Collecting sniffio (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.3316531Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.6517621Z Collecting tqdm>4 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.6621271Z   Downloading tqdm-4.70.0-py3-none-any.whl.metadata (57 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.7408096Z Collecting typing-extensions<5,>=4.14 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:24.7508889Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:25.1281769Z Collecting idna>=2.8 (from anyio<5,>=4.10.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:25.1385358Z   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:25.8541272Z Collecting httpcore2==2.10.0 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:25.8641123Z   Downloading httpcore2-2.10.0-py3-none-any.whl.metadata (25 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:26.5322291Z Collecting truststore>=0.10 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:26.5426418Z   Downloading truststore-0.10.4-py3-none-any.whl.metadata (4.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.0240221Z Collecting h11>=0.16 (from httpcore2==2.10.0->httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.0341312Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.2135408Z Collecting annotated-types>=0.6.0 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.2239130Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.8636148Z Collecting pydantic-core==2.46.4 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:27.8741287Z   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.0435824Z Collecting typing-inspection>=0.4.2 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.0538574Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.0786073Z Collecting docstring-parser<1,>=0.15 (from anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.0885472Z   Downloading docstring_parser-0.18.0-py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.1218580Z Collecting httpx<1,>=0.25.0 (from anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.1318436Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.1571453Z Collecting certifi (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.1671971Z   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.1908275Z Collecting httpcore==1.* (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2007162Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2251122Z Collecting shellingham>=1.3.0 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2350204Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2631598Z Collecting rich>=13.8.0 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2730229Z   Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.2926095Z Collecting annotated-doc>=0.0.2 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.3025280Z   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.4166653Z Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.4266818Z   Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.4536438Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.4636277Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.4774000Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.5069072Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.6474947Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.6602656Z Downloading openai-3.0.0-py3-none-any.whl (1.7 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.6925813Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 49.2 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:28.7028108Z Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.7153898Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.7276167Z Downloading httpx2-2.10.0-py3-none-any.whl (94 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.7402011Z Downloading httpcore2-2.10.0-py3-none-any.whl (83 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.7524021Z Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (343 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.8458735Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.8675665Z Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9049159Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 51.7 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9152196Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9272306Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9393259Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9512075Z Downloading idna-3.18-py3-none-any.whl (65 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:28.9637954Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0051426Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0552949Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 138.6 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0656907Z Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0717374Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 228.4 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0816983Z Downloading tqdm-4.70.0-py3-none-any.whl (80 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.0942560Z Downloading truststore-0.10.4-py3-none-any.whl (18 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.1322131Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.1443397Z Downloading anthropic-0.121.0-py3-none-any.whl (1.0 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.3239397Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 4.4 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:29.3343840Z Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.4172086Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.4291877Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.4413068Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.4531075Z Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.4660834Z Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.6170207Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 110.4 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:29.6275231Z Downloading python_frontmatter-1.3.0-py3-none-any.whl (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.6398978Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:29.7575872Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 4.7 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:29.7682762Z Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.0679426Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 117.7 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:43:30.0783479Z Downloading typer-0.27.1-py3-none-any.whl (122 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.1245618Z Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.1373688Z Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.1528164Z Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.1820933Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.1942166Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:43:30.2795257Z Building wheels for collected packages: ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:43:30.2801121Z   Building editable for ai-fc (pyproject.toml): started
+refresh	Install statistics pipeline	2026-08-13T11:43:30.3087601Z   Building editable for ai-fc (pyproject.toml): finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:43:30.3090804Z   Created wheel for ai-fc: filename=ai_fc-0.2.0-py3-none-any.whl size=1601 sha256=d8a8d3199e69b5f9b82d9d14be88ec19a9094060de5c4408401facb3b330eb4a
+refresh	Install statistics pipeline	2026-08-13T11:43:30.3091606Z   Stored in directory: /tmp/pip-ephem-wheel-cache-z7tl6lv4/wheels/c4/2e/4b/f47d08099f5fe50e0a47e8358a8a9eca48ed7f825f02010b74
+refresh	Install statistics pipeline	2026-08-13T11:43:30.3102658Z Successfully built ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:43:30.3689264Z Installing collected packages: typing-extensions, truststore, tqdm, sniffio, shellingham, pyyaml, pygments, pluggy, pillow, packaging, numpy, mdurl, jiter, iniconfig, idna, h11, docstring-parser, distro, certifi, annotated-types, annotated-doc, typing-inspection, scipy, python-frontmatter, pytest, pydantic-core, markdown-it-py, httpcore2, httpcore, anyio, rich, pydantic, httpx2, httpx, typer, openai, anthropic, ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:43:39.4905936Z
+refresh	Install statistics pipeline	2026-08-13T11:43:39.4929000Z Successfully installed ai-fc-0.2.0 annotated-doc-0.0.5 annotated-types-0.8.0 anthropic-0.121.0 anyio-4.14.2 certifi-2026.7.22 distro-1.9.0 docstring-parser-0.18.0 h11-0.16.0 httpcore-1.0.9 httpcore2-2.10.0 httpx-0.28.1 httpx2-2.10.0 idna-3.18 iniconfig-2.3.0 jiter-0.16.0 markdown-it-py-4.2.0 mdurl-0.1.2 numpy-2.5.2 openai-3.0.0 packaging-26.3 pillow-12.3.0 pluggy-1.6.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pytest-9.1.1 python-frontmatter-1.3.0 pyyaml-6.0.3 rich-15.0.0 scipy-1.18.0 shellingham-1.5.4 sniffio-1.3.1 tqdm-4.70.0 truststore-0.10.4 typer-0.27.1 typing-extensions-4.16.0 typing-inspection-0.4.4
+refresh	Install statistics pipeline	2026-08-13T11:43:39.4936658Z
+refresh	Install statistics pipeline	2026-08-13T11:43:39.4937056Z [notice] A new release of pip is available: 26.1.2 -> 26.2.1
+refresh	Install statistics pipeline	2026-08-13T11:43:39.4937444Z [notice] To update, run: pip install --upgrade pip
+refresh	Refresh public dot-com comparison statistics	﻿2026-08-13T11:43:39.6036319Z ##[group]Run python -m ai_fc statistics-refresh
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6036734Z ^[[36;1mpython -m ai_fc statistics-refresh^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6062467Z shell: /usr/bin/bash -e {0}
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6062727Z env:
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6063040Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6063413Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6063778Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6064127Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6064484Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6064959Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:43:39.6065251Z ##[endgroup]
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8785918Z ^[[31m╭─^[[0m^[[31m────────────────────^[[0m^[[31m ^[[0m^[[1;31mTraceback ^[[0m^[[1;2;31m(most recent call last)^[[0m^[[31m ^[[0m^[[31m─────────────────────^[[0m^[[31m─╮^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8787608Z ^[[31m│^[[0m ^[[2m/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/src/^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8789944Z ^[[31m│^[[0m ^[[2mai_fc/^[[0m^[[1mstatistics_lab.py^[[0m:220 in _request                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8791076Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8792315Z ^[[31m│^[[0m   ^[[2m 217 ^[[0m^[[2m│   ^[[0m^[[94mfor^[[0m attempt ^[[95min^[[0m ^[[96mrange^[[0m(attempts):                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8793911Z ^[[31m│^[[0m   ^[[2m 218 ^[[0m^[[2m│   │   ^[[0mrequest = urllib.request.Request(url, headers={^[[33m"^[[0m^[[33mUser-Agent^[[0m^[[33m"^[[0m:  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8795315Z ^[[31m│^[[0m        USER_AGENT})                                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8796405Z ^[[31m│^[[0m   ^[[2m 219 ^[[0m^[[2m│   │   ^[[0m^[[94mtry^[[0m:                                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8797758Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 220 ^[[2m│   │   │   ^[[0m^[[94mwith^[[0m urllib.request.urlopen(request, timeout=timeout) ^[[94mas^[[0m  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8799012Z ^[[31m│^[[0m        response:                                                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8800133Z ^[[31m│^[[0m   ^[[2m 221 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mreturn^[[0m response.read()                                ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8801530Z ^[[31m│^[[0m   ^[[2m 222 ^[[0m^[[2m│   │   ^[[0m^[[94mexcept^[[0m urllib.error.HTTPError ^[[94mas^[[0m exc:                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8803200Z ^[[31m│^[[0m   ^[[2m 223 ^[[0m^[[2m│   │   │   ^[[0m^[[94mif^[[0m exc.code != ^[[94m429^[[0m ^[[95mand^[[0m ^[[95mnot^[[0m ^[[94m500^[[0m <= exc.code <= ^[[94m599^[[0m:        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8804448Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8805785Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:215 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8807010Z ^[[31m│^[[0m in urlopen                                                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8807619Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8808289Z ^[[31m│^[[0m   ^[[2m 212 ^[[0m^[[2m│   │   ^[[0m_opener = opener = build_opener()                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8808954Z ^[[31m│^[[0m   ^[[2m 213 ^[[0m^[[2m│   ^[[0m^[[94melse^[[0m:                                                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8809571Z ^[[31m│^[[0m   ^[[2m 214 ^[[0m^[[2m│   │   ^[[0mopener = _opener                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8810273Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 215 ^[[2m│   ^[[0m^[[94mreturn^[[0m ^[[1;4mopener.open(url, data, timeout)^[[0m                            ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8810914Z ^[[31m│^[[0m   ^[[2m 216 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8811989Z ^[[31m│^[[0m   ^[[2m 217 ^[[0m^[[94mdef^[[0m^[[90m ^[[0m^[[92minstall_opener^[[0m(opener):                                           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8812697Z ^[[31m│^[[0m   ^[[2m 218 ^[[0m^[[2m│   ^[[0m^[[94mglobal^[[0m _opener                                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8813270Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8813947Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:515 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8814584Z ^[[31m│^[[0m in open                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8815270Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8815825Z ^[[31m│^[[0m   ^[[2m 512 ^[[0m^[[2m│   │   │   ^[[0mreq = meth(req)                                           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8816383Z ^[[31m│^[[0m   ^[[2m 513 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8817257Z ^[[31m│^[[0m   ^[[2m 514 ^[[0m^[[2m│   │   ^[[0msys.audit(^[[33m'^[[0m^[[33murllib.Request^[[0m^[[33m'^[[0m, req.full_url, req.data,           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8817968Z ^[[31m│^[[0m        req.headers, req.get_method())                                        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8818721Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 515 ^[[2m│   │   ^[[0mresponse = ^[[1;4;96mself^[[0m^[[1;4m._open(req, data)^[[0m                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8819400Z ^[[31m│^[[0m   ^[[2m 516 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8820048Z ^[[31m│^[[0m   ^[[2m 517 ^[[0m^[[2m│   │   ^[[0m^[[2m# post-process response^[[0m                                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8820867Z ^[[31m│^[[0m   ^[[2m 518 ^[[0m^[[2m│   │   ^[[0mmeth_name = protocol+^[[33m"^[[0m^[[33m_response^[[0m^[[33m"^[[0m                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8821527Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8822158Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:532 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8822816Z ^[[31m│^[[0m in _open                                                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8823326Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8823904Z ^[[31m│^[[0m   ^[[2m 529 ^[[0m^[[2m│   │   │   ^[[0m^[[94mreturn^[[0m result                                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8824547Z ^[[31m│^[[0m   ^[[2m 530 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8825353Z ^[[31m│^[[0m   ^[[2m 531 ^[[0m^[[2m│   │   ^[[0mprotocol = req.type                                           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8826179Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 532 ^[[2m│   │   ^[[0mresult = ^[[1;4;96mself^[[0m^[[1;4m._call_chain(^[[0m^[[1;4;96mself^[[0m^[[1;4m.handle_open, protocol, ^[[0m        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8826926Z ^[[31m│^[[0m        ^[[1;4mprotocol +^[[0m                                                            ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8827626Z ^[[31m│^[[0m   ^[[2m 533 ^[[0m^[[2m│   │   │   │   │   │   │   │     ^[[0m^[[1;4;33m'^[[0m^[[1;4;33m_open^[[0m^[[1;4;33m'^[[0m^[[1;4m, req)^[[0m                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8828397Z ^[[31m│^[[0m   ^[[2m 534 ^[[0m^[[2m│   │   ^[[0m^[[94mif^[[0m result:                                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8829063Z ^[[31m│^[[0m   ^[[2m 535 ^[[0m^[[2m│   │   │   ^[[0m^[[94mreturn^[[0m result                                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8829662Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8830282Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:492 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8831144Z ^[[31m│^[[0m in _call_chain                                                               ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8831802Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8832371Z ^[[31m│^[[0m   ^[[2m 489 ^[[0m^[[2m│   │   ^[[0mhandlers = chain.get(kind, ())                                ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8833057Z ^[[31m│^[[0m   ^[[2m 490 ^[[0m^[[2m│   │   ^[[0m^[[94mfor^[[0m handler ^[[95min^[[0m handlers:                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8833759Z ^[[31m│^[[0m   ^[[2m 491 ^[[0m^[[2m│   │   │   ^[[0mfunc = ^[[96mgetattr^[[0m(handler, meth_name)                        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8834428Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 492 ^[[2m│   │   │   ^[[0mresult = ^[[1;4mfunc(*args)^[[0m                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8835405Z ^[[31m│^[[0m   ^[[2m 493 ^[[0m^[[2m│   │   │   ^[[0m^[[94mif^[[0m result ^[[95mis^[[0m ^[[95mnot^[[0m ^[[94mNone^[[0m:                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8836136Z ^[[31m│^[[0m   ^[[2m 494 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mreturn^[[0m result                                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8836737Z ^[[31m│^[[0m   ^[[2m 495 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8837233Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8837863Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:139 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8838615Z ^[[31m│^[[0m 2 in https_open                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8839130Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8839721Z ^[[31m│^[[0m   ^[[2m1389 ^[[0m^[[2m│   │   │   ^[[0m^[[96mself^[[0m._context = context                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8840371Z ^[[31m│^[[0m   ^[[2m1390 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8841267Z ^[[31m│^[[0m   ^[[2m1391 ^[[0m^[[2m│   │   ^[[0m^[[94mdef^[[0m^[[90m ^[[0m^[[92mhttps_open^[[0m(^[[96mself^[[0m, req):                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8842149Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1392 ^[[2m│   │   │   ^[[0m^[[94mreturn^[[0m ^[[1;4;96mself^[[0m^[[1;4m.do_open(http.client.HTTPSConnection, req,^[[0m     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8842918Z ^[[31m│^[[0m   ^[[2m1393 ^[[0m^[[2m│   │   │   │   │   │   │   │   ^[[0m^[[1;4mcontext=^[[0m^[[1;4;96mself^[[0m^[[1;4m._context)^[[0m                ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8843572Z ^[[31m│^[[0m   ^[[2m1394 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8844276Z ^[[31m│^[[0m   ^[[2m1395 ^[[0m^[[2m│   │   ^[[0mhttps_request = AbstractHTTPHandler.do_request_               ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8845006Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8845712Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/urllib/^[[0m^[[1mrequest.py^[[0m:134 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8846331Z ^[[31m│^[[0m 8 in do_open                                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8846798Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8847367Z ^[[31m│^[[0m   ^[[2m1345 ^[[0m^[[2m│   │   │   │   │   │     ^[[0m                                            ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8848040Z ^[[31m│^[[0m        encode_chunked=req.has_header(^[[33m'^[[0m^[[33mTransfer-encoding^[[0m^[[33m'^[[0m))                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8848860Z ^[[31m│^[[0m   ^[[2m1346 ^[[0m^[[2m│   │   │   ^[[0m^[[94mexcept^[[0m ^[[96mOSError^[[0m ^[[94mas^[[0m err: ^[[2m# timeout error^[[0m                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8849586Z ^[[31m│^[[0m   ^[[2m1347 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mraise^[[0m URLError(err)                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8850545Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1348 ^[[2m│   │   │   ^[[0mr = h.getresponse()                                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8851182Z ^[[31m│^[[0m   ^[[2m1349 ^[[0m^[[2m│   │   ^[[0m^[[94mexcept^[[0m:                                                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8851809Z ^[[31m│^[[0m   ^[[2m1350 ^[[0m^[[2m│   │   │   ^[[0mh.close()                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8852398Z ^[[31m│^[[0m   ^[[2m1351 ^[[0m^[[2m│   │   │   ^[[0m^[[1;4;94mraise^[[0m                                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8852998Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8853607Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/^[[0m^[[1mclient.py^[[0m:1450   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8854263Z ^[[31m│^[[0m in getresponse                                                               ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8854967Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8855485Z ^[[31m│^[[0m   ^[[2m1447 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8856106Z ^[[31m│^[[0m   ^[[2m1448 ^[[0m^[[2m│   │   ^[[0m^[[94mtry^[[0m:                                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8856695Z ^[[31m│^[[0m   ^[[2m1449 ^[[0m^[[2m│   │   │   ^[[0m^[[94mtry^[[0m:                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8857331Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1450 ^[[2m│   │   │   │   ^[[0mresponse.begin()                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8858038Z ^[[31m│^[[0m   ^[[2m1451 ^[[0m^[[2m│   │   │   ^[[0m^[[94mexcept^[[0m ^[[96mConnectionError^[[0m:                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8858741Z ^[[31m│^[[0m   ^[[2m1452 ^[[0m^[[2m│   │   │   │   ^[[0m^[[96mself^[[0m.close()                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8859421Z ^[[31m│^[[0m   ^[[2m1453 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mraise^[[0m                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8859941Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8860551Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/^[[0m^[[1mclient.py^[[0m:336 in ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8861226Z ^[[31m│^[[0m begin                                                                        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8861741Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8862254Z ^[[31m│^[[0m   ^[[2m 333 ^[[0m^[[2m│   │   ^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8862918Z ^[[31m│^[[0m   ^[[2m 334 ^[[0m^[[2m│   │   ^[[0m^[[2m# read until we get a non-100 response^[[0m                        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8863611Z ^[[31m│^[[0m   ^[[2m 335 ^[[0m^[[2m│   │   ^[[0m^[[94mwhile^[[0m ^[[94mTrue^[[0m:                                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8864435Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 336 ^[[2m│   │   │   ^[[0mversion, status, reason = ^[[1;4;96mself^[[0m^[[1;4m._read_status()^[[0m             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8865362Z ^[[31m│^[[0m   ^[[2m 337 ^[[0m^[[2m│   │   │   ^[[0m^[[94mif^[[0m status != CONTINUE:                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8866041Z ^[[31m│^[[0m   ^[[2m 338 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mbreak^[[0m                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8866699Z ^[[31m│^[[0m   ^[[2m 339 ^[[0m^[[2m│   │   │   ^[[0m^[[2m# skip the header from the 100 response^[[0m                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8867278Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8867958Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/http/^[[0m^[[1mclient.py^[[0m:297 in ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8868887Z ^[[31m│^[[0m _read_status                                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8869357Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8869997Z ^[[31m│^[[0m   ^[[2m 294 ^[[0m^[[2m│   │   ^[[0m^[[96mself^[[0m.will_close = _UNKNOWN      ^[[2m# conn will close at end of ^[[0m  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8870668Z ^[[31m│^[[0m        ^[[2mresponse^[[0m                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8871284Z ^[[31m│^[[0m   ^[[2m 295 ^[[0m^[[2m│   ^[[0m                                                                  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8872001Z ^[[31m│^[[0m   ^[[2m 296 ^[[0m^[[2m│   ^[[0m^[[94mdef^[[0m^[[90m ^[[0m^[[92m_read_status^[[0m(^[[96mself^[[0m):                                           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8872940Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 297 ^[[2m│   │   ^[[0mline = ^[[96mstr^[[0m(^[[1;4;96mself^[[0m^[[1;4m.fp.readline(_MAXLINE + ^[[0m^[[1;4;94m1^[[0m^[[1;4m)^[[0m, ^[[33m"^[[0m^[[33miso-8859-1^[[0m^[[33m"^[[0m)      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8873895Z ^[[31m│^[[0m   ^[[2m 298 ^[[0m^[[2m│   │   ^[[0m^[[94mif^[[0m ^[[96mlen^[[0m(line) > _MAXLINE:                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8874827Z ^[[31m│^[[0m   ^[[2m 299 ^[[0m^[[2m│   │   │   ^[[0m^[[94mraise^[[0m LineTooLong(^[[33m"^[[0m^[[33mstatus line^[[0m^[[33m"^[[0m)                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8875691Z ^[[31m│^[[0m   ^[[2m 300 ^[[0m^[[2m│   │   ^[[0m^[[94mif^[[0m ^[[96mself^[[0m.debuglevel > ^[[94m0^[[0m:                                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8876296Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8876938Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/^[[0m^[[1msocket.py^[[0m:720 in      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8877613Z ^[[31m│^[[0m readinto                                                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8878135Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8878906Z ^[[31m│^[[0m   ^[[2m717 ^[[0m^[[2m│   │   │   ^[[0m^[[94mraise^[[0m ^[[96mOSError^[[0m(^[[33m"^[[0m^[[33mcannot read from timed out object^[[0m^[[33m"^[[0m)         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8879706Z ^[[31m│^[[0m   ^[[2m718 ^[[0m^[[2m│   │   ^[[0m^[[94mwhile^[[0m ^[[94mTrue^[[0m:                                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8880339Z ^[[31m│^[[0m   ^[[2m719 ^[[0m^[[2m│   │   │   ^[[0m^[[94mtry^[[0m:                                                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8881045Z ^[[31m│^[[0m ^[[31m❱ ^[[0m720 ^[[2m│   │   │   │   ^[[0m^[[94mreturn^[[0m ^[[96mself^[[0m._sock.recv_into(b)                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8881747Z ^[[31m│^[[0m   ^[[2m721 ^[[0m^[[2m│   │   │   ^[[0m^[[94mexcept^[[0m timeout:                                            ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8882440Z ^[[31m│^[[0m   ^[[2m722 ^[[0m^[[2m│   │   │   │   ^[[0m^[[96mself^[[0m._timeout_occurred = ^[[94mTrue^[[0m                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8883192Z ^[[31m│^[[0m   ^[[2m723 ^[[0m^[[2m│   │   │   │   ^[[0m^[[1;4;94mraise^[[0m                                                  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8883758Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8884394Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/^[[0m^[[1mssl.py^[[0m:1251 in        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8885187Z ^[[31m│^[[0m recv_into                                                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8885725Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8886390Z ^[[31m│^[[0m   ^[[2m1248 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mraise^[[0m ^[[96mValueError^[[0m(                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8887149Z ^[[31m│^[[0m   ^[[2m1249 ^[[0m^[[2m│   │   │   │     ^[[0m^[[33m"^[[0m^[[33mnon-zero flags not allowed in calls to recv_into()^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8888120Z ^[[31m│^[[0m        ^[[33mon ^[[0m^[[33m%s^[[0m^[[33m"^[[0m %                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8888837Z ^[[31m│^[[0m   ^[[2m1250 ^[[0m^[[2m│   │   │   │     ^[[0m^[[96mself^[[0m.^[[91m__class__^[[0m)                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8889599Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1251 ^[[2m│   │   │   ^[[0m^[[94mreturn^[[0m ^[[1;4;96mself^[[0m^[[1;4m.read(nbytes, buffer)^[[0m                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8890326Z ^[[31m│^[[0m   ^[[2m1252 ^[[0m^[[2m│   │   ^[[0m^[[94melse^[[0m:                                                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8891004Z ^[[31m│^[[0m   ^[[2m1253 ^[[0m^[[2m│   │   │   ^[[0m^[[94mreturn^[[0m ^[[96msuper^[[0m().recv_into(buffer, nbytes, flags)           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8891608Z ^[[31m│^[[0m   ^[[2m1254 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8892173Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8892862Z ^[[31m│^[[0m ^[[2m/opt/hostedtoolcache/Python/3.12.13/x64/lib/python3.12/^[[0m^[[1mssl.py^[[0m:1103 in read   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8893514Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8894229Z ^[[31m│^[[0m   ^[[2m1100 ^[[0m^[[2m│   │   │   ^[[0m^[[94mraise^[[0m ^[[96mValueError^[[0m(^[[33m"^[[0m^[[33mRead on closed or unwrapped SSL ^[[0m        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8895115Z ^[[31m│^[[0m        ^[[33msocket.^[[0m^[[33m"^[[0m)                                                             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8895961Z ^[[31m│^[[0m   ^[[2m1101 ^[[0m^[[2m│   │   ^[[0m^[[94mtry^[[0m:                                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8896723Z ^[[31m│^[[0m   ^[[2m1102 ^[[0m^[[2m│   │   │   ^[[0m^[[94mif^[[0m buffer ^[[95mis^[[0m ^[[95mnot^[[0m ^[[94mNone^[[0m:                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8897576Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1103 ^[[2m│   │   │   │   ^[[0m^[[94mreturn^[[0m ^[[96mself^[[0m._sslobj.read(^[[96mlen^[[0m, buffer)                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8898288Z ^[[31m│^[[0m   ^[[2m1104 ^[[0m^[[2m│   │   │   ^[[0m^[[94melse^[[0m:                                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8898979Z ^[[31m│^[[0m   ^[[2m1105 ^[[0m^[[2m│   │   │   │   ^[[0m^[[94mreturn^[[0m ^[[96mself^[[0m._sslobj.read(^[[96mlen^[[0m)                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8899848Z ^[[31m│^[[0m   ^[[2m1106 ^[[0m^[[2m│   │   ^[[0m^[[1;4;94mexcept^[[0m^[[1;4m SSLError ^[[0m^[[1;4;94mas^[[0m^[[1;4m x:^[[0m                                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8900562Z ^[[31m╰──────────────────────────────────────────────────────────────────────────────╯^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8901021Z ^[[1;91mTimeoutError: ^[[0mThe read operation timed out
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8901353Z
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8901646Z ^[[3mThe above exception was the direct cause of the following exception:^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8902206Z
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8902959Z ^[[31m╭─^[[0m^[[31m────────────────────^[[0m^[[31m ^[[0m^[[1;31mTraceback ^[[0m^[[1;2;31m(most recent call last)^[[0m^[[31m ^[[0m^[[31m─────────────────────^[[0m^[[31m─╮^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8904319Z ^[[31m│^[[0m ^[[2m/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/src/^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8905691Z ^[[31m│^[[0m ^[[2mai_fc/^[[0m^[[1mcli.py^[[0m:457 in cmd_statistics_refresh                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8906639Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8907655Z ^[[31m│^[[0m   ^[[2m454 ^[[0m^[[2;90m│   ^[[0m^[[33m"""닷컴과 현재 사이클의 공개 통계 비교 DB를 주간 갱신한다."""^[[0m      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8909000Z ^[[31m│^[[0m   ^[[2m455 ^[[0m^[[2m│   ^[[0m^[[94mfrom^[[0m^[[90m ^[[0m^[[4;96m.^[[0m^[[4;96mstatistics_lab^[[0m^[[90m ^[[0m^[[94mimport^[[0m refresh_statistics_lab                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8910343Z ^[[31m│^[[0m   ^[[2m456 ^[[0m^[[2m│   ^[[0m                                                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8911593Z ^[[31m│^[[0m ^[[31m❱ ^[[0m457 ^[[2m│   ^[[0mpath, payload, changed = ^[[1;4mrefresh_statistics_lab(config.ROOT)^[[0m       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8912917Z ^[[31m│^[[0m   ^[[2m458 ^[[0m^[[2m│   ^[[0mstate = ^[[33m"^[[0m^[[33m갱신^[[0m^[[33m"^[[0m ^[[94mif^[[0m changed ^[[94melse^[[0m ^[[33m"^[[0m^[[33m변경 없음^[[0m^[[33m"^[[0m                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8914146Z ^[[31m│^[[0m   ^[[2m459 ^[[0m^[[2m│   ^[[0mtyper.echo(                                                        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8915706Z ^[[31m│^[[0m   ^[[2m460 ^[[0m^[[2m│   │   ^[[0m^[[33mf^[[0m^[[33m"^[[0m^[[33m{^[[0mstate^[[33m}^[[0m^[[33m: ^[[0m^[[33m{^[[0mpath.relative_to(config.ROOT)^[[33m}^[[0m^[[33m · 기준 ^[[0m             ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8919306Z ^[[31m│^[[0m       ^[[33m{^[[0mpayload[^[[33m'^[[0m^[[33mas_of^[[0m^[[33m'^[[0m]^[[33m}^[[0m^[[33m · ^[[0m^[[33m"^[[0m                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8920034Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8920567Z ^[[31m│^[[0m ^[[2m/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/src/^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8921191Z ^[[31m│^[[0m ^[[2mai_fc/^[[0m^[[1mstatistics_lab.py^[[0m:1189 in refresh_statistics_lab                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8921714Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8922271Z ^[[31m│^[[0m   ^[[2m1186 ^[[0m^[[2m│   ^[[0msource_rows: ^[[96mdict^[[0m[^[[96mstr^[[0m, ^[[96mlist^[[0m[^[[96mdict^[[0m[^[[96mstr^[[0m, Any]]] = {}                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8922974Z ^[[31m│^[[0m   ^[[2m1187 ^[[0m^[[2m│   ^[[0mreceipts: ^[[96mdict^[[0m[^[[96mstr^[[0m, ^[[96mdict^[[0m[^[[96mstr^[[0m, Any]] = {}                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8923599Z ^[[31m│^[[0m   ^[[2m1188 ^[[0m^[[2m│   ^[[0m^[[94mfor^[[0m series_id ^[[95min^[[0m FRED_SERIES:                                     ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8924226Z ^[[31m│^[[0m ^[[31m❱ ^[[0m1189 ^[[2m│   │   ^[[0mrows, raw = ^[[1;4mfred_fetcher(series_id)^[[0m                           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8925021Z ^[[31m│^[[0m   ^[[2m1190 ^[[0m^[[2m│   │   ^[[0msource_rows[series_id] = rows                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8925696Z ^[[31m│^[[0m   ^[[2m1191 ^[[0m^[[2m│   │   ^[[0mreceipts[series_id] = {^[[33m"^[[0m^[[33mraw_sha256^[[0m^[[33m"^[[0m:                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8926266Z ^[[31m│^[[0m        hashlib.sha256(raw).hexdigest()}                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8926841Z ^[[31m│^[[0m   ^[[2m1192 ^[[0m^[[2m│   ^[[0mfetch_z1 = z1_fetcher ^[[95mor^[[0m (^[[94mlambda^[[0m url: _request(url, timeout=^[[94m60^[[0m))  ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8927346Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8927869Z ^[[31m│^[[0m ^[[2m/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/src/^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8928726Z ^[[31m│^[[0m ^[[2mai_fc/^[[0m^[[1mstatistics_lab.py^[[0m:256 in _fetch_fred                                   ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8929218Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8929652Z ^[[31m│^[[0m   ^[[2m 253 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8930301Z ^[[31m│^[[0m   ^[[2m 254 ^[[0m^[[94mdef^[[0m^[[90m ^[[0m^[[92m_fetch_fred^[[0m(series_id: ^[[96mstr^[[0m) -> ^[[96mtuple^[[0m[^[[96mlist^[[0m[^[[96mdict^[[0m[^[[96mstr^[[0m, Any]],        ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8930905Z ^[[31m│^[[0m        ^[[96mbytes^[[0m]:                                                               ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8931566Z ^[[31m│^[[0m   ^[[2m 255 ^[[0m^[[2m│   ^[[0murl = ^[[33mf^[[0m^[[33m"^[[0m^[[33m{^[[0mFRED_ENDPOINT^[[33m}^[[0m^[[33m?id=^[[0m^[[33m{^[[0mseries_id^[[33m}^[[0m^[[33m&cosd=1995-01-01^[[0m^[[33m"^[[0m           ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8932222Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 256 ^[[2m│   ^[[0mraw = ^[[1;4m_request(url)^[[0m                                               ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8932801Z ^[[31m│^[[0m   ^[[2m 257 ^[[0m^[[2m│   ^[[0m^[[94mreturn^[[0m _parse_fred_csv(raw, series_id), raw                       ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8933282Z ^[[31m│^[[0m   ^[[2m 258 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8933695Z ^[[31m│^[[0m   ^[[2m 259 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8934089Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8934559Z ^[[31m│^[[0m ^[[2m/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/src/^[[0m ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8935258Z ^[[31m│^[[0m ^[[2mai_fc/^[[0m^[[1mstatistics_lab.py^[[0m:230 in _request                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8935734Z ^[[31m│^[[0m                                                                              ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8936268Z ^[[31m│^[[0m   ^[[2m 227 ^[[0m^[[2m│   │   │   ^[[0mlast_error = exc                                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8936801Z ^[[31m│^[[0m   ^[[2m 228 ^[[0m^[[2m│   │   ^[[0m^[[94mif^[[0m attempt + ^[[94m1^[[0m < attempts:                                    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8937368Z ^[[31m│^[[0m   ^[[2m 229 ^[[0m^[[2m│   │   │   ^[[0mtime.sleep(^[[96mmin^[[0m(^[[94m2^[[0m ** attempt, ^[[94m8^[[0m))                          ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8938008Z ^[[31m│^[[0m ^[[31m❱ ^[[0m 230 ^[[2m│   ^[[0m^[[1;4;94mraise^[[0m^[[1;4m StatisticsLabError(^[[0m                                         ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8938746Z ^[[31m│^[[0m   ^[[2m 231 ^[[0m^[[2m│   │   ^[[0m^[[1;4;33mf^[[0m^[[1;4;33m"^[[0m^[[1;4;33mpublic source request failed after ^[[0m^[[1;4;33m{^[[0m^[[1;4mattempts^[[0m^[[1;4;33m}^[[0m^[[1;4;33m attempts: ^[[0m    ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8939457Z ^[[31m│^[[0m        ^[[1;4;33m{^[[0m^[[1;4murl^[[0m^[[1;4;33m}^[[0m^[[1;4;33m"^[[0m                                                                ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8940057Z ^[[31m│^[[0m   ^[[2m 232 ^[[0m^[[2m│   ^[[0m^[[1;4m) ^[[0m^[[1;4;94mfrom^[[0m^[[1;4;90m ^[[0m^[[1;4;96mlast_error^[[0m                                                 ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8940548Z ^[[31m│^[[0m   ^[[2m 233 ^[[0m                                                                      ^[[31m│^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8941032Z ^[[31m╰──────────────────────────────────────────────────────────────────────────────╯^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8941489Z ^[[1;91mStatisticsLabError: ^[[0mpublic source request failed after ^[[1;36m3^[[0m attempts:
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.8942169Z ^[[4;94mhttps://fred.stlouisfed.org/graph/fredgraph.csv?^[[0m^[[4;94mid^[[0m^[[4;94m=^[[0m^[[4;94mM2SL^[[0m^[[4;94m&^[[0m^[[4;94mcosd^[[0m^[[4;94m=^[[0m^[[4;94m1995^[[0m^[[4;94m-01-01^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:45:59.9284554Z ##[error]Process completed with exit code 1.
+refresh	Post Run actions/checkout@v4	﻿2026-08-13T11:45:59.9406022Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Post Run actions/checkout@v4	2026-08-13T11:45:59.9407138Z Post job cleanup.
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0056499Z [command]/usr/bin/git version
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0071244Z git version 2.54.0
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0099706Z Temporarily overriding HOME='/home/runner/work/_temp/fcf9231a-2087-4999-96cd-b6aef8d9188a' before making global git config changes
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0100635Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0103028Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0178674Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0205402Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0378077Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0392086Z http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0407138Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0428351Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0595775Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Post Run actions/checkout@v4	2026-08-13T11:46:00.0626097Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Complete job	﻿2026-08-13T11:46:00.0896547Z Cleaning up orphan processes
+refresh	Complete job	2026-08-13T11:46:00.1081159Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -21,4 +21,5 @@
 7. `06_KOSPI_SIGNAL_METHOD.md`
 8. `07_LIMITATIONS_AND_OPEN_RISKS.md`
 9. `08_GPT_REVIEW_CHECKLIST.md`
-10. `evidence/` 원문·테스트·스크린샷
+10. `09_POST_DEPLOYMENT_WORKFLOW_EVIDENCE.md`
+11. `evidence/` 원문·테스트·스크린샷·워크플로 로그

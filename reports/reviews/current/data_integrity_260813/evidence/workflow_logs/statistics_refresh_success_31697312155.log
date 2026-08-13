@@ -1,0 +1,377 @@
+refresh	Set up job	﻿2026-08-13T11:50:56.8417141Z Current runner version: '2.336.0'
+refresh	Set up job	2026-08-13T11:50:56.8437344Z ##[group]Runner Image Provisioner
+refresh	Set up job	2026-08-13T11:50:56.8438081Z Hosted Compute Agent
+refresh	Set up job	2026-08-13T11:50:56.8438709Z Version: 20260729.566
+refresh	Set up job	2026-08-13T11:50:56.8439248Z Commit: cf7153fe6e25b664e8693c24944bf2b00355d109
+refresh	Set up job	2026-08-13T11:50:56.8439878Z Build Date: 2026-07-29T19:17:02Z
+refresh	Set up job	2026-08-13T11:50:56.8440422Z Worker ID: {5925e6a0-79b7-467d-a7ac-d164665a63a7}
+refresh	Set up job	2026-08-13T11:50:56.8440972Z Azure Region: westcentralus
+refresh	Set up job	2026-08-13T11:50:56.8441510Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:50:56.8442626Z ##[group]Operating System
+refresh	Set up job	2026-08-13T11:50:56.8443176Z Ubuntu
+refresh	Set up job	2026-08-13T11:50:56.8443608Z 24.04.4
+refresh	Set up job	2026-08-13T11:50:56.8444025Z LTS
+refresh	Set up job	2026-08-13T11:50:56.8444485Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:50:56.8444957Z ##[group]Runner Image
+refresh	Set up job	2026-08-13T11:50:56.8445495Z Image: ubuntu-24.04
+refresh	Set up job	2026-08-13T11:50:56.8445926Z Version: 20260810.271.1
+refresh	Set up job	2026-08-13T11:50:56.8446803Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260810.271/images/ubuntu/Ubuntu2404-Readme.md
+refresh	Set up job	2026-08-13T11:50:56.8448221Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260810.271
+refresh	Set up job	2026-08-13T11:50:56.8449157Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:50:56.8450106Z ##[group]GITHUB_TOKEN Permissions
+refresh	Set up job	2026-08-13T11:50:56.8451814Z Contents: write
+refresh	Set up job	2026-08-13T11:50:56.8452377Z Metadata: read
+refresh	Set up job	2026-08-13T11:50:56.8452861Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:50:56.8454547Z Secret source: Actions
+refresh	Set up job	2026-08-13T11:50:56.8455409Z Prepare workflow directory
+refresh	Set up job	2026-08-13T11:50:56.8722877Z Prepare all required actions
+refresh	Set up job	2026-08-13T11:50:56.8777030Z Getting action download info
+refresh	Set up job	2026-08-13T11:50:57.1460417Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+refresh	Set up job	2026-08-13T11:50:57.2193880Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+refresh	Set up job	2026-08-13T11:50:57.4150052Z Complete job name: refresh
+refresh	Run actions/checkout@v4	﻿2026-08-13T11:50:57.4748772Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4755586Z ##[group]Run actions/checkout@v4
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4756140Z with:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4756469Z   fetch-depth: 0
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4756886Z   repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4760354Z   token: ***
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4760697Z   ssh-strict: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4761040Z   ssh-user: git
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4761386Z   persist-credentials: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4761768Z   clean: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4762115Z   sparse-checkout-cone-mode: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4762516Z   fetch-tags: false
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4762853Z   show-progress: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4763195Z   lfs: false
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4763510Z   submodules: false
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4763892Z   set-safe-directory: true
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4764272Z   allow-unsafe-pr-checkout: false
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.4764820Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5556496Z Syncing repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5558226Z ##[group]Getting Git version info
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5559152Z Working directory is '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5560243Z [command]/usr/bin/git version
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5599941Z git version 2.54.0
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5615179Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5627087Z Temporarily overriding HOME='/home/runner/work/_temp/59e1a268-fef3-4dcc-af3e-b2b06889dc3f' before making global git config changes
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5629045Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5631448Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5660149Z Deleting the contents of '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5662789Z ##[group]Initializing the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5666419Z [command]/usr/bin/git init /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5728884Z hint: Using 'master' as the name for the initial branch. This default branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5730324Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5731890Z hint: to use in all of your new repositories, which will suppress this warning,
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5733823Z hint: call:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5734440Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5735174Z hint: 	git config --global init.defaultBranch <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5736045Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5737469Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5738828Z hint: 'development'. The just-created branch can be renamed via this command:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5739928Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5740544Z hint: 	git branch -m <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5741249Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5742350Z hint: Disable this message with "git config set advice.defaultBranchName false"
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5744091Z Initialized empty Git repository in /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/.git/
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5746909Z [command]/usr/bin/git remote add origin https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5764658Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5765687Z ##[group]Disabling automatic garbage collection
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5767500Z [command]/usr/bin/git config --local gc.auto 0
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5793261Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5794154Z ##[group]Setting up auth
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5799050Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.5825281Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6093604Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6123464Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6330354Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6364867Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6554057Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6586023Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6586747Z ##[group]Fetching the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:50:57.6594205Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5540116Z From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5542792Z  * [new branch]      agent/l0-batch1-validation-review-260806 -> origin/agent/l0-batch1-validation-review-260806
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5544882Z  * [new branch]      codex/ai-capital-cohort-mobile-strip -> origin/codex/ai-capital-cohort-mobile-strip
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5546370Z  * [new branch]      codex/broad-ai-ipo-statistics -> origin/codex/broad-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5548151Z  * [new branch]      codex/customer-ui-statistics-expansion -> origin/codex/customer-ui-statistics-expansion
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5550978Z  * [new branch]      codex/data-integrity-stress-kospi -> origin/codex/data-integrity-stress-kospi
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5553301Z  * [new branch]      codex/default-independent-scenarios -> origin/codex/default-independent-scenarios
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5555620Z  * [new branch]      codex/dotcom-ai-ipo-statistics -> origin/codex/dotcom-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5557945Z  * [new branch]      codex/future-outlook-ux-v53 -> origin/codex/future-outlook-ux-v53
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5560442Z  * [new branch]      codex/household-liquid-assets-ratio -> origin/codex/household-liquid-assets-ratio
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5562892Z  * [new branch]      codex/ipo-quality-macro-stress -> origin/codex/ipo-quality-macro-stress
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5565067Z  * [new branch]      codex/mobile-ui-overlap-fix -> origin/codex/mobile-ui-overlap-fix
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5567402Z  * [new branch]      codex/publish-route-review-pack -> origin/codex/publish-route-review-pack
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5570049Z  * [new branch]      codex/route-governance-remediation -> origin/codex/route-governance-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5572244Z  * [new branch]      codex/scenario-pages-trigger -> origin/codex/scenario-pages-trigger
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5574284Z  * [new branch]      codex/scenario-path-resolution -> origin/codex/scenario-path-resolution
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5576446Z  * [new branch]      codex/scenario-range-stat-insights -> origin/codex/scenario-range-stat-insights
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5578811Z  * [new branch]      codex/scenario-v4-pr3-remediation -> origin/codex/scenario-v4-pr3-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5580965Z  * [new branch]      codex/scenario-visual-directions -> origin/codex/scenario-visual-directions
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5582991Z  * [new branch]      codex/statistics-curl-fallback -> origin/codex/statistics-curl-fallback
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5585000Z  * [new branch]      codex/statistics-five-year-cycle -> origin/codex/statistics-five-year-cycle
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5586985Z  * [new branch]      codex/statistics-refresh-retry -> origin/codex/statistics-refresh-retry
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5589255Z  * [new branch]      codex/ui-sidebar-overhaul -> origin/codex/ui-sidebar-overhaul
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5592384Z  * [new branch]      codex/v52-multilayer-scenario-generators -> origin/codex/v52-multilayer-scenario-generators
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5595100Z  * [new branch]      codex/v53-evidence-remediation -> origin/codex/v53-evidence-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5597377Z  * [new branch]      codex/work         -> origin/codex/work
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5599397Z  * [new branch]      main               -> origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5601446Z  * [new tag]         l0-accepted-260804 -> l0-accepted-260804
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5606062Z [command]/usr/bin/git branch --list --remote origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5630787Z   origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5639508Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5660940Z 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5667388Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5669920Z ##[group]Determining the checkout info
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5672856Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5674320Z [command]/usr/bin/git sparse-checkout disable
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5711795Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5738880Z ##[group]Checking out the ref
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.5741104Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.8950818Z Switched to a new branch 'main'
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.8952349Z branch 'main' set up to track 'origin/main'.
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.8989935Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.9030426Z [command]/usr/bin/git log -1 --format=%H
+refresh	Run actions/checkout@v4	2026-08-13T11:51:01.9055282Z 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+refresh	Run actions/setup-python@v5	﻿2026-08-13T11:51:01.9261329Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9262750Z ##[group]Run actions/setup-python@v5
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9263006Z with:
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9263207Z   python-version: 3.12
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9263435Z   check-latest: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9265726Z   token: ***
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9265946Z   update-environment: true
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9266193Z   allow-prereleases: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9266420Z   freethreaded: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:01.9266636Z ##[endgroup]
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:02.0279457Z ##[group]Installed versions
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:02.0344465Z (node:2100) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:02.0345455Z (Use `node --trace-deprecation ...` to show where the warning was created)
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:02.0346112Z Successfully set up CPython (3.12.13)
+refresh	Run actions/setup-python@v5	2026-08-13T11:51:02.0346579Z ##[endgroup]
+refresh	Install statistics pipeline	﻿2026-08-13T11:51:02.0571513Z ##[group]Run pip install -e "." pytest
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0572057Z ^[[36;1mpip install -e "." pytest^[[0m
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0635013Z shell: /usr/bin/bash -e {0}
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0635448Z env:
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0635866Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0636516Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0637130Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0637662Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0638181Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0638899Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Install statistics pipeline	2026-08-13T11:51:02.0639415Z ##[endgroup]
+refresh	Install statistics pipeline	2026-08-13T11:51:03.8729767Z Obtaining file:///home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Install statistics pipeline	2026-08-13T11:51:03.8743253Z   Installing build dependencies: started
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0233759Z   Installing build dependencies: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0238762Z   Checking if build backend supports build_editable: started
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0663911Z   Checking if build backend supports build_editable: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0669954Z   Getting requirements to build editable: started
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0937444Z   Getting requirements to build editable: finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:51:05.0943841Z   Preparing editable metadata (pyproject.toml): started
+refresh	Install statistics pipeline	2026-08-13T11:51:05.1267639Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:51:05.2514303Z Collecting pytest
+refresh	Install statistics pipeline	2026-08-13T11:51:05.3355865Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.4286090Z Collecting typer (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.4472709Z   Downloading typer-0.27.1-py3-none-any.whl.metadata (16 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.5707091Z Collecting anthropic (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.5895934Z   Downloading anthropic-0.121.0-py3-none-any.whl.metadata (3.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.6728742Z Collecting openai>=1.68 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.6916103Z   Downloading openai-3.0.0-py3-none-any.whl.metadata (39 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.8070776Z Collecting pydantic>=2 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.8260033Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.9438759Z Collecting pyyaml (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.9626023Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:05.9885491Z Collecting python-frontmatter (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.0073574Z   Downloading python_frontmatter-1.3.0-py3-none-any.whl.metadata (4.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.1888726Z Collecting numpy (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.2080414Z   Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.3341499Z Collecting scipy (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.3529233Z   Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.5929257Z Collecting pillow>=10 (from ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.6117532Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.6398467Z Collecting iniconfig>=1.0.1 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.6585450Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.6855617Z Collecting packaging>=22 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.7043854Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.7314653Z Collecting pluggy<2,>=1.5 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.7504817Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.7807018Z Collecting pygments>=2.7.2 (from pytest)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.7994048Z   Downloading pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.8288146Z Collecting anyio<5,>=4.10.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.8474868Z   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.8726597Z Collecting distro<2,>=1.7.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.8914637Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.9167001Z Collecting httpx2<3,>=2.7.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:06.9355043Z   Downloading httpx2-2.10.0-py3-none-any.whl.metadata (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.0257293Z Collecting jiter<1,>=0.10.0 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.0464221Z   Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.0738702Z Collecting sniffio (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.0928764Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.1303247Z Collecting tqdm>4 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.1491806Z   Downloading tqdm-4.70.0-py3-none-any.whl.metadata (57 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.1813897Z Collecting typing-extensions<5,>=4.14 (from openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.1999907Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.2271819Z Collecting idna>=2.8 (from anyio<5,>=4.10.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.2456340Z   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.3685363Z Collecting httpcore2==2.10.0 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.3873258Z   Downloading httpcore2-2.10.0-py3-none-any.whl.metadata (25 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.4145487Z Collecting truststore>=0.10 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.4333322Z   Downloading truststore-0.10.4-py3-none-any.whl.metadata (4.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.4586689Z Collecting h11>=0.16 (from httpcore2==2.10.0->httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.4773216Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.5639413Z Collecting annotated-types>=0.6.0 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:07.5827019Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.0755155Z Collecting pydantic-core==2.46.4 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.0946722Z   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.1208723Z Collecting typing-inspection>=0.4.2 (from pydantic>=2->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.1396732Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.1699253Z Collecting docstring-parser<1,>=0.15 (from anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.1885616Z   Downloading docstring_parser-0.18.0-py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.2441880Z Collecting httpx<1,>=0.25.0 (from anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.2630885Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.3174809Z Collecting certifi (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.3363800Z   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.3639426Z Collecting httpcore==1.* (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.3828548Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.5317288Z Collecting shellingham>=1.3.0 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.5507020Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.5874084Z Collecting rich>=13.8.0 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.6062031Z   Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.6315293Z Collecting annotated-doc>=0.0.2 (from typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.6503141Z   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.6780541Z Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.6969740Z   Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.7801149Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->ai-fc==0.2.0)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.7988057Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.8218096Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.8786400Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.8996044Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:08.9738886Z Downloading openai-3.0.0-py3-none-any.whl (1.7 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.0406144Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 23.2 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:09.0598620Z Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.0807323Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.1012728Z Downloading httpx2-2.10.0-py3-none-any.whl (94 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.1218234Z Downloading httpcore2-2.10.0-py3-none-any.whl (83 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.2005004Z Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (343 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.2226874Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.2464665Z Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.2788486Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 60.5 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:09.2975987Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.3183701Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.3389408Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.3597012Z Downloading idna-3.18-py3-none-any.whl (65 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.3805729Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.4207006Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.4955513Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 91.7 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:09.5142217Z Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.6250889Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 8.9 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:09.6441360Z Downloading tqdm-4.70.0-py3-none-any.whl (80 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.8242092Z Downloading truststore-0.10.4-py3-none-any.whl (18 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.8445951Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.8653023Z Downloading anthropic-0.121.0-py3-none-any.whl (1.0 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.8746749Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 107.5 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:09.8933837Z Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:09.9139794Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.0911261Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.1117575Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.1326732Z Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.1539075Z Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.2889330Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 124.0 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:10.3078939Z Downloading python_frontmatter-1.3.0-py3-none-any.whl (10 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.3287615Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.3365730Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 92.8 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:10.3554815Z Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.6861352Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 106.7 MB/s  0:00:00
+refresh	Install statistics pipeline	2026-08-13T11:51:10.7052094Z Downloading typer-0.27.1-py3-none-any.whl (122 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.7263005Z Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.7469250Z Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.7685737Z Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.7895352Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.8102729Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9529671Z Building wheels for collected packages: ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9536405Z   Building editable for ai-fc (pyproject.toml): started
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9871074Z   Building editable for ai-fc (pyproject.toml): finished with status 'done'
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9875497Z   Created wheel for ai-fc: filename=ai_fc-0.2.0-py3-none-any.whl size=1601 sha256=d8a8d3199e69b5f9b82d9d14be88ec19a9094060de5c4408401facb3b330eb4a
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9876753Z   Stored in directory: /tmp/pip-ephem-wheel-cache-aqfrskhv/wheels/c4/2e/4b/f47d08099f5fe50e0a47e8358a8a9eca48ed7f825f02010b74
+refresh	Install statistics pipeline	2026-08-13T11:51:10.9889023Z Successfully built ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:51:11.0667024Z Installing collected packages: typing-extensions, truststore, tqdm, sniffio, shellingham, pyyaml, pygments, pluggy, pillow, packaging, numpy, mdurl, jiter, iniconfig, idna, h11, docstring-parser, distro, certifi, annotated-types, annotated-doc, typing-inspection, scipy, python-frontmatter, pytest, pydantic-core, markdown-it-py, httpcore2, httpcore, anyio, rich, pydantic, httpx2, httpx, typer, openai, anthropic, ai-fc
+refresh	Install statistics pipeline	2026-08-13T11:51:20.6414305Z
+refresh	Install statistics pipeline	2026-08-13T11:51:20.6442122Z Successfully installed ai-fc-0.2.0 annotated-doc-0.0.5 annotated-types-0.8.0 anthropic-0.121.0 anyio-4.14.2 certifi-2026.7.22 distro-1.9.0 docstring-parser-0.18.0 h11-0.16.0 httpcore-1.0.9 httpcore2-2.10.0 httpx-0.28.1 httpx2-2.10.0 idna-3.18 iniconfig-2.3.0 jiter-0.16.0 markdown-it-py-4.2.0 mdurl-0.1.2 numpy-2.5.2 openai-3.0.0 packaging-26.3 pillow-12.3.0 pluggy-1.6.0 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pytest-9.1.1 python-frontmatter-1.3.0 pyyaml-6.0.3 rich-15.0.0 scipy-1.18.0 shellingham-1.5.4 sniffio-1.3.1 tqdm-4.70.0 truststore-0.10.4 typer-0.27.1 typing-extensions-4.16.0 typing-inspection-0.4.4
+refresh	Refresh public dot-com comparison statistics	﻿2026-08-13T11:51:20.7413742Z ##[group]Run python -m ai_fc statistics-refresh
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7414054Z ^[[36;1mpython -m ai_fc statistics-refresh^[[0m
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7448771Z shell: /usr/bin/bash -e {0}
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7448975Z env:
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7449184Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7449527Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7449857Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7450142Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7450427Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7450710Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:51:20.7450954Z ##[endgroup]
+refresh	Refresh public dot-com comparison statistics	2026-08-13T11:53:13.1712934Z 변경 없음: data/statistics/dotcom_statistics_latest.json · 기준 2026-08-12 · 차트 28개 · model_use=false
+refresh	Validate statistics database and dashboard contract	﻿2026-08-13T11:53:13.2034975Z ##[group]Run pytest -q src/tests/test_statistics_lab.py src/tests/test_dashboard.py
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2035445Z ^[[36;1mpytest -q src/tests/test_statistics_lab.py src/tests/test_dashboard.py^[[0m
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2068152Z shell: /usr/bin/bash -e {0}
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2068529Z env:
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2068744Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2069101Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2069440Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2069724Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2070007Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2070291Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:13.2070536Z ##[endgroup]
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:17.7933466Z ................................................                         [100%]
+refresh	Validate statistics database and dashboard contract	2026-08-13T11:53:17.7934210Z 48 passed in 4.08s
+refresh	Refresh generated repository inventory	﻿2026-08-13T11:53:17.8809441Z ##[group]Run cd src && python -m ai_fc inventory
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8809749Z ^[[36;1mcd src && python -m ai_fc inventory^[[0m
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8843300Z shell: /usr/bin/bash -e {0}
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8843520Z env:
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8843732Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8844069Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8844393Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8844676Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8844953Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8845230Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh generated repository inventory	2026-08-13T11:53:17.8845470Z ##[endgroup]
+refresh	Refresh generated repository inventory	2026-08-13T11:53:18.3910365Z generated: docs/generated/inventory.generated.md
+refresh	Commit changed statistics snapshot	﻿2026-08-13T11:53:18.4232571Z ##[group]Run git config user.name "github-actions[bot]"
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4232894Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4233240Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4233640Z ^[[36;1mgit add data/statistics docs/generated/inventory.generated.md^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4233973Z ^[[36;1mif git diff --cached --quiet; then^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4234221Z ^[[36;1m  echo "No statistics changes to commit."^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4234440Z ^[[36;1m  exit 0^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4234591Z ^[[36;1mfi^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4234829Z ^[[36;1mgit commit -m "data: weekly dotcom statistics refresh $(date -u +%F)"^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4235125Z ^[[36;1mgit pull --rebase origin main^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4235338Z ^[[36;1mgit push origin HEAD:main^[[0m
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4269598Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4269868Z env:
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4270070Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4270429Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4270740Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4271019Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4271322Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4271600Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.4271842Z ##[endgroup]
+refresh	Commit changed statistics snapshot	2026-08-13T11:53:18.8754305Z No statistics changes to commit.
+refresh	Post Run actions/setup-python@v5	﻿2026-08-13T11:53:18.8849963Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:53:18.8850871Z Post job cleanup.
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:53:18.9786778Z (node:2318) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:53:18.9787368Z (Use `node --trace-deprecation ...` to show where the warning was created)
+refresh	Post Run actions/checkout@v4	﻿2026-08-13T11:53:18.9960746Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:18.9961788Z Post job cleanup.
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0632783Z [command]/usr/bin/git version
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0700499Z git version 2.54.0
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0731429Z Temporarily overriding HOME='/home/runner/work/_temp/1407f2e9-3614-414d-aaa5-66f78b5d79ac' before making global git config changes
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0732183Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0736293Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0766721Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.0794793Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1015288Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1035846Z http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1044716Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1072925Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1287259Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Post Run actions/checkout@v4	2026-08-13T11:53:19.1327503Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Complete job	﻿2026-08-13T11:53:19.1642115Z Cleaning up orphan processes
+refresh	Complete job	2026-08-13T11:53:19.1891561Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

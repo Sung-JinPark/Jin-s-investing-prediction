@@ -2,8 +2,8 @@
   "schema_version": 1,
   "baseline": "origin/main",
   "scope_contract": "src/ai_fc/scenario_v5/contracts.py::PROTECTED_PATHS",
-  "file_count": 121,
-  "unchanged_count": 121,
+  "file_count": 123,
+  "unchanged_count": 123,
   "authorized_research_change_count": 0,
   "unauthorized_change_count": 0,
   "gate_pass": true,
@@ -254,9 +254,16 @@
       "authorized_research_candidate_change": false
     },
     {
+      "path": "data/cross_asset/archive/2026-08-12.json",
+      "origin_main_sha256": "c2adb29280a4676c0d21a2838ba2549e4a55fd5128974f9fd334aa826c8d879e",
+      "working_tree_sha256": "c2adb29280a4676c0d21a2838ba2549e4a55fd5128974f9fd334aa826c8d879e",
+      "status": "unchanged",
+      "authorized_research_candidate_change": false
+    },
+    {
       "path": "data/cross_asset/cross_asset_latest.json",
-      "origin_main_sha256": "bebc0b3dd8a01f619d74986f18d9545a6bbbb25da1db9c211d09f8dc2a07867a",
-      "working_tree_sha256": "bebc0b3dd8a01f619d74986f18d9545a6bbbb25da1db9c211d09f8dc2a07867a",
+      "origin_main_sha256": "c2adb29280a4676c0d21a2838ba2549e4a55fd5128974f9fd334aa826c8d879e",
+      "working_tree_sha256": "c2adb29280a4676c0d21a2838ba2549e4a55fd5128974f9fd334aa826c8d879e",
       "status": "unchanged",
       "authorized_research_candidate_change": false
     },
@@ -269,8 +276,8 @@
     },
     {
       "path": "data/cross_asset/path_tracking_v2.csv",
-      "origin_main_sha256": "f521730e227c057dda765d91b4b55f89706147e68940c2c289cb7487f65e0afe",
-      "working_tree_sha256": "f521730e227c057dda765d91b4b55f89706147e68940c2c289cb7487f65e0afe",
+      "origin_main_sha256": "4e3426fc6d328fd5cb69decec59384d5ca2d6f2e5877b731c78b085d1c807fb7",
+      "working_tree_sha256": "4e3426fc6d328fd5cb69decec59384d5ca2d6f2e5877b731c78b085d1c807fb7",
       "status": "unchanged",
       "authorized_research_candidate_change": false
     },
@@ -355,6 +362,13 @@
       "path": "data/cross_asset/receipts/2026-08-11_8ee2340e00ea.json",
       "origin_main_sha256": "90d0b9d61c78425d997892c428fd3ec758c8d19f3ec1e6e090ae065350ceed31",
       "working_tree_sha256": "90d0b9d61c78425d997892c428fd3ec758c8d19f3ec1e6e090ae065350ceed31",
+      "status": "unchanged",
+      "authorized_research_candidate_change": false
+    },
+    {
+      "path": "data/cross_asset/receipts/2026-08-12_415fe0ffebd3.json",
+      "origin_main_sha256": "b29d0b522a823384abf909625cb11918528958434a432cf939724e626faf9f7d",
+      "working_tree_sha256": "b29d0b522a823384abf909625cb11918528958434a432cf939724e626faf9f7d",
       "status": "unchanged",
       "authorized_research_candidate_change": false
     },

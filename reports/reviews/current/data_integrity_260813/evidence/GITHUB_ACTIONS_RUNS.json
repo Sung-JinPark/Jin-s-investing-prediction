@@ -1,7 +1,44 @@
 {
-  "captured_at": "2026-08-13T11:23:42+00:00",
-  "statistics-refresh.yml": [],
+  "captured_at": "2026-08-13T12:03:37+00:00",
+  "statistics-refresh.yml": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:50:52Z",
+      "databaseId": 31697312155,
+      "event": "workflow_dispatch",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697312155"
+    },
+    {
+      "conclusion": "failure",
+      "createdAt": "2026-08-13T11:43:07Z",
+      "databaseId": 31696739695,
+      "event": "workflow_dispatch",
+      "headSha": "e8c641f5272c0240ccf6bb827bd3720d24f5e6a2",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31696739695"
+    },
+    {
+      "conclusion": "failure",
+      "createdAt": "2026-08-13T11:30:34Z",
+      "databaseId": 31695813731,
+      "event": "workflow_dispatch",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695813731"
+    }
+  ],
   "scenario-refresh.yml": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:30:37Z",
+      "databaseId": 31695816670,
+      "event": "workflow_dispatch",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695816670"
+    },
     {
       "conclusion": "success",
       "createdAt": "2026-08-13T03:35:11Z",
@@ -100,15 +137,6 @@
       "headSha": "561d7352d3e63bb4813e67f97cd73ade0682de96",
       "status": "completed",
       "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/30809660952"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-03T11:23:52Z",
-      "databaseId": 30809366018,
-      "event": "workflow_dispatch",
-      "headSha": "ab3adebf6147a3a934fc75a0de584eafe2089926",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/30809366018"
     }
   ],
   "investing-refresh.yml": [
@@ -150,6 +178,69 @@
     }
   ],
   "pages.yml": [
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:53:24Z",
+      "databaseId": 31697501562,
+      "event": "workflow_run",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697501562"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:50:36Z",
+      "databaseId": 31697292402,
+      "event": "push",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697292402"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:46:04Z",
+      "databaseId": 31696955495,
+      "event": "workflow_run",
+      "headSha": "e8c641f5272c0240ccf6bb827bd3720d24f5e6a2",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31696955495"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:42:55Z",
+      "databaseId": 31696724212,
+      "event": "push",
+      "headSha": "e8c641f5272c0240ccf6bb827bd3720d24f5e6a2",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31696724212"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:34:40Z",
+      "databaseId": 31696118069,
+      "event": "workflow_run",
+      "headSha": "42d5c3dea8fc14e24605a9fd4d3ad2e3a9409549",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31696118069"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:31:57Z",
+      "databaseId": 31695917516,
+      "event": "workflow_run",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695917516"
+    },
+    {
+      "conclusion": "success",
+      "createdAt": "2026-08-13T11:27:16Z",
+      "databaseId": 31695568378,
+      "event": "push",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695568378"
+    },
     {
       "conclusion": "success",
       "createdAt": "2026-08-13T10:20:59Z",
@@ -194,69 +285,68 @@
       "headSha": "8c68c33bc066110b6a9f03bb4eff2622c34d8634",
       "status": "completed",
       "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31664604726"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-13T00:19:05Z",
-      "databaseId": 31654006306,
-      "event": "push",
-      "headSha": "323804545cd844b13f4518b398ae85dacf488e4b",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31654006306"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T09:52:43Z",
-      "databaseId": 31584904365,
-      "event": "push",
-      "headSha": "5add72e58c12be285058384d17952bb12785db6a",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31584904365"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T08:56:30Z",
-      "databaseId": 31580645867,
-      "event": "push",
-      "headSha": "66149f3758e52581fd72457ff16d079684fb5e18",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31580645867"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T07:37:46Z",
-      "databaseId": 31574777122,
-      "event": "push",
-      "headSha": "44826b4c48c06dc08dce081e77b681dd7f9f5444",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31574777122"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T05:21:53Z",
-      "databaseId": 31566292709,
-      "event": "push",
-      "headSha": "d4f140a867ca4cdcf7d357daf57bdbe6e75236eb",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31566292709"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T03:36:54Z",
-      "databaseId": 31560620693,
-      "event": "workflow_run",
-      "headSha": "60b4d4daa6fbfee793c4ad1dad1b0db16d89713c",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31560620693"
-    },
-    {
-      "conclusion": "success",
-      "createdAt": "2026-08-12T01:15:08Z",
-      "databaseId": 31552987704,
-      "event": "push",
-      "headSha": "3e3578b246da402422d2b5ef9fbf35e949969739",
-      "status": "completed",
-      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31552987704"
     }
-  ]
+  ],
+  "final_recovery_runs": {
+    "scenario_refresh_success": {
+      "conclusion": "success",
+      "event": "workflow_dispatch",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695816670",
+      "workflowName": "scenario-refresh",
+      "database_id": 31695816670,
+      "log_file": "evidence/workflow_logs/scenario_refresh_success_31695816670.log"
+    },
+    "statistics_initial_timeout": {
+      "conclusion": "failure",
+      "event": "workflow_dispatch",
+      "headSha": "5270f63fac0c4f0a5126f55b6d3418eefdec2910",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31695813731",
+      "workflowName": "statistics-refresh",
+      "database_id": 31695813731,
+      "log_file": "evidence/workflow_logs/statistics_initial_timeout_31695813731.log"
+    },
+    "statistics_retry_exhausted": {
+      "conclusion": "failure",
+      "event": "workflow_dispatch",
+      "headSha": "e8c641f5272c0240ccf6bb827bd3720d24f5e6a2",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31696739695",
+      "workflowName": "statistics-refresh",
+      "database_id": 31696739695,
+      "log_file": "evidence/workflow_logs/statistics_retry_exhausted_31696739695.log"
+    },
+    "statistics_refresh_success": {
+      "conclusion": "success",
+      "event": "workflow_dispatch",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697312155",
+      "workflowName": "statistics-refresh",
+      "database_id": 31697312155,
+      "log_file": "evidence/workflow_logs/statistics_refresh_success_31697312155.log"
+    },
+    "final_pages_success": {
+      "conclusion": "success",
+      "event": "workflow_run",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697501562",
+      "workflowName": "pages",
+      "database_id": 31697501562,
+      "log_file": "evidence/workflow_logs/final_pages_success_31697501562.log"
+    },
+    "final_verify_success": {
+      "conclusion": "success",
+      "event": "workflow_run",
+      "headSha": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+      "status": "completed",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697501558",
+      "workflowName": "verify",
+      "database_id": 31697501558,
+      "log_file": "evidence/workflow_logs/final_verify_success_31697501558.log"
+    }
+  }
 }

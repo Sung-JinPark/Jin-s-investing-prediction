@@ -134,9 +134,9 @@
     },
     "kernel_gates_pass": false,
     "conditional_63d_returns": {
-      "S1": 0.12406725956676087,
+      "S1": 0.12406725956676096,
       "S2": -0.003387948751612281,
-      "S3": -0.12132224651242784
+      "S3": -0.12132224651242773
     },
     "source_hashes_all_match": true,
     "source_hash_rows": [

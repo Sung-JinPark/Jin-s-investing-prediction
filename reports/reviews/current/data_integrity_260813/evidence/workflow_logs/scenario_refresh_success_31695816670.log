@@ -1,0 +1,379 @@
+refresh	Set up job	﻿2026-08-13T11:31:58.7644217Z Current runner version: '2.336.0'
+refresh	Set up job	2026-08-13T11:31:58.7665861Z ##[group]Runner Image Provisioner
+refresh	Set up job	2026-08-13T11:31:58.7666593Z Hosted Compute Agent
+refresh	Set up job	2026-08-13T11:31:58.7667117Z Version: 20260707.563
+refresh	Set up job	2026-08-13T11:31:58.7667634Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+refresh	Set up job	2026-08-13T11:31:58.7668207Z Build Date: 2026-07-07T19:33:50Z
+refresh	Set up job	2026-08-13T11:31:58.7668795Z Worker ID: {fb9932d3-5d86-49e1-b64f-f7dd6dbb46ec}
+refresh	Set up job	2026-08-13T11:31:58.7669445Z Azure Region: westus
+refresh	Set up job	2026-08-13T11:31:58.7669941Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:31:58.7671121Z ##[group]Operating System
+refresh	Set up job	2026-08-13T11:31:58.7671620Z Ubuntu
+refresh	Set up job	2026-08-13T11:31:58.7672080Z 24.04.4
+refresh	Set up job	2026-08-13T11:31:58.7672759Z LTS
+refresh	Set up job	2026-08-13T11:31:58.7673209Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:31:58.7673706Z ##[group]Runner Image
+refresh	Set up job	2026-08-13T11:31:58.7674200Z Image: ubuntu-24.04
+refresh	Set up job	2026-08-13T11:31:58.7674665Z Version: 20260720.247.2
+refresh	Set up job	2026-08-13T11:31:58.7675554Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+refresh	Set up job	2026-08-13T11:31:58.7676988Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+refresh	Set up job	2026-08-13T11:31:58.7677738Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:31:58.7678606Z ##[group]GITHUB_TOKEN Permissions
+refresh	Set up job	2026-08-13T11:31:58.7680182Z Contents: write
+refresh	Set up job	2026-08-13T11:31:58.7680669Z Metadata: read
+refresh	Set up job	2026-08-13T11:31:58.7681183Z ##[endgroup]
+refresh	Set up job	2026-08-13T11:31:58.7683201Z Secret source: Actions
+refresh	Set up job	2026-08-13T11:31:58.7684546Z Prepare workflow directory
+refresh	Set up job	2026-08-13T11:31:58.7947345Z Prepare all required actions
+refresh	Set up job	2026-08-13T11:31:58.7986172Z Getting action download info
+refresh	Set up job	2026-08-13T11:31:59.1472640Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+refresh	Set up job	2026-08-13T11:31:59.8315452Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+refresh	Set up job	2026-08-13T11:32:00.0098412Z Complete job name: refresh
+refresh	Run actions/checkout@v4	﻿2026-08-13T11:32:00.0757763Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0765124Z ##[group]Run actions/checkout@v4
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0765743Z with:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0766121Z   fetch-depth: 0
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0766579Z   repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0769901Z   token: ***
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0770270Z   ssh-strict: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0770644Z   ssh-user: git
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0771022Z   persist-credentials: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0771429Z   clean: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0771806Z   sparse-checkout-cone-mode: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0772243Z   fetch-tags: false
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0772771Z   show-progress: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0773172Z   lfs: false
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0773528Z   submodules: false
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0773980Z   set-safe-directory: true
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0774409Z   allow-unsafe-pr-checkout: false
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.0775032Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1594585Z Syncing repository: Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1596990Z ##[group]Getting Git version info
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1598217Z Working directory is '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1599938Z [command]/usr/bin/git version
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1602111Z git version 2.54.0
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1614811Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1623217Z Temporarily overriding HOME='/home/runner/work/_temp/9dc1dbed-eca0-49f7-b45d-cdd25e21565b' before making global git config changes
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1625198Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1628061Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1663468Z Deleting the contents of '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1666535Z ##[group]Initializing the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1672430Z [command]/usr/bin/git init /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1744652Z hint: Using 'master' as the name for the initial branch. This default branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1745962Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1747263Z hint: to use in all of your new repositories, which will suppress this warning,
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1748291Z hint: call:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1748747Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1749315Z hint: 	git config --global init.defaultBranch <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1749864Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1750401Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1751197Z hint: 'development'. The just-created branch can be renamed via this command:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1751906Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1752257Z hint: 	git branch -m <name>
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1753093Z hint:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1753900Z hint: Disable this message with "git config set advice.defaultBranchName false"
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1754988Z Initialized empty Git repository in /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/.git/
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1757329Z [command]/usr/bin/git remote add origin https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1793961Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1794748Z ##[group]Disabling automatic garbage collection
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1795355Z [command]/usr/bin/git config --local gc.auto 0
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1823018Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1823881Z ##[group]Setting up auth
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1829284Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.1861219Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2134211Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2168124Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2369383Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2400842Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2592865Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2625896Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2626959Z ##[group]Fetching the repository
+refresh	Run actions/checkout@v4	2026-08-13T11:32:00.2634150Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0368602Z From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0369396Z  * [new branch]      agent/l0-batch1-validation-review-260806 -> origin/agent/l0-batch1-validation-review-260806
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0370223Z  * [new branch]      codex/ai-capital-cohort-mobile-strip -> origin/codex/ai-capital-cohort-mobile-strip
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0370820Z  * [new branch]      codex/broad-ai-ipo-statistics -> origin/codex/broad-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0371421Z  * [new branch]      codex/customer-ui-statistics-expansion -> origin/codex/customer-ui-statistics-expansion
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0372002Z  * [new branch]      codex/data-integrity-stress-kospi -> origin/codex/data-integrity-stress-kospi
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0372741Z  * [new branch]      codex/default-independent-scenarios -> origin/codex/default-independent-scenarios
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0373356Z  * [new branch]      codex/dotcom-ai-ipo-statistics -> origin/codex/dotcom-ai-ipo-statistics
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0374128Z  * [new branch]      codex/future-outlook-ux-v53 -> origin/codex/future-outlook-ux-v53
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0374665Z  * [new branch]      codex/household-liquid-assets-ratio -> origin/codex/household-liquid-assets-ratio
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0375195Z  * [new branch]      codex/ipo-quality-macro-stress -> origin/codex/ipo-quality-macro-stress
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0375705Z  * [new branch]      codex/mobile-ui-overlap-fix -> origin/codex/mobile-ui-overlap-fix
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0376207Z  * [new branch]      codex/publish-route-review-pack -> origin/codex/publish-route-review-pack
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0376780Z  * [new branch]      codex/route-governance-remediation -> origin/codex/route-governance-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0377338Z  * [new branch]      codex/scenario-pages-trigger -> origin/codex/scenario-pages-trigger
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0377916Z  * [new branch]      codex/scenario-path-resolution -> origin/codex/scenario-path-resolution
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0378444Z  * [new branch]      codex/scenario-range-stat-insights -> origin/codex/scenario-range-stat-insights
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0379024Z  * [new branch]      codex/scenario-v4-pr3-remediation -> origin/codex/scenario-v4-pr3-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0379582Z  * [new branch]      codex/scenario-visual-directions -> origin/codex/scenario-visual-directions
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0380103Z  * [new branch]      codex/statistics-five-year-cycle -> origin/codex/statistics-five-year-cycle
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0380583Z  * [new branch]      codex/ui-sidebar-overhaul -> origin/codex/ui-sidebar-overhaul
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0381117Z  * [new branch]      codex/v52-multilayer-scenario-generators -> origin/codex/v52-multilayer-scenario-generators
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0381673Z  * [new branch]      codex/v53-evidence-remediation -> origin/codex/v53-evidence-remediation
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0382082Z  * [new branch]      codex/work         -> origin/codex/work
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0382835Z  * [new branch]      main               -> origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0383181Z  * [new tag]         l0-accepted-260804 -> l0-accepted-260804
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0436100Z [command]/usr/bin/git branch --list --remote origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0462191Z   origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0471471Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0495836Z 5270f63fac0c4f0a5126f55b6d3418eefdec2910
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0498998Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0499649Z ##[group]Determining the checkout info
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0500377Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0504757Z [command]/usr/bin/git sparse-checkout disable
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0538697Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0563975Z ##[group]Checking out the ref
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.0566968Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.4183871Z Switched to a new branch 'main'
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.4193781Z branch 'main' set up to track 'origin/main'.
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.4224754Z ##[endgroup]
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.4268257Z [command]/usr/bin/git log -1 --format=%H
+refresh	Run actions/checkout@v4	2026-08-13T11:32:04.4293613Z 5270f63fac0c4f0a5126f55b6d3418eefdec2910
+refresh	Run actions/setup-python@v5	﻿2026-08-13T11:32:04.4509043Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4510354Z ##[group]Run actions/setup-python@v5
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4510563Z with:
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4510731Z   python-version: 3.12
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4510916Z   check-latest: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4512959Z   token: ***
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4513133Z   update-environment: true
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4513339Z   allow-prereleases: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4513517Z   freethreaded: false
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.4513688Z ##[endgroup]
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.5584268Z ##[group]Installed versions
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.6587551Z Successfully set up CPython (3.12.13)
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.6588806Z ##[endgroup]
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.6608386Z (node:2047) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+refresh	Run actions/setup-python@v5	2026-08-13T11:32:04.6609376Z (Use `node --trace-deprecation ...` to show where the warning was created)
+refresh	Install lightweight scenario dependencies	﻿2026-08-13T11:32:04.6677742Z ##[group]Run pip install typer pydantic pyyaml python-frontmatter numpy scipy
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6678325Z ^[[36;1mpip install typer pydantic pyyaml python-frontmatter numpy scipy^[[0m
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6732804Z shell: /usr/bin/bash -e {0}
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6733049Z env:
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6733287Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6733643Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6733974Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6734533Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6735215Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6735752Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:04.6736178Z ##[endgroup]
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:05.8095429Z Collecting typer
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:05.8549182Z   Downloading typer-0.27.1-py3-none-any.whl.metadata (16 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:05.9536214Z Collecting pydantic
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:05.9562133Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.1648142Z Collecting pyyaml
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.1673884Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.1779293Z Collecting python-frontmatter
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.1803462Z   Downloading python_frontmatter-1.3.0-py3-none-any.whl.metadata (4.4 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.3188375Z Collecting numpy
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.3217004Z   Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4133236Z Collecting scipy
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4163427Z   Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4378618Z Collecting shellingham>=1.3.0 (from typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4401561Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4782925Z Collecting rich>=13.8.0 (from typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4808272Z   Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4905791Z Collecting annotated-doc>=0.0.2 (from typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.4928338Z   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.5180341Z Collecting annotated-types>=0.6.0 (from pydantic)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.5208168Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.9876601Z Collecting pydantic-core==2.46.4 (from pydantic)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:06.9905823Z   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.0054021Z Collecting typing-extensions>=4.14.1 (from pydantic)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.0082453Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.0192418Z Collecting typing-inspection>=0.4.2 (from pydantic)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.0217712Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.1780649Z Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.1804385Z   Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.1990362Z Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.8.0->typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2021189Z   Downloading pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2155916Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2183696Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2251080Z Downloading typer-0.27.1-py3-none-any.whl (122 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2306605Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2390787Z Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2542205Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 142.0 MB/s  0:00:00
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2568601Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2881319Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 18.6 MB/s  0:00:00
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2905650Z Downloading python_frontmatter-1.3.0-py3-none-any.whl (10 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.2955505Z Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.4141449Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 141.2 MB/s  0:00:00
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.4169603Z Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.6998856Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 124.8 MB/s  0:00:00
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7028244Z Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7075277Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7118132Z Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7168230Z Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7277181Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 105.4 MB/s  0:00:00
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7300266Z Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7345393Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7387541Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7428699Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.7470656Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:07.8538981Z Installing collected packages: typing-extensions, shellingham, pyyaml, pygments, numpy, mdurl, annotated-types, annotated-doc, typing-inspection, scipy, python-frontmatter, pydantic-core, markdown-it-py, rich, pydantic, typer
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:14.4848258Z
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:14.4871649Z
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:14.4873345Z Successfully installed annotated-doc-0.0.5 annotated-types-0.8.0 markdown-it-py-4.2.0 mdurl-0.1.2 numpy-2.5.2 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 python-frontmatter-1.3.0 pyyaml-6.0.3 rich-15.0.0 scipy-1.18.0 shellingham-1.5.4 typer-0.27.1 typing-extensions-4.16.0 typing-inspection-0.4.4
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:14.4874829Z [notice] A new release of pip is available: 26.1.2 -> 26.2.1
+refresh	Install lightweight scenario dependencies	2026-08-13T11:32:14.4875278Z [notice] To update, run: pip install --upgrade pip
+refresh	Capture pre-refresh ledger state	﻿2026-08-13T11:32:14.5680607Z ##[group]Run echo "SCENARIO_BEFORE_COUNT=$(find data/scenarios/archive -maxdepth 1 -type f -name '*.json' | wc -l)" >> "$GITHUB_ENV"
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5681368Z ^[[36;1mecho "SCENARIO_BEFORE_COUNT=$(find data/scenarios/archive -maxdepth 1 -type f -name '*.json' | wc -l)" >> "$GITHUB_ENV"^[[0m
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5682088Z ^[[36;1mecho "SCENARIO_BEFORE_ASOF=$(python -c "import json; print(json.load(open('data/scenarios/nasdaq_latest.json', encoding='utf-8'))['asof'])")" >> "$GITHUB_ENV"^[[0m
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5723064Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5723350Z env:
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5723568Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5723901Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5724221Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5724510Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5724798Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5725134Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Capture pre-refresh ledger state	2026-08-13T11:32:14.5725542Z ##[endgroup]
+refresh	Refresh NASDAQ scenario snapshot	﻿2026-08-13T11:32:14.6031290Z ##[group]Run cd src && python -m ai_fc scenario
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6031628Z ^[[36;1mcd src && python -m ai_fc scenario^[[0m
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6071453Z shell: /usr/bin/bash -e {0}
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6071660Z env:
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6071880Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6072227Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6072744Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6073044Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6073334Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6073623Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6073879Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6074069Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:14.6074264Z ##[endgroup]
+refresh	Refresh NASDAQ scenario snapshot	2026-08-13T11:32:15.8492620Z 변경 없음: data/scenarios/nasdaq_latest.json · 시장 기준 2026-08-12 · S1/S2/S3 92/1/7%
+refresh	Refresh cross-asset transmission snapshot	﻿2026-08-13T11:32:15.8872894Z ##[group]Run cd src && python -m ai_fc cross-asset
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8873409Z ^[[36;1mcd src && python -m ai_fc cross-asset^[[0m
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8912237Z shell: /usr/bin/bash -e {0}
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8912601Z env:
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8912831Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8913194Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8913522Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8913821Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8914117Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8914406Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8914665Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8914854Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:32:15.8915070Z ##[endgroup]
+refresh	Refresh cross-asset transmission snapshot	2026-08-13T11:33:29.2466412Z 갱신: data/cross_asset/cross_asset_latest.json · 공통 시장 기준 2026-08-12 · 60일 corr BTC/NDX 0.443 · O/NDX -0.461
+refresh	Refresh weekly tracker and liquidity snapshots	﻿2026-08-13T11:33:29.2881522Z ##[group]Run cd src && python -m ai_fc market-extensions
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2881853Z ^[[36;1mcd src && python -m ai_fc market-extensions^[[0m
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2921045Z shell: /usr/bin/bash -e {0}
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2921252Z env:
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2921463Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2921802Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2922148Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2922650Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2922940Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2923225Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2923478Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2923681Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.2923876Z ##[endgroup]
+refresh	Refresh weekly tracker and liquidity snapshots	2026-08-13T11:33:29.5203469Z 시장 확장 기준 2026-08-07 · tracker 7/9 신호 · liquidity zone contraction · probability=표시 안 함
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	﻿2026-08-13T11:33:29.5557447Z ##[group]Run cd src
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5557804Z ^[[36;1mcd src^[[0m
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5558135Z ^[[36;1mpython -m ai_fc scenario-v5-2-build --force^[[0m
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5558622Z ^[[36;1mpython -m ai_fc scenario-v5-2-verify --replay^[[0m
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5614091Z shell: /usr/bin/bash -e {0}
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5614350Z env:
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5614597Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5614952Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5615272Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5615568Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5615859Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5616392Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5616646Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5616833Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:33:29.5617086Z ##[endgroup]
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:01.2483905Z updated: data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json | model=93f4887aa40287db5e0c07ab6c34962fa3ec72fdd2a1cfefc4da6a72a8b6f4a7 | P(-10% touch)=0.1662 | RESEARCH CANDIDATE - NOT OFFICIAL - NOT CHAMPION
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8900064Z {
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8900342Z   "ok": true,
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8900524Z   "errors": [],
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8900765Z   "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8901171Z   "model_content_sha256": "93f4887aa40287db5e0c07ab6c34962fa3ec72fdd2a1cfefc4da6a72a8b6f4a7",
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8905424Z   "replay_checked": true,
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8905811Z   "path": "data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json"
+refresh	Rebuild and replay-verify the protected-hash-bound V5.2 candidate	2026-08-13T11:34:32.8906373Z }
+refresh	Audit ledgers and verify archive growth	﻿2026-08-13T11:34:32.9750292Z ##[group]Run (cd src && python -m ai_fc audit-ledgers)
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9750619Z ^[[36;1m(cd src && python -m ai_fc audit-ledgers)^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9750856Z ^[[36;1mpython - <<'PY'^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9751034Z ^[[36;1mimport json, os^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9751214Z ^[[36;1mfrom pathlib import Path^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9751575Z ^[[36;1mlatest = json.loads(Path('data/scenarios/nasdaq_latest.json').read_text(encoding='utf-8'))['asof']^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9752041Z ^[[36;1mcount = len(list(Path('data/scenarios/archive').glob('*.json')))^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9752593Z ^[[36;1mbefore_asof = os.environ['SCENARIO_BEFORE_ASOF']^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9752899Z ^[[36;1mbefore_count = int(os.environ['SCENARIO_BEFORE_COUNT'])^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9753205Z ^[[36;1mif latest != before_asof and count <= before_count:^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9753605Z ^[[36;1m    raise SystemExit(f'new asof {latest} did not increase archive count ({before_count} -> {count})')^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9754093Z ^[[36;1mprint(f'scenario ledger self-check: {before_asof}/{before_count} -> {latest}/{count}')^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9754450Z ^[[36;1mPY^[[0m
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9792842Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9793108Z env:
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9793320Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9793649Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9793970Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9794254Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9794537Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9794818Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9795069Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9795253Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:32.9795446Z ##[endgroup]
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:33.3508572Z ledger audit: accumulating=27 stalled=2 inactive=1 violation=0 planned=3
+refresh	Audit ledgers and verify archive growth	2026-08-13T11:34:33.4020315Z scenario ledger self-check: 2026-08-12/15 -> 2026-08-12/15
+refresh	Commit new completed-market-day snapshots	﻿2026-08-13T11:34:33.4076587Z ##[group]Run git config user.name "github-actions[bot]"
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4076926Z ^[[36;1mgit config user.name "github-actions[bot]"^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4077266Z ^[[36;1mgit config user.email "41898282+github-actions[bot]@users.noreply.github.com"^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4077599Z ^[[36;1mgit add data/scenarios data/cross_asset^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4078009Z ^[[36;1mgit add docs/generated/ledger_audit.json docs/generated/ledger_audit.md docs/generated/ledger_manifest.json^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4078531Z ^[[36;1mfor optional_dir in data/signals data/liquidity data/realty_income data/rate_events; do^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4078886Z ^[[36;1m  if [ -d "$optional_dir" ]; then^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4079107Z ^[[36;1m    git add "$optional_dir"^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4079301Z ^[[36;1m  fi^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4079620Z ^[[36;1mdone^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4079789Z ^[[36;1mif git diff --cached --quiet; then^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4080062Z ^[[36;1m  echo "No new completed market day; nothing to commit."^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4080337Z ^[[36;1m  exit 0^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4080488Z ^[[36;1mfi^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4080863Z ^[[36;1masof="$(python -c "import json; print(json.load(open('data/scenarios/nasdaq_latest.json', encoding='utf-8'))['asof'])")"^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4081345Z ^[[36;1mgit commit -m "data: refresh Nasdaq scenario ${asof}"^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4081594Z ^[[36;1mgit push^[[0m
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4120035Z shell: /usr/bin/bash --noprofile --norc -e -o pipefail {0}
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4120307Z env:
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4120521Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4120851Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4121168Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4121486Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4121774Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4122061Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4122461Z   SCENARIO_BEFORE_COUNT: 15
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4122652Z   SCENARIO_BEFORE_ASOF: 2026-08-12
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.4122851Z ##[endgroup]
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7131211Z [main 42d5c3d] data: refresh Nasdaq scenario 2026-08-12
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7131722Z  12 files changed, 4773 insertions(+), 965 deletions(-)
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7132018Z  create mode 100644 data/cross_asset/archive/2026-08-12.json
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7132555Z  create mode 100644 data/cross_asset/receipts/2026-08-12_415fe0ffebd3.json
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7132915Z  create mode 100644 data/rate_events/archive/2026-08-12.json
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:33.7133240Z  create mode 100644 data/realty_income/rate_sensitivity_archive/2026-08-12.json
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:34.9678906Z To https://github.com/Sung-JinPark/Jin-s-investing-prediction
+refresh	Commit new completed-market-day snapshots	2026-08-13T11:34:34.9679464Z    5270f63..42d5c3d  main -> main
+refresh	Post Run actions/setup-python@v5	﻿2026-08-13T11:34:34.9805468Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:34:34.9806399Z Post job cleanup.
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:34:35.0735327Z (node:2226) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+refresh	Post Run actions/setup-python@v5	2026-08-13T11:34:35.0735985Z (Use `node --trace-deprecation ...` to show where the warning was created)
+refresh	Post Run actions/checkout@v4	﻿2026-08-13T11:34:35.0902688Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.0903632Z Post job cleanup.
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1677244Z [command]/usr/bin/git version
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1716674Z git version 2.54.0
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1751637Z Temporarily overriding HOME='/home/runner/work/_temp/2156d860-981b-4a7e-ab0e-273877008573' before making global git config changes
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1753142Z Adding repository directory to the temporary git global config as a safe directory
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1756816Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1803682Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.1834538Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2055044Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2083857Z http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2101324Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2131762Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2367701Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+refresh	Post Run actions/checkout@v4	2026-08-13T11:34:35.2406121Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+refresh	Complete job	﻿2026-08-13T11:34:35.2745947Z Cleaning up orphan processes
+refresh	Complete job	2026-08-13T11:34:35.2974076Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
