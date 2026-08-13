@@ -11,6 +11,7 @@ from .ai_capital_cycle import validate_ai_regime
 from .scenario import ScenarioError, validate_scenario
 from .scenario_v4_shadow import ScenarioV4ShadowError, validate_shadow_payload
 from .statistics_lab import StatisticsLabError, validate_statistics_lab
+from .multi_year_stress import MultiYearStressError, validate_multi_year_stress
 from .market_extensions import (
     MarketExtensionError,
     validate_liquidity,
@@ -46,6 +47,7 @@ V2_KEYS = {
     "band_calibration": dict,
     "liquidity": dict,
     "statistics_lab": dict,
+    "multi_year_stress": dict,
     "ai_regime": dict,
     "o_entry_cohort": dict,
     "method_changes": list,
@@ -189,6 +191,20 @@ def schema() -> dict[str, Any]:
             "sources": {"type": "array"},
         },
     }
+    properties["multi_year_stress"] = {
+        "type": "object",
+        "required": [
+            "schema_version", "status", "probability_space", "model_use",
+            "official_forecast_input",
+        ],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["ok", "blocked"]},
+            "probability_space": {"const": "reference_only"},
+            "model_use": {"const": False},
+            "official_forecast_input": {"const": False},
+        },
+    }
     properties["o_entry_cohort"] = {
         "type": "object",
         "required": ["status", "probability_space", "entry_state_rules_registered"],
@@ -257,6 +273,12 @@ def validate(model: dict[str, Any]) -> list[str]:
             validate_statistics_lab(statistics_lab)
         except (StatisticsLabError, KeyError, TypeError, ValueError) as exc:
             errors.append(f"statistics_lab contract violation: {exc}")
+    multi_year_stress = model.get("multi_year_stress")
+    if isinstance(multi_year_stress, dict):
+        try:
+            validate_multi_year_stress(multi_year_stress)
+        except (MultiYearStressError, KeyError, TypeError, ValueError) as exc:
+            errors.append(f"multi_year_stress contract violation: {exc}")
     scenario = model.get("scenario")
     if isinstance(scenario, dict):
         try:

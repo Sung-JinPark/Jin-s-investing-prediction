@@ -10,7 +10,7 @@ import platform
 import subprocess
 import tempfile
 from copy import deepcopy
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -575,7 +575,7 @@ def verify_candidate(root: Path, path: Path | None = None, *, replay: bool = Tru
 
 def _sample_indexes(
     length: int, step: int = 5, *, near_term_length: int = 110,
-    long_term_step: int = 20,
+    long_term_step: int = 20, dates: list[str] | None = None,
 ) -> list[int]:
     """Keep weekly path shape in the bounded dashboard projection.
 
@@ -595,6 +595,37 @@ def _sample_indexes(
     indexes.extend(range(dense_end, length, long_term_step))
     if indexes[-1] != length - 1:
         indexes.append(length - 1)
+    if dates is not None:
+        if len(dates) != length:
+            raise ValueError("dashboard projection dates must match path length")
+        start = date.fromisoformat(dates[0])
+        # Preserve the exact calendar controls used by the customer chart without
+        # adding payload points: replace the nearest weekly coordinate with the
+        # last trading day on or before the 1M/3M target.
+        milestones: list[int] = []
+        for month_delta in (1, 3):
+            absolute = start.year * 12 + start.month - 1 + month_delta
+            day = min(start.day, 28)
+            target = date(absolute // 12, absolute % 12 + 1, day)
+            milestones.append(max(
+                (index for index, value in enumerate(dates)
+                 if date.fromisoformat(value) <= target),
+                default=0,
+            ))
+        milestones.insert(1, max(
+            (index for index, value in enumerate(dates)
+             if date.fromisoformat(value) <= start + timedelta(days=90)),
+            default=0,
+        ))
+        replaced: set[int] = set()
+        for milestone in milestones:
+            nearest = min(
+                (index for index in range(len(indexes)) if index not in replaced),
+                key=lambda index: abs(indexes[index] - milestone),
+            )
+            indexes[nearest] = milestone
+            replaced.add(nearest)
+        indexes = sorted(set(indexes))
     return indexes
 
 
@@ -610,6 +641,55 @@ def _sample_bundle(bundle: dict[str, Any], indexes: list[int]) -> dict[str, Any]
         ],
         "realism_gate_pass": bundle["realism_gate_pass"],
     }
+
+
+def _refine_near_term_shape_indexes(
+    indexes: list[int], dates: list[str], scenarios: dict[str, Any],
+) -> list[int]:
+    """Move, but never add, near-term coordinates to retain genuine p50 turns."""
+    start = date.fromisoformat(dates[0])
+    end = max(
+        index for index, value in enumerate(dates)
+        if date.fromisoformat(value) <= start + timedelta(days=90)
+    )
+    selected = {index for index in indexes if index <= end}
+    fixed = {0, end, *[index for index in selected if index % 5]}
+    keys = tuple(key for key in ("S1", "S2", "S3") if key in scenarios)
+
+    def runs(key: str, sample: set[int]) -> int:
+        values = [scenarios[key]["bands"]["p50"][index] for index in sorted(sample)]
+        directions: list[int] = []
+        for left, right in zip(values, values[1:]):
+            direction = 1 if right > left else -1 if right < left else 0
+            if direction and (not directions or directions[-1] != direction):
+                directions.append(direction)
+        return len(directions)
+
+    def score(sample: set[int]) -> tuple[int, int]:
+        counts = [runs(key, sample) for key in keys]
+        return min(counts, default=0), sum(counts)
+
+    for _ in range(len(selected)):
+        current = score(selected)
+        best: tuple[tuple[int, int], int, int, set[int]] | None = None
+        for removed in sorted(selected - fixed):
+            for added in range(1, end):
+                if added in selected:
+                    continue
+                candidate = (selected - {removed}) | {added}
+                ordered = sorted(candidate)
+                if max(right - left for left, right in zip(ordered, ordered[1:])) > 7:
+                    continue
+                candidate_score = score(candidate)
+                if candidate_score <= current:
+                    continue
+                option = (candidate_score, -removed, -added, candidate)
+                if best is None or option[:3] > best[:3]:
+                    best = option
+        if best is None:
+            break
+        selected = best[3]
+    return sorted(selected | {index for index in indexes if index > end})
 
 
 def _promotion_disclosure(root: Path, payload: dict[str, Any]) -> dict[str, Any]:
@@ -714,7 +794,10 @@ def dashboard_projection(
             },
         }
     dates = payload["distribution"]["dates"]
-    indexes = _sample_indexes(len(dates))
+    indexes = _sample_indexes(len(dates), dates=dates)
+    indexes = _refine_near_term_shape_indexes(
+        indexes, dates, payload["conditional_small_multiples"]["scenarios"],
+    )
     generator = payload["model"]["generator_audit"]
     engine_by_scenario = {
         "S1": "S1_dotcom_easing_multilayer",

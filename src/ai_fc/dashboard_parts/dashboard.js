@@ -1010,7 +1010,9 @@ function statisticsValue(unit,value){
   if(unit==='count')return `${Math.round(n).toLocaleString('ko-KR')}건`;
   if(unit==='multiple')return `${n.toFixed(1)}×`;
   if(unit==='cycle_start_100')return `${n.toFixed(0)}`;
-  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent')return `${n>=0?'+':''}${n.toFixed(1)}%`;
+  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value')return `${n>=0?'+':''}${n.toFixed(1)}%`;
+  if(unit==='percentage_point_change')return `${n>=0?'+':''}${n.toFixed(1)}%p`;
+  if(unit==='neutral_line_distance')return `${n>=0?'+':''}${n.toFixed(1)}p`;
   if(unit==='standard_deviation_index')return `${n>=0?'+':''}${n.toFixed(2)}`;
   return n.toFixed(1);
 }
@@ -1168,13 +1170,15 @@ async function route(){
     (!arg?.modelView&&!arg?.lookup&&!arg?.lookupOverlay&&displayPromotionActive)||
     ['history','cross-asset','ai-regime','liquidity'].includes(arg?.lab)
   );
-  if(researchPathsRequested&&DATA?.scenario_v5_2?.deferred_paths?.required&&!DATA.scenario_v5_2.deferred_paths.loaded){
+  const routeDataRequested=researchPathsRequested||v==='statistics';
+  if(routeDataRequested&&DATA?.scenario_v5_2?.deferred_paths?.required&&!DATA.scenario_v5_2.deferred_paths.loaded){
     const summary=DATA.scenario_v5_2;
-    renderFuturePathsLoadState(summary);
+    if(researchPathsRequested)renderFuturePathsLoadState(summary);
     try{await ensureFuturePaths();}
     catch(error){
       if(epoch!==ROUTE_EPOCH)return;
-      if(arg?.modelView==='champion')DATA.future_paths_error=String(error?.message||error);
+      if(v==='statistics'){DATA.statistics_lab={status:'blocked',reason:String(error?.message||error),charts:[],sources:[]};}
+      else if(arg?.modelView==='champion')DATA.future_paths_error=String(error?.message||error);
       else{renderFuturePathsLoadState(summary,error);return;}
     }
     if(epoch!==ROUTE_EPOCH)return;
@@ -1806,6 +1810,7 @@ function crossAssetPanel(){
     <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> O 가격선과 총수익 proxy는 2001-03~2006-03 실측입니다. 반사실 계산은 Bitcoin 선에만 적용합니다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
     <p class="chart-note"><strong>해석:</strong> 2001-03 이후 실제 NASDAQ의 추가 하락·회복과 O의 가격·배당재투자 proxy를 그대로 보존했습니다. Bitcoin 선은 이 실측 NASDAQ 월수익에 선택한 현대 beta를 기계적으로 적용한 경우의 수일 뿐, 당시 존재했던 가격이나 다음 AI 버블 경로를 뜻하지 않습니다.</p>
+    ${DATA.multi_year_stress?.presentation_html||''}
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
   w._crossModel=model;w._defaultScenario=defaultScenario;

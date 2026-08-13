@@ -33,7 +33,7 @@ FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 FUTURE_DEFERRED_KEYS = (
     "scenario_v5_2", "scenario_v4_shadow", "cross_asset", "era_analog",
-    "liquidity", "ai_regime",
+    "liquidity", "ai_regime", "multi_year_stress", "statistics_lab",
 )
 
 # Repeated immutable forecast headings dominate the self-contained Pages payload.
@@ -333,6 +333,8 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
     from .cross_asset import load_cross_asset, load_cross_asset_history
     cross_asset = load_cross_asset(root)
     cross_asset_history = load_cross_asset_history(root)
+    from .multi_year_stress import build_multi_year_stress
+    multi_year_stress = build_multi_year_stress(cross_asset)
     from .market_extensions import load_liquidity, load_scenario_tracker
     from .statistics_lab import statistics_dashboard_projection
     from .ai_capital_cycle import load_ai_regime
@@ -536,6 +538,7 @@ def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
         "band_calibration": band_calibration,
         "liquidity": liquidity,
         "statistics_lab": statistics_lab,
+        "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
         "source_monitoring": {"defillama_stablecoins": defillama_monitor},
@@ -762,9 +765,9 @@ def _compact_static_bundle(html: str) -> str:
             if stripped.startswith("//"):
                 continue
             lines.append(stripped)
-        # The authored bundle uses explicit semicolons and has no ASI-sensitive bare
-        # return/throw lines (covered by the UI contract test), so line joins are safe.
-        return "<script>" + "".join(lines) + "</script>"
+        # Keep one separator between authored lines.  Removing it can merge valid
+        # tokens such as ``else`` + ``if`` into the invalid identifier ``elseif``.
+        return "<script>" + " ".join(lines) + "</script>"
 
     html = re.sub(r"<style>(.*?)</style>", compact_style, html, flags=re.S)
     html = re.sub(r"<script>(.*?)</script>", compact_script, html, flags=re.S)

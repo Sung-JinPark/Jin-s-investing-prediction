@@ -28,6 +28,7 @@
     "band_calibration",
     "liquidity",
     "statistics_lab",
+    "multi_year_stress",
     "ai_regime",
     "o_entry_cohort",
     "method_changes",
@@ -331,6 +332,36 @@
         },
         "sources": {
           "type": "array"
+        }
+      }
+    },
+    "multi_year_stress": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "probability_space",
+        "model_use",
+        "official_forecast_input"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "ok",
+            "blocked"
+          ]
+        },
+        "probability_space": {
+          "const": "reference_only"
+        },
+        "model_use": {
+          "const": false
+        },
+        "official_forecast_input": {
+          "const": false
         }
       }
     },

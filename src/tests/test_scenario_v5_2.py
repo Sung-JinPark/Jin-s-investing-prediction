@@ -614,11 +614,20 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
     source_dates = _candidate()["distribution"]["dates"]
     projected_dates = fresh["distribution"]["dates"]
     dense_end = min(len(source_dates), 110)
-    expected_indexes = list(range(0, dense_end, 5))
-    expected_indexes.extend(range(dense_end, len(source_dates), 20))
-    if expected_indexes[-1] != len(source_dates) - 1:
-        expected_indexes.append(len(source_dates) - 1)
-    assert projected_dates == [source_dates[index] for index in expected_indexes]
+    source_index = {value: index for index, value in enumerate(source_dates)}
+    projected_indexes = [source_index[value] for value in projected_dates]
+    assert projected_indexes == sorted(set(projected_indexes))
+    assert projected_indexes[0] == 0
+    assert projected_indexes[-1] == len(source_dates) - 1
+    shape_end = (
+        datetime.fromisoformat(source_dates[0]) + timedelta(days=90)
+    ).date().isoformat()
+    near_term_indexes = [
+        index for index in projected_indexes if source_dates[index] <= shape_end
+    ]
+    assert max(
+        right - left for left, right in zip(near_term_indexes, near_term_indexes[1:])
+    ) <= 7
     assert len(projected_dates) < len(source_dates)
     assert len([date for date in projected_dates if date <= "2026-11-10"]) >= 13
     for scenario in ("S1", "S2", "S3"):
