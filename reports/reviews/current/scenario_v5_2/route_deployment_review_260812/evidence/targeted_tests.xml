@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="3" skipped="0" tests="69" time="24.234" timestamp="2026-08-12T13:53:53.244712+09:00" hostname="BOOK-1JSJ1G73I3"><testcase classname="src.tests.test_dashboard" name="test_read_model_shape" time="1.118" /><testcase classname="src.tests.test_dashboard" name="test_forecast_body_dictionary_round_trip" time="0.005" /><testcase classname="src.tests.test_dashboard" name="test_template_self_contained" time="0.068" /><testcase classname="src.tests.test_dashboard" name="test_template_parts_bundle_and_budget" time="0.053" /><testcase classname="src.tests.test_dashboard" name="test_ui_contract" time="0.013" /><testcase classname="src.tests.test_dashboard" name="test_u1a_five_section_information_architecture_contract" time="0.012" /><testcase classname="src.tests.test_dashboard" name="test_u1a_route_and_home_render_evidence" time="0.003" /><testcase classname="src.tests.test_dashboard" name="test_u1b_future_overlay_unique_questions_and_compare_contract" time="0.011" /><testcase classname="src.tests.test_dashboard" name="test_u1b_browser_regression_evidence" time="0.003" /><testcase classname="src.tests.test_dashboard" name="test_u1c_split_surfaces_event_summary_and_glossary_contract" time="0.010" /><testcase classname="src.tests.test_dashboard" name="test_workspace_utility_contract" time="0.030" /><testcase classname="src.tests.test_dashboard" name="test_forecast_lookup_ui_contract" time="0.015" /><testcase classname="src.tests.test_dashboard" name="test_future_default_uses_independent_paths_and_preserves_champion_route" time="0.010" /><testcase classname="src.tests.test_dashboard" name="test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels" time="0.011" /><testcase classname="src.tests.test_dashboard" name="test_v53_honesty_surfaces_survive_without_deletion" time="1.473" /><testcase classname="src.tests.test_dashboard" name="test_v53_legacy_hash_redirect_matrix_is_complete" time="0.003" /><testcase classname="src.tests.test_dashboard" name="test_u1d_mobile_layout_contract" time="0.009" /><testcase classname="src.tests.test_dashboard" name="test_u1d_mobile_layout_regression_evidence" time="0.003" /><testcase classname="src.tests.test_dashboard" name="test_u1c_browser_regression_evidence" time="0.002" /><testcase classname="src.tests.test_dashboard" name="test_data_trust_pipeline_is_visual_plain_language_and_live" time="0.008" /><testcase classname="src.tests.test_dashboard" name="test_liquidity_return_legends_use_separate_lanes" time="0.005" /><testcase classname="src.tests.test_dashboard" name="test_decision_journal_share_and_contrast_contract" time="0.010" /><testcase classname="src.tests.test_dashboard" name="test_round2_cross_asset_explanations_and_method_event_contract" time="0.007" /><testcase classname="src.tests.test_dashboard" name="test_future_chart_restores_innovation_reference_and_cross_asset_five_year_view" time="0.006" /><testcase classname="src.tests.test_dashboard" name="test_structural_calibration_selection_invariance_is_visible" time="0.006" /><testcase classname="src.tests.test_dashboard" name="test_render_embed_vs_fetch" time="1.353" /><testcase classname="src.tests.test_dashboard" name="test_repository_snapshot_stays_within_dashboard_budget" time="2.671"><failure message="ValueError: dashboard raw size budget exceeded: 1025511 &gt; 1025000">tmp_path = WindowsPath('C:/Users/91ssj/AppData/Local/Temp/pytest-of-91ssj/pytest-1195/test_repository_snapshot_stays0')
+
+    def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -&gt; None:
+        """실제 누적 원장으로도 Pages 산출물의 고정 용량 계약을 지킨다."""
+        conn = ingest.connect(tmp_path / "index.db")
+        ingest.sync(conn, dashboard.config.ROOT)
+        model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+        assert model["o_entry_cohort"]["entry_count"] == 840
+        assert "entries" not in model["o_entry_cohort"]
+        assert len(model["o_entry_cohort"]["summary"]) == 15
+        if model["scenario_v5"]["runtime_gate"]["display_eligible"] is False:
+            assert "conditional_distribution" not in model["scenario_v5"]
+&gt;       html = dashboard.render_html(model, mode="embed")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+src\tests\test_dashboard.py:752: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+read_model = {'ai_regime': {'asof': '2026-08-04', 'backfill_vintage_label': 'reconstructed', 'company_coverage': [{'company': 'MSFT.../cross_asset/archive/2026-07-31.json', 'asof': '2026-07-31', 'available': True, 'correction_id': None, ...}, ...], ...}
+mode = 'embed'
+
+    def render_html(read_model: dict, mode: str = "embed") -&gt; str:
+        shell = _compact_static_bundle(load_template())
+        scenario = read_model.get("scenario") or {}
+        asof = scenario.get("asof") or "latest registered snapshot"
+        og_title = f"Jin's Investing Prediction · {asof}"
+        og_description = "조건부 시장 시나리오를 불변 기록과 함께 읽습니다. 단일 가격 제시·투자자문이 아닙니다."
+        og_image = "https://sung-jinpark.github.io/Jin-s-investing-prediction/og/market-snapshot.png"
+        og_meta = "\n".join((
+            f'&lt;meta property="og:title" content="{html_lib.escape(og_title, quote=True)}"&gt;',
+            f'&lt;meta property="og:description" content="{html_lib.escape(og_description, quote=True)}"&gt;',
+            '&lt;meta property="og:type" content="website"&gt;',
+            '&lt;meta property="og:url" content="https://sung-jinpark.github.io/Jin-s-investing-prediction/"&gt;',
+            f'&lt;meta property="og:image" content="{og_image}"&gt;',
+            '&lt;meta property="og:image:width" content="1200"&gt;',
+            '&lt;meta property="og:image:height" content="630"&gt;',
+            '&lt;meta name="twitter:card" content="summary_large_image"&gt;',
+            f'&lt;meta name="twitter:title" content="{html_lib.escape(og_title, quote=True)}"&gt;',
+            f'&lt;meta name="twitter:description" content="{html_lib.escape(og_description, quote=True)}"&gt;',
+            f'&lt;meta name="twitter:image" content="{og_image}"&gt;',
+        ))
+        shell = shell.replace("&lt;!--OG_META--&gt;", og_meta)
+        if mode == "embed":
+            # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
+            # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
+            blob = json.dumps(
+                read_model, ensure_ascii=False, default=str, separators=(",", ":")
+            )
+            data_script = f"&lt;script&gt;window.__DATA__ = {blob};&lt;/script&gt;"
+        elif mode == "pages":
+            data_script = '&lt;script&gt;window.__DATA_URL__ = "data.json";&lt;/script&gt;'
+        elif mode == "fetch":
+            data_script = '&lt;script&gt;window.__DATA_URL__ = "/api/data";&lt;/script&gt;'
+        else:
+            raise ValueError(f"unknown dashboard render mode: {mode}")
+        html = shell.replace("&lt;!--DATA--&gt;", data_script)
+        if mode == "embed" and len(html.encode("utf-8")) &gt; DASHBOARD_RAW_BUDGET_BYTES:
+&gt;           raise ValueError(
+                f"dashboard raw size budget exceeded: "
+                f"{len(html.encode('utf-8'))} &gt; {DASHBOARD_RAW_BUDGET_BYTES}"
+            )
+E           ValueError: dashboard raw size budget exceeded: 1025511 &gt; 1025000
+
+src\ai_fc\dashboard.py:621: ValueError</failure></testcase><testcase classname="src.tests.test_dashboard" name="test_server_is_read_only" time="0.001" /><testcase classname="src.tests.test_dashboard" name="test_write_dashboard" time="1.562" /><testcase classname="src.tests.test_dashboard" name="test_write_pages" time="1.836" /><testcase classname="src.tests.test_dashboard" name="test_presentation_copy_normalization_preserves_source_and_nested_shape" time="0.001" /><testcase classname="src.tests.test_dashboard" name="test_o_entry_cohort_ui_is_evidence_only" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_review_package_uses_central_review_tree" time="0.001" /><testcase classname="src.tests.test_scenario_v5_2" name="test_candidate_passes_strict_validation_and_sources" time="0.250" /><testcase classname="src.tests.test_scenario_v5_2" name="test_july_jobs_actual_was_not_available_to_v5_1" time="0.134" /><testcase classname="src.tests.test_scenario_v5_2" name="test_bls_actual_revision_and_participation_contract" time="0.139" /><testcase classname="src.tests.test_scenario_v5_2" name="test_full_fed_target_range_distributions_and_pre_post_moves" time="0.114" /><testcase classname="src.tests.test_scenario_v5_2" name="test_growth_risk_policy_relief_and_attribution_are_separate" time="0.009" /><testcase classname="src.tests.test_scenario_v5_2" name="test_event_day_return_is_anchor_only_and_zero_future_jump" time="0.009" /><testcase classname="src.tests.test_scenario_v5_2" name="test_forecast_anchor_tracks_latest_completed_official_snapshot" time="0.010" /><testcase classname="src.tests.test_scenario_v5_2" name="test_valuation_is_fail_closed_without_vintage_complete_cross_era_history" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_four_ablations_have_quantitative_and_concentrated_results" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_dotcom_weight_is_strongest_in_s1_without_cherry_picking" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_three_scenarios_use_distinct_frozen_database_clusters" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_dotcom_strength_sensitivity_is_monotonic_and_concentrated" time="0.007" /><testcase classname="src.tests.test_scenario_v5_2" name="test_abc_weight_spaces_and_generator_block_provenance_are_separate" time="0.018" /><testcase classname="src.tests.test_scenario_v5_2" name="test_report_only_distinctness_is_measured_without_path_mutation" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_structural_event_adapter_changes_episode_and_duration_selection" time="0.020" /><testcase classname="src.tests.test_scenario_v5_2" name="test_structural_event_ablation_changes_all_three_path_databases" time="0.009" /><testcase classname="src.tests.test_scenario_v5_2" name="test_s2_is_not_an_arithmetic_mean_and_short_horizon_is_visibly_distinct" time="0.007" /><testcase classname="src.tests.test_scenario_v5_2" name="test_generator_dependency_cap_blocks_above_060_outside_shadow" time="0.688" /><testcase classname="src.tests.test_scenario_v5_2" name="test_event_learning_is_append_only_pit_safe_and_revision_aware" time="0.014" /><testcase classname="src.tests.test_scenario_v5_2" name="test_event_learning_rejects_future_vintage_and_bad_correction" time="0.010" /><testcase classname="src.tests.test_scenario_v5_2" name="test_distribution_spaces_stay_separate_while_research_ui_is_shared_scale" time="0.027" /><testcase classname="src.tests.test_scenario_v5_2" name="test_p50_has_no_fake_wiggle_and_bundle_is_actual_members" time="0.007" /><testcase classname="src.tests.test_scenario_v5_2" name="test_october_2_is_not_an_exact_date_forecast" time="0.007" /><testcase classname="src.tests.test_scenario_v5_2" name="test_dependency_cap_circularity_and_2027_distinctness_gates" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_pre_post_comparison_includes_paths_probabilities_and_timing" time="0.008" /><testcase classname="src.tests.test_scenario_v5_2" name="test_seed_path_count_and_independent_phase_sampling_primitives" time="4.326" /><testcase classname="src.tests.test_scenario_v5_2" name="test_dashboard_projection_fresh_and_stale_fallback" time="0.498"><failure message="AssertionError: assert 'degraded' == 'stale_or_invalid'&#10;  &#10;  - stale_or_invalid&#10;  + degraded">def test_dashboard_projection_fresh_and_stale_fallback() -&gt; None:
+        fresh = dashboard_projection(
+            ROOT, datetime.fromisoformat("2026-08-11T04:00:00+00:00"),
+            maximum_age_trading_days=1,
+        )
+        assert fresh["runtime_gate"]["display_eligible"] is True
+        assert fresh["status"] == "degraded"
+        assert fresh["governance"]["champion_eligible"] is False
+        assert fresh["governance"]["default_surface"] == "research_only_explicit_route"
+        assert fresh["governance"]["gates"]["direct_event_observations"] == {
+            "observations": 1, "minimum": 60, "pass": False,
+        }
+        calibration_rows = (
+            ROOT / "data/scenarios/band_calibration.csv"
+        ).read_text(encoding="utf-8").splitlines()[1:]
+        assert fresh["governance"]["gates"]["band_calibration"]["observations"] == \
+            len(calibration_rows)
+        assert fresh["governance"]["gates"]["human_approval"]["approval_run_id"] is None
+        assert fresh["governance"]["gates"]["scenario_native_origin_minimums"]["pass"] is False
+        assert fresh["governance"]["gates"]["empirical_kernel_calibration"]["pass"] is False
+        s2 = fresh["model"]["cluster_disclosure"]["S2"]
+        assert s2["source_group"] == "non_crisis_soft_landing_episode_db"
+        assert s2["source_origin_count"] &gt; 0
+        assert s2["selected_cluster_origin_count"] &gt; 0
+        assert s2["simulation_path_count"] == 3000
+        assert s2["generator"] == "s2_empirical_variable_episode_sampler_v3"
+        assert s2["fixed_phase_template"] is False
+        assert s2["phase_repetition_gate"]["gate_pass"] is True
+        assert len(s2["residual_pool_sha256"]) == 64
+        assert fresh["model"]["database_layer_gate"][
+            "episode_interval_overlap_count"
+        ] == 0
+        assert fresh["model"]["database_layer_gate"][
+            "feature_schemas_distinct"
+        ] is True
+        assert fresh["model"]["database_layer_gate"][
+            "unique_residual_pool_count"
+        ] == 3
+        dotcom = fresh["dotcom_scenario_weighting"]
+        assert dotcom["dependency_cap"] == .60
+        assert dotcom["requested_sensitivity_policy"]["0.80"] == \
+            "blocked_above_dependency_cap"
+        source_dates = _candidate()["distribution"]["dates"]
+        projected_dates = fresh["distribution"]["dates"]
+        dense_end = min(len(source_dates), 110)
+        expected_indexes = list(range(0, dense_end, 5))
+        expected_indexes.extend(range(dense_end, len(source_dates), 20))
+        if expected_indexes[-1] != len(source_dates) - 1:
+            expected_indexes.append(len(source_dates) - 1)
+        assert projected_dates == [source_dates[index] for index in expected_indexes]
+        assert len(projected_dates) &lt; len(source_dates)
+        assert len([date for date in projected_dates if date &lt;= "2026-11-10"]) &gt;= 13
+        for scenario in ("S1", "S2", "S3"):
+            assert len(fresh["conditional_small_multiples"]["scenarios"][scenario][
+                "bands"
+            ]["p50"]) == len(projected_dates)
+        stale = dashboard_projection(
+            ROOT, datetime.fromisoformat("2026-08-13T04:00:00+00:00"),
+            maximum_age_trading_days=1,
+        )
+&gt;       assert stale["status"] == "stale_or_invalid"
+E       AssertionError: assert 'degraded' == 'stale_or_invalid'
+E         
+E         - stale_or_invalid
+E         + degraded
+
+src\tests\test_scenario_v5_2.py:626: AssertionError</failure></testcase><testcase classname="src.tests.test_scenario_v5_2" name="test_repository_dashboard_routes_v5_2_with_correct_semantics" time="0.005" /><testcase classname="src.tests.test_scenario_v5_2" name="test_pages_rebuilds_when_v5_2_projection_changes" time="0.002" /><testcase classname="src.tests.test_scenario_v5_2" name="test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2" time="0.004" /><testcase classname="src.tests.test_scenario_v5_2" name="test_v52_method_changes_are_append_only_and_disclose_the_default_decision" time="0.012"><failure message="AssertionError: assert 'af81a9988609...c399e8be81bd8' == 'acf91105f215...e885272d86bce'&#10;  &#10;  - acf91105f215ea6f33528068af00cef5ffcfc546f25dedd9603e885272d86bce&#10;  + af81a99886090687ec6b0a4da27c58017837a5bae2a3b01f329c399e8be81bd8">def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() -&gt; None:
+        rows = [json.loads(line) for line in (ROOT / "data/method_changes.jsonl")
+                .read_text(encoding="utf-8").splitlines() if line.strip()]
+        ids = [row["event_id"] for row in rows]
+        introduction = "method:scenario-v5-2-research-surface:2026-08-10"
+        correction = "method:future-default-champion-gate:2026-08-11"
+        assert introduction in ids and correction in ids
+        assert ids.index(introduction) &lt; ids.index(correction)
+        correction_row = next(row for row in rows if row["event_id"] == correction)
+        assert correction_row["supersedes"] == introduction
+        assert "1/60" in correction_row["reason"] and "3/60" in correction_row["reason"]
+        redesign = "method:scenario-v5-2-distinct-path-generators:2026-08-11"
+        assert redesign in ids and ids.index(correction) &lt; ids.index(redesign)
+        redesign_row = next(row for row in rows if row["event_id"] == redesign)
+        assert redesign_row["contract"] == "data/contracts/scenario_v5_2_weights.yaml"
+        assert redesign_row["official_snapshot_overwritten"] is False
+        multilayer = "method:scenario-v5-2-independent-multilayer-db:2026-08-11:r5"
+        assert multilayer in ids
+        multilayer_row = next(row for row in rows if row["event_id"] == multilayer)
+        assert multilayer_row["supersedes"].endswith(":r4")
+        assert multilayer_row["official_snapshot_overwritten"] is False
+        complete = "method:scenario-v5-2-complete-separation-v2:2026-08-11:r7"
+        assert complete in ids and ids.index(multilayer) &lt; ids.index(complete)
+        complete_row = next(row for row in rows if row["event_id"] == complete)
+        assert complete_row["supersedes"].endswith(":r6")
+&gt;       assert complete_row["candidate_model_content_sha256"] == \
+            _candidate()["model_content_sha256"]
+E       AssertionError: assert 'af81a9988609...c399e8be81bd8' == 'acf91105f215...e885272d86bce'
+E         
+E         - acf91105f215ea6f33528068af00cef5ffcfc546f25dedd9603e885272d86bce
+E         + af81a99886090687ec6b0a4da27c58017837a5bae2a3b01f329c399e8be81bd8
+
+src\tests\test_scenario_v5_2.py:706: AssertionError</failure></testcase><testcase classname="src.tests.test_scenario_v5_2" name="test_mutations_fail_probability_dates_circularity_and_distinctness" time="2.424" /><testcase classname="src.tests.test_scenario_v5_2" name="test_protected_snapshot_ledger_and_archive_hashes_are_unchanged" time="0.147" /><testcase classname="src.tests.test_scenario_v5_2" name="test_runtime_protected_gate_allows_append_but_rejects_mutation" time="0.001" /><testcase classname="src.tests.test_scenario_v5_2" name="test_candidate_runtime_gate_uses_append_only_manifest_and_consumed_hashes" time="0.216" /><testcase classname="src.tests.test_scenario_v5_2" name="test_protected_hashes_normalize_git_text_eol_but_keep_ledgers_byte_exact" time="0.030" /></testsuite></testsuites>

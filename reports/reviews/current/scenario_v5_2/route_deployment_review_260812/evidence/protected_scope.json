@@ -1,0 +1,17 @@
+{
+  "comparison": "5dc1e1481bd21ccd2351db172a276178ce8aeb34..3e3578b246da402422d2b5ef9fbf35e949969739",
+  "changed_files": [
+    ".github/workflows/pages.yml",
+    "src/ai_fc/dashboard_parts/dashboard.js",
+    "src/ai_fc/scenario_v5_2/artifact.py",
+    "src/tests/test_dashboard.py",
+    "src/tests/test_scenario_v5_2.py"
+  ],
+  "protected_prefixes_checked": ["data/", "forecasts/", "calibration/", "questions/"],
+  "changed_protected_files": [],
+  "official_snapshot_overwritten": false,
+  "ledger_rows_mutated": false,
+  "archive_files_mutated_by_feature_commits": false,
+  "probability_changed_by_feature_commits": false,
+  "note": "Post-merge data refresh commit 60b4d4d is outside this feature comparison and is disclosed separately."
+}

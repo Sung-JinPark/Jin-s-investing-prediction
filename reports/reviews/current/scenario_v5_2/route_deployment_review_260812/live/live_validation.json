@@ -1,0 +1,22 @@
+{
+  "captured_at": "2026-08-12T04:55:28.107Z",
+  "url": "https://sung-jinpark.github.io/Jin-s-investing-prediction/#future",
+  "title": "Jin's Investing Prediction Solution",
+  "h1": "세 가지 시장 경로",
+  "chart_aria": "3개월 S1 S2 S3 통합 로그 스케일 전망",
+  "scale": "log",
+  "history_share": 0.25,
+  "forecast_share": 0.75,
+  "navigation": [
+    {"text": "세 가지 경로", "href": "#future", "current": "page"},
+    {"text": "기존 시장 전망", "href": "#future/champion", "current": null}
+  ],
+  "endpoints": ["S1 +13.3%", "S2 -0.3%", "S3 -13.2%"],
+  "scenarios": [
+    {"scenario": "S1", "total_svg_points": 44, "forecast_observations": 14, "direction_changes": 3},
+    {"scenario": "S2", "total_svg_points": 44, "forecast_observations": 14, "direction_changes": 10},
+    {"scenario": "S3", "total_svg_points": 44, "forecast_observations": 14, "direction_changes": 4}
+  ],
+  "capture_method": "live DOM and SVG attribute inspection after network idle",
+  "screenshot_status": "omitted_after_browser_capture_timeout; DOM/SVG assertions retained"
+}

@@ -1,0 +1,31 @@
+{
+  "generated_at": "2026-08-12T13:54:54+09:00",
+  "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+  "candidate_status": "degraded",
+  "candidate_as_of": "2026-08-12T03:32:34+00:00",
+  "candidate_model_content_sha256": "acf91105f215ea6f33528068af00cef5ffcfc546f25dedd9603e885272d86bce",
+  "dotcom_strength_s1": 0.6,
+  "projected_date_count": 36,
+  "near_term_points_through_2026_11_10": 14,
+  "last_date": "2027-12-31",
+  "scenario_point_counts": {"S1": 36, "S2": 36, "S3": 36},
+  "scenario_cohort_weights": {
+    "S1": 0.7491974169248211,
+    "S2": 0.13810959209715884,
+    "S3": 0.11269299097801994
+  },
+  "files": {
+    "static_build/index.html": {
+      "bytes": 555435,
+      "sha256": "2153715f60b9e10a360c1d5091b2681c5caec9544b833751b59e887a12e32cb3"
+    },
+    "static_build/data.json": {
+      "bytes": 470267,
+      "sha256": "05f6911b19aa7996ffcd205fc9ad06077f8441c79b47cf8089e10948d90c9a14"
+    },
+    "source/data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json": {
+      "bytes": 791095,
+      "sha256": "4a5c61bc8ef0ac2b5d2cbff99636db3a9b62f1ccf25561e68cdcbf544cbdc8ad"
+    }
+  }
+}
