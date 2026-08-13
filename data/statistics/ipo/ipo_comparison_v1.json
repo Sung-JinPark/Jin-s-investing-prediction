@@ -94,8 +94,63 @@
       "members": [
         {"name": "OpenAI", "valuation_bn": 852, "source_id": "OPENAI_2026_FUNDING"},
         {"name": "Anthropic", "valuation_bn": 965, "source_id": "ANTHROPIC_2026_SERIES_H"}
+      ]
+    },
+    "listed_ai_beneficiary_watchlist": {
+      "semantics": "existing_listed_ai_beneficiaries_included_in_qualitative_capital_map_not_added_to_ipo_counts",
+      "as_of": "2026-08-13",
+      "members": [
+        {
+          "name": "SK hynix",
+          "ticker": "000660",
+          "market": "KRX",
+          "role": "HBM and full-stack AI memory infrastructure beneficiary",
+          "source_id": "SK_HYNIX_AI_MEMORY_2026"
+        }
+      ]
+    },
+    "global_ai_chip_completed_ipos": {
+      "semantics": "completed_china_and_hong_kong_ai_chip_ipo_watchlist_kept_separate_from_us_ritter_counts",
+      "as_of": "2026-08-13",
+      "members": [
+        {
+          "name": "Horizon Robotics",
+          "ticker": "9660",
+          "market": "HKEX",
+          "listing_date": "2024-10-24",
+          "role": "automotive AI computing platform",
+          "offer_basis_market_value_local_bn": 51.99,
+          "currency": "HKD",
+          "source_id": "HKEX_HORIZON_9660_2024"
+        },
+        {
+          "name": "Black Sesame International",
+          "ticker": "2533",
+          "market": "HKEX",
+          "listing_date": "2024-08-08",
+          "role": "automotive-grade AI computing SoC",
+          "offer_basis_market_value_local_bn": 15.94,
+          "currency": "HKD",
+          "source_id": "HKEX_BLACK_SESAME_2533_2024"
+        },
+        {
+          "name": "Moore Threads",
+          "ticker": "688795",
+          "market": "SSE STAR",
+          "listing_date": "2025-12-05",
+          "role": "general-purpose GPU and AI computing chip",
+          "source_id": "SSE_MOORE_THREADS_688795_2025"
+        },
+        {
+          "name": "MetaX Integrated Circuits",
+          "ticker": "688802",
+          "market": "SSE STAR",
+          "listing_date": "2025-12-17",
+          "role": "GPU and AI computing chip",
+          "source_id": "SSE_METAX_688802_2025"
+        }
       ],
-      "explicit_exclusion": "SK hynix is an existing listed company, not an AI-cycle IPO, and is excluded from IPO totals."
+      "classification_source_id": "SSE_AI_CHIP_COHORT_2026"
     }
   },
   "charts": [
@@ -150,6 +205,35 @@
         {"period": "2024", "label": "Astera · Reddit · Rubrik · Ibotta · Tempus", "value": "광의 5 · 핵심 2"},
         {"period": "2025", "label": "Navan · Circle · CoreWeave · Ambiq · WhiteFiber · Netskope · Via · Figma · Innoscripta · SailPoint", "value": "광의 10 · 핵심 3"},
         {"period": "2026 YTD", "label": "Rank One · Cerebras · VIDA · Csquare · Standard Nuclear", "value": "광의 5 · 핵심 1"}
+      ]
+    },
+    {
+      "id": "global_ai_capital_map",
+      "title": "AI 자본시장 질적 지도",
+      "category": "ipo",
+      "unit": "count",
+      "description": "중국·홍콩의 완료된 AI 칩 IPO 수와 SK하이닉스의 질적 위치를 함께 봅니다.",
+      "caveat": "글로벌 IPO는 미국 집계에 더하지 않으며, SK하이닉스도 IPO 건수에는 넣지 않습니다.",
+      "insight": "2024년 Horizon·Black Sesame, 2025년 Moore Threads·MetaX가 상장했습니다. SK하이닉스는 HBM 핵심 수혜주로 질적 비교에 포함합니다.",
+      "source_ids": ["HKEX_HORIZON_9660_2024", "HKEX_BLACK_SESAME_2533_2024", "SSE_MOORE_THREADS_688795_2025", "SSE_METAX_688802_2025", "SSE_AI_CHIP_COHORT_2026", "SK_HYNIX_AI_MEMORY_2026"],
+      "series": [
+        {
+          "label": "중국·홍콩 AI 칩 IPO",
+          "era": "current",
+          "color": "#ff6a1a",
+          "points": [
+            {"period": 12, "date": "2024-12-31", "value": 2},
+            {"period": 24, "date": "2025-12-31", "value": 2}
+          ]
+        },
+        {
+          "label": "기존 상장 AI 핵심 수혜주",
+          "era": "current",
+          "color": "#28756a",
+          "points": [
+            {"period": 36, "date": "2026-08-13", "value": 1}
+          ]
+        }
       ]
     },
     {
@@ -377,6 +461,24 @@
     },
     {
       "series_id": "ANTHROPIC_2026_SERIES_H", "title": "Anthropic Series H at $965 billion post-money valuation", "provider": "Anthropic", "unit": "private_post_money_valuation", "native_frequency": "event", "source_url": "https://www.anthropic.com/news/series-h", "available_at": "2026-05-28T00:00:00Z", "latest_observation": "2026-05-28", "row_count": 1, "raw_sha256": "3a2c221fcec3f7b70368145f03f82a15c51c4e82d9dd32c37fd37071b06fce2a", "vintage": "canonical_fact_record_reviewed_2026-08-13"
+    },
+    {
+      "series_id": "SK_HYNIX_AI_MEMORY_2026", "title": "SK hynix AI memory role", "provider": "SK hynix", "unit": "company_role_disclosure", "native_frequency": "event", "source_url": "https://news.skhynix.com/en/ai-competition-next-challenge/", "available_at": "2026-07-03T00:00:00Z", "latest_observation": "2026-07-03", "row_count": 1, "raw_sha256": "cb22f61d8c5352b73516a81a5f8baf28f21407a1121048488346a39352372e52", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "HKEX_HORIZON_9660_2024", "title": "Horizon Robotics allotment results", "provider": "HKEX", "unit": "listing_event", "native_frequency": "event", "source_url": "https://www.hkexnews.hk/listedco/listconews/sehk/2024/1023/2024102300943.pdf", "available_at": "2024-10-23T00:00:00Z", "latest_observation": "2024-10-24", "row_count": 1, "raw_sha256": "90983578c7d55c5f0723fa862c45ab7e2dd0999de057d6ded6a26e70c444f882", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "HKEX_BLACK_SESAME_2533_2024", "title": "Black Sesame allotment results", "provider": "HKEX", "unit": "listing_event", "native_frequency": "event", "source_url": "https://www1.hkexnews.hk/listedco/listconews/sehk/2024/0807/2024080700994.pdf", "available_at": "2024-08-07T00:00:00Z", "latest_observation": "2024-08-08", "row_count": 1, "raw_sha256": "94a66f290ddfea5a460b46c50e7cad2d873f69b5faf3d4811ecfe663ac030102", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "SSE_MOORE_THREADS_688795_2025", "title": "Moore Threads listing", "provider": "SSE", "unit": "listing_event", "native_frequency": "event", "source_url": "https://www.sse.com.cn/disclosure/announcement/listing/ipo/c/c_20251204_10800678.shtml", "available_at": "2025-12-04T00:00:00Z", "latest_observation": "2025-12-05", "row_count": 1, "raw_sha256": "8933681cc4b055dbdc2ac14b6a9531ef084688b668fbb049f516d9a1b113a61e", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "SSE_METAX_688802_2025", "title": "MetaX listing", "provider": "SSE", "unit": "listing_event", "native_frequency": "event", "source_url": "https://www.sse.com.cn/disclosure/announcement/listing/ipo/c/c_20251216_10801769.shtml", "available_at": "2025-12-16T00:00:00Z", "latest_observation": "2025-12-17", "row_count": 1, "raw_sha256": "92928dc3819470cf4f4cceb6d2a8c8daa3ec1611ac91d158b7c3fe48ff23790b", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "SSE_AI_CHIP_COHORT_2026", "title": "SSE AI chip cohort review", "provider": "SSE", "unit": "classification_evidence", "native_frequency": "annual_research", "source_url": "https://www.sse.com.cn/cpc/cpctheme/4th20thcpc/4th20thcpcgcxx/c/c_20260310_10811398.shtml", "available_at": "2026-03-10T00:00:00Z", "latest_observation": "2026-03-10", "row_count": 1, "raw_sha256": "e6197b15c01c18451bdcb00527508ce3071e32798ee022b093d2fd782a2e40ea", "vintage": "downloaded_2026-08-13"
     }
   ]
 }

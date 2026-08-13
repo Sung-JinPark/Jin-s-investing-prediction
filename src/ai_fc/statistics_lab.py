@@ -421,6 +421,32 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
             if core_member:
                 core_member_counts[year] += 1
             broad_tickers.add(ticker)
+    qualitative = payload.get("qualitative_ipo") or {}
+    listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
+    if listed_watch.get("semantics") != (
+        "existing_listed_ai_beneficiaries_included_in_qualitative_capital_map_not_added_to_ipo_counts"
+    ):
+        raise StatisticsLabError("listed AI beneficiary watchlist semantics invalid")
+    listed_members = listed_watch.get("members") or []
+    if not listed_members:
+        raise StatisticsLabError("listed AI beneficiary watchlist missing")
+    global_chip_watch = qualitative.get("global_ai_chip_completed_ipos") or {}
+    if global_chip_watch.get("semantics") != (
+        "completed_china_and_hong_kong_ai_chip_ipo_watchlist_kept_separate_from_us_ritter_counts"
+    ):
+        raise StatisticsLabError("global AI chip IPO watchlist semantics invalid")
+    global_chip_members = global_chip_watch.get("members") or []
+    if not global_chip_members:
+        raise StatisticsLabError("global AI chip IPO watchlist missing")
+    watch_members = [*listed_members, *global_chip_members]
+    watch_source_ids = {str(member.get("source_id", "")) for member in watch_members}
+    classification_source_id = str(global_chip_watch.get("classification_source_id", ""))
+    if not watch_source_ids.issubset(source_ids) or classification_source_id not in source_ids:
+        raise StatisticsLabError("AI capital watchlist source unknown")
+    if any(not member.get("name") or not member.get("role") for member in watch_members):
+        raise StatisticsLabError("AI capital watchlist member identity/role missing")
+    if any(not member.get("listing_date") for member in global_chip_members):
+        raise StatisticsLabError("global AI chip IPO listing date missing")
     chart_ids: set[str] = set()
     for chart in charts:
         chart_id = str(chart.get("id", ""))
@@ -778,15 +804,23 @@ def build_statistics_lab(
         dot_absorption = absorption_points(value_table.get("dotcom") or {}, list(range(1995, 2000)))
         cur_absorption = absorption_points(value_table.get("current") or {}, list(range(2023, 2027)))
         private_watch = qualitative.get("private_frontier_ai_watchlist") or {}
+        listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
+        global_chip_watch = qualitative.get("global_ai_chip_completed_ipos") or {}
         private_total_bn = sum(float(row["valuation_bn"]) for row in private_watch.get("members") or [])
         latest_equity = total_equity_by_year.get(2026) or float(monthly["BOGZ1LM893064105Q"][-1]["value"])
         private_ratio = private_total_bn * 1000.0 / latest_equity * 100.0
         quality_chart = _chart(
-            "ipo_market_absorption", "IPO 시가총액의 시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
+            "ipo_market_absorption", "IPO와 AI 자본시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
             "한 해 IPO들의 첫 거래 종가 기준 상장 후 시가총액 합계를 미국 기업주식 총가치로 나눠, 건수보다 자금 규모를 비교합니다.",
-            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. OpenAI·Anthropic은 IPO가 아니므로 별도 감시점이며 실제 IPO선에 합산하지 않습니다.",
+            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. 비상장사·기존 상장 수혜주·중국 및 홍콩 IPO는 서로 다른 계층으로 표시하며 미국 실제 IPO선에는 합산하지 않습니다.",
             [_series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"), _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"), _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a")],
-            [value_table.get("source_id"), "BOGZ1LM893064105Q", *[row["source_id"] for row in private_watch.get("members") or []]],
+            [
+                value_table.get("source_id"), "BOGZ1LM893064105Q",
+                *[row["source_id"] for row in private_watch.get("members") or []],
+                *[row["source_id"] for row in listed_watch.get("members") or []],
+                *[row["source_id"] for row in global_chip_watch.get("members") or []],
+                global_chip_watch.get("classification_source_id"),
+            ],
         )
         quality_chart["insight"] = (
             f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
@@ -796,7 +830,8 @@ def build_statistics_lab(
             {"period": "1999", "label": "전체 비교가능 IPO", "value": "$652B · 실제 상장"},
             {"period": "2025", "label": "전체 비교가능 IPO", "value": "$442B · 실제 상장"},
             {"period": "2026", "label": "OpenAI + Anthropic", "value": "$1.817T · 비상장 평가액"},
-            {"period": "제외", "label": "SK하이닉스", "value": "기존 상장사 · IPO 아님"},
+            {"period": "질적 포함", "label": "SK하이닉스", "value": "기존 상장 · HBM·AI 메모리 핵심 수혜"},
+            {"period": "글로벌 IPO", "label": "Horizon · Black Sesame · Moore Threads · MetaX", "value": "중국·홍콩 AI 칩 상장 완료 · 별도 집계"},
         ]
 
         small_table = qualitative.get("small_issuer_sales_below_100m") or {}
