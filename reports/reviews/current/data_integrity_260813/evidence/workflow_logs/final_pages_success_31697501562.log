@@ -1,0 +1,437 @@
+build	Set up job	﻿2026-08-13T11:53:27.9428646Z Current runner version: '2.336.0'
+build	Set up job	2026-08-13T11:53:27.9453687Z ##[group]Runner Image Provisioner
+build	Set up job	2026-08-13T11:53:27.9454545Z Hosted Compute Agent
+build	Set up job	2026-08-13T11:53:27.9455197Z Version: 20260707.563
+build	Set up job	2026-08-13T11:53:27.9456208Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+build	Set up job	2026-08-13T11:53:27.9457114Z Build Date: 2026-07-07T19:33:50Z
+build	Set up job	2026-08-13T11:53:27.9457859Z Worker ID: {bed89323-9550-4533-a24d-7df7354a9c11}
+build	Set up job	2026-08-13T11:53:27.9458581Z Azure Region: northcentralus
+build	Set up job	2026-08-13T11:53:27.9459170Z ##[endgroup]
+build	Set up job	2026-08-13T11:53:27.9460751Z ##[group]Operating System
+build	Set up job	2026-08-13T11:53:27.9461437Z Ubuntu
+build	Set up job	2026-08-13T11:53:27.9462011Z 24.04.4
+build	Set up job	2026-08-13T11:53:27.9462549Z LTS
+build	Set up job	2026-08-13T11:53:27.9463057Z ##[endgroup]
+build	Set up job	2026-08-13T11:53:27.9463653Z ##[group]Runner Image
+build	Set up job	2026-08-13T11:53:27.9464292Z Image: ubuntu-24.04
+build	Set up job	2026-08-13T11:53:27.9464834Z Version: 20260720.247.2
+build	Set up job	2026-08-13T11:53:27.9466379Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+build	Set up job	2026-08-13T11:53:27.9468217Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+build	Set up job	2026-08-13T11:53:27.9469195Z ##[endgroup]
+build	Set up job	2026-08-13T11:53:27.9470418Z ##[group]GITHUB_TOKEN Permissions
+build	Set up job	2026-08-13T11:53:27.9472263Z Contents: read
+build	Set up job	2026-08-13T11:53:27.9472858Z Metadata: read
+build	Set up job	2026-08-13T11:53:27.9473521Z Pages: write
+build	Set up job	2026-08-13T11:53:27.9474106Z ##[endgroup]
+build	Set up job	2026-08-13T11:53:27.9476671Z Secret source: Actions
+build	Set up job	2026-08-13T11:53:27.9477764Z Prepare workflow directory
+build	Set up job	2026-08-13T11:53:27.9825440Z Prepare all required actions
+build	Set up job	2026-08-13T11:53:27.9873454Z Getting action download info
+build	Set up job	2026-08-13T11:53:28.2244098Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+build	Set up job	2026-08-13T11:53:28.5724762Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+build	Set up job	2026-08-13T11:53:28.6482334Z Download action repository 'actions/configure-pages@v5' (SHA:983d7736d9b0ae728b81ab479565c72886d7745b)
+build	Set up job	2026-08-13T11:53:28.9542787Z Download action repository 'actions/upload-pages-artifact@v3' (SHA:56afc609e74202658d3ffba0e8f6dda462b719fa)
+build	Set up job	2026-08-13T11:53:29.1769021Z Getting action download info
+build	Set up job	2026-08-13T11:53:29.2480202Z Download action repository 'actions/upload-artifact@v4' (SHA:ea165f8d65b6e75b540449e92b4886f43607fa02)
+build	Set up job	2026-08-13T11:53:29.3782521Z Complete job name: build
+build	Run actions/checkout@v4	﻿2026-08-13T11:53:29.4629328Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4638571Z ##[group]Run actions/checkout@v4
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4639416Z with:
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4639995Z   repository: Sung-JinPark/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4644340Z   token: ***
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4644813Z   ssh-strict: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4645303Z   ssh-user: git
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4646002Z   persist-credentials: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4646542Z   clean: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4647021Z   sparse-checkout-cone-mode: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4647592Z   fetch-depth: 1
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4648086Z   fetch-tags: false
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4648569Z   show-progress: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4649060Z   lfs: false
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4649516Z   submodules: false
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4650051Z   set-safe-directory: true
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4650603Z   allow-unsafe-pr-checkout: false
+build	Run actions/checkout@v4	2026-08-13T11:53:29.4651443Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:29.5738325Z Syncing repository: Sung-JinPark/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:29.5741414Z ##[group]Getting Git version info
+build	Run actions/checkout@v4	2026-08-13T11:53:29.5743075Z Working directory is '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+build	Run actions/checkout@v4	2026-08-13T11:53:29.5745390Z [command]/usr/bin/git version
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0204102Z git version 2.54.0
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0228118Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0244417Z Temporarily overriding HOME='/home/runner/work/_temp/a3544ba2-1ee9-470e-8f98-dd7461815777' before making global git config changes
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0249062Z Adding repository directory to the temporary git global config as a safe directory
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0252749Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0306690Z Deleting the contents of '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0309878Z ##[group]Initializing the repository
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0314779Z [command]/usr/bin/git init /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0427974Z hint: Using 'master' as the name for the initial branch. This default branch name
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0431591Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0435764Z hint: to use in all of your new repositories, which will suppress this warning,
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0439027Z hint: call:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0440449Z hint:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0521451Z hint: 	git config --global init.defaultBranch <name>
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0522899Z hint:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0524436Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0528120Z hint: 'development'. The just-created branch can be renamed via this command:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0530191Z hint:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0531239Z hint: 	git branch -m <name>
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0532983Z hint:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0535650Z hint: Disable this message with "git config set advice.defaultBranchName false"
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0541258Z Initialized empty Git repository in /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/.git/
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0549809Z [command]/usr/bin/git remote add origin https://github.com/Sung-JinPark/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0556802Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0559409Z ##[group]Disabling automatic garbage collection
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0561158Z [command]/usr/bin/git config --local gc.auto 0
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0564749Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0567530Z ##[group]Setting up auth
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0569538Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0591742Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+build	Run actions/checkout@v4	2026-08-13T11:53:30.0999718Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1059476Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1369691Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1426865Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1669138Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1711230Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1712982Z ##[group]Fetching the repository
+build	Run actions/checkout@v4	2026-08-13T11:53:30.1722655Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +5ebbae8c96504e9caf9dd2362cbb9373b80a698e:refs/remotes/origin/main
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5676169Z From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5677845Z  * [new ref]         5ebbae8c96504e9caf9dd2362cbb9373b80a698e -> origin/main
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5711959Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5712794Z ##[group]Determining the checkout info
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5715199Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5721414Z [command]/usr/bin/git sparse-checkout disable
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5778957Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5810817Z ##[group]Checking out the ref
+build	Run actions/checkout@v4	2026-08-13T11:53:33.5813999Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+build	Run actions/checkout@v4	2026-08-13T11:53:33.9620430Z Switched to a new branch 'main'
+build	Run actions/checkout@v4	2026-08-13T11:53:33.9670446Z branch 'main' set up to track 'origin/main'.
+build	Run actions/checkout@v4	2026-08-13T11:53:33.9672243Z ##[endgroup]
+build	Run actions/checkout@v4	2026-08-13T11:53:33.9726941Z [command]/usr/bin/git log -1 --format=%H
+build	Run actions/checkout@v4	2026-08-13T11:53:33.9767251Z 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+build	Run actions/setup-python@v5	﻿2026-08-13T11:53:34.0054923Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0057195Z ##[group]Run actions/setup-python@v5
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0057501Z with:
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0057712Z   python-version: 3.12
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0057938Z   check-latest: false
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0060494Z   token: ***
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0060716Z   update-environment: true
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0060969Z   allow-prereleases: false
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0061199Z   freethreaded: false
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.0061413Z ##[endgroup]
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.1431977Z ##[group]Installed versions
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.1529043Z (node:2387) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.1530691Z (Use `node --trace-deprecation ...` to show where the warning was created)
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.1531722Z Successfully set up CPython (3.12.13)
+build	Run actions/setup-python@v5	2026-08-13T11:53:34.1532695Z ##[endgroup]
+build	deps (시크릿 불필요 — import 경로용)	﻿2026-08-13T11:53:34.1740435Z ##[group]Run pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy "Pillow>=10"
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1741360Z ^[[36;1mpip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy "Pillow>=10"^[[0m
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1908583Z shell: /usr/bin/bash -e {0}
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1908972Z env:
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1909270Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1909744Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1910183Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1910573Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1910977Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1911373Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:34.1911706Z ##[endgroup]
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.3331526Z Collecting anthropic
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.3817019Z   Downloading anthropic-0.121.0-py3-none-any.whl.metadata (3.3 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.4038296Z Collecting typer
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.4068660Z   Downloading typer-0.27.1-py3-none-any.whl.metadata (16 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.5296727Z Collecting pydantic
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.5331167Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.5899334Z Collecting pyyaml
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.5935481Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.6194855Z Collecting python-frontmatter
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.6225221Z   Downloading python_frontmatter-1.3.0-py3-none-any.whl.metadata (4.4 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.8126480Z Collecting numpy
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.8162358Z   Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.9347342Z Collecting scipy
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:38.9391022Z   Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1118246Z Collecting Pillow>=10
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1152653Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1354494Z Collecting anyio<5,>=3.5.0 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1390685Z   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1560938Z Collecting distro<2,>=1.7.0 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1590900Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1706469Z Collecting docstring-parser<1,>=0.15 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1737668Z   Downloading docstring_parser-0.18.0-py3-none-any.whl.metadata (3.5 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1898214Z Collecting httpx<1,>=0.25.0 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.1928332Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.2742374Z Collecting jiter<1,>=0.4.0 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.2779035Z   Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.2942193Z Collecting sniffio<2,>=1 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.2972078Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.3125617Z Collecting typing-extensions<5,>=4.14 (from anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.3155399Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.3260182Z Collecting annotated-types>=0.6.0 (from pydantic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.3289330Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9529798Z Collecting pydantic-core==2.46.4 (from pydantic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9563734Z   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9685560Z Collecting typing-inspection>=0.4.2 (from pydantic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9715226Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9866580Z Collecting idna>=2.8 (from anyio<5,>=3.5.0->anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:39.9896153Z   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0101740Z Collecting certifi (from httpx<1,>=0.25.0->anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0132671Z   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0311496Z Collecting httpcore==1.* (from httpx<1,>=0.25.0->anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0342186Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0469087Z Collecting h11>=0.16 (from httpcore==1.*->httpx<1,>=0.25.0->anthropic)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0499450Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0639315Z Collecting shellingham>=1.3.0 (from typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.0669792Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1149860Z Collecting rich>=13.8.0 (from typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1183104Z   Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1294885Z Collecting annotated-doc>=0.0.2 (from typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1324545Z   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1521282Z Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1551572Z   Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1741114Z Collecting pygments<3.0.0,>=2.13.0 (from rich>=13.8.0->typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1770713Z   Downloading pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1883334Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.1919188Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2013914Z Downloading anthropic-0.121.0-py3-none-any.whl (1.0 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2122071Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 115.0 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2153103Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2214054Z Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2311025Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 244.0 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2343586Z Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2399184Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2468066Z Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2517153Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2567260Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2619157Z Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (343 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2674325Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2722523Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2772954Z Downloading typer-0.27.1-py3-none-any.whl (122 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2827110Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2896447Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 122.1 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2927368Z Downloading python_frontmatter-1.3.0-py3-none-any.whl (10 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.2981666Z Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.3613619Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 273.5 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.3650028Z Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.4843183Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 300.6 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.4879489Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5135483Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 292.6 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5168870Z Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5221424Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5272723Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5323385Z Downloading idna-3.18-py3-none-any.whl (65 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5378326Z Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5437246Z Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5508043Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 212.1 MB/s  0:00:00
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5537804Z Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5591355Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5642221Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5695503Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.5764693Z Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:40.7954268Z Installing collected packages: typing-extensions, sniffio, shellingham, pyyaml, pygments, Pillow, numpy, mdurl, jiter, idna, h11, docstring-parser, distro, certifi, annotated-types, annotated-doc, typing-inspection, scipy, python-frontmatter, pydantic-core, markdown-it-py, httpcore, anyio, rich, pydantic, httpx, typer, anthropic
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:50.3581524Z
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:50.3612067Z Successfully installed Pillow-12.3.0 annotated-doc-0.0.5 annotated-types-0.8.0 anthropic-0.121.0 anyio-4.14.2 certifi-2026.7.22 distro-1.9.0 docstring-parser-0.18.0 h11-0.16.0 httpcore-1.0.9 httpx-0.28.1 idna-3.18 jiter-0.16.0 markdown-it-py-4.2.0 mdurl-0.1.2 numpy-2.5.2 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 python-frontmatter-1.3.0 pyyaml-6.0.3 rich-15.0.0 scipy-1.18.0 shellingham-1.5.4 sniffio-1.3.1 typer-0.27.1 typing-extensions-4.16.0 typing-inspection-0.4.4
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:50.3620483Z
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:50.3620861Z [notice] A new release of pip is available: 26.1.2 -> 26.2.1
+build	deps (시크릿 불필요 — import 경로용)	2026-08-13T11:53:50.3621710Z [notice] To update, run: pip install --upgrade pip
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	﻿2026-08-13T11:53:50.4676548Z ##[group]Run cd src && python -m ai_fc sync --rebuild
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4677023Z ^[[36;1mcd src && python -m ai_fc sync --rebuild^[[0m
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4722258Z shell: /usr/bin/bash -e {0}
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4722523Z env:
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4722796Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4723253Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4723706Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4724106Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4724503Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4724907Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:50.4725247Z ##[endgroup]
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:51.2073747Z [경고] Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:51.2076591Z [경고] Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range
+build	파생 인덱스 재구축 (불변 파일 → SQLite)	2026-08-13T11:53:51.2078032Z 질문 38 / 예측 23 / 해소 6
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	﻿2026-08-13T11:53:51.4175404Z ##[group]Run cd src && python -m ai_fc dashboard --pages-out ../_site
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4176366Z ^[[36;1mcd src && python -m ai_fc dashboard --pages-out ../_site^[[0m
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4220675Z shell: /usr/bin/bash -e {0}
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4220930Z env:
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4221198Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4221653Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4222106Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4222500Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4222901Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4223305Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:51.4223679Z ##[endgroup]
+build	대시보드 정적 빌드 (읽기 전용, API 키 불필요)	2026-08-13T11:53:53.7093659Z Pages 빌드: ../_site/index.html
+build	Run actions/configure-pages@v5	﻿2026-08-13T11:53:53.8141434Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8142739Z ##[group]Run actions/configure-pages@v5
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8143008Z with:
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8145526Z   token: ***
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8145722Z   enablement: false
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8146279Z env:
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8146536Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8146959Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8147369Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8147739Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8148101Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8148553Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	Run actions/configure-pages@v5	2026-08-13T11:53:53.8148864Z ##[endgroup]
+build	Run actions/upload-pages-artifact@v3	﻿2026-08-13T11:53:54.1322053Z ##[group]Run actions/upload-pages-artifact@v3
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1322397Z with:
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1322580Z   path: _site
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1322773Z   name: github-pages
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1322991Z   retention-days: 1
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1323182Z env:
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1323430Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1323861Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1324284Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1324659Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1325034Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1325414Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1325734Z   GITHUB_PAGES: true
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1326493Z ##[endgroup]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1388783Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1414095Z ##[group]Run echo ::group::Archive artifact
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1414432Z ^[[36;1mecho ::group::Archive artifact^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1414691Z ^[[36;1mtar \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1414926Z ^[[36;1m  --dereference --hard-dereference \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1415234Z ^[[36;1m  --directory "$INPUT_PATH" \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1415532Z ^[[36;1m  -cvf "$RUNNER_TEMP/artifact.tar" \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1416104Z ^[[36;1m  --exclude=.git \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1416442Z ^[[36;1m  --exclude=.github \^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1416668Z ^[[36;1m  .^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1416856Z ^[[36;1mecho ::endgroup::^[[0m
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1441165Z shell: /usr/bin/sh -e {0}
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1441413Z env:
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1441673Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1442111Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1442548Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1442943Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1443337Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1443718Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1444048Z   GITHUB_PAGES: true
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1444254Z   INPUT_PATH: _site
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1444448Z ##[endgroup]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1487161Z ##[group]Archive artifact
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1504576Z ./
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1504928Z ./future_paths.json
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1506925Z ./index.html
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1511954Z ./.nojekyll
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1512295Z ./statistics.json
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1512957Z ./data.json
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1516440Z ./og/
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1517150Z ./og/market-snapshot.png
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1520049Z ##[endgroup]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1531826Z ##[end-action id=__actions_upload-pages-artifact.__run;outcome=success;conclusion=success;duration_ms=14]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1535237Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run_2]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1540933Z ##[end-action id=__actions_upload-pages-artifact.__run_2;outcome=skipped;conclusion=skipped;duration_ms=0]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1543648Z ##[start-action display=Archive artifact;id=__actions_upload-pages-artifact.__run_3]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1547505Z ##[end-action id=__actions_upload-pages-artifact.__run_3;outcome=skipped;conclusion=skipped;duration_ms=0]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1549483Z ##[start-action display=Upload artifact;id=__actions_upload-pages-artifact.upload-artifact]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1602419Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1603689Z ##[group]Run actions/upload-artifact@v4
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1603956Z with:
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1604360Z   name: github-pages
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1604596Z   path: /home/runner/work/_temp/artifact.tar
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1604874Z   retention-days: 1
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1605080Z   if-no-files-found: error
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1605310Z   compression-level: 6
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1605521Z   overwrite: false
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1605725Z   include-hidden-files: false
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1606411Z env:
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1606671Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1607114Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1607627Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1608026Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1608409Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1608969Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1609292Z   GITHUB_PAGES: true
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.1609492Z ##[endgroup]
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.3236603Z (node:2478) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.3237444Z (Use `node --trace-deprecation ...` to show where the warning was created)
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.3297373Z With the provided path, there will be 1 file uploaded
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.3306054Z Artifact name is valid!
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.3308170Z Root directory input is valid!
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.5322258Z Beginning upload of artifact content to blob storage
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.5800893Z (node:2478) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.7718222Z Uploaded bytes 337438
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.8055062Z Finished uploading artifact content to blob storage!
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.8056518Z SHA256 digest of uploaded artifact zip is 5eccab442777004b4663fa4f430d3da6050e98b44e4c81e32d775a6ca2d2643a
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:54.8059033Z Finalizing artifact upload
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:55.0541389Z Artifact github-pages.zip successfully finalized. Artifact ID 9179898025
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:55.0542825Z Artifact github-pages has been successfully uploaded! Final size is 337438 bytes. Artifact ID is 9179898025
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:55.0549292Z Artifact download URL: https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/31697501562/artifacts/9179898025
+build	Run actions/upload-pages-artifact@v3	2026-08-13T11:53:55.0661356Z ##[end-action id=__actions_upload-pages-artifact.upload-artifact;outcome=success;conclusion=success;duration_ms=911]
+build	Post Run actions/setup-python@v5	﻿2026-08-13T11:53:55.0762000Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Post Run actions/setup-python@v5	2026-08-13T11:53:55.0763289Z Post job cleanup.
+build	Post Run actions/setup-python@v5	2026-08-13T11:53:55.1958395Z (node:2490) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+build	Post Run actions/setup-python@v5	2026-08-13T11:53:55.1959483Z (Use `node --trace-deprecation ...` to show where the warning was created)
+build	Post Run actions/checkout@v4	﻿2026-08-13T11:53:55.2163347Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.2165472Z Post job cleanup.
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3037046Z [command]/usr/bin/git version
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3079434Z git version 2.54.0
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3151235Z Temporarily overriding HOME='/home/runner/work/_temp/dc4df035-52b9-4b44-b41f-e944d6c29ac3' before making global git config changes
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3152639Z Adding repository directory to the temporary git global config as a safe directory
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3156430Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3198594Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3234910Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3491229Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3519222Z http.https://github.com/.extraheader
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3531476Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3570454Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3874472Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+build	Post Run actions/checkout@v4	2026-08-13T11:53:55.3916412Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+build	Complete job	﻿2026-08-13T11:53:55.4314688Z Cleaning up orphan processes
+build	Complete job	2026-08-13T11:53:55.4630545Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/configure-pages@v5, actions/setup-python@v5, actions/upload-artifact@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+deploy	Set up job	﻿2026-08-13T11:54:01.1075940Z Current runner version: '2.336.0'
+deploy	Set up job	2026-08-13T11:54:01.1112099Z ##[group]Runner Image Provisioner
+deploy	Set up job	2026-08-13T11:54:01.1113784Z Hosted Compute Agent
+deploy	Set up job	2026-08-13T11:54:01.1114689Z Version: 20260707.563
+deploy	Set up job	2026-08-13T11:54:01.1115741Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+deploy	Set up job	2026-08-13T11:54:01.1116922Z Build Date: 2026-07-07T19:33:50Z
+deploy	Set up job	2026-08-13T11:54:01.1117998Z Worker ID: {80e3bf65-6bda-4b1d-84e6-d02213549a20}
+deploy	Set up job	2026-08-13T11:54:01.1119286Z Azure Region: centralus
+deploy	Set up job	2026-08-13T11:54:01.1120206Z ##[endgroup]
+deploy	Set up job	2026-08-13T11:54:01.1121954Z ##[group]Operating System
+deploy	Set up job	2026-08-13T11:54:01.1122686Z Ubuntu
+deploy	Set up job	2026-08-13T11:54:01.1123468Z 24.04.4
+deploy	Set up job	2026-08-13T11:54:01.1124085Z LTS
+deploy	Set up job	2026-08-13T11:54:01.1124627Z ##[endgroup]
+deploy	Set up job	2026-08-13T11:54:01.1125185Z ##[group]Runner Image
+deploy	Set up job	2026-08-13T11:54:01.1125930Z Image: ubuntu-24.04
+deploy	Set up job	2026-08-13T11:54:01.1126525Z Version: 20260720.247.2
+deploy	Set up job	2026-08-13T11:54:01.1127653Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+deploy	Set up job	2026-08-13T11:54:01.1129377Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+deploy	Set up job	2026-08-13T11:54:01.1130427Z ##[endgroup]
+deploy	Set up job	2026-08-13T11:54:01.1131648Z ##[group]GITHUB_TOKEN Permissions
+deploy	Set up job	2026-08-13T11:54:01.1134168Z Contents: read
+deploy	Set up job	2026-08-13T11:54:01.1134812Z Metadata: read
+deploy	Set up job	2026-08-13T11:54:01.1135377Z Pages: write
+deploy	Set up job	2026-08-13T11:54:01.1136078Z ##[endgroup]
+deploy	Set up job	2026-08-13T11:54:01.1138129Z Secret source: Actions
+deploy	Set up job	2026-08-13T11:54:01.1139346Z Prepare workflow directory
+deploy	Set up job	2026-08-13T11:54:01.1530032Z Prepare all required actions
+deploy	Set up job	2026-08-13T11:54:01.1597381Z Getting action download info
+deploy	Set up job	2026-08-13T11:54:01.3810397Z Download action repository 'actions/deploy-pages@v4' (SHA:d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e)
+deploy	Set up job	2026-08-13T11:54:02.0306813Z Complete job name: deploy
+deploy	Run actions/deploy-pages@v4	﻿2026-08-13T11:54:02.1100036Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1108672Z ##[group]Run actions/deploy-pages@v4
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1109413Z with:
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1113349Z   token: ***
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1113796Z   timeout: 600000
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1114244Z   error_count: 10
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1114696Z   reporting_interval: 5000
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1115201Z   artifact_name: github-pages
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1115707Z   preview: false
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.1116331Z ##[endgroup]
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.3120450Z (node:2130) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.3122627Z (Use `node --trace-deprecation ...` to show where the warning was created)
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.4614109Z Fetching artifact metadata for "github-pages" in this workflow run
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6027678Z Found 1 artifact(s)
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6039590Z Creating Pages deployment with payload:
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6040521Z {
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6040975Z 	"artifact_id": 9179898025,
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6041664Z 	"pages_build_version": "5ebbae8c96504e9caf9dd2362cbb9373b80a698e",
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6093462Z 	"oidc_token": "***"
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:02.6093971Z }
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:03.0098763Z Created deployment for 5ebbae8c96504e9caf9dd2362cbb9373b80a698e, ID: 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:08.0113092Z Getting Pages deployment status...
+deploy	Run actions/deploy-pages@v4	2026-08-13T11:54:08.2379217Z Reported success!
+deploy	Complete job	﻿2026-08-13T11:54:08.2691550Z Evaluate and set environment url
+deploy	Complete job	2026-08-13T11:54:08.2696302Z Evaluated environment url: https://sung-jinpark.github.io/Jin-s-investing-prediction/
+deploy	Complete job	2026-08-13T11:54:08.2697481Z Cleaning up orphan processes
+deploy	Complete job	2026-08-13T11:54:08.3009253Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/deploy-pages@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

@@ -6,12 +6,16 @@ import io
 import json
 import math
 import statistics
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
+
+from ai_fc.quant import feed
 
 
 LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
@@ -202,10 +206,32 @@ def _validate_manual_reference_freshness(
             )
 
 
-def _request(url: str, *, timeout: int = 45) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+def _request(url: str, *, timeout: int = 45, attempts: int = 3) -> bytes:
+    """Fetch one public source with bounded transient-error retries.
+
+    The collector remains fail-closed: it never substitutes the prior snapshot
+    or another provider.  Only network timeouts, connection failures, HTTP 429,
+    and HTTP 5xx responses are retried; permanent HTTP errors fail immediately.
+    """
+    if attempts < 1:
+        raise ValueError("request attempts must be positive")
+    last_error: BaseException | None = None
+    for attempt in range(attempts):
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 and not 500 <= exc.code <= 599:
+                raise
+            last_error = exc
+        except (TimeoutError, urllib.error.URLError, ConnectionError) as exc:
+            last_error = exc
+        if attempt + 1 < attempts:
+            time.sleep(min(2 ** attempt, 8))
+    raise StatisticsLabError(
+        f"public source request failed after {attempts} attempts: {url}"
+    ) from last_error
 
 
 def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
@@ -229,7 +255,11 @@ def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
 
 def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
     url = f"{FRED_ENDPOINT}?id={series_id}&cosd=1995-01-01"
-    raw = _request(url)
+    # GitHub-hosted runners intermittently leave Python's TLS read waiting on
+    # FRED.  Reuse the repository's audited same-URL curl/public-DNS transport
+    # fallback.  Decoding and re-encoding UTF-8 is byte-preserving for FRED CSV
+    # and the exact bytes are still hashed in the source receipt.
+    raw = feed.get_with_curl_fallback(url, timeout=45).encode("utf-8")
     return _parse_fred_csv(raw, series_id), raw
 
 

@@ -7,7 +7,7 @@
 - S2: 균형·soft-landing DB.
 - S3: 긴축·금융 stress DB.
 - macro origin overlap: `{"S1__S2": 0, "S1__S3": 0, "S2__S3": 0}`.
-- 63거래일 조건부 p50 수익: `{"S1": 0.12406725956676087, "S2": -0.003387948751612281, "S3": -0.12132224651242784}`.
+- 63거래일 조건부 p50 수익: `{"S1": 0.12406725956676096, "S2": -0.003387948751612281, "S3": -0.12132224651242773}`.
 - dependency cap gate: `true`.
 - source hash: `true`.
 - official snapshot overwrite: `false`.

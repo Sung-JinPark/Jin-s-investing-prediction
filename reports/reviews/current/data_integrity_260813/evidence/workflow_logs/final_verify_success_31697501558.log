@@ -1,0 +1,450 @@
+verify	Set up job	﻿2026-08-13T11:53:27.5274278Z Current runner version: '2.336.0'
+verify	Set up job	2026-08-13T11:53:27.5311130Z ##[group]Runner Image Provisioner
+verify	Set up job	2026-08-13T11:53:27.5312539Z Hosted Compute Agent
+verify	Set up job	2026-08-13T11:53:27.5313506Z Version: 20260707.563
+verify	Set up job	2026-08-13T11:53:27.5314447Z Commit: 02667638d2b423fbc733a8e32a88b44996a3ba6e
+verify	Set up job	2026-08-13T11:53:27.5315837Z Build Date: 2026-07-07T19:33:50Z
+verify	Set up job	2026-08-13T11:53:27.5317058Z Worker ID: {d7aa2f3d-7dca-480d-a00a-565b4756a0d4}
+verify	Set up job	2026-08-13T11:53:27.5318188Z Azure Region: eastus
+verify	Set up job	2026-08-13T11:53:27.5319180Z ##[endgroup]
+verify	Set up job	2026-08-13T11:53:27.5321593Z ##[group]Operating System
+verify	Set up job	2026-08-13T11:53:27.5322651Z Ubuntu
+verify	Set up job	2026-08-13T11:53:27.5323432Z 24.04.4
+verify	Set up job	2026-08-13T11:53:27.5324171Z LTS
+verify	Set up job	2026-08-13T11:53:27.5325082Z ##[endgroup]
+verify	Set up job	2026-08-13T11:53:27.5326165Z ##[group]Runner Image
+verify	Set up job	2026-08-13T11:53:27.5327167Z Image: ubuntu-24.04
+verify	Set up job	2026-08-13T11:53:27.5328032Z Version: 20260720.247.2
+verify	Set up job	2026-08-13T11:53:27.5329688Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260720.247/images/ubuntu/Ubuntu2404-Readme.md
+verify	Set up job	2026-08-13T11:53:27.5332516Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260720.247
+verify	Set up job	2026-08-13T11:53:27.5334048Z ##[endgroup]
+verify	Set up job	2026-08-13T11:53:27.5336185Z ##[group]GITHUB_TOKEN Permissions
+verify	Set up job	2026-08-13T11:53:27.5338885Z Contents: read
+verify	Set up job	2026-08-13T11:53:27.5339831Z Metadata: read
+verify	Set up job	2026-08-13T11:53:27.5340768Z Packages: read
+verify	Set up job	2026-08-13T11:53:27.5341631Z ##[endgroup]
+verify	Set up job	2026-08-13T11:53:27.5344706Z Secret source: Actions
+verify	Set up job	2026-08-13T11:53:27.5346676Z Prepare workflow directory
+verify	Set up job	2026-08-13T11:53:27.5799373Z Prepare all required actions
+verify	Set up job	2026-08-13T11:53:27.5867436Z Getting action download info
+verify	Set up job	2026-08-13T11:53:27.7624903Z Download action repository 'actions/checkout@v4' (SHA:11d5960a326750d5838078e36cf38b85af677262)
+verify	Set up job	2026-08-13T11:53:27.9523519Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+verify	Set up job	2026-08-13T11:53:28.1385802Z Complete job name: verify
+verify	Run actions/checkout@v4	﻿2026-08-13T11:53:28.2155325Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2164309Z ##[group]Run actions/checkout@v4
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2165026Z with:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2165455Z   fetch-depth: 0
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2166165Z   repository: Sung-JinPark/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2170269Z   token: ***
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2170703Z   ssh-strict: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2171130Z   ssh-user: git
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2171570Z   persist-credentials: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2172100Z   clean: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2172541Z   sparse-checkout-cone-mode: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2173054Z   fetch-tags: false
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2173483Z   show-progress: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2173912Z   lfs: false
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2174315Z   submodules: false
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2174802Z   set-safe-directory: true
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2175301Z   allow-unsafe-pr-checkout: false
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.2176239Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3204163Z Syncing repository: Sung-JinPark/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3206936Z ##[group]Getting Git version info
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3207922Z Working directory is '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3209249Z [command]/usr/bin/git version
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3242885Z git version 2.54.0
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3272813Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3281007Z Temporarily overriding HOME='/home/runner/work/_temp/8af0d0bf-5a5f-4d05-9a8b-9bc3b530c1a6' before making global git config changes
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3283323Z Adding repository directory to the temporary git global config as a safe directory
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3288113Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3333293Z Deleting the contents of '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction'
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3338034Z ##[group]Initializing the repository
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3343413Z [command]/usr/bin/git init /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3425246Z hint: Using 'master' as the name for the initial branch. This default branch name
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3427093Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3428590Z hint: to use in all of your new repositories, which will suppress this warning,
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3429797Z hint: call:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3430416Z hint:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3431195Z hint: 	git config --global init.defaultBranch <name>
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3432152Z hint:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3433058Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3434559Z hint: 'development'. The just-created branch can be renamed via this command:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3436011Z hint:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3436678Z hint: 	git branch -m <name>
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3437373Z hint:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3438339Z hint: Disable this message with "git config set advice.defaultBranchName false"
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3440231Z Initialized empty Git repository in /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/.git/
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3443776Z [command]/usr/bin/git remote add origin https://github.com/Sung-JinPark/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3480448Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3481783Z ##[group]Disabling automatic garbage collection
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3484236Z [command]/usr/bin/git config --local gc.auto 0
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3518046Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3519238Z ##[group]Setting up auth
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3524653Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3559575Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3897962Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.3938421Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4197497Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4235458Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4479482Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4520580Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4521598Z ##[group]Fetching the repository
+verify	Run actions/checkout@v4	2026-08-13T11:53:28.4530439Z [command]/usr/bin/git -c protocol.version=2 fetch --prune --no-recurse-submodules origin +refs/heads/*:refs/remotes/origin/* +refs/tags/*:refs/tags/*
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0338281Z From https://github.com/Sung-JinPark/Jin-s-investing-prediction
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0341818Z  * [new branch]      agent/l0-batch1-validation-review-260806 -> origin/agent/l0-batch1-validation-review-260806
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0344795Z  * [new branch]      codex/ai-capital-cohort-mobile-strip -> origin/codex/ai-capital-cohort-mobile-strip
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0347063Z  * [new branch]      codex/broad-ai-ipo-statistics -> origin/codex/broad-ai-ipo-statistics
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0349328Z  * [new branch]      codex/customer-ui-statistics-expansion -> origin/codex/customer-ui-statistics-expansion
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0351875Z  * [new branch]      codex/data-integrity-stress-kospi -> origin/codex/data-integrity-stress-kospi
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0354541Z  * [new branch]      codex/default-independent-scenarios -> origin/codex/default-independent-scenarios
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0357830Z  * [new branch]      codex/dotcom-ai-ipo-statistics -> origin/codex/dotcom-ai-ipo-statistics
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0360297Z  * [new branch]      codex/future-outlook-ux-v53 -> origin/codex/future-outlook-ux-v53
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0362768Z  * [new branch]      codex/household-liquid-assets-ratio -> origin/codex/household-liquid-assets-ratio
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0365467Z  * [new branch]      codex/ipo-quality-macro-stress -> origin/codex/ipo-quality-macro-stress
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0367943Z  * [new branch]      codex/mobile-ui-overlap-fix -> origin/codex/mobile-ui-overlap-fix
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0370538Z  * [new branch]      codex/publish-route-review-pack -> origin/codex/publish-route-review-pack
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0373535Z  * [new branch]      codex/route-governance-remediation -> origin/codex/route-governance-remediation
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0376600Z  * [new branch]      codex/scenario-pages-trigger -> origin/codex/scenario-pages-trigger
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0379369Z  * [new branch]      codex/scenario-path-resolution -> origin/codex/scenario-path-resolution
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0382369Z  * [new branch]      codex/scenario-range-stat-insights -> origin/codex/scenario-range-stat-insights
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0385414Z  * [new branch]      codex/scenario-v4-pr3-remediation -> origin/codex/scenario-v4-pr3-remediation
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0388482Z  * [new branch]      codex/scenario-visual-directions -> origin/codex/scenario-visual-directions
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0391306Z  * [new branch]      codex/statistics-curl-fallback -> origin/codex/statistics-curl-fallback
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0394080Z  * [new branch]      codex/statistics-five-year-cycle -> origin/codex/statistics-five-year-cycle
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0396973Z  * [new branch]      codex/statistics-refresh-retry -> origin/codex/statistics-refresh-retry
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0399690Z  * [new branch]      codex/ui-sidebar-overhaul -> origin/codex/ui-sidebar-overhaul
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0402908Z  * [new branch]      codex/v52-multilayer-scenario-generators -> origin/codex/v52-multilayer-scenario-generators
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0406657Z  * [new branch]      codex/v53-evidence-remediation -> origin/codex/v53-evidence-remediation
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0409143Z  * [new branch]      codex/work         -> origin/codex/work
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0411032Z  * [new branch]      main               -> origin/main
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0412918Z  * [new tag]         l0-accepted-260804 -> l0-accepted-260804
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0435268Z [command]/usr/bin/git branch --list --remote origin/main
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0469954Z   origin/main
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0480713Z [command]/usr/bin/git rev-parse refs/remotes/origin/main
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0511659Z 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0518002Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0520637Z ##[group]Determining the checkout info
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0523206Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0524874Z [command]/usr/bin/git sparse-checkout disable
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0579960Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0613453Z ##[group]Checking out the ref
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.0616659Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.4723912Z Switched to a new branch 'main'
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.4725893Z branch 'main' set up to track 'origin/main'.
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.4777368Z ##[endgroup]
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.4831904Z [command]/usr/bin/git log -1 --format=%H
+verify	Run actions/checkout@v4	2026-08-13T11:53:31.4863806Z 5ebbae8c96504e9caf9dd2362cbb9373b80a698e
+verify	Run actions/setup-python@v5	﻿2026-08-13T11:53:31.5197572Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5199701Z ##[group]Run actions/setup-python@v5
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5200035Z with:
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5200304Z   python-version: 3.12
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5200588Z   check-latest: false
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5203476Z   token: ***
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5203756Z   update-environment: true
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5204078Z   allow-prereleases: false
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5204366Z   freethreaded: false
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.5204638Z ##[endgroup]
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.6538732Z ##[group]Installed versions
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.6619167Z (node:2245) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.6619981Z (Use `node --trace-deprecation ...` to show where the warning was created)
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.6620857Z Successfully set up CPython (3.12.13)
+verify	Run actions/setup-python@v5	2026-08-13T11:53:31.6621679Z ##[endgroup]
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	﻿2026-08-13T11:53:31.6799199Z ##[group]Run pip install -e ".[pit]" pytest
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6799710Z ^[[36;1mpip install -e ".[pit]" pytest^[[0m
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6863954Z shell: /usr/bin/bash -e {0}
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6864296Z env:
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6864646Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6865227Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6865993Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6866472Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6866922Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6867408Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:31.6867846Z ##[endgroup]
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.1716421Z Obtaining file:///home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.1733188Z   Installing build dependencies: started
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.9256915Z   Installing build dependencies: finished with status 'done'
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.9264337Z   Checking if build backend supports build_editable: started
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.9755955Z   Checking if build backend supports build_editable: finished with status 'done'
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:34.9763376Z   Getting requirements to build editable: started
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.0104052Z   Getting requirements to build editable: finished with status 'done'
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.0112662Z   Preparing editable metadata (pyproject.toml): started
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.0540095Z   Preparing editable metadata (pyproject.toml): finished with status 'done'
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.1428111Z Collecting pytest
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.1880766Z   Downloading pytest-9.1.1-py3-none-any.whl.metadata (7.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.2095139Z Collecting typer (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.2123539Z   Downloading typer-0.27.1-py3-none-any.whl.metadata (16 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.2466687Z Collecting anthropic (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.2494233Z   Downloading anthropic-0.121.0-py3-none-any.whl.metadata (3.3 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.3031450Z Collecting openai>=1.68 (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.3061955Z   Downloading openai-3.0.0-py3-none-any.whl.metadata (39 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4020887Z Collecting pydantic>=2 (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4051757Z   Downloading pydantic-2.13.4-py3-none-any.whl.metadata (109 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4452790Z Collecting pyyaml (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4479890Z   Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4584091Z Collecting python-frontmatter (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.4609887Z   Downloading python_frontmatter-1.3.0-py3-none-any.whl.metadata (4.4 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.6307669Z Collecting numpy (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.6337618Z   Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (6.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.7383169Z Collecting scipy (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.7416493Z   Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.8987056Z Collecting pillow>=10 (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:35.9017105Z   Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (9.1 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.0948719Z Collecting duckdb>=1.3 (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.0979351Z   Downloading duckdb-1.5.5-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl.metadata (4.2 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.1685467Z Collecting pyarrow>=18 (from ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.1714406Z   Downloading pyarrow-25.0.1-cp312-cp312-manylinux_2_28_x86_64.whl.metadata (3.0 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.1821723Z Collecting iniconfig>=1.0.1 (from pytest)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.1849925Z   Downloading iniconfig-2.3.0-py3-none-any.whl.metadata (2.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.1982718Z Collecting packaging>=22 (from pytest)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2012570Z   Downloading packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2125765Z Collecting pluggy<2,>=1.5 (from pytest)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2152984Z   Downloading pluggy-1.6.0-py3-none-any.whl.metadata (4.8 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2316539Z Collecting pygments>=2.7.2 (from pytest)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2342820Z   Downloading pygments-2.20.0-py3-none-any.whl.metadata (2.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2500957Z Collecting anyio<5,>=4.10.0 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2529048Z   Downloading anyio-4.14.2-py3-none-any.whl.metadata (4.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2640633Z Collecting distro<2,>=1.7.0 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2670073Z   Downloading distro-1.9.0-py3-none-any.whl.metadata (6.8 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2772395Z Collecting httpx2<3,>=2.7.0 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.2798422Z   Downloading httpx2-2.10.0-py3-none-any.whl.metadata (10 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.3545979Z Collecting jiter<1,>=0.10.0 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.3580681Z   Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (5.2 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.3719308Z Collecting sniffio (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.3751466Z   Downloading sniffio-1.3.1-py3-none-any.whl.metadata (3.9 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4013598Z Collecting tqdm>4 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4043535Z   Downloading tqdm-4.70.0-py3-none-any.whl.metadata (57 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4284718Z Collecting typing-extensions<5,>=4.14 (from openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4312115Z   Downloading typing_extensions-4.16.0-py3-none-any.whl.metadata (3.3 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4453591Z Collecting idna>=2.8 (from anyio<5,>=4.10.0->openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4480278Z   Downloading idna-3.18-py3-none-any.whl.metadata (6.1 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4607163Z Collecting httpcore2==2.10.0 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4636468Z   Downloading httpcore2-2.10.0-py3-none-any.whl.metadata (25 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4770361Z Collecting truststore>=0.10 (from httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4798471Z   Downloading truststore-0.10.4-py3-none-any.whl.metadata (4.4 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4903549Z Collecting h11>=0.16 (from httpcore2==2.10.0->httpx2<3,>=2.7.0->openai>=1.68->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.4930680Z   Downloading h11-0.16.0-py3-none-any.whl.metadata (8.3 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.5041103Z Collecting annotated-types>=0.6.0 (from pydantic>=2->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:36.5069701Z   Downloading annotated_types-0.8.0-py3-none-any.whl.metadata (15 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1020294Z Collecting pydantic-core==2.46.4 (from pydantic>=2->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1054565Z   Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (6.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1170663Z Collecting typing-inspection>=0.4.2 (from pydantic>=2->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1211834Z   Downloading typing_inspection-0.4.4-py3-none-any.whl.metadata (2.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1387753Z Collecting docstring-parser<1,>=0.15 (from anthropic->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1417189Z   Downloading docstring_parser-0.18.0-py3-none-any.whl.metadata (3.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1568535Z Collecting httpx<1,>=0.25.0 (from anthropic->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1594851Z   Downloading httpx-0.28.1-py3-none-any.whl.metadata (7.1 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1790180Z Collecting certifi (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1819893Z   Downloading certifi-2026.7.22-py3-none-any.whl.metadata (2.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1959271Z Collecting httpcore==1.* (from httpx<1,>=0.25.0->anthropic->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.1987270Z   Downloading httpcore-1.0.9-py3-none-any.whl.metadata (21 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2172304Z Collecting shellingham>=1.3.0 (from typer->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2199822Z   Downloading shellingham-1.5.4-py2.py3-none-any.whl.metadata (3.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2447450Z Collecting rich>=13.8.0 (from typer->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2477713Z   Downloading rich-15.0.0-py3-none-any.whl.metadata (18 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2584238Z Collecting annotated-doc>=0.0.2 (from typer->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2615375Z   Downloading annotated_doc-0.0.5-py3-none-any.whl.metadata (6.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2750638Z Collecting markdown-it-py>=2.2.0 (from rich>=13.8.0->typer->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2778450Z   Downloading markdown_it_py-4.2.0-py3-none-any.whl.metadata (7.4 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2907527Z Collecting mdurl~=0.1 (from markdown-it-py>=2.2.0->rich>=13.8.0->typer->ai-fc==0.2.0)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.2934969Z   Downloading mdurl-0.1.2-py3-none-any.whl.metadata (1.6 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.3012967Z Downloading pytest-9.1.1-py3-none-any.whl (386 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.3090123Z Downloading pluggy-1.6.0-py3-none-any.whl (20 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.3136822Z Downloading duckdb-1.5.5-cp312-cp312-manylinux_2_26_x86_64.manylinux_2_28_x86_64.whl (21.5 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4359523Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 21.5/21.5 MB 178.9 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4390715Z Downloading iniconfig-2.3.0-py3-none-any.whl (7.5 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4435276Z Downloading openai-3.0.0-py3-none-any.whl (1.7 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4511349Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.7/1.7 MB 262.6 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4544949Z Downloading anyio-4.14.2-py3-none-any.whl (125 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4594460Z Downloading distro-1.9.0-py3-none-any.whl (20 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4638930Z Downloading httpx2-2.10.0-py3-none-any.whl (94 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4686536Z Downloading httpcore2-2.10.0-py3-none-any.whl (83 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4737774Z Downloading jiter-0.16.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (343 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4796687Z Downloading pydantic-2.13.4-py3-none-any.whl (472 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4864072Z Downloading pydantic_core-2.46.4-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (2.1 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4945393Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.1/2.1 MB 304.3 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.4971758Z Downloading typing_extensions-4.16.0-py3-none-any.whl (45 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5017658Z Downloading annotated_types-0.8.0-py3-none-any.whl (13 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5063875Z Downloading h11-0.16.0-py3-none-any.whl (37 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5109632Z Downloading idna-3.18-py3-none-any.whl (65 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5159270Z Downloading packaging-26.3-py3-none-any.whl (129 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5209258Z Downloading pillow-12.3.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (6.9 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5427957Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 6.9/6.9 MB 347.0 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.5454881Z Downloading pyarrow-25.0.1-cp312-cp312-manylinux_2_28_x86_64.whl (50.1 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.6913736Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 50.1/50.1 MB 347.8 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.6948640Z Downloading pygments-2.20.0-py3-none-any.whl (1.2 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7017928Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.2/1.2 MB 217.2 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7044484Z Downloading tqdm-4.70.0-py3-none-any.whl (80 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7092454Z Downloading truststore-0.10.4-py3-none-any.whl (18 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7136106Z Downloading typing_inspection-0.4.4-py3-none-any.whl (14 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7184912Z Downloading anthropic-0.121.0-py3-none-any.whl (1.0 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7246377Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 1.0/1.0 MB 205.4 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7273545Z Downloading docstring_parser-0.18.0-py3-none-any.whl (22 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7324043Z Downloading httpx-0.28.1-py3-none-any.whl (73 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7371090Z Downloading httpcore-1.0.9-py3-none-any.whl (78 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7417572Z Downloading sniffio-1.3.1-py3-none-any.whl (10 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7462040Z Downloading certifi-2026.7.22-py3-none-any.whl (136 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.7514828Z Downloading numpy-2.5.2-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.7 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.8234357Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.7/16.7 MB 236.9 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.8266534Z Downloading python_frontmatter-1.3.0-py3-none-any.whl (10 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.8316996Z Downloading pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.8370487Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 807.9/807.9 kB 170.0 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.8399827Z Downloading scipy-1.18.0-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (35.3 MB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9382287Z    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 35.3/35.3 MB 366.0 MB/s  0:00:00
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9416081Z Downloading typer-0.27.1-py3-none-any.whl (122 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9471152Z Downloading annotated_doc-0.0.5-py3-none-any.whl (5.3 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9515494Z Downloading rich-15.0.0-py3-none-any.whl (310 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9571269Z Downloading markdown_it_py-4.2.0-py3-none-any.whl (91 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9625975Z Downloading mdurl-0.1.2-py3-none-any.whl (10.0 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:37.9674717Z Downloading shellingham-1.5.4-py2.py3-none-any.whl (9.8 kB)
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1395345Z Building wheels for collected packages: ai-fc
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1403888Z   Building editable for ai-fc (pyproject.toml): started
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1831692Z   Building editable for ai-fc (pyproject.toml): finished with status 'done'
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1837967Z   Created wheel for ai-fc: filename=ai_fc-0.2.0-py3-none-any.whl size=1601 sha256=d8a8d3199e69b5f9b82d9d14be88ec19a9094060de5c4408401facb3b330eb4a
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1839695Z   Stored in directory: /tmp/pip-ephem-wheel-cache-uzjza8r8/wheels/c4/2e/4b/f47d08099f5fe50e0a47e8358a8a9eca48ed7f825f02010b74
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.1855058Z Successfully built ai-fc
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:38.2844050Z Installing collected packages: typing-extensions, truststore, tqdm, sniffio, shellingham, pyyaml, pygments, pyarrow, pluggy, pillow, packaging, numpy, mdurl, jiter, iniconfig, idna, h11, duckdb, docstring-parser, distro, certifi, annotated-types, annotated-doc, typing-inspection, scipy, python-frontmatter, pytest, pydantic-core, markdown-it-py, httpcore2, httpcore, anyio, rich, pydantic, httpx2, httpx, typer, openai, anthropic, ai-fc
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:51.5226274Z
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:51.5261918Z Successfully installed ai-fc-0.2.0 annotated-doc-0.0.5 annotated-types-0.8.0 anthropic-0.121.0 anyio-4.14.2 certifi-2026.7.22 distro-1.9.0 docstring-parser-0.18.0 duckdb-1.5.5 h11-0.16.0 httpcore-1.0.9 httpcore2-2.10.0 httpx-0.28.1 httpx2-2.10.0 idna-3.18 iniconfig-2.3.0 jiter-0.16.0 markdown-it-py-4.2.0 mdurl-0.1.2 numpy-2.5.2 openai-3.0.0 packaging-26.3 pillow-12.3.0 pluggy-1.6.0 pyarrow-25.0.1 pydantic-2.13.4 pydantic-core-2.46.4 pygments-2.20.0 pytest-9.1.1 python-frontmatter-1.3.0 pyyaml-6.0.3 rich-15.0.0 scipy-1.18.0 shellingham-1.5.4 sniffio-1.3.1 tqdm-4.70.0 truststore-0.10.4 typer-0.27.1 typing-extensions-4.16.0 typing-inspection-0.4.4
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:51.5272105Z
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:51.5272451Z [notice] A new release of pip is available: 26.1.2 -> 26.2.1
+verify	deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)	2026-08-13T11:53:51.5273046Z [notice] To update, run: pip install --upgrade pip
+verify	unit tests (src)	﻿2026-08-13T11:53:51.6602921Z ##[group]Run python -m pytest src/tests -q
+verify	unit tests (src)	2026-08-13T11:53:51.6603478Z ^[[36;1mpython -m pytest src/tests -q^[[0m
+verify	unit tests (src)	2026-08-13T11:53:51.6654972Z shell: /usr/bin/bash -e {0}
+verify	unit tests (src)	2026-08-13T11:53:51.6655236Z env:
+verify	unit tests (src)	2026-08-13T11:53:51.6655511Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	unit tests (src)	2026-08-13T11:53:51.6656295Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	unit tests (src)	2026-08-13T11:53:51.6656720Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	unit tests (src)	2026-08-13T11:53:51.6657097Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	unit tests (src)	2026-08-13T11:53:51.6657470Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	unit tests (src)	2026-08-13T11:53:51.6657842Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	unit tests (src)	2026-08-13T11:53:51.6658161Z ##[endgroup]
+verify	unit tests (src)	2026-08-13T11:54:05.6698155Z ........................................................................ [ 16%]
+verify	unit tests (src)	2026-08-13T11:54:07.5752545Z ........................................................................ [ 32%]
+verify	unit tests (src)	2026-08-13T11:54:08.3610670Z ........................................................................ [ 48%]
+verify	unit tests (src)	2026-08-13T11:54:20.0151852Z ........................................................................ [ 64%]
+verify	unit tests (src)	2026-08-13T11:54:27.9034818Z ........................................................................ [ 80%]
+verify	unit tests (src)	2026-08-13T11:54:29.8589838Z ........................................................................ [ 97%]
+verify	unit tests (src)	2026-08-13T11:54:30.1352716Z .............                                                            [100%]
+verify	unit tests (src)	2026-08-13T11:54:30.1354804Z 445 passed in 37.24s
+verify	immutability drift check	﻿2026-08-13T11:54:30.4028125Z ##[group]Run cd src && python -m ai_fc sync --check
+verify	immutability drift check	2026-08-13T11:54:30.4028543Z ^[[36;1mcd src && python -m ai_fc sync --check^[[0m
+verify	immutability drift check	2026-08-13T11:54:30.4076944Z shell: /usr/bin/bash -e {0}
+verify	immutability drift check	2026-08-13T11:54:30.4077196Z env:
+verify	immutability drift check	2026-08-13T11:54:30.4077471Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	immutability drift check	2026-08-13T11:54:30.4077906Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	immutability drift check	2026-08-13T11:54:30.4078327Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	immutability drift check	2026-08-13T11:54:30.4078719Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	immutability drift check	2026-08-13T11:54:30.4079081Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	immutability drift check	2026-08-13T11:54:30.4079446Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	immutability drift check	2026-08-13T11:54:30.4079768Z ##[endgroup]
+verify	immutability drift check	2026-08-13T11:54:30.8376507Z [경고] Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range
+verify	immutability drift check	2026-08-13T11:54:30.8377901Z [경고] Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range
+verify	immutability drift check	2026-08-13T11:54:30.8378630Z 질문 38 / 예측 23 / 해소 6
+verify	generated inventory drift check	﻿2026-08-13T11:54:30.8766743Z ##[group]Run cd src && python -m ai_fc inventory --check
+verify	generated inventory drift check	2026-08-13T11:54:30.8767184Z ^[[36;1mcd src && python -m ai_fc inventory --check^[[0m
+verify	generated inventory drift check	2026-08-13T11:54:30.8816652Z shell: /usr/bin/bash -e {0}
+verify	generated inventory drift check	2026-08-13T11:54:30.8816955Z env:
+verify	generated inventory drift check	2026-08-13T11:54:30.8817229Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	generated inventory drift check	2026-08-13T11:54:30.8817676Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	generated inventory drift check	2026-08-13T11:54:30.8818102Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	generated inventory drift check	2026-08-13T11:54:30.8818480Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	generated inventory drift check	2026-08-13T11:54:30.8818862Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	generated inventory drift check	2026-08-13T11:54:30.8819244Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	generated inventory drift check	2026-08-13T11:54:30.8819565Z ##[endgroup]
+verify	generated inventory drift check	2026-08-13T11:54:31.4601666Z inventory current: docs/generated/inventory.generated.md
+verify	registered ledger integrity check	﻿2026-08-13T11:54:31.5037605Z ##[group]Run cd src && python -m ai_fc audit-ledgers --check
+verify	registered ledger integrity check	2026-08-13T11:54:31.5038094Z ^[[36;1mcd src && python -m ai_fc audit-ledgers --check^[[0m
+verify	registered ledger integrity check	2026-08-13T11:54:31.5086458Z shell: /usr/bin/bash -e {0}
+verify	registered ledger integrity check	2026-08-13T11:54:31.5086717Z env:
+verify	registered ledger integrity check	2026-08-13T11:54:31.5086987Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	registered ledger integrity check	2026-08-13T11:54:31.5087623Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	registered ledger integrity check	2026-08-13T11:54:31.5088044Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	registered ledger integrity check	2026-08-13T11:54:31.5088429Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	registered ledger integrity check	2026-08-13T11:54:31.5088793Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	registered ledger integrity check	2026-08-13T11:54:31.5089163Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	registered ledger integrity check	2026-08-13T11:54:31.5089489Z ##[endgroup]
+verify	registered ledger integrity check	2026-08-13T11:54:31.9418956Z ledger audit: accumulating=27 stalled=2 inactive=1 violation=0 planned=3
+verify	official LLM provider approval guard	﻿2026-08-13T11:54:31.9804179Z ##[group]Run cd src && python -m ai_fc provider-guard
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9804603Z ^[[36;1mcd src && python -m ai_fc provider-guard^[[0m
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9852500Z shell: /usr/bin/bash -e {0}
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9852764Z env:
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9853044Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9853496Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9853941Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9854323Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9854693Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9855052Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	official LLM provider approval guard	2026-08-13T11:54:31.9855381Z ##[endgroup]
+verify	official LLM provider approval guard	2026-08-13T11:54:32.2542610Z official provider approved: anthropic:claude-opus-4-8
+verify	secret pattern scan	﻿2026-08-13T11:54:32.2919953Z ##[group]Run cd src && python -m ai_fc security-check
+verify	secret pattern scan	2026-08-13T11:54:32.2920385Z ^[[36;1mcd src && python -m ai_fc security-check^[[0m
+verify	secret pattern scan	2026-08-13T11:54:32.2967929Z shell: /usr/bin/bash -e {0}
+verify	secret pattern scan	2026-08-13T11:54:32.2968188Z env:
+verify	secret pattern scan	2026-08-13T11:54:32.2968462Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	secret pattern scan	2026-08-13T11:54:32.2968904Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	secret pattern scan	2026-08-13T11:54:32.2969330Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	secret pattern scan	2026-08-13T11:54:32.2969722Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	secret pattern scan	2026-08-13T11:54:32.2970081Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	secret pattern scan	2026-08-13T11:54:32.2970447Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	secret pattern scan	2026-08-13T11:54:32.2970773Z ##[endgroup]
+verify	secret pattern scan	2026-08-13T11:54:33.9830948Z secret pattern scan clean
+verify	track record verifier	﻿2026-08-13T11:54:34.0228164Z ##[group]Run python tools/verify_track_record.py
+verify	track record verifier	2026-08-13T11:54:34.0228750Z ^[[36;1mpython tools/verify_track_record.py^[[0m
+verify	track record verifier	2026-08-13T11:54:34.0279006Z shell: /usr/bin/bash -e {0}
+verify	track record verifier	2026-08-13T11:54:34.0279387Z env:
+verify	track record verifier	2026-08-13T11:54:34.0279795Z   pythonLocation: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	track record verifier	2026-08-13T11:54:34.0280490Z   PKG_CONFIG_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib/pkgconfig
+verify	track record verifier	2026-08-13T11:54:34.0281181Z   Python_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	track record verifier	2026-08-13T11:54:34.0281771Z   Python2_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	track record verifier	2026-08-13T11:54:34.0282218Z   Python3_ROOT_DIR: /opt/hostedtoolcache/Python/3.12.13/x64
+verify	track record verifier	2026-08-13T11:54:34.0282604Z   LD_LIBRARY_PATH: /opt/hostedtoolcache/Python/3.12.13/x64/lib
+verify	track record verifier	2026-08-13T11:54:34.0282956Z ##[endgroup]
+verify	track record verifier	2026-08-13T11:54:34.2271710Z ==============================================================
+verify	track record verifier	2026-08-13T11:54:34.2272588Z AI-FC track record 검증기 — 읽기 전용 · stdlib + git
+verify	track record verifier	2026-08-13T11:54:34.2272938Z ==============================================================
+verify	track record verifier	2026-08-13T11:54:34.2273435Z [1] 해시 앵커 (forecasts/.hashes ↔ SHA-256 재계산)
+verify	track record verifier	2026-08-13T11:54:34.2273772Z   ok    예측 파일 23건 해시 전건 일치
+verify	track record verifier	2026-08-13T11:54:34.2274052Z [2] git 불변성 (공개 이력 전체)
+verify	track record verifier	2026-08-13T11:54:34.2274342Z   ok    (a) 예측·증거 파일 수정/삭제 이벤트 0 — 생성 후 무수정
+verify	track record verifier	2026-08-13T11:54:34.2275281Z   ok    (b) calibration/ledger.csv: 2개 버전 전부 prefix-확장 (이력 2커밋 기준)
+verify	track record verifier	2026-08-13T11:54:34.2276030Z   ok    (b) calibration/benchmark_ledger.csv: 2개 버전 전부 prefix-확장 (이력 2커밋 기준)
+verify	track record verifier	2026-08-13T11:54:34.2276768Z   ok    (b) calibration/research_status_overrides.csv: 1개 버전 전부 prefix-확장 (이력 1커밋 기준 — 이력이 짧아 실효는 향후 커밋부터)
+verify	track record verifier	2026-08-13T11:54:34.2277824Z [3] 시점 불변식 + 증명 등급 (A=baseline 이후 커밋 / B=baseline 포함)
+verify	track record verifier	2026-08-13T11:54:34.2278241Z   ok    등급 집계: A급 2건 (강한 증명) / B급 21건 (자기증명 — 외부 시계 없음)
+verify	track record verifier	2026-08-13T11:54:34.2278560Z [4] Brier 독립 재계산
+verify	track record verifier	2026-08-13T11:54:34.2278855Z   ok    calibration/ledger.csv: 6개 점수 재계산 전건 일치
+verify	track record verifier	2026-08-13T11:54:34.2279244Z   ok    calibration/benchmark_ledger.csv: 8개 점수 재계산 전건 일치
+verify	track record verifier	2026-08-13T11:54:34.2279792Z   info  .hashes.ots 존재 — OpenTimestamps 비트코인 앵커 (검증: `ots verify forecasts/.hashes.ots`)
+verify	track record verifier	2026-08-13T11:54:34.2280256Z --------------------------------------------------------------
+verify	track record verifier	2026-08-13T11:54:34.2280669Z 결과: [A급 2 / B급 21] 해시·불변성·시점·Brier → PASS
+verify	track record verifier	2026-08-13T11:54:34.2280879Z
+verify	track record verifier	2026-08-13T11:54:34.2281038Z 등급 설명 (정직한 공증 구조):
+verify	track record verifier	2026-08-13T11:54:34.2281355Z   커밋 타임스탬프는 로컬 시계라 단독으로는 위조 가능하다. GitHub에 푸시된 이후의
+verify	track record verifier	2026-08-13T11:54:34.2281744Z   커밋 시점만 사실상 공증된다. 따라서 본 검증기는 증명을 2등급으로 구분한다:
+verify	track record verifier	2026-08-13T11:54:34.2282124Z   [B급 · 약한 증명] 공개 baseline 커밋에 포함된 기록 — 해시 일관성과 파일 내부
+verify	track record verifier	2026-08-13T11:54:34.2282521Z       시점 정합만 검증 (외부 시계 없음 — 자기증명임을 명시한다)
+verify	track record verifier	2026-08-13T11:54:34.2282872Z   [A급 · 강한 증명] baseline 이후 커밋된 기록 — 리모트 고정 이력의 커밋 시각이
+verify	track record verifier	2026-08-13T11:54:34.2283216Z       질문 마감보다 앞섬을 검증. 향후 표본은 전부 A급으로 쌓인다.
+verify	track record verifier	2026-08-13T11:54:34.2283390Z
+verify	Post Run actions/setup-python@v5	﻿2026-08-13T11:54:34.2447679Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+verify	Post Run actions/setup-python@v5	2026-08-13T11:54:34.2448860Z Post job cleanup.
+verify	Post Run actions/setup-python@v5	2026-08-13T11:54:34.3630686Z (node:3198) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+verify	Post Run actions/setup-python@v5	2026-08-13T11:54:34.3631562Z (Use `node --trace-deprecation ...` to show where the warning was created)
+verify	Post Run actions/checkout@v4	﻿2026-08-13T11:54:34.3872947Z Node 20 is being deprecated. This workflow is running with Node 24 by default. If you need to temporarily use Node 20, you can set the ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION=true environment variable. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.3875061Z Post job cleanup.
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4766565Z [command]/usr/bin/git version
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4812781Z git version 2.54.0
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4850327Z Temporarily overriding HOME='/home/runner/work/_temp/25a5cd1b-759c-4514-950a-39faa9b0cbdb' before making global git config changes
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4851630Z Adding repository directory to the temporary git global config as a safe directory
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4855989Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4896984Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.4934189Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5209078Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5239240Z http.https://github.com/.extraheader
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5252305Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5299879Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5649915Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+verify	Post Run actions/checkout@v4	2026-08-13T11:54:34.5700168Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+verify	Complete job	﻿2026-08-13T11:54:34.6193007Z Cleaning up orphan processes
+verify	Complete job	2026-08-13T11:54:34.6497029Z ##[warning]Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-python@v5. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/

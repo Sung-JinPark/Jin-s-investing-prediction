@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import urllib.error
 import zipfile
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -10,10 +11,13 @@ from pathlib import Path
 import pytest
 
 from ai_fc.statistics_lab import (
+    FRED_ENDPOINT,
     FRED_SERIES,
     StatisticsLabError,
+    _fetch_fred,
     _parse_fred_csv,
     _parse_z1,
+    _request,
     _validate_manual_reference_freshness,
     build_statistics_lab,
     load_ipo_reference,
@@ -24,6 +28,90 @@ from ai_fc.statistics_lab import (
     validate_ipo_reference,
     validate_statistics_lab,
 )
+
+
+class _Response:
+    def __init__(self, payload: bytes) -> None:
+        self.payload = payload
+
+    def __enter__(self) -> "_Response":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.payload
+
+
+def test_public_request_retries_only_transient_failures(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+    sleeps: list[int] = []
+
+    def flaky(*_args: object, **_kwargs: object) -> _Response:
+        calls.append(1)
+        if len(calls) < 3:
+            raise TimeoutError("transient read timeout")
+        return _Response(b"current-source")
+
+    monkeypatch.setattr("ai_fc.statistics_lab.urllib.request.urlopen", flaky)
+    monkeypatch.setattr("ai_fc.statistics_lab.time.sleep", sleeps.append)
+    assert _request("https://example.test/source", timeout=1) == b"current-source"
+    assert len(calls) == 3
+    assert sleeps == [1, 2]
+
+
+def test_public_request_does_not_retry_permanent_http_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+
+    def missing(*_args: object, **_kwargs: object) -> _Response:
+        calls.append(1)
+        raise urllib.error.HTTPError(
+            "https://example.test/missing", 404, "not found", {}, None,
+        )
+
+    monkeypatch.setattr("ai_fc.statistics_lab.urllib.request.urlopen", missing)
+    with pytest.raises(urllib.error.HTTPError):
+        _request("https://example.test/missing", timeout=1)
+    assert len(calls) == 1
+
+
+def test_public_request_stays_fail_closed_after_retry_budget(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+
+    def unavailable(*_args: object, **_kwargs: object) -> _Response:
+        calls.append(1)
+        raise urllib.error.URLError("temporary DNS failure")
+
+    monkeypatch.setattr("ai_fc.statistics_lab.urllib.request.urlopen", unavailable)
+    monkeypatch.setattr("ai_fc.statistics_lab.time.sleep", lambda _seconds: None)
+    with pytest.raises(StatisticsLabError, match="failed after 3 attempts"):
+        _request("https://example.test/source", timeout=1)
+    assert len(calls) == 3
+
+
+def test_fred_fetch_uses_same_url_transport_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    seen: list[tuple[str, int]] = []
+
+    def fetched(url: str, *, timeout: int) -> str:
+        seen.append((url, timeout))
+        return "observation_date,M2SL\n2026-07-01,22000.5\n"
+
+    monkeypatch.setattr(
+        "ai_fc.statistics_lab.feed.get_with_curl_fallback", fetched,
+    )
+    rows, raw = _fetch_fred("M2SL")
+    assert seen == [(f"{FRED_ENDPOINT}?id=M2SL&cosd=1995-01-01", 45)]
+    assert rows == [{"date": "2026-07-01", "value": 22000.5}]
+    assert raw == b"observation_date,M2SL\n2026-07-01,22000.5\n"
 
 
 def _rows(series_id: str) -> list[dict[str, float | str]]:

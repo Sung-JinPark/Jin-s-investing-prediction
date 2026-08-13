@@ -48,6 +48,15 @@ EVIDENCE_ROOT = OUTPUT_ROOT / "evidence"
 ZIP_PATH = ROOT / "reports/reviews/current" / f"{PACK_ID}.zip"
 FIXED_ZIP_TIME = (2026, 8, 13, 20, 0, 0)
 USER_AGENT = "JinsInvestingDataIntegrityAudit/1.0"
+IMPLEMENTATION_BASE = "56ab3542895b5f7b2a74596d56a79d8014e593fc"
+FINAL_RUN_IDS = {
+    "scenario_refresh_success": 31695816670,
+    "statistics_initial_timeout": 31695813731,
+    "statistics_retry_exhausted": 31696739695,
+    "statistics_refresh_success": 31697312155,
+    "final_pages_success": 31697501562,
+    "final_verify_success": 31697501558,
+}
 
 STATISTICS = ROOT / "data/statistics/dotcom_statistics_latest.json"
 IPO_REFERENCE = ROOT / "data/statistics/ipo/ipo_comparison_v1.json"
@@ -361,6 +370,31 @@ def _workflow_runs() -> dict[str, Any]:
     return result
 
 
+def _capture_workflow_logs() -> dict[str, Any]:
+    rows: dict[str, Any] = {}
+    target = EVIDENCE_ROOT / "workflow_logs"
+    target.mkdir(parents=True, exist_ok=True)
+    for label, run_id in FINAL_RUN_IDS.items():
+        metadata = _run([
+            "gh", "run", "view", str(run_id),
+            "--json", "status,conclusion,headSha,url,event,workflowName",
+        ], check=False)
+        log = _run(["gh", "run", "view", str(run_id), "--log"], check=False)
+        raw_log = log.stdout or log.stderr
+        normalized_log = "\n".join(
+            line.rstrip() for line in raw_log.splitlines()
+        ) + "\n"
+        _write(target / f"{label}_{run_id}.log", normalized_log)
+        try:
+            row = json.loads(metadata.stdout)
+        except json.JSONDecodeError:
+            row = {"status": "unavailable", "stderr": metadata.stderr}
+        row["database_id"] = run_id
+        row["log_file"] = f"evidence/workflow_logs/{label}_{run_id}.log"
+        rows[label] = row
+    return rows
+
+
 def _write_source_csv(matrix: list[dict[str, Any]]) -> None:
     target = OUTPUT_ROOT / "01_SOURCE_INTEGRITY_MATRIX.csv"
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -451,7 +485,8 @@ def _reports(
 7. `06_KOSPI_SIGNAL_METHOD.md`
 8. `07_LIMITATIONS_AND_OPEN_RISKS.md`
 9. `08_GPT_REVIEW_CHECKLIST.md`
-10. `evidence/` 원문·테스트·스크린샷
+10. `09_POST_DEPLOYMENT_WORKFLOW_EVIDENCE.md`
+11. `evidence/` 원문·테스트·스크린샷·워크플로 로그
 """)
     _write(OUTPUT_ROOT / "00_EXECUTIVE_VERDICT.md", f"""# 종합 판정
 
@@ -612,6 +647,20 @@ def _reports(
 11. 통계/미래 route fetch 실패가 조용히 빈 화면이 되지 않는가?
 12. 모바일 390px screenshot에 가로 overflow, 텍스트 겹침, console error가 없는가?
 """)
+    recovery = workflows.get("final_recovery_runs", {})
+    _write(OUTPUT_ROOT / "09_POST_DEPLOYMENT_WORKFLOW_EVIDENCE.md", f"""# 최종 자동화·배포 증거
+
+## 최종 판정
+
+- Scenario refresh: `{recovery.get('scenario_refresh_success', {}).get('conclusion')}` · run `31695816670`.
+- 첫 통계 실패: `{recovery.get('statistics_initial_timeout', {}).get('conclusion')}` · Python TLS read timeout · run `31695813731`.
+- 제한 재시도 후 실패: `{recovery.get('statistics_retry_exhausted', {}).get('conclusion')}` · 같은 FRED M2SL URL에서 runner transport timeout 지속 · run `31696739695`.
+- 동일 URL curl/public-DNS transport fallback 적용 후 통계 refresh: `{recovery.get('statistics_refresh_success', {}).get('conclusion')}` · run `31697312155`.
+- 최종 full verify: `{recovery.get('final_verify_success', {}).get('conclusion')}` · run `31697501558`.
+- 최종 Pages: `{recovery.get('final_pages_success', {}).get('conclusion')}` · run `31697501562`.
+
+모든 원문 로그는 `evidence/workflow_logs/`에 있습니다. fallback은 공급자나 데이터 계열을 바꾸지 않고 같은 HTTPS URL의 전송 방식만 바꿉니다. 모든 전송이 실패하면 이전 snapshot을 최신으로 재표시하지 않고 작업이 실패합니다.
+""")
 
 
 def _manifest_and_zip() -> tuple[str, int]:
@@ -656,6 +705,7 @@ def main() -> int:
     matrix = _source_matrix(statistics_payload, verification)
     math_audit = _math_audit(statistics_payload, ipo_reference, cross_asset, candidate)
     workflows = _workflow_runs()
+    workflows["final_recovery_runs"] = _capture_workflow_logs()
     protected = _protected_manifest()
 
     _write_json(EVIDENCE_ROOT / "LIVE_SOURCE_HASH_VERIFICATION.json", verification)
@@ -668,7 +718,11 @@ def main() -> int:
 
     try:
         raw_diff = _run(
-            ["git", "diff", "--binary", "origin/main...HEAD"], check=False,
+            [
+                "git", "diff", "--binary", f"{IMPLEMENTATION_BASE}...HEAD",
+                "--", ".", ":(exclude)reports/reviews/current",
+            ],
+            check=False,
         ).stdout
         # Keep the review tree compatible with repository-wide
         # ``git diff --check``.  This changes only trailing whitespace in the
