@@ -1,0 +1,51 @@
+{
+  "baseline_commit": "5dc1e1481bd21ccd2351db172a276178ce8aeb34",
+  "feature_final_merge": "3e3578b246da402422d2b5ef9fbf35e949969739",
+  "current_head": "19e58b7",
+  "pull_requests": [
+    {
+      "number": 14,
+      "title": "fix: preserve scenario path shape in dashboard",
+      "head": "336e992ae8f795e5839896de5ab1aa4fa077d838",
+      "merge": "751678fd5f01a80473f6fea9a72687a264d1c044",
+      "merged_at": "2026-08-12T00:39:03Z",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/pull/14",
+      "verify_run": 31550831270,
+      "verify_conclusion": "success"
+    },
+    {
+      "number": 15,
+      "title": "fix: deploy scenario projection changes",
+      "head": "cbae33bbdf97571e8af9ec8a61ac0b1cd542e438",
+      "merge": "6fd070b45b4a2d4d2c558b33d37fc9cfd9aa3158",
+      "merged_at": "2026-08-12T00:42:29Z",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/pull/15",
+      "verify_run": 31551045637,
+      "verify_conclusion": "success",
+      "pages_run": 31551138626,
+      "pages_conclusion": "success"
+    },
+    {
+      "number": 16,
+      "title": "fix: show independent scenarios on future route",
+      "head": "fc2818a0b7a0951386adc690f8a3bf1fc811c41b",
+      "merge": "3e3578b246da402422d2b5ef9fbf35e949969739",
+      "merged_at": "2026-08-12T01:15:06Z",
+      "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/pull/16",
+      "verify_run": 31552908335,
+      "verify_conclusion": "success",
+      "pages_run": 31552987704,
+      "pages_conclusion": "success"
+    }
+  ],
+  "latest_data_pages_run": {
+    "run": 31560620693,
+    "head": "60b4d4daa6fbfee793c4ad1dad1b0db16d89713c",
+    "conclusion": "success"
+  },
+  "feature_diff": {
+    "files_changed": 5,
+    "insertions": 53,
+    "deletions": 8
+  }
+}
