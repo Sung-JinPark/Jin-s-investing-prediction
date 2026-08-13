@@ -15,6 +15,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from ai_fc.quant import feed
+
 
 LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 ARCHIVE_RELATIVE = Path("data/statistics/archive")
@@ -253,7 +255,11 @@ def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
 
 def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
     url = f"{FRED_ENDPOINT}?id={series_id}&cosd=1995-01-01"
-    raw = _request(url)
+    # GitHub-hosted runners intermittently leave Python's TLS read waiting on
+    # FRED.  Reuse the repository's audited same-URL curl/public-DNS transport
+    # fallback.  Decoding and re-encoding UTF-8 is byte-preserving for FRED CSV
+    # and the exact bytes are still hashed in the source receipt.
+    raw = feed.get_with_curl_fallback(url, timeout=45).encode("utf-8")
     return _parse_fred_csv(raw, series_id), raw
 
 
