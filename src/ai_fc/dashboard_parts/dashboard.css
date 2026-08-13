@@ -1123,3 +1123,68 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 .plain-insight{margin:14px 0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid #ced8d4;background:#ced8d4}.plain-insight article{min-width:0;padding:14px 16px;background:#f5faf7}.plain-insight span{color:#247d78;font:760 10px/1.2 var(--mono);letter-spacing:.05em}.plain-insight strong{margin:6px 0;display:block;font-size:15px}.plain-insight p{margin:0;color:#626862;font-size:12px;line-height:1.55}.cross-asset-details,.liquidity-details{background:#fbfaf6}.cross-asset-details>summary,.liquidity-details>summary{font-size:14px}.cross-asset-details>.realty-thesis-grid{padding:0 16px}.cross-asset-details>.cross-diagnostics,.cross-asset-details>.cohort-shell,.cross-asset-details>.tracker-shell{margin-inline:16px}.liquidity-details>.liquidity-source-grid,.liquidity-details>.liquidity-lag{margin-inline:16px}.liquidity-details>.liquidity-lag{margin-bottom:16px}
 @media(max-width:980px){.scenario-v52-tabs{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child,.future-paths-checkpoints{grid-template-columns:repeat(2,minmax(0,1fr))}.scenario-v52-legend{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){html,body{max-width:100%;overflow-x:hidden}.scenario-model-mode,.scenario-v52-tabs,.scenario-v52-overview,.scenario-v52-readout,.scenario-v52-outcomes>div:last-child,.scenario-v52-insights>div:last-child,.scenario-v52-legend,.plain-insight,.future-paths-checkpoints{grid-template-columns:1fr}.scenario-v52-risk-banner{grid-template-columns:1fr}.scenario-v52-range{width:100%}.scenario-v52-range button{min-width:50%;flex:1;border-bottom:1px solid var(--line-strong)}.scenario-v52-chart{min-height:240px;overflow-x:auto}.scenario-v52-chart svg{min-width:760px}.scenario-v52-method>div{grid-template-columns:1fr}.cross-asset-details>.realty-thesis-grid,.cross-asset-details>.cross-diagnostics,.cross-asset-details>.cohort-shell,.cross-asset-details>.tracker-shell,.liquidity-details>.liquidity-source-grid,.liquidity-details>.liquidity-lag{margin-inline:10px}.cross-asset-details>.realty-thesis-grid{padding:0}}
+
+/* Mobile presentation stability: layout-only repairs; copy, data, and chart logic stay unchanged. */
+.scenario-v52-method:not([open])>div{display:none}
+@media(max-width:799px){
+  html{scroll-padding-top:110px}
+  .mobile-header{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  .mobile-brand{min-width:0;max-width:calc(100% - 58px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .market-strip{padding-inline:max(8px,env(safe-area-inset-left));overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .market-strip::-webkit-scrollbar{display:none}
+  .market-strip>div{min-width:max-content;flex:0 0 auto;padding-inline:11px}
+  .app-shell>.view-enter:not(.overview-page){padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .overview-stage,.overview-lower-inner{padding-left:max(16px,env(safe-area-inset-left));padding-right:max(16px,env(safe-area-inset-right))}
+  .page-heading{grid-template-columns:minmax(0,1fr);gap:18px}
+  .page-heading>*,.panel-head>*,.statistics-card-head>*,.scenario-v52-risk-banner>*,.trust-overview-head>*{min-width:0}
+  .page-heading h1,.page-lede,.panel-head h2,.statistics-card-head h2,.scenario-v52-section-title h2{overflow-wrap:anywhere}
+  .table-shell,.chart-wrap,.statistics-chart,.scenario-v52-chart{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+  .mobile-bottom-nav{padding-left:max(8px,env(safe-area-inset-left));padding-right:max(8px,env(safe-area-inset-right));background:#fbfbf8;box-shadow:0 -8px 24px rgba(17,17,15,.08)}
+  .mobile-bottom-nav a,.mobile-bottom-nav button{overflow:hidden}
+  .mobile-bottom-nav small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.15}
+  .site-footer{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}
+}
+@media(max-width:620px){
+  .page-heading{padding:28px 20px}
+  .page-heading::after{display:none}
+  .page-heading h1{font-size:clamp(34px,10vw,42px);line-height:1.04;text-wrap:balance;word-break:keep-all}
+  .page-lede{font-size:14px;line-height:1.65;word-break:keep-all}
+  .statistics-card-head{padding:18px 16px}
+  .statistics-card-head h2{font-size:clamp(22px,7vw,30px);line-height:1.12;word-break:keep-all}
+  .statistics-card-head>b{max-width:100%;white-space:normal;overflow-wrap:anywhere}
+  .statistics-legend>div{min-width:0;padding:12px}
+  .statistics-legend strong,.statistics-summary strong,.trust-metrics strong,.scenario-v52-overview strong,.scenario-v52-readout strong{min-width:0;overflow-wrap:anywhere}
+  .scenario-customer-view a{min-width:0;padding-inline:8px;text-align:center;white-space:normal;line-height:1.35}
+  .scenario-v52-risk-banner{padding:14px}
+  .scenario-v52-main,.scenario-v52-timing{max-width:100%;padding:12px}
+  .scenario-v52-chart svg,.statistics-chart svg{min-width:640px}
+  .scenario-v52-method>summary,.trust-ledger-details>summary,.statistics-sources>summary{min-width:0;gap:12px;overflow-wrap:anywhere}
+  .mobile-question-facts{grid-template-columns:1fr}
+  .mobile-question-facts>div{min-width:0}
+  .event-summary-chip,.lookup-heading>span,.source-state,.semantic-state,.lifecycle{min-width:0;max-width:100%;white-space:normal}
+  .today-signals small{overflow:visible;text-overflow:clip;white-space:normal;line-height:1.4}
+  .today-list>a{height:auto;padding-block:10px;align-items:start}
+  .today-list span{overflow:visible;text-overflow:clip;white-space:normal;line-height:1.4}
+  .scenario-history-nav{width:100%;min-width:0;max-width:100%;overflow:hidden}
+  .scenario-history-nav>div{width:100%;min-width:0;max-width:100%}
+  .statistics-detail-rows{margin-inline:12px}
+  .statistics-detail-rows article{grid-template-columns:54px minmax(0,1fr);gap:6px 10px;align-items:start}
+  .statistics-detail-rows strong{min-width:0;overflow-wrap:anywhere}
+  .statistics-detail-rows b{grid-column:2;justify-self:start;overflow-wrap:anywhere}
+}
+@media(max-width:359px){
+  .mobile-header{height:60px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .content-shell{padding-top:60px}
+  .market-strip{top:60px}
+  .mobile-brand{font-size:9px;letter-spacing:.04em}
+  .app-shell>.view-enter:not(.overview-page),.overview-stage,.overview-lower-inner{padding-left:max(12px,env(safe-area-inset-left));padding-right:max(12px,env(safe-area-inset-right))}
+  .page-heading{padding:24px 16px}
+  .page-heading h1{font-size:32px}
+  .statistics-summary,.trust-metrics,.scenario-v5-stats,.mobile-question-facts{grid-template-columns:1fr}
+  .statistics-summary article{border-right:0;border-bottom:1px solid var(--line)}
+  .statistics-filters{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .scenario-v52-range button{min-width:100%}
+  .mobile-bottom-nav{gap:2px;padding-inline:4px}
+  .mobile-bottom-nav a,.mobile-bottom-nav button{padding-inline:2px}
+  .mobile-bottom-nav small{font-size:10px}
+}
