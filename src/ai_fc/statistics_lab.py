@@ -34,6 +34,13 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
+    "DABSHNO": {
+        "title": "Households and nonprofit organizations; total currency and deposits including money market fund shares",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
     "NASDAQCOM": {
         "title": "NASDAQ Composite Index",
         "provider": "NASDAQ OMX Group via FRED",
@@ -404,6 +411,9 @@ def build_statistics_lab(
     dot_liq, cur_liq = _cycle_series(
         _ratio(monthly["NASDAQCOM"], monthly["M2SL"]), comparison_months, indexed=True
     )
+    dot_household_cash, cur_household_cash = _cycle_series(
+        _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), comparison_months, indexed=True
+    )
     dot_curve, cur_curve = _cycle_series(monthly["T10Y2Y"], comparison_months)
     dot_funds, cur_funds = _cycle_series(monthly["FEDFUNDS"], comparison_months)
 
@@ -435,6 +445,10 @@ def build_statistics_lab(
                "NASDAQ을 M2로 나눈 비율의 사이클 시작 대비 변화를 봅니다.",
                "가격과 통화량의 단순 비율이며 적정가치나 매수·매도 신호가 아닙니다.",
                [_series("닷컴", "dotcom", dot_liq, "#c70039"), _series("현재", "current", cur_liq, "#ff7b00")], ["NASDAQCOM", "M2SL"]),
+        _chart("nasdaq_per_household_liquid_assets", "가계 현금성 자산 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
+               "NASDAQ을 가계·비영리단체가 보유한 현금·입출금예금·정기·저축예금·머니마켓펀드 지분 합계로 나눈 비율의 사이클 시작 대비 변화를 봅니다.",
+               "Fed Z.1 분기 말 잔액이며 비영리단체가 포함됩니다. 모든 현금성 자산이 주식 매수 대기자금은 아니며, M2와 합산하면 예금이 중복 계산되므로 별도 분모로 사용합니다.",
+               [_series("닷컴", "dotcom", dot_household_cash, "#7a3248"), _series("현재", "current", cur_household_cash, "#e46b20")], ["NASDAQCOM", "DABSHNO"]),
         _chart("yield_curve", "10년−2년 장단기 금리차", "rates", "percent",
                "침체 경계로 자주 보는 10년물과 2년물 금리차를 같은 경과월에 겹칩니다.",
                "역전 해소 자체가 즉시 주가 상승이나 침체 종료를 보장하지 않습니다.",
@@ -484,6 +498,12 @@ def build_statistics_lab(
     def chart_last(chart_index: int, series_index: int) -> float:
         return float(charts[chart_index]["series"][series_index]["points"][-1]["value"])
 
+    household_cash_current = cur_household_cash[-1]
+    household_cash_dotcom_same_period = next(
+        point for point in reversed(dot_household_cash)
+        if int(point["period"]) <= int(household_cash_current["period"])
+    )
+
     chart_insights = {
         "m2_nasdaq": (
             f"같은 경과월에 현재 NASDAQ은 시작 대비 {chart_last(0, 2):.0f}, M2는 {chart_last(0, 3):.0f}입니다. "
@@ -493,48 +513,53 @@ def build_statistics_lab(
             f"현재 유동성 대비 NASDAQ 지수는 {chart_last(1, 1):.0f}, 닷컴 당시 같은 구간은 {chart_last(1, 0):.0f}입니다. "
             "100보다 높을수록 통화량 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
         ),
+        "nasdaq_per_household_liquid_assets": (
+            f"현재 가계 현금성 자산 대비 NASDAQ 지수는 {float(household_cash_current['value']):.0f}, "
+            f"같은 경과월의 닷컴 지수는 {float(household_cash_dotcom_same_period['value']):.0f}입니다. "
+            "100보다 높을수록 실제 가계 현금·예금·MMF 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
+        ),
         "yield_curve": (
-            f"현재 장단기 금리차는 {chart_last(2, 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last(2, 0):+.1f}%p입니다. "
+            f"현재 장단기 금리차는 {chart_last(3, 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last(3, 0):+.1f}%p입니다. "
             "0 아래는 금리 역전, 0 위는 정상 기울기이며 경기 방향을 단독으로 확정하지는 않습니다."
         ),
         "policy_rate": (
-            f"현재 정책금리는 {chart_last(3, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(3, 0):.1f}%입니다. "
+            f"현재 정책금리는 {chart_last(4, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(4, 0):.1f}%입니다. "
             "금리가 높을수록 미래 이익의 할인 부담과 기업 조달비용이 커지는 방향입니다."
         ),
         "valuation_proxy": (
-            f"현재 기업가치/세후이익 대용치는 {chart_last(4, 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last(4, 0):.1f}배입니다. "
+            f"현재 기업가치/세후이익 대용치는 {chart_last(5, 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last(5, 0):.1f}배입니다. "
             "높을수록 이익에 비해 시장가치가 비싸다는 뜻이지만 NASDAQ 공식 PER은 아닙니다."
         ),
         "margin_credit_proxy": (
-            f"현재 증권담보 신용 대용치는 시작 대비 {chart_last(5, 1):.0f}, 닷컴 당시에는 {chart_last(5, 0):.0f}입니다. "
+            f"현재 증권담보 신용 대용치는 시작 대비 {chart_last(6, 1):.0f}, 닷컴 당시에는 {chart_last(6, 0):.0f}입니다. "
             "상승 속도가 빠를수록 레버리지 확대와 가격 충격 민감도가 커질 가능성을 뜻합니다."
         ),
         "consumer_credit_growth": (
-            f"현재 소비자신용 증가율은 {chart_last(6, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(6, 0):+.1f}%입니다. "
+            f"현재 소비자신용 증가율은 {chart_last(7, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(7, 0):+.1f}%입니다. "
             "빠른 증가는 소비를 지지할 수 있지만 동시에 가계 부채 부담도 키웁니다."
         ),
         "loan_standards": (
-            f"현재 대출기준 강화 응답은 {chart_last(7, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(7, 0):+.1f}%입니다. "
+            f"현재 대출기준 강화 응답은 {chart_last(8, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(8, 0):+.1f}%입니다. "
             "양수와 상승은 더 많은 은행이 대출을 조인다는 뜻이고, 음수는 완화 쪽입니다."
         ),
         "profit_growth": (
-            f"현재 세후 기업이익 증가율은 {chart_last(8, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(8, 0):+.1f}%입니다. "
+            f"현재 세후 기업이익 증가율은 {chart_last(9, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(9, 0):+.1f}%입니다. "
             "이익이 늘면 밸류에이션을 지지하지만 주가가 이익보다 빨리 오르면 부담은 다시 커집니다."
         ),
         "household_debt_service": (
-            f"현재 가계 원리금 부담은 가처분소득의 {chart_last(9, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(9, 0):.1f}%입니다. "
+            f"현재 가계 원리금 부담은 가처분소득의 {chart_last(10, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(10, 0):.1f}%입니다. "
             "높을수록 금리와 부채가 소비 여력을 더 많이 잠식한다는 뜻입니다."
         ),
         "unemployment_rate": (
-            f"현재 실업률은 {chart_last(10, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(10, 0):.1f}%입니다. "
+            f"현재 실업률은 {chart_last(11, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(11, 0):.1f}%입니다. "
             "상승하면 고용 냉각 신호지만 금리 인하 기대와 성장 둔화를 함께 봐야 합니다."
         ),
         "inflation_rate": (
-            f"현재 CPI 상승률은 {chart_last(11, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(11, 0):+.1f}%입니다. "
+            f"현재 CPI 상승률은 {chart_last(12, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(12, 0):+.1f}%입니다. "
             "낮아지면 금리 부담 완화 여지가 커지지만 수요 둔화가 원인인지도 확인해야 합니다."
         ),
         "financial_conditions": (
-            f"현재 NFCI는 {chart_last(12, 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last(12, 0):+.2f}입니다. "
+            f"현재 NFCI는 {chart_last(13, 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last(13, 0):+.2f}입니다. "
             "0 아래는 평균보다 완화적, 0 위는 긴축적이어서 시장이 받는 자금 압력을 직관적으로 보여줍니다."
         ),
     }
@@ -788,12 +813,17 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
     ]
     projected["charts"] = []
     for chart in payload["charts"]:
-        chart_view = {key: value for key, value in chart.items() if key != "series"}
+        # The browser derives chart bounds from the projected coordinates. Keeping
+        # the stored audit range in the embedded payload duplicates those values.
+        chart_view = {
+            key: value for key, value in chart.items()
+            if key not in {"series", "range"}
+        }
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
-            if len(points) > 20:
-                stride = math.ceil((len(points) - 1) / 19)
+            if len(points) > 18:
+                stride = math.ceil((len(points) - 1) / 17)
                 display_points = points[::stride]
                 if display_points[-1] is not points[-1]:
                     display_points.append(points[-1])

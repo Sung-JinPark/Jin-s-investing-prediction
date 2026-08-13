@@ -30,8 +30,11 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
     for offset in range(0, 32 * 12):
         year = start.year + (start.month - 1 + offset) // 12
         month = (start.month - 1 + offset) % 12 + 1
+        if series_id == "DABSHNO" and month not in {1, 4, 7, 10}:
+            continue
         baseline = {
             "M2SL": 4000.0,
+            "DABSHNO": 8_000_000.0,
             "NASDAQCOM": 900.0,
             "T10Y2Y": 0.5,
             "FEDFUNDS": 5.0,
@@ -126,10 +129,11 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 19
+    assert len(payload["charts"]) == 20
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
-        "m2_nasdaq", "yield_curve", "valuation_proxy", "margin_credit_proxy",
+        "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
+        "yield_curve", "valuation_proxy", "margin_credit_proxy",
         "household_debt_service", "unemployment_rate", "inflation_rate",
         "financial_conditions",
         "internet_vs_ai_core_ipos", "technology_ipo_count",
@@ -154,6 +158,18 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
     assert "대용치" in valuation["title"]
     assert {row["era"] for row in valuation["series"]} == {"dotcom", "current"}
+    household_cash = next(
+        chart for chart in payload["charts"] if chart["id"] == "nasdaq_per_household_liquid_assets"
+    )
+    assert household_cash["source_ids"] == ["NASDAQCOM", "DABSHNO"]
+    assert "M2와 합산하면 예금이 중복 계산" in household_cash["caveat"]
+    assert {row["era"] for row in household_cash["series"]} == {"dotcom", "current"}
+    assert all(
+        point["period"] % 3 == 0
+        for series in household_cash["series"]
+        for point in series["points"]
+    )
+    assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
     for chart in payload["charts"]:
         dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
         current = [row for row in chart["series"] if row["era"] == "current"]
@@ -228,9 +244,11 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     latest.parent.mkdir(parents=True)
     latest.write_text(json.dumps(payload), encoding="utf-8")
     projected = statistics_dashboard_projection(tmp_path)
+    assert all("range" not in chart for chart in projected["charts"])
+    assert all(len(source["raw_sha256"]) == 64 for source in projected["sources"])
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
-            assert len(view_series["points"]) <= 20
+            assert len(view_series["points"]) <= 18
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
 

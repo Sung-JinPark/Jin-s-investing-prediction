@@ -5,7 +5,7 @@ Status: reference-only; never an official forecast input
 
 ## Purpose
 
-The statistics category compares the dot-com cycle beginning 1997-01 with the
+The statistics category compares the dot-com cycle beginning 1995-01 with the
 current AI cycle beginning 2023-01 on the same elapsed-calendar-month axis.
 Alignment is descriptive. It does not force an endpoint, turning date, or
 forecast probability.
@@ -15,6 +15,7 @@ forecast probability.
 | Metric | Series | Provider | Native frequency | Public chart role |
 |---|---|---|---|---|
 | M2 | M2SL | Federal Reserve Board via FRED | Monthly | M2 and Nasdaq normalized-cycle comparison |
+| Household liquid assets | DABSHNO | Federal Reserve Board Z.1 via FRED | Quarterly, end of period | Nasdaq divided by household/nonprofit currency, deposits, and money-market fund shares |
 | Nasdaq Composite | NASDAQCOM | Nasdaq OMX via FRED | Daily close | Existing market-index reference with attribution |
 | 10y−2y spread | T10Y2Y | St. Louis Fed / U.S. Treasury | Daily | Yield-curve comparison |
 | Federal funds | FEDFUNDS | Federal Reserve Board via FRED | Monthly | Policy-rate comparison |
@@ -28,6 +29,7 @@ forecast probability.
 Primary references:
 
 - https://fred.stlouisfed.org/series/M2SL
+- https://fred.stlouisfed.org/series/DABSHNO
 - https://fred.stlouisfed.org/series/NASDAQCOM
 - https://fred.stlouisfed.org/series/T10Y2Y
 - https://fred.stlouisfed.org/series/FEDFUNDS
@@ -52,6 +54,18 @@ Robert Shiller's CAPE dataset remains a useful research reference, but is not
 substituted into the numerical pipeline because the repository's vintage and
 redistribution contract is not active:
 https://www.econ.yale.edu/~shiller/data.htm
+
+## Household liquid-assets definition
+
+`DABSHNO` is the Federal Reserve Z.1 level for household and nonprofit holdings
+of currency, deposits, and money-market fund shares. It includes checkable
+deposits and currency, time and savings deposits, and money-market fund shares.
+The dashboard uses `NASDAQCOM / DABSHNO`, indexed to 100 at each cycle start.
+
+It does not add DABSHNO to M2. M2 already contains overlapping deposit and
+retail money-market components, so adding the two levels would double count
+part of the same liquid-asset stock. The ratio is descriptive and is not a
+measure of immediately investable cash, fair value, or a trading signal.
 
 ## Exclusions
 

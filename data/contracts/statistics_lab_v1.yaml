@@ -24,6 +24,7 @@ sources:
     provider: Federal Reserve Bank of St. Louis
     series:
       M2SL: {native_frequency: monthly, unit: billions_usd, aggregation: last}
+      DABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_currency_deposits_and_money_market_fund_shares}
       NASDAQCOM: {native_frequency: daily_close, unit: index, aggregation: last}
       T10Y2Y: {native_frequency: daily, unit: percent, aggregation: mean}
       FEDFUNDS: {native_frequency: monthly, unit: percent, aggregation: last}
@@ -83,6 +84,13 @@ vintage_policy:
   historical_rows: current_release_reconstructed
   available_at: collector_fetch_timestamp
   warning: Historical rows are reconstructed from the latest release and are not native point-in-time vintages.
+
+liquidity_ratio_policy:
+  m2_ratio: NASDAQCOM_divided_by_M2SL
+  household_liquid_assets_ratio: NASDAQCOM_divided_by_DABSHNO
+  household_liquid_assets_components: [checkable_deposits_and_currency, time_and_savings_deposits, money_market_fund_shares]
+  double_count_guard: DABSHNO_must_not_be_added_to_M2SL_because_deposit_components_overlap
+  interpretation: Descriptive cycle-start indexed ratio; not investable cash, fair value, or a trading signal.
 
 publication_policy:
   cadence: weekly_check
