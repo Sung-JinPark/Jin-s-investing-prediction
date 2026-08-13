@@ -667,7 +667,13 @@ def main() -> int:
     _copy_evidence()
 
     try:
-        diff = _run(["git", "diff", "--binary", "origin/main...HEAD"], check=False).stdout
+        raw_diff = _run(
+            ["git", "diff", "--binary", "origin/main...HEAD"], check=False,
+        ).stdout
+        # Keep the review tree compatible with repository-wide
+        # ``git diff --check``.  This changes only trailing whitespace in the
+        # evidence rendering, never the committed source or data being audited.
+        diff = "\n".join(line.rstrip() for line in raw_diff.splitlines()) + "\n"
         _write(EVIDENCE_ROOT / "IMPLEMENTATION.patch", diff)
     except Exception as exc:
         _write(EVIDENCE_ROOT / "IMPLEMENTATION.patch", f"patch unavailable: {exc}\n")
