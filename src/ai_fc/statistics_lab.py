@@ -6,6 +6,8 @@ import io
 import json
 import math
 import statistics
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from collections import defaultdict
@@ -202,10 +204,32 @@ def _validate_manual_reference_freshness(
             )
 
 
-def _request(url: str, *, timeout: int = 45) -> bytes:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return response.read()
+def _request(url: str, *, timeout: int = 45, attempts: int = 3) -> bytes:
+    """Fetch one public source with bounded transient-error retries.
+
+    The collector remains fail-closed: it never substitutes the prior snapshot
+    or another provider.  Only network timeouts, connection failures, HTTP 429,
+    and HTTP 5xx responses are retried; permanent HTTP errors fail immediately.
+    """
+    if attempts < 1:
+        raise ValueError("request attempts must be positive")
+    last_error: BaseException | None = None
+    for attempt in range(attempts):
+        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return response.read()
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 and not 500 <= exc.code <= 599:
+                raise
+            last_error = exc
+        except (TimeoutError, urllib.error.URLError, ConnectionError) as exc:
+            last_error = exc
+        if attempt + 1 < attempts:
+            time.sleep(min(2 ** attempt, 8))
+    raise StatisticsLabError(
+        f"public source request failed after {attempts} attempts: {url}"
+    ) from last_error
 
 
 def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
