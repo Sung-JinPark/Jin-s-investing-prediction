@@ -31,9 +31,11 @@ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 900_000
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
+STATISTICS_DATA_BUDGET_BYTES = 120_000
+STATISTICS_DATA_FILENAME = "statistics.json"
 FUTURE_DEFERRED_KEYS = (
     "scenario_v5_2", "scenario_v4_shadow", "cross_asset", "era_analog",
-    "liquidity", "ai_regime", "multi_year_stress", "statistics_lab",
+    "liquidity", "ai_regime", "multi_year_stress",
 )
 
 # Repeated immutable forecast headings dominate the self-contained Pages payload.
@@ -697,6 +699,49 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
     return base, payload
 
 
+def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
+    """Move statistics-only chart coordinates into an independently bounded route artifact."""
+    existing = (read_model.get("statistics_lab") or {}).get("deferred_data") or {}
+    if existing.get("required"):
+        return read_model, None
+    if "statistics_lab" not in read_model:
+        return read_model, None
+    base = dict(read_model)
+    statistics_lab = base.pop("statistics_lab")
+    if statistics_lab.get("status") != "ok":
+        base["statistics_lab"] = statistics_lab
+        return base, None
+    base["statistics_lab"] = {
+        "schema_version": statistics_lab.get("schema_version"),
+        "dataset_id": statistics_lab.get("dataset_id"),
+        "status": statistics_lab.get("status"),
+        "generated_at": statistics_lab.get("generated_at"),
+        "as_of": statistics_lab.get("as_of"),
+        "cycle_alignment": statistics_lab.get("cycle_alignment"),
+        "chart_count": len(statistics_lab.get("charts") or []),
+        "source_count": len(statistics_lab.get("sources") or []),
+        "deferred_data": {
+            "required": True,
+            "loaded": False,
+            "url": STATISTICS_DATA_FILENAME,
+            "failure_mode": "summary_with_explicit_error",
+        },
+    }
+    payload = {
+        "schema_version": 1,
+        "contract_id": "statistics_route_v1",
+        "data": {"statistics_lab": statistics_lab},
+    }
+    payload_size = len(json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":")
+    ).encode("utf-8"))
+    if payload_size > STATISTICS_DATA_BUDGET_BYTES:
+        raise ValueError(
+            f"statistics data budget exceeded: {payload_size} > {STATISTICS_DATA_BUDGET_BYTES}"
+        )
+    return base, payload
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template())
     scenario = read_model.get("scenario") or {}
@@ -719,6 +764,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     ))
     shell = shell.replace("<!--OG_META-->", og_meta)
     if mode == "embed":
+        read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
@@ -727,17 +773,20 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         )
         data_script = (
             f'<script>window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
+            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
             f"window.__DATA__ = {blob};</script>"
         )
     elif mode == "pages":
         data_script = (
             '<script>window.__DATA_URL__ = "data.json";'
-            f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";</script>'
+            f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
+            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";</script>'
         )
     elif mode == "fetch":
         data_script = (
             '<script>window.__DATA_URL__ = "/api/data";'
-            'window.__FUTURE_PATHS_URL__ = "/api/future-paths";</script>'
+            'window.__FUTURE_PATHS_URL__ = "/api/future-paths";'
+            'window.__STATISTICS_URL__ = "/api/statistics";</script>'
         )
     else:
         raise ValueError(f"unknown dashboard render mode: {mode}")
@@ -776,7 +825,8 @@ def _compact_static_bundle(html: str) -> str:
 
 def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     model = build_read_model(conn, root)
-    base, future_paths = split_future_paths(model)
+    base, statistics_data = split_statistics_data(model)
+    base, future_paths = split_future_paths(base)
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
@@ -784,6 +834,14 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
         (out.parent / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
                 future_paths, ensure_ascii=False, default=str,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+    if statistics_data is not None:
+        (out.parent / STATISTICS_DATA_FILENAME).write_text(
+            json.dumps(
+                statistics_data, ensure_ascii=False, default=str,
                 separators=(",", ":"),
             ),
             encoding="utf-8",
@@ -831,7 +889,8 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     데이터는 전부 공개 repo에 이미 존재하는 예측 기록 — 새 노출 없음.
     """
     model = build_read_model(conn, root)
-    base, future_paths = split_future_paths(model)
+    base, statistics_data = split_statistics_data(model)
+    base, future_paths = split_future_paths(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -844,6 +903,14 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
         (out_dir / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
                 future_paths, ensure_ascii=False, default=str,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+    if statistics_data is not None:
+        (out_dir / STATISTICS_DATA_FILENAME).write_text(
+            json.dumps(
+                statistics_data, ensure_ascii=False, default=str,
                 separators=(",", ":"),
             ),
             encoding="utf-8",
@@ -876,7 +943,8 @@ def serve(root: Path, host: str, port: int) -> None:
                 # 매 요청마다 라이브 재조회 (읽기 전용 — 새 연결, 쓰기 없음)
                 conn = ingest.connect(db_path)
                 try:
-                    model, _ = split_future_paths(build_read_model(conn, root))
+                    model, _ = split_statistics_data(build_read_model(conn, root))
+                    model, _ = split_future_paths(model)
                 finally:
                     conn.close()
                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
@@ -889,6 +957,17 @@ def serve(root: Path, host: str, port: int) -> None:
                     conn.close()
                 body = json.dumps(
                     future_paths, ensure_ascii=False, default=str,
+                    separators=(",", ":"),
+                ).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/statistics"):
+                conn = ingest.connect(db_path)
+                try:
+                    _, statistics_data = split_statistics_data(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                body = json.dumps(
+                    statistics_data, ensure_ascii=False, default=str,
                     separators=(",", ":"),
                 ).encode("utf-8")
                 self._send(body, "application/json; charset=utf-8")

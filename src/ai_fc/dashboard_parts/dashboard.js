@@ -5,6 +5,7 @@ async function loadData(){
   return null;
 }
 let FUTURE_PATHS_PROMISE=null,FUTURE_PATHS_ERROR=null;
+let STATISTICS_PROMISE=null,STATISTICS_ERROR=null;
 function semanticReferenceMatches(left={},right={}){
   return ['candidate_id','model_version','rules_version'].every(key=>left?.[key]&&left[key]===right?.[key]);
 }
@@ -26,6 +27,24 @@ async function ensureFuturePaths(){
     return true;
   })().catch(error=>{FUTURE_PATHS_ERROR=String(error?.message||error);FUTURE_PATHS_PROMISE=null;throw error;});
   return FUTURE_PATHS_PROMISE;
+}
+async function ensureStatistics(){
+  const summary=DATA?.statistics_lab||{},deferred=summary.deferred_data||{};
+  if(!deferred.required||deferred.loaded)return true;
+  if(STATISTICS_PROMISE)return STATISTICS_PROMISE;
+  STATISTICS_PROMISE=(async()=>{
+    const url=window.__STATISTICS_URL__||deferred.url;
+    if(!url)throw new Error('statistics URL missing');
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw new Error(`statistics HTTP ${response.status}`);
+    const payload=await response.json();
+    if(payload?.contract_id!=='statistics_route_v1'||payload.data?.statistics_lab?.status!=='ok')throw new Error('statistics route contract invalid');
+    DATA.statistics_lab=payload.data.statistics_lab;
+    DATA.statistics_lab.deferred_data={...deferred,loaded:true,loaded_at:new Date().toISOString()};
+    STATISTICS_ERROR=null;
+    return true;
+  })().catch(error=>{STATISTICS_ERROR=String(error?.message||error);STATISTICS_PROMISE=null;throw error;});
+  return STATISTICS_PROMISE;
 }
 let DATA=null;
 const $=(s,r=document)=>r.querySelector(s);
@@ -1170,16 +1189,22 @@ async function route(){
     (!arg?.modelView&&!arg?.lookup&&!arg?.lookupOverlay&&displayPromotionActive)||
     ['history','cross-asset','ai-regime','liquidity'].includes(arg?.lab)
   );
-  const routeDataRequested=researchPathsRequested||v==='statistics';
-  if(routeDataRequested&&DATA?.scenario_v5_2?.deferred_paths?.required&&!DATA.scenario_v5_2.deferred_paths.loaded){
+  if(researchPathsRequested&&DATA?.scenario_v5_2?.deferred_paths?.required&&!DATA.scenario_v5_2.deferred_paths.loaded){
     const summary=DATA.scenario_v5_2;
     if(researchPathsRequested)renderFuturePathsLoadState(summary);
     try{await ensureFuturePaths();}
     catch(error){
       if(epoch!==ROUTE_EPOCH)return;
-      if(v==='statistics'){DATA.statistics_lab={status:'blocked',reason:String(error?.message||error),charts:[],sources:[]};}
-      else if(arg?.modelView==='champion')DATA.future_paths_error=String(error?.message||error);
+      if(arg?.modelView==='champion')DATA.future_paths_error=String(error?.message||error);
       else{renderFuturePathsLoadState(summary,error);return;}
+    }
+    if(epoch!==ROUTE_EPOCH)return;
+  }
+  if(v==='statistics'&&DATA?.statistics_lab?.deferred_data?.required&&!DATA.statistics_lab.deferred_data.loaded){
+    try{await ensureStatistics();}
+    catch(error){
+      if(epoch!==ROUTE_EPOCH)return;
+      DATA.statistics_lab={status:'blocked',reason:String(error?.message||error),charts:[],sources:[]};
     }
     if(epoch!==ROUTE_EPOCH)return;
   }

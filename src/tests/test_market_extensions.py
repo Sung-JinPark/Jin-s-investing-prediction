@@ -7,6 +7,8 @@ import numpy as np
 from ai_fc.market_extensions import (
     TRACKER_ARCHIVE,
     TRACKER_LATEST,
+    LIQUIDITY_ARCHIVE,
+    LIQUIDITY_LATEST,
     MarketExtensionError,
     _persist_json,
     _persist_tracker,
@@ -14,6 +16,7 @@ from ai_fc.market_extensions import (
     build_liquidity,
     build_scenario_tracker,
     classify_liquidity_zone,
+    refresh_market_extensions,
     validate_liquidity,
     validate_scenario_tracker,
 )
@@ -166,3 +169,22 @@ def test_tracker_revision_uses_approved_correction_and_is_idempotent(tmp_path) -
     _, retry, changed = _persist_tracker(tmp_path, revised)
     assert changed is False
     assert retry["generated_at"] == persisted["generated_at"]
+
+
+def test_refresh_reuses_same_validated_weekly_vintage_without_refetch(tmp_path, monkeypatch) -> None:
+    asof, fred, prices, dividends = _data()
+    tracker = build_scenario_tracker(
+        rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends,
+    )
+    liquidity = build_liquidity(rules=_rules(), asof=asof, fred=fred, prices=prices)
+    _persist_tracker(tmp_path, tracker)
+    _persist_json(tmp_path, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, liquidity)
+
+    def forbidden_fetch(*_args, **_kwargs):
+        raise AssertionError("same weekly vintage must not be fetched twice")
+
+    monkeypatch.setattr("ai_fc.market_extensions.fetch_fred_series", forbidden_fetch)
+    result = refresh_market_extensions(tmp_path, asof=asof)
+    assert result["tracker_changed"] is False
+    assert result["liquidity_changed"] is False
+    assert result["source_check_skipped_reason"] == "validated_weekly_vintage_already_captured"

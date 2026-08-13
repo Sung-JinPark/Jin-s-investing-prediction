@@ -747,9 +747,11 @@ def test_render_embed_vs_fetch(repo: Path) -> None:
     assert "window.__DATA__ = {" in embed
     assert "fixture-coin-ath" in embed  # base question data remains embedded
     assert "future_paths.json" in embed
+    assert "statistics.json" in embed
     fetch = dashboard.render_html({}, mode="fetch")
     assert "/api/data" in fetch
     assert "/api/future-paths" in fetch
+    assert "/api/statistics" in fetch
     assert "window.__DATA__ = {" not in fetch  # fetch 모드는 임베드 없음
 
 
@@ -773,7 +775,21 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> No
         model = dashboard.build_read_model(conn, dashboard.config.ROOT)
     finally:
         conn.close()
-    base, future = dashboard.split_future_paths(model)
+    base, statistics_data = dashboard.split_statistics_data(model)
+    base, future = dashboard.split_future_paths(base)
+    assert statistics_data is not None
+    assert statistics_data["contract_id"] == "statistics_route_v1"
+    assert statistics_data["data"]["statistics_lab"]["charts"]
+    assert base["statistics_lab"]["deferred_data"] == {
+        "required": True,
+        "loaded": False,
+        "url": "statistics.json",
+        "failure_mode": "summary_with_explicit_error",
+    }
+    assert "statistics_lab" not in future["data"]
+    assert len(json.dumps(statistics_data, ensure_ascii=False, default=str,
+                          separators=(",", ":")).encode("utf-8")) \
+        <= dashboard.STATISTICS_DATA_BUDGET_BYTES
     assert future is not None
     assert future["contract_id"] == "future_paths_v1"
     assert future["semantic_reference"] == base["scenario_v5_2"]["semantic_reference"]
@@ -801,6 +817,7 @@ def test_server_is_read_only() -> None:
     # /api/data는 새 연결로 조회만 (쓰기 함수 미호출)
     assert "build_read_model" in src and "conn.close()" in src
     assert "/api/future-paths" in src
+    assert "/api/statistics" in src
 
 
 def test_render_evidence_pipeline_uses_playwright_not_direct_cdp() -> None:
@@ -833,6 +850,7 @@ def test_write_pages(repo: Path) -> None:
     assert (out_dir / ".nojekyll").exists()
     assert "data.json" in index.read_text(encoding="utf-8")
     assert "future_paths.json" in index.read_text(encoding="utf-8")
+    assert "statistics.json" in index.read_text(encoding="utf-8")
     assert (out_dir / "future_paths.json").exists()
     assert "<script>window.__DATA__ =" not in index.read_text(encoding="utf-8")
     html = index.read_text(encoding="utf-8")

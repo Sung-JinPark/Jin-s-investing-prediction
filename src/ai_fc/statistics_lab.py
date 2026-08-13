@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import math
+import statistics
 import urllib.request
 import zipfile
 from collections import defaultdict
@@ -168,11 +169,37 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
+    "SPASTT01KRM661N": {
+        "title": "Financial market share prices for Korea",
+        "provider": "OECD Main Economic Indicators via FRED",
+        "unit": "index_2015_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
 }
 
 
 class StatisticsLabError(ValueError):
     pass
+
+
+def _validate_manual_reference_freshness(
+    ipo_reference: dict[str, Any], hmi_reference: dict[str, Any], generated_at: str,
+) -> None:
+    """Fail the weekly job instead of silently republishing stale manual cohorts."""
+    collected = datetime.fromisoformat(generated_at.replace("Z", "+00:00")).date()
+    checks = (
+        ("IPO reviewed cohort", date.fromisoformat(str(ipo_reference["as_of"])), 14),
+        ("NAHB HMI reference", date.fromisoformat(str(hmi_reference["as_of"])), 62),
+    )
+    for label, observed, maximum_age in checks:
+        age = (collected - observed).days
+        if age < 0:
+            raise StatisticsLabError(f"{label} is dated after collector time")
+        if age > maximum_age:
+            raise StatisticsLabError(
+                f"{label} stale: {age} days > {maximum_age}; manual source review required"
+            )
 
 
 def _request(url: str, *, timeout: int = 45) -> bytes:
@@ -329,6 +356,51 @@ def _annual_last(points: list[dict[str, Any]]) -> dict[int, float]:
     return {year: value for year, (_, value) in result.items()}
 
 
+def _monthly_log_returns(points: list[dict[str, Any]]) -> dict[tuple[int, int], float]:
+    """Return month-keyed log changes without filling or extrapolating gaps."""
+    result: dict[tuple[int, int], float] = {}
+    previous: dict[str, Any] | None = None
+    for row in sorted(points, key=lambda item: item["date"]):
+        value = float(row["value"])
+        if value <= 0:
+            previous = None
+            continue
+        if previous is not None:
+            prior_value = float(previous["value"])
+            prior_date = date.fromisoformat(str(previous["date"]))
+            observed = date.fromisoformat(str(row["date"]))
+            expected = prior_date.year * 12 + prior_date.month
+            actual = observed.year * 12 + observed.month - 1
+            if prior_value > 0 and actual == expected:
+                result[(observed.year, observed.month)] = math.log(value / prior_value)
+        previous = row
+    return result
+
+
+def _lead_correlation(
+    leader: list[dict[str, Any]], follower: list[dict[str, Any]], lead_months: int,
+) -> dict[str, Any]:
+    """Correlate leader return at t with follower return at t+lead_months."""
+    if lead_months < 0:
+        raise StatisticsLabError("lead months cannot be negative")
+    left = _monthly_log_returns(leader)
+    right = _monthly_log_returns(follower)
+    pairs: list[tuple[float, float]] = []
+    for (year, month), value in left.items():
+        absolute = year * 12 + month - 1 + lead_months
+        peer = right.get((absolute // 12, absolute % 12 + 1))
+        if peer is not None:
+            pairs.append((value, peer))
+    correlation = statistics.correlation(
+        [row[0] for row in pairs], [row[1] for row in pairs]
+    ) if len(pairs) >= 3 else None
+    return {
+        "lead_months": lead_months,
+        "observations": len(pairs),
+        "correlation": round(float(correlation), 4) if correlation is not None else None,
+    }
+
+
 def _event_change(
     points: list[dict[str, Any]], *, base_month: date, event_month: date, months: int,
 ) -> list[dict[str, Any]]:
@@ -470,17 +542,36 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
     broad_series = next(
         (series for series in comparison["series"] if series.get("label") == "현재 광의 AI 연관 IPO"), None
     )
+    influence_series = next(
+        (series for series in comparison["series"] if series.get("label") == "현재 AI 영향력 포함 집계"), None
+    )
     core_series = next(
         (series for series in comparison["series"] if series.get("label") == "현재 AI 핵심 최소치"), None
     )
-    if broad_series is None or core_series is None:
-        raise StatisticsLabError("IPO broad/core comparison series missing")
+    if broad_series is None or influence_series is None or core_series is None:
+        raise StatisticsLabError("IPO broad/influence/core comparison series missing")
     broad_points = {int(point["date"][:4]): int(point["value"]) for point in broad_series["points"]}
     core_points = {int(point["date"][:4]): int(point["value"]) for point in core_series["points"]}
+    influence_points = {
+        int(point["date"][:4]): int(point["value"]) for point in influence_series["points"]
+    }
+    influence_contract = qualitative.get("influence_inclusive_count") or {}
+    if influence_contract.get("semantics") != (
+        "actual_us_ai_related_ipos_plus_explicit_existing_listed_ai_beneficiaries_not_an_ipo_count"
+    ):
+        raise StatisticsLabError("AI influence-inclusive count semantics invalid")
+    expected_influence = dict(broad_counts)
+    for member in listed_members:
+        period = int(member.get("count_period", 0))
+        if period not in expected_influence:
+            raise StatisticsLabError("listed AI beneficiary count period invalid")
+        expected_influence[period] += 1
     if broad_points != broad_counts:
         raise StatisticsLabError("IPO broad series does not reconcile to reviewed issuer cohort")
     if core_points != core_member_counts:
         raise StatisticsLabError("IPO core minimum must reconcile to marked broad-cohort members")
+    if influence_points != expected_influence:
+        raise StatisticsLabError("AI influence-inclusive series does not reconcile")
 
 
 def load_ipo_reference(root: Path) -> dict[str, Any]:
@@ -592,6 +683,14 @@ def build_statistics_lab(
     dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
 
     dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
+    kospi_nasdaq_relative = _ratio(monthly["SPASTT01KRM661N"], monthly["NASDAQCOM"])
+    dot_kospi_relative, cur_kospi_relative = _cycle_series(
+        kospi_nasdaq_relative, comparison_months, indexed=True,
+    )
+    kospi_lead_diagnostics = [
+        _lead_correlation(monthly["SPASTT01KRM661N"], monthly["NASDAQCOM"], lead)
+        for lead in range(4)
+    ]
     dot_hmi: list[dict[str, Any]] = []
     cur_hmi: list[dict[str, Any]] = []
     if hmi_reference is not None:
@@ -670,6 +769,36 @@ def build_statistics_lab(
                "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
                "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
                [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
+        _chart("kospi_nasdaq_relative_lead", "KOSPI/NASDAQ 상대강도 · AI 경기 선행 후보", "economy", "cycle_start_100",
+               "KOSPI를 NASDAQ으로 나눈 상대강도를 각 사이클 시작월=100으로 맞춥니다. KOSPI 월수익률과 같은 달·향후 1~3개월 NASDAQ 월수익률의 상관도 함께 점검합니다.",
+               "상대강도 하락은 한국 주식의 선행 약세 후보일 뿐 인과관계나 확정 신호가 아닙니다. 환율·거래시간·국가위험이 섞이며, 네 시차를 모두 공개해 사후 최적 시차 선택을 막습니다.",
+               [_series("닷컴 KOSPI/NASDAQ", "dotcom", dot_kospi_relative, "#8d2943"), _series("현재 KOSPI/NASDAQ", "current", cur_kospi_relative, "#28756a")], ["SPASTT01KRM661N", "NASDAQCOM"]),
+    ]
+
+    kospi_chart = charts[-1]
+    kospi_chart["lead_diagnostics"] = kospi_lead_diagnostics
+    kospi_chart["detail_rows"] = [
+        {
+            "period": "동행" if row["lead_months"] == 0 else f"{row['lead_months']}개월 선행",
+            "label": f"KOSPI(t) ↔ NASDAQ(t+{row['lead_months']}) 월수익률",
+            "value": (
+                f"상관 {row['correlation']:+.2f} · n={row['observations']}"
+                if row["correlation"] is not None else f"산출 불가 · n={row['observations']}"
+            ),
+        }
+        for row in kospi_lead_diagnostics
+    ]
+    kospi_chart["research_context"] = [
+        {
+            "provider": "KRX",
+            "finding": "KOSPI is a market-capitalization-weighted benchmark; electrical/electronic equipment is a large disclosed sector.",
+            "url": "https://global.krx.co.kr/contents/GLB/03/0301/0301040000/GLB0301040000.jsp",
+        },
+        {
+            "provider": "Bank of Korea",
+            "finding": "Semiconductor export value must be separated into volume and price effects when reading the Korean cycle.",
+            "url": "https://www.bok.or.kr/portal/bbs/B0000347/view.do?menuNo=201106&nttId=10094959",
+        },
     ]
 
     if hmi_reference is not None:
@@ -760,6 +889,13 @@ def build_statistics_lab(
         "inflation_lead_panel": (
             f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
             "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
+        ),
+        "kospi_nasdaq_relative_lead": (
+            f"현재 KOSPI/NASDAQ 상대강도는 사이클 시작 대비 {cur_kospi_relative[-1]['value']:.0f}입니다. "
+            f"월수익률 상관은 동행 {kospi_lead_diagnostics[0]['correlation']:+.2f}, "
+            f"KOSPI 1개월 선행 {kospi_lead_diagnostics[1]['correlation']:+.2f}, "
+            f"3개월 선행 {kospi_lead_diagnostics[3]['correlation']:+.2f}로 약합니다. "
+            "현재는 선행 하락 경고가 아니며, 상대강도 고점 이탈을 반도체 경기 자료와 함께 볼 때만 조기 경고 후보입니다."
         ),
     }
     if hmi_reference is not None:
@@ -865,6 +1001,7 @@ def build_statistics_lab(
             "series_id": series_id,
             **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
+            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd=1995-01-01",
             "available_at": generated_at,
             "latest_observation": rows[-1]["date"],
             "row_count": len(rows),
@@ -879,6 +1016,7 @@ def build_statistics_lab(
         "unit": "millions_usd",
         "native_frequency": "quarterly",
         "source_url": "https://www.federalreserve.gov/releases/z1/current/",
+        "request_url": Z1_ENDPOINT,
         "available_at": generated_at,
         "latest_observation": z1_rows[-1]["date"],
         "row_count": len(z1_rows),
@@ -979,10 +1117,23 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
     if len(source_ids) != len(set(source_ids)):
         raise StatisticsLabError("statistics source ids must be unique")
     known_sources = set(source_ids)
+    try:
+        generated_at = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
+    except (KeyError, TypeError, ValueError) as exc:
+        raise StatisticsLabError("statistics generated_at invalid") from exc
     for row in sources:
         digest = str(row.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
             raise StatisticsLabError(f"source {row.get('series_id')} hash invalid")
+        try:
+            latest_observation = date.fromisoformat(str(row["latest_observation"]))
+            available_at = datetime.fromisoformat(
+                str(row["available_at"]).replace("Z", "+00:00")
+            )
+        except (KeyError, TypeError, ValueError) as exc:
+            raise StatisticsLabError(f"source {row.get('series_id')} timestamp invalid") from exc
+        if latest_observation > generated_at.date() or available_at > generated_at:
+            raise StatisticsLabError(f"source {row.get('series_id')} future-data leakage")
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
@@ -1005,8 +1156,9 @@ def refresh_statistics_lab(
     root: Path, *,
     fred_fetcher: Callable[[str], tuple[list[dict[str, Any]], bytes]] = _fetch_fred,
     z1_fetcher: Callable[[str], bytes] | None = None,
+    now: datetime | None = None,
 ) -> tuple[Path, dict[str, Any], bool]:
-    generated_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    generated_at = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
     source_rows: dict[str, list[dict[str, Any]]] = {}
     receipts: dict[str, dict[str, Any]] = {}
     for series_id in FRED_SERIES:
@@ -1017,12 +1169,15 @@ def refresh_statistics_lab(
     z1_raw = fetch_z1(Z1_ENDPOINT)
     source_rows["FL663067003"] = _parse_z1(z1_raw)
     receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
+    ipo_reference = load_ipo_reference(root)
+    hmi_reference = load_hmi_reference(root)
+    _validate_manual_reference_freshness(ipo_reference, hmi_reference, generated_at)
     payload = build_statistics_lab(
         source_rows,
         generated_at=generated_at,
         receipts=receipts,
-        ipo_reference=load_ipo_reference(root),
-        hmi_reference=load_hmi_reference(root),
+        ipo_reference=ipo_reference,
+        hmi_reference=hmi_reference,
     )
 
     latest = root / LATEST_RELATIVE
@@ -1083,8 +1238,8 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         if key not in {"charts", "ipo_comparison"}
     }
     public_source_keys = {
-        "series_id", "title", "provider", "source_url", "latest_observation",
-        "row_count", "vintage", "raw_sha256",
+        "series_id", "title", "provider", "source_url", "request_url", "latest_observation",
+        "available_at", "row_count", "vintage", "raw_sha256",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}

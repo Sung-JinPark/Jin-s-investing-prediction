@@ -659,6 +659,35 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
                               now: datetime | None = None) -> dict[str, Any]:
     cutoff = completed_market_cutoff(asof or date.today(), now=now)
     weekly_asof = _last_friday(cutoff)
+    # A weekly vintage is captured once.  Re-fetching the same Friday on every
+    # Tue-Sat scenario run would mix later FRED revisions/Yahoo adjustments into
+    # an already immutable as-of and incorrectly demand a correction.  Reuse the
+    # validated captured pair; the next Friday creates the next append-only row.
+    tracker_latest = root / TRACKER_LATEST
+    liquidity_latest = root / LIQUIDITY_LATEST
+    if tracker_latest.is_file() and liquidity_latest.is_file():
+        try:
+            captured_tracker = validate_scenario_tracker(json.loads(
+                tracker_latest.read_text(encoding="utf-8")
+            ))
+            captured_liquidity = validate_liquidity(json.loads(
+                liquidity_latest.read_text(encoding="utf-8")
+            ))
+        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+            captured_tracker = captured_liquidity = None
+        if (
+            captured_tracker is not None and captured_liquidity is not None
+            and captured_tracker.get("asof") == weekly_asof.isoformat()
+            and captured_liquidity.get("asof") == weekly_asof.isoformat()
+        ):
+            return {
+                "tracker_path": tracker_latest, "tracker": captured_tracker,
+                "tracker_changed": False,
+                "liquidity_path": liquidity_latest, "liquidity": captured_liquidity,
+                "liquidity_changed": False,
+                "path_tracking_changed": False,
+                "source_check_skipped_reason": "validated_weekly_vintage_already_captured",
+            }
     # Monitoring starts with a compact, reproducible operating window.  A
     # longer current-vintage download would not make a backtest point-in-time
     # safe; the 156-week lead/lag gate therefore stays closed until enough
@@ -686,6 +715,7 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
         "liquidity_path": liquidity_path, "liquidity": liquidity_payload,
         "liquidity_changed": liquidity_changed,
         "path_tracking_changed": False,
+        "source_check_skipped_reason": None,
     }
 
 

@@ -14,6 +14,7 @@ on:
       - "src/ai_fc/dashboard_parts/**"
       - "src/ai_fc/scenario_v5_2/**"
       - "src/ai_fc/statistics_lab.py"
+      - "src/ai_fc/multi_year_stress.py"
       - "data/contracts/statistics_lab_v1.yaml"
       - ".github/workflows/pages.yml"
   schedule:

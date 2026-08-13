@@ -38,6 +38,9 @@ def test_scenario_and_full_refresh_share_writer_lock() -> None:
     assert "continue-on-error: true" in ai_regime
     assert "continue-on-error: true" in source_monitoring
     assert "python -m ai_fc market-extensions" in scenario
+    assert "id: market_extensions" in scenario
+    assert "Report partial refresh failures" in scenario
+    assert "steps.market_extensions.outcome == 'failure'" in scenario
     assert "python -m ai_fc ai-capital-cycle" in ai_regime
     assert "python -m ai_fc source-monitor" in source_monitoring
     assert 'if [ -d "$optional_dir" ]' in scenario

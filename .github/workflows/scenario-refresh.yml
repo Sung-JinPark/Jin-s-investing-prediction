@@ -33,9 +33,11 @@ jobs:
       - name: Refresh NASDAQ scenario snapshot
         run: cd src && python -m ai_fc scenario
       - name: Refresh cross-asset transmission snapshot
+        id: cross_asset
         continue-on-error: true
         run: cd src && python -m ai_fc cross-asset
       - name: Refresh weekly tracker and liquidity snapshots
+        id: market_extensions
         continue-on-error: true
         run: cd src && python -m ai_fc market-extensions
       - name: Rebuild and replay-verify the protected-hash-bound V5.2 candidate
@@ -77,3 +79,11 @@ jobs:
           asof="$(python -c "import json; print(json.load(open('data/scenarios/nasdaq_latest.json', encoding='utf-8'))['asof'])")"
           git commit -m "data: refresh Nasdaq scenario ${asof}"
           git push
+      - name: Report partial refresh failures
+        if: ${{ always() && (steps.cross_asset.outcome == 'failure' || steps.market_extensions.outcome == 'failure') }}
+        shell: bash
+        run: |
+          echo "cross_asset=${{ steps.cross_asset.outcome }}"
+          echo "market_extensions=${{ steps.market_extensions.outcome }}"
+          echo "Core scenario work may have completed, but auxiliary data freshness is not healthy."
+          exit 1

@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import math
 import html
+import statistics
 from typing import Any
 
 
@@ -43,8 +44,60 @@ def _power_transport(reference: list[float], beta: float) -> list[float]:
     return [round(100.0 * (float(value) / 100.0) ** beta, 1) for value in reference]
 
 
-def _view_chart(rows: list[tuple[str, str, str, list[float]]]) -> dict[str, Any]:
+def _quantile(values: list[float], probability: float) -> float:
+    if not values or not 0.0 <= probability <= 1.0:
+        raise MultiYearStressError("stress quantile input invalid")
+    ordered = sorted(float(value) for value in values)
+    position = (len(ordered) - 1) * probability
+    lower = math.floor(position)
+    upper = math.ceil(position)
+    if lower == upper:
+        return ordered[lower]
+    weight = position - lower
+    return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
+
+
+def _historical_composite(episodes: list[dict[str, Any]], horizon: int = 3) -> dict[str, Any]:
+    center, lower, upper, counts = [], [], [], []
+    for year in range(horizon + 1):
+        values = [
+            float(row["cumulative_index"][year])
+            for row in episodes if len(row["cumulative_index"]) > year
+        ]
+        if not values:
+            raise MultiYearStressError(f"historical stress year {year} has no observations")
+        log_values = [math.log(value / 100.0) for value in values]
+        center.append(round(100.0 * math.exp(statistics.median(log_values)), 1))
+        lower.append(round(100.0 * math.exp(_quantile(log_values, .25)), 1))
+        upper.append(round(100.0 * math.exp(_quantile(log_values, .75)), 1))
+        counts.append(len(values))
     return {
+        "labels": ["시작", "1년", "2년", "3년"],
+        "center_index": center,
+        "q25_index": lower,
+        "q75_index": upper,
+        "observations_by_horizon": counts,
+        "method": "pointwise_median_and_linear_interquartile_quantiles_in_log_index_space",
+    }
+
+
+def _transport_envelope(
+    reference_low: list[float], reference_high: list[float], beta_low: float, beta_high: float,
+) -> tuple[list[float], list[float]]:
+    if beta_low < 0 or beta_high < beta_low:
+        raise MultiYearStressError("stress beta interval invalid")
+    # All selected reference paths are non-increasing from 100.  A deeper
+    # reference and higher elasticity therefore form the lower envelope.
+    lower = _power_transport(reference_low, beta_high)
+    upper = _power_transport(reference_high, beta_low)
+    return lower, upper
+
+
+def _view_chart(
+    rows: list[tuple[str, str, str, list[float]]],
+    bands: list[tuple[str, str, list[float], list[float]]] | None = None,
+) -> dict[str, Any]:
+    chart = {
         "scale": "log1p",
         "series": [
             {
@@ -54,19 +107,38 @@ def _view_chart(rows: list[tuple[str, str, str, list[float]]]) -> dict[str, Any]
             for label, era, color, values in rows
         ],
     }
+    chart["bands"] = [
+        {
+            "label": label, "color": color,
+            "low": [{"period": index * 12, "value": value} for index, value in enumerate(low)],
+            "high": [{"period": index * 12, "value": value} for index, value in enumerate(high)],
+        }
+        for label, color, low, high in (bands or [])
+    ]
+    return chart
 
 
 def _legend(chart: dict[str, Any]) -> str:
-    return "".join(
+    lines = "".join(
         f'<span><i style="background:{row["color"]}"></i>{html.escape(row["label"])} '
         f'<b>{row["points"][-1]["value"]}</b></span>'
         for row in chart["series"]
     )
+    bands = "".join(
+        f'<span><i style="background:{row["color"]};opacity:.22"></i>{html.escape(row["label"])}</span>'
+        for row in chart.get("bands") or []
+    )
+    return lines + bands
 
 
 def _svg(chart: dict[str, Any]) -> str:
     series = chart["series"]
+    bands = chart.get("bands") or []
     values = [float(point["value"]) for row in series for point in row["points"]]
+    values.extend(
+        float(point["value"])
+        for band in bands for boundary in (band["low"], band["high"]) for point in boundary
+    )
     low, high = min(values) * 0.88, max(values) * 1.12
     log_low, log_high = math.log(low), math.log(high)
     width, height, left, right, top, bottom = 920, 300, 58, 20, 20, 38
@@ -78,6 +150,12 @@ def _svg(chart: dict[str, Any]) -> str:
         f'<text x="{left-8}" y="{y(value)+4:.1f}" text-anchor="end">{round(value)}</text>'
         for value in [math.exp(log_low + (log_high - log_low) * index / 4) for index in range(5)]
     )
+    band_paths = "".join(
+        f'<path d="M {" L ".join(f"{x(point["period"]):.1f},{y(point["value"]):.1f}" for point in band["high"])} '
+        f'L {" L ".join(f"{x(point["period"]):.1f},{y(point["value"]):.1f}" for point in reversed(band["low"]))} Z" '
+        f'fill="{band["color"]}" fill-opacity="0.13" stroke="none"/>'
+        for band in bands
+    )
     paths = "".join(
         f'<path d="{" ".join(("M" if index == 0 else "L") + f"{x(point["period"]):.1f},{y(point["value"]):.1f}" for index, point in enumerate(row["points"]))}" fill="none" stroke="{row["color"]}" stroke-width="2.8"/>'
         for row in series
@@ -87,7 +165,7 @@ def _svg(chart: dict[str, Any]) -> str:
         for period, label in ((0, "시작"), (12, "1년"), (24, "2년"), (36, "3년"), (48, "4년"))
         if period <= max_period
     )
-    return f'<svg viewBox="0 0 {width} {height}" role="img" data-scale="log">{grid}{paths}{labels}</svg>'
+    return f'<svg viewBox="0 0 {width} {height}" role="img" data-scale="log">{grid}{band_paths}{paths}{labels}</svg>'
 
 
 def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
@@ -115,6 +193,22 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
     realty_center = float(betas.get("realty_income_to_nasdaq"))
     realty_low, realty_high = [float(value) for value in betas.get("realty_income_ci_10_90", [])]
 
+    historical_episodes = [
+        {
+            "id": episode_id, "label": label, "years": years,
+            "annual_total_returns_pct": returns,
+            "cumulative_index": _cumulative(returns),
+        }
+        for episode_id, label, years, returns in EPISODES
+    ]
+    composite = _historical_composite(historical_episodes)
+    btc_band_low, btc_band_high = _transport_envelope(
+        composite["q25_index"], composite["q75_index"], btc_low, btc_high,
+    )
+    realty_band_low, realty_band_high = _transport_envelope(
+        composite["q25_index"], composite["q75_index"], realty_low, realty_high,
+    )
+
     payload = {
         "schema_version": 1,
         "dataset_id": "multi_year_bubble_stress_v1",
@@ -132,14 +226,8 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
             "universal_year_2_or_3_rule": False,
             "warning": "선택 사례 4개는 확률 표본이 아니며 2~3년차 낙폭 확대를 일반 법칙으로 만들지 않습니다.",
         },
-        "historical_episodes": [
-            {
-                "id": episode_id, "label": label, "years": years,
-                "annual_total_returns_pct": returns,
-                "cumulative_index": _cumulative(returns),
-            }
-            for episode_id, label, years, returns in EPISODES
-        ],
+        "historical_episodes": historical_episodes,
+        "historical_stress_composite": composite,
         "dotcom_observed_assets": {
             "labels": target_labels,
             "nasdaq_price_index": nasdaq,
@@ -149,26 +237,29 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
             "semantics": "Yahoo monthly close; Realty Income total-return proxy uses adjusted close; all rebased to 1999-12=100.",
         },
         "ai_bust_counterfactual": {
-            "reference_path": "observed_dotcom_nasdaq_1999_12_to_2002_12",
+            "reference_path": "four_selected_us_equity_episodes_log_space_robust_composite",
             "labels": ["시작", "1년", "2년", "3년"],
-            "nasdaq_reference_index": nasdaq,
+            "us_equity_stress_reference_index": composite["center_index"],
+            "reference_q25_index": composite["q25_index"],
+            "reference_q75_index": composite["q75_index"],
             "bitcoin_sensitivity": {
                 "semantics": "counterfactual_beta_transport_not_observed_not_probability",
-                "low": {"beta": btc_low, "index": _power_transport(nasdaq, btc_low)},
-                "center": {"beta": btc_center, "index": _power_transport(nasdaq, btc_center)},
-                "high": {"beta": btc_high, "index": _power_transport(nasdaq, btc_high)},
+                "low": {"beta": btc_low, "index": btc_band_high},
+                "center": {"beta": btc_center, "index": _power_transport(composite["center_index"], btc_center)},
+                "high": {"beta": btc_high, "index": btc_band_low},
             },
             "realty_income_sensitivity": {
                 "semantics": "current_downside_beta_transport_not_forecast; compare with observed dotcom result",
-                "low": {"beta": realty_low, "index": _power_transport(nasdaq, realty_low)},
-                "center": {"beta": realty_center, "index": _power_transport(nasdaq, realty_center)},
-                "high": {"beta": realty_high, "index": _power_transport(nasdaq, realty_high)},
+                "low": {"beta": realty_low, "index": realty_band_high},
+                "center": {"beta": realty_center, "index": _power_transport(composite["center_index"], realty_center)},
+                "high": {"beta": realty_high, "index": realty_band_low},
             },
             "beta_observations": int(betas.get("observations", 0)),
             "condition_breakers": [
                 "장기금리 상승 또는 회사채 스프레드 급등은 Realty Income 방어력을 약화시킬 수 있습니다.",
                 "BTC는 닷컴기에 존재하지 않았고 유동성·레버리지 국면에 따라 beta가 비선형으로 바뀔 수 있습니다.",
-                "경로는 닷컴 NASDAQ 낙폭을 민감도에 대입한 스트레스일 뿐 발생확률이나 목표가격이 아닙니다.",
+                "경로는 선택한 네 역사 사례의 합성 낙폭을 민감도에 대입한 스트레스일 뿐 발생확률이나 목표가격이 아닙니다.",
+                "역사 합성선은 S&P 계열 선택 사례이고 beta는 NASDAQ 하락일 기준이므로 기초지수 차이가 남습니다.",
             ],
         },
         "sources": [
@@ -189,26 +280,21 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
         "lineage": {
             "cross_asset_snapshot_id": cross_asset.get("snapshot_id"),
             "downside_beta_window": "5y",
-            "transformation": "cumulative_reference_index_power_beta",
+            "transformation": "pointwise_log_median_episode_composite_then_positive_power_beta_transport",
         },
     }
-    episodes_chart = _view_chart([
-        (row["label"], "dotcom", color, row["cumulative_index"])
-        for row, color in zip(payload["historical_episodes"], ("#711f33", "#9e3f2f", "#d47a27", "#c9002d"))
-    ])
-    actual_chart = _view_chart([
-        ("NASDAQ 실측", "dotcom", "#c9002d", nasdaq),
-        ("Realty Income 가격", "current", "#247d78", realty_price),
-        ("Realty Income 총수익", "current", "#0c6255", realty_total),
-    ])
-    stress_chart = _view_chart([
-        ("NASDAQ 참조", "dotcom", "#11110f", nasdaq),
-        (f"BTC 낮음 β{btc_low}", "current", "#8c77b8", _power_transport(nasdaq, btc_low)),
-        (f"BTC 중심 β{btc_center}", "current", "#6b3fa0", _power_transport(nasdaq, btc_center)),
-        (f"BTC 높음 β{btc_high}", "current", "#421f78", _power_transport(nasdaq, btc_high)),
-        (f"O 중심 β{realty_center}", "current", "#e68622", _power_transport(nasdaq, realty_center)),
-        ("O 닷컴 실측 총수익", "current", "#247d78", realty_total),
-    ])
+    stress_chart = _view_chart(
+        [
+            ("미국 지수 스트레스 합성", "dotcom", "#11110f", composite["center_index"]),
+            (f"BTC 중심 β{btc_center}", "current", "#6b3fa0", _power_transport(composite["center_index"], btc_center)),
+            (f"Realty Income 중심 β{realty_center}", "current", "#e68622", _power_transport(composite["center_index"], realty_center)),
+        ],
+        [
+            ("역사 사례 25~75%", "#454545", composite["q25_index"], composite["q75_index"]),
+            ("BTC beta·역사 범위", "#6b3fa0", btc_band_low, btc_band_high),
+            ("Realty beta·역사 범위", "#e68622", realty_band_low, realty_band_high),
+        ],
+    )
     episode_cards = "".join(
         f'<article><span>{html.escape(row["label"])}</span><strong>'
         f'{" · ".join(f"{value:+.1f}%" for value in row["annual_total_returns_pct"])}</strong>'
@@ -222,17 +308,11 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
     payload["presentation_html"] = (
         '<section class="scenario-v52-risk-banner"><div><span>가정 스트레스 · 발생확률 아님</span>'
         '<strong>AI 버블이 3년 하락으로 이어진다면</strong></div><p>실측과 반사실을 분리하며 특정 가격 제시나 공식 전망에 쓰지 않습니다.</p></section>'
-        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">SELECTED HISTORY · N=4</p>'
-        '<h2>2~3년차 낙폭 확대 사례</h2><p>요청한 네 사례이며 역사 전체의 빈도나 법칙이 아닙니다.</p></div>'
-        f'<div class="statistics-chart">{_svg(episodes_chart)}</div><div class="statistics-legend">{_legend(episodes_chart)}</div>'
-        f'<div class="plain-insight">{episode_cards}</div></section>'
-        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">OBSERVED · DOTCOM</p>'
-        '<h2>NASDAQ과 Realty Income 실측</h2><p>1999년 말=100. BTC는 당시 존재하지 않았습니다.</p></div>'
-        f'<div class="statistics-chart">{_svg(actual_chart)}</div><div class="statistics-legend">{_legend(actual_chart)}</div></section>'
-        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">COUNTERFACTUAL</p>'
-        '<h2>BTC·Realty Income 민감도</h2><p>닷컴 NASDAQ 경로×최근 5년 하락일 beta이며 미래 예측이 아닙니다.</p></div>'
+        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">ONE COMPOSITE VIEW · SELECTED N=4</p>'
+        '<h2>4개 낙폭 사례 × BTC × Realty Income</h2><p>연도별 로그 중앙값과 사례 25~75% 범위에 최근 5년 하락일 beta를 적용한 단일 비교입니다.</p></div>'
         f'<div class="statistics-chart">{_svg(stress_chart)}</div><div class="statistics-legend">{_legend(stress_chart)}</div>'
-        f'<div class="plain-insight">{breaker_cards}</div><p class="chart-note">beta 관측 {payload["ai_bust_counterfactual"]["beta_observations"]}일 · as_of {html.escape(str(payload["as_of"]))}</p></section>'
+        f'<div class="plain-insight">{episode_cards}</div><div class="plain-insight">{breaker_cards}</div>'
+        f'<p class="chart-note">연도별 사례 n={"/".join(str(value) for value in composite["observations_by_horizon"])} · beta 관측 {payload["ai_bust_counterfactual"]["beta_observations"]}일 · as_of {html.escape(str(payload["as_of"]))}</p></section>'
     )
     validate_multi_year_stress(payload)
     return payload
@@ -253,6 +333,17 @@ def validate_multi_year_stress(payload: dict[str, Any]) -> None:
     if observed.get("bitcoin", {}).get("status") != "not_available":
         raise MultiYearStressError("dot-com Bitcoin must remain unavailable")
     counterfactual = payload.get("ai_bust_counterfactual") or {}
+    composite = payload.get("historical_stress_composite") or {}
+    if composite.get("observations_by_horizon") != [4, 4, 4, 3]:
+        raise MultiYearStressError("historical composite horizon counts invalid")
+    if composite.get("method") != "pointwise_median_and_linear_interquartile_quantiles_in_log_index_space":
+        raise MultiYearStressError("historical composite method invalid")
+    for key in ("center_index", "q25_index", "q75_index"):
+        values = composite.get(key) or []
+        if len(values) != 4 or float(values[0]) != 100.0:
+            raise MultiYearStressError(f"historical composite {key} invalid")
+    if counterfactual.get("us_equity_stress_reference_index") != composite.get("center_index"):
+        raise MultiYearStressError("counterfactual reference does not match historical composite")
     if "counterfactual" not in counterfactual.get("bitcoin_sensitivity", {}).get("semantics", ""):
         raise MultiYearStressError("Bitcoin transport semantics missing")
     for group in ("bitcoin_sensitivity", "realty_income_sensitivity"):

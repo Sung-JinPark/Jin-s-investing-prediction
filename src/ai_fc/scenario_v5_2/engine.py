@@ -21,7 +21,7 @@ import numpy as np
 import yaml
 from scipy.stats import energy_distance, wasserstein_distance
 
-from ai_fc.scenario_v5.contracts import canonical_hash, file_hash
+from ai_fc.scenario_v5.contracts import canonical_numerical_hash, file_hash
 from ai_fc.scenario_v5_2.clustering import ScenarioClusterError, build_clustered_prior
 from ai_fc.scenario_v5_2.separation import (
     SEPARATION_CONTRACT_RELATIVE,
@@ -1588,12 +1588,12 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         active_p50 = np.median(active_subset, axis=0)
         zero_p50 = np.median(zero_subset, axis=0)
         structural_rows[scenario] = {
-            "active_path_sha256": hashlib.sha256(
-                np.asarray(active_subset, dtype="<f8").tobytes()
-            ).hexdigest(),
-            "zero_event_path_sha256": hashlib.sha256(
-                np.asarray(zero_subset, dtype="<f8").tobytes()
-            ).hexdigest(),
+            "active_path_sha256": canonical_numerical_hash(
+                np.asarray(active_subset, dtype=float).tolist()
+            ),
+            "zero_event_path_sha256": canonical_numerical_hash(
+                np.asarray(zero_subset, dtype=float).tolist()
+            ),
             "paths_differ": not np.array_equal(active_subset, zero_subset),
             "p50_return_difference_active_minus_zero": {
                 str(index): float(
@@ -2102,7 +2102,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     }
     if not distinctness["gate_pass"]:
         candidate["status"] = "RESEARCH_CANDIDATE_DEGRADED_2027_DISTINCTNESS"
-    candidate["model_content_sha256"] = canonical_hash(candidate)
+    candidate["model_content_sha256"] = canonical_numerical_hash(candidate)
     return candidate
 
 

@@ -104,10 +104,17 @@
           "name": "SK hynix",
           "ticker": "000660",
           "market": "KRX",
+          "count_period": 2026,
           "role": "HBM and full-stack AI memory infrastructure beneficiary",
           "source_id": "SK_HYNIX_AI_MEMORY_2026"
         }
       ]
+    },
+    "influence_inclusive_count": {
+      "semantics": "actual_us_ai_related_ipos_plus_explicit_existing_listed_ai_beneficiaries_not_an_ipo_count",
+      "label": "AI 영향력 포함 집계",
+      "warning": "This diagnostic adds an existing listed AI beneficiary to the broad completed-IPO count. It is not an IPO count and must never replace the actual IPO series.",
+      "listed_beneficiary_source": "listed_ai_beneficiary_watchlist"
     },
     "global_ai_chip_completed_ipos": {
       "semantics": "completed_china_and_hong_kong_ai_chip_ipo_watchlist_kept_separate_from_us_ritter_counts",
@@ -160,9 +167,9 @@
       "category": "ipo",
       "unit": "count",
       "scale": "log1p",
-      "description": "닷컴기의 인터넷 IPO와 AI 인프라·응용·AI 차별화 소프트웨어까지 포함한 현재의 광의 AI 연관 IPO를 비교합니다. 엄격한 AI 핵심 최소치도 보조선으로 남깁니다.",
-      "caveat": "인터넷과 AI는 산업 분류가 같지 않으며 광의선은 순수 AI 기업 수가 아닙니다. 작은 현재값도 보이도록 세로축은 log(1+x)를 사용합니다. 단순 언급·SPAC·ADR·REIT·직접상장은 제외했습니다.",
-      "insight": "기준을 현실적으로 넓히면 AI 연관 IPO는 2023년 2건, 2024년 5건, 2025년 10건, 2026년 8월 12일까지 5건입니다. 엄격 핵심치보다 많지만 1999년 인터넷 IPO 273건과는 여전히 큰 차이가 있습니다.",
+      "description": "닷컴기의 인터넷 IPO와 현재의 실제 광의 AI 연관 IPO를 비교하고, 기존 상장 AI 핵심 수혜주까지 더한 영향력 포함 집계를 별도 선으로 봅니다.",
+      "caveat": "SK하이닉스는 기존 상장사이므로 실제 IPO가 아닙니다. 영향력 포함 선만 2026년 광의 IPO 5건에 SK하이닉스 1개를 더한 진단치 6이며, 실제 IPO선과 엄격 핵심선은 바꾸지 않습니다. 세로축은 log(1+x)입니다.",
+      "insight": "실제 광의 AI 연관 IPO는 2026년 8월 12일까지 5건이고, SK하이닉스를 AI 주도 영향력으로 더한 별도 진단치는 6입니다. 어느 기준도 1999년 인터넷 IPO 273건과 직접 동급의 상장 열기를 뜻하지 않습니다.",
       "source_ids": ["RITTER_INTERNET_IPO_2025", "RC_AI_MARKET_2024", "RC_AI_SCREEN_2025", "ACCEL_GLOBALSCAPE_2025", "RC_AI_TRACKER_2026", "RC_AI_WEEK_2026", "RC_ROC_2026", "SEC_ASTERA_424B4", "SEC_TEMPUS_424B4", "SEC_COREWEAVE_424B4", "SEC_AMBIQ_424B4", "SEC_WHITEFIBER_424B4", "SEC_CEREBRAS_424B4"],
       "series": [
         {
@@ -189,6 +196,17 @@
           ]
         },
         {
+          "label": "현재 AI 영향력 포함 집계",
+          "era": "current",
+          "color": "#6b3fa0",
+          "points": [
+            {"period": 0, "date": "2023-12-31", "value": 2},
+            {"period": 12, "date": "2024-12-31", "value": 5},
+            {"period": 24, "date": "2025-12-31", "value": 10},
+            {"period": 36, "date": "2026-08-12", "value": 6}
+          ]
+        },
+        {
           "label": "현재 AI 핵심 최소치",
           "era": "current",
           "color": "#28756a",
@@ -204,7 +222,7 @@
         {"period": "2023", "label": "Arm · Klaviyo", "value": "광의 2 · 핵심 0"},
         {"period": "2024", "label": "Astera · Reddit · Rubrik · Ibotta · Tempus", "value": "광의 5 · 핵심 2"},
         {"period": "2025", "label": "Navan · Circle · CoreWeave · Ambiq · WhiteFiber · Netskope · Via · Figma · Innoscripta · SailPoint", "value": "광의 10 · 핵심 3"},
-        {"period": "2026 YTD", "label": "Rank One · Cerebras · VIDA · Csquare · Standard Nuclear", "value": "광의 5 · 핵심 1"}
+        {"period": "2026 YTD", "label": "Rank One · Cerebras · VIDA · Csquare · Standard Nuclear + SK하이닉스(기존 상장)", "value": "실제 광의 IPO 5 · 영향 포함 6 · 핵심 1"}
       ]
     },
     {

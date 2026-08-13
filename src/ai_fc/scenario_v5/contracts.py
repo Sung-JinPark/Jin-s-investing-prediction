@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -65,6 +66,40 @@ def canonical_json(value: Any) -> str:
 
 def canonical_hash(value: Any) -> str:
     return hashlib.sha256(canonical_json(value).encode("utf-8")).hexdigest()
+
+
+def _canonical_numeric_value(value: Any, *, decimal_places: int) -> Any:
+    """Normalize insignificant floating-point noise before semantic hashing.
+
+    This helper is intentionally opt-in: byte-exact ledgers and historical
+    model hashes continue to use :func:`canonical_hash`.  Research artifacts
+    that are deterministically replayed across NumPy/BLAS platforms may use
+    ``canonical_numerical_hash`` so machine-epsilon differences do not create
+    a false model change.  Lists and tuples share one JSON representation;
+    material numerical changes remain visible at the declared precision.
+    """
+    if isinstance(value, dict):
+        return {
+            key: _canonical_numeric_value(item, decimal_places=decimal_places)
+            for key, item in value.items()
+        }
+    if isinstance(value, (list, tuple)):
+        return [
+            _canonical_numeric_value(item, decimal_places=decimal_places)
+            for item in value
+        ]
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise ValueError("non-finite float cannot be semantically hashed")
+        normalized = round(value, decimal_places)
+        return 0.0 if normalized == 0 else normalized
+    return value
+
+
+def canonical_numerical_hash(value: Any, *, decimal_places: int = 12) -> str:
+    """Return a platform-stable hash for numerical research output."""
+    normalized = _canonical_numeric_value(value, decimal_places=decimal_places)
+    return canonical_hash(normalized)
 
 
 def file_hash(path: Path) -> str:

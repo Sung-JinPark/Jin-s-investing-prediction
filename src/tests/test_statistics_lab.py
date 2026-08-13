@@ -4,7 +4,7 @@ import hashlib
 import io
 import json
 import zipfile
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 import pytest
@@ -14,6 +14,7 @@ from ai_fc.statistics_lab import (
     StatisticsLabError,
     _parse_fred_csv,
     _parse_z1,
+    _validate_manual_reference_freshness,
     build_statistics_lab,
     load_ipo_reference,
     load_hmi_reference,
@@ -54,6 +55,7 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "DCOILWTICO": 50.0,
             "WPU10260314": 100.0,
             "GACDFSA066MSFRBPHI": 5.0,
+            "SPASTT01KRM661N": 100.0,
         }[series_id]
         growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
         value = baseline * growth
@@ -104,16 +106,21 @@ def _repo_hmi_reference() -> dict:
 
 
 def _install_ipo_reference(root: Path) -> None:
+    ipo_fixture = json.loads(json.dumps(_repo_ipo_reference()))
+    ipo_fixture["as_of"] = "2026-12-31"
+    ipo_fixture["classification"]["reviewed_through"] = "2026-12-31"
     target = root / "data/statistics/ipo/ipo_comparison_v1.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
-        json.dumps(_repo_ipo_reference(), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(ipo_fixture, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    hmi_fixture = json.loads(json.dumps(_repo_hmi_reference()))
+    hmi_fixture["as_of"] = "2026-12-31"
     hmi_target = root / "data/statistics/reference/nahb_hmi_history_v1.json"
     hmi_target.parent.mkdir(parents=True, exist_ok=True)
     hmi_target.write_text(
-        json.dumps(_repo_hmi_reference(), ensure_ascii=False, indent=2) + "\n",
+        json.dumps(hmi_fixture, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -126,11 +133,19 @@ def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
     assert _parse_z1(_z1_bytes())[0]["date"] == "1995-01-01"
 
 
+def test_manual_reference_staleness_stops_weekly_republication() -> None:
+    ipo = _repo_ipo_reference()
+    hmi = _repo_hmi_reference()
+    _validate_manual_reference_freshness(ipo, hmi, "2026-08-13T00:00:00+00:00")
+    with pytest.raises(StatisticsLabError, match="IPO reviewed cohort stale"):
+        _validate_manual_reference_freshness(ipo, hmi, "2026-09-01T00:00:00+00:00")
+
+
 def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     rows, receipts = _payload_inputs()
     payload = build_statistics_lab(
         rows,
-        generated_at="2026-08-11T00:00:00+00:00",
+        generated_at="2026-12-31T00:00:00+00:00",
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
         hmi_reference=_repo_hmi_reference(),
@@ -150,7 +165,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 27
+    assert len(payload["charts"]) == 28
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -163,6 +178,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "ipo_market_absorption", "small_issuer_ipo_share", "global_ai_capital_map",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
+        "kospi_nasdaq_relative_lead",
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
     assert ipo_chart["scale"] == "log1p"
@@ -171,8 +187,12 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "period": 36, "date": "2026-08-12", "value": 5
     }
     assert ipo_chart["series"][2]["points"][-1] == {
+        "period": 36, "date": "2026-08-12", "value": 6
+    }
+    assert ipo_chart["series"][3]["points"][-1] == {
         "period": 36, "date": "2026-08-12", "value": 1
     }
+    assert "SK하이닉스(기존 상장)" in ipo_chart["detail_rows"][-1]["label"]
     assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
     capital_map = next(chart for chart in payload["charts"] if chart["id"] == "global_ai_capital_map")
     assert capital_map["series"][0]["points"] == [
@@ -206,6 +226,12 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         for point in series["points"]
     )
     assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
+    kospi = next(chart for chart in payload["charts"] if chart["id"] == "kospi_nasdaq_relative_lead")
+    assert kospi["source_ids"] == ["SPASTT01KRM661N", "NASDAQCOM"]
+    assert [row["lead_months"] for row in kospi["lead_diagnostics"]] == [0, 1, 2, 3]
+    assert all(row["observations"] > 300 for row in kospi["lead_diagnostics"])
+    assert len(kospi["detail_rows"]) == 4
+    assert "사후 최적 시차 선택" in kospi["caveat"]
     for chart in payload["charts"]:
         dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
         current = [row for row in chart["series"] if row["era"] == "current"]
@@ -222,6 +248,11 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     else:
         raise AssertionError("forecast extension must be rejected")
 
+    future_leak = json.loads(json.dumps(payload))
+    future_leak["sources"][0]["latest_observation"] = "2027-01-01"
+    with pytest.raises(StatisticsLabError, match="future-data leakage"):
+        validate_statistics_lab(future_leak)
+
 
 def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> None:
     rows, _ = _payload_inputs()
@@ -233,14 +264,16 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
 
     z1 = _z1_bytes()
     path, payload, changed = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1
+        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1,
+        now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed is True
     assert path.is_file()
     archives = list((tmp_path / "data/statistics/archive").glob("*.json"))
     assert len(archives) == 1
     _, second, changed_again = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1
+        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1,
+        now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed_again is False
     assert second["as_of"] == payload["as_of"]
@@ -271,13 +304,15 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
+    assert "python -m ai_fc inventory" in workflow
+    assert "docs/generated/inventory.generated.md" in workflow
 
 
 def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_path: Path) -> None:
     rows, receipts = _payload_inputs()
     payload = build_statistics_lab(
         rows,
-        generated_at="2026-08-11T00:00:00+00:00",
+        generated_at="2026-12-31T00:00:00+00:00",
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
         hmi_reference=_repo_hmi_reference(),
@@ -302,6 +337,8 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
     assert len(payload["sources"]) == 24
     assert all(source["raw_sha256"] for source in payload["sources"])
+    fred_sources = [source for source in payload["sources"] if source["series_id"] in FRED_SERIES]
+    assert all("fredgraph.csv?id=" in source["request_url"] for source in fred_sources)
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 6
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
@@ -312,6 +349,8 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 1]
     qualitative = payload["qualitative_ipo"]
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["name"] == "SK hynix"
+    assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["count_period"] == 2026
+    assert qualitative["influence_inclusive_count"]["semantics"].endswith("not_an_ipo_count")
     assert [row["name"] for row in qualitative["global_ai_chip_completed_ipos"]["members"]] == [
         "Horizon Robotics", "Black Sesame International", "Moore Threads", "MetaX Integrated Circuits"
     ]
@@ -323,6 +362,18 @@ def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
     invalid_count["ai_broad_cohort"][0]["issuers"].pop()
     with pytest.raises(StatisticsLabError, match="does not reconcile"):
         validate_ipo_reference(invalid_count)
+
+    invalid_influence = json.loads(json.dumps(payload))
+    comparison = next(
+        chart for chart in invalid_influence["charts"]
+        if chart["id"] == "internet_vs_ai_core_ipos"
+    )
+    next(
+        row for row in comparison["series"]
+        if row["label"] == "현재 AI 영향력 포함 집계"
+    )["points"][-1]["value"] = 7
+    with pytest.raises(StatisticsLabError, match="influence-inclusive"):
+        validate_ipo_reference(invalid_influence)
 
     invalid_tier = json.loads(json.dumps(payload))
     invalid_tier["ai_broad_cohort"][0]["issuers"][0]["dependency_tier"] = 1

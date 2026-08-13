@@ -13,16 +13,19 @@ layers:
     selection_is_exhaustive_base_rate: false
     universal_year_2_or_3_rule: false
     source: NYU_Stern_Damodaran_SP500_total_returns
+    composite_horizon_years: 3
+    composite_method: pointwise_log_index_median_with_linear_q25_q75
+    observations_by_horizon: [4, 4, 4, 3]
   observed_dotcom_assets:
     date_window: 1999-12_to_2002-12
     assets: [NASDAQ_Composite_price, Realty_Income_price, Realty_Income_adjusted_close_total_return_proxy]
     bitcoin: unavailable_launched_2009
     normalization: 1999-12_equals_100
   ai_bust_counterfactual:
-    reference: observed_dotcom_NASDAQ_path
-    transform: cumulative_reference_index_power_downside_beta
+    reference: four_selected_US_equity_episode_log_space_composite
+    transform: positive_power_transport_of_composite_index
     beta_source: latest_cross_asset_downside_beta_5y
-    cases: [10th_percentile_beta, center_beta, 90th_percentile_beta]
+    cases: [historical_q25_q75_band, 10th_percentile_beta, center_beta, 90th_percentile_beta]
     output_semantics: sensitivity_only_not_observed_not_probability_not_forecast
 
 separation_guards:
@@ -31,6 +34,8 @@ separation_guards:
   - Bitcoin counterfactual must never be labeled observed
   - stress paths must not feed Scenario V5.2, official snapshot, calibration, or ledger
   - no silent claim that year two or three is always worse
+  - US-equity episode reference and NASDAQ-estimated beta basis mismatch must remain disclosed
+  - presentation must render one combined graph rather than three separate stress graphs
 
 condition_breakers:
   realty_income: [long_rate, credit_spread, refinancing_cost, occupancy, dividend_policy]

@@ -16,6 +16,7 @@ from typing import Any
 
 from ai_fc.scenario_v5.contracts import (
     canonical_hash,
+    canonical_numerical_hash,
     compare_protected_append_only,
     compare_protected_hashes,
     file_hash,
@@ -86,7 +87,9 @@ def _write_json_atomic(path: Path, payload: dict[str, Any]) -> None:
 def build_candidate(root: Path, *, force: bool = False) -> tuple[Path, dict[str, Any], bool]:
     before = protected_hashes(root)
     payload = assemble_candidate(root)
-    payload["model_content_sha256"] = canonical_hash(_model_content(payload))
+    payload["model_content_sha256"] = canonical_numerical_hash(
+        _model_content(payload)
+    )
     payload["generated_at"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
     payload["build_receipt"] = {
         "artifact_type": "scenario_v5_2_research_candidate",
@@ -152,7 +155,7 @@ def validate_candidate(
     except (TypeError, ValueError):
         cutoff = datetime.max.replace(tzinfo=timezone.utc)
         errors.append("invalid knowledge cutoff")
-    expected_hash = canonical_hash(_model_content(payload))
+    expected_hash = canonical_numerical_hash(_model_content(payload))
     if payload.get("model_content_sha256") != expected_hash:
         errors.append("model content hash mismatch")
     receipt = payload.get("build_receipt", {})
@@ -548,7 +551,7 @@ def validate_candidate(
 
     if replay and root is not None and not errors:
         replayed = assemble_candidate(root)
-        replay_hash = canonical_hash(_model_content(replayed))
+        replay_hash = canonical_numerical_hash(_model_content(replayed))
         if replay_hash != payload.get("model_content_sha256"):
             errors.append("deterministic replay hash mismatch")
     return {

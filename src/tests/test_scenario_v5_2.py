@@ -14,6 +14,7 @@ import yaml
 
 from ai_fc.scenario_v5.contracts import (
     canonical_hash,
+    canonical_numerical_hash,
     compare_protected_append_only,
     compare_protected_hashes,
     protected_hashes,
@@ -40,10 +41,23 @@ def _candidate() -> dict:
 
 
 def _rehash(payload: dict) -> dict:
-    payload["model_content_sha256"] = canonical_hash(_model_content(payload))
+    payload["model_content_sha256"] = canonical_numerical_hash(
+        _model_content(payload)
+    )
     payload["build_receipt"]["model_content_sha256"] = payload["model_content_sha256"]
     payload["build_receipt_sha256"] = canonical_hash(payload["build_receipt"])
     return payload
+
+
+def test_numerical_model_hash_ignores_only_machine_epsilon_noise() -> None:
+    baseline = {"path": [1.0, 0.1234567890123], "schema": ("a", "b")}
+    machine_noise = {
+        "path": [1.0 + 4e-16, 0.1234567890123 - 4e-16],
+        "schema": ["a", "b"],
+    }
+    material_change = {"path": [1.0, 0.1234567900123], "schema": ["a", "b"]}
+    assert canonical_numerical_hash(baseline) == canonical_numerical_hash(machine_noise)
+    assert canonical_numerical_hash(baseline) != canonical_numerical_hash(material_change)
 
 
 def test_review_package_uses_central_review_tree() -> None:
