@@ -37,6 +37,12 @@ sources:
       UNRATE: {native_frequency: monthly, unit: percent, aggregation: last}
       CPIAUCSL: {native_frequency: monthly, unit: index_1982_1984_100, aggregation: last}
       NFCI: {native_frequency: weekly, unit: standard_deviation_index, aggregation: mean}
+      BOGZ1LM893064105Q: {native_frequency: quarterly, unit: millions_usd, aggregation: last, role: total_us_corporate_equity_market_value_denominator}
+      HQMCB10YR: {native_frequency: monthly, unit: percent, aggregation: last, role: high_quality_corporate_bond_yield}
+      GS10: {native_frequency: monthly, unit: percent, aggregation: last, role: corporate_spread_treasury_reference}
+      DCOILWTICO: {native_frequency: daily, unit: dollars_per_barrel, aggregation: mean, role: inflation_leading_indicator}
+      WPU10260314: {native_frequency: monthly, unit: index_1982_100, aggregation: last, role: copper_inflation_leading_indicator}
+      GACDFSA066MSFRBPHI: {native_frequency: monthly, unit: diffusion_index, aggregation: last, role: public_manufacturing_diffusion_proxy_not_ISM_PMI}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s
@@ -67,6 +73,24 @@ sources:
     native_frequency: annual_research
     role: named_software_ai_ipo_cohort
     reviewed_through: 2025-12-31
+  nahb_hmi:
+    page: https://www.nahb.org/news-and-economics/housing-economics/indices/housing-market-index
+    snapshot_path: data/statistics/reference/nahb_hmi_history_v1.json
+    native_frequency: monthly
+    role: housing_recession_warning_component
+
+qualitative_ipo_policy:
+  completed_ipo_numerator: aggregate_post_issue_market_value_at_first_closing_price
+  market_denominator: BOGZ1LM893064105Q_total_us_corporate_equities_market_value
+  private_frontier_watchlist: separate_non_ipo_reference_point_never_added_to_completed_ipo_series
+  small_issuer_definition: inflation_adjusted_LTM_sales_below_USD_100m_in_2024_purchasing_power
+  explicit_exclusions: [OpenAI_from_completed_IPO, Anthropic_from_completed_IPO, SK_hynix_existing_listed_company]
+
+macro_warning_policy:
+  first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}
+  corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
+  inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
+  recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.

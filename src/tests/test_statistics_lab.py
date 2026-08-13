@@ -16,6 +16,7 @@ from ai_fc.statistics_lab import (
     _parse_z1,
     build_statistics_lab,
     load_ipo_reference,
+    load_hmi_reference,
     load_statistics_lab,
     refresh_statistics_lab,
     statistics_dashboard_projection,
@@ -30,7 +31,7 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
     for offset in range(0, 32 * 12):
         year = start.year + (start.month - 1 + offset) // 12
         month = (start.month - 1 + offset) % 12 + 1
-        if series_id == "DABSHNO" and month not in {1, 4, 7, 10}:
+        if series_id in {"DABSHNO", "BOGZ1LM893064105Q"} and month not in {1, 4, 7, 10}:
             continue
         baseline = {
             "M2SL": 4000.0,
@@ -47,8 +48,14 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "UNRATE": 4.0,
             "CPIAUCSL": 160.0,
             "NFCI": -0.3,
+            "BOGZ1LM893064105Q": 20_000_000.0,
+            "HQMCB10YR": 6.0,
+            "GS10": 5.0,
+            "DCOILWTICO": 50.0,
+            "WPU10260314": 100.0,
+            "GACDFSA066MSFRBPHI": 5.0,
         }[series_id]
-        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI"} else 0.0)
+        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
         value = baseline * growth
         if series_id == "T10Y2Y":
             value = ((offset % 30) - 12) / 10
@@ -58,6 +65,8 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             value = 3.5 + (offset % 18) / 10.0
         elif series_id == "NFCI":
             value = ((offset % 24) - 14) / 10.0
+        elif series_id == "GACDFSA066MSFRBPHI":
+            value = ((offset % 30) - 15) * 1.5
         rows.append({"date": date(year, month, 1).isoformat(), "value": value})
     return rows
 
@@ -89,11 +98,22 @@ def _repo_ipo_reference() -> dict:
     return load_ipo_reference(root)
 
 
+def _repo_hmi_reference() -> dict:
+    root = Path(__file__).resolve().parents[2]
+    return load_hmi_reference(root)
+
+
 def _install_ipo_reference(root: Path) -> None:
     target = root / "data/statistics/ipo/ipo_comparison_v1.json"
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(
         json.dumps(_repo_ipo_reference(), ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    hmi_target = root / "data/statistics/reference/nahb_hmi_history_v1.json"
+    hmi_target.parent.mkdir(parents=True, exist_ok=True)
+    hmi_target.write_text(
+        json.dumps(_repo_hmi_reference(), ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 
@@ -113,6 +133,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         generated_at="2026-08-11T00:00:00+00:00",
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
     assert payload["probability_space"] == "reference_only"
@@ -129,7 +150,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 20
+    assert len(payload["charts"]) == 26
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -139,6 +160,9 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "internet_vs_ai_core_ipos", "technology_ipo_count",
         "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
+        "ipo_market_absorption", "small_issuer_ipo_share",
+        "rate_cycle_since_first_cut", "corporate_bond_pressure",
+        "inflation_lead_panel", "housing_manufacturing_warning",
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
     assert ipo_chart["scale"] == "log1p"
@@ -227,6 +251,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "IPO·상장" in script
     assert "statistics-detail-rows" in script
     assert 'data-stat-scale="${useLog?\'log1p\':\'linear\'}"' in script
+    assert "unit==='percent_of_us_corporate_equity_value'" in script
+    assert "unit==='percentage_point_change'" in script
+    assert "unit==='neutral_line_distance'" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
@@ -239,6 +266,7 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
         generated_at="2026-08-11T00:00:00+00:00",
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
     )
     latest = tmp_path / "data/statistics/dotcom_statistics_latest.json"
     latest.parent.mkdir(parents=True)
@@ -258,7 +286,7 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 14
+    assert len(payload["sources"]) == 18
     assert all(source["raw_sha256"] for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 6

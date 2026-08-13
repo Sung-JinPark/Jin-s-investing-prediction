@@ -17,6 +17,7 @@ LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 ARCHIVE_RELATIVE = Path("data/statistics/archive")
 CONTRACT_RELATIVE = Path("data/contracts/statistics_lab_v1.yaml")
 IPO_REFERENCE_RELATIVE = Path("data/statistics/ipo/ipo_comparison_v1.json")
+HMI_REFERENCE_RELATIVE = Path("data/statistics/reference/nahb_hmi_history_v1.json")
 DOTCOM_START = date(1995, 1, 1)
 DOTCOM_END = date(1999, 12, 31)
 CURRENT_START = date(2023, 1, 1)
@@ -124,6 +125,48 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "unit": "standard_deviation_index",
         "native_frequency": "weekly",
         "aggregation": "mean",
+    },
+    "BOGZ1LM893064105Q": {
+        "title": "All sectors; corporate equities; market value",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
+    "HQMCB10YR": {
+        "title": "10-year high quality market corporate bond spot rate",
+        "provider": "U.S. Department of the Treasury",
+        "unit": "percent",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "GS10": {
+        "title": "Market yield on U.S. Treasury securities at 10-year constant maturity",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "percent",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "DCOILWTICO": {
+        "title": "Crude oil prices: West Texas Intermediate",
+        "provider": "U.S. Energy Information Administration",
+        "unit": "dollars_per_barrel",
+        "native_frequency": "daily",
+        "aggregation": "mean",
+    },
+    "WPU10260314": {
+        "title": "Producer Price Index by Commodity: Copper Wire and Cable",
+        "provider": "U.S. Bureau of Labor Statistics",
+        "unit": "index_1982_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "GACDFSA066MSFRBPHI": {
+        "title": "Philadelphia Fed manufacturing current general activity diffusion index",
+        "provider": "Federal Reserve Bank of Philadelphia",
+        "unit": "diffusion_index",
+        "native_frequency": "monthly",
+        "aggregation": "last",
     },
 }
 
@@ -265,6 +308,42 @@ def _ratio(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> list[dict
     return result
 
 
+def _shift_months(points: list[dict[str, Any]], months: int) -> list[dict[str, Any]]:
+    shifted = []
+    for row in points:
+        observed = date.fromisoformat(row["date"])
+        absolute = observed.year * 12 + observed.month - 1 + months
+        shifted.append({
+            **row,
+            "date": date(absolute // 12, absolute % 12 + 1, 1).isoformat(),
+        })
+    return shifted
+
+
+def _annual_last(points: list[dict[str, Any]]) -> dict[int, float]:
+    result: dict[int, tuple[str, float]] = {}
+    for row in points:
+        observed = date.fromisoformat(row["date"])
+        if observed.year not in result or row["date"] > result[observed.year][0]:
+            result[observed.year] = (row["date"], float(row["value"]))
+    return {year: value for year, (_, value) in result.items()}
+
+
+def _event_change(
+    points: list[dict[str, Any]], *, base_month: date, event_month: date, months: int,
+) -> list[dict[str, Any]]:
+    by_month = {_month_key(row["date"]): float(row["value"]) for row in points}
+    base = by_month.get((base_month.year, base_month.month))
+    if base is None:
+        return []
+    result = []
+    for row in points:
+        offset = _month_offset(row["date"], event_month)
+        if 0 <= offset <= months:
+            result.append({"period": offset, "date": row["date"], "value": float(row["value"]) - base})
+    return result
+
+
 def _chart(
     chart_id: str, title: str, category: str, unit: str, description: str,
     caveat: str, series: list[dict[str, Any]], source_ids: list[str],
@@ -390,10 +469,36 @@ def load_ipo_reference(root: Path) -> dict[str, Any]:
     return payload
 
 
+def load_hmi_reference(root: Path) -> dict[str, Any]:
+    path = root / HMI_REFERENCE_RELATIVE
+    if not path.is_file():
+        raise StatisticsLabError(f"HMI reference missing: {path}")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise StatisticsLabError("HMI reference cannot be read") from exc
+    if (
+        payload.get("schema_version") != 1
+        or payload.get("probability_space") != "reference_only"
+        or payload.get("model_use") is not False
+        or payload.get("official_forecast_input") is not False
+    ):
+        raise StatisticsLabError("HMI reference semantic contract invalid")
+    rows = payload.get("rows") or []
+    if not rows or any(not row.get("date") or not math.isfinite(float(row.get("value"))) for row in rows):
+        raise StatisticsLabError("HMI reference rows invalid")
+    source = payload.get("source") or {}
+    digest = str(source.get("raw_sha256", ""))
+    if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+        raise StatisticsLabError("HMI source hash invalid")
+    return payload
+
+
 def build_statistics_lab(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
     ipo_reference: dict[str, Any] | None = None,
+    hmi_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     missing = sorted((set(FRED_SERIES) | {"FL663067003"}) - set(source_rows))
     if missing:
@@ -435,6 +540,40 @@ def build_statistics_lab(
     dot_financial_conditions, cur_financial_conditions = _cycle_series(
         monthly["NFCI"], comparison_months
     )
+
+    dot_rate_cycle = _event_change(
+        monthly["FEDFUNDS"], base_month=date(1995, 6, 1),
+        event_month=date(1995, 7, 1), months=comparison_months,
+    )
+    cur_rate_cycle = _event_change(
+        monthly["FEDFUNDS"], base_month=date(2024, 8, 1),
+        event_month=date(2024, 9, 1), months=comparison_months,
+    )
+    corporate_spread = []
+    treasury_by_month = {_month_key(row["date"]): float(row["value"]) for row in monthly["GS10"]}
+    for row in monthly["HQMCB10YR"]:
+        treasury = treasury_by_month.get(_month_key(row["date"]))
+        if treasury is not None:
+            corporate_spread.append({"date": row["date"], "value": float(row["value"]) - treasury})
+    dot_corp_yield, cur_corp_yield = _cycle_series(monthly["HQMCB10YR"], comparison_months)
+    dot_corp_spread, cur_corp_spread = _cycle_series(corporate_spread, comparison_months)
+
+    inflation_lead_aligned = _shift_months(inflation, -2)
+    oil_lead = _yoy(monthly["DCOILWTICO"])
+    copper_lead = _yoy(monthly["WPU10260314"])
+    dot_inflation_lead, cur_inflation_lead = _cycle_series(inflation_lead_aligned, comparison_months)
+    dot_oil, cur_oil = _cycle_series(oil_lead, comparison_months)
+    dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
+
+    dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
+    dot_hmi: list[dict[str, Any]] = []
+    cur_hmi: list[dict[str, Any]] = []
+    if hmi_reference is not None:
+        hmi_rows = [
+            {"date": str(row["date"]), "value": float(row["value"]) - 50.0}
+            for row in hmi_reference["rows"]
+        ]
+        dot_hmi, cur_hmi = _cycle_series(hmi_rows, comparison_months)
 
     charts = [
         _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
@@ -493,7 +632,28 @@ def build_statistics_lab(
                "자금시장·채권·주식·은행 변수를 합친 Chicago Fed NFCI로 금융환경의 긴축 정도를 비교합니다.",
                "0보다 높으면 역사 평균보다 긴축적, 낮으면 완화적이라는 뜻이며 주가 방향을 단독 예측하지 않습니다.",
                [_series("닷컴", "dotcom", dot_financial_conditions, "#8d2943"), _series("현재", "current", cur_financial_conditions, "#28756a")], ["NFCI"]),
+        _chart("rate_cycle_since_first_cut", "첫 금리 인하 뒤 재긴축 거리", "rates", "percentage_point_change",
+               "1995년 7월과 2024년 9월 첫 인하를 0개월로 맞추고, 인하 직전 정책금리 대비 변화를 비교합니다.",
+               "현재선은 실제 월평균 금리에서 멈춥니다. 같은 수준으로 복귀했다고 버블 붕괴가 자동 발생하는 것은 아닙니다.",
+               [_series("1995 인하 사이클", "dotcom", dot_rate_cycle, "#8d2943"), _series("2024 인하 사이클", "current", cur_rate_cycle, "#28756a")], ["FEDFUNDS"]),
+        _chart("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
+               "10년 고품질 회사채 금리와 10년 국채 대비 스프레드를 겹쳐 기업 조달비용의 급등 여부를 봅니다.",
+               "AAA·AA·A 중심의 고품질 회사채 곡선이라 투기등급 신용스트레스를 직접 보여주지 않습니다.",
+               [_series("닷컴 회사채 10년", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채 10년", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")], ["HQMCB10YR", "GS10"]),
+        _chart("inflation_lead_panel", "유가·구리 2개월 선행과 CPI", "economy", "percent_yoy",
+               "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
+               "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
+               [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
     ]
+
+    if hmi_reference is not None:
+        charts.append(_chart(
+            "housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "neutral_line_distance",
+            "NAHB 주택시장지수는 50을 뺀 값, Philadelphia Fed 제조업 확산지수는 0 기준으로 맞춰 냉각 폭을 비교합니다.",
+            "Philadelphia Fed 지수는 전국 ISM PMI의 공개 대체 지표이며, 두 지표만으로 침체 확률을 계산하지 않습니다.",
+            [_series("닷컴 HMI−50", "dotcom", dot_hmi, "#8d2943"), _series("닷컴 제조업 확산", "dotcom", dot_philly, "#d47f52"), _series("현재 HMI−50", "current", cur_hmi, "#28756a"), _series("현재 제조업 확산", "current", cur_philly, "#4aa18d")],
+            ["NAHB_HMI", "GACDFSA066MSFRBPHI"],
+        ))
 
     def chart_last(chart_index: int, series_index: int) -> float:
         return float(charts[chart_index]["series"][series_index]["points"][-1]["value"])
@@ -562,7 +722,25 @@ def build_statistics_lab(
             f"현재 NFCI는 {chart_last(13, 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last(13, 0):+.2f}입니다. "
             "0 아래는 평균보다 완화적, 0 위는 긴축적이어서 시장이 받는 자금 압력을 직관적으로 보여줍니다."
         ),
+        "rate_cycle_since_first_cut": (
+            f"현재 첫 인하 직전 대비 정책금리는 {cur_rate_cycle[-1]['value']:+.2f}%p, "
+            f"1995년 사이클 같은 경과월은 {dot_rate_cycle[min(len(dot_rate_cycle)-1, len(cur_rate_cycle)-1)]['value']:+.2f}%p입니다. "
+            "닷컴 붕괴 전에는 재긴축이 나타났지만 현재의 동일 트리거 여부는 실제선이 0으로 복귀하는지 따로 봐야 합니다."
+        ),
+        "corporate_bond_pressure": (
+            f"현재 고품질 회사채 10년 금리는 {cur_corp_yield[-1]['value']:.2f}%, 국채 대비 스프레드는 {cur_corp_spread[-1]['value']:.2f}%p입니다. "
+            "금리와 스프레드가 함께 급등하면 기업의 할인율과 신용비용이 동시에 악화되는 경고입니다."
+        ),
+        "inflation_lead_panel": (
+            f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
+            "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
+        ),
     }
+    if hmi_reference is not None:
+        chart_insights["housing_manufacturing_warning"] = (
+            f"현재 HMI는 중립선보다 {cur_hmi[-1]['value']:+.0f}p, 제조업 확산지수는 {cur_philly[-1]['value']:+.1f}입니다. "
+            "둘 다 0 아래로 내려가고 하락이 이어질 때 주택과 제조업의 동시 냉각 경고가 강해집니다."
+        )
     for chart in charts:
         chart["insight"] = chart_insights[chart["id"]]
     if ipo_reference is not None:
@@ -580,6 +758,69 @@ def build_statistics_lab(
             if spec.get("detail_rows"):
                 chart["detail_rows"] = spec["detail_rows"]
             ipo_charts.append(chart)
+        qualitative = ipo_reference.get("qualitative_ipo") or {}
+        value_table = qualitative.get("all_ipo_first_close_market_value_bn") or {}
+        total_equity_by_year = _annual_last(monthly["BOGZ1LM893064105Q"])
+
+        def absorption_points(values: dict[str, Any], years: list[int]) -> list[dict[str, Any]]:
+            points = []
+            for index, year in enumerate(years):
+                denominator = total_equity_by_year.get(year)
+                numerator = values.get(str(year))
+                if denominator and numerator is not None:
+                    points.append({
+                        "period": index * 12,
+                        "date": f"{year}-12-31",
+                        "value": float(numerator) * 1000.0 / denominator * 100.0,
+                    })
+            return points
+
+        dot_absorption = absorption_points(value_table.get("dotcom") or {}, list(range(1995, 2000)))
+        cur_absorption = absorption_points(value_table.get("current") or {}, list(range(2023, 2027)))
+        private_watch = qualitative.get("private_frontier_ai_watchlist") or {}
+        private_total_bn = sum(float(row["valuation_bn"]) for row in private_watch.get("members") or [])
+        latest_equity = total_equity_by_year.get(2026) or float(monthly["BOGZ1LM893064105Q"][-1]["value"])
+        private_ratio = private_total_bn * 1000.0 / latest_equity * 100.0
+        quality_chart = _chart(
+            "ipo_market_absorption", "IPO 시가총액의 시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
+            "한 해 IPO들의 첫 거래 종가 기준 상장 후 시가총액 합계를 미국 기업주식 총가치로 나눠, 건수보다 자금 규모를 비교합니다.",
+            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. OpenAI·Anthropic은 IPO가 아니므로 별도 감시점이며 실제 IPO선에 합산하지 않습니다.",
+            [_series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"), _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"), _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a")],
+            [value_table.get("source_id"), "BOGZ1LM893064105Q", *[row["source_id"] for row in private_watch.get("members") or []]],
+        )
+        quality_chart["insight"] = (
+            f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
+            f"OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T는 현재 미국 기업주식 총가치의 약 {private_ratio:.1f}%지만, 이는 잠재 공급 감시선이지 완료된 IPO가 아닙니다."
+        )
+        quality_chart["detail_rows"] = [
+            {"period": "1999", "label": "전체 비교가능 IPO", "value": "$652B · 실제 상장"},
+            {"period": "2025", "label": "전체 비교가능 IPO", "value": "$442B · 실제 상장"},
+            {"period": "2026", "label": "OpenAI + Anthropic", "value": "$1.817T · 비상장 평가액"},
+            {"period": "제외", "label": "SK하이닉스", "value": "기존 상장사 · IPO 아님"},
+        ]
+
+        small_table = qualitative.get("small_issuer_sales_below_100m") or {}
+        def share_points(values: dict[str, Any], years: list[int]) -> list[dict[str, Any]]:
+            result = []
+            for index, year in enumerate(years):
+                row = values.get(str(year)) or {}
+                if row.get("total"):
+                    result.append({"period": index * 12, "date": f"{year}-12-31", "value": float(row["small"]) / float(row["total"]) * 100.0})
+            return result
+        small_chart = _chart(
+            "small_issuer_ipo_share", "저매출 IPO 확산 비중", "ipo", "percent",
+            "상장 전 최근 12개월 매출이 2024년 구매력 기준 1억 달러 미만인 기업이 전체 비교가능 IPO에서 차지하는 비중입니다.",
+            "소형주는 거래규모가 아니라 물가조정 매출 기준입니다. 2023년은 전체 표본이 54건으로 작아 비중 하나만으로 과열을 단정할 수 없습니다.",
+            [_series("닷컴 저매출 IPO", "dotcom", share_points(small_table.get("dotcom") or {}, list(range(1995, 2000))), "#8d2943"), _series("현재 저매출 IPO", "current", share_points(small_table.get("current") or {}, list(range(2023, 2026))), "#28756a")],
+            [small_table.get("source_id")],
+        )
+        small_chart["insight"] = "저매출 IPO 비중은 1999년 77%까지 높아졌지만 2025년은 39%입니다. 현재는 대형 AI 비상장사 집중은 크지만 닷컴 말기의 소형·저매출 상장 확산과는 아직 다릅니다."
+        small_chart["detail_rows"] = [
+            {"period": "1999", "label": "저매출 365 / 전체 476", "value": "77%"},
+            {"period": "2023", "label": "저매출 37 / 전체 54", "value": "69% · 작은 표본"},
+            {"period": "2025", "label": "저매출 35 / 전체 90", "value": "39%"},
+        ]
+        ipo_charts.extend([quality_chart, small_chart])
         charts = ipo_charts + charts
 
     source_meta = []
@@ -612,6 +853,8 @@ def build_statistics_lab(
     })
     if ipo_reference is not None:
         source_meta.extend(ipo_reference["sources"])
+    if hmi_reference is not None:
+        source_meta.append(hmi_reference["source"])
     payload = {
         "schema_version": 1,
         "dataset_id": "dotcom_statistics_lab_v1",
@@ -744,6 +987,7 @@ def refresh_statistics_lab(
         generated_at=generated_at,
         receipts=receipts,
         ipo_reference=load_ipo_reference(root),
+        hmi_reference=load_hmi_reference(root),
     )
 
     latest = root / LATEST_RELATIVE

@@ -68,6 +68,36 @@
       ]
     }
   ],
+  "qualitative_ipo": {
+    "all_ipo_first_close_market_value_bn": {
+      "definition": "Aggregate post-issue market value at the first closing price for all comparable U.S. IPOs, USD billions",
+      "source_id": "RITTER_IPO_UNDERPRICING_2025",
+      "dotcom": {"1995": 127, "1996": 215, "1997": 141, "1998": 164, "1999": 652},
+      "current": {"2023": 115, "2024": 148, "2025": 442}
+    },
+    "small_issuer_sales_below_100m": {
+      "definition": "Comparable IPO issuers with inflation-adjusted last-twelve-month sales below USD 100 million in 2024 purchasing power",
+      "source_id": "RITTER_IPO_SALES_2025",
+      "dotcom": {
+        "1995": {"small": 277, "total": 462}, "1996": {"small": 433, "total": 677},
+        "1997": {"small": 289, "total": 474}, "1998": {"small": 164, "total": 283},
+        "1999": {"small": 365, "total": 476}
+      },
+      "current": {
+        "2023": {"small": 37, "total": 54}, "2024": {"small": 41, "total": 72},
+        "2025": {"small": 35, "total": 90}
+      }
+    },
+    "private_frontier_ai_watchlist": {
+      "semantics": "non_ipo_private_valuation_watchlist_not_added_to_actual_ipo_series",
+      "as_of": "2026-05-28",
+      "members": [
+        {"name": "OpenAI", "valuation_bn": 852, "source_id": "OPENAI_2026_FUNDING"},
+        {"name": "Anthropic", "valuation_bn": 965, "source_id": "ANTHROPIC_2026_SERIES_H"}
+      ],
+      "explicit_exclusion": "SK hynix is an existing listed company, not an AI-cycle IPO, and is excluded from IPO totals."
+    }
+  },
   "charts": [
     {
       "id": "internet_vs_ai_core_ipos",
@@ -335,6 +365,18 @@
     },
     {
       "series_id": "SEC_CEREBRAS_424B4", "title": "Cerebras final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2021728/000162828026035214/0001628280-26-035214-index.htm", "available_at": "2026-05-14T00:00:00Z", "latest_observation": "2026-05-14", "row_count": 1, "raw_sha256": "16dc7581e12f99826fd9a364c3b62f837886431467d78e5b51e855e93cbe1403", "vintage": "SEC_accession_0001628280-26-035214"
+    },
+    {
+      "series_id": "RITTER_IPO_SALES_2025", "title": "Initial Public Offerings: Sales", "provider": "Jay R. Ritter, University of Florida IPO Initiative", "unit": "annual_small_issuer_counts", "native_frequency": "annual", "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Sales.pdf", "available_at": "2026-02-20T00:00:00Z", "latest_observation": "2025-12-31", "row_count": 46, "raw_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "RITTER_IPO_UNDERPRICING_2025", "title": "Initial Public Offerings: Updated Statistics", "provider": "Jay R. Ritter, University of Florida IPO Initiative", "unit": "annual_post_issue_market_value", "native_frequency": "annual", "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf", "available_at": "2026-02-20T00:00:00Z", "latest_observation": "2025-12-31", "row_count": 46, "raw_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460", "vintage": "downloaded_2026-08-13"
+    },
+    {
+      "series_id": "OPENAI_2026_FUNDING", "title": "OpenAI raises $122 billion at $852 billion post-money valuation", "provider": "OpenAI", "unit": "private_post_money_valuation", "native_frequency": "event", "source_url": "https://openai.com/index/accelerating-the-next-phase-ai/", "available_at": "2026-03-31T00:00:00Z", "latest_observation": "2026-03-31", "row_count": 1, "raw_sha256": "e6c1a0585135895bca4703ec96fc396c366b3af0529369688ae2161492ace00e", "vintage": "canonical_fact_record_reviewed_2026-08-13"
+    },
+    {
+      "series_id": "ANTHROPIC_2026_SERIES_H", "title": "Anthropic Series H at $965 billion post-money valuation", "provider": "Anthropic", "unit": "private_post_money_valuation", "native_frequency": "event", "source_url": "https://www.anthropic.com/news/series-h", "available_at": "2026-05-28T00:00:00Z", "latest_observation": "2026-05-28", "row_count": 1, "raw_sha256": "3a2c221fcec3f7b70368145f03f82a15c51c4e82d9dd32c37fd37071b06fce2a", "vintage": "canonical_fact_record_reviewed_2026-08-13"
     }
   ]
 }

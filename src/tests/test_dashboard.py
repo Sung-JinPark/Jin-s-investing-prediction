@@ -123,6 +123,13 @@ def test_template_parts_bundle_and_budget() -> None:
     assert len(dashboard.render_html({}, mode="embed").encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
 
 
+def test_script_compaction_preserves_token_boundaries() -> None:
+    source = "<script>if (left) {} else\nif (right) { run(); }</script>"
+    compact = dashboard._compact_static_bundle(source)
+    assert "else if" in compact
+    assert "elseif" not in compact
+
+
 def test_ui_contract() -> None:
     """UI 현대화 계약 — 제품 rail·첫 화면 briefing·접근성·동적 전환."""
     html = dashboard.load_template()
