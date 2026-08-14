@@ -1161,6 +1161,7 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .scenario-customer-view a{min-width:0;padding-inline:8px;text-align:center;white-space:normal;line-height:1.35}
   .scenario-v52-risk-banner{padding:14px}
   .scenario-v52-main,.scenario-v52-timing{max-width:100%;padding:12px}
+  .statistics-chart{overflow-x:auto}
   .scenario-v52-chart svg,.statistics-chart svg{min-width:640px}
   .scenario-v52-method>summary,.trust-ledger-details>summary,.statistics-sources>summary{min-width:0;gap:12px;overflow-wrap:anywhere}
   .mobile-question-facts{grid-template-columns:1fr}

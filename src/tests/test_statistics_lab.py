@@ -4,7 +4,6 @@ import hashlib
 import io
 import json
 import math
-import statistics
 import urllib.error
 import zipfile
 from datetime import date, datetime, timezone
@@ -176,21 +175,34 @@ def _z1_bytes() -> bytes:
 
 def _payload_inputs() -> tuple[dict, dict]:
     rows = {series_id: _rows(series_id) for series_id in FRED_SERIES}
-    kospi_rows = []
-    observed = date(2026, 1, 1)
+    market_rows = {series_id: [] for series_id in DAILY_MARKET_SERIES}
+    market_values = {
+        "KOSPI_DAILY": 2200.0,
+        "KOSDAQ_DAILY": 800.0,
+        "KRX_SEMICON_PROXY_DAILY": 30_000.0,
+        "TAIEX_DAILY": 12_000.0,
+        "SOX_DAILY": 1800.0,
+    }
+    observed = date(2020, 1, 1)
+    session = 0
     while observed <= date(2026, 12, 30):
         if observed.weekday() < 5:
-            offset = (observed - date(2026, 1, 1)).days
-            kospi_rows.append({"date": observed.isoformat(), "value": 4000.0 + offset * 8.0})
+            common = math.sin(session * 0.17) * 0.008 + math.cos(session * 0.047) * 0.003
+            returns = {
+                "KOSPI_DAILY": 0.0005 + common,
+                "KOSDAQ_DAILY": 0.0001 + common * 0.82 + math.sin(session * 0.11) * 0.004,
+                "KRX_SEMICON_PROXY_DAILY": 0.0007 + common * 1.28 + math.cos(session * 0.09) * 0.004,
+                "TAIEX_DAILY": 0.0005 + common * 0.93 + math.sin(session * 0.07) * 0.002,
+                "SOX_DAILY": 0.0007 + common * 1.35 + math.cos(session * 0.13) * 0.005,
+            }
+            for series_id, daily_return in returns.items():
+                market_values[series_id] *= math.exp(daily_return)
+                market_rows[series_id].append({
+                    "date": observed.isoformat(), "value": market_values[series_id],
+                })
+            session += 1
         observed = date.fromordinal(observed.toordinal() + 1)
-    bitcoin_rows = []
-    observed = date(2021, 1, 1)
-    while observed <= date(2021, 12, 31):
-        offset = (observed - date(2021, 1, 1)).days
-        bitcoin_rows.append({"date": observed.isoformat(), "value": 29000.0 + offset * 55.0})
-        observed = date.fromordinal(observed.toordinal() + 1)
-    rows["KOSPI_2026_DAILY"] = kospi_rows
-    rows["BTC_2021_DAILY"] = bitcoin_rows
+    rows.update(market_rows)
     z1 = _z1_bytes()
     rows["FL663067003"] = _parse_z1(z1)
     receipts = {
@@ -275,7 +287,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 27
+    assert len(payload["charts"]) == 28
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -288,7 +300,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "ipo_market_absorption", "small_issuer_ipo_share",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
-        "kospi_2026_bitcoin_2021_daily",
+        "kospi_market_breadth_2026_daily", "kospi_external_semiconductor_pulse",
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
     assert ipo_chart["scale"] == "log1p"
@@ -331,50 +343,43 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         for point in series["points"]
     )
     assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
-    kospi = next(
+    breadth = next(
         chart for chart in payload["charts"]
-        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
+        if chart["id"] == "kospi_market_breadth_2026_daily"
     )
-    assert kospi["source_ids"] == ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]
-    assert kospi["axis_type"] == "calendar_day_of_year"
-    assert kospi["max_period"] == 364
-    assert kospi["projection_max_points"] == 366
-    assert len(kospi["detail_rows"]) == 3
-    assert [row["label"] for row in kospi["series"]] == [
-        "KOSPI 2026", "Bitcoin 2021 · 변동성 맞춤",
+    assert breadth["source_ids"] == [
+        "KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY",
     ]
-    assert all(row["points"][0]["value"] == 100.0 for row in kospi["series"])
-    assert len(kospi["series"][0]["points"]) == 260
-    assert len(kospi["series"][1]["points"]) == 365
-    transform = kospi["comparison_transform"]
-    assert transform["method"] == "matched_session_volatility_scaled_cumulative_log_return"
-    assert transform["calibration"]["matched_sessions"] == 260
-    assert transform["calibration"]["return_observations"] == 259
-    assert transform["calibration"]["volatility_scale"] > 0
-    assert -1 <= transform["calibration"]["return_correlation"] <= 1
-    assert transform["time_warping"] is False
-    assert transform["optimized_lag"] is False
-    assert transform["forecast_extension"] is False
-    bitcoin_by_period = {
-        int(point["period"]): point for point in kospi["series"][1]["points"]
-    }
-    matched_bitcoin = [
-        bitcoin_by_period[int(point["period"])] for point in kospi["series"][0]["points"]
+    assert breadth["axis_type"] == "calendar_day_of_year"
+    assert breadth["max_period"] == 364
+    assert breadth["projection_max_points"] == 366
+    assert [row["label"] for row in breadth["series"]] == [
+        "KOSPI", "KOSDAQ", "KRX 반도체 대용치",
     ]
-    kospi_log_returns = [
-        math.log(current["value"] / prior["value"])
-        for prior, current in zip(
-            kospi["series"][0]["points"], kospi["series"][0]["points"][1:], strict=False,
-        )
-    ]
-    bitcoin_log_returns = [
-        math.log(current["value"] / prior["value"])
-        for prior, current in zip(matched_bitcoin, matched_bitcoin[1:], strict=False)
-    ]
-    assert statistics.stdev(bitcoin_log_returns) == pytest.approx(
-        statistics.stdev(kospi_log_returns), rel=1e-10,
+    assert all(row["points"][0]["value"] == 100.0 for row in breadth["series"])
+    assert all(len(row["points"]) == 260 for row in breadth["series"])
+    breadth_diagnostic = breadth["market_breadth_diagnostics"]
+    assert breadth_diagnostic["time_warping"] is False
+    assert breadth_diagnostic["optimized_lag"] is False
+    assert breadth_diagnostic["forecast_extension"] is False
+    assert breadth_diagnostic["kosdaq"]["observations"] > 1000
+    assert "대형 반도체에 집중" in breadth["insight"]
+    pulse = next(
+        chart for chart in payload["charts"]
+        if chart["id"] == "kospi_external_semiconductor_pulse"
     )
-    assert "남은 2026년 예측선" in kospi["insight"]
+    assert pulse["source_ids"] == ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]
+    assert pulse["unit"] == "percent_20d_log_return"
+    assert pulse["axis_type"] == "calendar_day_of_year"
+    assert [row["label"] for row in pulse["series"]] == [
+        "KOSPI 20일", "대만 TAIEX 20일", "전일 SOX 20일",
+    ]
+    pulse_diagnostic = pulse["external_pulse_diagnostics"]
+    assert pulse_diagnostic["sox_strictly_prior_us_close"]["observations"] > 1000
+    assert pulse_diagnostic["sox_conditional_quintiles"]["training_highest_quintile"]["observations"] > 100
+    assert pulse_diagnostic["time_warping"] is False
+    assert pulse_diagnostic["optimized_lag"] is False
+    assert pulse_diagnostic["forecast_extension"] is False
     policy_rate = next(chart for chart in payload["charts"] if chart["id"] == "policy_rate")
     assert policy_rate["source_validation"]["source_id"] == "FEDFUNDS"
     assert policy_rate["source_validation"]["observations"] == 60
@@ -385,7 +390,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         current = [row for row in chart["series"] if row["era"] == "current"]
         if dotcom:
             assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
-        if current and chart["id"] != "kospi_2026_bitcoin_2021_daily":
+        if current and chart.get("axis_type") != "calendar_day_of_year":
             assert max(point["period"] for row in current for point in row["points"]) < 59
     invalid = json.loads(json.dumps(payload))
     invalid["cycle_alignment"]["forecast_extension"] = True
@@ -404,13 +409,13 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     warped = json.loads(json.dumps(payload))
     next(
         chart for chart in warped["charts"]
-        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
-    )["comparison_transform"]["time_warping"] = True
-    with pytest.raises(StatisticsLabError, match="cannot warp"):
+        if chart["id"] == "kospi_market_breadth_2026_daily"
+    )["market_breadth_diagnostics"]["time_warping"] = True
+    with pytest.raises(StatisticsLabError, match="cannot warp time"):
         validate_statistics_lab(warped)
 
     incomplete_session_rows = json.loads(json.dumps(rows))
-    incomplete_session_rows["KOSPI_2026_DAILY"].append({
+    incomplete_session_rows["KOSPI_DAILY"].append({
         "date": "2026-12-31", "value": 7000.0,
     })
     with pytest.raises(StatisticsLabError, match="incomplete session"):
@@ -476,7 +481,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "esc(chart.caveat)" not in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" not in script
-    assert "volatility_matched_log_index_100" in script
+    assert "percent_20d_log_return" in script
+    assert "변동성·날짜 조정 없음" in script
+    assert "비트코인 로그수익률 변동성 맞춤" not in script
     assert 'data-stat-scale="${useLog?\'log1p\':\'linear\'}"' in script
     assert "chart.axis_type==='calendar_day_of_year'" in script
     assert "chart.observed_end_label" in script
@@ -507,7 +514,7 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     assert all(len(source["raw_sha256"]) == 64 for source in projected["sources"])
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
-            if raw_chart["id"] == "kospi_2026_bitcoin_2021_daily":
+            if raw_chart.get("axis_type") == "calendar_day_of_year":
                 assert len(view_series["points"]) == len(raw_series["points"])
             else:
                 assert len(view_series["points"]) <= 18
@@ -517,11 +524,16 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     private_marker = next(series for series in absorption["series"] if "OpenAI+Anthropic" in series["label"])
     assert private_marker["marker_radius"] == 10
     assert private_marker["marker_emphasis"] == "private_frontier_watchlist"
-    daily = next(
+    breadth = next(
         chart for chart in projected["charts"]
-        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
+        if chart["id"] == "kospi_market_breadth_2026_daily"
     )
-    assert [len(series["points"]) for series in daily["series"]] == [260, 365]
+    pulse = next(
+        chart for chart in projected["charts"]
+        if chart["id"] == "kospi_external_semiconductor_pulse"
+    )
+    assert [len(series["points"]) for series in breadth["series"]] == [260, 260, 260]
+    assert [len(series["points"]) for series in pulse["series"]] == [260, 260, 260]
 
 
 def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
