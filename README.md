@@ -1,123 +1,115 @@
+<p align="center">
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/">
+    <img src="docs/readme-hero.svg" width="100%" alt="Jin's Investing Prediction — evidence-conditioned market outlook">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml"><img src="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/verify.yml/badge.svg?branch=main" alt="Verify"></a>
+  <a href="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/pages.yml"><img src="https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/workflows/pages.yml/badge.svg?branch=main" alt="Pages"></a>
+  <img src="https://img.shields.io/badge/Python-3.12%2B-3776AB?logo=python&logoColor=white" alt="Python 3.12+">
+  <img src="https://img.shields.io/badge/use-research%20only-FF6B35" alt="Research only">
+</p>
+
+<p align="center">
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/"><strong>라이브 대시보드</strong></a>
+  · <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future">세 가지 전망</a>
+  · <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics">닷컴 비교 통계</a>
+  · <a href="forecasts/2026/">공개 예측 기록</a>
+</p>
+
 # Jin's Investing Prediction
 
-시장 전망을 그래프로 보고, 사용한 데이터와 예측 기록까지 확인하는 투자 리서치 대시보드입니다.
+**시장 데이터에서 세 가지 미래 경로를 만들고, 왜 그런 전망이 나왔는지까지 보여주는 오픈 리서치 솔루션입니다.**
 
-[라이브 대시보드](https://sung-jinpark.github.io/Jin-s-investing-prediction/) · [시장 전망](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future) · [세 가지 경로](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future/research) · [닷컴 통계 비교](https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics) · [공개 예측 기록](forecasts/2026/)
+숫자만 던지는 예측기가 아닙니다. 현재 시장, 미래 시나리오, 닷컴버블 비교, 데이터 출처와 과거 예측 기록을 하나의 화면에서 연결합니다.
 
-> 이 저장소는 투자 리서치와 확률 예측을 위한 시스템입니다. 자동매매·주문 실행·수익 보장 서비스가 아닙니다.
+> 현재 세 경로는 <code>research candidate · degraded · 적격 사건 1/60</code>입니다. 공식 확률이나 매매 신호가 아니며, 기준 champion 모델과 분리되어 표시됩니다.
 
-## 화면 구성
+## 한눈에 보기
 
-| 화면 | 바로 알 수 있는 것 |
-|---|---|
-| 오늘 | 현재 시장 상태와 핵심 신호 |
-| 시장 전망 | 승격된 기준 모델의 전망과 날짜별 분포 |
-| 세 가지 경로 | 확장·균형·스트레스에 맞는 서로 다른 DB로 만든 S1·S2·S3 경로 |
-| 통계 비교 | 닷컴과 현재의 IPO·유동성·금리·경기·기업가치·신용을 같은 경과월로 비교 |
-| 자산 비교 | NASDAQ·Bitcoin·Realty Income의 움직임 차이와 AI 버블 다년 하락 스트레스 |
-| 유동성 | Fed 순유동성(왼쪽 축)과 NASDAQ·Bitcoin 26주 수익률(오른쪽 축)을 한 그래프에서 비교 |
-| 기록과 검증 | 예측이 언제 공개됐고 실제 결과와 얼마나 맞았는지 |
-| 데이터와 신뢰 | 출처, 기준시각, 데이터 누락과 검증 상태 |
+| **TODAY** | **FUTURE** | **STATISTICS** | **TRUST** |
+|---|---|---|---|
+| 지금 시장의 위치 | 상승·균형·스트레스 경로 | 닷컴과 AI 사이클 비교 | 출처·시점·예측 이력 |
+| 핵심 신호만 요약 | 서로 다른 DB 레이어 | IPO·유동성·금리·밸류에이션 | 변경 기록과 검증 상태 |
+| [오늘 보기](https://sung-jinpark.github.io/Jin-s-investing-prediction/#today) | [전망 보기](https://sung-jinpark.github.io/Jin-s-investing-prediction/#future) | [통계 보기](https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics) | [검증 보기](https://sung-jinpark.github.io/Jin-s-investing-prediction/#trust) |
 
-## 닷컴 통계 비교
+## 데이터가 전망이 되는 과정
 
-`#statistics`에는 1995년과 2023년을 각각 M+0으로 맞춘 비교 그래프가 있습니다. IPO 건수·가격·이익뿐 아니라 ① 상장 후 시가총액/미국 기업주식 총가치 ② 저매출 IPO 비중 ③ 첫 금리 인하 뒤 재긴축 거리 ④ 고품질 회사채 금리·국채 스프레드 ⑤ 유가·구리 2개월 선행 정렬과 CPI ⑥ HMI·제조업 확산 경고판을 포함합니다. KOSPI/NASDAQ 월간 비율은 제거하고, KOSPI 2026과 Bitcoin 2021 실제 일봉을 각 연도 첫 종가=100으로 맞춘 별도 역사 경로 비교를 제공합니다. 데스크톱에서는 두 그래프씩 나란히 보이며, 각 그래프 아래에 의미와 주의점을 1~2줄로 설명합니다.
+~~~mermaid
+flowchart LR
+    A["공개 시장·거시 데이터"] --> B["시점·출처 검증"]
+    B --> C{"독립 시나리오 엔진"}
+    C --> S1["S1 확장"]
+    C --> S2["S2 균형"]
+    C --> S3["S3 스트레스"]
+    S1 --> D["한 화면의 전망 그래프"]
+    S2 --> D
+    S3 --> D
+    D --> E["예측 기록·오차 검증"]
+~~~
 
-OpenAI와 Anthropic은 아직 비상장이라 실제 IPO 합계에 넣지 않고 $1.817T의 비상장 평가액 감시점으로 크게 표시합니다. SK하이닉스의 2026년 NASDAQ ADS 공모(SKHY)는 AI 자본시장 영향 집계에 포함하지만 ADR을 제외하는 Ritter 전통 IPO선에는 넣지 않습니다. 중국계 메모리 인터페이스 기업 Montage Technology(MONT)의 2013 NASDAQ IPO도 역사 맥락에 기록하며, 비교기간 밖 사건을 2023~2027 건수에 소급 합산하지 않습니다. 중국·홍콩의 Horizon Robotics·Black Sesame International·Moore Threads·MetaX도 별도 원천 레지스트리에 보존합니다. 중소형 확산은 2024년 구매력 기준 최근 12개월 매출 $100M 미만 기업 비중으로 비교합니다.
+## 세 가지 경로, 세 가지 데이터 세계
 
-다년 스트레스 화면은 대공황·2차대전 초기·오일쇼크·닷컴의 다섯 해 지수, 2000~2004 Realty Income 실제 총수익 proxy, 닷컴 NASDAQ을 한 로그축에 표시합니다. Bitcoin 상승선은 주식 조정 자금의 35%가 이동하고 흡수탄력성이 1.60이라는 조건부 가정으로만 표시하며 관측값·발생확률·목표가격이 아닙니다.
-
-거시 통계는 일간·월간·분기 원천의 발표주기를 유지합니다. 광의 AI 연관 IPO는 Renaissance Capital의 1~5단계 AI 의존도 방식과 공개 AI IPO 연구를 참고해 AI 인프라·응용·AI 차별화 소프트웨어를 포함하되, 최소 언급·SPAC·ADR·REIT·직접상장은 제외합니다. 별도의 AI 핵심 최소치는 AI가 투자설명서상 핵심 사업인 전통 IPO만 SEC 424B4로 직접 검토합니다. 광의 집계는 2023년 2건, 2024년 5건, 2025년 10건, 2026년 8월 12일까지 5건이며 현재선은 실제 상장 시점에서 멈춥니다. 모든 값은 `reference_only`, `model_use=false`이며 예측모델 입력으로 쓰지 않습니다.
-
-`BTC · Realty Income` 화면 아래의 5년 스트레스는 두 패널로 읽습니다. 왼쪽은 대공황·2차대전 초기·오일쇼크·닷컴 네 선택 사례를 중앙값과 25~75% 범위로 압축하고 닷컴 NASDAQ 실측을 함께 보여줍니다. 오른쪽은 같은 주식 스트레스와 BTC 자금이동 가정만 비교합니다. Realty Income 원자료와 민감도는 감사 payload에 보존하지만 이 스트레스 그래프에서는 제외합니다. 선택 사례 4개는 확률 표본이 아니며 BTC 선도 발생확률이나 목표가격이 아닙니다.
-
-## 시장 전망과 세 가지 경로
-
-`#future`는 운영자 승인된 표시 승격 계약에 따라 Scenario V5.2의 세 경로를 먼저 보여주지만, 화면 상단에 `연구 후보 · degraded · 적격 사건 1/60 · 보정되지 않음`을 고정 표시합니다. 이는 모델 승격이 아니며 기존 champion `gbm-daily-252d-v2-lookup`은 `#future/champion`에 그대로 보존됩니다. 후보가 blocked되거나 표시 계약을 충족하지 못하면 기본 화면은 champion으로 자동 복귀합니다.
-
-V5.2의 현재 제한은 고객용 그래프를 가리지 않도록 화면 맨 아래 `분석 방법과 세부 통계`에 표시됩니다.
-
-- 직접 적격 사건: 1/60
-- band calibration: 6/60
-- walk-forward 승인: 없음
-- 사람 승인 원장의 `run_id`: 없음
-- 상태: `degraded`, 보정되지 않은 연구 후보
-
-따라서 V5.2의 결과 비율과 S1·S2·S3 가중치는 공식 사건확률이나 매매 신호로 해석하면 안 됩니다. 화면에서는 과정밀을 피하기 위해 결과 비율을 정수 %로 표시합니다.
-
-## V5.2 그래프 읽는 법
-
-세 경로는 기본 3개월 화면에서 하나의 로그 축에 겹쳐 비교합니다. 1개월·3개월 버튼은 배열 순번이 아니라 시작일로부터 실제 달력 월을 계산하며, 2026·2027 연말로도 전환할 수 있습니다. 시간축은 과거 약 1/4, 전망 약 3/4로 배치합니다.
-
-| 경로 | 독립 DB 레이어와 경로 구조 | 현재 표본 |
+| 경로 | 바라보는 시장 | 핵심 데이터 레이어 |
 |---|---|---|
-| S1 확장 | 닷컴·완화·AI 확장 6개 에피소드, 닷컴 세션 목표 60%, 8개 상태 변수 | 선택 원점 167개, 모의 경로 3,000개 |
-| S2 균형 | 비위기 연착륙·횡보 4개 에피소드, 에피소드 고유 평균을 제거한 실제 편차, 10개 상태 변수 | 선택 원점 16개, 모의 경로 3,000개 |
-| S3 스트레스 | 닷컴 붕괴·GFC·긴축 5개 에피소드, 11개 상태 변수 | 선택 원점 29개, 모의 경로 3,000개 |
+| **S1 확장** | AI 투자와 완화가 이어지는 국면 | 닷컴 확장 · 금리 완화 · AI 성장 |
+| **S2 균형** | 성장과 부담이 맞서는 국면 | 연착륙 · 횡보 · 중립 거시 |
+| **S3 스트레스** | 긴축과 성장 둔화가 겹치는 국면 | 닷컴 붕괴 · GFC · 신용·금리 스트레스 |
 
-공유하는 것은 현재 지수 기준점과 거래일 달력뿐입니다. 세 레이어의 등록 에피소드 날짜는 서로 겹치지 않고, 특징 스키마·잔차 풀·경험적 국면 길이·전환행렬도 각각 다릅니다. 군집 배정에는 당시 알 수 있던 상태 변수만 쓰며, 미래 수익률은 배정이 끝난 뒤 군집 이름을 붙일 때만 사용합니다.
+세 경로는 현재 지수 기준점과 거래일 달력만 공유합니다. 에피소드 DB, 특징 스키마, 잔차 풀과 국면 전환 구조는 서로 분리됩니다. 굵은 선은 조건부 중앙값, 점선은 실제 모의 경로, 음영은 경로 범위입니다.
 
-- 굵은 선: 날짜별 조건부 중앙값 `p50`
-- 가는 점선: 실제 모의 경로 가운데 중앙값과 가까운 한 경로
-- 회색 영역: 전체 mixture의 중심 구간
-- 가중치: 역사 군집을 섞는 연구 가중치이며 보정된 상승·중립·하락 발생확률이 아님
+## 닷컴버블과 지금을 같은 눈금으로
 
-닷컴 `0.60`은 세 공간으로 분리합니다. A는 생성 후 S1 증거 강도, B는 S1 생성기의 등록 에피소드 중 닷컴 세션 목표 비중, C는 모델이 계산한 연구 코호트 질량입니다. A와 B의 운영 cap은 모두 `0.60`이며 C는 직접 설정할 수 없습니다. `0.70`·`0.80` 민감도는 검토용 shadow에서만 계산하고 운영 후보에는 적용하지 않습니다.
+<code>Statistics Lab</code>은 1995~1999와 2023~현재를 같은 경과축에 맞춥니다.
 
-기존 S1/S2 p50 로그 경로 상관 0.963을 사전 기준으로 보존하고, 새 결과가 실질적으로 낮아지는지를 shadow에서 비교합니다. 임의의 절대 상관 목표를 맞추지 않습니다. 정식 구분성 임계값은 30거래일 shadow 분포가 쌓이기 전까지 `report_only`이며, 실패를 이유로 경로를 인위적으로 벌리거나 승격하지 않습니다.
+- 유동성: M2, 현금성 자산, Fed 순유동성
+- 자본시장: IPO 건수, 중소형 확산, 시장 흡수 강도
+- 가격과 금리: PER, 장단기 금리차, 회사채 압력
+- 경기와 물가: HMI, 제조업 확산, 유가·구리·CPI
+- 교차자산: KOSPI 2026 일봉과 Bitcoin 2021 역사 경로
 
-승격용 최소 원점은 S1/S2/S3 각각 15/20/12개입니다. 현재 S2는 16/20으로 미달이고, 경험적 낙폭·저점 도달·회복 커널 점검도 S2/S3가 열려 있습니다. 이 실패는 화면에 공개하고 승격을 막지만 경로를 고치거나 표본을 중복 생성하지 않습니다.
+AI 현재선은 마지막 실제 관측에서 멈춥니다. 없는 미래 데이터를 예측선처럼 이어 붙이지 않습니다.
 
-PER·CAPE·이익 전망은 당시 공개본 기준의 시대횡단 이력이 완성되기 전까지 수치 경로 입력으로 쓰지 않습니다. 오래된 CAPE 또는 임의의 저PER 점수를 대신 넣어 상승 경로를 만들지 않으며, 화면에는 이 제한을 명시합니다.
+## 신뢰를 만드는 네 가지 규칙
 
-새 CPI·고용·FOMC·GDP·실적은 출처, `available_at`, 기준시각과 단위를 검증한 뒤 다음 빌드에서만 반영됩니다. 검증된 고용·금리·물가 변화는 확률만 바꾸지 않고, 시나리오별 에피소드 선택과 관측 국면 길이 선호를 바꿉니다. 발표일의 실제 가격 반응을 새 anchor와 미래 점프로 중복 반영하지 않습니다.
+| 원칙 | 시스템의 행동 |
+|---|---|
+| **Point in time** | 전망 기준시각 이후 공개된 데이터는 과거 예측에 사용하지 않습니다. |
+| **Append only** | 예측·수정·방법 변경 이력을 지우거나 덮어쓰지 않습니다. |
+| **Clear separation** | 연구 후보, 기준 모델, 역사 실측, 조건부 가정을 구분합니다. |
+| **No fake data** | 데이터가 없으면 임의 숫자 대신 미산출 상태를 보여줍니다. |
 
-## 정직성 원칙
+## 60초 로컬 실행
 
-- 저장 확률 단위는 `[0, 1]`의 fraction이며 UI에서만 %로 변환합니다.
-- 예측 기준시각 이후에 공개된 데이터나 수정치는 과거 전망에 소급 사용하지 않습니다.
-- 예측·수정·방법 변경 원장은 append-only입니다.
-- HOLD, 만료, 미승인 또는 degraded 연구 후보는 공식 forecast ledger에 쓰지 않습니다.
-- 구조 경로와 확률을 바꾸는 변경은 기존 결과와 shadow 비교 후에만 승격할 수 있습니다.
-- 데이터가 없으면 임의 숫자를 만들지 않고 미산출 또는 수집 중으로 표시합니다.
-
-## 로컬 검증
-
-```bash
+~~~bash
 uv sync
 uv run pytest -q
+uv run ai-fc dashboard --serve --host 127.0.0.1
+~~~
 
-cd src
-python -m ai_fc dashboard --serve --host 127.0.0.1
-```
+주요 데이터 갱신:
 
-주요 명령:
+~~~bash
+uv run ai-fc scenario
+uv run ai-fc cross-asset
+uv run ai-fc market-extensions
+uv run ai-fc statistics-refresh
+~~~
 
-```bash
-uv run ai-fc due               # 갱신·판정 대기 확인
-uv run ai-fc sync --check      # 저장·파생 인덱스 검증
-uv run ai-fc scenario          # NASDAQ 기준 전망 갱신
-uv run ai-fc cross-asset       # 교차자산 지표 갱신
-uv run ai-fc market-extensions # 유동성·거시 신호 갱신
-uv run ai-fc statistics-refresh # 닷컴 통계 비교 DB 갱신
-```
+## 프로젝트 지도
 
-공개 예측 기록은 다음 명령으로 Git 이력과 함께 검증할 수 있습니다.
-
-```bash
-python tools/verify_track_record.py
-```
-
-## 저장소 구조
-
-| 경로 | 역할 |
+| 찾는 내용 | 위치 |
 |---|---|
-| `questions/` | 예측 질문과 판정 기준 |
-| `forecasts/` | 공개 예측 revision과 근거 |
-| `calibration/` | 결과·점수·벤치마크 원장 |
-| `data/` | 시장 데이터와 연구 후보 산출물 |
-| `src/ai_fc/` | 예측·검증·대시보드 코드 |
-| `docs/` | 설계와 감사 보고서 |
-| `reports/reviews/` | 현재 및 과거 검토 패키지 |
+| 예측 질문과 공개 기록 | [questions/](questions/) · [forecasts/](forecasts/) |
+| 시장·통계 데이터 | [data/](data/) |
+| 모델과 대시보드 코드 | [src/ai_fc/](src/ai_fc/) |
+| 아키텍처와 모델 설명 | [아키텍처](docs/ARCHITECTURE.md) · [모델 레지스트리](docs/MODEL_REGISTRY.md) |
+| 한계와 검토 자료 | [알려진 한계](docs/KNOWN_LIMITS.md) · [reports/reviews/](reports/reviews/) |
 
-자세한 내용은 [아키텍처](docs/ARCHITECTURE.md), [모델 레지스트리](docs/MODEL_REGISTRY.md), [알려진 한계](docs/KNOWN_LIMITS.md)에서 확인할 수 있습니다.
+---
+
+<p align="center">
+  <strong>Evidence first. Scenario aware. Fully auditable.</strong><br>
+  정보 제공 목적의 투자 리서치 시스템이며 자동매매·주문 실행·수익 보장 서비스가 아닙니다.
+</p>
