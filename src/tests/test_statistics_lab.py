@@ -3,6 +3,8 @@ from __future__ import annotations
 import hashlib
 import io
 import json
+import math
+import statistics
 import urllib.error
 import zipfile
 from datetime import date, datetime, timezone
@@ -338,10 +340,40 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert kospi["max_period"] == 364
     assert kospi["projection_max_points"] == 366
     assert len(kospi["detail_rows"]) == 3
-    assert [row["label"] for row in kospi["series"]] == ["KOSPI 2026", "Bitcoin 2021"]
+    assert [row["label"] for row in kospi["series"]] == [
+        "KOSPI 2026", "Bitcoin 2021 · 변동성 맞춤",
+    ]
     assert all(row["points"][0]["value"] == 100.0 for row in kospi["series"])
     assert len(kospi["series"][0]["points"]) == 260
     assert len(kospi["series"][1]["points"]) == 365
+    transform = kospi["comparison_transform"]
+    assert transform["method"] == "matched_session_volatility_scaled_cumulative_log_return"
+    assert transform["calibration"]["matched_sessions"] == 260
+    assert transform["calibration"]["return_observations"] == 259
+    assert transform["calibration"]["volatility_scale"] > 0
+    assert -1 <= transform["calibration"]["return_correlation"] <= 1
+    assert transform["time_warping"] is False
+    assert transform["optimized_lag"] is False
+    assert transform["forecast_extension"] is False
+    bitcoin_by_period = {
+        int(point["period"]): point for point in kospi["series"][1]["points"]
+    }
+    matched_bitcoin = [
+        bitcoin_by_period[int(point["period"])] for point in kospi["series"][0]["points"]
+    ]
+    kospi_log_returns = [
+        math.log(current["value"] / prior["value"])
+        for prior, current in zip(
+            kospi["series"][0]["points"], kospi["series"][0]["points"][1:], strict=False,
+        )
+    ]
+    bitcoin_log_returns = [
+        math.log(current["value"] / prior["value"])
+        for prior, current in zip(matched_bitcoin, matched_bitcoin[1:], strict=False)
+    ]
+    assert statistics.stdev(bitcoin_log_returns) == pytest.approx(
+        statistics.stdev(kospi_log_returns), rel=1e-10,
+    )
     assert "남은 2026년 예측선" in kospi["insight"]
     policy_rate = next(chart for chart in payload["charts"] if chart["id"] == "policy_rate")
     assert policy_rate["source_validation"]["source_id"] == "FEDFUNDS"
@@ -368,6 +400,14 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     future_leak["sources"][0]["latest_observation"] = "2027-01-01"
     with pytest.raises(StatisticsLabError, match="future-data leakage"):
         validate_statistics_lab(future_leak)
+
+    warped = json.loads(json.dumps(payload))
+    next(
+        chart for chart in warped["charts"]
+        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
+    )["comparison_transform"]["time_warping"] = True
+    with pytest.raises(StatisticsLabError, match="cannot warp"):
+        validate_statistics_lab(warped)
 
     incomplete_session_rows = json.loads(json.dumps(rows))
     incomplete_session_rows["KOSPI_2026_DAILY"].append({
@@ -435,7 +475,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "해석할 때 주의" not in script
     assert "esc(chart.caveat)" not in script
     assert "IPO·상장" in script
-    assert "statistics-detail-rows" in script
+    assert "statistics-detail-rows" not in script
+    assert "volatility_matched_log_index_100" in script
     assert 'data-stat-scale="${useLog?\'log1p\':\'linear\'}"' in script
     assert "chart.axis_type==='calendar_day_of_year'" in script
     assert "chart.observed_end_label" in script

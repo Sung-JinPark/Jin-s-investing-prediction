@@ -384,6 +384,114 @@ def _calendar_year_index(
     return result
 
 
+def _volatility_matched_daily_analog(
+    kospi_rows: list[dict[str, Any]], bitcoin_rows: list[dict[str, Any]],
+    *, kospi_year: int = 2026, bitcoin_year: int = 2021,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    """Scale Bitcoin log returns to KOSPI volatility without warping time.
+
+    Bitcoin closes are sampled at the month/day of each completed KOSPI session
+    for calibration. The fixed volatility ratio is then applied to the full
+    historical Bitcoin path from the common month/day anchor onward. Turning
+    points and dates are never shifted to improve visual similarity.
+    """
+    selected_kospi = [
+        row for row in sorted(kospi_rows, key=lambda item: item["date"])
+        if date.fromisoformat(str(row["date"])).year == kospi_year
+    ]
+    selected_bitcoin = [
+        row for row in sorted(bitcoin_rows, key=lambda item: item["date"])
+        if date.fromisoformat(str(row["date"])).year == bitcoin_year
+    ]
+    if len(selected_kospi) < 3 or len(selected_bitcoin) < 3:
+        raise StatisticsLabError("daily analog needs at least three observations per asset")
+
+    bitcoin_by_month_day: dict[tuple[int, int], dict[str, Any]] = {}
+    for row in selected_bitcoin:
+        observed = date.fromisoformat(str(row["date"]))
+        bitcoin_by_month_day[(observed.month, observed.day)] = row
+
+    matched: list[tuple[dict[str, Any], dict[str, Any]]] = []
+    for row in selected_kospi:
+        observed = date.fromisoformat(str(row["date"]))
+        peer = bitcoin_by_month_day.get((observed.month, observed.day))
+        if peer is not None:
+            matched.append((row, peer))
+    if len(matched) < 3:
+        raise StatisticsLabError("daily analog has too few matched calendar sessions")
+
+    kospi_returns: list[float] = []
+    bitcoin_returns: list[float] = []
+    for (prior_kospi, prior_bitcoin), (current_kospi, current_bitcoin) in zip(
+        matched, matched[1:], strict=False,
+    ):
+        kospi_prior = float(prior_kospi["value"])
+        kospi_current = float(current_kospi["value"])
+        bitcoin_prior = float(prior_bitcoin["value"])
+        bitcoin_current = float(current_bitcoin["value"])
+        if min(kospi_prior, kospi_current, bitcoin_prior, bitcoin_current) <= 0:
+            raise StatisticsLabError("daily analog cannot use non-positive closes")
+        kospi_returns.append(math.log(kospi_current / kospi_prior))
+        bitcoin_returns.append(math.log(bitcoin_current / bitcoin_prior))
+
+    kospi_volatility = statistics.stdev(kospi_returns)
+    bitcoin_volatility = statistics.stdev(bitcoin_returns)
+    if not math.isfinite(kospi_volatility) or kospi_volatility <= 0:
+        raise StatisticsLabError("daily analog KOSPI volatility invalid")
+    if not math.isfinite(bitcoin_volatility) or bitcoin_volatility <= 0:
+        raise StatisticsLabError("daily analog Bitcoin volatility invalid")
+    volatility_scale = kospi_volatility / bitcoin_volatility
+
+    kospi_index = _calendar_year_index(selected_kospi, kospi_year)
+    bitcoin_anchor = matched[0][1]
+    bitcoin_anchor_date = date.fromisoformat(str(bitcoin_anchor["date"]))
+    bitcoin_anchor_value = float(bitcoin_anchor["value"])
+    bitcoin_start = date(bitcoin_year, 1, 1)
+    bitcoin_scaled: list[dict[str, Any]] = []
+    for row in selected_bitcoin:
+        observed = date.fromisoformat(str(row["date"]))
+        value = float(row["value"])
+        if observed < bitcoin_anchor_date:
+            continue
+        if not math.isfinite(value) or value <= 0:
+            raise StatisticsLabError("daily analog Bitcoin close invalid")
+        bitcoin_scaled.append({
+            "period": (observed - bitcoin_start).days,
+            "date": observed.isoformat(),
+            "value": 100.0 * math.exp(volatility_scale * math.log(value / bitcoin_anchor_value)),
+        })
+
+    direction_matches = sum(
+        1 for left, right in zip(kospi_returns, bitcoin_returns, strict=True)
+        if (left > 0) == (right > 0) or (left == 0 and right == 0)
+    )
+    return kospi_index, bitcoin_scaled, {
+        "method": "matched_session_volatility_scaled_cumulative_log_return",
+        "formula": "100 * exp((sigma_kospi / sigma_bitcoin) * cumulative_bitcoin_log_return)",
+        "anchor": {
+            "kospi_date": str(matched[0][0]["date"]),
+            "bitcoin_date": str(bitcoin_anchor["date"]),
+            "index_value": 100.0,
+        },
+        "calibration": {
+            "kospi_end": str(matched[-1][0]["date"]),
+            "bitcoin_end": str(matched[-1][1]["date"]),
+            "matched_sessions": len(matched),
+            "return_observations": len(kospi_returns),
+            "kospi_log_return_volatility": round(kospi_volatility, 8),
+            "bitcoin_log_return_volatility": round(bitcoin_volatility, 8),
+            "volatility_scale": round(volatility_scale, 8),
+            "return_correlation": round(
+                float(statistics.correlation(kospi_returns, bitcoin_returns)), 4
+            ),
+            "direction_agreement": round(direction_matches / len(kospi_returns), 4),
+        },
+        "time_warping": False,
+        "optimized_lag": False,
+        "forecast_extension": False,
+    }
+
+
 def _indexed(points: list[dict[str, Any]]) -> list[dict[str, Any]]:
     if not points or float(points[0]["value"]) == 0:
         return []
@@ -798,8 +906,9 @@ def build_statistics_lab(
     dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
 
     dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
-    kospi_2026 = _calendar_year_index(source_rows["KOSPI_2026_DAILY"], 2026)
-    bitcoin_2021 = _calendar_year_index(source_rows["BTC_2021_DAILY"], 2021)
+    kospi_2026, bitcoin_2021, kospi_bitcoin_transform = _volatility_matched_daily_analog(
+        source_rows["KOSPI_2026_DAILY"], source_rows["BTC_2021_DAILY"],
+    )
     bitcoin_at_kospi_progress = next(
         point for point in reversed(bitcoin_2021)
         if int(point["period"]) <= int(kospi_2026[-1]["period"])
@@ -882,10 +991,10 @@ def build_statistics_lab(
                "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
                "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
                [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
-        _chart("kospi_2026_bitcoin_2021_daily", "KOSPI 2026 일봉 vs Bitcoin 2021 일봉", "economy", "year_start_100",
-               "두 자산의 각 연도 첫 실제 종가를 100으로 맞추고, 같은 월·일 위치에서 누적 경로를 비교합니다. KOSPI 2026은 마지막 완료 거래일에서 멈추고 Bitcoin은 2021년 전체 실측을 표시합니다.",
-               "서로 다른 연도·통화·거래시간의 경로 유사성 비교입니다. Bitcoin은 24시간 거래되고 KOSPI는 한국 거래일만 존재하므로 선의 모양이 비슷해도 인과관계나 KOSPI의 향후 예측을 뜻하지 않습니다.",
-               [_series("KOSPI 2026", "current", kospi_2026, "#28756a"), _series("Bitcoin 2021", "historical", bitcoin_2021, "#f07822")], ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]),
+        _chart("kospi_2026_bitcoin_2021_daily", "KOSPI 2026 일봉 vs Bitcoin 2021 일봉", "economy", "volatility_matched_log_index_100",
+               "같은 월·일의 KOSPI 거래일만 골라 두 자산의 로그수익률 변동성을 맞춘 뒤 누적 경로를 비교합니다. KOSPI는 마지막 완료 거래일에서 멈추고 Bitcoin은 2021년 실제 경로만 표시합니다.",
+               "변동성 크기만 조정하며 날짜 이동·시점 최적화는 하지 않습니다. 모양이 비슷해도 인과관계나 KOSPI의 향후 예측을 뜻하지 않습니다.",
+               [_series("KOSPI 2026", "current", kospi_2026, "#28756a"), _series("Bitcoin 2021 · 변동성 맞춤", "historical", bitcoin_2021, "#f07822")], ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]),
     ]
 
     kospi_chart = charts[-1]
@@ -893,6 +1002,8 @@ def build_statistics_lab(
     kospi_chart["max_period"] = 364
     kospi_chart["projection_max_points"] = 366
     kospi_chart["observed_end_label"] = "KOSPI 2026 실제 관측 종료"
+    kospi_chart["display_unit"] = "변동성 맞춤 · 시작=100"
+    kospi_chart["comparison_transform"] = kospi_bitcoin_transform
     kospi_chart["detail_rows"] = [
         {
             "period": "KOSPI 2026",
@@ -900,12 +1011,12 @@ def build_statistics_lab(
             "value": f"{kospi_2026[-1]['value']:.1f} · {kospi_2026[-1]['value'] - 100:+.1f}%",
         },
         {
-            "period": "Bitcoin 2021 동일 진행일",
-            "label": f"2021-01-01 → {bitcoin_at_kospi_progress['date']}",
+            "period": "Bitcoin 2021 변동성 맞춤",
+            "label": f"{bitcoin_2021[0]['date']} → {bitcoin_at_kospi_progress['date']}",
             "value": f"{bitcoin_at_kospi_progress['value']:.1f} · {bitcoin_at_kospi_progress['value'] - 100:+.1f}%",
         },
         {
-            "period": "Bitcoin 2021 연말",
+            "period": "Bitcoin 2021 변동성 맞춤 연말",
             "label": f"{bitcoin_2021[0]['date']} → {bitcoin_2021[-1]['date']}",
             "value": f"{bitcoin_2021[-1]['value']:.1f} · {bitcoin_2021[-1]['value'] - 100:+.1f}%",
         },
@@ -1014,8 +1125,8 @@ def build_statistics_lab(
         ),
         "kospi_2026_bitcoin_2021_daily": (
             f"KOSPI 2026은 첫 거래일 대비 {kospi_2026[-1]['value'] - 100:+.1f}%, "
-            f"같은 연중 진행일까지 Bitcoin 2021은 {bitcoin_at_kospi_progress['value'] - 100:+.1f}%였습니다. "
-            "상승·조정 구간의 모양을 눈으로 비교하는 역사 아날로그이며, Bitcoin 2021 경로를 KOSPI의 남은 2026년 예측선으로 사용하지 않습니다."
+            f"변동성을 {kospi_bitcoin_transform['calibration']['volatility_scale']:.2f}배로 맞춘 Bitcoin 2021은 같은 진행일까지 {bitcoin_at_kospi_progress['value'] - 100:+.1f}%입니다. "
+            f"같은 거래간격 수익률 상관은 {kospi_bitcoin_transform['calibration']['return_correlation']:+.2f}이며, 날짜를 움직이지 않았고 남은 2026년 예측선도 아닙니다."
         ),
     }
     if hmi_reference is not None:
@@ -1303,6 +1414,24 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
+    daily_analog = next(
+        (chart for chart in charts if chart.get("id") == "kospi_2026_bitcoin_2021_daily"),
+        None,
+    )
+    if daily_analog is None:
+        raise StatisticsLabError("KOSPI/Bitcoin daily analog missing")
+    transform = daily_analog.get("comparison_transform") or {}
+    calibration = transform.get("calibration") or {}
+    if transform.get("method") != "matched_session_volatility_scaled_cumulative_log_return":
+        raise StatisticsLabError("daily analog transform method invalid")
+    if transform.get("time_warping") is not False or transform.get("optimized_lag") is not False:
+        raise StatisticsLabError("daily analog cannot warp or optimize the time axis")
+    if transform.get("forecast_extension") is not False:
+        raise StatisticsLabError("daily analog cannot contain forecast extension")
+    if int(calibration.get("return_observations", 0)) < 2:
+        raise StatisticsLabError("daily analog calibration sample too small")
+    if float(calibration.get("volatility_scale", 0)) <= 0:
+        raise StatisticsLabError("daily analog volatility scale invalid")
 
 
 def _semantic_snapshot(value: Any) -> Any:

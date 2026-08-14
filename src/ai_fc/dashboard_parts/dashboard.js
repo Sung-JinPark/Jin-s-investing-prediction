@@ -1028,7 +1028,7 @@ function statisticsValue(unit,value){
   if(!Number.isFinite(n))return '—';
   if(unit==='count')return `${Math.round(n).toLocaleString('ko-KR')}건`;
   if(unit==='multiple')return `${n.toFixed(1)}×`;
-  if(unit==='cycle_start_100'||unit==='year_start_100')return `${n.toFixed(0)}`;
+  if(unit==='cycle_start_100'||unit==='year_start_100'||unit==='volatility_matched_log_index_100')return `${n.toFixed(0)}`;
   if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value')return `${n>=0?'+':''}${n.toFixed(1)}%`;
   if(unit==='percentage_point_change')return `${n>=0?'+':''}${n.toFixed(1)}%p`;
   if(unit==='neutral_line_distance')return `${n>=0?'+':''}${n.toFixed(1)}p`;
@@ -1055,7 +1055,8 @@ function statisticsChartSvg(chart,alignment={}){
     .sort((a,b)=>a[0]-b[0]);
   const line=values=>values.map((row,index)=>`${index?'L':'M'}${X(row.period).toFixed(1)},${Y(row.value).toFixed(1)}`).join(' ');
   const tickY=value=>MT+PH*(1-(value-low)/(high-low));
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?'각 연도 첫 실제 종가 100, 같은 월·일 위치 비교.':'닷컴 1995~1999와 AI 2023~2027 비교.'} ${useLog?'세로축 log(1+x). ':''}현재 선은 실제 관측에서 종료" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${calendarAxis?'calendar-day-of-year':'elapsed-month'}">
+  const calendarLabel=chart.unit==='volatility_matched_log_index_100'?'공통 월일 시작점 100, 비트코인 로그수익률 변동성 맞춤.':'각 연도 첫 실제 종가 100, 같은 월·일 위치 비교.';
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?calendarLabel:'닷컴 1995~1999와 AI 2023~2027 비교.'} ${useLog?'세로축 log(1+x). ':''}현재 선은 실제 관측에서 종료" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${calendarAxis?'calendar-day-of-year':'elapsed-month'}">
     ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${tickY(value).toFixed(1)}" y2="${tickY(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(tickY(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,inverse(value)))}</text>`).join('')}
     ${!useLog&&low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
     ${xTicks.map(([value,label])=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">${esc(label)}</text>`).join('')}
@@ -1077,8 +1078,7 @@ function renderStatistics(){
   const grid=el('<div class="statistics-grid"></div>');
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
-    const detailRows=(chart.detail_rows||[]).length?`<div class="statistics-detail-rows" aria-label="AI 연관 IPO 구성과 핵심 최소치">${chart.detail_rows.map(row=>`<article><span>${esc(row.period)}</span><strong>${esc(row.label)}</strong><b>${esc(row.value)}</b></article>`).join('')}</div>`:'';
-    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>${detailRows}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
+    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.display_unit||chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>원천·갱신일·재구성 상태 보기</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.series_id)}</strong><span>${esc(row.title)}</span></div><p>${esc(row.provider)} · 최신 관측 ${esc(row.latest_observation)} · ${num(row.row_count)}개 · ${esc(row.vintage)}</p><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원천 열기 ↗</a></article>`).join('')}</div><p>제외: FINRA margin debt는 자동수집·재배포 권한 미확보, Moody’s Baa 스프레드는 독점 재배포 제한, 유료 forward P/E는 재현 가능한 공개 이력이 없어 사용하지 않았습니다.</p></details>`));
