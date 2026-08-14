@@ -679,11 +679,13 @@ def test_data_trust_pipeline_is_visual_plain_language_and_live() -> None:
     assert "Trust Center" not in html
 
 
-def test_liquidity_return_legends_use_separate_lanes() -> None:
+def test_liquidity_series_share_one_plot_with_explicit_dual_axes() -> None:
     html = dashboard.load_template()
-    assert "NASDAQ · 26주 수익률" in html
-    assert "BITCOIN · 26주 수익률" in html
-    assert "labelX:ML+235" in html, "NASDAQ/BITCOIN 범례가 같은 SVG 좌표를 쓰면 안 됨"
+    assert "Fed 순유동성 · 52주 z (왼쪽)" in html
+    assert "NASDAQ · 26주 % (오른쪽)" in html
+    assert "BITCOIN · 26주 % (오른쪽)" in html
+    assert "const zScale=scale(z),returnScale=scale([...ndx,...btc])" in html
+    assert "panelTop" not in html, "유동성·수익률을 위아래 패널로 다시 분리하면 안 됨"
 
 
 def test_decision_journal_share_and_contrast_contract() -> None:

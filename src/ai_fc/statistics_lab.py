@@ -526,7 +526,7 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
     qualitative = payload.get("qualitative_ipo") or {}
     listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
     if listed_watch.get("semantics") != (
-        "existing_listed_ai_beneficiaries_included_in_qualitative_capital_map_not_added_to_ipo_counts"
+        "ai_beneficiary_with_new_nasdaq_ads_offering_included_only_in_influence_inclusive_listing_event_count_because_adrs_are_outside_ritter_traditional_ipo_definition"
     ):
         raise StatisticsLabError("listed AI beneficiary watchlist semantics invalid")
     listed_members = listed_watch.get("members") or []
@@ -540,15 +540,23 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
     global_chip_members = global_chip_watch.get("members") or []
     if not global_chip_members:
         raise StatisticsLabError("global AI chip IPO watchlist missing")
-    watch_members = [*listed_members, *global_chip_members]
+    nasdaq_memory_watch = qualitative.get("nasdaq_memory_market_events") or {}
+    if nasdaq_memory_watch.get("semantics") != (
+        "verified_nasdaq_memory_semiconductor_listing_events_not_a_same_definition_time_series"
+    ):
+        raise StatisticsLabError("Nasdaq memory market-event semantics invalid")
+    nasdaq_memory_members = nasdaq_memory_watch.get("members") or []
+    if not nasdaq_memory_members:
+        raise StatisticsLabError("Nasdaq memory market-event watchlist missing")
+    watch_members = [*listed_members, *global_chip_members, *nasdaq_memory_members]
     watch_source_ids = {str(member.get("source_id", "")) for member in watch_members}
     classification_source_id = str(global_chip_watch.get("classification_source_id", ""))
     if not watch_source_ids.issubset(source_ids) or classification_source_id not in source_ids:
         raise StatisticsLabError("AI capital watchlist source unknown")
     if any(not member.get("name") or not member.get("role") for member in watch_members):
         raise StatisticsLabError("AI capital watchlist member identity/role missing")
-    if any(not member.get("listing_date") for member in global_chip_members):
-        raise StatisticsLabError("global AI chip IPO listing date missing")
+    if any(not member.get("listing_date") for member in [*global_chip_members, *nasdaq_memory_members]):
+        raise StatisticsLabError("global AI chip or Nasdaq memory listing date missing")
     chart_ids: set[str] = set()
     for chart in charts:
         chart_id = str(chart.get("id", ""))
@@ -573,7 +581,7 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
         (series for series in comparison["series"] if series.get("label") == "현재 광의 AI 연관 IPO"), None
     )
     influence_series = next(
-        (series for series in comparison["series"] if series.get("label") == "현재 AI 영향력 포함 집계"), None
+        (series for series in comparison["series"] if series.get("label") == "현재 AI IPO·NASDAQ ADS 영향 포함"), None
     )
     core_series = next(
         (series for series in comparison["series"] if series.get("label") == "현재 AI 핵심 최소치"), None
@@ -587,7 +595,7 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
     }
     influence_contract = qualitative.get("influence_inclusive_count") or {}
     if influence_contract.get("semantics") != (
-        "actual_us_ai_related_ipos_plus_explicit_existing_listed_ai_beneficiaries_not_an_ipo_count"
+        "actual_us_ai_related_traditional_ipos_plus_explicit_nasdaq_ads_listing_events_outside_ritter_definition"
     ):
         raise StatisticsLabError("AI influence-inclusive count semantics invalid")
     expected_influence = dict(broad_counts)
@@ -748,8 +756,8 @@ def build_statistics_lab(
                "역전 해소 자체가 즉시 주가 상승이나 침체 종료를 보장하지 않습니다.",
                [_series("닷컴", "dotcom", dot_curve, "#8d2943"), _series("현재", "current", cur_curve, "#28756a")], ["T10Y2Y"]),
         _chart("policy_rate", "연방기금금리 경로", "rates", "percent",
-               "닷컴기와 현재 사이클의 정책금리 수준을 비교합니다.",
-               "월평균 정책금리이며 시장의 미래 인하확률과는 다른 통계입니다.",
+               "FRED의 월평균 실효 연방기금금리 원자료를 보간 없이 연결해 닷컴기와 현재 수준을 비교합니다.",
+               "목표금리 변경 때문에 계단형 구간은 있지만 완전한 ㅁ자 데이터가 아닙니다. 월평균 실효금리이며 시장의 미래 인하확률과도 다릅니다.",
                [_series("닷컴", "dotcom", dot_funds, "#8d2943"), _series("현재", "current", cur_funds, "#28756a")], ["FEDFUNDS"]),
         _chart("valuation_proxy", "기업가치 ÷ 세후이익 PER 대용치", "valuation", "multiple",
                "비금융기업 주식가치를 BEA 세후 기업이익으로 나눈 공개자료 기반 대용치입니다.",
@@ -869,7 +877,7 @@ def build_statistics_lab(
         ),
         "policy_rate": (
             f"현재 정책금리는 {chart_last(4, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(4, 0):.1f}%입니다. "
-            "금리가 높을수록 미래 이익의 할인 부담과 기업 조달비용이 커지는 방향입니다."
+            "1995~1999 실측은 6.05% 고점에서 4.63%까지 내린 뒤 5.42%로 재상승해 계단처럼 보이지만 완전한 사각형은 아닙니다."
         ),
         "valuation_proxy": (
             f"현재 기업가치/세후이익 대용치는 {chart_last(5, 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last(5, 0):.1f}배입니다. "
@@ -935,6 +943,17 @@ def build_statistics_lab(
         )
     for chart in charts:
         chart["insight"] = chart_insights[chart["id"]]
+    policy_rate_chart = next(chart for chart in charts if chart["id"] == "policy_rate")
+    dotcom_policy_points = policy_rate_chart["series"][0]["points"]
+    policy_rate_chart["source_validation"] = {
+        "source_id": "FEDFUNDS",
+        "period": "1995-01-01_to_1999-12-01",
+        "observations": len(dotcom_policy_points),
+        "interpolation": False,
+        "perfect_rectangle": False,
+        "minimum": min(dotcom_policy_points, key=lambda row: float(row["value"])),
+        "maximum": max(dotcom_policy_points, key=lambda row: float(row["value"])),
+    }
     if ipo_reference is not None:
         validate_ipo_reference(ipo_reference)
         ipo_charts = []
@@ -972,22 +991,26 @@ def build_statistics_lab(
         private_watch = qualitative.get("private_frontier_ai_watchlist") or {}
         listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
         global_chip_watch = qualitative.get("global_ai_chip_completed_ipos") or {}
+        nasdaq_memory_watch = qualitative.get("nasdaq_memory_market_events") or {}
         private_total_bn = sum(float(row["valuation_bn"]) for row in private_watch.get("members") or [])
         latest_equity = total_equity_by_year.get(2026) or float(monthly["BOGZ1LM893064105Q"][-1]["value"])
         private_ratio = private_total_bn * 1000.0 / latest_equity * 100.0
         quality_chart = _chart(
             "ipo_market_absorption", "IPO와 AI 자본시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
             "한 해 IPO들의 첫 거래 종가 기준 상장 후 시가총액 합계를 미국 기업주식 총가치로 나눠, 건수보다 자금 규모를 비교합니다.",
-            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. 비상장사·기존 상장 수혜주·중국 및 홍콩 IPO는 서로 다른 계층으로 표시하며 미국 실제 IPO선에는 합산하지 않습니다.",
+            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. OpenAI·Anthropic은 비상장 감시점이며 SKHY ADS와 중국·홍콩 상장 사건은 Ritter식 미국 실제 IPO선에 합산하지 않습니다.",
             [_series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"), _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"), _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a")],
             [
                 value_table.get("source_id"), "BOGZ1LM893064105Q",
                 *[row["source_id"] for row in private_watch.get("members") or []],
                 *[row["source_id"] for row in listed_watch.get("members") or []],
                 *[row["source_id"] for row in global_chip_watch.get("members") or []],
+                *[row["source_id"] for row in nasdaq_memory_watch.get("members") or []],
                 global_chip_watch.get("classification_source_id"),
             ],
         )
+        quality_chart["series"][2]["marker_radius"] = 10
+        quality_chart["series"][2]["marker_emphasis"] = "private_frontier_watchlist"
         quality_chart["insight"] = (
             f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
             f"OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T는 현재 미국 기업주식 총가치의 약 {private_ratio:.1f}%지만, 이는 잠재 공급 감시선이지 완료된 IPO가 아닙니다."
@@ -996,7 +1019,8 @@ def build_statistics_lab(
             {"period": "1999", "label": "전체 비교가능 IPO", "value": "$652B · 실제 상장"},
             {"period": "2025", "label": "전체 비교가능 IPO", "value": "$442B · 실제 상장"},
             {"period": "2026", "label": "OpenAI + Anthropic", "value": "$1.817T · 비상장 평가액"},
-            {"period": "질적 포함", "label": "SK하이닉스", "value": "기존 상장 · HBM·AI 메모리 핵심 수혜"},
+            {"period": "NASDAQ ADS", "label": "SK hynix SKHY", "value": "2026-07-10 거래 개시 · HBM 핵심 · Ritter 전통 IPO 밖"},
+            {"period": "중국 메모리 NASDAQ", "label": "Montage Technology MONT", "value": "2013-09-26 · 서버용 메모리 인터페이스 · 역사 맥락"},
             {"period": "글로벌 IPO", "label": "Horizon · Black Sesame · Moore Threads · MetaX", "value": "중국·홍콩 AI 칩 상장 완료 · 별도 집계"},
         ]
 
@@ -1293,16 +1317,23 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                     display_points.append(points[-1])
             else:
                 display_points = points
-            chart_view["series"].append({
+            series_view = {
                 "label": series["label"],
                 "era": series["era"],
                 "color": series["color"],
                 "latest_date": points[-1].get("date") if points else None,
                 "points": [
-                    {"period": point["period"], "value": point["value"]}
+                    {
+                        key: value for key, value in point.items()
+                        if key in {"period", "value", "marker_radius"}
+                    }
                     for point in display_points
                 ],
-            })
+            }
+            for optional in ("marker_radius", "marker_emphasis"):
+                if optional in series:
+                    series_view[optional] = series[optional]
+            chart_view["series"].append(series_view)
         projected["charts"].append(chart_view)
     validate_statistics_lab(projected)
     return projected
