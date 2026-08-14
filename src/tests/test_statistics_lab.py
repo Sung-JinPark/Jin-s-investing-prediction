@@ -253,7 +253,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 28
+    assert len(payload["charts"]) == 27
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -263,7 +263,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "internet_vs_ai_core_ipos", "technology_ipo_count",
         "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
-        "ipo_market_absorption", "small_issuer_ipo_share", "global_ai_capital_map",
+        "ipo_market_absorption", "small_issuer_ipo_share",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
         "kospi_nasdaq_relative_lead",
@@ -280,19 +280,14 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert ipo_chart["series"][3]["points"][-1] == {
         "period": 36, "date": "2026-08-12", "value": 1
     }
-    assert "SK하이닉스(기존 상장)" in ipo_chart["detail_rows"][-1]["label"]
+    assert "SK hynix SKHY(NASDAQ ADS)" in ipo_chart["detail_rows"][-2]["label"]
+    assert "Montage Technology MONT" in ipo_chart["detail_rows"][-1]["label"]
     assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
-    capital_map = next(chart for chart in payload["charts"] if chart["id"] == "global_ai_capital_map")
-    assert capital_map["series"][0]["points"] == [
-        {"period": 12, "date": "2024-12-31", "value": 2},
-        {"period": 24, "date": "2025-12-31", "value": 2},
-    ]
-    assert capital_map["series"][1]["points"] == [
-        {"period": 36, "date": "2026-08-13", "value": 1}
-    ]
-    assert "SK하이닉스" in capital_map["insight"]
+    assert all(chart["id"] != "global_ai_capital_map" for chart in payload["charts"])
     absorption = next(chart for chart in payload["charts"] if chart["id"] == "ipo_market_absorption")
-    assert any(row["period"] == "질적 포함" and row["label"] == "SK하이닉스" for row in absorption["detail_rows"])
+    assert absorption["series"][2]["marker_radius"] == 10
+    assert any(row["period"] == "NASDAQ ADS" and row["label"] == "SK hynix SKHY" for row in absorption["detail_rows"])
+    assert any(row["period"] == "중국 메모리 NASDAQ" and "MONT" in row["label"] for row in absorption["detail_rows"])
     assert any(row["period"] == "글로벌 IPO" for row in absorption["detail_rows"])
     assert [len(row["issuers"]) for row in _repo_ipo_reference()["ai_broad_cohort"]] == [2, 5, 10, 5]
     assert payload["ipo_comparison"]["classification"]["ai_broad_limit"].startswith(
@@ -320,6 +315,11 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert all(row["observations"] > 300 for row in kospi["lead_diagnostics"])
     assert len(kospi["detail_rows"]) == 4
     assert "사후 최적 시차 선택" in kospi["caveat"]
+    policy_rate = next(chart for chart in payload["charts"] if chart["id"] == "policy_rate")
+    assert policy_rate["source_validation"]["source_id"] == "FEDFUNDS"
+    assert policy_rate["source_validation"]["observations"] == 60
+    assert policy_rate["source_validation"]["interpolation"] is False
+    assert policy_rate["source_validation"]["perfect_rectangle"] is False
     for chart in payload["charts"]:
         dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
         current = [row for row in chart["series"] if row["era"] == "current"]
@@ -416,6 +416,10 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
             assert len(view_series["points"]) <= 18
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
+    absorption = next(chart for chart in projected["charts"] if chart["id"] == "ipo_market_absorption")
+    private_marker = next(series for series in absorption["series"] if "OpenAI+Anthropic" in series["label"])
+    assert private_marker["marker_radius"] == 10
+    assert private_marker["marker_emphasis"] == "private_frontier_watchlist"
 
 
 def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
@@ -423,12 +427,12 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 24
+    assert len(payload["sources"]) == 25
     assert all(source["raw_sha256"] for source in payload["sources"])
     fred_sources = [source for source in payload["sources"] if source["series_id"] in FRED_SERIES]
     assert all("fredgraph.csv?id=" in source["request_url"] for source in fred_sources)
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
-    assert len(sec_sources) == 6
+    assert len(sec_sources) == 7
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
     broad = payload["ai_broad_cohort"]
     assert [row["year"] for row in broad] == [2023, 2024, 2025, 2026]
@@ -438,10 +442,30 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     qualitative = payload["qualitative_ipo"]
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["name"] == "SK hynix"
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["count_period"] == 2026
-    assert qualitative["influence_inclusive_count"]["semantics"].endswith("not_an_ipo_count")
+    assert "nasdaq_ads_listing_events" in qualitative["influence_inclusive_count"]["semantics"]
+    assert [row["ticker"] for row in qualitative["nasdaq_memory_market_events"]["members"]] == ["MONT", "SKHY"]
     assert [row["name"] for row in qualitative["global_ai_chip_completed_ipos"]["members"]] == [
         "Horizon Robotics", "Black Sesame International", "Moore Threads", "MetaX Integrated Circuits"
     ]
+
+
+def test_published_fedfunds_dotcom_path_is_monthly_and_not_a_rectangle() -> None:
+    root = Path(__file__).resolve().parents[2]
+    payload = json.loads(
+        (root / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8")
+    )
+    chart = next(row for row in payload["charts"] if row["id"] == "policy_rate")
+    points = next(row for row in chart["series"] if row["era"] == "dotcom")["points"]
+    assert len(points) == 60
+    assert len({float(row["value"]) for row in points}) > 30
+    assert chart["source_validation"]["minimum"] == {
+        "period": 48, "date": "1999-01-01", "value": 4.63,
+    }
+    assert chart["source_validation"]["maximum"] == {
+        "period": 3, "date": "1995-04-01", "value": 6.05,
+    }
+    assert chart["source_validation"]["interpolation"] is False
+    assert chart["source_validation"]["perfect_rectangle"] is False
 
 
 def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
@@ -458,7 +482,7 @@ def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
     )
     next(
         row for row in comparison["series"]
-        if row["label"] == "현재 AI 영향력 포함 집계"
+        if row["label"] == "현재 AI IPO·NASDAQ ADS 영향 포함"
     )["points"][-1]["value"] = 7
     with pytest.raises(StatisticsLabError, match="influence-inclusive"):
         validate_ipo_reference(invalid_influence)

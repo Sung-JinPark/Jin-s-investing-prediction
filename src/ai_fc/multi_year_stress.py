@@ -18,11 +18,15 @@ class MultiYearStressError(ValueError):
 
 
 EPISODES = (
-    ("great_depression", "대공황", [1929, 1930, 1931, 1932], [-8.30, -25.12, -43.84, -8.64]),
-    ("world_war_ii", "2차대전 초기", [1939, 1940, 1941], [-1.10, -10.67, -12.77]),
-    ("oil_shock", "오일쇼크", [1973, 1974], [-14.31, -25.90]),
-    ("dotcom", "닷컴 붕괴", [2000, 2001, 2002], [-9.03, -11.85, -21.97]),
+    ("great_depression", "대공황", [1929, 1930, 1931, 1932, 1933], [-8.30, -25.12, -43.84, -8.64, 49.98]),
+    ("world_war_ii", "2차대전 초기", [1939, 1940, 1941, 1942, 1943], [-1.10, -10.67, -12.77, 19.17, 25.06]),
+    ("oil_shock", "오일쇼크", [1973, 1974, 1975, 1976, 1977], [-14.31, -25.90, 37.00, 23.83, -6.98]),
+    ("dotcom", "닷컴 붕괴", [2000, 2001, 2002, 2003, 2004], [-9.03, -11.85, -21.97, 28.36, 10.74]),
 )
+
+BTC_ROTATION_SHARE = .35
+BTC_ROTATION_SHARE_RANGE = (.15, .50)
+BTC_ABSORPTION_ELASTICITY = 1.60
 
 
 def _cumulative(returns: list[float]) -> list[float]:
@@ -57,7 +61,7 @@ def _quantile(values: list[float], probability: float) -> float:
     return ordered[lower] * (1.0 - weight) + ordered[upper] * weight
 
 
-def _historical_composite(episodes: list[dict[str, Any]], horizon: int = 3) -> dict[str, Any]:
+def _historical_composite(episodes: list[dict[str, Any]], horizon: int = 5) -> dict[str, Any]:
     center, lower, upper, counts = [], [], [], []
     for year in range(horizon + 1):
         values = [
@@ -72,13 +76,36 @@ def _historical_composite(episodes: list[dict[str, Any]], horizon: int = 3) -> d
         upper.append(round(100.0 * math.exp(_quantile(log_values, .75)), 1))
         counts.append(len(values))
     return {
-        "labels": ["시작", "1년", "2년", "3년"],
+        "labels": ["시작", "1년", "2년", "3년", "4년", "5년"],
         "center_index": center,
         "q25_index": lower,
         "q75_index": upper,
         "observations_by_horizon": counts,
         "method": "pointwise_median_and_linear_interquartile_quantiles_in_log_index_space",
     }
+
+
+def _liquidity_rotation_path(
+    reference: list[float], *, transfer_share: float, absorption_elasticity: float,
+) -> list[float]:
+    """Map running equity stress into a non-reversing, explicit BTC rotation assumption.
+
+    This is deliberately not an estimated beta.  It visualizes the user's
+    counterfactual that a stated share of capital released by an equity-bubble
+    drawdown is absorbed by Bitcoin.  A running maximum prevents a later equity
+    rebound from pretending the previously transferred capital automatically
+    flows back.
+    """
+    if not 0 <= transfer_share <= 1 or absorption_elasticity < 0:
+        raise MultiYearStressError("liquidity rotation assumption invalid")
+    running_log_loss = 0.0
+    path = []
+    for value in reference:
+        if float(value) <= 0:
+            raise MultiYearStressError("liquidity rotation reference invalid")
+        running_log_loss = max(running_log_loss, -math.log(float(value) / 100.0))
+        path.append(round(100.0 * math.exp(transfer_share * absorption_elasticity * running_log_loss), 1))
+    return path
 
 
 def _transport_envelope(
@@ -162,7 +189,7 @@ def _svg(chart: dict[str, Any]) -> str:
     )
     labels = "".join(
         f'<text x="{x(period):.1f}" y="{height-12}" text-anchor="middle">{label}</text>'
-        for period, label in ((0, "시작"), (12, "1년"), (24, "2년"), (36, "3년"), (48, "4년"))
+        for period, label in ((0, "2000 시작"), (12, "1년"), (24, "2년"), (36, "3년"), (48, "4년"), (60, "5년"))
         if period <= max_period
     )
     return f'<svg viewBox="0 0 {width} {height}" role="img" data-scale="log">{grid}{band_paths}{paths}{labels}</svg>'
@@ -178,7 +205,7 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
     preview = ((cross_asset.get("history") or {}).get("preview_1998") or {})
     labels = preview.get("labels") or []
     series = preview.get("series") or {}
-    target_labels = ["1999-12", "2000-12", "2001-12", "2002-12"]
+    target_labels = ["1999-12", "2000-12", "2001-12", "2002-12", "2003-12", "2004-12"]
     try:
         indexes = [labels.index(label) for label in target_labels]
         nasdaq = _rebase([float(series["nasdaq_price"][index]) for index in indexes])
@@ -207,6 +234,18 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
     )
     realty_band_low, realty_band_high = _transport_envelope(
         composite["q25_index"], composite["q75_index"], realty_low, realty_high,
+    )
+    btc_rotation_center = _liquidity_rotation_path(
+        composite["center_index"], transfer_share=BTC_ROTATION_SHARE,
+        absorption_elasticity=BTC_ABSORPTION_ELASTICITY,
+    )
+    btc_rotation_low = _liquidity_rotation_path(
+        composite["center_index"], transfer_share=BTC_ROTATION_SHARE_RANGE[0],
+        absorption_elasticity=BTC_ABSORPTION_ELASTICITY,
+    )
+    btc_rotation_high = _liquidity_rotation_path(
+        composite["center_index"], transfer_share=BTC_ROTATION_SHARE_RANGE[1],
+        absorption_elasticity=BTC_ABSORPTION_ELASTICITY,
     )
 
     payload = {
@@ -238,7 +277,7 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
         },
         "ai_bust_counterfactual": {
             "reference_path": "four_selected_us_equity_episodes_log_space_robust_composite",
-            "labels": ["시작", "1년", "2년", "3년"],
+            "labels": ["시작", "1년", "2년", "3년", "4년", "5년"],
             "us_equity_stress_reference_index": composite["center_index"],
             "reference_q25_index": composite["q25_index"],
             "reference_q75_index": composite["q75_index"],
@@ -247,6 +286,17 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
                 "low": {"beta": btc_low, "index": btc_band_high},
                 "center": {"beta": btc_center, "index": _power_transport(composite["center_index"], btc_center)},
                 "high": {"beta": btc_high, "index": btc_band_low},
+            },
+            "bitcoin_liquidity_rotation_assumption": {
+                "semantics": "user_directed_counterfactual_not_observed_not_estimated_not_probability",
+                "transfer_share": BTC_ROTATION_SHARE,
+                "transfer_share_range": list(BTC_ROTATION_SHARE_RANGE),
+                "absorption_elasticity": BTC_ABSORPTION_ELASTICITY,
+                "formula": "100*exp(transfer_share*absorption_elasticity*running_max_equity_log_loss)",
+                "center_index": btc_rotation_center,
+                "low_index": btc_rotation_low,
+                "high_index": btc_rotation_high,
+                "warning": "주식 조정 자금이 Bitcoin으로 이동한다는 사용자 지정 가정선이며 관측·추정·확률·목표가격이 아닙니다.",
             },
             "realty_income_sensitivity": {
                 "semantics": "current_downside_beta_transport_not_forecast; compare with observed dotcom result",
@@ -257,7 +307,7 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
             "beta_observations": int(betas.get("observations", 0)),
             "condition_breakers": [
                 "장기금리 상승 또는 회사채 스프레드 급등은 Realty Income 방어력을 약화시킬 수 있습니다.",
-                "BTC는 닷컴기에 존재하지 않았고 유동성·레버리지 국면에 따라 beta가 비선형으로 바뀔 수 있습니다.",
+                "BTC 상승선은 주식 조정 자금 35% 이동과 흡수탄력성 1.60을 둔 가정이며 실제 자금흐름 추정치가 아닙니다.",
                 "경로는 선택한 네 역사 사례의 합성 낙폭을 민감도에 대입한 스트레스일 뿐 발생확률이나 목표가격이 아닙니다.",
                 "역사 합성선은 S&P 계열 선택 사례이고 beta는 NASDAQ 하락일 기준이므로 기초지수 차이가 남습니다.",
             ],
@@ -280,19 +330,21 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
         "lineage": {
             "cross_asset_snapshot_id": cross_asset.get("snapshot_id"),
             "downside_beta_window": "5y",
-            "transformation": "pointwise_log_median_episode_composite_then_positive_power_beta_transport",
+            "transformation": "five_year_log_episode_composite_plus_observed_dotcom_assets_and_explicit_btc_liquidity_rotation_assumption",
         },
     }
     stress_chart = _view_chart(
         [
-            ("미국 지수 스트레스 합성", "dotcom", "#11110f", composite["center_index"]),
-            (f"BTC 중심 β{btc_center}", "current", "#6b3fa0", _power_transport(composite["center_index"], btc_center)),
-            (f"Realty Income 중심 β{realty_center}", "current", "#e68622", _power_transport(composite["center_index"], realty_center)),
+            ("대공황 지수", "history", "#282723", historical_episodes[0]["cumulative_index"]),
+            ("2차대전 초기 지수", "history", "#77736b", historical_episodes[1]["cumulative_index"]),
+            ("오일쇼크 지수", "history", "#a06b00", historical_episodes[2]["cumulative_index"]),
+            ("닷컴기 S&P 지수", "history", "#c70039", historical_episodes[3]["cumulative_index"]),
+            ("닷컴기 NASDAQ 실측", "observed", "#ff4f17", nasdaq),
+            ("Realty Income 총수익 실측", "observed", "#28756a", realty_total),
+            ("BTC 유동성 이동 가정", "assumption", "#6b3fa0", btc_rotation_center),
         ],
         [
-            ("역사 사례 25~75%", "#454545", composite["q25_index"], composite["q75_index"]),
-            ("BTC beta·역사 범위", "#6b3fa0", btc_band_low, btc_band_high),
-            ("Realty beta·역사 범위", "#e68622", realty_band_low, realty_band_high),
+            ("BTC 이동비중 15~50% 가정 범위", "#6b3fa0", btc_rotation_low, btc_rotation_high),
         ],
     )
     episode_cards = "".join(
@@ -307,10 +359,11 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
     )
     payload["presentation_html"] = (
         '<section class="scenario-v52-risk-banner"><div><span>가정 스트레스 · 발생확률 아님</span>'
-        '<strong>AI 버블이 3년 하락으로 이어진다면</strong></div><p>실측과 반사실을 분리하며 특정 가격 제시나 공식 전망에 쓰지 않습니다.</p></section>'
-        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">ONE COMPOSITE VIEW · SELECTED N=4</p>'
-        '<h2>4개 낙폭 사례 × BTC × Realty Income</h2><p>연도별 로그 중앙값과 사례 25~75% 범위에 최근 5년 하락일 beta를 적용한 단일 비교입니다.</p></div>'
+        '<strong>AI 버블 조정이 5년 사이클로 이어진다면</strong></div><p>역사 지수·Realty 실측·Bitcoin 가정을 한 로그축에 놓되 서로 다른 증거 층으로 구분합니다.</p></section>'
+        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">ONE LOG VIEW · HISTORY / OBSERVED / ASSUMPTION</p>'
+        '<h2>4개 낙폭 사례 × Realty Income 실측 × BTC 가정</h2><p>1999년 말=100으로 맞춘 2000~2004 Realty Income 총수익과 닷컴 NASDAQ, 다섯 해 역사 사례를 같은 로그축에서 비교합니다.</p></div>'
         f'<div class="statistics-chart">{_svg(stress_chart)}</div><div class="statistics-legend">{_legend(stress_chart)}</div>'
+        '<div class="plain-insight"><article><span>실측</span><strong>Realty Income</strong><p>2000~2004 실제 배당재투자 proxy입니다.</p></article><article><span>역사</span><strong>선택 사례 4개</strong><p>발생확률 표본이 아닌 지정 사례입니다.</p></article><article><span>조건부 가정</span><strong>Bitcoin</strong><p>주식 조정 자금 35%가 이동하고 흡수탄력성 1.60이라는 가정선입니다.</p></article></div>'
         f'<div class="plain-insight">{episode_cards}</div><div class="plain-insight">{breaker_cards}</div>'
         f'<p class="chart-note">연도별 사례 n={"/".join(str(value) for value in composite["observations_by_horizon"])} · beta 관측 {payload["ai_bust_counterfactual"]["beta_observations"]}일 · as_of {html.escape(str(payload["as_of"]))}</p></section>'
     )
@@ -334,13 +387,13 @@ def validate_multi_year_stress(payload: dict[str, Any]) -> None:
         raise MultiYearStressError("dot-com Bitcoin must remain unavailable")
     counterfactual = payload.get("ai_bust_counterfactual") or {}
     composite = payload.get("historical_stress_composite") or {}
-    if composite.get("observations_by_horizon") != [4, 4, 4, 3]:
+    if composite.get("observations_by_horizon") != [4, 4, 4, 4, 4, 4]:
         raise MultiYearStressError("historical composite horizon counts invalid")
     if composite.get("method") != "pointwise_median_and_linear_interquartile_quantiles_in_log_index_space":
         raise MultiYearStressError("historical composite method invalid")
     for key in ("center_index", "q25_index", "q75_index"):
         values = composite.get(key) or []
-        if len(values) != 4 or float(values[0]) != 100.0:
+        if len(values) != 6 or float(values[0]) != 100.0:
             raise MultiYearStressError(f"historical composite {key} invalid")
     if counterfactual.get("us_equity_stress_reference_index") != composite.get("center_index"):
         raise MultiYearStressError("counterfactual reference does not match historical composite")
@@ -350,8 +403,20 @@ def validate_multi_year_stress(payload: dict[str, Any]) -> None:
         for case in ("low", "center", "high"):
             row = counterfactual.get(group, {}).get(case) or {}
             values = row.get("index") or []
-            if len(values) != 4 or not all(math.isfinite(float(value)) and float(value) > 0 for value in values):
+            if len(values) != 6 or not all(math.isfinite(float(value)) and float(value) > 0 for value in values):
                 raise MultiYearStressError(f"{group} {case} path invalid")
+    rotation = counterfactual.get("bitcoin_liquidity_rotation_assumption") or {}
+    if rotation.get("semantics") != "user_directed_counterfactual_not_observed_not_estimated_not_probability":
+        raise MultiYearStressError("Bitcoin liquidity rotation semantics invalid")
+    if rotation.get("transfer_share") != BTC_ROTATION_SHARE:
+        raise MultiYearStressError("Bitcoin liquidity rotation share changed outside contract")
+    rotation_path = rotation.get("center_index") or []
+    if len(rotation_path) != 6 or float(rotation_path[0]) != 100.0:
+        raise MultiYearStressError("Bitcoin liquidity rotation path invalid")
+    if any(float(right) < float(left) for left, right in zip(rotation_path, rotation_path[1:])):
+        raise MultiYearStressError("Bitcoin liquidity rotation path must be non-decreasing")
+    if len(observed.get("realty_income_total_return_proxy_index") or []) != 6:
+        raise MultiYearStressError("Realty Income 2000-2004 observed path incomplete")
     for source in payload.get("sources") or []:
         digest = str(source.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):

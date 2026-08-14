@@ -1056,7 +1056,7 @@ function statisticsChartSvg(chart,alignment={}){
     ${xTicks.map(value=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">M+${value}</text>`).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">AI 실제 관측 종료</text>`:''}
     ${series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.2'}" stroke-dasharray="${row.era==='current'?'none':'6 5'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
-    ${chart.category==='ipo'?series.flatMap(row=>(row.points||[]).map(point=>`<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="4" fill="#fff" stroke="${esc(row.color||'#111')}" stroke-width="2"/>`)).join(''):''}
+    ${chart.category==='ipo'?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
 function renderStatistics(){
@@ -1895,7 +1895,7 @@ function liquidityPanel(){
   const w=el(`<div class="chart-panel analysis-panel liquidity-panel">
     <p class="eyebrow">시장 자금 흐름 · 참고 지표</p>
     <div class="panel-head"><div><h2>유동성이 늘고 줄어든 구간</h2><p>시장에 풀린 자금과 NASDAQ·Bitcoin의 실제 26주 수익률을 같은 주간축에서 봅니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
-    <section class="plain-insight" aria-label="유동성 그래프 읽는 법"><article><span>위쪽 그래프</span><strong>최근 1년 대비 자금 수준</strong><p>0은 최근 1년 평균, +는 평균보다 많고 −는 적다는 뜻입니다.</p></article><article><span>아래쪽 그래프</span><strong>26주 실제 수익률</strong><p>NASDAQ과 Bitcoin이 같은 기간 얼마나 움직였는지 보여줍니다.</p></article><article><span>주의</span><strong>동시에 움직여도 원인은 아닙니다</strong><p>유동성이 늘었다고 가격 상승이 보장되지는 않습니다.</p></article></section>
+    <section class="plain-insight" aria-label="유동성 그래프 읽는 법"><article><span>한 그래프 · 왼쪽 축</span><strong>Fed 순유동성 52주 z</strong><p>0은 최근 1년 평균, +는 평균보다 많고 −는 적다는 뜻입니다.</p></article><article><span>한 그래프 · 오른쪽 축</span><strong>26주 실제 수익률</strong><p>NASDAQ과 Bitcoin의 같은 주간 움직임을 유동성 선과 바로 겹쳐 봅니다.</p></article><article><span>주의</span><strong>축과 단위가 다릅니다</strong><p>겹쳐 움직여도 인과관계나 상승 보장은 아닙니다.</p></article></section>
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
     <div class="chart-wrap"><div id="liquidity-chart" style="min-width:980px"></div></div>
     <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
@@ -1909,25 +1909,27 @@ function bindLiquidity(panel){
   drawLiquidity(host,model);
 }
 function drawLiquidity(host,model){
-  const NS='http://www.w3.org/2000/svg',W=1160,H=510,ML=58,MR=28,MT=34,MB=42,GAP=38,PANEL=170,PW=W-ML-MR;
+  const NS='http://www.w3.org/2000/svg',W=1160,H=390,ML=72,MR=72,MT=46,MB=48,PANEL=H-MT-MB,PW=W-ML-MR;
   const labels=model.series.labels,n=labels.length,z=model.series.fed_net_liquidity_z_52w,ndx=model.series.nasdaq_return_26w_pct,btc=model.series.bitcoin_return_26w_pct,zones=model.series.liquidity_zone;
   const X=i=>ML+PW*i/Math.max(1,n-1),svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');svg.setAttribute('role','img');svg.setAttribute('tabindex','0');svg.setAttribute('aria-label','유동성 조류 주간 차트. 좌우 화살표로 이동');
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'#5f5d57','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||500});node.textContent=value;return node;};
-  const panelTop=[MT,MT+PANEL+GAP],zoneColor={expansion:'#247d78',neutral:'#9a6700',contraction:'#c9002d'};
-  zones.forEach((zone,index)=>svg.appendChild(mk('rect',{x:X(index),y:panelTop[0],width:PW/Math.max(1,n-1)+1,height:PANEL*2+GAP,fill:zoneColor[zone]||'#aaa',opacity:.045})));
-  const scale=(values,top)=>{const nums=values.filter(hasNumeric).map(Number),lo=Math.min(...nums),hi=Math.max(...nums),pad=Math.max(1,(hi-lo)*.12);return value=>top+PANEL*(1-(Number(value)-(lo-pad))/Math.max(1,(hi+pad)-(lo-pad)));};
-  const yz=scale(z,panelTop[0]),yr=scale([...ndx,...btc],panelTop[1]);
+  const zoneColor={expansion:'#247d78',neutral:'#9a6700',contraction:'#c9002d'};
+  zones.forEach((zone,index)=>svg.appendChild(mk('rect',{x:X(index),y:MT,width:PW/Math.max(1,n-1)+1,height:PANEL,fill:zoneColor[zone]||'#aaa',opacity:.045})));
+  const scale=(values)=>{const nums=values.filter(hasNumeric).map(Number),rawLo=Math.min(...nums),rawHi=Math.max(...nums),pad=Math.max(.25,(rawHi-rawLo)*.12),lo=rawLo-pad,hi=rawHi+pad;return {lo,hi,y:value=>MT+PANEL*(1-(Number(value)-lo)/Math.max(.0001,hi-lo))};};
+  const zScale=scale(z),returnScale=scale([...ndx,...btc]),yz=zScale.y,yr=returnScale.y;
   const liquiditySeries=[
-    {values:z,color:'#6b4bc3',y:yz,top:panelTop[0],label:'Fed 순유동성 · 52주 z',labelX:ML},
-    {values:ndx,color:'#ff4f17',y:yr,top:panelTop[1],label:'NASDAQ · 26주 수익률',labelX:ML},
-    {values:btc,color:'#1f6feb',y:yr,top:panelTop[1],label:'BITCOIN · 26주 수익률',labelX:ML+235}
+    {values:z,color:'#6b4bc3',y:yz,top:MT,label:'Fed 순유동성 · 52주 z (왼쪽)',labelX:ML},
+    {values:ndx,color:'#ff4f17',y:yr,top:MT,label:'NASDAQ · 26주 % (오른쪽)',labelX:ML+300},
+    {values:btc,color:'#1f6feb',y:yr,top:MT,label:'BITCOIN · 26주 % (오른쪽)',labelX:ML+620}
   ];
   liquiditySeries.forEach(({values,color,y})=>{let path='';values.forEach((value,index)=>{if(hasNumeric(value))path+=(path?'L':'M')+X(index)+','+y(value)+' ';});svg.appendChild(mk('path',{d:path,fill:'none',stroke:color,'stroke-width':2.6,'stroke-linejoin':'round'}));});
   liquiditySeries.forEach(({color,top,label,labelX})=>{svg.appendChild(mk('line',{x1:labelX,y1:top-13,x2:labelX+20,y2:top-13,stroke:color,'stroke-width':3}));svg.appendChild(tx(labelX+27,top-9,label,{fill:color,w:750}));});
-  panelTop.forEach(top=>svg.appendChild(mk('line',{x1:ML,y1:top+PANEL,x2:ML+PW,y2:top+PANEL,stroke:'rgba(17,17,15,.18)'})));
+  Array.from({length:5},(_,i)=>i).forEach(i=>{const ratio=i/4,y=MT+PANEL*ratio,zValue=zScale.hi-(zScale.hi-zScale.lo)*ratio,returnValue=returnScale.hi-(returnScale.hi-returnScale.lo)*ratio;svg.appendChild(mk('line',{x1:ML,y1:y,x2:ML+PW,y2:y,stroke:'rgba(17,17,15,.12)'}));svg.appendChild(tx(ML-10,y+4,zValue.toFixed(1),{anc:'end',fill:'#6b4bc3',fs:11}));svg.appendChild(tx(ML+PW+10,y+4,`${returnValue.toFixed(0)}%`,{fill:'#76500b',fs:11}));});
+  if(zScale.lo<0&&zScale.hi>0)svg.appendChild(mk('line',{x1:ML,y1:yz(0),x2:ML+PW,y2:yz(0),stroke:'#6b4bc3','stroke-dasharray':'3 5',opacity:.35}));
+  svg.appendChild(mk('line',{x1:ML,y1:MT+PANEL,x2:ML+PW,y2:MT+PANEL,stroke:'rgba(17,17,15,.25)'}));
   [0,Math.floor((n-1)/2),n-1].forEach(index=>svg.appendChild(tx(X(index),H-12,labels[index].slice(0,7),{anc:'middle'})));
-  const cursor=mk('line',{y1:panelTop[0],y2:panelTop[1]+PANEL,stroke:'rgba(17,17,15,.52)','stroke-dasharray':'4 3'});svg.appendChild(cursor);const overlay=mk('rect',{x:ML,y:panelTop[0],width:PW,height:panelTop[1]+PANEL-panelTop[0],fill:'transparent'});svg.appendChild(overlay);
+  const cursor=mk('line',{y1:MT,y2:MT+PANEL,stroke:'rgba(17,17,15,.52)','stroke-dasharray':'4 3'});svg.appendChild(cursor);const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PANEL,fill:'transparent'});svg.appendChild(overlay);
   const readout=document.createElement('div');readout.className='flow-readout liquidity-readout';readout.setAttribute('role','status');readout.setAttribute('aria-live','polite');let selected=n-1;
   const paint=index=>{selected=Math.max(0,Math.min(n-1,index));cursor.setAttribute('x1',X(selected));cursor.setAttribute('x2',X(selected));readout.innerHTML=`<div class="flow-date"><span>SELECTED WEEK</span><strong>${esc(labels[selected])}</strong><small>${esc(({expansion:'확장',neutral:'중립',contraction:'수축'}[zones[selected]]||zones[selected]))} zone</small></div><div><span>Fed liquidity z</span><strong>${hasNumeric(z[selected])?Number(z[selected]).toFixed(2):'표본 축적 중'}</strong><small>52주 rolling</small></div><div><span>NASDAQ</span><strong>${hasNumeric(ndx[selected])?signedDelta(ndx[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div><div><span>Bitcoin</span><strong>${hasNumeric(btc[selected])?signedDelta(btc[selected],1,'%'):'표본 축적 중'}</strong><small>26주 수익률</small></div>`;};
   const fromPointer=event=>{const rect=svg.getBoundingClientRect(),x=(event.clientX-rect.left)*(W/rect.width);return Math.round((x-ML)/(PW/Math.max(1,n-1)));};overlay.addEventListener('pointermove',event=>paint(fromPointer(event)));overlay.addEventListener('pointerdown',event=>{paint(fromPointer(event));svg.focus();});svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});host.replaceChildren(svg,readout);paint(selected);
