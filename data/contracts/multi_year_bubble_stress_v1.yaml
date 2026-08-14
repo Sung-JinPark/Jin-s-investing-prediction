@@ -42,7 +42,10 @@ separation_guards:
   - stress paths must not feed Scenario V5.2, official snapshot, calibration, or ledger
   - no silent claim that year two or three is always worse
   - US-equity episode reference and NASDAQ-estimated beta basis mismatch must remain disclosed
-  - presentation must render one combined graph rather than three separate stress graphs
+  - presentation must summarize the four selected episodes as a log-space median and interquartile band instead of four overlapping lines
+  - presentation must separate historical evidence from the Bitcoin liquidity-rotation assumption in two adjacent panels
+  - both presentation panels must use the same log-scale value domain
+  - Realty Income observations and sensitivity must remain in the audit payload but stay out of the multi-year stress chart
 
 condition_breakers:
   realty_income: [long_rate, credit_spread, refinancing_cost, occupancy, dividend_policy]

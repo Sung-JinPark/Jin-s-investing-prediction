@@ -173,12 +173,26 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
-    "SPASTT01KRM661N": {
-        "title": "Financial market share prices for Korea",
-        "provider": "OECD Main Economic Indicators via FRED",
-        "unit": "index_2015_100",
-        "native_frequency": "monthly",
-        "aggregation": "last",
+}
+
+DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
+    "KOSPI_2026_DAILY": {
+        "symbol": "^KS11",
+        "title": "KOSPI 2026 daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: Korea Exchange KOSPI)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "2026-01-01",
+        "window_end_exclusive": "2027-01-01",
+    },
+    "BTC_2021_DAILY": {
+        "symbol": "BTC-USD",
+        "title": "Bitcoin USD 2021 daily close",
+        "provider": "Yahoo Finance chart API",
+        "unit": "usd",
+        "native_frequency": "daily_close_24_7",
+        "window_start": "2021-01-01",
+        "window_end_exclusive": "2022-01-01",
     },
 }
 
@@ -263,6 +277,31 @@ def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
     return _parse_fred_csv(raw, series_id), raw
 
 
+def _fetch_daily_market(
+    series_id: str, start: date, end_exclusive: date,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Fetch an explicitly bounded daily close series with a raw-response receipt."""
+    try:
+        spec = DAILY_MARKET_SERIES[series_id]
+    except KeyError as exc:
+        raise StatisticsLabError(f"unknown daily market series: {series_id}") from exc
+    result = feed.yahoo_price_series_detail(
+        spec["symbol"], start, end_exclusive, interval="1d",
+    )
+    rows = [
+        {"date": observed.isoformat(), "value": float(value)}
+        for observed, value in zip(result.dates, result.closes, strict=True)
+        if start <= observed < end_exclusive
+    ]
+    if not rows:
+        raise StatisticsLabError(f"daily market series {series_id} is empty")
+    return rows, {
+        "raw_sha256": result.receipt["response_sha256"],
+        "request_url": result.receipt["request_url"],
+        "data_quality": result.data_quality,
+    }
+
+
 def _parse_z1(raw: bytes) -> list[dict[str, Any]]:
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         try:
@@ -314,6 +353,34 @@ def _monthly(rows: list[dict[str, Any]], aggregation: str) -> list[dict[str, Any
             else float(values[-1]["value"])
         )
         result.append({"date": date(year, month, 1).isoformat(), "value": number})
+    return result
+
+
+def _calendar_year_index(
+    rows: list[dict[str, Any]], year: int,
+) -> list[dict[str, Any]]:
+    """Normalize actual daily closes to first observed close=100 on a day-of-year axis."""
+    selected = [
+        row for row in sorted(rows, key=lambda item: item["date"])
+        if date.fromisoformat(str(row["date"])).year == year
+    ]
+    if not selected:
+        raise StatisticsLabError(f"daily market path for {year} is empty")
+    base = float(selected[0]["value"])
+    if not math.isfinite(base) or base <= 0:
+        raise StatisticsLabError(f"daily market path for {year} has invalid base")
+    start = date(year, 1, 1)
+    result = []
+    for row in selected:
+        observed = date.fromisoformat(str(row["date"]))
+        value = float(row["value"])
+        if not math.isfinite(value) or value <= 0:
+            raise StatisticsLabError(f"daily market path for {year} has invalid close")
+        result.append({
+            "period": (observed - start).days,
+            "date": observed.isoformat(),
+            "value": value / base * 100.0,
+        })
     return result
 
 
@@ -655,9 +722,19 @@ def build_statistics_lab(
     ipo_reference: dict[str, Any] | None = None,
     hmi_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    missing = sorted((set(FRED_SERIES) | {"FL663067003"}) - set(source_rows))
+    required_sources = set(FRED_SERIES) | set(DAILY_MARKET_SERIES) | {"FL663067003"}
+    missing = sorted(required_sources - set(source_rows))
     if missing:
         raise StatisticsLabError(f"missing source series: {missing}")
+    generated_date = datetime.fromisoformat(generated_at.replace("Z", "+00:00")).date()
+    latest_kospi_date = max(
+        date.fromisoformat(str(row["date"]))
+        for row in source_rows["KOSPI_2026_DAILY"]
+    )
+    if latest_kospi_date >= generated_date:
+        raise StatisticsLabError(
+            "KOSPI daily path must stop before collector date to exclude an incomplete session"
+        )
     monthly = {
         key: _monthly(rows, FRED_SERIES[key]["aggregation"])
         for key, rows in source_rows.items() if key in FRED_SERIES
@@ -721,14 +798,12 @@ def build_statistics_lab(
     dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
 
     dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
-    kospi_nasdaq_relative = _ratio(monthly["SPASTT01KRM661N"], monthly["NASDAQCOM"])
-    dot_kospi_relative, cur_kospi_relative = _cycle_series(
-        kospi_nasdaq_relative, comparison_months, indexed=True,
+    kospi_2026 = _calendar_year_index(source_rows["KOSPI_2026_DAILY"], 2026)
+    bitcoin_2021 = _calendar_year_index(source_rows["BTC_2021_DAILY"], 2021)
+    bitcoin_at_kospi_progress = next(
+        point for point in reversed(bitcoin_2021)
+        if int(point["period"]) <= int(kospi_2026[-1]["period"])
     )
-    kospi_lead_diagnostics = [
-        _lead_correlation(monthly["SPASTT01KRM661N"], monthly["NASDAQCOM"], lead)
-        for lead in range(4)
-    ]
     dot_hmi: list[dict[str, Any]] = []
     cur_hmi: list[dict[str, Any]] = []
     if hmi_reference is not None:
@@ -807,35 +882,44 @@ def build_statistics_lab(
                "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
                "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
                [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
-        _chart("kospi_nasdaq_relative_lead", "KOSPI/NASDAQ 상대강도 · AI 경기 선행 후보", "economy", "cycle_start_100",
-               "KOSPI를 NASDAQ으로 나눈 상대강도를 각 사이클 시작월=100으로 맞춥니다. KOSPI 월수익률과 같은 달·향후 1~3개월 NASDAQ 월수익률의 상관도 함께 점검합니다.",
-               "상대강도 하락은 한국 주식의 선행 약세 후보일 뿐 인과관계나 확정 신호가 아닙니다. 환율·거래시간·국가위험이 섞이며, 네 시차를 모두 공개해 사후 최적 시차 선택을 막습니다.",
-               [_series("닷컴 KOSPI/NASDAQ", "dotcom", dot_kospi_relative, "#8d2943"), _series("현재 KOSPI/NASDAQ", "current", cur_kospi_relative, "#28756a")], ["SPASTT01KRM661N", "NASDAQCOM"]),
+        _chart("kospi_2026_bitcoin_2021_daily", "KOSPI 2026 일봉 vs Bitcoin 2021 일봉", "economy", "year_start_100",
+               "두 자산의 각 연도 첫 실제 종가를 100으로 맞추고, 같은 월·일 위치에서 누적 경로를 비교합니다. KOSPI 2026은 마지막 완료 거래일에서 멈추고 Bitcoin은 2021년 전체 실측을 표시합니다.",
+               "서로 다른 연도·통화·거래시간의 경로 유사성 비교입니다. Bitcoin은 24시간 거래되고 KOSPI는 한국 거래일만 존재하므로 선의 모양이 비슷해도 인과관계나 KOSPI의 향후 예측을 뜻하지 않습니다.",
+               [_series("KOSPI 2026", "current", kospi_2026, "#28756a"), _series("Bitcoin 2021", "historical", bitcoin_2021, "#f07822")], ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]),
     ]
 
     kospi_chart = charts[-1]
-    kospi_chart["lead_diagnostics"] = kospi_lead_diagnostics
+    kospi_chart["axis_type"] = "calendar_day_of_year"
+    kospi_chart["max_period"] = 364
+    kospi_chart["projection_max_points"] = 366
+    kospi_chart["observed_end_label"] = "KOSPI 2026 실제 관측 종료"
     kospi_chart["detail_rows"] = [
         {
-            "period": "동행" if row["lead_months"] == 0 else f"{row['lead_months']}개월 선행",
-            "label": f"KOSPI(t) ↔ NASDAQ(t+{row['lead_months']}) 월수익률",
-            "value": (
-                f"상관 {row['correlation']:+.2f} · n={row['observations']}"
-                if row["correlation"] is not None else f"산출 불가 · n={row['observations']}"
-            ),
-        }
-        for row in kospi_lead_diagnostics
+            "period": "KOSPI 2026",
+            "label": f"{kospi_2026[0]['date']} → {kospi_2026[-1]['date']}",
+            "value": f"{kospi_2026[-1]['value']:.1f} · {kospi_2026[-1]['value'] - 100:+.1f}%",
+        },
+        {
+            "period": "Bitcoin 2021 동일 진행일",
+            "label": f"2021-01-01 → {bitcoin_at_kospi_progress['date']}",
+            "value": f"{bitcoin_at_kospi_progress['value']:.1f} · {bitcoin_at_kospi_progress['value'] - 100:+.1f}%",
+        },
+        {
+            "period": "Bitcoin 2021 연말",
+            "label": f"{bitcoin_2021[0]['date']} → {bitcoin_2021[-1]['date']}",
+            "value": f"{bitcoin_2021[-1]['value']:.1f} · {bitcoin_2021[-1]['value'] - 100:+.1f}%",
+        },
     ]
     kospi_chart["research_context"] = [
         {
             "provider": "KRX",
-            "finding": "KOSPI is a market-capitalization-weighted benchmark; electrical/electronic equipment is a large disclosed sector.",
+            "finding": "KOSPI is a market-capitalization-weighted benchmark published by Korea Exchange.",
             "url": "https://global.krx.co.kr/contents/GLB/03/0301/0301040000/GLB0301040000.jsp",
         },
         {
-            "provider": "Bank of Korea",
-            "finding": "Semiconductor export value must be separated into volume and price effects when reading the Korean cycle.",
-            "url": "https://www.bok.or.kr/portal/bbs/B0000347/view.do?menuNo=201106&nttId=10094959",
+            "provider": "Yahoo Finance chart API",
+            "finding": "Daily closes are fetched as ^KS11 and BTC-USD with response hashes; the active KOSPI session and future values are excluded.",
+            "url": "https://finance.yahoo.com/quote/%5EKS11/history/",
         },
     ]
 
@@ -928,12 +1012,10 @@ def build_statistics_lab(
             f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
             "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
         ),
-        "kospi_nasdaq_relative_lead": (
-            f"현재 KOSPI/NASDAQ 상대강도는 사이클 시작 대비 {cur_kospi_relative[-1]['value']:.0f}입니다. "
-            f"월수익률 상관은 동행 {kospi_lead_diagnostics[0]['correlation']:+.2f}, "
-            f"KOSPI 1개월 선행 {kospi_lead_diagnostics[1]['correlation']:+.2f}, "
-            f"3개월 선행 {kospi_lead_diagnostics[3]['correlation']:+.2f}로 약합니다. "
-            "현재는 선행 하락 경고가 아니며, 상대강도 고점 이탈을 반도체 경기 자료와 함께 볼 때만 조기 경고 후보입니다."
+        "kospi_2026_bitcoin_2021_daily": (
+            f"KOSPI 2026은 첫 거래일 대비 {kospi_2026[-1]['value'] - 100:+.1f}%, "
+            f"같은 연중 진행일까지 Bitcoin 2021은 {bitcoin_at_kospi_progress['value'] - 100:+.1f}%였습니다. "
+            "상승·조정 구간의 모양을 눈으로 비교하는 역사 아날로그이며, Bitcoin 2021 경로를 KOSPI의 남은 2026년 예측선으로 사용하지 않습니다."
         ),
     }
     if hmi_reference is not None:
@@ -1062,6 +1144,30 @@ def build_statistics_lab(
             "raw_sha256": receipts[series_id]["raw_sha256"],
             "vintage": "current_release_reconstructed",
         })
+    for series_id, spec in DAILY_MARKET_SERIES.items():
+        rows = source_rows[series_id]
+        receipt = receipts[series_id]
+        source_meta.append({
+            "series_id": series_id,
+            "title": spec["title"],
+            "provider": spec["provider"],
+            "unit": spec["unit"],
+            "native_frequency": spec["native_frequency"],
+            "source_url": (
+                "https://finance.yahoo.com/quote/%5EKS11/history/"
+                if series_id == "KOSPI_2026_DAILY"
+                else "https://finance.yahoo.com/quote/BTC-USD/history/"
+            ),
+            "request_url": receipt["request_url"],
+            "available_at": generated_at,
+            "latest_observation": rows[-1]["date"],
+            "row_count": len(rows),
+            "raw_sha256": receipt["raw_sha256"],
+            "vintage": "yahoo_current_chart_response",
+            "data_quality": receipt.get("data_quality"),
+            "window_start": spec["window_start"],
+            "window_end_exclusive": spec["window_end_exclusive"],
+        })
     z1_rows = source_rows["FL663067003"]
     source_meta.append({
         "series_id": "FL663067003",
@@ -1162,15 +1268,21 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
                 raise StatisticsLabError(f"chart {chart['id']} periods invalid")
             if not all(math.isfinite(value) for value in values):
                 raise StatisticsLabError(f"chart {chart['id']} has non-finite values")
-            if max(periods) > COMPARISON_MONTHS:
-                raise StatisticsLabError(f"chart {chart['id']} exceeds the five-year axis")
+            period_limit = int(chart.get("max_period", COMPARISON_MONTHS))
+            if max(periods) > period_limit:
+                raise StatisticsLabError(
+                    f"chart {chart['id']} exceeds its declared period axis"
+                )
     sources = payload.get("sources")
-    if not isinstance(sources, list) or len(sources) < len(FRED_SERIES) + 1:
+    minimum_sources = len(FRED_SERIES) + len(DAILY_MARKET_SERIES) + 1
+    if not isinstance(sources, list) or len(sources) < minimum_sources:
         raise StatisticsLabError("statistics source registry incomplete")
     source_ids = [str(row.get("series_id")) for row in sources]
     if len(source_ids) != len(set(source_ids)):
         raise StatisticsLabError("statistics source ids must be unique")
     known_sources = set(source_ids)
+    if not set(DAILY_MARKET_SERIES).issubset(known_sources):
+        raise StatisticsLabError("daily KOSPI/Bitcoin source registry incomplete")
     try:
         generated_at = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
     except (KeyError, TypeError, ValueError) as exc:
@@ -1209,16 +1321,37 @@ def _semantic_snapshot(value: Any) -> Any:
 def refresh_statistics_lab(
     root: Path, *,
     fred_fetcher: Callable[[str], tuple[list[dict[str, Any]], bytes]] = _fetch_fred,
+    market_fetcher: Callable[
+        [str, date, date], tuple[list[dict[str, Any]], dict[str, Any]]
+    ] = _fetch_daily_market,
     z1_fetcher: Callable[[str], bytes] | None = None,
     now: datetime | None = None,
 ) -> tuple[Path, dict[str, Any], bool]:
-    generated_at = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
+    generated_time = now or datetime.now(timezone.utc)
+    generated_at = generated_time.isoformat(timespec="seconds")
     source_rows: dict[str, list[dict[str, Any]]] = {}
     receipts: dict[str, dict[str, Any]] = {}
     for series_id in FRED_SERIES:
         rows, raw = fred_fetcher(series_id)
         source_rows[series_id] = rows
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
+    for series_id, spec in DAILY_MARKET_SERIES.items():
+        start = date.fromisoformat(spec["window_start"])
+        fixed_end = date.fromisoformat(spec["window_end_exclusive"])
+        end_exclusive = fixed_end
+        if series_id == "KOSPI_2026_DAILY":
+            end_exclusive = min(fixed_end, generated_time.date())
+        if end_exclusive <= start:
+            raise StatisticsLabError(f"daily market window unavailable: {series_id}")
+        rows, receipt = market_fetcher(series_id, start, end_exclusive)
+        bounded_rows = [
+            row for row in rows
+            if start <= date.fromisoformat(str(row["date"])) < end_exclusive
+        ]
+        if not bounded_rows:
+            raise StatisticsLabError(f"daily market series empty after bounds: {series_id}")
+        source_rows[series_id] = bounded_rows
+        receipts[series_id] = receipt
     fetch_z1 = z1_fetcher or (lambda url: _request(url, timeout=60))
     z1_raw = fetch_z1(Z1_ENDPOINT)
     source_rows["FL663067003"] = _parse_z1(z1_raw)
@@ -1310,8 +1443,9 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
-            if len(points) > 18:
-                stride = math.ceil((len(points) - 1) / 17)
+            projection_max_points = max(2, int(chart.get("projection_max_points", 18)))
+            if len(points) > projection_max_points:
+                stride = math.ceil((len(points) - 1) / (projection_max_points - 1))
                 display_points = points[::stride]
                 if display_points[-1] is not points[-1]:
                     display_points.append(points[-1])

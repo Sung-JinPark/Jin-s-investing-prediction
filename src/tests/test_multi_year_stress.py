@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -70,10 +71,17 @@ def test_multi_year_stress_is_added_to_the_btc_realty_category() -> None:
     assert "DATA.multi_year_stress?.presentation_html" in script
     payload = build_multi_year_stress(_cross_asset())
     assert "가정 스트레스 · 발생확률 아님" in payload["presentation_html"]
-    assert "4개 낙폭 사례 × Realty Income 실측 × BTC 가정" in payload["presentation_html"]
-    assert payload["presentation_html"].count("<svg") == 1
+    assert "역사 낙폭 범위와 BTC 조건부 경로" in payload["presentation_html"]
+    assert payload["presentation_html"].count("<svg") == 2
+    domains = re.findall(r'data-domain="([^"]+)"', payload["presentation_html"])
+    assert len(domains) == 2
+    assert len(set(domains)) == 1
+    assert "선택 사례 4개 25~75% 범위" in payload["presentation_html"]
     assert "BTC 이동비중 15~50% 가정 범위" in payload["presentation_html"]
-    assert "2000~2004 실제 배당재투자 proxy" in payload["presentation_html"]
+    assert "Realty Income" not in payload["presentation_html"]
+    assert payload["dotcom_observed_assets"]["realty_income_total_return_proxy_index"][-1] > 350
     assert "universal_year_2_or_3_rule: false" in contract
     assert "stress paths must not feed Scenario V5.2" in contract
-    assert "presentation must render one combined graph" in contract
+    assert "two adjacent panels" in contract
+    assert "same log-scale value domain" in contract
+    assert "stay out of the multi-year stress chart" in contract
