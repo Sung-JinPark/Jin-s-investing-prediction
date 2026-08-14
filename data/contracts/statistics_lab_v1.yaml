@@ -105,7 +105,19 @@ macro_warning_policy:
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
   inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
   recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
-  kospi_bitcoin_daily_analog: {series: [KOSPI_2026_DAILY, BTC_2021_DAILY], normalization: first_actual_close_equals_100, alignment: calendar_day_of_year, KOSPI_active_session: excluded, KOSPI_future_extension: prohibited, Bitcoin_window: completed_2021_actuals, interpretation: visual_historical_analog_not_relative_price_ratio_or_forecast, probability_output: prohibited}
+  kospi_bitcoin_daily_analog:
+    series: [KOSPI_2026_DAILY, BTC_2021_DAILY]
+    normalization: matched_session_volatility_scaled_cumulative_log_return_start_100
+    calibration: KOSPI_completed_sessions_and_Bitcoin_2021_closes_at_matching_month_day
+    scale_factor: sample_std_KOSPI_log_return_divided_by_sample_std_Bitcoin_log_return
+    alignment: calendar_day_of_year
+    time_warping: prohibited
+    optimized_lag: prohibited
+    KOSPI_active_session: excluded
+    KOSPI_future_extension: prohibited
+    Bitcoin_window: completed_2021_actuals
+    interpretation: amplitude_adjusted_visual_historical_analog_not_relative_price_ratio_or_forecast
+    probability_output: prohibited
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.
