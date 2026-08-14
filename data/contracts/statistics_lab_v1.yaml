@@ -43,7 +43,11 @@ sources:
       DCOILWTICO: {native_frequency: daily, unit: dollars_per_barrel, aggregation: mean, role: inflation_leading_indicator}
       WPU10260314: {native_frequency: monthly, unit: index_1982_100, aggregation: last, role: copper_inflation_leading_indicator}
       GACDFSA066MSFRBPHI: {native_frequency: monthly, unit: diffusion_index, aggregation: last, role: public_manufacturing_diffusion_proxy_not_ISM_PMI}
-      SPASTT01KRM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: OECD_Korea_share_price_proxy_for_KOSPI_relative_strength}
+  yahoo_chart:
+    endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
+    series:
+      KOSPI_2026_DAILY: {symbol: ^KS11, native_frequency: daily_close, unit: index, window: [2026-01-01, last_completed_session_only], active_session_excluded: true, role: KOSPI_2026_normalized_daily_path}
+      BTC_2021_DAILY: {symbol: BTC-USD, native_frequency: daily_close_24_7, unit: usd, window: [2021-01-01, 2021-12-31], role: Bitcoin_2021_normalized_daily_path}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s
@@ -101,7 +105,7 @@ macro_warning_policy:
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
   inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
   recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
-  kospi_ai_cycle_candidate: {ratio: SPASTT01KRM661N_divided_by_NASDAQCOM, cycle_index: start_month_equals_100, diagnostics: [same_month_return_correlation, KOSPI_leads_1_month, KOSPI_leads_2_months, KOSPI_leads_3_months], optimized_lag_selection: prohibited, probability_output: prohibited}
+  kospi_bitcoin_daily_analog: {series: [KOSPI_2026_DAILY, BTC_2021_DAILY], normalization: first_actual_close_equals_100, alignment: calendar_day_of_year, KOSPI_active_session: excluded, KOSPI_future_extension: prohibited, Bitcoin_window: completed_2021_actuals, interpretation: visual_historical_analog_not_relative_price_ratio_or_forecast, probability_output: prohibited}
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.

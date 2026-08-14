@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from ai_fc.statistics_lab import (
+    DAILY_MARKET_SERIES,
     FRED_ENDPOINT,
     FRED_SERIES,
     StatisticsLabError,
@@ -143,7 +144,6 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "DCOILWTICO": 50.0,
             "WPU10260314": 100.0,
             "GACDFSA066MSFRBPHI": 5.0,
-            "SPASTT01KRM661N": 100.0,
         }[series_id]
         growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
         value = baseline * growth
@@ -174,12 +174,32 @@ def _z1_bytes() -> bytes:
 
 def _payload_inputs() -> tuple[dict, dict]:
     rows = {series_id: _rows(series_id) for series_id in FRED_SERIES}
+    kospi_rows = []
+    observed = date(2026, 1, 1)
+    while observed <= date(2026, 12, 30):
+        if observed.weekday() < 5:
+            offset = (observed - date(2026, 1, 1)).days
+            kospi_rows.append({"date": observed.isoformat(), "value": 4000.0 + offset * 8.0})
+        observed = date.fromordinal(observed.toordinal() + 1)
+    bitcoin_rows = []
+    observed = date(2021, 1, 1)
+    while observed <= date(2021, 12, 31):
+        offset = (observed - date(2021, 1, 1)).days
+        bitcoin_rows.append({"date": observed.isoformat(), "value": 29000.0 + offset * 55.0})
+        observed = date.fromordinal(observed.toordinal() + 1)
+    rows["KOSPI_2026_DAILY"] = kospi_rows
+    rows["BTC_2021_DAILY"] = bitcoin_rows
     z1 = _z1_bytes()
     rows["FL663067003"] = _parse_z1(z1)
     receipts = {
         series_id: {"raw_sha256": hashlib.sha256(series_id.encode()).hexdigest()}
         for series_id in rows
     }
+    for series_id in DAILY_MARKET_SERIES:
+        receipts[series_id].update({
+            "request_url": f"https://query1.finance.yahoo.com/v8/finance/chart/{series_id}",
+            "data_quality": {"status": "ok"},
+        })
     return rows, receipts
 
 
@@ -266,7 +286,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "ipo_market_absorption", "small_issuer_ipo_share",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
-        "kospi_nasdaq_relative_lead",
+        "kospi_2026_bitcoin_2021_daily",
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
     assert ipo_chart["scale"] == "log1p"
@@ -309,12 +329,20 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         for point in series["points"]
     )
     assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
-    kospi = next(chart for chart in payload["charts"] if chart["id"] == "kospi_nasdaq_relative_lead")
-    assert kospi["source_ids"] == ["SPASTT01KRM661N", "NASDAQCOM"]
-    assert [row["lead_months"] for row in kospi["lead_diagnostics"]] == [0, 1, 2, 3]
-    assert all(row["observations"] > 300 for row in kospi["lead_diagnostics"])
-    assert len(kospi["detail_rows"]) == 4
-    assert "사후 최적 시차 선택" in kospi["caveat"]
+    kospi = next(
+        chart for chart in payload["charts"]
+        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
+    )
+    assert kospi["source_ids"] == ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]
+    assert kospi["axis_type"] == "calendar_day_of_year"
+    assert kospi["max_period"] == 364
+    assert kospi["projection_max_points"] == 366
+    assert len(kospi["detail_rows"]) == 3
+    assert [row["label"] for row in kospi["series"]] == ["KOSPI 2026", "Bitcoin 2021"]
+    assert all(row["points"][0]["value"] == 100.0 for row in kospi["series"])
+    assert len(kospi["series"][0]["points"]) == 260
+    assert len(kospi["series"][1]["points"]) == 365
+    assert "남은 2026년 예측선" in kospi["insight"]
     policy_rate = next(chart for chart in payload["charts"] if chart["id"] == "policy_rate")
     assert policy_rate["source_validation"]["source_id"] == "FEDFUNDS"
     assert policy_rate["source_validation"]["observations"] == 60
@@ -325,7 +353,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         current = [row for row in chart["series"] if row["era"] == "current"]
         if dotcom:
             assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
-        if current:
+        if current and chart["id"] != "kospi_2026_bitcoin_2021_daily":
             assert max(point["period"] for row in current for point in row["points"]) < 59
     invalid = json.loads(json.dumps(payload))
     invalid["cycle_alignment"]["forecast_extension"] = True
@@ -341,6 +369,19 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     with pytest.raises(StatisticsLabError, match="future-data leakage"):
         validate_statistics_lab(future_leak)
 
+    incomplete_session_rows = json.loads(json.dumps(rows))
+    incomplete_session_rows["KOSPI_2026_DAILY"].append({
+        "date": "2026-12-31", "value": 7000.0,
+    })
+    with pytest.raises(StatisticsLabError, match="incomplete session"):
+        build_statistics_lab(
+            incomplete_session_rows,
+            generated_at="2026-12-31T00:00:00+00:00",
+            receipts=receipts,
+            ipo_reference=_repo_ipo_reference(),
+            hmi_reference=_repo_hmi_reference(),
+        )
+
 
 def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> None:
     rows, _ = _payload_inputs()
@@ -350,9 +391,17 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         raw = f"fixture:{series_id}".encode()
         return rows[series_id], raw
 
+    def market_fetcher(series_id: str, _start: date, _end: date):
+        return rows[series_id], {
+            "raw_sha256": hashlib.sha256(f"fixture:{series_id}".encode()).hexdigest(),
+            "request_url": f"https://example.test/{series_id}",
+            "data_quality": {"status": "ok"},
+        }
+
     z1 = _z1_bytes()
     path, payload, changed = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1,
+        tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        z1_fetcher=lambda _url: z1,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed is True
@@ -360,7 +409,8 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     archives = list((tmp_path / "data/statistics/archive").glob("*.json"))
     assert len(archives) == 1
     _, second, changed_again = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, z1_fetcher=lambda _url: z1,
+        tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        z1_fetcher=lambda _url: z1,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed_again is False
@@ -382,10 +432,13 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "AI 선은 최신 실제 관측에서 멈추며" in script
     assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
-    assert "해석할 때 주의" in script
+    assert "해석할 때 주의" not in script
+    assert "esc(chart.caveat)" not in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" in script
     assert 'data-stat-scale="${useLog?\'log1p\':\'linear\'}"' in script
+    assert "chart.axis_type==='calendar_day_of_year'" in script
+    assert "chart.observed_end_label" in script
     assert "unit==='percent_of_us_corporate_equity_value'" in script
     assert "unit==='percentage_point_change'" in script
     assert "unit==='neutral_line_distance'" in script
@@ -413,13 +466,21 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     assert all(len(source["raw_sha256"]) == 64 for source in projected["sources"])
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
-            assert len(view_series["points"]) <= 18
+            if raw_chart["id"] == "kospi_2026_bitcoin_2021_daily":
+                assert len(view_series["points"]) == len(raw_series["points"])
+            else:
+                assert len(view_series["points"]) <= 18
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
     absorption = next(chart for chart in projected["charts"] if chart["id"] == "ipo_market_absorption")
     private_marker = next(series for series in absorption["series"] if "OpenAI+Anthropic" in series["label"])
     assert private_marker["marker_radius"] == 10
     assert private_marker["marker_emphasis"] == "private_frontier_watchlist"
+    daily = next(
+        chart for chart in projected["charts"]
+        if chart["id"] == "kospi_2026_bitcoin_2021_daily"
+    )
+    assert [len(series["points"]) for series in daily["series"]] == [260, 365]
 
 
 def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:

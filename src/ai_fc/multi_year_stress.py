@@ -158,7 +158,7 @@ def _legend(chart: dict[str, Any]) -> str:
     return lines + bands
 
 
-def _svg(chart: dict[str, Any]) -> str:
+def _chart_values(chart: dict[str, Any]) -> list[float]:
     series = chart["series"]
     bands = chart.get("bands") or []
     values = [float(point["value"]) for row in series for point in row["points"]]
@@ -166,9 +166,20 @@ def _svg(chart: dict[str, Any]) -> str:
         float(point["value"])
         for band in bands for boundary in (band["low"], band["high"]) for point in boundary
     )
-    low, high = min(values) * 0.88, max(values) * 1.12
+    return values
+
+
+def _svg(
+    chart: dict[str, Any], title: str, value_domain: tuple[float, float] | None = None,
+) -> str:
+    series = chart["series"]
+    bands = chart.get("bands") or []
+    values = _chart_values(chart)
+    low, high = value_domain or (min(values) * 0.88, max(values) * 1.12)
+    if low <= 0 or high <= low:
+        raise MultiYearStressError("stress chart value domain invalid")
     log_low, log_high = math.log(low), math.log(high)
-    width, height, left, right, top, bottom = 920, 300, 58, 20, 20, 38
+    width, height, left, right, top, bottom = 920, 300, 58, 150, 20, 38
     max_period = max(point["period"] for row in series for point in row["points"])
     x = lambda period: left + (width - left - right) * period / max(1, max_period)
     y = lambda value: top + (height - top - bottom) * (1 - (math.log(float(value)) - log_low) / (log_high - log_low))
@@ -187,12 +198,21 @@ def _svg(chart: dict[str, Any]) -> str:
         f'<path d="{" ".join(("M" if index == 0 else "L") + f"{x(point["period"]):.1f},{y(point["value"]):.1f}" for index, point in enumerate(row["points"]))}" fill="none" stroke="{row["color"]}" stroke-width="2.8"/>'
         for row in series
     )
+    end_labels = "".join(
+        f'<circle cx="{x(row["points"][-1]["period"]):.1f}" cy="{y(row["points"][-1]["value"]):.1f}" r="3.5" fill="{row["color"]}"/>'
+        f'<text x="{x(row["points"][-1]["period"])+10:.1f}" y="{y(row["points"][-1]["value"])+4:.1f}" '
+        f'fill="{row["color"]}" font-weight="700">{html.escape(row["label"])}</text>'
+        for row in series
+    )
     labels = "".join(
         f'<text x="{x(period):.1f}" y="{height-12}" text-anchor="middle">{label}</text>'
-        for period, label in ((0, "2000 시작"), (12, "1년"), (24, "2년"), (36, "3년"), (48, "4년"), (60, "5년"))
+        for period, label in ((0, "시작"), (24, "2년"), (48, "4년"), (60, "5년"))
         if period <= max_period
     )
-    return f'<svg viewBox="0 0 {width} {height}" role="img" data-scale="log">{grid}{band_paths}{paths}{labels}</svg>'
+    return (
+        f'<svg viewBox="0 0 {width} {height}" role="img" data-scale="log" data-domain="{low:.2f}:{high:.2f}">'
+        f'<title>{html.escape(title)}</title>{grid}{band_paths}{paths}{end_labels}{labels}</svg>'
+    )
 
 
 def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
@@ -333,38 +353,46 @@ def build_multi_year_stress(cross_asset: dict[str, Any]) -> dict[str, Any]:
             "transformation": "five_year_log_episode_composite_plus_observed_dotcom_assets_and_explicit_btc_liquidity_rotation_assumption",
         },
     }
-    stress_chart = _view_chart(
+    history_chart = _view_chart(
         [
-            ("대공황 지수", "history", "#282723", historical_episodes[0]["cumulative_index"]),
-            ("2차대전 초기 지수", "history", "#77736b", historical_episodes[1]["cumulative_index"]),
-            ("오일쇼크 지수", "history", "#a06b00", historical_episodes[2]["cumulative_index"]),
-            ("닷컴기 S&P 지수", "history", "#c70039", historical_episodes[3]["cumulative_index"]),
+            ("역사 중앙값", "history", "#282723", composite["center_index"]),
             ("닷컴기 NASDAQ 실측", "observed", "#ff4f17", nasdaq),
-            ("Realty Income 총수익 실측", "observed", "#28756a", realty_total),
-            ("BTC 유동성 이동 가정", "assumption", "#6b3fa0", btc_rotation_center),
+        ],
+        [
+            ("선택 사례 4개 25~75% 범위", "#c70039", composite["q25_index"], composite["q75_index"]),
+        ],
+    )
+    rotation_chart = _view_chart(
+        [
+            ("주식 스트레스 중앙값", "history", "#282723", composite["center_index"]),
+            ("BTC 자금이동 가정", "assumption", "#6b3fa0", btc_rotation_center),
         ],
         [
             ("BTC 이동비중 15~50% 가정 범위", "#6b3fa0", btc_rotation_low, btc_rotation_high),
         ],
     )
-    episode_cards = "".join(
-        f'<article><span>{html.escape(row["label"])}</span><strong>'
-        f'{" · ".join(f"{value:+.1f}%" for value in row["annual_total_returns_pct"])}</strong>'
-        f'<p>선택 사례 종점 {row["cumulative_index"][-1]}</p></article>'
+    shared_values = _chart_values(history_chart) + _chart_values(rotation_chart)
+    shared_domain = (min(shared_values) * 0.88, max(shared_values) * 1.12)
+    episode_endpoints = "".join(
+        f'<div><span>{html.escape(row["label"])}</span><strong>{row["cumulative_index"][-1]:.1f}</strong></div>'
         for row in payload["historical_episodes"]
-    )
-    breaker_cards = "".join(
-        f'<article><span>조건 {index}</span><strong>국면 의존</strong><p>{html.escape(copy)}</p></article>'
-        for index, copy in enumerate(payload["ai_bust_counterfactual"]["condition_breakers"], 1)
     )
     payload["presentation_html"] = (
         '<section class="scenario-v52-risk-banner"><div><span>가정 스트레스 · 발생확률 아님</span>'
-        '<strong>AI 버블 조정이 5년 사이클로 이어진다면</strong></div><p>역사 지수·Realty 실측·Bitcoin 가정을 한 로그축에 놓되 서로 다른 증거 층으로 구분합니다.</p></section>'
-        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">ONE LOG VIEW · HISTORY / OBSERVED / ASSUMPTION</p>'
-        '<h2>4개 낙폭 사례 × Realty Income 실측 × BTC 가정</h2><p>1999년 말=100으로 맞춘 2000~2004 Realty Income 총수익과 닷컴 NASDAQ, 다섯 해 역사 사례를 같은 로그축에서 비교합니다.</p></div>'
-        f'<div class="statistics-chart">{_svg(stress_chart)}</div><div class="statistics-legend">{_legend(stress_chart)}</div>'
-        '<div class="plain-insight"><article><span>실측</span><strong>Realty Income</strong><p>2000~2004 실제 배당재투자 proxy입니다.</p></article><article><span>역사</span><strong>선택 사례 4개</strong><p>발생확률 표본이 아닌 지정 사례입니다.</p></article><article><span>조건부 가정</span><strong>Bitcoin</strong><p>주식 조정 자금 35%가 이동하고 흡수탄력성 1.60이라는 가정선입니다.</p></article></div>'
-        f'<div class="plain-insight">{episode_cards}</div><div class="plain-insight">{breaker_cards}</div>'
+        '<strong>AI 버블 조정이 5년 사이클로 이어진다면</strong></div><p>역사 범위와 BTC 조건부 가정을 분리해 선의 역할을 바로 구분합니다.</p></section>'
+        '<section class="scenario-v52-main"><div class="scenario-v52-section-title"><p class="eyebrow">TWO LAYERS · SAME LOG SCALE</p>'
+        '<h2>역사 낙폭 범위와 BTC 조건부 경로</h2><p>네 사례는 개별 선 대신 중앙값과 25~75% 범위로 요약하고, Bitcoin 가정은 별도 패널에서 비교합니다.</p></div>'
+        '<div class="multi-year-stress-grid">'
+        '<article class="multi-year-stress-panel"><header><span>HISTORY RANGE</span><h3>역사적 주식 낙폭</h3><p>선택 사례 4개의 공통 범위와 닷컴 NASDAQ 실측만 남겼습니다.</p></header>'
+        f'<div class="statistics-chart">{_svg(history_chart, "선택한 역사 낙폭 사례의 중앙값과 범위", shared_domain)}</div>'
+        f'<div class="multi-year-stress-legend">{_legend(history_chart)}</div></article>'
+        '<article class="multi-year-stress-panel"><header><span>CONDITIONAL PATH</span><h3>BTC 자금이동 가정</h3><p>주식 조정 자금의 일부가 Bitcoin으로 이동한다는 조건만 분리해 봅니다.</p></header>'
+        f'<div class="statistics-chart">{_svg(rotation_chart, "주식 스트레스와 Bitcoin 자금이동 조건부 경로", shared_domain)}</div>'
+        f'<div class="multi-year-stress-legend">{_legend(rotation_chart)}</div></article></div>'
+        '<div class="multi-year-stress-endpoints"><p><span>선택 사례별 5년 종점</span><small>시작=100 · 배당 포함 S&amp;P 계열</small></p>'
+        f'<div>{episode_endpoints}</div></div>'
+        f'<div class="multi-year-stress-reading"><p><span>역사 범위</span><strong>중앙값 {composite["center_index"][-1]:.1f}</strong><small>네 지정 사례를 확률처럼 세지 않고 로그공간에서 요약한 값입니다.</small></p>'
+        f'<p><span>BTC 조건부</span><strong>중심 {btc_rotation_center[-1]:.1f}</strong><small>이동비중 35%·흡수탄력성 1.60을 둔 가정이며 관측치나 가격 전망이 아닙니다.</small></p></div>'
         f'<p class="chart-note">연도별 사례 n={"/".join(str(value) for value in composite["observations_by_horizon"])} · beta 관측 {payload["ai_bust_counterfactual"]["beta_observations"]}일 · as_of {html.escape(str(payload["as_of"]))}</p></section>'
     )
     validate_multi_year_stress(payload)

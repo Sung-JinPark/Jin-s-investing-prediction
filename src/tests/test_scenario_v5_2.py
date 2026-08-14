@@ -666,7 +666,10 @@ def test_projection_preserves_direction_changes() -> None:
         ROOT, cutoff, maximum_age_trading_days=1,
     )
     dates = projected["conditional_small_multiples"]["dates"]
-    end = max(index for index, day in enumerate(dates) if day <= "2026-11-10")
+    near_term_end = (
+        datetime.fromisoformat(dates[0]) + timedelta(days=90)
+    ).date().isoformat()
+    end = max(index for index, day in enumerate(dates) if day <= near_term_end)
     assert end + 1 >= 14
 
     expected_minimum_runs = {"S1": 3, "S2": 10, "S3": 4}
