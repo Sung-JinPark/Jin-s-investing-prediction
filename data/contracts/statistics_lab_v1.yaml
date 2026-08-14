@@ -46,8 +46,11 @@ sources:
   yahoo_chart:
     endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
     series:
-      KOSPI_2026_DAILY: {symbol: ^KS11, native_frequency: daily_close, unit: index, window: [2026-01-01, last_completed_session_only], active_session_excluded: true, role: KOSPI_2026_normalized_daily_path}
-      BTC_2021_DAILY: {symbol: BTC-USD, native_frequency: daily_close_24_7, unit: usd, window: [2021-01-01, 2021-12-31], role: Bitcoin_2021_normalized_daily_path}
+      KOSPI_DAILY: {symbol: ^KS11, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: Korea_main_board_benchmark_and_base_calendar}
+      KOSDAQ_DAILY: {symbol: ^KQ11, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: Korea_growth_market_breadth_comparator}
+      KRX_SEMICON_PROXY_DAILY: {symbol: 091160.KS, native_frequency: daily_close, unit: krw, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: KRX_Semiconductor_Index_tracking_ETF_concentration_proxy}
+      TAIEX_DAILY: {symbol: ^TWII, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: external_Asia_semiconductor_market_confirmation}
+      SOX_DAILY: {symbol: ^SOX, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: strictly_prior_US_semiconductor_close_impulse}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s
@@ -105,18 +108,26 @@ macro_warning_policy:
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
   inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
   recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
-  kospi_bitcoin_daily_analog:
-    series: [KOSPI_2026_DAILY, BTC_2021_DAILY]
-    normalization: matched_session_volatility_scaled_cumulative_log_return_start_100
-    calibration: KOSPI_completed_sessions_and_Bitcoin_2021_closes_at_matching_month_day
-    scale_factor: sample_std_KOSPI_log_return_divided_by_sample_std_Bitcoin_log_return
-    alignment: calendar_day_of_year
+  kospi_market_breadth_daily:
+    series: [KOSPI_DAILY, KOSDAQ_DAILY, KRX_SEMICON_PROXY_DAILY]
+    normalization: each_series_first_2026_actual_close_equals_100
+    alignment: actual_calendar_day_of_year
     time_warping: prohibited
     optimized_lag: prohibited
-    KOSPI_active_session: excluded
-    KOSPI_future_extension: prohibited
-    Bitcoin_window: completed_2021_actuals
-    interpretation: amplitude_adjusted_visual_historical_analog_not_relative_price_ratio_or_forecast
+    active_session: excluded
+    future_extension: prohibited
+    interpretation: descriptive_market_breadth_and_semiconductor_concentration_not_forecast
+    probability_output: prohibited
+  kospi_external_semiconductor_pulse:
+    series: [KOSPI_DAILY, TAIEX_DAILY, SOX_DAILY]
+    display: rolling_20_session_log_return_percent
+    taiex_alignment: latest_close_on_or_before_each_KOSPI_date
+    sox_alignment: latest_close_strictly_before_each_KOSPI_date
+    history_diagnostic_window: 2020_to_last_completed_session
+    time_warping: prohibited
+    optimized_lag: prohibited
+    future_extension: prohibited
+    interpretation: descriptive_correlation_and_conditional_frequency_not_causation_or_forecast
     probability_output: prohibited
 
 ipo_classification:

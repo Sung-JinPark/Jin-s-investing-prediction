@@ -1028,8 +1028,8 @@ function statisticsValue(unit,value){
   if(!Number.isFinite(n))return '—';
   if(unit==='count')return `${Math.round(n).toLocaleString('ko-KR')}건`;
   if(unit==='multiple')return `${n.toFixed(1)}×`;
-  if(unit==='cycle_start_100'||unit==='year_start_100'||unit==='volatility_matched_log_index_100')return `${n.toFixed(0)}`;
-  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value')return `${n>=0?'+':''}${n.toFixed(1)}%`;
+  if(unit==='cycle_start_100'||unit==='year_start_100')return `${n.toFixed(0)}`;
+  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value'||unit==='percent_20d_log_return')return `${n>=0?'+':''}${n.toFixed(1)}%`;
   if(unit==='percentage_point_change')return `${n>=0?'+':''}${n.toFixed(1)}%p`;
   if(unit==='neutral_line_distance')return `${n>=0?'+':''}${n.toFixed(1)}p`;
   if(unit==='standard_deviation_index')return `${n>=0?'+':''}${n.toFixed(2)}`;
@@ -1055,7 +1055,9 @@ function statisticsChartSvg(chart,alignment={}){
     .sort((a,b)=>a[0]-b[0]);
   const line=values=>values.map((row,index)=>`${index?'L':'M'}${X(row.period).toFixed(1)},${Y(row.value).toFixed(1)}`).join(' ');
   const tickY=value=>MT+PH*(1-(value-low)/(high-low));
-  const calendarLabel=chart.unit==='volatility_matched_log_index_100'?'공통 월일 시작점 100, 비트코인 로그수익률 변동성 맞춤.':'각 연도 첫 실제 종가 100, 같은 월·일 위치 비교.';
+  const calendarLabel=chart.unit==='percent_20d_log_return'
+    ?'실제 20거래일 로그수익률. 미국 SOX는 한국 날짜보다 엄격히 이전인 종가만 사용.'
+    :'각 지수의 2026년 첫 실제 종가 100. 변동성·날짜 조정 없음.';
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?calendarLabel:'닷컴 1995~1999와 AI 2023~2027 비교.'} ${useLog?'세로축 log(1+x). ':''}현재 선은 실제 관측에서 종료" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${calendarAxis?'calendar-day-of-year':'elapsed-month'}">
     ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${tickY(value).toFixed(1)}" y2="${tickY(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(tickY(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,inverse(value)))}</text>`).join('')}
     ${!useLog&&low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}

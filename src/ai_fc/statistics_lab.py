@@ -10,6 +10,7 @@ import time
 import urllib.error
 import urllib.request
 import zipfile
+from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -176,23 +177,55 @@ FRED_SERIES: dict[str, dict[str, str]] = {
 }
 
 DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
-    "KOSPI_2026_DAILY": {
+    "KOSPI_DAILY": {
         "symbol": "^KS11",
-        "title": "KOSPI 2026 daily close",
+        "title": "KOSPI daily close",
         "provider": "Yahoo Finance chart API (underlying benchmark: Korea Exchange KOSPI)",
         "unit": "index",
         "native_frequency": "daily_close",
-        "window_start": "2026-01-01",
+        "window_start": "2020-01-01",
         "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5EKS11/history/",
     },
-    "BTC_2021_DAILY": {
-        "symbol": "BTC-USD",
-        "title": "Bitcoin USD 2021 daily close",
-        "provider": "Yahoo Finance chart API",
-        "unit": "usd",
-        "native_frequency": "daily_close_24_7",
-        "window_start": "2021-01-01",
-        "window_end_exclusive": "2022-01-01",
+    "KOSDAQ_DAILY": {
+        "symbol": "^KQ11",
+        "title": "KOSDAQ daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: Korea Exchange KOSDAQ)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "2020-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5EKQ11/history/",
+    },
+    "KRX_SEMICON_PROXY_DAILY": {
+        "symbol": "091160.KS",
+        "title": "KODEX Semiconductor ETF daily close",
+        "provider": "Yahoo Finance chart API (ETF tracks the KRX Semiconductor Index)",
+        "unit": "krw",
+        "native_frequency": "daily_close",
+        "window_start": "2020-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/091160.KS/history/",
+    },
+    "TAIEX_DAILY": {
+        "symbol": "^TWII",
+        "title": "Taiwan Stock Exchange Capitalization Weighted Stock Index daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: Taiwan Stock Exchange TAIEX)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "2020-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5ETWII/history/",
+    },
+    "SOX_DAILY": {
+        "symbol": "^SOX",
+        "title": "PHLX Semiconductor Sector Index daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: Nasdaq PHLX SOX)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "2020-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
     },
 }
 
@@ -384,112 +417,177 @@ def _calendar_year_index(
     return result
 
 
-def _volatility_matched_daily_analog(
-    kospi_rows: list[dict[str, Any]], bitcoin_rows: list[dict[str, Any]],
-    *, kospi_year: int = 2026, bitcoin_year: int = 2021,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
-    """Scale Bitcoin log returns to KOSPI volatility without warping time.
-
-    Bitcoin closes are sampled at the month/day of each completed KOSPI session
-    for calibration. The fixed volatility ratio is then applied to the full
-    historical Bitcoin path from the common month/day anchor onward. Turning
-    points and dates are never shifted to improve visual similarity.
-    """
-    selected_kospi = [
-        row for row in sorted(kospi_rows, key=lambda item: item["date"])
-        if date.fromisoformat(str(row["date"])).year == kospi_year
-    ]
-    selected_bitcoin = [
-        row for row in sorted(bitcoin_rows, key=lambda item: item["date"])
-        if date.fromisoformat(str(row["date"])).year == bitcoin_year
-    ]
-    if len(selected_kospi) < 3 or len(selected_bitcoin) < 3:
-        raise StatisticsLabError("daily analog needs at least three observations per asset")
-
-    bitcoin_by_month_day: dict[tuple[int, int], dict[str, Any]] = {}
-    for row in selected_bitcoin:
-        observed = date.fromisoformat(str(row["date"]))
-        bitcoin_by_month_day[(observed.month, observed.day)] = row
-
-    matched: list[tuple[dict[str, Any], dict[str, Any]]] = []
-    for row in selected_kospi:
-        observed = date.fromisoformat(str(row["date"]))
-        peer = bitcoin_by_month_day.get((observed.month, observed.day))
-        if peer is not None:
-            matched.append((row, peer))
-    if len(matched) < 3:
-        raise StatisticsLabError("daily analog has too few matched calendar sessions")
-
-    kospi_returns: list[float] = []
-    bitcoin_returns: list[float] = []
-    for (prior_kospi, prior_bitcoin), (current_kospi, current_bitcoin) in zip(
-        matched, matched[1:], strict=False,
-    ):
-        kospi_prior = float(prior_kospi["value"])
-        kospi_current = float(current_kospi["value"])
-        bitcoin_prior = float(prior_bitcoin["value"])
-        bitcoin_current = float(current_bitcoin["value"])
-        if min(kospi_prior, kospi_current, bitcoin_prior, bitcoin_current) <= 0:
-            raise StatisticsLabError("daily analog cannot use non-positive closes")
-        kospi_returns.append(math.log(kospi_current / kospi_prior))
-        bitcoin_returns.append(math.log(bitcoin_current / bitcoin_prior))
-
-    kospi_volatility = statistics.stdev(kospi_returns)
-    bitcoin_volatility = statistics.stdev(bitcoin_returns)
-    if not math.isfinite(kospi_volatility) or kospi_volatility <= 0:
-        raise StatisticsLabError("daily analog KOSPI volatility invalid")
-    if not math.isfinite(bitcoin_volatility) or bitcoin_volatility <= 0:
-        raise StatisticsLabError("daily analog Bitcoin volatility invalid")
-    volatility_scale = kospi_volatility / bitcoin_volatility
-
-    kospi_index = _calendar_year_index(selected_kospi, kospi_year)
-    bitcoin_anchor = matched[0][1]
-    bitcoin_anchor_date = date.fromisoformat(str(bitcoin_anchor["date"]))
-    bitcoin_anchor_value = float(bitcoin_anchor["value"])
-    bitcoin_start = date(bitcoin_year, 1, 1)
-    bitcoin_scaled: list[dict[str, Any]] = []
-    for row in selected_bitcoin:
+def _positive_daily_rows(rows: list[dict[str, Any]]) -> list[tuple[date, float]]:
+    result: list[tuple[date, float]] = []
+    for row in sorted(rows, key=lambda item: item["date"]):
         observed = date.fromisoformat(str(row["date"]))
         value = float(row["value"])
-        if observed < bitcoin_anchor_date:
-            continue
         if not math.isfinite(value) or value <= 0:
-            raise StatisticsLabError("daily analog Bitcoin close invalid")
-        bitcoin_scaled.append({
-            "period": (observed - bitcoin_start).days,
-            "date": observed.isoformat(),
-            "value": 100.0 * math.exp(volatility_scale * math.log(value / bitcoin_anchor_value)),
-        })
+            raise StatisticsLabError("daily market comparison cannot use non-positive closes")
+        result.append((observed, value))
+    if len(result) < 3:
+        raise StatisticsLabError("daily market comparison needs at least three observations")
+    return result
 
-    direction_matches = sum(
-        1 for left, right in zip(kospi_returns, bitcoin_returns, strict=True)
-        if (left > 0) == (right > 0) or (left == 0 and right == 0)
-    )
-    return kospi_index, bitcoin_scaled, {
-        "method": "matched_session_volatility_scaled_cumulative_log_return",
-        "formula": "100 * exp((sigma_kospi / sigma_bitcoin) * cumulative_bitcoin_log_return)",
-        "anchor": {
-            "kospi_date": str(matched[0][0]["date"]),
-            "bitcoin_date": str(bitcoin_anchor["date"]),
-            "index_value": 100.0,
-        },
-        "calibration": {
-            "kospi_end": str(matched[-1][0]["date"]),
-            "bitcoin_end": str(matched[-1][1]["date"]),
-            "matched_sessions": len(matched),
-            "return_observations": len(kospi_returns),
-            "kospi_log_return_volatility": round(kospi_volatility, 8),
-            "bitcoin_log_return_volatility": round(bitcoin_volatility, 8),
-            "volatility_scale": round(volatility_scale, 8),
-            "return_correlation": round(
-                float(statistics.correlation(kospi_returns, bitcoin_returns)), 4
+
+def _correlation(left: list[float], right: list[float]) -> float:
+    if len(left) != len(right) or len(left) < 3:
+        raise StatisticsLabError("daily market correlation sample invalid")
+    if statistics.stdev(left) <= 0 or statistics.stdev(right) <= 0:
+        raise StatisticsLabError("daily market correlation variance invalid")
+    return float(statistics.correlation(left, right))
+
+
+def _rolling_sums(values: list[float], sessions: int) -> list[float]:
+    if sessions < 2 or len(values) < sessions:
+        raise StatisticsLabError("rolling market window invalid")
+    return [sum(values[index - sessions + 1:index + 1]) for index in range(sessions - 1, len(values))]
+
+
+def _aligned_log_returns(
+    base_rows: list[dict[str, Any]], candidate_rows: list[dict[str, Any]], *,
+    candidate_close: str,
+) -> list[dict[str, Any]]:
+    """Align candidate returns without moving or optimizing dates.
+
+    ``same_or_prior`` is used for markets whose close is already observable by
+    the KOSPI close. ``strictly_prior`` is used for the U.S. session so a KOSPI
+    return on day D only sees the U.S. close dated before D.
+    """
+    base = _positive_daily_rows(base_rows)
+    candidate = _positive_daily_rows(candidate_rows)
+    candidate_dates = [row[0] for row in candidate]
+    candidate_values = [row[1] for row in candidate]
+    aligned: list[dict[str, Any]] = []
+    for (base_date_0, base_value_0), (base_date_1, base_value_1) in zip(
+        base, base[1:], strict=False,
+    ):
+        if candidate_close == "strictly_prior":
+            candidate_index_0 = bisect_left(candidate_dates, base_date_0) - 1
+            candidate_index_1 = bisect_left(candidate_dates, base_date_1) - 1
+        elif candidate_close == "same_or_prior":
+            candidate_index_0 = bisect_right(candidate_dates, base_date_0) - 1
+            candidate_index_1 = bisect_right(candidate_dates, base_date_1) - 1
+        else:
+            raise StatisticsLabError("daily market close policy invalid")
+        if candidate_index_0 < 0 or candidate_index_1 <= candidate_index_0:
+            continue
+        aligned.append({
+            "date": base_date_1.isoformat(),
+            "base_return": math.log(base_value_1 / base_value_0),
+            "candidate_return": math.log(
+                candidate_values[candidate_index_1] / candidate_values[candidate_index_0]
             ),
-            "direction_agreement": round(direction_matches / len(kospi_returns), 4),
-        },
-        "time_warping": False,
-        "optimized_lag": False,
-        "forecast_extension": False,
+        })
+    if len(aligned) < 20:
+        raise StatisticsLabError("daily market aligned sample too small")
+    return aligned
+
+
+def _aligned_return_diagnostic(
+    aligned: list[dict[str, Any]], *, sessions: int = 20,
+) -> dict[str, Any]:
+    base_returns = [float(row["base_return"]) for row in aligned]
+    candidate_returns = [float(row["candidate_return"]) for row in aligned]
+    direction_matches = sum(
+        (left >= 0) == (right >= 0)
+        for left, right in zip(base_returns, candidate_returns, strict=True)
+    )
+    return {
+        "sample_start": aligned[0]["date"],
+        "sample_end": aligned[-1]["date"],
+        "observations": len(aligned),
+        "daily_log_return_correlation": round(_correlation(base_returns, candidate_returns), 4),
+        "rolling_20_session_correlation": round(_correlation(
+            _rolling_sums(base_returns, sessions),
+            _rolling_sums(candidate_returns, sessions),
+        ), 4),
+        "direction_agreement": round(direction_matches / len(aligned), 4),
     }
+
+
+def _sox_quintile_diagnostic(aligned: list[dict[str, Any]]) -> dict[str, Any]:
+    training = [row for row in aligned if str(row["date"]) < "2026-01-01"]
+    if len(training) < 100:
+        raise StatisticsLabError("SOX conditional training sample too small")
+    sorted_candidate = sorted(float(row["candidate_return"]) for row in training)
+    cuts = [sorted_candidate[int(len(sorted_candidate) * rank / 5)] for rank in range(1, 5)]
+
+    def bucket(value: float) -> int:
+        return sum(value > cut for cut in cuts)
+
+    def summarize(rows: list[dict[str, Any]], bucket_index: int) -> dict[str, Any]:
+        values = [
+            float(row["base_return"]) for row in rows
+            if bucket(float(row["candidate_return"])) == bucket_index
+        ]
+        if not values:
+            raise StatisticsLabError("SOX conditional bucket empty")
+        return {
+            "observations": len(values),
+            "mean_next_kospi_log_return_pct": round(statistics.mean(values) * 100.0, 3),
+            "positive_share": round(sum(value > 0 for value in values) / len(values), 4),
+        }
+
+    current = [row for row in aligned if str(row["date"]) >= "2026-01-01"]
+    return {
+        "training_window": f"{training[0]['date']}_to_{training[-1]['date']}",
+        "quintile_cut_log_return_pct": [round(value * 100.0, 3) for value in cuts],
+        "training_lowest_quintile": summarize(training, 0),
+        "training_highest_quintile": summarize(training, 4),
+        "current_highest_quintile": summarize(current, 4),
+        "interpretation": "descriptive_conditional_frequency_not_probability_or_causation",
+    }
+
+
+def _session_log_return_points(
+    rows: list[dict[str, Any]], *, year: int, sessions: int = 20,
+) -> list[dict[str, Any]]:
+    selected = _positive_daily_rows(rows)
+    start = date(year, 1, 1)
+    result = []
+    for index in range(sessions, len(selected)):
+        observed, value = selected[index]
+        if observed.year != year:
+            continue
+        prior_value = selected[index - sessions][1]
+        result.append({
+            "period": (observed - start).days,
+            "date": observed.isoformat(),
+            "value": math.log(value / prior_value) * 100.0,
+        })
+    if not result:
+        raise StatisticsLabError("daily market rolling return path empty")
+    return result
+
+
+def _prior_close_log_return_points(
+    base_rows: list[dict[str, Any]], candidate_rows: list[dict[str, Any]], *,
+    year: int, sessions: int = 20,
+) -> list[dict[str, Any]]:
+    base = _positive_daily_rows(base_rows)
+    candidate = _positive_daily_rows(candidate_rows)
+    candidate_dates = [row[0] for row in candidate]
+    candidate_values = [row[1] for row in candidate]
+    mapped: list[tuple[date, float]] = []
+    for observed, _value in base:
+        candidate_index = bisect_left(candidate_dates, observed) - 1
+        if candidate_index >= 0:
+            mapped.append((observed, candidate_values[candidate_index]))
+    start = date(year, 1, 1)
+    result = []
+    for index in range(sessions, len(mapped)):
+        observed, value = mapped[index]
+        if observed.year != year:
+            continue
+        result.append({
+            "period": (observed - start).days,
+            "date": observed.isoformat(),
+            "value": math.log(value / mapped[index - sessions][1]) * 100.0,
+        })
+    if not result:
+        raise StatisticsLabError("prior-close rolling return path empty")
+    return result
 
 
 def _indexed(points: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -837,7 +935,7 @@ def build_statistics_lab(
     generated_date = datetime.fromisoformat(generated_at.replace("Z", "+00:00")).date()
     latest_kospi_date = max(
         date.fromisoformat(str(row["date"]))
-        for row in source_rows["KOSPI_2026_DAILY"]
+        for row in source_rows["KOSPI_DAILY"]
     )
     if latest_kospi_date >= generated_date:
         raise StatisticsLabError(
@@ -906,13 +1004,49 @@ def build_statistics_lab(
     dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
 
     dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
-    kospi_2026, bitcoin_2021, kospi_bitcoin_transform = _volatility_matched_daily_analog(
-        source_rows["KOSPI_2026_DAILY"], source_rows["BTC_2021_DAILY"],
+    kospi_2026 = _calendar_year_index(source_rows["KOSPI_DAILY"], 2026)
+    kosdaq_2026 = _calendar_year_index(source_rows["KOSDAQ_DAILY"], 2026)
+    semicon_2026 = _calendar_year_index(source_rows["KRX_SEMICON_PROXY_DAILY"], 2026)
+    kospi_20d = _session_log_return_points(source_rows["KOSPI_DAILY"], year=2026)
+    taiex_20d = _session_log_return_points(source_rows["TAIEX_DAILY"], year=2026)
+    sox_prior_20d = _prior_close_log_return_points(
+        source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"], year=2026,
     )
-    bitcoin_at_kospi_progress = next(
-        point for point in reversed(bitcoin_2021)
-        if int(point["period"]) <= int(kospi_2026[-1]["period"])
+    kosdaq_aligned = _aligned_log_returns(
+        source_rows["KOSPI_DAILY"], source_rows["KOSDAQ_DAILY"],
+        candidate_close="same_or_prior",
     )
+    semicon_aligned = _aligned_log_returns(
+        source_rows["KOSPI_DAILY"], source_rows["KRX_SEMICON_PROXY_DAILY"],
+        candidate_close="same_or_prior",
+    )
+    taiex_aligned = _aligned_log_returns(
+        source_rows["KOSPI_DAILY"], source_rows["TAIEX_DAILY"],
+        candidate_close="same_or_prior",
+    )
+    sox_aligned = _aligned_log_returns(
+        source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"],
+        candidate_close="strictly_prior",
+    )
+    market_breadth_diagnostics = {
+        "measurement_window": "2020_to_last_completed_session",
+        "kosdaq": _aligned_return_diagnostic(kosdaq_aligned),
+        "semiconductor_proxy": _aligned_return_diagnostic(semicon_aligned),
+        "normalization": "each_series_first_2026_close_equals_100",
+        "time_warping": False,
+        "optimized_lag": False,
+        "forecast_extension": False,
+    }
+    external_pulse_diagnostics = {
+        "measurement_window": "2020_to_last_completed_session",
+        "taiex_same_or_prior_close": _aligned_return_diagnostic(taiex_aligned),
+        "sox_strictly_prior_us_close": _aligned_return_diagnostic(sox_aligned),
+        "sox_conditional_quintiles": _sox_quintile_diagnostic(sox_aligned),
+        "display_window_sessions": 20,
+        "time_warping": False,
+        "optimized_lag": False,
+        "forecast_extension": False,
+    }
     dot_hmi: list[dict[str, Any]] = []
     cur_hmi: list[dict[str, Any]] = []
     if hmi_reference is not None:
@@ -991,46 +1125,48 @@ def build_statistics_lab(
                "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
                "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
                [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
-        _chart("kospi_2026_bitcoin_2021_daily", "KOSPI 2026 일봉 vs Bitcoin 2021 일봉", "economy", "volatility_matched_log_index_100",
-               "같은 월·일의 KOSPI 거래일만 골라 두 자산의 로그수익률 변동성을 맞춘 뒤 누적 경로를 비교합니다. KOSPI는 마지막 완료 거래일에서 멈추고 Bitcoin은 2021년 실제 경로만 표시합니다.",
-               "변동성 크기만 조정하며 날짜 이동·시점 최적화는 하지 않습니다. 모양이 비슷해도 인과관계나 KOSPI의 향후 예측을 뜻하지 않습니다.",
-               [_series("KOSPI 2026", "current", kospi_2026, "#28756a"), _series("Bitcoin 2021 · 변동성 맞춤", "historical", bitcoin_2021, "#f07822")], ["KOSPI_2026_DAILY", "BTC_2021_DAILY"]),
+        _chart("kospi_market_breadth_2026_daily", "KOSPI 상승은 시장 전체로 퍼졌나", "economy", "year_start_100",
+               "2026년 첫 실제 종가를 100으로 맞춰 KOSPI·KOSDAQ·국내 반도체의 누적 경로를 비교합니다. 세 선은 변동성이나 날짜를 조정하지 않은 실제 일봉입니다.",
+               "KODEX 반도체는 KRX 반도체 지수를 추종하는 거래 가능한 대용치입니다. 지수 구성 중복 때문에 이 장표는 예측이 아니라 국내 상승의 폭과 쏠림을 진단합니다.",
+               [_series("KOSPI", "current", kospi_2026, "#11110f"), _series("KOSDAQ", "current", kosdaq_2026, "#2f6fbb"), _series("KRX 반도체 대용치", "current", semicon_2026, "#e05d26")], ["KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY"]),
+        _chart("kospi_external_semiconductor_pulse", "한국장과 글로벌 반도체 20일 충격", "economy", "percent_20d_log_return",
+               "KOSPI와 대만 TAIEX의 실제 20거래일 로그수익률, 한국장 당일에는 이미 알려진 전일 미국 SOX 종가의 20거래일 로그수익률을 함께 봅니다.",
+               "SOX는 한국 날짜보다 엄격히 이전인 미국 종가만 사용합니다. 상관과 조건부 빈도는 동행 진단이며 인과관계·확정 확률·매매 신호가 아닙니다.",
+               [_series("KOSPI 20일", "current", kospi_20d, "#11110f"), _series("대만 TAIEX 20일", "current", taiex_20d, "#28756a"), _series("전일 SOX 20일", "current", sox_prior_20d, "#e05d26")], ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]),
     ]
 
-    kospi_chart = charts[-1]
-    kospi_chart["axis_type"] = "calendar_day_of_year"
-    kospi_chart["max_period"] = 364
-    kospi_chart["projection_max_points"] = 366
-    kospi_chart["observed_end_label"] = "KOSPI 2026 실제 관측 종료"
-    kospi_chart["display_unit"] = "변동성 맞춤 · 시작=100"
-    kospi_chart["comparison_transform"] = kospi_bitcoin_transform
-    kospi_chart["detail_rows"] = [
-        {
-            "period": "KOSPI 2026",
-            "label": f"{kospi_2026[0]['date']} → {kospi_2026[-1]['date']}",
-            "value": f"{kospi_2026[-1]['value']:.1f} · {kospi_2026[-1]['value'] - 100:+.1f}%",
-        },
-        {
-            "period": "Bitcoin 2021 변동성 맞춤",
-            "label": f"{bitcoin_2021[0]['date']} → {bitcoin_at_kospi_progress['date']}",
-            "value": f"{bitcoin_at_kospi_progress['value']:.1f} · {bitcoin_at_kospi_progress['value'] - 100:+.1f}%",
-        },
-        {
-            "period": "Bitcoin 2021 변동성 맞춤 연말",
-            "label": f"{bitcoin_2021[0]['date']} → {bitcoin_2021[-1]['date']}",
-            "value": f"{bitcoin_2021[-1]['value']:.1f} · {bitcoin_2021[-1]['value'] - 100:+.1f}%",
-        },
-    ]
-    kospi_chart["research_context"] = [
+    breadth_chart, pulse_chart = charts[-2:]
+    for chart in (breadth_chart, pulse_chart):
+        chart["axis_type"] = "calendar_day_of_year"
+        chart["max_period"] = 364
+        chart["projection_max_points"] = 366
+        chart["observed_end_label"] = "마지막 완료 거래일"
+    breadth_chart["display_unit"] = "실제 일봉 · 시작=100"
+    breadth_chart["market_breadth_diagnostics"] = market_breadth_diagnostics
+    breadth_chart["research_context"] = [
         {
             "provider": "KRX",
-            "finding": "KOSPI is a market-capitalization-weighted benchmark published by Korea Exchange.",
-            "url": "https://global.krx.co.kr/contents/GLB/03/0301/0301040000/GLB0301040000.jsp",
+            "finding": "KOSPI is the market-cap-weighted main-board benchmark; KOSDAQ is the technology and growth-company market.",
+            "url": "https://global.krx.co.kr/contents/GLB/02/0201/0201010301/GLB0201010301.jsp",
         },
         {
-            "provider": "Yahoo Finance chart API",
-            "finding": "Daily closes are fetched as ^KS11 and BTC-USD with response hashes; the active KOSPI session and future values are excluded.",
-            "url": "https://finance.yahoo.com/quote/%5EKS11/history/",
+            "provider": "Samsung Asset Management",
+            "finding": "KODEX Semiconductor tracks the market-cap-weighted KRX Semiconductor Index.",
+            "url": "https://m.samsungfund.com/etf/product/view.do?id=2ETF07",
+        },
+    ]
+    pulse_chart["display_unit"] = "20거래일 로그수익률"
+    pulse_chart["external_pulse_diagnostics"] = external_pulse_diagnostics
+    pulse_chart["research_context"] = [
+        {
+            "provider": "Nasdaq",
+            "finding": "SOX measures the largest U.S.-listed semiconductor companies under a published methodology.",
+            "url": "https://indexes.nasdaqomx.com/docs/methodology_SOX.pdf",
+        },
+        {
+            "provider": "TWSE",
+            "finding": "TAIEX is the Taiwan Stock Exchange capitalization-weighted market benchmark.",
+            "url": "https://twse-regulation.twse.com.tw/m/en/LawContent.aspx?FID=FL047579",
         },
     ]
 
@@ -1123,10 +1259,18 @@ def build_statistics_lab(
             f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
             "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
         ),
-        "kospi_2026_bitcoin_2021_daily": (
-            f"KOSPI 2026은 첫 거래일 대비 {kospi_2026[-1]['value'] - 100:+.1f}%, "
-            f"변동성을 {kospi_bitcoin_transform['calibration']['volatility_scale']:.2f}배로 맞춘 Bitcoin 2021은 같은 진행일까지 {bitcoin_at_kospi_progress['value'] - 100:+.1f}%입니다. "
-            f"같은 거래간격 수익률 상관은 {kospi_bitcoin_transform['calibration']['return_correlation']:+.2f}이며, 날짜를 움직이지 않았고 남은 2026년 예측선도 아닙니다."
+        "kospi_market_breadth_2026_daily": (
+            f"2026년 KOSPI는 {kospi_2026[-1]['value'] - 100:+.1f}%인데 KOSDAQ은 "
+            f"{kosdaq_2026[-1]['value'] - 100:+.1f}%입니다. 반도체 대용치는 "
+            f"{semicon_2026[-1]['value'] - 100:+.1f}%로 KOSPI보다 "
+            f"{(semicon_2026[-1]['value'] / kospi_2026[-1]['value'] - 1.0) * 100:+.1f}% 앞서, "
+            "현재 상승은 국내 시장 전체보다 대형 반도체에 집중돼 있습니다."
+        ),
+        "kospi_external_semiconductor_pulse": (
+            f"2020년 이후 20거래일 수익률 상관은 KOSPI–TAIEX "
+            f"{external_pulse_diagnostics['taiex_same_or_prior_close']['rolling_20_session_correlation']:+.2f}, "
+            f"KOSPI–전일 SOX {external_pulse_diagnostics['sox_strictly_prior_us_close']['rolling_20_session_correlation']:+.2f}입니다. "
+            "세 선이 함께 약해지면 글로벌 반도체 사이클 둔화, KOSPI만 약하면 한국 고유 위험을 우선 확인합니다."
         ),
     }
     if hmi_reference is not None:
@@ -1264,11 +1408,7 @@ def build_statistics_lab(
             "provider": spec["provider"],
             "unit": spec["unit"],
             "native_frequency": spec["native_frequency"],
-            "source_url": (
-                "https://finance.yahoo.com/quote/%5EKS11/history/"
-                if series_id == "KOSPI_2026_DAILY"
-                else "https://finance.yahoo.com/quote/BTC-USD/history/"
-            ),
+            "source_url": spec["source_url"],
             "request_url": receipt["request_url"],
             "available_at": generated_at,
             "latest_observation": rows[-1]["date"],
@@ -1393,7 +1533,7 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
         raise StatisticsLabError("statistics source ids must be unique")
     known_sources = set(source_ids)
     if not set(DAILY_MARKET_SERIES).issubset(known_sources):
-        raise StatisticsLabError("daily KOSPI/Bitcoin source registry incomplete")
+        raise StatisticsLabError("daily market source registry incomplete")
     try:
         generated_at = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
     except (KeyError, TypeError, ValueError) as exc:
@@ -1414,24 +1554,40 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
-    daily_analog = next(
-        (chart for chart in charts if chart.get("id") == "kospi_2026_bitcoin_2021_daily"),
+    breadth = next(
+        (chart for chart in charts if chart.get("id") == "kospi_market_breadth_2026_daily"),
         None,
     )
-    if daily_analog is None:
-        raise StatisticsLabError("KOSPI/Bitcoin daily analog missing")
-    transform = daily_analog.get("comparison_transform") or {}
-    calibration = transform.get("calibration") or {}
-    if transform.get("method") != "matched_session_volatility_scaled_cumulative_log_return":
-        raise StatisticsLabError("daily analog transform method invalid")
-    if transform.get("time_warping") is not False or transform.get("optimized_lag") is not False:
-        raise StatisticsLabError("daily analog cannot warp or optimize the time axis")
-    if transform.get("forecast_extension") is not False:
-        raise StatisticsLabError("daily analog cannot contain forecast extension")
-    if int(calibration.get("return_observations", 0)) < 2:
-        raise StatisticsLabError("daily analog calibration sample too small")
-    if float(calibration.get("volatility_scale", 0)) <= 0:
-        raise StatisticsLabError("daily analog volatility scale invalid")
+    pulse = next(
+        (chart for chart in charts if chart.get("id") == "kospi_external_semiconductor_pulse"),
+        None,
+    )
+    if breadth is None or pulse is None:
+        raise StatisticsLabError("KOSPI breadth and external pulse charts required")
+    if breadth.get("source_ids") != [
+        "KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY",
+    ]:
+        raise StatisticsLabError("KOSPI breadth sources invalid")
+    if pulse.get("source_ids") != ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]:
+        raise StatisticsLabError("KOSPI external pulse sources invalid")
+    for chart, diagnostics_key in (
+        (breadth, "market_breadth_diagnostics"),
+        (pulse, "external_pulse_diagnostics"),
+    ):
+        diagnostics = chart.get(diagnostics_key) or {}
+        if diagnostics.get("time_warping") is not False:
+            raise StatisticsLabError("daily market chart cannot warp time")
+        if diagnostics.get("optimized_lag") is not False:
+            raise StatisticsLabError("daily market chart cannot optimize lag")
+        if diagnostics.get("forecast_extension") is not False:
+            raise StatisticsLabError("daily market chart cannot contain forecast extension")
+        if chart.get("axis_type") != "calendar_day_of_year" or chart.get("max_period") != 364:
+            raise StatisticsLabError("daily market chart calendar axis invalid")
+    sox_diagnostic = (pulse.get("external_pulse_diagnostics") or {}).get(
+        "sox_strictly_prior_us_close"
+    ) or {}
+    if int(sox_diagnostic.get("observations", 0)) < 20:
+        raise StatisticsLabError("SOX prior-close diagnostic sample too small")
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -1468,8 +1624,7 @@ def refresh_statistics_lab(
         start = date.fromisoformat(spec["window_start"])
         fixed_end = date.fromisoformat(spec["window_end_exclusive"])
         end_exclusive = fixed_end
-        if series_id == "KOSPI_2026_DAILY":
-            end_exclusive = min(fixed_end, generated_time.date())
+        end_exclusive = min(fixed_end, generated_time.date())
         if end_exclusive <= start:
             raise StatisticsLabError(f"daily market window unavailable: {series_id}")
         rows, receipt = market_fetcher(series_id, start, end_exclusive)
@@ -1567,8 +1722,25 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         # the stored audit range in the embedded payload duplicates those values.
         chart_view = {
             key: value for key, value in chart.items()
-            if key not in {"series", "range"}
+            if key not in {
+                "series", "range", "detail_rows", "research_context",
+                "market_breadth_diagnostics", "external_pulse_diagnostics",
+                "comparison_transform", "source_validation",
+            }
         }
+        for diagnostics_key in (
+            "market_breadth_diagnostics", "external_pulse_diagnostics",
+        ):
+            if diagnostics_key in chart:
+                diagnostics = chart[diagnostics_key]
+                chart_view[diagnostics_key] = {
+                    key: diagnostics[key]
+                    for key in ("time_warping", "optimized_lag", "forecast_extension")
+                }
+                if diagnostics_key == "external_pulse_diagnostics":
+                    chart_view[diagnostics_key]["sox_strictly_prior_us_close"] = {
+                        "observations": diagnostics["sox_strictly_prior_us_close"]["observations"],
+                    }
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
