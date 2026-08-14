@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-13T11:34:33+00:00",
+  "baseline_at": "2026-08-14T03:34:35+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
     "calibration/corrections.csv": "c875c68631ade3e73da4492fd5d3e378b42258f1f47f4b196c6ee28fc0db8d94",
@@ -33,7 +33,7 @@
     "data/cross_asset/path_tracking_v2.csv": "4e3426fc6d328fd5cb69decec59384d5ca2d6f2e5877b731c78b085d1c807fb7",
     "data/liquidity/archive/2026-07-31.json": "96a5753ade23521cbfef5109fb686adfeba4398f11216b5782daedaf40b1cf11",
     "data/liquidity/archive/2026-08-07.json": "79a2c5da46e63f4feb1d71d2400fec5387102fe9335440d51e1de27f84c89c08",
-    "data/method_changes.jsonl": "24ff834b3ae11a438ebe0b63be4d0002b6add406befbf8f0fb2a561a71ee7c9e",
+    "data/method_changes.jsonl": "a2d18923976f3c4038e40fbbb8086540a1725dc1ce63f738a8c73c38fd6bfb99",
     "data/ml_history/2026.jsonl": "f53d283558d5938d33d6e803a7f85fbc8536e149959718c0ca26effdc9b7a5d9",
     "data/rate_events/archive/2026-07-31.json": "3f4d9b8ac58cf488b20bb7ecdfe1d314aa662abb1728726c5ffbad79d0a837be",
     "data/rate_events/archive/2026-08-03.json": "b7640421a41f082617d8ceba4840cc51858cceda2b5df0e04ea25f9a8984362d",
@@ -70,8 +70,9 @@
     "data/scenarios/archive/2026-08-10.json": "cadf36328f56d097d7c97bcade679f877b15f6db46b92c050b880d5cd0667959",
     "data/scenarios/archive/2026-08-11.json": "96dc1649971f629dae56b47e24ce664f4ff6895d4de8b92ce9f70c7b22153e51",
     "data/scenarios/archive/2026-08-12.json": "733ee1c35c0ac9df331cd126fe4e4a7ba2485daefc85b6d8d8617d5d48ea735f",
-    "data/scenarios/band_calibration.csv": "816dd4ec3f38e862ff3a0a3e5a9bc8ae7207b1b2a7b1f50e27ecef20b898df7d",
-    "data/scenarios/nasdaq_latest.json": "733ee1c35c0ac9df331cd126fe4e4a7ba2485daefc85b6d8d8617d5d48ea735f",
+    "data/scenarios/archive/2026-08-13.json": "6c38aac0de7ea1da72d085f3a2671890436b6b981cb2ad643e93a9e48794473d",
+    "data/scenarios/band_calibration.csv": "6e12b9e66d70212fab11f221d6fd3523fabdba3af3adcf0f42e00b40725bba40",
+    "data/scenarios/nasdaq_latest.json": "6c38aac0de7ea1da72d085f3a2671890436b6b981cb2ad643e93a9e48794473d",
     "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
     "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
     "data/signals/archive/2026-07-31_CORR-260804-005.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",

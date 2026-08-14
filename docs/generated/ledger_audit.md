@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-08-13T11:34:33+00:00`
-- Latest completed NYSE day: `2026-08-12`
-- Result: accumulating 27 · frozen 1 · stalled 2 · inactive 1 · violation 0 · planned 3
+- Generated: `2026-08-14T03:34:35+00:00`
+- Latest completed NYSE day: `2026-08-13`
+- Result: accumulating 25 · frozen 1 · stalled 4 · inactive 1 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -15,13 +15,13 @@
 | `benchmark_ledger` | event | 1 / 6 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 8 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 15 | 2026-08-12 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
-| `scenario_latest` | trading_daily | 1 | 2026-08-12 | **accumulating** | — |
+| `scenario_archive` | trading_daily | 16 | 2026-08-13 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
+| `scenario_latest` | trading_daily | 1 | 2026-08-13 | **accumulating** | — |
 | `cross_asset_archive` | trading_daily | 14 | 2026-08-12 | **stalled** | missing trading days: 2026-08-04 |
-| `cross_asset_latest` | trading_daily | 1 | 2026-08-12 | **accumulating** | — |
+| `cross_asset_latest` | trading_daily | 1 | 2026-08-12 | **stalled** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 21 | 2026-08-12 | **accumulating** | — |
-| `scenario_band_calibration` | trading_daily | 1 / 15 | 2026-08-12 | **accumulating** | — |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 21 | 2026-08-12 | **stalled** | — |
+| `scenario_band_calibration` | trading_daily | 1 / 21 | 2026-08-13 | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 53 | 2026-08-04 | **accumulating** | — |
 | `signal_archive` | weekly | 4 | 2026-08-07 | **accumulating** | — |
 | `liquidity_archive` | weekly | 2 | 2026-08-07 | **accumulating** | — |
@@ -36,7 +36,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-08-13 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-08-14 | **accumulating** | — |
 | `research_pack` | monthly | 2 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
