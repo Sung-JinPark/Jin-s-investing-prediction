@@ -102,6 +102,51 @@ def _source_anchor(root: Path, row: dict[str, Any]) -> float | None:
     return float(match.group(1).replace(",", "")) if match else None
 
 
+def _market_history_record_matches(source_path: Path, evidence: dict[str, Any]) -> bool:
+    """Verify an immutable market record inside an append-only JSONL history.
+
+    Older V5.1 candidates recorded the hash of the whole history file.  A valid
+    append therefore changes that envelope hash even though the referenced
+    observation is untouched.  Validate the exact released item instead; all
+    other source types retain strict whole-file hashing.
+    """
+    if evidence.get("origin_type") != "market_implied":
+        return False
+    release = _aware(str(evidence.get("origin_release_id"))).astimezone(timezone.utc)
+    try:
+        item_index = int(str(evidence.get("view_id", "")).rsplit(":", 2)[-2])
+    except (TypeError, ValueError):
+        return False
+    try:
+        lines = source_path.read_text(encoding="utf-8").splitlines()
+        for line in lines:
+            if not line.strip():
+                continue
+            payload = json.loads(line)
+            if payload.get("kind") != "market":
+                continue
+            run_ts = datetime.fromisoformat(str(payload.get("run_ts")))
+            if run_ts.tzinfo is None:
+                run_ts = run_ts.replace(tzinfo=timezone.utc)
+            else:
+                run_ts = run_ts.astimezone(timezone.utc)
+            if run_ts != release:
+                continue
+            items = payload.get("market", [])
+            if item_index < 0 or item_index >= len(items):
+                return False
+            item = items[item_index]
+            return (
+                str(item.get("question_id", "")) == str(evidence.get("condition", ""))
+                and str(item.get("source", "")) == str(evidence.get("source_id", ""))
+                and float(item.get("prob")) == float(evidence.get("target"))
+                and (item.get("detail") or {}) == (evidence.get("detail") or {})
+            )
+    except (OSError, ValueError, TypeError, json.JSONDecodeError):
+        return False
+    return False
+
+
 def validate_approved_report_view(payload: dict[str, Any]) -> list[str]:
     """Return every strict approved-report schema violation."""
     required = {
@@ -716,7 +761,13 @@ def validate_candidate_v5_1(payload: dict[str, Any], root: Path | None = None) -
                     errors.append(f"source snapshot {key} changed")
         for row in payload.get("evidence_views", []):
             source_path = root / str(row.get("source_path", ""))
-            if not source_path.is_file() or file_hash(source_path) != row.get("source_sha256"):
+            exact_hash = source_path.is_file() and file_hash(source_path) == row.get("source_sha256")
+            immutable_jsonl_record = (
+                source_path.is_file()
+                and source_path.as_posix().endswith("data/ml_history/2026.jsonl")
+                and _market_history_record_matches(source_path, row)
+            )
+            if not exact_hash and not immutable_jsonl_record:
                 errors.append(f"evidence source hash changed: {row.get('view_id')}")
         try:
             paths, _ = reproduce_legacy_prior(

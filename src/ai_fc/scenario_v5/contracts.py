@@ -49,6 +49,12 @@ LF_CANONICAL_PROTECTED_PATHS = (
     "data/ai_capital_cycle",
 )
 
+# OpenTimestamps rewrites its proof envelope after the forecast hash has been
+# committed.  The proof remains protected and independently audited, but its
+# refresh is not a model input change and must not invalidate a V5.2 display
+# candidate built from the same forecast ledger bytes.
+RUNTIME_AUXILIARY_REFRESH_PATHS = frozenset({"forecasts/.hashes.ots"})
+
 
 def load_contracts(root: Path) -> dict[str, Any]:
     result: dict[str, Any] = {}
@@ -191,14 +197,22 @@ def compare_protected_append_only(
     new = after.get("files", {})
     added = sorted(set(new) - set(old))
     removed = sorted(set(old) - set(new))
-    changed = sorted(path for path in set(old) & set(new) if old[path] != new[path])
+    all_changed = sorted(path for path in set(old) & set(new) if old[path] != new[path])
+    refreshed_auxiliary = [
+        path for path in all_changed if path in RUNTIME_AUXILIARY_REFRESH_PATHS
+    ]
+    changed = [
+        path for path in all_changed if path not in RUNTIME_AUXILIARY_REFRESH_PATHS
+    ]
     return {
         "ok": not (removed or changed),
         "append_only_consistent": not (removed or changed),
         "new_files_allowed": True,
+        "refreshed_auxiliary_proofs_allowed": True,
         "added": added,
         "removed": removed,
         "changed": changed,
+        "refreshed_auxiliary": refreshed_auxiliary,
         "before_manifest_sha256": before.get("manifest_sha256"),
         "after_manifest_sha256": after.get("manifest_sha256"),
     }

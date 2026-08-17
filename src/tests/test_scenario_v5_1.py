@@ -147,6 +147,29 @@ def test_ess_visibility_probability_space_and_source_hash_mutations() -> None:
     assert any("cluster strength cap exceeded" in error for error in validate_candidate_v5_1(_rehash(payload))["errors"])
 
 
+def test_append_only_market_history_growth_preserves_referenced_evidence() -> None:
+    payload = _candidate()
+    market_rows = [
+        row for row in payload["evidence_views"]
+        if row.get("source_path") == "data/ml_history/2026.jsonl"
+    ]
+    assert market_rows
+    result = validate_candidate_v5_1(_rehash(payload), ROOT)
+    assert not any(
+        f"evidence source hash changed: {row['view_id']}" in result["errors"]
+        for row in market_rows
+    )
+
+    mutated = deepcopy(payload)
+    target = next(
+        row for row in mutated["evidence_views"]
+        if row.get("source_path") == "data/ml_history/2026.jsonl"
+    )
+    target["target"] = float(target["target"]) + .001
+    result = validate_candidate_v5_1(_rehash(mutated), ROOT)
+    assert f"evidence source hash changed: {target['view_id']}" in result["errors"]
+
+
 def test_future_and_naive_available_at_fail() -> None:
     payload = _candidate()
     payload["evidence_views"][0]["available_at"] = "2026-08-01T00:00:00"

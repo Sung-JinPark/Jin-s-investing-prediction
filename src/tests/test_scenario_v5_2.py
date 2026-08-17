@@ -60,6 +60,13 @@ def test_numerical_model_hash_ignores_only_machine_epsilon_noise() -> None:
     assert canonical_numerical_hash(baseline) != canonical_numerical_hash(material_change)
 
 
+def test_structural_counterfactual_hashes_use_cross_platform_precision() -> None:
+    source = (ROOT / "src/ai_fc/scenario_v5_2/engine.py").read_text(
+        encoding="utf-8"
+    )
+    assert source.count("decimal_places=10") >= 2
+
+
 def test_review_package_uses_central_review_tree() -> None:
     assert PACKAGE_RELATIVE.parent.as_posix() == "reports/reviews/current/scenario_v5_2"
 
@@ -591,7 +598,7 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         "rules_version": "weights-v3+complete-separation-v1",
     }
     assert fresh["governance"]["champion_eligible"] is False
-    assert fresh["governance"]["default_surface"] == "research_only_explicit_route"
+    assert fresh["governance"]["default_surface"] == "customer_default_display_only"
     assert fresh["governance"]["gates"]["direct_event_observations"] == {
         "observations": 1, "minimum": 60, "pass": False,
     }
@@ -711,9 +718,9 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "let rangeKey='quarter'" in script
     assert "A · B · C 분리" in script
     assert "C는 직접 입력하지 않습니다" in script
-    assert "후보 검증 게이트 차단 — 이전 승인 모델 표시 중" in script
-    assert "조용한 폴백을 허용하지 않습니다" in script
-    assert "#future/research" in script
+    assert "이전 방식의 그래프로 자동 전환하지 않습니다" in script
+    assert "a candidate failure must never silently replace the requested chart" in script
+    assert "modelView:'research'" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script
     assert "같은 DB를 색만 바꾼 그래프가 아닙니다" in script
@@ -740,6 +747,9 @@ def test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2() -> Non
         assert "scenario-v5-2-build --force" in source
         assert "scenario-v5-2-verify --replay" in source
         assert source.index("scenario-v5-2-build --force") < source.index("git add")
+    investing = workflows[1].read_text(encoding="utf-8")
+    assert investing.index("python -m ai_fc forecast --due") \
+        < investing.index("scenario-v5-2-build --force")
 
 
 def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() -> None:
@@ -795,11 +805,24 @@ def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() 
     assert approval_row["supersedes"] == display_contract
     assert approval_row["display_promotion_status"] == "approved"
     assert approval_row["champion_changed"] is False
-    receipt = json.loads((
+    receipts = [json.loads(line) for line in (
         ROOT / "data/display_promotions/approval_receipts.jsonl"
-    ).read_text(encoding="utf-8").splitlines()[-1])
-    assert receipt["receipt_id"] in approval_row["approval_receipt"]
-    assert receipt["semantic_reference"] == display_row["semantic_reference"]
+    ).read_text(encoding="utf-8").splitlines() if line.strip()]
+    original_receipt = next(
+        row for row in receipts
+        if row["receipt_id"] == "display-approval:future-v52:2026-08-12:r1"
+    )
+    assert original_receipt["receipt_id"] in approval_row["approval_receipt"]
+    assert original_receipt["semantic_reference"] == display_row["semantic_reference"]
+
+    customer_default = "method:future-three-scenario-customer-default:2026-08-18:r13"
+    assert customer_default in ids and ids.index(approval) < ids.index(customer_default)
+    customer_row = next(row for row in rows if row["event_id"] == customer_default)
+    assert customer_row["supersedes"] == approval
+    assert customer_row["display_only"] is True
+    latest_receipt = receipts[-1]
+    assert latest_receipt["receipt_id"] == "display-approval:future-v52:2026-08-18:r2"
+    assert latest_receipt["semantic_reference"] == display_row["semantic_reference"]
 
 
 def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None:
@@ -852,6 +875,21 @@ def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
     mutation_result = compare_protected_append_only(before, mutated)
     assert mutation_result["ok"] is False
     assert mutation_result["changed"] == ["data/scenarios/archive/a.json"]
+
+    auxiliary_before = {
+        "files": {"forecasts/.hashes.ots": "1" * 64},
+        "manifest_sha256": "before-proof-refresh",
+    }
+    auxiliary_after = {
+        "files": {"forecasts/.hashes.ots": "2" * 64},
+        "manifest_sha256": "after-proof-refresh",
+    }
+    auxiliary_result = compare_protected_append_only(
+        auxiliary_before, auxiliary_after
+    )
+    assert auxiliary_result["ok"] is True
+    assert auxiliary_result["changed"] == []
+    assert auxiliary_result["refreshed_auxiliary"] == ["forecasts/.hashes.ots"]
 
 
 def test_candidate_runtime_gate_uses_append_only_manifest_and_consumed_hashes(

@@ -1,5 +1,5 @@
 schema_version: 1
-contract_id: display_promotion_v1
+contract_id: display_promotion_v2
 status: active
 
 definition:
@@ -9,9 +9,10 @@ definition:
 
 requirements:
   - append_only_method_disclosure
-  - persistent_unambiguous_banner
   - operator_approval_receipt
   - render_proof_for_desktop_and_mobile
+  - three_scenario_chart_visible
+  - internal_gate_copy_absent
   - candidate_runtime_gate_display_eligible
   - semantic_reference_match
 
@@ -21,27 +22,28 @@ semantic_reference_policy:
   append_changing_hash_as_identity: prohibited
 
 active_decision:
-  decision_id: display-promotion:future-v52:2026-08-12:r1
+  decision_id: display-promotion:future-v52:2026-08-18:r2
   route: "#future"
-  explicit_research_route: "#future/research"
-  champion_route_when_active: "#future/champion"
+  customer_default: three_scenario_v5_2
+  legacy_champion_audit_route: "#future/champion"
   candidate:
     candidate_id: scenario_v5_2_scenario_clustered_db_v4
     model_version: complete_separation_empirical_episode_databases_v6
     rules_version: weights-v3+complete-separation-v1
-  method_disclosure_event_id: method:scenario-v5-2-display-promotion-contract:2026-08-12:r8
-  persistent_banner_text: 연구 후보 · degraded · 적격 사건 1/60 · 보정되지 않음
-  operator_approval_receipt_id: display-approval:future-v52:2026-08-12:r1
+  method_disclosure_event_id: method:future-three-scenario-customer-default:2026-08-18:r13
+  operator_approval_receipt_id: display-approval:future-v52:2026-08-18:r2
   operator_approval_status: approved
-  render_proof_path: reports/reviews/current/scenario_v5_2/display_promotion_260812/evidence/render_proof.json
-  explicit_research_route_available_while_pending: true
+  render_proof_path: reports/reviews/current/scenario_v5_2/customer_default_260818/evidence/render_proof.json
+  internal_gate_copy: prohibited
+  legacy_automatic_fallback: prohibited
 
 withdrawal:
-  candidate_runtime_blocked: champion_default
-  operator_approval_missing_or_revoked: champion_default
-  banner_or_render_proof_missing: champion_default
-  semantic_reference_mismatch: champion_default
+  candidate_runtime_blocked: unavailable_retry_surface
+  operator_approval_missing_or_revoked: unavailable_retry_surface
+  render_proof_missing: unavailable_retry_surface
+  semantic_reference_mismatch: unavailable_retry_surface
   silent_fallback: prohibited
+  legacy_champion_automatic_fallback: prohibited
 
 receipt_registry:
   path: data/display_promotions/approval_receipts.jsonl

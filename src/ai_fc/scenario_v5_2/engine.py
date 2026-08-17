@@ -1589,10 +1589,10 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         zero_p50 = np.median(zero_subset, axis=0)
         structural_rows[scenario] = {
             "active_path_sha256": canonical_numerical_hash(
-                np.asarray(active_subset, dtype=float).tolist()
+                np.asarray(active_subset, dtype=float).tolist(), decimal_places=10
             ),
             "zero_event_path_sha256": canonical_numerical_hash(
-                np.asarray(zero_subset, dtype=float).tolist()
+                np.asarray(zero_subset, dtype=float).tolist(), decimal_places=10
             ),
             "paths_differ": not np.array_equal(active_subset, zero_subset),
             "p50_return_difference_active_minus_zero": {

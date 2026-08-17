@@ -43,10 +43,10 @@ def _root(tmp_path: Path) -> tuple[Path, dict]:
     return tmp_path, decision
 
 
-def test_missing_contract_fails_closed_to_champion(tmp_path: Path) -> None:
+def test_missing_contract_fails_closed_without_legacy_fallback(tmp_path: Path) -> None:
     result = load_display_promotion(tmp_path, _candidate())
     assert result["gate_pass"] is False
-    assert result["default_route"] == "champion"
+    assert result["default_route"] == "unavailable"
     assert result["gates"] == {"display_promotion_contract_available": False}
 
 
@@ -68,14 +68,15 @@ def test_approval_and_render_proof_are_both_required(tmp_path: Path) -> None:
     proof_path = root / decision["render_proof_path"]
     proof_path.parent.mkdir(parents=True)
     proof_path.write_text(json.dumps({
-        "persistent_banner_visible": True,
+        "three_scenario_chart_visible": True,
+        "internal_gate_copy_absent": True,
         "viewports": ["1280", "390"],
         "semantic_reference": SEMANTIC_REFERENCE,
     }), encoding="utf-8")
 
     active = load_display_promotion(root, _candidate())
     assert active["gate_pass"] is True
-    assert active["default_route"] == "research_candidate"
+    assert active["default_route"] == "three_scenario_customer_default"
 
 
 def test_semantic_reference_mismatch_withdraws_display_promotion(
@@ -93,7 +94,8 @@ def test_semantic_reference_mismatch_withdraws_display_promotion(
     proof_path = root / decision["render_proof_path"]
     proof_path.parent.mkdir(parents=True)
     proof_path.write_text(json.dumps({
-        "persistent_banner_visible": True,
+        "three_scenario_chart_visible": True,
+        "internal_gate_copy_absent": True,
         "viewports": ["1280", "390"],
         "semantic_reference": SEMANTIC_REFERENCE,
     }), encoding="utf-8")
@@ -105,4 +107,4 @@ def test_semantic_reference_mismatch_withdraws_display_promotion(
     result = load_display_promotion(root, candidate)
     assert result["gate_pass"] is False
     assert result["gates"]["semantic_reference_match"] is False
-    assert result["default_route"] == "champion"
+    assert result["default_route"] == "unavailable"

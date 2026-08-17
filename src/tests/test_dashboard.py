@@ -167,7 +167,7 @@ def test_ui_contract() -> None:
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
     assert "--display:'Segoe UI Variable Display'" in html
     assert "--sans:'Segoe UI Variable Text'" in html
-    assert "font-size:clamp(44px,3.65vw,52px)" in html
+    assert "font-size:clamp(31px,2.55vw,36px)" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
@@ -508,19 +508,20 @@ def test_forecast_lookup_ui_contract() -> None:
     assert "showBaseline=true" in html
 
 
-def test_future_default_is_display_gated_and_preserves_both_model_routes() -> None:
+def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     html = dashboard.load_template()
     assert "renderScenarioV52(candidate52,initialState);" in html
-    assert "const displayPromotion=DATA.display_promotion||{}" in html
-    assert "displayPromotionActive=displayPromotion.gate_pass===true" in html
-    assert "const explicitResearch=initialState.modelView==='research'" in html
-    assert "const candidate52Requested=(explicitResearch||" in html
+    assert "const researchPathsRequested=v==='flow'&&arg?.modelView!=='champion'" in html
+    assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     assert "if(candidate52Requested&&candidate52Eligible)" in html
+    assert "if(candidate52Requested){" in html
+    assert "이전 방식의 그래프로 자동 전환하지 않습니다" in html
     assert "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}" in html
     assert "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}" in html
-    assert "championHref=promoted?'#future/champion':'#future'" in html
-    assert "researchHref=promoted?'#future':'#future/research'" in html
-    assert "DISPLAY PROMOTION PENDING" in html
+    assert "scenarioCustomerViewNav" not in html
+    assert "DISPLAY PROMOTION PENDING" not in html
+    assert "SCENARIO V5.1 RUNTIME GATE" not in html
+    assert "DISPLAY PROMOTION · MODEL PROMOTION 아님" not in html
     assert "let sc=officialScenario,shadowActive=false" in html
     assert "shadowActive?shadowScenario:officialScenario" in html
     assert "let sc=scenarioV5FlowModel(officialScenario,v5)" not in html
@@ -560,13 +561,13 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "서로 다른 3개 군집",
         "분석 방법과 세부 통계",
         "모두 보정되지 않은 모의 경로 비율입니다",
-        "function scenarioCustomerViewNav",
         "Bitcoin</span><strong>가정 경로",
         "유동성이 늘고 줄어든 구간",
         "bindCrossAsset(crossAsset,initialState.scenario)",
         "bindLiquidity(liquidity)",
     ):
         assert required in html
+    assert "scenarioCustomerViewNav" not in html
     assert "CONDITIONAL SMALL MULTIPLES" not in html
     assert "compareTray.hidden=!ids.length||!location.hash.startsWith('#records')" in html
 
@@ -905,3 +906,17 @@ def test_mobile_market_strip_uses_three_non_overlapping_cells() -> None:
     assert ".market-strip>div,.market-strip>div:first-child{min-width:0;padding:7px 9px;display:grid" in css
     assert ".market-strip span{min-width:0;display:block;overflow:hidden" in css
     assert ".market-strip strong{min-width:0;display:block;overflow:hidden" in css
+
+
+def test_all_page_primary_headings_are_scaled_to_seventy_percent() -> None:
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    for required in (
+        ".page-heading h1{max-width:900px;color:#11110f;font-size:clamp(29px,3.5vw,48px)",
+        ".overview-copy h1{font-size:clamp(31px,2.55vw,36px)}",
+        ".detail-hero h1{font-size:clamp(21px,2.52vw,38px)",
+        ".today-hero h1{max-width:870px;margin:0;font-size:clamp(18px,2.1vw,31px)",
+        ".today-hero h1{font-size:21px}",
+        ".page-heading h1{font-size:clamp(24px,7vw,29px)",
+        ".page-heading h1{font-size:22px}",
+    ):
+        assert required in css
