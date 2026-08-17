@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "capture_backend": "codex_in_app_browser",
+  "three_scenario_chart_visible": true,
+  "internal_gate_copy_absent": true,
+  "viewports": [
+    "1280",
+    "390"
+  ],
+  "route": "#future",
+  "semantic_reference": {
+    "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+    "model_version": "complete_separation_empirical_episode_databases_v6",
+    "rules_version": "weights-v3+complete-separation-v1"
+  },
+  "observed": {
+    "desktop_heading_px": 44.8,
+    "mobile_heading_px": 27.3,
+    "desktop_horizontal_overflow_px": 0,
+    "mobile_horizontal_overflow_px": 0,
+    "three_month_terminal_returns_pct": {
+      "S1": 13.2,
+      "S2": -0.5,
+      "S3": -12.7
+    }
+  }
+}

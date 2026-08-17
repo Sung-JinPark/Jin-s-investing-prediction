@@ -170,6 +170,8 @@ def test_public_snapshot_reproduces_partition_and_all_quantile_cells() -> None:
     assert result["probabilities_reproduced"] == result["probabilities_expected"]
     assert result["quantile_cells_checked"] == 1764
     assert result["quantile_mismatches"] == 0
+    assert result["quantile_rounding_boundary_cells"] == 1
+    assert result["maximum_rounding_boundary_distance"] <= .01
 
 
 def test_band_calibration_is_append_only_and_duplicate_safe(tmp_path: Path) -> None:

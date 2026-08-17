@@ -61,12 +61,6 @@ jobs:
         continue-on-error: true
         run: python -m ai_fc cross-asset
 
-      - name: Rebuild and replay-verify the protected-hash-bound V5.2 candidate
-        if: env.RUN_MODE == 'full'
-        run: |
-          python -m ai_fc scenario-v5-2-build --force
-          python -m ai_fc scenario-v5-2-verify --replay
-
       - name: Verify the owner-approved OpenAI producer
         env:
           AI_FC_OFFICIAL_LLM_PROVIDER: openai
@@ -96,6 +90,12 @@ jobs:
           else
             python -m ai_fc forecast --due --max 1 --agents 2 --budget 1.50 --yes
           fi
+
+      - name: Rebuild and replay-verify V5.2 after every protected write
+        if: env.RUN_MODE == 'full'
+        run: |
+          python -m ai_fc scenario-v5-2-build --force
+          python -m ai_fc scenario-v5-2-verify --replay
 
       - name: Refresh generated inventory
         if: always()

@@ -602,9 +602,9 @@ def _sample_indexes(
         if len(dates) != length:
             raise ValueError("dashboard projection dates must match path length")
         start = date.fromisoformat(dates[0])
-        # Preserve the exact calendar controls used by the customer chart without
-        # adding payload points: replace the nearest weekly coordinate with the
-        # last trading day on or before the 1M/3M target.
+        # Preserve both weekly shape and the exact calendar controls used by the
+        # customer chart.  Milestones are added instead of replacing weekly
+        # coordinates so a new anchor date cannot reopen an 8+ session gap.
         milestones: list[int] = []
         for month_delta in (1, 3):
             absolute = start.year * 12 + start.month - 1 + month_delta
@@ -620,14 +620,7 @@ def _sample_indexes(
              if date.fromisoformat(value) <= start + timedelta(days=90)),
             default=0,
         ))
-        replaced: set[int] = set()
-        for milestone in milestones:
-            nearest = min(
-                (index for index in range(len(indexes)) if index not in replaced),
-                key=lambda index: abs(indexes[index] - milestone),
-            )
-            indexes[nearest] = milestone
-            replaced.add(nearest)
+        indexes.extend(milestones)
         indexes = sorted(set(indexes))
     return indexes
 
@@ -752,7 +745,7 @@ def _promotion_disclosure(root: Path, payload: dict[str, Any]) -> dict[str, Any]
     return {
         "promotion_state": payload["promotion_state"],
         "champion_eligible": all(row["pass"] for row in gates.values()),
-        "default_surface": "research_only_explicit_route",
+        "default_surface": "customer_default_display_only",
         "gates": gates,
     }
 

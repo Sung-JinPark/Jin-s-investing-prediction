@@ -17,19 +17,19 @@ class DisplayPromotionError(ValueError):
     pass
 
 
-def _champion_default(reason: str) -> dict[str, Any]:
+def _customer_unavailable(reason: str) -> dict[str, Any]:
     return {
         "schema_version": 1,
-        "contract_id": "display_promotion_v1",
+        "contract_id": "display_promotion_v2",
         "decision_id": None,
-        "default_route": "champion",
+        "default_route": "unavailable",
         "gate_pass": False,
         "gates": {"display_promotion_contract_available": False},
         "semantic_reference": {},
         "operator_approval_status": "unavailable",
         "persistent_banner_text": None,
         "explicit_research_route_available": False,
-        "withdrawal_action": "champion_default_with_explicit_banner",
+        "withdrawal_action": "candidate_unavailable_no_legacy_fallback",
         "reason": reason,
     }
 
@@ -54,7 +54,7 @@ def _receipts(root: Path) -> list[dict[str, Any]]:
 def load_display_promotion(root: Path, candidate: dict[str, Any]) -> dict[str, Any]:
     contract_path = root / CONTRACT_RELATIVE
     if not contract_path.is_file():
-        return _champion_default("display promotion contract unavailable")
+        return _customer_unavailable("display promotion contract unavailable")
     contract = yaml.safe_load(contract_path.read_text(encoding="utf-8"))
     if contract.get("schema_version") != 1 or contract.get("status") != "active":
         raise DisplayPromotionError("display promotion contract invalid")
@@ -93,7 +93,8 @@ def load_display_promotion(root: Path, candidate: dict[str, Any]) -> dict[str, A
             raise DisplayPromotionError("display promotion render proof invalid") from exc
     render_proof_valid = bool(
         render_proof
-        and render_proof.get("persistent_banner_visible") is True
+        and render_proof.get("three_scenario_chart_visible") is True
+        and render_proof.get("internal_gate_copy_absent") is True
         and set(render_proof.get("viewports") or []) >= {"1280", "390"}
         and render_proof.get("semantic_reference") == expected
     )
@@ -103,9 +104,14 @@ def load_display_promotion(root: Path, candidate: dict[str, Any]) -> dict[str, A
     )
     gates = {
         "append_only_method_disclosure": disclosure_present,
-        "persistent_unambiguous_banner": bool(decision.get("persistent_banner_text")),
         "operator_approval_receipt": receipt_valid,
         "render_proof_for_desktop_and_mobile": render_proof_valid,
+        "three_scenario_chart_visible": bool(
+            render_proof and render_proof.get("three_scenario_chart_visible") is True
+        ),
+        "internal_gate_copy_absent": bool(
+            render_proof and render_proof.get("internal_gate_copy_absent") is True
+        ),
         "candidate_runtime_gate_display_eligible": runtime_eligible,
         "semantic_reference_match": semantic_match,
     }
@@ -114,16 +120,14 @@ def load_display_promotion(root: Path, candidate: dict[str, Any]) -> dict[str, A
         "schema_version": 1,
         "contract_id": contract["contract_id"],
         "decision_id": decision.get("decision_id"),
-        "default_route": "research_candidate" if gate_pass else "champion",
+        "default_route": "three_scenario_customer_default" if gate_pass else "unavailable",
         "gate_pass": gate_pass,
         "gates": gates,
         "semantic_reference": expected,
         "operator_approval_status": (
             "approved" if receipt_valid else decision.get("operator_approval_status")
         ),
-        "persistent_banner_text": decision.get("persistent_banner_text"),
-        "explicit_research_route_available": bool(
-            decision.get("explicit_research_route_available_while_pending")
-        ),
-        "withdrawal_action": "champion_default_with_explicit_banner",
+        "persistent_banner_text": None,
+        "explicit_research_route_available": False,
+        "withdrawal_action": "candidate_unavailable_no_legacy_fallback",
     }
