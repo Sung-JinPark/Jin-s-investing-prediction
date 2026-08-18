@@ -8,8 +8,10 @@ import math
 import statistics
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
+import xml.etree.ElementTree as ET
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
 from datetime import date, datetime, timezone
@@ -24,6 +26,7 @@ ARCHIVE_RELATIVE = Path("data/statistics/archive")
 CONTRACT_RELATIVE = Path("data/contracts/statistics_lab_v1.yaml")
 IPO_REFERENCE_RELATIVE = Path("data/statistics/ipo/ipo_comparison_v1.json")
 HMI_REFERENCE_RELATIVE = Path("data/statistics/reference/nahb_hmi_history_v1.json")
+ICI_REFERENCE_RELATIVE = Path("data/statistics/reference/ici_weekly_equity_etf_flow_v1.json")
 DOTCOM_START = date(1995, 1, 1)
 DOTCOM_END = date(1999, 12, 31)
 CURRENT_START = date(2023, 1, 1)
@@ -31,6 +34,9 @@ CURRENT_AXIS_END = date(2027, 12, 31)
 COMPARISON_MONTHS = 59
 FRED_ENDPOINT = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
+SEC_IPO_ENDPOINT = "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos"
+ICI_ETF_ENDPOINT = "https://www.ici.org/research/stats/etf_flows"
+NYU_RETURNS_ENDPOINT = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xlsx"
 USER_AGENT = "JinsInvestingStatisticsLab/1.0 (+public research dashboard)"
 
 FRED_SERIES: dict[str, dict[str, str]] = {
@@ -48,12 +54,27 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "quarterly_end_of_period",
         "aggregation": "last",
     },
+    "BOGZ1LM153064475Q": {
+        "title": "Households and nonprofit organizations; directly and indirectly held corporate equities",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
+    "BOGZ1FL154022375A": {
+        "title": "Households and nonprofit organizations; directly and indirectly held debt securities",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "annual_end_of_period",
+        "aggregation": "last",
+    },
     "NASDAQCOM": {
         "title": "NASDAQ Composite Index",
         "provider": "NASDAQ OMX Group via FRED",
         "unit": "index",
         "native_frequency": "daily_close",
         "aggregation": "last",
+        "window_start": "1985-01-01",
     },
     "T10Y2Y": {
         "title": "10-year minus 2-year Treasury spread",
@@ -227,6 +248,53 @@ DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
         "window_end_exclusive": "2027-01-01",
         "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
     },
+    "SP500_DAILY": {
+        "symbol": "^GSPC",
+        "title": "S&P 500 daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: S&P Dow Jones Indices)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "1970-01-02",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history/",
+    },
+    "GOLD_DAILY": {
+        "symbol": "GC=F",
+        "title": "COMEX gold futures continuous contract daily close",
+        "provider": "Yahoo Finance chart API (underlying market: COMEX gold futures)",
+        "unit": "usd_per_troy_ounce",
+        "native_frequency": "daily_close",
+        "window_start": "2022-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history/",
+    },
+}
+
+SUPPLEMENTAL_SOURCES: dict[str, dict[str, str]] = {
+    "SEC_IPO_QUARTERLY": {
+        "title": "U.S. IPO counts and proceeds by issuer type",
+        "provider": "U.S. Securities and Exchange Commission",
+        "unit": "counts_and_millions_usd",
+        "native_frequency": "quarterly",
+        "source_url": "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos",
+        "request_url": SEC_IPO_ENDPOINT,
+    },
+    "ICI_WEEKLY_EQUITY_ETF_FLOW": {
+        "title": "Estimated ETF net issuance",
+        "provider": "Investment Company Institute",
+        "unit": "millions_usd",
+        "native_frequency": "weekly_estimate",
+        "source_url": ICI_ETF_ENDPOINT,
+        "request_url": ICI_ETF_ENDPOINT,
+    },
+    "NYU_SP500_ANNUAL_TOTAL_RETURN": {
+        "title": "S&P 500 annual total returns including dividends",
+        "provider": "Aswath Damodaran, NYU Stern School of Business",
+        "unit": "percent_total_return",
+        "native_frequency": "annual",
+        "source_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html",
+        "request_url": NYU_RETURNS_ENDPOINT,
+    },
 }
 
 
@@ -236,13 +304,18 @@ class StatisticsLabError(ValueError):
 
 def _validate_manual_reference_freshness(
     ipo_reference: dict[str, Any], hmi_reference: dict[str, Any], generated_at: str,
+    ici_reference: dict[str, Any] | None = None,
 ) -> None:
     """Fail the weekly job instead of silently republishing stale manual cohorts."""
     collected = datetime.fromisoformat(generated_at.replace("Z", "+00:00")).date()
-    checks = (
+    checks = [
         ("IPO reviewed cohort", date.fromisoformat(str(ipo_reference["as_of"])), 14),
         ("NAHB HMI reference", date.fromisoformat(str(hmi_reference["as_of"])), 62),
-    )
+    ]
+    if ici_reference is not None:
+        checks.append((
+            "ICI weekly ETF reference", date.fromisoformat(str(ici_reference["as_of"])), 14,
+        ))
     for label, observed, maximum_age in checks:
         age = (collected - observed).days
         if age < 0:
@@ -281,6 +354,203 @@ def _request(url: str, *, timeout: int = 45, attempts: int = 3) -> bytes:
     ) from last_error
 
 
+def _xlsx_sheet_rows(raw: bytes, sheet_name: str) -> list[list[Any]]:
+    """Read values from one XLSX worksheet with only the standard library."""
+    namespace = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    rel_namespace = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    package_namespace = "http://schemas.openxmlformats.org/package/2006/relationships"
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            workbook = ET.fromstring(archive.read("xl/workbook.xml"))
+            rels = ET.fromstring(archive.read("xl/_rels/workbook.xml.rels"))
+            relationship_targets = {
+                row.attrib["Id"]: row.attrib["Target"]
+                for row in rels.findall(f"{{{package_namespace}}}Relationship")
+            }
+            sheet_target = None
+            for sheet in workbook.findall(f".//{{{namespace}}}sheet"):
+                if sheet.attrib.get("name") == sheet_name:
+                    sheet_target = relationship_targets.get(
+                        sheet.attrib.get(f"{{{rel_namespace}}}id", "")
+                    )
+                    break
+            if not sheet_target:
+                raise StatisticsLabError(f"XLSX worksheet missing: {sheet_name}")
+            sheet_path = (
+                f"xl/{sheet_target}" if not sheet_target.startswith("xl/") else sheet_target
+            ).replace("xl/../", "")
+            shared_strings: list[str] = []
+            if "xl/sharedStrings.xml" in archive.namelist():
+                shared = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+                shared_strings = [
+                    "".join(node.text or "" for node in item.findall(f".//{{{namespace}}}t"))
+                    for item in shared.findall(f"{{{namespace}}}si")
+                ]
+            sheet_xml = ET.fromstring(archive.read(sheet_path))
+    except (KeyError, ET.ParseError, zipfile.BadZipFile) as exc:
+        raise StatisticsLabError("invalid XLSX source") from exc
+
+    rows: list[list[Any]] = []
+    for row in sheet_xml.findall(f".//{{{namespace}}}row"):
+        values: dict[int, Any] = {}
+        for cell in row.findall(f"{{{namespace}}}c"):
+            reference = str(cell.attrib.get("r", "A1"))
+            letters = "".join(ch for ch in reference if ch.isalpha())
+            column = 0
+            for letter in letters.upper():
+                column = column * 26 + ord(letter) - 64
+            column -= 1
+            cell_type = cell.attrib.get("t")
+            value_node = cell.find(f"{{{namespace}}}v")
+            if cell_type == "inlineStr":
+                value: Any = "".join(
+                    node.text or "" for node in cell.findall(f".//{{{namespace}}}t")
+                )
+            elif value_node is None or value_node.text is None:
+                value = None
+            elif cell_type == "s":
+                try:
+                    value = shared_strings[int(value_node.text)]
+                except (IndexError, ValueError) as exc:
+                    raise StatisticsLabError("invalid XLSX shared string") from exc
+            elif cell_type in {"str", "b"}:
+                value = value_node.text
+            else:
+                try:
+                    numeric = float(value_node.text)
+                    value = int(numeric) if numeric.is_integer() else numeric
+                except ValueError:
+                    value = value_node.text
+            values[column] = value
+        if values:
+            rows.append([values.get(index) for index in range(max(values) + 1)])
+    if not rows:
+        raise StatisticsLabError(f"XLSX worksheet empty: {sheet_name}")
+    return rows
+
+
+def _parse_sec_ipo_xlsx(raw: bytes) -> list[dict[str, Any]]:
+    rows = _xlsx_sheet_rows(raw, "Stats Table")
+    result: list[dict[str, Any]] = []
+    for row in rows[1:]:
+        period = str(row[0]) if row else ""
+        if ":Q" not in period or len(row) < 13:
+            continue
+        try:
+            year_text, quarter_text = period.split(":Q", 1)
+            quarter = int(quarter_text)
+            observed = date(int(year_text), quarter * 3, 1)
+            fields = [float(row[index]) for index in range(1, 13)]
+        except (TypeError, ValueError) as exc:
+            raise StatisticsLabError("invalid SEC IPO quarterly row") from exc
+        result.append({
+            "date": observed.isoformat(),
+            "period_label": period,
+            "total_count": int(fields[0]),
+            "us_count": int(fields[1]),
+            "non_us_count": int(fields[2]),
+            "corporate_count": int(fields[3]),
+            "spac_count": int(fields[4]),
+            "fund_count": int(fields[5]),
+            "total_proceeds_mn": fields[6],
+            "corporate_proceeds_mn": fields[9],
+            "spac_proceeds_mn": fields[10],
+            "fund_proceeds_mn": fields[11],
+        })
+    if not result:
+        raise StatisticsLabError("SEC IPO quarterly statistics are empty")
+    return result
+
+
+def _parse_nyu_returns_xlsx(raw: bytes) -> list[dict[str, Any]]:
+    rows = _xlsx_sheet_rows(raw, "Returns by year")
+    result: list[dict[str, Any]] = []
+    for row in rows:
+        if len(row) < 2 or not isinstance(row[0], (int, float)):
+            continue
+        year = int(row[0])
+        if not 1928 <= year <= date.today().year or not isinstance(row[1], (int, float)):
+            continue
+        value = float(row[1]) * 100.0
+        if math.isfinite(value):
+            result.append({"date": f"{year}-12-31", "value": value})
+    if len(result) < 50:
+        raise StatisticsLabError("NYU annual S&P 500 return history is incomplete")
+    return result
+
+
+def _parse_ici_weekly_html(raw: bytes) -> list[dict[str, Any]]:
+    text = raw.decode("utf-8", errors="replace")
+    # The public release exposes a stable accessible table. Parse only the
+    # header dates and Equity/Domestic/World rows; no proprietary chart pixels.
+    import re
+
+    table_match = re.search(
+        r"ETF Estimated Net Issuance.*?<table[^>]*>(.*?)</table>", text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
+    if table_match is None:
+        raise StatisticsLabError("ICI ETF issuance table missing")
+    table = table_match.group(1)
+    row_html = re.findall(r"<tr[^>]*>(.*?)</tr>", table, flags=re.IGNORECASE | re.DOTALL)
+    parsed_rows: list[list[str]] = []
+    for html in row_html:
+        cells = re.findall(r"<t[hd][^>]*>(.*?)</t[hd]>", html, flags=re.IGNORECASE | re.DOTALL)
+        parsed_rows.append([
+            re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "", cell)).strip()
+            for cell in cells
+        ])
+    header = next((
+        row for row in parsed_rows
+        if row and sum(bool(re.fullmatch(r"\d{1,2}/\d{1,2}/\d{4}", cell)) for cell in row) >= 3
+    ), None)
+    equity = next((row for row in parsed_rows if row and row[0].strip() == "Equity"), None)
+    domestic = next((row for row in parsed_rows if row and row[0].strip() == "Domestic"), None)
+    world = next((row for row in parsed_rows if row and row[0].strip() == "World"), None)
+    if not header or not equity or not domestic or not world:
+        raise StatisticsLabError("ICI ETF issuance rows missing")
+
+    def number(value: str) -> float:
+        cleaned = value.replace(",", "").replace("−", "-").strip()
+        return float(cleaned)
+
+    result = []
+    for index, label in enumerate(header[1:], start=1):
+        try:
+            observed = datetime.strptime(label, "%m/%d/%Y").date()
+            result.append({
+                "date": observed.isoformat(),
+                "value": number(equity[index]),
+                "domestic": number(domestic[index]),
+                "world": number(world[index]),
+            })
+        except (IndexError, ValueError) as exc:
+            raise StatisticsLabError("invalid ICI ETF issuance value") from exc
+    result.sort(key=lambda row: row["date"])
+    return result
+
+
+def _fetch_supplemental(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
+    if series_id == "SEC_IPO_QUARTERLY":
+        import re
+
+        page = _request(SEC_IPO_ENDPOINT, timeout=60).decode("utf-8", errors="replace")
+        match = re.search(r'href="([^"]*sec-stats-ipos-\d+\.xlsx)"', page)
+        if match is None:
+            raise StatisticsLabError("SEC IPO statistics download link missing")
+        download_url = urllib.parse.urljoin(SEC_IPO_ENDPOINT, match.group(1))
+        raw = _request(download_url, timeout=60)
+        return _parse_sec_ipo_xlsx(raw), raw
+    if series_id == "ICI_WEEKLY_EQUITY_ETF_FLOW":
+        raise StatisticsLabError(
+            "ICI blocks unattended access in this runtime; use the reviewed local reference"
+        )
+    if series_id == "NYU_SP500_ANNUAL_TOTAL_RETURN":
+        raw = _request(NYU_RETURNS_ENDPOINT, timeout=60)
+        return _parse_nyu_returns_xlsx(raw), raw
+    raise StatisticsLabError(f"unknown supplemental statistics source: {series_id}")
+
+
 def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
     reader = csv.DictReader(io.StringIO(raw.decode("utf-8-sig")))
     rows: list[dict[str, Any]] = []
@@ -301,7 +571,8 @@ def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
 
 
 def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
-    url = f"{FRED_ENDPOINT}?id={series_id}&cosd=1995-01-01"
+    start = FRED_SERIES.get(series_id, {}).get("window_start", "1995-01-01")
+    url = f"{FRED_ENDPOINT}?id={series_id}&cosd={start}"
     # GitHub-hosted runners intermittently leave Python's TLS read waiting on
     # FRED.  Reuse the repository's audited same-URL curl/public-DNS transport
     # fallback.  Decoding and re-encoding UTF-8 is byte-preserving for FRED CSV
@@ -680,6 +951,167 @@ def _monthly_log_returns(points: list[dict[str, Any]]) -> dict[tuple[int, int], 
     return result
 
 
+def _annual_index_points(
+    points: list[dict[str, Any]], *, start_year: int, end_year: int,
+) -> list[dict[str, Any]]:
+    annual = _annual_last(points)
+    base = annual.get(start_year)
+    if base is None or base <= 0:
+        raise StatisticsLabError("annual index base is unavailable")
+    return [
+        {
+            "period": year - start_year,
+            "date": f"{year}-12-31",
+            "value": annual[year] / base * 100.0,
+        }
+        for year in range(start_year, end_year + 1)
+        if year in annual
+    ]
+
+
+def _normalized_monthly_pair(
+    left: list[dict[str, Any]], right: list[dict[str, Any]], *, start: date,
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    left_by_month = {_month_key(row["date"]): float(row["value"]) for row in left}
+    right_by_month = {_month_key(row["date"]): float(row["value"]) for row in right}
+    months = sorted(
+        key for key in set(left_by_month) & set(right_by_month)
+        if key >= (start.year, start.month)
+    )
+    if len(months) < 3:
+        raise StatisticsLabError("normalized monthly comparison is incomplete")
+    left_base, right_base = left_by_month[months[0]], right_by_month[months[0]]
+    left_points, right_points = [], []
+    for year, month in months:
+        observed = date(year, month, 1)
+        period = _month_offset(observed.isoformat(), start)
+        left_points.append({
+            "period": period, "date": observed.isoformat(),
+            "value": left_by_month[(year, month)] / left_base * 100.0,
+        })
+        right_points.append({
+            "period": period, "date": observed.isoformat(),
+            "value": right_by_month[(year, month)] / right_base * 100.0,
+        })
+    return left_points, right_points
+
+
+def _trend_gap_points(
+    points: list[dict[str, Any]], *, start: date = date(2009, 1, 1),
+    trend_end: date = date(2019, 12, 31), minimum_training: int = 20,
+) -> list[dict[str, Any]]:
+    selected = [
+        row for row in sorted(points, key=lambda item: item["date"])
+        if date.fromisoformat(str(row["date"])) >= start
+    ]
+    training = [
+        row for row in selected
+        if date.fromisoformat(str(row["date"])) <= trend_end
+    ]
+    if len(training) < minimum_training:
+        raise StatisticsLabError("household trend baseline is incomplete")
+
+    def quarter_index(value: str) -> int:
+        observed = date.fromisoformat(value)
+        return (observed.year - start.year) * 4 + (observed.month - 1) // 3
+
+    x = [float(quarter_index(str(row["date"]))) for row in training]
+    y = [float(row["value"]) for row in training]
+    slope, intercept = statistics.linear_regression(x, y)
+    result = []
+    for row in selected:
+        period = quarter_index(str(row["date"]))
+        trend = intercept + slope * period
+        if trend <= 0:
+            raise StatisticsLabError("household trend baseline became non-positive")
+        result.append({
+            "period": period,
+            "date": str(row["date"]),
+            "value": (float(row["value"]) / trend - 1.0) * 100.0,
+        })
+    return result
+
+
+def _two_consecutive_twenty_percent_events(
+    rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[list[Any]]]:
+    annual = {int(str(row["date"])[:4]): float(row["value"]) for row in rows}
+    starts = [
+        year for year in sorted(annual)
+        if year >= 1950
+        and annual.get(year, -math.inf) >= 20.0
+        and annual.get(year + 1, -math.inf) >= 20.0
+        and year + 2 in annual
+    ]
+    if len(starts) < 5:
+        raise StatisticsLabError("consecutive 20-percent annual return sample too small")
+
+    def points(offset: int) -> list[dict[str, Any]]:
+        return [
+            {
+                "period": index,
+                "date": f"{year + offset}-12-31",
+                "value": annual[year + offset],
+            }
+            for index, year in enumerate(starts)
+        ]
+
+    ticks = [[index, f"{year}–{year + 1}"] for index, year in enumerate(starts)]
+    return points(0), points(1), points(2), ticks
+
+
+def _quarterly_followthrough_events(
+    rows: list[dict[str, Any]],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[list[Any]], dict[str, Any]]:
+    closes: dict[tuple[int, int], tuple[date, float]] = {}
+    for observed, value in _positive_daily_rows(rows):
+        key = (observed.year, (observed.month - 1) // 3 + 1)
+        if key not in closes or observed > closes[key][0]:
+            closes[key] = (observed, value)
+    keys = sorted(closes)
+    returns: list[tuple[tuple[int, int], float]] = []
+    for previous, current in zip(keys, keys[1:], strict=False):
+        expected = (previous[0] + (1 if previous[1] == 4 else 0), previous[1] % 4 + 1)
+        if current != expected:
+            continue
+        returns.append((current, (closes[current][1] / closes[previous][1] - 1.0) * 100.0))
+    by_key = dict(returns)
+    events: list[tuple[tuple[int, int], float, float]] = []
+    for index in range(1, len(returns) - 2):
+        key, current_return = returns[index]
+        previous_return = returns[index - 1][1]
+        next_key, next_return = returns[index + 1]
+        second_key, _ = returns[index + 2]
+        if previous_return < 0.0 and current_return > 10.0:
+            first_close = closes[key][1]
+            second_close = closes[second_key][1]
+            events.append((key, next_return, (second_close / first_close - 1.0) * 100.0))
+    if len(events) < 5:
+        raise StatisticsLabError("quarterly follow-through event sample too small")
+    next_points = [
+        {"period": index, "date": f"{year}-{quarter * 3:02d}-01", "value": next_return}
+        for index, ((year, quarter), next_return, _) in enumerate(events)
+    ]
+    two_points = [
+        {"period": index, "date": f"{year}-{quarter * 3:02d}-01", "value": two_return}
+        for index, ((year, quarter), _, two_return) in enumerate(events)
+    ]
+    ticks = [
+        [index, f"{year}Q{quarter}"] for index, ((year, quarter), _, _) in enumerate(events)
+        if index in {0, len(events) // 3, 2 * len(events) // 3, len(events) - 1}
+    ]
+    diagnostics = {
+        "event_count": len(events),
+        "next_quarter_average": statistics.mean(row[1] for row in events),
+        "next_quarter_positive": sum(row[1] > 0 for row in events),
+        "two_quarter_average": statistics.mean(row[2] for row in events),
+        "two_quarter_positive": sum(row[2] > 0 for row in events),
+        "return_type": "price_return_excluding_dividends",
+        "event_rule": "previous_calendar_quarter_below_0_and_current_above_10_percent",
+    }
+    return next_points, two_points, ticks, diagnostics
+
+
 def _lead_correlation(
     leader: list[dict[str, Any]], follower: list[dict[str, Any]], lead_months: int,
 ) -> dict[str, Any]:
@@ -797,6 +1229,23 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
                 core_member_counts[year] += 1
             broad_tickers.add(ticker)
     qualitative = payload.get("qualitative_ipo") or {}
+    ipo_sensitivity = qualitative.get("reported_frontier_ai_ipo_sensitivity") or {}
+    if ipo_sensitivity.get("semantics") != (
+        "headline_ipo_valuation_sensitivity_not_a_completed_offering_or_base_case"
+    ):
+        raise StatisticsLabError("frontier AI IPO sensitivity semantics invalid")
+    sensitivity_members = ipo_sensitivity.get("members") or []
+    if not sensitivity_members or any(
+        str(row.get("source_id", "")) not in source_ids
+        or float(row.get("headline_ipo_valuation_bn", 0)) <= 0
+        for row in sensitivity_members
+    ):
+        raise StatisticsLabError("frontier AI IPO sensitivity evidence invalid")
+    sensitivity_total = sum(float(row["headline_ipo_valuation_bn"]) for row in sensitivity_members)
+    for row in ipo_sensitivity.get("float_sensitivity") or []:
+        expected = sensitivity_total * float(row["float_percent"]) / 100.0
+        if not math.isclose(float(row["gross_offering_value_bn"]), expected, abs_tol=1e-9):
+            raise StatisticsLabError("frontier AI IPO float sensitivity does not reconcile")
     listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
     if listed_watch.get("semantics") != (
         "ai_beneficiary_with_new_nasdaq_ads_offering_included_only_in_influence_inclusive_listing_event_count_because_adrs_are_outside_ritter_traditional_ipo_definition"
@@ -922,13 +1371,48 @@ def load_hmi_reference(root: Path) -> dict[str, Any]:
     return payload
 
 
+def load_ici_reference(root: Path) -> dict[str, Any]:
+    path = root / ICI_REFERENCE_RELATIVE
+    if not path.is_file():
+        raise StatisticsLabError(f"ICI ETF reference missing: {path}")
+    try:
+        payload = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise StatisticsLabError("ICI ETF reference cannot be read") from exc
+    if (
+        payload.get("schema_version") != 1
+        or payload.get("probability_space") != "reference_only"
+        or payload.get("model_use") is not False
+        or payload.get("official_forecast_input") is not False
+    ):
+        raise StatisticsLabError("ICI ETF reference semantic contract invalid")
+    rows = payload.get("rows") or []
+    required = {"date", "value", "domestic", "world"}
+    if len(rows) != 5 or any(
+        not required.issubset(row)
+        or not all(math.isfinite(float(row[key])) for key in required - {"date"})
+        for row in rows
+    ):
+        raise StatisticsLabError("ICI ETF reference rows invalid")
+    if [row["date"] for row in rows] != sorted({row["date"] for row in rows}):
+        raise StatisticsLabError("ICI ETF reference dates invalid")
+    source = payload.get("source") or {}
+    digest = str(source.get("raw_sha256", ""))
+    if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+        raise StatisticsLabError("ICI ETF source hash invalid")
+    return payload
+
+
 def build_statistics_lab(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
     ipo_reference: dict[str, Any] | None = None,
     hmi_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    required_sources = set(FRED_SERIES) | set(DAILY_MARKET_SERIES) | {"FL663067003"}
+    required_sources = (
+        set(FRED_SERIES) | set(DAILY_MARKET_SERIES) | set(SUPPLEMENTAL_SOURCES)
+        | {"FL663067003"}
+    )
     missing = sorted(required_sources - set(source_rows))
     if missing:
         raise StatisticsLabError(f"missing source series: {missing}")
@@ -1056,6 +1540,71 @@ def build_statistics_lab(
         ]
         dot_hmi, cur_hmi = _cycle_series(hmi_rows, comparison_months)
 
+    tech_cycle = _annual_index_points(
+        monthly["NASDAQCOM"], start_year=1985, end_year=latest_current.year,
+    )
+    gold_monthly = _monthly(source_rows["GOLD_DAILY"], "last")
+    gold_index, m2_gold_index = _normalized_monthly_pair(
+        gold_monthly, monthly["M2SL"], start=CURRENT_START,
+    )
+    equity_gap = _trend_gap_points(monthly["BOGZ1LM153064475Q"])
+    cash_gap = _trend_gap_points(monthly["DABSHNO"])
+    debt_gap = _trend_gap_points(
+        monthly["BOGZ1FL154022375A"], minimum_training=8,
+    )
+    first_year, second_year, third_year, annual_event_ticks = (
+        _two_consecutive_twenty_percent_events(
+            source_rows["NYU_SP500_ANNUAL_TOTAL_RETURN"]
+        )
+    )
+    quarter_next, quarter_two, quarter_ticks, quarter_diagnostics = (
+        _quarterly_followthrough_events(source_rows["SP500_DAILY"])
+    )
+
+    sec_rows = source_rows["SEC_IPO_QUARTERLY"]
+    sec_by_period = {str(row["period_label"]): row for row in sec_rows}
+
+    def sec_half(year: int, field: str) -> float:
+        try:
+            return sum(float(sec_by_period[f"{year}:Q{quarter}"][field]) for quarter in (1, 2))
+        except KeyError as exc:
+            raise StatisticsLabError(f"SEC IPO H1 field unavailable: {year} {field}") from exc
+
+    sec_ticks = [[0, "2025 상반기"], [1, "2026 상반기"]]
+    sec_corporate = [
+        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "corporate_count")}
+        for index, year in enumerate((2025, 2026))
+    ]
+    sec_spac = [
+        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "spac_count")}
+        for index, year in enumerate((2025, 2026))
+    ]
+    sec_fund = [
+        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "fund_count")}
+        for index, year in enumerate((2025, 2026))
+    ]
+    sec_2025_proceeds = sec_half(2025, "total_proceeds_mn") / 1000.0
+    sec_2026_proceeds = sec_half(2026, "total_proceeds_mn") / 1000.0
+    sec_2026_corporate_proceeds = sec_half(2026, "corporate_proceeds_mn") / 1000.0
+
+    ici_rows = source_rows["ICI_WEEKLY_EQUITY_ETF_FLOW"]
+    ici_ticks = [
+        [index, date.fromisoformat(str(row["date"])).strftime("%m/%d")]
+        for index, row in enumerate(ici_rows)
+    ]
+    ici_equity = [
+        {"period": index, "date": str(row["date"]), "value": float(row["value"]) / 1000.0}
+        for index, row in enumerate(ici_rows)
+    ]
+    ici_domestic = [
+        {"period": index, "date": str(row["date"]), "value": float(row["domestic"]) / 1000.0}
+        for index, row in enumerate(ici_rows)
+    ]
+    ici_world = [
+        {"period": index, "date": str(row["date"]), "value": float(row["world"]) / 1000.0}
+        for index, row in enumerate(ici_rows)
+    ]
+
     charts = [
         _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
                "각 사이클 시작월을 100으로 맞춰 유동성과 주가의 누적 속도를 비교합니다.",
@@ -1179,6 +1728,122 @@ def build_statistics_lab(
             ["NAHB_HMI", "GACDFSA066MSFRBPHI"],
         ))
 
+    supplemental_charts = [
+        _chart(
+            "nasdaq_tech_cycle_milestones", "기술 사이클과 IPO 이정표", "ipo",
+            "cycle_start_100",
+            "1985년 말 NASDAQ을 100으로 맞추고 주요 기술기업 IPO와 시장 전환점을 실제 연말 종가 위에 놓습니다.",
+            "연말 종가라 사건일 수익률은 아니며, 이정표가 지수 움직임의 단독 원인이라는 뜻도 아닙니다.",
+            [_series("NASDAQ", "historical", tech_cycle, "#d94b24")], ["NASDAQCOM"],
+        ),
+        _chart(
+            "sec_ipo_issuer_mix_h1", "미국 IPO 구성: 기업 vs SPAC", "ipo", "count",
+            "SEC의 같은 상반기 기준으로 일반 기업, SPAC, 펀드 IPO 건수를 분리합니다.",
+            "SEC 분류는 AI 기업만이 아니라 미국 IPO 전체이며 2026년은 상반기까지만 포함합니다.",
+            [
+                _series("일반 기업", "current", sec_corporate, "#d94b24"),
+                _series("SPAC", "current", sec_spac, "#6956a8"),
+                _series("펀드", "current", sec_fund, "#28756a"),
+            ],
+            ["SEC_IPO_QUARTERLY"],
+        ),
+        _chart(
+            "sp500_after_two_twenty_percent_years", "2년 연속 20% 상승 뒤 3년 차", "economy",
+            "percent",
+            "S&P 500 배당 포함 연간수익률이 두 해 연속 20% 이상이었던 모든 중첩 사례와 다음 해를 비교합니다.",
+            "서로 겹치는 연도 조합을 각각 사건으로 세며, 작은 역사표본을 미래 확률로 해석하지 않습니다.",
+            [
+                _series("첫해", "historical", first_year, "#b8aa92"),
+                _series("둘째 해", "historical", second_year, "#d94b24"),
+                _series("다음 해", "historical", third_year, "#28756a"),
+            ],
+            ["NYU_SP500_ANNUAL_TOTAL_RETURN"],
+        ),
+        _chart(
+            "gold_vs_us_m2", "금과 미국 M2의 실제 경로", "liquidity", "cycle_start_100",
+            "2023년 첫 공통 월을 100으로 맞춰 금 선물 종가와 미국 M2를 비교합니다.",
+            "첨부 장표의 글로벌 유동성 모델이 아닌 공개 대체지표이며, 금 선물과 M2의 동행은 인과나 목표가격을 뜻하지 않습니다.",
+            [
+                _series("금", "current", gold_index, "#b58b2a"),
+                _series("미국 M2", "current", m2_gold_index, "#28756a"),
+            ],
+            ["GOLD_DAILY", "M2SL"],
+        ),
+        _chart(
+            "ici_weekly_equity_etf_flow", "주식 ETF 자금 유입", "liquidity", "billions_usd",
+            "ICI가 공개한 최근 5주 주식 ETF 순발행 추정치를 미국 주식과 해외 주식으로 나눕니다.",
+            "주간치는 업계 추정치여서 수정될 수 있고 실제 월간 순발행과 다를 수 있습니다.",
+            [
+                _series("주식 전체", "current", ici_equity, "#11110f"),
+                _series("미국 주식", "current", ici_domestic, "#d94b24"),
+                _series("해외 주식", "current", ici_world, "#28756a"),
+            ],
+            ["ICI_WEEKLY_EQUITY_ETF_FLOW"],
+        ),
+        _chart(
+            "negative_then_strong_quarter_followthrough", "급반등 분기 뒤의 흐름", "economy",
+            "percent",
+            "S&P 500이 마이너스 분기 다음 분기에 10% 넘게 반등한 역사 사례의 이후 1개·2개 분기 가격수익률을 봅니다.",
+            "Yahoo 종가 기반 가격수익률이라 배당을 제외하며, Carson·FactSet의 배당 포함 표와 숫자가 같을 필요는 없습니다.",
+            [
+                _series("다음 분기", "historical", quarter_next, "#d94b24"),
+                _series("두 분기 누적", "historical", quarter_two, "#28756a"),
+            ],
+            ["SP500_DAILY"],
+        ),
+        _chart(
+            "household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit",
+            "percent_vs_trend",
+            "2009~2019 분기 선형추세를 각 항목에 따로 적합해 실제 잔액이 추세보다 얼마나 위·아래인지 비교합니다.",
+            "가계에는 비영리단체가 포함되고 주식은 시장가격 변동의 영향을 크게 받으며, 선형추세는 구조적 적정수준이 아닙니다.",
+            [
+                _series("주식", "current", equity_gap, "#11110f"),
+                _series("현금성 자산", "current", cash_gap, "#b58b2a"),
+                _series("채권", "current", debt_gap, "#28756a"),
+            ],
+            ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"],
+        ),
+    ]
+    tech_chart, sec_chart, annual_chart, gold_chart, ici_chart, quarter_chart, household_chart = (
+        supplemental_charts
+    )
+    tech_chart.update({
+        "axis_type": "calendar_year",
+        "max_period": int(tech_cycle[-1]["period"]),
+        "projection_max_points": 18,
+        "x_ticks": [[0, "1985"], [10, "1995"], [15, "2000"], [23, "2008"], [35, "2020"], [int(tech_cycle[-1]["period"]), str(latest_current.year)]],
+        "events": [
+            {"period": 10, "label": "Netscape IPO"},
+            {"period": 12, "label": "Amazon IPO"},
+            {"period": 15, "label": "닷컴 정점"},
+            {"period": 19, "label": "Google IPO"},
+            {"period": 27, "label": "Meta IPO"},
+        ],
+    })
+    for chart in (sec_chart, annual_chart, ici_chart, quarter_chart):
+        chart["chart_type"] = "grouped_bar"
+    sec_chart.update({"axis_type": "categorical", "max_period": 1, "x_ticks": sec_ticks})
+    annual_chart.update({
+        "axis_type": "categorical", "max_period": len(annual_event_ticks) - 1,
+        "x_ticks": annual_event_ticks,
+    })
+    gold_chart.update({
+        "axis_type": "elapsed_month", "max_period": max(int(row["period"]) for row in gold_index),
+        "x_ticks": [[0, "2023"], [12, "2024"], [24, "2025"], [36, "2026"]],
+    })
+    ici_chart.update({
+        "axis_type": "categorical", "max_period": len(ici_rows) - 1, "x_ticks": ici_ticks,
+    })
+    quarter_chart.update({
+        "axis_type": "categorical", "max_period": len(quarter_next) - 1,
+        "x_ticks": quarter_ticks, "event_diagnostics": quarter_diagnostics,
+    })
+    household_chart.update({
+        "axis_type": "calendar_quarter", "max_period": max(int(row["period"]) for row in equity_gap),
+        "x_ticks": [[0, "2009"], [16, "2013"], [32, "2017"], [48, "2021"], [64, "2025"]],
+    })
+    charts.extend(supplemental_charts)
+
     def chart_last(chart_index: int, series_index: int) -> float:
         return float(charts[chart_index]["series"][series_index]["points"][-1]["value"])
 
@@ -1272,6 +1937,36 @@ def build_statistics_lab(
             f"KOSPI–전일 SOX {external_pulse_diagnostics['sox_strictly_prior_us_close']['rolling_20_session_correlation']:+.2f}입니다. "
             "세 선이 함께 약해지면 글로벌 반도체 사이클 둔화, KOSPI만 약하면 한국 고유 위험을 우선 확인합니다."
         ),
+        "nasdaq_tech_cycle_milestones": (
+            f"1985년 말 100이던 NASDAQ은 최근 연말 기준 {tech_cycle[-1]['value']:.0f}입니다. "
+            "Netscape 같은 상징적 소형 IPO, 대형 기술기업 상장, 지수 정점은 한 줄의 순서가 아니라 서로 겹쳐 진행됐습니다."
+        ),
+        "sec_ipo_issuer_mix_h1": (
+            f"2026년 상반기는 일반 기업 {int(sum(row['value'] for row in sec_corporate[1:]))}건, "
+            f"SPAC {int(sum(row['value'] for row in sec_spac[1:]))}건입니다. 총 공모액은 ${sec_2025_proceeds:.1f}B에서 "
+            f"${sec_2026_proceeds:.1f}B로 늘었고, 이 중 일반 기업이 ${sec_2026_corporate_proceeds:.1f}B여서 건수보다 대형 거래 집중도가 더 크게 뛰었습니다."
+        ),
+        "sp500_after_two_twenty_percent_years": (
+            f"역사상 {len(third_year)}개 중첩 사례에서 3년 차 평균은 {statistics.mean(row['value'] for row in third_year):+.1f}%, "
+            f"중앙값은 {statistics.median(row['value'] for row in third_year):+.1f}%였습니다. 연속 강세 뒤에도 결과 폭이 커서 평균만으로 다음 해를 단정할 수 없습니다."
+        ),
+        "gold_vs_us_m2": (
+            f"2023년 초 100 기준 최근 금은 {gold_index[-1]['value']:.0f}, 미국 M2는 {m2_gold_index[-1]['value']:.0f}입니다. "
+            "금이 M2보다 빠르면 통화량 외에도 실질금리·달러·안전자산 수요가 가격에 더 강하게 작용했을 가능성을 봅니다."
+        ),
+        "ici_weekly_equity_etf_flow": (
+            f"최근 5주 주식 ETF 순유입 추정 합계는 ${sum(row['value'] for row in ici_equity):.1f}B이며, "
+            f"미국 주식 ${sum(row['value'] for row in ici_domestic):.1f}B, 해외 주식 ${sum(row['value'] for row in ici_world):.1f}B입니다. 유입이 넓게 이어지는지 한 주 급증인지 구분합니다."
+        ),
+        "negative_then_strong_quarter_followthrough": (
+            f"동일 규칙의 {quarter_diagnostics['event_count']}개 가격수익률 사례에서 다음 분기 평균은 "
+            f"{quarter_diagnostics['next_quarter_average']:+.1f}%({quarter_diagnostics['next_quarter_positive']}/{quarter_diagnostics['event_count']}회 상승), "
+            f"두 분기 누적 평균은 {quarter_diagnostics['two_quarter_average']:+.1f}%였습니다. 반등 뒤 추가 상승이 많았지만 손실 사례도 남습니다."
+        ),
+        "household_balance_sheet_trend_gap": (
+            f"최근 값은 2009~2019 추세 대비 주식 {equity_gap[-1]['value']:+.0f}%, 현금성 자산 {cash_gap[-1]['value']:+.0f}%, "
+            f"보유 채권 {debt_gap[-1]['value']:+.0f}%입니다. 세 자산 중 어느 항목이 장기추세에서 가장 크게 벗어났는지 비교합니다."
+        ),
     }
     if hmi_reference is not None:
         chart_insights["housing_manufacturing_warning"] = (
@@ -1301,8 +1996,11 @@ def build_statistics_lab(
                 spec["series"], list(spec["source_ids"]),
             )
             chart["insight"] = str(spec["insight"])
-            if spec.get("scale"):
-                chart["scale"] = str(spec["scale"])
+            for optional in (
+                "scale", "chart_type", "axis_type", "max_period", "x_ticks",
+            ):
+                if optional in spec:
+                    chart[optional] = spec[optional]
             if spec.get("detail_rows"):
                 chart["detail_rows"] = spec["detail_rows"]
             ipo_charts.append(chart)
@@ -1326,20 +2024,38 @@ def build_statistics_lab(
         dot_absorption = absorption_points(value_table.get("dotcom") or {}, list(range(1995, 2000)))
         cur_absorption = absorption_points(value_table.get("current") or {}, list(range(2023, 2027)))
         private_watch = qualitative.get("private_frontier_ai_watchlist") or {}
+        ipo_sensitivity = qualitative.get("reported_frontier_ai_ipo_sensitivity") or {}
         listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
         global_chip_watch = qualitative.get("global_ai_chip_completed_ipos") or {}
         nasdaq_memory_watch = qualitative.get("nasdaq_memory_market_events") or {}
         private_total_bn = sum(float(row["valuation_bn"]) for row in private_watch.get("members") or [])
         latest_equity = total_equity_by_year.get(2026) or float(monthly["BOGZ1LM893064105Q"][-1]["value"])
         private_ratio = private_total_bn * 1000.0 / latest_equity * 100.0
+        sensitivity_total_bn = sum(
+            float(row["headline_ipo_valuation_bn"])
+            for row in ipo_sensitivity.get("members") or []
+        )
+        sensitivity_ratio = sensitivity_total_bn * 1000.0 / latest_equity * 100.0
+        quality_series = [
+            _series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"),
+            _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"),
+            _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a"),
+        ]
+        if sensitivity_total_bn > 0:
+            quality_series.append(_series(
+                "상장가치 헤드라인 민감도", "scenario",
+                [{"period": 44, "date": ipo_sensitivity.get("as_of", "2026-08-18"), "value": sensitivity_ratio}],
+                "#6b3fa0",
+            ))
         quality_chart = _chart(
             "ipo_market_absorption", "IPO와 AI 자본시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
             "한 해 IPO들의 첫 거래 종가 기준 상장 후 시가총액 합계를 미국 기업주식 총가치로 나눠, 건수보다 자금 규모를 비교합니다.",
             "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. OpenAI·Anthropic은 비상장 감시점이며 SKHY ADS와 중국·홍콩 상장 사건은 Ritter식 미국 실제 IPO선에 합산하지 않습니다.",
-            [_series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"), _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"), _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a")],
+            quality_series,
             [
                 value_table.get("source_id"), "BOGZ1LM893064105Q",
                 *[row["source_id"] for row in private_watch.get("members") or []],
+                *[row["source_id"] for row in ipo_sensitivity.get("members") or []],
                 *[row["source_id"] for row in listed_watch.get("members") or []],
                 *[row["source_id"] for row in global_chip_watch.get("members") or []],
                 *[row["source_id"] for row in nasdaq_memory_watch.get("members") or []],
@@ -1348,10 +2064,15 @@ def build_statistics_lab(
         )
         quality_chart["series"][2]["marker_radius"] = 10
         quality_chart["series"][2]["marker_emphasis"] = "private_frontier_watchlist"
+        if len(quality_chart["series"]) > 3:
+            quality_chart["series"][3]["marker_radius"] = 10
+            quality_chart["series"][3]["marker_emphasis"] = "reported_ipo_valuation_sensitivity"
         quality_chart["insight"] = (
             f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
-            f"OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T는 현재 미국 기업주식 총가치의 약 {private_ratio:.1f}%지만, 이는 잠재 공급 감시선이지 완료된 IPO가 아닙니다."
+            "OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T와 $3.0T 상장가치 헤드라인은 각각 감시점과 민감도일 뿐 완료된 IPO가 아닙니다. "
+            "$3.0T 가치에서 5%를 판다는 가정의 총매각 규모는 $150B이며 신주와 구주를 구분하지 않습니다."
         )
+        quality_chart["scenario_sensitivity"] = ipo_sensitivity
         quality_chart["detail_rows"] = [
             {"period": "1999", "label": "전체 비교가능 IPO", "value": "$652B · 실제 상장"},
             {"period": "2025", "label": "전체 비교가능 IPO", "value": "$442B · 실제 상장"},
@@ -1388,11 +2109,12 @@ def build_statistics_lab(
     source_meta = []
     for series_id, spec in FRED_SERIES.items():
         rows = source_rows[series_id]
+        fred_start = spec.get("window_start", "1995-01-01")
         source_meta.append({
             "series_id": series_id,
             **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd=1995-01-01",
+            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={fred_start}",
             "available_at": generated_at,
             "latest_observation": rows[-1]["date"],
             "row_count": len(rows),
@@ -1418,6 +2140,23 @@ def build_statistics_lab(
             "data_quality": receipt.get("data_quality"),
             "window_start": spec["window_start"],
             "window_end_exclusive": spec["window_end_exclusive"],
+        })
+    for series_id, spec in SUPPLEMENTAL_SOURCES.items():
+        rows = source_rows[series_id]
+        receipt = receipts[series_id]
+        source_meta.append({
+            "series_id": series_id,
+            "title": spec["title"],
+            "provider": spec["provider"],
+            "unit": spec["unit"],
+            "native_frequency": spec["native_frequency"],
+            "source_url": spec["source_url"],
+            "request_url": spec["request_url"],
+            "available_at": receipt.get("available_at", generated_at),
+            "latest_observation": max(str(row["date"]) for row in rows),
+            "row_count": len(rows),
+            "raw_sha256": receipt["raw_sha256"],
+            "vintage": receipt.get("vintage", "current_public_release_reconstructed"),
         })
     z1_rows = source_rows["FL663067003"]
     source_meta.append({
@@ -1483,7 +2222,7 @@ def build_statistics_lab(
     return payload
 
 
-def validate_statistics_lab(payload: dict[str, Any]) -> None:
+def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False) -> None:
     if payload.get("schema_version") != 1 or payload.get("status") != "ok":
         raise StatisticsLabError("statistics lab schema/status invalid")
     if payload.get("probability_space") != "reference_only":
@@ -1525,7 +2264,9 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
                     f"chart {chart['id']} exceeds its declared period axis"
                 )
     sources = payload.get("sources")
-    minimum_sources = len(FRED_SERIES) + len(DAILY_MARKET_SERIES) + 1
+    minimum_sources = (
+        len(FRED_SERIES) + len(DAILY_MARKET_SERIES) + len(SUPPLEMENTAL_SOURCES) + 1
+    )
     if not isinstance(sources, list) or len(sources) < minimum_sources:
         raise StatisticsLabError("statistics source registry incomplete")
     source_ids = [str(row.get("series_id")) for row in sources]
@@ -1534,11 +2275,15 @@ def validate_statistics_lab(payload: dict[str, Any]) -> None:
     known_sources = set(source_ids)
     if not set(DAILY_MARKET_SERIES).issubset(known_sources):
         raise StatisticsLabError("daily market source registry incomplete")
+    if not set(SUPPLEMENTAL_SOURCES).issubset(known_sources):
+        raise StatisticsLabError("supplemental public source registry incomplete")
     try:
         generated_at = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
     except (KeyError, TypeError, ValueError) as exc:
         raise StatisticsLabError("statistics generated_at invalid") from exc
     for row in sources:
+        if projected:
+            continue
         digest = str(row.get("raw_sha256", ""))
         if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
             raise StatisticsLabError(f"source {row.get('series_id')} hash invalid")
@@ -1609,6 +2354,9 @@ def refresh_statistics_lab(
     market_fetcher: Callable[
         [str, date, date], tuple[list[dict[str, Any]], dict[str, Any]]
     ] = _fetch_daily_market,
+    supplemental_fetcher: Callable[
+        [str], tuple[list[dict[str, Any]], bytes]
+    ] = _fetch_supplemental,
     z1_fetcher: Callable[[str], bytes] | None = None,
     now: datetime | None = None,
 ) -> tuple[Path, dict[str, Any], bool]:
@@ -1636,13 +2384,29 @@ def refresh_statistics_lab(
             raise StatisticsLabError(f"daily market series empty after bounds: {series_id}")
         source_rows[series_id] = bounded_rows
         receipts[series_id] = receipt
+    for series_id in SUPPLEMENTAL_SOURCES:
+        if series_id == "ICI_WEEKLY_EQUITY_ETF_FLOW":
+            ici_reference = load_ici_reference(root)
+            source_rows[series_id] = ici_reference["rows"]
+            receipts[series_id] = {
+                "raw_sha256": ici_reference["source"]["raw_sha256"],
+                "available_at": ici_reference["source"]["available_at"],
+                "vintage": ici_reference["source"]["vintage"],
+            }
+            continue
+        rows, raw = supplemental_fetcher(series_id)
+        source_rows[series_id] = rows
+        receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
     fetch_z1 = z1_fetcher or (lambda url: _request(url, timeout=60))
     z1_raw = fetch_z1(Z1_ENDPOINT)
     source_rows["FL663067003"] = _parse_z1(z1_raw)
     receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
     ipo_reference = load_ipo_reference(root)
     hmi_reference = load_hmi_reference(root)
-    _validate_manual_reference_freshness(ipo_reference, hmi_reference, generated_at)
+    ici_reference = load_ici_reference(root)
+    _validate_manual_reference_freshness(
+        ipo_reference, hmi_reference, generated_at, ici_reference,
+    )
     payload = build_statistics_lab(
         source_rows,
         generated_at=generated_at,
@@ -1708,9 +2472,9 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         key: value for key, value in payload.items()
         if key not in {"charts", "ipo_comparison"}
     }
+    projected["display_projection"] = True
     public_source_keys = {
-        "series_id", "title", "provider", "source_url", "request_url", "latest_observation",
-        "available_at", "row_count", "vintage", "raw_sha256",
+        "series_id", "title", "provider", "source_url",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}
@@ -1726,6 +2490,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                 "series", "range", "detail_rows", "research_context",
                 "market_breadth_diagnostics", "external_pulse_diagnostics",
                 "comparison_transform", "source_validation",
+                "scenario_sensitivity", "event_diagnostics",
             }
         }
         for diagnostics_key in (
@@ -1744,7 +2509,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         chart_view["series"] = []
         for series in chart["series"]:
             points = series.get("points") or []
-            projection_max_points = max(2, int(chart.get("projection_max_points", 18)))
+            projection_max_points = max(2, int(chart.get("projection_max_points", 14)))
             if len(points) > projection_max_points:
                 stride = math.ceil((len(points) - 1) / (projection_max_points - 1))
                 display_points = points[::stride]
@@ -1770,5 +2535,5 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                     series_view[optional] = series[optional]
             chart_view["series"].append(series_view)
         projected["charts"].append(chart_view)
-    validate_statistics_lab(projected)
+    validate_statistics_lab(projected, projected=True)
     return projected

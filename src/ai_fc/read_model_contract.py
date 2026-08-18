@@ -270,7 +270,10 @@ def validate(model: dict[str, Any]) -> list[str]:
     statistics_lab = model.get("statistics_lab")
     if isinstance(statistics_lab, dict) and statistics_lab.get("status") == "ok":
         try:
-            validate_statistics_lab(statistics_lab)
+            validate_statistics_lab(
+                statistics_lab,
+                projected=statistics_lab.get("display_projection") is True,
+            )
         except (StatisticsLabError, KeyError, TypeError, ValueError) as exc:
             errors.append(f"statistics_lab contract violation: {exc}")
     multi_year_stress = model.get("multi_year_stress")

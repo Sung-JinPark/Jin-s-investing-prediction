@@ -5,8 +5,8 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-08-18T02:03:45+00:00",
-  "as_of": "2026-08-18",
+  "generated_at": "2026-08-18T01:58:44+00:00",
+  "as_of": "2026-08-17",
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -607,23 +607,23 @@
       "x_ticks": [
         [
           0,
-          "건수 비중"
+          "전체 건수 비중"
         ],
         [
           1,
-          "공모액 비중"
+          "전체 공모액 비중"
         ],
         [
           2,
-          "저매출 기업"
+          "매출 1억달러 미만"
         ],
         [
           3,
-          "신생 기업"
+          "설립 5년 미만"
         ],
         [
           4,
-          "첫날 상승"
+          "첫날 평균 상승"
         ]
       ]
     },
@@ -702,20 +702,6 @@
           ],
           "marker_radius": 10,
           "marker_emphasis": "private_frontier_watchlist"
-        },
-        {
-          "label": "상장가치 헤드라인 민감도",
-          "era": "scenario",
-          "color": "#6b3fa0",
-          "points": [
-            {
-              "period": 44,
-              "date": "2026-08-18",
-              "value": 2.8065453614770086
-            }
-          ],
-          "marker_radius": 10,
-          "marker_emphasis": "reported_ipo_valuation_sensitivity"
         }
       ],
       "source_ids": [
@@ -723,8 +709,6 @@
         "BOGZ1LM893064105Q",
         "OPENAI_2026_FUNDING",
         "ANTHROPIC_2026_SERIES_H",
-        "USER_IPO_REVIEW_20260818",
-        "USER_IPO_REVIEW_20260818",
         "SEC_SKHY_424B4",
         "HKEX_HORIZON_9660_2024",
         "HKEX_BLACK_SESAME_2533_2024",
@@ -738,38 +722,7 @@
         "minimum": 0.14701670380777354,
         "maximum": 3.2638962761796897
       },
-      "insight": "1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T와 $3.0T 상장가치 헤드라인은 각각 감시점과 민감도일 뿐 완료된 IPO가 아닙니다. $3.0T 가치에서 5%를 판다는 가정의 총매각 규모는 $150B이며 신주와 구주를 구분하지 않습니다.",
-      "scenario_sensitivity": {
-        "semantics": "headline_ipo_valuation_sensitivity_not_a_completed_offering_or_base_case",
-        "as_of": "2026-08-18",
-        "members": [
-          {
-            "name": "OpenAI",
-            "headline_ipo_valuation_bn": 1000,
-            "source_id": "USER_IPO_REVIEW_20260818"
-          },
-          {
-            "name": "Anthropic",
-            "headline_ipo_valuation_bn": 2000,
-            "source_id": "USER_IPO_REVIEW_20260818"
-          }
-        ],
-        "float_sensitivity": [
-          {
-            "float_percent": 3,
-            "gross_offering_value_bn": 90
-          },
-          {
-            "float_percent": 5,
-            "gross_offering_value_bn": 150
-          },
-          {
-            "float_percent": 10,
-            "gross_offering_value_bn": 300
-          }
-        ],
-        "warning": "Valuation is not proceeds. Gross offering value assumes the stated float and does not separate primary shares from secondary sales."
-      },
+      "insight": "1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T는 현재 미국 기업주식 총가치의 약 1.7%지만, 이는 잠재 공급 감시선이지 완료된 IPO가 아닙니다.",
       "detail_rows": [
         {
           "period": "1999",
@@ -17868,7 +17821,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/M2SL",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
       "raw_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
@@ -17883,7 +17836,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/DABSHNO",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DABSHNO&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d",
@@ -17898,7 +17851,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1LM153064475Q",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1LM153064475Q&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "489d94decb0830ebe03d2e75cdbfcf79ff533244e1053738a0a074a7b0acdb6c",
@@ -17913,7 +17866,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL154022375A",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL154022375A&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "9822c3d45f96edc1291a704c62e067094517662b0fd26a7c0012dc9d36fdb578",
@@ -17929,7 +17882,7 @@
       "window_start": "1985-01-01",
       "source_url": "https://fred.stlouisfed.org/series/NASDAQCOM",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=1985-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 10486,
       "raw_sha256": "489f5c825b22512a4432357ba56ad6f9fbbf1048bc7067eaef3d829a0eaf8dc4",
@@ -17944,7 +17897,7 @@
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/T10Y2Y",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-17",
       "row_count": 7912,
       "raw_sha256": "278d7f7b9dc1d0243419fe1f27e96cf85d30f7d5b5ac35cec63b9a3c06979966",
@@ -17959,7 +17912,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/FEDFUNDS",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20",
@@ -17974,7 +17927,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/TOTALSL",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TOTALSL&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
       "raw_sha256": "88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51",
@@ -17989,7 +17942,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/TDSP",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TDSP&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 85,
       "raw_sha256": "6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9",
@@ -18004,7 +17957,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL010000346Q",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL010000346Q&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2025-10-01",
       "row_count": 124,
       "raw_sha256": "5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0",
@@ -18019,7 +17972,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/DRTSCILM",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DRTSCILM&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
       "raw_sha256": "b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165",
@@ -18034,7 +17987,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/NCBEILQ027S",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NCBEILQ027S&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7",
@@ -18049,7 +18002,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/CPATAX",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPATAX&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69",
@@ -18064,7 +18017,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/UNRATE",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
@@ -18079,7 +18032,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
@@ -18094,7 +18047,7 @@
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/NFCI",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-07",
       "row_count": 1649,
       "raw_sha256": "7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d",
@@ -18109,7 +18062,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1LM893064105Q",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1LM893064105Q&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497",
@@ -18124,7 +18077,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/HQMCB10YR",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=HQMCB10YR&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0",
@@ -18139,7 +18092,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/GS10",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b",
@@ -18154,7 +18107,7 @@
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/DCOILWTICO",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-11",
       "row_count": 7930,
       "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
@@ -18169,7 +18122,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/WPU10260314",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU10260314&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "37526897a98189c8596bc68670b0533e0fdd5f3a2c15889f362149838054dc55",
@@ -18184,7 +18137,7 @@
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/GACDFSA066MSFRBPHI",
       "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GACDFSA066MSFRBPHI&cosd=1995-01-01",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea",
@@ -18198,10 +18151,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/%5EKS11/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EKS11?interval=1d&period1=1577836800&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 1623,
-      "raw_sha256": "1f57244b3bddff356e95583ff212ef6ec325e9765a128c26ddf672a8f25c8c02",
+      "raw_sha256": "d9bda5d9d5df373b90e37c1ab0d7a2d355ffa030e781bf2b9da0873e6eb6c0dd",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "^KS11",
@@ -18223,10 +18176,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/%5EKQ11/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EKQ11?interval=1d&period1=1577836800&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 1623,
-      "raw_sha256": "578e4e055d46943ebe399d36ef6617f094d8f5db13571dfbed9d33990e3a085e",
+      "raw_sha256": "57a0143e9adbdea59991b4564d05da3682dc2b7160768a8f8eacdb3b628a502d",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "^KQ11",
@@ -18248,10 +18201,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/091160.KS/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/091160.KS?interval=1d&period1=1577836800&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 1600,
-      "raw_sha256": "3b36de0b11cbed9dfd150b3f5dfdde2e0fc1beb5d2c0765d140f1862f769d193",
+      "raw_sha256": "c7aee9dd568a59c5e0f03a80d21017dae7b3afffafc78550ff03aa52ad800849",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "091160.KS",
@@ -18273,10 +18226,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/%5ETWII/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ETWII?interval=1d&period1=1577836800&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 1606,
-      "raw_sha256": "1595923708dad113f7c68463b38bb75c1d3c28f08f3d81c81ab3d8e6945733e5",
+      "raw_sha256": "3c01c0693f0c02f50e546635530ccadc493e10b935614ebe34b947d0fc3a7edc",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "^TWII",
@@ -18298,10 +18251,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5ESOX?interval=1d&period1=1577836800&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-17",
       "row_count": 1664,
-      "raw_sha256": "68aa57ef4ebdd55c1bfca8980bd969c2a8edcce7c8186deaf280c967b31a18eb",
+      "raw_sha256": "d591eb8545310f3d6de7b5ed817dde2b9eadeeb88eb6cf69117eb94d6a724cca",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "^SOX",
@@ -18323,10 +18276,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EGSPC?interval=1d&period1=86400&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-17",
       "row_count": 14277,
-      "raw_sha256": "520241551e3f834a0cd54f56795bf460c6cd622f0a8262c456f1923d3291208c",
+      "raw_sha256": "cd8d43d6e0f5eb0ff24a52286381b9be570f6cdaf43a9cb4afd2f7ab10db9743",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "^GSPC",
@@ -18348,10 +18301,10 @@
       "native_frequency": "daily_close",
       "source_url": "https://finance.yahoo.com/quote/GC%3DF/history/",
       "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/GC%3DF?interval=1d&period1=1640995200&period2=1787011200&events=div%2Csplits",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-08-14",
       "row_count": 1160,
-      "raw_sha256": "cc17ea5d3192d45e388dff73d02b0ede6d09c0799d147be2e8d99807b465a21e",
+      "raw_sha256": "4c2c51973bc7b94618f50fe90bb4b172229d8cf297ca8052a074dad8ca39feea",
       "vintage": "yahoo_current_chart_response",
       "data_quality": {
         "symbol": "GC=F",
@@ -18372,8 +18325,8 @@
       "unit": "counts_and_millions_usd",
       "native_frequency": "quarterly",
       "source_url": "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos",
-      "request_url": "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "request_url": "https://www.sec.gov/files/sec-stats-ipos-20260729.xlsx",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "41ec9bc4ac8191be7d6db38c467550e7b6a4108370885f41e7b6b899117ee5c0",
@@ -18401,7 +18354,7 @@
       "native_frequency": "annual",
       "source_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html",
       "request_url": "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xlsx",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2025-12-31",
       "row_count": 98,
       "raw_sha256": "85de660d055abf5fce01ab8531c5835ffeda84ff0e204e6d89a6b7ba68f3ba44",
@@ -18415,7 +18368,7 @@
       "native_frequency": "quarterly",
       "source_url": "https://www.federalreserve.gov/releases/z1/current/",
       "request_url": "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip",
-      "available_at": "2026-08-18T02:03:45+00:00",
+      "available_at": "2026-08-18T01:58:44+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
@@ -18460,19 +18413,6 @@
       "row_count": 5,
       "raw_sha256": "c306cfcab807ad00a08dae6dba9b255314cc212b528eaf614f98fd8ecc963c02",
       "vintage": "downloaded_2026-08-18"
-    },
-    {
-      "series_id": "USER_IPO_REVIEW_20260818",
-      "title": "User-supplied frontier AI IPO comparison memo",
-      "provider": "User-provided research synthesis with linked Reuters, FT, Axios, SEC and BLS references",
-      "unit": "headline_valuation_sensitivity",
-      "native_frequency": "event_research",
-      "source_url": "https://www.reuters.com/business/anthropic-ipo-valuation-hinges-190-200-billion-2028-revenue-forecast-sources-say-2026-08-15/",
-      "available_at": "2026-08-18T00:00:00Z",
-      "latest_observation": "2026-08-18",
-      "row_count": 2,
-      "raw_sha256": "de44795e26e93f166ec39a5d53b31e5ee71a0616541731cea884f6524f934d8e",
-      "vintage": "user_attachment_2026-08-18"
     },
     {
       "series_id": "RC_AI_MARKET_2024",

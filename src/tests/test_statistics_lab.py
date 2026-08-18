@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import html
 import io
 import json
 import math
@@ -18,6 +19,9 @@ from ai_fc.statistics_lab import (
     StatisticsLabError,
     _fetch_fred,
     _parse_fred_csv,
+    _parse_ici_weekly_html,
+    _parse_nyu_returns_xlsx,
+    _parse_sec_ipo_xlsx,
     _parse_z1,
     _request,
     _validate_manual_reference_freshness,
@@ -118,15 +122,23 @@ def test_fred_fetch_uses_same_url_transport_fallback(
 
 def _rows(series_id: str) -> list[dict[str, float | str]]:
     rows = []
-    start = date(1995, 1, 1)
-    for offset in range(0, 32 * 12):
+    start = date(1985, 1, 1) if series_id == "NASDAQCOM" else date(1995, 1, 1)
+    end = date(2027, 1, 1)
+    months = (end.year - start.year) * 12 + end.month - start.month
+    for offset in range(0, months):
         year = start.year + (start.month - 1 + offset) // 12
         month = (start.month - 1 + offset) % 12 + 1
-        if series_id in {"DABSHNO", "BOGZ1LM893064105Q"} and month not in {1, 4, 7, 10}:
+        if series_id in {
+            "DABSHNO", "BOGZ1LM153064475Q", "BOGZ1LM893064105Q",
+        } and month not in {1, 4, 7, 10}:
+            continue
+        if series_id == "BOGZ1FL154022375A" and month != 1:
             continue
         baseline = {
             "M2SL": 4000.0,
             "DABSHNO": 8_000_000.0,
+            "BOGZ1LM153064475Q": 9_000_000.0,
+            "BOGZ1FL154022375A": 6_000_000.0,
             "NASDAQCOM": 900.0,
             "T10Y2Y": 0.5,
             "FEDFUNDS": 5.0,
@@ -173,6 +185,46 @@ def _z1_bytes() -> bytes:
     return target.getvalue()
 
 
+def _xlsx_fixture(sheet_name: str, rows: list[list[object]]) -> bytes:
+    def column_name(index: int) -> str:
+        result = ""
+        while index:
+            index, remainder = divmod(index - 1, 26)
+            result = chr(65 + remainder) + result
+        return result
+
+    sheet_rows = []
+    for row_index, row in enumerate(rows, start=1):
+        cells = []
+        for column_index, value in enumerate(row, start=1):
+            ref = f"{column_name(column_index)}{row_index}"
+            if isinstance(value, str):
+                cells.append(
+                    f'<c r="{ref}" t="inlineStr"><is><t>{html.escape(value)}</t></is></c>'
+                )
+            else:
+                cells.append(f'<c r="{ref}"><v>{value}</v></c>')
+        sheet_rows.append(f'<row r="{row_index}">{"".join(cells)}</row>')
+    target = io.BytesIO()
+    with zipfile.ZipFile(target, "w") as archive:
+        archive.writestr(
+            "xl/workbook.xml",
+            '<?xml version="1.0"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
+            f'<sheet name="{html.escape(sheet_name)}" sheetId="1" r:id="rId1"/>'
+            '</sheets></workbook>',
+        )
+        archive.writestr(
+            "xl/_rels/workbook.xml.rels",
+            '<?xml version="1.0"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>',
+        )
+        archive.writestr(
+            "xl/worksheets/sheet1.xml",
+            '<?xml version="1.0"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>'
+            + "".join(sheet_rows) + '</sheetData></worksheet>',
+        )
+    return target.getvalue()
+
+
 def _payload_inputs() -> tuple[dict, dict]:
     rows = {series_id: _rows(series_id) for series_id in FRED_SERIES}
     market_rows = {series_id: [] for series_id in DAILY_MARKET_SERIES}
@@ -203,6 +255,42 @@ def _payload_inputs() -> tuple[dict, dict]:
             session += 1
         observed = date.fromordinal(observed.toordinal() + 1)
     rows.update(market_rows)
+    sp500_rows = []
+    sp500_value = 100.0
+    for year in range(1950, 2027):
+        for quarter, quarter_return in enumerate((-0.05, 0.12, 0.04, 0.03), start=1):
+            month = quarter * 3
+            sp500_value *= 1.0 + quarter_return
+            sp500_rows.append({
+                "date": date(year, month, 20).isoformat(), "value": sp500_value,
+            })
+    rows["SP500_DAILY"] = sp500_rows
+    gold_rows = []
+    for offset in range(0, 5 * 12):
+        year = 2022 + offset // 12
+        month = offset % 12 + 1
+        gold_rows.append({
+            "date": date(year, month, 15).isoformat(),
+            "value": 1800.0 * (1.0 + offset * 0.008),
+        })
+    rows["GOLD_DAILY"] = gold_rows
+    rows["SEC_IPO_QUARTERLY"] = [
+        {"date": "2025-03-01", "period_label": "2025:Q1", "total_count": 84, "us_count": 45, "non_us_count": 39, "corporate_count": 63, "spac_count": 20, "fund_count": 1, "total_proceeds_mn": 11867.2, "corporate_proceeds_mn": 8814.8, "spac_proceeds_mn": 3052.0, "fund_proceeds_mn": 0.4},
+        {"date": "2025-06-01", "period_label": "2025:Q2", "total_count": 96, "us_count": 59, "non_us_count": 37, "corporate_count": 48, "spac_count": 46, "fund_count": 2, "total_proceeds_mn": 15808.4, "corporate_proceeds_mn": 7029.6, "spac_proceeds_mn": 8722.5, "fund_proceeds_mn": 56.3},
+        {"date": "2026-03-01", "period_label": "2026:Q1", "total_count": 99, "us_count": 81, "non_us_count": 18, "corporate_count": 36, "spac_count": 62, "fund_count": 1, "total_proceeds_mn": 22181.5, "corporate_proceeds_mn": 10055.9, "spac_proceeds_mn": 11810.2, "fund_proceeds_mn": 315.4},
+        {"date": "2026-06-01", "period_label": "2026:Q2", "total_count": 109, "us_count": 97, "non_us_count": 12, "corporate_count": 52, "spac_count": 56, "fund_count": 1, "total_proceeds_mn": 115718.0, "corporate_proceeds_mn": 104734.1, "spac_proceeds_mn": 8958.0, "fund_proceeds_mn": 2025.8},
+    ]
+    rows["ICI_WEEKLY_EQUITY_ETF_FLOW"] = [
+        {"date": f"2026-07-{day:02d}", "value": value, "domestic": domestic, "world": value - domestic}
+        for day, value, domestic in ((8, 52517, 49661), (15, 15687, 5582), (22, 20835, 14178), (29, 40529, 36325))
+    ] + [{"date": "2026-08-05", "value": 29803, "domestic": 19619, "world": 10184}]
+    rows["NYU_SP500_ANNUAL_TOTAL_RETURN"] = [
+        {
+            "date": f"{year}-12-31",
+            "value": 25.0 if year % 8 in {0, 1} else (12.0 if year % 8 == 2 else 6.0),
+        }
+        for year in range(1950, 2026)
+    ]
     z1 = _z1_bytes()
     rows["FL663067003"] = _parse_z1(z1)
     receipts = {
@@ -245,6 +333,16 @@ def _install_ipo_reference(root: Path) -> None:
         json.dumps(hmi_fixture, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
+    repo_root = Path(__file__).resolve().parents[2]
+    ici_fixture = json.loads(
+        (repo_root / "data/statistics/reference/ici_weekly_equity_etf_flow_v1.json")
+        .read_text(encoding="utf-8")
+    )
+    ici_fixture["as_of"] = "2026-12-31"
+    ici_target = root / "data/statistics/reference/ici_weekly_equity_etf_flow_v1.json"
+    ici_target.write_text(
+        json.dumps(ici_fixture, ensure_ascii=False, indent=2) + "\n", encoding="utf-8",
+    )
 
 
 def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
@@ -253,6 +351,37 @@ def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
     )
     assert parsed == [{"date": "2026-01-01", "value": 22000.0}]
     assert _parse_z1(_z1_bytes())[0]["date"] == "1995-01-01"
+
+
+def test_public_supplemental_parsers_preserve_source_definitions() -> None:
+    sec_header = [f"field-{index}" for index in range(13)]
+    sec_row = ["2026:Q2", 109, 97, 12, 52, 56, 1, 115718, 109876.5, 5841.5, 104734.1, 8958, 2025.8]
+    sec = _parse_sec_ipo_xlsx(_xlsx_fixture("Stats Table", [sec_header, sec_row]))
+    assert sec == [{
+        "date": "2026-06-01", "period_label": "2026:Q2", "total_count": 109,
+        "us_count": 97, "non_us_count": 12, "corporate_count": 52,
+        "spac_count": 56, "fund_count": 1, "total_proceeds_mn": 115718.0,
+        "corporate_proceeds_mn": 104734.1, "spac_proceeds_mn": 8958.0,
+        "fund_proceeds_mn": 2025.8,
+    }]
+    nyu_rows = [["Year", "S&P 500 (includes dividends)"]] + [
+        [year, 0.20 if year % 2 else -0.05] for year in range(1928, 2026)
+    ]
+    nyu = _parse_nyu_returns_xlsx(_xlsx_fixture("Returns by year", nyu_rows))
+    assert nyu[0] == {"date": "1928-12-31", "value": -5.0}
+    assert nyu[-1] == {"date": "2025-12-31", "value": 20.0}
+    ici = _parse_ici_weekly_html(b"""
+      <h2>ETF Estimated Net Issuance</h2><table>
+      <tr><th></th><th>8/5/2026</th><th>7/29/2026</th><th>7/22/2026</th></tr>
+      <tr><td>Equity</td><td>29,803</td><td>40,529</td><td>20,835</td></tr>
+      <tr><td>Domestic</td><td>19,619</td><td>36,325</td><td>14,178</td></tr>
+      <tr><td>World</td><td>10,184</td><td>4,204</td><td>6,657</td></tr>
+      </table>
+    """)
+    assert ici[-1] == {
+        "date": "2026-08-05", "value": 29803.0,
+        "domestic": 19619.0, "world": 10184.0,
+    }
 
 
 def test_manual_reference_staleness_stops_weekly_republication() -> None:
@@ -287,7 +416,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 28
+    assert len(payload["charts"]) == 36
     assert all(chart["insight"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
@@ -298,6 +427,11 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
         "ipo_market_absorption", "small_issuer_ipo_share",
+        "dotcom_internet_ipo_breadth", "nasdaq_tech_cycle_milestones",
+        "sec_ipo_issuer_mix_h1", "sp500_after_two_twenty_percent_years",
+        "gold_vs_us_m2", "ici_weekly_equity_etf_flow",
+        "negative_then_strong_quarter_followthrough",
+        "household_balance_sheet_trend_gap",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
         "kospi_market_breadth_2026_daily", "kospi_external_semiconductor_pulse",
@@ -390,7 +524,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         current = [row for row in chart["series"] if row["era"] == "current"]
         if dotcom:
             assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
-        if current and chart.get("axis_type") != "calendar_day_of_year":
+        if current and int(chart.get("max_period", 59)) == 59:
             assert max(point["period"] for row in current for point in row["points"]) < 59
     invalid = json.loads(json.dumps(payload))
     invalid["cycle_alignment"]["forecast_extension"] = True
@@ -443,9 +577,14 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
             "data_quality": {"status": "ok"},
         }
 
+    def supplemental_fetcher(series_id: str):
+        raw = f"supplemental-fixture:{series_id}".encode()
+        return rows[series_id], raw
+
     z1 = _z1_bytes()
     path, payload, changed = refresh_statistics_lab(
         tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
@@ -455,6 +594,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     assert len(archives) == 1
     _, second, changed_again = refresh_statistics_lab(
         tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
@@ -513,13 +653,16 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     latest.write_text(json.dumps(payload), encoding="utf-8")
     projected = statistics_dashboard_projection(tmp_path)
     assert all("range" not in chart for chart in projected["charts"])
-    assert all(len(source["raw_sha256"]) == 64 for source in projected["sources"])
+    assert all("raw_sha256" not in source for source in projected["sources"])
+    assert all(len(source["raw_sha256"]) == 64 for source in payload["sources"])
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
             if raw_chart.get("axis_type") == "calendar_day_of_year":
                 assert len(view_series["points"]) == len(raw_series["points"])
             else:
-                assert len(view_series["points"]) <= 18
+                assert len(view_series["points"]) <= int(
+                    raw_chart.get("projection_max_points", 14)
+                )
             assert view_series["points"][0]["period"] == raw_series["points"][0]["period"]
             assert view_series["points"][-1]["period"] == raw_series["points"][-1]["period"]
     absorption = next(chart for chart in projected["charts"] if chart["id"] == "ipo_market_absorption")
@@ -543,7 +686,7 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 25
+    assert len(payload["sources"]) == 27
     assert all(source["raw_sha256"] for source in payload["sources"])
     fred_sources = [source for source in payload["sources"] if source["series_id"] in FRED_SERIES]
     assert all("fredgraph.csv?id=" in source["request_url"] for source in fred_sources)
@@ -563,6 +706,12 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert [row["name"] for row in qualitative["global_ai_chip_completed_ipos"]["members"]] == [
         "Horizon Robotics", "Black Sesame International", "Moore Threads", "MetaX Integrated Circuits"
     ]
+    sensitivity = qualitative["reported_frontier_ai_ipo_sensitivity"]
+    assert sensitivity["semantics"].endswith("not_a_completed_offering_or_base_case")
+    assert sum(row["headline_ipo_valuation_bn"] for row in sensitivity["members"]) == 3000
+    assert sensitivity["float_sensitivity"][1] == {
+        "float_percent": 5, "gross_offering_value_bn": 150,
+    }
 
 
 def test_published_fedfunds_dotcom_path_is_monthly_and_not_a_rectangle() -> None:

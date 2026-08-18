@@ -96,6 +96,20 @@
         {"name": "Anthropic", "valuation_bn": 965, "source_id": "ANTHROPIC_2026_SERIES_H"}
       ]
     },
+    "reported_frontier_ai_ipo_sensitivity": {
+      "semantics": "headline_ipo_valuation_sensitivity_not_a_completed_offering_or_base_case",
+      "as_of": "2026-08-18",
+      "members": [
+        {"name": "OpenAI", "headline_ipo_valuation_bn": 1000, "source_id": "USER_IPO_REVIEW_20260818"},
+        {"name": "Anthropic", "headline_ipo_valuation_bn": 2000, "source_id": "USER_IPO_REVIEW_20260818"}
+      ],
+      "float_sensitivity": [
+        {"float_percent": 3, "gross_offering_value_bn": 90},
+        {"float_percent": 5, "gross_offering_value_bn": 150},
+        {"float_percent": 10, "gross_offering_value_bn": 300}
+      ],
+      "warning": "Valuation is not proceeds. Gross offering value assumes the stated float and does not separate primary shares from secondary sales."
+    },
     "listed_ai_beneficiary_watchlist": {
       "semantics": "ai_beneficiary_with_new_nasdaq_ads_offering_included_only_in_influence_inclusive_listing_event_count_because_adrs_are_outside_ritter_traditional_ipo_definition",
       "as_of": "2026-07-10",
@@ -341,6 +355,29 @@
           {"period": 0, "date": "2023-12-31", "value": 65}, {"period": 12, "date": "2024-12-31", "value": 64}, {"period": 24, "date": "2025-12-31", "value": 53}
         ]}
       ]
+    },
+    {
+      "id": "dotcom_internet_ipo_breadth",
+      "title": "1999 인터넷 IPO의 폭과 열기",
+      "category": "ipo",
+      "unit": "percent",
+      "chart_type": "bar",
+      "axis_type": "categorical",
+      "max_period": 4,
+      "x_ticks": [[0, "건수 비중"], [1, "공모액 비중"], [2, "저매출 기업"], [3, "신생 기업"], [4, "첫날 상승"]],
+      "description": "동일한 1999년 인터넷 IPO 집계 안에서 시장의 폭, 기업 성숙도와 첫날 열기를 함께 봅니다.",
+      "caveat": "WilmerHale의 당시 집계는 Ritter 인터넷 플래그와 분류가 달라 289건과 273건을 서로 대체하지 않습니다.",
+      "insight": "1999년 인터넷 IPO는 289건으로 전체 IPO의 약 60%였고 공모액 비중은 40%였습니다. 매출 1억달러 미만 81%, 설립 5년 미만 57%, 첫날 평균 +90%가 함께 나타난 것이 닷컴 말기의 ‘넓은 과열’입니다.",
+      "source_ids": ["WILMERHALE_INTERNET_IPO_1999"],
+      "series": [
+        {"label": "1999 인터넷 IPO", "era": "dotcom", "color": "#c70039", "points": [
+          {"period": 0, "date": "1999-12-31", "value": 60},
+          {"period": 1, "date": "1999-12-31", "value": 40},
+          {"period": 2, "date": "1999-12-31", "value": 81},
+          {"period": 3, "date": "1999-12-31", "value": 57},
+          {"period": 4, "date": "1999-12-31", "value": 90}
+        ]}
+      ]
     }
   ],
   "sources": [
@@ -369,6 +406,32 @@
       "row_count": 16030,
       "raw_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
       "vintage": "reviewed_2025_workbook"
+    },
+    {
+      "series_id": "WILMERHALE_INTERNET_IPO_1999",
+      "title": "Internet IPOs Conclude a Sensational Year in 1999",
+      "provider": "WilmerHale",
+      "unit": "historical_market_statistics",
+      "native_frequency": "historical_research",
+      "source_url": "https://www.wilmerhale.com/en/insights/publications/internet-ipos-conclude-a-sensational-year-in-1999-december-1999",
+      "available_at": "1999-12-31T00:00:00Z",
+      "latest_observation": "1999-12-31",
+      "row_count": 5,
+      "raw_sha256": "c306cfcab807ad00a08dae6dba9b255314cc212b528eaf614f98fd8ecc963c02",
+      "vintage": "downloaded_2026-08-18"
+    },
+    {
+      "series_id": "USER_IPO_REVIEW_20260818",
+      "title": "User-supplied frontier AI IPO comparison memo",
+      "provider": "User-provided research synthesis with linked Reuters, FT, Axios, SEC and BLS references",
+      "unit": "headline_valuation_sensitivity",
+      "native_frequency": "event_research",
+      "source_url": "https://www.reuters.com/business/anthropic-ipo-valuation-hinges-190-200-billion-2028-revenue-forecast-sources-say-2026-08-15/",
+      "available_at": "2026-08-18T00:00:00Z",
+      "latest_observation": "2026-08-18",
+      "row_count": 2,
+      "raw_sha256": "de44795e26e93f166ec39a5d53b31e5ee71a0616541731cea884f6524f934d8e",
+      "vintage": "user_attachment_2026-08-18"
     },
     {
       "series_id": "RC_AI_MARKET_2024",
