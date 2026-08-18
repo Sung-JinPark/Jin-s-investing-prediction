@@ -1028,8 +1028,9 @@ function statisticsValue(unit,value){
   if(!Number.isFinite(n))return '—';
   if(unit==='count')return `${Math.round(n).toLocaleString('ko-KR')}건`;
   if(unit==='multiple')return `${n.toFixed(1)}×`;
+  if(unit==='billions_usd')return `$${n.toFixed(1)}B`;
   if(unit==='cycle_start_100'||unit==='year_start_100')return `${n.toFixed(0)}`;
-  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value'||unit==='percent_20d_log_return')return `${n>=0?'+':''}${n.toFixed(1)}%`;
+  if(unit==='percent'||unit==='percent_yoy'||unit==='net_percent'||unit==='percent_of_us_corporate_equity_value'||unit==='percent_20d_log_return'||unit==='percent_vs_trend')return `${n>=0?'+':''}${n.toFixed(1)}%`;
   if(unit==='percentage_point_change')return `${n>=0?'+':''}${n.toFixed(1)}%p`;
   if(unit==='neutral_line_distance')return `${n>=0?'+':''}${n.toFixed(1)}p`;
   if(unit==='standard_deviation_index')return `${n>=0?'+':''}${n.toFixed(2)}`;
@@ -1044,13 +1045,14 @@ function statisticsChartSvg(chart,alignment={}){
   const rawValues=points.map(row=>Number(row.value)).filter(Number.isFinite),rawMin=Math.min(...rawValues),rawMax=Math.max(...rawValues);
   const useLog=chart.scale==='log1p'&&rawMin>=0,transform=value=>useLog?Math.log1p(Number(value)):Number(value),inverse=value=>useLog?Math.expm1(value):value;
   const transformed=rawValues.map(transform),transformedMin=Math.min(...transformed),transformedMax=Math.max(...transformed);
-  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),low=useLog?0:transformedMin-span*.12,high=transformedMax+span*.12;
-  const X=value=>ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(transform(value)-low)/(high-low));
+  const barChart=chart.chart_type==='bar'||chart.chart_type==='grouped_bar';
+  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),low=useLog?0:(barChart?Math.min(0,transformedMin-span*.08):transformedMin-span*.12),high=transformedMax+span*.12;
+  const X=value=>barChart?ML+PW*((Number(value)||0)+.5)/(maxPeriod+1):ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(transform(value)-low)/(high-low));
   const yTicks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
   const calendarAxis=chart.axis_type==='calendar_day_of_year';
-  const xTicks=(calendarAxis?[
+  const xTicks=((chart.x_ticks||[]).length?chart.x_ticks:(calendarAxis?[
     [0,'1월'],[59,'3월'],[120,'5월'],[181,'7월'],[243,'9월'],[304,'11월'],[maxPeriod,'12월']
-  ]:[0,12,24,36,48,maxPeriod].map(value=>[value,`M+${value}`]))
+  ]:[0,12,24,36,48,maxPeriod].map(value=>[value,`M+${value}`])))
     .filter(([value],index,array)=>value<=maxPeriod&&array.findIndex(([peer])=>peer===value)===index)
     .sort((a,b)=>a[0]-b[0]);
   const line=values=>values.map((row,index)=>`${index?'L':'M'}${X(row.period).toFixed(1)},${Y(row.value).toFixed(1)}`).join(' ');
@@ -1058,13 +1060,19 @@ function statisticsChartSvg(chart,alignment={}){
   const calendarLabel=chart.unit==='percent_20d_log_return'
     ?'실제 20거래일 로그수익률. 미국 SOX는 한국 날짜보다 엄격히 이전인 종가만 사용.'
     :'각 지수의 2026년 첫 실제 종가 100. 변동성·날짜 조정 없음.';
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?calendarLabel:'닷컴 1995~1999와 AI 2023~2027 비교.'} ${useLog?'세로축 log(1+x). ':''}현재 선은 실제 관측에서 종료" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${calendarAxis?'calendar-day-of-year':'elapsed-month'}">
+  const groupedBars=barChart?series.flatMap((row,seriesIndex)=>(row.points||[]).map(point=>{
+    const groupWidth=Math.min(92,PW/Math.max(2,maxPeriod+1)*.72),count=chart.chart_type==='bar'?1:series.length,barWidth=Math.max(6,groupWidth/count),offset=(seriesIndex-(count-1)/2)*barWidth,x=X(point.period)+offset-barWidth*.42,y0=Y(0),yv=Y(point.value),top=Math.min(y0,yv),height=Math.max(1,Math.abs(yv-y0));
+    return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${(barWidth*.84).toFixed(1)}" height="${height.toFixed(1)}" rx="2" fill="${esc(row.color||'#111')}" fill-opacity="${seriesIndex===0?'.9':'.72'}" data-stat-series="${esc(row.label)}"/>`;
+  })).join(''):'';
+  const eventLines=(chart.events||[]).map((event,index)=>`<line x1="${X(event.period).toFixed(1)}" x2="${X(event.period).toFixed(1)}" y1="${MT+12+(index%2)*18}" y2="${H-MB}" stroke="#8c867c" stroke-dasharray="3 5" opacity=".55"/><text x="${(X(event.period)+5).toFixed(1)}" y="${MT+10+(index%2)*18}" text-anchor="start" fill="#625f58" class="statistics-event-label">${esc(event.label)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?calendarLabel:'닷컴 1995~1999와 현재 공개 관측자료 비교.'} ${useLog?'세로축 log(1+x). ':''}예측값 없음" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${esc(chart.axis_type||'elapsed-month')}">
     ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${tickY(value).toFixed(1)}" y2="${tickY(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(tickY(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,inverse(value)))}</text>`).join('')}
     ${!useLog&&low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
     ${xTicks.map(([value,label])=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">${esc(label)}</text>`).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">${esc(chart.observed_end_label||'AI 실제 관측 종료')}</text>`:''}
-    ${series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.2'}" stroke-dasharray="${row.era==='current'?'none':'6 5'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
-    ${chart.category==='ipo'?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
+    ${eventLines}
+    ${barChart?groupedBars:series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.4'}" stroke-dasharray="${row.era==='dotcom'?'6 5':'none'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
+    ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
 function renderStatistics(){
