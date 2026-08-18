@@ -1,8 +1,8 @@
 # Official statistics ledger + Scenario V5.2 source-gate review pack
 
 검토 기준 시각: `2026-08-18T09:45:06Z`
-검토 기준 Git HEAD: `5de1512912707e4799dddca6bc6e72a833903e99`
-작업 브랜치: `codex/official-data-ledger`
+검토 기준 Git merge commit: `63237d22aa5ee6dad553726b76083cc9f266f321`
+구현 브랜치: `codex/official-data-ledger`
 
 ## 독립 판정
 
@@ -28,8 +28,10 @@
   - local DOM에서 통계 22개 차트·유동성 지도를 확인했고, 미래 경로는 S1 +12.0% / S2 +0.1% / S3 -13.4%, 3개 군집·9,000 paths로 확인했다.
   - 통계·미래 1280/390 렌더 4장을 육안 검토했다.
   - 최종 workbook은 8개 시트, 30 sources, 38,039 observations, 90 receipts, 2 corrections, formula error 0이다.
-- **최종 Git/PR/Pages/live 배포 증거: HOLD**
-  - 이 팩은 merge 전 독립 검토본이다. 최종 commit, PR, merge, Actions, Pages 및 배포된 live DOM 증거는 부모 작업자가 배포 후 채워야 한다.
+- **최종 Git/PR/Pages/live 배포 증거: PASS**
+  - PR #45를 verify 성공 후 merge했고, merge commit `63237d2`의 main verify와 Pages build/deploy가 성공했다.
+  - cache-busted live 통계에서 22 cards·30 sources를, 미래 화면에서 S1 +12.0% / S2 +0.1% / S3 -13.4%·9,000 paths를 재확인했다.
+  - 통계·미래의 live 1280/390 렌더 4장과 SHA-256을 동봉했다.
 
 ## 포함 파일
 
@@ -38,17 +40,17 @@
 - `V52_BEFORE_AFTER_260818.md`: 변경 전·후 점수, 확률, cohort 질량과 남은 HOLD.
 - `TEST_AND_DEPLOY_EVIDENCE_260818.md`: 실행 완료 증거와 최종 배포 증거 템플릿.
 - `LOCAL_BUILD_RENDER_EVIDENCE_260818.md`: `_site`, workbook, local DOM, 1280/390 이미지의 크기·SHA와 검토 결과.
+- `LIVE_DEPLOY_EVIDENCE_260818.md`: PR·merge·Actions·Pages·live DOM·배포 화면 증거.
 - `DATA_INTEGRITY_SUMMARY_260818.json`: 실측 원장·payload 카운트와 무결성 결과.
 - `PROTECTED_HASH_COMPARISON_260818.json`: protected manifest 비교.
 - `BUILD_MANIFEST.ps1`: 최종 소스·산출물 상태에서 파일별 SHA-256 manifest를 재생성하는 스크립트.
 - `MANIFEST.sha256`, `MANIFEST.json`: 스크립트 실행 시 생성되는 ZIP 입력 manifest. manifest 파일 자체는 자기참조를 피하기 위해 목록에서 제외한다.
 
-## 최종 ZIP 생성 전 순서
+## 최종 ZIP 생성 순서
 
-1. 최종 Git/PR/Pages/live 배포 증거를 채운다.
-2. 최종 통계 refresh, 공식 workbook, 후보 artifact, `_site`가 배포 commit과 동일한지 확인한다.
-3. `powershell -ExecutionPolicy Bypass -File docs/audit/official_statistics_v52_source_gate_260818/BUILD_MANIFEST.ps1`을 실행한다.
-4. `TEST_AND_DEPLOY_EVIDENCE_260818.md`의 배포 HOLD 항목을 실제 URL·run id·commit SHA로 갱신한다.
-5. 위 3단계를 다시 실행해 manifest를 갱신한 뒤 ZIP을 만든다.
+1. 최종 통계 payload, 공식 workbook, 후보 artifact, `_site`를 고정한다.
+2. `powershell -ExecutionPolicy Bypass -File docs/audit/official_statistics_v52_source_gate_260818/BUILD_MANIFEST.ps1`을 실행한다.
+3. manifest를 독립 재해시해 오류 0을 확인한다.
+4. 검토 문서·원장·원문·workbook·소스·테스트·정적 사이트를 ZIP에 묶는다.
 
 미충족 항목은 PASS로 바꾸지 않는다.
