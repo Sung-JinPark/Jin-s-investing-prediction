@@ -431,15 +431,19 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     by_id = {chart["id"]: chart for chart in payload["charts"]}
     assert by_id["m2_nasdaq"]["scale"] == "log1p"
     liquidity_map = by_id["liquidity_position_map"]
-    assert liquidity_map["chart_type"] == "profile_cards"
+    assert liquidity_map["chart_type"] == "liquidity_bars"
     assert liquidity_map["source_ids"] == [
         "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
         "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
     ]
-    assert [group["title"] for group in liquidity_map["profile_groups"]] == [
+    assert [panel["title"] for panel in liquidity_map["liquidity_panels"]] == [
         "현재 규모", "최근 12개월 방향",
     ]
-    assert "하나의 점유율" in liquidity_map["reading_guide"]
+    assert [panel["mode"] for panel in liquidity_map["liquidity_panels"]] == [
+        "positive", "diverging",
+    ]
+    assert all(chart["scope_note"].startswith("*") for chart in payload["charts"])
+    assert liquidity_map["scope_note"] == "*미국 자금 기준 · 금·비트코인은 달러 시세"
     sec_mix = by_id["sec_ipo_issuer_mix_h1"]
     assert sec_mix["chart_type"] == "stacked_bar"
     assert sec_mix["show_bar_values"] is True
@@ -621,15 +625,26 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
 def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     root = Path(__file__).resolve().parents[2]
     script = (root / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    styles = (root / "src/ai_fc/dashboard_parts/dashboard.css").read_text(encoding="utf-8")
     template = (root / "src/ai_fc/dashboard_template.html").read_text(encoding="utf-8")
     workflow = (root / ".github/workflows/statistics-refresh.yml").read_text(encoding="utf-8")
     assert 'href="#statistics" data-v="statistics"' in template
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
     assert "function statisticsProfileCards" in script
-    assert "function statisticsSourceFooter" in script
-    assert "statistics-card-sources" in script
+    assert "function statisticsLiquidityBars" in script
+    assert "is-diverging" in script
+    assert "--bar-left" in script
+    assert "--bar-width" in script
+    assert "statistics-scope-note" in script
+    assert "function statisticsSourceFooter" not in script
+    assert "statistics-card-sources" not in script
+    assert "사용한 데이터 출처" not in script
     assert "chart.chart_type==='profile_cards'" in script
+    assert "chart.chart_type==='liquidity_bars'" in script
+    assert ".statistics-card.is-liquidity-map{grid-column:1/-1}" in styles
+    assert ".statistics-liquidity-map{padding:18px;display:grid;grid-template-columns:repeat(2" in styles
+    assert ".statistics-liquidity-map{padding:10px;grid-template-columns:1fr" in styles
     assert '<div class="statistics-now"><strong>현재 결론</strong><p>' in script
     assert '<span>현재 결론</span>' not in script
     assert 'data-forecast-extension="false"' in script
