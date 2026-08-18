@@ -462,6 +462,19 @@ def cmd_statistics_refresh() -> None:
     )
 
 
+@app.command("official-data-workbook")
+def cmd_official_data_workbook() -> None:
+    """공식 원천 누적 DB를 사람이 검토할 수 있는 Excel 감사본으로 내보낸다."""
+    from .official_data_workbook import export_official_data_workbook
+
+    path, counts = export_official_data_workbook(config.ROOT)
+    typer.echo(
+        f"Excel 감사본: {path.relative_to(config.ROOT)} · "
+        f"원천 {counts['sources']} · 관측 {counts['observations']} · "
+        f"영수증 {counts['receipts']} · 장표 {counts['charts']}"
+    )
+
+
 @app.command("segment-filing-inventory")
 def cmd_segment_filing_inventory(
     asof: str | None = typer.Option(

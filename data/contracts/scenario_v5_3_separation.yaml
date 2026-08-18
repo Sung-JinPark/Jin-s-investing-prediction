@@ -22,7 +22,7 @@ source_mapping:
   market_implied_rate_distribution:
     path: data/normalized/rates/fed_rate_monitor_pre_post_jobs_20260807.json
     probability_unit: fraction
-    numerical_status: active_for_current_event_adapter_only
+    numerical_status: reference_only_blocked_unapproved_source_receipt
     historical_cross_era_status: blocked_missing_vintages
     mapping_correction: scenario_tracker_S8_is_long_rate_direction_not_market_implied_probability
   labor_release:

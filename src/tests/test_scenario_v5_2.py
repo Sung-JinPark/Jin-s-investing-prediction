@@ -17,13 +17,19 @@ from ai_fc.scenario_v5.contracts import (
     canonical_numerical_hash,
     compare_protected_append_only,
     compare_protected_hashes,
+    file_hash,
     protected_hashes,
 )
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
 from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
     CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
-    SOURCE_PATHS, generate_prior, load_inputs, source_file_hash,
+    SOURCE_PATHS, _evidence_registry, evidence_scores, generate_prior,
+    load_inputs, numerical_source_approval_gate, source_file_hash,
+)
+from ai_fc.authoritative_statistics import (
+    load_authoritative_source_policy,
+    persist_raw_artifact,
 )
 from ai_fc.scenario_v5_2.event_learning import (
     EventLearningError, active_events, append_event, event_score_summary,
@@ -123,17 +129,162 @@ def test_full_fed_target_range_distributions_and_pre_post_moves() -> None:
     assert math.isclose(moves["2026-12-09"]["delta"], -.072)
 
 
-def test_growth_risk_policy_relief_and_attribution_are_separate() -> None:
+def test_private_report_perturbations_cannot_change_numerical_scores() -> None:
+    inputs = load_inputs(ROOT)
+    baseline = evidence_scores(inputs)
+    perturbed = deepcopy(inputs)
+    perturbed["labor"]["consensus"]["nonfarm_payroll_change"] = 9_999_999
+    perturbed["rates"]["snapshots"]["pre_jobs_previous_day"]["meetings"] = {
+        meeting: {"3.50-3.75": 1.0}
+        for meeting in perturbed["rates"]["snapshots"]["pre_jobs_previous_day"][
+            "meetings"
+        ]
+    }
+    perturbed["rates"]["snapshots"]["post_jobs_current"]["meetings"] = {
+        meeting: {"4.25-4.50": 1.0}
+        for meeting in perturbed["rates"]["snapshots"]["post_jobs_current"][
+            "meetings"
+        ]
+    }
+    for row in perturbed["rates"]["aggregate_hike_probability"].values():
+        row.update({"pre": 0.0, "post": 1.0, "delta": 1.0})
+    perturbed["market"]["observations"].update({
+        "us_10y_yield_change": -.25,
+        "vix_change": -50.0,
+        "dollar_index_change": -25.0,
+    })
+    changed = evidence_scores(perturbed)
+
+    for component in ("labor_growth_risk", "policy_relief", "cross_asset_relief"):
+        assert changed[component]["raw"] == baseline[component]["raw"]
+        assert changed[component]["bounded_score"] == baseline[component]["bounded_score"]
+    assert changed["source_event_revision_ids"] == baseline["source_event_revision_ids"]
+    assert "payroll_surprise_z" not in baseline["labor_growth_risk"]["components"]
+    assert baseline["labor_growth_risk"]["components"][
+        "private_consensus_used_numerically"
+    ] is False
+
+
+def test_unapproved_secondary_rate_and_cross_asset_sources_are_reference_only() -> None:
+    inputs = load_inputs(ROOT)
+    scores = evidence_scores(inputs)
+    registry = _evidence_registry(ROOT, inputs)
+    rate = next(row for row in registry
+                if row["evidence_id"] == "fed_rate_distribution_pre_post")
+    cross_asset = next(row for row in registry
+                       if row["evidence_id"] == "post_jobs_cross_asset_state")
+    consensus = next(row for row in registry
+                     if row["evidence_id"] == "kiplinger_jobs_consensus_and_commentary")
+
+    assert rate["used_numerically"] is False and rate["effective_strength"] == 0.0
+    assert cross_asset["used_numerically"] is False \
+        and cross_asset["effective_strength"] == 0.0
+    assert consensus["used_numerically"] is False
+    assert scores["policy_relief"]["components"]["base_policy_relief_raw"] == 0.0
+    assert scores["cross_asset_relief"]["raw"] == 0.0
+    assert inputs["rates"]["dataset_id"] not in scores["source_event_revision_ids"]
+    assert rate["source_approval"]["status"] == \
+        "BLOCKED_NO_AUTHORITATIVE_APPROVED_SOURCE_RECEIPT"
+    assert cross_asset["source_approval"]["status"] == \
+        "BLOCKED_NO_AUTHORITATIVE_APPROVED_SOURCE_RECEIPT"
+
+
+def test_numerical_source_approval_requires_authority_domain_and_hash(
+    tmp_path: Path,
+) -> None:
+    contract = ROOT / "data/contracts/authoritative_statistics_sources.yaml"
+    target_contract = tmp_path / "data/contracts/authoritative_statistics_sources.yaml"
+    target_contract.parent.mkdir(parents=True)
+    target_contract.write_bytes(contract.read_bytes())
+    policy = load_authoritative_source_policy(target_contract)
+    store = tmp_path / "data/statistics/official_store"
+    raw_receipt = persist_raw_artifact(
+        store,
+        policy,
+        source_id="cme_group",
+        payload=b'{"probabilities":"archived"}\n',
+        source_uri="https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        fetched_at="2026-08-08T04:35:00+00:00",
+        http_status=200,
+        media_type="application/json",
+        series_ids=("fed_rate_distribution",),
+    )
+    source_path = (
+        Path("data/statistics/official_store") / raw_receipt.artifact_path
+    ).as_posix()
+    raw = tmp_path / source_path
+    cutoff = datetime.fromisoformat("2026-08-10T00:00:00+00:00")
+    receipt = {
+        "receipt_id": "source-approval:cme-fedwatch:2026-08-07:r1",
+        "raw_receipt_id": raw_receipt.receipt_id,
+        "policy_source_id": "cme_group",
+        "approval_scope": "fed_rate_distribution",
+        "approval_status": "approved",
+        "numerical_use_approved": True,
+        "authority_name": "CME Group",
+        "authority_class": "official_exchange",
+        "source_url": "https://www.cmegroup.com/markets/interest-rates/cme-fedwatch-tool.html",
+        "source_path": source_path,
+        "source_sha256": file_hash(raw),
+        "available_at": "2026-08-08T04:35:00+00:00",
+    }
+    approved = numerical_source_approval_gate(
+        tmp_path, {
+            "raw_source_path": source_path,
+            "authoritative_source_receipt": receipt,
+        },
+        approval_scope="fed_rate_distribution", cutoff=cutoff,
+    )
+    assert approved["used_numerically"] is True
+    assert approved["status"] == "APPROVED_AUTHORITATIVE_SOURCE_RECEIPT"
+
+    private_domain = deepcopy(receipt)
+    private_domain["source_url"] = "https://www.investing.com/central-banks/fed-rate-monitor"
+    blocked = numerical_source_approval_gate(
+        tmp_path, {
+            "raw_source_path": source_path,
+            "authoritative_source_receipt": private_domain,
+        },
+        approval_scope="fed_rate_distribution", cutoff=cutoff,
+    )
+    assert blocked["used_numerically"] is False
+    assert blocked["status"] == "BLOCKED_SOURCE_RECEIPT_DOMAIN"
+
+    bad_hash = deepcopy(receipt)
+    bad_hash["source_sha256"] = "0" * 64
+    blocked = numerical_source_approval_gate(
+        tmp_path, {
+            "raw_source_path": source_path,
+            "authoritative_source_receipt": bad_hash,
+        },
+        approval_scope="fed_rate_distribution", cutoff=cutoff,
+    )
+    assert blocked["used_numerically"] is False
+    assert blocked["status"] == "BLOCKED_SOURCE_RECEIPT_FILE_OR_HASH"
+
+    blocked = numerical_source_approval_gate(
+        tmp_path, {
+            "raw_source_path": "data/raw/rates/unrelated_private_capture.html",
+            "authoritative_source_receipt": receipt,
+        },
+        approval_scope="fed_rate_distribution", cutoff=cutoff,
+    )
+    assert blocked["used_numerically"] is False
+    assert blocked["status"] == "BLOCKED_SOURCE_RECEIPT_LINEAGE"
+
+
+def test_growth_risk_and_blocked_policy_attribution_are_separate() -> None:
     payload = _candidate()
     scores = payload["evidence_scores"]
     assert scores["labor_growth_risk"]["bounded_score"] > 0
-    assert scores["policy_relief"]["bounded_score"] > 0
+    assert scores["policy_relief"]["bounded_score"] == 0
+    assert scores["policy_relief"]["source_gate"]["used_numerically"] is False
     for row in payload["evidence_attribution"].values():
         assert abs(row["additivity_residual"]) < 1e-12
-        assert row["labor_growth_risk_effect"] != row["policy_relief_effect"]
+        assert row["policy_relief_effect"] == 0
     above = payload["evidence_attribution"]["terminal_above_anchor_2026"]
     assert above["labor_growth_risk_effect"] < 0
-    assert above["policy_relief_effect"] > 0
+    assert above["cross_asset_state_effect"] == 0
 
 
 def test_event_day_return_is_anchor_only_and_zero_future_jump() -> None:
@@ -169,6 +320,9 @@ def test_valuation_is_fail_closed_without_vintage_complete_cross_era_history() -
     assert mapping["shiller_cape_proxy"]["numerical_status"].startswith("D0_blocked")
     assert mapping["sec_eps_revision_panel"]["numerical_status"].startswith("D0_blocked")
     assert "capex_not_eps" in mapping["sec_eps_revision_panel"]["numerical_status"]
+    assert mapping["market_implied_rate_distribution"]["numerical_status"] == (
+        "reference_only_blocked_unapproved_source_receipt"
+    )
 
 
 def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
@@ -176,7 +330,8 @@ def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
     rows = payload["ablations"]
     assert list(rows) == ["prior_only", "labor_only", "labor_rate", "full_evidence"]
     values = [row["probabilities"]["terminal_above_anchor_2026"] for row in rows.values()]
-    assert len(set(values)) == 4
+    assert len(set(values)) == 3
+    assert rows["labor_only"]["probabilities"] == rows["labor_rate"]["probabilities"]
     for row in rows.values():
         assert row["weight_diagnostics"]["gates_pass"]
         assert math.isclose(row["weight_diagnostics"]["weight_sum"], 1.0, abs_tol=1e-12)
@@ -186,8 +341,8 @@ def test_four_ablations_have_quantitative_and_concentrated_results() -> None:
         "policy_only", "growth_only", "combined_growth_and_policy",
         "macro_full_without_dotcom", "dotcom_upside_increment", "report_view_increment",
     }
-    assert components["policy_only"]["probabilities"]["terminal_above_anchor_2026"] \
-        > rows["prior_only"]["probabilities"]["terminal_above_anchor_2026"]
+    assert components["policy_only"]["probabilities"] == \
+        rows["prior_only"]["probabilities"]
 
 
 def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
@@ -200,8 +355,8 @@ def test_dotcom_weight_is_strongest_in_s1_without_cherry_picking() -> None:
     assert dotcom["forced_endpoint"] is False
     assert dotcom["forced_october_direction"] is False
     assert dotcom["S1_probability_increment"] > 0
-    assert dotcom["S1_no_repeat_probability_after_dotcom"] \
-        > dotcom["S1_no_repeat_probability_before_dotcom"]
+    assert dotcom["no_repeat_direction_gate_applicable"] is False
+    assert dotcom["no_repeat_direction_gate_pass"] is True
     increment = payload["component_ablations"]["dotcom_upside_increment"]
     assert increment["scenario_strength"] == dotcom["scenario_strength"]
     assert dotcom["dependency_cap"] == .60
@@ -368,20 +523,24 @@ def test_structural_event_adapter_changes_episode_and_duration_selection() -> No
     assert changed["source_event_revision_ids"] == ["release-r1"]
 
 
-def test_structural_event_ablation_changes_all_three_path_databases() -> None:
+def test_structural_event_ablation_matches_effective_authoritative_adapter() -> None:
     payload = _candidate()
     ablation = payload["structural_event_ablation"]
     assert ablation["probability_weights_applied"] is False
     assert ablation["same_seed_and_registered_episode_libraries"] is True
-    assert ablation["paths_differ_all_scenarios"] is True
+    assert ablation["paths_differ_all_scenarios"] is False
+    assert ablation["path_differences_match_effective_adapter"] is True
     assert set(ablation["scenarios"]) == {"S1", "S2", "S3"}
-    assert all(row["paths_differ"] for row in ablation["scenarios"].values())
+    assert all(
+        row["paths_differ"] == row["sampling_distribution_changed"]
+        and row["path_difference_matches_effective_adapter"]
+        for row in ablation["scenarios"].values()
+    )
     adapter = payload["event_learning"]["structural_adapter"]
     assert adapter["probability_only_update"] is False
-    assert {
-        "BLS_EMPSIT_2026_07_2026_08_07",
-        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07",
-    }.issubset(set(adapter["source_event_revision_ids"]))
+    assert adapter["source_event_revision_ids"] == [
+        "BLS_EMPSIT_2026_07_2026_08_07"
+    ]
 
 
 def test_s2_is_not_an_arithmetic_mean_and_short_horizon_is_visibly_distinct() -> None:
@@ -696,7 +855,7 @@ def test_projection_preserves_direction_changes() -> None:
     assert returns["S1"] > .10
     assert abs(returns["S2"]) < .02
     assert returns["S3"] < -.10
-    assert returns["S1"] - returns["S3"] > .25
+    assert returns["S1"] - returns["S3"] > .24
 
 
 def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:

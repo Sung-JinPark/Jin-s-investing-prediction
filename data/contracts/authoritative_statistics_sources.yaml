@@ -1,0 +1,198 @@
+schema_version: 1
+policy_id: authoritative-statistics-sources-v1
+description: >-
+  Numeric statistics may be derived only from registered authoritative sources.
+  Research reports, media, vendor dashboards, user material, and public market-data
+  aggregators are insight-only and cannot populate the normalized observation ledger.
+default_numeric_input: deny
+raw_before_normalized: required
+unknown_source_action: reject
+authoritative_classes:
+  - official_government
+  - official_central_bank
+  - official_regulator
+  - official_sro
+  - official_exchange
+insight_only_classes:
+  - academic_research
+  - investment_research
+  - media
+  - market_data_aggregator
+  - user_supplied
+sources:
+  - source_id: alfred
+    display_name: ALFRED real-time economic data
+    authority_class: official_central_bank
+    owner: Federal Reserve Bank of St. Louis
+    allowed_domains: [alfred.stlouisfed.org, api.stlouisfed.org]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, vintage_observation]
+  - source_id: fred_market_signals
+    display_name: FRED market and economic series
+    authority_class: official_central_bank
+    owner: Federal Reserve Bank of St. Louis
+    allowed_domains: [fred.stlouisfed.org, api.stlouisfed.org]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, current_vintage_observation]
+  - source_id: federal_reserve_board
+    display_name: Federal Reserve Board data downloads
+    authority_class: official_central_bank
+    owner: Board of Governors of the Federal Reserve System
+    allowed_domains: [federalreserve.gov, www.federalreserve.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, vintage_observation]
+  - source_id: bls
+    display_name: BLS Public Data API
+    authority_class: official_government
+    owner: U.S. Bureau of Labor Statistics
+    allowed_domains: [bls.gov, www.bls.gov, api.bls.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, vintage_observation]
+  - source_id: bea
+    display_name: BEA Data API
+    authority_class: official_government
+    owner: U.S. Bureau of Economic Analysis
+    allowed_domains: [bea.gov, apps.bea.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, vintage_observation]
+  - source_id: census
+    display_name: Census Data API
+    authority_class: official_government
+    owner: U.S. Census Bureau
+    allowed_domains: [census.gov, api.census.gov, www.census.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, vintage_observation]
+  - source_id: treasury_fiscaldata
+    display_name: Treasury Fiscal Data API
+    authority_class: official_government
+    owner: U.S. Department of the Treasury
+    allowed_domains: [fiscaldata.treasury.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, current_vintage_observation]
+  - source_id: nyfed_markets
+    display_name: New York Fed Markets API
+    authority_class: official_central_bank
+    owner: Federal Reserve Bank of New York
+    allowed_domains: [newyorkfed.org, www.newyorkfed.org, markets.newyorkfed.org]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, current_vintage_observation]
+  - source_id: sec_edgar
+    display_name: SEC EDGAR data and filing APIs
+    authority_class: official_regulator
+    owner: U.S. Securities and Exchange Commission
+    allowed_domains: [sec.gov, www.sec.gov, data.sec.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_filing, filing_observation]
+  - source_id: cftc
+    display_name: CFTC public reporting data
+    authority_class: official_regulator
+    owner: U.S. Commodity Futures Trading Commission
+    allowed_domains: [cftc.gov, www.cftc.gov]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, current_vintage_observation]
+  - source_id: finra_margin_statistics
+    display_name: FINRA margin statistics
+    authority_class: official_sro
+    owner: Financial Industry Regulatory Authority
+    allowed_domains: [finra.org, www.finra.org]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, current_vintage_observation]
+  - source_id: nasdaq_official
+    display_name: Nasdaq official issuer and market notices
+    authority_class: official_exchange
+    owner: Nasdaq, Inc.
+    allowed_domains: [nasdaq.com, www.nasdaq.com]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_listing_record, listing_observation]
+  - source_id: nyse_official
+    display_name: NYSE official issuer and market notices
+    authority_class: official_exchange
+    owner: New York Stock Exchange
+    allowed_domains: [nyse.com, www.nyse.com]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_listing_record, listing_observation]
+  - source_id: hkex_official
+    display_name: HKEX official issuer and market notices
+    authority_class: official_exchange
+    owner: Hong Kong Exchanges and Clearing
+    allowed_domains: [hkex.com.hk, www.hkex.com.hk]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_listing_record, listing_observation]
+  - source_id: sse_official
+    display_name: Shanghai Stock Exchange official issuer notices
+    authority_class: official_exchange
+    owner: Shanghai Stock Exchange
+    allowed_domains: [sse.com.cn, www.sse.com.cn]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_listing_record, listing_observation]
+  - source_id: cme_group
+    display_name: CME Group official market data receipt
+    authority_class: official_exchange
+    owner: CME Group
+    allowed_domains: [cmegroup.com, www.cmegroup.com]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, market_implied_distribution]
+  - source_id: yahoo_crosscheck
+    display_name: Yahoo Finance cross-check
+    authority_class: market_data_aggregator
+    owner: Yahoo
+    allowed_domains: [finance.yahoo.com, query1.finance.yahoo.com]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [cross_check, narrative_context]
+  - source_id: reuters
+    display_name: Reuters reporting
+    authority_class: media
+    owner: Thomson Reuters
+    allowed_domains: [reuters.com, www.reuters.com]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [narrative_context, hypothesis_generation]
+  - source_id: ritter_ipo_research
+    display_name: Ritter IPO research
+    authority_class: academic_research
+    owner: University of Florida IPO research
+    allowed_domains: [warrington.ufl.edu, bear.warrington.ufl.edu]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [narrative_context, hypothesis_generation]
+  - source_id: renaissance_capital_research
+    display_name: Renaissance Capital IPO research
+    authority_class: investment_research
+    owner: Renaissance Capital
+    allowed_domains: [renaissancecapital.com, www.renaissancecapital.com]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [narrative_context, hypothesis_generation]
+  - source_id: macromicro
+    display_name: MacroMicro dashboard
+    authority_class: market_data_aggregator
+    owner: MacroMicro
+    allowed_domains: [macromicro.me, en.macromicro.me]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [narrative_context, visual_benchmark]
+  - source_id: user_supplied_review
+    display_name: User-supplied review material
+    authority_class: user_supplied
+    owner: user
+    allowed_domains: []
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [narrative_context, hypothesis_generation]

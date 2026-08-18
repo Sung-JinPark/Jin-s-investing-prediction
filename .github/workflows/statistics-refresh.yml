@@ -16,7 +16,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,10 +26,17 @@ jobs:
           python-version: "3.12"
       - name: Install statistics pipeline
         run: pip install -e "." pytest
-      - name: Refresh public dot-com comparison statistics
+      - name: Fetch authoritative sources and append the official observation ledger
         run: python -m ai_fc statistics-refresh
+      - name: Export the cumulative Excel audit view
+        run: python -m ai_fc official-data-workbook
       - name: Validate statistics database and dashboard contract
-        run: pytest -q src/tests/test_statistics_lab.py src/tests/test_dashboard.py
+        run: >-
+          pytest -q
+          src/tests/test_authoritative_statistics.py
+          src/tests/test_official_data_workbook.py
+          src/tests/test_statistics_lab.py
+          src/tests/test_dashboard.py
       - name: Refresh generated repository inventory
         run: cd src && python -m ai_fc inventory
       - name: Commit changed statistics snapshot
@@ -37,7 +44,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/statistics docs/generated/inventory.generated.md
+          git add \
+            data/statistics/dotcom_statistics_latest.json \
+            data/statistics/archive \
+            data/statistics/official_store/raw \
+            data/statistics/official_store/ledgers \
+            data/statistics/workbooks/official_data_latest.xlsx \
+            docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected or protected path staged by statistics refresh:"
+            echo "$unexpected"
+            exit 1
+          fi
           if git diff --cached --quiet; then
             echo "No statistics changes to commit."
             exit 0

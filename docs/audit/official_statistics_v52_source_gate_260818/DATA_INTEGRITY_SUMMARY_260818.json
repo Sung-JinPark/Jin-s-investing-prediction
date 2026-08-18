@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-08-18T09:45:06Z",
+  "git_head": "5de1512912707e4799dddca6bc6e72a833903e99",
+  "branch": "codex/official-data-ledger",
+  "statistics_snapshot": {
+    "path": "data/statistics/dotcom_statistics_latest.json",
+    "generated_at": "2026-08-18T09:08:09+00:00",
+    "knowledge_cutoff": "2026-08-18T09:08:09+00:00",
+    "observation_through": "2026-08-17",
+    "as_of": "2026-08-17",
+    "charts": 22,
+    "logical_sources": 30,
+    "model_use": false,
+    "official_forecast_input": false,
+    "vintage_status": "current_release_reconstructed",
+    "historical_point_in_time_use": "HOLD"
+  },
+  "official_store": {
+    "normalized_observations": 38039,
+    "normalized_series_ids": 39,
+    "unique_observation_ids": 38039,
+    "duplicate_series_date_revision": 0,
+    "revision_seq_zero": 38039,
+    "normalized_supersedes_rows": 0,
+    "raw_receipts": 90,
+    "unique_receipt_ids": 90,
+    "unique_raw_artifacts": 30,
+    "missing_raw_artifacts": 0,
+    "raw_hash_mismatches": 0,
+    "raw_git_text_attribute_unset": 30,
+    "raw_worktree_equals_staged_blob": 30,
+    "raw_filename_sha256_matches": 30,
+    "observation_raw_hashes_without_receipt": 0,
+    "receipt_corrections": 2,
+    "valid_correction_supersedes": 2,
+    "valid_correction_replacements": 2,
+    "receipt_source_counts": {
+      "fred_market_signals": 84,
+      "sec_edgar": 3,
+      "federal_reserve_board": 3
+    }
+  },
+  "source_policy": {
+    "registered_sources": 22,
+    "numeric_allowed": 16,
+    "insight_only": 6,
+    "active_numeric_policy_sources": 3
+  },
+  "scenario_v5_2": {
+    "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+    "status": "RESEARCH_CANDIDATE_COMPLETE_SEPARATION_DB_LIMITED_EVENT_MAP",
+    "promotion_state": "NOT_OFFICIAL_NOT_CHAMPION",
+    "model_content_sha256": "99d3d500775e81ed38371e6d02ffa3a025c80544f48d7e87bf68965f4d2655a5",
+    "strict_validation": "PASS",
+    "deterministic_replay": "PASS",
+    "fed_rate_numerical_gate": "BLOCKED_NO_AUTHORITATIVE_APPROVED_SOURCE_RECEIPT",
+    "cross_asset_numerical_gate": "BLOCKED_NO_AUTHORITATIVE_APPROVED_SOURCE_RECEIPT",
+    "private_consensus_used_numerically": false,
+    "official_promotion": "HOLD",
+    "approval_receipt_ledger_binding": "PASS",
+    "source_mapping_metadata_consistency": "PASS"
+  },
+  "tests": {
+    "targeted": "78 passed in 21.12s",
+    "full_suite": "532 passed in 221.61s (0:03:41)",
+    "observation_revision_semantics": "32 passed in 15.61s",
+    "static_build": "PASS",
+    "local_render": "PASS_4_SCREENSHOTS",
+    "live_deployment": "HOLD_PENDING_PARENT_FINAL_RUN"
+  },
+  "local_build": {
+    "index_html": {
+      "bytes": 581484,
+      "sha256": "5823a9bc92c3df59dae3f95a13cc931b0c4e63a2752066b3bd341ab70a392454"
+    },
+    "data_json": {
+      "bytes": 310613,
+      "sha256": "9971e6c4937548d6ff6fc09e520958a364ee7000b6b53ec309ce9f7c1a980649"
+    },
+    "statistics_json": {
+      "bytes": 55747,
+      "sha256": "7fcd5752bc275bde41511c33c2737338b0c0801890e2516a3cef1d5ce74c63f2"
+    },
+    "future_paths_json": {
+      "bytes": 170387,
+      "sha256": "a98c69fc41fc716aff94e287ffb532be919c2eff7cd0e3e91d0a904ec7cd6f65"
+    }
+  },
+  "final_workbook": {
+    "path": "outputs/official-data-ledger-260818/AI_INVESTING_OFFICIAL_DATA_LEDGER_260818.xlsx",
+    "bytes": 4311105,
+    "sha256": "9701eef7db8d69ac4f1655b94fbb21a6e29bea9bd57f72549825f5f554a3a9d1",
+    "sheets": 8,
+    "sources": 30,
+    "observations": 38039,
+    "receipts": 90,
+    "corrections": 2,
+    "formula_errors": 0
+  },
+  "observation_revision_contract": {
+    "new_raw_same_value_unit_semantics": "receipt_only_no_observation_revision",
+    "changed_value": "revision_seq_plus_one_with_supersedes",
+    "changed_unit": "revision_seq_plus_one_with_supersedes",
+    "regression_tests": 3,
+    "production_ledgers_unchanged": true,
+    "normalized_observations_sha256": "0c31416f6abb63c668ef27f83db349c95dc1b790c324802eb1a2d258c1aa7845",
+    "raw_receipts_sha256": "8adb0ab33d4290816d7b26b257644921a54b6c5ec95708fbb0125d541638de6d",
+    "raw_receipt_corrections_sha256": "321c997c2b67a7eb681ff4c6e5ff279a4a9cab1fe316550036b3f864abc0de6e"
+  },
+  "git_raw_byte_integrity": {
+    "gitattributes_rule": "data/statistics/official_store/raw/** -text",
+    "raw_files_checked": 30,
+    "working_equals_staged_blob": 30,
+    "sha256_equals_filename": 30,
+    "errors": 0
+  }
+}
