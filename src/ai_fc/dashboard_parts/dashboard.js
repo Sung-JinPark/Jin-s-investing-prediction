@@ -1069,21 +1069,20 @@ function statisticsChartSvg(chart,alignment={}){
 }
 function renderStatistics(){
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
-  root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기부터 유동성·금리·기업가치·신용까지 닷컴 1995~1999와 AI 2023~2027을 같은 5년 축으로 비교합니다. AI 선은 최신 실제 관측에서 멈추며 예측값으로 연장하지 않습니다.</p></div></div>`));
+  root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기, 유동성, 금리, 기업가치와 신용 흐름에서 지금 시장의 위치를 살펴봅니다.</p></div></div>`));
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
   const alignment=stats.cycle_alignment||{},sources=stats.sources||[],charts=stats.charts||[];
-  root.appendChild(el(`<section class="statistics-summary" aria-label="통계 비교 기준"><article><span>비교 구간</span><strong>닷컴 1995~1999<br>AI 2023~2027 축</strong></article><article><span>AI 실선</span><strong>각 원천 최신 실제치까지만<br>예측 연장 없음</strong></article><article><span>같은 시간축</span><strong>M+0 ~ M+${num(alignment.comparison_months||0)}</strong></article><article><span>데이터 기준</span><strong>${esc(stats.as_of||'—')}</strong></article></section>`));
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
   const grid=el('<div class="statistics-grid"></div>');
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
-    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2><p>${esc(chart.description)}</p></div><b>${esc(chart.display_unit||chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
+    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
   });
   root.appendChild(grid);
-  root.appendChild(el(`<details class="statistics-sources"><summary>원천·갱신일·재구성 상태 보기</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.series_id)}</strong><span>${esc(row.title)}</span></div><p>${esc(row.provider)} · 최신 관측 ${esc(row.latest_observation)} · ${num(row.row_count)}개 · ${esc(row.vintage)}</p><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원천 열기 ↗</a></article>`).join('')}</div><p>제외: FINRA margin debt는 자동수집·재배포 권한 미확보, Moody’s Baa 스프레드는 독점 재배포 제한, 유료 forward P/E는 재현 가능한 공개 이력이 없어 사용하지 않았습니다.</p></details>`));
+  root.appendChild(el(`<details class="statistics-sources"><summary>사용한 데이터 출처</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.title)}</strong><span>${esc(row.provider)}</span></div><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원문 보기 ↗</a></article>`).join('')}</div></details>`));
   mount(root);
   root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);});
 }
@@ -1708,8 +1707,7 @@ function analogPanel(){
   const forward=model.forward_reference||{},smallForward=forward.n>0&&forward.n<20;
   const forwardCases=Array.isArray(forward.cases)?forward.cases:[];
   const horizonCell=(row,key)=>hasNumeric(row?.[key])?signedDelta(Number(row[key])*100,1,'%'):'관측 없음';
-  const forwardMarkup=smallForward?`<section class="analog-case-list" aria-label="KNN 소표본 사례 목록"><div><div><p class="eyebrow">KNN FORWARD · CASE LIST ONLY</p><h3>유사 국면 ${num(forward.n)}개 사례</h3></div><span class="count-chip">run asof ${esc(model.run_asof||'미산출')}</span></div><p>forward n&lt;20이므로 중앙값을 강조하지 않고 개별 사례만 표시합니다. 독립 표본이나 확률 분포가 아닙니다.</p><div>${forwardCases.map((row,index)=>`<article><strong>${esc(row.date||`사례 ${index+1}`)}</strong><span>1M ${horizonCell(row,'fwd_1m')}</span><span>3M ${horizonCell(row,'fwd_3m')}</span><span>6M ${horizonCell(row,'fwd_6m')}</span><span>12M ${horizonCell(row,'fwd_12m')}</span></article>`).join('')||'<p>사례 원장이 정적 읽기 모델에 아직 연결되지 않았습니다.</p>'}</div><small>anchor_sensitivity=not_computed · median emphasis disabled</small></section>`:'';
-  const dotcomAnchor=model.series.find(row=>row.id==='dotcom');
+  const forwardMarkup=smallForward?`<section class="analog-case-list" aria-label="유사 국면 이후 흐름"><div><div><p class="eyebrow">유사 구간 이후 흐름</p><h3>${num(forward.n)}개 사례</h3></div><span class="count-chip">기준 ${esc(model.run_asof||'미산출')}</span></div><div>${forwardCases.map((row,index)=>`<article><strong>${esc(row.date||`사례 ${index+1}`)}</strong><span>1M ${horizonCell(row,'fwd_1m')}</span><span>3M ${horizonCell(row,'fwd_3m')}</span><span>6M ${horizonCell(row,'fwd_6m')}</span><span>12M ${horizonCell(row,'fwd_12m')}</span></article>`).join('')||'<p>표시할 사례가 없습니다.</p>'}</div></section>`:'';
   const ctxItems=[
     rg.recession_flag!=null?['경기 국면',rg.recession_flag?'침체':'확장']:null,
     br.pct_above_200dma!=null?['시장 폭','200일선 '+br.pct_above_200dma+'%']:null,
@@ -1717,16 +1715,12 @@ function analogPanel(){
     ctx.perez_ai?['사이클 국면',esc(ctx.perez_ai.split(' — ')[0])+' (추정)']:null
   ].filter(Boolean).slice(0,4);
   const w=el(`<div class="chart-panel analysis-panel">
-    <p class="eyebrow">과거 혁신 사이클 비교 · Analog Overlay</p>
-    <div class="panel-head"><h2>5년 build-up · 시작월 = 100 · 로그 스케일</h2><span class="count-chip">${eras.length}개 사이클</span></div>
-    <div class="reference-banner"><strong>REFERENCE ONLY · 확률 아님</strong><span>${esc(model.unit)} · run asof ${esc(model.run_asof||model.asof)}</span></div>
-    ${dotcomAnchor?`<div class="reference-banner"><strong>닷컴 앵커 분리</strong><span>overlay_start ${esc(dotcomAnchor.overlay_start)} · model_anchor ${esc(dotcomAnchor.model_anchor)}</span></div>`:''}
+    <p class="eyebrow">과거 혁신 사이클 비교</p>
+    <div class="panel-head"><h2>닷컴·크립토·바이오 시장 흐름</h2><span class="count-chip">${eras.length}개 사이클</span></div>
     ${forwardMarkup}
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
-    <p class="chart-note"><strong>연도 표기는 버블 정점이 아니라 비교 시작점입니다.</strong> 크립토는 2019년 회복 시작을 M+0으로 두며, 주요 강세 구간은 2020~2021년, 이 사이클의 정점은 2021-11(M+34)입니다. 과거 곡선은 결과를 아는 hindsight 자료입니다. 질문 확률·시나리오 확률과 산술 결합하지 않습니다.</p>
-    <details class="analog-limit"><summary>Anchor 민감도와 한계</summary><p>${esc(model.anchor_sensitivity?.reason||'미산출')} ${esc((model.limitations||[]).join(' '))}</p></details>
   </div>`);
   w._eras=eras;w._overlay=o;w._eraStarts=starts;
   return w;
@@ -1747,11 +1741,9 @@ function crossAssetPanel(){
   const eventPct=(row,key)=>hasNumeric(row?.returns_pct?.[key])?signedDelta(Number(row.returns_pct[key]),1,'%'):'관측 불가';
   const eventBp=(row,key)=>hasNumeric(row?.macro_change_bp?.[key])?signedDelta(Number(row.macro_change_bp[key]),0,'bp'):'관측 불가';
   const scenarios=model.forecast.scenarios,defaultScenario=model.forecast.default_scenario||Object.keys(scenarios)[0];
-  const shockOrigin=model.forecast.shock_origin||{label:'2001-03 = 닷컴 붕괴 진행 기준점',definition:'NASDAQ 닷컴 정점에서 12개월 지난 실측 월을 100으로 둡니다.'};
   const pctText=value=>hasNumeric(value)?signedDelta(Number(value),1,'%'):'산출 전';
   const annual=summary.annual||[],period=model.history.period||`${model.history.labels?.[0]||'시작'} to ${model.history.labels?.at(-1)||'종료'}`;
-  const periodCaption=period.replace(' to ',' → '),weights=model.forecast.weights||{};
-  const weightText=weights.status&&weights.display&&weights.reason?`${weights.display} — ${weights.reason}`:'가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음';
+  const periodCaption=period.replace(' to ',' → ');
   const ci=(range,n)=>`(10–90%: ${hasNumeric(range?.[0])?Number(range[0]).toFixed(2):'–'}–${hasNumeric(range?.[1])?Number(range[1]).toFixed(2):'–'}, n=${num(n)})`;
   const peak=summary.nasdaq_from_dotcom_peak||{},weeklyCorr=weekly.corr||{},weeklyBeta=weekly.beta||{},yearFive=(summary.annual||[]).find(row=>Number(row.year)===5)||{};
   const w=el(`<div class="chart-panel analysis-panel cross-asset-panel">
@@ -1766,8 +1758,6 @@ function crossAssetPanel(){
       <div class="flow-focus cross-focus" role="radiogroup" aria-label="Bitcoin 반사실 beta 민감도">
         <span>BTC SENSITIVITY</span>${Object.entries(scenarios).map(([id,scenario])=>`<button type="button" role="radio" data-cross-scenario="${id}" aria-checked="${id===defaultScenario}" aria-pressed="${id===defaultScenario}" tabindex="${id===defaultScenario?0:-1}"><i></i>${esc(scenario.label)}</button>`).join('')}
       </div>
-      <div class="cross-weight-badge" aria-label="시나리오 가중치 상태">${esc(weightText)}</div>
-      <div class="cross-shock-origin"><strong>${esc(shockOrigin.label)}</strong><span>${esc(shockOrigin.definition)}</span></div>
       <div class="cross-scenario-copy" id="cross-scenario-copy"></div>
       <div class="chart-wrap"><div id="cross-chart" style="min-width:980px"></div></div>
       <div class="cross-five-year-table" id="cross-five-year-table" aria-live="polite"></div>
@@ -1873,7 +1863,6 @@ function aiRegimePanel(){
     <div class="panel-head"><div><h2>AI 자본사이클 레짐 지도</h2><p>Funding & Liquidity × AI Monetization Coverage</p></div><span class="count-chip">기준 ${esc(model.asof||'수집 전')}</span></div>
     <div class="coverage-block-card" role="status"><span>MAP WITHHELD</span><strong>데이터 커버리지 부족</strong><p>현재 ${Math.round(coverage*100)}% · 지도 허용 기준 ${Math.round(threshold*100)}%</p><div class="coverage-meter"><i style="width:${Math.min(100,coverage*100)}%"></i></div><small>불완전한 축 좌표를 그리지 않습니다. 확률·fan·가중치는 표시하지 않습니다.</small></div>
     <div class="company-coverage-grid">${(model.company_coverage||[]).map(row=>`<div><span>${esc(row.company)}</span><strong>${Math.round(Number(row.coverage||0)*100)}%</strong><small>filing segment 추출 대기</small></div>`).join('')}</div>
-    <div class="reference-banner"><strong>REFERENCE ONLY</strong><span>SEC entity-wide facts 수집 완료 · segment revenue 분리 전 D3 차단</span></div>
     <p class="chart-note">백필 값은 향후 <strong>reconstructed</strong> 라벨로 실시간 수집 구간과 분리합니다. coverage 60%를 넘기 전에는 사분면·trail·waterfall을 생성하지 않습니다.</p>
   </div>`);}
   return el(`<div class="chart-panel analysis-panel ai-regime-panel"><p class="eyebrow">AI CAPITAL CYCLE · D3 GATE</p><div class="panel-head"><div><h2>AI 자본사이클 레짐 지도</h2><p>커버리지 게이트는 통과했지만 검증된 좌표 스냅샷이 없습니다.</p></div><span class="count-chip">기준 ${esc(model.asof||'수집 전')}</span></div><div class="coverage-block-card" role="status"><span>MAP WITHHELD</span><strong>검증 스냅샷 대기</strong><p>D3 산출물을 확인하기 전에는 좌표·trail·fan을 표시하지 않습니다.</p></div></div>`);

@@ -111,6 +111,19 @@ def test_template_self_contained() -> None:
     for host in ("cdn.", "unpkg", "jsdelivr", "googleapis", "cloudflare", "chart.js"):
         assert host not in html.lower(), f"CDN 흔적: {host}"
 
+    embedded = dashboard.render_html({}, mode="embed")
+    assert "WantedSansVariable.min.css" not in embedded
+    assert "cdn.jsdelivr.net" not in embedded
+
+
+def test_pages_use_version_pinned_korean_webfont_without_changing_audit_html() -> None:
+    html = dashboard.render_html({}, mode="pages")
+    assert dashboard.WANTED_SANS_CSS in html
+    assert "wanted-sans@v1.0.3" in html
+    assert '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>' in html
+    assert '<link rel="preload" as="style"' in html
+    assert "'Wanted Sans Variable','Wanted Sans'" in html
+
 
 def test_template_parts_bundle_and_budget() -> None:
     """소스는 유지보수 가능한 파셜이며 최종 산출물은 자기완결·용량 예산 이내다."""
@@ -165,8 +178,9 @@ def test_ui_contract() -> None:
     assert "SCEN_DEEP" not in html
     assert "--violet:#a99bff" not in html, "구형 dark ambient violet이 남아 있음"
     assert "--orange:#ff4f17" in html and "--crimson:#c9002d" in html
-    assert "--display:'Segoe UI Variable Display'" in html
-    assert "--sans:'Segoe UI Variable Text'" in html
+    assert "--display:'Wanted Sans Variable','Wanted Sans'" in html
+    assert "--sans:'Wanted Sans Variable','Wanted Sans'" in html
+    assert "font-variant-numeric:tabular-nums" in html
     assert "font-size:clamp(31px,2.55vw,36px)" in html
     assert "letter-spacing:-.055em" in html
     assert 'class="command-layer"' in html and 'role="dialog"' in html
@@ -423,7 +437,7 @@ def test_workspace_utility_contract() -> None:
     assert "집계 기준 상이" in html and "const maxIndex=focus==='ALL'?CAP" in html
     assert "research-layout-cards" in html and "analog-readout" in html
     assert "tip-series" in html and "--tip-series" in html
-    assert "크립토 2019 시작" in html and "2021-11(M+34)" in html
+    assert "크립토 2019 시작" in html
     assert "crypto2021:['크립토 2019 시작','#1f6feb'" in html
     assert "biotech2015:['바이오 2013','#a43c82'" in html
     assert "dow1929:['다우 1925','#6b5845'" in html
@@ -432,10 +446,9 @@ def test_workspace_utility_contract() -> None:
     assert "event.key==='ArrowLeft'" in html
     assert "peek-title" not in html and "peek-metric" not in html
     assert 'role="tablist" aria-label="시장 지도 분석 공간"' in html
-    assert "REFERENCE ONLY · 확률 아님" in html
-    assert "KNN FORWARD · CASE LIST ONLY" in html
-    assert "forward n&lt;20" in html and "median emphasis disabled" in html
-    assert "run asof" in html
+    assert "REFERENCE ONLY · 확률 아님" not in html
+    assert "유사 구간 이후 흐름" in html
+    assert "forward n&lt;20" not in html and "median emphasis disabled" not in html
     assert "DB-CONDITIONED PATH · MONTHLY RISK WINDOW" in html
     assert "상승·회복 사이의 조정을 역사 DB로 복원했습니다" in html
     assert "row.median_max_drawdown_pct" in html
@@ -444,8 +457,9 @@ def test_workspace_utility_contract() -> None:
     assert "data-flow-samples" not in html
     assert "표본 1/2회 미달·이전 β 유지" in html
     assert "gate 경계(n=156)" in html
-    assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" in html
-    assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" in html
+    assert "닷컴 앵커 분리" not in html
+    assert "overlay_start ${esc(dotcomAnchor.overlay_start)}" not in html
+    assert "model_anchor ${esc(dotcomAnchor.model_anchor)}" not in html
     assert "DATA.era_analog" in html
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" in html
@@ -454,7 +468,14 @@ def test_workspace_utility_contract() -> None:
     assert "BTC SENSITIVITY" in html and "data-cross-scenario" in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
     assert 'class="plain-insight" aria-label="자산 비교 읽는 법"' in html
-    assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" in html
+    assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" not in html
+    assert "정점에서 12개월 지난 실측 월을 100" not in html
+    assert "${esc(chart.description)}" not in html
+    assert "원천·갱신일·재구성 상태 보기" not in html
+    assert "사용한 데이터 출처" in html
+    assert ".statistics-filters button{min-width:112px" in html
+    assert "font-size:.8rem;line-height:1.25;word-break:keep-all" in html
+    assert "overflow-wrap:break-word;word-break:keep-all" in html
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
@@ -773,9 +794,17 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
 
 
 def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
+    candidate_path = (
+        dashboard.config.ROOT
+        / "data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json"
+    )
+    candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+    stable_now = dashboard.datetime.fromisoformat(candidate["generated_at"])
     conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
     try:
-        model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+        model = dashboard.build_read_model(
+            conn, dashboard.config.ROOT, now=stable_now,
+        )
     finally:
         conn.close()
     base, statistics_data = dashboard.split_statistics_data(model)

@@ -474,7 +474,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
     assert 'data-forecast-extension="false"' in script
-    assert "AI 선은 최신 실제 관측에서 멈추며" in script
+    assert "AI 선은 최신 실제 관측에서 멈추며" not in script
+    assert "지금 시장의 위치를 살펴봅니다" in script
+    assert "${esc(chart.description)}" not in script
     assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" not in script

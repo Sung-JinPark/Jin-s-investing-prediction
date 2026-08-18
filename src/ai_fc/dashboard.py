@@ -2,7 +2,8 @@
 
 설계 원칙:
 - 읽기 전용: 웹에서 예측 실행(forecast) 없음. 불변 파일 + SQLite 인덱스를 조회만.
-- 의존성 0 추가: 표준 라이브러리 http.server + 인라인 CSS/바닐라 JS (CDN·프레임워크 없음).
+- 코드 의존성 0 추가: 표준 라이브러리 http.server + 인라인 CSS/바닐라 JS.
+- Pages 화면만 OFL 한글 웹폰트를 버전 고정 CDN으로 사용하며, 감사 HTML은 자기완결 상태를 유지.
 - 두 모드: (1) 자기완결 스냅샷 HTML(reports/dashboard.html), (2) `--serve` LAN 서버.
 - 지위: 참고 의견 (P3 게이트 전). 데이터는 공개 예측 기록 — 시크릿 미포함.
 """
@@ -33,6 +34,11 @@ FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 STATISTICS_DATA_BUDGET_BYTES = 120_000
 STATISTICS_DATA_FILENAME = "statistics.json"
+WANTED_SANS_CSS = (
+    "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
+    "packages/wanted-sans/fonts/webfonts/variable/split/"
+    "WantedSansVariable.min.css"
+)
 FUTURE_DEFERRED_KEYS = (
     "scenario_v5_2", "scenario_v4_shadow", "cross_asset", "era_analog",
     "liquidity", "ai_regime", "multi_year_stress",
@@ -193,11 +199,16 @@ def _forecast_bodies(root: Path) -> dict[str, dict[str, str]]:
     return out
 
 
-def build_read_model(conn: sqlite3.Connection, root: Path) -> dict:
+def build_read_model(
+    conn: sqlite3.Connection,
+    root: Path,
+    *,
+    now: datetime | None = None,
+) -> dict:
     """18개 질의 + registry + 예측 이력 + ml/market 이력 → 대시보드 read-model."""
     from .registry import compute_due, load_registry
 
-    now = datetime.now().astimezone()
+    now = now or datetime.now().astimezone()
     questions = load_registry(root / "questions" / "registry.yaml")
     qmap = {q.question_id: q for q in questions}
     bodies = _forecast_bodies(root)
@@ -744,6 +755,14 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
 
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template())
+    webfonts = ""
+    if mode == "pages":
+        webfonts = "\n".join((
+            '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
+            f'<link rel="preload" as="style" href="{WANTED_SANS_CSS}" crossorigin>',
+            f'<link rel="stylesheet" href="{WANTED_SANS_CSS}" crossorigin>',
+        ))
+    shell = shell.replace("<!--WEBFONTS-->", webfonts)
     scenario = read_model.get("scenario") or {}
     asof = scenario.get("asof") or "latest registered snapshot"
     og_title = f"Jin's Investing Prediction · {asof}"
