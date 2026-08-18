@@ -1190,10 +1190,9 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 }
 
 /* Statistics consulting view: readable charts and an explicit current-state verdict. */
-.statistics-meaning>strong{font-size:13px;color:#165a50}
-.statistics-now{grid-column:1/-1;padding-top:13px;border-top:1px solid #b9d8d0;display:grid;grid-template-columns:150px minmax(0,1fr);gap:18px;align-items:start}
-.statistics-now span{font:800 11px/1.4 var(--mono);letter-spacing:.06em;color:#a23821}
-.statistics-now b{font-size:15px;line-height:1.55;color:#183b35;word-break:keep-all}
+.statistics-meaning>strong,.statistics-now>strong{font-size:13px;color:#165a50}
+.statistics-now{grid-column:1/-1;padding-top:13px;border-top:1px solid #b9d8d0;display:grid;grid-template-columns:1fr;gap:7px;align-items:start}
+.statistics-now>p{font-size:12px;line-height:1.65;color:#304d47;word-break:keep-all}
 .statistics-reading-guide{margin:14px 18px 0;padding:12px 15px;border-left:4px solid #c26d1b;background:#fbf5e9;display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px}
 .statistics-reading-guide strong{font-size:12px;color:#8a4a0e}
 .statistics-reading-guide p{margin:0;font-size:13px;line-height:1.55;color:#595146;word-break:keep-all}
@@ -1204,5 +1203,4 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 .statistics-chart .statistics-bar-total{font-size:16px;font-weight:850;fill:#24231f}
 @media(max-width:760px){
   .statistics-reading-guide{margin-inline:12px;grid-template-columns:1fr;gap:5px}
-  .statistics-now{grid-template-columns:1fr;gap:6px}
 }
