@@ -248,16 +248,6 @@ DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
         "window_end_exclusive": "2027-01-01",
         "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
     },
-    "SP500_DAILY": {
-        "symbol": "^GSPC",
-        "title": "S&P 500 daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: S&P Dow Jones Indices)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "1970-01-02",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history/",
-    },
     "GOLD_DAILY": {
         "symbol": "GC=F",
         "title": "COMEX gold futures continuous contract daily close",
@@ -278,14 +268,6 @@ SUPPLEMENTAL_SOURCES: dict[str, dict[str, str]] = {
         "native_frequency": "quarterly",
         "source_url": "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos",
         "request_url": SEC_IPO_ENDPOINT,
-    },
-    "ICI_WEEKLY_EQUITY_ETF_FLOW": {
-        "title": "Estimated ETF net issuance",
-        "provider": "Investment Company Institute",
-        "unit": "millions_usd",
-        "native_frequency": "weekly_estimate",
-        "source_url": ICI_ETF_ENDPOINT,
-        "request_url": ICI_ETF_ENDPOINT,
     },
     "NYU_SP500_ANNUAL_TOTAL_RETURN": {
         "title": "S&P 500 annual total returns including dividends",
@@ -1557,10 +1539,6 @@ def build_statistics_lab(
             source_rows["NYU_SP500_ANNUAL_TOTAL_RETURN"]
         )
     )
-    quarter_next, quarter_two, quarter_ticks, quarter_diagnostics = (
-        _quarterly_followthrough_events(source_rows["SP500_DAILY"])
-    )
-
     sec_rows = source_rows["SEC_IPO_QUARTERLY"]
     sec_by_period = {str(row["period_label"]): row for row in sec_rows}
 
@@ -1586,24 +1564,6 @@ def build_statistics_lab(
     sec_2025_proceeds = sec_half(2025, "total_proceeds_mn") / 1000.0
     sec_2026_proceeds = sec_half(2026, "total_proceeds_mn") / 1000.0
     sec_2026_corporate_proceeds = sec_half(2026, "corporate_proceeds_mn") / 1000.0
-
-    ici_rows = source_rows["ICI_WEEKLY_EQUITY_ETF_FLOW"]
-    ici_ticks = [
-        [index, date.fromisoformat(str(row["date"])).strftime("%m/%d")]
-        for index, row in enumerate(ici_rows)
-    ]
-    ici_equity = [
-        {"period": index, "date": str(row["date"]), "value": float(row["value"]) / 1000.0}
-        for index, row in enumerate(ici_rows)
-    ]
-    ici_domestic = [
-        {"period": index, "date": str(row["date"]), "value": float(row["domestic"]) / 1000.0}
-        for index, row in enumerate(ici_rows)
-    ]
-    ici_world = [
-        {"period": index, "date": str(row["date"]), "value": float(row["world"]) / 1000.0}
-        for index, row in enumerate(ici_rows)
-    ]
 
     charts = [
         _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
@@ -1730,15 +1690,15 @@ def build_statistics_lab(
 
     supplemental_charts = [
         _chart(
-            "nasdaq_tech_cycle_milestones", "기술 사이클과 IPO 이정표", "ipo",
+            "nasdaq_tech_cycle_milestones", "NASDAQ 장기 흐름과 대표 기술 IPO", "ipo",
             "cycle_start_100",
-            "1985년 말 NASDAQ을 100으로 맞추고 주요 기술기업 IPO와 시장 전환점을 실제 연말 종가 위에 놓습니다.",
+            "1985년 말 NASDAQ을 100으로 맞춘 로그축 장기선 위에 대표 기술기업 IPO와 시장 전환 시점을 표시합니다.",
             "연말 종가라 사건일 수익률은 아니며, 이정표가 지수 움직임의 단독 원인이라는 뜻도 아닙니다.",
             [_series("NASDAQ", "historical", tech_cycle, "#d94b24")], ["NASDAQCOM"],
         ),
         _chart(
-            "sec_ipo_issuer_mix_h1", "미국 IPO 구성: 기업 vs SPAC", "ipo", "count",
-            "SEC의 같은 상반기 기준으로 일반 기업, SPAC, 펀드 IPO 건수를 분리합니다.",
+            "sec_ipo_issuer_mix_h1", "미국 IPO 건수: 일반 기업과 SPAC", "ipo", "count",
+            "SEC의 같은 상반기 기준 전체 IPO 건수를 일반 기업, SPAC, 펀드로 나눈 누적 막대입니다.",
             "SEC 분류는 AI 기업만이 아니라 미국 IPO 전체이며 2026년은 상반기까지만 포함합니다.",
             [
                 _series("일반 기업", "current", sec_corporate, "#d94b24"),
@@ -1760,8 +1720,8 @@ def build_statistics_lab(
             ["NYU_SP500_ANNUAL_TOTAL_RETURN"],
         ),
         _chart(
-            "gold_vs_us_m2", "금과 미국 M2의 실제 경로", "liquidity", "cycle_start_100",
-            "2023년 첫 공통 월을 100으로 맞춰 금 선물 종가와 미국 M2를 비교합니다.",
+            "gold_vs_us_m2", "금 vs 미국 M2: 2023=100 로그 비교", "liquidity", "cycle_start_100",
+            "2023년 첫 공통 월을 100으로 맞춘 뒤 로그축에서 금 선물 종가와 미국 M2의 누적 변화율을 비교합니다.",
             "첨부 장표의 글로벌 유동성 모델이 아닌 공개 대체지표이며, 금 선물과 M2의 동행은 인과나 목표가격을 뜻하지 않습니다.",
             [
                 _series("금", "current", gold_index, "#b58b2a"),
@@ -1770,32 +1730,10 @@ def build_statistics_lab(
             ["GOLD_DAILY", "M2SL"],
         ),
         _chart(
-            "ici_weekly_equity_etf_flow", "주식 ETF 자금 유입", "liquidity", "billions_usd",
-            "ICI가 공개한 최근 5주 주식 ETF 순발행 추정치를 미국 주식과 해외 주식으로 나눕니다.",
-            "주간치는 업계 추정치여서 수정될 수 있고 실제 월간 순발행과 다를 수 있습니다.",
-            [
-                _series("주식 전체", "current", ici_equity, "#11110f"),
-                _series("미국 주식", "current", ici_domestic, "#d94b24"),
-                _series("해외 주식", "current", ici_world, "#28756a"),
-            ],
-            ["ICI_WEEKLY_EQUITY_ETF_FLOW"],
-        ),
-        _chart(
-            "negative_then_strong_quarter_followthrough", "급반등 분기 뒤의 흐름", "economy",
-            "percent",
-            "S&P 500이 마이너스 분기 다음 분기에 10% 넘게 반등한 역사 사례의 이후 1개·2개 분기 가격수익률을 봅니다.",
-            "Yahoo 종가 기반 가격수익률이라 배당을 제외하며, Carson·FactSet의 배당 포함 표와 숫자가 같을 필요는 없습니다.",
-            [
-                _series("다음 분기", "historical", quarter_next, "#d94b24"),
-                _series("두 분기 누적", "historical", quarter_two, "#28756a"),
-            ],
-            ["SP500_DAILY"],
-        ),
-        _chart(
             "household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit",
             "percent_vs_trend",
-            "2009~2019 분기 선형추세를 각 항목에 따로 적합해 실제 잔액이 추세보다 얼마나 위·아래인지 비교합니다.",
-            "가계에는 비영리단체가 포함되고 주식은 시장가격 변동의 영향을 크게 받으며, 선형추세는 구조적 적정수준이 아닙니다.",
+            "2009~2019 관측치에 항목별 선형추세를 따로 적합해 실제 잔액이 추세보다 얼마나 위·아래인지 비교합니다.",
+            "주식·현금은 분기, 보유채권은 연간 관측치입니다. 가계에는 비영리단체가 포함되며 선형추세는 구조적 적정수준이 아닙니다.",
             [
                 _series("주식", "current", equity_gap, "#11110f"),
                 _series("현금성 자산", "current", cash_gap, "#b58b2a"),
@@ -1804,11 +1742,14 @@ def build_statistics_lab(
             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"],
         ),
     ]
-    tech_chart, sec_chart, annual_chart, gold_chart, ici_chart, quarter_chart, household_chart = (
+    tech_chart, sec_chart, annual_chart, gold_chart, household_chart = (
         supplemental_charts
     )
     tech_chart.update({
         "axis_type": "calendar_year",
+        "scale": "log1p",
+        "display_unit": "1985=100 · 로그축",
+        "reading_guide": "주황선은 NASDAQ의 실제 연말 지수를 1985년=100으로 환산한 값입니다. 세로 점선은 대표 IPO·시장 정점의 시점이며 원인 표시가 아닙니다.",
         "max_period": int(tech_cycle[-1]["period"]),
         "projection_max_points": 18,
         "x_ticks": [[0, "1985"], [10, "1995"], [15, "2000"], [23, "2008"], [35, "2020"], [int(tech_cycle[-1]["period"]), str(latest_current.year)]],
@@ -1820,27 +1761,43 @@ def build_statistics_lab(
             {"period": 27, "label": "Meta IPO"},
         ],
     })
-    for chart in (sec_chart, annual_chart, ici_chart, quarter_chart):
+    for chart in (annual_chart,):
         chart["chart_type"] = "grouped_bar"
-    sec_chart.update({"axis_type": "categorical", "max_period": 1, "x_ticks": sec_ticks})
+    sec_chart.update({
+        "axis_type": "categorical", "chart_type": "stacked_bar",
+        "display_unit": "IPO 건수 · 상반기",
+        "reading_guide": "막대 한 개가 해당 상반기의 미국 전체 IPO입니다. 색 구간은 일반 기업·SPAC·펀드 건수이며 AI 기업만의 통계가 아닙니다.",
+        "show_bar_values": True,
+        "max_period": 1, "x_ticks": sec_ticks,
+    })
     annual_chart.update({
         "axis_type": "categorical", "max_period": len(annual_event_ticks) - 1,
         "x_ticks": annual_event_ticks,
     })
     gold_chart.update({
-        "axis_type": "elapsed_month", "max_period": max(int(row["period"]) for row in gold_index),
+        "axis_type": "elapsed_month", "scale": "log1p",
+        "display_unit": "2023=100 · 로그축",
+        "reading_guide": "두 선 모두 2023년 첫 달을 100으로 맞춘 누적 변화 지수입니다. 로그축에서는 같은 세로거리가 같은 비율 변화를 뜻하며 원자료의 달러 수준을 비교하지 않습니다.",
+        "max_period": max(int(row["period"]) for row in gold_index),
         "x_ticks": [[0, "2023"], [12, "2024"], [24, "2025"], [36, "2026"]],
-    })
-    ici_chart.update({
-        "axis_type": "categorical", "max_period": len(ici_rows) - 1, "x_ticks": ici_ticks,
-    })
-    quarter_chart.update({
-        "axis_type": "categorical", "max_period": len(quarter_next) - 1,
-        "x_ticks": quarter_ticks, "event_diagnostics": quarter_diagnostics,
     })
     household_chart.update({
         "axis_type": "calendar_quarter", "max_period": max(int(row["period"]) for row in equity_gap),
+        "display_unit": "2009~2019 추세 대비",
+        "reading_guide": "0%는 2009~2019 선형추세와 같은 수준입니다. 주식·현금은 분기 44개, 보유채권은 연간 11개 관측치로 추세를 각각 따로 계산했습니다.",
+        "trend_baseline": {
+            "start": "2009-01-01", "end": "2019-12-31",
+            "method": "ordinary_least_squares_on_levels",
+            "training_observations": {
+                "corporate_equities": 44,
+                "cash_and_deposits": 44,
+                "debt_securities": 11,
+            },
+        },
         "x_ticks": [[0, "2009"], [16, "2013"], [32, "2017"], [48, "2021"], [64, "2025"]],
+    })
+    next(chart for chart in charts if chart["id"] == "m2_nasdaq").update({
+        "scale": "log1p", "display_unit": "시작=100 · 로그축",
     })
     charts.extend(supplemental_charts)
 
@@ -1939,12 +1896,12 @@ def build_statistics_lab(
         ),
         "nasdaq_tech_cycle_milestones": (
             f"1985년 말 100이던 NASDAQ은 최근 연말 기준 {tech_cycle[-1]['value']:.0f}입니다. "
-            "Netscape 같은 상징적 소형 IPO, 대형 기술기업 상장, 지수 정점은 한 줄의 순서가 아니라 서로 겹쳐 진행됐습니다."
+            "로그축 장기선은 복리 성장률을 비교하기 위한 것이며, IPO 점선은 상장 시점만 표시하고 고점 예측 신호로 사용하지 않습니다."
         ),
         "sec_ipo_issuer_mix_h1": (
             f"2026년 상반기는 일반 기업 {int(sum(row['value'] for row in sec_corporate[1:]))}건, "
-            f"SPAC {int(sum(row['value'] for row in sec_spac[1:]))}건입니다. 총 공모액은 ${sec_2025_proceeds:.1f}B에서 "
-            f"${sec_2026_proceeds:.1f}B로 늘었고, 이 중 일반 기업이 ${sec_2026_corporate_proceeds:.1f}B여서 건수보다 대형 거래 집중도가 더 크게 뛰었습니다."
+            f"SPAC {int(sum(row['value'] for row in sec_spac[1:]))}건, 펀드 {int(sum(row['value'] for row in sec_fund[1:]))}건입니다. 총 공모액은 ${sec_2025_proceeds:.1f}B에서 "
+            f"${sec_2026_proceeds:.1f}B로 늘었고, 이 중 일반 기업이 ${sec_2026_corporate_proceeds:.1f}B입니다. 건수와 조달액을 혼동하지 않아야 합니다."
         ),
         "sp500_after_two_twenty_percent_years": (
             f"역사상 {len(third_year)}개 중첩 사례에서 3년 차 평균은 {statistics.mean(row['value'] for row in third_year):+.1f}%, "
@@ -1952,16 +1909,7 @@ def build_statistics_lab(
         ),
         "gold_vs_us_m2": (
             f"2023년 초 100 기준 최근 금은 {gold_index[-1]['value']:.0f}, 미국 M2는 {m2_gold_index[-1]['value']:.0f}입니다. "
-            "금이 M2보다 빠르면 통화량 외에도 실질금리·달러·안전자산 수요가 가격에 더 강하게 작용했을 가능성을 봅니다."
-        ),
-        "ici_weekly_equity_etf_flow": (
-            f"최근 5주 주식 ETF 순유입 추정 합계는 ${sum(row['value'] for row in ici_equity):.1f}B이며, "
-            f"미국 주식 ${sum(row['value'] for row in ici_domestic):.1f}B, 해외 주식 ${sum(row['value'] for row in ici_world):.1f}B입니다. 유입이 넓게 이어지는지 한 주 급증인지 구분합니다."
-        ),
-        "negative_then_strong_quarter_followthrough": (
-            f"동일 규칙의 {quarter_diagnostics['event_count']}개 가격수익률 사례에서 다음 분기 평균은 "
-            f"{quarter_diagnostics['next_quarter_average']:+.1f}%({quarter_diagnostics['next_quarter_positive']}/{quarter_diagnostics['event_count']}회 상승), "
-            f"두 분기 누적 평균은 {quarter_diagnostics['two_quarter_average']:+.1f}%였습니다. 반등 뒤 추가 상승이 많았지만 손실 사례도 남습니다."
+            "로그축에서도 금의 누적 상승이 M2 증가를 크게 앞섭니다. 따라서 최근 금 강세를 미국 통화량 하나로 설명할 수 없습니다."
         ),
         "household_balance_sheet_trend_gap": (
             f"최근 값은 2009~2019 추세 대비 주식 {equity_gap[-1]['value']:+.0f}%, 현금성 자산 {cash_gap[-1]['value']:+.0f}%, "
@@ -2107,6 +2055,96 @@ def build_statistics_lab(
         ipo_charts.extend([quality_chart, small_chart])
         charts = ipo_charts + charts
 
+    chart_by_id = {str(chart["id"]): chart for chart in charts}
+
+    def latest_value(chart_id: str, series_index: int = -1) -> float:
+        series = chart_by_id[chart_id]["series"][series_index]
+        return float(series["points"][-1]["value"])
+
+    curve_now = latest_value("yield_curve")
+    standards_now = latest_value("loan_standards")
+    inflation_now = latest_value("inflation_rate")
+    conditions_now = latest_value("financial_conditions")
+    hmi_now = latest_value("housing_manufacturing_warning", 2)
+    manufacturing_now = latest_value("housing_manufacturing_warning", 3)
+    semiconductor_pulse = [
+        latest_value("kospi_external_semiconductor_pulse", index)
+        for index in range(3)
+    ]
+    oil_now = latest_value("inflation_lead_panel", 4)
+    copper_now = latest_value("inflation_lead_panel", 5)
+    conclusions = {
+        "internet_vs_ai_core_ipos": "IPO 수만 보면 현재 AI 상장 붐은 닷컴 말기보다 훨씬 초기여서, 이 지표만으로 버블 붕괴가 임박했다고 보기는 어렵습니다.",
+        "technology_ipo_count": "신규 기술기업 상장 공급은 닷컴 정점의 약 8% 수준이므로, IPO 폭만 놓고 보면 말기 버블 단계와 거리가 있습니다.",
+        "technology_ipo_first_day_return": "첫날 급등은 과열 신호지만 닷컴 정점의 절반 이하라, 공모시장 전체가 극단적 열기에 들어갔다고 단정하기 어렵습니다.",
+        "technology_ipo_price_to_sales": "신규 기술주의 가격 부담은 높지만 닷컴 정점보다 낮아, P/S 하나만으로 붕괴 직전이라고 판단할 수준은 아닙니다.",
+        "technology_ipo_profitable_share": "현재 기술 IPO도 적자기업이 다수지만 닷컴 정점보다 이익 기반이 두꺼워 기업 질은 상대적으로 낫습니다.",
+        "all_ipo_negative_earnings_share": "적자 IPO가 절반을 넘는 점은 경계 신호지만, 닷컴 정점처럼 시장 전체가 적자 발행에 쏠린 상태는 아닙니다.",
+        "dotcom_internet_ipo_breadth": "이 장표는 1999년의 역사적 과열 기준선이며, 현재 AI 시장의 붕괴 확률을 직접 계산하지 않습니다.",
+        "ipo_market_absorption": "대형 AI IPO가 실제 실행되면 시장 흡수 부담이 클 수 있지만, 현재 평가액 헤드라인만으로 상장 시점이나 충격을 확정할 수 없습니다.",
+        "small_issuer_ipo_share": "저매출 상장 확산은 닷컴 말기보다 제한적이어서, IPO 저변 기준으로는 아직 전면적 말기 과열로 보기 어렵습니다.",
+        "m2_nasdaq": "NASDAQ이 유동성보다 빠르게 올랐지만 닷컴 당시 격차보다 작아, M2 기준으로는 말기 과열 신호가 덜 강합니다.",
+        "nasdaq_per_m2": "M2 대비 NASDAQ 상승 속도는 닷컴 같은 시점보다 낮아, 통화량 하나로는 현재를 닷컴 정점과 같은 단계로 보기 어렵습니다.",
+        "nasdaq_per_household_liquid_assets": "가계 현금성 자산 대비 NASDAQ은 닷컴 같은 시점과 비슷해, 가계 유동성 완충력만으로 주가 부담이 낮다고 보기는 어렵습니다.",
+        "yield_curve": (
+            "장단기 금리차가 아직 역전돼 있어 경기 경계가 남아 있습니다."
+            if curve_now < 0 else
+            "장단기 금리차는 정상화됐지만, 역전 해소만으로 경기 둔화 위험이 사라졌다고 볼 수는 없습니다."
+        ),
+        "policy_rate": "현재는 금리 인하가 진행된 경로로, 닷컴 붕괴 전 재긴축 국면과 같은 정책 트리거는 아직 확인되지 않습니다.",
+        "valuation_proxy": "시장가치의 이익 대비 부담은 높지만 닷컴 같은 시점보다 낮아, 광의 밸류에이션은 극단적 정점 아래입니다.",
+        "margin_credit_proxy": "증권담보 신용의 증가 속도는 닷컴 당시보다 낮아, 레버리지 기준의 말기 과열 신호는 상대적으로 약합니다.",
+        "consumer_credit_growth": "소비자신용 증가율이 닷컴 당시보다 낮아, 현재 상승장이 가계 신용 팽창에 크게 의존한다고 보기는 어렵습니다.",
+        "loan_standards": (
+            "은행 대출기준이 순강화 상태여서 기업 신용 경로는 경계가 필요합니다."
+            if standards_now > 5 else
+            "은행 대출기준은 대체로 중립이어서, 현재 기업 신용 경색 신호는 강하지 않습니다."
+        ),
+        "profit_growth": "기업이익 증가가 주가를 지지하고 있어, 현재 밸류에이션 상승에는 닷컴 말기보다 강한 이익 기반이 있습니다.",
+        "household_debt_service": "가계 상환 부담은 닷컴 같은 시점과 비슷하지만 역사적 극단은 아니어서, 소비 붕괴를 단독으로 예고하지 않습니다.",
+        "unemployment_rate": "실업률은 고용 냉각을 살필 구간이지만, 현재 수준만으로 침체나 시장 붕괴가 확인됐다고 보기는 어렵습니다.",
+        "inflation_rate": (
+            "물가가 3%를 웃돌아 추가 금리 완화의 제약이 남아 있습니다."
+            if inflation_now >= 3 else
+            "물가 압력은 완화됐지만 성장 둔화 여부를 함께 확인해야 합니다."
+        ),
+        "financial_conditions": (
+            "금융여건은 평균보다 완화적이어서 위험자산을 지지하지만, 동시에 과열이 더 이어질 여지도 남깁니다."
+            if conditions_now < 0 else
+            "금융여건이 평균보다 긴축적이어서 위험자산의 자금 조달 부담이 커진 상태입니다."
+        ),
+        "rate_cycle_since_first_cut": "첫 인하 이후 정책금리가 출발점 아래에 있어, 1990년대 말의 재긴축 복귀 신호는 아직 작동하지 않았습니다.",
+        "corporate_bond_pressure": "회사채 절대금리는 높지만 국채 대비 스프레드는 아직 억제돼 있어, 전면적 신용 스트레스보다는 높은 할인율 부담이 핵심입니다.",
+        "inflation_lead_panel": (
+            "유가와 구리가 함께 상승해 향후 CPI 재가속 위험을 무시하기 어렵습니다."
+            if oil_now > 0 and copper_now > 0 else
+            "유가와 구리 신호가 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 않습니다."
+        ),
+        "kospi_market_breadth_2026_daily": "KOSPI 상승이 반도체 대형주에 집중돼 있어, 글로벌 AI·반도체 조정 시 한국 지수가 먼저 흔들릴 취약성이 큽니다.",
+        "kospi_external_semiconductor_pulse": (
+            "세 시장의 20일 흐름이 모두 양수여서 글로벌 반도체 공동 급락 경고는 현재 작동하지 않습니다."
+            if all(value > 0 for value in semiconductor_pulse) else
+            "한국·대만·미국 반도체 20일 흐름이 함께 약해져 글로벌 반도체 조정 경고를 우선 확인해야 합니다."
+        ),
+        "housing_manufacturing_warning": (
+            "주택 심리는 약하지만 제조업은 확장 신호여서, 현재 경기침체 신호는 혼합 상태입니다."
+            if hmi_now < 0 < manufacturing_now else
+            "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
+        ),
+        "nasdaq_tech_cycle_milestones": "대표 IPO 시점은 기술 사이클의 맥락을 보여줄 뿐 고점을 맞히지 못하므로, 현재 버블 종료 시점을 정하는 신호로 쓰면 안 됩니다.",
+        "sec_ipo_issuer_mix_h1": "SPAC 건수가 일반 기업을 웃돌아 IPO 창구는 열렸지만, 이것을 실물기업·AI기업 상장 확산으로 곧바로 해석하면 안 됩니다.",
+        "sp500_after_two_twenty_percent_years": "역사적으로 3년 차 상승이 더 많았지만 표본이 작아, 연속 강세만으로 다음 해 상승이나 버블 지속을 확정할 수 없습니다.",
+        "gold_vs_us_m2": "금 상승이 M2 증가를 크게 앞서므로, 최근 금 강세는 미국 통화량보다 실질금리·달러·안전자산 수요의 추가 설명이 필요합니다.",
+        "household_balance_sheet_trend_gap": "가계 현금도 추세보다 많아 유동성 고갈 상태는 아니지만, 주식 자산의 추세 이탈이 더 커 가격 조정 민감도는 높습니다.",
+    }
+    missing_conclusions = sorted(set(chart_by_id) - set(conclusions))
+    if missing_conclusions:
+        raise StatisticsLabError(
+            f"customer conclusion missing for charts: {missing_conclusions}"
+        )
+    for chart_id, chart in chart_by_id.items():
+        chart["conclusion"] = conclusions[chart_id]
+
     source_meta = []
     for series_id, spec in FRED_SERIES.items():
         rows = source_rows[series_id]
@@ -2250,8 +2288,15 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if len(ids) != len(set(ids)):
         raise StatisticsLabError("statistics chart ids must be unique")
     for chart in charts:
-        if not chart.get("insight") or not chart.get("caveat") or not chart.get("source_ids"):
-            raise StatisticsLabError(f"chart {chart.get('id')} missing insight/caveat/source")
+        if (
+            not chart.get("insight")
+            or not chart.get("conclusion")
+            or not chart.get("source_ids")
+            or (not projected and not chart.get("caveat"))
+        ):
+            raise StatisticsLabError(
+                f"chart {chart.get('id')} missing insight/conclusion/caveat/source"
+            )
         for series in chart.get("series", []):
             periods = [int(point["period"]) for point in series.get("points", [])]
             values = [float(point["value"]) for point in series.get("points", [])]
@@ -2259,6 +2304,8 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
                 raise StatisticsLabError(f"chart {chart['id']} periods invalid")
             if not all(math.isfinite(value) for value in values):
                 raise StatisticsLabError(f"chart {chart['id']} has non-finite values")
+            if chart.get("scale") == "log1p" and any(value < 0 for value in values):
+                raise StatisticsLabError(f"chart {chart['id']} log1p values must be non-negative")
             period_limit = int(chart.get("max_period", COMPARISON_MONTHS))
             if max(periods) > period_limit:
                 raise StatisticsLabError(
@@ -2300,6 +2347,32 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
+    by_id = {str(chart.get("id")): chart for chart in charts}
+    for retired_id in (
+        "ici_weekly_equity_etf_flow",
+        "negative_then_strong_quarter_followthrough",
+    ):
+        if retired_id in by_id:
+            raise StatisticsLabError(f"retired customer chart still active: {retired_id}")
+    for log_chart_id in (
+        "m2_nasdaq",
+        "nasdaq_tech_cycle_milestones",
+        "gold_vs_us_m2",
+    ):
+        if (by_id.get(log_chart_id) or {}).get("scale") != "log1p":
+            raise StatisticsLabError(f"chart {log_chart_id} must use log1p display")
+    sec_mix = by_id.get("sec_ipo_issuer_mix_h1") or {}
+    if sec_mix.get("chart_type") != "stacked_bar":
+        raise StatisticsLabError("SEC issuer mix must use a stacked count chart")
+    if not projected:
+        household_gap = by_id.get("household_balance_sheet_trend_gap") or {}
+        trend_baseline = household_gap.get("trend_baseline") or {}
+        if trend_baseline.get("training_observations") != {
+            "corporate_equities": 44,
+            "cash_and_deposits": 44,
+            "debt_securities": 11,
+        }:
+            raise StatisticsLabError("household trend baseline frequencies invalid")
     breadth = next(
         (chart for chart in charts if chart.get("id") == "kospi_market_breadth_2026_daily"),
         None,
@@ -2386,15 +2459,6 @@ def refresh_statistics_lab(
         source_rows[series_id] = bounded_rows
         receipts[series_id] = receipt
     for series_id in SUPPLEMENTAL_SOURCES:
-        if series_id == "ICI_WEEKLY_EQUITY_ETF_FLOW":
-            ici_reference = load_ici_reference(root)
-            source_rows[series_id] = ici_reference["rows"]
-            receipts[series_id] = {
-                "raw_sha256": ici_reference["source"]["raw_sha256"],
-                "available_at": ici_reference["source"]["available_at"],
-                "vintage": ici_reference["source"]["vintage"],
-            }
-            continue
         rows, raw = supplemental_fetcher(series_id)
         source_rows[series_id] = rows
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
@@ -2404,9 +2468,8 @@ def refresh_statistics_lab(
     receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
     ipo_reference = load_ipo_reference(root)
     hmi_reference = load_hmi_reference(root)
-    ici_reference = load_ici_reference(root)
     _validate_manual_reference_freshness(
-        ipo_reference, hmi_reference, generated_at, ici_reference,
+        ipo_reference, hmi_reference, generated_at,
     )
     payload = build_statistics_lab(
         source_rows,
@@ -2489,6 +2552,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
             key: value for key, value in chart.items()
             if key not in {
                 "series", "range", "detail_rows", "research_context",
+                "description", "caveat", "trend_baseline", "projection_max_points",
                 "market_breadth_diagnostics", "external_pulse_diagnostics",
                 "comparison_transform", "source_validation",
                 "scenario_sensitivity", "event_diagnostics",

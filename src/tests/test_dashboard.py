@@ -477,6 +477,11 @@ def test_workspace_utility_contract() -> None:
     assert ".statistics-filters button{min-width:112px" in html
     assert "font-size:.8rem;line-height:1.25;word-break:keep-all" in html
     assert "overflow-wrap:break-word;word-break:keep-all" in html
+    assert "statistics-reading-guide" in html
+    assert "statistics-now" in html
+    assert "chart.chart_type==='stacked_bar'" in html
+    assert "statistics-bar-total" in html
+    assert "data-stat-id" in html
     assert "paths_band" in html and "resolveEndpointLabels" in html
     assert "aria-live','polite" in html and 'role="radiogroup"' in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html

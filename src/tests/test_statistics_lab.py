@@ -416,8 +416,9 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 36
+    assert len(payload["charts"]) == 34
     assert all(chart["insight"] for chart in payload["charts"])
+    assert all(chart["conclusion"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
         "yield_curve", "valuation_proxy", "margin_credit_proxy",
@@ -429,12 +430,38 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "ipo_market_absorption", "small_issuer_ipo_share",
         "dotcom_internet_ipo_breadth", "nasdaq_tech_cycle_milestones",
         "sec_ipo_issuer_mix_h1", "sp500_after_two_twenty_percent_years",
-        "gold_vs_us_m2", "ici_weekly_equity_etf_flow",
-        "negative_then_strong_quarter_followthrough",
+        "gold_vs_us_m2",
         "household_balance_sheet_trend_gap",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
         "kospi_market_breadth_2026_daily", "kospi_external_semiconductor_pulse",
+    }
+    assert {chart["id"] for chart in payload["charts"]}.isdisjoint({
+        "ici_weekly_equity_etf_flow",
+        "negative_then_strong_quarter_followthrough",
+    })
+    by_id = {chart["id"]: chart for chart in payload["charts"]}
+    assert by_id["m2_nasdaq"]["scale"] == "log1p"
+    assert by_id["nasdaq_tech_cycle_milestones"]["scale"] == "log1p"
+    assert "대표 기술 IPO" in by_id["nasdaq_tech_cycle_milestones"]["title"]
+    assert "원인 표시가 아닙니다" in by_id["nasdaq_tech_cycle_milestones"]["reading_guide"]
+    sec_mix = by_id["sec_ipo_issuer_mix_h1"]
+    assert sec_mix["chart_type"] == "stacked_bar"
+    assert sec_mix["show_bar_values"] is True
+    assert "AI 기업만의 통계가 아닙니다" in sec_mix["reading_guide"]
+    gold_m2 = by_id["gold_vs_us_m2"]
+    assert gold_m2["scale"] == "log1p"
+    assert all(series["points"][0]["value"] == 100.0 for series in gold_m2["series"])
+    household_trend = by_id["household_balance_sheet_trend_gap"]["trend_baseline"]
+    assert household_trend == {
+        "start": "2009-01-01",
+        "end": "2019-12-31",
+        "method": "ordinary_least_squares_on_levels",
+        "training_observations": {
+            "corporate_equities": 44,
+            "cash_and_deposits": 44,
+            "debt_securities": 11,
+        },
     }
     ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
     assert ipo_chart["scale"] == "log1p"
