@@ -1,7 +1,7 @@
 "use strict";
 async function loadData(){
   if(window.__DATA__) return window.__DATA__;
-  if(window.__DATA_URL__){ const r = await fetch(window.__DATA_URL__); return await r.json(); }
+  if(window.__DATA_URL__){ const r = await fetch(window.__DATA_URL__,{cache:'no-store'}); return await r.json(); }
   return null;
 }
 let FUTURE_PATHS_PROMISE=null,FUTURE_PATHS_ERROR=null;
