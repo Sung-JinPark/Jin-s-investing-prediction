@@ -53,7 +53,6 @@ sources:
       KRX_SEMICON_PROXY_DAILY: {symbol: 091160.KS, native_frequency: daily_close, unit: krw, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: KRX_Semiconductor_Index_tracking_ETF_concentration_proxy}
       TAIEX_DAILY: {symbol: ^TWII, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: external_Asia_semiconductor_market_confirmation}
       SOX_DAILY: {symbol: ^SOX, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: strictly_prior_US_semiconductor_close_impulse}
-      SP500_DAILY: {symbol: ^GSPC, native_frequency: daily_close, unit: index, window: [1970-01-02, last_completed_session_only], active_session_excluded: true, role: calendar_quarter_price_return_event_study}
       GOLD_DAILY: {symbol: GC=F, native_frequency: daily_close, unit: usd_per_troy_ounce, window: [2022-01-01, last_completed_session_only], active_session_excluded: true, role: public_gold_price_proxy}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
@@ -100,13 +99,6 @@ sources:
     page: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html
     native_frequency: annual
     role: sp500_total_return_historical_event_study
-  ici_weekly_etf_issuance:
-    page: https://www.ici.org/research/stats/etf_flows
-    snapshot_path: data/statistics/reference/ici_weekly_equity_etf_flow_v1.json
-    native_frequency: weekly_estimate
-    collection: manual_public_table_extract_because_unattended_runtime_access_is_blocked
-    stale_policy: fail_after_14_days
-    role: short_window_equity_etf_flow_pulse
   wilmerhale_1999_internet_ipo_review:
     page: https://www.wilmerhale.com/en/insights/publications/internet-ipos-conclude-a-sensational-year-in-1999-december-1999
     native_frequency: historical_research
@@ -158,17 +150,43 @@ macro_warning_policy:
     probability_output: prohibited
   historical_event_studies:
     two_consecutive_twenty_percent_years: {source: NYU_SP500_ANNUAL_TOTAL_RETURN, return_type: total_return_including_dividends, overlap: retained, probability_output: prohibited}
-    negative_then_strong_quarter: {source: SP500_DAILY, event: prior_calendar_quarter_below_0_then_current_above_10_percent, output: next_quarter_and_two_quarter_price_returns, dividends: excluded, probability_output: prohibited}
   household_balance_sheet_trend_gap:
     series: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
-    baseline: separate_linear_trend_fitted_on_2009Q1_to_2019Q4
+    baseline: separate_linear_trend_fitted_on_observations_from_2009-01-01_through_2019-12-31
+    training_observations: {corporate_equities_quarterly: 44, currency_deposits_money_market_funds_quarterly: 44, debt_securities_annual: 11}
     output: percent_above_or_below_own_trend
     interpretation: descriptive_not_fair_value_or_forecast
   gold_liquidity_proxy:
     series: [GOLD_DAILY, M2SL]
     normalization: first_common_month_from_2023_equals_100
+    display_scale: log1p
     global_liquidity_model_claim: prohibited
     forecast_extension: prohibited
+
+customer_chart_contract:
+  required_fields: [insight, conclusion, caveat, source_ids]
+  conclusion_semantics: one_sentence_current_state_judgment_not_probability_or_trading_advice
+  log_scale_charts: [m2_nasdaq, nasdaq_tech_cycle_milestones, gold_vs_us_m2]
+  sec_ipo_issuer_mix_h1:
+    chart_type: stacked_bar
+    measure: issuer_count
+    categories: [operating_company, SPAC, fund]
+    proceeds: detail_only_never_plotted_on_count_axis
+    ai_only_claim: prohibited
+  nasdaq_tech_cycle_milestones:
+    measure: NASDAQ_year_end_level_indexed_to_1985_equals_100
+    event_markers: timing_context_only_not_causal_or_peak_prediction
+
+retired_customer_charts:
+  ici_weekly_equity_etf_flow:
+    removed_at: 2026-08-18
+    reason: user_requested_removal_and_non_reproducible_manual_short_window_series
+    archival_snapshot_retained: data/statistics/reference/ici_weekly_equity_etf_flow_v1.json
+    active_ingestion: false
+  negative_then_strong_quarter_followthrough:
+    removed_at: 2026-08-18
+    reason: user_requested_removal_and_limited_consulting_relevance
+    active_ingestion: false
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.

@@ -1044,14 +1044,16 @@ function statisticsProfileCards(chart){
 function statisticsChartSvg(chart,alignment={}){
   const series=(chart.series||[]).filter(row=>(row.points||[]).length),points=series.flatMap(row=>row.points||[]);
   if(!points.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
-  const W=980,H=360,ML=62,MR=24,MT=28,MB=46,PW=W-ML-MR,PH=H-MT-MB;
   const maxPeriod=Math.max(1,Number(chart.max_period)||Number(alignment.comparison_months)||0,...points.map(row=>Number(row.period)||0));
+  const W=780,H=390,ML=76,MR=34,MT=44,denseCategorical=chart.axis_type==='categorical'&&maxPeriod>=6,MB=denseCategorical?82:56,PW=W-ML-MR,PH=H-MT-MB;
   const currentPoints=series.filter(row=>row.era==='current').flatMap(row=>row.points||[]),currentEnd=currentPoints.length?Math.max(...currentPoints.map(row=>Number(row.period)||0)):null;
-  const rawValues=points.map(row=>Number(row.value)).filter(Number.isFinite),rawMin=Math.min(...rawValues),rawMax=Math.max(...rawValues);
+  const stackedBar=chart.chart_type==='stacked_bar',barChart=chart.chart_type==='bar'||chart.chart_type==='grouped_bar'||stackedBar;
+  const rawValues=points.map(row=>Number(row.value)).filter(Number.isFinite);
+  const stackTotals=stackedBar?[...new Set(points.map(row=>Number(row.period)))].map(period=>series.reduce((sum,row)=>sum+Number((row.points||[]).find(point=>Number(point.period)===period)?.value||0),0)):[];
+  const domainValues=rawValues.concat(stackTotals),rawMin=Math.min(...domainValues),rawMax=Math.max(...domainValues);
   const useLog=chart.scale==='log1p'&&rawMin>=0,transform=value=>useLog?Math.log1p(Number(value)):Number(value),inverse=value=>useLog?Math.expm1(value):value;
-  const transformed=rawValues.map(transform),transformedMin=Math.min(...transformed),transformedMax=Math.max(...transformed);
-  const barChart=chart.chart_type==='bar'||chart.chart_type==='grouped_bar';
-  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),low=useLog?0:(barChart?Math.min(0,transformedMin-span*.08):transformedMin-span*.12),high=transformedMax+span*.12;
+  const transformed=domainValues.map(transform),transformedMin=Math.min(...transformed),transformedMax=Math.max(...transformed);
+  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),logLow=rawMin>0?Math.max(0,transformedMin-span*.12):0,low=useLog?logLow:(barChart?Math.min(0,transformedMin):transformedMin-span*.12),high=transformedMax+span*.12;
   const X=value=>barChart?ML+PW*((Number(value)||0)+.5)/(maxPeriod+1):ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(transform(value)-low)/(high-low));
   const yTicks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
   const calendarAxis=chart.axis_type==='calendar_day_of_year';
@@ -1065,18 +1067,19 @@ function statisticsChartSvg(chart,alignment={}){
   const calendarLabel=chart.unit==='percent_20d_log_return'
     ?'실제 20거래일 로그수익률. 미국 SOX는 한국 날짜보다 엄격히 이전인 종가만 사용.'
     :'각 지수의 2026년 첫 실제 종가 100. 변동성·날짜 조정 없음.';
-  const groupedBars=barChart?series.flatMap((row,seriesIndex)=>(row.points||[]).map(point=>{
+  const groupedBars=barChart&&!stackedBar?series.flatMap((row,seriesIndex)=>(row.points||[]).map(point=>{
     const groupWidth=Math.min(92,PW/Math.max(2,maxPeriod+1)*.72),count=chart.chart_type==='bar'?1:series.length,barWidth=Math.max(6,groupWidth/count),offset=(seriesIndex-(count-1)/2)*barWidth,x=X(point.period)+offset-barWidth*.42,y0=Y(0),yv=Y(point.value),top=Math.min(y0,yv),height=Math.max(1,Math.abs(yv-y0));
     return `<rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${(barWidth*.84).toFixed(1)}" height="${height.toFixed(1)}" rx="2" fill="${esc(row.color||'#111')}" fill-opacity="${seriesIndex===0?'.9':'.72'}" data-stat-series="${esc(row.label)}"/>`;
   })).join(''):'';
-  const eventLines=(chart.events||[]).map((event,index)=>`<line x1="${X(event.period).toFixed(1)}" x2="${X(event.period).toFixed(1)}" y1="${MT+12+(index%2)*18}" y2="${H-MB}" stroke="#8c867c" stroke-dasharray="3 5" opacity=".55"/><text x="${(X(event.period)+5).toFixed(1)}" y="${MT+10+(index%2)*18}" text-anchor="start" fill="#625f58" class="statistics-event-label">${esc(event.label)}</text>`).join('');
+  const stackedBars=stackedBar?[...new Set(points.map(row=>Number(row.period)))].flatMap(period=>{let cumulative=0;const width=Math.min(150,PW/Math.max(2,maxPeriod+1)*.54),x=X(period)-width/2,segments=series.map((row,seriesIndex)=>{const value=Number((row.points||[]).find(point=>Number(point.period)===period)?.value||0),bottom=Y(cumulative),top=Y(cumulative+value),height=Math.max(1,bottom-top);cumulative+=value;return `<g><rect x="${x.toFixed(1)}" y="${top.toFixed(1)}" width="${width.toFixed(1)}" height="${height.toFixed(1)}" rx="2" fill="${esc(row.color||'#111')}" fill-opacity="${seriesIndex===0?'.9':'.76'}" data-stat-series="${esc(row.label)}"/>${chart.show_bar_values&&height>24?`<text x="${X(period).toFixed(1)}" y="${(top+height/2+5).toFixed(1)}" text-anchor="middle" class="statistics-bar-value is-inside">${Math.round(value)}</text>`:''}</g>`;});segments.push(`<text x="${X(period).toFixed(1)}" y="${(Y(cumulative)-10).toFixed(1)}" text-anchor="middle" class="statistics-bar-total">총 ${Math.round(cumulative)}건</text>`);return segments;}).join(''):'';
+  const eventLines=(chart.events||[]).map((event,index)=>`<line x1="${X(event.period).toFixed(1)}" x2="${X(event.period).toFixed(1)}" y1="${MT+12+(index%3)*19}" y2="${H-MB}" stroke="#8c867c" stroke-dasharray="3 5" opacity=".55"/><text x="${(X(event.period)+5).toFixed(1)}" y="${MT+10+(index%3)*19}" text-anchor="start" fill="#625f58" class="statistics-event-label">${esc(event.label)}</text>`).join('');
   return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(chart.title)}. ${calendarAxis?calendarLabel:'닷컴 1995~1999와 현재 공개 관측자료 비교.'} ${useLog?'세로축 log(1+x). ':''}예측값 없음" data-forecast-extension="false" data-stat-scale="${useLog?'log1p':'linear'}" data-stat-axis="${esc(chart.axis_type||'elapsed-month')}">
     ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${tickY(value).toFixed(1)}" y2="${tickY(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(tickY(value)+4).toFixed(1)}" text-anchor="end">${esc(statisticsValue(chart.unit,inverse(value)))}</text>`).join('')}
     ${!useLog&&low<0&&high>0?`<line x1="${ML}" x2="${W-MR}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#77746d" stroke-dasharray="4 5"/>`:''}
-    ${xTicks.map(([value,label])=>`<text x="${X(value).toFixed(1)}" y="${H-17}" text-anchor="middle">${esc(label)}</text>`).join('')}
+    ${xTicks.map(([value,label])=>{const x=X(value).toFixed(1),y=H-17;return denseCategorical?`<text x="${x}" y="${y}" text-anchor="end" transform="rotate(-34 ${x} ${y})">${esc(label)}</text>`:`<text x="${x}" y="${y}" text-anchor="middle">${esc(label)}</text>`;}).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">${esc(chart.observed_end_label||'AI 실제 관측 종료')}</text>`:''}
     ${eventLines}
-    ${barChart?groupedBars:series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.4'}" stroke-dasharray="${row.era==='dotcom'?'6 5':'none'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
+    ${stackedBar?stackedBars:barChart?groupedBars:series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.4'}" stroke-dasharray="${row.era==='dotcom'?'6 5':'none'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
     ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
@@ -1093,7 +1096,8 @@ function renderStatistics(){
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards';
-    grid.appendChild(el(`<section class="statistics-card${profile?' is-profile-card':''}" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(profile?'1999년 실측':chart.display_unit||chart.unit)}</b></div>${profile?'':`<div class="statistics-legend">${latest}</div>`}${profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
+    const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
+    grid.appendChild(el(`<section class="statistics-card${profile?' is-profile-card':''}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(profile?'1999년 실측':chart.display_unit||chart.unit)}</b></div>${profile?'':`<div class="statistics-legend">${latest}</div>`}${guide}${profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><span>현재 결론</span><b>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</b></div></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>사용한 데이터 출처</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.title)}</strong><span>${esc(row.provider)}</span></div><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원문 보기 ↗</a></article>`).join('')}</div></details>`));
