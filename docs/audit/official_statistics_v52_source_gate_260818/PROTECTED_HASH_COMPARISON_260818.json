@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "algorithm": "sha256",
+  "checked_at": "2026-08-18T09:45:06Z",
+  "before_manifest_sha256": "d1867bb268dacb69ad1bcef27795400bc31c47273fc4041c46ede57a39f52c5f",
+  "current_manifest_sha256": "d1867bb268dacb69ad1bcef27795400bc31c47273fc4041c46ede57a39f52c5f",
+  "unchanged": true,
+  "protected_file_count": 132,
+  "added": [],
+  "removed": [],
+  "changed": [],
+  "missing_roots": [],
+  "protected_scope": [
+    "data/scenarios/nasdaq_latest.json",
+    "data/scenarios/archive",
+    "forecasts",
+    "calibration",
+    "questions/registry.yaml",
+    "data/ml_history",
+    "data/signals",
+    "data/liquidity",
+    "data/cross_asset",
+    "data/ai_capital_cycle"
+  ],
+  "note": "New data/statistics archive and official_store are additive statistics artifacts and are outside the pre-existing forecast/scenario protected scope."
+}

@@ -1,0 +1,384 @@
+schema_version: 1
+contract_id: website-data-lineage-v1
+as_of: "2026-08-18"
+
+purpose: >-
+  Machine-readable map from every public dashboard surface to its committed
+  source artifact, generated payload location, numerical-use class, and
+  point-in-time meaning. A display role such as champion or default does not
+  make an artifact an official forecast ledger entry.
+
+rules:
+  official_numeric_input: registered_authoritative_source_only
+  research_reports: insight_only
+  raw_before_derived: required_for_official_numeric
+  correction_policy: append_revision_with_supersedes
+  point_in_time: source_available_at_must_not_exceed_consumer_knowledge_cutoff
+  unknown_source: reject_for_official_numeric
+  classification_inheritance: derived_output_inherits_the_most_restrictive_upstream_class
+  display_promotion: does_not_change_model_or_official_forecast_status
+  probability_spaces: never_combine_without_an_explicit_registered_transform
+
+publication_classes:
+  official_numeric_statistics:
+    meaning: >-
+      Published descriptive numbers reconstructed from raw artifacts and the
+      append-only normalized observation ledger under the authoritative source policy.
+    may_write_official_forecast: false
+    required_controls: [registered_source, raw_receipt, normalized_observation, pit_gate]
+  canonical_forecast_ledger:
+    meaning: Internal registered-question forecasts, resolutions, and corrections.
+    may_write_official_forecast: true
+    required_controls: [registered_question, official_write_gate, append_only_ledger]
+  research_reference_proxy:
+    meaning: >-
+      Display or research output that may contain current-vintage, aggregator,
+      pinned legacy, analog, or counterfactual inputs. It is never an official
+      probability or an approved numerical input merely because it is displayed.
+    may_write_official_forecast: false
+    required_controls: [reference_only_label, no_official_append]
+  official_schedule_metadata:
+    meaning: Official or explicitly estimated event dates used for display only.
+    may_write_official_forecast: false
+    required_controls: [registered_calendar_source, confirmed_vs_estimated_status]
+  governance_metadata:
+    meaning: Promotion, calibration, or source-health state; not a market forecast.
+    may_write_official_forecast: false
+    required_controls: [explicit_status, no_silent_promotion]
+
+time_semantics:
+  observation_through:
+    meaning: >-
+      Latest economic or market observation period represented in the artifact.
+      It describes data coverage, not when the value became knowable, and is not
+      by itself a point-in-time cutoff.
+    ui_aliases: [as_of_for_descriptive_statistics, latest_observation]
+  knowledge_cutoff:
+    meaning: >-
+      Latest source-availability timestamp that a build or model is permitted to
+      know. Every numerically consumed observation must have available_at less
+      than or equal to this timestamp.
+    required_for: [official_numeric_statistics, canonical_forecast_ledger, research_model_build]
+  available_at:
+    meaning: Earliest auditable timestamp at which a specific source value or revision was available.
+  generated_at:
+    meaning: Build timestamp only; it never proves that an input was available earlier.
+  as_of:
+    meaning: >-
+      Consumer evaluation timestamp for forecasts and research models. On the
+      statistics payload it is retained as a compatibility alias for
+      observation_through and must not be interpreted as knowledge_cutoff.
+  invariants:
+    - available_at_lte_knowledge_cutoff_for_every_numerically_used_observation
+    - revisions_retain_their_own_available_at
+    - generated_at_never_substitutes_for_missing_source_availability
+    - future_calendar_event_date_may_exceed_knowledge_cutoff_but_registration_available_at_may_not
+
+payload_artifacts:
+  dashboard_base:
+    public_file: _site/data.json
+    builder: ai_fc.dashboard.split_future_paths_then_split_statistics_data
+    role: base_shell_and_summaries
+  future_deferred:
+    public_file: _site/future_paths.json
+    contract_id: future_paths_v1
+    builder: ai_fc.dashboard.split_future_paths
+    role: route_loaded_future_detail
+  statistics_deferred:
+    public_file: _site/statistics.json
+    contract_id: statistics_route_v1
+    builder: ai_fc.dashboard.split_statistics_data
+    role: route_loaded_statistics_detail
+
+statistics:
+  publication_status: authoritative_only
+  publication_class: official_numeric_statistics
+  source_policy: data/contracts/authoritative_statistics_sources.yaml
+  normalized_ledger: data/statistics/official_store/ledgers/normalized_observations.jsonl
+  raw_receipts: data/statistics/official_store/ledgers/raw_receipts.jsonl
+  raw_receipt_corrections: data/statistics/official_store/ledgers/raw_receipt_corrections.jsonl
+  published_payload: data/statistics/dotcom_statistics_latest.json
+  observation_through_field: observation_through
+  knowledge_cutoff_field: knowledge_cutoff
+  official_forecast_input: false
+  consumers:
+    sec_ipo_issuer_mix_h1: [SEC_IPO_QUARTERLY]
+    m2_nasdaq: [NASDAQCOM, M2SL]
+    nasdaq_per_m2: [NASDAQCOM, M2SL]
+    nasdaq_per_household_liquid_assets: [NASDAQCOM, DABSHNO]
+    liquidity_position_map: [BOGZ1LM893064105Q, M2SL, MMMFFAQ027S, SP500, NASDAQCOM, CBBTCUSD]
+    yield_curve: [T10Y2Y]
+    policy_rate: [FEDFUNDS]
+    valuation_proxy: [NCBEILQ027S, CPATAX]
+    margin_credit_proxy: [FL663067003, BOGZ1LM893064105Q]
+    consumer_credit_growth: [TOTALSL]
+    loan_standards: [DRTSCILM]
+    profit_growth: [CPATAX]
+    household_debt_service: [BOGZ1FL010000346Q]
+    unemployment_rate: [UNRATE]
+    inflation_rate: [CPIAUCSL]
+    financial_conditions: [NFCI]
+    rate_cycle_since_first_cut: [FEDFUNDS]
+    corporate_bond_pressure: [HQMCB10YR, GS10]
+    inflation_lead_panel: [CPIAUCSL, DCOILWTICO, WPU10260314]
+    korea_semiconductor_cycle: [SPASTT01KRM661N, NASDAQSOX]
+    housing_manufacturing_warning: [HOUST, GACDFSA066MSFRBPHI]
+    household_balance_sheet_trend_gap: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
+
+retired_numeric_consumers:
+  reason: secondary_research_or_unapproved_aggregator_cannot_supply_published_numbers
+  chart_ids:
+    - internet_vs_ai_core_ipos
+    - technology_ipo_count
+    - technology_ipo_first_day_return
+    - technology_ipo_price_to_sales
+    - technology_ipo_profitable_share
+    - all_ipo_negative_earnings_share
+    - dotcom_internet_ipo_breadth
+    - ipo_market_absorption
+    - small_issuer_ipo_share
+    - sp500_after_two_twenty_percent_years
+    - kospi_external_semiconductor_pulse
+
+surfaces:
+  official_question_forecasts:
+    routes: ["#today", "#records"]
+    publication_class: canonical_forecast_ledger
+    probability_space: physical_event
+    official_forecast_write: gated
+    numeric_input_policy: registered_question_and_official_write_gate
+    source_artifacts:
+      - questions/registry.yaml
+      - forecasts
+    payload_locations:
+      - {artifact: dashboard_base, key: questions, materialization: base}
+      - {artifact: dashboard_base, key: forecast_history, materialization: base}
+      - {artifact: dashboard_base, key: resolutions, materialization: base}
+      - {artifact: dashboard_base, key: corrections, materialization: base}
+    artifact_gate: registered_question_probability_and_append_only_correction_contracts
+
+  champion:
+    routes: ["#today", "#future/champion", "#future/lookup"]
+    publication_class: research_reference_proxy
+    display_role: champion_conditional_market_model
+    probability_space: scenario_conditional
+    official_forecast_write: false
+    numeric_input_policy: research_proxy_includes_yahoo_nasdaq
+    source_artifacts: [data/scenarios/nasdaq_latest.json]
+    payload_locations:
+      - {artifact: dashboard_base, key: scenario, materialization: base}
+    artifact_gate: scenario_schema_and_snapshot_validation
+    time_fields: {observation_through: asof, knowledge_cutoff: not_persisted_as_a_distinct_field}
+
+  scenario_v5_2_default:
+    routes: ["#future", "#future/research"]
+    publication_class: research_reference_proxy
+    display_role: customer_default_research_candidate
+    probability_space: scenario_conditional
+    official_forecast_write: false
+    numeric_input_policy: only_source_gate_approved_evidence_is_numeric_otherwise_zero
+    source_artifacts:
+      - data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json
+      - data/contracts/display_promotion.yaml
+      - data/display_promotions/approval_receipts.jsonl
+    payload_locations:
+      - {artifact: dashboard_base, key: scenario_v5_2, materialization: summary_and_checkpoints}
+      - {artifact: future_deferred, key: scenario_v5_2, materialization: full_detail}
+    artifact_gate: >-
+      research_candidate_runtime_gate_and_display_promotion_only;
+      NOT_OFFICIAL_NOT_CHAMPION remains mandatory
+    time_fields: {observation_through: anchor.date, knowledge_cutoff: knowledge_cutoff, as_of: as_of}
+
+  scenario_v4_shadow:
+    routes: ["#future/champion"]
+    publication_class: research_reference_proxy
+    display_role: dormant_shadow_toggle
+    probability_space: scenario_conditional
+    official_forecast_write: false
+    numeric_input_policy: shadow_validation_only
+    source_artifacts: [data/scenarios/shadow/rcfhs_sb_v1_latest.json]
+    payload_locations:
+      - {artifact: future_deferred, key: scenario_v4_shadow, materialization: full_detail}
+    artifact_gate: shadow_only_and_blocked_pending_rolling_origin_validation
+
+  cross_asset:
+    routes: ["#future/cross-asset"]
+    publication_class: research_reference_proxy
+    display_role: reference_cross_asset_comparison
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: mixed_observed_proxy_and_explicit_counterfactual
+    source_artifacts: [data/cross_asset/cross_asset_latest.json]
+    payload_locations:
+      - {artifact: future_deferred, key: cross_asset, materialization: full_detail}
+    artifact_gate: cross_asset_schema_receipts_and_counterfactual_labels
+
+  realty_income:
+    routes: ["#future/cross-asset"]
+    publication_class: research_reference_proxy
+    display_role: realty_income_reference_and_historical_entry_cohort
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: historical_proxy_and_registered_sensitivity_research
+    source_artifacts:
+      - data/realty_income/rate_sensitivity_latest.json
+      - data/rate_events/event_study_latest.json
+      - data/realty_income/dividends.csv
+      - data/realty_income/o_entry_cohort_latest.json
+      - data/contracts/o_entry_cohort.yaml
+    payload_locations:
+      - {artifact: future_deferred, key: cross_asset.realty_income, materialization: embedded_detail}
+      - {artifact: dashboard_base, key: o_entry_cohort, materialization: base}
+    artifact_gate: reference_only_and_no_entry_recommendation
+
+  bitcoin:
+    routes: ["#future/cross-asset", "#future/liquidity"]
+    publication_class: research_reference_proxy
+    display_role: observed_proxy_and_counterfactual_stress_asset
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: yahoo_observed_proxy_plus_explicit_counterfactual_only
+    source_artifacts:
+      - data/cross_asset/cross_asset_latest.json
+      - data/liquidity/liquidity_latest.json
+    payload_locations:
+      - {artifact: future_deferred, key: cross_asset.forecast, materialization: embedded_detail}
+      - {artifact: future_deferred, key: liquidity.crypto_internal, materialization: embedded_detail}
+    artifact_gate: observed_and_synthetic_assets_must_remain_distinguishable
+
+  liquidity:
+    routes: ["#future/liquidity"]
+    publication_class: research_reference_proxy
+    display_role: partial_liquidity_monitor
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: current_vintage_fred_and_yahoo_reference_proxies
+    source_artifacts: [data/liquidity/liquidity_latest.json]
+    payload_locations:
+      - {artifact: future_deferred, key: liquidity, materialization: full_detail}
+    artifact_gate: partial_status_and_current_vintage_warning_visible
+
+  era_analog:
+    routes: ["#future/history"]
+    publication_class: research_reference_proxy
+    display_role: historical_analog_reference
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: hindsight_analog_reference_only
+    source_artifacts:
+      - data/ml_history/2026.jsonl
+      - data/model_runs/knn_analog_latest.json
+      - src/ai_fc/era_analog.py
+    payload_locations:
+      - {artifact: dashboard_base, key: era_analog, materialization: summary}
+      - {artifact: future_deferred, key: era_analog, materialization: runtime_derived_detail}
+    artifact_gate: no_probability_and_hindsight_limitations_visible
+
+  multi_year_stress:
+    routes: ["#future/cross-asset"]
+    publication_class: research_reference_proxy
+    display_role: historical_stress_and_explicit_counterfactual
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: derived_from_cross_asset_plus_registered_user_assumption
+    source_artifacts:
+      - data/cross_asset/cross_asset_latest.json
+      - data/contracts/multi_year_bubble_stress_v1.yaml
+      - src/ai_fc/multi_year_stress.py
+    payload_locations:
+      - {artifact: future_deferred, key: multi_year_stress, materialization: runtime_derived_detail}
+    artifact_gate: historical_observed_and_counterfactual_series_must_not_be_blended
+
+  scenario_tracker:
+    routes: ["#future/cross-asset"]
+    publication_class: research_reference_proxy
+    display_role: partial_preregistered_checklist
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: directional_checklist_never_probability
+    source_artifacts:
+      - data/signals/scenario_tracker_latest.json
+      - data/contracts/scenario_tracker_rules.yaml
+    payload_locations:
+      - {artifact: dashboard_base, key: scenario_tracker, materialization: base}
+    artifact_gate: rules_version_and_partial_status_visible
+
+  calendar:
+    routes: ["#today", "#future", "#future/champion"]
+    publication_class: official_schedule_metadata
+    display_role: event_schedule
+    probability_space: none
+    official_forecast_write: false
+    numeric_input_policy: display_metadata_not_an_automatic_model_update
+    source_artifacts:
+      - data/calendar/events.csv
+      - data/contracts/calendar_sources.yaml
+    payload_locations:
+      - {artifact: dashboard_base, key: calendar_events, materialization: base}
+    artifact_gate: append_only_event_id_and_confirmed_vs_estimated_status
+
+  ai_regime:
+    routes: ["#future/ai-regime"]
+    publication_class: research_reference_proxy
+    display_role: blocked_reference_regime_map
+    probability_space: reference_only
+    official_forecast_write: false
+    numeric_input_policy: blocked_until_registered_coverage_gate_passes
+    source_artifacts:
+      - data/ai_capital_cycle/ai_regime_latest.json
+      - data/contracts/ai_capital_cycle.yaml
+    payload_locations:
+      - {artifact: future_deferred, key: ai_regime, materialization: full_detail}
+    artifact_gate: blocked_status_and_map_render_gate
+
+  band_calibration:
+    routes: ["#future", "#records"]
+    publication_class: governance_metadata
+    display_role: scenario_band_promotion_gate
+    probability_space: scenario_conditional
+    official_forecast_write: false
+    numeric_input_policy: governance_measure_only
+    source_artifacts: [data/scenarios/band_calibration.csv]
+    payload_locations:
+      - {artifact: dashboard_base, key: band_calibration, materialization: base}
+    artifact_gate: minimum_60_observations_before_pass
+
+  display_promotion:
+    routes: ["#future"]
+    publication_class: governance_metadata
+    display_role: display_only_promotion_decision
+    probability_space: none
+    official_forecast_write: false
+    numeric_input_policy: no_model_or_probability_change
+    source_artifacts:
+      - data/contracts/display_promotion.yaml
+      - data/display_promotions/approval_receipts.jsonl
+    payload_locations:
+      - {artifact: dashboard_base, key: display_promotion, materialization: base}
+    artifact_gate: disclosure_banner_operator_receipt_and_reversion_rule
+
+future_research_candidate:
+  consumer_id: scenario_v5_2_scenario_clustered_db_v4
+  publication_role: research_candidate_not_champion
+  default_display_role: customer_default_by_display_promotion_only
+  official_forecast_write: false
+  protected_official_artifacts_changed: false
+  private_numeric_inputs:
+    kiplinger_jobs_consensus: blocked_insight_only
+    investing_fed_probability: blocked_no_authoritative_receipt
+    ap_investing_cross_asset_state: blocked_no_authoritative_receipt
+  authoritative_numeric_inputs:
+    bls_employment_actual: enabled
+  migration_holds:
+    modern_nasdaq_history: migrate_yahoo_to_registered_official_market_series
+    macro_cluster_history: rebuild_with_alfred_point_in_time_vintages
+    event_learning: connect_official_release_collectors_before_claiming_automatic_learning
+  display_status: research_only
+
+non_statistics_site_data:
+  status: mapped_by_surface_with_mixed_authority_classes
+  rule: >-
+    Only surfaces explicitly classified as official_numeric_statistics or
+    canonical_forecast_ledger may make official numerical claims. Every
+    research_reference_proxy remains display/research-only until a registered
+    primary source, raw receipt, PIT availability, and promotion gate exist.

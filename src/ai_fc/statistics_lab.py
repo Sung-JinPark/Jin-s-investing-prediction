@@ -202,6 +202,45 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
+    "SP500": {
+        "title": "S&P 500 Index",
+        "provider": "S&P Dow Jones Indices via Federal Reserve Bank of St. Louis",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "aggregation": "last",
+        "window_start": "2023-01-01",
+    },
+    "CBBTCUSD": {
+        "title": "Coinbase Bitcoin U.S. dollar spot price",
+        "provider": "Coinbase via Federal Reserve Bank of St. Louis",
+        "unit": "dollars_per_bitcoin",
+        "native_frequency": "daily_close",
+        "aggregation": "last",
+        "window_start": "2023-01-01",
+    },
+    "NASDAQSOX": {
+        "title": "Nasdaq PHLX Semiconductor Index",
+        "provider": "Nasdaq, Inc. via Federal Reserve Bank of St. Louis",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "aggregation": "last",
+        "window_start": "2020-01-01",
+    },
+    "SPASTT01KRM661N": {
+        "title": "Korea share-price index",
+        "provider": "OECD Main Economic Indicators via Federal Reserve Bank of St. Louis",
+        "unit": "index_2015_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+        "window_start": "2020-01-01",
+    },
+    "HOUST": {
+        "title": "Housing starts: total new privately owned housing units",
+        "provider": "U.S. Census Bureau via Federal Reserve Bank of St. Louis",
+        "unit": "thousands_saar",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
 }
 
 DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
@@ -275,14 +314,6 @@ SUPPLEMENTAL_SOURCES: dict[str, dict[str, str]] = {
         "native_frequency": "quarterly",
         "source_url": "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos",
         "request_url": SEC_IPO_ENDPOINT,
-    },
-    "NYU_SP500_ANNUAL_TOTAL_RETURN": {
-        "title": "S&P 500 annual total returns including dividends",
-        "provider": "Aswath Damodaran, NYU Stern School of Business",
-        "unit": "percent_total_return",
-        "native_frequency": "annual",
-        "source_url": "https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html",
-        "request_url": NYU_RETURNS_ENDPOINT,
     },
 }
 
@@ -519,7 +550,9 @@ def _parse_ici_weekly_html(raw: bytes) -> list[dict[str, Any]]:
     return result
 
 
-def _fetch_supplemental(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
+def _fetch_supplemental(
+    series_id: str,
+) -> tuple[list[dict[str, Any]], bytes] | tuple[list[dict[str, Any]], bytes, str]:
     if series_id == "SEC_IPO_QUARTERLY":
         import re
 
@@ -529,7 +562,7 @@ def _fetch_supplemental(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
             raise StatisticsLabError("SEC IPO statistics download link missing")
         download_url = urllib.parse.urljoin(SEC_IPO_ENDPOINT, match.group(1))
         raw = _request(download_url, timeout=60)
-        return _parse_sec_ipo_xlsx(raw), raw
+        return _parse_sec_ipo_xlsx(raw), raw, download_url
     if series_id == "ICI_WEEKLY_EQUITY_ETF_FLOW":
         raise StatisticsLabError(
             "ICI blocks unattended access in this runtime; use the reviewed local reference"
@@ -1423,7 +1456,7 @@ def load_ici_reference(root: Path) -> dict[str, Any]:
     return payload
 
 
-def build_statistics_lab(
+def _build_statistics_lab_legacy(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
     ipo_reference: dict[str, Any] | None = None,
@@ -2292,6 +2325,7 @@ def build_statistics_lab(
         source_meta.extend(ipo_reference["sources"])
     if hmi_reference is not None:
         source_meta.append(hmi_reference["source"])
+    observation_through = max(row["latest_observation"] for row in source_meta)
     payload = {
         "schema_version": 1,
         "dataset_id": "dotcom_statistics_lab_v1",
@@ -2330,6 +2364,341 @@ def build_statistics_lab(
             "FINRA_margin_statistics": "permission required; not fetched or redistributed",
             "Moodys_Baa_spread": "proprietary redistribution restriction",
             "paid_forward_PE": "not reproducible under public redistribution rights",
+        },
+    }
+    validate_statistics_lab(payload)
+    return payload
+
+
+def build_statistics_lab(
+    source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
+    receipts: dict[str, dict[str, Any]],
+    ipo_reference: dict[str, Any] | None = None,
+    hmi_reference: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Build the customer statistics payload from authoritative numeric inputs only.
+
+    Research reports may still be catalogued outside this function to help frame an
+    insight, but their numbers are deliberately absent from ``source_rows`` and from
+    every chart ``source_ids`` list.  ``ipo_reference`` and ``hmi_reference`` remain
+    accepted for backwards-compatible callers; they are intentionally ignored.
+    """
+    del ipo_reference, hmi_reference
+    required_sources = set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | {"FL663067003"}
+    missing = sorted(required_sources - set(source_rows))
+    if missing:
+        raise StatisticsLabError(f"missing authoritative source series: {missing}")
+    generated_time = datetime.fromisoformat(generated_at.replace("Z", "+00:00"))
+    monthly = {
+        key: _monthly(source_rows[key], spec["aggregation"])
+        for key, spec in FRED_SERIES.items()
+    }
+    monthly["FL663067003"] = _monthly(source_rows["FL663067003"], "last")
+    comparison_months = COMPARISON_MONTHS
+
+    def cycles(rows: list[dict[str, Any]], *, indexed: bool = False):
+        return _cycle_series(rows, comparison_months, indexed=indexed)
+
+    dot_nasdaq, cur_nasdaq = cycles(monthly["NASDAQCOM"], indexed=True)
+    dot_m2, cur_m2 = cycles(monthly["M2SL"], indexed=True)
+    dot_nasdaq_m2, cur_nasdaq_m2 = cycles(
+        _ratio(monthly["NASDAQCOM"], monthly["M2SL"]), indexed=True,
+    )
+    dot_nasdaq_cash, cur_nasdaq_cash = cycles(
+        _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), indexed=True,
+    )
+    dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
+    dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
+    valuation = [
+        {**row, "value": float(row["value"]) / 1000.0}
+        for row in _ratio(monthly["NCBEILQ027S"], monthly["CPATAX"])
+    ]
+    dot_value, cur_value = cycles(valuation)
+    dot_margin, cur_margin = cycles(monthly["FL663067003"], indexed=True)
+    dot_equities, cur_equities = cycles(monthly["BOGZ1LM893064105Q"], indexed=True)
+    dot_credit, cur_credit = cycles(_yoy(monthly["TOTALSL"]))
+    dot_standards, cur_standards = cycles(monthly["DRTSCILM"])
+    dot_profit, cur_profit = cycles(_yoy(monthly["CPATAX"]))
+    dot_debt_service, cur_debt_service = cycles(monthly["BOGZ1FL010000346Q"])
+    dot_unemployment, cur_unemployment = cycles(monthly["UNRATE"])
+    inflation = _yoy(monthly["CPIAUCSL"])
+    dot_inflation, cur_inflation = cycles(inflation)
+    dot_nfci, cur_nfci = cycles(monthly["NFCI"])
+    dot_rate_cycle = _event_change(
+        monthly["FEDFUNDS"], base_month=date(1995, 6, 1),
+        event_month=date(1995, 7, 1), months=comparison_months,
+    )
+    cur_rate_cycle = _event_change(
+        monthly["FEDFUNDS"], base_month=date(2024, 8, 1),
+        event_month=date(2024, 9, 1), months=comparison_months,
+    )
+    treasury = {_month_key(row["date"]): float(row["value"]) for row in monthly["GS10"]}
+    corporate_spread = [
+        {"date": row["date"], "value": float(row["value"]) - treasury[_month_key(row["date"])]}
+        for row in monthly["HQMCB10YR"] if _month_key(row["date"]) in treasury
+    ]
+    dot_corp_yield, cur_corp_yield = cycles(monthly["HQMCB10YR"])
+    dot_corp_spread, cur_corp_spread = cycles(corporate_spread)
+    dot_cpi_lead, cur_cpi_lead = cycles(_shift_months(inflation, -2))
+    dot_oil, cur_oil = cycles(_yoy(monthly["DCOILWTICO"]))
+    dot_copper, cur_copper = cycles(_yoy(monthly["WPU10260314"]))
+    dot_housing, cur_housing = cycles(_yoy(monthly["HOUST"]))
+    dot_philly, cur_philly = cycles(monthly["GACDFSA066MSFRBPHI"])
+    equity_gap = _trend_gap_points(monthly["BOGZ1LM153064475Q"])
+    cash_gap = _trend_gap_points(monthly["DABSHNO"])
+    debt_gap = _trend_gap_points(monthly["BOGZ1FL154022375A"], minimum_training=8)
+
+    def current_index(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        selected = [row for row in rows if date.fromisoformat(str(row["date"])) >= CURRENT_START]
+        if not selected or float(selected[0]["value"]) <= 0:
+            raise StatisticsLabError("current indexed series is unavailable")
+        base = float(selected[0]["value"])
+        return [
+            {
+                "period": _month_offset(str(row["date"]), CURRENT_START),
+                "date": str(row["date"]),
+                "value": float(row["value"]) / base * 100.0,
+            }
+            for row in selected
+            if _month_offset(str(row["date"]), CURRENT_START) <= comparison_months
+        ]
+
+    korea_index = current_index(monthly["SPASTT01KRM661N"])
+    sox_index = current_index(monthly["NASDAQSOX"])
+
+    def make(
+        chart_id: str, title: str, category: str, unit: str,
+        series: list[dict[str, Any]], source_ids: list[str], scope: str,
+        insight: str,
+    ) -> dict[str, Any]:
+        chart = _chart(
+            chart_id, title, category, unit, insight,
+            "공식 원천의 실제 관측치만 사용하며 미래 구간을 연장하지 않습니다.",
+            series, source_ids,
+        )
+        chart["scope_note"] = scope
+        chart["insight"] = insight
+        chart["conclusion"] = insight
+        chart["metric_source_ids"] = list(source_ids)
+        chart["research_context_source_ids"] = []
+        return chart
+
+    latest_m2_bn = float(monthly["M2SL"][-1]["value"])
+    latest_mmf_bn = float(monthly["MMMFFAQ027S"][-1]["value"]) / 1000.0
+    latest_equity_bn = float(monthly["BOGZ1LM893064105Q"][-1]["value"]) / 1000.0
+    changes = {
+        "S&P 500": _trailing_year_change(source_rows["SP500"]),
+        "NASDAQ": _trailing_year_change(source_rows["NASDAQCOM"]),
+        "비트코인": _trailing_year_change(source_rows["CBBTCUSD"]),
+        "미국 M2": _trailing_year_change(monthly["M2SL"]),
+        "미국 MMF": _trailing_year_change(monthly["MMMFFAQ027S"]),
+    }
+    change_dates = {
+        "S&P 500": source_rows["SP500"][-1]["date"],
+        "NASDAQ": source_rows["NASDAQCOM"][-1]["date"],
+        "비트코인": source_rows["CBBTCUSD"][-1]["date"],
+        "미국 M2": monthly["M2SL"][-1]["date"],
+        "미국 MMF": monthly["MMMFFAQ027S"][-1]["date"],
+    }
+
+    charts = [
+        make("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
+             [_series("닷컴 NASDAQ", "dotcom", dot_nasdaq, "#d42b20"), _series("닷컴 M2", "dotcom", dot_m2, "#755d35"), _series("현재 NASDAQ", "current", cur_nasdaq, "#ff6a1a"), _series("현재 M2", "current", cur_m2, "#1c7262")],
+             ["NASDAQCOM", "M2SL"], "*미국 통화·NASDAQ 기준", "주가와 통화량의 누적 속도를 같은 시작점에서 비교합니다."),
+        make("nasdaq_per_m2", "M2 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
+             [_series("닷컴", "dotcom", dot_nasdaq_m2, "#c70039"), _series("현재", "current", cur_nasdaq_m2, "#ff7b00")],
+             ["NASDAQCOM", "M2SL"], "*미국 통화·NASDAQ 기준", "M2 증가보다 NASDAQ이 얼마나 빠르게 움직였는지 보여줍니다."),
+        make("nasdaq_per_household_liquid_assets", "가계 현금성 자산 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
+             [_series("닷컴", "dotcom", dot_nasdaq_cash, "#7a3248"), _series("현재", "current", cur_nasdaq_cash, "#e46b20")],
+             ["NASDAQCOM", "DABSHNO"], "*미국 가계·비영리 자산 기준", "가계 현금성 자산 대비 NASDAQ의 상대 속도를 비교합니다."),
+        make("yield_curve", "10년−2년 장단기 금리차", "rates", "percent",
+             [_series("닷컴", "dotcom", dot_curve, "#8d2943"), _series("현재", "current", cur_curve, "#28756a")],
+             ["T10Y2Y"], "*미국 국채 기준", "금리차가 음수면 역전, 양수로 급히 복귀하면 성장 둔화 구간을 함께 점검합니다."),
+        make("policy_rate", "연방기금금리 경로", "rates", "percent",
+             [_series("닷컴", "dotcom", dot_funds, "#8d2943"), _series("현재", "current", cur_funds, "#28756a")],
+             ["FEDFUNDS"], "*미국 기준", "월평균 실효금리의 실제 경로이며 시장의 미래 인하 확률은 아닙니다."),
+        make("valuation_proxy", "기업가치 ÷ 세후이익 PER 대용치", "valuation", "multiple",
+             [_series("닷컴", "dotcom", dot_value, "#c70039"), _series("현재", "current", cur_value, "#ff7b00")],
+             ["NCBEILQ027S", "CPATAX"], "*미국 기업 기준", "기업주식 가치가 실제 세후이익보다 얼마나 빠른지 보는 공개자료 대용치입니다."),
+        make("margin_credit_proxy", "브로커 고객 신용과 미국 기업주식", "credit", "cycle_start_100",
+             [_series("닷컴 고객 신용", "dotcom", dot_margin, "#c70039"), _series("닷컴 기업주식", "dotcom", dot_equities, "#7b6b55"), _series("현재 고객 신용", "current", cur_margin, "#ff7b00"), _series("현재 기업주식", "current", cur_equities, "#28756a")],
+             ["FL663067003", "BOGZ1LM893064105Q"], "*미국 가계·기업주식 기준", "신용과 주식가치가 함께 빨라질수록 레버리지 민감도가 커집니다."),
+        make("consumer_credit_growth", "소비자신용 증가율", "credit", "percent_yoy",
+             [_series("닷컴", "dotcom", dot_credit, "#8d2943"), _series("현재", "current", cur_credit, "#28756a")],
+             ["TOTALSL"], "*미국 소비자신용 기준", "소비자신용의 전년 대비 증가 속도를 비교합니다."),
+        make("loan_standards", "은행 기업대출 심사 강화 비율", "credit", "net_percent",
+             [_series("닷컴", "dotcom", dot_standards, "#8d2943"), _series("현재", "current", cur_standards, "#28756a")],
+             ["DRTSCILM"], "*미국 기업대출 기준", "양수가 높아질수록 더 많은 은행이 기업대출 문턱을 높인 상태입니다."),
+        make("profit_growth", "세후 기업이익 증가율", "valuation", "percent_yoy",
+             [_series("닷컴", "dotcom", dot_profit, "#8d2943"), _series("현재", "current", cur_profit, "#28756a")],
+             ["CPATAX"], "*미국 기업 기준", "주가를 지탱하는 실제 기업이익의 증가 속도를 비교합니다."),
+        make("household_debt_service", "가계 원리금 상환 부담", "credit", "percent",
+             [_series("닷컴", "dotcom", dot_debt_service, "#8d2943"), _series("현재", "current", cur_debt_service, "#28756a")],
+             ["BOGZ1FL010000346Q"], "*미국 가계 기준", "가처분소득에서 원리금 상환이 차지하는 비중입니다."),
+        make("unemployment_rate", "실업률", "economy", "percent",
+             [_series("닷컴", "dotcom", dot_unemployment, "#8d2943"), _series("현재", "current", cur_unemployment, "#28756a")],
+             ["UNRATE"], "*미국 기준", "공식 U-3 실업률로 고용 냉각 정도를 비교합니다."),
+        make("inflation_rate", "소비자물가 상승률", "economy", "percent_yoy",
+             [_series("닷컴", "dotcom", dot_inflation, "#8d2943"), _series("현재", "current", cur_inflation, "#28756a")],
+             ["CPIAUCSL"], "*미국 기준", "전체 CPI 전년비로 정책금리 부담의 배경을 비교합니다."),
+        make("financial_conditions", "금융여건지수", "rates", "standard_deviation_index",
+             [_series("닷컴", "dotcom", dot_nfci, "#8d2943"), _series("현재", "current", cur_nfci, "#28756a")],
+             ["NFCI"], "*미국 금융시장 기준", "0 위는 역사 평균보다 긴축적, 0 아래는 완화적인 금융환경입니다."),
+        make("rate_cycle_since_first_cut", "첫 금리 인하 뒤 재긴축 거리", "rates", "percentage_point_change",
+             [_series("1995 인하 사이클", "dotcom", dot_rate_cycle, "#8d2943"), _series("2024 인하 사이클", "current", cur_rate_cycle, "#28756a")],
+             ["FEDFUNDS"], "*미국 기준", "첫 인하 직전 수준에서 정책금리가 얼마나 이동했는지 비교합니다."),
+        make("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
+             [_series("닷컴 회사채", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")],
+             ["HQMCB10YR", "GS10"], "*미국 회사채·국채 기준", "회사채 금리와 국채 대비 차이가 함께 오르면 기업 자금조달 부담이 커집니다."),
+        make("inflation_lead_panel", "유가·구리 2개월 선행과 CPI", "economy", "percent_yoy",
+             [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_cpi_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_cpi_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")],
+             ["CPIAUCSL", "DCOILWTICO", "WPU10260314"], "*미국 물가·원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다."),
+        make("korea_semiconductor_cycle", "한국 주가와 글로벌 반도체 사이클", "economy", "cycle_start_100",
+             [_series("한국 주가", "current", korea_index, "#11110f"), _series("미국 반도체", "current", sox_index, "#e05d26")],
+             ["SPASTT01KRM661N", "NASDAQSOX"], "*한국·미국 시장 기준", "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다."),
+        make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
+             [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
+             ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
+        make("household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit", "percent_vs_trend",
+             [_series("주식", "current", equity_gap, "#11110f"), _series("현금성 자산", "current", cash_gap, "#b58b2a"), _series("채권", "current", debt_gap, "#28756a")],
+             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"], "*미국 가계·비영리 자산 기준", "2009~2019 추세에서 주식·현금·채권이 얼마나 벗어났는지 비교합니다."),
+    ]
+
+    liquidity = make(
+        "liquidity_position_map", "자금 지도: 현재 규모와 12개월 방향", "liquidity", "percent",
+        [_series("12개월 변화", "current", [
+            {"period": index, "date": change_dates[label], "value": value}
+            for index, (label, value) in enumerate(changes.items())
+        ], "#28756a")],
+        ["BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S", "SP500", "NASDAQCOM", "CBBTCUSD"],
+        "*미국 기준 · 비트코인은 달러 시세",
+        "왼쪽은 서로 합산하지 않는 현재 규모, 오른쪽은 각 지표의 최근 12개월 실제 변화입니다.",
+    )
+    liquidity.update({
+        "chart_type": "liquidity_bars",
+        "display_unit": "현재 규모 + 12개월 증감",
+        "reading_guide": "규모와 방향은 단위가 달라 두 패널로 분리합니다.",
+        "liquidity_panels": [
+            {"id": "current_scale", "title": "현재 규모", "basis": "조 달러", "mode": "positive", "metrics": [
+                {"label": "미국 기업주식", "value": latest_equity_bn / 1000.0, "display_value": f"${latest_equity_bn / 1000.0:.1f}T"},
+                {"label": "미국 M2", "value": latest_m2_bn / 1000.0, "display_value": f"${latest_m2_bn / 1000.0:.1f}T"},
+                {"label": "미국 MMF", "value": latest_mmf_bn / 1000.0, "display_value": f"${latest_mmf_bn / 1000.0:.1f}T"},
+            ]},
+            {"id": "trailing_change", "title": "최근 12개월 방향", "basis": "가격·잔액 증감률", "mode": "diverging", "metrics": [
+                {"label": label, "value": value, "display_value": f"{value:+.1f}%"}
+                for label, value in changes.items()
+            ]},
+        ],
+    })
+    charts.insert(3, liquidity)
+
+    sec_rows = source_rows["SEC_IPO_QUARTERLY"]
+    sec_by_period = {str(row["period_label"]): row for row in sec_rows}
+    def half(year: int, field: str) -> float:
+        return sum(float(sec_by_period[f"{year}:Q{quarter}"][field]) for quarter in (1, 2))
+    sec_chart = make(
+        "sec_ipo_issuer_mix_h1", "미국 IPO: 일반 기업·SPAC·펀드", "ipo", "count",
+        [
+            _series("일반 기업", "current", [{"period": i, "date": f"{year}-06-30", "value": half(year, "corporate_count")} for i, year in enumerate((2025, 2026))], "#d94b24"),
+            _series("SPAC", "current", [{"period": i, "date": f"{year}-06-30", "value": half(year, "spac_count")} for i, year in enumerate((2025, 2026))], "#6956a8"),
+            _series("펀드", "current", [{"period": i, "date": f"{year}-06-30", "value": half(year, "fund_count")} for i, year in enumerate((2025, 2026))], "#28756a"),
+        ],
+        ["SEC_IPO_QUARTERLY"], "*미국 SEC 기준", "상반기 전체 IPO를 발행 주체별로 나눠 상장시장 열기의 폭을 봅니다.",
+    )
+    sec_chart.update({"chart_type": "stacked_bar", "show_bar_values": True, "x_ticks": [[0, "2025 상반기"], [1, "2026 상반기"]], "max_period": 1})
+    charts.insert(0, sec_chart)
+    by_id = {chart["id"]: chart for chart in charts}
+    by_id["m2_nasdaq"]["scale"] = "log1p"
+    by_id["household_balance_sheet_trend_gap"]["trend_baseline"] = {
+        "start": "2009-01-01", "end": "2019-12-31", "method": "ordinary_least_squares_on_levels",
+        "training_observations": {"corporate_equities": 44, "cash_and_deposits": 44, "debt_securities": 11},
+    }
+    by_id["household_balance_sheet_trend_gap"]["max_period"] = max(
+        int(point["period"])
+        for series in by_id["household_balance_sheet_trend_gap"]["series"]
+        for point in series["points"]
+    )
+    policy_points = by_id["policy_rate"]["series"][0]["points"]
+    by_id["policy_rate"]["source_validation"] = {
+        "source_id": "FEDFUNDS", "period": "1995-01-01_to_1999-12-01",
+        "observations": len(policy_points), "interpolation": False,
+        "perfect_rectangle": False, "minimum": min(policy_points, key=lambda row: float(row["value"])),
+        "maximum": max(policy_points, key=lambda row: float(row["value"])),
+    }
+
+    source_meta: list[dict[str, Any]] = []
+    for series_id, spec in FRED_SERIES.items():
+        rows = source_rows[series_id]
+        start = spec.get("window_start", "1995-01-01")
+        source_meta.append({
+            "series_id": series_id, **spec,
+            "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
+            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            "authority_class": "authoritative_public_distributor",
+            "policy_source_id": "fred_market_signals",
+            "usage_role": "numeric_input", "numeric_input_allowed": True,
+            "available_at": receipts[series_id].get("available_at", generated_at),
+            "latest_observation": rows[-1]["date"], "row_count": len(rows),
+            "raw_sha256": receipts[series_id]["raw_sha256"],
+            "raw_path": receipts[series_id].get("raw_path"),
+            "vintage": receipts[series_id].get("vintage", "current_release_reconstructed"),
+        })
+    sec_spec = SUPPLEMENTAL_SOURCES["SEC_IPO_QUARTERLY"]
+    sec_receipt = receipts["SEC_IPO_QUARTERLY"]
+    source_meta.append({
+        "series_id": "SEC_IPO_QUARTERLY", **sec_spec,
+        "authority_class": "official_regulator", "policy_source_id": "sec_edgar",
+        "usage_role": "numeric_input",
+        "numeric_input_allowed": True,
+        "available_at": sec_receipt.get("available_at", generated_at),
+        "latest_observation": max(str(row["date"]) for row in sec_rows),
+        "row_count": len(sec_rows), "raw_sha256": sec_receipt["raw_sha256"],
+        "raw_path": sec_receipt.get("raw_path"),
+        "vintage": sec_receipt.get("vintage", "current_public_release_reconstructed"),
+    })
+    z1_rows = source_rows["FL663067003"]
+    z1_receipt = receipts["FL663067003"]
+    source_meta.append({
+        "series_id": "FL663067003", "title": "Household margin loans and broker receivables",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd", "native_frequency": "quarterly",
+        "source_url": "https://www.federalreserve.gov/releases/z1/current/", "request_url": Z1_ENDPOINT,
+        "authority_class": "official_statistical_agency",
+        "policy_source_id": "federal_reserve_board", "usage_role": "numeric_input",
+        "numeric_input_allowed": True,
+        "available_at": z1_receipt.get("available_at", generated_at),
+        "latest_observation": z1_rows[-1]["date"], "row_count": len(z1_rows),
+        "raw_sha256": z1_receipt["raw_sha256"], "raw_path": z1_receipt.get("raw_path"),
+        "vintage": z1_receipt.get("vintage", "current_release_reconstructed"),
+    })
+    observation_through = max(row["latest_observation"] for row in source_meta)
+    payload = {
+        "schema_version": 1, "dataset_id": "dotcom_statistics_lab_v1", "status": "ok",
+        "probability_space": "reference_only", "model_use": False,
+        "official_forecast_input": False, "generated_at": generated_at,
+        "knowledge_cutoff": generated_at,
+        "observation_through": observation_through,
+        "as_of": observation_through,
+        "cycle_alignment": {
+            "dotcom_start": DOTCOM_START.isoformat(), "dotcom_end": DOTCOM_END.isoformat(),
+            "current_start": CURRENT_START.isoformat(), "current_axis_end": CURRENT_AXIS_END.isoformat(),
+            "comparison_months": comparison_months,
+            "current_observed_through": monthly["NASDAQCOM"][-1]["date"],
+            "current_line_policy": "actual_observations_only_no_forecast_extension",
+            "forecast_extension": False, "endpoint_forcing": False,
+        },
+        "charts": charts, "sources": source_meta, "ipo_comparison": None,
+        "numeric_source_policy": {
+            "reports_and_media": "insight_only", "raw_required_before_derive": True,
+            "published_chart_sources": "authoritative_only",
+        },
+        "vintage_warning": "latest-release reconstructed history; not valid as a historical point-in-time model input",
+        "refresh_policy": {"check_cadence": "weekly", "native_frequencies_preserved": True, "schedule": "Saturday 00:20 UTC"},
+        "excluded_sources": {
+            "research_reports": "insight_only_not_numeric_input",
+            "Yahoo_Finance": "disabled_for_statistics_numeric_input",
+            "NYU_SP500_history": "insight_only_not_numeric_input",
+            "manual_NAHB_snapshot": "replaced_by_Census_HOUST",
         },
     }
     validate_statistics_lab(payload)
@@ -2387,24 +2756,53 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
                     f"chart {chart['id']} exceeds its declared period axis"
                 )
     sources = payload.get("sources")
-    minimum_sources = (
-        len(FRED_SERIES) + len(DAILY_MARKET_SERIES) + len(SUPPLEMENTAL_SOURCES) + 1
-    )
+    minimum_sources = len(FRED_SERIES) + len(SUPPLEMENTAL_SOURCES) + 1
     if not isinstance(sources, list) or len(sources) < minimum_sources:
         raise StatisticsLabError("statistics source registry incomplete")
     source_ids = [str(row.get("series_id")) for row in sources]
     if len(source_ids) != len(set(source_ids)):
         raise StatisticsLabError("statistics source ids must be unique")
     known_sources = set(source_ids)
-    if not set(DAILY_MARKET_SERIES).issubset(known_sources):
-        raise StatisticsLabError("daily market source registry incomplete")
     if not set(SUPPLEMENTAL_SOURCES).issubset(known_sources):
         raise StatisticsLabError("supplemental public source registry incomplete")
+    from .authoritative_statistics import (
+        SourcePolicyViolation,
+        load_authoritative_source_policy,
+        validate_numeric_metric_lineage,
+    )
+    policy = load_authoritative_source_policy(
+        Path(__file__).resolve().parents[2]
+        / "data/contracts/authoritative_statistics_sources.yaml"
+    )
+    policy_source_by_series = {
+        str(row["series_id"]): str(row.get("policy_source_id") or "")
+        for row in sources
+    }
     try:
         generated_at = datetime.fromisoformat(str(payload["generated_at"]).replace("Z", "+00:00"))
+        knowledge_cutoff = datetime.fromisoformat(
+            str(payload["knowledge_cutoff"]).replace("Z", "+00:00")
+        )
     except (KeyError, TypeError, ValueError) as exc:
-        raise StatisticsLabError("statistics generated_at invalid") from exc
+        raise StatisticsLabError("statistics generated_at/knowledge_cutoff invalid") from exc
+    if (
+        generated_at.tzinfo is None
+        or knowledge_cutoff.tzinfo is None
+        or knowledge_cutoff != generated_at
+    ):
+        raise StatisticsLabError("statistics knowledge_cutoff contract invalid")
+    if payload.get("observation_through") != payload.get("as_of"):
+        raise StatisticsLabError("statistics observation_through/as_of contract invalid")
     for row in sources:
+        if row.get("usage_role") != "numeric_input":
+            raise StatisticsLabError(f"source {row.get('series_id')} numeric role invalid")
+        if row.get("numeric_input_allowed") is not True:
+            raise StatisticsLabError(f"source {row.get('series_id')} is not approved for numbers")
+        if row.get("authority_class") not in {
+            "authoritative_public_distributor", "official_regulator",
+            "official_statistical_agency",
+        }:
+            raise StatisticsLabError(f"source {row.get('series_id')} authority invalid")
         if projected:
             continue
         digest = str(row.get("raw_sha256", ""))
@@ -2417,11 +2815,29 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             )
         except (KeyError, TypeError, ValueError) as exc:
             raise StatisticsLabError(f"source {row.get('series_id')} timestamp invalid") from exc
-        if latest_observation > generated_at.date() or available_at > generated_at:
+        if latest_observation > knowledge_cutoff.date() or available_at > knowledge_cutoff:
             raise StatisticsLabError(f"source {row.get('series_id')} future-data leakage")
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
+        if chart.get("metric_source_ids") != chart.get("source_ids"):
+            raise StatisticsLabError(f"chart {chart.get('id')} numeric lineage invalid")
+        if chart.get("research_context_source_ids"):
+            raise StatisticsLabError(
+                f"chart {chart.get('id')} mixes research context into numeric lineage"
+            )
+        try:
+            validate_numeric_metric_lineage(
+                policy,
+                metric_id=str(chart.get("id")),
+                source_ids=list(dict.fromkeys(
+                    policy_source_by_series[source_id] for source_id in chart["source_ids"]
+                )),
+            )
+        except (KeyError, SourcePolicyViolation) as exc:
+            raise StatisticsLabError(
+                f"chart {chart.get('id')} failed authoritative source policy"
+            ) from exc
         scope_note = str(chart.get("scope_note") or "")
         if (
             not scope_note.startswith("*")
@@ -2457,34 +2873,15 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             "debt_securities": 11,
         }:
             raise StatisticsLabError("household trend baseline frequencies invalid")
-    pulse = next(
-        (chart for chart in charts if chart.get("id") == "kospi_external_semiconductor_pulse"),
-        None,
-    )
-    if pulse is None:
-        raise StatisticsLabError("KOSPI external pulse chart required")
-    if pulse.get("source_ids") != ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]:
-        raise StatisticsLabError("KOSPI external pulse sources invalid")
-    diagnostics = pulse.get("external_pulse_diagnostics") or {}
-    if diagnostics.get("time_warping") is not False:
-        raise StatisticsLabError("daily market chart cannot warp time")
-    if diagnostics.get("optimized_lag") is not False:
-        raise StatisticsLabError("daily market chart cannot optimize lag")
-    if diagnostics.get("forecast_extension") is not False:
-        raise StatisticsLabError("daily market chart cannot contain forecast extension")
-    if pulse.get("axis_type") != "calendar_day_of_year" or pulse.get("max_period") != 364:
-        raise StatisticsLabError("daily market chart calendar axis invalid")
-    sox_diagnostic = (pulse.get("external_pulse_diagnostics") or {}).get(
-        "sox_strictly_prior_us_close"
-    ) or {}
-    if int(sox_diagnostic.get("observations", 0)) < 20:
-        raise StatisticsLabError("SOX prior-close diagnostic sample too small")
+    pulse = by_id.get("korea_semiconductor_cycle") or {}
+    if pulse.get("source_ids") != ["SPASTT01KRM661N", "NASDAQSOX"]:
+        raise StatisticsLabError("Korea semiconductor cycle sources invalid")
     liquidity_map = by_id.get("liquidity_position_map") or {}
     if liquidity_map.get("chart_type") != "liquidity_bars":
         raise StatisticsLabError("liquidity position map must use dedicated bars")
     if liquidity_map.get("source_ids") != [
         "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
-        "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
+        "SP500", "NASDAQCOM", "CBBTCUSD",
     ]:
         raise StatisticsLabError("liquidity position map sources invalid")
     liquidity_panels = liquidity_map.get("liquidity_panels") or []
@@ -2511,6 +2908,237 @@ def _semantic_snapshot(value: Any) -> Any:
     return value
 
 
+def _persist_authoritative_inputs(
+    root: Path, *, source_rows: dict[str, list[dict[str, Any]]],
+    raw_payloads: dict[str, bytes], receipts: dict[str, dict[str, Any]],
+    fetched_at: str, source_uris: dict[str, str] | None = None,
+) -> list[Any]:
+    """Persist raw bytes first and prepare only new/revised ledger observations."""
+    from .authoritative_statistics import (
+        NormalizedObservation,
+        append_raw_receipt_correction,
+        load_authoritative_source_policy,
+        persist_raw_artifact,
+        read_raw_artifact_receipts,
+        read_raw_receipt_corrections,
+        read_normalized_observations,
+    )
+
+    store_root = root / "data/statistics/official_store"
+    policy_path = root / "data/contracts/authoritative_statistics_sources.yaml"
+    if not policy_path.is_file():
+        policy_path = (
+            Path(__file__).resolve().parents[2]
+            / "data/contracts/authoritative_statistics_sources.yaml"
+        )
+    policy = load_authoritative_source_policy(policy_path)
+    source_policy: dict[str, tuple[str, str, str]] = {}
+    for series_id, spec in FRED_SERIES.items():
+        start = spec.get("window_start", "1995-01-01")
+        source_policy[series_id] = (
+            "fred_market_signals",
+            f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            "text/csv",
+        )
+    source_policy["SEC_IPO_QUARTERLY"] = (
+        "sec_edgar", SEC_IPO_ENDPOINT, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    source_policy["FL663067003"] = (
+        "federal_reserve_board", Z1_ENDPOINT, "application/zip",
+    )
+
+    receipt_models: dict[str, Any] = {}
+    for series_id, raw in raw_payloads.items():
+        policy_source_id, default_source_uri, media_type = source_policy[series_id]
+        source_uri = (source_uris or {}).get(series_id, default_source_uri)
+        declared_series = [series_id]
+        if series_id == "SEC_IPO_QUARTERLY":
+            declared_series = [
+                f"SEC_IPO_QUARTERLY.{field}"
+                for field in (
+                    "total_count", "us_count", "non_us_count", "corporate_count",
+                    "spac_count", "fund_count", "total_proceeds_mn",
+                    "corporate_proceeds_mn", "spac_proceeds_mn", "fund_proceeds_mn",
+                )
+            ]
+        receipt = persist_raw_artifact(
+            store_root, policy, source_id=policy_source_id, payload=raw,
+            source_uri=source_uri, fetched_at=fetched_at, http_status=200,
+            media_type=media_type, series_ids=declared_series,
+        )
+        receipt_models[series_id] = receipt
+        receipts[series_id].update({
+            "raw_sha256": receipt.raw_sha256,
+            "raw_path": f"data/statistics/official_store/{receipt.artifact_path}",
+            "available_at": fetched_at,
+            "receipt_id": receipt.receipt_id,
+        })
+
+    current_sec_receipt = receipt_models.get("SEC_IPO_QUARTERLY")
+    if (
+        current_sec_receipt is not None
+        and current_sec_receipt.source_uri != SEC_IPO_ENDPOINT
+    ):
+        corrected_receipt_ids = {
+            correction.supersedes_receipt_id
+            for correction in read_raw_receipt_corrections(store_root)
+        }
+        for prior_receipt in read_raw_artifact_receipts(store_root):
+            if (
+                prior_receipt.source_id == "sec_edgar"
+                and prior_receipt.source_uri == SEC_IPO_ENDPOINT
+                and prior_receipt.raw_sha256 == current_sec_receipt.raw_sha256
+                and prior_receipt.receipt_id != current_sec_receipt.receipt_id
+                and prior_receipt.receipt_id not in corrected_receipt_ids
+            ):
+                append_raw_receipt_correction(
+                    store_root,
+                    supersedes_receipt_id=prior_receipt.receipt_id,
+                    replacement_receipt_id=current_sec_receipt.receipt_id,
+                    reason="replace SEC landing-page URI with the exact downloaded workbook URI",
+                    corrected_at=fetched_at,
+                )
+
+    existing = read_normalized_observations(store_root)
+    latest_by_key: dict[tuple[str, str, str], Any] = {}
+    for row in existing:
+        key = (row.source_id, row.series_id, row.observation_date)
+        prior = latest_by_key.get(key)
+        if prior is None or row.revision_seq > prior.revision_seq:
+            latest_by_key[key] = row
+
+    def semantic_type(unit: str) -> str:
+        if "percent" in unit or unit in {"net_percent"}:
+            return "rate"
+        if "usd" in unit or "dollar" in unit:
+            return "currency"
+        if "count" in unit:
+            return "count"
+        if "index" in unit or unit in {"standard_deviation_index"}:
+            return "index"
+        if "ratio" in unit or "multiple" in unit:
+            return "ratio"
+        return "level"
+
+    candidates: list[Any] = []
+    vintage_date = datetime.fromisoformat(fetched_at.replace("Z", "+00:00")).date().isoformat()
+
+    def add_candidate(
+        *, policy_source_id: str, series_id: str, observed: str,
+        value: Any, unit: str, raw_sha256: str,
+    ) -> None:
+        value_text = format(float(value), ".15g")
+        key = (policy_source_id, series_id, observed)
+        prior = latest_by_key.get(key)
+        candidate_semantic_type = semantic_type(unit)
+        if (
+            prior is not None
+            and prior.raw_value == value_text
+            and prior.value == value_text
+            and prior.raw_unit == unit
+            and prior.unit == unit
+            and prior.semantic_type == candidate_semantic_type
+            and prior.transformation_id == "identity"
+            and prior.transformation_formula is None
+        ):
+            # A new fetch remains preserved in the raw receipt ledger above, but
+            # receipt identity is not an observation revision.  Only a change in
+            # the normalized value, unit, or semantic transformation supersedes
+            # the prior observation.
+            return
+        revision_seq = 0 if prior is None else prior.revision_seq + 1
+        candidate = NormalizedObservation(
+            source_id=policy_source_id, series_id=series_id,
+            observation_date=observed, vintage_date=vintage_date,
+            revision_seq=revision_seq, available_at=fetched_at, fetched_at=fetched_at,
+            raw_value=value_text, value=value_text, raw_unit=unit, unit=unit,
+            semantic_type=candidate_semantic_type, transformation_id="identity",
+            parser_version="statistics-official-v1", raw_sha256=raw_sha256,
+            supersedes_observation_id=None if prior is None else prior.observation_id,
+        )
+        candidates.append(candidate)
+        latest_by_key[key] = candidate
+
+    for series_id, spec in FRED_SERIES.items():
+        receipt = receipt_models[series_id]
+        for row in source_rows[series_id]:
+            add_candidate(
+                policy_source_id="fred_market_signals", series_id=series_id,
+                observed=str(row["date"]), value=row["value"], unit=spec["unit"],
+                raw_sha256=receipt.raw_sha256,
+            )
+    z1_receipt = receipt_models["FL663067003"]
+    for row in source_rows["FL663067003"]:
+        add_candidate(
+            policy_source_id="federal_reserve_board", series_id="FL663067003",
+            observed=str(row["date"]), value=row["value"], unit="millions_usd",
+            raw_sha256=z1_receipt.raw_sha256,
+        )
+    sec_receipt = receipt_models["SEC_IPO_QUARTERLY"]
+    sec_units = {
+        "total_count": "count", "us_count": "count", "non_us_count": "count",
+        "corporate_count": "count", "spac_count": "count", "fund_count": "count",
+        "total_proceeds_mn": "millions_usd", "corporate_proceeds_mn": "millions_usd",
+        "spac_proceeds_mn": "millions_usd", "fund_proceeds_mn": "millions_usd",
+    }
+    for row in source_rows["SEC_IPO_QUARTERLY"]:
+        for field, unit in sec_units.items():
+            add_candidate(
+                policy_source_id="sec_edgar", series_id=f"SEC_IPO_QUARTERLY.{field}",
+                observed=str(row["date"]), value=row[field], unit=unit,
+                raw_sha256=sec_receipt.raw_sha256,
+            )
+    return candidates
+
+
+def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any]]]:
+    """Rebuild the current read model exclusively from the append-only ledger."""
+    from .authoritative_statistics import read_normalized_observations
+
+    store_root = root / "data/statistics/official_store"
+    observations = read_normalized_observations(store_root)
+    latest: dict[tuple[str, str, str], Any] = {}
+    for row in observations:
+        key = (row.source_id, row.series_id, row.observation_date)
+        prior = latest.get(key)
+        if prior is None or row.revision_seq > prior.revision_seq:
+            latest[key] = row
+
+    rows: dict[str, list[dict[str, Any]]] = {series_id: [] for series_id in FRED_SERIES}
+    rows["FL663067003"] = []
+    sec_by_date: dict[str, dict[str, Any]] = {}
+    for row in latest.values():
+        if row.source_id == "fred_market_signals" and row.series_id in FRED_SERIES:
+            rows[row.series_id].append({
+                "date": row.observation_date,
+                "value": float(row.value),
+            })
+        elif row.source_id == "federal_reserve_board" and row.series_id == "FL663067003":
+            rows["FL663067003"].append({
+                "date": row.observation_date,
+                "value": float(row.value),
+            })
+        elif row.source_id == "sec_edgar" and row.series_id.startswith("SEC_IPO_QUARTERLY."):
+            field = row.series_id.split(".", 1)[1]
+            observed = date.fromisoformat(row.observation_date)
+            sec_row = sec_by_date.setdefault(row.observation_date, {
+                "date": row.observation_date,
+                "period_label": f"{observed.year}:Q{((observed.month - 1) // 3) + 1}",
+            })
+            sec_row[field] = float(row.value)
+
+    rows["SEC_IPO_QUARTERLY"] = list(sec_by_date.values())
+    required = [*FRED_SERIES, "FL663067003", "SEC_IPO_QUARTERLY"]
+    missing = [series_id for series_id in required if not rows.get(series_id)]
+    if missing:
+        raise StatisticsLabError(
+            "authoritative ledger current view is missing series: " + ", ".join(missing)
+        )
+    for series_rows in rows.values():
+        series_rows.sort(key=lambda item: str(item["date"]))
+    return rows
+
+
 def refresh_statistics_lab(
     root: Path, *,
     fred_fetcher: Callable[[str], tuple[list[dict[str, Any]], bytes]] = _fetch_fred,
@@ -2518,7 +3146,9 @@ def refresh_statistics_lab(
         [str, date, date], tuple[list[dict[str, Any]], dict[str, Any]]
     ] = _fetch_daily_market,
     supplemental_fetcher: Callable[
-        [str], tuple[list[dict[str, Any]], bytes]
+        [str],
+        tuple[list[dict[str, Any]], bytes]
+        | tuple[list[dict[str, Any]], bytes, str],
     ] = _fetch_supplemental,
     z1_fetcher: Callable[[str], bytes] | None = None,
     now: datetime | None = None,
@@ -2527,45 +3157,55 @@ def refresh_statistics_lab(
     generated_at = generated_time.isoformat(timespec="seconds")
     source_rows: dict[str, list[dict[str, Any]]] = {}
     receipts: dict[str, dict[str, Any]] = {}
+    raw_payloads: dict[str, bytes] = {}
+    source_uris: dict[str, str] = {}
     for series_id in FRED_SERIES:
         rows, raw = fred_fetcher(series_id)
         source_rows[series_id] = rows
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
-    for series_id, spec in DAILY_MARKET_SERIES.items():
-        start = date.fromisoformat(spec["window_start"])
-        fixed_end = date.fromisoformat(spec["window_end_exclusive"])
-        end_exclusive = fixed_end
-        end_exclusive = min(fixed_end, generated_time.date())
-        if end_exclusive <= start:
-            raise StatisticsLabError(f"daily market window unavailable: {series_id}")
-        rows, receipt = market_fetcher(series_id, start, end_exclusive)
-        bounded_rows = [
-            row for row in rows
-            if start <= date.fromisoformat(str(row["date"])) < end_exclusive
-        ]
-        if not bounded_rows:
-            raise StatisticsLabError(f"daily market series empty after bounds: {series_id}")
-        source_rows[series_id] = bounded_rows
-        receipts[series_id] = receipt
+        raw_payloads[series_id] = raw
+    # ``market_fetcher`` is retained in the public signature for compatible
+    # callers, but authoritative statistics no longer consume Yahoo/aggregator
+    # chart responses.
+    del market_fetcher
     for series_id in SUPPLEMENTAL_SOURCES:
-        rows, raw = supplemental_fetcher(series_id)
+        fetched = supplemental_fetcher(series_id)
+        if len(fetched) == 3:
+            rows, raw, resolved_source_uri = fetched
+            source_uris[series_id] = resolved_source_uri
+        else:
+            rows, raw = fetched
         source_rows[series_id] = rows
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
+        raw_payloads[series_id] = raw
     fetch_z1 = z1_fetcher or (lambda url: _request(url, timeout=60))
     z1_raw = fetch_z1(Z1_ENDPOINT)
     source_rows["FL663067003"] = _parse_z1(z1_raw)
     receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
-    ipo_reference = load_ipo_reference(root)
-    hmi_reference = load_hmi_reference(root)
-    _validate_manual_reference_freshness(
-        ipo_reference, hmi_reference, generated_at,
+    raw_payloads["FL663067003"] = z1_raw
+    pending_observations = _persist_authoritative_inputs(
+        root, source_rows=source_rows, raw_payloads=raw_payloads,
+        receipts=receipts, fetched_at=generated_at, source_uris=source_uris,
     )
+    from .authoritative_statistics import (
+        append_normalized_observations,
+        load_authoritative_source_policy,
+    )
+    append_normalized_observations(
+        root / "data/statistics/official_store",
+        load_authoritative_source_policy(
+            (root / "data/contracts/authoritative_statistics_sources.yaml")
+            if (root / "data/contracts/authoritative_statistics_sources.yaml").is_file()
+            else Path(__file__).resolve().parents[2]
+            / "data/contracts/authoritative_statistics_sources.yaml"
+        ),
+        pending_observations,
+    )
+    canonical_rows = _load_authoritative_current_rows(root)
     payload = build_statistics_lab(
-        source_rows,
+        canonical_rows,
         generated_at=generated_at,
         receipts=receipts,
-        ipo_reference=ipo_reference,
-        hmi_reference=hmi_reference,
     )
 
     latest = root / LATEST_RELATIVE
@@ -2605,6 +3245,8 @@ def load_statistics_lab(root: Path) -> dict[str, Any]:
             "model_use": False,
             "official_forecast_input": False,
             "generated_at": None,
+            "knowledge_cutoff": None,
+            "observation_through": None,
             "as_of": None,
             "charts": [],
             "sources": [],
@@ -2628,7 +3270,9 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
     projected["display_projection"] = True
     public_source_keys = {
         "series_id", "title", "provider", "source_url",
-        "native_frequency", "latest_observation",
+        "native_frequency", "latest_observation", "authority_class",
+        "usage_role", "numeric_input_allowed",
+        "policy_source_id",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}
