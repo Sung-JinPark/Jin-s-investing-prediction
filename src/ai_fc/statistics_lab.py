@@ -1998,6 +1998,7 @@ def build_statistics_lab(
             chart["insight"] = str(spec["insight"])
             for optional in (
                 "scale", "chart_type", "axis_type", "max_period", "x_ticks",
+                "profile_groups",
             ):
                 if optional in spec:
                     chart[optional] = spec[optional]
