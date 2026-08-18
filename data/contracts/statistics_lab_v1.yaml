@@ -24,6 +24,7 @@ sources:
     provider: Federal Reserve Bank of St. Louis
     series:
       M2SL: {native_frequency: monthly, unit: billions_usd, aggregation: last}
+      MMMFFAQ027S: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: total_US_money_market_fund_assets}
       DABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_currency_deposits_and_money_market_fund_shares}
       BOGZ1LM153064475Q: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_direct_and_indirect_corporate_equity_value}
       BOGZ1FL154022375A: {native_frequency: annual_end_of_period, unit: millions_usd, aggregation: last, role: household_direct_and_indirect_debt_securities_assets}
@@ -49,10 +50,11 @@ sources:
     endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
     series:
       KOSPI_DAILY: {symbol: ^KS11, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: Korea_main_board_benchmark_and_base_calendar}
-      KOSDAQ_DAILY: {symbol: ^KQ11, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: Korea_growth_market_breadth_comparator}
-      KRX_SEMICON_PROXY_DAILY: {symbol: 091160.KS, native_frequency: daily_close, unit: krw, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: KRX_Semiconductor_Index_tracking_ETF_concentration_proxy}
       TAIEX_DAILY: {symbol: ^TWII, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: external_Asia_semiconductor_market_confirmation}
       SOX_DAILY: {symbol: ^SOX, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: strictly_prior_US_semiconductor_close_impulse}
+      SP500_DAILY: {symbol: ^GSPC, native_frequency: daily_close, unit: index, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: price_change_context_not_fund_flow}
+      GOLD_FUTURES_DAILY: {symbol: GC=F, native_frequency: daily_close, unit: dollars_per_troy_ounce, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: gold_price_change_context_not_ETF_flow}
+      BTCUSD_DAILY: {symbol: BTC-USD, native_frequency: daily_close, unit: dollars_per_bitcoin, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: bitcoin_price_change_context_not_fund_flow}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s
@@ -126,16 +128,6 @@ macro_warning_policy:
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
   inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
   recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
-  kospi_market_breadth_daily:
-    series: [KOSPI_DAILY, KOSDAQ_DAILY, KRX_SEMICON_PROXY_DAILY]
-    normalization: each_series_first_2026_actual_close_equals_100
-    alignment: actual_calendar_day_of_year
-    time_warping: prohibited
-    optimized_lag: prohibited
-    active_session: excluded
-    future_extension: prohibited
-    interpretation: descriptive_market_breadth_and_semiconductor_concentration_not_forecast
-    probability_output: prohibited
   kospi_external_semiconductor_pulse:
     series: [KOSPI_DAILY, TAIEX_DAILY, SOX_DAILY]
     display: rolling_20_session_log_return_percent
@@ -158,18 +150,29 @@ macro_warning_policy:
 customer_chart_contract:
   required_fields: [insight, conclusion, caveat, source_ids]
   conclusion_semantics: one_sentence_current_state_judgment_not_probability_or_trading_advice
-  log_scale_charts: [m2_nasdaq, nasdaq_tech_cycle_milestones]
+  source_footer: each_chart_lists_linked_provider_series_native_frequency_and_latest_observation
+  log_scale_charts: [m2_nasdaq]
+  liquidity_position_map:
+    chart_type: profile_cards
+    size_panel: [BOGZ1LM893064105Q_divided_by_M2SL, M2SL_reference_100, MMMFFAQ027S_divided_by_M2SL]
+    momentum_panel: [SP500_DAILY_12m_change, GOLD_FUTURES_DAILY_12m_change, BTCUSD_DAILY_12m_change, M2SL_12m_change, MMMFFAQ027S_12m_change]
+    aggregation: prohibited
+    interpretation: size_and_direction_panels_are_not_a_market_share_pie_or_fund_flow_measure
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count
     categories: [operating_company, SPAC, fund]
     proceeds: detail_only_never_plotted_on_count_axis
     ai_only_claim: prohibited
-  nasdaq_tech_cycle_milestones:
-    measure: NASDAQ_year_end_level_indexed_to_1985_equals_100
-    event_markers: timing_context_only_not_causal_or_peak_prediction
-
 retired_customer_charts:
+  nasdaq_tech_cycle_milestones:
+    removed_at: 2026-08-18
+    reason: user_requested_removal
+    active_ingestion: false
+  kospi_market_breadth_2026_daily:
+    removed_at: 2026-08-18
+    reason: user_requested_removal
+    active_ingestion: false
   gold_vs_us_m2:
     removed_at: 2026-08-18
     reason: user_requested_removal
@@ -219,8 +222,18 @@ publication_policy:
 
 excluded_sources:
   finra_margin_statistics:
-    reason: redistribution_and_automated_access_permission_not_granted
-    replacement: federal_reserve_z1_FL663067003_proxy
+    reason: redistribution_automated_access_and_predictive_analytics_permission_not_granted
+    replacement: none
+    independent_public_context: federal_reserve_z1_FL663067003_proxy_explicitly_not_FINRA_margin_debt
+  fidelity_gold_global_liquidity_model:
+    reason: model_formula_components_weights_lags_and_vintages_not_public
+    replacement: none
+  bloomberg_haver_global_liquidity_inputs:
+    reason: commercial_data_redistribution_rights_not_granted
+    replacement: none
+  world_gold_council_gold_etf_flows:
+    reason: public_dashboard_republication_permission_not_granted
+    replacement: none
   moodys_baa_spread:
     reason: proprietary_redistribution_restriction
   paid_index_forward_pe:

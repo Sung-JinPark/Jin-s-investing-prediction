@@ -47,6 +47,13 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
+    "MMMFFAQ027S": {
+        "title": "Money market funds; total financial assets",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
     "DABSHNO": {
         "title": "Households and nonprofit organizations; total currency and deposits including money market fund shares",
         "provider": "Board of Governors of the Federal Reserve System (US)",
@@ -208,26 +215,6 @@ DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
         "window_end_exclusive": "2027-01-01",
         "source_url": "https://finance.yahoo.com/quote/%5EKS11/history/",
     },
-    "KOSDAQ_DAILY": {
-        "symbol": "^KQ11",
-        "title": "KOSDAQ daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: Korea Exchange KOSDAQ)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "2020-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5EKQ11/history/",
-    },
-    "KRX_SEMICON_PROXY_DAILY": {
-        "symbol": "091160.KS",
-        "title": "KODEX Semiconductor ETF daily close",
-        "provider": "Yahoo Finance chart API (ETF tracks the KRX Semiconductor Index)",
-        "unit": "krw",
-        "native_frequency": "daily_close",
-        "window_start": "2020-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/091160.KS/history/",
-    },
     "TAIEX_DAILY": {
         "symbol": "^TWII",
         "title": "Taiwan Stock Exchange Capitalization Weighted Stock Index daily close",
@@ -247,6 +234,36 @@ DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
         "window_start": "2020-01-01",
         "window_end_exclusive": "2027-01-01",
         "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
+    },
+    "SP500_DAILY": {
+        "symbol": "^GSPC",
+        "title": "S&P 500 daily close",
+        "provider": "Yahoo Finance chart API (underlying benchmark: S&P Dow Jones Indices)",
+        "unit": "index",
+        "native_frequency": "daily_close",
+        "window_start": "2023-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history/",
+    },
+    "GOLD_FUTURES_DAILY": {
+        "symbol": "GC=F",
+        "title": "COMEX gold futures front-month daily close",
+        "provider": "Yahoo Finance chart API (underlying market: COMEX)",
+        "unit": "dollars_per_troy_ounce",
+        "native_frequency": "daily_close",
+        "window_start": "2023-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history/",
+    },
+    "BTCUSD_DAILY": {
+        "symbol": "BTC-USD",
+        "title": "Bitcoin U.S. dollar daily close",
+        "provider": "Yahoo Finance chart API",
+        "unit": "dollars_per_bitcoin",
+        "native_frequency": "daily_close",
+        "window_start": "2023-01-01",
+        "window_end_exclusive": "2027-01-01",
+        "source_url": "https://finance.yahoo.com/quote/BTC-USD/history/",
     },
 }
 
@@ -614,6 +631,37 @@ def _month_key(value: str) -> tuple[int, int]:
 def _month_offset(value: str, start: date) -> int:
     observed = date.fromisoformat(value)
     return (observed.year - start.year) * 12 + observed.month - start.month
+
+
+def _trailing_year_change(rows: list[dict[str, Any]]) -> float:
+    """Return an actual-observation 12-month change without interpolation."""
+    ordered = sorted(rows, key=lambda row: str(row["date"]))
+    if len(ordered) < 2:
+        raise StatisticsLabError("trailing-year change requires two observations")
+    latest = date.fromisoformat(str(ordered[-1]["date"]))
+    try:
+        target = latest.replace(year=latest.year - 1)
+    except ValueError:
+        target = latest.replace(year=latest.year - 1, day=28)
+    prior = next(
+        (
+            row for row in reversed(ordered[:-1])
+            if date.fromisoformat(str(row["date"])) <= target
+        ),
+        None,
+    )
+    if prior is None:
+        raise StatisticsLabError("trailing-year reference observation unavailable")
+    current_value = float(ordered[-1]["value"])
+    prior_value = float(prior["value"])
+    if (
+        not math.isfinite(current_value)
+        or not math.isfinite(prior_value)
+        or current_value <= 0
+        or prior_value <= 0
+    ):
+        raise StatisticsLabError("trailing-year change requires positive finite values")
+    return (current_value / prior_value - 1.0) * 100.0
 
 
 def _monthly(rows: list[dict[str, Any]], aggregation: str) -> list[dict[str, Any]]:
@@ -1420,6 +1468,9 @@ def build_statistics_lab(
     valuation = [{**row, "value": float(row["value"]) / 1000.0} for row in valuation]
     dot_value, cur_value = _cycle_series(valuation, comparison_months)
     dot_margin, cur_margin = _cycle_series(monthly["FL663067003"], comparison_months, indexed=True)
+    dot_equities, cur_equities = _cycle_series(
+        monthly["BOGZ1LM893064105Q"], comparison_months, indexed=True,
+    )
     credit_growth = _yoy(monthly["TOTALSL"])
     dot_credit, cur_credit = _cycle_series(credit_growth, comparison_months)
     dot_standards, cur_standards = _cycle_series(monthly["DRTSCILM"], comparison_months)
@@ -1460,21 +1511,10 @@ def build_statistics_lab(
     dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
 
     dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
-    kospi_2026 = _calendar_year_index(source_rows["KOSPI_DAILY"], 2026)
-    kosdaq_2026 = _calendar_year_index(source_rows["KOSDAQ_DAILY"], 2026)
-    semicon_2026 = _calendar_year_index(source_rows["KRX_SEMICON_PROXY_DAILY"], 2026)
     kospi_20d = _session_log_return_points(source_rows["KOSPI_DAILY"], year=2026)
     taiex_20d = _session_log_return_points(source_rows["TAIEX_DAILY"], year=2026)
     sox_prior_20d = _prior_close_log_return_points(
         source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"], year=2026,
-    )
-    kosdaq_aligned = _aligned_log_returns(
-        source_rows["KOSPI_DAILY"], source_rows["KOSDAQ_DAILY"],
-        candidate_close="same_or_prior",
-    )
-    semicon_aligned = _aligned_log_returns(
-        source_rows["KOSPI_DAILY"], source_rows["KRX_SEMICON_PROXY_DAILY"],
-        candidate_close="same_or_prior",
     )
     taiex_aligned = _aligned_log_returns(
         source_rows["KOSPI_DAILY"], source_rows["TAIEX_DAILY"],
@@ -1484,15 +1524,6 @@ def build_statistics_lab(
         source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"],
         candidate_close="strictly_prior",
     )
-    market_breadth_diagnostics = {
-        "measurement_window": "2020_to_last_completed_session",
-        "kosdaq": _aligned_return_diagnostic(kosdaq_aligned),
-        "semiconductor_proxy": _aligned_return_diagnostic(semicon_aligned),
-        "normalization": "each_series_first_2026_close_equals_100",
-        "time_warping": False,
-        "optimized_lag": False,
-        "forecast_extension": False,
-    }
     external_pulse_diagnostics = {
         "measurement_window": "2020_to_last_completed_session",
         "taiex_same_or_prior_close": _aligned_return_diagnostic(taiex_aligned),
@@ -1512,9 +1543,6 @@ def build_statistics_lab(
         ]
         dot_hmi, cur_hmi = _cycle_series(hmi_rows, comparison_months)
 
-    tech_cycle = _annual_index_points(
-        monthly["NASDAQCOM"], start_year=1985, end_year=latest_current.year,
-    )
     equity_gap = _trend_gap_points(monthly["BOGZ1LM153064475Q"])
     cash_gap = _trend_gap_points(monthly["DABSHNO"])
     debt_gap = _trend_gap_points(
@@ -1551,6 +1579,28 @@ def build_statistics_lab(
     sec_2026_proceeds = sec_half(2026, "total_proceeds_mn") / 1000.0
     sec_2026_corporate_proceeds = sec_half(2026, "corporate_proceeds_mn") / 1000.0
 
+    latest_m2_bn = float(monthly["M2SL"][-1]["value"])
+    latest_mmf_bn = float(monthly["MMMFFAQ027S"][-1]["value"]) / 1000.0
+    latest_equity_bn = float(monthly["BOGZ1LM893064105Q"][-1]["value"]) / 1000.0
+    if min(latest_m2_bn, latest_mmf_bn, latest_equity_bn) <= 0:
+        raise StatisticsLabError("liquidity scale map requires positive balances")
+    equity_to_m2 = latest_equity_bn / latest_m2_bn * 100.0
+    mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
+    liquidity_changes = {
+        "S&P 500": _trailing_year_change(source_rows["SP500_DAILY"]),
+        "금 선물": _trailing_year_change(source_rows["GOLD_FUTURES_DAILY"]),
+        "비트코인": _trailing_year_change(source_rows["BTCUSD_DAILY"]),
+        "미국 M2": _trailing_year_change(monthly["M2SL"]),
+        "미국 MMF": _trailing_year_change(monthly["MMMFFAQ027S"]),
+    }
+    liquidity_point_dates = {
+        "S&P 500": source_rows["SP500_DAILY"][-1]["date"],
+        "금 선물": source_rows["GOLD_FUTURES_DAILY"][-1]["date"],
+        "비트코인": source_rows["BTCUSD_DAILY"][-1]["date"],
+        "미국 M2": monthly["M2SL"][-1]["date"],
+        "미국 MMF": monthly["MMMFFAQ027S"][-1]["date"],
+    }
+
     charts = [
         _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
                "각 사이클 시작월을 100으로 맞춰 유동성과 주가의 누적 속도를 비교합니다.",
@@ -1564,6 +1614,27 @@ def build_statistics_lab(
                "NASDAQ을 가계·비영리단체가 보유한 현금·입출금예금·정기·저축예금·머니마켓펀드 지분 합계로 나눈 비율의 사이클 시작 대비 변화를 봅니다.",
                "Fed Z.1 분기 말 잔액이며 비영리단체가 포함됩니다. 모든 현금성 자산이 주식 매수 대기자금은 아니며, M2와 합산하면 예금이 중복 계산되므로 별도 분모로 사용합니다.",
                [_series("닷컴", "dotcom", dot_household_cash, "#7a3248"), _series("현재", "current", cur_household_cash, "#e46b20")], ["NASDAQCOM", "DABSHNO"]),
+        _chart(
+            "liquidity_position_map", "자금 지도: 현재 규모와 12개월 방향", "liquidity", "percent",
+            "미국 기업주식·M2·MMF의 상대 규모와 S&P 500·금·비트코인·M2·MMF의 최근 12개월 변화를 서로 다른 패널로 봅니다.",
+            "M2와 MMF는 일부 중복되고, 시가·지수 상승은 같은 금액의 순유입을 뜻하지 않습니다. 따라서 하나의 시장점유율 파이로 합산하지 않습니다.",
+            [_series(
+                "12개월 변화", "current",
+                [
+                    {
+                        "period": index,
+                        "date": liquidity_point_dates[label],
+                        "value": value,
+                    }
+                    for index, (label, value) in enumerate(liquidity_changes.items())
+                ],
+                "#28756a",
+            )],
+            [
+                "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
+                "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
+            ],
+        ),
         _chart("yield_curve", "10년−2년 장단기 금리차", "rates", "percent",
                "침체 경계로 자주 보는 10년물과 2년물 금리차를 같은 경과월에 겹칩니다.",
                "역전 해소 자체가 즉시 주가 상승이나 침체 종료를 보장하지 않습니다.",
@@ -1576,10 +1647,10 @@ def build_statistics_lab(
                "비금융기업 주식가치를 BEA 세후 기업이익으로 나눈 공개자료 기반 대용치입니다.",
                "NASDAQ 구성종목의 공식 trailing/forward P/E가 아니며 분모는 연율 기업이익입니다.",
                [_series("닷컴", "dotcom", dot_value, "#c70039"), _series("현재", "current", cur_value, "#ff7b00")], ["NCBEILQ027S", "CPATAX"]),
-        _chart("margin_credit_proxy", "증권담보 신용대출 대용치", "credit", "cycle_start_100",
-               "Fed Z.1의 가계가 브로커에 진 마진대출·기타 미수금을 사이클 시작=100으로 비교합니다.",
-               "FINRA 월별 margin debt가 아닌 분기별 광의 대용치이며 최신 릴리스가 과거를 수정할 수 있습니다.",
-               [_series("닷컴", "dotcom", dot_margin, "#c70039"), _series("현재", "current", cur_margin, "#ff7b00")], ["FL663067003"]),
+        _chart("margin_credit_proxy", "브로커 고객 신용과 미국 기업주식 시장가치", "credit", "cycle_start_100",
+               "Fed Z.1의 브로커 고객 마진대출·기타 미수금과 미국 기업주식 시장가치를 각각 사이클 시작=100으로 비교합니다.",
+               "FINRA 월별 margin debt나 S&P 500 지수가 아닌 연준 분기별 광의 대용치입니다. 최신 Z.1 릴리스는 과거값을 수정할 수 있습니다.",
+               [_series("닷컴 고객 신용", "dotcom", dot_margin, "#c70039"), _series("닷컴 기업주식", "dotcom", dot_equities, "#7b6b55"), _series("현재 고객 신용", "current", cur_margin, "#ff7b00"), _series("현재 기업주식", "current", cur_equities, "#28756a")], ["FL663067003", "BOGZ1LM893064105Q"]),
         _chart("consumer_credit_growth", "소비자신용 증가율", "credit", "percent_yoy",
                "총 소비자신용의 전년동월 대비 증가율로 당시와 현재의 레버리지 속도를 비교합니다.",
                "주택담보대출은 제외되고, 잔액 증가가 곧 주식투자 신용 증가를 뜻하지 않습니다.",
@@ -1620,36 +1691,70 @@ def build_statistics_lab(
                "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
                "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
                [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
-        _chart("kospi_market_breadth_2026_daily", "KOSPI 상승은 시장 전체로 퍼졌나", "economy", "year_start_100",
-               "2026년 첫 실제 종가를 100으로 맞춰 KOSPI·KOSDAQ·국내 반도체의 누적 경로를 비교합니다. 세 선은 변동성이나 날짜를 조정하지 않은 실제 일봉입니다.",
-               "KODEX 반도체는 KRX 반도체 지수를 추종하는 거래 가능한 대용치입니다. 지수 구성 중복 때문에 이 장표는 예측이 아니라 국내 상승의 폭과 쏠림을 진단합니다.",
-               [_series("KOSPI", "current", kospi_2026, "#11110f"), _series("KOSDAQ", "current", kosdaq_2026, "#2f6fbb"), _series("KRX 반도체 대용치", "current", semicon_2026, "#e05d26")], ["KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY"]),
         _chart("kospi_external_semiconductor_pulse", "한국장과 글로벌 반도체 20일 충격", "economy", "percent_20d_log_return",
                "KOSPI와 대만 TAIEX의 실제 20거래일 로그수익률, 한국장 당일에는 이미 알려진 전일 미국 SOX 종가의 20거래일 로그수익률을 함께 봅니다.",
                "SOX는 한국 날짜보다 엄격히 이전인 미국 종가만 사용합니다. 상관과 조건부 빈도는 동행 진단이며 인과관계·확정 확률·매매 신호가 아닙니다.",
                [_series("KOSPI 20일", "current", kospi_20d, "#11110f"), _series("대만 TAIEX 20일", "current", taiex_20d, "#28756a"), _series("전일 SOX 20일", "current", sox_prior_20d, "#e05d26")], ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]),
     ]
 
-    breadth_chart, pulse_chart = charts[-2:]
-    for chart in (breadth_chart, pulse_chart):
-        chart["axis_type"] = "calendar_day_of_year"
-        chart["max_period"] = 364
-        chart["projection_max_points"] = 366
-        chart["observed_end_label"] = "마지막 완료 거래일"
-    breadth_chart["display_unit"] = "실제 일봉 · 시작=100"
-    breadth_chart["market_breadth_diagnostics"] = market_breadth_diagnostics
-    breadth_chart["research_context"] = [
-        {
-            "provider": "KRX",
-            "finding": "KOSPI is the market-cap-weighted main-board benchmark; KOSDAQ is the technology and growth-company market.",
-            "url": "https://global.krx.co.kr/contents/GLB/02/0201/0201010301/GLB0201010301.jsp",
-        },
-        {
-            "provider": "Samsung Asset Management",
-            "finding": "KODEX Semiconductor tracks the market-cap-weighted KRX Semiconductor Index.",
-            "url": "https://m.samsungfund.com/etf/product/view.do?id=2ETF07",
-        },
-    ]
+    liquidity_chart = next(chart for chart in charts if chart["id"] == "liquidity_position_map")
+    liquidity_chart.update({
+        "chart_type": "profile_cards",
+        "display_unit": "현재 규모 + 12개월 변화",
+        "reading_guide": "겹치는 자금 풀을 하나의 점유율로 더하지 않습니다. 위쪽은 M2 대비 규모, 아래쪽은 각 지표의 실제 최근 12개월 변화입니다.",
+        "profile_groups": [
+            {
+                "title": "현재 규모",
+                "basis": "미국 M2=100 · 서로 합산하지 않음",
+                "metrics": [
+                    {
+                        "label": "미국 기업주식 시장가치",
+                        "value": equity_to_m2,
+                        "level": 100.0,
+                        "display_value": f"${latest_equity_bn / 1000.0:.1f}T · M2의 {equity_to_m2 / 100.0:.1f}배",
+                        "meaning": "연준의 전체 미국 기업주식 시장가치이며 S&P 500 시가총액과는 다릅니다.",
+                    },
+                    {
+                        "label": "미국 M2",
+                        "value": 100.0,
+                        "level": 100.0 / max(1.0, equity_to_m2) * 100.0,
+                        "display_value": f"${latest_m2_bn / 1000.0:.1f}T · 기준 100",
+                        "meaning": "현금·예금 등 광의통화의 기준 잔액입니다.",
+                    },
+                    {
+                        "label": "미국 MMF 총자산",
+                        "value": mmf_to_m2,
+                        "level": mmf_to_m2 / max(1.0, equity_to_m2) * 100.0,
+                        "display_value": f"${latest_mmf_bn / 1000.0:.1f}T · M2의 {mmf_to_m2:.0f}%",
+                        "meaning": "연준 Z.1의 전체 MMF 자산이며 일부 소매 MMF는 M2와 겹칩니다.",
+                    },
+                ],
+            },
+            {
+                "title": "최근 12개월 방향",
+                "basis": "시세·잔액 변화율 · 순유입액 아님",
+                "metrics": [
+                    {
+                        "label": label,
+                        "value": value,
+                        "level": max(0.0, min(100.0, 50.0 + value)),
+                        "display_value": f"{value:+.1f}%",
+                        "meaning": (
+                            "실제 잔액 변화입니다."
+                            if label in {"미국 M2", "미국 MMF"}
+                            else "시장가격 변화이며 같은 금액의 자금 유입을 뜻하지 않습니다."
+                        ),
+                    }
+                    for label, value in liquidity_changes.items()
+                ],
+            },
+        ],
+    })
+    pulse_chart = charts[-1]
+    pulse_chart["axis_type"] = "calendar_day_of_year"
+    pulse_chart["max_period"] = 364
+    pulse_chart["projection_max_points"] = 366
+    pulse_chart["observed_end_label"] = "마지막 완료 거래일"
     pulse_chart["display_unit"] = "20거래일 로그수익률"
     pulse_chart["external_pulse_diagnostics"] = external_pulse_diagnostics
     pulse_chart["research_context"] = [
@@ -1675,13 +1780,6 @@ def build_statistics_lab(
         ))
 
     supplemental_charts = [
-        _chart(
-            "nasdaq_tech_cycle_milestones", "NASDAQ 장기 흐름과 대표 기술 IPO", "ipo",
-            "cycle_start_100",
-            "1985년 말 NASDAQ을 100으로 맞춘 로그축 장기선 위에 대표 기술기업 IPO와 시장 전환 시점을 표시합니다.",
-            "연말 종가라 사건일 수익률은 아니며, 이정표가 지수 움직임의 단독 원인이라는 뜻도 아닙니다.",
-            [_series("NASDAQ", "historical", tech_cycle, "#d94b24")], ["NASDAQCOM"],
-        ),
         _chart(
             "sec_ipo_issuer_mix_h1", "미국 IPO 건수: 일반 기업과 SPAC", "ipo", "count",
             "SEC의 같은 상반기 기준 전체 IPO 건수를 일반 기업, SPAC, 펀드로 나눈 누적 막대입니다.",
@@ -1718,25 +1816,9 @@ def build_statistics_lab(
             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"],
         ),
     ]
-    tech_chart, sec_chart, annual_chart, household_chart = (
+    sec_chart, annual_chart, household_chart = (
         supplemental_charts
     )
-    tech_chart.update({
-        "axis_type": "calendar_year",
-        "scale": "log1p",
-        "display_unit": "1985=100 · 로그축",
-        "reading_guide": "주황선은 NASDAQ의 실제 연말 지수를 1985년=100으로 환산한 값입니다. 세로 점선은 대표 IPO·시장 정점의 시점이며 원인 표시가 아닙니다.",
-        "max_period": int(tech_cycle[-1]["period"]),
-        "projection_max_points": 18,
-        "x_ticks": [[0, "1985"], [10, "1995"], [15, "2000"], [23, "2008"], [35, "2020"], [int(tech_cycle[-1]["period"]), str(latest_current.year)]],
-        "events": [
-            {"period": 10, "label": "Netscape IPO"},
-            {"period": 12, "label": "Amazon IPO"},
-            {"period": 15, "label": "닷컴 정점"},
-            {"period": 19, "label": "Google IPO"},
-            {"period": 27, "label": "Meta IPO"},
-        ],
-    })
     for chart in (annual_chart,):
         chart["chart_type"] = "grouped_bar"
     sec_chart.update({
@@ -1770,8 +1852,9 @@ def build_statistics_lab(
     })
     charts.extend(supplemental_charts)
 
-    def chart_last(chart_index: int, series_index: int) -> float:
-        return float(charts[chart_index]["series"][series_index]["points"][-1]["value"])
+    def chart_last(chart_id: str, series_index: int) -> float:
+        chart = next(row for row in charts if row["id"] == chart_id)
+        return float(chart["series"][series_index]["points"][-1]["value"])
 
     household_cash_current = cur_household_cash[-1]
     household_cash_dotcom_same_period = next(
@@ -1781,11 +1864,11 @@ def build_statistics_lab(
 
     chart_insights = {
         "m2_nasdaq": (
-            f"같은 경과월에 현재 NASDAQ은 시작 대비 {chart_last(0, 2):.0f}, M2는 {chart_last(0, 3):.0f}입니다. "
-            f"닷컴 당시 NASDAQ {chart_last(0, 0):.0f}, M2 {chart_last(0, 1):.0f}와 비교해 주가가 유동성보다 얼마나 앞섰는지 봅니다."
+            f"같은 경과월에 현재 NASDAQ은 시작 대비 {chart_last('m2_nasdaq', 2):.0f}, M2는 {chart_last('m2_nasdaq', 3):.0f}입니다. "
+            f"닷컴 당시 NASDAQ {chart_last('m2_nasdaq', 0):.0f}, M2 {chart_last('m2_nasdaq', 1):.0f}와 비교해 주가가 유동성보다 얼마나 앞섰는지 봅니다."
         ),
         "nasdaq_per_m2": (
-            f"현재 유동성 대비 NASDAQ 지수는 {chart_last(1, 1):.0f}, 닷컴 당시 같은 구간은 {chart_last(1, 0):.0f}입니다. "
+            f"현재 유동성 대비 NASDAQ 지수는 {chart_last('nasdaq_per_m2', 1):.0f}, 닷컴 당시 같은 구간은 {chart_last('nasdaq_per_m2', 0):.0f}입니다. "
             "100보다 높을수록 통화량 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
         ),
         "nasdaq_per_household_liquid_assets": (
@@ -1793,48 +1876,53 @@ def build_statistics_lab(
             f"같은 경과월의 닷컴 지수는 {float(household_cash_dotcom_same_period['value']):.0f}입니다. "
             "100보다 높을수록 실제 가계 현금·예금·MMF 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
         ),
+        "liquidity_position_map": (
+            f"미국 기업주식 시장가치는 M2의 {equity_to_m2 / 100.0:.1f}배, MMF 총자산은 M2의 {mmf_to_m2:.0f}%입니다. "
+            f"최근 12개월 변화가 가장 큰 항목은 {max(liquidity_changes, key=liquidity_changes.get)} "
+            f"{max(liquidity_changes.values()):+.1f}%로, 규모와 최근 방향을 분리해 봐야 합니다."
+        ),
         "yield_curve": (
-            f"현재 장단기 금리차는 {chart_last(3, 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last(3, 0):+.1f}%p입니다. "
+            f"현재 장단기 금리차는 {chart_last('yield_curve', 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last('yield_curve', 0):+.1f}%p입니다. "
             "0 아래는 금리 역전, 0 위는 정상 기울기이며 경기 방향을 단독으로 확정하지는 않습니다."
         ),
         "policy_rate": (
-            f"현재 정책금리는 {chart_last(4, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(4, 0):.1f}%입니다. "
+            f"현재 정책금리는 {chart_last('policy_rate', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('policy_rate', 0):.1f}%입니다. "
             "1995~1999 실측은 6.05% 고점에서 4.63%까지 내린 뒤 5.42%로 재상승해 계단처럼 보이지만 완전한 사각형은 아닙니다."
         ),
         "valuation_proxy": (
-            f"현재 기업가치/세후이익 대용치는 {chart_last(5, 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last(5, 0):.1f}배입니다. "
+            f"현재 기업가치/세후이익 대용치는 {chart_last('valuation_proxy', 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last('valuation_proxy', 0):.1f}배입니다. "
             "높을수록 이익에 비해 시장가치가 비싸다는 뜻이지만 NASDAQ 공식 PER은 아닙니다."
         ),
         "margin_credit_proxy": (
-            f"현재 증권담보 신용 대용치는 시작 대비 {chart_last(6, 1):.0f}, 닷컴 당시에는 {chart_last(6, 0):.0f}입니다. "
-            "상승 속도가 빠를수록 레버리지 확대와 가격 충격 민감도가 커질 가능성을 뜻합니다."
+            f"현재 브로커 고객 신용 대용치는 시작 대비 {chart_last('margin_credit_proxy', 2):.0f}, 미국 기업주식은 {chart_last('margin_credit_proxy', 3):.0f}입니다. "
+            f"닷컴 같은 구간은 각각 {chart_last('margin_credit_proxy', 0):.0f}, {chart_last('margin_credit_proxy', 1):.0f}였습니다."
         ),
         "consumer_credit_growth": (
-            f"현재 소비자신용 증가율은 {chart_last(7, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(7, 0):+.1f}%입니다. "
+            f"현재 소비자신용 증가율은 {chart_last('consumer_credit_growth', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('consumer_credit_growth', 0):+.1f}%입니다. "
             "빠른 증가는 소비를 지지할 수 있지만 동시에 가계 부채 부담도 키웁니다."
         ),
         "loan_standards": (
-            f"현재 대출기준 강화 응답은 {chart_last(8, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(8, 0):+.1f}%입니다. "
+            f"현재 대출기준 강화 응답은 {chart_last('loan_standards', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('loan_standards', 0):+.1f}%입니다. "
             "양수와 상승은 더 많은 은행이 대출을 조인다는 뜻이고, 음수는 완화 쪽입니다."
         ),
         "profit_growth": (
-            f"현재 세후 기업이익 증가율은 {chart_last(9, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(9, 0):+.1f}%입니다. "
+            f"현재 세후 기업이익 증가율은 {chart_last('profit_growth', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('profit_growth', 0):+.1f}%입니다. "
             "이익이 늘면 밸류에이션을 지지하지만 주가가 이익보다 빨리 오르면 부담은 다시 커집니다."
         ),
         "household_debt_service": (
-            f"현재 가계 원리금 부담은 가처분소득의 {chart_last(10, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(10, 0):.1f}%입니다. "
+            f"현재 가계 원리금 부담은 가처분소득의 {chart_last('household_debt_service', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('household_debt_service', 0):.1f}%입니다. "
             "높을수록 금리와 부채가 소비 여력을 더 많이 잠식한다는 뜻입니다."
         ),
         "unemployment_rate": (
-            f"현재 실업률은 {chart_last(11, 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last(11, 0):.1f}%입니다. "
+            f"현재 실업률은 {chart_last('unemployment_rate', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('unemployment_rate', 0):.1f}%입니다. "
             "상승하면 고용 냉각 신호지만 금리 인하 기대와 성장 둔화를 함께 봐야 합니다."
         ),
         "inflation_rate": (
-            f"현재 CPI 상승률은 {chart_last(12, 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last(12, 0):+.1f}%입니다. "
+            f"현재 CPI 상승률은 {chart_last('inflation_rate', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('inflation_rate', 0):+.1f}%입니다. "
             "낮아지면 금리 부담 완화 여지가 커지지만 수요 둔화가 원인인지도 확인해야 합니다."
         ),
         "financial_conditions": (
-            f"현재 NFCI는 {chart_last(13, 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last(13, 0):+.2f}입니다. "
+            f"현재 NFCI는 {chart_last('financial_conditions', 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last('financial_conditions', 0):+.2f}입니다. "
             "0 아래는 평균보다 완화적, 0 위는 긴축적이어서 시장이 받는 자금 압력을 직관적으로 보여줍니다."
         ),
         "rate_cycle_since_first_cut": (
@@ -1850,22 +1938,11 @@ def build_statistics_lab(
             f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
             "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
         ),
-        "kospi_market_breadth_2026_daily": (
-            f"2026년 KOSPI는 {kospi_2026[-1]['value'] - 100:+.1f}%인데 KOSDAQ은 "
-            f"{kosdaq_2026[-1]['value'] - 100:+.1f}%입니다. 반도체 대용치는 "
-            f"{semicon_2026[-1]['value'] - 100:+.1f}%로 KOSPI보다 "
-            f"{(semicon_2026[-1]['value'] / kospi_2026[-1]['value'] - 1.0) * 100:+.1f}% 앞서, "
-            "현재 상승은 국내 시장 전체보다 대형 반도체에 집중돼 있습니다."
-        ),
         "kospi_external_semiconductor_pulse": (
             f"2020년 이후 20거래일 수익률 상관은 KOSPI–TAIEX "
             f"{external_pulse_diagnostics['taiex_same_or_prior_close']['rolling_20_session_correlation']:+.2f}, "
             f"KOSPI–전일 SOX {external_pulse_diagnostics['sox_strictly_prior_us_close']['rolling_20_session_correlation']:+.2f}입니다. "
             "세 선이 함께 약해지면 글로벌 반도체 사이클 둔화, KOSPI만 약하면 한국 고유 위험을 우선 확인합니다."
-        ),
-        "nasdaq_tech_cycle_milestones": (
-            f"1985년 말 100이던 NASDAQ은 최근 연말 기준 {tech_cycle[-1]['value']:.0f}입니다. "
-            "로그축 장기선은 복리 성장률을 비교하기 위한 것이며, IPO 점선은 상장 시점만 표시하고 고점 예측 신호로 사용하지 않습니다."
         ),
         "sec_ipo_issuer_mix_h1": (
             f"2026년 상반기는 일반 기업 {int(sum(row['value'] for row in sec_corporate[1:]))}건, "
@@ -1957,7 +2034,7 @@ def build_statistics_lab(
         ]
         if sensitivity_total_bn > 0:
             quality_series.append(_series(
-                "상장가치 헤드라인 민감도", "scenario",
+                "대형 AI 상장 가정(실제 IPO 아님)", "scenario",
                 [{"period": 44, "date": ipo_sensitivity.get("as_of", "2026-08-18"), "value": sensitivity_ratio}],
                 "#6b3fa0",
             ))
@@ -1983,7 +2060,7 @@ def build_statistics_lab(
             quality_chart["series"][3]["marker_emphasis"] = "reported_ipo_valuation_sensitivity"
         quality_chart["insight"] = (
             f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
-            "OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T와 $3.0T 상장가치 헤드라인은 각각 감시점과 민감도일 뿐 완료된 IPO가 아닙니다. "
+            "OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T와 보도된 $3.0T 상장가치 가정은 모두 완료된 IPO가 아닙니다. "
             "$3.0T 가치에서 5%를 판다는 가정의 총매각 규모는 $150B이며 신주와 구주를 구분하지 않습니다."
         )
         quality_chart["scenario_sensitivity"] = ipo_sensitivity
@@ -2051,6 +2128,9 @@ def build_statistics_lab(
         "m2_nasdaq": "NASDAQ이 유동성보다 빠르게 올랐지만 닷컴 당시 격차보다 작아, M2 기준으로는 말기 과열 신호가 덜 강합니다.",
         "nasdaq_per_m2": "M2 대비 NASDAQ 상승 속도는 닷컴 같은 시점보다 낮아, 통화량 하나로는 현재를 닷컴 정점과 같은 단계로 보기 어렵습니다.",
         "nasdaq_per_household_liquid_assets": "가계 현금성 자산 대비 NASDAQ은 닷컴 같은 시점과 비슷해, 가계 유동성 완충력만으로 주가 부담이 낮다고 보기는 어렵습니다.",
+        "liquidity_position_map": (
+            f"대기자금은 MMF에 M2의 {mmf_to_m2:.0f}% 규모로 쌓여 있지만, 최근 가격·잔액 변화만으로 금·비트코인·주식 중 실제 순유입 승자를 단정할 수는 없습니다."
+        ),
         "yield_curve": (
             "장단기 금리차가 아직 역전돼 있어 경기 경계가 남아 있습니다."
             if curve_now < 0 else
@@ -2058,7 +2138,7 @@ def build_statistics_lab(
         ),
         "policy_rate": "현재는 금리 인하가 진행된 경로로, 닷컴 붕괴 전 재긴축 국면과 같은 정책 트리거는 아직 확인되지 않습니다.",
         "valuation_proxy": "시장가치의 이익 대비 부담은 높지만 닷컴 같은 시점보다 낮아, 광의 밸류에이션은 극단적 정점 아래입니다.",
-        "margin_credit_proxy": "증권담보 신용의 증가 속도는 닷컴 당시보다 낮아, 레버리지 기준의 말기 과열 신호는 상대적으로 약합니다.",
+        "margin_credit_proxy": "브로커 고객 신용이 기업주식 시장가치보다 더 빠르게 늘어날 때 레버리지 경고가 커지며, 현재는 두 속도를 함께 확인해야 합니다.",
         "consumer_credit_growth": "소비자신용 증가율이 닷컴 당시보다 낮아, 현재 상승장이 가계 신용 팽창에 크게 의존한다고 보기는 어렵습니다.",
         "loan_standards": (
             "은행 대출기준이 순강화 상태여서 기업 신용 경로는 경계가 필요합니다."
@@ -2085,7 +2165,6 @@ def build_statistics_lab(
             if oil_now > 0 and copper_now > 0 else
             "유가와 구리 신호가 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 않습니다."
         ),
-        "kospi_market_breadth_2026_daily": "KOSPI 상승이 반도체 대형주에 집중돼 있어, 글로벌 AI·반도체 조정 시 한국 지수가 먼저 흔들릴 취약성이 큽니다.",
         "kospi_external_semiconductor_pulse": (
             "세 시장의 20일 흐름이 모두 양수여서 글로벌 반도체 공동 급락 경고는 현재 작동하지 않습니다."
             if all(value > 0 for value in semiconductor_pulse) else
@@ -2096,7 +2175,6 @@ def build_statistics_lab(
             if hmi_now < 0 < manufacturing_now else
             "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
         ),
-        "nasdaq_tech_cycle_milestones": "대표 IPO 시점은 기술 사이클의 맥락을 보여줄 뿐 고점을 맞히지 못하므로, 현재 버블 종료 시점을 정하는 신호로 쓰면 안 됩니다.",
         "sec_ipo_issuer_mix_h1": "SPAC 건수가 일반 기업을 웃돌아 IPO 창구는 열렸지만, 이것을 실물기업·AI기업 상장 확산으로 곧바로 해석하면 안 됩니다.",
         "sp500_after_two_twenty_percent_years": "역사적으로 3년 차 상승이 더 많았지만 표본이 작아, 연속 강세만으로 다음 해 상승이나 버블 지속을 확정할 수 없습니다.",
         "household_balance_sheet_trend_gap": "가계 현금도 추세보다 많아 유동성 고갈 상태는 아니지만, 주식 자산의 추세 이탈이 더 커 가격 조정 민감도는 높습니다.",
@@ -2316,13 +2394,12 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         "ici_weekly_equity_etf_flow",
         "negative_then_strong_quarter_followthrough",
         "gold_vs_us_m2",
+        "nasdaq_tech_cycle_milestones",
+        "kospi_market_breadth_2026_daily",
     ):
         if retired_id in by_id:
             raise StatisticsLabError(f"retired customer chart still active: {retired_id}")
-    for log_chart_id in (
-        "m2_nasdaq",
-        "nasdaq_tech_cycle_milestones",
-    ):
+    for log_chart_id in ("m2_nasdaq",):
         if (by_id.get(log_chart_id) or {}).get("scale") != "log1p":
             raise StatisticsLabError(f"chart {log_chart_id} must use log1p display")
     sec_mix = by_id.get("sec_ipo_issuer_mix_h1") or {}
@@ -2337,40 +2414,36 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             "debt_securities": 11,
         }:
             raise StatisticsLabError("household trend baseline frequencies invalid")
-    breadth = next(
-        (chart for chart in charts if chart.get("id") == "kospi_market_breadth_2026_daily"),
-        None,
-    )
     pulse = next(
         (chart for chart in charts if chart.get("id") == "kospi_external_semiconductor_pulse"),
         None,
     )
-    if breadth is None or pulse is None:
-        raise StatisticsLabError("KOSPI breadth and external pulse charts required")
-    if breadth.get("source_ids") != [
-        "KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY",
-    ]:
-        raise StatisticsLabError("KOSPI breadth sources invalid")
+    if pulse is None:
+        raise StatisticsLabError("KOSPI external pulse chart required")
     if pulse.get("source_ids") != ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]:
         raise StatisticsLabError("KOSPI external pulse sources invalid")
-    for chart, diagnostics_key in (
-        (breadth, "market_breadth_diagnostics"),
-        (pulse, "external_pulse_diagnostics"),
-    ):
-        diagnostics = chart.get(diagnostics_key) or {}
-        if diagnostics.get("time_warping") is not False:
-            raise StatisticsLabError("daily market chart cannot warp time")
-        if diagnostics.get("optimized_lag") is not False:
-            raise StatisticsLabError("daily market chart cannot optimize lag")
-        if diagnostics.get("forecast_extension") is not False:
-            raise StatisticsLabError("daily market chart cannot contain forecast extension")
-        if chart.get("axis_type") != "calendar_day_of_year" or chart.get("max_period") != 364:
-            raise StatisticsLabError("daily market chart calendar axis invalid")
+    diagnostics = pulse.get("external_pulse_diagnostics") or {}
+    if diagnostics.get("time_warping") is not False:
+        raise StatisticsLabError("daily market chart cannot warp time")
+    if diagnostics.get("optimized_lag") is not False:
+        raise StatisticsLabError("daily market chart cannot optimize lag")
+    if diagnostics.get("forecast_extension") is not False:
+        raise StatisticsLabError("daily market chart cannot contain forecast extension")
+    if pulse.get("axis_type") != "calendar_day_of_year" or pulse.get("max_period") != 364:
+        raise StatisticsLabError("daily market chart calendar axis invalid")
     sox_diagnostic = (pulse.get("external_pulse_diagnostics") or {}).get(
         "sox_strictly_prior_us_close"
     ) or {}
     if int(sox_diagnostic.get("observations", 0)) < 20:
         raise StatisticsLabError("SOX prior-close diagnostic sample too small")
+    liquidity_map = by_id.get("liquidity_position_map") or {}
+    if liquidity_map.get("chart_type") != "profile_cards":
+        raise StatisticsLabError("liquidity position map must use profile cards")
+    if liquidity_map.get("source_ids") != [
+        "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
+        "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
+    ]:
+        raise StatisticsLabError("liquidity position map sources invalid")
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -2503,6 +2576,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
     projected["display_projection"] = True
     public_source_keys = {
         "series_id", "title", "provider", "source_url",
+        "native_frequency", "latest_observation",
     }
     projected["sources"] = [
         {key: value for key, value in source.items() if key in public_source_keys}
@@ -2517,14 +2591,12 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
             if key not in {
                 "series", "range", "detail_rows", "research_context",
                 "description", "caveat", "trend_baseline", "projection_max_points",
-                "market_breadth_diagnostics", "external_pulse_diagnostics",
+                "external_pulse_diagnostics",
                 "comparison_transform", "source_validation",
                 "scenario_sensitivity", "event_diagnostics",
             }
         }
-        for diagnostics_key in (
-            "market_breadth_diagnostics", "external_pulse_diagnostics",
-        ):
+        for diagnostics_key in ("external_pulse_diagnostics",):
             if diagnostics_key in chart:
                 diagnostics = chart[diagnostics_key]
                 chart_view[diagnostics_key] = {

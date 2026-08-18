@@ -130,12 +130,14 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
         month = (start.month - 1 + offset) % 12 + 1
         if series_id in {
             "DABSHNO", "BOGZ1LM153064475Q", "BOGZ1LM893064105Q",
+            "MMMFFAQ027S",
         } and month not in {1, 4, 7, 10}:
             continue
         if series_id == "BOGZ1FL154022375A" and month != 1:
             continue
         baseline = {
             "M2SL": 4000.0,
+            "MMMFFAQ027S": 2_000_000.0,
             "DABSHNO": 8_000_000.0,
             "BOGZ1LM153064475Q": 9_000_000.0,
             "BOGZ1FL154022375A": 6_000_000.0,
@@ -230,10 +232,11 @@ def _payload_inputs() -> tuple[dict, dict]:
     market_rows = {series_id: [] for series_id in DAILY_MARKET_SERIES}
     market_values = {
         "KOSPI_DAILY": 2200.0,
-        "KOSDAQ_DAILY": 800.0,
-        "KRX_SEMICON_PROXY_DAILY": 30_000.0,
         "TAIEX_DAILY": 12_000.0,
         "SOX_DAILY": 1800.0,
+        "SP500_DAILY": 3200.0,
+        "GOLD_FUTURES_DAILY": 1600.0,
+        "BTCUSD_DAILY": 9000.0,
     }
     observed = date(2020, 1, 1)
     session = 0
@@ -242,10 +245,11 @@ def _payload_inputs() -> tuple[dict, dict]:
             common = math.sin(session * 0.17) * 0.008 + math.cos(session * 0.047) * 0.003
             returns = {
                 "KOSPI_DAILY": 0.0005 + common,
-                "KOSDAQ_DAILY": 0.0001 + common * 0.82 + math.sin(session * 0.11) * 0.004,
-                "KRX_SEMICON_PROXY_DAILY": 0.0007 + common * 1.28 + math.cos(session * 0.09) * 0.004,
                 "TAIEX_DAILY": 0.0005 + common * 0.93 + math.sin(session * 0.07) * 0.002,
                 "SOX_DAILY": 0.0007 + common * 1.35 + math.cos(session * 0.13) * 0.005,
+                "SP500_DAILY": 0.0004 + common * 0.78,
+                "GOLD_FUTURES_DAILY": 0.0002 + common * 0.35,
+                "BTCUSD_DAILY": 0.0008 + common * 1.9 + math.sin(session * 0.19) * 0.007,
             }
             for series_id, daily_return in returns.items():
                 market_values[series_id] *= math.exp(daily_return)
@@ -255,16 +259,6 @@ def _payload_inputs() -> tuple[dict, dict]:
             session += 1
         observed = date.fromordinal(observed.toordinal() + 1)
     rows.update(market_rows)
-    sp500_rows = []
-    sp500_value = 100.0
-    for year in range(1950, 2027):
-        for quarter, quarter_return in enumerate((-0.05, 0.12, 0.04, 0.03), start=1):
-            month = quarter * 3
-            sp500_value *= 1.0 + quarter_return
-            sp500_rows.append({
-                "date": date(year, month, 20).isoformat(), "value": sp500_value,
-            })
-    rows["SP500_DAILY"] = sp500_rows
     rows["SEC_IPO_QUARTERLY"] = [
         {"date": "2025-03-01", "period_label": "2025:Q1", "total_count": 84, "us_count": 45, "non_us_count": 39, "corporate_count": 63, "spac_count": 20, "fund_count": 1, "total_proceeds_mn": 11867.2, "corporate_proceeds_mn": 8814.8, "spac_proceeds_mn": 3052.0, "fund_proceeds_mn": 0.4},
         {"date": "2025-06-01", "period_label": "2025:Q2", "total_count": 96, "us_count": 59, "non_us_count": 37, "corporate_count": 48, "spac_count": 46, "fund_count": 2, "total_proceeds_mn": 15808.4, "corporate_proceeds_mn": 7029.6, "spac_proceeds_mn": 8722.5, "fund_proceeds_mn": 56.3},
@@ -407,11 +401,12 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 33
+    assert len(payload["charts"]) == 32
     assert all(chart["insight"] for chart in payload["charts"])
     assert all(chart["conclusion"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
         "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
+        "liquidity_position_map",
         "yield_curve", "valuation_proxy", "margin_credit_proxy",
         "household_debt_service", "unemployment_rate", "inflation_rate",
         "financial_conditions",
@@ -419,23 +414,32 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
         "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
         "ipo_market_absorption", "small_issuer_ipo_share",
-        "dotcom_internet_ipo_breadth", "nasdaq_tech_cycle_milestones",
+        "dotcom_internet_ipo_breadth",
         "sec_ipo_issuer_mix_h1", "sp500_after_two_twenty_percent_years",
         "household_balance_sheet_trend_gap",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
-        "kospi_market_breadth_2026_daily", "kospi_external_semiconductor_pulse",
+        "kospi_external_semiconductor_pulse",
     }
     assert {chart["id"] for chart in payload["charts"]}.isdisjoint({
         "ici_weekly_equity_etf_flow",
         "negative_then_strong_quarter_followthrough",
         "gold_vs_us_m2",
+        "nasdaq_tech_cycle_milestones",
+        "kospi_market_breadth_2026_daily",
     })
     by_id = {chart["id"]: chart for chart in payload["charts"]}
     assert by_id["m2_nasdaq"]["scale"] == "log1p"
-    assert by_id["nasdaq_tech_cycle_milestones"]["scale"] == "log1p"
-    assert "대표 기술 IPO" in by_id["nasdaq_tech_cycle_milestones"]["title"]
-    assert "원인 표시가 아닙니다" in by_id["nasdaq_tech_cycle_milestones"]["reading_guide"]
+    liquidity_map = by_id["liquidity_position_map"]
+    assert liquidity_map["chart_type"] == "profile_cards"
+    assert liquidity_map["source_ids"] == [
+        "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
+        "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
+    ]
+    assert [group["title"] for group in liquidity_map["profile_groups"]] == [
+        "현재 규모", "최근 12개월 방향",
+    ]
+    assert "하나의 점유율" in liquidity_map["reading_guide"]
     sec_mix = by_id["sec_ipo_issuer_mix_h1"]
     assert sec_mix["chart_type"] == "stacked_bar"
     assert sec_mix["show_bar_values"] is True
@@ -507,27 +511,6 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         for point in series["points"]
     )
     assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
-    breadth = next(
-        chart for chart in payload["charts"]
-        if chart["id"] == "kospi_market_breadth_2026_daily"
-    )
-    assert breadth["source_ids"] == [
-        "KOSPI_DAILY", "KOSDAQ_DAILY", "KRX_SEMICON_PROXY_DAILY",
-    ]
-    assert breadth["axis_type"] == "calendar_day_of_year"
-    assert breadth["max_period"] == 364
-    assert breadth["projection_max_points"] == 366
-    assert [row["label"] for row in breadth["series"]] == [
-        "KOSPI", "KOSDAQ", "KRX 반도체 대용치",
-    ]
-    assert all(row["points"][0]["value"] == 100.0 for row in breadth["series"])
-    assert all(len(row["points"]) == 260 for row in breadth["series"])
-    breadth_diagnostic = breadth["market_breadth_diagnostics"]
-    assert breadth_diagnostic["time_warping"] is False
-    assert breadth_diagnostic["optimized_lag"] is False
-    assert breadth_diagnostic["forecast_extension"] is False
-    assert breadth_diagnostic["kosdaq"]["observations"] > 1000
-    assert "대형 반도체에 집중" in breadth["insight"]
     pulse = next(
         chart for chart in payload["charts"]
         if chart["id"] == "kospi_external_semiconductor_pulse"
@@ -570,13 +553,13 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     with pytest.raises(StatisticsLabError, match="future-data leakage"):
         validate_statistics_lab(future_leak)
 
-    warped = json.loads(json.dumps(payload))
+    invalid_liquidity = json.loads(json.dumps(payload))
     next(
-        chart for chart in warped["charts"]
-        if chart["id"] == "kospi_market_breadth_2026_daily"
-    )["market_breadth_diagnostics"]["time_warping"] = True
-    with pytest.raises(StatisticsLabError, match="cannot warp time"):
-        validate_statistics_lab(warped)
+        chart for chart in invalid_liquidity["charts"]
+        if chart["id"] == "liquidity_position_map"
+    )["chart_type"] = "pie"
+    with pytest.raises(StatisticsLabError, match="liquidity position map"):
+        validate_statistics_lab(invalid_liquidity)
 
     incomplete_session_rows = json.loads(json.dumps(rows))
     incomplete_session_rows["KOSPI_DAILY"].append({
@@ -644,6 +627,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
     assert "function statisticsProfileCards" in script
+    assert "function statisticsSourceFooter" in script
+    assert "statistics-card-sources" in script
     assert "chart.chart_type==='profile_cards'" in script
     assert '<div class="statistics-now"><strong>현재 결론</strong><p>' in script
     assert '<span>현재 결론</span>' not in script
@@ -688,6 +673,8 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     projected = statistics_dashboard_projection(tmp_path)
     assert all("range" not in chart for chart in projected["charts"])
     assert all("raw_sha256" not in source for source in projected["sources"])
+    assert all("native_frequency" in source for source in projected["sources"] if source["series_id"] in FRED_SERIES)
+    assert all("latest_observation" in source for source in projected["sources"] if source["series_id"] in FRED_SERIES)
     assert all(len(source["raw_sha256"]) == 64 for source in payload["sources"])
     for raw_chart, view_chart in zip(payload["charts"], projected["charts"]):
         for raw_series, view_series in zip(raw_chart["series"], view_chart["series"]):
@@ -703,15 +690,10 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     private_marker = next(series for series in absorption["series"] if "OpenAI+Anthropic" in series["label"])
     assert private_marker["marker_radius"] == 10
     assert private_marker["marker_emphasis"] == "private_frontier_watchlist"
-    breadth = next(
-        chart for chart in projected["charts"]
-        if chart["id"] == "kospi_market_breadth_2026_daily"
-    )
     pulse = next(
         chart for chart in projected["charts"]
         if chart["id"] == "kospi_external_semiconductor_pulse"
     )
-    assert [len(series["points"]) for series in breadth["series"]] == [260, 260, 260]
     assert [len(series["points"]) for series in pulse["series"]] == [260, 260, 260]
 
 

@@ -1023,6 +1023,63 @@ function signalMosaic(prob){
   return `<div class="signal-mosaic" role="img" aria-label="상승 경로 신호 ${safe}%">${cells}<b>${safe}<small>%</small></b></div>`;
 }
 
+const STATISTICS_SOURCE_LABELS=Object.freeze({
+  M2SL:'미국 M2 · Federal Reserve / FRED',
+  MMMFFAQ027S:'미국 MMF 총자산 · Federal Reserve / FRED',
+  DABSHNO:'미국 가계 현금·예금 · Federal Reserve / FRED',
+  BOGZ1LM153064475Q:'미국 가계 주식자산 · Federal Reserve / FRED',
+  BOGZ1FL154022375A:'미국 가계 채권자산 · Federal Reserve / FRED',
+  BOGZ1LM893064105Q:'미국 기업주식 시장가치 · Federal Reserve / FRED',
+  NASDAQCOM:'NASDAQ 종합 · Nasdaq / FRED',
+  T10Y2Y:'미국 10년-2년 금리차 · U.S. Treasury / FRED',
+  FEDFUNDS:'미국 기준금리 · Federal Reserve / FRED',
+  TOTALSL:'미국 소비자신용 · Federal Reserve / FRED',
+  TDSP:'미국 가계 원리금 부담 · Federal Reserve / FRED',
+  BOGZ1FL010000346Q:'미국 가계 부채상환 부담 · Federal Reserve / FRED',
+  DRTSCILM:'미국 은행 대출기준 · Federal Reserve / FRED',
+  UNRATE:'미국 실업률 · BLS / FRED',
+  CPIAUCSL:'미국 소비자물가 · BLS / FRED',
+  NFCI:'미국 금융여건 · Chicago Fed / FRED',
+  HQMCB10YR:'미국 우량 회사채 금리 · U.S. Treasury / FRED',
+  GS10:'미국 10년 국채금리 · Federal Reserve / FRED',
+  DCOILWTICO:'WTI 유가 · EIA / FRED',
+  WPU10260314:'미국 구리 생산자물가 · BLS / FRED',
+  FL663067003:'미국 증권담보·브로커 신용 · Federal Reserve Z.1',
+  KOSPI_DAILY:'KOSPI · Korea Exchange / Yahoo Finance',
+  TAIEX_DAILY:'대만 가권지수 · Taiwan Stock Exchange / Yahoo Finance',
+  SOX_DAILY:'미국 반도체지수 · Nasdaq / Yahoo Finance',
+  SP500_DAILY:'S&P 500 · S&P DJI / Yahoo Finance',
+  GOLD_FUTURES_DAILY:'COMEX 금 선물 · Yahoo Finance',
+  BTCUSD_DAILY:'비트코인 달러 가격 · Yahoo Finance',
+  SEC_IPO_QUARTERLY:'미국 IPO · SEC',
+  NYU_SP500_ANNUAL_TOTAL_RETURN:'S&P 500 연간 총수익률 · NYU Stern',
+  RITTER_TECH_IPO_2025:'미국 기술 IPO · University of Florida IPO Initiative',
+  RITTER_INTERNET_IPO_2025:'미국 인터넷 IPO · University of Florida IPO Initiative',
+  NAHB_HMI:'미국 주택시장 심리 · NAHB'
+});
+const STATISTICS_FREQUENCY_LABELS=Object.freeze({
+  daily:'일간',daily_close:'일간',weekly:'주간',monthly:'월간',quarterly:'분기',
+  quarterly_end_of_period:'분기말',annual:'연간',annual_end_of_period:'연말',
+  continuous:'상시',event:'이벤트 기준',event_research:'이벤트 연구',
+  historical_research:'역사 연구',methodology:'방법론',annual_research:'연간 연구'
+});
+function statisticsSourceLabel(source){
+  const id=String(source?.series_id||'');
+  if(STATISTICS_SOURCE_LABELS[id])return STATISTICS_SOURCE_LABELS[id];
+  const title=String(source?.title||id||'공개 데이터'),provider=String(source?.provider||'원문 제공기관');
+  return `${title} · ${provider}`;
+}
+function statisticsSourceFooter(chart,sourceById){
+  const resolved=[...new Set(chart.source_ids||[])]
+    .map(id=>sourceById.get(String(id)))
+    .filter(Boolean);
+  if(!resolved.length)return '';
+  return `<div class="statistics-card-sources" aria-label="이 통계의 데이터 출처"><span>출처</span><div>${resolved.map(source=>{
+    const frequency=source.native_frequency||source.frequency||'',latest=source.latest_observation||'';
+    const meta=[frequency?(STATISTICS_FREQUENCY_LABELS[frequency]||frequency):'',latest?`최신 ${latest}`:''].filter(Boolean).join(' · ');
+    return `<a href="${esc(source.source_url)}" target="_blank" rel="noreferrer"><strong>${esc(statisticsSourceLabel(source))}</strong>${meta?`<small>${esc(meta)}</small>`:''}</a>`;
+  }).join('')}</div></div>`;
+}
 function statisticsValue(unit,value){
   const n=Number(value);
   if(!Number.isFinite(n))return '—';
@@ -1039,7 +1096,7 @@ function statisticsValue(unit,value){
 function statisticsProfileCards(chart){
   const groups=(chart.profile_groups||[]).filter(group=>(group.metrics||[]).length);
   if(!groups.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
-  return `<div class="statistics-profile" role="group" aria-label="${esc(chart.title)} 핵심 지표">${groups.map(group=>`<section class="statistics-profile-group"><header><strong>${esc(group.title)}</strong><span>${esc(group.basis)}</span></header><div>${(group.metrics||[]).map(metric=>{const value=Number(metric.value),level=Math.max(0,Math.min(100,Number.isFinite(value)?value:0));return `<article><div><b>${esc(metric.label)}</b><strong>${esc(metric.display_value||statisticsValue(chart.unit,value))}</strong></div><p>${esc(metric.meaning)}</p><i aria-hidden="true"><span style="width:${level.toFixed(1)}%"></span></i></article>`;}).join('')}</div></section>`).join('')}</div>`;
+  return `<div class="statistics-profile" role="group" aria-label="${esc(chart.title)} 핵심 지표">${groups.map(group=>`<section class="statistics-profile-group"><header><strong>${esc(group.title)}</strong><span>${esc(group.basis)}</span></header><div>${(group.metrics||[]).map(metric=>{const value=Number(metric.value),metricLevel=Number(metric.level),level=Math.max(0,Math.min(100,Number.isFinite(metricLevel)?metricLevel:(Number.isFinite(value)?value:0)));return `<article><div><b>${esc(metric.label)}</b><strong>${esc(metric.display_value||statisticsValue(chart.unit,value))}</strong></div><p>${esc(metric.meaning)}</p><i aria-hidden="true"><span style="width:${level.toFixed(1)}%"></span></i></article>`;}).join('')}</div></section>`).join('')}</div>`;
 }
 function statisticsChartSvg(chart,alignment={}){
   const series=(chart.series||[]).filter(row=>(row.points||[]).length),points=series.flatMap(row=>row.points||[]);
@@ -1089,7 +1146,7 @@ function renderStatistics(){
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
-  const alignment=stats.cycle_alignment||{},sources=stats.sources||[],charts=stats.charts||[];
+  const alignment=stats.cycle_alignment||{},sources=stats.sources||[],charts=stats.charts||[],sourceById=new Map(sources.map(source=>[String(source.series_id||''),source]));
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
   const grid=el('<div class="statistics-grid"></div>');
@@ -1097,7 +1154,7 @@ function renderStatistics(){
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards';
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
-    grid.appendChild(el(`<section class="statistics-card${profile?' is-profile-card':''}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(profile?'1999년 실측':chart.display_unit||chart.unit)}</b></div>${profile?'':`<div class="statistics-legend">${latest}</div>`}${guide}${profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div></section>`));
+    grid.appendChild(el(`<section class="statistics-card${profile?' is-profile-card':''}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile?'':`<div class="statistics-legend">${latest}</div>`}${guide}${profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p>${statisticsSourceFooter(chart,sourceById)}</div></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>사용한 데이터 출처</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.title)}</strong><span>${esc(row.provider)}</span></div><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원문 보기 ↗</a></article>`).join('')}</div></details>`));
