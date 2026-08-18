@@ -248,16 +248,6 @@ DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
         "window_end_exclusive": "2027-01-01",
         "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
     },
-    "GOLD_DAILY": {
-        "symbol": "GC=F",
-        "title": "COMEX gold futures continuous contract daily close",
-        "provider": "Yahoo Finance chart API (underlying market: COMEX gold futures)",
-        "unit": "usd_per_troy_ounce",
-        "native_frequency": "daily_close",
-        "window_start": "2022-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history/",
-    },
 }
 
 SUPPLEMENTAL_SOURCES: dict[str, dict[str, str]] = {
@@ -1525,10 +1515,6 @@ def build_statistics_lab(
     tech_cycle = _annual_index_points(
         monthly["NASDAQCOM"], start_year=1985, end_year=latest_current.year,
     )
-    gold_monthly = _monthly(source_rows["GOLD_DAILY"], "last")
-    gold_index, m2_gold_index = _normalized_monthly_pair(
-        gold_monthly, monthly["M2SL"], start=CURRENT_START,
-    )
     equity_gap = _trend_gap_points(monthly["BOGZ1LM153064475Q"])
     cash_gap = _trend_gap_points(monthly["DABSHNO"])
     debt_gap = _trend_gap_points(
@@ -1720,16 +1706,6 @@ def build_statistics_lab(
             ["NYU_SP500_ANNUAL_TOTAL_RETURN"],
         ),
         _chart(
-            "gold_vs_us_m2", "금 vs 미국 M2: 2023=100 로그 비교", "liquidity", "cycle_start_100",
-            "2023년 첫 공통 월을 100으로 맞춘 뒤 로그축에서 금 선물 종가와 미국 M2의 누적 변화율을 비교합니다.",
-            "첨부 장표의 글로벌 유동성 모델이 아닌 공개 대체지표이며, 금 선물과 M2의 동행은 인과나 목표가격을 뜻하지 않습니다.",
-            [
-                _series("금", "current", gold_index, "#b58b2a"),
-                _series("미국 M2", "current", m2_gold_index, "#28756a"),
-            ],
-            ["GOLD_DAILY", "M2SL"],
-        ),
-        _chart(
             "household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit",
             "percent_vs_trend",
             "2009~2019 관측치에 항목별 선형추세를 따로 적합해 실제 잔액이 추세보다 얼마나 위·아래인지 비교합니다.",
@@ -1742,7 +1718,7 @@ def build_statistics_lab(
             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"],
         ),
     ]
-    tech_chart, sec_chart, annual_chart, gold_chart, household_chart = (
+    tech_chart, sec_chart, annual_chart, household_chart = (
         supplemental_charts
     )
     tech_chart.update({
@@ -1773,13 +1749,6 @@ def build_statistics_lab(
     annual_chart.update({
         "axis_type": "categorical", "max_period": len(annual_event_ticks) - 1,
         "x_ticks": annual_event_ticks,
-    })
-    gold_chart.update({
-        "axis_type": "elapsed_month", "scale": "log1p",
-        "display_unit": "2023=100 · 로그축",
-        "reading_guide": "두 선 모두 2023년 첫 달을 100으로 맞춘 누적 변화 지수입니다. 로그축에서는 같은 세로거리가 같은 비율 변화를 뜻하며 원자료의 달러 수준을 비교하지 않습니다.",
-        "max_period": max(int(row["period"]) for row in gold_index),
-        "x_ticks": [[0, "2023"], [12, "2024"], [24, "2025"], [36, "2026"]],
     })
     household_chart.update({
         "axis_type": "calendar_quarter", "max_period": max(int(row["period"]) for row in equity_gap),
@@ -1906,10 +1875,6 @@ def build_statistics_lab(
         "sp500_after_two_twenty_percent_years": (
             f"역사상 {len(third_year)}개 중첩 사례에서 3년 차 평균은 {statistics.mean(row['value'] for row in third_year):+.1f}%, "
             f"중앙값은 {statistics.median(row['value'] for row in third_year):+.1f}%였습니다. 연속 강세 뒤에도 결과 폭이 커서 평균만으로 다음 해를 단정할 수 없습니다."
-        ),
-        "gold_vs_us_m2": (
-            f"2023년 초 100 기준 최근 금은 {gold_index[-1]['value']:.0f}, 미국 M2는 {m2_gold_index[-1]['value']:.0f}입니다. "
-            "로그축에서도 금의 누적 상승이 M2 증가를 크게 앞섭니다. 따라서 최근 금 강세를 미국 통화량 하나로 설명할 수 없습니다."
         ),
         "household_balance_sheet_trend_gap": (
             f"최근 값은 2009~2019 추세 대비 주식 {equity_gap[-1]['value']:+.0f}%, 현금성 자산 {cash_gap[-1]['value']:+.0f}%, "
@@ -2134,7 +2099,6 @@ def build_statistics_lab(
         "nasdaq_tech_cycle_milestones": "대표 IPO 시점은 기술 사이클의 맥락을 보여줄 뿐 고점을 맞히지 못하므로, 현재 버블 종료 시점을 정하는 신호로 쓰면 안 됩니다.",
         "sec_ipo_issuer_mix_h1": "SPAC 건수가 일반 기업을 웃돌아 IPO 창구는 열렸지만, 이것을 실물기업·AI기업 상장 확산으로 곧바로 해석하면 안 됩니다.",
         "sp500_after_two_twenty_percent_years": "역사적으로 3년 차 상승이 더 많았지만 표본이 작아, 연속 강세만으로 다음 해 상승이나 버블 지속을 확정할 수 없습니다.",
-        "gold_vs_us_m2": "금 상승이 M2 증가를 크게 앞서므로, 최근 금 강세는 미국 통화량보다 실질금리·달러·안전자산 수요의 추가 설명이 필요합니다.",
         "household_balance_sheet_trend_gap": "가계 현금도 추세보다 많아 유동성 고갈 상태는 아니지만, 주식 자산의 추세 이탈이 더 커 가격 조정 민감도는 높습니다.",
     }
     missing_conclusions = sorted(set(chart_by_id) - set(conclusions))
@@ -2351,13 +2315,13 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     for retired_id in (
         "ici_weekly_equity_etf_flow",
         "negative_then_strong_quarter_followthrough",
+        "gold_vs_us_m2",
     ):
         if retired_id in by_id:
             raise StatisticsLabError(f"retired customer chart still active: {retired_id}")
     for log_chart_id in (
         "m2_nasdaq",
         "nasdaq_tech_cycle_milestones",
-        "gold_vs_us_m2",
     ):
         if (by_id.get(log_chart_id) or {}).get("scale") != "log1p":
             raise StatisticsLabError(f"chart {log_chart_id} must use log1p display")

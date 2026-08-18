@@ -53,7 +53,6 @@ sources:
       KRX_SEMICON_PROXY_DAILY: {symbol: 091160.KS, native_frequency: daily_close, unit: krw, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: KRX_Semiconductor_Index_tracking_ETF_concentration_proxy}
       TAIEX_DAILY: {symbol: ^TWII, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: external_Asia_semiconductor_market_confirmation}
       SOX_DAILY: {symbol: ^SOX, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: strictly_prior_US_semiconductor_close_impulse}
-      GOLD_DAILY: {symbol: GC=F, native_frequency: daily_close, unit: usd_per_troy_ounce, window: [2022-01-01, last_completed_session_only], active_session_excluded: true, role: public_gold_price_proxy}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
     table: F4.6.s
@@ -156,17 +155,10 @@ macro_warning_policy:
     training_observations: {corporate_equities_quarterly: 44, currency_deposits_money_market_funds_quarterly: 44, debt_securities_annual: 11}
     output: percent_above_or_below_own_trend
     interpretation: descriptive_not_fair_value_or_forecast
-  gold_liquidity_proxy:
-    series: [GOLD_DAILY, M2SL]
-    normalization: first_common_month_from_2023_equals_100
-    display_scale: log1p
-    global_liquidity_model_claim: prohibited
-    forecast_extension: prohibited
-
 customer_chart_contract:
   required_fields: [insight, conclusion, caveat, source_ids]
   conclusion_semantics: one_sentence_current_state_judgment_not_probability_or_trading_advice
-  log_scale_charts: [m2_nasdaq, nasdaq_tech_cycle_milestones, gold_vs_us_m2]
+  log_scale_charts: [m2_nasdaq, nasdaq_tech_cycle_milestones]
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count
@@ -178,6 +170,10 @@ customer_chart_contract:
     event_markers: timing_context_only_not_causal_or_peak_prediction
 
 retired_customer_charts:
+  gold_vs_us_m2:
+    removed_at: 2026-08-18
+    reason: user_requested_removal
+    active_ingestion: false
   ici_weekly_equity_etf_flow:
     removed_at: 2026-08-18
     reason: user_requested_removal_and_non_reproducible_manual_short_window_series
