@@ -657,6 +657,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "function statisticsChartSvg" in script
     assert "function statisticsProfileCards" in script
     assert "chart.chart_type==='profile_cards'" in script
+    assert '<div class="statistics-now"><strong>현재 결론</strong><p>' in script
+    assert '<span>현재 결론</span>' not in script
     assert 'data-forecast-extension="false"' in script
     assert "AI 선은 최신 실제 관측에서 멈추며" not in script
     assert "지금 시장의 위치를 살펴봅니다" in script

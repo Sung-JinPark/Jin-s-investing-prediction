@@ -479,6 +479,8 @@ def test_workspace_utility_contract() -> None:
     assert "overflow-wrap:break-word;word-break:keep-all" in html
     assert "statistics-reading-guide" in html
     assert "statistics-now" in html
+    assert ".statistics-meaning>strong,.statistics-now>strong{font-size:13px" in html
+    assert ".statistics-now{grid-column:1/-1;padding-top:13px;border-top:1px solid #b9d8d0;display:grid;grid-template-columns:1fr;gap:7px" in html
     assert "chart.chart_type==='stacked_bar'" in html
     assert "statistics-bar-total" in html
     assert "data-stat-id" in html
