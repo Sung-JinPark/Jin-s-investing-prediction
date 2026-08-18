@@ -452,6 +452,21 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert "Montage Technology MONT" in ipo_chart["detail_rows"][-1]["label"]
     assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
     assert all(chart["id"] != "global_ai_capital_map" for chart in payload["charts"])
+    dotcom_profile = next(
+        chart for chart in payload["charts"]
+        if chart["id"] == "dotcom_internet_ipo_breadth"
+    )
+    assert dotcom_profile["chart_type"] == "profile_cards"
+    assert [group["title"] for group in dotcom_profile["profile_groups"]] == [
+        "시장에 얼마나 퍼졌나",
+        "상장사가 얼마나 초기였나",
+        "투자자가 얼마나 몰렸나",
+    ]
+    assert [
+        metric["value"]
+        for group in dotcom_profile["profile_groups"]
+        for metric in group["metrics"]
+    ] == [60, 40, 81, 57, 90]
     absorption = next(chart for chart in payload["charts"] if chart["id"] == "ipo_market_absorption")
     assert absorption["series"][2]["marker_radius"] == 10
     assert any(row["period"] == "NASDAQ ADS" and row["label"] == "SK hynix SKHY" for row in absorption["detail_rows"])
@@ -613,6 +628,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert 'href="#statistics" data-v="statistics"' in template
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
+    assert "function statisticsProfileCards" in script
+    assert "chart.chart_type==='profile_cards'" in script
     assert 'data-forecast-extension="false"' in script
     assert "AI 선은 최신 실제 관측에서 멈추며" not in script
     assert "지금 시장의 위치를 살펴봅니다" in script

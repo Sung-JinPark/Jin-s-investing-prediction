@@ -358,17 +358,41 @@
     },
     {
       "id": "dotcom_internet_ipo_breadth",
-      "title": "1999 인터넷 IPO의 폭과 열기",
+      "title": "1999 인터넷 IPO, 얼마나 뜨거웠나",
       "category": "ipo",
       "unit": "percent",
-      "chart_type": "bar",
+      "chart_type": "profile_cards",
       "axis_type": "categorical",
       "max_period": 4,
-      "x_ticks": [[0, "건수 비중"], [1, "공모액 비중"], [2, "저매출 기업"], [3, "신생 기업"], [4, "첫날 상승"]],
-      "description": "동일한 1999년 인터넷 IPO 집계 안에서 시장의 폭, 기업 성숙도와 첫날 열기를 함께 봅니다.",
+      "description": "1999년 미국 IPO 시장에서 인터넷 기업이 얼마나 넓게 퍼졌고, 얼마나 초기 단계 기업까지 상장됐으며, 상장 첫날 투자자가 얼마나 몰렸는지 세 부분으로 봅니다.",
       "caveat": "WilmerHale의 당시 집계는 Ritter 인터넷 플래그와 분류가 달라 289건과 273건을 서로 대체하지 않습니다.",
-      "insight": "1999년 인터넷 IPO는 289건으로 전체 IPO의 약 60%였고 공모액 비중은 40%였습니다. 매출 1억달러 미만 81%, 설립 5년 미만 57%, 첫날 평균 +90%가 함께 나타난 것이 닷컴 말기의 ‘넓은 과열’입니다.",
+      "insight": "1999년에는 미국 IPO 10건 중 약 6건이 인터넷 기업이었습니다. 그 인터넷 IPO 10곳 중 약 8곳은 매출 1억 달러 미만이었고, 상장 첫날 주가는 공모가보다 평균 90% 뛰었습니다.",
       "source_ids": ["WILMERHALE_INTERNET_IPO_1999"],
+      "profile_groups": [
+        {
+          "title": "시장에 얼마나 퍼졌나",
+          "basis": "1999년 미국 전체 IPO 기준",
+          "metrics": [
+            {"label": "IPO 건수", "value": 60, "display_value": "60%", "meaning": "전체 IPO 중 인터넷 기업 비중"},
+            {"label": "공모액", "value": 40, "display_value": "40%", "meaning": "전체 IPO 조달액 중 인터넷 기업 비중"}
+          ]
+        },
+        {
+          "title": "상장사가 얼마나 초기였나",
+          "basis": "1999년 인터넷 IPO 기업 기준",
+          "metrics": [
+            {"label": "저매출 기업", "value": 81, "display_value": "81%", "meaning": "매출 1억 달러 미만 기업 비중"},
+            {"label": "신생 기업", "value": 57, "display_value": "57%", "meaning": "설립 5년 미만 기업 비중"}
+          ]
+        },
+        {
+          "title": "투자자가 얼마나 몰렸나",
+          "basis": "공모가 대비 첫 거래일 종가",
+          "metrics": [
+            {"label": "첫날 평균 상승", "value": 90, "display_value": "+90%", "meaning": "인터넷 IPO 동일가중 평균 상승률"}
+          ]
+        }
+      ],
       "series": [
         {"label": "1999 인터넷 IPO", "era": "dotcom", "color": "#c70039", "points": [
           {"period": 0, "date": "1999-12-31", "value": 60},

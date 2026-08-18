@@ -1036,6 +1036,11 @@ function statisticsValue(unit,value){
   if(unit==='standard_deviation_index')return `${n>=0?'+':''}${n.toFixed(2)}`;
   return n.toFixed(1);
 }
+function statisticsProfileCards(chart){
+  const groups=(chart.profile_groups||[]).filter(group=>(group.metrics||[]).length);
+  if(!groups.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
+  return `<div class="statistics-profile" role="group" aria-label="${esc(chart.title)} 핵심 지표">${groups.map(group=>`<section class="statistics-profile-group"><header><strong>${esc(group.title)}</strong><span>${esc(group.basis)}</span></header><div>${(group.metrics||[]).map(metric=>{const value=Number(metric.value),level=Math.max(0,Math.min(100,Number.isFinite(value)?value:0));return `<article><div><b>${esc(metric.label)}</b><strong>${esc(metric.display_value||statisticsValue(chart.unit,value))}</strong></div><p>${esc(metric.meaning)}</p><i aria-hidden="true"><span style="width:${level.toFixed(1)}%"></span></i></article>`;}).join('')}</div></section>`).join('')}</div>`;
+}
 function statisticsChartSvg(chart,alignment={}){
   const series=(chart.series||[]).filter(row=>(row.points||[]).length),points=series.flatMap(row=>row.points||[]);
   if(!points.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
@@ -1087,7 +1092,8 @@ function renderStatistics(){
   const grid=el('<div class="statistics-grid"></div>');
   charts.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
-    grid.appendChild(el(`<section class="statistics-card" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||chart.unit)}</b></div><div class="statistics-legend">${latest}</div><div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
+    const profile=chart.chart_type==='profile_cards';
+    grid.appendChild(el(`<section class="statistics-card${profile?' is-profile-card':''}" data-stat-category="${esc(chart.category)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(profile?'1999년 실측':chart.display_unit||chart.unit)}</b></div>${profile?'':`<div class="statistics-legend">${latest}</div>`}${profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`}<div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p></div></section>`));
   });
   root.appendChild(grid);
   root.appendChild(el(`<details class="statistics-sources"><summary>사용한 데이터 출처</summary><div>${sources.map(row=>`<article><div><strong>${esc(row.title)}</strong><span>${esc(row.provider)}</span></div><a href="${esc(row.source_url)}" target="_blank" rel="noreferrer">원문 보기 ↗</a></article>`).join('')}</div></details>`));
