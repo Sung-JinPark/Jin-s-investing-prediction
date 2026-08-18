@@ -101,6 +101,7 @@ def test_template_self_contained() -> None:
     html = dashboard.load_template()
     assert "<!--DATA-->" in html
     assert "window.__DATA__" in html and "window.__DATA_URL__" in html
+    assert "fetch(window.__DATA_URL__,{cache:'no-store'})" in html
     assert "<link" not in html.lower(), "외부 스타일시트 링크 발견"
     # 리소스 로드 속성(src=/href=)이 외부 URL을 가리키지 않아야 함
     for attr in re.findall(r'(?:src|href)\s*=\s*["\']([^"\']+)["\']', html, re.I):

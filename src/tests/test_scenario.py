@@ -170,7 +170,10 @@ def test_public_snapshot_reproduces_partition_and_all_quantile_cells() -> None:
     assert result["probabilities_reproduced"] == result["probabilities_expected"]
     assert result["quantile_cells_checked"] == 1764
     assert result["quantile_mismatches"] == 0
-    assert result["quantile_rounding_boundary_cells"] == 1
+    # A refreshed snapshot may have no value on a 10-point display-rounding
+    # boundary.  Keep the historical tolerance capped instead of requiring
+    # that one such machine-epsilon exception must always exist.
+    assert 0 <= result["quantile_rounding_boundary_cells"] <= 1
     assert result["maximum_rounding_boundary_distance"] <= .01
 
 
