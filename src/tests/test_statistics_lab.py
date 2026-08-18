@@ -265,15 +265,6 @@ def _payload_inputs() -> tuple[dict, dict]:
                 "date": date(year, month, 20).isoformat(), "value": sp500_value,
             })
     rows["SP500_DAILY"] = sp500_rows
-    gold_rows = []
-    for offset in range(0, 5 * 12):
-        year = 2022 + offset // 12
-        month = offset % 12 + 1
-        gold_rows.append({
-            "date": date(year, month, 15).isoformat(),
-            "value": 1800.0 * (1.0 + offset * 0.008),
-        })
-    rows["GOLD_DAILY"] = gold_rows
     rows["SEC_IPO_QUARTERLY"] = [
         {"date": "2025-03-01", "period_label": "2025:Q1", "total_count": 84, "us_count": 45, "non_us_count": 39, "corporate_count": 63, "spac_count": 20, "fund_count": 1, "total_proceeds_mn": 11867.2, "corporate_proceeds_mn": 8814.8, "spac_proceeds_mn": 3052.0, "fund_proceeds_mn": 0.4},
         {"date": "2025-06-01", "period_label": "2025:Q2", "total_count": 96, "us_count": 59, "non_us_count": 37, "corporate_count": 48, "spac_count": 46, "fund_count": 2, "total_proceeds_mn": 15808.4, "corporate_proceeds_mn": 7029.6, "spac_proceeds_mn": 8722.5, "fund_proceeds_mn": 56.3},
@@ -416,7 +407,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "forecast_extension": False,
         "endpoint_forcing": False,
     }
-    assert len(payload["charts"]) == 34
+    assert len(payload["charts"]) == 33
     assert all(chart["insight"] for chart in payload["charts"])
     assert all(chart["conclusion"] for chart in payload["charts"])
     assert {chart["id"] for chart in payload["charts"]} >= {
@@ -430,7 +421,6 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
         "ipo_market_absorption", "small_issuer_ipo_share",
         "dotcom_internet_ipo_breadth", "nasdaq_tech_cycle_milestones",
         "sec_ipo_issuer_mix_h1", "sp500_after_two_twenty_percent_years",
-        "gold_vs_us_m2",
         "household_balance_sheet_trend_gap",
         "rate_cycle_since_first_cut", "corporate_bond_pressure",
         "inflation_lead_panel", "housing_manufacturing_warning",
@@ -439,6 +429,7 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert {chart["id"] for chart in payload["charts"]}.isdisjoint({
         "ici_weekly_equity_etf_flow",
         "negative_then_strong_quarter_followthrough",
+        "gold_vs_us_m2",
     })
     by_id = {chart["id"]: chart for chart in payload["charts"]}
     assert by_id["m2_nasdaq"]["scale"] == "log1p"
@@ -449,9 +440,6 @@ def test_build_statistics_lab_has_reference_only_distinct_charts() -> None:
     assert sec_mix["chart_type"] == "stacked_bar"
     assert sec_mix["show_bar_values"] is True
     assert "AI 기업만의 통계가 아닙니다" in sec_mix["reading_guide"]
-    gold_m2 = by_id["gold_vs_us_m2"]
-    assert gold_m2["scale"] == "log1p"
-    assert all(series["points"][0]["value"] == 100.0 for series in gold_m2["series"])
     household_trend = by_id["household_balance_sheet_trend_gap"]["trend_baseline"]
     assert household_trend == {
         "start": "2009-01-01",
