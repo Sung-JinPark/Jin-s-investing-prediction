@@ -1699,51 +1699,43 @@ def build_statistics_lab(
 
     liquidity_chart = next(chart for chart in charts if chart["id"] == "liquidity_position_map")
     liquidity_chart.update({
-        "chart_type": "profile_cards",
-        "display_unit": "현재 규모 + 12개월 변화",
-        "reading_guide": "겹치는 자금 풀을 하나의 점유율로 더하지 않습니다. 위쪽은 M2 대비 규모, 아래쪽은 각 지표의 실제 최근 12개월 변화입니다.",
-        "profile_groups": [
+        "chart_type": "liquidity_bars",
+        "display_unit": "현재 규모 + 12개월 증감",
+        "reading_guide": "왼쪽은 현재 잔액·시장가치, 오른쪽은 각 지표의 실제 최근 12개월 증감입니다.",
+        "liquidity_panels": [
             {
+                "id": "current_scale",
                 "title": "현재 규모",
-                "basis": "미국 M2=100 · 서로 합산하지 않음",
+                "basis": "조 달러 · 서로 합산하지 않음",
+                "mode": "positive",
                 "metrics": [
                     {
                         "label": "미국 기업주식 시장가치",
-                        "value": equity_to_m2,
-                        "level": 100.0,
-                        "display_value": f"${latest_equity_bn / 1000.0:.1f}T · M2의 {equity_to_m2 / 100.0:.1f}배",
-                        "meaning": "연준의 전체 미국 기업주식 시장가치이며 S&P 500 시가총액과는 다릅니다.",
+                        "value": latest_equity_bn / 1000.0,
+                        "display_value": f"${latest_equity_bn / 1000.0:.1f}T",
                     },
                     {
                         "label": "미국 M2",
-                        "value": 100.0,
-                        "level": 100.0 / max(1.0, equity_to_m2) * 100.0,
-                        "display_value": f"${latest_m2_bn / 1000.0:.1f}T · 기준 100",
-                        "meaning": "현금·예금 등 광의통화의 기준 잔액입니다.",
+                        "value": latest_m2_bn / 1000.0,
+                        "display_value": f"${latest_m2_bn / 1000.0:.1f}T",
                     },
                     {
                         "label": "미국 MMF 총자산",
-                        "value": mmf_to_m2,
-                        "level": mmf_to_m2 / max(1.0, equity_to_m2) * 100.0,
-                        "display_value": f"${latest_mmf_bn / 1000.0:.1f}T · M2의 {mmf_to_m2:.0f}%",
-                        "meaning": "연준 Z.1의 전체 MMF 자산이며 일부 소매 MMF는 M2와 겹칩니다.",
+                        "value": latest_mmf_bn / 1000.0,
+                        "display_value": f"${latest_mmf_bn / 1000.0:.1f}T",
                     },
                 ],
             },
             {
+                "id": "trailing_change",
                 "title": "최근 12개월 방향",
-                "basis": "시세·잔액 변화율 · 순유입액 아님",
+                "basis": "가격·잔액 증감률",
+                "mode": "diverging",
                 "metrics": [
                     {
                         "label": label,
                         "value": value,
-                        "level": max(0.0, min(100.0, 50.0 + value)),
                         "display_value": f"{value:+.1f}%",
-                        "meaning": (
-                            "실제 잔액 변화입니다."
-                            if label in {"미국 M2", "미국 MMF"}
-                            else "시장가격 변화이며 같은 금액의 자금 유입을 뜻하지 않습니다."
-                        ),
                     }
                     for label, value in liquidity_changes.items()
                 ],
@@ -2098,6 +2090,47 @@ def build_statistics_lab(
         charts = ipo_charts + charts
 
     chart_by_id = {str(chart["id"]): chart for chart in charts}
+    scope_notes = {
+        "internet_vs_ai_core_ipos": "*미국 상장 IPO 기준 · 한국 ADS 별도 포함",
+        "technology_ipo_count": "*미국 IPO 기준",
+        "technology_ipo_first_day_return": "*미국 IPO 기준",
+        "technology_ipo_price_to_sales": "*미국 IPO 기준",
+        "technology_ipo_profitable_share": "*미국 IPO 기준",
+        "all_ipo_negative_earnings_share": "*미국 IPO 기준",
+        "dotcom_internet_ipo_breadth": "*1999년 미국 IPO 기준",
+        "ipo_market_absorption": "*미국 IPO·기업주식 기준 · 해외 사례 별도",
+        "small_issuer_ipo_share": "*미국 IPO 기준",
+        "m2_nasdaq": "*미국 통화·NASDAQ 기준",
+        "nasdaq_per_m2": "*미국 통화·NASDAQ 기준",
+        "nasdaq_per_household_liquid_assets": "*미국 가계·비영리 자산·NASDAQ 기준",
+        "liquidity_position_map": "*미국 자금 기준 · 금·비트코인은 달러 시세",
+        "yield_curve": "*미국 국채 기준",
+        "policy_rate": "*미국 기준",
+        "valuation_proxy": "*미국 기업 기준",
+        "margin_credit_proxy": "*미국 가계·기업주식 기준",
+        "consumer_credit_growth": "*미국 소비자신용 기준",
+        "loan_standards": "*미국 기업대출 기준",
+        "profit_growth": "*미국 기업 기준",
+        "household_debt_service": "*미국 가계 기준",
+        "unemployment_rate": "*미국 기준",
+        "inflation_rate": "*미국 기준",
+        "financial_conditions": "*미국 금융시장 기준",
+        "rate_cycle_since_first_cut": "*미국 기준",
+        "corporate_bond_pressure": "*미국 회사채·국채 기준",
+        "inflation_lead_panel": "*미국 물가·WTI·구리 대용치 기준",
+        "kospi_external_semiconductor_pulse": "*한국·대만·미국 시장 기준",
+        "housing_manufacturing_warning": "*미국 기준 · 제조업은 필라델피아 권역",
+        "sec_ipo_issuer_mix_h1": "*미국 IPO 시장 기준",
+        "sp500_after_two_twenty_percent_years": "*미국 S&P 500 기준",
+        "household_balance_sheet_trend_gap": "*미국 가계·비영리 자산 기준",
+    }
+    missing_scope_notes = set(chart_by_id) - set(scope_notes)
+    if missing_scope_notes:
+        raise StatisticsLabError(
+            f"statistics scope notes missing: {sorted(missing_scope_notes)}"
+        )
+    for chart_id, chart in chart_by_id.items():
+        chart["scope_note"] = scope_notes[chart_id]
 
     def latest_value(chart_id: str, series_index: int = -1) -> float:
         series = chart_by_id[chart_id]["series"][series_index]
@@ -2389,6 +2422,16 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     for chart in charts:
         if not set(chart.get("source_ids") or []).issubset(known_sources):
             raise StatisticsLabError(f"chart {chart.get('id')} has unknown source")
+        scope_note = str(chart.get("scope_note") or "")
+        if (
+            not scope_note.startswith("*")
+            or len(scope_note) > 48
+            or "출처" in scope_note
+            or "http" in scope_note.lower()
+        ):
+            raise StatisticsLabError(
+                f"chart {chart.get('id')} scope note must be a short market boundary"
+            )
     by_id = {str(chart.get("id")): chart for chart in charts}
     for retired_id in (
         "ici_weekly_equity_etf_flow",
@@ -2437,13 +2480,22 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if int(sox_diagnostic.get("observations", 0)) < 20:
         raise StatisticsLabError("SOX prior-close diagnostic sample too small")
     liquidity_map = by_id.get("liquidity_position_map") or {}
-    if liquidity_map.get("chart_type") != "profile_cards":
-        raise StatisticsLabError("liquidity position map must use profile cards")
+    if liquidity_map.get("chart_type") != "liquidity_bars":
+        raise StatisticsLabError("liquidity position map must use dedicated bars")
     if liquidity_map.get("source_ids") != [
         "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
         "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
     ]:
         raise StatisticsLabError("liquidity position map sources invalid")
+    liquidity_panels = liquidity_map.get("liquidity_panels") or []
+    if [panel.get("mode") for panel in liquidity_panels] != [
+        "positive", "diverging",
+    ]:
+        raise StatisticsLabError("liquidity position map panel modes invalid")
+    if [panel.get("id") for panel in liquidity_panels] != [
+        "current_scale", "trailing_change",
+    ]:
+        raise StatisticsLabError("liquidity position map panel order invalid")
 
 
 def _semantic_snapshot(value: Any) -> Any:

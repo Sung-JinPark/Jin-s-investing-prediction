@@ -473,7 +473,9 @@ def test_workspace_utility_contract() -> None:
     assert "정점에서 12개월 지난 실측 월을 100" not in html
     assert "${esc(chart.description)}" not in html
     assert "원천·갱신일·재구성 상태 보기" not in html
-    assert "사용한 데이터 출처" in html
+    assert "사용한 데이터 출처" not in html
+    assert "statistics-scope-note" in html
+    assert "function statisticsLiquidityBars" in html
     assert ".statistics-filters button{min-width:112px" in html
     assert "font-size:.8rem;line-height:1.25;word-break:keep-all" in html
     assert "overflow-wrap:break-word;word-break:keep-all" in html
