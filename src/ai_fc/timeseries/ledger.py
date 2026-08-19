@@ -400,11 +400,16 @@ def build_parquet_training_view(root: Path) -> Path:
     return target
 
 
-def registered_series(contract: dict[str, Any], *, include_optional: bool = True) -> list[str]:
+def registered_series(
+    contract: dict[str, Any], *, include_optional: bool = True,
+    include_historical_bridge: bool = True,
+) -> list[str]:
     sources = contract["sources"]
     groups = ["daily_required", "growth_required", "inflation_required"]
     if include_optional:
-        groups.extend(("financial_optional", "historical_bridge"))
+        groups.append("financial_optional")
+    if include_historical_bridge:
+        groups.append("historical_bridge")
     return sorted({series for group in groups for series in sources[group]})
 
 
