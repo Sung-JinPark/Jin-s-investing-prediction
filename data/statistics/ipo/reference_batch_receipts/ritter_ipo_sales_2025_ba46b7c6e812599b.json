@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_id": "RITTER_IPO_SALES_2025",
+  "checked_at": "2026-08-19T05:23:09+00:00",
+  "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Sales.pdf",
+  "http_status": 200,
+  "observed_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4",
+  "reviewed_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4",
+  "content_bytes": 216562,
+  "etag": "\"5695778f188ca98a6df6f2c8724dfa03\"",
+  "last_modified": "Wed, 25 Feb 2026 20:07:44 GMT",
+  "status": "current",
+  "error": null,
+  "historical_rows_locked": true,
+  "allowed_update_scope": "current_era_rows_only_after_review"
+}

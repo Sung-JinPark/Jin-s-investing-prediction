@@ -33,6 +33,15 @@ DOTCOM_END = date(1999, 12, 31)
 CURRENT_START = date(2023, 1, 1)
 CURRENT_AXIS_END = date(2027, 12, 31)
 COMPARISON_MONTHS = 59
+IPO_REFERENCE_CHART_IDS = (
+    "internet_vs_ai_core_ipos",
+    "technology_ipo_count",
+    "technology_ipo_first_day_return",
+    "technology_ipo_price_to_sales",
+    "technology_ipo_profitable_share",
+    "all_ipo_negative_earnings_share",
+    "dotcom_internet_ipo_breadth",
+)
 FRED_ENDPOINT = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
 SEC_IPO_ENDPOINT = "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos"
@@ -1482,11 +1491,12 @@ def load_ipo_reference(root: Path) -> dict[str, Any]:
 def _build_ipo_reference_statistics(
     ipo_reference: dict[str, Any], sec_rows: list[dict[str, Any]],
 ) -> dict[str, Any] | None:
-    """Build a separately governed IPO reference card.
+    """Build separately governed IPO reference charts.
 
-    The current count/proceeds denominators are recalculated from the four SEC
-    quarterly corporate-issuer observations.  Historical WilmerHale figures and
-    the first-close comparison stay outside the authoritative numeric ledger.
+    Historical dot-com and technology-study rows retain their cited publication
+    vintage.  Only the current-era rows are eligible for the weekly reviewed IPO
+    batch.  The heat card's current count/proceeds denominators are additionally
+    recalculated from the four SEC quarterly corporate-issuer observations.
     """
     validate_ipo_reference(ipo_reference)
     year = 2025
@@ -1509,10 +1519,23 @@ def _build_ipo_reference_statistics(
     if corporate_count <= 0 or corporate_proceeds_mn <= 0:
         raise StatisticsLabError("SEC annual IPO denominator invalid")
 
-    chart = deepcopy(next(
+    source_charts = {
+        str(row.get("id")): row for row in ipo_reference["charts"]
+    }
+    missing_charts = [
+        chart_id for chart_id in IPO_REFERENCE_CHART_IDS
+        if chart_id not in source_charts
+    ]
+    if missing_charts:
+        raise StatisticsLabError(
+            f"IPO reference chart batch incomplete: {', '.join(missing_charts)}"
+        )
+    charts = [deepcopy(source_charts[chart_id]) for chart_id in IPO_REFERENCE_CHART_IDS]
+    chart = next(
         row for row in ipo_reference["charts"]
         if row.get("id") == "dotcom_internet_ipo_breadth"
-    ))
+    )
+    chart = next(row for row in charts if row["id"] == chart["id"])
     contract = chart["reference_contract"]
     cohort = contract["current_cohort"]
     cohort_count = float(cohort["n"])
@@ -1567,7 +1590,6 @@ def _build_ipo_reference_statistics(
         "refresh_mode": "weekly_official_ledger_projection",
     }
     chart["source_ids"] = [*chart["source_ids"], "SEC_IPO_QUARTERLY"]
-    chart["metric_source_ids"] = list(chart["source_ids"])
     chart["research_context_source_ids"] = [
         "WILMERHALE_INTERNET_IPO_1999", "RITTER_IPO_UNDERPRICING_2025",
     ]
@@ -1576,7 +1598,28 @@ def _build_ipo_reference_statistics(
         f"SEC 일반기업 IPO 기준 AI 핵심 비중은 건수 {count_share:.1f}%·공모액 "
         f"{proceeds_share:.1f}%로, IPO 폭은 1999년 인터넷 열기보다 낮습니다."
     )
-    used_source_ids = set(chart["source_ids"]) - {"SEC_IPO_QUARTERLY"}
+    batch_contract = {
+        "historical_era": "frozen_cited_publication_vintage",
+        "current_era": "weekly_reviewed_batch",
+        "current_only_update": True,
+        "forecast_extension": False,
+        "reviewed_through": ipo_reference["as_of"],
+    }
+    for reference_chart in charts:
+        reference_chart["metric_source_ids"] = list(reference_chart["source_ids"])
+        reference_chart["research_context_source_ids"] = list(
+            reference_chart["source_ids"]
+        )
+        reference_chart["reference_batch"] = deepcopy(batch_contract)
+        reference_chart.setdefault("scope_note", "*미국 IPO 기준 · 참고 통계")
+        reference_chart.setdefault("conclusion", reference_chart["insight"])
+
+    used_source_ids = {
+        source_id
+        for reference_chart in charts
+        for source_id in reference_chart["source_ids"]
+        if source_id != "SEC_IPO_QUARTERLY"
+    }
     source_rows = [
         {
             key: source[key]
@@ -1610,15 +1653,23 @@ def _build_ipo_reference_statistics(
         "official_numeric_ledger": False,
         "as_of": ipo_reference["as_of"],
         "placement": "below_authoritative_statistics",
-        "charts": [chart],
+        "charts": charts,
         "sources": source_rows,
         "update_contract": deepcopy(ipo_reference["reference_publication_contract"]),
+        "batch_refresh": {
+            **batch_contract,
+            "chart_ids": list(IPO_REFERENCE_CHART_IDS),
+            "official_denominator_through": max(str(row["date"]) for row in sec_rows),
+            "academic_source_watch": "hash_checked_weekly_review_before_current_row_update",
+        },
     }
     _validate_ipo_reference_statistics(result)
     return result
 
 
-def _validate_ipo_reference_statistics(payload: dict[str, Any]) -> None:
+def _validate_ipo_reference_statistics(
+    payload: dict[str, Any], *, allow_legacy_single: bool = False,
+) -> None:
     if (
         payload.get("schema_version") != 1
         or payload.get("status") != "ok"
@@ -1630,9 +1681,13 @@ def _validate_ipo_reference_statistics(payload: dict[str, Any]) -> None:
     ):
         raise StatisticsLabError("IPO reference statistics boundary invalid")
     charts = payload.get("charts") or []
-    if [chart.get("id") for chart in charts] != ["dotcom_internet_ipo_breadth"]:
+    chart_ids = [chart.get("id") for chart in charts]
+    legacy_single = chart_ids == ["dotcom_internet_ipo_breadth"]
+    if chart_ids != list(IPO_REFERENCE_CHART_IDS) and not (
+        allow_legacy_single and legacy_single
+    ):
         raise StatisticsLabError("IPO reference statistics chart selection invalid")
-    chart = charts[0]
+    chart = charts[-1]
     metrics = [
         metric
         for group in chart.get("profile_groups") or []
@@ -1649,8 +1704,33 @@ def _validate_ipo_reference_statistics(payload: dict[str, Any]) -> None:
     ):
         raise StatisticsLabError("IPO reference statistics comparison order invalid")
     source_ids = {str(source.get("series_id")) for source in payload.get("sources") or []}
-    if not set(chart.get("source_ids") or []).issubset(source_ids):
-        raise StatisticsLabError("IPO reference statistics source registry invalid")
+    for reference_chart in charts:
+        if not set(reference_chart.get("source_ids") or []).issubset(source_ids):
+            raise StatisticsLabError("IPO reference statistics source registry invalid")
+        if legacy_single:
+            continue
+        batch = reference_chart.get("reference_batch") or {}
+        if (
+            batch.get("historical_era") != "frozen_cited_publication_vintage"
+            or batch.get("current_era") != "weekly_reviewed_batch"
+            or batch.get("current_only_update") is not True
+            or batch.get("forecast_extension") is not False
+        ):
+            raise StatisticsLabError("IPO reference statistics batch boundary invalid")
+        eras = {
+            str(series.get("era"))
+            for series in reference_chart.get("series") or []
+        }
+        if eras != {"dotcom", "current"}:
+            raise StatisticsLabError("IPO reference chart must compare dotcom and current eras")
+    if not legacy_single:
+        batch_refresh = payload.get("batch_refresh") or {}
+        if (
+            batch_refresh.get("chart_ids") != list(IPO_REFERENCE_CHART_IDS)
+            or batch_refresh.get("current_only_update") is not True
+            or batch_refresh.get("historical_era") != "frozen_cited_publication_vintage"
+        ):
+            raise StatisticsLabError("IPO reference batch manifest invalid")
     if any("source_url" in source or "request_url" in source for source in payload["sources"]):
         raise StatisticsLabError("IPO reference statistics projection exposes process URLs")
 
@@ -3179,7 +3259,9 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         raise StatisticsLabError("liquidity position map panel order invalid")
     reference_statistics = payload.get("reference_statistics")
     if reference_statistics is not None:
-        _validate_ipo_reference_statistics(reference_statistics)
+        _validate_ipo_reference_statistics(
+            reference_statistics, allow_legacy_single=not projected,
+        )
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -3625,7 +3707,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
             chart_view["series"].append(series_view)
         projected["charts"].append(chart_view)
     reference_statistics = payload.get("reference_statistics")
-    if reference_statistics is None and (root / IPO_REFERENCE_RELATIVE).is_file():
+    if (root / IPO_REFERENCE_RELATIVE).is_file():
         canonical_rows = _load_authoritative_current_rows(root)
         reference_statistics = _build_ipo_reference_statistics(
             load_ipo_reference(root), canonical_rows["SEC_IPO_QUARTERLY"],

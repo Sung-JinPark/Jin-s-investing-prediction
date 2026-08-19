@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_id": "RITTER_IPO_UNDERPRICING_2025",
+  "checked_at": "2026-08-19T05:23:09+00:00",
+  "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf",
+  "http_status": 200,
+  "observed_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460",
+  "reviewed_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460",
+  "content_bytes": 999202,
+  "etag": "\"308c145c89e09d8bb343c2febb364b1b\"",
+  "last_modified": "Wed, 20 May 2026 22:39:27 GMT",
+  "status": "current",
+  "error": null,
+  "historical_rows_locked": true,
+  "allowed_update_scope": "current_era_rows_only_after_review"
+}

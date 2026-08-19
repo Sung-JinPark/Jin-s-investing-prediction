@@ -173,6 +173,18 @@ ledgers:
     cadence: trading_daily
     criticality: low
     schema_ref: json_object
+  - id: ipo_reference_batch_receipts
+    path: data/statistics/ipo/reference_batch_receipts/*.json
+    kind: archive_dir
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
+  - id: ipo_reference_batch_status
+    path: data/statistics/ipo/reference_batch_status.json
+    kind: mutable_snapshot
+    cadence: weekly
+    criticality: medium
+    schema_ref: json_object
   - id: raw_receipts
     path: data/raw/manifest.jsonl
     kind: jsonl

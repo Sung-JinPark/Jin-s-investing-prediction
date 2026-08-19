@@ -30,7 +30,15 @@
     "placement": "below_authoritative_statistics",
     "refreshable_universe": "SEC quarterly IPO workbook plus SEC EDGAR final prospectus events",
     "classification_review": "strict AI-core membership is reviewed from final prospectus disclosures",
-    "static_fallback_rule": "Historical or annual research figures without a continuously refreshable official equivalent remain explicitly marked reference-only static."
+    "static_fallback_rule": "Historical or annual research figures without a continuously refreshable official equivalent remain explicitly marked reference-only static.",
+    "batch_update": {
+      "cadence": "weekly_after_authoritative_SEC_refresh",
+      "mutable_scope": "current_era_rows_only",
+      "historical_scope": "frozen_cited_publication_vintage",
+      "academic_source_watch": "compare_remote_content_hash_then_require_review_before_current_row_change",
+      "edgar_source_watch": "discover_and_review_completed_424B4_events",
+      "forecast_extension": false
+    }
   },
   "ai_broad_cohort": [
     {

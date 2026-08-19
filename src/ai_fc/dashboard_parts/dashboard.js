@@ -1133,7 +1133,7 @@ function renderStatistics(){
   root.appendChild(grid);
   const reference=stats.reference_statistics||{},referenceCharts=reference.status==='ok'?(reference.charts||[]):[];
   if(referenceCharts.length){
-    const referenceSection=el('<section class="statistics-reference" data-stat-reference-section aria-labelledby="statistics-reference-title"><header><span>REFERENCE</span><h2 id="statistics-reference-title">참고 통계</h2></header><div class="statistics-grid"></div></section>');
+    const referenceSection=el(`<section class="statistics-reference" data-stat-reference-section aria-labelledby="statistics-reference-title"><header><span>REFERENCE · IPO</span><h2 id="statistics-reference-title">IPO 참고 통계</h2><b>${referenceCharts.length}개 비교</b></header><div class="statistics-grid"></div></section>`);
     appendCards(referenceSection.querySelector('.statistics-grid'),referenceCharts,charts.length);
     root.appendChild(referenceSection);
   }

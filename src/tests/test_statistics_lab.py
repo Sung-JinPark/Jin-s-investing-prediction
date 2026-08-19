@@ -24,6 +24,7 @@ from ai_fc.statistics_lab import (
     DAILY_MARKET_SERIES,
     FRED_ENDPOINT,
     FRED_SERIES,
+    IPO_REFERENCE_CHART_IDS,
     StatisticsLabError,
     _fetch_fred,
     _fetch_supplemental,
@@ -700,7 +701,14 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
     reference = payload["reference_statistics"]
     assert reference["placement"] == "below_authoritative_statistics"
     assert reference["official_numeric_ledger"] is False
-    chart = reference["charts"][0]
+    assert [chart["id"] for chart in reference["charts"]] == list(
+        IPO_REFERENCE_CHART_IDS
+    )
+    assert reference["batch_refresh"]["current_only_update"] is True
+    assert reference["batch_refresh"]["historical_era"] == (
+        "frozen_cited_publication_vintage"
+    )
+    chart = reference["charts"][-1]
     metrics = [
         metric
         for group in chart["profile_groups"]
@@ -726,6 +734,28 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         "source_url" not in source and "request_url" not in source
         for source in reference["sources"]
     )
+
+    source_reference = _repo_ipo_reference()
+    source_charts = {
+        chart["id"]: chart for chart in source_reference["charts"]
+    }
+    for reference_chart in reference["charts"]:
+        historical = [
+            series for series in reference_chart["series"]
+            if series["era"] == "dotcom"
+        ]
+        source_historical = [
+            series for series in source_charts[reference_chart["id"]]["series"]
+            if series["era"] == "dotcom"
+        ]
+        assert historical == source_historical
+        assert reference_chart["reference_batch"] == {
+            "historical_era": "frozen_cited_publication_vintage",
+            "current_era": "weekly_reviewed_batch",
+            "current_only_update": True,
+            "forecast_extension": False,
+            "reviewed_through": source_reference["as_of"],
+        }
 
 
 def _append_official_persistence_batch(
@@ -943,6 +973,8 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert '.statistics-profile-row[data-era="current"]>i span' in styles
     assert "stats.reference_statistics" in script
     assert "data-stat-reference-section" in script
+    assert "IPO 참고 통계" in script
+    assert "${referenceCharts.length}개 비교" in script
     assert "referenceSection.hidden=key!=='all'&&key!=='ipo'" in script
     assert ".statistics-reference>header h2" in styles
     assert "function statisticsLiquidityBars" in script
@@ -981,7 +1013,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "unit==='neutral_line_distance'" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
     assert 'cron: "20 0 * * 6"' in workflow
+    assert "python -m ai_fc ipo-reference-batch" in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
+    assert "data/statistics/ipo/reference_batch_receipts" in workflow
     assert "python -m ai_fc inventory" in workflow
     assert "docs/generated/inventory.generated.md" in workflow
 
