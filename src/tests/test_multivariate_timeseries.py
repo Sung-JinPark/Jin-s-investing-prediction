@@ -206,6 +206,55 @@ def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
     assert result["facts"]["appended"] == 9
 
 
+def test_incremental_collection_reports_retryable_series_failure_without_hiding_it(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _root(tmp_path)
+
+    def fake_batches(*args: object, series_id: str, **kwargs: object):
+        del args, kwargs
+        if series_id == "GDPC1":
+            raise AlfredFetchError("HTTP 500", retryable=True, status=500)
+        return [], []
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._vintage_date_batches", fake_batches)
+    result = collect_alfred(
+        root,
+        api_key="x" * 32,
+        series_ids=["GDPC1", "NASDAQCOM"],
+        retrieved_at="2026-08-20T00:00:00+00:00",
+        realtime_start="2026-08-13",
+        realtime_end="2026-08-20",
+        allow_partial_retryable=True,
+    )
+    assert result["failures"] == [{
+        "series_id": "GDPC1",
+        "status": 500,
+        "retryable": True,
+        "reason": "HTTP 500",
+    }]
+    assert [row["series_id"] for row in result["series"]] == ["NASDAQCOM"]
+
+
+def test_bootstrap_still_fails_closed_on_retryable_series_error(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _root(tmp_path)
+
+    def fail(*args: object, **kwargs: object):
+        del args, kwargs
+        raise AlfredFetchError("HTTP 500", retryable=True, status=500)
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._vintage_date_batches", fail)
+    with pytest.raises(AlfredFetchError, match="HTTP 500"):
+        collect_alfred(
+            root,
+            api_key="x" * 32,
+            series_ids=["NASDAQCOM"],
+            retrieved_at="2026-08-20T00:00:00+00:00",
+        )
+
+
 def test_alfred_fetch_retries_socket_timeout_without_leaking_request_url(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
