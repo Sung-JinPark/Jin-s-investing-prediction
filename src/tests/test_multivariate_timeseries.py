@@ -242,7 +242,7 @@ def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
             assert max_attempts == 1
             assert timeout_seconds == 60
             raise AlfredFetchError("HTTP 504", retryable=True, status=504)
-        assert max_attempts == 4
+        assert max_attempts == 1
         assert timeout_seconds == 60
         successful_windows.append((start, end))
         return 200, b'{"observations":[]}'
@@ -268,6 +268,43 @@ def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
             api_key="x" * 32,
             vintage_dates=vintage_dates,
         )
+
+
+def test_alfred_timeout_splits_to_atomic_vintage_before_retry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vintage_dates = [
+        (date(2000, 1, 1) + timedelta(days=index)).isoformat()
+        for index in range(8)
+    ]
+    atomic_windows: list[tuple[str, str]] = []
+
+    def fake_fetch(
+        spec: object, *, series_id: str, endpoint: str, max_attempts: int = 4,
+        timeout_seconds: int = 300,
+    ) -> tuple[int, bytes]:
+        del series_id, endpoint
+        from urllib.parse import parse_qs, urlparse
+
+        query = parse_qs(urlparse(spec.url).query)  # type: ignore[attr-defined]
+        start, end = query["realtime_start"][0], query["realtime_end"][0]
+        span = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+        assert timeout_seconds == 60
+        if span > 1:
+            assert max_attempts == 1
+            raise AlfredFetchError("timeout", retryable=True)
+        assert max_attempts == 4
+        atomic_windows.append((start, end))
+        return 200, b'{"observations":[]}'
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._fetch_alfred", fake_fetch)
+    responses = _observation_responses(
+        series_id="NFCI",
+        api_key="x" * 32,
+        vintage_dates=vintage_dates,
+    )
+    assert len(responses) == len(vintage_dates)
+    assert atomic_windows == [(value, value) for value in vintage_dates]
 
 
 def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> None:
