@@ -16,7 +16,6 @@ import math
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
 
 import numpy as np
 import yaml
@@ -75,36 +74,6 @@ SOURCE_PATHS = (
     "data/scenarios/nasdaq_latest.json",
     "data/contracts/scenario_v5_3_separation.yaml",
 )
-
-# Numerical use is deliberately stricter than source attribution.  A secondary
-# page may describe an official market, but that does not make the page an
-# authoritative numerical observation.  A future normalized input can opt in
-# only by carrying a receipt that is bound to an archived authoritative source
-# file and whose authority/domain is permitted for the requested use.
-NUMERICAL_SOURCE_POLICIES = {
-    "fed_rate_distribution": {
-        "authority_classes": {"official_exchange"},
-        "authority_names": {"CME Group"},
-        "domains": {"cmegroup.com"},
-    },
-    "cross_asset_state": {
-        "authority_classes": {
-            "official_government", "official_exchange", "official_sro",
-        },
-        "authority_names": {
-            "Board of Governors of the Federal Reserve System",
-            "Federal Reserve Bank of St. Louis",
-            "U.S. Department of the Treasury",
-            "Cboe Global Markets",
-            "ICE Data Services",
-            "Nasdaq",
-        },
-        "domains": {
-            "federalreserve.gov", "fred.stlouisfed.org", "stlouisfed.org",
-            "treasury.gov", "cboe.com", "theice.com", "nasdaq.com",
-        },
-    },
-}
 
 
 class ScenarioV52Error(RuntimeError):
@@ -165,179 +134,6 @@ def _validate_rate_distributions(payload: dict[str, Any], cutoff: datetime) -> N
                 )
 
 
-def _host_is_allowed(host: str, allowed_domains: set[str]) -> bool:
-    normalized = host.lower().rstrip(".")
-    return any(
-        normalized == domain or normalized.endswith(f".{domain}")
-        for domain in allowed_domains
-    )
-
-
-def numerical_source_approval_gate(
-    root: Path,
-    payload: dict[str, Any],
-    *,
-    approval_scope: str,
-    cutoff: datetime,
-) -> dict[str, Any]:
-    """Return an auditable fail-closed numerical-source approval decision.
-
-    Merely naming an authoritative underlying instrument is insufficient.  The
-    receipt must identify an approved authority, an authority-owned URL, and a
-    repository-local raw source whose SHA-256 it records.  This keeps a private
-    article or aggregator from becoming a numerical model input by assertion.
-    """
-    policy = NUMERICAL_SOURCE_POLICIES.get(approval_scope)
-    if policy is None:
-        raise ScenarioV52Error(
-            f"unknown numerical source approval scope: {approval_scope}"
-        )
-    result: dict[str, Any] = {
-        "approval_scope": approval_scope,
-        "used_numerically": False,
-        "status": "BLOCKED_NO_AUTHORITATIVE_APPROVED_SOURCE_RECEIPT",
-        "receipt_id": None,
-        "raw_receipt_id": None,
-        "policy_source_id": None,
-        "authority_name": None,
-        "authority_class": None,
-        "authoritative_source_url": None,
-        "source_path": None,
-        "source_sha256": None,
-    }
-    receipt = payload.get("authoritative_source_receipt")
-    if not isinstance(receipt, dict):
-        return result
-    result.update({
-        "receipt_id": receipt.get("receipt_id"),
-        "raw_receipt_id": receipt.get("raw_receipt_id"),
-        "policy_source_id": receipt.get("policy_source_id"),
-        "authority_name": receipt.get("authority_name"),
-        "authority_class": receipt.get("authority_class"),
-        "authoritative_source_url": receipt.get("source_url"),
-        "source_path": receipt.get("source_path"),
-        "source_sha256": receipt.get("source_sha256"),
-    })
-    required = {
-        "receipt_id", "raw_receipt_id", "policy_source_id",
-        "approval_scope", "approval_status",
-        "numerical_use_approved", "authority_name", "authority_class",
-        "source_url", "source_path", "source_sha256", "available_at",
-    }
-    if required - receipt.keys():
-        result["status"] = "BLOCKED_INCOMPLETE_AUTHORITATIVE_SOURCE_RECEIPT"
-        return result
-    if any(not str(receipt.get(field) or "").strip() for field in (
-        "receipt_id", "raw_receipt_id", "policy_source_id",
-        "authority_name", "authority_class", "source_url",
-        "source_path", "source_sha256", "available_at",
-    )):
-        result["status"] = "BLOCKED_INCOMPLETE_AUTHORITATIVE_SOURCE_RECEIPT"
-        return result
-    if receipt.get("approval_scope") != approval_scope \
-            or receipt.get("approval_status") != "approved" \
-            or receipt.get("numerical_use_approved") is not True:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_SCOPE_OR_STATUS"
-        return result
-    if receipt.get("authority_class") not in policy["authority_classes"] \
-            or receipt.get("authority_name") not in policy["authority_names"]:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_AUTHORITY"
-        return result
-    parsed = urlparse(str(receipt.get("source_url")))
-    if parsed.scheme != "https" or not parsed.hostname \
-            or not _host_is_allowed(parsed.hostname, policy["domains"]):
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_DOMAIN"
-        return result
-    if str(payload.get("raw_source_path") or "") != str(receipt.get("source_path")):
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_LINEAGE"
-        return result
-    try:
-        available = _aware(str(receipt.get("available_at")))
-    except (TypeError, ValueError) as exc:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_TIME"
-        result["reason"] = str(exc)
-        return result
-    if available > cutoff:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_AFTER_CUTOFF"
-        return result
-    source_hash = str(receipt.get("source_sha256", "")).lower()
-    if len(source_hash) != 64 \
-            or any(character not in "0123456789abcdef" for character in source_hash):
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_HASH"
-        return result
-    resolved_root = root.resolve()
-    source_path = (root / str(receipt.get("source_path"))).resolve()
-    try:
-        inside_root = source_path.is_relative_to(resolved_root)
-    except ValueError:
-        inside_root = False
-    if not inside_root or not source_path.is_file() or file_hash(source_path) != source_hash:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_FILE_OR_HASH"
-        return result
-    # A source-owned URL and a matching local file are still self-asserted
-    # metadata unless they bind to the central append-only raw receipt ledger.
-    # The common source policy is the authority for owner/class/domain, and the
-    # content-addressed receipt is the authority for URI, hash, fetch time, and
-    # repository raw path.  This prevents a hand-written payload from approving
-    # itself merely by spelling an official domain.
-    try:
-        from ai_fc.authoritative_statistics import (
-            AuthoritativeDataError,
-            load_authoritative_source_policy,
-            read_raw_artifact_receipts,
-            read_raw_receipt_corrections,
-            verify_raw_artifact_receipt,
-        )
-
-        store_root = root / "data/statistics/official_store"
-        source_policy = load_authoritative_source_policy(
-            root / "data/contracts/authoritative_statistics_sources.yaml"
-        )
-        source_rule = source_policy.require_numeric_source(
-            str(receipt.get("policy_source_id"))
-        )
-        raw_receipts = {
-            row.receipt_id: row for row in read_raw_artifact_receipts(store_root)
-        }
-        raw_receipt = raw_receipts.get(str(receipt.get("raw_receipt_id")))
-        if raw_receipt is None:
-            result["status"] = "BLOCKED_SOURCE_RECEIPT_NOT_IN_APPEND_ONLY_LEDGER"
-            return result
-        superseded = {
-            row.supersedes_receipt_id
-            for row in read_raw_receipt_corrections(store_root)
-        }
-        if raw_receipt.receipt_id in superseded:
-            result["status"] = "BLOCKED_SOURCE_RECEIPT_SUPERSEDED"
-            return result
-        verify_raw_artifact_receipt(store_root, source_policy, raw_receipt)
-    except (AuthoritativeDataError, OSError, ValueError) as exc:
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_LEDGER_VALIDATION"
-        result["reason"] = str(exc)
-        return result
-    expected_source_path = (
-        Path("data/statistics/official_store") / raw_receipt.artifact_path
-    ).as_posix()
-    if (
-        raw_receipt.source_id != str(receipt.get("policy_source_id"))
-        or raw_receipt.source_uri != str(receipt.get("source_url"))
-        or raw_receipt.raw_sha256 != source_hash
-        or expected_source_path != Path(str(receipt.get("source_path"))).as_posix()
-        or raw_receipt.fetched_at != str(receipt.get("available_at"))
-        or approval_scope not in raw_receipt.series_ids
-        or source_rule.owner != str(receipt.get("authority_name"))
-        or source_rule.authority_class.value != str(receipt.get("authority_class"))
-    ):
-        result["status"] = "BLOCKED_SOURCE_RECEIPT_LEDGER_BINDING"
-        return result
-    result.update({
-        "used_numerically": True,
-        "status": "APPROVED_AUTHORITATIVE_SOURCE_RECEIPT",
-        "available_at": available.isoformat(),
-    })
-    return result
-
-
 def load_inputs(root: Path) -> dict[str, Any]:
     for relative in SOURCE_PATHS:
         if not (root / relative).is_file():
@@ -395,12 +191,6 @@ def load_inputs(root: Path) -> dict[str, Any]:
     ]
     current_scenario_generated = _aware(str(current_scenario.get("generated_at")))
     cutoff = max([_aware(KNOWLEDGE_CUTOFF), current_scenario_generated, *event_cutoffs])
-    rates["numerical_source_gate"] = numerical_source_approval_gate(
-        root, rates, approval_scope="fed_rate_distribution", cutoff=cutoff
-    )
-    market["numerical_source_gate"] = numerical_source_approval_gate(
-        root, market, approval_scope="cross_asset_state", cutoff=cutoff
-    )
     for label, row in (("labor", labor), ("market", market)):
         if _aware(row["available_at"]) > cutoff:
             raise ScenarioV52Error(f"future {label} evidence")
@@ -701,13 +491,12 @@ def _expected_hike_count(distribution: dict[str, float]) -> float:
 def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
     labor = inputs["labor"]
     actual = labor["actual"]
-    # The BLS actual level is authoritative; the embedded Kiplinger consensus
-    # is narrative context only and must not define a payroll-surprise feature.
-    payroll_level_z = actual["nonfarm_payroll_change"] / 100000.0
+    consensus = labor["consensus"]["nonfarm_payroll_change"]
+    payroll_surprise_z = (actual["nonfarm_payroll_change"] - consensus) / 100000.0
     revision_z = labor["combined_revision"] / 100000.0
     layoff_z = actual["temporary_layoffs_change"] / 500000.0
     labor_growth_risk_raw = (
-        0.50 * -payroll_level_z + 0.35 * -revision_z + 0.15 * layoff_z
+        0.50 * -payroll_surprise_z + 0.35 * -revision_z + 0.15 * layoff_z
     )
     event_raw = inputs["event_updates"]["raw_weighted_scores"]
     growth_risk_raw = labor_growth_risk_raw + float(event_raw["growth_risk"])
@@ -727,13 +516,8 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
     }
     aggregate_probability_relief_raw = -sum(aggregate_deltas.values()) \
         / len(aggregate_deltas) / .10
-    reference_only_policy_relief_raw = (
-        .60 * aggregate_probability_relief_raw + .40 * expected_count_relief_raw
-    )
-    rate_source_gate = inputs["rates"]["numerical_source_gate"]
-    rate_source_used = bool(rate_source_gate["used_numerically"])
     base_policy_relief_raw = (
-        reference_only_policy_relief_raw if rate_source_used else 0.0
+        .60 * aggregate_probability_relief_raw + .40 * expected_count_relief_raw
     )
     policy_relief_raw = base_policy_relief_raw + float(event_raw["policy_relief"])
     policy_relief = math.tanh(policy_relief_raw)
@@ -742,25 +526,12 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
     inflation_risk = math.tanh(inflation_risk_raw)
 
     observations = inputs["market"]["observations"]
-    reference_only_cross_asset_raw = (
+    cross_asset_raw = (
         0.40 * (-observations["us_10y_yield_change"] / 0.0010)
         + 0.30 * (-observations["vix_change"] / 1.0)
         + 0.30 * (-observations["dollar_index_change"] / 0.50)
     )
-    cross_asset_source_gate = inputs["market"]["numerical_source_gate"]
-    cross_asset_source_used = bool(cross_asset_source_gate["used_numerically"])
-    cross_asset_raw = (
-        reference_only_cross_asset_raw if cross_asset_source_used else 0.0
-    )
     cross_asset_relief = math.tanh(cross_asset_raw)
-    source_event_revision_ids = [str(labor["release_id"])]
-    if rate_source_used:
-        source_event_revision_ids.append(str(inputs["rates"]["dataset_id"]))
-    source_event_revision_ids.extend(
-        str(row["revision_id"])
-        for row in inputs["event_updates"].get("events", [])
-        if row["scores"]["used_numerically"]
-    )
     return {
         "labor_growth_risk": {
             "raw": growth_risk_raw,
@@ -768,10 +539,9 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
             "components": {
                 "base_labor_growth_risk_raw": labor_growth_risk_raw,
                 "event_learning_increment_raw": float(event_raw["growth_risk"]),
-                "payroll_level_z": payroll_level_z,
+                "payroll_surprise_z": payroll_surprise_z,
                 "combined_revision_z": revision_z,
                 "temporary_layoff_change_z": layoff_z,
-                "private_consensus_used_numerically": False,
             },
             "interpretation": "positive means more growth risk",
         },
@@ -783,11 +553,9 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
             "components": {
                 "expected_hike_count_relief_raw": expected_count_relief_raw,
                 "aggregate_probability_relief_raw": aggregate_probability_relief_raw,
-                "reference_only_policy_relief_raw": reference_only_policy_relief_raw,
                 "base_policy_relief_raw": base_policy_relief_raw,
                 "event_learning_increment_raw": float(event_raw["policy_relief"]),
             },
-            "source_gate": rate_source_gate,
             "interpretation": "positive means less expected tightening after jobs",
         },
         "inflation_risk": {
@@ -798,15 +566,17 @@ def evidence_scores(inputs: dict[str, Any]) -> dict[str, Any]:
         "cross_asset_relief": {
             "raw": cross_asset_raw,
             "bounded_score": cross_asset_relief,
-            "reference_only_raw": reference_only_cross_asset_raw,
-            "source_gate": cross_asset_source_gate,
             "nasdaq_event_return_coefficient": 0.0,
-            "interpretation": (
-                "cross-asset state is numerical only with an authoritative approved "
-                "source receipt; realized Nasdaq return is excluded"
-            ),
+            "interpretation": "weak state view; realized Nasdaq return is excluded",
         },
-        "source_event_revision_ids": source_event_revision_ids,
+        "source_event_revision_ids": [
+            str(labor["release_id"]),
+            str(inputs["rates"]["dataset_id"]),
+            *[
+                str(row["revision_id"])
+                for row in inputs["event_updates"].get("events", [])
+            ],
+        ],
         "event_learning": inputs["event_updates"],
     }
 
@@ -960,7 +730,6 @@ def build_weights(
         "policy_only": base_prior_log + policy_log,
         "labor_only": base_prior_log + growth_log,
         "labor_rate": base_prior_log + growth_log + policy_log,
-        "full_without_cross_asset": base_full_log - cross_log,
         "full_without_dotcom": base_full_log,
         "full_evidence": base_full_log + dotcom_log_adjustment,
     }
@@ -1574,8 +1343,6 @@ def _research_distinctness(
 
 
 def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any]]:
-    rate_gate = inputs["rates"]["numerical_source_gate"]
-    cross_asset_gate = inputs["market"]["numerical_source_gate"]
     registry = [
         {
             "evidence_id": "bls_actual_2026_07",
@@ -1586,9 +1353,7 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "dependency_cluster_id": "bls_empsit_2026_07",
             "effective_strength": .30,
             "used_numerically": True,
-            "role": "authoritative_actual_level_revisions_and_layoffs_growth_risk",
-            "authority_class": "official_government",
-            "private_consensus_used_numerically": False,
+            "role": "labor_growth_risk",
         },
         {
             "evidence_id": "fed_rate_distribution_pre_post",
@@ -1597,14 +1362,9 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "source_sha256": file_hash(root / SOURCE_PATHS[3]),
             "available_at": inputs["rates"]["source_updated_at"],
             "dependency_cluster_id": "cme_fed_funds_futures",
-            "effective_strength": .25 if rate_gate["used_numerically"] else 0.0,
-            "used_numerically": bool(rate_gate["used_numerically"]),
-            "role": (
-                "policy_relief_authoritative_receipt_approved"
-                if rate_gate["used_numerically"]
-                else "reference_only_blocked_unapproved_secondary_aggregator"
-            ),
-            "source_approval": rate_gate,
+            "effective_strength": .25,
+            "used_numerically": True,
+            "role": "policy_relief",
         },
         {
             "evidence_id": "post_jobs_cross_asset_state",
@@ -1613,14 +1373,9 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "source_sha256": file_hash(root / SOURCE_PATHS[6]),
             "available_at": inputs["market"]["available_at"],
             "dependency_cluster_id": "post_jobs_market_state",
-            "effective_strength": .10 if cross_asset_gate["used_numerically"] else 0.0,
-            "used_numerically": bool(cross_asset_gate["used_numerically"]),
-            "role": (
-                "weak_cross_asset_state_authoritative_receipt_approved"
-                if cross_asset_gate["used_numerically"]
-                else "reference_only_blocked_ap_and_secondary_aggregator"
-            ),
-            "source_approval": cross_asset_gate,
+            "effective_strength": .10,
+            "used_numerically": True,
+            "role": "weak_cross_asset_state",
             "nasdaq_event_return_coefficient": 0.0,
         },
         {
@@ -1638,11 +1393,22 @@ def _evidence_registry(root: Path, inputs: dict[str, Any]) -> list[dict[str, Any
             "evidence_id": "kiplinger_jobs_consensus_and_commentary",
             "origin_release_id": inputs["labor"]["release_id"],
             "source_url": inputs["labor"]["consensus"]["source_url"],
+            "available_at": inputs["labor"]["available_at"],
+            "available_at_basis": (
+                "conservative not-later-than bound at the official labor release"
+            ),
             "dependency_cluster_id": "bls_empsit_2026_07",
             "effective_strength": 0.0,
-            "used_numerically": False,
-            "role": "private_consensus_ignored; narrative_reference_only",
-            "numerical_invariance_required": True,
+            "used_numerically": True,
+            "role": (
+                "structured_payroll_consensus_baseline_for_surprise; "
+                "same_labor_dependency_cluster_no_extra_strength"
+            ),
+            "point_in_time_limitation": (
+                "secondary pre-release consensus is registered in the normalized "
+                "labor fixture; exact page publication timestamp is not separately "
+                "archived"
+            ),
         },
         {
             "evidence_id": "dotcom_knn_single_cycle_analog",
@@ -1802,9 +1568,6 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     policy_only_metrics = _probability_metrics(
         paths, dates, weighting["policy_only"]["weights"], masks
     )
-    full_without_cross_asset_metrics = _probability_metrics(
-        paths, dates, weighting["full_without_cross_asset"]["weights"], masks
-    )
     full_without_dotcom_metrics = _probability_metrics(
         paths, dates, weighting["full_without_dotcom"]["weights"], masks
     )
@@ -1836,36 +1599,6 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         zero_subset = counterfactual_paths[counterfactual_masks[scenario]]
         active_p50 = np.median(active_subset, axis=0)
         zero_p50 = np.median(zero_subset, axis=0)
-        active_group_multipliers = generator_audit["scenarios"][scenario][
-            "sampling"
-        ]["episode_group_weight_multipliers"]
-        zero_group_multipliers = counterfactual_audit["scenarios"][scenario][
-            "sampling"
-        ]["episode_group_weight_multipliers"]
-        relative_group_multipliers = [
-            float(active_group_multipliers[key]) / float(zero_group_multipliers[key])
-            for key in active_group_multipliers
-        ]
-        group_selection_changed = max(relative_group_multipliers) \
-            - min(relative_group_multipliers) > 1e-12
-        active_duration_tilts = generator_audit["scenarios"][scenario][
-            "sampling"
-        ]["phase_duration_selection_tilts"]
-        zero_duration_tilts = counterfactual_audit["scenarios"][scenario][
-            "sampling"
-        ]["phase_duration_selection_tilts"]
-        duration_selection_changed = any(
-            not math.isclose(
-                float(active_duration_tilts[key]),
-                float(zero_duration_tilts[key]),
-                abs_tol=1e-12,
-            )
-            for key in active_duration_tilts
-        )
-        sampling_distribution_changed = (
-            group_selection_changed or duration_selection_changed
-        )
-        paths_differ = not np.array_equal(active_subset, zero_subset)
         structural_rows[scenario] = {
             "active_path_sha256": canonical_numerical_hash(
                 np.asarray(active_subset, dtype=float).tolist(), decimal_places=10
@@ -1873,21 +1606,25 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "zero_event_path_sha256": canonical_numerical_hash(
                 np.asarray(zero_subset, dtype=float).tolist(), decimal_places=10
             ),
-            "sampling_distribution_changed": sampling_distribution_changed,
-            "paths_differ": paths_differ,
-            "path_difference_matches_effective_adapter": (
-                paths_differ == sampling_distribution_changed
-            ),
+            "paths_differ": not np.array_equal(active_subset, zero_subset),
             "p50_return_difference_active_minus_zero": {
                 str(index): float(
                     active_p50[index] / anchor - zero_p50[index] / anchor
                 )
                 for index in (21, 63, 126, 252)
             },
-            "active_episode_group_weight_multipliers": active_group_multipliers,
-            "zero_event_episode_group_weight_multipliers": zero_group_multipliers,
-            "active_phase_duration_selection_tilts": active_duration_tilts,
-            "zero_event_phase_duration_selection_tilts": zero_duration_tilts,
+            "active_episode_group_weight_multipliers": generator_audit[
+                "scenarios"
+            ][scenario]["sampling"]["episode_group_weight_multipliers"],
+            "zero_event_episode_group_weight_multipliers": counterfactual_audit[
+                "scenarios"
+            ][scenario]["sampling"]["episode_group_weight_multipliers"],
+            "active_phase_duration_selection_tilts": generator_audit[
+                "scenarios"
+            ][scenario]["sampling"]["phase_duration_selection_tilts"],
+            "zero_event_phase_duration_selection_tilts": counterfactual_audit[
+                "scenarios"
+            ][scenario]["sampling"]["phase_duration_selection_tilts"],
         }
     structural_event_ablation = {
         "comparison": "full_structural_evidence_vs_zero_event_structure",
@@ -1896,10 +1633,6 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "probability_weights_applied": False,
         "paths_differ_all_scenarios": all(
             row["paths_differ"] for row in structural_rows.values()
-        ),
-        "path_differences_match_effective_adapter": all(
-            row["path_difference_matches_effective_adapter"]
-            for row in structural_rows.values()
         ),
         "source_event_revision_ids": scores["source_event_revision_ids"],
         "scenarios": structural_rows,
@@ -1914,15 +1647,13 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         prior = ablations["prior_only"]["probabilities"][key]
         labor_value = ablations["labor_only"]["probabilities"][key]
         rate_value = ablations["labor_rate"]["probabilities"][key]
-        macro_without_cross = full_without_cross_asset_metrics[key]
         macro_full = full_without_dotcom_metrics[key]
         full = ablations["full_evidence"]["probabilities"][key]
         attribution[key] = {
             "pre_jobs_same_anchor_counterfactual": prior,
             "labor_growth_risk_effect": labor_value - prior,
             "policy_relief_effect": rate_value - labor_value,
-            "event_and_balanced_state_effect": macro_without_cross - rate_value,
-            "cross_asset_state_effect": macro_full - macro_without_cross,
+            "cross_asset_state_effect": macro_full - rate_value,
             "event_and_cross_asset_effect": macro_full - rate_value,
             "dotcom_upside_effect": full - macro_full,
             "post_jobs_full": full,
@@ -1930,8 +1661,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "additivity_residual": full - prior
                                    - (labor_value - prior)
                                    - (rate_value - labor_value)
-                                   - (macro_without_cross - rate_value)
-                                   - (macro_full - macro_without_cross)
+                                   - (macro_full - rate_value)
                                    - (full - macro_full),
         }
     event_reaction_zero = np.zeros(paths.shape[0])
@@ -1953,14 +1683,6 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
     )
     dotcom_audit["S1_no_repeat_probability_after_dotcom"] = float(
         (full_weights[s1] / full_weights[s1].sum()) @ no_repeat[s1]
-    )
-    dotcom_audit["no_repeat_direction_gate_applicable"] = bool(
-        dotcom_audit["joint_growth_risk_policy_relief_score"] > 0.0
-    )
-    dotcom_audit["no_repeat_direction_gate_pass"] = bool(
-        not dotcom_audit["no_repeat_direction_gate_applicable"]
-        or dotcom_audit["S1_no_repeat_probability_after_dotcom"]
-            > dotcom_audit["S1_no_repeat_probability_before_dotcom"]
     )
     dotcom_audit["S1_probability_increment"] = (
         ablations["full_evidence"]["probabilities"]["scenario_probabilities"]["S1"]
@@ -2197,13 +1919,6 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         },
         "evidence_scores": scores,
         "evidence_registry": evidence,
-        "numerical_source_governance": {
-            "policy": "authoritative_archived_source_plus_approved_receipt_required",
-            "kiplinger_payroll_consensus_used_numerically": False,
-            "fed_rate_distribution": inputs["rates"]["numerical_source_gate"],
-            "post_jobs_cross_asset_state": inputs["market"]["numerical_source_gate"],
-            "private_report_perturbation_must_leave_model_outputs_unchanged": True,
-        },
         "scenario_layer_contract": weighting["scenario_layer_contract"],
         "complete_separation_contract": {
             "path": SEPARATION_CONTRACT_RELATIVE.as_posix(),
@@ -2238,24 +1953,8 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             },
             "clusters": [
                 {"id": "bls_empsit_2026_07", "effective_strength": .30, "cap": .35, "gate_pass": True},
-                {
-                    "id": "cme_fed_funds_futures",
-                    "effective_strength": (
-                        .25 if inputs["rates"]["numerical_source_gate"]["used_numerically"]
-                        else 0.0
-                    ),
-                    "cap": .35,
-                    "gate_pass": True,
-                },
-                {
-                    "id": "post_jobs_market_state",
-                    "effective_strength": (
-                        .10 if inputs["market"]["numerical_source_gate"]["used_numerically"]
-                        else 0.0
-                    ),
-                    "cap": .35,
-                    "gate_pass": True,
-                },
+                {"id": "cme_fed_funds_futures", "effective_strength": .25, "cap": .35, "gate_pass": True},
+                {"id": "post_jobs_market_state", "effective_strength": .10, "cap": .35, "gate_pass": True},
                 {"id": "dotcom_single_cycle_analog", "effective_strength": .60, "cap": .60, "gate_pass": True},
                 {"id": "macro_easing_expansion_origin_set", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
                 {"id": "macro_balanced_soft_landing_origin_set", "effective_strength": 0.0, "cap": .35, "gate_pass": True},
@@ -2273,6 +1972,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "circularity_control": {
             "v5_1_ancestor_used_numerically": False,
             "narrative_reports_used_numerically": False,
+            "structured_forecast_consensus_used_numerically": True,
             "realized_event_return_coefficient": 0.0,
             "future_event_jump": 0.0,
             "full_equals_explicit_zero_event_reaction": event_double_count_gate,

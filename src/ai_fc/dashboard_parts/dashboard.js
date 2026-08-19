@@ -1036,10 +1036,19 @@ function statisticsValue(unit,value){
   if(unit==='standard_deviation_index')return `${n>=0?'+':''}${n.toFixed(2)}`;
   return n.toFixed(1);
 }
+function statisticsProfileRows(metric){
+  const comparisons=Array.isArray(metric?.comparisons)?metric.comparisons.filter(row=>row?.value!==null&&row?.value!==''&&Number.isFinite(Number(row?.value))):[];
+  if(comparisons.length)return comparisons.map(row=>({...row,value:Number(row.value)}));
+  const value=Number(metric?.value);
+  return Number.isFinite(value)?[{
+    label:metric?.benchmark_label||'1999 닷컴',era:metric?.era||'dotcom',value,
+    display_value:metric?.display_value,level:metric?.level
+  }]:[];
+}
 function statisticsProfileCards(chart){
   const groups=(chart.profile_groups||[]).filter(group=>(group.metrics||[]).length);
   if(!groups.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
-  return `<div class="statistics-profile" role="group" aria-label="${esc(chart.title)} 핵심 지표">${groups.map(group=>`<section class="statistics-profile-group"><header><strong>${esc(group.title)}</strong><span>${esc(group.basis)}</span></header><div>${(group.metrics||[]).map(metric=>{const value=Number(metric.value),metricLevel=Number(metric.level),level=Math.max(0,Math.min(100,Number.isFinite(metricLevel)?metricLevel:(Number.isFinite(value)?value:0)));return `<article><div><b>${esc(metric.label)}</b><strong>${esc(metric.display_value||statisticsValue(chart.unit,value))}</strong></div><p>${esc(metric.meaning)}</p><i aria-hidden="true"><span style="width:${level.toFixed(1)}%"></span></i></article>`;}).join('')}</div></section>`).join('')}</div>`;
+  return `<div class="statistics-profile" role="group" aria-label="${esc(chart.title)} 핵심 지표">${groups.map(group=>`<section class="statistics-profile-group"><header><strong>${esc(group.title)}</strong><span>${esc(group.basis)}</span></header><div>${(group.metrics||[]).map(metric=>{const rows=statisticsProfileRows(metric);return `<article><div class="statistics-profile-metric"><b>${esc(metric.label)}</b></div><p>${esc(metric.meaning)}</p><div class="statistics-profile-comparison">${rows.map(row=>{const levelValue=Number(row.level),level=Math.max(0,Math.min(100,Number.isFinite(levelValue)?levelValue:Number(row.value)));return `<div class="statistics-profile-row" data-era="${esc(row.era||'reference')}"><div><span>${esc(row.label||'비교값')}</span><strong>${esc(row.display_value||statisticsValue(chart.unit,row.value))}</strong></div><i aria-hidden="true"><span style="width:${level.toFixed(1)}%"></span></i></div>`;}).join('')}</div></article>`;}).join('')}</div></section>`).join('')}</div>`;
 }
 function statisticsLiquidityBars(chart){
   const panels=(chart.liquidity_panels||[]).filter(panel=>(panel.metrics||[]).length);
@@ -1112,17 +1121,24 @@ function renderStatistics(){
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
   const grid=el('<div class="statistics-grid"></div>');
-  charts.forEach((chart,index)=>{
+  const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
     const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars';
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`);
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}`;
-    grid.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div></section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div></section>`));
   });
+  appendCards(grid,charts);
   root.appendChild(grid);
+  const reference=stats.reference_statistics||{},referenceCharts=reference.status==='ok'?(reference.charts||[]):[];
+  if(referenceCharts.length){
+    const referenceSection=el('<section class="statistics-reference" data-stat-reference-section aria-labelledby="statistics-reference-title"><header><span>REFERENCE</span><h2 id="statistics-reference-title">참고 통계</h2></header><div class="statistics-grid"></div></section>');
+    appendCards(referenceSection.querySelector('.statistics-grid'),referenceCharts,charts.length);
+    root.appendChild(referenceSection);
+  }
   mount(root);
-  root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);});
+  root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);const referenceSection=root.querySelector('[data-stat-reference-section]');if(referenceSection)referenceSection.hidden=key!=='all'&&key!=='ipo';});
 }
 
 const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};

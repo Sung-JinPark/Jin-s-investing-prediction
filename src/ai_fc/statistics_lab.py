@@ -14,6 +14,7 @@ import zipfile
 import xml.etree.ElementTree as ET
 from bisect import bisect_left, bisect_right
 from collections import defaultdict
+from copy import deepcopy
 from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
@@ -1386,6 +1387,50 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
     if influence_points != expected_influence:
         raise StatisticsLabError("AI influence-inclusive series does not reconcile")
 
+    heat = next(
+        (chart for chart in charts if chart.get("id") == "dotcom_internet_ipo_breadth"),
+        None,
+    )
+    if heat is None or heat.get("chart_type") != "profile_cards":
+        raise StatisticsLabError("IPO heat comparison profile missing")
+    heat_metrics = [
+        metric
+        for group in heat.get("profile_groups") or []
+        for metric in group.get("metrics") or []
+    ]
+    expected_heat = [
+        ("IPO 건수", 60.0, 1.3),
+        ("공모액", 40.0, 4.1),
+        ("저매출 기업", 81.0, 66.7),
+        ("신생 기업", 57.0, 33.3),
+        ("첫날 평균 상승", 90.0, 18.6),
+    ]
+    if len(heat_metrics) != len(expected_heat):
+        raise StatisticsLabError("IPO heat comparison must contain five metrics")
+    for metric, (label, dotcom_value, current_value) in zip(
+        heat_metrics, expected_heat, strict=True,
+    ):
+        rows = metric.get("comparisons") or []
+        if (
+            metric.get("label") != label
+            or len(rows) != 2
+            or [row.get("era") for row in rows] != ["dotcom", "current"]
+            or [row.get("label") for row in rows]
+            != ["1999 닷컴", "2025 AI 핵심 · n=3"]
+            or not math.isclose(float(rows[0].get("value", math.nan)), dotcom_value)
+            or not math.isclose(float(rows[1].get("value", math.nan)), current_value)
+        ):
+            raise StatisticsLabError(f"IPO heat comparison {label} invalid")
+    heat_contract = heat.get("reference_contract") or {}
+    cohort = heat_contract.get("current_cohort") or {}
+    if (
+        heat_contract.get("publication_class") != "reference_statistics"
+        or heat_contract.get("official_numeric_ledger") is not False
+        or cohort.get("n") != 3
+        or float(cohort.get("proceeds_mn", 0)) != 1755.375
+    ):
+        raise StatisticsLabError("IPO heat reference contract invalid")
+
 
 def load_ipo_reference(root: Path) -> dict[str, Any]:
     path = root / IPO_REFERENCE_RELATIVE
@@ -1397,6 +1442,182 @@ def load_ipo_reference(root: Path) -> dict[str, Any]:
         raise StatisticsLabError("IPO reference cannot be read") from exc
     validate_ipo_reference(payload)
     return payload
+
+
+def _build_ipo_reference_statistics(
+    ipo_reference: dict[str, Any], sec_rows: list[dict[str, Any]],
+) -> dict[str, Any] | None:
+    """Build a separately governed IPO reference card.
+
+    The current count/proceeds denominators are recalculated from the four SEC
+    quarterly corporate-issuer observations.  Historical WilmerHale figures and
+    the first-close comparison stay outside the authoritative numeric ledger.
+    """
+    validate_ipo_reference(ipo_reference)
+    year = 2025
+    annual_rows = {
+        str(row.get("period_label")): row
+        for row in sec_rows
+        if str(row.get("period_label", "")).startswith(f"{year}:Q")
+    }
+    expected_periods = {f"{year}:Q{quarter}" for quarter in range(1, 5)}
+    if set(annual_rows) != expected_periods:
+        return None
+    corporate_count = sum(
+        float(annual_rows[period]["corporate_count"])
+        for period in sorted(expected_periods)
+    )
+    corporate_proceeds_mn = sum(
+        float(annual_rows[period]["corporate_proceeds_mn"])
+        for period in sorted(expected_periods)
+    )
+    if corporate_count <= 0 or corporate_proceeds_mn <= 0:
+        raise StatisticsLabError("SEC annual IPO denominator invalid")
+
+    chart = deepcopy(next(
+        row for row in ipo_reference["charts"]
+        if row.get("id") == "dotcom_internet_ipo_breadth"
+    ))
+    contract = chart["reference_contract"]
+    cohort = contract["current_cohort"]
+    cohort_count = float(cohort["n"])
+    cohort_proceeds_mn = float(cohort["proceeds_mn"])
+    count_share = round(cohort_count / corporate_count * 100.0, 1)
+    proceeds_share = round(cohort_proceeds_mn / corporate_proceeds_mn * 100.0, 1)
+    low_revenue_share = round(
+        float(cohort["low_revenue_count"]) / cohort_count * 100.0, 1,
+    )
+    young_issuer_share = round(
+        float(cohort["young_issuer_count"]) / cohort_count * 100.0, 1,
+    )
+    first_day_return = float(cohort["mean_first_day_return_percent"])
+    current_values = [
+        count_share, proceeds_share, low_revenue_share,
+        young_issuer_share, first_day_return,
+    ]
+    metrics = [
+        metric
+        for group in chart["profile_groups"]
+        for metric in group["metrics"]
+    ]
+    for metric, value in zip(metrics, current_values, strict=True):
+        current = metric["comparisons"][1]
+        current["value"] = value
+        current["level"] = value
+        current["display_value"] = (
+            f"+{value:.1f}%" if metric["label"] == "첫날 평균 상승"
+            else f"{value:.1f}%"
+        )
+    current_series = next(
+        series for series in chart["series"] if series.get("era") == "current"
+    )
+    for point, value in zip(current_series["points"], current_values, strict=True):
+        point["value"] = value
+    contract["calculation_audit"].update({
+        "ipo_share": (
+            f"{cohort_count:.0f} / SEC {year} corporate IPO count "
+            f"{corporate_count:.0f} = {count_share:.1f}%"
+        ),
+        "proceeds_share": (
+            f"${cohort_proceeds_mn / 1000.0:.6f}bn / SEC {year} corporate proceeds "
+            f"${corporate_proceeds_mn / 1000.0:.4f}bn = {proceeds_share:.1f}%"
+        ),
+    })
+    contract["official_overlay"] = {
+        "source_id": "SEC_IPO_QUARTERLY",
+        "year": year,
+        "quarter_count": 4,
+        "corporate_count": int(corporate_count),
+        "corporate_proceeds_mn": corporate_proceeds_mn,
+        "refresh_mode": "weekly_official_ledger_projection",
+    }
+    chart["source_ids"] = [*chart["source_ids"], "SEC_IPO_QUARTERLY"]
+    chart["metric_source_ids"] = list(chart["source_ids"])
+    chart["research_context_source_ids"] = [
+        "WILMERHALE_INTERNET_IPO_1999", "RITTER_IPO_UNDERPRICING_2025",
+    ]
+    chart["scope_note"] = "*미국 IPO 기준 · 참고 통계"
+    chart["conclusion"] = (
+        f"SEC 일반기업 IPO 기준 AI 핵심 비중은 건수 {count_share:.1f}%·공모액 "
+        f"{proceeds_share:.1f}%로, IPO 폭은 1999년 인터넷 열기보다 낮습니다."
+    )
+    used_source_ids = set(chart["source_ids"]) - {"SEC_IPO_QUARTERLY"}
+    source_rows = [
+        {
+            key: source[key]
+            for key in (
+                "series_id", "title", "provider", "native_frequency",
+                "latest_observation", "authority_class", "usage_role", "update_mode",
+            )
+            if key in source
+        }
+        for source in ipo_reference["sources"]
+        if source.get("series_id") in used_source_ids
+    ]
+    source_rows.append({
+        "series_id": "SEC_IPO_QUARTERLY",
+        "title": "U.S. IPO counts and proceeds by issuer type",
+        "provider": "U.S. Securities and Exchange Commission",
+        "native_frequency": "quarterly",
+        "latest_observation": max(str(row["date"]) for row in sec_rows),
+        "authority_class": "official_regulator",
+        "usage_role": "refreshable_current_denominator",
+        "update_mode": "weekly_official_ledger_projection",
+    })
+    result = {
+        "schema_version": 1,
+        "dataset_id": "ipo_reference_statistics_v1",
+        "status": "ok",
+        "label": "참고 통계",
+        "probability_space": "reference_only",
+        "model_use": False,
+        "official_forecast_input": False,
+        "official_numeric_ledger": False,
+        "as_of": ipo_reference["as_of"],
+        "placement": "below_authoritative_statistics",
+        "charts": [chart],
+        "sources": source_rows,
+        "update_contract": deepcopy(ipo_reference["reference_publication_contract"]),
+    }
+    _validate_ipo_reference_statistics(result)
+    return result
+
+
+def _validate_ipo_reference_statistics(payload: dict[str, Any]) -> None:
+    if (
+        payload.get("schema_version") != 1
+        or payload.get("status") != "ok"
+        or payload.get("probability_space") != "reference_only"
+        or payload.get("model_use") is not False
+        or payload.get("official_forecast_input") is not False
+        or payload.get("official_numeric_ledger") is not False
+        or payload.get("placement") != "below_authoritative_statistics"
+    ):
+        raise StatisticsLabError("IPO reference statistics boundary invalid")
+    charts = payload.get("charts") or []
+    if [chart.get("id") for chart in charts] != ["dotcom_internet_ipo_breadth"]:
+        raise StatisticsLabError("IPO reference statistics chart selection invalid")
+    chart = charts[0]
+    metrics = [
+        metric
+        for group in chart.get("profile_groups") or []
+        for metric in group.get("metrics") or []
+    ]
+    if len(metrics) != 5 or any(
+        len(metric.get("comparisons") or []) != 2 for metric in metrics
+    ):
+        raise StatisticsLabError("IPO reference statistics comparison bars invalid")
+    if any(
+        [row.get("era") for row in metric["comparisons"]]
+        != ["dotcom", "current"]
+        for metric in metrics
+    ):
+        raise StatisticsLabError("IPO reference statistics comparison order invalid")
+    source_ids = {str(source.get("series_id")) for source in payload.get("sources") or []}
+    if not set(chart.get("source_ids") or []).issubset(source_ids):
+        raise StatisticsLabError("IPO reference statistics source registry invalid")
+    if any("source_url" in source or "request_url" in source for source in payload["sources"]):
+        raise StatisticsLabError("IPO reference statistics projection exposes process URLs")
 
 
 def load_hmi_reference(root: Path) -> dict[str, Any]:
@@ -2376,14 +2597,15 @@ def build_statistics_lab(
     ipo_reference: dict[str, Any] | None = None,
     hmi_reference: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Build the customer statistics payload from authoritative numeric inputs only.
+    """Build official charts and an explicitly separate reference-statistics layer.
 
     Research reports may still be catalogued outside this function to help frame an
-    insight, but their numbers are deliberately absent from ``source_rows`` and from
-    every chart ``source_ids`` list.  ``ipo_reference`` and ``hmi_reference`` remain
-    accepted for backwards-compatible callers; they are intentionally ignored.
+    insight, but their numbers remain absent from the official ``charts`` and
+    ``sources`` collections.  If a complete annual SEC denominator is available,
+    ``ipo_reference`` produces a separately validated ``reference_statistics`` card.
+    ``hmi_reference`` remains accepted for backwards-compatible callers and ignored.
     """
-    del ipo_reference, hmi_reference
+    del hmi_reference
     required_sources = set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | {"FL663067003"}
     missing = sorted(required_sources - set(source_rows))
     if missing:
@@ -2701,6 +2923,12 @@ def build_statistics_lab(
             "manual_NAHB_snapshot": "replaced_by_Census_HOUST",
         },
     }
+    if ipo_reference is not None:
+        reference_statistics = _build_ipo_reference_statistics(
+            ipo_reference, source_rows["SEC_IPO_QUARTERLY"],
+        )
+        if reference_statistics is not None:
+            payload["reference_statistics"] = reference_statistics
     validate_statistics_lab(payload)
     return payload
 
@@ -2893,6 +3121,9 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         "current_scale", "trailing_change",
     ]:
         raise StatisticsLabError("liquidity position map panel order invalid")
+    reference_statistics = payload.get("reference_statistics")
+    if reference_statistics is not None:
+        _validate_ipo_reference_statistics(reference_statistics)
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -3206,6 +3437,11 @@ def refresh_statistics_lab(
         canonical_rows,
         generated_at=generated_at,
         receipts=receipts,
+        ipo_reference=(
+            load_ipo_reference(root)
+            if (root / IPO_REFERENCE_RELATIVE).is_file()
+            else None
+        ),
     )
 
     latest = root / LATEST_RELATIVE
@@ -3265,7 +3501,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         return payload
     projected = {
         key: value for key, value in payload.items()
-        if key not in {"charts", "ipo_comparison"}
+        if key not in {"charts", "ipo_comparison", "reference_statistics"}
     }
     projected["display_projection"] = True
     public_source_keys = {
@@ -3332,5 +3568,14 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                     series_view[optional] = series[optional]
             chart_view["series"].append(series_view)
         projected["charts"].append(chart_view)
+    reference_statistics = payload.get("reference_statistics")
+    if reference_statistics is None and (root / IPO_REFERENCE_RELATIVE).is_file():
+        canonical_rows = _load_authoritative_current_rows(root)
+        reference_statistics = _build_ipo_reference_statistics(
+            load_ipo_reference(root), canonical_rows["SEC_IPO_QUARTERLY"],
+        )
+    if reference_statistics is not None:
+        projected["reference_statistics"] = deepcopy(reference_statistics)
+        _validate_ipo_reference_statistics(projected["reference_statistics"])
     validate_statistics_lab(projected, projected=True)
     return projected
