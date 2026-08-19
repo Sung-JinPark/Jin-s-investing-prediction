@@ -89,7 +89,7 @@ def build_daily_market_frame(
     current_dollar = _log_change(raw["DTWEXBGS"]).reindex(frame.index)
     predecessor_dollar = _log_change(raw["DTWEXB"]).reindex(frame.index)
     overlap = int((current_dollar.notna() & predecessor_dollar.notna()).sum())
-    if not predecessor_dollar.empty and overlap < 252:
+    if not raw["DTWEXB"].empty and overlap < 252:
         raise RuntimeError("registered DTWEXB/DTWEXBGS bridge lacks 252 overlap sessions")
     frame["dollar_change"] = current_dollar.combine_first(predecessor_dollar)
     # Market observations are never filled across missing source dates. A session is
@@ -180,9 +180,29 @@ def fit_dynamic_factor_state(
             result = model.fit_em(maxiter=300, tolerance=1e-6, disp=False)
         factor = result.factors.filtered.iloc[:, 0].dropna()
         output["states"][factor_name] = None if factor.empty else float(factor.iloc[-1])
+        first_release_by_coordinate: dict[tuple[str, str], str] = {}
+        cutoff = datetime.fromisoformat(knowledge_cutoff)
+        for row in facts:
+            if row.series_id not in series_ids or datetime.fromisoformat(row.available_at) > cutoff:
+                continue
+            period = str(pd.Period(row.observation_time[:7], freq="M"))
+            coordinate = (row.series_id, period)
+            prior = first_release_by_coordinate.get(coordinate)
+            if prior is None or row.available_at < prior:
+                first_release_by_coordinate[coordinate] = row.available_at
+        release_by_period: dict[str, str] = {}
+        for (_, period), available_at in first_release_by_coordinate.items():
+            prior = release_by_period.get(period)
+            if prior is None or available_at > prior:
+                release_by_period[period] = available_at
         output["history"][factor_name] = [
-            {"period": str(period), "value": float(value)}
+            {
+                "period": str(period),
+                "available_at": release_by_period[str(period)],
+                "value": float(value),
+            }
             for period, value in factor.items()
+            if str(period) in release_by_period
         ]
         warning_text = [str(item.message) for item in caught]
         convergence_failures = [
@@ -203,47 +223,57 @@ def fit_dynamic_factor_state(
 def build_realtime_factor_history(
     facts: Iterable[ObservationFact], *, knowledge_cutoff: str,
 ) -> dict[str, Any]:
-    """Refit factor states only on macro release dates for a real-time factor history."""
+    """Build a release-aligned filtered history from one training-cutoff DFM fit.
+
+    This is suitable for the current shadow fit. An offline publication backtest
+    still requires origin-specific parameter re-estimation and therefore keeps a
+    separate HOLD gate until that expensive evaluation is complete.
+    """
     facts = list(facts)
-    cutoff = datetime.fromisoformat(knowledge_cutoff)
-    factor_series = {
-        "PAYEMS", "UNRATE", "INDPRO", "RSAFS", "HOUST", "GDPC1",
-        "CPIAUCSL", "CPILFESL", "PCEPI", "PCEPILFE",
-    }
-    release_times = sorted({
-        datetime.fromisoformat(fact.available_at).astimezone(timezone.utc).isoformat()
-        for fact in facts
-        if fact.series_id in factor_series and datetime.fromisoformat(fact.available_at) <= cutoff
-    })
+    try:
+        fitted = fit_dynamic_factor_state(facts, knowledge_cutoff=knowledge_cutoff)
+    except (RuntimeError, ValueError, np.linalg.LinAlgError) as exc:
+        return {
+            "knowledge_cutoff": knowledge_cutoff,
+            "parameter_estimation_mode": "single_training_cutoff_filtered_history",
+            "origin_specific_parameter_pit": False,
+            "states": [],
+            "failures": [{"available_at": knowledge_cutoff, "reason": str(exc)}],
+            "fit_count": 0,
+            "release_count": 0,
+        }
+    events: dict[str, dict[str, float]] = {}
+    for factor_name in ("growth_factor", "inflation_factor"):
+        for row in fitted["history"].get(factor_name, []):
+            events.setdefault(str(row["available_at"]), {})[factor_name] = float(row["value"])
     states: list[dict[str, Any]] = []
     failures: list[dict[str, str]] = []
-    for release_cutoff in release_times:
-        try:
-            fitted = fit_dynamic_factor_state(facts, knowledge_cutoff=release_cutoff)
-        except (RuntimeError, ValueError, np.linalg.LinAlgError) as exc:
-            failures.append({"available_at": release_cutoff, "reason": str(exc)})
-            continue
-        growth = fitted["states"].get("growth_factor")
-        inflation = fitted["states"].get("inflation_factor")
-        if (growth is None or inflation is None
-                or not all(fitted["converged"].get(name, False)
-                           for name in ("growth_factor", "inflation_factor"))):
-            failures.append({
-                "available_at": release_cutoff,
-                "reason": "DynamicFactorMQ convergence gate failed",
-            })
+    if not all(fitted["converged"].get(name, False)
+               for name in ("growth_factor", "inflation_factor")):
+        failures.append({
+            "available_at": knowledge_cutoff,
+            "reason": "DynamicFactorMQ convergence gate failed",
+        })
+    current: dict[str, float] = {}
+    for release_time in sorted(events):
+        current.update(events[release_time])
+        growth = current.get("growth_factor")
+        inflation = current.get("inflation_factor")
+        if growth is None or inflation is None:
             continue
         states.append({
-            "available_at": release_cutoff,
+            "available_at": release_time,
             "growth_factor": float(growth),
             "inflation_factor": float(inflation),
         })
     return {
         "knowledge_cutoff": knowledge_cutoff,
+        "parameter_estimation_mode": "single_training_cutoff_filtered_history",
+        "origin_specific_parameter_pit": False,
         "states": states,
         "failures": failures,
-        "fit_count": len(states),
-        "release_count": len(release_times),
+        "fit_count": int(not failures),
+        "release_count": len(events),
     }
 
 

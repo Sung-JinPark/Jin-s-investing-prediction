@@ -108,9 +108,9 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
     return {"recovered_from_raw": recovered, **result}
 
 
-def _source_hash(root: Path) -> str:
-    facts = [fact.model_dump(mode="json") for fact in read_facts(root)]
-    return canonical_hash(facts)
+def _source_hash(root: Path, facts: list[Any] | None = None) -> str:
+    material = facts if facts is not None else read_facts(root)
+    return canonical_hash([fact.model_dump(mode="json") for fact in material])
 
 
 def _validate_bundle(bundle: FeatureBundle, contract: dict[str, Any]) -> None:
@@ -159,7 +159,50 @@ def fit_timeseries(
     bundle = assemble_feature_bundle(
         facts, knowledge_cutoff=cutoff, factor_history=factor_history,
     )
-    _validate_bundle(bundle, contract)
+    try:
+        _validate_bundle(bundle, contract)
+    except TimeSeriesPipelineError as exc:
+        hold_seed = {
+            "model_id": contract["model_id"],
+            "knowledge_cutoff": cutoff,
+            "source_hash": _source_hash(root, facts),
+            "reason": str(exc),
+            "sessions": len(bundle.dates),
+        }
+        run_id = f"ts-fit-hold-{canonical_hash(hold_seed)[:24]}"
+        payload = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "model_id": contract["model_id"],
+            "model_version": contract["model_version"],
+            "status": "validation_hold",
+            "as_of": bundle.dates[-1] if bundle.dates else cutoff[:10],
+            "knowledge_cutoff": cutoff,
+            "training": {
+                "start": bundle.dates[0] if bundle.dates else None,
+                "end": bundle.dates[-1] if bundle.dates else None,
+                "sessions": len(bundle.dates),
+                "missing_features": list(bundle.missing_required),
+            },
+            "factor_parameter_pit": {
+                "origin_specific": bool(factor_history.get("origin_specific_parameter_pit")),
+                "mode": factor_history.get("parameter_estimation_mode"),
+            },
+            "source_hash": hold_seed["source_hash"],
+            "contract_hash": canonical_hash(contract),
+            "reasons": [str(exc)],
+        }
+        payload["content_hash"] = canonical_hash(payload)
+        hold_path = root / MODEL_RELATIVE / f"{run_id}.json"
+        _atomic_json(hold_path, payload)
+        _atomic_json(root / MODEL_RELATIVE / "validation_hold_latest.json", {
+            "schema_version": 1,
+            "run_id": run_id,
+            "model_path": hold_path.relative_to(root).as_posix(),
+            "content_hash": payload["content_hash"],
+            "derived_pointer": True,
+        })
+        return payload
     lag_candidates = contract["model"]["varx"]["lag_candidates"]
     alpha_candidates = contract["model"]["varx"]["ridge_alpha_candidates"]
     expanding = select_ridge_varx(
@@ -192,7 +235,7 @@ def fit_timeseries(
         "model_id": contract["model_id"],
         "version": contract["model_version"],
         "knowledge_cutoff": cutoff,
-        "source_hash": _source_hash(root),
+        "source_hash": _source_hash(root, facts),
         "dates": [bundle.dates[0], bundle.dates[-1], len(bundle.dates)],
         "expanding": expanding.manifest(),
         "rolling": rolling.manifest(),
@@ -303,7 +346,48 @@ def backtest_timeseries(
     facts = read_facts(root)
     factor_history = build_realtime_factor_history(facts, knowledge_cutoff=cutoff)
     bundle = assemble_feature_bundle(facts, knowledge_cutoff=cutoff, factor_history=factor_history)
-    _validate_bundle(bundle, contract)
+    try:
+        _validate_bundle(bundle, contract)
+    except TimeSeriesPipelineError as exc:
+        summary = {
+            "schema_version": 1,
+            "status": "hold",
+            "gate_pass": False,
+            "origin_count": 0,
+            "horizons": {},
+            "reasons": [str(exc)],
+        }
+        run_seed = {
+            "model_id": contract["model_id"],
+            "knowledge_cutoff": cutoff,
+            "source_hash": _source_hash(root, facts),
+            "summary": summary,
+        }
+        run_id = f"ts-backtest-{canonical_hash(run_seed)[:24]}"
+        payload = {
+            "schema_version": 1,
+            "run_id": run_id,
+            "model_id": contract["model_id"],
+            "model_version": contract["model_version"],
+            "knowledge_cutoff": cutoff,
+            "source_hash": run_seed["source_hash"],
+            "pit_leakage_count": 0,
+            "purge_sessions": contract["evaluation"]["purge_sessions"],
+            "embargo_sessions": contract["evaluation"]["embargo_sessions"],
+            "summary": summary,
+            "scores": [],
+        }
+        payload["content_hash"] = canonical_hash(payload)
+        run_path = root / RUNS_RELATIVE / f"{run_id}.json"
+        _atomic_json(run_path, payload)
+        _atomic_json(root / RUNS_RELATIVE / "backtest_latest.json", {
+            "schema_version": 1,
+            "run_id": run_id,
+            "run_path": run_path.relative_to(root).as_posix(),
+            "content_hash": payload["content_hash"],
+            "derived_pointer": True,
+        })
+        return payload
     scores, summary = walk_forward_backtest(
         dates=bundle.dates,
         endog=bundle.endogenous,
@@ -313,6 +397,12 @@ def backtest_timeseries(
         outer_start=contract["evaluation"]["outer_start"],
         path_count=path_count,
     )
+    if not factor_history.get("origin_specific_parameter_pit"):
+        summary["gate_pass"] = False
+        summary["status"] = "hold"
+        summary.setdefault("reasons", []).append(
+            "DFM 파라미터의 예측 원점별 PIT 재추정 검증 전입니다."
+        )
     rows = [{
         **row.__dict__,
         "baseline_crps": dict(row.baseline_crps),
@@ -320,7 +410,7 @@ def backtest_timeseries(
     run_seed = {
         "model_id": contract["model_id"],
         "knowledge_cutoff": cutoff,
-        "source_hash": _source_hash(root),
+        "source_hash": _source_hash(root, facts),
         "summary": summary,
     }
     run_id = f"ts-backtest-{canonical_hash(run_seed)[:24]}"
@@ -331,7 +421,11 @@ def backtest_timeseries(
         "model_version": contract["model_version"],
         "knowledge_cutoff": cutoff,
         "source_hash": run_seed["source_hash"],
-        "pit_leakage_count": 0,
+        "pit_leakage_count": 0 if factor_history.get("origin_specific_parameter_pit") else 1,
+        "factor_parameter_pit": {
+            "origin_specific": bool(factor_history.get("origin_specific_parameter_pit")),
+            "mode": factor_history.get("parameter_estimation_mode"),
+        },
         "purge_sessions": contract["evaluation"]["purge_sessions"],
         "embargo_sessions": contract["evaluation"]["embargo_sessions"],
         "summary": summary,
@@ -404,7 +498,7 @@ def forecast_timeseries(
         return _blocked_forecast(
             root, cutoff=cutoff, reasons=list(reasons), missing=list(bundle.missing_required),
         )
-    current_source_hash = _source_hash(root)
+    current_source_hash = _source_hash(root, facts)
     required_daily = set(contract["sources"]["daily_required"])
     availability = [
         datetime.fromisoformat(value)

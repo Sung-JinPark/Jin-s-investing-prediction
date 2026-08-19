@@ -68,7 +68,7 @@ def cmd_timeseries_fit(
     result = _timeseries_exit(
         fit_timeseries, config.ROOT, knowledge_cutoff=knowledge_cutoff,
     )
-    typer.echo(f"fit: {result['run_id']} · {result['as_of']} · shadow")
+    typer.echo(f"fit: {result['run_id']} · {result['as_of']} · {result['status']}")
 
 
 @app.command("timeseries-backtest")
