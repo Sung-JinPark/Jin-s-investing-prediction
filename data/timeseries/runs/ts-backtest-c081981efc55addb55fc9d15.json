@@ -1,0 +1,23 @@
+{
+  "content_hash": "5abaf2f218afe8839f375cb0b95fa862e0a69f343d18367964fc6b91ff1ffc8e",
+  "embargo_sessions": 5,
+  "knowledge_cutoff": "2026-08-19T16:18:49+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "pit_leakage_count": 0,
+  "purge_sessions": 63,
+  "run_id": "ts-backtest-c081981efc55addb55fc9d15",
+  "schema_version": 1,
+  "scores": [],
+  "source_hash": "52355e2936c2513b93f1b0a430b43d2f95e245cf230ae99b1498eee584476a21",
+  "summary": {
+    "gate_pass": false,
+    "horizons": {},
+    "origin_count": 0,
+    "reasons": [
+      "PIT common sample has fewer than 800 completed sessions"
+    ],
+    "schema_version": 1,
+    "status": "hold"
+  }
+}

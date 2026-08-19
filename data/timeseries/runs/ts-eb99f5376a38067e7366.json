@@ -1,0 +1,44 @@
+{
+  "anchor": null,
+  "as_of": "2026-08-19",
+  "backtest": {
+    "gate_pass": false,
+    "metrics": {},
+    "reasons": [
+      "[Errno 2] No such file or directory: '/home/runner/work/Jin-s-investing-prediction/Jin-s-investing-prediction/data/timeseries/models/latest.json'"
+    ],
+    "run_id": null
+  },
+  "combined_with_existing_models": false,
+  "contributions_1d": {},
+  "display_state": "validation_pending",
+  "ensemble": {},
+  "forecast_id": "ts-eb99f5376a38067e7366",
+  "freshness": {
+    "missing_features": [],
+    "required_daily_sla_hours": 48
+  },
+  "generated_at": "2026-08-19T16:19:31+00:00",
+  "hashes": {
+    "content": "b49d92febd0e576c9163797b6f934f486bcfdaf6617ab3f07b95a09e504163f5",
+    "contract": "6c86d4e2174eb6c387b25604a26cc7cd3e6577440fbf1a8ca4ca5f1fdf8d328b",
+    "model": null,
+    "sources": null
+  },
+  "horizons": {},
+  "knowledge_cutoff": "2026-08-19T16:19:31+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "path": {},
+  "probability_space": "research_timeseries_conditional",
+  "probability_unit": "fraction",
+  "publication": {
+    "automatic_champion_promotion": false,
+    "customer_numbers_visible": false,
+    "minimum_shadow_sessions": 126
+  },
+  "schema_version": 1,
+  "status": "shadow",
+  "target": "NASDAQCOM",
+  "transform": "daily_log_return"
+}
