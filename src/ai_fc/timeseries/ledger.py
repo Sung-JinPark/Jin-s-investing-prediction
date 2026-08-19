@@ -31,7 +31,7 @@ RECEIPTS_NAME = "raw_receipts.jsonl"
 OBSERVATIONS_NAME = "observations.jsonl"
 PARQUET_NAME = "observations.parquet"
 ALFRED_JSON_VINTAGE_LIMIT = 2_000
-ALFRED_VINTAGE_BATCH_SIZE = 1_500
+ALFRED_VINTAGE_BATCH_SIZE = 250
 ALFRED_MINIMUM_SPLIT_BATCH_SIZE = 50
 
 
@@ -142,6 +142,11 @@ def normalize_alfred(
         start = _release_timestamp(str(row["realtime_start"]))
         raw_end = row.get("realtime_end")
         end = None if raw_end in (None, "9999-12-31") else _release_timestamp(str(raw_end))
+        if end is not None and datetime.fromisoformat(end) <= datetime.fromisoformat(start):
+            # ALFRED real-time end dates are inclusive. A one-day vintage may
+            # therefore carry identical start/end dates; our fact interval is
+            # exclusive at the right boundary, so retain a positive interval.
+            end = (datetime.fromisoformat(start) + timedelta(seconds=1)).isoformat()
         facts.append(ObservationFact(
             source_id="alfred",
             series_id=series_id,

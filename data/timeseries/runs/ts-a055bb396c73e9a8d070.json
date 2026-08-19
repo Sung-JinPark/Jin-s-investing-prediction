@@ -1,0 +1,44 @@
+{
+  "anchor": null,
+  "as_of": "2026-08-19",
+  "backtest": {
+    "gate_pass": false,
+    "metrics": {},
+    "reasons": [
+      "ALFRED PIT 백필 전이므로 검증 숫자를 표시하지 않습니다."
+    ],
+    "run_id": null
+  },
+  "combined_with_existing_models": false,
+  "contributions_1d": {},
+  "display_state": "validation_pending",
+  "ensemble": {},
+  "forecast_id": "ts-a055bb396c73e9a8d070",
+  "freshness": {
+    "missing_features": [],
+    "required_daily_sla_hours": 48
+  },
+  "generated_at": "2026-08-19T10:08:49+00:00",
+  "hashes": {
+    "content": "b0d24ffca9a0f3fb9a3e2aa5cb14b8df6b5abe0788cf8106538a1f44c46d31aa",
+    "contract": "f115fb3fa66efcc47fe5e4d646eb37d7b12f22f09b9660708b66c92495dfdd20",
+    "model": null,
+    "sources": null
+  },
+  "horizons": {},
+  "knowledge_cutoff": "2026-08-19T10:08:49+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "path": {},
+  "probability_space": "research_timeseries_conditional",
+  "probability_unit": "fraction",
+  "publication": {
+    "automatic_champion_promotion": false,
+    "customer_numbers_visible": false,
+    "minimum_shadow_sessions": 126
+  },
+  "schema_version": 1,
+  "status": "shadow",
+  "target": "NASDAQCOM",
+  "transform": "daily_log_return"
+}
