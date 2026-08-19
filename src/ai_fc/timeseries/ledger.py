@@ -247,7 +247,7 @@ def _fetch_alfred(spec: RequestSpec, *, series_id: str, endpoint: str) -> tuple[
     """Fetch without ever surfacing a credential-bearing URL."""
     for attempt in range(4):
         try:
-            return fetch(spec)
+            return fetch(spec, timeout=300)
         except urllib.error.HTTPError as exc:
             body = exc.read()
             message = f"HTTP {exc.code}"
@@ -266,12 +266,12 @@ def _fetch_alfred(spec: RequestSpec, *, series_id: str, endpoint: str) -> tuple[
             raise RuntimeError(
                 f"ALFRED {series_id} {endpoint} returned HTTP {exc.code}: {message}"
             ) from exc
-        except urllib.error.URLError as exc:
+        except (urllib.error.URLError, TimeoutError) as exc:
             if attempt < 3:
                 time.sleep(2 ** attempt)
                 continue
             raise RuntimeError(
-                f"ALFRED {series_id} {endpoint} network failure"
+                f"ALFRED {series_id} {endpoint} network timeout or failure"
             ) from exc
     raise RuntimeError(f"ALFRED {series_id} {endpoint} retry exhaustion")
 
