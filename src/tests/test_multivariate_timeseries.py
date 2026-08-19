@@ -243,7 +243,7 @@ def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
             assert timeout_seconds == 60
             raise AlfredFetchError("HTTP 504", retryable=True, status=504)
         assert max_attempts == 4
-        assert timeout_seconds == 300
+        assert timeout_seconds == 60
         successful_windows.append((start, end))
         return 200, b'{"observations":[]}'
 

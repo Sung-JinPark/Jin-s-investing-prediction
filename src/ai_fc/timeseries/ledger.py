@@ -308,7 +308,7 @@ def _observation_responses(
         output_type=3,
     )
     attempts = 4 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 1
-    timeout_seconds = 300 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 60
+    timeout_seconds = 60
     try:
         status, payload = _fetch_alfred(
             spec,
