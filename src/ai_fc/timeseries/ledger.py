@@ -253,13 +253,14 @@ def registered_series(contract: dict[str, Any], *, include_optional: bool = True
 
 def _fetch_alfred(
     spec: RequestSpec, *, series_id: str, endpoint: str, max_attempts: int = 4,
+    timeout_seconds: int = 300,
 ) -> tuple[int, bytes]:
     """Fetch without ever surfacing a credential-bearing URL."""
-    if max_attempts < 1:
-        raise ValueError("ALFRED max_attempts must be positive")
+    if max_attempts < 1 or timeout_seconds < 1:
+        raise ValueError("ALFRED attempts and timeout must be positive")
     for attempt in range(max_attempts):
         try:
-            return fetch(spec, timeout=300)
+            return fetch(spec, timeout=timeout_seconds)
         except urllib.error.HTTPError as exc:
             body = exc.read()
             message = f"HTTP {exc.code}"
@@ -307,12 +308,14 @@ def _observation_responses(
         output_type=3,
     )
     attempts = 4 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 1
+    timeout_seconds = 300 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 60
     try:
         status, payload = _fetch_alfred(
             spec,
             series_id=series_id,
             endpoint="observations",
             max_attempts=attempts,
+            timeout_seconds=timeout_seconds,
         )
         return [(spec, status, payload)]
     except AlfredFetchError as exc:
