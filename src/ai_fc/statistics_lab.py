@@ -55,6 +55,41 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "quarterly_end_of_period",
         "aggregation": "last",
     },
+    "CDCABSHNO": {
+        "title": "Households and nonprofit organizations; checkable deposits and currency",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
+    "TSDABSHNO": {
+        "title": "Households and nonprofit organizations; time and savings deposits",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
+    "FGDSLAQ027S": {
+        "title": "Federal government; Treasury securities; liability level",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
+    "BOGZ1FL153064235Q": {
+        "title": "Households and nonprofit organizations; bond mutual fund shares",
+        "provider": "Board of Governors of the Federal Reserve System (US)",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly_end_of_period",
+        "aggregation": "last",
+    },
+    "IQ12260": {
+        "title": "Export price index: nonmonetary gold",
+        "provider": "U.S. Bureau of Labor Statistics",
+        "unit": "index_dec_2024_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
     "DABSHNO": {
         "title": "Households and nonprofit organizations; total currency and deposits including money market fund shares",
         "provider": "Board of Governors of the Federal Reserve System (US)",
@@ -2708,19 +2743,31 @@ def build_statistics_lab(
     latest_m2_bn = float(monthly["M2SL"][-1]["value"])
     latest_mmf_bn = float(monthly["MMMFFAQ027S"][-1]["value"]) / 1000.0
     latest_equity_bn = float(monthly["BOGZ1LM893064105Q"][-1]["value"]) / 1000.0
+    latest_cash_bn = float(monthly["CDCABSHNO"][-1]["value"]) / 1000.0
+    latest_deposits_bn = float(monthly["TSDABSHNO"][-1]["value"]) / 1000.0
+    latest_treasuries_bn = float(monthly["FGDSLAQ027S"][-1]["value"]) / 1000.0
+    latest_bond_funds_bn = float(monthly["BOGZ1FL153064235Q"][-1]["value"]) / 1000.0
     changes = {
         "S&P 500": _trailing_year_change(source_rows["SP500"]),
         "NASDAQ": _trailing_year_change(source_rows["NASDAQCOM"]),
         "비트코인": _trailing_year_change(source_rows["CBBTCUSD"]),
-        "미국 M2": _trailing_year_change(monthly["M2SL"]),
+        "금 가격지수": _trailing_year_change(monthly["IQ12260"]),
+        "미국 연방정부 채권": _trailing_year_change(monthly["FGDSLAQ027S"]),
+        "가계 예금": _trailing_year_change(monthly["TSDABSHNO"]),
+        "가계 현금": _trailing_year_change(monthly["CDCABSHNO"]),
         "미국 MMF": _trailing_year_change(monthly["MMMFFAQ027S"]),
+        "가계 채권펀드": _trailing_year_change(monthly["BOGZ1FL153064235Q"]),
     }
     change_dates = {
         "S&P 500": source_rows["SP500"][-1]["date"],
         "NASDAQ": source_rows["NASDAQCOM"][-1]["date"],
         "비트코인": source_rows["CBBTCUSD"][-1]["date"],
-        "미국 M2": monthly["M2SL"][-1]["date"],
+        "금 가격지수": monthly["IQ12260"][-1]["date"],
+        "미국 연방정부 채권": monthly["FGDSLAQ027S"][-1]["date"],
+        "가계 예금": monthly["TSDABSHNO"][-1]["date"],
+        "가계 현금": monthly["CDCABSHNO"][-1]["date"],
         "미국 MMF": monthly["MMMFFAQ027S"][-1]["date"],
+        "가계 채권펀드": monthly["BOGZ1FL153064235Q"][-1]["date"],
     }
 
     charts = [
@@ -2792,9 +2839,13 @@ def build_statistics_lab(
             {"period": index, "date": change_dates[label], "value": value}
             for index, (label, value) in enumerate(changes.items())
         ], "#28756a")],
-        ["BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S", "SP500", "NASDAQCOM", "CBBTCUSD"],
-        "*미국 기준 · 비트코인은 달러 시세",
-        "왼쪽은 서로 합산하지 않는 현재 규모, 오른쪽은 각 지표의 최근 12개월 실제 변화입니다.",
+        [
+            "BOGZ1LM893064105Q", "FGDSLAQ027S", "TSDABSHNO", "CDCABSHNO",
+            "M2SL", "MMMFFAQ027S", "BOGZ1FL153064235Q", "SP500",
+            "NASDAQCOM", "CBBTCUSD", "IQ12260",
+        ],
+        "*미국 기준 · 금은 공식 가격지수",
+        "대표 주식·안전자산·현금성 자산의 규모와 최근 방향을 함께 봅니다. 항목 간 중복이 있어 합산하지 않습니다.",
     )
     liquidity.update({
         "chart_type": "liquidity_bars",
@@ -2803,8 +2854,12 @@ def build_statistics_lab(
         "liquidity_panels": [
             {"id": "current_scale", "title": "현재 규모", "basis": "조 달러", "mode": "positive", "metrics": [
                 {"label": "미국 기업주식", "value": latest_equity_bn / 1000.0, "display_value": f"${latest_equity_bn / 1000.0:.1f}T"},
+                {"label": "미국 연방정부 채권", "value": latest_treasuries_bn / 1000.0, "display_value": f"${latest_treasuries_bn / 1000.0:.1f}T"},
+                {"label": "가계 예금", "value": latest_deposits_bn / 1000.0, "display_value": f"${latest_deposits_bn / 1000.0:.1f}T"},
+                {"label": "가계 현금", "value": latest_cash_bn / 1000.0, "display_value": f"${latest_cash_bn / 1000.0:.1f}T"},
                 {"label": "미국 M2", "value": latest_m2_bn / 1000.0, "display_value": f"${latest_m2_bn / 1000.0:.1f}T"},
                 {"label": "미국 MMF", "value": latest_mmf_bn / 1000.0, "display_value": f"${latest_mmf_bn / 1000.0:.1f}T"},
+                {"label": "가계 채권펀드", "value": latest_bond_funds_bn / 1000.0, "display_value": f"${latest_bond_funds_bn / 1000.0:.1f}T"},
             ]},
             {"id": "trailing_change", "title": "최근 12개월 방향", "basis": "가격·잔액 증감률", "mode": "diverging", "metrics": [
                 {"label": label, "value": value, "display_value": f"{value:+.1f}%"}
@@ -3108,8 +3163,9 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
     if liquidity_map.get("chart_type") != "liquidity_bars":
         raise StatisticsLabError("liquidity position map must use dedicated bars")
     if liquidity_map.get("source_ids") != [
-        "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
-        "SP500", "NASDAQCOM", "CBBTCUSD",
+        "BOGZ1LM893064105Q", "FGDSLAQ027S", "TSDABSHNO", "CDCABSHNO",
+        "M2SL", "MMMFFAQ027S", "BOGZ1FL153064235Q", "SP500",
+        "NASDAQCOM", "CBBTCUSD", "IQ12260",
     ]:
         raise StatisticsLabError("liquidity position map sources invalid")
     liquidity_panels = liquidity_map.get("liquidity_panels") or []

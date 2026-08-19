@@ -18,7 +18,34 @@ def test_era_analog_is_log_normalized_and_reference_only() -> None:
     assert series["dotcom"]["overlay_start"] == "1995-01"
     assert series["dotcom"]["model_anchor"] == "1996-01"
     assert series["dotcom"]["anchor_month"] == "1996-01"
+    assert model["alignment_contract"] == {
+        "mode": "cycle_start",
+        "base_index": 100,
+        "peak_aligned": False,
+        "display_months": 60,
+        "description": "각 혁신 사이클의 시작월을 100으로 맞춘 비교이며 정점 정렬이 아닙니다.",
+    }
+    assert series["ai"]["peak_aligned"] is False
+    assert series["dotcom"]["source_audit"]["series_id"] == "^IXIC"
     assert model["anchor_sensitivity"]["status"] == "not_computed"
+
+
+def test_dow_overlay_discloses_start_alignment_and_monthly_archive() -> None:
+    model = build_era_analog({
+        "run_ts": "2099-01-02T00:00:00",
+        "analog": {"asof": "2099-01-01"},
+        "overlay": {
+            "ai": [100, 101],
+            "dow1929": [100, 99.1, *([100] * 54), 298.1, 239.8],
+        },
+    })
+    dow = next(row for row in model["series"] if row["id"] == "dow1929")
+    assert dow["overlay_start"] == "1925-01"
+    assert dow["peak_aligned"] is False
+    assert dow["source_audit"]["series_id"] == "M1109BUSM293NNBR"
+    assert dow["source_audit"]["frequency"] == "monthly_average"
+    assert dow["source_audit"]["displayed_peak_month"] == "1929-09"
+    assert dow["source_audit"]["displayed_peak_offset_months"] == 56
 
 
 def test_era_analog_empty_state_does_not_invent_curves() -> None:

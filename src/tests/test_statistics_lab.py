@@ -167,7 +167,8 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
         month = (start.month - 1 + offset) % 12 + 1
         if series_id in {
             "DABSHNO", "BOGZ1LM153064475Q", "BOGZ1LM893064105Q",
-            "MMMFFAQ027S",
+            "MMMFFAQ027S", "CDCABSHNO", "TSDABSHNO", "FGDSLAQ027S",
+            "BOGZ1FL153064235Q",
         } and month not in {1, 4, 7, 10}:
             continue
         if series_id == "BOGZ1FL154022375A" and month != 1:
@@ -175,6 +176,11 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
         baseline = {
             "M2SL": 4000.0,
             "MMMFFAQ027S": 2_000_000.0,
+            "CDCABSHNO": 3_000_000.0,
+            "TSDABSHNO": 8_000_000.0,
+            "FGDSLAQ027S": 15_000_000.0,
+            "BOGZ1FL153064235Q": 2_000_000.0,
+            "IQ12260": 80.0,
             "DABSHNO": 8_000_000.0,
             "BOGZ1LM153064475Q": 9_000_000.0,
             "BOGZ1FL154022375A": 6_000_000.0,
@@ -642,8 +648,9 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
     assert "sp500_after_two_twenty_percent_years" not in by_id
     assert "kospi_external_semiconductor_pulse" not in by_id
     assert by_id["liquidity_position_map"]["source_ids"] == [
-        "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
-        "SP500", "NASDAQCOM", "CBBTCUSD",
+        "BOGZ1LM893064105Q", "FGDSLAQ027S", "TSDABSHNO", "CDCABSHNO",
+        "M2SL", "MMMFFAQ027S", "BOGZ1FL153064235Q", "SP500",
+        "NASDAQCOM", "CBBTCUSD", "IQ12260",
     ]
     assert by_id["korea_semiconductor_cycle"]["source_ids"] == [
         "SPASTT01KRM661N", "NASDAQSOX",

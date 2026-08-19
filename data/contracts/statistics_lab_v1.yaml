@@ -25,6 +25,11 @@ sources:
     series:
       M2SL: {native_frequency: monthly, unit: billions_usd, aggregation: last}
       MMMFFAQ027S: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: total_US_money_market_fund_assets}
+      CDCABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_checkable_deposits_and_currency}
+      TSDABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_time_and_savings_deposits}
+      FGDSLAQ027S: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: federal_government_treasury_securities_outstanding}
+      BOGZ1FL153064235Q: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_bond_mutual_fund_shares}
+      IQ12260: {native_frequency: monthly, unit: index_dec_2024_100, aggregation: last, role: official_nonmonetary_gold_price_direction_proxy}
       DABSHNO: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_currency_deposits_and_money_market_fund_shares}
       BOGZ1LM153064475Q: {native_frequency: quarterly_end_of_period, unit: millions_usd, aggregation: last, role: household_direct_and_indirect_corporate_equity_value}
       BOGZ1FL154022375A: {native_frequency: annual_end_of_period, unit: millions_usd, aggregation: last, role: household_direct_and_indirect_debt_securities_assets}
@@ -175,11 +180,11 @@ customer_chart_contract:
   liquidity_position_map:
     chart_type: liquidity_bars
     card_span: full_statistics_grid_width
-    size_panel: [BOGZ1LM893064105Q_trillions_usd, M2SL_trillions_usd, MMMFFAQ027S_trillions_usd]
-    momentum_panel: [SP500_DAILY_12m_change, GOLD_FUTURES_DAILY_12m_change, BTCUSD_DAILY_12m_change, M2SL_12m_change, MMMFFAQ027S_12m_change]
+    size_panel: [BOGZ1LM893064105Q_trillions_usd, FGDSLAQ027S_trillions_usd, TSDABSHNO_trillions_usd, CDCABSHNO_trillions_usd, M2SL_trillions_usd, MMMFFAQ027S_trillions_usd, BOGZ1FL153064235Q_trillions_usd]
+    momentum_panel: [SP500_12m_change, NASDAQCOM_12m_change, CBBTCUSD_12m_change, IQ12260_12m_change, FGDSLAQ027S_12m_change, TSDABSHNO_12m_change, CDCABSHNO_12m_change, MMMFFAQ027S_12m_change, BOGZ1FL153064235Q_12m_change]
     momentum_axis: symmetric_zero_centered
     aggregation: prohibited
-    interpretation: size_and_direction_panels_are_not_a_market_share_pie_or_fund_flow_measure
+    interpretation: balances_and_price_changes_have_different_units_and_overlapping_pools_so_they_are_never_summed_or_presented_as_market_shares
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count

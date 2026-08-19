@@ -22,6 +22,70 @@ ERA_ANCHORS = {
     "electricity1900": ("전기 1901", "1901-01", "1901-01", True),
 }
 
+# The overlay is deliberately start-aligned, not peak-aligned.  Keep the
+# source/frequency/peak coordinates beside the read model so a UI or audit
+# consumer cannot mistake a cycle-start comparison for a peak drawdown chart.
+ERA_SOURCE_AUDIT = {
+    "ai": {
+        "series_id": "^IXIC",
+        "source_label": "NASDAQ Composite close",
+        "source_class": "market_ohlcv_with_fred_close_corroboration",
+        "frequency": "monthly_last_close",
+        "peak_date": None,
+    },
+    "dotcom": {
+        "series_id": "^IXIC",
+        "source_label": "NASDAQ Composite close",
+        "source_class": "market_ohlcv_with_fred_close_corroboration",
+        "frequency": "monthly_last_close",
+        "peak_date": "2000-03-10",
+    },
+    "japan1989": {
+        "series_id": "^N225",
+        "source_label": "Nikkei 225 close",
+        "source_class": "market_index_proxy",
+        "frequency": "monthly_last_close",
+        "peak_date": "1989-12-29",
+    },
+    "niftyfifty1972": {
+        "series_id": "^SPX",
+        "source_label": "S&P 500 close (Nifty Fifty market proxy)",
+        "source_class": "broad_market_proxy",
+        "frequency": "monthly_last_close",
+        "peak_date": "1972-12-11",
+    },
+    "crypto2021": {
+        "series_id": "BTC-USD",
+        "source_label": "Bitcoin U.S. dollar close",
+        "source_class": "market_price_proxy",
+        "frequency": "monthly_last_close",
+        "peak_date": "2021-11-10",
+    },
+    "biotech2015": {
+        "series_id": "IBB",
+        "source_label": "iShares Biotechnology ETF adjusted close",
+        "source_class": "sector_etf_proxy",
+        "frequency": "monthly_last_close",
+        "peak_date": "2015-07-20",
+    },
+    "dow1929": {
+        "series_id": "M1109BUSM293NNBR",
+        "source_label": "NBER Dow-Jones Industrial Stock Price Index via FRED",
+        "source_class": "archival_research_via_fred",
+        "frequency": "monthly_average",
+        "peak_date": "1929-09-03",
+        "displayed_peak_month": "1929-09",
+        "displayed_peak_offset_months": 56,
+    },
+    "electricity1900": {
+        "series_id": "SHILLER_SP",
+        "source_label": "Shiller U.S. stock-price composite",
+        "source_class": "academic_public_dataset",
+        "frequency": "monthly",
+        "peak_date": "1906-09",
+    },
+}
+
 
 def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
     if not context or not isinstance(context.get("overlay"), dict):
@@ -57,6 +121,15 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
             "result_known": result_known,
             "available_through_m": len(normalized) - 1,
             "log10_index": normalized,
+            "alignment_mode": "cycle_start",
+            "peak_aligned": False,
+            "source_audit": ERA_SOURCE_AUDIT.get(era_id, {
+                "series_id": era_id,
+                "source_label": "unregistered overlay series",
+                "source_class": "unregistered",
+                "frequency": "unknown",
+                "peak_date": None,
+            }),
         })
     analog = context.get("analog") or {}
     forward_dist = analog.get("fwd_return_dist") or {}
@@ -82,6 +155,13 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
         "probability_space": "reference_only",
         "unit": "log10(index/100)",
         "x_unit": "months_from_anchor",
+        "alignment_contract": {
+            "mode": "cycle_start",
+            "base_index": 100,
+            "peak_aligned": False,
+            "display_months": 60,
+            "description": "각 혁신 사이클의 시작월을 100으로 맞춘 비교이며 정점 정렬이 아닙니다.",
+        },
         "run_asof": analog.get("model_run_asof") or analog.get("asof"),
         "model_run_id": analog.get("model_run_id"),
         "forward_reference": {
