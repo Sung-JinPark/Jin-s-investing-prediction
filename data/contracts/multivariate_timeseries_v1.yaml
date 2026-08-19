@@ -27,6 +27,14 @@ sources:
     official_pit: [alfred, bls, bea, fred_market_signals]
     research_numeric_with_receipt: [market_consensus, market_implied_rate_distribution]
   required_receipt_fields: [source_id, series_id, retrieved_at, available_at, raw_sha256, request_fingerprint]
+  alfred_history_query:
+    vintage_inventory_endpoint: fred/series/vintagedates
+    observation_output_type: 3
+    semantics: new_and_revised_observations_only
+    json_vintage_limit: 2000
+    batch_size: 1500
+    initial_realtime_start: 1996-01-01
+    raw_receipt_per_response: true
   registered_historical_bridges:
     DTWEXBGS:
       predecessor: DTWEXB

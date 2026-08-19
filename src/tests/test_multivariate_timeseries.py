@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import math
 import shutil
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -23,7 +24,13 @@ from ai_fc.timeseries.backtest import (
     summarize_backtest,
 )
 from ai_fc.timeseries.contracts import load_contract
-from ai_fc.timeseries.ledger import append_facts, normalize_alfred, persist_response, read_facts
+from ai_fc.timeseries.ledger import (
+    append_facts,
+    collect_alfred,
+    normalize_alfred,
+    persist_response,
+    read_facts,
+)
 from ai_fc.timeseries.events import (
     EventFact,
     append_event,
@@ -84,6 +91,18 @@ def test_timeseries_contract_is_preregistered_and_isolated(tmp_path: Path) -> No
     assert contract["promotion"]["automatic_champion"] is False
 
 
+def test_timeseries_workflow_checkpoints_raw_pit_before_model_work() -> None:
+    workflow = (REPOSITORY_ROOT / ".github/workflows/timeseries-refresh.yml").read_text(
+        encoding="utf-8",
+    )
+    refresh_position = workflow.index("Append ALFRED raw receipts and PIT observations")
+    checkpoint_position = workflow.index("Checkpoint immutable PIT source history")
+    fit_position = workflow.index("Refit DFM and expanding/rolling Ridge VARX")
+    assert refresh_position < checkpoint_position < fit_position
+    assert "git add data/timeseries docs/generated/inventory.generated.md" in workflow
+    assert "data: checkpoint ALFRED PIT history" in workflow
+
+
 def test_raw_first_receipt_redacts_api_key_and_gzip_is_deterministic(tmp_path: Path) -> None:
     root = _root(tmp_path)
     payload = b'{"observations":[]}'
@@ -109,6 +128,61 @@ def test_raw_first_receipt_redacts_api_key_and_gzip_is_deterministic(tmp_path: P
         request_url="https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&api_key=DIFFERENT",
     )
     assert raw.read_bytes() == first
+
+
+def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _root(tmp_path)
+    vintage_dates = [
+        (date(2000, 1, 1) + timedelta(days=index)).isoformat()
+        for index in range(2_001)
+    ]
+    observation_windows: list[tuple[str, str]] = []
+
+    def fake_fetch(spec: object, *, series_id: str, endpoint: str) -> tuple[int, bytes]:
+        del series_id
+        from urllib.parse import parse_qs, urlparse
+
+        query = parse_qs(urlparse(spec.url).query)  # type: ignore[attr-defined]
+        if endpoint == "vintage_dates":
+            payload = {
+                "count": len(vintage_dates),
+                "vintage_dates": vintage_dates,
+            }
+        else:
+            start = query["realtime_start"][0]
+            end = query["realtime_end"][0]
+            observation_windows.append((start, end))
+            payload = {"observations": [{
+                "date": "2000-01-03",
+                "value": str(len(observation_windows)),
+                "realtime_start": start,
+                "realtime_end": end,
+            }]}
+        return 200, json.dumps(payload).encode()
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._fetch_alfred", fake_fetch)
+    result = collect_alfred(
+        root,
+        api_key="x" * 32,
+        series_ids=["NASDAQCOM"],
+        retrieved_at="2026-08-19T00:00:00+00:00",
+        realtime_start="2000-01-01",
+        realtime_end="2006-01-01",
+    )
+
+    assert result["series"][0]["vintage_count"] == 2_001
+    assert result["series"][0]["batch_count"] == 2
+    assert len(observation_windows) == 2
+    assert observation_windows[0] == (vintage_dates[0], vintage_dates[1_499])
+    assert observation_windows[1] == (vintage_dates[1_500], vintage_dates[-1])
+    assert len(result["series"][0]["receipt_ids"]) == 3
+    receipt_lines = (
+        root / "data/timeseries/ledgers/raw_receipts.jsonl"
+    ).read_text(encoding="utf-8").splitlines()
+    assert len(receipt_lines) == 3
+    assert result["facts"]["appended"] == 2
 
 
 def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> None:

@@ -33,8 +33,10 @@ def _url(base: str, params: dict[str, Any]) -> str:
 
 def alfred_request(
     series_id: str, *, api_key: str, realtime_start: str = "1776-07-04",
-    realtime_end: str = "9999-12-31",
+    realtime_end: str = "9999-12-31", output_type: int = 2,
 ) -> RequestSpec:
+    if output_type not in {1, 2, 3, 4}:
+        raise ValueError("ALFRED output_type must be one of 1, 2, 3, 4")
     return RequestSpec(
         source_id="alfred",
         method="GET",
@@ -42,9 +44,31 @@ def alfred_request(
             "series_id": series_id,
             "api_key": api_key,
             "file_type": "json",
-            "output_type": 2,
+            "output_type": output_type,
             "realtime_start": realtime_start,
             "realtime_end": realtime_end,
+        }),
+    )
+
+
+def alfred_vintage_dates_request(
+    series_id: str, *, api_key: str, realtime_start: str = "1776-07-04",
+    realtime_end: str = "9999-12-31", limit: int = 10_000, offset: int = 0,
+) -> RequestSpec:
+    """Build a bounded vintage-date inventory request for PIT batching."""
+    if not 1 <= limit <= 10_000 or offset < 0:
+        raise ValueError("ALFRED vintage date pagination is invalid")
+    return RequestSpec(
+        source_id="alfred",
+        method="GET",
+        url=_url("https://api.stlouisfed.org/fred/series/vintagedates", {
+            "series_id": series_id,
+            "api_key": api_key,
+            "file_type": "json",
+            "realtime_start": realtime_start,
+            "realtime_end": realtime_end,
+            "limit": limit,
+            "offset": offset,
         }),
     )
 

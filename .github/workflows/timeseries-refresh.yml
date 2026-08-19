@@ -43,6 +43,27 @@ jobs:
           fi
       - name: Append ALFRED raw receipts and PIT observations
         run: python -m ai_fc timeseries-refresh
+      - name: Checkpoint immutable PIT source history before model work
+        shell: bash
+        run: |
+          cd src && python -m ai_fc inventory
+          cd ..
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/timeseries docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/.*|docs/generated/inventory.generated.md)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected path staged by PIT checkpoint:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No new PIT source history to checkpoint."
+          else
+            git commit -m "data: checkpoint ALFRED PIT history $(date -u +%F)"
+            git pull --rebase origin main
+            git push origin HEAD:main
+          fi
       - name: Decide weekly and monthly work
         id: cadence
         shell: bash
