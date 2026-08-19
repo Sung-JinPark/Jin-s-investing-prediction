@@ -1,0 +1,138 @@
+{
+  "schema_version": 1,
+  "asof": "2026-08-17",
+  "available_at": "2026-08-19T02:36:07+00:00",
+  "source_fingerprint": "250195433b9412fe2aaddebebaab621e95205d6d9af5739602caf83cde9c0edc",
+  "revision_vintage": "captured_current",
+  "requests": [
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=883612800&period2=1143936000&events=div%2Csplits",
+      "response_sha256": "9c9f0b2766a93048d85b8fe1479f8cc086ceb5da8e680b9742b54ada5b9ca3fb",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=883612800&period2=1143936000&events=div%2Csplits",
+      "response_sha256": "b0d99be01875af2ba5bf4f7cc8d26d973714dc9c87fbd7b93e0a66febf9327fd",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1mo&period1=951868800&period2=1143936000&events=div%2Csplits",
+      "response_sha256": "fdd27c6d009c2c92b406c206433402511504ddfea84cd630734f186c2f06e0a6",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=883612800&period2=1787011200&events=div%2Csplits",
+      "response_sha256": "13f5cde7ea6a1c80e042c48df1c5933a3aacc4dd830aa21df3abc0028041338e",
+      "fetched_at": "2026-08-19T02:34:54+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "^IXIC",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/%5EIXIC?interval=1d&period1=946684800&period2=1787097600&events=div%2Csplits",
+      "response_sha256": "a54592a9c827aa873f4fa9f5fbb347cfb98a80ec897e7321773713f9f4b31a29",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "BTC-USD",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d&period1=946684800&period2=1787097600&events=div%2Csplits",
+      "response_sha256": "a8d3d911e08f197657f6959c9540cffa8f3d5f2dbf159d83f227da366e56d9cd",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=946684800&period2=1787097600&events=div%2Csplits",
+      "response_sha256": "f4f828fcc6b12cf0ab208729d1275e6efb11556d6204dff937787fd8fa216bc8",
+      "fetched_at": "2026-08-19T02:34:53+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "dividend_events",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=883612800&period2=1787011200&events=div",
+      "response_sha256": "a85ae8ec8ef0f4d2c600c966331e00cd496a472ce4a0c0a5744d6dfc8b81cded",
+      "fetched_at": "2026-08-19T02:34:54+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "IYR",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/IYR?interval=1d&period1=959817600&period2=1787011200&events=div%2Csplits",
+      "response_sha256": "de186b74c2ed0224591c77ff8b18347ce9a9222809541a3ccc0f77cbdcc926f2",
+      "fetched_at": "2026-08-19T02:36:07+00:00"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10&cosd=2000-01-01",
+      "response_sha256": "c9bba6111a14b37d7b93b49b025a83d94bebe9fa13c3c3b76c7d697859d25611",
+      "fetched_at": "2026-08-19T02:34:54+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10&cosd=2000-01-01",
+      "response_sha256": "9f53bf80afb259d828995e6a13344b575139e1467f5e343bd0ae75aa588b7890",
+      "fetched_at": "2026-08-19T02:36:02+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=2000-01-01",
+      "response_sha256": "ec378648e00894979b218c091efc00b1232600dbbcfd5ba3e95cbef5cebcc977",
+      "fetched_at": "2026-08-19T02:36:04+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLC0A0CM",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLC0A0CM&cosd=2000-01-01",
+      "response_sha256": "a64d24e08e7ccbb82294a29e0a749213f2ab3672d76cc8f78c9f7d21cd384a14",
+      "fetched_at": "2026-08-19T02:36:05+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "FEDFUNDS",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=2000-01-01",
+      "response_sha256": "5fa4ac42fc0ea1edfb17d918cba65ae9ecf6b0739b3f3a49ad51d7c8dd045650",
+      "fetched_at": "2026-08-19T02:36:05+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_historical_event_study",
+      "series_id": "BAMLH0A0HYM2",
+      "fetched_at": "2026-08-19T02:36:06+00:00",
+      "revision_vintage": "captured_current",
+      "primary_request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2&cosd=1996-01-01",
+      "primary_response_sha256": "ec378648e00894979b218c091efc00b1232600dbbcfd5ba3e95cbef5cebcc977",
+      "primary_coverage_start": "2023-08-21",
+      "redistribution_policy": "derived_event_diagnostics_only",
+      "history_status": "legacy_public_fred_capture_plus_current",
+      "fallback_request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+      "fallback_response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+      "fallback_coverage_start": "1996-12-31",
+      "request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+      "response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+      "limitation": "The current official FRED graph feed exposes only three years; older observations come from a commit-pinned public capture of the FRED series."
+    }
+  ]
+}
