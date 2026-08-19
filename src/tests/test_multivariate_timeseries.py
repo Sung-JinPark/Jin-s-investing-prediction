@@ -25,7 +25,9 @@ from ai_fc.timeseries.backtest import (
 )
 from ai_fc.timeseries.contracts import load_contract
 from ai_fc.timeseries.ledger import (
+    AlfredFetchError,
     _fetch_alfred,
+    _observation_responses,
     append_facts,
     collect_alfred,
     normalize_alfred,
@@ -141,8 +143,11 @@ def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
     ]
     observation_windows: list[tuple[str, str]] = []
 
-    def fake_fetch(spec: object, *, series_id: str, endpoint: str) -> tuple[int, bytes]:
+    def fake_fetch(
+        spec: object, *, series_id: str, endpoint: str, max_attempts: int = 4,
+    ) -> tuple[int, bytes]:
         del series_id
+        assert max_attempts in {1, 4}
         from urllib.parse import parse_qs, urlparse
 
         query = parse_qs(urlparse(spec.url).query)  # type: ignore[attr-defined]
@@ -210,6 +215,54 @@ def test_alfred_fetch_retries_socket_timeout_without_leaking_request_url(
     assert attempts == 3
     assert status == 200
     assert payload == b"{}"
+
+
+def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    vintage_dates = [
+        (date(2000, 1, 1) + timedelta(days=index)).isoformat()
+        for index in range(120)
+    ]
+    successful_windows: list[tuple[str, str]] = []
+
+    def fake_fetch(
+        spec: object, *, series_id: str, endpoint: str, max_attempts: int = 4,
+    ) -> tuple[int, bytes]:
+        del series_id, endpoint
+        from urllib.parse import parse_qs, urlparse
+
+        query = parse_qs(urlparse(spec.url).query)  # type: ignore[attr-defined]
+        start, end = query["realtime_start"][0], query["realtime_end"][0]
+        span = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
+        if span > 50:
+            assert max_attempts == 1
+            raise AlfredFetchError("HTTP 504", retryable=True, status=504)
+        assert max_attempts == 4
+        successful_windows.append((start, end))
+        return 200, b'{"observations":[]}'
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._fetch_alfred", fake_fetch)
+    responses = _observation_responses(
+        series_id="DFF",
+        api_key="x" * 32,
+        vintage_dates=vintage_dates,
+    )
+    assert len(responses) == 4
+    assert successful_windows[0][0] == vintage_dates[0]
+    assert successful_windows[-1][1] == vintage_dates[-1]
+
+    def contract_error(*args: object, **kwargs: object) -> tuple[int, bytes]:
+        del args, kwargs
+        raise AlfredFetchError("HTTP 400", retryable=False, status=400)
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger._fetch_alfred", contract_error)
+    with pytest.raises(AlfredFetchError, match="HTTP 400"):
+        _observation_responses(
+            series_id="DFF",
+            api_key="x" * 32,
+            vintage_dates=vintage_dates,
+        )
 
 
 def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> None:
