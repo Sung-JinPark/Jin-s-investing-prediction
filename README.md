@@ -13,22 +13,25 @@
 
 # Jin's Investing Prediction
 
-**공식 데이터의 현재 위치, 세 가지 연구 전망, 닷컴 사이클 비교를 한 화면에 연결하는 투자 리서치 솔루션입니다.**
+**공식 데이터의 현재 위치, 세 가지 시나리오, PIT 시계열 예측, 닷컴 사이클 비교를 연결하는 투자 리서치 솔루션입니다.**
 
 <p align="center">
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#today"><strong>오늘</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future"><strong>미래 전망</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics"><strong>통계</strong></a> ·
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#timeseries"><strong>시계열 예측</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#trust"><strong>검증</strong></a>
 </p>
 
 ## 무엇을 보여주나요?
 
-| 현재 시장 | 미래 전망 | 닷컴 비교 | 검증 기록 |
-|---|---|---|---|
-| 핵심 가격·거시 신호 | 확장·균형·스트레스 | 유동성·금리·신용·기업가치 | 원천·시점·수정 이력 |
+| 현재 시장 | 미래 전망 | 시계열 예측 | 닷컴 비교 | 검증 기록 |
+|---|---|---|---|---|
+| 핵심 가격·거시 신호 | 확장·균형·스트레스 | NASDAQ 1·5·21·63일 | 유동성·금리·신용·기업가치 | 원천·시점·수정 이력 |
 
 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
+
+시계열 예측은 별도 shadow 모델입니다. ALFRED 과거 빈티지로 혼합빈도 성장·물가 상태와 시장 벡터를 구성하고, 오프라인 워크포워드 Gate를 통과하기 전에는 숫자를 공개하지 않습니다. 기존 미래전망·공식 확률과 결합하지 않습니다.
 
 ## 숫자가 화면에 도착하는 과정
 
@@ -39,8 +42,10 @@ flowchart LR
     C --> D["Excel 감사본"]
     C --> E["통계 장표"]
     C --> F["연구 전망 입력 게이트"]
+    C --> T["PIT DFM + Ridge VARX"]
     E --> G["GitHub Pages"]
     F --> G
+    T --> G
     R["학술 · 리서치"] -. "별도 참고 통계" .-> E
     M["고용 컨센서스 · 시장 금리확률"] -. "출처·available_at 기록" .-> F
 ```
@@ -72,6 +77,8 @@ flowchart LR
 | 누적 관측 DB | [`normalized_observations.jsonl`](data/statistics/official_store/ledgers/normalized_observations.jsonl) |
 | 원문·수집 영수증 | [`raw/`](data/statistics/official_store/raw/) · [`raw_receipts.jsonl`](data/statistics/official_store/ledgers/raw_receipts.jsonl) |
 | 영수증 정정 이력 | [`raw_receipt_corrections.jsonl`](data/statistics/official_store/ledgers/raw_receipt_corrections.jsonl) |
+| 시계열 모델 사전등록 | [`multivariate_timeseries_v1.yaml`](data/contracts/multivariate_timeseries_v1.yaml) |
+| 시계열 PIT 원장·감사본 | [`data/timeseries/`](data/timeseries/) |
 
 ## 로컬 실행
 
@@ -80,6 +87,13 @@ uv sync
 uv run pytest -q
 uv run ai-fc statistics-refresh
 uv run ai-fc official-data-workbook
+uv sync --extra pit --extra timeseries
+uv run ai-fc timeseries-refresh
+uv run ai-fc timeseries-fit
+uv run ai-fc timeseries-backtest
+uv run ai-fc timeseries-forecast
+uv run ai-fc timeseries-verify
+uv run ai-fc timeseries-workbook
 uv run ai-fc dashboard --serve --host 127.0.0.1
 ```
 

@@ -88,6 +88,28 @@ sources:
     license_status: approved
     enabled: true
     contract: data/contracts/fred_market_signals.yaml
+  - id: market_consensus
+    name: Timestamped macro consensus research feed
+    provider: receipt-specific registered survey source
+    tier: licensed
+    endpoint: receipt-defined
+    cadence: event
+    freshness_sla_hours: 24
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/market_consensus.yaml
+  - id: market_implied_rate_distribution
+    name: Timestamped policy-rate probability distribution
+    provider: receipt-specific registered market source
+    tier: licensed
+    endpoint: receipt-defined
+    cadence: event
+    freshness_sla_hours: 24
+    vintage_capability: captured
+    license_status: approved
+    enabled: true
+    contract: data/contracts/market_implied_rate_distribution.yaml
   - id: realty_income_path_v2
     name: Realty Income conditional path diagnostics
     provider: FRED and Yahoo derived diagnostics

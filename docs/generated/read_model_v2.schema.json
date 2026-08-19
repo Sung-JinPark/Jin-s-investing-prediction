@@ -28,6 +28,7 @@
     "band_calibration",
     "liquidity",
     "statistics_lab",
+    "timeseries",
     "multi_year_stress",
     "ai_regime",
     "o_entry_cohort",
@@ -332,6 +333,41 @@
         },
         "sources": {
           "type": "array"
+        }
+      }
+    },
+    "timeseries": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "model_id",
+        "model_version",
+        "probability_space",
+        "combined_with_existing_models",
+        "numbers_visible",
+        "horizons",
+        "path",
+        "backtest"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "validation_pending"
+          ]
+        },
+        "model_id": {
+          "const": "shadow.mf_dfm_ridge_varx_v1"
+        },
+        "combined_with_existing_models": {
+          "const": false
+        },
+        "numbers_visible": {
+          "type": "boolean"
         }
       }
     },

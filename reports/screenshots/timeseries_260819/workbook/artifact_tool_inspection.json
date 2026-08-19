@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "input": "C:\\workspace\\ai-investing\\data\\timeseries\\workbooks\\multivariate_timeseries_latest.xlsx",
+  "sheet_count": 8,
+  "rendered": [
+    {
+      "sheetName": "Sources",
+      "target": "C:\\workspace\\ai-investing\\reports\\screenshots\\timeseries_260819\\workbook\\Sources.png",
+      "bytes": 92324
+    },
+    {
+      "sheetName": "ModelCard",
+      "target": "C:\\workspace\\ai-investing\\reports\\screenshots\\timeseries_260819\\workbook\\ModelCard.png",
+      "bytes": 38297
+    },
+    {
+      "sheetName": "RunManifest",
+      "target": "C:\\workspace\\ai-investing\\reports\\screenshots\\timeseries_260819\\workbook\\RunManifest.png",
+      "bytes": 52166
+    }
+  ],
+  "inspection": "{\"kind\":\"workbook\",\"id\":\"wb/v1ybi2\",\"sheets\":8}\n{\"kind\":\"sheet\",\"id\":\"ws/7qyoil\",\"name\":\"Sources\",\"index\":0,\"range\":\"A1:H27\",\"address\":\"A1:H27\"}\n{\"kind\":\"sheet\",\"id\":\"ws/5muipq\",\"name\":\"Observations\",\"index\":1,\"range\":\"A1:O1\",\"address\":\"A1:O1\"}\n{\"kind\":\"sheet\",\"id\":\"ws/o261cd\",\"name\":\"Vintages\",\"index\":2,\"range\":\"A1:I1\",\"address\":\"A1:I1\"}\n{\"kind\":\"sheet\",\"id\":\"ws/ylzn3b\",\"name\":\"Features\",\"index\":3,\"range\":\"A1:E20\",\"address\":\"A1:E20\"}\n{\"kind\":\"sheet\",\"id\":\"ws/mpnaok\",\"name\":\"Forecasts\",\"index\":4,\"range\":\"A1:I5\",\"address\":\"A1:I5\"}\n{\"kind\":\"sheet\",\"id\":\"ws/sto56b\",\"name\":\"Backtest\",\"index\":5,\"range\":\"A1:M2\",\"address\":\"A1:M2\"}\n{\"kind\":\"sheet\",\"id\":\"ws/7zmj0i\",\"name\":\"ModelCard\",\"index\":6,\"range\":\"A1:B16\",\"address\":\"A1:B16\"}\n{\"kind\":\"sheet\",\"id\":\"ws/amplo4\",\"name\":\"RunManifest\",\"index\":7,\"range\":\"A1:E12\",\"address\":\"A1:E12\"}"
+}

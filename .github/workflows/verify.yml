@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh"]
     types: [completed]
 
 jobs:

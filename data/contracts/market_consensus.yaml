@@ -1,0 +1,14 @@
+schema_version: 1
+source_id: market_consensus
+status: enabled_research_numeric
+scope: multivariate_timeseries_event_overlay_only
+required_fields: [event_type, scheduled_at, consensus, unit, available_at, retrieved_at]
+receipt_required: true
+raw_before_derived: true
+point_in_time: true
+prohibitions:
+  official_forecast_write: true
+  source_without_receipt: true
+  future_actual: true
+  credential_persistence: true
+  license_scope_expansion: true

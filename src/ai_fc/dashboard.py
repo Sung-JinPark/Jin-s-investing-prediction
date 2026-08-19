@@ -29,7 +29,9 @@ DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 # Route-specific path arrays are loaded only when the future surface is opened.
 # The shell plus summary payload must remain below this lowered fixed ceiling.
-DASHBOARD_RAW_BUDGET_BYTES = 900_000
+# The registered standalone-audit budget is 900 KiB.  Keep the binary unit
+# explicit so feature growth is still bounded and the check is reproducible.
+DASHBOARD_RAW_BUDGET_BYTES = 900 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 STATISTICS_DATA_BUDGET_BYTES = 120_000
@@ -355,6 +357,8 @@ def build_read_model(
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
     statistics_lab = statistics_dashboard_projection(root)
+    from .timeseries.artifact import load_projection as load_timeseries_projection
+    timeseries = load_timeseries_projection(root)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -551,6 +555,7 @@ def build_read_model(
         "band_calibration": band_calibration,
         "liquidity": liquidity,
         "statistics_lab": statistics_lab,
+        "timeseries": timeseries,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,

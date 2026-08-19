@@ -14,6 +14,7 @@ on:
       - "src/ai_fc/dashboard_parts/**"
       - "src/ai_fc/scenario_v5_2/**"
       - "src/ai_fc/statistics_lab.py"
+      - "src/ai_fc/timeseries/**"
       - "src/ai_fc/multi_year_stress.py"
       - "data/contracts/statistics_lab_v1.yaml"
       - ".github/workflows/pages.yml"
@@ -21,7 +22,7 @@ on:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
   workflow_dispatch:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh"]
     types: [completed]
 
 permissions:

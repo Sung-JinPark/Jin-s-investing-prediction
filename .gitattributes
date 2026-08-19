@@ -13,6 +13,9 @@
 *.bat  text eol=crlf
 *.zip  binary
 *.ots  binary
+*.gz   binary
+*.parquet binary
+*.xlsx binary
 *.jsonl -text
 
 # 불변/원장 경로: 바이트 보존 — EOL 변환 금지 (해시 앵커 .hashes 보호)
@@ -22,3 +25,5 @@ calibration/**     -text
 data/ml_history/** -text
 data/raw/**        -text
 data/statistics/official_store/raw/** -text
+data/timeseries/raw/** -text
+data/timeseries/ledgers/** -text

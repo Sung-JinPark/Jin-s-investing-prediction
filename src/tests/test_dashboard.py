@@ -61,7 +61,7 @@ def test_read_model_shape(repo: Path) -> None:
                 "resolutions", "ml_runs", "market_runs", "calibration", "due",
                 "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
                 "probability_semantics", "changelog", "era_analog", "cross_asset",
-                "source_monitoring"):
+                "source_monitoring", "timeseries"):
         assert key in m, f"read-model 키 누락: {key}"
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
@@ -149,7 +149,7 @@ def test_ui_contract() -> None:
     html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
     # U1a의 4개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
-    for v in ("today", "future", "records", "trust"):
+    for v in ("today", "future", "timeseries", "records", "trust"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
@@ -224,6 +224,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
         ("today", "오늘"),
         ("future", "미래 탐색"),
         ("statistics", "통계 비교"),
+        ("timeseries", "시계열 예측"),
         ("records", "기록과 검증"),
         ("trust", "데이터와 신뢰"),
     ):
@@ -248,6 +249,11 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     assert "핵심 신호 2개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
     assert 'body[data-view="today"] .site-footer{display:none}' in css
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
+    assert "function renderTimeseries()" in script
+    assert "numbers_visible===true" in script
+    assert "기존 미래전망으로 자동 전환하지 않습니다" in script
+    assert ".timeseries-horizons{display:grid;grid-template-columns:repeat(4" in css
+    assert "grid-template-columns:repeat(6" in css
 
 
 def test_u1a_route_and_home_render_evidence() -> None:
@@ -873,7 +879,7 @@ def test_render_evidence_pipeline_uses_playwright_not_direct_cdp() -> None:
     assert "playwright.chromium.launch" in source
     assert "Page.captureScreenshot" not in source
     assert "new_cdp_session" not in source
-    assert "len(rows) == 30" in source
+    assert "len(rows) == len(_routes(data)) * len(VIEWPORTS)" in source
 
 
 def test_write_dashboard(repo: Path) -> None:
