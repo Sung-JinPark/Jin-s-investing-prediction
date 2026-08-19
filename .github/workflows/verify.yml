@@ -19,7 +19,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: deps (시크릿 불필요 — 프로젝트 + PIT 검증 의존성)
-        run: pip install -e ".[pit]" pytest
+        run: pip install -e ".[pit,timeseries]" pytest
       - name: unit tests (src)
         run: python -m pytest src/tests -q
       - name: immutability drift check
