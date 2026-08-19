@@ -7,6 +7,8 @@ import hashlib
 import json
 import os
 import urllib.parse
+import urllib.error
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Iterable
@@ -15,7 +17,12 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, ConfigDict, Field
 
 from ai_fc.facts import ObservationFact
-from ai_fc.official_sources import alfred_request, fetch
+from ai_fc.official_sources import (
+    RequestSpec,
+    alfred_request,
+    alfred_vintage_dates_request,
+    fetch,
+)
 
 from .contracts import FACTS_RELATIVE, LEDGER_RELATIVE, RAW_RELATIVE, canonical_hash, load_contract
 
@@ -23,6 +30,8 @@ from .contracts import FACTS_RELATIVE, LEDGER_RELATIVE, RAW_RELATIVE, canonical_
 RECEIPTS_NAME = "raw_receipts.jsonl"
 OBSERVATIONS_NAME = "observations.jsonl"
 PARQUET_NAME = "observations.parquet"
+ALFRED_JSON_VINTAGE_LIMIT = 2_000
+ALFRED_VINTAGE_BATCH_SIZE = 1_500
 
 
 class RawTimeSeriesReceipt(BaseModel):
@@ -234,6 +243,82 @@ def registered_series(contract: dict[str, Any], *, include_optional: bool = True
     return sorted({series for group in groups for series in sources[group]})
 
 
+def _fetch_alfred(spec: RequestSpec, *, series_id: str, endpoint: str) -> tuple[int, bytes]:
+    """Fetch without ever surfacing a credential-bearing URL."""
+    for attempt in range(4):
+        try:
+            return fetch(spec)
+        except urllib.error.HTTPError as exc:
+            body = exc.read()
+            message = f"HTTP {exc.code}"
+            try:
+                decoded = json.loads(body)
+                message = str(
+                    decoded.get("error_message")
+                    or decoded.get("message")
+                    or message
+                )
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                pass
+            if exc.code in {429, 500, 502, 503, 504} and attempt < 3:
+                time.sleep(2 ** attempt)
+                continue
+            raise RuntimeError(
+                f"ALFRED {series_id} {endpoint} returned HTTP {exc.code}: {message}"
+            ) from exc
+        except urllib.error.URLError as exc:
+            if attempt < 3:
+                time.sleep(2 ** attempt)
+                continue
+            raise RuntimeError(
+                f"ALFRED {series_id} {endpoint} network failure"
+            ) from exc
+    raise RuntimeError(f"ALFRED {series_id} {endpoint} retry exhaustion")
+
+
+def _vintage_date_batches(
+    root: Path, *, series_id: str, api_key: str, retrieved_at: str,
+    realtime_start: str, realtime_end: str,
+) -> tuple[list[list[str]], list[RawTimeSeriesReceipt]]:
+    dates: list[str] = []
+    receipts: list[RawTimeSeriesReceipt] = []
+    offset = 0
+    while True:
+        spec = alfred_vintage_dates_request(
+            series_id,
+            api_key=api_key,
+            realtime_start=realtime_start,
+            realtime_end=realtime_end,
+            offset=offset,
+        )
+        status, payload = _fetch_alfred(
+            spec, series_id=series_id, endpoint="vintage_dates",
+        )
+        receipts.append(persist_response(
+            root,
+            series_id=series_id,
+            status=status,
+            payload=payload,
+            retrieved_at=retrieved_at,
+            request_url=spec.url,
+        ))
+        decoded = json.loads(payload)
+        page = [str(value) for value in decoded.get("vintage_dates", [])]
+        dates.extend(page)
+        count = int(decoded.get("count", len(page)))
+        offset += len(page)
+        if not page or offset >= count:
+            break
+    unique_dates = sorted(set(dates))
+    batches = [
+        unique_dates[index:index + ALFRED_VINTAGE_BATCH_SIZE]
+        for index in range(0, len(unique_dates), ALFRED_VINTAGE_BATCH_SIZE)
+    ]
+    if any(len(batch) > ALFRED_JSON_VINTAGE_LIMIT for batch in batches):
+        raise RuntimeError(f"ALFRED {series_id} vintage batch exceeds API contract")
+    return batches, receipts
+
+
 def collect_alfred(
     root: Path, *, api_key: str, series_ids: list[str] | None = None,
     retrieved_at: str | None = None, realtime_start: str = "1776-07-04",
@@ -243,30 +328,57 @@ def collect_alfred(
     retrieved = retrieved_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
     requested = series_ids or registered_series(contract)
     results: list[dict[str, Any]] = []
+    pending_facts: list[ObservationFact] = []
+    effective_start = realtime_start
+    if realtime_start == "1776-07-04":
+        effective_start = str(contract["model"]["windows"]["expanding_start"])
     for series_id in requested:
-        spec = alfred_request(
-            series_id, api_key=api_key,
-            realtime_start=realtime_start, realtime_end=realtime_end,
+        batches, receipts = _vintage_date_batches(
+            root,
+            series_id=series_id,
+            api_key=api_key,
+            retrieved_at=retrieved,
+            realtime_start=effective_start,
+            realtime_end=realtime_end,
         )
-        status, payload = fetch(spec)
-        if status != 200:
-            raise RuntimeError(f"ALFRED {series_id} returned HTTP {status}")
-        receipt = persist_response(
-            root, series_id=series_id, status=status, payload=payload,
-            retrieved_at=retrieved, request_url=spec.url,
-        )
-        fact_result = append_facts(root, normalize_alfred(
-            payload, series_id=series_id, retrieved_at=retrieved,
-        ))
+        normalized_count = 0
+        for batch in batches:
+            spec = alfred_request(
+                series_id,
+                api_key=api_key,
+                realtime_start=batch[0],
+                realtime_end=batch[-1],
+                output_type=3,
+            )
+            status, payload = _fetch_alfred(
+                spec, series_id=series_id, endpoint="observations",
+            )
+            receipts.append(persist_response(
+                root,
+                series_id=series_id,
+                status=status,
+                payload=payload,
+                retrieved_at=retrieved,
+                request_url=spec.url,
+            ))
+            facts = normalize_alfred(
+                payload, series_id=series_id, retrieved_at=retrieved,
+            )
+            normalized_count += len(facts)
+            pending_facts.extend(facts)
         results.append({
             "series_id": series_id,
-            "receipt_id": receipt.receipt_id,
-            "raw_sha256": receipt.raw_sha256,
-            **fact_result,
+            "vintage_count": sum(len(batch) for batch in batches),
+            "batch_count": len(batches),
+            "receipt_ids": [receipt.receipt_id for receipt in receipts],
+            "raw_sha256s": [receipt.raw_sha256 for receipt in receipts],
+            "normalized_facts": normalized_count,
         })
+    fact_result = append_facts(root, pending_facts)
     return {
         "retrieved_at": retrieved,
-        "realtime_window": {"start": realtime_start, "end": realtime_end},
+        "realtime_window": {"start": effective_start, "end": realtime_end},
+        "facts": fact_result,
         "series": results,
     }
 
