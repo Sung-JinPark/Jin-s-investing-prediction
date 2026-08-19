@@ -13,6 +13,7 @@ __pycache__/
 .venv/
 .tmp-pytest/
 .env
+.secrets/
 # 재생성 가능한 정적 사이트와 OS·에디터 임시 잔재
 /_site/
 .DS_Store
