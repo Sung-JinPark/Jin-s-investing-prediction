@@ -58,7 +58,12 @@ from ai_fc.timeseries.model import (
     select_ridge_varx,
     summarize_paths,
 )
-from ai_fc.timeseries.pipeline import _source_hash, backtest_timeseries, fit_timeseries
+from ai_fc.timeseries.pipeline import (
+    _source_hash,
+    backtest_timeseries,
+    fit_timeseries,
+    forecast_timeseries,
+)
 from ai_fc.timeseries.workbook import export_timeseries_workbook
 
 
@@ -801,6 +806,27 @@ def test_insufficient_pit_sample_persists_explicit_fit_and_backtest_holds(
     assert backtest["summary"]["origin_count"] == 0
     assert (root / "data/timeseries/models/validation_hold_latest.json").is_file()
     assert (root / "data/timeseries/runs/backtest_latest.json").is_file()
+
+
+def test_forecast_surfaces_persisted_validation_hold_reason(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    append_facts(root, [_fact(value=100.0)])
+    cutoff = "2026-08-20T00:00:00+00:00"
+    fitted = fit_timeseries(root, knowledge_cutoff=cutoff)
+    _, forecast = forecast_timeseries(root, knowledge_cutoff=cutoff)
+    assert forecast["display_state"] == "validation_pending"
+    assert forecast["publication"]["customer_numbers_visible"] is False
+    assert forecast["backtest"]["reasons"] == fitted["reasons"]
+    assert all("No such file or directory" not in reason for reason in fitted["reasons"])
+
+
+def test_workbook_reads_validation_hold_as_model_card(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    append_facts(root, [_fact(value=100.0)])
+    cutoff = "2026-08-20T00:00:00+00:00"
+    fitted = fit_timeseries(root, knowledge_cutoff=cutoff)
+    _, summary = export_timeseries_workbook(root)
+    assert summary["model_run_id"] == fitted["run_id"]
 
 
 def test_source_hash_excludes_facts_after_the_knowledge_cutoff(tmp_path: Path) -> None:
