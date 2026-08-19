@@ -554,25 +554,37 @@ def _vintage_date_batches(
 def collect_alfred(
     root: Path, *, api_key: str, series_ids: list[str] | None = None,
     retrieved_at: str | None = None, realtime_start: str = "1776-07-04",
-    realtime_end: str = "9999-12-31",
+    realtime_end: str = "9999-12-31", allow_partial_retryable: bool = False,
 ) -> dict[str, Any]:
     contract = load_contract(root)
     retrieved = retrieved_at or datetime.now(timezone.utc).isoformat(timespec="seconds")
     requested = series_ids or registered_series(contract)
     results: list[dict[str, Any]] = []
+    failures: list[dict[str, Any]] = []
     pending_facts: list[ObservationFact] = []
     effective_start = realtime_start
     if realtime_start == "1776-07-04":
         effective_start = str(contract["model"]["windows"]["expanding_start"])
     for series_id in requested:
-        batches, receipts = _vintage_date_batches(
-            root,
-            series_id=series_id,
-            api_key=api_key,
-            retrieved_at=retrieved,
-            realtime_start=effective_start,
-            realtime_end=realtime_end,
-        )
+        try:
+            batches, receipts = _vintage_date_batches(
+                root,
+                series_id=series_id,
+                api_key=api_key,
+                retrieved_at=retrieved,
+                realtime_start=effective_start,
+                realtime_end=realtime_end,
+            )
+        except AlfredFetchError as exc:
+            if not allow_partial_retryable or not exc.retryable:
+                raise
+            failures.append({
+                "series_id": series_id,
+                "status": exc.status,
+                "retryable": True,
+                "reason": str(exc),
+            })
+            continue
         normalized_count = 0
         for batch in batches:
             for spec, status, payload in _observation_responses(
@@ -607,6 +619,7 @@ def collect_alfred(
         "realtime_window": {"start": effective_start, "end": realtime_end},
         "facts": fact_result,
         "series": results,
+        "failures": failures,
     }
 
 

@@ -103,6 +103,7 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
         series_ids=registered_series(contract, include_historical_bridge=False),
         retrieved_at=retrieved,
         realtime_start=realtime_start, realtime_end=realtime_end,
+        allow_partial_retryable=True,
     )
     return {"recovered_from_raw": recovered, **result}
 
