@@ -25,6 +25,7 @@ from ai_fc.timeseries.backtest import (
 )
 from ai_fc.timeseries.contracts import load_contract
 from ai_fc.timeseries.ledger import (
+    _fetch_alfred,
     append_facts,
     collect_alfred,
     normalize_alfred,
@@ -183,6 +184,32 @@ def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
     ).read_text(encoding="utf-8").splitlines()
     assert len(receipt_lines) == 3
     assert result["facts"]["appended"] == 2
+
+
+def test_alfred_fetch_retries_socket_timeout_without_leaking_request_url(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    attempts = 0
+
+    def fake_fetch(spec: object, *, timeout: int) -> tuple[int, bytes]:
+        nonlocal attempts
+        del spec
+        assert timeout == 300
+        attempts += 1
+        if attempts < 3:
+            raise TimeoutError("read operation timed out")
+        return 200, b"{}"
+
+    monkeypatch.setattr("ai_fc.timeseries.ledger.fetch", fake_fetch)
+    monkeypatch.setattr("ai_fc.timeseries.ledger.time.sleep", lambda _: None)
+    status, payload = _fetch_alfred(
+        object(),  # type: ignore[arg-type]
+        series_id="NASDAQCOM",
+        endpoint="observations",
+    )
+    assert attempts == 3
+    assert status == 200
+    assert payload == b"{}"
 
 
 def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> None:
