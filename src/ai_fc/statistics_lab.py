@@ -1598,6 +1598,32 @@ def _build_ipo_reference_statistics(
         f"SEC 일반기업 IPO 기준 AI 핵심 비중은 건수 {count_share:.1f}%·공모액 "
         f"{proceeds_share:.1f}%로, IPO 폭은 1999년 인터넷 열기보다 낮습니다."
     )
+    reference_conclusions = {
+        "internet_vs_ai_core_ipos": (
+            "IPO 수 기준 현재 AI 상장 붐은 닷컴 말기보다 훨씬 초기입니다. "
+            "이 지표만으로 버블 붕괴가 임박했다고 보기는 어렵습니다."
+        ),
+        "technology_ipo_count": (
+            "신규 기술기업 상장 공급은 닷컴 정점의 약 8% 수준이어서, "
+            "IPO 폭만 보면 아직 말기 버블 단계와 거리가 있습니다."
+        ),
+        "technology_ipo_first_day_return": (
+            "첫날 급등은 과열 신호지만 닷컴 정점의 절반 이하입니다. "
+            "공모시장 전체가 극단적 열기에 들어갔다고 단정하기 어렵습니다."
+        ),
+        "technology_ipo_price_to_sales": (
+            "신규 기술주의 가격 부담은 높지만 닷컴 정점보다 낮습니다. "
+            "P/S 하나만으로 붕괴 직전이라고 판단할 수준은 아닙니다."
+        ),
+        "technology_ipo_profitable_share": (
+            "현재 기술 IPO도 적자기업이 다수지만 닷컴 정점보다 이익 기반이 "
+            "두꺼워 상장기업의 질은 상대적으로 낫습니다."
+        ),
+        "all_ipo_negative_earnings_share": (
+            "적자 IPO가 절반을 넘는 점은 경계 신호지만, 닷컴 정점처럼 "
+            "시장 전체가 적자 발행에 쏠린 상태는 아닙니다."
+        ),
+    }
     batch_contract = {
         "historical_era": "frozen_cited_publication_vintage",
         "current_era": "weekly_reviewed_batch",
@@ -1612,6 +1638,10 @@ def _build_ipo_reference_statistics(
         )
         reference_chart["reference_batch"] = deepcopy(batch_contract)
         reference_chart.setdefault("scope_note", "*미국 IPO 기준 · 참고 통계")
+        if reference_chart["id"] in reference_conclusions:
+            reference_chart["conclusion"] = reference_conclusions[
+                reference_chart["id"]
+            ]
         reference_chart.setdefault("conclusion", reference_chart["insight"])
 
     used_source_ids = {
@@ -1705,6 +1735,13 @@ def _validate_ipo_reference_statistics(
         raise StatisticsLabError("IPO reference statistics comparison order invalid")
     source_ids = {str(source.get("series_id")) for source in payload.get("sources") or []}
     for reference_chart in charts:
+        if (
+            str(reference_chart.get("insight", "")).strip()
+            == str(reference_chart.get("conclusion", "")).strip()
+        ):
+            raise StatisticsLabError(
+                "IPO reference insight and current conclusion must be distinct"
+            )
         if not set(reference_chart.get("source_ids") or []).issubset(source_ids):
             raise StatisticsLabError("IPO reference statistics source registry invalid")
         if legacy_single:
@@ -2983,6 +3020,154 @@ def build_statistics_lab(
         "maximum": max(policy_points, key=lambda row: float(row["value"])),
     }
 
+    def endpoint(rows: list[dict[str, Any]]) -> float:
+        if not rows:
+            raise StatisticsLabError("customer conclusion endpoint is unavailable")
+        return float(rows[-1]["value"])
+
+    corporate_h1 = half(2026, "corporate_count")
+    spac_h1 = half(2026, "spac_count")
+    top_direction_label, top_direction = max(
+        changes.items(), key=lambda item: float(item[1]),
+    )
+    mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
+    curve_now = endpoint(cur_curve)
+    standards_now = endpoint(cur_standards)
+    inflation_now = endpoint(cur_inflation)
+    conditions_now = endpoint(cur_nfci)
+    oil_now = endpoint(cur_oil)
+    copper_now = endpoint(cur_copper)
+    housing_now = endpoint(cur_housing)
+    manufacturing_now = endpoint(cur_philly)
+    current_conclusions = {
+        "sec_ipo_issuer_mix_h1": (
+            f"2026년 상반기 SPAC {spac_h1:.0f}건이 일반 기업 {corporate_h1:.0f}건보다 "
+            "많습니다. IPO 창구는 열렸지만 실물기업 상장 확산은 아직 제한적입니다."
+        ),
+        "m2_nasdaq": (
+            f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오른 반면 "
+            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 증가했습니다. 유동성보다 주가가 "
+            "훨씬 빠르지만 닷컴 정점의 격차보다는 작습니다."
+        ),
+        "nasdaq_per_m2": (
+            f"현재 M2 대비 NASDAQ 속도지수는 {endpoint(cur_nasdaq_m2):.0f}로 닷컴의 "
+            f"{endpoint(dot_nasdaq_m2):.0f}보다 낮습니다. 통화량 기준 과열은 높지만 "
+            "닷컴 말기 수준에는 아직 못 미칩니다."
+        ),
+        "nasdaq_per_household_liquid_assets": (
+            f"가계 현금성 자산 대비 NASDAQ 속도는 현재 {endpoint(cur_nasdaq_cash):.0f}, "
+            f"닷컴 {endpoint(dot_nasdaq_cash):.0f}입니다. 가계 유동성 대비 주가 부담은 "
+            "커졌지만 닷컴 정점보다는 낮습니다."
+        ),
+        "liquidity_position_map": (
+            f"미국 MMF는 M2의 약 {mmf_to_m2:.0f}% 규모이고, 최근 12개월 방향은 "
+            f"{top_direction_label} {top_direction:+.1f}%가 가장 강합니다. 위험자산 열기와 "
+            "대기자금이 함께 남아 있는 시장입니다."
+        ),
+        "yield_curve": (
+            f"10년−2년 금리차는 현재 {curve_now:+.2f}%p로 정상화됐습니다. 다만 역전 "
+            "해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다."
+            if curve_now >= 0 else
+            f"10년−2년 금리차가 현재 {curve_now:+.2f}%p로 역전돼 있어 경기 둔화 "
+            "경고가 계속 작동하고 있습니다."
+        ),
+        "policy_rate": (
+            f"현재 실효금리는 {endpoint(cur_funds):.2f}%로 닷컴 같은 시점의 "
+            f"{endpoint(dot_funds):.2f}%보다 낮습니다. 지금은 재긴축보다 인하 경로에 "
+            "가까워 닷컴 붕괴 전 정책 트리거와는 다릅니다."
+        ),
+        "valuation_proxy": (
+            f"기업가치÷이익 대용치는 현재 {endpoint(cur_value):.1f}배로 닷컴의 "
+            f"{endpoint(dot_value):.1f}배보다 낮습니다. 밸류에이션 부담은 높지만 "
+            "광의 시장 전체가 닷컴 극단에 도달한 상태는 아닙니다."
+        ),
+        "margin_credit_proxy": (
+            f"현재 고객 신용지수 {endpoint(cur_margin):.0f}이 기업주식지수 "
+            f"{endpoint(cur_equities):.0f}보다 빠릅니다. 닷컴보다는 낮지만 레버리지 "
+            "민감도가 다시 커지는 구간입니다."
+        ),
+        "consumer_credit_growth": (
+            f"소비자신용 증가율은 현재 {endpoint(cur_credit):.1f}%로 닷컴의 "
+            f"{endpoint(dot_credit):.1f}%보다 낮습니다. 현재 상승장이 가계 신용 "
+            "팽창에 크게 의존하는 모습은 아닙니다."
+        ),
+        "loan_standards": (
+            f"은행 대출기준 순강화 비율은 현재 {standards_now:.1f}%로 대체로 "
+            "중립입니다. 기업 신용 경색 신호는 아직 강하지 않습니다."
+            if standards_now <= 5 else
+            f"은행 대출기준 순강화 비율이 {standards_now:.1f}%로 올라 기업 자금조달 "
+            "경계가 필요한 상태입니다."
+        ),
+        "profit_growth": (
+            f"세후 기업이익은 현재 전년 대비 {endpoint(cur_profit):.1f}% 증가해 닷컴의 "
+            f"{endpoint(dot_profit):.1f}%보다 강합니다. 높은 주가에 닷컴 말기보다 "
+            "두꺼운 이익 기반이 붙어 있습니다."
+        ),
+        "household_debt_service": (
+            f"가계 상환 부담은 현재 {endpoint(cur_debt_service):.1f}%로 닷컴의 "
+            f"{endpoint(dot_debt_service):.1f}%와 비슷합니다. 소비 붕괴를 단독으로 "
+            "예고하는 극단적 부담은 아닙니다."
+        ),
+        "unemployment_rate": (
+            f"실업률은 현재 {endpoint(cur_unemployment):.1f}%로 닷컴 같은 시점의 "
+            f"{endpoint(dot_unemployment):.1f}%와 비슷합니다. 고용은 냉각 점검 구간이지만 "
+            "침체가 확인된 수준은 아닙니다."
+        ),
+        "inflation_rate": (
+            f"소비자물가는 현재 {inflation_now:.1f}%로 3%를 웃돌아 추가 금리 인하의 "
+            "제약이 남아 있습니다."
+            if inflation_now >= 3 else
+            f"소비자물가는 현재 {inflation_now:.1f}%로 완화됐습니다. 물가보다 성장 "
+            "둔화가 정책의 핵심 변수가 된 구간입니다."
+        ),
+        "financial_conditions": (
+            f"금융여건지수는 현재 {conditions_now:+.2f}로 평균보다 완화적입니다. "
+            "위험자산을 지지하지만 상승 과열이 더 이어질 여지도 함께 남깁니다."
+            if conditions_now < 0 else
+            f"금융여건지수는 현재 {conditions_now:+.2f}로 평균보다 긴축적입니다. "
+            "위험자산의 자금조달 부담이 커진 상태입니다."
+        ),
+        "rate_cycle_since_first_cut": (
+            f"첫 인하 전보다 정책금리가 현재 {endpoint(cur_rate_cycle):+.2f}%p 낮습니다. "
+            "1990년대 말처럼 금리를 다시 원점 이상으로 올린 재긴축 신호는 아직 없습니다."
+        ),
+        "corporate_bond_pressure": (
+            f"회사채 금리는 현재 {endpoint(cur_corp_yield):.2f}%, 국채 대비 스프레드는 "
+            f"{endpoint(cur_corp_spread):.2f}%p입니다. 전면적 신용 스트레스보다는 높은 "
+            "절대금리 부담이 핵심입니다."
+        ),
+        "inflation_lead_panel": (
+            f"유가 {oil_now:+.1f}%와 구리 {copper_now:+.1f}%가 함께 올라 향후 물가 "
+            "재가속 위험을 무시하기 어렵습니다."
+            if oil_now > 0 and copper_now > 0 else
+            "유가와 구리 방향이 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 않습니다."
+        ),
+        "korea_semiconductor_cycle": (
+            f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 미국 "
+            f"반도체는 {endpoint(sox_index) - 100.0:.0f}% 상승했습니다. 두 시장 모두 "
+            "AI·반도체 사이클 의존도가 높아 글로벌 반도체 조정에 민감한 구간입니다."
+        ),
+        "housing_manufacturing_warning": (
+            f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 "
+            f"{manufacturing_now:.1f}로 확장 신호입니다. 현재 침체 신호는 한 방향으로 "
+            "모이지 않은 혼합 상태입니다."
+            if housing_now < 0 < manufacturing_now else
+            "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
+        ),
+        "household_balance_sheet_trend_gap": (
+            f"장기 추세 대비 주식은 {endpoint(equity_gap):+.0f}%, 현금은 "
+            f"{endpoint(cash_gap):+.0f}%, 채권은 {endpoint(debt_gap):+.0f}%입니다. "
+            "유동성 고갈은 아니지만 주식의 추세 이탈이 가장 커 조정 민감도가 높습니다."
+        ),
+    }
+    missing_conclusions = sorted(set(by_id) - set(current_conclusions))
+    if missing_conclusions:
+        raise StatisticsLabError(
+            f"customer conclusion missing for charts: {missing_conclusions}"
+        )
+    for chart_id, conclusion in current_conclusions.items():
+        by_id[chart_id]["conclusion"] = conclusion
+
     source_meta: list[dict[str, Any]] = []
     for series_id, spec in FRED_SERIES.items():
         rows = source_rows[series_id]
@@ -3103,6 +3288,10 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         ):
             raise StatisticsLabError(
                 f"chart {chart.get('id')} missing insight/conclusion/caveat/source"
+            )
+        if str(chart["insight"]).strip() == str(chart["conclusion"]).strip():
+            raise StatisticsLabError(
+                f"chart {chart.get('id')} insight and current conclusion must be distinct"
             )
         for series in chart.get("series", []):
             periods = [int(point["period"]) for point in series.get("points", [])]
