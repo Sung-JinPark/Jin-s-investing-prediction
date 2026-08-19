@@ -193,7 +193,7 @@ ledgers:
     schema_ref: jsonl
     allow_empty_accumulating: true
   - id: timeseries_observation_facts
-    path: data/timeseries/ledgers/observations.jsonl
+    path: data/timeseries/ledgers/observation_chunks.jsonl
     kind: jsonl
     cadence: trading_daily
     criticality: high

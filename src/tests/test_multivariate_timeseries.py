@@ -28,10 +28,13 @@ from ai_fc.timeseries.ledger import (
     AlfredFetchError,
     _fetch_alfred,
     _observation_responses,
+    _close_vintage_intervals,
     append_facts,
     collect_alfred,
     normalize_alfred,
     persist_response,
+    read_fact_rows,
+    rebuild_facts_from_raw,
     read_facts,
 )
 from ai_fc.timeseries.events import (
@@ -314,9 +317,7 @@ def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> N
     assert first["appended"] == 1
     assert second["appended"] == 1
     assert second["corrected"] == 1
-    rows = [json.loads(line) for line in (
-        root / "data/timeseries/ledgers/observations.jsonl"
-    ).read_text(encoding="utf-8").splitlines()]
+    rows = read_fact_rows(root)
     assert rows[1]["revision_seq"] == 1
     assert rows[1]["supersedes_observation_id"] == rows[0]["observation_id"]
     active = read_facts(root)
@@ -344,6 +345,66 @@ def test_alfred_single_day_vintage_has_a_positive_exclusive_interval() -> None:
         payload, series_id="NASDAQCOM", retrieved_at="2026-08-19T12:00:00+00:00",
     )[0]
     assert fact.vintage_end == "2020-01-04T05:00:00+00:00"
+
+
+def test_alfred_output_type_three_wide_vintages_are_normalized_and_closed(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    payload = json.dumps({
+        "output_type": 3,
+        "observations": [
+            {
+                "date": "2020-01-02",
+                "NASDAQCOM_20200103": "100.0",
+                "NASDAQCOM_20200201": "101.5",
+            },
+            {"date": "2020-01-03", "NASDAQCOM_20200103": "102.0"},
+        ],
+    }).encode()
+    facts = normalize_alfred(
+        payload,
+        series_id="NASDAQCOM",
+        retrieved_at="2026-08-19T00:00:00+00:00",
+    )
+    assert len(facts) == 3
+    closed = _close_vintage_intervals(root, facts)
+    revisions = [
+        fact for fact in closed if fact.observation_time == "2020-01-02"
+    ]
+    assert [fact.value for fact in revisions] == [100.0, 101.5]
+    assert revisions[0].vintage_end == revisions[1].vintage_start
+    assert revisions[1].vintage_end is None
+    assert all(fact.parser_version == "multivariate-alfred-v2-wide" for fact in closed)
+
+
+def test_preserved_output_type_three_raw_rebuilds_idempotent_fact_ledger(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    payload = json.dumps({
+        "output_type": 3,
+        "observations": [
+            {"date": "2020-01-02", "NASDAQCOM_20200103": "100.0"},
+        ],
+    }).encode()
+    persist_response(
+        root,
+        series_id="NASDAQCOM",
+        status=200,
+        payload=payload,
+        retrieved_at="2026-08-19T00:00:00+00:00",
+        request_url=(
+            "https://api.stlouisfed.org/fred/series/observations"
+            "?series_id=NASDAQCOM&output_type=3&api_key=SECRET"
+        ),
+    )
+    first = rebuild_facts_from_raw(root)
+    second = rebuild_facts_from_raw(root)
+    assert first["observation_receipts"] == 1
+    assert first["appended"] == 1
+    assert second["appended"] == 0
+    assert len(read_facts(root)) == 1
 
 
 def _synthetic_var(seed: int = 7, rows: int = 1200):
