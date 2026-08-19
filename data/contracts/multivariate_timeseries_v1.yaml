@@ -32,7 +32,7 @@ sources:
     observation_output_type: 3
     semantics: new_and_revised_observations_only
     json_vintage_limit: 2000
-    batch_size: 1500
+    batch_size: 250
     initial_realtime_start: 1996-01-01
     raw_receipt_per_response: true
   registered_historical_bridges:

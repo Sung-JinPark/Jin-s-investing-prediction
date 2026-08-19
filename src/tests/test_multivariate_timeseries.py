@@ -181,16 +181,16 @@ def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
     )
 
     assert result["series"][0]["vintage_count"] == 2_001
-    assert result["series"][0]["batch_count"] == 2
-    assert len(observation_windows) == 2
-    assert observation_windows[0] == (vintage_dates[0], vintage_dates[1_499])
-    assert observation_windows[1] == (vintage_dates[1_500], vintage_dates[-1])
-    assert len(result["series"][0]["receipt_ids"]) == 3
+    assert result["series"][0]["batch_count"] == 9
+    assert len(observation_windows) == 9
+    assert observation_windows[0] == (vintage_dates[0], vintage_dates[249])
+    assert observation_windows[-1] == (vintage_dates[2_000], vintage_dates[-1])
+    assert len(result["series"][0]["receipt_ids"]) == 10
     receipt_lines = (
         root / "data/timeseries/ledgers/raw_receipts.jsonl"
     ).read_text(encoding="utf-8").splitlines()
-    assert len(receipt_lines) == 3
-    assert result["facts"]["appended"] == 2
+    assert len(receipt_lines) == 10
+    assert result["facts"]["appended"] == 9
 
 
 def test_alfred_fetch_retries_socket_timeout_without_leaking_request_url(
@@ -296,6 +296,17 @@ def test_alfred_date_only_vintage_uses_conservative_end_of_day_availability() ->
         payload, series_id="NASDAQCOM", retrieved_at="2026-08-19T12:00:00+00:00",
     )[0]
     assert fact.available_at == "2020-01-04T04:59:59+00:00"
+
+
+def test_alfred_single_day_vintage_has_a_positive_exclusive_interval() -> None:
+    payload = json.dumps({"observations": [{
+        "date": "2020-01-02", "value": "100", "realtime_start": "2020-01-03",
+        "realtime_end": "2020-01-03",
+    }]}).encode()
+    fact = normalize_alfred(
+        payload, series_id="NASDAQCOM", retrieved_at="2026-08-19T12:00:00+00:00",
+    )[0]
+    assert fact.vintage_end == "2020-01-04T05:00:00+00:00"
 
 
 def _synthetic_var(seed: int = 7, rows: int = 1200):
