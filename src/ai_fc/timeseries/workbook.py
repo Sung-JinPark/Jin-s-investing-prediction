@@ -72,6 +72,8 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     corrections = _jsonl(root / LEDGER_RELATIVE / "corrections.jsonl")
     events = _jsonl(root / LEDGER_RELATIVE / "events.jsonl")
     model_pointer = _json(root / MODEL_RELATIVE / "latest.json")
+    if model_pointer is None:
+        model_pointer = _json(root / MODEL_RELATIVE / "validation_hold_latest.json")
     model = _json(root / model_pointer["model_path"]) if model_pointer else None
     backtest_pointer = _json(root / RUNS_RELATIVE / "backtest_latest.json")
     backtest = _json(root / backtest_pointer["run_path"]) if backtest_pointer else None
@@ -268,6 +270,7 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
         "resolutions": len(resolutions),
         "events": len(events),
         "event_receipts": len(event_receipts),
+        "model_run_id": (model or {}).get("run_id"),
         "sheets": len(sheets),
         "sha256": file_hash(target),
     }

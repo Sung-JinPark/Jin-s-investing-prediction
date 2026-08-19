@@ -491,6 +491,25 @@ def forecast_timeseries(
             root, cutoff=cutoff,
             reasons=["ALFRED PIT 백필 전이므로 검증 숫자를 표시하지 않습니다."],
         )
+    latest_model_pointer = root / MODEL_RELATIVE / "latest.json"
+    if not latest_model_pointer.is_file():
+        hold_pointer_path = root / MODEL_RELATIVE / "validation_hold_latest.json"
+        if hold_pointer_path.is_file():
+            try:
+                hold_pointer = _read_json(hold_pointer_path)
+                hold_payload = _read_json(root / hold_pointer["model_path"])
+                if hold_payload.get("content_hash") != hold_pointer.get("content_hash"):
+                    raise TimeSeriesPipelineError("validation-hold pointer hash mismatch")
+                return _blocked_forecast(
+                    root,
+                    cutoff=cutoff,
+                    reasons=list(hold_payload.get("reasons") or [
+                        "PIT 학습표본 검증을 통과하지 못했습니다.",
+                    ]),
+                    missing=list((hold_payload.get("training") or {}).get("missing_features") or []),
+                )
+            except (KeyError, OSError, ValueError, TimeSeriesPipelineError) as exc:
+                return _blocked_forecast(root, cutoff=cutoff, reasons=[str(exc)])
     try:
         model_run, expanding, rolling = _load_fit(root)
         backtest = _load_backtest(root)
