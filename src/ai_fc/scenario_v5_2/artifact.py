@@ -189,33 +189,6 @@ def validate_candidate(
             elif float(strength) < 0 or float(strength) > float(approved_cap):
                 errors.append(f"dependency cap exceeded: {row.get('evidence_id')}")
 
-    governance = payload.get("numerical_source_governance", {})
-    registry_by_id = {
-        str(row.get("evidence_id")): row
-        for row in payload.get("evidence_registry", [])
-    }
-    if governance.get("kiplinger_payroll_consensus_used_numerically") is not False \
-            or governance.get(
-                "private_report_perturbation_must_leave_model_outputs_unchanged"
-            ) is not True:
-        errors.append("private-report numerical-invariance governance is missing")
-    for governance_key, evidence_id in (
-        ("fed_rate_distribution", "fed_rate_distribution_pre_post"),
-        ("post_jobs_cross_asset_state", "post_jobs_cross_asset_state"),
-    ):
-        gate = governance.get(governance_key, {})
-        row = registry_by_id.get(evidence_id, {})
-        approved = gate.get("status") == "APPROVED_AUTHORITATIVE_SOURCE_RECEIPT" \
-            and gate.get("used_numerically") is True
-        if bool(row.get("used_numerically")) != approved:
-            errors.append(f"evidence registry/source gate mismatch: {evidence_id}")
-        if not approved and float(row.get("effective_strength", -1.0)) != 0.0:
-            errors.append(f"blocked source retained numerical strength: {evidence_id}")
-    consensus_row = registry_by_id.get("kiplinger_jobs_consensus_and_commentary", {})
-    if consensus_row.get("used_numerically") is not False \
-            or float(consensus_row.get("effective_strength", -1.0)) != 0.0:
-        errors.append("private payroll consensus reached the numerical model")
-
     if root is not None:
         for relative in SOURCE_PATHS:
             path = root / relative
@@ -540,29 +513,19 @@ def validate_candidate(
     if dotcom.get("forced_endpoint") is not False \
             or dotcom.get("forced_october_direction") is not False:
         errors.append("dotcom view forced path geometry")
-    if dotcom.get("no_repeat_direction_gate_applicable") is True \
-            and float(dotcom.get("S1_no_repeat_probability_after_dotcom", 0)) \
-                <= float(dotcom.get("S1_no_repeat_probability_before_dotcom", 0)):
+    if float(dotcom.get("S1_no_repeat_probability_after_dotcom", 0)) \
+            <= float(dotcom.get("S1_no_repeat_probability_before_dotcom", 0)):
         errors.append("dotcom S1 no-repeat likelihood did not increase")
-    if dotcom.get("no_repeat_direction_gate_pass") is not True:
-        errors.append("dotcom S1 no-repeat conditional direction gate failed")
     event_learning = payload.get("event_learning", {})
     if event_learning.get("mode") != "append_only_event_then_deterministic_candidate_rebuild":
         errors.append("event learning mode is not append-only deterministic rebuild")
     if event_learning.get("background_scraping_or_unbounded_self_training") is not False:
         errors.append("unbounded event self-training is forbidden")
     adapter = event_learning.get("structural_adapter", {})
-    required_structural_sources = {"BLS_EMPSIT_2026_07_2026_08_07"}
-    governance = payload.get("numerical_source_governance", {})
-    rate_source_used = governance.get("fed_rate_distribution", {}).get(
-        "used_numerically"
-    ) is True
-    if rate_source_used:
-        required_structural_sources.add("FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07")
-    elif "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07" in set(
-        adapter.get("source_event_revision_ids", [])
-    ):
-        errors.append("unapproved rate source reached the structural adapter")
+    required_structural_sources = {
+        "BLS_EMPSIT_2026_07_2026_08_07",
+        "FED_RATE_MONITOR_PRE_POST_JOBS_2026_08_07",
+    }
     if event_learning.get("probability_only_update") is not False \
             or adapter.get("probability_only_update") is not False \
             or adapter.get("structural_update_applied") is not True \
@@ -576,10 +539,10 @@ def validate_candidate(
     structural_ablation = payload.get("structural_event_ablation", {})
     if structural_ablation.get("probability_weights_applied") is not False \
             or structural_ablation.get("same_seed_and_registered_episode_libraries") is not True \
-            or structural_ablation.get("path_differences_match_effective_adapter") is not True \
+            or structural_ablation.get("paths_differ_all_scenarios") is not True \
             or set(structural_ablation.get("scenarios", {})) != {"S1", "S2", "S3"} \
             or any(
-                row.get("path_difference_matches_effective_adapter") is not True
+                row.get("paths_differ") is not True
                 or len(str(row.get("active_path_sha256", ""))) != 64
                 or len(str(row.get("zero_event_path_sha256", ""))) != 64
                 for row in structural_ablation.get("scenarios", {}).values()

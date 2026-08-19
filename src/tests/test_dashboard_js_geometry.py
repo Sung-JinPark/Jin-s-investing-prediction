@@ -6,6 +6,43 @@ import subprocess
 from pathlib import Path
 
 
+def test_statistics_profile_rows_supports_dotcom_and_current_bars() -> None:
+    script_path = (
+        Path(__file__).parents[1]
+        / "ai_fc"
+        / "dashboard_parts"
+        / "dashboard.js"
+    )
+    source = script_path.read_text(encoding="utf-8")
+    match = re.search(
+        r"function statisticsProfileRows\([\s\S]+?\n}\nfunction statisticsProfileCards",
+        source,
+    )
+    assert match, "profile comparison rows must remain a standalone helper"
+    helper = match.group(0).removesuffix("\nfunction statisticsProfileCards")
+    program = helper + r"""
+const rows=statisticsProfileRows({value:60,display_value:'60%',comparisons:[
+  {label:'1999 닷컴',era:'dotcom',value:60,display_value:'60%'},
+  {label:'AI 현재',era:'current',value:12,display_value:'12%'},
+  {label:'미수집',era:'current',value:null,display_value:'—'}
+]});
+const legacy=statisticsProfileRows({value:90,display_value:'+90%'});
+console.log(JSON.stringify({rows,legacy}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    result = json.loads(completed.stdout)
+    assert [(row["era"], row["value"]) for row in result["rows"]] == [
+        ("dotcom", 60), ("current", 12),
+    ]
+    assert result["legacy"] == [{
+        "label": "1999 닷컴", "era": "dotcom", "value": 90,
+        "display_value": "+90%",
+    }]
+
+
 def test_cross_asset_endpoint_labels_keep_minimum_gap() -> None:
     script_path = (
         Path(__file__).parents[1]

@@ -123,6 +123,23 @@ qualitative_ipo_policy:
     historical_china_memory_nasdaq_context: [Montage_Technology_MONT]
     completed_china_hong_kong_ai_chip_ipos: [Horizon_Robotics, Black_Sesame_International, Moore_Threads, MetaX_Integrated_Circuits]
 
+reference_statistics_policy:
+  placement: below_authoritative_statistics
+  official_numeric_ledger: false
+  official_forecast_input: false
+  active_charts: [dotcom_internet_ipo_breadth]
+  current_overlay:
+    cohort: strict_AI_core_completed_US_traditional_IPOs
+    numerator_evidence: SEC_424B4_final_prospectuses
+    count_denominator: SEC_IPO_QUARTERLY_corporate_count_four_quarter_sum
+    proceeds_denominator: SEC_IPO_QUARTERLY_corporate_proceeds_mn_four_quarter_sum
+    refresh: weekly_official_ledger_projection
+  static_reference:
+    1999_profile: WilmerHale_historical_research
+    first_day_return: Ritter_individual_IPO_reference
+    alternative_2025_denominator: Ritter_90_IPOs_and_38_970bn_audit_context_only
+  guard: static_research_values_must_not_enter_authoritative_chart_sources_or_official_forecast_inputs
+
 macro_warning_policy:
   first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
@@ -224,6 +241,7 @@ publication_policy:
   archive_path: data/statistics/archive
   archive_mode: append_only
   ipo_native_frequency: annual_with_event_review
+  reference_statistics_projection: weekly_after_authoritative_SEC_refresh
 
 excluded_sources:
   finra_margin_statistics:

@@ -660,6 +660,67 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
     )
 
 
+def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> None:
+    rows, receipts = _payload_inputs()
+    rows["SEC_IPO_QUARTERLY"].extend([
+        {
+            "date": "2025-09-01", "period_label": "2025:Q3",
+            "total_count": 100, "us_count": 70, "non_us_count": 30,
+            "corporate_count": 76, "spac_count": 23, "fund_count": 1,
+            "total_proceeds_mn": 18000.0,
+            "corporate_proceeds_mn": 15084.0,
+            "spac_proceeds_mn": 2800.0, "fund_proceeds_mn": 116.0,
+        },
+        {
+            "date": "2025-12-01", "period_label": "2025:Q4",
+            "total_count": 75, "us_count": 55, "non_us_count": 20,
+            "corporate_count": 40, "spac_count": 34, "fund_count": 1,
+            "total_proceeds_mn": 15000.0,
+            "corporate_proceeds_mn": 12362.4,
+            "spac_proceeds_mn": 2500.0, "fund_proceeds_mn": 137.6,
+        },
+    ])
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+    )
+    assert len(payload["charts"]) == 22
+    assert "dotcom_internet_ipo_breadth" not in {
+        chart["id"] for chart in payload["charts"]
+    }
+    reference = payload["reference_statistics"]
+    assert reference["placement"] == "below_authoritative_statistics"
+    assert reference["official_numeric_ledger"] is False
+    chart = reference["charts"][0]
+    metrics = [
+        metric
+        for group in chart["profile_groups"]
+        for metric in group["metrics"]
+    ]
+    assert len(metrics) == 5
+    assert all(len(metric["comparisons"]) == 2 for metric in metrics)
+    assert [metric["comparisons"][0]["value"] for metric in metrics] == [
+        60, 40, 81, 57, 90,
+    ]
+    assert [metric["comparisons"][1]["value"] for metric in metrics] == [
+        1.3, 4.1, 66.7, 33.3, 18.6,
+    ]
+    assert all(
+        metric["comparisons"][1]["label"] == "2025 AI 핵심 · n=3"
+        for metric in metrics
+    )
+    overlay = chart["reference_contract"]["official_overlay"]
+    assert overlay["corporate_count"] == 227
+    assert overlay["corporate_proceeds_mn"] == 43290.8
+    assert overlay["refresh_mode"] == "weekly_official_ledger_projection"
+    assert all(
+        "source_url" not in source and "request_url" not in source
+        for source in reference["sources"]
+    )
+
+
 def _append_official_persistence_batch(
     root: Path, *, raw_tag: str, fetched_at: str, m2_value: float = 100.0,
 ):
@@ -870,6 +931,13 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "function renderStatistics" in script
     assert "function statisticsChartSvg" in script
     assert "function statisticsProfileCards" in script
+    assert "function statisticsProfileRows" in script
+    assert 'data-era="${esc(row.era||\'reference\')}"' in script
+    assert '.statistics-profile-row[data-era="current"]>i span' in styles
+    assert "stats.reference_statistics" in script
+    assert "data-stat-reference-section" in script
+    assert "referenceSection.hidden=key!=='all'&&key!=='ipo'" in script
+    assert ".statistics-reference>header h2" in styles
     assert "function statisticsLiquidityBars" in script
     assert "is-diverging" in script
     assert "--bar-left" in script

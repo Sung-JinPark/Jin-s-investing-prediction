@@ -23,6 +23,15 @@
     "reviewed_through": "2026-08-12",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage."
   },
+  "reference_publication_contract": {
+    "publication_class": "reference_statistics",
+    "official_numeric_ledger": false,
+    "official_forecast_input": false,
+    "placement": "below_authoritative_statistics",
+    "refreshable_universe": "SEC quarterly IPO workbook plus SEC EDGAR final prospectus events",
+    "classification_review": "strict AI-core membership is reviewed from final prospectus disclosures",
+    "static_fallback_rule": "Historical or annual research figures without a continuously refreshable official equivalent remain explicitly marked reference-only static."
+  },
   "ai_broad_cohort": [
     {
       "year": 2023,
@@ -358,38 +367,80 @@
     },
     {
       "id": "dotcom_internet_ipo_breadth",
-      "title": "1999 인터넷 IPO, 얼마나 뜨거웠나",
+      "title": "인터넷 IPO 얼마나 뜨거웠나",
       "category": "ipo",
       "unit": "percent",
       "chart_type": "profile_cards",
       "axis_type": "categorical",
       "max_period": 4,
-      "description": "1999년 미국 IPO 시장에서 인터넷 기업이 얼마나 넓게 퍼졌고, 얼마나 초기 단계 기업까지 상장됐으며, 상장 첫날 투자자가 얼마나 몰렸는지 세 부분으로 봅니다.",
-      "caveat": "WilmerHale의 당시 집계는 Ritter 인터넷 플래그와 분류가 달라 289건과 273건을 서로 대체하지 않습니다.",
-      "insight": "1999년에는 미국 IPO 10건 중 약 6건이 인터넷 기업이었습니다. 그 인터넷 IPO 10곳 중 약 8곳은 매출 1억 달러 미만이었고, 상장 첫날 주가는 공모가보다 평균 90% 뛰었습니다.",
-      "source_ids": ["WILMERHALE_INTERNET_IPO_1999"],
+      "description": "1999년 인터넷 IPO와 2025년 엄격한 AI 핵심 IPO 3곳을 같은 다섯 기준으로 나란히 비교합니다.",
+      "caveat": "1999 기준은 WilmerHale의 정적 연구 통계입니다. 2025 AI 핵심 분자는 SEC 최종 투자설명서, 분모는 SEC 분기별 공식 IPO 자료로 검증합니다. 저매출·업력은 최종 투자설명서 표본, 첫날 평균은 공식 first-close DB가 없어 Ritter 개별 IPO 자료를 사용하는 참고 통계입니다.",
+      "insight": "2025년 AI 핵심 IPO는 SEC 일반기업 IPO의 1.3%, 공모액의 4.1%로 1999년 인터넷 IPO의 폭에는 크게 못 미칩니다. 다만 핵심 3곳 중 저매출 기업 비중은 66.7%여서 상장사의 초기성은 함께 살펴야 합니다.",
+      "source_ids": ["WILMERHALE_INTERNET_IPO_1999", "RITTER_IPO_UNDERPRICING_2025", "SEC_COREWEAVE_424B4", "SEC_AMBIQ_424B4", "SEC_WHITEFIBER_424B4"],
+      "reference_contract": {
+        "publication_class": "reference_statistics",
+        "official_numeric_ledger": false,
+        "refreshable_current_evidence": "SEC EDGAR final prospectuses and the SEC quarterly IPO workbook provide the canonical event universe and issuer disclosures.",
+        "static_reference_components": [
+          "1999 WilmerHale internet-IPO statistics",
+          "2025 Ritter first-day close observations"
+        ],
+        "alternative_static_denominator_reference": "Ritter comparable-IPO denominator 90 offerings / $38.970bn is retained for audit context but is not the displayed current denominator.",
+        "current_cohort": {
+          "year": 2025,
+          "definition": "strict AI core completed traditional U.S. IPOs",
+          "n": 3,
+          "members": ["CoreWeave", "Ambiq Micro", "WhiteFiber"],
+          "proceeds_mn": 1755.375,
+          "low_revenue_count": 2,
+          "young_issuer_count": 1,
+          "mean_first_day_return_percent": 18.6
+        },
+        "calculation_audit": {
+          "ipo_share": "3 / SEC 2025 corporate IPO count 227 = 1.3%",
+          "proceeds_share": "$1.755375bn / SEC 2025 corporate proceeds $43.2908bn = 4.1%",
+          "low_revenue_share": "2 / 3 = 66.7%",
+          "young_issuer_share": "1 / 3 = 33.3%",
+          "mean_first_day_return": "equal-weight mean across 3 issuers = +18.6%"
+        }
+      },
       "profile_groups": [
         {
           "title": "시장에 얼마나 퍼졌나",
-          "basis": "1999년 미국 전체 IPO 기준",
+          "basis": "각 연도 미국 전체 IPO 기준",
           "metrics": [
-            {"label": "IPO 건수", "value": 60, "display_value": "60%", "meaning": "전체 IPO 중 인터넷 기업 비중"},
-            {"label": "공모액", "value": 40, "display_value": "40%", "meaning": "전체 IPO 조달액 중 인터넷 기업 비중"}
+            {"label": "IPO 건수", "meaning": "전체 IPO 중 해당 테마의 핵심 기업 비중", "comparisons": [
+              {"label": "1999 닷컴", "era": "dotcom", "value": 60, "level": 60, "display_value": "60%"},
+              {"label": "2025 AI 핵심 · n=3", "era": "current", "value": 1.3, "level": 1.3, "display_value": "1.3%"}
+            ]},
+            {"label": "공모액", "meaning": "전체 IPO 조달액 중 해당 테마 기업 비중", "comparisons": [
+              {"label": "1999 닷컴", "era": "dotcom", "value": 40, "level": 40, "display_value": "40%"},
+              {"label": "2025 AI 핵심 · n=3", "era": "current", "value": 4.1, "level": 4.1, "display_value": "4.1%"}
+            ]}
           ]
         },
         {
           "title": "상장사가 얼마나 초기였나",
-          "basis": "1999년 인터넷 IPO 기업 기준",
+          "basis": "각 테마 핵심 IPO 기업 기준",
           "metrics": [
-            {"label": "저매출 기업", "value": 81, "display_value": "81%", "meaning": "매출 1억 달러 미만 기업 비중"},
-            {"label": "신생 기업", "value": 57, "display_value": "57%", "meaning": "설립 5년 미만 기업 비중"}
+            {"label": "저매출 기업", "meaning": "매출 1억 달러 미만 기업 비중", "comparisons": [
+              {"label": "1999 닷컴", "era": "dotcom", "value": 81, "level": 81, "display_value": "81%"},
+              {"label": "2025 AI 핵심 · n=3", "era": "current", "value": 66.7, "level": 66.7, "display_value": "66.7%"}
+            ]},
+            {"label": "신생 기업", "meaning": "설립 5년 미만 기업 비중", "comparisons": [
+              {"label": "1999 닷컴", "era": "dotcom", "value": 57, "level": 57, "display_value": "57%"},
+              {"label": "2025 AI 핵심 · n=3", "era": "current", "value": 33.3, "level": 33.3, "display_value": "33.3%"}
+            ]}
           ]
         },
         {
           "title": "투자자가 얼마나 몰렸나",
           "basis": "공모가 대비 첫 거래일 종가",
           "metrics": [
-            {"label": "첫날 평균 상승", "value": 90, "display_value": "+90%", "meaning": "인터넷 IPO 동일가중 평균 상승률"}
+            {"label": "첫날 평균 상승", "meaning": "핵심 IPO의 동일가중 평균 상승률", "comparisons": [
+              {"label": "1999 닷컴", "era": "dotcom", "value": 90, "level": 90, "display_value": "+90%"},
+              {"label": "2025 AI 핵심 · n=3", "era": "current", "value": 18.6, "level": 18.6, "display_value": "+18.6%"}
+            ]}
           ]
         }
       ],
@@ -400,6 +451,13 @@
           {"period": 2, "date": "1999-12-31", "value": 81},
           {"period": 3, "date": "1999-12-31", "value": 57},
           {"period": 4, "date": "1999-12-31", "value": 90}
+        ]},
+        {"label": "2025 AI 핵심 · n=3", "era": "current", "color": "#28756a", "points": [
+          {"period": 0, "date": "2025-12-31", "value": 1.3},
+          {"period": 1, "date": "2025-12-31", "value": 4.1},
+          {"period": 2, "date": "2025-12-31", "value": 66.7},
+          {"period": 3, "date": "2025-12-31", "value": 33.3},
+          {"period": 4, "date": "2025-12-31", "value": 18.6}
         ]}
       ]
     }
@@ -442,7 +500,10 @@
       "latest_observation": "1999-12-31",
       "row_count": 5,
       "raw_sha256": "c306cfcab807ad00a08dae6dba9b255314cc212b528eaf614f98fd8ecc963c02",
-      "vintage": "downloaded_2026-08-18"
+      "vintage": "downloaded_2026-08-18",
+      "authority_class": "research_reference_static",
+      "usage_role": "reference_statistic",
+      "update_mode": "static_historical_reference"
     },
     {
       "series_id": "USER_IPO_REVIEW_20260818",
@@ -542,13 +603,13 @@
       "series_id": "SEC_TEMPUS_424B4", "title": "Tempus AI final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1717115/000119312524161989/0001193125-24-161989-index.htm", "available_at": "2024-06-17T06:07:46Z", "latest_observation": "2024-06-17", "row_count": 1, "raw_sha256": "06c9c6a8d8024f148ca9c5f977d847e00aba4593c95518f5366949c27a9b892f", "vintage": "SEC_accession_0001193125-24-161989"
     },
     {
-      "series_id": "SEC_COREWEAVE_424B4", "title": "CoreWeave final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1769628/000119312525067651/0001193125-25-067651-index.htm", "available_at": "2025-03-31T06:08:15Z", "latest_observation": "2025-03-31", "row_count": 1, "raw_sha256": "9aa819af2b114d898d5034f9f4bb0ff1c1591d0122173e6a0b382fa8dbeec004", "vintage": "SEC_accession_0001193125-25-067651"
+      "series_id": "SEC_COREWEAVE_424B4", "title": "CoreWeave final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1769628/000119312525067651/0001193125-25-067651-index.htm", "available_at": "2025-03-31T06:08:15Z", "latest_observation": "2025-03-31", "row_count": 1, "raw_sha256": "9aa819af2b114d898d5034f9f4bb0ff1c1591d0122173e6a0b382fa8dbeec004", "vintage": "SEC_accession_0001193125-25-067651", "authority_class": "official_regulator", "usage_role": "canonical_current_cohort_evidence", "update_mode": "event_driven_edgar"
     },
     {
-      "series_id": "SEC_AMBIQ_424B4", "title": "Ambiq Micro final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1500412/000119312525169401/0001193125-25-169401-index.htm", "available_at": "2025-07-30T18:06:08Z", "latest_observation": "2025-07-31", "row_count": 1, "raw_sha256": "1d0ac9d469d2eecc2717322b460e74c477b04a7e38c9f1a10c11f442f37c77c6", "vintage": "SEC_accession_0001193125-25-169401"
+      "series_id": "SEC_AMBIQ_424B4", "title": "Ambiq Micro final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/1500412/000119312525169401/0001193125-25-169401-index.htm", "available_at": "2025-07-30T18:06:08Z", "latest_observation": "2025-07-31", "row_count": 1, "raw_sha256": "1d0ac9d469d2eecc2717322b460e74c477b04a7e38c9f1a10c11f442f37c77c6", "vintage": "SEC_accession_0001193125-25-169401", "authority_class": "official_regulator", "usage_role": "canonical_current_cohort_evidence", "update_mode": "event_driven_edgar"
     },
     {
-      "series_id": "SEC_WHITEFIBER_424B4", "title": "WhiteFiber final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2042022/000121390025073279/0001213900-25-073279-index.htm", "available_at": "2025-08-08T06:10:19Z", "latest_observation": "2025-08-08", "row_count": 1, "raw_sha256": "c961ca0f226784b099ea107488f7df37731b1107b03d44f2e49e36287af75d6e", "vintage": "SEC_accession_0001213900-25-073279"
+      "series_id": "SEC_WHITEFIBER_424B4", "title": "WhiteFiber final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2042022/000121390025073279/0001213900-25-073279-index.htm", "available_at": "2025-08-08T06:10:19Z", "latest_observation": "2025-08-08", "row_count": 1, "raw_sha256": "c961ca0f226784b099ea107488f7df37731b1107b03d44f2e49e36287af75d6e", "vintage": "SEC_accession_0001213900-25-073279", "authority_class": "official_regulator", "usage_role": "canonical_current_cohort_evidence", "update_mode": "event_driven_edgar"
     },
     {
       "series_id": "SEC_CEREBRAS_424B4", "title": "Cerebras final IPO prospectus", "provider": "U.S. Securities and Exchange Commission", "unit": "filing", "native_frequency": "event", "source_url": "https://www.sec.gov/Archives/edgar/data/2021728/000162828026035214/0001628280-26-035214-index.htm", "available_at": "2026-05-14T00:00:00Z", "latest_observation": "2026-05-14", "row_count": 1, "raw_sha256": "16dc7581e12f99826fd9a364c3b62f837886431467d78e5b51e855e93cbe1403", "vintage": "SEC_accession_0001628280-26-035214"
@@ -557,7 +618,7 @@
       "series_id": "RITTER_IPO_SALES_2025", "title": "Initial Public Offerings: Sales", "provider": "Jay R. Ritter, University of Florida IPO Initiative", "unit": "annual_small_issuer_counts", "native_frequency": "annual", "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Sales.pdf", "available_at": "2026-02-20T00:00:00Z", "latest_observation": "2025-12-31", "row_count": 46, "raw_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4", "vintage": "downloaded_2026-08-13"
     },
     {
-      "series_id": "RITTER_IPO_UNDERPRICING_2025", "title": "Initial Public Offerings: Updated Statistics", "provider": "Jay R. Ritter, University of Florida IPO Initiative", "unit": "annual_post_issue_market_value", "native_frequency": "annual", "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf", "available_at": "2026-02-20T00:00:00Z", "latest_observation": "2025-12-31", "row_count": 46, "raw_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460", "vintage": "downloaded_2026-08-13"
+      "series_id": "RITTER_IPO_UNDERPRICING_2025", "title": "Initial Public Offerings: Updated Statistics", "provider": "Jay R. Ritter, University of Florida IPO Initiative", "unit": "annual_post_issue_market_value", "native_frequency": "annual", "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf", "available_at": "2026-02-20T00:00:00Z", "latest_observation": "2025-12-31", "row_count": 46, "raw_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460", "vintage": "downloaded_2026-08-13", "authority_class": "academic_reference_static", "usage_role": "reference_denominator_and_first_day_return", "update_mode": "annual_manual_review"
     },
     {
       "series_id": "OPENAI_2026_FUNDING", "title": "OpenAI raises $122 billion at $852 billion post-money valuation", "provider": "OpenAI", "unit": "private_post_money_valuation", "native_frequency": "event", "source_url": "https://openai.com/index/accelerating-the-next-phase-ai/", "available_at": "2026-03-31T00:00:00Z", "latest_observation": "2026-03-31", "row_count": 1, "raw_sha256": "e6c1a0585135895bca4703ec96fc396c366b3af0529369688ae2161492ace00e", "vintage": "canonical_fact_record_reviewed_2026-08-13"
