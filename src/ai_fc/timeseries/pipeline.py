@@ -40,7 +40,12 @@ from .features import (
     build_realtime_factor_history,
 )
 from .events import apply_event_overlay, read_events
-from .ledger import collect_alfred, incremental_realtime_window, read_facts
+from .ledger import (
+    collect_alfred,
+    incremental_realtime_window,
+    read_facts,
+    rebuild_facts_from_raw,
+)
 from .model import (
     RidgeVARXFit,
     RobustScaler,
@@ -87,12 +92,14 @@ def bootstrap_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
 def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
     if not api_key:
         raise TimeSeriesPipelineError("FRED_API_KEY is required and must be supplied at runtime")
+    recovered = rebuild_facts_from_raw(root)
     retrieved = datetime.now(timezone.utc).isoformat(timespec="seconds")
     realtime_start, realtime_end = incremental_realtime_window(root, retrieved_at=retrieved)
-    return collect_alfred(
+    result = collect_alfred(
         root, api_key=api_key, retrieved_at=retrieved,
         realtime_start=realtime_start, realtime_end=realtime_end,
     )
+    return {"recovered_from_raw": recovered, **result}
 
 
 def _source_hash(root: Path) -> str:

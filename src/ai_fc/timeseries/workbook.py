@@ -21,6 +21,7 @@ from .contracts import (
     file_hash,
     load_contract,
 )
+from .ledger import read_fact_rows
 
 
 def _jsonl(path: Path) -> list[dict[str, Any]]:
@@ -49,7 +50,23 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     contract = load_contract(root)
     receipts = _jsonl(root / LEDGER_RELATIVE / "raw_receipts.jsonl")
     event_receipts = _jsonl(root / LEDGER_RELATIVE / "event_raw_receipts.jsonl")
-    observations = _jsonl(root / LEDGER_RELATIVE / "observations.jsonl")
+    observation_ledger = read_fact_rows(root)
+    latest_revision: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for row in observation_ledger:
+        key = (row["source_id"], row["series_id"], row["observation_time"], row["vintage_start"])
+        prior = latest_revision.get(key)
+        if prior is None or int(row["revision_seq"]) > int(prior["revision_seq"]):
+            latest_revision[key] = row
+    active_vintages = list(latest_revision.values())
+    current_observations: dict[tuple[str, str, str], dict[str, Any]] = {}
+    for row in active_vintages:
+        key = (row["source_id"], row["series_id"], row["observation_time"])
+        prior = current_observations.get(key)
+        if prior is None or str(row["vintage_start"]) > str(prior["vintage_start"]):
+            current_observations[key] = row
+    observations = sorted(current_observations.values(), key=lambda row: (
+        row["series_id"], row["observation_time"], row["vintage_start"],
+    ))
     forecasts = _jsonl(root / LEDGER_RELATIVE / "forecasts.jsonl")
     resolutions = _jsonl(root / LEDGER_RELATIVE / "resolutions.jsonl")
     corrections = _jsonl(root / LEDGER_RELATIVE / "corrections.jsonl")
@@ -105,12 +122,25 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
         [row.get(key) for key in observation_headers] for row in observations
     ]]
     vintage_headers = [
-        "series_id", "observation_time", "vintage_start", "vintage_end", "revision_seq",
-        "available_at", "supersedes_observation_id", "source_revision_id", "source_hash",
+        "series_id", "observation_year", "fact_vintages", "distinct_observations",
+        "first_vintage_start", "last_vintage_start", "superseded_rows", "source_hashes",
     ]
-    vintage_rows = [vintage_headers, *[
-        [row.get(key) for key in vintage_headers] for row in observations
-    ]]
+    vintage_summary: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for row in active_vintages:
+        key = (str(row["series_id"]), str(row["observation_time"])[:4])
+        vintage_summary.setdefault(key, []).append(row)
+    vintage_rows = [vintage_headers]
+    for (series_id, year), rows in sorted(vintage_summary.items()):
+        vintage_rows.append([
+            series_id,
+            year,
+            len(rows),
+            len({str(row["observation_time"]) for row in rows}),
+            min(str(row["vintage_start"]) for row in rows),
+            max(str(row["vintage_start"]) for row in rows),
+            sum(1 for row in rows if row.get("vintage_end")),
+            len({str(row["source_hash"]) for row in rows}),
+        ])
 
     feature_rows = [["feature", "role", "transformation", "training_status", "notes"]]
     registered_transforms = contract["transforms"]
@@ -188,11 +218,12 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
 
     jsonl_active_keys = {
         (row["source_id"], row["series_id"], row["observation_time"], row["vintage_start"])
-        for row in observations
+        for row in active_vintages
     }
     run_manifest = [["check", "actual", "expected", "status", "notes"],
         ["contract_hash", canonical_hash(contract), canonical_hash(contract), "PASS", "preregistered contract"],
-        ["observation_ledger_rows", len(observations), len(observations), "PASS", "append-only rows including revisions"],
+        ["observation_ledger_rows", len(observation_ledger), len(observation_ledger), "PASS", "append-only rows including revisions"],
+        ["current_observation_export_rows", len(observations), len(observations), "PASS", "Excel-safe latest-vintage review view"],
         ["active_observation_keys", len(jsonl_active_keys), len(jsonl_active_keys), "PASS", "source/series/date/vintage keys"],
         ["parquet_rows", parquet_rows, len(jsonl_active_keys), "PASS" if parquet_rows == len(jsonl_active_keys) else "HOLD", "derived training view"],
         ["receipt_rows", len(receipts) + len(event_receipts), len(receipts) + len(event_receipts), "PASS", "raw before derive"],
@@ -207,7 +238,7 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     sheets: dict[str, tuple[list[list[Any]], list[float]]] = {
         "Sources": (source_rows, [22, 24, 14, 24, 14, 27, 68, 68]),
         "Observations": (observation_rows, [68, 20, 24, 18, 16, 16, 27, 27, 27, 27, 26, 68, 28, 14, 68]),
-        "Vintages": (vintage_rows, [24, 18, 27, 27, 14, 27, 68, 28, 68]),
+        "Vintages": (vintage_rows, [24, 18, 20, 24, 27, 27, 20, 18]),
         "Features": (feature_rows, [28, 24, 52, 20, 62]),
         "Forecasts": (forecast_rows, [28, 18, 27, 16, 20, 18, 30, 68, 18]),
         "Backtest": (backtest_rows, [18, 14, 16, 16, 16, 22, 16, 26, 20, 22, 22, 22, 18]),
@@ -229,7 +260,8 @@ def export_timeseries_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     os.replace(temporary, target)
     summary = {
         "sources": len(source_rows) - 1,
-        "observations": len(observations),
+        "observations": len(observation_ledger),
+        "current_observation_export_rows": len(observations),
         "active_observations": len(jsonl_active_keys),
         "parquet_rows": parquet_rows,
         "forecasts": len(forecasts),

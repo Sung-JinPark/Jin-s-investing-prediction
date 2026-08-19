@@ -29,6 +29,8 @@ from .contracts import FACTS_RELATIVE, LEDGER_RELATIVE, RAW_RELATIVE, canonical_
 
 RECEIPTS_NAME = "raw_receipts.jsonl"
 OBSERVATIONS_NAME = "observations.jsonl"
+OBSERVATION_MANIFEST_NAME = "observation_chunks.jsonl"
+OBSERVATION_CHUNKS_DIRECTORY = "observation_chunks"
 PARQUET_NAME = "observations.parquet"
 ALFRED_JSON_VINTAGE_LIMIT = 2_000
 ALFRED_VINTAGE_BATCH_SIZE = 250
@@ -137,6 +139,32 @@ def normalize_alfred(
     source_hash = hashlib.sha256(payload).hexdigest()
     facts: list[ObservationFact] = []
     for row in decoded.get("observations", []):
+        if decoded.get("output_type") == 3:
+            prefix = f"{series_id}_"
+            for column, raw_value in row.items():
+                if column == "date" or not column.startswith(prefix):
+                    continue
+                suffix = column[len(prefix):]
+                if len(suffix) != 8 or not suffix.isdigit() or raw_value in (None, "."):
+                    continue
+                vintage_day = datetime.strptime(suffix, "%Y%m%d").date().isoformat()
+                start = _release_timestamp(vintage_day)
+                facts.append(ObservationFact(
+                    source_id="alfred",
+                    series_id=series_id,
+                    observation_time=str(row["date"]),
+                    value=float(raw_value),
+                    available_at=start,
+                    vintage_start=start,
+                    vintage_end=None,
+                    retrieved_at=retrieved_at,
+                    source_revision_id=f"{series_id}:{vintage_day}",
+                    source_hash=source_hash,
+                    parser_version="multivariate-alfred-v2-wide",
+                    timezone="America/New_York",
+                    calendar_id="US_FED",
+                ))
+            continue
         if row.get("value") in (None, "."):
             continue
         start = _release_timestamp(str(row["realtime_start"]))
@@ -165,9 +193,67 @@ def normalize_alfred(
     return facts
 
 
+def _close_vintage_intervals(
+    root: Path, facts: Iterable[ObservationFact],
+) -> list[ObservationFact]:
+    """Close only touched observation histories at the next known vintage."""
+    incoming = list(facts)
+    if not incoming:
+        return []
+    touched = {
+        (fact.source_id, fact.series_id, fact.observation_time)
+        for fact in incoming
+    }
+    combined: dict[tuple[str, str, str, str], ObservationFact] = {
+        fact.key: fact for fact in read_facts(root)
+        if (fact.source_id, fact.series_id, fact.observation_time) in touched
+    }
+    for fact in incoming:
+        combined[fact.key] = fact
+
+    grouped: dict[tuple[str, str, str], list[ObservationFact]] = {}
+    for fact in combined.values():
+        group_key = (fact.source_id, fact.series_id, fact.observation_time)
+        grouped.setdefault(group_key, []).append(fact)
+
+    closed: list[ObservationFact] = []
+    for group in grouped.values():
+        ordered = sorted(group, key=lambda fact: fact.vintage_start)
+        for index, fact in enumerate(ordered):
+            next_start = ordered[index + 1].vintage_start if index + 1 < len(ordered) else None
+            closed.append(fact.model_copy(update={"vintage_end": next_start}))
+    return sorted(closed, key=lambda fact: fact.key)
+
+
+def rebuild_facts_from_raw(root: Path) -> dict[str, int]:
+    """Idempotently rebuild normalized PIT facts from preserved raw receipts."""
+    facts: list[ObservationFact] = []
+    observation_receipts = 0
+    for receipt in _jsonl(root / LEDGER_RELATIVE / RECEIPTS_NAME):
+        raw_path = root / str(receipt["raw_path"])
+        if not raw_path.is_file():
+            raise RuntimeError(f"missing ALFRED raw artifact: {raw_path.relative_to(root)}")
+        payload = gzip.decompress(raw_path.read_bytes())
+        digest = hashlib.sha256(payload).hexdigest()
+        if digest != receipt["raw_sha256"]:
+            raise RuntimeError(f"ALFRED raw hash mismatch: {raw_path.relative_to(root)}")
+        decoded = json.loads(payload)
+        if "observations" not in decoded:
+            continue
+        observation_receipts += 1
+        facts.extend(normalize_alfred(
+            payload,
+            series_id=str(receipt["series_id"]),
+            retrieved_at=str(receipt["retrieved_at"]),
+        ))
+    result = append_facts(root, _close_vintage_intervals(root, facts))
+    return {**result, "observation_receipts": observation_receipts}
+
+
 def append_facts(root: Path, facts: Iterable[ObservationFact]) -> dict[str, int]:
-    path = root / LEDGER_RELATIVE / OBSERVATIONS_NAME
-    existing_rows = _jsonl(path)
+    manifest_path = root / LEDGER_RELATIVE / OBSERVATION_MANIFEST_NAME
+    existing_rows = read_fact_rows(root)
+    existing_ids = {str(row["observation_id"]): row for row in existing_rows}
     existing: dict[tuple[str, str, str, str], dict[str, Any]] = {}
     for row in existing_rows:
         key = (row["source_id"], row["series_id"], row["observation_time"], row["vintage_start"])
@@ -176,6 +262,7 @@ def append_facts(root: Path, facts: Iterable[ObservationFact]) -> dict[str, int]
             existing[key] = row
     appended = 0
     corrected = 0
+    pending_rows: list[dict[str, Any]] = []
     for fact in facts:
         row = fact.model_dump(mode="json")
         key = fact.key
@@ -198,11 +285,55 @@ def append_facts(root: Path, facts: Iterable[ObservationFact]) -> dict[str, int]
         }
         observation_id = canonical_hash(ledger_seed)
         ledger_row = {"observation_id": observation_id, **ledger_seed}
-        _append_unique(
-            path, ledger_row, id_field="observation_id",
-        )
+        prior_id_row = existing_ids.get(observation_id)
+        if prior_id_row is not None and prior_id_row != ledger_row:
+            raise RuntimeError(f"append-only conflict for observation_id={observation_id}")
+        if prior_id_row is None:
+            pending_rows.append(ledger_row)
+            existing_ids[observation_id] = ledger_row
         existing[key] = ledger_row
         appended += 1
+    if pending_rows:
+        rows_by_series_decade: dict[tuple[str, str], list[dict[str, Any]]] = {}
+        for row in pending_rows:
+            observation_year = str(row["observation_time"])[:4]
+            observation_decade = f"{observation_year[:3]}0s"
+            partition = (str(row["series_id"]), observation_decade)
+            rows_by_series_decade.setdefault(partition, []).append(row)
+        for (series_id, observation_decade), series_rows in sorted(rows_by_series_decade.items()):
+            body = "".join(
+                json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+                for row in series_rows
+            ).encode("utf-8")
+            content_sha256 = hashlib.sha256(body).hexdigest()
+            chunk_path = (
+                root / FACTS_RELATIVE / OBSERVATION_CHUNKS_DIRECTORY
+                / f"{content_sha256}.jsonl.gz"
+            )
+            chunk_path.parent.mkdir(parents=True, exist_ok=True)
+            if not chunk_path.exists():
+                temporary = chunk_path.with_suffix(".tmp")
+                with temporary.open("wb") as raw_handle:
+                    with gzip.GzipFile(
+                        filename="", fileobj=raw_handle, mode="wb", compresslevel=9, mtime=0,
+                    ) as handle:
+                        handle.write(body)
+                os.replace(temporary, chunk_path)
+            manifest_body = {
+                "schema_version": 1,
+                "chunk_id": content_sha256,
+                "series_id": series_id,
+                "observation_decade": observation_decade,
+                "content_sha256": content_sha256,
+                "chunk_path": chunk_path.relative_to(root).as_posix(),
+                "row_count": len(series_rows),
+                "created_at": max(str(row["retrieved_at"]) for row in series_rows),
+                "first_observation_id": str(series_rows[0]["observation_id"]),
+                "last_observation_id": str(series_rows[-1]["observation_id"]),
+            }
+            _append_unique(
+                manifest_path, manifest_body, id_field="chunk_id",
+            )
     if appended:
         build_parquet_training_view(root)
     return {
@@ -213,9 +344,30 @@ def append_facts(root: Path, facts: Iterable[ObservationFact]) -> dict[str, int]
     }
 
 
+def read_fact_rows(root: Path) -> list[dict[str, Any]]:
+    """Read legacy rows plus immutable content-addressed JSONL gzip chunks."""
+    rows = _jsonl(root / LEDGER_RELATIVE / OBSERVATIONS_NAME)
+    chunk_root = (root / FACTS_RELATIVE / OBSERVATION_CHUNKS_DIRECTORY).resolve()
+    for manifest in _jsonl(root / LEDGER_RELATIVE / OBSERVATION_MANIFEST_NAME):
+        chunk_path = (root / str(manifest["chunk_path"])).resolve()
+        if not chunk_path.is_relative_to(chunk_root):
+            raise RuntimeError(f"observation chunk escaped registered root: {manifest['chunk_path']}")
+        if not chunk_path.is_file():
+            raise RuntimeError(f"missing observation chunk: {manifest['chunk_path']}")
+        body = gzip.decompress(chunk_path.read_bytes())
+        digest = hashlib.sha256(body).hexdigest()
+        if digest != manifest["content_sha256"] or digest != manifest["chunk_id"]:
+            raise RuntimeError(f"observation chunk hash mismatch: {manifest['chunk_path']}")
+        chunk_rows = [json.loads(line) for line in body.decode("utf-8").splitlines() if line]
+        if len(chunk_rows) != int(manifest["row_count"]):
+            raise RuntimeError(f"observation chunk row-count mismatch: {manifest['chunk_path']}")
+        rows.extend(chunk_rows)
+    return rows
+
+
 def read_facts(root: Path) -> list[ObservationFact]:
     latest: dict[tuple[str, str, str, str], dict[str, Any]] = {}
-    for row in _jsonl(root / LEDGER_RELATIVE / OBSERVATIONS_NAME):
+    for row in read_fact_rows(root):
         key = (row["source_id"], row["series_id"], row["observation_time"], row["vintage_start"])
         prior = latest.get(key)
         if prior is None or int(row["revision_seq"]) > int(prior["revision_seq"]):
@@ -444,7 +596,7 @@ def collect_alfred(
             "raw_sha256s": [receipt.raw_sha256 for receipt in receipts],
             "normalized_facts": normalized_count,
         })
-    fact_result = append_facts(root, pending_facts)
+    fact_result = append_facts(root, _close_vintage_intervals(root, pending_facts))
     return {
         "retrieved_at": retrieved,
         "realtime_window": {"start": effective_start, "end": realtime_end},
