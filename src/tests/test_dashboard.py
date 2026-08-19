@@ -197,7 +197,8 @@ def test_ui_contract() -> None:
     assert "function drawCrossAsset" in html and "function drawCrossAssetHistory" in html
     assert "BTC SENSITIVITY" in html
     assert "조건 4개" in html
-    assert "O 가격선과 총수익 proxy는 2001-03~2006-03 실측" in html
+    assert "Realty Income 배당 포함 수익은 2001-03~2006-03 실측" in html
+    assert "config.valueMode==='return_from_100'?signedDelta(value-100,0,'%')" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
     assert "clamp(78px" in html, "핵심 확률 대형 크기 없음"
@@ -439,6 +440,8 @@ def test_workspace_utility_contract() -> None:
     assert "research-layout-cards" in html and "analog-readout" in html
     assert "tip-series" in html and "--tip-series" in html
     assert "크립토 2019 시작" in html
+    assert "<h2>과거 혁신 사이클 비교</h2>" in html
+    assert "다우는 1925-01 시작 후 1929-09 정점이 M+56" in html
     assert "crypto2021:['크립토 2019 시작','#1f6feb'" in html
     assert "biotech2015:['바이오 2013','#a43c82'" in html
     assert "dow1929:['다우 1925','#6b5845'" in html

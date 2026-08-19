@@ -5,10 +5,10 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-08-18T09:08:09+00:00",
-  "knowledge_cutoff": "2026-08-18T09:08:09+00:00",
-  "observation_through": "2026-08-17",
-  "as_of": "2026-08-17",
+  "generated_at": "2026-08-19T04:48:38+00:00",
+  "knowledge_cutoff": "2026-08-19T04:48:38+00:00",
+  "observation_through": "2026-08-18",
+  "as_of": "2026-08-18",
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -954,7 +954,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 230.00384132314161
+              "value": 226.93768855933118
             }
           ]
         },
@@ -1954,7 +1954,7 @@
       "title": "자금 지도: 현재 규모와 12개월 방향",
       "category": "liquidity",
       "unit": "percent",
-      "description": "왼쪽은 서로 합산하지 않는 현재 규모, 오른쪽은 각 지표의 최근 12개월 실제 변화입니다.",
+      "description": "대표 주식·안전자산·현금성 자산의 규모와 최근 방향을 함께 봅니다. 항목 간 중복이 있어 합산하지 않습니다.",
       "caveat": "공식 원천의 실제 관측치만 사용하며 미래 구간을 연장하지 않습니다.",
       "series": [
         {
@@ -1964,54 +1964,84 @@
           "points": [
             {
               "period": 0,
-              "date": "2026-08-17",
-              "value": 20.082173090638467
+              "date": "2026-08-18",
+              "value": 19.267810486653293
             },
             {
               "period": 1,
-              "date": "2026-08-17",
-              "value": 23.224967141439336
+              "date": "2026-08-18",
+              "value": 21.544103335356766
             },
             {
               "period": 2,
-              "date": "2026-08-17",
-              "value": -44.599092794398956
+              "date": "2026-08-18",
+              "value": -42.73650386389971
             },
             {
               "period": 3,
-              "date": "2026-06-01",
-              "value": 5.525755718302672
+              "date": "2026-07-01",
+              "value": 20.09309542280837
             },
             {
               "period": 4,
               "date": "2026-01-01",
+              "value": 7.712714705363921
+            },
+            {
+              "period": 5,
+              "date": "2026-01-01",
+              "value": -6.613226146331597
+            },
+            {
+              "period": 6,
+              "date": "2026-01-01",
+              "value": 22.76593127745741
+            },
+            {
+              "period": 7,
+              "date": "2026-01-01",
               "value": 12.052925794532365
+            },
+            {
+              "period": 8,
+              "date": "2026-01-01",
+              "value": 8.923746603550242
             }
           ]
         }
       ],
       "source_ids": [
         "BOGZ1LM893064105Q",
+        "FGDSLAQ027S",
+        "TSDABSHNO",
+        "CDCABSHNO",
         "M2SL",
         "MMMFFAQ027S",
+        "BOGZ1FL153064235Q",
         "SP500",
         "NASDAQCOM",
-        "CBBTCUSD"
+        "CBBTCUSD",
+        "IQ12260"
       ],
       "range": {
-        "minimum": -44.599092794398956,
-        "maximum": 23.224967141439336
+        "minimum": -42.73650386389971,
+        "maximum": 22.76593127745741
       },
-      "scope_note": "*미국 기준 · 비트코인은 달러 시세",
-      "insight": "왼쪽은 서로 합산하지 않는 현재 규모, 오른쪽은 각 지표의 최근 12개월 실제 변화입니다.",
-      "conclusion": "왼쪽은 서로 합산하지 않는 현재 규모, 오른쪽은 각 지표의 최근 12개월 실제 변화입니다.",
+      "scope_note": "*미국 기준 · 금은 공식 가격지수",
+      "insight": "대표 주식·안전자산·현금성 자산의 규모와 최근 방향을 함께 봅니다. 항목 간 중복이 있어 합산하지 않습니다.",
+      "conclusion": "대표 주식·안전자산·현금성 자산의 규모와 최근 방향을 함께 봅니다. 항목 간 중복이 있어 합산하지 않습니다.",
       "metric_source_ids": [
         "BOGZ1LM893064105Q",
+        "FGDSLAQ027S",
+        "TSDABSHNO",
+        "CDCABSHNO",
         "M2SL",
         "MMMFFAQ027S",
+        "BOGZ1FL153064235Q",
         "SP500",
         "NASDAQCOM",
-        "CBBTCUSD"
+        "CBBTCUSD",
+        "IQ12260"
       ],
       "research_context_source_ids": [],
       "chart_type": "liquidity_bars",
@@ -2030,6 +2060,21 @@
               "display_value": "$106.9T"
             },
             {
+              "label": "미국 연방정부 채권",
+              "value": 30.663618999999997,
+              "display_value": "$30.7T"
+            },
+            {
+              "label": "가계 예금",
+              "value": 9.156731,
+              "display_value": "$9.2T"
+            },
+            {
+              "label": "가계 현금",
+              "value": 5.948854,
+              "display_value": "$5.9T"
+            },
+            {
               "label": "미국 M2",
               "value": 23.1552,
               "display_value": "$23.2T"
@@ -2038,6 +2083,11 @@
               "label": "미국 MMF",
               "value": 8.289569,
               "display_value": "$8.3T"
+            },
+            {
+              "label": "가계 채권펀드",
+              "value": 3.426667,
+              "display_value": "$3.4T"
             }
           ]
         },
@@ -2049,28 +2099,48 @@
           "metrics": [
             {
               "label": "S&P 500",
-              "value": 20.082173090638467,
-              "display_value": "+20.1%"
+              "value": 19.267810486653293,
+              "display_value": "+19.3%"
             },
             {
               "label": "NASDAQ",
-              "value": 23.224967141439336,
-              "display_value": "+23.2%"
+              "value": 21.544103335356766,
+              "display_value": "+21.5%"
             },
             {
               "label": "비트코인",
-              "value": -44.599092794398956,
-              "display_value": "-44.6%"
+              "value": -42.73650386389971,
+              "display_value": "-42.7%"
             },
             {
-              "label": "미국 M2",
-              "value": 5.525755718302672,
-              "display_value": "+5.5%"
+              "label": "금 가격지수",
+              "value": 20.09309542280837,
+              "display_value": "+20.1%"
+            },
+            {
+              "label": "미국 연방정부 채권",
+              "value": 7.712714705363921,
+              "display_value": "+7.7%"
+            },
+            {
+              "label": "가계 예금",
+              "value": -6.613226146331597,
+              "display_value": "-6.6%"
+            },
+            {
+              "label": "가계 현금",
+              "value": 22.76593127745741,
+              "display_value": "+22.8%"
             },
             {
               "label": "미국 MMF",
               "value": 12.052925794532365,
               "display_value": "+12.1%"
+            },
+            {
+              "label": "가계 채권펀드",
+              "value": 8.923746603550242,
+              "display_value": "+8.9%"
             }
           ]
         }
@@ -2614,7 +2684,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 0.4709090909090909
+              "value": 0.47500000000000003
             }
           ]
         }
@@ -9889,7 +9959,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 431.9420107326689
+              "value": 410.4308126163618
             }
           ]
         }
@@ -10681,12 +10751,17 @@
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": -6.982156710628395
+              "value": -8.30100853374709
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 3.4807831762146524
+              "value": 2.610587382160978
+            },
+            {
+              "period": 42,
+              "date": "2026-07-01",
+              "value": -13.477653631284914
             }
           ]
         },
@@ -11780,7 +11855,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
       "raw_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
@@ -11800,11 +11875,111 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "5fc80ae35c8226ab0cf92a53083be3c5d6105201d8c5cdb153a385c0c85060d4",
       "raw_path": "data/statistics/official_store/raw/fred_market_signals/5fc80ae35c8226ab0cf92a53083be3c5d6105201d8c5cdb153a385c0c85060d4.bin",
+      "vintage": "current_release_reconstructed"
+    },
+    {
+      "series_id": "CDCABSHNO",
+      "title": "Households and nonprofit organizations; checkable deposits and currency",
+      "provider": "Board of Governors of the Federal Reserve System (US)",
+      "unit": "millions_usd",
+      "native_frequency": "quarterly_end_of_period",
+      "aggregation": "last",
+      "source_url": "https://fred.stlouisfed.org/series/CDCABSHNO",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CDCABSHNO&cosd=1995-01-01",
+      "authority_class": "authoritative_public_distributor",
+      "policy_source_id": "fred_market_signals",
+      "usage_role": "numeric_input",
+      "numeric_input_allowed": true,
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-01-01",
+      "row_count": 125,
+      "raw_sha256": "736b192581b0fee1bed353bf955c3905404a6a5f7643b7093f24a95c2bd0c33f",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/736b192581b0fee1bed353bf955c3905404a6a5f7643b7093f24a95c2bd0c33f.bin",
+      "vintage": "current_release_reconstructed"
+    },
+    {
+      "series_id": "TSDABSHNO",
+      "title": "Households and nonprofit organizations; time and savings deposits",
+      "provider": "Board of Governors of the Federal Reserve System (US)",
+      "unit": "millions_usd",
+      "native_frequency": "quarterly_end_of_period",
+      "aggregation": "last",
+      "source_url": "https://fred.stlouisfed.org/series/TSDABSHNO",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TSDABSHNO&cosd=1995-01-01",
+      "authority_class": "authoritative_public_distributor",
+      "policy_source_id": "fred_market_signals",
+      "usage_role": "numeric_input",
+      "numeric_input_allowed": true,
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-01-01",
+      "row_count": 125,
+      "raw_sha256": "9e379da2eb98c382bb4d2c2885399eb8a0531d36beb0a4e86dd215455f4938f3",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/9e379da2eb98c382bb4d2c2885399eb8a0531d36beb0a4e86dd215455f4938f3.bin",
+      "vintage": "current_release_reconstructed"
+    },
+    {
+      "series_id": "FGDSLAQ027S",
+      "title": "Federal government; Treasury securities; liability level",
+      "provider": "Board of Governors of the Federal Reserve System (US)",
+      "unit": "millions_usd",
+      "native_frequency": "quarterly_end_of_period",
+      "aggregation": "last",
+      "source_url": "https://fred.stlouisfed.org/series/FGDSLAQ027S",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FGDSLAQ027S&cosd=1995-01-01",
+      "authority_class": "authoritative_public_distributor",
+      "policy_source_id": "fred_market_signals",
+      "usage_role": "numeric_input",
+      "numeric_input_allowed": true,
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-01-01",
+      "row_count": 125,
+      "raw_sha256": "2fa911e39b5b8b9fd01f830f788a32d0890ce65b4e4d137c8684d5987fee20f2",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2fa911e39b5b8b9fd01f830f788a32d0890ce65b4e4d137c8684d5987fee20f2.bin",
+      "vintage": "current_release_reconstructed"
+    },
+    {
+      "series_id": "BOGZ1FL153064235Q",
+      "title": "Households and nonprofit organizations; bond mutual fund shares",
+      "provider": "Board of Governors of the Federal Reserve System (US)",
+      "unit": "millions_usd",
+      "native_frequency": "quarterly_end_of_period",
+      "aggregation": "last",
+      "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL153064235Q",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL153064235Q&cosd=1995-01-01",
+      "authority_class": "authoritative_public_distributor",
+      "policy_source_id": "fred_market_signals",
+      "usage_role": "numeric_input",
+      "numeric_input_allowed": true,
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-01-01",
+      "row_count": 125,
+      "raw_sha256": "5489c9c7c0fe3f81081f150e84b28f8145d02c84aa2bd638f07573c573f3d95e",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5489c9c7c0fe3f81081f150e84b28f8145d02c84aa2bd638f07573c573f3d95e.bin",
+      "vintage": "current_release_reconstructed"
+    },
+    {
+      "series_id": "IQ12260",
+      "title": "Export price index: nonmonetary gold",
+      "provider": "U.S. Bureau of Labor Statistics",
+      "unit": "index_dec_2024_100",
+      "native_frequency": "monthly",
+      "aggregation": "last",
+      "source_url": "https://fred.stlouisfed.org/series/IQ12260",
+      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=IQ12260&cosd=1995-01-01",
+      "authority_class": "authoritative_public_distributor",
+      "policy_source_id": "fred_market_signals",
+      "usage_role": "numeric_input",
+      "numeric_input_allowed": true,
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-07-01",
+      "row_count": 379,
+      "raw_sha256": "484fae26cd00092a4a48eed62eda7ef82719b6b3173ca5c769866cf8c2cfa52b",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/484fae26cd00092a4a48eed62eda7ef82719b6b3173ca5c769866cf8c2cfa52b.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11820,7 +11995,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d",
@@ -11840,7 +12015,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "489d94decb0830ebe03d2e75cdbfcf79ff533244e1053738a0a074a7b0acdb6c",
@@ -11860,7 +12035,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "9822c3d45f96edc1291a704c62e067094517662b0fd26a7c0012dc9d36fdb578",
@@ -11881,11 +12056,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-08-17",
-      "row_count": 10487,
-      "raw_sha256": "c5b58ad1f27cca238a2ee9d4309aa0f0899b808798bbde4dd4dc467bf964137e",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/c5b58ad1f27cca238a2ee9d4309aa0f0899b808798bbde4dd4dc467bf964137e.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-08-18",
+      "row_count": 10488,
+      "raw_sha256": "00e1a29d95f72d214aa5ba1bbbdd4f91209a457137ad04c3b6daa0c575c19d3b",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/00e1a29d95f72d214aa5ba1bbbdd4f91209a457137ad04c3b6daa0c575c19d3b.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11901,11 +12076,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-08-17",
-      "row_count": 7912,
-      "raw_sha256": "278d7f7b9dc1d0243419fe1f27e96cf85d30f7d5b5ac35cec63b9a3c06979966",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/278d7f7b9dc1d0243419fe1f27e96cf85d30f7d5b5ac35cec63b9a3c06979966.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-08-18",
+      "row_count": 7913,
+      "raw_sha256": "354f344a672b7a1e7fab1b8ac3c572ee53bdc7775c1672a9edd90f5aa3b6b470",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/354f344a672b7a1e7fab1b8ac3c572ee53bdc7775c1672a9edd90f5aa3b6b470.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11921,7 +12096,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20",
@@ -11941,7 +12116,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
       "raw_sha256": "88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51",
@@ -11961,7 +12136,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 85,
       "raw_sha256": "6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9",
@@ -11981,7 +12156,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2025-10-01",
       "row_count": 124,
       "raw_sha256": "5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0",
@@ -12001,7 +12176,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
       "raw_sha256": "b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165",
@@ -12021,7 +12196,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7",
@@ -12041,7 +12216,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69",
@@ -12061,7 +12236,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
@@ -12081,7 +12256,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
@@ -12101,7 +12276,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-08-07",
       "row_count": 1649,
       "raw_sha256": "7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d",
@@ -12121,7 +12296,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497",
@@ -12141,7 +12316,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0",
@@ -12161,7 +12336,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b",
@@ -12181,7 +12356,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-08-11",
       "row_count": 7930,
       "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
@@ -12201,7 +12376,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "37526897a98189c8596bc68670b0533e0fdd5f3a2c15889f362149838054dc55",
@@ -12221,7 +12396,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea",
@@ -12242,11 +12417,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-08-17",
-      "row_count": 908,
-      "raw_sha256": "a830d689e8bc2f95ccd0865f354d8d91ae2fbdc5125c29b3837767cdf4609668",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a830d689e8bc2f95ccd0865f354d8d91ae2fbdc5125c29b3837767cdf4609668.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-08-18",
+      "row_count": 909,
+      "raw_sha256": "1df52597a056e97f40b648677c3d43a456cd8fa1b949d53fb41104fdc6237da0",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/1df52597a056e97f40b648677c3d43a456cd8fa1b949d53fb41104fdc6237da0.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12263,11 +12438,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-08-17",
-      "row_count": 1325,
-      "raw_sha256": "392501ff6474dbebb7d74e64d164fcb8948075f547c8ad71e995cd7ce994f875",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/392501ff6474dbebb7d74e64d164fcb8948075f547c8ad71e995cd7ce994f875.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-08-18",
+      "row_count": 1326,
+      "raw_sha256": "a88338823936595ac45b374cfa4a81fd02d65367db1d4d7e2fb7b1fe89e3a483",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a88338823936595ac45b374cfa4a81fd02d65367db1d4d7e2fb7b1fe89e3a483.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12284,11 +12459,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-08-17",
-      "row_count": 1664,
-      "raw_sha256": "7d5e423298ec4aadebdf225e497305f78c5bb9f5c910e604b600b5822662d9fc",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/7d5e423298ec4aadebdf225e497305f78c5bb9f5c910e604b600b5822662d9fc.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-08-18",
+      "row_count": 1665,
+      "raw_sha256": "24f1372391dd6e1e3a9e97c598075a601087e7a54c9bfbf540f26699c3b2512d",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/24f1372391dd6e1e3a9e97c598075a601087e7a54c9bfbf540f26699c3b2512d.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12305,7 +12480,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 78,
       "raw_sha256": "422e4d720605cc5c699f6fffa6da64d1c16927232daea56b57ae88f8bf10bc84",
@@ -12325,11 +12500,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
-      "latest_observation": "2026-06-01",
-      "row_count": 378,
-      "raw_sha256": "cdb14585741ecc1a487940b52957a90a78126eb2e64accedd83788c4adee0158",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/cdb14585741ecc1a487940b52957a90a78126eb2e64accedd83788c4adee0158.bin",
+      "available_at": "2026-08-19T04:48:38+00:00",
+      "latest_observation": "2026-07-01",
+      "row_count": 379,
+      "raw_sha256": "25276cbf8ba61a7deaa6ee58a7e36dea050de1ef146fd180ee5222fb21907699",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/25276cbf8ba61a7deaa6ee58a7e36dea050de1ef146fd180ee5222fb21907699.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12344,7 +12519,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "41ec9bc4ac8191be7d6db38c467550e7b6a4108370885f41e7b6b899117ee5c0",
@@ -12363,7 +12538,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-18T09:08:09+00:00",
+      "available_at": "2026-08-19T04:48:38+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
@@ -12388,5 +12563,349 @@
     "Yahoo_Finance": "disabled_for_statistics_numeric_input",
     "NYU_SP500_history": "insight_only_not_numeric_input",
     "manual_NAHB_snapshot": "replaced_by_Census_HOUST"
+  },
+  "reference_statistics": {
+    "schema_version": 1,
+    "dataset_id": "ipo_reference_statistics_v1",
+    "status": "ok",
+    "label": "참고 통계",
+    "probability_space": "reference_only",
+    "model_use": false,
+    "official_forecast_input": false,
+    "official_numeric_ledger": false,
+    "as_of": "2026-08-12",
+    "placement": "below_authoritative_statistics",
+    "charts": [
+      {
+        "id": "dotcom_internet_ipo_breadth",
+        "title": "인터넷 IPO 얼마나 뜨거웠나",
+        "category": "ipo",
+        "unit": "percent",
+        "chart_type": "profile_cards",
+        "axis_type": "categorical",
+        "max_period": 4,
+        "description": "1999년 인터넷 IPO와 2025년 엄격한 AI 핵심 IPO 3곳을 같은 다섯 기준으로 나란히 비교합니다.",
+        "caveat": "1999 기준은 WilmerHale의 정적 연구 통계입니다. 2025 AI 핵심 분자는 SEC 최종 투자설명서, 분모는 SEC 분기별 공식 IPO 자료로 검증합니다. 저매출·업력은 최종 투자설명서 표본, 첫날 평균은 공식 first-close DB가 없어 Ritter 개별 IPO 자료를 사용하는 참고 통계입니다.",
+        "insight": "2025년 AI 핵심 IPO는 SEC 일반기업 IPO의 1.3%, 공모액의 4.1%로 1999년 인터넷 IPO의 폭에는 크게 못 미칩니다. 다만 핵심 3곳 중 저매출 기업 비중은 66.7%여서 상장사의 초기성은 함께 살펴야 합니다.",
+        "source_ids": [
+          "WILMERHALE_INTERNET_IPO_1999",
+          "RITTER_IPO_UNDERPRICING_2025",
+          "SEC_COREWEAVE_424B4",
+          "SEC_AMBIQ_424B4",
+          "SEC_WHITEFIBER_424B4",
+          "SEC_IPO_QUARTERLY"
+        ],
+        "reference_contract": {
+          "publication_class": "reference_statistics",
+          "official_numeric_ledger": false,
+          "refreshable_current_evidence": "SEC EDGAR final prospectuses and the SEC quarterly IPO workbook provide the canonical event universe and issuer disclosures.",
+          "static_reference_components": [
+            "1999 WilmerHale internet-IPO statistics",
+            "2025 Ritter first-day close observations"
+          ],
+          "alternative_static_denominator_reference": "Ritter comparable-IPO denominator 90 offerings / $38.970bn is retained for audit context but is not the displayed current denominator.",
+          "current_cohort": {
+            "year": 2025,
+            "definition": "strict AI core completed traditional U.S. IPOs",
+            "n": 3,
+            "members": [
+              "CoreWeave",
+              "Ambiq Micro",
+              "WhiteFiber"
+            ],
+            "proceeds_mn": 1755.375,
+            "low_revenue_count": 2,
+            "young_issuer_count": 1,
+            "mean_first_day_return_percent": 18.6
+          },
+          "calculation_audit": {
+            "ipo_share": "3 / SEC 2025 corporate IPO count 227 = 1.3%",
+            "proceeds_share": "$1.755375bn / SEC 2025 corporate proceeds $43.2908bn = 4.1%",
+            "low_revenue_share": "2 / 3 = 66.7%",
+            "young_issuer_share": "1 / 3 = 33.3%",
+            "mean_first_day_return": "equal-weight mean across 3 issuers = +18.6%"
+          },
+          "official_overlay": {
+            "source_id": "SEC_IPO_QUARTERLY",
+            "year": 2025,
+            "quarter_count": 4,
+            "corporate_count": 227,
+            "corporate_proceeds_mn": 43290.8,
+            "refresh_mode": "weekly_official_ledger_projection"
+          }
+        },
+        "profile_groups": [
+          {
+            "title": "시장에 얼마나 퍼졌나",
+            "basis": "각 연도 미국 전체 IPO 기준",
+            "metrics": [
+              {
+                "label": "IPO 건수",
+                "meaning": "전체 IPO 중 해당 테마의 핵심 기업 비중",
+                "comparisons": [
+                  {
+                    "label": "1999 닷컴",
+                    "era": "dotcom",
+                    "value": 60,
+                    "level": 60,
+                    "display_value": "60%"
+                  },
+                  {
+                    "label": "2025 AI 핵심 · n=3",
+                    "era": "current",
+                    "value": 1.3,
+                    "level": 1.3,
+                    "display_value": "1.3%"
+                  }
+                ]
+              },
+              {
+                "label": "공모액",
+                "meaning": "전체 IPO 조달액 중 해당 테마 기업 비중",
+                "comparisons": [
+                  {
+                    "label": "1999 닷컴",
+                    "era": "dotcom",
+                    "value": 40,
+                    "level": 40,
+                    "display_value": "40%"
+                  },
+                  {
+                    "label": "2025 AI 핵심 · n=3",
+                    "era": "current",
+                    "value": 4.1,
+                    "level": 4.1,
+                    "display_value": "4.1%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "상장사가 얼마나 초기였나",
+            "basis": "각 테마 핵심 IPO 기업 기준",
+            "metrics": [
+              {
+                "label": "저매출 기업",
+                "meaning": "매출 1억 달러 미만 기업 비중",
+                "comparisons": [
+                  {
+                    "label": "1999 닷컴",
+                    "era": "dotcom",
+                    "value": 81,
+                    "level": 81,
+                    "display_value": "81%"
+                  },
+                  {
+                    "label": "2025 AI 핵심 · n=3",
+                    "era": "current",
+                    "value": 66.7,
+                    "level": 66.7,
+                    "display_value": "66.7%"
+                  }
+                ]
+              },
+              {
+                "label": "신생 기업",
+                "meaning": "설립 5년 미만 기업 비중",
+                "comparisons": [
+                  {
+                    "label": "1999 닷컴",
+                    "era": "dotcom",
+                    "value": 57,
+                    "level": 57,
+                    "display_value": "57%"
+                  },
+                  {
+                    "label": "2025 AI 핵심 · n=3",
+                    "era": "current",
+                    "value": 33.3,
+                    "level": 33.3,
+                    "display_value": "33.3%"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "title": "투자자가 얼마나 몰렸나",
+            "basis": "공모가 대비 첫 거래일 종가",
+            "metrics": [
+              {
+                "label": "첫날 평균 상승",
+                "meaning": "핵심 IPO의 동일가중 평균 상승률",
+                "comparisons": [
+                  {
+                    "label": "1999 닷컴",
+                    "era": "dotcom",
+                    "value": 90,
+                    "level": 90,
+                    "display_value": "+90%"
+                  },
+                  {
+                    "label": "2025 AI 핵심 · n=3",
+                    "era": "current",
+                    "value": 18.6,
+                    "level": 18.6,
+                    "display_value": "+18.6%"
+                  }
+                ]
+              }
+            ]
+          }
+        ],
+        "series": [
+          {
+            "label": "1999 인터넷 IPO",
+            "era": "dotcom",
+            "color": "#c70039",
+            "points": [
+              {
+                "period": 0,
+                "date": "1999-12-31",
+                "value": 60
+              },
+              {
+                "period": 1,
+                "date": "1999-12-31",
+                "value": 40
+              },
+              {
+                "period": 2,
+                "date": "1999-12-31",
+                "value": 81
+              },
+              {
+                "period": 3,
+                "date": "1999-12-31",
+                "value": 57
+              },
+              {
+                "period": 4,
+                "date": "1999-12-31",
+                "value": 90
+              }
+            ]
+          },
+          {
+            "label": "2025 AI 핵심 · n=3",
+            "era": "current",
+            "color": "#28756a",
+            "points": [
+              {
+                "period": 0,
+                "date": "2025-12-31",
+                "value": 1.3
+              },
+              {
+                "period": 1,
+                "date": "2025-12-31",
+                "value": 4.1
+              },
+              {
+                "period": 2,
+                "date": "2025-12-31",
+                "value": 66.7
+              },
+              {
+                "period": 3,
+                "date": "2025-12-31",
+                "value": 33.3
+              },
+              {
+                "period": 4,
+                "date": "2025-12-31",
+                "value": 18.6
+              }
+            ]
+          }
+        ],
+        "metric_source_ids": [
+          "WILMERHALE_INTERNET_IPO_1999",
+          "RITTER_IPO_UNDERPRICING_2025",
+          "SEC_COREWEAVE_424B4",
+          "SEC_AMBIQ_424B4",
+          "SEC_WHITEFIBER_424B4",
+          "SEC_IPO_QUARTERLY"
+        ],
+        "research_context_source_ids": [
+          "WILMERHALE_INTERNET_IPO_1999",
+          "RITTER_IPO_UNDERPRICING_2025"
+        ],
+        "scope_note": "*미국 IPO 기준 · 참고 통계",
+        "conclusion": "SEC 일반기업 IPO 기준 AI 핵심 비중은 건수 1.3%·공모액 4.1%로, IPO 폭은 1999년 인터넷 열기보다 낮습니다."
+      }
+    ],
+    "sources": [
+      {
+        "series_id": "WILMERHALE_INTERNET_IPO_1999",
+        "title": "Internet IPOs Conclude a Sensational Year in 1999",
+        "provider": "WilmerHale",
+        "native_frequency": "historical_research",
+        "latest_observation": "1999-12-31",
+        "authority_class": "research_reference_static",
+        "usage_role": "reference_statistic",
+        "update_mode": "static_historical_reference"
+      },
+      {
+        "series_id": "SEC_COREWEAVE_424B4",
+        "title": "CoreWeave final IPO prospectus",
+        "provider": "U.S. Securities and Exchange Commission",
+        "native_frequency": "event",
+        "latest_observation": "2025-03-31",
+        "authority_class": "official_regulator",
+        "usage_role": "canonical_current_cohort_evidence",
+        "update_mode": "event_driven_edgar"
+      },
+      {
+        "series_id": "SEC_AMBIQ_424B4",
+        "title": "Ambiq Micro final IPO prospectus",
+        "provider": "U.S. Securities and Exchange Commission",
+        "native_frequency": "event",
+        "latest_observation": "2025-07-31",
+        "authority_class": "official_regulator",
+        "usage_role": "canonical_current_cohort_evidence",
+        "update_mode": "event_driven_edgar"
+      },
+      {
+        "series_id": "SEC_WHITEFIBER_424B4",
+        "title": "WhiteFiber final IPO prospectus",
+        "provider": "U.S. Securities and Exchange Commission",
+        "native_frequency": "event",
+        "latest_observation": "2025-08-08",
+        "authority_class": "official_regulator",
+        "usage_role": "canonical_current_cohort_evidence",
+        "update_mode": "event_driven_edgar"
+      },
+      {
+        "series_id": "RITTER_IPO_UNDERPRICING_2025",
+        "title": "Initial Public Offerings: Updated Statistics",
+        "provider": "Jay R. Ritter, University of Florida IPO Initiative",
+        "native_frequency": "annual",
+        "latest_observation": "2025-12-31",
+        "authority_class": "academic_reference_static",
+        "usage_role": "reference_denominator_and_first_day_return",
+        "update_mode": "annual_manual_review"
+      },
+      {
+        "series_id": "SEC_IPO_QUARTERLY",
+        "title": "U.S. IPO counts and proceeds by issuer type",
+        "provider": "U.S. Securities and Exchange Commission",
+        "native_frequency": "quarterly",
+        "latest_observation": "2026-06-01",
+        "authority_class": "official_regulator",
+        "usage_role": "refreshable_current_denominator",
+        "update_mode": "weekly_official_ledger_projection"
+      }
+    ],
+    "update_contract": {
+      "publication_class": "reference_statistics",
+      "official_numeric_ledger": false,
+      "official_forecast_input": false,
+      "placement": "below_authoritative_statistics",
+      "refreshable_universe": "SEC quarterly IPO workbook plus SEC EDGAR final prospectus events",
+      "classification_review": "strict AI-core membership is reviewed from final prospectus disclosures",
+      "static_fallback_rule": "Historical or annual research figures without a continuously refreshable official equivalent remain explicitly marked reference-only static."
+    }
   }
 }
