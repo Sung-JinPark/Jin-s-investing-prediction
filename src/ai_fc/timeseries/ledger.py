@@ -32,7 +32,7 @@ OBSERVATIONS_NAME = "observations.jsonl"
 PARQUET_NAME = "observations.parquet"
 ALFRED_JSON_VINTAGE_LIMIT = 2_000
 ALFRED_VINTAGE_BATCH_SIZE = 250
-ALFRED_MINIMUM_SPLIT_BATCH_SIZE = 50
+ALFRED_MINIMUM_SPLIT_BATCH_SIZE = 1
 
 
 class AlfredFetchError(RuntimeError):
@@ -312,7 +312,12 @@ def _observation_responses(
         realtime_end=vintage_dates[-1],
         output_type=3,
     )
-    attempts = 4 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 1
+    # A multi-vintage response can be expensive enough to time out even when
+    # the requested window is already small. Split immediately so one slow
+    # range cannot consume four full timeout windows; retry only the atomic
+    # single-vintage request, which cannot be divided without changing PIT
+    # semantics.
+    attempts = 4 if len(vintage_dates) == ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 1
     timeout_seconds = 60
     try:
         status, payload = _fetch_alfred(
