@@ -45,6 +45,7 @@ from .ledger import (
     incremental_realtime_window,
     read_facts,
     rebuild_facts_from_raw,
+    registered_series,
 )
 from .model import (
     RidgeVARXFit,
@@ -95,8 +96,12 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
     recovered = rebuild_facts_from_raw(root)
     retrieved = datetime.now(timezone.utc).isoformat(timespec="seconds")
     realtime_start, realtime_end = incremental_realtime_window(root, retrieved_at=retrieved)
+    contract = load_contract(root)
     result = collect_alfred(
-        root, api_key=api_key, retrieved_at=retrieved,
+        root,
+        api_key=api_key,
+        series_ids=registered_series(contract, include_historical_bridge=False),
+        retrieved_at=retrieved,
         realtime_start=realtime_start, realtime_end=realtime_end,
     )
     return {"recovered_from_raw": recovered, **result}

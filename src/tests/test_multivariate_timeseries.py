@@ -36,6 +36,7 @@ from ai_fc.timeseries.ledger import (
     read_fact_rows,
     rebuild_facts_from_raw,
     read_facts,
+    registered_series,
 )
 from ai_fc.timeseries.events import (
     EventFact,
@@ -95,6 +96,15 @@ def test_timeseries_contract_is_preregistered_and_isolated(tmp_path: Path) -> No
     assert contract["probability_contract"]["combine_with_official_forecasts"] is False
     assert contract["probability_contract"]["combine_with_scenario_v5_2"] is False
     assert contract["promotion"]["automatic_champion"] is False
+
+
+def test_incremental_series_excludes_discontinued_historical_bridge(tmp_path: Path) -> None:
+    contract = load_contract(_root(tmp_path))
+    bootstrap = registered_series(contract)
+    incremental = registered_series(contract, include_historical_bridge=False)
+    assert "DTWEXB" in bootstrap
+    assert "DTWEXB" not in incremental
+    assert set(contract["sources"]["daily_required"]).issubset(incremental)
 
 
 def test_timeseries_workflow_checkpoints_raw_pit_before_model_work() -> None:
