@@ -145,9 +145,11 @@ def test_alfred_history_batches_below_json_vintage_limit_and_preserves_receipts(
 
     def fake_fetch(
         spec: object, *, series_id: str, endpoint: str, max_attempts: int = 4,
+        timeout_seconds: int = 300,
     ) -> tuple[int, bytes]:
         del series_id
         assert max_attempts in {1, 4}
+        assert timeout_seconds in {60, 300}
         from urllib.parse import parse_qs, urlparse
 
         query = parse_qs(urlparse(spec.url).query)  # type: ignore[attr-defined]
@@ -228,6 +230,7 @@ def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
 
     def fake_fetch(
         spec: object, *, series_id: str, endpoint: str, max_attempts: int = 4,
+        timeout_seconds: int = 300,
     ) -> tuple[int, bytes]:
         del series_id, endpoint
         from urllib.parse import parse_qs, urlparse
@@ -237,8 +240,10 @@ def test_alfred_observation_504_splits_large_batch_but_not_contract_errors(
         span = (date.fromisoformat(end) - date.fromisoformat(start)).days + 1
         if span > 50:
             assert max_attempts == 1
+            assert timeout_seconds == 60
             raise AlfredFetchError("HTTP 504", retryable=True, status=504)
         assert max_attempts == 4
+        assert timeout_seconds == 300
         successful_windows.append((start, end))
         return 200, b'{"observations":[]}'
 
