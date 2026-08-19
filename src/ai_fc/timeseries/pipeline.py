@@ -108,8 +108,16 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
     return {"recovered_from_raw": recovered, **result}
 
 
-def _source_hash(root: Path, facts: list[Any] | None = None) -> str:
+def _source_hash(
+    root: Path, facts: list[Any] | None = None, *, knowledge_cutoff: str | None = None,
+) -> str:
     material = facts if facts is not None else read_facts(root)
+    if knowledge_cutoff is not None:
+        cutoff = datetime.fromisoformat(knowledge_cutoff)
+        material = [
+            fact for fact in material
+            if datetime.fromisoformat(fact.available_at) <= cutoff
+        ]
     return canonical_hash([fact.model_dump(mode="json") for fact in material])
 
 
@@ -165,7 +173,7 @@ def fit_timeseries(
         hold_seed = {
             "model_id": contract["model_id"],
             "knowledge_cutoff": cutoff,
-            "source_hash": _source_hash(root, facts),
+            "source_hash": _source_hash(root, facts, knowledge_cutoff=cutoff),
             "reason": str(exc),
             "sessions": len(bundle.dates),
         }
@@ -235,7 +243,7 @@ def fit_timeseries(
         "model_id": contract["model_id"],
         "version": contract["model_version"],
         "knowledge_cutoff": cutoff,
-        "source_hash": _source_hash(root, facts),
+        "source_hash": _source_hash(root, facts, knowledge_cutoff=cutoff),
         "dates": [bundle.dates[0], bundle.dates[-1], len(bundle.dates)],
         "expanding": expanding.manifest(),
         "rolling": rolling.manifest(),
@@ -360,7 +368,7 @@ def backtest_timeseries(
         run_seed = {
             "model_id": contract["model_id"],
             "knowledge_cutoff": cutoff,
-            "source_hash": _source_hash(root, facts),
+            "source_hash": _source_hash(root, facts, knowledge_cutoff=cutoff),
             "summary": summary,
         }
         run_id = f"ts-backtest-{canonical_hash(run_seed)[:24]}"
@@ -410,7 +418,7 @@ def backtest_timeseries(
     run_seed = {
         "model_id": contract["model_id"],
         "knowledge_cutoff": cutoff,
-        "source_hash": _source_hash(root, facts),
+        "source_hash": _source_hash(root, facts, knowledge_cutoff=cutoff),
         "summary": summary,
     }
     run_id = f"ts-backtest-{canonical_hash(run_seed)[:24]}"
@@ -498,7 +506,7 @@ def forecast_timeseries(
         return _blocked_forecast(
             root, cutoff=cutoff, reasons=list(reasons), missing=list(bundle.missing_required),
         )
-    current_source_hash = _source_hash(root, facts)
+    current_source_hash = _source_hash(root, facts, knowledge_cutoff=cutoff)
     required_daily = set(contract["sources"]["daily_required"])
     availability = [
         datetime.fromisoformat(value)
@@ -721,7 +729,7 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
     ]
     cutoff = str(latest["knowledge_cutoff"])
     cutoff_dt = datetime.fromisoformat(cutoff)
-    leakage = [
+    quarantined_future = [
         fact.key for fact in facts
         if datetime.fromisoformat(fact.available_at) > cutoff_dt
     ]
@@ -729,6 +737,11 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
     if (root / MODEL_RELATIVE / "latest.json").is_file():
         model, _, _ = _load_fit(root)
         model_status = {"present": True, "run_id": model["run_id"], "model_hash": model["model_hash"]}
+        expected_model_source = _source_hash(
+            root, facts, knowledge_cutoff=str(model["knowledge_cutoff"]),
+        )
+        if model.get("source_hash") != expected_model_source:
+            raw_errors.append(f"model-source-cutoff-hash:{model['run_id']}")
     backtest_status: dict[str, Any] = {"present": False}
     backtest = _load_backtest(root)
     if backtest is not None:
@@ -738,6 +751,11 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
             "content_hash": backtest["content_hash"],
             "gate_pass": bool(backtest["summary"]["gate_pass"]),
         }
+        expected_backtest_source = _source_hash(
+            root, facts, knowledge_cutoff=str(backtest["knowledge_cutoff"]),
+        )
+        if backtest.get("source_hash") != expected_backtest_source:
+            raw_errors.append(f"backtest-source-cutoff-hash:{backtest['run_id']}")
     events = read_events(root, knowledge_cutoff=cutoff)
     event_receipt_ids = {str(row["receipt_id"]) for row in event_receipts}
     orphan_events = [
@@ -750,8 +768,6 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
         failures.append(f"raw receipt errors={len(raw_errors)}")
     if orphan_facts:
         failures.append(f"orphan facts={len(orphan_facts)}")
-    if leakage:
-        failures.append(f"available_at leakage={len(leakage)}")
     if orphan_events:
         failures.append(f"orphan events={len(orphan_events)}")
     if latest["model_id"] != contract["model_id"] or latest["combined_with_existing_models"] is not False:
@@ -768,7 +784,9 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
         "events": len(events),
         "raw_errors": raw_errors,
         "orphan_facts": orphan_facts[:10],
-        "leakage": leakage[:10],
+        "leakage": [],
+        "quarantined_future": quarantined_future[:10],
+        "quarantined_future_count": len(quarantined_future),
         "orphan_events": orphan_events[:10],
         "model": model_status,
         "backtest": backtest_status,

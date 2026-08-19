@@ -58,7 +58,7 @@ from ai_fc.timeseries.model import (
     select_ridge_varx,
     summarize_paths,
 )
-from ai_fc.timeseries.pipeline import backtest_timeseries, fit_timeseries
+from ai_fc.timeseries.pipeline import _source_hash, backtest_timeseries, fit_timeseries
 from ai_fc.timeseries.workbook import export_timeseries_workbook
 
 
@@ -801,6 +801,20 @@ def test_insufficient_pit_sample_persists_explicit_fit_and_backtest_holds(
     assert backtest["summary"]["origin_count"] == 0
     assert (root / "data/timeseries/models/validation_hold_latest.json").is_file()
     assert (root / "data/timeseries/runs/backtest_latest.json").is_file()
+
+
+def test_source_hash_excludes_facts_after_the_knowledge_cutoff(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    eligible = _fact(value=100.0)
+    future = eligible.model_copy(update={
+        "observation_time": "2026-08-20",
+        "available_at": "2026-08-21T03:59:59+00:00",
+        "vintage_start": "2026-08-21T03:59:59+00:00",
+    })
+    cutoff = "2026-08-20T12:00:00+00:00"
+    assert _source_hash(root, [eligible, future], knowledge_cutoff=cutoff) == _source_hash(
+        root, [eligible], knowledge_cutoff=cutoff,
+    )
 
 
 def test_dynamic_factor_mq_consumes_monthly_and_quarterly_ragged_edge() -> None:
