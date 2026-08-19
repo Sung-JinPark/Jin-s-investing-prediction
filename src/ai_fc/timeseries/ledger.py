@@ -32,6 +32,14 @@ OBSERVATIONS_NAME = "observations.jsonl"
 PARQUET_NAME = "observations.parquet"
 ALFRED_JSON_VINTAGE_LIMIT = 2_000
 ALFRED_VINTAGE_BATCH_SIZE = 1_500
+ALFRED_MINIMUM_SPLIT_BATCH_SIZE = 50
+
+
+class AlfredFetchError(RuntimeError):
+    def __init__(self, message: str, *, retryable: bool, status: int | None = None) -> None:
+        super().__init__(message)
+        self.retryable = retryable
+        self.status = status
 
 
 class RawTimeSeriesReceipt(BaseModel):
@@ -243,9 +251,13 @@ def registered_series(contract: dict[str, Any], *, include_optional: bool = True
     return sorted({series for group in groups for series in sources[group]})
 
 
-def _fetch_alfred(spec: RequestSpec, *, series_id: str, endpoint: str) -> tuple[int, bytes]:
+def _fetch_alfred(
+    spec: RequestSpec, *, series_id: str, endpoint: str, max_attempts: int = 4,
+) -> tuple[int, bytes]:
     """Fetch without ever surfacing a credential-bearing URL."""
-    for attempt in range(4):
+    if max_attempts < 1:
+        raise ValueError("ALFRED max_attempts must be positive")
+    for attempt in range(max_attempts):
         try:
             return fetch(spec, timeout=300)
         except urllib.error.HTTPError as exc:
@@ -260,20 +272,70 @@ def _fetch_alfred(spec: RequestSpec, *, series_id: str, endpoint: str) -> tuple[
                 )
             except (UnicodeDecodeError, json.JSONDecodeError):
                 pass
-            if exc.code in {429, 500, 502, 503, 504} and attempt < 3:
+            retryable = exc.code in {429, 500, 502, 503, 504}
+            if retryable and attempt < max_attempts - 1:
                 time.sleep(2 ** attempt)
                 continue
-            raise RuntimeError(
-                f"ALFRED {series_id} {endpoint} returned HTTP {exc.code}: {message}"
+            raise AlfredFetchError(
+                f"ALFRED {series_id} {endpoint} returned HTTP {exc.code}: {message}",
+                retryable=retryable,
+                status=exc.code,
             ) from exc
         except (urllib.error.URLError, TimeoutError) as exc:
-            if attempt < 3:
+            if attempt < max_attempts - 1:
                 time.sleep(2 ** attempt)
                 continue
-            raise RuntimeError(
-                f"ALFRED {series_id} {endpoint} network timeout or failure"
+            raise AlfredFetchError(
+                f"ALFRED {series_id} {endpoint} network timeout or failure",
+                retryable=True,
             ) from exc
-    raise RuntimeError(f"ALFRED {series_id} {endpoint} retry exhaustion")
+    raise AlfredFetchError(
+        f"ALFRED {series_id} {endpoint} retry exhaustion",
+        retryable=True,
+    )
+
+
+def _observation_responses(
+    *, series_id: str, api_key: str, vintage_dates: list[str],
+) -> list[tuple[RequestSpec, int, bytes]]:
+    """Adaptively split only server-size failures; never hide contract errors."""
+    spec = alfred_request(
+        series_id,
+        api_key=api_key,
+        realtime_start=vintage_dates[0],
+        realtime_end=vintage_dates[-1],
+        output_type=3,
+    )
+    attempts = 4 if len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE else 1
+    try:
+        status, payload = _fetch_alfred(
+            spec,
+            series_id=series_id,
+            endpoint="observations",
+            max_attempts=attempts,
+        )
+        return [(spec, status, payload)]
+    except AlfredFetchError as exc:
+        splittable_status = exc.status is None or exc.status in {500, 502, 503, 504}
+        if (
+            not exc.retryable
+            or not splittable_status
+            or len(vintage_dates) <= ALFRED_MINIMUM_SPLIT_BATCH_SIZE
+        ):
+            raise
+        midpoint = len(vintage_dates) // 2
+        return [
+            *_observation_responses(
+                series_id=series_id,
+                api_key=api_key,
+                vintage_dates=vintage_dates[:midpoint],
+            ),
+            *_observation_responses(
+                series_id=series_id,
+                api_key=api_key,
+                vintage_dates=vintage_dates[midpoint:],
+            ),
+        ]
 
 
 def _vintage_date_batches(
@@ -343,29 +405,24 @@ def collect_alfred(
         )
         normalized_count = 0
         for batch in batches:
-            spec = alfred_request(
-                series_id,
-                api_key=api_key,
-                realtime_start=batch[0],
-                realtime_end=batch[-1],
-                output_type=3,
-            )
-            status, payload = _fetch_alfred(
-                spec, series_id=series_id, endpoint="observations",
-            )
-            receipts.append(persist_response(
-                root,
+            for spec, status, payload in _observation_responses(
                 series_id=series_id,
-                status=status,
-                payload=payload,
-                retrieved_at=retrieved,
-                request_url=spec.url,
-            ))
-            facts = normalize_alfred(
-                payload, series_id=series_id, retrieved_at=retrieved,
-            )
-            normalized_count += len(facts)
-            pending_facts.extend(facts)
+                api_key=api_key,
+                vintage_dates=batch,
+            ):
+                receipts.append(persist_response(
+                    root,
+                    series_id=series_id,
+                    status=status,
+                    payload=payload,
+                    retrieved_at=retrieved,
+                    request_url=spec.url,
+                ))
+                facts = normalize_alfred(
+                    payload, series_id=series_id, retrieved_at=retrieved,
+                )
+                normalized_count += len(facts)
+                pending_facts.extend(facts)
         results.append({
             "series_id": series_id,
             "vintage_count": sum(len(batch) for batch in batches),
