@@ -45,7 +45,11 @@ from ai_fc.timeseries.events import (
     persist_event_response,
     read_events,
 )
-from ai_fc.timeseries.features import build_release_state_history, fit_dynamic_factor_state
+from ai_fc.timeseries.features import (
+    build_realtime_factor_history,
+    build_release_state_history,
+    fit_dynamic_factor_state,
+)
 from ai_fc.timeseries.model import (
     deterministic_seed,
     ensemble_weights,
@@ -54,6 +58,7 @@ from ai_fc.timeseries.model import (
     select_ridge_varx,
     summarize_paths,
 )
+from ai_fc.timeseries.pipeline import backtest_timeseries, fit_timeseries
 from ai_fc.timeseries.workbook import export_timeseries_workbook
 
 
@@ -781,6 +786,23 @@ def test_workbook_jsonl_parquet_reconciliation(tmp_path: Path) -> None:
     assert replay["sha256"] == summary["sha256"]
 
 
+def test_insufficient_pit_sample_persists_explicit_fit_and_backtest_holds(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    append_facts(root, [_fact(value=100.0)])
+    cutoff = "2026-08-20T00:00:00+00:00"
+    fitted = fit_timeseries(root, knowledge_cutoff=cutoff)
+    backtest = backtest_timeseries(root, knowledge_cutoff=cutoff, path_count=200)
+    assert fitted["status"] == "validation_hold"
+    assert fitted["training"]["sessions"] == 0
+    assert fitted["reasons"]
+    assert backtest["summary"]["gate_pass"] is False
+    assert backtest["summary"]["origin_count"] == 0
+    assert (root / "data/timeseries/models/validation_hold_latest.json").is_file()
+    assert (root / "data/timeseries/runs/backtest_latest.json").is_file()
+
+
 def test_dynamic_factor_mq_consumes_monthly_and_quarterly_ragged_edge() -> None:
     facts: list[ObservationFact] = []
     monthly = (
@@ -807,8 +829,46 @@ def test_dynamic_factor_mq_consumes_monthly_and_quarterly_ragged_edge() -> None:
     )
     assert result["states"]["growth_factor"] is not None
     assert result["states"]["inflation_factor"] is not None
+    assert all(
+        row.get("available_at")
+        for history in result["history"].values()
+        for row in history
+    )
     assert result["history"]["growth_factor"]
     assert result["history"]["inflation_factor"]
+
+
+def test_release_aligned_factor_history_fits_once_and_keeps_origin_pit_hold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = 0
+
+    def fake_fit(facts: object, *, knowledge_cutoff: str) -> dict[str, object]:
+        nonlocal calls
+        del facts, knowledge_cutoff
+        calls += 1
+        return {
+            "converged": {"growth_factor": True, "inflation_factor": True},
+            "history": {
+                "growth_factor": [
+                    {"period": "2026-01", "available_at": "2026-02-06T13:30:00+00:00", "value": 0.2},
+                ],
+                "inflation_factor": [
+                    {"period": "2026-01", "available_at": "2026-02-12T13:30:00+00:00", "value": -0.1},
+                ],
+            },
+        }
+
+    monkeypatch.setattr("ai_fc.timeseries.features.fit_dynamic_factor_state", fake_fit)
+    history = build_realtime_factor_history([], knowledge_cutoff="2026-02-20T00:00:00+00:00")
+    assert calls == 1
+    assert history["fit_count"] == 1
+    assert history["origin_specific_parameter_pit"] is False
+    assert history["states"] == [{
+        "available_at": "2026-02-12T13:30:00+00:00",
+        "growth_factor": 0.2,
+        "inflation_factor": -0.1,
+    }]
 
 
 def test_later_vintage_cannot_mutate_earlier_release_feature_bytes() -> None:

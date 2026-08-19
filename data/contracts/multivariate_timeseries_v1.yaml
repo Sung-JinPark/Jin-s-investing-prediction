@@ -75,6 +75,11 @@ model:
     factors: [growth, inflation]
     factor_order: 1
     idiosyncratic_ar1: true
+    live_refit_cadence: weekly
+    history_state: kalman_filtered
+    release_alignment: first_public_vintage_by_observation_period
+    backtest_parameter_pit: origin_specific_refit_required
+    incomplete_backtest_behavior: validation_hold_no_customer_numbers
   varx:
     endogenous: [nasdaq_return, vix_change, dgs2_change_bps, curve_change_bps, hy_oas_change_bps, dollar_change]
     lag_candidates: [1, 2, 5]
