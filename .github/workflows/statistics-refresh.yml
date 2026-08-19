@@ -26,6 +26,8 @@ jobs:
           python-version: "3.12"
       - name: Install statistics pipeline
         run: pip install -e "." pytest
+      - name: Check academic IPO sources for current-era batch updates
+        run: python -m ai_fc ipo-reference-batch
       - name: Fetch authoritative sources and append the official observation ledger
         run: python -m ai_fc statistics-refresh
       - name: Export the cumulative Excel audit view
@@ -47,11 +49,13 @@ jobs:
           git add \
             data/statistics/dotcom_statistics_latest.json \
             data/statistics/archive \
+            data/statistics/ipo/reference_batch_status.json \
+            data/statistics/ipo/reference_batch_receipts \
             data/statistics/official_store/raw \
             data/statistics/official_store/ledgers \
             data/statistics/workbooks/official_data_latest.xlsx \
             docs/generated/inventory.generated.md
-          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|ipo/reference_batch_(status.json|receipts/.*)|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected or protected path staged by statistics refresh:"
             echo "$unexpected"

@@ -132,7 +132,21 @@ reference_statistics_policy:
   placement: below_authoritative_statistics
   official_numeric_ledger: false
   official_forecast_input: false
-  active_charts: [dotcom_internet_ipo_breadth]
+  active_charts:
+    - internet_vs_ai_core_ipos
+    - technology_ipo_count
+    - technology_ipo_first_day_return
+    - technology_ipo_price_to_sales
+    - technology_ipo_profitable_share
+    - all_ipo_negative_earnings_share
+    - dotcom_internet_ipo_breadth
+  batch_update:
+    cadence: weekly_after_authoritative_SEC_refresh
+    mutable_scope: current_era_rows_only
+    historical_scope: frozen_cited_publication_vintage
+    academic_source_watch: compare_remote_content_hash_then_require_review_before_current_row_change
+    edgar_source_watch: discover_and_review_completed_424B4_events
+    forecast_extension: prohibited
   current_overlay:
     cohort: strict_AI_core_completed_US_traditional_IPOs
     numerator_evidence: SEC_424B4_final_prospectuses

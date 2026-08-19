@@ -133,21 +133,34 @@ reference_statistics:
   placement: below_authoritative_statistics
   source_artifact: data/statistics/ipo/ipo_comparison_v1.json
   consumers:
+    internet_vs_ai_core_ipos:
+      historical_reference: [RITTER_INTERNET_IPO_2025]
+      current_review_batch: [SEC_424B4, RENAISSANCE_AI_RESEARCH, ACCEL_GLOBALSCAPE_2025]
+    technology_ipo_count:
+      historical_reference: [RITTER_TECH_IPO_2025]
+      current_review_batch: [RITTER_TECH_IPO_2025]
+    technology_ipo_first_day_return:
+      historical_reference: [RITTER_TECH_IPO_2025]
+      current_review_batch: [RITTER_TECH_IPO_2025]
+    technology_ipo_price_to_sales:
+      historical_reference: [RITTER_TECH_IPO_2025]
+      current_review_batch: [RITTER_TECH_IPO_2025]
+    technology_ipo_profitable_share:
+      historical_reference: [RITTER_TECH_IPO_2025]
+      current_review_batch: [RITTER_TECH_IPO_2025]
+    all_ipo_negative_earnings_share:
+      historical_reference: [RITTER_TECH_IPO_2025]
+      current_review_batch: [RITTER_TECH_IPO_2025]
     dotcom_internet_ipo_breadth:
       official_current_denominator: [SEC_IPO_QUARTERLY.corporate_count, SEC_IPO_QUARTERLY.corporate_proceeds_mn]
       canonical_current_numerator_evidence: [SEC_COREWEAVE_424B4, SEC_AMBIQ_424B4, SEC_WHITEFIBER_424B4]
       static_reference: [WILMERHALE_INTERNET_IPO_1999, RITTER_IPO_UNDERPRICING_2025]
-  gate: exactly_two_bars_per_metric_and_no_reference_value_in_authoritative_chart_collection
+  batch_gate: historical_era_frozen_and_only_current_era_rows_may_change_after_source_review
+  gate: no_reference_value_in_authoritative_chart_collection
 
 retired_numeric_consumers:
   reason: secondary_research_or_unapproved_aggregator_cannot_supply_published_numbers
   chart_ids:
-    - internet_vs_ai_core_ipos
-    - technology_ipo_count
-    - technology_ipo_first_day_return
-    - technology_ipo_price_to_sales
-    - technology_ipo_profitable_share
-    - all_ipo_negative_earnings_share
     - ipo_market_absorption
     - small_issuer_ipo_share
     - sp500_after_two_twenty_percent_years

@@ -462,6 +462,19 @@ def cmd_statistics_refresh() -> None:
     )
 
 
+@app.command("ipo-reference-batch")
+def cmd_ipo_reference_batch() -> None:
+    """IPO 학술 원천 변경을 확인하고 현재 구간 검토 배치를 기록한다."""
+    from .ipo_reference_batch import refresh_ipo_reference_batch
+
+    path, payload, new_receipts = refresh_ipo_reference_batch(config.ROOT)
+    typer.echo(
+        f"IPO 참고통계 배치: {path.relative_to(config.ROOT)} · "
+        f"상태 {payload['status']} · 새 영수증 {new_receipts}개 · "
+        "historical_rows_locked=true"
+    )
+
+
 @app.command("official-data-workbook")
 def cmd_official_data_workbook() -> None:
     """공식 원천 누적 DB를 사람이 검토할 수 있는 Excel 감사본으로 내보낸다."""

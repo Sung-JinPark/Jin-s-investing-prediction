@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_id": "RITTER_TECH_IPO_2025",
+  "checked_at": "2026-08-19T05:23:09+00:00",
+  "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf",
+  "http_status": 200,
+  "observed_sha256": "4b46b97a921ac46b26b1c95fca3222eb8998f0ac0b1b20196a6779b9afcab252",
+  "reviewed_sha256": "4b46b97a921ac46b26b1c95fca3222eb8998f0ac0b1b20196a6779b9afcab252",
+  "content_bytes": 311004,
+  "etag": "\"3e4362446ef46fcb70fe8b18edc497e6\"",
+  "last_modified": "Fri, 20 Feb 2026 20:47:37 GMT",
+  "status": "current",
+  "error": null,
+  "historical_rows_locked": true,
+  "allowed_update_scope": "current_era_rows_only_after_review"
+}

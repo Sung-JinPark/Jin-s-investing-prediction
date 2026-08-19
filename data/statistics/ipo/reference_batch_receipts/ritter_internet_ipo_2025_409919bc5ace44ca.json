@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_id": "RITTER_INTERNET_IPO_2025",
+  "checked_at": "2026-08-19T05:23:09+00:00",
+  "source_url": "https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx",
+  "http_status": 200,
+  "observed_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
+  "reviewed_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
+  "content_bytes": 1346041,
+  "etag": "\"df5392cf733a86195bb321f4f8976a34\"",
+  "last_modified": "Mon, 19 Jan 2026 16:47:15 GMT",
+  "status": "current",
+  "error": null,
+  "historical_rows_locked": true,
+  "allowed_update_scope": "current_era_rows_only_after_review"
+}
