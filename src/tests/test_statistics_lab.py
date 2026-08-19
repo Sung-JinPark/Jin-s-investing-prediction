@@ -666,6 +666,12 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         and chart["research_context_source_ids"] == []
         for chart in payload["charts"]
     )
+    assert all(
+        chart["insight"].strip() != chart["conclusion"].strip()
+        for chart in payload["charts"]
+    )
+    assert "현재" in by_id["inflation_rate"]["conclusion"]
+    assert "시장" in by_id["liquidity_position_map"]["conclusion"]
 
 
 def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> None:
@@ -725,6 +731,10 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
     assert all(
         metric["comparisons"][1]["label"] == "2025 AI 핵심 · n=3"
         for metric in metrics
+    )
+    assert all(
+        chart["insight"].strip() != chart["conclusion"].strip()
+        for chart in reference["charts"]
     )
     overlay = chart["reference_contract"]["official_overlay"]
     assert overlay["corporate_count"] == 227
