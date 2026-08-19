@@ -1,0 +1,134 @@
+schema_version: 1
+contract_id: multivariate_timeseries_v1
+model_id: shadow.mf_dfm_ridge_varx_v1
+model_version: 1
+status: preregistered_shadow_only
+target:
+  series_id: NASDAQCOM
+  asset: NASDAQ Composite
+  transform: daily_log_return
+  stored_return_unit: fraction
+  display_price_unit: index
+  horizons_sessions: [1, 5, 21, 63]
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_conditional
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+sources:
+  daily_required: [NASDAQCOM, VIXCLS, DGS2, T10Y2Y, BAMLH0A0HYM2, DTWEXBGS]
+  growth_required: [PAYEMS, UNRATE, INDPRO, RSAFS, HOUST, GDPC1]
+  inflation_required: [CPIAUCSL, CPILFESL, PCEPI, PCEPILFE]
+  financial_optional: [NFCI, M2SL, WALCL, WTREGEN, RRPONTSYD, DFF]
+  historical_bridge: [DTWEXB]
+  event_optional: [NFP_CONSENSUS, CPI_CONSENSUS, FED_RATE_PROBABILITY]
+  authority:
+    official_pit: [alfred, bls, bea, fred_market_signals]
+    research_numeric_with_receipt: [market_consensus, market_implied_rate_distribution]
+  required_receipt_fields: [source_id, series_id, retrieved_at, available_at, raw_sha256, request_fingerprint]
+  registered_historical_bridges:
+    DTWEXBGS:
+      predecessor: DTWEXB
+      transformed_coordinate: dollar_change
+      method: prefer_current_series_then_predecessor_log_change
+      minimum_overlap_sessions: 252
+      level_splice: prohibited
+      reason: registered official H.10 predecessor needed for the 1996 expanding window
+transforms:
+  NASDAQCOM: log_change
+  VIXCLS: log_change
+  DTWEXBGS: log_change
+  DGS2: first_difference_bps
+  T10Y2Y: first_difference_bps
+  BAMLH0A0HYM2: first_difference_bps
+  PAYEMS: log_change
+  INDPRO: log_change
+  RSAFS: log_change
+  HOUST: log_change
+  M2SL: log_change
+  UNRATE: [level, first_difference]
+  NFCI: [level, first_difference]
+  CPIAUCSL: [year_over_year_log_change, three_month_annualized_log_change]
+  CPILFESL: [year_over_year_log_change, three_month_annualized_log_change]
+  PCEPI: [year_over_year_log_change, three_month_annualized_log_change]
+  PCEPILFE: [year_over_year_log_change, three_month_annualized_log_change]
+alignment:
+  calendar: NASDAQ_completed_sessions
+  information_time: available_at
+  alfred_date_only_availability: conservative_end_of_realtime_start_day_America_New_York
+  exact_intraday_event_time: required_for_event_overlay
+  observation_period_forward_fill: prohibited
+  release_state_carry_forward: allowed_from_available_at_only
+  include_age_since_release: true
+model:
+  family: mixed_frequency_dynamic_factor_plus_ridge_varx
+  dynamic_factor:
+    factors: [growth, inflation]
+    factor_order: 1
+    idiosyncratic_ar1: true
+  varx:
+    endogenous: [nasdaq_return, vix_change, dgs2_change_bps, curve_change_bps, hy_oas_change_bps, dollar_change]
+    lag_candidates: [1, 2, 5]
+    ridge_alpha_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+    standardization: training_window_robust_median_iqr
+    outlier_clipping: prohibited
+  windows:
+    expanding_start: 1996-01-01
+    rolling_sessions: 2520
+  ensemble:
+    scoring_window_origins: 52
+    minimum_weight: 0.25
+    maximum_weight: 0.75
+    insufficient_history_weights: {expanding: 0.5, rolling_10y: 0.5}
+  distribution:
+    path_count: 20000
+    block_length_candidates: [5, 10, 21]
+    ewma_lambda_candidates: [0.94, 0.97]
+    quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]
+    seed_rule: sha256_model_version_and_as_of
+event_overlay:
+  minimum_pit_observations_for_varx: 60
+  minimum_pit_observations_for_overlay: 10
+  below_minimum_role: research_path_reweighting_only
+  calibration: expanding_ridge_on_event_signal
+  ridge_alpha: 1.0
+  target_path_sessions: 5
+  maximum_absolute_shift_sigma: 2.0
+  future_actual_surprise_allowed: false
+  consensus_gap_rule: model_nowcast_minus_consensus_before_release
+  coefficient_promotion_requires: [minimum_60_pit_events, ablation_pass, walkforward_gate_pass]
+evaluation:
+  outer_start: 2007-01-01
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  minimum_origins: 250
+  required_regimes: [great_financial_crisis_2008, pandemic_2020, tightening_2022]
+  baselines: [random_walk, drift_random_walk, ar1, gbm, historical_simulation, block_bootstrap]
+  metrics: [mae, rmse, mase, directional_accuracy, crps, pinball, interval_coverage, first_touch_brier, log_score]
+publication_gate:
+  pit_leakage_count: 0
+  short_horizon_crps_max_underperformance: 0.02
+  long_horizon_mean_crps_min_improvement: 0.02
+  long_horizon_stationary_bootstrap_ci_upper: 0.0
+  p10_p90_coverage: [0.76, 0.84]
+  p25_p75_coverage: [0.45, 0.55]
+  regime_p10_p90_minimum: 0.70
+  failure_surface: validation_pending_without_numbers
+freshness:
+  required_daily_sla_hours: 48
+  stale_fallback: prohibited
+  optional_missing_action: core_only_with_explicit_coverage
+promotion:
+  automatic_champion: false
+  minimum_shadow_sessions: 126
+  explicit_owner_approval: required
+prohibitions:
+  direct_index_level_training: true
+  forced_endpoint: true
+  future_actual_exogenous: true
+  silent_feature_drop: true
+  silent_normalization: true
+  official_ledger_write: true
+  scenario_v5_2_mutation: true

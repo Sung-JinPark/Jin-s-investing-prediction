@@ -48,6 +48,7 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("future-liquidity", "#future/liquidity"),
         ("future-lookup", "#future/lookup"),
         ("statistics", "#statistics"),
+        ("timeseries", "#timeseries"),
         ("records", "#records"),
         ("records-performance", "#records/performance"),
         ("records-journal", "#records/journal"),
@@ -79,6 +80,10 @@ def _inspect(page: Page) -> dict:
           const path = app?.querySelector('[data-scenario-p50="S1"]');
           return path ? (path.getAttribute('d')?.match(/[ML]/g) || []).length : 0;
         })(),
+        timeseries_surface: app?.querySelector('.timeseries-pending') ? 'validation_pending'
+          : (app?.querySelector('.timeseries-path-panel') ? 'ready' : null),
+        timeseries_band_count: app?.querySelectorAll('.ts-band-outer,.ts-band-inner').length || 0,
+        internal_gate_copy_absent: !/(DISPLAY PROMOTION PENDING|SCENARIO V5\.1 RUNTIME GATE)/.test(app?.innerText || ''),
       };
     }""")
 
@@ -124,10 +129,6 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
                     page.locator("#app h1").first.wait_for(
                         state="visible", timeout=30_000,
                     )
-                    if route_name == "future-research":
-                        page.locator(
-                            '[data-display-promotion-banner="persistent"]'
-                        ).wait_for(state="visible", timeout=30_000)
                     metrics = _inspect(page)
                     target = output / f"{route_name}__{viewport_name}.png"
                     page.screenshot(
@@ -159,9 +160,13 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
     proof = {
         "schema_version": 1,
         "capture_backend": "playwright_bundled_chromium",
-        "persistent_banner_visible": (
+        "three_scenario_chart_visible": (
             len(research_rows) == 2
-            and all(row["persistent_banner_visible"] for row in research_rows)
+            and all(row["scenario_p50_paths"] >= 3 for row in research_rows)
+        ),
+        "internal_gate_copy_absent": (
+            len(research_rows) == 2
+            and all(row["internal_gate_copy_absent"] for row in research_rows)
         ),
         "viewports": sorted(row["viewport"] for row in research_rows),
         "route": "#future/research",
@@ -172,10 +177,13 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
     proof_path.write_text(
         json.dumps(proof, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
+    timeseries_visible = bool((data.get("timeseries") or {}).get("numbers_visible"))
     failures = [
         row for row in rows
         if row["page_errors"] or row["console_errors"]
         or not row["h1"] or row["horizontal_overflow_px"] > 2
+        or (row["route_name"] == "timeseries" and not row["timeseries_surface"])
+        or (row["route_name"] == "timeseries" and timeseries_visible and row["timeseries_band_count"] != 2)
     ]
     manifest = {
         "schema_version": 1,
@@ -186,9 +194,12 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
         "route_count": len(_routes(data)),
         "viewport_count": len(VIEWPORTS),
         "capture_count": len(rows),
-        "gate_pass": len(rows) == 30 and not failures and proof[
-            "persistent_banner_visible"
-        ],
+        "gate_pass": (
+            len(rows) == len(_routes(data)) * len(VIEWPORTS)
+            and not failures
+            and proof["three_scenario_chart_visible"]
+            and proof["internal_gate_copy_absent"]
+        ),
         "failures": failures,
         "captures": rows,
     }

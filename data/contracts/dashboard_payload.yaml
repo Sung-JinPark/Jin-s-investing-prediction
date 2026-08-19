@@ -3,7 +3,8 @@ contract_id: dashboard_payload_split_v1
 status: active
 
 budgets:
-  embed_html_max_bytes: 900000
+  embed_html_max_bytes: 921600
+  embed_html_max_kib: 900
   future_paths_json_max_bytes: 240000
 
 future_paths:
@@ -36,3 +37,11 @@ projection_integrity:
   first_three_month_direction_run_minimum: {S1: 3, S2: 10, S3: 4}
   downsample_to_twenty_sessions_for_first_three_months: prohibited
   test: test_projection_preserves_direction_changes
+
+timeseries:
+  route: "#timeseries"
+  payload_key: timeseries
+  materialization: dashboard_base
+  probability_space: research_timeseries_conditional
+  combine_with_future_or_official: false
+  publication_failure: validation_pending_without_numbers

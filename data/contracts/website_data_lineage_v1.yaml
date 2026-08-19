@@ -37,6 +37,17 @@ publication_classes:
       probability or an approved numerical input merely because it is displayed.
     may_write_official_forecast: false
     required_controls: [reference_only_label, no_official_append]
+  pit_research_model:
+    meaning: >-
+      A separately published shadow model whose numerical inputs are reconstructed
+      point-in-time and whose outputs remain outside official and scenario probability spaces.
+    may_write_official_forecast: false
+    required_controls:
+      - raw_before_derived
+      - observation_fact_vintage
+      - purged_walk_forward_gate
+      - append_only_shadow_ledger
+      - no_automatic_promotion
   official_schedule_metadata:
     meaning: Official or explicitly estimated event dates used for display only.
     may_write_official_forecast: false
@@ -182,6 +193,30 @@ surfaces:
       - {artifact: dashboard_base, key: resolutions, materialization: base}
       - {artifact: dashboard_base, key: corrections, materialization: base}
     artifact_gate: registered_question_probability_and_append_only_correction_contracts
+
+  multivariate_timeseries_shadow:
+    routes: ["#timeseries"]
+    publication_class: pit_research_model
+    display_role: isolated_shadow_research_model
+    probability_space: research_timeseries_conditional
+    official_forecast_write: false
+    numeric_input_policy: >-
+      ALFRED/FRED PIT vintages plus receipt-backed consensus and rate-distribution
+      event overlays; no future actual and no official/scenario probability combination
+    source_artifacts:
+      - data/contracts/multivariate_timeseries_v1.yaml
+      - data/timeseries/multivariate_latest.json
+      - data/timeseries/ledgers/forecasts.jsonl
+      - data/timeseries/workbooks/multivariate_timeseries_latest.xlsx
+    payload_locations:
+      - {artifact: dashboard_base, key: timeseries, materialization: base}
+    artifact_gate: >-
+      PIT leakage zero plus preregistered rolling-origin CRPS, interval coverage,
+      crisis-regime coverage, deterministic replay, and minimum 126-session shadow controls
+    time_fields:
+      observation_through: as_of
+      knowledge_cutoff: knowledge_cutoff
+    publication_failure: validation_pending_without_numbers
 
   champion:
     routes: ["#today", "#future/champion", "#future/lookup"]

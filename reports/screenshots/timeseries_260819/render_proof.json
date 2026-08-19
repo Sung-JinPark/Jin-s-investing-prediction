@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "capture_backend": "playwright_bundled_chromium",
+  "three_scenario_chart_visible": true,
+  "internal_gate_copy_absent": true,
+  "viewports": [
+    "1280",
+    "390"
+  ],
+  "route": "#future/research",
+  "semantic_reference": {
+    "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+    "model_version": "complete_separation_empirical_episode_databases_v6",
+    "rules_version": "weights-v3+complete-separation-v1"
+  },
+  "screenshots": [
+    "future-research__1280.png",
+    "future-research__390.png"
+  ]
+}

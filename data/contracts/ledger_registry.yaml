@@ -185,6 +185,68 @@ ledgers:
     cadence: weekly
     criticality: medium
     schema_ref: json_object
+  - id: timeseries_raw_receipts
+    path: data/timeseries/ledgers/raw_receipts.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_observation_facts
+    path: data/timeseries/ledgers/observations.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_event_facts
+    path: data/timeseries/ledgers/events.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_event_raw_receipts
+    path: data/timeseries/ledgers/event_raw_receipts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_shadow_forecasts
+    path: data/timeseries/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+  - id: timeseries_shadow_resolutions
+    path: data/timeseries/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_shadow_corrections
+    path: data/timeseries/ledgers/corrections.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_model_runs
+    path: data/timeseries/models/ts-fit-*.json
+    kind: immutable_files
+    cadence: weekly
+    criticality: high
+    schema_ref: json_object
+    allow_empty_accumulating: true
+  - id: timeseries_backtest_runs
+    path: data/timeseries/runs/ts-backtest-*.json
+    kind: immutable_files
+    cadence: monthly
+    criticality: high
+    schema_ref: json_object
+    allow_empty_accumulating: true
   - id: raw_receipts
     path: data/raw/manifest.jsonl
     kind: jsonl

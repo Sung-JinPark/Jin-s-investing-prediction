@@ -1,0 +1,101 @@
+name: timeseries-refresh
+
+on:
+  schedule:
+    # 미국 장 마감 후 화–토 02:40 UTC. 토요일은 주간 재적합도 수행한다.
+    - cron: "40 2 * * 2-6"
+  workflow_dispatch:
+    inputs:
+      full_backtest:
+        description: "전체 2007+ 워크포워드와 Excel을 강제 실행"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install PIT time-series runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Require the runtime-only FRED secret
+        shell: bash
+        run: |
+          if [ -z "$FRED_API_KEY" ]; then
+            echo "FRED_API_KEY is not configured; no stale forecast will be reused."
+            exit 1
+          fi
+      - name: Append ALFRED raw receipts and PIT observations
+        run: python -m ai_fc timeseries-refresh
+      - name: Decide weekly and monthly work
+        id: cadence
+        shell: bash
+        run: |
+          day_of_week="$(date -u +%u)"
+          day_of_month="$(date -u +%d)"
+          weekly=false
+          monthly=false
+          if [ "$day_of_week" = "6" ]; then weekly=true; fi
+          if [ "$day_of_week" = "6" ] && [ "$day_of_month" -le 7 ]; then monthly=true; fi
+          if [ "${{ inputs.full_backtest || false }}" = "true" ]; then weekly=true; monthly=true; fi
+          echo "weekly=$weekly" >> "$GITHUB_OUTPUT"
+          echo "monthly=$monthly" >> "$GITHUB_OUTPUT"
+      - name: Refit DFM and expanding/rolling Ridge VARX
+        if: steps.cadence.outputs.weekly == 'true'
+        run: python -m ai_fc timeseries-fit
+      - name: Run the preregistered 2007+ rolling-origin evaluation
+        if: steps.cadence.outputs.monthly == 'true'
+        run: python -m ai_fc timeseries-backtest --path-count 1000
+      - name: Append latest shadow forecast or explicit validation-pending artifact
+        run: python -m ai_fc timeseries-forecast
+      - name: Resolve matured shadow forecasts
+        run: python -m ai_fc timeseries-resolve
+      - name: Export the cumulative eight-sheet audit workbook
+        if: steps.cadence.outputs.monthly == 'true'
+        run: python -m ai_fc timeseries-workbook
+      - name: Replay PIT, receipt, model, backtest, and forecast hashes
+        run: python -m ai_fc timeseries-verify
+      - name: Run isolated subsystem and dashboard regressions
+        run: >-
+          pytest -q
+          src/tests/test_multivariate_timeseries.py
+          src/tests/test_read_model_contract.py
+          src/tests/test_dashboard.py
+          src/tests/test_website_data_lineage.py
+      - name: Refresh generated repository inventory
+        run: cd src && python -m ai_fc inventory
+      - name: Commit only registered time-series outputs
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/timeseries docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/.*|docs/generated/inventory.generated.md)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected path staged by time-series refresh:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No new PIT receipt, resolution, or shadow artifact."
+            exit 0
+          fi
+          git commit -m "data: refresh NASDAQ time-series shadow $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main

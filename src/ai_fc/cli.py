@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from datetime import date, datetime
 from pathlib import Path
@@ -19,6 +20,127 @@ from .registry import compute_due, load_registry, propose_schedule
 from .scenario import refresh_scenario
 
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
+
+
+def _timeseries_exit(callable_, *args, **kwargs):
+    """Render fail-closed research pipeline errors without leaking credentials."""
+    from .timeseries.artifact import TimeSeriesArtifactError
+    from .timeseries.model import TimeSeriesModelError
+    from .timeseries.pipeline import TimeSeriesPipelineError
+
+    try:
+        return callable_(*args, **kwargs)
+    except (OSError, ValueError, RuntimeError, TimeSeriesArtifactError,
+            TimeSeriesModelError, TimeSeriesPipelineError) as exc:
+        typer.echo(f"시계열 연구모델 중단: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+
+
+@app.command("timeseries-bootstrap")
+def cmd_timeseries_bootstrap() -> None:
+    """ALFRED 전체 빈티지를 raw-first append-only 원장으로 최초 백필한다."""
+    from .timeseries.pipeline import bootstrap_timeseries
+
+    result = _timeseries_exit(
+        bootstrap_timeseries, config.ROOT, api_key=os.environ.get("FRED_API_KEY", ""),
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-refresh")
+def cmd_timeseries_refresh() -> None:
+    """ALFRED 신규 원문과 수정 빈티지를 append한다."""
+    from .timeseries.pipeline import refresh_timeseries
+
+    result = _timeseries_exit(
+        refresh_timeseries, config.ROOT, api_key=os.environ.get("FRED_API_KEY", ""),
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-fit")
+def cmd_timeseries_fit(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """PIT DFM과 확장·10년 Ridge VARX를 적합한다."""
+    from .timeseries.pipeline import fit_timeseries
+
+    result = _timeseries_exit(
+        fit_timeseries, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(f"fit: {result['run_id']} · {result['as_of']} · shadow")
+
+
+@app.command("timeseries-backtest")
+def cmd_timeseries_backtest(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    path_count: int = typer.Option(1000, "--path-count", min=200, max=20000),
+) -> None:
+    """2007년 이후 purged rolling-origin 평가를 실행한다."""
+    from .timeseries.pipeline import backtest_timeseries
+
+    result = _timeseries_exit(
+        backtest_timeseries,
+        config.ROOT,
+        knowledge_cutoff=knowledge_cutoff,
+        path_count=path_count,
+    )
+    typer.echo(
+        f"backtest: {result['run_id']} · gate={result['summary']['status']} · "
+        f"origins={result['summary']['origin_count']}"
+    )
+
+
+@app.command("timeseries-forecast")
+def cmd_timeseries_forecast(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """검증 Gate를 통과한 경우에만 최신 1·5·21·63일 분포를 append한다."""
+    from .timeseries.pipeline import forecast_timeseries
+
+    path, result = _timeseries_exit(
+        forecast_timeseries, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(
+        f"forecast: {path.relative_to(config.ROOT)} · "
+        f"display={result['display_state']} · numbers={result['publication']['customer_numbers_visible']}"
+    )
+
+
+@app.command("timeseries-resolve")
+def cmd_timeseries_resolve(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """성숙한 shadow 예측의 실제 결과를 append-only 해소 원장에 기록한다."""
+    from .timeseries.pipeline import resolve_timeseries
+
+    result = _timeseries_exit(
+        resolve_timeseries, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False))
+
+
+@app.command("timeseries-verify")
+def cmd_timeseries_verify() -> None:
+    """latest pointer·content hash·확률 단위·PIT 표시 Gate를 검증한다."""
+    from .timeseries.pipeline import verify_timeseries
+
+    result = _timeseries_exit(verify_timeseries, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-workbook")
+def cmd_timeseries_workbook() -> None:
+    """JSONL 정본과 Parquet read model을 대사한 8-sheet Excel 감사본을 생성한다."""
+    from .timeseries.workbook import export_timeseries_workbook
+
+    path, summary = _timeseries_exit(export_timeseries_workbook, config.ROOT)
+    typer.echo(
+        f"workbook: {path.relative_to(config.ROOT)} · sheets={summary['sheets']} · "
+        f"observations={summary['observations']} · sha256={summary['sha256']}"
+    )
 
 
 @app.command("audit-ledgers")

@@ -138,7 +138,7 @@ function loadUIState(){
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics$|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
@@ -884,7 +884,8 @@ const COMMAND_ROUTES=[
   {hash:'#future',code:'02',title:'미래 탐색',hint:'시나리오 경로와 위험 구간'},
   {hash:'#statistics',code:'03',title:'통계 비교',hint:'닷컴과 현재의 유동성·금리·가치·신용'},
   {hash:'#records',code:'04',title:'기록과 검증',hint:'질문·변경·결과 기록'},
-  {hash:'#trust',code:'05',title:'데이터와 신뢰',hint:'원장·근거·방법론'}
+  {hash:'#timeseries',code:'05',title:'시계열 예측',hint:'다변량 시계열 연구모델'},
+  {hash:'#trust',code:'06',title:'데이터와 신뢰',hint:'원장·근거·방법론'}
 ];
 function commandCatalog(){
   const actions=[
@@ -1141,7 +1142,51 @@ function renderStatistics(){
   root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);const referenceSection=root.querySelector('[data-stat-reference-section]');if(referenceSection)referenceSection.hidden=key!=='all'&&key!=='ipo';});
 }
 
-const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
+function timeseriesFeatureLabel(name){
+  const labels={intercept:'기본 절편',nasdaq_return:'NASDAQ 수익률',vix_change:'변동성 변화',dgs2_change_bps:'2년물 금리 변화',curve_change_bps:'장단기 금리차 변화',hy_oas_change_bps:'하이일드 신용스프레드',dollar_change:'달러 변화',growth_factor:'성장 상태',inflation_factor:'물가 상태',NFCI:'금융여건',M2SL:'통화량',WALCL:'연준 자산',WTREGEN:'재무부 현금',RRPONTSYD:'역레포',DFF:'정책금리'};
+  const base=String(name||'').replace(/_lag\d+$/,'');return labels[base]||base.replaceAll('_',' ');
+}
+function timeseriesPathSvg(ts){
+  const path=ts.path||{},history=path.history_index||[],future=path.p50||[],dates=path.dates||[];
+  if(history.length<2||future.length!==63)return '<div class="timeseries-chart-empty">경로 검증이 완료되면 최근 63일과 향후 63일을 한 축에서 보여드립니다.</div>';
+  const W=1200,H=500,ML=74,MR=28,MT=36,MB=54,PW=W-ML-MR,PH=H-MT-MB,split=.25;
+  const all=[...history,...['p10','p25','p50','p75','p90'].flatMap(key=>path[key]||[])].filter(value=>Number(value)>0).map(Number);
+  const logMin=Math.log(Math.min(...all)*.985),logMax=Math.log(Math.max(...all)*1.015),span=Math.max(1e-9,logMax-logMin);
+  const Y=value=>MT+(logMax-Math.log(Number(value)))/span*PH;
+  const HX=index=>ML+(history.length===1?0:index/(history.length-1))*PW*split;
+  const FX=index=>ML+PW*split+(index/(future.length-1))*PW*(1-split);
+  const line=(values,x)=>values.map((value,index)=>`${index?'L':'M'}${x(index).toFixed(1)},${Y(value).toFixed(1)}`).join(' ');
+  const band=(lower,upper)=>upper.map((value,index)=>`${FX(index).toFixed(1)},${Y(value).toFixed(1)}`).concat(lower.map((_,index)=>`${FX(lower.length-1-index).toFixed(1)},${Y(lower[lower.length-1-index]).toFixed(1)}`)).join(' ');
+  const ticks=Array.from({length:5},(_,index)=>Math.exp(logMin+(logMax-logMin)*index/4));
+  const anchorX=ML+PW*split;
+  const labels=[[ML,path.history_dates?.[0]||''],[anchorX,ts.as_of],[FX(20),dates[20]||''],[FX(62),dates[62]||'']];
+  return `<div class="timeseries-chart" role="img" aria-label="최근 63거래일과 향후 63거래일 NASDAQ 로그축 예측 범위"><svg viewBox="0 0 ${W} ${H}">
+    ${ticks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${Y(value).toFixed(1)}" y2="${Y(value).toFixed(1)}" class="ts-grid"/><text x="${ML-12}" y="${(Y(value)+4).toFixed(1)}" text-anchor="end">${Math.round(value).toLocaleString()}</text>`).join('')}
+    <rect x="${ML}" y="${MT}" width="${(PW*split).toFixed(1)}" height="${PH}" class="ts-history-zone"/><rect x="${anchorX.toFixed(1)}" y="${MT}" width="${(PW*(1-split)).toFixed(1)}" height="${PH}" class="ts-forecast-zone"/>
+    <polygon points="${band(path.p10,path.p90)}" class="ts-band-outer"/><polygon points="${band(path.p25,path.p75)}" class="ts-band-inner"/>
+    <path d="${line(history,HX)}" class="ts-history-line"/><path d="${line(path.p50,FX)}" class="ts-median-line"/>
+    <line x1="${anchorX.toFixed(1)}" x2="${anchorX.toFixed(1)}" y1="${MT}" y2="${H-MB}" class="ts-now-line"/><text x="${(anchorX+8).toFixed(1)}" y="${MT+16}" class="ts-now-label">현재</text>
+    ${labels.map(([x,label],index)=>`<text x="${Number(x).toFixed(1)}" y="${H-20}" text-anchor="${index===0?'start':index===labels.length-1?'end':'middle'}">${esc(String(label).slice(5))}</text>`).join('')}
+    <g class="ts-legend"><circle cx="${ML+10}" cy="${MT+12}" r="4" class="ts-history-dot"/><text x="${ML+20}" y="${MT+16}">실제</text><line x1="${ML+78}" x2="${ML+102}" y1="${MT+12}" y2="${MT+12}" class="ts-median-line"/><text x="${ML+110}" y="${MT+16}">중앙 경로</text><rect x="${ML+202}" y="${MT+5}" width="20" height="12" class="ts-band-inner"/><text x="${ML+230}" y="${MT+16}">중심 50%</text><rect x="${ML+320}" y="${MT+5}" width="20" height="12" class="ts-band-outer"/><text x="${ML+348}" y="${MT+16}">넓은 80%</text></g>
+  </svg></div>`;
+}
+function renderTimeseries(){
+  const ts=DATA.timeseries||{},visible=ts.numbers_visible===true;
+  if(!visible){
+    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header><section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p></div></section><footer class="timeseries-footnote">${esc(ts.footnote||'*미국 시장·미국 공식 거시자료 기준')}</footer></div>`);
+    mount(root);return;
+  }
+  const one=ts.horizons?.['1']||{},horizons=[1,5,21,63],anchor=Number(ts.anchor?.value||ts.anchor||0);
+  const cards=horizons.map(horizon=>{const row=ts.horizons?.[String(horizon)]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0);return `<article><span>${horizon}거래일</span><strong>${ret>=0?'+':''}${(ret*100).toFixed(1)}%</strong><p>상승 가능성 ${Math.round(up*100)}%</p><small>중앙값 ${Number(row.median_index||0).toLocaleString(undefined,{maximumFractionDigits:0})}</small></article>`;}).join('');
+  const components=Object.entries(ts.contributions_1d?.components||{}).map(([name,value])=>({name,value:Number(value)}));
+  const positive=components.filter(row=>row.value>0).sort((a,b)=>b.value-a.value).slice(0,3),negative=components.filter(row=>row.value<0).sort((a,b)=>a.value-b.value).slice(0,3);
+  const contributionRows=(rows,tone)=>rows.map(row=>`<li><span>${esc(timeseriesFeatureLabel(row.name))}</span><strong class="${tone}">${row.value>=0?'+':''}${(row.value*100).toFixed(3)}%p</strong></li>`).join('')||'<li><span>뚜렷한 요인 없음</span><strong>—</strong></li>';
+  const metrics=ts.backtest?.metrics?.horizons||{},long=[metrics['21'],metrics['63']].filter(Boolean),improvement=long.length?long.reduce((sum,row)=>sum+Number(row.crps_improvement_vs_best||0),0)/long.length:null,coverage=metrics['63']?.coverage_p10_p90;
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 이후 1·5·21·63거래일 분포입니다.</p></div><div class="timeseries-next"><span>다음 거래일 중앙 예상</span><strong>${Number(one.median_index||0).toLocaleString(undefined,{maximumFractionDigits:0})}</strong><p>${Number(one.point_return||0)>=0?'+':''}${(Number(one.point_return||0)*100).toFixed(2)}% · p10–p90 ${Number(one.quantiles?.p10||0).toLocaleString(undefined,{maximumFractionDigits:0})}–${Number(one.quantiles?.p90||0).toLocaleString(undefined,{maximumFractionDigits:0})}</p></div></header><section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section><section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 흐름과 향후 분포</h2></div><p>과거 1/4 · 전망 3/4</p></header>${timeseriesPathSvg(ts)}</section><section class="timeseries-evidence"><article><header><span>올린 요인</span><strong>상방 기여</strong></header><ul>${contributionRows(positive,'up')}</ul></article><article><header><span>내린 요인</span><strong>하방 기여</strong></header><ul>${contributionRows(negative,'down')}</ul></article><article class="timeseries-score"><header><span>검증 성적</span><strong>워크포워드</strong></header><div><p><span>기준선 대비 CRPS</span><b>${improvement==null?'—':`${improvement>=0?'+':''}${(improvement*100).toFixed(1)}%`}</b></p><p><span>63일 넓은 구간 적중률</span><b>${coverage==null?'—':`${(Number(coverage)*100).toFixed(1)}%`}</b></p><p><span>경로 수</span><b>${Number(ts.ensemble?.path_count||0).toLocaleString()}</b></p></div></article></section><footer class="timeseries-footnote">${esc(ts.footnote||'*미국 시장·미국 공식 거시자료 기준')}</footer></div>`);
+  mount(root);
+}
+
+const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
 function enhanceChartScroll(root=document){
   root.querySelectorAll('.chart-wrap').forEach((wrap,index)=>{
     let affordance=wrap.nextElementSibling;
@@ -1174,7 +1219,7 @@ function appendContextTabs(root,group,current){const html=contextTabs(group,curr
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
-  if(/^#(?:today|future(?:\/|$)|statistics$|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
+  if(/^#(?:today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
@@ -1200,6 +1245,7 @@ function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
   if(parts[0]==='statistics')return {section:'statistics',view:'statistics'};
+  if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries'};
   if(parts[0]==='future'){
     if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};

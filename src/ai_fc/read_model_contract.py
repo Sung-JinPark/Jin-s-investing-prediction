@@ -47,6 +47,7 @@ V2_KEYS = {
     "band_calibration": dict,
     "liquidity": dict,
     "statistics_lab": dict,
+    "timeseries": dict,
     "multi_year_stress": dict,
     "ai_regime": dict,
     "o_entry_cohort": dict,
@@ -191,6 +192,21 @@ def schema() -> dict[str, Any]:
             "sources": {"type": "array"},
         },
     }
+    properties["timeseries"] = {
+        "type": "object",
+        "required": [
+            "schema_version", "status", "model_id", "model_version",
+            "probability_space", "combined_with_existing_models", "numbers_visible",
+            "horizons", "path", "backtest",
+        ],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["ready", "validation_pending"]},
+            "model_id": {"const": "shadow.mf_dfm_ridge_varx_v1"},
+            "combined_with_existing_models": {"const": False},
+            "numbers_visible": {"type": "boolean"},
+        },
+    }
     properties["multi_year_stress"] = {
         "type": "object",
         "required": [
@@ -276,6 +292,17 @@ def validate(model: dict[str, Any]) -> list[str]:
             )
         except (StatisticsLabError, KeyError, TypeError, ValueError) as exc:
             errors.append(f"statistics_lab contract violation: {exc}")
+    timeseries = model.get("timeseries")
+    if isinstance(timeseries, dict):
+        if timeseries.get("model_id") != "shadow.mf_dfm_ridge_varx_v1":
+            errors.append("timeseries model id mismatch")
+        if timeseries.get("combined_with_existing_models") is not False:
+            errors.append("timeseries must remain isolated from existing probability spaces")
+        visible = timeseries.get("numbers_visible") is True
+        if visible is not (timeseries.get("status") == "ready"):
+            errors.append("timeseries visibility/status mismatch")
+        if not visible and (timeseries.get("horizons") or timeseries.get("path")):
+            errors.append("timeseries validation-pending surface must hide numbers")
     multi_year_stress = model.get("multi_year_stress")
     if isinstance(multi_year_stress, dict):
         try:

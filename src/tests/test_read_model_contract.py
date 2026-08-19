@@ -20,6 +20,18 @@ def _minimal_model() -> dict:
         model[key] = {
             "status": "blocked", "probability_space": "reference_only", "asof": None,
         }
+    model["timeseries"] = {
+        "schema_version": 1,
+        "status": "validation_pending",
+        "model_id": "shadow.mf_dfm_ridge_varx_v1",
+        "model_version": 1,
+        "probability_space": "research_timeseries_conditional",
+        "combined_with_existing_models": False,
+        "numbers_visible": False,
+        "horizons": {},
+        "path": {},
+        "backtest": {"gate_pass": False, "reasons": ["pending"]},
+    }
     return model
 
 
@@ -59,3 +71,12 @@ def test_read_model_contract_rejects_new_reference_space_drift() -> None:
     model = _minimal_model()
     model["liquidity"]["probability_space"] = "scenario_conditional"
     assert "liquidity probability_space must be reference_only" in validate(model)
+
+
+def test_timeseries_shadow_cannot_silently_combine_or_show_failed_gate_numbers() -> None:
+    model = _minimal_model()
+    model["timeseries"]["combined_with_existing_models"] = True
+    model["timeseries"]["horizons"] = {"1": {"probability_up": 0.5}}
+    errors = validate(model)
+    assert "timeseries must remain isolated from existing probability spaces" in errors
+    assert "timeseries validation-pending surface must hide numbers" in errors

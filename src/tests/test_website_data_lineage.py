@@ -26,6 +26,7 @@ REQUIRED_SURFACES = {
     "ai_regime",
     "band_calibration",
     "display_promotion",
+    "multivariate_timeseries_shadow",
 }
 
 REQUIRED_SURFACE_FIELDS = {
@@ -107,6 +108,7 @@ def test_official_and_reference_numeric_policies_are_not_conflated() -> None:
     assert classes["official_numeric_statistics"]["may_write_official_forecast"] is False
     assert classes["canonical_forecast_ledger"]["may_write_official_forecast"] is True
     assert classes["research_reference_proxy"]["may_write_official_forecast"] is False
+    assert classes["pit_research_model"]["may_write_official_forecast"] is False
 
     for surface_id, surface in contract["surfaces"].items():
         if surface["publication_class"] == "research_reference_proxy":

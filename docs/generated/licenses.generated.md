@@ -15,6 +15,8 @@
 | `sec_edgar` | U.S. Securities and Exchange Commission | [https://data.sec.gov/](https://data.sec.gov/) | `approved` | 계약 범위 내 파생 통계 표시 |
 | `yahoo_crosscheck` | Yahoo | [https://query1.finance.yahoo.com/v8/finance/chart/](https://query1.finance.yahoo.com/v8/finance/chart/) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `fred_market_signals` | Federal Reserve Bank of St. Louis | [https://fred.stlouisfed.org/graph/fredgraph.csv](https://fred.stlouisfed.org/graph/fredgraph.csv) | `approved` | 계약 범위 내 파생 통계 표시 |
+| `market_consensus` | receipt-specific registered survey source | [receipt-defined](receipt-defined) | `approved` | 계약 범위 내 파생 통계 표시 |
+| `market_implied_rate_distribution` | receipt-specific registered market source | [receipt-defined](receipt-defined) | `approved` | 계약 범위 내 파생 통계 표시 |
 | `realty_income_path_v2` | FRED and Yahoo derived diagnostics | [derived-from-registered-sources](derived-from-registered-sources) | `approved` | 계약 범위 내 파생 통계 표시 |
 | `defillama_stablecoins` | DefiLlama | [https://stablecoins.llama.fi/stablecoincharts/all](https://stablecoins.llama.fi/stablecoincharts/all) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |
 | `btc_etf_flows` | pending two-source review | [pending](pending) | `review_required` | 파생 통계 표시 가능; 원시 재배포 금지 |

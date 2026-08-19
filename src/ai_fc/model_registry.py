@@ -51,6 +51,13 @@ DEFAULT_MODELS = (
     ("shadow.bl_rnd", "Breeden-Litzenberger RND", Lifecycle.SHADOW, "risk-neutral terminal", "QQQ↔IXIC 프록시·옵션 스냅샷 제약; 참조 전용"),
     ("shadow.chronos2", "Chronos-2", Lifecycle.SHADOW, "quantile/reference", "체크포인트 pin·로컬 paired 평가 전"),
     ("shadow.timesfm25", "TimesFM 2.5", Lifecycle.SHADOW, "quantile/reference", "비교군; 공급망 pin 전"),
+    (
+        "shadow.mf_dfm_ridge_varx_v1",
+        "NASDAQ mixed-frequency DFM + Ridge VARX",
+        Lifecycle.SHADOW,
+        "NASDAQCOM log-return distribution 1/5/21/63 sessions",
+        "별도 연구 확률공간; PIT 워크포워드 Gate와 126거래일 shadow 및 명시 승인 전 승격 금지",
+    ),
 )
 
 

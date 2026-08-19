@@ -1,0 +1,15 @@
+schema_version: 1
+source_id: market_implied_rate_distribution
+status: enabled_research_numeric
+scope: multivariate_timeseries_event_overlay_only
+required_fields: [meeting, outcomes, probabilities, probability_unit, available_at, retrieved_at]
+canonical_probability_unit: fraction
+receipt_required: true
+raw_before_derived: true
+point_in_time: true
+prohibitions:
+  official_forecast_write: true
+  source_without_receipt: true
+  future_actual: true
+  credential_persistence: true
+  silent_probability_normalization: true
