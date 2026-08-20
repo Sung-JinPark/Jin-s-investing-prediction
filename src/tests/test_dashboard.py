@@ -658,9 +658,23 @@ def test_u1d_mobile_layout_contract() -> None:
     assert ".detail-hero .prob-orb{margin:18px auto 34px}" in css
     assert ".track-page .ledger-status-grid strong" in css
     assert "overflow-wrap:anywhere" in css
-    assert "function enhanceChartScroll" in script
-    assert "가로로 밀어 전체 차트 탐색" in script
-    assert "chart-scroll-position" in script
+    assert "function enhanceChartZoom" in script
+    assert "가로로 밀어 전체 차트 탐색" not in script
+
+
+def test_mobile_charts_fit_first_and_offer_detail_zoom() -> None:
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    assert "function enhanceChartZoom" in script
+    assert "function openChartZoom" in script
+    assert "두 손가락으로 확대" in script
+    assert "requestAnimationFrame(()=>enhanceChartZoom(app()))" in script
+    assert "CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart'" in script
+    assert '.chart-wrap>div[style*="min-width"]{width:100%!important;min-width:0!important' in css
+    assert ".chart-wrap svg,.statistics-chart svg,.scenario-v52-chart svg,.timeseries-chart svg" in css
+    assert ".chart-zoom-dialog" in css and ".chart-zoom-canvas" in css
+    assert "body.chart-zoom-open{overflow:hidden" in css
 
 
 def test_u1d_mobile_layout_regression_evidence() -> None:

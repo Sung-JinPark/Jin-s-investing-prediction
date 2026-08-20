@@ -1063,14 +1063,8 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
 
 /* U1d: measured mobile layout repairs and horizontal-chart affordance. */
 .ask-daily-chart{width:100%;min-width:0!important}
-.chart-scroll-affordance{--scroll-progress:8%;margin:7px 0 14px;display:flex;align-items:center;gap:9px;color:#65635d;font:650 var(--type-micro)/1.2 var(--mono)}
-.chart-scroll-affordance[hidden]{display:none}.chart-scroll-affordance>span{white-space:nowrap}.chart-scroll-affordance>i{height:4px;min-width:72px;flex:1;overflow:hidden;background:#dedbd3}.chart-scroll-affordance>i>b{width:var(--scroll-progress);height:100%;display:block;background:var(--orange);transition:width 120ms ease}.chart-scroll-affordance>strong{min-width:64px;color:#3e3c37;text-align:right;font-size:inherit}
-.chart-wrap.is-scrollable{overscroll-behavior-x:contain;scrollbar-color:var(--orange) #e7e4dc;scrollbar-width:thin}
-.chart-wrap.is-scrollable:not(.is-at-end){mask-image:linear-gradient(to right,#000 0,#000 calc(100% - 34px),transparent 100%)}
-.chart-wrap.is-scrollable:not(.is-at-start):not(.is-at-end){mask-image:linear-gradient(to right,transparent 0,#000 34px,#000 calc(100% - 34px),transparent 100%)}
-.chart-wrap.is-scrollable.is-at-end:not(.is-at-start){mask-image:linear-gradient(to right,transparent 0,#000 34px,#000 100%)}
 .track-page article,.track-page strong,.track-page p,.track-page small,.track-page code{min-width:0;overflow-wrap:anywhere;word-break:break-word}.track-page .ledger-status-grid strong{overflow:visible;text-overflow:clip;white-space:normal}
-@media(max-width:620px){.detail-hero .prob-orb{margin:18px auto 34px}.track-page .track-kpis>div{min-width:0}.chart-scroll-affordance{align-items:flex-start;flex-wrap:wrap}.chart-scroll-affordance>i{order:3;flex-basis:100%}}
+@media(max-width:620px){.detail-hero .prob-orb{margin:18px auto 34px}.track-page .track-kpis>div{min-width:0}}
 
 /* U1a: four-section information architecture and no-scroll desktop today board. */
 body[data-view="today"] .site-footer{display:none}
@@ -1234,4 +1228,29 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .statistics-liquidity-label{gap:8px}
   .statistics-liquidity-label span{font-size:12px}
   .statistics-liquidity-label strong{font-size:16px}
+}
+
+/* Mobile chart contract: show the complete domain first, then offer a dedicated detail zoom. */
+.chart-fit-tools{display:none;min-height:42px;padding:7px 0;align-items:center;justify-content:flex-end;gap:9px}
+.chart-fit-tools>span{color:var(--muted);font:700 10px/1 var(--mono);letter-spacing:.04em}
+.chart-fit-tools>button{min-height:36px;padding:0 11px;display:inline-flex;align-items:center;gap:7px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font:750 11px/1 var(--mono)}
+.chart-fit-tools>button i{color:var(--orange);font-size:15px;font-style:normal}.chart-fit-tools>button:hover{color:#fff;background:#11110f}
+body.chart-zoom-open{overflow:hidden;touch-action:none}
+.chart-zoom-layer{position:fixed;inset:0;z-index:2200;display:grid;place-items:center;padding:clamp(10px,3vw,28px)}
+.chart-zoom-layer[hidden]{display:none}.chart-zoom-scrim{position:absolute;inset:0;width:100%;height:100%;border:0;background:rgba(17,17,15,.72);backdrop-filter:blur(8px);cursor:pointer}
+.chart-zoom-dialog{position:relative;width:min(1280px,100%);height:min(900px,calc(100dvh - 24px));min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr) auto;color:#11110f;background:#f8f7f2;border:1px solid #777168;box-shadow:0 30px 100px rgba(0,0,0,.4)}
+.chart-zoom-dialog>header{min-width:0;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:16px;color:#fff;background:#11110f;border-bottom:1px solid #3b3934}.chart-zoom-dialog>header span{color:var(--amber);font:750 9px/1 var(--mono);letter-spacing:.11em}.chart-zoom-dialog>header h2{margin:5px 0 0;color:#fff;font-size:clamp(17px,2vw,24px);line-height:1.15}.chart-zoom-close{min-width:48px;min-height:40px;color:#fff;background:#292824;border:1px solid #5a5750;cursor:pointer;font:750 11px/1 var(--mono)}
+.chart-zoom-controls{padding:8px 12px;display:flex;align-items:center;gap:5px;background:#ece9e1;border-bottom:1px solid var(--line-strong)}.chart-zoom-controls button{min-width:42px;min-height:40px;padding:0 11px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font:750 13px/1 var(--mono)}.chart-zoom-controls button:disabled{opacity:.35;cursor:default}.chart-zoom-controls button[data-chart-zoom-reset]{margin-left:4px;font-size:10px}.chart-zoom-scale{min-width:58px;text-align:center;font:800 12px/1 var(--mono)}
+.chart-zoom-canvas{min-width:0;min-height:0;overflow:auto;padding:12px;background:#fff;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y}.chart-zoom-content{min-width:0;max-width:none}.chart-zoom-clone,.chart-zoom-clone>div{width:100%!important;min-width:0!important;max-width:none!important;overflow:visible!important}.chart-zoom-clone svg{display:block;width:100%!important;min-width:0!important;max-width:none!important;height:auto!important;filter:none}.chart-zoom-help{margin:0;padding:9px 13px;color:#65615a;background:#f0eee8;border-top:1px solid var(--line);font-size:10px;line-height:1.45}
+@media(max-width:799px){
+  .chart-fit-tools{display:flex}
+  .chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart{max-width:100%;overflow-x:hidden!important}
+  .chart-wrap>div,.chart-wrap>div[style*="min-width"]{width:100%!important;min-width:0!important;max-width:100%}
+  .chart-wrap svg,.statistics-chart svg,.scenario-v52-chart svg,.timeseries-chart svg{display:block;width:100%!important;min-width:0!important;max-width:100%!important;height:auto!important}
+  .chart-zoom-layer{padding:0}
+  .chart-zoom-dialog{width:100%;height:100dvh;max-height:none;border:0}
+  .chart-zoom-dialog>header{padding-top:max(12px,env(safe-area-inset-top));padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
+  .chart-zoom-controls{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
+  .chart-zoom-canvas{padding:8px}
+  .chart-zoom-help{padding-right:max(12px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left))}
 }

@@ -1187,21 +1187,63 @@ function renderTimeseries(){
 }
 
 const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
-function enhanceChartScroll(root=document){
-  root.querySelectorAll('.chart-wrap').forEach((wrap,index)=>{
-    let affordance=wrap.nextElementSibling;
-    if(!affordance?.classList.contains('chart-scroll-affordance')){
-      affordance=el(`<div class="chart-scroll-affordance" hidden aria-live="polite"><span>가로로 밀어 전체 차트 탐색</span><i><b></b></i><strong class="chart-scroll-position">0% · 시작</strong></div>`);
-      wrap.after(affordance);
-    }
-    const update=()=>{
-      const max=Math.max(0,wrap.scrollWidth-wrap.clientWidth),scrollable=max>2,ratio=scrollable?Math.max(0,Math.min(1,wrap.scrollLeft/max)):0;
-      wrap.classList.toggle('is-scrollable',scrollable);wrap.classList.toggle('is-at-start',!scrollable||ratio<=.02);wrap.classList.toggle('is-at-end',!scrollable||ratio>=.98);
-      affordance.hidden=!scrollable;
-      if(scrollable){affordance.style.setProperty('--scroll-progress',`${Math.max(8,ratio*100)}%`);$('.chart-scroll-position',affordance).textContent=`${Math.round(ratio*100)}% · ${ratio<=.02?'시작':ratio>=.98?'끝':'탐색 중'}`;}
-    };
-    if(!wrap.dataset.scrollAffordanceBound){wrap.dataset.scrollAffordanceBound='1';wrap.addEventListener('scroll',update,{passive:true});wrap.setAttribute('tabindex','0');wrap.setAttribute('role','region');wrap.setAttribute('aria-label',`가로로 스크롤하는 차트 ${index+1}`);}
-    update();requestAnimationFrame(update);
+const CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart';
+let CHART_ZOOM_LAYER=null,CHART_ZOOM_TRIGGER=null,CHART_ZOOM_SCALE=1,CHART_ZOOM_WIDTH=0;
+function chartZoomTitle(surface,index){
+  const owner=surface.closest('.statistics-card,.timeseries-path-panel,.scenario-v52-main,.chart-panel,section,article');
+  return owner?.querySelector('h2,h3')?.textContent?.trim()||`그래프 ${index+1}`;
+}
+function setChartZoomScale(value){
+  if(!CHART_ZOOM_LAYER)return;
+  const scale=Math.max(1,Math.min(3,Number(value)||1)),content=$('.chart-zoom-content',CHART_ZOOM_LAYER),output=$('.chart-zoom-scale',CHART_ZOOM_LAYER);
+  CHART_ZOOM_SCALE=scale;if(content&&CHART_ZOOM_WIDTH)content.style.width=`${Math.round(CHART_ZOOM_WIDTH*scale)}px`;
+  if(output)output.textContent=`${Math.round(scale*100)}%`;
+  $('[data-chart-zoom="out"]',CHART_ZOOM_LAYER).disabled=scale<=1;$('[data-chart-zoom="in"]',CHART_ZOOM_LAYER).disabled=scale>=3;
+}
+function closeChartZoom(restoreFocus=true){
+  if(!CHART_ZOOM_LAYER||CHART_ZOOM_LAYER.hidden)return;
+  CHART_ZOOM_LAYER.hidden=true;document.body.classList.remove('chart-zoom-open');$('.chart-zoom-content',CHART_ZOOM_LAYER).replaceChildren();
+  const trigger=CHART_ZOOM_TRIGGER;CHART_ZOOM_TRIGGER=null;CHART_ZOOM_SCALE=1;CHART_ZOOM_WIDTH=0;
+  if(restoreFocus&&trigger?.isConnected)trigger.focus();
+}
+function chartZoomLayer(){
+  if(CHART_ZOOM_LAYER)return CHART_ZOOM_LAYER;
+  const layer=el(`<div class="chart-zoom-layer" id="chart-zoom-layer" hidden>
+    <button type="button" class="chart-zoom-scrim" data-chart-zoom="close" tabindex="-1" aria-label="확대 그래프 닫기"></button>
+    <section class="chart-zoom-dialog" role="dialog" aria-modal="true" aria-labelledby="chart-zoom-title">
+      <header><div><span>DETAIL VIEW</span><h2 id="chart-zoom-title">그래프 확대</h2></div><button type="button" class="chart-zoom-close" data-chart-zoom="close">닫기</button></header>
+      <div class="chart-zoom-controls" role="group" aria-label="그래프 확대 배율">
+        <button type="button" data-chart-zoom="out" aria-label="축소">−</button><output class="chart-zoom-scale" aria-live="polite">100%</output><button type="button" data-chart-zoom="in" aria-label="확대">＋</button><button type="button" data-chart-zoom="reset">화면 맞춤</button>
+      </div>
+      <div class="chart-zoom-canvas"><div class="chart-zoom-content"></div></div>
+      <p class="chart-zoom-help">＋/− 또는 두 손가락으로 확대하고 밀어서 이동하세요.</p>
+    </section>
+  </div>`);
+  document.body.appendChild(layer);CHART_ZOOM_LAYER=layer;
+  layer.onclick=event=>{const action=event.target.closest('[data-chart-zoom]')?.dataset.chartZoom;if(action==='close')closeChartZoom();else if(action)setChartZoomScale(action==='reset'?1:CHART_ZOOM_SCALE+(action==='in' ? 0.25 : -0.25));};
+  const canvas=$('.chart-zoom-canvas',layer),distance=touches=>Math.hypot(touches[0].clientX-touches[1].clientX,touches[0].clientY-touches[1].clientY);
+  let pinch=0,pinchScale=1;canvas.addEventListener('touchstart',event=>{if(event.touches.length===2){pinch=distance(event.touches);pinchScale=CHART_ZOOM_SCALE;}},{passive:true});
+  canvas.addEventListener('touchmove',event=>{if(event.touches.length===2&&pinch){event.preventDefault();setChartZoomScale(pinchScale*distance(event.touches)/pinch);}},{passive:false});
+  canvas.addEventListener('touchend',()=>{pinch=0;},{passive:true});canvas.ondblclick=()=>setChartZoomScale(CHART_ZOOM_SCALE>1?1:2);
+  window.addEventListener('keydown',event=>{if(!layer.hidden&&event.key==='Escape')closeChartZoom();});
+  return layer;
+}
+function openChartZoom(surface,trigger,label){
+  const layer=chartZoomLayer(),content=$('.chart-zoom-content',layer),canvas=$('.chart-zoom-canvas',layer),clone=surface.cloneNode(true);
+  clone.removeAttribute('id');clone.removeAttribute('tabindex');clone.removeAttribute('data-chart-zoom-bound');clone.classList.add('chart-zoom-clone');
+  clone.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+  clone.querySelectorAll('[tabindex]').forEach(node=>node.removeAttribute('tabindex'));
+  clone.querySelectorAll('[style*="min-width"]').forEach(node=>node.style.minWidth='0');
+  content.replaceChildren(clone);$('#chart-zoom-title',layer).textContent=label;
+  CHART_ZOOM_TRIGGER=trigger;CHART_ZOOM_SCALE=1;layer.hidden=false;document.body.classList.add('chart-zoom-open');
+  requestAnimationFrame(()=>{CHART_ZOOM_WIDTH=Math.max(280,canvas.clientWidth-24);setChartZoomScale(1);canvas.scrollTo(0,0);$('.chart-zoom-close',layer).focus();});
+}
+function enhanceChartZoom(root=document){
+  root.querySelectorAll(CHART_ZOOM_SELECTOR).forEach((surface,index)=>{
+    if(surface.dataset.chartZoomBound||!surface.querySelector('svg'))return;
+    surface.dataset.chartZoomBound='1';surface.classList.add('chart-fit-surface');
+    const label=chartZoomTitle(surface,index),tools=el(`<div class="chart-fit-tools"><span>전체 그래프</span><button type="button" aria-label="${esc(label)} 확대해서 보기"><i aria-hidden="true">↗</i> 확대해서 보기</button></div>`),button=$('button',tools);
+    surface.before(tools);button.onclick=()=>openChartZoom(surface,button,label);
   });
 }
 function contextTabs(group,current){
@@ -1280,7 +1322,7 @@ async function route(){
   const enteredHash=location.hash||'#today',rawHash=legacyRouteRedirect(enteredHash);
   if(rawHash!==enteredHash)history.replaceState(null,'',rawHash);
   const parsed=parseCanonicalRoute(rawHash),v=parsed.view,arg=parsed.arg,navView=parsed.section;
-  closeQuickPeek();if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
+  closeQuickPeek();closeChartZoom(false);if(!briefingLayer.hidden)setBriefing(false,false);if(!shareLayer.hidden)setShare(false,false);
   document.querySelector('.future-lookup-layer')?.remove();document.body.classList.remove('future-lookup-open');
   document.body.dataset.view=navView;
   document.querySelectorAll('.view-nav a[data-v]').forEach(a=>{const on=a.dataset.v===navView;a.classList.toggle('active',on);
@@ -1309,7 +1351,7 @@ async function route(){
     if(epoch!==ROUTE_EPOCH)return;
   }
   (VIEWS[v]||renderOverview)(arg);
-  requestAnimationFrame(()=>enhanceChartScroll(app()));
+  requestAnimationFrame(()=>enhanceChartZoom(app()));
   renderCompareTray();
   recordRecent();
   if(document.body.classList.contains('drawer-open'))setDrawer(false,false);
@@ -1710,7 +1752,7 @@ function renderFlow(initialLookup){
     ${shapeControls}
     ${shadowControls}
     <div class="flow-origin-bar"><div><span>CURRENT ORIGIN</span><strong>${esc(sc.asof)}</strong><small>${sc.scenario_v5_candidate?'조건부 weighted p50, ESS fan, 실제 모의 멤버 진단을 분리해 봅니다.':'분포 원점은 고정하고 구조 경로만 연도별로 나눠 봅니다.'}</small></div><div class="flow-horizon-toggle" role="group" aria-label="미래 분포 표시 연도">${(structural?.years||[{year:Number(sc.asof.slice(0,4)),start_date:sc.asof,end_date:sc.model?.classification_date||sixMonthEnd},{year:Number(sc.asof.slice(0,4))+1,start_date:(sc.week_dates||[]).find(day=>String(day).startsWith(String(Number(sc.asof.slice(0,4))+1)))||'',end_date:fullHorizonEnd}]).map((row,index)=>`<button type="button" data-flow-year="${row.year}" aria-pressed="${index===0?'true':'false'}"><span>${index===0?'현재':'다음'}</span>${row.year}년<small>${esc(row.start_date)}~${esc(row.end_date)}</small><em>${sc.scenario_v5_candidate?'252거래일 사후 경로':(row.year===2027?'현 252거래일 지평 · 8월까지':'DB 조정창 포함')}</em></button>`).join('')}</div></div>
-    <div class="chart-wrap"><div id="chart" style="min-width:1000px"></div></div>
+    <div class="chart-wrap"><div id="chart"></div></div>
     ${v5?scenarioV5ConditionalFanMarkup(v5):''}
     ${v5?scenarioV5TimingMarkup(v5):''}
     ${v5?scenarioV5EvidenceMarkup(v5):''}
@@ -1819,7 +1861,7 @@ function analogPanel(){
     <div class="panel-head"><h2>과거 혁신 사이클 비교</h2><span class="count-chip">${eras.length}개 사이클</span></div>
     ${forwardMarkup}
     ${focusControls}
-    <div class="chart-wrap"><div id="ovchart" style="min-width:1240px"></div></div>
+    <div class="chart-wrap"><div id="ovchart"></div></div>
     <p class="chart-note innovation-anchor-note">모든 선은 각 사이클 시작월을 100으로 맞췄습니다. 정점 정렬이 아니며, 다우는 1925-01 시작 후 1929-09 정점이 M+56에 표시됩니다.</p>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
   </div>`);
@@ -1860,11 +1902,11 @@ function crossAssetPanel(){
         <span>BTC SENSITIVITY</span>${Object.entries(scenarios).map(([id,scenario])=>`<button type="button" role="radio" data-cross-scenario="${id}" aria-checked="${id===defaultScenario}" aria-pressed="${id===defaultScenario}" tabindex="${id===defaultScenario?0:-1}"><i></i>${esc(scenario.label)}</button>`).join('')}
       </div>
       <div class="cross-scenario-copy" id="cross-scenario-copy"></div>
-      <div class="chart-wrap"><div id="cross-chart" style="min-width:980px"></div></div>
+      <div class="chart-wrap"><div id="cross-chart"></div></div>
       <div class="cross-five-year-table" id="cross-five-year-table" aria-live="polite"></div>
     </section>
     <section data-cross-panel="history" hidden>
-      <div class="chart-wrap"><div id="cross-history-chart" style="min-width:980px"></div></div>
+      <div class="chart-wrap"><div id="cross-history-chart"></div></div>
       <div class="history-score-grid">
         <div><span>NASDAQ 가격</span><strong>${pctText(summary.nasdaq_price_pct)}</strong><small>${esc(periodCaption)}</small></div>
         <div><span>Realty Income · 배당 포함</span><strong>${pctText(summary.realty_income_total_return_pct)}</strong><small>수정종가 · 배당 재투자 반영</small></div>
@@ -1979,7 +2021,7 @@ function liquidityPanel(){
     <div class="panel-head"><div><h2>유동성이 늘고 줄어든 구간</h2><p>시장에 풀린 자금과 NASDAQ·Bitcoin의 실제 26주 수익률을 같은 주간축에서 봅니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
     <section class="plain-insight" aria-label="유동성 그래프 읽는 법"><article><span>한 그래프 · 왼쪽 축</span><strong>Fed 순유동성 52주 z</strong><p>0은 최근 1년 평균, +는 평균보다 많고 −는 적다는 뜻입니다.</p></article><article><span>한 그래프 · 오른쪽 축</span><strong>26주 실제 수익률</strong><p>NASDAQ과 Bitcoin의 같은 주간 움직임을 유동성 선과 바로 겹쳐 봅니다.</p></article><article><span>주의</span><strong>축과 단위가 다릅니다</strong><p>겹쳐 움직여도 인과관계나 상승 보장은 아닙니다.</p></article></section>
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
-    <div class="chart-wrap"><div id="liquidity-chart" style="min-width:980px"></div></div>
+    <div class="chart-wrap"><div id="liquidity-chart"></div></div>
     <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
     <details class="analog-limit liquidity-lag"><summary>0·4·8·12주 시차 상관 진단</summary><div class="lag-table-grid"><div><h3>NASDAQ</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('nasdaq')}</tbody></table></div></div><div><h3>Bitcoin</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('bitcoin')}</tbody></table></div></div></div></details>
     </details>
