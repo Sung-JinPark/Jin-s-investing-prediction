@@ -358,7 +358,9 @@ def build_read_model(
     liquidity = load_liquidity(root)
     statistics_lab = statistics_dashboard_projection(root)
     from .timeseries.artifact import load_projection as load_timeseries_projection
-    timeseries = load_timeseries_projection(root)
+    from .timeseries_v2.artifact import load_projection as load_timeseries_v2_projection
+    timeseries_v1 = load_timeseries_projection(root)
+    timeseries = load_timeseries_v2_projection(root) or timeseries_v1
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"

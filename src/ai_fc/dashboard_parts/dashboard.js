@@ -1143,7 +1143,7 @@ function renderStatistics(){
 }
 
 function timeseriesFeatureLabel(name){
-  const labels={intercept:'기본 절편',nasdaq_return:'NASDAQ 수익률',vix_change:'변동성 변화',dgs2_change_bps:'2년물 금리 변화',curve_change_bps:'장단기 금리차 변화',hy_oas_change_bps:'하이일드 신용스프레드',dollar_change:'달러 변화',growth_factor:'성장 상태',inflation_factor:'물가 상태',NFCI:'금융여건',M2SL:'통화량',WALCL:'연준 자산',WTREGEN:'재무부 현금',RRPONTSYD:'역레포',DFF:'정책금리'};
+  const labels={intercept:'기본 절편',nasdaq_return:'NASDAQ 수익률',vix_change:'변동성 변화',dgs2_change_bps:'2년물 금리 변화',curve_change_bps:'장단기 금리차 변화',hy_oas_change_bps:'하이일드 신용스프레드',dollar_change:'달러 변화',growth_factor:'성장 상태',inflation_factor:'물가 상태',nfci_level:'금융여건',nfci_change:'금융여건 변화',dff_level:'정책금리',dff_change:'정책금리 변화',m2_log_growth:'통화량 증가율',walcl_change:'연준 자산 변화',wtregen_change:'재무부 현금 변화',rrpontsyd_change:'역레포 변화',dfm_age_since_release:'거시 발표 경과일',NFCI:'금융여건',M2SL:'통화량',WALCL:'연준 자산',WTREGEN:'재무부 현금',RRPONTSYD:'역레포',DFF:'정책금리'};
   const base=String(name||'').replace(/_lag\d+$/,'');return labels[base]||base.replaceAll('_',' ');
 }
 function timeseriesPathSvg(ts){

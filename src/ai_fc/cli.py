@@ -74,7 +74,7 @@ def cmd_timeseries_fit(
 @app.command("timeseries-backtest")
 def cmd_timeseries_backtest(
     knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
-    path_count: int = typer.Option(1000, "--path-count", min=200, max=20000),
+    path_count: int = typer.Option(20000, "--path-count", min=20000, max=20000),
 ) -> None:
     """2007년 이후 purged rolling-origin 평가를 실행한다."""
     from .timeseries.pipeline import backtest_timeseries
@@ -141,6 +141,170 @@ def cmd_timeseries_workbook() -> None:
         f"workbook: {path.relative_to(config.ROOT)} · sheets={summary['sheets']} · "
         f"observations={summary['observations']} · sha256={summary['sha256']}"
     )
+
+
+@app.command("timeseries-v2-bootstrap")
+def cmd_timeseries_v2_bootstrap() -> None:
+    """공식 시장 아카이브를 raw-first V2 원장으로 최초 백필한다."""
+    from .timeseries_v2.pipeline import bootstrap_timeseries_v2
+
+    result = _timeseries_exit(bootstrap_timeseries_v2, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-refresh")
+def cmd_timeseries_v2_refresh() -> None:
+    """공식 시장 아카이브의 신규 관측·수정치를 V2에 append한다."""
+    from .timeseries_v2.pipeline import refresh_timeseries_v2
+
+    result = _timeseries_exit(refresh_timeseries_v2, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-prepare")
+def cmd_timeseries_v2_prepare(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    max_dfm_cutoffs: int | None = typer.Option(None, "--max-dfm-cutoffs", min=1),
+) -> None:
+    """ALFRED 원점별 DFM 캐시와 공식 시장 표본을 준비한다."""
+    from .timeseries_v2.pipeline import prepare_timeseries_v2
+
+    result = _timeseries_exit(
+        prepare_timeseries_v2, config.ROOT,
+        knowledge_cutoff=knowledge_cutoff, max_dfm_cutoffs=max_dfm_cutoffs,
+    )
+    if isinstance(result.get("dfm"), dict):
+        result["dfm"] = {
+            key: value for key, value in result["dfm"].items() if key != "entries"
+        }
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-backtest")
+def cmd_timeseries_v2_backtest(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    path_count: int = typer.Option(20000, "--path-count", min=20000, max=20000),
+) -> None:
+    """동결 후보 C1~C5 개발 선택과 2019+ 봉인 평가를 한 번 실행한다."""
+    from .timeseries_v2.pipeline import backtest_timeseries_v2
+
+    result = _timeseries_exit(
+        backtest_timeseries_v2, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+        path_count=path_count,
+    )
+    typer.echo(json.dumps({
+        "run_id": result["run_id"], "selected_candidate": result["selected_candidate"],
+        "gate_pass": result["summary"]["gate_pass"],
+        "reasons": result["summary"]["reasons"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-monitor-backtest")
+def cmd_timeseries_v2_monitor_backtest(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    path_count: int = typer.Option(1000, "--path-count", min=200, max=20000),
+) -> None:
+    """봉인된 승자를 바꾸지 않고 월간 워크포워드 성능만 갱신한다."""
+    from .timeseries_v2.pipeline import monitor_backtest_timeseries_v2
+
+    result = _timeseries_exit(
+        monitor_backtest_timeseries_v2, config.ROOT,
+        knowledge_cutoff=knowledge_cutoff, path_count=path_count,
+    )
+    typer.echo(json.dumps({
+        "run_id": result["run_id"], "selected_candidate": result["selected_candidate"],
+        "gate_pass": result["summary"]["gate_pass"],
+        "candidate_selection_reopened": result["candidate_selection_reopened"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-fit")
+def cmd_timeseries_v2_fit(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """선택이 봉인된 V2 핵심 후보를 주간 재적합한다."""
+    from .timeseries_v2.pipeline import fit_timeseries_v2
+
+    result = _timeseries_exit(
+        fit_timeseries_v2, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps({
+        "run_id": result["run_id"], "candidate_id": result["candidate_id"],
+        "as_of": result["as_of"], "backtest_gate_pass": result["backtest_gate_pass"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-forecast")
+def cmd_timeseries_v2_forecast(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    ralph_run_id: str | None = typer.Option(None, "--ralph-run-id"),
+) -> None:
+    """봉인 Gate 통과 시에만 V2 연구 숫자를 append·공개한다."""
+    from .timeseries_v2.pipeline import forecast_timeseries_v2
+
+    path, result = _timeseries_exit(
+        forecast_timeseries_v2, config.ROOT,
+        knowledge_cutoff=knowledge_cutoff, ralph_run_id=ralph_run_id,
+    )
+    typer.echo(json.dumps({
+        "path": path.relative_to(config.ROOT).as_posix(),
+        "display_state": result["display_state"],
+        "numbers_visible": result["publication"]["customer_numbers_visible"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-verify")
+def cmd_timeseries_v2_verify() -> None:
+    """V2 계보·PIT 캐시·봉인·공개 상태를 fail-closed 검증한다."""
+    from .timeseries_v2.pipeline import verify_timeseries_v2
+
+    result = _timeseries_exit(verify_timeseries_v2, config.ROOT)
+    # Ralph release gate requires an explicit final boolean, not inference from status.
+    result["publication_gate_pass"] = bool(
+        result["ok"] and result["sealed_disclosed"] and result["numbers_visible"]
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v2-preflight")
+def cmd_timeseries_v2_preflight(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """봉인 구간을 열지 않는 Ralph용 제한 계산 백테스트를 실행한다."""
+    from .timeseries_v2.pipeline import quick_backtest_timeseries_v2
+
+    result = _timeseries_exit(
+        quick_backtest_timeseries_v2, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v2-resolve")
+def cmd_timeseries_v2_resolve(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """성숙한 V2 shadow 예측을 실제 NASDAQ 결과로 append-only 해소한다."""
+    from .timeseries_v2.pipeline import resolve_timeseries_v2
+
+    result = _timeseries_exit(
+        resolve_timeseries_v2, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v2-workbook")
+def cmd_timeseries_v2_workbook() -> None:
+    """V2 정본과 모델·봉인·Ralph 계보를 8-sheet 검토본으로 생성한다."""
+    from .timeseries_v2.workbook import export_timeseries_v2_workbook
+
+    path, summary = _timeseries_exit(export_timeseries_v2_workbook, config.ROOT)
+    typer.echo(json.dumps({
+        "path": path.relative_to(config.ROOT).as_posix(), **summary,
+    }, ensure_ascii=False, indent=2))
 
 
 @app.command("audit-ledgers")
