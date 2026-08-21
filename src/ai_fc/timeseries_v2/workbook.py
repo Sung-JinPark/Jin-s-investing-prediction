@@ -47,6 +47,29 @@ def _jsonl(path: Path) -> list[dict[str, Any]]:
     ]
 
 
+def _sealed_evaluation_audit(root: Path) -> dict[str, int]:
+    rows = _jsonl(root / "data/timeseries_v2/ledgers/sealed_evaluations.jsonl")
+    corrections = _jsonl(
+        root / "data/timeseries_v2/ledgers/sealed_evaluation_corrections.jsonl"
+    )
+    run_ids = {str(row.get("run_id")) for row in rows}
+    invalidated = {
+        str(row.get("invalidates_run_id"))
+        for row in corrections
+        if str(row.get("invalidates_run_id")) in run_ids
+    }
+    unknown_corrections = sum(
+        str(row.get("invalidates_run_id")) not in run_ids for row in corrections
+    )
+    active_rows = sum(str(row.get("run_id")) not in invalidated for row in rows)
+    return {
+        "ledger_rows": len(rows),
+        "correction_rows": len(corrections),
+        "active_rows": active_rows,
+        "unknown_corrections": unknown_corrections,
+    }
+
+
 def _file_hash(path: Path) -> str:
     import hashlib
     digest = hashlib.sha256()
@@ -76,6 +99,7 @@ def export_timeseries_v2_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     backtest = _json(root / backtest_pointer["path"]) if backtest_pointer else None
     dfm = read_dfm_manifest(root)
     lineage = verify_market_lineage(root)
+    sealed_audit = _sealed_evaluation_audit(root)
 
     source_rows = [[
         "series_id", "provider", "data_grade", "required", "receipt_count",
@@ -226,6 +250,9 @@ def export_timeseries_v2_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
         ["official/scenario combination", "No"], ["candidate inventory", "C1, C2, C3, C4, C5"],
         ["selected candidate", (backtest or {}).get("selected_candidate")],
         ["sealed disclosure", (backtest or {}).get("sealed_disclosure_number", 0)],
+        ["sealed ledger rows", sealed_audit["ledger_rows"]],
+        ["sealed correction rows", sealed_audit["correction_rows"]],
+        ["active sealed evaluations", sealed_audit["active_rows"]],
         ["publication gate", (backtest or {}).get("summary", {}).get("status", "pending")],
         ["fit run", (fit or {}).get("run_id")], ["Ralph run", (latest or {}).get("ralph_run_id")],
         ["frozen contract hash", frozen_hash(contract)],
@@ -265,7 +292,9 @@ def export_timeseries_v2_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
         ["dfm_2007plus_failed", len(blocking_dfm), 0, "PASS" if not blocking_dfm and evaluation_dfm else "HOLD", "every evaluation release cutoff requires a ready origin-specific cache"],
         ["dfm_runtime_receipts_missing", len(dfm_runtime_audit["missing_runtime"]), 0, "PASS" if not dfm_runtime_audit["missing_runtime"] else "HOLD", "each origin-specific DFM cache records pandas/statsmodels runtime"],
         ["dfm_runtime_mismatches", len(dfm_runtime_audit["mismatched_runtime"]), 0, "PASS" if not dfm_runtime_audit["mismatched_runtime"] else "HOLD", "statsmodels must equal 0.14.6"],
-        ["sealed_disclosures", len(_jsonl(root / "data/timeseries_v2/ledgers/sealed_evaluations.jsonl")), 1, "PASS" if backtest else "HOLD", "maximum one per V2 contract"],
+        ["sealed_evaluation_rows", sealed_audit["ledger_rows"], sealed_audit["ledger_rows"], "PASS" if backtest and sealed_audit["ledger_rows"] else "HOLD", "append-only history includes corrected runs"],
+        ["sealed_correction_rows", sealed_audit["correction_rows"], sealed_audit["correction_rows"], "PASS" if not sealed_audit["unknown_corrections"] else "HOLD", "every correction references a preserved sealed run"],
+        ["active_sealed_evaluations", sealed_audit["active_rows"], 1, "PASS" if sealed_audit["active_rows"] == 1 else "HOLD", "exactly one non-invalidated evaluation per frozen contract"],
         ["numbers_visible", bool(latest and latest["publication"]["customer_numbers_visible"]), bool(backtest and backtest["summary"]["gate_pass"]), "PASS" if not latest or bool(latest["publication"]["customer_numbers_visible"]) == bool(backtest and backtest["summary"]["gate_pass"]) else "HOLD", "fail closed"],
         ["official_forecast_writes", 0, 0, "PASS", "isolated research space"],
         ["scenario_v5_2_writes", 0, 0, "PASS", "protected"],
@@ -275,7 +304,7 @@ def export_timeseries_v2_workbook(root: Path) -> tuple[Path, dict[str, Any]]:
     sheets: dict[str, tuple[list[list[Any]], list[float]]] = {
         "Sources": (source_rows, [24, 28, 30, 14, 16, 16, 28, 22]),
         "Observations": (observation_rows, [28, 20, 18, 16, 20, 28, 32, 28, 28, 68, 34, 68]),
-        "Vintages": (vintage_rows, [22, 30, 16, 22, 28, 28, 18, 64]),
+        "Vintages": (vintage_rows, [22, 38, 16, 22, 28, 28, 18, 64]),
         "Features": (feature_rows, [14, 38, 24, 62, 26, 68]),
         "Forecasts": (forecast_rows, [34, 18, 28, 24, 18, 20, 34, 30, 68]),
         "Backtest": (backtest_rows, [14, 22, 14, 20, 14, 14, 16, 26, 22, 22, 22]),

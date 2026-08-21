@@ -1,0 +1,103 @@
+{
+  "cache_id": "dfm-v2-ed5131c37a864ab02dfe650f",
+  "cache_key": {
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "cutoff": "2001-07-14T03:59:59+00:00",
+    "input_hash": "37609373493054f8c4557d41f24760726748ddb7d9b32521acaa7c95bfe7dc0d"
+  },
+  "content_hash": "39fe1c3e739ef43f1cad2ce73fb4e859b03291989d937ad4ce07fa0bcccc818a",
+  "cutoff": "2001-07-14T03:59:59+00:00",
+  "data_grade": "native_pit",
+  "errors": [],
+  "factors": {
+    "growth_factor": 0.07068185649669426,
+    "inflation_factor": -2.0989899434678945
+  },
+  "fit_diagnostics": {
+    "growth_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 64,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 9.609105066220912e-06,
+      "rows": 989,
+      "series": 5,
+      "tolerance": 1e-05,
+      "warm_start": false,
+      "warnings": [
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.",
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed)."
+      ]
+    },
+    "inflation_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 55,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 9.439558941783256e-06,
+      "rows": 101,
+      "series": 4,
+      "tolerance": 1e-05,
+      "warm_start": true,
+      "warnings": []
+    }
+  },
+  "fit_parameters": {
+    "growth_factor": [
+      -0.10756696049146684,
+      -0.146135981988862,
+      -0.13012544808575782,
+      0.07829797726459366,
+      0.027614929934235824,
+      -0.009910141774154866,
+      0.9120800524685078,
+      0.26210983329378706,
+      0.6221966140183186,
+      0.9905935794093295,
+      0.5082069801608929,
+      -0.4791455239111744,
+      -0.3965088860385059,
+      0.18334290260433436,
+      0.6127145184114509,
+      0.013096733520282582,
+      0.7302707100976572,
+      0.2789941784506534,
+      0.8321604409907711,
+      0.0365464638400888
+    ],
+    "inflation_factor": [
+      -0.0497116014890349,
+      -0.04503309601186605,
+      -0.05277523730434168,
+      0.052775237314340646,
+      -0.4805016177013061,
+      8.962557335931216,
+      0.694725433156983,
+      0.8755813826728055,
+      -0.21737743418908162,
+      -0.28936750196154026,
+      0.40998640568994504,
+      0.4122937423234003,
+      0.5447770877404983,
+      1.2336698616571184
+    ]
+  },
+  "input_hash": "37609373493054f8c4557d41f24760726748ddb7d9b32521acaa7c95bfe7dc0d",
+  "model_id": "shadow.mf_dfm_ridge_varx_v2",
+  "parameter_estimation": "origin_specific_native_pit",
+  "runtime": {
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "python": "3.12.10",
+    "scipy": "1.18.0",
+    "statsmodels": "0.14.6"
+  },
+  "schema_version": 2,
+  "status": "ready"
+}

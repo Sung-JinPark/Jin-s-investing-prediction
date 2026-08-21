@@ -1,0 +1,102 @@
+{
+  "cache_id": "dfm-v2-261d9084c39d1233521ff5a0",
+  "cache_key": {
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "cutoff": "2000-08-29T03:59:59+00:00",
+    "input_hash": "70fb3a62011b758810229b235fb05537a39e9840bdbd3b0f586c0ffd687c0fb3"
+  },
+  "content_hash": "ab28a174f70b1ea1e7ef0850fdc360caabdabd0fa1d17da3de3ccc10f8ca215c",
+  "cutoff": "2000-08-29T03:59:59+00:00",
+  "data_grade": "native_pit",
+  "errors": [
+    "DynamicFactorMQ convergence/state gate failed"
+  ],
+  "factors": {
+    "growth_factor": -0.14615991088991728,
+    "inflation_factor": 12.818999046032634
+  },
+  "fit_diagnostics": {
+    "growth_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 15,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 8.53464286042883e-06,
+      "rows": 978,
+      "series": 4,
+      "tolerance": 1e-05,
+      "warm_start": true,
+      "warnings": [
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.",
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead."
+      ]
+    },
+    "inflation_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 300,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 6.074329819319216e-05,
+      "rows": 91,
+      "series": 4,
+      "tolerance": 1e-05,
+      "warm_start": false,
+      "warnings": [
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "EM reached maximum number of iterations (300), without achieving convergence: llf=-190.96, convergence criterion=6.0751e-05 (while specified tolerance was 1e-05)"
+      ]
+    }
+  },
+  "fit_parameters": {
+    "growth_factor": [
+      -0.8424245695964379,
+      0.5957624595650246,
+      0.3445281021969811,
+      0.23902636781409425,
+      0.0002409367554463881,
+      0.9567873230380786,
+      0.09880088420146542,
+      0.5370130726879713,
+      0.9922358053636021,
+      0.5113043343222158,
+      -0.38486957296706176,
+      0.19034821133347904,
+      0.5760982444055008,
+      0.01289597233500647,
+      0.7316153745356484,
+      0.8379693698884775,
+      0.036359649927162375
+    ],
+    "inflation_factor": [
+      -0.04971160148937418,
+      -0.045033096013368086,
+      -0.05277523730482099,
+      0.052775237304820886,
+      -0.4332672439857585,
+      11.00630532934288,
+      0.7569120380796546,
+      0.8664939939607583,
+      -0.3105898839940391,
+      -0.3105898839940389,
+      0.27982356723250074,
+      0.421422067115154,
+      0.012475911168226963,
+      0.012475911168227051
+    ]
+  },
+  "input_hash": "70fb3a62011b758810229b235fb05537a39e9840bdbd3b0f586c0ffd687c0fb3",
+  "model_id": "shadow.mf_dfm_ridge_varx_v2",
+  "parameter_estimation": "origin_specific_native_pit",
+  "runtime": {
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "python": "3.12.10",
+    "scipy": "1.18.0",
+    "statsmodels": "0.14.6"
+  },
+  "schema_version": 2,
+  "status": "fit_hold"
+}

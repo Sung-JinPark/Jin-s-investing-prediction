@@ -1,0 +1,30 @@
+{
+  "candidate_id": "C3",
+  "columns": [
+    "nasdaq_return",
+    "vix_change",
+    "dgs2_change_bps",
+    "curve_change_bps",
+    "dollar_change",
+    "growth_factor",
+    "inflation_factor",
+    "dfm_age_since_release",
+    "m2_log_growth",
+    "m2sl_age_since_release",
+    "walcl_change",
+    "walcl_age_since_release",
+    "wtregen_change",
+    "wtregen_age_since_release",
+    "rrpontsyd_change",
+    "rrpontsyd_age_since_release"
+  ],
+  "data_grades": [
+    "captured_forward",
+    "reconstructed_market_archive"
+  ],
+  "path": "data/timeseries_v2/parquet/features_C3.parquet",
+  "rows": 2581,
+  "schema_version": 2,
+  "sha256": "df2075235f73e59bcf2d3c657f37ec96abe754818c2b5a5d6f7ad5bf5a4eb6f5",
+  "status": "ready"
+}

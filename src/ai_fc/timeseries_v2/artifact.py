@@ -12,6 +12,7 @@ from .contracts import LATEST_RELATIVE, LEDGER_RELATIVE, canonical_hash
 
 FORECAST_LEDGER = LEDGER_RELATIVE / "forecasts.jsonl"
 SEALED_LEDGER = LEDGER_RELATIVE / "sealed_evaluations.jsonl"
+SEALED_CORRECTION_LEDGER = LEDGER_RELATIVE / "sealed_evaluation_corrections.jsonl"
 RESOLUTION_LEDGER = LEDGER_RELATIVE / "resolutions.jsonl"
 
 

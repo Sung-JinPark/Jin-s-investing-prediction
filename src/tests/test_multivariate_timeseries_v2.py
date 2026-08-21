@@ -3,19 +3,28 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+from datetime import date, timedelta
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from ai_fc.facts import ObservationFact
-from ai_fc.timeseries.model import fit_ridge_varx, select_ridge_varx
+from ai_fc.timeseries.model import deterministic_seed, fit_ridge_varx, select_ridge_varx
 from ai_fc.timeseries_v2.artifact import (
     TimeSeriesV2ArtifactError,
     append_unique,
     blocked_latest,
     read_latest,
     write_latest,
+)
+from ai_fc.timeseries_v2.backtest import (
+    _baseline_samples_v2,
+    _origin_seed,
+    _weekly_forecast_origins,
+    ensemble_history_21d,
+    summarize_backtest_v2,
+    walk_forward_backtest_v2,
 )
 from ai_fc.timeseries_v2.contracts import (
     TimeSeriesV2ContractError,
@@ -42,6 +51,7 @@ from ai_fc.timeseries_v2.market_archive import (
     verify_market_lineage,
 )
 from ai_fc.timeseries_v2.model import (
+    _ewma_scale,
     select_distribution_parameters_v2,
     select_ridge_varx_v2,
     simulate_correlated_paths_v2,
@@ -50,15 +60,235 @@ from ai_fc.timeseries_v2.pipeline import (
     TimeSeriesV2PipelineError,
     _candidate_development_eligibility,
     backtest_timeseries_v2,
+    invalidate_sealed_evaluation_for_calculation_error,
     _monitoring_sample,
     _operational_gate_reasons,
     _required_market_freshness,
     _sealed_already_disclosed,
     _source_ledger_hashes,
 )
+from ai_fc.timeseries_v2.workbook import _sealed_evaluation_audit
+from ai_fc.timeseries.backtest import OriginScore
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
+
+
+def _origin_score(
+    *, date_value: str, horizon: int, model_crps: float = 0.8,
+    baseline_crps: float = 1.0, p10: float = -1.0, p25: float = -0.5,
+    p75: float = 0.5, p90: float = 1.0,
+) -> OriginScore:
+    return OriginScore(
+        date=date_value, horizon=horizon, actual_log_return=0.0,
+        model_crps=model_crps, baseline_crps={"random_walk": baseline_crps},
+        median=0.0, p10=p10, p25=p25, p75=p75, p90=p90,
+        direction_correct=True, first_touch_actual=False,
+        first_touch_probability=0.0, expanding_crps=0.7,
+        rolling_crps=0.9,
+    )
+
+
+def test_sealed_backtest_accepts_prior_52_development_origins_for_first_weight(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, list[float]] = {}
+
+    class StopAfterWeight(RuntimeError):
+        pass
+
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v2.backtest._weekly_forecast_origins",
+        lambda *_args, **_kwargs: ((800, 801),),
+    )
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v2.backtest.select_ridge_varx_v2",
+        lambda *_args, **_kwargs: object(),
+    )
+
+    def capture(left, right):
+        captured["left"] = list(left)
+        captured["right"] = list(right)
+        raise StopAfterWeight
+
+    monkeypatch.setattr("ai_fc.timeseries_v2.backtest.ensemble_weights", capture)
+    with pytest.raises(StopAfterWeight):
+        walk_forward_backtest_v2(
+            dates=tuple(f"2000-01-{(index % 28) + 1:02d}" for index in range(900)),
+            endog=np.zeros((900, 5)), exog=np.zeros((900, 2)),
+            endog_names=("a", "b", "c", "d", "e"), exog_names=("x", "y"),
+            model_id="shadow.mf_dfm_ridge_varx_v2", model_version=2,
+            initial_expanding_crps=[float(index + 1) for index in range(52)],
+            initial_rolling_crps=[float(index + 101) for index in range(52)],
+        )
+    assert captured["left"] == [float(index + 1) for index in range(52)]
+    assert captured["right"] == [float(index + 101) for index in range(52)]
+
+
+def test_v2_combined_ci_preserves_weekly_origin_pairing_and_all_horizon_coverage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    captured: dict[str, np.ndarray] = {}
+
+    def capture(values, **_kwargs):
+        captured["values"] = np.asarray(values)
+        return -0.1, -0.01
+
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v2.backtest._stationary_bootstrap_mean_ci", capture,
+    )
+    rows = []
+    for index in range(30):
+        origin = f"2020-{(index // 28) + 1:02d}-{(index % 28) + 1:02d}"
+        rows.extend([
+            _origin_score(date_value=origin, horizon=1, p10=0.1, p90=0.2),
+            _origin_score(date_value=origin, horizon=5),
+            _origin_score(
+                date_value=origin, horizon=21,
+                model_crps=1.0 + index / 100.0, baseline_crps=1.0,
+            ),
+            _origin_score(
+                date_value=origin, horizon=63,
+                model_crps=1.0 - index / 100.0, baseline_crps=1.0,
+            ),
+        ])
+    summary = summarize_backtest_v2(rows, minimum_origins=1)
+    np.testing.assert_allclose(captured["values"], np.zeros(30), atol=1e-15)
+    assert summary["long_horizon_loss_difference_ci90"]["origin_count"] == 30
+    assert summary["long_horizon_loss_difference_ci90"]["method"].startswith("weekly_origin_mean")
+    assert any(reason.startswith("1일 p10-p90 coverage") for reason in summary["reasons"])
+
+
+def test_ensemble_history_uses_latest_52_completed_21d_origins() -> None:
+    rows = [
+        _origin_score(date_value=f"2020-{(index // 28) + 1:02d}-{(index % 28) + 1:02d}", horizon=21)
+        for index in range(60)
+    ]
+    rows = [
+        OriginScore(**{
+            **row.__dict__, "expanding_crps": float(index),
+            "rolling_crps": float(index + 100),
+        })
+        for index, row in enumerate(rows)
+    ]
+    expanding, rolling = ensemble_history_21d(rows)
+    assert expanding == [float(index) for index in range(8, 60)]
+    assert rolling == [float(index + 100) for index in range(8, 60)]
+
+
+def test_workbook_audits_append_only_sealed_correction_as_one_active_run(
+    tmp_path: Path,
+) -> None:
+    ledger_dir = tmp_path / "data/timeseries_v2/ledgers"
+    ledger_dir.mkdir(parents=True)
+    (ledger_dir / "sealed_evaluations.jsonl").write_text(
+        "\n".join([
+            json.dumps({"run_id": "old-run"}),
+            json.dumps({"run_id": "replacement-run"}),
+        ]) + "\n",
+        encoding="utf-8",
+    )
+    (ledger_dir / "sealed_evaluation_corrections.jsonl").write_text(
+        json.dumps({"invalidates_run_id": "old-run"}) + "\n",
+        encoding="utf-8",
+    )
+
+    assert _sealed_evaluation_audit(tmp_path) == {
+        "ledger_rows": 2,
+        "correction_rows": 1,
+        "active_rows": 1,
+        "unknown_corrections": 0,
+    }
+
+
+def test_workbook_flags_correction_that_does_not_reference_a_sealed_run(
+    tmp_path: Path,
+) -> None:
+    ledger_dir = tmp_path / "data/timeseries_v2/ledgers"
+    ledger_dir.mkdir(parents=True)
+    (ledger_dir / "sealed_evaluations.jsonl").write_text(
+        json.dumps({"run_id": "active-run"}) + "\n",
+        encoding="utf-8",
+    )
+    (ledger_dir / "sealed_evaluation_corrections.jsonl").write_text(
+        json.dumps({"invalidates_run_id": "missing-run"}) + "\n",
+        encoding="utf-8",
+    )
+
+    assert _sealed_evaluation_audit(tmp_path)["unknown_corrections"] == 1
+
+
+def test_v2_baselines_are_vectorized_deterministic_and_well_shaped() -> None:
+    returns = np.random.default_rng(11).normal(0.0004, 0.012, size=900)
+    left = _baseline_samples_v2(
+        returns, horizon=63, count=20_000, rng=np.random.default_rng(77),
+    )
+    right = _baseline_samples_v2(
+        returns, horizon=63, count=20_000, rng=np.random.default_rng(77),
+    )
+    assert set(left) == {
+        "random_walk", "drift_random_walk", "ar1", "gbm",
+        "historical_simulation", "block_bootstrap",
+    }
+    for name, samples in left.items():
+        assert samples.shape == (20_000,)
+        assert np.isfinite(samples).all()
+        np.testing.assert_array_equal(samples, right[name])
+    expected = float(np.mean(returns) * 63)
+    assert abs(float(np.mean(left["block_bootstrap"])) - expected) < 0.01
+
+
+def test_vectorized_ewma_scale_matches_preregistered_recurrence() -> None:
+    residuals = np.random.default_rng(9).normal(0.0, 0.02, size=(700, 6))
+    for decay in (0.94, 0.97):
+        squared = np.square(residuals)
+        variance = np.empty_like(squared)
+        variance[0] = np.maximum(squared[0], 1e-16)
+        for index in range(1, len(residuals)):
+            variance[index] = (
+                decay * variance[index - 1]
+                + (1.0 - decay) * squared[index - 1]
+            )
+        expected = np.sqrt(np.maximum(variance[-1], 1e-16)) / np.sqrt(
+            np.maximum(variance, 1e-16)
+        )
+        np.testing.assert_allclose(
+            _ewma_scale(residuals, decay), expected, rtol=5e-13, atol=5e-15,
+        )
+
+
+def test_weekly_origin_includes_completed_close_and_targets_following_session() -> None:
+    start = date(2004, 1, 1)
+    sessions = []
+    current = start
+    while len(sessions) < 1000:
+        if current.weekday() < 5:
+            sessions.append(current.isoformat())
+        current += timedelta(days=1)
+    dates = tuple(sessions)
+
+    origins = _weekly_forecast_origins(
+        dates, outer_start=dates[800], horizon=63,
+    )
+
+    assert origins
+    for as_of_index, first_target_index in origins:
+        assert first_target_index == as_of_index + 1
+        assert dates[first_target_index] > dates[as_of_index]
+        week = date.fromisoformat(dates[as_of_index]).isocalendar()[:2]
+        same_week = [
+            value for value in dates
+            if date.fromisoformat(value).isocalendar()[:2] == week
+        ]
+        assert dates[as_of_index] == max(same_week)
+
+
+def test_backtest_seed_is_bound_to_model_version_and_as_of() -> None:
+    model_id = "shadow.mf_dfm_ridge_varx_v2"
+    as_of = "2026-08-19"
+    assert _origin_seed(model_id, 2, as_of) == deterministic_seed(model_id, 2, as_of)
+    assert _origin_seed(model_id, 2, as_of) != _origin_seed(model_id, 3, as_of)
+    assert _origin_seed(model_id, 2, as_of) != _origin_seed(model_id + ".other", 2, as_of)
 
 
 def _root(tmp_path: Path) -> Path:
@@ -397,6 +627,136 @@ def test_sealed_evaluation_can_be_disclosed_only_once_per_frozen_contract(tmp_pa
     assert _sealed_already_disclosed(
         root, model_id=contract["model_id"], contract_hash=frozen_hash(contract),
     ) == row
+
+
+def test_calculation_error_invalidation_is_append_only_and_authorizes_exact_replacement(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = _root(tmp_path)
+    contract = load_contract_v2(root)
+    contract_hash = frozen_hash(contract)
+    prior = {
+        "run_id": "sealed-invalid-v2",
+        "model_id": contract["model_id"],
+        "contract_hash": contract_hash,
+        "content_hash": "a" * 64,
+        "hashes": {"model_code": "b" * 64},
+        "summary": {"gate_pass": False},
+    }
+    append_unique(root, Path("data/timeseries_v2/ledgers/sealed_evaluations.jsonl"), prior, key="run_id")
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v2.pipeline.model_code_hash", lambda _root: "c" * 64,
+    )
+
+    correction = invalidate_sealed_evaluation_for_calculation_error(
+        root,
+        run_id=prior["run_id"],
+        reason_code="weekly_origin_target_alignment_and_seed_contract",
+    )
+
+    assert correction["invalidated_content_hash"] == prior["content_hash"]
+    assert correction["frozen_contract_hash"] == contract_hash
+    assert correction["frozen_coordinates_unchanged"] is True
+    assert _sealed_already_disclosed(
+        root,
+        model_id=contract["model_id"],
+        contract_hash=contract_hash,
+        replacement_model_code_hash="c" * 64,
+    ) is None
+    assert invalidate_sealed_evaluation_for_calculation_error(
+        root,
+        run_id=prior["run_id"],
+        reason_code="weekly_origin_target_alignment_and_seed_contract",
+    ) == correction
+
+
+def test_sealed_correction_chain_authorizes_only_latest_replacement(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    contract = load_contract_v2(root)
+    contract_hash = frozen_hash(contract)
+    ledger = Path("data/timeseries_v2/ledgers/sealed_evaluations.jsonl")
+    corrections = Path("data/timeseries_v2/ledgers/sealed_evaluation_corrections.jsonl")
+    first = {
+        "run_id": "run-a", "model_id": contract["model_id"],
+        "contract_hash": contract_hash, "content_hash": "1" * 64,
+        "hashes": {"model_code": "a" * 64}, "summary": {"gate_pass": False},
+    }
+    second = {
+        "run_id": "run-b", "model_id": contract["model_id"],
+        "contract_hash": contract_hash, "content_hash": "2" * 64,
+        "hashes": {"model_code": "b" * 64}, "summary": {"gate_pass": False},
+    }
+    append_unique(root, ledger, first, key="run_id")
+    append_unique(root, ledger, second, key="run_id")
+    append_unique(root, corrections, {
+        "correction_id": "correction-a", "invalidates_run_id": "run-a",
+        "invalidated_content_hash": "1" * 64,
+        "invalidated_model_code_hash": "a" * 64,
+        "replacement_model_code_hash": "b" * 64,
+        "frozen_contract_hash": contract_hash,
+    }, key="correction_id")
+    append_unique(root, corrections, {
+        "correction_id": "correction-b", "invalidates_run_id": "run-b",
+        "invalidated_content_hash": "2" * 64,
+        "invalidated_model_code_hash": "b" * 64,
+        "replacement_model_code_hash": "c" * 64,
+        "frozen_contract_hash": contract_hash,
+    }, key="correction_id")
+
+    assert _sealed_already_disclosed(
+        root, model_id=contract["model_id"], contract_hash=contract_hash,
+        replacement_model_code_hash="c" * 64,
+    ) is None
+    with pytest.raises(TimeSeriesV2PipelineError, match="does not authorize"):
+        _sealed_already_disclosed(
+            root, model_id=contract["model_id"], contract_hash=contract_hash,
+            replacement_model_code_hash="b" * 64,
+        )
+
+
+def test_correction_amendment_supersedes_stale_replacement_authorization(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    contract = load_contract_v2(root)
+    contract_hash = frozen_hash(contract)
+    append_unique(root, Path("data/timeseries_v2/ledgers/sealed_evaluations.jsonl"), {
+        "run_id": "run-a", "model_id": contract["model_id"],
+        "contract_hash": contract_hash, "content_hash": "1" * 64,
+        "hashes": {"model_code": "a" * 64}, "summary": {"gate_pass": False},
+    }, key="run_id")
+    correction_path = Path("data/timeseries_v2/ledgers/sealed_evaluation_corrections.jsonl")
+    append_unique(root, correction_path, {
+        "correction_id": "correction-old", "invalidates_run_id": "run-a",
+        "invalidated_content_hash": "1" * 64,
+        "invalidated_model_code_hash": "a" * 64,
+        "replacement_model_code_hash": "b" * 64,
+        "frozen_contract_hash": contract_hash, "supersedes": None,
+    }, key="correction_id")
+    append_unique(root, correction_path, {
+        "correction_id": "correction-new", "invalidates_run_id": "run-a",
+        "invalidated_content_hash": "1" * 64,
+        "invalidated_model_code_hash": "a" * 64,
+        "replacement_model_code_hash": "c" * 64,
+        "frozen_contract_hash": contract_hash, "supersedes": "correction-old",
+    }, key="correction_id")
+
+    assert _sealed_already_disclosed(
+        root, model_id=contract["model_id"], contract_hash=contract_hash,
+        replacement_model_code_hash="c" * 64,
+    ) is None
+    with pytest.raises(TimeSeriesV2PipelineError, match="does not authorize"):
+        _sealed_already_disclosed(
+            root, model_id=contract["model_id"], contract_hash=contract_hash,
+            replacement_model_code_hash="b" * 64,
+        )
+    with pytest.raises(TimeSeriesV2PipelineError, match="does not authorize"):
+        _sealed_already_disclosed(
+            root,
+            model_id=contract["model_id"],
+            contract_hash=contract_hash,
+            replacement_model_code_hash="d" * 64,
+        )
 
 
 def test_development_only_candidate_disclosure_is_disabled(tmp_path: Path) -> None:

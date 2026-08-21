@@ -598,15 +598,20 @@ def _latest_context_run(root: Path) -> dict | None:
         return None
 
 
-def load_template() -> str:
-    """소스 partial을 외부 요청 없는 단일 HTML shell로 조립한다."""
+def load_template(*, include_qr: bool = True) -> str:
+    """소스 partial을 단일 HTML shell로 조립한다.
+
+    The standalone audit snapshot omits the optional QR encoder so the core
+    read model remains inside its fixed 900 KiB budget.  GitHub Pages keeps the
+    encoder and therefore preserves the customer sharing control.
+    """
     shell = TEMPLATE.read_text(encoding="utf-8")
     styles = DASHBOARD_STYLES.read_text(encoding="utf-8")
-    script = "\n".join((
-        DASHBOARD_LOOKUP_SCRIPT.read_text(encoding="utf-8"),
-        DASHBOARD_QR_SCRIPT.read_text(encoding="utf-8"),
-        DASHBOARD_SCRIPT.read_text(encoding="utf-8"),
-    ))
+    script_parts = [DASHBOARD_LOOKUP_SCRIPT.read_text(encoding="utf-8")]
+    if include_qr:
+        script_parts.append(DASHBOARD_QR_SCRIPT.read_text(encoding="utf-8"))
+    script_parts.append(DASHBOARD_SCRIPT.read_text(encoding="utf-8"))
+    script = "\n".join(script_parts)
     for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->"):
         if marker not in shell:
             raise ValueError(f"dashboard template marker missing: {marker}")
@@ -761,7 +766,7 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
 
 
 def render_html(read_model: dict, mode: str = "embed") -> str:
-    shell = _compact_static_bundle(load_template())
+    shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
     if mode == "pages":
         webfonts = "\n".join((

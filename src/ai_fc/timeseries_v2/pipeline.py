@@ -18,7 +18,6 @@ from ai_fc.timeseries.backtest import (
     OriginScore,
     _baseline_samples,
     sample_crps,
-    summarize_backtest,
 )
 from ai_fc.timeseries.events import apply_event_overlay, read_events
 from ai_fc.timeseries.ledger import read_facts
@@ -30,10 +29,15 @@ from ai_fc.timeseries.model import (
     summarize_paths,
 )
 
-from .backtest import walk_forward_backtest_v2
+from .backtest import (
+    ensemble_history_21d,
+    summarize_backtest_v2,
+    walk_forward_backtest_v2,
+)
 from .artifact import (
     FORECAST_LEDGER,
     RESOLUTION_LEDGER,
+    SEALED_CORRECTION_LEDGER,
     SEALED_LEDGER,
     append_unique,
     blocked_latest,
@@ -347,7 +351,9 @@ def _bundle_manifest(bundle: CandidateFeatureBundle) -> dict[str, Any]:
     }
 
 
-def _run_backtest(bundle: CandidateFeatureBundle, *, path_count: int) -> tuple[list[OriginScore], dict[str, Any]]:
+def _run_backtest(
+    bundle: CandidateFeatureBundle, *, contract: dict[str, Any], path_count: int,
+) -> tuple[list[OriginScore], dict[str, Any]]:
     if bundle.status != "ready":
         raise TimeSeriesV2PipelineError(
             f"{bundle.candidate_id} unavailable: {', '.join(bundle.missing_features) or 'insufficient sessions'}"
@@ -358,20 +364,161 @@ def _run_backtest(bundle: CandidateFeatureBundle, *, path_count: int) -> tuple[l
         exog=bundle.exogenous,
         endog_names=bundle.endogenous_names,
         exog_names=bundle.exogenous_names,
+        model_id=contract["model_id"],
+        model_version=int(contract["model_version"]),
         outer_start="2007-01-01",
         path_count=path_count,
     )
 
 
-def _sealed_already_disclosed(root: Path, *, model_id: str, contract_hash: str) -> dict[str, Any] | None:
+def _sealed_already_disclosed(
+    root: Path, *, model_id: str, contract_hash: str,
+    replacement_model_code_hash: str | None = None,
+) -> dict[str, Any] | None:
     path = root / SEALED_LEDGER
     if not path.is_file():
         return None
     rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
     matches = [row for row in rows if row["model_id"] == model_id and row["contract_hash"] == contract_hash]
-    if len(matches) > 1:
+    correction_path = root / SEALED_CORRECTION_LEDGER
+    corrections = [] if not correction_path.is_file() else [
+        json.loads(line)
+        for line in correction_path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+    correction_by_id = {
+        str(row.get("correction_id")): row for row in corrections
+        if row.get("correction_id")
+    }
+    superseded_corrections: set[str] = set()
+    for correction in corrections:
+        supersedes = correction.get("supersedes")
+        if not supersedes:
+            continue
+        prior_correction = correction_by_id.get(str(supersedes))
+        if prior_correction is None:
+            raise TimeSeriesV2PipelineError("sealed correction supersedes an unknown correction")
+        if prior_correction.get("invalidates_run_id") != correction.get("invalidates_run_id"):
+            raise TimeSeriesV2PipelineError("sealed correction supersedes another run's correction")
+        superseded_corrections.add(str(supersedes))
+    by_run = {str(row["run_id"]): row for row in matches}
+    invalidated: set[str] = set()
+    replacement_hashes: set[str] = set()
+    invalidated_model_hashes: set[str] = set()
+    for correction in corrections:
+        run_id = str(correction.get("invalidates_run_id", ""))
+        if run_id not in by_run:
+            continue
+        prior = by_run[run_id]
+        if correction.get("invalidated_content_hash") != prior.get("content_hash"):
+            raise TimeSeriesV2PipelineError("sealed correction content hash mismatch")
+        if correction.get("invalidated_model_code_hash") != (prior.get("hashes") or {}).get("model_code"):
+            raise TimeSeriesV2PipelineError("sealed correction model-code hash mismatch")
+        if correction.get("frozen_contract_hash") != contract_hash:
+            raise TimeSeriesV2PipelineError("sealed correction changed a frozen contract")
+        replacement_hash = str(correction.get("replacement_model_code_hash") or "")
+        invalidated_model_hash = str(correction.get("invalidated_model_code_hash") or "")
+        if not replacement_hash:
+            raise TimeSeriesV2PipelineError("sealed correction replacement hash is missing")
+        if str(correction.get("correction_id")) not in superseded_corrections:
+            replacement_hashes.add(replacement_hash)
+            invalidated_model_hashes.add(invalidated_model_hash)
+        invalidated.add(run_id)
+    active = [row for row in matches if str(row["run_id"]) not in invalidated]
+    if len(active) > 1:
         raise TimeSeriesV2PipelineError("sealed evaluation disclosed more than once")
-    return matches[0] if matches else None
+    active_replacement_hashes = replacement_hashes - invalidated_model_hashes
+    if (
+        replacement_model_code_hash is not None
+        and matches and not active
+        and replacement_model_code_hash not in active_replacement_hashes
+    ):
+        raise TimeSeriesV2PipelineError("sealed correction does not authorize this calculation build")
+    return active[0] if active else None
+
+
+def invalidate_sealed_evaluation_for_calculation_error(
+    root: Path, *, run_id: str, reason_code: str,
+) -> dict[str, Any]:
+    """Append an auditable invalidation without deleting the disclosed run.
+
+    Only independently verifiable implementation errors are accepted. Frozen
+    candidates, windows, gates, and probability semantics are not reopened.
+    """
+    allowed = {
+        "weekly_origin_target_alignment_and_seed_contract",
+        "sealed_ensemble_history_and_combined_ci_contract",
+    }
+    if reason_code not in allowed:
+        raise TimeSeriesV2PipelineError("sealed correction reason is not allowlisted")
+    contract = load_contract_v2(root)
+    contract_digest = frozen_hash(contract)
+    path = root / SEALED_LEDGER
+    if not path.is_file():
+        raise TimeSeriesV2PipelineError("sealed evaluation ledger is missing")
+    rows = [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+    matches = [row for row in rows if str(row.get("run_id")) == run_id]
+    if len(matches) != 1:
+        raise TimeSeriesV2PipelineError("sealed run identity is missing or ambiguous")
+    prior = matches[0]
+    if prior.get("contract_hash") != contract_digest:
+        raise TimeSeriesV2PipelineError("sealed correction cannot change frozen coordinates")
+    old_code = (prior.get("hashes") or {}).get("model_code")
+    new_code = model_code_hash(root)
+    if not old_code or old_code == new_code:
+        raise TimeSeriesV2PipelineError("sealed correction requires a distinct calculation build")
+    correction_path = root / SEALED_CORRECTION_LEDGER
+    existing_corrections = [] if not correction_path.is_file() else [
+        json.loads(line) for line in correction_path.read_text(encoding="utf-8").splitlines()
+        if line
+    ]
+    relevant = [row for row in existing_corrections if row.get("invalidates_run_id") == run_id]
+    superseded_ids = {str(row["supersedes"]) for row in relevant if row.get("supersedes")}
+    active_relevant = [
+        row for row in relevant if str(row.get("correction_id")) not in superseded_ids
+    ]
+    if len(active_relevant) > 1:
+        raise TimeSeriesV2PipelineError("sealed run has ambiguous active corrections")
+    prior_correction = active_relevant[0] if active_relevant else None
+    if (
+        prior_correction
+        and prior_correction.get("replacement_model_code_hash") == new_code
+        and prior_correction.get("reason_code") == reason_code
+    ):
+        return prior_correction
+    seed = {
+        "invalidates_run_id": run_id,
+        "invalidated_content_hash": prior.get("content_hash"),
+        "invalidated_model_code_hash": old_code,
+        "replacement_model_code_hash": new_code,
+        "frozen_contract_hash": contract_digest,
+        "reason_code": reason_code,
+        "supersedes": None if prior_correction is None else prior_correction["correction_id"],
+    }
+    payload = {
+        "schema_version": 1,
+        "correction_id": f"tsv2-sealed-correction-{canonical_hash(seed)[:24]}",
+        **seed,
+        "model_id": contract["model_id"],
+        "model_version": contract["model_version"],
+        "frozen_coordinates_unchanged": True,
+        "reason_summary": {
+            "weekly_origin_target_alignment_and_seed_contract": (
+                "The weekly completed-session close was excluded from training and "
+                "the backtest seed omitted model id/version. The disclosed result is "
+                "invalid for publication and remains preserved for audit."
+            ),
+            "sealed_ensemble_history_and_combined_ci_contract": (
+                "The sealed interval reset the preregistered prior-52-origin ensemble "
+                "history, and the combined 21/63-session bootstrap concatenated horizons "
+                "instead of preserving weekly-origin pairing. The disclosed result is "
+                "invalid for publication and remains preserved for audit."
+            ),
+        }[reason_code],
+        "supersedes": seed["supersedes"],
+    }
+    append_unique(root, SEALED_CORRECTION_LEDGER, payload, key="correction_id")
+    return payload
 
 
 def backtest_timeseries_v2(
@@ -396,7 +543,11 @@ def backtest_timeseries_v2(
         )
     cutoff = knowledge_cutoff or datetime.now(timezone.utc).isoformat(timespec="seconds")
     contract_digest = frozen_hash(contract)
-    prior = _sealed_already_disclosed(root, model_id=contract["model_id"], contract_hash=contract_digest)
+    current_model_code_hash = model_code_hash(root)
+    prior = _sealed_already_disclosed(
+        root, model_id=contract["model_id"], contract_hash=contract_digest,
+        replacement_model_code_hash=current_model_code_hash,
+    )
     if prior is not None:
         return prior
     facts = read_facts(root)
@@ -431,6 +582,7 @@ def backtest_timeseries_v2(
             "contract_hash": contract_digest, "candidate_id": candidate_id,
             "bundle_hash": manifest["content_hash"], "path_count": path_count,
             "window": contract["model"]["windows"]["development"],
+            "model_code_hash": current_model_code_hash,
         }
         cache_path = root / RUNS_RELATIVE / f"development_{candidate_id}_{canonical_hash(cache_seed)[:20]}.json"
         try:
@@ -455,7 +607,9 @@ def backtest_timeseries_v2(
                     transform_manifest=bundle.transform_manifest,
                     dfm_cache_complete=bundle.dfm_cache_complete,
                 )
-                scores, _ = _run_backtest(development_bundle, path_count=path_count)
+                scores, _ = _run_backtest(
+                    development_bundle, contract=contract, path_count=path_count,
+                )
                 cache_payload = {
                     "schema_version": 2, "cache_seed": cache_seed,
                     "development_end": development_end, "scores": _rows_to_json(scores),
@@ -485,6 +639,9 @@ def backtest_timeseries_v2(
         row for row in score_cache[selected]
         if row.date <= contract["model"]["windows"]["development"][1]
     ]
+    initial_expanding_crps, initial_rolling_crps = ensemble_history_21d(
+        development_scores,
+    )
     # The sealed interval is computed only after the candidate winner is frozen.
     sealed_scores, _ = walk_forward_backtest_v2(
         dates=bundles[selected].dates,
@@ -492,16 +649,23 @@ def backtest_timeseries_v2(
         exog=bundles[selected].exogenous,
         endog_names=bundles[selected].endogenous_names,
         exog_names=bundles[selected].exogenous_names,
+        model_id=contract["model_id"],
+        model_version=int(contract["model_version"]),
         outer_start=contract["model"]["windows"]["sealed"][0],
         path_count=path_count,
+        initial_expanding_crps=initial_expanding_crps,
+        initial_rolling_crps=initial_rolling_crps,
     )
     selected_scores = [*development_scores, *sealed_scores]
-    all_summary = summarize_backtest(
+    all_summary = summarize_backtest_v2(
         selected_scores, minimum_origins=int(contract["evaluation"]["minimum_origins"]),
     )
     sealed_start = contract["model"]["windows"]["sealed"][0]
-    sealed_summary = summarize_backtest(
+    sealed_summary = summarize_backtest_v2(
         sealed_scores, minimum_origins=int(contract["evaluation"]["minimum_origins"]),
+    )
+    sealed_summary["ensemble_initial_history_origins"] = min(
+        len(initial_expanding_crps), len(initial_rolling_crps), 52,
     )
     events = read_events(root, knowledge_cutoff=cutoff)
     resolved_events = sum(event.outcome_return_5d is not None for event in events)
@@ -536,7 +700,7 @@ def backtest_timeseries_v2(
         "knowledge_cutoff": cutoff, "selected_candidate": selected,
         "candidate_hashes": {key: value.get("content_hash") for key, value in candidates.items()},
         "path_count": path_count,
-        "model_code_hash": model_code_hash(root),
+        "model_code_hash": current_model_code_hash,
     }
     run_id = f"tsv2-backtest-{canonical_hash(result_seed)[:24]}"
     protected_after = protected_hashes(root)
@@ -558,7 +722,7 @@ def backtest_timeseries_v2(
         "selected_scores": _rows_to_json(selected_scores),
         "hashes": {
             "contract": contract_digest,
-            "model_code": model_code_hash(root),
+            "model_code": current_model_code_hash,
             "source_ledgers": _source_ledger_hashes(root),
             "selected_feature_bundle": candidates[selected]["content_hash"],
         },
@@ -596,6 +760,7 @@ def monitor_backtest_timeseries_v2(
     contract_digest = frozen_hash(contract)
     sealed = _sealed_already_disclosed(
         root, model_id=contract["model_id"], contract_hash=contract_digest,
+        replacement_model_code_hash=model_code_hash(root),
     )
     if sealed is None:
         raise TimeSeriesV2PipelineError("sealed winner is absent; run the one-time V2 backtest")
@@ -610,8 +775,8 @@ def monitor_backtest_timeseries_v2(
         raise TimeSeriesV2PipelineError(
             f"frozen winner unavailable for monitoring: {bundle.missing_features}"
         )
-    scores, _ = _run_backtest(bundle, path_count=path_count)
-    summary = summarize_backtest(
+    scores, _ = _run_backtest(bundle, contract=contract, path_count=path_count)
+    summary = summarize_backtest_v2(
         scores, minimum_origins=int(contract["evaluation"]["minimum_origins"]),
     )
     seed = {
@@ -1057,6 +1222,7 @@ def verify_timeseries_v2(root: Path) -> dict[str, Any]:
         errors.append("DFM has no ready warmup cache before 2007")
     sealed = _sealed_already_disclosed(
         root, model_id=contract["model_id"], contract_hash=frozen_hash(contract),
+        replacement_model_code_hash=model_code_hash(root),
     )
     if sealed is not None and (sealed.get("hashes") or {}).get("model_code") != model_code_hash(root):
         errors.append("sealed V2 model code hash drift")

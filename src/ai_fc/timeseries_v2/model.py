@@ -52,6 +52,15 @@ def _prediction_row(
     return np.concatenate(([1.0], scaler.transform(raw[None, :])[0]))
 
 
+def _finite_robust_scaler(values: np.ndarray) -> RobustScaler:
+    """Fit the frozen median/IQR scaler after the caller proved finiteness."""
+    quantiles = np.quantile(np.asarray(values, dtype=float), (0.25, 0.50, 0.75), axis=0)
+    median = quantiles[1]
+    iqr = quantiles[2] - quantiles[0]
+    iqr = np.where(np.abs(iqr) > 1e-12, iqr, 1.0)
+    return RobustScaler(median=median, iqr=iqr)
+
+
 def select_ridge_varx_v2(
     endog: np.ndarray,
     exog: np.ndarray,
@@ -94,7 +103,7 @@ def select_ridge_varx_v2(
             raw_design, targets = _design(local_y[:fit_end], local_x[:fit_end], lag=lag)
             if not np.isfinite(raw_design).all() or not np.isfinite(targets).all():
                 raise TimeSeriesModelError("VARX training matrix contains missing or infinite values")
-            scaler = RobustScaler.fit(raw_design)
+            scaler = _finite_robust_scaler(raw_design)
             scaled = scaler.transform(raw_design)
             design = np.column_stack((np.ones(len(scaled)), scaled))
             gram = design.T @ design
@@ -171,11 +180,20 @@ def _stationary_bootstrap_batch(
 
 
 def _ewma_scale(residuals: np.ndarray, decay: float) -> np.ndarray:
+    from scipy.signal import lfilter
+
     squared = np.square(residuals)
-    variance = np.empty_like(squared)
+    variance = np.empty_like(squared, dtype=float)
     variance[0] = np.maximum(squared[0], 1e-16)
-    for index in range(1, len(residuals)):
-        variance[index] = decay * variance[index - 1] + (1.0 - decay) * squared[index - 1]
+    if len(squared) > 1:
+        initial = np.asarray(decay * variance[0], dtype=float).reshape(
+            (1, *squared.shape[1:]),
+        )
+        filtered, _ = lfilter(
+            [1.0 - decay], [1.0, -decay], squared[:-1],
+            axis=0, zi=initial,
+        )
+        variance[1:] = filtered
     latest = np.sqrt(np.maximum(variance[-1], 1e-16))
     historical = np.sqrt(np.maximum(variance, 1e-16))
     return latest / historical
@@ -198,15 +216,21 @@ def select_distribution_parameters_v2(
         range(len(values) - validation_count * validation_horizon, len(values), validation_horizon)
     )
     scores: dict[str, float] = {}
-    for block in block_candidates:
-        for decay in ewma_candidates:
+    for decay in ewma_candidates:
+        # The EWMA coordinate depends on the validation origin and decay, not
+        # on block length.  Reuse it across the three frozen block candidates.
+        scale_by_origin = {
+            origin: _ewma_scale(values[:origin], float(decay))
+            for origin in origins
+        }
+        for block in block_candidates:
             candidate_scores: list[float] = []
             for sequence, origin in enumerate(origins):
                 training = values[:origin]
                 if len(training) < 252:
                     continue
                 rng = np.random.default_rng(seed + sequence + int(block * 100 + decay * 1000))
-                scales = _ewma_scale(training, float(decay))
+                scales = scale_by_origin[origin]
                 indexes = _stationary_bootstrap_batch(
                     rng,
                     rows=len(training),
