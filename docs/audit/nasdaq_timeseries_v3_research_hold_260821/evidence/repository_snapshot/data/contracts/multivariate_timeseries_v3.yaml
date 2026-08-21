@@ -1,0 +1,166 @@
+schema_version: 3
+contract_id: multivariate_timeseries_v3
+model_id: shadow.nasdaq_direct_regime_distribution_v3
+model_version: 3
+status: frozen_research_candidate_for_forward_shadow
+freeze_note:
+  historical_results: design_pseudo_oos_not_sealed
+  externally_timestamped_before_historical_review: false
+  first_true_sealed_evaluation: forward_shadow_after_this_freeze
+v2_benchmark:
+  model_id: shadow.mf_dfm_ridge_varx_v2
+  immutable: true
+  run_id: tsv2-backtest-f995c40e19ade197f3559b6e
+  content_hash: a67ba4b37f80323251a66f838979fe0d242bd6cbccad36af1d749cfb11c69001
+  contract_hash: 529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c
+  model_code_hash: bb225cbf963b095271452a669f7d8f1aa5eb29c8abda5a4ae1ed9ecd1d702c5c
+target:
+  series_id: NASDAQCOM
+  transform: direct_cumulative_log_return
+  horizons_sessions: [1, 5, 21, 63]
+  recursive_one_day_long_horizon: prohibited
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_v3_conditional
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+data_policy:
+  inherit_v2_pit_ledgers_read_only: true
+  available_at_must_not_exceed_origin: true
+  grades: [native_pit, reconstructed_market_archive, captured_forward]
+  reports_are_optional_structured_signals: true
+  future_event_actual: prohibited
+  revised_macro_backfill: prohibited
+  publication_time_required: true
+baseline:
+  comparator_id: fixed_anchor_ensemble_v3
+  selection_window: development_2007_2018
+  components:
+    historical_simulation: 0.50
+    filtered_historical_simulation: 0.30
+    stationary_block_bootstrap: 0.20
+  weights_fixed_after_freeze: true
+  row_wise_oracle: prohibited
+  history_sessions: 2520
+  filtered_neighbors: 504
+  block_length: 21
+  sample_count: 4000
+direct_location:
+  target: anchor_median_residual
+  models: [ridge, quantile_linear, analog_quantile]
+  ridge_features: [trend_21, trend_63, trend_126, drawdown_63, drawdown_252, realized_vol_21, realized_vol_63, vix_level]
+  ridge_alpha_grid: [0.01, 0.1, 1.0, 10.0, 100.0]
+  quantiles: [0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]
+  bounded_correction_sigma:
+    "1": 0.35
+    "5": 0.35
+    "21": 0.30
+    "63": 0.25
+  selection_metric: horizon_specific_crps
+  analog_quantile:
+    neighbor_candidates: [63, 126, 252, 504]
+    selection_refresh: calendar_year_first_origin
+    internal_validation_origins: 52
+    internal_purge_sessions: 63
+    internal_embargo_sessions: 5
+    conditional_weight: 1.00
+    distance_features: [trend_21, trend_63, trend_126, drawdown_63, drawdown_252, realized_vol_21, realized_vol_63, vix_level, dgs2_change_bps, dollar_change]
+volatility_tail:
+  realized_vol_windows: [5, 21, 63]
+  features: [downside_semivariance_21, vix_level, vix_change, vol_of_vol_21]
+  scale_models: [har_rv, ewma]
+  residual_families: [student_t, regime_empirical]
+  regime_residual_minimum: 40
+regimes:
+  labels: [calm_uptrend, normal_range, tightening_real_yield_shock, high_vol_drawdown, post_crisis_rebound, liquidity_stress]
+  hard_assignment_for_forecast: prohibited
+  minimum_probability: 0.01
+  regularization: 1.0
+dfm_alignment:
+  growth_positive_references: [PAYEMS, INDPRO, RSAFS]
+  inflation_positive_references: [CPIAUCSL, PCEPI]
+  minimum_loading_correlation: 0.50
+  features: [level, delta_1m, delta_3m, innovation, revision, release_surprise_z, age_since_release, availability_mask]
+events:
+  types: [CPI, CORE_CPI, PCE, CORE_PCE, NFP, UNEMPLOYMENT, AHE, FOMC, SEP]
+  branch_labels: [soft_dovish, near_consensus, hot_hawkish]
+  minimum_pit_events_per_type: 60
+  local_effect_sessions: 5
+  actual_before_release: prohibited
+  numerical_use_requires_event_ablation_pass: true
+market_implied:
+  inputs: [fedwatch_probability_vector, expected_terminal_rate, path_entropy, vix_term_structure, option_skew, implied_move]
+  risk_neutral_is_physical_probability: false
+  realized_outcome_calibration_required: true
+analyst_reports:
+  role: optional_challenger
+  llm_role: structured_extraction_only
+  publication_timestamp_required: true
+  duplicate_clustering_required: true
+  reliability_walkforward_required: true
+  no_report_ablation_required: true
+stacking:
+  components: [anchor, direct_location, analog_quantile, volatility_tail, regime, event, market_implied]
+  weights_nonnegative: true
+  weights_sum: 1.0
+  anchor_floor: 0.35
+  scoring_window_origins: 52
+  stability_penalty: 0.02
+  complexity_penalty: 0.005
+  stale_component_weight: 0.0
+  event_absent_weight: 0.0
+path_reconciliation:
+  endpoint_horizons: [1, 5, 21, 63]
+  dependency: rank_gaussian_copula
+  bridge: stochastic_residual_bridge
+  event_shock_local_only: true
+  quantile_crossing_allowed: false
+  duplicate_path_max_fraction: 0.01
+evaluation:
+  history_role: research_pseudo_oos
+  outer_start: 2007-01-01
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  baseline: fixed_anchor_ensemble_v3
+  bootstrap_block_origins: 13
+  confidence: 0.90
+  primary_metrics: [crps, tail_weighted_crps, energy_score, pinball]
+  conditional_tables: [actual_sign, trend_regime, volatility_quartile, absolute_move_quartile, event_status, stress_regime, component_staleness]
+research_gate:
+  pit_leakage_count: 0
+  lineage_linkage: 1.0
+  long_horizon_mean_crps_improvement_min: 0.02
+  each_long_horizon_improvement_positive: true
+  paired_bootstrap_ci_upper_max: 0.0
+  sign_side_max_underperformance: 0.05
+  extreme_move_q4_p10_p90_coverage_min: 0.65
+  extreme_move_q4_not_worse_than_baseline: true
+  stress_regime_coverage_min: 0.70
+forward_shadow:
+  stage_a_sessions: 126
+  stage_a_customer_numbers_visible: false
+  stage_b_matured_63d_weekly_origins: 52
+  stage_b_owner_approval_required: true
+  automatic_champion: false
+monitoring:
+  fixed_comparator: fixed_anchor_ensemble_v3
+  hard_gate_minimum_origins: 30
+  small_sample_action: monitor_only
+  coverage_interval: wilson
+  severe_alarm_ewma_crps_ratio: 1.10
+  severe_alarm_weeks: 8
+publication:
+  customer_numbers_visible_before_all_gates: false
+  fallback_on_failure: fixed_baseline_or_hide_numbers
+  investment_position_policy_separate: true
+prohibitions:
+  mutate_v2: true
+  retune_v2: true
+  row_wise_oracle_baseline: true
+  future_actual: true
+  report_free_text_numeric_shift: true
+  parallel_scenario_curve_shift: true
+  automatic_official_merge: true
+  automatic_investment_execution: true

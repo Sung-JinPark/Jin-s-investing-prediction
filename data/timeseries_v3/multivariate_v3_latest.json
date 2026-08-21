@@ -1,0 +1,690 @@
+{
+  "as_of": "2026-08-14",
+  "content_hash": "86468ef40ddd4cb86fbf744865e4a757194df54de47defa2eeb9788d71dc3300",
+  "customer_numbers_visible": false,
+  "display_state": "validation_pending",
+  "footnote": "*미국 시장·미국 공식 거시자료 기준",
+  "forecast_id": "tsv3-forecast-68937649d5220dc9f0558cc2",
+  "forward_shadow": {
+    "captured_sessions": 0,
+    "publication_allowed": false,
+    "required_sessions": 126,
+    "stage": "A"
+  },
+  "model_id": "shadow.nasdaq_direct_regime_distribution_v3",
+  "reason": "V3 research and forward-shadow gates are incomplete; no customer forecast numbers are published.",
+  "research_gate": {
+    "by_horizon": {
+      "21": {
+        "baseline_crps": 0.030049342246009376,
+        "improvement": 0.007457820391521034,
+        "model_crps": 0.029825239648655293
+      },
+      "63": {
+        "baseline_crps": 0.05181759765633686,
+        "improvement": 0.02024817911096599,
+        "model_crps": 0.05076838565789138
+      }
+    },
+    "conditional_tables": {
+      "21": {
+        "absolute_move_quartile": {
+          "Q1": {
+            "baseline_crps": 0.014570418674774847,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 241,
+            "crps_improvement": 0.08576875203682623,
+            "model_crps": 0.013320732048385341,
+            "p10_p90_coverage": 1.0
+          },
+          "Q2": {
+            "baseline_crps": 0.017321547519712734,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 240,
+            "crps_improvement": 0.031463709557237395,
+            "model_crps": 0.016776547379470607,
+            "p10_p90_coverage": 1.0
+          },
+          "Q3": {
+            "baseline_crps": 0.02481724589202285,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 241,
+            "crps_improvement": 0.012412212853349905,
+            "model_crps": 0.02450920895357714,
+            "p10_p90_coverage": 0.9543568464730291
+          },
+          "Q4": {
+            "baseline_crps": 0.06343534447127687,
+            "baseline_p10_p90_coverage": 0.5020746887966805,
+            "count": 241,
+            "crps_improvement": -0.018995432288263312,
+            "model_crps": 0.06464032626186367,
+            "p10_p90_coverage": 0.3278008298755187
+          }
+        },
+        "actual_sign": {
+          "down": {
+            "baseline_crps": 0.041988047615655145,
+            "baseline_p10_p90_coverage": 0.8136645962732919,
+            "count": 322,
+            "crps_improvement": -0.008008316804638864,
+            "model_crps": 0.04232430120296957,
+            "p10_p90_coverage": 0.7608695652173914
+          },
+          "up": {
+            "baseline_crps": 0.024052051873113992,
+            "baseline_p10_p90_coverage": 0.906396255850234,
+            "count": 641,
+            "crps_improvement": 0.021020741942480877,
+            "model_crps": 0.0235464598975021,
+            "p10_p90_coverage": 0.8502340093603744
+          }
+        },
+        "component_staleness": {
+          "core_fresh_optional_components_absent": {
+            "baseline_crps": 0.030049342246009376,
+            "baseline_p10_p90_coverage": 0.8753894080996885,
+            "count": 963,
+            "crps_improvement": 0.007457820391521034,
+            "model_crps": 0.029825239648655293,
+            "p10_p90_coverage": 0.8203530633437176
+          }
+        },
+        "event_status": {
+          "no_event": {
+            "baseline_crps": 0.030049342246009376,
+            "baseline_p10_p90_coverage": 0.8753894080996885,
+            "count": 963,
+            "crps_improvement": 0.007457820391521034,
+            "model_crps": 0.029825239648655293,
+            "p10_p90_coverage": 0.8203530633437176
+          }
+        },
+        "stress_regime": {
+          "great_financial_crisis_2008": {
+            "baseline_crps": 0.062041697970318686,
+            "baseline_p10_p90_coverage": 0.7142857142857143,
+            "count": 63,
+            "crps_improvement": -0.011963629426137948,
+            "model_crps": 0.06278394185380395,
+            "p10_p90_coverage": 0.6825396825396826
+          },
+          "normal": {
+            "baseline_crps": 0.0255292154696682,
+            "baseline_p10_p90_coverage": 0.9025367156208278,
+            "count": 749,
+            "crps_improvement": 0.018914583550306615,
+            "model_crps": 0.025046340990693382,
+            "p10_p90_coverage": 0.8464619492656876
+          },
+          "pandemic_2020": {
+            "baseline_crps": 0.11153359691933537,
+            "baseline_p10_p90_coverage": 0.4444444444444444,
+            "count": 9,
+            "crps_improvement": -0.05838123610092453,
+            "model_crps": 0.11804506617426844,
+            "p10_p90_coverage": 0.2222222222222222
+          },
+          "rebound": {
+            "baseline_crps": 0.027646176479493127,
+            "baseline_p10_p90_coverage": 0.9239130434782609,
+            "count": 92,
+            "crps_improvement": 0.008067869933097238,
+            "model_crps": 0.027423130723509125,
+            "p10_p90_coverage": 0.8695652173913043
+          },
+          "tightening_2022": {
+            "baseline_crps": 0.047205132312161634,
+            "baseline_p10_p90_coverage": 0.66,
+            "count": 50,
+            "crps_improvement": -0.025852191110583067,
+            "model_crps": 0.048425488414095996,
+            "p10_p90_coverage": 0.62
+          }
+        },
+        "trend_regime": {
+          "bear": {
+            "baseline_crps": 0.047513311200633214,
+            "baseline_p10_p90_coverage": 0.7417582417582418,
+            "count": 182,
+            "crps_improvement": -0.013958681418301443,
+            "model_crps": 0.04817653437481147,
+            "p10_p90_coverage": 0.7032967032967034
+          },
+          "bull": {
+            "baseline_crps": 0.023905665004121834,
+            "baseline_p10_p90_coverage": 0.9354166666666667,
+            "count": 480,
+            "crps_improvement": 0.01869416227787993,
+            "model_crps": 0.023458768623174146,
+            "p10_p90_coverage": 0.8770833333333333
+          },
+          "range": {
+            "baseline_crps": 0.029286959277120612,
+            "baseline_p10_p90_coverage": 0.8604651162790697,
+            "count": 301,
+            "crps_improvement": 0.013840268810186749,
+            "model_crps": 0.02888161988809227,
+            "p10_p90_coverage": 0.8006644518272426
+          }
+        },
+        "volatility_quartile": {
+          "Q1": {
+            "baseline_crps": 0.01996194501557568,
+            "baseline_p10_p90_coverage": 0.966804979253112,
+            "count": 241,
+            "crps_improvement": 0.04619517700854249,
+            "model_crps": 0.01903979943214637,
+            "p10_p90_coverage": 0.9004149377593361
+          },
+          "Q2": {
+            "baseline_crps": 0.023721053023539173,
+            "baseline_p10_p90_coverage": 0.9416666666666667,
+            "count": 240,
+            "crps_improvement": 0.026160484592761043,
+            "model_crps": 0.02310049878139281,
+            "p10_p90_coverage": 0.8833333333333333
+          },
+          "Q3": {
+            "baseline_crps": 0.03393146131015367,
+            "baseline_p10_p90_coverage": 0.8174273858921162,
+            "count": 241,
+            "crps_improvement": 0.008931555596897013,
+            "model_crps": 0.03362840057697807,
+            "p10_p90_coverage": 0.7717842323651453
+          },
+          "Q4": {
+            "baseline_crps": 0.04255665117326496,
+            "baseline_p10_p90_coverage": 0.7759336099585062,
+            "count": 241,
+            "crps_improvement": -0.02226926028330336,
+            "model_crps": 0.04350435631502814,
+            "p10_p90_coverage": 0.7261410788381742
+          }
+        }
+      },
+      "63": {
+        "absolute_move_quartile": {
+          "Q1": {
+            "baseline_crps": 0.02637106376375958,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 241,
+            "crps_improvement": 0.0712804766187915,
+            "model_crps": 0.024491321769734255,
+            "p10_p90_coverage": 1.0
+          },
+          "Q2": {
+            "baseline_crps": 0.029435435630462338,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 240,
+            "crps_improvement": 0.056524609403971283,
+            "model_crps": 0.027771609128814715,
+            "p10_p90_coverage": 0.9875
+          },
+          "Q3": {
+            "baseline_crps": 0.0427155694280343,
+            "baseline_p10_p90_coverage": 1.0,
+            "count": 241,
+            "crps_improvement": 0.019012145185758167,
+            "model_crps": 0.041903454820376176,
+            "p10_p90_coverage": 0.9087136929460581
+          },
+          "Q4": {
+            "baseline_crps": 0.1086554497614901,
+            "baseline_p10_p90_coverage": 0.48132780082987553,
+            "count": 241,
+            "crps_improvement": -0.0014383525377148348,
+            "model_crps": 0.10881173460339108,
+            "p10_p90_coverage": 0.35684647302904565
+          }
+        },
+        "actual_sign": {
+          "down": {
+            "baseline_crps": 0.08045569473303624,
+            "baseline_p10_p90_coverage": 0.7867647058823529,
+            "count": 272,
+            "crps_improvement": -0.002034641604936126,
+            "model_crps": 0.08061939323689411,
+            "p10_p90_coverage": 0.6875
+          },
+          "up": {
+            "baseline_crps": 0.04054471429184738,
+            "baseline_p10_p90_coverage": 0.9030390738060782,
+            "count": 691,
+            "crps_improvement": 0.03765356144390893,
+            "model_crps": 0.039018061401033574,
+            "p10_p90_coverage": 0.8625180897250362
+          }
+        },
+        "component_staleness": {
+          "core_fresh_optional_components_absent": {
+            "baseline_crps": 0.05181759765633686,
+            "baseline_p10_p90_coverage": 0.8701973001038421,
+            "count": 963,
+            "crps_improvement": 0.02024817911096599,
+            "model_crps": 0.05076838565789138,
+            "p10_p90_coverage": 0.8130841121495327
+          }
+        },
+        "event_status": {
+          "no_event": {
+            "baseline_crps": 0.05181759765633686,
+            "baseline_p10_p90_coverage": 0.8701973001038421,
+            "count": 963,
+            "crps_improvement": 0.02024817911096599,
+            "model_crps": 0.05076838565789138,
+            "p10_p90_coverage": 0.8130841121495327
+          }
+        },
+        "stress_regime": {
+          "great_financial_crisis_2008": {
+            "baseline_crps": 0.1329229448859246,
+            "baseline_p10_p90_coverage": 0.6984126984126984,
+            "count": 63,
+            "crps_improvement": 0.0027645019550682644,
+            "model_crps": 0.13255547914491403,
+            "p10_p90_coverage": 0.6507936507936508
+          },
+          "normal": {
+            "baseline_crps": 0.04313402110185246,
+            "baseline_p10_p90_coverage": 0.8945260347129506,
+            "count": 749,
+            "crps_improvement": 0.024611690392223377,
+            "model_crps": 0.042072419929122036,
+            "p10_p90_coverage": 0.8277703604806409
+          },
+          "pandemic_2020": {
+            "baseline_crps": 0.13891834013067655,
+            "baseline_p10_p90_coverage": 0.3333333333333333,
+            "count": 9,
+            "crps_improvement": 0.07343687304183905,
+            "model_crps": 0.12871661162331705,
+            "p10_p90_coverage": 0.3333333333333333
+          },
+          "rebound": {
+            "baseline_crps": 0.045533243141750064,
+            "baseline_p10_p90_coverage": 0.9130434782608695,
+            "count": 92,
+            "crps_improvement": 0.03813209649427192,
+            "model_crps": 0.043796965120571706,
+            "p10_p90_coverage": 0.9021739130434783
+          },
+          "tightening_2022": {
+            "baseline_crps": 0.0755899155946913,
+            "baseline_p10_p90_coverage": 0.74,
+            "count": 50,
+            "crps_improvement": -0.01573003478113951,
+            "model_crps": 0.0767789475960992,
+            "p10_p90_coverage": 0.72
+          }
+        },
+        "trend_regime": {
+          "bear": {
+            "baseline_crps": 0.08041808009881954,
+            "baseline_p10_p90_coverage": 0.7362637362637363,
+            "count": 182,
+            "crps_improvement": 0.009631620083649926,
+            "model_crps": 0.07964352370345118,
+            "p10_p90_coverage": 0.7087912087912088
+          },
+          "bull": {
+            "baseline_crps": 0.04056552539381584,
+            "baseline_p10_p90_coverage": 0.925,
+            "count": 480,
+            "crps_improvement": 0.026548583298859306,
+            "model_crps": 0.03948856816383613,
+            "p10_p90_coverage": 0.8604166666666667
+          },
+          "range": {
+            "baseline_crps": 0.05246778663134763,
+            "baseline_p10_p90_coverage": 0.8637873754152824,
+            "count": 301,
+            "crps_improvement": 0.022319179365132977,
+            "model_crps": 0.051296748690631055,
+            "p10_p90_coverage": 0.8006644518272426
+          }
+        },
+        "volatility_quartile": {
+          "Q1": {
+            "baseline_crps": 0.03744153138474995,
+            "baseline_p10_p90_coverage": 0.950207468879668,
+            "count": 241,
+            "crps_improvement": 0.04148174911547954,
+            "model_crps": 0.0358883911733484,
+            "p10_p90_coverage": 0.8838174273858921
+          },
+          "Q2": {
+            "baseline_crps": 0.039201371003713896,
+            "baseline_p10_p90_coverage": 0.9208333333333333,
+            "count": 240,
+            "crps_improvement": 0.03782420990498863,
+            "model_crps": 0.03771861011830609,
+            "p10_p90_coverage": 0.85
+          },
+          "Q3": {
+            "baseline_crps": 0.05709797540530814,
+            "baseline_p10_p90_coverage": 0.8423236514522822,
+            "count": 241,
+            "crps_improvement": 0.020898115384206294,
+            "model_crps": 0.05590473532708344,
+            "p10_p90_coverage": 0.7842323651452282
+          },
+          "Q4": {
+            "baseline_crps": 0.07347716334339031,
+            "baseline_p10_p90_coverage": 0.7676348547717843,
+            "count": 241,
+            "crps_improvement": -0.00041501633742227966,
+            "model_crps": 0.07350765756660527,
+            "p10_p90_coverage": 0.7344398340248963
+          }
+        }
+      }
+    },
+    "direction_reliability": {
+      "1": [
+        {
+          "bin_high": 0.4,
+          "bin_low": 0.3,
+          "count": 3,
+          "mean_forecast": 0.38491666666666663,
+          "realized_frequency": 0.6666666666666666
+        },
+        {
+          "bin_high": 0.5,
+          "bin_low": 0.4,
+          "count": 155,
+          "mean_forecast": 0.4722741935483871,
+          "realized_frequency": 0.5032258064516129
+        },
+        {
+          "bin_high": 0.6,
+          "bin_low": 0.5,
+          "count": 711,
+          "mean_forecast": 0.5501888185654009,
+          "realized_frequency": 0.5710267229254571
+        },
+        {
+          "bin_high": 0.7,
+          "bin_low": 0.6,
+          "count": 94,
+          "mean_forecast": 0.6175744680851063,
+          "realized_frequency": 0.5425531914893617
+        }
+      ],
+      "21": [
+        {
+          "bin_high": 0.4,
+          "bin_low": 0.3,
+          "count": 12,
+          "mean_forecast": 0.36175,
+          "realized_frequency": 0.6666666666666666
+        },
+        {
+          "bin_high": 0.5,
+          "bin_low": 0.4,
+          "count": 15,
+          "mean_forecast": 0.4586666666666666,
+          "realized_frequency": 0.4666666666666667
+        },
+        {
+          "bin_high": 0.6,
+          "bin_low": 0.5,
+          "count": 377,
+          "mean_forecast": 0.5663574270557029,
+          "realized_frequency": 0.6684350132625995
+        },
+        {
+          "bin_high": 0.7,
+          "bin_low": 0.6,
+          "count": 538,
+          "mean_forecast": 0.6333155204460966,
+          "realized_frequency": 0.6765799256505576
+        },
+        {
+          "bin_high": 0.8,
+          "bin_low": 0.7,
+          "count": 21,
+          "mean_forecast": 0.7121785714285713,
+          "realized_frequency": 0.47619047619047616
+        }
+      ],
+      "5": [
+        {
+          "bin_high": 0.4,
+          "bin_low": 0.3,
+          "count": 2,
+          "mean_forecast": 0.390375,
+          "realized_frequency": 1.0
+        },
+        {
+          "bin_high": 0.5,
+          "bin_low": 0.4,
+          "count": 81,
+          "mean_forecast": 0.48116666666666663,
+          "realized_frequency": 0.5679012345679012
+        },
+        {
+          "bin_high": 0.6,
+          "bin_low": 0.5,
+          "count": 731,
+          "mean_forecast": 0.5581788645690834,
+          "realized_frequency": 0.5772913816689467
+        },
+        {
+          "bin_high": 0.7,
+          "bin_low": 0.6,
+          "count": 149,
+          "mean_forecast": 0.6191409395973153,
+          "realized_frequency": 0.5436241610738255
+        }
+      ],
+      "63": [
+        {
+          "bin_high": 0.4,
+          "bin_low": 0.3,
+          "count": 10,
+          "mean_forecast": 0.3618,
+          "realized_frequency": 0.9
+        },
+        {
+          "bin_high": 0.5,
+          "bin_low": 0.4,
+          "count": 26,
+          "mean_forecast": 0.47232692307692303,
+          "realized_frequency": 0.4230769230769231
+        },
+        {
+          "bin_high": 0.6,
+          "bin_low": 0.5,
+          "count": 215,
+          "mean_forecast": 0.5673279069767443,
+          "realized_frequency": 0.7534883720930232
+        },
+        {
+          "bin_high": 0.7,
+          "bin_low": 0.6,
+          "count": 496,
+          "mean_forecast": 0.6535095766129033,
+          "realized_frequency": 0.6854838709677419
+        },
+        {
+          "bin_high": 0.8,
+          "bin_low": 0.7,
+          "count": 215,
+          "mean_forecast": 0.7280732558139535,
+          "realized_frequency": 0.786046511627907
+        },
+        {
+          "bin_high": 0.9,
+          "bin_low": 0.8,
+          "count": 1,
+          "mean_forecast": 0.80225,
+          "realized_frequency": 0.0
+        }
+      ]
+    },
+    "fixed_comparator": "fixed_anchor_ensemble_v3",
+    "long_horizon_mean_improvement": 0.013852999751243513,
+    "paired_loss_difference_90_ci": [
+      -0.0011441608580154041,
+      -8.428921334479647e-05
+    ],
+    "pass": false,
+    "pit_histograms": {
+      "1": {
+        "counts": [
+          80,
+          96,
+          106,
+          97,
+          91,
+          91,
+          94,
+          99,
+          117,
+          92
+        ],
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "sample_n": 963
+      },
+      "21": {
+        "counts": [
+          77,
+          83,
+          80,
+          83,
+          103,
+          114,
+          98,
+          119,
+          110,
+          96
+        ],
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "sample_n": 963
+      },
+      "5": {
+        "counts": [
+          80,
+          107,
+          102,
+          98,
+          78,
+          92,
+          105,
+          83,
+          125,
+          93
+        ],
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "sample_n": 963
+      },
+      "63": {
+        "counts": [
+          85,
+          64,
+          71,
+          84,
+          103,
+          108,
+          121,
+          125,
+          107,
+          95
+        ],
+        "edges": [
+          0.0,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.0
+        ],
+        "sample_n": 963
+      }
+    },
+    "reasons": [
+      "21/63 fixed-baseline mean CRPS improvement is below 2%",
+      "extreme-move Q4 coverage gate failed",
+      "a required stress regime coverage is below 70%"
+    ],
+    "row_wise_oracle_used": false,
+    "score_tables": {
+      "1": {
+        "baseline_crps": 0.007204831088220281,
+        "improvement": 0.013174722864488913,
+        "mean_pinball": 0.0024092520886366863,
+        "model_crps": 0.007109909435347525,
+        "origins": 963,
+        "tail_weighted_crps": 0.004130712907530238
+      },
+      "21": {
+        "baseline_crps": 0.030049342246009376,
+        "improvement": 0.007457820391521034,
+        "mean_pinball": 0.010069535388711977,
+        "model_crps": 0.029825239648655293,
+        "origins": 963,
+        "tail_weighted_crps": 0.01722616807784567
+      },
+      "5": {
+        "baseline_crps": 0.015113823779926854,
+        "improvement": 0.01012826923233241,
+        "mean_pinball": 0.004915095736374298,
+        "model_crps": 0.014960746903553727,
+        "origins": 963,
+        "tail_weighted_crps": 0.008279856193594141
+      },
+      "63": {
+        "baseline_crps": 0.05181759765633686,
+        "improvement": 0.02024817911096599,
+        "mean_pinball": 0.01729768814753733,
+        "model_crps": 0.05076838565789138,
+        "origins": 963,
+        "tail_weighted_crps": 0.02977420638548912
+      }
+    }
+  },
+  "schema_version": 3,
+  "status": "shadow_validation_hold"
+}

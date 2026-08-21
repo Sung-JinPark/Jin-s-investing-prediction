@@ -1,0 +1,73 @@
+name: timeseries-v3-research
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/timeseries-v3-research.yml"
+      - "data/contracts/multivariate_timeseries_v3.yaml"
+      - "data/timeseries_v3/**"
+      - "src/ai_fc/timeseries_v3/**"
+      - "src/tests/test_multivariate_timeseries_v3.py"
+      - "src/ai_fc/cli.py"
+  workflow_dispatch:
+    inputs:
+      run_research_backtest:
+        description: "Re-run the frozen V3 research evaluation"
+        required: false
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: timeseries-v3-research-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen PIT and time-series runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Run focused V3 contract and leakage tests
+        run: pytest src/tests/test_multivariate_timeseries_v3.py -q
+      - name: Optionally reproduce the frozen research evaluation
+        if: ${{ inputs.run_research_backtest == true }}
+        run: python -m ai_fc timeseries-v3-backtest
+      - name: Build hidden validation pointer and Excel audit view
+        run: |
+          python -m ai_fc timeseries-v3-forecast
+          python -m ai_fc timeseries-v3-workbook
+      - name: Verify V2 immutability and fail-closed publication state
+        run: python -m ai_fc timeseries-v3-verify
+      - name: Reject protected or customer-surface changes
+        shell: bash
+        run: |
+          changed="$(git diff --name-only -- data/scenarios data/forecasts data/ledgers src/ai_fc/dashboard.py src/ai_fc/dashboard_parts || true)"
+          test -z "$changed" || { echo "protected/customer paths changed: $changed"; exit 1; }
+      - name: Upload research-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-v3-research-evidence
+          if-no-files-found: error
+          path: |
+            data/contracts/multivariate_timeseries_v3.yaml
+            data/timeseries_v3/runs/backtest_latest.json
+            data/timeseries_v3/runs/tsv3-research-*.json
+            data/timeseries_v3/multivariate_v3_latest.json
+            data/timeseries_v3/ledgers/forecasts.jsonl
+            data/timeseries_v3/workbooks/multivariate_timeseries_v3_latest.xlsx
+
+# Deliberately no schedule, write permission, commit, merge, Pages deployment, or
+# customer publication.  Those operations remain prohibited until the frozen
+# research gate passes and a separate owner-approved forward-shadow contract exists.

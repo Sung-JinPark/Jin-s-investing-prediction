@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "model_id": "shadow.nasdaq_direct_regime_distribution_v3",
+  "run_id": "tsv3-research-1f80a06bf6e991d887a5be40",
+  "history_role": "research_pseudo_oos_not_sealed",
+  "sample_count": 4000,
+  "origin_count": 963,
+  "research_gate_pass": false,
+  "customer_numbers_visible": false,
+  "fixed_comparator": "fixed_anchor_ensemble_v3",
+  "row_wise_oracle_used": false,
+  "long_horizon_mean_crps_improvement": 0.013852999751243513,
+  "paired_loss_difference_90_ci": [-0.0011441608580154041, -0.00008428921334479647],
+  "by_horizon": {
+    "21": {"model_crps": 0.029825239648655293, "baseline_crps": 0.030049342246009376, "improvement": 0.007457820391521034},
+    "63": {"model_crps": 0.05076838565789138, "baseline_crps": 0.05181759765633686, "improvement": 0.02024817911096599}
+  },
+  "extreme_q4_p10_p90_coverage": {
+    "21": {"model": 0.327800829875519, "baseline": 0.50207468879668},
+    "63": {"model": 0.356846473029046, "baseline": 0.481327800829876}
+  },
+  "reasons": [
+    "21/63 fixed-baseline mean CRPS improvement is below 2%",
+    "extreme-move Q4 coverage gate failed",
+    "a required stress regime coverage is below 70%"
+  ],
+  "contract_hash": "1ee81902658c3c046b38ff1bd5113f0f3b42ad14c8033f6a0176ff7ec882010e",
+  "model_code_hash": "5a919a61daf4611e1980ad38195794a4264a7bb8f360d523cf055f848ba1f3bc",
+  "content_hash": "74591b18cc845459f2572a301c7686cd7e6fc565ac46a0f813b00eeb785ad2b4"
+}
