@@ -27,3 +27,5 @@ data/raw/**        -text
 data/statistics/official_store/raw/** -text
 data/timeseries/raw/** -text
 data/timeseries/ledgers/** -text
+data/timeseries_v2/raw/** -text
+data/timeseries_v2/ledgers/** -text

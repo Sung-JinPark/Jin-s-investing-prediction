@@ -31,7 +31,7 @@
 
 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
 
-시계열 예측은 별도 shadow 모델입니다. ALFRED 과거 빈티지로 혼합빈도 성장·물가 상태와 시장 벡터를 구성하고, 오프라인 워크포워드 Gate를 통과하기 전에는 숫자를 공개하지 않습니다. 기존 미래전망·공식 확률과 결합하지 않습니다.
+시계열 예측은 별도 V2 shadow 모델입니다. 거시는 ALFRED 원빈티지, 시장 일봉은 공식 과거자료를 `재구성 시장 아카이브`로 분리합니다. 수정 가능한 Fed EBP는 수집 이후 값만 `captured_forward`로 사용합니다. C1~C4는 2007~2018에서 선택하고 C5 이벤트 오버레이는 충분한 당시자료가 있을 때만 별도로 적용합니다. 2019년 이후 봉인 평가를 통과하기 전에는 숫자를 공개하지 않으며 기존 미래전망·공식 확률과 결합하지 않습니다.
 
 ## 숫자가 화면에 도착하는 과정
 
@@ -77,8 +77,8 @@ flowchart LR
 | 누적 관측 DB | [`normalized_observations.jsonl`](data/statistics/official_store/ledgers/normalized_observations.jsonl) |
 | 원문·수집 영수증 | [`raw/`](data/statistics/official_store/raw/) · [`raw_receipts.jsonl`](data/statistics/official_store/ledgers/raw_receipts.jsonl) |
 | 영수증 정정 이력 | [`raw_receipt_corrections.jsonl`](data/statistics/official_store/ledgers/raw_receipt_corrections.jsonl) |
-| 시계열 모델 사전등록 | [`multivariate_timeseries_v1.yaml`](data/contracts/multivariate_timeseries_v1.yaml) |
-| 시계열 PIT 원장·감사본 | [`data/timeseries/`](data/timeseries/) |
+| 시계열 V1 / V2 사전등록 | [`multivariate_timeseries_v1.yaml`](data/contracts/multivariate_timeseries_v1.yaml) · [`multivariate_timeseries_v2.yaml`](data/contracts/multivariate_timeseries_v2.yaml) |
+| 시계열 PIT / V2 원장 | [`data/timeseries/`](data/timeseries/) · [`data/timeseries_v2/`](data/timeseries_v2/) |
 
 ## 로컬 실행
 
@@ -94,8 +94,20 @@ uv run ai-fc timeseries-backtest
 uv run ai-fc timeseries-forecast
 uv run ai-fc timeseries-verify
 uv run ai-fc timeseries-workbook
+uv run ai-fc timeseries-v2-refresh
+uv run ai-fc timeseries-v2-prepare
+uv run ai-fc timeseries-v2-backtest
+uv run ai-fc timeseries-v2-monitor-backtest
+uv run ai-fc timeseries-v2-fit
+uv run ai-fc timeseries-v2-forecast
+uv run ai-fc timeseries-v2-resolve
+uv run ai-fc timeseries-v2-verify
+uv run ai-fc timeseries-v2-workbook
+python tools/ralph_timeseries.py run --max-iterations 50 --max-hours 24 --auto-merge
 uv run ai-fc dashboard --serve --host 127.0.0.1
 ```
+
+Ralph Loop는 격리 worktree에서 수집·PIT 정렬·계산·속도 오류만 수리합니다. 후보, 평가기간, 성능 Gate와 확률 단위는 실행 시작과 함께 잠기며 봉인 평가 실패나 보호 파일 변경 시 main을 바꾸지 않고 중단합니다.
 
 매주 공식 원천을 다시 수집해 원문 영수증과 관측 revision을 먼저 누적하고, 같은 DB에서 Excel·통계·사이트를 재생성합니다. IPO 참고 통계는 닷컴·역사 값의 출판 빈티지를 고정하고 AI·현재 값만 주간 검토 배치로 갱신합니다. `observation_through`는 마지막 관측일, `knowledge_cutoff`는 빌드가 알 수 있었던 시각입니다. 정적 연구 수치는 참고 통계로 표시하고, 전망용 시장·컨센서스 입력은 출처와 당시 이용 가능 시각을 보존한 연구 후보로만 사용합니다.
 

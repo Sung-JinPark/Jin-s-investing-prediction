@@ -115,6 +115,8 @@ def test_template_self_contained() -> None:
     embedded = dashboard.render_html({}, mode="embed")
     assert "WantedSansVariable.min.css" not in embedded
     assert "cdn.jsdelivr.net" not in embedded
+    assert "self.QrCreator=H" in dashboard.load_template()
+    assert "self.QrCreator=H" not in embedded
 
 
 def test_pages_use_version_pinned_korean_webfont_without_changing_audit_html() -> None:

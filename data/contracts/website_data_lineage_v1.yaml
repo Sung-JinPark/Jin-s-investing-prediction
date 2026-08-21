@@ -198,21 +198,23 @@ surfaces:
     routes: ["#timeseries"]
     publication_class: pit_research_model
     display_role: isolated_shadow_research_model
-    probability_space: research_timeseries_conditional
+    probability_space: research_timeseries_v2_conditional
     official_forecast_write: false
     numeric_input_policy: >-
-      ALFRED/FRED PIT vintages plus receipt-backed consensus and rate-distribution
-      event overlays; no future actual and no official/scenario probability combination
+      V2 uses ALFRED native PIT macro vintages and explicitly graded reconstructed
+      official market archives; revision-prone Fed EBP is captured-forward only,
+      receipt-backed event overlays remain isolated, and no future actual or
+      official/scenario probability combination is allowed
     source_artifacts:
+      - data/contracts/multivariate_timeseries_v2.yaml
+      - data/timeseries_v2/README.md
       - data/contracts/multivariate_timeseries_v1.yaml
-      - data/timeseries/multivariate_latest.json
-      - data/timeseries/ledgers/forecasts.jsonl
-      - data/timeseries/workbooks/multivariate_timeseries_latest.xlsx
     payload_locations:
       - {artifact: dashboard_base, key: timeseries, materialization: base}
     artifact_gate: >-
-      PIT leakage zero plus preregistered rolling-origin CRPS, interval coverage,
-      crisis-regime coverage, deterministic replay, and minimum 126-session shadow controls
+      V2 requires 100% raw receipt linkage, origin-specific PIT DFM replay, frozen
+      C1-C5 development selection, one-time 2019+ sealed evaluation, CRPS and interval
+      coverage gates; V1 remains a validation-pending fallback only
     time_fields:
       observation_through: as_of
       knowledge_cutoff: knowledge_cutoff

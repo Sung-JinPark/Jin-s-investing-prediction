@@ -1,0 +1,97 @@
+{
+  "cache_id": "dfm-v2-84a23972be28320bdb2888f8",
+  "cache_key": {
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "cutoff": "2015-11-14T04:59:59+00:00",
+    "input_hash": "583b2b3803fa3ded4d9e2b159ef5ac08f063a9e4cac9c601e43e538b8117d7a2"
+  },
+  "content_hash": "942865157672b8dd09b1631df7e85cd0d07d89cd816e61902f4c56300f7e8c17",
+  "cutoff": "2015-11-14T04:59:59+00:00",
+  "data_grade": "native_pit",
+  "errors": [],
+  "factors": {
+    "growth_factor": 0.823127495284488,
+    "inflation_factor": 12.960045239029784
+  },
+  "fit_diagnostics": {
+    "growth_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 12,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 8.12375379928165e-06,
+      "rows": 1161,
+      "series": 5,
+      "tolerance": 1e-05,
+      "warm_start": true,
+      "warnings": [
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.",
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead."
+      ]
+    },
+    "inflation_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 9,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 7.0153348818482e-06,
+      "rows": 680,
+      "series": 4,
+      "tolerance": 1e-05,
+      "warm_start": true,
+      "warnings": []
+    }
+  },
+  "fit_parameters": {
+    "growth_factor": [
+      -0.10756696049146877,
+      -0.14613598198885408,
+      -0.13012544808576285,
+      0.07829797726459485,
+      0.027614929934238076,
+      -0.009910141774154942,
+      0.9812510259637041,
+      0.21897597642842823,
+      0.39430707272449717,
+      0.9932897240667399,
+      0.5008660652675161,
+      -0.09162199282285459,
+      -0.34658068469694525,
+      0.21834765353329375,
+      0.8067609647340919,
+      0.009102088274705863,
+      0.7317981546121106,
+      0.9967090486154091,
+      0.8778572618860635,
+      0.03357856635244043
+    ],
+    "inflation_factor": [
+      -0.049711601520171206,
+      -0.04503309603483074,
+      -0.052775237263908946,
+      0.052775237267393915,
+      0.9925172356290896,
+      1.6536784255760013,
+      0.3773744971676616,
+      0.15834422143336505,
+      0.46809229926118573,
+      0.9130780229287783,
+      0.7501276260571887,
+      0.5771579107480933,
+      0.4187626614315219,
+      0.4245180226678746
+    ]
+  },
+  "input_hash": "583b2b3803fa3ded4d9e2b159ef5ac08f063a9e4cac9c601e43e538b8117d7a2",
+  "model_id": "shadow.mf_dfm_ridge_varx_v2",
+  "parameter_estimation": "origin_specific_native_pit",
+  "runtime": {
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "python": "3.12.10",
+    "scipy": "1.18.0",
+    "statsmodels": "0.14.6"
+  },
+  "schema_version": 2,
+  "status": "ready"
+}

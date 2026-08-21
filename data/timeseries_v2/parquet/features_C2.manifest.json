@@ -1,0 +1,28 @@
+{
+  "candidate_id": "C2",
+  "columns": [
+    "nasdaq_return",
+    "vix_change",
+    "dgs2_change_bps",
+    "curve_change_bps",
+    "dollar_change",
+    "growth_factor",
+    "inflation_factor",
+    "dfm_age_since_release",
+    "nfci_level",
+    "nfci_change",
+    "nfci_age_since_release",
+    "dff_level",
+    "dff_change",
+    "dff_age_since_release"
+  ],
+  "data_grades": [
+    "captured_forward",
+    "reconstructed_market_archive"
+  ],
+  "path": "data/timeseries_v2/parquet/features_C2.parquet",
+  "rows": 3772,
+  "schema_version": 2,
+  "sha256": "92adfae73401e0c7e337d00648f1601e1ea3ee5c1130c4f6041230c287a0fcef",
+  "status": "ready"
+}

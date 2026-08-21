@@ -294,13 +294,25 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append(f"statistics_lab contract violation: {exc}")
     timeseries = model.get("timeseries")
     if isinstance(timeseries, dict):
-        if timeseries.get("model_id") != "shadow.mf_dfm_ridge_varx_v1":
+        model_id = timeseries.get("model_id")
+        if model_id not in {
+            "shadow.mf_dfm_ridge_varx_v1", "shadow.mf_dfm_ridge_varx_v2",
+        }:
             errors.append("timeseries model id mismatch")
         if timeseries.get("combined_with_existing_models") is not False:
             errors.append("timeseries must remain isolated from existing probability spaces")
         visible = timeseries.get("numbers_visible") is True
-        if visible is not (timeseries.get("status") == "ready"):
+        expected_visible_status = (
+            "shadow_research_published"
+            if model_id == "shadow.mf_dfm_ridge_varx_v2" else "ready"
+        )
+        if visible is not (timeseries.get("status") == expected_visible_status):
             errors.append("timeseries visibility/status mismatch")
+        if model_id == "shadow.mf_dfm_ridge_varx_v2":
+            if timeseries.get("probability_space") != "research_timeseries_v2_conditional":
+                errors.append("timeseries V2 probability space mismatch")
+            if visible and (timeseries.get("gate") or {}).get("pass") is not True:
+                errors.append("timeseries V2 numbers visible before gate pass")
         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
             errors.append("timeseries validation-pending surface must hide numbers")
     multi_year_stress = model.get("multi_year_stress")

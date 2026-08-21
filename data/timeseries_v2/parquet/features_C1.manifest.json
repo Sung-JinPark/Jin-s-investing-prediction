@@ -1,0 +1,22 @@
+{
+  "candidate_id": "C1",
+  "columns": [
+    "nasdaq_return",
+    "vix_change",
+    "dgs2_change_bps",
+    "curve_change_bps",
+    "dollar_change",
+    "growth_factor",
+    "inflation_factor",
+    "dfm_age_since_release"
+  ],
+  "data_grades": [
+    "captured_forward",
+    "reconstructed_market_archive"
+  ],
+  "path": "data/timeseries_v2/parquet/features_C1.parquet",
+  "rows": 7131,
+  "schema_version": 2,
+  "sha256": "5c92a2a67d9ae5eecf2a9965704d051985574d16dc0ffafbbda92265fb4229be",
+  "status": "ready"
+}
