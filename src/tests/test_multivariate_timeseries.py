@@ -31,6 +31,7 @@ from ai_fc.timeseries.ledger import (
     _close_vintage_intervals,
     append_facts,
     collect_alfred,
+    incremental_realtime_window,
     normalize_alfred,
     persist_response,
     read_fact_rows,
@@ -392,6 +393,26 @@ def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> N
     active = read_facts(root)
     assert len(active) == 1
     assert active[0].vintage_end == "2020-02-03T13:30:00+00:00"
+
+
+def test_incremental_alfred_window_uses_realtime_max_across_utc_date_boundary(
+    tmp_path: Path,
+) -> None:
+    root = _root(tmp_path)
+    receipt_path = root / "data/timeseries/ledgers/raw_receipts.jsonl"
+    receipt_path.parent.mkdir(parents=True, exist_ok=True)
+    receipt_path.write_text(
+        json.dumps({"retrieved_at": "2026-08-20T23:55:00+00:00"}) + "\n",
+        encoding="utf-8",
+    )
+
+    start, end = incremental_realtime_window(
+        root,
+        retrieved_at="2026-08-21T01:30:00+00:00",
+    )
+
+    assert start == "2026-08-13"
+    assert end == "9999-12-31"
 
 
 def test_alfred_date_only_vintage_uses_conservative_end_of_day_availability() -> None:
