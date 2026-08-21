@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "benchmark": {
+    "run_id": "tsv2-backtest-f995c40e19ade197f3559b6e",
+    "artifact_file_sha256": "c5b76e840e37037c65578810606855e2c4414471516fad096b1fb00134b9c5d3",
+    "content_hash": "a67ba4b37f80323251a66f838979fe0d242bd6cbccad36af1d749cfb11c69001",
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "model_code_hash": "bb225cbf963b095271452a669f7d8f1aa5eb29c8abda5a4ae1ed9ecd1d702c5c"
+  },
+  "git_diff_against_origin_main": {
+    "data/timeseries_v2": [],
+    "data/contracts/multivariate_timeseries_v2.yaml": [],
+    "src/ai_fc/timeseries_v2": [],
+    "data/scenarios": [],
+    "data/forecasts": [],
+    "data/ledgers": []
+  },
+  "verdict": "PASS_UNCHANGED"
+}

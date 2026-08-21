@@ -1,0 +1,267 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-21T05:12:27.5738547+00:00",
+  "file_count": 51,
+  "self_reference_excluded": [
+    "docs/audit/nasdaq_timeseries_v3_research_hold_260821/MANIFEST.sha256",
+    "docs/audit/nasdaq_timeseries_v3_research_hold_260821/MANIFEST.json",
+    "docs/audit/nasdaq_timeseries_v3_research_hold_260821/NASDAQ_MULTIVARIATE_TIMESERIES_V3_RESEARCH_HOLD_260821.zip"
+  ],
+  "files": [
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/BUILD_MANIFEST.ps1",
+      "bytes": 2162,
+      "sha256": "a66a846b8e8ad2fc893cd0dfa951386a2a87c73204ab6d23d3564d9b93982952"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/.github/workflows/timeseries-v3-research.yml",
+      "bytes": 2817,
+      "sha256": "742545bb35495f8d4481511c59bebc810cfcaf85280f5c386a3f4e4125a9c60e"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/contracts/multivariate_timeseries_v2.yaml",
+      "bytes": 7901,
+      "sha256": "998f408271ecbec8df08b54579bbc5ffb093cfd78fdb443652b113f99a634b60"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/contracts/multivariate_timeseries_v3.yaml",
+      "bytes": 6356,
+      "sha256": "50cfa19f8e838eef560f71e634b3f6b06b72a4d8cbe19a6123c12c61ea94da1a"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v2/runs/tsv2-backtest-f995c40e19ade197f3559b6e.json",
+      "bytes": 3623575,
+      "sha256": "c5b76e840e37037c65578810606855e2c4414471516fad096b1fb00134b9c5d3"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/ledgers/forecasts.jsonl",
+      "bytes": 5359,
+      "sha256": "04439e8d694ac9857f556979fcef30ae1ca71a67cc93b8e4aa26bc3c20244165"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/multivariate_v3_latest.json",
+      "bytes": 22375,
+      "sha256": "2af353808465932f663b5a57a3692984dd62533d16607198c3c5fb3d5d341022"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/runs/backtest_latest.json",
+      "bytes": 253,
+      "sha256": "eadbe331c6990ed07f674416b59cc1bed37b6b61e3b27cee38b5aebb414466b6"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/runs/tsv3-research-1f80a06bf6e991d887a5be40.json",
+      "bytes": 5613154,
+      "sha256": "52ed52dc2cf632f2810ca75b63cd063c8097c049c2e1af4d0c100c901f01f979"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/runs/tsv3-research-26c6c441a64a52c3d1403d91.json",
+      "bytes": 3083710,
+      "sha256": "4368c9ec6378242186264928bb6a03b8fbcf4c474888247548193674accbb13e"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/data/timeseries_v3/workbooks/multivariate_timeseries_v3_latest.xlsx",
+      "bytes": 13574,
+      "sha256": "9f09d7a70ae259070942f7203c2226be56a272e34202292342292fdbca9c7e0f"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/cli.py",
+      "bytes": 51313,
+      "sha256": "b0db0fa5c624bacba6c54f276d3b304acb1e779bf0e9eeaf9f886f6135ba9599"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/__init__.py",
+      "bytes": 207,
+      "sha256": "38801167620e38ae376b2e1e9b8c301ffe171a9d70299c837af19f528e7c6442"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/analyst_ledger.py",
+      "bytes": 3494,
+      "sha256": "13c410fab8b1e27b5aba85da6587b0f42ad1eaea01db4132764e2169203659f3"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/backtest.py",
+      "bytes": 11432,
+      "sha256": "7f229f1631fe1401fcee041e9f939528ec19a42d6ff33a37434b282bfb49619b"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/baselines.py",
+      "bytes": 5079,
+      "sha256": "5b18db89d64c3c19d82603ce87e6ec9f78cbcefb6ec901e8e6460d2f4b4f61c3"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/calibration.py",
+      "bytes": 3396,
+      "sha256": "921f3653d2b0ad9c927ef3e7827f2b80a34069b57998ca210588a872cb8d70b4"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/contracts.py",
+      "bytes": 5790,
+      "sha256": "9e9a762c776de6c610bffad05c268af9a92a97fa1ccb925d9de0d5ad7fcd0fc2"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/dfm_alignment.py",
+      "bytes": 3925,
+      "sha256": "3397ff3e58251d81809ccfc32db1186593e5d9027ab8971ef74f4d1bb0c5a88a"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/event_ledger.py",
+      "bytes": 5468,
+      "sha256": "bca3f03a905c0998be6e87e038b051b6269164a131ea670df50297c76a424915"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/interfaces.py",
+      "bytes": 1686,
+      "sha256": "843e5b31a564f3f6703febda156a2857f012820abff6bf5d32825e2633e810ed"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/models/__init__.py",
+      "bytes": 34,
+      "sha256": "57f9f8a7f46fcb644428951d11402164cf158ae1d098c253c8e0045cd99b6915"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/models/direct_location.py",
+      "bytes": 7154,
+      "sha256": "4566ad6b1148bd15cc50f790076ab09271544ea9947bfe4464f334a74d2a0ee2"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/models/foundation_challengers.py",
+      "bytes": 529,
+      "sha256": "87197e5c083ab6c1fa34a9bcc0540b6de6801ddbdd96d3668d0ca31c0372d31c"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/models/regime_mixture.py",
+      "bytes": 2965,
+      "sha256": "0949d1bb73fe08d3abf99997ac82bf9aabe026d5597a97a007bdcb82ba2f85f0"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/models/volatility_tail.py",
+      "bytes": 2784,
+      "sha256": "b05669d7862c453cb630a3b994409d41f6c5e8a67b4f41421261b21ed20df06a"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/monitoring.py",
+      "bytes": 2518,
+      "sha256": "9f4296fa3235c8eeb9e8de5fa7d5a7fd35c9a5dd74661ad3ab954c081998c150"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/options_ledger.py",
+      "bytes": 1568,
+      "sha256": "b9d91de64a3de91e84e14a3db7f84bf3f01aa2e77f0d7e1436893f9b46fadfab"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/path_reconciler.py",
+      "bytes": 3429,
+      "sha256": "6ca8514edbc923dc047f8892beea5dbd021091de8583b13a7a85604e46402b14"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/pipeline.py",
+      "bytes": 35763,
+      "sha256": "8be5f579b096fd6a11e0cb6a0f0d67b6392777c86d82696a71ce873633226fed"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/snapshots.py",
+      "bytes": 1987,
+      "sha256": "fe057aa4ed1e9ae60954dd1894953da87e1adfc3450535656b1b76ae03392649"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/stacking.py",
+      "bytes": 5334,
+      "sha256": "43907ebdee875f1495b6f5c66c1a356f7f1263432e897b80bf189e868682f09e"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/targets.py",
+      "bytes": 1404,
+      "sha256": "f62868c29a4efdae5ac76e5c113c4214be16670063bb2367f589488c9313ec42"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/ai_fc/timeseries_v3/workbook.py",
+      "bytes": 11286,
+      "sha256": "f4a8527b1a7bd82f0b6fdc81d6f81279ed1e2ee02f7182ab346c1c10a7e413ff"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/evidence/repository_snapshot/src/tests/test_multivariate_timeseries_v3.py",
+      "bytes": 13250,
+      "sha256": "9e7738dd70af343f1768c34a73d76e45c5511d50d874ccf25920ce3d0dc1a365"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/EXECUTION_AND_GATE_REPORT_260821.md",
+      "bytes": 2905,
+      "sha256": "c5bd782c92a7ae1dbcf94c127fbb72dbc1f7e1b2001dabf8fd3bcaf9a8111966"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/HISTORICAL_RESEARCH_LOG_260821.md",
+      "bytes": 1069,
+      "sha256": "fbbad48e25d6a8e9df919aede520bbb2c3c55c446f81dc1028bed8b2198655a9"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/IMPLEMENTATION_CROSSWALK_260821.md",
+      "bytes": 2371,
+      "sha256": "77dfa87d23f6d8da070c4c168a249ab7eecda3d6b1710678ce60cf35da890dc0"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/MODEL_RISK_AND_LIMITATIONS_260821.md",
+      "bytes": 1997,
+      "sha256": "5b508bc6853cece5a554656e4896c992e981803e57285ff1f69b834be63fa10c"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/PACKAGE_README_260821.md",
+      "bytes": 2342,
+      "sha256": "21b0e5a7a71aea74a11c9e9e622ae43582db47cae759f5cd35864d2c4c6dfe9e"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/TEST_EVIDENCE_260821.md",
+      "bytes": 2037,
+      "sha256": "d775d61fe9fcee0b1aa7a47df8207ed76dc4d9dcf2b28f48f13e6316d139cfce"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/V2_PROTECTED_HASHES_260821.json",
+      "bytes": 737,
+      "sha256": "efb0e0f45686fde363117b84e02b1fbaa3cddb218de3281be81e6cf1f5668171"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/V3_GATE_RESULTS_260821.json",
+      "bytes": 1426,
+      "sha256": "484d9f4f438dd457496694a5472a66fab1f3aabb214f789ac9785b20777a5351"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Backtest.png",
+      "bytes": 261780,
+      "sha256": "407aecb99e2e15d7c0944c2412c86438370cbdd61c52359caa76525e8be39e9b"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Features.png",
+      "bytes": 48990,
+      "sha256": "b1ba9a7b89b03b9188be52b2c73f15adbabf9952ed3784f5f7cdfb7390f0c957"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Forecasts.png",
+      "bytes": 25391,
+      "sha256": "98103447bfde6c37a975fb1da5731f527efd98a7f622a30b8272ca5351762d37"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/ModelCard.png",
+      "bytes": 62421,
+      "sha256": "884ed799982bf24dab0a8e3ce4d4d95901d2384e582741bf6499507164b681e4"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Observations.png",
+      "bytes": 29198,
+      "sha256": "6d762a9a3fc1c2c064d5dfd68fb79dc2916e491beba54c4541aae7cfd0eca098"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/RunManifest.png",
+      "bytes": 51508,
+      "sha256": "4c9d80d6a1364c226ba14d6f246f574db6e7076166379a2288a95754c205e87e"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Sources.png",
+      "bytes": 62007,
+      "sha256": "7a5356d44d9e7b75cbdaeb0956410ceeb902c3855462a74c8b3fa135a258c0c2"
+    },
+    {
+      "path": "docs/audit/nasdaq_timeseries_v3_research_hold_260821/workbook_previews/Vintages.png",
+      "bytes": 26720,
+      "sha256": "129bb71eed2bc05360c29747fb2bbef1d77faa3a3d9b5de89fb2f37a48b00e37"
+    }
+  ]
+}
