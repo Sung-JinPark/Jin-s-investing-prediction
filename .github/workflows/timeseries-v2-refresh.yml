@@ -70,7 +70,10 @@ jobs:
           git add data/timeseries data/timeseries_v2 docs/generated/inventory.generated.md
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/.*|data/timeseries_v2/.*|docs/generated/inventory.generated.md)$' || true)"
           test -z "$unexpected" || { echo "unexpected checkpoint paths: $unexpected"; exit 1; }
-          if ! git diff --cached --quiet; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git reset
+            echo "PR validation is read-only; collected data stays ephemeral"
+          elif ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "data: append V2 PIT and market archive observations"
@@ -143,7 +146,10 @@ jobs:
           git add data/timeseries_v2 docs/generated/inventory.generated.md
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v2/.*|docs/generated/inventory.generated.md)$' || true)"
           test -z "$unexpected" || { echo "unexpected model paths: $unexpected"; exit 1; }
-          if ! git diff --cached --quiet; then
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git reset
+            echo "PR validation is read-only; model artifacts stay ephemeral"
+          elif ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "data: refresh NASDAQ time-series V2 shadow"

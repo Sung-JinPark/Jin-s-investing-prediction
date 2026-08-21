@@ -918,4 +918,7 @@ def test_v2_workflow_runs_exact_runtime_gate_on_same_repo_pr_and_main_bootstrap(
     assert "ref: ${{ github.head_ref || github.ref_name }}" in workflow
     assert "bootstrap=\"${{ github.event_name == 'pull_request' || github.event_name == 'push' }}\"" in workflow
     assert '[ "$bootstrap" = "true" ]' in workflow
+    assert workflow.count('[ "${{ github.event_name }}" = "pull_request" ]') == 2
+    assert "PR validation is read-only; collected data stays ephemeral" in workflow
+    assert "PR validation is read-only; model artifacts stay ephemeral" in workflow
     assert "statsmodels==0.14.6" in (REPOSITORY_ROOT / "pyproject.toml").read_text(encoding="utf-8")
