@@ -630,11 +630,4 @@ def incremental_realtime_window(root: Path, *, retrieved_at: str, overlap_days: 
         return "1776-07-04", "9999-12-31"
     prior = max(datetime.fromisoformat(row["retrieved_at"]) for row in receipts)
     start = min(prior.astimezone(timezone.utc), current) - timedelta(days=overlap_days)
-    # ALFRED's real-time calendar can still be on the prior US business date
-    # when this workflow runs after midnight UTC. A finite UTC ``current``
-    # date is then rejected as a future realtime_end. ALFRED explicitly
-    # reserves 9999-12-31 as its real-time maximum, so use that sentinel for
-    # live incremental collection while retaining the bounded overlap start.
-    # Model views remain point-in-time because every normalized observation is
-    # still filtered by its own available_at/vintage timestamps.
-    return start.date().isoformat(), "9999-12-31"
+    return start.date().isoformat(), current.date().isoformat()

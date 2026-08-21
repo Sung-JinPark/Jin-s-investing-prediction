@@ -31,7 +31,6 @@ from ai_fc.timeseries.ledger import (
     _close_vintage_intervals,
     append_facts,
     collect_alfred,
-    incremental_realtime_window,
     normalize_alfred,
     persist_response,
     read_fact_rows,
@@ -64,6 +63,7 @@ from ai_fc.timeseries.pipeline import (
     backtest_timeseries,
     fit_timeseries,
     forecast_timeseries,
+    refresh_timeseries,
 )
 from ai_fc.timeseries.workbook import export_timeseries_workbook
 
@@ -395,24 +395,32 @@ def test_alfred_vintage_closure_appends_explicit_supersedes(tmp_path: Path) -> N
     assert active[0].vintage_end == "2020-02-03T13:30:00+00:00"
 
 
-def test_incremental_alfred_window_uses_realtime_max_across_utc_date_boundary(
-    tmp_path: Path,
+def test_live_alfred_refresh_uses_realtime_max_across_utc_date_boundary(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     root = _root(tmp_path)
-    receipt_path = root / "data/timeseries/ledgers/raw_receipts.jsonl"
-    receipt_path.parent.mkdir(parents=True, exist_ok=True)
-    receipt_path.write_text(
-        json.dumps({"retrieved_at": "2026-08-20T23:55:00+00:00"}) + "\n",
-        encoding="utf-8",
+    captured: dict[str, object] = {}
+    monkeypatch.setattr("ai_fc.timeseries.pipeline.rebuild_facts_from_raw", lambda _root: {})
+    monkeypatch.setattr(
+        "ai_fc.timeseries.pipeline.incremental_realtime_window",
+        lambda _root, retrieved_at: ("2026-08-13", "2026-08-21"),
+    )
+    monkeypatch.setattr("ai_fc.timeseries.pipeline.load_contract", lambda _root: {})
+    monkeypatch.setattr(
+        "ai_fc.timeseries.pipeline.registered_series",
+        lambda _contract, include_historical_bridge: ["PAYEMS"],
     )
 
-    start, end = incremental_realtime_window(
-        root,
-        retrieved_at="2026-08-21T01:30:00+00:00",
-    )
+    def fake_collect(_root: Path, **kwargs: object) -> dict[str, object]:
+        captured.update(kwargs)
+        return {"facts": {"appended": 0}}
 
-    assert start == "2026-08-13"
-    assert end == "9999-12-31"
+    monkeypatch.setattr("ai_fc.timeseries.pipeline.collect_alfred", fake_collect)
+
+    refresh_timeseries(root, api_key="test-key")
+
+    assert captured["realtime_start"] == "2026-08-13"
+    assert captured["realtime_end"] == "9999-12-31"
 
 
 def test_alfred_date_only_vintage_uses_conservative_end_of_day_availability() -> None:

@@ -95,7 +95,13 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
         raise TimeSeriesPipelineError("FRED_API_KEY is required and must be supplied at runtime")
     recovered = rebuild_facts_from_raw(root)
     retrieved = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    realtime_start, realtime_end = incremental_realtime_window(root, retrieved_at=retrieved)
+    realtime_start, _ = incremental_realtime_window(root, retrieved_at=retrieved)
+    # ALFRED's real-time calendar can still be on the prior US business date
+    # when the workflow runs after midnight UTC. Its documented 9999-12-31
+    # sentinel requests the latest admissible vintage without assuming that
+    # the UTC calendar date is already valid in ALFRED. Point-in-time model
+    # views remain constrained by each fact's available_at/vintage timestamps.
+    realtime_end = "9999-12-31"
     contract = load_contract(root)
     result = collect_alfred(
         root,
