@@ -1,0 +1,91 @@
+{
+  "cache_id": "dfm-v2-3c244b8a0702e4cfae1b459b",
+  "cache_key": {
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "cutoff": "1997-02-20T04:59:59+00:00",
+    "input_hash": "a09e7c200bab8cf8ad76bd148c359c344f4934f57353ef01346b5cf6be085101"
+  },
+  "content_hash": "92a8f81a3bd11dccac18bfbfdc469627e16faaf064e298bbc1f8ab92b0770c82",
+  "cutoff": "1997-02-20T04:59:59+00:00",
+  "data_grade": "native_pit",
+  "errors": [],
+  "factors": {
+    "growth_factor": -0.6524725760895569,
+    "inflation_factor": -1.1175875113061193
+  },
+  "fit_diagnostics": {
+    "growth_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 16,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 8.462353817350445e-06,
+      "rows": 936,
+      "series": 4,
+      "tolerance": 1e-05,
+      "warm_start": true,
+      "warnings": [
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.",
+        "The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead."
+      ]
+    },
+    "inflation_factor": {
+      "finite_state_and_parameters": true,
+      "iterations": 186,
+      "log_likelihood_decreased": false,
+      "maximum_iterations": 300,
+      "relative_log_likelihood_change": 9.884839755283998e-06,
+      "rows": 44,
+      "series": 2,
+      "tolerance": 1e-05,
+      "warm_start": false,
+      "warnings": [
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed).",
+        "Setting the shape on a NumPy array has been deprecated in NumPy 2.5.\nAs an alternative, you can create a new view using np.reshape (with copy=False if needed)."
+      ]
+    }
+  },
+  "fit_parameters": {
+    "growth_factor": [
+      -0.8424245695964181,
+      0.5957624595650121,
+      0.3445281021969736,
+      0.2390263678140996,
+      0.00024093675544638513,
+      0.6242299056450876,
+      0.96814197367179,
+      0.032223359412214915,
+      0.8490506232706939,
+      0.4979436571276192,
+      -0.36188371201042846,
+      -0.4612315651092731,
+      0.001162583691764495,
+      0.341559683045742,
+      0.6304288399076565,
+      0.9712323336446549,
+      0.09748361497150035
+    ],
+    "inflation_factor": [
+      0.786313723944313,
+      0.7202920952316677,
+      0.3102937945057302,
+      1.1407576157122163,
+      -0.7460948806036192,
+      -0.08752638278879595,
+      0.07034900678572865,
+      0.21769182406367937
+    ]
+  },
+  "input_hash": "a09e7c200bab8cf8ad76bd148c359c344f4934f57353ef01346b5cf6be085101",
+  "model_id": "shadow.mf_dfm_ridge_varx_v2",
+  "parameter_estimation": "origin_specific_native_pit",
+  "runtime": {
+    "numpy": "2.5.2",
+    "pandas": "2.3.3",
+    "python": "3.12.14",
+    "scipy": "1.18.1",
+    "statsmodels": "0.14.6"
+  },
+  "schema_version": 2,
+  "status": "ready"
+}
