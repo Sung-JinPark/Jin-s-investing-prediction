@@ -1,0 +1,100 @@
+{
+  "protocol_version": 1,
+  "run_id": "manual-bootstrap-20260823-v5-p0-001",
+  "task_id": "V5-P0-001",
+  "attempt_id": "V5-P0-001-a001",
+  "status": "passed",
+  "summary": "Implemented a read-only V4 benchmark reproducer. All independently recomputed hashes, score-grid counts, metrics, coverage values, regime diagnostics, and HOLD reasons match the supplied audit pack; V4 remains shadow_gate_hold.",
+  "root_cause": "V4 preserves the V3 sample median and changes only dispersion with fixed 0.85/1.10/1.60 scales. Its 21/63-session mean CRPS improvement is 0.991177%, below the frozen 2% Gate, and its Q4 and stress coverage Gates also fail.",
+  "changes": [
+    {
+      "path": "src/ai_fc/timeseries_v5/baseline_audit.py",
+      "change": "Added a read-only, independent V4 hash, score, PIT-lineage, event-lineage, regime, Gate, and package reproducer without network or credential access."
+    },
+    {
+      "path": "src/tests/timeseries_v5/test_v4_baseline_audit.py",
+      "change": "Added golden repository integration, incomplete/duplicate score-grid failure, protected-manifest mutation detection, deterministic replay, and secret/network-boundary tests."
+    },
+    {
+      "path": "docs/timeseries_v5/V4_TO_V5_BASELINE_AUDIT.md",
+      "change": "Recorded the independently reproduced V4 benchmark, unchanged HOLD decision, pack comparison, safety proof, tests, and unresolved evidence gaps."
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/",
+      "change": "Wrote hash-addressed benchmark, package verification, protected before/after, non-mutation, secret-isolation, and test evidence."
+    },
+    {
+      "path": "outputs/timeseries_v5/tasks/V5-P0-001-a001/",
+      "change": "Wrote the protocol-compatible task result and test report."
+    }
+  ],
+  "tests": [
+    {
+      "command": "python -m pytest src/tests/timeseries_v5/test_v4_baseline_audit.py src/tests/test_multivariate_timeseries_v4.py src/tests/test_multivariate_timeseries_v3.py -q -p no:cacheprovider",
+      "required": true,
+      "returncode": 0,
+      "passed": 29,
+      "failed": 0,
+      "duration_seconds": 21.276
+    },
+    {
+      "command": "python -m pytest -q -p no:cacheprovider --maxfail=1",
+      "required": false,
+      "returncode": 1,
+      "status": "environment_hold",
+      "classification": "missing_declared_local_dependency",
+      "dependency": "python-frontmatter",
+      "dependency_changed_or_installed": false,
+      "duration_seconds": 1.079
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v5/audit/artifact_manifest.json",
+      "sha256": "01d12a0b1be771520a4e66995fe2066249fff10a5aa6f821cd692267c9691357"
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/baseline_reproduction.json",
+      "sha256": "5032381eb17c927fe27fa7f8458e8182676c5cce6d7c65523b31c6df360a8804"
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_manifest_before.json",
+      "sha256": "eb2084b1df238dbe0b376681005de9c5fa5256355146f0f64dd3e54ce895281c"
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_manifest_after.json",
+      "sha256": "eb2084b1df238dbe0b376681005de9c5fa5256355146f0f64dd3e54ce895281c"
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_non_mutation.json",
+      "sha256": "50fff594b3f6f08b2781c289398bf8bd604dcf277bbea27b95b6c4f3ee161902"
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/secret_non_exposure.json",
+      "sha256": "ee670ffc5187611f60756145fd4d173289980f5908a6dc8bbb9a419166bac16c"
+    },
+    {
+      "path": "outputs/timeseries_v5/tasks/V5-P0-001-a001/test_report.json",
+      "sha256": "996c395b89ed0b1a0f5091cbe0c43d273ef633f3a4969a005963637cfa1e9b0d"
+    }
+  ],
+  "safety_checks": {
+    "protected_hash_unchanged": true,
+    "frozen_coordinates_unchanged": true,
+    "secrets_absent": true,
+    "forbidden_paths_unchanged": true,
+    "future_information_absent": true
+  },
+  "known_limitations": [
+    "V4 has no explicit terminal-outcome ledger: 72 of 72 receipts lack an outcome row.",
+    "All 113615 observations are revision_seq 1, so a real superseding revision chain is not demonstrated.",
+    "57973 observations became available after 16:00 ET while the V4 join reduces availability to a date.",
+    "The Fed event evidence contains 30 rows but only two independent capture snapshots and six snapshot-meeting identities.",
+    "The NFP consensus and actual share the same 2026-08-07T12:30:00Z availability timestamp, so a pre-release snapshot is not proven.",
+    "The broad repository suite could not collect in the current local environment because the already-declared python-frontmatter dependency is absent; no dependency was installed or changed."
+  ],
+  "blockers": [],
+  "recommended_followups": [
+    "V5-P0-002"
+  ]
+}
