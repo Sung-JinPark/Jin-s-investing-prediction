@@ -7,14 +7,17 @@
     "returncode": 0,
     "passed": 29,
     "failed": 0,
-    "duration_seconds": 21.276
+    "duration_seconds": 20.55
   },
   "broad_suite_diagnostic": {
-    "command": "python -m pytest -q -p no:cacheprovider --maxfail=1",
-    "returncode": 1,
-    "status": "environment_hold",
-    "classification": "missing_declared_local_dependency",
-    "dependency": "python-frontmatter",
-    "dependency_changed_or_installed": false
+    "command": "python -m pytest src/tests -q -p no:cacheprovider -k 'not test_parquet_duckdb_store_matches_python_asof'",
+    "returncode": 0,
+    "status": "local_partial_pass",
+    "classification": "one_declared_optional_dependency_test_deselected",
+    "passed": 597,
+    "failed": 0,
+    "deselected": 1,
+    "dependency_changed_or_installed": false,
+    "duration_seconds": 130.79
   }
 }

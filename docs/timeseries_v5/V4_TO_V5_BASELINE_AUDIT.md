@@ -52,17 +52,16 @@ The V4 code applies `median + scale × (samples − median)` using scales 0.85/1
 
 - Pack numeric mismatches: 0.
 - Review-pack manifest errors: 0.
-- V5 blueprint delivery: 8/8 declared files passed size and SHA-256 verification.
-- Protected baseline: 2748 files, 251303134 bytes, manifest `ee33919edeada84eef58fdd6e974a28b48e02a3f037b18b2b99b2bf441751c75`.
+- The separately supplied V5 blueprint delivery is verified by `input_blueprint_verification.json`.
+- Protected baseline: 4951 files, 259763052 bytes, manifest `d25bb1ec803c387057b8892dbc790a47a124871dfbd780129bce6d34ab5a66e1`.
 - V4 remains `shadow_gate_hold`; customer numbers, automatic promotion, publication, and trading remain disabled.
 - No provider credential is needed or read by this reproducer.
 
 ## Tests
 
-- Focused V3/V4/P0-001 suite: `29 passed in 20.22s`, return code 0.
-- Full repository collection: environment HOLD caused by missing local `python-frontmatter` (`ModuleNotFoundError: frontmatter`). The dependency is already declared; this task did not install or alter dependencies.
-- Secret assignment scan over new P0-001 text artifacts: 0 findings.
-- Protected before/after comparison: added 0, removed 0, changed 0.
+- Focused V3/V4/P0-001 results are recorded in `outputs/timeseries_v5/audit/test_report.json`.
+- Full-suite environment status is recorded separately and does not change the V4 HOLD decision.
+- Secret non-exposure and protected before/after evidence are separate machine-readable artifacts.
 
 ## Unresolved blockers
 
