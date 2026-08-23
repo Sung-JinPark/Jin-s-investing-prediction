@@ -369,6 +369,63 @@ def cmd_timeseries_v3_workbook() -> None:
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v4-collect")
+def cmd_timeseries_v4_collect(
+    volume_start_year: int = typer.Option(2009, "--volume-start-year", min=2009),
+) -> None:
+    """Collect the V4 official/public market and expectation archives raw-first."""
+    from .timeseries_v4.source_store import collect_v4_sources, export_v4_parquet
+
+    result = _timeseries_exit(
+        collect_v4_sources, config.ROOT, volume_start_year=volume_start_year,
+    )
+    if result.get("ok"):
+        result["parquet"] = _timeseries_exit(export_v4_parquet, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v4-verify-sources")
+def cmd_timeseries_v4_verify_sources() -> None:
+    """Verify every V4 receipt, raw blob and append-only observation link."""
+    from .timeseries_v4.source_store import verify_v4_source_store
+
+    result = _timeseries_exit(verify_v4_source_store, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-v4-backtest")
+def cmd_timeseries_v4_backtest(
+    bootstrap_iterations: int = typer.Option(1000, "--bootstrap-iterations", min=100),
+) -> None:
+    """Run the exact predecessor replay and V4 PIT distributional Gate."""
+    from .timeseries_v4.pipeline import run_v4_backtest
+
+    result = _timeseries_exit(
+        run_v4_backtest, config.ROOT, bootstrap_iterations=bootstrap_iterations,
+    )
+    typer.echo(json.dumps({
+        "run_id": result["run_id"],
+        "status": result["status"],
+        "research_gate": result["research_gate"],
+        "customer_numbers_visible": False,
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v4-verify")
+def cmd_timeseries_v4_verify() -> None:
+    """Verify V4 hashes, lineage, predecessor identity and fail-closed state."""
+    from .timeseries_v4.pipeline import verify_v4_run
+
+    result = _timeseries_exit(verify_v4_run, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result.get("ok"):
+        raise typer.Exit(code=1)
+
+
 @app.command("audit-ledgers")
 def cmd_audit_ledgers(
     check: bool = typer.Option(False, "--check", help="Do not rewrite baseline/report files"),

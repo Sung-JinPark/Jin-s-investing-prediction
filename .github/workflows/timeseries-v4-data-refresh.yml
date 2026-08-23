@@ -1,0 +1,87 @@
+name: timeseries-v4-data-refresh
+
+on:
+  schedule:
+    - cron: "20 3 * * 6"
+  workflow_dispatch:
+    inputs:
+      rerun_backtest:
+        description: "Re-run the exact V3 comparator and V4 Gate"
+        required: false
+        type: boolean
+        default: true
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/timeseries-v4-data-refresh.yml"
+      - "data/contracts/multivariate_timeseries_v4.yaml"
+      - "src/ai_fc/timeseries_v4/**"
+      - "src/tests/test_multivariate_timeseries_v4.py"
+      - "src/ai_fc/cli.py"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: timeseries-v4-data-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install frozen PIT and time-series runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Run V4 contract, parser, availability and append-only tests
+        run: pytest src/tests/test_multivariate_timeseries_v4.py -q
+      - name: Collect public archives raw-first and build Parquet view
+        if: ${{ github.event_name != 'pull_request' }}
+        run: python -m ai_fc timeseries-v4-collect --volume-start-year 2009
+      - name: Verify raw hashes and receipt linkage
+        if: ${{ github.event_name != 'pull_request' }}
+        run: python -m ai_fc timeseries-v4-verify-sources
+      - name: Re-run the shadow Gate without mutating V1/V2/V3
+        if: ${{ github.event_name != 'pull_request' && (github.event_name == 'schedule' || inputs.rerun_backtest == true) }}
+        run: python -m ai_fc timeseries-v4-backtest --bootstrap-iterations 1000
+      - name: Verify V4 hashes, lineage and fail-closed publication state
+        if: ${{ github.event_name != 'pull_request' }}
+        run: python -m ai_fc timeseries-v4-verify
+      - name: Reject predecessor, official or customer-surface changes
+        if: ${{ github.event_name != 'pull_request' }}
+        shell: bash
+        run: |
+          changed="$(git diff --name-only -- data/timeseries_v1 data/timeseries_v2 data/timeseries_v3 data/scenarios data/forecasts data/ledgers src/ai_fc/dashboard.py src/ai_fc/dashboard_parts || true)"
+          test -z "$changed" || { echo "protected/predecessor paths changed: $changed"; exit 1; }
+      - name: Commit append-only V4 research data
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
+        shell: bash
+        run: |
+          git add data/timeseries_v4
+          git diff --cached --quiet && exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "data(timeseries): refresh V4 research sources"
+          git push
+      - name: Upload V4 evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-v4-research-evidence
+          if-no-files-found: error
+          path: |
+            data/contracts/multivariate_timeseries_v4.yaml
+            data/timeseries_v4/ledgers/*.jsonl
+            data/timeseries_v4/parquet/*.json
+            data/timeseries_v4/multivariate_v4_latest.json
+            data/timeseries_v4/runs/*.json
+
+# A successful refresh may update only the isolated V4 research store.  Gate
+# HOLD never publishes customer numbers and never falls back to another model.

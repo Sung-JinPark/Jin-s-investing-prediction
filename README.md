@@ -31,7 +31,7 @@
 
 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
 
-시계열 예측은 별도 V2 shadow 모델입니다. 거시는 ALFRED 원빈티지, 시장 일봉은 공식 과거자료를 `재구성 시장 아카이브`로 분리합니다. 수정 가능한 Fed EBP는 수집 이후 값만 `captured_forward`로 사용합니다. C1~C4는 2007~2018에서 선택하고 C5 이벤트 오버레이는 충분한 당시자료가 있을 때만 별도로 적용합니다. 2019년 이후 봉인 평가를 통과하기 전에는 숫자를 공개하지 않으며 기존 미래전망·공식 확률과 결합하지 않습니다.
+시계열 예측은 별도 shadow 연구모델입니다. V4는 Cboe 변동성 기간구조·미국 주식시장 폭, Cleveland Fed 물가 nowcast, Philadelphia Fed 전망 평균·분산을 원문부터 누적해 V3의 고정 비교군과 963개 원점에서 검증합니다. 현재 장기 CRPS 개선은 0.99%로 2% Gate에 미달해 `HOLD`이며 고객 숫자는 공개하지 않습니다. 기존 미래전망·공식 확률과도 결합하지 않습니다.
 
 ## 숫자가 화면에 도착하는 과정
 
@@ -79,6 +79,7 @@ flowchart LR
 | 영수증 정정 이력 | [`raw_receipt_corrections.jsonl`](data/statistics/official_store/ledgers/raw_receipt_corrections.jsonl) |
 | 시계열 V1 / V2 사전등록 | [`multivariate_timeseries_v1.yaml`](data/contracts/multivariate_timeseries_v1.yaml) · [`multivariate_timeseries_v2.yaml`](data/contracts/multivariate_timeseries_v2.yaml) |
 | 시계열 PIT / V2 원장 | [`data/timeseries/`](data/timeseries/) · [`data/timeseries_v2/`](data/timeseries_v2/) |
+| 시계열 V4 원천·Gate | [`multivariate_timeseries_v4.yaml`](data/contracts/multivariate_timeseries_v4.yaml) · [`data/timeseries_v4/`](data/timeseries_v4/) |
 
 ## 로컬 실행
 
@@ -103,6 +104,10 @@ uv run ai-fc timeseries-v2-forecast
 uv run ai-fc timeseries-v2-resolve
 uv run ai-fc timeseries-v2-verify
 uv run ai-fc timeseries-v2-workbook
+uv run ai-fc timeseries-v4-collect
+uv run ai-fc timeseries-v4-verify-sources
+uv run ai-fc timeseries-v4-backtest
+uv run ai-fc timeseries-v4-verify
 python tools/ralph_timeseries.py run --max-iterations 50 --max-hours 24 --auto-merge
 uv run ai-fc dashboard --serve --host 127.0.0.1
 ```

@@ -29,3 +29,5 @@ data/timeseries/raw/** -text
 data/timeseries/ledgers/** -text
 data/timeseries_v2/raw/** -text
 data/timeseries_v2/ledgers/** -text
+data/timeseries_v4/raw/** -text
+data/timeseries_v4/ledgers/** -text
