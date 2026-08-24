@@ -765,6 +765,32 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     return base, payload
 
 
+def _compact_embed_forecast_history(read_model: dict) -> dict:
+    """Keep the latest reasoning inline and link superseded rounds to source.
+
+    Pages and API modes retain the complete read model.  The standalone embed
+    has a fixed 900 KiB contract, so superseded forecast bodies are omitted
+    only at this serialization boundary.  Their structured fields and
+    immutable ``source_uri`` remain available, and the input model is never
+    mutated.
+    """
+    history = read_model.get("forecast_history")
+    if not isinstance(history, dict):
+        return read_model
+    compacted = dict(read_model)
+    compacted["forecast_history"] = {
+        question_id: [
+            (
+                {key: value for key, value in row.items() if key != "body"}
+                if index < len(rows) - 1 else dict(row)
+            )
+            for index, row in enumerate(rows)
+        ]
+        for question_id, rows in history.items()
+    }
+    return compacted
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
@@ -797,6 +823,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     if mode == "embed":
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
+        read_model = _compact_embed_forecast_history(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
         blob = json.dumps(

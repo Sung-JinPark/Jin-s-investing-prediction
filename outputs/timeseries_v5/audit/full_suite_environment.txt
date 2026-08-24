@@ -1,0 +1,10 @@
+Local broad-suite diagnostic after rebasing onto origin/main:
+
+597 passed, 1 deselected in 130.79s
+
+The one deselected test requires the declared ai-fc[pit] DuckDB/PyArrow extras,
+which are not installed in this local Anaconda runtime. python-frontmatter is
+also absent locally, so the run used a deterministic read-only frontmatter
+parser shim. No dependency was installed, removed, or upgraded. GitHub CI
+installs the declared pit and timeseries extras and remains the authoritative
+full-suite check before merge.

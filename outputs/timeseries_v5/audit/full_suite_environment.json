@@ -1,0 +1,16 @@
+{
+  "command": "python -m pytest src/tests -q -p no:cacheprovider -k 'not test_parquet_duckdb_store_matches_python_asof'",
+  "returncode": 0,
+  "status": "local_partial_pass",
+  "classification": "one_declared_optional_dependency_test_deselected",
+  "dependencies_absent": ["python-frontmatter", "duckdb", "pyarrow"],
+  "dependency_declared_in_pyproject": true,
+  "dependency_changed_or_installed": false,
+  "frontmatter_parser_shim": "deterministic_read_only_local_test_helper",
+  "passed": 597,
+  "failed": 0,
+  "deselected": 1,
+  "duration_seconds": 130.79,
+  "recorded_at": "2026-08-24T08:56:01.7240430+09:00",
+  "log_path": "outputs/timeseries_v5/audit/full_suite_environment.txt"
+}

@@ -1,0 +1,5 @@
+{
+  "path": "data/timeseries_v4/parquet/observations.parquet",
+  "rows": 113615,
+  "sha256": "5ea619dbe1382638db4aaf6c24e20dea11432c28d168fd382712890dee1c3b34"
+}

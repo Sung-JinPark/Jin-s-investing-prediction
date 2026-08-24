@@ -1,0 +1,428 @@
+{
+  "benchmark_status": "shadow_gate_hold",
+  "fixed_conclusions": {
+    "automatic_promotion": false,
+    "automatic_publication": false,
+    "automatic_trading": false,
+    "existing_2007_2026_is_genuine_v5_sealed_holdout": false,
+    "gate_lowered": false,
+    "v4_hold_must_not_change": true
+  },
+  "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
+  "pack_comparison": {
+    "expected": {
+      "available_after_1600_et_count": 57973,
+      "benchmark_status": "shadow_gate_hold",
+      "fed_independent_snapshot_count": 2,
+      "improvement_21": 0.0028784508084850812,
+      "improvement_63": 0.016945097002685507,
+      "long_horizon_mean_improvement": 0.009911773905585295,
+      "model_id": "shadow.nasdaq_pit_market_event_distribution_v4",
+      "nfp_pre_release_snapshot_proven": false,
+      "observation_count": 113615,
+      "origin_count": 963,
+      "receipt_count": 72,
+      "receipts_without_fact_link": 37,
+      "revision_seq_distribution": {
+        "1": 113615
+      },
+      "sample_count": 4000,
+      "score_count": 3852
+    },
+    "mismatches": [],
+    "observed": {
+      "available_after_1600_et_count": 57973,
+      "benchmark_status": "shadow_gate_hold",
+      "fed_independent_snapshot_count": 2,
+      "improvement_21": 0.0028784508084850812,
+      "improvement_63": 0.016945097002685507,
+      "long_horizon_mean_improvement": 0.009911773905585295,
+      "model_id": "shadow.nasdaq_pit_market_event_distribution_v4",
+      "nfp_pre_release_snapshot_proven": false,
+      "observation_count": 113615,
+      "origin_count": 963,
+      "receipt_count": 72,
+      "receipts_without_fact_link": 37,
+      "revision_seq_distribution": {
+        "1": 113615
+      },
+      "sample_count": 4000,
+      "score_count": 3852
+    }
+  },
+  "reproduction_pass": true,
+  "review_pack": {
+    "manifest_errors": [],
+    "manifest_file_count": 78,
+    "manifest_total_bytes": 83210275,
+    "path": "C:\\workspace\\ai-investing\\.tmp\\tsv3-audit-260821\\outputs\\019fd9ee-deb0-7d63-bef4-8f11a569d7dc\\NASDAQ_MULTIVARIATE_TIMESERIES_V4_REVIEW_PACK_260822.zip",
+    "zip_bytes": 15091342,
+    "zip_entry_count": 80,
+    "zip_sha256": "58911b7b042c34e25075a8933350c8d2699b26e6795d4c80d29d42f1454f1f2c"
+  },
+  "schema_version": 1,
+  "scope": "read_only_v4_immutable_benchmark_reproduction",
+  "storage_and_orchestration_findings": {
+    "jsonl_requires_full_scan_for_latest_read_model": true,
+    "observation_jsonl_bytes": 63935428,
+    "ralph_controller_role": "frozen_v2_repair_loop_not_research_flywheel",
+    "ralph_state_root": "outputs/timeseries_v2/ralph",
+    "v4_weekly_workflow_couples_scheduled_collection_and_full_backtest": true
+  },
+  "task_id": "V5-P0-001",
+  "task_status": "passed_reproduction_v4_remains_hold",
+  "v4_run": {
+    "customer_numbers_visible": false,
+    "gate_reasons": [
+      "21/63 fixed-baseline mean CRPS improvement is below 2%",
+      "extreme-move Q4 coverage gate failed",
+      "a required stress regime coverage is below 70%"
+    ],
+    "hash_mismatches": [],
+    "median_preserving_scale_proof": {
+      "anomaly_thresholds": [
+        0.8,
+        0.95
+      ],
+      "centered_scales": [
+        0.85,
+        1.1,
+        1.6
+      ],
+      "formula": "median(samples) + scale * (samples - median(samples))",
+      "formula_occurrences_in_v4_pipeline": 1,
+      "location_or_direction_learned_by_v4_calibrator": false,
+      "predecessor_content_hash": "74591b18cc845459f2572a301c7686cd7e6fc565ac46a0f813b00eeb785ad2b4",
+      "predecessor_replay_required": true,
+      "predecessor_run_id": "tsv3-research-1f80a06bf6e991d887a5be40",
+      "scale_only": true,
+      "synthetic_median_max_abs_error": 0.0
+    },
+    "model_id": "shadow.nasdaq_pit_market_event_distribution_v4",
+    "recomputed_hashes": {
+      "content_hash": "a22782051c21fd5f3ded735ae8edf03cb2837efc8886ad528e1ebd35799115eb",
+      "contract_hash": "1a4d8df3ad513f4b229b5df147786cdcabc573c58dfe385b8f60c93ba595c5a0",
+      "model_code_hash": "eaffd249815f3c2dab5ae8d0f070403aa675c312b3573d6baf508d2c75741662",
+      "predecessor_content_hash": "74591b18cc845459f2572a301c7686cd7e6fc565ac46a0f813b00eeb785ad2b4"
+    },
+    "run_file_sha256": "e4802ea71f7ecba50778e2a5cd8f56f33b380b1d1d6f6606c2a9e1b8826097e4",
+    "run_id": "tsv4-research-bd2ac04e8f0a985d22628a2a",
+    "run_path": "data/timeseries_v4/runs/tsv4-research-bd2ac04e8f0a985d22628a2a.json",
+    "sample_count": 4000,
+    "score_audit": {
+      "conditional": {
+        "21": {
+          "absolute_move_quartile": {
+            "Q1": {
+              "baseline_crps": 0.014570418674774847,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 241,
+              "crps_improvement": 0.05286132574279795,
+              "model_crps": 0.013800207026998627,
+              "p10_p90_coverage": 1.0
+            },
+            "Q2": {
+              "baseline_crps": 0.017321547519712734,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 240,
+              "crps_improvement": 0.019993566883820934,
+              "model_crps": 0.016975228000846075,
+              "p10_p90_coverage": 1.0
+            },
+            "Q3": {
+              "baseline_crps": 0.02481724589202285,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 241,
+              "crps_improvement": -0.013251062796490819,
+              "model_crps": 0.025146100775773998,
+              "p10_p90_coverage": 0.9294605809128631
+            },
+            "Q4": {
+              "baseline_crps": 0.06343534447127687,
+              "baseline_p10_p90_coverage": 0.5020746887966805,
+              "count": 241,
+              "crps_improvement": -0.006945906338085468,
+              "model_crps": 0.06387596043249855,
+              "p10_p90_coverage": 0.44398340248962653
+            }
+          },
+          "actual_sign": {
+            "down": {
+              "baseline_crps": 0.041988047615655145,
+              "baseline_p10_p90_coverage": 0.8136645962732919,
+              "count": 322,
+              "crps_improvement": -0.011032473716795629,
+              "model_crps": 0.042451279647394424,
+              "p10_p90_coverage": 0.7763975155279503
+            },
+            "up": {
+              "baseline_crps": 0.024052051873113992,
+              "baseline_p10_p90_coverage": 0.906396255850234,
+              "count": 641,
+              "crps_improvement": 0.015077539413786704,
+              "model_crps": 0.023689406113014674,
+              "p10_p90_coverage": 0.8767550702028081
+            }
+          },
+          "stress_regime": {
+            "great_financial_crisis_2008": {
+              "baseline_crps": 0.062041697970318686,
+              "baseline_p10_p90_coverage": 0.7142857142857143,
+              "count": 63,
+              "crps_improvement": 0.0012355137766593236,
+              "model_crps": 0.06196504459774902,
+              "p10_p90_coverage": 0.7142857142857143
+            },
+            "normal": {
+              "baseline_crps": 0.0255292154696682,
+              "baseline_p10_p90_coverage": 0.9025367156208278,
+              "count": 749,
+              "crps_improvement": 0.011966403527031598,
+              "model_crps": 0.025223722575629614,
+              "p10_p90_coverage": 0.8544726301735648
+            },
+            "pandemic_2020": {
+              "baseline_crps": 0.11153359691933537,
+              "baseline_p10_p90_coverage": 0.4444444444444444,
+              "count": 9,
+              "crps_improvement": -0.019436309048146642,
+              "model_crps": 0.11370139837831099,
+              "p10_p90_coverage": 0.3333333333333333
+            },
+            "rebound": {
+              "baseline_crps": 0.027646176479493127,
+              "baseline_p10_p90_coverage": 0.9239130434782609,
+              "count": 92,
+              "crps_improvement": -0.022866139925722652,
+              "model_crps": 0.02827833781928444,
+              "p10_p90_coverage": 0.9565217391304348
+            },
+            "tightening_2022": {
+              "baseline_crps": 0.047205132312161634,
+              "baseline_p10_p90_coverage": 0.66,
+              "count": 50,
+              "crps_improvement": -0.03079286600913464,
+              "model_crps": 0.0486587136263935,
+              "p10_p90_coverage": 0.72
+            }
+          }
+        },
+        "63": {
+          "absolute_move_quartile": {
+            "Q1": {
+              "baseline_crps": 0.02637106376375958,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 241,
+              "crps_improvement": 0.033296137860652865,
+              "model_crps": 0.025493009189149374,
+              "p10_p90_coverage": 1.0
+            },
+            "Q2": {
+              "baseline_crps": 0.029435435630462338,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 240,
+              "crps_improvement": 0.029006590075854252,
+              "model_crps": 0.028581614015425322,
+              "p10_p90_coverage": 0.9833333333333333
+            },
+            "Q3": {
+              "baseline_crps": 0.0427155694280343,
+              "baseline_p10_p90_coverage": 1.0,
+              "count": 241,
+              "crps_improvement": 0.016614880052004243,
+              "model_crps": 0.04200585536563445,
+              "p10_p90_coverage": 0.9087136929460581
+            },
+            "Q4": {
+              "baseline_crps": 0.1086554497614901,
+              "baseline_p10_p90_coverage": 0.48132780082987553,
+              "count": 241,
+              "crps_improvement": 0.009852483929807759,
+              "model_crps": 0.10758492368882898,
+              "p10_p90_coverage": 0.47717842323651455
+            }
+          },
+          "actual_sign": {
+            "down": {
+              "baseline_crps": 0.08045569473303624,
+              "baseline_p10_p90_coverage": 0.7867647058823529,
+              "count": 272,
+              "crps_improvement": -0.007892968750787037,
+              "model_crps": 0.08109072901738695,
+              "p10_p90_coverage": 0.7536764705882353
+            },
+            "up": {
+              "baseline_crps": 0.04054471429184738,
+              "baseline_p10_p90_coverage": 0.9030390738060782,
+              "count": 691,
+              "crps_improvement": 0.03634641231917211,
+              "model_crps": 0.03907105938883287,
+              "p10_p90_coverage": 0.8769898697539797
+            }
+          },
+          "stress_regime": {
+            "great_financial_crisis_2008": {
+              "baseline_crps": 0.1329229448859246,
+              "baseline_p10_p90_coverage": 0.6984126984126984,
+              "count": 63,
+              "crps_improvement": 0.0015413318981681112,
+              "model_crps": 0.13271806651097348,
+              "p10_p90_coverage": 0.6984126984126984
+            },
+            "normal": {
+              "baseline_crps": 0.04313402110185246,
+              "baseline_p10_p90_coverage": 0.8945260347129506,
+              "count": 749,
+              "crps_improvement": 0.02705129210560307,
+              "model_crps": 0.041967190097337,
+              "p10_p90_coverage": 0.842456608811749
+            },
+            "pandemic_2020": {
+              "baseline_crps": 0.13891834013067655,
+              "baseline_p10_p90_coverage": 0.3333333333333333,
+              "count": 9,
+              "crps_improvement": 0.12825277620236059,
+              "model_crps": 0.12110167734349349,
+              "p10_p90_coverage": 0.6666666666666666
+            },
+            "rebound": {
+              "baseline_crps": 0.045533243141750064,
+              "baseline_p10_p90_coverage": 0.9130434782608695,
+              "count": 92,
+              "crps_improvement": -0.013569694447675123,
+              "model_crps": 0.04615111533839531,
+              "p10_p90_coverage": 0.9565217391304348
+            },
+            "tightening_2022": {
+              "baseline_crps": 0.0755899155946913,
+              "baseline_p10_p90_coverage": 0.74,
+              "count": 50,
+              "crps_improvement": -0.03831285409394239,
+              "model_crps": 0.07848598100184413,
+              "p10_p90_coverage": 0.84
+            }
+          }
+        }
+      },
+      "duplicate_origin_horizon_count": 0,
+      "expected_horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "horizons": {
+        "1": {
+          "actual_at_or_above_forecast_median_fraction": 0.509865005192108,
+          "actual_below_forecast_median_fraction": 0.490134994807892,
+          "baseline_crps": 0.007204831088220281,
+          "baseline_p10_p90_coverage": 0.8566978193146417,
+          "improvement": 0.007251860197770264,
+          "model_crps": 0.0071525826604199585,
+          "p10_p90_coverage": 0.8286604361370716,
+          "score_count": 963,
+          "unique_origins": 963
+        },
+        "21": {
+          "actual_at_or_above_forecast_median_fraction": 0.5524402907580478,
+          "actual_below_forecast_median_fraction": 0.4475597092419522,
+          "baseline_crps": 0.030049342246009376,
+          "baseline_p10_p90_coverage": 0.8753894080996885,
+          "improvement": 0.0028784508084850812,
+          "model_crps": 0.029962846692526905,
+          "p10_p90_coverage": 0.8431983385254413,
+          "score_count": 963,
+          "unique_origins": 963
+        },
+        "5": {
+          "actual_at_or_above_forecast_median_fraction": 0.5150571131879543,
+          "actual_below_forecast_median_fraction": 0.48494288681204567,
+          "baseline_crps": 0.015113823779926854,
+          "baseline_p10_p90_coverage": 0.8618899273104881,
+          "improvement": 0.009629640141136894,
+          "model_crps": 0.014968283095769601,
+          "p10_p90_coverage": 0.833852544132918,
+          "score_count": 963,
+          "unique_origins": 963
+        },
+        "63": {
+          "actual_at_or_above_forecast_median_fraction": 0.5773624091381101,
+          "actual_below_forecast_median_fraction": 0.4226375908618899,
+          "baseline_crps": 0.05181759765633686,
+          "baseline_p10_p90_coverage": 0.8701973001038421,
+          "improvement": 0.016945097002685507,
+          "model_crps": 0.0509395434376041,
+          "p10_p90_coverage": 0.842159916926272,
+          "score_count": 963,
+          "unique_origins": 963
+        }
+      },
+      "long_horizon_mean_improvement": 0.009911773905585295,
+      "missing_origin_horizon_count": 0,
+      "origin_count": 963,
+      "paired_loss_difference_90_ci": [
+        -0.0008818872507811194,
+        -0.00011310706618509497
+      ],
+      "quantile_monotonicity_violations": 0,
+      "score_count": 3852
+    },
+    "status": "shadow_gate_hold",
+    "stored_hashes": {
+      "content_hash": "a22782051c21fd5f3ded735ae8edf03cb2837efc8886ad528e1ebd35799115eb",
+      "contract_hash": "1a4d8df3ad513f4b229b5df147786cdcabc573c58dfe385b8f60c93ba595c5a0",
+      "model_code_hash": "eaffd249815f3c2dab5ae8d0f070403aa675c312b3573d6baf508d2c75741662",
+      "predecessor_content_hash": "74591b18cc845459f2572a301c7686cd7e6fc565ac46a0f813b00eeb785ad2b4"
+    }
+  },
+  "v4_source_lineage": {
+    "available_after_1600_et_count": 57973,
+    "explicit_terminal_outcome_receipt_count": 0,
+    "fact_to_receipt_linkage": 1.0,
+    "fed_event_identity": {
+      "independent_snapshot_count": 2,
+      "minimum_must_use_independent_snapshots_not_rows": true,
+      "row_count": 30,
+      "series_row_counts": {
+        "FED_RATE_EXPECTED_TARGET_MIDPOINT": 6,
+        "FED_RATE_PATH_ENTROPY": 6,
+        "FED_RATE_TARGET_PROBABILITY": 18
+      },
+      "snapshot_ids": [
+        "post_jobs_current",
+        "pre_jobs_previous_day"
+      ],
+      "snapshot_meeting_count": 6
+    },
+    "local_raw_receipt_count": 70,
+    "nfp_consensus": {
+      "actual_available_at": [
+        "2026-08-07T12:30:00+00:00"
+      ],
+      "actual_row_count": 1,
+      "consensus_available_at": [
+        "2026-08-07T12:30:00+00:00"
+      ],
+      "consensus_row_count": 1,
+      "model_use": "ineligible_as_pre_event_feature",
+      "pre_release_snapshot_proven": false,
+      "reason": "consensus and actual share the same availability timestamp"
+    },
+    "observation_count": 113615,
+    "orphan_observation_count": 0,
+    "private_locator_receipt_count": 2,
+    "raw_verification_errors": [],
+    "receipt_count": 72,
+    "receipt_fact_mismatch_count": 0,
+    "receipts_with_fact_link": 35,
+    "receipts_without_explicit_terminal_outcome": 72,
+    "receipts_without_fact_link": 37,
+    "revision_seq_distribution": {
+      "1": 113615
+    },
+    "series_count": 97,
+    "supersedes_count": 0,
+    "terminal_outcome_ledger_present": false,
+    "unique_raw_sha256_count": 36
+  }
+}

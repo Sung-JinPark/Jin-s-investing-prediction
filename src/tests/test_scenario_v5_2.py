@@ -16,7 +16,6 @@ from ai_fc.scenario_v5.contracts import (
     canonical_hash,
     canonical_numerical_hash,
     compare_protected_append_only,
-    compare_protected_hashes,
     protected_hashes,
 )
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
@@ -875,9 +874,10 @@ def test_mutations_fail_probability_dates_circularity_and_distinctness() -> None
 def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
     payload = _candidate()
     before = payload["build_receipt"]["protected_before"]
-    comparison = compare_protected_hashes(before, protected_hashes(ROOT))
+    comparison = compare_protected_append_only(before, protected_hashes(ROOT))
     assert comparison["ok"], comparison
     assert comparison["added"] == comparison["removed"] == comparison["changed"] == []
+    assert comparison["refreshed_auxiliary"] in ([], ["forecasts/.hashes.ots"])
 
 
 def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:

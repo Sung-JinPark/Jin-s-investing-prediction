@@ -1,0 +1,18 @@
+{
+  "declared_file_count": 8,
+  "delivery_id": "NASDAQ_V4_AUDIT_V5_AUTONOMOUS_FLYWHEEL_20260822",
+  "delivery_zip_bytes": 58405,
+  "delivery_zip_path": "C:\\Users\\91ssj\\Downloads\\NASDAQ_V4_AUDIT_V5_AUTONOMOUS_FLYWHEEL_PACK_20260822.zip",
+  "delivery_zip_sha256": "a715edb0ac295c382c8a273d04380d2f56957d0cda2591f4bf4e13c03335f834",
+  "errors": [],
+  "result": "PASS",
+  "schema_version": 1,
+  "source_review_pack": {
+    "included_in_delivery_zip": false,
+    "name": "NASDAQ_MULTIVARIATE_TIMESERIES_V4_REVIEW_PACK_260822.zip",
+    "sha256": "58911b7b042c34e25075a8933350c8d2699b26e6795d4c80d29d42f1454f1f2c",
+    "size_bytes": 15091342
+  },
+  "task_id": "V5-P0-001",
+  "verified_file_count": 8
+}

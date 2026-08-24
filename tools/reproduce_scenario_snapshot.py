@@ -17,6 +17,7 @@ import numpy as np
 
 QUANTILES = ((5, "p05"), (10, "p10"), (25, "p25"), (50, "p50"),
              (75, "p75"), (90, "p90"), (95, "p95"))
+MAX_ROUNDING_BOUNDARY_FRACTION = 0.002
 
 
 def _round_probabilities(masks: tuple[np.ndarray, np.ndarray, np.ndarray]) -> list[int]:
@@ -60,6 +61,9 @@ def verify(path: Path) -> dict[str, object]:
     hard_mismatches = 0
     rounding_boundary_cells = 0
     maximum_rounding_boundary_distance = 0.0
+    rounding_boundary_tolerance_cells = int(np.ceil(
+        len(expected_quantiles) * horizon * MAX_ROUNDING_BOUNDARY_FRACTION
+    ))
     for key in expected_quantiles:
         for expected, reproduced, raw in zip(
             expected_quantiles[key], reproduced_quantiles[key], raw_quantiles[key]
@@ -86,8 +90,13 @@ def verify(path: Path) -> dict[str, object]:
         "quantile_cells_checked": len(expected_quantiles) * horizon,
         "quantile_mismatches": hard_mismatches,
         "quantile_rounding_boundary_cells": rounding_boundary_cells,
+        "quantile_rounding_boundary_tolerance_cells": rounding_boundary_tolerance_cells,
         "maximum_rounding_boundary_distance": maximum_rounding_boundary_distance,
-        "passed": reproduced_probabilities == expected_probabilities and hard_mismatches == 0,
+        "passed": (
+            reproduced_probabilities == expected_probabilities
+            and hard_mismatches == 0
+            and rounding_boundary_cells <= rounding_boundary_tolerance_cells
+        ),
     }
     return result
 

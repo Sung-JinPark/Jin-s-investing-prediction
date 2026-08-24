@@ -90,6 +90,23 @@ def test_forecast_body_dictionary_round_trip() -> None:
     assert tuple(re.findall(r"'([^']*)'", js_dictionary.group(1))) == dashboard.FORECAST_BODY_DICTIONARY
 
 
+def test_embed_compaction_keeps_latest_body_and_superseded_source_link() -> None:
+    model = {
+        "forecast_history": {
+            "question": [
+                {"forecast_id": "old", "body": "old reasoning", "source_uri": "forecasts/old.md"},
+                {"forecast_id": "latest", "body": "latest reasoning", "source_uri": "forecasts/latest.md"},
+            ]
+        }
+    }
+    compacted = dashboard._compact_embed_forecast_history(model)
+    old, latest = compacted["forecast_history"]["question"]
+    assert "body" not in old
+    assert old["source_uri"] == "forecasts/old.md"
+    assert latest["body"] == "latest reasoning"
+    assert model["forecast_history"]["question"][0]["body"] == "old reasoning"
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 

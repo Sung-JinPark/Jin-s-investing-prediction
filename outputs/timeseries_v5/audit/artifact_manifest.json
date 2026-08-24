@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "task_id": "V5-P0-001",
+  "attempt_id": "V5-P0-001-a001",
+  "generated_at": "2026-08-24T09:02:15+09:00",
+  "scope_note": "This manifest covers the P0-001 implementation, evidence, and tests. It excludes this self-referential manifest and the task result envelope.",
+  "artifacts": [
+    {
+      "path": "docs/timeseries_v5/V4_TO_V5_BASELINE_AUDIT.md",
+      "sha256": "c25259369d2cffb7da7b5646925c7d2e435abb2f678fed4ff87a1b2d16892eb8",
+      "bytes": 4115
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/baseline_reproduction.json",
+      "sha256": "b40693afbdf64156c49ac6867fa05c080485038d937b9b9f7eaab92542f4c161",
+      "bytes": 16559
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/full_suite_environment.json",
+      "sha256": "29e3f826896ab997b31220e06d487f3a8b7a678f92677ee70a894cb6185de93c",
+      "bytes": 688
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/full_suite_environment.txt",
+      "sha256": "e984d58a4c5bf26664ae43da6bbdd1b9e660c5688d3bb81a814c8166b684b057",
+      "bytes": 516
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/input_blueprint_verification.json",
+      "sha256": "8ed4dd3670c9016612518ada5365911aaa70bec72da27ec0c5ad14f803c0473f",
+      "bytes": 699
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_manifest_after.json",
+      "sha256": "98c28bd314b0c08cb25a320b4e897c32510f29d5b19a1049a8022558bee6d581",
+      "bytes": 1071998
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_manifest_before.json",
+      "sha256": "98c28bd314b0c08cb25a320b4e897c32510f29d5b19a1049a8022558bee6d581",
+      "bytes": 1071998
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/protected_non_mutation.json",
+      "sha256": "ec9f1f1af3525dbf7eb84f0fb0213dc68c5ef52e5a6690dbadf7e4e503fbf40c",
+      "bytes": 264
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/secret_non_exposure.json",
+      "sha256": "785df02a94fb76875a9e172cb2fd24253b8aa810a8f4f098748121fd5e8901c9",
+      "bytes": 402
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/targeted_tests.txt",
+      "sha256": "e9e5f0feeec8efb23499a1cf96a0c5afaabeea9e36d2404bef7d9ac558f2472c",
+      "bytes": 100
+    },
+    {
+      "path": "outputs/timeseries_v5/audit/test_report.json",
+      "sha256": "7809fd305d738f9fe8d15e0474371b026ba5c9a1d3b28c7ea3cfd1249255d1a1",
+      "bytes": 396
+    },
+    {
+      "path": "outputs/timeseries_v5/tasks/V5-P0-001-a001/test_report.json",
+      "sha256": "b2b604f39a377f5949c99a25ee47a45016a2d78d2f3cb361ecb06902536949d5",
+      "bytes": 827
+    },
+    {
+      "path": "src/ai_fc/timeseries_v5/__init__.py",
+      "sha256": "6529292ca72134379587a1fc13c611ba86779d0a74484a3e39b79c7b6b7cbc9d",
+      "bytes": 194
+    },
+    {
+      "path": "src/ai_fc/timeseries_v5/baseline_audit.py",
+      "sha256": "201ba0b3bb824894b0b5a2bbafc6baf9124170a91054bfea35794f6d481616ea",
+      "bytes": 36547
+    },
+    {
+      "path": "src/tests/timeseries_v5/test_v4_baseline_audit.py",
+      "sha256": "6c72b1d8bdcbaa972c87e5beb23a69a57796b15845f69c326732a5072f0c88d5",
+      "bytes": 5382
+    }
+  ]
+}

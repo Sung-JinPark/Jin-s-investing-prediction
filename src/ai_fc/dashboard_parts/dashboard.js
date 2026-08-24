@@ -2624,7 +2624,9 @@ function confidenceBand(round){
   return hasNumeric(round?.ci80_lo)&&hasNumeric(round?.ci80_hi)?`${Number(round.ci80_lo)}–${Number(round.ci80_hi)}%`:'기록 없음';
 }
 function reasoningText(round){
-  return decodeForecastBody(round?.body).trim()||'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
+  const text=decodeForecastBody(round?.body).trim();
+  if(text)return text;
+  return round?.source_uri?'이전 회차 원문은 자기완결 화면의 용량을 위해 생략했습니다. 근거 문서 링크에서 원문을 확인할 수 있습니다.':'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
 }
 function evidenceDeltaMarkup(current,previous){
   const method=current.method||current.model||'기록 없음';
