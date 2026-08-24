@@ -2,8 +2,8 @@
   "command": "python -m pytest src/tests/timeseries_v5/test_v4_baseline_audit.py src/tests/test_multivariate_timeseries_v4.py src/tests/test_multivariate_timeseries_v3.py -q -p no:cacheprovider",
   "returncode": 0,
   "recorded_at": "2026-08-24T08:56:01.7240430+09:00",
-  "duration_seconds": 20.55,
-  "passed": 29,
+  "duration_seconds": 20.43,
+  "passed": 30,
   "failed": 0,
   "log_path": "outputs/timeseries_v5/audit/targeted_tests.txt"
 }

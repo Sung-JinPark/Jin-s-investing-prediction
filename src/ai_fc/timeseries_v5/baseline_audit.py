@@ -661,9 +661,10 @@ def compare_protected_manifests(before: dict[str, Any], after: dict[str, Any]) -
 def _atomic_json(path: Path, payload: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n",
-        encoding="utf-8",
+    # Write bytes so Windows newline translation cannot make the audited
+    # worktree hash differ from the normalized Git blob hash.
+    temporary.write_bytes(
+        (json.dumps(payload, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
     )
     os.replace(temporary, path)
 
@@ -760,7 +761,7 @@ def write_audit_artifacts(root: Path, *, review_pack: Path) -> dict[str, Path]:
     _atomic_json(audit_dir / "baseline_reproduction.json", result)
     docs_dir.mkdir(parents=True, exist_ok=True)
     report_path = docs_dir / "V4_TO_V5_BASELINE_AUDIT.md"
-    report_path.write_text(_audit_markdown(result, before), encoding="utf-8")
+    report_path.write_bytes(_audit_markdown(result, before).encode("utf-8"))
     after = create_protected_manifest(root)
     comparison = compare_protected_manifests(before, after)
     _atomic_json(audit_dir / "protected_manifest_after.json", after)

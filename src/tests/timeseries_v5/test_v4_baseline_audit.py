@@ -6,6 +6,7 @@ from pathlib import Path
 import pytest
 
 from ai_fc.timeseries_v5.baseline_audit import (
+    _atomic_json,
     compare_protected_manifests,
     compute_score_audit,
     create_protected_manifest,
@@ -19,6 +20,14 @@ REVIEW_PACK = (
     / "outputs/019fd9ee-deb0-7d63-bef4-8f11a569d7dc"
     / "NASDAQ_MULTIVARIATE_TIMESERIES_V4_REVIEW_PACK_260822.zip"
 )
+
+
+def test_audit_json_writer_is_platform_independent_lf(tmp_path):
+    artifact = tmp_path / "audit.json"
+    _atomic_json(artifact, {"status": "passed", "items": [1, 2]})
+    payload = artifact.read_bytes()
+    assert payload.endswith(b"\n")
+    assert b"\r\n" not in payload
 
 
 def test_score_audit_rejects_duplicate_or_incomplete_origin_horizon_grid():

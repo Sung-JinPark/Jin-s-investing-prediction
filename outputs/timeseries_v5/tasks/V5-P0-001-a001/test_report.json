@@ -5,9 +5,9 @@
   "required_acceptance": {
     "command": "python -m pytest src/tests/timeseries_v5/test_v4_baseline_audit.py src/tests/test_multivariate_timeseries_v4.py src/tests/test_multivariate_timeseries_v3.py -q -p no:cacheprovider",
     "returncode": 0,
-    "passed": 29,
+    "passed": 30,
     "failed": 0,
-    "duration_seconds": 20.55
+    "duration_seconds": 20.43
   },
   "broad_suite_diagnostic": {
     "command": "python -m pytest src/tests -q -p no:cacheprovider -k 'not test_parquet_duckdb_store_matches_python_asof'",
