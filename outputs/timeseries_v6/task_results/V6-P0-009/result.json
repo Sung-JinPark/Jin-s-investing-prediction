@@ -1,0 +1,108 @@
+{
+  "artifacts": [
+    {
+      "bytes": 8739,
+      "path": "migrations/timeseries_v6/0001_typed_core.sql",
+      "sha256": "f60dfd62609c2b3657ab7cd2b204424cbddcdcc25efa6b7c6e6a6be5c887ce63"
+    },
+    {
+      "bytes": 10566,
+      "path": "src/ai_fc/timeseries_v6/repositories.py",
+      "sha256": "971df2a8033c3dbfe800262f6127eb3c9ac41552f3776c5d6f2b4f6b14ff0884"
+    },
+    {
+      "bytes": 4330,
+      "path": "src/tests/timeseries_v6/test_v6_typed_repositories.py",
+      "sha256": "0ab5a15e7b0fc589cf23e6c7d23b694e6402c2f99f4f4b2d8022bba3cc2de544"
+    },
+    {
+      "bytes": 3355,
+      "path": "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+      "sha256": "0df739d881f8845837e25ecbfc670841d6534f693119fb791a44d0573e1a2882"
+    },
+    {
+      "bytes": 1026,
+      "path": "containers/timeseries_v6/Dockerfile.replay",
+      "sha256": "8327f094c0ba7ffd39fba39dd277bc06f957ff98a44eb3ab76190e4df7f13c79"
+    },
+    {
+      "bytes": 100,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-009/postgres_integration.log",
+      "sha256": "c94f2add614de805d49dc30834f4f3a7b7a290a796a0367ac258887f78c1e786"
+    },
+    {
+      "bytes": 112,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-009/targeted_tests.log",
+      "sha256": "0b7332c58dc874325c08d73bacd8375e0c30a0e69f59ac7b033ff05fe2f99ce3"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "migrations/timeseries_v6/0001_typed_core.sql",
+    "src/ai_fc/timeseries_v6/repositories.py",
+    "src/tests/timeseries_v6/test_v6_typed_repositories.py",
+    "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+    "containers/timeseries_v6/Dockerfile.replay",
+    "outputs/timeseries_v6/task_results/V6-P0-009/postgres_integration.log",
+    "outputs/timeseries_v6/task_results/V6-P0-009/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-009/result.json"
+  ],
+  "checks": {
+    "append_only_update_rejection": "pass",
+    "foreign_key_constraints": "pass",
+    "generic_jsonb_core_writes": 0,
+    "postgres_integration": {
+      "failed": 0,
+      "passed": 1
+    },
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "suite": {
+      "failed": 0,
+      "passed": 60,
+      "skipped": 1
+    },
+    "typed_tables": 12,
+    "unique_terminal_outcome": "pass"
+  },
+  "commands": [
+    {
+      "command": "ephemeral PostgreSQL 16.4 integration pytest",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-009/postgres_integration.log"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-009/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:52:13.900105Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The local test uses an ephemeral PostgreSQL 16.4 container; managed Neon credentials are not configured and were not required for schema verification."
+  ],
+  "next_task_recommendation": "V6-P0-010",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T07:58:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-009",
+  "unresolved_blockers": []
+}

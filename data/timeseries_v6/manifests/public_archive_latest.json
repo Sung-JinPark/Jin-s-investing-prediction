@@ -1,0 +1,630 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-08-24T08:50:19.486500+00:00",
+  "receipts": [
+    {
+      "receipt_id": "tsv6-receipt-6c5fcc73333c202c627ec83d",
+      "source_id": "fred_alfred",
+      "series_id": "NASDAQCOM",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "2852d4d00763e112654aaaf9e1c8689e352261460d7ec59590674513a80cfe71",
+        "stored_sha256": "b5c4a136b744b84b670921e8fc13ef347f0e8d0c20d6c4a6218e46963de5e8e4",
+        "decompressed_bytes": 164173,
+        "stored_bytes": 51412,
+        "object_uri": "local-content://sha256/28/2852d4d00763e112654aaaf9e1c8689e352261460d7ec59590674513a80cfe71.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 7963
+    },
+    {
+      "receipt_id": "tsv6-receipt-31528b6ad986c198b3ca1960",
+      "source_id": "cboe_vix",
+      "series_id": "VIX",
+      "source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+      "object": {
+        "object_sha256": "2cbdd7489a304eac0132205d4262083d4d6ae6208e16255db424ed5b5afee215",
+        "stored_sha256": "137efb14b8823aeeb0e2cf897437592b0e203947edcc4c8229d94f034d69a555",
+        "decompressed_bytes": 471799,
+        "stored_bytes": 105282,
+        "object_uri": "local-content://sha256/2c/2cbdd7489a304eac0132205d4262083d4d6ae6208e16255db424ed5b5afee215.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 9256
+    },
+    {
+      "receipt_id": "tsv6-receipt-8796413db5481809d0a21fcb",
+      "source_id": "cboe_vix9d",
+      "series_id": "VIX9D",
+      "source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX9D_History.csv",
+      "object": {
+        "object_sha256": "0356cc5273d359df989fd1a9092955fa964e3528df86ca6fe4949cf8eb72c0ed",
+        "stored_sha256": "daa86d3716c2ee39592de8327d3dd3f65a440a29dd9e1c308a45b1501c1b95cd",
+        "decompressed_bytes": 199673,
+        "stored_bytes": 43956,
+        "object_uri": "local-content://sha256/03/0356cc5273d359df989fd1a9092955fa964e3528df86ca6fe4949cf8eb72c0ed.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 3931
+    },
+    {
+      "receipt_id": "tsv6-receipt-fbe9b8fccb5e0ec29f98afc5",
+      "source_id": "cboe_vix3m",
+      "series_id": "VIX3M",
+      "source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX3M_History.csv",
+      "object": {
+        "object_sha256": "c5d83384752250219bdc99867eb76cb099bb272c93f29c2ff89105c5b068aaa3",
+        "stored_sha256": "07f8c6ceb8d75e6fcefcd540c9c8b2813eac8aa47dc97f638b82b3347c80697d",
+        "decompressed_bytes": 217132,
+        "stored_bytes": 48739,
+        "object_uri": "local-content://sha256/c5/c5d83384752250219bdc99867eb76cb099bb272c93f29c2ff89105c5b068aaa3.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 4257
+    },
+    {
+      "receipt_id": "tsv6-receipt-ed67b22997649d92b96e39c1",
+      "source_id": "cboe_vvix",
+      "series_id": "VVIX",
+      "source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VVIX_History.csv",
+      "object": {
+        "object_sha256": "3ae2a3ffd4f23107268ac47420d303bb586a809ce7e54c89807d7600f82e8eec",
+        "stored_sha256": "a8734ef49828b518b48f26854453fa1f8b841fe1836dd8d148514e57c9b71ae2",
+        "decompressed_bytes": 108288,
+        "stored_bytes": 26567,
+        "object_uri": "local-content://sha256/3a/3ae2a3ffd4f23107268ac47420d303bb586a809ce7e54c89807d7600f82e8eec.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 5088
+    },
+    {
+      "receipt_id": "tsv6-receipt-ccc61841b5261f2016032ac0",
+      "source_id": "cboe_skew",
+      "series_id": "SKEW",
+      "source_uri": "https://cdn.cboe.com/api/global/us_indices/daily_prices/SKEW_History.csv",
+      "object": {
+        "object_sha256": "790547da55a75ee8f71e86b230a4f7f065951bc232960cafba76e03c90c9fe36",
+        "stored_sha256": "1024719ac023fe8e143313b60344bfb913b52d259b7044c469ab306fdc187865",
+        "decompressed_bytes": 202652,
+        "stored_bytes": 45626,
+        "object_uri": "local-content://sha256/79/790547da55a75ee8f71e86b230a4f7f065951bc232960cafba76e03c90c9fe36.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 9211
+    },
+    {
+      "receipt_id": "tsv6-receipt-0d49c732295eac7cb540344d",
+      "source_id": "ofr_fsi",
+      "series_id": "OFR_FSI",
+      "source_uri": "https://www.financialresearch.gov/financial-stress-index/data/fsi.csv",
+      "object": {
+        "object_sha256": "91032e19b7a1ff890da410cbe7815e20c18185ced9bd2e18a0f22d25aa1df908",
+        "stored_sha256": "dcf45b4fe6ed0c64818c6511d2f61255e6514e3f30e7006125151abb2bcbc71a",
+        "decompressed_bytes": 513509,
+        "stored_bytes": 173057,
+        "object_uri": "local-content://sha256/91/91032e19b7a1ff890da410cbe7815e20c18185ced9bd2e18a0f22d25aa1df908.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 6740
+    },
+    {
+      "receipt_id": "tsv6-receipt-c95c937757f44ff66be5cc5d",
+      "source_id": "fed_ebp",
+      "series_id": "EBP",
+      "source_uri": "https://www.federalreserve.gov/econres/notes/feds-notes/ebp_csv.csv",
+      "object": {
+        "object_sha256": "cc51b2747654e3ed003e0a6ce5500de054c1a8dcd3ec00bace1c6742416ab2eb",
+        "stored_sha256": "725ddbc6e55fa7aeb93b398db050c5822bf8baa31b90b5850368e11071155c2d",
+        "decompressed_bytes": 39697,
+        "stored_bytes": 17962,
+        "object_uri": "local-content://sha256/cc/cc51b2747654e3ed003e0a6ce5500de054c1a8dcd3ec00bace1c6742416ab2eb.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/octet-stream",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 643
+    },
+    {
+      "receipt_id": "tsv6-receipt-0ea3f44f6654eb0555595001",
+      "source_id": "nyfed_cmdi",
+      "series_id": "CMDI",
+      "source_uri": "https://www.newyorkfed.org/medialibrary/research/interactives/data/cmdi/cmdi_interactive_data.xlsx",
+      "object": {
+        "object_sha256": "90c55017973635cad7121e9f1a39b6cded422739a549b940c18cfe0a80e3f7af",
+        "stored_sha256": "50ffec4f8b38c0ea4dd3814cf80b430622c0de6994f4c3911d66e29a85edd856",
+        "decompressed_bytes": 81483,
+        "stored_bytes": 75688,
+        "object_uri": "local-content://sha256/90/90c55017973635cad7121e9f1a39b6cded422739a549b940c18cfe0a80e3f7af.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 1125
+    },
+    {
+      "receipt_id": "tsv6-receipt-94159c592b822b8113a36d64",
+      "source_id": "cftc_tff",
+      "series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "source_uri": "https://publicreporting.cftc.gov/resource/gpe5-46if.csv?$limit=50000&$where=upper(contract_market_name)%20like%20%27%25NASDAQ%25%27&$order=report_date_as_yyyy_mm_dd",
+      "object": {
+        "object_sha256": "15ca75e9a991caf542798a487f6b9bae91b89b887d3b141366e269aa39d02271",
+        "stored_sha256": "335ec8eeeec64cbd715d1763f3c18074dd654a52cd46e5dbf57b01cb01eba450",
+        "decompressed_bytes": 1927056,
+        "stored_bytes": 402605,
+        "object_uri": "local-content://sha256/15/15ca75e9a991caf542798a487f6b9bae91b89b887d3b141366e269aa39d02271.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "text/csv; charset=UTF-8",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 1054
+    },
+    {
+      "receipt_id": "tsv6-receipt-d3a2b8e7678ab243fb4edb29",
+      "source_id": "fred_alfred",
+      "series_id": "DGS2",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "21c26724b30c779b6770e2f68081a3827e3aced48e0febe03d87b3412d1796ba",
+        "stored_sha256": "42b6b4b72e7b522b3d4405c0551cedef1b13621091a67379a0fac0ceb524fb8d",
+        "decompressed_bytes": 130718,
+        "stored_bytes": 29804,
+        "object_uri": "local-content://sha256/21/21c26724b30c779b6770e2f68081a3827e3aced48e0febe03d87b3412d1796ba.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 7915
+    },
+    {
+      "receipt_id": "tsv6-receipt-2795b48d7b43ee95b9829d40",
+      "source_id": "fred_alfred",
+      "series_id": "T10Y2Y",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "a645b02bd525eb8e7d4f6017cc4a0f0392ca1bf785184b04d7823bf6d5aa11a1",
+        "stored_sha256": "8816ddb93487179fd023c5ad1f63c00cc29475a86abb04153aac85346ac41ecc",
+        "decompressed_bytes": 131772,
+        "stored_bytes": 29239,
+        "object_uri": "local-content://sha256/a6/a645b02bd525eb8e7d4f6017cc4a0f0392ca1bf785184b04d7823bf6d5aa11a1.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 7916
+    },
+    {
+      "receipt_id": "tsv6-receipt-243822f74ee3d7168424a8b3",
+      "source_id": "fed_h10",
+      "series_id": "DTWEXBGS",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS&cosd=2006-01-01",
+      "object": {
+        "object_sha256": "099b0ab4007d2060e319d5bef35d749a3bf397c5347c74703b8e9a626a99c2ae",
+        "stored_sha256": "6b3fad1b555efddc38b48351bc966c731ea3ffda1baea3205dd172b981fe342f",
+        "decompressed_bytes": 103845,
+        "stored_bytes": 31132,
+        "object_uri": "local-content://sha256/09/099b0ab4007d2060e319d5bef35d749a3bf397c5347c74703b8e9a626a99c2ae.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 5169
+    },
+    {
+      "receipt_id": "tsv6-receipt-febc78bc8411420dea5b447c",
+      "source_id": "chicago_fed_nfci",
+      "series_id": "NFCI",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "856af78b98dff1d0edd80bc9d065456a2aa3f0680b2f4ed674fdf088871b7031",
+        "stored_sha256": "562fc71a0ac4984628f489148716e19f37668c2b2992139374ffb74920fcfbf5",
+        "decompressed_bytes": 29585,
+        "stored_bytes": 7705,
+        "object_uri": "local-content://sha256/85/856af78b98dff1d0edd80bc9d065456a2aa3f0680b2f4ed674fdf088871b7031.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 1650
+    },
+    {
+      "receipt_id": "tsv6-receipt-f4e226fd90267126c30354ba",
+      "source_id": "fred_alfred",
+      "series_id": "DFF",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFF&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "216fbce13effaf47f98c275a5b61ce7d48e62519197a07f27d4dc95aba785f06",
+        "stored_sha256": "bf283d50afc5b3eee19c735980c13f1c988dfed5c683a012d574bcd259cecd3b",
+        "decompressed_bytes": 184901,
+        "stored_bytes": 30679,
+        "object_uri": "local-content://sha256/21/216fbce13effaf47f98c275a5b61ce7d48e62519197a07f27d4dc95aba785f06.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 11555
+    },
+    {
+      "receipt_id": "tsv6-receipt-6937e27fd0e7072128cc20a3",
+      "source_id": "fed_h41",
+      "series_id": "WALCL",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WALCL&cosd=2002-01-01",
+      "object": {
+        "object_sha256": "99b4e038ea36e7e8672450ad7f44cbdf5d9d8040f44937c9e1873b2d2f6aa5f8",
+        "stored_sha256": "8c04c4efbcc9efd7973ee1eaf9550463d8a8279935d03dbd073113f03148a5d2",
+        "decompressed_bytes": 23206,
+        "stored_bytes": 8339,
+        "object_uri": "local-content://sha256/99/99b4e038ea36e7e8672450ad7f44cbdf5d9d8040f44937c9e1873b2d2f6aa5f8.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 1236
+    },
+    {
+      "receipt_id": "tsv6-receipt-5548b0696fc4b58af937e41e",
+      "source_id": "treasury_dts",
+      "series_id": "WTREGEN",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WTREGEN&cosd=2002-01-01",
+      "object": {
+        "object_sha256": "673329e7e2acf713ff2b8897fdc2cc767b7704b73b0b87424a24398b0e4e5c0c",
+        "stored_sha256": "23c027273714cf9d1bd3573771b393b69b5f09717d7a952f9b01f833a7b3dcaf",
+        "decompressed_bytes": 21404,
+        "stored_bytes": 7683,
+        "object_uri": "local-content://sha256/67/673329e7e2acf713ff2b8897fdc2cc767b7704b73b0b87424a24398b0e4e5c0c.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 1236
+    },
+    {
+      "receipt_id": "tsv6-receipt-2aa7535606add225efc13833",
+      "source_id": "nyfed_markets",
+      "series_id": "RRPONTSYD",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=RRPONTSYD&cosd=2003-01-01",
+      "object": {
+        "object_sha256": "9780f88f6ba0c007ece74f8414bd083ff5e84cdf521bc857e097b07c0ca0f1ee",
+        "stored_sha256": "5b55a79a34ab7b093b75e35470cdb0bc2482e497dc1d9a9a8900d2f89bc89189",
+        "decompressed_bytes": 94850,
+        "stored_bytes": 27544,
+        "object_uri": "local-content://sha256/97/9780f88f6ba0c007ece74f8414bd083ff5e84cdf521bc857e097b07c0ca0f1ee.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 3310
+    },
+    {
+      "receipt_id": "tsv6-receipt-2ea546985ca73de37107a61e",
+      "source_id": "fred_alfred",
+      "series_id": "M2SL",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
+        "stored_sha256": "6c6a2d91edf88c166e6ce9bd8499a33e5747e05c17b067d0f636d7f1e8b2c9b8",
+        "decompressed_bytes": 6995,
+        "stored_bytes": 2193,
+        "object_uri": "local-content://sha256/3f/3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 378
+    },
+    {
+      "receipt_id": "tsv6-receipt-5320672bdfcd999907274e25",
+      "source_id": "fred_alfred",
+      "series_id": "PAYEMS",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=PAYEMS&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "9e63f330440859e27d5c2894866ed73533e4df4124b4b048b016425de9a89f6c",
+        "stored_sha256": "1b7942cc75f87aef467e30bb008bde769e735169214ad903f30c06996ccb2d6d",
+        "decompressed_bytes": 6846,
+        "stored_bytes": 2002,
+        "object_uri": "local-content://sha256/9e/9e63f330440859e27d5c2894866ed73533e4df4124b4b048b016425de9a89f6c.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 379
+    },
+    {
+      "receipt_id": "tsv6-receipt-11972b24ce873bb2786a9ce8",
+      "source_id": "fred_alfred",
+      "series_id": "UNRATE",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
+        "stored_sha256": "877681f55d7bc452fb5483ebf81255bef74c1801403e519fc16de19010226101",
+        "decompressed_bytes": 5711,
+        "stored_bytes": 1216,
+        "object_uri": "local-content://sha256/1e/1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 378
+    },
+    {
+      "receipt_id": "tsv6-receipt-b1e61e24ef7c64e05a84d0b6",
+      "source_id": "fred_alfred",
+      "series_id": "INDPRO",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=INDPRO&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "0dc8fb80253edeac1c2f298d29b19b7cd758ccccecdc5cba985a64f39642b2fe",
+        "stored_sha256": "caa0f4f1fd018a4587e3722c2b98415cfe15a86e8d86086c494a31bf44f052cc",
+        "decompressed_bytes": 7356,
+        "stored_bytes": 2290,
+        "object_uri": "local-content://sha256/0d/0dc8fb80253edeac1c2f298d29b19b7cd758ccccecdc5cba985a64f39642b2fe.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 379
+    },
+    {
+      "receipt_id": "tsv6-receipt-3400287d186675dea84dd31d",
+      "source_id": "fred_alfred",
+      "series_id": "CPIAUCSL",
+      "source_uri": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=1995-01-01",
+      "object": {
+        "object_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
+        "stored_sha256": "62e39ef4032b782752c45cf97db0862c8e75e9a0f3981ab49d22cebf7ed2c2cb",
+        "decompressed_bytes": 7220,
+        "stored_bytes": 2030,
+        "object_uri": "local-content://sha256/9d/9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77.raw.gz",
+        "compression": "gzip",
+        "encryption_status": "local_ci_unencrypted",
+        "license_class": "public_access_private_raw"
+      },
+      "media_type": "application/csv",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "observation_count": 378
+    }
+  ],
+  "partitions": [
+    {
+      "source_id": "fred_alfred",
+      "series_id": "NASDAQCOM",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=NASDAQCOM/bb35cb99c33ae622c7fa8d2b9ed71461e791f4241393f55eb16691d563b066b7.parquet",
+      "sha256": "573390ed85e2d86145e97b08dc8071a059c5d8c53ff55d4a5de8fc8c8868cedb",
+      "row_count": 7963,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cboe_vix",
+      "series_id": "VIX",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cboe_vix/series_id=VIX/c9cb85ac6929659b8c12092ecbe29472e8d1e46565ab63bcaee0eafcef3e01ab.parquet",
+      "sha256": "a2e792454fc83a8c573757c95c2e3af28cba1fec71b7e8bff439059683f7bde7",
+      "row_count": 9256,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cboe_vix9d",
+      "series_id": "VIX9D",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cboe_vix9d/series_id=VIX9D/c04191292a3fdc1cad941a1159695198bca720b164d23628708598cfb6986cfd.parquet",
+      "sha256": "4a3349afb599b4b4d257a096b9e475005be01df82847ab91a4fe5e28c07ee72a",
+      "row_count": 3931,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cboe_vix3m",
+      "series_id": "VIX3M",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cboe_vix3m/series_id=VIX3M/a064fcf68d6a7956c6812847ff0ea99342cd10e993fbc7b26c95861f5e8228bc.parquet",
+      "sha256": "bc6ceded89f24ef4ff950d976762163a8d9fd32a8d42513f846523941789a86b",
+      "row_count": 4257,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cboe_vvix",
+      "series_id": "VVIX",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cboe_vvix/series_id=VVIX/11b01a165c8d2adb436820339c0d6d608d66b9da2b1509c97c9c857e4ac817e2.parquet",
+      "sha256": "924cfc3594d8b0ebe9061d66a991f861e19009621359212f953dad60e593d9a1",
+      "row_count": 5088,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cboe_skew",
+      "series_id": "SKEW",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cboe_skew/series_id=SKEW/3c021c8680db63386e61da3c57c3d3d3526643e776fb2d6e6c058f667bb4aff5.parquet",
+      "sha256": "8d796c3aea6f206ef11e1ca3fd30539fe41d249053b99e8e9d7d2c4a5ebf15b9",
+      "row_count": 9211,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "ofr_fsi",
+      "series_id": "OFR_FSI",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=ofr_fsi/series_id=OFR_FSI/fb87c35a150447da33dd3dfbdb5e9c9c439abc2fd53c4622b028938af155bc3c.parquet",
+      "sha256": "65ce1ebc95bc796e1d93a7b505874c7e6915d7bd1be3970d1ea8d7ea9b95be7e",
+      "row_count": 6740,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fed_ebp",
+      "series_id": "EBP",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fed_ebp/series_id=EBP/1df25730d0898dec954f917c73d3c56e6dfea62ad2c50a840422961520e6f391.parquet",
+      "sha256": "96e9dc77723d91d4f2aff502293476392b55d6e12072004bcbf14d3aa8a7322a",
+      "row_count": 643,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "nyfed_cmdi",
+      "series_id": "CMDI",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=nyfed_cmdi/series_id=CMDI/282c6e8cdd1225a2c9ff2eb9cf9d718ef9bff1befc6bd6bd5a82678f10e6fd66.parquet",
+      "sha256": "ad55dd0c6f07d05bf206980f7cef7874b36ce8c9dee60a7587dfa2113951c1cf",
+      "row_count": 1125,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "cftc_tff",
+      "series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=cftc_tff/series_id=CFTC_NASDAQ_LEV_NET_PCT_OI/1c5ffaa26b8edb7371087106ceec647269a3c4cff9c82937f2fae47aed45d923.parquet",
+      "sha256": "63f7f8b6ee3eee50864f80dd8474048487f18e46c04981582b97e918a0af7145",
+      "row_count": 1054,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DGS2",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=DGS2/304b8bcd31d4873d860761fd7d26c20a8dd3b9febd5c8717c8b1274b1528b198.parquet",
+      "sha256": "59fa2ea0b92d6069836549d3e9438166fc7a77aea37943eaecc649848dd5ba6e",
+      "row_count": 7915,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "T10Y2Y",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=T10Y2Y/a6aee4ba4ee13981f5ed8b6a92165ea57b021ba700dd4bf0fc43eee1870e14d3.parquet",
+      "sha256": "6c51a2b81a6a74c6f8ecf043017d6388e0152a758f4e86466bd8aa1a912616dc",
+      "row_count": 7916,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fed_h10",
+      "series_id": "DTWEXBGS",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fed_h10/series_id=DTWEXBGS/768dc0a12532ff12ec94e8ae66fe1cedb0fd4a439fe7a94edf6e0a763138cd3b.parquet",
+      "sha256": "3ddc3906026bc4e96bfccc9428a1ada8c03024ea3966ef6ce46a5f19c5fef961",
+      "row_count": 5169,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "chicago_fed_nfci",
+      "series_id": "NFCI",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=chicago_fed_nfci/series_id=NFCI/b0e57a5dd0a3f28b73e3d949d8a060a068eb4bfe0d3573274edb8705aa814979.parquet",
+      "sha256": "d7dd003f278fe3c391c8d943a0728b584330bb0d6a3700ce5909cc9c82a13594",
+      "row_count": 1650,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DFF",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=DFF/e889005a246bca1195af5f80a290bf067b1dd3c7553cf7798f717668c58a8b38.parquet",
+      "sha256": "ca518c7abb49658d71fb20e0881e94cc3b8c03670539865bccc82d2504d52907",
+      "row_count": 11555,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fed_h41",
+      "series_id": "WALCL",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fed_h41/series_id=WALCL/ccf2b317ccb3d2f7e62d235977451e2e54ee6df25a9e3846c75b944b73b2730a.parquet",
+      "sha256": "bf5b629c42f1682861937119a94d7877e241977d2d464c87e2c086db98909be1",
+      "row_count": 1236,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "treasury_dts",
+      "series_id": "WTREGEN",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=treasury_dts/series_id=WTREGEN/c111fe6218213af0e6b7be34963d1f1994b9fd77827a054f5d47d7a21e700a3c.parquet",
+      "sha256": "88e0f40ca811afec8e895cda0c6d0bb562977ea9a9e32c822e317bce1a30321b",
+      "row_count": 1236,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "nyfed_markets",
+      "series_id": "RRPONTSYD",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=nyfed_markets/series_id=RRPONTSYD/b45c50509ec2d66458d365aff8191bcb685c90d735eca57180e59aae896db64d.parquet",
+      "sha256": "b162834ab7a6a7fda0ed365973ba3361e60932c348e5dadb9098ea33d821a3ec",
+      "row_count": 3310,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "M2SL",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=M2SL/00bd14774bbc76870baa59834a5cf7444fb4b9c00b7e126e91a6d142847257bf.parquet",
+      "sha256": "48b15f9ce071e2bd3e6b981dbfca5504fa4f7ee5c6572ce647138271b68affbf",
+      "row_count": 378,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "PAYEMS",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=PAYEMS/c475b233fb0a0be7382cebf99d2a12e408311e1c8029e24c059f97244174c479.parquet",
+      "sha256": "7d2241a0beba9a37a55d66f6c0c3c634691c4a9f322853c3722b6b1a339c470e",
+      "row_count": 379,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "UNRATE",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=UNRATE/7d889b47f260c472c7b4ace14bff15426561c1b931fe8dc63cc110e9f810db88.parquet",
+      "sha256": "68135013dcb9dff19f71cd3678b05a3270215976cfb4fdf99d421ca5a3ef7052",
+      "row_count": 378,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "INDPRO",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=INDPRO/4c4f622b9e92e965524fe634436aefe1c7e32dcb62cfd870e095a170bcef931e.parquet",
+      "sha256": "68e3116eb70fa61d29b837c15ea7b9c062f8cdb7a3a2ce59aa928fb8ac277989",
+      "row_count": 379,
+      "data_grade": "reconstructed_official_archive"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "CPIAUCSL",
+      "path": "outputs/timeseries_v6/private_store/observations/source_id=fred_alfred/series_id=CPIAUCSL/7e81bcb8dfdae91de0d4ffc9d3cea23f05e7de990020c766795634c8708bfc08.parquet",
+      "sha256": "80cee3f62fce0ff519ec1301590ae047a572450c1f8b8794cffd8bc84715e371",
+      "row_count": 378,
+      "data_grade": "reconstructed_official_archive"
+    }
+  ],
+  "content_hash": "434542fe9e910603c68490ba508ec664c806f0c506ab098f59577f1bd0877655"
+}

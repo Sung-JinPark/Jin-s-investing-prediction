@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
+  "contract_hash": "a103718124311b6ea2e167793e1b062be22800658a9fcaef3fac03eabacecd79",
+  "lineage": {
+    "ok": true,
+    "errors": [],
+    "receipt_count": 82,
+    "terminal_outcome_coverage": 1.0,
+    "observation_linkage": 1.0,
+    "observation_count": 1466821,
+    "link_count": 1466872
+  },
+  "protected_non_mutation": {
+    "ok": true,
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "automatic_champion": false,
+  "official_write": false
+}

@@ -1,0 +1,80 @@
+{
+  "artifacts": [
+    {
+      "bytes": 5885,
+      "path": "src/ai_fc/timeseries_v6/security.py",
+      "sha256": "e4b55a21faf8f679b610151a2558d3f1270f36d7f012c0dd562c50b04e645ca8"
+    },
+    {
+      "bytes": 3247,
+      "path": "src/tests/timeseries_v6/test_v6_security.py",
+      "sha256": "07144b9cd9554682d1c69aa53160cce31b033d48995446dec8623bf9d32dfd50"
+    },
+    {
+      "bytes": 1201,
+      "path": "data/timeseries_v6/manifests/worker_capabilities.json",
+      "sha256": "b3b412e69fff5fe8ece210937e0ac87ee78e68a39de60032948c2fcb8377f0af"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-006/targeted_tests.log",
+      "sha256": "6ed8a16727f04eecc406f641a5bcd8c119341614192b83f787053fe30e8a1de2"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v6/security.py",
+    "src/tests/timeseries_v6/test_v6_security.py",
+    "data/timeseries_v6/manifests/worker_capabilities.json",
+    "outputs/timeseries_v6/task_results/V6-P0-006/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-006/result.json"
+  ],
+  "checks": {
+    "collector_secret_policy": "closed_exact_name_allowlist",
+    "github_token_forwarded": false,
+    "non_collector_secret_access_count": 0,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "publication_credential_forwarded": false,
+    "redaction_tests_pass": true,
+    "tests": {
+      "failed": 0,
+      "passed": 46
+    },
+    "worker_roles": 7
+  },
+  "commands": [
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-006/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:43:46.840347Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "Provider credentials are not present in the current process; this task verifies the capability boundary with adversarial fake values only."
+  ],
+  "next_task_recommendation": "V6-P0-007",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T07:30:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-006",
+  "unresolved_blockers": []
+}

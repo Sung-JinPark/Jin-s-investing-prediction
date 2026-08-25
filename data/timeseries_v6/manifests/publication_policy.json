@@ -1,0 +1,18 @@
+{
+  "automatic_commit": false,
+  "automatic_customer_numbers": false,
+  "automatic_merge": false,
+  "automatic_pages_deploy": false,
+  "automatic_pr": false,
+  "automatic_push": false,
+  "manual_workflow": ".github/workflows/timeseries-v6-manual-promotion.yml",
+  "protected_environment": "timeseries-v6-production-approval",
+  "required_gates": [
+    "integrity_gate",
+    "research_gate",
+    "operational_gate"
+  ],
+  "required_scope": "limited_research_display",
+  "schema_version": 1,
+  "signed_decision_required": true
+}

@@ -1,0 +1,172 @@
+{
+  "content_hash": "ff4f43eb1938991a078c146c48bc53728bd98ea0a47427e31dcdc223ba164576",
+  "files": [
+    {
+      "rows": 9211,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "16ef869e2f5f87f5ef4fee935e9bbab48fdf95e931af92e92de7a731fd5601c2",
+      "source_id": "cboe_skew",
+      "uri": "private://observations/source_id=cboe_skew/observations.parquet"
+    },
+    {
+      "rows": 9256,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "084acd3845aea3b3c24e529aa20d39e7c47cbc3247b6b149a83d68c4be1fc69f",
+      "source_id": "cboe_vix",
+      "uri": "private://observations/source_id=cboe_vix/observations.parquet"
+    },
+    {
+      "rows": 4257,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "3e10e45c6baabad4a33df92b8e01921ef57aad6864c728b40815ddab7b88329c",
+      "source_id": "cboe_vix3m",
+      "uri": "private://observations/source_id=cboe_vix3m/observations.parquet"
+    },
+    {
+      "rows": 3931,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "5f80486234fa48aebc33a4f511edfd3a6211dce10dcd6a36fc986c8e03207060",
+      "source_id": "cboe_vix9d",
+      "uri": "private://observations/source_id=cboe_vix9d/observations.parquet"
+    },
+    {
+      "rows": 5088,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "502b6475ae15f557ee80753e4cc8683d2d6b6322c2989c7575c997f217ec0751",
+      "source_id": "cboe_vvix",
+      "uri": "private://observations/source_id=cboe_vvix/observations.parquet"
+    },
+    {
+      "rows": 972650,
+      "schema_hash": "bcc15e61b3eb664addaa495fe6470051554c01fac78ebd7c613e31e7c83a14f6",
+      "sha256": "ae647f556c08cd4cfee82cc615106cbf8c7acbac7edd57b7d17254d9b83048d8",
+      "source_id": "cftc_tff",
+      "uri": "private://observations/source_id=cftc_tff/observations.parquet"
+    },
+    {
+      "rows": 2902,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "106e115c3c8cef1b356e686957b6ce8d30b23981fcb3005f528faff121f2e28e",
+      "source_id": "chicago_fed_nfci",
+      "uri": "private://observations/source_id=chicago_fed_nfci/observations.parquet"
+    },
+    {
+      "rows": 1929,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "1fa76909fce587bccab255ad2f020f1babfc64ebccd86fe67382ef2496680b8c",
+      "source_id": "fed_ebp",
+      "uri": "private://observations/source_id=fed_ebp/observations.parquet"
+    },
+    {
+      "rows": 105096,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "75ff0d033a09712f16ac34ca46c60bdb83bcabf8ae515034335a8ca58e3868ae",
+      "source_id": "fed_fama_french",
+      "uri": "private://observations/source_id=fed_fama_french/observations.parquet"
+    },
+    {
+      "rows": 1077,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "85035cf15e99507aa3e167fd227408376b28df1efcbf0823bd84e2bb82a5723f",
+      "source_id": "fed_h41_walcl",
+      "uri": "private://observations/source_id=fed_h41_walcl/observations.parquet"
+    },
+    {
+      "rows": 6609,
+      "schema_hash": "8a1b0ab93b2f4f11b9c62f2fde61b3ec753fe57e08c4fea3555e8f690b96c2ce",
+      "sha256": "51e0c5abc352c012d7cae6f2253068ff7dbc2b092366335ca251052bb00e04b5",
+      "source_id": "finra_otc",
+      "uri": "private://observations/source_id=finra_otc/observations.parquet"
+    },
+    {
+      "rows": 5169,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "5b6176cd7de8bebc67920573b725875266dfe61127593f833337179090765f88",
+      "source_id": "fred_h10_dollar",
+      "uri": "private://observations/source_id=fred_h10_dollar/observations.parquet"
+    },
+    {
+      "rows": 7963,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "b766ae1d2e24bc130915d60c8239cffad51dd07e22c6737296fc8d2979cc6df7",
+      "source_id": "fred_nasdaqcom",
+      "uri": "private://observations/source_id=fred_nasdaqcom/observations.parquet"
+    },
+    {
+      "rows": 1077,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "f5246ccc8fd5fcce925a96bff860ae277e5eed2da6b71a297e98877406011e30",
+      "source_id": "fred_tga",
+      "uri": "private://observations/source_id=fred_tga/observations.parquet"
+    },
+    {
+      "rows": 27000,
+      "schema_hash": "6f0284740c15981a5db351628ec15d999f2799d4f4544ba02d07cff6f2dd7ed3",
+      "sha256": "dfd6a31ffece5b7ba251fae1a7617c0a79d5d3d123474d3a511db21cf0e17bd3",
+      "source_id": "nyfed_cmdi",
+      "uri": "private://observations/source_id=nyfed_cmdi/observations.parquet"
+    },
+    {
+      "rows": 36,
+      "schema_hash": "2e5835a9e39214e39059c621b6ef25ec78921537730459ccb3347a3a64efd4d5",
+      "sha256": "4ffc43bfd0098a056517ae5c1de3ece2f15d9afe1e7caee4eafd44021bb30637",
+      "source_id": "nyfed_reference_rates",
+      "uri": "private://observations/source_id=nyfed_reference_rates/observations.parquet"
+    },
+    {
+      "rows": 3298,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "39edc8b0f1ca7607380e4a91391cb3c631845dc15c50214648a508446f3d4119",
+      "source_id": "nyfed_rrp",
+      "uri": "private://observations/source_id=nyfed_rrp/observations.parquet"
+    },
+    {
+      "rows": 60660,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "b59b3d84b9e16ae227d67a259bb362db9bcb9499764f1b325ad4e7a6718fcc0b",
+      "source_id": "ofr_fsi",
+      "uri": "private://observations/source_id=ofr_fsi/observations.parquet"
+    },
+    {
+      "rows": 43662,
+      "schema_hash": "fdf319e748401e68925652e43fdfea8c019f1e09fd15f528c469760a55b7cab3",
+      "sha256": "384eb109cbaa613a83c0ab6a113be8b5b9d5e56ec5242380e54e6d79700282dc",
+      "source_id": "philadelphia_spf",
+      "uri": "private://observations/source_id=philadelphia_spf/observations.parquet"
+    },
+    {
+      "rows": 105644,
+      "schema_hash": "b35258302026d72cf2a4658f66d30d65812ffb7df5ba4fa5c3fe0201ebe6ac82",
+      "sha256": "34b54e210e5daf02a97e46de181903cc4fcb23294158847ad08a1aeba13d8cdb",
+      "source_id": "treasury_dts",
+      "uri": "private://observations/source_id=treasury_dts/observations.parquet"
+    },
+    {
+      "rows": 28039,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "543d2640798ac0877f0b12352190d7ca0a48520e1f4bc3ddbda6493d1a49ce9d",
+      "source_id": "treasury_real_yield_curve",
+      "uri": "private://observations/source_id=treasury_real_yield_curve/observations.parquet"
+    },
+    {
+      "rows": 62267,
+      "schema_hash": "1c5421e941cee5eb771dc4634510f936734dcb0f756758dac646628d514a50e1",
+      "sha256": "e2de04b630693ddc78a6b124fa6954b398b69af46080b1d54b15ae7c900b8467",
+      "source_id": "treasury_yield_curve",
+      "uri": "private://observations/source_id=treasury_yield_curve/observations.parquet"
+    }
+  ],
+  "lineage": {
+    "errors": [],
+    "link_count": 1466872,
+    "observation_count": 1466821,
+    "observation_linkage": 1.0,
+    "ok": true,
+    "pit_leakage_count": 0,
+    "pit_mapping_rule": "available_at_to_first_xnas_close_at_or_after",
+    "receipt_count": 82,
+    "receipt_linkage": 1.0,
+    "terminal_outcome_coverage": 1.0
+  },
+  "row_count": 1466821
+}

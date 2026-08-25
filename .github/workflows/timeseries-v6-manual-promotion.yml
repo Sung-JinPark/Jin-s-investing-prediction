@@ -1,0 +1,63 @@
+name: Validate V6 manual promotion decision
+
+on:
+  workflow_dispatch:
+    inputs:
+      decision_path:
+        description: Repository path to externally signed owner decision JSON
+        required: true
+        type: string
+      contract_hash:
+        description: Frozen V6 contract hash
+        required: true
+        type: string
+      candidate_bundle_hash:
+        description: Qualified candidate bundle hash
+        required: true
+        type: string
+      gate_decision_hash:
+        description: Independently verified Gate decision hash
+        required: true
+        type: string
+      trusted_owner:
+        description: Owner identity recorded by the protected environment
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  validate-only:
+    environment: timeseries-v6-production-approval
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12.11"
+      - name: Validate signed decision without publishing
+        env:
+          DECISION_PATH: ${{ inputs.decision_path }}
+          CONTRACT_HASH: ${{ inputs.contract_hash }}
+          CANDIDATE_BUNDLE_HASH: ${{ inputs.candidate_bundle_hash }}
+          GATE_DECISION_HASH: ${{ inputs.gate_decision_hash }}
+          TRUSTED_OWNER: ${{ inputs.trusted_owner }}
+        run: >-
+          python tools/validate_v6_promotion.py
+          --decision "$DECISION_PATH"
+          --contract-hash "$CONTRACT_HASH"
+          --candidate-bundle-hash "$CANDIDATE_BUNDLE_HASH"
+          --gate-decision-hash "$GATE_DECISION_HASH"
+          --trusted-owner "$TRUSTED_OWNER"
+          --output outputs/timeseries_v6/manual_approval_validation.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-v6-manual-approval-validation
+          path: outputs/timeseries_v6/manual_approval_validation.json
+
+      # This workflow intentionally has no commit, push, PR, merge, Pages, or
+      # customer-data publication step. P3 adds a separately reviewed manual
+      # deployment only after the validated artifact exists.

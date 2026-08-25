@@ -1,0 +1,117 @@
+{
+  "artifacts": [
+    {
+      "bytes": 5963,
+      "path": "src/ai_fc/timeseries_v6/isolation.py",
+      "sha256": "3b0dbc3eea0d0dba02dc92755cfa48baa4b2437931a3871f4fa27d9bd5bd3d8c"
+    },
+    {
+      "bytes": 6510,
+      "path": "src/ai_fc/timeseries_v6/publication.py",
+      "sha256": "61c37d70b39edd4b5a5a52ac24755c1cc34b249de7770afcbd9fb017271d6165"
+    },
+    {
+      "bytes": 1683,
+      "path": "tools/validate_v6_promotion.py",
+      "sha256": "00087a5fb7350d414e913f3f6e018cd29ae28e3da6f585f82cab924f830574e7"
+    },
+    {
+      "bytes": 2184,
+      "path": ".github/workflows/timeseries-v6-manual-promotion.yml",
+      "sha256": "27aa0af158548b1fd43ed48cf1a5b4aeb786944dde43c9035acb06a4efb1551f"
+    },
+    {
+      "bytes": 4005,
+      "path": "src/tests/timeseries_v6/test_v6_publication.py",
+      "sha256": "235104131ac14187405ff81501e12d912390408eaff4a44a80e64524add08cf7"
+    },
+    {
+      "bytes": 545,
+      "path": "data/timeseries_v6/manifests/publication_policy.json",
+      "sha256": "b9d91381ace6b23372d045d29e3534acb2cfc8893b9b1215fabe9c06b98fd57b"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-007/targeted_tests.log",
+      "sha256": "cb1e1207f0157c271f4aed1050b9120e43922e9aec22564970c4bb5c45ecad3a"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v6/isolation.py",
+    "src/ai_fc/timeseries_v6/publication.py",
+    "tools/validate_v6_promotion.py",
+    ".github/workflows/timeseries-v6-manual-promotion.yml",
+    "src/tests/timeseries_v6/test_v6_publication.py",
+    "data/timeseries_v6/manifests/publication_policy.json",
+    "outputs/timeseries_v6/task_results/V6-P0-007/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-007/result.json"
+  ],
+  "checks": {
+    "commit_push_pr_merge_pages_actions": 0,
+    "failed_gate_blocks": true,
+    "manual_only_policy": {
+      "automatic_commit": false,
+      "automatic_customer_numbers": false,
+      "automatic_merge": false,
+      "automatic_pages_deploy": false,
+      "automatic_pr": false,
+      "automatic_push": false,
+      "manual_workflow": ".github/workflows/timeseries-v6-manual-promotion.yml",
+      "protected_environment": "timeseries-v6-production-approval",
+      "required_gates": [
+        "integrity_gate",
+        "research_gate",
+        "operational_gate"
+      ],
+      "required_scope": "limited_research_display",
+      "schema_version": 1,
+      "signed_decision_required": true
+    },
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "signed_owner_decision_required": true,
+    "tests": {
+      "failed": 0,
+      "passed": 53
+    },
+    "workflow_permissions": {
+      "contents": "read"
+    },
+    "workflow_trigger": "workflow_dispatch_only"
+  },
+  "commands": [
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-007/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:45:37.076148Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The manual workflow validates an externally verified signature receipt; it intentionally does not deploy. A P3 task may add a separately approved deployment boundary."
+  ],
+  "next_task_recommendation": "V6-P0-008",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T07:38:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-007",
+  "unresolved_blockers": []
+}

@@ -23,6 +23,19 @@ Thumbs.db
 # 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
 /reports/dashboard.html
 
+# NASDAQ V5 private control/data plane. Git stores only manifests and summaries.
+/data/timeseries_v5/private/
+/outputs/timeseries_v5/private_store/
+/outputs/timeseries_v5/checkpoints/
+/outputs/timeseries_v5/interrupted_store_*/
+/outputs/timeseries_v5/failed_atomicity_store_*/
+/outputs/timeseries_v5/ui/
+/outputs/timeseries-v5-audit-*/
+
+# NASDAQ V6 private raw/observation store. Commit only receipts, manifests,
+# aggregate evidence, and reproducible public artifacts.
+/outputs/timeseries_v6/private_store/
+
 # 내부 검토·아카이브 산출물 — 로컬 보존 전용 (리포지토리 미포함)
 /reports/reviews/archive/local_only/
 

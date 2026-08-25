@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:ai-investing:multivariate-timeseries-v6",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version", "contract_id", "contract_status", "model_id",
+    "model_version", "probability_space", "probability_unit",
+    "immutable_predecessor", "runtime", "target", "data_contract",
+    "source_registry_contract", "feature_contract", "candidate_contract",
+    "validation_contract", "ensemble_contract", "path_contract",
+    "gate_contract", "atlas_contract", "publication_contract"
+  ],
+  "properties": {
+    "schema_version": {"const": 6},
+    "contract_id": {"const": "multivariate_timeseries_v6"},
+    "contract_status": {"enum": ["preregistered_unfrozen_until_v6_p0_005", "frozen"]},
+    "model_id": {"const": "shadow.nasdaq_pit_hierarchical_distribution_v6"},
+    "model_version": {"const": 6},
+    "probability_space": {"const": "research_timeseries_v6_conditional"},
+    "probability_unit": {"const": "fraction"},
+    "immutable_predecessor": {"$ref": "#/$defs/nonEmptyObject"},
+    "runtime": {"$ref": "#/$defs/nonEmptyObject"},
+    "target": {"$ref": "#/$defs/nonEmptyObject"},
+    "data_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "source_registry_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "feature_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "candidate_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "validation_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "ensemble_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "path_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "gate_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "atlas_contract": {"$ref": "#/$defs/nonEmptyObject"},
+    "publication_contract": {"$ref": "#/$defs/nonEmptyObject"}
+  },
+  "$defs": {
+    "nonEmptyObject": {"type": "object", "minProperties": 1}
+  }
+}

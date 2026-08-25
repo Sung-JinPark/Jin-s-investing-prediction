@@ -1,0 +1,2430 @@
+{
+  "schema_version": 1,
+  "sources": [
+    {
+      "source_id": "fred_alfred",
+      "series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 7963,
+      "receipt_id": "tsv6-receipt-6c5fcc73333c202c627ec83d",
+      "raw_sha256": "2852d4d00763e112654aaaf9e1c8689e352261460d7ec59590674513a80cfe71"
+    },
+    {
+      "source_id": "cboe_vix",
+      "series_id": "VIX",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 9256,
+      "receipt_id": "tsv6-receipt-31528b6ad986c198b3ca1960",
+      "raw_sha256": "2cbdd7489a304eac0132205d4262083d4d6ae6208e16255db424ed5b5afee215"
+    },
+    {
+      "source_id": "cboe_vix9d",
+      "series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 3931,
+      "receipt_id": "tsv6-receipt-8796413db5481809d0a21fcb",
+      "raw_sha256": "0356cc5273d359df989fd1a9092955fa964e3528df86ca6fe4949cf8eb72c0ed"
+    },
+    {
+      "source_id": "cboe_vix3m",
+      "series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 4257,
+      "receipt_id": "tsv6-receipt-fbe9b8fccb5e0ec29f98afc5",
+      "raw_sha256": "c5d83384752250219bdc99867eb76cb099bb272c93f29c2ff89105c5b068aaa3"
+    },
+    {
+      "source_id": "cboe_vvix",
+      "series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 5088,
+      "receipt_id": "tsv6-receipt-ed67b22997649d92b96e39c1",
+      "raw_sha256": "3ae2a3ffd4f23107268ac47420d303bb586a809ce7e54c89807d7600f82e8eec"
+    },
+    {
+      "source_id": "cboe_skew",
+      "series_id": "SKEW",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 9211,
+      "receipt_id": "tsv6-receipt-ccc61841b5261f2016032ac0",
+      "raw_sha256": "790547da55a75ee8f71e86b230a4f7f065951bc232960cafba76e03c90c9fe36"
+    },
+    {
+      "source_id": "ofr_fsi",
+      "series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 6740,
+      "receipt_id": "tsv6-receipt-0d49c732295eac7cb540344d",
+      "raw_sha256": "91032e19b7a1ff890da410cbe7815e20c18185ced9bd2e18a0f22d25aa1df908"
+    },
+    {
+      "source_id": "fed_ebp",
+      "series_id": "EBP",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 643,
+      "receipt_id": "tsv6-receipt-c95c937757f44ff66be5cc5d",
+      "raw_sha256": "cc51b2747654e3ed003e0a6ce5500de054c1a8dcd3ec00bace1c6742416ab2eb"
+    },
+    {
+      "source_id": "nyfed_cmdi",
+      "series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 1125,
+      "receipt_id": "tsv6-receipt-0ea3f44f6654eb0555595001",
+      "raw_sha256": "90c55017973635cad7121e9f1a39b6cded422739a549b940c18cfe0a80e3f7af"
+    },
+    {
+      "source_id": "cftc_tff",
+      "series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 1054,
+      "receipt_id": "tsv6-receipt-94159c592b822b8113a36d64",
+      "raw_sha256": "15ca75e9a991caf542798a487f6b9bae91b89b887d3b141366e269aa39d02271"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DGS2",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 7915,
+      "receipt_id": "tsv6-receipt-d3a2b8e7678ab243fb4edb29",
+      "raw_sha256": "21c26724b30c779b6770e2f68081a3827e3aced48e0febe03d87b3412d1796ba"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "T10Y2Y",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 7916,
+      "receipt_id": "tsv6-receipt-2795b48d7b43ee95b9829d40",
+      "raw_sha256": "a645b02bd525eb8e7d4f6017cc4a0f0392ca1bf785184b04d7823bf6d5aa11a1"
+    },
+    {
+      "source_id": "fed_h10",
+      "series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 5169,
+      "receipt_id": "tsv6-receipt-243822f74ee3d7168424a8b3",
+      "raw_sha256": "099b0ab4007d2060e319d5bef35d749a3bf397c5347c74703b8e9a626a99c2ae"
+    },
+    {
+      "source_id": "chicago_fed_nfci",
+      "series_id": "NFCI",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 1650,
+      "receipt_id": "tsv6-receipt-febc78bc8411420dea5b447c",
+      "raw_sha256": "856af78b98dff1d0edd80bc9d065456a2aa3f0680b2f4ed674fdf088871b7031"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DFF",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 11555,
+      "receipt_id": "tsv6-receipt-f4e226fd90267126c30354ba",
+      "raw_sha256": "216fbce13effaf47f98c275a5b61ce7d48e62519197a07f27d4dc95aba785f06"
+    },
+    {
+      "source_id": "fed_h41",
+      "series_id": "WALCL",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 1236,
+      "receipt_id": "tsv6-receipt-6937e27fd0e7072128cc20a3",
+      "raw_sha256": "99b4e038ea36e7e8672450ad7f44cbdf5d9d8040f44937c9e1873b2d2f6aa5f8"
+    },
+    {
+      "source_id": "treasury_dts",
+      "series_id": "WTREGEN",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 1236,
+      "receipt_id": "tsv6-receipt-5548b0696fc4b58af937e41e",
+      "raw_sha256": "673329e7e2acf713ff2b8897fdc2cc767b7704b73b0b87424a24398b0e4e5c0c"
+    },
+    {
+      "source_id": "nyfed_markets",
+      "series_id": "RRPONTSYD",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 3310,
+      "receipt_id": "tsv6-receipt-2aa7535606add225efc13833",
+      "raw_sha256": "9780f88f6ba0c007ece74f8414bd083ff5e84cdf521bc857e097b07c0ca0f1ee"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "M2SL",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 378,
+      "receipt_id": "tsv6-receipt-2ea546985ca73de37107a61e",
+      "raw_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "PAYEMS",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 379,
+      "receipt_id": "tsv6-receipt-5320672bdfcd999907274e25",
+      "raw_sha256": "9e63f330440859e27d5c2894866ed73533e4df4124b4b048b016425de9a89f6c"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "UNRATE",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 378,
+      "receipt_id": "tsv6-receipt-11972b24ce873bb2786a9ce8",
+      "raw_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "INDPRO",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 379,
+      "receipt_id": "tsv6-receipt-b1e61e24ef7c64e05a84d0b6",
+      "raw_sha256": "0dc8fb80253edeac1c2f298d29b19b7cd758ccccecdc5cba985a64f39642b2fe"
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "CPIAUCSL",
+      "data_grade": "reconstructed_official_archive",
+      "row_count": 378,
+      "receipt_id": "tsv6-receipt-3400287d186675dea84dd31d",
+      "raw_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77"
+    }
+  ],
+  "observations": [
+    {
+      "source_id": "fred_alfred",
+      "series_id": "NASDAQCOM",
+      "row_count": 7963,
+      "first_observation": "1995-01-03T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "573390ed85e2d86145e97b08dc8071a059c5d8c53ff55d4a5de8fc8c8868cedb",
+      "unique_observation_versions": 7963
+    },
+    {
+      "source_id": "cboe_vix",
+      "series_id": "VIX",
+      "row_count": 9256,
+      "first_observation": "1990-01-02T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "a2e792454fc83a8c573757c95c2e3af28cba1fec71b7e8bff439059683f7bde7",
+      "unique_observation_versions": 9256
+    },
+    {
+      "source_id": "cboe_vix9d",
+      "series_id": "VIX9D",
+      "row_count": 3931,
+      "first_observation": "2011-01-04T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "4a3349afb599b4b4d257a096b9e475005be01df82847ab91a4fe5e28c07ee72a",
+      "unique_observation_versions": 3931
+    },
+    {
+      "source_id": "cboe_vix3m",
+      "series_id": "VIX3M",
+      "row_count": 4257,
+      "first_observation": "2009-09-18T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "bc6ceded89f24ef4ff950d976762163a8d9fd32a8d42513f846523941789a86b",
+      "unique_observation_versions": 4257
+    },
+    {
+      "source_id": "cboe_vvix",
+      "series_id": "VVIX",
+      "row_count": 5088,
+      "first_observation": "2006-03-06T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "924cfc3594d8b0ebe9061d66a991f861e19009621359212f953dad60e593d9a1",
+      "unique_observation_versions": 5088
+    },
+    {
+      "source_id": "cboe_skew",
+      "series_id": "SKEW",
+      "row_count": 9211,
+      "first_observation": "1990-01-02T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "8d796c3aea6f206ef11e1ca3fd30539fe41d249053b99e8e9d7d2c4a5ebf15b9",
+      "unique_observation_versions": 9211
+    },
+    {
+      "source_id": "ofr_fsi",
+      "series_id": "OFR_FSI",
+      "row_count": 6740,
+      "first_observation": "2000-01-03T21:00:00+00:00",
+      "last_observation": "2026-08-19T21:00:00+00:00",
+      "parquet_sha256": "65ce1ebc95bc796e1d93a7b505874c7e6915d7bd1be3970d1ea8d7ea9b95be7e",
+      "unique_observation_versions": 6740
+    },
+    {
+      "source_id": "fed_ebp",
+      "series_id": "EBP",
+      "row_count": 643,
+      "first_observation": "1973-01-01T21:00:00+00:00",
+      "last_observation": "2026-07-01T21:00:00+00:00",
+      "parquet_sha256": "96e9dc77723d91d4f2aff502293476392b55d6e12072004bcbf14d3aa8a7322a",
+      "unique_observation_versions": 643
+    },
+    {
+      "source_id": "nyfed_cmdi",
+      "series_id": "CMDI",
+      "row_count": 1125,
+      "first_observation": "2005-01-07T21:00:00+00:00",
+      "last_observation": "2026-07-24T21:00:00+00:00",
+      "parquet_sha256": "ad55dd0c6f07d05bf206980f7cef7874b36ce8c9dee60a7587dfa2113951c1cf",
+      "unique_observation_versions": 1125
+    },
+    {
+      "source_id": "cftc_tff",
+      "series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "row_count": 1054,
+      "first_observation": "2006-06-13T21:00:00+00:00",
+      "last_observation": "2026-08-18T21:00:00+00:00",
+      "parquet_sha256": "63f7f8b6ee3eee50864f80dd8474048487f18e46c04981582b97e918a0af7145",
+      "unique_observation_versions": 1054
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DGS2",
+      "row_count": 7915,
+      "first_observation": "1995-01-03T21:00:00+00:00",
+      "last_observation": "2026-08-20T21:00:00+00:00",
+      "parquet_sha256": "59fa2ea0b92d6069836549d3e9438166fc7a77aea37943eaecc649848dd5ba6e",
+      "unique_observation_versions": 7915
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "T10Y2Y",
+      "row_count": 7916,
+      "first_observation": "1995-01-03T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "6c51a2b81a6a74c6f8ecf043017d6388e0152a758f4e86466bd8aa1a912616dc",
+      "unique_observation_versions": 7916
+    },
+    {
+      "source_id": "fed_h10",
+      "series_id": "DTWEXBGS",
+      "row_count": 5169,
+      "first_observation": "2006-01-02T21:00:00+00:00",
+      "last_observation": "2026-08-14T21:00:00+00:00",
+      "parquet_sha256": "3ddc3906026bc4e96bfccc9428a1ada8c03024ea3966ef6ce46a5f19c5fef961",
+      "unique_observation_versions": 5169
+    },
+    {
+      "source_id": "chicago_fed_nfci",
+      "series_id": "NFCI",
+      "row_count": 1650,
+      "first_observation": "1995-01-06T21:00:00+00:00",
+      "last_observation": "2026-08-14T21:00:00+00:00",
+      "parquet_sha256": "d7dd003f278fe3c391c8d943a0728b584330bb0d6a3700ce5909cc9c82a13594",
+      "unique_observation_versions": 1650
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DFF",
+      "row_count": 11555,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-08-20T21:00:00+00:00",
+      "parquet_sha256": "ca518c7abb49658d71fb20e0881e94cc3b8c03670539865bccc82d2504d52907",
+      "unique_observation_versions": 11555
+    },
+    {
+      "source_id": "fed_h41",
+      "series_id": "WALCL",
+      "row_count": 1236,
+      "first_observation": "2002-12-18T21:00:00+00:00",
+      "last_observation": "2026-08-19T21:00:00+00:00",
+      "parquet_sha256": "bf5b629c42f1682861937119a94d7877e241977d2d464c87e2c086db98909be1",
+      "unique_observation_versions": 1236
+    },
+    {
+      "source_id": "treasury_dts",
+      "series_id": "WTREGEN",
+      "row_count": 1236,
+      "first_observation": "2002-12-18T21:00:00+00:00",
+      "last_observation": "2026-08-19T21:00:00+00:00",
+      "parquet_sha256": "88e0f40ca811afec8e895cda0c6d0bb562977ea9a9e32c822e317bce1a30321b",
+      "unique_observation_versions": 1236
+    },
+    {
+      "source_id": "nyfed_markets",
+      "series_id": "RRPONTSYD",
+      "row_count": 3310,
+      "first_observation": "2003-02-07T21:00:00+00:00",
+      "last_observation": "2026-08-21T21:00:00+00:00",
+      "parquet_sha256": "b162834ab7a6a7fda0ed365973ba3361e60932c348e5dadb9098ea33d821a3ec",
+      "unique_observation_versions": 3310
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "M2SL",
+      "row_count": 378,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-06-01T21:00:00+00:00",
+      "parquet_sha256": "48b15f9ce071e2bd3e6b981dbfca5504fa4f7ee5c6572ce647138271b68affbf",
+      "unique_observation_versions": 378
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "PAYEMS",
+      "row_count": 379,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-07-01T21:00:00+00:00",
+      "parquet_sha256": "7d2241a0beba9a37a55d66f6c0c3c634691c4a9f322853c3722b6b1a339c470e",
+      "unique_observation_versions": 379
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "UNRATE",
+      "row_count": 378,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-07-01T21:00:00+00:00",
+      "parquet_sha256": "68135013dcb9dff19f71cd3678b05a3270215976cfb4fdf99d421ca5a3ef7052",
+      "unique_observation_versions": 378
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "INDPRO",
+      "row_count": 379,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-07-01T21:00:00+00:00",
+      "parquet_sha256": "68e3116eb70fa61d29b837c15ea7b9c062f8cdb7a3a2ce59aa928fb8ac277989",
+      "unique_observation_versions": 379
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "CPIAUCSL",
+      "row_count": 378,
+      "first_observation": "1995-01-01T21:00:00+00:00",
+      "last_observation": "2026-07-01T21:00:00+00:00",
+      "parquet_sha256": "80cee3f62fce0ff519ec1301590ae047a572450c1f8b8794cffd8bc84715e371",
+      "unique_observation_versions": 378
+    }
+  ],
+  "vintages": [
+    {
+      "source_id": "fred_alfred",
+      "series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-01-04T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cboe_vix",
+      "series_id": "VIX",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1990-01-03T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cboe_vix9d",
+      "series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2011-01-05T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cboe_vix3m",
+      "series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2009-09-19T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cboe_vvix",
+      "series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2006-03-07T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cboe_skew",
+      "series_id": "SKEW",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1990-01-03T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "ofr_fsi",
+      "series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2000-01-05T21:00:00+00:00",
+      "last_available_at": "2026-08-21T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fed_ebp",
+      "series_id": "EBP",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1973-02-15T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "nyfed_cmdi",
+      "series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2005-02-21T21:00:00+00:00",
+      "last_available_at": "2026-09-07T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "cftc_tff",
+      "series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2006-06-16T21:00:00+00:00",
+      "last_available_at": "2026-08-21T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DGS2",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-01-04T21:00:00+00:00",
+      "last_available_at": "2026-08-21T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "T10Y2Y",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-01-04T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fed_h10",
+      "series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2006-01-03T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "chicago_fed_nfci",
+      "series_id": "NFCI",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-01-10T21:00:00+00:00",
+      "last_available_at": "2026-08-18T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "DFF",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-01-02T21:00:00+00:00",
+      "last_available_at": "2026-08-21T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fed_h41",
+      "series_id": "WALCL",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2002-12-22T21:00:00+00:00",
+      "last_available_at": "2026-08-23T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "treasury_dts",
+      "series_id": "WTREGEN",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2002-12-22T21:00:00+00:00",
+      "last_available_at": "2026-08-23T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "nyfed_markets",
+      "series_id": "RRPONTSYD",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "2003-02-08T21:00:00+00:00",
+      "last_available_at": "2026-08-22T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "M2SL",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-02-15T21:00:00+00:00",
+      "last_available_at": "2026-07-16T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "PAYEMS",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-02-15T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "UNRATE",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-02-15T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "INDPRO",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-02-15T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    },
+    {
+      "source_id": "fred_alfred",
+      "series_id": "CPIAUCSL",
+      "data_grade": "reconstructed_official_archive",
+      "first_available_at": "1995-02-15T21:00:00+00:00",
+      "last_available_at": "2026-08-15T21:00:00+00:00",
+      "collected_at": "2026-08-24T08:50:19.486500+00:00",
+      "native_pit": false
+    }
+  ],
+  "features": [
+    {
+      "feature_name": "momentum_1",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "momentum_5",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "momentum_21",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "momentum_63",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "realized_vol_5",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "realized_vol_21",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "realized_vol_63",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "downside_semivariance_21",
+      "source_series_id": "NASDAQCOM",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix_log_level",
+      "source_series_id": "VIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix_log_change_5",
+      "source_series_id": "VIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix9d_log_level",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 770,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix9d_log_change_5",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 771,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix3m_log_level",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 703,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix3m_log_change_5",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 704,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vvix_log_level",
+      "source_series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 518,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vvix_log_change_5",
+      "source_series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 519,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "skew_log_level",
+      "source_series_id": "SKEW",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "skew_log_change_5",
+      "source_series_id": "SKEW",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix9d_vix_log_slope",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 770,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix3m_vix_log_slope",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 703,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dgs2_level",
+      "source_series_id": "DGS2",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dgs2_change_5",
+      "source_series_id": "DGS2",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "t10y2y_level",
+      "source_series_id": "T10Y2Y",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "t10y2y_change_5",
+      "source_series_id": "T10Y2Y",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "nfci_level",
+      "source_series_id": "NFCI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "nfci_change_5",
+      "source_series_id": "NFCI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dff_level",
+      "source_series_id": "DFF",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dff_change_5",
+      "source_series_id": "DFF",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "ofr_fsi_level",
+      "source_series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 196,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "ofr_fsi_change_5",
+      "source_series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 197,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "ebp_level",
+      "source_series_id": "EBP",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "ebp_change_5",
+      "source_series_id": "EBP",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "cmdi_level",
+      "source_series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 464,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "cmdi_change_5",
+      "source_series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 465,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "cftc_nasdaq_lev_net_pct_oi_level",
+      "source_series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 533,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "cftc_nasdaq_lev_net_pct_oi_change_5",
+      "source_series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 534,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dollar_log_change_5",
+      "source_series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 510,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "dollar_log_change_21",
+      "source_series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 513,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "walcl_log_change_21",
+      "source_series_id": "WALCL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 355,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "wtregen_log_change_21",
+      "source_series_id": "WTREGEN",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 355,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "rrpontsyd_log_change_21",
+      "source_series_id": "RRPONTSYD",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 362,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "m2sl_log_change_21",
+      "source_series_id": "M2SL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "payems_log_change_21",
+      "source_series_id": "PAYEMS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "indpro_log_change_21",
+      "source_series_id": "INDPRO",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "cpiaucsl_log_change_21",
+      "source_series_id": "CPIAUCSL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "unrate_level",
+      "source_series_id": "UNRATE",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "unrate_change_21",
+      "source_series_id": "UNRATE",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": false
+    },
+    {
+      "feature_name": "vix_log_change_5__missing",
+      "source_series_id": "VIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix9d_log_level__missing",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix9d_log_change_5__missing",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix3m_log_level__missing",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix3m_log_change_5__missing",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vvix_log_level__missing",
+      "source_series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vvix_log_change_5__missing",
+      "source_series_id": "VVIX",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "skew_log_change_5__missing",
+      "source_series_id": "SKEW",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix9d_vix_log_slope__missing",
+      "source_series_id": "VIX9D",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "vix3m_vix_log_slope__missing",
+      "source_series_id": "VIX3M",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "dgs2_change_5__missing",
+      "source_series_id": "DGS2",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "t10y2y_change_5__missing",
+      "source_series_id": "T10Y2Y",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "nfci_change_5__missing",
+      "source_series_id": "NFCI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "dff_change_5__missing",
+      "source_series_id": "DFF",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "ofr_fsi_level__missing",
+      "source_series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "ofr_fsi_change_5__missing",
+      "source_series_id": "OFR_FSI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "ebp_change_5__missing",
+      "source_series_id": "EBP",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "cmdi_level__missing",
+      "source_series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "cmdi_change_5__missing",
+      "source_series_id": "CMDI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "cftc_nasdaq_lev_net_pct_oi_level__missing",
+      "source_series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "cftc_nasdaq_lev_net_pct_oi_change_5__missing",
+      "source_series_id": "CFTC_NASDAQ_LEV_NET_PCT_OI",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "dollar_log_change_5__missing",
+      "source_series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "dollar_log_change_21__missing",
+      "source_series_id": "DTWEXBGS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "walcl_log_change_21__missing",
+      "source_series_id": "WALCL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "wtregen_log_change_21__missing",
+      "source_series_id": "WTREGEN",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "rrpontsyd_log_change_21__missing",
+      "source_series_id": "RRPONTSYD",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "m2sl_log_change_21__missing",
+      "source_series_id": "M2SL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "payems_log_change_21__missing",
+      "source_series_id": "PAYEMS",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "indpro_log_change_21__missing",
+      "source_series_id": "INDPRO",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "cpiaucsl_log_change_21__missing",
+      "source_series_id": "CPIAUCSL",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    },
+    {
+      "feature_name": "unrate_change_21__missing",
+      "source_series_id": "UNRATE",
+      "data_grade": "reconstructed_official_archive",
+      "origin_count": 1572,
+      "missing_count": 0,
+      "missing_indicator": true
+    }
+  ],
+  "forecasts": [
+    {
+      "origin": "2026-05-15",
+      "horizon": 1,
+      "candidate_id": "E3",
+      "feature_profile": "public_market_core_reconstructed_archive",
+      "actual": -0.005138413859457887,
+      "p10": -0.015747367829907596,
+      "p25": -0.005464528368067651,
+      "p50": 0.0005579922223748453,
+      "p75": 0.007157075974772209,
+      "p90": 0.012175870076607628,
+      "up_probability": 0.52475,
+      "model_crps": 0.0037956623299898575,
+      "baseline_crps": 0.004140079203091028
+    },
+    {
+      "origin": "2026-05-15",
+      "horizon": 5,
+      "candidate_id": "E1",
+      "feature_profile": "public_market_core_reconstructed_archive",
+      "actual": 0.00452091360853409,
+      "p10": -0.030552471981554603,
+      "p25": -0.011560849328859217,
+      "p50": 0.0039435110193904045,
+      "p75": 0.021792496716108556,
+      "p90": 0.032827447056929075,
+      "up_probability": 0.5665,
+      "model_crps": 0.0058767867705237144,
+      "baseline_crps": 0.006125028139100052
+    },
+    {
+      "origin": "2026-05-15",
+      "horizon": 21,
+      "candidate_id": "E1",
+      "feature_profile": "public_market_core_reconstructed_archive",
+      "actual": 0.0057489035072170866,
+      "p10": -0.0691791538409154,
+      "p25": -0.023567204742417032,
+      "p50": 0.017656868454082552,
+      "p75": 0.04750015408452964,
+      "p90": 0.07091522934178024,
+      "up_probability": 0.619,
+      "model_crps": 0.01366447183118065,
+      "baseline_crps": 0.013641653330099132
+    },
+    {
+      "origin": "2026-05-15",
+      "horizon": 63,
+      "candidate_id": "E1",
+      "feature_profile": "public_market_core_reconstructed_archive",
+      "actual": 0.015879645312971626,
+      "p10": -0.11685908884882387,
+      "p25": -0.027615150333094116,
+      "p50": 0.040299227778676214,
+      "p75": 0.08778825768824021,
+      "p90": 0.1374288367843223,
+      "up_probability": 0.661,
+      "model_crps": 0.023976106707911497,
+      "baseline_crps": 0.024194904801705254
+    }
+  ],
+  "backtest": [
+    {
+      "horizon": 1,
+      "count": 385,
+      "model_crps": 0.007525626213647608,
+      "baseline_crps": 0.007781908322859654,
+      "improvement": 0.03293306713203074,
+      "p10_p90_coverage": 0.7974025974025974,
+      "p25_p75_coverage": 0.4961038961038961,
+      "baseline_coverage": 0.8389610389610389
+    },
+    {
+      "horizon": 5,
+      "count": 385,
+      "model_crps": 0.016088254127312938,
+      "baseline_crps": 0.01667099483721928,
+      "improvement": 0.03495536502748656,
+      "p10_p90_coverage": 0.7740259740259741,
+      "p25_p75_coverage": 0.44675324675324674,
+      "baseline_coverage": 0.8233766233766234
+    },
+    {
+      "horizon": 21,
+      "count": 385,
+      "model_crps": 0.03336588186946289,
+      "baseline_crps": 0.033796198223233896,
+      "improvement": 0.012732685224788855,
+      "p10_p90_coverage": 0.8155844155844156,
+      "p25_p75_coverage": 0.4675324675324675,
+      "baseline_coverage": 0.8155844155844156
+    },
+    {
+      "horizon": 63,
+      "count": 385,
+      "model_crps": 0.05561124697957041,
+      "baseline_crps": 0.05593771157099971,
+      "improvement": 0.005836216431823998,
+      "p10_p90_coverage": 0.7974025974025974,
+      "p25_p75_coverage": 0.4701298701298701,
+      "baseline_coverage": 0.8
+    }
+  ],
+  "model_card": {
+    "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v6",
+    "probability_space": "research_timeseries_v6_conditional",
+    "status": "shadow_gate_hold",
+    "numbers_visible": false,
+    "integrity_pass": true,
+    "research_pass": false,
+    "operational_pass": false,
+    "research_reasons": [
+      "h21_extreme_q4_coverage",
+      "h21_gfc_coverage_or_sample",
+      "h21_pandemic_coverage_or_sample",
+      "h5_p25_p75_coverage",
+      "h63_extreme_q4_coverage",
+      "h63_gfc_coverage_or_sample",
+      "h63_pandemic_coverage_or_sample",
+      "long_horizon_mean_crps_improvement_below_2pct"
+    ],
+    "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+    "origin_count": 1572,
+    "first_origin": "1996-04-04",
+    "last_mature_origin": "2026-05-15",
+    "candidate_selections": [
+      {
+        "schema_version": 1,
+        "candidate_id": "E1",
+        "implementation_version": "quantile_elastic_net_deterministic_runtime_v2",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "public_market_core_reconstructed_archive",
+        "feature_profile_hash": "a4406988f2a6941e98f353eebbcda2d8abb79aac90d3582837e308f1a46f4ddb",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing"
+        ],
+        "selection": {
+          "1": {
+            "mean_inner_crps": 0.0044073587091166275,
+            "spec": {
+              "alpha": 0.1,
+              "l1_ratio": 0.1,
+              "max_iter": 10000,
+              "tolerance": 1e-07
+            },
+            "spec_hash": "3564c4fde637e8dbe858ec5faa45e38514e35ed8650de2d8711c2f35f64aae47",
+            "fold_count": 3,
+            "implementation_version": "quantile_elastic_net_deterministic_runtime_v2"
+          },
+          "5": {
+            "mean_inner_crps": 0.009644666092733442,
+            "spec": {
+              "alpha": 0.1,
+              "l1_ratio": 0.1,
+              "max_iter": 10000,
+              "tolerance": 1e-07
+            },
+            "spec_hash": "3564c4fde637e8dbe858ec5faa45e38514e35ed8650de2d8711c2f35f64aae47",
+            "fold_count": 3,
+            "implementation_version": "quantile_elastic_net_deterministic_runtime_v2"
+          },
+          "21": {
+            "mean_inner_crps": 0.018905499841627066,
+            "spec": {
+              "alpha": 0.1,
+              "l1_ratio": 0.1,
+              "max_iter": 10000,
+              "tolerance": 1e-07
+            },
+            "spec_hash": "3564c4fde637e8dbe858ec5faa45e38514e35ed8650de2d8711c2f35f64aae47",
+            "fold_count": 3,
+            "implementation_version": "quantile_elastic_net_deterministic_runtime_v2"
+          },
+          "63": {
+            "mean_inner_crps": 0.035314540738939464,
+            "spec": {
+              "alpha": 0.1,
+              "l1_ratio": 0.5,
+              "max_iter": 10000,
+              "tolerance": 1e-07
+            },
+            "spec_hash": "4bdf73e10d8d6bead87e444ad3c84bd3d612fd988aedaf73068b1fb916e8638a",
+            "fold_count": 3,
+            "implementation_version": "quantile_elastic_net_deterministic_runtime_v2"
+          }
+        },
+        "selection_hash": "27948b84909e43e53077c4b01187faf66b06860a7942f8c0f18eed00064dedce"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E2",
+        "implementation_version": "student_t_location_scale_v1",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "public_market_core_reconstructed_archive",
+        "feature_profile_hash": "a4406988f2a6941e98f353eebbcda2d8abb79aac90d3582837e308f1a46f4ddb",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing"
+        ],
+        "selection": {
+          "1": {
+            "mean_inner_crps": 0.006751871373700428,
+            "spec": {
+              "degrees_of_freedom": 4,
+              "ridge_alpha": 1.0,
+              "scale_floor": 1e-06
+            },
+            "spec_hash": "d5bb3039405f009edfd69c5247573b495ee88e39acdc71046b312a1c8e9ddd04",
+            "fold_count": 3,
+            "implementation_version": "student_t_location_scale_v1"
+          },
+          "5": {
+            "mean_inner_crps": 0.013708179689470468,
+            "spec": {
+              "degrees_of_freedom": 4,
+              "ridge_alpha": 1.0,
+              "scale_floor": 1e-06
+            },
+            "spec_hash": "d5bb3039405f009edfd69c5247573b495ee88e39acdc71046b312a1c8e9ddd04",
+            "fold_count": 3,
+            "implementation_version": "student_t_location_scale_v1"
+          },
+          "21": {
+            "mean_inner_crps": 0.028405386530207216,
+            "spec": {
+              "degrees_of_freedom": 12,
+              "ridge_alpha": 1.0,
+              "scale_floor": 1e-06
+            },
+            "spec_hash": "ab09d055211dac2fe4bdc3eb26fa69e3bc5603f8adbe20566e9f82d899fae2fb",
+            "fold_count": 3,
+            "implementation_version": "student_t_location_scale_v1"
+          },
+          "63": {
+            "mean_inner_crps": 0.07042027292326482,
+            "spec": {
+              "degrees_of_freedom": 4,
+              "ridge_alpha": 1.0,
+              "scale_floor": 1e-06
+            },
+            "spec_hash": "d5bb3039405f009edfd69c5247573b495ee88e39acdc71046b312a1c8e9ddd04",
+            "fold_count": 3,
+            "implementation_version": "student_t_location_scale_v1"
+          }
+        },
+        "selection_hash": "ba69a087491a82c828861737e5389da8ced175990c61fd00e34df8e8fad29c37"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E3",
+        "implementation_version": "quantile_hgb_contract_v1",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "public_market_core_reconstructed_archive",
+        "feature_profile_hash": "a4406988f2a6941e98f353eebbcda2d8abb79aac90d3582837e308f1a46f4ddb",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing"
+        ],
+        "selection": {
+          "1": {
+            "mean_inner_crps": 0.004403762808501139,
+            "spec": {
+              "learning_rate": 0.03,
+              "max_leaf_nodes": 7,
+              "max_iter": 100,
+              "l2_regularization": 0.0,
+              "min_samples_leaf": 50
+            },
+            "spec_hash": "4998e8c5a0a478ca17b27e3be54464969d315009bc04e8538929ad83ce08347e",
+            "fold_count": 3,
+            "implementation_version": "quantile_hgb_contract_v1"
+          },
+          "5": {
+            "mean_inner_crps": 0.009719612092483678,
+            "spec": {
+              "learning_rate": 0.03,
+              "max_leaf_nodes": 7,
+              "max_iter": 100,
+              "l2_regularization": 0.0,
+              "min_samples_leaf": 50
+            },
+            "spec_hash": "4998e8c5a0a478ca17b27e3be54464969d315009bc04e8538929ad83ce08347e",
+            "fold_count": 3,
+            "implementation_version": "quantile_hgb_contract_v1"
+          },
+          "21": {
+            "mean_inner_crps": 0.019593886093553548,
+            "spec": {
+              "learning_rate": 0.03,
+              "max_leaf_nodes": 7,
+              "max_iter": 100,
+              "l2_regularization": 1.0,
+              "min_samples_leaf": 50
+            },
+            "spec_hash": "f783f8b7b8a4ccfcef010c88b939b45660b5de7b657259f060dfad3a40f814e5",
+            "fold_count": 3,
+            "implementation_version": "quantile_hgb_contract_v1"
+          },
+          "63": {
+            "mean_inner_crps": 0.03701908514152127,
+            "spec": {
+              "learning_rate": 0.03,
+              "max_leaf_nodes": 7,
+              "max_iter": 100,
+              "l2_regularization": 1.0,
+              "min_samples_leaf": 50
+            },
+            "spec_hash": "f783f8b7b8a4ccfcef010c88b939b45660b5de7b657259f060dfad3a40f814e5",
+            "fold_count": 3,
+            "implementation_version": "quantile_hgb_contract_v1"
+          }
+        },
+        "selection_hash": "fc8324aa789eb788e0e93793b71932859b933e05a704baf7017a0fef9d4f5e3a"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E4",
+        "implementation_version": "bayesian_filtered_dlm_v1",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "official_archive_challenger",
+        "feature_profile_hash": "a0bf62f86576d1cf119d200a47a77c238cfe1b69c92bbf4d696873cf42cb75c7",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "nfci_level",
+          "nfci_change_5",
+          "dff_level",
+          "dff_change_5",
+          "ofr_fsi_level",
+          "ofr_fsi_change_5",
+          "ebp_level",
+          "ebp_change_5",
+          "cmdi_level",
+          "cmdi_change_5",
+          "cftc_nasdaq_lev_net_pct_oi_level",
+          "cftc_nasdaq_lev_net_pct_oi_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "walcl_log_change_21",
+          "wtregen_log_change_21",
+          "rrpontsyd_log_change_21",
+          "m2sl_log_change_21",
+          "payems_log_change_21",
+          "indpro_log_change_21",
+          "cpiaucsl_log_change_21",
+          "unrate_level",
+          "unrate_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "nfci_change_5__missing",
+          "dff_change_5__missing",
+          "ofr_fsi_level__missing",
+          "ofr_fsi_change_5__missing",
+          "ebp_change_5__missing",
+          "cmdi_level__missing",
+          "cmdi_change_5__missing",
+          "cftc_nasdaq_lev_net_pct_oi_level__missing",
+          "cftc_nasdaq_lev_net_pct_oi_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing",
+          "walcl_log_change_21__missing",
+          "wtregen_log_change_21__missing",
+          "rrpontsyd_log_change_21__missing",
+          "m2sl_log_change_21__missing",
+          "payems_log_change_21__missing",
+          "indpro_log_change_21__missing",
+          "cpiaucsl_log_change_21__missing",
+          "unrate_change_21__missing"
+        ],
+        "selection": {
+          "1": {
+            "mean_inner_crps": 0.008507332733635206,
+            "spec": {
+              "state_discount": 0.995,
+              "prior_variance": 1.0
+            },
+            "spec_hash": "0e0ee2171c7fba5e77fc7bfcd549ffa8e16fdbdf9713b0f511b1c371222a9bff",
+            "fold_count": 3,
+            "implementation_version": "bayesian_filtered_dlm_v1"
+          },
+          "5": {
+            "mean_inner_crps": 0.015756119143078416,
+            "spec": {
+              "state_discount": 0.995,
+              "prior_variance": 1.0
+            },
+            "spec_hash": "0e0ee2171c7fba5e77fc7bfcd549ffa8e16fdbdf9713b0f511b1c371222a9bff",
+            "fold_count": 3,
+            "implementation_version": "bayesian_filtered_dlm_v1"
+          },
+          "21": {
+            "mean_inner_crps": 0.03947656374942351,
+            "spec": {
+              "state_discount": 0.995,
+              "prior_variance": 1.0
+            },
+            "spec_hash": "0e0ee2171c7fba5e77fc7bfcd549ffa8e16fdbdf9713b0f511b1c371222a9bff",
+            "fold_count": 3,
+            "implementation_version": "bayesian_filtered_dlm_v1"
+          },
+          "63": {
+            "mean_inner_crps": 0.09094867208786495,
+            "spec": {
+              "state_discount": 0.995,
+              "prior_variance": 10.0
+            },
+            "spec_hash": "a6e5d1cfefe1ea373567b0975393bd6e89a856a1e5956f89f956eff9567f13d1",
+            "fold_count": 3,
+            "implementation_version": "bayesian_filtered_dlm_v1"
+          }
+        },
+        "selection_hash": "a2b74c1d5e39f4a110c6909017417ed6dfd0bddcbefee0b5179760d750840bac"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E5",
+        "implementation_version": "soft_regime_balanced_ess_v2",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "official_archive_challenger",
+        "feature_profile_hash": "a0bf62f86576d1cf119d200a47a77c238cfe1b69c92bbf4d696873cf42cb75c7",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "nfci_level",
+          "nfci_change_5",
+          "dff_level",
+          "dff_change_5",
+          "ofr_fsi_level",
+          "ofr_fsi_change_5",
+          "ebp_level",
+          "ebp_change_5",
+          "cmdi_level",
+          "cmdi_change_5",
+          "cftc_nasdaq_lev_net_pct_oi_level",
+          "cftc_nasdaq_lev_net_pct_oi_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "walcl_log_change_21",
+          "wtregen_log_change_21",
+          "rrpontsyd_log_change_21",
+          "m2sl_log_change_21",
+          "payems_log_change_21",
+          "indpro_log_change_21",
+          "cpiaucsl_log_change_21",
+          "unrate_level",
+          "unrate_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "nfci_change_5__missing",
+          "dff_change_5__missing",
+          "ofr_fsi_level__missing",
+          "ofr_fsi_change_5__missing",
+          "ebp_change_5__missing",
+          "cmdi_level__missing",
+          "cmdi_change_5__missing",
+          "cftc_nasdaq_lev_net_pct_oi_level__missing",
+          "cftc_nasdaq_lev_net_pct_oi_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing",
+          "walcl_log_change_21__missing",
+          "wtregen_log_change_21__missing",
+          "rrpontsyd_log_change_21__missing",
+          "m2sl_log_change_21__missing",
+          "payems_log_change_21__missing",
+          "indpro_log_change_21__missing",
+          "cpiaucsl_log_change_21__missing",
+          "unrate_change_21__missing"
+        ],
+        "selection": {
+          "1": {
+            "mean_inner_crps": 0.005816216955695133,
+            "spec": {
+              "global_shrinkage": 0.25,
+              "regime_count": 3,
+              "minimum_effective_sample_size": 50
+            },
+            "spec_hash": "648c35c3543e56c8a2bbc7cb02b529931ae3cae57831bb2eb8d6c7001c4a523c",
+            "fold_count": 3,
+            "implementation_version": "soft_regime_balanced_ess_v2"
+          },
+          "5": {
+            "mean_inner_crps": 0.012210388764799664,
+            "spec": {
+              "global_shrinkage": 0.25,
+              "regime_count": 3,
+              "minimum_effective_sample_size": 50
+            },
+            "spec_hash": "648c35c3543e56c8a2bbc7cb02b529931ae3cae57831bb2eb8d6c7001c4a523c",
+            "fold_count": 3,
+            "implementation_version": "soft_regime_balanced_ess_v2"
+          },
+          "21": {
+            "mean_inner_crps": 0.033846054638388724,
+            "spec": {
+              "global_shrinkage": 0.75,
+              "regime_count": 3,
+              "minimum_effective_sample_size": 50
+            },
+            "spec_hash": "cdd924be9d3293dee2cf103bc4622e35ecae599216235920fb54f3a6d47df65f",
+            "fold_count": 3,
+            "implementation_version": "soft_regime_balanced_ess_v2"
+          },
+          "63": {
+            "mean_inner_crps": 0.08602073245851409,
+            "spec": {
+              "global_shrinkage": 0.75,
+              "regime_count": 3,
+              "minimum_effective_sample_size": 50
+            },
+            "spec_hash": "cdd924be9d3293dee2cf103bc4622e35ecae599216235920fb54f3a6d47df65f",
+            "fold_count": 3,
+            "implementation_version": "soft_regime_balanced_ess_v2"
+          }
+        },
+        "selection_hash": "3e0762140cc6cf5489d899dd26415a1e2a2db24337c3af6ef19bcdd7498a4611"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E6",
+        "implementation_version": "asymmetric_evt_tail_v1",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "official_archive_challenger",
+        "feature_profile_hash": "a0bf62f86576d1cf119d200a47a77c238cfe1b69c92bbf4d696873cf42cb75c7",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "nfci_level",
+          "nfci_change_5",
+          "dff_level",
+          "dff_change_5",
+          "ofr_fsi_level",
+          "ofr_fsi_change_5",
+          "ebp_level",
+          "ebp_change_5",
+          "cmdi_level",
+          "cmdi_change_5",
+          "cftc_nasdaq_lev_net_pct_oi_level",
+          "cftc_nasdaq_lev_net_pct_oi_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "walcl_log_change_21",
+          "wtregen_log_change_21",
+          "rrpontsyd_log_change_21",
+          "m2sl_log_change_21",
+          "payems_log_change_21",
+          "indpro_log_change_21",
+          "cpiaucsl_log_change_21",
+          "unrate_level",
+          "unrate_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "nfci_change_5__missing",
+          "dff_change_5__missing",
+          "ofr_fsi_level__missing",
+          "ofr_fsi_change_5__missing",
+          "ebp_change_5__missing",
+          "cmdi_level__missing",
+          "cmdi_change_5__missing",
+          "cftc_nasdaq_lev_net_pct_oi_level__missing",
+          "cftc_nasdaq_lev_net_pct_oi_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing",
+          "walcl_log_change_21__missing",
+          "wtregen_log_change_21__missing",
+          "rrpontsyd_log_change_21__missing",
+          "m2sl_log_change_21__missing",
+          "payems_log_change_21__missing",
+          "indpro_log_change_21__missing",
+          "cpiaucsl_log_change_21__missing",
+          "unrate_change_21__missing"
+        ],
+        "selection": {
+          "5": {
+            "mean_inner_crps": 0.012773997654532313,
+            "spec": {
+              "threshold_quantile": 0.95,
+              "minimum_exceedances_per_tail": 40,
+              "shape_bounds": [
+                -0.45,
+                0.45
+              ]
+            },
+            "spec_hash": "b1359a36aa00b7726109c6455d455f9f5c307cb41da208e95d133db3a216b400",
+            "fold_count": 3,
+            "implementation_version": "asymmetric_evt_tail_v1"
+          },
+          "21": {
+            "mean_inner_crps": 0.031147299989433438,
+            "spec": {
+              "threshold_quantile": 0.9,
+              "minimum_exceedances_per_tail": 40,
+              "shape_bounds": [
+                -0.45,
+                0.45
+              ]
+            },
+            "spec_hash": "4fcbe2ca1db0b123a115c94a4463b05079bd1321d4adcaa31dd311b9116282fc",
+            "fold_count": 3,
+            "implementation_version": "asymmetric_evt_tail_v1"
+          },
+          "63": {
+            "mean_inner_crps": 0.08505243055416738,
+            "spec": {
+              "threshold_quantile": 0.9,
+              "minimum_exceedances_per_tail": 40,
+              "shape_bounds": [
+                -0.45,
+                0.45
+              ]
+            },
+            "spec_hash": "4fcbe2ca1db0b123a115c94a4463b05079bd1321d4adcaa31dd311b9116282fc",
+            "fold_count": 3,
+            "implementation_version": "asymmetric_evt_tail_v1"
+          }
+        },
+        "selection_hash": "694349312cfadd9fe3e3d34b4169d93260ab830dd906cc02a68cd622355974fe"
+      },
+      {
+        "schema_version": 1,
+        "candidate_id": "E7",
+        "implementation_version": "pit_analog_trajectory_v1",
+        "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+        "feature_profile": "official_archive_challenger",
+        "feature_profile_hash": "a0bf62f86576d1cf119d200a47a77c238cfe1b69c92bbf4d696873cf42cb75c7",
+        "feature_names": [
+          "momentum_1",
+          "momentum_5",
+          "momentum_21",
+          "momentum_63",
+          "realized_vol_5",
+          "realized_vol_21",
+          "realized_vol_63",
+          "downside_semivariance_21",
+          "vix_log_level",
+          "vix_log_change_5",
+          "vix9d_log_level",
+          "vix9d_log_change_5",
+          "vix3m_log_level",
+          "vix3m_log_change_5",
+          "vvix_log_level",
+          "vvix_log_change_5",
+          "skew_log_level",
+          "skew_log_change_5",
+          "vix9d_vix_log_slope",
+          "vix3m_vix_log_slope",
+          "dgs2_level",
+          "dgs2_change_5",
+          "t10y2y_level",
+          "t10y2y_change_5",
+          "nfci_level",
+          "nfci_change_5",
+          "dff_level",
+          "dff_change_5",
+          "ofr_fsi_level",
+          "ofr_fsi_change_5",
+          "ebp_level",
+          "ebp_change_5",
+          "cmdi_level",
+          "cmdi_change_5",
+          "cftc_nasdaq_lev_net_pct_oi_level",
+          "cftc_nasdaq_lev_net_pct_oi_change_5",
+          "dollar_log_change_5",
+          "dollar_log_change_21",
+          "walcl_log_change_21",
+          "wtregen_log_change_21",
+          "rrpontsyd_log_change_21",
+          "m2sl_log_change_21",
+          "payems_log_change_21",
+          "indpro_log_change_21",
+          "cpiaucsl_log_change_21",
+          "unrate_level",
+          "unrate_change_21",
+          "vix_log_change_5__missing",
+          "vix9d_log_level__missing",
+          "vix9d_log_change_5__missing",
+          "vix3m_log_level__missing",
+          "vix3m_log_change_5__missing",
+          "vvix_log_level__missing",
+          "vvix_log_change_5__missing",
+          "skew_log_change_5__missing",
+          "vix9d_vix_log_slope__missing",
+          "vix3m_vix_log_slope__missing",
+          "dgs2_change_5__missing",
+          "t10y2y_change_5__missing",
+          "nfci_change_5__missing",
+          "dff_change_5__missing",
+          "ofr_fsi_level__missing",
+          "ofr_fsi_change_5__missing",
+          "ebp_change_5__missing",
+          "cmdi_level__missing",
+          "cmdi_change_5__missing",
+          "cftc_nasdaq_lev_net_pct_oi_level__missing",
+          "cftc_nasdaq_lev_net_pct_oi_change_5__missing",
+          "dollar_log_change_5__missing",
+          "dollar_log_change_21__missing",
+          "walcl_log_change_21__missing",
+          "wtregen_log_change_21__missing",
+          "rrpontsyd_log_change_21__missing",
+          "m2sl_log_change_21__missing",
+          "payems_log_change_21__missing",
+          "indpro_log_change_21__missing",
+          "cpiaucsl_log_change_21__missing",
+          "unrate_change_21__missing"
+        ],
+        "selection": {
+          "21": {
+            "mean_inner_crps": 0.020307956578849727,
+            "spec": {
+              "neighbor_count": 20,
+              "minimum_temporal_spacing_sessions": 126
+            },
+            "spec_hash": "56082efe6391e2895102d2f5fea030288d1a8f925ea6001db53f3fa029875fe4",
+            "fold_count": 3,
+            "implementation_version": "pit_analog_trajectory_v1"
+          },
+          "63": {
+            "mean_inner_crps": 0.039945804496736244,
+            "spec": {
+              "neighbor_count": 10,
+              "minimum_temporal_spacing_sessions": 126
+            },
+            "spec_hash": "831b917c3bfa1ca090d8b84cb43f5cb0cedcb7b87bd0b3972c51f4232e4f4317",
+            "fold_count": 3,
+            "implementation_version": "pit_analog_trajectory_v1"
+          }
+        },
+        "selection_hash": "893d0e173b587e8322de0dc4d607512b92be0e928933fb061a3d73b992dc60c1"
+      }
+    ],
+    "deferred_candidates": {
+      "schema_version": 1,
+      "candidates": {
+        "E8": {
+          "eligible": false,
+          "weight": 0.0,
+          "resolved_independent_event_count": 0,
+          "minimum_required": 60,
+          "reason": "minimum_resolved_independent_events_not_met"
+        },
+        "E9": {
+          "eligible": false,
+          "weight": 0.0,
+          "license_receipt_present": false,
+          "history_present": false,
+          "reason": "licensed_physical_calibration_history_unavailable"
+        },
+        "E10": {
+          "eligible": false,
+          "weight": 0.0,
+          "checkpoint_receipt_present": false,
+          "license_receipt_present": false,
+          "reason": "checkpoint_or_license_receipt_unavailable"
+        }
+      },
+      "all_ineligible_zero_weight": true,
+      "content_hash": "f822d06de65f12d180558a4083495667a7a797d3e01a3bf51e2da71c43362451"
+    }
+  },
+  "run_manifest": [
+    {
+      "path": "data/timeseries_v6/manifests/public_archive_latest.json",
+      "bytes": 31280,
+      "sha256": "fc2ddf32938d2d6ada4983e660a35539052a3ffc884b78423249d8d25532288b"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/verification_result.json",
+      "bytes": 22043,
+      "sha256": "9f4977b18c58f4581b19317bcac707772884fe303a721d82c966018825487e67"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/gate_result.json",
+      "bytes": 2394,
+      "sha256": "47d189f956c73a12e7fc59e82895142ddbc1957e4acccc00b280315960c93733"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_latest.json",
+      "bytes": 294,
+      "sha256": "4c482b2a2dd599a6ef2779612734dc8c7c52f32ea1a57b4b774a05dc0e9ab138"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/scores.jsonl",
+      "bytes": 1084400,
+      "sha256": "e287614f4d62b7cc9966eb4ba9961b65ff7f95bbfe1df8cc173207db6ceb6373"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/selection.json",
+      "bytes": 2749,
+      "sha256": "e63e6b18697f41158eb50fa98299d5cd1bfdf238347581bba7e279846a3aed6e"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/preliminary_run_invalidations.jsonl",
+      "bytes": 423,
+      "sha256": "68a4c8265f3ed0424fb993cce5dac88edb41cb67c803ca918c6834641ca2f3af"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/deferred_candidate_eligibility.json",
+      "bytes": 816,
+      "sha256": "bd61c2834366e923c726ca8baf5bb96e0aa73a28a2db5b098952412451597909"
+    },
+    {
+      "path": "data/timeseries_v6/manifests/candidate_specs.json",
+      "bytes": 8061,
+      "sha256": "4f75791864ad505211993c5b2b2962363db65aaa60e4e60a21aa7836402d18c4"
+    },
+    {
+      "path": "data/timeseries_v6/atlas/research_plan.json",
+      "bytes": 3922,
+      "sha256": "87e0edf45bb624cd88f509dc7dac2d491845a3b288ca884e077c12859ebc7465"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_selection.json",
+      "bytes": 3209,
+      "sha256": "aefbc90d8ddb136712f95f66c00613ba54455990264fcc2f515256a8ae647c83"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_selection.json",
+      "bytes": 3070,
+      "sha256": "ac633fd57b58a40a3107b72a26539cdea83913729c8581cc565bb4955792e6c1"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_selection.json",
+      "bytes": 3302,
+      "sha256": "429e4266dd489da4c948ba13e0206bdfa08f6803f0752f0e3f69a2856679d21e"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e4_selection.json",
+      "bytes": 4094,
+      "sha256": "d0f4ccb32229863f5d8cfd6ddcae5c81dc01f669428b31fd2aee2a866a420e7f"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e5_selection.json",
+      "bytes": 4281,
+      "sha256": "c92d297f767a99cfb3c5484af120e691344717a1da29cfca1520df3b817fc536"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e6_selection.json",
+      "bytes": 4019,
+      "sha256": "278ab885bc24299797da4cba86498f53c140fa7ca0084228ca14c607892af36a"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e7_selection.json",
+      "bytes": 3463,
+      "sha256": "736e5dcb3b3cb0a9d38d4abbf650d0c321313994fdf455e17e5f14d81fda38ed"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_experiments.jsonl",
+      "bytes": 212340,
+      "sha256": "ed5cd884f052b816cb08328002a67bc1944790f1f3725b5a24b9e2b4bf7f5592"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_h1_experiments.jsonl",
+      "bytes": 44074,
+      "sha256": "e313a5af3e78cda701aa647c3466046022c5404cf0524d8284d694eb4b1ac349"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_h21_experiments.jsonl",
+      "bytes": 44164,
+      "sha256": "164f6b670c8057f7aa63a95fba56d2828cbbbc9af0172a1f16f54bcd138c8843"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_h5_experiments.jsonl",
+      "bytes": 44042,
+      "sha256": "e5a4e35a9bd463cb7d0e03a615a75cf1272d3c809b49cd38f94e6c5637a41761"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e1_h63_experiments.jsonl",
+      "bytes": 44149,
+      "sha256": "328b4d1f98b0000c28a737abbb5428f3385652c58dcbb10b1dfe2e28094cc010"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_experiments.jsonl",
+      "bytes": 211500,
+      "sha256": "aefac991fc8c3e0da7aab216e65665d45117b40f46ae5c0c1ea96dee90ac1bfd"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_h1_experiments.jsonl",
+      "bytes": 42624,
+      "sha256": "6976c17aadf4e7dec70855a5f00812881e208fa85eb23962e69974b96860bcd2"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_h21_experiments.jsonl",
+      "bytes": 42734,
+      "sha256": "8fe2ed7e08ad3b87dea708797980a8dd2f3eaeda882fe3f5e1007a454fddd8e1"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_h5_experiments.jsonl",
+      "bytes": 42612,
+      "sha256": "99cd6f853b27436e6761285eb2a7817701321f99a8a39c77183407fb34bdddd3"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e2_h63_experiments.jsonl",
+      "bytes": 42719,
+      "sha256": "7ff7f7854caeb661f406f7ab3c758421b4890e8daac1c294e5de9f7aea75110d"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_experiments.jsonl",
+      "bytes": 191397,
+      "sha256": "70468bfceedf0871725961d114ebda8e648bbf624aae5b951336bf585b27fca1"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_h1_experiments.jsonl",
+      "bytes": 153287,
+      "sha256": "06eb0b41086b131215ca6ee65713f0f67c32818454a10940baec3e9a6ed60bbf"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_h21_experiments.jsonl",
+      "bytes": 141631,
+      "sha256": "4291d8f2b93edd28f0d2deb17cbd23feeb7142a0e0ef0d1510777e07f628f9e8"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_h5_experiments.jsonl",
+      "bytes": 141228,
+      "sha256": "a81844468f11b697ab2701a237f4aef798811502074f02f25cd491236a66b8ae"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e3_h63_experiments.jsonl",
+      "bytes": 141545,
+      "sha256": "2c68ed44d6f150d1a47365c524e8560dadeea255932aee8e6a18cd8a280d469f"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e4_h1_experiments.jsonl",
+      "bytes": 13400,
+      "sha256": "691c47887c89e336229025a73448dfe277f122e1e67cbb2f4e6a2eaada32efaf"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e4_h21_experiments.jsonl",
+      "bytes": 13427,
+      "sha256": "41f8de6b5b9a5a2994c81678d0c51863b27cc508af62054ca71bcf26039fdb26"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e4_h5_experiments.jsonl",
+      "bytes": 13397,
+      "sha256": "dddf18801c36d5881a1655e95504eba270b564330fc27a76360800ce3c63d0e9"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e4_h63_experiments.jsonl",
+      "bytes": 13423,
+      "sha256": "08749f564a70cba3e22d01434a8932228c1847a10d6a0497f625c6c31986ba03"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e5_h1_experiments.jsonl",
+      "bytes": 10869,
+      "sha256": "d1c99780afd3da458ebf5b45c5501943f461078476f367fff8412a54fcc03b3d"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e5_h21_experiments.jsonl",
+      "bytes": 10898,
+      "sha256": "0dc96cffcb24595fb77f58701f9a2a8b368f968a450fb70806d65e8983fb479b"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e5_h5_experiments.jsonl",
+      "bytes": 10863,
+      "sha256": "b27eac27a0e5cabef3036bb4562acbfe4a95699e5072a12a2109466d26bcb1e1"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e5_h63_experiments.jsonl",
+      "bytes": 10891,
+      "sha256": "be2cc18abfbdce2e794850dee76fab89bc9c65955b854c1df6412f4085843a87"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e6_h21_experiments.jsonl",
+      "bytes": 7519,
+      "sha256": "7904b3cd5da86ebac6f242d5bf892feef35e38d776bd59088857453e305ff465"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e6_h5_experiments.jsonl",
+      "bytes": 7499,
+      "sha256": "58182cb8f67f619f35a602425e21f2ad9256791882f912122809d51e7445650b"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e6_h63_experiments.jsonl",
+      "bytes": 7512,
+      "sha256": "0474f723a060448ee84c7ed10e5395d0a5dc8337d08573a7f6ff46acf1cad19f"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e7_h21_experiments.jsonl",
+      "bytes": 10991,
+      "sha256": "3ab9f94e96f2a29eaed64de3c9b7187079d3400fbe1967bea9b43fec0f046435"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/e7_h63_experiments.jsonl",
+      "bytes": 10989,
+      "sha256": "36be58d3e7c1e69738c0cbc10926f126062a07628ef53b2bcb4bd934b04c746a"
+    }
+  ]
+}

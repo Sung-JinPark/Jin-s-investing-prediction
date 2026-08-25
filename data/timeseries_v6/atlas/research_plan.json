@@ -1,0 +1,113 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {
+      "task_id": "V6-RESEARCH-001",
+      "task_type": "engineering_preflight",
+      "capability": "evaluator",
+      "dependencies": [],
+      "command": ["python", "-m", "pytest", "src/tests/timeseries_v6", "-q", "-p", "no:cacheprovider"],
+      "max_attempts": 3,
+      "timeout_seconds": 1800
+    },
+    {
+      "task_id": "V6-RESEARCH-002-E1",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-001"],
+      "command": ["python", "tools/run_v6_research.py", "select", "--candidate", "E1"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-003-E2",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-002-E1"],
+      "command": ["python", "tools/run_v6_research.py", "select", "--candidate", "E2"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-004-E3",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-003-E2"],
+      "command": ["python", "tools/run_v6_research.py", "select-parallel", "--candidate", "E3"],
+      "max_attempts": 3,
+      "timeout_seconds": 14400
+    },
+    {
+      "task_id": "V6-RESEARCH-005-E4",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-004-E3"],
+      "command": ["python", "tools/run_v6_research.py", "select-parallel", "--candidate", "E4"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-006-E5",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-005-E4"],
+      "command": ["python", "tools/run_v6_research.py", "select-parallel", "--candidate", "E5"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-007-E6",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-006-E5"],
+      "command": ["python", "tools/run_v6_research.py", "select-parallel", "--candidate", "E6"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-008-E7",
+      "task_type": "frozen_candidate_selection",
+      "capability": "trainer_cpu",
+      "dependencies": ["V6-RESEARCH-007-E6"],
+      "command": ["python", "tools/run_v6_research.py", "select-parallel", "--candidate", "E7"],
+      "max_attempts": 3,
+      "timeout_seconds": 7200
+    },
+    {
+      "task_id": "V6-RESEARCH-009-DEFERRED",
+      "task_type": "candidate_eligibility",
+      "capability": "reviewer",
+      "dependencies": ["V6-RESEARCH-008-E7"],
+      "command": ["python", "tools/run_v6_research.py", "eligibility"],
+      "max_attempts": 3,
+      "timeout_seconds": 1800
+    },
+    {
+      "task_id": "V6-RESEARCH-010-SEALED",
+      "task_type": "sealed_backtest",
+      "capability": "evaluator",
+      "dependencies": ["V6-RESEARCH-009-DEFERRED"],
+      "command": ["python", "tools/run_v6_research.py", "sealed"],
+      "max_attempts": 3,
+      "timeout_seconds": 14400
+    },
+    {
+      "task_id": "V6-RESEARCH-011-GATE",
+      "task_type": "independent_gate",
+      "capability": "evaluator",
+      "dependencies": ["V6-RESEARCH-010-SEALED"],
+      "command": ["python", "tools/run_v6_research.py", "gate"],
+      "max_attempts": 3,
+      "timeout_seconds": 3600
+    },
+    {
+      "task_id": "V6-RESEARCH-012-REGRESSION",
+      "task_type": "engineering_regression",
+      "capability": "evaluator",
+      "dependencies": ["V6-RESEARCH-011-GATE"],
+      "command": ["python", "-m", "pytest", "src/tests/timeseries_v6", "-q", "-p", "no:cacheprovider"],
+      "max_attempts": 3,
+      "timeout_seconds": 1800
+    }
+  ]
+}

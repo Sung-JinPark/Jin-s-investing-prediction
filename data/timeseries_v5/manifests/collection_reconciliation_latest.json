@@ -1,0 +1,43 @@
+{
+  "generated_at": "2026-08-24T02:01:08.646801+00:00",
+  "lineage": {
+    "errors": [],
+    "link_count": 964827,
+    "observation_count": 964827,
+    "observation_linkage": 1.0,
+    "ok": true,
+    "receipt_count": 81,
+    "terminal_outcome_coverage": 1.0
+  },
+  "results": [
+    {
+      "facts": 12633,
+      "outcome": "new_facts",
+      "raw_sha256": "5392a28735d28dcb8feb5e60282c7c686759df9954699b5bcdadcd90db6d7fad",
+      "receipt_id": "receipt-882744f22c6e3b89115361b8",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 27824,
+      "outcome": "new_facts",
+      "raw_sha256": "583a93474847f1070b213e2b12cfa73c48d9ba05f24f7d001a338de125468b57",
+      "receipt_id": "receipt-e2dc7e99eb1bfce63073ed75",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 27080,
+      "outcome": "new_facts",
+      "raw_sha256": "c5b65a8c3e0f597fae6b41eaba9246e2a995b14de3aa8fd12aabee8d05032a58",
+      "receipt_id": "receipt-60f04d8189e0e735b348c123",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 2220,
+      "outcome": "revised_facts",
+      "raw_sha256": "b9ca5ef0334ed73f6e242b07090f7a0a7f1a8fe42d0eb2e6ce7e166a623380fb",
+      "receipt_id": "receipt-2714c72efbf9b16bf13e64ba",
+      "source_id": "finra_otc"
+    }
+  ],
+  "run_id": "collect-reconcile-0514697ff47104faf1fdc609"
+}

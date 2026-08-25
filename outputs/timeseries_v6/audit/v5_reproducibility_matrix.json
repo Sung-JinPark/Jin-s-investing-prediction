@@ -1,0 +1,18 @@
+{
+  "aggregate_arithmetic": "partial",
+  "full_repository_test_claim": "reported_only",
+  "manifest_and_byte_integrity": "complete",
+  "origin_sample_recompute": "unavailable",
+  "private_parquet_replay": "unavailable",
+  "row_level_score_recompute": "unavailable",
+  "runtime_lock_replay": "unavailable",
+  "standalone_source_snapshot_test": "fail",
+  "summary_json_parse": "complete",
+  "unavailable_inputs": [
+    "full 3,852-row score matrix",
+    "4,000 samples for every origin and horizon",
+    "private raw/feature Parquet",
+    "complete repository modules",
+    "identical runtime lock/container"
+  ]
+}

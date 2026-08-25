@@ -1,0 +1,703 @@
+{
+  "schema_version": 1,
+  "runs": [
+    {
+      "run_store": "outputs/timeseries_v6/atlas/research_expanded_260824.sqlite",
+      "tasks": [
+        {
+          "task_id": "V6-RESEARCH-001",
+          "task_type": "engineering_preflight",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "bdaec9568d0c47e47379e89f2377f3de091f36c014343326144739f1ef09c0a4",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 54%]\n.........s..................................................             [100%]\n============================== warnings summary ===============================\nsrc/tests/timeseries_v6/test_v6_distribution_models.py::test_preregistered_e4_e7_challengers_are_deterministic_and_monotone\n  C:\\Users\\91ssj\\anaconda3\\Lib\\site-packages\\sklearn\\cluster\\_kmeans.py:1419: UserWarning: KMeans is known to have a memory leak on Windows with MKL, when there are less chunks than available threads. You can avoid it by setting the environment variable OMP_NUM_THREADS=3.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n131 passed, 1 skipped, 1 warning in 15.71s\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-002-E1",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "454fa0790fa45aa449cf78d637ca1a128044b17657378c23f6308c5d22d92156",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E1\", \"selection_hash\": \"23db9c9b006e0d2129bc647a4e313a7bd9519f4ff55be5a5e6edca5f4f47108b\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-003-E2",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "bf82eee71ebae75b3b4f1fd6082020c2ea1f27cfeabe919881fe259e54a23202",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E2\", \"selection_hash\": \"d62f74c9f237742cc5cf7535d258c9b6d7d896f61479b294d19362429ae49aa0\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-004-E3",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "a2808a04fde19ee3881f7633c718f79e6ebefa5169b190550bd0293b0dcac2af",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E3\", \"selection_hash\": \"00c870ce06f37d7f5de54efb58867daa1530c620df14ec261f7189d2cebf6fe4\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-005-E4",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "4122191c2d7ec08d038ed4c07bbcb434e5845b34aefd03d297c2f20be495485c",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E4\", \"selection_hash\": \"90bd5912311bb83a5047bc709bc203d0169a57bedb078d34d15a836b0bb71bb0\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-006-E5",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "failed",
+          "attempt_count": 3,
+          "blocker_repetitions": 2,
+          "checkpoint_sha256": "77730cff77a565c652213c789a6a40bdfaa9390c27fd4cf1a55f40ab45410a5a",
+          "result": {
+            "returncode": 1,
+            "stderr_tail": "Traceback (most recent call last):\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 165, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 87, in main\n    list(executor.map(run_horizon, supported))\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 619, in result_iterator\n    yield _result_or_cancel(fs.pop())\n          ~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 317, in _result_or_cancel\n    return fut.result(timeout)\n           ~~~~~~~~~~^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 456, in result\n    return self.__get_result()\n           ~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 401, in __get_result\n    raise self._exception\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\thread.py\", line 59, in run\n    result = self.fn(*self.args, **self.kwargs)\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 84, in run_horizon\n    raise RuntimeError(f\"{args.candidate} h{horizon} failed: {completed.stderr[-2000:]}\")\nRuntimeError: E5 h1 failed: Traceback (most recent call last):\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 165, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 98, in main\n    result = select_candidate(\n        dataset,\n    ...<3 lines>...\n        max_workers=3 if args.horizon else 8,\n    )\n  File \"C:\\workspace\\ai-investing-v5-gate\\src\\ai_fc\\timeseries_v6\\research_backtest.py\", line 286, in select_candidate\n    if not scored: raise ResearchBacktestError(f\"all {candidate_id} specs failed for horizon {horizon}\")\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nai_fc.timeseries_v6.research_backtest.ResearchBacktestError: all E5 specs failed for horizon 1\n\n",
+            "stdout_tail": ""
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-007-E6",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-008-E7",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-009-DEFERRED",
+          "task_type": "candidate_eligibility",
+          "capability": "reviewer",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-010-SEALED",
+          "task_type": "sealed_backtest",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-011-GATE",
+          "task_type": "independent_gate",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-012-REGRESSION",
+          "task_type": "engineering_regression",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        }
+      ],
+      "all_succeeded": false
+    },
+    {
+      "run_store": "outputs/timeseries_v6/atlas/research_expanded_r2_260824.sqlite",
+      "tasks": [
+        {
+          "task_id": "V6-RESEARCH-001",
+          "task_type": "engineering_preflight",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "92e22c1ab131a999e4b1c9e232ad0d2d414d1fdfdade92648f729a559d65e845",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 54%]\n..........s..................................................            [100%]\n============================== warnings summary ===============================\nsrc/tests/timeseries_v6/test_v6_distribution_models.py::test_preregistered_e4_e7_challengers_are_deterministic_and_monotone\n  C:\\Users\\91ssj\\anaconda3\\Lib\\site-packages\\sklearn\\cluster\\_kmeans.py:1419: UserWarning: KMeans is known to have a memory leak on Windows with MKL, when there are less chunks than available threads. You can avoid it by setting the environment variable OMP_NUM_THREADS=3.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n132 passed, 1 skipped, 1 warning in 16.46s\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-002-E1",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "454fa0790fa45aa449cf78d637ca1a128044b17657378c23f6308c5d22d92156",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E1\", \"selection_hash\": \"23db9c9b006e0d2129bc647a4e313a7bd9519f4ff55be5a5e6edca5f4f47108b\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-003-E2",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "bf82eee71ebae75b3b4f1fd6082020c2ea1f27cfeabe919881fe259e54a23202",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E2\", \"selection_hash\": \"d62f74c9f237742cc5cf7535d258c9b6d7d896f61479b294d19362429ae49aa0\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-004-E3",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "a2808a04fde19ee3881f7633c718f79e6ebefa5169b190550bd0293b0dcac2af",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E3\", \"selection_hash\": \"00c870ce06f37d7f5de54efb58867daa1530c620df14ec261f7189d2cebf6fe4\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-005-E4",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "4122191c2d7ec08d038ed4c07bbcb434e5845b34aefd03d297c2f20be495485c",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E4\", \"selection_hash\": \"90bd5912311bb83a5047bc709bc203d0169a57bedb078d34d15a836b0bb71bb0\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-006-E5",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "hold",
+          "attempt_count": 3,
+          "blocker_repetitions": 3,
+          "checkpoint_sha256": "77730cff77a565c652213c789a6a40bdfaa9390c27fd4cf1a55f40ab45410a5a",
+          "result": {
+            "returncode": 1,
+            "stderr_tail": "Traceback (most recent call last):\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 165, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 87, in main\n    list(executor.map(run_horizon, supported))\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 619, in result_iterator\n    yield _result_or_cancel(fs.pop())\n          ~~~~~~~~~~~~~~~~~^^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 317, in _result_or_cancel\n    return fut.result(timeout)\n           ~~~~~~~~~~^^^^^^^^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 456, in result\n    return self.__get_result()\n           ~~~~~~~~~~~~~~~~~^^\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\_base.py\", line 401, in __get_result\n    raise self._exception\n  File \"C:\\Users\\91ssj\\anaconda3\\Lib\\concurrent\\futures\\thread.py\", line 59, in run\n    result = self.fn(*self.args, **self.kwargs)\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 84, in run_horizon\n    raise RuntimeError(f\"{args.candidate} h{horizon} failed: {completed.stderr[-2000:]}\")\nRuntimeError: E5 h1 failed: Traceback (most recent call last):\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 165, in <module>\n    raise SystemExit(main())\n                     ~~~~^^\n  File \"C:\\workspace\\ai-investing-v5-gate\\tools\\run_v6_research.py\", line 98, in main\n    result = select_candidate(\n        dataset,\n    ...<3 lines>...\n        max_workers=3 if args.horizon else 8,\n    )\n  File \"C:\\workspace\\ai-investing-v5-gate\\src\\ai_fc\\timeseries_v6\\research_backtest.py\", line 286, in select_candidate\n    if not scored: raise ResearchBacktestError(f\"all {candidate_id} specs failed for horizon {horizon}\")\n                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nai_fc.timeseries_v6.research_backtest.ResearchBacktestError: all E5 specs failed for horizon 1\n\n",
+            "stdout_tail": ""
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-007-E6",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-008-E7",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-009-DEFERRED",
+          "task_type": "candidate_eligibility",
+          "capability": "reviewer",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-010-SEALED",
+          "task_type": "sealed_backtest",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-011-GATE",
+          "task_type": "independent_gate",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        },
+        {
+          "task_id": "V6-RESEARCH-012-REGRESSION",
+          "task_type": "engineering_regression",
+          "capability": "evaluator",
+          "state": "pending",
+          "attempt_count": 0,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": null,
+          "result": null
+        }
+      ],
+      "all_succeeded": false
+    },
+    {
+      "run_store": "outputs/timeseries_v6/atlas/research_expanded_r3_260824.sqlite",
+      "tasks": [
+        {
+          "task_id": "V6-RESEARCH-001",
+          "task_type": "engineering_preflight",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "5314d07d5213164447e3e5258989f3ffef8a51efd3fffd9e6a143fc029f1de06",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 54%]\n..........s..................................................            [100%]\n============================== warnings summary ===============================\nsrc/tests/timeseries_v6/test_v6_distribution_models.py::test_preregistered_e4_e7_challengers_are_deterministic_and_monotone\n  C:\\Users\\91ssj\\anaconda3\\Lib\\site-packages\\sklearn\\cluster\\_kmeans.py:1419: UserWarning: KMeans is known to have a memory leak on Windows with MKL, when there are less chunks than available threads. You can avoid it by setting the environment variable OMP_NUM_THREADS=3.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n132 passed, 1 skipped, 1 warning in 17.86s\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-002-E1",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "454fa0790fa45aa449cf78d637ca1a128044b17657378c23f6308c5d22d92156",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E1\", \"selection_hash\": \"23db9c9b006e0d2129bc647a4e313a7bd9519f4ff55be5a5e6edca5f4f47108b\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-003-E2",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "bf82eee71ebae75b3b4f1fd6082020c2ea1f27cfeabe919881fe259e54a23202",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E2\", \"selection_hash\": \"d62f74c9f237742cc5cf7535d258c9b6d7d896f61479b294d19362429ae49aa0\"}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-004-E3",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "a2808a04fde19ee3881f7633c718f79e6ebefa5169b190550bd0293b0dcac2af",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E3\", \"selection_hash\": \"00c870ce06f37d7f5de54efb58867daa1530c620df14ec261f7189d2cebf6fe4\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-005-E4",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "4122191c2d7ec08d038ed4c07bbcb434e5845b34aefd03d297c2f20be495485c",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E4\", \"selection_hash\": \"90bd5912311bb83a5047bc709bc203d0169a57bedb078d34d15a836b0bb71bb0\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-006-E5",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "e5c856cb6300b122d421d8c99edcced25e42fd4285a1862f408405edb95d3e00",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E5\", \"selection_hash\": \"bb561a97bff1c3a44659af625c432b3a4222fdbfea2625deb6fd9b2debb6018f\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-007-E6",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "2c5c3a5a164cd5c292947ef5e9ae817a7e490258f73085d48b9f62c9ff20841e",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E6\", \"selection_hash\": \"d43cddde8477e9816c5a1b5bf1ca841b5f174d29d344f07d061f1ac604096a39\", \"parallel_horizons\": [5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-008-E7",
+          "task_type": "frozen_candidate_selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "cbc8c5bbcd4f8d133803b80a6d91208c46ebe03a82152cc3803497dab6c128bc",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E7\", \"selection_hash\": \"15b0e7820fa531859669deb57d11b43f8e569d0967e5f38d29260222d849afe2\", \"parallel_horizons\": [21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-009-DEFERRED",
+          "task_type": "candidate_eligibility",
+          "capability": "reviewer",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "137c63653c8efa3500bd817fc61f21d1da786952817380c4e4deea86b011d0e4",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"all_ineligible_zero_weight\": true, \"candidates\": {\"E10\": {\"checkpoint_receipt_present\": false, \"eligible\": false, \"license_receipt_present\": false, \"reason\": \"checkpoint_or_license_receipt_unavailable\", \"weight\": 0.0}, \"E8\": {\"eligible\": false, \"minimum_required\": 60, \"reason\": \"minimum_resolved_independent_events_not_met\", \"resolved_independent_event_count\": 0, \"weight\": 0.0}, \"E9\": {\"eligible\": false, \"history_present\": false, \"license_receipt_present\": false, \"reason\": \"licensed_physical_calibration_history_unavailable\", \"weight\": 0.0}}, \"content_hash\": \"f822d06de65f12d180558a4083495667a7a797d3e01a3bf51e2da71c43362451\", \"schema_version\": 1}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-010-SEALED",
+          "task_type": "sealed_backtest",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "92a48d7b816a9a894b29e9da638483d6d1b0a278ada837ddeae1a82f3a7f47a2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"run_id\": \"tsv6-sealed-7774fe95e0d0958dfeac2ee7\", \"rows\": 1540, \"choices\": {\"1\": \"E3\", \"5\": \"E1\", \"21\": \"E1\", \"63\": \"E1\"}}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-011-GATE",
+          "task_type": "independent_gate",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "f236a95d342bca4e735eeb847157aa4df4c88ea0c9d2b4724d7559a56af688a6",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"status\": \"shadow_gate_hold\", \"numbers_visible\": false, \"reasons\": [\"h21_extreme_q4_coverage\", \"h21_gfc_coverage_or_sample\", \"h21_pandemic_coverage_or_sample\", \"h21_tightening_coverage_or_sample\", \"h5_p25_p75_coverage\", \"h63_extreme_q4_coverage\", \"h63_gfc_coverage_or_sample\", \"h63_pandemic_coverage_or_sample\", \"long_horizon_mean_crps_improvement_below_2pct\"]}\n"
+          }
+        },
+        {
+          "task_id": "V6-RESEARCH-012-REGRESSION",
+          "task_type": "engineering_regression",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "c0c64a4073bcf0cdcceaeeccba44294b20577662eeeee3af9b99eab77620d0cf",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 54%]\n..........s..................................................            [100%]\n============================== warnings summary ===============================\nsrc/tests/timeseries_v6/test_v6_distribution_models.py::test_preregistered_e4_e7_challengers_are_deterministic_and_monotone\n  C:\\Users\\91ssj\\anaconda3\\Lib\\site-packages\\sklearn\\cluster\\_kmeans.py:1419: UserWarning: KMeans is known to have a memory leak on Windows with MKL, when there are less chunks than available threads. You can avoid it by setting the environment variable OMP_NUM_THREADS=3.\n    warnings.warn(\n\n-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html\n132 passed, 1 skipped, 1 warning in 30.28s\n"
+          }
+        }
+      ],
+      "all_succeeded": true
+    },
+    {
+      "run_store": "outputs/timeseries_v6/atlas/research_expanded_r4_260824.sqlite",
+      "tasks": [
+        {
+          "task_id": "01-e1-select-v2",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "2dc90da72b92f7e7afe97cd568c8f96b680407a6707301a62b5dab7e34686e9d",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E1\", \"selection_hash\": \"27948b84909e43e53077c4b01187faf66b06860a7942f8c0f18eed00064dedce\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "02-sealed-v3",
+          "task_type": "sealed",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "ca19037125ec01dd15748d7ee2aac75d993f9a2170a0672d38216aa1a1633791",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"run_id\": \"tsv6-sealed-46d58750db2abe8b40cec159\", \"rows\": 1540, \"choices\": {\"1\": \"E3\", \"5\": \"E1\", \"21\": \"E1\", \"63\": \"E1\"}}\n"
+          }
+        },
+        {
+          "task_id": "03-replay",
+          "task_type": "replay",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "1160b2e6b12388255719a8f2bc471d34b6c954bb2794c088fb1fdf9aa9759fd2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"exact_match\": true, \"expected_scores_sha256\": \"3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b\", \"numeric_runtime\": {\"MKL_NUM_THREADS\": 1, \"NUMEXPR_NUM_THREADS\": 1, \"OMP_NUM_THREADS\": 1, \"OPENBLAS_NUM_THREADS\": 1, \"PYTHONHASHSEED\": 0}, \"replayed_scores_sha256\": \"3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b\", \"row_count\": 1540, \"run_id\": \"tsv6-sealed-46d58750db2abe8b40cec159\", \"schema_version\": 1, \"status\": \"pass\"}\n"
+          }
+        },
+        {
+          "task_id": "04-gate",
+          "task_type": "gate",
+          "capability": "reviewer",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "d791b101ec8030db7cc54aca336ecb23c0be96be269533017625fec9ada438b2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"status\": \"shadow_gate_hold\", \"numbers_visible\": false, \"reasons\": [\"h21_extreme_q4_coverage\", \"h21_gfc_coverage_or_sample\", \"h21_pandemic_coverage_or_sample\", \"h5_p25_p75_coverage\", \"h63_extreme_q4_coverage\", \"h63_gfc_coverage_or_sample\", \"h63_pandemic_coverage_or_sample\", \"long_horizon_mean_crps_improvement_below_2pct\"]}\n"
+          }
+        },
+        {
+          "task_id": "05-v6-regression",
+          "task_type": "test",
+          "capability": "codex_worker",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "980cae13c6d26c66b17855ecc6212a16bd54bb9326ab3525a5fb10ff0ebbc0f3",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 53%]\n..........s....................................................          [100%]\n134 passed, 1 skipped in 28.58s\n"
+          }
+        }
+      ],
+      "all_succeeded": true
+    },
+    {
+      "run_store": "outputs/timeseries_v6/atlas/research_expanded_r5_260824.sqlite",
+      "tasks": [
+        {
+          "task_id": "01-e2-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "4db12b74df2ec83eef0a143eafa6452c3084f02d95b475831952a055305a9d6d",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E2\", \"selection_hash\": \"ba69a087491a82c828861737e5389da8ced175990c61fd00e34df8e8fad29c37\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "02-e3-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "456a8815e44e4052ee225a2c9807126cbbf059a65c23efd6018a57268e27e88a",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E3\", \"selection_hash\": \"fc8324aa789eb788e0e93793b71932859b933e05a704baf7017a0fef9d4f5e3a\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "03-e4-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "52ba80ecf343ac96ac5ba30adc71723d221c90837a529d16954883ac382a24ba",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E4\", \"selection_hash\": \"a2b74c1d5e39f4a110c6909017417ed6dfd0bddcbefee0b5179760d750840bac\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "04-e5-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "15686b94baea2d3913c0086854e88f33022138e686d6185b8431dd5e9bf5e15f",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E5\", \"selection_hash\": \"3e0762140cc6cf5489d899dd26415a1e2a2db24337c3af6ef19bcdd7498a4611\", \"parallel_horizons\": [1, 5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "05-e6-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "9e20ef35e81f1969e7287d8e4f169ab6cf1e33d38fe78a8d524763a6b13425c2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E6\", \"selection_hash\": \"694349312cfadd9fe3e3d34b4169d93260ab830dd906cc02a68cd622355974fe\", \"parallel_horizons\": [5, 21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "06-e7-select-versioned",
+          "task_type": "selection",
+          "capability": "trainer_cpu",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "0b707d5b813a47bd93613f6b40368c0050c43fac9694f2f7009f8ab553722333",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"candidate\": \"E7\", \"selection_hash\": \"893d0e173b587e8322de0dc4d607512b92be0e928933fb061a3d73b992dc60c1\", \"parallel_horizons\": [21, 63]}\n"
+          }
+        },
+        {
+          "task_id": "07-sealed-final",
+          "task_type": "sealed",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "ca19037125ec01dd15748d7ee2aac75d993f9a2170a0672d38216aa1a1633791",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"run_id\": \"tsv6-sealed-46d58750db2abe8b40cec159\", \"rows\": 1540, \"choices\": {\"1\": \"E3\", \"5\": \"E1\", \"21\": \"E1\", \"63\": \"E1\"}}\n"
+          }
+        },
+        {
+          "task_id": "08-replay-final",
+          "task_type": "replay",
+          "capability": "evaluator",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "1160b2e6b12388255719a8f2bc471d34b6c954bb2794c088fb1fdf9aa9759fd2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"exact_match\": true, \"expected_scores_sha256\": \"3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b\", \"numeric_runtime\": {\"MKL_NUM_THREADS\": 1, \"NUMEXPR_NUM_THREADS\": 1, \"OMP_NUM_THREADS\": 1, \"OPENBLAS_NUM_THREADS\": 1, \"PYTHONHASHSEED\": 0}, \"replayed_scores_sha256\": \"3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b\", \"row_count\": 1540, \"run_id\": \"tsv6-sealed-46d58750db2abe8b40cec159\", \"schema_version\": 1, \"status\": \"pass\"}\n"
+          }
+        },
+        {
+          "task_id": "09-gate-final",
+          "task_type": "gate",
+          "capability": "reviewer",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "d791b101ec8030db7cc54aca336ecb23c0be96be269533017625fec9ada438b2",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "{\"status\": \"shadow_gate_hold\", \"numbers_visible\": false, \"reasons\": [\"h21_extreme_q4_coverage\", \"h21_gfc_coverage_or_sample\", \"h21_pandemic_coverage_or_sample\", \"h5_p25_p75_coverage\", \"h63_extreme_q4_coverage\", \"h63_gfc_coverage_or_sample\", \"h63_pandemic_coverage_or_sample\", \"long_horizon_mean_crps_improvement_below_2pct\"]}\n"
+          }
+        },
+        {
+          "task_id": "10-v6-regression-final",
+          "task_type": "test",
+          "capability": "codex_worker",
+          "state": "succeeded",
+          "attempt_count": 1,
+          "blocker_repetitions": 0,
+          "checkpoint_sha256": "4473222d5ffd583065c24a127b8d57038816c17db1732e8cefe0210fc643c2c1",
+          "result": {
+            "returncode": 0,
+            "stderr_tail": "",
+            "stdout_tail": "........................................................................ [ 52%]\n..........s.....................................................         [100%]\n135 passed, 1 skipped in 29.48s\n"
+          }
+        }
+      ],
+      "all_succeeded": true
+    }
+  ],
+  "final_run": "outputs/timeseries_v6/atlas/research_expanded_r5_260824.sqlite",
+  "final_all_succeeded": true
+}

@@ -1,0 +1,111 @@
+{
+  "artifacts": [
+    {
+      "bytes": 2549,
+      "path": "migrations/timeseries_v6/0003_lineage_integrity_views.sql",
+      "sha256": "d60ec983b16b6da94dd0086cc47c7467874c19921f51ca16b5038a0b25bf1d7e"
+    },
+    {
+      "bytes": 8884,
+      "path": "src/ai_fc/timeseries_v6/lineage_v2.py",
+      "sha256": "f12c5a80b3f0e783950341fe36d11a1077492c7ce22e4d9948ded8d3f46aa555"
+    },
+    {
+      "bytes": 3797,
+      "path": "src/tests/timeseries_v6/test_v6_lineage_v2.py",
+      "sha256": "c6e2b2da296cdb2afeefc7de075949474aed077ebead14ae3e49fda80bac38df"
+    },
+    {
+      "bytes": 4407,
+      "path": "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+      "sha256": "8aea770d2c8774f73ea47ef8b8a550ab31d1ae3d7dfffa5ae86fdf1635c8bb61"
+    },
+    {
+      "bytes": 2865,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-011/container_build.log",
+      "sha256": "d26f8a2000d0c91d1965157d5c610c60214aba0186f3aac0b4e51a432ec4f006"
+    },
+    {
+      "bytes": 100,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-011/postgres_integration.log",
+      "sha256": "146d19e02d1378b105c1e5940aad665dab08e1f5c8544cf88ff5ed55ec290793"
+    },
+    {
+      "bytes": 193,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-011/targeted_tests.log",
+      "sha256": "cc9b11731199f8f83f15b468ba3ea95c68e593e86c043bd183bf45e066a46580"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "migrations/timeseries_v6/0003_lineage_integrity_views.sql",
+    "src/ai_fc/timeseries_v6/lineage_v2.py",
+    "src/tests/timeseries_v6/test_v6_lineage_v2.py",
+    "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+    "outputs/timeseries_v6/task_results/V6-P0-011/container_build.log",
+    "outputs/timeseries_v6/task_results/V6-P0-011/postgres_integration.log",
+    "outputs/timeseries_v6/task_results/V6-P0-011/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-011/result.json"
+  ],
+  "checks": {
+    "adversarial_failures_detected": [
+      "duplicate_outcome",
+      "fact_count_mismatch",
+      "invalid_relation",
+      "revision_cycle",
+      "revision_branch",
+      "revision_seq_gap",
+      "orphan_observation",
+      "corrupt_object"
+    ],
+    "clean_fixture_pass": true,
+    "postgres_views_pass": true,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "suite": {
+      "failed": 0,
+      "passed": 72,
+      "skipped": 1
+    }
+  },
+  "commands": [
+    {
+      "command": "ephemeral PostgreSQL lineage view integration",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-011/postgres_integration.log"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-011/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:56:12.478583Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "Zstandard object decoding is delegated to the object-store task; gzip and uncompressed bytes are revalidated here."
+  ],
+  "next_task_recommendation": "V6-P0-012",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T08:21:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-011",
+  "unresolved_blockers": []
+}

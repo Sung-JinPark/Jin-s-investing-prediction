@@ -1,0 +1,562 @@
+{
+  "generated_at": "2026-08-24T01:58:19.320110+00:00",
+  "lineage": {
+    "errors": [],
+    "link_count": 895070,
+    "observation_count": 895070,
+    "observation_linkage": 1.0,
+    "ok": true,
+    "receipt_count": 77,
+    "terminal_outcome_coverage": 1.0
+  },
+  "managed_store": false,
+  "private_store": "external_or_local_private_store",
+  "results": [
+    {
+      "facts": 9256,
+      "outcome": "new_facts",
+      "raw_sha256": "2cbdd7489a304eac0132205d4262083d4d6ae6208e16255db424ed5b5afee215",
+      "receipt_id": "receipt-59fd5a4e3a5acd92421d24ff",
+      "source_id": "cboe_vix"
+    },
+    {
+      "facts": 3931,
+      "outcome": "new_facts",
+      "raw_sha256": "0356cc5273d359df989fd1a9092955fa964e3528df86ca6fe4949cf8eb72c0ed",
+      "receipt_id": "receipt-d8de8f21023103bffc794a1c",
+      "source_id": "cboe_vix9d"
+    },
+    {
+      "facts": 4257,
+      "outcome": "new_facts",
+      "raw_sha256": "c5d83384752250219bdc99867eb76cb099bb272c93f29c2ff89105c5b068aaa3",
+      "receipt_id": "receipt-0a0419a18fb510e842326d62",
+      "source_id": "cboe_vix3m"
+    },
+    {
+      "facts": 5088,
+      "outcome": "new_facts",
+      "raw_sha256": "3ae2a3ffd4f23107268ac47420d303bb586a809ce7e54c89807d7600f82e8eec",
+      "receipt_id": "receipt-1f0ec0a136b2f0e13ab8226b",
+      "source_id": "cboe_vvix"
+    },
+    {
+      "facts": 9211,
+      "outcome": "new_facts",
+      "raw_sha256": "790547da55a75ee8f71e86b230a4f7f065951bc232960cafba76e03c90c9fe36",
+      "receipt_id": "receipt-1f20ab7634189a9e6a48dbce",
+      "source_id": "cboe_skew"
+    },
+    {
+      "facts": 60660,
+      "outcome": "new_facts",
+      "raw_sha256": "91032e19b7a1ff890da410cbe7815e20c18185ced9bd2e18a0f22d25aa1df908",
+      "receipt_id": "receipt-7d1870dcc2b8cb2dfde1fe5f",
+      "source_id": "ofr_fsi"
+    },
+    {
+      "facts": 1929,
+      "outcome": "new_facts",
+      "raw_sha256": "cc51b2747654e3ed003e0a6ce5500de054c1a8dcd3ec00bace1c6742416ab2eb",
+      "receipt_id": "receipt-04097df7a9e289a6d33bc4e0",
+      "source_id": "fed_ebp"
+    },
+    {
+      "facts": 13500,
+      "outcome": "new_facts",
+      "raw_sha256": "90c55017973635cad7121e9f1a39b6cded422739a549b940c18cfe0a80e3f7af",
+      "receipt_id": "receipt-bf9269ad9ecd4da085cb6b82",
+      "source_id": "nyfed_cmdi"
+    },
+    {
+      "facts": 2902,
+      "outcome": "new_facts",
+      "raw_sha256": "95c472d2723beff4301ed0f401d6478ff2e7448f19a310209a05f4e6b8271ee4",
+      "receipt_id": "receipt-90c15ab333cec9c0094a1a4b",
+      "source_id": "chicago_fed_nfci"
+    },
+    {
+      "facts": 7963,
+      "outcome": "new_facts",
+      "raw_sha256": "2852d4d00763e112654aaaf9e1c8689e352261460d7ec59590674513a80cfe71",
+      "receipt_id": "receipt-08101b7881c908b3bfe3a1df",
+      "source_id": "fred_nasdaqcom"
+    },
+    {
+      "facts": 5169,
+      "outcome": "new_facts",
+      "raw_sha256": "099b0ab4007d2060e319d5bef35d749a3bf397c5347c74703b8e9a626a99c2ae",
+      "receipt_id": "receipt-0273665c25d6946b76b4bd3a",
+      "source_id": "fred_h10_dollar"
+    },
+    {
+      "facts": 105644,
+      "outcome": "new_facts",
+      "raw_sha256": "cadbd4ed42f2303b2c1f593d781b6a0ea6b78c37dcc1b04bae1567310050e0bb",
+      "receipt_id": "receipt-061034156a35cf573f06e121",
+      "source_id": "treasury_dts"
+    },
+    {
+      "facts": 3012,
+      "outcome": "new_facts",
+      "raw_sha256": "20a474bd52e1b8559534898a885930cf5fa376db20b5fb06328d26179ba9cbb6",
+      "receipt_id": "receipt-b22a2925484770e546af7ed7",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3009,
+      "outcome": "new_facts",
+      "raw_sha256": "74db71a5e7936c85bfc0f908d031a643493c19b17dd30e7b8e4e4fe7a4a90008",
+      "receipt_id": "receipt-b3d22811d22281fe0249a6d2",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "e4bdc53ec0663fb324056ee921fc2c54acc32eb08c3bdc9a66cd56cbfac765e5",
+      "receipt_id": "receipt-0757a2856c192bab8750fc3c",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3013,
+      "outcome": "new_facts",
+      "raw_sha256": "704b70bd88b4d76773767b8b81eebd4efc236aa3012febb685546c686c1d1068",
+      "receipt_id": "receipt-fd3c6596ccc185d8b1fc4734",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "1ac2ea8f344d2162a968d60071f4a4adf17e4a9005353697623bb7e191529e12",
+      "receipt_id": "receipt-c5fbfc5dc4aa49e515a1048b",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "7c485a94adf74247d00abffd49cce198ec47e5e40934637fc78d619c0123b366",
+      "receipt_id": "receipt-72f350e3d70952991bff8bf3",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "f2d2f6d1e4f0d36b2a04fde5b77f58b752fe07634f2689f64e7086592aaf212c",
+      "receipt_id": "receipt-b96a77ea776c8ae88c3bffe0",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "ae691ae5cfa87e8bb8a70881a023d16ed4f2a58bdd5fccfa58c88b985adaa532",
+      "receipt_id": "receipt-faed49dd17e090e26e6d12a5",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3012,
+      "outcome": "new_facts",
+      "raw_sha256": "c8607aff42957cfdeaff8067305caedc28c339e89ae7c01834cd75cc5f1f3682",
+      "receipt_id": "receipt-fc6e863a984399d2d4a762d7",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "69c4604f1b0c6f1febf2bce8c3a78221fe525ef393ae256df6a02f3236065fbc",
+      "receipt_id": "receipt-2bf1f795661ce601dde5adf9",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3000,
+      "outcome": "new_facts",
+      "raw_sha256": "dc07993f9224039c9de2234073e48c894258819e21d7958487f81420bd03dfad",
+      "receipt_id": "receipt-d9570cc9f1404dd0cc3316ca",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3039,
+      "outcome": "new_facts",
+      "raw_sha256": "e2a7438f2b6c8e0b9326b7b57275cc83b6ecab10e33306865a0ac6179c3bc11f",
+      "receipt_id": "receipt-69cf861f7933f95de737dc29",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3250,
+      "outcome": "new_facts",
+      "raw_sha256": "7abef53b770c0e7a13ff6b7535e2cff002e8582c3e6a31ea80c143d8cabd3f23",
+      "receipt_id": "receipt-bff5c1327c17e8af8f5fe98f",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3263,
+      "outcome": "new_facts",
+      "raw_sha256": "0bb0cea8c66536d0cf3f59c5033606b478a4882054136e608aaf5f6b8eb86c0c",
+      "receipt_id": "receipt-27bd0123c889acba4c224391",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3263,
+      "outcome": "new_facts",
+      "raw_sha256": "8d733ff2f662684266bc284944b4fc38dd21380d9657c6e11514cf41e132e024",
+      "receipt_id": "receipt-bb324a477ce2e2417395468d",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3287,
+      "outcome": "new_facts",
+      "raw_sha256": "9a7fd58c50bc0b683be450869d73a357f33248a239e81c9928ac5a8584e822c4",
+      "receipt_id": "receipt-77e2f48f6e50f4a31f20c6ea",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3500,
+      "outcome": "new_facts",
+      "raw_sha256": "3f858898f1b05b0d0f6681c019fd5579b0f76f11f433f182a36373195d5fca3f",
+      "receipt_id": "receipt-6848d0e01146613c6a1e3683",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3500,
+      "outcome": "new_facts",
+      "raw_sha256": "75ca02738751f2053477a88cb88895f9094a9d19900c2616c6bf377b47d0742a",
+      "receipt_id": "receipt-d56bdbe5efc45bd10da14f2e",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 3704,
+      "outcome": "new_facts",
+      "raw_sha256": "75f338bcf5dbf87aea2c599ec53722067eea7fde2af22aba95c8feeffe20583f",
+      "receipt_id": "receipt-c723de9f745cd21f75008b38",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 2415,
+      "outcome": "new_facts",
+      "raw_sha256": "4bfb28188c5301a07650b534e15cade12c013b12caf48c033cb8ccbaacd28312",
+      "receipt_id": "receipt-f0df7086d1e25458b64a9d73",
+      "source_id": "treasury_yield_curve"
+    },
+    {
+      "facts": 1255,
+      "outcome": "new_facts",
+      "raw_sha256": "794c163aa3fbcbaf28256ae2a4db6b130cfab0aa677ef7963d673b7489e38a03",
+      "receipt_id": "receipt-69d33d52223f9c18577ef40f",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1255,
+      "outcome": "new_facts",
+      "raw_sha256": "d964a7472bea4a7d6c9a802930c2eba68f994ca73bc9f4f9d87217832873567f",
+      "receipt_id": "receipt-8b99e906c7d701a4082d2bba",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1250,
+      "outcome": "new_facts",
+      "raw_sha256": "b4ee755880a15e479079c5967c15866ccd5d1c640a87940df436dcb9c765c4ec",
+      "receipt_id": "receipt-e678da509f00b1683a154aca",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1473,
+      "outcome": "new_facts",
+      "raw_sha256": "573a229e5fcf65aa9812ead5bf8805738e81754c332fca38c726deeec61a5e74",
+      "receipt_id": "receipt-7d459cf21657473b7890c029",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "aee546e8e23889295775979ec9453644d16adcc284bfd73aceb1558aec70ef2d",
+      "receipt_id": "receipt-472626238ea6b7fb5866210f",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "f0f5ae6d1b57e2101159be146035828cbfcf6fec1d2a8350292b0dbfc94e125d",
+      "receipt_id": "receipt-32e3671b41e3f2b2ac6a2e8c",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "a23133158a1f3c276fb4b7056bd0dca93d739d3a1e02c485595aab2bd36a1680",
+      "receipt_id": "receipt-5f3fd4d8c324c74b71757820",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "a1fe39045150071884a15764ff0dffabec5e6b3bd912200552f57e45c90d46d7",
+      "receipt_id": "receipt-884a2e009703c50044088fbf",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1506,
+      "outcome": "new_facts",
+      "raw_sha256": "c637c8c1a914e03a65e0f18c467636f440b753be9ea6ea69a0b62591f8a100f4",
+      "receipt_id": "receipt-f3d515decc3e8b82876eca00",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "9ae5f034c8c7c9f143f0ade869f659524f5923c3fcab04ab7964e019c81ed2e3",
+      "receipt_id": "receipt-082a3290e729e45a441320b8",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "f61691cb9c9aadb15e75ff97a382122fa406e34f95a2823a6daa778a070b4b52",
+      "receipt_id": "receipt-3503276a15a459bfc30fe52c",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1494,
+      "outcome": "new_facts",
+      "raw_sha256": "a276b8bd2b877e6de2658acc27ecfdad1189a35ce5600738fbfdc27c351c4a05",
+      "receipt_id": "receipt-aedcfbc6ff8eaa6fa2102fa9",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1500,
+      "outcome": "new_facts",
+      "raw_sha256": "ad501d7595cae4159d916201aaf3ca8831df83290c228eb144d8fd1638e3cf39",
+      "receipt_id": "receipt-56fb0a4ad66d693059e025a5",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1506,
+      "outcome": "new_facts",
+      "raw_sha256": "39e2dbfa9b1f08b9175cb11ec2bb9835b5eb018823d9c206553918bc607ffbdc",
+      "receipt_id": "receipt-7398feb3051cc3ed899c0a98",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1506,
+      "outcome": "new_facts",
+      "raw_sha256": "0ba6d4ae2a33495aa7d1a0e55ec9bba9f0788cf7ed2a25f882d3b060481f24f8",
+      "receipt_id": "receipt-0be8c9676e723deb624ed099",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1444,
+      "outcome": "new_facts",
+      "raw_sha256": "5b852a7ac022b25e5a1b7ff3a7c2447966c767f4809744280d0ad2df8448d52b",
+      "receipt_id": "receipt-1df714f1c131789e5acee9d1",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1250,
+      "outcome": "new_facts",
+      "raw_sha256": "ea0efc88b65f163bb1badc59e0fa3ed10dad1e9a515b326376e533ee0c75b1cf",
+      "receipt_id": "receipt-0a99f9c2b27a36716da2645d",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1250,
+      "outcome": "new_facts",
+      "raw_sha256": "fd64c20c7f20e5756da89497533c574623980a282c5b1e7191dd0654c12048f0",
+      "receipt_id": "receipt-321fe8c982bf7c9428c3bd18",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 1384,
+      "outcome": "new_facts",
+      "raw_sha256": "30b5ae91917f7a4135dee3b161d885806c20fe6de0fb1aba19b1e2b8c14ee945",
+      "receipt_id": "receipt-e9f6796432971d55f257b89b",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 966,
+      "outcome": "new_facts",
+      "raw_sha256": "e1c0ab70b9129ea4984882b97e1cbac37d91ea1e30d9cc1769e9b5b07625339a",
+      "receipt_id": "receipt-aa06f6385b7178c86f80bad3",
+      "source_id": "treasury_real_yield_curve"
+    },
+    {
+      "facts": 36,
+      "outcome": "new_facts",
+      "raw_sha256": "9e2a44088a6beb0e5d4de5e9e11adca81d7872ebd0888d2b0c861afee6c0d856",
+      "receipt_id": "receipt-0daf5909d85d9364259b4dae",
+      "source_id": "nyfed_reference_rates"
+    },
+    {
+      "facts": 1077,
+      "outcome": "new_facts",
+      "raw_sha256": "05b6237e5217c2e9a866623af3ef377e3c5561d0a611ceee663eba6625a5c45b",
+      "receipt_id": "receipt-954970c9d3cb988920a293c7",
+      "source_id": "fed_h41_walcl"
+    },
+    {
+      "facts": 1077,
+      "outcome": "new_facts",
+      "raw_sha256": "517b461366f994de9446f010fd297281d01a77997d20fbd0461ee963a315bae2",
+      "receipt_id": "receipt-09eb232f5afb6804a0986675",
+      "source_id": "fred_tga"
+    },
+    {
+      "facts": 3298,
+      "outcome": "new_facts",
+      "raw_sha256": "d75b9c28f0c184fdde4c6591d19dec5c593345c4bb458ada873b64f4a1ce0e80",
+      "receipt_id": "receipt-5d4a2b84e9428323d6ce6b09",
+      "source_id": "nyfed_rrp"
+    },
+    {
+      "facts": 0,
+      "outcome": "parse_failed",
+      "raw_sha256": "5392a28735d28dcb8feb5e60282c7c686759df9954699b5bcdadcd90db6d7fad",
+      "receipt_id": "receipt-cd76ce7851e7cd8fc6257569",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 0,
+      "outcome": "parse_failed",
+      "raw_sha256": "583a93474847f1070b213e2b12cfa73c48d9ba05f24f7d001a338de125468b57",
+      "receipt_id": "receipt-b4c238a76177f7ef0b55a168",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 0,
+      "outcome": "parse_failed",
+      "raw_sha256": "c5b65a8c3e0f597fae6b41eaba9246e2a995b14de3aa8fd12aabee8d05032a58",
+      "receipt_id": "receipt-c8532b20239d6e224ffd9d82",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 24790,
+      "outcome": "new_facts",
+      "raw_sha256": "682e643683c1ca36f723980544f4ff3bef7e0c3d299bc85c0904ef17b97f2780",
+      "receipt_id": "receipt-571131c31af308d8541f2b0c",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 25605,
+      "outcome": "new_facts",
+      "raw_sha256": "83893048e9a73e8b6e81d9ef7a737f9f86db6bdc28f17d393b8df2e87ab713d6",
+      "receipt_id": "receipt-a2f2fba70aea3bfc620a30d0",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 24973,
+      "outcome": "new_facts",
+      "raw_sha256": "a506b8ceb510fb49b8b21a1687fff35903698b8968d079b9e5f12ce92f96b68e",
+      "receipt_id": "receipt-af06e3b7d4b7301e250e8c20",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 24350,
+      "outcome": "new_facts",
+      "raw_sha256": "e8570bcd83df5c3e25aca61a59985001db83a8299a25943525c8d109ffc94a15",
+      "receipt_id": "receipt-3ff30ddef2b670a6d6a90225",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 26282,
+      "outcome": "new_facts",
+      "raw_sha256": "e6e2dd537efcc57cdd6cdcc4e45e567fd47e65d8afc8369d8383bf09195ae7f5",
+      "receipt_id": "receipt-b6c446230dac23288bccfa2a",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 29122,
+      "outcome": "new_facts",
+      "raw_sha256": "6843d130a25a17c6248df67463810f02077ef4eeafdd629299d21c18f5125e40",
+      "receipt_id": "receipt-2dc11a2fe8a68532e1498d7f",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 28027,
+      "outcome": "new_facts",
+      "raw_sha256": "631b31880d513072aa50d63117c896184dd35db3cc8fcdd6debd80197ee7a661",
+      "receipt_id": "receipt-533cfb8cab676f8663fc0003",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 28993,
+      "outcome": "new_facts",
+      "raw_sha256": "c90d98d94db708772d669f263fb8061c75f8a7f681ba231fb21247e5c9798e6b",
+      "receipt_id": "receipt-07203cbfb52ab9d7159e75e5",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 30474,
+      "outcome": "new_facts",
+      "raw_sha256": "5c929991038c70ae2501661b6d442b9e784d3c29d3166ceac2e21b45ac93d56a",
+      "receipt_id": "receipt-fd5c48f271a3122f52dcafba",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 35016,
+      "outcome": "new_facts",
+      "raw_sha256": "94c9c1fdee9dfbe377a09923ddfe26b88d3460605dd076081f221ad367d88601",
+      "receipt_id": "receipt-f0dbec127bf356bff28c8cd9",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 36242,
+      "outcome": "new_facts",
+      "raw_sha256": "43c3dbdd4d01fceefad5e457003751cdc0974c7cf46097b322e26e9e2fe44d7a",
+      "receipt_id": "receipt-3d89b5a2e5c90c6928a1402b",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 39672,
+      "outcome": "new_facts",
+      "raw_sha256": "3f00585741a7cf76c207df640951d644dd91ff22a1106b38ca37a2469c765637",
+      "receipt_id": "receipt-cefa76477c32d27a72bcec86",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 39828,
+      "outcome": "new_facts",
+      "raw_sha256": "2ea0cda6395f7dd6501c27422be3763e1f2f5b41b768cfd36b871f092a07d438",
+      "receipt_id": "receipt-f6188593bf38d797feda26b8",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 25414,
+      "outcome": "new_facts",
+      "raw_sha256": "fa2d2f664e11f641039d41ef6b958f615bdabeb5c908c9e7d8dbb7719d94778a",
+      "receipt_id": "receipt-811d61e0de3c7892eae36ae6",
+      "source_id": "cftc_tff"
+    },
+    {
+      "facts": 2220,
+      "outcome": "revised_facts",
+      "raw_sha256": "e6ac35e035411da72809374a3ef83b5445de28d89762d6ff8f8b2552ba3edeeb",
+      "receipt_id": "receipt-afe9e5fe2e50207f05a3717a",
+      "source_id": "finra_otc"
+    },
+    {
+      "facts": 0,
+      "outcome": "no_fact_expected",
+      "raw_sha256": "73a86c6aedc31f77cac2ea4df5f80f0b3bd7e6eb58bb4e01444fbedf3afb9c43",
+      "receipt_id": "receipt-34d4648e669eebdfdc17cb94",
+      "source_id": "sec_companyfacts"
+    },
+    {
+      "facts": 105096,
+      "outcome": "new_facts",
+      "raw_sha256": "39f9ae1d0e9f575024bc23145980ac270cea508fb67e592578b3f4d65f36d006",
+      "receipt_id": "receipt-4cc144242b82c30084d1c914",
+      "source_id": "fed_fama_french"
+    },
+    {
+      "outcome": "collection_failed",
+      "reason": "RuntimeError:required collector secret unavailable:EIA_API_KEY",
+      "source_id": "eia_crude_oil",
+      "source_uri": "https://api.eia.gov/v2/petroleum/pri/spt/data/?api_key=REDACTED&frequency=daily&data%5B0%5D=value&facets%5Bseries%5D%5B%5D=RWTC&sort%5B0%5D%5Bcolumn%5D=period&sort%5B0%5D%5Bdirection%5D=asc&offset=0&length=5000"
+    },
+    {
+      "facts": 43662,
+      "outcome": "new_facts",
+      "raw_sha256": "f2b53e0cb911c71348eddf367eb3bfada1dd9dfcb728c4199efa8846fdfcbee4",
+      "receipt_id": "receipt-b3653157b3752677aedfc7b2",
+      "source_id": "philadelphia_spf"
+    }
+  ],
+  "run_id": "collect-6982ad41e8db738a1b29e876"
+}

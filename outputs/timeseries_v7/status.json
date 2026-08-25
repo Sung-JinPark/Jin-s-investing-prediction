@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v7",
+  "probability_space": "research_timeseries_v7_conditional",
+  "loop_state": "WAIT_DATA",
+  "reason": "No V7 native/captured receipt set or matured post-freeze prospective labels exists yet.",
+  "integrity_gate": "bootstrap_pass",
+  "historical_status": "not_run_no_pit_snapshot",
+  "operational_status": "wait_data",
+  "prospective_status": "not_started",
+  "numbers_visible": false,
+  "automatic_promotion": false,
+  "automatic_publication": false,
+  "automatic_trading": false,
+  "next_wake_conditions": [
+    "new_receipt",
+    "new_matured_label",
+    "scheduled_time",
+    "manual_resume"
+  ]
+}

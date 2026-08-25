@@ -1,0 +1,57 @@
+{
+  "acceptance": {
+    "automatic_promotion": false,
+    "automatic_publication": false,
+    "automatic_trading": false,
+    "implementation_present": true,
+    "protected_predecessor_unchanged": true,
+    "v7_suite_pass": true
+  },
+  "artifacts": [
+    {
+      "bytes": 1453,
+      "logical_sha256": "f81fedd76f983417a1da9e5eeed4cdabc85347e764c7a5fe33c448fd65fe280f",
+      "path": "src/tests/timeseries_v7/test_ralph_concurrency.py",
+      "physical_sha256": "f81fedd76f983417a1da9e5eeed4cdabc85347e764c7a5fe33c448fd65fe280f"
+    }
+  ],
+  "blocker": null,
+  "changed_files": [
+    "src/tests/timeseries_v7/test_ralph_concurrency.py"
+  ],
+  "commands": [
+    {
+      "command": "python -m pytest src/tests/timeseries_v7 -q",
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": "125 passed, 1 skipped"
+    }
+  ],
+  "completed_at": "2026-08-25T00:16:42.095598+00:00",
+  "cycle_id": "v7-bootstrap-cycle-20260825",
+  "generation_id": "v7-pre-data-generation",
+  "input_hashes_verified": true,
+  "next_recommended_task": null,
+  "next_task_started": false,
+  "protected_manifest": {
+    "after_hash": "a23c0fc0b0413e3c45b7507db5a1ec2e04305d218238cefd127d18ed9208e63a",
+    "before_hash": "a23c0fc0b0413e3c45b7507db5a1ec2e04305d218238cefd127d18ed9208e63a",
+    "unchanged": true
+  },
+  "run_id": "v7-bootstrap-flywheel-20260825",
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true,
+    "scanned_files": 98
+  },
+  "started_at": "2026-08-25T00:16:42.095598+00:00",
+  "status": "succeeded",
+  "task_key": "V7-P2-006",
+  "tests": {
+    "failed": 0,
+    "passed": 125,
+    "skipped": 1
+  },
+  "title": "Add concurrency and lease fault injection"
+}

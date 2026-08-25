@@ -1,0 +1,72 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.replay
+#1 transferring dockerfile: 1.07kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1.7
+#2 DONE 0.8s
+
+#3 docker-image://docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e
+#3 resolve docker.io/docker/dockerfile:1.7@sha256:a57df69d0ea827fb7266491f2813635de6f17269be881f696fbfdf2d83dda33e 0.0s done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 2B done
+#5 DONE 0.0s
+
+#6 [ 1/12] FROM docker.io/library/python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7
+#6 resolve docker.io/library/python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7 0.0s done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 116.18kB 0.1s done
+#7 DONE 0.1s
+
+#8 [ 4/12] RUN python -m pip install --no-deps -r /tmp/requirements.replay.lock
+#8 CACHED
+
+#9 [ 5/12] COPY locks/timeseries_v6 /workspace/locks/timeseries_v6
+#9 CACHED
+
+#10 [ 2/12] WORKDIR /workspace
+#10 CACHED
+
+#11 [ 3/12] COPY locks/timeseries_v6/requirements.replay.lock /tmp/requirements.replay.lock
+#11 CACHED
+
+#12 [ 6/12] COPY containers/timeseries_v6 /workspace/containers/timeseries_v6
+#12 CACHED
+
+#13 [ 7/12] COPY src /workspace/src
+#13 DONE 0.3s
+
+#14 [ 8/12] COPY tools /workspace/tools
+#14 DONE 0.0s
+
+#15 [ 9/12] COPY data/contracts /workspace/data/contracts
+#15 DONE 0.0s
+
+#16 [10/12] COPY data/timeseries_v6 /workspace/data/timeseries_v6
+#16 DONE 0.0s
+
+#17 [11/12] COPY migrations/timeseries_v6 /workspace/migrations/timeseries_v6
+#17 DONE 0.0s
+
+#18 [12/12] COPY outputs/NASDAQ_V5_GATE_REVIEW_PACK_20260824T050122Z.zip /workspace/outputs/NASDAQ_V5_GATE_REVIEW_PACK_20260824T050122Z.zip
+#18 DONE 0.0s
+
+#19 exporting to image
+#19 exporting layers
+#19 exporting layers 0.4s done
+#19 exporting manifest sha256:bcb5c2e456c8dfb5daa4d3627bd8ce49144607089d1303f3648e30f5622195ab 0.0s done
+#19 exporting config sha256:50c170367eb8e1e78fadd66267a70126b772fdb9334a1130df92935155f198e8 0.0s done
+#19 exporting attestation manifest sha256:bf2eb48b79d79e85e135c59c8cb28a913f9f7c94b025407ba04bcf16e081c943 0.0s done
+#19 exporting manifest list sha256:436710812dbf97e3e6c12284d5b8b5a2a9a9c4eea94b4af7c442cf45d5d4b008 0.0s done
+#19 naming to docker.io/library/ai-investing-v6-replay:p0-011 done
+#19 unpacking to docker.io/library/ai-investing-v6-replay:p0-011
+#19 unpacking to docker.io/library/ai-investing-v6-replay:p0-011 0.2s done
+#19 DONE 0.8s

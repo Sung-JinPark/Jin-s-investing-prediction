@@ -1,0 +1,63 @@
+schema_version: 1
+controller:
+  module: tools/ralph_v7.py
+  database_url_env: RALPH_V7_DATABASE_URL
+  object_store_uri_env: RALPH_V7_OBJECT_STORE_URI
+scheduler:
+  poll_seconds: 60
+  market_collection: after_each_completed_xnas_session
+  weekly_collection: saturday_09_00_america_new_york
+  monthly_collection: daily_check_release_calendar
+  event_collection: pre_event_hourly_and_post_release_5min
+  reconcile: after_each_collection_batch
+  label_maturity: after_each_completed_xnas_session
+research_generation_trigger:
+  any_of:
+    - new_matured_weekly_origins_gte: 4
+    - new_independent_resolved_events_gte: 5
+    - approved_code_hypothesis: true
+    - feature_or_target_drift_alert: true
+  minimum_days_between_full_generations: 28
+  same_input_hash_duplicate_generation: prohibited
+worker:
+  lease_seconds: 300
+  heartbeat_seconds: 30
+  capabilities: [collector, materializer, trainer_cpu, trainer_gpu, evaluator, codex_worker, reviewer]
+  max_attempts: 3
+  same_normalized_blocker_hold_count: 3
+budgets:
+  cycle_wall_clock_hours: 24
+  generation_cpu_hours: 500
+  generation_gpu_hours: 40
+  generation_experiment_count: 750
+  monthly_storage_gb: 250
+  monthly_paid_api_usd: 0
+data_wait:
+  state: WAIT_DATA
+  not_a_failure: true
+  wake_on: [new_receipt, new_matured_label, scheduled_time, manual_resume]
+stages:
+  - COLLECT
+  - VERIFY_RAW
+  - PARSE
+  - RECONCILE
+  - MATERIALIZE_PIT
+  - MATURE_LABELS
+  - DATA_QUALITY_GATE
+  - PLAN_RESEARCH
+  - TRAIN
+  - NESTED_BACKTEST
+  - STACK
+  - CALIBRATE
+  - HISTORICAL_STRESS
+  - QUALIFICATION
+  - FREEZE_GENERATION
+  - PROSPECTIVE_FORECAST
+  - MATURE_PROSPECTIVE_LABELS
+  - PROSPECTIVE_SCORE
+  - REVIEW_PROPOSAL
+safety:
+  retune_same_prospective_scores: prohibited
+  outer_result_threshold_change: prohibited
+  customer_numbers_before_all_gates_and_approval: prohibited
+  automatic_trading: prohibited

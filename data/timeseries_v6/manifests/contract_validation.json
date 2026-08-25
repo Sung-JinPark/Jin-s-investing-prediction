@@ -1,0 +1,17 @@
+{
+  "candidate_count": 11,
+  "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+  "contract_id": "multivariate_timeseries_v6",
+  "contract_status": "frozen",
+  "horizons": [
+    1,
+    5,
+    21,
+    63
+  ],
+  "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v6",
+  "pass": true,
+  "quantile_count": 9,
+  "schema_version": 1,
+  "source_count": 37
+}

@@ -1,0 +1,34 @@
+ M .github/workflows/pages.yml
+ M .github/workflows/verify.yml
+ M .gitignore
+ M README.md
+ M docs/generated/inventory.generated.md
+ M docs/generated/read_model_v2.schema.json
+ M pyproject.toml
+ M src/ai_fc/cli.py
+ M src/ai_fc/dashboard.py
+ M src/ai_fc/read_model_contract.py
+ M src/ai_fc/timeseries_v5/__init__.py
+ M src/tests/test_investing_refresh_workflow.py
+?? .github/workflows/timeseries-v5-refresh.yml
+?? data/contracts/multivariate_timeseries_v5.yaml
+?? data/timeseries_v5/
+?? docs/timeseries_v5/ARCHITECTURE.md
+?? docs/timeseries_v5/DATA_CATALOG.md
+?? docs/timeseries_v5/GATE_RESULT_20260824.md
+?? migrations/
+?? src/ai_fc/timeseries_v5/artifact.py
+?? src/ai_fc/timeseries_v5/contracts.py
+?? src/ai_fc/timeseries_v5/evaluation.py
+?? src/ai_fc/timeseries_v5/features.py
+?? src/ai_fc/timeseries_v5/identifiers.py
+?? src/ai_fc/timeseries_v5/lineage.py
+?? src/ai_fc/timeseries_v5/market_calendar.py
+?? src/ai_fc/timeseries_v5/models.py
+?? src/ai_fc/timeseries_v5/pipeline.py
+?? src/ai_fc/timeseries_v5/sources.py
+?? src/ai_fc/timeseries_v5/storage/
+?? src/ai_fc/timeseries_v5/workbook.py
+?? src/tests/test_multivariate_timeseries_v5.py
+?? tools/atlas_timeseries.py
+?? tools/timeseries_v5_workbook.mjs

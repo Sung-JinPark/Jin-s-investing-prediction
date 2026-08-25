@@ -1,0 +1,98 @@
+{
+  "artifacts": [
+    {
+      "bytes": 12338,
+      "path": "data/contracts/multivariate_timeseries_v6.yaml",
+      "sha256": "4b8335cb328d426ecce25982d826327917d2ea559cc28e4a2232aa0cb7aac72b"
+    },
+    {
+      "bytes": 5608,
+      "path": "src/ai_fc/timeseries_v6/candidate_specs.py",
+      "sha256": "0d7adcf80d64085b87141808c63bb575597737b22c1ecab0fed19a110a8777cd"
+    },
+    {
+      "bytes": 3787,
+      "path": "src/tests/timeseries_v6/test_v6_candidate_specs.py",
+      "sha256": "ac34f4488cb7bc03a75e6a4787392e710080c5986b70f70d997e93f1db4dc112"
+    },
+    {
+      "bytes": 408,
+      "path": "data/timeseries_v6/manifests/contract_validation.json",
+      "sha256": "01a7a6baec040f7a54496ec5e0e1d9b807c1f71efe9b24e1267459123d0c7f5b"
+    },
+    {
+      "bytes": 8061,
+      "path": "data/timeseries_v6/manifests/candidate_specs.json",
+      "sha256": "4f75791864ad505211993c5b2b2962363db65aaa60e4e60a21aa7836402d18c4"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-005/targeted_tests.log",
+      "sha256": "9b959c0a9a6a40e6ded3b89fe2886009dd61fc90fe992e5a8abab3ca29f59efd"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "data/contracts/multivariate_timeseries_v6.yaml",
+    "src/ai_fc/timeseries_v6/candidate_specs.py",
+    "src/tests/timeseries_v6/test_v6_candidate_specs.py",
+    "data/timeseries_v6/manifests/contract_validation.json",
+    "data/timeseries_v6/manifests/candidate_specs.json",
+    "outputs/timeseries_v6/task_results/V6-P0-005/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-005/result.json"
+  ],
+  "checks": {
+    "candidate_count": 11,
+    "candidate_hashes_unique": true,
+    "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+    "contract_status": "frozen",
+    "hidden_hgb_0_05_rejected": true,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "runtime_missing_extra_offgrid_rejected": true,
+    "tests": {
+      "failed": 0,
+      "passed": 36
+    }
+  },
+  "commands": [
+    {
+      "command": "compile frozen E0-E10 candidate specs",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "data/timeseries_v6/manifests/candidate_specs.json"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-005/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:42:26.167842Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "Estimator implementations are later tasks; every future fit must call the binding boundary before training."
+  ],
+  "next_task_recommendation": "V6-P0-006",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T07:22:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-005",
+  "unresolved_blockers": []
+}

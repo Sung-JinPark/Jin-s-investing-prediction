@@ -1,0 +1,693 @@
+{
+  "schema_version": 1,
+  "integrity_pass": true,
+  "archive": {
+    "pass": true,
+    "errors": [],
+    "manifest_content_hash": "434542fe9e910603c68490ba508ec664c806f0c506ab098f59577f1bd0877655",
+    "receipt_count": 23,
+    "partition_count": 23,
+    "verified_raw_object_count": 23,
+    "receipt_observation_link_rate": 1.0,
+    "observation_rows": 91147,
+    "series_latest_observation": {
+      "NASDAQCOM": "2026-08-21T21:00:00+00:00",
+      "VIX": "2026-08-21T21:00:00+00:00",
+      "VIX9D": "2026-08-21T21:00:00+00:00",
+      "VIX3M": "2026-08-21T21:00:00+00:00",
+      "VVIX": "2026-08-21T21:00:00+00:00",
+      "SKEW": "2026-08-21T21:00:00+00:00",
+      "OFR_FSI": "2026-08-19T21:00:00+00:00",
+      "EBP": "2026-07-01T21:00:00+00:00",
+      "CMDI": "2026-07-24T21:00:00+00:00",
+      "CFTC_NASDAQ_LEV_NET_PCT_OI": "2026-08-18T21:00:00+00:00",
+      "DGS2": "2026-08-20T21:00:00+00:00",
+      "T10Y2Y": "2026-08-21T21:00:00+00:00",
+      "DTWEXBGS": "2026-08-14T21:00:00+00:00",
+      "NFCI": "2026-08-14T21:00:00+00:00",
+      "DFF": "2026-08-20T21:00:00+00:00",
+      "WALCL": "2026-08-19T21:00:00+00:00",
+      "WTREGEN": "2026-08-19T21:00:00+00:00",
+      "RRPONTSYD": "2026-08-21T21:00:00+00:00",
+      "M2SL": "2026-06-01T21:00:00+00:00",
+      "PAYEMS": "2026-07-01T21:00:00+00:00",
+      "UNRATE": "2026-07-01T21:00:00+00:00",
+      "INDPRO": "2026-07-01T21:00:00+00:00",
+      "CPIAUCSL": "2026-07-01T21:00:00+00:00"
+    },
+    "series_latest_available": {
+      "NASDAQCOM": "2026-08-22T21:00:00+00:00",
+      "VIX": "2026-08-22T21:00:00+00:00",
+      "VIX9D": "2026-08-22T21:00:00+00:00",
+      "VIX3M": "2026-08-22T21:00:00+00:00",
+      "VVIX": "2026-08-22T21:00:00+00:00",
+      "SKEW": "2026-08-22T21:00:00+00:00",
+      "OFR_FSI": "2026-08-21T21:00:00+00:00",
+      "EBP": "2026-08-15T21:00:00+00:00",
+      "CMDI": "2026-09-07T21:00:00+00:00",
+      "CFTC_NASDAQ_LEV_NET_PCT_OI": "2026-08-21T21:00:00+00:00",
+      "DGS2": "2026-08-21T21:00:00+00:00",
+      "T10Y2Y": "2026-08-22T21:00:00+00:00",
+      "DTWEXBGS": "2026-08-15T21:00:00+00:00",
+      "NFCI": "2026-08-18T21:00:00+00:00",
+      "DFF": "2026-08-21T21:00:00+00:00",
+      "WALCL": "2026-08-23T21:00:00+00:00",
+      "WTREGEN": "2026-08-23T21:00:00+00:00",
+      "RRPONTSYD": "2026-08-22T21:00:00+00:00",
+      "M2SL": "2026-07-16T21:00:00+00:00",
+      "PAYEMS": "2026-08-15T21:00:00+00:00",
+      "UNRATE": "2026-08-15T21:00:00+00:00",
+      "INDPRO": "2026-08-15T21:00:00+00:00",
+      "CPIAUCSL": "2026-08-15T21:00:00+00:00"
+    }
+  },
+  "source_coverage": {
+    "schema_version": 1,
+    "registry_source_count": 37,
+    "materialized_source_count": 15,
+    "materialized_series_count": 23,
+    "required_series_count": 23,
+    "required_series_coverage": 1.0,
+    "missing_required_series": [],
+    "unknown_receipt_sources": [],
+    "full_registry_materialization_is_not_claimed": true,
+    "model_required_pass": true,
+    "sources": [
+      {
+        "source_id": "alfred_macro",
+        "provider": "Federal Reserve Bank of St. Louis",
+        "adapter_status": "implemented",
+        "data_grade": "native_pit",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "bea",
+        "provider": "U.S. Bureau of Economic Analysis",
+        "adapter_status": "implemented",
+        "data_grade": "native_pit",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "bls",
+        "provider": "U.S. Bureau of Labor Statistics",
+        "adapter_status": "implemented",
+        "data_grade": "native_pit",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "cboe_skew",
+        "provider": "Cboe",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "SKEW"
+        ],
+        "required_series_ids": [
+          "SKEW"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "cboe_vix",
+        "provider": "Cboe",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "VIX"
+        ],
+        "required_series_ids": [
+          "VIX"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "cboe_vix3m",
+        "provider": "Cboe",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "VIX3M"
+        ],
+        "required_series_ids": [
+          "VIX3M"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "cboe_vix9d",
+        "provider": "Cboe",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "VIX9D"
+        ],
+        "required_series_ids": [
+          "VIX9D"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "cboe_vvix",
+        "provider": "Cboe",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "VVIX"
+        ],
+        "required_series_ids": [
+          "VVIX"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "census",
+        "provider": "U.S. Census Bureau",
+        "adapter_status": "implemented",
+        "data_grade": "native_pit",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "cftc_tff",
+        "provider": "Commodity Futures Trading Commission",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "CFTC_NASDAQ_LEV_NET_PCT_OI"
+        ],
+        "required_series_ids": [
+          "CFTC_NASDAQ_LEV_NET_PCT_OI"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "chicago_fed_nfci",
+        "provider": "Federal Reserve Bank of Chicago",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "NFCI"
+        ],
+        "required_series_ids": [
+          "NFCI"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "cleveland_inflation_nowcast",
+        "provider": "Federal Reserve Bank of Cleveland",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "cpi_consensus",
+        "provider": "Licensed consensus feed",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "economic_policy_uncertainty",
+        "provider": "Economic Policy Uncertainty",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "eia_electricity",
+        "provider": "U.S. Energy Information Administration",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "eia_petroleum",
+        "provider": "U.S. Energy Information Administration",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "employment_consensus",
+        "provider": "Licensed consensus feed",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "fama_french",
+        "provider": "Kenneth French Data Library",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "fed_ebp",
+        "provider": "Federal Reserve Board",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "EBP"
+        ],
+        "required_series_ids": [
+          "EBP"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "fed_h10",
+        "provider": "Federal Reserve Board",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "DTWEXBGS"
+        ],
+        "required_series_ids": [
+          "DTWEXBGS"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "fed_h41",
+        "provider": "Federal Reserve Board",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "WALCL"
+        ],
+        "required_series_ids": [
+          "WALCL"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "fed_h8",
+        "provider": "Federal Reserve Board",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "fed_rate_probability",
+        "provider": "Licensed market-implied probability feed",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "finra_margin",
+        "provider": "FINRA",
+        "adapter_status": "forward_capture",
+        "data_grade": "captured_forward",
+        "runtime_status": "forward_capture_pending",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "finra_otc",
+        "provider": "FINRA",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "fred_alfred",
+        "provider": "Federal Reserve Bank of St. Louis",
+        "adapter_status": "implemented",
+        "data_grade": "native_pit",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "CPIAUCSL",
+          "DFF",
+          "DGS2",
+          "INDPRO",
+          "M2SL",
+          "NASDAQCOM",
+          "PAYEMS",
+          "T10Y2Y",
+          "UNRATE"
+        ],
+        "required_series_ids": [
+          "CPIAUCSL",
+          "DFF",
+          "DGS2",
+          "INDPRO",
+          "M2SL",
+          "NASDAQCOM",
+          "PAYEMS",
+          "T10Y2Y",
+          "UNRATE"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "gdelt",
+        "provider": "GDELT Project",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "nyfed_cmdi",
+        "provider": "Federal Reserve Bank of New York",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "CMDI"
+        ],
+        "required_series_ids": [
+          "CMDI"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "nyfed_gscpi",
+        "provider": "Federal Reserve Bank of New York",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "nyfed_markets",
+        "provider": "Federal Reserve Bank of New York",
+        "adapter_status": "implemented",
+        "data_grade": "captured_forward",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "RRPONTSYD"
+        ],
+        "required_series_ids": [
+          "RRPONTSYD"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "nyfed_sce",
+        "provider": "Federal Reserve Bank of New York",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "ofr_fsi",
+        "provider": "Office of Financial Research",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "OFR_FSI"
+        ],
+        "required_series_ids": [
+          "OFR_FSI"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "philadelphia_fed_spf",
+        "provider": "Federal Reserve Bank of Philadelphia",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "sec_companyfacts",
+        "provider": "U.S. Securities and Exchange Commission",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "sec_financial_statement_datasets",
+        "provider": "U.S. Securities and Exchange Commission",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      },
+      {
+        "source_id": "treasury_dts",
+        "provider": "U.S. Treasury Fiscal Data",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "materialized",
+        "materialized_series_ids": [
+          "WTREGEN"
+        ],
+        "required_series_ids": [
+          "WTREGEN"
+        ],
+        "used_by_active_archive": true
+      },
+      {
+        "source_id": "us_treasury_rates",
+        "provider": "U.S. Treasury",
+        "adapter_status": "implemented",
+        "data_grade": "reconstructed_official_archive",
+        "runtime_status": "implemented_not_materialized",
+        "materialized_series_ids": [],
+        "required_series_ids": [],
+        "used_by_active_archive": false
+      }
+    ]
+  },
+  "pit": {
+    "pass": true,
+    "pit_leakage_count": 0,
+    "pit_leakage_examples": [],
+    "active_feature_provenance_rate": 1.0,
+    "feature_count": 78,
+    "explicit_missing_indicator_count": 31,
+    "feature_data_grade_counts": {
+      "reconstructed_official_archive": 78
+    },
+    "initial_training_origin_count": 561,
+    "development_origin_count": 626,
+    "sealed_origin_count": 385
+  },
+  "runtime": {
+    "pass": true,
+    "contract_runtime_mismatch_count": 0,
+    "mismatches": [],
+    "selection_coordinate_count": 25
+  },
+  "operational": {
+    "pass": false,
+    "reasons": [
+      "stale:DTWEXBGS",
+      "stale:M2SL",
+      "stale:OFR_FSI"
+    ],
+    "fit_snapshot_compatibility": true,
+    "source_specific_freshness": {
+      "NASDAQCOM": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "VIX": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "VIX9D": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "VIX3M": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "VVIX": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "SKEW": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "OFR_FSI": {
+        "frequency": "daily",
+        "missing_completed_sessions": 2,
+        "allowed": 1,
+        "pass": false
+      },
+      "EBP": {
+        "frequency": "monthly",
+        "calendar_age_days": 53,
+        "allowed": 70,
+        "pass": true
+      },
+      "CMDI": {
+        "frequency": "monthly",
+        "calendar_age_days": 30,
+        "allowed": 70,
+        "pass": true
+      },
+      "CFTC_NASDAQ_LEV_NET_PCT_OI": {
+        "frequency": "weekly",
+        "calendar_age_days": 5,
+        "allowed": 14,
+        "pass": true
+      },
+      "DGS2": {
+        "frequency": "daily",
+        "missing_completed_sessions": 1,
+        "allowed": 1,
+        "pass": true
+      },
+      "T10Y2Y": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "DTWEXBGS": {
+        "frequency": "daily",
+        "missing_completed_sessions": 5,
+        "allowed": 1,
+        "pass": false
+      },
+      "NFCI": {
+        "frequency": "weekly",
+        "calendar_age_days": 9,
+        "allowed": 14,
+        "pass": true
+      },
+      "DFF": {
+        "frequency": "daily",
+        "missing_completed_sessions": 1,
+        "allowed": 1,
+        "pass": true
+      },
+      "WALCL": {
+        "frequency": "weekly",
+        "calendar_age_days": 4,
+        "allowed": 14,
+        "pass": true
+      },
+      "WTREGEN": {
+        "frequency": "weekly",
+        "calendar_age_days": 4,
+        "allowed": 14,
+        "pass": true
+      },
+      "RRPONTSYD": {
+        "frequency": "daily",
+        "missing_completed_sessions": 0,
+        "allowed": 1,
+        "pass": true
+      },
+      "M2SL": {
+        "frequency": "monthly",
+        "calendar_age_days": 83,
+        "allowed": 70,
+        "pass": false
+      },
+      "PAYEMS": {
+        "frequency": "monthly",
+        "calendar_age_days": 53,
+        "allowed": 70,
+        "pass": true
+      },
+      "UNRATE": {
+        "frequency": "monthly",
+        "calendar_age_days": 53,
+        "allowed": 70,
+        "pass": true
+      },
+      "INDPRO": {
+        "frequency": "monthly",
+        "calendar_age_days": 53,
+        "allowed": 70,
+        "pass": true
+      },
+      "CPIAUCSL": {
+        "frequency": "monthly",
+        "calendar_age_days": 53,
+        "allowed": 70,
+        "pass": true
+      }
+    }
+  }
+}

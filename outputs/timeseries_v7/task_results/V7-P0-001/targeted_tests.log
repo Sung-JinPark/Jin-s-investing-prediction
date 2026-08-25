@@ -1,0 +1,8 @@
+..........                                                               [100%]
+============================== warnings summary ===============================
+src/tests/timeseries_v7/test_v6_gate_audit.py::test_duplicate_zip_member_is_rejected
+  C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\zipfile\__init__.py:1611: UserWarning: Duplicate name: 'same.txt'
+    return self._open_to_write(zinfo, force_zip64=force_zip64)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+10 passed, 1 warning in 0.29s

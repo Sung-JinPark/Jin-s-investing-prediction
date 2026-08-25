@@ -1,0 +1,362 @@
+diff --git a/.github/workflows/pages.yml b/.github/workflows/pages.yml
+index 6bd79090..2c8975de 100644
+--- a/.github/workflows/pages.yml
++++ b/.github/workflows/pages.yml
+@@ -15,6 +15,7 @@ on:
+       - "src/ai_fc/scenario_v5_2/**"
+       - "src/ai_fc/statistics_lab.py"
+       - "src/ai_fc/timeseries/**"
++      - "src/ai_fc/timeseries_v5/**"
+       - "src/ai_fc/multi_year_stress.py"
+       - "data/contracts/statistics_lab_v1.yaml"
+       - ".github/workflows/pages.yml"
+@@ -22,7 +23,7 @@ on:
+     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
+   workflow_dispatch:
+   workflow_run:
+-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh"]
++    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh"]
+     types: [completed]
+ 
+ permissions:
+diff --git a/.github/workflows/verify.yml b/.github/workflows/verify.yml
+index 0226012a..89032ef4 100644
+--- a/.github/workflows/verify.yml
++++ b/.github/workflows/verify.yml
+@@ -5,7 +5,7 @@ on:
+     branches: [main]
+   pull_request:
+   workflow_run:
+-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh"]
++    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh"]
+     types: [completed]
+ 
+ jobs:
+diff --git a/.gitignore b/.gitignore
+index 185a0775..3d37b735 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -23,6 +23,15 @@ Thumbs.db
+ # 대시보드 스냅샷은 재생성 가능 (python -m ai_fc dashboard) — 커밋 안 함
+ /reports/dashboard.html
+ 
++# NASDAQ V5 private control/data plane. Git stores only manifests and summaries.
++/data/timeseries_v5/private/
++/outputs/timeseries_v5/private_store/
++/outputs/timeseries_v5/checkpoints/
++/outputs/timeseries_v5/interrupted_store_*/
++/outputs/timeseries_v5/failed_atomicity_store_*/
++/outputs/timeseries_v5/ui/
++/outputs/timeseries-v5-audit-*/
++
+ # 내부 검토·아카이브 산출물 — 로컬 보존 전용 (리포지토리 미포함)
+ /reports/reviews/archive/local_only/
+ 
+diff --git a/README.md b/README.md
+index b85ab041..d1394757 100644
+--- a/README.md
++++ b/README.md
+@@ -31,7 +31,7 @@
+ 
+ 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
+ 
+-시계열 예측은 별도 shadow 연구모델입니다. V4는 Cboe 변동성 기간구조·미국 주식시장 폭, Cleveland Fed 물가 nowcast, Philadelphia Fed 전망 평균·분산을 원문부터 누적해 V3의 고정 비교군과 963개 원점에서 검증합니다. 현재 장기 CRPS 개선은 0.99%로 2% Gate에 미달해 `HOLD`이며 고객 숫자는 공개하지 않습니다. 기존 미래전망·공식 확률과도 결합하지 않습니다.
++시계열 예측은 별도 shadow 연구모델입니다. V5는 NASDAQ의 1·5·21·63거래일 location·scale·tail을 horizon별로 직접 학습하고, V4와 같은 963개 원점에서 고정 비교군과 검증합니다. 현재 봉인 결과는 장기 CRPS 기준 미달로 **HOLD**이며 숫자를 숨깁니다. Research Gate와 운영 신선도 Gate를 모두 통과할 때만 표시하며 기존 미래전망·공식 확률과 결합하지 않습니다. [봉인 결과 보기](docs/timeseries_v5/GATE_RESULT_20260824.md)
+ 
+ ## 숫자가 화면에 도착하는 과정
+ 
+@@ -80,6 +80,7 @@ flowchart LR
+ | 시계열 V1 / V2 사전등록 | [`multivariate_timeseries_v1.yaml`](data/contracts/multivariate_timeseries_v1.yaml) · [`multivariate_timeseries_v2.yaml`](data/contracts/multivariate_timeseries_v2.yaml) |
+ | 시계열 PIT / V2 원장 | [`data/timeseries/`](data/timeseries/) · [`data/timeseries_v2/`](data/timeseries_v2/) |
+ | 시계열 V4 원천·Gate | [`multivariate_timeseries_v4.yaml`](data/contracts/multivariate_timeseries_v4.yaml) · [`data/timeseries_v4/`](data/timeseries_v4/) |
++| 시계열 V5 직접분포·공개 DB | [`multivariate_timeseries_v5.yaml`](data/contracts/multivariate_timeseries_v5.yaml) · [`V5 아키텍처`](docs/timeseries_v5/ARCHITECTURE.md) · [`데이터 카탈로그`](docs/timeseries_v5/DATA_CATALOG.md) |
+ 
+ ## 로컬 실행
+ 
+@@ -108,6 +109,13 @@ uv run ai-fc timeseries-v4-collect
+ uv run ai-fc timeseries-v4-verify-sources
+ uv run ai-fc timeseries-v4-backtest
+ uv run ai-fc timeseries-v4-verify
++uv run ai-fc timeseries-v5-collect
++uv run ai-fc timeseries-v5-materialize
++uv run ai-fc timeseries-v5-mature-labels
++uv run ai-fc timeseries-v5-backtest
++uv run ai-fc timeseries-v5-gate
++uv run ai-fc timeseries-v5-forecast
++uv run ai-fc timeseries-v5-verify
+ python tools/ralph_timeseries.py run --max-iterations 50 --max-hours 24 --auto-merge
+ uv run ai-fc dashboard --serve --host 127.0.0.1
+ ```
+diff --git a/docs/generated/inventory.generated.md b/docs/generated/inventory.generated.md
+index b8a18f1e..01e5b545 100644
+--- a/docs/generated/inventory.generated.md
++++ b/docs/generated/inventory.generated.md
+@@ -3,14 +3,14 @@
+ > 이 문서는 정적 수기 현황표가 아닙니다. `ai-fc inventory`가 원천 파일과 재구축된
+ > 읽기 인덱스에서 결정론적으로 생성합니다. 숫자를 직접 수정하지 마세요.
+ 
+-- Source fingerprint: `e8cb33e4159d6c78c72b3df6345fe661b738a127d6c4af149635a81703594e65`
++- Source fingerprint: `0c8d04e55f0864d5fb4b20b7a784179be3a852a713c932d6b76966a7236f01a9`
+ - Registered questions: 38
+ - Forecast bodies: 24
+ - Evidence files: 19
+ - Resolution rows / unique events: 6 / 3
+ - Benchmark rows: 6
+ - Pending/approved correction rows: 19
+-- Source contracts: 47
++- Source contracts: 48
+ - DualDB configured eras: 8
+ 
+ ## SQLite read index
+diff --git a/docs/generated/read_model_v2.schema.json b/docs/generated/read_model_v2.schema.json
+index 974a1e69..a9c12e9d 100644
+--- a/docs/generated/read_model_v2.schema.json
++++ b/docs/generated/read_model_v2.schema.json
+@@ -352,7 +352,11 @@
+       ],
+       "properties": {
+         "schema_version": {
+-          "const": 1
++          "enum": [
++            1,
++            2,
++            5
++          ]
+         },
+         "status": {
+           "enum": [
+@@ -361,7 +365,11 @@
+           ]
+         },
+         "model_id": {
+-          "const": "shadow.mf_dfm_ridge_varx_v1"
++          "enum": [
++            "shadow.mf_dfm_ridge_varx_v1",
++            "shadow.mf_dfm_ridge_varx_v2",
++            "shadow.nasdaq_pit_hybrid_distribution_v5"
++          ]
+         },
+         "combined_with_existing_models": {
+           "const": false
+diff --git a/pyproject.toml b/pyproject.toml
+index 7641d415..c86aa685 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -37,6 +37,15 @@ timeseries = [
+     "pandas>=2.2,<3",
+     "statsmodels==0.14.6",
+ ]
++timeseries-v5 = [
++    "pandas>=2.2,<3",
++    "scikit-learn>=1.5,<2",
++    "exchange-calendars>=4.6,<5",
++    "psycopg[binary]>=3.2,<4",
++    "boto3>=1.35,<2",
++    "pyarrow>=18",
++    "duckdb>=1.3",
++]
+ screenshot = [
+     "playwright>=1.48,<2",
+ ]
+diff --git a/src/ai_fc/cli.py b/src/ai_fc/cli.py
+index 711f3b45..7e9dd8ed 100644
+--- a/src/ai_fc/cli.py
++++ b/src/ai_fc/cli.py
+@@ -426,6 +426,101 @@ def cmd_timeseries_v4_verify() -> None:
+         raise typer.Exit(code=1)
+ 
+ 
++@app.command("timeseries-v5-collect")
++def cmd_timeseries_v5_collect(
++    source: list[str] | None = typer.Option(None, "--source"),
++) -> None:
++    """Collect registered V5 public sources raw-first into the private store."""
++    from .timeseries_v5.pipeline import collect_v5
++    result = _timeseries_exit(collect_v5, config.ROOT, source_ids=source)
++    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-init")
++def cmd_timeseries_v5_init() -> None:
++    """Freeze the V1-V4, Scenario and official-ledger protection baseline."""
++    from .timeseries_v5.pipeline import initialize_v5
++    typer.echo(json.dumps(_timeseries_exit(initialize_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-materialize")
++def cmd_timeseries_v5_materialize() -> None:
++    """Build the PIT Parquet read model from append-only observations."""
++    from .timeseries_v5.pipeline import materialize_v5
++    typer.echo(json.dumps(_timeseries_exit(materialize_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-reconcile")
++def cmd_timeseries_v5_reconcile() -> None:
++    """Append registered V5 availability-time normalization corrections."""
++    from .timeseries_v5.pipeline import reconcile_availability_v5
++    typer.echo(json.dumps(_timeseries_exit(reconcile_availability_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-mature-labels")
++def cmd_timeseries_v5_mature_labels() -> None:
++    """Append matured direct 1/5/21/63-session NASDAQ labels."""
++    from .timeseries_v5.pipeline import mature_labels_v5
++    typer.echo(json.dumps(_timeseries_exit(mature_labels_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-train")
++def cmd_timeseries_v5_train() -> None:
++    """Verify and freeze the preregistered V5 experiment bundle."""
++    from .timeseries_v5.pipeline import train_v5
++    typer.echo(json.dumps(_timeseries_exit(train_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-backtest")
++def cmd_timeseries_v5_backtest(
++    sample_count: int = typer.Option(4000, "--sample-count", min=500),
++    bootstrap_iterations: int | None = typer.Option(None, "--bootstrap-iterations", min=100),
++) -> None:
++    """Run the fixed-comparator direct-distribution research Gate."""
++    from .timeseries_v5.pipeline import backtest_v5
++    result = _timeseries_exit(backtest_v5, config.ROOT, sample_count=sample_count, bootstrap_iterations=bootstrap_iterations)
++    typer.echo(json.dumps({"run_id": result["run_id"], "research_gate": result["research_gate"], "origin_count": result["origin_count"]}, ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-gate")
++def cmd_timeseries_v5_gate() -> None:
++    """Report the research and operational publication decisions."""
++    from .timeseries_v5.pipeline import gate_v5
++    typer.echo(json.dumps(_timeseries_exit(gate_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-forecast")
++def cmd_timeseries_v5_forecast() -> None:
++    """Publish V5 research numbers only when both gates pass."""
++    from .timeseries_v5.pipeline import forecast_v5
++    typer.echo(json.dumps(_timeseries_exit(forecast_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-resolve")
++def cmd_timeseries_v5_resolve() -> None:
++    """Append mature V5 forecast outcomes."""
++    from .timeseries_v5.pipeline import resolve_v5
++    typer.echo(json.dumps(_timeseries_exit(resolve_v5, config.ROOT), ensure_ascii=False, indent=2))
++
++
++@app.command("timeseries-v5-verify")
++def cmd_timeseries_v5_verify() -> None:
++    """Verify V5 hashes, lineage, gates and protected isolation."""
++    from .timeseries_v5.pipeline import verify_v5
++    result = _timeseries_exit(verify_v5, config.ROOT)
++    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
++    if not result.get("ok"):
++        raise typer.Exit(code=1)
++
++
++@app.command("timeseries-v5-workbook")
++def cmd_timeseries_v5_workbook() -> None:
++    """Export the eight-sheet V5 audit workbook."""
++    from .timeseries_v5.workbook import export_timeseries_v5_workbook
++    path, result = _timeseries_exit(export_timeseries_v5_workbook, config.ROOT)
++    typer.echo(json.dumps({"path": path.relative_to(config.ROOT).as_posix(), **result}, ensure_ascii=False, indent=2))
++
++
+ @app.command("audit-ledgers")
+ def cmd_audit_ledgers(
+     check: bool = typer.Option(False, "--check", help="Do not rewrite baseline/report files"),
+diff --git a/src/ai_fc/dashboard.py b/src/ai_fc/dashboard.py
+index 56e17e84..87a1d5ae 100644
+--- a/src/ai_fc/dashboard.py
++++ b/src/ai_fc/dashboard.py
+@@ -359,8 +359,12 @@ def build_read_model(
+     statistics_lab = statistics_dashboard_projection(root)
+     from .timeseries.artifact import load_projection as load_timeseries_projection
+     from .timeseries_v2.artifact import load_projection as load_timeseries_v2_projection
++    from .timeseries_v5.artifact import load_projection as load_timeseries_v5_projection
+     timeseries_v1 = load_timeseries_projection(root)
+-    timeseries = load_timeseries_v2_projection(root) or timeseries_v1
++    # If a V5 pointer exists its PASS/HOLD decision owns this surface.  Falling
++    # through to an older model would silently hide a V5 operational failure.
++    timeseries_v5 = load_timeseries_v5_projection(root)
++    timeseries = timeseries_v5 if timeseries_v5 is not None else (load_timeseries_v2_projection(root) or timeseries_v1)
+     ai_regime = load_ai_regime(root)
+     o_entry_cohort = load_cohort_summary(root)
+     band_calibration_path = root / "data/scenarios/band_calibration.csv"
+diff --git a/src/ai_fc/read_model_contract.py b/src/ai_fc/read_model_contract.py
+index d0b50739..cf65e852 100644
+--- a/src/ai_fc/read_model_contract.py
++++ b/src/ai_fc/read_model_contract.py
+@@ -200,9 +200,9 @@ def schema() -> dict[str, Any]:
+             "horizons", "path", "backtest",
+         ],
+         "properties": {
+-            "schema_version": {"const": 1},
++            "schema_version": {"enum": [1, 2, 5]},
+             "status": {"enum": ["ready", "validation_pending"]},
+-            "model_id": {"const": "shadow.mf_dfm_ridge_varx_v1"},
++            "model_id": {"enum": ["shadow.mf_dfm_ridge_varx_v1", "shadow.mf_dfm_ridge_varx_v2", "shadow.nasdaq_pit_hybrid_distribution_v5"]},
+             "combined_with_existing_models": {"const": False},
+             "numbers_visible": {"type": "boolean"},
+         },
+@@ -297,15 +297,16 @@ def validate(model: dict[str, Any]) -> list[str]:
+         model_id = timeseries.get("model_id")
+         if model_id not in {
+             "shadow.mf_dfm_ridge_varx_v1", "shadow.mf_dfm_ridge_varx_v2",
++            "shadow.nasdaq_pit_hybrid_distribution_v5",
+         }:
+             errors.append("timeseries model id mismatch")
+         if timeseries.get("combined_with_existing_models") is not False:
+             errors.append("timeseries must remain isolated from existing probability spaces")
+         visible = timeseries.get("numbers_visible") is True
+-        expected_visible_status = (
+-            "shadow_research_published"
+-            if model_id == "shadow.mf_dfm_ridge_varx_v2" else "ready"
+-        )
++        expected_visible_status = {
++            "shadow.mf_dfm_ridge_varx_v2": "shadow_research_published",
++            "shadow.nasdaq_pit_hybrid_distribution_v5": "shadow_research_visible",
++        }.get(model_id, "ready")
+         if visible is not (timeseries.get("status") == expected_visible_status):
+             errors.append("timeseries visibility/status mismatch")
+         if model_id == "shadow.mf_dfm_ridge_varx_v2":
+@@ -313,6 +314,13 @@ def validate(model: dict[str, Any]) -> list[str]:
+                 errors.append("timeseries V2 probability space mismatch")
+             if visible and (timeseries.get("gate") or {}).get("pass") is not True:
+                 errors.append("timeseries V2 numbers visible before gate pass")
++        if model_id == "shadow.nasdaq_pit_hybrid_distribution_v5":
++            if timeseries.get("probability_space") != "research_timeseries_v5_conditional":
++                errors.append("timeseries V5 probability space mismatch")
++            research = (timeseries.get("research_gate") or {}).get("pass") is True
++            operational = (timeseries.get("operational_gate") or {}).get("pass") is True
++            if visible is not (research and operational):
++                errors.append("timeseries V5 visibility must equal both Gate decisions")
+         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
+             errors.append("timeseries validation-pending surface must hide numbers")
+     multi_year_stress = model.get("multi_year_stress")
+diff --git a/src/ai_fc/timeseries_v5/__init__.py b/src/ai_fc/timeseries_v5/__init__.py
+index ab36f094..6f2eaa10 100644
+--- a/src/ai_fc/timeseries_v5/__init__.py
++++ b/src/ai_fc/timeseries_v5/__init__.py
+@@ -1,6 +1,5 @@
+-"""NASDAQ V5 bootstrap namespace.
++"""NASDAQ V5 isolated point-in-time direct-distribution research platform."""
+ 
+-Only the read-only V4 baseline reproducer is implemented in task V5-P0-001.
+-No V5 model, controller, publication path, or storage migration is activated.
+-"""
++from .contracts import MODEL_ID, MODEL_VERSION, PROBABILITY_SPACE
+ 
++__all__ = ["MODEL_ID", "MODEL_VERSION", "PROBABILITY_SPACE"]
+diff --git a/src/tests/test_investing_refresh_workflow.py b/src/tests/test_investing_refresh_workflow.py
+index 456a385d..ce75c956 100644
+--- a/src/tests/test_investing_refresh_workflow.py
++++ b/src/tests/test_investing_refresh_workflow.py
+@@ -55,7 +55,7 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
+     assert '"Pillow>=10"' in pages, "Pages OG image build requires Pillow"
+     expected = (
+         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
+-        '"statistics-refresh", "timeseries-refresh"]'
++        '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh"]'
+     )
+     for workflow in (pages, verify):
+         assert expected in workflow

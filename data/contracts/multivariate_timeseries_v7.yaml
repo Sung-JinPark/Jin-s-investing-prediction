@@ -1,0 +1,255 @@
+schema_version: 7
+contract_id: multivariate_timeseries_v7
+contract_status: frozen_v7_p0_003
+frozen_at: '2026-08-25T00:00:00Z'
+model_id: shadow.nasdaq_pit_hierarchical_distribution_v7
+model_version: 7
+probability_space: research_timeseries_v7_conditional
+probability_unit: fraction
+
+immutable_predecessor:
+  model_id: shadow.nasdaq_pit_hierarchical_distribution_v6
+  run_id: tsv6-sealed-46d58750db2abe8b40cec159
+  status: shadow_gate_hold
+  may_modify: false
+  failure_evidence: outputs/timeseries_v7/audit/v6_gate_reproduction.json
+  protected_baseline: data/timeseries_v7/manifests/protected_v6_baseline.json
+  protected_baseline_physical_sha256: 06f8396d4522be95494add1e2183e4cbbca3e60a82c60265181f5cf315048fb7
+  protected_content_hash: a23c0fc0b0413e3c45b7507db5a1ec2e04305d218238cefd127d18ed9208e63a
+
+target:
+  exchange: XNAS
+  series_id: NASDAQCOM
+  learning_transform: direct_cumulative_log_return
+  origin_frequency: weekly_last_completed_xnas_session
+  origin_cutoff: completed_session_close
+  origin_timezone: America/New_York
+  horizons_sessions: [1, 5, 21, 63]
+  quantile_levels: [0.01, 0.05, 0.10, 0.25, 0.50, 0.75, 0.90, 0.95, 0.99]
+  path_sessions: 63
+  path_samples: 20000
+  stored_return_unit: signed_fraction
+  stored_probability_unit: fraction
+  direct_horizon_required: true
+  recursive_one_day_long_horizon: prohibited
+
+data_integrity:
+  eligible_if: feature.max_available_at <= origin.origin_cutoff_at
+  date_only_pit_join: prohibited
+  future_actual_or_revision: prohibited
+  silent_imputation: prohibited
+  silent_feature_drop: prohibited
+  append_only: true
+  correction_semantics: explicit_supersedes
+  feature_value_lineage_required: true
+  receipt_terminal_outcome_required: true
+  data_grades:
+    - native_pit
+    - reconstructed_official_archive
+    - captured_forward
+    - licensed_reference_only
+    - quarantined
+
+validation:
+  historical_research:
+    status: open_qualification
+    start: '2007-01-01'
+    end_policy: latest_origin_with_all_63_session_labels_mature
+    origin_frequency: weekly_last_completed_xnas_session
+    minimum_total_origins: 250
+  roles_per_outer_origin:
+    - research_train
+    - candidate_selection
+    - stacking
+    - calibration
+    - outer_test
+  roles_disjoint: true
+  overlapping_label_intervals_across_roles: prohibited
+  purge_rule: train.label_end_session + embargo_sessions < validation.origin_session
+  purge_max_horizon_sessions: 63
+  embargo_sessions: 5
+  weekly_row_offset_purge: prohibited
+  minimum_training_origins: 250
+  selection_uses_outer_test: prohibited
+  calibration_uses_outer_test: prohibited
+  prospective_score_reuse_for_retuning: prohibited
+
+historical_stress:
+  status: open_qualification_not_hidden_prospective
+  binding_coverage_minimum_origins: 20
+  small_sample_policy: report_not_applicable
+  suites:
+    gfc: {start: '2007-07-01', end: '2009-06-30'}
+    pandemic: {start: '2020-02-01', end: '2020-06-30'}
+    tightening_2022: {start: '2022-01-01', end: '2022-12-31'}
+    rebound_2009: {start: '2009-03-01', end: '2010-03-31'}
+    rebound_2020: {start: '2020-05-01', end: '2021-03-31'}
+    bull_2023: {start: '2023-01-01', end: '2023-12-31'}
+    absolute_return_q4: {definition: ex_ante_evaluation_partition}
+    high_volatility_q4: {definition: ex_ante_evaluation_partition}
+
+candidates:
+  E0:
+    algorithm: exact_empirical_anchor
+    exact_sample_identity_required: true
+    gaussian_reconstruction: prohibited
+    minimum_ensemble_weight: {'1': 0.20, '5': 0.25, '21': 0.40, '63': 0.50}
+  E1:
+    algorithm: direct_quantile_elastic_net
+    alpha: [0.001, 0.01, 0.1]
+    l1_ratio: [0.1, 0.5, 0.9]
+    max_iter: 10000
+    tolerance: 1.0e-7
+  E2:
+    algorithm: student_t_distributional_regression
+    objective: joint_location_scale_student_t_nll
+    degrees_of_freedom: [3, 5, 8, 12]
+    ridge_alpha: [0.01, 0.1, 1.0]
+    scale_floor: 1.0e-6
+  E3:
+    algorithm: quantile_histogram_gradient_boosting
+    learning_rate: [0.03, 0.07]
+    max_leaf_nodes: [7, 15]
+    max_iter: [100, 200]
+    min_samples_leaf: [30, 60]
+    l2_regularization: [0.0, 1.0]
+  E4:
+    algorithm: filtered_dynamic_linear_state_space
+    state_order: [1, 2]
+    process_variance_scale: [0.01, 0.1, 1.0]
+    observation_variance_scale: [0.5, 1.0, 2.0]
+    filtered_not_smoothed_at_origin: true
+  E5:
+    algorithm: learned_soft_regime_partial_pooling
+    component_count: [2, 3]
+    gating_l2: [0.1, 1.0, 10.0]
+    minimum_effective_component_origins: 40
+    future_regime_label: prohibited
+  E6:
+    algorithm: asymmetric_evt_gpd
+    threshold_quantile: [0.90, 0.95]
+    minimum_exceedances_per_tail: 40
+    positive_negative_tails_separate: true
+  E7:
+    algorithm: pit_full_analog_trajectory
+    neighbor_count: [25, 50, 100]
+    minimum_temporal_spacing_sessions: 126
+    distance: robust_mahalanobis
+    full_trajectory_required: true
+  E8:
+    algorithm: event_local_projection
+    minimum_independent_resolved_events: 60
+    expanded_event_rows_count_as_independent: false
+    weight_before_eligibility: 0.0
+  E9:
+    algorithm: market_implied_physical_calibration
+    minimum_captured_origins: 126
+    risk_neutral_as_physical_without_calibration: prohibited
+    weight_before_eligibility: 0.0
+  E10:
+    algorithm: isolated_foundation_challenger
+    identical_pit_outer_test_required: true
+    checkpoint_and_license_receipts_required: true
+    weight_before_eligibility: 0.0
+
+ensemble:
+  horizon_specific_nonnegative_convex: true
+  weights_sum_to_one: true
+  anchor_floor_source: candidates.E0.minimum_ensemble_weight
+  weights_fit_on_stacking_role_only: true
+  matured_historical_scores_only: true
+  stale_or_unavailable_component_weight: 0.0
+  event_absent_weight: 0.0
+  turnover_penalty: [0.0, 0.01, 0.05]
+  complexity_penalty: [0.0, 0.001, 0.01]
+
+calibration:
+  fit_on_calibration_role_only: true
+  matured_errors_only: true
+  components: [location, scale, positive_tail, negative_tail]
+  quantile_rearrangement: true
+  shrinkage_to_zero: true
+  diagnostics:
+    - quantile_hit_rate
+    - coverage_50_80_90
+    - lower_upper_miss_balance
+    - pit_histogram
+    - calibration_slope
+    - rolling_calibration
+
+path_forecast:
+  endpoint_horizons: [1, 5, 21, 63]
+  joint_endpoint_sampling: true
+  analog_trajectory_reconciliation: stochastic
+  path_count: 20000
+  deterministic_endpoint_interpolation: prohibited
+  actual_endpoint_forcing: prohibited
+  required_metrics:
+    - max_drawdown_distribution
+    - drawdown_duration
+    - first_touch_minus_5_10_15
+    - recovery_probability
+    - event_date_path_response
+    - endpoint_reconciliation_error
+    - duplicate_trajectory_fraction
+
+gates:
+  contract_feasibility:
+    required_before_freeze: true
+    impossible_sample_requirement_count_max: 0
+  integrity:
+    pit_leakage_count_max: 0
+    feature_lineage_rate_min: 1.0
+    receipt_terminal_outcome_rate_min: 1.0
+    contract_runtime_mismatch_count_max: 0
+  historical_research:
+    long_horizon_mean_crps_skill_min: 0.02
+    each_long_horizon_skill_min: 0.0
+    paired_dependence_aware_ci_upper_max: 0.0
+    coverage_80_range: [0.76, 0.84]
+    coverage_50_range: [0.45, 0.55]
+    balanced_direction_accuracy_min: 0.52
+    probability_up_brier_better_than_base_rate: true
+    extreme_q4_coverage_min: 0.60
+    catastrophic_phase_underperformance_max: 0.10
+  historical_stress:
+    coverage_80_min_when_binding: 0.65
+    all_named_suites_reported: true
+  operational:
+    source_specific_freshness_required: true
+    fit_snapshot_compatibility_required: true
+    stale_feature_weight_zero_or_validated_degraded_model: true
+  prospective:
+    starts_only_after_generation_freeze: true
+    open_ended_collection: true
+    minimum_forecast_origins: 126
+    last_origin_63_session_label_matured: true
+    active_regime_binding_minimum_origins: 20
+    absent_regime_policy: not_applicable
+    thresholds_frozen_before_first_forecast: true
+    overlap_aware_ci: true
+    non_overlapping_robustness: true
+
+publication:
+  model_status: shadow_research
+  existing_forecast_probability_combination: prohibited
+  automatic_champion_promotion: prohibited
+  automatic_customer_publication: prohibited
+  automatic_trading: prohibited
+  all_automatic_gates_pass_state: prospective_pass_proposed
+  owner_review_required: true
+  customer_numbers_visible: false
+
+ralph:
+  control_plane: postgresql
+  object_store: s3_or_minio_content_addressed
+  analytics_store: partitioned_parquet_or_iceberg
+  task_identity: [run_id, cycle_id, generation_id, task_key]
+  lease_seconds: 300
+  heartbeat_seconds: 30
+  fencing_token_required: true
+  one_codex_task_per_invocation: true
+  same_normalized_blocker_hold_count: 3
+  no_new_evidence_state: WAIT_DATA
+  full_generation_minimum_days: 28
+  automatic_gate_threshold_change: prohibited

@@ -1,0 +1,597 @@
+[
+  {
+    "path": "ARTIFACTS/screenshots/timeseries-hold-1280.png",
+    "bytes": 78456,
+    "sha256": "e73c03508758b5a907ac51c03c3a3a9289a60edb76e7323337f3739210c7cbe8"
+  },
+  {
+    "path": "ARTIFACTS/screenshots/timeseries-hold-390.png",
+    "bytes": 46903,
+    "sha256": "6ef5ac0a8203b6a9c627d081567ebc43a068d06bc899a4fd16f8824fd9e02bcb"
+  },
+  {
+    "path": "ARTIFACTS/site/data.json",
+    "bytes": 347293,
+    "sha256": "121f1c1e113d3ec19e1857fded7d651069723c61e5fc37b8966f507dfd29e56b"
+  },
+  {
+    "path": "ARTIFACTS/site/index.html",
+    "bytes": 605839,
+    "sha256": "4cc47961c11eb3d5a58d2990e2000aba1d1cf25fab44ab133fe73eeb26c16545"
+  },
+  {
+    "path": "ARTIFACTS/workbook/NASDAQ_TIMESERIES_V5_AUDIT.xlsx",
+    "bytes": 28076,
+    "sha256": "d3f5a2b0fd1a03dfc8811502af2fe936da1e6af89156c7fd08afb1147fde716f"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Backtest.png",
+    "bytes": 31696,
+    "sha256": "1044324be86d42194d631a711919ac5d6e27984476c2c8d05013fa20381a3c04"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Features.png",
+    "bytes": 1156944,
+    "sha256": "e1a9085c79728541660907b2e260d5dfef9f9401499829bc345459d7d7a7fa8d"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Forecasts.png",
+    "bytes": 18086,
+    "sha256": "171f4995d6a5dcbc391f73169494fb75074fce9c5d064955d3a0708f198844f7"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/inspection.ndjson",
+    "bytes": 1416,
+    "sha256": "7cf64d7071d2ce4bdf25dd367f6b314b95145f3ee07567d0ade1f281d50afd3f"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/ModelCard.png",
+    "bytes": 67788,
+    "sha256": "102676f7559adec5d25303907b8b2b6e59a13e5e435dc686da250e4b64366438"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Observations.png",
+    "bytes": 249686,
+    "sha256": "1ae1f145d441d6a3037670c448e937bd3f4d3a9be25fb019c6c8a6db3e26085d"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/RunManifest.png",
+    "bytes": 52022,
+    "sha256": "f6d7373e6ba377616ef625dff67704ededeaddece44d82d6ec8dbfaaf6d9682d"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Sources.png",
+    "bytes": 181908,
+    "sha256": "23e2a073ba4071175461907b1b74cbf4c5656a6a33751a2b0743efefcc3a9ef1"
+  },
+  {
+    "path": "ARTIFACTS/workbook/rendered/Vintages.png",
+    "bytes": 124613,
+    "sha256": "ce6f37bf3f04bbe80b6c295b12a77b5161066cfa153fa176a53d507b2349cb47"
+  },
+  {
+    "path": "EVIDENCE/BACKTEST_GATE_SUMMARY.json",
+    "bytes": 2765,
+    "sha256": "7c4d3c148aeb8df092da20cf8723007034d8f5bf360b3b506c2f8715cd00be92"
+  },
+  {
+    "path": "EVIDENCE/BASELINE_COMMIT.txt",
+    "bytes": 42,
+    "sha256": "7fe9bc8a960aad6f56258a8c2ad23113431370ab8d9ca2674a589b19a4ddd9be"
+  },
+  {
+    "path": "EVIDENCE/BUILD_AND_UI_CHECK.json",
+    "bytes": 844,
+    "sha256": "0b6adfc52f80125bde05ecd728fefabdb656be9fd725f72d3e1a33f7aaaee3ce"
+  },
+  {
+    "path": "EVIDENCE/DIFF_CHECK.log",
+    "bytes": 238,
+    "sha256": "def5d4d7db5a5797a933ef391d6a433bb9702249480209c33dfa17bee11dc493"
+  },
+  {
+    "path": "EVIDENCE/FULL_TESTS.junit.xml",
+    "bytes": 79248,
+    "sha256": "389d98b1bd67bc8d5a9ff491f035fba72c28b45a528c95881b36a0cd31a65f7c"
+  },
+  {
+    "path": "EVIDENCE/FULL_TESTS.log",
+    "bytes": 762,
+    "sha256": "e03e69ff9d29769b77c422bfc7b09fce7bdaf684e2a3aa0530508e08b3cc1291"
+  },
+  {
+    "path": "EVIDENCE/GIT_STATUS.txt",
+    "bytes": 1240,
+    "sha256": "e89689a729bdae8f33627e85704861101528ae0fd089e58979e7b9a4e2aae571"
+  },
+  {
+    "path": "EVIDENCE/INVENTORY_CHECK.log",
+    "bytes": 58,
+    "sha256": "8aa624290bb15831f6ad115a7fdbc3567f6d8f35ce9eeee07e2f7c777b6d76f4"
+  },
+  {
+    "path": "EVIDENCE/SECRET_SCAN.log",
+    "bytes": 18,
+    "sha256": "2cb448061514147693d930bea3d4ffad79a777a5e0181489e0a64404d8857f4f"
+  },
+  {
+    "path": "EVIDENCE/TEST_SUMMARY.json",
+    "bytes": 99,
+    "sha256": "2dd4f37a600e9219a9bd01cb3c75e89d4ee8a6b2bed3ae08dad11bb2edcc065a"
+  },
+  {
+    "path": "EVIDENCE/TRACKED_CHANGES.patch",
+    "bytes": 17540,
+    "sha256": "de56151ec49ecab904f1ed86af38a2be62ca9458a542a6e4bc94470d829c820f"
+  },
+  {
+    "path": "EVIDENCE/V5_VERIFY.json",
+    "bytes": 573,
+    "sha256": "8fe6048afcbcb3ba7f322bc4d03df1275a6c2d6d0c6263be887493fcc553f026"
+  },
+  {
+    "path": "INDEPENDENT_REVIEW_GUIDE.md",
+    "bytes": 1572,
+    "sha256": "edf5575125076317ff84e99f8e6eee050acbd2668ade280ecbb385d0291932c2"
+  },
+  {
+    "path": "PACKAGE_README.md",
+    "bytes": 2881,
+    "sha256": "a67f12d3a926fd0b9c835a0dd5973fcea57d33dc781da3b9fb8ee039cc7cfc16"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/.github/workflows/pages.yml",
+    "bytes": 2416,
+    "sha256": "446388cc2b98f536f4a88f6e3e6108efbc195f1c38ef940a2da112140828f6df"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/.github/workflows/timeseries-v5-refresh.yml",
+    "bytes": 4357,
+    "sha256": "1f2abf48a80cc0d80a52381d7ea3c165348b293d7593d8f0a7560371c00b6699"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/.github/workflows/verify.yml",
+    "bytes": 1426,
+    "sha256": "68d05c19cf0ce670ee95fde15eb482bba7007b87359943a0597146cf0afae928"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/.gitignore",
+    "bytes": 1202,
+    "sha256": "b6b45aabb56ea4e9fb82cd3ce5a8e75e7a9d0b79b312f649b096b95f8dcfa81b"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/contracts/multivariate_timeseries_v5.yaml",
+    "bytes": 6501,
+    "sha256": "d5fa96d7e962fade65ebaae9830395af599171b18aabd1729977877cec6d043f"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/availability_reconciliation_latest.json",
+    "bytes": 377,
+    "sha256": "7a1099bde7cd655446fbd8a66dd5241b905ca7680270a06f76218654fef62ded"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/collection_latest.json",
+    "bytes": 20381,
+    "sha256": "2a9678d8487ed9fe900b900c5eb72d3739086fd2fb991de15662b566d653170c"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/collection_reconciliation_latest.json",
+    "bytes": 1344,
+    "sha256": "b1363742c7c7934d9b0d8cbd4a3f823bd2810c92c7465978df988b7006ca48e9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/labels_latest.json",
+    "bytes": 107,
+    "sha256": "1304e660718bd9f74220d97cc4f0d09aab7a5a7e43478d46607fd6ebc006ba35"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/parquet_latest.json",
+    "bytes": 7768,
+    "sha256": "da376b9fd4bd8f886d58f6e4a622af50ae7194e929a7807fe66d9ba4139b1ca8"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/manifests/protected_baseline.json",
+    "bytes": 783295,
+    "sha256": "385858af48b27d28286cb99687d58efc910b1593ef3363689e23d8b8982a01fd"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/multivariate_v5_latest.json",
+    "bytes": 11098,
+    "sha256": "f7ad60f4b5e4db2236aa320f5921da72f86364dcbb4c199b22e05e82687ca0e8"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/runs/backtest_latest.json",
+    "bytes": 262,
+    "sha256": "e994d1c846afca2b4ebd229e23eb9a73f6c83c033ee32fd86a23b780ec52b4f4"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/runs/tsv5-research-92c262efafd01118e1dd82cc.json",
+    "bytes": 58539,
+    "sha256": "9d145922de2ef29e45242252b5571c81ca32f5ab37dc7cab11e80b9f3be6bf04"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/data/timeseries_v5/runs/tsv5-research-f218ddde8020f798493088c0.json",
+    "bytes": 18041,
+    "sha256": "8e9a9e5cd907615663b6afa0047ae73dc172a92e295fb23e932deade767a55d0"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/generated/inventory.generated.md",
+    "bytes": 1358,
+    "sha256": "78de194b7025c19373d4ccef7e0504d02a871e4b25b09e620bce8917719baeab"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/generated/read_model_v2.schema.json",
+    "bytes": 11664,
+    "sha256": "03aa5bfbb75e2c24a91c2eabab6029ab190c69caa3f3072f7cdeb7ad25c604f5"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/timeseries_v5/ARCHITECTURE.md",
+    "bytes": 3163,
+    "sha256": "f1a8c787f6434dd747248a44e3bf1e908e4efed417cd9716dda7cb0c622ddde3"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/timeseries_v5/DATA_CATALOG.md",
+    "bytes": 2415,
+    "sha256": "b98746128cccdee07023d6a24d55de1513f4cd971ad073e0857c578548a25720"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/timeseries_v5/GATE_RESULT_20260824.md",
+    "bytes": 2314,
+    "sha256": "997a83ece6f5957fb84d60dd44be99dc8b243c84f913590b7cdcc007ca613712"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/docs/timeseries_v5/V4_TO_V5_BASELINE_AUDIT.md",
+    "bytes": 4115,
+    "sha256": "c25259369d2cffb7da7b5646925c7d2e435abb2f678fed4ff87a1b2d16892eb8"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/migrations/timeseries_v5/0001_control_plane.sql",
+    "bytes": 7292,
+    "sha256": "476a3013847fe0e74f836f1911870df93b388b0058ad0e2daddb913da2688eee"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/pyproject.toml",
+    "bytes": 1712,
+    "sha256": "4c3748cfe46e1eebf2258c5ebd41237ac694d98d07c47dd3d7ef594c39fd63ea"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/README.md",
+    "bytes": 8426,
+    "sha256": "0bfa63b5ed8df3cacc2d9ed38a6e4a3f1703367e50859cb39f0aed44e9f6a458"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/cli.py",
+    "bytes": 57794,
+    "sha256": "21acb84c66865f1029817a28d4f34283b815039884f5603d4f70c1d5054f97a7"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/dashboard.py",
+    "bytes": 49089,
+    "sha256": "4bf0ea7bdf1c9764ecedbe08dc623c28d5592b24ff7583b2af8ba9882cd481b5"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/read_model_contract.py",
+    "bytes": 20908,
+    "sha256": "f5319cdfb933b2d0e5b07f54dd1919c614229e3ab5e09e6652efec52d7e8962e"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__init__.py",
+    "bytes": 207,
+    "sha256": "c267bd52b783f1ab0ff24c42d6992d2b3044f32bd7dd6cc39e69126fdaf67953"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/__init__.cpython-312.pyc",
+    "bytes": 377,
+    "sha256": "f362da67d54b0e3d820bd8529860062fb49a89ed7861d74901b6e061420a05e2"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/__init__.cpython-313.pyc",
+    "bytes": 343,
+    "sha256": "219a64b96df7cb9b9c4965b53b5f0f1964f2215a4afd804e322d0bce58ef669c"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/artifact.cpython-312.pyc",
+    "bytes": 3428,
+    "sha256": "2f63812149c69382be87723e180e3f814e043afaa81aaa87b6ff3d04d43d67b9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/artifact.cpython-313.pyc",
+    "bytes": 3431,
+    "sha256": "cf59e4258b238173b33d310ad7d474ad59971900044d480ca6dc40cd339aa7c9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/baseline_audit.cpython-312.pyc",
+    "bytes": 49157,
+    "sha256": "c7c48fa37456edc1be82a7f167fa3c1d255d7804536ff26b0825b061e8d4d86b"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/baseline_audit.cpython-313.pyc",
+    "bytes": 49923,
+    "sha256": "838de0daa665703e71643f6b25d8308aa0bf25eece03930fc432bd4aac90d7a2"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/contracts.cpython-312.pyc",
+    "bytes": 6548,
+    "sha256": "8b7559f331d8c9ada679c0a1c3c59f4aaf20170f8faa465c212f116b3985c8d8"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/contracts.cpython-313.pyc",
+    "bytes": 6720,
+    "sha256": "70661a288a1051c9d593eeb69d745213a6ab0e3391931178f89e97deeb7cdfba"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/evaluation.cpython-312.pyc",
+    "bytes": 12874,
+    "sha256": "fc820f9a97d76f65a35137232ff7e08af601504275a78524c3bbca2ed058d4a3"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/evaluation.cpython-313.pyc",
+    "bytes": 13086,
+    "sha256": "ee5c49dca944c83001ae4276c7fdc90e7f18964733a31083162f5ba0d33ede94"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/features.cpython-312.pyc",
+    "bytes": 24592,
+    "sha256": "46aa0c38e3b9949ca72e8d8517d2e522c833b4f9d0a6ff2b188137fe2c295b06"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/features.cpython-313.pyc",
+    "bytes": 24710,
+    "sha256": "f95cec21cfdb524650424bb561fd637a90a977f4d20f71837f30c734c31170fd"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/identifiers.cpython-312.pyc",
+    "bytes": 2064,
+    "sha256": "37a2f7f8f7f154b3cc8db458e4d1d87d9933e0b72ba08a83d855ba1a7c6d8ab9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/identifiers.cpython-313.pyc",
+    "bytes": 2103,
+    "sha256": "ba24c59b774f7be10b607e9317f8728381af338860893b10c929bcf08b856a1a"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/lineage.cpython-312.pyc",
+    "bytes": 11089,
+    "sha256": "b07272e2017a5fe7e626d6259426fa021a6ef5c230c49e0d90069501413e0e5b"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/lineage.cpython-313.pyc",
+    "bytes": 11355,
+    "sha256": "6618c25eb5402f284be8b4d357ab437479680800200de90ac389afd5b75ad3b5"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/market_calendar.cpython-312.pyc",
+    "bytes": 5557,
+    "sha256": "bdcaaa0ed0d54429a3526ba79e640cda6002d3450f5aad1668857f7ef97a1bc9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/market_calendar.cpython-313.pyc",
+    "bytes": 5532,
+    "sha256": "0646d377f016791fc1cc1b7448b7fab3f30fbe35e0a110a87d218b4bafee6338"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/models.cpython-312.pyc",
+    "bytes": 24336,
+    "sha256": "42a5a833e4aaa78d86bee322940fc6270574397378b218d1ccfbfa316a468bb7"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/models.cpython-313.pyc",
+    "bytes": 24289,
+    "sha256": "59a41bc6e2beef0a167591c4b512876cb7658b338d622fbf21835ed8f3f5c788"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/pipeline.cpython-312.pyc",
+    "bytes": 54123,
+    "sha256": "51ea2790cdf240e51e90963e6441923683e565b57f8cb7c5d282d66769227ee6"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/pipeline.cpython-313.pyc",
+    "bytes": 54443,
+    "sha256": "9b1a1ac94ee1eea74184b2fcda3d04a16d0368938b51c3463f4be0dc6231b6d3"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/sources.cpython-312.pyc",
+    "bytes": 44279,
+    "sha256": "80a090c79b56402e3ebb73e8aa4e4917e12db8b2bdd29243a26368f53261499a"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/sources.cpython-313.pyc",
+    "bytes": 44939,
+    "sha256": "d3182bc7b9d0a2749556033af9e49387914df0ae3d7fc9e09b5553551904d83c"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/workbook.cpython-312.pyc",
+    "bytes": 17360,
+    "sha256": "40d25109e3acfec47ff0d20d6c61fcf7d442be6504afc46fec82ad23545c17be"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/__pycache__/workbook.cpython-313.pyc",
+    "bytes": 17681,
+    "sha256": "a213d17382bb14b9f4c47ea36af4f89b87862a17d92e237f48b3b31cc2b8b84d"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/artifact.py",
+    "bytes": 2076,
+    "sha256": "b82961ffb7e3597e0d931b7866d223c43ba271387107501d23ebb11e0d28e820"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/baseline_audit.py",
+    "bytes": 36547,
+    "sha256": "201ba0b3bb824894b0b5a2bbafc6baf9124170a91054bfea35794f6d481616ea"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/contracts.py",
+    "bytes": 3352,
+    "sha256": "0089473eff494b638af287815e83485eabd13271564ed4f6a97e0a2b451b3fda"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/evaluation.py",
+    "bytes": 6472,
+    "sha256": "4bfdf1778fffd09f5ff4e19f350add738ebbc0615c729608b87c1e60fe615c65"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/features.py",
+    "bytes": 16879,
+    "sha256": "5731bbbdd452bbfff1990d23e1085701fc4022ed9f05c36a8eb22cd5f996d6d4"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/identifiers.py",
+    "bytes": 956,
+    "sha256": "4d7f0cec066c1eaebc153fe8571fb4eb7fa3701dc9d7b9ef36405bf845a4c47c"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/lineage.py",
+    "bytes": 7496,
+    "sha256": "77dd958e7688348920db3c68a4e52508f68d09877601d381bd4f320795522fd1"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/market_calendar.py",
+    "bytes": 3168,
+    "sha256": "4ad5174646b83d1c3bc3b1a22c07caf1fb1a691f0fac6f9341259ee77338d1e1"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/models.py",
+    "bytes": 15094,
+    "sha256": "923e680eece4ce5fcff4eea61b7d4283e9dd874e0de621943758c6ff2d080d34"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/pipeline.py",
+    "bytes": 35486,
+    "sha256": "1149fa891e6c8d3300a58c34e9371a04531dc0382ed0fed0a2fcaf9e6e4b4358"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/sources.py",
+    "bytes": 29120,
+    "sha256": "4cccc632b8c4b7f1f8450c36824f24fd766779e2e426fa8f36c8819ff36e48cc"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__init__.py",
+    "bytes": 308,
+    "sha256": "596350876313ffda12b9fee2ccaf34accb369c1a36b92ba2b2ecaae34b9d9af9"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/__init__.cpython-312.pyc",
+    "bytes": 488,
+    "sha256": "1abb252bb247192ff0231fea377c837daebaf0bbad1da9d4d07ae2df034b97e0"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/__init__.cpython-313.pyc",
+    "bytes": 454,
+    "sha256": "9095706002c096578a7782075c00bbdeda53439d4082782cf8fe13dd3d3099f3"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/config.cpython-312.pyc",
+    "bytes": 3025,
+    "sha256": "404a43162611bb0c57ca35e9e6c275b35e86a9b0149e8177707a84120677dfe5"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/config.cpython-313.pyc",
+    "bytes": 3083,
+    "sha256": "021d1b31e44b3537af0dfc4ffd00ed59627ba9ea077a51c6809c218316b39673"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/interfaces.cpython-312.pyc",
+    "bytes": 1390,
+    "sha256": "42287691349daf5dbb0f6ebf059af573f76a0a51799f6fbee60af0ae8415235d"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/interfaces.cpython-313.pyc",
+    "bytes": 1484,
+    "sha256": "11b31603b636f81eeb12d63a81d3f11445fa0531bdeceae396a98efb68711895"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/local_store.cpython-312.pyc",
+    "bytes": 6743,
+    "sha256": "01093c9e3f62444225ded8f41774015435081a0b4e47a49b0e04f020db880c84"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/local_store.cpython-313.pyc",
+    "bytes": 6816,
+    "sha256": "f2e133d6343d7c981679db9fb65a972b72b0a8634806eded575b605be9f795fb"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/object_store.cpython-312.pyc",
+    "bytes": 7618,
+    "sha256": "6c2b8b7f8cf72f4c11c4fb5da66d690a25701797f1afdf3da8f4fd10e06fedf0"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/object_store.cpython-313.pyc",
+    "bytes": 7752,
+    "sha256": "d22500b94c51c2fd7b6f01ae41bb372b39086bf33bc56b2b83425ae86c012a48"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/parquet_store.cpython-312.pyc",
+    "bytes": 3439,
+    "sha256": "b458cd2abfd8aa7cb85e0289b5b20f26400a4e5fad2cb80604ed1320f3c0fe65"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/parquet_store.cpython-313.pyc",
+    "bytes": 3380,
+    "sha256": "33416220931dc86f06ab98e565b37e8fdb5654c2a9ef386b5800aef724489ee4"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/postgres.cpython-312.pyc",
+    "bytes": 6766,
+    "sha256": "247ad7fb4350d8c26874cff0d002667e439599adc65801e63b7d30022d97992f"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/__pycache__/postgres.cpython-313.pyc",
+    "bytes": 2647,
+    "sha256": "d5ef5faac82e864bad354e8e03484de6f085f8c577e794a4745be0ea2263b416"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/config.py",
+    "bytes": 1482,
+    "sha256": "2768e6e255044c41fe2d5e4c0c82d4d18abc00349346a711e80c9f6aa8b82904"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/interfaces.py",
+    "bytes": 503,
+    "sha256": "05dfc41939fd708fb77b40f73235f4f4a753d8eb602d667c5dd58a2c9ec590b5"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/local_store.py",
+    "bytes": 4010,
+    "sha256": "d2d3874152561c0ebea4b047be53a0480a6a984b761b5b6b2c52b39e52d160b0"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/object_store.py",
+    "bytes": 3946,
+    "sha256": "eddfe7a88e8f46b7e705ce86d0f7ca89abea85eefd5a3684e4d9c85f9ae458ca"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/parquet_store.py",
+    "bytes": 1459,
+    "sha256": "2334765ae3a32c15a623abac277e2988f09e046affcce9addf79d541082d739a"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/storage/postgres.py",
+    "bytes": 3819,
+    "sha256": "66e48b0b3bf7ed802cfaf0c5e50ddd741cdb850539d40e447e4d15cd5012406a"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/ai_fc/timeseries_v5/workbook.py",
+    "bytes": 10289,
+    "sha256": "54a5e79482585747750b3a47503ba70376ceb039d7116321f44850812295b77c"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/tests/test_investing_refresh_workflow.py",
+    "bytes": 2810,
+    "sha256": "99e47497d0029c3b32e4ff733083a64cc182df9f350abd2488e507ecbc591d3e"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/src/tests/test_multivariate_timeseries_v5.py",
+    "bytes": 15141,
+    "sha256": "c766430a06490be71ba89d54837dec573040ae71c71a5b4b95f1ce5d869216b6"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/tools/atlas_timeseries.py",
+    "bytes": 8100,
+    "sha256": "e224e8ddfc8d966644a4ac673fb6f585c4f4b0d6fad0c0c76be70de0f93de881"
+  },
+  {
+    "path": "SOURCE_SNAPSHOT/tools/timeseries_v5_workbook.mjs",
+    "bytes": 4712,
+    "sha256": "ba388afdb766d35169a8d7b058cc5ae7e934b4ff887b39205863e23936f2d549"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "tasks": [
+    {
+      "task_id": "V6-ATLAS-FOUNDATION-001",
+      "task_type": "contract_tests",
+      "capability": "reviewer",
+      "dependencies": [],
+      "command": ["python", "-m", "pytest", "src/tests/timeseries_v6/test_v6_contract.py", "src/tests/timeseries_v6/test_v6_candidate_specs.py", "-q", "-p", "no:cacheprovider"],
+      "max_attempts": 3,
+      "timeout_seconds": 600
+    },
+    {
+      "task_id": "V6-ATLAS-FOUNDATION-002",
+      "task_type": "pit_storage_tests",
+      "capability": "materializer",
+      "dependencies": ["V6-ATLAS-FOUNDATION-001"],
+      "command": ["python", "-m", "pytest", "src/tests/timeseries_v6/test_v6_object_store.py", "src/tests/timeseries_v6/test_v6_snapshot.py", "src/tests/timeseries_v6/test_v6_pit_features.py", "-q", "-p", "no:cacheprovider"],
+      "max_attempts": 3,
+      "timeout_seconds": 600
+    },
+    {
+      "task_id": "V6-ATLAS-FOUNDATION-003",
+      "task_type": "full_v6_regression",
+      "capability": "evaluator",
+      "dependencies": ["V6-ATLAS-FOUNDATION-002"],
+      "command": ["python", "-m", "pytest", "src/tests/timeseries_v6", "-q", "-p", "no:cacheprovider"],
+      "max_attempts": 3,
+      "timeout_seconds": 1200
+    }
+  ]
+}

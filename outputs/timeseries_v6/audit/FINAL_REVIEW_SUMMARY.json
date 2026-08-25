@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v6",
+  "probability_space": "research_timeseries_v6_conditional",
+  "publication_status": "shadow_gate_hold",
+  "numbers_visible": false,
+  "sealed_run_id": "tsv6-sealed-46d58750db2abe8b40cec159",
+  "sealed_score_rows": 1540,
+  "sealed_scores_sha256": "3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b",
+  "deterministic_replay": {
+    "schema_version": 1,
+    "run_id": "tsv6-sealed-46d58750db2abe8b40cec159",
+    "status": "pass",
+    "row_count": 1540,
+    "expected_scores_sha256": "3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b",
+    "replayed_scores_sha256": "3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b",
+    "exact_match": true,
+    "numeric_runtime": {
+      "MKL_NUM_THREADS": 1,
+      "NUMEXPR_NUM_THREADS": 1,
+      "OMP_NUM_THREADS": 1,
+      "OPENBLAS_NUM_THREADS": 1,
+      "PYTHONHASHSEED": 0
+    }
+  },
+  "data": {
+    "registry_source_count": 37,
+    "materialized_source_id_count": 15,
+    "materialized_series_count": 23,
+    "active_required_coverage": 1.0,
+    "archive_row_count": 91147,
+    "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+    "origin_count": 1572,
+    "feature_count": 78
+  },
+  "gates": {
+    "integrity": {
+      "pass": true,
+      "reasons": [],
+      "pit_leakage_count": 0,
+      "receipt_observation_link_rate": 1.0,
+      "active_feature_provenance_rate": 1.0,
+      "contract_runtime_mismatch_count": 0
+    },
+    "research": {
+      "pass": false,
+      "reasons": [
+        "h21_extreme_q4_coverage",
+        "h21_gfc_coverage_or_sample",
+        "h21_pandemic_coverage_or_sample",
+        "h5_p25_p75_coverage",
+        "h63_extreme_q4_coverage",
+        "h63_gfc_coverage_or_sample",
+        "h63_pandemic_coverage_or_sample",
+        "long_horizon_mean_crps_improvement_below_2pct"
+      ],
+      "by_horizon": {
+        "1": {
+          "count": 385,
+          "model_crps": 0.007525626213647608,
+          "baseline_crps": 0.007781908322859654,
+          "improvement": 0.03293306713203074,
+          "p10_p90_coverage": 0.7974025974025974,
+          "p25_p75_coverage": 0.4961038961038961,
+          "baseline_coverage": 0.8389610389610389
+        },
+        "5": {
+          "count": 385,
+          "model_crps": 0.016088254127312938,
+          "baseline_crps": 0.01667099483721928,
+          "improvement": 0.03495536502748656,
+          "p10_p90_coverage": 0.7740259740259741,
+          "p25_p75_coverage": 0.44675324675324674,
+          "baseline_coverage": 0.8233766233766234
+        },
+        "21": {
+          "count": 385,
+          "model_crps": 0.03336588186946289,
+          "baseline_crps": 0.033796198223233896,
+          "improvement": 0.012732685224788855,
+          "p10_p90_coverage": 0.8155844155844156,
+          "p25_p75_coverage": 0.4675324675324675,
+          "baseline_coverage": 0.8155844155844156
+        },
+        "63": {
+          "count": 385,
+          "model_crps": 0.05561124697957041,
+          "baseline_crps": 0.05593771157099971,
+          "improvement": 0.005836216431823998,
+          "p10_p90_coverage": 0.7974025974025974,
+          "p25_p75_coverage": 0.4701298701298701,
+          "baseline_coverage": 0.8
+        }
+      },
+      "long_horizon_mean_crps_improvement": 0.009284450828306427,
+      "paired_stationary_bootstrap_90_ci": [
+        -0.0006205698836459887,
+        -0.00014620148154266318
+      ],
+      "sign_side_max_underperformance": 0.0
+    },
+    "operational": {
+      "pass": false,
+      "reasons": [
+        "source_freshness_or_snapshot_compatibility"
+      ]
+    }
+  },
+  "protected": {
+    "pass": true,
+    "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+    "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+    "added": [],
+    "removed": [],
+    "changed": []
+  },
+  "tests": {
+    "v6": {
+      "passed": 135,
+      "skipped": 1,
+      "failed": 0
+    },
+    "existing_repository_effective": {
+      "passed": 617,
+      "skipped": 0,
+      "failed": 0
+    },
+    "total": {
+      "passed": 752,
+      "skipped": 1,
+      "failed": 0
+    },
+    "split_environment_reason": "python-frontmatter and exchange_calendars are installed in separate existing Python environments; no dependency changes were made"
+  },
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v6/research/gate_result.json",
+      "bytes": 2394,
+      "sha256": "47d189f956c73a12e7fc59e82895142ddbc1957e4acccc00b280315960c93733"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/verification_result.json",
+      "bytes": 22043,
+      "sha256": "9f4977b18c58f4581b19317bcac707772884fe303a721d82c966018825487e67"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/deterministic_replay.json",
+      "bytes": 515,
+      "sha256": "9ec5d2fafa3d03ac505cc3181252094b2ddf590f2216090d89eaf32f1b514150"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/run.json",
+      "bytes": 2979,
+      "sha256": "92ab3b2d1aa78f5601e8358d85a8a5d908c821429300514bf743d5b90d9cff25"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/scores.jsonl",
+      "bytes": 1084400,
+      "sha256": "e287614f4d62b7cc9966eb4ba9961b65ff7f95bbfe1df8cc173207db6ceb6373"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/source_coverage_and_dataset.json",
+      "bytes": 1075,
+      "sha256": "2c79742721b1f31af27509716e997d6bb81a389b99a66b286b872628bd7bdd72"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/atlas_run_history.json",
+      "bytes": 37974,
+      "sha256": "d6611b697ecfa8b0dd3258422a09e32b707dfb75aec1a90a6ea978140852e912"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/NASDAQ_V6_RESEARCH_AUDIT.xlsx",
+      "bytes": 24265,
+      "sha256": "b709908faf6b9eedfc4c7feee894cb8b8a720cdeb513b6ce9b16e40824dfdc16"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/workbook_formula_errors.ndjson",
+      "bytes": 60,
+      "sha256": "acc0111e19cf44d2753fc9ecd164bf1b27fbd65597463a25cf48bd1c65e90146"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/protected_comparison.json",
+      "bytes": 245,
+      "sha256": "79d15eb65533a23614968643a9b7a137920011a4e478aeb6552ed82cd228f40c"
+    },
+    {
+      "path": "docs/timeseries_v6/V6_AUTONOMOUS_RESEARCH_REPORT.md",
+      "bytes": 4981,
+      "sha256": "154f11cab83283a7feca89a8ad892b164c07abc09634f14e673e79e898117ca5"
+    }
+  ],
+  "limitations": [
+    "research Gate HOLD",
+    "operational freshness HOLD",
+    "private raw and Parquet objects excluded from public review ZIP",
+    "pseudo-OOS is not a prospective live track record"
+  ]
+}

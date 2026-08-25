@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "run_id": "tsv6-sealed-46d58750db2abe8b40cec159",
+  "run_path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159",
+  "scores_path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/scores.jsonl"
+}
