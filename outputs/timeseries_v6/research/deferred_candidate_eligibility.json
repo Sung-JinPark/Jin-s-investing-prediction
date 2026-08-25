@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "candidates": {
+    "E8": {
+      "eligible": false,
+      "weight": 0.0,
+      "resolved_independent_event_count": 0,
+      "minimum_required": 60,
+      "reason": "minimum_resolved_independent_events_not_met"
+    },
+    "E9": {
+      "eligible": false,
+      "weight": 0.0,
+      "license_receipt_present": false,
+      "history_present": false,
+      "reason": "licensed_physical_calibration_history_unavailable"
+    },
+    "E10": {
+      "eligible": false,
+      "weight": 0.0,
+      "checkpoint_receipt_present": false,
+      "license_receipt_present": false,
+      "reason": "checkpoint_or_license_receipt_unavailable"
+    }
+  },
+  "all_ineligible_zero_weight": true,
+  "content_hash": "f822d06de65f12d180558a4083495667a7a797d3e01a3bf51e2da71c43362451"
+}

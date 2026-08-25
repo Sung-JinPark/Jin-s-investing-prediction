@@ -1,0 +1,53 @@
+{
+  "collector_secret_names": [
+    "BEA_API_KEY",
+    "BLS_API_KEY",
+    "CBOE_API_KEY",
+    "EIA_API_KEY",
+    "FINRA_API_KEY",
+    "FRED_API_KEY",
+    "TSV6_DATABASE_URL",
+    "TSV6_S3_ACCESS_KEY_ID",
+    "TSV6_S3_BUCKET",
+    "TSV6_S3_ENDPOINT",
+    "TSV6_S3_SECRET_ACCESS_KEY"
+  ],
+  "github_credentials_available_to_research_workers": false,
+  "non_collector_secret_names": [],
+  "publication_credentials_available_to_research_workers": false,
+  "schema_version": 1,
+  "worker_capabilities": {
+    "codex": [
+      "allowlisted_code_test_write",
+      "isolated_worktree_write"
+    ],
+    "collector": [
+      "provider_secret_read",
+      "raw_object_write",
+      "receipt_write"
+    ],
+    "evaluator": [
+      "fit_read",
+      "gate_proposal_write",
+      "score_write"
+    ],
+    "materializer": [
+      "parquet_write",
+      "snapshot_write",
+      "typed_data_read"
+    ],
+    "reviewer": [
+      "decision_proposal_write",
+      "evidence_read"
+    ],
+    "trainer_cpu": [
+      "fit_write",
+      "immutable_snapshot_read"
+    ],
+    "trainer_gpu": [
+      "fit_write",
+      "gpu_use",
+      "immutable_snapshot_read"
+    ]
+  }
+}

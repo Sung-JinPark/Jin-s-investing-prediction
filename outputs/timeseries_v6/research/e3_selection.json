@@ -1,0 +1,105 @@
+{
+  "schema_version": 1,
+  "candidate_id": "E3",
+  "implementation_version": "quantile_hgb_contract_v1",
+  "dataset_hash": "841aee4d7b0ea04ec7c273a456a59727de63df644eb2361ad85f6703acf47e0f",
+  "feature_profile": "public_market_core_reconstructed_archive",
+  "feature_profile_hash": "a4406988f2a6941e98f353eebbcda2d8abb79aac90d3582837e308f1a46f4ddb",
+  "feature_names": [
+    "momentum_1",
+    "momentum_5",
+    "momentum_21",
+    "momentum_63",
+    "realized_vol_5",
+    "realized_vol_21",
+    "realized_vol_63",
+    "downside_semivariance_21",
+    "vix_log_level",
+    "vix_log_change_5",
+    "vix9d_log_level",
+    "vix9d_log_change_5",
+    "vix3m_log_level",
+    "vix3m_log_change_5",
+    "vvix_log_level",
+    "vvix_log_change_5",
+    "skew_log_level",
+    "skew_log_change_5",
+    "vix9d_vix_log_slope",
+    "vix3m_vix_log_slope",
+    "dgs2_level",
+    "dgs2_change_5",
+    "t10y2y_level",
+    "t10y2y_change_5",
+    "dollar_log_change_5",
+    "dollar_log_change_21",
+    "vix_log_change_5__missing",
+    "vix9d_log_level__missing",
+    "vix9d_log_change_5__missing",
+    "vix3m_log_level__missing",
+    "vix3m_log_change_5__missing",
+    "vvix_log_level__missing",
+    "vvix_log_change_5__missing",
+    "skew_log_change_5__missing",
+    "vix9d_vix_log_slope__missing",
+    "vix3m_vix_log_slope__missing",
+    "dgs2_change_5__missing",
+    "t10y2y_change_5__missing",
+    "dollar_log_change_5__missing",
+    "dollar_log_change_21__missing"
+  ],
+  "selection": {
+    "1": {
+      "mean_inner_crps": 0.004403762808501139,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7,
+        "max_iter": 100,
+        "l2_regularization": 0.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "4998e8c5a0a478ca17b27e3be54464969d315009bc04e8538929ad83ce08347e",
+      "fold_count": 3,
+      "implementation_version": "quantile_hgb_contract_v1"
+    },
+    "5": {
+      "mean_inner_crps": 0.009719612092483678,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7,
+        "max_iter": 100,
+        "l2_regularization": 0.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "4998e8c5a0a478ca17b27e3be54464969d315009bc04e8538929ad83ce08347e",
+      "fold_count": 3,
+      "implementation_version": "quantile_hgb_contract_v1"
+    },
+    "21": {
+      "mean_inner_crps": 0.019593886093553548,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7,
+        "max_iter": 100,
+        "l2_regularization": 1.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "f783f8b7b8a4ccfcef010c88b939b45660b5de7b657259f060dfad3a40f814e5",
+      "fold_count": 3,
+      "implementation_version": "quantile_hgb_contract_v1"
+    },
+    "63": {
+      "mean_inner_crps": 0.03701908514152127,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7,
+        "max_iter": 100,
+        "l2_regularization": 1.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "f783f8b7b8a4ccfcef010c88b939b45660b5de7b657259f060dfad3a40f814e5",
+      "fold_count": 3,
+      "implementation_version": "quantile_hgb_contract_v1"
+    }
+  },
+  "selection_hash": "fc8324aa789eb788e0e93793b71932859b933e05a704baf7017a0fef9d4f5e3a"
+}

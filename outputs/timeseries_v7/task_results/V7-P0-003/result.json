@@ -1,0 +1,123 @@
+{
+  "acceptance": {
+    "all_mandatory_gates_feasible": true,
+    "automatic_publication_prohibited": true,
+    "contract_frozen": true,
+    "impossible_sample_requirement_count_zero": true,
+    "next_task_not_started": true,
+    "protected_predecessor_unchanged": true,
+    "targeted_tests_pass": true,
+    "v7_p0_002_succeeded": true
+  },
+  "blocker": null,
+  "commands": [
+    {
+      "command": "C:\\Users\\91ssj\\AppData\\Local\\Programs\\Python\\Python312\\python.exe -m pytest src/tests/timeseries_v7/test_v7_contract.py -q -p no:cacheprovider",
+      "returncode": 0,
+      "stderr_tail": "",
+      "stdout_tail": ".........                                                                [100%]\n9 passed in 0.12s\n"
+    }
+  ],
+  "completed_at": "2026-08-24T23:44:11.370608+00:00",
+  "contract": {
+    "canonical_sha256": "c68ea5995044f69708c1bfe2b009a42a85047f55bee8f442043c83748b776be4",
+    "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v7",
+    "path": "data/contracts/multivariate_timeseries_v7.yaml",
+    "physical_sha256": "98dfd4e0d84aa36cb4ec8ad135651d49eac0783eafec435b6659312c0c03660b",
+    "probability_space": "research_timeseries_v7_conditional",
+    "status": "frozen_v7_p0_003"
+  },
+  "cycle_id": "v7-bootstrap-contract-20260825",
+  "feasibility": {
+    "as_of": "2026-08-25",
+    "checks": [
+      {
+        "available_capacity": 1010,
+        "basis": "conservative_weekly_capacity_through_last_63_session_maturity",
+        "feasible": true,
+        "gate": "historical_research.total_origins",
+        "required": 250
+      },
+      {
+        "available_capacity": 104,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.gfc",
+        "required": 20
+      },
+      {
+        "available_capacity": 21,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.pandemic",
+        "required": 20
+      },
+      {
+        "available_capacity": 52,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.tightening_2022",
+        "required": 20
+      },
+      {
+        "available_capacity": 56,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.rebound_2009",
+        "required": 20
+      },
+      {
+        "available_capacity": 48,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.rebound_2020",
+        "required": 20
+      },
+      {
+        "available_capacity": 52,
+        "basis": "declared_open_historical_window",
+        "feasible": true,
+        "gate": "historical_stress.bull_2023",
+        "required": 20
+      },
+      {
+        "available_capacity": null,
+        "basis": "open_ended_post_freeze_collection_temporally_feasible_not_currently_mature",
+        "feasible": true,
+        "gate": "prospective.minimum_forecast_origins",
+        "required": 126
+      },
+      {
+        "available_capacity": null,
+        "basis": "absent_regime_is_not_a_failure",
+        "feasible": true,
+        "gate": "prospective.active_regime",
+        "required": 20
+      }
+    ],
+    "contract_hash": "c68ea5995044f69708c1bfe2b009a42a85047f55bee8f442043c83748b776be4",
+    "contract_id": "multivariate_timeseries_v7",
+    "failures": [],
+    "impossible_sample_requirement_count": 0,
+    "mature_historical_end_conservative": "2026-05-12",
+    "pass": true,
+    "schema_version": 1
+  },
+  "generation_id": "v7-pre-generation-contract",
+  "next_task_started": false,
+  "protected_manifest": {
+    "after_hash": "a23c0fc0b0413e3c45b7507db5a1ec2e04305d218238cefd127d18ed9208e63a",
+    "before_hash": "a23c0fc0b0413e3c45b7507db5a1ec2e04305d218238cefd127d18ed9208e63a",
+    "unchanged": true
+  },
+  "run_id": "v7-p0-003-c68ea5995044f697",
+  "schema_version": 1,
+  "started_at": "2026-08-24T23:44:11.370608+00:00",
+  "status": "succeeded",
+  "task_key": "V7-P0-003",
+  "tests": {
+    "failed": 0,
+    "passed": 9,
+    "skipped": 0
+  }
+}

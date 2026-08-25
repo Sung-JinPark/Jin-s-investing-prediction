@@ -1,0 +1,75 @@
+{
+  "artifacts": [
+    {
+      "bytes": 9166,
+      "path": "src/ai_fc/timeseries_v6/object_store.py",
+      "sha256": "65c33be358a363cf83036d947a9e2af2891728538adcd559394dabd90aeafab4"
+    },
+    {
+      "bytes": 3768,
+      "path": "src/tests/timeseries_v6/test_v6_object_store.py",
+      "sha256": "1aafc9fbaa501b1d273e317387dde8d5635787adceaf606c8756ffc160aed79f"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v6/object_store.py",
+    "src/tests/timeseries_v6/test_v6_object_store.py",
+    "outputs/timeseries_v6/task_results/V6-P0-012/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-012/full_v6_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-012/result.json"
+  ],
+  "checks": {
+    "content_addressed_sha256": true,
+    "deterministic_gzip": true,
+    "head_get_revalidation": true,
+    "immutable_overwrite_rejected": true,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "suite": {
+      "failed": 0,
+      "passed": 77,
+      "skipped": 1
+    }
+  },
+  "commands": [
+    {
+      "command": "pytest src/tests/timeseries_v6/test_v6_object_store.py",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-012/targeted_tests.log"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-012/full_v6_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T09:02:00Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The S3/R2 adapter is tested with an injected protocol fake; a live provider account is not used in the secret-free compute process."
+  ],
+  "next_task_recommendation": "V6-P0-013",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T08:55:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-012",
+  "unresolved_blockers": []
+}

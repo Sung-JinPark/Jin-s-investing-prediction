@@ -1,0 +1,113 @@
+{
+  "artifacts": [
+    {
+      "bytes": 8757,
+      "path": "tools/build_v6_review_pack.py",
+      "sha256": "e59dfbb464020a0112e6f6ed3b1881bfd71e27415ccf82da3eb12e6442faf929"
+    },
+    {
+      "bytes": 2585,
+      "path": "src/tests/timeseries_v6/test_v6_review_pack.py",
+      "sha256": "6e510c311b59504304e41a7cfd2662f1247f123fce6108e98887022b26c54747"
+    },
+    {
+      "bytes": 7750678,
+      "path": "outputs/timeseries_v6/review/NASDAQ_V6_FOUNDATION_REVIEW_PACK_20260824.zip",
+      "sha256": "d4e4bd423cf378a7663b0dfb7fc5e43e94a3c50411cb4621aa3629443a58d59f"
+    },
+    {
+      "bytes": 514,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-008/build_first.log",
+      "sha256": "3fc59bfe031c33fb211593ae9137755749d131a122a25d555714d5011d964fef"
+    },
+    {
+      "bytes": 564,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-008/build_second.log",
+      "sha256": "db89e746bc2f49a9940096e54468e6824a0d61370c805a1d58714d0aec698105"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-008/offline_replay.log",
+      "sha256": "153d1ae8094425fdc898fe89be0fba66ad2eba6c92bf02e182f9578765315062"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-008/targeted_tests.log",
+      "sha256": "03ca0f7e56d8bd8da62b78d71665453d58c0a7701eef1181f126ea6231161b39"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "tools/build_v6_review_pack.py",
+    "src/tests/timeseries_v6/test_v6_review_pack.py",
+    "outputs/timeseries_v6/review/NASDAQ_V6_FOUNDATION_REVIEW_PACK_20260824.zip",
+    "outputs/timeseries_v6/task_results/V6-P0-008/build_first.log",
+    "outputs/timeseries_v6/task_results/V6-P0-008/build_second.log",
+    "outputs/timeseries_v6/task_results/V6-P0-008/offline_replay.log",
+    "outputs/timeseries_v6/task_results/V6-P0-008/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-008/result.json"
+  ],
+  "checks": {
+    "byte_identical": true,
+    "cache_entries": 0,
+    "offline_replay": {
+      "failed": 0,
+      "passed": 57
+    },
+    "pack_file_count": 50,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "root_tests": {
+      "failed": 0,
+      "passed": 57
+    },
+    "secret_matches": 0,
+    "two_build_sha256": "d4e4bd423cf378a7663b0dfb7fc5e43e94a3c50411cb4621aa3629443a58d59f"
+  },
+  "commands": [
+    {
+      "command": "build deterministic pack twice",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-008/build_second.log"
+    },
+    {
+      "command": "offline extracted pack pytest",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-008/offline_replay.log"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-008/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:48:35.275485Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The pack freezes the completed P0-001 through P0-007 evidence. P0-008 result is deliberately outside that pack to avoid self-reference."
+  ],
+  "next_task_recommendation": "V6-P0-009",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T07:47:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-008",
+  "unresolved_blockers": []
+}

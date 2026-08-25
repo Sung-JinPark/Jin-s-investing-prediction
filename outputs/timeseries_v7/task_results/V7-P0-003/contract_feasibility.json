@@ -1,0 +1,75 @@
+{
+  "as_of": "2026-08-25",
+  "checks": [
+    {
+      "available_capacity": 1010,
+      "basis": "conservative_weekly_capacity_through_last_63_session_maturity",
+      "feasible": true,
+      "gate": "historical_research.total_origins",
+      "required": 250
+    },
+    {
+      "available_capacity": 104,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.gfc",
+      "required": 20
+    },
+    {
+      "available_capacity": 21,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.pandemic",
+      "required": 20
+    },
+    {
+      "available_capacity": 52,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.tightening_2022",
+      "required": 20
+    },
+    {
+      "available_capacity": 56,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.rebound_2009",
+      "required": 20
+    },
+    {
+      "available_capacity": 48,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.rebound_2020",
+      "required": 20
+    },
+    {
+      "available_capacity": 52,
+      "basis": "declared_open_historical_window",
+      "feasible": true,
+      "gate": "historical_stress.bull_2023",
+      "required": 20
+    },
+    {
+      "available_capacity": null,
+      "basis": "open_ended_post_freeze_collection_temporally_feasible_not_currently_mature",
+      "feasible": true,
+      "gate": "prospective.minimum_forecast_origins",
+      "required": 126
+    },
+    {
+      "available_capacity": null,
+      "basis": "absent_regime_is_not_a_failure",
+      "feasible": true,
+      "gate": "prospective.active_regime",
+      "required": 20
+    }
+  ],
+  "contract_hash": "c68ea5995044f69708c1bfe2b009a42a85047f55bee8f442043c83748b776be4",
+  "contract_id": "multivariate_timeseries_v7",
+  "failures": [],
+  "impossible_sample_requirement_count": 0,
+  "mature_historical_end_conservative": "2026-05-12",
+  "pass": true,
+  "schema_version": 1
+}

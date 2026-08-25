@@ -1,0 +1,11 @@
+{
+  "appended_observations": 499825,
+  "content_hash": "c11461438e9eeb6dbcf56153eb7239cd1ddc86929c1f6eec2e7a93219068cbd8",
+  "corrected_by_source": {
+    "cftc_tff": 486325,
+    "nyfed_cmdi": 13500
+  },
+  "correction_id": "availability-correction-c11461438e9eeb6dbcf56153",
+  "generated_at": "2026-08-24T02:04:18.763175+00:00",
+  "rule_version": "availability-v2"
+}

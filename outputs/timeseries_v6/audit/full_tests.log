@@ -1,0 +1,35 @@
+NASDAQ V6 final validation — 2026-08-24
+
+1. V6 suite (Anaconda Python 3.13 research environment)
+   Command: pytest src/tests/timeseries_v6 -q -p no:cacheprovider
+   Result: 135 passed, 1 skipped in 29.48s
+
+2. Existing repository suite (Python 3.12 application environment)
+   Command: pytest src/tests -q --ignore=src/tests/timeseries_v6 -p no:cacheprovider
+   Initial result: 615 passed, 2 failed in 258.99s.
+   Both failures were dependency-environment failures in two XNAS calendar tests because this interpreter does not contain exchange_calendars.
+
+3. The two calendar tests in the research environment
+   Command: pytest test_multivariate_timeseries_v5.py::{two XNAS calendar tests}
+   Result: 2 passed in 1.83s
+
+Effective split-environment result: 752 passed, 1 skipped, 0 code failures.
+No dependency was installed, removed, or upgraded.
+
+4. Deterministic replay
+   Run: tsv6-sealed-46d58750db2abe8b40cec159
+   Expected score SHA-256: 3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b
+   Replayed score SHA-256: 3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b
+   Result: exact match PASS
+
+5. Protected predecessor comparison
+   Files: 5,107
+   Before/after content hash: f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2
+   Added/removed/changed: 0/0/0
+
+6. Research/publication result
+   Integrity Gate: PASS
+   Research Gate: HOLD
+   Operational Gate: HOLD
+   numbers_visible: false
+   No official forecast, scenario probability, or customer number was written.

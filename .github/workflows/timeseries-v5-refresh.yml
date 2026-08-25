@@ -1,0 +1,109 @@
+name: timeseries-v5-refresh
+
+on:
+  workflow_dispatch:
+    inputs:
+      full_backtest: {description: "Run monthly nested backtest", required: false, default: "false", type: boolean}
+  schedule:
+    - cron: "35 22 * * 1-5"
+  push:
+    paths:
+      - "data/contracts/multivariate_timeseries_v5.yaml"
+      - "src/ai_fc/timeseries_v5/**"
+      - "tools/atlas_timeseries.py"
+      - ".github/workflows/timeseries-v5-refresh.yml"
+
+permissions:
+  contents: write
+concurrency:
+  group: timeseries-v5-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      BLS_API_KEY: ${{ secrets.BLS_API_KEY }}
+      BEA_API_KEY: ${{ secrets.BEA_API_KEY }}
+      EIA_API_KEY: ${{ secrets.EIA_API_KEY }}
+      TSV5_DATABASE_URL: ${{ secrets.TSV5_DATABASE_URL }}
+      TSV5_S3_BUCKET: ${{ secrets.TSV5_S3_BUCKET }}
+      TSV5_S3_ENDPOINT: ${{ secrets.TSV5_S3_ENDPOINT }}
+      TSV5_S3_ACCESS_KEY_ID: ${{ secrets.TSV5_S3_ACCESS_KEY_ID }}
+      TSV5_S3_SECRET_ACCESS_KEY: ${{ secrets.TSV5_S3_SECRET_ACCESS_KEY }}
+      TSV5_S3_QUOTA_BYTES: ${{ vars.TSV5_S3_QUOTA_BYTES }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[pit,timeseries,timeseries-v5]"
+      - name: raw-first managed collection
+        run: python -m ai_fc timeseries-v5-collect
+      - name: append availability normalization revisions
+        run: python -m ai_fc timeseries-v5-reconcile
+      - name: materialize sanitized compute view
+        run: python -m ai_fc timeseries-v5-materialize
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-v5-compute-view
+          path: |
+            outputs/timeseries_v5/private_store/parquet
+            data/timeseries_v5/manifests/parquet_latest.json
+          retention-days: 7
+
+  compute:
+    needs: collect
+    runs-on: ubuntu-latest
+    # Provider and storage secrets are deliberately absent from this job.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[pit,timeseries,timeseries-v5]" pytest
+      - uses: actions/download-artifact@v4
+        with:
+          name: timeseries-v5-compute-view
+          path: .
+      - run: python -m ai_fc timeseries-v5-mature-labels
+      - run: python -m ai_fc timeseries-v5-train
+      - name: monthly or requested full backtest
+        shell: bash
+        run: |
+          if [ "${{ inputs.full_backtest }}" = "true" ] || [ "$(date -u +%d)" -le 7 ]; then
+            python -m ai_fc timeseries-v5-backtest
+          fi
+      - name: forecast and resolve when a Gate run exists
+        shell: bash
+        run: |
+          if [ -f data/timeseries_v5/runs/backtest_latest.json ]; then
+            python -m ai_fc timeseries-v5-gate
+            python -m ai_fc timeseries-v5-forecast
+            python -m ai_fc timeseries-v5-resolve
+            python -m ai_fc timeseries-v5-verify
+          fi
+      - run: pytest src/tests/test_multivariate_timeseries_v5.py -q
+      - name: protected and allowlist guard
+        shell: bash
+        run: |
+          protected="$(git diff --name-only -- data/timeseries data/timeseries_v1 data/timeseries_v2 data/timeseries_v3 data/timeseries_v4 data/scenarios data/forecasts data/ledgers)"
+          test -z "$protected" || { echo "$protected"; exit 1; }
+          git add data/timeseries_v5 docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v5/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "$unexpected"; exit 1; }
+      - name: commit research read model
+        shell: bash
+        run: |
+          if ! git diff --cached --quiet; then
+            git config user.name github-actions[bot]
+            git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+            git commit -m "data(timeseries): refresh V5 research read model"
+            git push
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-v5-gate-evidence
+          path: |
+            data/contracts/multivariate_timeseries_v5.yaml
+            data/timeseries_v5
+          retention-days: 30

@@ -1,0 +1,55 @@
+{
+  "dataset_hash": "ee08f93ddc81183c11d4c225f71765bb39c21a49588d96d25b7288d67b82022c",
+  "choices": {
+    "1": {
+      "candidate_id": "E3",
+      "mean_inner_crps": 0.004440166398029764,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 15,
+        "max_iter": 100,
+        "l2_regularization": 1.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "9e4fceb21ae0ec33950f21fbc018586a0ce5b28c8b1e753e954285558e91f4fe",
+      "fold_count": 3
+    },
+    "5": {
+      "candidate_id": "E3",
+      "mean_inner_crps": 0.009586668645721346,
+      "spec": {
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7,
+        "max_iter": 100,
+        "l2_regularization": 1.0,
+        "min_samples_leaf": 50
+      },
+      "spec_hash": "f783f8b7b8a4ccfcef010c88b939b45660b5de7b657259f060dfad3a40f814e5",
+      "fold_count": 3
+    },
+    "21": {
+      "candidate_id": "E1",
+      "mean_inner_crps": 0.01907105371927988,
+      "spec": {
+        "alpha": 0.1,
+        "l1_ratio": 0.5,
+        "max_iter": 10000,
+        "tolerance": 1e-07
+      },
+      "spec_hash": "4bdf73e10d8d6bead87e444ad3c84bd3d612fd988aedaf73068b1fb916e8638a",
+      "fold_count": 3
+    },
+    "63": {
+      "candidate_id": "E1",
+      "mean_inner_crps": 0.034779296813123334,
+      "spec": {
+        "alpha": 0.1,
+        "l1_ratio": 0.9,
+        "max_iter": 10000,
+        "tolerance": 1e-07
+      },
+      "spec_hash": "0de3b594e93f0a4b7b6ce6b551c17d8ca07313a32aef2c81c15e779ae2b836e4",
+      "fold_count": 3
+    }
+  }
+}

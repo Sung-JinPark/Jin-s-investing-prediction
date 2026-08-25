@@ -1,0 +1,54 @@
+{
+  "base_image": "python:3.12.11-slim-bookworm",
+  "base_image_digest": "sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7",
+  "built_image_digest": "sha256:decee574ad1b297fd7c7e26493ce4bb16892f73cb46160c4d5d0a29e55e1bf7b",
+  "calendar": {
+    "distribution": "exchange-calendars",
+    "version": "4.13.2"
+  },
+  "determinism_environment": {
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONHASHSEED": "0",
+    "TZ": "UTC"
+  },
+  "dockerfile_sha256": "72b776cdeb17eb69edf1e1203526deb9f7e324b8ac8713a13ae54ce9b8cf3914",
+  "key_versions": {
+    "exchange-calendars": "4.13.2",
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "psycopg": "3.3.4",
+    "scikit-learn": "1.7.2",
+    "scipy": "1.16.3",
+    "statsmodels": "0.14.6"
+  },
+  "locked_distribution_count": 40,
+  "container_replay": {
+    "container_tests_failed": 0,
+    "container_tests_passed": 5,
+    "first_physical_stdout_sha256": "51c0a3f884ad0b8ed7d9f511ad94b389088dbd70ac356cfd5ded1ee099e56943",
+    "logical_probe_sha256": "29186949d7ba07d2c69259cabdcf0342dfdf7f670eaeb1ee4b63b9c85cace306",
+    "network": "none",
+    "physical_replay_identical": true,
+    "second_physical_stdout_sha256": "51c0a3f884ad0b8ed7d9f511ad94b389088dbd70ac356cfd5ded1ee099e56943"
+  },
+  "network_required_for_replay": false,
+  "newline_contract": {
+    "canonical_json": "utf8_sort_keys_compact_lf_terminated_no_nan",
+    "logical_text_hash": "utf8_bom_removed_and_crlf_or_cr_normalized_to_lf",
+    "physical_hash": "raw_bytes_sha256"
+  },
+  "platform": "linux/amd64",
+  "probe": {
+    "canonical_bytes": 272,
+    "canonical_sha256": "29186949d7ba07d2c69259cabdcf0342dfdf7f670eaeb1ee4b63b9c85cace306"
+  },
+  "provider_secrets_required_for_replay": false,
+  "publication_credentials_present": false,
+  "python": "3.12.11",
+  "requirements_lock_sha256": "cdb8f64d581673a99822e80516f6121e6bd26c01563655862e575b1570c55d9a",
+  "runtime_id": "timeseries-v7-replay-python-3.12.11-linux-amd64",
+  "schema_version": 1
+}

@@ -1,0 +1,203 @@
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_clean_manifest_fixture_passes
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_tampered_manifest_file_is_detected
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_duplicate_zip_path_is_detected
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_path_traversal_and_absolute_paths_are_rejected[../escape.txt]
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_path_traversal_and_absolute_paths_are_rejected[/absolute.txt]
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_path_traversal_and_absolute_paths_are_rejected[C:/drive.txt]
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_backslash_path_is_rejected_before_extraction
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_hgb_contract_runtime_mismatch_and_canonical_hash
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_contract_only_runtime_only_and_alias_sources_are_distinct
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_after_close_observation_maps_to_next_session
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_date_only_forward_fill_marks_global_feature_pit_unproven
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_approximate_comparator_is_not_claimed_exact
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_selection_and_calibration_reuse_is_p0_condition
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_pre_open_freshness_distinguishes_completed_and_target_sessions
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_protected_manifest_detects_mutation
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_secret_string_in_output_is_detected_without_using_real_secret
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_private_score_matrix_absence_is_explicit_unavailable
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_all_thirty_catalog_findings_are_reconciled
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_pyc_cache_is_packaging_warning_not_integrity_failure
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_reported_arithmetic_is_recomputed_not_relabelled_as_complete
+src/tests/timeseries_v6/test_v5_adversarial_audit.py::test_tool_returns_two_only_for_tool_execution_failure
+src/tests/timeseries_v6/test_v6_atlas.py::test_durable_dependency_loop_checkpoint_and_resume
+src/tests/timeseries_v6/test_v6_atlas.py::test_three_identical_blockers_end_in_hold_without_infinite_loop
+src/tests/timeseries_v6/test_v6_atlas.py::test_commands_and_capabilities_are_fail_closed
+src/tests/timeseries_v6/test_v6_bulk.py::test_clean_batch_is_frozen_and_future_rows_fail
+src/tests/timeseries_v6/test_v6_bulk.py::test_invalid_rows_fail_before_write[changes0-exactly one]
+src/tests/timeseries_v6/test_v6_bulk.py::test_invalid_rows_fail_before_write[changes1-finite]
+src/tests/timeseries_v6/test_v6_bulk.py::test_invalid_rows_fail_before_write[changes2-supersedes]
+src/tests/timeseries_v6/test_v6_bulk.py::test_invalid_rows_fail_before_write[changes3-supersedes]
+src/tests/timeseries_v6/test_v6_bulk.py::test_invalid_rows_fail_before_write[changes4-relation]
+src/tests/timeseries_v6/test_v6_bulk.py::test_batch_rejects_duplicate_identity
+src/tests/timeseries_v6/test_v6_candidate_eligibility.py::test_deferred_candidates_remain_zero_weight_without_receipts
+src/tests/timeseries_v6/test_v6_candidate_eligibility.py::test_event_candidate_only_becomes_eligible_at_sixty_independent_receipts
+src/tests/timeseries_v6/test_v6_candidate_specs.py::test_frozen_contract_compiles_exactly_e0_through_e10_deterministically
+src/tests/timeseries_v6/test_v6_candidate_specs.py::test_unfrozen_contract_is_rejected
+src/tests/timeseries_v6/test_v6_candidate_specs.py::test_e3_hidden_learning_rate_is_rejected_before_fit
+src/tests/timeseries_v6/test_v6_candidate_specs.py::test_grid_selection_requires_every_and_only_registered_coordinate
+src/tests/timeseries_v6/test_v6_candidate_specs.py::test_runtime_binding_rejects_missing_and_extra_parameters
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_failure_is_recorded_after_attempt_exists[exception0-blocked_secret]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_failure_is_recorded_after_attempt_exists[exception1-schema_quarantine]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_failure_is_recorded_after_attempt_exists[exception2-retryable_failure]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_failure_is_recorded_after_attempt_exists[exception3-permanent_failure]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_success_and_304_reach_one_terminal_status[success]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_success_and_304_reach_one_terminal_status[not_modified]
+src/tests/timeseries_v6/test_v6_collection_lifecycle.py::test_invalid_return_becomes_permanent_failure_and_fingerprint_is_redacted
+src/tests/timeseries_v6/test_v6_contract.py::test_repository_v6_contract_validates_without_defaults
+src/tests/timeseries_v6/test_v6_contract.py::test_missing_coordinate_and_unknown_top_level_key_fail_closed
+src/tests/timeseries_v6/test_v6_contract.py::test_hgb_runtime_coordinates_and_gate_thresholds_are_frozen
+src/tests/timeseries_v6/test_v6_contract.py::test_probability_and_pit_units_cannot_be_inferred_or_clipped
+src/tests/timeseries_v6/test_v6_contract.py::test_contract_hash_is_canonical_and_changes_on_any_coordinate
+src/tests/timeseries_v6/test_v6_http_schema.py::test_retry_after_and_offset_pagination_are_bounded
+src/tests/timeseries_v6/test_v6_http_schema.py::test_permanent_status_and_credential_uri_fail_closed
+src/tests/timeseries_v6/test_v6_http_schema.py::test_schema_fingerprint_is_order_stable_and_drift_is_quarantined
+src/tests/timeseries_v6/test_v6_isolation.py::test_manifest_is_deterministic_and_detects_protected_change
+src/tests/timeseries_v6/test_v6_isolation.py::test_v6_write_allowlist_is_closed_and_path_safe
+src/tests/timeseries_v6/test_v6_isolation.py::test_manifest_payload_is_json_serializable
+src/tests/timeseries_v6/test_v6_lineage_v2.py::test_clean_lineage_passes
+src/tests/timeseries_v6/test_v6_lineage_v2.py::test_duplicate_outcome_and_fact_count_mismatch_fail
+src/tests/timeseries_v6/test_v6_lineage_v2.py::test_invalid_relation_and_orphan_fail
+src/tests/timeseries_v6/test_v6_lineage_v2.py::test_revision_branch_cycle_and_sequence_gap_each_fail
+src/tests/timeseries_v6/test_v6_lineage_v2.py::test_corrupt_raw_object_and_missing_object_fail
+src/tests/timeseries_v6/test_v6_object_store.py::test_local_content_address_is_deterministic_and_idempotent
+src/tests/timeseries_v6/test_v6_object_store.py::test_local_store_rejects_tampered_immutable_path
+src/tests/timeseries_v6/test_v6_object_store.py::test_metadata_rejects_secret_uri_bad_hash_and_missing_license
+src/tests/timeseries_v6/test_v6_object_store.py::test_s3_adapter_uses_conditional_put_and_revalidates_existing_bytes
+src/tests/timeseries_v6/test_v6_object_store.py::test_s3_existing_corrupt_bytes_fail_closed
+src/tests/timeseries_v6/test_v6_pit_features.py::test_revision_is_invisible_before_available_at_and_visible_after
+src/tests/timeseries_v6/test_v6_pit_features.py::test_missing_is_explicit_not_date_forward_filled
+src/tests/timeseries_v6/test_v6_pit_features.py::test_feature_hash_binds_exact_versions_and_rejects_cross_origin
+src/tests/timeseries_v6/test_v6_postgres_integration.py::test_postgresql_migration_constraints_and_typed_repository
+src/tests/timeseries_v6/test_v6_public_archive.py::test_public_archive_preserves_raw_and_materializes_immutable_partition
+src/tests/timeseries_v6/test_v6_public_archive.py::test_expanded_public_archive_uses_registered_valid_grades
+src/tests/timeseries_v6/test_v6_public_archive.py::test_cftc_nasdaq_parser_aggregates_contract_aliases_without_lookahead
+src/tests/timeseries_v6/test_v6_publication.py::test_complete_manual_decision_validates_but_does_not_execute
+src/tests/timeseries_v6/test_v6_publication.py::test_any_failed_gate_blocks_manual_decision[integrity_gate]
+src/tests/timeseries_v6/test_v6_publication.py::test_any_failed_gate_blocks_manual_decision[research_gate]
+src/tests/timeseries_v6/test_v6_publication.py::test_any_failed_gate_blocks_manual_decision[operational_gate]
+src/tests/timeseries_v6/test_v6_publication.py::test_missing_owner_or_bad_signature_receipt_blocks
+src/tests/timeseries_v6/test_v6_publication.py::test_manual_workflow_has_no_schedule_write_or_deploy_path
+src/tests/timeseries_v6/test_v6_publication.py::test_policy_manifest_is_manual_only
+src/tests/timeseries_v6/test_v6_quota.py::test_quota_holds_at_projected_eighty_percent_without_deletion
+src/tests/timeseries_v6/test_v6_quota.py::test_only_approved_legal_deletion_can_be_authorized
+src/tests/timeseries_v6/test_v6_quota.py::test_invalid_quota_counts_fail_closed
+src/tests/timeseries_v6/test_v6_research_gate.py::test_gate_does_not_turn_good_integrity_into_research_pass
+src/tests/timeseries_v6/test_v6_review_pack.py::test_two_clean_pack_builds_are_byte_identical
+src/tests/timeseries_v6/test_v6_review_pack.py::test_pack_has_fixed_metadata_manifest_and_no_cache
+src/tests/timeseries_v6/test_v6_review_pack.py::test_secret_scanner_blocks_private_key_and_real_assignment
+src/tests/timeseries_v6/test_v6_review_pack.py::test_verify_detects_payload_tampering
+src/tests/timeseries_v6/test_v6_runtime_lock.py::test_replay_lock_is_exact_and_has_required_runtime_coordinates
+src/tests/timeseries_v6/test_v6_runtime_lock.py::test_runtime_receipt_binds_image_lock_and_python
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[materializer]
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[trainer_cpu]
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[trainer_gpu]
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[evaluator]
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[codex]
+src/tests/timeseries_v6/test_v6_security.py::test_non_collector_workers_receive_zero_secrets[reviewer]
+src/tests/timeseries_v6/test_v6_security.py::test_collector_receives_only_exact_data_plane_secret_allowlist
+src/tests/timeseries_v6/test_v6_security.py::test_capability_boundary_fails_closed
+src/tests/timeseries_v6/test_v6_security.py::test_output_redaction_and_secret_scan_never_record_values
+src/tests/timeseries_v6/test_v6_security.py::test_capability_manifest_denies_research_publication_credentials
+src/tests/timeseries_v6/test_v6_security.py::test_numeric_thread_controls_override_host_variation
+src/tests/timeseries_v6/test_v6_snapshot.py::test_snapshot_is_deterministic_and_persisted_content_addressed
+src/tests/timeseries_v6/test_v6_snapshot.py::test_snapshot_rejects_future_available_row
+src/tests/timeseries_v6/test_v6_snapshot.py::test_snapshot_verification_detects_partition_tamper
+src/tests/timeseries_v6/test_v6_snapshot.py::test_snapshot_rejects_partition_outside_root_and_duplicates
+src/tests/timeseries_v6/test_v6_source_coverage.py::test_source_coverage_separates_catalogue_from_active_materialization
+src/tests/timeseries_v6/test_v6_source_coverage.py::test_source_coverage_fails_closed_for_required_missing_series
+src/tests/timeseries_v6/test_v6_source_registry.py::test_registry_exactly_matches_frozen_37_source_contract
+src/tests/timeseries_v6/test_v6_source_registry.py::test_registry_rejects_duplicate_or_credential_uri
+src/tests/timeseries_v6/test_v6_storage.py::test_local_resolver_is_workspace_scoped_and_round_trips
+src/tests/timeseries_v6/test_v6_storage.py::test_artifact_backend_has_no_write_capability
+src/tests/timeseries_v6/test_v6_storage.py::test_s3_requires_injected_client_and_safe_endpoint
+src/tests/timeseries_v6/test_v6_storage.py::test_unknown_fields_credentials_and_writable_artifacts_fail_closed
+src/tests/timeseries_v6/test_v6_typed_repositories.py::test_migration_defines_typed_core_tables_and_append_only_triggers
+src/tests/timeseries_v6/test_v6_typed_repositories.py::test_repository_uses_direct_typed_table_inserts_only
+src/tests/timeseries_v6/test_v6_typed_repositories.py::test_repository_rolls_back_on_database_error
+
+=================================== ERRORS ====================================
+__ ERROR collecting src/tests/timeseries_v6/test_v6_availability_sessions.py __
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_availability_sessions.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_availability_sessions.py:6: in <module>
+    from ai_fc.timeseries_v6.sessions import last_completed_xnas_session, missing_completed_sessions
+src\ai_fc\timeseries_v6\sessions.py:10: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+___ ERROR collecting src/tests/timeseries_v6/test_v6_dfm_features_labels.py ___
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_dfm_features_labels.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_dfm_features_labels.py:3: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+___ ERROR collecting src/tests/timeseries_v6/test_v6_distribution_models.py ___
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_distribution_models.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_distribution_models.py:15: in <module>
+    from ai_fc.timeseries_v6.research_backtest import candidate_grid
+src\ai_fc\timeseries_v6\research_backtest.py:27: in <module>
+    from .research_dataset import ResearchDataset
+src\ai_fc\timeseries_v6\research_dataset.py:11: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+____ ERROR collecting src/tests/timeseries_v6/test_v6_research_backtest.py ____
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_research_backtest.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_research_backtest.py:1: in <module>
+    from ai_fc.timeseries_v6.research_backtest import (
+src\ai_fc\timeseries_v6\research_backtest.py:27: in <module>
+    from .research_dataset import ResearchDataset
+src\ai_fc\timeseries_v6\research_dataset.py:11: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+____ ERROR collecting src/tests/timeseries_v6/test_v6_research_dataset.py _____
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_research_dataset.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_research_dataset.py:5: in <module>
+    from ai_fc.timeseries_v6.research_dataset import build_research_dataset
+src\ai_fc\timeseries_v6\research_dataset.py:11: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+_____ ERROR collecting src/tests/timeseries_v6/test_v6_research_verify.py _____
+ImportError while importing test module 'C:\workspace\ai-investing-v5-gate\src\tests\timeseries_v6\test_v6_research_verify.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\timeseries_v6\test_v6_research_verify.py:6: in <module>
+    from ai_fc.timeseries_v6.research_backtest import (
+src\ai_fc\timeseries_v6\research_backtest.py:27: in <module>
+    from .research_dataset import ResearchDataset
+src\ai_fc\timeseries_v6\research_dataset.py:11: in <module>
+    import exchange_calendars as xcals
+E   ModuleNotFoundError: No module named 'exchange_calendars'
+=========================== short test summary info ===========================
+ERROR src/tests/timeseries_v6/test_v6_availability_sessions.py
+ERROR src/tests/timeseries_v6/test_v6_dfm_features_labels.py
+ERROR src/tests/timeseries_v6/test_v6_distribution_models.py
+ERROR src/tests/timeseries_v6/test_v6_research_backtest.py
+ERROR src/tests/timeseries_v6/test_v6_research_dataset.py
+ERROR src/tests/timeseries_v6/test_v6_research_verify.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 6 errors during collection !!!!!!!!!!!!!!!!!!!
+116 tests collected, 6 errors in 1.25s

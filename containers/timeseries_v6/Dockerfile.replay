@@ -1,0 +1,24 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONHASHSEED=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    TZ=UTC
+
+WORKDIR /workspace
+COPY locks/timeseries_v6/requirements.replay.lock /tmp/requirements.replay.lock
+RUN python -m pip install --no-deps -r /tmp/requirements.replay.lock
+
+COPY locks/timeseries_v6 /workspace/locks/timeseries_v6
+COPY containers/timeseries_v6 /workspace/containers/timeseries_v6
+COPY src /workspace/src
+COPY tools /workspace/tools
+COPY data/contracts /workspace/data/contracts
+COPY data/timeseries_v6 /workspace/data/timeseries_v6
+COPY migrations/timeseries_v6 /workspace/migrations/timeseries_v6
+COPY outputs/NASDAQ_V5_GATE_REVIEW_PACK_20260824T050122Z.zip /workspace/outputs/NASDAQ_V5_GATE_REVIEW_PACK_20260824T050122Z.zip
+
+ENV PYTHONPATH=/workspace/src
+CMD ["python", "-m", "pytest", "src/tests/timeseries_v6", "-q", "-p", "no:cacheprovider"]

@@ -16,7 +16,9 @@
 *.gz   binary
 *.parquet binary
 *.xlsx binary
-*.jsonl -text
+*.jsonl binary
+*.log   binary
+*.patch binary
 
 # 불변/원장 경로: 바이트 보존 — EOL 변환 금지 (해시 앵커 .hashes 보호)
 # 신규 클론에서 autocrlf가 forecasts를 CRLF로 바꿔 E1 오탐을 내는 것을 차단한다.

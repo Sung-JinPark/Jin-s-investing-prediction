@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "integrity_gate": {
+    "pass": true,
+    "reasons": [],
+    "pit_leakage_count": 0,
+    "receipt_observation_link_rate": 1.0,
+    "active_feature_provenance_rate": 1.0,
+    "contract_runtime_mismatch_count": 0
+  },
+  "research_gate": {
+    "pass": false,
+    "reasons": [
+      "h21_extreme_q4_coverage",
+      "h21_gfc_coverage_or_sample",
+      "h21_pandemic_coverage_or_sample",
+      "h5_p25_p75_coverage",
+      "h63_extreme_q4_coverage",
+      "h63_gfc_coverage_or_sample",
+      "h63_pandemic_coverage_or_sample",
+      "long_horizon_mean_crps_improvement_below_2pct"
+    ],
+    "by_horizon": {
+      "1": {
+        "count": 385,
+        "model_crps": 0.007525626213647608,
+        "baseline_crps": 0.007781908322859654,
+        "improvement": 0.03293306713203074,
+        "p10_p90_coverage": 0.7974025974025974,
+        "p25_p75_coverage": 0.4961038961038961,
+        "baseline_coverage": 0.8389610389610389
+      },
+      "5": {
+        "count": 385,
+        "model_crps": 0.016088254127312938,
+        "baseline_crps": 0.01667099483721928,
+        "improvement": 0.03495536502748656,
+        "p10_p90_coverage": 0.7740259740259741,
+        "p25_p75_coverage": 0.44675324675324674,
+        "baseline_coverage": 0.8233766233766234
+      },
+      "21": {
+        "count": 385,
+        "model_crps": 0.03336588186946289,
+        "baseline_crps": 0.033796198223233896,
+        "improvement": 0.012732685224788855,
+        "p10_p90_coverage": 0.8155844155844156,
+        "p25_p75_coverage": 0.4675324675324675,
+        "baseline_coverage": 0.8155844155844156
+      },
+      "63": {
+        "count": 385,
+        "model_crps": 0.05561124697957041,
+        "baseline_crps": 0.05593771157099971,
+        "improvement": 0.005836216431823998,
+        "p10_p90_coverage": 0.7974025974025974,
+        "p25_p75_coverage": 0.4701298701298701,
+        "baseline_coverage": 0.8
+      }
+    },
+    "long_horizon_mean_crps_improvement": 0.009284450828306427,
+    "paired_stationary_bootstrap_90_ci": [
+      -0.0006205698836459887,
+      -0.00014620148154266318
+    ],
+    "sign_side_max_underperformance": 0.0
+  },
+  "operational_gate": {
+    "pass": false,
+    "reasons": [
+      "source_freshness_or_snapshot_compatibility"
+    ]
+  },
+  "numbers_visible": false,
+  "status": "shadow_gate_hold"
+}

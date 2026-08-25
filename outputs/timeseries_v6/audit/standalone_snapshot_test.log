@@ -1,0 +1,5 @@
+Command: PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=<extracted SOURCE_SNAPSHOT>/src python -m pytest <SOURCE_SNAPSHOT>/src/tests/test_multivariate_timeseries_v5.py -q -p no:cacheprovider
+Return code: 2
+Result: collection failed because the review pack omits ai_fc.cross_asset.
+Classification: expected independent-replay limitation; not represented as a passing test and not a V6-P0-001 execution failure.
+

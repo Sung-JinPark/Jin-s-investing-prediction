@@ -1,0 +1,212 @@
+{
+  "artifacts": [
+    {
+      "bytes": 55064,
+      "path": "tools/audit_v5_gate.py",
+      "sha256": "1d209add5c23d8189229a9dd403e7e8cf90f358140bca30a5ae9b0f5a503bbba"
+    },
+    {
+      "bytes": 11262,
+      "path": "src/tests/timeseries_v6/test_v5_adversarial_audit.py",
+      "sha256": "14f163f407f7ec177bd2ce11e4db51ff16d8e9ddeda1a62f7a97ddbfbe272993"
+    },
+    {
+      "bytes": 4483,
+      "path": "docs/timeseries_v6/V5_AUDIT_REPRODUCTION.md",
+      "sha256": "09aeba5ef034144d2702e6d7e7a9fd3636a5c4639a9cc45485ce749ae7e26500"
+    },
+    {
+      "bytes": 138006,
+      "path": "outputs/timeseries_v6/audit/v5_adversarial_audit.json",
+      "sha256": "c071356d6f069efb2c727906ca07d57fadecb4c1c9e06e0d9e83b13c1b207bef"
+    },
+    {
+      "bytes": 23380,
+      "path": "outputs/timeseries_v6/audit/v5_contract_registry_diff.json",
+      "sha256": "735677addd7c354b18550e7ca6de3823ad3c0958139941ae01e3e052db079322"
+    },
+    {
+      "bytes": 1524,
+      "path": "outputs/timeseries_v6/audit/v5_runtime_contract_diff.json",
+      "sha256": "9b45ef0dcb8d01d7f1a9f1412b3082e7b1f2466148efec97f0c1306ff787cfed"
+    },
+    {
+      "bytes": 613,
+      "path": "outputs/timeseries_v6/audit/v5_reproducibility_matrix.json",
+      "sha256": "44a8102e7a0ebce0c5640963aa70ae94b8106aa0781bcae1a543e71ae87a679e"
+    },
+    {
+      "bytes": 1110697,
+      "path": "outputs/timeseries_v6/audit/protected_manifest_before.json",
+      "sha256": "ddb962cae3e93fb7237963e3cf31bd8f9275bb514828d314a8ae0a27732aad8b"
+    },
+    {
+      "bytes": 1110697,
+      "path": "outputs/timeseries_v6/audit/protected_manifest_after.json",
+      "sha256": "ddb962cae3e93fb7237963e3cf31bd8f9275bb514828d314a8ae0a27732aad8b"
+    },
+    {
+      "bytes": 218,
+      "path": "outputs/timeseries_v6/audit/targeted_tests.log",
+      "sha256": "bbb573692dacdb276eeae52ed0e6385b5a9b0f6954e591081685bad3ac0fb8c3"
+    },
+    {
+      "bytes": 401,
+      "path": "outputs/timeseries_v6/audit/standalone_snapshot_test.log",
+      "sha256": "fe84f458f6a2d153ef0f0113d7e2921a1247410926139bc2a1bb0c007353c52f"
+    },
+    {
+      "bytes": 638,
+      "path": "outputs/timeseries_v6/audit/full_tests.log",
+      "sha256": "1c1d70d50a4d1cb2db25fb268b138aeb2759a018fb1d777bfc699b6092061b28"
+    },
+    {
+      "bytes": 36,
+      "path": "outputs/timeseries_v6/audit/secret_scan.log",
+      "sha256": "65cc941b12f724f14c638da4c396d021f19868f5af88256b43350edda7926924"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "tools/audit_v5_gate.py",
+    "src/tests/timeseries_v6/test_v5_adversarial_audit.py",
+    "docs/timeseries_v6/V5_AUDIT_REPRODUCTION.md",
+    "outputs/timeseries_v6/audit/v5_adversarial_audit.json",
+    "outputs/timeseries_v6/audit/v5_contract_registry_diff.json",
+    "outputs/timeseries_v6/audit/v5_runtime_contract_diff.json",
+    "outputs/timeseries_v6/audit/v5_reproducibility_matrix.json",
+    "outputs/timeseries_v6/audit/protected_manifest_before.json",
+    "outputs/timeseries_v6/audit/protected_manifest_after.json",
+    "outputs/timeseries_v6/audit/targeted_tests.log",
+    "outputs/timeseries_v6/audit/standalone_snapshot_test.log",
+    "outputs/timeseries_v6/audit/full_tests.log",
+    "outputs/timeseries_v6/audit/secret_scan.log",
+    "outputs/timeseries_v6/task_results/V6-P0-001/result.json"
+  ],
+  "checks": {
+    "clean_pack_manifest": {
+      "entry_count": 119,
+      "failed_entries": [],
+      "pass": true
+    },
+    "finding_catalog_counts": {
+      "confirmed": 14,
+      "not_detected": 0,
+      "out_of_task_scope": 0,
+      "supported": 15,
+      "unavailable": 1
+    },
+    "finding_counts": {
+      "P0": 12,
+      "P1": 2,
+      "P2": 1
+    },
+    "full_repository_regression": {
+      "failed": 1,
+      "passed": 661,
+      "reason": "optional duckdb dependency absent; initial collection also lacked python-frontmatter",
+      "skipped": 30,
+      "status": "environment_blocked"
+    },
+    "hgb_contract_runtime_mismatch_detected": true,
+    "independent_aggregate_replay": {
+      "recomputed_fields": [
+        "origin_count_times_horizon_count",
+        "horizon_improvement",
+        "long_horizon_mean_improvement",
+        "cross_file_identifiers",
+        "gate_and_visibility_state",
+        "lineage_count_consistency"
+      ],
+      "status": "partial",
+      "unavailable_inputs": [
+        "full 3,852-row score matrix",
+        "4,000 samples for every origin and horizon",
+        "private raw/feature Parquet",
+        "complete repository modules",
+        "identical runtime lock/container"
+      ]
+    },
+    "legacy_feature_pit_gap_detected": true,
+    "pre_open_freshness_bug_detected": true,
+    "reported_summary_parsed": true,
+    "source_contract_registry_mismatch_detected": true,
+    "standalone_snapshot_replay": {
+      "reason": "ModuleNotFoundError: ai_fc.cross_asset; return code 2",
+      "status": "fail"
+    },
+    "targeted_tests": {
+      "failed": 0,
+      "pass": true,
+      "passed": 21
+    }
+  },
+  "commands": [
+    {
+      "command": "python -m pytest src/tests/timeseries_v6/test_v5_adversarial_audit.py -q -p no:cacheprovider",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/audit/targeted_tests.log"
+    },
+    {
+      "command": "python tools/audit_v5_gate.py --pack outputs/NASDAQ_V5_GATE_REVIEW_PACK_20260824T050122Z.zip --output outputs/timeseries_v6/audit/v5_adversarial_audit.json",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/audit/v5_adversarial_audit.json"
+    },
+    {
+      "command": "isolated SOURCE_SNAPSHOT pytest collection",
+      "returncode": 2,
+      "stderr_artifact": "outputs/timeseries_v6/audit/standalone_snapshot_test.log",
+      "stdout_artifact": "outputs/timeseries_v6/audit/standalone_snapshot_test.log"
+    },
+    {
+      "command": "full repository pytest in installed Anaconda environment",
+      "returncode": 2,
+      "stderr_artifact": "outputs/timeseries_v6/audit/full_tests.log",
+      "stdout_artifact": "outputs/timeseries_v6/audit/full_tests.log"
+    },
+    {
+      "command": "full repository pytest with in-memory frontmatter-compatible parser",
+      "returncode": 1,
+      "stderr_artifact": "outputs/timeseries_v6/audit/full_tests.log",
+      "stdout_artifact": "outputs/timeseries_v6/audit/full_tests.log"
+    },
+    {
+      "command": "protected manifest before/after comparison",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/audit/protected_manifest_after.json"
+    }
+  ],
+  "completed_at": "2026-08-24T06:23:44.334351Z",
+  "contract_hash_after": "a103718124311b6ea2e167793e1b062be22800658a9fcaef3fac03eabacecd79",
+  "contract_hash_before": "a103718124311b6ea2e167793e1b062be22800658a9fcaef3fac03eabacecd79",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "Summary-level arithmetic is not row-level CRPS replay.",
+    "Private score matrices, per-origin samples and Parquet partitions are absent.",
+    "Alias candidates are hypotheses and are never promoted to exact matches.",
+    "Freshness session enumeration is fixed to the audited 2026-08-14 through 2026-08-24 interval, which has no XNAS holiday.",
+    "The broad root suite is environment-blocked by missing optional duckdb; no dependency was installed under the task contract.",
+    "The source-snapshot test failure is expected evidence of a non-standalone pack, not a fabricated PASS."
+  ],
+  "next_task_recommendation": "V6-P0-002",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T06:14:27.843778Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-001",
+  "unresolved_blockers": [
+    "V5 retains all 12 P0 model-risk blockers and remains shadow_gate_hold.",
+    "Full score/sample/Parquet/runtime replay inputs remain unavailable from the review ZIP."
+  ]
+}

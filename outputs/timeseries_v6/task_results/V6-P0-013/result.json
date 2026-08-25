@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "task_id": "V6-P0-013",
+  "status": "succeeded",
+  "started_at": "2026-08-24T09:02:00Z",
+  "completed_at": "2026-08-24T10:31:06.913099+00:00",
+  "engineering_gate": "pass",
+  "research_gate_status": "shadow_gate_hold",
+  "numbers_visible": false,
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v6/research/gate_result.json",
+      "bytes": 2394,
+      "sha256": "47d189f956c73a12e7fc59e82895142ddbc1957e4acccc00b280315960c93733"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/verification_result.json",
+      "bytes": 22043,
+      "sha256": "9f4977b18c58f4581b19317bcac707772884fe303a721d82c966018825487e67"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/deterministic_replay.json",
+      "bytes": 515,
+      "sha256": "9ec5d2fafa3d03ac505cc3181252094b2ddf590f2216090d89eaf32f1b514150"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/run.json",
+      "bytes": 2979,
+      "sha256": "92ab3b2d1aa78f5601e8358d85a8a5d908c821429300514bf743d5b90d9cff25"
+    },
+    {
+      "path": "outputs/timeseries_v6/research/sealed_runs/tsv6-sealed-46d58750db2abe8b40cec159/scores.jsonl",
+      "bytes": 1084400,
+      "sha256": "e287614f4d62b7cc9966eb4ba9961b65ff7f95bbfe1df8cc173207db6ceb6373"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/source_coverage_and_dataset.json",
+      "bytes": 1075,
+      "sha256": "2c79742721b1f31af27509716e997d6bb81a389b99a66b286b872628bd7bdd72"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/atlas_run_history.json",
+      "bytes": 37974,
+      "sha256": "d6611b697ecfa8b0dd3258422a09e32b707dfb75aec1a90a6ea978140852e912"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/NASDAQ_V6_RESEARCH_AUDIT.xlsx",
+      "bytes": 24265,
+      "sha256": "b709908faf6b9eedfc4c7feee894cb8b8a720cdeb513b6ce9b16e40824dfdc16"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/workbook_formula_errors.ndjson",
+      "bytes": 60,
+      "sha256": "acc0111e19cf44d2753fc9ecd164bf1b27fbd65597463a25cf48bd1c65e90146"
+    },
+    {
+      "path": "outputs/timeseries_v6/audit/protected_comparison.json",
+      "bytes": 245,
+      "sha256": "79d15eb65533a23614968643a9b7a137920011a4e478aeb6552ed82cd228f40c"
+    },
+    {
+      "path": "docs/timeseries_v6/V6_AUTONOMOUS_RESEARCH_REPORT.md",
+      "bytes": 4981,
+      "sha256": "154f11cab83283a7feca89a8ad892b164c07abc09634f14e673e79e898117ca5"
+    }
+  ],
+  "checks": {
+    "atlas_final_all_succeeded": true,
+    "deterministic_replay_exact": true,
+    "integrity_gate": true,
+    "research_gate": false,
+    "operational_gate": false,
+    "protected_comparison": {
+      "pass": true,
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "added": [],
+      "removed": [],
+      "changed": []
+    },
+    "suite": {
+      "passed": 752,
+      "skipped": 1,
+      "failed": 0
+    },
+    "workbook_formula_errors": 0
+  },
+  "changed_paths": [
+    "data/timeseries_v6/",
+    "src/ai_fc/timeseries_v6/",
+    "src/tests/timeseries_v6/",
+    "tools/run_v6_research.py",
+    "tools/collect_v6_public.py",
+    "tools/export_v6_audit_input.py",
+    "tools/build_v6_audit_workbook.mjs",
+    "tools/build_v6_review_pack.py",
+    "docs/timeseries_v6/",
+    "outputs/timeseries_v6/"
+  ],
+  "forbidden_paths_changed": [],
+  "protected_non_mutation": true,
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "secret_scan": {
+    "pass": true,
+    "matches": []
+  },
+  "unresolved_blockers": [
+    "h21_extreme_q4_coverage",
+    "h21_gfc_coverage_or_sample",
+    "h21_pandemic_coverage_or_sample",
+    "h5_p25_p75_coverage",
+    "h63_extreme_q4_coverage",
+    "h63_gfc_coverage_or_sample",
+    "h63_pandemic_coverage_or_sample",
+    "long_horizon_mean_crps_improvement_below_2pct",
+    "source_freshness_or_snapshot_compatibility"
+  ],
+  "limitations": [
+    "research Gate HOLD",
+    "operational freshness HOLD",
+    "private raw and Parquet objects excluded from public review ZIP",
+    "pseudo-OOS is not a prospective live track record"
+  ],
+  "next_task_recommendation": "new preregistered model version or fresh source capture; do not retune V6 sealed results",
+  "next_task_started": false,
+  "result_commit": null
+}

@@ -1,0 +1,295 @@
+{
+  "candidate_count": 11,
+  "candidates": [
+    {
+      "candidate_id": "E0",
+      "candidate_spec_hash": "3d2e30c8e850f1c79b1407cfe30d88e8feab73d1505468cf96db58c033d56467",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "exact_fixed_anchor",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "approximation_from_p10_p90": "prohibited",
+        "deterministic_identity_tolerance": 1e-12,
+        "representation_priority": [
+          "exact_samples",
+          "dense_cdf_grid",
+          "exact_parametric"
+        ]
+      },
+      "role": "mandatory_comparator_and_ensemble_constituent"
+    },
+    {
+      "candidate_id": "E1",
+      "candidate_spec_hash": "b4805a71cd4539767d19e5faadb0b6eb3f67a7ebee1d3186fd234b181f3bf0dd",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "direct_quantile_elastic_net",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "alpha_grid": [
+          0.0001,
+          0.001,
+          0.01,
+          0.1
+        ],
+        "l1_ratio_grid": [
+          0.1,
+          0.5,
+          0.9
+        ],
+        "max_iter": 10000,
+        "objective": "pinball",
+        "quantiles": [
+          0.01,
+          0.05,
+          0.1,
+          0.25,
+          0.5,
+          0.75,
+          0.9,
+          0.95,
+          0.99
+        ],
+        "tolerance": 1e-07
+      },
+      "role": "core_challenger"
+    },
+    {
+      "candidate_id": "E2",
+      "candidate_spec_hash": "4951446b6e9f962f6308910e108dfc6f3123db0dd946910ecb823c2548092e19",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "student_t_location_scale",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "degrees_of_freedom_grid": [
+          4,
+          6,
+          8,
+          12
+        ],
+        "location_objective": "robust_negative_log_likelihood",
+        "log_scale_objective": "student_t_negative_log_likelihood",
+        "ridge_alpha_grid": [
+          0.01,
+          0.1,
+          1.0
+        ],
+        "scale_floor": 1e-06
+      },
+      "role": "core_challenger"
+    },
+    {
+      "candidate_id": "E3",
+      "candidate_spec_hash": "38a975ec6e812d31e62e6759e50fc893935812e3d7df8a3e6b47271fbbd0c7a3",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "contract_driven_quantile_boosting",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "l2_regularization_grid": [
+          0.0,
+          1.0
+        ],
+        "learning_rate_grid": [
+          0.03,
+          0.07
+        ],
+        "max_iter_grid": [
+          100,
+          300
+        ],
+        "max_leaf_nodes_grid": [
+          7,
+          15
+        ],
+        "min_samples_leaf_grid": [
+          20,
+          50
+        ],
+        "objective": "quantile",
+        "quantiles": [
+          0.01,
+          0.05,
+          0.1,
+          0.25,
+          0.5,
+          0.75,
+          0.9,
+          0.95,
+          0.99
+        ]
+      },
+      "role": "core_challenger"
+    },
+    {
+      "candidate_id": "E4",
+      "candidate_spec_hash": "0626e5bf50c4d7f403dfeb1169c7dbc1dd44c7c6213fe82ff66be53abce1bcd6",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "bayesian_dynamic_linear_model",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "filtered_state_only": true,
+        "observation_family": "gaussian",
+        "prior_variance_grid": [
+          1.0,
+          10.0
+        ],
+        "state_discount_grid": [
+          0.98,
+          0.995
+        ]
+      },
+      "role": "challenger"
+    },
+    {
+      "candidate_id": "E5",
+      "candidate_spec_hash": "4541fc2bb006798e3d49cce067ab1994c7d841f8ed0046b9dd9702023773772d",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "learned_soft_regime_partial_pooling",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "future_regime_label": "prohibited",
+        "gate_family": "multinomial_logistic",
+        "global_shrinkage_grid": [
+          0.25,
+          0.5,
+          0.75
+        ],
+        "minimum_effective_sample_size": 50,
+        "regime_count": 3
+      },
+      "role": "challenger"
+    },
+    {
+      "candidate_id": "E6",
+      "candidate_spec_hash": "bf3250513da50aacab673f646ccf483830d92a5887dbfb0bec527d2a215028af",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "asymmetric_evt_tail",
+      "horizons": [
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "lower_upper_fit_separate": true,
+        "minimum_exceedances_per_tail": 40,
+        "shape_bounds": [
+          -0.45,
+          0.45
+        ],
+        "shrinkage_to_global": "required",
+        "threshold_quantile_grid": [
+          0.9,
+          0.95
+        ]
+      },
+      "role": "tail_challenger"
+    },
+    {
+      "candidate_id": "E7",
+      "candidate_spec_hash": "ac13c8033397ba1f0d60db4a3c63ade9f9bd767b9e1440a9aff4f8369392ccf3",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "pit_analog_trajectory",
+      "horizons": [
+        21,
+        63
+      ],
+      "parameters": {
+        "distance": "robust_mahalanobis",
+        "future_outcome_in_distance": "prohibited",
+        "minimum_temporal_spacing_sessions": 126,
+        "neighbor_count_grid": [
+          10,
+          20,
+          40
+        ]
+      },
+      "role": "path_challenger"
+    },
+    {
+      "candidate_id": "E8",
+      "candidate_spec_hash": "6dd49b1610dbf017183428ea7986221d08964ecc92545a38ebbce725a221d0bf",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "event_local_projection",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "future_actual_surprise": "prohibited",
+        "minimum_independent_resolved_events": 60,
+        "pre_event_snapshot_required": true
+      },
+      "role": "zero_weight_until_eligible"
+    },
+    {
+      "candidate_id": "E9",
+      "candidate_spec_hash": "e74ed940794ee2d3935508f24d35d900fdc1e5cf6d755e359cbed6f47734b715",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "market_implied_physical_calibration",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "forward_capture_only_without_history": true,
+        "risk_neutral_to_physical_calibration": "required"
+      },
+      "role": "prospective_or_licensed_challenger"
+    },
+    {
+      "candidate_id": "E10",
+      "candidate_spec_hash": "e48eea7e9ef473e584c3831f0c7269899686b9286e52a7b0a2a34e30ddbe22ae",
+      "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+      "family": "foundation_model_challenger",
+      "horizons": [
+        1,
+        5,
+        21,
+        63
+      ],
+      "parameters": {
+        "default_weight": 0.0,
+        "frozen_checkpoint_hash_required": true,
+        "license_receipt_required": true
+      },
+      "role": "isolated_zero_weight"
+    }
+  ],
+  "contract_hash": "6204d190a52345a8761f7bd0b6e73146870e6ae7140db1f476f9afb1bc83745b",
+  "contract_status": "frozen",
+  "model_id": "shadow.nasdaq_pit_hierarchical_distribution_v6",
+  "schema_version": 1
+}

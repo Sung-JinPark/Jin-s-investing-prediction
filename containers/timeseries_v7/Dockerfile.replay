@@ -1,0 +1,26 @@
+# syntax=docker/dockerfile:1.7
+FROM python:3.12.11-slim-bookworm@sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONHASHSEED=0 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_NO_CACHE_DIR=1 \
+    TZ=UTC \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    NUMEXPR_NUM_THREADS=1
+
+WORKDIR /workspace
+COPY locks/timeseries_v7/requirements.replay.lock /tmp/requirements.replay.lock
+RUN python -m pip install --no-deps -r /tmp/requirements.replay.lock
+
+COPY src/ai_fc/timeseries_v7 /workspace/src/ai_fc/timeseries_v7
+COPY src/tests/timeseries_v7 /workspace/src/tests/timeseries_v7
+COPY tools/freeze_v7_runtime.py /workspace/tools/freeze_v7_runtime.py
+COPY locks/timeseries_v7 /workspace/locks/timeseries_v7
+COPY containers/timeseries_v7 /workspace/containers/timeseries_v7
+COPY data/contracts/multivariate_timeseries_v7.yaml /workspace/data/contracts/multivariate_timeseries_v7.yaml
+
+ENV PYTHONPATH=/workspace/src
+CMD ["python", "tools/freeze_v7_runtime.py", "probe", "--json"]

@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "runtime_id": "timeseries-v6-replay-python-3.12.11-linux-amd64",
+  "python": "3.12.11",
+  "platform": "linux/amd64",
+  "base_image": "python:3.12.11-slim-bookworm",
+  "base_image_digest": "sha256:519591d6871b7bc437060736b9f7456b8731f1499a57e22e6c285135ae657bf7",
+  "built_image_digest": null,
+  "built_image_digest_note": "Recorded by the external build result, not embedded in the image, to avoid a self-referential digest.",
+  "dockerfile_sha256": "4b22a6c62eb442374d25e19821d9c5dcbc766956f1fbae5556b0a621ee63da83",
+  "requirements_lock_sha256": "b49afb85900ea348aaed473356424d101c17b8da5b85a941de733cddb92dab5c",
+  "locked_distribution_count": 40,
+  "key_versions": {
+    "numpy": "2.3.5",
+    "pandas": "2.3.3",
+    "scipy": "1.16.3",
+    "scikit-learn": "1.7.2",
+    "exchange-calendars": "4.13.2",
+    "statsmodels": "0.14.6"
+  },
+  "container_smoke_test": {
+    "command": "python -m pytest src/tests/timeseries_v6",
+    "passed": 26,
+    "failed": 0,
+    "returncode": 0,
+    "log": "outputs/timeseries_v6/task_results/V6-P0-003/container_tests.log"
+  },
+  "v5_audit_replay": {
+    "status": "audit_complete_with_findings",
+    "p0_findings": 12,
+    "returncode": 0,
+    "log": "outputs/timeseries_v6/task_results/V6-P0-003/v5_audit_replay.log"
+  },
+  "network_required_for_replay": false,
+  "provider_secrets_required_for_replay": false,
+  "publication_credentials_present": false
+}

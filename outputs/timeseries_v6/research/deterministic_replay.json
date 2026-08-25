@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "run_id": "tsv6-sealed-46d58750db2abe8b40cec159",
+  "status": "pass",
+  "row_count": 1540,
+  "expected_scores_sha256": "3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b",
+  "replayed_scores_sha256": "3338d152acd168f4b003530dc5f3bc5431dceb63ab1d2d4cd68dd55babd9bd8b",
+  "exact_match": true,
+  "numeric_runtime": {
+    "MKL_NUM_THREADS": 1,
+    "NUMEXPR_NUM_THREADS": 1,
+    "OMP_NUM_THREADS": 1,
+    "OPENBLAS_NUM_THREADS": 1,
+    "PYTHONHASHSEED": 0
+  }
+}

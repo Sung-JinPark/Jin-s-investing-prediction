@@ -1,0 +1,43 @@
+{
+  "contract": {
+    "specs": [
+      {
+        "family": "quantile_hist_gradient_boosting",
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 15
+      },
+      {
+        "family": "quantile_hist_gradient_boosting",
+        "learning_rate": 0.03,
+        "max_leaf_nodes": 7
+      },
+      {
+        "family": "quantile_hist_gradient_boosting",
+        "learning_rate": 0.07,
+        "max_leaf_nodes": 15
+      },
+      {
+        "family": "quantile_hist_gradient_boosting",
+        "learning_rate": 0.07,
+        "max_leaf_nodes": 7
+      }
+    ]
+  },
+  "contract_canonical_json": "{\"specs\":[{\"family\":\"quantile_hist_gradient_boosting\",\"learning_rate\":0.03,\"max_leaf_nodes\":15},{\"family\":\"quantile_hist_gradient_boosting\",\"learning_rate\":0.03,\"max_leaf_nodes\":7},{\"family\":\"quantile_hist_gradient_boosting\",\"learning_rate\":0.07,\"max_leaf_nodes\":15},{\"family\":\"quantile_hist_gradient_boosting\",\"learning_rate\":0.07,\"max_leaf_nodes\":7}]}",
+  "contract_sha256": "80c424aafa1607bb4026e989237ef03c6a612057e1a1b74fe96171bb6574e8c9",
+  "exact_match": false,
+  "runtime": {
+    "specs": [
+      {
+        "family": "quantile_hist_gradient_boosting",
+        "learning_rate": 0.05,
+        "max_leaf_nodes": 7
+      }
+    ]
+  },
+  "runtime_canonical_json": "{\"specs\":[{\"family\":\"quantile_hist_gradient_boosting\",\"learning_rate\":0.05,\"max_leaf_nodes\":7}]}",
+  "runtime_lines": [
+    132
+  ],
+  "runtime_sha256": "faf26725448deaa9a6921f4693ce2d0e7b2131a2a82e6ed0e09160b4ddd986f7"
+}

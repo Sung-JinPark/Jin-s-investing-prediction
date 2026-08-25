@@ -1,0 +1,116 @@
+{
+  "artifacts": [
+    {
+      "bytes": 3505,
+      "path": "migrations/timeseries_v6/0002_collection_attempt_lifecycle.sql",
+      "sha256": "b6f4e2a402a376b2ddf022e47bda2aa56e15972fbdca0494dc6edd5d37c2eddb"
+    },
+    {
+      "bytes": 11612,
+      "path": "src/ai_fc/timeseries_v6/repositories.py",
+      "sha256": "8c980aed3e4e00ab88a4e21a5a3ed193ea64585bf792e63ba716f1b8b3b7f4a9"
+    },
+    {
+      "bytes": 3059,
+      "path": "src/ai_fc/timeseries_v6/collection.py",
+      "sha256": "ee07bcdd12570b8fcb49ac05adc282b4d7a280470a294001e0a44bb9021511a5"
+    },
+    {
+      "bytes": 3069,
+      "path": "src/tests/timeseries_v6/test_v6_collection_lifecycle.py",
+      "sha256": "3a73ea133c3e61fe7ef9b421383789e524101e6e64907702d40cc2cf99c2bb27"
+    },
+    {
+      "bytes": 3943,
+      "path": "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+      "sha256": "704b930acf0299966a488abe1a8f69fe41a206843b849f9cd4c4f27693c5123e"
+    },
+    {
+      "bytes": 2860,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-010/container_build.log",
+      "sha256": "3dea7cf5e068f4cf483533f2784772e85e5e33553345719246abaa879bc2c834"
+    },
+    {
+      "bytes": 100,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-010/postgres_integration.log",
+      "sha256": "c94f2add614de805d49dc30834f4f3a7b7a290a796a0367ac258887f78c1e786"
+    },
+    {
+      "bytes": 112,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-010/targeted_tests.log",
+      "sha256": "2f0d83991238f1f17ebb37043e990151cd20f686b30bb0dc4aa255ae32d84ea1"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "migrations/timeseries_v6/0002_collection_attempt_lifecycle.sql",
+    "src/ai_fc/timeseries_v6/repositories.py",
+    "src/ai_fc/timeseries_v6/collection.py",
+    "src/tests/timeseries_v6/test_v6_collection_lifecycle.py",
+    "src/tests/timeseries_v6/test_v6_postgres_integration.py",
+    "outputs/timeseries_v6/task_results/V6-P0-010/container_build.log",
+    "outputs/timeseries_v6/task_results/V6-P0-010/postgres_integration.log",
+    "outputs/timeseries_v6/task_results/V6-P0-010/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-010/result.json"
+  ],
+  "checks": {
+    "attempt_created_before_action": true,
+    "failure_classes": [
+      "blocked_secret",
+      "schema_quarantine",
+      "retryable_failure",
+      "permanent_failure"
+    ],
+    "not_modified_requires_zero_receipts": true,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "second_terminal_transition_rejected": true,
+    "success_requires_receipt": true,
+    "suite": {
+      "failed": 0,
+      "passed": 67,
+      "skipped": 1
+    },
+    "terminal_status_cardinality": "exactly_one"
+  },
+  "commands": [
+    {
+      "command": "ephemeral PostgreSQL lifecycle integration",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-010/postgres_integration.log"
+    },
+    {
+      "command": "pytest src/tests/timeseries_v6",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-010/targeted_tests.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:54:03.721155Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "Overdue-attempt reaping is implemented later with Atlas retry policy; this task exposes the typed query boundary."
+  ],
+  "next_task_recommendation": "V6-P0-011",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T08:10:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-010",
+  "unresolved_blockers": []
+}

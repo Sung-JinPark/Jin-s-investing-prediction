@@ -1,0 +1,98 @@
+{
+  "artifacts": [
+    {
+      "bytes": 799,
+      "path": "locks/timeseries_v6/requirements.replay.lock",
+      "sha256": "b49afb85900ea348aaed473356424d101c17b8da5b85a941de733cddb92dab5c"
+    },
+    {
+      "bytes": 960,
+      "path": "containers/timeseries_v6/Dockerfile.replay",
+      "sha256": "4b22a6c62eb442374d25e19821d9c5dcbc766956f1fbae5556b0a621ee63da83"
+    },
+    {
+      "bytes": 1420,
+      "path": "data/timeseries_v6/manifests/runtime_receipt.json",
+      "sha256": "fe424ec003885d2ecb79deeb2f057f64028b13ea7b87fdbb9e4eef8794183d70"
+    },
+    {
+      "bytes": 1615,
+      "path": "src/tests/timeseries_v6/test_v6_runtime_lock.py",
+      "sha256": "76ae6a9a85acff451f65fdd815a15735b29f932598a3d2c4e8ec3ca96d66f7c3"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "locks/timeseries_v6/requirements.in",
+    "locks/timeseries_v6/requirements.replay.lock",
+    "containers/timeseries_v6/Dockerfile.replay",
+    "data/timeseries_v6/manifests/runtime_receipt.json",
+    "src/tests/timeseries_v6/test_v6_runtime_lock.py",
+    "outputs/timeseries_v6/task_results/V6-P0-003/container_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-003/v5_audit_replay.log",
+    "outputs/timeseries_v6/task_results/V6-P0-003/container_build_final.log",
+    "outputs/timeseries_v6/task_results/V6-P0-003/container_full_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-003/result.json"
+  ],
+  "checks": {
+    "container_tests": {
+      "failed": 0,
+      "passed": 26
+    },
+    "locked_distribution_count": 40,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "python": "3.12.11",
+    "v5_audit": {
+      "expected_p0_findings": 12,
+      "returncode": 0
+    }
+  },
+  "commands": [
+    {
+      "command": "docker build replay image",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-003/container_build_final.log"
+    },
+    {
+      "command": "docker run replay V6 tests",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-003/container_full_tests.log"
+    },
+    {
+      "command": "docker run independent V5 audit",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-003/v5_audit_replay.log"
+    }
+  ],
+  "completed_at": "2026-08-24T06:37:17.019930Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The host Anaconda runtime remains unchanged; deterministic replay uses the isolated container.",
+    "No dependency was installed into the repository or host environment."
+  ],
+  "next_task_recommendation": "V6-P0-004",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T06:55:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-003",
+  "unresolved_blockers": []
+}

@@ -1,0 +1,101 @@
+{
+  "artifacts": [
+    {
+      "bytes": 603,
+      "path": "src/ai_fc/timeseries_v6/__init__.py",
+      "sha256": "67a42fe403398cd1a0dc196c038b929aa227291e4678f344e4f8efa937dffd1e"
+    },
+    {
+      "bytes": 5865,
+      "path": "src/ai_fc/timeseries_v6/isolation.py",
+      "sha256": "1424e6d9ab078e78da31b8b9e5e11d8733b3eaf2b20e6eb311b51e74ee3467b7"
+    },
+    {
+      "bytes": 2025,
+      "path": "src/tests/timeseries_v6/test_v6_isolation.py",
+      "sha256": "9980b77e1ee7fbf004fb3d9733427bc9d12e1bd8d3b386824fd0988f480634e4"
+    },
+    {
+      "bytes": 1136321,
+      "path": "data/timeseries_v6/manifests/protected_v5_baseline.json",
+      "sha256": "9bd94afbe6d5597b16177ba45a186f1e6a0aab7059afdf8d469bafff37139523"
+    },
+    {
+      "bytes": 974,
+      "path": "docs/timeseries_v6/ISOLATION.md",
+      "sha256": "c9bd32fa192087e06463b95613b938b567172fc0344ed0f946f81d6f88dbbca0"
+    },
+    {
+      "bytes": 101,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-002/targeted_tests.log",
+      "sha256": "42fcecba0b687ee0c802773cf69afb53a85a2f583e5dc5451c77ad60c3ce2d1d"
+    },
+    {
+      "bytes": 1136321,
+      "path": "outputs/timeseries_v6/task_results/V6-P0-002/protected_after.json",
+      "sha256": "9bd94afbe6d5597b16177ba45a186f1e6a0aab7059afdf8d469bafff37139523"
+    }
+  ],
+  "base_commit": "3d2b82296ead623fd2be0152fdc59d92ec3ec3ee",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v6/__init__.py",
+    "src/ai_fc/timeseries_v6/isolation.py",
+    "src/tests/timeseries_v6/test_v6_isolation.py",
+    "data/timeseries_v6/manifests/protected_v5_baseline.json",
+    "docs/timeseries_v6/ISOLATION.md",
+    "outputs/timeseries_v6/task_results/V6-P0-002/targeted_tests.log",
+    "outputs/timeseries_v6/task_results/V6-P0-002/protected_after.json",
+    "outputs/timeseries_v6/task_results/V6-P0-002/result.json"
+  ],
+  "checks": {
+    "preexisting_dirty_worktree_preserved": true,
+    "protected_comparison": {
+      "added": [],
+      "after_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "before_hash": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+      "changed": [],
+      "pass": true,
+      "removed": []
+    },
+    "protected_file_count": 5107,
+    "targeted_tests": {
+      "failed": 0,
+      "passed": 24
+    },
+    "task_write_allowlist_pass": true
+  },
+  "commands": [
+    {
+      "command": "pytest V6 isolation + adversarial audit",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-002/targeted_tests.log"
+    },
+    {
+      "command": "protected manifest before/after comparison",
+      "returncode": 0,
+      "stderr_artifact": "",
+      "stdout_artifact": "outputs/timeseries_v6/task_results/V6-P0-002/protected_after.json"
+    }
+  ],
+  "completed_at": "2026-08-24T06:29:40.212682Z",
+  "forbidden_paths_changed": [],
+  "limitations": [
+    "The V6 namespace is isolated but the reproducible runtime and final Atlas v2 database queue are subsequent tasks."
+  ],
+  "next_task_recommendation": "V6-P0-003",
+  "next_task_started": false,
+  "protected_manifest_after_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_manifest_before_sha256": "f5a58e3ea684a73bd3afe3850463efa728e102b1e7f202616a305d2fb88719b2",
+  "protected_non_mutation": true,
+  "result_commit": null,
+  "schema_version": 1,
+  "secret_scan": {
+    "matches": [],
+    "pass": true
+  },
+  "started_at": "2026-08-24T06:47:00Z",
+  "status": "succeeded",
+  "task_id": "V6-P0-002",
+  "unresolved_blockers": []
+}

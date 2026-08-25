@@ -1,0 +1,33 @@
+{
+  "generated_at": "2026-08-24T05:01:22Z",
+  "static_build": {
+    "status": "pass",
+    "payload_key": "timeseries",
+    "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
+    "status_value": "shadow_validation_hold",
+    "numbers_visible": false,
+    "horizon_count": 0,
+    "path_count": 0,
+    "research_gate_pass": false,
+    "operational_gate_pass": false
+  },
+  "responsive_render": {
+    "desktop": {
+      "viewport_px": 1280,
+      "client_width_px": 1270,
+      "scroll_width_px": 1270,
+      "horizontal_overflow": false
+    },
+    "mobile": {
+      "viewport_px": 390,
+      "client_width_px": 380,
+      "scroll_width_px": 380,
+      "horizontal_overflow": false
+    }
+  },
+  "workbook": {
+    "sheet_count": 8,
+    "formula_errors": 0,
+    "sha256": "d3f5a2b0fd1a03dfc8811502af2fe936da1e6af89156c7fd08afb1147fde716f"
+  }
+}

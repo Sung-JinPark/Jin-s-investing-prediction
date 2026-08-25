@@ -1,0 +1,78 @@
+{
+  "run_id": "tsv5-research-92c262efafd01118e1dd82cc",
+  "status": "shadow_gate_hold",
+  "origin_count": 963,
+  "score_count": 3852,
+  "sample_count": 4000,
+  "research_gate": {
+    "pass": false,
+    "reasons": [
+      "21/63 mean CRPS improvement below 2%",
+      "a long horizon failed positive improvement",
+      "paired bootstrap CI upper bound is above zero",
+      "one return-sign side underperforms by more than 5%",
+      "extreme-move Q4 coverage gate failed",
+      "stress-regime coverage gate failed",
+      "p10-p90 coverage range gate failed"
+    ],
+    "long_horizon_mean_improvement": -0.09033055117560237,
+    "paired_loss_difference_90_ci": [
+      0.0013300273607393233,
+      0.00607312633989535
+    ],
+    "sign_side_max_underperformance": 0.1732741991197445,
+    "by_horizon": {
+      "1": {
+        "baseline_crps": 0.007204831088220281,
+        "baseline_p10_p90_coverage": 0.8566978193146417,
+        "count": 963,
+        "improvement": 0.002118809561585481,
+        "lower_miss_share": 0.47058823529411764,
+        "mean_width": 0.02967244874073238,
+        "model_crps": 0.0071895654232209515,
+        "p10_p90_coverage": 0.7881619937694704,
+        "p25_p75_coverage": 0.5181723779854621
+      },
+      "21": {
+        "baseline_crps": 0.030049342246009376,
+        "baseline_p10_p90_coverage": 0.8753894080996885,
+        "count": 963,
+        "improvement": -0.10686902555835688,
+        "lower_miss_share": 0.5339366515837104,
+        "mean_width": 0.12943666033110263,
+        "model_crps": 0.033260686170509965,
+        "p10_p90_coverage": 0.770508826583593,
+        "p25_p75_coverage": 0.48701973001038423
+      },
+      "5": {
+        "baseline_crps": 0.015113823779926854,
+        "baseline_p10_p90_coverage": 0.8618899273104881,
+        "count": 963,
+        "improvement": -0.00044904274278281407,
+        "lower_miss_share": 0.5132743362831859,
+        "mean_width": 0.0659919507773051,
+        "model_crps": 0.015120610532810929,
+        "p10_p90_coverage": 0.7653167185877466,
+        "p25_p75_coverage": 0.48494288681204567
+      },
+      "63": {
+        "baseline_crps": 0.05181759765633686,
+        "baseline_p10_p90_coverage": 0.8701973001038421,
+        "count": 963,
+        "improvement": -0.07379207679284785,
+        "lower_miss_share": 0.5,
+        "mean_width": 0.22010277167607115,
+        "model_crps": 0.05564132580181416,
+        "p10_p90_coverage": 0.7300103842159917,
+        "p25_p75_coverage": 0.4714434060228453
+      }
+    }
+  },
+  "content_hash": "834fd2847834a7a02363d9e2bf620fe5395d4e9743b182cc4895a78fd4834497",
+  "protected_non_mutation": {
+    "added": [],
+    "changed": [],
+    "ok": true,
+    "removed": []
+  }
+}
