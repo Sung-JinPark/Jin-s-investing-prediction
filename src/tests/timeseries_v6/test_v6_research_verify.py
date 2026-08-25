@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from pathlib import Path
+
+import pytest
 
 from ai_fc.timeseries_v6.research_backtest import (
     CANDIDATE_IMPLEMENTATION_VERSION,
@@ -16,14 +19,24 @@ from ai_fc.timeseries_v6.research_verify import verify_archive, verify_dataset_p
 ROOT = Path(__file__).resolve().parents[3]
 
 
+def _require_private_partitions(manifest: Path) -> None:
+    if not manifest.exists():
+        pytest.skip("V6 public archive manifest is not available")
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    partitions = payload.get("partitions", [])
+    if not partitions or any(not (ROOT / item["path"]).is_file() for item in partitions):
+        pytest.skip("V6 private Parquet archive is not distributed in the Git checkout")
+
+
 def _dataset():
-    return build_research_dataset(ROOT, ROOT / "data/timeseries_v6/manifests/public_archive_latest.json")
+    manifest = ROOT / "data/timeseries_v6/manifests/public_archive_latest.json"
+    _require_private_partitions(manifest)
+    return build_research_dataset(ROOT, manifest)
 
 
 def test_archive_bytes_receipts_observations_and_pit_are_independently_reopened() -> None:
     manifest = ROOT / "data/timeseries_v6/manifests/public_archive_latest.json"
-    if not manifest.exists():
-        return
+    _require_private_partitions(manifest)
     archive = verify_archive(ROOT, manifest)
     dataset = _dataset()
     pit = verify_dataset_pit(dataset)
