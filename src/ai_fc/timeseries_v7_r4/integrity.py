@@ -101,12 +101,23 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
         acceptance = result.get("acceptance_results")
         if not isinstance(commands, list) or not commands:
             errors.append("missing_command_evidence")
-        elif any(
-            item.get("return_code") != 0
-            and not (item.get("phase") == "red_test" and item.get("expected_failure"))
-            for item in commands if isinstance(item, dict)
-        ):
-            errors.append("command_failed")
+        else:
+            failed_commands = []
+            for index, item in enumerate(commands):
+                if not isinstance(item, dict) or item.get("return_code") == 0:
+                    continue
+                explicit_red = item.get("phase") == "red_test" and item.get("expected_failure")
+                command = item.get("command")
+                repaired_red = bool(command) and any(
+                    isinstance(later, dict)
+                    and later.get("command") == command
+                    and later.get("return_code") == 0
+                    for later in commands[index + 1:]
+                )
+                if not explicit_red and not repaired_red:
+                    failed_commands.append(command or f"command[{index}]")
+            if failed_commands:
+                errors.append("command_failed")
         if not isinstance(tests, list) or not tests:
             errors.append("missing_test_evidence")
         elif any(item.get("passed") is not True for item in tests

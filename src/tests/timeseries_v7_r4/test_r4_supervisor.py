@@ -195,6 +195,21 @@ def test_expected_red_test_is_valid_command_evidence():
     assert validate_child_result(payload, require_evidence=True) == []
 
 
+def test_red_then_green_same_command_is_valid_evidence():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "SUCCEEDED", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": True,
+               "commands": [
+                   {"command": "pytest targeted", "return_code": 1},
+                   {"command": "pytest targeted", "return_code": 0},
+                   {"command": "pytest suite", "return_code": 0},
+               ],
+               "tests": [{"name": "suite", "passed": True}],
+               "acceptance_results": [{"criterion": "fixed", "passed": True}]}
+    assert validate_child_result(payload, require_evidence=True) == []
+
+
 def test_dispatch_allowlist_is_r4_only():
     allowed = list(DEFAULT_ALLOWED_PATHS)
     assert CodexDispatcher._path_allowed(

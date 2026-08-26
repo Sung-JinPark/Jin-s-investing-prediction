@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-D1-003",
+  "attempt_id": "R4-D1-003-af338e324de1a",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T01:34:00Z",
+  "completed_at": "2026-08-26T01:36:43.3415251Z",
+  "duration_seconds": 163,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_feature_provenance.py -q",
+      "phase": "red_test",
+      "expected_failure": true,
+      "return_code": 1,
+      "stdout_sha256": "73f01ee0658f902c34ecf2ad42392c48acd11bd22eef53838b04959db8e06784",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_feature_provenance.py -q",
+      "return_code": 0,
+      "stdout_sha256": "3f16a0775121cabe6507b9144545c6bd09e93a00454cc938a6f6cd271c15c76d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "return_code": 0,
+      "stdout_sha256": "3f16a0775121cabe6507b9144545c6bd09e93a00454cc938a6f6cd271c15c76d",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/feature_provenance.py",
+    "src/tests/timeseries_v7_r4/test_feature_provenance.py"
+  ],
+  "tests": [
+    {
+      "name": "feature_provenance_adversarial_tests",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_feature_provenance.py",
+      "sha256": "73f01ee0658f902c34ecf2ad42392c48acd11bd22eef53838b04959db8e06784"
+    },
+    {
+      "name": "timeseries_v7_r4_targeted_suite",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "sha256": "3f16a0775121cabe6507b9144545c6bd09e93a00454cc938a6f6cd271c15c76d"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "every active origin-feature value has source revision and max_available_at",
+      "passed": true,
+      "evidence": "FeatureValueProvenance rejects empty or misaligned observation, revision, and available-at lineage and requires max_available_at to equal the exact source maximum."
+    },
+    {
+      "criterion": "PIT invariant passes for 100 percent of active features",
+      "passed": true,
+      "evidence": "FeatureProvenanceMatrix validates every row fail-closed and reports pit_pass_rate=1.0 only when every active max_available_at is at or before its frozen origin_cutoff_at."
+    },
+    {
+      "criterion": "date-only vintages cannot enter same session",
+      "passed": true,
+      "evidence": "Date-only vintage dates at or after origin_session are rejected until a later eligible session."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/feature_provenance.py",
+      "sha256": "3f16a0775121cabe6507b9144545c6bd09e93a00454cc938a6f6cd271c15c76d",
+      "bytes": 4125
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_feature_provenance.py",
+      "sha256": "73f01ee0658f902c34ecf2ad42392c48acd11bd22eef53838b04959db8e06784",
+      "bytes": 2364
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
