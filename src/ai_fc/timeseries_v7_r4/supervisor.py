@@ -413,7 +413,10 @@ class Supervisor:
 
     def _validate_task_semantics(self, lease: Lease, result: dict[str, Any]) -> dict[str, Any]:
         """Enforce task-specific architectural acceptance beyond child-written tests."""
-        if result.get("status") != "SUCCEEDED":
+        terminal_review = (
+            lease.task_key == "R4-A5-006" and result.get("status") == "REVIEW_PROPOSAL"
+        )
+        if result.get("status") != "SUCCEEDED" and not terminal_review:
             return result
         if lease.task_key == "R4-D1-002":
             implementation = (
@@ -1748,6 +1751,100 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["g3_generation_integrity"]
+        if lease.task_key == "R4-A5-006":
+            artifact_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-A5-006/terminal/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            g3_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-S4-006/g3/acceptance_summary.json"
+            )
+            v8_path = self.context.repo / "docs/timeseries_v7_r4/V8_OPEN_DATA_CHALLENGER_PROPOSAL.md"
+            g3: dict[str, Any] = {}
+            if g3_path.is_file():
+                try:
+                    g3 = json.loads(g3_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    g3 = {}
+            components = g3.get("components") if isinstance(g3.get("components"), list) else []
+            no_regret_fallback = bool(components) and all(
+                isinstance(item, dict)
+                and finite_number(item.get("oos_stacking_advantage"))
+                and float(item["oos_stacking_advantage"]) <= 0
+                and item.get("admitted") is False
+                and item.get("weight") == 0
+                for item in components
+            ) and g3.get("e0_anchor_weight") == 1.0
+            expected_dependencies = {
+                "R4-S4-006", "R4-A5-001", "R4-A5-002", "R4-A5-003",
+                "R4-A5-004", "R4-A5-005",
+            }
+            completed_dependencies = payload.get("completed_dependencies")
+            dependencies_bound = (
+                isinstance(completed_dependencies, list)
+                and set(completed_dependencies) == expected_dependencies
+                and all(any((self.context.repo
+                             / f"outputs/timeseries_v7_r4/task_results/{task_key}").glob("*.json"))
+                        for task_key in expected_dependencies)
+            )
+            checks = {
+                "registered_terminal_schema": (
+                    payload.get("schema") == "r4_autonomous_terminal_v1"
+                    and payload.get("terminal_state") == "REVIEW_PROPOSAL"
+                ),
+                "g3_hold_content_bound": (
+                    g3_path.is_file()
+                    and payload.get("g3_acceptance_sha256") == sha256_file(g3_path)
+                    and g3.get("decision") == "HOLD_RESEARCH_GATE"
+                    and g3.get("research_gate_pass") is False
+                ),
+                "no_regret_fallback_preserved": no_regret_fallback,
+                "dependencies_completed": dependencies_bound,
+                "not_mislabeled_wait_data_or_hard_block": (
+                    payload.get("data_deficit") is False
+                    and payload.get("hard_block") is False
+                    and payload.get("model_gate_state") == "HOLD_RESEARCH_GATE"
+                ),
+                "v8_is_unapproved_human_review_proposal": (
+                    v8_path.is_file()
+                    and payload.get("v8_proposal_sha256") == sha256_file(v8_path)
+                    and payload.get("v8_proposal_status") == "PROPOSED_NOT_APPROVED"
+                ),
+                "protected_manifest_bound": (
+                    payload.get("protected_manifest_sha256")
+                    == protected_manifest(self.context.repo)["manifest_sha256"]
+                ),
+                "ordinary_gate_failure_replanned": (
+                    payload.get("ordinary_gate_failure_created_replan_tasks") is True
+                ),
+                "terminal_result_contract": (
+                    result.get("status") == "REVIEW_PROPOSAL"
+                    and result.get("supervisor_should_continue") is False
+                    and result.get("child_worker_started_another_task") is False
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "autonomous_loop_reaches_honest_review_terminal",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["supervisor_should_continue"] = True
+                result["blocker_signature"] = "TERMINAL_REVIEW_RECEIPT_INCOMPLETE"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "content-bound REVIEW_PROPOSAL after G3 HOLD, with no data deficit or hard "
+                        "block and no unapproved V8 execution"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["terminal_governance_integrity"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
@@ -1811,7 +1908,12 @@ class Supervisor:
         )._validate_task_semantics(
             lease, json.loads(json.dumps(dispatched.result)),
         )
-        if candidate_result.get("status") != "SUCCEEDED":
+        accepted_candidate = (
+            candidate_result.get("status") == "SUCCEEDED"
+            or (lease.task_key == "R4-A5-006"
+                and candidate_result.get("status") == "REVIEW_PROPOSAL")
+        )
+        if not accepted_candidate:
             dispatcher.cleanup(dispatched, merged=False)
             return candidate_result
         merge = subprocess.run(

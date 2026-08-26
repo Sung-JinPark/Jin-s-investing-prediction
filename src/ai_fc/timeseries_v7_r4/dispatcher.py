@@ -259,6 +259,21 @@ class CodexDispatcher:
                 "research_gate_pass and decision honestly; Gate failure is HOLD_RESEARCH_GATE and a "
                 "replan outcome, not a process error. Do not claim promotion."
             )
+        if envelope.get("task_key") == "R4-A5-006":
+            qualification_instruction += (
+                " This is the terminal controller task, not another model experiment. Read the "
+                "accepted G3 receipt and write outputs/timeseries_v7_r4/R4-A5-006/terminal/"
+                "acceptance_summary.json with schema=r4_autonomous_terminal_v1. Bind the exact G3 "
+                "receipt SHA-256, the unchanged protected manifest, and the V8 proposal SHA-256. "
+                "Record research_gate_pass=false, model_gate_state=HOLD_RESEARCH_GATE, "
+                "data_deficit=false, hard_block=false, and completed_dependencies containing "
+                "R4-S4-006 plus R4-A5-001 through R4-A5-005. Record that the ordinary Gate failure "
+                "created replan tasks and that every preregistered R4 stress component without "
+                "positive calibration OOS advantage received weight zero. Because the next action "
+                "is an unapproved V8 contract proposal requiring human review, the final result "
+                "status and terminal_state must both be REVIEW_PROPOSAL, not SUCCEEDED or WAIT_DATA. "
+                "Emit complete artifact hashes and tests; do not start another task."
+            )
         if str(envelope.get("task_key", "")).startswith("R4-S4-"):
             qualification_instruction += (
                 " All S4 mechanism fitting and screening must use the authoritative R4 snapshot's "
@@ -299,7 +314,10 @@ class CodexDispatcher:
             "must have passed=true; preserve an expected TDD red-test failure in commands, not as a "
             "passed=false final test entry. "
             "The final result must include child_worker_started_another_task=false and "
-            "supervisor_should_continue=true so the parent, not the child, owns continuation. "
+            + ("supervisor_should_continue=false because this terminal task returns control for "
+               "human review. " if envelope.get("task_key") == "R4-A5-006" else
+               "supervisor_should_continue=true so the parent, not the child, owns continuation. ")
+            +
             "Return only a JSON object matching the R4 "
             "result contract. The final JSON must echo these envelope identity fields exactly: "
             + canonical_json(identity).decode("utf-8")

@@ -1434,6 +1434,35 @@ def test_codex_dispatch_prompt_requires_machine_result_keys():
     assert "tests array contains final validation outcomes only" in prompt
 
 
+def test_codex_dispatch_prompt_requires_honest_terminal_review():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "run", "cycle_id": "cycle", "task_key": "R4-A5-006",
+        "attempt_id": "attempt",
+    })
+    assert "schema=r4_autonomous_terminal_v1" in prompt
+    assert "status and terminal_state must both be REVIEW_PROPOSAL" in prompt
+    assert "data_deficit=false" in prompt
+    assert "supervisor_should_continue=false" in prompt
+
+
+def test_a5_006_fails_closed_without_terminal_receipt(control, tmp_path):
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-A5-006", "attempt", "token", "terminal", {}),
+        {"status": "REVIEW_PROPOSAL", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": [],
+         "child_worker_started_another_task": False,
+         "supervisor_should_continue": False},
+    )
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "TERMINAL_REVIEW_RECEIPT_INCOMPLETE"
+
+
 def test_gate_deficit_router_is_deterministic():
     router = GateDeficitRouter.from_yaml(
         ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")
