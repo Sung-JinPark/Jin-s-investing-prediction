@@ -1,8 +1,26 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 from ai_fc.timeseries_v7_r4.stacking_calibration_generation import generate_stacking_calibration
+
+
+def test_r4_m3_007_verification_receipt_binds_identity_and_real_evidence():
+    repo = Path(__file__).resolve().parents[3]
+    output_dir = repo / "outputs" / "timeseries_v7_r4" / "R4-M3-007"
+    receipt = json.loads((output_dir / "verification_receipt.json").read_bytes())
+    evidence = json.loads((output_dir / "stacking_calibration.json").read_bytes())
+
+    assert receipt["run_id"] == "v7r4-20260826T003326Z"
+    assert receipt["cycle_id"] == "v7r4-20260826T003326Z-c001"
+    assert receipt["task_key"] == "R4-M3-007"
+    assert receipt["attempt_id"] == "R4-M3-007-a510c055aff03"
+    assert receipt["status"] == "SUCCEEDED"
+    assert receipt["outer_rows_used"] == evidence["outer_rows_used"] == 0
+    assert receipt["evidence_snapshot_hash"] == evidence["source"]["r4_snapshot_hash"]
+    assert receipt["exact_e0_comparator"] == evidence["source"]["e0_mean_crps"]
+    assert receipt["checkpoint_count"] == len(evidence["horizons"]) == 4
 
 
 def test_generation_uses_disjoint_roles_and_keeps_only_compact_hashes(tmp_path):

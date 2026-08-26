@@ -1,0 +1,23 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "task_key": "R4-M3-007",
+  "attempt_id": "R4-M3-007-a510c055aff03",
+  "status": "SUCCEEDED",
+  "evidence_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+  "evidence_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+  "exact_e0_comparator": 0.0187453537909802,
+  "checkpoint_count": 4,
+  "outer_rows_used": 0,
+  "model_gate_executed": false,
+  "acceptance": {
+    "horizon_specific_mixture_crps_weights_learned_on_stacking_fold": true,
+    "cross_fit_calibration_applied_on_calibration_fold": true,
+    "e0_no_regret_guard_passes": true
+  },
+  "protected_manifest_sha256": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true
+}
