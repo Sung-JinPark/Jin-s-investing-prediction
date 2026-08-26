@@ -24,9 +24,14 @@ def main() -> int:
     evidence = compute_gate_evidence(pq.read_table(matrix_path).to_pylist())
     revision = dict(original)
     revision.update(evidence)
-    revision["schema"] = "r4_core_qualification_v1_revision_2"
-    revision["supersedes_sha256"] = sha256_file(original_path)
-    revision["correction_scope"] = "deficit_vector_taxonomy_only_scores_unchanged"
+    prior_path = output / "qualification_revision_2.json"
+    revision["schema"] = "r4_core_qualification_v1_revision_3"
+    revision["supersedes_sha256"] = sha256_file(prior_path)
+    revision["correction_scope"] = "gate_methodology_only_scores_unchanged"
+    revision["research_gate_pass"] = False
+    revision["identity"]["evaluation_coordinate_grid_hash"] = (
+        "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8"
+    )
     routed = GateDeficitRouter.from_yaml(REPO_ROOT / "data/timeseries_v7_r4/ralph/spec/"
                                          "NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml").route(
         evidence["gate_deficit_vector"],
@@ -34,7 +39,9 @@ def main() -> int:
         code_hash=revision["identity"]["g2_artifact_sha256"],
         runtime_hash=revision["identity"]["g1_artifact_sha256"])
     revision["routed_tasks"] = [task.__dict__ for task in routed]
-    target = output / "qualification_revision_2.json"
+    target = output / "qualification_revision_3.json"
+    if target.exists():
+        raise FileExistsError(f"append-only qualification revision already exists: {target}")
     target.write_bytes(canonical_json(revision) + b"\n")
     print(target)
     return 0

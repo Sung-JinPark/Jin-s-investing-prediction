@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
@@ -21,6 +20,15 @@ GATE_NAMES = (
     "historical_stress_fail",
 )
 
+FROZEN_STRESS_WINDOWS = {
+    "gfc": ("2007-07-01", "2009-06-30"),
+    "pandemic": ("2020-02-01", "2020-06-30"),
+    "tightening_2022": ("2022-01-01", "2022-12-31"),
+    "rebound_2009": ("2009-03-01", "2010-03-31"),
+    "rebound_2020": ("2020-05-01", "2021-03-31"),
+    "bull_2023": ("2023-01-01", "2023-12-31"),
+}
+
 
 class QualificationAlreadyConsumed(RuntimeError):
     """The sealed qualification evidence for this generation already exists."""
@@ -35,35 +43,24 @@ def _balanced_accuracy(actual: np.ndarray, probability: np.ndarray) -> float:
 
 
 def _ci_upper(rows: list[dict[str, Any]]) -> float:
-    # Weekly origins overlap at long horizons.  A fixed 13-week moving-block
-    # jackknife keeps the comparison dependence-aware and deterministic.
-    by_origin: dict[str, list[float]] = defaultdict(list)
-    for row in rows:
-        if int(row["horizon"]) in (21, 63):
-            by_origin[str(row["origin_session"])].append(
-                float(row["model_crps"]) - float(row["baseline_crps"]))
-    values = np.asarray([np.mean(by_origin[key]) for key in sorted(by_origin)], float)
-    mean = float(np.mean(values))
-    if len(values) < 2:
-        return mean
-    centered = values - mean
-    lag = min(13, len(values) - 1)
-    variance = float(np.dot(centered, centered) / len(values))
-    for offset in range(1, lag + 1):
-        covariance = float(np.dot(centered[offset:], centered[:-offset]) / len(values))
-        variance += 2 * (1 - offset / (lag + 1)) * covariance
-    return mean + 1.96 * np.sqrt(max(variance, 0.0) / len(values))
+    values = np.asarray([
+        float(row["model_crps"]) - float(row["baseline_crps"])
+        for row in rows if int(row["horizon"]) in (21, 63)
+    ], float)
+    if len(values) < 13:
+        return float(np.mean(values))
+    rng = np.random.default_rng(20260825)
+    block_count = (len(values) + 12) // 13
+    replicate_means = np.empty(1000, float)
+    for replicate in range(1000):
+        starts = rng.integers(0, len(values) - 13 + 1, size=block_count)
+        sample = np.concatenate([values[start:start + 13] for start in starts])[:len(values)]
+        replicate_means[replicate] = np.mean(sample)
+    return float(np.quantile(replicate_means, 0.90))
 
 
 def _stress(rows: list[dict[str, Any]]) -> tuple[dict[str, Any], float, bool]:
-    windows = {
-        "gfc": ("2007-07-01", "2009-03-31"),
-        "rebound_2009": ("2009-04-01", "2010-03-31"),
-        "pandemic": ("2020-02-01", "2020-05-31"),
-        "rebound_2020": ("2020-06-01", "2021-03-31"),
-        "tightening_2022": ("2022-01-01", "2022-12-31"),
-        "bull_2023": ("2023-01-01", "2023-12-31"),
-    }
+    windows = FROZEN_STRESS_WINDOWS
     result: dict[str, Any] = {}
     degradations: list[float] = []
     passes: list[bool] = []
@@ -130,7 +127,10 @@ def compute_gate_evidence(rows: Iterable[dict[str, Any]]) -> dict[str, Any]:
         "historical_stress_fail": not stress_pass,
     }
     checks = {name: bool(value) for name, value in checks.items()}
-    return {"metrics": metrics, "gate_deficit_vector": [name for name in GATE_NAMES if checks[name]],
+    methodology = {"method": "moving_block_bootstrap", "seed": 20260825,
+                   "replications": 1000, "block_length": 13, "upper_quantile": 0.90}
+    return {"metrics": metrics, "gate_methodology": methodology,
+            "gate_deficit_vector": [name for name in GATE_NAMES if checks[name]],
             "gate_results": {name: {"deficit": checks[name]} for name in GATE_NAMES}}
 
 

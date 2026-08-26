@@ -5,8 +5,38 @@ from pathlib import Path
 from ai_fc.timeseries_v7_r4.core_qualification import (
     GATE_NAMES,
     QualificationAlreadyConsumed,
+    compute_gate_evidence,
     qualify_once,
 )
+
+
+def test_frozen_score_matrix_uses_registered_v7_gate_method():
+    import pyarrow.parquet as pq
+
+    rows = pq.read_table(
+        "outputs/timeseries_v7_r4/R4-M3-008/score_matrix.parquet"
+    ).to_pylist()
+    evidence = compute_gate_evidence(rows)
+
+    assert evidence["gate_methodology"] == {
+        "method": "moving_block_bootstrap",
+        "seed": 20260825,
+        "replications": 1000,
+        "block_length": 13,
+        "upper_quantile": 0.90,
+    }
+    assert evidence["metrics"]["paired_ci_upper"] == 0.0006826855070338302
+    assert {
+        name: (value["count"], value["coverage80"])
+        for name, value in evidence["metrics"]["historical_stress"].items()
+    } == {
+        "gfc": (416, 0.7668269230769231),
+        "pandemic": (84, 0.4523809523809524),
+        "tightening_2022": (208, 0.6394230769230769),
+        "rebound_2009": (224, 0.8660714285714286),
+        "rebound_2020": (192, 0.7552083333333334),
+        "bull_2023": (208, 0.8942307692307693),
+    }
 
 
 def test_qualification_is_once_only_complete_and_routes_gate_failure(tmp_path):
