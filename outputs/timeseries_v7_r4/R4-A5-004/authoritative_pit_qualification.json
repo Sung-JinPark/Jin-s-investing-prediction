@@ -1,0 +1,15 @@
+{
+  "all_weights_zero": true,
+  "authoritative_pack_qualified": true,
+  "authoritative_pack_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "frozen_v7_coordinates_unchanged": true,
+  "official_gate_eligible": false,
+  "pit_and_terms_receipts_complete": true,
+  "pit_violations": 0,
+  "receipt_count": 23,
+  "receipt_terminal_outcome_rate": 1.0,
+  "run_id": "v7-alfred-20260825T083047Z",
+  "schema_version": 1,
+  "source_count": 9,
+  "v8_proposal_required": true
+}

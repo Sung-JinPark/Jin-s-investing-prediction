@@ -1,0 +1,18 @@
+{
+  "contract_version": "open-data-challenger-v1",
+  "lane": "research_only",
+  "frozen_v7_coordinates_unchanged": true,
+  "v8_proposal_required": true,
+  "v8_proposal_path": "docs/timeseries_v7_r4/V8_OPEN_DATA_CHALLENGER_PROPOSAL.md",
+  "sources": [
+    {"source_id":"bls_release_revision","pit_grade":"RELEASE_AND_REVISION_TIMESTAMPS_REQUIRED","license_receipt":"BLS-PUBLIC-DOMAIN","terms_receipt":"https://www.bls.gov/bls/linksite.htm","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"bea","pit_grade":"RELEASE_AND_VINTAGE_REQUIRED","license_receipt":"BEA-PUBLIC-DOMAIN","terms_receipt":"https://apps.bea.gov/api/signup/","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"census_economic_indicators","pit_grade":"RELEASE_AND_REVISION_TIMESTAMPS_REQUIRED","license_receipt":"CENSUS-PUBLIC-DOMAIN","terms_receipt":"https://www.census.gov/data/developers/about/terms-of-service.html","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"treasury_nominal_real_curve","pit_grade":"OBSERVATION_PUBLICATION_TIME_REQUIRED","license_receipt":"TREASURY-PUBLIC-DATA","terms_receipt":"https://home.treasury.gov/utility/policies-and-links","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"new_york_fed_liquidity_rates","pit_grade":"OBSERVATION_PUBLICATION_TIME_REQUIRED","license_receipt":"NYFED-PUBLIC-DATA","terms_receipt":"https://www.newyorkfed.org/terms","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"sec_edgar_fundamental_revisions","pit_grade":"FILING_ACCEPTANCE_TIME_REQUIRED","license_receipt":"SEC-PUBLIC-DATA","terms_receipt":"https://www.sec.gov/about/webmaster-frequently-asked-questions","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"ofr_fsi","pit_grade":"RELEASE_TIMESTAMP_REQUIRED","license_receipt":"OFR-PUBLIC-DATA","terms_receipt":"https://www.financialresearch.gov/terms-of-use/","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"cboe_volatility_indices","pit_grade":"OBSERVATION_PUBLICATION_TIME_REQUIRED","license_receipt":"CBOE-TERMS-REVIEW-REQUIRED","terms_receipt":"https://www.cboe.com/terms/","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false},
+    {"source_id":"cftc_positioning","pit_grade":"RELEASE_TIMESTAMP_REQUIRED","license_receipt":"CFTC-PUBLIC-DOMAIN","terms_receipt":"https://www.cftc.gov/WebPolicy/index.htm","preregistered":false,"validated":false,"weight":0.0,"official_gate_eligible":false}
+  ]
+}
