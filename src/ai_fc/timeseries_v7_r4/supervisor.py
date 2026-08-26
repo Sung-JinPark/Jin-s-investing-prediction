@@ -121,6 +121,7 @@ class Supervisor:
                 self.control.database_url,
                 snapshot_hash=R4_QUALIFIED_SNAPSHOT_HASH,
                 output=output,
+                require_five_role=True,
             )
             artifacts.append({
                 **receipt,
@@ -931,6 +932,14 @@ class Supervisor:
                 set(role_hashes) == {"train", "selection", "stacking", "calibration", "outer"}
                 and all(isinstance(value, str) and len(value) == 64
                         for value in role_hashes.values())
+                and isinstance(role_receipt.get("role_counts"), dict)
+                and all(isinstance(role_receipt["role_counts"].get(role), int)
+                        and role_receipt["role_counts"][role] > 0
+                        for role in ("train", "selection", "stacking", "calibration", "outer"))
+                and isinstance(role_receipt.get("plan_hash"), str)
+                and len(role_receipt["plan_hash"]) == 64
+                and isinstance(role_receipt.get("excluded_count"), int)
+                and role_receipt["excluded_count"] > 0
                 and role_receipt.get("interval_overlap_count") == 0
                 and role_receipt.get("purge_unit") == "xnas_sessions"
                 and role_receipt.get("outer_exposed_during_screen") is False

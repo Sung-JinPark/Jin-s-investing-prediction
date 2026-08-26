@@ -475,6 +475,31 @@ def test_runtime_snapshot_export_is_credential_free(control, tmp_path):
     assert "postgresql://" not in output.read_text(encoding="utf-8").lower()
 
 
+def test_five_role_export_has_nonempty_roles_and_session_gaps():
+    from ai_fc.timeseries_v7_r4.runtime_snapshot_export import (
+        FIVE_ROLE_RETAINED_COUNTS, _five_role_plan,
+    )
+
+    total = sum(FIVE_ROLE_RETAINED_COUNTS.values()) + 525
+    origins = [f"{2000 + index // 360:04d}-{index % 12 + 1:02d}-{index % 28 + 1:02d}"
+               for index in range(total)]
+    # The helper requires unique ordered session identifiers; synthetic ordinal
+    # prefixes make the ordering contract explicit without a market calendar.
+    origins = [f"{index:05d}" for index in range(total)]
+    features = [{"origin_session": origin} for origin in origins]
+    labels = [{"origin_session": origin, "horizon_sessions": horizon}
+              for origin in origins for horizon in (1, 5, 21, 63)]
+
+    plan = _five_role_plan(features, labels)
+
+    assert plan is not None
+    assert plan["role_counts"] == FIVE_ROLE_RETAINED_COUNTS
+    assert all(plan["role_origins"][role] for role in plan["role_order"])
+    assert min(plan["gap_counts"]) >= plan["purge_sessions"] + plan["embargo_sessions"]
+    assert plan["excluded_count"] == 525
+    assert len(plan["plan_hash"]) == 64
+
+
 def test_d1_006_rejects_single_feature_snapshot_as_multivariate_pit(
     control, tmp_path,
 ):
