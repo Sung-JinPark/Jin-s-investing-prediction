@@ -1237,6 +1237,39 @@ def test_run_state_update(control):
     assert status["state"] == "WAIT_DATA" and status["terminal_reason"]["required"] == 1
 
 
+def test_wait_data_report_persists_quantified_wake_and_resume_is_single_execution(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"id": "evidence-task", "title": "evidence task"}])
+    with control.connect() as conn:
+        conn.execute(
+            "UPDATE timeseries_v7_r4.tasks SET state='WAIT_DATA' WHERE run_id=%s",
+            (run_id,),
+        )
+        conn.commit()
+
+    report = control.wait_data_report(run_id)
+    control.set_run_state(run_id, "WAIT_DATA", report)
+    persisted = control.status(run_id)["terminal_reason"]
+    assert persisted["evidence"] == {"current": 0, "required": 1}
+    assert persisted["wake_conditions"] == ["COLLECTION_RECEIPT", "MATURE_LABEL"]
+
+    wake = control.wake_wait_data(
+        run_id, evidence_kind="COLLECTION_RECEIPT", evidence_hash="d" * 64,
+        available_at=datetime(2026, 8, 25, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 26, tzinfo=timezone.utc),
+    )
+    assert wake["woken"] is True
+    lease = control.claim(run_id, "resume-worker", 30)
+    assert lease is not None
+    assert control.finish(lease, "resume-worker", result(lease), "SUCCEEDED")
+    assert control.claim(run_id, "resume-worker", 30) is None
+    assert control.wake_wait_data(
+        run_id, evidence_kind="COLLECTION_RECEIPT", evidence_hash="d" * 64,
+        available_at=datetime(2026, 8, 25, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 26, tzinfo=timezone.utc),
+    )["woken"] is False
+
+
 def test_finished_task_not_reclaimed(control):
     run_id = make_run(control)
     control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])

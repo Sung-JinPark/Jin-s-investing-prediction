@@ -685,6 +685,31 @@ class PostgresControlPlane:
             return None
         return max(0.0, float(row[0]))
 
+    def wait_data_report(self, run_id: str) -> dict[str, Any]:
+        """Describe the next durable PIT evidence needed to wake a waiting run."""
+        with self.connect() as conn:
+            run = conn.execute(
+                "SELECT 1 FROM timeseries_v7_r4.runs WHERE run_id=%s", (run_id,),
+            ).fetchone()
+            if run is None:
+                raise KeyError(run_id)
+            evidence_count = conn.execute(
+                "SELECT count(*) FROM timeseries_v7_r4.wake_evidence WHERE run_id=%s",
+                (run_id,),
+            ).fetchone()[0]
+            task_counts = conn.execute(
+                "SELECT state,count(*) FROM timeseries_v7_r4.tasks"
+                " WHERE run_id=%s GROUP BY state", (run_id,),
+            ).fetchall()
+        current = int(evidence_count)
+        return {
+            "reason": "no eligible tasks; awaiting new point-in-time evidence",
+            "evidence": {"current": current, "required": current + 1},
+            "wake_conditions": ["COLLECTION_RECEIPT", "MATURE_LABEL"],
+            "task_counts": {state: count for state, count in task_counts},
+            "wake_rule": "available_at must be on or before observed_at and evidence identity must be new",
+        }
+
     def finish(self, lease: Lease, worker_id: str, result: dict[str, Any], state: str) -> bool:
         blob = canonical_json(result)
         with self.connect() as conn:

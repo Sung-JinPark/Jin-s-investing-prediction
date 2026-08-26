@@ -1900,10 +1900,9 @@ class Supervisor:
                     })
                     time.sleep(min(max(retry_backoff, 0.1), 5.0))
                     continue
-                self.control.set_run_state(run_id, "WAIT_DATA", {
-                    "reason": "no eligible tasks", "current": 0, "required": 1,
-                    "wake_trigger": "new eligible task or dependency completion",
-                })
+                self.control.set_run_state(
+                    run_id, "WAIT_DATA", self.control.wait_data_report(run_id),
+                )
                 return 0
             heartbeat_stop = threading.Event()
             heartbeat_interval = max(1.0, lease_seconds / 3)
