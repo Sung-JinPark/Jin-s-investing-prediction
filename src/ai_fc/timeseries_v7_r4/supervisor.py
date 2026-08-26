@@ -356,6 +356,41 @@ class Supervisor:
         result["supervisor_should_continue"] = False
         return result
 
+    def _validate_task_semantics(self, lease: Lease, result: dict[str, Any]) -> dict[str, Any]:
+        """Enforce task-specific architectural acceptance beyond child-written tests."""
+        if result.get("status") != "SUCCEEDED":
+            return result
+        if lease.task_key == "R4-D1-002":
+            implementation = (
+                self.context.repo / "src/ai_fc/timeseries_v7_r4/fred_vintages.py"
+            ).read_text(encoding="utf-8")
+            migration = (
+                self.context.repo / "migrations/timeseries_v7_r4/001_control_plane.sql"
+            ).read_text(encoding="utf-8")
+            checks = {
+                "production_has_no_sqlite": "sqlite3" not in implementation,
+                "postgres_revision_table": "timeseries_v7_r4.fred_revisions" in migration,
+                "postgres_cursor_table": "timeseries_v7_r4.fred_cursors" in migration,
+                "psycopg_transaction_path": (
+                    "psycopg" in implementation or "%s" in implementation
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "authoritative_postgres_vintage_cursor",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "AUTHORITATIVE_POSTGRES_ACCEPTANCE_FAILED"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": "production PostgreSQL revision and cursor transaction",
+                }]
+                result["recommended_router_deficits"] = ["engineering_fix"]
+        return result
+
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
         allowed_paths = lease.payload.get("allowed_paths") or list(DEFAULT_ALLOWED_PATHS)
         envelope = {
@@ -369,7 +404,9 @@ class Supervisor:
             "input_artifacts": [],
             "allowed_paths": allowed_paths,
             "protected_manifest_sha256": protected_manifest(self.context.repo)["manifest_sha256"],
-            "secret_isolation": True, "diagnostic": lease.payload.get("diagnostic", ""),
+            "secret_isolation": True,
+            "diagnostic": (lease.payload.get("diagnostic")
+                           or lease.payload.get("retry_blocker", "")),
             "action": lease.payload.get("action", "implement"),
             "required_actions": (lease.payload.get("required_actions")
                                  or [lease.payload.get("action", "implement")]),
@@ -433,7 +470,7 @@ class Supervisor:
                          "changed_paths": list(dispatched.changed_paths)},
         })
         dispatcher.cleanup(dispatched, merged=True)
-        return result
+        return self._validate_task_semantics(lease, result)
 
     def execute(self, lease: Lease) -> dict[str, Any]:
         started = time.monotonic()

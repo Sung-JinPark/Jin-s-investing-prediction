@@ -142,7 +142,10 @@ class CodexDispatcher:
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
             "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
             "smallest coherent patch, and run targeted tests with the frozen Python executable in "
-            "the envelope. Do not commit or run git worktree commands. Return only a JSON object "
+            "the envelope. PostgreSQL is the authoritative durable store; SQLite may appear only in "
+            "disposable unit-test fixtures and must not back production R4 ingestion, control, model, "
+            "or Gate state. Preserve point-in-time available_at semantics and all frozen research "
+            "coordinates. Do not commit or run git worktree commands. Return only a JSON object "
             "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )
         command = [self.executable(), "exec", "--ephemeral", "--ignore-user-config",

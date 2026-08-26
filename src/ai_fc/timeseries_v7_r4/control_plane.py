@@ -241,6 +241,66 @@ class PostgresControlPlane:
             conn.commit()
         return woken
 
+    def correct_task_acceptance(self, run_id: str, task_key: str, *,
+                                reason: str, evidence: dict[str, Any]) -> dict[str, Any]:
+        """Append an acceptance correction without rewriting the accepted attempt."""
+        correction_id = f"{run_id}:{task_key}:{sha256_bytes(reason.encode('utf-8'))[:16]}"
+        with self.connect() as conn:
+            existing = conn.execute(
+                "SELECT payload FROM timeseries_v7_r4.events WHERE run_id=%s"
+                " AND event_type='TASK_ACCEPTANCE_CORRECTION_APPENDED'"
+                " AND payload->>'correction_id'=%s ORDER BY event_id DESC LIMIT 1",
+                (run_id, correction_id),
+            ).fetchone()
+            if existing is not None:
+                return dict(existing[0])
+            task = conn.execute(
+                "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s AND task_key=%s"
+                " FOR UPDATE", (run_id, task_key),
+            ).fetchone()
+            if task is None:
+                raise KeyError((run_id, task_key))
+            if task[0] != "SUCCEEDED":
+                raise RuntimeError(f"acceptance correction requires SUCCEEDED task, got {task[0]}")
+            attempt = conn.execute(
+                "SELECT attempt_id,result_hash FROM timeseries_v7_r4.attempts"
+                " WHERE run_id=%s AND task_key=%s AND state='SUCCEEDED'"
+                " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
+            ).fetchone()
+            if attempt is None:
+                raise RuntimeError("accepted task lacks preserved successful attempt")
+            payload = {
+                "schema_version": 1,
+                "correction_id": correction_id,
+                "task_key": task_key,
+                "supersedes_attempt_id": attempt[0],
+                "supersedes_result_hash": attempt[1],
+                "original_state": "SUCCEEDED",
+                "corrected_state": "RETRY_WAIT",
+                "reason": reason,
+                "evidence": evidence,
+                "original_attempt_preserved": True,
+            }
+            blob = canonical_json(payload)
+            conn.execute(
+                "INSERT INTO timeseries_v7_r4.events"
+                " (run_id,event_type,task_key,payload,payload_hash)"
+                " VALUES (%s,'TASK_ACCEPTANCE_CORRECTION_APPENDED',%s,%s::jsonb,%s)",
+                (run_id, task_key, blob.decode("utf-8"), sha256_bytes(blob)),
+            )
+            conn.execute(
+                "UPDATE timeseries_v7_r4.tasks SET state='RETRY_WAIT',"
+                " blocker_signature='AUTHORITATIVE_POSTGRES_ACCEPTANCE_FAILED',"
+                " available_at=now(),updated_at=now() WHERE run_id=%s AND task_key=%s",
+                (run_id, task_key),
+            )
+            conn.execute(
+                "UPDATE timeseries_v7_r4.runs SET state='REPLAN',terminal_reason=%s::jsonb,"
+                " updated_at=now() WHERE run_id=%s", (blob.decode("utf-8"), run_id),
+            )
+            conn.commit()
+        return payload
+
     def import_catalog(self, catalog_id: str, tasks: Iterable[dict[str, Any]]) -> int:
         inserted = 0
         with self.connect() as conn:
@@ -261,7 +321,8 @@ class PostgresControlPlane:
         with self.connect() as conn:
             with conn.transaction():
                 row = conn.execute(
-                    "SELECT t.task_key,t.title,t.payload FROM timeseries_v7_r4.tasks t "
+                    "SELECT t.task_key,t.title,t.payload,t.blocker_signature"
+                    " FROM timeseries_v7_r4.tasks t "
                     "WHERE t.run_id=%s AND t.state IN ('PENDING','RETRY_WAIT') "
                     "AND t.available_at<=now() "
                     "AND NOT EXISTS (SELECT 1 FROM timeseries_v7_r4.task_dependencies d "
@@ -273,7 +334,10 @@ class PostgresControlPlane:
                 ).fetchone()
                 if row is None:
                     return None
-                task_key, title, payload = row
+                task_key, title, payload, prior_blocker = row
+                payload = dict(payload)
+                if prior_blocker:
+                    payload["retry_blocker"] = prior_blocker
                 lease_token = uuid.uuid4().hex
                 attempt_id = f"{task_key}-a{uuid.uuid4().hex[:12]}"
                 conn.execute(
@@ -288,7 +352,7 @@ class PostgresControlPlane:
                     " VALUES (%s,%s,%s,%s,%s,'RUNNING',now())",
                     (run_id, task_key, attempt_id, lease_token, worker_id),
                 )
-            return Lease(run_id, task_key, attempt_id, lease_token, title, dict(payload))
+            return Lease(run_id, task_key, attempt_id, lease_token, title, payload)
 
     def heartbeat(self, lease: Lease, worker_id: str, lease_seconds: int) -> bool:
         with self.connect() as conn:

@@ -316,6 +316,39 @@ def test_permission_wait_correction_preserves_attempt_and_wakes(control):
     ]
 
 
+def test_acceptance_correction_preserves_success_and_requeues(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    success = result(lease)
+    assert control.finish(lease, "worker", success, "SUCCEEDED")
+    with control.connect() as conn:
+        before = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s", (run_id, lease.attempt_id),
+        ).fetchone()
+
+    correction = control.correct_task_acceptance(
+        run_id, "t", reason="authoritative store mismatch",
+        evidence={"expected": "postgresql", "observed": "sqlite"},
+    )
+    assert correction["supersedes_attempt_id"] == lease.attempt_id
+    assert correction["supersedes_result_hash"] == before[1]
+    assert control.correct_task_acceptance(
+        run_id, "t", reason="authoritative store mismatch",
+        evidence={"expected": "postgresql", "observed": "sqlite"},
+    ) == correction
+    with control.connect() as conn:
+        after = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s", (run_id, lease.attempt_id),
+        ).fetchone()
+    assert after == before
+    retry = control.claim(run_id, "worker", 30)
+    assert retry.task_key == "t"
+    assert retry.payload["retry_blocker"] == "AUTHORITATIVE_POSTGRES_ACCEPTANCE_FAILED"
+
+
 def test_lease_fencing(control):
     run_id = make_run(control)
     control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
