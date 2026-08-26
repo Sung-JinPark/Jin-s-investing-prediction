@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "task_key": "R4-M3-003",
+  "attempt_id": "R4-M3-003-af30a4072e350",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T04:28:00Z",
+  "completed_at": "2026-08-26T04:35:30.1464763Z",
+  "duration_seconds": 450.146,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_e2_student_t.py -q",
+      "return_code": 0,
+      "stdout_sha256": "02676ef918a79011bcbd3c4c650579c56ba3af1f57062e4c40e8b546040045a7",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "frozen-python real-evidence-pack E2 acceptance against nested PIT snapshot and direct labels",
+      "return_code": 0,
+      "stdout_sha256": "a2341258f8284469e0428a5c3fd9702a0391f084ba82e23e248daa6fad69721b",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/e2_student_t.py",
+    "src/tests/timeseries_v7_r4/test_e2_student_t.py"
+  ],
+  "tests": [
+    {
+      "name": "targeted E2 Student-t tests",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_e2_student_t.py",
+      "sha256": "123e48e29eeff53d412e889e14c5a094a2a2b4c84f258a286804428d2a24be44"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "df and alpha grid comes from contract",
+      "passed": true,
+      "evidence": {
+        "source": "declared real evidence pack",
+        "degrees_of_freedom": [
+          3.0,
+          5.0,
+          8.0,
+          12.0
+        ],
+        "alpha": [
+          0.01,
+          0.1,
+          1.0
+        ]
+      }
+    },
+    {
+      "criterion": "location and scale optimized by Student-t likelihood",
+      "passed": true,
+      "evidence": {
+        "real_pit_rows": 260,
+        "objective_contract": "student_t_nll_plus_crps_plus_stability",
+        "horizons": [
+          1,
+          5,
+          21,
+          63
+        ],
+        "optimizer": "L-BFGS-B",
+        "selected_df": {
+          "1": 12.0,
+          "5": 12.0,
+          "21": 12.0,
+          "63": 12.0
+        }
+      }
+    },
+    {
+      "criterion": "scale uses cross-fitted residual evidence",
+      "passed": true,
+      "evidence": {
+        "source": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+        "temporal_scheme": "expanding",
+        "residual_rows": 960,
+        "alpha_specific_candidate_count": 12,
+        "sha256": "a2341258f8284469e0428a5c3fd9702a0391f084ba82e23e248daa6fad69721b",
+        "future_training_rows_used": false
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/e2_student_t.py",
+      "sha256": "72359213cd408cabb23218538df5ea24150b993e2a0f782a747f2d8bb2b9cb4e",
+      "bytes": 12664
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
