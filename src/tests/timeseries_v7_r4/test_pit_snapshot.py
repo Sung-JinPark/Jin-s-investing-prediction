@@ -1,0 +1,107 @@
+from datetime import datetime, timezone
+
+import pytest
+
+from ai_fc.timeseries_v7_r4.pit_snapshot import (
+    TargetObservation,
+    materialize_pit_snapshot,
+)
+from ai_fc.timeseries_v7_r4.xnas_sessions import XnasSessionCalendar
+
+
+@pytest.fixture
+def calendar():
+    return XnasSessionCalendar.from_rows(
+        version="xnas-test-v1",
+        rows=[
+            {"session_date": "2024-01-02", "close_time": "16:00"},
+            {"session_date": "2024-01-03", "close_time": "16:00"},
+            {"session_date": "2024-01-04", "close_time": "16:00"},
+        ],
+    )
+
+
+def test_materializes_hashed_snapshot_and_canonical_label_intervals(calendar):
+    targets = [
+        TargetObservation(
+            target_id="target-1",
+            origin_session="2024-01-02",
+            label_end_session="2024-01-04",
+            value=0.25,
+            available_at=datetime(2024, 1, 4, 21, 5, tzinfo=timezone.utc),
+        )
+    ]
+
+    first = materialize_pit_snapshot(
+        calendar=calendar,
+        as_of=datetime(2024, 1, 5, tzinfo=timezone.utc),
+        targets=targets,
+        feature_rows=[],
+    )
+    second = materialize_pit_snapshot(
+        calendar=calendar,
+        as_of=datetime(2024, 1, 5, tzinfo=timezone.utc),
+        targets=targets,
+        feature_rows=[],
+    )
+
+    assert first.snapshot_hash == second.snapshot_hash
+    assert len(first.snapshot_hash) == 64
+    assert first.labels[0].origin_session.isoformat() == "2024-01-02"
+    assert first.labels[0].label_start_session.isoformat() == "2024-01-03"
+    assert first.labels[0].label_end_session.isoformat() == "2024-01-04"
+    assert first.labels[0].horizon_sessions == 2
+    assert first.labels[0].mature_at == targets[0].available_at
+
+
+def test_target_is_retained_when_unrelated_feature_source_is_missing(calendar):
+    result = materialize_pit_snapshot(
+        calendar=calendar,
+        as_of=datetime(2024, 1, 5, tzinfo=timezone.utc),
+        targets=[
+            TargetObservation(
+                target_id="target-1",
+                origin_session="2024-01-02",
+                label_end_session="2024-01-03",
+                value=-0.1,
+                available_at=datetime(2024, 1, 3, 22, tzinfo=timezone.utc),
+            )
+        ],
+        feature_rows=[{"origin_session": "2024-01-04", "feature_id": "other"}],
+    )
+
+    assert [label.target_id for label in result.labels] == ["target-1"]
+
+
+def test_rejects_noncanonical_or_immature_target_sessions(calendar):
+    with pytest.raises(ValueError, match="canonical XNAS session"):
+        materialize_pit_snapshot(
+            calendar=calendar,
+            as_of=datetime(2024, 1, 5, tzinfo=timezone.utc),
+            targets=[
+                TargetObservation(
+                    target_id="bad",
+                    origin_session="2024-01-01",
+                    label_end_session="2024-01-03",
+                    value=1,
+                    available_at=datetime(2024, 1, 3, 22, tzinfo=timezone.utc),
+                )
+            ],
+            feature_rows=[],
+        )
+
+    immature = materialize_pit_snapshot(
+        calendar=calendar,
+        as_of=datetime(2024, 1, 3, 21, tzinfo=timezone.utc),
+        targets=[
+            TargetObservation(
+                target_id="future",
+                origin_session="2024-01-02",
+                label_end_session="2024-01-03",
+                value=1,
+                available_at=datetime(2024, 1, 3, 22, tzinfo=timezone.utc),
+            )
+        ],
+        feature_rows=[],
+    )
+    assert immature.labels == ()

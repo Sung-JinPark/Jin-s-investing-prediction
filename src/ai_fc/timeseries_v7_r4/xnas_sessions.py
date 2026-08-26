@@ -76,6 +76,10 @@ class XnasSessionCalendar:
         except KeyError as exc:
             raise LookupError(f"no XNAS session for {key.isoformat()}") from exc
 
+    @property
+    def sessions(self) -> tuple[XnasSession, ...]:
+        return self._sessions
+
     def latest_completed(self, as_of: datetime) -> XnasSession:
         instant = _as_utc(as_of, field="as_of")
         for session in reversed(self._sessions):
