@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-V2-004",
+  "attempt_id": "R4-V2-004-aaf6381901db7",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T03:10:00Z",
+  "completed_at": "2026-08-26T03:14:52.5699161Z",
+  "duration_seconds": 292.57,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_cross_fit_calibration.py",
+      "return_code": 1,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_cross_fit_calibration.py src/tests/timeseries_v7_r4/test_five_role_validation.py src/tests/timeseries_v7_r4/test_empirical_mixture.py",
+      "return_code": 0,
+      "stdout_sha256": "51121d098b94e3f1b7295638fd66af31f843ebe1c8e05d4b6416f261e1488f14",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4",
+      "return_code": 0,
+      "stdout_sha256": "75c98655c16be81c4eeda93a2085d13c44dd012ac53048b8bbab15c86dc3dc96",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/cross_fit_calibration.py",
+    "src/tests/timeseries_v7_r4/test_cross_fit_calibration.py"
+  ],
+  "tests": [
+    {
+      "name": "cross_fit_calibration_targeted",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_cross_fit_calibration.py",
+      "sha256": "485082bd0b463b406bcfe229eb17a07ad3235ddd23fbeda42f23b7c643be00c5"
+    },
+    {
+      "name": "timeseries_v7_r4_suite",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "sha256": "75c98655c16be81c4eeda93a2085d13c44dd012ac53048b8bbab15c86dc3dc96"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "location, central scale and two tails use calibration fold only",
+      "passed": true,
+      "evidence": "The fit boundary rejects every role other than calibration and fits location_shift, central_scale, negative_tail_scale, and positive_tail_scale exclusively from validated calibration cases."
+    },
+    {
+      "criterion": "quantile monotonicity and one-sided hit tests pass",
+      "passed": true,
+      "evidence": "Piecewise positive scaling preserves quantile order; targeted monotonicity and exact lower/upper one-sided hit-rate tests passed."
+    },
+    {
+      "criterion": "no outer/prospective outcome is consumed",
+      "passed": true,
+      "evidence": "Fail-closed role validation raises before component fitting or cross-fit prediction when an outer or prospective case is supplied."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/cross_fit_calibration.py",
+      "sha256": "19940863e878c2a54cf93867fcdb0c66f83375bece8a2ffec57456d9c01ff003",
+      "bytes": 7399
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_cross_fit_calibration.py",
+      "sha256": "485082bd0b463b406bcfe229eb17a07ad3235ddd23fbeda42f23b7c643be00c5",
+      "bytes": 2175
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
