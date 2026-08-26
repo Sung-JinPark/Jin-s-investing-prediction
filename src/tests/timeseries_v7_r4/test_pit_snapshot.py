@@ -1,10 +1,15 @@
 from datetime import datetime, timezone
+import os
+from pathlib import Path
+import uuid
 
+import psycopg
 import pytest
 
 from ai_fc.timeseries_v7_r4.pit_snapshot import (
     TargetObservation,
     materialize_pit_snapshot,
+    persist_pit_snapshot,
 )
 from ai_fc.timeseries_v7_r4.xnas_sessions import XnasSessionCalendar
 
@@ -105,3 +110,50 @@ def test_rejects_noncanonical_or_immature_target_sessions(calendar):
         feature_rows=[],
     )
     assert immature.labels == ()
+
+
+def test_persists_snapshot_and_every_label_atomically_to_postgres(calendar):
+    admin_url = os.getenv(
+        "RALPH_V7_R4_TEST_ADMIN_URL",
+        "postgresql://postgres@127.0.0.1:55432/postgres",
+    )
+    database = "v7r4_pit_" + uuid.uuid4().hex[:12]
+    try:
+        with psycopg.connect(admin_url, autocommit=True) as connection:
+            connection.execute(f'CREATE DATABASE "{database}"')
+    except psycopg.OperationalError as exc:
+        pytest.skip(f"disposable PostgreSQL unavailable: {exc}")
+    database_url = f"postgresql://postgres@127.0.0.1:55432/{database}"
+    try:
+        migration = Path(__file__).resolve().parents[3] / "migrations/timeseries_v7_r4/002_pit_snapshots.sql"
+        with psycopg.connect(database_url) as connection:
+            connection.execute("CREATE SCHEMA timeseries_v7_r4")
+            connection.execute(migration.read_text(encoding="utf-8"))
+        snapshot = materialize_pit_snapshot(
+            calendar=calendar,
+            as_of=datetime(2024, 1, 5, tzinfo=timezone.utc),
+            targets=[
+                TargetObservation("one", "2024-01-02", "2024-01-03", 1,
+                                  datetime(2024, 1, 3, 22, tzinfo=timezone.utc)),
+                TargetObservation("two", "2024-01-02", "2024-01-04", 2,
+                                  datetime(2024, 1, 4, 22, tzinfo=timezone.utc)),
+            ],
+            feature_rows=[],
+        )
+
+        assert persist_pit_snapshot(database_url, snapshot) is True
+        assert persist_pit_snapshot(database_url, snapshot) is False
+        with psycopg.connect(database_url) as connection:
+            assert connection.execute(
+                "SELECT count(*) FROM timeseries_v7_r4.pit_snapshots"
+            ).fetchone()[0] == 1
+            assert connection.execute(
+                "SELECT target_id FROM timeseries_v7_r4.label_intervals ORDER BY target_id"
+            ).fetchall() == [("one",), ("two",)]
+    finally:
+        with psycopg.connect(admin_url, autocommit=True) as connection:
+            connection.execute(
+                "SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname=%s",
+                (database,),
+            )
+            connection.execute(f'DROP DATABASE "{database}"')

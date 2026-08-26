@@ -113,6 +113,56 @@ def materialize_pit_snapshot(
     return PitSnapshot(digest, instant, calendar.version, tuple(labels), features)
 
 
+def persist_pit_snapshot(database_url: str, snapshot: PitSnapshot) -> bool:
+    """Atomically append a materialized snapshot and all of its labels.
+
+    Returns ``True`` for the first append and ``False`` when the identical
+    content-addressed snapshot already exists. PostgreSQL is deliberately the
+    only supported durable backend.
+    """
+    if not database_url.startswith(("postgresql://", "postgres://")):
+        raise ValueError("R4 PIT snapshots require a PostgreSQL database URL")
+    try:
+        import psycopg
+    except ImportError as exc:  # pragma: no cover - frozen runtime guard
+        raise RuntimeError("psycopg is required in the frozen R4 runtime") from exc
+
+    payload = {
+        "as_of": snapshot.as_of.isoformat(),
+        "calendar_version": snapshot.calendar_version,
+        "labels": [_label_payload(row) for row in snapshot.labels],
+        "feature_rows": [_json_value(dict(row)) for row in snapshot.feature_rows],
+    }
+    encoded_payload = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    with psycopg.connect(database_url) as connection:
+        inserted = connection.execute(
+            "INSERT INTO timeseries_v7_r4.pit_snapshots "
+            "(snapshot_hash,as_of,calendar_version,payload) VALUES (%s,%s,%s,%s::jsonb) "
+            "ON CONFLICT DO NOTHING RETURNING 1",
+            (snapshot.snapshot_hash, snapshot.as_of, snapshot.calendar_version, encoded_payload),
+        ).fetchone()
+        if inserted is None:
+            return False
+        for label in snapshot.labels:
+            connection.execute(
+                "INSERT INTO timeseries_v7_r4.label_intervals "
+                "(snapshot_hash,target_id,origin_session,label_start_session,label_end_session,"
+                "mature_at,horizon_sessions,target_value) "
+                "VALUES (%s,%s,%s,%s,%s,%s,%s,%s::jsonb)",
+                (
+                    snapshot.snapshot_hash,
+                    label.target_id,
+                    label.origin_session,
+                    label.label_start_session,
+                    label.label_end_session,
+                    label.mature_at,
+                    label.horizon_sessions,
+                    json.dumps(_json_value(label.value), allow_nan=False),
+                ),
+            )
+    return True
+
+
 def _label_payload(row: LabelInterval) -> dict[str, object]:
     return {
         "target_id": row.target_id,
