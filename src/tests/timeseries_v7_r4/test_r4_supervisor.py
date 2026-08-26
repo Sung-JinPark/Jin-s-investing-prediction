@@ -1156,6 +1156,7 @@ def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
     assert "diagnostic evidence only" in prompt
     assert "phase=red_test" in prompt
     assert "expected_failure" in prompt
+    assert "Return code 124 is a timeout, never success" in prompt
     assert "schema=r4_probability_up_calibration_v2" in prompt
     assert "evaluation_role=calibration_cross_fit_holdout" in prompt
 
