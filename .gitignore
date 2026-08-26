@@ -11,6 +11,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .venv/
+/.runtime/
 .tmp-pytest/
 .env
 .secrets/
