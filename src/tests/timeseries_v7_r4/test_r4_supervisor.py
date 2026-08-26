@@ -949,6 +949,7 @@ def test_s4_002_rejects_predecessor_scale_fit_without_r4_role_receipt(control, t
     ("R4-S4-003", "ASYMMETRIC_EVT_ROLE_OR_GUARD_FAILURE"),
     ("R4-S4-004", "REGIME_ROLE_OR_FEATURE_LEAKAGE"),
     ("R4-S4-005", "ANALOG_TRAJECTORY_IDENTITY_OR_ROLE_FAILURE"),
+    ("R4-S4-006", "G3_FROZEN_COORDINATE_OR_WEIGHT_FAILURE"),
 ])
 def test_s4_mechanisms_fail_closed_without_registered_receipt(
     control, tmp_path, task_key, blocker,
@@ -1041,6 +1042,72 @@ def test_s4_004_accepts_source_with_top_level_role_and_row_receipts(control, tmp
     ))
     checked = supervisor._validate_task_semantics(
         Lease("run", "R4-S4-004", "attempt", "token", "regime", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "SUCCEEDED"
+    assert checked["acceptance_results"][-1]["passed"] is True
+
+
+def test_s4_006_accepts_separate_content_bound_no_regret_g3(control, tmp_path):
+    mechanism_paths = {
+        "R4-S4-001": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+        "R4-S4-002": "outputs/timeseries_v7_r4/R4-S4-002/r4_calibration/acceptance_summary.json",
+        "R4-S4-003": "outputs/timeseries_v7_r4/R4-S4-003/r4_calibration/acceptance_summary.json",
+        "R4-S4-004": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/acceptance_summary.json",
+        "R4-S4-005": "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/acceptance_summary.json",
+    }
+    receipts = {}
+    for task_key, relative in mechanism_paths.items():
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(task_key, encoding="utf-8")
+        receipts[task_key] = {"path": relative, "sha256": sha256_file(path)}
+    sealed_path = tmp_path / "outputs/timeseries_v7_r4/R4-M3-008/qualification_revision_3.json"
+    prior_score = tmp_path / "outputs/timeseries_v7_r4/R4-M3-008/score_matrix.parquet"
+    sealed_path.parent.mkdir(parents=True)
+    sealed_path.write_text("sealed", encoding="utf-8")
+    prior_score.write_bytes(b"prior-score")
+    score_path = tmp_path / "outputs/timeseries_v7_r4/R4-S4-006/g3/score_matrix.parquet"
+    score_path.parent.mkdir(parents=True)
+    score_path.write_bytes(b"g3-score")
+    payload = {
+        "schema": "r4_g3_stress_tail_path_v1", "generation_id": "G3-test",
+        "mechanism_artifacts": receipts,
+        "frozen_evaluation": {"comparator": "E0", "horizons": [1, 5, 21, 63],
+            "weekly_origins": True, "origin_count": 1025, "score_rows": 4082,
+            "evaluation_coordinate_grid_hash":
+                "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8"},
+        "components": [
+            {"component_id": "scale", "oos_stacking_advantage": .1,
+             "admitted": True, "weight": .2},
+            {"component_id": "evt", "oos_stacking_advantage": -.1,
+             "admitted": False, "weight": 0.0},
+        ],
+        "e0_anchor_weight": .8,
+        "stacking_evaluation_role": "calibration_cross_fit_holdout",
+        "calibration_role_hash":
+            "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+        "row_use_counters": {"legacy_review_pack_score_rows_used": 0,
+            "qualification_score_rows_used": 0, "outer_rows_used": 0},
+        "score_matrix_path": str(score_path.relative_to(tmp_path)).replace("\\", "/"),
+        "score_matrix_sha256": sha256_file(score_path),
+        "sealed_prior": {"qualification_revision_3_sha256": sha256_file(sealed_path),
+            "score_matrix_sha256": sha256_file(prior_score)},
+        "prior_sealed_result_mutated": False,
+        "research_gate_pass": False, "decision": "HOLD_RESEARCH_GATE",
+        "promotion_claimed": False,
+    }
+    (score_path.parent / "acceptance_summary.json").write_text(
+        json.dumps(payload), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-S4-006", "attempt", "token", "g3", {}),
         {"status": "SUCCEEDED", "acceptance_results": [],
          "unresolved_blockers": [], "recommended_router_deficits": []},
     )
@@ -1232,6 +1299,18 @@ def test_codex_dispatch_prompt_registers_s4_mechanism_receipt(task_key, required
         assert "state_available_at_origin=true" in prompt
         assert "at least one weight strictly below 1" in prompt
         assert "named JSON object (not an array)" in prompt
+
+
+def test_codex_dispatch_prompt_requires_separate_frozen_g3_receipt():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "run", "cycle_id": "cycle", "task_key": "R4-S4-006",
+        "attempt_id": "attempt",
+    })
+    assert "schema=r4_g3_stress_tail_path_v1" in prompt
+    assert "exact accepted acceptance_summary.json SHA-256" in prompt
+    assert "weight must be positive only" in prompt
+    assert "prior_sealed_result_mutated=false" in prompt
+    assert "Gate failure is HOLD_RESEARCH_GATE" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():

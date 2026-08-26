@@ -232,6 +232,26 @@ class CodexDispatcher:
                 "maximum_drawdown/first_touch_rate/recovery_rate. All neighbor selection must be "
                 "origin-available and cross-fitted."
             )
+        if envelope.get("task_key") == "R4-S4-006":
+            qualification_instruction += (
+                " Write outputs/timeseries_v7_r4/R4-S4-006/g3/acceptance_summary.json with "
+                "schema=r4_g3_stress_tail_path_v1 and a new generation_id beginning G3-. Bind "
+                "the exact accepted acceptance_summary.json SHA-256 values from R4-S4-001 through "
+                "R4-S4-005 in mechanism_artifacts. Emit a complete G3 score matrix at the declared "
+                "score_matrix_path with exactly 1,025 weekly origins and 4,082 horizon coordinates "
+                "for horizons [1,5,21,63], using frozen comparator E0 and evaluation coordinate hash "
+                "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8. "
+                "For every stress component emit component_id, oos_stacking_advantage, admitted and "
+                "weight: weight must be positive only when the calibration-role out-of-sample "
+                "advantage is positive; otherwise it must be exactly zero. Emit e0_anchor_weight so "
+                "all weights sum to one. Emit stacking_evaluation_role=calibration_cross_fit_holdout, "
+                "the fixed calibration_role_hash, and row_use_counters proving qualification, outer "
+                "and predecessor rows contribute zero selection or tuning rows. Preserve R4-M3-008 "
+                "qualification revision 3 and score matrix SHA-256 "
+                "unchanged, set prior_sealed_result_mutated=false, and evaluate G3 separately. Emit "
+                "research_gate_pass and decision honestly; Gate failure is HOLD_RESEARCH_GATE and a "
+                "replan outcome, not a process error. Do not claim promotion."
+            )
         if str(envelope.get("task_key", "")).startswith("R4-S4-"):
             qualification_instruction += (
                 " All S4 mechanism fitting and screening must use the authoritative R4 snapshot's "

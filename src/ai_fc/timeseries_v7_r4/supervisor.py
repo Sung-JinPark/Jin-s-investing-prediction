@@ -1603,6 +1603,151 @@ class Supervisor:
                 result["unresolved_blockers"] = [{"current": checks,
                     "required": "unique actual 63-session trajectories selected without future outcomes"}]
                 result["recommended_router_deficits"] = ["analog_trajectory_isolation"]
+        if lease.task_key == "R4-S4-006":
+            artifact_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-S4-006/g3/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+
+            mechanism_paths = {
+                "R4-S4-001": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+                "R4-S4-002": "outputs/timeseries_v7_r4/R4-S4-002/r4_calibration/acceptance_summary.json",
+                "R4-S4-003": "outputs/timeseries_v7_r4/R4-S4-003/r4_calibration/acceptance_summary.json",
+                "R4-S4-004": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/acceptance_summary.json",
+                "R4-S4-005": "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/acceptance_summary.json",
+            }
+            receipts = payload.get("mechanism_artifacts")
+            if not isinstance(receipts, dict):
+                receipts = {}
+            mechanisms_bound = set(receipts) == set(mechanism_paths) and all(
+                isinstance(receipts.get(task_key), dict)
+                and receipts[task_key].get("path") == relative
+                and (self.context.repo / relative).is_file()
+                and receipts[task_key].get("sha256")
+                == sha256_file(self.context.repo / relative)
+                for task_key, relative in mechanism_paths.items()
+            )
+
+            frozen = payload.get("frozen_evaluation")
+            if not isinstance(frozen, dict):
+                frozen = {}
+            frozen_coordinates = (
+                frozen.get("comparator") == "E0"
+                and frozen.get("horizons") == [1, 5, 21, 63]
+                and frozen.get("weekly_origins") is True
+                and frozen.get("origin_count") == 1025
+                and frozen.get("score_rows") == 4082
+                and frozen.get("evaluation_coordinate_grid_hash")
+                == "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8"
+            )
+
+            components = payload.get("components")
+            if not isinstance(components, list):
+                components = []
+            component_ids = [item.get("component_id") for item in components
+                             if isinstance(item, dict)]
+            component_weights: list[float] = []
+            component_rule = bool(components) and len(component_ids) == len(set(component_ids))
+            for item in components:
+                if not isinstance(item, dict):
+                    component_rule = False
+                    continue
+                advantage = item.get("oos_stacking_advantage")
+                weight = item.get("weight")
+                admitted = item.get("admitted")
+                if not finite_number(advantage) or not finite_number(weight):
+                    component_rule = False
+                    continue
+                advantage_value, weight_value = float(advantage), float(weight)
+                component_weights.append(weight_value)
+                if not 0 <= weight_value <= 1:
+                    component_rule = False
+                if advantage_value > 0:
+                    component_rule = component_rule and admitted is True and weight_value > 0
+                else:
+                    component_rule = component_rule and admitted is False and weight_value == 0
+            anchor_weight = payload.get("e0_anchor_weight")
+            weights_valid = (
+                component_rule and finite_number(anchor_weight)
+                and 0 <= float(anchor_weight) <= 1
+                and math.isclose(sum(component_weights) + float(anchor_weight), 1.0,
+                                 rel_tol=0, abs_tol=1e-9)
+            )
+            counters = payload.get("row_use_counters")
+            if not isinstance(counters, dict):
+                counters = {}
+            role_isolation = (
+                payload.get("stacking_evaluation_role") == "calibration_cross_fit_holdout"
+                and payload.get("calibration_role_hash")
+                == "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"
+                and counters.get("legacy_review_pack_score_rows_used") == 0
+                and counters.get("qualification_score_rows_used") == 0
+                and counters.get("outer_rows_used") == 0
+            )
+
+            score_path_raw = payload.get("score_matrix_path")
+            score_path = (self.context.repo / score_path_raw
+                          if isinstance(score_path_raw, str) else None)
+            score_matrix_bound = (
+                score_path is not None and score_path.is_file()
+                and isinstance(payload.get("score_matrix_sha256"), str)
+                and payload["score_matrix_sha256"] == sha256_file(score_path)
+            )
+            sealed_path = (self.context.repo
+                           / "outputs/timeseries_v7_r4/R4-M3-008/qualification_revision_3.json")
+            prior_score = (self.context.repo
+                           / "outputs/timeseries_v7_r4/R4-M3-008/score_matrix.parquet")
+            sealed = payload.get("sealed_prior")
+            if not isinstance(sealed, dict):
+                sealed = {}
+            sealed_unchanged = (
+                sealed_path.is_file() and prior_score.is_file()
+                and sealed.get("qualification_revision_3_sha256") == sha256_file(sealed_path)
+                and sealed.get("score_matrix_sha256") == sha256_file(prior_score)
+                and payload.get("prior_sealed_result_mutated") is False
+            )
+            decision = payload.get("decision")
+            honest_decision = (
+                isinstance(payload.get("research_gate_pass"), bool)
+                and decision == ("PASS_RESEARCH_GATE" if payload["research_gate_pass"]
+                                 else "HOLD_RESEARCH_GATE")
+                and payload.get("promotion_claimed") is not True
+            )
+            checks = {
+                "registered_g3_schema": (
+                    payload.get("schema") == "r4_g3_stress_tail_path_v1"
+                    and isinstance(payload.get("generation_id"), str)
+                    and payload["generation_id"].startswith("G3-")
+                ),
+                "accepted_mechanisms_content_bound": mechanisms_bound,
+                "frozen_evaluation_coordinates": frozen_coordinates,
+                "oos_advantage_controls_weight": weights_valid,
+                "qualification_outer_not_used_for_weights": role_isolation,
+                "complete_g3_score_receipt": score_matrix_bound,
+                "sealed_m3_result_unchanged": sealed_unchanged,
+                "honest_gate_decision": honest_decision,
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "g3_is_separate_frozen_and_no_regret_weighted",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "G3_FROZEN_COORDINATE_OR_WEIGHT_FAILURE"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "separate G3 evaluation on exact frozen coordinates with content-bound S4 "
+                        "receipts and zero weight for non-advantaged components"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["g3_generation_integrity"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
