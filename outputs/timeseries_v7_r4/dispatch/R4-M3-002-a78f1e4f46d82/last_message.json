@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-M3-002",
+  "attempt_id": "R4-M3-002-a78f1e4f46d82",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T03:47:30.0000000+00:00",
+  "completed_at": "2026-08-26T03:51:46.3843886+00:00",
+  "duration_seconds": 256,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_e1_quantile_elastic_net.py -q",
+      "return_code": 0,
+      "stdout_sha256": "b4e93c7eccba6f3b0f4d11c8738faea16a6a5b093b938e14b1131bdc06d5e839",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "return_code": 0,
+      "stdout_sha256": "b7057f65748283e1ce535883b542698a1c7ac8f5e32d78d337244bcb5957e5ac",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/e1_quantile_elastic_net.py",
+    "src/tests/timeseries_v7_r4/test_e1_quantile_elastic_net.py"
+  ],
+  "tests": [
+    {
+      "name": "E1 targeted tests: 4 passed",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_e1_quantile_elastic_net.py",
+      "sha256": "407b1f614387897db0b5de3ffd0b579c3cf48edef54f928eec13b14791c557c3"
+    },
+    {
+      "name": "timeseries_v7_r4 suite: 102 passed",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "sha256": "b7057f65748283e1ce535883b542698a1c7ac8f5e32d78d337244bcb5957e5ac"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "direct 1/5/21/63 targets",
+      "passed": true,
+      "evidence": "E1Contract requires exactly the canonical horizons and fits a distinct quantile elastic-net model for every direct horizon."
+    },
+    {
+      "criterion": "contract-driven hyperparameters",
+      "passed": true,
+      "evidence": "Quantiles, alpha, L1 ratio, correction-bound multiplier, stability settings, and minimum training rows are validated from E1Contract and recorded in diagnostics."
+    },
+    {
+      "criterion": "bounded correction and stability diagnostics",
+      "passed": true,
+      "evidence": "Predictions are bounded by correction_bound_k multiplied by E0 scale; leave-block-out coefficient-sign agreement, threshold result, eligible-row count, and post-as-of exclusions are reported."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/e1_quantile_elastic_net.py",
+      "sha256": "ffe6a2f009f7c9d1b1717a007c1b1acd5e3731e5f39d5f0b723d1b4dd39129e0",
+      "bytes": 9330
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_e1_quantile_elastic_net.py",
+      "sha256": "407b1f614387897db0b5de3ffd0b579c3cf48edef54f928eec13b14791c557c3",
+      "bytes": 2925
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
