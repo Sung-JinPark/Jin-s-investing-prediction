@@ -778,6 +778,62 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["exact_e0_full_grid"]
+        if lease.task_key == "R4-M3-003":
+            implementation_path = (
+                self.context.repo
+                / "src/ai_fc/timeseries_v7_r4/e2_student_t.py"
+            )
+            implementation = (
+                implementation_path.read_text(encoding="utf-8")
+                if implementation_path.exists() else ""
+            )
+            checks = {
+                "true_student_t_location_scale": (
+                    "gammaln" in implementation
+                    and "degrees_of_freedom" in implementation
+                    and "log_scale" in implementation
+                ),
+                "preregistered_df_grid": all(
+                    token in implementation for token in ("3.0", "5.0", "8.0", "12.0")
+                ),
+                "preregistered_alpha_grid": all(
+                    token in implementation for token in ("0.01", "0.1", "1.0")
+                ),
+                "horizon_crps_in_objective": (
+                    "student_t_crps" in implementation
+                    and "crps_weight" in implementation
+                ),
+                "stability_penalty_in_objective": (
+                    "stability_penalty" in implementation
+                    and "stability_weight" in implementation
+                ),
+                "temporal_cross_fit_without_future_training": (
+                    "expanding" in implementation.lower()
+                    and "train_end" in implementation
+                    and "validation_start" in implementation
+                ),
+                "objective_contract_disclosed": (
+                    "student_t_nll_plus_crps_plus_stability" in implementation
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "e2_preregistered_joint_objective_and_temporal_cross_fit",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "E2_PREREGISTERED_OBJECTIVE_INCOMPLETE"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "implement the frozen E2 objective Student-t NLL + horizon CRPS + "
+                        "stability penalty, and obtain scale residuals from expanding/rolling "
+                        "cross-fit folds whose training rows precede their validation rows"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["e2_objective_and_crossfit"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
