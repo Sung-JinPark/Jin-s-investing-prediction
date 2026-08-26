@@ -2,6 +2,7 @@ import pytest
 
 from ai_fc.timeseries_v7_r4.probability_up_calibration import (
     ProbabilityCase,
+    authoritative_calibration_cases,
     evaluate_probability_calibration,
     fit_probability_calibrator,
 )
@@ -48,3 +49,35 @@ def test_probability_calibration_fails_closed_on_roles_overlap_and_units():
         evaluate_probability_calibration(fitted, [_case("c1", "evaluation", .5, 1)])
     with pytest.raises(ValueError, match=r"\[0, 1\]"):
         fit_probability_calibrator([_case("bad", "calibration", 50, 1)])
+
+
+def test_authoritative_cases_use_fixed_calibration_role_and_pit_history_only():
+    export = {
+        "source_store": "authoritative_postgresql",
+        "snapshot_hash": "snapshot",
+        "five_role_plan": {
+            "role_origins": {"train": ["2020-01-01"], "selection": [], "stacking": [],
+                             "calibration": ["2020-01-06"], "outer": ["2020-01-07"]},
+            "role_hashes": {role: role + "-hash" for role in
+                            ("train", "selection", "stacking", "calibration", "outer")},
+        },
+        "labels": [
+            {"origin_session": "2019-12-30", "horizon_sessions": 1,
+             "mature_at": "2019-12-31", "value": -.02},
+            {"origin_session": "2020-01-01", "horizon_sessions": 1,
+             "mature_at": "2020-01-02", "value": .01},
+            {"origin_session": "2020-01-06", "horizon_sessions": 1,
+             "mature_at": "2020-01-07", "value": .03},
+        ],
+    }
+
+    cases, receipt = authoritative_calibration_cases(export, 1)
+
+    assert [case.case_id for case in cases] == ["h1:2020-01-06"]
+    assert cases[0].probability_up == pytest.approx(.5)
+    assert receipt["role_hashes"]["calibration"] == "calibration-hash"
+    assert receipt["row_use_counters"] == {
+        "calibration_fit_rows": 1, "train_fit_rows": 0, "selection_fit_rows": 0,
+        "stacking_fit_rows": 0, "outer_rows_used": 0,
+        "legacy_review_pack_score_rows_used": 0, "qualification_score_rows_used": 0,
+    }

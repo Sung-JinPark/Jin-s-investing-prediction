@@ -9,7 +9,7 @@ import json
 from dataclasses import asdict, dataclass
 from math import isfinite
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Iterable, Mapping, Sequence
 import zipfile
 
 
@@ -142,45 +142,90 @@ def _probability(value: float) -> float:
     return result
 
 
-def _acceptance(review_pack: Path, nested_member: str, output_dir: Path) -> dict:
-    import pyarrow.parquet as parquet
+def authoritative_calibration_cases(
+    export: Mapping[str, object], horizon: int,
+) -> tuple[tuple[ProbabilityCase, ...], dict]:
+    """Construct raw P(up) cases using only PIT history and the sealed calibration role."""
+    if export.get("source_store") != "authoritative_postgresql":
+        raise ValueError("authoritative PostgreSQL PIT export is required")
+    plan = export.get("five_role_plan")
+    if not isinstance(plan, dict):
+        raise ValueError("sealed five-role plan is required")
+    origins_by_role, role_hashes = plan.get("role_origins"), plan.get("role_hashes")
+    if not isinstance(origins_by_role, dict) or not isinstance(role_hashes, dict):
+        raise ValueError("fixed role origins and hashes are required")
+    labels = export.get("labels")
+    if not isinstance(labels, list):
+        raise ValueError("authoritative labels are required")
+    cases = []
+    for origin_value in origins_by_role.get("calibration", ()):
+        origin = str(origin_value)
+        outcome = next((row for row in labels if str(row.get("origin_session")) == origin
+                        and int(row.get("horizon_sessions", 0)) == horizon), None)
+        if outcome is None:
+            raise ValueError(f"missing calibration outcome for {origin}:h{horizon}")
+        history = [float(row["value"]) for row in labels
+                   if int(row.get("horizon_sessions", 0)) == horizon
+                   and str(row.get("origin_session", "")) < origin
+                   and str(row.get("mature_at") or row.get("available_at")
+                           or row.get("label_end_session") or "")[:10] <= origin]
+        if not history or not all(isfinite(value) for value in history):
+            raise ValueError(f"no PIT-eligible history for {origin}:h{horizon}")
+        probability = sum(value > 0 for value in history) / len(history)
+        cases.append(ProbabilityCase(f"h{horizon}:{origin}", "calibration",
+                                     probability, float(outcome["value"])))
+    counters = {"calibration_fit_rows": len(cases), "train_fit_rows": 0,
+                "selection_fit_rows": 0, "stacking_fit_rows": 0, "outer_rows_used": 0,
+                "legacy_review_pack_score_rows_used": 0, "qualification_score_rows_used": 0}
+    return tuple(cases), {"role_hashes": dict(role_hashes), "row_use_counters": counters}
+
+
+def _acceptance(review_pack: Path, nested_member: str, authoritative_export: Path,
+                g2_artifact: Path, output_dir: Path) -> dict:
 
     source_sha = hashlib.sha256(review_pack.read_bytes()).hexdigest()
     with zipfile.ZipFile(review_pack) as outer:
         nested = outer.read(nested_member)
-    scores_member = next(name for name in zipfile.ZipFile(io.BytesIO(nested)).namelist()
-                         if name.endswith("/scores.parquet"))
     with zipfile.ZipFile(io.BytesIO(nested)) as evidence:
-        rows = parquet.read_table(io.BytesIO(evidence.read(scores_member))).to_pylist()
+        evidence_members_hash = hashlib.sha256(
+            "\n".join(sorted(evidence.namelist())).encode()).hexdigest()
+    export_bytes, g2_bytes = authoritative_export.read_bytes(), g2_artifact.read_bytes()
+    export = json.loads(export_bytes)
+    export_sha = hashlib.sha256(export_bytes).hexdigest()
+    g2_sha = hashlib.sha256(g2_bytes).hexdigest()
     output_dir.mkdir(parents=True, exist_ok=True)
     reports = []
-    for horizon in sorted({int(row["horizon"]) for row in rows}):
-        family = sorted((row for row in rows if int(row["horizon"]) == horizon),
-                        key=lambda row: (row["origin_session"], row["origin_index"]))
-        key_payload = f"{source_sha}|{nested_member}|{scores_member}|h{horizon}|chronological-60-40-v1"
+    for horizon in (1, 5, 21, 63):
+        family, isolation = authoritative_calibration_cases(export, horizon)
+        if len(family) != 634:
+            raise ValueError(f"fixed calibration role must contain 634 origins, got {len(family)}")
+        key_payload = f"{source_sha}|{export_sha}|{g2_sha}|h{horizon}|temporal-cross-fit-v2"
         checkpoint_sha = hashlib.sha256(key_payload.encode()).hexdigest()
         checkpoint = output_dir / f"{checkpoint_sha}.json"
         if checkpoint.exists():
             reports.append(json.loads(checkpoint.read_text(encoding="utf-8")))
             continue
-        split = max(2, min(len(family) - 2, int(len(family) * .6)))
-        calibration = tuple(ProbabilityCase(f"h{horizon}:{row['origin_session']}", "calibration",
-                                             row["probability_up"], row["actual"])
-                            for row in family[:split])
-        evaluation = tuple(ProbabilityCase(f"h{horizon}:{row['origin_session']}", "evaluation",
-                                            row["probability_up"], row["actual"])
+        split = 106
+        calibration = family[:split]
+        evaluation = tuple(ProbabilityCase(row.case_id, "evaluation", row.probability_up, row.actual)
                            for row in family[split:])
         report = evaluate_probability_calibration(fit_probability_calibrator(calibration), evaluation)
         payload = {
-            "schema_version": 1, "family": f"h{horizon}", "source_sha256": source_sha,
-            "nested_member": nested_member, "scores_member": scores_member,
-            "split": {"rule": "chronological-60-40", "calibration_rows": split,
+            "schema_version": 2, "family": f"h{horizon}", "source_sha256": source_sha,
+            "authoritative_export_sha256": export_sha, "g2_artifact_sha256": g2_sha,
+            "r4_snapshot_hash": export.get("snapshot_hash"), **isolation,
+            "split": {"rule": "temporal-cross-fit-within-fixed-calibration-role", "calibration_rows": split,
                       "evaluation_rows": len(family) - split},
             "report": asdict(report),
         }
         checkpoint.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         reports.append(payload)
-    summary = {"schema_version": 1, "source_sha256": source_sha, "families": reports}
+    summary = {"schema_version": 2, "source_sha256": source_sha,
+               "evidence_members_hash": evidence_members_hash,
+               "authoritative_export_sha256": export_sha, "g2_artifact_sha256": g2_sha,
+               "r4_snapshot_hash": export.get("snapshot_hash"), "families": reports,
+               "role_hashes": reports[0]["role_hashes"],
+               "row_use_counters": reports[0]["row_use_counters"]}
     (output_dir / "acceptance_summary.json").write_text(
         json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return summary
@@ -190,9 +235,12 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--review-pack", required=True, type=Path)
     parser.add_argument("--nested-member", required=True)
+    parser.add_argument("--authoritative-export", required=True, type=Path)
+    parser.add_argument("--g2-artifact", required=True, type=Path)
     parser.add_argument("--output-dir", required=True, type=Path)
     args = parser.parse_args(argv)
-    _acceptance(args.review_pack, args.nested_member, args.output_dir)
+    _acceptance(args.review_pack, args.nested_member, args.authoritative_export,
+                args.g2_artifact, args.output_dir)
     return 0
 
 
