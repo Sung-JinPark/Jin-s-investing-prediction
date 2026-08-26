@@ -1,6 +1,27 @@
 import pytest
 
-from ai_fc.timeseries_v7_r4.g0_ablation import generate_g0_ablation, replay_exact_e0_grid
+from ai_fc.timeseries_v7_r4.g0_ablation import (
+    frozen_evaluation_grid,
+    generate_g0_ablation,
+    replay_exact_e0_grid,
+)
+
+
+def test_frozen_grid_preserves_holiday_shortened_week_coordinates():
+    score_rows = [
+        {"origin_session": "2020-04-09", "horizon": 1},  # Good Friday closed
+        {"origin_session": "2020-04-09", "horizon": 5},
+        {"origin_session": "2020-04-17", "horizon": 1},
+    ]
+
+    grid = frozen_evaluation_grid(score_rows)
+
+    assert grid["origins"] == ["2020-04-09", "2020-04-17"]
+    assert grid["coordinates"] == [
+        ("2020-04-09", 1), ("2020-04-09", 5), ("2020-04-17", 1),
+    ]
+    assert len(grid["origin_grid_hash"]) == 64
+    assert len(grid["coordinate_grid_hash"]) == 64
 
 
 def test_destructive_components_zeroed_and_qualification_runs_once():

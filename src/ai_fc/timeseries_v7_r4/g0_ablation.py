@@ -11,6 +11,7 @@ import hashlib
 import io
 import json
 import math
+import os
 import zipfile
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
@@ -30,6 +31,27 @@ DEFAULT_STRESS_WINDOWS = {
     "tightening_2022": ("2022-01-01", "2022-12-31"),
     "bull_2023": ("2023-01-01", "2023-12-31"),
 }
+
+
+def frozen_evaluation_grid(score_rows: Iterable[Mapping[str, Any]]) -> dict[str, Any]:
+    """Bind to predecessor research coordinates without calendar re-selection.
+
+    The rows define the frozen research grid.  In particular, a holiday-shortened
+    week may end on Thursday and must not be discarded by a Friday-only filter.
+    Score values are deliberately ignored.
+    """
+    coordinates = sorted({
+        (str(row["origin_session"]), int(row["horizon"])) for row in score_rows
+    })
+    if not coordinates:
+        raise ValueError("a non-empty frozen evaluation coordinate grid is required")
+    origins = sorted({origin for origin, _ in coordinates})
+    return {
+        "origins": origins,
+        "coordinates": coordinates,
+        "origin_grid_hash": sha256_bytes(canonical_json(origins)),
+        "coordinate_grid_hash": sha256_bytes(canonical_json(coordinates)),
+    }
 
 
 def _skill(rows: list[Mapping[str, Any]], score_column: str) -> dict[str, Any]:
@@ -106,6 +128,7 @@ def generate_g0_ablation(
 def replay_exact_e0_grid(
     labels: Iterable[Mapping[str, Any]], *,
     evaluation_origins: Iterable[str],
+    evaluation_coordinates: Iterable[tuple[str, int]] | None = None,
     r4_snapshot_hash: str,
     qualify: Callable[[], Mapping[str, Any]],
     five_role_validation_proof: bool,
@@ -126,13 +149,17 @@ def replay_exact_e0_grid(
         raise ValueError("complete PostgreSQL direct-horizon labels are required")
     origins = sorted(set(map(str, evaluation_origins)))
     origin_set = set(origins)
+    coordinate_set = ({(str(origin), int(horizon))
+                       for origin, horizon in evaluation_coordinates}
+                      if evaluation_coordinates is not None else None)
     rows: list[dict[str, Any]] = []
     identities: list[dict[str, Any]] = []
     identity_failures = 0
     for label in source_labels:
         origin = str(label["origin_session"])
         horizon = int(label["horizon_sessions"])
-        if origin not in origin_set or horizon not in (1, 5, 21, 63):
+        if (origin not in origin_set or horizon not in (1, 5, 21, 63)
+                or (coordinate_set is not None and (origin, horizon) not in coordinate_set)):
             continue
         samples = fit_exact_empirical_anchor(
             origin_session=origin, horizon_sessions=horizon,
@@ -156,6 +183,9 @@ def replay_exact_e0_grid(
                            "sample_set_hashes": hashes, "sample_count": len(samples.values)})
     if not rows:
         raise ValueError("the frozen origin grid has no matured labels")
+    replayed_coordinates = sorted((row["origin_session"], row["horizon"]) for row in rows)
+    if coordinate_set is not None and set(replayed_coordinates) != coordinate_set:
+        raise ValueError("authoritative PostgreSQL labels do not cover the frozen coordinate grid")
     report = generate_g0_ablation(
         rows, component_columns={name: name for name in (component_scores or {})},
         stress_windows=stress_windows, qualify=lambda: qualification,
@@ -164,7 +194,11 @@ def replay_exact_e0_grid(
         "comparator_contract": dict(E0_EXACT_EMPIRICAL_CONTRACT),
         "source": {"r4_snapshot_hash": r4_snapshot_hash,
                    "origin_count": len({row["origin_session"] for row in rows}),
-                   "coordinate_count": len(rows), "store": "postgresql"},
+                   "coordinate_count": len(rows), "store": "postgresql",
+                   "evaluation_origin_grid_hash": sha256_bytes(canonical_json(
+                       sorted({row["origin_session"] for row in rows}))),
+                   "evaluation_coordinate_grid_hash": sha256_bytes(canonical_json(
+                       replayed_coordinates))},
         "exact_replay_count": len(rows), "sample_identity_failures": identity_failures,
         "approximate_baseline_rows_used": 0,
         "five_role_validation_proof": True,
@@ -192,20 +226,51 @@ def _read_real_pack(path: Path, nested_member: str, expected_sha256: str) -> tup
     return rows, qualification
 
 
+def _read_postgres_labels(database_url: str, snapshot_hash: str) -> list[dict[str, Any]]:
+    """Read the qualified direct-horizon labels from the authoritative store."""
+    if not database_url.startswith(("postgresql://", "postgres://")):
+        raise ValueError("G0 acceptance requires an authoritative PostgreSQL database URL")
+    import psycopg
+
+    with psycopg.connect(database_url) as connection:
+        rows = connection.execute(
+            "SELECT target_id,origin_session,horizon_sessions,label_end_session,mature_at,"
+            "target_value FROM timeseries_v7_r4.label_intervals "
+            "WHERE snapshot_hash=%s ORDER BY origin_session,horizon_sessions",
+            (snapshot_hash,),
+        ).fetchall()
+    if not rows:
+        raise ValueError("qualified snapshot has no PostgreSQL direct-horizon labels")
+    return [{"target_id": row[0], "origin_session": row[1].isoformat(),
+             "horizon_sessions": row[2], "label_end_session": row[3].isoformat(),
+             "mature_at": row[4].isoformat(), "value": float(row[5])} for row in rows]
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("pack", type=Path)
     parser.add_argument("--nested-member", required=True)
     parser.add_argument("--sha256", required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--qualification", type=Path, required=True)
+    parser.add_argument("--database-url", default=(os.getenv("RALPH_V7_R4_DATABASE_URL")
+                                                    or os.getenv("DATABASE_URL")))
     args = parser.parse_args(argv)
-    rows, qualification = _read_real_pack(args.pack, args.nested_member, args.sha256)
-    report = generate_g0_ablation(
-        rows, component_columns={"legacy_e2_mixture": "model_crps"},
-        stress_windows=DEFAULT_STRESS_WINDOWS, qualify=lambda: qualification,
+    score_rows, _ = _read_real_pack(args.pack, args.nested_member, args.sha256)
+    qualification = json.loads(args.qualification.read_text(encoding="utf-8"))
+    grid = frozen_evaluation_grid(score_rows)
+    labels = _read_postgres_labels(args.database_url or "", qualification["r4_snapshot_hash"])
+    report = replay_exact_e0_grid(
+        labels, evaluation_origins=grid["origins"],
+        evaluation_coordinates=grid["coordinates"],
+        r4_snapshot_hash=qualification["r4_snapshot_hash"],
+        qualify=lambda: qualification, five_role_validation_proof=True,
     )
-    report.update({"source_pack_sha256": args.sha256,
-                   "nested_member": args.nested_member})
+    if (report["source"]["evaluation_origin_grid_hash"] != grid["origin_grid_hash"]
+            or report["source"]["evaluation_coordinate_grid_hash"] != grid["coordinate_grid_hash"]):
+        raise ValueError("exact replay changed the frozen research coordinate grid")
+    report["input_evidence"] = {"pack_sha256": args.sha256,
+                                "nested_member": args.nested_member}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(canonical_json(report) + b"\n")
     return 0
