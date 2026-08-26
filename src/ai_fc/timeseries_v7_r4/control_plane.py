@@ -405,22 +405,23 @@ class PostgresControlPlane:
                         " 'TASK_STATE_CORRECTION_APPENDED')"
                         " ORDER BY event_id DESC LIMIT 1", (run_id, task_key),
                     ).fetchone()
-                    if correction is not None and isinstance(correction[0], dict):
-                        payload["retry_evidence"] = dict(correction[0])
-                    else:
-                        previous = conn.execute(
-                            "SELECT result FROM timeseries_v7_r4.attempts"
-                            " WHERE run_id=%s AND task_key=%s AND completed_at IS NOT NULL"
-                            " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
-                        ).fetchone()
-                        previous = previous if previous is not None else (None,)
-                    if (correction is None and previous[0] is not None
-                            and isinstance(previous[0], dict)):
+                    previous = conn.execute(
+                        "SELECT result FROM timeseries_v7_r4.attempts"
+                        " WHERE run_id=%s AND task_key=%s AND completed_at IS NOT NULL"
+                        " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
+                    ).fetchone()
+                    previous = previous if previous is not None else (None,)
+                    if previous[0] is not None and isinstance(previous[0], dict):
                         payload["retry_evidence"] = {
                             "blocker_signature": previous[0].get("blocker_signature"),
                             "unresolved_blockers": previous[0].get("unresolved_blockers", []),
                             "acceptance_results": previous[0].get("acceptance_results", []),
                         }
+                    if correction is not None and isinstance(correction[0], dict):
+                        # Preserve the append-only correction as separate history,
+                        # but do not let an older correction hide the most recent
+                        # supervisor rejection from the next child attempt.
+                        payload["acceptance_correction_history"] = dict(correction[0])
                 lease_token = uuid.uuid4().hex
                 attempt_id = f"{task_key}-a{uuid.uuid4().hex[:12]}"
                 conn.execute(

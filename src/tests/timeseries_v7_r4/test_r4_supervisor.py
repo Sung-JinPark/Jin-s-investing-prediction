@@ -379,10 +379,11 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
     retry = control.claim(run_id, "worker", 30)
     assert retry.task_key == "t"
     assert retry.payload["retry_blocker"] == "AUTHORITATIVE_POSTGRES_ACCEPTANCE_FAILED"
-    assert retry.payload["retry_evidence"]["reason"] == "authoritative store mismatch"
-    assert retry.payload["retry_evidence"]["evidence"] == {
+    assert retry.payload["acceptance_correction_history"]["reason"] == "authoritative store mismatch"
+    assert retry.payload["acceptance_correction_history"]["evidence"] == {
         "expected": "postgresql", "observed": "sqlite",
     }
+    assert retry.payload["retry_evidence"]["blocker_signature"] is None
 
 
 def test_implementable_wait_data_is_corrected_to_replan(control):
@@ -404,7 +405,8 @@ def test_implementable_wait_data_is_corrected_to_replan(control):
     assert correction["corrected_state"] == "RETRY_WAIT"
     retry = control.claim(run_id, "worker", 30)
     assert retry.payload["retry_blocker"] == "MISCLASSIFIED_WAIT_DATA_REPLAN"
-    assert retry.payload["retry_evidence"]["reason"] == "artifact is locally generatable"
+    assert retry.payload["acceptance_correction_history"]["reason"] == "artifact is locally generatable"
+    assert retry.payload["retry_evidence"]["blocker_signature"] == "MISSING_GENERATED_ARTIFACT"
 
 
 def test_lease_fencing(control):
