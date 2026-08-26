@@ -212,7 +212,9 @@ class CodexDispatcher:
                 "probabilities_sum_to_one=true, "
                 "minimum_regime_count, partial_pooling_applied, filtered_feature_count and "
                 "forbidden_prediction_features=[]. Partial pooling is structural, not only a sparse "
-                "fallback: emit pooling_weights in (0,1] with at least one weight strictly below 1. "
+                "fallback: emit pooling_weights as a named JSON object (not an array), with one "
+                "entry per declared regime; every value must be in (0,1] and at least one weight "
+                "strictly below 1. "
                 "Prediction-time date, crisis-name and future-return "
                 "labels are forbidden."
             )

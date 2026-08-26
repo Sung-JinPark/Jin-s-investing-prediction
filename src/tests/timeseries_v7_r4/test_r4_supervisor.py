@@ -1189,6 +1189,7 @@ def test_codex_dispatch_prompt_registers_s4_mechanism_receipt(task_key, required
     if task_key == "R4-S4-004":
         assert "state_available_at_origin=true" in prompt
         assert "at least one weight strictly below 1" in prompt
+        assert "named JSON object (not an array)" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():
