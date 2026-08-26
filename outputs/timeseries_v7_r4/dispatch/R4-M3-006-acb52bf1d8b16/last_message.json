@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-M3-006",
+  "attempt_id": "R4-M3-006-acb52bf1d8b16",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T13:53:00+09:00",
+  "completed_at": "2026-08-26T14:53:48.6971209+09:00",
+  "duration_seconds": 3649,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe tools/run_g1_screen_v7_r4.py <authoritative-export> outputs\\timeseries_v7_r4\\R4-M3-006\\g1_screen.json",
+      "return_code": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_g1_candidate_funnel.py src/tests/timeseries_v7_r4/test_e1_quantile_elastic_net.py src/tests/timeseries_v7_r4/test_e2_student_t.py -q",
+      "return_code": 0,
+      "stdout_sha256": "c41958c93eb7366e900d86966c96b22366c4f0642ba143f2d2553533ffe29885",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/g1_candidate_funnel.py",
+    "src/ai_fc/timeseries_v7_r4/e1_quantile_elastic_net.py",
+    "src/ai_fc/timeseries_v7_r4/e2_student_t.py",
+    "src/tests/timeseries_v7_r4/test_g1_candidate_funnel.py",
+    "tools/run_g1_screen_v7_r4.py",
+    "outputs/timeseries_v7_r4/R4-M3-006/g1_screen.json",
+    "outputs/timeseries_v7_r4/R4-M3-006/targeted_tests.log"
+  ],
+  "tests": [
+    {
+      "name": "targeted R4 G1, E1, and E2 tests: 13 passed",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-M3-006/targeted_tests.log",
+      "sha256": "c41958c93eb7366e900d86966c96b22366c4f0642ba143f2d2553533ffe29885"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "candidate counts respect funnel budgets",
+      "passed": true,
+      "evidence": {
+        "smoke": 4,
+        "inner_screen": 4,
+        "robust_inner": 4,
+        "full_nested": 4,
+        "qualification": 1
+      }
+    },
+    {
+      "criterion": "challenger underperformers get zero weight",
+      "passed": true,
+      "evidence": "All E1-E4 candidates underperformed exact E0 and have weight 0.0."
+    },
+    {
+      "criterion": "hypothesis and exposure hashes are recorded",
+      "passed": true,
+      "evidence": "Every E1-E4 candidate records canonical 64-character SHA-256 hypothesis_hash and exposure_hash."
+    },
+    {
+      "criterion": "declared real evidence-pack authoritative PIT acceptance",
+      "passed": true,
+      "evidence": {
+        "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+        "e0_artifact_sha256": "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec",
+        "evaluation_origin_grid_hash": "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135",
+        "candidate_families": [
+          "E1",
+          "E2",
+          "E3",
+          "E4"
+        ],
+        "model_score_rows": 24480,
+        "legacy_precomputed_score_rows_used": 0,
+        "outer_rows_used": 0,
+        "five_role_validation_proof": true
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v7_r4/R4-M3-006/g1_screen.json",
+      "sha256": "d5225e5b8596f72d9be7de600a292fd479fcc6436f5f9831f9bb716454e870fb",
+      "bytes": 2436
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-M3-006/targeted_tests.log",
+      "sha256": "c41958c93eb7366e900d86966c96b22366c4f0642ba143f2d2553533ffe29885",
+      "bytes": 102
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
