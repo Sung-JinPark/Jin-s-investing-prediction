@@ -1311,6 +1311,10 @@ def test_codex_dispatch_prompt_requires_separate_frozen_g3_receipt():
     assert "weight must be positive only" in prompt
     assert "prior_sealed_result_mutated=false" in prompt
     assert "Gate failure is HOLD_RESEARCH_GATE" in prompt
+    assert "named JSON object keyed by task ID" in prompt
+    assert "array named components (not stress_components)" in prompt
+    assert "inside a frozen_evaluation object" in prompt
+    assert "inside a sealed_prior object" in prompt
 
 
 def test_codex_dispatch_prompt_requires_machine_result_keys():
