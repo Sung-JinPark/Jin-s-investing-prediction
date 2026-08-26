@@ -1,0 +1,533 @@
+
+=================================== ERRORS ====================================
+_______________ ERROR collecting src/tests/test_audit_fixes.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_audit_fixes.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_audit_fixes.py:11: in <module>
+    from ai_fc.base_rates import scan_stale_base_rates
+src\ai_fc\base_rates.py:16: in <module>
+    from .db import queries
+src\ai_fc\db\queries.py:14: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_________ ERROR collecting src/tests/test_authoritative_statistics.py _________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_authoritative_statistics.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_authoritative_statistics.py:10: in <module>
+    from ai_fc.authoritative_statistics import (
+src\ai_fc\authoritative_statistics.py:29: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+_____________ ERROR collecting src/tests/test_bitemporal_facts.py _____________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_bitemporal_facts.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_bitemporal_facts.py:5: in <module>
+    from ai_fc.facts import ObservationFact, ParquetFactStore, as_of_rows, assert_no_leakage
+src\ai_fc\facts.py:11: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+________________ ERROR collecting src/tests/test_dashboard.py _________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_dashboard.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_dashboard.py:12: in <module>
+    from ai_fc import dashboard
+src\ai_fc\dashboard.py:22: in <module>
+    from .db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+__________________ ERROR collecting src/tests/test_digest.py __________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_digest.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_digest.py:11: in <module>
+    from ai_fc import base_rates
+src\ai_fc\base_rates.py:16: in <module>
+    from .db import queries
+src\ai_fc\db\queries.py:14: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_divergence_due.py ______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_divergence_due.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_divergence_due.py:9: in <module>
+    from ai_fc.db.queries import MlRef
+src\ai_fc\db\queries.py:14: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+________________ ERROR collecting src/tests/test_inventory.py _________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_inventory.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_inventory.py:6: in <module>
+    from ai_fc import inventory
+src\ai_fc\inventory.py:11: in <module>
+    from . import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+________________ ERROR collecting src/tests/test_l0_batch1.py _________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_l0_batch1.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_l0_batch1.py:9: in <module>
+    from ai_fc import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_______________ ERROR collecting src/tests/test_ledger_audit.py _______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ledger_audit.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ledger_audit.py:10: in <module>
+    from ai_fc.ledger_audit import audit_ledgers, has_violations
+src\ai_fc\ledger_audit.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+________________ ERROR collecting src/tests/test_lite_tier.py _________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_lite_tier.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_lite_tier.py:9: in <module>
+    import ai_fc.agents.base as agents_base
+src\ai_fc\agents\base.py:7: in <module>
+    import anthropic
+E   ModuleNotFoundError: No module named 'anthropic'
+_______________ ERROR collecting src/tests/test_llm_provider.py _______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_llm_provider.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_llm_provider.py:8: in <module>
+    from ai_fc import llm
+src\ai_fc\llm.py:13: in <module>
+    import anthropic
+E   ModuleNotFoundError: No module named 'anthropic'
+________________ ERROR collecting src/tests/test_ml_history.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ml_history.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ml_history.py:11: in <module>
+    from ai_fc.db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_model_registry.py ______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_model_registry.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_model_registry.py:7: in <module>
+    from ai_fc.db import ingest
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_________ ERROR collecting src/tests/test_multivariate_timeseries.py __________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_multivariate_timeseries.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_multivariate_timeseries.py:12: in <module>
+    from ai_fc.facts import ObservationFact
+src\ai_fc\facts.py:11: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+__________ ERROR collecting src/tests/test_official_data_workbook.py __________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_official_data_workbook.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_official_data_workbook.py:8: in <module>
+    from ai_fc.authoritative_statistics import (
+src\ai_fc\authoritative_statistics.py:29: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+_____________ ERROR collecting src/tests/test_official_sources.py _____________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_official_sources.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_official_sources.py:5: in <module>
+    from ai_fc.official_sources import (
+src\ai_fc\official_sources.py:16: in <module>
+    from .data_contracts import payload_sha256
+src\ai_fc\data_contracts.py:13: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+___________ ERROR collecting src/tests/test_probability_contract.py ___________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_probability_contract.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_probability_contract.py:4: in <module>
+    from pydantic import ValidationError
+E   ModuleNotFoundError: No module named 'pydantic'
+___________ ERROR collecting src/tests/test_provider_governance.py ____________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_provider_governance.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_provider_governance.py:7: in <module>
+    from ai_fc.db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_____________ ERROR collecting src/tests/test_provider_shadow.py ______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_provider_shadow.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_provider_shadow.py:6: in <module>
+    from ai_fc.llm import PipelineBudget, Usage
+src\ai_fc\llm.py:13: in <module>
+    import anthropic
+E   ModuleNotFoundError: No module named 'anthropic'
+____________ ERROR collecting src/tests/test_quant_integrity_v2.py ____________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_quant_integrity_v2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_quant_integrity_v2.py:5: in <module>
+    from ai_fc.db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_______________ ERROR collecting src/tests/test_scenario_v5.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_scenario_v5.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_scenario_v5.py:11: in <module>
+    from ai_fc.scenario_v5.artifact import CANDIDATE_RELATIVE, validate_candidate, verify_candidate
+src\ai_fc\scenario_v5\__init__.py:3: in <module>
+    from .artifact import (
+src\ai_fc\scenario_v5\artifact.py:21: in <module>
+    from .evidence import build_evidence_registry, event_states
+src\ai_fc\scenario_v5\evidence.py:17: in <module>
+    from ..files import iter_forecast_files, parse_forecast_file
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_scenario_v5_1.py _______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_scenario_v5_1.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_scenario_v5_1.py:14: in <module>
+    from ai_fc.scenario_v5.hardening import (
+src\ai_fc\scenario_v5\__init__.py:3: in <module>
+    from .artifact import (
+src\ai_fc\scenario_v5\artifact.py:21: in <module>
+    from .evidence import build_evidence_registry, event_states
+src\ai_fc\scenario_v5\evidence.py:17: in <module>
+    from ..files import iter_forecast_files, parse_forecast_file
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_________________ ERROR collecting src/tests/test_sprint1.py __________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_sprint1.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_sprint1.py:15: in <module>
+    from ai_fc import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_________________ ERROR collecting src/tests/test_sprint2.py __________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_sprint2.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_sprint2.py:11: in <module>
+    import ai_fc.orchestrator as orch
+src\ai_fc\orchestrator.py:18: in <module>
+    import anthropic
+E   ModuleNotFoundError: No module named 'anthropic'
+_________________ ERROR collecting src/tests/test_sprint3.py __________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_sprint3.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_sprint3.py:10: in <module>
+    from ai_fc import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_statistics_lab.py ______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_statistics_lab.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_statistics_lab.py:15: in <module>
+    from ai_fc.authoritative_statistics import (
+src\ai_fc\authoritative_statistics.py:29: in <module>
+    from pydantic import BaseModel, ConfigDict, Field, model_validator
+E   ModuleNotFoundError: No module named 'pydantic'
+__________ ERROR collecting src/tests/test_ui_hysteresis_snapshot.py __________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ui_hysteresis_snapshot.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ui_hysteresis_snapshot.py:7: in <module>
+    from ai_fc import dashboard
+src\ai_fc\dashboard.py:22: in <module>
+    from .db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+___________ ERROR collecting src/tests/test_website_data_lineage.py ___________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_website_data_lineage.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_website_data_lineage.py:7: in <module>
+    from ai_fc import dashboard
+src\ai_fc\dashboard.py:22: in <module>
+    from .db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_______________ ERROR collecting src/tests/test_ws1_factory.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws1_factory.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws1_factory.py:11: in <module>
+    from ai_fc.db import ingest
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+___________ ERROR collecting src/tests/test_ws1_resolution_queue.py ___________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws1_resolution_queue.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws1_resolution_queue.py:11: in <module>
+    from ai_fc.db import ingest
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_ws2_benchmark.py _______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws2_benchmark.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws2_benchmark.py:9: in <module>
+    from ai_fc import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+________________ ERROR collecting src/tests/test_ws4_digest.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws4_digest.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws4_digest.py:6: in <module>
+    from ai_fc.orchestrator import _render_evidence
+src\ai_fc\orchestrator.py:18: in <module>
+    import anthropic
+E   ModuleNotFoundError: No module named 'anthropic'
+______________ ERROR collecting src/tests/test_ws5_atomicity.py _______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws5_atomicity.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws5_atomicity.py:9: in <module>
+    import ai_fc.files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+______________ ERROR collecting src/tests/test_ws6_divergence.py ______________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws6_divergence.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws6_divergence.py:5: in <module>
+    from ai_fc.files import validate_new_record
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+_______________ ERROR collecting src/tests/test_ws7_quality.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws7_quality.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws7_quality.py:7: in <module>
+    from ai_fc.db import ingest
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+________________ ERROR collecting src/tests/test_ws8_report.py ________________
+ImportError while importing test module 'C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\src\tests\test_ws8_report.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Users\91ssj\AppData\Local\Programs\Python\Python312\Lib\importlib\__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+src\tests\test_ws8_report.py:8: in <module>
+    from ai_fc.db import ingest, queries
+src\ai_fc\db\ingest.py:17: in <module>
+    from .. import files as F
+src\ai_fc\files.py:16: in <module>
+    import frontmatter
+E   ModuleNotFoundError: No module named 'frontmatter'
+============================== warnings summary ===============================
+.runtime\v7r4\Lib\site-packages\exchange_calendars\exchange_calendar.py:65
+  C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\.runtime\v7r4\Lib\site-packages\exchange_calendars\exchange_calendar.py:65: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+    ONE_HOUR = pd.Timedelta("1h")
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+ERROR src/tests/test_audit_fixes.py
+ERROR src/tests/test_authoritative_statistics.py
+ERROR src/tests/test_bitemporal_facts.py
+ERROR src/tests/test_dashboard.py
+ERROR src/tests/test_digest.py
+ERROR src/tests/test_divergence_due.py
+ERROR src/tests/test_inventory.py
+ERROR src/tests/test_l0_batch1.py
+ERROR src/tests/test_ledger_audit.py
+ERROR src/tests/test_lite_tier.py
+ERROR src/tests/test_llm_provider.py
+ERROR src/tests/test_ml_history.py
+ERROR src/tests/test_model_registry.py
+ERROR src/tests/test_multivariate_timeseries.py
+ERROR src/tests/test_official_data_workbook.py
+ERROR src/tests/test_official_sources.py
+ERROR src/tests/test_probability_contract.py
+ERROR src/tests/test_provider_governance.py
+ERROR src/tests/test_provider_shadow.py
+ERROR src/tests/test_quant_integrity_v2.py
+ERROR src/tests/test_scenario_v5.py
+ERROR src/tests/test_scenario_v5_1.py
+ERROR src/tests/test_sprint1.py
+ERROR src/tests/test_sprint2.py
+ERROR src/tests/test_sprint3.py
+ERROR src/tests/test_statistics_lab.py
+ERROR src/tests/test_ui_hysteresis_snapshot.py
+ERROR src/tests/test_website_data_lineage.py
+ERROR src/tests/test_ws1_factory.py
+ERROR src/tests/test_ws1_resolution_queue.py
+ERROR src/tests/test_ws2_benchmark.py
+ERROR src/tests/test_ws4_digest.py
+ERROR src/tests/test_ws5_atomicity.py
+ERROR src/tests/test_ws6_divergence.py
+ERROR src/tests/test_ws7_quality.py
+ERROR src/tests/test_ws8_report.py
+!!!!!!!!!!!!!!!!!! Interrupted: 36 errors during collection !!!!!!!!!!!!!!!!!!!
+1 warning, 36 errors in 5.31s
+
+--- STDERR ---
