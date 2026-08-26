@@ -578,6 +578,46 @@ class Supervisor:
                     "required": "real R4 rematerialization with new cutoff, provenance, release-native features, and PostgreSQL persistence",
                 }]
                 result["recommended_router_deficits"] = ["data_rematerialization"]
+        if lease.task_key == "R4-V2-002":
+            implementation_path = (
+                self.context.repo
+                / "src/ai_fc/timeseries_v7_r4/e0_empirical_samples.py"
+            )
+            implementation = (
+                implementation_path.read_text(encoding="utf-8")
+                if implementation_path.exists() else ""
+            )
+            checks = {
+                "frozen_exact_empirical_anchor": "exact_empirical_anchor" in implementation,
+                "no_comparator_block_bootstrap": (
+                    "historical_moving_block_bootstrap" not in implementation
+                    and "E0_BLOCK_BOOTSTRAP_CONTRACT" not in implementation
+                ),
+                "exact_label_fit_boundary": "fit_exact_empirical_anchor" in implementation,
+                "no_rng_in_exact_anchor": (
+                    "default_rng" not in implementation and ".choice(" not in implementation
+                ),
+                "quantile_reconstruction_prohibited": (
+                    "quantiles cannot reconstruct" in implementation
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "frozen_e0_exact_empirical_comparator_preserved",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "FROZEN_E0_COMPARATOR_MISMATCH"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "unchanged exact empirical direct-horizon label anchor; "
+                        "no bootstrap, Gaussian reconstruction, quantile reconstruction, or RNG"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["comparator_identity"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

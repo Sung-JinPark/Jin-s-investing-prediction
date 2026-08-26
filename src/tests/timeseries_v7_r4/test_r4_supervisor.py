@@ -496,6 +496,41 @@ def test_d1_006_rejects_single_feature_snapshot_as_multivariate_pit(
     assert evidence["all_alfred_series_covered"] is False
 
 
+def test_v2_002_rejects_a_new_block_bootstrap_comparator(control, tmp_path):
+    module = tmp_path / "src/ai_fc/timeseries_v7_r4"
+    module.mkdir(parents=True)
+    (module / "e0_empirical_samples.py").write_text(
+        'E0_BLOCK_BOOTSTRAP_CONTRACT={"algorithm":"historical_moving_block_bootstrap"}\n'
+        'def from_quantiles(): raise ValueError("quantiles cannot reconstruct")\n',
+        encoding="utf-8",
+    )
+    supervisor = Supervisor(
+        control,
+        SupervisorContext(
+            repo=tmp_path,
+            output_root=tmp_path / "outputs/timeseries_v7_r4",
+            review_pack=tmp_path / "review.zip",
+            r3_design_pack=None,
+            predecessor_repo=None,
+            config={"controller": {"lease_seconds": 30}},
+            auto_codex=False,
+        ),
+    )
+    lease = Lease("run", "R4-V2-002", "attempt", "token", "E0", {})
+    child_result = {
+        "status": "SUCCEEDED", "acceptance_results": [],
+        "unresolved_blockers": [], "recommended_router_deficits": [],
+    }
+
+    checked = supervisor._validate_task_semantics(lease, child_result)
+
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "FROZEN_E0_COMPARATOR_MISMATCH"
+    evidence = checked["acceptance_results"][-1]["evidence"]
+    assert evidence["frozen_exact_empirical_anchor"] is False
+    assert evidence["no_comparator_block_bootstrap"] is False
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
