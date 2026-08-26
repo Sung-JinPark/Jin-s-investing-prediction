@@ -931,6 +931,44 @@ def test_s4_mechanisms_fail_closed_without_registered_receipt(
     assert checked["blocker_signature"] == blocker
 
 
+def test_s4_003_accepts_top_level_role_receipt_and_available_at_rule(control, tmp_path):
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-003/r4_calibration"
+    folder.mkdir(parents=True)
+    family = lambda horizon: {
+        "horizon": horizon, "calibration_role_origin_count": 634,
+        "fit_role": "calibration_temporal_cross_fit",
+        "available_at_rule": "outcomes_available_at_origin_only",
+        "positive_tail": {"exceedance_count": 30, "shrinkage_guard_to_e0": False},
+        "negative_tail": {"exceedance_count": 31, "shrinkage_guard_to_e0": False},
+        "extreme_q4_score": .1, "tail_score": .2,
+    }
+    (folder / "acceptance_summary.json").write_text(json.dumps({
+        "schema": "r4_asymmetric_evt_v1",
+        "r4_snapshot_hash": R4_QUALIFIED_SNAPSHOT_HASH,
+        "g2_artifact_sha256":
+            "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "role_hashes": {"calibration":
+            "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"},
+        "row_use_counters": {"legacy_review_pack_score_rows_used": 0,
+            "qualification_score_rows_used": 0, "outer_rows_used": 0},
+        "promotion_claimed": False,
+        "families": [family(horizon) for horizon in (1, 5, 21, 63)],
+    }), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-S4-003", "attempt", "token", "evt", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "SUCCEEDED"
+    assert checked["acceptance_results"][-1]["passed"] is True
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})

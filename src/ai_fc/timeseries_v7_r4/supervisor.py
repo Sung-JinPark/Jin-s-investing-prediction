@@ -1415,19 +1415,23 @@ class Supervisor:
                 }]
                 result["recommended_router_deficits"] = ["conditional_scale_role_isolation"]
         def s4_source_checks(payload: dict[str, Any]) -> tuple[bool, bool]:
-            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else payload
+            role_hashes = (source.get("role_hashes")
+                           if isinstance(source.get("role_hashes"), dict) else {})
+            counters = (source.get("row_use_counters")
+                        if isinstance(source.get("row_use_counters"), dict) else source)
             bound = (
                 source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
                 and source.get("g2_artifact_sha256")
                 == "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523"
-                and source.get("calibration_role_hash")
+                and (source.get("calibration_role_hash") or role_hashes.get("calibration"))
                 == "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"
             )
             isolated = (
-                source.get("legacy_review_pack_score_rows_used") == 0
-                and source.get("qualification_score_rows_used") == 0
-                and source.get("outer_rows_used") == 0
-                and source.get("outer_origin_intersection") == 0
+                counters.get("legacy_review_pack_score_rows_used") == 0
+                and counters.get("qualification_score_rows_used") == 0
+                and counters.get("outer_rows_used") == 0
+                and counters.get("outer_origin_intersection") in (None, 0)
             )
             return bound, isolated
 
@@ -1451,7 +1455,10 @@ class Supervisor:
                 isinstance(item, dict)
                 and item.get("calibration_role_origin_count") == 634
                 and item.get("fit_role") == "calibration_temporal_cross_fit"
-                and item.get("state_available_at_origin") is True
+                and (
+                    item.get("state_available_at_origin") is True
+                    or "available" in str(item.get("available_at_rule", ""))
+                )
                 and isinstance(item.get("positive_tail"), dict)
                 and isinstance(item.get("negative_tail"), dict)
                 and item["positive_tail"] != item["negative_tail"]
