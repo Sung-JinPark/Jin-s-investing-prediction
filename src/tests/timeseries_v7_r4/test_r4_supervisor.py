@@ -831,6 +831,49 @@ def test_s4_001_rejects_predecessor_score_calibration_without_r4_role_receipt(co
     assert checked["blocker_signature"] == "P_UP_CALIBRATION_ROLE_LEAKAGE"
 
 
+def test_s4_001_accepts_explicit_pass_with_recomputed_fraction_bounds(control, tmp_path):
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration"
+    folder.mkdir(parents=True)
+    source = {
+        "r4_snapshot_hash": R4_QUALIFIED_SNAPSHOT_HASH,
+        "r4_snapshot_artifact_sha256":
+            "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+        "g2_artifact_sha256":
+            "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "calibration_role_hash":
+            "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0, "outer_rows_used": 0,
+        "outer_origin_intersection": 0,
+    }
+    family = lambda horizon: {
+        "horizon": horizon, "calibration_role_origin_count": 634,
+        "fit_role": "calibration_temporal_cross_fit",
+        "evaluation_role": "calibration_cross_fit_holdout",
+        "brier": .2, "base_rate_brier": .25, "balanced_brier": .21,
+        "probability_unit": "fraction", "probability_bounds": "PASS",
+        "probability_min": 0.0, "probability_max": 1.0,
+    }
+    (folder / "acceptance_summary.json").write_text(json.dumps({
+        "schema": "r4_probability_up_calibration_v2", "source": source,
+        "families": [family(horizon) for horizon in (1, 5, 21, 63)],
+        "supersedes_sha256": "a" * 64,
+    }), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-S4-001", "attempt", "token", "p-up", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "SUCCEEDED"
+    assert checked["acceptance_results"][-1]["passed"] is True
+
+
 def test_s4_002_rejects_predecessor_scale_fit_without_r4_role_receipt(control, tmp_path):
     folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-002/r4_calibration"
     folder.mkdir(parents=True)

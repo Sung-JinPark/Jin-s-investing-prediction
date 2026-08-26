@@ -1267,7 +1267,16 @@ class Supervisor:
                 and isinstance(item.get("base_rate_brier"), (int, float))
                 and isinstance(item.get("balanced_brier"), (int, float))
                 and item.get("probability_unit") == "fraction"
-                and item.get("probability_bounds_pass") is True
+                and (
+                    item.get("probability_bounds_pass") is True
+                    or (
+                        item.get("probability_bounds") == "PASS"
+                        and isinstance(item.get("probability_min"), (int, float))
+                        and isinstance(item.get("probability_max"), (int, float))
+                        and 0.0 <= float(item["probability_min"])
+                        <= float(item["probability_max"]) <= 1.0
+                    )
+                )
                 for item in families
             )
             checks = {
