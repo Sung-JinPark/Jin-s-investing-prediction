@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "task_key": "R4-S4-001",
+  "attempt_id": "R4-S4-001-a454265a1a047",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "status": "SUCCEEDED",
+  "summary": "Implemented authoritative PostgreSQL PIT zero-threshold P(up) calibration using only the fixed 634-origin calibration role and expanding temporal cross-fitting. Preserved the initial receipt as a content-addressed revision and appended a schema-complete corrected acceptance summary.",
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "ImportError: authoritative_temporal_cross_fit did not exist before implementation."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "The initial disposable fixture lacked PIT-eligible history preceding its first calibration origin."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m ai_fc.timeseries_v7_r4.probability_up_calibration --review-pack C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip --nested-member INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip --authoritative-export C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\input_exports\\cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2.json --output-dir outputs/timeseries_v7_r4/R4-S4-001/r4_calibration",
+      "phase": "acceptance",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -c \"from pathlib import Path; from ai_fc.timeseries_v7_r4.probability_up_calibration import append_corrected_summary_revision; print(append_corrected_summary_revision(Path(r'outputs/timeseries_v7_r4/R4-S4-001/r4_calibration')))\"",
+      "phase": "artifact_revision",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_probability_up_calibration.py src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "artifact schema validation and credential-pattern scan",
+      "phase": "verification",
+      "return_code": 0,
+      "evidence": "Artifact validation PASS; credential-pattern scan returned no matches."
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/probability_up_calibration.py",
+    "src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h1-b1513c420236c0676412956dd9b80fea7526fcfd645fdb4effe0db20a308ee9b.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h5-fa1d45bb648654c66d85b06192667601c26974a19ac99cfcc436acc3fda6b277.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h21-dd258a82612766976998455bac06454341122f7f4b930ea4edaa57f59a0b2505.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h63-0da497edc31b1f936b4b5ebbe74eca22c85b54686c4f041c447d18bc5872bc6f.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/revisions/7bd6a408c260f519e6f29ebff2ca356a1f46af2cb58e2a911dfc2912add439dc.json"
+  ],
+  "tests": [
+    {
+      "name": "probability-up calibration unit tests",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+      "observed_result": "3 passed"
+    },
+    {
+      "name": "probability-up and supervisor regression tests",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "observed_result": "64 passed, 7 warnings"
+    },
+    {
+      "name": "authoritative PIT evidence-pack acceptance",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+      "observed_result": "Four horizons completed with 634 calibration-role origins and 528 expanding cross-fit holdouts per horizon."
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "Brier and reliability curve computed on disjoint calibration evidence",
+      "passed": true,
+      "evidence": {
+        "calibration_role_origin_count": 634,
+        "fit_role": "calibration_temporal_cross_fit",
+        "evaluation_role": "calibration_cross_fit_holdout",
+        "evaluation_rows_per_family": 528,
+        "horizons": [1, 5, 21, 63],
+        "brier": {
+          "1": 0.2697857215399922,
+          "5": 0.26262749982762135,
+          "21": 0.24276167245632835,
+          "63": 0.2276557123623138
+        }
+      }
+    },
+    {
+      "criterion": "base-rate comparator retained",
+      "passed": true,
+      "evidence": {
+        "base_rate_brier": {
+          "1": 0.2539495954140729,
+          "5": 0.24904900178511685,
+          "21": 0.26282824125448734,
+          "63": 0.28582628375940805
+        }
+      }
+    },
+    {
+      "criterion": "balanced-direction diagnostics included",
+      "passed": true,
+      "evidence": {
+        "balanced_brier": {
+          "1": 0.2696433841365641,
+          "5": 0.27084369840848666,
+          "21": 0.25341441835172024,
+          "63": 0.235775906878857
+        },
+        "positive_brier": true,
+        "negative_brier": true
+      }
+    },
+    {
+      "criterion": "authoritative source and role isolation",
+      "passed": true,
+      "evidence": {
+        "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+        "r4_snapshot_artifact_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+        "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "calibration_role_hash": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0,
+        "outer_rows_used": 0,
+        "outer_origin_intersection": 0,
+        "probability_unit": "fraction",
+        "probability_bounds": "PASS"
+      }
+    },
+    {
+      "criterion": "append-only correction evidence",
+      "passed": true,
+      "evidence": {
+        "supersedes_sha256": "532848611a9297eaf5c59bc27c13382f2e3fbd3f59c02d892073323076c9868c",
+        "preserved_receipt_sha256": "7bd6a408c260f519e6f29ebff2ca356a1f46af2cb58e2a911dfc2912add439dc"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+      "sha256": "f426df17f193353d80441920fa8ec1dec143d24b04fb6f446b785ce8e6cc6485",
+      "bytes": 23893
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h1-b1513c420236c0676412956dd9b80fea7526fcfd645fdb4effe0db20a308ee9b.json",
+      "sha256": "29ba2b9195dfd5fdd8ecb471d9335ec1307af667e21fa050d8cbee8f7ce40b4a",
+      "bytes": 3098
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h5-fa1d45bb648654c66d85b06192667601c26974a19ac99cfcc436acc3fda6b277.json",
+      "sha256": "2643b3ebfd02890f4bb93b1bf401c165584025e19d57b4a46bad76aa2dccd955",
+      "bytes": 3550
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h21-dd258a82612766976998455bac06454341122f7f4b930ea4edaa57f59a0b2505.json",
+      "sha256": "5afcffe01259c58faaa1afaab90365ba199e2785ceb5187251ad7e50a1914d5e",
+      "bytes": 3419
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h63-0da497edc31b1f936b4b5ebbe74eca22c85b54686c4f041c447d18bc5872bc6f.json",
+      "sha256": "92d9ad905759c2f31cdefc13f6537e232ec90bf780752c883294db8092386c34",
+      "bytes": 3011
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/revisions/7bd6a408c260f519e6f29ebff2ca356a1f46af2cb58e2a911dfc2912add439dc.json",
+      "sha256": "7bd6a408c260f519e6f29ebff2ca356a1f46af2cb58e2a911dfc2912add439dc",
+      "bytes": 16422
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
