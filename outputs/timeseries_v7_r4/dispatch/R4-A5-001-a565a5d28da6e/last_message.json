@@ -1,0 +1,99 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-A5-001",
+  "attempt_id": "R4-A5-001-a565a5d28da6e",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T11:07:30Z",
+  "completed_at": "2026-08-26T11:11:33.1629418Z",
+  "duration_seconds": 243,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_gate_deficit_router.py -q",
+      "phase": "red_test",
+      "expected_failure": "HypothesisRegistry was not yet implemented, causing the new acceptance test module to fail during import.",
+      "return_code": 1
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_gate_deficit_router.py src/tests/timeseries_v7_r4/test_r4_supervisor.py -q",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "phase": "regression_test",
+      "return_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "phase": "verification",
+      "return_code": 0
+    }
+  ],
+  "changed_paths": [
+    "migrations/timeseries_v7_r4/001_control_plane.sql",
+    "src/ai_fc/timeseries_v7_r4/router.py",
+    "src/tests/timeseries_v7_r4/test_gate_deficit_router.py"
+  ],
+  "tests": [
+    {
+      "name": "GateDeficitRouter targeted acceptance and supervisor regression",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_gate_deficit_router.py",
+      "sha256": "b9c08e8ad0c1c9c15c8e7a4701c91acd15388aad7ee8f879e61f8c7b056a0a04",
+      "summary": "78 passed"
+    },
+    {
+      "name": "timeseries_v7_r4 full regression suite",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "sha256": "b9c08e8ad0c1c9c15c8e7a4701c91acd15388aad7ee8f879e61f8c7b056a0a04",
+      "summary": "166 passed, 7 warnings"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "every Gate check maps to an admissible task family",
+      "passed": true,
+      "evidence": "validate_gate_coverage rejects uncovered frozen Gate checks and maps every GATE_NAMES member to one or more contract actions"
+    },
+    {
+      "criterion": "duplicate hypothesis/data/code/runtime combinations are blocked",
+      "passed": true,
+      "evidence": "Append-only PostgreSQL hypothesis_registry has a unique frozen-coordinate constraint; HypothesisRegistry.register returns false on conflict even when the proposed action differs"
+    },
+    {
+      "criterion": "same blocker routes to alternate family after limit",
+      "passed": true,
+      "evidence": "Router applies route_to_alternate_family_at from the frozen YAML policy and excludes actions associated with the repeated blocker"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/router.py",
+      "sha256": "05a1ae13fed6098ed066e427a69de0b20922c4dfbc6e1541cb0d064925dbaa78",
+      "bytes": 5174
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_gate_deficit_router.py",
+      "sha256": "b9c08e8ad0c1c9c15c8e7a4701c91acd15388aad7ee8f879e61f8c7b056a0a04",
+      "bytes": 2288
+    },
+    {
+      "path": "migrations/timeseries_v7_r4/001_control_plane.sql",
+      "sha256": "54b78dad53bdb8f56861f0350964ab2febfa50ef4f34367bd46d23ca7623a91c",
+      "bytes": 4548
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
