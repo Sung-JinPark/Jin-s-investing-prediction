@@ -1301,6 +1301,73 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["p_up_calibration_role_isolation"]
+        if lease.task_key == "R4-S4-002":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-S4-002/r4_calibration/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            family_pass = len(families) == 4 and {
+                int(item.get("horizon")) for item in families if isinstance(item, dict)
+            } == {1, 5, 21, 63} and all(
+                isinstance(item, dict)
+                and item.get("calibration_role_origin_count") == 634
+                and item.get("fit_role") == "calibration_temporal_cross_fit"
+                and item.get("state_available_at_origin") is True
+                and isinstance(item.get("normal_width_ratio"), (int, float))
+                and float(item["normal_width_ratio"]) <= 1.10
+                and isinstance(item.get("normal_volatility_scale"), (int, float))
+                and float(item["normal_volatility_scale"]) > 0
+                and isinstance(item.get("stress_volatility_scale"), (int, float))
+                and float(item["stress_volatility_scale"]) > 0
+                and item.get("coverage_diagnostics_cross_fitted") is True
+                for item in families
+            )
+            checks = {
+                "authoritative_r4_calibration_source": (
+                    payload.get("schema") == "r4_conditional_scale_v2"
+                    and source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
+                    and source.get("g2_artifact_sha256")
+                    == "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523"
+                    and source.get("calibration_role_hash")
+                    == "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"
+                ),
+                "no_predecessor_qualification_or_outer_tuning": (
+                    source.get("legacy_review_pack_score_rows_used") == 0
+                    and source.get("qualification_score_rows_used") == 0
+                    and source.get("outer_rows_used") == 0
+                    and source.get("outer_origin_intersection") == 0
+                ),
+                "state_conditional_scale_cross_fit": family_pass,
+                "append_only_correction_evidence": (
+                    isinstance(payload.get("supersedes_sha256"), str)
+                    and len(payload["supersedes_sha256"]) == 64
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "conditional_scale_uses_fixed_r4_calibration_role_only",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "CONDITIONAL_SCALE_ROLE_LEAKAGE"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "append conditional-scale evidence from the fixed R4 calibration role; "
+                        "use origin-available state only and zero predecessor, qualification and "
+                        "outer rows"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["conditional_scale_role_isolation"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

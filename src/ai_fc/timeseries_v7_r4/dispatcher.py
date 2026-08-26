@@ -164,6 +164,15 @@ class CodexDispatcher:
                 "fractions in [0,1], retain the base-rate Brier comparator and balanced-direction "
                 "diagnostics, and append corrected evidence rather than rewriting the rejected output."
             )
+        if str(envelope.get("task_key", "")).startswith("R4-S4-"):
+            qualification_instruction += (
+                " All S4 mechanism fitting and screening must use the authoritative R4 snapshot's "
+                "fixed train/selection/stacking/calibration roles as appropriate, with the calibration "
+                "role as the latest outcome-bearing fit boundary. The predecessor review-pack score "
+                "matrix and the M3-008 qualification/outer outcomes are diagnostic evidence only and "
+                "must contribute zero fit, selection or tuning rows. Emit explicit role hashes and "
+                "row-use counters proving this isolation."
+            )
         return (
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
             "Respect allowed_paths and protected manifest. Write a failing test first, implement the "

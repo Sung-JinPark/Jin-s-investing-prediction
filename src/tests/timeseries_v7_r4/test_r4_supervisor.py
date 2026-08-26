@@ -829,6 +829,27 @@ def test_s4_001_rejects_predecessor_score_calibration_without_r4_role_receipt(co
     assert checked["blocker_signature"] == "P_UP_CALIBRATION_ROLE_LEAKAGE"
 
 
+def test_s4_002_rejects_predecessor_scale_fit_without_r4_role_receipt(control, tmp_path):
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-002/conditional_scale"
+    folder.mkdir(parents=True)
+    (folder / "acceptance_summary.json").write_text(
+        json.dumps({"source_sha256": "a" * 64, "families": []}), encoding="utf-8",
+    )
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-S4-002", "attempt", "token", "scale", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "CONDITIONAL_SCALE_ROLE_LEAKAGE"
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
@@ -976,6 +997,7 @@ def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
     assert "fixed calibration role (634 origins)" in prompt
     assert "qualification_score_rows_used=0" in prompt
     assert "outer_rows_used=0" in prompt
+    assert "diagnostic evidence only" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():
