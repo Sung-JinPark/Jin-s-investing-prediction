@@ -4,9 +4,11 @@ import numpy as np
 import pytest
 
 from ai_fc.timeseries_v7_r4.e0_empirical_samples import (
+    E0_BLOCK_BOOTSTRAP_CONTRACT,
     E0SampleSet,
     EvaluationPath,
     empirical_crps,
+    generate_e0_samples,
 )
 
 
@@ -50,3 +52,43 @@ def test_e0_only_score_is_reproducible_from_exact_samples() -> None:
     assert replay.sample_set_hash == first.sample_set_hash
     assert replay.values == first.values
     assert empirical_crps(replay.values, 0.03) == empirical_crps(first.values, 0.03)
+
+
+def test_frozen_e0_block_bootstrap_is_coordinate_deterministic_and_pit_only() -> None:
+    sessions = np.array([
+        "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07",
+        "2026-01-08", "2026-01-09",
+    ])
+    returns = np.array([0.01, -0.02, 0.03, 0.04, 99.0, 100.0])
+
+    first = generate_e0_samples(
+        origin_session="2026-01-08", horizon_sessions=2,
+        sessions=sessions, one_session_returns=returns,
+        sample_count=8, root_seed=41,
+    )
+    replay = generate_e0_samples(
+        origin_session="2026-01-08", horizon_sessions=2,
+        sessions=sessions, one_session_returns=returns,
+        sample_count=8, root_seed=41,
+    )
+
+    assert E0_BLOCK_BOOTSTRAP_CONTRACT["algorithm"] == "historical_moving_block_bootstrap"
+    assert first.receipt() == replay.receipt()
+    assert len(first.values) == 8
+    # The origin return and later observations are not available before forecast.
+    assert max(first.values) < 1.0
+
+
+def test_e0_generator_rejects_non_monotonic_or_insufficient_history() -> None:
+    with pytest.raises(ValueError, match="strictly increasing"):
+        generate_e0_samples(
+            origin_session="2026-01-08", horizon_sessions=2,
+            sessions=["2026-01-02", "2026-01-02", "2026-01-03"],
+            one_session_returns=[0.1, 0.2, 0.3], sample_count=4, root_seed=1,
+        )
+    with pytest.raises(ValueError, match="eligible history"):
+        generate_e0_samples(
+            origin_session="2026-01-03", horizon_sessions=2,
+            sessions=["2026-01-02", "2026-01-03"],
+            one_session_returns=[0.1, 0.2], sample_count=4, root_seed=1,
+        )

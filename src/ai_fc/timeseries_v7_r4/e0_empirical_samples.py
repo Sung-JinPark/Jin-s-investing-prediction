@@ -7,11 +7,73 @@ sample vector and verify its content hash before doing any work.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from hashlib import sha256
 from typing import Any, Iterable, Mapping
 
 import numpy as np
 
 from .integrity import canonical_json, sha256_bytes
+
+
+E0_BLOCK_BOOTSTRAP_CONTRACT: Mapping[str, Any] = {
+    "contract_id": "E0_historical_moving_block_bootstrap_v1",
+    "algorithm": "historical_moving_block_bootstrap",
+    "input": "one_session_log_return",
+    "eligibility": "session_strictly_before_origin",
+    "block_length": "horizon_sessions",
+    "aggregation": "sum",
+    "replacement": True,
+    "seed_derivation": "sha256(contract_id,root_seed,origin_session,horizon_sessions)",
+}
+
+
+def _coordinate_seed(*, root_seed: int, origin_session: str,
+                     horizon_sessions: int) -> int:
+    payload = {
+        "contract_id": E0_BLOCK_BOOTSTRAP_CONTRACT["contract_id"],
+        "root_seed": root_seed,
+        "origin_session": origin_session,
+        "horizon_sessions": horizon_sessions,
+    }
+    return int.from_bytes(sha256(canonical_json(payload)).digest()[:8], "big")
+
+
+def generate_e0_samples(*, origin_session: str, horizon_sessions: int,
+                        sessions: Iterable[str],
+                        one_session_returns: Iterable[float],
+                        sample_count: int, root_seed: int) -> "E0SampleSet":
+    """Generate the exact E0 vector from information available at the origin.
+
+    Each draw selects, with replacement, one complete historical moving block.
+    A block is never allowed to include the origin session or a later session.
+    """
+    session_values = tuple(str(value) for value in sessions)
+    returns = np.asarray(tuple(one_session_returns), dtype=np.float64)
+    if not origin_session or horizon_sessions <= 0 or sample_count <= 0:
+        raise ValueError("valid origin, horizon, and sample count are required")
+    if len(session_values) != returns.size:
+        raise ValueError("sessions and returns must have the same length")
+    if any(left >= right for left, right in zip(session_values, session_values[1:])):
+        raise ValueError("sessions must be strictly increasing")
+
+    eligible = returns[np.asarray(session_values) < origin_session]
+    if eligible.size < horizon_sessions or not np.isfinite(eligible).all():
+        raise ValueError("finite eligible history must contain one complete block")
+    block_count = eligible.size - horizon_sessions + 1
+    seed = _coordinate_seed(
+        root_seed=root_seed,
+        origin_session=origin_session,
+        horizon_sessions=horizon_sessions,
+    )
+    starts = np.random.default_rng(seed).integers(0, block_count, size=sample_count)
+    cumulative = np.concatenate(([0.0], np.cumsum(eligible, dtype=np.float64)))
+    values = cumulative[starts + horizon_sessions] - cumulative[starts]
+    return E0SampleSet.create(
+        origin_session=origin_session,
+        horizon_sessions=horizon_sessions,
+        seed=seed,
+        values=values,
+    )
 
 
 def empirical_crps(samples: Iterable[float], actual: float) -> float:
