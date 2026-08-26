@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-A5-003-a2bf7e6a4edaf",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-A5-003",
+  "status": "SUCCEEDED",
+  "summary": "Implemented content-addressed generation freezing, single-use qualification exposure, and point-in-time tuning-evidence guards with PostgreSQL durability constraints.",
+  "files_changed": [
+    "src/ai_fc/timeseries_v7_r4/generation_freezer.py",
+    "src/tests/timeseries_v7_r4/test_generation_freezer.py",
+    "migrations/timeseries_v7_r4/006_generation_freezer.sql"
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "contract/data/code/runtime/hypothesis hashes freeze generation",
+      "passed": true,
+      "evidence": "GenerationIdentity validates five lowercase SHA-256 coordinates and derives a deterministic content-addressed generation_id."
+    },
+    {
+      "criterion": "qualification once per generation",
+      "passed": true,
+      "evidence": "ExposureBudget rejects repeated qualification, and PostgreSQL enforces one qualification exposure per generation with a unique partial index."
+    },
+    {
+      "criterion": "prospective evidence cannot enter tuning",
+      "passed": true,
+      "evidence": "The Python boundary rejects non-tuning roles and post-as_of evidence; the PostgreSQL trigger rejects tuning evidence whose available_at exceeds the frozen generation as_of."
+    }
+  ],
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_generation_freezer.py -q",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "The generation_freezer module did not exist before implementation."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_generation_freezer.py -q",
+      "phase": "test_correction",
+      "return_code": 1,
+      "expected_failure": "The initial test fixture accidentally constructed non-hex runtime and hypothesis digests; the fixture was corrected to use real SHA-256 values."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_generation_freezer.py -q",
+      "phase": "targeted_test",
+      "return_code": 0,
+      "expected_failure": ""
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "phase": "regression_test",
+      "return_code": 0,
+      "expected_failure": ""
+    },
+    {
+      "command": "git diff --check",
+      "phase": "verification",
+      "return_code": 0,
+      "expected_failure": ""
+    }
+  ],
+  "tests": [
+    {
+      "name": "generation freezer targeted tests",
+      "passed": true,
+      "details": "4 passed"
+    },
+    {
+      "name": "timeseries_v7_r4 regression suite",
+      "passed": true,
+      "details": "172 passed, 7 dependency deprecation warnings"
+    },
+    {
+      "name": "diff whitespace validation",
+      "passed": true,
+      "details": "git diff --check returned code 0"
+    }
+  ],
+  "input_artifacts_used": [],
+  "protected_manifest_sha256": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true
+}
