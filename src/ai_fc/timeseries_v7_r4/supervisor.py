@@ -689,6 +689,91 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["mixture_optimizer"]
+        if lease.task_key == "R4-M3-001":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-M3-001/g0_e0_ablation.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            qualification_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-D1-006/data_pit_qualification.json"
+            )
+            qualification: dict[str, Any] = {}
+            if qualification_path.exists():
+                try:
+                    qualification = json.loads(
+                        qualification_path.read_text(encoding="utf-8")
+                    )
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    qualification = {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            comparator = (
+                payload.get("comparator_contract")
+                if isinstance(payload.get("comparator_contract"), dict) else {}
+            )
+            horizons = {
+                int(item.get("horizon_sessions"))
+                for item in payload.get("e0_only_skill", [])
+                if isinstance(item, dict)
+                and isinstance(item.get("horizon_sessions"), (int, float))
+            }
+            checks = {
+                "uses_r4_rematerialized_snapshot": (
+                    isinstance(qualification.get("r4_snapshot_hash"), str)
+                    and source.get("r4_snapshot_hash")
+                    == qualification.get("r4_snapshot_hash")
+                ),
+                "exact_empirical_comparator_contract": (
+                    comparator.get("contract_id") == "E0_exact_empirical_anchor_v1"
+                    and comparator.get("algorithm") == "exact_empirical_anchor"
+                    and comparator.get("sampling") == "none"
+                ),
+                "full_frozen_weekly_grid": (
+                    isinstance(source.get("origin_count"), int)
+                    and source["origin_count"] >= 950
+                    and isinstance(source.get("coordinate_count"), int)
+                    and source["coordinate_count"] >= 3_800
+                    and horizons == {1, 5, 21, 63}
+                ),
+                "exact_samples_replayed_for_every_coordinate": (
+                    payload.get("exact_replay_count") == source.get("coordinate_count")
+                    and payload.get("sample_identity_failures") == 0
+                ),
+                "legacy_approximate_scores_not_used": (
+                    payload.get("approximate_baseline_rows_used") == 0
+                    and "source_pack_sha256" not in payload
+                    and "nested_member" not in payload
+                ),
+                "five_role_validation_bound": (
+                    payload.get("five_role_validation_proof") is True
+                ),
+                "single_qualification": payload.get("qualification_count") == 1,
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "g0_uses_exact_e0_on_r4_full_weekly_grid",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "G0_EXACT_E0_R4_REPLAY_MISSING"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "replay exact empirical E0 samples from the R4 PostgreSQL PIT "
+                        "snapshot and matured direct-horizon labels for every frozen weekly "
+                        "origin/horizon; preserve stage sample hashes; do not reuse legacy "
+                        "baseline_crps or the predecessor V7 score matrix"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["exact_e0_full_grid"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
