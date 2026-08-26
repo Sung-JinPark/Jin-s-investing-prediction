@@ -94,6 +94,18 @@ CREATE TABLE IF NOT EXISTS timeseries_v7_r4.backlog_catalog (
     PRIMARY KEY (catalog_id, task_key)
 );
 
+CREATE TABLE IF NOT EXISTS timeseries_v7_r4.hypothesis_registry (
+    registry_key text PRIMARY KEY CHECK (length(registry_key) = 64),
+    deficit_family text NOT NULL,
+    action text NOT NULL,
+    hypothesis_hash text NOT NULL CHECK (length(hypothesis_hash) = 64),
+    dataset_snapshot_hash text NOT NULL CHECK (length(dataset_snapshot_hash) = 64),
+    code_hash text NOT NULL CHECK (length(code_hash) = 64),
+    runtime_hash text NOT NULL CHECK (length(runtime_hash) = 64),
+    registered_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (hypothesis_hash, dataset_snapshot_hash, code_hash, runtime_hash)
+);
+
 CREATE INDEX IF NOT EXISTS r4_tasks_claim_idx
 ON timeseries_v7_r4.tasks(run_id, state, available_at, priority, created_at);
 
