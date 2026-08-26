@@ -96,3 +96,20 @@ def test_e2_objective_includes_contract_crps_and_stability_penalty() -> None:
         "crps": 0.4, "stability": 0.2,
     }
     assert set(model.diagnostics["selected_crps"]) == {1, 5, 21, 63}
+
+
+def test_e2_discloses_temporal_fold_boundaries_and_alpha_specific_scale_evidence() -> None:
+    contract = E2Contract.from_mapping({
+        "alpha_grid": [0.01, 0.1], "cross_fit_folds": 3, "min_training_rows": 20,
+    })
+    model = fit_e2_student_t(rows=_rows(), as_of="2025-03-01T00:00:00Z",
+                             contract=contract)
+
+    evidence = model.diagnostics["scale_residual_evidence"]
+    assert model.diagnostics["objective_contract"] == (
+        "student_t_nll_plus_crps_plus_stability"
+    )
+    assert evidence["candidate_count"] == len(contract.horizons) * len(contract.alpha_grid)
+    assert len(evidence["fold_boundaries"]) == contract.cross_fit_folds
+    assert all(fold["train_end"] < fold["validation_start"]
+               for fold in evidence["fold_boundaries"])

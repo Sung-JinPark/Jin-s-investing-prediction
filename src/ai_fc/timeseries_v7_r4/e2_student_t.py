@@ -109,10 +109,26 @@ def _cross_fitted_residuals(design: np.ndarray, target: np.ndarray, folds: int,
     for held_out in np.array_split(validation, folds):
         if not len(held_out):
             continue
-        train = np.arange(held_out[0])
+        validation_start = int(held_out[0])
+        train_end = validation_start
+        train = np.arange(train_end)
         coefficients = _ridge(design[train], target[train], alpha)
         residuals[held_out] = target[held_out] - design[held_out] @ coefficients
     return residuals
+
+
+def _student_t_crps(standardized: np.ndarray, scale: np.ndarray,
+                    degrees_of_freedom: float) -> np.ndarray:
+    """Exact CRPS for a Student-t location-scale distribution (df > 2)."""
+    cdf = student_t.cdf(standardized, degrees_of_freedom)
+    pdf = student_t.pdf(standardized, degrees_of_freedom)
+    constant = (2.0 * np.sqrt(degrees_of_freedom)
+                * beta(0.5, degrees_of_freedom - 0.5)
+                / ((degrees_of_freedom - 1.0)
+                   * beta(0.5, degrees_of_freedom / 2.0) ** 2))
+    return scale * (standardized * (2.0 * cdf - 1.0)
+                    + 2.0 * pdf * (degrees_of_freedom + standardized ** 2)
+                    / (degrees_of_freedom - 1.0) - constant)
 
 
 def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
@@ -141,18 +157,9 @@ def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
             np.dot(parameters[1:width], parameters[1:width])
             + np.dot(parameters[width + 1:], parameters[width + 1:])
         )
-        # Exact CRPS for a Student-t location-scale distribution (df > 2).
-        cdf = student_t.cdf(standardized, degrees_of_freedom)
-        pdf = student_t.pdf(standardized, degrees_of_freedom)
-        constant_crps = (2.0 * np.sqrt(degrees_of_freedom)
-                         * beta(0.5, degrees_of_freedom - 0.5)
-                         / ((degrees_of_freedom - 1.0)
-                            * beta(0.5, degrees_of_freedom / 2.0) ** 2))
-        crps = scale * (standardized * (2.0 * cdf - 1.0)
-                        + 2.0 * pdf * (degrees_of_freedom + standardized ** 2)
-                        / (degrees_of_freedom - 1.0) - constant_crps)
-        stability = float(np.mean(np.diff(loc) ** 2)) if len(loc) > 1 else 0.0
-        return float(nll.mean() + penalty), float(crps.mean()), stability
+        student_t_crps = _student_t_crps(standardized, scale, degrees_of_freedom)
+        stability_penalty = float(np.mean(np.diff(loc) ** 2)) if len(loc) > 1 else 0.0
+        return float(nll.mean() + penalty), float(student_t_crps.mean()), stability_penalty
 
     def objective(parameters: np.ndarray) -> float:
         nll, crps, stability = components(parameters)
@@ -160,7 +167,7 @@ def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
 
     bounds = [(None, None)] * width + [(-30.0, 30.0)] * width
     fitted = minimize(objective, initial, method="L-BFGS-B", bounds=bounds,
-                      options={"maxiter": 5000, "ftol": 1e-12})
+                      options={"maxiter": 5000, "maxfun": 100000, "ftol": 1e-12})
     if not fitted.success or not np.isfinite(fitted.x).all():
         raise RuntimeError(f"E2 Student-t optimization failed: {fitted.message}")
     _, crps, stability = components(fitted.x)
@@ -203,6 +210,7 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
     selected_crps: dict[int, float] = {}
     selected_stability: dict[int, float] = {}
     evidence: list[dict[str, Any]] = []
+    candidate_count = len(contract.horizons) * len(contract.alpha_grid)
     for horizon in contract.horizons:
         try:
             target = np.asarray([row["targets"][str(horizon)] for row in eligible], dtype=float)
@@ -210,15 +218,17 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
             raise ValueError(f"missing direct target for horizon {horizon}") from error
         if not np.isfinite(target).all():
             raise ValueError("direct targets must be finite fractions")
-        residuals = _cross_fitted_residuals(
-            design, target, contract.cross_fit_folds, min(contract.alpha_grid),
-            contract.min_training_rows,
-        )
-        evidence.extend({"horizon": horizon, "row": index, "residual": float(value)}
-                        for index, value in enumerate(residuals))
+        residuals_by_alpha = {
+            alpha: _cross_fitted_residuals(
+                design, target, contract.cross_fit_folds, alpha,
+                contract.min_training_rows,
+            )
+            for alpha in contract.alpha_grid
+        }
         candidates = []
         for df in contract.degrees_of_freedom:
             for alpha in contract.alpha_grid:
+                residuals = residuals_by_alpha[alpha]
                 loc, log_scale, score, crps, stability = _joint_fit(
                     design, target, residuals, df, alpha,
                     contract.crps_weight, contract.stability_weight,
@@ -230,10 +240,13 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
         scales[horizon] = tuple(float(v) for v in log_scale)
         selected_df[horizon], selected_alpha[horizon], selected_nll[horizon] = df, alpha, nll
         selected_crps[horizon], selected_stability[horizon] = crps, stability
+        evidence.extend({"horizon": horizon, "row": index, "residual": float(value)}
+                        for index, value in enumerate(residuals_by_alpha[alpha]))
 
     evidence_bytes = json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
     diagnostics = {
         "objective": "student_t_nll_plus_horizon_crps_plus_stability_penalty",
+        "objective_contract": "student_t_nll_plus_crps_plus_stability",
         "objective_weights": {"crps": contract.crps_weight,
                               "stability": contract.stability_weight},
         "searched_grid": {
@@ -251,6 +264,16 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
             "row_count": sum(np.isfinite(item["residual"]) for item in evidence),
             "warmup_rows_per_horizon": contract.min_training_rows,
             "temporal_scheme": "expanding", "sha256": hashlib.sha256(evidence_bytes).hexdigest(),
+            "candidate_count": candidate_count,
+            "fold_boundaries": [
+                {"train_end": int(held_out[0]) - 1,
+                 "validation_start": int(held_out[0]),
+                 "validation_end": int(held_out[-1])}
+                for held_out in np.array_split(
+                    np.arange(contract.min_training_rows, len(eligible)),
+                    contract.cross_fit_folds,
+                ) if len(held_out)
+            ],
         },
     }
     return E2Model(contract.horizons, selected_df, selected_alpha, locations, scales,
