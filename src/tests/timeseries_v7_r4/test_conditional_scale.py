@@ -3,6 +3,7 @@ import pytest
 from ai_fc.timeseries_v7_r4.conditional_scale import (
     ScaleCase,
     authoritative_calibration_cases,
+    build_source_receipt,
     fit_conditional_scale,
 )
 
@@ -77,4 +78,18 @@ def test_authoritative_cases_use_only_fixed_calibration_role():
         "outer_rows_used": 0,
         "legacy_review_pack_score_rows_used": 0,
         "qualification_score_rows_used": 0,
+    }
+
+
+def test_corrected_receipt_binds_fixed_sources_and_zero_diagnostic_rows():
+    source = build_source_receipt("snapshot", "g2", "calibration")
+
+    assert source == {
+        "r4_snapshot_hash": "snapshot",
+        "g2_artifact_sha256": "g2",
+        "calibration_role_hash": "calibration",
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0,
+        "outer_rows_used": 0,
+        "outer_origin_intersection": 0,
     }

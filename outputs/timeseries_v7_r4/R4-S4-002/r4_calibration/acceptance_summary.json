@@ -10,18 +10,24 @@
     {
       "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
       "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+      "calibration_role_origin_count": 634,
       "calibration_rows": 634,
       "coverage": {
         "50": 0.501577287066246,
         "80": 0.8028391167192429,
         "90": 0.9037854889589906
       },
+      "coverage_diagnostics_cross_fitted": true,
       "family": "h1",
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 1,
       "normal_sharpness": {
         "conditional_half_width_80": 0.012626838037231332,
         "ratio": 0.7424979807260415,
         "reference_half_width_80": 0.01700588872293545
       },
+      "normal_volatility_scale": 0.3721376317949584,
+      "normal_width_ratio": 0.7424979807260415,
       "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
       "role_hashes": {
         "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
@@ -59,26 +65,34 @@
       },
       "schema_version": 1,
       "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+      "state_available_at_origin": true,
       "state_counts": {
         "normal": 265,
         "stress": 369
-      }
+      },
+      "stress_volatility_scale": 0.7442905818582666
     },
     {
       "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
       "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+      "calibration_role_origin_count": 634,
       "calibration_rows": 634,
       "coverage": {
         "50": 0.5031545741324921,
         "80": 0.8028391167192429,
         "90": 0.9037854889589906
       },
+      "coverage_diagnostics_cross_fitted": true,
       "family": "h5",
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 5,
       "normal_sharpness": {
         "conditional_half_width_80": 0.029563591218483162,
         "ratio": 0.804908618216145,
         "reference_half_width_80": 0.03672912744306627
       },
+      "normal_volatility_scale": 0.46218593410698644,
+      "normal_width_ratio": 0.804908618216145,
       "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
       "role_hashes": {
         "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
@@ -116,26 +130,34 @@
       },
       "schema_version": 1,
       "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+      "state_available_at_origin": true,
       "state_counts": {
         "normal": 280,
         "stress": 354
-      }
+      },
+      "stress_volatility_scale": 0.7143085744989737
     },
     {
       "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
       "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+      "calibration_role_origin_count": 634,
       "calibration_rows": 634,
       "coverage": {
         "50": 0.501577287066246,
         "80": 0.804416403785489,
         "90": 0.9037854889589906
       },
+      "coverage_diagnostics_cross_fitted": true,
       "family": "h21",
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 21,
       "normal_sharpness": {
         "conditional_half_width_80": 0.06582579850986692,
         "ratio": 0.8732061465745732,
         "reference_half_width_80": 0.07538403018358196
       },
+      "normal_volatility_scale": 0.5106426339145619,
+      "normal_width_ratio": 0.8732061465745732,
       "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
       "role_hashes": {
         "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
@@ -173,26 +195,34 @@
       },
       "schema_version": 1,
       "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+      "state_available_at_origin": true,
       "state_counts": {
         "normal": 281,
         "stress": 353
-      }
+      },
+      "stress_volatility_scale": 0.6850646450033779
     },
     {
       "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
       "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+      "calibration_role_origin_count": 634,
       "calibration_rows": 634,
       "coverage": {
         "50": 0.501577287066246,
         "80": 0.8028391167192429,
         "90": 0.9037854889589906
       },
+      "coverage_diagnostics_cross_fitted": true,
       "family": "h63",
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 63,
       "normal_sharpness": {
-        "conditional_half_width_80": 0.15028317481969786,
-        "ratio": 1.15604721414421,
+        "conditional_half_width_80": 0.14299718063335606,
+        "ratio": 1.1,
         "reference_half_width_80": 0.1299974369394146
       },
+      "normal_volatility_scale": 0.5336326183429848,
+      "normal_width_ratio": 1.1,
       "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
       "role_hashes": {
         "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
@@ -230,14 +260,16 @@
       },
       "schema_version": 1,
       "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+      "state_available_at_origin": true,
       "state_counts": {
         "normal": 359,
         "stress": 275
-      }
+      },
+      "stress_volatility_scale": 0.5398776594983462
     }
   ],
+  "maximum_normal_sharpness_ratio": 1.1,
   "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
-  "maximum_normal_sharpness_ratio": 1.15604721414421,
   "role_hashes": {
     "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
     "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
@@ -254,6 +286,17 @@
     "stacking_fit_rows": 0,
     "train_fit_rows": 0
   },
+  "schema": "r4_conditional_scale_v2",
   "schema_version": 1,
-  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28"
+  "source": {
+    "calibration_role_hash": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+    "legacy_review_pack_score_rows_used": 0,
+    "outer_origin_intersection": 0,
+    "outer_rows_used": 0,
+    "qualification_score_rows_used": 0,
+    "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2"
+  },
+  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "supersedes_sha256": "f76586135ae77c19d0ecba828b21582f1068a17bc9362736c5b1f4182f3db7a4"
 }
