@@ -1313,6 +1313,15 @@ def test_codex_dispatch_prompt_requires_separate_frozen_g3_receipt():
     assert "Gate failure is HOLD_RESEARCH_GATE" in prompt
 
 
+def test_codex_dispatch_prompt_requires_machine_result_keys():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "run", "cycle_id": "cycle", "task_key": "task",
+        "attempt_id": "attempt",
+    })
+    assert "return_code (never exit_code)" in prompt
+    assert "tests entry must include passed=true or passed=false" in prompt
+
+
 def test_gate_deficit_router_is_deterministic():
     router = GateDeficitRouter.from_yaml(
         ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")

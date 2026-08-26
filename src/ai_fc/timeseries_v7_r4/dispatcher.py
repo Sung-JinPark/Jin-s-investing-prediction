@@ -283,6 +283,8 @@ class CodexDispatcher:
             "phase=red_test and a non-empty expected_failure string; never report an expected TDD "
             "failure as an unexplained failed command. The only success status literal is SUCCEEDED; "
             "never return SUCCESS, PASS or COMPLETE. Do not commit or run git worktree commands. "
+            "Every commands entry must use the integer key return_code (never exit_code). Every "
+            "tests entry must include passed=true or passed=false; a status string alone is invalid. "
             "Return only a JSON object matching the R4 "
             "result contract. The final JSON must echo these envelope identity fields exactly: "
             + canonical_json(identity).decode("utf-8")
