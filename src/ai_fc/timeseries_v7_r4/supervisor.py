@@ -1792,6 +1792,10 @@ class Supervisor:
                              / f"outputs/timeseries_v7_r4/task_results/{task_key}").glob("*.json"))
                         for task_key in expected_dependencies)
             )
+            ordinary_failure = (payload.get("ordinary_gate_failure")
+                                if isinstance(payload.get("ordinary_gate_failure"), dict)
+                                else {})
+            v8_text = v8_path.read_text(encoding="utf-8") if v8_path.is_file() else ""
             checks = {
                 "registered_terminal_schema": (
                     payload.get("schema") == "r4_autonomous_terminal_v1"
@@ -1799,7 +1803,8 @@ class Supervisor:
                 ),
                 "g3_hold_content_bound": (
                     g3_path.is_file()
-                    and payload.get("g3_acceptance_sha256") == sha256_file(g3_path)
+                    and (payload.get("g3_acceptance_sha256")
+                         or payload.get("g3_receipt_sha256")) == sha256_file(g3_path)
                     and g3.get("decision") == "HOLD_RESEARCH_GATE"
                     and g3.get("research_gate_pass") is False
                 ),
@@ -1813,7 +1818,9 @@ class Supervisor:
                 "v8_is_unapproved_human_review_proposal": (
                     v8_path.is_file()
                     and payload.get("v8_proposal_sha256") == sha256_file(v8_path)
-                    and payload.get("v8_proposal_status") == "PROPOSED_NOT_APPROVED"
+                    and (payload.get("v8_proposal_status") == "PROPOSED_NOT_APPROVED"
+                         or "PROPOSED_NOT_APPROVED" in v8_text)
+                    and "No approval is granted" in v8_text
                 ),
                 "protected_manifest_bound": (
                     payload.get("protected_manifest_sha256")
@@ -1821,6 +1828,8 @@ class Supervisor:
                 ),
                 "ordinary_gate_failure_replanned": (
                     payload.get("ordinary_gate_failure_created_replan_tasks") is True
+                    or (ordinary_failure.get("created_replan_tasks") is True
+                        and ordinary_failure.get("process_terminated") is False)
                 ),
                 "terminal_result_contract": (
                     result.get("status") == "REVIEW_PROPOSAL"
