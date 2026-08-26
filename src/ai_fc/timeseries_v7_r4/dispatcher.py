@@ -194,6 +194,7 @@ class CodexDispatcher:
                 "tail or apply an explicit sparse-tail shrinkage guard toward E0, and emit finite "
                 "extreme-Q4 and proper tail-score diagnostics. Use explicit family fields horizon, "
                 "calibration_role_origin_count=634, fit_role=calibration_temporal_cross_fit, "
+                "state_available_at_origin=true, "
                 "positive_tail/negative_tail objects with exceedance_count and shrinkage_guard_to_e0, "
                 "and numeric extreme_q4_score and tail_score. This task implements and screens a "
                 "mechanism; it must not claim promotion or use qualification outcomes to tune it."
