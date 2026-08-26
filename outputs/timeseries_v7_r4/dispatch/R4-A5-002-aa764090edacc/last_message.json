@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-A5-002-aa764090edacc",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-A5-002",
+  "status": "SUCCEEDED",
+  "summary": "Implemented PostgreSQL-backed recurring evidence triggers that wake WAIT_DATA exactly once for new collection receipts or newly mature labels, while preserving available_at semantics and appending monotonically advancing cycle IDs.",
+  "commands": [
+    {
+      "phase": "red_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -k new_receipt_or_mature_label -q",
+      "return_code": 1,
+      "expected_failure": "PostgresControlPlane.wake_wait_data did not exist before implementation."
+    },
+    {
+      "phase": "targeted_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -k new_receipt_or_mature_label -q",
+      "return_code": 0
+    },
+    {
+      "phase": "targeted_suite",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -q",
+      "return_code": 0
+    },
+    {
+      "phase": "verification",
+      "command": "git diff --check",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "new receipt and mature-label triggers wake WAIT_DATA",
+      "passed": true,
+      "evidence": "Focused PostgreSQL test passed."
+    },
+    {
+      "name": "cycle IDs advance append-only",
+      "passed": true,
+      "evidence": "Test verified c001, c002, and c003 cycle rows remain ordered and preserved."
+    },
+    {
+      "name": "no busy-loop without new evidence",
+      "passed": true,
+      "evidence": "Duplicate content hash produced woken=false and did not append another cycle."
+    },
+    {
+      "name": "supervisor/control-plane regression suite",
+      "passed": true,
+      "evidence": "76 tests passed."
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "new receipt and mature-label triggers wake WAIT_DATA",
+      "passed": true
+    },
+    {
+      "criterion": "cycle IDs advance append-only",
+      "passed": true
+    },
+    {
+      "criterion": "no busy-loop without new evidence",
+      "passed": true
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "migrations/timeseries_v7_r4/001_control_plane.sql",
+      "sha256": "38ec33e596452fdc2db5ddaa498d315a6b6255083bdee7ec06867c080c2c2045",
+      "bytes": 5073
+    },
+    {
+      "path": "migrations/timeseries_v7_r4/005_recurring_wake_evidence.sql",
+      "sha256": "543d8a40a80efbe6c942a3faba0b1fb2d62608dda93a8dfb197236d0e8136dbf",
+      "bytes": 524
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/control_plane.py",
+      "sha256": "55211f85228af76893577f0119706f1a01eee135b8e8e718d805b17e0c8c8d6d",
+      "bytes": 39023
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+      "sha256": "b3ea51d8fc2c3d3023caf724cba0a0a22fa73c4d3fd786307fe895972648f654",
+      "bytes": 61773
+    }
+  ],
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "unresolved_blockers": []
+}
