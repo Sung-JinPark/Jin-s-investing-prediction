@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 import platform
 import subprocess
@@ -1413,6 +1414,174 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["conditional_scale_role_isolation"]
+        def s4_source_checks(payload: dict[str, Any]) -> tuple[bool, bool]:
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            bound = (
+                source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
+                and source.get("g2_artifact_sha256")
+                == "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523"
+                and source.get("calibration_role_hash")
+                == "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"
+            )
+            isolated = (
+                source.get("legacy_review_pack_score_rows_used") == 0
+                and source.get("qualification_score_rows_used") == 0
+                and source.get("outer_rows_used") == 0
+                and source.get("outer_origin_intersection") == 0
+            )
+            return bound, isolated
+
+        def finite_number(value: Any) -> bool:
+            return isinstance(value, (int, float)) and math.isfinite(float(value))
+
+        if lease.task_key == "R4-S4-003":
+            artifact_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-S4-003/r4_calibration/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source_bound, source_isolated = s4_source_checks(payload)
+            families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            horizons = {item.get("horizon") for item in families if isinstance(item, dict)}
+            family_pass = len(families) == 4 and horizons == {1, 5, 21, 63} and all(
+                isinstance(item, dict)
+                and item.get("calibration_role_origin_count") == 634
+                and item.get("fit_role") == "calibration_temporal_cross_fit"
+                and item.get("state_available_at_origin") is True
+                and isinstance(item.get("positive_tail"), dict)
+                and isinstance(item.get("negative_tail"), dict)
+                and item["positive_tail"] != item["negative_tail"]
+                and all(
+                    isinstance(tail.get("exceedance_count"), int)
+                    and tail["exceedance_count"] >= 0
+                    and (tail["exceedance_count"] >= 30
+                         or tail.get("shrinkage_guard_to_e0") is True)
+                    for tail in (item["positive_tail"], item["negative_tail"])
+                )
+                and finite_number(item.get("extreme_q4_score"))
+                and finite_number(item.get("tail_score"))
+                for item in families
+            )
+            checks = {
+                "registered_schema_and_source": (
+                    payload.get("schema") == "r4_asymmetric_evt_v1" and source_bound
+                ),
+                "no_qualification_or_outer_tuning": source_isolated,
+                "separate_guarded_tail_fits": family_pass,
+                "promotion_claimed": payload.get("promotion_claimed") is True,
+            }
+            passed = checks["registered_schema_and_source"] and checks[
+                "no_qualification_or_outer_tuning"
+            ] and checks["separate_guarded_tail_fits"] and not checks["promotion_claimed"]
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "asymmetric_evt_uses_calibration_evidence_only",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "ASYMMETRIC_EVT_ROLE_OR_GUARD_FAILURE"
+                result["unresolved_blockers"] = [{"current": checks,
+                    "required": "separate guarded positive/negative tail fits on fixed calibration evidence"}]
+                result["recommended_router_deficits"] = ["asymmetric_evt_isolation"]
+        if lease.task_key == "R4-S4-004":
+            artifact_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source_bound, source_isolated = s4_source_checks(payload)
+            families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            horizons = {item.get("horizon") for item in families if isinstance(item, dict)}
+            family_pass = len(families) == 4 and horizons == {1, 5, 21, 63} and all(
+                isinstance(item, dict)
+                and item.get("calibration_role_origin_count") == 634
+                and item.get("fit_role") == "calibration_temporal_cross_fit"
+                and item.get("state_available_at_origin") is True
+                and item.get("probabilities_sum_to_one") is True
+                and isinstance(item.get("minimum_regime_count"), int)
+                and item["minimum_regime_count"] >= 0
+                and item.get("partial_pooling_applied") is True
+                and isinstance(item.get("filtered_feature_count"), int)
+                and item["filtered_feature_count"] > 0
+                and item.get("forbidden_prediction_features") == []
+                for item in families
+            )
+            checks = {
+                "registered_schema_and_source": (
+                    payload.get("schema") == "r4_learned_regime_partial_pool_v1" and source_bound
+                ),
+                "no_qualification_or_outer_tuning": source_isolated,
+                "origin_filtered_partial_pooling": family_pass,
+                "date_or_crisis_labels_used": payload.get("date_or_crisis_labels_used") is True,
+            }
+            passed = checks["registered_schema_and_source"] and checks[
+                "no_qualification_or_outer_tuning"
+            ] and checks["origin_filtered_partial_pooling"] and not checks[
+                "date_or_crisis_labels_used"
+            ]
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "learned_regime_is_origin_filtered_and_partially_pooled",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "REGIME_ROLE_OR_FEATURE_LEAKAGE"
+                result["unresolved_blockers"] = [{"current": checks,
+                    "required": "origin-filtered temporal cross-fit regime probabilities with partial pooling"}]
+                result["recommended_router_deficits"] = ["regime_isolation"]
+        if lease.task_key == "R4-S4-005":
+            artifact_path = self.context.repo / (
+                "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source_bound, source_isolated = s4_source_checks(payload)
+            trajectory_pass = (
+                payload.get("trajectory_length") == 63
+                and payload.get("actual_contiguous_returns") is True
+                and payload.get("endpoint_interpolation_used") is False
+                and isinstance(payload.get("minimum_spacing_sessions"), int)
+                and payload["minimum_spacing_sessions"] >= 63
+                and payload.get("duplicate_count") == 0
+                and payload.get("origin_available_cross_fit") is True
+                and isinstance(payload.get("trajectory_count"), int)
+                and payload["trajectory_count"] > 0
+                and isinstance(payload.get("trajectory_set_sha256"), str)
+                and len(payload["trajectory_set_sha256"]) == 64
+                and all(finite_number(payload.get(metric)) for metric in (
+                    "maximum_drawdown", "first_touch_rate", "recovery_rate"
+                ))
+            )
+            checks = {
+                "registered_schema_and_source": (
+                    payload.get("schema") == "r4_full_analog_trajectories_v1" and source_bound
+                ),
+                "no_qualification_or_outer_tuning": source_isolated,
+                "actual_spaced_unique_63_session_paths": trajectory_pass,
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "analog_trajectories_are_actual_spaced_and_origin_available",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "ANALOG_TRAJECTORY_IDENTITY_OR_ROLE_FAILURE"
+                result["unresolved_blockers"] = [{"current": checks,
+                    "required": "unique actual 63-session trajectories selected without future outcomes"}]
+                result["recommended_router_deficits"] = ["analog_trajectory_isolation"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

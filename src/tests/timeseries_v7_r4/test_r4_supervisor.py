@@ -908,6 +908,29 @@ def test_s4_002_rejects_predecessor_scale_fit_without_r4_role_receipt(control, t
     assert checked["blocker_signature"] == "CONDITIONAL_SCALE_ROLE_LEAKAGE"
 
 
+@pytest.mark.parametrize(("task_key", "blocker"), [
+    ("R4-S4-003", "ASYMMETRIC_EVT_ROLE_OR_GUARD_FAILURE"),
+    ("R4-S4-004", "REGIME_ROLE_OR_FEATURE_LEAKAGE"),
+    ("R4-S4-005", "ANALOG_TRAJECTORY_IDENTITY_OR_ROLE_FAILURE"),
+])
+def test_s4_mechanisms_fail_closed_without_registered_receipt(
+    control, tmp_path, task_key, blocker,
+):
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", task_key, "attempt", "token", "mechanism", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == blocker
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
@@ -1071,6 +1094,20 @@ def test_codex_dispatch_prompt_requires_s4_002_corrected_receipt_schema():
     assert "calibration_role_origin_count=634" in prompt
     assert "normal_width_ratio<=1.10" in prompt
     assert "supersedes_sha256" in prompt
+
+
+@pytest.mark.parametrize(("task_key", "required"), [
+    ("R4-S4-003", "schema=r4_asymmetric_evt_v1"),
+    ("R4-S4-004", "schema=r4_learned_regime_partial_pool_v1"),
+    ("R4-S4-005", "schema=r4_full_analog_trajectories_v1"),
+])
+def test_codex_dispatch_prompt_registers_s4_mechanism_receipt(task_key, required):
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "run", "cycle_id": "cycle", "task_key": task_key,
+        "attempt_id": "attempt",
+    })
+    assert required in prompt
+    assert "qualification/outer outcomes are diagnostic evidence only" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():

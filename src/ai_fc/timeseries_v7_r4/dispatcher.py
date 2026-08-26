@@ -184,6 +184,48 @@ class CodexDispatcher:
                 "and stress volatility scales, and normal_width_ratio<=1.10. Include a "
                 "supersedes_sha256 for the previously integrated rejected receipt; never rewrite it."
             )
+        if envelope.get("task_key") == "R4-S4-003":
+            qualification_instruction += (
+                " Write outputs/timeseries_v7_r4/R4-S4-003/r4_calibration/"
+                "acceptance_summary.json with schema=r4_asymmetric_evt_v1. Bind the R4 snapshot, G2 "
+                "and calibration role hashes. Record zero legacy, qualification and outer rows. For "
+                "each h1/h5/h21/h63 family, fit positive and negative exceedances separately using "
+                "only origin-available calibration evidence, require at least 30 exceedances per fitted "
+                "tail or apply an explicit sparse-tail shrinkage guard toward E0, and emit finite "
+                "extreme-Q4 and proper tail-score diagnostics. Use explicit family fields horizon, "
+                "calibration_role_origin_count=634, fit_role=calibration_temporal_cross_fit, "
+                "positive_tail/negative_tail objects with exceedance_count and shrinkage_guard_to_e0, "
+                "and numeric extreme_q4_score and tail_score. This task implements and screens a "
+                "mechanism; it must not claim promotion or use qualification outcomes to tune it."
+            )
+        if envelope.get("task_key") == "R4-S4-004":
+            qualification_instruction += (
+                " Write outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/"
+                "acceptance_summary.json with schema=r4_learned_regime_partial_pool_v1. Bind the R4 "
+                "snapshot, G2 and fixed role hashes and record zero legacy, qualification and outer "
+                "rows. Regime probabilities must be learned with temporal cross-fitting from filtered, "
+                "origin-available features only, sum to one, use at least 60 calibration observations "
+                "per unpooled regime, and otherwise apply explicit partial pooling toward the global "
+                "distribution. Emit family fields horizon, calibration_role_origin_count=634, "
+                "fit_role=calibration_temporal_cross_fit, probabilities_sum_to_one=true, "
+                "minimum_regime_count, partial_pooling_applied, filtered_feature_count and "
+                "forbidden_prediction_features=[]. Prediction-time date, crisis-name and future-return "
+                "labels are forbidden."
+            )
+        if envelope.get("task_key") == "R4-S4-005":
+            qualification_instruction += (
+                " Write outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/"
+                "acceptance_summary.json with schema=r4_full_analog_trajectories_v1. Bind the R4 "
+                "snapshot, G2 and fixed role hashes and record zero legacy, qualification and outer "
+                "rows. Sample actual contiguous 63-session historical return trajectories without "
+                "endpoint interpolation, enforce a declared temporal-spacing rule and zero duplicate "
+                "trajectory identities, and emit drawdown, first-touch and recovery diagnostics with "
+                "content hashes. Emit trajectory_length=63, actual_contiguous_returns=true, "
+                "endpoint_interpolation_used=false, minimum_spacing_sessions>=63, duplicate_count=0, "
+                "origin_available_cross_fit=true, trajectory_count>0, trajectory_set_sha256 and numeric "
+                "maximum_drawdown/first_touch_rate/recovery_rate. All neighbor selection must be "
+                "origin-available and cross-fitted."
+            )
         if str(envelope.get("task_key", "")).startswith("R4-S4-"):
             qualification_instruction += (
                 " All S4 mechanism fitting and screening must use the authoritative R4 snapshot's "
