@@ -1,0 +1,71 @@
+{
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "task_key": "R4-D1-002",
+  "attempt_id": "R4-D1-002-ab8e1153e7d54",
+  "status": "SUCCEEDED",
+  "protected_non_mutation": true,
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "secret_scan_pass": true,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "changed_paths": [
+    "migrations/timeseries_v7_r4/001_control_plane.sql",
+    "src/ai_fc/timeseries_v7_r4/fred_vintages.py",
+    "src/tests/timeseries_v7_r4/test_fred_vintage_cursor.py"
+  ],
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src\\tests\\timeseries_v7_r4\\test_fred_vintage_cursor.py -q",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src\\tests\\timeseries_v7_r4 -q",
+      "return_code": 0
+    },
+    {
+      "command": "git diff --check",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "FRED/ALFRED vintage cursor targeted tests",
+      "passed": true,
+      "evidence": "7 passed"
+    },
+    {
+      "name": "timeseries_v7_r4 suite",
+      "passed": true,
+      "evidence": "47 passed"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "full backfill and output_type=3 incremental paths are idempotent",
+      "passed": true,
+      "evidence": "PostgreSQL ON CONFLICT handling produced insertion counts 2, 0, 0 and retained exactly two revisions."
+    },
+    {
+      "criterion": "cursor advances only after raw/receipt/parse/DB commit",
+      "passed": true,
+      "evidence": "Injected failures after raw, receipt, parse, and DB stages left no cursor or committed revisions."
+    },
+    {
+      "criterion": "reconciliation detects missing revisions",
+      "passed": true,
+      "evidence": "Reconciliation reported the deliberately missing 2024-01-02 revision."
+    },
+    {
+      "criterion": "PostgreSQL is the authoritative durable store",
+      "passed": true,
+      "evidence": "Production ingestion accepts only PostgreSQL URLs; revision and cursor tables reside in timeseries_v7_r4 and commit in one transaction."
+    },
+    {
+      "criterion": "point-in-time available_at semantics are preserved",
+      "passed": true,
+      "evidence": "Each stored available_at equals the immutable ALFRED realtime_start coordinate, enforced by a database constraint and test."
+    }
+  ]
+}

@@ -105,6 +105,7 @@ def make_supervisor(run_id: str, args: argparse.Namespace) -> Supervisor:
 
 def command_run(args: argparse.Namespace) -> int:
     supervisor = make_supervisor(args.run_id, args)
+    supervisor.control.migrate(MIGRATION)
     supervisor.control.reconcile_dependencies(args.run_id)
     supervisor.control.correct_execution_permission_waits(args.run_id)
     if os.getenv("R4_ALLOW_CODEX_CHILD") == "1":
