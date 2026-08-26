@@ -268,6 +268,23 @@ def test_expected_red_test_is_valid_command_evidence():
     assert validate_child_result(payload, require_evidence=True) == []
 
 
+def test_expected_diagnostic_requires_later_success():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "SUCCEEDED", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": True,
+               "commands": [
+                   {"command": "probe empty env", "return_code": 1,
+                    "phase": "expected_diagnostic", "expected_failure": "invalid empty URL"},
+                   {"command": "run with env removed", "return_code": 0},
+               ],
+               "tests": [{"name": "fixed", "passed": True}],
+               "acceptance_results": [{"criterion": "fixed", "passed": True}]}
+    assert validate_child_result(payload, require_evidence=True) == []
+    payload["commands"].pop()
+    assert "command_failed" in validate_child_result(payload, require_evidence=True)
+
+
 def test_red_then_green_same_command_is_valid_evidence():
     payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
                "status": "SUCCEEDED", "protected_non_mutation": True,
@@ -1380,6 +1397,7 @@ def test_codex_dispatch_prompt_requires_machine_result_keys():
     assert "return_code (never exit_code)" in prompt
     assert "tests entry must include passed=true or passed=false" in prompt
     assert "supervisor_should_continue=true" in prompt
+    assert "phase=expected_diagnostic" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():

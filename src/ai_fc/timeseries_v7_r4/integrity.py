@@ -116,6 +116,12 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
                 if not isinstance(item, dict) or item.get("return_code") == 0:
                     continue
                 explicit_red = item.get("phase") == "red_test" and item.get("expected_failure")
+                explicit_diagnostic = (
+                    item.get("phase") == "expected_diagnostic"
+                    and bool(item.get("expected_failure"))
+                    and any(isinstance(later, dict) and later.get("return_code") == 0
+                            for later in commands[index + 1:])
+                )
                 command = item.get("command")
                 repaired_red = bool(command) and any(
                     isinstance(later, dict)
@@ -123,7 +129,7 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
                     and later.get("return_code") == 0
                     for later in commands[index + 1:]
                 )
-                if not explicit_red and not repaired_red:
+                if not explicit_red and not explicit_diagnostic and not repaired_red:
                     failed_commands.append(command or f"command[{index}]")
             if failed_commands:
                 errors.append("command_failed")
