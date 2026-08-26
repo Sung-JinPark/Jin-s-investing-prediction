@@ -808,6 +808,27 @@ def test_m3_008_rejects_self_report_without_frozen_methodology_revision(control,
     assert checked["acceptance_results"][-1]["passed"] is False
 
 
+def test_s4_001_rejects_predecessor_score_calibration_without_r4_role_receipt(control, tmp_path):
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-001/probability_up_calibration"
+    folder.mkdir(parents=True)
+    (folder / "acceptance_summary.json").write_text(
+        json.dumps({"source_sha256": "a" * 64, "families": []}), encoding="utf-8",
+    )
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-S4-001", "attempt", "token", "p-up", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "P_UP_CALIBRATION_ROLE_LEAKAGE"
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
@@ -945,6 +966,16 @@ def test_codex_dispatch_prompt_freezes_one_time_core_qualification_contract():
     assert "seed 20260825" in prompt
     assert "1,000 moving-block replications of length 13" in prompt
     assert "append a revision with an explicit supersedes SHA-256" in prompt
+
+
+def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "r", "cycle_id": "c", "task_key": "R4-S4-001",
+        "attempt_id": "a",
+    })
+    assert "fixed calibration role (634 origins)" in prompt
+    assert "qualification_score_rows_used=0" in prompt
+    assert "outer_rows_used=0" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():

@@ -1234,6 +1234,73 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["qualification_methodology"]
+        if lease.task_key == "R4-S4-001":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            family_pass = len(families) == 4 and {
+                int(item.get("horizon")) for item in families if isinstance(item, dict)
+            } == {1, 5, 21, 63} and all(
+                isinstance(item, dict)
+                and item.get("calibration_role_origin_count") == 634
+                and item.get("fit_role") == "calibration_temporal_cross_fit"
+                and item.get("evaluation_role") == "calibration_cross_fit_holdout"
+                and isinstance(item.get("brier"), (int, float))
+                and isinstance(item.get("base_rate_brier"), (int, float))
+                and isinstance(item.get("balanced_brier"), (int, float))
+                and item.get("probability_unit") == "fraction"
+                and item.get("probability_bounds_pass") is True
+                for item in families
+            )
+            checks = {
+                "authoritative_r4_calibration_source": (
+                    payload.get("schema") == "r4_probability_up_calibration_v2"
+                    and source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
+                    and source.get("r4_snapshot_artifact_sha256")
+                    == "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff"
+                    and source.get("g2_artifact_sha256")
+                    == "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523"
+                    and source.get("calibration_role_hash")
+                    == "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2"
+                ),
+                "no_qualification_or_legacy_score_reuse": (
+                    source.get("legacy_review_pack_score_rows_used") == 0
+                    and source.get("qualification_score_rows_used") == 0
+                    and source.get("outer_rows_used") == 0
+                    and source.get("outer_origin_intersection") == 0
+                ),
+                "four_horizon_temporal_cross_fit": family_pass,
+                "append_only_correction_evidence": (
+                    isinstance(payload.get("supersedes_sha256"), str)
+                    and len(payload["supersedes_sha256"]) == 64
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "p_up_calibration_uses_fixed_r4_calibration_role_only",
+                "passed": passed, "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "P_UP_CALIBRATION_ROLE_LEAKAGE"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "append R4 calibration evidence using only the 634-origin calibration "
+                        "role with temporal cross-fitting; use zero predecessor, qualification "
+                        "or outer score rows"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["p_up_calibration_role_isolation"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

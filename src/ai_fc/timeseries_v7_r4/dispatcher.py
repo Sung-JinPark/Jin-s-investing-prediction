@@ -153,6 +153,17 @@ class CodexDispatcher:
                 "rebound and 2023 stress-window boundaries. On a retry, never rewrite a prior "
                 "qualification report: append a revision with an explicit supersedes SHA-256."
             )
+        if envelope.get("task_key") == "R4-S4-001":
+            qualification_instruction += (
+                " For zero-threshold P(up) calibration, use only the authoritative R4 credential-free "
+                "snapshot and its fixed calibration role (634 origins) with temporal cross-fitting. "
+                "Do not train or select on the predecessor review-pack score matrix, the 4,082-row "
+                "qualification matrix, or any outer outcome. Bind the R4 snapshot, G2 artifact and "
+                "calibration role hash; record legacy_review_pack_score_rows_used=0, "
+                "qualification_score_rows_used=0 and outer_rows_used=0. Store probabilities as "
+                "fractions in [0,1], retain the base-rate Brier comparator and balanced-direction "
+                "diagnostics, and append corrected evidence rather than rewriting the rejected output."
+            )
         return (
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
             "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
