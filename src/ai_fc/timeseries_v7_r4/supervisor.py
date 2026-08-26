@@ -587,6 +587,28 @@ class Supervisor:
                 implementation_path.read_text(encoding="utf-8")
                 if implementation_path.exists() else ""
             )
+            tool_path = self.context.repo / "tools/generate_e0_samples_v7_r4.py"
+            tool_text = tool_path.read_text(encoding="utf-8") if tool_path.exists() else ""
+            help_return_code = -1
+            if tool_path.exists():
+                help_return_code = subprocess.run(
+                    [sys.executable, str(tool_path), "--help"],
+                    cwd=self.context.repo, capture_output=True, text=True,
+                ).returncode
+            active_artifacts_valid = True
+            artifact_root = (
+                self.context.repo
+                / "data/timeseries_v7_r4/generated/e0_sample_matrices"
+            )
+            for artifact in artifact_root.glob("*.json") if artifact_root.exists() else ():
+                try:
+                    artifact_payload = json.loads(artifact.read_text(encoding="utf-8"))
+                    active_artifacts_valid = active_artifacts_valid and (
+                        artifact_payload.get("contract", {}).get("algorithm")
+                        == "exact_empirical_anchor"
+                    )
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    active_artifacts_valid = False
             checks = {
                 "frozen_exact_empirical_anchor": "exact_empirical_anchor" in implementation,
                 "no_comparator_block_bootstrap": (
@@ -600,6 +622,13 @@ class Supervisor:
                 "quantile_reconstruction_prohibited": (
                     "quantiles cannot reconstruct" in implementation
                 ),
+                "exact_anchor_cli_imports": (
+                    "E0_EXACT_EMPIRICAL_CONTRACT" in tool_text
+                    and "fit_exact_empirical_anchor" in tool_text
+                    and "E0_BLOCK_BOOTSTRAP_CONTRACT" not in tool_text
+                ),
+                "exact_anchor_cli_help": help_return_code == 0,
+                "active_artifacts_preserve_comparator": active_artifacts_valid,
             }
             passed = all(checks.values())
             result.setdefault("acceptance_results", []).append({
