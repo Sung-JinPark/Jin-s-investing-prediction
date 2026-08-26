@@ -1,0 +1,40 @@
+{
+  "available_at_rule": "state_uses_prior_outcomes_only",
+  "calibration_rows": 612,
+  "coverage": {
+    "50": 0.5032679738562091,
+    "80": 0.803921568627451,
+    "90": 0.9035947712418301
+  },
+  "family": "h21",
+  "normal_sharpness": {
+    "conditional_half_width_80": 0.0547176939540494,
+    "ratio": 0.9176823785219845,
+    "reference_half_width_80": 0.05962596126361007
+  },
+  "scales": {
+    "normal": {
+      "central_scale": 0.7841005673304847,
+      "count": 462,
+      "half_width_50": 0.028631619779279766,
+      "half_width_80": 0.0547176939540494,
+      "half_width_90": 0.0735402984362496,
+      "volatility_scale": 0.5135275004542103
+    },
+    "stress": {
+      "central_scale": 0.3163648116716985,
+      "count": 150,
+      "half_width_50": 0.05253453282343748,
+      "half_width_80": 0.09855842355837371,
+      "half_width_90": 0.13875051001158367,
+      "volatility_scale": 0.6213694953665057
+    }
+  },
+  "schema_version": 1,
+  "scores_member": "EVIDENCE/outputs/timeseries_v7/open_data_runs/v7-alfred-20260825T083047Z/scores.parquet",
+  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "state_counts": {
+    "normal": 462,
+    "stress": 150
+  }
+}
