@@ -399,7 +399,12 @@ class CodexDispatcher:
                 "passed": all(identity.values()) and not violations,
                 "evidence": {"identity": identity, "violations": violations},
             })
-            if parsed.get("status") == "SUCCEEDED" and not changed:
+            committable_status = (
+                parsed.get("status") == "SUCCEEDED"
+                or (envelope.get("task_key") == "R4-A5-006"
+                    and parsed.get("status") == "REVIEW_PROPOSAL")
+            )
+            if committable_status and not changed:
                 violations.append("successful implementation produced no changed paths")
             test_command = [
                 envelope.get("frozen_python") or sys.executable,
@@ -430,7 +435,7 @@ class CodexDispatcher:
                 parsed["blocker_signature"] = "DISPATCH_VALIDATION:" + ",".join(sorted(set(errors)))
                 parsed["supervisor_should_continue"] = parsed["status"] == "RETRY_WAIT"
                 validation_return_code = 3
-            elif parsed.get("status") == "SUCCEEDED":
+            elif committable_status:
                 check = subprocess.run(
                     ["git", "diff", "--check"], cwd=worktree,
                     capture_output=True, text=True,

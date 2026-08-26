@@ -330,12 +330,16 @@ class PostgresControlPlane:
             ).fetchone()
             if task is None:
                 raise KeyError((run_id, task_key))
-            if task[0] != "SUCCEEDED":
-                raise RuntimeError(f"acceptance correction requires SUCCEEDED task, got {task[0]}")
+            original_state = task[0]
+            if original_state not in {"SUCCEEDED", "REVIEW_PROPOSAL"}:
+                raise RuntimeError(
+                    "acceptance correction requires SUCCEEDED or REVIEW_PROPOSAL task, "
+                    f"got {original_state}"
+                )
             attempt = conn.execute(
                 "SELECT attempt_id,result_hash FROM timeseries_v7_r4.attempts"
-                " WHERE run_id=%s AND task_key=%s AND state='SUCCEEDED'"
-                " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
+                " WHERE run_id=%s AND task_key=%s AND state=%s"
+                " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key, original_state),
             ).fetchone()
             if attempt is None:
                 raise RuntimeError("accepted task lacks preserved successful attempt")
@@ -345,7 +349,7 @@ class PostgresControlPlane:
                 "task_key": task_key,
                 "supersedes_attempt_id": attempt[0],
                 "supersedes_result_hash": attempt[1],
-                "original_state": "SUCCEEDED",
+                "original_state": original_state,
                 "corrected_state": "RETRY_WAIT",
                 "reason": reason,
                 "evidence": evidence,

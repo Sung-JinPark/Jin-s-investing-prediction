@@ -253,6 +253,17 @@ def test_successful_child_requires_independent_evidence():
             "missing_acceptance_evidence"}.issubset(errors)
 
 
+def test_terminal_review_child_requires_independent_evidence():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "REVIEW_PROPOSAL", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": False, "commands": [], "tests": [],
+               "acceptance_results": []}
+    errors = validate_child_result(payload, require_evidence=True)
+    assert {"missing_command_evidence", "missing_test_evidence",
+            "missing_acceptance_evidence"}.issubset(errors)
+
+
 def test_expected_red_test_is_valid_command_evidence():
     payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
                "status": "SUCCEEDED", "protected_non_mutation": True,
@@ -473,6 +484,24 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
     }
     assert retry.payload["retry_evidence"]["blocker_signature"] is None
     assert retry.payload["retry_attempt_history"][0]["attempt_id"] == lease.attempt_id
+
+
+def test_acceptance_correction_preserves_unintegrated_terminal_review(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "terminal", "title": "terminal", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    review = result(lease, status="REVIEW_PROPOSAL")
+    review["supervisor_should_continue"] = False
+    assert control.finish(lease, "worker", review, "REVIEW_PROPOSAL")
+    correction = control.correct_task_acceptance(
+        run_id, "terminal", reason="terminal artifact was not integrated",
+        evidence={"commit_sha": None, "artifact_present": False},
+    )
+    assert correction["original_state"] == "REVIEW_PROPOSAL"
+    assert correction["corrected_state"] == "RETRY_WAIT"
+    retry = control.claim(run_id, "worker", 30)
+    assert retry is not None and retry.task_key == "terminal"
+    assert retry.payload["acceptance_correction_history"]["evidence"]["artifact_present"] is False
 
 
 def test_noncanonical_success_state_is_append_only_corrected(control):

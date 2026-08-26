@@ -104,7 +104,7 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
         errors.append("protected_mutation")
     if result.get("secret_scan_pass") is not True:
         errors.append("secret_scan_failed")
-    if require_evidence and result.get("status") == "SUCCEEDED":
+    if require_evidence and result.get("status") in {"SUCCEEDED", "REVIEW_PROPOSAL"}:
         commands = result.get("commands")
         tests = result.get("tests")
         acceptance = result.get("acceptance_results")
