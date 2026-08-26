@@ -167,10 +167,8 @@ def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
 
     bounds = [(None, None)] * width + [(-30.0, 30.0)] * width
     fitted = minimize(objective, initial, method="L-BFGS-B", bounds=bounds,
-                      options={"maxiter": 20, "maxfun": 100, "ftol": 1e-12})
-    # A finite bounded iterate is auditable and usable when the optimizer stops
-    # at its preregistered compute budget before satisfying its line-search flag.
-    if not np.isfinite(fitted.x).all():
+                      options={"maxiter": 5000, "maxfun": 100000, "ftol": 1e-12})
+    if not fitted.success or not np.isfinite(fitted.x).all():
         raise RuntimeError(f"E2 Student-t optimization failed: {fitted.message}")
     _, crps, stability = components(fitted.x)
     return fitted.x[:width], fitted.x[width:], float(fitted.fun), crps, stability

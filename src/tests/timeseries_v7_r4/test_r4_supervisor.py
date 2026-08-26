@@ -600,6 +600,44 @@ def test_v2_003_rejects_quadratic_pairwise_broadcast_without_final_guard(
     assert checked["blocker_signature"] == "EMPIRICAL_MIXTURE_SCALE_OR_GUARD_MISSING"
 
 
+def test_m3_006_rejects_point_mae_and_asserted_five_role_proof(control, tmp_path):
+    artifact = tmp_path / "outputs/timeseries_v7_r4/R4-M3-006"
+    artifact.mkdir(parents=True)
+    (artifact / "g1_screen.json").write_text(json.dumps({
+        "candidate_families": ["E1", "E2", "E3", "E4"],
+        "candidate_counts": {"smoke": 4, "inner_screen": 4, "robust_inner": 4,
+                             "full_nested": 4, "qualification": 1},
+        "candidates": [{"candidate_id": family, "hypothesis_hash": "a" * 64,
+                         "exposure_hash": "b" * 64, "underperforms_e0": True,
+                         "weight": 0.0} for family in ("E1", "E2", "E3", "E4")],
+        "five_role_validation_proof": True,
+        "source": {
+            "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+            "e0_artifact_sha256": "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec",
+            "evaluation_origin_grid_hash": "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135",
+            "model_score_rows": 24480, "legacy_precomputed_score_rows_used": 0,
+            "outer_rows_used": 0, "score_metric": "mae",
+        },
+    }), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-M3-006", "attempt", "token", "screen", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+
+    assert checked["status"] == "RETRY_WAIT"
+    evidence = checked["acceptance_results"][-1]["evidence"]
+    assert evidence["distribution_crps_scoring"] is False
+    assert evidence["five_role_partition_bound"] is False
+    assert evidence["frozen_candidate_coordinates_preserved"] is False
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})

@@ -905,6 +905,36 @@ class Supervisor:
                 for item in candidates
                 if isinstance(item, dict) and item.get("underperforms_e0") is True
             )
+            role_receipt = (
+                source.get("five_role_receipt")
+                if isinstance(source.get("five_role_receipt"), dict) else {}
+            )
+            role_hashes = (
+                role_receipt.get("role_hashes")
+                if isinstance(role_receipt.get("role_hashes"), dict) else {}
+            )
+            score_receipts = payload.get("score_receipts", [])
+            distribution_score_pass = (
+                source.get("score_metric") == "distribution_crps"
+                and isinstance(score_receipts, list) and len(score_receipts) >= 4
+                and all(
+                    isinstance(item, dict)
+                    and item.get("metric") == "crps"
+                    and isinstance(item.get("predictive_distribution_hash"), str)
+                    and len(item["predictive_distribution_hash"]) == 64
+                    and isinstance(item.get("score_rows"), int)
+                    and item["score_rows"] > 0
+                    for item in score_receipts
+                )
+            )
+            five_role_receipt_pass = (
+                set(role_hashes) == {"train", "selection", "stacking", "calibration", "outer"}
+                and all(isinstance(value, str) and len(value) == 64
+                        for value in role_hashes.values())
+                and role_receipt.get("interval_overlap_count") == 0
+                and role_receipt.get("purge_unit") == "xnas_sessions"
+                and role_receipt.get("outer_exposed_during_screen") is False
+            )
             checks = {
                 "artifact_present": artifact_path.exists(),
                 "uses_r4_snapshot": (
@@ -931,7 +961,17 @@ class Supervisor:
                 "funnel_budgets_respected": budget_pass,
                 "hypothesis_and_exposure_lineage": lineage_pass,
                 "underperformers_zero_weight": no_regret_pass,
-                "five_role_partition_bound": payload.get("five_role_validation_proof") is True,
+                "five_role_partition_bound": (
+                    payload.get("five_role_validation_proof") is True
+                    and five_role_receipt_pass
+                ),
+                "distribution_crps_scoring": distribution_score_pass,
+                "frozen_candidate_coordinates_preserved": (
+                    source.get("frozen_candidate_coordinates_preserved") is True
+                ),
+                "optimizer_convergence_required": (
+                    source.get("optimizer_convergence_required") is True
+                ),
             }
             passed = all(checks.values())
             result.setdefault("acceptance_results", []).append({
@@ -948,7 +988,10 @@ class Supervisor:
                         "execute E1, E2, E3, and E4 against the R4 rematerialized PIT "
                         "snapshot on train/selection/robust-inner roles, bind the exact E0 "
                         "comparator, record real model score rows and lineage hashes, and keep "
-                        "the outer role sealed for R4-M3-008"
+                        "the outer role sealed for R4-M3-008. Score predictive distributions "
+                        "with CRPS (never p50 MAE), emit per-family distribution receipts, bind "
+                        "all five interval-disjoint role hashes, and preserve frozen candidate "
+                        "coordinates and optimizer convergence requirements"
                     ),
                 }]
                 result["recommended_router_deficits"] = ["g1_actual_screen"]
