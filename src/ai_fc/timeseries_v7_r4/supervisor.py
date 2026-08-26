@@ -1137,6 +1137,103 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["g2_stacking_calibration"]
+        if lease.task_key == "R4-M3-008":
+            artifact_root = self.context.repo / "outputs/timeseries_v7_r4/R4-M3-008"
+            revision_path = artifact_root / "qualification_revision_3.json"
+            prior_path = artifact_root / "qualification_revision_2.json"
+            payload: dict[str, Any] = {}
+            if revision_path.exists():
+                try:
+                    payload = json.loads(revision_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            metrics = payload.get("metrics") if isinstance(payload.get("metrics"), dict) else {}
+            stress = (metrics.get("historical_stress")
+                      if isinstance(metrics.get("historical_stress"), dict) else {})
+            methodology = (payload.get("gate_methodology")
+                           if isinstance(payload.get("gate_methodology"), dict) else {})
+            expected_stress = {
+                "gfc": (416, 0.7668269230769231),
+                "pandemic": (84, 0.4523809523809524),
+                "tightening_2022": (208, 0.6394230769230769),
+                "rebound_2009": (224, 0.8660714285714286),
+                "rebound_2020": (192, 0.7552083333333334),
+                "bull_2023": (208, 0.8942307692307693),
+            }
+            stress_pass = set(stress) == set(expected_stress) and all(
+                isinstance(stress.get(name), dict)
+                and stress[name].get("count") == count
+                and isinstance(stress[name].get("coverage80"), (int, float))
+                and abs(float(stress[name]["coverage80"]) - coverage) < 1e-12
+                for name, (count, coverage) in expected_stress.items()
+            )
+            expected_deficits = {
+                "long_skill_below_threshold", "h21_skill_negative",
+                "h63_skill_negative", "paired_ci_upper_positive",
+                "coverage80_fail", "coverage50_high",
+                "balanced_direction_low", "historical_stress_fail",
+            }
+            checks = {
+                "append_only_methodology_revision": (
+                    revision_path.exists() and prior_path.exists()
+                    and payload.get("schema") == "r4_core_qualification_v1_revision_3"
+                    and payload.get("supersedes_sha256") == sha256_file(prior_path)
+                    and payload.get("correction_scope")
+                    == "gate_methodology_only_scores_unchanged"
+                ),
+                "frozen_v7_dependence_method": (
+                    methodology.get("method") == "moving_block_bootstrap"
+                    and methodology.get("seed") == 20260825
+                    and methodology.get("replications") == 1000
+                    and methodology.get("block_length") == 13
+                    and methodology.get("upper_quantile") == 0.90
+                ),
+                "frozen_grid_and_score_identity": (
+                    metrics.get("score_rows") == 4082
+                    and metrics.get("origin_count") == 1025
+                    and payload.get("identity", {}).get("score_matrix_sha256")
+                    == "dcc2b92286e14852a16dff091fd3ec8c23c30ab5eee926add85b3b15c4e974eb"
+                    and payload.get("identity", {}).get("evaluation_coordinate_grid_hash")
+                    == "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8"
+                ),
+                "independent_frozen_metric_replay": (
+                    isinstance(metrics.get("paired_ci_upper"), (int, float))
+                    and abs(float(metrics["paired_ci_upper"]) - 0.0006826855070338302) < 1e-12
+                    and isinstance(metrics.get("long_horizon_mean_crps_skill"), (int, float))
+                    and abs(float(metrics["long_horizon_mean_crps_skill"])
+                            - (-0.005914812020669458)) < 1e-15
+                    and stress_pass
+                ),
+                "complete_truthful_gate_deficits": (
+                    set(payload.get("gate_deficit_vector", [])) == expected_deficits
+                    and payload.get("decision") == "HOLD_RESEARCH_GATE"
+                    and payload.get("reason") == "RESEARCH_GATE_FAILED_REPLAN"
+                    and payload.get("process_exit_code") == 0
+                    and payload.get("research_gate_pass") is False
+                ),
+                "single_qualification_and_no_screen_leak": (
+                    payload.get("qualification_count") == 1
+                    and payload.get("screening_qualification_rows") == 0
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "g2_one_time_core_qualification_uses_frozen_v7_gate",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "CORE_QUALIFICATION_GATE_METHOD_MISMATCH"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "append revision 3 without changing score_matrix.parquet; restore the "
+                        "frozen V7 moving-block CI and registered stress windows; bind the exact "
+                        "coordinate hash and emit the complete truthful deficit vector"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["qualification_methodology"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

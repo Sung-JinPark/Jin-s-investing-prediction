@@ -785,6 +785,29 @@ def test_m3_007_rejects_raw_sample_checkpoints_and_accepts_compact_receipts(cont
     ] is False
 
 
+def test_m3_008_rejects_self_report_without_frozen_methodology_revision(control, tmp_path):
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-M3-008"
+    folder.mkdir(parents=True)
+    (folder / "qualification_revision_2.json").write_text(
+        json.dumps({"schema": "r4_core_qualification_v1_revision_2"}),
+        encoding="utf-8",
+    )
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-M3-008", "attempt", "token", "qualification", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "CORE_QUALIFICATION_GATE_METHOD_MISMATCH"
+    assert checked["acceptance_results"][-1]["passed"] is False
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
@@ -919,6 +942,9 @@ def test_codex_dispatch_prompt_freezes_one_time_core_qualification_contract():
     assert "qualification_count=1" in prompt
     assert "complete machine-readable deficit vector" in prompt
     assert "never alter scores or claim PASS" in prompt
+    assert "seed 20260825" in prompt
+    assert "1,000 moving-block replications of length 13" in prompt
+    assert "append a revision with an explicit supersedes SHA-256" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():

@@ -147,7 +147,11 @@ class CodexDispatcher:
                 "complete machine-readable deficit vector. A research Gate failure is valid evidence: "
                 "report HOLD_RESEARCH_GATE/RESEARCH_GATE_FAILED_REPLAN with process exit semantics 0, "
                 "never alter scores or claim PASS, while the task itself may succeed only if the "
-                "qualification evidence is complete and reproducible."
+                "qualification evidence is complete and reproducible. Preserve the existing V7 Gate "
+                "method exactly: seed 20260825, 1,000 moving-block replications of length 13 and the "
+                "90th-percentile paired upper bound; preserve the registered GFC, pandemic, tightening, "
+                "rebound and 2023 stress-window boundaries. On a retry, never rewrite a prior "
+                "qualification report: append a revision with an explicit supersedes SHA-256."
             )
         return (
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
