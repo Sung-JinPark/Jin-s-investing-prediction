@@ -1015,6 +1015,17 @@ def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
     assert "expected_failure" in prompt
 
 
+def test_codex_dispatch_prompt_requires_s4_002_corrected_receipt_schema():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "run", "cycle_id": "cycle", "task_key": "R4-S4-002",
+        "attempt_id": "attempt",
+    })
+    assert "schema=r4_conditional_scale_v2" in prompt
+    assert "calibration_role_origin_count=634" in prompt
+    assert "normal_width_ratio<=1.10" in prompt
+    assert "supersedes_sha256" in prompt
+
+
 def test_gate_deficit_router_is_deterministic():
     router = GateDeficitRouter.from_yaml(
         ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")

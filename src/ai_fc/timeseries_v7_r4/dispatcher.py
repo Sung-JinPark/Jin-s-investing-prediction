@@ -164,6 +164,19 @@ class CodexDispatcher:
                 "fractions in [0,1], retain the base-rate Brier comparator and balanced-direction "
                 "diagnostics, and append corrected evidence rather than rewriting the rejected output."
             )
+        if envelope.get("task_key") == "R4-S4-002":
+            qualification_instruction += (
+                " Write the corrected receipt to outputs/timeseries_v7_r4/R4-S4-002/"
+                "r4_calibration/acceptance_summary.json with schema=r4_conditional_scale_v2. "
+                "Its source object must bind r4_snapshot_hash, G2 artifact SHA-256 and the fixed "
+                "calibration role hash, and must report legacy_review_pack_score_rows_used=0, "
+                "qualification_score_rows_used=0, outer_rows_used=0 and outer_origin_intersection=0. "
+                "Each h1/h5/h21/h63 family must explicitly report horizon, "
+                "calibration_role_origin_count=634, fit_role=calibration_temporal_cross_fit, "
+                "state_available_at_origin=true, cross-fitted coverage diagnostics, positive normal "
+                "and stress volatility scales, and normal_width_ratio<=1.10. Include a "
+                "supersedes_sha256 for the previously integrated rejected receipt; never rewrite it."
+            )
         if str(envelope.get("task_key", "")).startswith("R4-S4-"):
             qualification_instruction += (
                 " All S4 mechanism fitting and screening must use the authoritative R4 snapshot's "
