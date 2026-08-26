@@ -7,6 +7,7 @@ import os
 import platform
 import subprocess
 import sys
+import threading
 import time
 import zipfile
 from dataclasses import dataclass
@@ -438,6 +439,9 @@ class Supervisor:
                 "provenance_rows": 0,
                 "provenance_pit_violations": -1,
                 "calendar_version": None,
+                "qualified_feature_count": 0,
+                "provenance_schema_complete": False,
+                "provenance_lineage_failures": -1,
             }
             if isinstance(r4_hash, str) and len(r4_hash) == 64:
                 try:
@@ -460,13 +464,35 @@ class Supervisor:
                         ).fetchone()[0]
                     if provenance_table is not None:
                         with self.control.connect() as connection:
-                            counts = connection.execute(
-                                "SELECT count(*),count(*) FILTER (WHERE max_available_at>origin_cutoff_at)"
-                                " FROM timeseries_v7_r4.feature_value_provenance"
-                                " WHERE snapshot_hash=%s", (r4_hash,),
-                            ).fetchone()
+                            columns = {
+                                row[0] for row in connection.execute(
+                                    "SELECT column_name FROM information_schema.columns"
+                                    " WHERE table_schema='timeseries_v7_r4'"
+                                    " AND table_name='feature_value_provenance'"
+                                ).fetchall()
+                            }
+                            required_columns = {
+                                "source_revision_ids", "transformation_hash", "data_grade",
+                            }
+                            db_evidence["provenance_schema_complete"] = (
+                                required_columns <= columns
+                            )
+                            if db_evidence["provenance_schema_complete"]:
+                                counts = connection.execute(
+                                    "SELECT count(*),"
+                                    " count(*) FILTER (WHERE max_available_at>origin_cutoff_at),"
+                                    " count(DISTINCT feature_id),"
+                                    " count(*) FILTER (WHERE cardinality(source_revision_ids)=0"
+                                    " OR length(transformation_hash)<>64 OR data_grade='')"
+                                    " FROM timeseries_v7_r4.feature_value_provenance"
+                                    " WHERE snapshot_hash=%s", (r4_hash,),
+                                ).fetchone()
+                            else:
+                                counts = (0, -1, 0, -1)
                         db_evidence["provenance_rows"] = counts[0]
                         db_evidence["provenance_pit_violations"] = counts[1]
+                        db_evidence["qualified_feature_count"] = counts[2]
+                        db_evidence["provenance_lineage_failures"] = counts[3]
                 except Exception as exc:
                     db_evidence["query_error"] = f"{type(exc).__name__}:{exc}"
             expected_feature_rows = payload.get("source_snapshot_rows")
@@ -499,9 +525,13 @@ class Supervisor:
                     and db_evidence["label_rows"] == expected_label_rows
                 ),
                 "per_feature_provenance_complete": (
-                    isinstance(active_feature_values, int) and active_feature_values > 0
+                    isinstance(active_feature_values, int)
+                    and isinstance(expected_feature_rows, int)
+                    and active_feature_values >= expected_feature_rows * 10
                     and db_evidence["provenance_rows"] == active_feature_values
                     and db_evidence["provenance_pit_violations"] == 0
+                    and db_evidence["provenance_schema_complete"]
+                    and db_evidence["provenance_lineage_failures"] == 0
                 ),
                 "versioned_calendar_hash_bound": (
                     isinstance(calendar_hash, str) and len(calendar_hash) == 64
@@ -513,7 +543,25 @@ class Supervisor:
                 ),
                 "release_native_values_materialized": (
                     isinstance(payload.get("release_native_feature_count"), int)
-                    and payload["release_native_feature_count"] > 0
+                    and payload["release_native_feature_count"] >= 11
+                ),
+                "usable_multivariate_feature_set": (
+                    isinstance(payload.get("qualified_feature_count"), int)
+                    and payload["qualified_feature_count"] >= 20
+                    and db_evidence["qualified_feature_count"]
+                    == payload["qualified_feature_count"]
+                ),
+                "target_price_complete": (
+                    isinstance(payload.get("target_price_rows"), int)
+                    and payload["target_price_rows"] == expected_feature_rows
+                ),
+                "core_missingness_acceptable": (
+                    isinstance(payload.get("core_missingness_2007_plus"), (int, float))
+                    and 0 <= payload["core_missingness_2007_plus"] <= 0.05
+                ),
+                "all_alfred_series_covered": (
+                    isinstance(payload.get("alfred_series_covered"), int)
+                    and payload["alfred_series_covered"] >= 11
                 ),
             }
             passed = all(checks.values())
@@ -666,7 +714,24 @@ class Supervisor:
                     "wake_trigger": "new eligible task or dependency completion",
                 })
                 return 0
-            result = self.execute(lease)
+            heartbeat_stop = threading.Event()
+            heartbeat_interval = max(1.0, lease_seconds / 3)
+
+            def maintain_lease() -> None:
+                while not heartbeat_stop.wait(heartbeat_interval):
+                    if not self.control.heartbeat(lease, self.worker_id, lease_seconds):
+                        return
+
+            heartbeat = threading.Thread(
+                target=maintain_lease,
+                name=f"r4-heartbeat-{lease.task_key}", daemon=True,
+            )
+            heartbeat.start()
+            try:
+                result = self.execute(lease)
+            finally:
+                heartbeat_stop.set()
+                heartbeat.join(timeout=5)
             state = result["status"]
             if state == "FAILED":
                 normalized, _, _ = classify_outcome("REPLAN")

@@ -26,6 +26,8 @@ from ai_fc.timeseries_v7_r4.integrity import (
 from ai_fc.timeseries_v7_r4.semantics import classify_outcome
 from ai_fc.timeseries_v7_r4.router import GateDeficitRouter
 from ai_fc.timeseries_v7_r4.specs import read_json, read_yaml, verify_delivery_spec, verify_pack
+from ai_fc.timeseries_v7_r4.supervisor import Supervisor, SupervisorContext
+from ai_fc.timeseries_v7_r4.control_plane import Lease
 
 ROOT = Path(__file__).resolve().parents[3]
 MIGRATION = ROOT / "migrations/timeseries_v7_r4/001_control_plane.sql"
@@ -395,6 +397,64 @@ def test_heartbeat_fencing(control):
     lease = control.claim(run_id, "worker", 30)
     assert control.heartbeat(lease, "worker", 60)
     assert not control.heartbeat(lease, "other", 60)
+
+
+def test_d1_006_rejects_single_feature_snapshot_as_multivariate_pit(
+    control, tmp_path,
+):
+    artifact = tmp_path / "outputs/timeseries_v7_r4/R4-D1-006"
+    artifact.mkdir(parents=True)
+    (artifact / "data_pit_qualification.json").write_text(
+        json.dumps({
+            "source_snapshot_hash": "a" * 64,
+            "r4_snapshot_hash": "b" * 64,
+            "source_snapshot_rows": 7712,
+            "source_label_rows": 30758,
+            "active_feature_value_count": 7712,
+            "qualified_feature_count": 1,
+            "target_price_rows": 0,
+            "core_missingness_2007_plus": 1.0,
+            "alfred_series_covered": 1,
+            "release_native_feature_count": 1,
+            "calendar_version_hash": "c" * 64,
+            "canonical_early_close_checks": 69,
+            "r4_snapshot_rematerialized": True,
+            "canonical_xnas_cutoff_proof": True,
+            "feature_value_provenance_pass": True,
+            "release_native_features_pass": True,
+            "postgres_snapshot_persisted": True,
+            "legacy_runtime_defects_acknowledged": True,
+        }),
+        encoding="utf-8",
+    )
+    context = SupervisorContext(
+        repo=tmp_path,
+        output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip",
+        r3_design_pack=None,
+        predecessor_repo=None,
+        config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    )
+    supervisor = Supervisor(control, context)
+    lease = Lease(
+        "run", "R4-D1-006", "attempt", "token", "qualify", {},
+    )
+    child_result = {
+        "status": "SUCCEEDED",
+        "acceptance_results": [],
+        "unresolved_blockers": [],
+        "recommended_router_deficits": [],
+    }
+
+    checked = supervisor._validate_task_semantics(lease, child_result)
+
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "R4_FULL_REMATERIALIZATION_EVIDENCE_MISSING"
+    evidence = checked["acceptance_results"][-1]["evidence"]
+    assert evidence["usable_multivariate_feature_set"] is False
+    assert evidence["target_price_complete"] is False
+    assert evidence["all_alfred_series_covered"] is False
 
 
 def test_event_is_append_only(control):
