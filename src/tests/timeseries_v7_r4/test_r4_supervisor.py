@@ -792,6 +792,36 @@ def test_event_is_append_only(control):
     assert [event["event_type"] for event in control.list_events(run_id)] == ["ONE", "TWO"]
 
 
+def test_blocked_execution_correction_preserves_attempt_and_only_requeues(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"id": "task", "title": "task"}])
+    lease = control.claim(run_id, "worker", 30)
+    assert lease is not None
+    blocked = {
+        "schema_version": 1, "run_id": run_id, "cycle_id": f"{run_id}-c001",
+        "task_key": "task", "attempt_id": lease.attempt_id, "status": "BLOCKED",
+        "blocker_signature": "INVALID_CHILD_RESULT:missing:run_id",
+    }
+    assert control.finish(lease, "worker", blocked, "BLOCKED") is True
+
+    correction = control.correct_blocked_execution_to_retry(
+        run_id, "task", reason="mechanical envelope identity omission",
+        evidence={"model_gate_executed": False, "artifact_preserved": True},
+    )
+
+    status = control.status(run_id)
+    with control.connect() as connection:
+        task_state = connection.execute(
+            "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s AND task_key='task'",
+            (run_id,),
+        ).fetchone()[0]
+    assert correction["original_state"] == "BLOCKED"
+    assert correction["corrected_state"] == "RETRY_WAIT"
+    assert correction["supersedes_attempt_id"] == lease.attempt_id
+    assert task_state == "RETRY_WAIT"
+    assert status["state"] == "REPLAN"
+
+
 def test_catalog_deduplicates(control):
     task = {"task_id": "catalog-task", "title": "catalog"}
     assert control.import_catalog("catalog-test", [task]) == 1
