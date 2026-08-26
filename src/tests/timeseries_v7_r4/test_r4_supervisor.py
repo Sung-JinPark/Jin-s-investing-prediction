@@ -179,6 +179,14 @@ def test_child_cannot_start_another_task():
     assert "child_started_another_task" in validate_child_result(payload)
 
 
+def test_child_success_alias_is_rejected():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "SUCCESS", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": True}
+    assert "invalid_status" in validate_child_result(payload)
+
+
 def test_successful_child_requires_independent_evidence():
     payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
                "status": "SUCCEEDED", "protected_non_mutation": True,
@@ -393,6 +401,35 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
     }
     assert retry.payload["retry_evidence"]["blocker_signature"] is None
     assert retry.payload["retry_attempt_history"][0]["attempt_id"] == lease.attempt_id
+
+
+def test_noncanonical_success_state_is_append_only_corrected(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    invalid = result(lease, status="SUCCESS")
+    assert control.finish(lease, "worker", invalid, "SUCCESS")
+    with control.connect() as conn:
+        before = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s", (run_id, lease.attempt_id),
+        ).fetchone()
+    correction = control.correct_noncanonical_task_state(
+        run_id, "t", reason="SUCCESS is not the canonical SUCCEEDED state",
+        evidence={"allowed_success_status": "SUCCEEDED"},
+    )
+    with control.connect() as conn:
+        task_state = conn.execute(
+            "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s AND task_key='t'",
+            (run_id,),
+        ).fetchone()[0]
+        after = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s", (run_id, lease.attempt_id),
+        ).fetchone()
+    assert correction["original_attempt_state"] == "SUCCESS"
+    assert task_state == "RETRY_WAIT"
+    assert after == before
 
 
 def test_implementable_wait_data_is_corrected_to_replan(control):

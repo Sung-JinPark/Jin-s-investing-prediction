@@ -301,6 +301,65 @@ class PostgresControlPlane:
             conn.commit()
         return payload
 
+    def correct_noncanonical_task_state(self, run_id: str, task_key: str, *,
+                                        reason: str, evidence: dict[str, Any]) -> dict[str, Any]:
+        """Preserve an invalid attempt state and advance only its mutable projection."""
+        correction_id = f"{run_id}:{task_key}:{sha256_bytes(reason.encode('utf-8'))[:16]}"
+        with self.connect() as conn:
+            existing = conn.execute(
+                "SELECT payload FROM timeseries_v7_r4.events WHERE run_id=%s"
+                " AND event_type='TASK_STATE_CORRECTION_APPENDED'"
+                " AND payload->>'correction_id'=%s ORDER BY event_id DESC LIMIT 1",
+                (run_id, correction_id),
+            ).fetchone()
+            if existing is not None:
+                return dict(existing[0])
+            task = conn.execute(
+                "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s AND task_key=%s"
+                " FOR UPDATE", (run_id, task_key),
+            ).fetchone()
+            if task is None:
+                raise KeyError((run_id, task_key))
+            canonical = {
+                "PENDING", "RUNNING", "SUCCEEDED", "RETRY_WAIT", "REPLAN", "FAILED",
+                "BLOCKED", "WAIT_DATA", "WAIT_EXECUTION_PERMISSION", "WAIT_HUMAN_REVIEW",
+                "REVIEW_PROPOSAL",
+            }
+            if task[0] in canonical:
+                raise RuntimeError(f"task state is already canonical: {task[0]}")
+            attempt = conn.execute(
+                "SELECT attempt_id,result_hash,state FROM timeseries_v7_r4.attempts"
+                " WHERE run_id=%s AND task_key=%s AND completed_at IS NOT NULL"
+                " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
+            ).fetchone()
+            if attempt is None:
+                raise RuntimeError("noncanonical task lacks preserved attempt")
+            payload = {
+                "schema_version": 1, "correction_id": correction_id,
+                "task_key": task_key, "supersedes_attempt_id": attempt[0],
+                "supersedes_result_hash": attempt[1], "original_task_state": task[0],
+                "original_attempt_state": attempt[2], "corrected_state": "RETRY_WAIT",
+                "reason": reason, "evidence": evidence, "original_attempt_preserved": True,
+            }
+            blob = canonical_json(payload)
+            conn.execute(
+                "INSERT INTO timeseries_v7_r4.events"
+                " (run_id,event_type,task_key,payload,payload_hash)"
+                " VALUES (%s,'TASK_STATE_CORRECTION_APPENDED',%s,%s::jsonb,%s)",
+                (run_id, task_key, blob.decode("utf-8"), sha256_bytes(blob)),
+            )
+            conn.execute(
+                "UPDATE timeseries_v7_r4.tasks SET state='RETRY_WAIT',"
+                " blocker_signature='NONCANONICAL_CHILD_STATUS',available_at=now(),updated_at=now()"
+                " WHERE run_id=%s AND task_key=%s", (run_id, task_key),
+            )
+            conn.execute(
+                "UPDATE timeseries_v7_r4.runs SET state='REPLAN',terminal_reason=%s::jsonb,"
+                " updated_at=now() WHERE run_id=%s", (blob.decode("utf-8"), run_id),
+            )
+            conn.commit()
+        return payload
+
     def correct_wait_data_to_replan(self, run_id: str, task_key: str, *,
                                     reason: str, evidence: dict[str, Any]) -> dict[str, Any]:
         """Append a correction when an implementable deficit was mislabeled WAIT_DATA."""

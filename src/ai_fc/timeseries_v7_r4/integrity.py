@@ -89,6 +89,15 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
         "child_worker_started_another_task", "supervisor_should_continue",
     }
     errors.extend(f"missing:{name}" for name in sorted(required - result.keys()))
+    allowed_statuses = {
+        "SUCCEEDED", "RETRY_WAIT", "REPLAN", "FAILED", "BLOCKED",
+        "WAIT_DATA", "WAIT_EXECUTION_PERMISSION", "WAIT_HUMAN_REVIEW",
+        "REVIEW_PROPOSAL", "RESEARCH_GATE_FAILED_REPLAN",
+        "BLOCKED_INPUT_INTEGRITY", "BLOCKED_SECURITY", "BLOCKED_SECRET_LEAK",
+        "BLOCKED_PROTECTED_SCOPE", "BLOCKED_GOVERNANCE",
+    }
+    if result.get("status") not in allowed_statuses:
+        errors.append("invalid_status")
     if result.get("child_worker_started_another_task") is not False:
         errors.append("child_started_another_task")
     if result.get("protected_non_mutation") is not True:

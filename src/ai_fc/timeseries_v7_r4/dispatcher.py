@@ -256,7 +256,8 @@ class CodexDispatcher:
             "per-family checkpoints so a retry resumes completed evidence instead of refitting it. "
             "In the result commands array, mark every intentional initial failing test with "
             "phase=red_test and a non-empty expected_failure string; never report an expected TDD "
-            "failure as an unexplained failed command. Do not commit or run git worktree commands. "
+            "failure as an unexplained failed command. The only success status literal is SUCCEEDED; "
+            "never return SUCCESS, PASS or COMPLETE. Do not commit or run git worktree commands. "
             "Return only a JSON object matching the R4 "
             "result contract. The final JSON must echo these envelope identity fields exactly: "
             + canonical_json(identity).decode("utf-8")
