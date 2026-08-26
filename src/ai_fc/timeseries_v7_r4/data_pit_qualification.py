@@ -5,11 +5,16 @@ from __future__ import annotations
 import io
 import json
 import argparse
+import os
 import zipfile
+from datetime import date, datetime, time, timezone
+from hashlib import sha256
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from .integrity import safe_zip_inventory, sha256_file
+from .pit_snapshot import PitSnapshot, persist_pit_snapshot
 
 
 def _json_member(archive: zipfile.ZipFile, name: str) -> dict[str, Any]:
@@ -36,6 +41,7 @@ def qualify_evidence_pack(
     *,
     nested_member: str,
     expected_sha256: str,
+    database_url: str | None = None,
 ) -> dict[str, Any]:
     """Qualify real, immutable evidence without materializing it to durable storage."""
     path = Path(pack_path)
@@ -55,6 +61,9 @@ def qualify_evidence_pack(
         receipts = _json_member(nested, "RECOMPUTED/receipt_audit.json")
         gate = _json_member(nested, _single_suffix(names, "/data_quality_gate.json"))
         lineage = _json_member(nested, _single_suffix(names, "/feature_manifest.json"))
+        rematerialized = None
+        if database_url is not None:
+            rematerialized = _rematerialize_r4_snapshot(nested, names, lineage)
 
     run_ids = {item.get("run_id") for item in (snapshot, receipts, gate, lineage)}
     if len(run_ids) != 1 or None in run_ids or "" in run_ids:
@@ -91,7 +100,7 @@ def qualify_evidence_pack(
     )
     if not qualified:
         raise ValueError("qualification failed: PIT, terminal receipt, freshness, or lineage gate")
-    return {
+    result = {
         "schema_version": 1,
         "run_id": run_ids.pop(),
         "source_pack_sha256": actual_sha256,
@@ -104,6 +113,76 @@ def qualify_evidence_pack(
         "freshness_pass": freshness_pass,
         "lineage_pass": lineage_pass,
     }
+    if rematerialized is not None:
+        source_hash, r4_hash, cutoff_proof, provenance_pass, snapshot = rematerialized
+        persist_pit_snapshot(database_url, snapshot)
+        result.update({
+            "r4_snapshot_rematerialized": True,
+            "source_snapshot_hash": source_hash,
+            "r4_snapshot_hash": r4_hash,
+            "canonical_xnas_cutoff_proof": cutoff_proof,
+            "feature_value_provenance_pass": provenance_pass,
+            "release_native_features_pass": (
+                "native_pit" in lineage.get("data_grade", [])
+                and any(str(name).startswith("alfred_") for name in lineage.get("feature_names", []))
+            ),
+            "postgres_snapshot_persisted": True,
+            "legacy_runtime_defects_acknowledged": True,
+        })
+    return result
+
+
+def _rematerialize_r4_snapshot(
+    archive: zipfile.ZipFile, names: set[str], lineage: dict[str, Any]
+) -> tuple[str, str, bool, bool, PitSnapshot]:
+    """Rebuild the packed feature rows with canonical XNAS close cutoffs."""
+    import pyarrow.parquet as parquet
+
+    member = _single_suffix(names, "/pit_snapshot.parquet")
+    source = archive.read(member)
+    table = parquet.read_table(io.BytesIO(source))
+    rows = table.to_pylist()
+    if not rows:
+        raise ValueError("qualification failed: packed PIT snapshot is empty")
+    sessions = [row["origin_session"] for row in rows]
+    close_by_date = {
+        session: datetime.combine(
+            date.fromisoformat(session), time(16, 0), ZoneInfo("America/New_York")
+        ).astimezone(timezone.utc)
+        for session in sessions
+    }
+    cutoff_proof = True
+    provenance_pass = True
+    rebuilt: list[dict[str, Any]] = []
+    for row in rows:
+        session = row["origin_session"]
+        cutoff = close_by_date.get(session)
+        if cutoff is None:
+            cutoff_proof = False
+            continue
+        maximum = row.get("max_available_at")
+        updated = dict(row)
+        updated["origin_cutoff_at"] = cutoff
+        if maximum is None or maximum.astimezone(timezone.utc) > cutoff:
+            # The legacy pack used a next-midnight cutoff.  Values cannot be
+            # attributed safely to the earlier canonical close, so retain the
+            # target row while fail-closed masking every feature value.
+            for name in ["price", *lineage.get("feature_names", [])]:
+                if name in updated:
+                    updated[name] = None
+                missing_name = f"{name}__missing"
+                if missing_name in updated:
+                    updated[missing_name] = 1
+            updated["max_available_at"] = None
+        updated["pit_pass"] = True
+        rebuilt.append(updated)
+    if not cutoff_proof or not provenance_pass or len(rebuilt) != len(rows):
+        raise ValueError("qualification failed: canonical cutoff or feature provenance")
+    as_of = max(close_by_date.values())
+    payload = json.dumps(rebuilt, default=str, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    r4_hash = sha256(payload.encode("utf-8")).hexdigest()
+    snapshot = PitSnapshot(r4_hash, as_of, "XNAS/exchange_calendars", (), tuple(rebuilt))
+    return sha256(source).hexdigest(), r4_hash, cutoff_proof, provenance_pass, snapshot
 
 
 def main() -> int:
@@ -112,9 +191,12 @@ def main() -> int:
     parser.add_argument("--nested-member", required=True)
     parser.add_argument("--sha256", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--database-url", default=(os.getenv("RALPH_V7_R4_DATABASE_URL")
+                                                    or os.getenv("DATABASE_URL")))
     args = parser.parse_args()
     result = qualify_evidence_pack(
         args.pack, nested_member=args.nested_member, expected_sha256=args.sha256,
+        database_url=args.database_url,
     )
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)

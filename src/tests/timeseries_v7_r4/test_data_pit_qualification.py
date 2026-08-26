@@ -28,8 +28,10 @@ def _write_pack(path, *, leakage=0, terminal_rate=1.0, latest="2026-08-24"):
         nested.writestr("EVIDENCE/data/timeseries_v7/snapshots/frozen-run/feature_manifest.json", json.dumps({
             "run_id": "frozen-run", "pit_leakage_count": leakage,
             "row_count": 10, "feature_count": 2,
+            "feature_names": ["ret_1", "alfred_m2_growth_63"],
             "data_grade": ["native_pit"],
         }))
+        nested.writestr("EVIDENCE/data/timeseries_v7/snapshots/frozen-run/pit_snapshot.parquet", b"source")
     with zipfile.ZipFile(path, "w") as outer:
         outer.writestr("INPUTS/evidence.zip", nested_buffer.getvalue())
     return sha256(path.read_bytes()).hexdigest()
@@ -49,6 +51,38 @@ def test_qualifies_complete_pit_evidence_without_changing_coordinates(tmp_path):
     assert result["receipt_terminal_outcome_rate"] == 1.0
     assert result["freshness_pass"] is True
     assert result["lineage_pass"] is True
+
+
+def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_path):
+    pack = tmp_path / "pack.zip"
+    digest = _write_pack(pack)
+    persisted = []
+
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v7_r4.data_pit_qualification._rematerialize_r4_snapshot",
+        lambda *_args, **_kwargs: ("1" * 64, "2" * 64, True, True, object()),
+        raising=False,
+    )
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v7_r4.data_pit_qualification.persist_pit_snapshot",
+        lambda url, snapshot: persisted.append((url, snapshot)) or True,
+        raising=False,
+    )
+
+    result = qualify_evidence_pack(
+        pack, nested_member="INPUTS/evidence.zip", expected_sha256=digest,
+        database_url="postgresql://unit-test",
+    )
+
+    assert persisted and persisted[0][0] == "postgresql://unit-test"
+    assert result["r4_snapshot_rematerialized"] is True
+    assert result["source_snapshot_hash"] == "1" * 64
+    assert result["r4_snapshot_hash"] == "2" * 64
+    assert result["canonical_xnas_cutoff_proof"] is True
+    assert result["feature_value_provenance_pass"] is True
+    assert result["release_native_features_pass"] is True
+    assert result["postgres_snapshot_persisted"] is True
+    assert result["legacy_runtime_defects_acknowledged"] is True
 
 
 @pytest.mark.parametrize("leakage,rate", [(1, 1.0), (0, 0.75)])
