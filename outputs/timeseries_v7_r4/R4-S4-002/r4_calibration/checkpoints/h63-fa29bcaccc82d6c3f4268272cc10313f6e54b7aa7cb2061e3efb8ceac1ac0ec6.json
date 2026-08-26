@@ -1,0 +1,57 @@
+{
+  "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+  "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+  "calibration_rows": 634,
+  "coverage": {
+    "50": 0.501577287066246,
+    "80": 0.8028391167192429,
+    "90": 0.9037854889589906
+  },
+  "family": "h63",
+  "normal_sharpness": {
+    "conditional_half_width_80": 0.15028317481969786,
+    "ratio": 1.15604721414421,
+    "reference_half_width_80": 0.1299974369394146
+  },
+  "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+  "role_hashes": {
+    "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+    "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+    "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+    "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+  },
+  "row_use_counters": {
+    "calibration_fit_rows": 634,
+    "legacy_review_pack_score_rows_used": 0,
+    "outer_rows_used": 0,
+    "qualification_score_rows_used": 0,
+    "selection_fit_rows": 0,
+    "stacking_fit_rows": 0,
+    "train_fit_rows": 0
+  },
+  "scales": {
+    "normal": {
+      "central_scale": 0.774469473732683,
+      "count": 359,
+      "half_width_50": 0.07012004451483261,
+      "half_width_80": 0.15028317481969786,
+      "half_width_90": 0.18005666750546306,
+      "volatility_scale": 0.5336326183429848
+    },
+    "stress": {
+      "central_scale": 0.7667787161214384,
+      "count": 275,
+      "half_width_50": 0.0711447226002197,
+      "half_width_80": 0.14389308949594998,
+      "half_width_90": 0.20279317087880294,
+      "volatility_scale": 0.5398776594983462
+    }
+  },
+  "schema_version": 1,
+  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "state_counts": {
+    "normal": 359,
+    "stress": 275
+  }
+}

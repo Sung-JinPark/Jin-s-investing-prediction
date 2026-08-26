@@ -1,0 +1,57 @@
+{
+  "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+  "available_at_rule": "state_and_distribution_use_only_outcomes_available_at_origin",
+  "calibration_rows": 634,
+  "coverage": {
+    "50": 0.501577287066246,
+    "80": 0.804416403785489,
+    "90": 0.9037854889589906
+  },
+  "family": "h21",
+  "normal_sharpness": {
+    "conditional_half_width_80": 0.06582579850986692,
+    "ratio": 0.8732061465745732,
+    "reference_half_width_80": 0.07538403018358196
+  },
+  "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+  "role_hashes": {
+    "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+    "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+    "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+    "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+  },
+  "row_use_counters": {
+    "calibration_fit_rows": 634,
+    "legacy_review_pack_score_rows_used": 0,
+    "outer_rows_used": 0,
+    "qualification_score_rows_used": 0,
+    "selection_fit_rows": 0,
+    "stacking_fit_rows": 0,
+    "train_fit_rows": 0
+  },
+  "scales": {
+    "normal": {
+      "central_scale": 0.9969987759867855,
+      "count": 281,
+      "half_width_50": 0.03849562743391646,
+      "half_width_80": 0.06582579850986692,
+      "half_width_90": 0.08429260578627859,
+      "volatility_scale": 0.5106426339145619
+    },
+    "stress": {
+      "central_scale": 0.907012720957897,
+      "count": 353,
+      "half_width_50": 0.05180635060858973,
+      "half_width_80": 0.08867626790010687,
+      "half_width_90": 0.12712023335392475,
+      "volatility_scale": 0.6850646450033779
+    }
+  },
+  "schema_version": 1,
+  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "state_counts": {
+    "normal": 281,
+    "stress": 353
+  }
+}
