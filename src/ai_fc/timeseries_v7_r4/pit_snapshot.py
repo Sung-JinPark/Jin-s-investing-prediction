@@ -201,10 +201,12 @@ def persist_qualified_pit_snapshot(
         )
         cursor.executemany(
             "INSERT INTO timeseries_v7_r4.feature_value_provenance "
-            "(snapshot_hash,origin_session,feature_id,max_available_at,origin_cutoff_at) "
-            "VALUES (%s,%s,%s,%s,%s)",
+            "(snapshot_hash,origin_session,feature_id,max_available_at,origin_cutoff_at,"
+            "source_revision_ids,transformation_hash,data_grade) "
+            "VALUES (%s,%s,%s,%s,%s,%s,%s,%s)",
             [(snapshot.snapshot_hash, row["origin_session"], row["feature_id"],
-              row["max_available_at"], row["origin_cutoff_at"]) for row in rows],
+              row["max_available_at"], row["origin_cutoff_at"], row["source_revision_ids"],
+              row["transformation_hash"], row["data_grade"]) for row in rows],
         )
     return True
 

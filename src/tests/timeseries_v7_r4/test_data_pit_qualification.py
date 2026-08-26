@@ -66,6 +66,8 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
             "source_snapshot_rows": 7712, "source_label_rows": 30758,
             "active_feature_value_count": 123, "calendar_version_hash": "3" * 64,
             "canonical_early_close_checks": 2, "release_native_feature_count": 4,
+            "qualified_feature_count": 23, "target_price_rows": 7712,
+            "core_missingness_2007_plus": 0.01, "alfred_series_covered": 11,
             "provenance_rows": (object(),),
         },
         raising=False,
@@ -108,6 +110,10 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
     assert result["calendar_version_hash"] == "3" * 64
     assert result["canonical_early_close_checks"] == 2
     assert result["release_native_feature_count"] == 4
+    assert result["qualified_feature_count"] == 23
+    assert result["target_price_rows"] == 7712
+    assert result["core_missingness_2007_plus"] == 0.01
+    assert result["alfred_series_covered"] == 11
     assert persisted[0][2]
 
 

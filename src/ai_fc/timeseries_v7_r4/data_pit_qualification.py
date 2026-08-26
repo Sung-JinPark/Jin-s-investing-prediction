@@ -144,7 +144,9 @@ def qualify_evidence_pack(
             **{key: rematerialized[key] for key in (
                 "source_snapshot_rows", "source_label_rows", "active_feature_value_count",
                 "calendar_version_hash", "canonical_early_close_checks",
-                "release_native_feature_count",
+                "release_native_feature_count", "qualified_feature_count",
+                "target_price_rows", "core_missingness_2007_plus",
+                "alfred_series_covered",
             )},
         })
     return result
@@ -168,12 +170,11 @@ def _rematerialize_r4_snapshot(
     labels_member = _single_suffix(names, "/direct_labels.parquet")
     label_rows = parquet.read_table(io.BytesIO(archive.read(labels_member))).to_pylist()
     observation_member = _single_suffix(names, ".jsonl")
-    m2_revisions = []
+    observations = []
     for line in archive.read(observation_member).splitlines():
         item = json.loads(line)
-        if item.get("series_id") == "M2SL" and item.get("data_grade") == "native_pit":
-            item["available_at"] = datetime.fromisoformat(item["available_at"])
-            m2_revisions.append(item)
+        item["available_at"] = datetime.fromisoformat(item["available_at"])
+        observations.append(item)
     label_ends = [value for row in label_rows for key, value in row.items()
                   if key.endswith("_label_end_session") and value is not None]
     calendar_end = max([*sessions, *label_ends])
@@ -201,48 +202,78 @@ def _rematerialize_r4_snapshot(
     rebuilt: list[dict[str, Any]] = []
     provenance_rows: list[dict[str, Any]] = []
     feature_names = list(lineage.get("feature_names", []))
+    observations.sort(key=lambda item: (item["available_at"], item.get("observation_id", "")))
+    observation_cursor = 0
+    visible_by_period: dict[str, dict[str, dict[str, Any]]] = {}
+    latest_period: dict[str, str] = {}
+    qualified_series = sorted({str(item["series_id"]) for item in observations})
+    native_series = {str(item["series_id"]) for item in observations
+                     if item.get("data_grade") == "native_pit"}
+    release_native_count = 0
+    target_price_rows = 0
+    core_total = 0
+    core_missing = 0
     for row in rows:
         session = row["origin_session"]
         cutoff = close_by_date.get(session)
         if cutoff is None:
             cutoff_proof = False
             continue
-        maximum = row.get("max_available_at")
         updated = dict(row)
         updated["origin_cutoff_at"] = cutoff
-        if maximum is None or maximum.astimezone(timezone.utc) > cutoff:
-            # The legacy pack used a next-midnight cutoff.  Values cannot be
-            # attributed safely to the earlier canonical close, so retain the
-            # target row while fail-closed masking every feature value.
-            for name in ["price", *lineage.get("feature_names", [])]:
-                if name in updated:
-                    updated[name] = None
-                missing_name = f"{name}__missing"
-                if missing_name in updated:
-                    updated[missing_name] = 1
-            updated["max_available_at"] = None
+        # Legacy derived columns were computed at a next-midnight cutoff.  Do
+        # not relabel them as close-time data.  Rebuild a useful multivariate
+        # set directly from the immutable observations and their available_at.
+        for name in ["price", *feature_names]:
+            if name in updated:
+                updated[name] = None
+            if f"{name}__missing" in updated:
+                updated[f"{name}__missing"] = 1
+        while (observation_cursor < len(observations)
+               and observations[observation_cursor]["available_at"] <= cutoff):
+            item = observations[observation_cursor]
+            series = str(item["series_id"])
+            period = str(item["observation_time"])
+            periods = visible_by_period.setdefault(series, {})
+            prior = periods.get(period)
+            if prior is None or (item["available_at"], item.get("observation_id", "")) > (
+                    prior["available_at"], prior.get("observation_id", "")):
+                periods[period] = item
+            if series not in latest_period or period > latest_period[series]:
+                latest_period[series] = period
+            observation_cursor += 1
+        row_available: list[datetime] = []
+        for series in qualified_series:
+            period = latest_period.get(series)
+            item = visible_by_period.get(series, {}).get(period) if period is not None else None
+            feature_id = "price" if series == "NASDAQCOM" else f"r4_{series.lower()}_latest_known"
+            if item is None:
+                value = None
+            else:
+                value = item["value"]
+                available_at = item["available_at"].astimezone(timezone.utc)
+                row_available.append(available_at)
+                provenance_rows.append({
+                    "origin_session": session, "feature_id": feature_id,
+                    "max_available_at": available_at, "origin_cutoff_at": cutoff,
+                    "source_revision_ids": [item.get("observation_id")
+                                            or item["raw_sha256"]],
+                    "transformation_hash": sha256(
+                        f"latest-known-v1:{series}:{feature_id}".encode()
+                    ).hexdigest(),
+                    "data_grade": str(item["data_grade"]),
+                })
+                if series in native_series:
+                    release_native_count += 1
+            updated[feature_id] = value
+            if series == "NASDAQCOM" and value is not None:
+                target_price_rows += 1
+            if session >= "2007-01-01":
+                core_total += 1
+                core_missing += value is None
+        updated["max_available_at"] = max(row_available) if row_available else None
         updated["pit_pass"] = True
-        visible_m2 = [item for item in m2_revisions if item["available_at"] <= cutoff]
-        if visible_m2:
-            latest_period = max(item["observation_time"] for item in visible_m2)
-            latest = max(
-                (item for item in visible_m2 if item["observation_time"] == latest_period),
-                key=lambda item: (item["available_at"], item["observation_id"]),
-            )
-            updated["r4_alfred_m2_latest_known"] = latest["value"]
-            provenance_rows.append({
-                "origin_session": session, "feature_id": "r4_alfred_m2_latest_known",
-                "max_available_at": latest["available_at"], "origin_cutoff_at": cutoff,
-            })
         rebuilt.append(updated)
-        maximum = updated.get("max_available_at")
-        if maximum is not None:
-            for feature_name in ["price", *feature_names]:
-                if updated.get(feature_name) is not None:
-                    provenance_rows.append({
-                        "origin_session": session, "feature_id": feature_name,
-                        "max_available_at": maximum, "origin_cutoff_at": cutoff,
-                    })
     if not cutoff_proof or not provenance_pass or len(rebuilt) != len(rows):
         raise ValueError("qualification failed: canonical cutoff or feature provenance")
     as_of = max(close_by_date.values())
@@ -267,6 +298,7 @@ def _rematerialize_r4_snapshot(
                 horizon_sessions=horizon, value=value,
             ))
     payload = json.dumps({"features": rebuilt, "labels": [str(x) for x in labels],
+                          "provenance": provenance_rows,
                           "calendar_version_hash": calendar_hash}, default=str,
                          sort_keys=True, separators=(",", ":"), allow_nan=False)
     r4_hash = sha256(payload.encode("utf-8")).hexdigest()
@@ -279,9 +311,11 @@ def _rematerialize_r4_snapshot(
         "active_feature_value_count": len(provenance_rows),
         "calendar_version_hash": calendar_hash,
         "canonical_early_close_checks": early_close_checks,
-        "release_native_feature_count": sum(
-            row.get("r4_alfred_m2_latest_known") is not None for row in rebuilt
-        ),
+        "release_native_feature_count": release_native_count,
+        "qualified_feature_count": len(qualified_series),
+        "target_price_rows": target_price_rows,
+        "core_missingness_2007_plus": (core_missing / core_total if core_total else 1.0),
+        "alfred_series_covered": len(native_series),
     }
 
 
