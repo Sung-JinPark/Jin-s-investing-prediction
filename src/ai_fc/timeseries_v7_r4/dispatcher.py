@@ -147,7 +147,9 @@ class CodexDispatcher:
             "or Gate state. Preserve point-in-time available_at semantics and all frozen research "
             "coordinates. For materializer, trainer, or evaluator tasks, execute acceptance against "
             "the real evidence pack declared in input_artifacts; synthetic fixtures are tests only "
-            "and cannot prove run acceptance. Do not commit or run git worktree commands. Return only "
+            "and cannot prove run acceptance. A credential-free authoritative PIT export in "
+            "input_artifacts is prepared by the Supervisor specifically so the child must not ask "
+            "for or depend on a database URL. Do not commit or run git worktree commands. Return only "
             "a JSON object "
             "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )

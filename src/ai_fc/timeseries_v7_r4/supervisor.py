@@ -23,6 +23,13 @@ from .integrity import (canonical_json, protected_manifest, sha256_bytes, sha256
 from .semantics import HARD_STOPS, NORMAL_TERMINAL, classify_outcome
 from .specs import verify_pack
 from .router import GateDeficitRouter
+from .runtime_snapshot_export import export_runtime_snapshot
+
+
+R4_QUALIFIED_SNAPSHOT_HASH = (
+    "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2"
+)
+R4_SNAPSHOT_CONSUMER_TASKS = frozenset({"R4-M3-006", "R4-M3-007", "R4-M3-008"})
 
 
 def now_iso() -> str:
@@ -97,6 +104,32 @@ class Supervisor:
         path = folder / f'{result["attempt_id"]}.json'
         path.write_bytes(canonical_json(result) + b"\n")
         return path
+
+    def _input_artifacts(self, lease: Lease) -> list[dict[str, Any]]:
+        artifacts = [{
+            "path": str(self.context.review_pack),
+            "sha256": self.context.config["inputs"]["latest_review_pack"]["sha256"],
+            "nested_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+            "usage": "real PIT observations, predecessor scores, and receipts",
+        }]
+        if lease.task_key in R4_SNAPSHOT_CONSUMER_TASKS:
+            output = (
+                self.context.repo / ".runtime" / "v7r4" / "input_exports"
+                / f"{R4_QUALIFIED_SNAPSHOT_HASH}.json"
+            )
+            receipt = export_runtime_snapshot(
+                self.control.database_url,
+                snapshot_hash=R4_QUALIFIED_SNAPSHOT_HASH,
+                output=output,
+            )
+            artifacts.append({
+                **receipt,
+                "usage": (
+                    "credential-free authoritative R4 PIT snapshot; use this for actual "
+                    "model execution and never request a database URL from the child environment"
+                ),
+            })
+        return artifacts
 
     def _verify_review(self, lease: Lease) -> dict[str, Any]:
         result = self._base_result(lease)
@@ -931,12 +964,7 @@ class Supervisor:
             "worker_capability": "codex", "priority": lease.payload.get("priority", 100),
             "dependencies": (lease.payload.get("dependencies")
                              or lease.payload.get("depends_on") or []),
-            "input_artifacts": [{
-                "path": str(self.context.review_pack),
-                "sha256": self.context.config["inputs"]["latest_review_pack"]["sha256"],
-                "nested_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
-                "usage": "real PIT observations, snapshot, labels, scores, and receipts",
-            }],
+            "input_artifacts": self._input_artifacts(lease),
             "allowed_paths": allowed_paths,
             "protected_manifest_sha256": protected_manifest(self.context.repo)["manifest_sha256"],
             "secret_isolation": True,

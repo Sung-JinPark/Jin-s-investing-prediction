@@ -28,6 +28,7 @@ from ai_fc.timeseries_v7_r4.router import GateDeficitRouter
 from ai_fc.timeseries_v7_r4.specs import read_json, read_yaml, verify_delivery_spec, verify_pack
 from ai_fc.timeseries_v7_r4.supervisor import Supervisor, SupervisorContext
 from ai_fc.timeseries_v7_r4.control_plane import Lease
+from ai_fc.timeseries_v7_r4.runtime_snapshot_export import export_runtime_snapshot
 
 ROOT = Path(__file__).resolve().parents[3]
 MIGRATION = ROOT / "migrations/timeseries_v7_r4/001_control_plane.sql"
@@ -442,6 +443,36 @@ def test_retry_backoff_is_not_reported_as_missing_data(control):
 
     assert seconds is not None
     assert 0 < seconds <= 60
+
+
+def test_runtime_snapshot_export_is_credential_free(control, tmp_path):
+    control.migrate(ROOT / "migrations/timeseries_v7_r4/002_pit_snapshots.sql")
+    snapshot_hash = "d" * 64
+    payload = {
+        "feature_rows": [{"origin_session": "2020-01-02", "x": 1.0}],
+        "labels": [{"origin_session": "2020-01-02", "horizon_sessions": 1,
+                    "value": 0.01}],
+    }
+    with control.connect() as connection:
+        connection.execute(
+            "INSERT INTO timeseries_v7_r4.pit_snapshots "
+            "(snapshot_hash,as_of,calendar_version,payload) VALUES (%s,%s,%s,%s::jsonb)",
+            (snapshot_hash, datetime(2020, 1, 3, tzinfo=timezone.utc),
+             "xnas-test", json.dumps(payload)),
+        )
+        connection.commit()
+
+    output = tmp_path / "runtime-input.json"
+    receipt = export_runtime_snapshot(
+        control.database_url, snapshot_hash=snapshot_hash, output=output,
+    )
+    exported = json.loads(output.read_text(encoding="utf-8"))
+
+    assert receipt["feature_rows"] == 1 and receipt["label_rows"] == 1
+    assert receipt["credential_fields"] == 0
+    assert exported["snapshot_hash"] == snapshot_hash
+    assert "database_url" not in output.read_text(encoding="utf-8").lower()
+    assert "postgresql://" not in output.read_text(encoding="utf-8").lower()
 
 
 def test_d1_006_rejects_single_feature_snapshot_as_multivariate_pit(
