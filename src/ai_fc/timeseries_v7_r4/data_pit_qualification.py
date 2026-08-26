@@ -14,7 +14,12 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .integrity import safe_zip_inventory, sha256_file
-from .pit_snapshot import LabelInterval, PitSnapshot, persist_qualified_pit_snapshot
+from .pit_snapshot import (
+    LabelInterval,
+    PitSnapshot,
+    persist_qualified_pit_snapshot,
+    verify_qualified_pit_snapshot,
+)
 
 
 def _json_member(archive: zipfile.ZipFile, name: str) -> dict[str, Any]:
@@ -114,7 +119,10 @@ def qualify_evidence_pack(
         "lineage_pass": lineage_pass,
     }
     if rematerialized is not None:
-        persist_qualified_pit_snapshot(
+        inserted = persist_qualified_pit_snapshot(
+            database_url, rematerialized["snapshot"], rematerialized["provenance_rows"]
+        )
+        persisted = verify_qualified_pit_snapshot(
             database_url, rematerialized["snapshot"], rematerialized["provenance_rows"]
         )
         result.update({
@@ -128,6 +136,10 @@ def qualify_evidence_pack(
                 and any(str(name).startswith("alfred_") for name in lineage.get("feature_names", []))
             ),
             "postgres_snapshot_persisted": True,
+            "postgres_snapshot_inserted": inserted,
+            "postgres_feature_rows": persisted["feature_rows"],
+            "postgres_label_rows": persisted["label_rows"],
+            "postgres_provenance_rows": persisted["provenance_rows"],
             "legacy_runtime_defects_acknowledged": True,
             **{key: rematerialized[key] for key in (
                 "source_snapshot_rows", "source_label_rows", "active_feature_value_count",

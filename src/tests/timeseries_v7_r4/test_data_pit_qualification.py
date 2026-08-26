@@ -73,7 +73,14 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
     monkeypatch.setattr(
         "ai_fc.timeseries_v7_r4.data_pit_qualification.persist_qualified_pit_snapshot",
         lambda url, snapshot, provenance_rows=():
-            persisted.append((url, snapshot, provenance_rows)) or True,
+            persisted.append((url, snapshot, provenance_rows)) or False,
+        raising=False,
+    )
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v7_r4.data_pit_qualification.verify_qualified_pit_snapshot",
+        lambda url, snapshot, provenance_rows=(): {
+            "feature_rows": 7712, "label_rows": 30758, "provenance_rows": 1,
+        },
         raising=False,
     )
 
@@ -90,6 +97,10 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
     assert result["feature_value_provenance_pass"] is True
     assert result["release_native_features_pass"] is True
     assert result["postgres_snapshot_persisted"] is True
+    assert result["postgres_snapshot_inserted"] is False
+    assert result["postgres_feature_rows"] == 7712
+    assert result["postgres_label_rows"] == 30758
+    assert result["postgres_provenance_rows"] == 1
     assert result["legacy_runtime_defects_acknowledged"] is True
     assert result["source_snapshot_rows"] == 7712
     assert result["source_label_rows"] == 30758

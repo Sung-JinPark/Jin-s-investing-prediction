@@ -209,6 +209,46 @@ def persist_qualified_pit_snapshot(
     return True
 
 
+def verify_qualified_pit_snapshot(
+    database_url: str,
+    snapshot: PitSnapshot,
+    provenance_rows: Iterable[Mapping[str, object]],
+) -> dict[str, int]:
+    """Read back an exact qualified snapshot from authoritative PostgreSQL."""
+    if not database_url.startswith(("postgresql://", "postgres://")):
+        raise ValueError("R4 PIT snapshots require a PostgreSQL database URL")
+    import psycopg
+
+    expected_provenance = len(tuple(provenance_rows))
+    with psycopg.connect(database_url) as connection:
+        stored = connection.execute(
+            "SELECT jsonb_array_length(payload->'feature_rows') "
+            "FROM timeseries_v7_r4.pit_snapshots WHERE snapshot_hash=%s",
+            (snapshot.snapshot_hash,),
+        ).fetchone()
+        if stored is None:
+            raise RuntimeError("qualified PIT snapshot was not persisted to PostgreSQL")
+        label_count = connection.execute(
+            "SELECT count(*) FROM timeseries_v7_r4.label_intervals WHERE snapshot_hash=%s",
+            (snapshot.snapshot_hash,),
+        ).fetchone()[0]
+        provenance_count = connection.execute(
+            "SELECT count(*) FROM timeseries_v7_r4.feature_value_provenance "
+            "WHERE snapshot_hash=%s",
+            (snapshot.snapshot_hash,),
+        ).fetchone()[0]
+    feature_count = stored[0]
+    if (feature_count != len(snapshot.feature_rows)
+            or label_count != len(snapshot.labels)
+            or provenance_count != expected_provenance):
+        raise RuntimeError("qualified PIT snapshot PostgreSQL read-back is incomplete")
+    return {
+        "feature_rows": feature_count,
+        "label_rows": label_count,
+        "provenance_rows": provenance_count,
+    }
+
+
 def _label_payload(row: LabelInterval) -> dict[str, object]:
     return {
         "target_id": row.target_id,
