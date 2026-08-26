@@ -1314,19 +1314,46 @@ class Supervisor:
                     payload = {}
             source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
             families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            def family_horizon(item: dict[str, Any]) -> int | None:
+                raw = item.get("horizon")
+                if raw is None and isinstance(item.get("family"), str):
+                    raw = str(item["family"]).removeprefix("h")
+                try:
+                    return int(raw)
+                except (TypeError, ValueError):
+                    return None
+
+            def family_value(item: dict[str, Any], direct: str, *nested: str) -> Any:
+                value = item.get(direct)
+                if value is not None:
+                    return value
+                cursor: Any = item
+                for key in nested:
+                    if not isinstance(cursor, dict):
+                        return None
+                    cursor = cursor.get(key)
+                return cursor
+
             family_pass = len(families) == 4 and {
-                int(item.get("horizon")) for item in families if isinstance(item, dict)
+                family_horizon(item) for item in families if isinstance(item, dict)
             } == {1, 5, 21, 63} and all(
                 isinstance(item, dict)
-                and item.get("calibration_role_origin_count") == 634
+                and family_value(item, "calibration_role_origin_count", "row_use_counters",
+                                 "calibration_fit_rows") == 634
                 and item.get("fit_role") == "calibration_temporal_cross_fit"
                 and item.get("state_available_at_origin") is True
-                and isinstance(item.get("normal_width_ratio"), (int, float))
-                and float(item["normal_width_ratio"]) <= 1.10
-                and isinstance(item.get("normal_volatility_scale"), (int, float))
-                and float(item["normal_volatility_scale"]) > 0
-                and isinstance(item.get("stress_volatility_scale"), (int, float))
-                and float(item["stress_volatility_scale"]) > 0
+                and isinstance(family_value(item, "normal_width_ratio", "normal_sharpness",
+                                            "ratio"), (int, float))
+                and float(family_value(item, "normal_width_ratio", "normal_sharpness",
+                                       "ratio")) <= 1.10
+                and isinstance(family_value(item, "normal_volatility_scale", "scales", "normal",
+                                            "volatility_scale"), (int, float))
+                and float(family_value(item, "normal_volatility_scale", "scales", "normal",
+                                       "volatility_scale")) > 0
+                and isinstance(family_value(item, "stress_volatility_scale", "scales", "stress",
+                                            "volatility_scale"), (int, float))
+                and float(family_value(item, "stress_volatility_scale", "scales", "stress",
+                                       "volatility_scale")) > 0
                 and item.get("coverage_diagnostics_cross_fitted") is True
                 for item in families
             )
@@ -1417,12 +1444,29 @@ class Supervisor:
             result = dispatched.result
             dispatcher.cleanup(dispatched, merged=False)
             return result
+        candidate_context = SupervisorContext(
+            repo=dispatched.worktree,
+            output_root=dispatched.worktree / "outputs/timeseries_v7_r4",
+            review_pack=self.context.review_pack,
+            r3_design_pack=self.context.r3_design_pack,
+            predecessor_repo=self.context.predecessor_repo,
+            config=self.context.config,
+            auto_codex=False,
+        )
+        candidate_result = Supervisor(
+            self.control, candidate_context,
+        )._validate_task_semantics(
+            lease, json.loads(json.dumps(dispatched.result)),
+        )
+        if candidate_result.get("status") != "SUCCEEDED":
+            dispatcher.cleanup(dispatched, merged=False)
+            return candidate_result
         merge = subprocess.run(
             ["git", "merge", "--ff-only", dispatched.commit_sha],
             cwd=self.context.repo, capture_output=True, text=True,
             env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
         )
-        result = dispatched.result
+        result = candidate_result
         result.setdefault("commands", []).append({
             "command": f"git merge --ff-only {dispatched.commit_sha}",
             "return_code": merge.returncode,
@@ -1449,7 +1493,7 @@ class Supervisor:
                          "changed_paths": list(dispatched.changed_paths)},
         })
         dispatcher.cleanup(dispatched, merged=True)
-        return self._validate_task_semantics(lease, result)
+        return result
 
     def execute(self, lease: Lease) -> dict[str, Any]:
         started = time.monotonic()

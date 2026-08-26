@@ -830,10 +830,23 @@ def test_s4_001_rejects_predecessor_score_calibration_without_r4_role_receipt(co
 
 
 def test_s4_002_rejects_predecessor_scale_fit_without_r4_role_receipt(control, tmp_path):
-    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-002/conditional_scale"
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-002/r4_calibration"
     folder.mkdir(parents=True)
     (folder / "acceptance_summary.json").write_text(
-        json.dumps({"source_sha256": "a" * 64, "families": []}), encoding="utf-8",
+        json.dumps({
+            "source_sha256": "a" * 64,
+            "families": [
+                {
+                    "family": f"h{horizon}", "calibration_rows": 634,
+                    "normal_sharpness": {"ratio": 1.0},
+                    "scales": {
+                        "normal": {"volatility_scale": 1.0},
+                        "stress": {"volatility_scale": 1.1},
+                    },
+                }
+                for horizon in (1, 5, 21, 63)
+            ],
+        }), encoding="utf-8",
     )
     supervisor = Supervisor(control, SupervisorContext(
         repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
