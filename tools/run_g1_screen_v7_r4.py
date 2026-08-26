@@ -17,12 +17,14 @@ def main() -> int:
     parser.add_argument("--e0-artifact-sha256", required=True)
     parser.add_argument("--evaluation-origin-grid-hash", required=True)
     parser.add_argument("--generation-hash", required=True)
+    parser.add_argument("--checkpoint-dir", type=Path)
     args = parser.parse_args()
     report = run_g1_screen_from_export(
         args.export, e0_crps=args.e0_crps,
         e0_artifact_sha256=args.e0_artifact_sha256,
         evaluation_origin_grid_hash=args.evaluation_origin_grid_hash,
         generation_hash=args.generation_hash,
+        checkpoint_dir=args.checkpoint_dir or args.output.parent / "checkpoints",
     )
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(canonical_json(report) + b"\n")

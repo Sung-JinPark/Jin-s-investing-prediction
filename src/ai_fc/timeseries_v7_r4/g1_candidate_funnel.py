@@ -4,9 +4,13 @@ from __future__ import annotations
 
 import math
 import json
+from hashlib import sha256
 from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
+
+import numpy as np
+from scipy.special import ndtr
 
 from .integrity import canonical_json, sha256_bytes
 
@@ -90,6 +94,9 @@ def screen_g1_candidates(
             "scores": scores,
             "deepest_stage": None,
             "weight": 0.0,
+            **({"score_kind": source["score_kind"]} if "score_kind" in source else {}),
+            **({"model_receipt": source["model_receipt"]} if "model_receipt" in source else {}),
+            **({"checkpoint_key": source["checkpoint_key"]} if "checkpoint_key" in source else {}),
         })
 
     selected = sorted(normalized, key=lambda row: row["candidate_id"])
@@ -126,6 +133,35 @@ _G1_CORE_FEATURES = (
     "ret_1", "momentum_5", "momentum_21", "momentum_63",
     "rv_5", "rv_21", "rv_63", "vix_level", "term_level", "dff_level",
 )
+
+
+def _quantile_crps(actual: float, quantiles: Mapping[float, float]) -> float:
+    """Approximate distribution CRPS by integrating quantile (pinball) loss."""
+    coordinates = sorted((float(q), float(value)) for q, value in quantiles.items())
+    if len(coordinates) < 2 or coordinates[0][0] <= 0.0 or coordinates[-1][0] >= 1.0:
+        raise ValueError("at least two interior predictive quantiles are required")
+    losses = []
+    for quantile, prediction in coordinates:
+        error = float(actual) - prediction
+        losses.append(max(quantile * error, (quantile - 1.0) * error))
+    # Constant tails plus trapezoidal integration over the stored quantile function.
+    integral = coordinates[0][0] * losses[0] + (1.0 - coordinates[-1][0]) * losses[-1]
+    integral += sum(
+        (right[0] - left[0]) * (left_loss + right_loss) / 2.0
+        for left, right, left_loss, right_loss in zip(
+            coordinates, coordinates[1:], losses, losses[1:],
+        )
+    )
+    return 2.0 * integral
+
+
+def _normal_crps(actual: float, location: float, scale: float) -> float:
+    if not math.isfinite(scale) or scale <= 0.0:
+        raise ValueError("positive predictive scale is required")
+    z = (actual - location) / scale
+    density = math.exp(-0.5 * z * z) / math.sqrt(2.0 * math.pi)
+    return scale * (z * (2.0 * float(ndtr(z)) - 1.0) + 2.0 * density
+                    - 1.0 / math.sqrt(math.pi))
 
 
 def _training_rows(export: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -174,49 +210,78 @@ def _training_rows(export: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 def _execute_family(family: str, train_rows: list[dict[str, Any]],
-                    score_rows: list[dict[str, Any]], as_of: str) -> tuple[float, int]:
-    """Fit one implemented R4 family and return actual held-out score rows."""
+                    score_rows_by_role: Mapping[str, list[dict[str, Any]]],
+                    as_of: str) -> tuple[dict[str, float], dict[str, int], dict[str, Any]]:
+    """Fit a frozen family and score its stored predictive distribution."""
     if family == "E1":
         from .e1_quantile_elastic_net import E1Contract, fit_e1_direct_quantile_elastic_net
+        contract = E1Contract()
         model = fit_e1_direct_quantile_elastic_net(
             rows=train_rows, as_of=as_of, e0_scale=.02,
-            contract=E1Contract(quantiles=(.5,), stability_subsamples=2),
+            contract=contract,
         )
-        predict = lambda x, h: model.predict_corrections(x)[h][.5]
+        score_one = lambda row, h: _quantile_crps(
+            row["targets"][str(h)], model.predict_corrections(row["features"])[h],
+        )
+        coordinates = model.diagnostics["hyperparameters"]
     elif family == "E2":
-        from .e2_student_t import E2Contract, fit_e2_student_t
-        # G1 screens one preregistered coordinate per family; broader coordinate
-        # qualification remains sealed for M3-008.
+        from .e2_student_t import E2Contract, fit_e2_student_t, _student_t_crps
+        contract = E2Contract()
         model = fit_e2_student_t(
-            rows=train_rows, as_of=as_of,
-            contract=E2Contract(degrees_of_freedom=(3.0,), alpha_grid=(0.01,)),
+            rows=train_rows, as_of=as_of, contract=contract,
         )
-        predict = lambda x, h: model.predict(x)[h]["location"]
+        def score_one(row, horizon):
+            predictive = model.predict(row["features"])[horizon]
+            scale = predictive["scale"]
+            standardized = np.asarray([
+                (row["targets"][str(horizon)] - predictive["location"]) / scale,
+            ])
+            return float(_student_t_crps(
+                standardized, np.asarray([scale]), predictive["degrees_of_freedom"],
+            )[0])
+        coordinates = {"degrees_of_freedom": list(contract.degrees_of_freedom),
+                       "alpha_grid": list(contract.alpha_grid)}
     elif family == "E3":
         from .e3_quantile_hgb import E3Contract, fit_e3_quantile_hgb
+        contract = E3Contract()
         model = fit_e3_quantile_hgb(
-            rows=train_rows, as_of=as_of,
-            contract=E3Contract(quantiles=(.5,), learning_rate=(.03,), max_leaf_nodes=(7,),
-                                max_iter=(100,), min_samples_leaf=(30,),
-                                l2_regularization=(0.0,)),
+            rows=train_rows, as_of=as_of, contract=contract,
         )
-        predict = lambda x, h: model.predict(x)[h][.5]
+        score_one = lambda row, h: _quantile_crps(
+            row["targets"][str(h)], model.predict(row["features"])[h],
+        )
+        coordinates = model.diagnostics["contract_candidate_coordinates"]
     elif family == "E4":
         from .e4_filtered_dlm import E4Contract, fit_e4_filtered_dlm
-        model = fit_e4_filtered_dlm(rows=train_rows, as_of=as_of, contract=E4Contract())
-        predict = lambda x, h: model.predict(x)[h]
+        contract = E4Contract()
+        model = fit_e4_filtered_dlm(rows=train_rows, as_of=as_of, contract=contract)
+        residual_scale = {
+            horizon: max(float(np.std([
+                receipt["actual"] - receipt["forecast"]
+                for receipt in model.direct_horizon_receipts
+                if receipt["horizon_sessions"] == horizon
+            ], ddof=1)), 1e-10) for horizon in contract.horizons
+        }
+        score_one = lambda row, h: _normal_crps(
+            row["targets"][str(h)], model.predict(row["features"])[h], residual_scale[h],
+        )
+        coordinates = model.diagnostics["contract_candidate_coordinates"]
     else:  # pragma: no cover - internal closed family set
         raise ValueError("unknown R4 G1 family")
-    errors = [
-        abs(float(row["targets"][str(horizon)]) - float(predict(row["features"], horizon)))
-        for row in score_rows for horizon in (1, 5, 21, 63)
-    ]
-    return sum(errors) / len(errors), len(errors)
+    scores, counts = {}, {}
+    for role, rows in score_rows_by_role.items():
+        values = [score_one(row, horizon) for row in rows for horizon in (1, 5, 21, 63)]
+        if not values or not all(math.isfinite(value) and value >= 0.0 for value in values):
+            raise ValueError(f"{family} produced invalid distribution CRPS for {role}")
+        scores[role], counts[role] = sum(values) / len(values), len(values)
+    return scores, counts, {"score": "distribution_crps", "frozen_coordinates": True,
+                            "coordinates": coordinates}
 
 
 def run_g1_screen_from_export(
     export_path: Path, *, e0_crps: float, e0_artifact_sha256: str,
     evaluation_origin_grid_hash: str, generation_hash: str,
+    checkpoint_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Execute E1-E4 against a credential-free authoritative PostgreSQL export."""
     export = json.loads(Path(export_path).read_text(encoding="utf-8"))
@@ -224,31 +289,64 @@ def run_g1_screen_from_export(
             or export.get("source_store") != "authoritative_postgresql"):
         raise ValueError("credential-free authoritative PostgreSQL PIT export is required")
     rows = _training_rows(export)
-    if len(rows) < 5:
+    plan = export.get("five_role_plan")
+    expected_roles = ["train", "selection", "stacking", "calibration", "outer"]
+    if (not isinstance(plan, Mapping) or plan.get("schema") != "r4_five_role_origin_plan_v1"
+            or plan.get("role_order") != expected_roles
+            or plan.get("outer_exposed_during_screen") is not False):
+        raise ValueError("authoritative export requires a sealed five-role plan")
+    role_origins = plan.get("role_origins", {})
+    rows_by_origin = {row["origin_session"]: row for row in rows}
+    rows_by_role = {
+        role: [rows_by_origin[origin] for origin in role_origins.get(role, [])
+               if origin in rows_by_origin]
+        for role in expected_roles
+    }
+    actual_counts = {role: len(role_rows) for role, role_rows in rows_by_role.items()}
+    if actual_counts != plan.get("role_counts"):
+        raise ValueError("five-role plan counts do not bind complete PIT rows")
+    if len(rows_by_role["train"]) < 4:
         raise ValueError("authoritative export has insufficient complete PIT training rows")
-    # The final 20% is the inner screening role. The sealed outer role is not
-    # represented in this operation and remains owned by R4-M3-008.
-    split = min(len(rows) - 1, max(4, int(len(rows) * .8)))
-    train_rows, score_rows = rows[:split], rows[split:]
-    # Bounded smoke fitting uses the most recent 500 causally available rows;
-    # every held-out inner row is still scored for the acceptance receipt.
-    model_train_rows = train_rows[-500:]
+    train_rows = rows_by_role["train"]
+    score_rows_by_role = {role: rows_by_role[role]
+                          for role in ("selection", "stacking", "calibration")}
     candidates = []
     model_score_rows = 0
     families = ["E1", "E2", "E3", "E4"]
+    checkpoint_dir = Path(checkpoint_dir) if checkpoint_dir is not None else None
+    if checkpoint_dir is not None:
+        checkpoint_dir.mkdir(parents=True, exist_ok=True)
     for family in families:
-        score, count = _execute_family(
-            family, model_train_rows, score_rows, str(export["as_of"]),
-        )
-        model_score_rows += count
+        checkpoint_key = sha256(canonical_json({
+            "family": family, "snapshot_hash": export["snapshot_hash"],
+            "plan_hash": plan["plan_hash"], "as_of": export["as_of"],
+            "implementation": "frozen_coordinates_distribution_crps_v1",
+        })).hexdigest()
+        checkpoint = checkpoint_dir / f"{family}-{checkpoint_key}.json" if checkpoint_dir else None
+        if checkpoint is not None and checkpoint.exists():
+            family_result = json.loads(checkpoint.read_text(encoding="utf-8"))
+        else:
+            scores, counts, receipt = _execute_family(
+                family, train_rows, score_rows_by_role, str(export["as_of"]),
+            )
+            family_result = {"checkpoint_key": checkpoint_key, "scores": scores,
+                             "counts": counts, "receipt": receipt}
+            if checkpoint is not None:
+                checkpoint.write_bytes(canonical_json(family_result) + b"\n")
+        scores, counts, receipt = (family_result["scores"], family_result["counts"],
+                                    family_result["receipt"])
+        model_score_rows += sum(counts.values())
         candidates.append({
             "candidate_id": family,
             "hypothesis": {"family": family, "mechanism": "direct_horizon_r4"},
             "exposure": {"snapshot_hash": export["snapshot_hash"],
-                         "roles": ["train", "selection", "robust_inner"],
+                         "roles": ["train", "selection", "stacking", "calibration"],
                          "horizons": [1, 5, 21, 63]},
-            "smoke_crps": score, "inner_crps": score,
-            "robust_inner_crps": score, "full_nested_crps": score,
+            "smoke_crps": scores["selection"], "inner_crps": scores["selection"],
+            "robust_inner_crps": scores["stacking"],
+            "full_nested_crps": scores["calibration"],
+            "score_kind": "distribution_crps", "model_receipt": receipt,
+            "checkpoint_key": family_result["checkpoint_key"],
         })
     report = screen_g1_candidates(
         candidates, e0_crps=e0_crps, generation_hash=generation_hash,
@@ -260,6 +358,11 @@ def run_g1_screen_from_export(
     report.update({
         "candidate_families": families,
         "five_role_validation_proof": True,
+        "five_role_receipt": {
+            "schema": plan["schema"], "plan_hash": _sha256(plan["plan_hash"], "plan_hash"),
+            "role_order": expected_roles, "role_counts": actual_counts,
+            "role_hashes": plan["role_hashes"], "outer_exposed_during_screen": False,
+        },
         "source": {
             "r4_snapshot_hash": export["snapshot_hash"],
             "e0_artifact_sha256": _sha256(e0_artifact_sha256, "e0_artifact_sha256"),
@@ -269,7 +372,8 @@ def run_g1_screen_from_export(
             "model_score_rows": model_score_rows,
             "legacy_precomputed_score_rows_used": 0,
             "outer_rows_used": 0,
-            "train_rows": len(model_train_rows), "inner_score_rows": len(score_rows),
+            "train_rows": len(train_rows),
+            "inner_score_rows": sum(len(value) for value in score_rows_by_role.values()),
         },
     })
     return report

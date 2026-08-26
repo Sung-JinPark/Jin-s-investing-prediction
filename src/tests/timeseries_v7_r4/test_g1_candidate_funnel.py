@@ -3,6 +3,7 @@ import json
 
 from ai_fc.timeseries_v7_r4.g1_candidate_funnel import screen_g1_candidates
 from ai_fc.timeseries_v7_r4.g1_candidate_funnel import run_g1_screen_from_export
+from ai_fc.timeseries_v7_r4.g1_candidate_funnel import _quantile_crps
 
 
 def _candidate(name, score, *, exposure=None):
@@ -53,6 +54,21 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
         "schema": "r4_credential_free_pit_export_v1",
         "source_store": "authoritative_postgresql", "snapshot_hash": "c" * 64,
         "as_of": "2026-01-10T00:00:00+00:00", "calendar_version": "xnas-v1",
+        "five_role_plan": {
+            "schema": "r4_five_role_origin_plan_v1", "plan_hash": "b" * 64,
+            "role_order": ["train", "selection", "stacking", "calibration", "outer"],
+            "role_counts": {"train": 4, "selection": 2, "stacking": 1,
+                            "calibration": 1, "outer": 0},
+            "role_hashes": {role: role[0] * 64 for role in
+                            ("train", "selection", "stacking", "calibration", "outer")},
+            "role_origins": {
+                "train": [f"2026-01-{day:02d}" for day in range(1, 5)],
+                "selection": ["2026-01-05", "2026-01-06"],
+                "stacking": ["2026-01-07"], "calibration": ["2026-01-08"],
+                "outer": [],
+            },
+            "outer_exposed_during_screen": False,
+        },
         "feature_rows": [
             {"origin_session": f"2026-01-{day:02d}",
              "origin_cutoff_at": f"2026-01-{day:02d}T00:00:00+00:00",
@@ -73,10 +89,13 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
     source.write_text(json.dumps(snapshot), encoding="utf-8")
     seen = []
 
-    def fake_execute(family, train_rows, score_rows, as_of):
+    def fake_execute(family, train_rows, score_rows_by_role, as_of):
         seen.append(family)
         assert all(row["available_at"] <= as_of for row in train_rows)
-        return 0.02 + len(seen) / 1000, len(score_rows) * 4
+        assert len(train_rows) == 4
+        return ({role: 0.02 + len(seen) / 1000 for role in score_rows_by_role},
+                {role: len(rows) * 4 for role, rows in score_rows_by_role.items()},
+                {"score": "distribution_crps", "frozen_coordinates": True})
 
     monkeypatch.setattr(
         "ai_fc.timeseries_v7_r4.g1_candidate_funnel._execute_family", fake_execute,
@@ -90,4 +109,16 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
     assert report["candidate_families"] == ["E1", "E2", "E3", "E4"]
     assert report["source"]["outer_rows_used"] == 0
     assert report["source"]["legacy_precomputed_score_rows_used"] == 0
-    assert report["five_role_validation_proof"] is True
+    assert report["five_role_receipt"]["plan_hash"] == "b" * 64
+    assert report["five_role_receipt"]["role_counts"]["train"] == 4
+    assert report["source"]["train_rows"] == 4
+    assert all(row["score_kind"] == "distribution_crps"
+               for row in report["candidates"])
+
+
+def test_quantile_crps_uses_the_stored_distribution_not_only_the_median():
+    narrow = _quantile_crps(0.0, {0.1: -0.1, 0.5: 0.0, 0.9: 0.1})
+    wide = _quantile_crps(0.0, {0.1: -1.0, 0.5: 0.0, 0.9: 1.0})
+
+    assert narrow > 0.0
+    assert wide > narrow
