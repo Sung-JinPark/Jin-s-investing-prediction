@@ -834,6 +834,91 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["e2_objective_and_crossfit"]
+        if lease.task_key == "R4-M3-006":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-M3-006/g1_screen.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            counts = (
+                payload.get("candidate_counts")
+                if isinstance(payload.get("candidate_counts"), dict) else {}
+            )
+            families = set(payload.get("candidate_families", []))
+            candidates = payload.get("candidates", [])
+            budgets = {"smoke": 160, "inner_screen": 48, "robust_inner": 12,
+                       "full_nested": 4, "qualification": 1}
+            budget_pass = all(
+                isinstance(counts.get(stage), int)
+                and 0 <= counts[stage] <= limit
+                for stage, limit in budgets.items()
+            )
+            lineage_pass = bool(candidates) and all(
+                isinstance(item, dict)
+                and isinstance(item.get("hypothesis_hash"), str)
+                and len(item["hypothesis_hash"]) == 64
+                and isinstance(item.get("exposure_hash"), str)
+                and len(item["exposure_hash"]) == 64
+                for item in candidates
+            )
+            no_regret_pass = bool(candidates) and all(
+                item.get("weight") == 0.0
+                for item in candidates
+                if isinstance(item, dict) and item.get("underperforms_e0") is True
+            )
+            checks = {
+                "artifact_present": artifact_path.exists(),
+                "uses_r4_snapshot": (
+                    source.get("r4_snapshot_hash")
+                    == "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2"
+                ),
+                "uses_exact_e0_full_grid": (
+                    source.get("e0_artifact_sha256")
+                    == "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec"
+                    and source.get("evaluation_origin_grid_hash")
+                    == "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135"
+                ),
+                "all_g1_families_executed": {"E1", "E2", "E3", "E4"} <= families,
+                "actual_model_score_rows": (
+                    isinstance(source.get("model_score_rows"), int)
+                    and source["model_score_rows"] >= 1_000
+                ),
+                "legacy_precomputed_scores_not_used": (
+                    source.get("legacy_precomputed_score_rows_used") == 0
+                ),
+                "outer_role_not_exposed_during_screen": (
+                    source.get("outer_rows_used") == 0
+                ),
+                "funnel_budgets_respected": budget_pass,
+                "hypothesis_and_exposure_lineage": lineage_pass,
+                "underperformers_zero_weight": no_regret_pass,
+                "five_role_partition_bound": payload.get("five_role_validation_proof") is True,
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "g1_actual_r4_candidate_screen",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "G1_ACTUAL_MODEL_SCREEN_MISSING"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "execute E1, E2, E3, and E4 against the R4 rematerialized PIT "
+                        "snapshot on train/selection/robust-inner roles, bind the exact E0 "
+                        "comparator, record real model score rows and lineage hashes, and keep "
+                        "the outer role sealed for R4-M3-008"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["g1_actual_screen"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
