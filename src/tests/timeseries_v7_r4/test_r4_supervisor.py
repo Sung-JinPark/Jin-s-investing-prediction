@@ -379,6 +379,10 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
     retry = control.claim(run_id, "worker", 30)
     assert retry.task_key == "t"
     assert retry.payload["retry_blocker"] == "AUTHORITATIVE_POSTGRES_ACCEPTANCE_FAILED"
+    assert retry.payload["retry_evidence"]["reason"] == "authoritative store mismatch"
+    assert retry.payload["retry_evidence"]["evidence"] == {
+        "expected": "postgresql", "observed": "sqlite",
+    }
 
 
 def test_lease_fencing(control):
