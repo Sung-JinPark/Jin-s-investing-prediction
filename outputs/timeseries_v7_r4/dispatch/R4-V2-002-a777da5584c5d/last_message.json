@@ -1,0 +1,86 @@
+{
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "task_key": "R4-V2-002",
+  "attempt_id": "R4-V2-002-a777da5584c5d",
+  "status": "SUCCEEDED",
+  "protected_non_mutation": true,
+  "protected_manifest_sha256": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "secret_scan_pass": true,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "changed_files": [
+    "src/ai_fc/timeseries_v7_r4/e0_empirical_samples.py",
+    "src/tests/timeseries_v7_r4/test_e0_empirical_samples.py"
+  ],
+  "commands": [
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4/test_e0_empirical_samples.py -q",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": true
+    },
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4/test_e0_empirical_samples.py -q",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4 -q",
+      "phase": "broad_test",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python real-evidence-pack acceptance replay",
+      "phase": "acceptance",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "targeted E0 empirical sample binding tests",
+      "passed": true,
+      "summary": "3 passed"
+    },
+    {
+      "name": "timeseries_v7_r4 suite",
+      "passed": true,
+      "summary": "78 passed, 7 warnings"
+    },
+    {
+      "name": "real evidence-pack replay",
+      "passed": true,
+      "summary": "4082 score rows; 1021 h21 empirical samples"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "same sample-set hash used for scoring, stacking, calibration and forecast",
+      "passed": true,
+      "evidence": {
+        "sample_set_hash": "488e1cab204bb556cafe3ea46aa3d27486bb17272eaeb111139c638e36f38a78",
+        "stages": [
+          "scoring",
+          "stacking",
+          "calibration",
+          "forecast"
+        ]
+      }
+    },
+    {
+      "criterion": "no Gaussian reconstruction from quantiles",
+      "passed": true,
+      "evidence": "Quantile reconstruction is explicitly rejected; consumers receive the exact immutable empirical vector."
+    },
+    {
+      "criterion": "E0-only benchmark is reproducible",
+      "passed": true,
+      "evidence": {
+        "evidence_pack_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+        "horizon_sessions": 21,
+        "sample_count": 1021,
+        "replayed_crps": 0.0151971699532677
+      }
+    }
+  ]
+}
