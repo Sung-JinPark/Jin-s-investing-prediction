@@ -101,8 +101,11 @@ def validate_child_result(result: dict[str, Any], *, require_evidence: bool = Fa
         acceptance = result.get("acceptance_results")
         if not isinstance(commands, list) or not commands:
             errors.append("missing_command_evidence")
-        elif any(item.get("return_code") != 0 for item in commands
-                 if isinstance(item, dict)):
+        elif any(
+            item.get("return_code") != 0
+            and not (item.get("phase") == "red_test" and item.get("expected_failure"))
+            for item in commands if isinstance(item, dict)
+        ):
             errors.append("command_failed")
         if not isinstance(tests, list) or not tests:
             errors.append("missing_test_evidence")

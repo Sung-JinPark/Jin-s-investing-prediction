@@ -180,6 +180,21 @@ def test_successful_child_requires_independent_evidence():
             "missing_acceptance_evidence"}.issubset(errors)
 
 
+def test_expected_red_test_is_valid_command_evidence():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "SUCCEEDED", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": True,
+               "commands": [
+                   {"command": "pytest missing", "return_code": 1, "phase": "red_test",
+                    "expected_failure": "ModuleNotFoundError"},
+                   {"command": "pytest fixed", "return_code": 0},
+               ],
+               "tests": [{"name": "fixed", "passed": True}],
+               "acceptance_results": [{"criterion": "fixed", "passed": True}]}
+    assert validate_child_result(payload, require_evidence=True) == []
+
+
 def test_dispatch_allowlist_is_r4_only():
     allowed = list(DEFAULT_ALLOWED_PATHS)
     assert CodexDispatcher._path_allowed(
