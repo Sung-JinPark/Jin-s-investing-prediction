@@ -1,0 +1,28 @@
+{
+  "calibration_role_origin_count": 634,
+  "extreme_q4_score": 0.0006219592386049956,
+  "fit_role": "calibration_temporal_cross_fit",
+  "horizon": 5,
+  "negative_tail": {
+    "exceedance_count": 55,
+    "minimum_exceedances": 30,
+    "reference_family": "generalized_pareto",
+    "scale": 0.022749448915329918,
+    "shape": -0.22355617846387443,
+    "shrinkage_guard_to_e0": false,
+    "side": "negative",
+    "threshold": 0.042948309277271224
+  },
+  "positive_tail": {
+    "exceedance_count": 72,
+    "minimum_exceedances": 30,
+    "reference_family": "generalized_pareto",
+    "scale": 0.014973948085586442,
+    "shape": -0.1557766572205852,
+    "shrinkage_guard_to_e0": false,
+    "side": "positive",
+    "threshold": 0.03741424547008747
+  },
+  "state_available_at_origin": true,
+  "tail_score": -1.5611682748592168
+}

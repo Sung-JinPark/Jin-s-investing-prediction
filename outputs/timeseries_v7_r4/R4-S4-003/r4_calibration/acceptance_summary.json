@@ -1,0 +1,138 @@
+{
+  "families": [
+    {
+      "calibration_role_origin_count": 634,
+      "extreme_q4_score": 0.00015275656837095828,
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 1,
+      "negative_tail": {
+        "exceedance_count": 58,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.009587335001486078,
+        "shape": -0.07171268740610337,
+        "shrinkage_guard_to_e0": false,
+        "side": "negative",
+        "threshold": 0.02196223366962559
+      },
+      "positive_tail": {
+        "exceedance_count": 70,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.007097402008420325,
+        "shape": -0.25057710886854034,
+        "shrinkage_guard_to_e0": false,
+        "side": "positive",
+        "threshold": 0.018337167672931556
+      },
+      "state_available_at_origin": true,
+      "tail_score": -2.207016515175894
+    },
+    {
+      "calibration_role_origin_count": 634,
+      "extreme_q4_score": 0.0006219592386049956,
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 5,
+      "negative_tail": {
+        "exceedance_count": 55,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.022749448915329918,
+        "shape": -0.22355617846387443,
+        "shrinkage_guard_to_e0": false,
+        "side": "negative",
+        "threshold": 0.042948309277271224
+      },
+      "positive_tail": {
+        "exceedance_count": 72,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.014973948085586442,
+        "shape": -0.1557766572205852,
+        "shrinkage_guard_to_e0": false,
+        "side": "positive",
+        "threshold": 0.03741424547008747
+      },
+      "state_available_at_origin": true,
+      "tail_score": -1.5611682748592168
+    },
+    {
+      "calibration_role_origin_count": 634,
+      "extreme_q4_score": 0.0015926802907284515,
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 21,
+      "negative_tail": {
+        "exceedance_count": 51,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.03384461042211065,
+        "shape": -0.45,
+        "shrinkage_guard_to_e0": false,
+        "side": "negative",
+        "threshold": 0.09650423811511061
+      },
+      "positive_tail": {
+        "exceedance_count": 76,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.01745710006917364,
+        "shape": -0.11057662168237092,
+        "shrinkage_guard_to_e0": false,
+        "side": "positive",
+        "threshold": 0.07691850440974665
+      },
+      "state_available_at_origin": true,
+      "tail_score": -1.0150224251719377
+    },
+    {
+      "calibration_role_origin_count": 634,
+      "extreme_q4_score": 0.0036823341456819576,
+      "fit_role": "calibration_temporal_cross_fit",
+      "horizon": 63,
+      "negative_tail": {
+        "exceedance_count": 49,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.03971585423186607,
+        "shape": -0.38563954198381833,
+        "shrinkage_guard_to_e0": false,
+        "side": "negative",
+        "threshold": 0.16035371365473872
+      },
+      "positive_tail": {
+        "exceedance_count": 78,
+        "minimum_exceedances": 30,
+        "reference_family": "generalized_pareto",
+        "scale": 0.04795510064775536,
+        "shape": -0.45,
+        "shrinkage_guard_to_e0": false,
+        "side": "positive",
+        "threshold": 0.12776655254396352
+      },
+      "state_available_at_origin": true,
+      "tail_score": -0.467521549586478
+    }
+  ],
+  "mechanism_screen_only": true,
+  "promotion_claimed": false,
+  "schema": "r4_asymmetric_evt_v1",
+  "source": {
+    "calibration_role_hash": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+    "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+    "role_hashes": {
+      "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+      "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+      "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+      "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+      "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+    },
+    "row_use_counters": {
+      "legacy_review_pack_score_rows_used": 0,
+      "outer_origin_intersection": 0,
+      "outer_rows_used": 0,
+      "qualification_score_rows_used": 0
+    },
+    "source_store": "authoritative_postgresql"
+  }
+}
