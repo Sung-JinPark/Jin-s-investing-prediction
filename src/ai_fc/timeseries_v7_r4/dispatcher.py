@@ -145,7 +145,10 @@ class CodexDispatcher:
             "the envelope. PostgreSQL is the authoritative durable store; SQLite may appear only in "
             "disposable unit-test fixtures and must not back production R4 ingestion, control, model, "
             "or Gate state. Preserve point-in-time available_at semantics and all frozen research "
-            "coordinates. Do not commit or run git worktree commands. Return only a JSON object "
+            "coordinates. For materializer, trainer, or evaluator tasks, execute acceptance against "
+            "the real evidence pack declared in input_artifacts; synthetic fixtures are tests only "
+            "and cannot prove run acceptance. Do not commit or run git worktree commands. Return only "
+            "a JSON object "
             "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )
         command = [self.executable(), "exec", "--ephemeral", "--ignore-user-config",

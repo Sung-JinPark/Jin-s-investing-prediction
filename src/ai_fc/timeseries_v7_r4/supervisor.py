@@ -430,7 +430,12 @@ class Supervisor:
             "worker_capability": "codex", "priority": lease.payload.get("priority", 100),
             "dependencies": (lease.payload.get("dependencies")
                              or lease.payload.get("depends_on") or []),
-            "input_artifacts": [],
+            "input_artifacts": [{
+                "path": str(self.context.review_pack),
+                "sha256": self.context.config["inputs"]["latest_review_pack"]["sha256"],
+                "nested_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+                "usage": "real PIT observations, snapshot, labels, scores, and receipts",
+            }],
             "allowed_paths": allowed_paths,
             "protected_manifest_sha256": protected_manifest(self.context.repo)["manifest_sha256"],
             "secret_isolation": True,
