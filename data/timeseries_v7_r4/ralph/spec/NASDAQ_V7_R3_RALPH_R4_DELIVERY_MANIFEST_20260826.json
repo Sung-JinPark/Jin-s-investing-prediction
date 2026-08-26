@@ -1,0 +1,66 @@
+{
+  "schema_version": 1,
+  "created_at": "2026-08-25T23:53:22.464426+00:00",
+  "package": "NASDAQ_V7_R3_RALPH_R4_SELF_DRIVING_GATE_PASS_PACK_20260826.zip",
+  "source_review_pack": {
+    "name": "NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip",
+    "sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28"
+  },
+  "validation": {
+    "backlog_task_count": 45,
+    "backlog_duplicate_ids": 0,
+    "backlog_missing_dependencies": [],
+    "backlog_cycle_free": true,
+    "config_parse": true,
+    "router_parse": true
+  },
+  "files": [
+    {
+      "name": "NASDAQ_V7_R3_LOOP_STOP_ROOT_CAUSE_AND_RALPH_R4_GATE_PASS_BLUEPRINT_20260826.md",
+      "bytes": 21774,
+      "sha256": "7226b872cf691d3dea60e00b1b54f80c53c699ac7b7988fe4685a2a058f0e4af"
+    },
+    {
+      "name": "NASDAQ_V7_R3_RALPH_R4_ROOT_CAUSE_EVIDENCE_20260826.json",
+      "bytes": 11348,
+      "sha256": "711fee0cefd210d56bad8d1ddb483dd8c85d5dba0cf9c0291fc9f3ca04dcd76c"
+    },
+    {
+      "name": "CODEX_MASTER_PROMPT_NASDAQ_V7_R3_RALPH_R4_SELF_DRIVING_GATE_PASS_20260826.md",
+      "bytes": 27764,
+      "sha256": "195776a9f373bbde5d6aece7b8b1b73f9c130f14493c2efe71c285fc3ae6c7df"
+    },
+    {
+      "name": "CODEX_LAUNCH_PROMPT_NASDAQ_V7_R3_RALPH_R4_20260826.md",
+      "bytes": 2403,
+      "sha256": "a1563ec498ac2caec22c50b2091e2e88bbbc95fe3c9128b69a4bb1febfbb7dc0"
+    },
+    {
+      "name": "NASDAQ_V7_R3_RALPH_R4_CONFIG_20260826.yaml",
+      "bytes": 4745,
+      "sha256": "8bc7799236a2f089711d82274ca0a27649b65b7bb2bb3915c59833af6f3cfbe2"
+    },
+    {
+      "name": "NASDAQ_V7_R3_RALPH_R4_BOOTSTRAP_BACKLOG_20260826.json",
+      "bytes": 22981,
+      "sha256": "65b40f640bbe0a63b2686b3b1a33469623262c59fa842901c60238dc1567b075"
+    },
+    {
+      "name": "NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml",
+      "bytes": 2339,
+      "sha256": "ae15d2419809db75b228af75ece731d3a365983034f718dc967574200a75988d"
+    },
+    {
+      "name": "CODEX_TASK_ENVELOPE_TEMPLATE_V7_R4_20260826.json",
+      "bytes": 837,
+      "sha256": "3628bbae4ff8f44792a390cb750f5b96b793d800f0e6c2b11e2390035bea4a1c"
+    },
+    {
+      "name": "CODEX_RESULT_TEMPLATE_V7_R4_20260826.json",
+      "bytes": 1203,
+      "sha256": "11bc6c9336aa510217fe8aa80ffccdf36e63cbb6d42f28a94c7ad60b06f0b352"
+    }
+  ],
+  "package_sha256_initial": "4a5ead8ad82044cba7ee00f9237d53337b8a048f84efc684a87545cc9f864398",
+  "package_bytes_initial": 38673
+}

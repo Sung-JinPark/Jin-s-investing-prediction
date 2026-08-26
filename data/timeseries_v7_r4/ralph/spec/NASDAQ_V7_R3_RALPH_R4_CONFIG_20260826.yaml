@@ -1,0 +1,188 @@
+schema_version: 1
+config_id: nasdaq-v7-r3-ralph-r4-20260826
+legacy_instruction_override:
+  child_worker_one_task: true
+  supervisor_auto_continue: true
+  deprecated_fields:
+  - next_task_started
+  replacement_fields:
+    child_worker_started_another_task: false
+    supervisor_continued_after_child: true
+  research_gate_failure_is_process_error: false
+inputs:
+  latest_review_pack:
+    path: NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip
+    sha256: 9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28
+    bytes: 16693897
+  alfred_pack:
+    path: NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip
+    sha256: 72192f9369ec6a43e563650629ea2fbd986aa2ca15d8fcd665d6deaec9ae4087
+  r3_design_pack:
+    path: NASDAQ_V7_FRED_ALFRED_OPEN_DATA_RALPH_R3_PACK_20260825.zip
+    sha256: 51fb83ac35e39e47edd53c2413f830565a6f9d816ad8b1b6ad551c4413a83b87
+controller:
+  module: tools/ralph_v7_r4.py
+  continuous: true
+  auto_codex: true
+  authoritative_store: postgresql
+  postgres_strategy:
+  - DATABASE_URL
+  - project_local_docker
+  bootstrap_local_journal_allowed: true
+  bootstrap_local_journal_forbidden_for:
+  - model_training
+  - gate_evaluation
+  - prospective_scoring
+  poll_seconds: 30
+  wait_data_poll_seconds: 3600
+  parallelism:
+    codex: 1
+    collector: 2
+    materializer: 2
+    trainer_cpu: 2
+    trainer_gpu: 1
+    evaluator: 2
+  lease_seconds: 300
+  heartbeat_seconds: 30
+  same_blocker_retry_limit: 3
+  alternate_family_limit: 3
+identity:
+  keys:
+  - run_id
+  - cycle_id
+  - generation_id
+  - hypothesis_id
+  - task_key
+  - attempt_id
+  append_only: true
+  same_run_new_cycle_allowed: true
+  same_run_new_generation_allowed: true
+states:
+  normal_continue:
+  - REPLAN
+  - RETRY_WAIT
+  - DATA_REFRESH
+  - ENGINEERING_FIX
+  - RESEARCH_SCREEN
+  - NEW_GENERATION
+  normal_terminal:
+  - REVIEW_PROPOSAL
+  - WAIT_DATA
+  - WAIT_HUMAN_REVIEW
+  hard_terminal:
+  - BLOCKED_INPUT_INTEGRITY
+  - BLOCKED_SECURITY
+  - BLOCKED_SECRET_LEAK
+  - BLOCKED_PROTECTED_SCOPE
+  - BLOCKED_GOVERNANCE
+  - CONTROLLER_BUG
+  - DATABASE_CORRUPTION
+exit_codes:
+  REPLAN: 0
+  RETRY_WAIT: 0
+  WAIT_DATA: 0
+  RESEARCH_GATE_FAILED_REPLAN: 0
+  REVIEW_PROPOSAL: 0
+  WAIT_HUMAN_REVIEW: 0
+  HARD_BLOCK: 2
+workers:
+  collector:
+    secrets_allowed: true
+    code_write: false
+  materializer:
+    secrets_allowed: false
+    frozen_raw_only: true
+  trainer_cpu:
+    secrets_allowed: false
+    frozen_snapshot_only: true
+  trainer_gpu:
+    secrets_allowed: false
+    frozen_snapshot_only: true
+  evaluator:
+    secrets_allowed: false
+    parameter_write: false
+  codex:
+    secrets_allowed: false
+    isolated_worktree: true
+    one_task: true
+  reviewer:
+    human_only_for_governance: true
+candidate_funnel:
+  smoke_max: 160
+  inner_screen_max: 48
+  robust_inner_max: 12
+  full_nested_max: 4
+  qualification_max: 1
+  qualification_once_per_generation: true
+generation_triggers:
+  new_mature_weekly_origins: 4
+  new_independent_resolved_events: 5
+  approved_hypothesis: 1
+  material_feature_drift: true
+  material_target_drift: true
+  new_source_revision: true
+  minimum_days_between_full_generations: 28
+gate:
+  immutable: true
+  long_horizon_mean_crps_skill_min: 0.02
+  each_long_horizon_skill_min: 0.0
+  paired_ci_upper_max: 0.0
+  coverage80_min: 0.76
+  coverage80_max: 0.84
+  coverage50_min: 0.45
+  coverage50_max: 0.55
+  balanced_direction_accuracy_min: 0.52
+  p_up_brier_must_beat_base_rate: true
+  extreme_q4_coverage_min: 0.6
+  catastrophic_underperformance_max: 0.1
+  historical_stress_required: true
+model_strategy:
+  generation_order:
+  - G0_loss_containment
+  - G1_direct_core
+  - G2_stacking_calibration
+  - G3_stress_tail_path
+  - G4_open_data_challengers
+  exact_e0_required: true
+  challenger_weight_can_be_zero: true
+  e0_fallback: true
+  mixture_crps_objective_required: true
+  cross_fit_calibration_required: true
+  five_role_validation_required: true
+  prospective_tuning_forbidden: true
+secrets:
+  remove_from_codex:
+  - FRED_API_KEY
+  - BLS_API_KEY
+  - BEA_API_KEY
+  - EIA_API_KEY
+  - CME_API_KEY
+  - CBOE_API_KEY
+  - NASDAQ_DATA_LINK_API_KEY
+  - GH_TOKEN
+  - GITHUB_TOKEN
+  forbid_dot_secrets_read: true
+  scan_artifacts: true
+protected_paths:
+- data/timeseries_v1/**
+- data/timeseries_v2/**
+- data/timeseries_v3/**
+- data/timeseries_v4/**
+- data/timeseries_v5/**
+- data/timeseries_v6/**
+- data/scenarios/**
+- data/forecasts/**
+- outputs/timeseries_v1/**
+- outputs/timeseries_v2/**
+- outputs/timeseries_v3/**
+- outputs/timeseries_v4/**
+- outputs/timeseries_v5/**
+- outputs/timeseries_v6/**
+- existing V7 sealed artifacts
+- official/customer numerical surfaces
+terminal_policy:
+  ordinary_gate_failure: REPLAN
+  no_new_evidence: WAIT_DATA
+  all_automatic_gates_pass: REVIEW_PROPOSAL
+  auto_publication: false
+  auto_trading: false

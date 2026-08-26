@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "run_id": "<RUN_ID>",
+  "cycle_id": "<CYCLE_ID>",
+  "generation_id": "<GENERATION_ID_OR_NULL>",
+  "task_key": "<TASK_KEY>",
+  "attempt_id": "<ATTEMPT_ID>",
+  "status": "SUCCEEDED|RETRY_WAIT|WAIT_DATA|BLOCKED|FAILED",
+  "started_at": "<ISO8601>",
+  "completed_at": "<ISO8601>",
+  "duration_seconds": 0,
+  "commands": [
+    {
+      "command": "<COMMAND>",
+      "return_code": 0,
+      "stdout_sha256": "<SHA256>",
+      "stderr_sha256": "<SHA256>"
+    }
+  ],
+  "changed_paths": [],
+  "tests": [
+    {
+      "name": "<NAME>",
+      "passed": true,
+      "evidence_path": "<PATH>",
+      "sha256": "<SHA256>"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "<CRITERION>",
+      "passed": true,
+      "evidence": "<EVIDENCE>"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "<PATH>",
+      "sha256": "<SHA256>",
+      "bytes": 0
+    }
+  ],
+  "protected_manifest_before": "<SHA256>",
+  "protected_manifest_after": "<SHA256>",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}

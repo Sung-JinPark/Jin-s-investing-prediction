@@ -1,0 +1,367 @@
+{
+  "backlog": {
+    "automation_first_task": {
+      "acceptance": [
+        "commands use PostgreSQL task queue"
+      ],
+      "dependencies": [
+        "V7R3-P1-012"
+      ],
+      "id": "V7R3-P6-001",
+      "lane": "SHARED",
+      "phase": "P6_AUTOMATION",
+      "priority": "P0",
+      "status": "PENDING",
+      "title": "Implement ralph_v7_r3 init, scheduler, worker and status CLI",
+      "worker": "codex"
+    },
+    "manual_reviewer_tasks": [
+      {
+        "dependencies": [
+          "V7R3-P0-005",
+          "V7R3-P0-006",
+          "V7R3-P0-007",
+          "V7R3-P0-008",
+          "V7R3-P0-009"
+        ],
+        "id": "V7R3-P0-010",
+        "title": "Approve P0 governance and runtime gate"
+      },
+      {
+        "dependencies": [
+          "V7R3-P1-002",
+          "V7R3-P1-003",
+          "V7R3-P1-004",
+          "V7R3-P1-005",
+          "V7R3-P1-006",
+          "V7R3-P1-007",
+          "V7R3-P1-008",
+          "V7R3-P1-009",
+          "V7R3-P1-010",
+          "V7R3-P1-011"
+        ],
+        "id": "V7R3-P1-012",
+        "title": "Approve control-plane readiness"
+      },
+      {
+        "dependencies": [
+          "V7R3-P2-014"
+        ],
+        "id": "V7R3-P2-015",
+        "title": "Approve FRED/ALFRED R2 data gate"
+      },
+      {
+        "dependencies": [
+          "V7R3-P3-014"
+        ],
+        "id": "V7R3-P3-015",
+        "title": "Approve corrected PIT data gate"
+      },
+      {
+        "dependencies": [
+          "V7R3-P4-019"
+        ],
+        "id": "V7R3-P4-020",
+        "title": "Route V7-R3 historical Gate result"
+      },
+      {
+        "dependencies": [
+          "V7R3-P5-018"
+        ],
+        "id": "V7R3-P5-019",
+        "title": "Approve V8 source and feature hypothesis inventory"
+      },
+      {
+        "dependencies": [
+          "V7R3-P6-012",
+          "V7R3-P6-011"
+        ],
+        "id": "V7R3-P6-013",
+        "title": "Create owner review proposal after all automatic gates pass"
+      }
+    ],
+    "p0_003": {
+      "acceptance": [
+        "protected manifest comparison passes",
+        "correction ledger append-only if restoration is not appropriate"
+      ],
+      "dependencies": [
+        "V7R3-P0-002"
+      ],
+      "id": "V7R3-P0-003",
+      "lane": "V7_R3",
+      "phase": "P0_AUDIT",
+      "priority": "P0",
+      "status": "PENDING",
+      "title": "Restore or formally correct protected baseline",
+      "worker": "codex"
+    },
+    "p0_004": {
+      "acceptance": [
+        "exchange_calendars and parquet runtime available",
+        "full targeted and broad suites reproducible"
+      ],
+      "dependencies": [
+        "V7R3-P0-001"
+      ],
+      "id": "V7R3-P0-004",
+      "lane": "V7_R3",
+      "phase": "P0_AUDIT",
+      "priority": "P0",
+      "status": "PENDING",
+      "title": "Freeze reproducible Python runtime and wheel hashes",
+      "worker": "codex"
+    },
+    "task_count": 105
+  },
+  "broad_regression": {
+    "classification": "missing_data_freshness",
+    "evaluation_date": "2026-08-26",
+    "last_ixic_date": "2026-08-12",
+    "p0_001_return_code": 1,
+    "p0_002_return_code": 1,
+    "test": "dualdb/tests/test_sentinels.py::test_ixic_coverage"
+  },
+  "generated_for": "NASDAQ V7-R3 Ralph R4 root-cause and gate-pass design",
+  "input": {
+    "alfred_training_pack": {
+      "bytes": 7549857,
+      "path": "NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+      "sha256": "72192f9369ec6a43e563650629ea2fbd986aa2ca15d8fcd665d6deaec9ae4087"
+    },
+    "latest_review_pack": {
+      "bytes": 16693897,
+      "manifest": {
+        "checked": 55,
+        "entry_count": 56,
+        "failures": [],
+        "pass": true
+      },
+      "path": "NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip",
+      "sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28"
+    },
+    "r3_design_pack": {
+      "bytes": 387448,
+      "path": "NASDAQ_V7_FRED_ALFRED_OPEN_DATA_RALPH_R3_PACK_20260825.zip",
+      "sha256": "51fb83ac35e39e47edd53c2413f830565a6f9d816ad8b1b6ad551c4413a83b87"
+    }
+  },
+  "latest_task_state": {
+    "next_eligible_from_backlog": [
+      "V7R3-P0-003",
+      "V7R3-P0-004"
+    ],
+    "p0_001": {
+      "next_task_started": false,
+      "research_gate_pass": false,
+      "state": "HOLD_RESEARCH_GATE",
+      "status": "SUCCEEDED",
+      "unresolved_blockers": [
+        "protected predecessor baseline contains four unexplained dirty files",
+        "canonical XNAS close cutoff is not proven",
+        "five-role nested validation, true E2, learned stacking, and cross-fit calibration were not executed"
+      ]
+    },
+    "p0_002": {
+      "decision": {
+        "approval_source": "explicit_user_approval_2026-08-26",
+        "decision": "formal_append_only_correction",
+        "exact_restoration_required": false,
+        "execution_scope": "record_decision_only",
+        "formal_append_only_correction_approved": true,
+        "p0_003_instruction": "append a superseding protected baseline correction; preserve the original baseline and do not restore or rewrite either predecessor commit"
+      },
+      "next_task_started": false,
+      "status": "SUCCEEDED"
+    },
+    "p0_003_started": false,
+    "readme_declares_p0_003_false": true,
+    "task_repo_branch": "codex/timeseries-v2-ralph",
+    "task_repo_head": "57ced6daf8efb4a37e00b649784059ce147adc36",
+    "task_repo_untracked_paths": [
+      "docs/timeseries_v7_r3/ALFRED_PIT_FAILURE_BASELINE.md",
+      "docs/timeseries_v7_r3/PROTECTED_PREDECESSOR_PROVENANCE.md",
+      "src/tests/timeseries_v7_r3/test_alfred_pit_audit.py",
+      "src/tests/timeseries_v7_r3/test_protected_predecessor_provenance.py",
+      "src/tests/timeseries_v7_r3/test_v7_r3_review_pack.py",
+      "tools/audit_v7_alfred_pit.py",
+      "tools/audit_v7_r3_predecessor_provenance.py",
+      "tools/build_v7_r3_full_review_pack.py"
+    ]
+  },
+  "legacy_prompt_stop_lines": [
+    {
+      "line": 288,
+      "text": "- Codex가 다음 task를 임의 선택"
+    },
+    {
+      "line": 342,
+      "text": "one task = yes"
+    },
+    {
+      "line": 358,
+      "text": "## 7. One-task Codex protocol"
+    },
+    {
+      "line": 416,
+      "text": "### 7.4 다음 task"
+    },
+    {
+      "line": 418,
+      "text": "Codex는 다음 task를 시작하지 않는다. Controller가 dependency와 acceptance를 검증한 뒤 다음 task를 lease한다."
+    },
+    {
+      "line": 1759,
+      "text": "이번 Codex invocation은 다음 task 하나만 수행한다."
+    },
+    {
+      "line": 1824,
+      "text": "`V7R3-P0-002`를 시작하지 마라."
+    },
+    {
+      "line": 1826,
+      "text": "Controller가 result와 protected manifest를 검증한 뒤 다음 task를 lease한다."
+    }
+  ],
+  "model_gate": {
+    "checks": {
+      "brier": false,
+      "catastrophic": false,
+      "ci": false,
+      "coverage50": false,
+      "coverage80": true,
+      "direction": false,
+      "extreme": false,
+      "h21_nonnegative": false,
+      "h63_nonnegative": false,
+      "historical_stress": false,
+      "long_skill": false
+    },
+    "control_plane": "append_only_file_journal",
+    "metrics": {
+      "balanced_direction_accuracy": 0.5140278470004533,
+      "base_rate_brier": 0.23408273461169982,
+      "brier": 0.2505960907643312,
+      "catastrophic_underperformance": 6.505626038747185,
+      "coverage50": 0.4377756001959824,
+      "coverage80": 0.7616364527192553,
+      "extreme_q4_coverage": 0.5886385896180215,
+      "historical_stress": {
+        "bull_2023": {
+          "count": 208,
+          "coverage80": 0.7740384615384616,
+          "coverage_pass_0_65": true,
+          "crps_degradation": -0.08100772285778408
+        },
+        "gfc": {
+          "count": 416,
+          "coverage80": 0.6514423076923077,
+          "coverage_pass_0_65": true,
+          "crps_degradation": 0.6649799510704252
+        },
+        "pandemic": {
+          "count": 84,
+          "coverage80": 0.6547619047619048,
+          "coverage_pass_0_65": true,
+          "crps_degradation": 5.880462413163981
+        },
+        "rebound_2009": {
+          "count": 224,
+          "coverage80": 0.7008928571428571,
+          "coverage_pass_0_65": true,
+          "crps_degradation": 0.6636266301499342
+        },
+        "rebound_2020": {
+          "count": 192,
+          "coverage80": 0.7864583333333334,
+          "coverage_pass_0_65": true,
+          "crps_degradation": 6.505626038747185
+        },
+        "tightening_2022": {
+          "count": 208,
+          "coverage80": 0.6394230769230769,
+          "coverage_pass_0_65": false,
+          "crps_degradation": -0.1571910322381254
+        }
+      },
+      "long_horizon_mean_crps_skill": -0.7113195339999843,
+      "origin_count": 1025,
+      "paired_ci_upper": 0.04445420474731613,
+      "score_rows": 4082,
+      "skills_by_horizon": {
+        "1": 0.015335433157027146,
+        "21": -1.1913573009009029,
+        "5": -0.043370846494698204,
+        "63": -0.2312817670990657
+      }
+    },
+    "pass": false,
+    "returncode": 2,
+    "run_id": "v7-alfred-20260825T083047Z",
+    "state": "HOLD_RESEARCH_GATE"
+  },
+  "root_cause_classification": [
+    {
+      "cause": "Legacy prompts explicitly require one task per invocation and prohibit starting the next task.",
+      "id": "STOP-01",
+      "severity": "BLOCKER"
+    },
+    {
+      "cause": "No parent supervisor is implemented to lease the next task after a one-task Codex subprocess exits.",
+      "id": "STOP-02",
+      "severity": "BLOCKER"
+    },
+    {
+      "cause": "Expected research HOLD returns process exit code 2, so shell wrappers commonly terminate.",
+      "id": "STOP-03",
+      "severity": "BLOCKER"
+    },
+    {
+      "cause": "Current research controller executes one collect-to-qualification cycle and contains no recurring replanning loop.",
+      "id": "STOP-04",
+      "severity": "BLOCKER"
+    },
+    {
+      "cause": "Append-only run directories reject reuse of the same run id; cycle/generation identity and resume are not wired.",
+      "id": "STOP-05",
+      "severity": "HIGH"
+    },
+    {
+      "cause": "P0-001/P0-002 artifacts remain untracked in the task repository, preventing a clean automatic worktree base.",
+      "id": "STOP-06",
+      "severity": "HIGH"
+    },
+    {
+      "cause": "Broad regression freshness failure is classified but not routed to an automatic collector/remediation task.",
+      "id": "STOP-07",
+      "severity": "HIGH"
+    },
+    {
+      "cause": "Automation implementation is scheduled in phase P6, after dozens of tasks that require manual dispatch.",
+      "id": "STOP-08",
+      "severity": "HIGH"
+    },
+    {
+      "cause": "Reviewer tasks block dependency chains even when they are evidence-only technical approvals.",
+      "id": "STOP-09",
+      "severity": "HIGH"
+    },
+    {
+      "cause": "Current gate run hard-codes E0/E2 weights, hard-codes E2 coordinates, and performs no learned stacking or cross-fit calibration.",
+      "id": "STOP-10",
+      "severity": "MODEL"
+    }
+  ],
+  "schema_version": 1,
+  "static_stop_causes": {
+    "fixed_stack_method": true,
+    "hardcoded_e2_coordinate": true,
+    "next_task_prohibited_in_master": true,
+    "no_calibration_method": true,
+    "pipeline_append_only_existing_run_block": true,
+    "pipeline_has_loop": false,
+    "run_returns_gate_returncode": true,
+    "single_cycle_call": true,
+    "worker_commands_stubbed": true
+  }
+}

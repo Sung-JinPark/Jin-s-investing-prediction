@@ -1,0 +1,128 @@
+"""Input, artifact, and result integrity helpers for R4."""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import zipfile
+from pathlib import Path, PurePosixPath
+from typing import Any
+
+SECRET_NAMES = {
+    "FRED_API_KEY", "BLS_API_KEY", "BEA_API_KEY", "EIA_API_KEY",
+    "CME_API_KEY", "CBOE_API_KEY", "NASDAQ_DATA_LINK_API_KEY",
+    "GH_TOKEN", "GITHUB_TOKEN",
+}
+TOKEN_PATTERNS = (
+    re.compile(rb"(?i)(api[_-]?key|token|password|secret)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{24,}"),
+    re.compile(rb"(?i)[?&](api_key|token|key)=[^&\s]{12,}"),
+)
+
+
+def canonical_json(value: Any) -> bytes:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+
+
+def sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
+def sha256_file(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def safe_zip_inventory(path: Path, *, max_files: int = 20_000,
+                       max_uncompressed: int = 2_000_000_000) -> list[dict[str, Any]]:
+    seen: set[str] = set()
+    folded: set[str] = set()
+    inventory: list[dict[str, Any]] = []
+    total = 0
+    with zipfile.ZipFile(path) as archive:
+        if len(archive.infolist()) > max_files:
+            raise ValueError("zip file-count limit exceeded")
+        for info in archive.infolist():
+            raw = info.filename
+            if "\\" in raw:
+                raise ValueError(f"zip backslash path rejected: {raw}")
+            candidate = PurePosixPath(raw)
+            drive_like = bool(candidate.parts and re.fullmatch(r"[A-Za-z]:", candidate.parts[0]))
+            if candidate.is_absolute() or drive_like or ".." in candidate.parts or not candidate.parts:
+                raise ValueError(f"unsafe zip path: {raw}")
+            normalized = candidate.as_posix().rstrip("/")
+            key = normalized.casefold()
+            if normalized in seen or key in folded:
+                raise ValueError(f"duplicate zip path: {raw}")
+            seen.add(normalized)
+            folded.add(key)
+            total += info.file_size
+            if total > max_uncompressed:
+                raise ValueError("zip decompression limit exceeded")
+            inventory.append({"path": normalized, "bytes": info.file_size, "crc": info.CRC})
+    return inventory
+
+
+def scan_secret_bytes(value: bytes) -> list[str]:
+    findings: list[str] = []
+    for pattern in TOKEN_PATTERNS:
+        if pattern.search(value):
+            findings.append(pattern.pattern.decode("ascii", errors="replace"))
+    return findings
+
+
+def sanitized_environment() -> dict[str, str]:
+    return {key: value for key, value in os.environ.items() if key.upper() not in SECRET_NAMES
+            and not any(word in key.upper() for word in ("PASSWORD", "SECRET", "TOKEN", "API_KEY"))}
+
+
+def validate_child_result(result: dict[str, Any]) -> list[str]:
+    errors: list[str] = []
+    required = {
+        "run_id", "cycle_id", "task_key", "attempt_id", "status",
+        "protected_non_mutation", "secret_scan_pass",
+        "child_worker_started_another_task", "supervisor_should_continue",
+    }
+    errors.extend(f"missing:{name}" for name in sorted(required - result.keys()))
+    if result.get("child_worker_started_another_task") is not False:
+        errors.append("child_started_another_task")
+    if result.get("protected_non_mutation") is not True:
+        errors.append("protected_mutation")
+    if result.get("secret_scan_pass") is not True:
+        errors.append("secret_scan_failed")
+    return errors
+
+
+def protected_manifest(repo: Path) -> dict[str, Any]:
+    """Hash immutable predecessor and customer-surface files.
+
+    The R4 namespace is intentionally absent.  Every included file is read-only
+    for this supervisor run.
+    """
+    roots = [
+        *(repo / "data" / f"timeseries_v{version}" for version in range(1, 8)),
+        repo / "data/scenarios", repo / "data/forecasts", repo / "data/ledgers",
+        *(repo / "outputs" / f"timeseries_v{version}" for version in range(1, 8)),
+        repo / "_site/data.json", repo / "website/data.json",
+    ]
+    entries: list[dict[str, Any]] = []
+    for root in roots:
+        if root.is_file():
+            candidates = [root]
+        elif root.is_dir():
+            candidates = sorted(path for path in root.rglob("*") if path.is_file())
+        else:
+            continue
+        for path in candidates:
+            entries.append({
+                "path": path.relative_to(repo).as_posix(),
+                "bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            })
+    digest = sha256_bytes(canonical_json(entries))
+    return {"schema_version": 1, "entries": entries, "entry_count": len(entries),
+            "manifest_sha256": digest}

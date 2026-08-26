@@ -1,0 +1,113 @@
+schema_version: 1
+router_id: nasdaq-v7-r3-r4-gate-deficit-router
+deduplication_key:
+- deficit_family
+- hypothesis_hash
+- dataset_snapshot_hash
+- code_hash
+- runtime_hash
+rules:
+- id: R-STALENESS
+  when:
+  - target_stale
+  - source_freshness_fail
+  enqueue:
+  - REFRESH_TARGET
+  - RECONCILE_SOURCE
+  - RERUN_SENTINEL
+  priority: 10
+- id: R-PIT
+  when:
+  - pit_violation
+  - calendar_mismatch
+  - feature_lineage_incomplete
+  enqueue:
+  - REPAIR_XNAS_CALENDAR
+  - REBUILD_FEATURE_PROVENANCE
+  - PIT_ADVERSARIAL_TEST
+  priority: 20
+- id: R-CONTRACT
+  when:
+  - contract_runtime_mismatch
+  - hardcoded_candidate
+  enqueue:
+  - IMPLEMENT_CANDIDATE_FACTORY
+  - BIND_CONTRACT_CODE_HASH
+  - RERUN_CONTRACT_TEST
+  priority: 30
+- id: R-LONG-NEGATIVE
+  when:
+  - h21_skill_negative
+  - h63_skill_negative
+  enqueue:
+  - COMPONENT_ABLATION
+  - ENABLE_WEIGHT_ZERO
+  - E0_ONLY_FALLBACK
+  - NO_REGRET_STACKING
+  priority: 40
+- id: R-LONG-SKILL
+  when:
+  - long_skill_below_threshold
+  enqueue:
+  - DIRECT_HORIZON_RESIDUAL_HYPOTHESIS
+  - E1_E2_E3_SCREEN
+  - ROBUST_INNER_FOLD
+  priority: 50
+- id: R-CI
+  when:
+  - paired_ci_upper_positive
+  enqueue:
+  - STABILITY_SHRINKAGE
+  - DEPENDENCE_AWARE_FOLD_AUDIT
+  - WAIT_MORE_LABELS_IF_POWER_LOW
+  priority: 60
+- id: R-CENTRAL-COVERAGE
+  when:
+  - coverage50_low
+  - coverage50_high
+  enqueue:
+  - CROSS_FIT_LOCATION_SCALE_CALIBRATION
+  priority: 70
+- id: R-EXTREME
+  when:
+  - coverage80_fail
+  - extreme_q4_coverage_low
+  enqueue:
+  - CONDITIONAL_SCALE_CALIBRATION
+  - ASYMMETRIC_EVT
+  - HIGH_VOL_REGIME_SCALE
+  priority: 80
+- id: R-DIRECTION
+  when:
+  - balanced_direction_low
+  - brier_worse_than_base_rate
+  enqueue:
+  - ZERO_THRESHOLD_CDF_CALIBRATION
+  - P_UP_CHALLENGER
+  - BASE_RATE_ROBUSTNESS
+  priority: 90
+- id: R-CATASTROPHIC
+  when:
+  - catastrophic_underperformance_high
+  - historical_stress_fail
+  enqueue:
+  - LEARNED_REGIME_PARTIAL_POOLING
+  - FULL_ANALOG_TRAJECTORY
+  - STRESS_GUARD_ABLATION
+  priority: 100
+- id: R-DATA-CHALLENGER
+  when:
+  - no_admissible_model_hypothesis
+  - approved_open_data_hypothesis
+  enqueue:
+  - OPEN_DATA_COLLECTOR
+  - OPEN_DATA_PIT_VALIDATION
+  - NEW_CONTRACT_PROPOSAL_IF_REQUIRED
+  priority: 110
+same_blocker_policy:
+  retry_same_family_max: 2
+  route_to_alternate_family_at: 3
+  alternate_families_max: 3
+  then:
+  - WAIT_DATA
+  - HOLD_NO_ADMISSIBLE_NEXT_STEP

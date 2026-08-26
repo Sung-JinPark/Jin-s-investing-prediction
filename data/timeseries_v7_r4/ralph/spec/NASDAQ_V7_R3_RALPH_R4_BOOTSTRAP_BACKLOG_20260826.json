@@ -1,0 +1,796 @@
+{
+  "schema_version": 1,
+  "backlog_id": "nasdaq-v7-r3-ralph-r4-bootstrap-20260826",
+  "purpose": "Bootstrap continuous Supervisor first, resume P0-003/P0-004, then execute data/model/Gate deficit loop.",
+  "task_count": 45,
+  "tasks": [
+    {
+      "id": "R4-B0-001",
+      "title": "Verify latest review pack and import P0 receipts",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [],
+      "priority": 1,
+      "action": "implement",
+      "acceptance": [
+        "latest ZIP SHA-256 and all manifest entries pass",
+        "P0-001/P0-002 result identities imported append-only",
+        "no protected mutation and secret scan passes"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-002",
+      "title": "Create clean audit base commit",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-001"
+      ],
+      "priority": 2,
+      "action": "implement",
+      "acceptance": [
+        "all eight untracked P0 paths are classified and allowlisted",
+        "targeted tests pass",
+        "audit commit SHA is recorded and worktree is clean"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-003",
+      "title": "Implement PostgreSQL R4 control-plane migrations",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-001"
+      ],
+      "priority": 2,
+      "action": "implement",
+      "acceptance": [
+        "migration apply and rollback pass on PostgreSQL",
+        "composite task identity and append-only receipts exist",
+        "SQLite is not authoritative for model/gate runs"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-004",
+      "title": "Implement continuous Ralph R4 Supervisor",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-003"
+      ],
+      "priority": 3,
+      "action": "implement",
+      "acceptance": [
+        "supervisor automatically leases next eligible task after child exit",
+        "state persists across process restart",
+        "run supports continuous and resume modes"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-005",
+      "title": "Fix research Gate exit semantics",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-004"
+      ],
+      "priority": 4,
+      "action": "implement",
+      "acceptance": [
+        "research Gate failure maps to REPLAN and exit code 0",
+        "hard security/protected failures remain non-zero",
+        "set -e integration test continues loop"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-006",
+      "title": "Implement lease heartbeat and fencing",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-003"
+      ],
+      "priority": 4,
+      "action": "implement",
+      "acceptance": [
+        "SKIP LOCKED leasing works",
+        "heartbeat prevents duplicate lease",
+        "stale fencing token result is rejected"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-007",
+      "title": "Implement isolated Codex dispatcher",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-004",
+        "R4-B0-006"
+      ],
+      "priority": 5,
+      "action": "implement",
+      "acceptance": [
+        "child receives one task envelope",
+        "provider secrets absent",
+        "child result captured and process can continue"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-008",
+      "title": "Implement independent task result validator",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-007"
+      ],
+      "priority": 6,
+      "action": "implement",
+      "acceptance": [
+        "commands, return codes, tests and artifact hashes are independently verified",
+        "file existence alone cannot produce SUCCEEDED",
+        "protected and secret scans are mandatory"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-009",
+      "title": "Implement deterministic technical auto-review",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-008"
+      ],
+      "priority": 7,
+      "action": "implement",
+      "acceptance": [
+        "technical evidence gates auto-approve reproducibly",
+        "threshold/comparator/freeze/publication remain human-only",
+        "dependency chain is not blocked by evidence-only reviewer tasks"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-010",
+      "title": "Import and reorder original 105-task backlog",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-004",
+        "R4-B0-009"
+      ],
+      "priority": 8,
+      "action": "implement",
+      "acceptance": [
+        "all original IDs and acceptance criteria preserved",
+        "no missing/cyclic dependencies",
+        "automation bootstrap precedes legacy P0-P6 critical path"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-011",
+      "title": "Execute V7R3-P0-003 append-only baseline correction",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-002",
+        "R4-B0-010"
+      ],
+      "priority": 9,
+      "action": "implement",
+      "acceptance": [
+        "original baseline remains byte-identical",
+        "superseding correction records original/corrected hashes and provenance",
+        "protected verifier resolves correction append-only"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-012",
+      "title": "Execute V7R3-P0-004 reproducible runtime freeze",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-002",
+        "R4-B0-010"
+      ],
+      "priority": 9,
+      "action": "implement",
+      "acceptance": [
+        "Python/OS/wheel hashes frozen",
+        "exchange_calendars and parquet runtime available",
+        "offline and full-repo replay boundaries documented"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-013",
+      "title": "Refresh IXIC and route freshness automatically",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "collector",
+      "dependencies": [
+        "R4-B0-004"
+      ],
+      "priority": 9,
+      "action": "implement",
+      "acceptance": [
+        "IXIC reaches latest completed XNAS session",
+        "receipt and reconciliation pass",
+        "sentinel reruns automatically"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-B0-014",
+      "title": "Run broad regression and chaos resume tests",
+      "phase": "B0_BOOTSTRAP",
+      "worker": "evaluator",
+      "dependencies": [
+        "R4-B0-005",
+        "R4-B0-006",
+        "R4-B0-011",
+        "R4-B0-012",
+        "R4-B0-013"
+      ],
+      "priority": 10,
+      "action": "implement",
+      "acceptance": [
+        "broad suite passes or each failure is routed to a task",
+        "supervisor kill/restart resumes exactly once",
+        "no untracked task artifacts remain"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-001",
+      "title": "Build canonical versioned XNAS session cutoff",
+      "phase": "D1_DATA_PIT",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-014"
+      ],
+      "priority": 20,
+      "action": "implement",
+      "acceptance": [
+        "normal close, early close and DST fixtures pass",
+        "origin cutoff does not derive from target available_at",
+        "training/backtest/live session identity matches"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-002",
+      "title": "Implement incremental FRED/ALFRED vintage cursor",
+      "phase": "D1_DATA_PIT",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-014"
+      ],
+      "priority": 20,
+      "action": "implement",
+      "acceptance": [
+        "full backfill and output_type=3 incremental paths are idempotent",
+        "cursor advances only after raw/receipt/parse/DB commit",
+        "reconciliation detects missing revisions"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-003",
+      "title": "Implement feature-value provenance matrix",
+      "phase": "D1_DATA_PIT",
+      "worker": "codex",
+      "dependencies": [
+        "R4-D1-001",
+        "R4-D1-002"
+      ],
+      "priority": 21,
+      "action": "implement",
+      "acceptance": [
+        "every active origin-feature value has source revision and max_available_at",
+        "PIT invariant passes for 100 percent of active features",
+        "date-only vintages cannot enter same session"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-004",
+      "title": "Replace daily projected macro changes with release-native features",
+      "phase": "D1_DATA_PIT",
+      "worker": "codex",
+      "dependencies": [
+        "R4-D1-003"
+      ],
+      "priority": 22,
+      "action": "implement",
+      "acceptance": [
+        "release, revision, surprise, age and innovation features are distinct",
+        "carry-forward rows do not create false releases",
+        "feature schema and transform hashes are frozen"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-005",
+      "title": "Materialize immutable PIT snapshot and mature labels",
+      "phase": "D1_DATA_PIT",
+      "worker": "materializer",
+      "dependencies": [
+        "R4-D1-004"
+      ],
+      "priority": 23,
+      "action": "implement",
+      "acceptance": [
+        "snapshot hash and label interval table created",
+        "all labels use canonical sessions",
+        "no target row dropped because another source is missing"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-D1-006",
+      "title": "Run data quality and PIT qualification",
+      "phase": "D1_DATA_PIT",
+      "worker": "evaluator",
+      "dependencies": [
+        "R4-D1-005"
+      ],
+      "priority": 24,
+      "action": "implement",
+      "acceptance": [
+        "PIT violations zero",
+        "receipt terminal outcomes 100 percent",
+        "source freshness and lineage gates pass"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-V2-001",
+      "title": "Implement interval-aware five-role validation",
+      "phase": "V2_VALIDATION",
+      "worker": "codex",
+      "dependencies": [
+        "R4-D1-006"
+      ],
+      "priority": 30,
+      "action": "implement",
+      "acceptance": [
+        "train/selection/stacking/calibration/outer roles are disjoint by label interval",
+        "purge and embargo use sessions not weekly row counts",
+        "adversarial overlap tests pass"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-V2-002",
+      "title": "Bind exact E0 empirical samples across evaluation path",
+      "phase": "V2_VALIDATION",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-001"
+      ],
+      "priority": 31,
+      "action": "implement",
+      "acceptance": [
+        "same sample-set hash used for scoring, stacking, calibration and forecast",
+        "no Gaussian reconstruction from quantiles",
+        "E0-only benchmark is reproducible"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-V2-003",
+      "title": "Implement actual empirical mixture CRPS optimizer",
+      "phase": "V2_VALIDATION",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-002"
+      ],
+      "priority": 32,
+      "action": "implement",
+      "acceptance": [
+        "objective includes pairwise sample-distance term",
+        "non-negative weights and E0 floor enforced",
+        "if no challenger improves E0, E0 weight is exactly one"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-V2-004",
+      "title": "Implement cross-fit calibration framework",
+      "phase": "V2_VALIDATION",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-001",
+        "R4-V2-002"
+      ],
+      "priority": 32,
+      "action": "implement",
+      "acceptance": [
+        "location, central scale and two tails use calibration fold only",
+        "quantile monotonicity and one-sided hit tests pass",
+        "no outer/prospective outcome is consumed"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-V2-005",
+      "title": "Emit model-selection stacking calibration receipts",
+      "phase": "V2_VALIDATION",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-003",
+        "R4-V2-004"
+      ],
+      "priority": 33,
+      "action": "implement",
+      "acceptance": [
+        "each origin-horizon has selection, stacking, calibration and sample hashes",
+        "missing receipt fails closed",
+        "contract/code/runtime/data hashes bind the receipt"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-001",
+      "title": "Run G0 exact E0-only and ablation generation",
+      "phase": "M3_MODELS",
+      "worker": "trainer_cpu",
+      "dependencies": [
+        "R4-V2-005"
+      ],
+      "priority": 40,
+      "action": "implement",
+      "acceptance": [
+        "all destructive components can receive zero weight",
+        "E0-only skill and stress table recorded",
+        "G0 does not perform qualification more than once"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-002",
+      "title": "Implement E1 direct quantile elastic net",
+      "phase": "M3_MODELS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-005"
+      ],
+      "priority": 41,
+      "action": "implement",
+      "acceptance": [
+        "direct 1/5/21/63 targets",
+        "contract-driven hyperparameters",
+        "bounded correction and stability diagnostics"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-003",
+      "title": "Implement true E2 Student-t distributional regression",
+      "phase": "M3_MODELS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-005"
+      ],
+      "priority": 41,
+      "action": "implement",
+      "acceptance": [
+        "df and alpha grid comes from contract",
+        "location and scale optimized by Student-t likelihood",
+        "scale uses cross-fitted residual evidence"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-004",
+      "title": "Implement E3 contract-driven quantile HGB",
+      "phase": "M3_MODELS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-005"
+      ],
+      "priority": 41,
+      "action": "implement",
+      "acceptance": [
+        "runtime candidate coordinates equal contract coordinates",
+        "all required quantiles are directly estimated or explicitly justified",
+        "quantile crossing repair is deterministic"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-005",
+      "title": "Implement E4 filtered dynamic linear model",
+      "phase": "M3_MODELS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-V2-005"
+      ],
+      "priority": 42,
+      "action": "implement",
+      "acceptance": [
+        "actual state transition and filtered state are used",
+        "no smoothed future state leakage",
+        "direct horizon OOS receipts exist"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-006",
+      "title": "Screen G1 core candidates through bounded funnel",
+      "phase": "M3_MODELS",
+      "worker": "trainer_cpu",
+      "dependencies": [
+        "R4-M3-001",
+        "R4-M3-002",
+        "R4-M3-003",
+        "R4-M3-004",
+        "R4-M3-005"
+      ],
+      "priority": 43,
+      "action": "implement",
+      "acceptance": [
+        "candidate counts respect funnel budgets",
+        "challenger underperformers get zero weight",
+        "hypothesis and exposure hashes are recorded"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-007",
+      "title": "Run learned stacking and calibration generation",
+      "phase": "M3_MODELS",
+      "worker": "trainer_cpu",
+      "dependencies": [
+        "R4-M3-006"
+      ],
+      "priority": 44,
+      "action": "implement",
+      "acceptance": [
+        "horizon-specific mixture CRPS weights learned on stacking fold",
+        "cross-fit calibration applied on calibration fold",
+        "E0 no-regret guard passes"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-M3-008",
+      "title": "Run full nested core qualification once",
+      "phase": "M3_MODELS",
+      "worker": "evaluator",
+      "dependencies": [
+        "R4-M3-007"
+      ],
+      "priority": 45,
+      "action": "implement",
+      "acceptance": [
+        "qualification evaluated once for frozen generation",
+        "complete Gate deficit vector emitted",
+        "failure routes to R4 GateDeficitRouter instead of process exit"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-001",
+      "title": "Implement P(up) zero-threshold probability calibration",
+      "phase": "S4_STRESS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-M3-008"
+      ],
+      "priority": 50,
+      "action": "implement",
+      "acceptance": [
+        "Brier and reliability curve computed on disjoint calibration evidence",
+        "base-rate comparator retained",
+        "balanced-direction diagnostics included"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-002",
+      "title": "Implement conditional central and volatility scale",
+      "phase": "S4_STRESS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-M3-008"
+      ],
+      "priority": 50,
+      "action": "implement",
+      "acceptance": [
+        "scale varies by ex-ante state",
+        "normal-state sharpness is not destroyed",
+        "50/80/90 coverage diagnostics pass on calibration fold"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-003",
+      "title": "Implement asymmetric positive and negative EVT tails",
+      "phase": "S4_STRESS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-M3-008"
+      ],
+      "priority": 51,
+      "action": "implement",
+      "acceptance": [
+        "positive/negative tails fit separately",
+        "minimum exceedance and shrinkage guards exist",
+        "extreme Q4 and tail score diagnostics emitted"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-004",
+      "title": "Implement learned regime model with partial pooling",
+      "phase": "S4_STRESS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-M3-008"
+      ],
+      "priority": 51,
+      "action": "implement",
+      "acceptance": [
+        "regime probabilities are learned from filtered features",
+        "minimum regime sample and partial pooling enforced",
+        "no date-based crisis labels at prediction time"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-005",
+      "title": "Implement full 63-session analog trajectories",
+      "phase": "S4_STRESS",
+      "worker": "codex",
+      "dependencies": [
+        "R4-M3-008"
+      ],
+      "priority": 52,
+      "action": "implement",
+      "acceptance": [
+        "actual historical daily trajectories are sampled",
+        "temporal spacing and duplicate controls pass",
+        "drawdown/touch/recovery metrics are produced"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-S4-006",
+      "title": "Run G3 stress-tail-path generation",
+      "phase": "S4_STRESS",
+      "worker": "trainer_cpu",
+      "dependencies": [
+        "R4-S4-001",
+        "R4-S4-002",
+        "R4-S4-003",
+        "R4-S4-004",
+        "R4-S4-005"
+      ],
+      "priority": 53,
+      "action": "implement",
+      "acceptance": [
+        "stress components enter only with OOS stacking advantage",
+        "catastrophic and extreme deficits are reevaluated",
+        "frozen generation emits complete receipts"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-001",
+      "title": "Implement GateDeficitRouter and hypothesis registry",
+      "phase": "A5_AUTONOMY",
+      "worker": "codex",
+      "dependencies": [
+        "R4-B0-010",
+        "R4-M3-008"
+      ],
+      "priority": 60,
+      "action": "implement",
+      "acceptance": [
+        "every Gate check maps to an admissible task family",
+        "duplicate hypothesis/data/code/runtime combinations are blocked",
+        "same blocker routes to alternate family after limit"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-002",
+      "title": "Implement recurring collection and label-maturity triggers",
+      "phase": "A5_AUTONOMY",
+      "worker": "codex",
+      "dependencies": [
+        "R4-A5-001",
+        "R4-D1-006"
+      ],
+      "priority": 61,
+      "action": "implement",
+      "acceptance": [
+        "new receipt and mature-label triggers wake WAIT_DATA",
+        "cycle IDs advance append-only",
+        "no busy-loop without new evidence"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-003",
+      "title": "Implement generation freezer and exposure budget",
+      "phase": "A5_AUTONOMY",
+      "worker": "codex",
+      "dependencies": [
+        "R4-A5-001",
+        "R4-M3-008"
+      ],
+      "priority": 61,
+      "action": "implement",
+      "acceptance": [
+        "contract/data/code/runtime/hypothesis hashes freeze generation",
+        "qualification once per generation",
+        "prospective evidence cannot enter tuning"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-004",
+      "title": "Implement official open-data challenger lane",
+      "phase": "A5_AUTONOMY",
+      "worker": "codex",
+      "dependencies": [
+        "R4-A5-001",
+        "R4-D1-006"
+      ],
+      "priority": 62,
+      "action": "implement",
+      "acceptance": [
+        "new sources remain weight zero until separately preregistered and validated",
+        "PIT grade and license/terms receipts are present",
+        "V8 proposal is created when V7 contract change is required"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-005",
+      "title": "Implement quantified WAIT_DATA and wake/resume",
+      "phase": "A5_AUTONOMY",
+      "worker": "codex",
+      "dependencies": [
+        "R4-A5-002",
+        "R4-A5-003"
+      ],
+      "priority": 63,
+      "action": "implement",
+      "acceptance": [
+        "WAIT_DATA reports current versus required evidence",
+        "wake conditions persist",
+        "resume continues without duplicate task execution"
+      ],
+      "status": "PENDING"
+    },
+    {
+      "id": "R4-A5-006",
+      "title": "Run self-driving loop to automatic terminal state",
+      "phase": "A5_AUTONOMY",
+      "worker": "evaluator",
+      "dependencies": [
+        "R4-A5-005",
+        "R4-S4-006"
+      ],
+      "priority": 70,
+      "action": "run_continuous",
+      "acceptance": [
+        "ordinary Gate failure creates new tasks and does not terminate process",
+        "loop reaches REVIEW_PROPOSAL, quantified WAIT_DATA, or hard block",
+        "complete run report and manifests are emitted"
+      ],
+      "status": "PENDING"
+    }
+  ]
+}
