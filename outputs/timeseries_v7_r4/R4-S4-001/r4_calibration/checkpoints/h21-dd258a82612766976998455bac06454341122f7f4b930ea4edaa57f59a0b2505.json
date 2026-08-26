@@ -1,0 +1,111 @@
+{
+  "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+  "available_at_rule": "fit_labels_mature_at_or_before_holdout_origin",
+  "calibration_role_origin_count": 634,
+  "evaluation_role": "calibration_cross_fit_holdout",
+  "evaluation_rows": 528,
+  "family": "h21",
+  "fit_role": "calibration_temporal_cross_fit",
+  "future_training_rows_used": false,
+  "horizon": 21,
+  "minimum_train_size": 106,
+  "probability_bounds": "PASS",
+  "probability_max": 0.8545454545454545,
+  "probability_min": 0.0,
+  "probability_unit": "fraction",
+  "report": {
+    "base_rate_brier": 0.26282824125448734,
+    "brier": 0.24276167245632835,
+    "direction": {
+      "balanced_brier": 0.25341441835172024,
+      "negative_brier": 0.3659074150070592,
+      "negative_count": 239,
+      "positive_brier": 0.1409214216963813,
+      "positive_count": 289
+    },
+    "reliability_curve": [
+      {
+        "count": 12,
+        "lower": 0.0,
+        "mean_probability": 0.0,
+        "observed_frequency": 0.25,
+        "upper": 0.1
+      },
+      {
+        "count": 1,
+        "lower": 0.1,
+        "mean_probability": 0.1111111111111111,
+        "observed_frequency": 1.0,
+        "upper": 0.2
+      },
+      {
+        "count": 27,
+        "lower": 0.2,
+        "mean_probability": 0.2657144500976285,
+        "observed_frequency": 0.48148148148148145,
+        "upper": 0.3
+      },
+      {
+        "count": 37,
+        "lower": 0.3,
+        "mean_probability": 0.3447384619324333,
+        "observed_frequency": 0.4594594594594595,
+        "upper": 0.4
+      },
+      {
+        "count": 56,
+        "lower": 0.4,
+        "mean_probability": 0.4567859187324449,
+        "observed_frequency": 0.375,
+        "upper": 0.5
+      },
+      {
+        "count": 67,
+        "lower": 0.5,
+        "mean_probability": 0.5490061149420136,
+        "observed_frequency": 0.29850746268656714,
+        "upper": 0.6
+      },
+      {
+        "count": 43,
+        "lower": 0.6,
+        "mean_probability": 0.6505176473877275,
+        "observed_frequency": 0.4418604651162791,
+        "upper": 0.7
+      },
+      {
+        "count": 224,
+        "lower": 0.7,
+        "mean_probability": 0.756085317869452,
+        "observed_frequency": 0.65625,
+        "upper": 0.8
+      },
+      {
+        "count": 61,
+        "lower": 0.8,
+        "mean_probability": 0.8286271515488738,
+        "observed_frequency": 0.7868852459016393,
+        "upper": 0.9
+      }
+    ]
+  },
+  "role_hashes": {
+    "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+    "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+    "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+    "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+  },
+  "row_use_counters": {
+    "calibration_fit_rows": 634,
+    "legacy_review_pack_score_rows_used": 0,
+    "outer_rows_used": 0,
+    "qualification_score_rows_used": 0,
+    "selection_fit_rows": 0,
+    "stacking_fit_rows": 0,
+    "train_fit_rows": 0
+  },
+  "schema_version": 1,
+  "source_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+  "temporal_scheme": "expanding"
+}

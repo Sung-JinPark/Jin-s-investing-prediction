@@ -2,6 +2,7 @@ import pytest
 
 from ai_fc.timeseries_v7_r4.probability_up_calibration import (
     ProbabilityCase,
+    authoritative_temporal_cross_fit,
     evaluate_probability_calibration,
     fit_probability_calibrator,
 )
@@ -48,3 +49,34 @@ def test_probability_calibration_fails_closed_on_roles_overlap_and_units():
         evaluate_probability_calibration(fitted, [_case("c1", "evaluation", .5, 1)])
     with pytest.raises(ValueError, match=r"\[0, 1\]"):
         fit_probability_calibrator([_case("bad", "calibration", 50, 1)])
+
+
+def test_authoritative_temporal_cross_fit_uses_only_earlier_calibration_origins():
+    origins = [f"2020-01-{day:02d}" for day in range(1, 9)]
+    export = {
+        "source_store": "authoritative_postgresql",
+        "five_role_plan": {
+            "role_origins": {"calibration": origins, "outer": ["2020-02-01"]},
+            "role_hashes": {"calibration": "calibration-hash", "outer": "outer-hash"},
+        },
+        "labels": [{"origin_session": "2019-12-31", "horizon_sessions": 1,
+                    "mature_at": "2019-12-31", "value": -.01}] + [
+            {"origin_session": origin, "horizon_sessions": 1,
+             "mature_at": origin, "value": (-1 if index % 3 == 0 else 1) * .01}
+            for index, origin in enumerate(origins)
+        ],
+    }
+
+    family = authoritative_temporal_cross_fit(export, 1, minimum_train_size=4)
+
+    assert family["calibration_role_origin_count"] == 8
+    assert family["fit_role"] == "calibration_temporal_cross_fit"
+    assert family["evaluation_role"] == "calibration_cross_fit_holdout"
+    assert family["evaluation_rows"] == 4
+    assert family["future_training_rows_used"] is False
+    assert family["probability_unit"] == "fraction"
+    assert family["probability_bounds"] == "PASS"
+    assert family["row_use_counters"]["outer_rows_used"] == 0
+    assert family["row_use_counters"]["qualification_score_rows_used"] == 0
+    assert family["report"]["base_rate_brier"] >= 0
+    assert family["report"]["direction"]["balanced_brier"] >= 0
