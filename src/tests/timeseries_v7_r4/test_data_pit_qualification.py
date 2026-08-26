@@ -60,12 +60,20 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
 
     monkeypatch.setattr(
         "ai_fc.timeseries_v7_r4.data_pit_qualification._rematerialize_r4_snapshot",
-        lambda *_args, **_kwargs: ("1" * 64, "2" * 64, True, True, object()),
+        lambda *_args, **_kwargs: {
+            "source_hash": "1" * 64, "r4_hash": "2" * 64,
+            "cutoff_proof": True, "provenance_pass": True, "snapshot": object(),
+            "source_snapshot_rows": 7712, "source_label_rows": 30758,
+            "active_feature_value_count": 123, "calendar_version_hash": "3" * 64,
+            "canonical_early_close_checks": 2, "release_native_feature_count": 4,
+            "provenance_rows": (object(),),
+        },
         raising=False,
     )
     monkeypatch.setattr(
-        "ai_fc.timeseries_v7_r4.data_pit_qualification.persist_pit_snapshot",
-        lambda url, snapshot: persisted.append((url, snapshot)) or True,
+        "ai_fc.timeseries_v7_r4.data_pit_qualification.persist_qualified_pit_snapshot",
+        lambda url, snapshot, provenance_rows=():
+            persisted.append((url, snapshot, provenance_rows)) or True,
         raising=False,
     )
 
@@ -83,6 +91,13 @@ def test_acceptance_rematerializes_and_persists_an_r4_snapshot(monkeypatch, tmp_
     assert result["release_native_features_pass"] is True
     assert result["postgres_snapshot_persisted"] is True
     assert result["legacy_runtime_defects_acknowledged"] is True
+    assert result["source_snapshot_rows"] == 7712
+    assert result["source_label_rows"] == 30758
+    assert result["active_feature_value_count"] == 123
+    assert result["calendar_version_hash"] == "3" * 64
+    assert result["canonical_early_close_checks"] == 2
+    assert result["release_native_feature_count"] == 4
+    assert persisted[0][2]
 
 
 @pytest.mark.parametrize("leakage,rate", [(1, 1.0), (0, 0.75)])

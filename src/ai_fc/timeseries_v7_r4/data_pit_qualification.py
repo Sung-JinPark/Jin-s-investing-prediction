@@ -14,7 +14,7 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 from .integrity import safe_zip_inventory, sha256_file
-from .pit_snapshot import PitSnapshot, persist_pit_snapshot
+from .pit_snapshot import LabelInterval, PitSnapshot, persist_qualified_pit_snapshot
 
 
 def _json_member(archive: zipfile.ZipFile, name: str) -> dict[str, Any]:
@@ -114,27 +114,33 @@ def qualify_evidence_pack(
         "lineage_pass": lineage_pass,
     }
     if rematerialized is not None:
-        source_hash, r4_hash, cutoff_proof, provenance_pass, snapshot = rematerialized
-        persist_pit_snapshot(database_url, snapshot)
+        persist_qualified_pit_snapshot(
+            database_url, rematerialized["snapshot"], rematerialized["provenance_rows"]
+        )
         result.update({
             "r4_snapshot_rematerialized": True,
-            "source_snapshot_hash": source_hash,
-            "r4_snapshot_hash": r4_hash,
-            "canonical_xnas_cutoff_proof": cutoff_proof,
-            "feature_value_provenance_pass": provenance_pass,
+            "source_snapshot_hash": rematerialized["source_hash"],
+            "r4_snapshot_hash": rematerialized["r4_hash"],
+            "canonical_xnas_cutoff_proof": rematerialized["cutoff_proof"],
+            "feature_value_provenance_pass": rematerialized["provenance_pass"],
             "release_native_features_pass": (
                 "native_pit" in lineage.get("data_grade", [])
                 and any(str(name).startswith("alfred_") for name in lineage.get("feature_names", []))
             ),
             "postgres_snapshot_persisted": True,
             "legacy_runtime_defects_acknowledged": True,
+            **{key: rematerialized[key] for key in (
+                "source_snapshot_rows", "source_label_rows", "active_feature_value_count",
+                "calendar_version_hash", "canonical_early_close_checks",
+                "release_native_feature_count",
+            )},
         })
     return result
 
 
 def _rematerialize_r4_snapshot(
     archive: zipfile.ZipFile, names: set[str], lineage: dict[str, Any]
-) -> tuple[str, str, bool, bool, PitSnapshot]:
+) -> dict[str, Any]:
     """Rebuild the packed feature rows with canonical XNAS close cutoffs."""
     import pyarrow.parquet as parquet
 
@@ -144,16 +150,45 @@ def _rematerialize_r4_snapshot(
     rows = table.to_pylist()
     if not rows:
         raise ValueError("qualification failed: packed PIT snapshot is empty")
+    import exchange_calendars as xcals
+
     sessions = [row["origin_session"] for row in rows]
-    close_by_date = {
-        session: datetime.combine(
-            date.fromisoformat(session), time(16, 0), ZoneInfo("America/New_York")
-        ).astimezone(timezone.utc)
-        for session in sessions
+    labels_member = _single_suffix(names, "/direct_labels.parquet")
+    label_rows = parquet.read_table(io.BytesIO(archive.read(labels_member))).to_pylist()
+    observation_member = _single_suffix(names, ".jsonl")
+    m2_revisions = []
+    for line in archive.read(observation_member).splitlines():
+        item = json.loads(line)
+        if item.get("series_id") == "M2SL" and item.get("data_grade") == "native_pit":
+            item["available_at"] = datetime.fromisoformat(item["available_at"])
+            m2_revisions.append(item)
+    label_ends = [value for row in label_rows for key, value in row.items()
+                  if key.endswith("_label_end_session") and value is not None]
+    calendar_end = max([*sessions, *label_ends])
+    calendar = xcals.get_calendar("XNAS", start=min(sessions), end=calendar_end)
+    schedule = calendar.schedule.loc[min(sessions):calendar_end]
+    canonical_closes = {
+        str(index.date()): close.to_pydatetime().astimezone(timezone.utc)
+        for index, close in schedule["close"].items()
     }
+    canonical_dates = sorted(canonical_closes)
+    close_by_date = {}
+    for session in sessions:
+        eligible = [item for item in canonical_dates if item <= session]
+        if not eligible:
+            raise ValueError("qualification failed: no canonical cutoff at origin")
+        close_by_date[session] = canonical_closes[eligible[-1]]
+    calendar_payload = [(key, value.isoformat()) for key, value in sorted(close_by_date.items())]
+    calendar_hash = sha256(json.dumps(calendar_payload, separators=(",", ":")).encode()).hexdigest()
+    early_close_checks = sum(
+        close.astimezone(ZoneInfo("America/New_York")).time() < time(16, 0)
+        for close in close_by_date.values()
+    )
     cutoff_proof = True
     provenance_pass = True
     rebuilt: list[dict[str, Any]] = []
+    provenance_rows: list[dict[str, Any]] = []
+    feature_names = list(lineage.get("feature_names", []))
     for row in rows:
         session = row["origin_session"]
         cutoff = close_by_date.get(session)
@@ -175,14 +210,67 @@ def _rematerialize_r4_snapshot(
                     updated[missing_name] = 1
             updated["max_available_at"] = None
         updated["pit_pass"] = True
+        visible_m2 = [item for item in m2_revisions if item["available_at"] <= cutoff]
+        if visible_m2:
+            latest_period = max(item["observation_time"] for item in visible_m2)
+            latest = max(
+                (item for item in visible_m2 if item["observation_time"] == latest_period),
+                key=lambda item: (item["available_at"], item["observation_id"]),
+            )
+            updated["r4_alfred_m2_latest_known"] = latest["value"]
+            provenance_rows.append({
+                "origin_session": session, "feature_id": "r4_alfred_m2_latest_known",
+                "max_available_at": latest["available_at"], "origin_cutoff_at": cutoff,
+            })
         rebuilt.append(updated)
+        maximum = updated.get("max_available_at")
+        if maximum is not None:
+            for feature_name in ["price", *feature_names]:
+                if updated.get(feature_name) is not None:
+                    provenance_rows.append({
+                        "origin_session": session, "feature_id": feature_name,
+                        "max_available_at": maximum, "origin_cutoff_at": cutoff,
+                    })
     if not cutoff_proof or not provenance_pass or len(rebuilt) != len(rows):
         raise ValueError("qualification failed: canonical cutoff or feature provenance")
     as_of = max(close_by_date.values())
-    payload = json.dumps(rebuilt, default=str, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    positions = {session: index for index, session in enumerate(sessions)}
+    labels: list[LabelInterval] = []
+    for row in label_rows:
+        origin = row["origin_session"]
+        origin_pos = positions.get(origin)
+        for horizon in (1, 5, 21, 63):
+            value, end = row.get(f"h{horizon}"), row.get(f"h{horizon}_label_end_session")
+            if value is None or end is None or origin_pos is None:
+                continue
+            canonical_after_origin = [item for item in canonical_dates if item > origin]
+            eligible_at_end = [item for item in canonical_dates if item <= end]
+            if not eligible_at_end or not canonical_after_origin:
+                raise ValueError("qualification failed: label is outside canonical XNAS sessions")
+            labels.append(LabelInterval(
+                target_id=f"{origin}:h{horizon}", origin_session=date.fromisoformat(origin),
+                label_start_session=date.fromisoformat(min(canonical_after_origin[0], end)),
+                label_end_session=date.fromisoformat(end),
+                mature_at=canonical_closes[eligible_at_end[-1]],
+                horizon_sessions=horizon, value=value,
+            ))
+    payload = json.dumps({"features": rebuilt, "labels": [str(x) for x in labels],
+                          "calendar_version_hash": calendar_hash}, default=str,
+                         sort_keys=True, separators=(",", ":"), allow_nan=False)
     r4_hash = sha256(payload.encode("utf-8")).hexdigest()
-    snapshot = PitSnapshot(r4_hash, as_of, "XNAS/exchange_calendars", (), tuple(rebuilt))
-    return sha256(source).hexdigest(), r4_hash, cutoff_proof, provenance_pass, snapshot
+    snapshot = PitSnapshot(r4_hash, as_of, f"XNAS@{calendar_hash}", tuple(labels), tuple(rebuilt))
+    return {
+        "source_hash": sha256(source).hexdigest(), "r4_hash": r4_hash,
+        "cutoff_proof": cutoff_proof, "provenance_pass": provenance_pass,
+        "snapshot": snapshot, "provenance_rows": tuple(provenance_rows),
+        "source_snapshot_rows": len(rows), "source_label_rows": len(labels),
+        "active_feature_value_count": len(provenance_rows),
+        "calendar_version_hash": calendar_hash,
+        "canonical_early_close_checks": early_close_checks,
+        "release_native_feature_count": sum(
+            row.get("r4_alfred_m2_latest_known") is not None for row in rebuilt
+        ),
+    }
 
 
 def main() -> int:

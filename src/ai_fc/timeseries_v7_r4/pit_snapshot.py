@@ -163,6 +163,52 @@ def persist_pit_snapshot(database_url: str, snapshot: PitSnapshot) -> bool:
     return True
 
 
+def persist_qualified_pit_snapshot(
+    database_url: str,
+    snapshot: PitSnapshot,
+    provenance_rows: Iterable[Mapping[str, object]],
+) -> bool:
+    """Append the qualified snapshot, labels, and active-value provenance atomically."""
+    if not database_url.startswith(("postgresql://", "postgres://")):
+        raise ValueError("R4 PIT snapshots require a PostgreSQL database URL")
+    import psycopg
+
+    payload = {
+        "as_of": snapshot.as_of.isoformat(), "calendar_version": snapshot.calendar_version,
+        "labels": [_label_payload(row) for row in snapshot.labels],
+        "feature_rows": [_json_value(dict(row)) for row in snapshot.feature_rows],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    rows = tuple(provenance_rows)
+    with psycopg.connect(database_url) as connection:
+        inserted = connection.execute(
+            "INSERT INTO timeseries_v7_r4.pit_snapshots "
+            "(snapshot_hash,as_of,calendar_version,payload) VALUES (%s,%s,%s,%s::jsonb) "
+            "ON CONFLICT DO NOTHING RETURNING 1",
+            (snapshot.snapshot_hash, snapshot.as_of, snapshot.calendar_version, encoded),
+        ).fetchone()
+        if inserted is None:
+            return False
+        cursor = connection.cursor()
+        cursor.executemany(
+            "INSERT INTO timeseries_v7_r4.label_intervals "
+            "(snapshot_hash,target_id,origin_session,label_start_session,label_end_session,"
+            "mature_at,horizon_sessions,target_value) VALUES (%s,%s,%s,%s,%s,%s,%s,%s::jsonb)",
+            [(snapshot.snapshot_hash, label.target_id, label.origin_session,
+              label.label_start_session, label.label_end_session, label.mature_at,
+              label.horizon_sessions, json.dumps(_json_value(label.value), allow_nan=False))
+             for label in snapshot.labels],
+        )
+        cursor.executemany(
+            "INSERT INTO timeseries_v7_r4.feature_value_provenance "
+            "(snapshot_hash,origin_session,feature_id,max_available_at,origin_cutoff_at) "
+            "VALUES (%s,%s,%s,%s,%s)",
+            [(snapshot.snapshot_hash, row["origin_session"], row["feature_id"],
+              row["max_available_at"], row["origin_cutoff_at"]) for row in rows],
+        )
+    return True
+
+
 def _label_payload(row: LabelInterval) -> dict[str, object]:
     return {
         "target_id": row.target_id,
