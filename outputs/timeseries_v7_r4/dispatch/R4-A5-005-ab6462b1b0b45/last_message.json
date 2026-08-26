@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-A5-005-ab6462b1b0b45",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-A5-005",
+  "status": "SUCCEEDED",
+  "summary": "Implemented PostgreSQL-backed quantified WAIT_DATA reporting with persistent wake conditions and verified single-use wake/resume execution.",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/control_plane.py",
+    "src/ai_fc/timeseries_v7_r4/supervisor.py",
+    "src/tests/timeseries_v7_r4/test_r4_supervisor.py"
+  ],
+  "commands": [
+    {
+      "phase": "red_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -k wait_data_report_persists_quantified_wake_and_resume_is_single_execution -q",
+      "return_code": 1,
+      "expected_failure": "PostgresControlPlane did not yet implement wait_data_report."
+    },
+    {
+      "phase": "targeted_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -k \"wait_data_report_persists_quantified_wake_and_resume_is_single_execution or new_receipt_or_mature_label_wakes_wait_data_once_and_advances_cycle or finished_task_not_reclaimed\" -q",
+      "return_code": 0
+    },
+    {
+      "phase": "validation",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -q",
+      "return_code": 0
+    },
+    {
+      "phase": "validation",
+      "command": "git diff --check",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "targeted WAIT_DATA wake/resume tests",
+      "passed": true,
+      "details": "3 passed, 75 deselected"
+    },
+    {
+      "name": "full R4 supervisor test module",
+      "passed": true,
+      "details": "78 passed"
+    },
+    {
+      "name": "diff whitespace validation",
+      "passed": true
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "WAIT_DATA reports current versus required evidence",
+      "passed": true,
+      "evidence": "wait_data_report persists evidence.current and evidence.required derived from authoritative PostgreSQL wake evidence."
+    },
+    {
+      "criterion": "wake conditions persist",
+      "passed": true,
+      "evidence": "The run terminal_reason persists accepted wake types, PIT wake rule, and task-state counts."
+    },
+    {
+      "criterion": "resume continues without duplicate task execution",
+      "passed": true,
+      "evidence": "A unique evidence wake requeues once; atomic claim/finish completes once; repeated evidence cannot wake again and the completed task cannot be reclaimed."
+    }
+  ],
+  "protected_manifest_sha256": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true
+}
