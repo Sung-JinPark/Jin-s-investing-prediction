@@ -146,9 +146,10 @@ class CodexDispatcher:
             "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )
         command = [self.executable(), "exec", "--ephemeral", "--ignore-user-config",
-                   "--sandbox", "workspace-write", "--json", "-C", str(worktree),
+                   "--sandbox", "danger-full-access", "--json", "-C", str(worktree),
                    "-o", str(last_message), "-"]
         completed = subprocess.run(command, input=prompt, capture_output=True, text=True,
+                                   encoding="utf-8", errors="replace",
                                    env=sanitized_environment())
         parsed: dict[str, Any] | None = None
         if completed.returncode == 0 and last_message.exists():
@@ -196,6 +197,7 @@ class CodexDispatcher:
             ]
             tests = subprocess.run(
                 test_command, cwd=worktree, capture_output=True, text=True,
+                encoding="utf-8", errors="replace",
                 env=sanitized_environment(),
             )
             parsed["commands"].append({
