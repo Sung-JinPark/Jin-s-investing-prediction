@@ -292,6 +292,8 @@ class CodexDispatcher:
             "never return SUCCESS, PASS or COMPLETE. Do not commit or run git worktree commands. "
             "Every commands entry must use the integer key return_code (never exit_code). Every "
             "tests entry must include passed=true or passed=false; a status string alone is invalid. "
+            "The final result must include child_worker_started_another_task=false and "
+            "supervisor_should_continue=true so the parent, not the child, owns continuation. "
             "Return only a JSON object matching the R4 "
             "result contract. The final JSON must echo these envelope identity fields exactly: "
             + canonical_json(identity).decode("utf-8")

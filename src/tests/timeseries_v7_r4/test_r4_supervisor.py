@@ -1379,6 +1379,7 @@ def test_codex_dispatch_prompt_requires_machine_result_keys():
     })
     assert "return_code (never exit_code)" in prompt
     assert "tests entry must include passed=true or passed=false" in prompt
+    assert "supervisor_should_continue=true" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():
