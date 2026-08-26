@@ -146,3 +146,74 @@ def test_quantile_crps_uses_the_stored_distribution_not_only_the_median():
 
     assert narrow > 0.0
     assert wide > narrow
+
+
+def test_export_screen_refits_a_checkpoint_missing_distribution_receipt(
+        tmp_path, monkeypatch):
+    snapshot = {
+        "schema": "r4_credential_free_pit_export_v1",
+        "source_store": "authoritative_postgresql", "snapshot_hash": "c" * 64,
+        "as_of": "2026-01-10T00:00:00+00:00",
+        "five_role_plan": {
+            "schema": "r4_five_role_origin_plan_v1", "plan_hash": "b" * 64,
+            "role_order": ["train", "selection", "stacking", "calibration", "outer"],
+            "role_counts": {"train": 4, "selection": 1, "stacking": 1,
+                            "calibration": 1, "outer": 0},
+            "role_hashes": {role: role[0] * 64 for role in
+                            ("train", "selection", "stacking", "calibration", "outer")},
+            "role_origins": {
+                "train": [f"2026-01-{day:02d}" for day in range(1, 5)],
+                "selection": ["2026-01-05"], "stacking": ["2026-01-06"],
+                "calibration": ["2026-01-07"], "outer": [],
+            },
+            "outer_exposed_during_screen": False, "excluded_count": 0,
+            "interval_overlap_count": 0, "purge_unit": "xnas_sessions",
+            "purge_sessions": 63, "embargo_sessions": 5,
+        },
+        "feature_rows": [
+            {"origin_session": f"2026-01-{day:02d}",
+             "origin_cutoff_at": f"2026-01-{day:02d}T00:00:00+00:00",
+             "max_available_at": f"2026-01-{day:02d}T00:00:00+00:00",
+             "pit_pass": True,
+             **{name: float(day) for name in (
+                 "ret_1", "momentum_5", "momentum_21", "momentum_63", "rv_5",
+                 "rv_21", "rv_63", "vix_level", "term_level", "dff_level",
+             )}} for day in range(1, 8)
+        ],
+        "labels": [
+            {"origin_session": f"2026-01-{day:02d}", "horizon_sessions": horizon,
+             "mature_at": f"2026-01-{day:02d}T12:00:00+00:00", "value": day / 1000}
+            for day in range(1, 8) for horizon in (1, 5, 21, 63)
+        ],
+    }
+    source = tmp_path / "snapshot.json"
+    source.write_text(json.dumps(snapshot), encoding="utf-8")
+    checkpoint_dir = tmp_path / "checkpoints"
+    calls = []
+
+    def fake_execute(family, train_rows, score_rows_by_role, as_of):
+        calls.append(family)
+        counts = {role: len(rows) * 4 for role, rows in score_rows_by_role.items()}
+        return ({role: .02 for role in score_rows_by_role}, counts,
+                {"score": "distribution_crps", "frozen_coordinates": True,
+                 "coordinates": [family],
+                 "optimizer_convergence": {"enforced": True, "method": "test"},
+                 "predictive_distribution_hash": family[0].lower() * 64,
+                 "score_rows": sum(counts.values())})
+
+    monkeypatch.setattr(
+        "ai_fc.timeseries_v7_r4.g1_candidate_funnel._execute_family", fake_execute,
+    )
+    kwargs = dict(e0_crps=.03, e0_artifact_sha256="e" * 64,
+                  evaluation_origin_grid_hash="f" * 64,
+                  generation_hash="a" * 64, checkpoint_dir=checkpoint_dir)
+    run_g1_screen_from_export(source, **kwargs)
+    e1_checkpoint = next(checkpoint_dir.glob("E1-*.json"))
+    legacy = json.loads(e1_checkpoint.read_text(encoding="utf-8"))
+    legacy["receipt"].pop("predictive_distribution_hash")
+    e1_checkpoint.write_text(json.dumps(legacy), encoding="utf-8")
+    calls.clear()
+
+    run_g1_screen_from_export(source, **kwargs)
+
+    assert calls == ["E1"]

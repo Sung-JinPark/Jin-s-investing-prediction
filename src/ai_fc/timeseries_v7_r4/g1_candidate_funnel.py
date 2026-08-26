@@ -311,6 +311,31 @@ def _execute_family(family: str, train_rows: list[dict[str, Any]],
     }
 
 
+def _valid_family_checkpoint(value: Any, *, checkpoint_key: str,
+                             expected_counts: Mapping[str, int]) -> bool:
+    """Accept only complete, receipted distribution-score checkpoints."""
+    if not isinstance(value, Mapping) or value.get("checkpoint_key") != checkpoint_key:
+        return False
+    scores, counts, receipt = (value.get("scores"), value.get("counts"),
+                               value.get("receipt"))
+    if not all(isinstance(item, Mapping) for item in (scores, counts, receipt)):
+        return False
+    if dict(counts) != dict(expected_counts) or set(scores) != set(expected_counts):
+        return False
+    if not all(math.isfinite(float(score)) and float(score) >= 0.0
+               for score in scores.values()):
+        return False
+    distribution_hash = str(receipt.get("predictive_distribution_hash", ""))
+    return (
+        receipt.get("score") == "distribution_crps"
+        and receipt.get("frozen_coordinates") is True
+        and receipt.get("optimizer_convergence", {}).get("enforced") is True
+        and receipt.get("score_rows") == sum(expected_counts.values())
+        and len(distribution_hash) == 64
+        and all(character in "0123456789abcdef" for character in distribution_hash)
+    )
+
+
 def run_g1_screen_from_export(
     export_path: Path, *, e0_crps: float, e0_artifact_sha256: str,
     evaluation_origin_grid_hash: str, generation_hash: str,
@@ -349,6 +374,9 @@ def run_g1_screen_from_export(
     checkpoint_dir = Path(checkpoint_dir) if checkpoint_dir is not None else None
     if checkpoint_dir is not None:
         checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    expected_score_counts = {
+        role: len(role_rows) * 4 for role, role_rows in score_rows_by_role.items()
+    }
     for family in families:
         checkpoint_key = sha256(canonical_json({
             "family": family, "snapshot_hash": export["snapshot_hash"],
@@ -356,9 +384,17 @@ def run_g1_screen_from_export(
             "implementation": "frozen_coordinates_distribution_crps_v2_receipted",
         })).hexdigest()
         checkpoint = checkpoint_dir / f"{family}-{checkpoint_key}.json" if checkpoint_dir else None
+        family_result = None
         if checkpoint is not None and checkpoint.exists():
-            family_result = json.loads(checkpoint.read_text(encoding="utf-8"))
-        else:
+            try:
+                cached = json.loads(checkpoint.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                cached = None
+            if _valid_family_checkpoint(
+                    cached, checkpoint_key=checkpoint_key,
+                    expected_counts=expected_score_counts):
+                family_result = cached
+        if family_result is None:
             scores, counts, receipt = _execute_family(
                 family, train_rows, score_rows_by_role, str(export["as_of"]),
             )
