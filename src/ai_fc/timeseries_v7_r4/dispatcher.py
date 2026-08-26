@@ -12,11 +12,15 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 from dataclasses import dataclass
+from fnmatch import fnmatchcase
 from pathlib import Path
 from typing import Any
 
-from .integrity import canonical_json, sanitized_environment, sha256_bytes
+from .integrity import (canonical_json, protected_manifest, sanitized_environment,
+                        scan_secret_bytes, sha256_bytes, sha256_file,
+                        validate_child_result)
 
 
 @dataclass(frozen=True)
@@ -27,6 +31,23 @@ class DispatchResult:
     stderr_sha256: str
     result: dict[str, Any] | None
     worktree: Path
+    branch: str
+    commit_sha: str | None
+    changed_paths: tuple[str, ...]
+
+
+DEFAULT_ALLOWED_PATHS = (
+    "src/ai_fc/timeseries_v7_r4/**",
+    "src/tests/timeseries_v7_r4/**",
+    "migrations/timeseries_v7_r4/**",
+    "data/timeseries_v7_r4/contracts/**",
+    "data/timeseries_v7_r4/generated/**",
+    "data/timeseries_v7_r4/snapshots/**",
+    "outputs/timeseries_v7_r4/**",
+    "docs/timeseries_v7_r4/**",
+    "tools/ralph_v7_r4.py",
+    "tools/*v7_r4*.py",
+)
 
 
 class CodexDispatcher:
@@ -58,6 +79,49 @@ class CodexDispatcher:
         safe = re.sub(r"[^A-Za-z0-9_.-]", "-", f"r4-{task_key}-{attempt_id}")[:100]
         return self.central_worktree_root / safe
 
+    @staticmethod
+    def _changed_paths(worktree: Path) -> tuple[str, ...]:
+        completed = subprocess.run(
+            ["git", "status", "--porcelain=v1", "-z"], cwd=worktree,
+            capture_output=True,
+        )
+        if completed.returncode:
+            raise RuntimeError("unable to inspect isolated worktree")
+        paths: set[str] = set()
+        records = completed.stdout.decode("utf-8", errors="strict").split("\0")
+        index = 0
+        while index < len(records):
+            record = records[index]
+            index += 1
+            if not record:
+                continue
+            if len(record) < 4:
+                raise RuntimeError(f"malformed git status record: {record!r}")
+            status = record[:2]
+            path = record[3:].replace("\\", "/")
+            if "R" in status or "C" in status:
+                if index >= len(records) or not records[index]:
+                    raise RuntimeError("rename/copy status lacks destination")
+                path = records[index].replace("\\", "/")
+                index += 1
+            paths.add(path)
+        return tuple(sorted(paths))
+
+    @staticmethod
+    def _path_allowed(path: str, patterns: list[str]) -> bool:
+        normalized = path.replace("\\", "/")
+        return any(fnmatchcase(normalized, pattern) for pattern in patterns)
+
+    def cleanup(self, dispatched: DispatchResult, *, merged: bool) -> None:
+        subprocess.run(
+            ["git", "worktree", "remove", "--force", str(dispatched.worktree)],
+            cwd=self.repo, capture_output=True, text=True,
+        )
+        subprocess.run(
+            ["git", "branch", "-d" if merged else "-D", dispatched.branch],
+            cwd=self.repo, capture_output=True, text=True,
+        )
+
     def dispatch(self, envelope: dict[str, Any]) -> DispatchResult:
         if os.getenv("R4_ALLOW_CODEX_CHILD") != "1":
             raise PermissionError("R4_ALLOW_CODEX_CHILD=1 is required")
@@ -76,8 +140,10 @@ class CodexDispatcher:
         last_message = task_dir / "last_message.json"
         prompt = (
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
-            "Respect allowed_paths and protected manifest. Return only a JSON object matching the "
-            "R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
+            "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
+            "smallest coherent patch, and run targeted tests with the frozen Python executable in "
+            "the envelope. Do not commit or run git worktree commands. Return only a JSON object "
+            "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )
         command = [self.executable(), "exec", "--ephemeral", "--ignore-user-config",
                    "--sandbox", "workspace-write", "--json", "-C", str(worktree),
@@ -92,8 +158,99 @@ class CodexDispatcher:
                     parsed = value
             except json.JSONDecodeError:
                 parsed = None
+        changed = self._changed_paths(worktree)
+        allowed = list(envelope.get("allowed_paths") or DEFAULT_ALLOWED_PATHS)
+        violations = [path for path in changed if not self._path_allowed(path, allowed)]
+        commit_sha: str | None = None
+        validation_return_code = completed.returncode
+        if parsed is not None:
+            identity = {
+                field: parsed.get(field) == envelope.get(field)
+                for field in ("run_id", "cycle_id", "task_key", "attempt_id")
+            }
+            before_hash = envelope["protected_manifest_sha256"]
+            after_hash = protected_manifest(worktree)["manifest_sha256"]
+            secret_findings: list[str] = []
+            for relative in changed:
+                path = worktree / relative
+                if path.is_file():
+                    secret_findings.extend(scan_secret_bytes(path.read_bytes()))
+            parsed["changed_paths"] = list(changed)
+            parsed["protected_manifest_before"] = before_hash
+            parsed["protected_manifest_after"] = after_hash
+            parsed["protected_non_mutation"] = before_hash == after_hash
+            parsed["secret_scan_pass"] = not secret_findings
+            parsed.setdefault("commands", [])
+            parsed.setdefault("tests", [])
+            parsed.setdefault("acceptance_results", [])
+            parsed["acceptance_results"].append({
+                "criterion": "dispatcher_identity_and_allowlist",
+                "passed": all(identity.values()) and not violations,
+                "evidence": {"identity": identity, "violations": violations},
+            })
+            if parsed.get("status") == "SUCCEEDED" and not changed:
+                violations.append("successful implementation produced no changed paths")
+            test_command = [
+                envelope.get("frozen_python") or sys.executable,
+                "-m", "pytest", "-q", "src/tests/timeseries_v7_r4",
+            ]
+            tests = subprocess.run(
+                test_command, cwd=worktree, capture_output=True, text=True,
+                env=sanitized_environment(),
+            )
+            parsed["commands"].append({
+                "command": " ".join(test_command),
+                "return_code": tests.returncode,
+                "stdout_sha256": sha256_bytes(tests.stdout.encode("utf-8")),
+                "stderr_sha256": sha256_bytes(tests.stderr.encode("utf-8")),
+            })
+            parsed["tests"].append({
+                "name": "supervisor_independent_r4_targeted_suite",
+                "passed": tests.returncode == 0,
+                "evidence_path": "src/tests/timeseries_v7_r4",
+                "sha256": sha256_bytes((tests.stdout + tests.stderr).encode("utf-8")),
+            })
+            errors = validate_child_result(parsed, require_evidence=True)
+            if violations:
+                errors.append("allowlist_violation")
+            if errors:
+                parsed["status"] = "BLOCKED" if violations or secret_findings else "RETRY_WAIT"
+                parsed["blocker_signature"] = "DISPATCH_VALIDATION:" + ",".join(sorted(set(errors)))
+                parsed["supervisor_should_continue"] = parsed["status"] == "RETRY_WAIT"
+                validation_return_code = 3
+            elif parsed.get("status") == "SUCCEEDED":
+                check = subprocess.run(
+                    ["git", "diff", "--check"], cwd=worktree,
+                    capture_output=True, text=True,
+                )
+                if check.returncode:
+                    parsed["status"] = "RETRY_WAIT"
+                    parsed["blocker_signature"] = "GIT_DIFF_CHECK_FAILED"
+                    validation_return_code = 3
+                else:
+                    subprocess.run(["git", "add", "--", *changed], cwd=worktree, check=True)
+                    commit = subprocess.run(
+                        ["git", "commit", "-m", f"feat: complete {envelope['task_key']}"],
+                        cwd=worktree, capture_output=True, text=True,
+                        env=sanitized_environment(),
+                    )
+                    if commit.returncode:
+                        parsed["status"] = "RETRY_WAIT"
+                        parsed["blocker_signature"] = "ISOLATED_COMMIT_FAILED"
+                        validation_return_code = 3
+                    else:
+                        commit_sha = subprocess.run(
+                            ["git", "rev-parse", "HEAD"], cwd=worktree,
+                            capture_output=True, text=True, check=True,
+                        ).stdout.strip()
+                        parsed["integration"] = {
+                            "branch": branch,
+                            "commit_sha": commit_sha,
+                            "changed_paths": list(changed),
+                        }
         return DispatchResult(
-            completed.returncode, command,
+            validation_return_code, command,
             sha256_bytes(completed.stdout.encode("utf-8")),
             sha256_bytes(completed.stderr.encode("utf-8")), parsed, worktree,
+            branch, commit_sha, changed,
         )

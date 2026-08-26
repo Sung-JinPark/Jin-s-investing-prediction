@@ -13,7 +13,8 @@ from typing import Any
 SECRET_NAMES = {
     "FRED_API_KEY", "BLS_API_KEY", "BEA_API_KEY", "EIA_API_KEY",
     "CME_API_KEY", "CBOE_API_KEY", "NASDAQ_DATA_LINK_API_KEY",
-    "GH_TOKEN", "GITHUB_TOKEN",
+    "GH_TOKEN", "GITHUB_TOKEN", "DATABASE_URL", "RALPH_V7_R4_DATABASE_URL",
+    "R4_ALLOW_CODEX_CHILD",
 }
 TOKEN_PATTERNS = (
     re.compile(rb"(?i)(api[_-]?key|token|password|secret)\s*[:=]\s*['\"]?[A-Za-z0-9_\-]{24,}"),
@@ -80,7 +81,7 @@ def sanitized_environment() -> dict[str, str]:
             and not any(word in key.upper() for word in ("PASSWORD", "SECRET", "TOKEN", "API_KEY"))}
 
 
-def validate_child_result(result: dict[str, Any]) -> list[str]:
+def validate_child_result(result: dict[str, Any], *, require_evidence: bool = False) -> list[str]:
     errors: list[str] = []
     required = {
         "run_id", "cycle_id", "task_key", "attempt_id", "status",
@@ -94,6 +95,25 @@ def validate_child_result(result: dict[str, Any]) -> list[str]:
         errors.append("protected_mutation")
     if result.get("secret_scan_pass") is not True:
         errors.append("secret_scan_failed")
+    if require_evidence and result.get("status") == "SUCCEEDED":
+        commands = result.get("commands")
+        tests = result.get("tests")
+        acceptance = result.get("acceptance_results")
+        if not isinstance(commands, list) or not commands:
+            errors.append("missing_command_evidence")
+        elif any(item.get("return_code") != 0 for item in commands
+                 if isinstance(item, dict)):
+            errors.append("command_failed")
+        if not isinstance(tests, list) or not tests:
+            errors.append("missing_test_evidence")
+        elif any(item.get("passed") is not True for item in tests
+                 if isinstance(item, dict)):
+            errors.append("test_failed")
+        if not isinstance(acceptance, list) or not acceptance:
+            errors.append("missing_acceptance_evidence")
+        elif any(item.get("passed") is not True for item in acceptance
+                 if isinstance(item, dict)):
+            errors.append("acceptance_failed")
     return errors
 
 

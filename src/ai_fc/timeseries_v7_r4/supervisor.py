@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .control_plane import Lease, PostgresControlPlane
-from .dispatcher import CodexDispatcher
+from .dispatcher import CodexDispatcher, DEFAULT_ALLOWED_PATHS
 from .collectors import collect_nasdaqcom
 from .integrity import (canonical_json, protected_manifest, sha256_bytes, sha256_file,
                         validate_child_result)
@@ -345,7 +345,7 @@ class Supervisor:
         return result
 
     def _dispatch_or_wait(self, lease: Lease) -> dict[str, Any]:
-        result = self._base_result(lease, "WAIT_DATA")
+        result = self._base_result(lease, "WAIT_EXECUTION_PERMISSION")
         result["blocker_signature"] = "CODEX_CHILD_EXECUTION_NOT_ENABLED_IN_HOST"
         result["unresolved_blockers"] = [{
             "current": 0, "required": 1,
@@ -357,35 +357,83 @@ class Supervisor:
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
+        allowed_paths = lease.payload.get("allowed_paths") or list(DEFAULT_ALLOWED_PATHS)
         envelope = {
             "schema_version": 1, "run_id": lease.run_id,
             "cycle_id": f"{lease.run_id}-c001", "generation_id": None,
             "hypothesis_id": None, "task_key": lease.task_key,
             "attempt_id": lease.attempt_id, "title": lease.title,
             "worker_capability": "codex", "priority": lease.payload.get("priority", 100),
-            "dependencies": lease.payload.get("depends_on", []), "input_artifacts": [],
-            "allowed_paths": lease.payload.get("allowed_paths", []),
+            "dependencies": (lease.payload.get("dependencies")
+                             or lease.payload.get("depends_on") or []),
+            "input_artifacts": [],
+            "allowed_paths": allowed_paths,
             "protected_manifest_sha256": protected_manifest(self.context.repo)["manifest_sha256"],
             "secret_isolation": True, "diagnostic": lease.payload.get("diagnostic", ""),
-            "required_actions": lease.payload.get("required_actions", []),
+            "action": lease.payload.get("action", "implement"),
+            "required_actions": (lease.payload.get("required_actions")
+                                 or [lease.payload.get("action", "implement")]),
             "acceptance": lease.payload.get("acceptance", []),
             "required_commands": lease.payload.get("required_commands", []),
+            "task_spec": lease.payload,
+            "frozen_python": sys.executable,
             "retry_policy": {"same_blocker_max": 3, "alternate_family_after": 3},
             "completion_contract": {"child_worker_started_another_task": False,
                                     "supervisor_must_continue_after_success": True},
         }
-        dispatched = CodexDispatcher(repo=self.context.repo,
-                                      output_root=self.context.output_root).dispatch(envelope)
+        dispatcher = CodexDispatcher(repo=self.context.repo,
+                                     output_root=self.context.output_root)
+        dispatched = dispatcher.dispatch(envelope)
         if dispatched.return_code or dispatched.result is None:
-            result = self._base_result(lease, "RETRY_WAIT")
-            result["blocker_signature"] = "CODEX_CHILD_FAILED_OR_INVALID_JSON"
+            if dispatched.result is not None:
+                result = dispatched.result
+            else:
+                result = self._base_result(lease, "RETRY_WAIT")
+                result["blocker_signature"] = "CODEX_CHILD_FAILED_OR_INVALID_JSON"
             result["commands"] = [{"command": "isolated codex exec",
                 "return_code": dispatched.return_code,
                 "stdout_sha256": dispatched.stdout_sha256,
                 "stderr_sha256": dispatched.stderr_sha256}]
-            result["recommended_router_deficits"] = ["engineering_fix"]
+            result.setdefault("recommended_router_deficits", ["engineering_fix"])
+            dispatcher.cleanup(dispatched, merged=False)
             return result
-        return dispatched.result
+        if dispatched.commit_sha is None:
+            result = dispatched.result
+            dispatcher.cleanup(dispatched, merged=False)
+            return result
+        merge = subprocess.run(
+            ["git", "merge", "--ff-only", dispatched.commit_sha],
+            cwd=self.context.repo, capture_output=True, text=True,
+            env={**os.environ, "GIT_TERMINAL_PROMPT": "0"},
+        )
+        result = dispatched.result
+        result.setdefault("commands", []).append({
+            "command": f"git merge --ff-only {dispatched.commit_sha}",
+            "return_code": merge.returncode,
+            "stdout_sha256": sha256_bytes(merge.stdout.encode("utf-8")),
+            "stderr_sha256": sha256_bytes(merge.stderr.encode("utf-8")),
+        })
+        if merge.returncode:
+            result["status"] = "BLOCKED"
+            result["blocker_signature"] = "CHILD_COMMIT_INTEGRATION_FAILED"
+            result["supervisor_should_continue"] = False
+            dispatcher.cleanup(dispatched, merged=False)
+            return result
+        self.control.event(lease.run_id, "TASK_CHILD_COMMIT_INTEGRATED", {
+            "attempt_id": lease.attempt_id,
+            "task_key": lease.task_key,
+            "commit_sha": dispatched.commit_sha,
+            "changed_paths": list(dispatched.changed_paths),
+            "branch": dispatched.branch,
+        }, lease.task_key)
+        result.setdefault("acceptance_results", []).append({
+            "criterion": "child_commit_fast_forward_integrated",
+            "passed": True,
+            "evidence": {"commit_sha": dispatched.commit_sha,
+                         "changed_paths": list(dispatched.changed_paths)},
+        })
+        dispatcher.cleanup(dispatched, merged=True)
+        return result
 
     def execute(self, lease: Lease) -> dict[str, Any]:
         started = time.monotonic()
@@ -457,7 +505,9 @@ class Supervisor:
             if state in until or state in NORMAL_TERMINAL:
                 self.control.set_run_state(run_id, state, result)
                 return 0
-            if state in {"WAIT_DATA", "WAIT_HUMAN_REVIEW", "REVIEW_PROPOSAL"}:
+            if state in {
+                "WAIT_DATA", "WAIT_EXECUTION_PERMISSION", "WAIT_HUMAN_REVIEW", "REVIEW_PROPOSAL"
+            }:
                 self.control.set_run_state(run_id, state, result)
                 return 0
         self.control.set_run_state(run_id, "PAUSED", {"reason": "max_tasks reached"})

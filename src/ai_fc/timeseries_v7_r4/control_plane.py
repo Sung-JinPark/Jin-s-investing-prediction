@@ -61,6 +61,7 @@ class PostgresControlPlane:
             conn.commit()
 
     def import_tasks(self, run_id: str, tasks: Iterable[dict[str, Any]]) -> int:
+        tasks = list(tasks)
         inserted = 0
         with self.connect() as conn:
             for ordinal, task in enumerate(tasks):
@@ -76,8 +77,169 @@ class PostgresControlPlane:
                      canonical_json(task).decode("utf-8")),
                 ).fetchone()
                 inserted += int(row is not None)
+            for task in tasks:
+                task_key = str(task.get("task_id") or task.get("id") or task["task_key"])
+                dependencies = task.get("dependencies") or task.get("depends_on") or []
+                for dependency in dependencies:
+                    conn.execute(
+                        "INSERT INTO timeseries_v7_r4.task_dependencies"
+                        " (run_id,task_key,dependency_key) VALUES (%s,%s,%s)"
+                        " ON CONFLICT DO NOTHING",
+                        (run_id, task_key, str(dependency)),
+                    )
             conn.commit()
         return inserted
+
+    def reconcile_dependencies(self, run_id: str) -> dict[str, Any]:
+        """Materialize dependency rows from immutable task payloads.
+
+        This is idempotent and is used to repair bootstrap runs created before
+        dependency insertion was wired into ``import_tasks``.
+        """
+        inserted: list[tuple[str, str]] = []
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT task_key,payload FROM timeseries_v7_r4.tasks WHERE run_id=%s",
+                (run_id,),
+            ).fetchall()
+            known = {row[0] for row in rows}
+            for task_key, payload in rows:
+                dependencies = payload.get("dependencies") or payload.get("depends_on") or []
+                for dependency in dependencies:
+                    dependency = str(dependency)
+                    if dependency not in known:
+                        raise ValueError(f"unknown dependency for {task_key}: {dependency}")
+                    created = conn.execute(
+                        "INSERT INTO timeseries_v7_r4.task_dependencies"
+                        " (run_id,task_key,dependency_key) VALUES (%s,%s,%s)"
+                        " ON CONFLICT DO NOTHING RETURNING 1",
+                        (run_id, task_key, dependency),
+                    ).fetchone()
+                    if created is not None:
+                        inserted.append((task_key, dependency))
+            if inserted:
+                payload = {
+                    "schema_version": 1,
+                    "correction": "dependency_graph_materialized_from_task_payload",
+                    "inserted_count": len(inserted),
+                    "inserted": [
+                        {"task_key": task_key, "dependency_key": dependency}
+                        for task_key, dependency in inserted
+                    ],
+                }
+                blob = canonical_json(payload)
+                conn.execute(
+                    "INSERT INTO timeseries_v7_r4.events"
+                    " (run_id,event_type,task_key,payload,payload_hash)"
+                    " VALUES (%s,'DEPENDENCY_GRAPH_CORRECTION_APPENDED',NULL,%s::jsonb,%s)",
+                    (run_id, blob.decode("utf-8"), sha256_bytes(blob)),
+                )
+            conn.commit()
+        return {"inserted_count": len(inserted), "inserted": inserted}
+
+    def correct_execution_permission_waits(self, run_id: str) -> list[dict[str, Any]]:
+        """Append corrections for child-permission waits mislabeled WAIT_DATA.
+
+        Attempt rows and their original result hashes are never updated.  The
+        mutable task/run projections are advanced to the corrected wait state.
+        """
+        corrections: list[dict[str, Any]] = []
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT task_key FROM timeseries_v7_r4.tasks WHERE run_id=%s"
+                " AND state='WAIT_DATA'"
+                " AND blocker_signature='CODEX_CHILD_EXECUTION_NOT_ENABLED_IN_HOST'"
+                " ORDER BY task_key FOR UPDATE",
+                (run_id,),
+            ).fetchall()
+            for (task_key,) in rows:
+                attempt = conn.execute(
+                    "SELECT attempt_id,result_hash FROM timeseries_v7_r4.attempts"
+                    " WHERE run_id=%s AND task_key=%s"
+                    " AND state='WAIT_DATA' ORDER BY started_at DESC LIMIT 1",
+                    (run_id, task_key),
+                ).fetchone()
+                if attempt is None:
+                    raise RuntimeError(f"WAIT_DATA task lacks preserved attempt: {task_key}")
+                payload = {
+                    "schema_version": 1,
+                    "correction_id": f"{run_id}:{task_key}:wait-execution-permission-v1",
+                    "task_key": task_key,
+                    "supersedes_attempt_id": attempt[0],
+                    "supersedes_result_hash": attempt[1],
+                    "original_state": "WAIT_DATA",
+                    "corrected_state": "WAIT_EXECUTION_PERMISSION",
+                    "reason": "child execution permission is not a data deficiency",
+                    "original_attempt_preserved": True,
+                }
+                blob = canonical_json(payload)
+                conn.execute(
+                    "INSERT INTO timeseries_v7_r4.events"
+                    " (run_id,event_type,task_key,payload,payload_hash)"
+                    " VALUES (%s,'TASK_STATE_CORRECTION_APPENDED',%s,%s::jsonb,%s)",
+                    (run_id, task_key, blob.decode("utf-8"), sha256_bytes(blob)),
+                )
+                conn.execute(
+                    "UPDATE timeseries_v7_r4.tasks SET state='WAIT_EXECUTION_PERMISSION',"
+                    " updated_at=now() WHERE run_id=%s AND task_key=%s AND state='WAIT_DATA'",
+                    (run_id, task_key),
+                )
+                corrections.append(payload)
+            if corrections:
+                reason = canonical_json({
+                    "correction": "WAIT_DATA_TO_WAIT_EXECUTION_PERMISSION",
+                    "task_count": len(corrections),
+                    "append_only_events": True,
+                }).decode("utf-8")
+                conn.execute(
+                    "UPDATE timeseries_v7_r4.runs SET state='WAIT_EXECUTION_PERMISSION',"
+                    " terminal_reason=%s::jsonb,updated_at=now() WHERE run_id=%s",
+                    (reason, run_id),
+                )
+            conn.commit()
+        return corrections
+
+    def wake_execution_permission(self, run_id: str) -> list[str]:
+        """Wake corrected tasks after the primary operator enables child Codex."""
+        woken: list[str] = []
+        with self.connect() as conn:
+            rows = conn.execute(
+                "SELECT task_key FROM timeseries_v7_r4.tasks WHERE run_id=%s"
+                " AND state='WAIT_EXECUTION_PERMISSION'"
+                " AND blocker_signature='CODEX_CHILD_EXECUTION_NOT_ENABLED_IN_HOST'"
+                " ORDER BY task_key FOR UPDATE",
+                (run_id,),
+            ).fetchall()
+            for (task_key,) in rows:
+                payload = {
+                    "schema_version": 1,
+                    "task_key": task_key,
+                    "from_state": "WAIT_EXECUTION_PERMISSION",
+                    "to_state": "PENDING",
+                    "authorization": "R4_ALLOW_CODEX_CHILD=1",
+                }
+                blob = canonical_json(payload)
+                conn.execute(
+                    "INSERT INTO timeseries_v7_r4.events"
+                    " (run_id,event_type,task_key,payload,payload_hash)"
+                    " VALUES (%s,'TASK_EXECUTION_PERMISSION_GRANTED',%s,%s::jsonb,%s)",
+                    (run_id, task_key, blob.decode("utf-8"), sha256_bytes(blob)),
+                )
+                conn.execute(
+                    "UPDATE timeseries_v7_r4.tasks SET state='PENDING',blocker_signature=NULL,"
+                    " available_at=now(),updated_at=now() WHERE run_id=%s AND task_key=%s"
+                    " AND state='WAIT_EXECUTION_PERMISSION'",
+                    (run_id, task_key),
+                )
+                woken.append(task_key)
+            if woken:
+                conn.execute(
+                    "UPDATE timeseries_v7_r4.runs SET state='RUNNING',terminal_reason=NULL,"
+                    " updated_at=now() WHERE run_id=%s",
+                    (run_id,),
+                )
+            conn.commit()
+        return woken
 
     def import_catalog(self, catalog_id: str, tasks: Iterable[dict[str, Any]]) -> int:
         inserted = 0

@@ -18,7 +18,12 @@ HARD_STOPS = {
     "UNAUTHORIZED_TRADING",
 }
 
-NORMAL_TERMINAL = {"REVIEW_PROPOSAL", "WAIT_DATA", "WAIT_HUMAN_REVIEW"}
+NORMAL_TERMINAL = {
+    "REVIEW_PROPOSAL",
+    "WAIT_DATA",
+    "WAIT_EXECUTION_PERMISSION",
+    "WAIT_HUMAN_REVIEW",
+}
 CONTINUE_STATES = {
     "REPLAN",
     "RETRY_WAIT",
@@ -42,4 +47,3 @@ def classify_outcome(state: str) -> tuple[str, int, bool]:
     if normalized in CONTINUE_STATES or normalized == "SUCCEEDED":
         return normalized, 0, True
     return "CONTROLLER_BUG", 2, False
-

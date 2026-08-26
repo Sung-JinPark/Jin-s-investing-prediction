@@ -13,7 +13,7 @@ import pytest
 
 from ai_fc.timeseries_v7_r4.control_plane import PostgresControlPlane
 from ai_fc.timeseries_v7_r4.collectors import collect_nasdaqcom
-from ai_fc.timeseries_v7_r4.dispatcher import CodexDispatcher
+from ai_fc.timeseries_v7_r4.dispatcher import CodexDispatcher, DEFAULT_ALLOWED_PATHS
 from ai_fc.timeseries_v7_r4.integrity import (
     canonical_json,
     safe_zip_inventory,
@@ -90,6 +90,12 @@ def test_wait_data_is_normal_terminal():
     assert classify_outcome("WAIT_DATA") == ("WAIT_DATA", 0, False)
 
 
+def test_wait_execution_permission_is_normal_terminal():
+    assert classify_outcome("WAIT_EXECUTION_PERMISSION") == (
+        "WAIT_EXECUTION_PERMISSION", 0, False,
+    )
+
+
 def test_unknown_state_fails_closed():
     assert classify_outcome("invented")[0] == "CONTROLLER_BUG"
 
@@ -137,9 +143,14 @@ def test_secret_scan_allows_secret_name_only():
 
 def test_sanitized_environment(monkeypatch):
     monkeypatch.setenv("FRED_API_KEY", "x" * 32)
+    monkeypatch.setenv("RALPH_V7_R4_DATABASE_URL", "postgresql://private")
+    monkeypatch.setenv("R4_ALLOW_CODEX_CHILD", "1")
     monkeypatch.setenv("R4_PUBLIC_SETTING", "yes")
     env = sanitized_environment()
-    assert "FRED_API_KEY" not in env and env["R4_PUBLIC_SETTING"] == "yes"
+    assert "FRED_API_KEY" not in env
+    assert "RALPH_V7_R4_DATABASE_URL" not in env
+    assert "R4_ALLOW_CODEX_CHILD" not in env
+    assert env["R4_PUBLIC_SETTING"] == "yes"
 
 
 def test_valid_child_result():
@@ -156,6 +167,33 @@ def test_child_cannot_start_another_task():
                "secret_scan_pass": True, "child_worker_started_another_task": True,
                "supervisor_should_continue": True}
     assert "child_started_another_task" in validate_child_result(payload)
+
+
+def test_successful_child_requires_independent_evidence():
+    payload = {"run_id": "r", "cycle_id": "c", "task_key": "t", "attempt_id": "a",
+               "status": "SUCCEEDED", "protected_non_mutation": True,
+               "secret_scan_pass": True, "child_worker_started_another_task": False,
+               "supervisor_should_continue": True, "commands": [], "tests": [],
+               "acceptance_results": []}
+    errors = validate_child_result(payload, require_evidence=True)
+    assert {"missing_command_evidence", "missing_test_evidence",
+            "missing_acceptance_evidence"}.issubset(errors)
+
+
+def test_dispatch_allowlist_is_r4_only():
+    allowed = list(DEFAULT_ALLOWED_PATHS)
+    assert CodexDispatcher._path_allowed(
+        "src/ai_fc/timeseries_v7_r4/calendar.py", allowed,
+    )
+    assert CodexDispatcher._path_allowed(
+        "data/timeseries_v7_r4/contracts/pit.json", allowed,
+    )
+    assert not CodexDispatcher._path_allowed(
+        "data/timeseries_v7/official_ledger.jsonl", allowed,
+    )
+    assert not CodexDispatcher._path_allowed(
+        "data/timeseries_v7_r4/ralph/spec/frozen.yaml", allowed,
+    )
 
 
 def test_read_specs():
@@ -192,6 +230,90 @@ def test_priority_claim(control):
         {"task_id": "first", "title": "first", "priority": 1},
     ])
     assert control.claim(run_id, "worker", 30).task_key == "first"
+
+
+def test_imported_dependencies_block_claim_until_parent_succeeds(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [
+        {"task_id": "parent", "title": "parent", "priority": 2},
+        {"task_id": "child", "title": "child", "priority": 1,
+         "dependencies": ["parent"]},
+    ])
+    parent = control.claim(run_id, "worker", 30)
+    assert parent.task_key == "parent"
+    assert control.finish(parent, "worker", result(parent), "SUCCEEDED")
+    assert control.claim(run_id, "worker", 30).task_key == "child"
+
+
+def test_reconcile_dependencies_repairs_preexisting_run(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [
+        {"task_id": "parent", "title": "parent", "priority": 2},
+        {"task_id": "child", "title": "child", "priority": 1},
+    ])
+    with control.connect() as conn:
+        conn.execute(
+            "UPDATE timeseries_v7_r4.tasks SET payload=%s::jsonb"
+            " WHERE run_id=%s AND task_key='child'",
+            (json.dumps({"task_id": "child", "title": "child", "priority": 1,
+                         "dependencies": ["parent"]}), run_id),
+        )
+        conn.commit()
+    repaired = control.reconcile_dependencies(run_id)
+    assert repaired["inserted"] == [("child", "parent")]
+    assert control.reconcile_dependencies(run_id)["inserted_count"] == 0
+    assert control.claim(run_id, "worker", 30).task_key == "parent"
+    assert "DEPENDENCY_GRAPH_CORRECTION_APPENDED" in {
+        event["event_type"] for event in control.list_events(run_id)
+    }
+
+
+def test_permission_wait_correction_preserves_attempt_and_wakes(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    wait_result = result(
+        lease,
+        status="WAIT_DATA",
+        blocker_signature="CODEX_CHILD_EXECUTION_NOT_ENABLED_IN_HOST",
+        supervisor_should_continue=False,
+    )
+    assert control.finish(lease, "worker", wait_result, "WAIT_DATA")
+    with control.connect() as conn:
+        before = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s",
+            (run_id, lease.attempt_id),
+        ).fetchone()
+
+    corrections = control.correct_execution_permission_waits(run_id)
+    assert corrections[0]["supersedes_attempt_id"] == lease.attempt_id
+    assert corrections[0]["supersedes_result_hash"] == before[1]
+    with control.connect() as conn:
+        task_state = conn.execute(
+            "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s AND task_key='t'",
+            (run_id,),
+        ).fetchone()[0]
+        after = conn.execute(
+            "SELECT state,result_hash,result FROM timeseries_v7_r4.attempts"
+            " WHERE run_id=%s AND attempt_id=%s",
+            (run_id, lease.attempt_id),
+        ).fetchone()
+    assert task_state == "WAIT_EXECUTION_PERMISSION"
+    assert after == before
+    assert control.correct_execution_permission_waits(run_id) == []
+
+    assert control.wake_execution_permission(run_id) == ["t"]
+    with control.connect() as conn:
+        task = conn.execute(
+            "SELECT state,blocker_signature FROM timeseries_v7_r4.tasks"
+            " WHERE run_id=%s AND task_key='t'", (run_id,),
+        ).fetchone()
+    assert task == ("PENDING", None)
+    assert [event["event_type"] for event in control.list_events(run_id)] == [
+        "TASK_STATE_CORRECTION_APPENDED",
+        "TASK_EXECUTION_PERMISSION_GRANTED",
+    ]
 
 
 def test_lease_fencing(control):
