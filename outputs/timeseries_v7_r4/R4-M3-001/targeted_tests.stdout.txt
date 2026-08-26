@@ -1,0 +1,20 @@
+..................................................                       [100%]
+============================== warnings summary ===============================
+..\timeseries-v7-r4\.runtime\v7r4\Lib\site-packages\exchange_calendars\exchange_calendar.py:65
+  C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\.runtime\v7r4\Lib\site-packages\exchange_calendars\exchange_calendar.py:65: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+    ONE_HOUR = pd.Timedelta("1h")
+
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_is_session_aware
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_is_session_aware
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_is_session_aware
+  C:\workspace\ai-investing\worktrees\active\timeseries-v7-r4\.runtime\v7r4\Lib\site-packages\exchange_calendars\utils\pandas_utils.py:60: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+    delta = pd.Timedelta(
+
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_is_session_aware
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_appends_without_duplicate
+src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_official_collector_appends_without_duplicate
+  C:\workspace\ai-investing\worktrees\active\r4-R4-M3-001-R4-M3-001-aa5ff5a0a9f78\src\ai_fc\timeseries_v7_r4\collectors.py:25: DeprecationWarning: The 'generic' unit for NumPy timedelta is deprecated, and will raise an error in the future. This includes implicit conversion of bare integers (e.g. `+ 1`).Please use a specific unit instead.
+    sessions = calendar.sessions_in_range(today - pd.Timedelta(days=14), today)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+50 passed, 7 warnings in 3.32s

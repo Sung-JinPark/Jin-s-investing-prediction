@@ -19,6 +19,7 @@ from typing import Any
 import pandas as pd
 
 from .integrity import canonical_json, sha256_bytes
+from .e0_empirical_samples import E0_EXACT_EMPIRICAL_CONTRACT, EvaluationPath, fit_exact_empirical_anchor
 
 
 DEFAULT_STRESS_WINDOWS = {
@@ -100,6 +101,76 @@ def generate_g0_ablation(
         "e0_only_stress": stress,
         "component_ablations": ablations,
     }
+
+
+def replay_exact_e0_grid(
+    labels: Iterable[Mapping[str, Any]], *,
+    evaluation_origins: Iterable[str],
+    r4_snapshot_hash: str,
+    qualify: Callable[[], Mapping[str, Any]],
+    five_role_validation_proof: bool,
+    component_scores: Mapping[str, Mapping[tuple[str, int], float]] | None = None,
+    stress_windows: Mapping[str, tuple[str, str]] = DEFAULT_STRESS_WINDOWS,
+) -> dict[str, Any]:
+    """Replay E0 from direct labels; no predecessor score is an input."""
+    qualification = dict(qualify())
+    if qualification.get("qualified") is not True:
+        raise ValueError("qualification failed before G0")
+    if not five_role_validation_proof:
+        raise ValueError("five-role validation proof is required")
+    if len(r4_snapshot_hash) != 64:
+        raise ValueError("a content-addressed R4 snapshot is required")
+    source_labels = [dict(row) for row in labels]
+    required = {"origin_session", "horizon_sessions", "label_end_session", "mature_at", "value"}
+    if not source_labels or any(not required.issubset(row) for row in source_labels):
+        raise ValueError("complete PostgreSQL direct-horizon labels are required")
+    origins = sorted(set(map(str, evaluation_origins)))
+    origin_set = set(origins)
+    rows: list[dict[str, Any]] = []
+    identities: list[dict[str, Any]] = []
+    identity_failures = 0
+    for label in source_labels:
+        origin = str(label["origin_session"])
+        horizon = int(label["horizon_sessions"])
+        if origin not in origin_set or horizon not in (1, 5, 21, 63):
+            continue
+        samples = fit_exact_empirical_anchor(
+            origin_session=origin, horizon_sessions=horizon,
+            labels=({"origin_session": item["origin_session"],
+                     "horizon_sessions": item["horizon_sessions"],
+                     "available_at": item["mature_at"], "value": item["value"]}
+                    for item in source_labels),
+        )
+        path = EvaluationPath.bind(samples)
+        artifacts = (path.score(actual=float(label["value"])), path.stacking_input(),
+                     path.calibration_input(), path.forecast())
+        hashes = {item.stage: item.sample_set_hash for item in artifacts}
+        if len(set(hashes.values())) != 1:
+            identity_failures += 1
+        row = {"origin_session": origin, "horizon": horizon,
+               "actual": float(label["value"]), "baseline_crps": artifacts[0].value}
+        for name, scores in (component_scores or {}).items():
+            row[name] = float(scores.get((origin, horizon), artifacts[0].value))
+        rows.append(row)
+        identities.append({"origin_session": origin, "horizon_sessions": horizon,
+                           "sample_set_hashes": hashes, "sample_count": len(samples.values)})
+    if not rows:
+        raise ValueError("the frozen origin grid has no matured labels")
+    report = generate_g0_ablation(
+        rows, component_columns={name: name for name in (component_scores or {})},
+        stress_windows=stress_windows, qualify=lambda: qualification,
+    )
+    report.update({
+        "comparator_contract": dict(E0_EXACT_EMPIRICAL_CONTRACT),
+        "source": {"r4_snapshot_hash": r4_snapshot_hash,
+                   "origin_count": len({row["origin_session"] for row in rows}),
+                   "coordinate_count": len(rows), "store": "postgresql"},
+        "exact_replay_count": len(rows), "sample_identity_failures": identity_failures,
+        "approximate_baseline_rows_used": 0,
+        "five_role_validation_proof": True,
+        "coordinate_sample_identity": identities,
+    })
+    return report
 
 
 def _read_real_pack(path: Path, nested_member: str, expected_sha256: str) -> tuple[list[dict[str, Any]], dict[str, Any]]:
