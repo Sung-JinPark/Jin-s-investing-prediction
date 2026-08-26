@@ -29,6 +29,10 @@ from .runtime_snapshot_export import export_runtime_snapshot
 R4_QUALIFIED_SNAPSHOT_HASH = (
     "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2"
 )
+R4_EXACT_E0_ARTIFACT_SHA256 = (
+    "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec"
+)
+R4_EXACT_E0_MEAN_CRPS = 0.0187453537909802
 R4_SNAPSHOT_CONSUMER_TASKS = frozenset({"R4-M3-006", "R4-M3-007", "R4-M3-008"})
 
 
@@ -128,6 +132,21 @@ class Supervisor:
                 "usage": (
                     "credential-free authoritative R4 PIT snapshot; use this for actual "
                     "model execution and never request a database URL from the child environment"
+                ),
+            })
+            e0_path = (
+                self.context.repo / "outputs" / "timeseries_v7_r4"
+                / "R4-M3-001" / "g0_e0_ablation.json"
+            )
+            if sha256_file(e0_path) != R4_EXACT_E0_ARTIFACT_SHA256:
+                raise RuntimeError("frozen exact E0 artifact hash mismatch")
+            artifacts.append({
+                "path": str(e0_path.resolve()),
+                "sha256": R4_EXACT_E0_ARTIFACT_SHA256,
+                "exact_mean_crps": R4_EXACT_E0_MEAN_CRPS,
+                "usage": (
+                    "frozen exact E0 comparator; pass exact_mean_crps unchanged to every "
+                    "no-regret screen and never substitute a rounded value"
                 ),
             })
         return artifacts
@@ -951,8 +970,9 @@ class Supervisor:
                     == "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2"
                 ),
                 "uses_exact_e0_full_grid": (
-                    source.get("e0_artifact_sha256")
-                    == "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec"
+                    source.get("e0_artifact_sha256") == R4_EXACT_E0_ARTIFACT_SHA256
+                    and isinstance(source.get("e0_mean_crps"), (int, float))
+                    and abs(float(source["e0_mean_crps"]) - R4_EXACT_E0_MEAN_CRPS) < 1e-15
                     and source.get("evaluation_origin_grid_hash")
                     == "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135"
                 ),

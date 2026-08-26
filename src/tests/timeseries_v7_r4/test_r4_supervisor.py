@@ -663,6 +663,55 @@ def test_m3_006_rejects_point_mae_and_asserted_five_role_proof(control, tmp_path
     assert evidence["frozen_candidate_coordinates_preserved"] is False
 
 
+def test_m3_006_rejects_rounded_e0_comparator_value(control, tmp_path):
+    artifact = tmp_path / "outputs/timeseries_v7_r4/R4-M3-006"
+    artifact.mkdir(parents=True)
+    role_counts = {role: 1 for role in ("train", "selection", "stacking",
+                                        "calibration", "outer")}
+    role_hashes = {role: "a" * 64 for role in role_counts}
+    score_receipts = [{"family": family, "metric": "crps", "score_rows": 4,
+                       "predictive_distribution_hash": "b" * 64}
+                      for family in ("E1", "E2", "E3", "E4")]
+    (artifact / "g1_screen.json").write_text(json.dumps({
+        "candidate_families": ["E1", "E2", "E3", "E4"],
+        "candidate_counts": {"smoke": 4, "inner_screen": 4, "robust_inner": 4,
+                             "full_nested": 4, "qualification": 1},
+        "candidates": [{"candidate_id": family, "hypothesis_hash": "c" * 64,
+                         "exposure_hash": "d" * 64, "underperforms_e0": True,
+                         "weight": 0.0} for family in ("E1", "E2", "E3", "E4")],
+        "five_role_validation_proof": True, "score_receipts": score_receipts,
+        "source": {
+            "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+            "e0_artifact_sha256": "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec",
+            "e0_mean_crps": 0.03,
+            "evaluation_origin_grid_hash": "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135",
+            "model_score_rows": 16, "legacy_precomputed_score_rows_used": 0,
+            "outer_rows_used": 0, "score_metric": "distribution_crps",
+            "frozen_candidate_coordinates_preserved": True,
+            "optimizer_convergence_required": True,
+            "five_role_receipt": {"role_counts": role_counts, "role_hashes": role_hashes,
+                                  "plan_hash": "e" * 64, "excluded_count": 1,
+                                  "interval_overlap_count": 0,
+                                  "purge_unit": "xnas_sessions",
+                                  "outer_exposed_during_screen": False},
+        },
+    }), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    checked = supervisor._validate_task_semantics(
+        Lease("run", "R4-M3-006", "attempt", "token", "screen", {}),
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["acceptance_results"][-1]["evidence"]["uses_exact_e0_full_grid"] is False
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
