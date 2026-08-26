@@ -809,10 +809,12 @@ def test_m3_008_rejects_self_report_without_frozen_methodology_revision(control,
 
 
 def test_s4_001_rejects_predecessor_score_calibration_without_r4_role_receipt(control, tmp_path):
-    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-001/probability_up_calibration"
+    folder = tmp_path / "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration"
     folder.mkdir(parents=True)
     (folder / "acceptance_summary.json").write_text(
-        json.dumps({"source_sha256": "a" * 64, "families": []}), encoding="utf-8",
+        json.dumps({"source_sha256": "a" * 64,
+                    "families": [{"family": f"h{horizon}"}
+                                 for horizon in (1, 5, 21, 63)]}), encoding="utf-8",
     )
     supervisor = Supervisor(control, SupervisorContext(
         repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
@@ -1013,6 +1015,8 @@ def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
     assert "diagnostic evidence only" in prompt
     assert "phase=red_test" in prompt
     assert "expected_failure" in prompt
+    assert "schema=r4_probability_up_calibration_v2" in prompt
+    assert "evaluation_role=calibration_cross_fit_holdout" in prompt
 
 
 def test_codex_dispatch_prompt_requires_s4_002_corrected_receipt_schema():

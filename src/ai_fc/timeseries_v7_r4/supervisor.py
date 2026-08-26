@@ -1247,8 +1247,17 @@ class Supervisor:
                     payload = {}
             source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
             families = payload.get("families") if isinstance(payload.get("families"), list) else []
+            def p_up_horizon(item: dict[str, Any]) -> int | None:
+                raw = item.get("horizon")
+                if raw is None and isinstance(item.get("family"), str):
+                    raw = str(item["family"]).removeprefix("h")
+                try:
+                    return int(raw)
+                except (TypeError, ValueError):
+                    return None
+
             family_pass = len(families) == 4 and {
-                int(item.get("horizon")) for item in families if isinstance(item, dict)
+                p_up_horizon(item) for item in families if isinstance(item, dict)
             } == {1, 5, 21, 63} and all(
                 isinstance(item, dict)
                 and item.get("calibration_role_origin_count") == 634

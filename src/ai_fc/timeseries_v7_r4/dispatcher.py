@@ -162,7 +162,14 @@ class CodexDispatcher:
                 "calibration role hash; record legacy_review_pack_score_rows_used=0, "
                 "qualification_score_rows_used=0 and outer_rows_used=0. Store probabilities as "
                 "fractions in [0,1], retain the base-rate Brier comparator and balanced-direction "
-                "diagnostics, and append corrected evidence rather than rewriting the rejected output."
+                "diagnostics, and append corrected evidence rather than rewriting the rejected output. "
+                "Write outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json "
+                "with schema=r4_probability_up_calibration_v2, a source object containing the R4 "
+                "snapshot hash and artifact SHA, G2 SHA, calibration role hash, all three forbidden "
+                "row counters at zero plus outer_origin_intersection=0, and supersedes_sha256. Each "
+                "horizon family must explicitly include horizon, calibration_role_origin_count=634, "
+                "fit_role=calibration_temporal_cross_fit, evaluation_role=calibration_cross_fit_holdout, "
+                "Brier/base-rate/balanced Brier, probability_unit=fraction and probability bounds PASS."
             )
         if envelope.get("task_key") == "R4-S4-002":
             qualification_instruction += (
