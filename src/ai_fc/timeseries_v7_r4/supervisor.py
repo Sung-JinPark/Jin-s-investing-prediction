@@ -15,11 +15,13 @@ from pathlib import Path
 from typing import Any, Callable
 
 from .control_plane import Lease, PostgresControlPlane
+from .dispatcher import CodexDispatcher
 from .collectors import collect_nasdaqcom
 from .integrity import (canonical_json, protected_manifest, sha256_bytes, sha256_file,
                         validate_child_result)
 from .semantics import HARD_STOPS, NORMAL_TERMINAL, classify_outcome
 from .specs import verify_pack
+from .router import GateDeficitRouter
 
 
 def now_iso() -> str:
@@ -50,8 +52,10 @@ class Supervisor:
             "R4-B0-005": self._verify_exit_semantics,
             "R4-B0-006": self._infrastructure_ready,
             "R4-B0-007": self._verify_dispatcher,
+            "R4-B0-007-R1": self._verify_dispatcher,
             "R4-B0-008": self._infrastructure_ready,
             "R4-B0-009": self._infrastructure_ready,
+            "R4-B0-009-R1": self._verify_router,
             "R4-B0-010": self._import_r3_catalog,
             "R4-B0-011": self._append_baseline_correction,
             "R4-B0-012": self._freeze_runtime,
@@ -151,10 +155,30 @@ class Supervisor:
 
     def _verify_dispatcher(self, lease: Lease) -> dict[str, Any]:
         result = self._base_result(lease)
+        ready = CodexDispatcher.contract_ready()
+        if not ready:
+            raise RuntimeError("Codex child CLI contract unavailable")
         result["acceptance_results"].append(
             {"criterion": "isolated_child_contract", "passed": True,
              "evidence": {"one_task": True, "secret_isolation": True,
                           "explicit_enable_required": True}})
+        return result
+
+    def _verify_router(self, lease: Lease) -> dict[str, Any]:
+        result = self._base_result(lease)
+        router_path = self.context.repo / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml"
+        router = GateDeficitRouter.from_yaml(router_path)
+        routed = router.route(["h21_skill_negative", "coverage50_low"],
+                              dataset_snapshot_hash="d" * 64,
+                              code_hash="c" * 64, runtime_hash="r" * 64)
+        actions = [item.action for item in routed]
+        passed = "E0_ONLY_FALLBACK" in actions and "CROSS_FIT_LOCATION_SCALE_CALIBRATION" in actions
+        if not passed:
+            raise RuntimeError("Gate deficit router contract mismatch")
+        result["acceptance_results"].append(
+            {"criterion": "deterministic_gate_deficit_routing", "passed": True,
+             "evidence": {"actions": actions,
+                          "deduplication_keys": [item.deduplication_key for item in routed]}})
         return result
 
     def _import_r3_catalog(self, lease: Lease) -> dict[str, Any]:
@@ -332,6 +356,37 @@ class Supervisor:
         result["supervisor_should_continue"] = False
         return result
 
+    def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
+        envelope = {
+            "schema_version": 1, "run_id": lease.run_id,
+            "cycle_id": f"{lease.run_id}-c001", "generation_id": None,
+            "hypothesis_id": None, "task_key": lease.task_key,
+            "attempt_id": lease.attempt_id, "title": lease.title,
+            "worker_capability": "codex", "priority": lease.payload.get("priority", 100),
+            "dependencies": lease.payload.get("depends_on", []), "input_artifacts": [],
+            "allowed_paths": lease.payload.get("allowed_paths", []),
+            "protected_manifest_sha256": protected_manifest(self.context.repo)["manifest_sha256"],
+            "secret_isolation": True, "diagnostic": lease.payload.get("diagnostic", ""),
+            "required_actions": lease.payload.get("required_actions", []),
+            "acceptance": lease.payload.get("acceptance", []),
+            "required_commands": lease.payload.get("required_commands", []),
+            "retry_policy": {"same_blocker_max": 3, "alternate_family_after": 3},
+            "completion_contract": {"child_worker_started_another_task": False,
+                                    "supervisor_must_continue_after_success": True},
+        }
+        dispatched = CodexDispatcher(repo=self.context.repo,
+                                      output_root=self.context.output_root).dispatch(envelope)
+        if dispatched.return_code or dispatched.result is None:
+            result = self._base_result(lease, "RETRY_WAIT")
+            result["blocker_signature"] = "CODEX_CHILD_FAILED_OR_INVALID_JSON"
+            result["commands"] = [{"command": "isolated codex exec",
+                "return_code": dispatched.return_code,
+                "stdout_sha256": dispatched.stdout_sha256,
+                "stderr_sha256": dispatched.stderr_sha256}]
+            result["recommended_router_deficits"] = ["engineering_fix"]
+            return result
+        return dispatched.result
+
     def execute(self, lease: Lease) -> dict[str, Any]:
         started = time.monotonic()
         before = protected_manifest(self.context.repo)
@@ -340,10 +395,7 @@ class Supervisor:
             if handler is not None:
                 result = handler(lease)
             elif self.context.auto_codex and os.getenv("R4_ALLOW_CODEX_CHILD") == "1":
-                # The execution hook is deliberately fail-closed until an authorized
-                # primary session provides the child process contract.
-                result = self._dispatch_or_wait(lease)
-                result["blocker_signature"] = "CODEX_CHILD_DISPATCHER_CONTRACT_PENDING"
+                result = self._dispatch_codex(lease)
             else:
                 result = self._dispatch_or_wait(lease)
         except Exception as exc:

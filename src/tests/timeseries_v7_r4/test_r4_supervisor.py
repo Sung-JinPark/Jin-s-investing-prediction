@@ -13,6 +13,7 @@ import pytest
 
 from ai_fc.timeseries_v7_r4.control_plane import PostgresControlPlane
 from ai_fc.timeseries_v7_r4.collectors import collect_nasdaqcom
+from ai_fc.timeseries_v7_r4.dispatcher import CodexDispatcher
 from ai_fc.timeseries_v7_r4.integrity import (
     canonical_json,
     safe_zip_inventory,
@@ -23,6 +24,7 @@ from ai_fc.timeseries_v7_r4.integrity import (
     protected_manifest,
 )
 from ai_fc.timeseries_v7_r4.semantics import classify_outcome
+from ai_fc.timeseries_v7_r4.router import GateDeficitRouter
 from ai_fc.timeseries_v7_r4.specs import read_json, read_yaml, verify_delivery_spec, verify_pack
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -269,3 +271,29 @@ def test_protected_manifest_changes_on_protected_file(tmp_path):
     item.write_text("two", encoding="utf-8")
     after = protected_manifest(tmp_path)
     assert before["manifest_sha256"] != after["manifest_sha256"]
+
+
+def test_codex_dispatcher_contract_is_available():
+    assert CodexDispatcher.contract_ready() is True
+
+
+def test_codex_dispatch_requires_explicit_enable(tmp_path, monkeypatch):
+    monkeypatch.delenv("R4_ALLOW_CODEX_CHILD", raising=False)
+    dispatcher = CodexDispatcher(repo=ROOT, output_root=tmp_path,
+                                 central_worktree_root=tmp_path / "worktrees")
+    with pytest.raises(PermissionError):
+        dispatcher.dispatch({"task_key": "t", "attempt_id": "a"})
+
+
+def test_gate_deficit_router_is_deterministic():
+    router = GateDeficitRouter.from_yaml(
+        ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")
+    first = router.route(["h21_skill_negative", "coverage50_low"],
+                         dataset_snapshot_hash="d" * 64, code_hash="c" * 64,
+                         runtime_hash="r" * 64)
+    second = router.route(["coverage50_low", "h21_skill_negative"],
+                          dataset_snapshot_hash="d" * 64, code_hash="c" * 64,
+                          runtime_hash="r" * 64)
+    assert first == second
+    assert "E0_ONLY_FALLBACK" in [item.action for item in first]
+    assert "CROSS_FIT_LOCATION_SCALE_CALIBRATION" in [item.action for item in first]
