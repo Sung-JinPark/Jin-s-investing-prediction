@@ -149,7 +149,11 @@ class CodexDispatcher:
             "the real evidence pack declared in input_artifacts; synthetic fixtures are tests only "
             "and cannot prove run acceptance. A credential-free authoritative PIT export in "
             "input_artifacts is prepared by the Supervisor specifically so the child must not ask "
-            "for or depend on a database URL. Do not commit or run git worktree commands. Return only "
+            "for or depend on a database URL. Launch each long-running acceptance command exactly "
+            "once and poll the returned process/session until completion; never start a duplicate "
+            "while an earlier process with the same command is alive. Persist content-addressed "
+            "per-family checkpoints so a retry resumes completed evidence instead of refitting it. "
+            "Do not commit or run git worktree commands. Return only "
             "a JSON object "
             "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
         )
