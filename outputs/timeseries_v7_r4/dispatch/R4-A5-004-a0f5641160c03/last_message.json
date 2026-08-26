@@ -1,0 +1,147 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "task_key": "R4-A5-004",
+  "attempt_id": "R4-A5-004-a0f5641160c03",
+  "status": "SUCCEEDED",
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_open_data_challenger.py",
+      "return_code": 1,
+      "phase": "red_test",
+      "expected_failure": "ModuleNotFoundError: ai_fc.timeseries_v7_r4.open_data_challenger did not exist before implementation"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_open_data_challenger.py",
+      "return_code": 0,
+      "phase": "targeted_test"
+    },
+    {
+      "command": "frozen Python credential-free authoritative PIT-pack verification",
+      "return_code": 1,
+      "phase": "expected_diagnostic",
+      "expected_failure": "Initial verifier assumed an observation-level as_of field; the authoritative pack instead provides audited PIT leakage results at the evidence-pack qualification boundary"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe tools/verify_open_data_challenger_v7_r4.py --pack C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip --pack-sha256 9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28 --nested-member INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip --contract data/timeseries_v7_r4/contracts/open_data_challenger_v1.json --output outputs/timeseries_v7_r4/R4-A5-004/authoritative_pit_qualification.json",
+      "return_code": 0,
+      "phase": "acceptance"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_open_data_challenger.py src/tests/timeseries_v7_r4/test_data_pit_qualification.py",
+      "return_code": 0,
+      "phase": "targeted_test"
+    },
+    {
+      "command": "initial PowerShell artifact verification probe",
+      "return_code": 1,
+      "phase": "expected_diagnostic",
+      "expected_failure": "PowerShell quoting in the secret-scan regular expression prevented the combined diagnostic from producing output"
+    },
+    {
+      "command": "artifact SHA-256 inventory, git diff --check, and scoped secret scan",
+      "return_code": 0,
+      "phase": "verification"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/open_data_challenger.py",
+    "src/tests/timeseries_v7_r4/test_open_data_challenger.py",
+    "data/timeseries_v7_r4/contracts/open_data_challenger_v1.json",
+    "docs/timeseries_v7_r4/V8_OPEN_DATA_CHALLENGER_PROPOSAL.md",
+    "tools/verify_open_data_challenger_v7_r4.py",
+    "outputs/timeseries_v7_r4/R4-A5-004/authoritative_pit_qualification.json"
+  ],
+  "tests": [
+    {
+      "name": "official open-data challenger targeted tests",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_open_data_challenger.py",
+      "sha256": "2474ba707dd326ac2b5b4284dad92def0dc5705521c59ba25638b92d5b8dba70"
+    },
+    {
+      "name": "combined challenger and PIT qualification tests",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-A5-004/authoritative_pit_qualification.json",
+      "sha256": "904a9df702cd4120fab8305a5ce3f87c00cbe0e5ea323f0efc1f099621427a9b"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "new sources remain weight zero until separately preregistered and validated",
+      "passed": true,
+      "evidence": {
+        "source_count": 9,
+        "all_weights_zero": true,
+        "lane": "research_only",
+        "official_gate_eligible": false
+      }
+    },
+    {
+      "criterion": "PIT grade and license/terms receipts are present",
+      "passed": true,
+      "evidence": {
+        "authoritative_pack_qualified": true,
+        "pit_and_terms_receipts_complete": true,
+        "pit_violations": 0,
+        "receipt_count": 23,
+        "receipt_terminal_outcome_rate": 1.0,
+        "run_id": "v7-alfred-20260825T083047Z"
+      }
+    },
+    {
+      "criterion": "V8 proposal is created when V7 contract change is required",
+      "passed": true,
+      "evidence": {
+        "v8_proposal_required": true,
+        "v8_proposal_present": true,
+        "status": "PROPOSED_NOT_APPROVED",
+        "frozen_v7_coordinates_unchanged": true
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/open_data_challenger.py",
+      "sha256": "9a2d25d94a37b837244a31e063f76aeea38c08655dfaab4e6097c75cb18f9d93",
+      "bytes": 3380
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_open_data_challenger.py",
+      "sha256": "2474ba707dd326ac2b5b4284dad92def0dc5705521c59ba25638b92d5b8dba70",
+      "bytes": 1742
+    },
+    {
+      "path": "data/timeseries_v7_r4/contracts/open_data_challenger_v1.json",
+      "sha256": "592134d2c53d0fc579496951799a5f3f09a371b2bb33f80f8c5dffb72f37a90d",
+      "bytes": 2747
+    },
+    {
+      "path": "docs/timeseries_v7_r4/V8_OPEN_DATA_CHALLENGER_PROPOSAL.md",
+      "sha256": "5f102770d448caa9b61c4865a7e2332462b1bdee8f92ea9fbc058eb294c8f971",
+      "bytes": 785
+    },
+    {
+      "path": "tools/verify_open_data_challenger_v7_r4.py",
+      "sha256": "392f7ec40dea6d32f8bae526d9036efa3bb9609c0c077bde9881774fd46f3bb7",
+      "bytes": 2349
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-A5-004/authoritative_pit_qualification.json",
+      "sha256": "904a9df702cd4120fab8305a5ce3f87c00cbe0e5ea323f0efc1f099621427a9b",
+      "bytes": 510
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
