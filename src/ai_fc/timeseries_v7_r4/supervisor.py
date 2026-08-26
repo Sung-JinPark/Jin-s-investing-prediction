@@ -647,6 +647,48 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["comparator_identity"]
+        if lease.task_key == "R4-V2-003":
+            implementation_path = (
+                self.context.repo
+                / "src/ai_fc/timeseries_v7_r4/empirical_mixture.py"
+            )
+            implementation = (
+                implementation_path.read_text(encoding="utf-8")
+                if implementation_path.exists() else ""
+            )
+            checks = {
+                "no_quadratic_broadcast_matrix": (
+                    "[:, None]" not in implementation
+                    and "[None, :]" not in implementation
+                ),
+                "efficient_cross_distance": (
+                    "cross_absolute_distance" in implementation
+                    or "cross_abs_distance" in implementation
+                ),
+                "objective_terms_precomputed": "precompute" in implementation.lower(),
+                "final_no_regret_check": (
+                    "mixture_score" in implementation
+                    and "e0_score" in implementation
+                    and "improvement_tolerance" in implementation
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "scalable_empirical_mixture_and_final_no_regret",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "EMPIRICAL_MIXTURE_SCALE_OR_GUARD_MISSING"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "O(N log N) cross-distance precomputation and final exact E0-only "
+                        "fallback whenever optimized mixture does not improve E0"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["mixture_optimizer"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

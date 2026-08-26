@@ -531,6 +531,38 @@ def test_v2_002_rejects_a_new_block_bootstrap_comparator(control, tmp_path):
     assert evidence["no_comparator_block_bootstrap"] is False
 
 
+def test_v2_003_rejects_quadratic_pairwise_broadcast_without_final_guard(
+    control, tmp_path,
+):
+    module = tmp_path / "src/ai_fc/timeseries_v7_r4"
+    module.mkdir(parents=True)
+    (module / "empirical_mixture.py").write_text(
+        "pairwise = abs(left_values[:, None] - right_values[None, :])\n",
+        encoding="utf-8",
+    )
+    supervisor = Supervisor(
+        control,
+        SupervisorContext(
+            repo=tmp_path,
+            output_root=tmp_path / "outputs/timeseries_v7_r4",
+            review_pack=tmp_path / "review.zip",
+            r3_design_pack=None,
+            predecessor_repo=None,
+            config={"controller": {"lease_seconds": 30}},
+            auto_codex=False,
+        ),
+    )
+    lease = Lease("run", "R4-V2-003", "attempt", "token", "mixture", {})
+    checked = supervisor._validate_task_semantics(
+        lease,
+        {"status": "SUCCEEDED", "acceptance_results": [],
+         "unresolved_blockers": [], "recommended_router_deficits": []},
+    )
+
+    assert checked["status"] == "RETRY_WAIT"
+    assert checked["blocker_signature"] == "EMPIRICAL_MIXTURE_SCALE_OR_GUARD_MISSING"
+
+
 def test_event_is_append_only(control):
     run_id = make_run(control)
     control.event(run_id, "ONE", {"x": 1})
