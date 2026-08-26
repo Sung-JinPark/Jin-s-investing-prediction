@@ -100,6 +100,61 @@ def test_wait_data_is_normal_terminal():
     assert classify_outcome("WAIT_DATA") == ("WAIT_DATA", 0, False)
 
 
+def test_new_receipt_or_mature_label_wakes_wait_data_once_and_advances_cycle(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"id": "collect", "title": "collect"}])
+    with control.connect() as conn:
+        conn.execute(
+            "UPDATE timeseries_v7_r4.tasks SET state='WAIT_DATA' WHERE run_id=%s",
+            (run_id,),
+        )
+        conn.commit()
+    control.set_run_state(run_id, "WAIT_DATA", {"reason": "await evidence"})
+
+    receipt = control.wake_wait_data(
+        run_id, evidence_kind="COLLECTION_RECEIPT", evidence_hash="a" * 64,
+        available_at=datetime(2026, 8, 25, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 26, tzinfo=timezone.utc),
+    )
+    assert receipt == {"woken": True, "cycle_id": f"{run_id}-c002"}
+    assert control.wake_wait_data(
+        run_id, evidence_kind="COLLECTION_RECEIPT", evidence_hash="a" * 64,
+        available_at=datetime(2026, 8, 25, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 26, tzinfo=timezone.utc),
+    ) == {"woken": False, "cycle_id": f"{run_id}-c002"}
+
+    with control.connect() as conn:
+        task_state = conn.execute(
+            "SELECT state FROM timeseries_v7_r4.tasks WHERE run_id=%s", (run_id,),
+        ).fetchone()[0]
+        cycles = conn.execute(
+            "SELECT cycle_id FROM timeseries_v7_r4.cycles WHERE run_id=%s ORDER BY ordinal",
+            (run_id,),
+        ).fetchall()
+    assert task_state == "PENDING"
+    assert [row[0] for row in cycles] == [f"{run_id}-c001", f"{run_id}-c002"]
+
+    with control.connect() as conn:
+        conn.execute(
+            "UPDATE timeseries_v7_r4.tasks SET state='WAIT_DATA' WHERE run_id=%s",
+            (run_id,),
+        )
+        conn.commit()
+    control.set_run_state(run_id, "WAIT_DATA", {"reason": "await label maturity"})
+    mature = control.wake_wait_data(
+        run_id, evidence_kind="MATURE_LABEL", evidence_hash="b" * 64,
+        available_at=datetime(2026, 8, 27, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 26, tzinfo=timezone.utc),
+    )
+    assert mature == {"woken": False, "cycle_id": f"{run_id}-c002"}
+    mature = control.wake_wait_data(
+        run_id, evidence_kind="MATURE_LABEL", evidence_hash="b" * 64,
+        available_at=datetime(2026, 8, 27, tzinfo=timezone.utc),
+        observed_at=datetime(2026, 8, 27, tzinfo=timezone.utc),
+    )
+    assert mature == {"woken": True, "cycle_id": f"{run_id}-c003"}
+
+
 def test_wait_execution_permission_is_normal_terminal():
     assert classify_outcome("WAIT_EXECUTION_PERMISSION") == (
         "WAIT_EXECUTION_PERMISSION", 0, False,

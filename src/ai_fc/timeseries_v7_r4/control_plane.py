@@ -241,6 +241,76 @@ class PostgresControlPlane:
             conn.commit()
         return woken
 
+    def wake_wait_data(
+        self, run_id: str, *, evidence_kind: str, evidence_hash: str,
+        available_at: datetime, observed_at: datetime | None = None,
+    ) -> dict[str, Any]:
+        """Append a cycle and wake WAIT_DATA exactly once per new PIT evidence item."""
+        observed_at = observed_at or utc_now()
+        if evidence_kind not in {"COLLECTION_RECEIPT", "MATURE_LABEL"}:
+            raise ValueError(f"unsupported wake evidence kind: {evidence_kind}")
+        if len(evidence_hash) != 64:
+            raise ValueError("wake evidence hash must contain 64 characters")
+        if available_at.tzinfo is None or observed_at.tzinfo is None:
+            raise ValueError("wake evidence timestamps must be timezone-aware")
+
+        with self.connect() as conn:
+            with conn.transaction():
+                run = conn.execute(
+                    "SELECT state FROM timeseries_v7_r4.runs WHERE run_id=%s FOR UPDATE",
+                    (run_id,),
+                ).fetchone()
+                if run is None:
+                    raise KeyError(run_id)
+                current = conn.execute(
+                    "SELECT cycle_id,ordinal FROM timeseries_v7_r4.cycles"
+                    " WHERE run_id=%s ORDER BY ordinal DESC LIMIT 1", (run_id,),
+                ).fetchone()
+                if current is None:
+                    raise RuntimeError(f"run has no cycle: {run_id}")
+                if available_at > observed_at:
+                    return {"woken": False, "cycle_id": current[0]}
+                inserted = conn.execute(
+                    "INSERT INTO timeseries_v7_r4.wake_evidence"
+                    " (run_id,evidence_kind,evidence_hash,available_at,observed_at)"
+                    " VALUES (%s,%s,%s,%s,%s) ON CONFLICT DO NOTHING RETURNING 1",
+                    (run_id, evidence_kind, evidence_hash, available_at, observed_at),
+                ).fetchone()
+                if inserted is None or run[0] != "WAIT_DATA":
+                    return {"woken": False, "cycle_id": current[0]}
+                woken = conn.execute(
+                    "UPDATE timeseries_v7_r4.tasks SET state='PENDING',available_at=now(),"
+                    " blocker_signature=NULL,updated_at=now()"
+                    " WHERE run_id=%s AND state='WAIT_DATA' RETURNING task_key", (run_id,),
+                ).fetchall()
+                if not woken:
+                    return {"woken": False, "cycle_id": current[0]}
+                ordinal = int(current[1]) + 1
+                cycle_id = f"{run_id}-c{ordinal:03d}"
+                conn.execute(
+                    "INSERT INTO timeseries_v7_r4.cycles(run_id,cycle_id,ordinal,state)"
+                    " VALUES (%s,%s,%s,'ACTIVE')", (run_id, cycle_id, ordinal),
+                )
+                payload = {
+                    "schema_version": 1, "cycle_id": cycle_id,
+                    "evidence_kind": evidence_kind, "evidence_hash": evidence_hash,
+                    "available_at": available_at.isoformat(),
+                    "observed_at": observed_at.isoformat(),
+                    "woken_tasks": [row[0] for row in woken],
+                }
+                blob = canonical_json(payload)
+                conn.execute(
+                    "INSERT INTO timeseries_v7_r4.events"
+                    " (run_id,event_type,task_key,payload,payload_hash)"
+                    " VALUES (%s,'WAIT_DATA_EVIDENCE_WAKE',NULL,%s::jsonb,%s)",
+                    (run_id, blob.decode("utf-8"), sha256_bytes(blob)),
+                )
+                conn.execute(
+                    "UPDATE timeseries_v7_r4.runs SET state='RUNNING',terminal_reason=NULL,"
+                    " updated_at=now() WHERE run_id=%s", (run_id,),
+                )
+            return {"woken": True, "cycle_id": cycle_id}
+
     def correct_task_acceptance(self, run_id: str, task_key: str, *,
                                 reason: str, evidence: dict[str, Any]) -> dict[str, Any]:
         """Append an acceptance correction without rewriting the accepted attempt."""
