@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-A5-005-a508281995b64",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-A5-005",
+  "status": "SUCCEEDED",
+  "summary": "Implemented quantified PostgreSQL-backed WAIT_DATA conditions, persisted wake thresholds and evidence kinds, PIT-aware deduplicated threshold waking, and verified resumed claims do not duplicate task execution.",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/control_plane.py",
+    "src/tests/timeseries_v7_r4/test_r4_supervisor.py"
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "WAIT_DATA reports current versus required evidence",
+      "passed": true
+    },
+    {
+      "criterion": "wake conditions persist",
+      "passed": true
+    },
+    {
+      "criterion": "resume continues without duplicate task execution",
+      "passed": true
+    }
+  ],
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_quantified_wait_data_persists_and_resume_does_not_duplicate_attempt -q",
+      "phase": "red_test",
+      "expected_failure": "PostgresControlPlane did not yet implement set_wait_data.",
+      "return_code": 1
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_quantified_wait_data_persists_and_resume_does_not_duplicate_attempt src/tests/timeseries_v7_r4/test_r4_supervisor.py::test_new_receipt_or_mature_label_wakes_wait_data_once_and_advances_cycle -q",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_r4_supervisor.py -q",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "phase": "regression_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -c \"from pathlib import Path; from ai_fc.timeseries_v7_r4.integrity import protected_manifest; print(protected_manifest(Path.cwd())['manifest_sha256'])\"; git diff --check; git status --short",
+      "phase": "verification",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "quantified WAIT_DATA red test",
+      "passed": false,
+      "expected_failure": "Missing set_wait_data API before implementation."
+    },
+    {
+      "name": "quantified WAIT_DATA and existing wake behavior",
+      "passed": true,
+      "count": 2
+    },
+    {
+      "name": "R4 supervisor module",
+      "passed": true,
+      "count": 78
+    },
+    {
+      "name": "complete timeseries_v7_r4 suite",
+      "passed": true,
+      "count": 176
+    },
+    {
+      "name": "protected manifest and diff validation",
+      "passed": true
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "supervisor_must_continue_after_success": true
+}
