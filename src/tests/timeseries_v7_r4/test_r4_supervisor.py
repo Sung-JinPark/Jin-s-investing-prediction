@@ -385,6 +385,28 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
     }
 
 
+def test_implementable_wait_data_is_corrected_to_replan(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    wait = result(
+        lease, status="WAIT_DATA", blocker_signature="MISSING_GENERATED_ARTIFACT",
+        supervisor_should_continue=False,
+    )
+    assert control.finish(lease, "worker", wait, "WAIT_DATA")
+
+    correction = control.correct_wait_data_to_replan(
+        run_id, "t", reason="artifact is locally generatable",
+        evidence={"source_data_present": True},
+    )
+
+    assert correction["original_state"] == "WAIT_DATA"
+    assert correction["corrected_state"] == "RETRY_WAIT"
+    retry = control.claim(run_id, "worker", 30)
+    assert retry.payload["retry_blocker"] == "MISCLASSIFIED_WAIT_DATA_REPLAN"
+    assert retry.payload["retry_evidence"]["reason"] == "artifact is locally generatable"
+
+
 def test_lease_fencing(control):
     run_id = make_run(control)
     control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
