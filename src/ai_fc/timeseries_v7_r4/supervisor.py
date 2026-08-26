@@ -1417,9 +1417,13 @@ class Supervisor:
         def s4_source_checks(payload: dict[str, Any]) -> tuple[bool, bool]:
             source = payload.get("source") if isinstance(payload.get("source"), dict) else payload
             role_hashes = (source.get("role_hashes")
-                           if isinstance(source.get("role_hashes"), dict) else {})
+                           if isinstance(source.get("role_hashes"), dict)
+                           else payload.get("role_hashes")
+                           if isinstance(payload.get("role_hashes"), dict) else {})
             counters = (source.get("row_use_counters")
-                        if isinstance(source.get("row_use_counters"), dict) else source)
+                        if isinstance(source.get("row_use_counters"), dict)
+                        else payload.get("row_use_counters")
+                        if isinstance(payload.get("row_use_counters"), dict) else source)
             bound = (
                 source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
                 and source.get("g2_artifact_sha256")
