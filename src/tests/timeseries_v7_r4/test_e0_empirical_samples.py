@@ -4,11 +4,11 @@ import numpy as np
 import pytest
 
 from ai_fc.timeseries_v7_r4.e0_empirical_samples import (
-    E0_BLOCK_BOOTSTRAP_CONTRACT,
+    E0_EXACT_EMPIRICAL_CONTRACT,
     E0SampleSet,
     EvaluationPath,
     empirical_crps,
-    generate_e0_samples,
+    fit_exact_empirical_anchor,
 )
 
 
@@ -54,41 +54,34 @@ def test_e0_only_score_is_reproducible_from_exact_samples() -> None:
     assert empirical_crps(replay.values, 0.03) == empirical_crps(first.values, 0.03)
 
 
-def test_frozen_e0_block_bootstrap_is_coordinate_deterministic_and_pit_only() -> None:
-    sessions = np.array([
-        "2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07",
-        "2026-01-08", "2026-01-09",
-    ])
-    returns = np.array([0.01, -0.02, 0.03, 0.04, 99.0, 100.0])
-
-    first = generate_e0_samples(
-        origin_session="2026-01-08", horizon_sessions=2,
-        sessions=sessions, one_session_returns=returns,
-        sample_count=8, root_seed=41,
+def test_frozen_e0_is_exact_matured_direct_horizon_labels_and_pit_only() -> None:
+    labels = [
+        {"origin_session": "2025-11-03", "horizon_sessions": 21,
+         "value": 0.01, "available_at": "2025-12-03T00:00:00Z"},
+        {"origin_session": "2025-12-01", "horizon_sessions": 21,
+         "value": -0.02, "available_at": "2026-01-02T00:00:00Z"},
+        {"origin_session": "2025-12-01", "horizon_sessions": 63,
+         "value": 99.0, "available_at": "2026-01-02T00:00:00Z"},
+        {"origin_session": "2026-01-05", "horizon_sessions": 21,
+         "value": 100.0, "available_at": "2026-02-04T00:00:00Z"},
+    ]
+    first = fit_exact_empirical_anchor(
+        origin_session="2026-01-08", horizon_sessions=21, labels=labels,
     )
-    replay = generate_e0_samples(
-        origin_session="2026-01-08", horizon_sessions=2,
-        sessions=sessions, one_session_returns=returns,
-        sample_count=8, root_seed=41,
+    replay = fit_exact_empirical_anchor(
+        origin_session="2026-01-08", horizon_sessions=21, labels=reversed(labels),
     )
 
-    assert E0_BLOCK_BOOTSTRAP_CONTRACT["algorithm"] == "historical_moving_block_bootstrap"
+    assert E0_EXACT_EMPIRICAL_CONTRACT["algorithm"] == "exact_empirical_anchor"
     assert first.receipt() == replay.receipt()
-    assert len(first.values) == 8
-    # The origin return and later observations are not available before forecast.
-    assert max(first.values) < 1.0
+    assert first.values == (0.01, -0.02)
+    assert first.seed == 0
 
 
-def test_e0_generator_rejects_non_monotonic_or_insufficient_history() -> None:
-    with pytest.raises(ValueError, match="strictly increasing"):
-        generate_e0_samples(
-            origin_session="2026-01-08", horizon_sessions=2,
-            sessions=["2026-01-02", "2026-01-02", "2026-01-03"],
-            one_session_returns=[0.1, 0.2, 0.3], sample_count=4, root_seed=1,
-        )
-    with pytest.raises(ValueError, match="eligible history"):
-        generate_e0_samples(
-            origin_session="2026-01-03", horizon_sessions=2,
-            sessions=["2026-01-02", "2026-01-03"],
-            one_session_returns=[0.1, 0.2], sample_count=4, root_seed=1,
+def test_exact_empirical_anchor_rejects_no_matured_labels() -> None:
+    with pytest.raises(ValueError, match="matured direct-horizon"):
+        fit_exact_empirical_anchor(
+            origin_session="2026-01-03", horizon_sessions=21,
+            labels=[{"origin_session": "2025-12-01", "horizon_sessions": 21,
+                     "value": 0.1, "available_at": "2026-01-04T00:00:00Z"}],
         )
