@@ -55,6 +55,7 @@ class Supervisor:
             "R4-B0-010": self._import_r3_catalog,
             "R4-B0-011": self._append_baseline_correction,
             "R4-B0-012": self._freeze_runtime,
+            "R4-B0-012-R1": self._freeze_runtime,
             "R4-B0-013": self._ixic_freshness,
             "R4-B0-014": self._broad_regression,
         }
@@ -259,9 +260,10 @@ class Supervisor:
         }
         folder = self.context.output_root / "runtime"
         folder.mkdir(parents=True, exist_ok=True)
-        lock_path = folder / "requirements.lock"
+        revision = sha256_bytes(freeze.stdout.encode("utf-8"))[:12]
+        lock_path = folder / f"requirements_{revision}.lock"
         lock_path.write_text(freeze.stdout, encoding="utf-8", newline="\n")
-        path = folder / "frozen_runtime_manifest.json"
+        path = folder / f"frozen_runtime_manifest_{revision}.json"
         path.write_bytes(canonical_json(manifest) + b"\n")
         result["changed_paths"] = [str(path.relative_to(self.context.repo)),
                                    str(lock_path.relative_to(self.context.repo))]
