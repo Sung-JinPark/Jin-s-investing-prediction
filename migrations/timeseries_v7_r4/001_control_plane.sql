@@ -97,3 +97,21 @@ CREATE TABLE IF NOT EXISTS timeseries_v7_r4.backlog_catalog (
 CREATE INDEX IF NOT EXISTS r4_tasks_claim_idx
 ON timeseries_v7_r4.tasks(run_id, state, available_at, priority, created_at);
 
+CREATE TABLE IF NOT EXISTS timeseries_v7_r4.fred_revisions (
+    series_id text NOT NULL,
+    observation_date date NOT NULL,
+    realtime_start date NOT NULL,
+    realtime_end date NOT NULL,
+    available_at date NOT NULL,
+    value text NOT NULL,
+    raw_sha256 text NOT NULL CHECK (length(raw_sha256) = 64),
+    retrieved_at timestamptz NOT NULL,
+    PRIMARY KEY (series_id, observation_date, realtime_start, realtime_end),
+    CHECK (available_at = realtime_start)
+);
+
+CREATE TABLE IF NOT EXISTS timeseries_v7_r4.fred_cursors (
+    series_id text PRIMARY KEY,
+    realtime_start date NOT NULL,
+    committed_at timestamptz NOT NULL DEFAULT now()
+);
