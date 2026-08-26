@@ -1507,6 +1507,15 @@ class Supervisor:
             source_bound, source_isolated = s4_source_checks(payload)
             families = payload.get("families") if isinstance(payload.get("families"), list) else []
             horizons = {item.get("horizon") for item in families if isinstance(item, dict)}
+            def regime_pooling_pass(item: dict[str, Any]) -> bool:
+                weights = item.get("pooling_weights")
+                return (
+                    isinstance(weights, dict) and bool(weights)
+                    and all(finite_number(value) and 0 < float(value) <= 1
+                            for value in weights.values())
+                    and any(float(value) < 1 for value in weights.values())
+                )
+
             family_pass = len(families) == 4 and horizons == {1, 5, 21, 63} and all(
                 isinstance(item, dict)
                 and item.get("calibration_role_origin_count") == 634
@@ -1516,6 +1525,7 @@ class Supervisor:
                 and isinstance(item.get("minimum_regime_count"), int)
                 and item["minimum_regime_count"] >= 0
                 and item.get("partial_pooling_applied") is True
+                and regime_pooling_pass(item)
                 and isinstance(item.get("filtered_feature_count"), int)
                 and item["filtered_feature_count"] > 0
                 and item.get("forbidden_prediction_features") == []

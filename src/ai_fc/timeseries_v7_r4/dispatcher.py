@@ -208,9 +208,12 @@ class CodexDispatcher:
                 "origin-available features only, sum to one, use at least 60 calibration observations "
                 "per unpooled regime, and otherwise apply explicit partial pooling toward the global "
                 "distribution. Emit family fields horizon, calibration_role_origin_count=634, "
-                "fit_role=calibration_temporal_cross_fit, probabilities_sum_to_one=true, "
+                "fit_role=calibration_temporal_cross_fit, state_available_at_origin=true, "
+                "probabilities_sum_to_one=true, "
                 "minimum_regime_count, partial_pooling_applied, filtered_feature_count and "
-                "forbidden_prediction_features=[]. Prediction-time date, crisis-name and future-return "
+                "forbidden_prediction_features=[]. Partial pooling is structural, not only a sparse "
+                "fallback: emit pooling_weights in (0,1] with at least one weight strictly below 1. "
+                "Prediction-time date, crisis-name and future-return "
                 "labels are forbidden."
             )
         if envelope.get("task_key") == "R4-S4-005":

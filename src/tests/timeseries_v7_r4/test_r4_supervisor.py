@@ -1148,6 +1148,9 @@ def test_codex_dispatch_prompt_registers_s4_mechanism_receipt(task_key, required
     assert "qualification/outer outcomes are diagnostic evidence only" in prompt
     if task_key == "R4-S4-003":
         assert "state_available_at_origin=true" in prompt
+    if task_key == "R4-S4-004":
+        assert "state_available_at_origin=true" in prompt
+        assert "at least one weight strictly below 1" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():
