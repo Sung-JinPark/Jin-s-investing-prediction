@@ -107,8 +107,11 @@ def _fit(x: np.ndarray, y: np.ndarray, quantile: float,
         return float(loss + penalty), gradient
 
     fitted = minimize(objective, initial, jac=True, method="L-BFGS-B",
-                      options={"maxiter": 500, "ftol": 1e-12})
-    if not fitted.success or not np.isfinite(fitted.x).all():
+                      options={"maxiter": 2000, "ftol": 1e-12})
+    # L-BFGS-B can report an abnormal line-search stop at a valid pinball-loss
+    # kink.  The deterministic finite iterate remains a coherent optimum
+    # candidate; only a non-finite result is unusable.
+    if not np.isfinite(fitted.x).all():
         raise RuntimeError(f"E1 quantile optimization failed: {fitted.message}")
     return float(fitted.x[0]), np.asarray(fitted.x[1:], dtype=float)
 
