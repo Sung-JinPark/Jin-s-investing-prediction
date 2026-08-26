@@ -418,6 +418,50 @@ class Supervisor:
                     "required": "transactional append of snapshot and label rows",
                 }]
                 result["recommended_router_deficits"] = ["engineering_fix"]
+        if lease.task_key == "R4-D1-006":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-D1-006/data_pit_qualification.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source_hash = payload.get("source_snapshot_hash")
+            r4_hash = payload.get("r4_snapshot_hash")
+            checks = {
+                "r4_snapshot_rematerialized": payload.get("r4_snapshot_rematerialized") is True,
+                "snapshot_hash_changed": (
+                    isinstance(source_hash, str) and len(source_hash) == 64
+                    and isinstance(r4_hash, str) and len(r4_hash) == 64
+                    and source_hash != r4_hash
+                ),
+                "canonical_xnas_cutoff_proof": payload.get("canonical_xnas_cutoff_proof") is True,
+                "feature_value_provenance_pass": (
+                    payload.get("feature_value_provenance_pass") is True
+                ),
+                "release_native_features_pass": payload.get("release_native_features_pass") is True,
+                "postgres_snapshot_persisted": payload.get("postgres_snapshot_persisted") is True,
+                "legacy_runtime_defects_acknowledged": (
+                    payload.get("legacy_runtime_defects_acknowledged") is True
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "r4_data_qualification_uses_rematerialized_snapshot",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "LEGACY_SNAPSHOT_SUMMARY_IS_NOT_R4_PIT_PROOF"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": "real R4 rematerialization with new cutoff, provenance, release-native features, and PostgreSQL persistence",
+                }]
+                result["recommended_router_deficits"] = ["data_rematerialization"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:
