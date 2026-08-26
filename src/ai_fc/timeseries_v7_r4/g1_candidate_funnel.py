@@ -220,37 +220,47 @@ def _execute_family(family: str, train_rows: list[dict[str, Any]],
             rows=train_rows, as_of=as_of, e0_scale=.02,
             contract=contract,
         )
-        score_one = lambda row, h: _quantile_crps(
-            row["targets"][str(h)], model.predict_corrections(row["features"])[h],
-        )
+        def distribution_one(row, horizon):
+            predictive = model.predict_corrections(row["features"])[horizon]
+            return (
+                _quantile_crps(row["targets"][str(horizon)], predictive),
+                {"kind": "quantile_grid", "values": predictive},
+            )
         coordinates = model.diagnostics["hyperparameters"]
+        convergence = {"enforced": True, "method": "L-BFGS-B_success_or_raise"}
     elif family == "E2":
         from .e2_student_t import E2Contract, fit_e2_student_t, _student_t_crps
         contract = E2Contract()
         model = fit_e2_student_t(
             rows=train_rows, as_of=as_of, contract=contract,
         )
-        def score_one(row, horizon):
+        def distribution_one(row, horizon):
             predictive = model.predict(row["features"])[horizon]
             scale = predictive["scale"]
             standardized = np.asarray([
                 (row["targets"][str(horizon)] - predictive["location"]) / scale,
             ])
-            return float(_student_t_crps(
+            score = float(_student_t_crps(
                 standardized, np.asarray([scale]), predictive["degrees_of_freedom"],
             )[0])
+            return score, {"kind": "student_t", **predictive}
         coordinates = {"degrees_of_freedom": list(contract.degrees_of_freedom),
                        "alpha_grid": list(contract.alpha_grid)}
+        convergence = {"enforced": True, "method": "L-BFGS-B_success_or_raise"}
     elif family == "E3":
         from .e3_quantile_hgb import E3Contract, fit_e3_quantile_hgb
         contract = E3Contract()
         model = fit_e3_quantile_hgb(
             rows=train_rows, as_of=as_of, contract=contract,
         )
-        score_one = lambda row, h: _quantile_crps(
-            row["targets"][str(h)], model.predict(row["features"])[h],
-        )
+        def distribution_one(row, horizon):
+            predictive = model.predict(row["features"])[horizon]
+            return (
+                _quantile_crps(row["targets"][str(horizon)], predictive),
+                {"kind": "quantile_grid", "values": predictive},
+            )
         coordinates = model.diagnostics["contract_candidate_coordinates"]
+        convergence = {"enforced": True, "method": "deterministic_fixed_iterations"}
     elif family == "E4":
         from .e4_filtered_dlm import E4Contract, fit_e4_filtered_dlm
         contract = E4Contract()
@@ -262,20 +272,43 @@ def _execute_family(family: str, train_rows: list[dict[str, Any]],
                 if receipt["horizon_sessions"] == horizon
             ], ddof=1)), 1e-10) for horizon in contract.horizons
         }
-        score_one = lambda row, h: _normal_crps(
-            row["targets"][str(h)], model.predict(row["features"])[h], residual_scale[h],
-        )
+        def distribution_one(row, horizon):
+            location = model.predict(row["features"])[horizon]
+            scale = residual_scale[horizon]
+            return (
+                _normal_crps(row["targets"][str(horizon)], location, scale),
+                {"kind": "normal", "location": location, "scale": scale},
+            )
         coordinates = model.diagnostics["contract_candidate_coordinates"]
+        convergence = {"enforced": True, "method": "closed_form_kalman_filter"}
     else:  # pragma: no cover - internal closed family set
         raise ValueError("unknown R4 G1 family")
     scores, counts = {}, {}
+    distribution_hasher = sha256()
     for role, rows in score_rows_by_role.items():
-        values = [score_one(row, horizon) for row in rows for horizon in (1, 5, 21, 63)]
+        values = []
+        for row in rows:
+            for horizon in (1, 5, 21, 63):
+                score, predictive = distribution_one(row, horizon)
+                values.append(score)
+                distribution_hasher.update(canonical_json({
+                    "family": family,
+                    "role": role,
+                    "origin_session": row["origin_session"],
+                    "horizon": horizon,
+                    "predictive_distribution": predictive,
+                }))
         if not values or not all(math.isfinite(value) and value >= 0.0 for value in values):
             raise ValueError(f"{family} produced invalid distribution CRPS for {role}")
         scores[role], counts[role] = sum(values) / len(values), len(values)
-    return scores, counts, {"score": "distribution_crps", "frozen_coordinates": True,
-                            "coordinates": coordinates}
+    return scores, counts, {
+        "score": "distribution_crps",
+        "frozen_coordinates": True,
+        "coordinates": coordinates,
+        "optimizer_convergence": convergence,
+        "predictive_distribution_hash": distribution_hasher.hexdigest(),
+        "score_rows": sum(counts.values()),
+    }
 
 
 def run_g1_screen_from_export(
@@ -320,7 +353,7 @@ def run_g1_screen_from_export(
         checkpoint_key = sha256(canonical_json({
             "family": family, "snapshot_hash": export["snapshot_hash"],
             "plan_hash": plan["plan_hash"], "as_of": export["as_of"],
-            "implementation": "frozen_coordinates_distribution_crps_v1",
+            "implementation": "frozen_coordinates_distribution_crps_v2_receipted",
         })).hexdigest()
         checkpoint = checkpoint_dir / f"{family}-{checkpoint_key}.json" if checkpoint_dir else None
         if checkpoint is not None and checkpoint.exists():
@@ -355,20 +388,50 @@ def run_g1_screen_from_export(
         candidate["underperforms_e0"] = candidate["scores"]["full_nested"] >= e0_crps
         if candidate["underperforms_e0"]:
             candidate["weight"] = 0.0
+    five_role_receipt = {
+        "schema": plan["schema"], "plan_hash": _sha256(plan["plan_hash"], "plan_hash"),
+        "role_order": expected_roles, "role_counts": actual_counts,
+        "role_hashes": plan["role_hashes"], "outer_exposed_during_screen": False,
+        "excluded_count": int(plan["excluded_count"]),
+        "interval_overlap_count": int(plan["interval_overlap_count"]),
+        "purge_unit": plan["purge_unit"],
+        "purge_sessions": int(plan["purge_sessions"]),
+        "embargo_sessions": int(plan["embargo_sessions"]),
+    }
+    score_receipts = [
+        {
+            "family": candidate["candidate_id"],
+            "metric": "crps",
+            "predictive_distribution_hash": candidate["model_receipt"][
+                "predictive_distribution_hash"
+            ],
+            "score_rows": int(candidate["model_receipt"]["score_rows"]),
+            "checkpoint_key": candidate["checkpoint_key"],
+        }
+        for candidate in report["candidates"]
+    ]
     report.update({
         "candidate_families": families,
         "five_role_validation_proof": True,
-        "five_role_receipt": {
-            "schema": plan["schema"], "plan_hash": _sha256(plan["plan_hash"], "plan_hash"),
-            "role_order": expected_roles, "role_counts": actual_counts,
-            "role_hashes": plan["role_hashes"], "outer_exposed_during_screen": False,
-        },
+        "five_role_receipt": five_role_receipt,
+        "score_receipts": score_receipts,
         "source": {
             "r4_snapshot_hash": export["snapshot_hash"],
             "e0_artifact_sha256": _sha256(e0_artifact_sha256, "e0_artifact_sha256"),
+            "e0_mean_crps": float(e0_crps),
             "evaluation_origin_grid_hash": _sha256(
                 evaluation_origin_grid_hash, "evaluation_origin_grid_hash",
             ),
+            "score_metric": "distribution_crps",
+            "frozen_candidate_coordinates_preserved": all(
+                candidate["model_receipt"].get("frozen_coordinates") is True
+                for candidate in report["candidates"]
+            ),
+            "optimizer_convergence_required": all(
+                candidate["model_receipt"].get("optimizer_convergence", {}).get("enforced")
+                is True for candidate in report["candidates"]
+            ),
+            "five_role_receipt": five_role_receipt,
             "model_score_rows": model_score_rows,
             "legacy_precomputed_score_rows_used": 0,
             "outer_rows_used": 0,

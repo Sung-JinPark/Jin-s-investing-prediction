@@ -68,6 +68,11 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
                 "outer": [],
             },
             "outer_exposed_during_screen": False,
+            "excluded_count": 1,
+            "interval_overlap_count": 0,
+            "purge_unit": "xnas_sessions",
+            "purge_sessions": 63,
+            "embargo_sessions": 5,
         },
         "feature_rows": [
             {"origin_session": f"2026-01-{day:02d}",
@@ -93,9 +98,13 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
         seen.append(family)
         assert all(row["available_at"] <= as_of for row in train_rows)
         assert len(train_rows) == 4
+        counts = {role: len(rows) * 4 for role, rows in score_rows_by_role.items()}
         return ({role: 0.02 + len(seen) / 1000 for role in score_rows_by_role},
-                {role: len(rows) * 4 for role, rows in score_rows_by_role.items()},
-                {"score": "distribution_crps", "frozen_coordinates": True})
+                counts,
+                {"score": "distribution_crps", "frozen_coordinates": True,
+                 "optimizer_convergence": {"enforced": True, "method": "test"},
+                 "predictive_distribution_hash": family[0].lower() * 64,
+                 "score_rows": sum(counts.values())})
 
     monkeypatch.setattr(
         "ai_fc.timeseries_v7_r4.g1_candidate_funnel._execute_family", fake_execute,
@@ -111,6 +120,21 @@ def test_export_screen_executes_every_r4_family_and_never_exposes_outer(tmp_path
     assert report["source"]["legacy_precomputed_score_rows_used"] == 0
     assert report["five_role_receipt"]["plan_hash"] == "b" * 64
     assert report["five_role_receipt"]["role_counts"]["train"] == 4
+    assert report["five_role_receipt"]["excluded_count"] == 1
+    assert report["five_role_receipt"]["interval_overlap_count"] == 0
+    assert report["five_role_receipt"]["purge_unit"] == "xnas_sessions"
+    assert report["source"]["five_role_receipt"] == report["five_role_receipt"]
+    assert report["source"]["score_metric"] == "distribution_crps"
+    assert report["source"]["e0_mean_crps"] == pytest.approx(0.03)
+    assert report["source"]["frozen_candidate_coordinates_preserved"] is True
+    assert report["source"]["optimizer_convergence_required"] is True
+    assert {item["family"] for item in report["score_receipts"]} == {
+        "E1", "E2", "E3", "E4",
+    }
+    assert all(item["metric"] == "crps" for item in report["score_receipts"])
+    assert all(len(item["predictive_distribution_hash"]) == 64
+               for item in report["score_receipts"])
+    assert all(item["score_rows"] > 0 for item in report["score_receipts"])
     assert report["source"]["train_rows"] == 4
     assert all(row["score_kind"] == "distribution_crps"
                for row in report["candidates"])
