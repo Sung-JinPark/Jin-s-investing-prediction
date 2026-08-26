@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-S4-001-ae7f04faf6ea2",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-S4-001",
+  "status": "SUCCEEDED",
+  "blocker_signature": null,
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/probability_up_calibration.py",
+    "src/tests/timeseries_v7_r4/test_probability_up_calibration.py",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h1-df6421df5a034f484f3438f7aaa1089a21c7178dc64d35d675f66bf8c4ceced0.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h5-2a6555e0b2d9944bd01a292b4c3d275cddec38ecbc8b965dc471d25df4b80e3f.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h21-400c02e3151574ad80575217cb9a5740a01568b614f1a9062b2d76e6ce5e9600.json",
+    "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/checkpoints/h63-7a0a16c19a1ab6c3df75ff2d40b971f796cf73c481700e96ad5962ad5d613b00.json"
+  ],
+  "commands": [
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4/test_probability_up_calibration.py -q",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "ImportError: authoritative_calibration_cases was not implemented"
+    },
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4/test_probability_up_calibration.py -q",
+      "phase": "targeted_validation",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python -m ai_fc.timeseries_v7_r4.probability_up_calibration --review-pack <declared-pack> --nested-member <declared-member> --authoritative-export <credential-free-r4-export> --g2-artifact outputs/timeseries_v7_r4/R4-M3-007/stacking_calibration.json --supersedes-sha256 ffc04fd0232c415a315980b9cb0e2206be17a33fbd14c051a4b61d262ba72214 --output-dir outputs/timeseries_v7_r4/R4-S4-001/r4_calibration",
+      "phase": "acceptance",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4/test_probability_up_calibration.py src/tests/timeseries_v7_r4/test_cross_fit_calibration.py src/tests/timeseries_v7_r4/test_stacking_calibration_generation.py -q",
+      "phase": "targeted_validation",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python -m pytest src/tests/timeseries_v7_r4 -q",
+      "phase": "suite_validation",
+      "return_code": 0
+    },
+    {
+      "command": "frozen_python protected-manifest validation",
+      "phase": "integrity_validation",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "probability-up calibration targeted tests",
+      "passed": true,
+      "result": "4 passed"
+    },
+    {
+      "name": "calibration integration tests",
+      "passed": true,
+      "result": "9 passed"
+    },
+    {
+      "name": "timeseries_v7_r4 suite",
+      "passed": true,
+      "result": "143 passed, 7 warnings"
+    },
+    {
+      "name": "real evidence-pack acceptance",
+      "passed": true,
+      "result": "4 horizon families; 634 fixed calibration origins each"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "Brier and reliability curve computed on disjoint calibration evidence",
+      "passed": true,
+      "evidence": {
+        "fit_role": "calibration_temporal_cross_fit",
+        "evaluation_role": "calibration_cross_fit_holdout",
+        "calibration_role_origin_count": 634,
+        "horizons": [
+          1,
+          5,
+          21,
+          63
+        ]
+      }
+    },
+    {
+      "criterion": "base-rate comparator retained",
+      "passed": true,
+      "evidence": {
+        "reported_per_family": true
+      }
+    },
+    {
+      "criterion": "balanced-direction diagnostics included",
+      "passed": true,
+      "evidence": {
+        "positive_brier": true,
+        "negative_brier": true,
+        "balanced_brier": true
+      }
+    },
+    {
+      "criterion": "authoritative source and role isolation",
+      "passed": true,
+      "evidence": {
+        "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+        "r4_snapshot_artifact_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+        "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "calibration_role_hash": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0,
+        "outer_rows_used": 0,
+        "outer_origin_intersection": 0
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-001/r4_calibration/acceptance_summary.json",
+      "sha256": "4784180859a46d104fb2dcc05fd0f104024378990ad26e1b8764b32759d4ad4f"
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "unresolved_blockers": []
+}
