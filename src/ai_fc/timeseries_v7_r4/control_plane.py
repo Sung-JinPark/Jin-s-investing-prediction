@@ -417,6 +417,24 @@ class PostgresControlPlane:
                             "unresolved_blockers": previous[0].get("unresolved_blockers", []),
                             "acceptance_results": previous[0].get("acceptance_results", []),
                         }
+                    recent = conn.execute(
+                        "SELECT attempt_id,result FROM timeseries_v7_r4.attempts"
+                        " WHERE run_id=%s AND task_key=%s AND completed_at IS NOT NULL"
+                        " ORDER BY completed_at DESC LIMIT 3", (run_id, task_key),
+                    ).fetchall()
+                    payload["retry_attempt_history"] = [
+                        {
+                            "attempt_id": attempt_id,
+                            "blocker_signature": attempt_result.get("blocker_signature"),
+                            "unresolved_blockers": attempt_result.get("unresolved_blockers", []),
+                            "failed_acceptance": [
+                                item for item in attempt_result.get("acceptance_results", [])
+                                if isinstance(item, dict) and item.get("passed") is False
+                            ],
+                        }
+                        for attempt_id, attempt_result in recent
+                        if isinstance(attempt_result, dict)
+                    ]
                     if correction is not None and isinstance(correction[0], dict):
                         # Preserve the append-only correction as separate history,
                         # but do not let an older correction hide the most recent

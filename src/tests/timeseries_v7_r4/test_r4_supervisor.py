@@ -384,6 +384,7 @@ def test_acceptance_correction_preserves_success_and_requeues(control):
         "expected": "postgresql", "observed": "sqlite",
     }
     assert retry.payload["retry_evidence"]["blocker_signature"] is None
+    assert retry.payload["retry_attempt_history"][0]["attempt_id"] == lease.attempt_id
 
 
 def test_implementable_wait_data_is_corrected_to_replan(control):
@@ -407,6 +408,9 @@ def test_implementable_wait_data_is_corrected_to_replan(control):
     assert retry.payload["retry_blocker"] == "MISCLASSIFIED_WAIT_DATA_REPLAN"
     assert retry.payload["acceptance_correction_history"]["reason"] == "artifact is locally generatable"
     assert retry.payload["retry_evidence"]["blocker_signature"] == "MISSING_GENERATED_ARTIFACT"
+    assert retry.payload["retry_attempt_history"][0]["blocker_signature"] == (
+        "MISSING_GENERATED_ARTIFACT"
+    )
 
 
 def test_lease_fencing(control):
