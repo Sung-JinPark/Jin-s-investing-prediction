@@ -20,13 +20,20 @@ from ai_fc.timeseries_v7_r4.integrity import (
     sanitized_environment,
     scan_secret_bytes,
     sha256_bytes,
+    sha256_file,
     validate_child_result,
     protected_manifest,
 )
 from ai_fc.timeseries_v7_r4.semantics import classify_outcome
 from ai_fc.timeseries_v7_r4.router import GateDeficitRouter
 from ai_fc.timeseries_v7_r4.specs import read_json, read_yaml, verify_delivery_spec, verify_pack
-from ai_fc.timeseries_v7_r4.supervisor import Supervisor, SupervisorContext
+from ai_fc.timeseries_v7_r4.supervisor import (
+    R4_EXACT_E0_ARTIFACT_SHA256,
+    R4_EXACT_E0_MEAN_CRPS,
+    R4_QUALIFIED_SNAPSHOT_HASH,
+    Supervisor,
+    SupervisorContext,
+)
 from ai_fc.timeseries_v7_r4.control_plane import Lease
 from ai_fc.timeseries_v7_r4.runtime_snapshot_export import export_runtime_snapshot
 
@@ -710,6 +717,72 @@ def test_m3_006_rejects_rounded_e0_comparator_value(control, tmp_path):
 
     assert checked["status"] == "RETRY_WAIT"
     assert checked["acceptance_results"][-1]["evidence"]["uses_exact_e0_full_grid"] is False
+
+
+def test_m3_007_rejects_raw_sample_checkpoints_and_accepts_compact_receipts(control, tmp_path):
+    g1_folder = tmp_path / "outputs/timeseries_v7_r4/R4-M3-006"
+    g2_folder = tmp_path / "outputs/timeseries_v7_r4/R4-M3-007"
+    g1_folder.mkdir(parents=True)
+    g2_folder.mkdir(parents=True)
+    role_hashes = {role: role[0] * 64 for role in
+                   ("train", "selection", "stacking", "calibration", "outer")}
+    g1 = {
+        "candidates": [{"candidate_id": family, "weight": 0.0}
+                       for family in ("E1", "E2", "E3", "E4")],
+        "five_role_receipt": {"role_hashes": role_hashes},
+    }
+    g1_path = g1_folder / "g1_screen.json"
+    g1_path.write_text(json.dumps(g1), encoding="utf-8")
+    five_role = {
+        "role_counts": {"train": 4458, "selection": 634, "stacking": 634,
+                        "calibration": 634, "outer": 765},
+        "role_hashes": role_hashes,
+        "outer_exposed_during_screen": False,
+    }
+    horizons = {
+        str(horizon): {
+            "weights": {"E0": 1.0, "E1": 0.0, "E2": 0.0, "E3": 0.0, "E4": 0.0},
+            "weight_fit_role": "stacking", "stacking_case_count": 634,
+            "stacking_crps": .02, "stacking_e0_crps": .02,
+            "calibration_fit_role": "calibration", "cross_fit_case_count": 634,
+            "cross_fit_calibration_applied": True, "e0_no_regret_pass": True,
+            "sample_set_hash": str(horizon)[0] * 64,
+        }
+        for horizon in (1, 5, 21, 63)
+    }
+    artifact_path = g2_folder / "stacking_calibration.json"
+    artifact_path.write_text(json.dumps({
+        "schema": "r4_learned_stacking_cross_fit_calibration_v1",
+        "horizons": horizons, "outer_rows_used": 0,
+        "source": {
+            "r4_snapshot_hash": R4_QUALIFIED_SNAPSHOT_HASH,
+            "e0_artifact_sha256": R4_EXACT_E0_ARTIFACT_SHA256,
+            "e0_mean_crps": R4_EXACT_E0_MEAN_CRPS,
+            "g1_artifact_sha256": sha256_file(g1_path),
+            "five_role_receipt": five_role,
+            "git_embedded_raw_samples": False,
+        },
+    }), encoding="utf-8")
+    supervisor = Supervisor(control, SupervisorContext(
+        repo=tmp_path, output_root=tmp_path / "outputs/timeseries_v7_r4",
+        review_pack=tmp_path / "review.zip", r3_design_pack=None,
+        predecessor_repo=None, config={"controller": {"lease_seconds": 30}},
+        auto_codex=False,
+    ))
+    lease = Lease("run", "R4-M3-007", "attempt", "token", "stack", {})
+    base = {"status": "SUCCEEDED", "acceptance_results": [],
+            "unresolved_blockers": [], "recommended_router_deficits": []}
+
+    checked = supervisor._validate_task_semantics(lease, dict(base))
+    assert checked["status"] == "SUCCEEDED"
+    assert checked["acceptance_results"][-1]["passed"] is True
+
+    (g2_folder / "raw-samples.json").write_bytes(b"x" * 1_000_001)
+    rejected = supervisor._validate_task_semantics(lease, dict(base))
+    assert rejected["status"] == "RETRY_WAIT"
+    assert rejected["acceptance_results"][-1]["evidence"][
+        "artifact_present_and_compact"
+    ] is False
 
 
 def test_event_is_append_only(control):

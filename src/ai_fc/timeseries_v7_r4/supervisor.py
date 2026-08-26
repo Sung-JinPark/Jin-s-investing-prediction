@@ -1024,6 +1024,119 @@ class Supervisor:
                     ),
                 }]
                 result["recommended_router_deficits"] = ["g1_actual_screen"]
+        if lease.task_key == "R4-M3-007":
+            artifact_path = (
+                self.context.repo
+                / "outputs/timeseries_v7_r4/R4-M3-007/stacking_calibration.json"
+            )
+            payload: dict[str, Any] = {}
+            if artifact_path.exists():
+                try:
+                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    payload = {}
+            source = payload.get("source") if isinstance(payload.get("source"), dict) else {}
+            horizons = payload.get("horizons") if isinstance(payload.get("horizons"), dict) else {}
+            g1_path = self.context.repo / "outputs/timeseries_v7_r4/R4-M3-006/g1_screen.json"
+            g1_payload: dict[str, Any] = {}
+            if g1_path.exists():
+                try:
+                    g1_payload = json.loads(g1_path.read_text(encoding="utf-8"))
+                except (json.JSONDecodeError, UnicodeDecodeError):
+                    g1_payload = {}
+            rejected = {
+                str(item.get("candidate_id"))
+                for item in g1_payload.get("candidates", [])
+                if isinstance(item, dict) and item.get("weight") == 0.0
+            }
+            horizon_rows = [horizons.get(str(horizon)) for horizon in (1, 5, 21, 63)]
+            weights_pass = bool(horizon_rows) and all(
+                isinstance(row, dict)
+                and isinstance(row.get("weights"), dict)
+                and set(row["weights"]) == {"E0", "E1", "E2", "E3", "E4"}
+                and all(isinstance(value, (int, float)) and value >= 0.0
+                        for value in row["weights"].values())
+                and abs(sum(float(value) for value in row["weights"].values()) - 1.0) < 1e-12
+                and all(row["weights"].get(family) == 0.0 for family in rejected)
+                and (not rejected or row["weights"].get("E0") == 1.0)
+                for row in horizon_rows
+            )
+            fold_pass = bool(horizon_rows) and all(
+                isinstance(row, dict)
+                and row.get("weight_fit_role") == "stacking"
+                and row.get("stacking_case_count") == 634
+                and row.get("calibration_fit_role") == "calibration"
+                and row.get("cross_fit_case_count") == 634
+                and row.get("cross_fit_calibration_applied") is True
+                and row.get("e0_no_regret_pass") is True
+                and isinstance(row.get("stacking_crps"), (int, float))
+                and isinstance(row.get("stacking_e0_crps"), (int, float))
+                and float(row["stacking_crps"]) <= float(row["stacking_e0_crps"]) + 1e-12
+                for row in horizon_rows
+            )
+            sample_hash_pass = bool(horizon_rows) and all(
+                isinstance(row, dict)
+                and isinstance(row.get("sample_set_hash"), str)
+                and len(row["sample_set_hash"]) == 64
+                for row in horizon_rows
+            )
+            role_receipt = (
+                source.get("five_role_receipt")
+                if isinstance(source.get("five_role_receipt"), dict) else {}
+            )
+            compact_files = True
+            task_output = artifact_path.parent
+            if task_output.exists():
+                compact_files = all(
+                    path.stat().st_size <= 1_000_000
+                    for path in task_output.rglob("*") if path.is_file()
+                )
+            checks = {
+                "artifact_present_and_compact": (
+                    artifact_path.exists()
+                    and artifact_path.stat().st_size <= 1_000_000
+                    and compact_files
+                    and source.get("git_embedded_raw_samples") is False
+                ),
+                "uses_r4_snapshot_and_exact_e0": (
+                    source.get("r4_snapshot_hash") == R4_QUALIFIED_SNAPSHOT_HASH
+                    and source.get("e0_artifact_sha256") == R4_EXACT_E0_ARTIFACT_SHA256
+                    and isinstance(source.get("e0_mean_crps"), (int, float))
+                    and abs(float(source["e0_mean_crps"]) - R4_EXACT_E0_MEAN_CRPS) < 1e-15
+                    and g1_path.exists()
+                    and source.get("g1_artifact_sha256") == sha256_file(g1_path)
+                ),
+                "horizon_specific_no_regret_weights": weights_pass,
+                "stacking_and_cross_fit_roles_are_disjoint": fold_pass,
+                "all_sample_sets_content_addressed": sample_hash_pass,
+                "outer_role_remains_sealed": (
+                    payload.get("outer_rows_used") == 0
+                    and role_receipt.get("outer_exposed_during_screen") is False
+                    and role_receipt.get("role_counts", {}).get("outer") == 765
+                    and role_receipt.get("role_hashes")
+                    == g1_payload.get("five_role_receipt", {}).get("role_hashes")
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "g2_learned_stacking_and_cross_fit_calibration",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "G2_STACKING_CALIBRATION_EVIDENCE_MISSING"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": (
+                        "stream exact E0 empirical scores on the stacking fold; emit compact "
+                        "horizon weights, content hashes and calibration summaries only; use "
+                        "the calibration fold for cross-fit calibration; retain zero weights "
+                        "for rejected G1 families; never write raw sample arrays to Git and "
+                        "never expose the outer role"
+                    ),
+                }]
+                result["recommended_router_deficits"] = ["g2_stacking_calibration"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

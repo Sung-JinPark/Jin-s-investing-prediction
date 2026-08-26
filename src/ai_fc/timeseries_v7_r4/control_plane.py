@@ -440,6 +440,14 @@ class PostgresControlPlane:
                         # but do not let an older correction hide the most recent
                         # supervisor rejection from the next child attempt.
                         payload["acceptance_correction_history"] = dict(correction[0])
+                    execution_replan = conn.execute(
+                        "SELECT payload FROM timeseries_v7_r4.events"
+                        " WHERE run_id=%s AND task_key=%s"
+                        " AND event_type='TASK_EXECUTION_REPLAN_APPENDED'"
+                        " ORDER BY event_id DESC LIMIT 1", (run_id, task_key),
+                    ).fetchone()
+                    if execution_replan is not None and isinstance(execution_replan[0], dict):
+                        payload["execution_replan_history"] = dict(execution_replan[0])
                 lease_token = uuid.uuid4().hex
                 attempt_id = f"{task_key}-a{uuid.uuid4().hex[:12]}"
                 conn.execute(
