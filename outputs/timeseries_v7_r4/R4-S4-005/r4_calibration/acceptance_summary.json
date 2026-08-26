@@ -1,0 +1,60 @@
+{
+  "actual_contiguous_returns": true,
+  "checkpoint": "outputs\\timeseries_v7_r4\\R4-S4-005\\r4_calibration\\checkpoints\\h63-b51b376165e6b86bbefd8c414596d6d13c5b06c73b9ddc6128dbdffe003a7b39.json",
+  "diagnostics_sha256": "9440fd33790495bb420d3d435d6a1f05549087f45b90708f6f5c04cc2a620462",
+  "duplicate_count": 0,
+  "endpoint_interpolation_used": false,
+  "first_touch_rate": 0.7476635514018691,
+  "maximum_drawdown": -0.3825880285417854,
+  "minimum_spacing_sessions": 63,
+  "origin_available_cross_fit": true,
+  "recovery_rate": 0.45,
+  "role_hashes": {
+    "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+    "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+    "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+    "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+  },
+  "row_use_counters": {
+    "calibration_fit_rows": 1,
+    "legacy_review_pack_score_rows_used": 0,
+    "outer_origin_intersection": 0,
+    "outer_rows_used": 0,
+    "qualification_score_rows_used": 0,
+    "selection_fit_rows": 0,
+    "stacking_fit_rows": 0,
+    "train_fit_rows": 0
+  },
+  "schema": "r4_full_analog_trajectories_v1",
+  "schema_version": 1,
+  "source": {
+    "calibration_role_hash": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+    "r4_snapshot_artifact_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+    "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+    "role_hashes": {
+      "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+      "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd",
+      "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+      "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+      "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c"
+    },
+    "row_use_counters": {
+      "calibration_fit_rows": 1,
+      "legacy_review_pack_score_rows_used": 0,
+      "outer_origin_intersection": 0,
+      "outer_rows_used": 0,
+      "qualification_score_rows_used": 0,
+      "selection_fit_rows": 0,
+      "stacking_fit_rows": 0,
+      "train_fit_rows": 0
+    },
+    "source_store": "authoritative_postgresql"
+  },
+  "target_origin": "2022-10-25",
+  "temporal_spacing_rule": "start_index_distance_gte_63_xnas_sessions",
+  "trajectory_count": 107,
+  "trajectory_length": 63,
+  "trajectory_set_sha256": "1630eddd0330dea40f949ed7e416f88217e883dc9561300d0a16b7eb58dce396"
+}
