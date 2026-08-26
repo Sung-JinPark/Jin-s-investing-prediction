@@ -133,6 +133,22 @@ class CodexDispatcher:
                 + ", ".join(required_changed_paths)
                 + ". A successful verification-only retry therefore still has a real changed path."
             )
+        qualification_instruction = ""
+        if envelope.get("task_key") == "R4-M3-008":
+            qualification_instruction = (
+                " This is the one-time frozen core qualification. Emit a compact summary plus a "
+                "row-level, independently recomputable score matrix for all 4,082 coordinates on "
+                "the unchanged 1,025-origin weekly grid. Bind the exact E0 comparator, R4 snapshot, "
+                "G1 and G2 artifact hashes. Record qualification_count=1 and prove that screening "
+                "used zero qualification rows before this task. Recompute every frozen Gate without "
+                "changing thresholds: long 21/63 CRPS skill, each long skill, dependence-aware CI, "
+                "80% and 50% coverage, balanced direction, P(up) Brier, extreme-Q4 coverage, "
+                "catastrophic underperformance, and historical-stress qualification. Emit the "
+                "complete machine-readable deficit vector. A research Gate failure is valid evidence: "
+                "report HOLD_RESEARCH_GATE/RESEARCH_GATE_FAILED_REPLAN with process exit semantics 0, "
+                "never alter scores or claim PASS, while the task itself may succeed only if the "
+                "qualification evidence is complete and reproducible."
+            )
         return (
             "Execute exactly one task from the attached JSON envelope. Do not start another task. "
             "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
@@ -153,6 +169,7 @@ class CodexDispatcher:
             + canonical_json(identity).decode("utf-8")
             + ". The tests field must be a JSON array, never an object."
             + verification_instruction
+            + qualification_instruction
             + "\n\n"
             + canonical_json(envelope).decode("utf-8")
         )

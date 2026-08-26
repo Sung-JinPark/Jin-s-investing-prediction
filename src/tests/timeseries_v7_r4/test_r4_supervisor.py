@@ -909,6 +909,18 @@ def test_codex_dispatch_prompt_requires_exact_identity_list_tests_and_retry_rece
     assert "successful verification-only retry therefore still has a real changed path" in prompt
 
 
+def test_codex_dispatch_prompt_freezes_one_time_core_qualification_contract():
+    prompt = CodexDispatcher._build_prompt({
+        "run_id": "r", "cycle_id": "c", "task_key": "R4-M3-008",
+        "attempt_id": "a",
+    })
+    assert "all 4,082 coordinates" in prompt
+    assert "unchanged 1,025-origin weekly grid" in prompt
+    assert "qualification_count=1" in prompt
+    assert "complete machine-readable deficit vector" in prompt
+    assert "never alter scores or claim PASS" in prompt
+
+
 def test_gate_deficit_router_is_deterministic():
     router = GateDeficitRouter.from_yaml(
         ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")
