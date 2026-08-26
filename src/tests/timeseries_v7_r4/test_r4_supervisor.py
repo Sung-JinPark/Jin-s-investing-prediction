@@ -998,6 +998,8 @@ def test_codex_dispatch_prompt_isolates_s4_001_from_qualification_outer():
     assert "qualification_score_rows_used=0" in prompt
     assert "outer_rows_used=0" in prompt
     assert "diagnostic evidence only" in prompt
+    assert "phase=red_test" in prompt
+    assert "expected_failure" in prompt
 
 
 def test_gate_deficit_router_is_deterministic():
