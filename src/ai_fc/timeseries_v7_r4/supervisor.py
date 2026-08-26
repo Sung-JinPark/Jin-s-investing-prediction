@@ -735,11 +735,15 @@ class Supervisor:
                     and comparator.get("sampling") == "none"
                 ),
                 "full_frozen_weekly_grid": (
-                    isinstance(source.get("origin_count"), int)
-                    and source["origin_count"] >= 950
-                    and isinstance(source.get("coordinate_count"), int)
-                    and source["coordinate_count"] >= 3_800
+                    source.get("origin_count") == 1_025
+                    and source.get("coordinate_count") == 4_082
                     and horizons == {1, 5, 21, 63}
+                ),
+                "frozen_weekly_origin_identity": (
+                    source.get("evaluation_origin_grid_hash")
+                    == "e9657818bc2693c0788d4c509b4bf08b4456e7ca6c8f149028788ee845947135"
+                    and source.get("evaluation_coordinate_grid_hash")
+                    == "1f2403b7b15c100741a29816304056c2ad7b91cd777b29534a96a567068fa7e8"
                 ),
                 "exact_samples_replayed_for_every_coordinate": (
                     payload.get("exact_replay_count") == source.get("coordinate_count")

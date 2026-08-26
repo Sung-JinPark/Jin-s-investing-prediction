@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-M3-001",
+  "attempt_id": "R4-M3-001-aa5ff5a0a9f78",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T03:31:00Z",
+  "completed_at": "2026-08-26T03:39:56.073782Z",
+  "duration_seconds": 536,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q -p no:cacheprovider src/tests/timeseries_v7_r4/test_g0_ablation.py src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+      "return_code": 0,
+      "stdout_sha256": "1817e2a1964621dfa420c191d2a9303667fdc4ee41dc9c6d4a7bef67e6707918",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/g0_ablation.py",
+    "src/tests/timeseries_v7_r4/test_g0_ablation.py",
+    "outputs/timeseries_v7_r4/R4-M3-001/g0_e0_ablation.json",
+    "outputs/timeseries_v7_r4/R4-M3-001/targeted_tests.stdout.txt",
+    "outputs/timeseries_v7_r4/R4-M3-001/targeted_tests.stderr.txt"
+  ],
+  "tests": [
+    {
+      "name": "g0_ablation_and_supervisor_targeted",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-M3-001/targeted_tests.stdout.txt",
+      "sha256": "1817e2a1964621dfa420c191d2a9303667fdc4ee41dc9c6d4a7bef67e6707918"
+    },
+    {
+      "name": "authoritative_postgres_real_evidence_acceptance",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-M3-001/g0_e0_ablation.json",
+      "sha256": "b00bc7c2ad5604bece72825b019da5f68730ca5e1e105a4bc7c60f6c6f0ca66e"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "all destructive components can receive zero weight",
+      "passed": true,
+      "evidence": "Failing-first unit test verifies a destructive component receives weight 0.0; targeted suite passed."
+    },
+    {
+      "criterion": "E0-only skill and stress table recorded",
+      "passed": true,
+      "evidence": "Artifact records exact empirical E0 skill for horizons 1, 5, 21, and 63 and 24 stress-table rows across 3,944 PostgreSQL coordinates."
+    },
+    {
+      "criterion": "G0 does not perform qualification more than once",
+      "passed": true,
+      "evidence": "Qualification callback was observed exactly once and the real artifact records qualification_count=1."
+    },
+    {
+      "criterion": "authoritative PostgreSQL real-evidence acceptance",
+      "passed": true,
+      "evidence": "Replayed 3,944 coordinates over 990 frozen weekly origins from R4 snapshot cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2; exact_replay_count=3944, sample_identity_failures=0, approximate_baseline_rows_used=0, and the declared evidence-pack SHA-256 was verified."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/g0_ablation.py",
+      "sha256": "7f5856d8f7f39ad24b2ab2197f52105a30a6acee9b758f42c1cecd9f42267378",
+      "bytes": 9671
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_g0_ablation.py",
+      "sha256": "c818fab9e49f6b1c943cdc21a0b7b1ff5691315578075117e5d5aa3bb8bd185c",
+      "bytes": 2495
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-M3-001/g0_e0_ablation.json",
+      "sha256": "b00bc7c2ad5604bece72825b019da5f68730ca5e1e105a4bc7c60f6c6f0ca66e",
+      "bytes": 1621653
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
