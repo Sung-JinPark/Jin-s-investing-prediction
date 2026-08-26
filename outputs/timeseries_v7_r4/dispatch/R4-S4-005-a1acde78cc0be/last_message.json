@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "attempt_id": "R4-S4-005-a1acde78cc0be",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-S4-005",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T10:42:00Z",
+  "completed_at": "2026-08-26T10:49:35.4208869Z",
+  "duration_seconds": 455,
+  "summary": "Implemented origin-available full 63-session analog trajectories from actual authoritative PIT historical prices, with explicit temporal spacing, duplicate controls, path diagnostics, fixed-role isolation, and content-addressed checkpoints.",
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/full_analog_trajectories.py",
+    "src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+    "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/"
+  ],
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "ModuleNotFoundError: ai_fc.timeseries_v7_r4.full_analog_trajectories was absent before implementation."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m ai_fc.timeseries_v7_r4.full_analog_trajectories --review-pack C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip --nested-member INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip --authoritative-export C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\input_exports\\cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2.json --output-dir outputs/timeseries_v7_r4/R4-S4-005/r4_calibration",
+      "phase": "real_evidence_acceptance",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_full_analog_trajectories.py src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+      "phase": "targeted_validation",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4",
+      "phase": "broad_validation",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "full analog trajectory red test",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+      "observed_result": "Failed as expected before implementation with ModuleNotFoundError."
+    },
+    {
+      "name": "full analog trajectory targeted test",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+      "observed_result": "1 passed"
+    },
+    {
+      "name": "analog trajectory and supervisor validation",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "observed_result": "72 passed, 7 warnings"
+    },
+    {
+      "name": "timeseries_v7_r4 broad suite",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "observed_result": "158 passed, 7 warnings"
+    },
+    {
+      "name": "authoritative PIT evidence-pack acceptance",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/acceptance_summary.json",
+      "sha256": "daaf706731050701241d02afc366c7aa941d9117b55054f86c5735115caad284"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "actual historical daily trajectories are sampled",
+      "passed": true,
+      "evidence": {
+        "trajectory_length": 63,
+        "trajectory_count": 107,
+        "actual_contiguous_returns": true,
+        "endpoint_interpolation_used": false,
+        "origin_available_cross_fit": true,
+        "trajectory_set_sha256": "1630eddd0330dea40f949ed7e416f88217e883dc9561300d0a16b7eb58dce396"
+      }
+    },
+    {
+      "criterion": "temporal spacing and duplicate controls pass",
+      "passed": true,
+      "evidence": {
+        "temporal_spacing_rule": "start_index_distance_gte_63_xnas_sessions",
+        "minimum_spacing_sessions": 63,
+        "duplicate_count": 0
+      }
+    },
+    {
+      "criterion": "drawdown/touch/recovery metrics are produced",
+      "passed": true,
+      "evidence": {
+        "maximum_drawdown": -0.3825880285417854,
+        "first_touch_rate": 0.7476635514018691,
+        "recovery_rate": 0.45,
+        "diagnostics_sha256": "9440fd33790495bb420d3d435d6a1f05549087f45b90708f6f5c04cc2a620462"
+      }
+    },
+    {
+      "criterion": "authoritative fixed-role isolation",
+      "passed": true,
+      "evidence": {
+        "source_store": "authoritative_postgresql",
+        "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+        "r4_snapshot_artifact_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+        "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "role_hashes": {
+          "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c",
+          "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+          "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+          "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+          "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd"
+        },
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0,
+        "outer_rows_used": 0,
+        "outer_origin_intersection": 0
+      }
+    },
+    {
+      "criterion": "content-addressed per-family checkpoints",
+      "passed": true,
+      "evidence": {
+        "checkpoint_count": 1,
+        "family": "h63"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/full_analog_trajectories.py",
+      "bytes": 8302,
+      "sha256": "0eeae336237e2fe3017f133484da8aa618ffd80fb57efb7c436dea042ec8bb0b"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_full_analog_trajectories.py",
+      "bytes": 1498,
+      "sha256": "5491e6121d5bd5b6d783428feda3d8e47264b518df5e2a90347f3283a2be14bf"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/acceptance_summary.json",
+      "bytes": 2865,
+      "sha256": "daaf706731050701241d02afc366c7aa941d9117b55054f86c5735115caad284"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-005/r4_calibration/checkpoints/h63-b51b376165e6b86bbefd8c414596d6d13c5b06c73b9ddc6128dbdffe003a7b39.json",
+      "bytes": 238384,
+      "sha256": "2e8f081810aa62739702e1703494eb9cbf848ba108bbde8566d7222a330132dd"
+    }
+  ],
+  "input_artifact_verification": {
+    "path": "C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip",
+    "nested_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+    "sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+    "matched": true,
+    "authoritative_export": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\input_exports\\cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2.json",
+    "authoritative_export_sha256": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b6f1102ff",
+    "source_store": "authoritative_postgresql"
+  },
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
