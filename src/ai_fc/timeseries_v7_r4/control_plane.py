@@ -338,6 +338,17 @@ class PostgresControlPlane:
                 payload = dict(payload)
                 if prior_blocker:
                     payload["retry_blocker"] = prior_blocker
+                    previous = conn.execute(
+                        "SELECT result FROM timeseries_v7_r4.attempts"
+                        " WHERE run_id=%s AND task_key=%s AND completed_at IS NOT NULL"
+                        " ORDER BY completed_at DESC LIMIT 1", (run_id, task_key),
+                    ).fetchone()
+                    if previous is not None and isinstance(previous[0], dict):
+                        payload["retry_evidence"] = {
+                            "blocker_signature": previous[0].get("blocker_signature"),
+                            "unresolved_blockers": previous[0].get("unresolved_blockers", []),
+                            "acceptance_results": previous[0].get("acceptance_results", []),
+                        }
                 lease_token = uuid.uuid4().hex
                 attempt_id = f"{task_key}-a{uuid.uuid4().hex[:12]}"
                 conn.execute(

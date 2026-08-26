@@ -431,6 +431,48 @@ class Supervisor:
                     payload = {}
             source_hash = payload.get("source_snapshot_hash")
             r4_hash = payload.get("r4_snapshot_hash")
+            db_evidence = {
+                "snapshot_present": False,
+                "feature_rows": 0,
+                "label_rows": 0,
+                "provenance_rows": 0,
+                "provenance_pit_violations": -1,
+                "calendar_version": None,
+            }
+            if isinstance(r4_hash, str) and len(r4_hash) == 64:
+                try:
+                    with self.control.connect() as connection:
+                        snapshot_row = connection.execute(
+                            "SELECT calendar_version,jsonb_array_length(payload->'feature_rows')"
+                            " FROM timeseries_v7_r4.pit_snapshots WHERE snapshot_hash=%s",
+                            (r4_hash,),
+                        ).fetchone()
+                        if snapshot_row is not None:
+                            db_evidence["snapshot_present"] = True
+                            db_evidence["calendar_version"] = snapshot_row[0]
+                            db_evidence["feature_rows"] = snapshot_row[1]
+                        db_evidence["label_rows"] = connection.execute(
+                            "SELECT count(*) FROM timeseries_v7_r4.label_intervals"
+                            " WHERE snapshot_hash=%s", (r4_hash,),
+                        ).fetchone()[0]
+                        provenance_table = connection.execute(
+                            "SELECT to_regclass('timeseries_v7_r4.feature_value_provenance')"
+                        ).fetchone()[0]
+                    if provenance_table is not None:
+                        with self.control.connect() as connection:
+                            counts = connection.execute(
+                                "SELECT count(*),count(*) FILTER (WHERE max_available_at>origin_cutoff_at)"
+                                " FROM timeseries_v7_r4.feature_value_provenance"
+                                " WHERE snapshot_hash=%s", (r4_hash,),
+                            ).fetchone()
+                        db_evidence["provenance_rows"] = counts[0]
+                        db_evidence["provenance_pit_violations"] = counts[1]
+                except Exception as exc:
+                    db_evidence["query_error"] = f"{type(exc).__name__}:{exc}"
+            expected_feature_rows = payload.get("source_snapshot_rows")
+            expected_label_rows = payload.get("source_label_rows")
+            active_feature_values = payload.get("active_feature_value_count")
+            calendar_hash = payload.get("calendar_version_hash")
             checks = {
                 "r4_snapshot_rematerialized": payload.get("r4_snapshot_rematerialized") is True,
                 "snapshot_hash_changed": (
@@ -447,6 +489,32 @@ class Supervisor:
                 "legacy_runtime_defects_acknowledged": (
                     payload.get("legacy_runtime_defects_acknowledged") is True
                 ),
+                "database_snapshot_present": db_evidence["snapshot_present"],
+                "all_real_feature_rows_persisted": (
+                    isinstance(expected_feature_rows, int) and expected_feature_rows >= 7_000
+                    and db_evidence["feature_rows"] == expected_feature_rows
+                ),
+                "all_mature_labels_persisted": (
+                    isinstance(expected_label_rows, int) and expected_label_rows >= 7_000
+                    and db_evidence["label_rows"] == expected_label_rows
+                ),
+                "per_feature_provenance_complete": (
+                    isinstance(active_feature_values, int) and active_feature_values > 0
+                    and db_evidence["provenance_rows"] == active_feature_values
+                    and db_evidence["provenance_pit_violations"] == 0
+                ),
+                "versioned_calendar_hash_bound": (
+                    isinstance(calendar_hash, str) and len(calendar_hash) == 64
+                    and db_evidence["calendar_version"] == f"XNAS@{calendar_hash}"
+                ),
+                "early_close_sessions_verified": (
+                    isinstance(payload.get("canonical_early_close_checks"), int)
+                    and payload["canonical_early_close_checks"] > 0
+                ),
+                "release_native_values_materialized": (
+                    isinstance(payload.get("release_native_feature_count"), int)
+                    and payload["release_native_feature_count"] > 0
+                ),
             }
             passed = all(checks.values())
             result.setdefault("acceptance_results", []).append({
@@ -456,9 +524,9 @@ class Supervisor:
             })
             if not passed:
                 result["status"] = "RETRY_WAIT"
-                result["blocker_signature"] = "LEGACY_SNAPSHOT_SUMMARY_IS_NOT_R4_PIT_PROOF"
+                result["blocker_signature"] = "R4_FULL_REMATERIALIZATION_EVIDENCE_MISSING"
                 result["unresolved_blockers"] = [{
-                    "current": checks,
+                    "current": checks, "database_evidence": db_evidence,
                     "required": "real R4 rematerialization with new cutoff, provenance, release-native features, and PostgreSQL persistence",
                 }]
                 result["recommended_router_deficits"] = ["data_rematerialization"]
