@@ -9,7 +9,8 @@ from typing import Any, Iterable, Mapping, Sequence
 
 import numpy as np
 from scipy.optimize import minimize
-from scipy.special import gammaln
+from scipy.special import beta, gammaln
+from scipy.stats import t as student_t
 
 
 CANONICAL_HORIZONS = (1, 5, 21, 63)
@@ -22,6 +23,8 @@ class E2Contract:
     alpha_grid: tuple[float, ...] = (0.01, 0.1, 1.0)
     cross_fit_folds: int = 5
     min_training_rows: int = 20
+    crps_weight: float = 1.0
+    stability_weight: float = 0.1
 
     @classmethod
     def from_mapping(cls, value: Mapping[str, Any]) -> "E2Contract":
@@ -33,6 +36,8 @@ class E2Contract:
             alpha_grid=tuple(float(v) for v in value.get("alpha_grid", cls.alpha_grid)),
             cross_fit_folds=int(value.get("cross_fit_folds", cls.cross_fit_folds)),
             min_training_rows=int(value.get("min_training_rows", cls.min_training_rows)),
+            crps_weight=float(value.get("crps_weight", cls.crps_weight)),
+            stability_weight=float(value.get("stability_weight", cls.stability_weight)),
         )
         result.validate()
         return result
@@ -53,6 +58,9 @@ class E2Contract:
             raise ValueError("cross_fit_folds must be at least two")
         if self.min_training_rows < 8 or self.cross_fit_folds >= self.min_training_rows:
             raise ValueError("invalid min_training_rows/cross_fit_folds contract")
+        if (not np.isfinite(self.crps_weight) or self.crps_weight < 0.0
+                or not np.isfinite(self.stability_weight) or self.stability_weight < 0.0):
+            raise ValueError("objective weights must be finite and nonnegative")
 
 
 @dataclass(frozen=True)
@@ -91,29 +99,37 @@ def _ridge(design: np.ndarray, target: np.ndarray, alpha: float) -> np.ndarray:
 
 
 def _cross_fitted_residuals(design: np.ndarray, target: np.ndarray, folds: int,
-                            alpha: float) -> np.ndarray:
-    residuals = np.empty(len(target), dtype=float)
-    indices = np.arange(len(target))
-    for held_out in np.array_split(indices, folds):
-        train = np.setdiff1d(indices, held_out, assume_unique=True)
+                            alpha: float, min_training_rows: int = 8) -> np.ndarray:
+    """Return prequential residuals from expanding temporal folds.
+
+    The warm-up has no honest residual because no earlier training window exists.
+    """
+    residuals = np.full(len(target), np.nan, dtype=float)
+    validation = np.arange(min_training_rows, len(target))
+    for held_out in np.array_split(validation, folds):
+        if not len(held_out):
+            continue
+        train = np.arange(held_out[0])
         coefficients = _ridge(design[train], target[train], alpha)
         residuals[held_out] = target[held_out] - design[held_out] @ coefficients
     return residuals
 
 
 def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
-               degrees_of_freedom: float, alpha: float) -> tuple[np.ndarray, np.ndarray, float]:
+               degrees_of_freedom: float, alpha: float, crps_weight: float,
+               stability_weight: float) -> tuple[np.ndarray, np.ndarray, float, float, float]:
     width = design.shape[1]
     location = _ridge(design, target, alpha)
-    floor = max(float(np.median(np.abs(residuals))) * 1e-3, 1e-10)
-    log_scale_target = np.log(np.maximum(np.abs(residuals), floor))
-    log_scale = _ridge(design, log_scale_target, alpha)
+    valid = np.isfinite(residuals)
+    floor = max(float(np.median(np.abs(residuals[valid]))) * 1e-3, 1e-10)
+    log_scale_target = np.log(np.maximum(np.abs(residuals[valid]), floor))
+    log_scale = _ridge(design[valid], log_scale_target, alpha)
     initial = np.r_[location, log_scale]
     constant = (gammaln((degrees_of_freedom + 1.0) / 2.0)
                 - gammaln(degrees_of_freedom / 2.0)
                 - 0.5 * np.log(degrees_of_freedom * np.pi))
 
-    def objective(parameters: np.ndarray) -> tuple[float, np.ndarray]:
+    def components(parameters: np.ndarray) -> tuple[float, float, float]:
         loc = design @ parameters[:width]
         log_s = design @ parameters[width:]
         scale = np.exp(log_s)
@@ -121,28 +137,34 @@ def _joint_fit(design: np.ndarray, target: np.ndarray, residuals: np.ndarray,
         nll = -constant + log_s + 0.5 * (degrees_of_freedom + 1.0) * np.log1p(
             standardized * standardized / degrees_of_freedom
         )
-        denominator = degrees_of_freedom + standardized * standardized
-        location_derivative = -(degrees_of_freedom + 1.0) * standardized / (
-            scale * denominator
-        )
-        scale_derivative = 1.0 - (degrees_of_freedom + 1.0) * (
-            standardized * standardized / denominator
-        )
-        gradient = np.r_[design.T @ location_derivative, design.T @ scale_derivative] / len(target)
-        gradient[1:width] += alpha * parameters[1:width]
-        gradient[width + 1:] += alpha * parameters[width + 1:]
         penalty = 0.5 * alpha * (
             np.dot(parameters[1:width], parameters[1:width])
             + np.dot(parameters[width + 1:], parameters[width + 1:])
         )
-        return float(nll.mean() + penalty), gradient
+        # Exact CRPS for a Student-t location-scale distribution (df > 2).
+        cdf = student_t.cdf(standardized, degrees_of_freedom)
+        pdf = student_t.pdf(standardized, degrees_of_freedom)
+        constant_crps = (2.0 * np.sqrt(degrees_of_freedom)
+                         * beta(0.5, degrees_of_freedom - 0.5)
+                         / ((degrees_of_freedom - 1.0)
+                            * beta(0.5, degrees_of_freedom / 2.0) ** 2))
+        crps = scale * (standardized * (2.0 * cdf - 1.0)
+                        + 2.0 * pdf * (degrees_of_freedom + standardized ** 2)
+                        / (degrees_of_freedom - 1.0) - constant_crps)
+        stability = float(np.mean(np.diff(loc) ** 2)) if len(loc) > 1 else 0.0
+        return float(nll.mean() + penalty), float(crps.mean()), stability
+
+    def objective(parameters: np.ndarray) -> float:
+        nll, crps, stability = components(parameters)
+        return nll + crps_weight * crps + stability_weight * stability
 
     bounds = [(None, None)] * width + [(-30.0, 30.0)] * width
-    fitted = minimize(objective, initial, jac=True, method="L-BFGS-B", bounds=bounds,
+    fitted = minimize(objective, initial, method="L-BFGS-B", bounds=bounds,
                       options={"maxiter": 5000, "ftol": 1e-12})
     if not fitted.success or not np.isfinite(fitted.x).all():
         raise RuntimeError(f"E2 Student-t optimization failed: {fitted.message}")
-    return fitted.x[:width], fitted.x[width:], float(fitted.fun)
+    _, crps, stability = components(fitted.x)
+    return fitted.x[:width], fitted.x[width:], float(fitted.fun), crps, stability
 
 
 def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
@@ -178,6 +200,8 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
     selected_df: dict[int, float] = {}
     selected_alpha: dict[int, float] = {}
     selected_nll: dict[int, float] = {}
+    selected_crps: dict[int, float] = {}
+    selected_stability: dict[int, float] = {}
     evidence: list[dict[str, Any]] = []
     for horizon in contract.horizons:
         try:
@@ -188,33 +212,45 @@ def fit_e2_student_t(*, rows: Iterable[Mapping[str, Any]], as_of: str,
             raise ValueError("direct targets must be finite fractions")
         residuals = _cross_fitted_residuals(
             design, target, contract.cross_fit_folds, min(contract.alpha_grid),
+            contract.min_training_rows,
         )
         evidence.extend({"horizon": horizon, "row": index, "residual": float(value)}
                         for index, value in enumerate(residuals))
         candidates = []
         for df in contract.degrees_of_freedom:
             for alpha in contract.alpha_grid:
-                loc, log_scale, nll = _joint_fit(design, target, residuals, df, alpha)
-                candidates.append((nll, df, alpha, loc, log_scale))
-        nll, df, alpha, loc, log_scale = min(candidates, key=lambda item: item[0])
+                loc, log_scale, score, crps, stability = _joint_fit(
+                    design, target, residuals, df, alpha,
+                    contract.crps_weight, contract.stability_weight,
+                )
+                candidates.append((score, df, alpha, loc, log_scale, crps, stability))
+        nll, df, alpha, loc, log_scale, crps, stability = min(
+            candidates, key=lambda item: item[0])
         locations[horizon] = tuple(float(v) for v in loc)
         scales[horizon] = tuple(float(v) for v in log_scale)
         selected_df[horizon], selected_alpha[horizon], selected_nll[horizon] = df, alpha, nll
+        selected_crps[horizon], selected_stability[horizon] = crps, stability
 
     evidence_bytes = json.dumps(evidence, sort_keys=True, separators=(",", ":")).encode()
     diagnostics = {
-        "objective": "joint_location_scale_student_t_nll",
+        "objective": "student_t_nll_plus_horizon_crps_plus_stability_penalty",
+        "objective_weights": {"crps": contract.crps_weight,
+                              "stability": contract.stability_weight},
         "searched_grid": {
             "degrees_of_freedom": list(contract.degrees_of_freedom),
             "alpha": list(contract.alpha_grid),
         },
         "selected_nll": selected_nll,
+        "selected_crps": selected_crps,
+        "selected_stability_penalty": selected_stability,
         "eligible_rows": len(eligible),
         "excluded_post_as_of_rows": excluded,
         "as_of": as_of,
         "scale_residual_evidence": {
             "kind": "cross_fitted", "folds": contract.cross_fit_folds,
-            "row_count": len(evidence), "sha256": hashlib.sha256(evidence_bytes).hexdigest(),
+            "row_count": sum(np.isfinite(item["residual"]) for item in evidence),
+            "warmup_rows_per_horizon": contract.min_training_rows,
+            "temporal_scheme": "expanding", "sha256": hashlib.sha256(evidence_bytes).hexdigest(),
         },
     }
     return E2Model(contract.horizons, selected_df, selected_alpha, locations, scales,
