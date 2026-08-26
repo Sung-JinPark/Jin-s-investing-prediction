@@ -399,6 +399,19 @@ def test_heartbeat_fencing(control):
     assert not control.heartbeat(lease, "other", 60)
 
 
+def test_retry_backoff_is_not_reported_as_missing_data(control):
+    run_id = make_run(control)
+    control.import_tasks(run_id, [{"task_id": "t", "title": "t", "priority": 1}])
+    lease = control.claim(run_id, "worker", 30)
+    retry = result(lease, status="RETRY_WAIT", blocker_signature="REPLAN")
+    assert control.finish(lease, "worker", retry, "RETRY_WAIT")
+
+    seconds = control.retry_backoff_seconds(run_id)
+
+    assert seconds is not None
+    assert 0 < seconds <= 60
+
+
 def test_d1_006_rejects_single_feature_snapshot_as_multivariate_pit(
     control, tmp_path,
 ):

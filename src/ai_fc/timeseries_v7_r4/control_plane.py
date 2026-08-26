@@ -376,6 +376,18 @@ class PostgresControlPlane:
             conn.commit()
             return row is not None
 
+    def retry_backoff_seconds(self, run_id: str) -> float | None:
+        """Return time until the next retry without misclassifying it as missing data."""
+        with self.connect() as conn:
+            row = conn.execute(
+                "SELECT extract(epoch FROM min(available_at)-now())"
+                " FROM timeseries_v7_r4.tasks WHERE run_id=%s AND state='RETRY_WAIT'",
+                (run_id,),
+            ).fetchone()
+        if row is None or row[0] is None:
+            return None
+        return max(0.0, float(row[0]))
+
     def finish(self, lease: Lease, worker_id: str, result: dict[str, Any], state: str) -> bool:
         blob = canonical_json(result)
         with self.connect() as conn:

@@ -709,6 +709,15 @@ class Supervisor:
             self.control.requeue_expired(run_id)
             lease = self.control.claim(run_id, self.worker_id, lease_seconds)
             if lease is None:
+                retry_backoff = self.control.retry_backoff_seconds(run_id)
+                if retry_backoff is not None:
+                    self.control.set_run_state(run_id, "REPLAN", {
+                        "reason": "retry backoff",
+                        "retry_after_seconds": round(retry_backoff, 3),
+                        "wake_trigger": "retry available_at",
+                    })
+                    time.sleep(min(max(retry_backoff, 0.1), 5.0))
+                    continue
                 self.control.set_run_state(run_id, "WAIT_DATA", {
                     "reason": "no eligible tasks", "current": 0, "required": 1,
                     "wake_trigger": "new eligible task or dependency completion",
