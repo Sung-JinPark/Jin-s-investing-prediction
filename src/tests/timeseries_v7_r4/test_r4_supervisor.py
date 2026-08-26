@@ -888,6 +888,27 @@ def test_codex_dispatch_requires_explicit_enable(tmp_path, monkeypatch):
         dispatcher.dispatch({"task_key": "t", "attempt_id": "a"})
 
 
+def test_codex_dispatch_prompt_requires_exact_identity_list_tests_and_retry_receipt():
+    envelope = {
+        "run_id": "run-1", "cycle_id": "cycle-2", "task_key": "R4-M3-007",
+        "attempt_id": "attempt-4",
+        "execution_replan_history": [{
+            "evidence": {
+                "required_changed_path":
+                    "outputs/timeseries_v7_r4/R4-M3-007/verification_receipt.json",
+            },
+        }],
+    }
+    prompt = CodexDispatcher._build_prompt(envelope)
+    assert '"run_id":"run-1"' in prompt
+    assert '"cycle_id":"cycle-2"' in prompt
+    assert '"task_key":"R4-M3-007"' in prompt
+    assert '"attempt_id":"attempt-4"' in prompt
+    assert "tests field must be a JSON array" in prompt
+    assert "outputs/timeseries_v7_r4/R4-M3-007/verification_receipt.json" in prompt
+    assert "successful verification-only retry therefore still has a real changed path" in prompt
+
+
 def test_gate_deficit_router_is_deterministic():
     router = GateDeficitRouter.from_yaml(
         ROOT / "data/timeseries_v7_r4/ralph/spec/NASDAQ_V7_R3_RALPH_R4_GATE_DEFICIT_ROUTER_20260826.yaml")

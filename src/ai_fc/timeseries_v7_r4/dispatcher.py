@@ -112,6 +112,51 @@ class CodexDispatcher:
         normalized = path.replace("\\", "/")
         return any(fnmatchcase(normalized, pattern) for pattern in patterns)
 
+    @staticmethod
+    def _build_prompt(envelope: dict[str, Any]) -> str:
+        identity = {
+            field: envelope[field]
+            for field in ("run_id", "cycle_id", "task_key", "attempt_id")
+        }
+        replan = envelope.get("execution_replan_history") or []
+        required_changed_paths = sorted({
+            str(item.get("evidence", {}).get("required_changed_path"))
+            for item in replan
+            if isinstance(item, dict)
+            and item.get("evidence", {}).get("required_changed_path")
+        })
+        verification_instruction = ""
+        if required_changed_paths:
+            verification_instruction = (
+                " This retry has preserved implementation evidence. Independently verify it and "
+                "write and commit an auditable verification receipt at each required path: "
+                + ", ".join(required_changed_paths)
+                + ". A successful verification-only retry therefore still has a real changed path."
+            )
+        return (
+            "Execute exactly one task from the attached JSON envelope. Do not start another task. "
+            "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
+            "smallest coherent patch, and run targeted tests with the frozen Python executable in "
+            "the envelope. PostgreSQL is the authoritative durable store; SQLite may appear only in "
+            "disposable unit-test fixtures and must not back production R4 ingestion, control, model, "
+            "or Gate state. Preserve point-in-time available_at semantics and all frozen research "
+            "coordinates. For materializer, trainer, or evaluator tasks, execute acceptance against "
+            "the real evidence pack declared in input_artifacts; synthetic fixtures are tests only "
+            "and cannot prove run acceptance. A credential-free authoritative PIT export in "
+            "input_artifacts is prepared by the Supervisor specifically so the child must not ask "
+            "for or depend on a database URL. Launch each long-running acceptance command exactly "
+            "once and poll the returned process/session until completion; never start a duplicate "
+            "while an earlier process with the same command is alive. Persist content-addressed "
+            "per-family checkpoints so a retry resumes completed evidence instead of refitting it. "
+            "Do not commit or run git worktree commands. Return only a JSON object matching the R4 "
+            "result contract. The final JSON must echo these envelope identity fields exactly: "
+            + canonical_json(identity).decode("utf-8")
+            + ". The tests field must be a JSON array, never an object."
+            + verification_instruction
+            + "\n\n"
+            + canonical_json(envelope).decode("utf-8")
+        )
+
     def cleanup(self, dispatched: DispatchResult, *, merged: bool) -> None:
         subprocess.run(
             ["git", "worktree", "remove", "--force", str(dispatched.worktree)],
@@ -138,25 +183,7 @@ class CodexDispatcher:
         envelope_path = task_dir / "task_envelope.json"
         envelope_path.write_bytes(canonical_json(envelope) + b"\n")
         last_message = task_dir / "last_message.json"
-        prompt = (
-            "Execute exactly one task from the attached JSON envelope. Do not start another task. "
-            "Respect allowed_paths and protected manifest. Write a failing test first, implement the "
-            "smallest coherent patch, and run targeted tests with the frozen Python executable in "
-            "the envelope. PostgreSQL is the authoritative durable store; SQLite may appear only in "
-            "disposable unit-test fixtures and must not back production R4 ingestion, control, model, "
-            "or Gate state. Preserve point-in-time available_at semantics and all frozen research "
-            "coordinates. For materializer, trainer, or evaluator tasks, execute acceptance against "
-            "the real evidence pack declared in input_artifacts; synthetic fixtures are tests only "
-            "and cannot prove run acceptance. A credential-free authoritative PIT export in "
-            "input_artifacts is prepared by the Supervisor specifically so the child must not ask "
-            "for or depend on a database URL. Launch each long-running acceptance command exactly "
-            "once and poll the returned process/session until completion; never start a duplicate "
-            "while an earlier process with the same command is alive. Persist content-addressed "
-            "per-family checkpoints so a retry resumes completed evidence instead of refitting it. "
-            "Do not commit or run git worktree commands. Return only "
-            "a JSON object "
-            "matching the R4 result contract.\n\n" + canonical_json(envelope).decode("utf-8")
-        )
+        prompt = self._build_prompt(envelope)
         command = [self.executable(), "exec", "--ephemeral", "--ignore-user-config",
                    "--sandbox", "danger-full-access", "--json", "-C", str(worktree),
                    "-o", str(last_message), "-"]
