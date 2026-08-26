@@ -2,6 +2,9 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+import subprocess
+import sys
+from pathlib import Path
 
 from ai_fc.timeseries_v7_r4.e0_empirical_samples import (
     E0_EXACT_EMPIRICAL_CONTRACT,
@@ -85,3 +88,14 @@ def test_exact_empirical_anchor_rejects_no_matured_labels() -> None:
             labels=[{"origin_session": "2025-12-01", "horizon_sessions": 21,
                      "value": 0.1, "available_at": "2026-01-04T00:00:00Z"}],
         )
+
+
+def test_exact_empirical_cli_help_imports_without_retired_bootstrap_symbols() -> None:
+    repo = Path(__file__).resolve().parents[3]
+    result = subprocess.run(
+        [sys.executable, str(repo / "tools/generate_e0_samples_v7_r4.py"), "--help"],
+        cwd=repo, capture_output=True, text=True, check=False,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert "exact empirical" in result.stdout.lower()

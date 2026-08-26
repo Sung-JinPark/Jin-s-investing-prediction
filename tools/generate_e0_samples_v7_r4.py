@@ -16,9 +16,9 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "src"))
 
 from ai_fc.timeseries_v7_r4.e0_empirical_samples import (
-    E0_BLOCK_BOOTSTRAP_CONTRACT,
+    E0_EXACT_EMPIRICAL_CONTRACT,
     EvaluationPath,
-    generate_e0_samples,
+    fit_exact_empirical_anchor,
 )
 from ai_fc.timeseries_v7_r4.integrity import canonical_json, sha256_bytes
 
@@ -42,7 +42,7 @@ def _only_name(names: list[str], suffix: str) -> str:
 
 
 def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
-             sample_count: int, root_seed: int) -> dict[str, object]:
+             sample_count: int | None = None, root_seed: int | None = None) -> dict[str, object]:
     observed_hash = file_sha256(pack_path)
     if observed_hash != expected_sha256:
         raise ValueError("evidence-pack hash mismatch")
@@ -70,10 +70,6 @@ def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
 
     labels = labels.copy()
     labels["origin_session"] = labels["origin_session"].astype(str)
-    snapshot_sessions = snapshot["origin_session"].astype(str)
-    finite_returns = snapshot["ret_1"].notna()
-    return_sessions = snapshot_sessions[finite_returns].tolist()
-    return_values = snapshot.loc[finite_returns, "ret_1"].astype(float).tolist()
     coordinates: list[dict[str, object]] = []
     for horizon in (1, 5, 21, 63):
         value_column = f"h{horizon}"
@@ -81,13 +77,19 @@ def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
         mature = labels[value_column].notna() & labels[end_column].notna()
         row = labels.loc[mature].iloc[-1]
         origin = str(row["origin_session"])
-        samples = generate_e0_samples(
+        training_labels = [
+            {
+                "origin_session": str(candidate["origin_session"]),
+                "horizon_sessions": horizon,
+                "value": candidate[value_column],
+                "available_at": candidate[end_column],
+            }
+            for _, candidate in labels.loc[mature].iterrows()
+        ]
+        samples = fit_exact_empirical_anchor(
             origin_session=origin,
             horizon_sessions=horizon,
-            sessions=return_sessions,
-            one_session_returns=return_values,
-            sample_count=sample_count,
-            root_seed=root_seed,
+            labels=training_labels,
         )
         path = EvaluationPath.bind(samples)
         actual = float(row[value_column])
@@ -112,7 +114,7 @@ def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
     payload: dict[str, object] = {
         "schema_version": 1,
         "artifact_type": "e0_sample_matrix",
-        "contract": dict(E0_BLOCK_BOOTSTRAP_CONTRACT),
+        "contract": dict(E0_EXACT_EMPIRICAL_CONTRACT),
         "source": {
             "evidence_pack": str(pack_path),
             "evidence_pack_sha256": observed_hash,
@@ -121,8 +123,8 @@ def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
             "pit_row_count": int(len(snapshot)),
             "mature_label_count": int(sum(labels[f"h{h}"].notna().sum() for h in (1, 5, 21, 63))),
         },
-        "sample_count_per_coordinate": sample_count,
-        "root_seed": root_seed,
+        "sample_count_per_coordinate": None,
+        "root_seed": None,
         "coordinates": coordinates,
     }
     payload["matrix_hash"] = sha256_bytes(canonical_json(payload))
@@ -130,17 +132,16 @@ def generate(pack_path: Path, nested_member: str, *, expected_sha256: str,
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        description="Generate reproducible exact empirical E0 anchors from PIT labels.",
+    )
     parser.add_argument("--pack", type=Path, required=True)
     parser.add_argument("--nested-member", required=True)
     parser.add_argument("--pack-sha256", required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--sample-count", type=int, default=20_000)
-    parser.add_argument("--root-seed", type=int, default=7_002)
     args = parser.parse_args()
     payload = generate(
         args.pack, args.nested_member, expected_sha256=args.pack_sha256,
-        sample_count=args.sample_count, root_seed=args.root_seed,
     )
     output = args.output_root / f"{payload['matrix_hash']}.json"
     encoded = canonical_json(payload)
