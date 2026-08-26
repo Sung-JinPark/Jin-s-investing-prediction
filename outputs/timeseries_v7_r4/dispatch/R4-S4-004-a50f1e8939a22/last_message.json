@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "status": "SUCCESS",
+  "attempt_id": "R4-S4-004-a50f1e8939a22",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "run_id": "v7r4-20260826T003326Z",
+  "task_key": "R4-S4-004",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "summary": "Implemented origin-filtered, temporally cross-fitted learned regime probabilities with structural partial pooling and authoritative fixed-role isolation.",
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/learned_regime.py",
+    "src/tests/timeseries_v7_r4/test_learned_regime.py",
+    "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/"
+  ],
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_learned_regime.py",
+      "phase": "red_test",
+      "return_code": 1,
+      "expected_failure": "ModuleNotFoundError: ai_fc.timeseries_v7_r4.learned_regime was absent before implementation."
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_learned_regime.py",
+      "phase": "targeted_test",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m ai_fc.timeseries_v7_r4.learned_regime --review-pack C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip --nested-member INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip --authoritative-export C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\input_exports\\cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2.json --output-dir outputs/timeseries_v7_r4/R4-S4-004/r4_calibration",
+      "phase": "real_evidence_acceptance",
+      "return_code": 0
+    },
+    {
+      "command": "Frozen Python acceptance artifact schema, family, probability, role-isolation, pooling-weight, and row-counter inspection",
+      "phase": "integrity_validation",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4/test_learned_regime.py src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+      "phase": "targeted_validation",
+      "return_code": 0
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest -q src/tests/timeseries_v7_r4",
+      "phase": "broad_validation",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "learned regime red test",
+      "passed": true,
+      "observed_result": "Failed as expected before implementation with ModuleNotFoundError.",
+      "evidence_path": "src/tests/timeseries_v7_r4/test_learned_regime.py"
+    },
+    {
+      "name": "learned regime targeted tests",
+      "passed": true,
+      "observed_result": "4 passed",
+      "evidence_path": "src/tests/timeseries_v7_r4/test_learned_regime.py"
+    },
+    {
+      "name": "learned regime and supervisor validation",
+      "passed": true,
+      "observed_result": "72 passed, 7 warnings",
+      "evidence_path": "src/tests/timeseries_v7_r4"
+    },
+    {
+      "name": "timeseries_v7_r4 broad suite",
+      "passed": true,
+      "observed_result": "156 passed, 7 warnings",
+      "evidence_path": "src/tests/timeseries_v7_r4"
+    },
+    {
+      "name": "authoritative PIT evidence-pack acceptance",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/acceptance_summary.json",
+      "sha256": "739117b8bae0609496b4511922eb3097b9c70b3feb0cba7feef98472c7e30250"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "regime probabilities are learned from filtered features",
+      "passed": true,
+      "evidence": "All h1, h5, h21, and h63 families produced varying temporally cross-fitted probabilities from 20 finite origin-available filtered features."
+    },
+    {
+      "criterion": "minimum regime sample and partial pooling enforced",
+      "passed": true,
+      "evidence": "Every family records minimum_regime_count=60 and structural credibility weights strictly between zero and one; sparse regimes receive stronger global shrinkage."
+    },
+    {
+      "criterion": "no date-based crisis labels at prediction time",
+      "passed": true,
+      "evidence": "Every family records forbidden_prediction_features=[] and date, session, crisis, future-return, label, target, and outcome coordinates are excluded."
+    },
+    {
+      "criterion": "authoritative calibration-role isolation",
+      "passed": true,
+      "evidence": {
+        "source_store": "authoritative_postgresql",
+        "r4_snapshot_hash": "cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2",
+        "g2_artifact_sha256": "3e19f5dc4360b0a74de41a7d4c54967597853b12c81689c57fbc34c281972523",
+        "calibration_role_origin_count_per_family": 634,
+        "fit_role": "calibration_temporal_cross_fit",
+        "role_hashes": {
+          "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c",
+          "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+          "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+          "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+          "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd"
+        },
+        "legacy_review_pack_score_rows_used": 0,
+        "qualification_score_rows_used": 0,
+        "outer_rows_used": 0
+      }
+    },
+    {
+      "criterion": "content-addressed per-family checkpoints",
+      "passed": true,
+      "evidence": {
+        "checkpoint_count": 4,
+        "families": [
+          "h1",
+          "h5",
+          "h21",
+          "h63"
+        ]
+      }
+    }
+  ],
+  "input_artifact_verification": {
+    "path": "C:\\workspace\\ai-investing\\outputs\\review-packs\\NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip",
+    "nested_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+    "sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+    "matched": true,
+    "authoritative_export": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\input_exports\\cdddba1e32a4bdb3aebc98ec676c81744085a2a5952d4014807f0feb78140fc2.json",
+    "source_store": "authoritative_postgresql"
+  },
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/learned_regime.py",
+      "bytes": 10872,
+      "sha256": "ebabd5dbc8ff71027d8e3264d429a78b907af3d003775590bc2653a6ddfdbe75"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_learned_regime.py",
+      "bytes": 2265,
+      "sha256": "5fc4791d1af99e380e66676c11e7bb27874907390a5dcf4251f7aa87880b076e"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/acceptance_summary.json",
+      "bytes": 8481,
+      "sha256": "739117b8bae0609496b4511922eb3097b9c70b3feb0cba7feef98472c7e30250"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/checkpoints/h1-88aa2eec4a7d041bf5c743e843163c7a43f9ef9e30f15e7f1ab2a5aac11ea241.json",
+      "bytes": 1542,
+      "sha256": "f39a0dccc775735eabbfbc4e3ac843f3033a0f447ea9d798c290870568e19042"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/checkpoints/h5-814de9fcf2143960ce6fec8ea1fa4490d6effebd203847befb3902436f03d0c8.json",
+      "bytes": 1555,
+      "sha256": "a132a9fbcce81c969c32bc908cd4a11d5ae0cfb310fc970e80dc0d5e1cc0ea32"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/checkpoints/h21-9c684db0f5cfd338be6085d2950cdd668a4a6561583dafe68d7fdd8d2bd0944e.json",
+      "bytes": 1559,
+      "sha256": "9ad2db7aeb62df9b8a829badd1173fd401232eca98f59a16619bdb15dd91a06d"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-004/r4_calibration/checkpoints/h63-665959bc4bfdee169af1d8e14f6058f99fac25677222c397889efc8e3c70cf53.json",
+      "bytes": 1559,
+      "sha256": "fe8da9d930fe0d7f2089f4712f782a8a35dc65884420f187a5593e963c674763"
+    }
+  ],
+  "unresolved_blockers": [],
+  "secret_scan_pass": true
+}
