@@ -389,6 +389,35 @@ class Supervisor:
                     "required": "production PostgreSQL revision and cursor transaction",
                 }]
                 result["recommended_router_deficits"] = ["engineering_fix"]
+        if lease.task_key == "R4-D1-005":
+            implementation = (
+                self.context.repo / "src/ai_fc/timeseries_v7_r4/pit_snapshot.py"
+            ).read_text(encoding="utf-8")
+            migration = (
+                self.context.repo / "migrations/timeseries_v7_r4/002_pit_snapshots.sql"
+            ).read_text(encoding="utf-8")
+            checks = {
+                "postgres_snapshot_table": "timeseries_v7_r4.pit_snapshots" in migration,
+                "postgres_label_table": "timeseries_v7_r4.label_intervals" in migration,
+                "append_function": "def persist_pit_snapshot" in implementation,
+                "transactional_postgres_path": (
+                    "psycopg" in implementation or "%s" in implementation
+                ),
+            }
+            passed = all(checks.values())
+            result.setdefault("acceptance_results", []).append({
+                "criterion": "snapshot_actually_persisted_to_postgres",
+                "passed": passed,
+                "evidence": checks,
+            })
+            if not passed:
+                result["status"] = "RETRY_WAIT"
+                result["blocker_signature"] = "POSTGRES_SNAPSHOT_MATERIALIZATION_MISSING"
+                result["unresolved_blockers"] = [{
+                    "current": checks,
+                    "required": "transactional append of snapshot and label rows",
+                }]
+                result["recommended_router_deficits"] = ["engineering_fix"]
         return result
 
     def _dispatch_codex(self, lease: Lease) -> dict[str, Any]:

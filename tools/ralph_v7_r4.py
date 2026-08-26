@@ -22,7 +22,7 @@ from ai_fc.timeseries_v7_r4.specs import (read_json, read_yaml, verify_delivery_
 from ai_fc.timeseries_v7_r4.supervisor import Supervisor, SupervisorContext  # noqa: E402
 
 SPEC_ROOT = ROOT / "data/timeseries_v7_r4/ralph/spec"
-MIGRATION = ROOT / "migrations/timeseries_v7_r4/001_control_plane.sql"
+MIGRATION_ROOT = ROOT / "migrations/timeseries_v7_r4"
 OUTPUT = ROOT / "outputs/timeseries_v7_r4"
 
 
@@ -66,7 +66,8 @@ def command_bootstrap(args: argparse.Namespace) -> int:
     if int(backlog.get("task_count", -1)) != len(backlog.get("tasks", [])):
         raise ValueError("backlog task_count mismatch")
     control = PostgresControlPlane(database_url())
-    control.migrate(MIGRATION)
+    for migration in sorted(MIGRATION_ROOT.glob("*.sql")):
+        control.migrate(migration)
     run_id = args.run_id or run_id_now()
     control.create_run(run_id=run_id, config_hash=sha256_file(config_path),
                        backlog_hash=sha256_file(backlog_path), review_pack_hash=review["sha256"])
@@ -105,7 +106,8 @@ def make_supervisor(run_id: str, args: argparse.Namespace) -> Supervisor:
 
 def command_run(args: argparse.Namespace) -> int:
     supervisor = make_supervisor(args.run_id, args)
-    supervisor.control.migrate(MIGRATION)
+    for migration in sorted(MIGRATION_ROOT.glob("*.sql")):
+        supervisor.control.migrate(migration)
     supervisor.control.reconcile_dependencies(args.run_id)
     supervisor.control.correct_execution_permission_waits(args.run_id)
     if os.getenv("R4_ALLOW_CODEX_CHILD") == "1":

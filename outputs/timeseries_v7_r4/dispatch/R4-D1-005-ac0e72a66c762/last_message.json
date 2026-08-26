@@ -1,0 +1,94 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "generation_id": null,
+  "task_key": "R4-D1-005",
+  "attempt_id": "R4-D1-005-ac0e72a66c762",
+  "status": "SUCCEEDED",
+  "started_at": "2026-08-26T10:43:00+09:00",
+  "completed_at": "2026-08-26T10:49:00+09:00",
+  "duration_seconds": 360,
+  "commands": [
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_pit_snapshot.py src/tests/timeseries_v7_r4/test_xnas_sessions.py -q",
+      "return_code": 0,
+      "stdout_sha256": "58745d8011883213acd6d3ad00c73a2860f68e432f60fc956b8cb2a8bb6d8181",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4 -q",
+      "return_code": 0,
+      "stdout_sha256": "2f2c0e5c9f524962dc41eaeec648c64f193459e3ebc21f85bcffb60017750ebe",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "changed_paths": [
+    "migrations/timeseries_v7_r4/002_pit_snapshots.sql",
+    "src/ai_fc/timeseries_v7_r4/pit_snapshot.py",
+    "src/ai_fc/timeseries_v7_r4/xnas_sessions.py",
+    "src/tests/timeseries_v7_r4/test_pit_snapshot.py"
+  ],
+  "tests": [
+    {
+      "name": "pit_snapshot_and_canonical_sessions",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4/test_pit_snapshot.py",
+      "sha256": "58745d8011883213acd6d3ad00c73a2860f68e432f60fc956b8cb2a8bb6d8181"
+    },
+    {
+      "name": "timeseries_v7_r4_regression",
+      "passed": true,
+      "evidence_path": "src/tests/timeseries_v7_r4",
+      "sha256": "2f2c0e5c9f524962dc41eaeec648c64f193459e3ebc21f85bcffb60017750ebe"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "snapshot hash and label interval table created",
+      "passed": true,
+      "evidence": "Deterministic SHA-256 PIT snapshot materialization and immutable PostgreSQL pit_snapshots/label_intervals tables were added."
+    },
+    {
+      "criterion": "all labels use canonical sessions",
+      "passed": true,
+      "evidence": "Materialization rejects origin or endpoint dates absent from the frozen versioned XNAS calendar and derives label starts and horizons from canonical session order."
+    },
+    {
+      "criterion": "no target row dropped because another source is missing",
+      "passed": true,
+      "evidence": "Targets are matured independently from feature rows; the adversarial missing-feature test retains the target label."
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/pit_snapshot.py",
+      "sha256": "7a9882dce99ba0d4cd28d5ce556a64faca0e74b2f07790a16a6abb1e93bc2b0d",
+      "bytes": 4881
+    },
+    {
+      "path": "migrations/timeseries_v7_r4/002_pit_snapshots.sql",
+      "sha256": "db0496b7f7777c8c57660d8760115bd648ae7b821020d6f814d29a6669444c66",
+      "bytes": 1598
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_pit_snapshot.py",
+      "sha256": "bd9013bb812bddcbfbd0153ee932dd77a407b5b08e0b38d478debf25e9e7a7f5",
+      "bytes": 3528
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/xnas_sessions.py",
+      "sha256": "314848f3f25df312f116518dcec42e5fe20d348f300a1352704ec48b444d5b3b",
+      "bytes": 4334
+    }
+  ],
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "secret_scan_pass": true,
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": true,
+  "recommended_router_deficits": []
+}
