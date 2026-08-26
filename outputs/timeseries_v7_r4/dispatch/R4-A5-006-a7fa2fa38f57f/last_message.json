@@ -1,0 +1,151 @@
+{
+  "schema_version": 1,
+  "run_id": "v7r4-20260826T003326Z",
+  "cycle_id": "v7r4-20260826T003326Z-c001",
+  "task_key": "R4-A5-006",
+  "attempt_id": "R4-A5-006-a7fa2fa38f57f",
+  "generation_id": null,
+  "hypothesis_id": null,
+  "status": "REVIEW_PROPOSAL",
+  "terminal_state": "REVIEW_PROPOSAL",
+  "child_worker_started_another_task": false,
+  "supervisor_should_continue": false,
+  "protected_manifest_before": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_manifest_after": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+  "protected_non_mutation": true,
+  "research_gate_pass": false,
+  "model_gate_state": "HOLD_RESEARCH_GATE",
+  "data_deficit": false,
+  "hard_block": false,
+  "completed_dependencies": [
+    "R4-S4-006",
+    "R4-A5-001",
+    "R4-A5-002",
+    "R4-A5-003",
+    "R4-A5-004",
+    "R4-A5-005"
+  ],
+  "changed_paths": [
+    "src/ai_fc/timeseries_v7_r4/terminal_acceptance.py",
+    "src/tests/timeseries_v7_r4/test_terminal_acceptance.py",
+    "outputs/timeseries_v7_r4/R4-A5-006/terminal/acceptance_summary.json"
+  ],
+  "commands": [
+    {
+      "phase": "expected_diagnostic",
+      "command": "repository discovery search for terminal-controller patterns and receipts",
+      "return_code": 1,
+      "expected_failure": "The broad discovery search returned code 1 because some requested optional paths or patterns were absent; subsequent focused discovery located the required receipts and artifacts."
+    },
+    {
+      "phase": "red_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_terminal_acceptance.py -q -p no:cacheprovider",
+      "return_code": 1,
+      "expected_failure": "The intentionally added terminal acceptance test failed during collection because ai_fc.timeseries_v7_r4.terminal_acceptance had not yet been implemented."
+    },
+    {
+      "phase": "targeted_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_terminal_acceptance.py -q -p no:cacheprovider",
+      "return_code": 0
+    },
+    {
+      "phase": "acceptance",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m ai_fc.timeseries_v7_r4.terminal_acceptance --repo . --output outputs/timeseries_v7_r4/R4-A5-006/terminal/acceptance_summary.json",
+      "return_code": 0
+    },
+    {
+      "phase": "targeted_test",
+      "command": "C:\\workspace\\ai-investing\\worktrees\\active\\timeseries-v7-r4\\.runtime\\v7r4\\Scripts\\python.exe -m pytest src/tests/timeseries_v7_r4/test_terminal_acceptance.py src/tests/timeseries_v7_r4/test_gate_deficit_router.py src/tests/timeseries_v7_r4/test_r4_supervisor.py src/tests/timeseries_v7_r4/test_open_data_challenger.py -q -p no:cacheprovider",
+      "return_code": 0
+    },
+    {
+      "phase": "acceptance_verification",
+      "command": "SHA-256 inventory and terminal acceptance-summary content verification",
+      "return_code": 0
+    }
+  ],
+  "tests": [
+    {
+      "name": "terminal acceptance focused test",
+      "passed": true,
+      "passed_count": 1,
+      "failed_count": 0
+    },
+    {
+      "name": "terminal, Gate replan, supervisor, and V8 proposal targeted suite",
+      "passed": true,
+      "passed_count": 87,
+      "failed_count": 0,
+      "warnings_count": 7
+    },
+    {
+      "name": "accepted G3 receipt and zero-weight stress-component verification",
+      "passed": true,
+      "evidence": "All five preregistered R4 stress components had non-positive calibration OOS advantage and weight 0.0."
+    },
+    {
+      "name": "terminal artifact binding verification",
+      "passed": true,
+      "evidence_path": "outputs/timeseries_v7_r4/R4-A5-006/terminal/acceptance_summary.json",
+      "sha256": "10ac96d4100816bf4208f0372de740da7535212a3d93639a28b0c937a90dd5df"
+    }
+  ],
+  "acceptance_results": [
+    {
+      "criterion": "ordinary Gate failure creates new tasks and does not terminate process",
+      "passed": true,
+      "evidence": {
+        "state": "RESEARCH_GATE_FAILED_REPLAN",
+        "created_replan_tasks": true,
+        "process_terminated": false
+      }
+    },
+    {
+      "criterion": "loop reaches REVIEW_PROPOSAL, quantified WAIT_DATA, or hard block",
+      "passed": true,
+      "evidence": {
+        "terminal_state": "REVIEW_PROPOSAL",
+        "next_action": "HUMAN_REVIEW_UNAPPROVED_V8_CONTRACT_PROPOSAL",
+        "data_deficit": false,
+        "hard_block": false
+      }
+    },
+    {
+      "criterion": "complete run report and manifests are emitted",
+      "passed": true,
+      "evidence": {
+        "schema": "r4_autonomous_terminal_v1",
+        "protected_manifest_sha256": "62945a0e7f0f5f4f5467885441e0bcaa4f9a3caa361aff54a4b82a8bd2ae1dfe",
+        "g3_receipt_sha256": "e1845533787f4dcf3451dd5e774bff582d76146178c1e24e9f5bd931ff9fbef9",
+        "v8_proposal_sha256": "5f102770d448caa9b61c4865a7e2332462b1bdee8f92ea9fbc058eb294c8f971"
+      }
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r4/terminal_acceptance.py",
+      "sha256": "433c4cd264024739687fbcee09112b100336e7f8f749bde72b7ca2d2d59c2681"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r4/test_terminal_acceptance.py",
+      "sha256": "8bb12a4bbbcc3785f30b7d2f6402b90559562a683caa208f408a67d036012b55"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-A5-006/terminal/acceptance_summary.json",
+      "schema": "r4_autonomous_terminal_v1",
+      "sha256": "10ac96d4100816bf4208f0372de740da7535212a3d93639a28b0c937a90dd5df"
+    },
+    {
+      "path": "outputs/timeseries_v7_r4/R4-S4-006/g3/acceptance_summary.json",
+      "schema": "r4_g3_stress_tail_path_v1",
+      "sha256": "e1845533787f4dcf3451dd5e774bff582d76146178c1e24e9f5bd931ff9fbef9"
+    },
+    {
+      "path": "docs/timeseries_v7_r4/V8_OPEN_DATA_CHALLENGER_PROPOSAL.md",
+      "sha256": "5f102770d448caa9b61c4865a7e2332462b1bdee8f92ea9fbc058eb294c8f971"
+    }
+  ],
+  "blocker_signature": null,
+  "unresolved_blockers": [],
+  "next_action": "HUMAN_REVIEW_UNAPPROVED_V8_CONTRACT_PROPOSAL"
+}
