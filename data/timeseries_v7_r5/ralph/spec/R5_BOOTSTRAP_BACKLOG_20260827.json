@@ -135,7 +135,7 @@
    "deps": [
     "R5-G3"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "outer 1회 채점 + 게이트",
    "spec": "admitted 성분 존재 시에만 진행(전원 기각이면 사용자 결정 대기로 정지). outer 6블록 정확히 1회, 기존 게이트 구현 호출, 판정 그대로 기록. 재시도 금지.",
    "accept": "게이트 원장 + row_use_counters.outer_rows_used 직렬화"

@@ -1,0 +1,9 @@
+{
+  "schema":"r5_task_envelope_v1","task_id":"R5-G4","started_at":"2026-08-27T09:56:30.4528322Z",
+  "spec_ref":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-G4",
+  "role_rows_allowed":["outer"],
+  "approval":{"decision_id":"G4-OUTER-ONCE","source":"user: 승인해"},
+  "inputs_sha256":{"R5_G3":"0bfc377951f26259146956f2c970240fb5e9b4c7b028ac608b751d1c78763e33","R5_S1":"84d42fac608fff0c85404b0c315c3245a1afbc8ad7495a2864abf0cf6312d477","R4_credential_free_export":"e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff"},
+  "outer_contract":{"blocks":6,"exposures_allowed":1,"retry_allowed":false},
+  "forbidden":["second outer execution","Gate or threshold modification","post-result tuning","promotion claim"]
+}

@@ -20,3 +20,5 @@
 {"schema":"r5_task_status_event_v1","task_id":"R5-S1","status":"완료","at":"2026-08-27T09:37:25.4866307Z","result":"outputs/timeseries_v7_r5/task_results/R5-S1/result.json","outer_rows_used":0}
 {"schema":"r5_task_status_event_v1","task_id":"R5-G3","status":"진행","at":"2026-08-27T09:40:00.0000000Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-G3"}
 {"schema":"r5_task_status_event_v1","task_id":"R5-G3","status":"완료","at":"2026-08-27T09:41:47.8456696Z","result":"outputs/timeseries_v7_r5/task_results/R5-G3/result.json","outer_rows_used":0,"next_state":"WAIT_USER_APPROVAL_OUTER_ONCE"}
+{"schema":"r5_task_status_event_v1","task_id":"R5-G4","status":"진행","at":"2026-08-27T09:56:30.4528322Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-G4","approval":"G4-OUTER-ONCE"}
+{"schema":"r5_task_status_event_v1","task_id":"R5-G4","status":"완료","at":"2026-08-27T09:59:43.6158683Z","result":"outputs/timeseries_v7_r5/task_results/R5-G4/result.json","decision":"HOLD_RESEARCH_GATE","outer_rows_used":3060,"outer_exposure_count":1,"next_state":"REVIEW_PROPOSAL"}

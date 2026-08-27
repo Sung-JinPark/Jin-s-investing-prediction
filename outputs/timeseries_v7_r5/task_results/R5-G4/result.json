@@ -1,0 +1,100 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-G4",
+  "status": "완료",
+  "completed_at": "2026-08-27T09:59:43.6158683Z",
+  "decision": "HOLD_RESEARCH_GATE",
+  "reason": "RESEARCH_GATE_FAILED_REPLAN",
+  "artifacts_sha256": [
+    {
+      "path": "outputs/timeseries_v7_r5/R5-G4/gate_decision.json",
+      "sha256": "338d3b5f192d2c49ff9173d5322a243008203a5fcc48a786d541a3710979d5a3"
+    },
+    {
+      "path": "outputs/timeseries_v7_r5/R5-G4/outer_exposure_receipt.json",
+      "sha256": "c6c607b109a1eaacf3a6c50a5ff8e5bb375521ae3fe7109ffe18b90e8022a957"
+    },
+    {
+      "path": "outputs/timeseries_v7_r5/R5-G4/outer_score_matrix.parquet",
+      "sha256": "7c3efc2ca0dc9f44e973ba58734f69db14fddb3c682b9b48c24f92282ed16721"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/outer_gate.py",
+      "sha256": "6f79c75a23177a2e63e24c56c95debffc5a8927f16975b8b42b17cce71c4a2a6"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r5/test_outer_gate.py",
+      "sha256": "1fecb2ba0acb72d05ced0383f10ca105aa422d09a871095576b94138765606bb"
+    }
+  ],
+  "row_use_counters": {
+    "outer_blocks_used": 6,
+    "outer_origins_used": 765,
+    "outer_rows_used": 3060
+  },
+  "outer_exposure": {
+    "count": 1,
+    "retry_allowed": false,
+    "claimed_at": "2026-08-27T09:57:03.497101+00:00"
+  },
+  "metrics": {
+    "skills_by_horizon": {
+      "1": 0.010948178096165662,
+      "5": 0.017954124665028992,
+      "21": 0.020908182286975996,
+      "63": 0.02401750419656712
+    },
+    "long_horizon_mean_crps_skill": 0.022462843241771557,
+    "paired_ci_upper": -0.000525574284924424,
+    "coverage80": 0.9519607843137254,
+    "coverage50": 0.8183006535947712,
+    "balanced_direction_accuracy": 0.5,
+    "brier": 0.21977298052337754,
+    "base_rate_brier": 0.22101104276133107,
+    "extreme_q4_coverage": 0.8718954248366013
+  },
+  "gate_deficit_vector": [
+    "coverage80_fail",
+    "coverage50_high",
+    "balanced_direction_low"
+  ],
+  "contract_self_check": {
+    "existing_gate_implementation_used": true,
+    "grid_unchanged": true,
+    "outer_exactly_once": true,
+    "stored_vs_recomputed_exact": true,
+    "quantiles_monotonic": true,
+    "probabilities_fraction_unit": true,
+    "promotion_claimed": false
+  },
+  "tests": [
+    {
+      "scope": "pre_exposure_outer_unit",
+      "result": "3 passed"
+    },
+    {
+      "scope": "r5_full_before_exposure",
+      "result": "40 passed"
+    },
+    {
+      "scope": "stored_outer_independent_recompute",
+      "result": "PASS; 3060 rows; exact metrics, deficits and Gate result"
+    },
+    {
+      "scope": "core_gate_and_r5_targeted",
+      "result": "42 passed"
+    },
+    {
+      "scope": "r4_r5_broad_frozen_runtime",
+      "result": "221 passed, 7 warnings"
+    }
+  ],
+  "environment_notes": [
+    "The system Python broad collection lacked psycopg for three R4 modules; the frozen R4 runtime completed the same R4+R5 scope with 221 passing tests. No dependency was installed or changed."
+  ],
+  "open_questions": [],
+  "user_decisions_needed": [],
+  "next_state": "REVIEW_PROPOSAL",
+  "publication_allowed": false,
+  "outer_rerun_allowed": false
+}
