@@ -453,7 +453,7 @@ def build_read_model(
     if cross_asset.get("status") != "blocked":
         receipts.append({
             "receipt_id": "cross-asset:current",
-            "label": "BTC·NASDAQ·Realty Income 자산 전이",
+            "label": "NASDAQ·Bitcoin·리츠·주택주 교차자산 비교",
             "model": "downside-beta-plus-conditional-offset-v1",
             "dataset": cross_asset.get("asof") or "미산출",
             "source": " · ".join(

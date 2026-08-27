@@ -662,7 +662,6 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         "blocked_above_dependency_cap"
     source_dates = _candidate()["distribution"]["dates"]
     projected_dates = fresh["distribution"]["dates"]
-    dense_end = min(len(source_dates), 110)
     source_index = {value: index for index, value in enumerate(source_dates)}
     projected_indexes = [source_index[value] for value in projected_dates]
     assert projected_indexes == sorted(set(projected_indexes))
@@ -678,7 +677,7 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         right - left for left, right in zip(near_term_indexes, near_term_indexes[1:])
     ) <= 7
     assert len(projected_dates) < len(source_dates)
-    assert len([date for date in projected_dates if date <= "2026-11-10"]) >= 13
+    assert len(near_term_indexes) >= 13
     for scenario in ("S1", "S2", "S3"):
         assert len(fresh["conditional_small_multiples"]["scenarios"][scenario][
             "bands"
