@@ -1,0 +1,107 @@
+{
+  "schema": "r6_sharpen_tilt_shadow_contract_v1",
+  "model_id": "shadow.nasdaq_sharpen_tilt_v6",
+  "model_version": "6.0.0-preregistered",
+  "probability_space": "research_timeseries_v6_prospective",
+  "status": "PREREGISTERED_DECISIONS_PENDING",
+  "registered_at": "2026-08-27T23:48:23.1347326Z",
+  "source_head": "f60c6b08391d254c92252bd11a4204f63ad9311b",
+  "frozen_invariants": {
+    "comparator": "E0",
+    "horizons_sessions": [1, 5, 21, 63],
+    "probability_unit": "fraction",
+    "purge_sessions": 63,
+    "embargo_sessions": 5,
+    "cross_fit_folds": 5,
+    "cross_fit_warmup_folds": 2,
+    "random_seed": 20260827,
+    "r5_outer_policy": "deny_all_reads",
+    "research_gate_pass": false,
+    "numbers_visible": false
+  },
+  "role_hashes": {
+    "train": "2a7a8a0fec76a8eb89c665e8f01c84b65a4d9d5adf895f3b78852e39b7ab1c0c",
+    "selection": "083263e2e2821d44de6fc7c6380065dde74e1f769721c32e2986be02564bf291",
+    "stacking": "b862f54a09549b1472b0b5a6c6c5872aa7c7027675a7ace5468b627a20936f37",
+    "calibration": "0f96b564e45155f90819c050f6435e964f8707989a67b5ba1f3da897c7b95fa2",
+    "outer": "19e28f81dc9cf1f7935c10717d21c9e9fac15d01968b6bfb4f1f02c0332babfd"
+  },
+  "input_artifacts": {
+    "r5_calibration_scores": {
+      "path": "outputs/timeseries_v7_r5/R5-S1/calibration_paired_scores.parquet",
+      "sha256": "c27a09fe1fa562e6e99a32c007f7347285b013f5c6ce0755e3e0c7f3374640b5",
+      "allowed_role": "calibration"
+    },
+    "r5_stacking_summary": {
+      "path": "outputs/timeseries_v7_r5/R5-S1/stacking_summary.json",
+      "sha256": "84d42fac608fff0c85404b0c315c3245a1afbc8ad7495a2864abf0cf6312d477",
+      "allowed_role": "metadata_only"
+    },
+    "nasdaq_observations": {
+      "path": "outputs/timeseries_v7_r5/market/nasdaqcom_observations.jsonl",
+      "sha256": "862c79f0200cfffc383f2887b3a56347f88c5d78b40a0ebe183d34770ba2c26f",
+      "allowed_role": "market_history"
+    },
+    "registered_e0_matrix": {
+      "path": "data/timeseries_v7_r4/generated/e0_sample_matrices/eb64d41e8a1ae3f6a9107bd02e4e2b6ccaeb9726b8d55befa5bac0633f47067b.json",
+      "sha256": "b6c8cd1e6338d45f75a77104969cedc1f10e7be134691900d166b4680bb6a5dd",
+      "allowed_role": "e0_replay"
+    }
+  },
+  "candidates": {
+    "C0": {
+      "family": "fixed_r5_mixture_comparator",
+      "fit": false
+    },
+    "C1": {
+      "family": "cross_fitted_variance_scalar",
+      "scale_grid": [0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+      "selection": "minimum_nominal_coverage_error_subject_to_integrated_pinball_nondegradation",
+      "fit_role": "calibration_temporal_cross_fit"
+    },
+    "C2": {
+      "family": "cross_fitted_pit_isotonic",
+      "minimum_fit_rows": 100,
+      "tail_rule": "linear_quantile_extrapolation",
+      "fit_role": "calibration_temporal_cross_fit"
+    },
+    "C3": {
+      "family": "structural_width_audit",
+      "fit": false,
+      "decision_gate": "R6-D1"
+    },
+    "T0": {
+      "family": "direction_measurement_audit",
+      "fit": false
+    },
+    "T1": {
+      "family": "vrp_location_tilt",
+      "status": "DISABLED_PENDING_R6-D2",
+      "decision_gate": "R6-D2"
+    },
+    "T2": {
+      "family": "leverage_asymmetric_residual_location",
+      "shrinkage_grid": [0.0, 0.1, 0.25, 0.5],
+      "minimum_group_rows": 60,
+      "fit_role": "calibration_temporal_cross_fit"
+    },
+    "T3": {
+      "family": "distribution_implied_up_probability",
+      "fit": false
+    }
+  },
+  "decision_gates": {
+    "R6-D1": "e0_floor_maintain_or_formally_lower",
+    "R6-D2": "vixcls_dv1_onboarding_approve_or_defer",
+    "R6-D3": "prospective_shadow_sample_and_coverage_thresholds"
+  },
+  "allowed_terminal_states": [
+    "READY_FOR_PROSPECTIVE_SHADOW",
+    "BLOCKED"
+  ],
+  "forbidden_claims": [
+    "RESEARCH_GATE_PASS",
+    "CUSTOMER_PUBLICATION",
+    "CHAMPION_PROMOTION"
+  ]
+}

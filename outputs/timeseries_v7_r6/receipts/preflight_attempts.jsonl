@@ -1,0 +1,2 @@
+{"attempt_id":"R6-P0-PREFLIGHT-001","completed_at":"2026-08-27T23:55:00Z","defect":"PYTHON_BOOLEAN_LITERAL_TYPO","outer_rows_used":0,"return_code":1,"status":"FAILED_CODE_DEFECT"}
+{"attempt_id":"R6-P0-PREFLIGHT-002","completed_at":"2026-08-27T23:56:14.5721306Z","calibration_origins":634,"calibration_rows":2536,"outer_rows_used":0,"protected_manifest_sha256":"6e4a5c95e12e528bc4789c85542da9c3ffcb037c0ed4d195426a5d7916654a10","return_code":0,"status":"PASS"}
