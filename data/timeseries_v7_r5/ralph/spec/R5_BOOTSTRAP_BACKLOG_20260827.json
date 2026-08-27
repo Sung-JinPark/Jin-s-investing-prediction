@@ -78,7 +78,7 @@
    "deps": [
     "R5-M1"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "E2' E0-rescale(λ)",
    "spec": "λ 그리드 [0,0.25,...,1.5], selection에서 지평별 λ 선택. λ=0 내포 테스트.",
    "accept": "동일 규격"

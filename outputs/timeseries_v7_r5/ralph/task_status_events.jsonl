@@ -10,3 +10,5 @@
 {"schema":"r5_task_status_event_v1","task_id":"R5-M5","status":"완료","at":"2026-08-27T07:50:13.2378396Z","result":"outputs/timeseries_v7_r5/task_results/R5-M5/result.json","outer_rows_used":0}
 {"schema":"r5_task_status_event_v1","task_id":"R5-M1","status":"진행","at":"2026-08-27T07:54:38.0000000Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M1"}
 {"schema":"r5_task_status_event_v1","task_id":"R5-M1","status":"완료","at":"2026-08-27T07:59:43.0178444Z","result":"outputs/timeseries_v7_r5/task_results/R5-M1/result.json","outer_rows_used":0,"next_state":"WAIT_USER_DECISION_D2"}
+{"schema":"r5_task_status_event_v1","task_id":"R5-M2","status":"진행","at":"2026-08-27T08:10:52.0000000Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M2","decision":"D-2:keep_current_frozen_grid"}
+{"schema":"r5_task_status_event_v1","task_id":"R5-M2","status":"완료","at":"2026-08-27T08:13:41.7703348Z","result":"outputs/timeseries_v7_r5/task_results/R5-M2/result.json","outer_rows_used":0}
