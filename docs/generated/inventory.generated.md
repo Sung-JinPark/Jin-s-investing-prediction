@@ -3,13 +3,13 @@
 > 이 문서는 정적 수기 현황표가 아닙니다. `ai-fc inventory`가 원천 파일과 재구축된
 > 읽기 인덱스에서 결정론적으로 생성합니다. 숫자를 직접 수정하지 마세요.
 
-- Source fingerprint: `cbf8dccb892289c3d804aa8524f21cf7677ae27ee3f6a623a4fe0acd46a0a7c4`
+- Source fingerprint: `3751496b142079fb6c00953223124533d86c16e468ac9f2e297fd16534beaae8`
 - Registered questions: 38
 - Forecast bodies: 24
 - Evidence files: 19
 - Resolution rows / unique events: 6 / 3
 - Benchmark rows: 6
-- Pending/approved correction rows: 19
+- Pending/approved correction rows: 20
 - Source contracts: 50
 - DualDB configured eras: 8
 
