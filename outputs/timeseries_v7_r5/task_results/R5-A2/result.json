@@ -1,0 +1,37 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-A2",
+  "status": "완료",
+  "completed_at": "2026-08-27T07:39:50.9026634Z",
+  "artifacts_sha256": [
+    {
+      "path": "outputs/timeseries_v7_r5/R5-A2/frozen_identities.json",
+      "sha256": "6ebb4613311c50fe32201d410f474f2bb233b2f7b9fe17ab74b10f3e9d45754e"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/contract_freeze.py",
+      "sha256": "2b7f4107fc2e9f0ceab5b34bd55d6e034e6f85e2b855c855038995a216a29d52"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r5/test_contract_freeze.py",
+      "sha256": "7dc29ab1fb717d5d85a79c1db76456ce9ce5cbdcb8fe9e9647971a096348003f"
+    }
+  ],
+  "row_use_counters": {
+    "outer_rows_used": 0
+  },
+  "metrics": {
+    "role_hashes_matched": 5,
+    "evaluation_coordinates_verified": 4082,
+    "evaluation_origins_verified": 1025,
+    "targeted_tests_passed": 4,
+    "targeted_tests_failed": 0
+  },
+  "contract_self_check": {
+    "grid_unchanged": true,
+    "nesting_test_pass": null,
+    "outer_zero_before_g4": true
+  },
+  "open_questions": [],
+  "user_decisions_needed": []
+}

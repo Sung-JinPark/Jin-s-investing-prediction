@@ -25,7 +25,7 @@
    "deps": [
     "R5-A1"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "역할 해시·그리드 고정 검증",
    "spec": "R4의 role_hashes 5개와 evaluation_coordinate_grid_hash를 재계산 대조. outer_rows_used=0 카운터 초기화.",
    "accept": "전부 일치, 불일치 시 차단"

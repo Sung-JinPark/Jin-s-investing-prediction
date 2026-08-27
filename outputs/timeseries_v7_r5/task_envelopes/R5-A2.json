@@ -1,0 +1,17 @@
+{
+  "schema": "r5_task_envelope_v1",
+  "task_id": "R5-A2",
+  "started_at": "2026-08-27T07:37:12.4165664Z",
+  "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#R5-A2",
+  "role_rows_allowed": [],
+  "inputs_sha256": {
+    "credential_free_authoritative_export": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+    "R4_G0_E0_ablation": "0653be032bcc8d0a4bf743967be3f21611a148aa9a12e11b1cb152f4aa2ca6ec",
+    "R4_G3_acceptance": "e1845533787f4dcf3451dd5e774bff582d76146178c1e24e9f5bd931ff9fbef9"
+  },
+  "forbidden": [
+    "outer outcome rows (G4 전)",
+    "grid 변경",
+    "E0 변경"
+  ]
+}
