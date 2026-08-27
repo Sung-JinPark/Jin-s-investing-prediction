@@ -28,8 +28,10 @@ from .market_session import completed_market_cutoff
 from .quant import feed
 from . import realty_income
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 LEGACY_HORIZON_SCHEMA_VERSION = 3
+DOTCOM_COUNTERFACTUAL_SCHEMA_VERSION = 4
+REFERENCE_SCHEMA_VERSIONS = {DOTCOM_COUNTERFACTUAL_SCHEMA_VERSION, SCHEMA_VERSION}
 LATEST_RELATIVE_PATH = Path("data") / "cross_asset" / "cross_asset_latest.json"
 ARCHIVE_RELATIVE_DIR = Path("data") / "cross_asset" / "archive"
 RECEIPT_RELATIVE_DIR = Path("data") / "cross_asset" / "receipts"
@@ -594,7 +596,8 @@ def _dotcom_counterfactual_model(
             "probability_interpretation": "none",
         },
         "semantics": (
-            "2001-03~2006-03 NASDAQ와 Realty Income은 실측 경로다. Bitcoin은 당시 "
+            "2001-03~2006-03 NASDAQ, Realty Income, D.R. Horton은 실측 경로다. "
+            "Bitcoin은 당시 "
             "시장가격이 없으므로 현대 구간에서 측정한 beta를 닷컴기의 NASDAQ 월간 "
             "로그수익에 적용한 반사실 민감도다. 사건확률·기대수익·단일 가격 제시가 아니다."
         ),
@@ -615,13 +618,19 @@ def _period_bounds(period: Any) -> tuple[str, str]:
 
 def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
     schema_version = payload.get("schema_version")
-    if schema_version not in {2, LEGACY_HORIZON_SCHEMA_VERSION, SCHEMA_VERSION}:
+    if schema_version not in {
+        2, LEGACY_HORIZON_SCHEMA_VERSION, DOTCOM_COUNTERFACTUAL_SCHEMA_VERSION,
+        SCHEMA_VERSION,
+    }:
         raise CrossAssetError("unsupported cross-asset schema_version")
     try:
         date.fromisoformat(payload["asof"])
     except (KeyError, TypeError, ValueError) as exc:
         raise CrossAssetError("invalid cross-asset asof") from exc
-    expected_space = "reference_only" if schema_version == SCHEMA_VERSION else "scenario_conditional"
+    expected_space = (
+        "reference_only" if schema_version in REFERENCE_SCHEMA_VERSIONS
+        else "scenario_conditional"
+    )
     if payload.get("probability_space") != expected_space:
         raise CrossAssetError(
             f"cross-asset probability_space must be {expected_space} for schema {schema_version}")
@@ -635,17 +644,23 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
     if period_start != history_labels[0] or period_end != history_labels[-1]:
         raise CrossAssetError("cross-asset history period endpoints/labels mismatch")
     history_series = history.get("series") or {}
-    if set(history_series) != {
-        "nasdaq_price", "realty_income_price", "realty_income_total_return"
-    } or any(len(values) != len(history_labels) for values in history_series.values()):
+    expected_history_series = {
+        "nasdaq_price", "realty_income_price", "realty_income_total_return",
+    }
+    if schema_version == SCHEMA_VERSION:
+        expected_history_series |= {"dr_horton_price", "dr_horton_total_return"}
+    if set(history_series) != expected_history_series or any(
+        len(values) != len(history_labels) for values in history_series.values()
+    ):
         raise CrossAssetError("cross-asset history series mismatch")
 
     forecast = payload.get("forecast") or {}
     labels = forecast.get("labels") or []
     scenarios = forecast.get("scenarios") or {}
-    if schema_version == SCHEMA_VERSION:
+    if schema_version in REFERENCE_SCHEMA_VERSIONS:
         if forecast.get("model_kind") != "historical_counterfactual":
-            raise CrossAssetError("schema 4 requires historical_counterfactual model_kind")
+            raise CrossAssetError(
+                "reference schema requires historical_counterfactual model_kind")
         if history_labels != labels or len(labels) != FORECAST_HORIZON_MONTHS + 1:
             raise CrossAssetError("counterfactual labels must equal the 61 observed history months")
         if labels[0] != HISTORY_PERIOD_START_LABEL or labels[-1] != HISTORY_PERIOD_END_LABEL:
@@ -716,7 +731,7 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
     sensitivity = forecast.get("realty_income_sensitivity") or {}
     if not all(key in sensitivity for key in ("beta_rate", "beta_credit")):
         raise CrossAssetError("cross-asset Realty Income sensitivity audit required")
-    if schema_version != SCHEMA_VERSION:
+    if schema_version not in REFERENCE_SCHEMA_VERSIONS:
         if forecast.get("macro_assumptions_version") is None:
             raise CrossAssetError("cross-asset macro assumptions version required")
         for scenario_id, scenario in scenarios.items():
@@ -752,6 +767,7 @@ def validate_cross_asset(payload: dict[str, Any]) -> dict[str, Any]:
 def build_cross_asset(*,
                       history_dates: list[date], history_nasdaq: list[float],
                       history_o_price: list[float], history_o_adjusted: list[float],
+                      history_dhi_price: list[float], history_dhi_adjusted: list[float],
                       current_dates: list[date], current_nasdaq: list[float],
                       current_bitcoin: list[float], current_o_adjusted: list[float],
                       anchors: dict[str, float], receipts: list[dict[str, Any]] | None = None,
@@ -764,8 +780,10 @@ def build_cross_asset(*,
                       history_preview: dict[str, Any] | None = None,
                       generated_at: datetime | None = None) -> dict[str, Any]:
     """정렬된 실측 시계열로 직렬화 가능한 교차자산 read model을 만든다."""
-    history_lengths = {len(history_dates), len(history_nasdaq), len(history_o_price),
-                       len(history_o_adjusted)}
+    history_lengths = {
+        len(history_dates), len(history_nasdaq), len(history_o_price),
+        len(history_o_adjusted), len(history_dhi_price), len(history_dhi_adjusted),
+    }
     current_lengths = {len(current_dates), len(current_nasdaq), len(current_bitcoin),
                        len(current_o_adjusted)}
     if len(history_lengths) != 1 or len(current_lengths) != 1:
@@ -790,6 +808,8 @@ def build_cross_asset(*,
     history_nasdaq = history_nasdaq[start_index:end_index + 1]
     history_o_price = history_o_price[start_index:end_index + 1]
     history_o_adjusted = history_o_adjusted[start_index:end_index + 1]
+    history_dhi_price = history_dhi_price[start_index:end_index + 1]
+    history_dhi_adjusted = history_dhi_adjusted[start_index:end_index + 1]
     history_labels = raw_labels[start_index:end_index + 1]
 
     nasdaq_return = _returns(current_nasdaq)
@@ -824,6 +844,8 @@ def build_cross_asset(*,
     nasdaq_index = _normalize(history_nasdaq)
     o_price_index = _normalize(history_o_price)
     o_total_index = _normalize(history_o_adjusted)
+    dhi_price_index = _normalize(history_dhi_price)
+    dhi_total_index = _normalize(history_dhi_adjusted)
     period_end_index = len(history_labels) - 1
     annual = []
     for year_index in range(1, 6):
@@ -835,6 +857,10 @@ def build_cross_asset(*,
             "realty_income_price_pct": round((history_o_price[i1] / history_o_price[i0] - 1) * 100, 1),
             "realty_income_total_return_pct": round(
                 (history_o_adjusted[i1] / history_o_adjusted[i0] - 1) * 100, 1),
+            "dr_horton_price_pct": round(
+                (history_dhi_price[i1] / history_dhi_price[i0] - 1) * 100, 1),
+            "dr_horton_total_return_pct": round(
+                (history_dhi_adjusted[i1] / history_dhi_adjusted[i0] - 1) * 100, 1),
         })
 
     quality_rows = data_quality or []
@@ -902,6 +928,8 @@ def build_cross_asset(*,
                 "nasdaq_price": nasdaq_index,
                 "realty_income_price": o_price_index,
                 "realty_income_total_return": o_total_index,
+                "dr_horton_price": dhi_price_index,
+                "dr_horton_total_return": dhi_total_index,
             },
             "bitcoin": {
                 "status": "not_available",
@@ -913,13 +941,20 @@ def build_cross_asset(*,
                 "realty_income_total_return_pct": round(o_total_index[period_end_index] - 100, 1),
                 "realty_income_dividend_effect_pp": round(
                     o_total_index[period_end_index] - o_price_index[period_end_index], 1),
+                "dr_horton_price_pct": round(
+                    dhi_price_index[period_end_index] - 100, 1),
+                "dr_horton_total_return_pct": round(
+                    dhi_total_index[period_end_index] - 100, 1),
+                "dr_horton_dividend_effect_pp": round(
+                    dhi_total_index[period_end_index] - dhi_price_index[period_end_index], 1),
                 "nasdaq_from_dotcom_peak": dotcom_peak_reference or {
                     "status": "not_computed", "start": "2000-03", "end": history_labels[-1]
                 },
                 "annual": annual,
             },
             "semantics": (
-                "NASDAQ과 O 가격은 월말 종가, O 총수익 proxy는 Yahoo 수정종가 비율이다. "
+                "NASDAQ·O·DHI 가격은 월말 종가, O·DHI 총수익 proxy는 Yahoo "
+                "수정종가 비율이다. "
                 "2000-12 기준은 닷컴 정점(2000-03) 이후 이미 하락한 시점이며, 정점 기준 "
                 "NASDAQ 보조 수치를 별도 표시한다. 세금·거래비용은 포함하지 않는다."
             ),
@@ -966,6 +1001,9 @@ def build_cross_asset(*,
         "sources": [
             {"id": "yahoo-chart", "label": "Yahoo Finance chart API", "role": "price_history",
              "url": "https://query1.finance.yahoo.com/v8/finance/chart/"},
+            {"id": "dr-horton-history", "label": "D.R. Horton (DHI) monthly history",
+             "role": "homebuilder_dotcom_period_price_and_total_return_proxy",
+             "url": "https://query1.finance.yahoo.com/v8/finance/chart/DHI"},
             {"id": "realty-income-2005-10k", "label": "Realty Income 2005 Form 10-K",
              "role": "dividend_and_company_context",
              "url": "https://www.sec.gov/Archives/edgar/data/726728/000110465906011663/a06-1908_110k.htm"},
@@ -987,6 +1025,8 @@ def build_cross_asset(*,
             "Bitcoin은 2009년 이전 실측 가격이 없어 현대 beta를 적용한 반사실 경로로만 표현한다.",
             "BTC의 주식시장 동조성은 국면에 따라 크게 바뀌며 닷컴기에 같은 beta였다는 증거가 없다.",
             "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다.",
+            "DHI의 닷컴기 상승은 당시 주택·금리 사이클의 실측 결과이며 다음 기술주 "
+            "조정기의 수혜를 보장하거나 인과관계를 증명하지 않는다.",
             "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
             "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다.",
         ],
@@ -1133,8 +1173,8 @@ def upgrade_cross_asset_dotcom_counterfactual(
 ) -> tuple[Path, dict[str, Any], bool]:
     """Replace the generic future narrative with the requested dotcom comparison.
 
-    Only the two observed monthly history feeds are reacquired. Current beta and
-    Realty Income sensitivity estimates remain pinned to the audited source
+    Only the three observed monthly history feeds are reacquired. Current beta
+    and Realty Income sensitivity estimates remain pinned to the audited source
     snapshot, so this migration cannot silently change the modern transmission
     measurement while changing the historical comparison window.
     """
@@ -1144,10 +1184,14 @@ def upgrade_cross_asset_dotcom_counterfactual(
         return latest, current, False
     history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
     history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
+    history_dhi = feed.yahoo_price_series_detail(
+        "DHI", HISTORY_START, HISTORY_END, "1mo")
     h_n = {day: value for day, value in zip(history_n.dates, history_n.closes)}
     h_op = {day: value for day, value in zip(history_o.dates, history_o.closes)}
     h_oa = {day: value for day, value in zip(history_o.dates, history_o.adjusted)}
-    common = sorted(set(h_n) & set(h_op) & set(h_oa))
+    h_dp = {day: value for day, value in zip(history_dhi.dates, history_dhi.closes)}
+    h_da = {day: value for day, value in zip(history_dhi.dates, history_dhi.adjusted)}
+    common = sorted(set(h_n) & set(h_op) & set(h_oa) & set(h_dp) & set(h_da))
     labels = [f"{day.year:04d}-{day.month:02d}" for day in common]
     if HISTORY_PERIOD_START_LABEL not in labels or HISTORY_PERIOD_END_LABEL not in labels:
         raise CrossAssetError("required dotcom counterfactual boundary is missing")
@@ -1158,9 +1202,13 @@ def upgrade_cross_asset_dotcom_counterfactual(
     nasdaq_raw = [h_n[day] for day in common]
     o_price_raw = [h_op[day] for day in common]
     o_total_raw = [h_oa[day] for day in common]
+    dhi_price_raw = [h_dp[day] for day in common]
+    dhi_total_raw = [h_da[day] for day in common]
     nasdaq_index = _normalize(nasdaq_raw)
     o_price_index = _normalize(o_price_raw)
     o_total_index = _normalize(o_total_raw)
+    dhi_price_index = _normalize(dhi_price_raw)
+    dhi_total_index = _normalize(dhi_total_raw)
     annual = []
     for year_index in range(1, 6):
         i0, i1 = (year_index - 1) * 12, year_index * 12
@@ -1172,6 +1220,10 @@ def upgrade_cross_asset_dotcom_counterfactual(
                 (o_price_raw[i1] / o_price_raw[i0] - 1) * 100, 1),
             "realty_income_total_return_pct": round(
                 (o_total_raw[i1] / o_total_raw[i0] - 1) * 100, 1),
+            "dr_horton_price_pct": round(
+                (dhi_price_raw[i1] / dhi_price_raw[i0] - 1) * 100, 1),
+            "dr_horton_total_return_pct": round(
+                (dhi_total_raw[i1] / dhi_total_raw[i0] - 1) * 100, 1),
         })
     migrated = deepcopy(current)
     for field in ("snapshot_id", "revision", "correction_id", "supersedes"):
@@ -1187,6 +1239,8 @@ def upgrade_cross_asset_dotcom_counterfactual(
             "nasdaq_price": nasdaq_index,
             "realty_income_price": o_price_index,
             "realty_income_total_return": o_total_index,
+            "dr_horton_price": dhi_price_index,
+            "dr_horton_total_return": dhi_total_index,
         },
         "bitcoin": {
             "status": "not_available",
@@ -1198,12 +1252,17 @@ def upgrade_cross_asset_dotcom_counterfactual(
             "realty_income_total_return_pct": round(o_total_index[-1] - 100, 1),
             "realty_income_dividend_effect_pp": round(
                 o_total_index[-1] - o_price_index[-1], 1),
+            "dr_horton_price_pct": round(dhi_price_index[-1] - 100, 1),
+            "dr_horton_total_return_pct": round(dhi_total_index[-1] - 100, 1),
+            "dr_horton_dividend_effect_pp": round(
+                dhi_total_index[-1] - dhi_price_index[-1], 1),
             "nasdaq_from_dotcom_peak": _dotcom_peak_reference(history_n),
             "annual": annual,
         },
         "semantics": (
-            "2001-03=100 actual monthly closes through 2006-03. O total return is "
-            "Yahoo adjusted-close public proxy; tax and transaction costs excluded."
+            "2001-03=100 actual monthly closes through 2006-03. O and DHI total "
+            "returns are Yahoo adjusted-close public proxies; tax and transaction "
+            "costs excluded."
         ),
         "preview_1998": deepcopy((current.get("history") or {}).get("preview_1998") or {
             "status": "source_unavailable", "labels": [], "series": {},
@@ -1221,11 +1280,11 @@ def upgrade_cross_asset_dotcom_counterfactual(
     )
     migrated["forecast"]["source_snapshot_id"] = current.get("snapshot_id")
     migrated["receipts"] = list(migrated.get("receipts") or []) + [
-        history_n.receipt, history_o.receipt,
+        history_n.receipt, history_o.receipt, history_dhi.receipt,
     ]
     realty = migrated.get("realty_income") or {}
     realty["fixed_warning"] = (
-        "O price and total-return proxy are observed 2001-03..2006-03; "
+        "O and DHI price and total-return proxies are observed 2001-03..2006-03; "
         "only Bitcoin is counterfactual."
     )
     migrated["realty_income"] = realty
@@ -1234,6 +1293,7 @@ def upgrade_cross_asset_dotcom_counterfactual(
         "Bitcoin은 2009년 이전 실측 가격이 없어 현대 beta를 적용한 반사실 경로로만 표현한다.",
         "BTC의 주식시장 동조성은 국면에 따라 크게 바뀌며 닷컴기에 같은 beta였다는 증거가 없다.",
         "Yahoo 수정종가는 감사된 펀드 total-return index가 아니라 공개 proxy다.",
+        "DHI 실측 상승은 다음 기술주 조정기 수혜를 보장하지 않는다.",
     ]
     return _persist_snapshot(root, validate_cross_asset(migrated), force=True)
 
@@ -1391,11 +1451,15 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     safe_cutoff = completed_market_cutoff(asof or date.today(), now=now)
     history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
     history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
+    history_dhi = feed.yahoo_price_series_detail(
+        "DHI", HISTORY_START, HISTORY_END, "1mo")
     dotcom_n = feed.yahoo_price_series_detail("^IXIC", DOTCOM_PEAK_START, HISTORY_END, "1mo")
     h_n = {day: value for day, value in zip(history_n.dates, history_n.closes)}
     h_op = {day: value for day, value in zip(history_o.dates, history_o.closes)}
     h_oa = {day: value for day, value in zip(history_o.dates, history_o.adjusted)}
-    h_common = sorted(set(h_n) & set(h_op) & set(h_oa))
+    h_dp = {day: value for day, value in zip(history_dhi.dates, history_dhi.closes)}
+    h_da = {day: value for day, value in zip(history_dhi.dates, history_dhi.adjusted)}
+    h_common = sorted(set(h_n) & set(h_op) & set(h_oa) & set(h_dp) & set(h_da))
 
     daily: dict[str, feed.YahooPriceSeriesResult] = {}
     for key, symbol in (("nasdaq", "^IXIC"), ("bitcoin", "BTC-USD"),
@@ -1467,7 +1531,8 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
     preview = realty_income.build_history_preview(history_n, history_o, sector)
 
     all_results: list[Any] = [
-        history_n, history_o, dotcom_n, history_o_full, *daily.values(), dividends,
+        history_n, history_o, history_dhi, dotcom_n, history_o_full,
+        *daily.values(), dividends,
         *([sector] if sector else []),
     ]
     all_receipts = [result.receipt for result in all_results] + [
@@ -1479,6 +1544,8 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
         history_nasdaq=[h_n[day] for day in h_common],
         history_o_price=[h_op[day] for day in h_common],
         history_o_adjusted=[h_oa[day] for day in h_common],
+        history_dhi_price=[h_dp[day] for day in h_common],
+        history_dhi_adjusted=[h_da[day] for day in h_common],
         current_dates=common_dates,
         current_nasdaq=n_values,
         current_bitcoin=b_values,
