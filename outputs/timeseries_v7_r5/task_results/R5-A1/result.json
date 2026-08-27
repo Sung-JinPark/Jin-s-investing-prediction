@@ -1,0 +1,46 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-A1",
+  "status": "완료",
+  "completed_at": "2026-08-27T07:08:00.4765197Z",
+  "artifacts_sha256": [
+    {
+      "path": "outputs/timeseries_v7_r5/task_envelopes/R5-A1.json",
+      "sha256": "90606fdb9853beb9c4777d23cb5e95e2f4de33675b8a487c7904cbf096bbf759"
+    },
+    {
+      "path": "outputs/timeseries_v7_r5/R5-A1/contract_citations.json",
+      "sha256": "cae7a355cbb9a322a285eda96e25ac67ab1f77a36c3aecc643b03e28520c13d5"
+    },
+    {
+      "path": "data/timeseries_v7_r5/ralph/spec/R5_GATE_PASS_BLUEPRINT_MATH_20260827.md",
+      "sha256": "ac20cc215bab5e663c55b2d3557d8497df47699f1fde334ee743276981e1d082"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r5/test_r5_a1_contract_citations.py",
+      "sha256": "3f92706560e9eeb4ec5680fd240761451b58784367f53429e27791f038e9a869"
+    }
+  ],
+  "row_use_counters": {
+    "outer_rows_used": 0
+  },
+  "metrics": {
+    "contract_citation_count": 3,
+    "serialized_difference_count": 3,
+    "targeted_tests_passed": 2,
+    "targeted_tests_failed": 0
+  },
+  "contract_self_check": {
+    "grid_unchanged": true,
+    "nesting_test_pass": null,
+    "outer_zero_before_g4": true
+  },
+  "open_questions": [
+    "D-1: R5를 기존 허용 데이터만으로 진행할지, V8 open-data 병행을 승인할지 결정 필요",
+    "D-3: F-tier 위치항을 1차 후보에 포함할지 제외할지 결정 필요"
+  ],
+  "user_decisions_needed": [
+    "D-1",
+    "D-3"
+  ]
+}

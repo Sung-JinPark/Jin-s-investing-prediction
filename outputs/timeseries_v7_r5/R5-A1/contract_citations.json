@@ -1,0 +1,99 @@
+{
+  "schema": "r5_a1_contract_citations_v1",
+  "task_id": "R5-A1",
+  "authoritative_source": {
+    "outer_review_pack": "C:/workspace/ai-investing/outputs/review-packs/NASDAQ_V7_R3_P0_001_P0_002_FULL_REVIEW_PACK_20260826.zip",
+    "outer_review_pack_sha256": "9c57725beb833b3da8a67963f3dfe4399484396e3e21c308935c1e04a9110e28",
+    "nested_pack_member": "INPUTS/NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip",
+    "nested_pack_sha256": "72192f9369ec6a43e563650629ea2fbd986aa2ca15d8fcd665d6deaec9ae4087"
+  },
+  "citations": [
+    {
+      "id": "horizon_gate",
+      "source": "SOURCE/data/contracts/multivariate_timeseries_v7.yaml",
+      "source_sha256": "98dfd4e0d84aa36cb4ec8ad135651d49eac0783eafec435b6659312c0c03660b",
+      "lines": "205-208",
+      "quote": [
+        "long_horizon_mean_crps_skill_min: 0.02",
+        "each_long_horizon_skill_min: 0.0",
+        "paired_dependence_aware_ci_upper_max: 0.0"
+      ],
+      "runtime_source": "SOURCE/src/ai_fc/timeseries_v7/qualification.py",
+      "runtime_source_sha256": "a29b267e3780753d72bb91dd90937f1801d60744ce016bb918f40adc456788c9",
+      "runtime_lines": "9-11",
+      "interpretation": "21·63-session 평균 CRPS skill은 2% 이상이고 h21과 h63은 각각 0 이상이어야 한다. h1·h5 skill 양수는 별도 Gate가 아니다."
+    },
+    {
+      "id": "e0_floor",
+      "source": "SOURCE/data/contracts/multivariate_timeseries_v7.yaml",
+      "source_sha256": "98dfd4e0d84aa36cb4ec8ad135651d49eac0783eafec435b6659312c0c03660b",
+      "lines": "91-96,155-161",
+      "quote": [
+        "minimum_ensemble_weight: {'1': 0.20, '5': 0.25, '21': 0.40, '63': 0.50}",
+        "anchor_floor_source: candidates.E0.minimum_ensemble_weight",
+        "weights_fit_on_stacking_role_only: true"
+      ],
+      "runtime_source": "SOURCE/src/ai_fc/timeseries_v7/stacking.py",
+      "runtime_source_sha256": "80f32c24335414c1ec3351bb07ccb2d83d2ba37bff9a4237d0f2c88a6d3fa0ee",
+      "runtime_lines": "17-25",
+      "value_by_horizon": {
+        "1": 0.2,
+        "5": 0.25,
+        "21": 0.4,
+        "63": 0.5
+      },
+      "interpretation": "E0는 지평별 하한을 가지며, 나머지 성분의 고정 비중을 뜻하지 않는다."
+    },
+    {
+      "id": "component_admission",
+      "source": "SOURCE/data/contracts/multivariate_timeseries_v7.yaml",
+      "source_sha256": "98dfd4e0d84aa36cb4ec8ad135651d49eac0783eafec435b6659312c0c03660b",
+      "lines": "139-164",
+      "quote": [
+        "weight_before_eligibility: 0.0",
+        "horizon_specific_nonnegative_convex: true",
+        "stale_or_unavailable_component_weight: 0.0"
+      ],
+      "r4_runtime_sources": [
+        {
+          "path": "src/ai_fc/timeseries_v7_r4/empirical_mixture.py",
+          "lines": "116-125",
+          "rule": "E0보다 improvement_tolerance 이상 개선하는 challenger가 없으면 E0=1로 반환"
+        },
+        {
+          "path": "src/ai_fc/timeseries_v7_r4/g3_stress_tail_path.py",
+          "lines": "43-50",
+          "rule": "positive calibration-cross-fit stacking advantage가 없는 성분은 admitted=false, weight=0"
+        }
+      ],
+      "contract_explicit_universal_positive_advantage_rule": false,
+      "interpretation": "YAML은 eligibility·비음수 볼록 스태킹·stale/unavailable 0을 규정한다. 양의 OOS advantage가 없을 때 0 가중치를 주는 것은 R4 실행정책이며 독립 Gate 임계로 승격하지 않는다."
+    }
+  ],
+  "differences": [
+    {
+      "id": "numeric_e0_floor_was_implicit",
+      "before": "R5 수학 정본은 R4 계약값 유지라고만 표현",
+      "after": "h1/h5/h21/h63 = 0.20/0.25/0.40/0.50을 명시",
+      "resolution": "blueprint_aligned_to_contract",
+      "contract_changed": false
+    },
+    {
+      "id": "horizon_gate_scope_was_ambiguous",
+      "before": "전 지평 요건이라는 표현이 모든 지평 양수로 오독될 수 있음",
+      "after": "장기 평균 2%, h21·h63 각각 0 이상이며 h1·h5 양수는 별도 Gate가 아님을 명시",
+      "resolution": "blueprint_aligned_to_contract",
+      "contract_changed": false
+    },
+    {
+      "id": "admission_contract_vs_runtime_policy",
+      "before": "R4 admission을 단일 계약 Gate처럼 읽을 여지",
+      "after": "YAML eligibility/ensemble 규칙과 R4 no-regret 실행정책을 분리",
+      "resolution": "blueprint_aligned_to_contract",
+      "contract_changed": false
+    }
+  ],
+  "outer_rows_used": 0,
+  "official_snapshot_or_ledger_accessed": false,
+  "contract_modified": false
+}

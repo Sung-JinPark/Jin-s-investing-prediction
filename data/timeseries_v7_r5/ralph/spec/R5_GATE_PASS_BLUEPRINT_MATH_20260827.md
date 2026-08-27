@@ -64,6 +64,11 @@ PIT: 모든 입력은 t 시점 available_at 충족 가격만. 표준화 잔차 �
 
 Vincentization 볼록가중(지평별), w_E0 하한은 R4 계약값 유지, SLSQP.
 cross-fit calibration(기존 calibration_cross_fit_holdout 경로 그대로).
+**R5-A1 계약 정렬**: 동결 계약의 E0 하한은 h=1/5/21/63별 0.20/0.25/0.40/0.50이다.
+장기 지평 Gate는 21·63일 평균 CRPS skill ≥2%이면서 21일과 63일 각각 ≥0이고, 1·5일
+skill 양수는 별도 통과조건이 아니다. 보편적인 “양의 OOS advantage” admission Gate는 YAML에
+따로 없으며, eligibility를 통과한 성분도 R4 스태킹 역할에서 E0를 개선하지 못하면 실행정책상
+가중치 0(E0=1)으로 귀결된다. 이 실행정책을 임계값이나 별도 Gate로 재해석하지 않는다.
 **기대 형태**: h=1·5·21에서 w_{E1'}>0, h=63은 w_E0→1 수렴 가능(변동성 예측력 감쇠) —
 그것도 정직한 결과이며 게이트 계약의 지평 요건은 G0에서 원문 확인(무단 해석 금지).
 

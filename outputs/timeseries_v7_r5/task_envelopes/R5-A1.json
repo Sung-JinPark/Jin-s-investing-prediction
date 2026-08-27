@@ -1,0 +1,19 @@
+{
+  "schema": "r5_task_envelope_v1",
+  "task_id": "R5-A1",
+  "started_at": "2026-08-27T07:06:53.2696106Z",
+  "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#R5-A1",
+  "role_rows_allowed": [],
+  "inputs_sha256": {
+    "CODEX_MASTER_PROMPT_V7_R5_RALPH_20260827.md": "ba34879e08ca6ecf1589cecdce1b49bd1a954c8b4343b55e74b3a7bf5fc46550",
+    "R5_GATE_PASS_BLUEPRINT_MATH_20260827.md_before_alignment": "2a45ef14ecce5e181f3b6a1214256696c453fdde7b78cc26afbdbad629c2115b",
+    "R5_BOOTSTRAP_BACKLOG_20260827.json": "a4e2d3611d9e8f355f3db583661944928fab144d3967a07f4f99ba4490bcb503",
+    "NASDAQ_V7_ALFRED_PIT_TRAINING_REVIEW_PACK_20260825.zip": "72192f9369ec6a43e563650629ea2fbd986aa2ca15d8fcd665d6deaec9ae4087",
+    "SOURCE/data/contracts/multivariate_timeseries_v7.yaml": "98dfd4e0d84aa36cb4ec8ad135651d49eac0783eafec435b6659312c0c03660b"
+  },
+  "forbidden": [
+    "outer rows (G4 전)",
+    "grid 변경",
+    "E0 변경"
+  ]
+}
