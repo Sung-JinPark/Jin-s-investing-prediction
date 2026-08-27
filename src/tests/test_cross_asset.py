@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -77,11 +78,15 @@ def _fixture(*, history_count: int = 61) -> dict:
     history_nasdaq = list(np.linspace(100, 89.3 if history_count == 62 else 72, 61))
     history_o_price = list(np.linspace(100, 173.8 if history_count == 62 else 180, 61))
     history_o_adjusted = list(np.linspace(100, 240.9 if history_count == 62 else 245, 61))
+    history_dhi_price = list(np.linspace(100, 465.0 if history_count == 62 else 470, 61))
+    history_dhi_adjusted = list(np.linspace(100, 490.0 if history_count == 62 else 496, 61))
     return build_cross_asset(
         history_dates=history_dates,
         history_nasdaq=history_nasdaq + ([999] if history_count == 62 else []),
         history_o_price=history_o_price + ([999] if history_count == 62 else []),
         history_o_adjusted=history_o_adjusted + ([999] if history_count == 62 else []),
+        history_dhi_price=history_dhi_price + ([999] if history_count == 62 else []),
+        history_dhi_adjusted=history_dhi_adjusted + ([999] if history_count == 62 else []),
         current_dates=current_dates,
         current_nasdaq=nasdaq,
         current_bitcoin=bitcoin,
@@ -97,6 +102,8 @@ def _legacy_v2(model: dict) -> dict:
     legacy = deepcopy(model)
     legacy["schema_version"] = 2
     legacy["probability_space"] = "scenario_conditional"
+    legacy["history"]["series"].pop("dr_horton_price", None)
+    legacy["history"]["series"].pop("dr_horton_total_return", None)
     forecast = _legacy_forecast_model(
         model["forecast"]["beta_audit"],
         model["forecast"]["realty_income_sensitivity"],
@@ -137,7 +144,7 @@ def test_cross_asset_keeps_observed_history_and_btc_counterfactual_separate() ->
     assert model["history"]["summary"]["nasdaq_price_pct"] == pytest.approx(-28.0)
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(145.0)
     assert model["forecast"]["weights"]["status"] == "not_applicable"
-    assert model["schema_version"] == 4
+    assert model["schema_version"] == 5
     assert model["forecast"]["model_kind"] == "historical_counterfactual"
     assert model["forecast"]["horizon_months"] == 60
     assert model["forecast"]["labels"] == model["history"]["labels"]
@@ -156,6 +163,8 @@ def test_cross_asset_keeps_observed_history_and_btc_counterfactual_separate() ->
         scenario["synthetic_assets"] == ["bitcoin"]
         for scenario in model["forecast"]["scenarios"].values()
     )
+    assert model["history"]["summary"]["dr_horton_total_return_pct"] == pytest.approx(396.0)
+    assert model["history"]["series"]["dr_horton_total_return"][0] == 100
 
 
 def test_historical_counterfactual_never_starts_a_live_path_ledger(tmp_path: Path) -> None:
@@ -201,6 +210,8 @@ def test_history_is_exactly_2001_03_to_2006_03_and_excludes_next_bar() -> None:
     assert model["history"]["summary"]["nasdaq_price_pct"] == pytest.approx(-10.7)
     assert model["history"]["summary"]["realty_income_price_pct"] == pytest.approx(73.8)
     assert model["history"]["summary"]["realty_income_total_return_pct"] == pytest.approx(140.9)
+    assert model["history"]["summary"]["dr_horton_price_pct"] == pytest.approx(365.0)
+    assert model["history"]["summary"]["dr_horton_total_return_pct"] == pytest.approx(390.0)
     assert model["history"]["summary"]["realty_income_dividend_effect_pp"] == pytest.approx(67.1)
 
 
@@ -209,6 +220,20 @@ def test_validator_rejects_period_label_mismatch() -> None:
     model["history"]["period"] = "2001-03 to 2006-04"
     with pytest.raises(CrossAssetError, match="period endpoints"):
         validate_cross_asset(model)
+
+
+def test_schema_v5_requires_both_dr_horton_observed_series() -> None:
+    model = _fixture()
+    model["history"]["series"].pop("dr_horton_total_return")
+    with pytest.raises(CrossAssetError, match="history series mismatch"):
+        validate_cross_asset(model)
+
+
+def test_committed_schema_v4_snapshot_remains_readable() -> None:
+    archive = ROOT / "data/cross_asset/archive/2026-08-24.json"
+    model = json.loads(archive.read_text(encoding="utf-8"))
+    assert model["schema_version"] == 4
+    assert validate_cross_asset(model) is model
 
 
 def test_btc_case_beta_rules_come_from_audited_center_and_bootstrap_bounds() -> None:
@@ -231,6 +256,8 @@ def test_observed_assets_are_byte_equal_across_all_btc_cases() -> None:
         assert case["paths"]["realty_income"] == history["realty_income_price"]
         assert case["paths"]["realty_income_total_return"] == history[
             "realty_income_total_return"]
+    assert history["dr_horton_price"][0] == 100
+    assert history["dr_horton_total_return"][0] == 100
 
 
 def test_btc_center_path_compounds_observed_nasdaq_monthly_log_returns() -> None:
@@ -303,6 +330,8 @@ def test_counterfactual_does_not_consume_generic_future_macro_assumptions() -> N
         history_nasdaq=baseline["history"]["series"]["nasdaq_price"],
         history_o_price=baseline["history"]["series"]["realty_income_price"],
         history_o_adjusted=baseline["history"]["series"]["realty_income_total_return"],
+        history_dhi_price=baseline["history"]["series"]["dr_horton_price"],
+        history_dhi_adjusted=baseline["history"]["series"]["dr_horton_total_return"],
         current_dates=[date(2020, 1, 1) + timedelta(days=i) for i in range(320)],
         current_nasdaq=_price_path(320, .0004, .009),
         current_bitcoin=_price_path(320, .0007, .016),

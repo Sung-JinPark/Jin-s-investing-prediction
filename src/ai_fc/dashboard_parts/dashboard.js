@@ -1432,8 +1432,11 @@ const CROSS_META={
   bitcoin:['Bitcoin 반사실','#1f6feb','7 4'],
   realty_income:['Realty Income','#247d78',''],
   realty_income_total_return:['Realty Income · 배당 포함','#247d78',''],
+  dr_horton:['D.R. Horton','#8b4f9f',''],
+  dr_horton_total_return:['D.R. Horton · 배당 포함','#8b4f9f',''],
   nasdaq_price:['NASDAQ 가격','#ff4f17',''],
-  realty_income_price:['Realty Income 가격','#9a6700','7 4']
+  realty_income_price:['Realty Income 가격','#9a6700','7 4'],
+  dr_horton_price:['D.R. Horton 가격','#8b4f9f','7 4']
 };
 function monthAt(ym,m){const t=(+ym.slice(0,4))*12+(+ym.slice(5,7)-1)+m;
   return Math.floor(t/12)+'-'+String(t%12+1).padStart(2,'0');}
@@ -1891,11 +1894,11 @@ function crossAssetPanel(){
   const peak=summary.nasdaq_from_dotcom_peak||{},weeklyCorr=weekly.corr||{},weeklyBeta=weekly.beta||{},yearFive=(summary.annual||[]).find(row=>Number(row.year)===5)||{};
   const w=el(`<div class="chart-panel analysis-panel cross-asset-panel">
     <p class="eyebrow">자산 비교 · 시작값 100</p>
-    <div class="panel-head"><div><h2>닷컴 조정 뒤 5년 · NASDAQ · Bitcoin · Realty Income</h2><p>가격 단위가 달라도 방향과 회복 속도를 바로 비교할 수 있게 시작값을 100으로 맞췄습니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
-    <section class="plain-insight" aria-label="자산 비교 읽는 법"><article><span>NASDAQ</span><strong>실제 가격</strong><p>2001년 3월 이후 실제 움직임입니다.</p></article><article><span>Realty Income</span><strong>배당 포함 실제 수익</strong><p>수정종가를 사용해 배당 재투자 효과까지 한 선에 담았습니다.</p></article><article><span>Bitcoin</span><strong>가정 경로</strong><p>${esc(model.history.bitcoin?.reason||'2009년 이전 실측이 없어 현대 민감도를 적용한 참고 경로입니다.')}</p></article></section>
+    <div class="panel-head"><div><h2>닷컴 조정 뒤 5년 · NASDAQ · Bitcoin · Realty Income · D.R. Horton</h2><p>가격 단위가 달라도 방향과 회복 속도를 바로 비교할 수 있게 시작값을 100으로 맞췄습니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
+    <section class="plain-insight" aria-label="자산 비교 읽는 법"><article><span>NASDAQ</span><strong>실제 가격</strong><p>2001년 3월 이후 실제 움직임입니다.</p></article><article><span>Realty Income</span><strong>배당 포함 실제 수익</strong><p>수정종가를 사용해 배당 재투자 효과까지 한 선에 담았습니다.</p></article><article><span>D.R. Horton</span><strong>배당 포함 실제 수익</strong><p>같은 2001-03~2006-03의 주택건설주 실측 경로입니다.</p></article><article><span>Bitcoin</span><strong>가정 경로</strong><p>${esc(model.history.bitcoin?.reason||'2009년 이전 실측이 없어 현대 민감도를 적용한 참고 경로입니다.')}</p></article></section>
     <div class="cross-view-switch" role="group" aria-label="교차자산 보기">
       <button type="button" data-cross-view="scenario" aria-pressed="true">실측 + BTC 반사실</button>
-      <button type="button" data-cross-view="history" aria-pressed="false">NASDAQ·Realty 실측</button>
+      <button type="button" data-cross-view="history" aria-pressed="false">NASDAQ·O·DHI 실측</button>
     </div>
     <section data-cross-panel="scenario">
       <div class="flow-focus cross-focus" role="radiogroup" aria-label="Bitcoin 반사실 beta 민감도">
@@ -1910,9 +1913,10 @@ function crossAssetPanel(){
       <div class="history-score-grid">
         <div><span>NASDAQ 가격</span><strong>${pctText(summary.nasdaq_price_pct)}</strong><small>${esc(periodCaption)}</small></div>
         <div><span>Realty Income · 배당 포함</span><strong>${pctText(summary.realty_income_total_return_pct)}</strong><small>수정종가 · 배당 재투자 반영</small></div>
+        <div><span>D.R. Horton · 배당 포함</span><strong>${pctText(summary.dr_horton_total_return_pct)}</strong><small>수정종가 · 같은 실측 기간</small></div>
         <div><span>NASDAQ 닷컴 정점 기준</span><strong>${pctText(peak.nasdaq_price_pct)}</strong><small>${esc(peak.start||'2000-03')} → ${esc(peak.end||model.history.labels?.at(-1)||'종료')} · 별도 anchor</small></div>
       </div>
-      <details class="analog-limit annual-return-table"><summary>기준월부터 연차별 실측 수익률 보기</summary><div class="table-shell"><table><thead><tr><th>구간</th><th>NASDAQ</th><th>Realty Income · 배당 포함</th></tr></thead><tbody>${annual.map(row=>`<tr><td><strong>${row.year}년차</strong><small>${esc(String(row.period||'').replace(' to ',' → '))}</small></td><td>${pctText(row.nasdaq_price_pct)}</td><td>${pctText(row.realty_income_total_return_pct)}</td></tr>`).join('')}</tbody></table></div></details>
+      <details class="analog-limit annual-return-table"><summary>기준월부터 연차별 실측 수익률 보기</summary><div class="table-shell"><table><thead><tr><th>구간</th><th>NASDAQ</th><th>Realty Income · 배당 포함</th><th>D.R. Horton · 배당 포함</th></tr></thead><tbody>${annual.map(row=>`<tr><td><strong>${row.year}년차</strong><small>${esc(String(row.period||'').replace(' to ',' → '))}</small></td><td>${pctText(row.nasdaq_price_pct)}</td><td>${pctText(row.realty_income_total_return_pct)}</td><td>${pctText(row.dr_horton_total_return_pct)}</td></tr>`).join('')}</tbody></table></div></details>
     </section>
     <details class="scenario-v52-method cross-asset-details"><summary>Realty Income 조건과 세부 통계 보기</summary><section class="realty-thesis-grid" aria-label="Realty Income 조건부 가설 점검">
       <article class="realty-thesis-card history-card">
@@ -1957,9 +1961,9 @@ function crossAssetPanel(){
     ${cohortResultsMarkup(DATA.o_entry_cohort)}
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     </details>
-    <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> Realty Income 배당 포함 수익은 2001-03~2006-03 실측입니다. 반사실 계산은 Bitcoin 선에만 적용합니다.</p>
+    <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> Realty Income 배당 포함 수익은 2001-03~2006-03 실측입니다. D.R. Horton도 같은 기간 실측이며, 반사실 계산은 Bitcoin 선에만 적용합니다. DHI의 당시 상승은 다음 기술주 조정기의 수혜를 보장하지 않습니다.</p>
     <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
-    <p class="chart-note"><strong>해석:</strong> 2001-03 이후 실제 NASDAQ의 추가 하락·회복과 Realty Income의 배당 포함 수익을 그대로 보존했습니다. Bitcoin 선은 이 실측 NASDAQ 월수익에 선택한 현대 beta를 기계적으로 적용한 경우의 수일 뿐, 당시 존재했던 가격이나 다음 AI 버블 경로를 뜻하지 않습니다.</p>
+    <p class="chart-note"><strong>해석:</strong> 2001-03 이후 실제 NASDAQ의 추가 하락·회복과 Realty Income·D.R. Horton의 배당 포함 수익을 그대로 보존했습니다. DHI는 당시 주택·금리 사이클이 함께 작용한 실측 비교선입니다. Bitcoin 선은 이 실측 NASDAQ 월수익에 선택한 현대 beta를 기계적으로 적용한 경우의 수일 뿐, 당시 존재했던 가격이나 다음 AI 버블 경로를 뜻하지 않습니다.</p>
     ${DATA.multi_year_stress?.presentation_html||''}
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
@@ -2059,18 +2063,18 @@ function drawLiquidity(host,model){
   const fromPointer=event=>{const rect=svg.getBoundingClientRect(),x=(event.clientX-rect.left)*(W/rect.width);return Math.round((x-ML)/(PW/Math.max(1,n-1)));};overlay.addEventListener('pointermove',event=>paint(fromPointer(event)));overlay.addEventListener('pointerdown',event=>{paint(fromPointer(event));svg.focus();});svg.addEventListener('keydown',event=>{if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paint(selected+(event.key==='ArrowLeft'?-1:1));}else if(event.key==='Home'){event.preventDefault();paint(0);}else if(event.key==='End'){event.preventDefault();paint(n-1);}});host.replaceChildren(svg,readout);paint(selected);
 }
 function crossFiveYearTableMarkup(model,scenario){
-  const labels=model.forecast?.labels||[],years=[0,12,24,36,48,60].filter(month=>month<labels.length),paths=scenario.paths||{};
+  const labels=model.forecast?.labels||[],years=[0,12,24,36,48,60].filter(month=>month<labels.length),paths={...(scenario.paths||{}),dr_horton_total_return:model.history?.series?.dr_horton_total_return||[]};
   const rowLabel=month=>month===0?'기준월':`${month/12}년 후`;
-  return `<section class="cross-yearly-compare" aria-labelledby="cross-yearly-title"><div class="panel-head"><div><p class="eyebrow">OBSERVED BASELINE · BTC COUNTERFACTUAL</p><h3 id="cross-yearly-title">2001-03부터 2006-03까지 5개년 비교</h3><p>2001-03=100 · NASDAQ과 Realty Income은 실측, Bitcoin만 선택 beta에 따른 반사실 값입니다.</p></div><span class="count-chip">${esc(scenario.label)}</span></div>
-    <div class="cross-phase-strip"><span><b>OBSERVED</b>NASDAQ · Realty Income 배당 포함</span><span><b>SYNTHETIC</b>Bitcoin · 2009년 이전 실측 없음</span><span><b>NO PROBABILITY</b>확률·단일 가격 제시·기대수익 아님</span></div>
-    <div class="table-shell"><table><thead><tr><th>경과</th><th>NASDAQ</th><th>Bitcoin 반사실</th><th>Realty Income · 배당 포함</th></tr></thead><tbody>${years.map(month=>`<tr><td><strong>${rowLabel(month)}</strong><small>${esc(labels[month])}</small></td>${['nasdaq','bitcoin','realty_income_total_return'].map(key=>{const indexed=Number(paths[key]?.[month]),change=indexed-100;return `<td><strong style="color:${CROSS_META[key][1]}">${signedDelta(change,1,'%')}</strong><small>${month===0?'비교 기준 0%':'시작월 대비'}</small></td>`;}).join('')}</tr>`).join('')}</tbody></table></div>
+  return `<section class="cross-yearly-compare" aria-labelledby="cross-yearly-title"><div class="panel-head"><div><p class="eyebrow">OBSERVED BASELINE · BTC COUNTERFACTUAL</p><h3 id="cross-yearly-title">2001-03부터 2006-03까지 5개년 비교</h3><p>2001-03=100 · NASDAQ·Realty Income·D.R. Horton은 실측, Bitcoin만 선택 beta에 따른 반사실 값입니다.</p></div><span class="count-chip">${esc(scenario.label)}</span></div>
+    <div class="cross-phase-strip"><span><b>OBSERVED</b>NASDAQ · Realty Income · D.R. Horton</span><span><b>SYNTHETIC</b>Bitcoin · 2009년 이전 실측 없음</span><span><b>NO PROBABILITY</b>확률·단일 가격 제시·기대수익 아님</span></div>
+    <div class="table-shell"><table><thead><tr><th>경과</th><th>NASDAQ</th><th>Bitcoin 반사실</th><th>Realty Income · 배당 포함</th><th>D.R. Horton · 배당 포함</th></tr></thead><tbody>${years.map(month=>`<tr><td><strong>${rowLabel(month)}</strong><small>${esc(labels[month])}</small></td>${['nasdaq','bitcoin','realty_income_total_return','dr_horton_total_return'].map(key=>{const indexed=Number(paths[key]?.[month]),change=indexed-100;return `<td><strong style="color:${CROSS_META[key][1]}">${signedDelta(change,1,'%')}</strong><small>${month===0?'비교 기준 0%':'시작월 대비'}</small></td>`;}).join('')}</tr>`).join('')}</tbody></table></div>
     <p class="chart-note">BTC 산식: 직전값 × exp(beta × 해당 월 NASDAQ 로그수익). 하락월 beta ${Number(scenario.downside_beta).toFixed(2)} · 상승월 beta ${Number(scenario.upside_beta).toFixed(2)}. bootstrap 음영은 민감도 범위이지 신뢰구간이나 확률대가 아닙니다.</p></section>`;
 }
 function bindCrossAsset(panel,initialScenario){
   const model=panel._crossModel;let view='scenario',scenarioId=model.forecast.scenarios?.[initialScenario]?initialScenario:panel._defaultScenario;
   const scenarioHost=$('#cross-chart',panel),historyHost=$('#cross-history-chart',panel),copy=$('#cross-scenario-copy',panel),yearTable=$('#cross-five-year-table',panel);
   const paintScenario=()=>{const scenario=model.forecast.scenarios[scenarioId];
-    copy.innerHTML=`<div><span>선택한 BTC 경우의 수</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small></div><p><span>하락월 β ${Number(scenario.downside_beta).toFixed(2)}</span><span>상승월 β ${Number(scenario.upside_beta).toFixed(2)}</span><span>${esc(scenario.rule)}</span></p><p class="cross-attribution">NASDAQ·Realty Income은 모든 버튼에서 같은 실측값을 유지합니다.</p><p class="cross-interpretation">Bitcoin만 beta 민감도에 따라 달라지며, 당시 가격을 복원한 값이 아닙니다.</p>`;
+    copy.innerHTML=`<div><span>선택한 BTC 경우의 수</span><strong>${esc(scenario.label)}</strong><small>${esc(scenario.short)}</small></div><p><span>하락월 β ${Number(scenario.downside_beta).toFixed(2)}</span><span>상승월 β ${Number(scenario.upside_beta).toFixed(2)}</span><span>${esc(scenario.rule)}</span></p><p class="cross-attribution">NASDAQ·Realty Income·D.R. Horton은 모든 버튼에서 같은 실측값을 유지합니다.</p><p class="cross-interpretation">Bitcoin만 beta 민감도에 따라 달라지며, 당시 가격을 복원한 값이 아닙니다.</p>`;
     if(yearTable)yearTable.innerHTML=crossFiveYearTableMarkup(model,scenario);
     drawCrossAsset(scenarioHost,model,scenarioId);
     panel.querySelectorAll('[data-cross-scenario]').forEach(button=>{const active=button.dataset.crossScenario===scenarioId;button.setAttribute('aria-pressed',String(active));button.setAttribute('aria-checked',String(active));button.tabIndex=active?0:-1;});
@@ -2087,13 +2091,14 @@ function bindCrossAsset(panel,initialScenario){
 }
 function drawCrossAsset(host,model,scenarioId){
   const scenario=model.forecast.scenarios[scenarioId];
-  drawIndexedCompare(host,{labels:model.forecast.labels,series:scenario.paths,
-    bands:scenario.paths_band,keys:['nasdaq','bitcoin','realty_income_total_return'],title:`${scenario.label} · 2001-03~2006-03 실측/반사실 비교`,selected:0,history:true,valueMode:'return_from_100',
+  const series={...scenario.paths,dr_horton_total_return:model.history.series.dr_horton_total_return};
+  drawIndexedCompare(host,{labels:model.forecast.labels,series,
+    bands:scenario.paths_band,keys:['nasdaq','bitcoin','realty_income_total_return','dr_horton_total_return'],title:`${scenario.label} · 2001-03~2006-03 실측/반사실 비교`,selected:0,history:true,valueMode:'return_from_100',
     tickIndexes:[0,12,24,36,48,60]});
 }
 function drawCrossAssetHistory(host,model){
   drawIndexedCompare(host,{labels:model.history.labels,series:model.history.series,
-    keys:['nasdaq_price','realty_income_total_return'],title:`${model.history.period} 실측 비교`,selected:model.history.labels.length-1,history:true,valueMode:'return_from_100'});
+    keys:['nasdaq_price','realty_income_total_return','dr_horton_total_return'],title:`${model.history.period} 실측 비교`,selected:model.history.labels.length-1,history:true,valueMode:'return_from_100'});
 }
 function resolveEndpointLabels(items,minGap=16,top=12,bottom=438){
   if(!items.length)return [];
