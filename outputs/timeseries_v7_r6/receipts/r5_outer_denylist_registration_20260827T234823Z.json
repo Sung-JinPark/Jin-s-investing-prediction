@@ -1,0 +1,32 @@
+{
+  "schema": "r6_outer_denylist_registration_receipt_v1",
+  "registered_at": "2026-08-27T23:48:23.1347326Z",
+  "state": "REGISTERED",
+  "source": {
+    "repository_head": "f60c6b08391d254c92252bd11a4204f63ad9311b",
+    "review_pack_sha256": "e90e40f196c127a022c08fc0c6915d90b68ac428c541cfdd9c041aba5c584d1d",
+    "gate_decision_sha256": "338d3b5f192d2c49ff9173d5322a243008203a5fcc48a786d541a3710979d5a3",
+    "outer_exposure_receipt_sha256": "c6c607b109a1eaacf3a6c50a5ff8e5bb375521ae3fe7109ffe18b90e8022a957",
+    "outer_score_matrix_sha256": "7c3efc2ca0dc9f44e973ba58734f69db14fddb3c682b9b48c24f92282ed16721",
+    "outer_exposure_count": 1,
+    "retry_allowed": false
+  },
+  "registration": {
+    "contract_path": "data/timeseries_v7_r6/contracts/r5_outer_worker_denylist.json",
+    "contract_sha256": "319c5c4d1e5395d33c35888f37067f216c48634eb0302c302a68ad8c1ac7c032",
+    "guard_path": "src/ai_fc/timeseries_v7_r6/outer_guard.py",
+    "guard_sha256": "496c5be5c52a47d895d72b2df7935ab4dd9ac7459539244d5392807445283b75",
+    "policy": "deny_before_open",
+    "on_violation": "BLOCKED_PROTECTED_SCOPE"
+  },
+  "verification": {
+    "command": "python -m pytest -q src/tests/timeseries_v7_r6/test_outer_guard.py -p no:cacheprovider",
+    "return_code": 0,
+    "passed": 5,
+    "failed": 0,
+    "denied_path_probe": true,
+    "denied_role_probes": 3,
+    "non_outer_calibration_probe": true
+  },
+  "outer_data_read_during_registration": false
+}

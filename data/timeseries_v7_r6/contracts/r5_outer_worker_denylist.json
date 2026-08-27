@@ -1,0 +1,24 @@
+{
+  "schema": "r6_worker_outer_denylist_v1",
+  "registered_at": "2026-08-27T23:48:23.1347326Z",
+  "source_head": "f60c6b08391d254c92252bd11a4204f63ad9311b",
+  "policy": "deny_before_open",
+  "deny_paths": [
+    "outputs/timeseries_v7_r5/R5-G4/outer_score_matrix.parquet"
+  ],
+  "deny_basenames": [
+    "outer_score_matrix.parquet"
+  ],
+  "deny_roles": [
+    "outer",
+    "r5_outer",
+    "r5-g4-outer"
+  ],
+  "deny_role_prefixes": [
+    "outer_",
+    "r5_outer_"
+  ],
+  "on_violation": "BLOCKED_PROTECTED_SCOPE",
+  "retry_allowed": false,
+  "outer_exposure_count_frozen": 1
+}
