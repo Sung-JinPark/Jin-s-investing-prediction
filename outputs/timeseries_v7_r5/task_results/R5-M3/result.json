@@ -1,0 +1,16 @@
+{
+  "schema":"r5_result_v1","task_id":"R5-M3","status":"완료","completed_at":"2026-08-27T08:26:31.1202365Z",
+  "artifacts_sha256":[
+    {"path":"outputs/timeseries_v7_r5/R5-M3/calendar/calendar_receipt.json","sha256":"57ce3f5a6ca88bcd81c2e189d193bd9f69765a888104320871ca5619351c7c5a"},
+    {"path":"outputs/timeseries_v7_r5/R5-M3/calendar/official_event_calendar.jsonl","sha256":"c0a25c3bddaadb5f6f9881b2adef08b90ccddc2cf0fa19155836af00b5d585be"},
+    {"path":"outputs/timeseries_v7_r5/R5-M3/calibration_paired_scores.parquet","sha256":"7c9b9c37395a1e0646ff88a091a92b1b972848eda72eb5f8faff603b2d7ab8e1"},
+    {"path":"outputs/timeseries_v7_r5/R5-M3/factorized_sample_matrix.jsonl","sha256":"f10ba8483158616322e81b489ccb09f97678047377c50b60ea3ff3850e5cf271"},
+    {"path":"outputs/timeseries_v7_r5/R5-M3/event_multiplier_summary.json","sha256":"fede41ae45c827a3ebc38cd771102b75ed6b312e2c419cdd8b6d99443a4cb8e2"},
+    {"path":"src/ai_fc/timeseries_v7_r5/event_multiplier.py","sha256":"93817ba50a14ab8e9fce39189db199b1b1466683a9769d3ae53fd61db945c6ab"},
+    {"path":"src/tests/timeseries_v7_r5/test_event_multiplier.py","sha256":"c6bcd8cf52e4f768c3f48a7095f3862c91bfbb1ea4683bb3df35d16750b7e2da"}
+  ],
+  "row_use_counters":{"train_rows_used":17742,"stacking_rows_used":2536,"calibration_rows_used":2536,"outer_rows_used":0},
+  "metrics":{"official_event_count":837,"event_counts":{"cpi":312,"nfp":312,"fomc":213},"calendar_years":[1997,2022],"credential_used":false,"weights_by_horizon":{"1":{"E0":1.0,"E3_prime":0.0},"5":{"E0":1.0,"E3_prime":0.0},"21":{"E0":1.0,"E3_prime":0.0},"63":{"E0":1.0,"E3_prime":0.0}},"nesting_max_abs_error":0.0,"targeted_r5_tests_passed":28},
+  "contract_self_check":{"grid_unchanged":true,"nesting_test_pass":true,"event_dates_only_no_outcomes":true,"outer_zero_before_g4":true},
+  "open_questions":[],"user_decisions_needed":[]
+}

@@ -89,7 +89,7 @@
    "deps": [
     "R5-M1"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "E3' 이벤트 승수",
    "spec": "FOMC/CPI/고용 캘린더(사전 공지=PIT 안전)로 h-창 내 이벤트 존재 시 분산 승수 γ_e 학습(train). γ=0 내포 테스트.",
    "accept": "동일 규격"
