@@ -1,0 +1,38 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-A4",
+  "status": "완료",
+  "completed_at": "2026-08-27T07:43:50.5826310Z",
+  "artifacts_sha256": [
+    {
+      "path": "outputs/timeseries_v7_r5/R5-A4/e0_nesting_proof.json",
+      "sha256": "8967426ed14e571df7b5cd97876394e217465e266f642976a650778029ef25ce"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/e0_nesting.py",
+      "sha256": "e3af54fb7854e2b41bf99e3686c065ea524761fbc7c457bb928c912c11d0f67e"
+    },
+    {
+      "path": "src/tests/timeseries_v7_r5/test_e0_nesting.py",
+      "sha256": "efc7f6614c8f029b9d04a021e0cf74a1230830adb47c7a9e958c07bfd7498024"
+    }
+  ],
+  "row_use_counters": {
+    "outer_rows_used": 0
+  },
+  "metrics": {
+    "coordinate_count": 4,
+    "sample_value_count": 30664,
+    "max_abs_error": 0.0,
+    "tolerance": 1e-12,
+    "targeted_tests_passed": 4,
+    "targeted_tests_failed": 0
+  },
+  "contract_self_check": {
+    "grid_unchanged": true,
+    "nesting_test_pass": true,
+    "outer_zero_before_g4": true
+  },
+  "open_questions": [],
+  "user_decisions_needed": []
+}

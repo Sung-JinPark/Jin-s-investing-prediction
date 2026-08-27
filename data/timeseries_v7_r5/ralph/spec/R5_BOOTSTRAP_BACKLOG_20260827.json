@@ -45,7 +45,7 @@
    "deps": [
     "R5-A2"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "E0 로더 + 내포-일치 하네스",
    "spec": "e0_sample_matrices 로더와, 임의 챌린저의 퇴화 파라미터 산출이 E0와 좌표별 1e-12 일치함을 검사하는 공통 테스트 하네스 작성. quarantine 규칙 준수.",
    "accept": "하네스 pytest 통과 + E0 재현 1건"
