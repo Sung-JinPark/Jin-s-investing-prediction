@@ -124,7 +124,7 @@
    "deps": [
     "R5-S1"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "G3 재평가",
    "spec": "기존 G3 경로로 admission 재평가. 결과 그대로 기록(전원 기각이어도).",
    "accept": "acceptance_summary 생성 + sealed_prior 체인 유지"

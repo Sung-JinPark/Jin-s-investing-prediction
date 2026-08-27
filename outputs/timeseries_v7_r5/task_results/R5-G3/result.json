@@ -1,0 +1,13 @@
+{
+  "schema":"r5_result_v1","task_id":"R5-G3","status":"완료","completed_at":"2026-08-27T09:41:47.8456696Z",
+  "artifacts_sha256":[
+    {"path":"outputs/timeseries_v7_r5/R5-G3/acceptance_summary.json","sha256":"0bfc377951f26259146956f2c970240fb5e9b4c7b028ac608b751d1c78763e33"},
+    {"path":"src/ai_fc/timeseries_v7_r5/g3_reassessment.py","sha256":"93ed637f719a8d9e3d1ab392048481885efd99bb63f9c4d8d7e13cbb9ace8406"},
+    {"path":"src/tests/timeseries_v7_r5/test_g3_reassessment.py","sha256":"cd499e9c90c8b52c867c13f95cc27d117f78cc81f024c962c2c57ace123fd841"}
+  ],
+  "row_use_counters":{"train_rows_used":0,"selection_rows_used":0,"stacking_rows_used":0,"calibration_rows_used":2536,"outer_rows_used":0},
+  "metrics":{"admitted_components":["E1_prime","E2_prime"],"rejected_components":["E3_prime","E4_prime","F_location"],"g4_eligible":true,"outer_opened":false,"research_gate_pass":null,"targeted_r5_tests_passed":37},
+  "contract_self_check":{"grid_unchanged":true,"sealed_prior_chain_preserved":true,"outer_zero_before_g4":true,"promotion_claimed":false},
+  "open_questions":["R5 전체에서 단 한 번 허용되는 G4 outer_test를 지금 개봉할지 확인 필요"],
+  "user_decisions_needed":[{"decision_id":"G4-OUTER-ONCE","options":["승인: outer 1회 실행","보류: 봉인 유지"],"irreversible_scope":"frozen outer role is scored exactly once for R5"}]
+}

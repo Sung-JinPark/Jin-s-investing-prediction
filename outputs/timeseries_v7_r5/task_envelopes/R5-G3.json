@@ -1,0 +1,7 @@
+{
+  "schema":"r5_task_envelope_v1","task_id":"R5-G3","started_at":"2026-08-27T09:40:00.0000000Z",
+  "spec_ref":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-G3",
+  "role_rows_allowed":["calibration summary only"],
+  "inputs":{"R5_S1":"outputs/timeseries_v7_r5/R5-S1/stacking_summary.json","R4_sealed_prior":"outputs/timeseries_v7_r4/R4-S4-006/g3/acceptance_summary.json"},
+  "forbidden":["outer labels or score rows","Gate execution","sealed prior mutation","promotion claim"]
+}
