@@ -1,0 +1,14 @@
+{
+  "schema":"r5_result_v1","task_id":"R5-S1","status":"완료","completed_at":"2026-08-27T09:37:25.4866307Z",
+  "artifacts_sha256":[
+    {"path":"outputs/timeseries_v7_r5/R5-S1/f_location_selection_scores.parquet","sha256":"df9ed88e8ccb7d473236c3daa54e3cd319c348f4211266256d0d2798c88bc4ff"},
+    {"path":"outputs/timeseries_v7_r5/R5-S1/calibration_paired_scores.parquet","sha256":"c27a09fe1fa562e6e99a32c007f7347285b013f5c6ce0755e3e0c7f3374640b5"},
+    {"path":"outputs/timeseries_v7_r5/R5-S1/stacking_summary.json","sha256":"84d42fac608fff0c85404b0c315c3245a1afbc8ad7495a2864abf0cf6312d477"},
+    {"path":"src/ai_fc/timeseries_v7_r5/stacking_reassessment.py","sha256":"794ef3c34351b30c4c9e023f2d9b1e55366e081d522142eb6f64bdf02b014aa2"},
+    {"path":"src/tests/timeseries_v7_r5/test_stacking_reassessment.py","sha256":"77025721da2ffb72ec5c2d8079ad54099166eb0ef2d6fb279defa040c5ac3700"}
+  ],
+  "row_use_counters":{"train_rows_used":4457,"selection_rows_used":2536,"stacking_rows_used":2536,"calibration_rows_used":2536,"outer_rows_used":0},
+  "metrics":{"selected_f_delta":{"1":0.2,"5":0.0,"21":0.0,"63":0.0},"paired_skill_by_horizon":{"1":0.023689144872205237,"5":0.015600495172772438,"21":0.017840414165730723,"63":0.02323176816758207},"long_horizon_average_skill":0.020536091166656396,"weights_by_horizon":{"1":{"E0":0.2,"E1_prime":0.5340488401371015,"E2_prime":0.2659511598628986},"5":{"E0":0.25,"E1_prime":0.17621756594169025,"E2_prime":0.5737824340583098},"21":{"E0":0.4000000000000001,"E2_prime":0.5999999999999998},"63":{"E0":0.5,"E2_prime":0.5}},"coverage80_by_horizon":{"1":0.9384858044164038,"5":0.9353312302839116,"21":0.9463722397476341,"63":0.9668769716088328},"targeted_r5_tests_passed":36},
+  "contract_self_check":{"weights_fit_on_stacking_only":true,"calibration_cross_fit_holdout":true,"stationary_bootstrap_2000_block_2h":true,"e0_floors_unchanged":true,"outer_zero_before_g4":true},
+  "open_questions":[],"user_decisions_needed":[]
+}

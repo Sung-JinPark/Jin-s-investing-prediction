@@ -113,7 +113,7 @@
     "R5-M3",
     "R5-M4"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "스태킹·보정 재평가",
    "spec": "R4 스태킹·cross-fit calibration 구현 재사용(수정 금지). 지평별 볼록가중, w_E0 floor는 R5-A1 확인값. 자격 통계=쌍대차+블록부트스트랩(ℓ=2h,B=2000)+MDE 지평별 보고.",
    "accept": "가중·advantage·CI·MDE 직렬화, outer 접근 0"
