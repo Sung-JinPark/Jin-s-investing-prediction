@@ -1,0 +1,18 @@
+schema: r5_ralph_config_v1
+run_prefix: v7r5
+queue: data/timeseries_v7_r5/ralph/spec/R5_BOOTSTRAP_BACKLOG_20260827.json
+batch: 1
+max_iterations: 40
+iteration_wait_seconds: 5
+limit_wait_minutes: 60
+log_dir: outputs/timeseries_v7_r5/_ralph_logs
+stop_conditions:
+- R5-G4 완료
+- 차단 존재+라우터 무해법
+- 사용자 결정 대기(D-1..D-3)
+self_check_every_iteration:
+- grid 불변
+- outer 0회(G4 전)
+- 내포 테스트
+- 역할 행 준수
+- secrets 미접근

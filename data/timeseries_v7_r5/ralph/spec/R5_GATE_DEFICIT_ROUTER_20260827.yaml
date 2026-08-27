@@ -1,0 +1,20 @@
+schema: r5_gate_deficit_router_v1
+rules:
+- deficit: 내포 테스트 실패
+  route: 해당 M-task 보류 + 코드 수정 재시도 1회, 재실패 시 차단
+- deficit: advantage CI 하한 <= 0 (특정 지평)
+  route: 해당 지평 가중 0 수용 — 신규 task 생성 금지(사후 튜닝 방지)
+- deficit: MDE > 기대효과(전 지평)
+  route: 검정력 부족 보고 + 사용자 결정 D-2 대기로 정지
+- deficit: freshness 실패
+  route: R5-A3 공식 증분 수집만 허용
+- deficit: 전원 기각(G3)
+  route: HOLD 보고 + D-1(V8 open-data)/D-2 결정 대기 정지. outer 미사용 보존
+- deficit: 계약 문구 상이(R5-A1)
+  route: 블루프린트를 계약에 정렬 후 차이 보고. 계약 수정 제안은 사용자 결정으로만
+forbidden_routes:
+- 게이트 임계 완화
+- outer 재사용
+- E0 정의 변경
+- 실패 성분 은폐
+- 사후 성분 추가

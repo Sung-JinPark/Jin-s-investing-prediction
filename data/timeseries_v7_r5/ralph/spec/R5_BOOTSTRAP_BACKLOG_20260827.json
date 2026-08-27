@@ -1,0 +1,155 @@
+{
+ "schema": "r5_bootstrap_backlog_v1",
+ "created_at": "2026-08-27",
+ "pick_rule": "deps 전부 완료된 최소 priority; 동률이면 ID 사전순",
+ "statuses": [
+  "대기",
+  "진행",
+  "완료",
+  "보류",
+  "차단"
+ ],
+ "tasks": [
+  {
+   "id": "R5-A1",
+   "priority": 1,
+   "deps": [],
+   "status": "대기",
+   "title": "계약 원문 인용 확인",
+   "spec": "게이트 계약에서 (a) 지평별 통과 요건(전 지평 양수인지 집계인지) (b) w_E0 floor 값·성격 (c) component admission 규칙 원문을 파일·라인으로 인용. 블루프린트 가정과 다르면 블루프린트를 계약에 맞추고 차이 보고. 계약 변경 금지.",
+   "accept": "인용 3건 + 차이 목록 직렬화"
+  },
+  {
+   "id": "R5-A2",
+   "priority": 2,
+   "deps": [
+    "R5-A1"
+   ],
+   "status": "대기",
+   "title": "역할 해시·그리드 고정 검증",
+   "spec": "R4의 role_hashes 5개와 evaluation_coordinate_grid_hash를 재계산 대조. outer_rows_used=0 카운터 초기화.",
+   "accept": "전부 일치, 불일치 시 차단"
+  },
+  {
+   "id": "R5-A3",
+   "priority": 3,
+   "deps": [],
+   "status": "대기",
+   "title": "^IXIC 증분 수집",
+   "spec": "공식 증분 수집으로 freshness 해소(r7 선례). 테스트 완화 금지. receipt 기록.",
+   "accept": "test_ixic_coverage 통과"
+  },
+  {
+   "id": "R5-A4",
+   "priority": 4,
+   "deps": [
+    "R5-A2"
+   ],
+   "status": "대기",
+   "title": "E0 로더 + 내포-일치 하네스",
+   "spec": "e0_sample_matrices 로더와, 임의 챌린저의 퇴화 파라미터 산출이 E0와 좌표별 1e-12 일치함을 검사하는 공통 테스트 하네스 작성. quarantine 규칙 준수.",
+   "accept": "하네스 pytest 통과 + E0 재현 1건"
+  },
+  {
+   "id": "R5-M5",
+   "priority": 5,
+   "deps": [
+    "R5-A4"
+   ],
+   "status": "대기",
+   "title": "조건부 스케일 3원 구축",
+   "spec": "블루프린트 §3 (a)HAR직접투영 (b)EWMA(α∈{0.94,0.97}) (c)GARCH(1,1)-t. 전부 research_train만 사용, 표준화 잔차 풀 동결 스냅샷+lineage. selection 역할에서 지평별 CRPS로 σ̂ 공급원 선택.",
+   "accept": "3원 산출 직렬화 + selection 선택표 + PIT 위반 0"
+  },
+  {
+   "id": "R5-M1",
+   "priority": 6,
+   "deps": [
+    "R5-M5"
+   ],
+   "status": "대기",
+   "title": "E1' FHS-HAR (first-light)",
+   "spec": "§2 E1' 생성식 구현. 퇴화(σ̂≡σ̄)=E0 내포 테스트 필수. 표본행렬 직렬화 후 스태킹·보정·자격 통계까지 전 파이프라인 1회 관통(first-light). outer 접근 금지.",
+   "accept": "내포 테스트 통과 + calibration 쌍대차·CI·MDE 직렬화"
+  },
+  {
+   "id": "R5-M2",
+   "priority": 7,
+   "deps": [
+    "R5-M1"
+   ],
+   "status": "대기",
+   "title": "E2' E0-rescale(λ)",
+   "spec": "λ 그리드 [0,0.25,...,1.5], selection에서 지평별 λ 선택. λ=0 내포 테스트.",
+   "accept": "동일 규격"
+  },
+  {
+   "id": "R5-M3",
+   "priority": 8,
+   "deps": [
+    "R5-M1"
+   ],
+   "status": "대기",
+   "title": "E3' 이벤트 승수",
+   "spec": "FOMC/CPI/고용 캘린더(사전 공지=PIT 안전)로 h-창 내 이벤트 존재 시 분산 승수 γ_e 학습(train). γ=0 내포 테스트.",
+   "accept": "동일 규격"
+  },
+  {
+   "id": "R5-M4",
+   "priority": 9,
+   "deps": [
+    "R5-M1"
+   ],
+   "status": "대기",
+   "title": "E4' t-테일 블렌드",
+   "spec": "§2 E4' — ν는 R4 문서 S-2 방식으로 학습, π∈[0,0.3] selection. π=0 내포 테스트.",
+   "accept": "동일 규격"
+  },
+  {
+   "id": "R5-S1",
+   "priority": 10,
+   "deps": [
+    "R5-M2",
+    "R5-M3",
+    "R5-M4"
+   ],
+   "status": "대기",
+   "title": "스태킹·보정 재평가",
+   "spec": "R4 스태킹·cross-fit calibration 구현 재사용(수정 금지). 지평별 볼록가중, w_E0 floor는 R5-A1 확인값. 자격 통계=쌍대차+블록부트스트랩(ℓ=2h,B=2000)+MDE 지평별 보고.",
+   "accept": "가중·advantage·CI·MDE 직렬화, outer 접근 0"
+  },
+  {
+   "id": "R5-G3",
+   "priority": 11,
+   "deps": [
+    "R5-S1"
+   ],
+   "status": "대기",
+   "title": "G3 재평가",
+   "spec": "기존 G3 경로로 admission 재평가. 결과 그대로 기록(전원 기각이어도).",
+   "accept": "acceptance_summary 생성 + sealed_prior 체인 유지"
+  },
+  {
+   "id": "R5-G4",
+   "priority": 12,
+   "deps": [
+    "R5-G3"
+   ],
+   "status": "대기",
+   "title": "outer 1회 채점 + 게이트",
+   "spec": "admitted 성분 존재 시에만 진행(전원 기각이면 사용자 결정 대기로 정지). outer 6블록 정확히 1회, 기존 게이트 구현 호출, 판정 그대로 기록. 재시도 금지.",
+   "accept": "게이트 원장 + row_use_counters.outer_rows_used 직렬화"
+  },
+  {
+   "id": "R5-P1",
+   "priority": 13,
+   "deps": [
+    "R5-G4"
+   ],
+   "status": "대기",
+   "title": "리뷰팩 생성",
+   "spec": "R4 규격 동일: MANIFEST.sha256, receipt, DB dump, 테스트 로그, git bundle, 저장-재계산 오차<=1e-12 self-check.",
+   "accept": "manifest 전수 일치"
+  }
+ ]
+}

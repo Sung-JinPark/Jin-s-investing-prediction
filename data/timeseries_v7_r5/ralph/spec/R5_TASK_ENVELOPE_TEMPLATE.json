@@ -1,0 +1,13 @@
+{
+ "schema": "r5_task_envelope_v1",
+ "task_id": "",
+ "started_at": "",
+ "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#<task_id>",
+ "role_rows_allowed": [],
+ "inputs_sha256": {},
+ "forbidden": [
+  "outer rows (G4 전)",
+  "grid 변경",
+  "E0 변경"
+ ]
+}

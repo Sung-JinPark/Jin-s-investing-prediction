@@ -1,0 +1,18 @@
+{
+ "schema": "r5_result_v1",
+ "task_id": "",
+ "status": "",
+ "completed_at": "",
+ "artifacts_sha256": [],
+ "row_use_counters": {
+  "outer_rows_used": 0
+ },
+ "metrics": {},
+ "contract_self_check": {
+  "grid_unchanged": null,
+  "nesting_test_pass": null,
+  "outer_zero_before_g4": null
+ },
+ "open_questions": [],
+ "user_decisions_needed": []
+}
