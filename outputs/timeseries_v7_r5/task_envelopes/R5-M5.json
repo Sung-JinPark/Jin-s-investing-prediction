@@ -1,0 +1,16 @@
+{
+  "schema": "r5_task_envelope_v1",
+  "task_id": "R5-M5",
+  "started_at": "2026-08-27T07:46:54.0000000Z",
+  "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M5",
+  "role_rows_allowed": ["train", "selection"],
+  "inputs_sha256": {
+    "R4_credential_free_export": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff"
+  },
+  "forbidden": [
+    "outer rows (G4 전)",
+    "post-cutoff label maturity",
+    "E0 변경",
+    "future return features"
+  ]
+}

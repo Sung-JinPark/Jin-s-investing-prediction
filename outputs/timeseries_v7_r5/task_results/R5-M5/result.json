@@ -1,0 +1,37 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-M5",
+  "status": "완료",
+  "completed_at": "2026-08-27T07:50:13.2378396Z",
+  "artifacts_sha256": [
+    {"path": "outputs/timeseries_v7_r5/R5-M5/conditional_scale_models.json", "sha256": "9add9205936e47fbea77f39680404b5e08d0b3075457b8d6dd211a35fdaa216d"},
+    {"path": "outputs/timeseries_v7_r5/R5-M5/selection_scale_scores.parquet", "sha256": "b56693c0cb104f7f263a931c985b6ccd9102d02247c045cbc9a15cf908de431f"},
+    {"path": "outputs/timeseries_v7_r5/R5-M5/selection_summary.json", "sha256": "fd0621eea36db674bf2b685a13b4a56217f43641f2c7eb15dd34aea21300e90f"},
+    {"path": "outputs/timeseries_v7_r5/R5-M5/standardized_residual_pool.json", "sha256": "4b07cde6fffd5257f60a48dc730214f4132ec2835c1df15a2adbbd99b2927ba1"},
+    {"path": "src/ai_fc/timeseries_v7_r5/conditional_scale_selection.py", "sha256": "3c519776fac779ca199d1e23ce94318ecf0c6b65385178ff6b49d18709eef0c6"},
+    {"path": "src/tests/timeseries_v7_r5/test_conditional_scale_selection.py", "sha256": "423f51b01c00cebc23082bc6ef15ffcf2b5fa2a3408aa1ea9ad7e852aaddeb33"}
+  ],
+  "row_use_counters": {
+    "train_rows_used": 17832,
+    "selection_rows_used": 2536,
+    "stacking_rows_used": 0,
+    "calibration_rows_used": 0,
+    "outer_rows_used": 0
+  },
+  "metrics": {
+    "source_families": 3,
+    "selection_score_rows": 15216,
+    "pit_violations": 0,
+    "selected_sources": {"1": "garch_t", "5": "har_0.001", "21": "ewma_0.94", "63": "ewma_0.94"},
+    "targeted_tests_passed": 5,
+    "targeted_tests_failed": 0
+  },
+  "contract_self_check": {
+    "selection_only_model_choice": true,
+    "maturity_cutoff_enforced": true,
+    "three_source_families_serialized": true,
+    "outer_zero_before_g4": true
+  },
+  "open_questions": [],
+  "user_decisions_needed": []
+}

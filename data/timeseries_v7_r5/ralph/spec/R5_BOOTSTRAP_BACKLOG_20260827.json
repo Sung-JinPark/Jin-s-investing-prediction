@@ -56,7 +56,7 @@
    "deps": [
     "R5-A4"
    ],
-   "status": "대기",
+   "status": "완료",
    "title": "조건부 스케일 3원 구축",
    "spec": "블루프린트 §3 (a)HAR직접투영 (b)EWMA(α∈{0.94,0.97}) (c)GARCH(1,1)-t. 전부 research_train만 사용, 표준화 잔차 풀 동결 스냅샷+lineage. selection 역할에서 지평별 CRPS로 σ̂ 공급원 선택.",
    "accept": "3원 산출 직렬화 + selection 선택표 + PIT 위반 0"
