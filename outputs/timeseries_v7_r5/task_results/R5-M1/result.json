@@ -1,0 +1,39 @@
+{
+  "schema": "r5_result_v1",
+  "task_id": "R5-M1",
+  "status": "완료",
+  "completed_at": "2026-08-27T07:59:43.0178444Z",
+  "artifacts_sha256": [
+    {"path": "outputs/timeseries_v7_r5/R5-M1/calibration_paired_scores.parquet", "sha256": "44b35f88128b655852a0b7e117ae8e93ed4286bed5e1822b30e27948a3095008"},
+    {"path": "outputs/timeseries_v7_r5/R5-M1/factorized_sample_matrix.jsonl", "sha256": "46d03095e00ed7279710b9fd8874f2309f23633c521f948a8d5bede4718cf00e"},
+    {"path": "outputs/timeseries_v7_r5/R5-M1/first_light_summary.json", "sha256": "e001467ba2c10ecdd8fe067333e2178156bc1246c380e5ab200ab9cdc2f586b6"},
+    {"path": "src/ai_fc/timeseries_v7_r5/fhs_har_first_light.py", "sha256": "4dd51bef24ab3d92b844691d1c00ce726e6152acf0b2482adfd2e6563e2a5ce8"},
+    {"path": "src/tests/timeseries_v7_r5/test_fhs_har_first_light.py", "sha256": "6d9eedbbf2736cee8375ead8fb7a43834807f10c24c2d3cc57fa977712591e81"}
+  ],
+  "row_use_counters": {
+    "stacking_rows_used": 2536,
+    "calibration_rows_used": 2536,
+    "outer_rows_used": 0
+  },
+  "metrics": {
+    "calibration_paired_rows": 2536,
+    "factorized_sample_coordinates": 5072,
+    "nesting_max_abs_error": 0.0,
+    "paired_skill_by_horizon": {"1": 0.025947378032485254, "5": 0.019728946735774577, "21": 0.025454121580584094, "63": 0.030005389906101004},
+    "mde_skill_by_horizon": {"1": 0.010936524891201125, "5": 0.014524020991691656, "21": 0.021472109266434582, "63": 0.031411490404991534},
+    "targeted_r5_tests_passed": 22,
+    "targeted_r5_tests_failed": 0
+  },
+  "contract_self_check": {
+    "e0_nesting_tolerance_1e_12_pass": true,
+    "stacking_role_only_weight_fit": true,
+    "calibration_cross_fit_holdout": true,
+    "stationary_bootstrap_2000_block_2h": true,
+    "outer_zero_before_g4": true
+  },
+  "open_questions": ["D-2 검정력 확장 선택 필요"],
+  "user_decisions_needed": [
+    {"decision_id": "D-2", "options": ["origin 밀도 상향", "기간 연장", "현행 유지"],
+     "evidence": "h21 MDE skill 2.147%, h63 3.141%; 장기 Gate 목표 2% 초과"}
+  ]
+}

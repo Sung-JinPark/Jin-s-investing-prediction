@@ -1,0 +1,18 @@
+{
+  "schema": "r5_task_envelope_v1",
+  "task_id": "R5-M1",
+  "started_at": "2026-08-27T07:54:38.0000000Z",
+  "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M1",
+  "role_rows_allowed": ["stacking", "calibration"],
+  "inputs_sha256": {
+    "R4_credential_free_export": "e86687d2cb8daa77375546d049877f353cd7046969cead19ec8b9b9b6f1102ff",
+    "R5_M5_selection_summary": "fd0621eea36db674bf2b685a13b4a56217f43641f2c7eb15dd34aea21300e90f",
+    "registered_E0_matrix": "eb64d41e8a1ae3f6a9107bd02e4e2b6ccaeb9726b8d55befa5bac0633f47067b"
+  },
+  "forbidden": [
+    "outer rows (G4 전)",
+    "E0 또는 Gate 변경",
+    "post-result tuning",
+    "unregistered candidate family"
+  ]
+}
