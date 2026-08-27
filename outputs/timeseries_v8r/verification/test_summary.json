@@ -1,0 +1,12 @@
+{
+  "schema": "v8r_test_summary_v1",
+  "completed_at": "2026-08-27T11:22:40Z",
+  "runtime": "C:/workspace/ai-investing/worktrees/active/timeseries-v7-r4/.runtime/v7r4/Scripts/python.exe",
+  "suites": [
+    {"name": "v8r_targeted", "passed": 14, "failed": 0, "duration_seconds": 0.45},
+    {"name": "r5_plus_v8r", "passed": 54, "failed": 0, "duration_seconds": 2.43},
+    {"name": "full_repository", "passed": 812, "skipped": 30, "failed": 0, "warnings": 9, "duration_seconds": 140.70}
+  ],
+  "dependency_changes": 0,
+  "pass": true
+}

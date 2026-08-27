@@ -1,16 +1,16 @@
 {
   "schema": "v8r_backlog_runtime_state_v1",
   "source_backlog": "data/timeseries_v8r/ralph/spec/V8R_BACKLOG_20260827.json",
-  "updated_at": "2026-08-27T11:07:21Z",
+  "updated_at": "2026-08-27T11:18:30Z",
   "tasks": [
     {"id": "V8R-L1", "status": "완료", "outer_rows_used": 0},
     {"id": "V8R-Q1", "status": "완료", "outer_rows_used": 0},
     {"id": "V8R-Q2", "status": "완료", "outer_rows_used": 0},
-    {"id": "V8R-D1", "status": "결정대기", "started": false, "decision": "DV-1"},
-    {"id": "V8R-D2", "status": "결정대기", "started": false, "decision": "DV-1"},
-    {"id": "V8R-D3", "status": "결정대기", "started": false, "decision": "DV-1"},
-    {"id": "V8R-F1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"},
-    {"id": "V8R-X1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"},
-    {"id": "V8R-E1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"}
+    {"id": "V8R-D1", "status": "차단", "started": true, "outer_rows_used": 0, "reason": "BLOCKED_SOURCE_TERMS"},
+    {"id": "V8R-D2", "status": "차단", "started": true, "outer_rows_used": 0, "reason": "BLOCKED_LICENSE_AND_D1_DEPENDENCY"},
+    {"id": "V8R-D3", "status": "완료", "started": true, "outer_rows_used": 0, "fact_rows": 3121, "pit_violations": 0},
+    {"id": "V8R-F1", "status": "차단", "started": false, "outer_rows_used": 0, "reason": "D2_NOT_COMPLETE"},
+    {"id": "V8R-X1", "status": "차단", "started": false, "outer_rows_used": 0, "reason": "F1_NOT_COMPLETE"},
+    {"id": "V8R-E1", "status": "차단", "started": false, "outer_rows_used": 0, "reason": "X1_NOT_COMPLETE"}
   ]
 }

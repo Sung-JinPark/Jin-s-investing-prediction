@@ -1,0 +1,13 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-D2",
+  "status": "BLOCKED_LICENSE_AND_DEPENDENCY",
+  "completed_at": "2026-08-27T11:18:30Z",
+  "collection_count": 0,
+  "outer_rows_used": 0,
+  "contract": "data/timeseries_v8r/contracts/data_sources/cboe_volatility.yaml",
+  "terms_url": "https://www.cboe.com/terms",
+  "history_url": "https://www.cboe.com/tradable_products/vix/vix_historical_data",
+  "reason": "Dataset-specific storage and derived-model authorization was not established; V8R-D1 is incomplete.",
+  "unblock": "Cboe written research/data agreement or a separately licensed equivalent dataset."
+}

@@ -1,0 +1,11 @@
+{
+  "schema": "v8r_decision_receipt_v1",
+  "recorded_at": "2026-08-27T11:11:00Z",
+  "source": "user_message: 전체 승인이야. 다 진행해",
+  "decisions": [
+    {"id": "DV-1", "decision": "APPROVED_TIER_A_AND_B_SUBJECT_TO_LICENSE_GATES"},
+    {"id": "DV-2", "decision": "APPROVED_RECOMMENDED_EIGHT"},
+    {"id": "DV-3", "decision": "CONDITIONALLY_APPROVED_AFTER_PREREQUISITES"}
+  ],
+  "note": "User approval authorizes repository work but does not supersede third-party source terms or inherited PIT/Gate contracts."
+}

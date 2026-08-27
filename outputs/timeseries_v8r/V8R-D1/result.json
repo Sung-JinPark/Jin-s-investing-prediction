@@ -1,0 +1,12 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-D1",
+  "status": "BLOCKED_SOURCE_TERMS",
+  "completed_at": "2026-08-27T11:18:30Z",
+  "collection_count": 0,
+  "outer_rows_used": 0,
+  "contract": "data/timeseries_v8r/contracts/data_sources/fred_vix.yaml",
+  "terms_url": "https://fred.stlouisfed.org/legal/terms/",
+  "reason": "Current FRED API terms prohibit ML use and storage/caching/archiving; no collection was performed.",
+  "unblock": "Written authorization covering ML and archival use, or a separately licensed substitute source."
+}

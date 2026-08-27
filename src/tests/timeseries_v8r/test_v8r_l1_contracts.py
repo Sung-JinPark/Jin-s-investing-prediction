@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[3]
 CONTRACTS = ROOT / "data" / "timeseries_v8r" / "contracts" / "data_sources"
 
 
-def test_all_tier_a_b_contract_drafts_exist_without_collection():
+def test_all_tier_a_b_contracts_exist_and_only_approved_cftc_collects():
     expected = {
         "fred_vix", "cboe_volatility", "cftc_cot", "treasury_fiscaldata",
         "sec_edgar_companyfacts", "finra_margin", "ici_fund_flows",
@@ -20,7 +20,8 @@ def test_all_tier_a_b_contract_drafts_exist_without_collection():
             for path in sorted(CONTRACTS.glob("*.yaml"))]
     assert {row["source_id"] for row in rows} == expected
     assert all(row["schema"] == "v8r_source_contract_draft_v1" for row in rows)
-    assert all(row["collection_allowed"] is False for row in rows)
+    allowed = {row["source_id"] for row in rows if row["collection_allowed"] is True}
+    assert allowed == {"cftc_cot"}
     assert all(row["license_check"]["url"].startswith("https://") for row in rows)
     assert all(row["license_check"]["checked_at"] for row in rows)
     assert all(row["available_at_formula"] for row in rows)
@@ -28,7 +29,7 @@ def test_all_tier_a_b_contract_drafts_exist_without_collection():
     assert all(row["receipt"] for row in rows)
 
 
-def test_unresolved_terms_are_explicit_and_no_collected_artifact_exists():
+def test_unresolved_terms_are_explicit_and_have_no_collected_artifacts():
     rows = [yaml.safe_load(path.read_text(encoding="utf-8"))
             for path in sorted(CONTRACTS.glob("*.yaml"))]
     unresolved = {row["source_id"] for row in rows
@@ -43,6 +44,10 @@ def test_unresolved_terms_are_explicit_and_no_collected_artifact_exists():
         "aaii_sentiment", "ken_french_factors",
     } <= unresolved
     data_root = ROOT / "data" / "timeseries_v8r"
-    assert not (data_root / "facts").exists()
-    assert not (data_root / "receipts").exists()
-    assert not (data_root / "raw").exists()
+    assert {path.name for path in (data_root / "facts").iterdir()} == {
+        "cftc_cot.jsonl"
+    }
+    assert {path.name for path in (data_root / "receipts").iterdir()} == {
+        "cftc_cot"
+    }
+    assert {path.name for path in (data_root / "raw").iterdir()} == {"cftc_cot"}

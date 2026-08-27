@@ -1,0 +1,45 @@
+{
+  "schema": "v8r_source_gate_matrix_v1",
+  "as_of": "2026-08-27T11:18:30Z",
+  "user_decisions": {
+    "DV-1": "APPROVED_TIER_A_AND_B_SUBJECT_TO_LICENSE_GATES",
+    "DV-2": "APPROVED_RECOMMENDED_EIGHT",
+    "DV-3": "CONDITIONALLY_APPROVED_AFTER_PREREQUISITES"
+  },
+  "sources": [
+    {
+      "source_id": "fred_vix",
+      "task_id": "V8R-D1",
+      "status": "BLOCKED_SOURCE_TERMS",
+      "official_terms_url": "https://fred.stlouisfed.org/legal/terms/",
+      "collection_rows": 0,
+      "reason": "Current API terms prohibit API use for machine learning and storing, caching, or archiving FRED content. User approval does not replace source authorization."
+    },
+    {
+      "source_id": "cboe_volatility",
+      "task_id": "V8R-D2",
+      "status": "BLOCKED_LICENSE_AND_DEPENDENCY",
+      "official_terms_url": "https://www.cboe.com/terms",
+      "official_history_url": "https://www.cboe.com/tradable_products/vix/vix_historical_data",
+      "collection_rows": 0,
+      "reason": "A dataset-specific grant for repository storage and derived ML use was not established; D1 is also incomplete."
+    },
+    {
+      "source_id": "cftc_cot",
+      "task_id": "V8R-D3",
+      "status": "COMPLETED",
+      "official_policy_url": "https://www.cftc.gov/WebPolicy/index.htm",
+      "official_api_url": "https://publicreporting.cftc.gov/resource/gpe5-46if.json",
+      "collection_rows": 3121,
+      "series_count": 3,
+      "pit_violations": 0,
+      "credentials_used": false
+    }
+  ],
+  "downstream": {
+    "V8R-F1": "BLOCKED_D2",
+    "V8R-X1": "BLOCKED_F1",
+    "V8R-E1": "BLOCKED_X1",
+    "outer_rows_used": 0
+  }
+}

@@ -1,0 +1,93 @@
+{
+  "checks": {
+    "all_three_series_present": true,
+    "cursor_source_matches": true,
+    "duplicate_fact_ids_zero": true,
+    "duplicate_identities_zero": true,
+    "fact_count_positive": true,
+    "lineage_violations_zero": true,
+    "pit_violations_zero": true,
+    "raw_hashes_valid": true,
+    "receipt_hashes_valid": true,
+    "unit_violations_zero": true
+  },
+  "cursor": {
+    "correction_window_days": 14,
+    "last_receipt_sha256": "064c396dcb0b92e34bcd2316526678722dca3d38d0d640e06725258d5ca3047a",
+    "last_report_date": "2026-08-18",
+    "schema": "v8r_incremental_cursor_v1",
+    "source_id": "cftc_cot",
+    "updated_at": "2026-08-27T11:14:38.787023Z"
+  },
+  "duplicate_fact_ids": 0,
+  "duplicate_identities": 0,
+  "fact_count": 3121,
+  "lineage_violations": 0,
+  "observed_date_max": "2026-08-18",
+  "observed_date_min": "2006-06-13",
+  "pass": true,
+  "pit_violations": 0,
+  "raw_object_count": 2,
+  "raw_objects": [
+    {
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/raw/cftc_cot/0e3cd2dc40e1e1a541ed9658c28d3ddf03d86004ad204f25c8d651c0ee2f3e4c.json.gz",
+      "raw_sha256": "0e3cd2dc40e1e1a541ed9658c28d3ddf03d86004ad204f25c8d651c0ee2f3e4c",
+      "uncompressed_bytes": 28233
+    },
+    {
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/raw/cftc_cot/ab938507387c71e60580343fef7bc6519620264e37c2013440892f382dc13a69.json.gz",
+      "raw_sha256": "ab938507387c71e60580343fef7bc6519620264e37c2013440892f382dc13a69",
+      "uncompressed_bytes": 9770651
+    }
+  ],
+  "receipt_count": 4,
+  "receipts": [
+    {
+      "appended_facts": 0,
+      "duplicate_rows": 9,
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/receipts/cftc_cot/064c396dcb0b92e34bcd2316526678722dca3d38d0d640e06725258d5ca3047a.json",
+      "raw_sha256": "0e3cd2dc40e1e1a541ed9658c28d3ddf03d86004ad204f25c8d651c0ee2f3e4c",
+      "receipt_sha256": "064c396dcb0b92e34bcd2316526678722dca3d38d0d640e06725258d5ca3047a",
+      "response_rows": 9
+    },
+    {
+      "appended_facts": 0,
+      "duplicate_rows": 3121,
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/receipts/cftc_cot/3249d4c55dd372978adb37d1219b914279155a71c1c2e8193ba649fdc2ffc023.json",
+      "raw_sha256": "ab938507387c71e60580343fef7bc6519620264e37c2013440892f382dc13a69",
+      "receipt_sha256": "3249d4c55dd372978adb37d1219b914279155a71c1c2e8193ba649fdc2ffc023",
+      "response_rows": 3121
+    },
+    {
+      "appended_facts": 0,
+      "duplicate_rows": 3121,
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/receipts/cftc_cot/3e819b66edbcedc34ca449a317b6eb163e750a42b55bde9ac2c2b26ddf9f3aee.json",
+      "raw_sha256": "ab938507387c71e60580343fef7bc6519620264e37c2013440892f382dc13a69",
+      "receipt_sha256": "3e819b66edbcedc34ca449a317b6eb163e750a42b55bde9ac2c2b26ddf9f3aee",
+      "response_rows": 3121
+    },
+    {
+      "appended_facts": 3121,
+      "duplicate_rows": 0,
+      "hash_matches_filename": true,
+      "path": "data/timeseries_v8r/receipts/cftc_cot/8f8f1876b2c283485d9beaaa19a522b7a1deb848f7af6a5e86b84f7a6d76c251.json",
+      "raw_sha256": "ab938507387c71e60580343fef7bc6519620264e37c2013440892f382dc13a69",
+      "receipt_sha256": "8f8f1876b2c283485d9beaaa19a522b7a1deb848f7af6a5e86b84f7a6d76c251",
+      "response_rows": 3121
+    }
+  ],
+  "schema": "v8r_cftc_collection_verification_v1",
+  "series_counts": {
+    "CFTC_ES_LEV_NET_SHARE": 1054,
+    "CFTC_NQ_LEV_NET_SHARE": 1054,
+    "CFTC_VIX_LEV_NET_SHARE": 1013
+  },
+  "source_id": "cftc_cot",
+  "unit_violations": 0,
+  "verified_at": "2026-08-27T11:17:53.452901Z"
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-X1",
+  "status": "BLOCKED_DEPENDENCY",
+  "completed_at": "2026-08-27T11:18:30Z",
+  "started": false,
+  "reason": "V8R-F1 is not complete.",
+  "qualification_attempts": 0,
+  "outer_rows_used": 0
+}

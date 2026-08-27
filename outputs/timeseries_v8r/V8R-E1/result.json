@@ -1,0 +1,11 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-E1",
+  "status": "BLOCKED_DEPENDENCY",
+  "completed_at": "2026-08-27T11:18:30Z",
+  "started": false,
+  "reason": "V8R-X1 is not complete; the one-shot outer evaluation remains unused.",
+  "outer_rows_used": 0,
+  "gate_changed": false,
+  "e0_changed": false
+}

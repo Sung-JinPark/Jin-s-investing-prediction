@@ -1,0 +1,25 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-D3",
+  "status": "COMPLETED",
+  "completed_at": "2026-08-27T11:18:30Z",
+  "source_id": "cftc_cot",
+  "official_api": "https://publicreporting.cftc.gov/resource/gpe5-46if.json",
+  "fact_rows": 3121,
+  "series_counts": {
+    "CFTC_ES_LEV_NET_SHARE": 1054,
+    "CFTC_NQ_LEV_NET_SHARE": 1054,
+    "CFTC_VIX_LEV_NET_SHARE": 1013
+  },
+  "observed_date_min": "2006-06-13",
+  "observed_date_max": "2026-08-18",
+  "raw_object_count": 2,
+  "receipt_count": 4,
+  "duplicate_fact_ids": 0,
+  "duplicate_identities": 0,
+  "pit_violations": 0,
+  "lineage_violations": 0,
+  "credentials_used": false,
+  "outer_rows_used": 0,
+  "verification": "outputs/timeseries_v8r/V8R-D3/cftc_cot_verification.json"
+}

@@ -2,3 +2,13 @@
 {"event":"TASK_COMPLETED","outer_rows_used":0,"status":"COMPLETED","task_id":"V8R-Q1","timestamp":"2026-08-27T11:07:21Z"}
 {"event":"TASK_COMPLETED","outer_rows_used":0,"status":"COMPLETED","task_id":"V8R-Q2","timestamp":"2026-08-27T11:07:21Z"}
 {"event":"RUN_STOPPED_FOR_DECISION","not_started":["V8R-D1","V8R-D2","V8R-D3","V8R-F1","V8R-X1","V8R-E1"],"reason":"DV-1 and DV-2 unresolved","state":"REVIEW_PROPOSAL","timestamp":"2026-08-27T11:07:21Z"}
+{"decision":"APPROVED_TIER_A_AND_B_SUBJECT_TO_LICENSE_GATES","event":"DECISION_RECORDED","outer_rows_used":0,"task_id":"DV-1","timestamp":"2026-08-27T11:11:00Z"}
+{"decision":"APPROVED_RECOMMENDED_EIGHT","event":"DECISION_RECORDED","outer_rows_used":0,"task_id":"DV-2","timestamp":"2026-08-27T11:11:00Z"}
+{"decision":"CONDITIONALLY_APPROVED_AFTER_PREREQUISITES","event":"DECISION_RECORDED","outer_rows_used":0,"task_id":"DV-3","timestamp":"2026-08-27T11:11:00Z"}
+{"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"Current FRED API terms prohibit ML use and storing/caching/archiving FRED content","status":"BLOCKED_SOURCE_TERMS","task_id":"V8R-D1","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"Dataset-specific Cboe research storage and derived-model rights unresolved; D1 also incomplete","status":"BLOCKED_LICENSE_AND_DEPENDENCY","task_id":"V8R-D2","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"TASK_COMPLETED","fact_rows":3121,"outer_rows_used":0,"pit_violations":0,"series_count":3,"status":"COMPLETED","task_id":"V8R-D3","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"V8R-D2 not complete","status":"BLOCKED_DEPENDENCY","task_id":"V8R-F1","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"V8R-F1 not complete","status":"BLOCKED_DEPENDENCY","task_id":"V8R-X1","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"V8R-X1 not complete; outer one-shot remains unused","status":"BLOCKED_DEPENDENCY","task_id":"V8R-E1","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"RUN_STOPPED","outer_rows_used":0,"reason":"Source-rights blockers prevent D1/D2 and therefore F1/X1/E1","state":"BLOCKED_SOURCE_RIGHTS","timestamp":"2026-08-27T11:18:30Z"}
