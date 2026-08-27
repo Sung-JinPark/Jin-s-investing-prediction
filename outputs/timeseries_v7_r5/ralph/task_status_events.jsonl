@@ -14,3 +14,5 @@
 {"schema":"r5_task_status_event_v1","task_id":"R5-M2","status":"완료","at":"2026-08-27T08:13:41.7703348Z","result":"outputs/timeseries_v7_r5/task_results/R5-M2/result.json","outer_rows_used":0}
 {"schema":"r5_task_status_event_v1","task_id":"R5-M3","status":"진행","at":"2026-08-27T08:18:59.0000000Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M3"}
 {"schema":"r5_task_status_event_v1","task_id":"R5-M3","status":"완료","at":"2026-08-27T08:26:31.1202365Z","result":"outputs/timeseries_v7_r5/task_results/R5-M3/result.json","outer_rows_used":0}
+{"schema":"r5_task_status_event_v1","task_id":"R5-M4","status":"진행","at":"2026-08-27T08:30:41.4523943Z","source":"R5_BOOTSTRAP_BACKLOG_20260827.json#R5-M4"}
+{"schema":"r5_task_status_event_v1","task_id":"R5-M4","status":"완료","at":"2026-08-27T08:33:20.1572911Z","result":"outputs/timeseries_v7_r5/task_results/R5-M4/result.json","outer_rows_used":0}

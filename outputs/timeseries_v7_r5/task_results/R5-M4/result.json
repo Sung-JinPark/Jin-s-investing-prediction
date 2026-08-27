@@ -1,0 +1,16 @@
+{
+  "schema":"r5_result_v1","task_id":"R5-M4","status":"완료","completed_at":"2026-08-27T08:33:20.1572911Z",
+  "artifacts_sha256":[
+    {"path":"outputs/timeseries_v7_r5/R5-M4/selection_pi_scores.parquet","sha256":"495f615b71e7914e7d8f8e053318796e5fbc27001aa9968409ab16202c6bc188"},
+    {"path":"outputs/timeseries_v7_r5/R5-M4/calibration_paired_scores.parquet","sha256":"0dcf8b62ec75c41da7130232a4934ece671a50d2629611c8e009ed08309f133c"},
+    {"path":"outputs/timeseries_v7_r5/R5-M4/factorized_sample_matrix.jsonl","sha256":"b9ab4fd12b8c55c6b9d150a2d8980905a6fe5ef75f606859558efed4a0ffa86d"},
+    {"path":"outputs/timeseries_v7_r5/R5-M4/t_tail_blend_summary.json","sha256":"b299cb562d3e1e1ad65162fa65ca2d0be6e9ee17ce63fafc08e08e5f5b58ab41"},
+    {"path":"src/ai_fc/timeseries_v7_r5/t_tail_blend.py","sha256":"9ee370f42f2267846210fa376713d3415cbd2abf26b6f284b2196bf796ff5645"},
+    {"path":"src/tests/timeseries_v7_r5/test_t_tail_blend.py","sha256":"fc14de681f6dfe5ce6ce4f764e79668e5f2a041f51ddd4e0532b1d8a2e332359"}
+  ],
+  "row_use_counters":{"train_rows_used":17658,"selection_rows_used":2536,"stacking_rows_used":2536,"calibration_rows_used":2536,"outer_rows_used":0},
+  "metrics":{"selected_df":{"1":12,"5":12,"21":12,"63":12},"selected_pi":{"1":0.3,"5":0.3,"21":0.3,"63":0.3},"paired_skill_by_horizon":{"1":0.011625377020826062,"5":0.009396844037335789,"21":0.009516676773710596,"63":0.010851557671363555},"nesting_max_abs_error":0.0,"targeted_r5_tests_passed":32},
+  "contract_self_check":{"grid_unchanged":true,"r4_s2_df_grid_reused":true,"nesting_test_pass":true,"outer_zero_before_g4":true},
+  "execution_notes":["Initial module invocation omitted PYTHONPATH and exited before model or output creation; corrected invocation used PYTHONPATH=src with identical frozen inputs."],
+  "open_questions":[],"user_decisions_needed":[]
+}
