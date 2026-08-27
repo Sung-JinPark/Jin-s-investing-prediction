@@ -34,7 +34,7 @@
    "id": "R5-A3",
    "priority": 3,
    "deps": [],
-   "status": "대기",
+   "status": "완료",
    "title": "^IXIC 증분 수집",
    "spec": "공식 증분 수집으로 freshness 해소(r7 선례). 테스트 완화 금지. receipt 기록.",
    "accept": "test_ixic_coverage 통과"

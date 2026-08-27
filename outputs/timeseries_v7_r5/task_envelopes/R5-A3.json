@@ -1,0 +1,16 @@
+{
+  "schema": "r5_task_envelope_v1",
+  "task_id": "R5-A3",
+  "started_at": "2026-08-27T07:40:51.452584Z",
+  "spec_ref": "R5_BOOTSTRAP_BACKLOG_20260827.json#R5-A3",
+  "role_rows_allowed": [],
+  "inputs_sha256": {
+    "predecessor_nasdaqcom_observations": "0269af1c2205f40dd6034a48e3c6274ac2d7cc8aebb76f07bd9926986e567777",
+    "official_fred_nasdaqcom_raw": "89674da359df391b1dddca9b1ef0848ec604650d940bb7c1664746d12535f664"
+  },
+  "forbidden": [
+    "테스트 신선도 완화",
+    "outer rows (G4 전)",
+    "비공식 가격 대체"
+  ]
+}
