@@ -770,23 +770,28 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
 
 
 def _compact_embed_forecast_history(read_model: dict) -> dict:
-    """Keep the latest reasoning inline and link superseded rounds to source.
+    """Keep active latest reasoning inline and link archived rounds to source.
 
     Pages and API modes retain the complete read model.  The standalone embed
     has a fixed 900 KiB contract, so superseded forecast bodies are omitted
-    only at this serialization boundary.  Their structured fields and
-    immutable ``source_uri`` remain available, and the input model is never
-    mutated.
+    only at this serialization boundary. Bodies for resolved questions are
+    archived the same way because they are no longer an active forecast view.
+    Their structured fields and immutable ``source_uri`` remain available,
+    and the input model is never mutated.
     """
     history = read_model.get("forecast_history")
     if not isinstance(history, dict):
         return read_model
+    resolved = {
+        row.get("id") for row in (read_model.get("questions") or [])
+        if isinstance(row, dict) and row.get("status") == "resolved"
+    }
     compacted = dict(read_model)
     compacted["forecast_history"] = {
         question_id: [
             (
                 {key: value for key, value in row.items() if key != "body"}
-                if index < len(rows) - 1 else dict(row)
+                if index < len(rows) - 1 or question_id in resolved else dict(row)
             )
             for index, row in enumerate(rows)
         ]

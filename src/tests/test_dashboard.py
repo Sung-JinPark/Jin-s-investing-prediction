@@ -107,6 +107,27 @@ def test_embed_compaction_keeps_latest_body_and_superseded_source_link() -> None
     assert model["forecast_history"]["question"][0]["body"] == "old reasoning"
 
 
+def test_embed_compaction_archives_resolved_body_without_mutating_pages_model() -> None:
+    model = {
+        "questions": [{"id": "resolved-question", "status": "resolved"}],
+        "forecast_history": {
+            "resolved-question": [
+                {
+                    "forecast_id": "resolved-r1",
+                    "body": "historical reasoning",
+                    "source_uri": "forecasts/resolved.md",
+                }
+            ]
+        },
+    }
+    compacted = dashboard._compact_embed_forecast_history(model)
+    archived = compacted["forecast_history"]["resolved-question"][0]
+    assert "body" not in archived
+    assert archived["source_uri"] == "forecasts/resolved.md"
+    assert model["forecast_history"]["resolved-question"][0]["body"] \
+        == "historical reasoning"
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 
