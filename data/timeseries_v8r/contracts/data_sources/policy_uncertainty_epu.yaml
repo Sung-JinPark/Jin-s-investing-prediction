@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: policy_uncertainty_epu
+tier: B
+series: [US_DAILY_EPU]
+frequency: daily
+draft_status: open_question
+license_check:
+  url: https://www.policyuncertainty.com/us_monthly.html
+  checked_at: 2026-08-27
+  verdict: downloadable_academic_data_but_reuse_and_automation_terms_not_located
+  note: Treat every download as a frozen vintage only after written reuse and automation terms are confirmed.
+publication_rule: Download timestamp is the vintage availability; historical observation dates are never availability.
+revision_policy: retro_recalc_snapshot_each_download
+available_at_formula: captured_download_timestamp
+incremental_cursor: snapshot_hash_and_download_timestamp
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, collection_before_terms_resolution, historical_backdating, overwrite_snapshots]

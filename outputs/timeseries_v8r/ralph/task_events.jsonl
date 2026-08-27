@@ -1,0 +1,4 @@
+{"event":"TASK_COMPLETED","outer_rows_used":0,"status":"COMPLETED_DRAFT_ONLY","task_id":"V8R-L1","timestamp":"2026-08-27T11:07:21Z"}
+{"event":"TASK_COMPLETED","outer_rows_used":0,"status":"COMPLETED","task_id":"V8R-Q1","timestamp":"2026-08-27T11:07:21Z"}
+{"event":"TASK_COMPLETED","outer_rows_used":0,"status":"COMPLETED","task_id":"V8R-Q2","timestamp":"2026-08-27T11:07:21Z"}
+{"event":"RUN_STOPPED_FOR_DECISION","not_started":["V8R-D1","V8R-D2","V8R-D3","V8R-F1","V8R-X1","V8R-E1"],"reason":"DV-1 and DV-2 unresolved","state":"REVIEW_PROPOSAL","timestamp":"2026-08-27T11:07:21Z"}

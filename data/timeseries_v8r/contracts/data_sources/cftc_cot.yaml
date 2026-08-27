@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: cftc_cot
+tier: A
+series: [EMINI_NQ_COT, EMINI_ES_COT, VIX_FUTURES_COT]
+frequency: weekly
+draft_status: eligible_draft
+license_check:
+  url: https://www.cftc.gov/WebPolicy/index.htm
+  checked_at: 2026-08-27
+  verdict: public_domain_with_attribution_for_government_information
+  note: CFTC requests acknowledgement; third-party material remains excluded from the public-domain statement.
+publication_rule: Tuesday positions are released Friday at 15:30 America/New_York; Tuesday dating must never imply Tuesday availability.
+revision_policy: append_new_release_and_preserve_corrections
+available_at_formula: friday_15_30_America_New_York_release_timestamp
+incremental_cursor: last_release_timestamp_and_report_week
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, tuesday_backdating, overwrite_corrections, omit_cftc_attribution]

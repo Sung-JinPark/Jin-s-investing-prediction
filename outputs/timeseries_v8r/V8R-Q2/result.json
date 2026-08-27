@@ -1,0 +1,34 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-Q2",
+  "status": "COMPLETED",
+  "completed_at": "2026-08-27T11:07:21Z",
+  "artifacts": [
+    {
+      "path": "src/ai_fc/timeseries_v8r/qualification.py",
+      "sha256": "7c5a69342392627bbb4f36d5bbdc26b8275b7887016a8df67a655a811fc33df4"
+    }
+  ],
+  "acceptance": {
+    "bh_fdr_q": 0.1,
+    "multiplicity_denominator": "all registry attempts",
+    "bh_usage": "pre_admission_filter_only",
+    "cscv_splits": 16,
+    "pbo_implemented": true,
+    "horizon_mde_implemented": true,
+    "below_mde_interpretation": "underpowered_not_no_effect",
+    "gate_formula_changed": false,
+    "frozen_r5_gate_sha256": "6f79c75a23177a2e63e24c56c95debffc5a8927f16975b8b42b17cce71c4a2a6"
+  },
+  "synthetic_self_test": {
+    "bh_selected": ["synthetic_a"],
+    "cscv_combinations": 12870,
+    "cscv_pbo": 0.6192696192696193,
+    "mde_h1": 0.008972253374081038,
+    "mde_h5": 0.004443603199498003
+  },
+  "row_use_counters": {"outer_rows_used": 0},
+  "tests": {"targeted": "4 passed", "combined_r5_v8r": "49 passed"},
+  "open_questions": [],
+  "user_decisions_needed": []
+}

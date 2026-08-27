@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: ici_fund_flows
+tier: B
+series: [WEEKLY_MMF_ASSETS, WEEKLY_FUND_FLOWS]
+frequency: weekly
+draft_status: blocked_pending_permission
+license_check:
+  url: https://www.ici.org/weekly-money-market-mutual-fund-assets
+  checked_at: 2026-08-27
+  verdict: permission_request_required_for_reuse_or_reproduction
+  note: ICI explicitly directs users to request permission; no collection or model use is authorized by this draft.
+publication_rule: Use verified Wednesday publication timestamp; estimated and final values require separate vintages.
+revision_policy: estimate_then_final_append_only
+available_at_formula: verified_release_timestamp_per_vintage
+incremental_cursor: last_release_and_vintage
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, collection_without_permission, merge_estimate_and_final, raw_redistribution]

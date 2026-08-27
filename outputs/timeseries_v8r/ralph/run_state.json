@@ -1,0 +1,35 @@
+{
+  "schema": "v8r_ralph_run_state_v1",
+  "state": "REVIEW_PROPOSAL",
+  "updated_at": "2026-08-27T11:07:21Z",
+  "completed_tasks": ["V8R-L1", "V8R-Q1", "V8R-Q2"],
+  "not_started_tasks": ["V8R-D1", "V8R-D2", "V8R-D3", "V8R-F1", "V8R-X1", "V8R-E1"],
+  "stop_reason": "DV-1 open-data approval and DV-2 first feature-set selection are unresolved",
+  "r5_dependency_present": true,
+  "collection_started": false,
+  "features_built": false,
+  "models_fit": false,
+  "outer_rows_used": 0,
+  "official_surfaces_changed": false,
+  "self_check": {
+    "gate_and_e0_unchanged": true,
+    "outer_one_shot_preserved": true,
+    "r5_candidate_families_unchanged": true,
+    "nesting_contract_unchanged": true,
+    "protected_and_official_surfaces_unchanged": true,
+    "no_secrets_accessed": true,
+    "five_roles_unchanged": true,
+    "json_is_authoritative": true,
+    "license_before_collection": true,
+    "registry_before_evaluation": true,
+    "feature_budget_and_correlation_controls": true,
+    "tsfm_not_started": true
+  },
+  "tests": {
+    "v8r_targeted": "9 passed in 0.24s",
+    "r5_plus_v8r": "49 passed in 1.85s",
+    "system_python_full_suite": "environment collection failure: psycopg missing",
+    "frozen_r4_runtime_full_suite": "807 passed, 30 skipped, 9 warnings in 113.08s"
+  },
+  "decisions_needed": ["DV-1", "DV-2"]
+}

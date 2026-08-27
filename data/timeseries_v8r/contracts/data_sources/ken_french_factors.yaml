@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: ken_french_factors
+tier: B
+series: [FAMA_FRENCH_RESEARCH_FACTORS]
+frequency: daily_monthly
+draft_status: reference_only_open_question
+license_check:
+  url: https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html
+  checked_at: 2026-08-27
+  verdict: copyrighted_research_data_with_underlying_provider_rights
+  note: Historical archives help vintage analysis, but live feature use and redistribution require rights confirmation; current plan limits use to reference base rates.
+publication_rule: Use archive release timestamp, never the return observation date, as availability.
+revision_policy: archive_snapshot_as_vintage
+available_at_formula: verified_archive_release_timestamp
+incremental_cursor: archive_release_and_hash
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, live_feature_use, observation_date_backdating, raw_redistribution]

@@ -1,0 +1,38 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-L1",
+  "status": "COMPLETED_DRAFT_ONLY",
+  "completed_at": "2026-08-27T11:07:21Z",
+  "collection_count": 0,
+  "receipt_count": 0,
+  "observation_count": 0,
+  "contract_count": 11,
+  "license_verdict_counts": {
+    "eligible_draft": 1,
+    "eligible_draft_with_fair_access": 1,
+    "open_or_blocked": 9
+  },
+  "open_questions": [
+    "FRED API current terms prohibit ML use and storage/caching; legal or alternate-source resolution is required.",
+    "Cboe dataset-specific research storage and derivative-use rights are not established by the general website terms.",
+    "Treasury FiscalData dataset reuse policy must be bound to the final contract.",
+    "FINRA credentials and dataset-specific terms require explicit acceptance and redistribution review.",
+    "ICI requires permission for reuse or reproduction.",
+    "EPU automated archival and reuse terms were not located.",
+    "NAAIM paywall transition and model-use rights are unresolved.",
+    "AAII automated archival and model-use rights are unresolved.",
+    "Ken French data are copyrighted and contain underlying provider rights; draft remains reference-only."
+  ],
+  "contract_self_check": {
+    "invariant_9_license_before_collection": true,
+    "pit_contracts_present": true,
+    "collection_prohibited_before_DV1": true,
+    "outer_rows_used": 0
+  },
+  "tests": {
+    "targeted_contract_tests": "2 passed",
+    "combined_r5_v8r_tests": "49 passed",
+    "full_repository_frozen_runtime": "807 passed, 30 skipped"
+  },
+  "user_decisions_needed": ["DV-1", "DV-2"]
+}

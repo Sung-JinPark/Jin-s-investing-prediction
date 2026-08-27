@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local.ai-investing.invalid/timeseries_v8r/candidate_registry.schema.json",
+  "title": "V8R append-only candidate registry row",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "candidate_id",
+    "candidate_kind",
+    "hypothesis",
+    "expected_effect",
+    "feature_ids",
+    "registered_at",
+    "status",
+    "previous_record_sha256",
+    "record_sha256"
+  ],
+  "properties": {
+    "schema": {"const": "v8r_candidate_registry_v1"},
+    "candidate_id": {"type": "string", "minLength": 1},
+    "candidate_kind": {"type": "string", "minLength": 1},
+    "hypothesis": {"type": "string", "minLength": 1},
+    "expected_effect": {"type": "string", "minLength": 1},
+    "feature_ids": {
+      "type": "array",
+      "maxItems": 8,
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "registered_at": {"type": "string", "format": "date-time"},
+    "status": {"const": "REGISTERED_NOT_EVALUATED"},
+    "previous_record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "record_sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "schema": "v8r_r5_dependency_check_v1",
+  "checked_at": "2026-08-27T11:07:21Z",
+  "r5_pipeline_present": true,
+  "v8r_xe_blocked_by_missing_r5": false,
+  "v8r_xe_started": false,
+  "not_started_reason": "DV-1 unresolved; D/F/X/E families are constitutionally prohibited before approval",
+  "evidence": [
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/conditional_scale_selection.py",
+      "sha256": "3c519776fac779ca199d1e23ce94318ecf0c6b65385178ff6b49d18709eef0c6",
+      "capability": "HAR-direct, EWMA, and GARCH(1,1)-t scale-source selection"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/fhs_har_first_light.py",
+      "sha256": "4dd51bef24ab3d92b844691d1c00ce726e6152acf0b2482adfd2e6563e2a5ce8",
+      "capability": "E1-prime FHS-HAR conditional-scale samples"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v7_r5/outer_gate.py",
+      "sha256": "6f79c75a23177a2e63e24c56c95debffc5a8927f16975b8b42b17cce71c4a2a6",
+      "capability": "frozen one-shot outer Gate"
+    }
+  ]
+}

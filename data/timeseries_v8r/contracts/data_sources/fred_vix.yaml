@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: fred_vix
+tier: A
+series: [VIXCLS, VXNCLS]
+frequency: daily
+draft_status: blocked_pending_legal_review
+license_check:
+  url: https://fred.stlouisfed.org/legal/terms/
+  checked_at: 2026-08-27
+  verdict: blocked_for_ml_and_archival_under_current_api_terms
+  note: Current FRED API terms prohibit API use for machine learning and storing, caching, or archiving FRED content; third-party series rights also remain with their owners.
+publication_rule: FRED publication timestamp is not treated as same-session availability; use no earlier than the next completed XNAS session after verified release.
+revision_policy: source_specific
+available_at_formula: verified_release_at_then_next_xnas_session
+incremental_cursor: last_verified_observation_and_release_timestamp
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, api_ml_use_without_legal_clearance, raw_redistribution, silent_same_session_use]

@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: treasury_fiscaldata
+tier: A
+series: [AUCTIONS, ISSUANCE, INTEREST_RATES]
+frequency: daily
+draft_status: open_question
+license_check:
+  url: https://fiscaldata.treasury.gov/api-documentation/
+  checked_at: 2026-08-27
+  verdict: official_public_api_but_dataset_reuse_terms_require_final_confirmation
+  note: API availability is confirmed; the final source contract must bind the applicable Treasury site policy and dataset metadata before collection.
+publication_rule: Use the official publication timestamp; date-only rows remain unavailable until a conservative next-session rule is documented.
+revision_policy: preserve_revisions_as_new_vintages
+available_at_formula: official_publication_timestamp_or_conservative_next_xnas_session
+incremental_cursor: last_record_date_and_page_key
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, infer_release_time_from_observation_date, overwrite_revisions]

@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: sec_edgar_companyfacts
+tier: A
+series: [COMPANYFACTS_XBRL]
+frequency: event_driven
+draft_status: eligible_draft_with_fair_access
+license_check:
+  url: https://www.sec.gov/about/webmaster-frequently-asked-questions
+  checked_at: 2026-08-27
+  verdict: public_filing_reuse_subject_to_filer_rights_and_sec_fair_access
+  note: Preserve filing attribution and possible third-party rights; automated access must follow SEC fair-access rate and identity rules.
+publication_rule: acceptedAt is the earliest eligible timestamp; filing period end must never be used as availability.
+revision_policy: append_each_accession_and_amendment
+available_at_formula: filing_acceptedAt
+incremental_cursor: last_acceptedAt_and_accession
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, period_end_backdating, exceeding_sec_fair_access, raw_bulk_redistribution]

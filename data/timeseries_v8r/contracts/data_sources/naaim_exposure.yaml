@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: naaim_exposure
+tier: B
+series: [NAAIM_EXPOSURE_INDEX]
+frequency: weekly
+draft_status: blocked_pending_access_and_license
+license_check:
+  url: https://www.naaim.org/programs/naaim-exposure-index/
+  checked_at: 2026-08-27
+  verdict: paywall_transition_and_reuse_terms_unresolved
+  note: NAAIM announced monetization/paywall plans in 2026; automated access and model-use rights require explicit confirmation.
+publication_rule: Use verified Thursday publication timestamp only.
+revision_policy: append_release_and_corrections
+available_at_formula: verified_publication_timestamp
+incremental_cursor: last_release_timestamp
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, paywall_bypass, inferred_thursday_timestamp, raw_redistribution]

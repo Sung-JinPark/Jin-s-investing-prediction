@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: cboe_volatility
+tier: A
+series: [VIX9D, VVIX, SKEW, VIX_FUTURES_HISTORY]
+frequency: daily
+draft_status: open_question
+license_check:
+  url: https://www.cboe.com/terms
+  checked_at: 2026-08-27
+  verdict: prior_written_consent_or_specific_market_data_license_required
+  note: General website terms restrict copying, storage, derivative works, and reuse absent consent or fair use; a dataset-specific research license must be confirmed.
+publication_rule: EOD calculation; never available to an origin before the next XNAS session open.
+revision_policy: snapshot_each_download
+available_at_formula: next_xnas_session_open_after_observation_date
+incremental_cursor: last_observation_date
+receipt: content_addressed_sha256_without_raw_git_redistribution
+collection_allowed: false
+prohibited: [collection_before_DV1, collection_before_license_resolution, raw_redistribution, same_session_use]

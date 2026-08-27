@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: finra_margin
+tier: B
+series: [MARGIN_STATISTICS]
+frequency: monthly
+draft_status: open_question
+license_check:
+  url: https://developer.finra.org/finra-api-terms-service
+  checked_at: 2026-08-27
+  verdict: credentialed_limited_license_dataset_specific_terms_required
+  note: FINRA API use requires accepted terms and credentials; redistribution and bulk-service restrictions require dataset-specific review.
+publication_rule: Use actual FINRA publication timestamp, expected roughly three weeks after month end; month end is never availability.
+revision_policy: append_each_release_and_correction
+available_at_formula: verified_finra_publication_timestamp
+incremental_cursor: last_release_timestamp
+receipt: content_addressed_sha256_without_credentials
+collection_allowed: false
+prohibited: [collection_before_DV1, credential_use_before_terms_acceptance, month_end_backdating, raw_redistribution]

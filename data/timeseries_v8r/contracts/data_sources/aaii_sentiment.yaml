@@ -1,0 +1,18 @@
+schema: v8r_source_contract_draft_v1
+source_id: aaii_sentiment
+tier: B
+series: [AAII_SENTIMENT_SURVEY]
+frequency: weekly
+draft_status: open_question
+license_check:
+  url: https://www.aaii.com/terms
+  checked_at: 2026-08-27
+  verdict: access_and_automated_reuse_terms_require_confirmation
+  note: Registration and paid-access history make automated archival and model-use rights unresolved.
+publication_rule: Use verified Thursday publication timestamp only.
+revision_policy: append_release_and_corrections
+available_at_formula: verified_publication_timestamp
+incremental_cursor: last_release_timestamp
+receipt: content_addressed_sha256
+collection_allowed: false
+prohibited: [collection_before_DV1, credential_or_paywall_bypass, inferred_thursday_timestamp, raw_redistribution]

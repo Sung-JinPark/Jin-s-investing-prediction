@@ -1,0 +1,16 @@
+{
+  "schema": "v8r_backlog_runtime_state_v1",
+  "source_backlog": "data/timeseries_v8r/ralph/spec/V8R_BACKLOG_20260827.json",
+  "updated_at": "2026-08-27T11:07:21Z",
+  "tasks": [
+    {"id": "V8R-L1", "status": "완료", "outer_rows_used": 0},
+    {"id": "V8R-Q1", "status": "완료", "outer_rows_used": 0},
+    {"id": "V8R-Q2", "status": "완료", "outer_rows_used": 0},
+    {"id": "V8R-D1", "status": "결정대기", "started": false, "decision": "DV-1"},
+    {"id": "V8R-D2", "status": "결정대기", "started": false, "decision": "DV-1"},
+    {"id": "V8R-D3", "status": "결정대기", "started": false, "decision": "DV-1"},
+    {"id": "V8R-F1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"},
+    {"id": "V8R-X1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"},
+    {"id": "V8R-E1", "status": "결정대기", "started": false, "decision": "DV-1/DV-2"}
+  ]
+}

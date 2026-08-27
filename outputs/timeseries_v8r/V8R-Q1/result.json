@@ -1,0 +1,29 @@
+{
+  "schema": "v8r_task_result_v1",
+  "task_id": "V8R-Q1",
+  "status": "COMPLETED",
+  "completed_at": "2026-08-27T11:07:21Z",
+  "artifacts": [
+    {
+      "path": "data/timeseries_v8r/contracts/candidate_registry.schema.json",
+      "sha256": "c477800c77d98f54bd87442ce787b7dcd2b3c3ddbd96c6e15d0afedc6a9726a8"
+    },
+    {
+      "path": "src/ai_fc/timeseries_v8r/governance.py",
+      "sha256": "313c08fe3162cc9ed75397d0f35ad2dea9769f16e5bfe23f6d1d9ac59f053482"
+    }
+  ],
+  "acceptance": {
+    "append_only_hash_chain": true,
+    "duplicate_candidate_blocked": true,
+    "unregistered_result_blocked": true,
+    "feature_hard_cap_8": true,
+    "effective_sample_budget": true,
+    "absolute_correlation_threshold": 0.85,
+    "correlation_role": "research_train_only"
+  },
+  "row_use_counters": {"outer_rows_used": 0},
+  "tests": {"targeted": "3 passed", "combined_r5_v8r": "49 passed"},
+  "open_questions": [],
+  "user_decisions_needed": ["DV-2"]
+}
