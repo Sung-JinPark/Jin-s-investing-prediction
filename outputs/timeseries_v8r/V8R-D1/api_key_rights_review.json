@@ -1,0 +1,14 @@
+{
+  "schema": "v8r_authentication_rights_review_v1",
+  "task_id": "V8R-D1",
+  "reviewed_at": "2026-08-27T11:30:00Z",
+  "api_key_declared_present_by_user": true,
+  "api_key_accessed": false,
+  "authentication_available": true,
+  "model_and_archive_rights_available": false,
+  "official_api_terms": "https://fred.stlouisfed.org/docs/api/terms_of_use.html",
+  "official_services_terms": "https://fred.stlouisfed.org/legal/terms/",
+  "finding": "The key authenticates a request. It does not override the incorporated FRED Services prohibitions on ML use or storing, caching, archiving, and database incorporation.",
+  "collection_attempted": false,
+  "status": "BLOCKED_SOURCE_TERMS"
+}

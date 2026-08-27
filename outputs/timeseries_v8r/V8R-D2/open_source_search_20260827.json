@@ -1,0 +1,45 @@
+{
+  "schema": "v8r_open_source_search_v1",
+  "task_id": "V8R-D2",
+  "reviewed_at": "2026-08-27T11:30:00Z",
+  "required_bundle": ["VIX9D", "VVIX", "SKEW", "VIX_FUTURES_HISTORY"],
+  "candidates": [
+    {
+      "name": "Cboe official historical downloads",
+      "url": "https://www.cboe.com/tradable_products/vix/vix_historical_data",
+      "license_url": "https://www.cboe.com/terms",
+      "decision": "REJECT_FOR_REPOSITORY_MODEL_USE",
+      "reason": "Official data are downloadable, but website terms limit storage and derivative use without prior written consent."
+    },
+    {
+      "name": "datasets/finance-vix",
+      "url": "https://github.com/datasets/finance-vix",
+      "declared_license": "ODC-PDDL-1.0",
+      "coverage": ["VIX"],
+      "decision": "REJECT_AS_D2_REPLACEMENT",
+      "reason": "It covers only VIX, not the required bundle. Its README describes the public-domain status as an assumption rather than an authoritative Cboe grant."
+    },
+    {
+      "name": "vix_utils",
+      "url": "https://github.com/dougransom/vix_utils",
+      "declared_license": "MIT for software",
+      "decision": "REJECT_DATA_RIGHTS_INFERENCE",
+      "reason": "An MIT code license does not grant rights to underlying exchange data downloaded by the code."
+    },
+    {
+      "name": "vol-regime-prediction",
+      "url": "https://github.com/philippdubach/vol-regime-prediction",
+      "decision": "REJECT_DATA_RIGHTS_INFERENCE",
+      "reason": "The project demonstrates a pipeline but does not provide authoritative source-data relicensing for the full required bundle."
+    },
+    {
+      "name": "Yahoo-based open-source projects",
+      "decision": "REJECT_AS_OPEN_DATA_SOURCE",
+      "reason": "Open-source client code does not make Yahoo-delivered market data open-licensed."
+    }
+  ],
+  "qualified_source_count": 0,
+  "collection_attempted": false,
+  "status": "BLOCKED_NO_QUALIFIED_OPEN_SOURCE",
+  "safe_alternative": "Create a separately preregistered round using realized-volatility, downside-semivariance, jump-variation, and CFTC positioning features computed from already-governed R5 returns; these must not be labelled as Cboe implied-volatility equivalents."
+}

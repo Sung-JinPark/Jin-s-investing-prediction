@@ -12,3 +12,5 @@
 {"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"V8R-F1 not complete","status":"BLOCKED_DEPENDENCY","task_id":"V8R-X1","timestamp":"2026-08-27T11:18:30Z"}
 {"event":"TASK_BLOCKED","outer_rows_used":0,"reason":"V8R-X1 not complete; outer one-shot remains unused","status":"BLOCKED_DEPENDENCY","task_id":"V8R-E1","timestamp":"2026-08-27T11:18:30Z"}
 {"event":"RUN_STOPPED","outer_rows_used":0,"reason":"Source-rights blockers prevent D1/D2 and therefore F1/X1/E1","state":"BLOCKED_SOURCE_RIGHTS","timestamp":"2026-08-27T11:18:30Z"}
+{"event":"SOURCE_RIGHTS_REVIEW_RECONFIRMED","outer_rows_used":0,"reason":"A FRED API key authenticates requests but does not override current ML/archive prohibitions; key was not accessed","status":"BLOCKED_SOURCE_TERMS","task_id":"V8R-D1","timestamp":"2026-08-27T11:30:00Z"}
+{"event":"OPEN_SOURCE_SEARCH_COMPLETED","outer_rows_used":0,"reason":"No authoritative open-data grant was found for the full VIX9D/VVIX/SKEW/VIX-futures bundle; third-party code licenses do not relicense underlying Cboe data","status":"BLOCKED_NO_QUALIFIED_OPEN_SOURCE","task_id":"V8R-D2","timestamp":"2026-08-27T11:30:00Z"}
