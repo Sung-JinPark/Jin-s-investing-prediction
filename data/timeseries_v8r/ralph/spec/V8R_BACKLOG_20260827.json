@@ -1,0 +1,105 @@
+{
+ "schema": "v8r_backlog_v1",
+ "created_at": "2026-08-27",
+ "pick_rule": "deps 완료된 최소 priority",
+ "gate_note": "DV-1 미승인 시 D/F/X/E 착수 금지",
+ "tasks": [
+  {
+   "id": "V8R-L1",
+   "priority": 1,
+   "deps": [],
+   "status": "대기",
+   "title": "라이선스·PIT 계약서 초안 일괄",
+   "spec": "01 §1 카탈로그 Tier A/B 전 소스에 대해 contracts/data_sources/*.yaml 초안 작성. 라이선스 확인 URL·판정 포함. 수집 0건.",
+   "accept": "계약서 초안 전 소스 존재 + ToS 불명 목록 보고"
+  },
+  {
+   "id": "V8R-Q1",
+   "priority": 2,
+   "deps": [],
+   "status": "대기",
+   "title": "candidate_registry + 예산·상관 검사기",
+   "spec": "02 층1·2 구현: registry 스키마(append-only), 피처 예산 카운터, train-역할 상관 검사기.",
+   "accept": "미등록 시도 차단 테스트 통과"
+  },
+  {
+   "id": "V8R-Q2",
+   "priority": 3,
+   "deps": [
+    "V8R-Q1"
+   ],
+   "status": "대기",
+   "title": "FDR 필터 + PBO/CSCV + MDE 산출기",
+   "spec": "02 층3·5: BH-FDR(등록부 시도수 기준) admission 사전필터, CSCV S=16 PBO, 지평별 MDE 리포터. 게이트 판정식 무변경 확인 테스트 포함.",
+   "accept": "합성데이터 셀프테스트 통과"
+  },
+  {
+   "id": "V8R-D1",
+   "priority": 4,
+   "deps": [
+    "V8R-L1"
+   ],
+   "status": "대기",
+   "title": "[DV-1 대기] FRED VIXCLS/VXNCLS 온보딩",
+   "spec": "기존 FRED 파이프에 2시리즈 추가(증분 커서·receipt). PIT 테스트: available_at 위반 0.",
+   "accept": "관측 적재 + 위반 0"
+  },
+  {
+   "id": "V8R-D2",
+   "priority": 5,
+   "deps": [
+    "V8R-D1"
+   ],
+   "status": "대기",
+   "title": "CBOE CSV 온보딩(VIX9D/VVIX/SKEW/VIX선물)",
+   "spec": "공식 CSV fetch, 스냅샷-빈티지 동결(재계산 대비), receipt. 익영업일 개장 전 사용금지 규칙 구현.",
+   "accept": "4시리즈 적재 + PIT 테스트"
+  },
+  {
+   "id": "V8R-D3",
+   "priority": 6,
+   "deps": [
+    "V8R-L1"
+   ],
+   "status": "대기",
+   "title": "CFTC COT 온보딩",
+   "spec": "연도별 이력 파일 + 주간 증분. available_at=금요일 15:30 ET 하드코딩, 화→금 지연 테스트 필수.",
+   "accept": "지연 규칙 위반 0"
+  },
+  {
+   "id": "V8R-F1",
+   "priority": 7,
+   "deps": [
+    "V8R-D2",
+    "V8R-Q1"
+   ],
+   "status": "대기",
+   "title": "피처 사전 구현(≤8개)",
+   "spec": "01 §4 정의대로. 각 피처 registry 등록 + train-역할 표준화 + lineage 직렬화 + 단독 ablation 하네스.",
+   "accept": "8개 이하 + 예산 검사 통과"
+  },
+  {
+   "id": "V8R-X1",
+   "priority": 8,
+   "deps": [
+    "V8R-F1",
+    "V8R-Q2"
+   ],
+   "status": "대기",
+   "title": "Stage 1 틸트 자격 평가",
+   "spec": "R5 σ̂ 회귀에 γ 공변량 추가(03 Stage1). candidate별 사전등록→calibration 쌍대차→FDR 필터→G3 경로. outer 접근 금지.",
+   "accept": "advantage·CI·MDE·FDR 결과 직렬화"
+  },
+  {
+   "id": "V8R-E1",
+   "priority": 9,
+   "deps": [
+    "V8R-X1"
+   ],
+   "status": "대기",
+   "title": "[admitted 존재 시] G4 outer 1회 + 리뷰팩",
+   "spec": "R5-G4와 동일 규율. 전원 기각이면 outer 보존·정지·보고.",
+   "accept": "게이트 원장 + 리뷰팩"
+  }
+ ]
+}

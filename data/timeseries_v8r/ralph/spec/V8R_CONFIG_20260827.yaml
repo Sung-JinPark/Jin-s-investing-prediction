@@ -1,0 +1,17 @@
+schema: v8r_ralph_config_v1
+run_prefix: v8r
+queue: data/timeseries_v8r/ralph/spec/V8R_BACKLOG_20260827.json
+batch: 1
+max_iterations: 30
+iteration_wait_seconds: 5
+log_dir: outputs/timeseries_v8r/_ralph_logs
+stop_conditions:
+- DV-1/DV-2/DV-3 결정 대기
+- V8R-E1 완료
+- 차단
+self_check:
+- 계약 12항
+- registry 등록
+- 예산 상한
+- PIT 위반 0
+- outer 0회(E1 전)
