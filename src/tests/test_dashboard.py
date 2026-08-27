@@ -327,7 +327,7 @@ def test_u1b_future_overlay_unique_questions_and_compare_contract() -> None:
     for title in (
         "향후 12개월 시장 경로는 어떤 분포인가",
         "과거 혁신 사이클은 현재와 얼마나 닮았나",
-        "닷컴 붕괴 뒤 NDX·BTC·O는 어떻게 달라졌을까",
+        "닷컴 조정 뒤 자산별 회복은 어떻게 달랐을까",
         "AI 자본 사이클을 지금 판정할 수 있는가",
         "유동성 조건은 위험 선호를 지지하는가",
     ):
@@ -514,6 +514,8 @@ def test_workspace_utility_contract() -> None:
     assert "drawOverlay(analogHost,overlay._overlay" in html
     assert "data-flow-focus=\"ANALOG\"" in html
     assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
+    assert "교차자산 비교" in html
+    assert "NASDAQ·Bitcoin·리츠·주택주" in html
     assert "Bitcoin</span><strong>가정 경로" in html
     assert "BTC SENSITIVITY" in html and "data-cross-scenario" in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
