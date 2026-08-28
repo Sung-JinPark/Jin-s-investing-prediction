@@ -902,7 +902,7 @@ def test_v2_workflow_preserves_raw_before_model_and_uses_secret_only_for_collect
     macro = workflow.index("Append ALFRED native PIT macro vintages")
     market = workflow.index("Append official reconstructed market archives")
     checkpoint = workflow.index("Checkpoint raw receipts and append-only observations before models")
-    prepare = workflow.index("Prepare origin-specific DFM caches on Saturday")
+    prepare = workflow.index("Prepare origin-specific DFM caches before verification")
     assert macro < checkpoint and market < checkpoint < prepare
     assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in workflow
     assert "timeseries-v2-backtest" in workflow
@@ -915,7 +915,10 @@ def test_v2_workflow_runs_exact_runtime_gate_on_same_repo_pr_and_main_bootstrap(
     assert "pull_request:" in workflow
     assert "push:" in workflow
     assert "github.event.pull_request.head.repo.full_name == github.repository" in workflow
-    assert "ref: ${{ github.head_ref || github.ref_name }}" in workflow
+    assert (
+        "ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.ref_name }}"
+        in workflow
+    )
     assert "bootstrap=\"${{ github.event_name == 'pull_request' || github.event_name == 'push' }}\"" in workflow
     assert '[ "$bootstrap" = "true" ]' in workflow
     assert workflow.count('[ "${{ github.event_name }}" = "pull_request" ]') == 2
