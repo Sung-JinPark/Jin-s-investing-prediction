@@ -78,6 +78,7 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "data: append V2 PIT and market archive observations"
+            git pull --rebase origin main
             git push
           fi
       - name: Prepare origin-specific DFM caches before verification
@@ -150,5 +151,6 @@ jobs:
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
             git commit -m "data: refresh NASDAQ time-series V2 shadow"
+            git pull --rebase origin main
             git push
           fi
