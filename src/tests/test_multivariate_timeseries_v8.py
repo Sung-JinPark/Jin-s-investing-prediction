@@ -592,14 +592,25 @@ def test_dev_gate_proxy_report_passes_only_when_every_check_passes(tmp_path: Pat
         },
         "regime_coverage": {"great_financial_crisis_2008": {"origins": 70, "coverage_p10_p90": 0.75}},
     }
-    paired = {"ci90": {"lower": -0.004, "upper": -0.001}}
+    paired = {
+        "mean": -0.0013, "origin_count": 417,
+        "ci90": {"lower": -0.0026, "upper": -0.0001},
+    }
     report = dev_gate_proxy_report(summary, paired, proxy=proxy, window_role="design")
     assert report["pass"] is True
     weak = json.loads(json.dumps(summary))
-    weak["horizons"]["63"]["crps_improvement_vs_best"] = 0.02  # mean drops below +4%
+    weak["horizons"]["21"]["crps_improvement_vs_best"] = 0.02
+    weak["horizons"]["63"]["crps_improvement_vs_best"] = 0.02  # mean below +2.5%
     report = dev_gate_proxy_report(weak, paired, proxy=proxy, window_role="design")
     assert report["pass"] is False
     assert report["checks"]["long_horizon_mean_improvement"]["pass"] is False
+    noisy = {
+        "mean": -0.0013, "origin_count": 417,
+        "ci90": {"lower": -0.0060, "upper": 0.0034},  # se ~0.0029 > 0.001
+    }
+    report = dev_gate_proxy_report(summary, noisy, proxy=proxy, window_role="design")
+    assert report["checks"]["paired_se"]["pass"] is False
+    assert report["checks"]["projected_full_window_ci90_upper"]["pass"] is False
 
 
 def test_dev_gate_proxy_holdout_checks(tmp_path: Path) -> None:

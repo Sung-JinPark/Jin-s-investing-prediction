@@ -8,6 +8,7 @@ evaluation exactly — same seeds, same generator order, same scores.
 
 from __future__ import annotations
 
+import math
 from typing import Any
 
 import numpy as np
@@ -330,10 +331,29 @@ def dev_gate_proxy_report(
             np.isfinite(long_mean)
             and long_mean >= float(proxy["design_long_horizon_mean_crps_min_improvement"]),
         )
+        # Proxy revision 1: the CI-safety margin is expressed as a noise
+        # ceiling plus the projection of the paired CI to the full 2007+
+        # window, instead of a fixed design-CI bound calibrated on E0-era
+        # noise (see the contract's revision_history).
+        mean = paired.get("mean")
+        ci_lower = paired["ci90"]["lower"]
+        se = (
+            (float(ci_upper) - float(ci_lower)) / (2.0 * 1.645)
+            if np.isfinite(ci_upper) and np.isfinite(ci_lower) else float("nan")
+        )
         record(
-            "paired_ci90_upper", ci_upper,
-            np.isfinite(ci_upper)
-            and ci_upper <= float(proxy["design_paired_bootstrap_ci90_upper_max"]),
+            "paired_se", se,
+            np.isfinite(se) and se <= float(proxy["design_paired_se_max"]),
+        )
+        reference = float(proxy["projection_reference_origins"])
+        projected = (
+            float(mean) + 1.645 * se * math.sqrt(float(paired["origin_count"]) / reference)
+            if mean is not None and np.isfinite(se) else float("nan")
+        )
+        record(
+            "projected_full_window_ci90_upper", projected,
+            np.isfinite(projected)
+            and projected <= float(proxy["projected_full_window_ci90_upper_max"]),
         )
         for h in (1, 5):
             metric = horizons.get(str(h))

@@ -153,16 +153,34 @@ development_protocol:
     action_on_trigger: stop_and_report_evidence
 
 dev_gate_proxy:
-  design_long_horizon_mean_crps_min_improvement: 0.04
-  design_paired_bootstrap_ci90_upper_max: -0.0005
+  # revision 1 (2026-08-28, 사용자 승인 R8-D1): 원 proxy의 +4%·내측 coverage
+  # 밴드·design CI 기준은 E0 시절 paired-diff 노이즈(se≈0.0038)에서 역산한
+  # 봉인 CI 안전여유였다. FHS 챔피언의 노이즈는 그 1/5(se≈0.0008)라 동일한
+  # 안전 논리가 +2.5% + se 상한 + full-window 투영 CI로 등가 확보된다.
+  # coverage 내측밴드는 design 워밍업(2007~09 재보정 비활성) 팽창과 여유가
+  # 이중계상되어 게이트 밴드 자체로 되돌린다. 원값은 revision_history에 보존.
+  design_long_horizon_mean_crps_min_improvement: 0.025
+  design_paired_se_max: 0.001
+  projected_full_window_ci90_upper_max: -0.0004
+  projection_reference_origins: 1011
   design_short_horizon_crps_max_underperformance: 0.01
-  design_p10_p90_coverage: [0.77, 0.83]
-  design_p25_p75_coverage: [0.46, 0.54]
+  design_p10_p90_coverage: [0.76, 0.84]
+  design_p25_p75_coverage: [0.45, 0.55]
   design_gfc_regime_p10_p90_minimum: 0.72
   holdout_long_horizon_mean_crps_min_improvement: 0.02
   holdout_paired_bootstrap_ci90_upper_max: 0.0
   pit_leakage_count: 0
   receipt_linkage: 1.0
+  revision_history:
+    - revision: 1
+      date: "2026-08-28"
+      approved_by: user_decision_R8_D1
+      revised_from:
+        design_long_horizon_mean_crps_min_improvement: 0.04
+        design_paired_bootstrap_ci90_upper_max: -0.0005
+        design_p10_p90_coverage: [0.77, 0.83]
+        design_p25_p75_coverage: [0.46, 0.54]
+      evidence: outputs/timeseries_v8/reports/R8_FHS_PHASE_REPORT_20260828.md
 
 evaluation:
   outer_start: 2007-01-01
