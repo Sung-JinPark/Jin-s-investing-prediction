@@ -1,0 +1,80 @@
+{
+  "blockers": {},
+  "created_at": "2026-08-28T04:08:20+00:00",
+  "deadline_epoch": 1787976501.1660733,
+  "frozen_hash": "e93138ce2254a1fcf5570202ed7acaa5bf31193c7ad4dce8f14d809325165b7e",
+  "history": [
+    {
+      "experiment_id": "tsv8-exp-7686fe48005fdff51117",
+      "iteration": 1,
+      "label": "E6_fhs_pure",
+      "paired_ci90_upper": 0.0005183853783384229,
+      "paired_mean": -0.0011975470883538702,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T04:29:07+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-59b9d31cff2def39b095",
+      "iteration": 2,
+      "label": "E7_fhs_tilt_025",
+      "paired_ci90_upper": 0.0006254318217856767,
+      "paired_mean": -0.0011427284032292336,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T04:58:45+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-c3524c4dcfd5344022dd",
+      "iteration": 3,
+      "label": "E8_fhs_blend_075",
+      "paired_ci90_upper": -0.00025855897115854045,
+      "paired_mean": -0.0014647660024349283,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T05:34:35+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-ad4d45ed2f19ab2aa2d7",
+      "iteration": 4,
+      "label": "E9_fhs_blend_b4",
+      "paired_ci90_upper": 0.0004645522026492282,
+      "paired_mean": -0.000986196023692708,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T06:08:08+00:00"
+    }
+  ],
+  "iteration": 4,
+  "max_iterations": 18,
+  "protected_hash": "bf4d21451d4b1a5ae1cfa29e59c2091a8007dd52c2e8abd4cc7c5c02071aaa42",
+  "queue": [
+    {
+      "config": {},
+      "label": "E0_neutral_v2_identity"
+    },
+    {
+      "config": {
+        "phi": 0.97
+      },
+      "label": "E1_B1_phi_0.97"
+    },
+    {
+      "config": {
+        "phi": "fitted_ar1"
+      },
+      "label": "E1_B1_phi_fitted_ar1"
+    },
+    {
+      "config": {
+        "omega_by_horizon": {
+          "21": 0.5,
+          "63": 0.75
+        },
+        "phi": 0.97,
+        "sigma_cap": 0.25
+      },
+      "label": "E2_B1_plus_B2"
+    }
+  ],
+  "run_id": "tsv8-ralph-20260828T040820Z",
+  "schema_version": 1,
+  "status": "running",
+  "stop_reason": null
+}
