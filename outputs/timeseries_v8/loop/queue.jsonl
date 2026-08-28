@@ -1,0 +1,4 @@
+{"label": "W1_blend_h21_75_h63_50", "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.5}, "pit_recalibration_shrinkage": 0.5}}
+{"label": "W2_blend_h21_50_h63_75", "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.5, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
+{"label": "W3_tilt_blend_b4", "config": {"fhs_horizons": [21, 63], "fhs_tilt_omega": 0.25, "fhs_tilt_cap_sigma": 0.35, "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
+{"label": "W4_mu_hat_10y", "config": {"fhs_horizons": [21, 63], "mu_hat_window_sessions": 2520, "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}

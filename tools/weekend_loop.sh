@@ -1,169 +1,187 @@
 #!/usr/bin/env bash
-# V8 게이트 캠페인 상시 루프 (git bash 전용, Claude 세션과 무관하게 지속).
-#
-# 목적: 다변량 시계열 publication gate 성공을 향한 무인 진행.
-#   - 홀드아웃 결과가 나오면 원장 기록으로 판정하고 모드를 전환한다.
-#   - explore 모드: 사전등록 그리드 내 잔여 조합을 design window(2019-blind,
-#     2000 paths)에서 순차 평가 (예산 = 원장 행수 <= 24, 코드가 강제).
-#   - monitor 모드(홀드아웃 통과 후): 24시간마다 verify + hermetic 테스트.
-#
-# 하드 규칙 (이 스크립트가 절대 하지 않는 것):
-#   - 봉인 2019+ 평가 실행/생성 (코드 경로도 없음)
-#   - 새 홀드아웃 소모 (이미 승인·개시된 E10 채점의 '재개'만 허용 — 원장에
-#     행이 없고 프로세스가 죽었을 때, 승인 마커의 config 그대로)
-#   - 그리드 밖 config, 계약/원장 수정, git push (로컬 저장소 상태만 사용)
-#
-# 사용:
-#   시작:  nohup bash tools/weekend_loop.sh >> outputs/timeseries_v8/loop/nohup.log 2>&1 &
-#   상태:  tail -20 outputs/timeseries_v8/loop/loop.log
-#   중단:  touch outputs/timeseries_v8/loop/ABORT
-#   스모크: SMOKE=1 bash tools/weekend_loop.sh   (실평가 없이 한 사이클 검증)
-
+# tools/weekend_loop.sh - V8 weekend supervisor (Git Bash / Windows). See docs/timeseries_v8/WEEKEND_LOOP_DESIGN.md
 set -u
-cd "$(dirname "$0")/.." || exit 1
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"; cd "$ROOT" || exit 1
+PY=".venv/Scripts/python.exe"; [ -x "$PY" ] || PY="python"
 export PYTHONUTF8=1
-PY=".venv/Scripts/python.exe"
-LOOPDIR="outputs/timeseries_v8/loop"
-LOG="$LOOPDIR/loop.log"
-QUEUE="$LOOPDIR/queue.jsonl"
-LOCK="$LOOPDIR/lock"
+unset FRED_API_KEY ALPHAVANTAGE_KEY OPENAI_API_KEY 2>/dev/null || true   # secrets sanitize
+
+LOOPDIR="outputs/timeseries_v8/loop"; mkdir -p "$LOOPDIR"
+LOCK="$LOOPDIR/lock"; STATE="$LOOPDIR/state.json"; ABORT="$LOOPDIR/ABORT"
 LEDGER="data/timeseries_v8/ledgers/development_experiments.jsonl"
 HOLDOUT="data/timeseries_v8/ledgers/holdout_scorings.jsonl"
-APPROVAL="$LOOPDIR/holdout_approved_E10.json"
-mkdir -p "$LOOPDIR"
+HOLDOUT_MARKER="$LOOPDIR/holdout_approved_E10.json"
+HARNESS="tools/ralph_timeseries_v8.py"
+RUN_ID_FILE="$LOOPDIR/harness_run_id"
+MAX_BUDGET=24; SLEEP_A=60; SLEEP_B=1800; SLEEP_W=120
+MAX_CYCLES="${MAX_CYCLES:-0}"; DRY_RUN="${DRY_RUN:-0}"; SMOKE="${SMOKE:-0}"
+DEADLINE="${LOOP_DEADLINE_EPOCH:-0}"
+if [ "$DEADLINE" = 0 ]; then DEADLINE=$(date -d "next monday 07:00" +%s 2>/dev/null || echo $(( $(date +%s)+60*60*60 ))); fi
 
-log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
+log(){ printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$LOOPDIR/loop_$(date +%Y%m%d).log"; }
+state(){ "$PY" - "$STATE" "$1" "$2" <<'PYEOF'
+import json,sys,datetime
+p,mode,note=sys.argv[1],sys.argv[2],sys.argv[3]
+try: s=json.load(open(p))
+except Exception: s={"cycle":0}
+s.update(mode=mode,note=note[:4000],ts=datetime.datetime.now().isoformat())
+s["cycle"]=s.get("cycle",0)+ (1 if mode in("A","B","W") else 0)
+json.dump(s,open(p,"w"),ensure_ascii=False,indent=1)
+PYEOF
+}
+halt(){ log "HALT: $1"; state HALT "$1"; rmdir "$LOCK" 2>/dev/null; exit "${2:-1}"; }
+tail_note(){ tail -n 40 "$LOOPDIR/loop_$(date +%Y%m%d).log" 2>/dev/null | tr '\n' '|'; }
+# first JSON object from stdin (harness prints indented JSON, status prints two objects)
+jfirst(){ "$PY" -c "import json,sys;d,_=json.JSONDecoder().raw_decode(sys.stdin.read());print(json.dumps(d,ensure_ascii=False))"; }
 
-# ── 단일 인스턴스 잠금 ──────────────────────────────────────────────────────
-if ! mkdir "$LOCK" 2>/dev/null; then
-  other="$(cat "$LOCK/pid" 2>/dev/null || echo '?')"
-  if [ "$other" != "?" ] && kill -0 "$other" 2>/dev/null; then
-    echo "loop already running (pid $other)"; exit 0
-  fi
-  rm -rf "$LOCK"; mkdir "$LOCK" || exit 1
+# ---- lock (atomic mkdir) ----
+if mkdir "$LOCK" 2>/dev/null; then echo $$ > "$LOCK/pid"; else
+  OLD=$(cat "$LOCK/pid" 2>/dev/null || echo 0)
+  if kill -0 "$OLD" 2>/dev/null; then echo "already running pid=$OLD"; exit 0
+  else log "stale lock (pid=$OLD) reclaimed"; echo $$ > "$LOCK/pid"; fi
 fi
-echo $$ > "$LOCK/pid"
-trap 'rm -rf "$LOCK"; log "loop exited"' EXIT
-log "loop started (pid $$, SMOKE=${SMOKE:-0})"
+trap 'log "signal shutdown"; state SHUTDOWN "signal"; rmdir "$LOCK" 2>/dev/null; exit 0' INT TERM
 
-# ── 승인 마커: 사용자 승인(R8-D1)으로 개시된 E10 홀드아웃의 재개 전용 ──────
-if [ ! -f "$APPROVAL" ]; then
-  cat > "$APPROVAL" <<'EOF'
-{"approved": "R8-D1 user decision 2026-08-28", "role": "holdout", "label": "E10_holdout_scoring",
- "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
-EOF
+# ---- PRE-FLIGHT ----
+BR=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "?")
+[ "$BR" = "main" ] && halt "branch is main - forbidden"
+[ -f "$HARNESS" ] || halt "harness missing: $HARNESS"
+"$PY" -c "import scipy,pyarrow" 2>/dev/null || halt "venv import preflight failed"
+HARNESS_OK=1
+RUN_ID=$(cat "$RUN_ID_FILE" 2>/dev/null | tr -d '[:space:]' || echo "")
+# ADAPT-확정(1/3): status/next/record 는 run_id 가 필수 인자다. run_id 파일이 없거나
+# status 가 실패하면 탐색을 포기하고 MODE-B 로만 감시한다 (무인 안전 우선).
+if [ -z "$RUN_ID" ] || ! "$PY" "$HARNESS" status "$RUN_ID" >/dev/null 2>&1; then
+  HARNESS_OK=0; log "WARN harness run_id/status unavailable -> MODE-B only"
 fi
+log "BOOT branch=$BR run_id=${RUN_ID:-none} deadline=$(date -d @"$DEADLINE" 2>/dev/null || echo "$DEADLINE") dry=$DRY_RUN smoke=$SMOKE"
+state BOOT "preflight ok; harness_ok=$HARNESS_OK"
 
-# ── 탐색 큐 (사전등록 그리드 내 조합만; 최초 1회 생성, 이후 수정 가능) ──────
-if [ ! -f "$QUEUE" ]; then
-  cat > "$QUEUE" <<'EOF'
-{"label": "W1_blend_h21_75_h63_50", "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.5}, "pit_recalibration_shrinkage": 0.5}}
-{"label": "W2_blend_h21_50_h63_75", "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.5, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
-{"label": "W3_tilt_blend_b4", "config": {"fhs_horizons": [21, 63], "fhs_tilt_omega": 0.25, "fhs_tilt_cap_sigma": 0.35, "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
-{"label": "W4_mu_hat_10y", "config": {"fhs_horizons": [21, 63], "mu_hat_window_sessions": 2520, "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
-EOF
-fi
+holdout_passed(){
+  "$PY" - "$HOLDOUT" <<'PYEOF'
+import json,sys,os
+p=sys.argv[1]
+ok=False
+if os.path.exists(p):
+    for line in open(p,encoding="utf-8"):
+        line=line.strip()
+        if not line: continue
+        try: r=json.loads(line)
+        except Exception: continue
+        if r.get("window_role")=="holdout" and (r.get("proxy") or {}).get("pass") is True:
+            ok=True
+print("PASS" if ok else ("FAIL" if os.path.exists(p) else "ABSENT"))
+PYEOF
+}
+detect_mode(){  # A=explore, B=monitor, W=wait/resume approved holdout
+  [ "$SMOKE" = 1 ] && { echo B; return; }
+  [ "$HARNESS_OK" = 0 ] && { echo B; return; }
+  case "$(holdout_passed)" in
+    PASS) echo B ;;
+    FAIL) echo A ;;
+    ABSENT) if [ -f "$HOLDOUT_MARKER" ]; then echo W; else echo A; fi ;;
+  esac
+}
+budget_used(){ [ -f "$LEDGER" ] && grep -c . "$LEDGER" || echo 0; }
+big_python_alive(){
+  HP=$(cat "$LOOPDIR/holdout.pid" 2>/dev/null || echo 0)
+  if [ "$HP" != 0 ] && kill -0 "$HP" 2>/dev/null; then return 0; fi
+  # tasklist memory prints thousands separators ("871,856 K"): use the fixed
+  # column layout (//NH, no CSV) and strip separators before comparing.
+  tasklist //FI "IMAGENAME eq python.exe" //NH 2>/dev/null \
+    | awk 'NF>=3 {v=$(NF-1); gsub(/[^0-9]/,"",v); if (v+0>800000) f=1} END{exit !f}'
+}
 
-verify_fail_streak=0
-last_monitor_check=0
+run_mode_W(){
+  # The single APPROVED holdout scoring (R8-D1). Never a new burn: identical
+  # config -> identical experiment_id, and the pipeline refuses duplicates.
+  if big_python_alive; then log "W: approved holdout still computing - waiting"; return 0; fi
+  LABEL=$("$PY" -c "import json;print(json.load(open('$HOLDOUT_MARKER'))['label'])" 2>/dev/null)
+  CFG=$("$PY" -c "import json;print(json.dumps(json.load(open('$HOLDOUT_MARKER'))['config'],ensure_ascii=False))" 2>/dev/null)
+  { [ -z "$LABEL" ] || [ -z "$CFG" ]; } && { log "W: marker unreadable -> MODE-B"; HARNESS_OK=0; return 1; }
+  echo "$CFG$LABEL" | grep -qi "sealed" && halt "sealed in holdout marker"
+  log "W: resuming approved holdout $LABEL (process died without ledger row)"
+  if [ "$DRY_RUN" = 1 ]; then log "DRY: $PY -m ai_fc timeseries-v8-dev-backtest --role holdout --label $LABEL --config $CFG"; return 0; fi
+  "$PY" -m ai_fc timeseries-v8-dev-backtest --role holdout --label "$LABEL" --config "$CFG" \
+    >> "$LOOPDIR/holdout_resume.log" 2>&1 &
+  echo $! > "$LOOPDIR/holdout.pid"
+}
 
-while true; do
-  # 1) 우아한 중단
-  if [ -f "$LOOPDIR/ABORT" ]; then log "ABORT file present - stopping"; exit 0; fi
-
-  # 2) fail-closed 검증 (3연속 실패 시 정지)
-  if ! "$PY" -m ai_fc timeseries-v8-verify > "$LOOPDIR/verify_last.json" 2>&1; then
-    verify_fail_streak=$((verify_fail_streak + 1))
-    log "verify FAILED (streak $verify_fail_streak) - see verify_last.json"
-    if [ "$verify_fail_streak" -ge 3 ]; then log "verify failed 3x - HOLD, stopping"; exit 2; fi
-    sleep 300; continue
-  fi
-  verify_fail_streak=0
-
-  # 3) 홀드아웃 판정 / 재개
-  if [ -f "$HOLDOUT" ]; then
-    verdict="$("$PY" - <<'EOF'
-import json
-from pathlib import Path
-rows = [json.loads(l) for l in Path("data/timeseries_v8/ledgers/holdout_scorings.jsonl").read_text(encoding="utf-8").splitlines() if l]
-r = rows[-1]
-h = r["horizons"]
-long_mean = (float(h["21"]["crps_improvement_vs_best"]) + float(h["63"]["crps_improvement_vs_best"])) / 2
-print(json.dumps({"pass": bool(r["proxy"]["pass"]), "long_mean": long_mean,
-                  "ci_up": r["paired_long_horizon"]["ci90"]["upper"], "id": r["experiment_id"]}))
-EOF
-)"
-    echo "$verdict" > "$LOOPDIR/holdout_verdict.json"
-    if echo "$verdict" | grep -q '"pass": true'; then MODE=monitor; else MODE=explore; fi
+run_mode_A(){
+  U=$(budget_used); [ "$U" -ge $MAX_BUDGET ] && { log "budget exhausted ($U/$MAX_BUDGET) -> MODE-B"; return 1; }
+  NEXT_JSON=$("$PY" "$HARNESS" next "$RUN_ID" 2>>"$LOOPDIR/harness.err" | jfirst) \
+    || { log "harness next failed/blocked -> MODE-B"; return 1; }
+  [ -z "$NEXT_JSON" ] && { log "queue empty -> MODE-B"; return 1; }
+  echo "$NEXT_JSON" | grep -qi "sealed" && halt "sealed verb detected in next()"
+  # ADAPT-확정(2/3): next 출력은 {"next": {"label","config"}, "command": ...} 이고
+  # 큐 소진 시 {"next": null} 이다.
+  LABEL=$(echo "$NEXT_JSON" | "$PY" -c "import json,sys;d=json.load(sys.stdin);n=d.get('next') or {};print(n.get('label',''))" 2>/dev/null)
+  CFG=$(echo "$NEXT_JSON"   | "$PY" -c "import json,sys;d=json.load(sys.stdin);n=d.get('next') or {};print(json.dumps(n.get('config',{}),ensure_ascii=False) if n else '')" 2>/dev/null)
+  { [ -z "$LABEL" ] || [ -z "$CFG" ]; } && { log "queue empty or parse mismatch -> MODE-B"; return 1; }
+  echo "$CFG" | grep -qi "sealed" && halt "sealed in config"
+  log "A: run $LABEL budget=$U/$MAX_BUDGET"
+  CMD=("$PY" -m ai_fc timeseries-v8-dev-backtest --label "$LABEL" --config "$CFG")
+  if [ "$DRY_RUN" = 1 ]; then log "DRY: ${CMD[*]}"; return 0; fi
+  "${CMD[@]}" >> "$LOOPDIR/backtest_$LABEL.log" 2>&1
+  RC=$?
+  if [ $RC -ne 0 ]; then log "backtest rc=$RC ($LABEL)"; state A "backtest fail $LABEL rc=$RC | $(tail_note)"; return 0; fi
+  # ADAPT-확정(2/3 계속): record 는 --experiment-id 를 받는다. 방금 append 된
+  # 마지막 원장 행에서 라벨 일치를 확인하고 id 를 회수한다.
+  EXP_ID=$("$PY" - "$LEDGER" "$LABEL" <<'PYEOF'
+import json,sys
+rows=[json.loads(l) for l in open(sys.argv[1],encoding="utf-8") if l.strip()]
+match=[r for r in rows if r.get("experiment_label")==sys.argv[2]]
+print(match[-1]["experiment_id"] if match else "")
+PYEOF
+)
+  if [ -n "$EXP_ID" ]; then
+    "$PY" "$HARNESS" record "$RUN_ID" --experiment-id "$EXP_ID" >>"$LOOPDIR/harness.err" 2>&1 \
+      || log "WARN record failed $LABEL ($EXP_ID)"
   else
-    # 원장 행 없음: 실행 중이면 대기, 죽었으면 승인된 채점을 '재개' (멱등).
-    # 홀드아웃은 2GB+ 메모리를 쓰므로 1GB+ python 프로세스 존재를 생존 신호로 본다.
-    if tasklist //FI "IMAGENAME eq python.exe" //FI "MEMUSAGE gt 1000000" 2>/dev/null | grep -q "python.exe"; then
-      log "holdout ledger absent; large python process alive - waiting"
-      [ "${SMOKE:-0}" = "1" ] && { log "SMOKE cycle done (wait branch)"; exit 0; }
-      sleep 300; continue
-    fi
-    log "holdout ledger absent and no python process - RESUMING approved E10 scoring"
-    [ "${SMOKE:-0}" = "1" ] && { log "SMOKE cycle done (would resume holdout)"; exit 0; }
-    cfg="$("$PY" -c "import json;print(json.dumps(json.load(open(r'$APPROVAL'))['config']))")"
-    "$PY" -m ai_fc timeseries-v8-dev-backtest --role holdout --label E10_holdout_scoring \
-      --config "$cfg" >> "$LOOPDIR/holdout_resume.log" 2>&1
-    continue
+    log "WARN no ledger row for $LABEL - record skipped"
   fi
+  git add data/timeseries_v8 outputs/timeseries_v8/ralph 2>/dev/null
+  git commit -q -m "loop(v8): record $LABEL [budget $(budget_used)/$MAX_BUDGET]" 2>/dev/null || true
+  # ADAPT-확정(3/3): 정지 판정의 정본은 status JSON 의 status 필드다.
+  # running 이외(blocked/hold/proxy_green/stop_loss_triggered/aborted)면 탐색 중단.
+  ST=$("$PY" "$HARNESS" status "$RUN_ID" 2>/dev/null | jfirst \
+    | "$PY" -c "import json,sys;print(json.load(sys.stdin).get('status',''))" 2>/dev/null)
+  [ "$ST" != "running" ] && { log "harness status=$ST -> MODE-B"; return 1; }
+  return 0
+}
 
-  # 4) 모드별 진행
-  if [ "$MODE" = "monitor" ]; then
-    now=$(date +%s)
-    if [ $((now - last_monitor_check)) -ge 86400 ]; then
-      log "monitor: daily hermetic tests"
-      if "$PY" -m pytest src/tests/test_multivariate_timeseries_v8.py -q -p no:cacheprovider >> "$LOG" 2>&1; then
-        log "monitor: tests green; holdout verdict $(cat "$LOOPDIR/holdout_verdict.json")"
-      else
-        log "monitor: TESTS FAILED - inspect"
-      fi
-      last_monitor_check=$now
-    fi
-    [ "${SMOKE:-0}" = "1" ] && { log "SMOKE cycle done (monitor)"; exit 0; }
-    sleep 3600; continue
-  fi
+run_mode_B(){
+  log "B: monitor cycle"
+  if [ "$DRY_RUN" = 1 ]; then log "DRY: ops_status/verify/pytest"; return 0; fi
+  "$PY" tools/ops_status.py            >> "$LOOPDIR/ops_status.log" 2>&1 || log "WARN ops_status failed"
+  "$PY" -m ai_fc timeseries-v8-verify  >> "$LOOPDIR/verify.log"    2>&1 || log "WARN verify failed"
+  ( cd src && "../$PY" -m pytest tests/test_multivariate_timeseries_v8.py -q ) \
+                                       >> "$LOOPDIR/hermetic.log"  2>&1 || log "WARN hermetic failed"
+  state B "monitor done | $(tail_note)"
+}
 
-  # explore: 예산 확인 후 큐에서 미실행 항목 실행
-  rows=$(grep -c . "$LEDGER" 2>/dev/null || echo 0)
-  if [ "$rows" -ge 24 ]; then log "explore: budget exhausted ($rows/24) - stopping"; exit 0; fi
-  item="$("$PY" - <<'EOF'
-import json
-from pathlib import Path
-ledger = Path("data/timeseries_v8/ledgers/development_experiments.jsonl")
-done = {json.loads(l)["experiment_label"] for l in ledger.read_text(encoding="utf-8").splitlines() if l} if ledger.is_file() else set()
-for line in Path("outputs/timeseries_v8/loop/queue.jsonl").read_text(encoding="utf-8").splitlines():
-    if not line.strip():
-        continue
-    item = json.loads(line)
-    if item["label"] not in done:
-        print(json.dumps(item))
-        break
-EOF
-)"
-  if [ -z "$item" ]; then log "explore: queue drained - champion stands; stopping"; exit 0; fi
-  label="$(echo "$item" | "$PY" -c "import json,sys;print(json.load(sys.stdin)['label'])")"
-  cfg="$(echo "$item" | "$PY" -c "import json,sys;print(json.dumps(json.load(sys.stdin)['config']))")"
-  log "explore: running $label"
-  [ "${SMOKE:-0}" = "1" ] && { log "SMOKE cycle done (would run $label)"; exit 0; }
-  if "$PY" -m ai_fc timeseries-v8-dev-backtest --label "$label" --config "$cfg" \
-      > "$LOOPDIR/run_${label}.json" 2>&1; then
-    summary="$("$PY" - <<EOF
-import json
-from pathlib import Path
-rows=[json.loads(l) for l in Path("$LEDGER").read_text(encoding="utf-8").splitlines() if l]
-r=rows[-1]; h=r["horizons"]
-lm=(float(h["21"]["crps_improvement_vs_best"])+float(h["63"]["crps_improvement_vs_best"]))/2
-print(f"{r['experiment_label']} long_mean={lm*100:+.2f}% proxy_pass={r['proxy']['pass']}")
-EOF
-)"
-    log "explore: done - $summary"
-  else
-    log "explore: $label FAILED - see run_${label}.json"
-    sleep 120
+# ---- MAIN LOOP ----
+N=0; LAST_B_TS=0
+while :; do
+  [ -f "$ABORT" ] && { log "ABORT file -> shutdown"; break; }
+  NOW=$(date +%s); [ "$NOW" -ge "$DEADLINE" ] && { log "deadline reached"; break; }
+  MODE=$(detect_mode); state "$MODE" "cycle start"
+  if [ "$MODE" = "W" ]; then
+    run_mode_W || MODE=B
+    SLEEP=$SLEEP_W
   fi
-  sleep 10
+  if [ "$MODE" = "A" ]; then
+    run_mode_A || MODE=B
+    SLEEP=$SLEEP_A
+  fi
+  if [ "$MODE" = "B" ]; then
+    if [ $(( NOW - LAST_B_TS )) -ge 86400 ] || [ "$SMOKE" = 1 ] || [ "$LAST_B_TS" = 0 ]; then
+      run_mode_B; LAST_B_TS=$NOW
+    fi
+    SLEEP=$SLEEP_B
+  fi
+  N=$((N+1)); [ "$MAX_CYCLES" != 0 ] && [ "$N" -ge "$MAX_CYCLES" ] && { log "MAX_CYCLES=$MAX_CYCLES reached"; break; }
+  sleep "$SLEEP"
 done
+state SHUTDOWN "clean exit after $N cycles"
+log "SHUTDOWN clean ($N cycles)"; rmdir "$LOCK" 2>/dev/null; exit 0
