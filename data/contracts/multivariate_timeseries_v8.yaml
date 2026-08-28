@@ -1,0 +1,234 @@
+schema_version: 1
+contract_id: multivariate_timeseries_v8
+model_id: shadow.mf_dfm_varx_calibrated_v8
+model_version: 8
+status: preregistered_research_draft
+# 이 계약은 dev 루프 종료 후 동결(freeze)되기 전까지 draft다. 동결 전에는
+# research_grids 안의 grid만 조정할 수 있고, v2_benchmark·windows·gates·
+# prohibitions·probability_contract는 draft 단계에서도 변경 금지다.
+freeze_note:
+  drafted_on: "2026-08-28"
+  frozen_on: null
+  historical_2019_plus: single_disclosure_with_semi_clean_caveat
+  first_true_sealed_evaluation: forward_shadow_after_this_freeze
+
+# ── 불변 predecessor: V2의 유효 봉인평가 (재열람 허용, 변경·재평가 금지) ──
+v2_benchmark:
+  model_id: shadow.mf_dfm_ridge_varx_v2
+  immutable: true
+  run_id: tsv2-backtest-f995c40e19ade197f3559b6e
+  content_hash: a67ba4b37f80323251a66f838979fe0d242bd6cbccad36af1d749cfb11c69001
+  contract_hash: 529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c
+  model_code_hash: bb225cbf963b095271452a669f7d8f1aa5eb29c8abda5a4ae1ed9ecd1d702c5c
+  selected_candidate: C1
+  gate_result: fail
+  retune_prohibited: true
+
+# ── 2019+ 준청정(semi-clean) 공개 사실의 명시 caveat ──
+disclosure_caveat:
+  v2_2019_scores_published_before_design: true
+  # V2 봉인평가가 2019+ per-origin 점수를 저장소에 공개했으므로, 어떤 후속
+  # 모델에게도 2019+는 완전 청정한 봉인이 아니다. v8의 일회성 2019+ 평가는
+  # 이 한계를 안고 수행되며, 다음 두 조건으로 방어된다.
+  candidate_selection_must_be_2019_blind: true       # 코드 경로가 구조적으로 차단
+  design_decisions_must_cite_dev_window_evidence: true
+  clean_validation_accrues_from: forward_shadow_only
+
+target:
+  series_id: NASDAQCOM
+  asset: NASDAQ Composite
+  transform: daily_log_return
+  stored_return_unit: fraction
+  display_price_unit: index
+  horizons_sessions: [1, 5, 21, 63]
+probability_contract:
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  space: research_timeseries_v8_conditional
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+
+# ── 데이터: V2 PIT 원장 read-only 상속 (복사·수정 금지) ──
+data_policy:
+  inherit_v2_pit_ledgers_read_only: true
+  v2_store_write: prohibited
+  grades: [native_pit, reconstructed_market_archive, captured_forward]
+  feature_bundle: v2_candidate_C1_readonly
+  # v8의 개선은 분포 계층(폭·위치·보정)에 있다. 특징 집합은 V2 봉인평가가
+  # 선택한 C1(core market + growth/inflation factor)을 그대로 재사용한다.
+  dfm_cache: v2_origin_cache_readonly
+
+model:
+  family: origin_pit_dfm_varx_with_calibrated_distribution
+  base_engine: v2_ridge_varx_frozen
+  # VARX 선택·적합·앙상블·bootstrap 좌표는 V2와 동일하게 동결 — v8의 연구
+  # 대상은 그 위의 분포 계층뿐이다. 중립 파라미터에서 v8은 V2를 비트 단위로
+  # 재현해야 한다 (E0 identity — 테스트로 강제).
+  varx:
+    endogenous: [nasdaq_return, vix_change, dgs2_change_bps, curve_change_bps, dollar_change]
+    lag_candidates: [1, 2, 5]
+    ridge_alpha_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+    standardization: training_window_robust_median_iqr
+    outlier_clipping: prohibited
+  ensemble:
+    scoring_window_origins: 52
+    minimum_weight: 0.25
+    maximum_weight: 0.75
+    insufficient_history_weights: {expanding: 0.5, rolling_10y: 0.5}
+  distribution:
+    development_path_count: 2000
+    sealed_path_count: 20000
+    block_length_candidates: [5, 10, 21]
+    ewma_lambda_candidates: [0.94, 0.97]
+    quantiles: [0.10, 0.25, 0.50, 0.75, 0.90]
+    seed_rule: sha256_model_version_and_as_of
+  windows:
+    warmup: [1996-01-01, 2006-12-31]
+    development: [2007-01-01, 2018-12-31]
+    design: [2007-01-01, 2014-12-31]
+    holdout: [2015-01-01, 2018-12-31]
+    development_truncation_after: 2019-04-30
+    sealed: [2019-01-01, latest]
+    rolling_sessions: 2520
+  sealed_evaluation:
+    maximum_disclosures_per_model_version: 1
+    retune_after_failure: prohibited
+    requires_explicit_user_signoff: true
+
+# ── 사전등록 연구 grid (dev 루프가 탐색 가능한 전부) ──
+research_grids:
+  B1_volatility_term_structure:
+    # s_h^2 = vbar + phi^h * (v_now - vbar); phi=identity 는 V2 재현(상수 스케일)
+    phi_candidates: [identity, 0.94, 0.97, 0.99, fitted_ar1]
+    unconditional_window_sessions: [1260, 2520]
+  B2_bounded_location_anchor:
+    # 시뮬레이션 누적수익 평균을 PIT 무조건 drift 쪽으로 유계 이동; omega=0 은 V2 재현
+    omega_by_horizon:
+      h1: [0.0]
+      h5: [0.0, 0.25]
+      h21: [0.0, 0.5, 0.75]
+      h63: [0.0, 0.75, 1.0]
+    sigma_cap_candidates: [0.25, 0.35]
+    mu_hat_window: [expanding, 2520]
+    forced_endpoint: prohibited
+  B3_baseline_convex_blend:
+    # 모델 경로와 historical simulation 경로의 convex 혼합; w=1 은 V2 재현
+    weight_by_horizon_candidates: [1.0, 0.75, 0.5]
+    cramer_distance_audit_required: true
+  B4_pit_recalibration:
+    map: isotonic_monotone
+    minimum_matured_origins: 104
+    shrinkage_to_identity: [0.25, 0.5]
+    purge_sessions: 63
+    embargo_sessions: 5
+  B5_fhs_long_horizon:
+    status: reserved_pending_E1_E2_results
+    standardization: trailing_vol_of_own_window
+
+# ── 실험 규율 ──
+development_protocol:
+  maximum_development_evaluations: 24
+  design_window_only_for_iteration: true
+  holdout_maximum_finalists: 3
+  holdout_single_scoring_per_finalist: true
+  comparison_method: paired_per_origin_differences_vs_current_best
+  experiment_ledger: data/timeseries_v8/ledgers/development_experiments.jsonl
+  ledger_append_only: true
+  preregistered_first_experiments: [E1_B1_alone, E2_B1_plus_B2, E3_cramer_distance_audit]
+  stop_loss:
+    # E1~E3 후 예상 최선 조합이 design mean(h21,h63) 개선 < +2% 이면 이
+    # 모델 패밀리로는 게이트 도달 불가로 판정하고 증거 메모와 함께 중단한다.
+    projected_design_improvement_minimum: 0.02
+    action_on_trigger: stop_and_report_evidence
+
+dev_gate_proxy:
+  design_long_horizon_mean_crps_min_improvement: 0.04
+  design_paired_bootstrap_ci90_upper_max: -0.0005
+  design_short_horizon_crps_max_underperformance: 0.01
+  design_p10_p90_coverage: [0.77, 0.83]
+  design_p25_p75_coverage: [0.46, 0.54]
+  design_gfc_regime_p10_p90_minimum: 0.72
+  holdout_long_horizon_mean_crps_min_improvement: 0.02
+  holdout_paired_bootstrap_ci90_upper_max: 0.0
+  pit_leakage_count: 0
+  receipt_linkage: 1.0
+
+evaluation:
+  outer_start: 2007-01-01
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  minimum_origins: 250
+  required_regimes: [great_financial_crisis_2008, pandemic_2020, tightening_2022]
+  baselines: [random_walk, drift_random_walk, ar1, gbm, historical_simulation, block_bootstrap]
+
+# ── publication_gate: V2에서 수치 무변경 복사 (완화 없음) ──
+publication_gate:
+  pit_leakage_count: 0
+  market_common_start_not_after: 2007-01-03
+  receipt_linkage: 1.0
+  short_horizon_crps_max_underperformance: 0.02
+  long_horizon_mean_crps_min_improvement: 0.02
+  long_horizon_stationary_bootstrap_ci_upper: 0.0
+  p10_p90_coverage: [0.76, 0.84]
+  p25_p75_coverage: [0.45, 0.55]
+  regime_p10_p90_minimum: 0.70
+  failure_surface: validation_pending_without_numbers
+
+# ── operational_gate: 수치 승계, 단 DTWEXBGS만 발행주기 정합 SLA로 명시 변경 ──
+operational_gate:
+  required_market_max_age_hours: 48
+  per_group_max_age_hours_override:
+    # 명시 변경(하이라이트): Fed H.10은 주간 발행이라 48h SLA가 구조적으로
+    # 불충족이다 (KNOWN_LIMITS 문서화). 216h = 발행주기(168h) + 이틀 여유.
+    DTWEXBGS_or_DTWEXB: 216
+  required_market_groups:
+    - [NASDAQCOM]
+    - [VIX]
+    - [DGS2]
+    - [DGS10]
+    - [DTWEXBGS, DTWEXB]
+  recent_origins: 26
+  crps_max_underperformance: 0.05
+  coverage_must_remain_in_publication_contract: true
+  failure_action: hide_new_numbers_validation_pending
+
+ralph:
+  local_only: true
+  branch_prefix: claude/timeseries-v8-ralph-
+  maximum_iterations: 50
+  maximum_hours: 24
+  same_blocker_limit: 3
+  secret_isolation: [FRED_API_KEY, GH_TOKEN, GITHUB_TOKEN, ANTHROPIC_API_KEY, .secrets]
+  objective: dev_gate_proxy
+  sealed_verb_invocation: abort
+  editable_scopes:
+    - data/contracts/multivariate_timeseries_v8.yaml
+    - src/ai_fc/timeseries_v8/
+    - src/tests/test_multivariate_timeseries_v8.py
+    - tools/ralph_timeseries_v8.py
+    - data/timeseries_v8/
+    - outputs/timeseries_v8/
+    - src/ai_fc/cli.py
+  protected_mutation_action: discard_iteration_and_stop
+
+promotion:
+  automatic_champion: false
+  minimum_shadow_sessions: 126
+  explicit_owner_approval: required
+
+prohibitions:
+  mutate_v2: true
+  retune_v2: true
+  v2_store_write: true
+  sealed_2019_access_during_development: true
+  dev_gate_threshold_relaxation: true
+  direct_index_level_training: true
+  forced_endpoint: true
+  future_actual_exogenous: true
+  silent_feature_drop: true
+  silent_normalization: true
+  official_ledger_write: true
+  scenario_v5_2_mutation: true
+  automatic_sealed_disclosure: true
+  automatic_main_self_modification_in_production: true
