@@ -34,6 +34,7 @@ from .model import (
     DistributionConfigV8,
     bounded_location_shift,
     cramer_distance,
+    fhs_horizon_samples,
     mixture_cdf_at,
     mixture_crps,
     mixture_quantile_function,
@@ -152,6 +153,21 @@ def walk_forward_dev_backtest_v8(
         rng = np.random.default_rng(seed + 1)
         for horizon in HORIZONS:
             samples = log_paths[:, horizon - 1]
+            if horizon in config.fhs_horizons:
+                # B5: the reported marginal at this horizon comes from the
+                # deterministic FHS reconstruction; the engine paths remain
+                # the source of path-level metrics and the ensemble history.
+                samples = fhs_horizon_samples(
+                    training_endog[:, 0],
+                    horizon=horizon,
+                    ewma_lambda=ewma_lambda,
+                    vol_projection=config.fhs_vol_projection,
+                    unconditional_window_sessions=config.unconditional_window_sessions,
+                    mu_hat_window_sessions=config.mu_hat_window_sessions,
+                    tilt_omega=config.fhs_tilt_omega,
+                    tilt_cap_sigma=config.fhs_tilt_cap_sigma,
+                    engine_mean=float(np.mean(log_paths[:, horizon - 1])),
+                )
             actual_daily = endog[forecast_start: forecast_start + horizon, 0]
             actual = float(np.sum(actual_daily))
             baselines = _baseline_samples_v2(

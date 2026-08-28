@@ -36,6 +36,7 @@ from ai_fc.timeseries_v8.model import (
     DistributionConfigV8,
     bounded_location_shift,
     cramer_distance,
+    fhs_horizon_samples,
     mixture_cdf_at,
     mixture_crps,
     mixture_quantile_function,
@@ -433,6 +434,93 @@ def test_config_grid_accepts_registered_and_rejects_unregistered(tmp_path: Path)
         {"unconditional_window_sessions": 999},
         {"pit_recalibration_shrinkage": 0.75},
         {"unknown_key": 1},
+    ):
+        with pytest.raises(TimeSeriesV8ContractError):
+            build_config_from_grids(contract, bad)
+
+
+# ── B5 filtered-historical-simulation long-horizon reconstruction ──────────
+
+def test_fhs_is_deterministic_and_recenters_on_the_pit_drift() -> None:
+    rng = np.random.default_rng(12)
+    returns = rng.normal(0.0006, 0.011, size=3000)
+    first = fhs_horizon_samples(returns, horizon=63, ewma_lambda=0.97)
+    second = fhs_horizon_samples(returns, horizon=63, ewma_lambda=0.97)
+    np.testing.assert_array_equal(first, second)
+    mu_hat = float(np.mean(returns))
+    # Homoskedastic input: the reconstruction is a recentered historical
+    # simulation, so its mean sits on the drift and its dispersion matches
+    # the raw windows to within EWMA noise.
+    assert float(np.mean(first)) == pytest.approx(mu_hat * 63, abs=5e-3)
+    raw_windows = np.convolve(returns, np.ones(63), mode="valid")
+    assert float(np.std(first)) == pytest.approx(float(np.std(raw_windows)), rel=0.25)
+
+
+def test_fhs_width_conditions_on_current_volatility() -> None:
+    rng = np.random.default_rng(13)
+    calm = rng.normal(0.0004, 0.008, size=2600)
+    stormy_tail = rng.normal(0.0, 0.030, size=120)
+    calm_then_storm = np.concatenate((calm, stormy_tail))
+    storm_then_calm = np.concatenate((stormy_tail, calm))
+    wide = fhs_horizon_samples(calm_then_storm, horizon=21, ewma_lambda=0.97)
+    narrow = fhs_horizon_samples(storm_then_calm, horizon=21, ewma_lambda=0.97)
+    assert float(np.std(wide)) > 2.0 * float(np.std(narrow))
+
+
+def test_fhs_tilt_is_bounded_and_requires_the_engine_mean() -> None:
+    rng = np.random.default_rng(14)
+    returns = rng.normal(0.0005, 0.012, size=2600)
+    base = fhs_horizon_samples(returns, horizon=63, ewma_lambda=0.97)
+    tilted = fhs_horizon_samples(
+        returns, horizon=63, ewma_lambda=0.97,
+        tilt_omega=0.5, tilt_cap_sigma=0.25, engine_mean=-0.50,
+    )
+    shift = float(np.mean(tilted) - np.mean(base))
+    spread = float(np.std(base, ddof=1))
+    assert shift < 0.0
+    assert abs(shift) <= 0.25 * spread + 1e-12
+    with pytest.raises(Exception):
+        fhs_horizon_samples(returns, horizon=63, ewma_lambda=0.97, tilt_omega=0.5)
+
+
+def test_walk_forward_fhs_replaces_only_registered_horizons() -> None:
+    sessions = 880
+    dates = _sessions(sessions)
+    endog, exog = _synthetic_market(sessions, seed=11)
+    common = dict(
+        dates=dates, endog=endog, exog=exog,
+        endog_names=("a", "b", "c", "d", "e"), exog_names=("x", "y"),
+        model_id="m", model_version=8,
+        outer_start=dates[800], outer_end=dates[805],
+        path_count=200, collect_cramer_audit=False,
+    )
+    plain, _ = walk_forward_dev_backtest_v8(config=DistributionConfigV8(), **common)
+    fhs, _ = walk_forward_dev_backtest_v8(
+        config=DistributionConfigV8(fhs_horizons=(21, 63)), **common,
+    )
+    plain_by = {(row.date, row.horizon): row for row in plain}
+    fhs_by = {(row.date, row.horizon): row for row in fhs}
+    assert set(plain_by) == set(fhs_by)
+    for key, row in fhs_by.items():
+        if key[1] in (1, 5):
+            assert row == plain_by[key]
+        else:
+            assert row.model_crps != plain_by[key].model_crps
+
+
+def test_fhs_grid_membership_is_enforced(tmp_path: Path) -> None:
+    contract = load_contract_v8(_root(tmp_path))
+    enabled = build_config_from_grids(contract, {
+        "fhs_horizons": [21, 63], "fhs_vol_projection": "current_ewma",
+        "fhs_tilt_omega": 0.25, "fhs_tilt_cap_sigma": 0.35,
+    })
+    assert enabled.fhs_horizons == (21, 63)
+    assert not enabled.is_v2_identity()
+    for bad in (
+        {"fhs_horizons": [5]},
+        {"fhs_vol_projection": "garch"},
+        {"fhs_tilt_omega": 0.9},
+        {"fhs_tilt_cap_sigma": 0.5},
     ):
         with pytest.raises(TimeSeriesV8ContractError):
             build_config_from_grids(contract, bad)

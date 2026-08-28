@@ -122,8 +122,19 @@ research_grids:
     purge_sessions: 63
     embargo_sessions: 5
   B5_fhs_long_horizon:
-    status: reserved_pending_E1_E2_results
+    # 2026-08-28 사용자 결정으로 활성화: E0~E5가 B1~B4 가족의 stop-loss를
+    # 확정한 뒤(장기 위치 동학 구조 결함), 예약 조건이 충족되어 grid를 상세
+    # 확정한다. h21/h63 분포를 반복 VARX 외삽 대신 표준화 historical window의
+    # 직접 재구성으로 생성한다. h1/h5는 검증된 기존 엔진을 유지한다.
+    status: activated_after_E5_stop_loss
+    horizons: [21, 63]
     standardization: trailing_vol_of_own_window
+    ewma_burn_in_sessions: 60
+    vol_projection: [current_ewma, term_structure_phi_0.97]
+    location_center: expanding_mu_hat
+    tilt_omega: [0.0, 0.25, 0.5]
+    tilt_cap_sigma: [0.25, 0.35]
+    path_level_metrics_remain_engine_based: true
 
 # ── 실험 규율 ──
 development_protocol:

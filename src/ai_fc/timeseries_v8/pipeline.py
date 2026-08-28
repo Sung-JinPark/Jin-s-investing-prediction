@@ -130,6 +130,24 @@ def build_config_from_grids(
             )
         recal = float(recal)
 
+    fhs_grid = grids["B5_fhs_long_horizon"]
+    fhs_horizons = tuple(int(h) for h in overrides.pop("fhs_horizons", ()))
+    if fhs_horizons:
+        if str(fhs_grid.get("status", "")).startswith("reserved"):
+            raise TimeSeriesV8ContractError("B5 is reserved and has not been activated")
+        allowed_horizons = {int(h) for h in fhs_grid["horizons"]}
+        if not set(fhs_horizons).issubset(allowed_horizons):
+            raise TimeSeriesV8ContractError(f"FHS horizons {fhs_horizons} are not preregistered")
+    fhs_vol = str(overrides.pop("fhs_vol_projection", "current_ewma"))
+    if fhs_vol not in [str(item) for item in fhs_grid["vol_projection"]]:
+        raise TimeSeriesV8ContractError(f"FHS vol projection {fhs_vol!r} is not preregistered")
+    fhs_tilt = float(overrides.pop("fhs_tilt_omega", 0.0))
+    if fhs_tilt not in [float(item) for item in fhs_grid["tilt_omega"]]:
+        raise TimeSeriesV8ContractError(f"FHS tilt omega {fhs_tilt} is not preregistered")
+    fhs_cap = float(overrides.pop("fhs_tilt_cap_sigma", 0.25))
+    if fhs_cap not in [float(item) for item in fhs_grid["tilt_cap_sigma"]]:
+        raise TimeSeriesV8ContractError(f"FHS tilt cap {fhs_cap} is not preregistered")
+
     if overrides:
         raise TimeSeriesV8ContractError(f"unknown config keys: {sorted(overrides)}")
     return DistributionConfigV8(
@@ -140,6 +158,10 @@ def build_config_from_grids(
         mu_hat_window_sessions=mu_window_value,
         blend_weight_by_horizon=blend,
         pit_recalibration_shrinkage=recal,
+        fhs_horizons=fhs_horizons,
+        fhs_vol_projection=fhs_vol,
+        fhs_tilt_omega=fhs_tilt,
+        fhs_tilt_cap_sigma=fhs_cap,
     )
 
 
