@@ -39,9 +39,27 @@
       "paired_mean": -0.000986196023692708,
       "proxy_pass": false,
       "recorded_at": "2026-08-28T06:08:08+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-4b1f6ff27e1b8decfa65",
+      "iteration": 5,
+      "label": "E10_fhs_blend_b4_gentle",
+      "paired_ci90_upper": 4.126031782398539e-05,
+      "paired_mean": -0.001265989425803749,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T06:34:46+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-b57483f270eeade22c25",
+      "iteration": 6,
+      "label": "E11_fhs_blend_b4_termvol",
+      "paired_ci90_upper": -0.00015783841800273124,
+      "paired_mean": -0.0009977188691444358,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T07:05:39+00:00"
     }
   ],
-  "iteration": 4,
+  "iteration": 6,
   "max_iterations": 18,
   "protected_hash": "bf4d21451d4b1a5ae1cfa29e59c2091a8007dd52c2e8abd4cc7c5c02071aaa42",
   "queue": [
