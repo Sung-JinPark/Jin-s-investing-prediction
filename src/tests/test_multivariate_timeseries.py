@@ -872,6 +872,34 @@ def test_source_hash_excludes_facts_after_the_knowledge_cutoff(tmp_path: Path) -
     )
 
 
+def test_source_hash_is_stable_when_a_post_cutoff_vintage_closes_prior_facts(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    append_facts(root, _close_vintage_intervals(root, [_fact(value=100.0)]))
+    cutoff = "2026-08-19T16:18:49+00:00"
+    recorded = _source_hash(root, knowledge_cutoff=cutoff)
+
+    revision = _fact(value=101.0).model_copy(update={
+        "available_at": "2026-08-22T13:30:00+00:00",
+        "vintage_start": "2026-08-22T13:30:00+00:00",
+        "source_revision_id": "NASDAQCOM:2026-08-22",
+    })
+    append_facts(root, _close_vintage_intervals(root, [revision]))
+
+    closed = [fact for fact in read_facts(root) if fact.vintage_start == "2020-01-03T13:30:00+00:00"]
+    assert closed and closed[0].vintage_end == "2026-08-22T13:30:00+00:00"
+    assert _source_hash(root, knowledge_cutoff=cutoff) == recorded
+
+
+def test_source_hash_retains_vintage_intervals_closed_before_the_cutoff(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    cutoff = "2026-08-19T16:18:49+00:00"
+    still_open = _fact(value=100.0)
+    closed_before_cutoff = _fact(value=100.0, vintage_end="2020-02-03T13:30:00+00:00")
+    assert _source_hash(root, [still_open], knowledge_cutoff=cutoff) != _source_hash(
+        root, [closed_before_cutoff], knowledge_cutoff=cutoff,
+    )
+
+
 def test_dynamic_factor_mq_consumes_monthly_and_quarterly_ragged_edge() -> None:
     facts: list[ObservationFact] = []
     monthly = (
