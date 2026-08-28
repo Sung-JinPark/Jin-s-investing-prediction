@@ -1,0 +1,44 @@
+{
+  "schema": "r6_sharpen_tilt_shadow_contract_revision_v1",
+  "revision": "1.1",
+  "registered_at": "2026-08-28T00:22:00Z",
+  "supersedes": {
+    "path": "data/timeseries_v7_r6/contracts/r6_sharpen_tilt_shadow_v1.json",
+    "sha256": "be226e9378f72fa85827516045bdf75969ac82934539a8889d775673f0634e3b"
+  },
+  "reason": "C3 audit inputs were omitted from v1 and were registered before any R6 candidate fit or output inspection.",
+  "frozen_contract_fields_unchanged": [
+    "model_id",
+    "probability_space",
+    "frozen_invariants",
+    "role_hashes",
+    "candidates",
+    "decision_gates",
+    "allowed_terminal_states",
+    "forbidden_claims"
+  ],
+  "appended_input_artifacts": {
+    "r5_standardized_residual_pool": {
+      "path": "outputs/timeseries_v7_r5/R5-M5/standardized_residual_pool.json",
+      "sha256": "4b07cde6fffd5257f60a48dc730214f4132ec2835c1df15a2adbbd99b2927ba1",
+      "allowed_role": "calibration_audit"
+    },
+    "r5_m1_calibration_scores": {
+      "path": "outputs/timeseries_v7_r5/R5-M1/calibration_paired_scores.parquet",
+      "sha256": "44b35f88128b655852a0b7e117ae8e93ed4286bed5e1822b30e27948a3095008",
+      "allowed_role": "calibration_audit"
+    },
+    "r5_m2_calibration_scores": {
+      "path": "outputs/timeseries_v7_r5/R5-M2/calibration_paired_scores.parquet",
+      "sha256": "3f4c15dfdb8950bca797ed573910306daa2e1ef5324ef55ed41c469e322312a2",
+      "allowed_role": "calibration_audit"
+    },
+    "r5_m3_calibration_scores": {
+      "path": "outputs/timeseries_v7_r5/R5-M3/calibration_paired_scores.parquet",
+      "sha256": "7c9b9c37395a1e0646ff88a091a92b1b972848eda72eb5f8faff603b2d7ab8e1",
+      "allowed_role": "calibration_audit"
+    }
+  },
+  "candidate_outputs_seen_before_registration": false,
+  "outer_rows_used": 0
+}

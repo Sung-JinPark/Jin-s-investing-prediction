@@ -1,0 +1,29 @@
+{
+  "schema": "r6_test_summary_v1",
+  "targeted": {
+    "command": "python -m pytest src/tests/timeseries_v7_r6 -q",
+    "return_code": 0,
+    "passed": 14,
+    "failed": 0
+  },
+  "full_collection": {
+    "command": "python -m pytest -q",
+    "return_code": 1,
+    "classification": "environment_dependency_problem",
+    "detail": "Collection stopped in three pre-existing V7-R4 tests because psycopg is not installed in the current Python environment.",
+    "code_defect_attributed_to_r6": false
+  },
+  "broad_without_unavailable_dependency_tests": {
+    "command": "python -m pytest -q --ignore=src/tests/timeseries_v7_r4/test_fred_vintage_cursor.py --ignore=src/tests/timeseries_v7_r4/test_pit_snapshot.py --ignore=src/tests/timeseries_v7_r4/test_r4_supervisor.py",
+    "return_code": 0,
+    "passed": 719,
+    "skipped": 30,
+    "failed": 0
+  },
+  "compileall": {
+    "command": "python -m compileall -q src/ai_fc/timeseries_v7_r6",
+    "return_code": 0
+  },
+  "dependency_changes": 0,
+  "outer_rows_used": 0
+}

@@ -2,7 +2,11 @@ import copy
 import json
 from pathlib import Path
 
-from ai_fc.timeseries_v7_r6.governance import protected_manifest, verify_inputs
+from ai_fc.timeseries_v7_r6.governance import (
+    load_active_contract,
+    protected_manifest,
+    verify_inputs,
+)
 
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -29,3 +33,22 @@ def test_protected_manifest_is_deterministic() -> None:
     second = protected_manifest(ROOT)
     assert first == second
     assert first["entry_count"] > 0
+
+
+def test_append_only_contract_revision_adds_inputs_without_changing_frozen_fields() -> None:
+    base = json.loads(CONTRACT.read_text(encoding="utf-8"))
+    active = load_active_contract(ROOT)
+    for field in (
+        "model_id",
+        "probability_space",
+        "frozen_invariants",
+        "role_hashes",
+        "candidates",
+        "decision_gates",
+        "allowed_terminal_states",
+        "forbidden_claims",
+    ):
+        assert active[field] == base[field]
+    assert set(active["input_artifacts"]) > set(base["input_artifacts"])
+    assert active["active_revision"]["revision"] == "1.1"
+    assert verify_inputs(ROOT, active)["all_matched"] is True
