@@ -82,7 +82,7 @@ jobs:
         run: python -m ai_fc timeseries-fit
       - name: Run the preregistered 2007+ rolling-origin evaluation
         if: steps.cadence.outputs.monthly == 'true'
-        run: python -m ai_fc timeseries-backtest --path-count 1000
+        run: python -m ai_fc timeseries-backtest --path-count 20000
       - name: Append latest shadow forecast or explicit validation-pending artifact
         run: python -m ai_fc timeseries-forecast
       - name: Resolve matured shadow forecasts

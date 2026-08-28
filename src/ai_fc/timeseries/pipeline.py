@@ -118,13 +118,23 @@ def _source_hash(
     root: Path, facts: list[Any] | None = None, *, knowledge_cutoff: str | None = None,
 ) -> str:
     material = facts if facts is not None else read_facts(root)
-    if knowledge_cutoff is not None:
-        cutoff = datetime.fromisoformat(knowledge_cutoff)
-        material = [
-            fact for fact in material
-            if datetime.fromisoformat(fact.available_at) <= cutoff
-        ]
-    return canonical_hash([fact.model_dump(mode="json") for fact in material])
+    if knowledge_cutoff is None:
+        return canonical_hash([fact.model_dump(mode="json") for fact in material])
+    cutoff = datetime.fromisoformat(knowledge_cutoff)
+    rows: list[dict[str, Any]] = []
+    for fact in material:
+        if datetime.fromisoformat(fact.available_at) > cutoff:
+            continue
+        row = fact.model_dump(mode="json")
+        # vintage_end is closed retroactively when the NEXT vintage arrives, so a
+        # post-cutoff closure is knowledge from after the cutoff. Masking it keeps
+        # this hash a pure function of what was knowable at the cutoff, so replay
+        # verification survives later append-only vintage arrivals.
+        vintage_end = row.get("vintage_end")
+        if vintage_end is not None and datetime.fromisoformat(vintage_end) > cutoff:
+            row["vintage_end"] = None
+        rows.append(row)
+    return canonical_hash(rows)
 
 
 def _validate_bundle(bundle: FeatureBundle, contract: dict[str, Any]) -> None:
