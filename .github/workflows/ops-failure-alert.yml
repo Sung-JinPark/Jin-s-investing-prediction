@@ -1,0 +1,42 @@
+name: ops-failure-alert
+
+# Deterministic failure surfacing for the two FRED refresh pipelines: when a
+# run fails, create or update one labeled issue so failures are visible
+# without watching the Actions tab. No LLM, no new secrets.
+
+on:
+  workflow_run:
+    workflows: [timeseries-refresh, timeseries-v2-refresh]
+    types: [completed]
+
+permissions:
+  issues: write
+  actions: read
+
+jobs:
+  alert:
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create or update the standing failure issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_STARTED: ${{ github.event.workflow_run.run_started_at }}
+        run: |
+          title="ops: ${RUN_NAME} 실패 감시"
+          body="- ${RUN_STARTED} [${RUN_EVENT}] 실패: ${RUN_URL}"
+          number="$(gh issue list --repo "$GITHUB_REPOSITORY" \
+            --label ops-failure --state open \
+            --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')"
+          if [ -n "$number" ]; then
+            gh issue comment "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+          else
+            gh label create ops-failure --repo "$GITHUB_REPOSITORY" \
+              --description "refresh pipeline failure" --color B60205 2>/dev/null || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --label ops-failure --body "$body"
+          fi
