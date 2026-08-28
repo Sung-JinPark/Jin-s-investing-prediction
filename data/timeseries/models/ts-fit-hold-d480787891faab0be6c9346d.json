@@ -1,0 +1,25 @@
+{
+  "as_of": "2026-08-21",
+  "content_hash": "b266ee9405cd6943cfc74850165fa388160d60463a7acf66056a3eadc24d334e",
+  "contract_hash": "6c86d4e2174eb6c387b25604a26cc7cd3e6577440fbf1a8ca4ca5f1fdf8d328b",
+  "factor_parameter_pit": {
+    "mode": "single_training_cutoff_filtered_history",
+    "origin_specific": false
+  },
+  "knowledge_cutoff": "2026-08-28T04:08:54+00:00",
+  "model_id": "shadow.mf_dfm_ridge_varx_v1",
+  "model_version": 1,
+  "reasons": [
+    "PIT common sample has fewer than 800 completed sessions"
+  ],
+  "run_id": "ts-fit-hold-d480787891faab0be6c9346d",
+  "schema_version": 1,
+  "source_hash": "9152d8b840e3b7281c4a79f0f93911b30549d2f5b535cf6768ddf66e78fc8a4b",
+  "status": "validation_hold",
+  "training": {
+    "end": "2026-08-21",
+    "missing_features": [],
+    "sessions": 745,
+    "start": "2023-08-24"
+  }
+}
