@@ -119,6 +119,17 @@ def build_config_from_grids(
             raise TimeSeriesV8ContractError(f"blend weight[h{horizon}]={value} is not preregistered")
         blend[horizon] = value
 
+    recal = overrides.pop("pit_recalibration_shrinkage", None)
+    if recal is not None:
+        allowed_shrinkage = [
+            float(item) for item in grids["B4_pit_recalibration"]["shrinkage_to_identity"]
+        ]
+        if float(recal) not in allowed_shrinkage:
+            raise TimeSeriesV8ContractError(
+                f"pit recalibration shrinkage {recal} is not preregistered"
+            )
+        recal = float(recal)
+
     if overrides:
         raise TimeSeriesV8ContractError(f"unknown config keys: {sorted(overrides)}")
     return DistributionConfigV8(
@@ -128,6 +139,7 @@ def build_config_from_grids(
         sigma_cap=sigma_cap,
         mu_hat_window_sessions=mu_window_value,
         blend_weight_by_horizon=blend,
+        pit_recalibration_shrinkage=recal,
     )
 
 
@@ -255,6 +267,9 @@ def dev_backtest_timeseries_v8(
         outer_start=outer_start,
         outer_end=outer_end,
         path_count=path_count,
+        pit_min_matured=int(
+            contract["research_grids"]["B4_pit_recalibration"]["minimum_matured_origins"]
+        ),
     )
     if window_role == "holdout":
         holdout_start, holdout_end = windows["holdout"]

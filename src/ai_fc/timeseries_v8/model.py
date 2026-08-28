@@ -48,6 +48,10 @@ class DistributionConfigV8:
     blend_weight_by_horizon: dict[int, float] = field(
         default_factory=lambda: {1: 1.0, 5: 1.0, 21: 1.0, 63: 1.0},
     )
+    # B4 — walk-forward monotone PIT recalibration fitted on matured past
+    # forecasts only.  None disables it (identity); the value is the
+    # preregistered shrinkage toward identity.
+    pit_recalibration_shrinkage: float | None = None
 
     def as_manifest(self) -> dict[str, Any]:
         return {
@@ -59,6 +63,7 @@ class DistributionConfigV8:
             "blend_weight_by_horizon": {
                 str(key): float(value) for key, value in sorted(self.blend_weight_by_horizon.items())
             },
+            "pit_recalibration_shrinkage": self.pit_recalibration_shrinkage,
         }
 
     def is_v2_identity(self) -> bool:
@@ -66,6 +71,7 @@ class DistributionConfigV8:
             self.phi is None
             and all(value == 0.0 for value in self.omega_by_horizon.values())
             and all(value == 1.0 for value in self.blend_weight_by_horizon.values())
+            and self.pit_recalibration_shrinkage is None
         )
 
 
@@ -315,18 +321,84 @@ def mixture_quantiles(
         return np.quantile(np.asarray(model_samples, dtype=float), quantiles)
     if w == 0.0:
         return np.quantile(np.asarray(baseline_samples, dtype=float), quantiles)
+    return mixture_quantile_function(
+        model_samples, baseline_samples, weight=w,
+        levels=np.asarray(quantiles, dtype=float),
+    )
+
+
+def mixture_quantile_function(
+    model_samples: np.ndarray,
+    baseline_samples: np.ndarray,
+    *,
+    weight: float,
+    levels: np.ndarray,
+) -> np.ndarray:
+    """Evaluate the weighted-mixture quantile function at arbitrary levels."""
+    w = float(weight)
+    if not 0.0 <= w <= 1.0:
+        raise TimeSeriesModelError(f"blend weight must be a fraction; observed {w}")
+    targets = np.asarray(levels, dtype=float)
+    if np.any(targets < 0.0) or np.any(targets > 1.0):
+        raise TimeSeriesModelError("quantile levels must be fractions")
     x = np.asarray(model_samples, dtype=float)
+    if w == 1.0:
+        return np.quantile(x, targets)
     y = np.asarray(baseline_samples, dtype=float)
+    if w == 0.0:
+        return np.quantile(y, targets)
     merged = np.concatenate((x, y))
     order = np.argsort(merged, kind="mergesort")
     values = merged[order]
     point_mass = np.where(order < len(x), w / len(x), (1.0 - w) / len(y))
     cdf = np.cumsum(point_mass)
-    results = np.empty(len(quantiles), dtype=float)
-    for index, q in enumerate(quantiles):
-        position = int(np.searchsorted(cdf, q, side="left"))
-        results[index] = values[min(position, len(values) - 1)]
-    return results
+    positions = np.minimum(np.searchsorted(cdf, targets, side="left"), len(values) - 1)
+    return values[positions]
+
+
+def mixture_cdf_at(
+    model_samples: np.ndarray,
+    baseline_samples: np.ndarray,
+    *,
+    weight: float,
+    value: float,
+) -> float:
+    """CDF of the weighted mixture evaluated at one point (the PIT value)."""
+    w = float(weight)
+    if not 0.0 <= w <= 1.0:
+        raise TimeSeriesModelError(f"blend weight must be a fraction; observed {w}")
+    model_part = float(np.mean(np.asarray(model_samples, dtype=float) <= value))
+    if w == 1.0:
+        return model_part
+    baseline_part = float(np.mean(np.asarray(baseline_samples, dtype=float) <= value))
+    return w * model_part + (1.0 - w) * baseline_part
+
+
+def recalibration_levels(
+    pit_history: np.ndarray,
+    *,
+    target_levels: np.ndarray,
+    shrinkage: float,
+) -> np.ndarray:
+    """Map target quantile levels through the inverse empirical PIT calibration.
+
+    With calibration map ``g = ecdf(past PITs)``, the recalibrated quantile at
+    level q is the predictive quantile at ``g^{-1}(q)``.  ``shrinkage`` pulls
+    that level back toward identity: ``u* = (1-s) g^{-1}(q) + s q``.  A
+    perfectly calibrated history (uniform PITs) leaves levels unchanged in
+    expectation, so the transform is anchored at identity.
+    """
+    s = float(shrinkage)
+    if not 0.0 <= s <= 1.0:
+        raise TimeSeriesModelError(f"shrinkage must be a fraction; observed {s}")
+    history = np.asarray(pit_history, dtype=float)
+    if history.ndim != 1 or not len(history):
+        raise TimeSeriesModelError("PIT history must be a non-empty vector")
+    if np.any(history < 0.0) or np.any(history > 1.0):
+        raise TimeSeriesModelError("PIT values must be fractions")
+    targets = np.asarray(target_levels, dtype=float)
+    inverted = np.quantile(history, targets)
+    return np.clip((1.0 - s) * inverted + s * targets, 0.0, 1.0)
 
 
 def experiment_id(config: DistributionConfigV8, *, bundle_hash: str, code_hash: str) -> str:

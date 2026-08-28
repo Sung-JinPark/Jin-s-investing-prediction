@@ -36,8 +36,11 @@ from ai_fc.timeseries_v8.model import (
     DistributionConfigV8,
     bounded_location_shift,
     cramer_distance,
+    mixture_cdf_at,
     mixture_crps,
+    mixture_quantile_function,
     mixture_quantiles,
+    recalibration_levels,
     simulate_calibrated_paths_v8,
     volatility_term_structure,
 )
@@ -330,6 +333,82 @@ def test_mixture_quantiles_weighted_point_masses() -> None:
     )
 
 
+# ── B4 walk-forward PIT recalibration ──────────────────────────────────────
+
+def test_recalibration_levels_identity_on_uniform_history() -> None:
+    rng = np.random.default_rng(4)
+    uniform = rng.uniform(0.0, 1.0, size=5000)
+    targets = np.asarray([0.10, 0.25, 0.50, 0.75, 0.90])
+    remapped = recalibration_levels(uniform, target_levels=targets, shrinkage=0.25)
+    np.testing.assert_allclose(remapped, targets, atol=0.02)
+
+
+def test_recalibration_sharpens_an_overdispersed_forecaster() -> None:
+    rng = np.random.default_rng(6)
+    # Forecaster claims N(0,2) while outcomes are N(0,1): PITs concentrate
+    # around 0.5 and the recalibrated 10-90 band must shrink toward the truth.
+    outcomes = rng.normal(0.0, 1.0, size=500)
+    from scipy.stats import norm
+    pits = norm.cdf(outcomes, scale=2.0)
+    samples = rng.normal(0.0, 2.0, size=4000)
+    midpoints = (np.arange(len(samples)) + 0.5) / len(samples)
+    remapped = recalibration_levels(pits, target_levels=midpoints, shrinkage=0.25)
+    recalibrated = np.quantile(np.sort(samples), remapped)
+    original_width = np.quantile(samples, 0.90) - np.quantile(samples, 0.10)
+    new_width = np.quantile(recalibrated, 0.90) - np.quantile(recalibrated, 0.10)
+    true_width = 2 * norm.ppf(0.90)
+    assert new_width < original_width
+    assert abs(new_width - true_width) < abs(original_width - true_width)
+    assert np.all(np.diff(np.sort(recalibrated)) >= 0.0)
+
+
+def test_recalibration_levels_reject_bad_inputs() -> None:
+    with pytest.raises(Exception):
+        recalibration_levels(np.asarray([0.5, 1.5]), target_levels=np.asarray([0.5]), shrinkage=0.25)
+    with pytest.raises(Exception):
+        recalibration_levels(np.asarray([]), target_levels=np.asarray([0.5]), shrinkage=0.25)
+    with pytest.raises(Exception):
+        recalibration_levels(np.asarray([0.5]), target_levels=np.asarray([0.5]), shrinkage=1.5)
+
+
+def test_mixture_quantile_function_and_cdf_are_consistent() -> None:
+    rng = np.random.default_rng(8)
+    x = rng.normal(0.0, 1.0, size=300)
+    y = rng.normal(1.0, 2.0, size=200)
+    levels = np.asarray([0.10, 0.50, 0.90])
+    np.testing.assert_array_equal(
+        mixture_quantile_function(x, y, weight=1.0, levels=levels),
+        np.quantile(x, levels),
+    )
+    np.testing.assert_array_equal(
+        mixture_quantile_function(x, y, weight=0.5, levels=levels),
+        mixture_quantiles(x, y, weight=0.5, quantiles=(0.10, 0.50, 0.90)),
+    )
+    value = mixture_quantile_function(x, y, weight=0.5, levels=np.asarray([0.5]))[0]
+    assert mixture_cdf_at(x, y, weight=0.5, value=value) == pytest.approx(0.5, abs=0.01)
+
+
+def test_walk_forward_pit_warmup_below_minimum_is_identity() -> None:
+    sessions = 880
+    dates = _sessions(sessions)
+    endog, exog = _synthetic_market(sessions, seed=11)
+    common = dict(
+        dates=dates, endog=endog, exog=exog,
+        endog_names=("a", "b", "c", "d", "e"), exog_names=("x", "y"),
+        model_id="m", model_version=8,
+        outer_start=dates[800], outer_end=dates[-1],
+        path_count=200, collect_cramer_audit=False,
+    )
+    plain, _ = walk_forward_dev_backtest_v8(config=DistributionConfigV8(), **common)
+    recal, summary = walk_forward_dev_backtest_v8(
+        config=DistributionConfigV8(pit_recalibration_shrinkage=0.25), **common,
+    )
+    # Only a handful of origins exist, far below the 104-matured minimum:
+    # the recalibration must not have fired and scores must be identical.
+    assert summary["pit_recalibrated_origins"] == {"1": 0, "5": 0, "21": 0, "63": 0}
+    assert recal == plain
+
+
 # ── preregistered grid enforcement ─────────────────────────────────────────
 
 def test_config_grid_accepts_registered_and_rejects_unregistered(tmp_path: Path) -> None:
@@ -341,15 +420,18 @@ def test_config_grid_accepts_registered_and_rejects_unregistered(tmp_path: Path)
         "omega_by_horizon": {21: 0.5, 63: 1.0},
         "sigma_cap": 0.35,
         "blend_weight_by_horizon": {21: 0.75, 63: 0.5},
+        "pit_recalibration_shrinkage": 0.25,
     })
     assert tuned.phi == 0.97
     assert tuned.omega_by_horizon[63] == 1.0
+    assert tuned.pit_recalibration_shrinkage == 0.25
     for bad in (
         {"phi": 0.5},
         {"omega_by_horizon": {63: 0.9}},
         {"sigma_cap": 0.5},
         {"blend_weight_by_horizon": {63: 0.25}},
         {"unconditional_window_sessions": 999},
+        {"pit_recalibration_shrinkage": 0.75},
         {"unknown_key": 1},
     ):
         with pytest.raises(TimeSeriesV8ContractError):

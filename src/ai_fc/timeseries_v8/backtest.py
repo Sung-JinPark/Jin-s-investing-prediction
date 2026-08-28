@@ -34,11 +34,19 @@ from .model import (
     DistributionConfigV8,
     bounded_location_shift,
     cramer_distance,
+    mixture_cdf_at,
     mixture_crps,
+    mixture_quantile_function,
     mixture_quantiles,
+    recalibration_levels,
     simulate_calibrated_paths_v8,
     volatility_term_structure,
 )
+
+# Purge plus embargo, in sessions: a past origin's PIT may inform the current
+# origin only after its longest target window has fully matured and cleared
+# the embargo (evaluation.purge_sessions 63 + embargo_sessions 5).
+PIT_MATURITY_SESSIONS = 68
 
 
 def walk_forward_dev_backtest_v8(
@@ -57,6 +65,7 @@ def walk_forward_dev_backtest_v8(
     initial_expanding_crps: tuple[float, ...] | list[float] = (),
     initial_rolling_crps: tuple[float, ...] | list[float] = (),
     collect_cramer_audit: bool = True,
+    pit_min_matured: int = 104,
 ) -> tuple[list[OriginScore], dict[str, Any]]:
     if outer_end < outer_start:
         raise TimeSeriesV8ContractError("evaluation window end precedes its start")
@@ -66,6 +75,8 @@ def walk_forward_dev_backtest_v8(
     ]
     scores: list[OriginScore] = []
     cramer_rows: dict[int, list[float]] = {h: [] for h in HORIZONS}
+    pit_history: dict[int, list[tuple[int, float]]] = {h: [] for h in HORIZONS}
+    recalibrated_counts: dict[int, int] = {h: 0 for h in HORIZONS}
     expanding_history = [float(value) for value in initial_expanding_crps]
     rolling_history = [float(value) for value in initial_rolling_crps]
     if len(expanding_history) != len(rolling_history):
@@ -148,22 +159,53 @@ def walk_forward_dev_backtest_v8(
             )
             model_only_crps = sample_crps(samples, actual)
             weight = float(config.blend_weight_by_horizon.get(horizon, 1.0))
+            historical_samples = baselines["historical_simulation"]
             if weight < 1.0 or collect_cramer_audit:
-                distance = cramer_distance(samples, baselines["historical_simulation"])
+                distance = cramer_distance(samples, historical_samples)
                 cramer_rows[horizon].append(distance)
             else:
                 distance = 0.0
-            if weight < 1.0:
-                historical_crps = sample_crps(baselines["historical_simulation"], actual)
+            matured_pits = [
+                value for index, value in pit_history[horizon]
+                if index + PIT_MATURITY_SESSIONS <= as_of_index
+            ]
+            recalibration_active = (
+                config.pit_recalibration_shrinkage is not None
+                and len(matured_pits) >= int(pit_min_matured)
+            )
+            if recalibration_active:
+                # B4: remap the final (post-blend) distribution through the
+                # inverse empirical PIT map of matured past forecasts.  PITs
+                # themselves are always taken from the pre-recalibration
+                # distribution below, so the map is never fitted on its own
+                # output.
+                midpoints = (np.arange(len(samples)) + 0.5) / len(samples)
+                remapped_levels = recalibration_levels(
+                    np.asarray(matured_pits, dtype=float),
+                    target_levels=midpoints,
+                    shrinkage=float(config.pit_recalibration_shrinkage),
+                )
+                final_samples = mixture_quantile_function(
+                    samples, historical_samples, weight=weight, levels=remapped_levels,
+                )
+                model_crps = sample_crps(final_samples, actual)
+                quantiles = np.quantile(final_samples, (0.10, 0.25, 0.50, 0.75, 0.90))
+                recalibrated_counts[horizon] += 1
+            elif weight < 1.0:
+                historical_crps = sample_crps(historical_samples, actual)
                 model_crps = mixture_crps(
                     model_only_crps, historical_crps, weight=weight, distance=distance,
                 )
                 quantiles = mixture_quantiles(
-                    samples, baselines["historical_simulation"], weight=weight,
+                    samples, historical_samples, weight=weight,
                 )
             else:
                 model_crps = model_only_crps
                 quantiles = np.quantile(samples, (0.10, 0.25, 0.50, 0.75, 0.90))
+            pit_history[horizon].append((
+                as_of_index,
+                mixture_cdf_at(samples, historical_samples, weight=weight, value=actual),
+            ))
             touch_actual = bool(np.min(np.exp(np.cumsum(actual_daily))) <= 0.90)
             touch_probability = float(
                 np.mean(np.min(index_paths[:, :horizon], axis=1) <= 0.90)
@@ -197,6 +239,9 @@ def walk_forward_dev_backtest_v8(
     summary["cramer_distance_mean"] = {
         str(horizon): (float(np.mean(rows)) if rows else None)
         for horizon, rows in cramer_rows.items()
+    }
+    summary["pit_recalibrated_origins"] = {
+        str(horizon): count for horizon, count in recalibrated_counts.items()
     }
     summary["config"] = config.as_manifest()
     summary["window"] = {"outer_start": outer_start, "outer_end": outer_end}
