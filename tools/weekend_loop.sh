@@ -86,10 +86,11 @@ budget_used(){ [ -f "$LEDGER" ] && grep -c . "$LEDGER" || echo 0; }
 big_python_alive(){
   HP=$(cat "$LOOPDIR/holdout.pid" 2>/dev/null || echo 0)
   if [ "$HP" != 0 ] && kill -0 "$HP" 2>/dev/null; then return 0; fi
-  # tasklist memory prints thousands separators ("871,856 K"): use the fixed
-  # column layout (//NH, no CSV) and strip separators before comparing.
-  tasklist //FI "IMAGENAME eq python.exe" //NH 2>/dev/null \
-    | awk 'NF>=3 {v=$(NF-1); gsub(/[^0-9]/,"",v); if (v+0>800000) f=1} END{exit !f}'
+  # Identify the scorer by its COMMAND LINE, never by memory size: the
+  # worker's RSS shrinks as it walks origins (4GB -> 600MB was observed),
+  # so any threshold heuristic eventually misreads a live scorer as dead
+  # and double-launches it.
+  powershell -NoProfile -Command 'if (Get-CimInstance Win32_Process | Where-Object { $_.Name -eq "python.exe" -and $_.CommandLine -match "role holdout" }) { exit 0 } else { exit 1 }' 2>/dev/null
 }
 
 run_mode_W(){
