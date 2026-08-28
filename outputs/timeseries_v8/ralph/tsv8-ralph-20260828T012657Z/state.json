@@ -1,0 +1,82 @@
+{
+  "blockers": {},
+  "created_at": "2026-08-28T01:26:57+00:00",
+  "deadline_epoch": 1787966817.6630242,
+  "frozen_hash": "beff53e347b55e7ee677540645c634543041de6d4270bb3af4e6770ed5cbbb10",
+  "history": [
+    {
+      "experiment_id": "tsv8-exp-61cee7b7fb7c41399534",
+      "iteration": 1,
+      "label": "E0_neutral_v2_identity",
+      "paired_ci90_upper": 0.011617608101582605,
+      "paired_mean": 0.004576502905572312,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T01:48:10+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-b3d95536b64d0aa07e20",
+      "iteration": 2,
+      "label": "E1_B1_phi_0.97",
+      "paired_ci90_upper": 0.012795391013552903,
+      "paired_mean": 0.005501399816336507,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T02:14:08+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-92d143bb7d6754e673c7",
+      "iteration": 3,
+      "label": "E1_B1_phi_fitted_ar1",
+      "paired_ci90_upper": 0.01165660469769953,
+      "paired_mean": 0.004592667868359065,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T02:42:32+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-d14ff19e83224ccb7796",
+      "iteration": 4,
+      "label": "E2b_B2_alone",
+      "paired_ci90_upper": 0.006271539918170486,
+      "paired_mean": 0.0020394288629679365,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T03:07:05+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-119ad198596318e0cf5f",
+      "iteration": 5,
+      "label": "E4_best_family_combo",
+      "paired_ci90_upper": 0.0014466123712151278,
+      "paired_mean": -0.00017566660032341725,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T03:33:18+00:00"
+    },
+    {
+      "experiment_id": "tsv8-exp-f4179db707c334a85b9d",
+      "iteration": 6,
+      "label": "E5_family_combo_with_B4",
+      "paired_ci90_upper": 0.001466201704440412,
+      "paired_mean": -0.0004916151793984416,
+      "proxy_pass": false,
+      "recorded_at": "2026-08-28T04:00:10+00:00"
+    }
+  ],
+  "iteration": 6,
+  "max_iterations": 24,
+  "protected_hash": "bf4d21451d4b1a5ae1cfa29e59c2091a8007dd52c2e8abd4cc7c5c02071aaa42",
+  "queue": [
+    {
+      "config": {
+        "omega_by_horizon": {
+          "21": 0.5,
+          "63": 0.75
+        },
+        "phi": 0.97,
+        "sigma_cap": 0.25
+      },
+      "label": "E2_B1_plus_B2"
+    }
+  ],
+  "run_id": "tsv8-ralph-20260828T012657Z",
+  "schema_version": 1,
+  "status": "stop_loss_triggered",
+  "stop_reason": "preregistered stop-loss: best measured in-grid family combination (E5) reaches +1.48% design mean(h21,h63) CRPS improvement, below the +2.0% projected_design_improvement_minimum; paired ci90 upper +0.00147 > -0.0005 and GFC coverage 0.667 < 0.72 also fail. action_on_trigger=stop_and_report_evidence; B5 activation is a user decision."
+}
