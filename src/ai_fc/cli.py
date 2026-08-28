@@ -268,6 +268,46 @@ def cmd_timeseries_v2_verify() -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("timeseries-v8-dev-backtest")
+def cmd_timeseries_v8_dev_backtest(
+    config_json: str = typer.Option("{}", "--config", help="사전등록 grid 내부의 config override JSON"),
+    label: str = typer.Option("", "--label", help="실험 라벨 (예: E1_B1_alone)"),
+    role: str = typer.Option("design", "--role", help="design 또는 holdout"),
+    parent: str | None = typer.Option(None, "--parent", help="비교 기준 experiment_id"),
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """V8 개발(2019-blind) 워크포워드 평가를 실행하고 실험 원장에 append한다."""
+    from .timeseries_v8.pipeline import dev_backtest_timeseries_v8
+
+    result = _timeseries_exit(
+        dev_backtest_timeseries_v8, config.ROOT,
+        config_overrides=json.loads(config_json), experiment_label=label,
+        window_role=role, parent_experiment_id=parent,
+        knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps({
+        "experiment_id": result["experiment_id"],
+        "experiment_label": result["experiment_label"],
+        "window_role": result["window_role"],
+        "config": result["config"],
+        "horizons": result["horizons"],
+        "paired_long_horizon": result["paired_long_horizon"],
+        "gfc_regime_coverage": result.get("gfc_regime_coverage"),
+        "proxy": result["proxy"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v8-verify")
+def cmd_timeseries_v8_verify() -> None:
+    """V8 사전등록·V2 predecessor 핀·실험 원장 규율을 fail-closed 검증한다."""
+    from .timeseries_v8.pipeline import verify_timeseries_v8
+
+    result = _timeseries_exit(verify_timeseries_v8, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v2-preflight")
 def cmd_timeseries_v2_preflight(
     knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
