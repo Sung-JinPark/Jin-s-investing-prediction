@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-08-28T13:04:39+00:00`
-- Latest completed NYSE day: `2026-08-27`
-- Result: accumulating 29 · frozen 1 · stalled 7 · inactive 5 · violation 0 · planned 3
+- Generated: `2026-08-29T08:00:14+00:00`
+- Latest completed NYSE day: `2026-08-28`
+- Result: accumulating 25 · frozen 1 · stalled 11 · inactive 5 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -16,15 +16,15 @@
 | `cost_ledger` | event | 1 / 14 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 26 | 2026-08-27 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
-| `scenario_latest` | trading_daily | 1 | 2026-08-27 | **accumulating** | — |
+| `scenario_latest` | trading_daily | 1 | 2026-08-27 | **stalled** | — |
 | `cross_asset_archive` | trading_daily | 24 | 2026-08-27 | **stalled** | missing trading days: 2026-08-04, 2026-08-25 |
-| `cross_asset_latest` | trading_daily | 1 | 2026-08-27 | **accumulating** | — |
+| `cross_asset_latest` | trading_daily | 1 | 2026-08-27 | **stalled** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 51 | 2026-08-27 | **accumulating** | — |
-| `scenario_band_calibration` | trading_daily | 1 / 136 | 2026-08-27 | **accumulating** | — |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 51 | 2026-08-27 | **stalled** | — |
+| `scenario_band_calibration` | trading_daily | 1 / 136 | 2026-08-27 | **stalled** | — |
 | `market_event_calendar` | event | 1 / 53 | 2026-08-04 | **accumulating** | — |
-| `signal_archive` | weekly | 6 | 2026-08-21 | **accumulating** | — |
-| `liquidity_archive` | weekly | 4 | 2026-08-21 | **accumulating** | — |
+| `signal_archive` | weekly | 7 | 2026-08-28 | **accumulating** | — |
+| `liquidity_archive` | weekly | 5 | 2026-08-28 | **accumulating** | — |
 | `rate_event_archive` | monthly | 19 | 2026-08-27 | **accumulating** | — |
 | `realty_rate_sensitivity_archive` | monthly | 19 | 2026-08-27 | **accumulating** | — |
 | `realty_dividends` | monthly | 1 / 343 | 2026-08-03 | **accumulating** | — |
@@ -47,7 +47,7 @@
 | `raw_receipts` | event | 0 | — | **planned** | — |
 | `quarantine` | event | 0 | — | **planned** | — |
 | `bitemporal_facts` | event | 0 | — | **planned** | — |
-| `forecast_timestamp_proof` | weekly | 1 | 2026-08-28 | **accumulating** | — |
+| `forecast_timestamp_proof` | weekly | 1 | 2026-08-29 | **accumulating** | — |
 | `research_pack` | monthly | 2 | — | **accumulating** | — |
 | `scenario_v5_2_distinctness_shadow` | trading_daily | 1 | — | **accumulating** | — |
 | `scenario_v5_2_sensitivity_grid` | event | 1 | — | **accumulating** | — |
