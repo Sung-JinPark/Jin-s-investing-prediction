@@ -431,15 +431,49 @@ def cmd_timeseries_v3_workbook() -> None:
     }, ensure_ascii=False, indent=2))
 
 
+def _v4_retrying_fetcher(fetch_once, *, attempts: int = 3, sleep=None):
+    """Wrap the sealed V4 fetcher with bounded retries on transport errors.
+
+    The V4 model code is hash-bound by its run record, so the operational
+    concern lives here at the CLI boundary: a single upstream read timeout
+    (2026-08-29 schedule run: fred_nasdaq100 "The read operation timed out")
+    must not fail the whole fail-closed weekly collection.  An HTTP error
+    status is a definitive upstream answer and is never retried; retries never
+    change what is stored — the payload is still receipted exactly once.
+    """
+    import http.client
+    import time as time_module
+    import urllib.error
+
+    if sleep is None:
+        sleep = time_module.sleep
+    transient = (TimeoutError, ConnectionError, http.client.HTTPException, urllib.error.URLError)
+
+    def fetch(url: str):
+        for attempt in range(1, attempts + 1):
+            try:
+                return fetch_once(url)
+            except urllib.error.HTTPError:
+                raise
+            except transient:
+                if attempt == attempts:
+                    raise
+                sleep(min(30.0, 2.0 * 2 ** (attempt - 1)))
+        raise RuntimeError("unreachable: attempts >= 1")  # pragma: no cover
+
+    return fetch
+
+
 @app.command("timeseries-v4-collect")
 def cmd_timeseries_v4_collect(
     volume_start_year: int = typer.Option(2009, "--volume-start-year", min=2009),
 ) -> None:
     """Collect the V4 official/public market and expectation archives raw-first."""
-    from .timeseries_v4.source_store import collect_v4_sources, export_v4_parquet
+    from .timeseries_v4.source_store import _fetch, collect_v4_sources, export_v4_parquet
 
     result = _timeseries_exit(
         collect_v4_sources, config.ROOT, volume_start_year=volume_start_year,
+        fetcher=_v4_retrying_fetcher(_fetch),
     )
     if result.get("ok"):
         result["parquet"] = _timeseries_exit(export_v4_parquet, config.ROOT)
