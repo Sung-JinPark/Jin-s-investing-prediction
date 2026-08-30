@@ -45,7 +45,14 @@ from ai_fc.timeseries_v8.model import (
     simulate_calibrated_paths_v8,
     volatility_term_structure,
 )
-from ai_fc.timeseries_v8.pipeline import build_config_from_grids, verify_timeseries_v8
+from ai_fc.timeseries_v8.artifact import append_holdout_scoring
+from ai_fc.timeseries_v8.pipeline import (
+    SEALED_LEDGER_RELATIVE,
+    TimeSeriesV8PipelineError,
+    _sealed_preconditions,
+    build_config_from_grids,
+    verify_timeseries_v8,
+)
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -569,10 +576,79 @@ def test_verify_flags_budget_ledger_and_premature_sealed_ledger(tmp_path: Path) 
     tampered = verify_timeseries_v8(root)
     assert tampered["ok"] is False
     assert any("hash mismatch" in error for error in tampered["errors"])
-    sealed = root / "data/timeseries_v8/ledgers/sealed_evaluations.jsonl"
+    sealed = root / SEALED_LEDGER_RELATIVE
     sealed.write_text("{}\n", encoding="utf-8")
+    # The repo contract is frozen with the R8-D2 sign-off, so a sealed ledger
+    # is legitimate; removing the freeze stamp must flag it again.
+    frozen_ok = verify_timeseries_v8(root)
+    assert not any("sealed" in error for error in frozen_ok["errors"])
+    contract_path = root / "data/contracts/multivariate_timeseries_v8.yaml"
+    payload = yaml.safe_load(contract_path.read_text(encoding="utf-8"))
+    payload["freeze_note"]["frozen_on"] = None
+    contract_path.write_text(yaml.safe_dump(payload, allow_unicode=True), encoding="utf-8")
     premature = verify_timeseries_v8(root)
     assert any("sealed" in error for error in premature["errors"])
+
+
+# ── sealed-evaluation preconditions ────────────────────────────────────────
+
+def _passing_holdout_row(contract: dict) -> dict:
+    manifest = build_config_from_grids(
+        contract, json.loads(json.dumps(contract["frozen_winner"]["config_overrides"])),
+    ).as_manifest()
+    return {
+        "schema_version": 1, "experiment_id": "tsv8-exp-holdoutpass000000000",
+        "experiment_label": "E10_holdout_scoring", "parent_experiment_id": None,
+        "window_role": "holdout",
+        "window": {"outer_start": "2007-01-01", "outer_end": "2018-12-31"},
+        "knowledge_cutoff": "2026-08-30T00:00:00+00:00",
+        "model_id": "shadow.mf_dfm_varx_calibrated_v8", "model_version": 8,
+        "contract_hash": "c" * 64, "model_code_hash": "d" * 64,
+        "bundle_hash": "e" * 64, "config": manifest, "path_count": 20000,
+        "horizons": {}, "paired_long_horizon": {"origin_count": 209, "mean": -0.0022,
+                                                "ci90": {"lower": -0.0033, "upper": -0.0011},
+                                                "best_baselines": {}},
+        "cramer_distance_mean": {}, "gfc_regime_coverage": None,
+        "proxy": {"window_role": "holdout", "checks": {}, "pass": True},
+    }
+
+
+def test_sealed_preconditions_enforce_every_gate(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    contract = load_contract_v8(root)
+    with pytest.raises(TimeSeriesV8PipelineError, match="sign-off"):
+        _sealed_preconditions(root, contract, user_signoff="  ", path_count=20000)
+    unfrozen = json.loads(json.dumps(contract))
+    unfrozen["freeze_note"]["frozen_on"] = None
+    with pytest.raises(TimeSeriesV8PipelineError, match="frozen"):
+        _sealed_preconditions(root, unfrozen, user_signoff="R8-D2 approved", path_count=20000)
+    with pytest.raises(TimeSeriesV8PipelineError, match="20000"):
+        _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=2000)
+    with pytest.raises(TimeSeriesV8PipelineError, match="holdout"):
+        _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
+    append_holdout_scoring(root, _passing_holdout_row(contract))
+    ready = _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
+    assert ready["config"].fhs_horizons == (21, 63)
+    (root / SEALED_LEDGER_RELATIVE).parent.mkdir(parents=True, exist_ok=True)
+    (root / SEALED_LEDGER_RELATIVE).write_text("{}\n", encoding="utf-8")
+    with pytest.raises(TimeSeriesV8PipelineError, match="already disclosed"):
+        _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
+
+
+def test_sealed_preconditions_reject_a_failed_or_mismatched_holdout(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    contract = load_contract_v8(root)
+    failed = _passing_holdout_row(contract)
+    failed["proxy"] = {"window_role": "holdout", "checks": {}, "pass": False}
+    append_holdout_scoring(root, failed)
+    with pytest.raises(TimeSeriesV8PipelineError, match="holdout"):
+        _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
+    mismatched = _passing_holdout_row(contract)
+    mismatched["experiment_id"] = "tsv8-exp-holdoutother0000000"
+    mismatched["config"] = {**mismatched["config"], "pit_recalibration_shrinkage": 0.25}
+    append_holdout_scoring(root, mismatched)
+    with pytest.raises(TimeSeriesV8PipelineError, match="holdout"):
+        _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
 
 
 # ── dev-gate proxy report ──────────────────────────────────────────────────

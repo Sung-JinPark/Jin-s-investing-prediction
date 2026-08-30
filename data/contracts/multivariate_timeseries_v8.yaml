@@ -2,15 +2,29 @@ schema_version: 1
 contract_id: multivariate_timeseries_v8
 model_id: shadow.mf_dfm_varx_calibrated_v8
 model_version: 8
-status: preregistered_research_draft
-# 이 계약은 dev 루프 종료 후 동결(freeze)되기 전까지 draft다. 동결 전에는
-# research_grids 안의 grid만 조정할 수 있고, v2_benchmark·windows·gates·
-# prohibitions·probability_contract는 draft 단계에서도 변경 금지다.
+status: frozen_for_sealed_evaluation
+# 동결 완료: 이후 이 계약의 어떤 좌표도 수정하지 않는다. 유일한 후속 기록은
+# append-only 원장(봉인평가·결정 영수증)뿐이다.
 freeze_note:
   drafted_on: "2026-08-28"
-  frozen_on: null
+  frozen_on: "2026-08-30"
   historical_2019_plus: single_disclosure_with_semi_clean_caveat
   first_true_sealed_evaluation: forward_shadow_after_this_freeze
+frozen_winner:
+  # E10: design +2.86% (전 coverage 게이트 밴드 내, GFC 0.782) →
+  # holdout(2015-2018, 1회 소모) +4.04%, CI90 상단 -0.00106 — proxy PASS.
+  design_experiment_id: tsv8-exp-4b1f6ff27e1b8decfa65
+  holdout_experiment_id: tsv8-exp-96a2c2b81657cfab8f91
+  config_overrides:
+    fhs_horizons: [21, 63]
+    blend_weight_by_horizon: {"21": 0.75, "63": 0.75}
+    pit_recalibration_shrinkage: 0.5
+  user_signoff:
+    date: "2026-08-30"
+    decision_id: R8-D2
+    scope: contract_freeze_and_single_sealed_2019_plus_evaluation
+    channel: claude_code_chat
+    note: "봉인평가도 연속으로 다 승인이니까 다 진행시켜"
 
 # ── 불변 predecessor: V2의 유효 봉인평가 (재열람 허용, 변경·재평가 금지) ──
 v2_benchmark:

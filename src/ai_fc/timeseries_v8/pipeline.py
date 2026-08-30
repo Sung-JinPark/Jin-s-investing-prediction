@@ -27,6 +27,7 @@ from ai_fc.timeseries_v2.pipeline import _rows_from_json, _rows_to_json
 from .artifact import (
     append_experiment,
     append_holdout_scoring,
+    append_unique,
     read_experiments,
     read_holdout_scorings,
 )
@@ -363,6 +364,196 @@ def _resummarize(rows: list[Any]) -> dict[str, Any]:
     return summarize_backtest_v2(list(rows), minimum_origins=1)
 
 
+SEALED_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/sealed_evaluations.jsonl")
+
+
+def _sealed_preconditions(
+    root: Path, contract: dict[str, Any], *, user_signoff: str, path_count: int,
+) -> dict[str, Any]:
+    """Fail closed unless every gate before the single disclosure is satisfied."""
+    if not str(user_signoff).strip():
+        raise TimeSeriesV8PipelineError(
+            "the sealed evaluation requires an explicit user sign-off string"
+        )
+    if not (contract.get("freeze_note") or {}).get("frozen_on"):
+        raise TimeSeriesV8PipelineError("the V8 contract is not frozen")
+    winner = contract.get("frozen_winner") or {}
+    if not winner.get("config_overrides"):
+        raise TimeSeriesV8PipelineError("no frozen winner configuration is registered")
+    if (winner.get("user_signoff") or {}).get("decision_id") != "R8-D2":
+        raise TimeSeriesV8PipelineError("the R8-D2 sign-off receipt is missing from the contract")
+    required_paths = int(contract["model"]["distribution"]["sealed_path_count"])
+    if int(path_count) != required_paths:
+        raise TimeSeriesV8PipelineError(
+            f"the sealed V8 evaluation requires exactly {required_paths} paths"
+        )
+    sealed = contract["model"]["sealed_evaluation"]
+    if int(sealed.get("maximum_disclosures_per_model_version", 1)) != 1:
+        raise TimeSeriesV8PipelineError("sealed disclosure budget drifted")
+    if (root / SEALED_LEDGER_RELATIVE).is_file():
+        raise TimeSeriesV8PipelineError("the single V8 sealed evaluation is already disclosed")
+    frozen_config = build_config_from_grids(contract, winner["config_overrides"])
+    holdouts = read_holdout_scorings(root)
+    matching = [
+        row for row in holdouts
+        if row.get("config") == frozen_config.as_manifest()
+        and (row.get("proxy") or {}).get("pass") is True
+    ]
+    if not matching:
+        raise TimeSeriesV8PipelineError(
+            "no passing holdout scoring exists for the frozen winner configuration"
+        )
+    return {"config": frozen_config, "holdout_row": matching[-1]}
+
+
+def _sealed_bundle(root: Path, contract_v8: dict[str, Any]) -> CandidateFeatureBundle:
+    """The full, untruncated C1 bundle — reachable only from the sealed verb."""
+    contract_v2 = load_contract_v2(root)
+    facts = read_facts(root)
+    assembly_cutoff = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    bundle = assemble_candidate_bundle(
+        root, contract=contract_v2, macro_facts=facts,
+        candidate_id="C1", knowledge_cutoff=assembly_cutoff,
+    )
+    tolerated = {"dfm_origin_cache_incomplete"}
+    blocking = [item for item in bundle.missing_features if item not in tolerated]
+    if blocking or not bundle.dates:
+        raise TimeSeriesV8PipelineError(
+            f"V2 C1 bundle unavailable: {', '.join(blocking) or 'insufficient sessions'}"
+        )
+    from ai_fc.timeseries_v2.contracts import frozen_hash as frozen_hash_v2
+    from ai_fc.timeseries_v2.dfm_cache import macro_release_cutoffs, read_dfm_manifest
+
+    expected = set(macro_release_cutoffs(
+        facts, start="2007-01-01", end=f"{bundle.dates[-1]}T23:59:59+00:00",
+    ))
+    ready = {
+        str(row["cutoff"]) for row in read_dfm_manifest(root)
+        if row.get("contract_hash") == frozen_hash_v2(contract_v2)
+        and row.get("status") == "ready"
+    }
+    missing_cutoffs = sorted(expected - ready)
+    if not expected or missing_cutoffs:
+        raise TimeSeriesV8PipelineError(
+            f"sealed-window DFM cache incomplete: {len(missing_cutoffs)} cutoff(s) missing"
+        )
+    if not np.isfinite(bundle.exogenous).all():
+        raise TimeSeriesV8PipelineError("sealed-window factor states contain gaps")
+    return bundle
+
+
+def sealed_backtest_timeseries_v8(
+    root: Path, *, user_signoff: str, knowledge_cutoff: str | None = None,
+    path_count: int = 20000,
+) -> dict[str, Any]:
+    """The single, user-approved 2019+ disclosure of the frozen winner.
+
+    This is never invoked by any loop or workflow: the contract prohibits
+    `automatic_sealed_disclosure`, and the CLI requires the sign-off string
+    to be passed explicitly on each invocation.
+    """
+    protected_before = protected_hashes(root)
+    contract = load_contract_v8(root)
+    verify_v2_benchmark(root, contract)
+    require_dfm_runtime()
+    pre = _sealed_preconditions(
+        root, contract, user_signoff=user_signoff, path_count=path_count,
+    )
+    config = pre["config"]
+    code_hash = model_code_hash(root)
+    contract_digest = frozen_hash(contract)
+    cutoff = knowledge_cutoff or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    bundle = _sealed_bundle(root, contract)
+    from ai_fc.timeseries_v2.backtest import summarize_backtest_v2
+    from ai_fc.timeseries_v2.contracts import runtime_manifest
+    from ai_fc.timeseries_v2.market_archive import verify_market_lineage
+
+    scores, _ = walk_forward_dev_backtest_v8(
+        dates=bundle.dates,
+        endog=bundle.endogenous,
+        exog=bundle.exogenous,
+        endog_names=bundle.endogenous_names,
+        exog_names=bundle.exogenous_names,
+        model_id=contract["model_id"],
+        model_version=int(contract["model_version"]),
+        config=config,
+        outer_start=str(contract["evaluation"]["outer_start"]),
+        outer_end=bundle.dates[-1],
+        path_count=path_count,
+        pit_min_matured=int(
+            contract["research_grids"]["B4_pit_recalibration"]["minimum_matured_origins"]
+        ),
+    )
+    minimum_origins = int(contract["evaluation"]["minimum_origins"])
+    full_summary = summarize_backtest_v2(scores, minimum_origins=minimum_origins)
+    sealed_start = str(contract["model"]["windows"]["sealed"][0])
+    sealed_scores = [row for row in scores if row.date >= sealed_start]
+    sealed_summary = summarize_backtest_v2(sealed_scores, minimum_origins=minimum_origins)
+    reasons = list(full_summary["reasons"])
+    # The 2008 regime necessarily precedes the sealed interval and stays
+    # enforced through the full summary, exactly as in the V2 disclosure.
+    reasons.extend(
+        f"봉인평가: {reason}" for reason in sealed_summary["reasons"]
+        if "great_financial_crisis_2008" not in reason
+    )
+    lineage = verify_market_lineage(root)
+    if lineage["receipt_linkage"] < 1.0:
+        reasons.append("market receipt linkage below 100%")
+    common_start_limit = str(contract["publication_gate"]["market_common_start_not_after"])
+    if not bundle.dates or bundle.dates[0] > common_start_limit:
+        reasons.append("2007년 검증을 위한 공통 시장 표본 미확보")
+    gate_pass = not reasons
+    protected_after = protected_hashes(root)
+    protected_comparison = compare_protected_hashes(protected_before, protected_after)
+    if not protected_comparison["ok"]:
+        raise TimeSeriesV8PipelineError(
+            f"protected path changed during the V8 sealed evaluation: {protected_comparison}"
+        )
+    seed = {
+        "model_id": contract["model_id"],
+        "contract_hash": contract_digest,
+        "model_code_hash": code_hash,
+        "config": config.as_manifest(),
+        "knowledge_cutoff": cutoff,
+        "path_count": int(path_count),
+    }
+    run_id = f"tsv8-sealed-{canonical_hash(seed)[:24]}"
+    payload = {
+        "schema_version": 1,
+        "run_id": run_id,
+        "model_id": contract["model_id"],
+        "model_version": int(contract["model_version"]),
+        "contract_hash": contract_digest,
+        "model_code_hash": code_hash,
+        "knowledge_cutoff": cutoff,
+        "config": config.as_manifest(),
+        "frozen_winner": {
+            "design_experiment_id": contract["frozen_winner"]["design_experiment_id"],
+            "holdout_experiment_id": contract["frozen_winner"]["holdout_experiment_id"],
+        },
+        "user_signoff": {
+            **(contract["frozen_winner"].get("user_signoff") or {}),
+            "invocation": str(user_signoff),
+        },
+        "sealed_disclosure_number": 1,
+        "development_window": contract["model"]["windows"]["development"],
+        "sealed_window": [sealed_start, bundle.dates[-1]],
+        "path_count": int(path_count),
+        "summary": {**full_summary, "gate_pass": gate_pass,
+                    "status": "pass" if gate_pass else "hold", "reasons": reasons},
+        "sealed_summary": sealed_summary,
+        "scores": _rows_to_json(scores),
+        "market_lineage": {key: lineage[key] for key in ("ok", "receipt_linkage")},
+        "evaluation_runtime": runtime_manifest(),
+        "protected_manifest": protected_after,
+        "protected_comparison": protected_comparison,
+    }
+    payload["content_hash"] = canonical_hash(payload)
+    _atomic_json(root / RUNS_RELATIVE / f"{run_id}.json", payload)
+    append_unique(root, SEALED_LEDGER_RELATIVE, payload, key="run_id")
+    return payload
+
+
 def load_dev_run(root: Path, identity: str) -> dict[str, Any]:
     path = root / RUNS_RELATIVE / f"dev_{identity}.json"
     payload = json.loads(path.read_text(encoding="utf-8"))
@@ -406,9 +597,12 @@ def verify_timeseries_v8(root: Path) -> dict[str, Any]:
             for row in experiments
         ):
             errors.append("non-finite paired mean in experiment ledger")
-    sealed_marker = root / "data/timeseries_v8/ledgers/sealed_evaluations.jsonl"
+    sealed_marker = root / SEALED_LEDGER_RELATIVE
     if sealed_marker.is_file():
-        errors.append("a V8 sealed ledger exists before contract freeze and user sign-off")
+        frozen = bool(((contract or {}).get("freeze_note") or {}).get("frozen_on"))
+        signoff = ((contract or {}).get("frozen_winner") or {}).get("user_signoff") or {}
+        if not (frozen and signoff.get("decision_id") == "R8-D2"):
+            errors.append("a V8 sealed ledger exists before contract freeze and user sign-off")
     return {
         "ok": not errors,
         "errors": errors,
