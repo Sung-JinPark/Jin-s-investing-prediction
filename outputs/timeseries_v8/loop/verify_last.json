@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_calibrated_v8",
+  "contract_hash": "7c56ee4eaa5697823c71c504e524354a70d643d20b555de69120f11ac55f785b",
+  "v2_benchmark": {
+    "run_id": "tsv2-backtest-f995c40e19ade197f3559b6e",
+    "content_hash": "a67ba4b37f80323251a66f838979fe0d242bd6cbccad36af1d749cfb11c69001",
+    "contract_hash": "529d2989bda19bcecd5925545325f38bf12e3b0cbc5500d6e0f99ab16fde593c",
+    "model_code_hash": "bb225cbf963b095271452a669f7d8f1aa5eb29c8abda5a4ae1ed9ecd1d702c5c"
+  },
+  "experiments": 12,
+  "holdout_scorings": 0,
+  "development_budget": 24
+}

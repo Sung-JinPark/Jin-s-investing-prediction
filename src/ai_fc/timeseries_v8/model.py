@@ -52,6 +52,13 @@ class DistributionConfigV8:
     # forecasts only.  None disables it (identity); the value is the
     # preregistered shrinkage toward identity.
     pit_recalibration_shrinkage: float | None = None
+    # B5 — filtered-historical-simulation reconstruction of the long-horizon
+    # marginals.  Empty tuple disables it (identity); path-level metrics
+    # (first touch) always remain engine-based.
+    fhs_horizons: tuple[int, ...] = ()
+    fhs_vol_projection: str = "current_ewma"
+    fhs_tilt_omega: float = 0.0
+    fhs_tilt_cap_sigma: float = 0.25
 
     def as_manifest(self) -> dict[str, Any]:
         return {
@@ -64,6 +71,10 @@ class DistributionConfigV8:
                 str(key): float(value) for key, value in sorted(self.blend_weight_by_horizon.items())
             },
             "pit_recalibration_shrinkage": self.pit_recalibration_shrinkage,
+            "fhs_horizons": [int(h) for h in self.fhs_horizons],
+            "fhs_vol_projection": self.fhs_vol_projection,
+            "fhs_tilt_omega": float(self.fhs_tilt_omega),
+            "fhs_tilt_cap_sigma": float(self.fhs_tilt_cap_sigma),
         }
 
     def is_v2_identity(self) -> bool:
@@ -72,6 +83,7 @@ class DistributionConfigV8:
             and all(value == 0.0 for value in self.omega_by_horizon.values())
             and all(value == 1.0 for value in self.blend_weight_by_horizon.values())
             and self.pit_recalibration_shrinkage is None
+            and not self.fhs_horizons
         )
 
 
@@ -399,6 +411,84 @@ def recalibration_levels(
     targets = np.asarray(target_levels, dtype=float)
     inverted = np.quantile(history, targets)
     return np.clip((1.0 - s) * inverted + s * targets, 0.0, 1.0)
+
+
+def _ewma_variance_series(returns: np.ndarray, decay: float) -> np.ndarray:
+    """The V2 EWMA variance recursion over a one-dimensional return series."""
+    squared = np.square(np.asarray(returns, dtype=float))
+    if squared.ndim != 1 or not len(squared):
+        raise TimeSeriesModelError("returns must be a non-empty vector")
+    variance = np.empty_like(squared)
+    variance[0] = max(float(squared[0]), 1e-16)
+    lam = float(decay)
+    for index in range(1, len(squared)):
+        variance[index] = lam * variance[index - 1] + (1.0 - lam) * squared[index - 1]
+    return variance
+
+
+def fhs_horizon_samples(
+    training_returns: np.ndarray,
+    *,
+    horizon: int,
+    ewma_lambda: float,
+    burn_in: int = 60,
+    vol_projection: str = "current_ewma",
+    term_structure_phi: float = 0.97,
+    unconditional_window_sessions: int = 2520,
+    mu_hat_window_sessions: int | None = None,
+    tilt_omega: float = 0.0,
+    tilt_cap_sigma: float = 0.25,
+    engine_mean: float | None = None,
+) -> np.ndarray:
+    """B5: reconstruct the h-session return distribution from history.
+
+    Overlapping h-session historical window sums are standardized by the EWMA
+    volatility prevailing at each window's own start, then recomposed at the
+    origin's projected volatility around the PIT unconditional drift, with an
+    optional bounded tilt toward the engine's conditional mean.  Everything is
+    a deterministic function of the training window — no random draws, no
+    iterated extrapolation, and the worst case collapses to a recentered
+    historical simulation.
+    """
+    returns = np.asarray(training_returns, dtype=float)
+    if returns.ndim != 1 or len(returns) < max(800, horizon + burn_in + 30):
+        raise TimeSeriesModelError("insufficient training history for FHS reconstruction")
+    if horizon <= 0 or burn_in < 0:
+        raise TimeSeriesModelError("horizon and burn-in must be positive")
+    omega = float(tilt_omega)
+    if not 0.0 <= omega <= 1.0:
+        raise TimeSeriesModelError(f"tilt omega must be a fraction; observed {omega}")
+    variance = _ewma_variance_series(returns, ewma_lambda)
+    window_sums = np.convolve(returns, np.ones(horizon), mode="valid")
+    start_vol = np.sqrt(np.maximum(variance[: len(window_sums)], 1e-16))
+    keep = np.arange(len(window_sums)) >= int(burn_in)
+    if mu_hat_window_sessions is not None:
+        mu_source = returns[-int(mu_hat_window_sessions):]
+    else:
+        mu_source = returns
+    mu_hat = float(np.mean(mu_source))
+    z_scores = (window_sums[keep] - mu_hat * horizon) / (start_vol[keep] * np.sqrt(horizon))
+    v_now = float(variance[-1])
+    if vol_projection == "current_ewma":
+        projected_variance = v_now
+    elif vol_projection == "term_structure_phi_0.97":
+        window = min(int(unconditional_window_sessions), len(returns))
+        v_bar = max(float(np.mean(np.square(returns[-window:]))), 1e-16)
+        phi = float(term_structure_phi)
+        steps = np.arange(1, horizon + 1, dtype=float)
+        projected_variance = float(np.mean(v_bar + np.power(phi, steps) * (v_now - v_bar)))
+    else:
+        raise TimeSeriesModelError(f"unknown FHS vol projection: {vol_projection}")
+    sigma_projected = math.sqrt(max(projected_variance, 1e-16))
+    dispersion = z_scores * sigma_projected * math.sqrt(horizon)
+    center = mu_hat * horizon
+    if omega > 0.0:
+        if engine_mean is None:
+            raise TimeSeriesModelError("engine mean is required for a non-zero FHS tilt")
+        spread = float(np.std(dispersion, ddof=1))
+        bound = float(tilt_cap_sigma) * max(spread, 1e-12)
+        center += float(np.clip(omega * (float(engine_mean) - center), -bound, bound))
+    return center + dispersion
 
 
 def experiment_id(config: DistributionConfigV8, *, bundle_hash: str, code_hash: str) -> str:

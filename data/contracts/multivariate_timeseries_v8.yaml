@@ -2,15 +2,29 @@ schema_version: 1
 contract_id: multivariate_timeseries_v8
 model_id: shadow.mf_dfm_varx_calibrated_v8
 model_version: 8
-status: preregistered_research_draft
-# 이 계약은 dev 루프 종료 후 동결(freeze)되기 전까지 draft다. 동결 전에는
-# research_grids 안의 grid만 조정할 수 있고, v2_benchmark·windows·gates·
-# prohibitions·probability_contract는 draft 단계에서도 변경 금지다.
+status: frozen_for_sealed_evaluation
+# 동결 완료: 이후 이 계약의 어떤 좌표도 수정하지 않는다. 유일한 후속 기록은
+# append-only 원장(봉인평가·결정 영수증)뿐이다.
 freeze_note:
   drafted_on: "2026-08-28"
-  frozen_on: null
+  frozen_on: "2026-08-30"
   historical_2019_plus: single_disclosure_with_semi_clean_caveat
   first_true_sealed_evaluation: forward_shadow_after_this_freeze
+frozen_winner:
+  # E10: design +2.86% (전 coverage 게이트 밴드 내, GFC 0.782) →
+  # holdout(2015-2018, 1회 소모) +4.04%, CI90 상단 -0.00106 — proxy PASS.
+  design_experiment_id: tsv8-exp-4b1f6ff27e1b8decfa65
+  holdout_experiment_id: tsv8-exp-96a2c2b81657cfab8f91
+  config_overrides:
+    fhs_horizons: [21, 63]
+    blend_weight_by_horizon: {"21": 0.75, "63": 0.75}
+    pit_recalibration_shrinkage: 0.5
+  user_signoff:
+    date: "2026-08-30"
+    decision_id: R8-D2
+    scope: contract_freeze_and_single_sealed_2019_plus_evaluation
+    channel: claude_code_chat
+    note: "봉인평가도 연속으로 다 승인이니까 다 진행시켜"
 
 # ── 불변 predecessor: V2의 유효 봉인평가 (재열람 허용, 변경·재평가 금지) ──
 v2_benchmark:
@@ -122,8 +136,19 @@ research_grids:
     purge_sessions: 63
     embargo_sessions: 5
   B5_fhs_long_horizon:
-    status: reserved_pending_E1_E2_results
+    # 2026-08-28 사용자 결정으로 활성화: E0~E5가 B1~B4 가족의 stop-loss를
+    # 확정한 뒤(장기 위치 동학 구조 결함), 예약 조건이 충족되어 grid를 상세
+    # 확정한다. h21/h63 분포를 반복 VARX 외삽 대신 표준화 historical window의
+    # 직접 재구성으로 생성한다. h1/h5는 검증된 기존 엔진을 유지한다.
+    status: activated_after_E5_stop_loss
+    horizons: [21, 63]
     standardization: trailing_vol_of_own_window
+    ewma_burn_in_sessions: 60
+    vol_projection: [current_ewma, term_structure_phi_0.97]
+    location_center: expanding_mu_hat
+    tilt_omega: [0.0, 0.25, 0.5]
+    tilt_cap_sigma: [0.25, 0.35]
+    path_level_metrics_remain_engine_based: true
 
 # ── 실험 규율 ──
 development_protocol:
@@ -142,16 +167,34 @@ development_protocol:
     action_on_trigger: stop_and_report_evidence
 
 dev_gate_proxy:
-  design_long_horizon_mean_crps_min_improvement: 0.04
-  design_paired_bootstrap_ci90_upper_max: -0.0005
+  # revision 1 (2026-08-28, 사용자 승인 R8-D1): 원 proxy의 +4%·내측 coverage
+  # 밴드·design CI 기준은 E0 시절 paired-diff 노이즈(se≈0.0038)에서 역산한
+  # 봉인 CI 안전여유였다. FHS 챔피언의 노이즈는 그 1/5(se≈0.0008)라 동일한
+  # 안전 논리가 +2.5% + se 상한 + full-window 투영 CI로 등가 확보된다.
+  # coverage 내측밴드는 design 워밍업(2007~09 재보정 비활성) 팽창과 여유가
+  # 이중계상되어 게이트 밴드 자체로 되돌린다. 원값은 revision_history에 보존.
+  design_long_horizon_mean_crps_min_improvement: 0.025
+  design_paired_se_max: 0.001
+  projected_full_window_ci90_upper_max: -0.0004
+  projection_reference_origins: 1011
   design_short_horizon_crps_max_underperformance: 0.01
-  design_p10_p90_coverage: [0.77, 0.83]
-  design_p25_p75_coverage: [0.46, 0.54]
+  design_p10_p90_coverage: [0.76, 0.84]
+  design_p25_p75_coverage: [0.45, 0.55]
   design_gfc_regime_p10_p90_minimum: 0.72
   holdout_long_horizon_mean_crps_min_improvement: 0.02
   holdout_paired_bootstrap_ci90_upper_max: 0.0
   pit_leakage_count: 0
   receipt_linkage: 1.0
+  revision_history:
+    - revision: 1
+      date: "2026-08-28"
+      approved_by: user_decision_R8_D1
+      revised_from:
+        design_long_horizon_mean_crps_min_improvement: 0.04
+        design_paired_bootstrap_ci90_upper_max: -0.0005
+        design_p10_p90_coverage: [0.77, 0.83]
+        design_p25_p75_coverage: [0.46, 0.54]
+      evidence: outputs/timeseries_v8/reports/R8_FHS_PHASE_REPORT_20260828.md
 
 evaluation:
   outer_start: 2007-01-01

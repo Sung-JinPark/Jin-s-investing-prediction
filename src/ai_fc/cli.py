@@ -297,6 +297,28 @@ def cmd_timeseries_v8_dev_backtest(
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v8-backtest")
+def cmd_timeseries_v8_backtest(
+    user_signoff: str = typer.Option(..., "--user-signoff", help="명시적 사용자 승인 문구 (R8-D2)"),
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+    path_count: int = typer.Option(20000, "--path-count", min=20000, max=20000),
+) -> None:
+    """동결된 승자의 일회성 2019+ 봉인평가를 실행한다 (사용자 사인오프 필수)."""
+    from .timeseries_v8.pipeline import sealed_backtest_timeseries_v8
+
+    result = _timeseries_exit(
+        sealed_backtest_timeseries_v8, config.ROOT,
+        user_signoff=user_signoff, knowledge_cutoff=knowledge_cutoff,
+        path_count=path_count,
+    )
+    typer.echo(json.dumps({
+        "run_id": result["run_id"],
+        "gate_pass": result["summary"]["gate_pass"],
+        "reasons": result["summary"]["reasons"],
+        "sealed_window": result["sealed_window"],
+    }, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-v8-verify")
 def cmd_timeseries_v8_verify() -> None:
     """V8 사전등록·V2 predecessor 핀·실험 원장 규율을 fail-closed 검증한다."""

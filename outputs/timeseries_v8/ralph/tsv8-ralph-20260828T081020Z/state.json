@@ -1,0 +1,75 @@
+{
+  "blockers": {},
+  "created_at": "2026-08-28T08:10:20+00:00",
+  "deadline_epoch": 1788163820.350268,
+  "frozen_hash": "7c56ee4eaa5697823c71c504e524354a70d643d20b555de69120f11ac55f785b",
+  "history": [],
+  "iteration": 0,
+  "max_iterations": 12,
+  "protected_hash": "bf4d21451d4b1a5ae1cfa29e59c2091a8007dd52c2e8abd4cc7c5c02071aaa42",
+  "queue": [
+    {
+      "config": {
+        "blend_weight_by_horizon": {
+          "21": 0.75,
+          "63": 0.5
+        },
+        "fhs_horizons": [
+          21,
+          63
+        ],
+        "pit_recalibration_shrinkage": 0.5
+      },
+      "label": "W1_blend_h21_75_h63_50"
+    },
+    {
+      "config": {
+        "blend_weight_by_horizon": {
+          "21": 0.5,
+          "63": 0.75
+        },
+        "fhs_horizons": [
+          21,
+          63
+        ],
+        "pit_recalibration_shrinkage": 0.5
+      },
+      "label": "W2_blend_h21_50_h63_75"
+    },
+    {
+      "config": {
+        "blend_weight_by_horizon": {
+          "21": 0.75,
+          "63": 0.75
+        },
+        "fhs_horizons": [
+          21,
+          63
+        ],
+        "fhs_tilt_cap_sigma": 0.35,
+        "fhs_tilt_omega": 0.25,
+        "pit_recalibration_shrinkage": 0.5
+      },
+      "label": "W3_tilt_blend_b4"
+    },
+    {
+      "config": {
+        "blend_weight_by_horizon": {
+          "21": 0.75,
+          "63": 0.75
+        },
+        "fhs_horizons": [
+          21,
+          63
+        ],
+        "mu_hat_window_sessions": 2520,
+        "pit_recalibration_shrinkage": 0.5
+      },
+      "label": "W4_mu_hat_10y"
+    }
+  ],
+  "run_id": "tsv8-ralph-20260828T081020Z",
+  "schema_version": 1,
+  "status": "running",
+  "stop_reason": null
+}

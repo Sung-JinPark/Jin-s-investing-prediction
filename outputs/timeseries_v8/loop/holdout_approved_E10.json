@@ -1,0 +1,2 @@
+{"approved": "R8-D1 user decision 2026-08-28", "role": "holdout", "label": "E10_holdout_scoring",
+ "config": {"fhs_horizons": [21, 63], "blend_weight_by_horizon": {"21": 0.75, "63": 0.75}, "pit_recalibration_shrinkage": 0.5}}
