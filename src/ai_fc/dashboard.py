@@ -800,6 +800,32 @@ def _compact_embed_forecast_history(read_model: dict) -> dict:
     return compacted
 
 
+def _compact_embed_band_calibration(read_model: dict) -> dict:
+    """Archive raw band-calibration rows out of the standalone snapshot.
+
+    The dashboard UI renders only the aggregate promotion-gate counters
+    (status/observations/gate_pass), never the per-day rows, so the embed
+    keeps every rendered figure while the row-level ledger stays published
+    unchanged in the Pages ``data.json`` payload, the ``/api/data`` route and
+    the immutable source CSV referenced by ``source_path``.  This mirrors the
+    resolved-forecast-body archival: transport changes, information does not.
+    """
+    band = read_model.get("band_calibration")
+    if not isinstance(band, dict) or "rows" not in band:
+        return read_model
+    compacted = dict(read_model)
+    archived = {key: value for key, value in band.items() if key != "rows"}
+    archived["rows_archived"] = {
+        "archived": True,
+        "row_count": len(band.get("rows") or []),
+        "reason": "embed_size_budget",
+        "source_path": band.get("source_path"),
+        "full_payload": "data.json",
+    }
+    compacted["band_calibration"] = archived
+    return compacted
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
@@ -833,6 +859,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
         read_model = _compact_embed_forecast_history(read_model)
+        read_model = _compact_embed_band_calibration(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
         blob = json.dumps(
