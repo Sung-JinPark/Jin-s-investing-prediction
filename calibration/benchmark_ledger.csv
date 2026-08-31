@@ -5,3 +5,6 @@ resolved_date,question_id,forecast_id,llm_prob,llm_brier,ml_prob,ml_brier,market
 2026-07-31,fomc-2026-07-29-hike,2026-07-15_fomc-2026-07-29-hike_r2,0.03,0.0009,,,,,,,
 2026-07-31,fomc-2026-07-29-hike,2026-07-15_fomc-2026-07-29-hike_r3,0.12,0.0144,,,,,,,
 2026-07-31,fomc-2026-07-29-hike,2026-07-20_fomc-2026-07-29-hike_r4,0.06,0.0036,,,5.0,25.0,,2026-07-20,
+2026-08-31,nfp-jul2026-below100k,2026-07-20_nfp-jul2026-below100k_r1,0.38,0.3844,,,,,,,
+2026-08-31,nvda-dc-beat-2026aug,2026-07-08_nvda-dc-beat-2026aug_r1,0.11,0.0121,,,,,,,
+2026-08-31,nvda-dc-beat-2026aug,2026-07-15_nvda-dc-beat-2026aug_r2,0.2,0.04,,,,,,,

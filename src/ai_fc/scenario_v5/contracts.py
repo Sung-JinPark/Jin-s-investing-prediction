@@ -69,6 +69,27 @@ RUNTIME_AUXILIARY_REFRESH_PATHS = frozenset({
     "forecasts/.hashes.ots",
 })
 
+# ``protected_before`` snapshots the whole audit surface (164 files), but the
+# candidate's actual inputs are the files listed in ``source_hashes`` -- every
+# one of them under ``data/``.  The calibration ledgers and the question
+# registry are audited alongside, never consumed: the candidate payload
+# contains no question_id and no brier, and the V5.2 engine never opens either
+# file.  Appending a resolution row or flipping a question's status therefore
+# cannot move a number in the candidate, yet it closed the runtime gate and
+# silently degraded the dashboard's future surface until the next automated
+# rebuild.  Their own integrity is enforced by ``sync --check`` and
+# ``audit-ledgers --check`` as separate CI steps, so disclosing these rather
+# than failing on them costs no tamper coverage.  Deletion stays fail-closed.
+NON_INPUT_PROTECTED_PREFIXES = ("calibration/", "questions/")
+
+
+def _is_runtime_auxiliary(path: str) -> bool:
+    """True when a change to ``path`` cannot alter a candidate's numbers."""
+    return (
+        path in RUNTIME_AUXILIARY_REFRESH_PATHS
+        or path.startswith(NON_INPUT_PROTECTED_PREFIXES)
+    )
+
 
 def load_contracts(root: Path) -> dict[str, Any]:
     result: dict[str, Any] = {}
@@ -212,12 +233,8 @@ def compare_protected_append_only(
     added = sorted(set(new) - set(old))
     removed = sorted(set(old) - set(new))
     all_changed = sorted(path for path in set(old) & set(new) if old[path] != new[path])
-    refreshed_auxiliary = [
-        path for path in all_changed if path in RUNTIME_AUXILIARY_REFRESH_PATHS
-    ]
-    changed = [
-        path for path in all_changed if path not in RUNTIME_AUXILIARY_REFRESH_PATHS
-    ]
+    refreshed_auxiliary = [path for path in all_changed if _is_runtime_auxiliary(path)]
+    changed = [path for path in all_changed if not _is_runtime_auxiliary(path)]
     return {
         "ok": not (removed or changed),
         "append_only_consistent": not (removed or changed),
