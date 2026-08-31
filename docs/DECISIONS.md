@@ -228,6 +228,21 @@ GDELT 약관 전문 (gdeltproject.org/about.html#termsofuse, 취득 2026-08-31):
 | Yahoo Finance | RSS 조항은 표시를 허용하나 일반 조항의 자동 수집 금지를 해제하지 않는다. 12-5의 기각과 일관 |
 | NewsAPI · Finnhub · Alpha Vantage · Currents | 파생값 공개를 명시 금지. Finnhub은 **"derived results"**를 명시. NewsAPI 무료 티어는 개발환경 전용 |
 | 정부 소스 (Fed·BLS·SEC·BEA) | 법적으로 가장 깨끗하나 **감성 지수라는 산출물이 성립하지 않는다** — Fed press_all 20건 중 매크로 관련 2건, 나머지는 은행 제재·합병 승인. 토픽이 좁은 수준이 아니라 신호가 원천적으로 없다 |
+| **Tiingo** | 무료 티어에 **뉴스가 아예 없다**(가격표·제품페이지·각주 3곳 교차확인). 게다가 ToS가 2026-08-05에 개정돼 무료 티어는 데이터의 **영속 저장 자체를 금지**한다(휘발성 메모리·임시 캐시만). 제목 표시는 "Display Redistribution"이라는 **별도 유료 상품**이다 |
+| **EODHD** | "prohibited from: … **displaying** … the Information or Services, **whether in its original or repackaged form**" — 표시 동사를 직접 금지하고 "repackaged"로 파생형까지 덮는다. 무료·유료 **전 플랜이 `Personal use`** 표기라 돈을 내도 상업 권리가 생기지 않는다. 무료는 뉴스 1건당 5콜이라 **하루 4요청** |
+| Marketaux | 금지 조항은 **없으나**(SILENT-GREY) 허가 자체가 "personal, non-commercial use"까지만 미치고 ToS에 API·데이터 조항이 없다. 침묵은 허가가 아니다 |
+| Common Crawl (CC-NEWS) | 재배포 금지 조항이 **없지만** 허가도 없다. CC가 명시적으로 책임을 원 게시자에게 넘긴다 — "may be subject to separate terms of use … from the owners of such Crawled Content" |
+
+**재사용할 교차 발견 — "무료 개인용 티어"는 이 프로젝트에 사실상 닫혀 있다.** 조사한 9곳 중
+Finnhub·Alpha Vantage·Tiingo·EODHD 네 곳이 개인용 자격을 **사업자 소속 여부**로 판정한다
+(Alpha Vantage "on behalf of a corporation, firm, partnership", Tiingo "representing an organization
+or business", Finnhub "deduct this expense as a business expense", EODHD의 Professional User 정의).
+저장소 소유자가 법인 대표이므로 이 테스트들은 **불리하게 걸린다**. 다음에 새 소스를 검토할 때
+"비영리라서 괜찮다"는 논거를 먼저 버리고 시작해야 한다 — 12-4a에서 CNBC·Seeking Alpha가
+"public *or* commercial"·"whether for profit or for no profit"로 같은 문을 닫은 것과 같은 층위다.
+
+**부수 확인**: 흔히 인용되는 "GDELT는 CC BY"는 **사이트 어디에도 없다**. 실제 근거는 위에 옮긴
+고유 문단이며, 인용 의무도 CC BY가 아니라 그 문단에서 나온다.
 
 **미해결로 남는 층**: GDELT가 색인하는 상위 기사의 저작권에 대해 GDELT 약관은 침묵한다. 다만 취득 근거의 질은 Google News보다 명백히 낫다 — 그쪽은 피드에 금지 문언이 있고 robots.txt가 막았는데, GDELT는 배포를 명시 허용하고 경로를 막지 않으며 AI/ML 제한도 없다.
 
