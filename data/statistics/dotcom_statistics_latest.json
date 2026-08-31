@@ -5,10 +5,10 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-08-19T08:26:13+00:00",
-  "knowledge_cutoff": "2026-08-19T08:26:13+00:00",
-  "observation_through": "2026-08-18",
-  "as_of": "2026-08-18",
+  "generated_at": "2026-08-31T22:36:49+00:00",
+  "knowledge_cutoff": "2026-08-31T22:36:49+00:00",
+  "observation_through": "2026-08-31",
+  "as_of": "2026-08-31",
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -954,7 +954,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 226.93768855933118
+              "value": 227.9106223375099
             }
           ]
         },
@@ -981,12 +981,12 @@
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": 97.5759142615399
+              "value": 97.57638431888691
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": 97.91106514994829
+              "value": 97.9105950926013
             },
             {
               "period": 5,
@@ -1086,12 +1086,12 @@
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": 101.24659208423428
+              "value": 101.24706214158128
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": 101.56623108019178
+              "value": 101.56670113753879
             },
             {
               "period": 26,
@@ -1101,17 +1101,17 @@
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": 102.3357149572248
+              "value": 102.33524489987778
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": 102.6426624048134
+              "value": 102.64219234746639
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": 103.1432734793645
+              "value": 103.14280342201747
             },
             {
               "period": 30,
@@ -1121,7 +1121,7 @@
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": 103.847419385165
+              "value": 103.84788944251197
             },
             {
               "period": 32,
@@ -1146,32 +1146,37 @@
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": 105.38732725392497
+              "value": 105.35583341167623
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": 106.32838206261164
+              "value": 106.22778979035444
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": 106.59067406223559
+              "value": 106.4228635893579
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": 107.17260505781705
+              "value": 106.96954028391463
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": 108.37454169408667
+              "value": 108.17852778038922
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 108.84271881169502
+              "value": 108.6546958728965
+            },
+            {
+              "period": 42,
+              "date": "2026-07-01",
+              "value": 109.13791482560873
             }
           ]
         }
@@ -1186,7 +1191,7 @@
       },
       "scope_note": "*미국 통화·NASDAQ 기준",
       "insight": "주가와 통화량의 누적 속도를 같은 시작점에서 비교합니다.",
-      "conclusion": "현재 NASDAQ은 2023년 대비 127% 오른 반면 M2는 9% 증가했습니다. 유동성보다 주가가 훨씬 빠르지만 닷컴 정점의 격차보다는 작습니다.",
+      "conclusion": "현재 NASDAQ은 2023년 대비 128% 오른 반면 M2는 9% 증가했습니다. 유동성보다 주가가 훨씬 빠르지만 닷컴 정점의 격차보다는 작습니다.",
       "metric_source_ids": [
         "NASDAQCOM",
         "M2SL"
@@ -1532,12 +1537,12 @@
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": 108.16411376973218
+              "value": 108.1635927078306
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": 114.0421053274967
+              "value": 114.04265283034279
             },
             {
               "period": 5,
@@ -1637,12 +1642,12 @@
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": 167.341661270743
+              "value": 167.34088435755982
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": 160.18438467415558
+              "value": 160.18364333032883
             },
             {
               "period": 26,
@@ -1652,17 +1657,17 @@
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": 147.1627637827007
+              "value": 147.1634397466698
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": 160.74566841562347
+              "value": 160.74640456204347
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": 170.4767642213136
+              "value": 170.47754114275511
             },
             {
               "period": 30,
@@ -1672,7 +1677,7 @@
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": 178.3465755291119
+              "value": 178.34576826072552
             },
             {
               "period": 32,
@@ -1697,32 +1702,37 @@
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": 192.1737831365427
+              "value": 192.23122932261955
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": 184.03009633022216
+              "value": 184.20436339903821
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": 174.8505239188716
+              "value": 175.12623299220525
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": 200.4943992544641
+              "value": 200.87500619869562
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": 214.84076576589635
+              "value": 215.23004615437625
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": 207.89790180932332
+              "value": 208.2576614511336
+            },
+            {
+              "period": 42,
+              "date": "2026-07-01",
+              "value": 200.6926871148043
             }
           ]
         }
@@ -1737,7 +1747,7 @@
       },
       "scope_note": "*미국 통화·NASDAQ 기준",
       "insight": "M2 증가보다 NASDAQ이 얼마나 빠르게 움직였는지 보여줍니다.",
-      "conclusion": "현재 M2 대비 NASDAQ 속도지수는 208로 닷컴의 406보다 낮습니다. 통화량 기준 과열은 높지만 닷컴 말기 수준에는 아직 못 미칩니다.",
+      "conclusion": "현재 M2 대비 NASDAQ 속도지수는 201로 닷컴의 406보다 낮습니다. 통화량 기준 과열은 높지만 닷컴 말기 수준에는 아직 못 미칩니다.",
       "metric_source_ids": [
         "NASDAQCOM",
         "M2SL"
@@ -1964,18 +1974,18 @@
           "points": [
             {
               "period": 0,
-              "date": "2026-08-18",
-              "value": 19.267810486653293
+              "date": "2026-08-28",
+              "value": 18.60852125391812
             },
             {
               "period": 1,
-              "date": "2026-08-18",
-              "value": 21.544103335356766
+              "date": "2026-08-28",
+              "value": 21.64121342574761
             },
             {
               "period": 2,
-              "date": "2026-08-18",
-              "value": -42.73650386389971
+              "date": "2026-08-30",
+              "value": -28.1667874541735
             },
             {
               "period": 3,
@@ -2024,7 +2034,7 @@
         "IQ12260"
       ],
       "range": {
-        "minimum": -42.73650386389971,
+        "minimum": -28.1667874541735,
         "maximum": 22.76593127745741
       },
       "scope_note": "*미국 기준 · 금은 공식 가격지수",
@@ -2076,7 +2086,7 @@
             },
             {
               "label": "미국 M2",
-              "value": 23.1552,
+              "value": 23.218,
               "display_value": "$23.2T"
             },
             {
@@ -2099,18 +2109,18 @@
           "metrics": [
             {
               "label": "S&P 500",
-              "value": 19.267810486653293,
-              "display_value": "+19.3%"
+              "value": 18.60852125391812,
+              "display_value": "+18.6%"
             },
             {
               "label": "NASDAQ",
-              "value": 21.544103335356766,
-              "display_value": "+21.5%"
+              "value": 21.64121342574761,
+              "display_value": "+21.6%"
             },
             {
               "label": "비트코인",
-              "value": -42.73650386389971,
-              "display_value": "-42.7%"
+              "value": -28.1667874541735,
+              "display_value": "-28.2%"
             },
             {
               "label": "금 가격지수",
@@ -2684,7 +2694,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 0.47500000000000003
+              "value": 0.4680952380952381
             }
           ]
         }
@@ -2698,7 +2708,7 @@
       },
       "scope_note": "*미국 국채 기준",
       "insight": "금리차가 음수면 역전, 양수로 급히 복귀하면 성장 둔화 구간을 함께 점검합니다.",
-      "conclusion": "10년−2년 금리차는 현재 +0.48%p로 정상화됐습니다. 다만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
+      "conclusion": "10년−2년 금리차는 현재 +0.47%p로 정상화됐습니다. 다만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
       "metric_source_ids": [
         "T10Y2Y"
       ],
@@ -4728,6 +4738,11 @@
               "period": 36,
               "date": "2026-01-01",
               "value": 11.415368154370253
+            },
+            {
+              "period": 39,
+              "date": "2026-04-01",
+              "value": 20.311682653735886
             }
           ]
         }
@@ -4741,7 +4756,7 @@
       },
       "scope_note": "*미국 기업 기준",
       "insight": "주가를 지탱하는 실제 기업이익의 증가 속도를 비교합니다.",
-      "conclusion": "세후 기업이익은 현재 전년 대비 11.4% 증가해 닷컴의 4.9%보다 강합니다. 높은 주가에 닷컴 말기보다 두꺼운 이익 기반이 붙어 있습니다.",
+      "conclusion": "세후 기업이익은 현재 전년 대비 20.3% 증가해 닷컴의 4.9%보다 강합니다. 높은 주가에 닷컴 말기보다 두꺼운 이익 기반이 붙어 있습니다.",
       "metric_source_ids": [
         "CPATAX"
       ],
@@ -5997,197 +6012,197 @@
             {
               "period": 0,
               "date": "1995-01-01",
-              "value": -0.45575
+              "value": -0.4565
             },
             {
               "period": 1,
               "date": "1995-02-01",
-              "value": -0.584
+              "value": -0.5842499999999999
             },
             {
               "period": 2,
               "date": "1995-03-01",
-              "value": -0.6364
+              "value": -0.638
             },
             {
               "period": 3,
               "date": "1995-04-01",
-              "value": -0.653
+              "value": -0.655
             },
             {
               "period": 4,
               "date": "1995-05-01",
-              "value": -0.6985
+              "value": -0.7012499999999999
             },
             {
               "period": 5,
               "date": "1995-06-01",
-              "value": -0.6868000000000001
+              "value": -0.6910000000000001
             },
             {
               "period": 6,
               "date": "1995-07-01",
-              "value": -0.668
+              "value": -0.67225
             },
             {
               "period": 7,
               "date": "1995-08-01",
-              "value": -0.69825
+              "value": -0.70175
             },
             {
               "period": 8,
               "date": "1995-09-01",
-              "value": -0.702
+              "value": -0.7061999999999999
             },
             {
               "period": 9,
               "date": "1995-10-01",
-              "value": -0.6995
+              "value": -0.70375
             },
             {
               "period": 10,
               "date": "1995-11-01",
-              "value": -0.736
+              "value": -0.74
             },
             {
               "period": 11,
               "date": "1995-12-01",
-              "value": -0.7438
+              "value": -0.7484
             },
             {
               "period": 12,
               "date": "1996-01-01",
-              "value": -0.76575
+              "value": -0.76975
             },
             {
               "period": 13,
               "date": "1996-02-01",
-              "value": -0.8155
+              "value": -0.8182499999999999
             },
             {
               "period": 14,
               "date": "1996-03-01",
-              "value": -0.7608
+              "value": -0.7638
             },
             {
               "period": 15,
               "date": "1996-04-01",
-              "value": -0.68725
+              "value": -0.69025
             },
             {
               "period": 16,
               "date": "1996-05-01",
-              "value": -0.7032
+              "value": -0.7058
             },
             {
               "period": 17,
               "date": "1996-06-01",
-              "value": -0.7052499999999999
+              "value": -0.708
             },
             {
               "period": 18,
               "date": "1996-07-01",
-              "value": -0.7004999999999999
+              "value": -0.7024999999999999
             },
             {
               "period": 19,
               "date": "1996-08-01",
-              "value": -0.7333999999999999
+              "value": -0.7362
             },
             {
               "period": 20,
               "date": "1996-09-01",
-              "value": -0.73225
+              "value": -0.7355
             },
             {
               "period": 21,
               "date": "1996-10-01",
-              "value": -0.74575
+              "value": -0.749
             },
             {
               "period": 22,
               "date": "1996-11-01",
-              "value": -0.776
+              "value": -0.7792
             },
             {
               "period": 23,
               "date": "1996-12-01",
-              "value": -0.7255
+              "value": -0.7295
             },
             {
               "period": 24,
               "date": "1997-01-01",
-              "value": -0.6946
+              "value": -0.6978
             },
             {
               "period": 25,
               "date": "1997-02-01",
-              "value": -0.72725
+              "value": -0.7295
             },
             {
               "period": 26,
               "date": "1997-03-01",
-              "value": -0.70875
+              "value": -0.7112499999999999
             },
             {
               "period": 27,
               "date": "1997-04-01",
-              "value": -0.65225
+              "value": -0.655
             },
             {
               "period": 28,
               "date": "1997-05-01",
-              "value": -0.6256
+              "value": -0.6285999999999999
             },
             {
               "period": 29,
               "date": "1997-06-01",
-              "value": -0.6315
+              "value": -0.63425
             },
             {
               "period": 30,
               "date": "1997-07-01",
-              "value": -0.6495
+              "value": -0.65175
             },
             {
               "period": 31,
               "date": "1997-08-01",
-              "value": -0.6524
+              "value": -0.6538
             },
             {
               "period": 32,
               "date": "1997-09-01",
-              "value": -0.6265000000000001
+              "value": -0.6285000000000001
             },
             {
               "period": 33,
               "date": "1997-10-01",
-              "value": -0.5536
+              "value": -0.5558
             },
             {
               "period": 34,
               "date": "1997-11-01",
-              "value": -0.47724999999999995
+              "value": -0.48024999999999995
             },
             {
               "period": 35,
               "date": "1997-12-01",
-              "value": -0.491
+              "value": -0.49375
             },
             {
               "period": 36,
               "date": "1998-01-01",
-              "value": -0.563
+              "value": -0.564
             },
             {
               "period": 37,
               "date": "1998-02-01",
-              "value": -0.628
+              "value": -0.62725
             },
             {
               "period": 38,
               "date": "1998-03-01",
-              "value": -0.6325000000000001
+              "value": -0.6315
             },
             {
               "period": 39,
@@ -6197,102 +6212,102 @@
             {
               "period": 40,
               "date": "1998-05-01",
-              "value": -0.5833999999999999
+              "value": -0.584
             },
             {
               "period": 41,
               "date": "1998-06-01",
-              "value": -0.55825
+              "value": -0.5585
             },
             {
               "period": 42,
               "date": "1998-07-01",
-              "value": -0.5384
+              "value": -0.5388
             },
             {
               "period": 43,
               "date": "1998-08-01",
-              "value": -0.396
+              "value": -0.39925
             },
             {
               "period": 44,
               "date": "1998-09-01",
-              "value": -0.14775
+              "value": -0.156
             },
             {
               "period": 45,
               "date": "1998-10-01",
-              "value": 0.0112
+              "value": 0.0004000000000000005
             },
             {
               "period": 46,
               "date": "1998-11-01",
-              "value": -0.06525
+              "value": -0.07325
             },
             {
               "period": 47,
               "date": "1998-12-01",
-              "value": -0.1575
+              "value": -0.16275
             },
             {
               "period": 48,
               "date": "1999-01-01",
-              "value": -0.23420000000000002
+              "value": -0.238
             },
             {
               "period": 49,
               "date": "1999-02-01",
-              "value": -0.321
+              "value": -0.32275
             },
             {
               "period": 50,
               "date": "1999-03-01",
-              "value": -0.387
+              "value": -0.3875
             },
             {
               "period": 51,
               "date": "1999-04-01",
-              "value": -0.41739999999999994
+              "value": -0.41819999999999996
             },
             {
               "period": 52,
               "date": "1999-05-01",
-              "value": -0.413
+              "value": -0.4145
             },
             {
               "period": 53,
               "date": "1999-06-01",
-              "value": -0.35575
+              "value": -0.35825
             },
             {
               "period": 54,
               "date": "1999-07-01",
-              "value": -0.256
+              "value": -0.2598
             },
             {
               "period": 55,
               "date": "1999-08-01",
-              "value": -0.164
+              "value": -0.16775
             },
             {
               "period": 56,
               "date": "1999-09-01",
-              "value": -0.113
+              "value": -0.11850000000000001
             },
             {
               "period": 57,
               "date": "1999-10-01",
-              "value": -0.0852
+              "value": -0.093
             },
             {
               "period": 58,
               "date": "1999-11-01",
-              "value": -0.14250000000000002
+              "value": -0.14975
             },
             {
               "period": 59,
               "date": "1999-12-01",
-              "value": -0.16240000000000002
+              "value": -0.16860000000000003
             }
           ]
         },
@@ -6304,222 +6319,222 @@
             {
               "period": 0,
               "date": "2023-01-01",
-              "value": -0.27449999999999997
+              "value": -0.278
             },
             {
               "period": 1,
               "date": "2023-02-01",
-              "value": -0.295
+              "value": -0.29725
             },
             {
               "period": 2,
               "date": "2023-03-01",
-              "value": -0.1812
+              "value": -0.18639999999999998
             },
             {
               "period": 3,
               "date": "2023-04-01",
-              "value": -0.16875
+              "value": -0.1735
             },
             {
               "period": 4,
               "date": "2023-05-01",
-              "value": -0.2055
+              "value": -0.208
             },
             {
               "period": 5,
               "date": "2023-06-01",
-              "value": -0.21939999999999998
+              "value": -0.22000000000000003
             },
             {
               "period": 6,
               "date": "2023-07-01",
-              "value": -0.25725
+              "value": -0.25775000000000003
             },
             {
               "period": 7,
               "date": "2023-08-01",
-              "value": -0.317
+              "value": -0.31775
             },
             {
               "period": 8,
               "date": "2023-09-01",
-              "value": -0.32880000000000004
+              "value": -0.3302
             },
             {
               "period": 9,
               "date": "2023-10-01",
-              "value": -0.289
+              "value": -0.292
             },
             {
               "period": 10,
               "date": "2023-11-01",
-              "value": -0.30325
+              "value": -0.30525
             },
             {
               "period": 11,
               "date": "2023-12-01",
-              "value": -0.3494
+              "value": -0.3488
             },
             {
               "period": 12,
               "date": "2024-01-01",
-              "value": -0.38625
+              "value": -0.386
             },
             {
               "period": 13,
               "date": "2024-02-01",
-              "value": -0.41525
+              "value": -0.41425
             },
             {
               "period": 14,
               "date": "2024-03-01",
-              "value": -0.4366
+              "value": -0.4346
             },
             {
               "period": 15,
               "date": "2024-04-01",
-              "value": -0.42025
+              "value": -0.41825
             },
             {
               "period": 16,
               "date": "2024-05-01",
-              "value": -0.41319999999999996
+              "value": -0.4109999999999999
             },
             {
               "period": 17,
               "date": "2024-06-01",
-              "value": -0.39225
+              "value": -0.39075000000000004
             },
             {
               "period": 18,
               "date": "2024-07-01",
-              "value": -0.36724999999999997
+              "value": -0.36624999999999996
             },
             {
               "period": 19,
               "date": "2024-08-01",
-              "value": -0.372
+              "value": -0.371
             },
             {
               "period": 20,
               "date": "2024-09-01",
-              "value": -0.41625
+              "value": -0.415
             },
             {
               "period": 21,
               "date": "2024-10-01",
-              "value": -0.43875
+              "value": -0.437
             },
             {
               "period": 22,
               "date": "2024-11-01",
-              "value": -0.466
+              "value": -0.4638
             },
             {
               "period": 23,
               "date": "2024-12-01",
-              "value": -0.482
+              "value": -0.479
             },
             {
               "period": 24,
               "date": "2025-01-01",
-              "value": -0.5004
+              "value": -0.4984
             },
             {
               "period": 25,
               "date": "2025-02-01",
-              "value": -0.49675
+              "value": -0.49475
             },
             {
               "period": 26,
               "date": "2025-03-01",
-              "value": -0.436
+              "value": -0.43525
             },
             {
               "period": 27,
               "date": "2025-04-01",
-              "value": -0.3875
+              "value": -0.38775000000000004
             },
             {
               "period": 28,
               "date": "2025-05-01",
-              "value": -0.437
+              "value": -0.4364
             },
             {
               "period": 29,
               "date": "2025-06-01",
-              "value": -0.48675
+              "value": -0.485
             },
             {
               "period": 30,
               "date": "2025-07-01",
-              "value": -0.5115000000000001
+              "value": -0.51
             },
             {
               "period": 31,
               "date": "2025-08-01",
-              "value": -0.525
+              "value": -0.5234
             },
             {
               "period": 32,
               "date": "2025-09-01",
-              "value": -0.528
+              "value": -0.52525
             },
             {
               "period": 33,
               "date": "2025-10-01",
-              "value": -0.521
+              "value": -0.5178
             },
             {
               "period": 34,
               "date": "2025-11-01",
-              "value": -0.5105
+              "value": -0.50725
             },
             {
               "period": 35,
               "date": "2025-12-01",
-              "value": -0.52525
+              "value": -0.521
             },
             {
               "period": 36,
               "date": "2026-01-01",
-              "value": -0.5641999999999999
+              "value": -0.5598
             },
             {
               "period": 37,
               "date": "2026-02-01",
-              "value": -0.53525
+              "value": -0.5315000000000001
             },
             {
               "period": 38,
               "date": "2026-03-01",
-              "value": -0.47175
+              "value": -0.47
             },
             {
               "period": 39,
               "date": "2026-04-01",
-              "value": -0.481
+              "value": -0.479
             },
             {
               "period": 40,
               "date": "2026-05-01",
-              "value": -0.5082
+              "value": -0.5058
             },
             {
               "period": 41,
               "date": "2026-06-01",
-              "value": -0.5105
+              "value": -0.506
             },
             {
               "period": 42,
               "date": "2026-07-01",
-              "value": -0.5362
+              "value": -0.5318
             },
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": -0.549
+              "value": -0.5606666666666666
             }
           ]
         }
@@ -6528,12 +6543,12 @@
         "NFCI"
       ],
       "range": {
-        "minimum": -0.8155,
-        "maximum": 0.0112
+        "minimum": -0.8182499999999999,
+        "maximum": 0.0004000000000000005
       },
       "scope_note": "*미국 금융시장 기준",
       "insight": "0 위는 역사 평균보다 긴축적, 0 아래는 완화적인 금융환경입니다.",
-      "conclusion": "금융여건지수는 현재 -0.55로 평균보다 완화적입니다. 위험자산을 지지하지만 상승 과열이 더 이어질 여지도 함께 남깁니다.",
+      "conclusion": "금융여건지수는 현재 -0.56로 평균보다 완화적입니다. 위험자산을 지지하지만 상승 과열이 더 이어질 여지도 함께 남깁니다.",
       "metric_source_ids": [
         "NFCI"
       ],
@@ -9265,7 +9280,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 24.050214734060127
+              "value": 28.95522001334394
             }
           ]
         },
@@ -9503,7 +9518,7 @@
       },
       "scope_note": "*미국 물가·원자재 기준",
       "insight": "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다.",
-      "conclusion": "유가 +24.1%와 구리 +17.9%가 함께 올라 향후 물가 재가속 위험을 무시하기 어렵습니다.",
+      "conclusion": "유가 +29.0%와 구리 +17.9%가 함께 올라 향후 물가 재가속 위험을 무시하기 어렵습니다.",
       "metric_source_ids": [
         "CPIAUCSL",
         "DCOILWTICO",
@@ -9959,7 +9974,7 @@
             {
               "period": 43,
               "date": "2026-08-01",
-              "value": 410.4308126163618
+              "value": 392.5384678567517
             }
           ]
         }
@@ -9974,7 +9989,7 @@
       },
       "scope_note": "*한국·미국 시장 기준",
       "insight": "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다.",
-      "conclusion": "2023년 대비 한국 주가지수는 259%, 미국 반도체는 310% 상승했습니다. 두 시장 모두 AI·반도체 사이클 의존도가 높아 글로벌 반도체 조정에 민감한 구간입니다.",
+      "conclusion": "2023년 대비 한국 주가지수는 259%, 미국 반도체는 293% 상승했습니다. 두 시장 모두 AI·반도체 사이클 의존도가 높아 글로벌 반도체 조정에 민감한 구간입니다.",
       "metric_source_ids": [
         "SPASTT01KRM661N",
         "NASDAQSOX"
@@ -10984,6 +10999,11 @@
               "period": 42,
               "date": "2026-07-01",
               "value": 41.4
+            },
+            {
+              "period": 43,
+              "date": "2026-08-01",
+              "value": 47.4
             }
           ]
         }
@@ -10994,11 +11014,11 @@
       ],
       "range": {
         "minimum": -25.677919203099066,
-        "maximum": 41.4
+        "maximum": 47.4
       },
       "scope_note": "*미국 기준",
       "insight": "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다.",
-      "conclusion": "주택착공은 -13.5%로 약하지만 제조업지수는 41.4로 확장 신호입니다. 현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태입니다.",
+      "conclusion": "주택착공은 -13.5%로 약하지만 제조업지수는 47.4로 확장 신호입니다. 현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태입니다.",
       "metric_source_ids": [
         "HOUST",
         "GACDFSA066MSFRBPHI"
@@ -11850,16 +11870,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/M2SL",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=M2SL&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-06-01",
-      "row_count": 378,
-      "raw_sha256": "3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/3fc2f4c97d6a2755e3ef1089e942755b549ea4813810e5b5dbd5a6393f245690.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-07-01",
+      "row_count": 379,
+      "raw_sha256": "a4f368e7eeffbc660edd56646d0aa9e53615aea7667335f47709096c45ced98b",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a4f368e7eeffbc660edd56646d0aa9e53615aea7667335f47709096c45ced98b.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11870,16 +11890,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/MMMFFAQ027S",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=MMMFFAQ027S&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=MMMFFAQ027S&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "5fc80ae35c8226ab0cf92a53083be3c5d6105201d8c5cdb153a385c0c85060d4",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5fc80ae35c8226ab0cf92a53083be3c5d6105201d8c5cdb153a385c0c85060d4.bin",
+      "raw_sha256": "230b66df0828437c2bc1c7d40ed18fbda731f4f312e483a7e0c36da0178da9c2",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/230b66df0828437c2bc1c7d40ed18fbda731f4f312e483a7e0c36da0178da9c2.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11890,16 +11910,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/CDCABSHNO",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CDCABSHNO&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CDCABSHNO&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "736b192581b0fee1bed353bf955c3905404a6a5f7643b7093f24a95c2bd0c33f",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/736b192581b0fee1bed353bf955c3905404a6a5f7643b7093f24a95c2bd0c33f.bin",
+      "raw_sha256": "29acfd235beec736488c727bf501066ef7e05b737ca01965351078345d0dd71d",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/29acfd235beec736488c727bf501066ef7e05b737ca01965351078345d0dd71d.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11910,16 +11930,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/TSDABSHNO",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TSDABSHNO&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=TSDABSHNO&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "9e379da2eb98c382bb4d2c2885399eb8a0531d36beb0a4e86dd215455f4938f3",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/9e379da2eb98c382bb4d2c2885399eb8a0531d36beb0a4e86dd215455f4938f3.bin",
+      "raw_sha256": "a1f3869c1cecf7784ef456c48c287dd007e0f2dec42e86fececad11e621d094c",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a1f3869c1cecf7784ef456c48c287dd007e0f2dec42e86fececad11e621d094c.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11930,16 +11950,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/FGDSLAQ027S",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FGDSLAQ027S&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FGDSLAQ027S&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "2fa911e39b5b8b9fd01f830f788a32d0890ce65b4e4d137c8684d5987fee20f2",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2fa911e39b5b8b9fd01f830f788a32d0890ce65b4e4d137c8684d5987fee20f2.bin",
+      "raw_sha256": "6ef60ed8c2152213b41933debbe9ac738448581c5c42447586f3814506fdcac8",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/6ef60ed8c2152213b41933debbe9ac738448581c5c42447586f3814506fdcac8.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11950,16 +11970,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL153064235Q",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL153064235Q&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BOGZ1FL153064235Q&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "5489c9c7c0fe3f81081f150e84b28f8145d02c84aa2bd638f07573c573f3d95e",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5489c9c7c0fe3f81081f150e84b28f8145d02c84aa2bd638f07573c573f3d95e.bin",
+      "raw_sha256": "a101f9c4a5446c6f8746d3b19b35f1910556b74e25f43b9e69be31c60cc3ab22",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a101f9c4a5446c6f8746d3b19b35f1910556b74e25f43b9e69be31c60cc3ab22.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -11970,12 +11990,12 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/IQ12260",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=IQ12260&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=IQ12260&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "484fae26cd00092a4a48eed62eda7ef82719b6b3173ca5c769866cf8c2cfa52b",
@@ -11990,16 +12010,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/DABSHNO",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DABSHNO&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DABSHNO&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/54659a9df702e24df3702b1a383bee44e32477a60ae92cde48b2a8ee5c5cb28d.bin",
+      "raw_sha256": "3f12d055372d3a0cfc4d8d8e89457709aac9e3d70370e1c8125a848a99414cc8",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/3f12d055372d3a0cfc4d8d8e89457709aac9e3d70370e1c8125a848a99414cc8.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12010,16 +12030,16 @@
       "native_frequency": "quarterly_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1LM153064475Q",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1LM153064475Q&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BOGZ1LM153064475Q&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "489d94decb0830ebe03d2e75cdbfcf79ff533244e1053738a0a074a7b0acdb6c",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/489d94decb0830ebe03d2e75cdbfcf79ff533244e1053738a0a074a7b0acdb6c.bin",
+      "raw_sha256": "2f9bfbfb1690e2ad382ee0e0eca60330aa7e4ee48478a230f3adbafee2309082",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2f9bfbfb1690e2ad382ee0e0eca60330aa7e4ee48478a230f3adbafee2309082.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12030,12 +12050,12 @@
       "native_frequency": "annual_end_of_period",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL154022375A",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL154022375A&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BOGZ1FL154022375A&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "9822c3d45f96edc1291a704c62e067094517662b0fd26a7c0012dc9d36fdb578",
@@ -12051,16 +12071,16 @@
       "aggregation": "last",
       "window_start": "1985-01-01",
       "source_url": "https://fred.stlouisfed.org/series/NASDAQCOM",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=1985-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&file_type=json&observation_start=1985-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-18",
-      "row_count": 10488,
-      "raw_sha256": "00e1a29d95f72d214aa5ba1bbbdd4f91209a457137ad04c3b6daa0c575c19d3b",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/00e1a29d95f72d214aa5ba1bbbdd4f91209a457137ad04c3b6daa0c575c19d3b.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-28",
+      "row_count": 10496,
+      "raw_sha256": "39e9d7fb9245ce27ca15bf696dd5956d3abc956b95ffb73afe416fb94f1926c4",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/39e9d7fb9245ce27ca15bf696dd5956d3abc956b95ffb73afe416fb94f1926c4.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12071,16 +12091,16 @@
       "native_frequency": "daily",
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/T10Y2Y",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=T10Y2Y&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-18",
-      "row_count": 7913,
-      "raw_sha256": "354f344a672b7a1e7fab1b8ac3c572ee53bdc7775c1672a9edd90f5aa3b6b470",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/354f344a672b7a1e7fab1b8ac3c572ee53bdc7775c1672a9edd90f5aa3b6b470.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-31",
+      "row_count": 7922,
+      "raw_sha256": "a7e80d1eeeeee7831f4a9212d2288945ca066d7b38c825211c49189a67f80b34",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a7e80d1eeeeee7831f4a9212d2288945ca066d7b38c825211c49189a67f80b34.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12091,16 +12111,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/FEDFUNDS",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=FEDFUNDS&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
-      "raw_sha256": "6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/6753ff3f7a7ffba9cb02476c282df313b174bfdc271066ed739f367d99964f20.bin",
+      "raw_sha256": "bfc9a9372def7a3187f4e78afc43c8e586a72043a84d2644079bfd0a8d420f0c",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/bfc9a9372def7a3187f4e78afc43c8e586a72043a84d2644079bfd0a8d420f0c.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12111,16 +12131,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/TOTALSL",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TOTALSL&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=TOTALSL&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
-      "raw_sha256": "88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/88e2f44572c9ce201f313d9e1ccaaa5d59f6ffa873ba44723a3569a457faab51.bin",
+      "raw_sha256": "33e0320d7c5a559d17788d162e3085946fb616c299e0263914641791c381cb3d",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/33e0320d7c5a559d17788d162e3085946fb616c299e0263914641791c381cb3d.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12131,16 +12151,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/TDSP",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=TDSP&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=TDSP&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 85,
-      "raw_sha256": "6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/6c5ed5982a05655f5c5e47118abc325582c03b61097a38d0e858f0897a0fb3a9.bin",
+      "raw_sha256": "35ecaa61f3f458548767769239e9682a658cff8e3e444274951d432d8352fb4a",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/35ecaa61f3f458548767769239e9682a658cff8e3e444274951d432d8352fb4a.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12151,16 +12171,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1FL010000346Q",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1FL010000346Q&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BOGZ1FL010000346Q&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2025-10-01",
       "row_count": 124,
-      "raw_sha256": "5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5edeaa9707c459e4362a76d13c186b1b51146d8a359cfda7ec52fa30da215fd0.bin",
+      "raw_sha256": "63456b1c6b917e6b208ef1b2edc71423e8c93b279eb80e22a193b8d621fc0f0b",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/63456b1c6b917e6b208ef1b2edc71423e8c93b279eb80e22a193b8d621fc0f0b.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12171,16 +12191,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/DRTSCILM",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DRTSCILM&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DRTSCILM&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
-      "raw_sha256": "b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/b7f53f31bc1c9747852051967f3dd4859287eb822e92c1f40b054b5dcb32e165.bin",
+      "raw_sha256": "47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12191,16 +12211,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/NCBEILQ027S",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NCBEILQ027S&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NCBEILQ027S&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/0cf3878efe8cab367b170c7cd630998115d9b5db0d3b319eeebdc8f14858ceb7.bin",
+      "raw_sha256": "93993f9812706253bca9f84ff1db5e9aee20d29166dfb6812df5c7fba42118b6",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/93993f9812706253bca9f84ff1db5e9aee20d29166dfb6812df5c7fba42118b6.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12211,16 +12231,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/CPATAX",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPATAX&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CPATAX&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-01-01",
-      "row_count": 125,
-      "raw_sha256": "07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/07fe5a170bba34f6962b88b1f3062f2e0e3aae6d398a342af7c5a15983ce6a69.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-04-01",
+      "row_count": 126,
+      "raw_sha256": "44012619891d16d350d3b04512e62769396ded3188fc357ae3a5cb0909f62ae7",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/44012619891d16d350d3b04512e62769396ded3188fc357ae3a5cb0909f62ae7.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12231,16 +12251,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/UNRATE",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=UNRATE&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=UNRATE&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
-      "raw_sha256": "1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/1ebb6a8c93345f05a30a18d1b99506c3dd0dc0132022c3904c913ee1c0c9affb.bin",
+      "raw_sha256": "11432d12678315c09a3c0483d95b636d0b1cb916db8f645d0fe876f873d44177",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/11432d12678315c09a3c0483d95b636d0b1cb916db8f645d0fe876f873d44177.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12251,16 +12271,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/CPIAUCSL",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CPIAUCSL&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CPIAUCSL&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
-      "raw_sha256": "9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/9df671b3d1f981c7e855a50fbb435e508294798b174e7a4cf6f8778aa9688e77.bin",
+      "raw_sha256": "98d1c845bd8b2be84573c7086414cd2e3364f7773818bc5cb6501fb3bd77b357",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/98d1c845bd8b2be84573c7086414cd2e3364f7773818bc5cb6501fb3bd77b357.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12271,16 +12291,16 @@
       "native_frequency": "weekly",
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/NFCI",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NFCI&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NFCI&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-07",
-      "row_count": 1649,
-      "raw_sha256": "7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/7ff743616d43aff7d0f19a0271cf7b86a214494ebed63ee2b163de2e8368f05d.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-21",
+      "row_count": 1651,
+      "raw_sha256": "5e154a5dcf438c456475b071112faa1644c46d6a3f0a21abfce9762ca2765090",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5e154a5dcf438c456475b071112faa1644c46d6a3f0a21abfce9762ca2765090.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12291,16 +12311,16 @@
       "native_frequency": "quarterly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/BOGZ1LM893064105Q",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BOGZ1LM893064105Q&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BOGZ1LM893064105Q&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
-      "raw_sha256": "cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/cedecfa36cc913bbe4c3c9ebb36c4604c7f37d93334bfbd5fa8950c6f6c90497.bin",
+      "raw_sha256": "d4947a481a938a15d8e3cf45cd129c718ffb09d21f29b40c8f91e0879e248570",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/d4947a481a938a15d8e3cf45cd129c718ffb09d21f29b40c8f91e0879e248570.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12311,16 +12331,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/HQMCB10YR",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=HQMCB10YR&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=HQMCB10YR&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
-      "raw_sha256": "6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/6a945a85063794c10de50f7b3fbfccc190a79613c8e27336365246e000915ba0.bin",
+      "raw_sha256": "209a8f85182e2b539ce0ff1dd3995bfddc809de2bbdcda625d7e15e448e1c4e0",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/209a8f85182e2b539ce0ff1dd3995bfddc809de2bbdcda625d7e15e448e1c4e0.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12331,16 +12351,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/GS10",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GS10&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=GS10&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
-      "raw_sha256": "c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/c0645267c5076fe1d888719fab4d9b95aceaf9b672507c1f7c0173babc271c5b.bin",
+      "raw_sha256": "96c1c641415ecf14427607d76fa0666d17150296314de041ce26b8f67bc87953",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/96c1c641415ecf14427607d76fa0666d17150296314de041ce26b8f67bc87953.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12351,16 +12371,16 @@
       "native_frequency": "daily",
       "aggregation": "mean",
       "source_url": "https://fred.stlouisfed.org/series/DCOILWTICO",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DCOILWTICO&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DCOILWTICO&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-11",
-      "row_count": 7930,
-      "raw_sha256": "828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/828546b69c140a559527eda2b8514f02f98d44f02d2fd87f3834eefef0f4b62a.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-25",
+      "row_count": 7940,
+      "raw_sha256": "0a5a7bd9d0778f03a5e9e3b83b59654d04027fc4a04d813fefc53f2e810fa7a3",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/0a5a7bd9d0778f03a5e9e3b83b59654d04027fc4a04d813fefc53f2e810fa7a3.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12371,16 +12391,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/WPU10260314",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=WPU10260314&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=WPU10260314&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
-      "raw_sha256": "37526897a98189c8596bc68670b0533e0fdd5f3a2c15889f362149838054dc55",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/37526897a98189c8596bc68670b0533e0fdd5f3a2c15889f362149838054dc55.bin",
+      "raw_sha256": "0e735a1d86e2d706939a872e3af789ea5a73b6d0ec767d36860c1338ea7ea283",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/0e735a1d86e2d706939a872e3af789ea5a73b6d0ec767d36860c1338ea7ea283.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12391,16 +12411,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/GACDFSA066MSFRBPHI",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=GACDFSA066MSFRBPHI&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=GACDFSA066MSFRBPHI&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-07-01",
-      "row_count": 379,
-      "raw_sha256": "dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/dd40bb0833f8372950f27035187bf5b746f2ffd30298683b51aa7162dcaf55ea.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-01",
+      "row_count": 380,
+      "raw_sha256": "e0374ae81cd938bbc288c3348e920d74f8dd3b9c9e333b188dd875162828cef5",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/e0374ae81cd938bbc288c3348e920d74f8dd3b9c9e333b188dd875162828cef5.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12412,16 +12432,16 @@
       "aggregation": "last",
       "window_start": "2023-01-01",
       "source_url": "https://fred.stlouisfed.org/series/SP500",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500&cosd=2023-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=SP500&file_type=json&observation_start=2023-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-18",
-      "row_count": 909,
-      "raw_sha256": "1df52597a056e97f40b648677c3d43a456cd8fa1b949d53fb41104fdc6237da0",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/1df52597a056e97f40b648677c3d43a456cd8fa1b949d53fb41104fdc6237da0.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-28",
+      "row_count": 917,
+      "raw_sha256": "d3184f81d02342760c7fd67e6369d73bf1dc194cd452e0302a71258b21f975fd",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/d3184f81d02342760c7fd67e6369d73bf1dc194cd452e0302a71258b21f975fd.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12433,16 +12453,16 @@
       "aggregation": "last",
       "window_start": "2023-01-01",
       "source_url": "https://fred.stlouisfed.org/series/CBBTCUSD",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=CBBTCUSD&cosd=2023-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CBBTCUSD&file_type=json&observation_start=2023-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-18",
-      "row_count": 1326,
-      "raw_sha256": "a88338823936595ac45b374cfa4a81fd02d65367db1d4d7e2fb7b1fe89e3a483",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a88338823936595ac45b374cfa4a81fd02d65367db1d4d7e2fb7b1fe89e3a483.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-30",
+      "row_count": 1338,
+      "raw_sha256": "0b59d7600f0933509be70867625f88acc42eb015d52d16730e7f1a988b1e505c",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/0b59d7600f0933509be70867625f88acc42eb015d52d16730e7f1a988b1e505c.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12454,16 +12474,16 @@
       "aggregation": "last",
       "window_start": "2020-01-01",
       "source_url": "https://fred.stlouisfed.org/series/NASDAQSOX",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQSOX&cosd=2020-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQSOX&file_type=json&observation_start=2020-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
-      "latest_observation": "2026-08-18",
-      "row_count": 1665,
-      "raw_sha256": "24f1372391dd6e1e3a9e97c598075a601087e7a54c9bfbf540f26699c3b2512d",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/24f1372391dd6e1e3a9e97c598075a601087e7a54c9bfbf540f26699c3b2512d.bin",
+      "available_at": "2026-08-31T22:36:49+00:00",
+      "latest_observation": "2026-08-28",
+      "row_count": 1673,
+      "raw_sha256": "5d67d84f17221a55a1aa023702d3a73a59c95227d54ba8930ec8182a4f0c3d46",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5d67d84f17221a55a1aa023702d3a73a59c95227d54ba8930ec8182a4f0c3d46.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12475,16 +12495,16 @@
       "aggregation": "last",
       "window_start": "2020-01-01",
       "source_url": "https://fred.stlouisfed.org/series/SPASTT01KRM661N",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SPASTT01KRM661N&cosd=2020-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=SPASTT01KRM661N&file_type=json&observation_start=2020-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 78,
-      "raw_sha256": "422e4d720605cc5c699f6fffa6da64d1c16927232daea56b57ae88f8bf10bc84",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/422e4d720605cc5c699f6fffa6da64d1c16927232daea56b57ae88f8bf10bc84.bin",
+      "raw_sha256": "ec74e610fd69dad001f3851e073d9f93dafe35dc1ca1e138e3bad683ea7231ed",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/ec74e610fd69dad001f3851e073d9f93dafe35dc1ca1e138e3bad683ea7231ed.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12495,16 +12515,16 @@
       "native_frequency": "monthly",
       "aggregation": "last",
       "source_url": "https://fred.stlouisfed.org/series/HOUST",
-      "request_url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=HOUST&cosd=1995-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=HOUST&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
-      "raw_sha256": "25276cbf8ba61a7deaa6ee58a7e36dea050de1ef146fd180ee5222fb21907699",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/25276cbf8ba61a7deaa6ee58a7e36dea050de1ef146fd180ee5222fb21907699.bin",
+      "raw_sha256": "acd29c2a89a22246c964b577ad6a25f6dbd618d2f3976920b1177f644e5db385",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/acd29c2a89a22246c964b577ad6a25f6dbd618d2f3976920b1177f644e5db385.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -12519,7 +12539,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "41ec9bc4ac8191be7d6db38c467550e7b6a4108370885f41e7b6b899117ee5c0",
@@ -12538,7 +12558,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-08-19T08:26:13+00:00",
+      "available_at": "2026-08-31T22:36:49+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
