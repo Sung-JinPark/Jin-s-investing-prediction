@@ -158,6 +158,72 @@ def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_
     assert len(model["band_calibration"]["rows"]) == 2
 
 
+def test_embed_projects_append_only_sections_to_rendered_fields() -> None:
+    model = {
+        "method_changes": [{
+            "kind": "method", "date": "2026-08-29", "title": "t", "reason": "r",
+            "snapshot_id": "s", "report": "reports/x.md",
+            "occurred_at": "2026-08-29T00:00:00Z", "contract": "c",
+            "candidate_model_content_sha256": "deadbeef",
+        }],
+        "corrections": [{
+            "status": "applied", "field_name": "f", "old_value": "1", "reason": "r",
+            "new_value": "2", "evidence_uri": "docs/e.md", "correction_id": "c-1",
+        }],
+        "calendar_events": [{
+            "event_id": "e1", "source_id": "s1", "source_url": "https://x",
+            "title": "t", "date": "2026-09-01", "status": "scheduled",
+            "kind": "fomc", "time_et": "14:00", "ticker": "",
+            "available_at": "2026-08-01", "registered_at": "2026-08-01",
+        }],
+    }
+    projected = dashboard._project_embed_rows(model)
+    # 렌더되는 컬럼은 전부 유지.
+    assert projected["method_changes"][0] == {
+        "kind": "method", "date": "2026-08-29", "title": "t", "reason": "r",
+        "snapshot_id": "s", "report": "reports/x.md",
+    }
+    assert set(projected["corrections"][0]) == {
+        "status", "field_name", "old_value", "reason",
+    }
+    assert "available_at" not in projected["calendar_events"][0]
+    assert projected["calendar_events"][0]["source_url"] == "https://x"
+    # 생략 사실과 원본 위치를 공시.
+    disclosure = projected["embed_field_projection"]
+    assert disclosure["projected"] is True
+    assert disclosure["full_payload"] == "data.json"
+    assert disclosure["sections"]["method_changes"]["dropped_fields"] == [
+        "candidate_model_content_sha256", "contract", "occurred_at",
+    ]
+    assert disclosure["sections"]["calendar_events"]["row_count"] == 1
+    # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
+    assert model["method_changes"][0]["contract"] == "c"
+    assert model["corrections"][0]["correction_id"] == "c-1"
+
+
+def test_embed_projection_is_a_noop_without_droppable_columns() -> None:
+    model = {"corrections": [{"status": "applied", "reason": "r"}]}
+    projected = dashboard._project_embed_rows(model)
+    assert "embed_field_projection" not in projected
+    assert projected["corrections"] == model["corrections"]
+
+
+def test_embed_projection_allowlist_matches_real_column_names(tmp_path: Path) -> None:
+    """허용목록 오타·상류 필드명 변경을 잡는다.
+
+    허용목록에 있으나 실제 데이터에 없는 이름은, 상류가 컬럼을 개명했는데
+    임베드가 조용히 그 값을 버리고 있다는 뜻이다 (화면이 빈칸이 된다).
+    """
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
+    model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+    for section, kept in dashboard.EMBED_RENDERED_FIELDS.items():
+        rows = model[section]
+        assert rows, section
+        present = {field for row in rows for field in row}
+        assert set(kept) <= present, (section, sorted(set(kept) - present))
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 
@@ -896,6 +962,16 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
         assert "conditional_distribution" not in model["scenario_v5"]
     html = dashboard.render_html(model, mode="embed")
     assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    # 용량 계약을 지키는 축소가 실제 임베드 산출물까지 도달했는지 확인한다.
+    blob = html.split("window.__DATA__ = ", 1)[1].split("</script>", 1)[0]
+    embedded = json.loads(blob.rstrip().rstrip(";"))
+    assert "rows" not in embedded["band_calibration"]
+    archived_rows = embedded["band_calibration"]["rows_archived"]
+    assert archived_rows["row_count"] == len(model["band_calibration"]["rows"])
+    for section, kept in dashboard.EMBED_RENDERED_FIELDS.items():
+        for row in embedded[section]:
+            assert set(row) <= set(kept), section
+    assert embedded["embed_field_projection"]["projected"] is True
 
 
 def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
