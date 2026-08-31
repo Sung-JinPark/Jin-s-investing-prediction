@@ -3,8 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from math import log
-from typing import Iterable, Sequence
+from typing import Sequence
 
 import numpy as np
 

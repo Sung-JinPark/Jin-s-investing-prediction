@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from datetime import date, datetime, timedelta, timezone
 
-import pytest
 
 from ai_fc.timeseries_v7.artifact_identity import identify_jsonl, verify_physical
 from ai_fc.timeseries_v7.feature_lineage import FeatureValueLineage, prove_feature_pit

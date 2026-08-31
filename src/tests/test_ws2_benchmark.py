@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import textwrap
-from datetime import date
 from pathlib import Path
 
 from ai_fc import files as F

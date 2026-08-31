@@ -23,7 +23,7 @@ import subprocess
 import sys
 import tempfile
 import zipfile
-from datetime import date, datetime, time, timedelta, timezone
+from datetime import date, datetime, time, timedelta
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable
 from zoneinfo import ZoneInfo

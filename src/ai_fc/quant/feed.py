@@ -253,7 +253,7 @@ def fred_m2() -> dict[str, float]:
     """FRED M2SL 월별 ($B). {YYYY-MM: value}"""
     text = _get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL")
     reader = csv.reader(io.StringIO(text))
-    header = next(reader)
+    next(reader)
     out = {}
     for row in reader:
         if len(row) < 2 or not row[1] or row[1] == ".":

@@ -265,8 +265,6 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
     if "1회성" in c:
         return [{"once": True}]
 
-    segments: list[dict[str, Any]] = []
-
     m = re.search(r"D-(\d+)부터\s*주\s*(\d+)회", c)
     if m:
         base = [{"per_week": 1}]

@@ -1173,7 +1173,6 @@ def _quarterly_followthrough_events(
         if current != expected:
             continue
         returns.append((current, (closes[current][1] / closes[previous][1] - 1.0) * 100.0))
-    by_key = dict(returns)
     events: list[tuple[tuple[int, int], float, float]] = []
     for index in range(1, len(returns) - 2):
         key, current_return = returns[index]

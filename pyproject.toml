@@ -49,6 +49,10 @@ timeseries-v5 = [
 screenshot = [
     "playwright>=1.48,<2",
 ]
+# 죽은 코드 탐지 전용 — 런타임 의존성 아님 (CI는 설치하지 않는다)
+dev = [
+    "ruff>=0.6,<1",
+]
 
 [project.scripts]
 ai-fc = "ai_fc.cli:main"
@@ -62,3 +66,42 @@ members = ["dualdb"]
 
 [tool.pytest.ini_options]
 testpaths = ["src/tests", "dualdb/tests"]
+
+# 죽은 코드 탐지 설정. exclude는 바이트 봉인·V7 보호·감사 증거 스냅샷 —
+# 이 경로들은 소스 바이트가 곧 검증 계보이므로 린트 대상이 아니다
+# (docs/DEAD_CODE_CLEANUP_PROMPT.md의 RED-LINE과 동일 집합).
+[tool.ruff]
+target-version = "py312"
+line-length = 120
+extend-exclude = [
+    "src/ai_fc/timeseries",
+    "src/ai_fc/timeseries_v1",
+    "src/ai_fc/timeseries_v2",
+    "src/ai_fc/timeseries_v3",
+    "src/ai_fc/timeseries_v4",
+    "src/ai_fc/timeseries_v5",
+    "src/ai_fc/timeseries_v6",
+    "src/ai_fc/timeseries_v7",
+    "src/ai_fc/timeseries_v8",
+    "src/ai_fc/scenario_v5",
+    "src/ai_fc/scenario_v5_2",
+    "src/ai_fc/scenario.py",
+    "src/ai_fc/scenario_structure.py",
+    "src/ai_fc/scenario_v4_shadow.py",
+    "src/tests/timeseries_v5",
+    "src/tests/timeseries_v6",
+    "src/tests/test_multivariate_timeseries*.py",
+    "src/tests/test_scenario*.py",
+    "src/tests/test_ralph_timeseries.py",
+    "src/tests/timeseries_v7/test_v6_gate_audit.py",
+    "tools/*timeseries*",
+    "tools/*scenario*",
+    "tools/*v6*",
+    "tools/atlas*.py",
+    "reports",
+    "docs",
+    "outputs",
+]
+
+[tool.ruff.lint]
+select = ["F401", "F811", "F841", "ARG"]
