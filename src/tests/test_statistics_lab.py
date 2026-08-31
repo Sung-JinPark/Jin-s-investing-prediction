@@ -138,22 +138,36 @@ def test_public_request_stays_fail_closed_after_retry_budget(
     assert len(calls) == 3
 
 
-def test_fred_fetch_uses_same_url_transport_fallback(
+def test_fred_fetch_uses_the_official_api_over_the_same_url_transport(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    """수집은 fredgraph.csv 스크랩이 아니라 공식 API 경로여야 한다.
+
+    FRED 약관이 자동 수집을 API 경로로만 허용하기 때문이다 (DECISIONS 12-6).
+    감사된 curl 폴백 전송과 45초 타임아웃은 종전 그대로 쓴다.
+    """
+    monkeypatch.setenv("FRED_API_KEY", "test-key")
     seen: list[tuple[str, int]] = []
 
     def fetched(url: str, *, timeout: int) -> str:
         seen.append((url, timeout))
-        return "observation_date,M2SL\n2026-07-01,22000.5\n"
+        return '{"observations": [{"date": "2026-07-01", "value": "22000.5"}]}'
 
-    monkeypatch.setattr(
-        "ai_fc.statistics_lab.feed.get_with_curl_fallback", fetched,
-    )
+    monkeypatch.setattr("ai_fc.quant.feed.get_with_curl_fallback", fetched)
     rows, raw = _fetch_fred("M2SL")
-    assert seen == [(f"{FRED_ENDPOINT}?id=M2SL&cosd=1995-01-01", 45)]
+
+    assert len(seen) == 1
+    url, timeout = seen[0]
+    assert url.startswith("https://api.stlouisfed.org/fred/series/observations?")
+    assert "series_id=M2SL" in url
+    assert "observation_start=1995-01-01" in url
+    assert "fredgraph.csv" not in url
+    assert timeout == 45
+    # 파서와 영수증 바이트는 종전 CSV 모양 그대로 유지된다.
     assert rows == [{"date": "2026-07-01", "value": 22000.5}]
     assert raw == b"observation_date,M2SL\n2026-07-01,22000.5\n"
+    # 영수증 바이트에 키가 섞여 들어가면 안 된다.
+    assert b"test-key" not in raw
 
 
 def _rows(series_id: str) -> list[dict[str, float | str]]:

@@ -23,6 +23,7 @@ import numpy as np
 import yaml
 
 from .market_session import completed_market_cutoff
+from . import fred_api
 from .quant import feed
 
 TRACKER_LATEST = Path("data/signals/scenario_tracker_latest.json")
@@ -56,13 +57,17 @@ def _round(value: float | None, digits: int = 3) -> float | None:
 
 
 def fetch_fred_series(series_id: str, start: date) -> FredSeries:
-    url = (
-        "https://fred.stlouisfed.org/graph/fredgraph.csv?"
-        f"id={series_id}&cosd={start.isoformat()}"
+    # FRED 약관은 API 경로만 자동 수집을 허용한다 (DECISIONS 12-6).
+    # 영수증에는 **키 없는** 공개 URL을 남긴다 — 요청 URL을 그대로
+    # 기록하면 API 키가 저장소에 커밋된다.
+    url = fred_api.observations_public_url(
+        series_id, observation_start=start.isoformat(),
     )
     fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
-        raw = feed.get_with_curl_fallback(url, timeout=30)
+        raw = fred_api.observations_csv(
+            series_id, observation_start=start.isoformat(), timeout=30,
+        )
     except Exception as exc:  # noqa: BLE001 - preserve provider context for stale fallback
         raise MarketExtensionError(
             f"FRED {series_id} fetch failed; previous snapshot must remain active"

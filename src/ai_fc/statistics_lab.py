@@ -19,6 +19,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from ai_fc import fred_api
 from ai_fc.quant import feed
 
 
@@ -639,12 +640,13 @@ def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
 
 def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
     start = FRED_SERIES.get(series_id, {}).get("window_start", "1995-01-01")
-    url = f"{FRED_ENDPOINT}?id={series_id}&cosd={start}"
-    # GitHub-hosted runners intermittently leave Python's TLS read waiting on
-    # FRED.  Reuse the repository's audited same-URL curl/public-DNS transport
-    # fallback.  Decoding and re-encoding UTF-8 is byte-preserving for FRED CSV
-    # and the exact bytes are still hashed in the source receipt.
-    raw = feed.get_with_curl_fallback(url, timeout=45).encode("utf-8")
+    # FRED 약관은 fredgraph.csv 같은 스크랩을 금지하고 API 경로만 허용한다
+    # (DECISIONS 12-6).  observations_csv가 API JSON을 종전 CSV 모양으로
+    # 렌더하므로 _parse_fred_csv는 그대로 둔다.  전송은 종전과 같은 감사된
+    # curl 폴백을 재사용하며, 영수증에 남는 URL은 키가 없는 공개 URL이다.
+    raw = fred_api.observations_csv(
+        series_id, observation_start=start, timeout=45,
+    ).encode("utf-8")
     return _parse_fred_csv(raw, series_id), raw
 
 
