@@ -1543,7 +1543,7 @@ function scenarioV52Range(candidate,key='month'){
   end=Math.max(1,Math.min(end,dates.length-1));
   return {key,label:V52_RANGE_META[key]?.[0]||V52_RANGE_META.quarter[0],dates:dates.slice(0,end+1),end};
 }
-function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
+function scenarioV52ChartModel(candidate,rangeKey='quarter'){
   const range=scenarioV52Range(candidate,rangeKey),scenarios=candidate?.conditional_small_multiples?.scenarios||{},dist=candidate?.distribution||{};
   const historical=dist.historical_actual||{},histDates=(historical.dates||[]).slice(-31,-1),histValues=(historical.values||[]).slice(-31,-1);
   const dates=[...histDates,...range.dates],histLength=histDates.length,n=dates.length,keys=['S1','S2','S3'];
@@ -1551,11 +1551,21 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
   const medoids=Object.fromEntries(keys.map(key=>[key,[...histValues,...(scenarios[key]?.central_path_bundle?.medoid_values||[]).slice(0,range.end+1).map(Number)]]));
   const mixtureLower=[...histValues,...(dist.bands?.p25||[]).slice(0,range.end+1).map(Number)],mixtureUpper=[...histValues,...(dist.bands?.p75||[]).slice(0,range.end+1).map(Number)];
   const all=[...Object.values(scenarioSeries).flat(),...Object.values(medoids).flat(),...mixtureLower,...mixtureUpper].filter(value=>Number.isFinite(value)&&value>0);
-  if(!dates.length||!all.length)return '<p class="empty-copy">표시할 전망 경로가 없습니다.</p>';
+  if(!dates.length||!all.length)return null;
   const W=1160,H=450,ML=72,MR=46,MT=32,MB=54,lo=Math.min(...all)*.985,hi=Math.max(...all)*1.015,logLo=Math.log(lo),logHi=Math.log(hi),PW=W-ML-MR,historyShare=.25,forecastShare=.75,boundaryX=ML+PW*historyShare;
   const X=index=>index<histLength?ML+PW*historyShare*index/Math.max(1,histLength-1):boundaryX+PW*forecastShare*(index-histLength)/Math.max(1,range.dates.length-1),Y=value=>MT+(H-MT-MB)*(1-(Math.log(Math.max(Number(value),1e-9))-logLo)/Math.max(1e-9,logHi-logLo));
+  return {range,dates,histDates,histValues,histLength,n,keys,scenarioSeries,medoids,mixtureLower,mixtureUpper,W,H,ML,MR,MT,MB,PW,boundaryX,X,Y};
+}
+
+function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
+  const model=scenarioV52ChartModel(candidate,rangeKey);
+  if(!model)return '<p class="empty-copy">표시할 전망 경로가 없습니다.</p>';
+  const {range,dates,histValues,histLength,n,keys,scenarioSeries,medoids,mixtureLower,mixtureUpper,W,H,ML,MR,MT,MB,PW,boundaryX,X,Y}=model;
+  const historyShare=.25,forecastShare=.75;
   const line=values=>values.map((value,index)=>`${index?'L':'M'}${X(index).toFixed(1)},${Y(value).toFixed(1)}`).join(' ');
   const area=(lower,upper)=>`${line(upper)} ${lower.map((value,index)=>`L${X(n-1-index).toFixed(1)},${Y(lower[n-1-index]).toFixed(1)}`).join(' ')} Z`;
+  const logLo=Math.log(Math.min(...[...Object.values(scenarioSeries).flat(),...Object.values(medoids).flat(),...mixtureLower,...mixtureUpper].filter(v=>Number.isFinite(v)&&v>0))*.985);
+  const logHi=Math.log(Math.max(...[...Object.values(scenarioSeries).flat(),...Object.values(medoids).flat(),...mixtureLower,...mixtureUpper].filter(v=>Number.isFinite(v)&&v>0))*1.015);
   const yTicks=Array.from({length:5},(_,index)=>Math.exp(logLo+(logHi-logLo)*index/4));
   const xTicks=[0,Math.floor(Math.max(0,histLength-1)/2),...(range.dates.length>4?[Math.max(0,histLength-1),histLength+Math.floor(range.dates.length/2)]:[]),n-1].filter((value,index,array)=>array.indexOf(value)===index&&value<n);
   const boundary=histLength?X(histLength):null;
@@ -1571,8 +1581,48 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
     ${keys.map(key=>`<path d="${line(scenarioSeries[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="1.4" stroke-dasharray="4 6" opacity=".42" data-scenario-p50="${key}"/>`).join('')}
     ${keys.map(key=>`<path d="${line(medoids[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" data-path-role="${key}-actual-medoid"/>`).join('')}
     ${keys.map(key=>`<circle cx="${X(n-1).toFixed(1)}" cy="${Y(medoids[key].at(-1)).toFixed(1)}" r="4.5" fill="${V52_SCENARIO_META[key].color}"/><text x="${(X(n-1)-10).toFixed(1)}" y="${(Y(medoids[key].at(-1))-9).toFixed(1)}" text-anchor="end" fill="${V52_SCENARIO_META[key].color}" font-weight="700" data-scenario-end-label="${key}">${endpointLabel(key)}</text>`).join('')}
+    <g data-v52-hover-layer><line data-v52-crosshair x1="0" x2="0" y1="${MT}" y2="${H-MB}" stroke="rgba(17,17,15,.45)" stroke-width="1.2" stroke-dasharray="4 3" opacity="0"/>${keys.map(key=>`<circle data-v52-dot="${key}" r="5" fill="${V52_SCENARIO_META[key].color}" stroke="#fff" stroke-width="2" opacity="0"/>`).join('')}<rect data-v52-overlay x="${ML}" y="${MT}" width="${PW}" height="${H-MT-MB}" fill="transparent"/></g>
   </svg>`;
 }
+
+function bindScenarioV52Hover(host,candidate,rangeKey){
+  const model=scenarioV52ChartModel(candidate,rangeKey);
+  const svg=host?.querySelector('svg');
+  if(!model||!svg)return;
+  const {dates,histLength,n,keys,medoids,scenarioSeries,W,ML,PW,X,Y}=model;
+  const crosshair=svg.querySelector('[data-v52-crosshair]');
+  const dots=Object.fromEntries(keys.map(key=>[key,svg.querySelector(`[data-v52-dot="${key}"]`)]));
+  const overlay=svg.querySelector('[data-v52-overlay]');
+  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  if(!overlay||!tip)return;
+  const indexFromPointer=event=>{
+    const rect=svg.getBoundingClientRect();
+    if(!rect.width)return 0;
+    const localX=(event.clientX-rect.left)*(W/rect.width);
+    let best=0,bestGap=Infinity;
+    for(let index=0;index<n;index++){const gap=Math.abs(X(index)-localX);if(gap<bestGap){bestGap=gap;best=index;}}
+    return best;
+  };
+  const hide=()=>{tip.style.display='none';if(crosshair)crosshair.setAttribute('opacity','0');keys.forEach(key=>dots[key]?.setAttribute('opacity','0'));};
+  const paint=event=>{
+    const index=indexFromPointer(event),x=X(index),isHistory=index<histLength;
+    if(crosshair){crosshair.setAttribute('x1',x.toFixed(1));crosshair.setAttribute('x2',x.toFixed(1));crosshair.setAttribute('opacity','1');}
+    keys.forEach(key=>{const dot=dots[key],value=medoids[key][index];
+      if(!dot||!Number.isFinite(value))return;
+      dot.setAttribute('cx',x.toFixed(1));dot.setAttribute('cy',Y(value).toFixed(1));dot.setAttribute('opacity',isHistory?'0':'1');});
+    if(!finePointer)return;
+    tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
+    const head=`<b>${esc(dates[index]||'')}</b> · ${isHistory?'실제 기록':'전망'}`;
+    const rows=isHistory
+      ?`<span>NASDAQ ${num(Math.round(Number(medoids.S1[index])))}</span>`
+      :keys.map(key=>`<span style="color:${V52_SCENARIO_META[key].color}">${key} ${esc(V52_SCENARIO_META[key].title)} ${num(Math.round(Number(medoids[key][index])))}<small style="color:#8b8880"> · 한가운데 ${num(Math.round(Number(scenarioSeries[key][index])))}</small></span>`).join('<br>');
+    tip.innerHTML=`${head}<br>${rows}`;
+  };
+  overlay.addEventListener('pointermove',paint);
+  overlay.addEventListener('pointerdown',event=>{paint(event);if(!finePointer)hide();});
+  overlay.addEventListener('pointerleave',hide);
+}
+
 function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
   const range=scenarioV52Range(candidate,rangeKey),scenarios=candidate?.conditional_small_multiples?.scenarios||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
   return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'—')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100,direction=change>1?'상승':change< -1?'하락':'중립';return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${direction} · ${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
@@ -1804,7 +1854,7 @@ function renderScenarioV52(candidate,initialState={}){
   const labTabs=el(`<nav class="lab-tabs scenario-v52-tabs" role="tablist" aria-label="미래 탐색 화면"><button type="button" id="lab-tab-future" role="tab" data-lab-tab="future" aria-selected="true" aria-controls="lab-future"><span>01</span> 전망 그래프<small>3개월·1개월·2026·2027</small></button><button type="button" id="lab-tab-history" role="tab" data-lab-tab="history" aria-selected="false" aria-controls="lab-history" ${historyPanel?'':'disabled'}><span>02</span> 과거 사이클<small>참고 비교</small></button><button type="button" id="lab-tab-cross-asset" role="tab" data-lab-tab="cross-asset" aria-selected="false" aria-controls="lab-cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 교차자산 비교<small>NASDAQ·Bitcoin·리츠·주택주</small></button><button type="button" id="lab-tab-liquidity" role="tab" data-lab-tab="liquidity" aria-selected="false" aria-controls="lab-liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>시장 자금 흐름</small></button></nav>`);
   root.appendChild(labTabs);root.appendChild(outlook);if(historyPanel)root.appendChild(historyPanel);if(crossAsset)root.appendChild(crossAsset);if(liquidity)root.appendChild(liquidity);mount(root);
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
-  const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${V52_RANGE_META[rangeKey][0]} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
+  const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);bindScenarioV52Hover(chartHost,candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${V52_RANGE_META[rangeKey][0]} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
   outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.onclick=()=>paintRange(button.dataset.v52Range));
   const graphPanels={unified:$('[data-future-graph-panel="unified"]',outlook),original:$('[data-future-graph-panel="original"]',outlook)};
   const originalPanel=originalFlowPanel();
