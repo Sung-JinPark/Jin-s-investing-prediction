@@ -68,6 +68,7 @@ def walk_forward_dev_backtest_v8(
     initial_rolling_crps: tuple[float, ...] | list[float] = (),
     collect_cramer_audit: bool = True,
     pit_min_matured: int = 104,
+    emit_forecast: bool = False,
 ) -> tuple[list[OriginScore], dict[str, Any]]:
     if outer_end < outer_start:
         raise TimeSeriesV8ContractError("evaluation window end precedes its start")
@@ -253,6 +254,15 @@ def walk_forward_dev_backtest_v8(
                 expanding_history.append(row.expanding_crps)
                 rolling_history.append(row.rolling_crps)
     summary = summarize_backtest_v2(scores, minimum_origins=1)
+    if emit_forecast:
+        summary["shadow_forecast"] = _final_session_forecast(
+            dates=dates, endog=endog, exog=exog,
+            endog_names=endog_names, exog_names=exog_names,
+            model_id=model_id, model_version=model_version, config=config,
+            path_count=path_count,
+            expanding_history=expanding_history, rolling_history=rolling_history,
+            pit_history=pit_history, pit_min_matured=pit_min_matured,
+        )
     summary["cramer_distance_mean"] = {
         str(horizon): (float(np.mean(rows)) if rows else None)
         for horizon, rows in cramer_rows.items()
@@ -264,6 +274,132 @@ def walk_forward_dev_backtest_v8(
     summary["window"] = {"outer_start": outer_start, "outer_end": outer_end}
     summary["origin_count_window"] = len(origins)
     return scores, summary
+
+
+FORECAST_GRID_LEVELS = tuple((index + 0.5) / 200.0 for index in range(200))
+
+
+def _final_session_forecast(
+    *,
+    dates: tuple[str, ...],
+    endog: np.ndarray,
+    exog: np.ndarray,
+    endog_names: tuple[str, ...],
+    exog_names: tuple[str, ...],
+    model_id: str,
+    model_version: int,
+    config: DistributionConfigV8,
+    path_count: int,
+    expanding_history: list[float],
+    rolling_history: list[float],
+    pit_history: dict[int, list[tuple[int, float]]],
+    pit_min_matured: int,
+) -> dict[str, Any]:
+    """The prospective distribution at the latest completed session.
+
+    This mirrors one iteration of the walk-forward loop with the warmed
+    ensemble and PIT state, minus scoring: the origin's labels do not exist
+    yet.  Everything stored is a deterministic function of the training
+    window, so a same-day replay reproduces the identical forecast.
+    """
+    as_of_index = len(dates) - 1
+    forecast_start = len(dates)
+    training_endog = endog[:forecast_start]
+    training_exog = exog[:forecast_start]
+    expanding = select_ridge_varx_v2(
+        training_endog, training_exog,
+        endog_names=endog_names, exog_names=exog_names,
+    )
+    rolling = select_ridge_varx_v2(
+        training_endog, training_exog,
+        endog_names=endog_names, exog_names=exog_names,
+        train_start=max(0, forecast_start - 2520),
+    )
+    weight_left, weight_right, _ = ensemble_weights(expanding_history, rolling_history)
+    as_of = dates[as_of_index]
+    seed = deterministic_seed(model_id, model_version, as_of)
+    combined_residuals = np.vstack((expanding.residuals, rolling.residuals))
+    block_length, ewma_lambda, _ = select_distribution_parameters_v2(
+        combined_residuals, seed=seed,
+    )
+    step_scale = volatility_term_structure(
+        combined_residuals, decay=ewma_lambda, phi=config.phi, horizon=63,
+        unconditional_window_sessions=config.unconditional_window_sessions,
+    ) if config.phi is not None else None
+    simulated = simulate_calibrated_paths_v8(
+        (expanding, rolling), weights=(weight_left, weight_right),
+        endog_history=training_endog, exog_last=training_exog[-1], anchor=1.0,
+        path_count=path_count, horizon=63, block_length=block_length,
+        ewma_lambda=ewma_lambda, seed=seed, step_scale=step_scale,
+    )
+    raw_cum = np.cumsum(simulated["log_returns"], axis=1)
+    shift = bounded_location_shift(
+        raw_cum, training_returns=training_endog[:, 0],
+        omega_by_horizon=config.omega_by_horizon, sigma_cap=config.sigma_cap,
+        mu_hat_window_sessions=config.mu_hat_window_sessions,
+    )
+    log_paths = np.log(np.exp(raw_cum + np.cumsum(shift)[None, :]))
+    rng = np.random.default_rng(seed + 1)
+    levels = np.asarray(FORECAST_GRID_LEVELS, dtype=float)
+    horizons_payload: dict[str, Any] = {}
+    recalibrated: dict[str, int] = {}
+    for horizon in HORIZONS:
+        samples = log_paths[:, horizon - 1]
+        if horizon in config.fhs_horizons:
+            samples = fhs_horizon_samples(
+                training_endog[:, 0], horizon=horizon, ewma_lambda=ewma_lambda,
+                vol_projection=config.fhs_vol_projection,
+                unconditional_window_sessions=config.unconditional_window_sessions,
+                mu_hat_window_sessions=config.mu_hat_window_sessions,
+                tilt_omega=config.fhs_tilt_omega,
+                tilt_cap_sigma=config.fhs_tilt_cap_sigma,
+                engine_mean=float(np.mean(log_paths[:, horizon - 1])),
+            )
+        baselines = _baseline_samples_v2(
+            training_endog[:, 0], horizon=horizon, count=path_count, rng=rng,
+        )
+        historical_samples = baselines["historical_simulation"]
+        weight = float(config.blend_weight_by_horizon.get(horizon, 1.0))
+        matured_pits = [
+            value for index, value in pit_history[horizon]
+            if index + PIT_MATURITY_SESSIONS <= as_of_index
+        ]
+        recal_active = (
+            config.pit_recalibration_shrinkage is not None
+            and len(matured_pits) >= int(pit_min_matured)
+        )
+        if recal_active:
+            remapped = recalibration_levels(
+                np.asarray(matured_pits, dtype=float), target_levels=levels,
+                shrinkage=float(config.pit_recalibration_shrinkage),
+            )
+            grid = mixture_quantile_function(
+                samples, historical_samples, weight=weight, levels=remapped,
+            )
+        else:
+            grid = mixture_quantile_function(
+                samples, historical_samples, weight=weight, levels=levels,
+            )
+        grid = np.maximum.accumulate(np.asarray(grid, dtype=float))
+        baseline_grid = np.quantile(historical_samples, levels)
+        horizons_payload[str(horizon)] = {
+            "quantile_grid": [float(v) for v in grid],
+            "baseline_quantile_grid": [float(v) for v in baseline_grid],
+            "p_up": float(np.mean(grid > 0.0)),
+            "blend_weight": weight,
+            "recalibrated": bool(recal_active),
+            "matured_pit_count": len(matured_pits),
+        }
+        recalibrated[str(horizon)] = int(recal_active)
+    return {
+        "origin": as_of,
+        "grid_levels_count": len(FORECAST_GRID_LEVELS),
+        "ensemble_weights": {"expanding": float(weight_left), "rolling": float(weight_right)},
+        "block_length": int(block_length),
+        "ewma_lambda": float(ewma_lambda),
+        "horizons": horizons_payload,
+        "recalibrated": recalibrated,
+    }
 
 
 def paired_differences_vs_best(
