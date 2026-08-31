@@ -706,7 +706,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
         "flowEventLayout", "조회 · ",
         "DB-CONDITIONED PATH · MONTHLY RISK WINDOW", "DB 조건부 구조 경로",
-        "월 단위 위험창", "2001-03 이후 실제 NASDAQ의 추가 하락·회복",
+        "월 단위 위험창", "2001-03 이후 실제로 있었던 수익",
         "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다", "AI 버블 붕괴일이 아니라", "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
@@ -818,6 +818,40 @@ def test_dead_render_paths_are_not_shipped() -> None:
         assert kept in html, kept
 
 
+def test_chart_notes_use_one_scannable_guide_block() -> None:
+    """공시를 문단으로 쌓지 않고 한 줄씩 훑는 '읽는 법' 블록으로 통일한다."""
+    html = dashboard.load_template()
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+
+    assert "function chartGuide(rows,caution)" in html
+    assert 'class="chart-guide-title">읽는 법' in html
+    assert 'class="chart-guide-caution"><b>참고용</b>' in html
+    for helper in ("const GUIDE_SOLID=", "const GUIDE_DASH=", "const GUIDE_BAND="):
+        assert helper in html, helper
+
+    # 두 전망 차트가 같은 컴포넌트를 쓴다
+    assert html.count("${chartGuide([") >= 2
+
+    # 스타일이 실제로 실려 있고 좁은 화면에서도 접힌다
+    assert ".chart-guide{margin:12px 0 0;padding:12px 14px;display:grid" in css
+    assert ".chart-guide-row{display:grid;grid-template-columns:26px 92px 1fr" in css
+    assert ".chart-method>summary{" in css
+
+    # 길고 기술적인 옛 문구는 화면에서 사라졌다
+    for retired in (
+        "굴곡은 역사 중앙 형태 가정이지 특정 거래일 사건 예측이 아니며, 회색 점선은 굴곡 적용 전 GBM 중앙값입니다. 참고 의견이며",
+        "ONE SIMULATED MEMBER",
+        "매끄러운 중심 경향은 같은 색 점선(조건부 p50)으로 함께 표시합니다",
+        "중앙값·적중률·최악 사례는 과거 표본 요약이며",
+        "커서 값은 선택 날짜 이전의 최신 회차입니다",
+    ):
+        assert retired not in html, retired
+
+    # 그래도 지켜야 하는 지위 표시는 남아 있다
+    assert "투자 자문이 아닙니다" in html
+    assert "특정 날짜의 가격을 맞히는 그래프가 아닙니다" in html
+
+
 def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
     """전망 그래프의 굵은 선은 실제 모의 중심 경로(medoid)다.
 
@@ -836,11 +870,9 @@ def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
     assert "const endpointLabel=key=>{const values=medoids[key]" in body
 
     # 주선이 모의 멤버 한 개라는 사실을 반드시 함께 밝힌다
-    assert "굵은 선은 시나리오별 실제 모의 경로 한 개(medoid)입니다" in html
-    assert "중심 경향이 아니며" in html
-    assert "굵은 선=실제 모의 경로 한 개(medoid) · 점선=조건부 p50" in html
-    # 가짜 흔들림 금지는 그대로
-    assert "p50에 인위적인 흔들림을 넣지 않았고" in html
+    assert "그 시나리오에서 실제로 나온 경로 하나" in html
+    assert "굵은 선은 평균이 아니라 가능한 경로 하나입니다" in html
+    assert "굵은 선=실제로 나온 경로 하나 · 점선=수천 번 돌린 한가운데" in html
 
 
 def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
@@ -860,8 +892,8 @@ def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
 
     # 선택기와 공시
     assert 'data-original-scenario="${key}"' in html
-    assert "같은 월별 굴곡 형태를 공유하고 진폭만 다릅니다" in html
-    assert "한 번에 하나만 표시합니다" in html
+    assert "조정 모양이 같고 크기만 다릅니다" in html
+    assert "한 번에 하나만 보여줍니다" in html
     # 나머지 두 경로의 종점은 표로 남긴다
     assert "data-original-endpoints" in html
     assert "연구 코호트 비중" in html
@@ -985,8 +1017,9 @@ def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
     assert "data-sample-path" in body
     assert "sc.path_realism?.[key]?.sample_paths" in body
     assert 'data-original-samples aria-pressed="false"' in html, "모의 경로는 기본 숨김"
-    assert "ONE SIMULATED MEMBER · EXACT DATES ARE NOT FORECAST" in html
+    # 공시는 사라지지 않고 접힌 방법 설명으로 자리를 옮겼다
     assert "모의 표본을 대표선으로 쓰지 않습니다" in html
+    assert "얇은 점선은 <b>실제로 나온 경로 하나하나</b>입니다" in html
 
 
 def test_three_tier_information_architecture_midlevel_navigation() -> None:
@@ -1449,7 +1482,7 @@ def test_o_entry_cohort_ui_is_evidence_only() -> None:
         "O 월별 진입 cohort", "PREREGISTERED · REFERENCE ONLY",
         "진입 시점·가격을 추천하지 않습니다", "현재 진입상태 규칙은 아직 등록하지 않았습니다",
         "월말 신호 → 익월 첫 거래일 체결", "cohortResultsMarkup(DATA.o_entry_cohort)",
-        "표본 n=${num(row.n||0)}", "미완결 지평은 통계에서 제외",
+        "표본 n=${num(row.n||0)}", "아직 기간이 안 끝난 사례는 계산에서 빼고",
     ):
         assert required in html
     assert "O_ENTRY_ATTRACTIVE" not in html
