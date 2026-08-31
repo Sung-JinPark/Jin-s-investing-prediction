@@ -706,3 +706,112 @@ questions:
   - once: true
   - from: D-3
     once: true
+- id: amzn-fcf-negative-fy2026
+  tier: standard
+  drivers: [ai-capex-cycle, ai-financing]
+  title: Amazon FY2026 잉여현금흐름 음전
+  question: 'Amazon이 2026 회계연도 10-K에서 보고하는 연간 잉여현금흐름(영업활동 현금흐름 − 유형자산 취득지출)이 음수일 확률은?
+
+    '
+  deadline: 2027-02-15
+  resolution: 'YES = FY2026(2026-01-01~2026-12-31) 기준 us-gaap:NetCashProvidedByUsedInOperatingActivities
+    − us-gaap:PaymentsToAcquireProductiveAssets < 0. 태그가 변경되면 현금흐름표의 "Purchases of property
+    and equipment, net of proceeds from sales and incentives" 행을 사용한다. 10-K 최초 공시치로 판정하며 이후
+    재작성은 반영하지 않는다.
+
+    '
+  resolution_source: SEC EDGAR companyfacts CIK0001018724
+  domain: earnings
+  cadence: 분기 실적 발표 후 + 월 1회
+  action_link: AI 설비투자 사이클의 현금 압박 임계 — EXIT 트리거 재점검 입력
+  status: active
+  created: 2026-08-31
+  notes: 실측 base rate — FY2024 OCF 115.877B / capex 82.999B → FCF +32.878B, FY2025 OCF 139.514B
+    / capex 131.819B → FCF +7.695B. 2년 연속 급감이나 아직 양수. (2026-08-31 companyfacts 직접 확인)
+  schedule:
+  - per_week: 0.25
+- id: ai-investment-gdp-share-2026q4
+  tier: standard
+  drivers: [ai-capex-cycle]
+  title: 설비+지식재산 투자의 GDP 비중 — 2026Q4 8.5% 이상
+  question: 'BEA가 2027년 1~2월 중 공표하는 2026Q4 GDP 최초 추정(advance estimate)에서, (정보처리장비 투자 + 지식재산생산물
+    투자) ÷ GDP(명목·분기 연율)가 8.5% 이상일 확률은?
+
+    '
+  deadline: 2027-03-31
+  resolution: 'YES = (Y034RC1Q027SBEA + Y001RC1Q027SBEA) ÷ GDP ≥ 0.085. 2026Q4 advance estimate
+    최초 공표 당일의 값으로 고정하며 second/third/연례/포괄 개정은 판정에 반영하지 않는다. 판정 시 해당 스냅샷을 예측 파일에 기록한다.
+
+    '
+  resolution_source: BEA NIPA (FRED 중계 계열 Y034RC1Q027SBEA, Y001RC1Q027SBEA, GDP)
+  domain: macro
+  cadence: 분기 GDP 발표 주간 + 월 1회
+  action_link: 통계 카드 investment_share_of_gdp의 임계 검증 — 신호가 아니라 참조
+  status: active
+  created: 2026-08-31
+  notes: 실측 추세 — 2026Q1 8.11%, 2026Q2 8.21% (분기 +0.10%p). 닷컴 정점은 2000Q4 6.95%. 2020Q2 7.50%는 GDP
+    붕괴가 만든 위양성이므로 이 계열은 임계 신호로 쓰지 않는다.
+  schedule:
+  - per_week: 0.25
+- id: fedfunds-upper-550-2027h1
+  tier: lite
+  drivers: [fed-path, ai-financing]
+  title: 연방기금금리 목표 상단 5.50% 도달 — 2027-06-30까지
+  question: '2027-06-30까지 FOMC 성명서 기준 연방기금금리 목표범위 상단이 한 번이라도 5.50% 이상이 될 확률은?
+
+    '
+  deadline: 2027-06-30
+  resolution: 'YES = 해당 기간 중 어느 FOMC 성명서에서든 목표범위 상단 ≥ 5.50%
+
+    '
+  resolution_source: Federal Reserve 공식 성명서
+  domain: macro
+  cadence: FOMC 회의 주간 + 월 1회
+  action_link: AI 부채 조달 비용 임계 가설의 반증 가능성 확보
+  status: active
+  created: 2026-08-31
+  notes: 현 목표범위 3.50~3.75%. +175~200bp가 필요한 저확률 질문이나, 등록하지 않으면 "금리 5.5% 초과가 버블을 터뜨린다"는 가설이
+    영원히 반증 불가로 남는다. 짝질문 fedfunds-upper-hold-2026ye와 함께 채점한다.
+  schedule:
+  - per_week: 0.25
+- id: fedfunds-upper-hold-2026ye
+  tier: lite
+  drivers: [fed-path]
+  title: 연방기금금리 목표 상단 3.75% 이하 유지 — 2026 연말
+  question: '2026-12-31 시점 FOMC 성명서 기준 연방기금금리 목표범위 상단이 3.75% 이하로 유지될 확률은?
+
+    '
+  deadline: 2026-12-31
+  resolution: 'YES = 2026-12-31 시점 유효한 최신 FOMC 성명서의 목표범위 상단 ≤ 3.75%
+
+    '
+  resolution_source: Federal Reserve 공식 성명서
+  domain: macro
+  cadence: FOMC 회의 주간 + 월 2회
+  action_link: fedfunds-upper-550-2027h1의 정보량 있는 짝질문 — 단기 해소 표본 확보
+  status: active
+  created: 2026-08-31
+  schedule:
+  - per_week: 0.5
+- id: sox-ndx-relative-strength-2026ye
+  tier: lite
+  drivers: [ai-capex-cycle]
+  title: 반도체·플랫폼 상대강도 — 2026 연말 추가 하락
+  question: '2026-12-31 종가 기준, (NASDAQSOX ÷ NASDAQ100)을 2026-08-28 = 100으로 정규화한 값이 95 이하일 확률은?
+
+    '
+  deadline: 2026-12-31
+  resolution: 'YES = (SOX_2026-12-31 ÷ NDX_2026-12-31) ÷ (SOX_2026-08-28 ÷ NDX_2026-08-28) × 100
+    ≤ 95.0. 두 지수의 2026-12-31 종가(휴장 시 직전 완료 세션)를 사용한다.
+
+    '
+  resolution_source: FRED NASDAQSOX, NASDAQ100 일별 종가
+  domain: market-regime
+  cadence: 주 1회
+  action_link: 인프라 공급자 대비 플랫폼 추격 가설의 방향 검증
+  status: active
+  created: 2026-08-31
+  notes: 기준일 실측 — 2026-06-30 SOX/NDX 0.47056 → 2026-08-28 0.38968(6월말=100 대비 82.8). 인프라 우위는 최근
+    2개월 사이 이미 상당 부분 되돌려졌으므로 6월말 기준 임계는 무의미하고, 최신 완료 세션(2026-08-28)을 기준으로 추가 하락 여부를 묻는다.
+  schedule:
+  - per_week: 1
