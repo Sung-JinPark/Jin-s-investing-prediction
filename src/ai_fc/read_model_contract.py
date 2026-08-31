@@ -393,8 +393,11 @@ def validate(model: dict[str, Any]) -> list[str]:
                 errors.append("scenario_v5_2 probabilities must be fractions summing to one")
             display = scenario_v52.get("display_contract") or {}
             if display.get("main_chart") != \
-                    "shared_log_axis_three_conditional_p50_with_total_mixture_band":
+                    "shared_log_axis_three_scenario_actual_medoids_with_total_mixture_band":
                 errors.append("scenario_v5_2 main chart semantic contract mismatch")
+            # 주선이 실제 모의 멤버이면 "중심 경향이 아니다" 공시가 read-model까지 따라와야 한다.
+            if "ONE actual simulated member" not in str(display.get("primary_line_disclosure", "")):
+                errors.append("scenario_v5_2 medoid primary line is missing its disclosure")
             if display.get("main_chart_scenario_lines") is not True:
                 errors.append("scenario_v5_2 shared chart must contain scenario lines")
     band_calibration = model.get("band_calibration")

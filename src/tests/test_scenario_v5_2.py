@@ -494,7 +494,7 @@ def test_distribution_spaces_stay_separate_while_research_ui_is_shared_scale(tmp
     assert payload["distribution"]["probability_space"] == "total_path_mixture"
     assert payload["display_contract"]["main_chart_scenario_lines"] is True
     assert payload["display_contract"]["main_chart"] == \
-        "shared_log_axis_three_conditional_p50_with_total_mixture_band"
+        "shared_log_axis_three_scenario_actual_medoids_with_total_mixture_band"
     assert payload["conditional_small_multiples"]["probability_space"] == "scenario_conditional"
     assert set(payload["conditional_small_multiples"]["scenarios"]) == {"S1", "S2", "S3"}
     dashboard = render_dashboard(tmp_path, payload)
@@ -513,7 +513,10 @@ def test_p50_has_no_fake_wiggle_and_bundle_is_actual_members() -> None:
     payload = _candidate()
     display = payload["display_contract"]
     bundle = payload["distribution"]["central_path_bundle"]
-    assert display["primary_line"] == "three_scenario_conditional_p50_lines"
+    assert display["primary_line"] == "three_scenario_actual_medoid_lines"
+    # 주선이 실제 모의 멤버가 된 만큼 공시가 아티팩트에 함께 실려야 한다
+    assert "ONE actual simulated member" in display["primary_line_disclosure"]
+    assert display["secondary_lines"].startswith("scenario_conditional_p50")
     assert display["fake_wiggle"] is False
     assert bundle["fake_wiggle_applied"] is False
     assert bundle["p50_smoothing"].startswith("none")

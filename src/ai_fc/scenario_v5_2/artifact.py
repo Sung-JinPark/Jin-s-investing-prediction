@@ -266,12 +266,15 @@ def validate_candidate(
 
     display = payload.get("display_contract", {})
     if display.get("main_chart") != \
-            "shared_log_axis_three_conditional_p50_with_total_mixture_band":
+            "shared_log_axis_three_scenario_actual_medoids_with_total_mixture_band":
         errors.append("main chart contract mismatch")
     if display.get("main_chart_scenario_lines") is not True:
         errors.append("scenario lines are missing from the shared-scale chart")
-    if display.get("scenario_surface") != "S1_S2_S3_conditional_p50_shared_scale":
+    if display.get("scenario_surface") != "S1_S2_S3_actual_medoid_shared_scale":
         errors.append("scenario shared-scale contract mismatch")
+    # 주선이 실제 모의 멤버이므로 "중심 경향이 아니다"라는 공시가 반드시 함께 나가야 한다.
+    if "ONE actual simulated member" not in str(display.get("primary_line_disclosure", "")):
+        errors.append("medoid primary line is missing its simulated-member disclosure")
     if display.get("fake_wiggle") is not False:
         errors.append("fake p50 wiggle is forbidden")
     if display.get("october_2_exact_date_forecast") is not False:
