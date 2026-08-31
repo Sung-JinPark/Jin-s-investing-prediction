@@ -159,7 +159,8 @@ def test_dashboard_keeps_v5_as_non_default_research_support() -> None:
     assert "shadowScenario=DATA.scenario_v4_shadow" in script
     assert "v5.banner" in script
     assert "sc.representative_lines_visible===false?[]" in script
-    assert "conditional weighted p50" in script
+    # 라벨은 평이한 한국어로 바뀌었지만 '한가운데 경로 vs 실제 경로 하나' 구분은 유지된다
+    assert "한가운데 경로" in script
     assert "scenarioV5ConditionalFanMarkup(v5)" in script
     assert "scenarioV5EvidenceMarkup(v5)" in script
     assert "EVENT STATE ONLY" in script
