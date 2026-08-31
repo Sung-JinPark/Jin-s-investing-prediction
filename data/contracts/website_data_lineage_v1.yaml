@@ -134,6 +134,7 @@ statistics:
     inflation_lead_panel: [CPIAUCSL, DCOILWTICO, WPU10260314]
     korea_semiconductor_cycle: [SPASTT01KRM661N, NASDAQSOX]
     investment_share_of_gdp: [Y034RC1Q027SBEA, Y001RC1Q027SBEA, GDP]
+    corporate_bond_issuance: [FL103163005, FA103163005]
     housing_manufacturing_warning: [HOUST, GACDFSA066MSFRBPHI]
     household_balance_sheet_trend_gap: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
 

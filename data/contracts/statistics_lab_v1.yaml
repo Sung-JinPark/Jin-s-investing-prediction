@@ -59,6 +59,14 @@ sources:
       GDP: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: investment_share_denominator}
       Y034RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: information_processing_equipment_investment}
       Y001RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: intellectual_property_products_investment}
+  federal_reserve_z1:
+    endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
+    provider: Board of Governors of the Federal Reserve System
+    note: one quarterly archive, one raw receipt, multiple declared series
+    series:
+      FL663067003: {member: csv/F4_6_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: household_margin_loan_proxy_not_FINRA}
+      FL103163005: {member: csv/S11_1_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: nonfinancial_corporate_debt_securities_outstanding}
+      FA103163005: {member: csv/S11_1_t.csv, native_frequency: quarterly, unit: millions_usd_saar, aggregation: last, role: nonfinancial_corporate_debt_securities_net_issuance}
   yahoo_chart:
     endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
     series:

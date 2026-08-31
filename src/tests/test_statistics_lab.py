@@ -21,6 +21,7 @@ from ai_fc.authoritative_statistics import (
     read_raw_receipt_corrections,
 )
 from ai_fc.statistics_lab import (
+    Z1_SERIES,
     DAILY_MARKET_SERIES,
     FRED_ENDPOINT,
     FRED_SERIES,
@@ -231,11 +232,15 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
 def _z1_bytes() -> bytes:
     target = io.BytesIO()
     with zipfile.ZipFile(target, "w") as archive:
-        lines = ["date,FL663067003.Q"]
-        for year in range(1995, 2027):
-            for quarter in range(1, 5):
-                lines.append(f"{year}:Q{quarter},{100000 + (year - 1995) * 10000 + quarter}")
-        archive.writestr("csv/F4_6_s.csv", "\n".join(lines) + "\n")
+        for index, (series_id, spec) in enumerate(Z1_SERIES.items()):
+            lines = [f"date,{spec['field']}"]
+            base = 100000 * (index + 1)
+            for year in range(1995, 2027):
+                for quarter in range(1, 5):
+                    lines.append(
+                        f"{year}:Q{quarter},{base + (year - 1995) * 10000 + quarter}"
+                    )
+            archive.writestr(spec["member"], "\n".join(lines) + "\n")
     return target.getvalue()
 
 
@@ -329,7 +334,8 @@ def _payload_inputs() -> tuple[dict, dict]:
         for year in range(1950, 2026)
     ]
     z1 = _z1_bytes()
-    rows["FL663067003"] = _parse_z1(z1)
+    for z1_series_id in Z1_SERIES:
+        rows[z1_series_id] = _parse_z1(z1, z1_series_id)
     receipts = {
         series_id: {"raw_sha256": hashlib.sha256(series_id.encode()).hexdigest()}
         for series_id in rows
@@ -641,7 +647,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 23
+    assert len(payload["charts"]) == 24
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -703,7 +709,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 23
+    assert len(payload["charts"]) == 24
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -779,9 +785,10 @@ def _append_official_persistence_batch(
         for series_id in FRED_SERIES
     }
     source_rows["M2SL"] = [{"date": "2026-01-01", "value": m2_value}]
-    source_rows["FL663067003"] = [
-        {"date": "2026-01-01", "value": 50.0},
-    ]
+    for z1_series_id in Z1_SERIES:
+        source_rows[z1_series_id] = [
+            {"date": "2026-01-01", "value": 50.0},
+        ]
     source_rows["SEC_IPO_QUARTERLY"] = [{
         "date": "2026-03-31",
         "period_label": "2026:Q1",
@@ -796,7 +803,7 @@ def _append_official_persistence_batch(
         "spac_proceeds_mn": 200.0,
         "fund_proceeds_mn": 100.0,
     }]
-    series_ids = [*FRED_SERIES, "FL663067003", "SEC_IPO_QUARTERLY"]
+    series_ids = [*FRED_SERIES, *Z1_SERIES, "SEC_IPO_QUARTERLY"]
     raw_payloads = {
         series_id: f"{raw_tag}:{series_id}".encode()
         for series_id in series_ids

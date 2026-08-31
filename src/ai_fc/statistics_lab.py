@@ -694,19 +694,53 @@ def _fetch_daily_market(
     }
 
 
-def _parse_z1(raw: bytes) -> list[dict[str, Any]]:
+Z1_SERIES: dict[str, dict[str, str]] = {
+    "FL663067003": {
+        "member": "csv/F4_6_s.csv",
+        "field": "FL663067003.Q",
+        "title": "Household margin loans and other receivables due to brokers",
+        "unit": "millions_usd",
+        "proxy_warning": "not_FINRA_monthly_margin_debt",
+    },
+    "FL103163005": {
+        "member": "csv/S11_1_s.csv",
+        "field": "FL103163005.Q",
+        "title": "Nonfinancial corporate business: debt securities outstanding",
+        "unit": "millions_usd",
+    },
+    "FA103163005": {
+        "member": "csv/S11_1_t.csv",
+        "field": "FA103163005.Q",
+        "title": "Nonfinancial corporate business: debt securities net issuance",
+        "unit": "millions_usd_saar",
+    },
+}
+
+Z1_PRIMARY_SERIES = "FL663067003"
+
+
+def _parse_z1(raw: bytes, series_id: str = Z1_PRIMARY_SERIES) -> list[dict[str, Any]]:
+    try:
+        spec = Z1_SERIES[series_id]
+    except KeyError as exc:
+        raise StatisticsLabError(f"unknown Z.1 series: {series_id}") from exc
+    member = spec["member"]
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
         try:
-            text = archive.read("csv/F4_6_s.csv").decode("utf-8-sig")
+            text = archive.read(member).decode("utf-8-sig")
         except KeyError as exc:
-            raise StatisticsLabError("Z.1 F4_6_s.csv missing") from exc
+            raise StatisticsLabError(f"Z.1 {member} missing") from exc
     reader = csv.DictReader(io.StringIO(text))
-    field = "FL663067003.Q"
+    field = spec["field"]
     rows = []
     for row in reader:
         value = row.get(field)
         period = row.get("date", "")
         if not value or not period or ":Q" not in period:
+            continue
+        # "ND" is the Federal Reserve's documented no-data marker; skipping it is
+        # not the same as tolerating a malformed number, which still fails closed.
+        if value.strip() in {"ND", "NA"}:
             continue
         try:
             year_text, quarter_text = period.split(":Q", 1)
@@ -714,11 +748,11 @@ def _parse_z1(raw: bytes) -> list[dict[str, Any]]:
             parsed = float(value)
             observed = date(int(year_text), month, 1)
         except (TypeError, ValueError) as exc:
-            raise StatisticsLabError("invalid Z.1 margin-credit row") from exc
+            raise StatisticsLabError(f"invalid Z.1 row for {field}: {period}={value!r}") from exc
         if observed >= date(1995, 1, 1) and math.isfinite(parsed):
             rows.append({"date": observed.isoformat(), "value": parsed})
     if not rows:
-        raise StatisticsLabError("Z.1 FL663067003.Q is empty")
+        raise StatisticsLabError(f"Z.1 {field} is empty")
     return rows
 
 
@@ -2698,22 +2732,25 @@ def _build_statistics_lab_legacy(
             "raw_sha256": receipt["raw_sha256"],
             "vintage": receipt.get("vintage", "current_public_release_reconstructed"),
         })
-    z1_rows = source_rows["FL663067003"]
-    source_meta.append({
-        "series_id": "FL663067003",
-        "title": "Household margin loans and other receivables due to brokers",
-        "provider": "Board of Governors of the Federal Reserve System (US)",
-        "unit": "millions_usd",
-        "native_frequency": "quarterly",
-        "source_url": "https://www.federalreserve.gov/releases/z1/current/",
-        "request_url": Z1_ENDPOINT,
-        "available_at": generated_at,
-        "latest_observation": z1_rows[-1]["date"],
-        "row_count": len(z1_rows),
-        "raw_sha256": receipts["FL663067003"]["raw_sha256"],
-        "vintage": "current_release_reconstructed",
-        "proxy_warning": "not_FINRA_monthly_margin_debt",
-    })
+    for z1_series_id, z1_spec in Z1_SERIES.items():
+        z1_rows = source_rows[z1_series_id]
+        z1_meta = {
+            "series_id": z1_series_id,
+            "title": z1_spec["title"],
+            "provider": "Board of Governors of the Federal Reserve System (US)",
+            "unit": z1_spec["unit"],
+            "native_frequency": "quarterly",
+            "source_url": "https://www.federalreserve.gov/releases/z1/current/",
+            "request_url": Z1_ENDPOINT,
+            "available_at": generated_at,
+            "latest_observation": z1_rows[-1]["date"],
+            "row_count": len(z1_rows),
+            "raw_sha256": receipts[z1_series_id]["raw_sha256"],
+            "vintage": "current_release_reconstructed",
+        }
+        if z1_spec.get("proxy_warning"):
+            z1_meta["proxy_warning"] = z1_spec["proxy_warning"]
+        source_meta.append(z1_meta)
     if ipo_reference is not None:
         source_meta.extend(ipo_reference["sources"])
     if hmi_reference is not None:
@@ -2778,7 +2815,7 @@ def build_statistics_lab(
     ``hmi_reference`` remains accepted for backwards-compatible callers and ignored.
     """
     del hmi_reference
-    required_sources = set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | {"FL663067003"}
+    required_sources = set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | set(Z1_SERIES)
     missing = sorted(required_sources - set(source_rows))
     if missing:
         raise StatisticsLabError(f"missing authoritative source series: {missing}")
@@ -2787,7 +2824,8 @@ def build_statistics_lab(
         key: _monthly(source_rows[key], spec["aggregation"])
         for key, spec in FRED_SERIES.items()
     }
-    monthly["FL663067003"] = _monthly(source_rows["FL663067003"], "last")
+    for z1_series_id in Z1_SERIES:
+        monthly[z1_series_id] = _monthly(source_rows[z1_series_id], "last")
     comparison_months = COMPARISON_MONTHS
 
     def cycles(rows: list[dict[str, Any]], *, indexed: bool = False):
@@ -2833,6 +2871,20 @@ def build_statistics_lab(
     ]
     dot_value, cur_value = cycles(valuation)
     dot_margin, cur_margin = cycles(monthly["FL663067003"], indexed=True)
+    # Corporate bond stock and flow for nonfinancial business.  The flow is the
+    # macro denominator the "AI-related issuance" headlines lack: no official
+    # taxonomy marks a bond as AI-related, so only the whole-economy total is
+    # reproducible from official data.
+    bond_outstanding_tn = [
+        {"date": row["date"], "value": float(row["value"]) / 1_000_000.0}
+        for row in monthly["FL103163005"]
+    ]
+    bond_issuance_bn = [
+        {"date": row["date"], "value": float(row["value"]) / 1_000.0}
+        for row in monthly["FA103163005"]
+    ]
+    dot_bond_stock, cur_bond_stock = cycles(bond_outstanding_tn)
+    dot_bond_flow, cur_bond_flow = cycles(bond_issuance_bn)
     dot_equities, cur_equities = cycles(monthly["BOGZ1LM893064105Q"], indexed=True)
     dot_credit, cur_credit = cycles(_yoy(monthly["TOTALSL"]))
     dot_standards, cur_standards = cycles(monthly["DRTSCILM"])
@@ -2993,6 +3045,10 @@ def build_statistics_lab(
         make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
              ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
+        make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행", "credit", "trillions_and_billions_usd",
+             [_series("닷컴 잔액(조 달러)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(십억 달러)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(조 달러)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(십억 달러)", "current", cur_bond_flow, "#4aa18d")],
+             ["FL103163005", "FA103163005"], "*미국 비금융기업 기준",
+             "기업이 채권으로 조달한 잔액과 분기 순발행을 함께 봅니다. 공식 통계에 \"AI 채권\" 분류는 없으므로 경제 전체 규모만 재현할 수 있습니다."),
         make("household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit", "percent_vs_trend",
              [_series("주식", "current", equity_gap, "#11110f"), _series("현금성 자산", "current", cash_gap, "#b58b2a"), _series("채권", "current", debt_gap, "#28756a")],
              ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"], "*미국 가계·비영리 자산 기준", "2009~2019 추세에서 주식·현금·채권이 얼마나 벗어났는지 비교합니다."),
@@ -3146,6 +3202,12 @@ def build_statistics_lab(
             f"은행 대출기준 순강화 비율이 {standards_now:.1f}%로 올라 기업 자금조달 "
             "경계가 필요한 상태입니다."
         ),
+        "corporate_bond_issuance": (
+            f"비금융기업 회사채 잔액은 현재 {endpoint(cur_bond_stock):.1f}조 달러로 닷컴 같은 시점의 "
+            f"{endpoint(dot_bond_stock):.1f}조 달러보다 큽니다. 분기 순발행은 현재 "
+            f"{endpoint(cur_bond_flow):.0f}십억 달러입니다. 이 총액에는 AI 목적 여부를 구분하는 공식 분류가 "
+            "없으므로, 특정 기업군의 AI 조달액을 이 계열에서 뽑아낼 수는 없습니다."
+        ),
         "investment_share_of_gdp": (
             f"설비 투자만 보면 현재 GDP의 {endpoint(cur_equipment_share):.2f}%로 닷컴 같은 시점의 "
             f"{endpoint(dot_equipment_share):.2f}%와 견줍니다. 소프트웨어·연구개발을 더하면 "
@@ -3252,21 +3314,27 @@ def build_statistics_lab(
         "raw_path": sec_receipt.get("raw_path"),
         "vintage": sec_receipt.get("vintage", "current_public_release_reconstructed"),
     })
-    z1_rows = source_rows["FL663067003"]
-    z1_receipt = receipts["FL663067003"]
-    source_meta.append({
-        "series_id": "FL663067003", "title": "Household margin loans and broker receivables",
-        "provider": "Board of Governors of the Federal Reserve System (US)",
-        "unit": "millions_usd", "native_frequency": "quarterly",
-        "source_url": "https://www.federalreserve.gov/releases/z1/current/", "request_url": Z1_ENDPOINT,
-        "authority_class": "official_statistical_agency",
-        "policy_source_id": "federal_reserve_board", "usage_role": "numeric_input",
-        "numeric_input_allowed": True,
-        "available_at": z1_receipt.get("available_at", generated_at),
-        "latest_observation": z1_rows[-1]["date"], "row_count": len(z1_rows),
-        "raw_sha256": z1_receipt["raw_sha256"], "raw_path": z1_receipt.get("raw_path"),
-        "vintage": z1_receipt.get("vintage", "current_release_reconstructed"),
-    })
+    for z1_series_id, z1_spec in Z1_SERIES.items():
+        z1_rows = source_rows[z1_series_id]
+        z1_receipt = receipts[z1_series_id]
+        z1_meta = {
+            "series_id": z1_series_id, "title": z1_spec["title"],
+            "provider": "Board of Governors of the Federal Reserve System (US)",
+            "unit": z1_spec["unit"], "native_frequency": "quarterly",
+            "source_url": "https://www.federalreserve.gov/releases/z1/current/",
+            "request_url": Z1_ENDPOINT,
+            "authority_class": "official_statistical_agency",
+            "policy_source_id": "federal_reserve_board", "usage_role": "numeric_input",
+            "numeric_input_allowed": True,
+            "available_at": z1_receipt.get("available_at", generated_at),
+            "latest_observation": z1_rows[-1]["date"], "row_count": len(z1_rows),
+            "raw_sha256": z1_receipt["raw_sha256"],
+            "raw_path": z1_receipt.get("raw_path"),
+            "vintage": z1_receipt.get("vintage", "current_release_reconstructed"),
+        }
+        if z1_spec.get("proxy_warning"):
+            z1_meta["proxy_warning"] = z1_spec["proxy_warning"]
+        source_meta.append(z1_meta)
     observation_through = max(row["latest_observation"] for row in source_meta)
     payload = {
         "schema_version": 1, "dataset_id": "dotcom_statistics_lab_v1", "status": "ok",
@@ -3555,15 +3623,18 @@ def _persist_authoritative_inputs(
     source_policy["SEC_IPO_QUARTERLY"] = (
         "sec_edgar", SEC_IPO_ENDPOINT, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     )
-    source_policy["FL663067003"] = (
-        "federal_reserve_board", Z1_ENDPOINT, "application/zip",
-    )
+    for z1_series_id in Z1_SERIES:
+        source_policy[z1_series_id] = (
+            "federal_reserve_board", Z1_ENDPOINT, "application/zip",
+        )
 
     receipt_models: dict[str, Any] = {}
     for series_id, raw in raw_payloads.items():
         policy_source_id, default_source_uri, media_type = source_policy[series_id]
         source_uri = (source_uris or {}).get(series_id, default_source_uri)
         declared_series = [series_id]
+        if series_id == Z1_PRIMARY_SERIES:
+            declared_series = list(Z1_SERIES)
         if series_id == "SEC_IPO_QUARTERLY":
             declared_series = [
                 f"SEC_IPO_QUARTERLY.{field}"
@@ -3585,6 +3656,14 @@ def _persist_authoritative_inputs(
             "available_at": fetched_at,
             "receipt_id": receipt.receipt_id,
         })
+
+    z1_receipt_model = receipt_models.get(Z1_PRIMARY_SERIES)
+    if z1_receipt_model is not None:
+        for z1_series_id in Z1_SERIES:
+            if z1_series_id == Z1_PRIMARY_SERIES:
+                continue
+            receipt_models[z1_series_id] = z1_receipt_model
+            receipts[z1_series_id].update(receipts[Z1_PRIMARY_SERIES])
 
     current_sec_receipt = receipt_models.get("SEC_IPO_QUARTERLY")
     if (
@@ -3679,13 +3758,14 @@ def _persist_authoritative_inputs(
                 observed=str(row["date"]), value=row["value"], unit=spec["unit"],
                 raw_sha256=receipt.raw_sha256,
             )
-    z1_receipt = receipt_models["FL663067003"]
-    for row in source_rows["FL663067003"]:
-        add_candidate(
-            policy_source_id="federal_reserve_board", series_id="FL663067003",
-            observed=str(row["date"]), value=row["value"], unit="millions_usd",
-            raw_sha256=z1_receipt.raw_sha256,
-        )
+    for z1_series_id, z1_spec in Z1_SERIES.items():
+        z1_receipt = receipt_models[z1_series_id]
+        for row in source_rows[z1_series_id]:
+            add_candidate(
+                policy_source_id="federal_reserve_board", series_id=z1_series_id,
+                observed=str(row["date"]), value=row["value"], unit=z1_spec["unit"],
+                raw_sha256=z1_receipt.raw_sha256,
+            )
     sec_receipt = receipt_models["SEC_IPO_QUARTERLY"]
     sec_units = {
         "total_count": "count", "us_count": "count", "non_us_count": "count",
@@ -3717,7 +3797,8 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
             latest[key] = row
 
     rows: dict[str, list[dict[str, Any]]] = {series_id: [] for series_id in FRED_SERIES}
-    rows["FL663067003"] = []
+    for z1_series_id in Z1_SERIES:
+        rows[z1_series_id] = []
     sec_by_date: dict[str, dict[str, Any]] = {}
     for row in latest.values():
         if row.source_id == "fred_market_signals" and row.series_id in FRED_SERIES:
@@ -3725,8 +3806,8 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
                 "date": row.observation_date,
                 "value": float(row.value),
             })
-        elif row.source_id == "federal_reserve_board" and row.series_id == "FL663067003":
-            rows["FL663067003"].append({
+        elif row.source_id == "federal_reserve_board" and row.series_id in Z1_SERIES:
+            rows[row.series_id].append({
                 "date": row.observation_date,
                 "value": float(row.value),
             })
@@ -3740,7 +3821,7 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
             sec_row[field] = float(row.value)
 
     rows["SEC_IPO_QUARTERLY"] = list(sec_by_date.values())
-    required = [*FRED_SERIES, "FL663067003", "SEC_IPO_QUARTERLY"]
+    required = [*FRED_SERIES, *Z1_SERIES, "SEC_IPO_QUARTERLY"]
     missing = [series_id for series_id in required if not rows.get(series_id)]
     if missing:
         raise StatisticsLabError(
@@ -3792,9 +3873,13 @@ def refresh_statistics_lab(
         raw_payloads[series_id] = raw
     fetch_z1 = z1_fetcher or (lambda url: _request(url, timeout=60))
     z1_raw = fetch_z1(Z1_ENDPOINT)
-    source_rows["FL663067003"] = _parse_z1(z1_raw)
-    receipts["FL663067003"] = {"raw_sha256": hashlib.sha256(z1_raw).hexdigest()}
-    raw_payloads["FL663067003"] = z1_raw
+    z1_digest = hashlib.sha256(z1_raw).hexdigest()
+    for z1_series_id in Z1_SERIES:
+        source_rows[z1_series_id] = _parse_z1(z1_raw, z1_series_id)
+        receipts[z1_series_id] = {"raw_sha256": z1_digest}
+    # One archive, one raw artifact: the receipt declares every series it covers,
+    # mirroring how the SEC IPO workbook declares its subseries.
+    raw_payloads[Z1_PRIMARY_SERIES] = z1_raw
     pending_observations = _persist_authoritative_inputs(
         root, source_rows=source_rows, raw_payloads=raw_payloads,
         receipts=receipts, fetched_at=generated_at, source_uris=source_uris,
