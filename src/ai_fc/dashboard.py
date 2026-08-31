@@ -887,6 +887,60 @@ def _project_embed_rows(read_model: dict) -> dict:
     return projected
 
 
+# Reasoning bodies are the largest single term in the embed and they scale with
+# the number of active questions, not with feature work: 30 rounds carried
+# 206 KB of body text, half the payload.  The standalone snapshot therefore
+# inlines only the most recent rounds and links the rest to their immutable
+# source file, the same trade the superseded and resolved rounds already make.
+# Pages data.json and /api/data keep every body.
+EMBED_INLINE_BODY_LIMIT = 12
+
+
+def _limit_embed_inline_bodies(read_model: dict) -> dict:
+    """Inline only the newest reasoning bodies; link the older ones.
+
+    Applied after :func:`_compact_embed_forecast_history`, which has already
+    dropped superseded and resolved bodies.  What remains is one body per
+    active question, which still outgrows the fixed contract as the registry
+    fills.  Rounds beyond the limit keep every structured field and their
+    ``source_uri``; the omission is disclosed in ``embed_body_budget``.  The
+    input model is never mutated.
+    """
+    history = read_model.get("forecast_history")
+    if not isinstance(history, dict):
+        return read_model
+    carried = sorted(
+        (
+            (str(row.get("forecast_ts") or ""), question_id, index)
+            for question_id, rows in history.items()
+            for index, row in enumerate(rows)
+            if isinstance(row, dict) and row.get("body")
+        ),
+        reverse=True,
+    )
+    if len(carried) <= EMBED_INLINE_BODY_LIMIT:
+        return read_model
+    keep = {(qid, index) for _, qid, index in carried[:EMBED_INLINE_BODY_LIMIT]}
+    limited = dict(read_model)
+    limited["forecast_history"] = {
+        question_id: [
+            row if (question_id, index) in keep or not row.get("body")
+            else {key: value for key, value in row.items() if key != "body"}
+            for index, row in enumerate(rows)
+        ]
+        for question_id, rows in history.items()
+    }
+    limited["embed_body_budget"] = {
+        "limited": True,
+        "reason": "embed_size_budget",
+        "inline_bodies": EMBED_INLINE_BODY_LIMIT,
+        "linked_bodies": len(carried) - EMBED_INLINE_BODY_LIMIT,
+        "full_payload": "data.json",
+        "source_field": "source_uri",
+    }
+    return limited
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
@@ -920,6 +974,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
         read_model = _compact_embed_forecast_history(read_model)
+        read_model = _limit_embed_inline_bodies(read_model)
         read_model = _compact_embed_band_calibration(read_model)
         read_model = _project_embed_rows(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;

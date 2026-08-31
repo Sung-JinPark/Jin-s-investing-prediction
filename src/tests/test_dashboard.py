@@ -224,6 +224,48 @@ def test_embed_projection_allowlist_matches_real_column_names(tmp_path: Path) ->
         assert set(kept) <= present, (section, sorted(set(kept) - present))
 
 
+def test_embed_inlines_only_the_newest_bodies_and_links_the_rest() -> None:
+    """활성 질문이 늘어도 임베드가 본문 때문에 계약을 깨지 않는지."""
+    limit = dashboard.EMBED_INLINE_BODY_LIMIT
+    model = {
+        "forecast_history": {
+            f"q{index}": [{
+                "forecast_id": f"f{index}",
+                "forecast_ts": f"2026-08-{index + 1:02d}T00:00:00",
+                "body": "reasoning",
+                "source_uri": f"forecasts/{index}.md",
+            }]
+            for index in range(limit + 3)
+        }
+    }
+    limited = dashboard._limit_embed_inline_bodies(model)
+    rows = [row for rows in limited["forecast_history"].values() for row in rows]
+    assert sum(1 for row in rows if "body" in row) == limit
+    # 본문이 빠진 행도 구조적 필드와 원본 링크는 유지한다.
+    linked = [row for row in rows if "body" not in row]
+    assert len(linked) == 3
+    assert all(row["source_uri"] for row in linked)
+    # 남는 것은 가장 최신 회차다.
+    kept = {row["forecast_id"] for row in rows if "body" in row}
+    assert kept == {f"f{index}" for index in range(3, limit + 3)}
+    disclosure = limited["embed_body_budget"]
+    assert disclosure == {
+        "limited": True,
+        "reason": "embed_size_budget",
+        "inline_bodies": limit,
+        "linked_bodies": 3,
+        "full_payload": "data.json",
+        "source_field": "source_uri",
+    }
+    # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
+    assert all(rows[0]["body"] == "reasoning" for rows in model["forecast_history"].values())
+
+
+def test_embed_body_limit_is_a_noop_below_the_threshold() -> None:
+    model = {"forecast_history": {"q": [{"forecast_id": "f", "forecast_ts": "2026-08-31", "body": "b"}]}}
+    assert dashboard._limit_embed_inline_bodies(model) == model
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 
