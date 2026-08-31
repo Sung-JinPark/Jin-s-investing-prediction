@@ -875,8 +875,18 @@ def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
     before = payload["build_receipt"]["protected_before"]
     comparison = compare_protected_append_only(before, protected_hashes(ROOT))
     assert comparison["ok"], comparison
-    assert comparison["added"] == comparison["removed"] == comparison["changed"] == []
-    assert comparison["refreshed_auxiliary"] in ([], ["forecasts/.hashes.ots"])
+    # 삭제·변조는 어떤 보호 경로에서도 허용하지 않는다.
+    assert comparison["removed"] == comparison["changed"] == []
+    # 추가는 예측 원장에서만 허용한다. /forecast 스킬 경로로 회차를 기록하면
+    # 다음 자동 리프레시가 후보를 재생성하기 전까지 새 파일이 여기에 나타난다
+    # (CLAUDE.md — 스킬과 CLI 두 경로 모두 같은 불변 파일 체계에 기록).
+    # 다른 보호 루트(archive·ml_history·cross_asset 등)의 추가는 여전히 실패한다.
+    assert all(
+        path.startswith("forecasts/") for path in comparison["added"]
+    ), comparison["added"]
+    assert set(comparison["refreshed_auxiliary"]) <= {
+        "forecasts/.hashes", "forecasts/.hashes.ots",
+    }
 
 
 def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
@@ -918,6 +928,58 @@ def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
     assert auxiliary_result["ok"] is True
     assert auxiliary_result["changed"] == []
     assert auxiliary_result["refreshed_auxiliary"] == ["forecasts/.hashes.ots"]
+
+
+def test_recording_a_forecast_round_does_not_invalidate_a_candidate() -> None:
+    """/forecast 경로로 회차를 추가해도 후보가 무효화되면 안 된다.
+
+    앵커 매니페스트(`forecasts/.hashes`)는 파생물이라 회차를 추가하면 반드시
+    다시 쓰인다 — verify_track_record.py가 앵커에 없는 예측 파일을 실패시키기
+    때문이다. 이 재작성을 변조로 취급하면 스킬 경로가 정상 동작만으로 후보를
+    깨뜨린다. 단 개별 예측 파일의 변조·삭제는 그대로 fail-closed여야 한다.
+    """
+    before = {
+        "files": {
+            "forecasts/2026/2026-08-01_q_r1.md": "a" * 64,
+            "forecasts/.hashes": "1" * 64,
+        },
+        "manifest_sha256": "before-round",
+    }
+    # 새 회차 추가 + 앵커 재작성 = 허용
+    appended = {
+        "files": {
+            "forecasts/2026/2026-08-01_q_r1.md": "a" * 64,
+            "forecasts/2026/2026-08-31_q_r2.md": "b" * 64,
+            "forecasts/.hashes": "2" * 64,
+        },
+        "manifest_sha256": "after-round",
+    }
+    result = compare_protected_append_only(before, appended)
+    assert result["ok"] is True
+    assert result["added"] == ["forecasts/2026/2026-08-31_q_r2.md"]
+    assert result["changed"] == []
+    assert result["refreshed_auxiliary"] == ["forecasts/.hashes"]
+
+    # 기존 회차 본문 변조는 앵커를 같이 고쳐도 여전히 차단
+    tampered = {
+        "files": {
+            "forecasts/2026/2026-08-01_q_r1.md": "z" * 64,
+            "forecasts/.hashes": "2" * 64,
+        },
+        "manifest_sha256": "after-tamper",
+    }
+    tamper_result = compare_protected_append_only(before, tampered)
+    assert tamper_result["ok"] is False
+    assert tamper_result["changed"] == ["forecasts/2026/2026-08-01_q_r1.md"]
+
+    # 기존 회차 삭제도 차단
+    deleted = {
+        "files": {"forecasts/.hashes": "2" * 64},
+        "manifest_sha256": "after-delete",
+    }
+    delete_result = compare_protected_append_only(before, deleted)
+    assert delete_result["ok"] is False
+    assert delete_result["removed"] == ["forecasts/2026/2026-08-01_q_r1.md"]
 
 
 def test_candidate_runtime_gate_uses_append_only_manifest_and_consumed_hashes(
