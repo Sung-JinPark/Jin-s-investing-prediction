@@ -1112,6 +1112,21 @@ def cmd_ipo_reference_batch() -> None:
     )
 
 
+@app.command("ipo-edgar-watch")
+def cmd_ipo_edgar_watch() -> None:
+    """EDGAR 424B4 완료 공모를 격주로 훑어 IPO 검토 대기열을 적재한다."""
+    from .ipo_edgar_watch import refresh_edgar_candidates
+
+    path, payload, pending = refresh_edgar_candidates(config.ROOT)
+    counts = payload["counts"]
+    typer.echo(
+        f"IPO EDGAR 감시: {path.relative_to(config.ROOT)} · "
+        f"상태 {payload['status']} · 창 {payload['window_start']}~{payload['window_end']} · "
+        f"후보 {counts['candidates']}건 (검토 대기 {pending} · 코호트 기수록 "
+        f"{counts['already_in_cohort']}) · 게시 수치 무접촉"
+    )
+
+
 @app.command("official-data-workbook")
 def cmd_official_data_workbook() -> None:
     """공식 원천 누적 DB를 사람이 검토할 수 있는 Excel 감사본으로 내보낸다."""
