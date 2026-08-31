@@ -70,20 +70,6 @@ function mount(root){
 function bindDynamicMotion(root){
   const fine=window.matchMedia('(pointer: fine)').matches;
   if(!motionAllowed()||!fine)return;
-  const stage=root.querySelector('.overview-stage'),mosaic=root.querySelector('.signal-mosaic');
-  if(stage&&mosaic){
-    const cells=[...mosaic.querySelectorAll('i')];let frame=0,lastEvent=null;
-    const paint=()=>{
-      frame=0;if(!lastEvent)return;const r=stage.getBoundingClientRect();
-      const nx=Math.max(-1,Math.min(1,((lastEvent.clientX-r.left)/r.width-.5)*2));
-      const ny=Math.max(-1,Math.min(1,((lastEvent.clientY-r.top)/r.height-.5)*2));
-      stage.style.setProperty('--pointer-x',((nx+1)*50)+'%');stage.style.setProperty('--pointer-y',((ny+1)*50)+'%');
-      cells.forEach((cell,i)=>{const depth=Number(cell.dataset.depth)||5;
-        cell.style.transform=`translate3d(${(nx*depth).toFixed(2)}px,${(ny*depth).toFixed(2)}px,0) rotate(${((i%2?1:-1)*nx*depth*.5).toFixed(2)}deg)`;});
-    };
-    stage.addEventListener('pointermove',e=>{lastEvent=e;if(!frame)frame=requestAnimationFrame(paint);});
-    stage.addEventListener('pointerleave',()=>{lastEvent=null;if(frame)cancelAnimationFrame(frame);frame=0;cells.forEach(c=>c.style.transform='');});
-  }
   root.querySelectorAll('.forecast-card').forEach(card=>{
     let frame=0,lastEvent=null;
     const paint=()=>{
@@ -138,7 +124,7 @@ function loadUIState(){
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics(?:\/|$)|timeseries$|records(?:\/|$)|trust(?:\/|$)|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
@@ -315,15 +301,6 @@ function scenarioVintage(){
   return {asof,calendarDays:calendarDays==null?0:Math.max(0,calendarDays),businessDays,status,
     current:status==='current',method:scenario.method||'unknown',fallback:Boolean(scenario.fallback)};
 }
-function vintageReceipt(){
-  const v=scenarioVintage();
-  const copy=v.status==='stale'
-    ?`마지막 유효 시장 기준은 <strong>${esc(v.asof)}</strong>입니다. ${v.fallback?'자동 스냅샷이 없어 감사용 과거 시나리오를 표시합니다.':`확정 거래일 ${v.businessDays}일이 지나 현재 판단에는 사용하지 않습니다.`}`
-    :v.status==='aging'
-      ?`시장 시나리오는 <strong>${esc(v.asof)}</strong> 확정 종가 기준입니다. 다음 자동 갱신 전까지 최신 종가와 차이가 날 수 있습니다.`
-      :`시장 시나리오는 <strong>${esc(v.asof)}</strong> 확정 종가로 자동 생성됐습니다. 질문별 LLM 확률과는 분리된 모델 경로입니다.`;
-  return `<div class="data-vintage is-${v.status}" role="${v.status==='stale'?'alert':'note'}"><span>SCENARIO VINTAGE</span><p>${copy}</p><b>${v.status.toUpperCase()}</b></div>`;
-}
 function scenarioHistoryRows(){
   const rows=Array.isArray(DATA?.scenario_history)?DATA.scenario_history:[];
   return rows.filter(row=>row&&row.asof&&row.paths?.S1&&row.paths?.S2&&row.paths?.S3)
@@ -375,30 +352,6 @@ function median(values){
   const a=values.filter(Number.isFinite).sort((x,y)=>x-y);if(!a.length)return null;
   const m=Math.floor(a.length/2);return a.length%2?a[m]:(a[m-1]+a[m])/2;
 }
-function changeRadarData(){
-  const today=generatedDay(),items=(DATA?.questions||[]).filter(q=>q.status==='active').map(q=>{
-    const hist=DATA.forecast_history?.[q.id]||[],latest=hist[hist.length-1],prev=hist[hist.length-2];
-    const delta=latest&&prev?latest.probability-prev.probability:null,days=q.deadline?dayDiff(today,q.deadline):null;
-    return {q,delta,days,latest:latest?.probability??q.latest_prob,newRound:hist.length===1};
-  });
-  const moves=items.filter(x=>x.delta!=null&&x.delta!==0).sort((a,b)=>Math.abs(b.delta)-Math.abs(a.delta));
-  return {
-    moves,newItems:items.filter(x=>x.newRound),
-    rising:moves.filter(x=>x.delta>0).length,falling:moves.filter(x=>x.delta<0).length,
-    due:items.filter(x=>x.days!=null&&x.days>=0&&x.days<=14).sort((a,b)=>a.days-b.days)
-  };
-}
-function changeRadarPanel(){
-  const r=changeRadarData(),items=r.moves.slice(0,4);
-  const lead=items[0],headline=lead?`${lead.q.title} ${lead.delta>0?'상승':'하락'}`:'큰 확률 변화 없음';
-  return el(`<section class="change-radar" id="change-radar" aria-labelledby="change-radar-title">
-    <div class="radar-copy"><span class="radar-eyebrow">WHAT CHANGED · LATEST ROUNDS</span><h2 id="change-radar-title">${esc(headline)}</h2>
-      <p>직전 예측 회차와 최신 회차를 비교한 변화입니다. 새로운 예측을 만들지 않고 기존 기록의 이동만 보여줍니다.</p>
-      <div class="radar-stats"><div><span>상승</span><strong class="up">${r.rising}</strong></div><div><span>하락</span><strong class="down">${r.falling}</strong></div><div><span>14일 내 판정</span><strong>${r.due.length}</strong></div></div>
-    </div><div class="radar-list">${items.length?items.map(x=>`<button type="button" class="radar-item" data-open-q="${esc(x.q.id)}">
-      <i class="${x.delta>0?'up':'down'}">${x.delta>0?'+':''}${x.delta}%p</i><span>${esc(x.q.title)}<small>${esc(humanDomain(x.q.domain))} · ${x.days==null?'수시 판정':x.days<0?'판정 시점 경과':`D-${x.days}`}</small></span><strong>${p1(x.latest)}</strong></button>`).join(''):
-      '<p class="empty">직전 회차 대비 변한 활성 질문이 없습니다.</p>'}</div></section>`);
-}
 function isQuestionPinned(qid){return UI_STATE.pins.some(x=>x.hash==='#records/question/'+qid||x.hash==='#q/'+qid);}
 function toggleQuestionPin(qid){
   const q=DATA?.questions?.find(x=>x.id===qid);if(!q)return;
@@ -444,49 +397,6 @@ function selectDecisionItems({since=VISIT_SEEN_AT,includePinned=true,dueWithinDa
 function reviewQueueData(){
   const dismissed=new Set(reviewDismissedIds());
   return selectDecisionItems({limit:40}).filter(x=>!dismissed.has(x.q.id)).slice(0,5);
-}
-function decisionQueueCard(items){
-  const visitLabel=VISIT_SEEN_AT?'LAST VISIT 이후':'LATEST ROUNDS';
-  return `<aside class="decision-queue-card" aria-labelledby="decision-queue-title">
-    <div class="decision-queue-head"><div><span>${visitLabel}</span><h2 id="decision-queue-title">지금 다시 볼 질문</h2><small>변화 · 판정 임박 · MY RADAR</small></div><b>${items.length}</b></div>
-    ${items.length?`<div class="decision-queue-items">${items.map(x=>`<button type="button" class="decision-queue-item" data-open-q="${esc(x.q.id)}">
-      <span>${esc(x.q.title)}<small>${esc(x.reasons.join(' · '))}</small></span><strong class="${hasNumeric(x.q.latest_prob)?'':'pending-value'}">${p1(x.q.latest_prob)}</strong></button>`).join('')}</div>`:
-      '<p class="decision-queue-empty">새로 확인할 큰 변화나 임박한 판정이 없습니다.</p>'}
-  </aside>`;
-}
-function linkedSignalStrip(upProb,decisionItems){
-  const pins=myRadarQuestions().length;
-  const valid=Number.isFinite(upProb);
-  const signals=[
-    ['market','시장 상승 경로',valid?upProb+'%':'STALE','var(--orange)',valid?'연말 시나리오의 상승 두 경로 합계입니다. 질문별 확률과는 합산하지 않습니다.':'시나리오 기준일이 오래되어 현재 신호로 사용하지 않습니다. 시장 맵에서 마지막 유효 스냅샷은 확인할 수 있습니다.'],
-    ['changed','확률 이동',decisionItems.filter(x=>x.signals.includes('changed')).length,'var(--crimson)','직전 회차보다 움직인 질문만 강조합니다. 변화 폭은 방향 신호가 아니라 재검토 신호입니다.'],
-    ['due','14일 내 판정',decisionItems.filter(x=>x.signals.includes('due')).length,'var(--amber)','14일 안에 결과를 확인할 질문만 강조합니다. 판정 기준과 출처는 상세 화면에서 확인할 수 있습니다.'],
-    ['pinned','MY RADAR',pins,'var(--teal)',pins?'이 기기에 고정한 질문만 강조합니다. 개인 작업공간 정보는 외부로 전송되지 않습니다.':'아직 고정한 질문이 없습니다. 카드의 ☆ 버튼으로 개인 레이더를 만들 수 있습니다.']
-  ];
-  return `<div class="linked-signal-console">
-    <div class="linked-signal-strip" role="group" aria-label="홈 질문 강조 기준">${signals.map(([id,label,value,color,copy],index)=>`<button type="button" class="linked-signal" data-home-signal="${id}" data-signal-label="${esc(label)}" data-signal-copy="${esc(copy)}" aria-pressed="${index===0}" style="--signal-color:${color}">
-      <span><i></i>${label}</span><strong>${value}</strong></button>`).join('')}</div>
-    <div class="signal-lens-readout" aria-live="polite"><span>ACTIVE LENS</span><strong>${signals[0][1]}</strong><p>${signals[0][4]}</p></div>
-  </div>`;
-}
-function homeFeatureQuestions(decisionItems){
-  const chosen=decisionItems.map(x=>x.q).filter(q=>hasNumeric(q.latest_prob)),fallback=featureQs();
-  const available=(DATA?.questions||[]).filter(q=>q.status==='active'&&hasNumeric(q.latest_prob));
-  return [...new Map([...chosen,...fallback,...available].map(q=>[q.id,q])).values()].slice(0,3);
-}
-function bindHomeSignals(root){
-  const controls=[...root.querySelectorAll('[data-home-signal]')],cards=[...root.querySelectorAll('[data-home-signals]')];
-  controls.forEach(control=>control.addEventListener('click',()=>{
-    const signal=control.dataset.homeSignal;
-    controls.forEach(x=>x.setAttribute('aria-pressed',String(x===control)));
-    cards.forEach(card=>{
-      const match=signal==='market'||String(card.dataset.homeSignals||'').split(' ').includes(signal);
-      card.classList.toggle('is-signal-match',signal!=='market'&&match);
-      card.classList.toggle('is-signal-muted',!match);
-    });
-    const readout=root.querySelector('.signal-lens-readout');
-    if(readout)readout.innerHTML=`<span>ACTIVE LENS</span><strong>${esc(control.dataset.signalLabel)}</strong><p>${esc(control.dataset.signalCopy)}</p>`;
-  }));
 }
 function reviewQueuePanel(){
   const items=reviewQueueData();
@@ -1001,28 +911,6 @@ function featureQs(){
     list=list.concat(extra).slice(0,3);}
   return list.slice(0,3);
 }
-function miniSparkline(q,i){
-  let values=(DATA.forecast_history[q.id]||[]).map(h=>Number(h.probability)).filter(Number.isFinite);
-  if(!values.length&&q.latest_prob!=null)values=[Number(q.latest_prob)];
-  if(values.length===1)values=[values[0],values[0]];
-  if(!values.length)values=[0,0];
-  const W=180,H=34,P=3,min=Math.min(...values),max=Math.max(...values),span=Math.max(8,max-min);
-  const pts=values.map((v,j)=>`${P+(W-P*2)*(j/Math.max(1,values.length-1))},${P+(H-P*2)*(1-(v-(min-span*.18))/(span*1.36))}`);
-  const line='M'+pts.join(' L'),last=pts[pts.length-1].split(','),gid='spark-'+String(q.id).replace(/[^a-z0-9]/gi,'-');
-  const col=[CHART_COL.S1,CHART_COL.S2,'#706f68'][i%3];
-  return `<div class="card-spark" aria-label="예측 회차 추이"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
-    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="${col}" stop-opacity=".2"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
-    <path d="${line} L${last[0]},${H} L${P},${H} Z" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="${col}" stroke-width="1.7" vector-effect="non-scaling-stroke"/>
-    <circle cx="${last[0]}" cy="${last[1]}" r="2.6" fill="${col}"/></svg><span>${values.length>2?'HISTORY':'LATEST'}</span></div>`;
-}
-function signalMosaic(prob){
-  const safe=Math.max(0,Math.min(100,Number(prob)||0)),active=Math.round(safe/100*16);
-  const cells=Array.from({length:16},(_,i)=>{
-    const depth=4+(i%4)*3+(Math.floor(i/4)%2)*2;
-    return `<i class="${i<active?'is-on':''}" data-depth="${depth}" style="opacity:${i<active?1:.38}"></i>`;
-  }).join('');
-  return `<div class="signal-mosaic" role="img" aria-label="상승 경로 신호 ${safe}%">${cells}<b>${safe}<small>%</small></b></div>`;
-}
 
 function statisticsValue(unit,value){
   const n=Number(value);
@@ -1112,7 +1000,8 @@ function statisticsChartSvg(chart,alignment={}){
     ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
-function renderStatistics(){
+function renderStatistics(initialState){
+  const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
   root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기, 유동성, 금리, 기업가치와 신용 흐름에서 지금 시장의 위치를 살펴봅니다.</p></div></div>`));
   if(stats.status!=='ok'){
@@ -1139,7 +1028,16 @@ function renderStatistics(){
     root.appendChild(referenceSection);
   }
   mount(root);
-  root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);const referenceSection=root.querySelector('[data-stat-reference-section]');if(referenceSection)referenceSection.hidden=key!=='all'&&key!=='ipo';});
+  const applyStatCategory=(key,sync)=>{
+    const active=categories.some(([id])=>id===key)?key:'all';
+    root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.statFilter===active)));
+    root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=active!=='all'&&card.dataset.statCategory!==active);
+    const referenceSection=root.querySelector('[data-stat-reference-section]');
+    if(referenceSection)referenceSection.hidden=active!=='all'&&active!=='ipo';
+    if(sync)history.replaceState(null,'',active==='all'?'#statistics':'#statistics/'+active);
+  };
+  root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
+  applyStatCategory(requestedCategory||'all',false);
 }
 
 function timeseriesFeatureLabel(name){
@@ -1186,7 +1084,7 @@ function renderTimeseries(){
   mount(root);
 }
 
-const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,ask:renderAsk,questions:renderQuestions,asof:renderAsofTimeMachine,track:renderTrack,q:renderDetail,compare:renderCompare};
+const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare};
 const CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart';
 let CHART_ZOOM_LAYER=null,CHART_ZOOM_TRIGGER=null,CHART_ZOOM_SCALE=1,CHART_ZOOM_WIDTH=0;
 function chartZoomTitle(surface,index){
@@ -1248,7 +1146,7 @@ function enhanceChartZoom(root=document){
 }
 function contextTabs(group,current){
   const groups={
-    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
+    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['journal','변경 일지','#records/journal'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
     replay:[['ask','기간 조회','#future/lookup'],['asof','AS-OF 타임머신','#records/journal']],
     track:[['track','요약과 Calibration','#trust']]
   };
@@ -1261,7 +1159,7 @@ function appendContextTabs(root,group,current){const html=contextTabs(group,curr
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
-  if(/^#(?:today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
+  if(/^#(?:today|future(?:\/|$)|statistics(?:\/|$)|timeseries$|records(?:\/|$)|trust(?:\/|$))/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
@@ -1286,11 +1184,12 @@ function legacyRouteRedirect(rawHash){
 function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
-  if(parts[0]==='statistics')return {section:'statistics',view:'statistics'};
+  if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}};
   if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries'};
   if(parts[0]==='future'){
     if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};
+    if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}};
     if(parts[1]==='lookup'&&!parts[2])return {section:'future',view:'flow',arg:{lookupOverlay:true}};
     if(parts[1]==='lookup'&&/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'future',view:'flow',arg:{lookup:parts[2],lookupMode:parts[3]==='current'?'current':'rebase'}};
     if(['history','cross-asset','ai-regime','liquidity'].includes(parts[1]))return {section:'future',view:'flow',arg:{lab:parts[1],scenario:parts[2]||null}};
@@ -1307,7 +1206,7 @@ function parseCanonicalRoute(rawHash){
     }
     return {section:'records',view:'questions'};
   }
-  if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust'}};
+  if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust',trustTab:parts[1]||null}};
   return {section:'today',view:'overview'};
 }
 function renderFuturePathsLoadState(summary,error=null){
@@ -1398,18 +1297,6 @@ function upcoming(limit=6){
   const today=DATA.meta.generated.slice(0,10);
   return DATA.questions.filter(q=>q.status==='active'&&q.deadline&&q.deadline>=today)
     .sort((a,b)=>a.deadline<b.deadline?-1:1).slice(0,limit);
-}
-function scenarioBars(){
-  const s=DATA.scenario.paths;
-  return '<div class="scenario-bars">'+['S1','S2','S3'].map(k=>{const p=s[k];
-    return `<div class="scenario-row">
-      <div><b>${esc(p.label)}</b><small>종점 ${num(p.end)}</small></div>
-      <div class="bar"><span style="width:${p.prob}%;background:${CHART_COL[k]}"></span></div>
-      <strong style="color:${CHART_LABEL_COL[k]}">${p.prob}%</strong></div>`;
-  }).join('')+`</div><div class="band-grid">
-    <div><span>현재 지수</span><strong>${num(Math.round(DATA.scenario.anchor))}</strong></div>
-    <div><span>전고점</span><strong>${num(DATA.scenario.ath)}</strong></div>
-    <div><span>−10% 조정선</span><strong>${num(DATA.scenario.corr10)}</strong></div></div>`;
 }
 
 // ── 시장 전망 ──
@@ -1602,6 +1489,123 @@ function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
   const range=scenarioV52Range(candidate,rangeKey),scenarios=candidate?.conditional_small_multiples?.scenarios||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
   return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'—')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100,direction=change>1?'상승':change< -1?'하락':'중립';return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${direction} · ${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
 }
+function drawOriginalWeeklyFlow(host,sc){
+  const NS='http://www.w3.org/2000/svg';
+  const W=1160,H=620,ML=58,MR=148,MT=120,MB=30,HCH=550;
+  const weeks=sc.weeks||[],n=weeks.length,riskValues=sc.risk||[];
+  if(n<2){host.replaceChildren(el('<p class="chart-note">주간 시나리오 데이터가 없어 이 그래프를 그릴 수 없습니다.</p>'));return;}
+  const paths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,(sc.paths?.[key]?.values||[]).slice(0,n).map(Number)]));
+  const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
+  const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...analogValues].map(Number).filter(Number.isFinite);
+  const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
+  const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
+  const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
+  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. S1·S2·S3 경로와 혁신사이클 참조선, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
+  const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
+  const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
+  for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){
+    svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
+    svg.appendChild(tx(ML-8,Y(value)+4,(value/1000)+'k',{anc:'end',fill:'#5f5d57'}));
+  }
+  svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
+  svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
+  const eventRows=(sc.events||[]).filter(row=>Array.isArray(row)&&Number.isFinite(Number(row[0]))).map(row=>[Number(row[0]),String(row[1]||'')]);
+  flowEventLayout(eventRows,n-1,X,ML,ML+PW,4).forEach(({label,eventX,labelX,lane})=>{
+    const labelY=22+lane*24,circleY=labelY+9;
+    svg.appendChild(mk('line',{x1:eventX,y1:circleY+3,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
+    if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
+    svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.4,fill:'rgba(17,17,15,.55)'}));
+    svg.appendChild(halo(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:700})));
+  });
+  const rightLabels=[];
+  if(analogValues.length===n){
+    let analogPath='';analogValues.forEach((value,index)=>{analogPath+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
+    svg.appendChild(mk('path',{d:analogPath,fill:'none',stroke:'#706f68','stroke-width':1.6,'stroke-dasharray':'6 5','stroke-linejoin':'round',opacity:.72,'data-reference-path':'innovation-cycle'}));
+    const rawEnd=rawAnalog[n-1],shownEnd=analogValues[n-1];
+    if(Number.isFinite(rawEnd)&&Number.isFinite(shownEnd)&&rawEnd>shownEnd)svg.appendChild(halo(tx(X(n-1)-6,Y(shownEnd)-9,`↗ +${Math.round((rawEnd/Number(sc.anchor)-1)*100)}%`,{anc:'end',fill:'#706f68',fs:11,w:700})));
+    rightLabels.push({key:'analog',y:Y(shownEnd),text:'혁신사이클 참조',color:'#706f68',opacity:1,weight:650,fontSize:11});
+  }
+  ['S1','S2','S3'].forEach(key=>{
+    const values=paths[key];if(values.length!==n)return;
+    let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.4,'stroke-linejoin':'round','data-original-path':key}));
+    const endValue=values[n-1];
+    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
+    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
+  });
+  rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
+  rightLabels.push({key:'corr10',y:Y(sc.corr10),text:`−10% ${num(sc.corr10)}`,color:'#c9002d',opacity:1,weight:650,fontSize:11});
+  resolveEndpointLabels(rightLabels,19,MT+10,MT+PH-10).forEach(item=>{
+    const labelX=ML+PW+19;
+    svg.appendChild(mk('path',{d:`M${ML+PW+5},${item.y} L${ML+PW+12},${item.y} L${labelX-3},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:item.opacity*.72}));
+    svg.appendChild(halo(tx(labelX,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
+  });
+  svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
+  svg.appendChild(halo(tx(X(0)-6,Y(sc.anchor)-11,'현재 '+num(Math.round(Number(sc.anchor))),{fill:'#11110f',w:600})));
+  flowAxisTickIndexes(n,7).forEach((index,tickPosition)=>{
+    svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
+    svg.appendChild(tx(X(index),MT+PH+18,tickPosition===0?'현재 · '+weeks[index]:weeks[index],{anc:'middle',fs:12,fill:tickPosition?'#5f5d57':'#174c49',w:tickPosition?500:750}));
+  });
+  const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'−10%선 누적 터치확률',{anc:'end',fill:'#5f5d57',fs:11}));
+  let segmentStart=0;
+  for(let index=1;index<=n;index++){
+    if(index<n&&riskValues[index]===riskValues[segmentStart])continue;
+    const end=index-1,risk=riskValues[segmentStart];
+    const left=segmentStart===0?X(0)-2:(X(segmentStart-1)+X(segmentStart))/2,right=end===n-1?X(end)+2:(X(end)+X(end+1))/2,width=Math.max(1,right-left);
+    const fill=risk==='고'?'rgba(201,0,45,.92)':(risk==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)'),textColor=risk==='고'?'#fff':(risk==='중'?'#513300':'#174c49');
+    svg.appendChild(mk('rect',{x:left,y:RY,width,height:RH,fill,stroke:'rgba(17,17,15,.1)'}));
+    if(width>=28&&risk)svg.appendChild(tx(left+width/2,RY+18,risk,{anc:'middle',fs:12,fill:textColor,w:700}));
+    segmentStart=index;
+  }
+  const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3'});svg.appendChild(xh);
+  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length===n?1:0});svg.appendChild(marker);return marker;});
+  const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);
+  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  let cursorIndex=0;
+  const paintCursor=index=>{
+    cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex);
+    xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
+    ['S1','S2','S3'].forEach((key,markerIndex)=>{if(paths[key].length!==n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
+  };
+  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
+  overlay.addEventListener('pointermove',event=>{
+    const index=indexFromPointer(event);paintCursor(index);
+    if(!finePointer)return;
+    tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
+    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${['S1','S2','S3'].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
+  });
+  overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
+  overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('keydown',event=>{
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
+    else if(event.key==='Home'){event.preventDefault();paintCursor(0);}
+    else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}
+  });
+  host.replaceChildren(svg);paintCursor(0);
+}
+function originalFlowPanel(){
+  const sc=DATA.scenario;
+  if(!sc||!Array.isArray(sc.weeks)||sc.weeks.length<2||!sc.paths)return null;
+  const legend=['S1','S2','S3'].map(key=>`<span><b style="background:${CHART_COL[key]}"></b>${key} ${esc(sc.paths?.[key]?.label||'')} · ${esc(sc.paths?.[key]?.prob)}%</span>`).join('');
+  const analogLegend=sc.analog?.values?.length?`<span><b style="background:#706f68"></b>${esc(sc.analog.label||'혁신사이클 참조선 — 시나리오 아님')}</span>`:'';
+  const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
+    <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
+      <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
+      <p>최초 버전의 그래프입니다. 하나의 시나리오 문서에서 갈라지는 세 경로를 그립니다. 기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
+      <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
+    <div class="band-inline">${legend}${analogLegend}</div>
+    <div class="chart-wrap"><div id="original-flow-chart"></div></div>
+    <p class="chart-note">${esc(sc.note||'')}</p>
+    <p class="chart-note">참고 의견이며 투자 자문이 아닙니다. 아래 띠는 −10%선 누적 터치확률이고, 회색 점선은 참조선 — 시나리오 아님입니다.</p>
+  </section>`);
+  drawOriginalWeeklyFlow($('#original-flow-chart',panel),sc);
+  return panel;
+}
 function renderScenarioV52(candidate,initialState={}){
   const root=el('<div></div>'),scenarios=candidate.conditional_small_multiples?.scenarios||{},touch=candidate.first_touch_distribution||{},attr=candidate.evidence_attribution||{},ablations=candidate.ablations||{},dotcom=candidate.dotcom_scenario_weighting||{},governance=candidate.governance||{},hard=candidate.model?.hard_event_mapping||{},clusters=candidate.model?.cluster_disclosure||{},layerGate=candidate.model?.database_layer_gate||{},promotionGates=governance.gates||{},weightSpaces=candidate.weight_spaces||{},distinctness=candidate.distinctness||{};
   const pct=value=>`${Math.round(Number(value)*100)}%`,pp=value=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%p`,weightPct=value=>`${Math.round(Number(value||0)*100)}%`;
@@ -1609,6 +1613,8 @@ function renderScenarioV52(candidate,initialState={}){
   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow" id="v52-page-eyebrow">미래 탐색</p><h1 id="v52-page-title">세 가지 시장 경로</h1><p class="page-lede" id="v52-page-lede">상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.</p></div></div>`));
   const outlook=el(`<div id="lab-future" role="tabpanel" aria-labelledby="lab-tab-future">
     <section class="scenario-v52-overview" aria-label="전망 기준 요약"><div><span>기준일</span><strong>${esc(candidate.as_of.slice(0,10))}</strong></div><div><span>현재 지수</span><strong>${num(Math.round(anchor))}</strong></div><div><span>검토 경로</span><strong>${num(candidate.model.path_count)}개</strong></div><div><span>사용 DB</span><strong>서로 다른 3개 군집</strong></div></section>
+    <div class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"><button type="button" data-future-graph="unified" aria-pressed="true">세 가지 시장 경로</button><button type="button" data-future-graph="original" aria-pressed="false">단일 시나리오 주간 흐름</button></div>
+    <div data-future-graph-panel="unified">
     <section class="scenario-v52-main" data-chart-role="unified-scenarios"><div class="panel-head"><div><p class="eyebrow">SAME SCALE · LOG VIEW</p><h2 id="scenario-v52-chart-title">3개월 · 세 시나리오 한눈에</h2></div><span class="count-chip">로그 스케일</span></div>
       <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.entries(V52_RANGE_META).map(([key,row])=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${row[0]}</button>`).join('')}</div>
       <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small><em>독립 원천 ${num(clusters[key]?.unique_sampled_source_origins||0)}개 · 모의 ${num(clusters[key]?.simulation_path_count||scenarios[key]?.path_count||0)}경로</em></span>`).join('')}<span class="is-path-key"><i></i><b>선 읽는 법</b><small>굵은 선=p50 · 점선=실제 중심 경로 · 회색 영역=전체 중심 구간</small><em>과거 1/4 · 전망 3/4 시간축</em></span></div>
@@ -1624,6 +1630,8 @@ function renderScenarioV52(candidate,initialState={}){
     </div></section>
     <section class="scenario-v52-timing"><div class="scenario-v52-section-title"><p class="eyebrow">세부 통계</p><h2>−10%선을 처음 만나는 시기</h2><p>정확한 날짜 예측이 아니라, 조정이 발생한 경로들의 시점 분포입니다.</p></div><div>${(touch.density||[]).map((value,index)=>`<i title="${esc(touch.dates[index])}" style="height:${Math.max(1,Number(value)/Math.max(...(touch.density||[]),1e-12)*100)}%"></i>`).join('')}</div><p>중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')} · 특정 날짜 확정 아님</p></section>
     <details class="scenario-v52-method"></details>
+    </div>
+    <div data-future-graph-panel="original" hidden></div>
   </div>`);
   const baselineAudit=distinctness.baseline_comparison||{},adapter=layerGate.structural_event_adapter||{};
   const legacyInsights=$('#scenario-v52-insights-title',outlook)?.closest('.scenario-v52-insights');
@@ -1654,14 +1662,27 @@ function renderScenarioV52(candidate,initialState={}){
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
   const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${V52_RANGE_META[rangeKey][0]} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
   outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.onclick=()=>paintRange(button.dataset.v52Range));
+  const graphPanels={unified:$('[data-future-graph-panel="unified"]',outlook),original:$('[data-future-graph-panel="original"]',outlook)};
+  const originalPanel=originalFlowPanel();
+  if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(originalPanel);
+  if(!originalPanel)$('.future-graph-switch',outlook)?.remove();
+  let graphKey='unified';
+  const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future';
+  const paintFutureGraph=(key,sync)=>{
+    graphKey=originalPanel&&key==='original'?'original':'unified';
+    Object.entries(graphPanels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==graphKey;});
+    outlook.querySelectorAll('[data-future-graph]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.futureGraph===graphKey)));
+    if(sync)history.replaceState(null,'',futureGraphHash());
+  };
+  outlook.querySelectorAll('[data-future-graph]').forEach(button=>{button.onclick=()=>paintFutureGraph(button.dataset.futureGraph,true);});
   const copies={future:['미래 탐색','세 가지 시장 경로','상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.'],history:['과거 비교','과거 혁신 사이클은 어떻게 움직였나','과거 사례를 같은 시작점에 맞춰 비교합니다. 현재 전망값이나 사건 확률은 아닙니다.'],'cross-asset':['교차자산 비교','닷컴 조정 뒤 자산별 회복은 어떻게 달랐을까','NASDAQ·Realty Income·D.R. Horton 실측과 Bitcoin 민감도 경로를 시작값 100으로 맞춰 비교합니다.'],liquidity:['시장 자금 흐름','유동성이 늘고 줄어든 구간','Fed 순유동성과 NASDAQ·Bitcoin 수익률을 같은 주간축에서 참고용으로 비교합니다.']};
   const panels={future:outlook,history:historyPanel,'cross-asset':crossAsset,liquidity};
   const activateLab=key=>{const active=panels[key]?key:'future';Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==active;});labTabs.querySelectorAll('[data-lab-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.labTab===active)));const copy=copies[active];$('#v52-page-eyebrow',root).textContent=copy[0];$('#v52-page-title',root).textContent=copy[1];$('#v52-page-lede',root).textContent=copy[2];};
-  labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)').forEach(button=>button.onclick=()=>{activateLab(button.dataset.labTab);history.replaceState(null,'',button.dataset.labTab==='future'?'#future':`#future/${button.dataset.labTab}`);});
+  labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)').forEach(button=>button.onclick=()=>{activateLab(button.dataset.labTab);history.replaceState(null,'',button.dataset.labTab==='future'?futureGraphHash():`#future/${button.dataset.labTab}`);});
   if(historyPanel){const analogHost=$('#ovchart',historyPanel);drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,'ALL');historyPanel.querySelectorAll('[data-analog-focus]').forEach(button=>button.onclick=()=>{analogHost.innerHTML='';drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,button.dataset.analogFocus);historyPanel.querySelectorAll('[data-analog-focus]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));});}
   if(crossAsset)bindCrossAsset(crossAsset,initialState.scenario);
   if(liquidity)bindLiquidity(liquidity);
-  activateLab(initialState.lab||'future');paintRange(rangeKey);
+  activateLab(initialState.lab||'future');paintRange(rangeKey);paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false);
 }
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};
@@ -2745,92 +2766,7 @@ function drawHistory(host,hist,mlRuns,mktRuns){
 }
 
 // ── 시점 조회 ──
-function renderAsof(){
-  const dates=[...DATA.questions.map(q=>q.latest_ts).filter(Boolean),...DATA.ml_runs.map(m=>m.run_ts)].map(s=>s.slice(0,10));
-  const maxd=dates.reduce((a,b)=>a>b?a:b,'2026-07-08');
-  const root=el('<div></div>');
-  root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">시점 조회 · As-of Rebuild</p>
-    <h1>특정 날짜의 예측 상태를 재구성합니다</h1>
-    <p class="page-lede">선택 날짜 이후 데이터는 배제하고, 그 시점에 알 수 있던 최신 예측만 표시합니다.</p>
-  </div>
-    <label class="asof-control">기준일<input type="date" id="ad" value="${maxd}" max="${maxd}"><span style="margin-top:10px">이 날짜까지의 최신 예측</span></label>
-  </div>`));
-  const cont=el('<div class="table-shell"><table id="atbl"></table></div>');
-  root.appendChild(cont);
-  mount(root);
-  const draw=()=>{const D=$('#ad').value;
-    const rows=DATA.questions.map(q=>{const hist=(DATA.forecast_history[q.id]||[]).filter(h=>(h.forecast_ts||'')<=D+' 23:59');
-      if(!hist.length)return null;const h=hist[hist.length-1];
-      const ml=DATA.ml_runs.filter(m=>m.question_id===q.id&&m.run_ts.slice(0,10)<=D).slice(-1)[0];
-      const mk=DATA.market_runs.filter(m=>m.question_id===q.id&&m.run_ts.slice(0,10)<=D).slice(-1)[0];return {q,h,ml,mk};}).filter(Boolean);
-    $('#atbl').innerHTML=`<caption class="sr-only">${esc(D)} 기준 예측 상태</caption><thead><tr><th scope="col">예측 질문</th><th scope="col" class="r">AI 예측</th><th scope="col" class="r">모델 앙상블</th><th scope="col" class="r">시장 반영</th><th scope="col" class="r">AI−시장 edge</th><th scope="col" class="r">예측일</th></tr></thead>
-    <tbody>${rows.map(({q,h,ml,mk})=>{const edge=mk!=null?(h.probability-Math.round(mk.prob*100)):null;
-      const ecls=edge==null?'':(edge>=0?'edge-pos':'edge-neg');
-      return `<tr tabindex="0" data-q="${esc(q.id)}"><td><b>${esc(q.title)}</b></td>
-      <td class="r"><span class="table-prob">${h.probability}%</span></td>
-      <td class="r num">${ml?pct(ml.prob):'—'}</td><td class="r num">${mk?pct(mk.prob):'—'}</td>
-      <td class="r num ${ecls}">${edge==null?'—':(edge>=0?'+':'')+edge+'%p'}</td>
-      <td class="r num">${(h.forecast_ts||'').slice(0,10)}</td></tr>`;}).join('')}</tbody>`;
-    $('#atbl').querySelectorAll('tr[data-q]').forEach(tr=>{const go=()=>location.hash='#q/'+tr.dataset.q;tr.onclick=go;tr.onkeydown=e=>{if(e.key==='Enter')go();};});};
-  root.querySelector('#ad').onchange=draw;draw();
-}
 
-function renderAsofTimeMachine(){
-  const dates=[...new Set([
-    ...Object.values(DATA.forecast_history||{}).flat().map(h=>(h.forecast_ts||'').slice(0,10)),
-    ...(DATA.ml_runs||[]).map(m=>(m.run_ts||'').slice(0,10)),
-    ...(DATA.market_runs||[]).map(m=>(m.run_ts||'').slice(0,10)),
-    ...(DATA.asof_index||[]).map(item=>(item.asof||'').slice(0,10))
-  ].filter(Boolean))].sort();
-  if(!dates.length)dates.push(generatedDay());
-  const first=dates[0],maxd=dates[dates.length-1];
-  const root=el('<div></div>');
-  appendContextTabs(root,'replay','asof');
-  root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">시점 조회 · As-of Time Machine</p>
-    <h1>그날의 판단과 지금의 판단을 나란히 봅니다</h1>
-    <p class="page-lede">선택한 날짜 이후의 정보는 배제한 뒤, 당시 최신 예측이 현재까지 얼마나 움직였는지 비교합니다.</p>
-  </div></div>`));
-  const machine=el(`<section class="time-machine" aria-labelledby="time-machine-title">
-    <div class="time-machine-head"><div><span class="radar-eyebrow">AS-OF REBUILD · ${dates.length} DATA DATES</span><h2 id="time-machine-title">예측 변화 타임머신</h2></div>
-      <div><output id="tm-output" for="tm-range">${maxd}</output><label class="time-machine-date">직접 선택 <input type="date" id="tm-date" min="${first}" max="${maxd}" value="${maxd}"></label></div></div>
-    <div class="time-scrubber"><button type="button" id="tm-prev" aria-label="이전 데이터 날짜">←</button><input type="range" id="tm-range" min="0" max="${dates.length-1}" value="${dates.length-1}" step="1" aria-label="데이터 날짜 이동"><button type="button" id="tm-next" aria-label="다음 데이터 날짜">→</button></div>
-    <div class="time-summary" id="tm-summary"></div><div class="time-movers" id="tm-movers"></div>
-  </section>`);
-  root.appendChild(machine);
-  const table=el('<div class="table-shell"><table id="tm-table"></table></div>');
-  root.appendChild(table);mount(root);
-  const rowsAt=D=>DATA.questions.map(q=>{
-    const hist=(DATA.forecast_history?.[q.id]||[]).filter(h=>(h.forecast_ts||'').slice(0,10)<=D);
-    if(!hist.length)return null;
-    const h=hist[hist.length-1],latest=(DATA.forecast_history?.[q.id]||[]).slice(-1)[0]||h;
-    const ml=(DATA.ml_runs||[]).filter(m=>m.question_id===q.id&&(m.run_ts||'').slice(0,10)<=D).slice(-1)[0];
-    const mk=(DATA.market_runs||[]).filter(m=>m.question_id===q.id&&(m.run_ts||'').slice(0,10)<=D).slice(-1)[0];
-    return {q,h,latest,ml,mk,change:Number(latest.probability)-Number(h.probability)};
-  }).filter(Boolean);
-  const draw=D=>{
-    const rows=rowsAt(D),changed=rows.filter(x=>Math.abs(x.change)>=1),rising=rows.filter(x=>x.change>0).length,falling=rows.filter(x=>x.change<0).length;
-    const avg=rows.length?rows.reduce((sum,x)=>sum+Math.abs(x.change),0)/rows.length:0;
-    $('#tm-output',machine).textContent=D;
-    $('#tm-summary',machine).innerHTML=`<div><span>현재까지 변경</span><strong>${changed.length} / ${rows.length}</strong></div><div><span>평균 절대 변화</span><strong>${avg.toFixed(1)}%p</strong></div><div><span>방향 분포</span><strong>↑ ${rising} · ↓ ${falling}</strong></div>`;
-    const movers=[...rows].sort((a,b)=>Math.abs(b.change)-Math.abs(a.change)).slice(0,3);
-    $('#tm-movers',machine).innerHTML=movers.map(x=>`<button type="button" data-q="${esc(x.q.id)}"><span>${esc(x.q.title)}</span><strong class="${x.change>0?'edge-pos':x.change<0?'edge-neg':''}">${x.change>0?'+':''}${x.change.toFixed(0)}%p</strong></button>`).join('')||'<p class="empty">이 시점에 비교할 예측이 없습니다.</p>';
-    $('#tm-table',table).innerHTML=`<caption class="sr-only">${esc(D)} 당시와 현재의 예측 비교</caption><thead><tr><th scope="col">예측 질문</th><th scope="col">분류</th><th scope="col" class="r">당시 AI</th><th scope="col" class="r">모델 앙상블</th><th scope="col" class="r">시장 반영</th><th scope="col" class="r">현재까지 Δ</th><th scope="col" class="r">당시 예측일</th></tr></thead>
-      <tbody>${rows.map(({q,h,ml,mk,change})=>`<tr tabindex="0" data-q="${esc(q.id)}"><td><b>${esc(q.title)}</b></td><td>${esc(humanDomain(q.domain))}</td>
-        <td class="r"><span class="table-prob">${h.probability}%</span></td><td class="r num">${ml?pct(ml.prob):'—'}</td><td class="r num">${mk?pct(mk.prob):'—'}</td>
-        <td class="r num ${change>0?'edge-pos':change<0?'edge-neg':''}">${change>0?'+':''}${change.toFixed(0)}%p</td><td class="r num">${(h.forecast_ts||'').slice(0,10)}</td></tr>`).join('')}</tbody>`;
-    root.querySelectorAll('[data-q]').forEach(node=>{const go=()=>location.hash='#q/'+node.dataset.q;node.onclick=go;node.onkeydown=e=>{if(e.key==='Enter')go();};});
-    const i=Math.max(0,dates.findLastIndex(date=>date<=D));$('#tm-range',machine).value=String(i);
-    $('#tm-prev',machine).disabled=i<=0;$('#tm-next',machine).disabled=i>=dates.length-1;
-  };
-  const selectIndex=i=>{const safe=Math.max(0,Math.min(dates.length-1,i)),D=dates[safe];$('#tm-range',machine).value=String(safe);$('#tm-date',machine).value=D;draw(D);};
-  $('#tm-range',machine).oninput=e=>selectIndex(+e.target.value);
-  $('#tm-date',machine).onchange=e=>draw(e.target.value||maxd);
-  $('#tm-prev',machine).onclick=()=>selectIndex(+$(`#tm-range`,machine).value-1);
-  $('#tm-next',machine).onclick=()=>selectIndex(+$(`#tm-range`,machine).value+1);
-  draw(maxd);
-}
 
 // ── 적중 이력 ──
 function renderDecisionJournal(initial){
@@ -2854,8 +2790,8 @@ function renderDecisionJournal(initial){
   const allDates=[...new Set(Object.values(histories).flat().map(h=>String(h.forecast_ts||'').slice(0,10)).filter(Boolean))].sort();
   const first=allDates[0]||generatedDay(),maxd=allDates.at(-1)||generatedDay();
   const root=el('<div class="decision-journal-page"></div>');
-  appendContextTabs(root,'replay','asof');
-  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다.</p></div></div>`));
+  appendContextTabs(root,'research','journal');
+  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다. 특정 날짜의 미래 분포는 <a href="#future/lookup">미래 탐색의 기간 조회 ↗</a>에서 봅니다.</p></div></div>`));
   root.appendChild(el(`<section class="journal-provenance" aria-label="불변 기록 안내"><div><span>APPEND-ONLY PROVENANCE</span><strong>사후 수정이 불가능한 원본에서 생성됩니다</strong><p>기존 예측은 지우지 않고 새 라운드만 추가합니다. 원본 해시는 원장 감사에서 다시 검증됩니다.</p></div><dl><div><dt>인덱스</dt><dd>${esc((DATA.trust?.index?.head||'검증 대기').slice(0,12))}</dd></div><div><dt>원장 감사</dt><dd>${esc((DATA.trust?.ledger_audit_at||'검증 대기').slice(0,10))}</dd></div></dl></section>`));
   if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">METHOD CHANGE</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="일지 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 일지</button><button type="button" data-journal-mode="replay" aria-pressed="false">그날로 돌아가기</button></div>`);
@@ -2875,7 +2811,6 @@ function renderDecisionJournal(initial){
   replay.querySelectorAll('[data-replay-offset]').forEach(button=>button.onclick=()=>{const d=new Date(`${maxd}T12:00:00Z`);d.setUTCDate(d.getUTCDate()+Number(button.dataset.replayOffset));const value=Math.max(Date.parse(first),d.getTime())===Date.parse(first)?first:d.toISOString().slice(0,10);$('#journal-date',replay).value=value;drawReplay(value);});
   setMode(state.mode==='replay'?'replay':'feed');
 }
-VIEWS.asof=renderDecisionJournal;
 
 function renderTrack(initial){
   const trackMode=initial?.trackMode==='performance'?'performance':initial?.trackMode==='operator'?'operator':'trust';
@@ -2918,158 +2853,47 @@ function renderTrack(initial){
   if(trackMode!=='performance'){
   const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
   const ledgerRows=trust.ledgers||[],ledgerSummary=trust.ledger_summary||{},sourceRows=trust.sources||[],healthySources=sourceRows.filter(row=>row.status==='ok').length,totalLedgers=Math.max(1,ledgerRows.length);
-  root.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><p class="eyebrow">DATA HEALTH</p><h2 id="trust-overview-title">현재 데이터 상태</h2></div><strong class="trust-health-state">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics"><article><span>확인된 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong><small>출처·사용 조건 확인</small></article><article><span>축적 중인 원장</span><strong>${num(ledgerSummary.accumulating||0)}</strong><small>새 기록이 들어오는 DB</small></article><article><span>검증 위반</span><strong>${num(ledgerSummary.violation||0)}</strong><small>0이면 구조 검사 통과</small></article><article><span>마지막 검사</span><strong>${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</strong><small>전체 원장 기준</small></article></div><div class="trust-state-figure" aria-label="원장 상태 분포"><span class="is-good" style="width:${Number(ledgerSummary.accumulating||0)/totalLedgers*100}%">축적 ${num(ledgerSummary.accumulating||0)}</span><span class="is-warn" style="width:${Number(ledgerSummary.stalled||0)/totalLedgers*100}%">정체 ${num(ledgerSummary.stalled||0)}</span><span class="is-bad" style="width:${Number(ledgerSummary.violation||0)/totalLedgers*100}%">위반 ${num(ledgerSummary.violation||0)}</span><span class="is-plan" style="width:${Number(ledgerSummary.planned||0)/totalLedgers*100}%">계획 ${num(ledgerSummary.planned||0)}</span></div></section>`));
-  root.appendChild(el(`<section class="data-pipeline" aria-labelledby="data-pipeline-title"><div class="data-pipeline-head"><p class="eyebrow">DATA PIPELINE</p><h2 id="data-pipeline-title">공개 데이터가 그래프가 되기까지</h2></div><div><article><span>01</span><strong>공개 원천 수집</strong><p>기관 발표값과 시각을 함께 받습니다.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>시점·형식 검사</strong><p>예측 기준일 이후 정보와 오류값을 차단합니다.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>변경 이력 보관</strong><p>원본은 덮어쓰지 않고 새 기록으로 남깁니다.</p></article><i aria-hidden="true">→</i><article><span>04</span><strong>화면과 모델 분리</strong><p>참고 통계와 예측 입력을 명확히 구분합니다.</p></article></div></section>`));
-  if(ledgerRows.length)root.appendChild(el(`<details class="trust-ledger-details"><summary><span><strong>원장별 상세 상태</strong><small>${num(ledgerRows.length)}개 DB · 필요할 때 펼쳐보기</small></span><b>위반 ${num(ledgerSummary.violation||0)}</b></summary><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>검사 시각 ${esc(trust.ledger_audit_at||'미산출')} · 정체는 갱신 확인, 위반은 구조·불변성 확인이 필요합니다.</footer></details>`));
-  if(trackMode==='operator')root.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
+  const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']];
+  const trustPanels=Object.fromEntries(trustTabs.map(([key])=>[key,el(`<div id="lab-trust-${key}" role="tabpanel" aria-labelledby="lab-tab-trust-${key}"></div>`)]));
+  const trustStatus=trustPanels.status,trustSources=trustPanels.sources,trustAudit=trustPanels.audit;
+  trustStatus.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><p class="eyebrow">DATA HEALTH</p><h2 id="trust-overview-title">현재 데이터 상태</h2></div><strong class="trust-health-state">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics"><article><span>확인된 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong><small>출처·사용 조건 확인</small></article><article><span>축적 중인 원장</span><strong>${num(ledgerSummary.accumulating||0)}</strong><small>새 기록이 들어오는 DB</small></article><article><span>검증 위반</span><strong>${num(ledgerSummary.violation||0)}</strong><small>0이면 구조 검사 통과</small></article><article><span>마지막 검사</span><strong>${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</strong><small>전체 원장 기준</small></article></div><div class="trust-state-figure" aria-label="원장 상태 분포"><span class="is-good" style="width:${Number(ledgerSummary.accumulating||0)/totalLedgers*100}%">축적 ${num(ledgerSummary.accumulating||0)}</span><span class="is-warn" style="width:${Number(ledgerSummary.stalled||0)/totalLedgers*100}%">정체 ${num(ledgerSummary.stalled||0)}</span><span class="is-bad" style="width:${Number(ledgerSummary.violation||0)/totalLedgers*100}%">위반 ${num(ledgerSummary.violation||0)}</span><span class="is-plan" style="width:${Number(ledgerSummary.planned||0)/totalLedgers*100}%">계획 ${num(ledgerSummary.planned||0)}</span></div></section>`));
+  trustSources.appendChild(el(`<section class="data-pipeline" aria-labelledby="data-pipeline-title"><div class="data-pipeline-head"><p class="eyebrow">DATA PIPELINE</p><h2 id="data-pipeline-title">공개 데이터가 그래프가 되기까지</h2></div><div><article><span>01</span><strong>공개 원천 수집</strong><p>기관 발표값과 시각을 함께 받습니다.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>시점·형식 검사</strong><p>예측 기준일 이후 정보와 오류값을 차단합니다.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>변경 이력 보관</strong><p>원본은 덮어쓰지 않고 새 기록으로 남깁니다.</p></article><i aria-hidden="true">→</i><article><span>04</span><strong>화면과 모델 분리</strong><p>참고 통계와 예측 입력을 명확히 구분합니다.</p></article></div></section>`));
+  if(ledgerRows.length)trustStatus.appendChild(el(`<details class="trust-ledger-details"><summary><span><strong>원장별 상세 상태</strong><small>${num(ledgerRows.length)}개 DB · 필요할 때 펼쳐보기</small></span><b>위반 ${num(ledgerSummary.violation||0)}</b></summary><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>검사 시각 ${esc(trust.ledger_audit_at||'미산출')} · 정체는 갱신 확인, 위반은 구조·불변성 확인이 필요합니다.</footer></details>`));
+  if(trackMode==='operator')trustStatus.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
   const arenaMarkup=trackMode==='operator'?`<div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state" data-badge-type="state">승격 비활성</span></div>
       <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}" data-badge-type="state">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
     </div>`:'';
-  root.appendChild(el(`<section class="intelligence-stack" aria-label="검증 상세">
+  trustSources.appendChild(el(`<section class="intelligence-stack" aria-label="출처와 방법 상세">
     <details class="trust-center"><summary><span><b>데이터 출처 상세</b><small>제공기관 · 최신 상태 · 이용 조건</small></span><em>${trust.status==='ok'?'정상':'확인 필요'}</em></summary>
       <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}" data-badge-type="state">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(plainTerm(s.vintage_capability))}</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
       <div class="index-receipt"><span>데이터 지문</span><code>${esc((trust.index?.source_fingerprint||'미산출').slice(0,16))}</code><small>${esc(trust.index?.branch||'미산출')}</small></div>
     </details>
+    <div class="audit-grid">
+      <details class="panel semantics-card"><summary>확률 숫자 읽는 법</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
+    </div>
+  </section>`));
+  trustAudit.appendChild(el(`<section class="intelligence-stack" aria-label="감사 기록 상세">
     ${arenaMarkup}
     <div class="audit-grid">
       <details class="panel receipt-card"><summary>현재 전망에 쓰인 데이터</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div><div><dt>버전</dt><dd>${esc((receipt.commit||'미산출').slice(0,12))}</dd></div></dl><p>${esc(receipt.limitation||'미산출')}</p></details>
       <details class="panel correction-card"><summary>데이터 정정 이력 · ${corrections.length}건</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state" data-badge-type="state">${esc(row.status==='pending'?'보정 대기':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">정정 기록이 없습니다.</p>'}</details>
-      <details class="panel semantics-card"><summary>확률 숫자 읽는 법</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
     </div>
   </section>`));
+  const trustNav=el(`<nav class="lab-tabs trust-tabs" role="tablist" aria-label="데이터와 신뢰 화면">${trustTabs.map(([key,label,code])=>`<button type="button" id="lab-tab-trust-${key}" role="tab" data-trust-tab="${key}" aria-selected="${key==='status'}" aria-controls="lab-trust-${key}"><span>${code}</span> ${label}</button>`).join('')}</nav>`);
+  root.appendChild(trustNav);trustTabs.forEach(([key])=>root.appendChild(trustPanels[key]));
+  const activateTrustTab=(key,sync)=>{
+    const active=trustPanels[key]?key:'status';
+    trustTabs.forEach(([name])=>{trustPanels[name].hidden=name!==active;});
+    trustNav.querySelectorAll('[data-trust-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.trustTab===active)));
+    if(sync)history.replaceState(null,'',active==='status'?'#trust':'#trust/'+active);
+  };
+  trustNav.querySelectorAll('[data-trust-tab]').forEach(button=>{button.onclick=()=>activateTrustTab(button.dataset.trustTab,true);});
+  activateTrustTab(initial?.trustTab||'status',false);
   }
   mount(root);
 }
 
 // ── 기간 조회 ──
-function weekDate(label,asof=DATA?.scenario?.asof){
-  const [m,d]=label.split('/').map(Number),base=new Date(`${asof}T00:00:00`),year=base.getFullYear();
-  return new Date(year,m-1,d);
-}
-function nearestWeekIndex(sc,target){
-  let best=0,distance=Infinity;
-  sc.weeks.forEach((week,index)=>{const delta=Math.abs(weekDate(week,sc.asof)-target);if(delta<distance){distance=delta;best=index;}});
-  return best;
-}
-function askPresets(sc){
-  const start=new Date(`${sc.asof}T00:00:00`),year=start.getFullYear(),rows=[],seen=new Set();
-  for(let month=start.getMonth();month<12;month++){
-    const target=new Date(year,month+1,0);
-    if(target<=start)continue;
-    const index=nearestWeekIndex(sc,target);
-    if(index<=0||seen.has(index))continue;
-    seen.add(index);
-    rows.push([month===11?'연말 12/31':`${month+1}월말`,index]);
-  }
-  return rows;
-}
-function bizDates(s,e){const out=[];let d=new Date(s);while(d<=e){const w=d.getDay();if(w!==0&&w!==6)out.push(new Date(d));d.setDate(d.getDate()+1);}return out;}
-function interpAt(vals,wdts,t){
-  if(t<=wdts[0])return vals[0];
-  for(let i=0;i<wdts.length-1;i++){if(t>=wdts[i]&&t<=wdts[i+1]){const f=(t-wdts[i])/(wdts[i+1]-wdts[i]);return vals[i]+f*(vals[i+1]-vals[i]);}}
-  return vals[vals.length-1];
-}
-function drawDaily(host,sc,endIdx){
-  const NS='http://www.w3.org/2000/svg';
-  const wdts=sc.weeks.map(w=>weekDate(w));
-  const dates=bizDates(wdts[0],wdts[endIdx]);
-  const keys=['S1','S2','S3'];
-  const ser={};keys.forEach(k=>ser[k]=dates.map(t=>interpAt(sc.paths[k].values,wdts,t)));
-  const all=[].concat(...keys.map(k=>ser[k]));
-  let ymin=Math.min(...all),ymax=Math.max(...all);const pad=(ymax-ymin)*0.08||100;ymin-=pad;ymax+=pad;
-  const W=1000,H=380,ML=52,MR=118,MT=20,MB=32,PW=W-ML-MR,PH=H-MT-MB;
-  const t0=+dates[0],t1=+dates[dates.length-1];
-  const X=t=>ML+PW*((+t-t0)/Math.max(1,t1-t0)),Y=v=>MT+PH*(1-(v-ymin)/(ymax-ymin));
-  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
-  const mk=(t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
-  const tx=(x,y,s,o={})=>{const e=mk('text',{x,y,fill:o.fill||'#5f5d57','font-size':o.fs||12,'text-anchor':o.anc||'start','font-weight':o.w||400});e.textContent=s;return e;};
-  for(let g=0;g<=4;g++){const v=ymin+(ymax-ymin)*g/4;svg.appendChild(mk('line',{x1:ML,y1:Y(v),x2:ML+PW,y2:Y(v),stroke:'rgba(17,17,15,.09)'}));
-    svg.appendChild(tx(ML-8,Y(v)+4,(Math.round(v/10)*10).toLocaleString(),{anc:'end',fill:'rgba(17,17,15,.5)'}));}
-  if(sc.ath<=ymax&&sc.ath>=ymin){svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
-    svg.appendChild(tx(ML+PW+6,Y(sc.ath)+4,'전고점',{fill:'rgba(17,17,15,.6)'}));}
-  const up=dates.map((t,i)=>Math.max(ser.S1[i],ser.S2[i],ser.S3[i]));
-  const dn=dates.map((t,i)=>Math.min(ser.S1[i],ser.S2[i],ser.S3[i]));
-  let dband='';up.forEach((v,i)=>dband+=(i?'L':'M')+X(dates[i])+','+Y(v)+' ');
-  for(let i=dn.length-1;i>=0;i--)dband+='L'+X(dates[i])+','+Y(dn[i])+' ';
-  svg.appendChild(mk('path',{d:dband+'Z',fill:'#ff4f17',opacity:.08}));
-  keys.forEach(k=>{const col=CHART_COL[k];let d='';ser[k].forEach((v,i)=>d+=(i?'L':'M')+X(dates[i])+','+Y(v)+' ');
-    svg.appendChild(mk('path',{d,fill:'none',stroke:col,'stroke-width':k==='S1'?2.6:1.8,'stroke-linejoin':'round',opacity:k==='S1'?1:.9}));
-    const ev=ser[k][ser[k].length-1];
-    svg.appendChild(mk('circle',{cx:X(dates[dates.length-1]),cy:Y(ev),r:3.4,fill:col,stroke:'#0b1714','stroke-width':1.5}));
-    svg.appendChild(tx(X(dates[dates.length-1])+8,Y(ev)+4,`${num(Math.round(ev))} ${sc.paths[k].prob}%`,{fill:CHART_LABEL_COL[k],fs:12,w:700}));});
-  svg.appendChild(mk('circle',{cx:X(dates[0]),cy:Y(ser.S1[0]),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
-  svg.appendChild(tx(X(dates[0])-4,Y(ser.S1[0])-9,num(Math.round(sc.anchor)),{fill:'#11110f',w:600,anc:'start'}));
-  let lastM=-1;dates.forEach(t=>{const m=t.getMonth();if(m!==lastM){lastM=m;
-    svg.appendChild(mk('line',{x1:X(t),y1:MT,x2:X(t),y2:MT+PH,stroke:'rgba(17,17,15,.08)'}));
-    svg.appendChild(tx(X(t),MT+PH+16,(m+1)+'월',{anc:'middle',fs:12,fill:'#5f5d57'}));}});
-  const xh=mk('line',{stroke:'rgba(17,17,15,.38)','stroke-width':1,opacity:0});svg.appendChild(xh);
-  const ov=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(ov);
-  const tip=document.getElementById('tip');
-  ov.addEventListener('mousemove',e=>{const r=svg.getBoundingClientRect();const mx=(e.clientX-r.left)*(W/r.width);
-    let bi=0,bd=1e15;dates.forEach((t,i)=>{const dd=Math.abs(X(t)-mx);if(dd<bd){bd=dd;bi=i;}});
-    xh.setAttribute('x1',X(dates[bi]));xh.setAttribute('x2',X(dates[bi]));xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);xh.setAttribute('opacity',.4);
-    tip.style.display='block';tip.style.left=(e.clientX+14)+'px';tip.style.top=(e.clientY-10)+'px';
-    const dd=dates[bi];
-    tip.innerHTML=`<b>${(dd.getMonth()+1)}/${dd.getDate()}</b><br>
-      <span style="color:${CHART_COL.S1}">기본 ${num(Math.round(ser.S1[bi]))}</span><br>
-      <span style="color:${CHART_COL.S2}">중립 ${num(Math.round(ser.S2[bi]))}</span><br>
-      <span style="color:${CHART_COL.S3}">조정 ${num(Math.round(ser.S3[bi]))}</span>`;});
-  ov.addEventListener('mouseleave',()=>{tip.style.display='none';xh.setAttribute('opacity',0);});
-  host.appendChild(svg);
-}
-function renderAsk(){
-  const sc=DATA.scenario;const now=DATA.meta.generated.slice(0,10);
-  const endIndex=sc.weeks.length-1,endDate=`${sc.asof.slice(0,4)}-12-31`;
-  const root=el('<div></div>');
-  appendContextTabs(root,'replay','ask');
-  root.appendChild(el(`<div class="page-heading"><div>
-    <p class="eyebrow">기간 조회 · Range Projection</p>
-    <h1>현시점에서 기간별 일별 전망을 그립니다</h1>
-    <p class="page-lede">시나리오 기준 ${esc(sc.asof)} · 질문 데이터 기준 ${esc(now)}. 기간을 고르면 3경로의 일별 궤적과 예상 범위를 보여줍니다. 참고 의견이며 투자 자문이 아닙니다.</p>
-  </div></div>`));
-  root.appendChild(el(vintageReceipt()));
-  const presets=askPresets(sc);
-  const bar=el(`<div class="query-bar">
-    <div class="preset-list">${presets.map(([l,i])=>`<button type="button" class="ask-p" data-i="${i}">${l}</button>`).join('')}</div>
-    <label>종료일<input type="date" id="ad" min="${esc(sc.asof)}" max="${endDate}" value="${endDate}"></label>
-    <button type="button" class="calendar-action" id="ask-calendar">현재 기간 일정 저장</button>
-  </div>`);
-  const out=el('<div id="ans"></div>');
-  root.appendChild(bar);root.appendChild(out);
-  mount(root);
-  const answer=i=>{
-    const wk=sc.weeks[i],anchor=sc.anchor,lv=k=>sc.paths[k].values[i];
-    const vals=['S1','S2','S3'].map(lv),lo=Math.min(...vals),hi=Math.max(...vals);
-    const sign=v=>{const x=(v/anchor-1)*100;return (x>=0?'+':'')+x.toFixed(1)+'%';};
-    const wd=weekDate(wk,sc.asof);
-    const inWin=DATA.questions.filter(q=>q.deadline&&q.deadline>=now&&new Date(q.deadline)<=wd).sort((a,b)=>a.deadline<b.deadline?-1:1);
-    const evs=sc.events.filter(([xi])=>xi<=i+0.5&&xi>=0.5).map(([,l])=>l);
-    const legend=`<div class="band-inline">${['S1','S2','S3'].map(k=>`<span><b style="background:${CHART_COL[k]}"></b>${esc(['기본','중립','조정'][['S1','S2','S3'].indexOf(k)])} ${sc.paths[k].prob}%</span>`).join('')}</div>`;
-    out.innerHTML=`
-    <div class="range-returns">
-      <div><span>기본 (S1) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S1}">${sign(lv('S1'))}</strong><small>${num(Math.round(lv('S1')))}</small></div>
-      <div><span>중립 (S2) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S2}">${sign(lv('S2'))}</strong><small>${num(Math.round(lv('S2')))}</small></div>
-      <div><span>조정 (S3) · ${wk}</span><strong style="color:${CHART_LABEL_COL.S3}">${sign(lv('S3'))}</strong><small>${num(Math.round(lv('S3')))}</small></div>
-    </div>
-    <div class="chart-panel analysis-panel"><div class="panel-head"><h2>현재 → ${wk} · 일별 전망</h2>${legend}</div>
-      <div class="chart-wrap"><div id="dchart" class="ask-daily-chart"></div></div>
-      <p class="chart-note">${wk} 예상 범위 ${num(lo)}–${num(hi)} · 경로는 시나리오별 대표값(확률 가중 평균 아님)입니다.</p>
-    </div>
-    <div class="section-grid">
-      <div class="panel"><div class="panel-head" style="margin-bottom:18px"><h2 style="font-size:clamp(20px,2vw,28px)">이 기간 주요 일정</h2></div>
-        <div class="tag-list" style="justify-content:flex-start">${evs.length?evs.map(e=>`<span class="tag">${esc(e)}</span>`).join(' '):'<span class="empty" style="padding:0">해당 없음</span>'}</div></div>
-      <div class="panel"><div class="panel-head" style="margin-bottom:18px"><h2 style="font-size:clamp(20px,2vw,28px)">확정 예정 예측</h2><span class="vintage-note">${inWin.length}건</span></div>
-        <div class="deadline-list" style="border-top:1px solid var(--line)">${inWin.length?inWin.map(q=>`<button type="button" data-q="${esc(q.id)}"><time>${esc(q.deadline)}</time><span>${esc(q.title)}</span><strong>${p1(q.latest_prob)}</strong></button>`).join(''):'<p class="empty">이 기간 확정 예정 예측이 없습니다.</p>'}</div></div>
-    </div>`;
-    drawDaily($('#dchart',out),sc,i);
-    out.querySelectorAll('button[data-q]').forEach(b=>b.onclick=()=>location.hash='#q/'+b.dataset.q);
-    $('#ask-calendar',bar).onclick=()=>downloadQuestionCalendar(inWin.map(q=>q.id));
-    bar.querySelectorAll('.ask-p').forEach(c=>c.classList.toggle('on',+c.dataset.i===i));
-  };
-  bar.querySelectorAll('.ask-p').forEach(c=>c.onclick=()=>{$('#ad',bar).value='';answer(+c.dataset.i);});
-  $('#ad',bar).onchange=e=>answer(nearestWeekIndex(sc,new Date(`${e.target.value}T00:00:00`)));
-  answer(endIndex);
-}
 
 // ── 시장 지표 바 ──
 function renderHeaderStrip(){

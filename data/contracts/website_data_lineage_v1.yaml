@@ -221,7 +221,7 @@ surfaces:
     publication_failure: validation_pending_without_numbers
 
   champion:
-    routes: ["#today", "#future/champion", "#future/lookup"]
+    routes: ["#today", "#future/champion", "#future/lookup", "#future/original"]
     publication_class: research_reference_proxy
     display_role: champion_conditional_market_model
     probability_space: scenario_conditional
