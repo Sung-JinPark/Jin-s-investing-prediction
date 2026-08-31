@@ -424,6 +424,7 @@ def test_refresh_excludes_intraday_us_market_bar(monkeypatch, tmp_path) -> None:
         )
 
     monkeypatch.setattr("ai_fc.cross_asset.feed.yahoo_price_series_detail", fake_detail)
+    monkeypatch.setattr("ai_fc.cross_asset.feed.fred_price_series_detail", fake_detail)
     monkeypatch.setattr(
         "ai_fc.cross_asset.feed.yahoo_dividends",
         lambda *_args, **_kwargs: YahooDividendResult(
