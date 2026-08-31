@@ -826,6 +826,67 @@ def _compact_embed_band_calibration(read_model: dict) -> dict:
     return compacted
 
 
+# Append-only governance sections keep gaining provenance columns that the UI
+# never renders, so the standalone embed used to track that growth row by row.
+# An explicit allowlist of rendered fields bounds the fixed 900 KiB contract
+# against future column growth.  Each section below has a single consumer in
+# dashboard.js and the listed fields are exactly the ones it reads; Pages
+# ``data.json``, ``/api/data`` and the immutable sources keep every column.
+EMBED_RENDERED_FIELDS = {
+    # dashboard.js decisionJournal(): filters on kind, renders the rest.
+    "method_changes": ("kind", "date", "title", "reason", "snapshot_id", "report"),
+    # dashboard.js correction-card: status/field_name/old_value/reason only.
+    "corrections": ("status", "field_name", "old_value", "reason"),
+    # dashboard.js calendar strip + scenario event overlay.
+    "calendar_events": (
+        "event_id", "source_id", "source_url", "title", "date",
+        "status", "kind", "time_et", "ticker",
+    ),
+}
+
+
+def _project_embed_rows(read_model: dict) -> dict:
+    """Carry only rendered columns for append-only list sections in the embed.
+
+    Mirrors the resolved-forecast-body and band-calibration archival: transport
+    changes, information does not.  The dropped column names are disclosed in
+    ``embed_field_projection`` so a reader of the standalone snapshot can see
+    what was omitted and where the complete payload lives.  The input model is
+    never mutated.
+    """
+    projected = dict(read_model)
+    sections: dict[str, dict] = {}
+    for key, allowed in EMBED_RENDERED_FIELDS.items():
+        rows = read_model.get(key)
+        if not isinstance(rows, list) or not rows:
+            continue
+        dropped = sorted({
+            field
+            for row in rows if isinstance(row, dict)
+            for field in row if field not in allowed
+        })
+        if not dropped:
+            continue
+        projected[key] = [
+            {field: value for field, value in row.items() if field in allowed}
+            if isinstance(row, dict) else row
+            for row in rows
+        ]
+        sections[key] = {
+            "row_count": len(rows),
+            "kept_fields": list(allowed),
+            "dropped_fields": dropped,
+        }
+    if sections:
+        projected["embed_field_projection"] = {
+            "projected": True,
+            "reason": "embed_size_budget",
+            "full_payload": "data.json",
+            "sections": sections,
+        }
+    return projected
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
@@ -860,6 +921,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_future_paths(read_model)
         read_model = _compact_embed_forecast_history(read_model)
         read_model = _compact_embed_band_calibration(read_model)
+        read_model = _project_embed_rows(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
         blob = json.dumps(
