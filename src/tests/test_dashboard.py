@@ -966,7 +966,8 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     blob = html.split("window.__DATA__ = ", 1)[1].split("</script>", 1)[0]
     embedded = json.loads(blob.rstrip().rstrip(";"))
     assert "rows" not in embedded["band_calibration"]
-    assert embedded["band_calibration"]["rows_archived"]["row_count"]         == len(model["band_calibration"]["rows"])
+    archived_rows = embedded["band_calibration"]["rows_archived"]
+    assert archived_rows["row_count"] == len(model["band_calibration"]["rows"])
     for section, kept in dashboard.EMBED_RENDERED_FIELDS.items():
         for row in embedded[section]:
             assert set(row) <= set(kept), section
