@@ -179,12 +179,14 @@ ledgers:
     cadence: weekly
     criticality: medium
     schema_ref: json_object
+    timestamp_field: checked_at
   - id: ipo_reference_batch_status
     path: data/statistics/ipo/reference_batch_status.json
     kind: mutable_snapshot
     cadence: weekly
     criticality: medium
     schema_ref: json_object
+    timestamp_field: checked_at
   - id: timeseries_raw_receipts
     path: data/timeseries/ledgers/raw_receipts.jsonl
     kind: jsonl
@@ -219,6 +221,7 @@ ledgers:
     cadence: trading_daily
     criticality: high
     schema_ref: jsonl
+    timestamp_field: as_of
   - id: timeseries_shadow_resolutions
     path: data/timeseries/ledgers/resolutions.jsonl
     kind: jsonl

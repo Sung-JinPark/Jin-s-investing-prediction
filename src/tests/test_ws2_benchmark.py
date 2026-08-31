@@ -80,7 +80,12 @@ def test_resolve_writes_benchmark_scores(tmp_path: Path) -> None:
         """INSERT INTO forecasts (forecast_id, question_id, round, forecast_ts,
              probability, market_implied, path, file_sha256)
            VALUES ('2099-06-05_fixture-eps-beat_r1', 'fixture-eps-beat', 1,
-                   '2099-06-05T09:00:00', 40, 0.2, 'x.md', 'h')""")
+                   '2099-06-05T09:00:00', 40, 20, 'x.md', 'h')""")
+    # probability와 market_implied는 둘 다 **퍼센트**로 기록된다
+    # (TEMPLATE: "market_implied: <시장내재확률 % | null>"). 원장의 llm_prob·
+    # market_prob 컬럼은 정본 분수이므로 resolver가 양쪽 다 100으로 나눈다.
+    # 이 픽스처는 market_implied만 분수(0.2)로 넣어 변환 누락 버그를 통과시키고
+    # 있었다 — 실제 예측 파일 4건은 모두 퍼센트다 (CORR-260831-005/006).
     conn.execute(
         "INSERT INTO ml_forecasts (run_ts, question_id, model, kind, prob)"
         " VALUES ('2099-06-01T00:00:00', 'fixture-eps-beat', 'ensemble', 'terminal', 0.3)")
