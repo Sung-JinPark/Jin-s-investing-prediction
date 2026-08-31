@@ -1175,3 +1175,26 @@ def test_ipo_broad_cohort_rejects_count_drift_and_minimal_ai_usage() -> None:
     invalid_watch["qualitative_ipo"]["listed_ai_beneficiary_watchlist"]["semantics"] = "ipo_count"
     with pytest.raises(StatisticsLabError, match="listed AI beneficiary watchlist semantics invalid"):
         validate_ipo_reference(invalid_watch)
+
+def test_sec_user_agent_carries_a_contact(monkeypatch: pytest.MonkeyPatch) -> None:
+    """연락처 없는 UA는 SEC가 403으로 막는다 — 이 워크플로가 9일간 멈춘 원인이다.
+
+    SEC가 문서로 요구하는 준수 방법이므로 불변식으로 고정한다. 통과에 필요한 것이
+    이메일 '형태'뿐이라 임의 문자열로도 SEC는 200을 주지만, 그것은 규제기관에 허위
+    연락처를 신고하는 것이라 하지 않는다 — 그래서 기본값은 소유자가 지정한 실제
+    주소이고, 교체하더라도 연락 가능한 주소여야 한다.
+    """
+    from ai_fc import statistics_lab
+
+    monkeypatch.delenv("AI_FC_SEC_USER_AGENT", raising=False)
+    assert "@" in statistics_lab._user_agent()
+    assert statistics_lab.SEC_CONTACT in statistics_lab._user_agent()
+
+    # 환경변수로 덮어쓰더라도 연락처가 없으면 조용히 403을 맞기 전에 실패한다.
+    monkeypatch.setenv("AI_FC_SEC_USER_AGENT", "NoContactBot/1.0")
+    with pytest.raises(statistics_lab.StatisticsLabError):
+        statistics_lab._user_agent()
+
+    # 정상 교체는 허용된다.
+    monkeypatch.setenv("AI_FC_SEC_USER_AGENT", "Other/1.0 (someone@example.org)")
+    assert statistics_lab._user_agent() == "Other/1.0 (someone@example.org)"
