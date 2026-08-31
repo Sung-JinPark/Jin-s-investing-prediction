@@ -37,9 +37,11 @@ REGISTERED_DEBT_ISSUERS: dict[str, str] = {
 }
 
 PROSPECTUS_FORMS = ("424B2", "424B3", "424B5", "FWP")
-OFFERINGS_LEDGER = Path("data/ai_capital_cycle/registered_debt_offerings.jsonl")
-DEBT_LATEST = Path("data/ai_capital_cycle/registered_debt_latest.json")
-DEBT_ARCHIVE = Path("data/ai_capital_cycle/registered_debt_archive")
+# data/ai_buildout, not data/ai_capital_cycle: the latter is a protected root
+# of the V5.2 scenario candidate and rejects new files between rebuilds.
+OFFERINGS_LEDGER = Path("data/ai_buildout/registered_debt_offerings.jsonl")
+DEBT_LATEST = Path("data/ai_buildout/registered_debt_latest.json")
+DEBT_ARCHIVE = Path("data/ai_buildout/registered_debt_archive")
 
 _SEC_RATE_LIMIT_SECONDS = 0.15
 

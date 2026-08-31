@@ -55,6 +55,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ai_capital_cycle
+          git add data/ai_buildout
           git add data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json
           git add data/realty_income/o_entry_cohort_latest.json
           git add data/realty_income/o_entry_cohort_archive

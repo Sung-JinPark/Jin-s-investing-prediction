@@ -34,8 +34,11 @@ COVERAGE_LATEST = Path("data/ai_capital_cycle/coverage_latest.json")
 COVERAGE_ARCHIVE = Path("data/ai_capital_cycle/coverage_archive")
 REGIME_LATEST = Path("data/ai_capital_cycle/ai_regime_latest.json")
 REGIME_ARCHIVE = Path("data/ai_capital_cycle/regime_archive")
-INTENSITY_LATEST = Path("data/ai_capital_cycle/capital_intensity_latest.json")
-INTENSITY_ARCHIVE = Path("data/ai_capital_cycle/capital_intensity_archive")
+# Outside data/ai_capital_cycle on purpose: that directory is a protected
+# root of the V5.2 scenario candidate, where new files are forbidden between
+# candidate rebuilds. Derived build-out views live in their own directory.
+INTENSITY_LATEST = Path("data/ai_buildout/capital_intensity_latest.json")
+INTENSITY_ARCHIVE = Path("data/ai_buildout/capital_intensity_archive")
 
 # Undiscounted future lease payments.  Data-centre capacity is increasingly
 # taken through leases rather than bond issuance, so a debt-only view of the

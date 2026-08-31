@@ -124,7 +124,7 @@ def test_refresh_ledger_is_append_only(tmp_path: Path) -> None:
     assert second["rows_appended"] == 0
     assert second["rows_total"] == 1
 
-    ledger = tmp_path / "data/ai_capital_cycle/registered_debt_offerings.jsonl"
+    ledger = tmp_path / "data/ai_buildout/registered_debt_offerings.jsonl"
     assert len(ledger.read_text(encoding="utf-8").strip().splitlines()) == 1
 
     def conflicting_fetcher(url: str) -> bytes:

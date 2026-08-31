@@ -31,7 +31,7 @@ CLAUDE.md 5원칙 §5 예외(결정론 수치모델의 과거 적합 허용)를 
   AI 투자액으로 해석할 수 없다. "AI 관련 부채 $150B" 류의 유통 수치는 공식 택소노미가
   없어 재현 불가능하다.
 - **출처**: SEC EDGAR companyfacts (수집일: 2026-08-31)
-- **신뢰도**: 검증 (data/ai_capital_cycle/capital_intensity_latest.json)
+- **신뢰도**: 검증 (data/ai_buildout/capital_intensity_latest.json)
 - **사용 질문**: amzn-fcf-negative-fy2026
 
 ### 물리 빌드아웃 — 데이터센터는 폭증, 반도체 시설은 닷컴보다 느리다
