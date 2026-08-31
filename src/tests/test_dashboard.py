@@ -852,6 +852,33 @@ def test_chart_notes_use_one_scannable_guide_block() -> None:
     assert "특정 날짜의 가격을 맞히는 그래프가 아닙니다" in html
 
 
+def test_forecast_chart_shows_date_and_index_on_hover() -> None:
+    """세 시나리오 차트에 마우스를 올리면 그 날짜와 지수를 읽을 수 있어야 한다."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    # 기하 계산을 한 곳으로 모아 차트와 호버가 같은 좌표를 쓴다
+    assert "function scenarioV52ChartModel(candidate,rangeKey='quarter')" in script
+    assert "const model=scenarioV52ChartModel(candidate,rangeKey);" in script
+
+    # 호버 레이어
+    for mark in ("data-v52-hover-layer", "data-v52-crosshair", 'data-v52-dot="${key}"', "data-v52-overlay"):
+        assert mark in html, mark
+
+    # 바인딩이 최초 렌더와 기간 전환 양쪽에 걸린다
+    assert "function bindScenarioV52Hover(host,candidate,rangeKey)" in script
+    assert "bindScenarioV52Hover(chartHost,candidate,rangeKey);" in script
+
+    # 툴팁 내용: 날짜 + 실제/전망 구분 + 시나리오별 지수
+    assert "실제 기록" in html and "전망" in html
+    assert "NASDAQ ${num(Math.round(Number(medoids.S1[index])))}" in script
+    assert "한가운데 ${num(Math.round(Number(scenarioSeries[key][index])))}" in script
+
+    # 모바일에서 툴팁이 남지 않도록 포인터 종류를 가린다
+    assert "window.matchMedia('(pointer: fine)').matches" in script
+    assert "overlay.addEventListener('pointerleave',hide)" in script
+
+
 def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
     """전망 그래프의 굵은 선은 실제 모의 중심 경로(medoid)다.
 
