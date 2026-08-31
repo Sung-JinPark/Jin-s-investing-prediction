@@ -202,3 +202,45 @@ def test_registered_timestamp_field_is_a_fallback_for_json_and_jsonl(tmp_path) -
     )
     assert _dates([lines], "as_of") == [date(2026, 8, 28)]
     assert _dates([lines], None) == []
+
+
+def test_biweekly_cadence_allows_a_fortnight_before_calling_a_ledger_stalled(
+    tmp_path: Path,
+) -> None:
+    """격주 원장은 14일 주기 + 한 번 놓칠 여유(17일)까지 accumulating이다.
+
+    biweekly 분기가 없으면 어떤 분기에도 걸리지 않아 staleness가 영원히 False가
+    되고, 격주 작성기가 죽어도 stalled로 잡히지 않는다.
+    """
+    registry = """version: 1
+ledgers:
+  - id: ipo_edgar_candidates
+    path: data/statistics/ipo/edgar_candidates.json
+    kind: mutable_snapshot
+    cadence: biweekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: checked_at
+"""
+
+    def audit(checked_at: str, now: str) -> tuple[dict, dict]:
+        root = _root(tmp_path / checked_at[:10], registry)
+        target = root / "data/statistics/ipo/edgar_candidates.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(
+            json.dumps({"checked_at": checked_at, "candidates": []}), encoding="utf-8")
+        report = audit_ledgers(
+            root, write=False, now=datetime.fromisoformat(now).replace(tzinfo=timezone.utc))
+        return report["ledgers"][0], report
+
+    fresh, _ = audit("2026-08-31T00:00:00+00:00", "2026-09-14T00:00:00")
+    assert fresh["status"] == "accumulating", "14일째는 아직 신선하다"
+    assert fresh["cadence"] == "biweekly"
+    assert fresh["latest_date"] == "2026-08-31"
+
+    edge, _ = audit("2026-08-01T00:00:00+00:00", "2026-08-18T00:00:00")
+    assert edge["status"] == "accumulating", "17일까지는 한 번 놓친 것으로 본다"
+
+    stalled, report = audit("2026-07-01T00:00:00+00:00", "2026-07-19T00:00:00")
+    assert stalled["status"] == "stalled", "18일이면 격주 작성기가 멈춘 것"
+    assert not has_violations(report), "정체는 불변성 위반이 아니다"

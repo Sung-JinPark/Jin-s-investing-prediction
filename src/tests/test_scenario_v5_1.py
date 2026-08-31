@@ -229,7 +229,8 @@ def test_p50_primary_member_secondary_and_2027_common_continuation() -> None:
     assert all(row["normalized_p50_level_correlation"] > .98
                for row in payload["distinctness_2027"]["pairs"])
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
-    assert "ONE SIMULATED MEMBER · EXACT DATES ARE NOT FORECAST" in script
+    # 문구는 평이한 한국어로 바뀌었지만 "모의 경로 하나 · 날짜 예측 아님" 공시는 유지된다
+    assert "실제로 나온 경로 하나 · 날짜별 값을 맞히는 선이 아닙니다" in script
     assert "conditional weighted p50" in script
     assert "common-model continuation" in script
     assert "RCFHS-SB v1 shadow" not in script
