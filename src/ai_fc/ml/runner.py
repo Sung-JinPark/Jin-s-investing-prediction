@@ -301,21 +301,21 @@ def _sentiment_section(x: dict, feed_rows: str, neg_block: str) -> str:
     overall = x.get("sentiment_overall")
     if overall is None:
         return NL.join([
-            "## FinBERT 헤드라인 감성 — **수집 중단** (2026-08-31, DECISIONS 12-4)",
-            "- Google News RSS 수집을 중단했다. 피드 내장 라이선스가 개인용 피드"
-            " 리더 용도로 한정하고 그 외 사용을 금지하며, robots.txt가 /rss/ 를"
-            " 전 UA에 disallow 한다.",
-            "- 과거 수집분은 data/ml_history/*.jsonl 에 그대로 남아 있고 읽기·표시"
-            " 경로도 유지된다. 새 관측만 없다.",
+            "## FinBERT 헤드라인 감성 — **이번 실행에서 관측 없음**",
+            "- 전 피드 수집이 실패했다. 0.000을 적으면 중립을 관측한 것이 되므로",
+            "  지수를 비운다 (DECISIONS 12-4a).",
+            f"- {sentiment.ATTRIBUTION}",
         ])
     return NL.join([
-        "## FinBERT 헤드라인 감성 (Google News RSS, 무료)",
+        "## FinBERT 헤드라인 감성 (GDELT)",
         "| 피드 | 헤드라인 수 | 감성 지수 [-1,+1] | Δ7d |",
         "|---|---|---|---|",
         feed_rows,
         f"- **종합**: {overall:+.3f} (0 = 중립)",
         "- 최근 부정 헤드라인 샘플:",
         neg_block,
+        # 인용은 선택이 아니라 GDELT 허가의 조건이다 (DECISIONS 12-7).
+        f"- {sentiment.ATTRIBUTION}",
     ])
 
 def render_md(x: dict) -> str:

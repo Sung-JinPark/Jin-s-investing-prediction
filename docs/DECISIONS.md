@@ -149,3 +149,36 @@ CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획�
 - CBOE 약관의 `"fair use" under the Copyright Act of 1976` 유보가 이 용도를 포섭하는지 — 법률 검토 영역
 - 허가의 유상/무상 여부 — **NOT FOUND**
 - 회신이 **명시적 거절**일 경우 fair use 모호성이 사라져 제거 외 선택지가 좁아진다는 점 — 신청 자체의 양면성
+
+### 2026-08-31 — 12-7: 뉴스 감성 수집을 GDELT로 재개
+
+12-4a로 Google News RSS 수집을 중단한 뒤, 약관이 이 용도를 허용하는 대체 소스를 조사해 재개했다.
+
+**조사 결론: 자동 수집·파생 집계 공개·제목 표시 셋을 모두 명시적으로 허용하는 소스는 GDELT 하나뿐이다.**
+
+GDELT 약관 전문 (gdeltproject.org/about.html#termsofuse, 취득 2026-08-31):
+
+> "all datasets released by the GDELT Project are available for unlimited and unrestricted use for any academic, commercial, or governmental use of any kind without fee."
+> "You may redistribute, rehost, republish, and mirror any of the GDELT datasets in any form. However, any use or redistribution of the data must include a citation to the GDELT Project and a link to this website."
+
+**AI/ML 사용 제한 조항이 없다** — FRED를 기각한 사유(12-5)와 정반대다. API 키 불필요, `api.gdeltproject.org`에 robots.txt 자체가 없다. 5개 토픽 전부 임의 키워드 질의로 커버된다.
+
+**기각한 후보와 사유**
+
+| 후보 | 사유 |
+|---|---|
+| CNBC · MarketWatch · Seeking Alpha | 피드는 200을 주지만 약관이 자동 수집·파생값 공개를 명시 금지. **비영리가 방어가 안 된다** — Seeking Alpha "public *or* commercial", CNBC/Versant "whether for profit or for no profit". MarketWatch는 robots.txt 논거까지 선제 차단하고 "headlines, article summaries"를 Content 정의에 포함 |
+| Reuters · AP | 피드 자체 소멸 + 명시 금지 |
+| Yahoo Finance | RSS 조항은 표시를 허용하나 일반 조항의 자동 수집 금지를 해제하지 않는다. 12-5의 기각과 일관 |
+| NewsAPI · Finnhub · Alpha Vantage · Currents | 파생값 공개를 명시 금지. Finnhub은 **"derived results"**를 명시. NewsAPI 무료 티어는 개발환경 전용 |
+| 정부 소스 (Fed·BLS·SEC·BEA) | 법적으로 가장 깨끗하나 **감성 지수라는 산출물이 성립하지 않는다** — Fed press_all 20건 중 매크로 관련 2건, 나머지는 은행 제재·합병 승인. 토픽이 좁은 수준이 아니라 신호가 원천적으로 없다 |
+
+**미해결로 남는 층**: GDELT가 색인하는 상위 기사의 저작권에 대해 GDELT 약관은 침묵한다. 다만 취득 근거의 질은 Google News보다 명백히 낫다 — 그쪽은 피드에 금지 문언이 있고 robots.txt가 막았는데, GDELT는 배포를 명시 허용하고 경로를 막지 않으며 AI/ML 제한도 없다.
+
+**운영 조건 (허가의 대가와 실측 제약)**
+
+- **인용 의무**: `sentiment.ATTRIBUTION`("출처: The GDELT Project — https://www.gdeltproject.org/")을 감성 지수가 표시되는 모든 산출물에 싣는다. 관측이 없는 경우의 리포트에도 싣는다. **선택이 아니라 허가의 조건이다.**
+- **API 불안정 (완화했으나 해소되지 않음)**: rate limit 수치가 비공개다. 피드 간 8초 간격 + 4회 재시도(5/10/15초 백오프)를 넣고 90초 냉각 후 재측정해도 **5개 중 3개 성공**이었다. 같은 질의가 잠시 뒤 성공하므로 질의 문법이 아니라 유량 문제다. 부분 성공은 성공한 피드만으로 가중평균하며, 이는 관측 표본이 줄었다는 뜻이지 값이 틀렸다는 뜻은 아니다. 연구가 제안한 `data.gdeltproject.org` 벌크 폴백(실측 전량 200)은 이번에 넣지 않았다 — 필요해지면 다음 단계.
+- **전량 실패 시 None**: 12-4a 규칙 그대로 `sentiment_overall`은 0.0이 아니라 None이다.
+- **영어 고정**: `sourcelang:english` — 필터 없이 돌리면 중국어 헤드라인이 섞이고 FinBERT는 영문 모델이다.
+- **제목 정규화**: GDELT는 제목을 토큰화해 보관해 구두점 앞에 공백이 들어간다("No . 1 Pick"). `normalize_title()`로 정리한다. 아포스트로피는 GDELT 단계에서 이미 소실돼 복원 불가.
