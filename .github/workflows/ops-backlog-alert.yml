@@ -1,0 +1,169 @@
+name: ops-backlog-alert
+
+# 예측 백로그 감시. 2026-08-31 회고에서 나온 대응:
+# due 보드가 54일간 방치되는 동안 질문 3건이 예측 한 번 없이 마감을 넘겼고
+# (소급 삽입 금지 원칙상 영구 채점 불가 → void), 정정 2건이 30일을 대기했다.
+# CI는 코드가 깨질 때만 울리므로 "아무도 안 보는 상태"를 잡지 못한다.
+#
+# 설계: 결정론 검사만 수행한다. LLM 호출도, 새 시크릿도, 예측 실행도 없다.
+# 표면화는 라벨 이슈 하나이며 **댓글을 쌓지 않고 본문을 갱신**한다.
+# 백로그가 비면 이슈를 자동으로 닫아 스스로 정리된다.
+
+on:
+  schedule:
+    - cron: "10 3 * * *"       # 매일 KST 12:10 — 일일 리프레시(02:xx UTC) 이후
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  backlog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: deps (시크릿 불필요)
+        run: pip install -e "."
+
+      - name: Collect the backlog
+        id: collect
+        run: |
+          cd src
+          python -m ai_fc sync >/dev/null 2>&1 || true
+          python -m ai_fc due > "$RUNNER_TEMP/due.txt" 2>&1 || true
+          cd ..
+          resolve=$(grep -c '^\[resolve' "$RUNNER_TEMP/due.txt" || true)
+          forecast=$(grep -c '^\[forecast' "$RUNNER_TEMP/due.txt" || true)
+          stale=$(grep -c '^\[stale' "$RUNNER_TEMP/due.txt" || true)
+          # 마감이 이미 지났는데 예측이 한 건도 없는 질문 — 가장 치명적인 공백.
+          lapsed=$(python - <<'PY'
+          import csv, datetime, pathlib, sqlite3, sys
+          try:
+              import yaml
+          except ImportError:
+              print(0); sys.exit()
+          root = pathlib.Path(".")
+          today = datetime.date.today()
+          try:
+              reg = yaml.safe_load((root / "questions/registry.yaml").read_text(encoding="utf-8"))
+              conn = sqlite3.connect(root / "db/index.db")
+              have = {r[0] for r in conn.execute("SELECT DISTINCT question_id FROM forecasts")}
+          except Exception:
+              print(0); sys.exit()
+          n = 0
+          for q in reg.get("questions", []):
+              if q.get("status") != "active":
+                  continue
+              raw = str(q.get("deadline") or "")
+              if not raw[:4].isdigit():
+                  continue
+              try:
+                  if datetime.date.fromisoformat(raw[:10]) < today and q.get("id") not in have:
+                      n += 1
+              except ValueError:
+                  continue
+          print(n)
+          PY
+          )
+          # 14일 넘게 미해소인 정정.  corrections.csv는 E9 append-only라 pending 행을
+          # 고쳐 approved로 만들 수 없고, 같은 대상에 approved 행을 덧붙여 해소한다.
+          # 따라서 후속 approved 행이 있는 pending은 이미 해소된 것으로 센다 —
+          # 그러지 않으면 알림이 영구히 울려 쓸모가 없어진다.
+          corr=$(python - <<'PY'
+          import csv, datetime, pathlib
+          p = pathlib.Path("calibration/corrections.csv")
+          if not p.exists():
+              print(0)
+          else:
+              cutoff = datetime.date.today() - datetime.timedelta(days=14)
+              rows = []
+              with p.open(encoding="utf-8", newline="") as fh:
+                  rows = list(csv.DictReader(fh))
+              resolved = {
+                  (r.get("target_table"), r.get("target_key"), r.get("field_name"))
+                  for r in rows if (r.get("status") or "").strip() == "approved"
+              }
+              n = 0
+              for row in rows:
+                  if (row.get("status") or "").strip() != "pending":
+                      continue
+                  key = (row.get("target_table"), row.get("target_key"), row.get("field_name"))
+                  if key in resolved:
+                      continue
+                  try:
+                      if datetime.date.fromisoformat((row.get("created_at") or "")[:10]) < cutoff:
+                          n += 1
+                  except ValueError:
+                      continue
+              print(n)
+          PY
+          )
+          total=$(( resolve + lapsed + corr ))
+          {
+            echo "resolve=$resolve"
+            echo "forecast=$forecast"
+            echo "stale=$stale"
+            echo "lapsed=$lapsed"
+            echo "corr=$corr"
+            echo "total=$total"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open, refresh, or close the standing backlog issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RESOLVE: ${{ steps.collect.outputs.resolve }}
+          FORECAST: ${{ steps.collect.outputs.forecast }}
+          STALE: ${{ steps.collect.outputs.stale }}
+          LAPSED: ${{ steps.collect.outputs.lapsed }}
+          CORR: ${{ steps.collect.outputs.corr }}
+          TOTAL: ${{ steps.collect.outputs.total }}
+        run: |
+          title="ops: 예측 백로그 감시"
+          number="$(gh issue list --repo "$GITHUB_REPOSITORY" \
+            --label ops-backlog --state open \
+            --search "\"$title\" in:title" \
+            --json number --jq '.[0].number // empty')"
+
+          if [ "$TOTAL" -eq 0 ]; then
+            if [ -n "$number" ]; then
+              gh issue close "$number" --repo "$GITHUB_REPOSITORY" \
+                --comment "백로그 해소 — 판정 대기 0 · 마감 경과 미예측 0 · 14일+ 대기 정정 0. 자동 종료합니다."
+            fi
+            echo "백로그 없음"
+            exit 0
+          fi
+
+          body=$(cat <<EOF
+          자동 생성 — 마지막 점검 $(date -u '+%Y-%m-%d %H:%M UTC'). 이 본문은 매 실행마다 갱신되며 백로그가 비면 이슈가 자동으로 닫힙니다.
+
+          | 항목 | 건수 | 왜 중요한가 |
+          |---|---|---|
+          | 판정 대기 | ${RESOLVE} | 해소 표본이 P3 게이트(50건)의 병목입니다 |
+          | **마감 경과 미예측** | **${LAPSED}** | **가장 치명적** — 결과를 안 뒤 예측을 넣는 것은 소급 삽입이라 영구히 채점 불가(void)합니다 |
+          | 14일+ 대기 정정 | ${CORR} | 격리된 값이 집계에서 계속 빠집니다 |
+          | (참고) 재예측 기한 도래 | ${FORECAST} | |
+          | (참고) stale | ${STALE} | |
+
+          확인:
+
+          \`\`\`
+          cd src && python -m ai_fc due
+          \`\`\`
+
+          2026-08-31 회고: due 보드가 54일 방치되어 질문 3건이 예측 없이 마감을 넘겼고(void 처리), 정정 2건이 30일 대기했습니다. 이 워크플로는 그 재발을 막기 위한 것입니다.
+          EOF
+          )
+
+          if [ -n "$number" ]; then
+            gh issue edit "$number" --repo "$GITHUB_REPOSITORY" --body "$body"
+            echo "이슈 #$number 본문 갱신"
+          else
+            gh label create ops-backlog --repo "$GITHUB_REPOSITORY" \
+              --description "forecast/resolution backlog" --color FBCA04 2>/dev/null || true
+            gh issue create --repo "$GITHUB_REPOSITORY" --title "$title" \
+              --label ops-backlog --body "$body"
+          fi
