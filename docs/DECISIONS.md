@@ -113,3 +113,39 @@ CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획�
 - 리포트의 감성 섹션은 수집이 없을 때 지수 대신 중단 사실과 사유를 낸다. 과거 기록이 있는 실행을 다시 렌더하면 종전 표를 그대로 낸다.
 
 과거 수집분은 삭제하지 않는다 — 불변 기록이며, 소급 삭제는 이 프로젝트가 금지하는 사후 조작에 해당한다.
+
+### 2026-08-31 — 12-4b 후속: CBOE 대체 경로 조사 결과 (12-5)
+
+12-4b가 지시한 조사를 마쳤다. **결론: 이전은 위치를 개선하지 않으며 대부분 악화시킨다. 소스는 CBOE에 유지한다.**
+
+| 후보 | 판정 | 근거 (원문 취득 2026-08-31) |
+|---|---|---|
+| **FRED (VIXCLS)** | **더 나쁨** | ① 시리즈 노트가 "Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission." — **CBOE 저작권이 그대로 따라오고 고지 유지 의무까지 생긴다**. ② FRED 스스로 "The Bank cannot give you such permission" 명시. ③ **AI/ML 사용 금지 조항이 같은 페이지에 3회** — "Use the FRED Services or FRED Content in connection with the development or training of any software program or system or machine learning, including … large language models". CBOE 약관에는 이런 조항이 **없다**. ④ store·cache·archive 및 DB 편입 금지 — 저장소 커밋과 충돌. ⑤ §III("인용하면 게시 가능")와 FAQ#3·Full ToU("소유자 허가 필수")가 서로 모순 |
+| **Yahoo Finance** | **더 나쁨** | 자동 수집을 명시적으로 금지("robots, spiders, scrapers, data mining tools … without our express, prior permission"). CBOE 약관에는 이 문언이 없다. `^VIX9D`가 존재하는 유일한 무료 경로이나 취득 근거가 없다 |
+| **Stooq** | 부적격 | 이용약관 문서 자체가 **NOT FOUND**(404) = 허가 근거 없음. 게다가 봇 검증으로 자동 취득이 현재 작동하지 않는다 |
+| **datasets/finance-vix (PDDL 선언)** | **명백히 더 나쁨** | 데이터를 **같은 `cdn.cboe.com` URL**에서 가져오면서, README가 근거를 자백한다 — "Given size and factual nature of the data … **would imagine this was public domain** and as such have licensed the Data Package under the PDDL". 소유하지 않은 데이터에 제3자가 추측으로 부여한 라이선스에 의존하는 기록이 남는다 |
+| **정부·거래소 중립 소스** | **존재하지 않음** | VIX는 사실 기록이 아니라 CBOE 소유 산출 지수다. Market Data Policies: "All proprietary rights … in the Data … shall remain the sole and exclusive property of Cboe". 모든 경로가 CBOE로 수렴한다 |
+
+**시리즈별 결론**
+
+| 필요 시리즈 | 결론 |
+|---|---|
+| VIX 일간 종가 | CBOE 유지. FRED로 옮기면 CBOE 저작권은 따라오면서 **AI/ML 금지·캐시 금지가 추가**되어 순손실 |
+| **VIX9D** | CBOE 유지 — **대안 자체가 없다**. FRED 검색 결과 0건, 가장 짧은 것이 30일물(VIXCLS)이고 나머지는 3개월물 |
+| 옵션 내재확률 | CBOE 유지. **무료로 공개 표시가 허용되는 미국 지수 옵션 소스는 존재하지 않는다** — 벤더 정책이 아니라 OPRA Vendor Agreement라는 시장 구조상 제약이라 호스트를 바꿔도 해소되지 않는다 |
+
+**대신 발견한 실질적 경로 — CBOE 자체 정책에 이 프로젝트 형태와 일치하는 라이선스 카테고리가 있다.**
+
+`Market_Data_Policies.pdf`(Effective 2026-07-01) §19(b) "Delayed Open Website" License:
+
+> "A Data Recipient may provide access to Delayed Data via an open website under the 'Delayed Open Website' License only if: (a) access is openly available to the public and there is no authentication system requiring login through a unique ID and password combination; (b) there is no trading functionality available; and (c) the Index Delayed Data is being provided for informational purposes only."
+
+이 프로젝트는 세 조건에 문언상 부합한다(공개·로그인 없음·거래 기능 없음·정보 제공 목적). 다만 이는 **Data Agreement 체결자에게 적용되는 규정**이므로 자동으로 주어지는 권리가 아니라 **따라갈 수 있는 경로**다.
+
+**따라서 위치를 실제로 개선하는 유일한 조치는 호스트 변경이 아니라 허가 취득이다.** `permissions@cboe.com`으로 Request to Use Cboe Content를 제출하는 절차가 문서에 명시돼 있고(5영업일 회신 통례, 의무 아님), 요청서 초안은 `docs/cboe_permission_request_draft.md`에 준비했다. **발송은 저장소 소유자가 직접 한다** — 대외 커뮤니케이션이며 회신 조건 수용 여부도 소유자 판단이다.
+
+**미해결로 남는 것 (문서로 해소 불가)**
+
+- CBOE 약관의 `"fair use" under the Copyright Act of 1976` 유보가 이 용도를 포섭하는지 — 법률 검토 영역
+- 허가의 유상/무상 여부 — **NOT FOUND**
+- 회신이 **명시적 거절**일 경우 fair use 모호성이 사라져 제거 외 선택지가 좁아진다는 점 — 신청 자체의 양면성
