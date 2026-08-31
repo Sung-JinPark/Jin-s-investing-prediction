@@ -817,6 +817,31 @@ def test_dead_render_paths_are_not_shipped() -> None:
         assert kept in html, kept
 
 
+def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
+    """전망 그래프의 굵은 선은 실제 모의 중심 경로(medoid)다.
+
+    p50은 수천 경로의 날짜별 중앙값이라 거의 직선으로 보인다. 실제 시장 질감을
+    보여주되 중심 경향도 잃지 않도록, p50은 같은 색 점선으로 남긴다.
+    """
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    body = script.split("function scenarioV52UnifiedChart")[1].split("function scenarioV52RangeReadout")[0]
+
+    # medoid가 굵게, p50이 얇은 점선으로
+    assert 'stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" data-path-role="${key}-actual-medoid"' in body
+    assert 'stroke-width="1.4" stroke-dasharray="4 6" opacity=".42" data-scenario-p50="${key}"' in body
+    # 종점 마커와 라벨도 주선을 따라간다
+    assert "Y(medoids[key].at(-1))" in body
+    assert "const endpointLabel=key=>{const values=medoids[key]" in body
+
+    # 주선이 모의 멤버 한 개라는 사실을 반드시 함께 밝힌다
+    assert "굵은 선은 시나리오별 실제 모의 경로 한 개(medoid)입니다" in html
+    assert "중심 경향이 아니며" in html
+    assert "굵은 선=실제 모의 경로 한 개(medoid) · 점선=조건부 p50" in html
+    # 가짜 흔들림 금지는 그대로
+    assert "p50에 인위적인 흔들림을 넣지 않았고" in html
+
+
 def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
     """구조 경로 세 개는 같은 월별 굴곡 형태를 진폭만 바꿔 쓴다.
 

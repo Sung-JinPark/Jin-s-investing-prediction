@@ -4913,8 +4913,8 @@
     ],
     "scenarios": {
       "S1": {
-        "active_path_sha256": "28775e99a0917b0e95ad4d1613f290c68948fcaecf6b133c8a08736d8cd9a7ff",
-        "zero_event_path_sha256": "0dbf3972029d5652e5f43e1966b7af1dddfd3cd3ef0485f80ff99b48adce363c",
+        "active_path_sha256": "a10ebd8e938f870960e331f517f82aec92b4aeb41a7f22db3534478219f3c97a",
+        "zero_event_path_sha256": "ff558dcbf479a9c8ea44e616e690466c582d099efbbb66294a225d4c970a26e5",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": 0.0032264758364513035,
@@ -4940,8 +4940,8 @@
         }
       },
       "S2": {
-        "active_path_sha256": "39437b20d2f06a919cc169a75ce473464e9e2dcdc2145a20f5d6ff9b78b63f19",
-        "zero_event_path_sha256": "7a6d637a26ae43c08002a3f80cf7e52efd33e1c97238ee347152fe06af4ab9f7",
+        "active_path_sha256": "772b79bdb5027b1248cb88e87c250672062844fd4affd9548dbb6b7fb3d73f5c",
+        "zero_event_path_sha256": "54c1dfc0ee891e42382864bc6b8ea2af15b421ec0b606a63cd2e5f3688ab51cf",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": 0.0006576226441994404,
@@ -4965,8 +4965,8 @@
         }
       },
       "S3": {
-        "active_path_sha256": "75fa563f96c28950a7e0daf1dd03357dedd0ff1ed340e19b3dbf4453edccfc01",
-        "zero_event_path_sha256": "f155bbcfa5be54c3b8a62a3dd6c061ed112c19204676640cb54289369675dbcd",
+        "active_path_sha256": "13717b680ef821d38232aadac5c3c853077b3468e0e68bd47bec324fd61ee134",
+        "zero_event_path_sha256": "4300bb615fcc2acc0872484cdf880ca6161107738218a2b5d883e354b81ab5f9",
         "paths_differ": true,
         "p50_return_difference_active_minus_zero": {
           "21": -0.006169190232482413,
@@ -10822,7 +10822,7 @@
       ],
       "historical_conditional_bounds": {
         "annualized_volatility": {
-          "low": 0.13010170111704655,
+          "low": 0.13010170111704653,
           "high": 0.42104044132147783
         },
         "direction_changes": {
@@ -10953,7 +10953,7 @@
         }
       ],
       "no_piecewise_linear_endpoint_path": true,
-      "maximum_pair_return_correlation": 0.117574011234472,
+      "maximum_pair_return_correlation": 0.11757401123447205,
       "no_common_residual_gate": true,
       "realism_gate_pass": true
     }
@@ -16794,7 +16794,7 @@
             }
           ],
           "no_piecewise_linear_endpoint_path": true,
-          "maximum_pair_return_correlation": 0.10708354093338734,
+          "maximum_pair_return_correlation": 0.1070835409333874,
           "no_common_residual_gate": true,
           "realism_gate_pass": true
         }
@@ -27762,7 +27762,7 @@
             }
           ],
           "no_piecewise_linear_endpoint_path": true,
-          "maximum_pair_return_correlation": 0.14070048547282843,
+          "maximum_pair_return_correlation": 0.14070048547282832,
           "no_common_residual_gate": true,
           "realism_gate_pass": true
         }
@@ -28446,7 +28446,7 @@
         },
         "distinct_metric_count": 3,
         "distribution_diagnostics": {
-          "normalized_p50_level_correlation": -0.9396140675331921,
+          "normalized_p50_level_correlation": -0.9396140675331922,
           "weekly_return_correlation": -0.14429855112530263,
           "terminal_wasserstein": 0.9230342843959055,
           "terminal_energy": 1.057233024276506,
@@ -28481,7 +28481,7 @@
         },
         "distinct_metric_count": 3,
         "distribution_diagnostics": {
-          "normalized_p50_level_correlation": -0.9908636129534338,
+          "normalized_p50_level_correlation": -0.9908636129534335,
           "weekly_return_correlation": 0.25725809462440424,
           "terminal_wasserstein": 1.3884233323747508,
           "terminal_energy": 1.4177900522038662,
@@ -28556,9 +28556,9 @@
     "baseline_comparison": {
       "metric": "S1-S2_p50_log_level_correlation",
       "baseline": 0.963,
-      "redesigned_shadow": -0.9282827917598013,
+      "redesigned_shadow": -0.9282827917598014,
       "minimum_material_reduction": 0.02,
-      "observed_reduction": 1.8912827917598012,
+      "observed_reduction": 1.8912827917598014,
       "material_reduction_gate_pass": true,
       "fixed_absolute_target_used": false
     },
@@ -28907,8 +28907,8 @@
     "pairs": [
       {
         "pair": "S1-S2",
-        "p50_log_level_correlation": -0.9282827917598013,
-        "p50_first_difference_correlation": 0.040709930825330205,
+        "p50_log_level_correlation": -0.9282827917598014,
+        "p50_first_difference_correlation": 0.04070993082533023,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.208397094543769,
           "median": -0.002340675798657762,
@@ -28921,7 +28921,7 @@
       },
       {
         "pair": "S1-S3",
-        "p50_log_level_correlation": -0.9990642048975789,
+        "p50_log_level_correlation": -0.9990642048975792,
         "p50_first_difference_correlation": 0.19308698031933258,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.15713921719885432,
@@ -28929,14 +28929,14 @@
           "maximum": 0.2677907392199025
         },
         "standardized_log_path_dtw": 1.734140931504304,
-        "terminal_wasserstein_2026": 0.35367504208453726,
+        "terminal_wasserstein_2026": 0.3536750420845373,
         "terminal_wasserstein_2027": 1.3884233323747508,
         "first_touch_minus_10_ks": 0.6488670608
       },
       {
         "pair": "S2-S3",
         "p50_log_level_correlation": 0.9216057289497726,
-        "p50_first_difference_correlation": 0.026574149987444663,
+        "p50_first_difference_correlation": 0.026574149987444704,
         "rolling_63d_first_difference_correlation": {
           "minimum": -0.2645942506522753,
           "median": -0.028250159529830995,
@@ -28969,11 +28969,12 @@
     "asof_state_cluster_stability": "reported_in_external_shadow_diagnostic"
   },
   "display_contract": {
-    "main_chart": "shared_log_axis_three_conditional_p50_with_total_mixture_band",
+    "main_chart": "shared_log_axis_three_scenario_actual_medoids_with_total_mixture_band",
     "main_chart_scenario_lines": true,
-    "scenario_surface": "S1_S2_S3_conditional_p50_shared_scale",
-    "primary_line": "three_scenario_conditional_p50_lines",
-    "secondary_lines": "scenario_actual_medoids_plus_total_mixture_p25_p75_band",
+    "scenario_surface": "S1_S2_S3_actual_medoid_shared_scale",
+    "primary_line": "three_scenario_actual_medoid_lines",
+    "primary_line_disclosure": "each bold line is ONE actual simulated member (the medoid of its scenario bundle); exact dates are not forecast and the line is not a central tendency",
+    "secondary_lines": "scenario_conditional_p50_plus_total_mixture_p25_p75_band",
     "probability_space_separation": {
       "scenario_lines": "scenario_conditional",
       "gray_band": "total_path_mixture",
@@ -29013,13 +29014,13 @@
     "ledger": "not_opened_for_write",
     "archive": "not_opened_for_write"
   },
-  "model_content_sha256": "4017121fc2530e6d94fe7cd217ad524cd6e6bf063467826f1b7cfa466ff5960e",
-  "generated_at": "2026-08-29T09:08:52+00:00",
+  "model_content_sha256": "4244ccf94e1b90c6f985c7c0a5bf5e3f443682b8215165e8088853d140956230",
+  "generated_at": "2026-08-31T10:20:26+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
-    "model_content_sha256": "4017121fc2530e6d94fe7cd217ad524cd6e6bf063467826f1b7cfa466ff5960e",
-    "generated_at": "2026-08-29T09:08:52+00:00",
+    "model_content_sha256": "4244ccf94e1b90c6f985c7c0a5bf5e3f443682b8215165e8088853d140956230",
+    "generated_at": "2026-08-31T10:20:26+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -29099,8 +29100,8 @@
         "data/scenarios/archive/2026-08-25.json": "5917891f8e453db29466f4454d68c79b6d45d01c979def741beb1ecef56218e6",
         "data/scenarios/archive/2026-08-26.json": "2a24f0a45b95f327955b56f0d7006b2df4adaafc645ee25c7ed29b6cc6e22617",
         "data/scenarios/archive/2026-08-27.json": "fa80ff79342e3e5ca8d40019d13be17fd93102ed0a47d7f74f578056f6a7cf66",
-        "forecasts/.hashes": "713bdfe03fb393d444eadc5cd54860ac1387c4d514695db76305f21ff1e06506",
-        "forecasts/.hashes.ots": "c5533ae8e64b49ef87edbf5073354c036e9ffd4d6faf8d4a7ef40f7833c569d2",
+        "forecasts/.hashes": "7180bcac3493640b93391c7c84f2fb78f2c27cfcfc45ece6fcd5651611dd8da3",
+        "forecasts/.hashes.ots": "5ae6bace7ade069c7ab41ed0b8cfc1b0918345bd423f9d26be74c54422fe1b03",
         "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1.md": "779245a813c3bfd0f5f74436ee36ead16b431b6d42fc2103114d94ec5b827ad4",
         "forecasts/2026/2026-07-08_btc-alt-mania-90d_r1_evidence.md": "70f747ade4947c2471128413045522b2b90de021d730ba54ca971efd2b2c06d3",
         "forecasts/2026/2026-07-08_fomc-2026-10-28-hike_r1.md": "81dcd6a50564cec111f889f17c4d322a4ac3d9360b45095731a17ff60e9630c7",
@@ -29146,16 +29147,42 @@
         "forecasts/2026/2026-08-22_amzn-eps-beat-2026q3_r1_evidence.md": "f84c86a4ee9ed656c12cfcb6fc75e66829f9502875f3861153d0800f94ac8a98",
         "forecasts/2026/2026-08-29_asml-eps-beat-2026q3_r1.md": "89e231be7c3d03ea40945887f1e034edebca5f791d2aae355184d4530301769c",
         "forecasts/2026/2026-08-29_asml-eps-beat-2026q3_r1_evidence.md": "66ed5d245c85ad31189fc977dd059df6dbdc4b9b22bc42dc429e068541824dd5",
+        "forecasts/2026/2026-08-31_aapl-eps-beat-fq4-2026_r2.md": "af781ac19b2ae2cd0329866ecac5a9a5f08d04f60cd73ebe99d649367cd398a8",
+        "forecasts/2026/2026-08-31_adbe-eps-beat-fq3-2026_r2.md": "baa1c5682418b8f1f16352a5d5efc90c0b096873040647bea799cd3f5dd79c30",
+        "forecasts/2026/2026-08-31_avgo-eps-beat-fq3-2026_r1.md": "3d436701d42c3f4d9fb51fe548bde8a6436c755d375f3e61760a488045508328",
+        "forecasts/2026/2026-08-31_btc-alt-mania-90d_r2.md": "42eaa2c65041de6cc01a368c453ecb9f18fad37ad432216f1bc6d60e56baea83",
+        "forecasts/2026/2026-08-31_cpi-oct2026-reaccel_r1.md": "de80373a89786627ccf93840b271bc76110317e52f99febd54816b5fdc272853",
+        "forecasts/2026/2026-08-31_fomc-2026-10-28-hike_r2.md": "457a85a73a2089e15b4fb846f35c469896028cd9e6aad8ded1b5bb92c73f68dd",
+        "forecasts/2026/2026-08-31_fomc-2026-12-09-hike_r1.md": "7177a55710a4d3ddfdb9fe46b853aafd2e8f589df08346ad73fb7a6b69bdcbe3",
+        "forecasts/2026/2026-08-31_gdp-q3adv-2026-beat_r1.md": "e5ce34b0b700b55b1f84514ed473a9639cc43092ecd84573c8e560c74677f833",
+        "forecasts/2026/2026-08-31_googl-eps-beat-2026q3_r1.md": "38115bb823bff52d5f16f8b61bbfd745c78311ef6f99030f83ac8ea27f92ba20",
+        "forecasts/2026/2026-08-31_meta-eps-beat-2026q3_r1.md": "62955f650f6b325a4a24689bb673dc8ddb1c8a464c022f9b2425b28500e03891",
+        "forecasts/2026/2026-08-31_msft-eps-beat-fy27q1_r1.md": "7c4244e3cb14b18974cb70bf58c391e570a9a5e31dc1c053fef64eef3b574420",
+        "forecasts/2026/2026-08-31_mu-margin-qoq-next_r2.md": "c957f81740f8e248e0c615fc1a58403081a97e5f18ab24349979f648c3cec0de",
+        "forecasts/2026/2026-08-31_nasdaq-ath-eoy-2026_r2.md": "9ed8f96f583259c16f0a4399e4ebef9e38985101137873446e4aa75dec7d791e",
+        "forecasts/2026/2026-08-31_nasdaq-corr10-augoct-2026_r3.md": "b2578aad6b1c446f945378f7ee9f61ec0f2016a8ac9a6e0b96949ab37480565b",
+        "forecasts/2026/2026-08-31_nasdaq-eoy-above-jul9-2026_r2.md": "8db48d0a4a2e30ebe15ad748b9211769b0752268c12e0f0f8973c5021d4a2d69",
+        "forecasts/2026/2026-08-31_nfp-aug2026-below100k_r1.md": "deca98729207e3519187b085706631a3b0fb4e1d92cb91f9062ffadfeda62f60",
+        "forecasts/2026/2026-08-31_nfp-nov2026-below100k_r1.md": "8152e53b9315c2d22e2752a110b261982adb2b21ba21ec4beae2feeaad22b766",
+        "forecasts/2026/2026-08-31_nfp-oct2026-below100k_r1.md": "5854c02f439648e7458d69760d0899f057167b9d5809194ee020a5a7cb921c12",
+        "forecasts/2026/2026-08-31_nvda-dc-beat-2026nov_r1.md": "b77ef38eb2b30cd5c2d3cd2544fc917103932695cd35f404a4f20b4d899bd181",
+        "forecasts/2026/2026-08-31_openai-public-flip-2026_r1.md": "57a5fdd9f131d5e8b5ba0a5a7a8dcaf67c31cb71c114ba36b6f480a780ab0ddd",
+        "forecasts/2026/2026-08-31_openai-s1-2027h1_r2.md": "3497c837ab4ae39e8d91b9499c1177244593c3f3b9559baa81793846e53a31f0",
+        "forecasts/2026/2026-08-31_orcl-eps-beat-fq1-2027_r1.md": "1cb6f7b87771325014cf90200a79970914ff1a066c5888d6576f9a8f6769aaed",
+        "forecasts/2026/2026-08-31_santa-week-2026_r1.md": "c116376adb48f4a35e48a7ee1061998e98944f721b56384099df9e69e18ffca0",
+        "forecasts/2026/2026-08-31_soxx-eoy-down15_r3.md": "cd43775f28e8c3719e95ba63ff8d7f931a6dcfeae24fdb054641426abe731bab",
+        "forecasts/2026/2026-08-31_tsmc-eps-beat-2026q3_r1.md": "c034f9e3ee0c6bede3d5cc102cc30c3661967be9931774a066bcdc37a78220a5",
+        "forecasts/2026/2026-08-31_vix-25-90d_r3.md": "f0d1ff589dc7f00792c7cea97634149b8baf762d1ec488c406c5fc53e0568b27",
         "forecasts/2026/retro/TEMPLATE.md": "88986ced25755230ba0ff130d6399e585496b00a015919ca9741d0acb4d49166",
         "forecasts/TEMPLATE.md": "50e4dd86067f01d6303660cd4f4bcf5ddbb06bb12d7cea34726cca04362f1d18",
         "calibration/approvals.csv": "0d2aa93483c74cfbcb3308f8792528ab5573a8cd3c712fc78e78827674e817ec",
-        "calibration/benchmark_ledger.csv": "d0175707d623f0b7a0c1f4e4cdfd1732a57ecea418e9880e4b8fe6c4c79eb696",
+        "calibration/benchmark_ledger.csv": "18f4c3184f04681353e4249c32fef19ee6ba9fbd28d94f87ab40bd0726fed162",
         "calibration/corrections.csv": "86bf59cd344f9bef44f43649c0be9ad137c349d74a5663fe5534674cfd33f04a",
         "calibration/cost_log.csv": "75b23422808546381d21a542fb59371902bc7aaefecb32cd0f51d15f59f51b1c",
-        "calibration/ledger.csv": "aa180a76ca49ec59cc10a35d62c0ca3abafdb01f467a9111639e3259a5d7cd0e",
+        "calibration/ledger.csv": "78b83c33d0f70c53eaeccd97571bef35ddbf82612e2dd18edd08ff72afaee94c",
         "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
         "calibration/research_status_overrides.csv": "8bc6e87d8a062840758d7db554a56b4cf58fe083d386e05e57d76efc3aa5735e",
-        "questions/registry.yaml": "561e6b742aae4c72a3d96af9f984f6c376a061ea99b2ddd825fdf97ad088eeba",
+        "questions/registry.yaml": "74c9cfa5dd0c8c4743229e7857a37851628bdfc1fe4851306d696ec0a8240c06",
         "data/ml_history/2026.jsonl": "70d60c7a38e8b6d1e00c6829b94615d88af41e47ec18f0f27a3506d5a6ca41cc",
         "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
         "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
@@ -29238,15 +29265,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
       },
       "missing_roots": [],
-      "manifest_sha256": "c951ba51b5ec8217077ed750a33fc54edea5614ef0405f2714a1aa73a7ea1b12"
+      "manifest_sha256": "69383d41e8fdd9af5989ea07b90b08a371b72b914100f1b773d5921d532e3768"
     },
     "build_context": {
-      "head": "0458c11f56fccbb8f75e79c18f2d607bfc45c272",
-      "branch": "main",
+      "head": "9976d22ca49c3c4d7231db11ab172a0eab15b6a5",
+      "branch": "claude/v52-medoid-primary",
       "dirty": true,
-      "status_entry_count": 7,
-      "python": "3.12.14"
+      "status_entry_count": 21,
+      "python": "3.12.10"
     }
   },
-  "build_receipt_sha256": "ff02bd4acb41ef54fc88238c8d10b9a94cd82c814e1486651cb6151f4ed56952"
+  "build_receipt_sha256": "7a252c82d9060be72fe2255bec62611a3c51ca8f83d88234b8e5aa49db01d329"
 }

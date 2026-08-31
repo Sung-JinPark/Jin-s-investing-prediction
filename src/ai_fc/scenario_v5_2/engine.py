@@ -2077,11 +2077,16 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         "distinctness_2027": distinctness,
         "distinctness": research_distinctness,
         "display_contract": {
-            "main_chart": "shared_log_axis_three_conditional_p50_with_total_mixture_band",
+            "main_chart": "shared_log_axis_three_scenario_actual_medoids_with_total_mixture_band",
             "main_chart_scenario_lines": True,
-            "scenario_surface": "S1_S2_S3_conditional_p50_shared_scale",
-            "primary_line": "three_scenario_conditional_p50_lines",
-            "secondary_lines": "scenario_actual_medoids_plus_total_mixture_p25_p75_band",
+            "scenario_surface": "S1_S2_S3_actual_medoid_shared_scale",
+            "primary_line": "three_scenario_actual_medoid_lines",
+            "primary_line_disclosure": (
+                "each bold line is ONE actual simulated member (the medoid of its "
+                "scenario bundle); exact dates are not forecast and the line is not a "
+                "central tendency"
+            ),
+            "secondary_lines": "scenario_conditional_p50_plus_total_mixture_p25_p75_band",
             "probability_space_separation": {
                 "scenario_lines": "scenario_conditional",
                 "gray_band": "total_path_mixture",

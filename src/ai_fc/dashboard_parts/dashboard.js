@@ -1557,8 +1557,8 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
   const yTicks=Array.from({length:5},(_,index)=>Math.exp(logLo+(logHi-logLo)*index/4));
   const xTicks=[0,Math.floor(Math.max(0,histLength-1)/2),...(range.dates.length>4?[Math.max(0,histLength-1),histLength+Math.floor(range.dates.length/2)]:[]),n-1].filter((value,index,array)=>array.indexOf(value)===index&&value<n);
   const boundary=histLength?X(histLength):null;
-  const endpointLabel=key=>{const values=scenarioSeries[key],start=Number(values[histLength]),end=Number(values.at(-1)),change=(end/start-1)*100;return `${key} ${change>=0?'+':''}${change.toFixed(1)}%`;};
-  return `<svg viewBox="0 0 ${W} ${H}" role="img" data-scale="log" data-history-share="0.25" data-forecast-share="0.75" aria-label="${esc(range.label)} S1 S2 S3 통합 로그 스케일 전망">
+  const endpointLabel=key=>{const values=medoids[key],start=Number(values[histLength]),end=Number(values.at(-1)),change=(end/start-1)*100;return `${key} ${change>=0?'+':''}${change.toFixed(1)}%`;};
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" data-scale="log" data-history-share="0.25" data-forecast-share="0.75" aria-label="${esc(range.label)} S1 S2 S3 실제 모의 중심 경로 통합 로그 스케일 전망. 굵은 선은 시나리오별 실제 모의 경로 한 개이며 중심 경향이 아닙니다">
     <rect x="${ML}" y="${MT}" width="${(PW*historyShare).toFixed(1)}" height="${H-MT-MB}" fill="#f5f3ee" opacity=".58" data-time-zone="history"/>
     <rect x="${boundaryX.toFixed(1)}" y="${MT}" width="${(PW*forecastShare).toFixed(1)}" height="${H-MT-MB}" fill="#fff8ef" opacity=".52" data-time-zone="forecast"/>
     ${yTicks.map(value=>`<line x1="${ML}" x2="${W-MR}" y1="${Y(value).toFixed(1)}" y2="${Y(value).toFixed(1)}" stroke="#e5e1d8"/><text x="${ML-10}" y="${(Y(value)+4).toFixed(1)}" text-anchor="end">${num(Math.round(value))}</text>`).join('')}
@@ -1566,9 +1566,9 @@ function scenarioV52UnifiedChart(candidate,rangeKey='quarter'){
     <path d="${area(mixtureLower,mixtureUpper)}" fill="#8893a4" opacity=".10" data-path-role="mixture-p25-p75"/>
     ${boundary!=null?`<line x1="${boundary.toFixed(1)}" x2="${boundary.toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#82786a" stroke-dasharray="4 5" data-forecast-boundary="true"/><text x="${(boundary+8).toFixed(1)}" y="${MT+14}">전망 시작</text>`:''}
     ${histValues.length?`<path d="${line([...histValues,range.dates.length?[histValues.at(-1)]:[]].flat())}" fill="none" stroke="#34322e" stroke-width="2.2" data-path-role="historical-actual"/>`:''}
-    ${keys.map(key=>`<path d="${line(medoids[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="1.2" stroke-dasharray="4 6" opacity=".34" data-path-role="${key}-actual-medoid"/>`).join('')}
-    ${keys.map(key=>`<path d="${line(scenarioSeries[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="3.2" stroke-linejoin="round" data-scenario-p50="${key}"/>`).join('')}
-    ${keys.map(key=>`<circle cx="${X(n-1).toFixed(1)}" cy="${Y(scenarioSeries[key].at(-1)).toFixed(1)}" r="4.5" fill="${V52_SCENARIO_META[key].color}"/><text x="${(X(n-1)-10).toFixed(1)}" y="${(Y(scenarioSeries[key].at(-1))-9).toFixed(1)}" text-anchor="end" fill="${V52_SCENARIO_META[key].color}" font-weight="700" data-scenario-end-label="${key}">${endpointLabel(key)}</text>`).join('')}
+    ${keys.map(key=>`<path d="${line(scenarioSeries[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="1.4" stroke-dasharray="4 6" opacity=".42" data-scenario-p50="${key}"/>`).join('')}
+    ${keys.map(key=>`<path d="${line(medoids[key])}" fill="none" stroke="${V52_SCENARIO_META[key].color}" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" data-path-role="${key}-actual-medoid"/>`).join('')}
+    ${keys.map(key=>`<circle cx="${X(n-1).toFixed(1)}" cy="${Y(medoids[key].at(-1)).toFixed(1)}" r="4.5" fill="${V52_SCENARIO_META[key].color}"/><text x="${(X(n-1)-10).toFixed(1)}" y="${(Y(medoids[key].at(-1))-9).toFixed(1)}" text-anchor="end" fill="${V52_SCENARIO_META[key].color}" font-weight="700" data-scenario-end-label="${key}">${endpointLabel(key)}</text>`).join('')}
   </svg>`;
 }
 function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
@@ -1741,10 +1741,10 @@ function renderScenarioV52(candidate,initialState={}){
     <div data-future-graph-panel="unified">
     <section class="scenario-v52-main" data-chart-role="unified-scenarios"><div class="panel-head"><div><p class="eyebrow">SAME SCALE · LOG VIEW</p><h2 id="scenario-v52-chart-title">3개월 · 세 시나리오 한눈에</h2></div><span class="count-chip">로그 스케일</span></div>
       <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.entries(V52_RANGE_META).map(([key,row])=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${row[0]}</button>`).join('')}</div>
-      <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small><em>독립 원천 ${num(clusters[key]?.unique_sampled_source_origins||0)}개 · 모의 ${num(clusters[key]?.simulation_path_count||scenarios[key]?.path_count||0)}경로</em></span>`).join('')}<span class="is-path-key"><i></i><b>선 읽는 법</b><small>굵은 선=p50 · 점선=실제 중심 경로 · 회색 영역=전체 중심 구간</small><em>과거 1/4 · 전망 3/4 시간축</em></span></div>
+      <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small><em>독립 원천 ${num(clusters[key]?.unique_sampled_source_origins||0)}개 · 모의 ${num(clusters[key]?.simulation_path_count||scenarios[key]?.path_count||0)}경로</em></span>`).join('')}<span class="is-path-key"><i></i><b>선 읽는 법</b><small>굵은 선=실제 모의 경로 한 개(medoid) · 점선=조건부 p50 · 회색 영역=전체 중심 구간</small><em>과거 1/4 · 전망 3/4 시간축</em></span></div>
       <div class="scenario-v52-chart" id="scenario-v52-unified-chart">${scenarioV52UnifiedChart(candidate,'quarter')}</div>
       <div class="scenario-v52-readout" id="scenario-v52-readout">${scenarioV52RangeReadout(candidate,'quarter')}</div>
-      <p class="chart-note">세 선은 같은 축과 같은 시작점에서 비교합니다. p50에 인위적인 흔들림을 넣지 않았고, 점선은 실제 모의 경로의 중심 사례입니다. 특정 날짜의 가격을 약속하는 차트가 아닙니다.</p>
+      <p class="chart-note"><b>굵은 선은 시나리오별 실제 모의 경로 한 개(medoid)입니다 — 중심 경향이 아니며 특정 날짜의 가격을 약속하지 않습니다.</b> 매끄러운 중심 경향은 같은 색 점선(조건부 p50)으로 함께 표시합니다. p50에 인위적인 흔들림을 넣지 않았고, 굵은 선의 굴곡은 실제 모의 경로가 원래 가진 움직임입니다. 세 선은 같은 축과 같은 시작점에서 비교합니다.</p>
     </section>
     <section class="scenario-v52-insights scenario-v52-core-insights" aria-labelledby="scenario-v52-insights-title"><div class="scenario-v52-section-title"><p class="eyebrow">경로별 핵심</p><h2 id="scenario-v52-insights-title">어떤 데이터가 어떤 방향을 만드는가</h2></div><div>
       <article style="--scenario-accent:${V52_SCENARIO_META.S1.color}"><span>S1 · 확장</span><strong>닷컴 + 완화 + AI 성장</strong><p>닷컴 성장 국면과 금리 부담 완화, AI 확장 구간을 묶습니다. 닷컴 강도는 S1에만 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)}로 적용합니다.</p></article>
@@ -1773,7 +1773,7 @@ function renderScenarioV52(candidate,initialState={}){
     <article><strong>에피소드가 겹치지 않는가</strong><p>교차 시나리오 날짜 겹침 ${num(layerGate.episode_interval_overlap_count||0)}건 · 독립 잔차 풀 ${num(layerGate.unique_residual_pool_count||0)}개 · 특징 스키마 분리 ${String(layerGate.feature_schemas_distinct===true)}.</p></article>
     <article><strong>고정 꺾임을 썼는가</strong><p>fixed_phase_template_active=${String(layerGate.fixed_phase_template_active===true)}. 관측된 연속 국면의 길이 분포와 전환 빈도로 샘플링하며, 끝값이나 특정 날짜를 강제하지 않습니다.</p></article>
     <article><strong>승격을 막는 항목</strong><p>직접 사건 ${num(promotionGates.direct_event_observations?.observations||0)}/${num(promotionGates.direct_event_observations?.minimum||60)} · 원천 표본 ${String(promotionGates.scenario_native_origin_minimums?.pass===true)} · 커널 ${String(promotionGates.empirical_kernel_calibration?.pass===true)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)} · 승인 run_id ${esc(promotionGates.human_approval?.approval_run_id||'없음')}.</p></article>
-    <article><strong>p50이 매끄러운 이유</strong><p>수천 경로의 날짜별 중앙값이라 흔들림이 상쇄됩니다. 점선은 실제 모의 경로 중 중앙에 가까운 멤버이며, p50에 가짜 흔들림을 넣지 않습니다.</p></article>
+    <article><strong>왜 굵은 선을 실제 모의 경로로 바꿨나</strong><p>p50은 수천 경로의 날짜별 중앙값이라 흔들림이 상쇄돼 거의 직선으로 보입니다. 실제 시장이 그렇게 움직이지 않으므로 굵은 선은 각 시나리오 묶음의 중앙 멤버(medoid)로 그리고, p50은 같은 색 점선으로 남겨 중심 경향을 함께 봅니다. 어느 쪽에도 가짜 흔들림을 넣지 않았습니다.</p></article>
     <article><strong>재현 식별값</strong><p>${esc(candidate.model_content_sha256)}</p></article>
   </div>`;
   $('.scenario-v52-timing',outlook)?.remove();
