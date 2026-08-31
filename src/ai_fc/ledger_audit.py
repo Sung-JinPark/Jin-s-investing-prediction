@@ -270,6 +270,9 @@ def audit_ledgers(root: Path, *, write: bool = True, now: datetime | None = None
                 stale = latest < last_market
             elif row["cadence"] == "weekly":
                 stale = (today - latest).days > 10
+            elif row["cadence"] == "biweekly":
+                # 14일 주기 + 한 번 놓쳐도 되는 여유. weekly의 10일과 같은 비율.
+                stale = (today - latest).days > 17
             elif row["cadence"] == "monthly":
                 stale = (today - latest).days > 40
         elif (row["cadence"] not in {"event", "manual"}

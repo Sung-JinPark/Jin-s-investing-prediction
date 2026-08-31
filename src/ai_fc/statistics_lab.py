@@ -20,6 +20,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+from ai_fc import fred_api
 from ai_fc.quant import feed
 
 
@@ -43,7 +44,6 @@ IPO_REFERENCE_CHART_IDS = (
     "all_ipo_negative_earnings_share",
     "dotcom_internet_ipo_breadth",
 )
-FRED_ENDPOINT = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
 SEC_IPO_ENDPOINT = "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos"
 ICI_ETF_ENDPOINT = "https://www.ici.org/research/stats/etf_flows"
@@ -661,12 +661,13 @@ def _parse_fred_csv(raw: bytes, series_id: str) -> list[dict[str, Any]]:
 
 def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
     start = FRED_SERIES.get(series_id, {}).get("window_start", "1995-01-01")
-    url = f"{FRED_ENDPOINT}?id={series_id}&cosd={start}"
-    # GitHub-hosted runners intermittently leave Python's TLS read waiting on
-    # FRED.  Reuse the repository's audited same-URL curl/public-DNS transport
-    # fallback.  Decoding and re-encoding UTF-8 is byte-preserving for FRED CSV
-    # and the exact bytes are still hashed in the source receipt.
-    raw = feed.get_with_curl_fallback(url, timeout=45).encode("utf-8")
+    # FRED 약관은 fredgraph.csv 같은 스크랩을 금지하고 API 경로만 허용한다
+    # (DECISIONS 12-6).  observations_csv가 API JSON을 종전 CSV 모양으로
+    # 렌더하므로 _parse_fred_csv는 그대로 둔다.  전송은 종전과 같은 감사된
+    # curl 폴백을 재사용하며, 영수증에 남는 URL은 키가 없는 공개 URL이다.
+    raw = fred_api.observations_csv(
+        series_id, observation_start=start, timeout=45,
+    ).encode("utf-8")
     return _parse_fred_csv(raw, series_id), raw
 
 
@@ -2809,7 +2810,9 @@ def _build_statistics_lab_legacy(
             "series_id": series_id,
             **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={fred_start}",
+            "request_url": fred_api.observations_public_url(
+                series_id, observation_start=fred_start,
+            ),
             "available_at": generated_at,
             "latest_observation": rows[-1]["date"],
             "row_count": len(rows),
@@ -3447,7 +3450,9 @@ def build_statistics_lab(
         source_meta.append({
             "series_id": series_id, **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            "request_url": fred_api.observations_public_url(
+                series_id, observation_start=start,
+            ),
             "authority_class": "authoritative_public_distributor",
             "policy_source_id": "fred_market_signals",
             "usage_role": "numeric_input", "numeric_input_allowed": True,
@@ -3794,7 +3799,9 @@ def _persist_authoritative_inputs(
         start = spec.get("window_start", "1995-01-01")
         source_policy[series_id] = (
             "fred_market_signals",
-            f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            fred_api.observations_public_url(
+                series_id, observation_start=start,
+            ),
             "text/csv",
         )
     source_policy["SEC_IPO_QUARTERLY"] = (

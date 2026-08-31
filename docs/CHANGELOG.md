@@ -34,6 +34,12 @@
   주차 판정은 `10#` 진법 강제를 넣었다. `date +%V`가 "08"/"09"로 오면 bash 산술이
   8진수로 읽어 8·9주차에 워크플로가 죽는다(실측 확인).
 - 실측(2026-08-13~08-31): 424B4 중 AI 키워드 적중 11건 전부 검토 대기.
+- 원장 등록: `ledger_registry.yaml`에 `ipo_edgar_candidates`(mutable_snapshot,
+  cadence `biweekly`, timestamp_field `checked_at`) 추가. `ledger_audit`에 `biweekly`
+  신선도 분기(17일 = 14일 주기 + 한 번 놓칠 여유)를 넣었다. 분기가 없으면 어떤
+  조건에도 안 걸려 staleness가 영원히 False가 되고, 격주 작성기가 죽어도 stalled로
+  잡히지 않는다. `docs/generated/ledger_*`는 재생성하지 않았다 — 같은 파일을 병렬
+  세션이 함께 쓰고 있어 충돌을 피했고, 정기 갱신 워크플로가 다시 만든다.
 
 ## Claude → Codex 백엔드 청사진 정밀 대조·P0/P1 실행 — 2026-07-31
 

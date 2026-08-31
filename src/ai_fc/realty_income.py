@@ -16,6 +16,7 @@ from typing import Any, Callable
 import numpy as np
 import yaml
 
+from . import fred_api
 from .quant import feed
 
 MACRO_ASSUMPTIONS = Path("data/contracts/cross_asset_macro_assumptions.yaml")
@@ -56,12 +57,18 @@ class FredSeries:
 def fetch_fred_series(
     series_id: str, start: date, *, fetch_text: Callable[..., str] = feed.get_with_curl_fallback,
 ) -> FredSeries:
-    url = (
-        "https://fred.stlouisfed.org/graph/fredgraph.csv?"
-        f"id={series_id}&cosd={start.isoformat()}"
+    # FRED 약관은 API 경로만 자동 수집을 허용한다 (DECISIONS 12-6).
+    # 영수증에는 **키 없는** 공개 URL을 남긴다 — 요청 URL을 그대로
+    # 기록하면 API 키가 저장소에 커밋된다.
+    url = fred_api.observations_public_url(
+        series_id, observation_start=start.isoformat(),
     )
+    # 주입된 전송(fetch_text)은 그대로 쓰되 URL·파싱은 API 경로로 옮긴다.
     fetched_at = datetime.now(timezone.utc).isoformat(timespec="seconds")
-    raw = fetch_text(url, timeout=30)
+    raw = fred_api.observations_csv(
+        series_id, observation_start=start.isoformat(), timeout=30,
+        fetch_text=fetch_text,
+    )
     reader = csv.reader(io.StringIO(raw))
     header = next(reader, [])
     if len(header) < 2 or header[1] != series_id:

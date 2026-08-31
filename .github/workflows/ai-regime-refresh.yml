@@ -15,6 +15,8 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -29,6 +31,11 @@ jobs:
         env:
           AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
         run: cd src && python -m ai_fc ai-capital-cycle
+      - name: Reconstruct registered debt offerings from filing-fee exhibits
+        continue-on-error: true
+        env:
+          AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
+        run: cd src && python -m ai_fc registered-debt --start 2025-01-01
       - name: Refresh O rolling-entry cohort evidence
         continue-on-error: true
         run: cd src && python -m ai_fc o-entry-cohort

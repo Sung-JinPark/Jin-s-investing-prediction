@@ -19,8 +19,12 @@ from ai_fc.realty_income import (
 )
 
 
-def test_hy_event_history_merges_pinned_legacy_capture() -> None:
-    primary = "DATE,BAMLH0A0HYM2\n2026-08-01,3.0\n"
+def test_hy_event_history_merges_pinned_legacy_capture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # 현재분은 FRED 공식 API(JSON), 고정 레거시 캡처는 종전 CSV 그대로다.
+    monkeypatch.setenv("FRED_API_KEY", "test-key")
+    primary = '{"observations": [{"date": "2026-08-01", "value": "3.0"}]}'
     legacy = "date,BAMLH0A0HYM2\n2000-01-03,5.0\n2001-01-03,7.0\n"
     def fetch(url: str, **_kwargs) -> str:
         return legacy if "raw.githubusercontent.com" in url else primary

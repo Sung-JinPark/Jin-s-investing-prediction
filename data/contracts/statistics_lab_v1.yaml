@@ -20,7 +20,7 @@ cycle_alignment:
 
 sources:
   fred:
-    endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv
+    endpoint: https://api.stlouisfed.org/fred/series/observations
     provider: Federal Reserve Bank of St. Louis
     series:
       M2SL: {native_frequency: monthly, unit: billions_usd, aggregation: last}

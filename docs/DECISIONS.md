@@ -95,6 +95,164 @@ CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획�
 
 이 기록은 Q3의 조사 단계를 닫을 뿐이며, 다음은 결정되지 않았다: (a) 현행 사용을 유지할지, (b) CBOE에 사용 허가를 요청할지, (c) 공개 표시 범위를 줄일지(예: 원값 비표시·파생 통계만), (d) Google News RSS 수집을 중단하거나 대체 소스로 옮길지. 데이터 원천 변경은 `vix-25-90d`의 판정 출처와 base rate 산출에 직접 영향을 주므로 임의로 변경하지 않았다.
 
+### 2026-08-31 — Q3 후속 결정 (12-4)
+
+앞선 Q3 조사 기록(12-1~12-3)에 대한 사용자 결정.
+
+| # | 소스 | 결정 | 근거 |
+|---|---|---|---|
+| 12-4a | **Google News RSS** | **수집 중단** | 세 소스 중 문서가 가장 명확하다 — 라이선스가 피드 응답 본문에 내장돼 "personal feed reader" 용도로 한정하고 그 외 사용을 명시 금지하며, `robots.txt`가 `/rss/`를 전 UA에 disallow 한다. CBOE와 달리 fair use 같은 예외 단서도 없다. 반면 손실은 가장 작다 — 감성 지수는 base rate 문맥 신호일 뿐 어떤 질문의 판정 출처도 아니다 |
+| 12-4b | **CBOE** | **대체 경로 조사 후 판단 (보류)** | 데이터를 잃지 않고 문제를 닫을 수 있는 유일한 경로다. 다만 FRED 등 재배포처도 원출처 저작권 시리즈를 별도 표기하므로 실제로 더 나은지는 조사 전까지 불명이다. 조사 결과를 별도 기록한다 |
+| 12-4c | Nasdaq Data Link | 조치 없음 | 저장소가 사용하지 않음 (12-3) |
+
+**12-4a 구현 범위 — 수집만 끊고 기록은 보존한다.**
+
+- `ml/sentiment.py`에서 네트워크 수집 경로(`fetch_headlines`·`score_feed`·분류기 로더·Google News 검색 쿼리)를 제거했다. `run_all_feeds()`는 빈 목록을 반환한다.
+- **모듈을 지우지 않았다.** `data/ml_history/*.jsonl`은 append-only이고 이미 수집된 감성 행이 들어 있으며 `base_rates.py`·`db/queries.py`·리포트 렌더러가 이를 참조한다. `FeedSentiment`와 `FEED_KEYS`를 남겨 과거 기록을 계속 읽는다.
+- **빈 결과를 0.0으로 기록하지 않는다.** `sentiment_overall`은 관측이 없으면 `None`이다. 0.0을 적으면 "중립 감성을 관측했다"는 거짓이 원장에 남는다.
+- 리포트의 감성 섹션은 수집이 없을 때 지수 대신 중단 사실과 사유를 낸다. 과거 기록이 있는 실행을 다시 렌더하면 종전 표를 그대로 낸다.
+
+과거 수집분은 삭제하지 않는다 — 불변 기록이며, 소급 삭제는 이 프로젝트가 금지하는 사후 조작에 해당한다.
+
+### 2026-08-31 — 12-4b 후속: CBOE 대체 경로 조사 결과 (12-5)
+
+12-4b가 지시한 조사를 마쳤다. **결론: 이전은 위치를 개선하지 않으며 대부분 악화시킨다. 소스는 CBOE에 유지한다.**
+
+| 후보 | 판정 | 근거 (원문 취득 2026-08-31) |
+|---|---|---|
+| **FRED (VIXCLS)** | **더 나쁨** | ① 시리즈 노트가 "Copyright, 2016, Chicago Board Options Exchange, Inc. Reprinted with permission." — **CBOE 저작권이 그대로 따라오고 고지 유지 의무까지 생긴다**. ② FRED 스스로 "The Bank cannot give you such permission" 명시. ③ **AI/ML 사용 금지 조항이 같은 페이지에 3회** — "Use the FRED Services or FRED Content in connection with the development or training of any software program or system or machine learning, including … large language models". CBOE 약관에는 이런 조항이 **없다**. ④ store·cache·archive 및 DB 편입 금지 — 저장소 커밋과 충돌. ⑤ §III("인용하면 게시 가능")와 FAQ#3·Full ToU("소유자 허가 필수")가 서로 모순 |
+| **Yahoo Finance** | **더 나쁨** | 자동 수집을 명시적으로 금지("robots, spiders, scrapers, data mining tools … without our express, prior permission"). CBOE 약관에는 이 문언이 없다. `^VIX9D`가 존재하는 유일한 무료 경로이나 취득 근거가 없다 |
+| **Stooq** | 부적격 | 이용약관 문서 자체가 **NOT FOUND**(404) = 허가 근거 없음. 게다가 봇 검증으로 자동 취득이 현재 작동하지 않는다 |
+| **datasets/finance-vix (PDDL 선언)** | **명백히 더 나쁨** | 데이터를 **같은 `cdn.cboe.com` URL**에서 가져오면서, README가 근거를 자백한다 — "Given size and factual nature of the data … **would imagine this was public domain** and as such have licensed the Data Package under the PDDL". 소유하지 않은 데이터에 제3자가 추측으로 부여한 라이선스에 의존하는 기록이 남는다 |
+| **정부·거래소 중립 소스** | **존재하지 않음** | VIX는 사실 기록이 아니라 CBOE 소유 산출 지수다. Market Data Policies: "All proprietary rights … in the Data … shall remain the sole and exclusive property of Cboe". 모든 경로가 CBOE로 수렴한다 |
+
+**시리즈별 결론**
+
+| 필요 시리즈 | 결론 |
+|---|---|
+| VIX 일간 종가 | CBOE 유지. FRED로 옮기면 CBOE 저작권은 따라오면서 **AI/ML 금지·캐시 금지가 추가**되어 순손실 |
+| **VIX9D** | CBOE 유지 — **대안 자체가 없다**. FRED 검색 결과 0건, 가장 짧은 것이 30일물(VIXCLS)이고 나머지는 3개월물 |
+| 옵션 내재확률 | CBOE 유지. **무료로 공개 표시가 허용되는 미국 지수 옵션 소스는 존재하지 않는다** — 벤더 정책이 아니라 OPRA Vendor Agreement라는 시장 구조상 제약이라 호스트를 바꿔도 해소되지 않는다 |
+
+**대신 발견한 실질적 경로 — CBOE 자체 정책에 이 프로젝트 형태와 일치하는 라이선스 카테고리가 있다.**
+
+`Market_Data_Policies.pdf`(Effective 2026-07-01) §19(b) "Delayed Open Website" License:
+
+> "A Data Recipient may provide access to Delayed Data via an open website under the 'Delayed Open Website' License only if: (a) access is openly available to the public and there is no authentication system requiring login through a unique ID and password combination; (b) there is no trading functionality available; and (c) the Index Delayed Data is being provided for informational purposes only."
+
+이 프로젝트는 세 조건에 문언상 부합한다(공개·로그인 없음·거래 기능 없음·정보 제공 목적). 다만 이는 **Data Agreement 체결자에게 적용되는 규정**이므로 자동으로 주어지는 권리가 아니라 **따라갈 수 있는 경로**다.
+
+**따라서 위치를 실제로 개선하는 유일한 조치는 호스트 변경이 아니라 허가 취득이다.** `permissions@cboe.com`으로 Request to Use Cboe Content를 제출하는 절차가 문서에 명시돼 있고(5영업일 회신 통례, 의무 아님), 요청서 초안은 `docs/cboe_permission_request_draft.md`에 준비했다. **발송은 저장소 소유자가 직접 한다** — 대외 커뮤니케이션이며 회신 조건 수용 여부도 소유자 판단이다.
+
+**미해결로 남는 것 (문서로 해소 불가)**
+
+- CBOE 약관의 `"fair use" under the Copyright Act of 1976` 유보가 이 용도를 포섭하는지 — 법률 검토 영역
+- 허가의 유상/무상 여부 — **NOT FOUND**
+- 회신이 **명시적 거절**일 경우 fair use 모호성이 사라져 제거 외 선택지가 좁아진다는 점 — 신청 자체의 양면성
+
+### 2026-08-31 — 12-6: FRED 자동 수집을 공식 API 전용으로 전환
+
+블루프린트 Q3 조사에서 `fredgraph.csv` 스크랩이 약관 위반임을 확인해 전환했다.
+**결정: FRED 자동 수집은 API 키를 쓰는 공식 API로만 한다. 스크랩 폴백은 두지 않는다.**
+
+FRED 약관(취득 2026-08-31)은 자동 수집을 금지하면서 단서를 단다:
+
+> "data mining, mirroring, robots, scraping, or similar data-gathering or extraction
+> methods" … **"except as expressly allowed by the terms of use applicable to the FRED API"**
+
+`fredgraph.csv`는 그래프 페이지용 엔드포인트라 이 단서에 해당하지 않는다. 공식 API는 해당한다.
+
+**폴백을 두지 않은 이유**: 키가 없을 때 조용히 스크랩으로 되돌아가면 준수 경로가 사실상
+무력해진다. 키 부재는 `FredApiError`로 실패시킨다 — 실패는 눈에 보이지만 조용한 우회는 보이지 않는다.
+
+**구현에서 지킨 두 가지**
+
+1. **키는 영수증에 남기지 않는다.** 네트워크에 쓰는 URL에는 키가 들어가지만, 소스 영수증·해시에
+   기록하는 URL은 `fred_api.observations_public_url()`이 돌려주는 키 없는 형태다. 이 구분이 흐려지면
+   `security-check`가 잡아야 할 시크릿이 저장소에 커밋된다.
+2. **호출부 파서를 바꾸지 않는다.** API는 JSON을 주지만 기존 수집기는 `fredgraph.csv` 모양
+   (헤더 1줄 + `날짜,값`, 결측 `.`)을 파싱한다. `observations_to_csv()`가 그 모양으로 렌더한다.
+   결측을 0으로 바꾸지 않는다 — 관측되지 않은 구간이 관측된 0으로 둔갑한다.
+
+**전환한 곳 / 남긴 곳**
+
+| 대상 | 처리 | 사유 |
+|---|---|---|
+| `quant/feed.py`(M2SL) · `statistics_lab.py` · `market_extensions.py` · `realty_income.py` | **API 전환** | 현재분 수집 경로 |
+| `timeseries_v2/market_archive.py` · `v4/source_store.py` · `v5/sources.py` · `v6/public_archive.py` | **보류** | PIT 아카이브 수집기 — URL이 기록된 스펙에 들어 있고 provenance 해시에 포함된다. 바꾸면 과거 영수증과 대조가 끊긴다. 별도 처리 필요 |
+
+**운영 요건 (전환의 필연적 귀결)**: 폴백을 없앴으므로 FRED를 부르는 워크플로에 `FRED_API_KEY`가
+없으면 수집이 멈춘다. 전환 시점에 키가 배선된 워크플로는 timeseries 계열 3개뿐이었고, 실제로 API를
+부르게 된 `investing-refresh`·`scenario-refresh`·`statistics-refresh`·`ai-regime-refresh` 4개는
+누락 상태였다. 4개 모두 job-level `env`로 배선했다.
+
+**후속 수정 (같은 날, 배포 검증 중 발견)**: 전환 직후 `statistics_lab.py`는 전송만 API로 바뀌고
+**영수증의 `request_url`은 여전히 `fredgraph.csv`를 기록**하고 있었다(3곳). 영수증의 존재 이유가
+"이 바이트가 어디서 왔는가"인데, 이제 쓰지 않고 약관도 금지하는 경로를 가리키고 있었다 —
+감사자가 보면 아직 스크랩 중이라고 읽는다. 실제 취득 URL(키 없는 공개형)로 교체하고, 이를 강제하던
+소스 계약 2건(`fred_market_signals.yaml`·`statistics_lab_v1.yaml`)의 `endpoint`도 함께 맞췄다.
+정책의 `allowed_domains`에는 `api.stlouisfed.org`가 이미 있어 별도 확장은 필요 없었다.
+`market_extensions`·`realty_income`은 처음부터 올바르게 기록하고 있었고, `quant/feed`의 영수증은
+Yahoo용이라 무관하다. 미활성 사전 스펙(`fred_nfci_d0`·`fred_stlfsi4_d0`)은 대상이 아니다.
+
+**미해결 (문서로 해소 불가 — 소유자 판단 영역)**
+
+- 12-5는 FRED의 **AI/ML 사용 금지 조항**("in connection with the development or training of any
+  software program or system or machine learning, including … large language models")을 이유 중
+  하나로 CBOE→FRED 이전을 기각했다. 그런데 M2SL·BAMLH0A0HYM2 등 **FRED가 원 게시자인 시리즈**는
+  계속 쓴다. 두 판단이 모순은 아니다 — 12-5는 *이미 다른 곳에서 얻는 데이터를 FRED로 옮겨* 제약을
+  **추가**하는 문제였고, 여기는 대안 없는 시리즈다. 그러나 **이 조항이 본 시스템의 사용 형태를
+  포섭하는지는 미해결**이다. 이 저장소는 학습을 하지 않지만(CLAUDE.md 하드 게이트) 조항 문언은
+  "development … of any software program or system"까지 넓다. 법률 검토 영역이며 KNOWN_LIMITS 대상.
+- 약관의 store·cache 금지와 저장소 커밋(PIT 아카이브)의 충돌도 같은 층위에서 미해결로 남는다.
+
+### 2026-08-31 — 12-7: 뉴스 감성 수집을 GDELT로 재개
+
+12-4a로 Google News RSS 수집을 중단한 뒤, 약관이 이 용도를 허용하는 대체 소스를 조사해 재개했다.
+
+**조사 결론: 자동 수집·파생 집계 공개·제목 표시 셋을 모두 명시적으로 허용하는 소스는 GDELT 하나뿐이다.**
+
+GDELT 약관 전문 (gdeltproject.org/about.html#termsofuse, 취득 2026-08-31):
+
+> "all datasets released by the GDELT Project are available for unlimited and unrestricted use for any academic, commercial, or governmental use of any kind without fee."
+> "You may redistribute, rehost, republish, and mirror any of the GDELT datasets in any form. However, any use or redistribution of the data must include a citation to the GDELT Project and a link to this website."
+
+**AI/ML 사용 제한 조항이 없다** — FRED를 기각한 사유(12-5)와 정반대다. API 키 불필요, `api.gdeltproject.org`에 robots.txt 자체가 없다. 5개 토픽 전부 임의 키워드 질의로 커버된다.
+
+**기각한 후보와 사유**
+
+| 후보 | 사유 |
+|---|---|
+| CNBC · MarketWatch · Seeking Alpha | 피드는 200을 주지만 약관이 자동 수집·파생값 공개를 명시 금지. **비영리가 방어가 안 된다** — Seeking Alpha "public *or* commercial", CNBC/Versant "whether for profit or for no profit". MarketWatch는 robots.txt 논거까지 선제 차단하고 "headlines, article summaries"를 Content 정의에 포함 |
+| Reuters · AP | 피드 자체 소멸 + 명시 금지 |
+| Yahoo Finance | RSS 조항은 표시를 허용하나 일반 조항의 자동 수집 금지를 해제하지 않는다. 12-5의 기각과 일관 |
+| NewsAPI · Finnhub · Alpha Vantage · Currents | 파생값 공개를 명시 금지. Finnhub은 **"derived results"**를 명시. NewsAPI 무료 티어는 개발환경 전용 |
+| 정부 소스 (Fed·BLS·SEC·BEA) | 법적으로 가장 깨끗하나 **감성 지수라는 산출물이 성립하지 않는다** — Fed press_all 20건 중 매크로 관련 2건, 나머지는 은행 제재·합병 승인. 토픽이 좁은 수준이 아니라 신호가 원천적으로 없다 |
+| **Tiingo** | 무료 티어에 **뉴스가 아예 없다**(가격표·제품페이지·각주 3곳 교차확인). 게다가 ToS가 2026-08-05에 개정돼 무료 티어는 데이터의 **영속 저장 자체를 금지**한다(휘발성 메모리·임시 캐시만). 제목 표시는 "Display Redistribution"이라는 **별도 유료 상품**이다 |
+| **EODHD** | "prohibited from: … **displaying** … the Information or Services, **whether in its original or repackaged form**" — 표시 동사를 직접 금지하고 "repackaged"로 파생형까지 덮는다. 무료·유료 **전 플랜이 `Personal use`** 표기라 돈을 내도 상업 권리가 생기지 않는다. 무료는 뉴스 1건당 5콜이라 **하루 4요청** |
+| Marketaux | 금지 조항은 **없으나**(SILENT-GREY) 허가 자체가 "personal, non-commercial use"까지만 미치고 ToS에 API·데이터 조항이 없다. 침묵은 허가가 아니다 |
+| Common Crawl (CC-NEWS) | 재배포 금지 조항이 **없지만** 허가도 없다. CC가 명시적으로 책임을 원 게시자에게 넘긴다 — "may be subject to separate terms of use … from the owners of such Crawled Content" |
+
+**재사용할 교차 발견 — "무료 개인용 티어"는 이 프로젝트에 사실상 닫혀 있다.** 조사한 9곳 중
+Finnhub·Alpha Vantage·Tiingo·EODHD 네 곳이 개인용 자격을 **사업자 소속 여부**로 판정한다
+(Alpha Vantage "on behalf of a corporation, firm, partnership", Tiingo "representing an organization
+or business", Finnhub "deduct this expense as a business expense", EODHD의 Professional User 정의).
+저장소 소유자가 법인 대표이므로 이 테스트들은 **불리하게 걸린다**. 다음에 새 소스를 검토할 때
+"비영리라서 괜찮다"는 논거를 먼저 버리고 시작해야 한다 — 12-4a에서 CNBC·Seeking Alpha가
+"public *or* commercial"·"whether for profit or for no profit"로 같은 문을 닫은 것과 같은 층위다.
+
+**부수 확인**: 흔히 인용되는 "GDELT는 CC BY"는 **사이트 어디에도 없다**. 실제 근거는 위에 옮긴
+고유 문단이며, 인용 의무도 CC BY가 아니라 그 문단에서 나온다.
+
+**미해결로 남는 층**: GDELT가 색인하는 상위 기사의 저작권에 대해 GDELT 약관은 침묵한다. 다만 취득 근거의 질은 Google News보다 명백히 낫다 — 그쪽은 피드에 금지 문언이 있고 robots.txt가 막았는데, GDELT는 배포를 명시 허용하고 경로를 막지 않으며 AI/ML 제한도 없다.
+
+**운영 조건 (허가의 대가와 실측 제약)**
+
+- **인용 의무**: `sentiment.ATTRIBUTION`("출처: The GDELT Project — https://www.gdeltproject.org/")을 감성 지수가 표시되는 모든 산출물에 싣는다. 관측이 없는 경우의 리포트에도 싣는다. **선택이 아니라 허가의 조건이다.**
+- **API 불안정 (완화했으나 해소되지 않음)**: rate limit 수치가 비공개다. 피드 간 8초 간격 + 4회 재시도(5/10/15초 백오프)를 넣고 90초 냉각 후 재측정해도 **5개 중 3개 성공**이었다. 같은 질의가 잠시 뒤 성공하므로 질의 문법이 아니라 유량 문제다. 부분 성공은 성공한 피드만으로 가중평균하며, 이는 관측 표본이 줄었다는 뜻이지 값이 틀렸다는 뜻은 아니다. 연구가 제안한 `data.gdeltproject.org` 벌크 폴백(실측 전량 200)은 이번에 넣지 않았다 — 필요해지면 다음 단계.
+- **전량 실패 시 None**: 12-4a 규칙 그대로 `sentiment_overall`은 0.0이 아니라 None이다.
+- **영어 고정**: `sourcelang:english` — 필터 없이 돌리면 중국어 헤드라인이 섞이고 FinBERT는 영문 모델이다.
+- **제목 정규화**: GDELT는 제목을 토큰화해 보관해 구두점 앞에 공백이 들어간다("No . 1 Pick"). `normalize_title()`로 정리한다. 아포스트로피는 GDELT 단계에서 이미 소실돼 복원 불가.
 ---
 
 ## 2026-08-31 — BEA 투자 계열의 취득 경로를 fredgraph로 유예 (사용자 결정)
@@ -125,3 +283,9 @@ CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획�
 **주의.** FRED 경유라도 라이선스는 원천마다 다르다. 본 배치의 3계열은 BEA(미국 정부
 저작물)이라 안전하나, 기존에 발행 중인 `SP500`(S&P DJI)·`NASDAQCOM`(Nasdaq OMX)은
 별개의 기존 노출이며 이 결정과 무관한 별도 감사 안건이다.
+
+**후속 (같은 날, 12-6에 의해 대체)**: 병렬 트랙의 12-6이 fredgraph 스크랩 자체를 약관
+위반으로 확인하고 FRED 자동 수집을 공식 API 전용으로 전환했다. 이 항목의 "fredgraph로
+유예" 결정은 그에 따라 소멸하며, BEA 3계열(`GDP`·`Y034RC1Q027SBEA`·`Y001RC1Q027SBEA`)은
+다른 FRED 계열과 함께 API 경로(`fred_api.observations_csv`, 영수증에는 무키 공개 URL)로
+취득된다. 원생산자 직접 취득 대비 트레이드오프 논거는 여전히 유효하다.

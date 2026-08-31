@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-08-31T11:26:23+00:00`
+- Generated: `2026-08-31T13:25:00+00:00`
 - Latest completed NYSE day: `2026-08-28`
-- Result: accumulating 27 · frozen 1 · stalled 8 · inactive 4 · violation 2 · planned 3
+- Result: accumulating 32 · frozen 1 · stalled 5 · inactive 5 · violation 0 · planned 3
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -15,26 +15,27 @@
 | `benchmark_ledger` | event | 1 / 9 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 17 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 26 | 2026-08-27 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
-| `scenario_latest` | trading_daily | 1 | 2026-08-27 | **stalled** | — |
-| `cross_asset_archive` | trading_daily | 24 | 2026-08-27 | **violation** | missing trading days: 2026-08-04, 2026-08-25; immutable file changed |
-| `cross_asset_latest` | trading_daily | 1 | 2026-08-27 | **stalled** | — |
+| `scenario_archive` | trading_daily | 27 | 2026-08-28 | **stalled** | missing trading days: 2026-08-04, 2026-08-05 |
+| `scenario_latest` | trading_daily | 1 | 2026-08-28 | **accumulating** | — |
+| `cross_asset_archive` | trading_daily | 25 | 2026-08-28 | **stalled** | missing trading days: 2026-08-04, 2026-08-25 |
+| `cross_asset_latest` | trading_daily | 1 | 2026-08-28 | **accumulating** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 51 | 2026-08-27 | **stalled** | — |
-| `scenario_band_calibration` | trading_daily | 1 / 136 | 2026-08-27 | **stalled** | — |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 54 | 2026-08-28 | **accumulating** | — |
+| `scenario_band_calibration` | trading_daily | 1 / 153 | 2026-08-28 | **accumulating** | — |
 | `market_event_calendar` | event | 1 / 53 | 2026-08-04 | **accumulating** | — |
 | `signal_archive` | weekly | 7 | 2026-08-28 | **accumulating** | — |
 | `liquidity_archive` | weekly | 5 | 2026-08-28 | **accumulating** | — |
-| `rate_event_archive` | monthly | 19 | 2026-08-27 | **accumulating** | — |
-| `realty_rate_sensitivity_archive` | monthly | 19 | 2026-08-27 | **accumulating** | — |
+| `rate_event_archive` | monthly | 20 | 2026-08-28 | **accumulating** | — |
+| `realty_rate_sensitivity_archive` | monthly | 20 | 2026-08-28 | **accumulating** | — |
 | `realty_dividends` | monthly | 1 / 343 | 2026-08-03 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 1 | 2026-07-30 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **accumulating** | — |
-| `dualdb_model_runs` | weekly | 1 | 2026-07-20 | **stalled** | — |
+| `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
 | `source_monitoring` | trading_daily | 24 | 2026-08-31 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28 |
 | `source_monitoring_status` | trading_daily | 1 | 2026-08-31 | **accumulating** | — |
-| `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **violation** | immutable file changed |
+| `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-08-19 | **stalled** | — |
+| `ipo_edgar_candidates` | biweekly | 1 | 2026-08-31 | **accumulating** | — |
 | `timeseries_raw_receipts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |

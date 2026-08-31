@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-08-31",
-  "generated_at": "2026-08-31T11:59:37+00:00",
+  "asof": "2026-08-04",
+  "generated_at": "2026-08-04T08:06:04+00:00",
   "probability_space": "reference_only",
   "model_version": "2026-08-03.v1",
   "gate": "D2",
@@ -26,11 +26,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -47,11 +47,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -75,11 +75,11 @@
               "priority": 2,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -136,11 +136,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -157,11 +157,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -180,11 +180,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -202,11 +202,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -237,11 +237,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -258,11 +258,11 @@
               "priority": 1,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -286,11 +286,11 @@
               "priority": 2,
               "status": "collected",
               "max_period": "2026-06-30",
-              "age_days": 62
+              "age_days": 35
             }
           ],
           "max_period": "2026-06-30",
-          "recency_days": 62,
+          "recency_days": 35,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -345,12 +345,12 @@
               "tag": "PaymentsToAcquirePropertyPlantAndEquipment",
               "priority": 1,
               "status": "collected",
-              "max_period": "2026-06-30",
-              "age_days": 62
+              "max_period": "2026-03-31",
+              "age_days": 126
             }
           ],
-          "max_period": "2026-06-30",
-          "recency_days": 62,
+          "max_period": "2026-03-31",
+          "recency_days": 126,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -366,12 +366,12 @@
               "tag": "NetCashProvidedByUsedInOperatingActivities",
               "priority": 1,
               "status": "collected",
-              "max_period": "2026-06-30",
-              "age_days": 62
+              "max_period": "2026-03-31",
+              "age_days": 126
             }
           ],
-          "max_period": "2026-06-30",
-          "recency_days": 62,
+          "max_period": "2026-03-31",
+          "recency_days": 126,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -389,12 +389,12 @@
               "tag": "DepreciationDepletionAndAmortization",
               "priority": 1,
               "status": "collected",
-              "max_period": "2026-06-30",
-              "age_days": 62
+              "max_period": "2026-03-31",
+              "age_days": 126
             }
           ],
-          "max_period": "2026-06-30",
-          "recency_days": 62,
+          "max_period": "2026-03-31",
+          "recency_days": 126,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true
@@ -411,12 +411,12 @@
               "tag": "ProceedsFromIssuanceOfLongTermDebt",
               "priority": 1,
               "status": "collected",
-              "max_period": "2026-06-30",
-              "age_days": 62
+              "max_period": "2025-12-31",
+              "age_days": 216
             }
           ],
-          "max_period": "2026-06-30",
-          "recency_days": 62,
+          "max_period": "2025-12-31",
+          "recency_days": 216,
           "recency_guard_days": 400,
           "unit": "USD",
           "coverage_eligible": true

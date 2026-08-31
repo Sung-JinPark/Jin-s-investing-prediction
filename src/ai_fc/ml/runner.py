@@ -22,6 +22,8 @@ from . import chronos_fc, sentiment
 from .history import append_run
 from .mapping import QUESTION_MAPS, QuestionMap
 
+NL = chr(10)
+
 T5_NUM_SAMPLES = 256  # CPU 실측 후 하향(128) 가능
 
 
@@ -193,9 +195,13 @@ def run_all() -> tuple[dict, str]:
                 pass
         paths_by_series[k] = p
 
+    # 감성 수집은 2026-08-31 중단됐다 (DECISIONS 12-4).  run_all_feeds()는 빈
+    # 목록을 돌려주며, 그때 overall은 반드시 None이어야 한다 — 0.0으로 적으면
+    # "중립 감성을 관측했다"는 거짓 기록이 원장에 남는다.
     feeds = sentiment.run_all_feeds()
-    overall = (sum(f.score * f.n_headlines for f in feeds)
-               / max(sum(f.n_headlines for f in feeds), 1))
+    total_headlines = sum(f.n_headlines for f in feeds)
+    overall = (sum(f.score * f.n_headlines for f in feeds) / total_headlines
+               if total_headlines else None)
 
     # 시리즈 밴드 요약 — base_rates 다이제스트(프롬프트 주입)의 원재료.
     # 질문별 매핑 확률은 넣지 않는다 (앵커링 방지 — base_rates.py 참조)
@@ -245,7 +251,8 @@ def run_and_record(root: Path, conn: sqlite3.Connection) -> tuple[dict, str]:
         "sentiment": [{"feed": f.feed, "n_headlines": f.n_headlines,
                        "score": round(f.score, 4)} for f in results["feeds"]],
         "series_bands": results["series_bands"],
-        "sentiment_overall": round(results["sentiment_overall"], 4),
+        "sentiment_overall": (round(results["sentiment_overall"], 4)
+                              if results["sentiment_overall"] is not None else None),
     })
     ingest.sync(conn, root)
 
@@ -283,6 +290,33 @@ def _c2_line(x: dict) -> str:
     covs = "^IXIC·SOXX에 past-only 공변량(VIX·TNX) 적용"
     return f"- Chronos-2(120M) 공변량 조건부 + Bolt 결합 — {covs}, 미래 공변량 미사용"
 
+
+def _sentiment_section(x: dict, feed_rows: str, neg_block: str) -> str:
+    """감성 섹션 — 수집 중단 후에는 지수 대신 중단 사실을 적는다.
+
+    수집이 없으면 sentiment_overall이 None이다.  이때 0.000을 찍으면 '중립을
+    관측했다'는 거짓이 되므로, 섹션 자체를 중단 고지로 대체한다.  과거 기록이
+    있는 실행을 다시 렌더할 때는 종전 표를 그대로 낸다.
+    """
+    overall = x.get("sentiment_overall")
+    if overall is None:
+        return NL.join([
+            "## FinBERT 헤드라인 감성 — **이번 실행에서 관측 없음**",
+            "- 전 피드 수집이 실패했다. 0.000을 적으면 중립을 관측한 것이 되므로",
+            "  지수를 비운다 (DECISIONS 12-4a).",
+            f"- {sentiment.ATTRIBUTION}",
+        ])
+    return NL.join([
+        "## FinBERT 헤드라인 감성 (GDELT)",
+        "| 피드 | 헤드라인 수 | 감성 지수 [-1,+1] | Δ7d |",
+        "|---|---|---|---|",
+        feed_rows,
+        f"- **종합**: {overall:+.3f} (0 = 중립)",
+        "- 최근 부정 헤드라인 샘플:",
+        neg_block,
+        # 인용은 선택이 아니라 GDELT 허가의 조건이다 (DECISIONS 12-7).
+        f"- {sentiment.ATTRIBUTION}",
+    ])
 
 def render_md(x: dict) -> str:
     qi: chronos_fc.QuantileForecast = x["series"]["q_ixic"]
@@ -328,13 +362,7 @@ def render_md(x: dict) -> str:
 - 사용법: 앙상블 참조 확률과 시스템 rN 확률의 괴리 {config.ML_DIVERGENCE_PP}%p+ 는
   `due`에 divergence로 표시된다 (재예측 후보 — 자동 실행 없음, 판단은 사람).
 
-## FinBERT 헤드라인 감성 (Google News RSS, 무료)
-| 피드 | 헤드라인 수 | 감성 지수 [-1,+1] | Δ7d |
-|---|---|---|---|
-{feed_rows}
-- **종합**: {x["sentiment_overall"]:+.3f} (0 = 중립)
-- 최근 부정 헤드라인 샘플:
-{neg_block}
+{_sentiment_section(x, feed_rows, neg_block)}
 
 ## 한계 (정직 고지)
 - Chronos는 계절성·자기상관만 학습한 무조건부 모델 — FOMC·미드텀 같은 이벤트 구조를 모름.
