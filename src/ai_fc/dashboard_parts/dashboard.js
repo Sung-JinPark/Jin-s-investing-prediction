@@ -70,20 +70,6 @@ function mount(root){
 function bindDynamicMotion(root){
   const fine=window.matchMedia('(pointer: fine)').matches;
   if(!motionAllowed()||!fine)return;
-  const stage=root.querySelector('.overview-stage'),mosaic=root.querySelector('.signal-mosaic');
-  if(stage&&mosaic){
-    const cells=[...mosaic.querySelectorAll('i')];let frame=0,lastEvent=null;
-    const paint=()=>{
-      frame=0;if(!lastEvent)return;const r=stage.getBoundingClientRect();
-      const nx=Math.max(-1,Math.min(1,((lastEvent.clientX-r.left)/r.width-.5)*2));
-      const ny=Math.max(-1,Math.min(1,((lastEvent.clientY-r.top)/r.height-.5)*2));
-      stage.style.setProperty('--pointer-x',((nx+1)*50)+'%');stage.style.setProperty('--pointer-y',((ny+1)*50)+'%');
-      cells.forEach((cell,i)=>{const depth=Number(cell.dataset.depth)||5;
-        cell.style.transform=`translate3d(${(nx*depth).toFixed(2)}px,${(ny*depth).toFixed(2)}px,0) rotate(${((i%2?1:-1)*nx*depth*.5).toFixed(2)}deg)`;});
-    };
-    stage.addEventListener('pointermove',e=>{lastEvent=e;if(!frame)frame=requestAnimationFrame(paint);});
-    stage.addEventListener('pointerleave',()=>{lastEvent=null;if(frame)cancelAnimationFrame(frame);frame=0;cells.forEach(c=>c.style.transform='');});
-  }
   root.querySelectorAll('.forecast-card').forEach(card=>{
     let frame=0,lastEvent=null;
     const paint=()=>{

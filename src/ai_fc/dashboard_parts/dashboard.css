@@ -143,9 +143,6 @@ kbd{padding:4px 6px;color:rgba(255,255,255,.48);background:rgba(255,255,255,.055
 .probability-row{margin:19px 0 10px;display:flex;align-items:flex-start}
 .probability-row strong{font-family:var(--mono);font-size:clamp(72px,5.6vw,88px);font-weight:530;line-height:.83;letter-spacing:-.09em}
 .probability-row span{margin:5px 0 0 12px;color:rgba(255,255,255,.44);font-family:var(--mono);font-size:17px}
-.card-spark{height:34px;margin:0 0 13px;position:relative}
-.card-spark svg{width:100%;height:34px;display:block;overflow:visible}
-.card-spark>span{position:absolute;right:0;bottom:-2px;color:rgba(255,255,255,.25);font-family:var(--mono);font-size:7px;letter-spacing:.09em}
 .probability-track{height:3px;margin-bottom:15px;overflow:hidden;background:rgba(255,255,255,.1);border-radius:999px}
 .probability-track span{height:100%;display:block;background:linear-gradient(90deg,var(--lime),var(--teal));border-radius:999px}
 .forecast-card>p{min-height:40px;margin-bottom:12px;color:rgba(255,255,255,.84);font-size:14px;line-height:1.43;letter-spacing:-.025em}
@@ -517,12 +514,6 @@ kbd{color:#55534d;background:var(--paper-2);border:1px solid var(--line);border-
 .stance-main>.stance-orbit{width:116px;border-radius:0;color:#11110f;background:conic-gradient(var(--orange) calc(var(--signal)*1%),var(--paper-2) 0);box-shadow:none;transform:rotate(45deg)}
 .stance-orbit::before{border-radius:0;background:#fff;box-shadow:none}.stance-orbit b,.stance-orbit small{transform:rotate(-45deg)}.stance-main>.stance-orbit small{color:#77746d}
 .stance-card p{color:#77746d}
-.signal-mosaic{width:116px;aspect-ratio:1;position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;align-self:center;background:var(--line);border:1px solid var(--line);overflow:hidden}
-.signal-mosaic i{display:block;background:var(--paper-2);transform:translate3d(0,0,0);transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .3s ease,filter .3s ease}
-.signal-mosaic i.is-on:nth-child(4n+1){background:var(--orange)}.signal-mosaic i.is-on:nth-child(4n+2){background:var(--amber)}.signal-mosaic i.is-on:nth-child(4n+3){background:var(--red)}.signal-mosaic i.is-on:nth-child(4n){background:var(--crimson)}
-.signal-mosaic:hover i.is-on{filter:saturate(1.18)}
-.signal-mosaic>b{min-width:54px;min-height:42px;padding:5px;position:absolute;inset:50% auto auto 50%;z-index:2;display:grid;place-content:center;color:#fff;background:#11110f;font-family:var(--mono);font-size:22px;font-weight:540;line-height:1;transform:translate(-50%,-50%)}
-.signal-mosaic>b small{margin-left:2px;color:var(--amber);font-size:9px}
 
 .forecast-grid{gap:1px;color:#11110f;background:var(--line);border:1px solid var(--line)}
 .forecast-card{--tilt-x:0deg;--tilt-y:0deg;min-height:240px;padding:clamp(22px,2vw,30px);color:#11110f;background:radial-gradient(circle at var(--spot-x,80%) var(--spot-y,10%),rgba(255,157,25,.13),transparent 29%),#fff;border:0;border-radius:0;box-shadow:none;backdrop-filter:none;transform-style:preserve-3d;transition:transform .34s cubic-bezier(.2,.8,.2,1),background .3s ease,box-shadow .3s ease}
@@ -533,8 +524,7 @@ kbd{color:#55534d;background:var(--paper-2);border:1px solid var(--line);border-
 .forecast-card:hover,.forecast-card.is-pointer{z-index:2;background-color:#fff;border-color:transparent;box-shadow:0 24px 46px rgba(17,17,15,.12);transform:perspective(900px) rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-6px)}
 .forecast-card:hover::after,.forecast-card.is-pointer::after{opacity:1;transform:none}.forecast-card:hover>p,.forecast-card.is-pointer>p{transform:translateX(8px)}
 .card-kicker{color:#77746d}.probability-row strong{font-size:clamp(78px,6.2vw,102px);font-weight:520}.probability-row span{color:#77746d}
-.probability-row.is-pending{min-height:88px;align-items:center}.probability-row.is-pending strong{font-family:var(--display);font-size:clamp(28px,3vw,42px);font-weight:620;letter-spacing:-.045em}
-.card-spark>span{color:#918f87}.probability-track{height:4px;background:var(--paper-2);border-radius:0}.probability-track span{background:var(--card-accent);border-radius:0}
+.probability-row.is-pending{min-height:88px;align-items:center}.probability-row.is-pending strong{font-family:var(--display);font-size:clamp(28px,3vw,42px);font-weight:620;letter-spacing:-.045em}.probability-track{height:4px;background:var(--paper-2);border-radius:0}.probability-track span{background:var(--card-accent);border-radius:0}
 .forecast-card>p{padding-right:24px;color:#2d2c28;transition:transform .3s ease}.card-foot{padding-right:20px;color:#77746d}.card-foot .up{color:var(--positive)}.card-foot .down{color:var(--crimson)}.card-foot a{color:var(--card-accent);font-size:15px;text-decoration:none}
 .overview-lower-inner{background:var(--paper-2)}
 
@@ -721,11 +711,8 @@ body.focus-mode .route-progress{left:0}
 .briefing-visual b{position:relative;z-index:1;color:#fff;font-family:var(--mono);font-size:clamp(52px,6vw,84px);font-weight:520;letter-spacing:-.09em}.briefing-visual b small{color:var(--orange);font-size:15px;letter-spacing:0}
 .briefing-visual.is-pending b{max-width:130px;font-family:var(--display);font-size:clamp(26px,3.4vw,42px);font-weight:620;letter-spacing:-.045em;line-height:1.05;text-align:center}
 .briefing-foot{min-height:76px;padding:14px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:rgba(255,255,255,.9);border-top:1px solid var(--line)}
-.briefing-foot small{color:#77746d;font-family:var(--mono);font-size:8px}.briefing-controls{display:flex;gap:8px}.briefing-controls button{min-width:112px;min-height:44px;padding:0 14px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font-size:10px}.briefing-controls button:last-child{color:#fff;background:#11110f;border-color:#11110f}.briefing-controls button:disabled{opacity:.35;cursor:default}
-
-/* legibility layer v3: keep dense information readable without changing hierarchy */
-.rail-brand-copy small,.rail-num,kbd,.rail-live b,.rail-asof,.market-strip span,.market-strip small,
-.micro,.stance-chip,.stance-main>.stance-orbit small,.signal-mosaic>b small,.card-spark>span,.vintage-note,.count-chip,.scenario-row span,.scenario-row small,
+.briefing-foot small{color:#77746d;font-family:var(--mono);font-size:8px}.briefing-controls{display:flex;gap:8px}.briefing-controls button{min-width:112px;min-height:44px;padding:0 14px;color:#11110f;background:#fff;border:1px solid var(--line-strong);cursor:pointer;font-size:10px}.briefing-controls button:last-child{color:#fff;background:#11110f;border-color:#11110f}.briefing-controls button:disabled{opacity:.35;cursor:default}/* legibility layer v3: keep dense information readable without changing hierarchy */.rail-brand-copy small,.rail-num,kbd,.rail-live b,.rail-asof,.market-strip span,.market-strip small,
+.micro,.stance-chip,.stance-main>.stance-orbit small,.vintage-note,.count-chip,.scenario-row span,.scenario-row small,
 .band-grid span,.metric-ribbon span,.band-inline span,.risk-legend,.context-grid span,
 .range-returns span,.range-returns small,.round-sidebar span,.round-sidebar small,.reasoning-top span,
 .model-line,.resolution-card span,.track-kpis span,.track-kpis small,.prob-orb small{
@@ -854,7 +841,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,tr
 .reasoning-compare pre{max-height:560px;margin:0;padding:22px;overflow:auto;white-space:pre-wrap;color:#504e49;background:#fff;font-family:var(--sans);font-size:13px;line-height:1.75}
 
 body.motion-reduced .section-reveal{opacity:1;transform:none;transition:none}
-body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.motion-reduced .page-heading::after,body.motion-reduced .signal-mosaic i,body.motion-reduced .utility-panel,body.motion-reduced .quick-peek,body.motion-reduced .briefing-sheet,body.motion-reduced .briefing-scene,body.motion-reduced .new-round-badge{animation:none!important;transform:none!important;transition-duration:.01ms!important}
+body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.motion-reduced .page-heading::after,body.motion-reduced .utility-panel,body.motion-reduced .quick-peek,body.motion-reduced .briefing-sheet,body.motion-reduced .briefing-scene,body.motion-reduced .new-round-badge{animation:none!important;transform:none!important;transition-duration:.01ms!important}
 
 @media(max-width:1279px){
   :root{--rail:76px}.product-rail{padding-inline:0}.rail-brand{padding-inline:0}.view-nav a{padding:0;grid-template-columns:1fr}.view-nav a::before{display:none}.view-nav a::after{right:auto}.rail-command{margin-inline:12px}.rail-status{margin-inline:12px;padding-inline:8px}.rail-utilities{display:none}
@@ -869,7 +856,7 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
   .mobile-command,.menu-button,.drawer-close{color:#11110f;background:#fff;border-color:var(--line);border-radius:0}
   .drawer-backdrop{background:rgba(17,17,15,.38)}.mobile-drawer{color:#11110f;background:var(--paper);border-color:var(--line);border-radius:0;box-shadow:18px 0 0 rgba(17,17,15,.12);backdrop-filter:none}
   .drawer-head,.drawer-meta{color:#706f68;border-color:var(--line)}.market-strip{height:46px}.overview-stage{min-height:calc(100dvh - 110px);padding-top:22px}
-  .overview-copy h1{font-size:clamp(29px,7.6vw,36px);font-weight:650;letter-spacing:-.05em;line-height:.98}.page-heading h1{font-size:clamp(27px,6.9vw,32px);letter-spacing:-.045em;line-height:1}.stance-main{grid-template-columns:1fr 106px}.signal-mosaic{width:106px}
+  .overview-copy h1{font-size:clamp(29px,7.6vw,36px);font-weight:650;letter-spacing:-.05em;line-height:.98}.page-heading h1{font-size:clamp(27px,6.9vw,32px);letter-spacing:-.045em;line-height:1}.stance-main{grid-template-columns:1fr 106px}
   .forecast-card{min-height:244px}.page-heading{border-radius:0}.panel{border-radius:0}.command-palette{border-radius:2px}
   .utility-panel{width:100%;height:min(78dvh,680px);inset:auto 0 0;border:1px solid #11110f;border-bottom:0;box-shadow:0 -14px 0 rgba(17,17,15,.1);animation:utility-up .24s cubic-bezier(.2,.8,.2,1)}@keyframes utility-up{from{opacity:.7;transform:translateY(18px)}to{opacity:1;transform:none}}
   .shortcut-grid{grid-template-columns:1fr}.toast-region{right:12px;bottom:calc(76px + env(safe-area-inset-bottom))}.toast{max-width:calc(100vw - 24px)}
@@ -892,8 +879,7 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
   .round-delta{grid-template-columns:1fr}.round-delta-grid{grid-template-columns:1fr}.reasoning-compare{grid-template-columns:1fr}.reasoning-compare-tools{justify-content:stretch}.reasoning-compare-toggle{width:100%}
   .statistics-notice{grid-template-columns:1fr;gap:9px}.statistics-filters{display:grid;grid-template-columns:repeat(3,1fr)}.statistics-filters button{min-width:0;padding-inline:8px}.statistics-card-head{padding:20px;display:grid}.statistics-legend{grid-template-columns:repeat(2,1fr)}.statistics-legend>div:nth-child(2n){border-right:0}.statistics-chart{padding-inline:8px}.statistics-insight{grid-template-columns:1fr}.statistics-insight div{justify-content:flex-start}.statistics-sources>div{grid-template-columns:1fr}.statistics-sources article{border-right:0}
 }
-@media(prefers-reduced-motion:reduce){
-  .signal-mosaic i,.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after,.utility-panel,.toast,.quick-peek,.briefing-sheet,.briefing-scene,.section-reveal{transform:none!important;animation:none!important;transition-duration:.01ms!important}
+@media(prefers-reduced-motion:reduce){.forecast-card,.forecast-card>p,.deadline-list button span,.page-heading::after,.utility-panel,.toast,.quick-peek,.briefing-sheet,.briefing-scene,.section-reveal{transform:none!important;animation:none!important;transition-duration:.01ms!important}
   .section-reveal{opacity:1}
 }
 @media print{
