@@ -206,6 +206,52 @@ Yahoo용이라 무관하다. 미활성 사전 스펙(`fred_nfci_d0`·`fred_stlfs
   "development … of any software program or system"까지 넓다. 법률 검토 영역이며 KNOWN_LIMITS 대상.
 - 약관의 store·cache 금지와 저장소 커밋(PIT 아카이브)의 충돌도 같은 층위에서 미해결로 남는다.
 
+### 2026-09-01 — 12-8: 제약 소스의 무료·공개 대체 전수 조사
+
+사용자 지시("무료 opensource로 가져올 수 있는거 전부 다 대체제 찾아와서 db가져와")로
+저장소가 실제로 부르는 외부 호스트를 전수 조사했다. **모든 판정은 엔드포인트 실호출 +
+약관 원문 확인 기준이며, 추정은 판정으로 쓰지 않았다.**
+
+**먼저 정정할 사실 하나** — 조사 중 발견: `statistics_lab`의 Yahoo 수집(6종 일별 시리즈)은
+**이미 죽어 있었다**. `73d0e804`(authoritative 통계 원장·소스 게이트 도입)가 새 빌더
+`build_statistics_lab`으로 갈아타면서 `_build_statistics_lab_legacy`를 호출에서 뺐고, 그
+안에 있던 `DAILY_MARKET_SERIES` 루프도 함께 도달 불가가 됐다. 산출물로 확인된다 —
+2026-08-18 07:44 아카이브는 소스 60건에 `KOSPI_DAILY` 포함, 08:26 아카이브부터 30건에
+미포함, 현재 35건 중 **Yahoo 유래 0건**. 즉 통계 파이프라인은 게이트 도입의 부수효과로
+**이미 Yahoo를 떠난 상태**였다. 다만 코드는 남아 있어 읽는 사람에게는 살아 있는 의존으로
+보인다 — KNOWN_LIMITS 36.
+
+**살아 있는 Yahoo 의존은 `cross_asset` 하나뿐이다**: `^IXIC`, `O`(리얼티인컴), `BTC-USD`, `DHI`.
+
+**대체 후보 판정 (실호출 + 약관 원문)**
+
+| 대상 | 후보 | 실호출 | 판정 |
+|---|---|---|---|
+| TAIEX | **TWSE 공식 OpenAPI** | 200, 일별 OHLC(ROC 역법) | ✅ **채택 가능**. 대만 정부자료개방수권조관 제1판 = CC BY 4.0 호환 — 재배포·파생·상업 허용, **AI/ML 제한 없음**, 키 불필요. 조건은 출처 표시 |
+| 금 | LBMA 공식 가격 | 200, 913KB 전이력 | ❌ **기각**. "A licence from IBA is required in order to obtain, use or redistribute real-time or historical benchmark data" — 받아지는 것과 써도 되는 것은 다르다 |
+| BTC | Coinbase Exchange | 200, 일별 캔들 | ❌ **기각**. "cannot redistribute, display, or disseminate the Market Data—or any … works based on, referring to, or derived from the Market Data" — 파생물 명시 금지 |
+| KOSPI | 공공데이터포털 KRX | 401 (키 필요) | ⚠️ **보류**. 무료지만 소유자 명의 서비스키 등록이 선행돼야 한다 |
+| KOSPI | KRX data.krx.co.kr | 403 | ❌ 직접 접근 차단 |
+| (전체) | Stooq | 200이나 **JS 증명 게이트** 본문 | ❌ **우회하지 않는다** — 저장소 원칙(9-5과 동일 판단) |
+| SOX · S&P500 | — | — | ❌ **독립 대체 없음**. 각각 Nasdaq·S&P 소유 지수로, 무료 재배포 허용 경로가 존재하지 않는다 (12-5에서 VIX가 CBOE로 수렴한 것과 같은 구조) |
+| `O`·`DHI` 개별주 | — | — | ❌ **대체 불가**. `cross_asset`은 **배당조정 종가**(`adjusted`)로 총수익률을 계산하는데, 정부·중앙은행 소스는 개별 종목의 조정 종가를 제공하지 않는다 |
+
+**이미 깨끗한 소스 (조치 불필요)**: sec.gov·data.sec.gov, federalreserve.gov,
+home.treasury.gov·api.fiscaldata.treasury.gov, philadelphiafed·clevelandfed·newyorkfed,
+bls.gov, cftc.gov, fec.gov, financialresearch.gov — 전부 미국 정부 저작물.
+
+**결론**: 실제로 교체 가능한 것은 TAIEX(TWSE) 하나이고, 그 경로는 현재 죽어 있어 되살릴 때
+쓰면 된다. 나머지는 ① 이미 대체됨(통계 파이프라인), ② 약관이 금지(금·BTC), ③ 원 소유자로
+수렴해 대안 부재(SOX·S&P500·개별주), ④ 키 등록 대기(KOSPI)로 갈린다. **"무료로 받아진다"와
+"무료로 써도 된다"가 갈라지는 지점이 이번 조사의 핵심이며, LBMA·Coinbase가 그 사례다.**
+
+**남는 결정 (소유자)**
+
+- KOSPI 일별이 필요하면 공공데이터포털 서비스키 등록.
+- `cross_asset`의 `^IXIC`·`BTC-USD`를 FRED(`NASDAQCOM`·`CBBTCUSD`)로 옮길지 — 약관상
+  개선이지만 **살아 있는 분석 산출물의 수치가 바뀐다**(아카이브 비교 불연속). 9-5에서
+  ^IXIC 정본을 FRED로 승격한 전례가 있어 방향은 일관되나, 실행은 별도 판단이다.
+
 ### 2026-08-31 — 12-7: 뉴스 감성 수집을 GDELT로 재개
 
 12-4a로 Google News RSS 수집을 중단한 뒤, 약관이 이 용도를 허용하는 대체 소스를 조사해 재개했다.
