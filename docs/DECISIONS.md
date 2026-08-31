@@ -60,3 +60,37 @@
 
 - Pages 경로(`data.json`·`/api/data`)는 종전대로 **전 컬럼·전 본문**을 유지한다. 본 결정은 자기완결 임베드에만 적용된다.
 - 성장 벡터는 이번 라운드에서 이미 축소됐다: append-only 거버넌스 섹션의 렌더 필드 투영(`EMBED_RENDERED_FIELDS`), band-calibration 원시 행 아카이빙, 해소·상위 회차 본문 제외.
+
+## 2026-08-31 — 블루프린트 Q3 조사 결과 (데이터 재배포·표시 권리)
+
+블루프린트 미결정 Q3 "CBOE·Nasdaq Data Link·Google News 재배포/표시 권리 | 약관 원문 확인 | Codex 조사→사용자"의 **조사 기록**이다. 결정이 아니라 결정을 위한 자료이며, 승인 주체는 사용자로 남는다. 아래는 문서에 적힌 내용의 보고이며 법률 의견이 아니다.
+
+**저장소 실제 사용 현황 (2026-08-31 코드 대조)**
+
+| 소스 | 사용 모듈 | 용도 |
+|---|---|---|
+| CBOE | `market/options_bl.py` · `market/runner.py` · `timeseries_v2/market_archive.py` · `timeseries_v4/source_store.py` · `timeseries_v5/features.py` | `VIX_History.csv`·`VIX9D_History.csv` 다운로드, delayed options quotes, 파생 통계·base rate 산출 후 공개 페이지 표시 |
+| Google News RSS | `ml/sentiment.py` · `ml/runner.py` · `inventory.py` | 헤드라인 수집 → FinBERT 감성 → 집계 지수(−1~+1)와 샘플 헤드라인 제목을 공개 표시 |
+| **Nasdaq Data Link** | **없음** | **미사용 — Q3 범위에서 제외 가능** |
+
+**조사 판정 (원문 취득 2026-08-31)**
+
+| # | 소스 | 판정 | 근거 |
+|---|---|---|---|
+| 12-1 | CBOE | **명시적 금지** | Terms of Use §2(Last Updated 2022-11-16)가 허용하는 것은 "view, print and download **one copy** … for your **personal non-commercial use**"뿐이고, `display`·`publish`·`distribute`·`create a derivative work`·`store … in an electronic retrieval system`·`use to verify or correct other data`를 사전 서면 동의 없이 금지 목록에 열거한다. "Materials" 정의에 `databases`·`text` 포함. 비상업 면제 없음 |
+| 12-2 | Google News RSS | **명시적 금지** | 피드 응답 본문의 `<copyright>` 엘리먼트가 "solely for the purpose of rendering Google News results within a **personal feed reader** for personal, non-commercial use. **Any other use of the feed is expressly prohibited.**" 별도 약관 페이지는 404(NOT FOUND) — 라이선스가 피드에 내장돼 있다. 추가로 `news.google.com/robots.txt`가 `/rss/`를 모든 UA에 disallow하고 `anthropic-ai`·`ClaudeBot` 등에 `Disallow: /` |
+| 12-3 | Nasdaq Data Link | **해당 없음** | 저장소가 사용하지 않음. (참고: 게시 약관은 Order Form 체결을 전제해 무료·익명 티어를 규율하는 문서가 NOT FOUND인 회색지대) |
+
+**문서가 답하지 않는 지점 (사람 판단 영역)**
+
+- CBOE 조항이 스스로 열어둔 유일한 통로는 `"except to the extent that such use constitutes 'fair use'"`다. 비상업·개인용·파생 통계 중심이라는 이 프로젝트의 성격이 여기 해당하는지 문서는 답하지 않는다.
+- 사실 데이터(숫자 자체)의 저작물성은 ToS 계약 위반과 별개 층위이나 문서가 다루지 않는다.
+- Google 피드는 제목/본문을 구분하는 문구가 없다. 실측상 본문은 애초에 제공되지 않으나(`<description>`이 링크 마크업뿐), 이는 제목 표시가 허용된다는 뜻이 아니라 본문 복제 경로가 없다는 사실일 뿐이다.
+
+**문서에 명시된 정식 경로**
+
+CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획·기간을 보내면 5영업일 내 회신을 목표로 하며, 승인 시 라이선스 계약 체결을 조건으로 한다(Use of Cboe Content). 세 소스 중 문서가 절차를 명시한 유일한 곳이다.
+
+**미결 — 사용자 결정 사항**
+
+이 기록은 Q3의 조사 단계를 닫을 뿐이며, 다음은 결정되지 않았다: (a) 현행 사용을 유지할지, (b) CBOE에 사용 허가를 요청할지, (c) 공개 표시 범위를 줄일지(예: 원값 비표시·파생 통계만), (d) Google News RSS 수집을 중단하거나 대체 소스로 옮길지. 데이터 원천 변경은 `vix-25-90d`의 판정 출처와 base rate 산출에 직접 영향을 주므로 임의로 변경하지 않았다.
