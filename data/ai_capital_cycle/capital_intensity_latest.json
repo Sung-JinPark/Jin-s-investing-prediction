@@ -1,0 +1,601 @@
+{
+  "schema_version": 1,
+  "dataset_id": "ai_capital_intensity_v1",
+  "asof": "2026-08-31",
+  "generated_at": "2026-08-31T11:59:37+00:00",
+  "gate": "D2",
+  "probability_space": "reference_only",
+  "model_use": false,
+  "official_forecast_input": false,
+  "companies": [
+    {
+      "company": "MSFT",
+      "cik": "0000789019",
+      "tags": {
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "operating_cashflow": "NetCashProvidedByUsedInOperatingActivities",
+        "depreciation_amortization": "Depreciation"
+      },
+      "annual": [
+        {
+          "fiscal_year": 2021,
+          "period_end": "2021-06-30",
+          "available_at": "2023-07-27",
+          "capex": 20622000000.0,
+          "operating_cashflow": 76740000000.0,
+          "depreciation_amortization": 9300000000.0,
+          "free_cash_flow": 56118000000.0,
+          "capex_to_operating_cashflow": 0.26872556684910087,
+          "capex_to_depreciation": 2.2174193548387096,
+          "accessions": {
+            "capex": "0000950170-23-035122",
+            "operating_cashflow": "0000950170-23-035122",
+            "depreciation_amortization": "0000950170-23-035122"
+          }
+        },
+        {
+          "fiscal_year": 2022,
+          "period_end": "2022-06-30",
+          "available_at": "2024-07-30",
+          "capex": 23886000000.0,
+          "operating_cashflow": 89035000000.0,
+          "depreciation_amortization": 12600000000.0,
+          "free_cash_flow": 65149000000.0,
+          "capex_to_operating_cashflow": 0.2682765204694783,
+          "capex_to_depreciation": 1.8957142857142857,
+          "accessions": {
+            "capex": "0000950170-24-087843",
+            "operating_cashflow": "0000950170-24-087843",
+            "depreciation_amortization": "0000950170-24-087843"
+          }
+        },
+        {
+          "fiscal_year": 2023,
+          "period_end": "2023-06-30",
+          "available_at": "2025-07-30",
+          "capex": 28107000000.0,
+          "operating_cashflow": 87582000000.0,
+          "depreciation_amortization": 11000000000.0,
+          "free_cash_flow": 59475000000.0,
+          "capex_to_operating_cashflow": 0.3209221072823183,
+          "capex_to_depreciation": 2.555181818181818,
+          "accessions": {
+            "capex": "0000950170-25-100235",
+            "operating_cashflow": "0000950170-25-100235",
+            "depreciation_amortization": "0000950170-25-100235"
+          }
+        },
+        {
+          "fiscal_year": 2024,
+          "period_end": "2024-06-30",
+          "available_at": "2026-07-29",
+          "capex": 44477000000.0,
+          "operating_cashflow": 118548000000.0,
+          "depreciation_amortization": 15200000000.0,
+          "free_cash_flow": 74071000000.0,
+          "capex_to_operating_cashflow": 0.3751813611364173,
+          "capex_to_depreciation": 2.9261184210526316,
+          "accessions": {
+            "capex": "0001193125-26-323660",
+            "operating_cashflow": "0001193125-26-323660",
+            "depreciation_amortization": "0001193125-26-323660"
+          }
+        },
+        {
+          "fiscal_year": 2025,
+          "period_end": "2025-06-30",
+          "available_at": "2026-07-29",
+          "capex": 64551000000.0,
+          "operating_cashflow": 136162000000.0,
+          "depreciation_amortization": 22000000000.0,
+          "free_cash_flow": 71611000000.0,
+          "capex_to_operating_cashflow": 0.47407499889837107,
+          "capex_to_depreciation": 2.9341363636363638,
+          "accessions": {
+            "capex": "0001193125-26-323660",
+            "operating_cashflow": "0001193125-26-323660",
+            "depreciation_amortization": "0001193125-26-323660"
+          }
+        },
+        {
+          "fiscal_year": 2026,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-29",
+          "capex": 115948000000.0,
+          "operating_cashflow": 182935000000.0,
+          "depreciation_amortization": 34300000000.0,
+          "free_cash_flow": 66987000000.0,
+          "capex_to_operating_cashflow": 0.6338207560062317,
+          "capex_to_depreciation": 3.3804081632653062,
+          "accessions": {
+            "capex": "0001193125-26-323660",
+            "operating_cashflow": "0001193125-26-323660",
+            "depreciation_amortization": "0001193125-26-323660"
+          }
+        }
+      ],
+      "lease_obligations": {
+        "finance_lease_payments_due": {
+          "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
+          "value": 89686000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-29",
+          "accession": "0001193125-26-323660"
+        },
+        "operating_lease_payments_due": {
+          "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
+          "value": 24706000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-29",
+          "accession": "0001193125-26-323660"
+        },
+        "finance_lease_liability": {
+          "taxonomy_tag": "FinanceLeaseLiability",
+          "value": 66594000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-29",
+          "accession": "0001193125-26-323660"
+        },
+        "operating_lease_liability": {
+          "taxonomy_tag": "OperatingLeaseLiability",
+          "value": 21925000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-29",
+          "accession": "0001193125-26-323660"
+        }
+      },
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+      "source_fingerprint": "f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f"
+    },
+    {
+      "company": "AMZN",
+      "cik": "0001018724",
+      "tags": {
+        "capex": "PaymentsToAcquireProductiveAssets",
+        "operating_cashflow": "NetCashProvidedByUsedInOperatingActivities",
+        "depreciation_amortization": "DepreciationDepletionAndAmortization"
+      },
+      "annual": [
+        {
+          "fiscal_year": 2020,
+          "period_end": "2020-12-31",
+          "available_at": "2023-02-03",
+          "capex": 40140000000.0,
+          "operating_cashflow": 66064000000.0,
+          "depreciation_amortization": 25180000000.0,
+          "free_cash_flow": 25924000000.0,
+          "capex_to_operating_cashflow": 0.60759263744248,
+          "capex_to_depreciation": 1.5941223193010325,
+          "accessions": {
+            "capex": "0001018724-23-000004",
+            "operating_cashflow": "0001018724-23-000004",
+            "depreciation_amortization": "0001018724-23-000004"
+          }
+        },
+        {
+          "fiscal_year": 2021,
+          "period_end": "2021-12-31",
+          "available_at": "2024-02-02",
+          "capex": 61053000000.0,
+          "operating_cashflow": 46327000000.0,
+          "depreciation_amortization": 34433000000.0,
+          "free_cash_flow": -14726000000.0,
+          "capex_to_operating_cashflow": 1.3178707880933365,
+          "capex_to_depreciation": 1.7730955769174919,
+          "accessions": {
+            "capex": "0001018724-24-000008",
+            "operating_cashflow": "0001018724-24-000008",
+            "depreciation_amortization": "0001018724-24-000008"
+          }
+        },
+        {
+          "fiscal_year": 2022,
+          "period_end": "2022-12-31",
+          "available_at": "2025-02-07",
+          "capex": 63645000000.0,
+          "operating_cashflow": 46752000000.0,
+          "depreciation_amortization": 41921000000.0,
+          "free_cash_flow": -16893000000.0,
+          "capex_to_operating_cashflow": 1.3613321355236139,
+          "capex_to_depreciation": 1.5182128288924406,
+          "accessions": {
+            "capex": "0001018724-25-000004",
+            "operating_cashflow": "0001018724-25-000004",
+            "depreciation_amortization": "0001018724-25-000004"
+          }
+        },
+        {
+          "fiscal_year": 2023,
+          "period_end": "2023-12-31",
+          "available_at": "2026-02-06",
+          "capex": 52729000000.0,
+          "operating_cashflow": 84946000000.0,
+          "depreciation_amortization": 48663000000.0,
+          "free_cash_flow": 32217000000.0,
+          "capex_to_operating_cashflow": 0.6207355260989335,
+          "capex_to_depreciation": 1.0835542403879745,
+          "accessions": {
+            "capex": "0001018724-26-000004",
+            "operating_cashflow": "0001018724-26-000004",
+            "depreciation_amortization": "0001018724-26-000004"
+          }
+        },
+        {
+          "fiscal_year": 2024,
+          "period_end": "2024-12-31",
+          "available_at": "2026-02-06",
+          "capex": 82999000000.0,
+          "operating_cashflow": 115877000000.0,
+          "depreciation_amortization": 52795000000.0,
+          "free_cash_flow": 32878000000.0,
+          "capex_to_operating_cashflow": 0.7162681118772491,
+          "capex_to_depreciation": 1.5720996306468416,
+          "accessions": {
+            "capex": "0001018724-26-000004",
+            "operating_cashflow": "0001018724-26-000004",
+            "depreciation_amortization": "0001018724-26-000004"
+          }
+        },
+        {
+          "fiscal_year": 2025,
+          "period_end": "2025-12-31",
+          "available_at": "2026-02-06",
+          "capex": 131819000000.0,
+          "operating_cashflow": 139514000000.0,
+          "depreciation_amortization": 65756000000.0,
+          "free_cash_flow": 7695000000.0,
+          "capex_to_operating_cashflow": 0.9448442450220049,
+          "capex_to_depreciation": 2.0046687754729606,
+          "accessions": {
+            "capex": "0001018724-26-000004",
+            "operating_cashflow": "0001018724-26-000004",
+            "depreciation_amortization": "0001018724-26-000004"
+          }
+        }
+      ],
+      "lease_obligations": {
+        "finance_lease_payments_due": {
+          "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
+          "value": 16660000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-31",
+          "accession": "0001018724-26-000026"
+        },
+        "operating_lease_payments_due": {
+          "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
+          "value": 116350000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-31",
+          "accession": "0001018724-26-000026"
+        },
+        "finance_lease_liability": {
+          "taxonomy_tag": "FinanceLeaseLiability",
+          "value": 13451000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-31",
+          "accession": "0001018724-26-000026"
+        },
+        "operating_lease_liability": {
+          "taxonomy_tag": "OperatingLeaseLiability",
+          "value": 96320000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-31",
+          "accession": "0001018724-26-000026"
+        }
+      },
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
+      "source_fingerprint": "e6aadb0da7384597dbd78f74d1379ffb7fd0829a4d2e797b6d7e442b5e1da0d7"
+    },
+    {
+      "company": "GOOGL",
+      "cik": "0001652044",
+      "tags": {
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "operating_cashflow": "NetCashProvidedByUsedInOperatingActivities",
+        "depreciation_amortization": "Depreciation"
+      },
+      "annual": [
+        {
+          "fiscal_year": 2020,
+          "period_end": "2020-12-31",
+          "available_at": "2023-02-03",
+          "capex": 22281000000.0,
+          "operating_cashflow": 65124000000.0,
+          "depreciation_amortization": null,
+          "free_cash_flow": 42843000000.0,
+          "capex_to_operating_cashflow": 0.34213193292795285,
+          "capex_to_depreciation": null,
+          "accessions": {
+            "capex": "0001652044-23-000016",
+            "operating_cashflow": "0001652044-23-000016",
+            "depreciation_amortization": null
+          }
+        },
+        {
+          "fiscal_year": 2021,
+          "period_end": "2021-12-31",
+          "available_at": "2024-01-31",
+          "capex": 24640000000.0,
+          "operating_cashflow": 91652000000.0,
+          "depreciation_amortization": 10273000000.0,
+          "free_cash_flow": 67012000000.0,
+          "capex_to_operating_cashflow": 0.26884301488238116,
+          "capex_to_depreciation": 2.3985203932638957,
+          "accessions": {
+            "capex": "0001652044-24-000022",
+            "operating_cashflow": "0001652044-24-000022",
+            "depreciation_amortization": "0001652044-24-000022"
+          }
+        },
+        {
+          "fiscal_year": 2022,
+          "period_end": "2022-12-31",
+          "available_at": "2025-02-05",
+          "capex": 31485000000.0,
+          "operating_cashflow": 91495000000.0,
+          "depreciation_amortization": 13475000000.0,
+          "free_cash_flow": 60010000000.0,
+          "capex_to_operating_cashflow": 0.3441171648723974,
+          "capex_to_depreciation": 2.336549165120594,
+          "accessions": {
+            "capex": "0001652044-25-000014",
+            "operating_cashflow": "0001652044-25-000014",
+            "depreciation_amortization": "0001652044-25-000014"
+          }
+        },
+        {
+          "fiscal_year": 2023,
+          "period_end": "2023-12-31",
+          "available_at": "2026-02-05",
+          "capex": 32251000000.0,
+          "operating_cashflow": 101746000000.0,
+          "depreciation_amortization": 11946000000.0,
+          "free_cash_flow": 69495000000.0,
+          "capex_to_operating_cashflow": 0.31697560592062585,
+          "capex_to_depreciation": 2.6997321279089235,
+          "accessions": {
+            "capex": "0001652044-26-000018",
+            "operating_cashflow": "0001652044-26-000018",
+            "depreciation_amortization": "0001652044-26-000018"
+          }
+        },
+        {
+          "fiscal_year": 2024,
+          "period_end": "2024-12-31",
+          "available_at": "2026-02-05",
+          "capex": 52535000000.0,
+          "operating_cashflow": 125299000000.0,
+          "depreciation_amortization": 15311000000.0,
+          "free_cash_flow": 72764000000.0,
+          "capex_to_operating_cashflow": 0.4192770892026273,
+          "capex_to_depreciation": 3.431193259747894,
+          "accessions": {
+            "capex": "0001652044-26-000018",
+            "operating_cashflow": "0001652044-26-000018",
+            "depreciation_amortization": "0001652044-26-000018"
+          }
+        },
+        {
+          "fiscal_year": 2025,
+          "period_end": "2025-12-31",
+          "available_at": "2026-02-05",
+          "capex": 91447000000.0,
+          "operating_cashflow": 164713000000.0,
+          "depreciation_amortization": 21136000000.0,
+          "free_cash_flow": 73266000000.0,
+          "capex_to_operating_cashflow": 0.5551899364348898,
+          "capex_to_depreciation": 4.326599167297502,
+          "accessions": {
+            "capex": "0001652044-26-000018",
+            "operating_cashflow": "0001652044-26-000018",
+            "depreciation_amortization": "0001652044-26-000018"
+          }
+        }
+      ],
+      "lease_obligations": {
+        "finance_lease_payments_due": {
+          "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
+          "value": 2920000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-23",
+          "accession": "0001652044-26-000071"
+        },
+        "operating_lease_payments_due": {
+          "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
+          "value": 21333000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-23",
+          "accession": "0001652044-26-000071"
+        },
+        "finance_lease_liability": {
+          "taxonomy_tag": "FinanceLeaseLiability",
+          "value": 2590000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-23",
+          "accession": "0001652044-26-000071"
+        },
+        "operating_lease_liability": {
+          "taxonomy_tag": "OperatingLeaseLiability",
+          "value": 18037000000.0,
+          "period_end": "2026-06-30",
+          "available_at": "2026-07-23",
+          "accession": "0001652044-26-000071"
+        }
+      },
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
+      "source_fingerprint": "a017f26ee88cb4a639d1c1ddb06d53b4afe22f0ac89cabec7cd67c88919fe1c5"
+    },
+    {
+      "company": "META",
+      "cik": "0001326801",
+      "tags": {
+        "capex": "PaymentsToAcquirePropertyPlantAndEquipment",
+        "operating_cashflow": "NetCashProvidedByUsedInOperatingActivities",
+        "depreciation_amortization": "DepreciationDepletionAndAmortization"
+      },
+      "annual": [
+        {
+          "fiscal_year": 2020,
+          "period_end": "2020-12-31",
+          "available_at": "2023-02-02",
+          "capex": 15163000000.0,
+          "operating_cashflow": 38747000000.0,
+          "depreciation_amortization": 6862000000.0,
+          "free_cash_flow": 23584000000.0,
+          "capex_to_operating_cashflow": 0.3913335225952977,
+          "capex_to_depreciation": 2.2097056251821625,
+          "accessions": {
+            "capex": "0001326801-23-000013",
+            "operating_cashflow": "0001326801-23-000013",
+            "depreciation_amortization": "0001326801-23-000013"
+          }
+        },
+        {
+          "fiscal_year": 2021,
+          "period_end": "2021-12-31",
+          "available_at": "2024-02-02",
+          "capex": 18690000000.0,
+          "operating_cashflow": 57683000000.0,
+          "depreciation_amortization": 7967000000.0,
+          "free_cash_flow": 38993000000.0,
+          "capex_to_operating_cashflow": 0.32401227398020216,
+          "capex_to_depreciation": 2.345926948663236,
+          "accessions": {
+            "capex": "0001326801-24-000012",
+            "operating_cashflow": "0001326801-24-000012",
+            "depreciation_amortization": "0001326801-24-000012"
+          }
+        },
+        {
+          "fiscal_year": 2022,
+          "period_end": "2022-12-31",
+          "available_at": "2025-01-30",
+          "capex": 31186000000.0,
+          "operating_cashflow": 50475000000.0,
+          "depreciation_amortization": 8686000000.0,
+          "free_cash_flow": 19289000000.0,
+          "capex_to_operating_cashflow": 0.6178504210004953,
+          "capex_to_depreciation": 3.5903753166014276,
+          "accessions": {
+            "capex": "0001326801-25-000017",
+            "operating_cashflow": "0001326801-25-000017",
+            "depreciation_amortization": "0001326801-25-000017"
+          }
+        },
+        {
+          "fiscal_year": 2023,
+          "period_end": "2023-12-31",
+          "available_at": "2026-01-29",
+          "capex": 27045000000.0,
+          "operating_cashflow": 71113000000.0,
+          "depreciation_amortization": 11178000000.0,
+          "free_cash_flow": 44068000000.0,
+          "capex_to_operating_cashflow": 0.38031021051003333,
+          "capex_to_depreciation": 2.419484702093398,
+          "accessions": {
+            "capex": "0001628280-26-003942",
+            "operating_cashflow": "0001628280-26-003942",
+            "depreciation_amortization": "0001628280-26-003942"
+          }
+        },
+        {
+          "fiscal_year": 2024,
+          "period_end": "2024-12-31",
+          "available_at": "2026-01-29",
+          "capex": 37256000000.0,
+          "operating_cashflow": 91328000000.0,
+          "depreciation_amortization": 15498000000.0,
+          "free_cash_flow": 54072000000.0,
+          "capex_to_operating_cashflow": 0.4079362298528381,
+          "capex_to_depreciation": 2.403923086849916,
+          "accessions": {
+            "capex": "0001628280-26-003942",
+            "operating_cashflow": "0001628280-26-003942",
+            "depreciation_amortization": "0001628280-26-003942"
+          }
+        },
+        {
+          "fiscal_year": 2025,
+          "period_end": "2025-12-31",
+          "available_at": "2026-01-29",
+          "capex": 69691000000.0,
+          "operating_cashflow": 115800000000.0,
+          "depreciation_amortization": 18616000000.0,
+          "free_cash_flow": 46109000000.0,
+          "capex_to_operating_cashflow": 0.6018221070811745,
+          "capex_to_depreciation": 3.743607649333906,
+          "accessions": {
+            "capex": "0001628280-26-003942",
+            "operating_cashflow": "0001628280-26-003942",
+            "depreciation_amortization": "0001628280-26-003942"
+          }
+        }
+      ],
+      "lease_obligations": {
+        "finance_lease_payments_due": {
+          "taxonomy_tag": "FinanceLeaseLiabilityPaymentsDue",
+          "value": 1504000000.0,
+          "period_end": "2025-12-31",
+          "available_at": "2026-01-29",
+          "accession": "0001628280-26-003942"
+        },
+        "operating_lease_payments_due": {
+          "taxonomy_tag": "LesseeOperatingLeaseLiabilityPaymentsDue",
+          "value": 33508000000.0,
+          "period_end": "2025-12-31",
+          "available_at": "2026-01-29",
+          "accession": "0001628280-26-003942"
+        },
+        "finance_lease_liability": {
+          "taxonomy_tag": "FinanceLeaseLiability",
+          "value": 1184000000.0,
+          "period_end": "2025-12-31",
+          "available_at": "2026-01-29",
+          "accession": "0001628280-26-003942"
+        },
+        "operating_lease_liability": {
+          "taxonomy_tag": "OperatingLeaseLiability",
+          "value": 25153000000.0,
+          "period_end": "2025-12-31",
+          "available_at": "2026-01-29",
+          "accession": "0001628280-26-003942"
+        }
+      },
+      "source_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
+      "source_fingerprint": "7518e76d6dac2d016e1a3d1dec1cc55ff9ea3bdd58a151b16fcaa067a6c9d94e"
+    }
+  ],
+  "receipts": [
+    {
+      "source": "sec_edgar",
+      "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0000789019.json",
+      "response_sha256": "f8aae2965b20ad0df44bdf7ccbedf797d275b6b8dc030154a7a311361bb7246f",
+      "fetched_at": "2026-08-31T11:59:35+00:00",
+      "revision_vintage": "sec_filing_native"
+    },
+    {
+      "source": "sec_edgar",
+      "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001018724.json",
+      "response_sha256": "e6aadb0da7384597dbd78f74d1379ffb7fd0829a4d2e797b6d7e442b5e1da0d7",
+      "fetched_at": "2026-08-31T11:59:35+00:00",
+      "revision_vintage": "sec_filing_native"
+    },
+    {
+      "source": "sec_edgar",
+      "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001652044.json",
+      "response_sha256": "a017f26ee88cb4a639d1c1ddb06d53b4afe22f0ac89cabec7cd67c88919fe1c5",
+      "fetched_at": "2026-08-31T11:59:36+00:00",
+      "revision_vintage": "sec_filing_native"
+    },
+    {
+      "source": "sec_edgar",
+      "request_url": "https://data.sec.gov/api/xbrl/companyfacts/CIK0001326801.json",
+      "response_sha256": "7518e76d6dac2d016e1a3d1dec1cc55ff9ea3bdd58a151b16fcaa067a6c9d94e",
+      "fetched_at": "2026-08-31T11:59:37+00:00",
+      "revision_vintage": "sec_filing_native"
+    }
+  ],
+  "semantics": "Entity-wide annual figures as filed. Ratios divide two facts from the same fiscal year of the same filer, and full-year duration is verified against each fact's own start and end dates.",
+  "ai_attribution": "not_inferred",
+  "caveat": "어떤 공시도 AI 목적 지출을 별도로 구분하지 않습니다. 이 수치는 전사 기준이며 AI 투자액으로 해석할 수 없습니다. 리스 부채는 미할인 미래 지급액이라 채권 잔액과 단순 합산할 수 없습니다."
+}

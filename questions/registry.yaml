@@ -726,8 +726,9 @@ questions:
   action_link: AI 설비투자 사이클의 현금 압박 임계 — EXIT 트리거 재점검 입력
   status: active
   created: 2026-08-31
-  notes: 실측 base rate — FY2024 OCF 115.877B / capex 82.999B → FCF +32.878B, FY2025 OCF 139.514B
-    / capex 131.819B → FCF +7.695B. 2년 연속 급감이나 아직 양수. (2026-08-31 companyfacts 직접 확인)
+  notes: 실측 base rate (2026-08-31 companyfacts 직접 확인) — FY2020 +25.9B, FY2021 −14.7B, FY2022
+    −16.9B, FY2023 +32.2B, FY2024 +32.9B, FY2025 +7.7B. 직전 2년 급감이며 FY2021·FY2022에 이미 음전 선례가
+    있다. FY2025 capex/OCF는 0.94로 6년 중 최고 수준.
   schedule:
   - per_week: 0.25
 - id: ai-investment-gdp-share-2026q4

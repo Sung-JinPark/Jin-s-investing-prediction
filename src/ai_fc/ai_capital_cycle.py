@@ -34,6 +34,20 @@ COVERAGE_LATEST = Path("data/ai_capital_cycle/coverage_latest.json")
 COVERAGE_ARCHIVE = Path("data/ai_capital_cycle/coverage_archive")
 REGIME_LATEST = Path("data/ai_capital_cycle/ai_regime_latest.json")
 REGIME_ARCHIVE = Path("data/ai_capital_cycle/regime_archive")
+INTENSITY_LATEST = Path("data/ai_capital_cycle/capital_intensity_latest.json")
+INTENSITY_ARCHIVE = Path("data/ai_capital_cycle/capital_intensity_archive")
+
+# Undiscounted future lease payments.  Data-centre capacity is increasingly
+# taken through leases rather than bond issuance, so a debt-only view of the
+# build-out understates it; these tags exist for all four issuers.
+LEASE_TAGS = {
+    "finance_lease_payments_due": "FinanceLeaseLiabilityPaymentsDue",
+    "operating_lease_payments_due": "LesseeOperatingLeaseLiabilityPaymentsDue",
+    "finance_lease_liability": "FinanceLeaseLiability",
+    "operating_lease_liability": "OperatingLeaseLiability",
+}
+ANNUAL_MIN_DAYS = 330
+ANNUAL_MAX_DAYS = 400
 
 
 def _user_agent() -> str:
@@ -203,6 +217,182 @@ def _select_metric_tag(
     }
 
 
+def _annual_duration_facts(
+    node: dict[str, Any] | None, *, asof: date,
+) -> dict[int, dict[str, Any]]:
+    """Return the latest-filed full-year fact per fiscal year.
+
+    Companyfacts mixes quarterly, year-to-date and annual durations under one
+    tag, and the stored D1 rows keep only the period end.  Deriving a ratio
+    from those rows could silently divide an annual numerator by a quarterly
+    denominator, so this layer re-reads the source and keeps only facts whose
+    own start and end span a full year.
+    """
+    result: dict[int, dict[str, Any]] = {}
+    for fact in ((node or {}).get("units") or {}).get("USD") or []:
+        start, end, filed = fact.get("start"), fact.get("end"), fact.get("filed")
+        if not start or not end or not filed or fact.get("form") != "10-K":
+            continue
+        try:
+            start_date = date.fromisoformat(str(start))
+            end_date = date.fromisoformat(str(end))
+            filed_date = date.fromisoformat(str(filed))
+        except ValueError:
+            continue
+        if filed_date > asof or end_date > asof:
+            continue
+        span = (end_date - start_date).days
+        if not ANNUAL_MIN_DAYS <= span <= ANNUAL_MAX_DAYS:
+            continue
+        value = fact.get("val")
+        if not isinstance(value, (int, float)):
+            continue
+        year = end_date.year if end_date.month >= 6 else end_date.year - 1
+        prior = result.get(year)
+        if prior is None or str(filed) > str(prior["filed"]):
+            result[year] = {
+                "value": float(value), "start": start, "end": end, "filed": filed,
+                "accession": fact.get("accn"), "fiscal_year": fact.get("fy"),
+            }
+    return result
+
+
+def _latest_instant_fact(
+    node: dict[str, Any] | None, *, asof: date,
+) -> dict[str, Any] | None:
+    """Return the most recent point-in-time balance disclosed on or before asof."""
+    best: dict[str, Any] | None = None
+    for fact in ((node or {}).get("units") or {}).get("USD") or []:
+        if fact.get("start") or fact.get("form") not in ("10-K", "10-Q"):
+            continue
+        end, filed = fact.get("end"), fact.get("filed")
+        if not end or not filed:
+            continue
+        try:
+            end_date = date.fromisoformat(str(end))
+            filed_date = date.fromisoformat(str(filed))
+        except ValueError:
+            continue
+        if filed_date > asof or end_date > asof:
+            continue
+        value = fact.get("val")
+        if not isinstance(value, (int, float)):
+            continue
+        if best is None or (str(end), str(filed)) > (str(best["end"]), str(best["filed"])):
+            best = {
+                "value": float(value), "end": end, "filed": filed,
+                "accession": fact.get("accn"),
+            }
+    return best
+
+
+def _first_available_tag(
+    us_gaap: dict[str, Any], tags: list[str], *, asof: date,
+) -> tuple[str | None, dict[int, dict[str, Any]]]:
+    for tag in tags:
+        annual = _annual_duration_facts(us_gaap.get(tag), asof=asof)
+        if annual:
+            return tag, annual
+    return None, {}
+
+
+def build_capital_intensity(
+    *, contract: dict[str, Any], companyfacts: dict[str, dict[str, Any]],
+    receipts: dict[str, dict[str, Any]], asof: date,
+    generated_at: datetime | None = None,
+    tag_chains: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Derive annual capital-intensity ratios and lease obligations.
+
+    Every number is a ratio of two facts the issuer filed itself.  Nothing is
+    attributed to AI: no filing separates AI spending from the rest of capital
+    expenditure, so these stay whole-company measures and the payload says so
+    instead of implying a split that the disclosures do not support.
+    """
+    made_at = (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds")
+    companies = []
+    for symbol, cik in CIKS.items():
+        us_gaap = (companyfacts[symbol].get("facts") or {}).get("us-gaap") or {}
+        receipt = receipts[symbol]
+        resolved: dict[str, tuple[str | None, dict[int, dict[str, Any]]]] = {}
+        for metric in ("capex", "operating_cashflow", "depreciation_amortization"):
+            tags, _absence, _max_age = _metric_contract(
+                symbol, metric, contract=contract, tag_chains=tag_chains)
+            resolved[metric] = _first_available_tag(us_gaap, tags, asof=asof)
+        capex_tag, capex_rows = resolved["capex"]
+        ocf_tag, ocf_rows = resolved["operating_cashflow"]
+        dna_tag, dna_rows = resolved["depreciation_amortization"]
+        years = sorted(set(capex_rows) & set(ocf_rows))[-6:]
+        annual = []
+        for year in years:
+            capex = capex_rows[year]["value"]
+            operating = ocf_rows[year]["value"]
+            depreciation = dna_rows.get(year, {}).get("value")
+            annual.append({
+                "fiscal_year": year,
+                "period_end": capex_rows[year]["end"],
+                "available_at": max(capex_rows[year]["filed"], ocf_rows[year]["filed"]),
+                "capex": capex,
+                "operating_cashflow": operating,
+                "depreciation_amortization": depreciation,
+                "free_cash_flow": operating - capex,
+                "capex_to_operating_cashflow": (capex / operating) if operating else None,
+                "capex_to_depreciation": (capex / depreciation) if depreciation else None,
+                "accessions": {
+                    "capex": capex_rows[year].get("accession"),
+                    "operating_cashflow": ocf_rows[year].get("accession"),
+                    "depreciation_amortization": dna_rows.get(year, {}).get("accession"),
+                },
+            })
+        leases = {}
+        for name, tag in LEASE_TAGS.items():
+            fact = _latest_instant_fact(us_gaap.get(tag), asof=asof)
+            leases[name] = None if fact is None else {
+                "taxonomy_tag": tag, "value": fact["value"],
+                "period_end": fact["end"], "available_at": fact["filed"],
+                "accession": fact.get("accession"),
+            }
+        companies.append({
+            "company": symbol, "cik": cik,
+            "tags": {
+                "capex": capex_tag, "operating_cashflow": ocf_tag,
+                "depreciation_amortization": dna_tag,
+            },
+            "annual": annual,
+            "lease_obligations": leases,
+            "source_url": receipt["request_url"],
+            "source_fingerprint": receipt["response_sha256"],
+        })
+    return {
+        "schema_version": 1,
+        "dataset_id": "ai_capital_intensity_v1",
+        "asof": asof.isoformat(),
+        "generated_at": made_at,
+        "gate": "D2",
+        "probability_space": "reference_only",
+        "model_use": False,
+        "official_forecast_input": False,
+        "companies": companies,
+        "receipts": list(receipts.values()),
+        "semantics": (
+            "Entity-wide annual figures as filed. Ratios divide two facts from "
+            "the same fiscal year of the same filer, and full-year duration is "
+            "verified against each fact's own start and end dates."
+        ),
+        "ai_attribution": "not_inferred",
+        "caveat": (
+            "\uc5b4\ub5a4 \uacf5\uc2dc\ub3c4 AI \ubaa9\uc801 \uc9c0\ucd9c\uc744 "
+            "\ubcc4\ub3c4\ub85c \uad6c\ubd84\ud558\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4. "
+            "\uc774 \uc218\uce58\ub294 \uc804\uc0ac \uae30\uc900\uc774\uba70 AI "
+            "\ud22c\uc790\uc561\uc73c\ub85c \ud574\uc11d\ud560 \uc218 "
+            "\uc5c6\uc2b5\ub2c8\ub2e4. \ub9ac\uc2a4 \ubd80\ucc44\ub294 "
+            "\ubbf8\ud560\uc778 \ubbf8\ub798 \uc9c0\uae09\uc561\uc774\ub77c "
+            "\ucc44\uad8c \uc794\uc561\uacfc \ub2e8\uc21c \ud569\uc0b0\ud560 "
+            "\uc218 \uc5c6\uc2b5\ub2c8\ub2e4."
+        ),
+    }
+
+
 def validate_regime_model(model: dict[str, Any]) -> dict[str, Any]:
     if model.get("probability_space") != "reference_only":
         raise MarketExtensionError("AI regime model must be reference_only")
@@ -306,14 +496,23 @@ def refresh_ai_capital_cycle(root: Path, *, asof: date | None = None) -> dict[st
     capex, coverage, regime = build_ai_capital_cycle(
         model=model, contract=contract, tag_chains=tag_chains,
         companyfacts=facts, receipts=receipts, asof=cutoff)
+    # Same fetch, one more derived view: no additional SEC requests.
+    intensity = build_capital_intensity(
+        contract=contract, tag_chains=tag_chains,
+        companyfacts=facts, receipts=receipts, asof=cutoff)
     capex_result = _persist_json(root, CAPEX_LATEST, CAPEX_ARCHIVE, capex)
     coverage_result = _persist_json(root, COVERAGE_LATEST, COVERAGE_ARCHIVE, coverage)
     regime_result = _persist_json(root, REGIME_LATEST, REGIME_ARCHIVE, regime)
+    intensity_result = _persist_json(root, INTENSITY_LATEST, INTENSITY_ARCHIVE, intensity)
     return {
         "capex_path": capex_result[0], "capex": capex_result[1],
         "coverage_path": coverage_result[0], "coverage": coverage_result[1],
         "regime_path": regime_result[0], "regime": regime_result[1],
-        "changed": any(result[2] for result in (capex_result, coverage_result, regime_result)),
+        "intensity_path": intensity_result[0], "intensity": intensity_result[1],
+        "changed": any(
+            result[2] for result in
+            (capex_result, coverage_result, regime_result, intensity_result)
+        ),
     }
 
 
