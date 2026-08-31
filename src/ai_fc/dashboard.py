@@ -28,10 +28,21 @@ DASHBOARD_LOOKUP_SCRIPT = DASHBOARD_PARTS / "forecast_lookup.js"
 DASHBOARD_QR_SCRIPT = DASHBOARD_PARTS / "qr-creator.min.js"
 DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 # Route-specific path arrays are loaded only when the future surface is opened.
-# The shell plus summary payload must remain below this lowered fixed ceiling.
-# The registered standalone-audit budget is 900 KiB.  Keep the binary unit
-# explicit so feature growth is still bounded and the check is reproducible.
-DASHBOARD_RAW_BUDGET_BYTES = 900 * 1024
+# The shell plus summary payload must remain below this fixed ceiling.  Keep the
+# binary unit explicit so feature growth is still bounded and the check is
+# reproducible.
+#
+# ADR-002, resolved 2026-08-31 (see docs/DECISIONS.md): raised from 900 KiB.
+# The blueprint's preferred option was to split payload into static JSON and
+# hold the core budget, and that is what Pages does.  It cannot work for the
+# standalone embed, which has no fetch: splitting there does not relocate
+# content, it deletes it.  At 900 KiB the compacted shell (579 KB) plus
+# non-body data (214 KB) consumed 86% of the contract before carrying any
+# reasoning at all, leaving room for 18 rounds at ~6.9 KB each -- so the audit
+# snapshot was dropping the very content it exists to show.  1.5 MiB carries
+# one body per active question (992 KB at 29 questions) with 37% headroom, and
+# still holds at 50 active questions.
+DASHBOARD_RAW_BUDGET_BYTES = 1536 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
 STATISTICS_DATA_BUDGET_BYTES = 120_000
@@ -888,12 +899,14 @@ def _project_embed_rows(read_model: dict) -> dict:
 
 
 # Reasoning bodies are the largest single term in the embed and they scale with
-# the number of active questions, not with feature work: 30 rounds carried
-# 206 KB of body text, half the payload.  The standalone snapshot therefore
-# inlines only the most recent rounds and links the rest to their immutable
-# source file, the same trade the superseded and resolved rounds already make.
-# Pages data.json and /api/data keep every body.
-EMBED_INLINE_BODY_LIMIT = 12
+# the number of active questions, not with feature work.  Under the ADR-002
+# budget they all fit -- _compact_embed_forecast_history has already dropped the
+# superseded and resolved ones, so what remains is one per active question.
+# This limit is now a backstop against a pathological single body rather than a
+# routine cap: it sits above the active-question count so it does not bite in
+# normal operation, and rounds beyond it keep every structured field and their
+# immutable source_uri.  Pages data.json and /api/data keep every body.
+EMBED_INLINE_BODY_LIMIT = 40
 
 
 def _limit_embed_inline_bodies(read_model: dict) -> dict:
