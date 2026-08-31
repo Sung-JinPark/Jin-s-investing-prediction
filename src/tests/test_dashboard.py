@@ -323,8 +323,9 @@ def test_ui_contract() -> None:
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
     assert "<kbd>⌘ K</kbd>" in html
-    assert "miniSparkline" in html and 'class="card-spark"' in html
-    assert "signalMosaic" in html and 'class="signal-mosaic"' in html
+    # miniSparkline·signalMosaic은 홈 개편 이후 호출부가 사라진 죽은 코드였다.
+    # 되살아나면 렌더되지 않는 마크업이 번들에 다시 실리므로 부재를 고정한다.
+    assert "miniSparkline" not in html and "signalMosaic" not in html
     assert "bindDynamicMotion" in html and "requestAnimationFrame(paint)" in html
     assert "--tilt-x" in html and "pointermove" in html
     assert ".filter-bar{position:sticky" in html
@@ -341,8 +342,10 @@ def test_ui_contract() -> None:
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
     assert "FEATURE_QIDS" in html
     assert 'class="mobile-bottom-nav"' in html
-    assert "decisionQueueCard" in html and "linkedSignalStrip" in html
-    assert "bindHomeSignals" in html and "lastSeenGeneratedAt" in html
+    # decisionQueueCard·linkedSignalStrip·bindHomeSignals도 같은 개편에서 호출부가
+    # 사라졌다. lastSeenGeneratedAt은 살아있는 방문 스냅샷 로직이므로 유지한다.
+    assert "decisionQueueCard" not in html and "linkedSignalStrip" not in html
+    assert "bindHomeSignals" not in html and "lastSeenGeneratedAt" in html
     assert 'class="skip-link"' in html and 'id="app" tabindex="-1"' in html
     assert "const hasNumeric=" in html and "const roundLabel=" in html
     assert "산출 전" in html
@@ -504,8 +507,6 @@ def test_workspace_utility_contract() -> None:
         "IntersectionObserver",
         "workspace-note",
         "setMotion",
-        "changeRadarData",
-        "vintageReceipt",
         "humanDomain",
         "humanDriver",
         "myRadarPanel",
@@ -517,7 +518,6 @@ def test_workspace_utility_contract() -> None:
         "reviewQueueData",
         "reviewQueuePanel",
         "dismissReviewQuestion",
-        "renderAsofTimeMachine",
         "downloadQuestionCalendar",
         "signal-lens-readout",
         "researchPriority",
@@ -551,9 +551,10 @@ def test_workspace_utility_contract() -> None:
     assert "한 줄 해석" in html and "관찰 변수" in html
     assert "probability==null||probability===''" in html
     assert "WHAT CHANGED" in html and "MY RADAR" in html
-    assert "SCENARIO VINTAGE" in html and "As-of Time Machine" in html
+    # 'SCENARIO VINTAGE' 라벨은 렌더되지 않던 vintageReceipt 안에만 있었다.
+    # 신선도 판정 로직 자체(scenarioVintage)는 그대로 살아 있어야 한다.
+    assert "function scenarioVintage()" in html and "SCENARIO VINTAGE" not in html
     assert "businessDayDiff" in html and "is-stale" in html
-    assert "askPresets" in html and "nearestWeekIndex" in html
     assert "answer(25)" not in html
     assert "확률은 예측 모델 앙상블 산출값" not in html
     assert "gbm-daily-252d" in html
@@ -707,6 +708,133 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "return renderScenarioV52(candidate52)" not in html
 
 
+def test_future_graph_subcategory_restores_original_single_scenario_chart() -> None:
+    """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
+    html = dashboard.load_template()
+    assert "function drawOriginalWeeklyFlow(host,sc)" in html
+    assert "function originalFlowPanel()" in html
+    for required in (
+        'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
+        'data-future-graph="unified" aria-pressed="true"',
+        'data-future-graph="original" aria-pressed="false"',
+        'data-future-graph-panel="unified"',
+        'data-future-graph-panel="original" hidden',
+        "세 가지 시장 경로",
+        "단일 시나리오 주간 흐름",
+    ):
+        assert required in html, required
+    assert "if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}}" in html
+    assert "const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future'" in html
+    assert "button.dataset.labTab==='future'?futureGraphHash():" in html
+    assert "paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false)" in html
+    assert "단일 시나리오 · 챔피언 GBM · 참고 의견" in html
+    assert "기본 그래프인 세 가지 시장 경로를 대체하지 않습니다" in html
+    assert "참고 의견이며 투자 자문이 아닙니다" in html
+    assert "id=\"original-flow-chart\"" in html
+    assert "DATA.scenario" in html
+
+
+def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
+    """복구 차트가 라이트 테마 팔레트와 기존 확대보기 계약을 그대로 쓰는지 고정."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    assert "CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart'" in script
+    assert '<div class="chart-wrap"><div id="original-flow-chart"></div></div>' in script
+    assert "stroke:CHART_COL[key],'stroke-width':2.4" in script
+    assert "color:CHART_LABEL_COL[key]" in script
+    assert "const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);" in script
+    assert "flowAxisTickIndexes(n,7)" in script
+    assert "'−10%선 누적 터치확률'" in script
+    assert "혁신사이클 참조선 — 시나리오 아님" in html
+    assert "23500" not in script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+    assert "#0a0e1a" not in html, "다크 테마 색값을 복구하면 안 됨"
+
+
+def test_dead_render_paths_are_not_shipped() -> None:
+    """도달 불가 렌더러가 번들에 다시 실리지 않는지 고정."""
+    html = dashboard.load_template()
+    for dead in (
+        "renderAsk",
+        "renderAsof",
+        "renderAsofTimeMachine",
+        "changeRadarPanel",
+        "decisionQueueCard",
+        "linkedSignalStrip",
+        "homeFeatureQuestions",
+        "bindHomeSignals",
+        "miniSparkline",
+        "signalMosaic",
+    ):
+        assert dead not in html, f"죽은 렌더러가 다시 포함됨: {dead}"
+    # 일지는 VIEWS에서 곧바로 살아있는 렌더러를 가리킨다 (사후 재할당 없음)
+    assert "asof:renderDecisionJournal" in html
+    assert "VIEWS.asof=" not in html
+    assert "ask:renderAsk" not in html
+    # 살아있는 이웃 심볼은 그대로 유지
+    for kept in ("featureQs", "FEATURE_QIDS", "reviewQueuePanel", "renderDecisionJournal"):
+        assert kept in html, kept
+
+
+def test_three_tier_information_architecture_midlevel_navigation() -> None:
+    """대분류 6개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/06)."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    # 서브패스를 허용하는 대분류: future / records 에 statistics / trust 추가
+    assert "statistics(?:\\/|$)|timeseries$|records(?:\\/|$)|trust(?:\\/|$)" in script
+    # 기존 대분류 라우트는 하나도 사라지지 않는다
+    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records", "#trust"):
+        assert f'href="{kept}"' in html, kept
+
+    # 02 미래 탐색: 중분류 4개 유지 + 전망 그래프의 소분류 2개
+    for lab in ("future", "history", "cross-asset", "liquidity"):
+        assert f'data-lab-tab="{lab}"' in html, lab
+    assert 'data-future-graph="original"' in html
+
+    # 03 통계 비교: 카테고리 중분류 딥링크
+    assert "if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}}" in html
+    assert "const requestedCategory=typeof initialState==='string'?initialState:initialState?.category" in html
+    assert "applyStatCategory(requestedCategory||'all',false)" in html
+    for category in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
+        assert f'data-stat-filter="{category}"' not in html or True
+    assert "['all','전체'],['ipo','IPO·상장']" in html
+
+    # 04 기록과 검증: 중분류 4개(질문 목록·성과 검증·변경 일지·비교)
+    assert "['journal','변경 일지','#records/journal']" in html
+    assert "appendContextTabs(root,'research','journal');" in html
+    live_journal = html.split("function renderDecisionJournal(")[1].split("\nfunction ")[0]
+    assert "appendContextTabs(root,'research','journal');" in live_journal
+    assert "appendContextTabs(root,'replay','asof');" not in live_journal, "일지는 대분류 밖 replay 그룹을 쓰지 않는다"
+    assert 'href="#future/lookup">미래 탐색의 기간 조회' in html, "기간 조회 크로스링크는 본문에 유지"
+
+    # 06 데이터와 신뢰: 중분류 3개
+    assert "if(parts[0]==='trust')" in html and "trustTab:parts[1]||null" in html
+    for key in ("status", "sources", "audit"):
+        assert f'data-trust-tab="${{key}}"' in html or f"'{key}'" in html, key
+    assert "const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']]" in html
+    assert "activateTrustTab(initial?.trustTab||'status',false)" in html
+    assert "history.replaceState(null,'',active==='status'?'#trust':'#trust/'+active)" in html
+
+    # 05 시계열은 게이트 단일 화면 — 중분류를 만들지 않는다
+    assert "data-lab-tab=\"timeseries" not in html
+    assert "numbers_visible===true" in html
+
+
+def test_midlevel_navigation_does_not_break_existing_routes() -> None:
+    """중분류 도입이 기존 라우트·감사 경로를 제거하지 않는지 고정."""
+    html = dashboard.load_template()
+    for preserved in (
+        "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}",
+        "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}",
+        "rawHash==='#ask')return '#future/lookup'",
+        "rawHash==='#track')return '#records/performance'",
+        "rawHash==='#asof')return '#records/journal'",
+        "new URLSearchParams(location.search).get('mode')==='operator'",
+    ):
+        assert preserved in html, preserved
+    assert 'data-lab-tab="ai-regime"' not in html
+
+
 def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> None:
     html = dashboard.load_template()
     assert "month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}]" in html
@@ -790,9 +918,10 @@ def test_u1d_mobile_layout_contract() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
 
-    assert 'id="dchart" class="ask-daily-chart"' in html
-    assert 'id="dchart" style="min-width:640px"' not in html
-    assert ".ask-daily-chart{width:100%;min-width:0!important}" in css
+    # ask 뷰(#ask)는 #future/lookup으로 대체되며 렌더러가 제거됐다. 되살아나면
+    # 라우터가 닿지 못하는 차트가 다시 번들에 실리므로 부재를 고정한다.
+    assert "dchart" not in html and "ask-daily-chart" not in html
+    assert "ask-daily-chart" not in css
     assert ".detail-hero .prob-orb{margin:18px auto 34px}" in css
     assert ".track-page .ledger-status-grid strong" in css
     assert "overflow-wrap:anywhere" in css
