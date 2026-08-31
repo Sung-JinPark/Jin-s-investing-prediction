@@ -17,7 +17,7 @@ questions:
   domain: earnings
   cadence: D-30부터 주 2회
   action_link: 반도체 사이클 분수령 판단
-  status: active
+  status: resolved
   created: 2026-07-08
   schedule:
   - per_week: 1
@@ -171,7 +171,7 @@ questions:
   domain: macro
   cadence: 발표 전 1~2회
   action_link: 고용 급랭 지속 여부 — 10/28 인상 질문의 핵심 상쇄 변수
-  status: active
+  status: resolved
   created: 2026-07-08
   schedule:
   - per_week: 1
@@ -189,7 +189,8 @@ questions:
   domain: earnings
   cadence: D-30부터 주 1회 (dc-beat 질문과 함께 실행)
   action_link: 고확률 구간(80~90%대) 캘리브레이션 커브 검증용 — 9분기 연속 비트 base rate
-  status: active
+  status: void
+  void_reason: "마감(2026-08-26)까지 예측 미실행 — 채점 대상 없음. 결과를 아는 지금 예측을 추가하면 소급 삽입이므로 폐기. 후속 질문은 nvda-dc-beat-2026nov."
   created: 2026-07-08
   schedule:
   - per_week: 1
@@ -338,7 +339,8 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: 실적 시즌 EXIT 트리거 감시 + 캘리브레이션 표본 (팩토리 시리즈 E)
-  status: active
+  status: void
+  void_reason: "마감(2026-08-04)까지 예측 미실행 — 채점 대상 없음. 소급 삽입 금지 원칙에 따라 폐기."
   created: 2026-07-20
   notes: '등록필터: (a) S&P 분기 EPS beat율 5년 78%/10년 76% (FactSet), AMD 최근 4분기 3/4 비트 — base rate [35,65] 밖. 발표일 확정 (amd.com 보도자료 2026-07-08).'
   tier: lite
@@ -546,7 +548,8 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 인플레 재가속 → 9월 인상 확률 → 리레이팅 연쇄 상류 지표
-  status: active
+  status: void
+  void_reason: "마감(2026-08-12)까지 예측 미실행 — 채점 대상 없음. 소급 삽입 금지 원칙에 따라 폐기. 후속 질문은 cpi-oct2026-reaccel."
   created: 2026-07-20
   notes: '등록필터: (a) 6월 3.5%(−0.7%p 감속)·휘발유 −9.7% MoM 직후 +0.3%p 재가속은 base rate 낮음 (<35% 추정 — r1에서 정량화). 발표일 확정 (OMB PFEI 2026 일정).'
   tier: lite
