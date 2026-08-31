@@ -150,6 +150,53 @@ CBOE는 `permissions@cboe.com`으로 사용 목적·스크린샷·배포 계획�
 - 허가의 유상/무상 여부 — **NOT FOUND**
 - 회신이 **명시적 거절**일 경우 fair use 모호성이 사라져 제거 외 선택지가 좁아진다는 점 — 신청 자체의 양면성
 
+### 2026-08-31 — 12-6: FRED 자동 수집을 공식 API 전용으로 전환
+
+블루프린트 Q3 조사에서 `fredgraph.csv` 스크랩이 약관 위반임을 확인해 전환했다.
+**결정: FRED 자동 수집은 API 키를 쓰는 공식 API로만 한다. 스크랩 폴백은 두지 않는다.**
+
+FRED 약관(취득 2026-08-31)은 자동 수집을 금지하면서 단서를 단다:
+
+> "data mining, mirroring, robots, scraping, or similar data-gathering or extraction
+> methods" … **"except as expressly allowed by the terms of use applicable to the FRED API"**
+
+`fredgraph.csv`는 그래프 페이지용 엔드포인트라 이 단서에 해당하지 않는다. 공식 API는 해당한다.
+
+**폴백을 두지 않은 이유**: 키가 없을 때 조용히 스크랩으로 되돌아가면 준수 경로가 사실상
+무력해진다. 키 부재는 `FredApiError`로 실패시킨다 — 실패는 눈에 보이지만 조용한 우회는 보이지 않는다.
+
+**구현에서 지킨 두 가지**
+
+1. **키는 영수증에 남기지 않는다.** 네트워크에 쓰는 URL에는 키가 들어가지만, 소스 영수증·해시에
+   기록하는 URL은 `fred_api.observations_public_url()`이 돌려주는 키 없는 형태다. 이 구분이 흐려지면
+   `security-check`가 잡아야 할 시크릿이 저장소에 커밋된다.
+2. **호출부 파서를 바꾸지 않는다.** API는 JSON을 주지만 기존 수집기는 `fredgraph.csv` 모양
+   (헤더 1줄 + `날짜,값`, 결측 `.`)을 파싱한다. `observations_to_csv()`가 그 모양으로 렌더한다.
+   결측을 0으로 바꾸지 않는다 — 관측되지 않은 구간이 관측된 0으로 둔갑한다.
+
+**전환한 곳 / 남긴 곳**
+
+| 대상 | 처리 | 사유 |
+|---|---|---|
+| `quant/feed.py`(M2SL) · `statistics_lab.py` · `market_extensions.py` · `realty_income.py` | **API 전환** | 현재분 수집 경로 |
+| `timeseries_v2/market_archive.py` · `v4/source_store.py` · `v5/sources.py` · `v6/public_archive.py` | **보류** | PIT 아카이브 수집기 — URL이 기록된 스펙에 들어 있고 provenance 해시에 포함된다. 바꾸면 과거 영수증과 대조가 끊긴다. 별도 처리 필요 |
+
+**운영 요건 (전환의 필연적 귀결)**: 폴백을 없앴으므로 FRED를 부르는 워크플로에 `FRED_API_KEY`가
+없으면 수집이 멈춘다. 전환 시점에 키가 배선된 워크플로는 timeseries 계열 3개뿐이었고, 실제로 API를
+부르게 된 `investing-refresh`·`scenario-refresh`·`statistics-refresh`·`ai-regime-refresh` 4개는
+누락 상태였다. 4개 모두 job-level `env`로 배선했다.
+
+**미해결 (문서로 해소 불가 — 소유자 판단 영역)**
+
+- 12-5는 FRED의 **AI/ML 사용 금지 조항**("in connection with the development or training of any
+  software program or system or machine learning, including … large language models")을 이유 중
+  하나로 CBOE→FRED 이전을 기각했다. 그런데 M2SL·BAMLH0A0HYM2 등 **FRED가 원 게시자인 시리즈**는
+  계속 쓴다. 두 판단이 모순은 아니다 — 12-5는 *이미 다른 곳에서 얻는 데이터를 FRED로 옮겨* 제약을
+  **추가**하는 문제였고, 여기는 대안 없는 시리즈다. 그러나 **이 조항이 본 시스템의 사용 형태를
+  포섭하는지는 미해결**이다. 이 저장소는 학습을 하지 않지만(CLAUDE.md 하드 게이트) 조항 문언은
+  "development … of any software program or system"까지 넓다. 법률 검토 영역이며 KNOWN_LIMITS 대상.
+- 약관의 store·cache 금지와 저장소 커밋(PIT 아카이브)의 충돌도 같은 층위에서 미해결로 남는다.
+
 ### 2026-08-31 — 12-7: 뉴스 감성 수집을 GDELT로 재개
 
 12-4a로 Google News RSS 수집을 중단한 뒤, 약관이 이 용도를 허용하는 대체 소스를 조사해 재개했다.

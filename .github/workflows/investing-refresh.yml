@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
       RUN_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || 'full' }}
     steps:
       - uses: actions/checkout@v4

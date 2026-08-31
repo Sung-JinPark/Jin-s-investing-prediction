@@ -43,6 +43,15 @@
 21. 시크릿 관리: API 키는 환경변수/OS 암호화 저장소(DPAPI)만 사용 — 저장소·이력 무포함 (자동 스캔 검증). 정기 로테이션 권장
 27. **[신설]** overrides 메타는 E4(시점 불변식)·E5(행 해시)로 방어되나, override **생성 자체의 정당성**(사유의 진실성)은 코드로 검증 불가 — git 이력·사유 필수 기재로만 견제
 
+34. **[신설 2026-08-31]** **소스 약관과 시스템 사용 형태의 미해결 긴장 (DECISIONS 12-6)** —
+    FRED 약관은 콘텐츠를 "the development or training of any software program or system or
+    machine learning, including … large language models"에 쓰는 것을 금지한다. 이 저장소는
+    학습을 하지 않지만(CLAUDE.md 하드 게이트) 조항 문언의 "development … of any software
+    program or system"은 그보다 넓다. M2SL·BAMLH0A0HYM2 등은 **FRED가 원 게시자이고 대안이
+    없어** 계속 쓴다 — 12-5(CBOE→FRED 이전 기각)와 모순이 아니라, 그쪽은 제약을 *추가*하는
+    선택이었고 이쪽은 대안 부재다. 그러나 **포섭 여부 자체는 법률 검토 영역이며 코드로 해소
+    불가**하다. 약관의 store·cache 금지와 PIT 아카이브 커밋의 충돌도 같은 층위. CBOE 쪽의
+    동일 성격 미해결(fair use 유보 포섭 여부, 12-5)과 함께 소유자 판단 대기.
 ## D. 해석·거버넌스
 22. "참고 의견" 지위의 실효성은 사용자 행동에 의존
 23. 앵커링 방지 실효 제한 — 밴드 역산으로 매핑 확률 2%p 내 복원(실측·테스트 고정). divergence는 "부분 독립" 신호
