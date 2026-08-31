@@ -1291,6 +1291,7 @@ function parseCanonicalRoute(rawHash){
   if(parts[0]==='future'){
     if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
     if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}};
+    if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}};
     if(parts[1]==='lookup'&&!parts[2])return {section:'future',view:'flow',arg:{lookupOverlay:true}};
     if(parts[1]==='lookup'&&/^\d{4}-\d{2}-\d{2}$/.test(parts[2]||''))return {section:'future',view:'flow',arg:{lookup:parts[2],lookupMode:parts[3]==='current'?'current':'rebase'}};
     if(['history','cross-asset','ai-regime','liquidity'].includes(parts[1]))return {section:'future',view:'flow',arg:{lab:parts[1],scenario:parts[2]||null}};
@@ -1602,6 +1603,123 @@ function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
   const range=scenarioV52Range(candidate,rangeKey),scenarios=candidate?.conditional_small_multiples?.scenarios||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
   return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'—')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100,direction=change>1?'상승':change< -1?'하락':'중립';return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${direction} · ${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
 }
+function drawOriginalWeeklyFlow(host,sc){
+  const NS='http://www.w3.org/2000/svg';
+  const W=1160,H=620,ML=58,MR=148,MT=120,MB=30,HCH=550;
+  const weeks=sc.weeks||[],n=weeks.length,riskValues=sc.risk||[];
+  if(n<2){host.replaceChildren(el('<p class="chart-note">주간 시나리오 데이터가 없어 이 그래프를 그릴 수 없습니다.</p>'));return;}
+  const paths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,(sc.paths?.[key]?.values||[]).slice(0,n).map(Number)]));
+  const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
+  const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...analogValues].map(Number).filter(Number.isFinite);
+  const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
+  const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
+  const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
+  svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
+  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. S1·S2·S3 경로와 혁신사이클 참조선, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
+  const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
+  const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
+  for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){
+    svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
+    svg.appendChild(tx(ML-8,Y(value)+4,(value/1000)+'k',{anc:'end',fill:'#5f5d57'}));
+  }
+  svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
+  svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
+  const eventRows=(sc.events||[]).filter(row=>Array.isArray(row)&&Number.isFinite(Number(row[0]))).map(row=>[Number(row[0]),String(row[1]||'')]);
+  flowEventLayout(eventRows,n-1,X,ML,ML+PW,4).forEach(({label,eventX,labelX,lane})=>{
+    const labelY=22+lane*24,circleY=labelY+9;
+    svg.appendChild(mk('line',{x1:eventX,y1:circleY+3,x2:eventX,y2:MT+PH,stroke:'rgba(17,17,15,.13)','stroke-width':1,'stroke-dasharray':'2 4'}));
+    if(Math.abs(labelX-eventX)>1)svg.appendChild(mk('line',{x1:labelX,y1:circleY,x2:eventX,y2:circleY,stroke:'rgba(17,17,15,.28)','stroke-width':1}));
+    svg.appendChild(mk('circle',{cx:eventX,cy:circleY,r:2.4,fill:'rgba(17,17,15,.55)'}));
+    svg.appendChild(halo(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:700})));
+  });
+  const rightLabels=[];
+  if(analogValues.length===n){
+    let analogPath='';analogValues.forEach((value,index)=>{analogPath+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
+    svg.appendChild(mk('path',{d:analogPath,fill:'none',stroke:'#706f68','stroke-width':1.6,'stroke-dasharray':'6 5','stroke-linejoin':'round',opacity:.72,'data-reference-path':'innovation-cycle'}));
+    const rawEnd=rawAnalog[n-1],shownEnd=analogValues[n-1];
+    if(Number.isFinite(rawEnd)&&Number.isFinite(shownEnd)&&rawEnd>shownEnd)svg.appendChild(halo(tx(X(n-1)-6,Y(shownEnd)-9,`↗ +${Math.round((rawEnd/Number(sc.anchor)-1)*100)}%`,{anc:'end',fill:'#706f68',fs:11,w:700})));
+    rightLabels.push({key:'analog',y:Y(shownEnd),text:'혁신사이클 참조',color:'#706f68',opacity:1,weight:650,fontSize:11});
+  }
+  ['S1','S2','S3'].forEach(key=>{
+    const values=paths[key];if(values.length!==n)return;
+    let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.4,'stroke-linejoin':'round','data-original-path':key}));
+    const endValue=values[n-1];
+    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
+    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
+  });
+  rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
+  rightLabels.push({key:'corr10',y:Y(sc.corr10),text:`−10% ${num(sc.corr10)}`,color:'#c9002d',opacity:1,weight:650,fontSize:11});
+  resolveEndpointLabels(rightLabels,19,MT+10,MT+PH-10).forEach(item=>{
+    const labelX=ML+PW+19;
+    svg.appendChild(mk('path',{d:`M${ML+PW+5},${item.y} L${ML+PW+12},${item.y} L${labelX-3},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:item.opacity*.72}));
+    svg.appendChild(halo(tx(labelX,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
+  });
+  svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
+  svg.appendChild(halo(tx(X(0)-6,Y(sc.anchor)-11,'현재 '+num(Math.round(Number(sc.anchor))),{fill:'#11110f',w:600})));
+  flowAxisTickIndexes(n,7).forEach((index,tickPosition)=>{
+    svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
+    svg.appendChild(tx(X(index),MT+PH+18,tickPosition===0?'현재 · '+weeks[index]:weeks[index],{anc:'middle',fs:12,fill:tickPosition?'#5f5d57':'#174c49',w:tickPosition?500:750}));
+  });
+  const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'−10%선 누적 터치확률',{anc:'end',fill:'#5f5d57',fs:11}));
+  let segmentStart=0;
+  for(let index=1;index<=n;index++){
+    if(index<n&&riskValues[index]===riskValues[segmentStart])continue;
+    const end=index-1,risk=riskValues[segmentStart];
+    const left=segmentStart===0?X(0)-2:(X(segmentStart-1)+X(segmentStart))/2,right=end===n-1?X(end)+2:(X(end)+X(end+1))/2,width=Math.max(1,right-left);
+    const fill=risk==='고'?'rgba(201,0,45,.92)':(risk==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)'),textColor=risk==='고'?'#fff':(risk==='중'?'#513300':'#174c49');
+    svg.appendChild(mk('rect',{x:left,y:RY,width,height:RH,fill,stroke:'rgba(17,17,15,.1)'}));
+    if(width>=28&&risk)svg.appendChild(tx(left+width/2,RY+18,risk,{anc:'middle',fs:12,fill:textColor,w:700}));
+    segmentStart=index;
+  }
+  const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3'});svg.appendChild(xh);
+  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length===n?1:0});svg.appendChild(marker);return marker;});
+  const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);
+  const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
+  let cursorIndex=0;
+  const paintCursor=index=>{
+    cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex);
+    xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
+    ['S1','S2','S3'].forEach((key,markerIndex)=>{if(paths[key].length!==n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
+  };
+  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
+  overlay.addEventListener('pointermove',event=>{
+    const index=indexFromPointer(event);paintCursor(index);
+    if(!finePointer)return;
+    tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
+    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${['S1','S2','S3'].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
+  });
+  overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
+  overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  svg.addEventListener('keydown',event=>{
+    if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
+    else if(event.key==='Home'){event.preventDefault();paintCursor(0);}
+    else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}
+  });
+  host.replaceChildren(svg);paintCursor(0);
+}
+function originalFlowPanel(){
+  const sc=DATA.scenario;
+  if(!sc||!Array.isArray(sc.weeks)||sc.weeks.length<2||!sc.paths)return null;
+  const legend=['S1','S2','S3'].map(key=>`<span><b style="background:${CHART_COL[key]}"></b>${key} ${esc(sc.paths?.[key]?.label||'')} · ${esc(sc.paths?.[key]?.prob)}%</span>`).join('');
+  const analogLegend=sc.analog?.values?.length?`<span><b style="background:#706f68"></b>${esc(sc.analog.label||'혁신사이클 참조선 — 시나리오 아님')}</span>`:'';
+  const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
+    <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
+      <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
+      <p>최초 버전의 그래프입니다. 하나의 시나리오 문서에서 갈라지는 세 경로를 그립니다. 기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
+      <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
+    <div class="band-inline">${legend}${analogLegend}</div>
+    <div class="chart-wrap"><div id="original-flow-chart"></div></div>
+    <p class="chart-note">${esc(sc.note||'')}</p>
+    <p class="chart-note">참고 의견이며 투자 자문이 아닙니다. 아래 띠는 −10%선 누적 터치확률이고, 회색 점선은 참조선 — 시나리오 아님입니다.</p>
+  </section>`);
+  drawOriginalWeeklyFlow($('#original-flow-chart',panel),sc);
+  return panel;
+}
 function renderScenarioV52(candidate,initialState={}){
   const root=el('<div></div>'),scenarios=candidate.conditional_small_multiples?.scenarios||{},touch=candidate.first_touch_distribution||{},attr=candidate.evidence_attribution||{},ablations=candidate.ablations||{},dotcom=candidate.dotcom_scenario_weighting||{},governance=candidate.governance||{},hard=candidate.model?.hard_event_mapping||{},clusters=candidate.model?.cluster_disclosure||{},layerGate=candidate.model?.database_layer_gate||{},promotionGates=governance.gates||{},weightSpaces=candidate.weight_spaces||{},distinctness=candidate.distinctness||{};
   const pct=value=>`${Math.round(Number(value)*100)}%`,pp=value=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%p`,weightPct=value=>`${Math.round(Number(value||0)*100)}%`;
@@ -1609,6 +1727,8 @@ function renderScenarioV52(candidate,initialState={}){
   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow" id="v52-page-eyebrow">미래 탐색</p><h1 id="v52-page-title">세 가지 시장 경로</h1><p class="page-lede" id="v52-page-lede">상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.</p></div></div>`));
   const outlook=el(`<div id="lab-future" role="tabpanel" aria-labelledby="lab-tab-future">
     <section class="scenario-v52-overview" aria-label="전망 기준 요약"><div><span>기준일</span><strong>${esc(candidate.as_of.slice(0,10))}</strong></div><div><span>현재 지수</span><strong>${num(Math.round(anchor))}</strong></div><div><span>검토 경로</span><strong>${num(candidate.model.path_count)}개</strong></div><div><span>사용 DB</span><strong>서로 다른 3개 군집</strong></div></section>
+    <div class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"><button type="button" data-future-graph="unified" aria-pressed="true">세 가지 시장 경로</button><button type="button" data-future-graph="original" aria-pressed="false">단일 시나리오 주간 흐름</button></div>
+    <div data-future-graph-panel="unified">
     <section class="scenario-v52-main" data-chart-role="unified-scenarios"><div class="panel-head"><div><p class="eyebrow">SAME SCALE · LOG VIEW</p><h2 id="scenario-v52-chart-title">3개월 · 세 시나리오 한눈에</h2></div><span class="count-chip">로그 스케일</span></div>
       <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.entries(V52_RANGE_META).map(([key,row])=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${row[0]}</button>`).join('')}</div>
       <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small><em>독립 원천 ${num(clusters[key]?.unique_sampled_source_origins||0)}개 · 모의 ${num(clusters[key]?.simulation_path_count||scenarios[key]?.path_count||0)}경로</em></span>`).join('')}<span class="is-path-key"><i></i><b>선 읽는 법</b><small>굵은 선=p50 · 점선=실제 중심 경로 · 회색 영역=전체 중심 구간</small><em>과거 1/4 · 전망 3/4 시간축</em></span></div>
@@ -1624,6 +1744,8 @@ function renderScenarioV52(candidate,initialState={}){
     </div></section>
     <section class="scenario-v52-timing"><div class="scenario-v52-section-title"><p class="eyebrow">세부 통계</p><h2>−10%선을 처음 만나는 시기</h2><p>정확한 날짜 예측이 아니라, 조정이 발생한 경로들의 시점 분포입니다.</p></div><div>${(touch.density||[]).map((value,index)=>`<i title="${esc(touch.dates[index])}" style="height:${Math.max(1,Number(value)/Math.max(...(touch.density||[]),1e-12)*100)}%"></i>`).join('')}</div><p>중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')} · 특정 날짜 확정 아님</p></section>
     <details class="scenario-v52-method"></details>
+    </div>
+    <div data-future-graph-panel="original" hidden></div>
   </div>`);
   const baselineAudit=distinctness.baseline_comparison||{},adapter=layerGate.structural_event_adapter||{};
   const legacyInsights=$('#scenario-v52-insights-title',outlook)?.closest('.scenario-v52-insights');
@@ -1654,14 +1776,27 @@ function renderScenarioV52(candidate,initialState={}){
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
   const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${V52_RANGE_META[rangeKey][0]} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
   outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.onclick=()=>paintRange(button.dataset.v52Range));
+  const graphPanels={unified:$('[data-future-graph-panel="unified"]',outlook),original:$('[data-future-graph-panel="original"]',outlook)};
+  const originalPanel=originalFlowPanel();
+  if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(originalPanel);
+  if(!originalPanel)$('.future-graph-switch',outlook)?.remove();
+  let graphKey='unified';
+  const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future';
+  const paintFutureGraph=(key,sync)=>{
+    graphKey=originalPanel&&key==='original'?'original':'unified';
+    Object.entries(graphPanels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==graphKey;});
+    outlook.querySelectorAll('[data-future-graph]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.futureGraph===graphKey)));
+    if(sync)history.replaceState(null,'',futureGraphHash());
+  };
+  outlook.querySelectorAll('[data-future-graph]').forEach(button=>{button.onclick=()=>paintFutureGraph(button.dataset.futureGraph,true);});
   const copies={future:['미래 탐색','세 가지 시장 경로','상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.'],history:['과거 비교','과거 혁신 사이클은 어떻게 움직였나','과거 사례를 같은 시작점에 맞춰 비교합니다. 현재 전망값이나 사건 확률은 아닙니다.'],'cross-asset':['교차자산 비교','닷컴 조정 뒤 자산별 회복은 어떻게 달랐을까','NASDAQ·Realty Income·D.R. Horton 실측과 Bitcoin 민감도 경로를 시작값 100으로 맞춰 비교합니다.'],liquidity:['시장 자금 흐름','유동성이 늘고 줄어든 구간','Fed 순유동성과 NASDAQ·Bitcoin 수익률을 같은 주간축에서 참고용으로 비교합니다.']};
   const panels={future:outlook,history:historyPanel,'cross-asset':crossAsset,liquidity};
   const activateLab=key=>{const active=panels[key]?key:'future';Object.entries(panels).forEach(([name,panel])=>{if(panel)panel.hidden=name!==active;});labTabs.querySelectorAll('[data-lab-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.labTab===active)));const copy=copies[active];$('#v52-page-eyebrow',root).textContent=copy[0];$('#v52-page-title',root).textContent=copy[1];$('#v52-page-lede',root).textContent=copy[2];};
-  labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)').forEach(button=>button.onclick=()=>{activateLab(button.dataset.labTab);history.replaceState(null,'',button.dataset.labTab==='future'?'#future':`#future/${button.dataset.labTab}`);});
+  labTabs.querySelectorAll('[data-lab-tab]:not(:disabled)').forEach(button=>button.onclick=()=>{activateLab(button.dataset.labTab);history.replaceState(null,'',button.dataset.labTab==='future'?futureGraphHash():`#future/${button.dataset.labTab}`);});
   if(historyPanel){const analogHost=$('#ovchart',historyPanel);drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,'ALL');historyPanel.querySelectorAll('[data-analog-focus]').forEach(button=>button.onclick=()=>{analogHost.innerHTML='';drawOverlay(analogHost,historyPanel._overlay,historyPanel._eras,historyPanel._eraStarts,button.dataset.analogFocus);historyPanel.querySelectorAll('[data-analog-focus]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));});}
   if(crossAsset)bindCrossAsset(crossAsset,initialState.scenario);
   if(liquidity)bindLiquidity(liquidity);
-  activateLab(initialState.lab||'future');paintRange(rangeKey);
+  activateLab(initialState.lab||'future');paintRange(rangeKey);paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false);
 }
 function renderFlow(initialLookup){
   const initialState=initialLookup&&typeof initialLookup==='object'?initialLookup:{lookup:initialLookup};

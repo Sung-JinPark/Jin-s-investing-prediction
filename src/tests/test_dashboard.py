@@ -641,6 +641,48 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "return renderScenarioV52(candidate52)" not in html
 
 
+def test_future_graph_subcategory_restores_original_single_scenario_chart() -> None:
+    """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
+    html = dashboard.load_template()
+    assert "function drawOriginalWeeklyFlow(host,sc)" in html
+    assert "function originalFlowPanel()" in html
+    for required in (
+        'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
+        'data-future-graph="unified" aria-pressed="true"',
+        'data-future-graph="original" aria-pressed="false"',
+        'data-future-graph-panel="unified"',
+        'data-future-graph-panel="original" hidden',
+        "세 가지 시장 경로",
+        "단일 시나리오 주간 흐름",
+    ):
+        assert required in html, required
+    assert "if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}}" in html
+    assert "const futureGraphHash=()=>graphKey==='original'?'#future/original':'#future'" in html
+    assert "button.dataset.labTab==='future'?futureGraphHash():" in html
+    assert "paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false)" in html
+    assert "단일 시나리오 · 챔피언 GBM · 참고 의견" in html
+    assert "기본 그래프인 세 가지 시장 경로를 대체하지 않습니다" in html
+    assert "참고 의견이며 투자 자문이 아닙니다" in html
+    assert "id=\"original-flow-chart\"" in html
+    assert "DATA.scenario" in html
+
+
+def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
+    """복구 차트가 라이트 테마 팔레트와 기존 확대보기 계약을 그대로 쓰는지 고정."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    assert "CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart'" in script
+    assert '<div class="chart-wrap"><div id="original-flow-chart"></div></div>' in script
+    assert "stroke:CHART_COL[key],'stroke-width':2.4" in script
+    assert "color:CHART_LABEL_COL[key]" in script
+    assert "const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);" in script
+    assert "flowAxisTickIndexes(n,7)" in script
+    assert "'−10%선 누적 터치확률'" in script
+    assert "혁신사이클 참조선 — 시나리오 아님" in html
+    assert "23500" not in script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+    assert "#0a0e1a" not in html, "다크 테마 색값을 복구하면 안 됨"
+
+
 def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> None:
     html = dashboard.load_template()
     assert "month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}]" in html

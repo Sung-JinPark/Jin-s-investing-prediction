@@ -42,6 +42,7 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("future-default", "#future"),
         ("future-research", "#future/research"),
         ("future-champion", "#future/champion"),
+        ("future-original", "#future/original"),
         ("future-history", "#future/history"),
         ("future-cross-asset", "#future/cross-asset"),
         ("future-ai-regime", "#future/ai-regime"),
