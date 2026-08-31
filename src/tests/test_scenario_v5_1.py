@@ -231,8 +231,9 @@ def test_p50_primary_member_secondary_and_2027_common_continuation() -> None:
     script = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     # 문구는 평이한 한국어로 바뀌었지만 "모의 경로 하나 · 날짜 예측 아님" 공시는 유지된다
     assert "실제로 나온 경로 하나 · 날짜별 값을 맞히는 선이 아닙니다" in script
-    assert "conditional weighted p50" in script
-    assert "common-model continuation" in script
+    # 라벨은 평이한 한국어로 바뀌었지만 '한가운데 경로 vs 실제 경로 하나' 구분은 유지된다
+    assert "한가운데 경로" in script
+    assert "2027년은 같은 모델로 이어 그립니다" in script
     assert "RCFHS-SB v1 shadow" not in script
 
 
