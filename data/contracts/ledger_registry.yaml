@@ -187,6 +187,13 @@ ledgers:
     criticality: medium
     schema_ref: json_object
     timestamp_field: checked_at
+  - id: ipo_edgar_candidates
+    path: data/statistics/ipo/edgar_candidates.json
+    kind: mutable_snapshot
+    cadence: biweekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: checked_at
   - id: timeseries_raw_receipts
     path: data/timeseries/ledgers/raw_receipts.jsonl
     kind: jsonl
