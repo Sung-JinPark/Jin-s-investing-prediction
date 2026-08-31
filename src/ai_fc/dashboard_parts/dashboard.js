@@ -799,7 +799,7 @@ const MID_CATEGORIES={
     {key:'liquidity',label:'유동성',hash:'#future/liquidity',code:'04',hint:'시장 자금 흐름'}
   ],
   statistics:[
-    {key:'all',label:'전체',hash:'#statistics',code:'01',hint:'모든 비교 지표'},
+    {key:'all',label:'전체',hash:'#statistics',code:'01',hint:'모든 비교 지표',railHidden:true},
     {key:'ipo',label:'IPO·상장',hash:'#statistics/ipo',code:'02',hint:'상장 열기와 흡수 강도'},
     {key:'liquidity',label:'유동성',hash:'#statistics/liquidity',code:'03',hint:'M2·가계 현금성 자산'},
     {key:'rates',label:'금리',hash:'#statistics/rates',code:'04',hint:'장단기 금리차·정책금리'},
@@ -825,7 +825,7 @@ const MID_CATEGORIES={
     {key:'audit',label:'감사 기록',hash:'#trust/audit',code:'03',hint:'영수증과 정정 이력'}
   ]
 };
-function midCategories(section){return (MID_CATEGORIES[section]||[]).filter(item=>!item.available||item.available());}
+function midCategories(section,forRail){return (MID_CATEGORIES[section]||[]).filter(item=>(!item.available||item.available())&&!(forRail&&item.railHidden));}
 function currentMidCategory(section,rawHash){
   const items=midCategories(section);
   let best=null;
@@ -849,7 +849,7 @@ function syncMidHash(hash){
   paintRailSubNav(document.body.dataset.view||'today',hash);
 }
 function paintRailSubNav(navView,rawHash){
-  const items=midCategories(navView),current=currentMidCategory(navView,rawHash);
+  const items=midCategories(navView,true),current=currentMidCategory(navView,rawHash);
   document.querySelectorAll('.view-nav').forEach(nav=>{
     nav.querySelectorAll('.rail-sub').forEach(node=>node.remove());
     if(items.length<2)return;
@@ -1576,7 +1576,7 @@ function scenarioV52RangeReadout(candidate,rangeKey='quarter'){
   return `<div class="scenario-v52-range-date"><span>선택 기간</span><strong>${esc(range.label)}</strong><small>${esc(range.dates.at(-1)||'—')} 기준</small></div>${['S1','S2','S3'].map(key=>{const value=Number(scenarios[key]?.bands?.p50?.[range.end]),change=(value/anchor-1)*100,direction=change>1?'상승':change< -1?'하락':'중립';return `<div><span>${key} · ${V52_SCENARIO_META[key].title}</span><strong style="color:${V52_SCENARIO_META[key].color}">${direction} · ${num(Math.round(value))}</strong><small>${change>=0?'+':''}${change.toFixed(1)}% · 연구 코호트 가중치 ${Math.round(Number(scenarios[key]?.probability||0)*100)}%</small></div>`;}).join('')}`;
 }
 const hasStructuralPaths=candidate=>['S1','S2','S3'].every(key=>Array.isArray(candidate?.structural_forecast?.paths?.[key]?.values)&&candidate.structural_forecast.paths[key].values.length===candidate?.week_dates?.length);
-function drawOriginalWeeklyFlow(host,sc,showSamples=false){
+function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=620,ML=58,MR=148,MT=120,MB=30,HCH=550;
   const weeks=sc.weeks||[],n=weeks.length,riskValues=sc.risk||[];
@@ -1586,7 +1586,8 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false){
   const usingStructural=hasStructuralPaths(sc);
   const paths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,structuralSource[key].slice(0,n).map(Number)]));
   const rawPaths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,rawSource[key].slice(0,n).map(Number)]));
-  const sampleRows=showSamples?['S1','S2','S3'].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).map((row,order)=>({key,order,percentile:Number(row.terminal_percentile),values:(row.values||[]).slice(0,n).map(Number)}))).filter(row=>row.values.length===n):[];
+  const activeKey=['S1','S2','S3'].includes(scenarioKey)?scenarioKey:'S1';
+  const sampleRows=showSamples?[activeKey].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).map((row,order)=>({key,order,percentile:Number(row.terminal_percentile),values:(row.values||[]).slice(0,n).map(Number)}))).filter(row=>row.values.length===n):[];
   const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
   const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
   const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues].map(Number).filter(Number.isFinite);
@@ -1595,7 +1596,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false){
   const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
-  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. ${usingStructural?'DB 조건부 구조 경로':'조건부 중앙 경로'} S1·S2·S3와 혁신사이클 참조선${usingStructural?', 굴곡 적용 전 GBM 중앙값 고스트 선':''}${showSamples?', 실제 모의 경로 표본':''}, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
+  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. ${esc(sc.paths?.[activeKey]?.label||activeKey)} ${usingStructural?'DB 조건부 구조 경로':'조건부 중앙 경로'}와 혁신사이클 참조선${usingStructural?', 굴곡 적용 전 GBM 중앙값 고스트 선':''}${showSamples?', 실제 모의 경로 표본':''}, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
   const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
@@ -1626,15 +1627,15 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false){
     let d='';row.values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
     svg.appendChild(mk('path',{d,fill:'none',stroke:'#5f6470','stroke-width':row.percentile===50?1.25:1,'stroke-dasharray':row.order===0?'3 3':'7 3',opacity:row.percentile===50?.42:.28,'data-sample-path':`${row.key}-${row.percentile}`}));
   });
-  if(usingStructural)['S1','S2','S3'].forEach(key=>{
+  if(usingStructural)[activeKey].forEach(key=>{
     const values=rawPaths[key];if(values.length!==n)return;
     let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
     svg.appendChild(mk('path',{d,fill:'none',stroke:'#697078','stroke-width':1.35,'stroke-dasharray':'2 5','stroke-linecap':'round','stroke-linejoin':'round',opacity:.5,'data-baseline-path':key}));
   });
-  ['S1','S2','S3'].forEach(key=>{
+  [activeKey].forEach(key=>{
     const values=paths[key];if(values.length!==n)return;
     let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.4,'stroke-linejoin':'round','data-original-path':key}));
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.6,'stroke-linejoin':'round','data-original-path':key}));
     const endValue=values[n-1];
     svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
     rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
@@ -1664,21 +1665,21 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false){
     segmentStart=index;
   }
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3'});svg.appendChild(xh);
-  const cursorMarkers=['S1','S2','S3'].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length===n?1:0});svg.appendChild(marker);return marker;});
+  const cursorMarkers=[activeKey].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length===n?1:0});svg.appendChild(marker);return marker;});
   const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);
   const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
   let cursorIndex=0;
   const paintCursor=index=>{
     cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex);
     xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
-    ['S1','S2','S3'].forEach((key,markerIndex)=>{if(paths[key].length!==n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
+    [activeKey].forEach((key,markerIndex)=>{if(paths[key].length!==n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
   };
   const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
   overlay.addEventListener('pointermove',event=>{
     const index=indexFromPointer(event);paintCursor(index);
     if(!finePointer)return;
     tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
-    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${['S1','S2','S3'].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
+    tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${[activeKey].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
   });
   overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
   overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
@@ -1694,30 +1695,38 @@ function originalFlowPanel(){
   if(!sc||!Array.isArray(sc.weeks)||sc.weeks.length<2||!sc.paths)return null;
   const structural=hasStructuralPaths(sc);
   const memberCount=['S1','S2','S3'].reduce((total,key)=>total+((sc.path_realism?.[key]?.sample_paths||[]).length),0);
-  const legend=['S1','S2','S3'].map(key=>`<span><b style="background:${CHART_COL[key]}"></b>${key} ${esc(sc.paths?.[key]?.label||'')} · ${esc(sc.paths?.[key]?.prob)}%</span>`).join('');
+  const scenarioPick=`<div class="cross-view-switch original-scenario-switch" role="group" aria-label="표시할 시나리오">${['S1','S2','S3'].map(key=>`<button type="button" data-original-scenario="${key}" aria-pressed="${String(key==='S1')}">${key} ${esc(sc.paths?.[key]?.label||'')} · ${esc(sc.paths?.[key]?.prob)}%</button>`).join('')}</div>`;
   const analogLegend=sc.analog?.values?.length?`<span><b style="background:#706f68"></b>${esc(sc.analog.label||'혁신사이클 참조선 — 시나리오 아님')}</span>`:'';
   const ghostLegend=structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중앙값</span>':'';
   const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>PATH LAYERS</span><button type="button" data-original-samples aria-pressed="false"><i></i>실제 모의 경로 ${num(memberCount)}개 같이 보기</button><small>기본 숨김 · 대표선으로 쓰지 않습니다</small></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
     <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
       <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
-      <p>최초 버전의 그래프입니다. 하나의 시나리오 문서에서 갈라지는 세 경로를 그립니다. 기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
+      <p>최초 버전의 그래프입니다. 한 번에 한 경로만 그립니다. 기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
-    <div class="band-inline">${legend}${ghostLegend}${analogLegend}</div>
+    ${scenarioPick}
+    <div class="band-inline"><span><b data-original-active-swatch style="background:${CHART_COL.S1}"></b><b data-original-active-label>${esc(sc.paths?.S1?.label||'S1')} 경로</b></span>${ghostLegend}${analogLegend}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
     <p class="chart-note">${esc(sc.note||'')}</p>
     <p class="chart-note">${structural?'굵은 선은 DB 조건부 구조 경로입니다. 굴곡은 역사 중앙 형태 가정이지 특정 거래일 사건 예측이 아니며, 회색 점선은 굴곡 적용 전 GBM 중앙값입니다. ':''}참고 의견이며 투자 자문이 아닙니다. 아래 띠는 −10%선 누적 터치확률이고, 회색 점선은 참조선 — 시나리오 아님입니다.</p>
+    ${structural?'<p class="chart-note">S1·S2·S3 구조 경로는 <b>같은 월별 굴곡 형태를 공유하고 진폭만 다릅니다</b>. 겹쳐 그리면 서로 다른 세 경로처럼 보이므로 한 번에 하나만 표시합니다. 경로별 종점은 아래에 함께 적습니다.</p>':''}
+    <div class="scenario-v52-readout" data-original-endpoints>${['S1','S2','S3'].map(key=>`<div><span>${key} · ${esc(sc.paths?.[key]?.label||'')}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(Math.round(Number((flowDisplayPath(sc,key)||[]).at(-1)||0)))}</strong><small>연구 코호트 비중 ${esc(sc.paths?.[key]?.prob)}%</small></div>`).join('')}</div>
     ${memberCount?'<p class="chart-note" data-original-sample-note hidden>ONE SIMULATED MEMBER · EXACT DATES ARE NOT FORECAST — 얇은 점선은 같은 GBM 추첨에서 나온 실제 모의 경로이며, 모의 표본을 대표선으로 쓰지 않습니다.</p>':''}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
-  let samplesOn=false;
+  const activeSwatch=$('[data-original-active-swatch]',panel),activeLabel=$('[data-original-active-label]',panel);
+  let samplesOn=false,scenarioKey='S1';
   const paintOriginal=()=>{
-    drawOriginalWeeklyFlow(chartHost,sc,samplesOn);
+    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,scenarioKey);
+    panel.querySelectorAll('[data-original-scenario]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.originalScenario===scenarioKey)));
+    if(activeSwatch)activeSwatch.style.background=CHART_COL[scenarioKey];
+    if(activeLabel)activeLabel.textContent=`${sc.paths?.[scenarioKey]?.label||scenarioKey} 경로`;
     if(sampleButton)sampleButton.setAttribute('aria-pressed',String(samplesOn));
     if(sampleNote)sampleNote.hidden=!samplesOn;
   };
   if(sampleButton)sampleButton.onclick=()=>{samplesOn=!samplesOn;paintOriginal();};
+  panel.querySelectorAll('[data-original-scenario]').forEach(button=>{button.onclick=()=>{scenarioKey=button.dataset.originalScenario;paintOriginal();};});
   paintOriginal();
   return panel;
 }

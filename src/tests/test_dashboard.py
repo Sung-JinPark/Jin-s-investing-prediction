@@ -753,7 +753,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
 def test_future_graph_subcategory_restores_original_single_scenario_chart() -> None:
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
-    assert "function drawOriginalWeeklyFlow(host,sc,showSamples=false)" in html
+    assert "function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1')" in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -782,7 +782,7 @@ def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     assert "CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart'" in script
     assert '<div class="chart-wrap"><div id="original-flow-chart"></div></div>' in script
-    assert "stroke:CHART_COL[key],'stroke-width':2.4" in script
+    assert "stroke:CHART_COL[key],'stroke-width':2.6" in script
     assert "color:CHART_LABEL_COL[key]" in script
     assert "const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);" in script
     assert "flowAxisTickIndexes(n,7)" in script
@@ -817,6 +817,42 @@ def test_dead_render_paths_are_not_shipped() -> None:
         assert kept in html, kept
 
 
+def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
+    """구조 경로 세 개는 같은 월별 굴곡 형태를 진폭만 바꿔 쓴다.
+
+    겹쳐 그리면 '서로 다른 세 경로'처럼 보이므로 한 번에 하나만 굵게 그리고,
+    형태를 공유한다는 사실을 화면에 밝힌다.
+    """
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    body = script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+
+    assert "const activeKey=['S1','S2','S3'].includes(scenarioKey)?scenarioKey:'S1';" in body
+    for single in ("  [activeKey].forEach(key=>{", "if(usingStructural)[activeKey].forEach(key=>{"):
+        assert single in body, single
+    assert body.count("['S1','S2','S3'].forEach") == 0, "세 경로를 한꺼번에 그리면 안 된다"
+
+    # 선택기와 공시
+    assert 'data-original-scenario="${key}"' in html
+    assert "같은 월별 굴곡 형태를 공유하고 진폭만 다릅니다" in html
+    assert "한 번에 하나만 표시합니다" in html
+    # 나머지 두 경로의 종점은 표로 남긴다
+    assert "data-original-endpoints" in html
+    assert "연구 코호트 비중" in html
+
+
+def test_mid_navigation_strips_are_compact() -> None:
+    """중분류 탭이 통계 필터와 같은 조밀한 한 줄이어야 한다."""
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert ".lab-tabs{margin:16px 0 12px;display:flex;flex-wrap:wrap" in css
+    assert ".lab-tabs button{min-width:112px;min-height:44px" in css
+    assert ".lab-tabs button>small{display:none}" in css, "부제는 한 줄에 들어가지 않는다"
+    assert "grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;border:1px solid var(--line-strong)" not in css
+    # 기준 요약 스트립도 축소
+    assert ".scenario-v52-overview>div{padding:9px 13px" in css
+    assert ".scenario-v52-overview strong{font:780 14px/1.2 var(--mono)}" in css
+
+
 def test_mid_category_registry_drives_rail_hierarchy() -> None:
     """대분류 아래 중분류가 레일에 실제로 보이는지 고정 (v1은 본문 탭만 있었다)."""
     html = dashboard.load_template()
@@ -825,7 +861,10 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     # 하나의 레지스트리가 레일·본문·명령 팔레트를 모두 먹인다
     assert "const MID_CATEGORIES={" in html
     assert "const SECTION_TITLES={today:'오늘',future:'미래 탐색'" in html
-    assert "function midCategories(section)" in html
+    assert "function midCategories(section,forRail)" in html
+    # 통계의 "전체"는 본문 필터 줄에만 남기고 레일에서는 뺀다
+    assert "railHidden:true" in html
+    assert "midCategories(navView,true)" in html
     assert "function currentMidCategory(section,rawHash)" in html
 
     # 레일 주입과 route() 호출
