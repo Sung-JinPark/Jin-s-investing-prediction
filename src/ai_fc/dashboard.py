@@ -800,6 +800,25 @@ def _compact_embed_forecast_history(read_model: dict) -> dict:
     return compacted
 
 
+def _compact_embed_band_calibration(read_model: dict) -> dict:
+    """Omit gate observation rows from the standalone embed only.
+
+    dashboard.js reads promotion-gate aggregates, never the raw observation
+    rows, so the daily-appended rows array only consumes the fixed 900 KiB
+    embed contract. The complete rows stay in the source CSV
+    (``source_path``), the Pages ``data.json`` artifact, and the API mode.
+    The input model is never mutated.
+    """
+    band = read_model.get("band_calibration")
+    if not isinstance(band, dict) or "rows" not in band:
+        return read_model
+    compacted = dict(read_model)
+    compacted["band_calibration"] = {
+        key: value for key, value in band.items() if key != "rows"
+    }
+    return compacted
+
+
 def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
@@ -833,6 +852,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_future_paths(read_model)
         read_model = _compact_embed_forecast_history(read_model)
+        read_model = _compact_embed_band_calibration(read_model)
         # Compact only the embedded JSON. Source CSS/JS remain readable and testable;
         # removing JSON's repeated separator spaces keeps the standalone snapshot compact.
         blob = json.dumps(

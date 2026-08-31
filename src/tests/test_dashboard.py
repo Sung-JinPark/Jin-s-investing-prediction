@@ -128,6 +128,29 @@ def test_embed_compaction_archives_resolved_body_without_mutating_pages_model() 
         == "historical reasoning"
 
 
+def test_embed_compaction_omits_band_calibration_rows_without_mutating_pages_model() -> None:
+    model = {
+        "band_calibration": {
+            "status": "ready",
+            "source_path": "data/scenarios/band_calibration.csv",
+            "observations": 2,
+            "minimum_observations": 60,
+            "gate_pass": False,
+            "latest_asof": "2026-08-28",
+            "rows": [{"asof": "2026-08-27"}, {"asof": "2026-08-28"}],
+        }
+    }
+    compacted = dashboard._compact_embed_band_calibration(model)
+    assert "rows" not in compacted["band_calibration"]
+    assert compacted["band_calibration"]["observations"] == 2
+    assert compacted["band_calibration"]["latest_asof"] == "2026-08-28"
+    assert compacted["band_calibration"]["source_path"] \
+        == "data/scenarios/band_calibration.csv"
+    assert model["band_calibration"]["rows"] == [
+        {"asof": "2026-08-27"}, {"asof": "2026-08-28"},
+    ]
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 
@@ -866,6 +889,11 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
         assert "conditional_distribution" not in model["scenario_v5"]
     html = dashboard.render_html(model, mode="embed")
     assert len(html.encode("utf-8")) <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    blob = html.split("window.__DATA__ = ", 1)[1].split("</script>", 1)[0]
+    embedded = json.loads(blob.rstrip().rstrip(";"))
+    assert "rows" not in embedded["band_calibration"]
+    assert embedded["band_calibration"]["observations"] \
+        == len(model["band_calibration"]["rows"])
 
 
 def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
