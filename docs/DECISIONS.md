@@ -186,6 +186,15 @@ FRED 약관(취득 2026-08-31)은 자동 수집을 금지하면서 단서를 단
 부르게 된 `investing-refresh`·`scenario-refresh`·`statistics-refresh`·`ai-regime-refresh` 4개는
 누락 상태였다. 4개 모두 job-level `env`로 배선했다.
 
+**후속 수정 (같은 날, 배포 검증 중 발견)**: 전환 직후 `statistics_lab.py`는 전송만 API로 바뀌고
+**영수증의 `request_url`은 여전히 `fredgraph.csv`를 기록**하고 있었다(3곳). 영수증의 존재 이유가
+"이 바이트가 어디서 왔는가"인데, 이제 쓰지 않고 약관도 금지하는 경로를 가리키고 있었다 —
+감사자가 보면 아직 스크랩 중이라고 읽는다. 실제 취득 URL(키 없는 공개형)로 교체하고, 이를 강제하던
+소스 계약 2건(`fred_market_signals.yaml`·`statistics_lab_v1.yaml`)의 `endpoint`도 함께 맞췄다.
+정책의 `allowed_domains`에는 `api.stlouisfed.org`가 이미 있어 별도 확장은 필요 없었다.
+`market_extensions`·`realty_income`은 처음부터 올바르게 기록하고 있었고, `quant/feed`의 영수증은
+Yahoo용이라 무관하다. 미활성 사전 스펙(`fred_nfci_d0`·`fred_stlfsi4_d0`)은 대상이 아니다.
+
 **미해결 (문서로 해소 불가 — 소유자 판단 영역)**
 
 - 12-5는 FRED의 **AI/ML 사용 금지 조항**("in connection with the development or training of any

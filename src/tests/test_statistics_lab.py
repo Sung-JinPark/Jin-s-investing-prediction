@@ -22,7 +22,6 @@ from ai_fc.authoritative_statistics import (
 )
 from ai_fc.statistics_lab import (
     DAILY_MARKET_SERIES,
-    FRED_ENDPOINT,
     FRED_SERIES,
     IPO_REFERENCE_CHART_IDS,
     StatisticsLabError,
@@ -1090,7 +1089,16 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert len(payload["sources"]) == 27
     assert all(source["raw_sha256"] for source in payload["sources"])
     fred_sources = [source for source in payload["sources"] if source["series_id"] in FRED_SERIES]
-    assert all("fredgraph.csv?id=" in source["request_url"] for source in fred_sources)
+    # 영수증은 실제 취득 경로를 가리켜야 한다 — 전송은 공식 API다 (DECISIONS 12-6).
+    assert all(
+        source["request_url"].startswith(
+            "https://api.stlouisfed.org/fred/series/observations?"
+        )
+        for source in fred_sources
+    )
+    assert not any("fredgraph.csv" in source["request_url"] for source in fred_sources)
+    # 키가 영수증에 새어 들어가면 안 된다.
+    assert not any("api_key" in source["request_url"] for source in fred_sources)
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 7
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
