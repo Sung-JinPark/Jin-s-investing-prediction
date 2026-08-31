@@ -233,3 +233,35 @@ def test_real_registry_deterministic_rules_do_not_read_no_examples() -> None:
         assert rule.operator == operator
         assert (rule.threshold if rule.threshold is not None
                 else rule.reference_multiplier) == target
+
+
+def test_benchmark_market_prob_is_converted_from_percent_to_fraction() -> None:
+    """market_implied는 퍼센트, 원장 market_prob은 분수 — 변환 누락 회귀 방지.
+
+    예측 파일 frontmatter는 TEMPLATE에 따라 시장내재확률을 **퍼센트**로 적는다
+    (`market_implied: <시장내재확률 % | null>`). 반면 benchmark_ledger의
+    market_prob 컬럼은 정본 분수라 ingest가 [0,1] 범위를 강제한다. 변환이
+    빠지면 22가 22.0으로 기록돼 Q1 격리되고 market_brier가 484.0이 된다
+    (2026-07-31 채점분 2행에서 실제 발생, CORR-260801-001/002).
+    """
+    import inspect
+    from ai_fc import resolver
+
+    source = inspect.getsource(resolver)
+    # llm_prob과 동일하게 100으로 나눈다.
+    assert '"llm_prob": round(r["probability"] / 100.0, 4)' in source
+    assert '"market_prob": round(float(mi) / 100.0, 4)' in source
+    assert "float(mi) / 100.0 - val" in source
+    # 변환 없는 옛 표현이 되살아나지 않도록 고정.
+    assert '"market_prob": round(float(mi), 4)' not in source
+
+    # 값 검증: 퍼센트 입력이 분수와 정본 Brier로 떨어지는가.
+    for market_percent, outcome, expect_prob, expect_brier in (
+        (22, 0, 0.22, 0.0484),
+        (5, 0, 0.05, 0.0025),
+        (52, 1, 0.52, 0.2304),
+    ):
+        prob = round(float(market_percent) / 100.0, 4)
+        assert prob == expect_prob
+        assert 0.0 <= prob <= 1.0
+        assert round((prob - outcome) ** 2, 4) == expect_brier

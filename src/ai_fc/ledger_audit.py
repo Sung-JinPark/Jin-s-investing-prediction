@@ -74,7 +74,14 @@ def _dates(paths: list[Path], timestamp_field: str | None = None) -> list[date]:
         if path.suffix.lower() == ".json":
             try:
                 raw = json.loads(path.read_text(encoding="utf-8"))
-                value = raw.get("asof") if isinstance(raw, dict) else None
+                # 등록된 timestamp_field는 하드코딩 키가 없을 때만 쓴다.
+                # 덮어쓰면 asof(데이터 기준일) 대신 generated_at(생성 시각) 같은
+                # 값을 읽어 신선도를 과대평가하게 된다.
+                value = None
+                if isinstance(raw, dict):
+                    value = raw.get("asof")
+                    if not value and timestamp_field:
+                        value = raw.get(timestamp_field)
                 if value:
                     out.add(date.fromisoformat(str(value)[:10]))
             except (OSError, ValueError, json.JSONDecodeError):
@@ -83,7 +90,9 @@ def _dates(paths: list[Path], timestamp_field: str | None = None) -> list[date]:
             for line in path.read_text(encoding="utf-8").splitlines():
                 try:
                     raw = json.loads(line)
-                    value = raw.get("run_ts") or raw.get("asof") or raw.get("timestamp")
+                    value = (raw.get("run_ts") or raw.get("asof")
+                             or raw.get("timestamp")
+                             or (raw.get(timestamp_field) if timestamp_field else None))
                     if value:
                         out.add(date.fromisoformat(str(value)[:10]))
                 except (ValueError, json.JSONDecodeError, AttributeError):

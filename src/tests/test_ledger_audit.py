@@ -167,3 +167,38 @@ ledgers:
     assert json.loads(rows[0]["payload_json"])["market_prob"] == "22"
     assert rows[0]["unit_review_pending"] is True
     assert json.loads(rows[0]["unit_review_pending_fields"]) == ["market_prob"]
+
+
+def test_registered_timestamp_field_is_a_fallback_for_json_and_jsonl(tmp_path) -> None:
+    """json/jsonl 원장도 등록된 timestamp_field로 날짜를 찾되, 기존 키를 덮지 않는다.
+
+    이 fallback이 없으면 asof/run_ts/timestamp 중 어느 것도 쓰지 않는 원장이
+    latest_date=None으로 잡혀 한 번도 채워진 적 없는 것처럼 보고된다
+    (ipo_reference_batch_*, timeseries_shadow_forecasts에서 실제 발생).
+    반대로 덮어쓰기로 만들면 asof(데이터 기준일) 대신 generated_at(생성 시각)을
+    읽어 신선도를 과대평가하므로, 하드코딩 키가 있으면 그쪽이 우선이어야 한다.
+    """
+    from datetime import date
+    from ai_fc.ledger_audit import _dates
+
+    # json: asof가 없으면 등록 필드로 대체
+    only_field = tmp_path / "status.json"
+    only_field.write_text('{"checked_at": "2026-08-19T05:23:09+00:00"}', encoding="utf-8")
+    assert _dates([only_field], "checked_at") == [date(2026, 8, 19)]
+    assert _dates([only_field], None) == []
+
+    # json: asof가 있으면 등록 필드보다 우선 (신선도 과대평가 방지)
+    both = tmp_path / "cohort.json"
+    both.write_text(
+        '{"asof": "2026-07-30", "generated_at": "2026-08-04T09:15:53+00:00"}',
+        encoding="utf-8",
+    )
+    assert _dates([both], "generated_at") == [date(2026, 7, 30)]
+
+    # jsonl: run_ts/asof/timestamp가 모두 없을 때만 등록 필드 사용
+    lines = tmp_path / "forecasts.jsonl"
+    lines.write_text(
+        '{"as_of": "2026-08-28", "forecast_id": "f1"}' + chr(10), encoding="utf-8"
+    )
+    assert _dates([lines], "as_of") == [date(2026, 8, 28)]
+    assert _dates([lines], None) == []
