@@ -2,6 +2,15 @@
 
 > 형식: Phase/워크스트림 단위. 출처(검토 라운드·스펙) 명기. dualdb 자체 이력은 dualdb/CHANGELOG.md.
 
+## 통계 비교 중분류 번호 01~06 — 2026-08-31
+
+- 레일에서 빠지는 '전체'(`railHidden`)가 01을 먹어 `02 IPO·상장`~`07 신용`으로 밀려 있었다.
+  이제 `01 IPO·상장 / 02 유동성 / 03 금리 / 04 경기·물가 / 05 기업가치 / 06 신용`.
+- 원인을 구조적으로 제거했다: 번호 리터럴(`code:'0N'`) 22개를 레지스트리에서 걷어내고,
+  **거른 뒤 1부터 매기는** 단일 규칙 `midCategoryCode(index)`로 레일과 명령 팔레트가
+  같은 번호를 파생한다. 앞으로 어떤 hidden/비활성 항목도 01을 먹을 수 없다.
+- 번호는 표시 라벨에만 붙는다. `key`·`hash` 같은 필터 키와 라우트는 그대로다.
+
 ## IPO EDGAR 424B4 격주 감시 — 2026-08-31
 
 `ipo_comparison_v1.json`의 `reference_publication_contract.batch_update`가

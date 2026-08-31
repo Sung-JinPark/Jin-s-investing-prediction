@@ -793,39 +793,41 @@ const SECTION_TITLES={today:'오늘',future:'미래 탐색',statistics:'통계 �
 const MID_CATEGORIES={
   today:[],
   future:[
-    {key:'graph',label:'전망 그래프',hash:'#future',code:'01',hint:'세 가지 시장 경로 · 단일 시나리오'},
-    {key:'history',label:'과거 사이클',hash:'#future/history',code:'02',hint:'혁신 사이클 참고 비교'},
-    {key:'cross-asset',label:'교차자산 비교',hash:'#future/cross-asset',code:'03',hint:'NASDAQ·Bitcoin·리츠·주택주'},
-    {key:'liquidity',label:'유동성',hash:'#future/liquidity',code:'04',hint:'시장 자금 흐름'}
+    {key:'graph',label:'전망 그래프',hash:'#future',hint:'세 가지 시장 경로 · 단일 시나리오'},
+    {key:'history',label:'과거 사이클',hash:'#future/history',hint:'혁신 사이클 참고 비교'},
+    {key:'cross-asset',label:'교차자산 비교',hash:'#future/cross-asset',hint:'NASDAQ·Bitcoin·리츠·주택주'},
+    {key:'liquidity',label:'유동성',hash:'#future/liquidity',hint:'시장 자금 흐름'}
   ],
   statistics:[
-    {key:'all',label:'전체',hash:'#statistics',code:'01',hint:'모든 비교 지표',railHidden:true},
-    {key:'ipo',label:'IPO·상장',hash:'#statistics/ipo',code:'02',hint:'상장 열기와 흡수 강도'},
-    {key:'liquidity',label:'유동성',hash:'#statistics/liquidity',code:'03',hint:'M2·가계 현금성 자산'},
-    {key:'rates',label:'금리',hash:'#statistics/rates',code:'04',hint:'장단기 금리차·정책금리'},
-    {key:'economy',label:'경기·물가',hash:'#statistics/economy',code:'05',hint:'실업률·물가·선행 지표'},
-    {key:'valuation',label:'기업가치',hash:'#statistics/valuation',code:'06',hint:'PER 대용치·이익 증가율'},
-    {key:'credit',label:'신용',hash:'#statistics/credit',code:'07',hint:'신용잔고·대출 심사·상환 부담'}
+    {key:'all',label:'전체',hash:'#statistics',hint:'모든 비교 지표',railHidden:true},
+    {key:'ipo',label:'IPO·상장',hash:'#statistics/ipo',hint:'상장 열기와 흡수 강도'},
+    {key:'liquidity',label:'유동성',hash:'#statistics/liquidity',hint:'M2·가계 현금성 자산'},
+    {key:'rates',label:'금리',hash:'#statistics/rates',hint:'장단기 금리차·정책금리'},
+    {key:'economy',label:'경기·물가',hash:'#statistics/economy',hint:'실업률·물가·선행 지표'},
+    {key:'valuation',label:'기업가치',hash:'#statistics/valuation',hint:'PER 대용치·이익 증가율'},
+    {key:'credit',label:'신용',hash:'#statistics/credit',hint:'신용잔고·대출 심사·상환 부담'}
   ],
   records:[
-    {key:'questions',label:'질문 목록',hash:'#records',code:'01',hint:'등록 질문과 모든 라운드'},
-    {key:'performance',label:'성과 검증',hash:'#records/performance',code:'02',hint:'Brier·신뢰도 곡선'},
-    {key:'journal',label:'변경 일지',hash:'#records/journal',code:'03',hint:'언제 무엇이 왜 바뀌었나'},
-    {key:'compare',label:'비교 작업공간',hash:'#records/compare',code:'04',hint:'선택한 질문 나란히 보기',available:()=>cleanCompareIds().length>=2}
+    {key:'questions',label:'질문 목록',hash:'#records',hint:'등록 질문과 모든 라운드'},
+    {key:'performance',label:'성과 검증',hash:'#records/performance',hint:'Brier·신뢰도 곡선'},
+    {key:'journal',label:'변경 일지',hash:'#records/journal',hint:'언제 무엇이 왜 바뀌었나'},
+    {key:'compare',label:'비교 작업공간',hash:'#records/compare',hint:'선택한 질문 나란히 보기',available:()=>cleanCompareIds().length>=2}
   ],
   timeseries:[
-    {key:'summary',label:'전망 요약',hash:'#timeseries',code:'01',hint:'기간별 분포 요약'},
-    {key:'path',label:'경로 분포',hash:'#timeseries/path',code:'02',hint:'최근 흐름과 향후 분포'},
-    {key:'drivers',label:'기여 요인',hash:'#timeseries/drivers',code:'03',hint:'올린 요인과 내린 요인'},
-    {key:'backtest',label:'검증 성적',hash:'#timeseries/backtest',code:'04',hint:'워크포워드 성적'}
+    {key:'summary',label:'전망 요약',hash:'#timeseries',hint:'기간별 분포 요약'},
+    {key:'path',label:'경로 분포',hash:'#timeseries/path',hint:'최근 흐름과 향후 분포'},
+    {key:'drivers',label:'기여 요인',hash:'#timeseries/drivers',hint:'올린 요인과 내린 요인'},
+    {key:'backtest',label:'검증 성적',hash:'#timeseries/backtest',hint:'워크포워드 성적'}
   ],
   trust:[
-    {key:'status',label:'데이터 상태',hash:'#trust',code:'01',hint:'원장 건전성과 최신성'},
-    {key:'sources',label:'출처와 방법',hash:'#trust/sources',code:'02',hint:'수집 경로와 이용 조건'},
-    {key:'audit',label:'감사 기록',hash:'#trust/audit',code:'03',hint:'영수증과 정정 이력'}
+    {key:'status',label:'데이터 상태',hash:'#trust',hint:'원장 건전성과 최신성'},
+    {key:'sources',label:'출처와 방법',hash:'#trust/sources',hint:'수집 경로와 이용 조건'},
+    {key:'audit',label:'감사 기록',hash:'#trust/audit',hint:'영수증과 정정 이력'}
   ]
 };
 function midCategories(section,forRail){return (MID_CATEGORIES[section]||[]).filter(item=>(!item.available||item.available())&&!(forRail&&item.railHidden));}
+// 번호는 레일에서 걸러낸 뒤 1부터 매긴다. railHidden·비활성 항목이 01을 먹지 않는다.
+function midCategoryCode(index){return String(index+1).padStart(2,'0');}
 function currentMidCategory(section,rawHash){
   const items=midCategories(section);
   let best=null;
@@ -842,7 +844,7 @@ const COMMAND_ROUTES=[
   {hash:'#records',code:'04',title:'기록과 검증',hint:'질문·변경·결과 기록'},
   {hash:'#timeseries',code:'05',title:'시계열 예측',hint:'다변량 시계열 연구모델'},
   {hash:'#trust',code:'06',title:'데이터와 신뢰',hint:'원장·근거·방법론'},
-  ...Object.entries(MID_CATEGORIES).flatMap(([section,items])=>items.filter(item=>item.hash!=='#'+section).map(item=>({hash:item.hash,code:item.code,title:`${SECTION_TITLES[section]} · ${item.label}`,hint:item.hint||''})))
+  ...Object.entries(MID_CATEGORIES).flatMap(([section,items])=>items.filter(item=>!item.railHidden).map((item,index)=>({item,code:midCategoryCode(index)})).filter(row=>row.item.hash!=='#'+section).map(row=>({hash:row.item.hash,code:row.code,title:`${SECTION_TITLES[section]} · ${row.item.label}`,hint:row.item.hint||''})))
 ];
 function syncMidHash(hash){
   history.replaceState(null,'',hash);
@@ -855,7 +857,7 @@ function paintRailSubNav(navView,rawHash){
     if(items.length<2)return;
     const anchor=nav.querySelector(`a[data-v="${navView}"]`);
     if(!anchor)return;
-    const list=el(`<ul class="rail-sub" aria-label="${esc(SECTION_TITLES[navView]||navView)} 중분류">${items.map(item=>`<li><a href="${esc(item.hash)}" data-mid="${esc(item.key)}"${current&&item.key===current.key?' aria-current="page"':''}><span class="rail-sub-num">${esc(item.code)}</span><span class="rail-sub-label">${esc(item.label)}</span></a></li>`).join('')}</ul>`);
+    const list=el(`<ul class="rail-sub" aria-label="${esc(SECTION_TITLES[navView]||navView)} 중분류">${items.map((item,index)=>`<li><a href="${esc(item.hash)}" data-mid="${esc(item.key)}"${current&&item.key===current.key?' aria-current="page"':''}><span class="rail-sub-num">${esc(midCategoryCode(index))}</span><span class="rail-sub-label">${esc(item.label)}</span></a></li>`).join('')}</ul>`);
     anchor.after(list);
   });
 }

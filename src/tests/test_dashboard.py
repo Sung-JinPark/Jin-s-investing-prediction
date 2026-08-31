@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import inspect
 import json
+import re
 import textwrap
 from pathlib import Path
 
@@ -917,6 +918,54 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
 
     # 중분류가 명령 팔레트 목적지로도 등록된다
     assert "...Object.entries(MID_CATEGORIES).flatMap(" in html
+
+
+def _mid_category_keys(html: str, section: str) -> list[tuple[str, bool]]:
+    """MID_CATEGORIES의 한 대분류를 (key, railHidden) 순서대로 읽는다."""
+    block = html.split(f"{section}:[")[1].split("],")[0]
+    return [
+        (match.group("key"), "railHidden:true" in match.group(0))
+        for match in re.finditer(r"\{key:'(?P<key>[a-z-]+)'[^}]*\}", block)
+    ]
+
+
+def test_statistics_rail_numbers_run_from_01_to_06() -> None:
+    """통계 비교 중분류가 01 IPO·상장에서 06 신용까지 이어져야 한다.
+
+    레일에서 빠지는 '전체'(railHidden)가 01을 먹어 02~07로 밀려 있었다.
+    """
+    html = dashboard.load_template()
+    rows = _mid_category_keys(html, "statistics")
+
+    assert [key for key, _ in rows] == [
+        "all", "ipo", "liquidity", "rates", "economy", "valuation", "credit",
+    ]
+    rail = [key for key, hidden in rows if not hidden]
+    numbers = [f"{index:02d}" for index in range(1, len(rail) + 1)]
+
+    assert list(zip(rail, numbers)) == [
+        ("ipo", "01"), ("liquidity", "02"), ("rates", "03"),
+        ("economy", "04"), ("valuation", "05"), ("credit", "06"),
+    ]
+    assert numbers[0] == "01" and numbers[-1] == "06"
+    assert "07" not in numbers, "07이 남으면 걸러질 항목이 아직 번호를 먹고 있다"
+
+
+def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> None:
+    """번호를 리터럴로 박으면 hidden 항목이 다시 01을 먹는다. 파생으로 고정."""
+    html = dashboard.load_template()
+
+    assert "function midCategoryCode(index){return String(index+1).padStart(2,'0');}" in html
+    assert "midCategoryCode(index)" in html
+    # 레일도 팔레트도 railHidden을 먼저 거른 뒤 같은 규칙으로 번호를 받는다
+    assert "items.map((item,index)=>" in html
+    assert ".filter(item=>!item.railHidden).map((item,index)=>({item,code:midCategoryCode(index)}))" in html
+    # 레지스트리에는 번호 리터럴이 남아 있으면 안 된다
+    registry = html.split("const MID_CATEGORIES={")[1].split("\n};")[0]
+    assert not re.search(r"code:'\d\d'", registry), "중분류 번호는 리터럴로 두지 않는다"
+    # 번호는 표시용일 뿐 — 필터 키와 라우트는 그대로다
+    for key in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
+        assert f"hash:'#statistics/{key}'" in html
 
 
 def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
