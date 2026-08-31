@@ -528,3 +528,83 @@ def test_content_addressed_receipt_keeps_first_capture_time(tmp_path) -> None:
     second = _persist_receipt_bundle(tmp_path, "2026-07-31", [result("2026-08-04T00:00:00Z")])
     assert first == second
     assert second.read_text(encoding="utf-8") == original
+
+def _tracking_stub_origin() -> dict:
+    scenarios = {
+        sid: {"paths": {a: [100.0] * 13 for a in ("nasdaq", "bitcoin", "realty_income")}}
+        for sid in ("deleveraging", "easing_rotation", "soft_landing", "rates_stay_high")
+    }
+    return {
+        "asof": "2026-08-01", "snapshot_id": "cross-asset:2026-08-01:r1",
+        "anchors": {"nasdaq": 100.0, "bitcoin": 100.0, "realty_income": 100.0},
+        "forecast": {"horizon_months": 12, "scenarios": scenarios},
+    }
+
+
+def _tracking_env(tmp_path, monkeypatch, origin):
+    from ai_fc import cross_asset
+
+    monkeypatch.setattr(cross_asset, "validate_cross_asset", lambda payload: payload)
+    monkeypatch.setattr(cross_asset, "_tracking_origin", lambda _root, _cur: origin)
+    current = {"asof": "2026-08-28", "schema_version": 3}
+    prices = {
+        asset: YahooPriceSeriesResult(
+            [date(2026, 8, 28)], [value], [value], {}, {})
+        for asset, value in (("nasdaq", 110.0), ("bitcoin", 120.0), ("realty_income", 105.0))
+    }
+    return cross_asset, current, prices
+
+
+def _tracking_row(origin, asset, actual):
+    row = {
+        "asof": "2026-08-28", "origin_asof": origin["asof"],
+        "origin_snapshot_id": origin["snapshot_id"], "weeks_elapsed": "3",
+        "scenario_month_index": "1", "asset": asset, "actual_index": actual,
+    }
+    for sid in ("deleveraging", "easing_rotation", "soft_landing", "rates_stay_high"):
+        row[f"{sid}_path"] = "100.0"
+        row[f"{sid}_abs_gap"] = "0.0"
+    return row
+
+
+def test_recorded_tracking_day_is_final_even_if_revalues_differ(monkeypatch, tmp_path) -> None:
+    """소스 전환(12-9) 후 같은 asof 재실행은 no-op이어야 한다.
+
+    run 33450114842 실측: Yahoo 시절 값으로 기록된 08-28 행을 CBBTCUSD 값으로
+    재도출하자 중복-불일치 raise → no-op 가드가 이를 삼켜 전체 재빌드 →
+    파생 아카이브 불변 가드 충돌. 기록된 날은 재도출·비교 없이 최종이다.
+    """
+    import csv as csv_mod
+
+    origin = _tracking_stub_origin()
+    cross_asset, current, prices = _tracking_env(tmp_path, monkeypatch, origin)
+    ledger = tmp_path / cross_asset.PATH_TRACKING_V2
+    ledger.parent.mkdir(parents=True)
+    with ledger.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv_mod.DictWriter(handle, fieldnames=cross_asset.PATH_TRACKING_V2_FIELDS)
+        writer.writeheader()
+        # 옛 소스로 기록된 값 — 새 prices로 재도출하면 다른 값이 나온다.
+        for asset in ("nasdaq", "bitcoin", "realty_income"):
+            writer.writerow(_tracking_row(origin, asset, "999.999"))
+    before = ledger.read_bytes()
+
+    assert cross_asset.append_path_tracking_v2(tmp_path, current, prices) is False
+    assert ledger.read_bytes() == before  # 원장 무수정
+
+
+def test_partially_recorded_tracking_day_still_raises(monkeypatch, tmp_path) -> None:
+    import csv as csv_mod
+
+    import pytest as pytest_mod
+
+    origin = _tracking_stub_origin()
+    cross_asset, current, prices = _tracking_env(tmp_path, monkeypatch, origin)
+    ledger = tmp_path / cross_asset.PATH_TRACKING_V2
+    ledger.parent.mkdir(parents=True)
+    with ledger.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv_mod.DictWriter(handle, fieldnames=cross_asset.PATH_TRACKING_V2_FIELDS)
+        writer.writeheader()
+        writer.writerow(_tracking_row(origin, "nasdaq", "999.999"))  # 3자산 중 1개만
+
+    with pytest_mod.raises(cross_asset.CrossAssetError, match="partially recorded"):
+        cross_asset.append_path_tracking_v2(tmp_path, current, prices)

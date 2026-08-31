@@ -1430,19 +1430,22 @@ def append_path_tracking_v2(
                 (row["asof"], row["origin_snapshot_id"], row["asset"]): row
                 for row in reader
             }
-    pending: list[dict[str, Any]] = []
-    for row in rows:
-        key = (row["asof"], row["origin_snapshot_id"], row["asset"])
-        text_row = {field: str(row[field]) for field in PATH_TRACKING_V2_FIELDS}
-        if key in existing:
-            if existing[key] != text_row:
-                raise CrossAssetError(f"append-only path_tracking_v2 conflict for {key}")
-            continue
-        pending.append(row)
-    if not pending:
+    # 이미 기록된 날은 최종이다.  행은 기록 시점의 소스로 관측한 값이며,
+    # 소스가 바뀌면(예: 12-9 Yahoo→FRED) 재도출 동일성의 전제가 사라진다 —
+    # 값을 비교해 raise하면 벤더 전환일마다 오탐이 나고, 덮어쓰는 것은
+    # append-only 위반이다.  부분 기록(3자산 중 일부만)은 여전히 결함이다.
+    recorded = [
+        row for row in rows
+        if (row["asof"], row["origin_snapshot_id"], row["asset"]) in existing
+    ]
+    if len(recorded) == len(rows):
         return False
-    if len(pending) != 3:
-        raise CrossAssetError("path_tracking_v2 trading day must append all three assets")
+    if recorded:
+        raise CrossAssetError(
+            "path_tracking_v2 day partially recorded: "
+            + ", ".join(row["asset"] for row in recorded)
+        )
+    pending = rows
     with path.open("a", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=PATH_TRACKING_V2_FIELDS, lineterminator="\n")
         if path.stat().st_size == 0:
@@ -1502,16 +1505,21 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
 
     latest = root / LATEST_RELATIVE_PATH
     if latest.exists() and not force:
+        # latest를 읽지 못하는 경우에만 재빌드로 넘어간다.  경로추적 오류까지
+        # 삼키면 그 오류가 같은 asof 전체 재빌드로 변장해 파생 아카이브 불변
+        # 가드와 충돌한다 — 12-9 배포에서 실측된 실패 사슬이다.
+        current = None
         try:
             current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
+        except (OSError, json.JSONDecodeError, CrossAssetError):
+            current = None
+        if current is not None:
             fetched_asof = common_dates[-1].isoformat()
-            if current["asof"] >= fetched_asof:
-                if current["asof"] > fetched_asof:
-                    return latest, current, False
+            if current["asof"] > fetched_asof:
+                return latest, current, False
+            if current["asof"] == fetched_asof:
                 append_path_tracking_v2(root, current, daily)
                 return latest, current, False
-        except (OSError, json.JSONDecodeError, CrossAssetError):
-            pass
 
     snapshot_asof = common_dates[-1]
     macro_assumptions = realty_income.load_macro_assumptions(root)
