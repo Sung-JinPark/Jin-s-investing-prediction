@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import csv
 import sqlite3
-from datetime import datetime
 from pathlib import Path
 
 from .. import config
@@ -24,7 +23,6 @@ def _month_add(ym: str, n: int) -> str:
 
 
 def ingest(conn: sqlite3.Connection, since: str | None = None) -> dict[str, int]:
-    now = datetime.now().isoformat(timespec="seconds")
     counts: dict[str, int] = {}
     s = config.SEEDS_DIR
 

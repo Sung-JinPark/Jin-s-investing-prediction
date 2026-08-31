@@ -59,7 +59,7 @@ def ingest_indices(conn: sqlite3.Connection, since: str | None = None) -> dict[s
             rows = [(canonical, d, o, h, lo, c, a, v, "yahoo", now)
                     for d, o, h, lo, c, a, v in _series(sym)
                     if since is None or d >= since]
-        except Exception as exc:  # noqa: BLE001
+        except Exception:  # noqa: BLE001
             counts[canonical] = -1
             continue
         conn.executemany(
