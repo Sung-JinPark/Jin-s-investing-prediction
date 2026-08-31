@@ -51,6 +51,8 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("statistics", "#statistics"),
         ("statistics-rates", "#statistics/rates"),
         ("timeseries", "#timeseries"),
+        ("timeseries-path", "#timeseries/path"),
+        ("timeseries-backtest", "#timeseries/backtest"),
         ("records", "#records"),
         ("records-performance", "#records/performance"),
         ("records-journal", "#records/journal"),
