@@ -43,7 +43,6 @@ IPO_REFERENCE_CHART_IDS = (
     "all_ipo_negative_earnings_share",
     "dotcom_internet_ipo_breadth",
 )
-FRED_ENDPOINT = "https://fred.stlouisfed.org/graph/fredgraph.csv"
 Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip"
 SEC_IPO_ENDPOINT = "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos"
 ICI_ETF_ENDPOINT = "https://www.ici.org/research/stats/etf_flows"
@@ -2635,7 +2634,9 @@ def _build_statistics_lab_legacy(
             "series_id": series_id,
             **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={fred_start}",
+            "request_url": fred_api.observations_public_url(
+                series_id, observation_start=fred_start,
+            ),
             "available_at": generated_at,
             "latest_observation": rows[-1]["date"],
             "row_count": len(rows),
@@ -3176,7 +3177,9 @@ def build_statistics_lab(
         source_meta.append({
             "series_id": series_id, **spec,
             "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            "request_url": fred_api.observations_public_url(
+                series_id, observation_start=start,
+            ),
             "authority_class": "authoritative_public_distributor",
             "policy_source_id": "fred_market_signals",
             "usage_role": "numeric_input", "numeric_input_allowed": True,
@@ -3496,7 +3499,9 @@ def _persist_authoritative_inputs(
         start = spec.get("window_start", "1995-01-01")
         source_policy[series_id] = (
             "fred_market_signals",
-            f"{FRED_ENDPOINT}?id={series_id}&cosd={start}",
+            fred_api.observations_public_url(
+                series_id, observation_start=start,
+            ),
             "text/csv",
         )
     source_policy["SEC_IPO_QUARTERLY"] = (

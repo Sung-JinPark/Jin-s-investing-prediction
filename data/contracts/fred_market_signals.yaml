@@ -1,7 +1,7 @@
 schema_version: 1
 source_id: fred_market_signals
 description: Current-vintage FRED observations for tracker and liquidity monitoring.
-endpoint: https://fred.stlouisfed.org/graph/fredgraph.csv
+endpoint: https://api.stlouisfed.org/fred/series/observations
 series_ids: [BAMLH0A0HYM2, DFII10, DTWEXBGS, WALCL, WTREGEN, RRPONTSYD, DGS10, BAMLC0A0CM, VIXCLS]
 enabled: true
 license_status: approved
