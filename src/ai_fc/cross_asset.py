@@ -999,7 +999,11 @@ def build_cross_asset(*,
         },
         "receipts": receipts or [],
         "sources": [
-            {"id": "yahoo-chart", "label": "Yahoo Finance chart API", "role": "price_history",
+            {"id": "fred-price-series", "label": "FRED NASDAQCOM · CBBTCUSD (공식 API)",
+             "role": "nasdaq_and_bitcoin_price_history",
+             "url": "https://api.stlouisfed.org/fred/series/observations"},
+            {"id": "yahoo-chart", "label": "Yahoo Finance chart API",
+             "role": "realty_income_adjusted_price_and_dividends",
              "url": "https://query1.finance.yahoo.com/v8/finance/chart/"},
             {"id": "dr-horton-history", "label": "D.R. Horton (DHI) monthly history",
              "role": "homebuilder_dotcom_period_price_and_total_return_proxy",
@@ -1028,6 +1032,9 @@ def build_cross_asset(*,
             "DHI의 닷컴기 상승은 당시 주택·금리 사이클의 실측 결과이며 다음 기술주 "
             "조정기의 수혜를 보장하거나 인과관계를 증명하지 않는다.",
             "FRED HY OAS는 현재 최근 3년 제한으로 156주 신용 민감도 게이트가 닫힐 수 있다.",
+            "NASDAQ·BTC 종가는 2026-09-01부터 FRED(NASDAQCOM·CBBTCUSD)로 수집한다. "
+            "BTC는 Coinbase 단일 거래소 종가라 이전 Yahoo 집계가와 최대 ±0.32% 수준 "
+            "차이가 있고 정렬 시작일이 2014-09에서 2014-12로 물러난다 (DECISIONS 12-9).",
             "WILLREITIND는 D0에서 404로 확인되어 IYR 파생 수익률만 fallback한다.",
         ],
     }
@@ -1182,7 +1189,7 @@ def upgrade_cross_asset_dotcom_counterfactual(
     current = validate_cross_asset(json.loads(latest.read_text(encoding="utf-8")))
     if current.get("schema_version") == SCHEMA_VERSION:
         return latest, current, False
-    history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
+    history_n = feed.fred_price_series_detail("NASDAQCOM", HISTORY_START, HISTORY_END, "1mo")
     history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
     history_dhi = feed.yahoo_price_series_detail(
         "DHI", HISTORY_START, HISTORY_END, "1mo")
@@ -1449,23 +1456,38 @@ def refresh_cross_asset(root: Path, *, asof: date | None = None,
                         ) -> tuple[Path, dict[str, Any], bool]:
     """공개 확정 종가를 수집해 immutable archive와 latest를 갱신한다."""
     safe_cutoff = completed_market_cutoff(asof or date.today(), now=now)
-    history_n = feed.yahoo_price_series_detail("^IXIC", HISTORY_START, HISTORY_END, "1mo")
+    # NASDAQ 종가는 FRED NASDAQCOM으로 수집한다 (DECISIONS 12-9).  9-5가 닷컴
+    # 구간의 ^IXIC 정본을 FRED로 승격했고, 현대 일별 종가는 실측상 Yahoo와 완전
+    # 일치한다(중첩 19일, 0.0000%).  O·DHI는 배당조정 종가가 필요해 Yahoo에
+    # 남는다 — 무료 공개 대체가 존재하지 않는다(12-8).
+    history_n = feed.fred_price_series_detail("NASDAQCOM", HISTORY_START, HISTORY_END, "1mo")
     history_o = feed.yahoo_price_series_detail("O", HISTORY_START, HISTORY_END, "1mo")
     history_dhi = feed.yahoo_price_series_detail(
         "DHI", HISTORY_START, HISTORY_END, "1mo")
-    dotcom_n = feed.yahoo_price_series_detail("^IXIC", DOTCOM_PEAK_START, HISTORY_END, "1mo")
-    h_n = {day: value for day, value in zip(history_n.dates, history_n.closes)}
-    h_op = {day: value for day, value in zip(history_o.dates, history_o.closes)}
-    h_oa = {day: value for day, value in zip(history_o.dates, history_o.adjusted)}
-    h_dp = {day: value for day, value in zip(history_dhi.dates, history_dhi.closes)}
-    h_da = {day: value for day, value in zip(history_dhi.dates, history_dhi.adjusted)}
+    dotcom_n = feed.fred_price_series_detail("NASDAQCOM", DOTCOM_PEAK_START, HISTORY_END, "1mo")
+    # 소스가 갈리면 월봉 라벨 일자가 다를 수 있다(Yahoo=첫 거래일, FRED 집계=월초일).
+    # 교집합이 표기 차이로 비지 않도록 모든 월간 키를 월초일로 정규화한다.
+    h_n = {date(day.year, day.month, 1): value
+           for day, value in zip(history_n.dates, history_n.closes)}
+    h_op = {date(day.year, day.month, 1): value
+            for day, value in zip(history_o.dates, history_o.closes)}
+    h_oa = {date(day.year, day.month, 1): value
+            for day, value in zip(history_o.dates, history_o.adjusted)}
+    h_dp = {date(day.year, day.month, 1): value
+            for day, value in zip(history_dhi.dates, history_dhi.closes)}
+    h_da = {date(day.year, day.month, 1): value
+            for day, value in zip(history_dhi.dates, history_dhi.adjusted)}
     h_common = sorted(set(h_n) & set(h_op) & set(h_oa) & set(h_dp) & set(h_da))
 
     daily: dict[str, feed.YahooPriceSeriesResult] = {}
-    for key, symbol in (("nasdaq", "^IXIC"), ("bitcoin", "BTC-USD"),
-                        ("realty_income", "O")):
-        daily[key] = feed.yahoo_price_series_detail(
-            symbol, CURRENT_START, safe_cutoff + timedelta(days=1), "1d")
+    # BTC는 CBBTCUSD(Coinbase 단일 거래소 종가)다 — Yahoo 집계가와 실측 중앙값
+    # 0.054%, 최대 0.319% 차이가 나고 시계열 시작이 2014-12로 늦다.  값의 이동이
+    # 아니라 벤더 정의의 차이이며, 12-9가 전환 시점과 크기를 기록한다.
+    for key, series_id in (("nasdaq", "NASDAQCOM"), ("bitcoin", "CBBTCUSD")):
+        daily[key] = feed.fred_price_series_detail(
+            series_id, CURRENT_START, safe_cutoff + timedelta(days=1), "1d")
+    daily["realty_income"] = feed.yahoo_price_series_detail(
+        "O", CURRENT_START, safe_cutoff + timedelta(days=1), "1d")
     common_dates, n_values, b_values, o_values = _aligned_daily(
         (daily["nasdaq"].dates, daily["nasdaq"].adjusted),
         (daily["bitcoin"].dates, daily["bitcoin"].adjusted),

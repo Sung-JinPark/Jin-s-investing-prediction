@@ -99,3 +99,57 @@ def test_curl_fallback_uses_public_dns_for_same_https_url(monkeypatch) -> None:
     assert text == "ok"
     assert commands[-1][-1] == "https://fred.test/series.csv"
     assert "fred.test:443:203.0.113.7" in commands[-1]
+
+def test_fred_price_series_detail_monthly_labels_and_receipt(monkeypatch) -> None:
+    """월봉은 월초일 라벨 + 월말 종가, 결측은 건너뛰고, 영수증에 키가 없다 (12-9)."""
+    from datetime import date
+
+    from ai_fc import fred_api
+    from ai_fc.quant import feed
+
+    csv_text = (
+        "observation_date,NASDAQCOM" + chr(10)
+        + "2001-03-01,1980.0" + chr(10)
+        + "2001-03-15,." + chr(10)          # 결측 — 관측이 아니다
+        + "2001-03-30,1840.26" + chr(10)    # 월말 종가가 남아야 한다
+        + "2001-04-02,1782.97" + chr(10)
+        + "2001-04-30,2116.24" + chr(10)
+        + "2001-05-01,2168.24" + chr(10)    # end 경계 밖 — 제외
+    )
+    seen: list[str] = []
+
+    def fake_observations_csv(series_id, *, observation_start=None, **_kw):
+        seen.append(f"{series_id}@{observation_start}")
+        return csv_text
+
+    monkeypatch.setattr(fred_api, "observations_csv", fake_observations_csv)
+    result = feed.fred_price_series_detail(
+        "NASDAQCOM", date(2001, 3, 1), date(2001, 5, 1), "1mo")
+
+    assert seen == ["NASDAQCOM@2001-03-01"]
+    assert result.dates == [date(2001, 3, 1), date(2001, 4, 1)]
+    assert result.closes == [1840.26, 2116.24]
+    assert result.adjusted == result.closes  # 지수에는 배당 조정 개념이 없다
+    assert result.receipt["request_url"].startswith(
+        "https://api.stlouisfed.org/fred/series/observations?")
+    assert "api_key" not in result.receipt["request_url"]
+    assert result.data_quality["dropped_rows"] == 0
+
+
+def test_fred_price_series_detail_daily_bounds(monkeypatch) -> None:
+    from datetime import date
+
+    from ai_fc import fred_api
+    from ai_fc.quant import feed
+
+    csv_text = (
+        "observation_date,CBBTCUSD" + chr(10)
+        + "2026-08-27,111500.0" + chr(10)
+        + "2026-08-28,112000.5" + chr(10)
+        + "2026-08-29,113250.0" + chr(10)
+    )
+    monkeypatch.setattr(fred_api, "observations_csv", lambda *_a, **_k: csv_text)
+    result = feed.fred_price_series_detail(
+        "CBBTCUSD", date(2026, 8, 28), date(2026, 8, 29), "1d")
+    assert result.dates == [date(2026, 8, 28)]
+    assert result.closes == [112000.5]
