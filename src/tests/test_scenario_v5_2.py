@@ -884,9 +884,12 @@ def test_protected_snapshot_ledger_and_archive_hashes_are_unchanged() -> None:
     assert all(
         path.startswith("forecasts/") for path in comparison["added"]
     ), comparison["added"]
-    assert set(comparison["refreshed_auxiliary"]) <= {
-        "forecasts/.hashes", "forecasts/.hashes.ots",
-    }
+    # 후보가 소비하지 않는 감사 대상(원장·레지스트리)과 파생 앵커의 변경만 허용.
+    assert all(
+        path in {"forecasts/.hashes", "forecasts/.hashes.ots"}
+        or path.startswith(("calibration/", "questions/"))
+        for path in comparison["refreshed_auxiliary"]
+    ), comparison["refreshed_auxiliary"]
 
 
 def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
@@ -928,6 +931,62 @@ def test_runtime_protected_gate_allows_append_but_rejects_mutation() -> None:
     assert auxiliary_result["ok"] is True
     assert auxiliary_result["changed"] == []
     assert auxiliary_result["refreshed_auxiliary"] == ["forecasts/.hashes.ots"]
+
+
+def test_resolution_bookkeeping_does_not_close_the_runtime_gate() -> None:
+    """판정 기록이 후보를 무효화하면 안 된다.
+
+    질문을 해소하면 원장 2종에 행이 붙고 registry의 status가 바뀐다. 셋 다
+    보호 대상이지만 **후보의 입력이 아니다** — source_hashes는 전부 data/ 아래이고
+    후보 payload에는 question_id도 brier도 없다. 이 변경으로 게이트가 닫히면
+    판정할 때마다 대시보드의 future 표면이 degrade된다. 반대로 후보가 실제로
+    소비하는 data/ 경로의 변조는 그대로 fail-closed여야 한다.
+    """
+    before = {
+        "files": {
+            "calibration/ledger.csv": "a" * 64,
+            "questions/registry.yaml": "b" * 64,
+            "data/scenarios/nasdaq_latest.json": "c" * 64,
+        },
+        "manifest_sha256": "before",
+    }
+    # 원장 append + registry status 갱신 = 허용
+    bookkeeping = {
+        "files": {
+            "calibration/ledger.csv": "d" * 64,
+            "questions/registry.yaml": "e" * 64,
+            "data/scenarios/nasdaq_latest.json": "c" * 64,
+        },
+        "manifest_sha256": "after-bookkeeping",
+    }
+    result = compare_protected_append_only(before, bookkeeping)
+    assert result["ok"] is True
+    assert result["changed"] == []
+    assert set(result["refreshed_auxiliary"]) == {
+        "calibration/ledger.csv", "questions/registry.yaml",
+    }
+
+    # 후보가 실제로 읽는 입력의 변조는 여전히 차단
+    tampered = {
+        "files": {
+            "calibration/ledger.csv": "a" * 64,
+            "questions/registry.yaml": "b" * 64,
+            "data/scenarios/nasdaq_latest.json": "z" * 64,
+        },
+        "manifest_sha256": "after-tamper",
+    }
+    tamper = compare_protected_append_only(before, tampered)
+    assert tamper["ok"] is False
+    assert tamper["changed"] == ["data/scenarios/nasdaq_latest.json"]
+
+    # 원장 삭제는 감사 대상이어도 차단
+    deleted = {
+        "files": {"data/scenarios/nasdaq_latest.json": "c" * 64},
+        "manifest_sha256": "after-delete",
+    }
+    delete = compare_protected_append_only(before, deleted)
+    assert delete["ok"] is False
+    assert delete["removed"] == ["calibration/ledger.csv", "questions/registry.yaml"]
 
 
 def test_recording_a_forecast_round_does_not_invalidate_a_candidate() -> None:
@@ -994,7 +1053,12 @@ def test_candidate_runtime_gate_uses_append_only_manifest_and_consumed_hashes(
     assert validate_candidate(payload, ROOT, replay=False)["ok"] is True
 
     changed = deepcopy(before)
-    first_path = sorted(changed["files"])[0]
+    # 후보가 실제로 소비하는 data/ 입력을 골라야 한다. 알파벳 첫 파일은
+    # calibration/benchmark_ledger.csv인데, 그건 감사 대상이지 입력이 아니라
+    # 런타임 게이트가 의도적으로 통과시킨다.
+    first_path = sorted(
+        path for path in changed["files"] if path.startswith("data/")
+    )[0]
     changed["files"][first_path] = "0" * 64
     changed["manifest_sha256"] = canonical_hash(changed["files"])
     monkeypatch.setattr("ai_fc.scenario_v5_2.artifact.protected_hashes", lambda _root: changed)
