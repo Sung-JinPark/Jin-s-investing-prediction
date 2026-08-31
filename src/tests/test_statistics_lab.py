@@ -208,6 +208,9 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "NASDAQSOX": 1800.0,
             "SPASTT01KRM661N": 100.0,
             "HOUST": 1400.0,
+            "GDP": 20_000.0,
+            "Y034RC1Q027SBEA": 500.0,
+            "Y001RC1Q027SBEA": 1_000.0,
         }[series_id]
         growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
         value = baseline * growth
@@ -638,7 +641,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 22
+    assert len(payload["charts"]) == 23
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -700,7 +703,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 22
+    assert len(payload["charts"]) == 23
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }

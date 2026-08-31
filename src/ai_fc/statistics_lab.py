@@ -286,6 +286,27 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "monthly",
         "aggregation": "last",
     },
+    "GDP": {
+        "title": "Gross domestic product",
+        "provider": "U.S. Bureau of Economic Analysis via Federal Reserve Bank of St. Louis",
+        "unit": "billions_usd_saar",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
+    "Y034RC1Q027SBEA": {
+        "title": "Private fixed investment: information processing equipment",
+        "provider": "U.S. Bureau of Economic Analysis via Federal Reserve Bank of St. Louis",
+        "unit": "billions_usd_saar",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
+    "Y001RC1Q027SBEA": {
+        "title": "Private fixed investment: intellectual property products",
+        "provider": "U.S. Bureau of Economic Analysis via Federal Reserve Bank of St. Louis",
+        "unit": "billions_usd_saar",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
 }
 
 DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
@@ -2782,6 +2803,30 @@ def build_statistics_lab(
     )
     dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
     dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
+    # Investment share of GDP, published as two definitions on purpose: the
+    # narrow hardware measure (D1) and the broad measure that adds intellectual
+    # property products (D5).  A single headline number is not publishable here
+    # because the two definitions disagree about whether today exceeds 2000.
+    equipment_share = [
+        {"date": row["date"], "value": float(row["value"]) * 100.0}
+        for row in _ratio(monthly["Y034RC1Q027SBEA"], monthly["GDP"])
+    ]
+    gdp_by_month = {_month_key(row["date"]): float(row["value"]) for row in monthly["GDP"]}
+    ipp_by_month = {
+        _month_key(row["date"]): float(row["value"]) for row in monthly["Y001RC1Q027SBEA"]
+    }
+    broad_share = []
+    for row in monthly["Y034RC1Q027SBEA"]:
+        key = _month_key(row["date"])
+        denominator = gdp_by_month.get(key)
+        intellectual_property = ipp_by_month.get(key)
+        if denominator and intellectual_property is not None:
+            broad_share.append({
+                "date": row["date"],
+                "value": (float(row["value"]) + intellectual_property) / denominator * 100.0,
+            })
+    dot_equipment_share, cur_equipment_share = cycles(equipment_share)
+    dot_broad_share, cur_broad_share = cycles(broad_share)
     valuation = [
         {**row, "value": float(row["value"]) / 1000.0}
         for row in _ratio(monthly["NCBEILQ027S"], monthly["CPATAX"])
@@ -2941,6 +2986,10 @@ def build_statistics_lab(
         make("korea_semiconductor_cycle", "한국 주가와 글로벌 반도체 사이클", "economy", "cycle_start_100",
              [_series("한국 주가", "current", korea_index, "#11110f"), _series("미국 반도체", "current", sox_index, "#e05d26")],
              ["SPASTT01KRM661N", "NASDAQSOX"], "*한국·미국 시장 기준", "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다."),
+        make("investment_share_of_gdp", "설비·지식재산 투자의 GDP 비중", "economy", "percent",
+             [_series("닷컴 장비", "dotcom", dot_equipment_share, "#8d2943"), _series("닷컴 장비+지식재산", "dotcom", dot_broad_share, "#d47f52"), _series("현재 장비", "current", cur_equipment_share, "#28756a"), _series("현재 장비+지식재산", "current", cur_broad_share, "#4aa18d")],
+             ["Y034RC1Q027SBEA", "Y001RC1Q027SBEA", "GDP"], "*미국 명목 분기 연율 기준",
+             "투자 규모를 경제 크기로 나눠 두 정의로 함께 봅니다. 장비만 보면 닷컴 정점보다 낮고, 소프트웨어·연구개발을 더하면 더 높습니다."),
         make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
              ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
@@ -3096,6 +3145,12 @@ def build_statistics_lab(
             if standards_now <= 5 else
             f"은행 대출기준 순강화 비율이 {standards_now:.1f}%로 올라 기업 자금조달 "
             "경계가 필요한 상태입니다."
+        ),
+        "investment_share_of_gdp": (
+            f"설비 투자만 보면 현재 GDP의 {endpoint(cur_equipment_share):.2f}%로 닷컴 같은 시점의 "
+            f"{endpoint(dot_equipment_share):.2f}%와 견줍니다. 소프트웨어·연구개발을 더하면 "
+            f"{endpoint(cur_broad_share):.2f}%로 닷컴의 {endpoint(dot_broad_share):.2f}%를 넘습니다. "
+            "정의에 따라 결론이 갈리므로 두 선을 함께 봐야 합니다."
         ),
         "profit_growth": (
             f"세후 기업이익은 현재 전년 대비 {endpoint(cur_profit):.1f}% 증가해 닷컴의 "
