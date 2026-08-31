@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-31T13:25:00+00:00",
-  "market_cutoff": "2026-08-28",
+  "generated_at": "2026-08-31T23:20:08+00:00",
+  "market_cutoff": "2026-08-31",
   "summary": {
-    "accumulating": 32,
-    "stalled": 5,
+    "accumulating": 30,
+    "stalled": 7,
     "inactive": 5,
     "violation": 0,
     "planned": 3,
@@ -235,9 +235,9 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "stalled",
-      "file_count": 27,
+      "file_count": 28,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [
         "2026-08-04",
         "2026-08-05"
@@ -318,6 +318,10 @@
         {
           "date": "2026-08-28",
           "count": 20
+        },
+        {
+          "date": "2026-08-31",
+          "count": 21
         }
       ]
     },
@@ -330,7 +334,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -338,7 +342,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-28",
+          "date": "2026-08-31",
           "count": 1
         }
       ]
@@ -442,7 +446,7 @@
       "kind": "singleton",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "accumulating",
+      "status": "stalled",
       "file_count": 1,
       "row_count": null,
       "latest_date": "2026-08-28",
@@ -481,7 +485,7 @@
       "kind": "append_csv",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "accumulating",
+      "status": "stalled",
       "file_count": 1,
       "row_count": 54,
       "latest_date": "2026-08-28",
@@ -573,8 +577,8 @@
       "criticality": "medium",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 153,
-      "latest_date": "2026-08-28",
+      "row_count": 171,
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -648,6 +652,10 @@
         {
           "date": "2026-08-28",
           "count": 17
+        },
+        {
+          "date": "2026-08-31",
+          "count": 18
         }
       ]
     },
@@ -1171,10 +1179,10 @@
       "kind": "mutable_snapshot",
       "cadence": "weekly",
       "criticality": "medium",
-      "status": "stalled",
+      "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-19",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1182,7 +1190,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-19",
+          "date": "2026-08-31",
           "count": 1
         }
       ]
@@ -1283,7 +1291,7 @@
       "kind": "jsonl",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "accumulating",
+      "status": "stalled",
       "file_count": 1,
       "row_count": null,
       "latest_date": "2026-08-28",
