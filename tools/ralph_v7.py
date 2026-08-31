@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from ai_fc.timeseries_v7.scheduler import (  # noqa: E402
-    GenerationEvidence, decide_generation, generation_input_hash, task_blueprint,
+    task_blueprint,
 )
 from ai_fc.timeseries_v7.security import sanitized_environment  # noqa: E402
 

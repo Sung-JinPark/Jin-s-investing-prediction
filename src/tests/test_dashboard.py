@@ -430,7 +430,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     assert "핵심 신호 2개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
     assert 'body[data-view="today"] .site-footer{display:none}' in css
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
-    assert "function renderTimeseries()" in script
+    assert "function renderTimeseries(initialState)" in script
     assert "numbers_visible===true" in script
     assert "기존 미래전망으로 자동 전환하지 않습니다" in script
     assert ".timeseries-horizons{display:grid;grid-template-columns:repeat(4" in css
@@ -753,7 +753,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
 def test_future_graph_subcategory_restores_original_single_scenario_chart() -> None:
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
-    assert "function drawOriginalWeeklyFlow(host,sc)" in html
+    assert "function drawOriginalWeeklyFlow(host,sc,showSamples=false)" in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -817,13 +817,72 @@ def test_dead_render_paths_are_not_shipped() -> None:
         assert kept in html, kept
 
 
+def test_mid_category_registry_drives_rail_hierarchy() -> None:
+    """대분류 아래 중분류가 레일에 실제로 보이는지 고정 (v1은 본문 탭만 있었다)."""
+    html = dashboard.load_template()
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+
+    # 하나의 레지스트리가 레일·본문·명령 팔레트를 모두 먹인다
+    assert "const MID_CATEGORIES={" in html
+    assert "const SECTION_TITLES={today:'오늘',future:'미래 탐색'" in html
+    assert "function midCategories(section)" in html
+    assert "function currentMidCategory(section,rawHash)" in html
+
+    # 레일 주입과 route() 호출
+    assert "function paintRailSubNav(navView,rawHash)" in html
+    assert "paintRailSubNav(navView,rawHash);" in html
+    assert 'class="rail-sub"' in html
+    assert "anchor.after(list);" in html
+    assert ".rail-sub a[aria-current=\"page\"]" in css
+    assert ".product-rail .rail-sub{display:none}" in css, "축소된 레일에서는 하위 목록을 숨긴다"
+    assert ".mobile-drawer .rail-sub{display:block" in css, "드로어에서는 계층을 유지한다"
+
+    # 본문 탭이 해시를 바꿀 때 레일도 따라가야 한다
+    assert "function syncMidHash(hash)" in html
+    assert "paintRailSubNav(document.body.dataset.view||'today',hash);" in html
+    for wired in (
+        "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);",
+        "if(sync)syncMidHash(active==='status'?'#trust':'#trust/'+active);",
+        "if(sync)syncMidHash(futureGraphHash());",
+        "if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);",
+    ):
+        assert wired in html, wired
+
+    # 01 오늘은 한 화면 요약이라 중분류가 없다
+    assert "today:[]," in html
+
+    # 중분류가 명령 팔레트 목적지로도 등록된다
+    assert "...Object.entries(MID_CATEGORIES).flatMap(" in html
+
+
+def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
+    """복구 차트가 평평한 원시 중앙값 대신 구조 경로를 그리는지 고정."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    body = script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+
+    # 대표선은 챔피언 차트와 같은 헬퍼를 쓴다
+    assert "flowDisplayPath(sc,key)" in body
+    assert "const paths=Object.fromEntries(['S1','S2','S3'].map(key=>[key,structuralSource[key]" in body
+    # 굴곡 적용 전 원시 중앙값은 고스트 선으로 병기해 차이를 숨기지 않는다
+    assert "data-baseline-path" in body
+    assert "const usingStructural=hasStructuralPaths(sc);" in body
+
+    # 실제 모의 경로는 옵션 오버레이일 뿐 대표선이 아니다
+    assert "data-sample-path" in body
+    assert "sc.path_realism?.[key]?.sample_paths" in body
+    assert 'data-original-samples aria-pressed="false"' in html, "모의 경로는 기본 숨김"
+    assert "ONE SIMULATED MEMBER · EXACT DATES ARE NOT FORECAST" in html
+    assert "모의 표본을 대표선으로 쓰지 않습니다" in html
+
+
 def test_three_tier_information_architecture_midlevel_navigation() -> None:
     """대분류 6개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/06)."""
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
 
     # 서브패스를 허용하는 대분류: future / records 에 statistics / trust 추가
-    assert "statistics(?:\\/|$)|timeseries$|records(?:\\/|$)|trust(?:\\/|$)" in script
+    assert "statistics(?:\\/|$)|timeseries(?:\\/|$)|records(?:\\/|$)|trust(?:\\/|$)" in script
     # 기존 대분류 라우트는 하나도 사라지지 않는다
     for kept in ("#today", "#future", "#statistics", "#timeseries", "#records", "#trust"):
         assert f'href="{kept}"' in html, kept
@@ -855,10 +914,12 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
         assert f'data-trust-tab="${{key}}"' in html or f"'{key}'" in html, key
     assert "const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']]" in html
     assert "activateTrustTab(initial?.trustTab||'status',false)" in html
-    assert "history.replaceState(null,'',active==='status'?'#trust':'#trust/'+active)" in html
+    assert "syncMidHash(active==='status'?'#trust':'#trust/'+active)" in html
 
-    # 05 시계열은 게이트 단일 화면 — 중분류를 만들지 않는다
-    assert "data-lab-tab=\"timeseries" not in html
+    # 05도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
+    assert "const TS_TABS=[['summary','전망 요약','01']" in html
+    assert "const enabled=visible?TS_TABS.map(([key])=>key):['summary']" in html
+    assert "if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
     assert "numbers_visible===true" in html
 
 

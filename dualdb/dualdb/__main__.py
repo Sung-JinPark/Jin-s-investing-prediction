@@ -38,7 +38,6 @@ def main() -> None:
         print(weekly.render(conn))
     elif cmd == "models":
         # P4 모델 4종 실행 (스펙 §8) — 결과는 model_run 기록 + 콘솔 md
-        import json as _json
         outs = []
         for name in ("knn_analog", "dtw_daily", "lppl_walkforward", "twins"):
             try:

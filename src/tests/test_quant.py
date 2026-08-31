@@ -8,7 +8,7 @@ import pytest
 from ai_fc.quant import overlay, stats
 from ai_fc.quant.lppl import fit_lppl
 from ai_fc.quant.mc import gbm_simulate
-from ai_fc.quant.seasonality import midterm_stats, summarize
+from ai_fc.quant.seasonality import midterm_stats
 from datetime import date, timedelta
 
 
