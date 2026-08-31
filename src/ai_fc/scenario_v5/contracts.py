@@ -53,7 +53,21 @@ LF_CANONICAL_PROTECTED_PATHS = (
 # committed.  The proof remains protected and independently audited, but its
 # refresh is not a model input change and must not invalidate a V5.2 display
 # candidate built from the same forecast ledger bytes.
-RUNTIME_AUXILIARY_REFRESH_PATHS = frozenset({"forecasts/.hashes.ots"})
+#
+# ``forecasts/.hashes`` is the anchor manifest that proof envelops, and it is
+# derived: appending a forecast round necessarily rewrites it, because
+# verify_track_record.py fails any forecast file missing from the anchor.  The
+# automated refresh regenerates the manifest and the candidate in one commit,
+# so only a forecast recorded outside that loop -- the /forecast skill path,
+# which CLAUDE.md supports as a first-class route -- would otherwise invalidate
+# a candidate for doing exactly what it is supposed to do.  Whitelisting the
+# manifest costs no tamper coverage: every forecast file is hashed individually
+# in the same manifest, so mutating or deleting one still lands in ``changed``
+# or ``removed`` and remains fail-closed.
+RUNTIME_AUXILIARY_REFRESH_PATHS = frozenset({
+    "forecasts/.hashes",
+    "forecasts/.hashes.ots",
+})
 
 
 def load_contracts(root: Path) -> dict[str, Any]:
