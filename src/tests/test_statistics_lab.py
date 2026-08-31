@@ -985,7 +985,9 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "data-stat-reference-section" in script
     assert "IPO 참고 통계" in script
     assert "${referenceCharts.length}개 비교" in script
-    assert "referenceSection.hidden=key!=='all'&&key!=='ipo'" in script
+    assert "referenceSection.hidden=active!=='all'&&active!=='ipo'" in script
+    assert "const applyStatCategory=(key,sync)=>{" in script
+    assert "history.replaceState(null,'',active==='all'?'#statistics':'#statistics/'+active)" in script
     assert ".statistics-reference>header h2" in styles
     assert "function statisticsLiquidityBars" in script
     assert "is-diverging" in script

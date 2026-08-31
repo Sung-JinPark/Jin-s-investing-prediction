@@ -49,11 +49,14 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("future-liquidity", "#future/liquidity"),
         ("future-lookup", "#future/lookup"),
         ("statistics", "#statistics"),
+        ("statistics-rates", "#statistics/rates"),
         ("timeseries", "#timeseries"),
         ("records", "#records"),
         ("records-performance", "#records/performance"),
         ("records-journal", "#records/journal"),
         ("trust", "#trust"),
+        ("trust-sources", "#trust/sources"),
+        ("trust-audit", "#trust/audit"),
     ]
     rows.append((
         "records-question",

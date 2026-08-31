@@ -683,6 +683,66 @@ def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
     assert "#0a0e1a" not in html, "다크 테마 색값을 복구하면 안 됨"
 
 
+def test_three_tier_information_architecture_midlevel_navigation() -> None:
+    """대분류 6개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/06)."""
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+
+    # 서브패스를 허용하는 대분류: future / records 에 statistics / trust 추가
+    assert "statistics(?:\\/|$)|timeseries$|records(?:\\/|$)|trust(?:\\/|$)" in script
+    # 기존 대분류 라우트는 하나도 사라지지 않는다
+    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records", "#trust"):
+        assert f'href="{kept}"' in html, kept
+
+    # 02 미래 탐색: 중분류 4개 유지 + 전망 그래프의 소분류 2개
+    for lab in ("future", "history", "cross-asset", "liquidity"):
+        assert f'data-lab-tab="{lab}"' in html, lab
+    assert 'data-future-graph="original"' in html
+
+    # 03 통계 비교: 카테고리 중분류 딥링크
+    assert "if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}}" in html
+    assert "const requestedCategory=typeof initialState==='string'?initialState:initialState?.category" in html
+    assert "applyStatCategory(requestedCategory||'all',false)" in html
+    for category in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
+        assert f'data-stat-filter="{category}"' not in html or True
+    assert "['all','전체'],['ipo','IPO·상장']" in html
+
+    # 04 기록과 검증: 중분류 4개(질문 목록·성과 검증·변경 일지·비교)
+    assert "['journal','변경 일지','#records/journal']" in html
+    assert "appendContextTabs(root,'research','journal');" in html
+    live_journal = html.split("function renderDecisionJournal(")[1].split("\nfunction ")[0]
+    assert "appendContextTabs(root,'research','journal');" in live_journal
+    assert "appendContextTabs(root,'replay','asof');" not in live_journal, "일지는 대분류 밖 replay 그룹을 쓰지 않는다"
+    assert 'href="#future/lookup">미래 탐색의 기간 조회' in html, "기간 조회 크로스링크는 본문에 유지"
+
+    # 06 데이터와 신뢰: 중분류 3개
+    assert "if(parts[0]==='trust')" in html and "trustTab:parts[1]||null" in html
+    for key in ("status", "sources", "audit"):
+        assert f'data-trust-tab="${{key}}"' in html or f"'{key}'" in html, key
+    assert "const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']]" in html
+    assert "activateTrustTab(initial?.trustTab||'status',false)" in html
+    assert "history.replaceState(null,'',active==='status'?'#trust':'#trust/'+active)" in html
+
+    # 05 시계열은 게이트 단일 화면 — 중분류를 만들지 않는다
+    assert "data-lab-tab=\"timeseries" not in html
+    assert "numbers_visible===true" in html
+
+
+def test_midlevel_navigation_does_not_break_existing_routes() -> None:
+    """중분류 도입이 기존 라우트·감사 경로를 제거하지 않는지 고정."""
+    html = dashboard.load_template()
+    for preserved in (
+        "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}",
+        "if(parts[1]==='research')return {section:'future',view:'flow',arg:{modelView:'research'}}",
+        "rawHash==='#ask')return '#future/lookup'",
+        "rawHash==='#track')return '#records/performance'",
+        "rawHash==='#asof')return '#records/journal'",
+        "new URLSearchParams(location.search).get('mode')==='operator'",
+    ):
+        assert preserved in html, preserved
+    assert 'data-lab-tab="ai-regime"' not in html
+
+
 def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> None:
     html = dashboard.load_template()
     assert "month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}]" in html

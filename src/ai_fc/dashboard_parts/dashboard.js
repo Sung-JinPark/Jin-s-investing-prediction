@@ -138,7 +138,7 @@ function loadUIState(){
     const raw=JSON.parse(localStorage.getItem(UI_KEY)||'null');
     if(!raw||![1,2,3,4].includes(raw.version))return {...UI_DEFAULTS,pins:[],recent:[],notes:{},compare:[],questionView:{...UI_DEFAULTS.questionView}};
     const notes=raw.notes&&typeof raw.notes==='object'?Object.fromEntries(Object.entries(raw.notes)
-      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
+      .filter(([k,v])=>/^#(today|future(?:\/|$)|statistics(?:\/|$)|timeseries$|records(?:\/|$)|trust(?:\/|$)|overview|flow|ask|questions|asof|track|q\/|compare\/)/.test(k)&&typeof v==='string'&&v.trim())
       .slice(0,20).map(([k,v])=>[k,v.slice(0,700)])):{};
     const questionView=raw.questionView&&typeof raw.questionView==='object'?raw.questionView:{};
     return {...UI_DEFAULTS,...raw,version:4,motion:raw.motion==='reduced'?'reduced':'adaptive',
@@ -1112,7 +1112,8 @@ function statisticsChartSvg(chart,alignment={}){
     ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
-function renderStatistics(){
+function renderStatistics(initialState){
+  const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
   root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기, 유동성, 금리, 기업가치와 신용 흐름에서 지금 시장의 위치를 살펴봅니다.</p></div></div>`));
   if(stats.status!=='ok'){
@@ -1139,7 +1140,16 @@ function renderStatistics(){
     root.appendChild(referenceSection);
   }
   mount(root);
-  root.querySelectorAll('[data-stat-filter]').forEach(button=>button.onclick=()=>{const key=button.dataset.statFilter;root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item===button)));root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=key!=='all'&&card.dataset.statCategory!==key);const referenceSection=root.querySelector('[data-stat-reference-section]');if(referenceSection)referenceSection.hidden=key!=='all'&&key!=='ipo';});
+  const applyStatCategory=(key,sync)=>{
+    const active=categories.some(([id])=>id===key)?key:'all';
+    root.querySelectorAll('[data-stat-filter]').forEach(item=>item.setAttribute('aria-pressed',String(item.dataset.statFilter===active)));
+    root.querySelectorAll('[data-stat-category]').forEach(card=>card.hidden=active!=='all'&&card.dataset.statCategory!==active);
+    const referenceSection=root.querySelector('[data-stat-reference-section]');
+    if(referenceSection)referenceSection.hidden=active!=='all'&&active!=='ipo';
+    if(sync)history.replaceState(null,'',active==='all'?'#statistics':'#statistics/'+active);
+  };
+  root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
+  applyStatCategory(requestedCategory||'all',false);
 }
 
 function timeseriesFeatureLabel(name){
@@ -1248,7 +1258,7 @@ function enhanceChartZoom(root=document){
 }
 function contextTabs(group,current){
   const groups={
-    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
+    research:[['questions','질문 목록','#records'],['performance','성과 검증','#records/performance'],['journal','변경 일지','#records/journal'],['compare','비교 작업공간','#records/compare/'+cleanCompareIds().join(',')]],
     replay:[['ask','기간 조회','#future/lookup'],['asof','AS-OF 타임머신','#records/journal']],
     track:[['track','요약과 Calibration','#trust']]
   };
@@ -1261,7 +1271,7 @@ function appendContextTabs(root,group,current){const html=contextTabs(group,curr
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
-  if(/^#(?:today|future(?:\/|$)|statistics$|timeseries$|records(?:\/|$)|trust$)/.test(rawHash))return rawHash;
+  if(/^#(?:today|future(?:\/|$)|statistics(?:\/|$)|timeseries$|records(?:\/|$)|trust(?:\/|$))/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
@@ -1286,7 +1296,7 @@ function legacyRouteRedirect(rawHash){
 function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
-  if(parts[0]==='statistics')return {section:'statistics',view:'statistics'};
+  if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}};
   if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries'};
   if(parts[0]==='future'){
     if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}};
@@ -1308,7 +1318,7 @@ function parseCanonicalRoute(rawHash){
     }
     return {section:'records',view:'questions'};
   }
-  if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust'}};
+  if(parts[0]==='trust')return {section:'trust',view:'track',arg:{trackMode:new URLSearchParams(location.search).get('mode')==='operator'?'operator':'trust',trustTab:parts[1]||null}};
   return {section:'today',view:'overview'};
 }
 function renderFuturePathsLoadState(summary,error=null){
@@ -2989,8 +2999,8 @@ function renderDecisionJournal(initial){
   const allDates=[...new Set(Object.values(histories).flat().map(h=>String(h.forecast_ts||'').slice(0,10)).filter(Boolean))].sort();
   const first=allDates[0]||generatedDay(),maxd=allDates.at(-1)||generatedDay();
   const root=el('<div class="decision-journal-page"></div>');
-  appendContextTabs(root,'replay','asof');
-  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다.</p></div></div>`));
+  appendContextTabs(root,'research','journal');
+  root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow">DECISION JOURNAL · IMMUTABLE HISTORY</p><h1>예측 변경 일지</h1><p class="page-lede">언제, 무엇이, 왜 바뀌었는지 지우지 않고 쌓는 기록입니다. 과거 판단을 현재 정보로 덮어쓰지 않습니다. 특정 날짜의 미래 분포는 <a href="#future/lookup">미래 탐색의 기간 조회 ↗</a>에서 봅니다.</p></div></div>`));
   root.appendChild(el(`<section class="journal-provenance" aria-label="불변 기록 안내"><div><span>APPEND-ONLY PROVENANCE</span><strong>사후 수정이 불가능한 원본에서 생성됩니다</strong><p>기존 예측은 지우지 않고 새 라운드만 추가합니다. 원본 해시는 원장 감사에서 다시 검증됩니다.</p></div><dl><div><dt>인덱스</dt><dd>${esc((DATA.trust?.index?.head||'검증 대기').slice(0,12))}</dd></div><div><dt>원장 감사</dt><dd>${esc((DATA.trust?.ledger_audit_at||'검증 대기').slice(0,10))}</dd></div></dl></section>`));
   if(methodEvents.length)root.appendChild(el(`<section class="method-change-feed" aria-label="방법론 변경 기록"><p class="eyebrow">METHOD CHANGE</p>${methodEvents.map(item=>{const base=DATA.meta?.public_repository_url||'';const href=item.report&&base?`${base}/blob/main/${item.report}`:'';return `<article><time>${esc(item.date)}</time><div><strong>${esc(item.title)}</strong><p>${esc(item.reason)}</p><small>snapshot ${esc(item.snapshot_id)}</small>${href?`<a href="${esc(href)}" target="_blank" rel="noopener">구현 보고서 ↗</a>`:''}</div></article>`;}).join('')}</section>`));
   const mode=el(`<div class="journal-mode" role="group" aria-label="일지 보기 방식"><button type="button" data-journal-mode="feed" aria-pressed="true">변경 일지</button><button type="button" data-journal-mode="replay" aria-pressed="false">그날로 돌아가기</button></div>`);
@@ -3053,25 +3063,42 @@ function renderTrack(initial){
   if(trackMode!=='performance'){
   const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
   const ledgerRows=trust.ledgers||[],ledgerSummary=trust.ledger_summary||{},sourceRows=trust.sources||[],healthySources=sourceRows.filter(row=>row.status==='ok').length,totalLedgers=Math.max(1,ledgerRows.length);
-  root.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><p class="eyebrow">DATA HEALTH</p><h2 id="trust-overview-title">현재 데이터 상태</h2></div><strong class="trust-health-state">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics"><article><span>확인된 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong><small>출처·사용 조건 확인</small></article><article><span>축적 중인 원장</span><strong>${num(ledgerSummary.accumulating||0)}</strong><small>새 기록이 들어오는 DB</small></article><article><span>검증 위반</span><strong>${num(ledgerSummary.violation||0)}</strong><small>0이면 구조 검사 통과</small></article><article><span>마지막 검사</span><strong>${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</strong><small>전체 원장 기준</small></article></div><div class="trust-state-figure" aria-label="원장 상태 분포"><span class="is-good" style="width:${Number(ledgerSummary.accumulating||0)/totalLedgers*100}%">축적 ${num(ledgerSummary.accumulating||0)}</span><span class="is-warn" style="width:${Number(ledgerSummary.stalled||0)/totalLedgers*100}%">정체 ${num(ledgerSummary.stalled||0)}</span><span class="is-bad" style="width:${Number(ledgerSummary.violation||0)/totalLedgers*100}%">위반 ${num(ledgerSummary.violation||0)}</span><span class="is-plan" style="width:${Number(ledgerSummary.planned||0)/totalLedgers*100}%">계획 ${num(ledgerSummary.planned||0)}</span></div></section>`));
-  root.appendChild(el(`<section class="data-pipeline" aria-labelledby="data-pipeline-title"><div class="data-pipeline-head"><p class="eyebrow">DATA PIPELINE</p><h2 id="data-pipeline-title">공개 데이터가 그래프가 되기까지</h2></div><div><article><span>01</span><strong>공개 원천 수집</strong><p>기관 발표값과 시각을 함께 받습니다.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>시점·형식 검사</strong><p>예측 기준일 이후 정보와 오류값을 차단합니다.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>변경 이력 보관</strong><p>원본은 덮어쓰지 않고 새 기록으로 남깁니다.</p></article><i aria-hidden="true">→</i><article><span>04</span><strong>화면과 모델 분리</strong><p>참고 통계와 예측 입력을 명확히 구분합니다.</p></article></div></section>`));
-  if(ledgerRows.length)root.appendChild(el(`<details class="trust-ledger-details"><summary><span><strong>원장별 상세 상태</strong><small>${num(ledgerRows.length)}개 DB · 필요할 때 펼쳐보기</small></span><b>위반 ${num(ledgerSummary.violation||0)}</b></summary><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>검사 시각 ${esc(trust.ledger_audit_at||'미산출')} · 정체는 갱신 확인, 위반은 구조·불변성 확인이 필요합니다.</footer></details>`));
-  if(trackMode==='operator')root.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
+  const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']];
+  const trustPanels=Object.fromEntries(trustTabs.map(([key])=>[key,el(`<div id="lab-trust-${key}" role="tabpanel" aria-labelledby="lab-tab-trust-${key}"></div>`)]));
+  const trustStatus=trustPanels.status,trustSources=trustPanels.sources,trustAudit=trustPanels.audit;
+  trustStatus.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><p class="eyebrow">DATA HEALTH</p><h2 id="trust-overview-title">현재 데이터 상태</h2></div><strong class="trust-health-state">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics"><article><span>확인된 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong><small>출처·사용 조건 확인</small></article><article><span>축적 중인 원장</span><strong>${num(ledgerSummary.accumulating||0)}</strong><small>새 기록이 들어오는 DB</small></article><article><span>검증 위반</span><strong>${num(ledgerSummary.violation||0)}</strong><small>0이면 구조 검사 통과</small></article><article><span>마지막 검사</span><strong>${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</strong><small>전체 원장 기준</small></article></div><div class="trust-state-figure" aria-label="원장 상태 분포"><span class="is-good" style="width:${Number(ledgerSummary.accumulating||0)/totalLedgers*100}%">축적 ${num(ledgerSummary.accumulating||0)}</span><span class="is-warn" style="width:${Number(ledgerSummary.stalled||0)/totalLedgers*100}%">정체 ${num(ledgerSummary.stalled||0)}</span><span class="is-bad" style="width:${Number(ledgerSummary.violation||0)/totalLedgers*100}%">위반 ${num(ledgerSummary.violation||0)}</span><span class="is-plan" style="width:${Number(ledgerSummary.planned||0)/totalLedgers*100}%">계획 ${num(ledgerSummary.planned||0)}</span></div></section>`));
+  trustSources.appendChild(el(`<section class="data-pipeline" aria-labelledby="data-pipeline-title"><div class="data-pipeline-head"><p class="eyebrow">DATA PIPELINE</p><h2 id="data-pipeline-title">공개 데이터가 그래프가 되기까지</h2></div><div><article><span>01</span><strong>공개 원천 수집</strong><p>기관 발표값과 시각을 함께 받습니다.</p></article><i aria-hidden="true">→</i><article><span>02</span><strong>시점·형식 검사</strong><p>예측 기준일 이후 정보와 오류값을 차단합니다.</p></article><i aria-hidden="true">→</i><article><span>03</span><strong>변경 이력 보관</strong><p>원본은 덮어쓰지 않고 새 기록으로 남깁니다.</p></article><i aria-hidden="true">→</i><article><span>04</span><strong>화면과 모델 분리</strong><p>참고 통계와 예측 입력을 명확히 구분합니다.</p></article></div></section>`));
+  if(ledgerRows.length)trustStatus.appendChild(el(`<details class="trust-ledger-details"><summary><span><strong>원장별 상세 상태</strong><small>${num(ledgerRows.length)}개 DB · 필요할 때 펼쳐보기</small></span><b>위반 ${num(ledgerSummary.violation||0)}</b></summary><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div><footer>검사 시각 ${esc(trust.ledger_audit_at||'미산출')} · 정체는 갱신 확인, 위반은 구조·불변성 확인이 필요합니다.</footer></details>`));
+  if(trackMode==='operator')trustStatus.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
   const arenaMarkup=trackMode==='operator'?`<div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state" data-badge-type="state">승격 비활성</span></div>
       <div class="arena-list">${arena.map(m=>`<article><div><strong>${esc(m.name)}</strong><span class="lifecycle ${esc(m.lifecycle)}" data-badge-type="state">${esc(m.lifecycle)}</span></div><p>${esc(m.target)}</p><small>${m.n_insufficient?'paired 표본 부족':esc(JSON.stringify(m.metrics))}</small><details><summary>한계 보기</summary><p>${esc(m.limitations||'미산출')}</p></details></article>`).join('')}</div>
     </div>`:'';
-  root.appendChild(el(`<section class="intelligence-stack" aria-label="검증 상세">
+  trustSources.appendChild(el(`<section class="intelligence-stack" aria-label="출처와 방법 상세">
     <details class="trust-center"><summary><span><b>데이터 출처 상세</b><small>제공기관 · 최신 상태 · 이용 조건</small></span><em>${trust.status==='ok'?'정상':'확인 필요'}</em></summary>
       <div class="trust-grid">${(trust.sources||[]).length?(trust.sources||[]).map(s=>`<article><div><strong>${esc(s.name)}</strong><span class="source-state ${s.status}" data-badge-type="state">${esc(s.state_label||s.status)}</span></div><p>${esc(s.provider)} · ${esc(plainTerm(s.vintage_capability))}</p><small>SLA ${s.freshness_sla_hours??'—'}h · ${esc(s.license_status||'미산출')}</small></article>`).join(''):'<p class="empty-copy">등록된 출처가 없습니다.</p>'}</div>
       <div class="index-receipt"><span>데이터 지문</span><code>${esc((trust.index?.source_fingerprint||'미산출').slice(0,16))}</code><small>${esc(trust.index?.branch||'미산출')}</small></div>
     </details>
+    <div class="audit-grid">
+      <details class="panel semantics-card"><summary>확률 숫자 읽는 법</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
+    </div>
+  </section>`));
+  trustAudit.appendChild(el(`<section class="intelligence-stack" aria-label="감사 기록 상세">
     ${arenaMarkup}
     <div class="audit-grid">
       <details class="panel receipt-card"><summary>현재 전망에 쓰인 데이터</summary><dl><div><dt>모델</dt><dd>${esc(receipt.model||'미산출')}</dd></div><div><dt>데이터</dt><dd>${esc(receipt.dataset||'미산출')}</dd></div><div><dt>출처</dt><dd>${esc(receipt.source||'미산출')}</dd></div><div><dt>버전</dt><dd>${esc((receipt.commit||'미산출').slice(0,12))}</dd></div></dl><p>${esc(receipt.limitation||'미산출')}</p></details>
       <details class="panel correction-card"><summary>데이터 정정 이력 · ${corrections.length}건</summary>${corrections.length?corrections.map(row=>`<article><span class="semantic-state" data-badge-type="state">${esc(row.status==='pending'?'보정 대기':row.status)}</span><strong>${esc(row.field_name)} · ${esc(row.old_value||'미산출')}</strong><p>${esc(row.reason)}</p></article>`).join(''):'<p class="empty-copy">정정 기록이 없습니다.</p>'}</details>
-      <details class="panel semantics-card"><summary>확률 숫자 읽는 법</summary><p>${esc(DATA.probability_semantics?.guardrail||'미산출')}</p>${Object.entries(DATA.probability_semantics?.spaces||{}).map(([space,label])=>`<div><code>${esc(space)}</code><span>${esc(label)}</span></div>`).join('')}</details>
     </div>
   </section>`));
+  const trustNav=el(`<nav class="lab-tabs trust-tabs" role="tablist" aria-label="데이터와 신뢰 화면">${trustTabs.map(([key,label,code])=>`<button type="button" id="lab-tab-trust-${key}" role="tab" data-trust-tab="${key}" aria-selected="${key==='status'}" aria-controls="lab-trust-${key}"><span>${code}</span> ${label}</button>`).join('')}</nav>`);
+  root.appendChild(trustNav);trustTabs.forEach(([key])=>root.appendChild(trustPanels[key]));
+  const activateTrustTab=(key,sync)=>{
+    const active=trustPanels[key]?key:'status';
+    trustTabs.forEach(([name])=>{trustPanels[name].hidden=name!==active;});
+    trustNav.querySelectorAll('[data-trust-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.trustTab===active)));
+    if(sync)history.replaceState(null,'',active==='status'?'#trust':'#trust/'+active);
+  };
+  trustNav.querySelectorAll('[data-trust-tab]').forEach(button=>{button.onclick=()=>activateTrustTab(button.dataset.trustTab,true);});
+  activateTrustTab(initial?.trustTab||'status',false);
   }
   mount(root);
 }
