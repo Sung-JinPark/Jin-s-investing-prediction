@@ -111,6 +111,34 @@ gh workflow run investing-refresh.yml --ref main -f mode=full
 > `cost_log.csv`는 SDK usage 기반 **추정 비용 원장**이다. 결제 청구서와 프로젝트 하드 지출
 > 한도는 OpenAI Platform의 Usage/Billing 화면에서 별도로 대조한다.
 
+### IPO EDGAR 424B4 감시 (`ipo-edgar-watch.yml`, 격주)
+
+`ipo_comparison_v1.json`의 계약이 선언만 해두었던 `edgar_source_watch`를 구현한 경로다.
+주간 학술 원천 해시 감시(`ipo-reference-batch`)와는 **별개 모듈·별개 워크플로**이며,
+그쪽 상태 파일과 주간 워크플로는 건드리지 않는다. LLM은 쓰지 않는다.
+
+- 토요일 01:40 UTC(10:40 KST) cron + **짝수 ISO 주차 게이트** = 격주. 수동
+  `workflow_dispatch`는 게이트를 건너뛴다.
+- EDGAR full-text search(`efts.sec.gov/LATEST/search-index`)에 AI 키워드 6종 ×
+  `forms=424B4`로 질의하고, `classification.reviewed_through` 다음 날부터 오늘까지의
+  완료 공모를 모은다. 같은 공고가 여러 키워드에 걸리면 `matched_keywords`로 합친다.
+- 출력은 `data/statistics/ipo/edgar_candidates.json` 하나. 이미 `ai_broad_cohort`에
+  들어간 발행인은 삭제하지 않고 `already_in_cohort: true`로 표시한다.
+- **키워드는 후보를 좁히는 힌트일 뿐 소속 판정이 아니다.** 계약이
+  `historical_rows_locked: true` / `current_era_rows_only_after_review`이므로
+  `ipo_comparison_v1.json`은 읽기 전용이고, 카운트 병합은 최종 투자설명서를 사람이
+  검토한 뒤 수동으로 한다. 검토를 마치면 `reviewed_through`를 밀어 대기열을 줄인다.
+- SEC 공정접근 정책에 따라 UA에 연락 이메일을 싣는다
+  (`JinsInvestingIPOEdgarWatch/1.0 (91ssjj@gmail.com)`).
+
+```bash
+cd src && python -m ai_fc ipo-edgar-watch
+```
+
+```bash
+gh workflow run ipo-edgar-watch.yml --ref main
+```
+
 ## 매일 아침 due 다이제스트 (Windows Task Scheduler, 선택)
 
 관리자 PowerShell에서 1회:

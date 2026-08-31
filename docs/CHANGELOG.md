@@ -2,6 +2,30 @@
 
 > 형식: Phase/워크스트림 단위. 출처(검토 라운드·스펙) 명기. dualdb 자체 이력은 dualdb/CHANGELOG.md.
 
+## IPO EDGAR 424B4 격주 감시 — 2026-08-31
+
+`ipo_comparison_v1.json`의 `reference_publication_contract.batch_update`가
+`edgar_source_watch: discover_and_review_completed_424B4_events`를 선언해 두고도
+구현이 없던 구멍을 메웠다. **주간 학술 원천 해시 감시는 무접촉** — 별개 모듈·워크플로다.
+
+- `src/ai_fc/ipo_edgar_watch.py` 신설. EDGAR full-text search
+  `efts.sec.gov/LATEST/search-index?q="<키워드>"&forms=424B4&dateRange=custom&startdt=&enddt=`
+  (엔드포인트·페이징은 실호출로 확인 — 페이지 100건, `from` 오프셋). AI 키워드 6종을
+  각각 질의해 accession 기준으로 합치고 `matched_keywords`에 기록한다.
+- 출력은 `data/statistics/ipo/edgar_candidates.json` 하나
+  (`ipo_edgar_424b4_candidates_v1`, cadence `biweekly`). 창은
+  `classification.reviewed_through` **다음 날**부터 오늘까지 — EDGAR `startdt`가 포함
+  경계라 이미 검토한 날을 다시 담지 않기 위함.
+- `already_in_cohort`는 `ai_broad_cohort[].issuers[].name`과 법인 접미사를 정규화해
+  대조한다. 이미 반영된 발행인도 지우지 않고 표시만 해 대기열이 정직하게 남는다.
+- **경계**: `ipo_comparison_v1.json`은 읽기 전용. 키워드는 후보를 좁히는 힌트일 뿐
+  AI 코호트 소속 판정이 아니며, 병합은 최종 투자설명서 검토 후 사람이 수동으로 한다.
+- `.github/workflows/ipo-edgar-watch.yml` — 토요일 01:40 UTC + 짝수 ISO 주차 게이트,
+  concurrency `investing-data-writer`, 커밋 화이트리스트는 대기열 파일 하나.
+  주차 판정은 `10#` 진법 강제를 넣었다. `date +%V`가 "08"/"09"로 오면 bash 산술이
+  8진수로 읽어 8·9주차에 워크플로가 죽는다(실측 확인).
+- 실측(2026-08-13~08-31): 424B4 중 AI 키워드 적중 11건 전부 검토 대기.
+
 ## Claude → Codex 백엔드 청사진 정밀 대조·P0/P1 실행 — 2026-07-31
 
 - **WS-1 수치형 판정 초안**: macro(FOMC·CPI·NFP·GDP)와 earnings(컨센/직전 값 비교)를
