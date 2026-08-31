@@ -251,7 +251,9 @@ def monthly_closes(symbol: str, start: date, end: date) -> tuple[list[str], list
 
 def fred_m2() -> dict[str, float]:
     """FRED M2SL 월별 ($B). {YYYY-MM: value}"""
-    text = _get("https://fred.stlouisfed.org/graph/fredgraph.csv?id=M2SL")
+    # FRED 약관은 API 경로만 자동 수집을 허용한다 (DECISIONS 12-6).
+    from ..fred_api import observations_csv
+    text = observations_csv("M2SL")
     reader = csv.reader(io.StringIO(text))
     next(reader)
     out = {}
