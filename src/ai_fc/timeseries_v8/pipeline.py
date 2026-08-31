@@ -365,6 +365,57 @@ def _resummarize(rows: list[Any]) -> dict[str, Any]:
 
 
 SEALED_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/sealed_evaluations.jsonl")
+SHADOW_FORECAST_LEDGER = Path("data/timeseries_v8/ledgers/shadow_forecasts.jsonl")
+SHADOW_RESOLUTION_LEDGER = Path("data/timeseries_v8/ledgers/shadow_resolutions.jsonl")
+LATEST_RELATIVE = Path("data/timeseries_v8/multivariate_v8_latest.json")
+
+
+def _read_chain(root: Path, relative: Path) -> list[dict[str, Any]]:
+    path = root / relative
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def _chain_append(root: Path, relative: Path, payload: dict[str, Any], *, key: str) -> dict[str, Any]:
+    """Append one hash-chained row: prev_content_hash links to the last row."""
+    rows = _read_chain(root, relative)
+    previous = rows[-1]["content_hash"] if rows else "GENESIS"
+    body = {k: v for k, v in payload.items() if k not in ("content_hash", "prev_content_hash")}
+    body["prev_content_hash"] = previous
+    body["content_hash"] = canonical_hash(body)
+    from .artifact import append_unique as _append_unique
+
+    _append_unique(root, relative, body, key=key)
+    return body
+
+
+def verify_chain(root: Path, relative: Path) -> list[str]:
+    errors: list[str] = []
+    previous = "GENESIS"
+    for index, row in enumerate(_read_chain(root, relative)):
+        body = {k: v for k, v in row.items() if k != "content_hash"}
+        if row.get("content_hash") != canonical_hash(body):
+            errors.append(f"{relative.name}[{index}]: content hash mismatch")
+        if row.get("prev_content_hash") != previous:
+            errors.append(f"{relative.name}[{index}]: chain link broken")
+        previous = row.get("content_hash", "")
+    return errors
+
+
+def _sealed_gate_passed(root: Path) -> dict[str, Any]:
+    path = root / SEALED_LEDGER_RELATIVE
+    rows = [
+        json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()
+    ] if path.is_file() else []
+    if not rows:
+        raise TimeSeriesV8PipelineError("the sealed evaluation has not been disclosed")
+    row = rows[-1]
+    if (row.get("summary") or {}).get("gate_pass") is not True:
+        raise TimeSeriesV8PipelineError(
+            "the sealed evaluation did not pass the gate; the shadow surface stays closed"
+        )
+    return row
 
 
 def _sealed_preconditions(
@@ -564,6 +615,253 @@ def load_dev_run(root: Path, identity: str) -> dict[str, Any]:
     return payload
 
 
+def _iso_week(day: str) -> str:
+    iso = datetime.fromisoformat(day).isocalendar()
+    return f"{iso.year}-W{iso.week:02d}"
+
+
+def shadow_forecast_timeseries_v8(
+    root: Path, *, knowledge_cutoff: str | None = None,
+) -> dict[str, Any]:
+    """Append this ISO week's prospective forecast to the hash-chained ledger.
+
+    The full frozen-methodology walk-forward is replayed from 2007 so the
+    ensemble and PIT-recalibration state at the forecast origin are exactly
+    the sealed methodology's state — deterministic, so a same-day rerun
+    produces the identical forecast and the append deduplicates. One
+    forecast per ISO week; labels mature only sessions later, so every row
+    is recorded strictly before its outcome is knowable.
+    """
+    contract = load_contract_v8(root)
+    verify_v2_benchmark(root, contract)
+    require_dfm_runtime()
+    sealed_row = _sealed_gate_passed(root)
+    config = build_config_from_grids(
+        contract, json.loads(json.dumps(contract["frozen_winner"]["config_overrides"])),
+    )
+    cutoff = knowledge_cutoff or datetime.now(timezone.utc).isoformat(timespec="seconds")
+    bundle = _sealed_bundle(root, contract)
+    origin = bundle.dates[-1]
+    existing = _read_chain(root, SHADOW_FORECAST_LEDGER)
+    same_week = [row for row in existing if row.get("iso_week") == _iso_week(origin)]
+    if same_week:
+        return {**same_week[-1], "skipped": "a forecast already exists for this ISO week"}
+    scores, summary = walk_forward_dev_backtest_v8(
+        dates=bundle.dates,
+        endog=bundle.endogenous,
+        exog=bundle.exogenous,
+        endog_names=bundle.endogenous_names,
+        exog_names=bundle.exogenous_names,
+        model_id=contract["model_id"],
+        model_version=int(contract["model_version"]),
+        config=config,
+        outer_start=str(contract["evaluation"]["outer_start"]),
+        outer_end=bundle.dates[-1],
+        path_count=int(contract["model"]["distribution"]["sealed_path_count"]),
+        pit_min_matured=int(
+            contract["research_grids"]["B4_pit_recalibration"]["minimum_matured_origins"]
+        ),
+        collect_cramer_audit=False,
+        emit_forecast=True,
+    )
+    forecast = summary["shadow_forecast"]
+    payload = {
+        "schema_version": 1,
+        "forecast_id": f"tsv8-shadow-{canonical_hash({'model': contract['model_id'], 'config': config.as_manifest(), 'origin': forecast['origin']})[:24]}",
+        "model_id": contract["model_id"],
+        "model_version": int(contract["model_version"]),
+        "origin": forecast["origin"],
+        "iso_week": _iso_week(forecast["origin"]),
+        "knowledge_cutoff": cutoff,
+        "contract_hash": frozen_hash(contract),
+        "model_code_hash": model_code_hash(root),
+        "sealed_run_id": sealed_row["run_id"],
+        "config": config.as_manifest(),
+        "grid_levels_count": forecast["grid_levels_count"],
+        "ensemble_weights": forecast["ensemble_weights"],
+        "block_length": forecast["block_length"],
+        "ewma_lambda": forecast["ewma_lambda"],
+        "horizons": forecast["horizons"],
+        "matured_origins_at_emit": len({row.date for row in scores}),
+        "probability_unit": "fraction",
+    }
+    return _chain_append(root, SHADOW_FORECAST_LEDGER, payload, key="forecast_id")
+
+
+def shadow_resolve_timeseries_v8(
+    root: Path, *, bundle: CandidateFeatureBundle | None = None,
+) -> dict[str, Any]:
+    """Score every matured, unresolved shadow forecast horizon (append-only)."""
+    from ai_fc.timeseries.backtest import sample_crps
+
+    forecasts = _read_chain(root, SHADOW_FORECAST_LEDGER)
+    if not forecasts:
+        return {"resolved": 0, "note": "no shadow forecasts yet"}
+    resolutions = _read_chain(root, SHADOW_RESOLUTION_LEDGER)
+    resolved_keys = {(row["forecast_id"], int(row["horizon"])) for row in resolutions}
+    if bundle is None:
+        bundle = _sealed_bundle(root, load_contract_v8(root))
+    index_by_date = {day: index for index, day in enumerate(bundle.dates)}
+    appended = []
+    for forecast in forecasts:
+        origin_index = index_by_date.get(forecast["origin"])
+        if origin_index is None:
+            continue
+        for horizon in (1, 5, 21, 63):
+            key = (forecast["forecast_id"], horizon)
+            if key in resolved_keys:
+                continue
+            end = origin_index + horizon
+            if end >= len(bundle.dates):
+                continue
+            actual = float(np.sum(bundle.endogenous[origin_index + 1: end + 1, 0]))
+            grid = np.asarray(forecast["horizons"][str(horizon)]["quantile_grid"], dtype=float)
+            baseline_grid = np.asarray(
+                forecast["horizons"][str(horizon)]["baseline_quantile_grid"], dtype=float,
+            )
+            levels_count = int(forecast["grid_levels_count"])
+            p10, p25, p50, p75, p90 = (
+                float(grid[int(q * levels_count)]) for q in (0.10, 0.25, 0.50, 0.75, 0.90)
+            )
+            payload = {
+                "schema_version": 1,
+                "resolution_id": f"{forecast['forecast_id']}-h{horizon}",
+                "forecast_id": forecast["forecast_id"],
+                "model_id": forecast["model_id"],
+                "origin": forecast["origin"],
+                "horizon": horizon,
+                "resolved_session": bundle.dates[end],
+                "actual_log_return": actual,
+                "model_crps": float(sample_crps(grid, actual)),
+                "baseline_crps": float(sample_crps(baseline_grid, actual)),
+                "covered_p10_p90": bool(p10 <= actual <= p90),
+                "covered_p25_p75": bool(p25 <= actual <= p75),
+                "direction_correct": bool((p50 >= 0) == (actual >= 0)),
+                "p_up": forecast["horizons"][str(horizon)]["p_up"],
+            }
+            appended.append(_chain_append(
+                root, SHADOW_RESOLUTION_LEDGER, payload, key="resolution_id",
+            ))
+            resolved_keys.add(key)
+    return {"resolved": len(appended), "total_resolutions": len(resolutions) + len(appended)}
+
+
+def publish_latest_timeseries_v8(root: Path) -> dict[str, Any]:
+    """Write the fail-closed V8 latest pointer (data layer only).
+
+    Numbers become visible only when the disclosed sealed gate passed AND
+    the operational freshness gate holds; the customer display surface is a
+    separately governed display-promotion step, and every output keeps its
+    참고 의견 (research reference) status per the project constitution.
+    """
+    from ai_fc.timeseries_v2.market_archive import read_market_observations
+
+    contract = load_contract_v8(root)
+    now = datetime.now(timezone.utc)
+    cutoff = now.isoformat(timespec="seconds")
+    sealed_row = None
+    reasons: list[str] = []
+    try:
+        sealed_row = _sealed_gate_passed(root)
+    except TimeSeriesV8PipelineError as exc:
+        reasons.append(str(exc))
+    market = read_market_observations(root, knowledge_cutoff=cutoff)
+    operational = contract["operational_gate"]
+    default_limit = float(operational["required_market_max_age_hours"])
+    overrides = {
+        str(key): float(value)
+        for key, value in (operational.get("per_group_max_age_hours_override") or {}).items()
+    }
+    freshness_groups = []
+    for alternatives in operational["required_market_groups"]:
+        label = "_or_".join(alternatives)
+        rows = [row for row in market if row.series_id in set(alternatives)]
+        if not rows:
+            freshness_groups.append({"group": label, "status": "missing"})
+            reasons.append(f"필수 시장 입력 누락: {label}")
+            continue
+        latest = max(rows, key=lambda row: (row.observation_time, row.available_at))
+        observation_end = datetime.fromisoformat(latest.observation_time).replace(
+            hour=23, minute=59, second=59, tzinfo=timezone.utc,
+        )
+        age_hours = max(0.0, (now - observation_end).total_seconds() / 3600.0)
+        limit = overrides.get(label, default_limit)
+        status = "fresh" if age_hours <= limit else "stale"
+        freshness_groups.append({
+            "group": label, "observation_time": latest.observation_time,
+            "age_hours": age_hours, "limit_hours": limit, "status": status,
+        })
+        if status != "fresh":
+            reasons.append(f"필수 시장 입력 신선도 초과: {label}")
+    resolutions = _read_chain(root, SHADOW_RESOLUTION_LEDGER)
+    recent_required = int(operational["recent_origins"])
+    matured_origins = sorted({row["origin"] for row in resolutions if row["horizon"] == 63})
+    monitoring: dict[str, Any] = {"matured_shadow_origins": len(matured_origins)}
+    if len(matured_origins) >= recent_required:
+        recent = matured_origins[-recent_required:]
+        rows = [row for row in resolutions if row["origin"] in set(recent)]
+        model_crps = float(np.mean([row["model_crps"] for row in rows if row["horizon"] in (21, 63)]))
+        baseline_crps = float(np.mean([row["baseline_crps"] for row in rows if row["horizon"] in (21, 63)]))
+        underperformance = (model_crps - baseline_crps) / baseline_crps if baseline_crps > 0 else 0.0
+        monitoring.update({
+            "source": "shadow_resolutions",
+            "recent_long_horizon_crps_underperformance": underperformance,
+        })
+        if underperformance > float(operational["crps_max_underperformance"]):
+            reasons.append("최근 shadow 원점 CRPS가 기준선 대비 허용치 초과")
+    else:
+        monitoring["source"] = "sealed_backtest_until_shadow_origins_mature"
+    forecasts = _read_chain(root, SHADOW_FORECAST_LEDGER)
+    latest_forecast = forecasts[-1] if forecasts else None
+    if latest_forecast is None:
+        reasons.append("shadow forecast가 아직 없음")
+    visible = not reasons
+    payload: dict[str, Any] = {
+        "schema_version": 1,
+        "model_id": contract["model_id"],
+        "model_version": int(contract["model_version"]),
+        "status": "shadow_live" if visible else "shadow_operational_hold",
+        "display_state": "research_reference" if visible else "validation_pending",
+        "as_of": None if latest_forecast is None else latest_forecast["origin"],
+        "knowledge_cutoff": cutoff,
+        "probability_unit": "fraction",
+        "probability_space": str(contract["probability_contract"]["space"]),
+        "publication": {
+            "customer_numbers_visible": visible,
+            "combined_with_official_forecasts": False,
+            "combined_with_scenario_v5_2": False,
+            "reference_opinion_only": True,
+        },
+        "gate": {
+            "sealed_gate_pass": bool(sealed_row is not None),
+            "sealed_run_id": None if sealed_row is None else sealed_row["run_id"],
+            "operational_pass": visible,
+            "reasons": reasons,
+        },
+        "operational": {"freshness": freshness_groups, "monitoring": monitoring},
+        "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
+    }
+    if visible and latest_forecast is not None:
+        levels_count = int(latest_forecast["grid_levels_count"])
+        payload["horizons"] = {
+            horizon: {
+                "p10": float(values["quantile_grid"][int(0.10 * levels_count)]),
+                "p25": float(values["quantile_grid"][int(0.25 * levels_count)]),
+                "p50": float(values["quantile_grid"][int(0.50 * levels_count)]),
+                "p75": float(values["quantile_grid"][int(0.75 * levels_count)]),
+                "p90": float(values["quantile_grid"][int(0.90 * levels_count)]),
+                "probability_up": float(values["p_up"]),
+            }
+            for horizon, values in latest_forecast["horizons"].items()
+        }
+        for horizon in payload["horizons"].values():
+            if not 0.0 <= horizon["probability_up"] <= 1.0:
+                raise TimeSeriesV8PipelineError("shadow probability escaped the fraction contract")
+    payload["content_hash"] = canonical_hash(payload)
+    _atomic_json(root / LATEST_RELATIVE, payload)
+    return payload
+
+
 def verify_timeseries_v8(root: Path) -> dict[str, Any]:
     """Verify V8 preregistration, predecessor pins, and ledger discipline."""
     errors: list[str] = []
@@ -597,6 +895,8 @@ def verify_timeseries_v8(root: Path) -> dict[str, Any]:
             for row in experiments
         ):
             errors.append("non-finite paired mean in experiment ledger")
+    for relative in (SHADOW_FORECAST_LEDGER, SHADOW_RESOLUTION_LEDGER):
+        errors.extend(verify_chain(root, relative))
     sealed_marker = root / SEALED_LEDGER_RELATIVE
     if sealed_marker.is_file():
         frozen = bool(((contract or {}).get("freeze_note") or {}).get("frozen_on"))
@@ -611,5 +911,7 @@ def verify_timeseries_v8(root: Path) -> dict[str, Any]:
         "v2_benchmark": benchmark,
         "experiments": len(experiments),
         "holdout_scorings": len(holdouts),
+        "shadow_forecasts": len(_read_chain(root, SHADOW_FORECAST_LEDGER)),
+        "shadow_resolutions": len(_read_chain(root, SHADOW_RESOLUTION_LEDGER)),
         "development_budget": budget,
     }

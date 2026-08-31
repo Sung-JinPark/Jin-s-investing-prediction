@@ -48,9 +48,16 @@ from ai_fc.timeseries_v8.model import (
 from ai_fc.timeseries_v8.artifact import append_holdout_scoring
 from ai_fc.timeseries_v8.pipeline import (
     SEALED_LEDGER_RELATIVE,
+    SHADOW_FORECAST_LEDGER,
+    SHADOW_RESOLUTION_LEDGER,
     TimeSeriesV8PipelineError,
+    _chain_append,
+    _read_chain,
     _sealed_preconditions,
     build_config_from_grids,
+    publish_latest_timeseries_v8,
+    shadow_resolve_timeseries_v8,
+    verify_chain,
     verify_timeseries_v8,
 )
 
@@ -649,6 +656,94 @@ def test_sealed_preconditions_reject_a_failed_or_mismatched_holdout(tmp_path: Pa
     append_holdout_scoring(root, mismatched)
     with pytest.raises(TimeSeriesV8PipelineError, match="holdout"):
         _sealed_preconditions(root, contract, user_signoff="R8-D2 approved", path_count=20000)
+
+
+# ── forward shadow: chain ledger, forecast grid, resolution, publication ───
+
+def test_chain_ledger_links_and_detects_tampering(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    first = _chain_append(root, SHADOW_FORECAST_LEDGER, {"forecast_id": "f1", "origin": "2026-08-28"}, key="forecast_id")
+    assert first["prev_content_hash"] == "GENESIS"
+    second = _chain_append(root, SHADOW_FORECAST_LEDGER, {"forecast_id": "f2", "origin": "2026-09-04"}, key="forecast_id")
+    assert second["prev_content_hash"] == first["content_hash"]
+    assert verify_chain(root, SHADOW_FORECAST_LEDGER) == []
+    path = root / SHADOW_FORECAST_LEDGER
+    body = path.read_text(encoding="utf-8").replace("2026-08-28", "2026-08-29")
+    path.write_text(body, encoding="utf-8")
+    errors = verify_chain(root, SHADOW_FORECAST_LEDGER)
+    assert errors and any("hash mismatch" in error for error in errors)
+
+
+def test_final_session_forecast_is_deterministic_and_monotone() -> None:
+    sessions = 880
+    dates = _sessions(sessions)
+    endog, exog = _synthetic_market(sessions, seed=11)
+    common = dict(
+        dates=dates, endog=endog, exog=exog,
+        endog_names=("a", "b", "c", "d", "e"), exog_names=("x", "y"),
+        model_id="m", model_version=8,
+        config=DistributionConfigV8(fhs_horizons=(21, 63)),
+        outer_start=dates[800], outer_end=dates[-1],
+        path_count=200, collect_cramer_audit=False, emit_forecast=True,
+    )
+    _, first = walk_forward_dev_backtest_v8(**common)
+    _, second = walk_forward_dev_backtest_v8(**common)
+    forecast = first["shadow_forecast"]
+    assert forecast == second["shadow_forecast"]
+    assert forecast["origin"] == dates[-1]
+    assert set(forecast["horizons"]) == {"1", "5", "21", "63"}
+    for values in forecast["horizons"].values():
+        grid = np.asarray(values["quantile_grid"])
+        assert len(grid) == forecast["grid_levels_count"]
+        assert np.all(np.diff(grid) >= 0.0)
+        assert 0.0 <= values["p_up"] <= 1.0
+
+
+def test_shadow_resolution_scores_only_matured_horizons(tmp_path: Path) -> None:
+    from ai_fc.timeseries_v2.features import CandidateFeatureBundle
+
+    root = _root(tmp_path)
+    dates = _sessions(40)
+    returns = np.full((40, 5), 0.001)
+    bundle = CandidateFeatureBundle(
+        candidate_id="C1", status="ready", dates=dates, endogenous=returns,
+        endogenous_names=("a", "b", "c", "d", "e"), exogenous=np.zeros((40, 2)),
+        exogenous_names=("x", "y"), data_grades=(), missing_features=(),
+        dfm_cache_ids=(), transform_manifest={}, dfm_cache_complete=True,
+    )
+    grid = list(np.linspace(-0.05, 0.06, 200))
+    _chain_append(root, SHADOW_FORECAST_LEDGER, {
+        "forecast_id": "f1", "model_id": "m", "origin": dates[10],
+        "grid_levels_count": 200,
+        "horizons": {str(h): {
+            "quantile_grid": grid, "baseline_quantile_grid": grid, "p_up": 0.6,
+        } for h in (1, 5, 21, 63)},
+    }, key="forecast_id")
+    result = shadow_resolve_timeseries_v8(root, bundle=bundle)
+    rows = _read_chain(root, SHADOW_RESOLUTION_LEDGER)
+    # 29 sessions remain after the origin: h1/h5/h21 mature, h63 does not.
+    assert result["resolved"] == 3
+    assert {row["horizon"] for row in rows} == {1, 5, 21}
+    h5 = next(row for row in rows if row["horizon"] == 5)
+    assert h5["actual_log_return"] == pytest.approx(0.005)
+    assert h5["covered_p10_p90"] is True and h5["direction_correct"] is True
+    again = shadow_resolve_timeseries_v8(root, bundle=bundle)
+    assert again["resolved"] == 0
+    assert verify_chain(root, SHADOW_RESOLUTION_LEDGER) == []
+
+
+def test_publish_latest_stays_fail_closed_without_disclosure_or_data(tmp_path: Path) -> None:
+    root = _root(tmp_path)
+    payload = publish_latest_timeseries_v8(root)
+    assert payload["publication"]["customer_numbers_visible"] is False
+    assert payload["status"] == "shadow_operational_hold"
+    assert "horizons" not in payload
+    assert any("봉인" in reason or "disclosed" in reason for reason in payload["gate"]["reasons"])
+    assert payload["publication"]["reference_opinion_only"] is True
+    written = json.loads((root / "data/timeseries_v8/multivariate_v8_latest.json").read_text(encoding="utf-8"))
+    body = {key: value for key, value in written.items() if key != "content_hash"}
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+    assert written["content_hash"] == canonical_hash(body)
 
 
 # ── dev-gate proxy report ──────────────────────────────────────────────────

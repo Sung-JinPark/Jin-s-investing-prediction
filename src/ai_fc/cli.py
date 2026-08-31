@@ -319,6 +319,47 @@ def cmd_timeseries_v8_backtest(
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v8-forecast")
+def cmd_timeseries_v8_forecast(
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """동결 승자의 주간 포워드 shadow 예측을 해시체인 원장에 append한다."""
+    from .timeseries_v8.pipeline import shadow_forecast_timeseries_v8
+
+    result = _timeseries_exit(
+        shadow_forecast_timeseries_v8, config.ROOT, knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps({
+        "forecast_id": result.get("forecast_id"),
+        "origin": result.get("origin"),
+        "iso_week": result.get("iso_week"),
+        "skipped": result.get("skipped"),
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v8-resolve")
+def cmd_timeseries_v8_resolve() -> None:
+    """성숙한 shadow 예측 지평을 실현 수익률로 채점해 append한다."""
+    from .timeseries_v8.pipeline import shadow_resolve_timeseries_v8
+
+    result = _timeseries_exit(shadow_resolve_timeseries_v8, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v8-latest")
+def cmd_timeseries_v8_latest() -> None:
+    """봉인 게이트+운영 게이트를 fail-closed로 판정해 V8 latest 포인터를 쓴다."""
+    from .timeseries_v8.pipeline import publish_latest_timeseries_v8
+
+    result = _timeseries_exit(publish_latest_timeseries_v8, config.ROOT)
+    typer.echo(json.dumps({
+        "status": result["status"],
+        "customer_numbers_visible": result["publication"]["customer_numbers_visible"],
+        "reasons": result["gate"]["reasons"],
+        "as_of": result["as_of"],
+    }, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-v8-verify")
 def cmd_timeseries_v8_verify() -> None:
     """V8 사전등록·V2 predecessor 핀·실험 원장 규율을 fail-closed 검증한다."""

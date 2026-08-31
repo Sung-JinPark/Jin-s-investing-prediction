@@ -1,0 +1,62 @@
+name: timeseries-v8-shadow
+
+# Forward-shadow accumulation for the frozen, gate-passed V8 winner: one
+# hash-chained forecast per ISO week (recorded strictly before its labels
+# mature) plus daily maturation scoring and the fail-closed latest pointer.
+# This never touches sealed evaluations - the disclosure is spent - and it
+# needs no secrets: it reads the repo's own PIT stores refreshed by
+# timeseries-v2-refresh.
+
+on:
+  schedule:
+    # Tue-Sat, after the V2 refresh window (which starts 01:35 UTC).
+    - cron: "10 3 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer-v8
+  cancel-in-progress: false
+
+jobs:
+  shadow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned numerical runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Append the weekly shadow forecast (idempotent per ISO week)
+        run: python -m ai_fc timeseries-v8-forecast
+      - name: Resolve matured shadow horizons
+        run: python -m ai_fc timeseries-v8-resolve
+      - name: Refresh the fail-closed latest pointer
+        run: python -m ai_fc timeseries-v8-latest
+      - name: Verify ledgers, chains, and preregistration
+        run: |
+          python -m ai_fc timeseries-v8-verify
+          pytest src/tests/test_multivariate_timeseries_v8.py -q
+      - name: Commit only registered V8 shadow outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          git add data/timeseries_v8 docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v8/.*|docs/generated/inventory.generated.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected shadow paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: append V8 shadow forecast/resolution"
+            git pull --rebase origin main
+            git push
+          fi
