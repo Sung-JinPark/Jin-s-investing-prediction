@@ -566,8 +566,14 @@ def resolve_question(conn: sqlite3.Connection, root: Path, question_id: str,
             "llm_brier": brier,
             "ml_prob": round(ml[0], 4) if ml else None,
             "ml_brier": round((ml[0] - val) ** 2, 4) if ml else None,
-            "market_prob": round(float(mi), 4) if mi is not None else None,
-            "market_brier": round((float(mi) - val) ** 2, 4) if mi is not None else None,
+            # market_implied는 예측 파일 frontmatter에 **퍼센트**로 기록된다
+            # (TEMPLATE: "market_implied: <시장내재확률 % | null>"), 반면 원장의
+            # market_prob 컬럼은 정본 분수다.  llm_prob과 똑같이 100으로 나눈다.
+            # 이 변환이 빠져 2026-07-31 채점분 두 행이 22.0/5.0으로 기록됐고
+            # ingest에서 Q1 격리됐다 (CORR-260801-001/002, CORR-260831-005/006).
+            "market_prob": round(float(mi) / 100.0, 4) if mi is not None else None,
+            "market_brier": (round((float(mi) / 100.0 - val) ** 2, 4)
+                             if mi is not None else None),
             "ml_asof": ml[1] if ml else "",
             "market_asof": (r["forecast_ts"] or "")[:10] if mi is not None else "",
             "notes": "",
