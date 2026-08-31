@@ -257,8 +257,9 @@ def test_ui_contract() -> None:
     assert 'class="command-layer"' in html and 'role="dialog"' in html
     assert 'aria-modal="true"' in html and "setCommand" in html
     assert "<kbd>⌘ K</kbd>" in html
-    assert "miniSparkline" in html and 'class="card-spark"' in html
-    assert "signalMosaic" in html and 'class="signal-mosaic"' in html
+    # miniSparkline·signalMosaic은 홈 개편 이후 호출부가 사라진 죽은 코드였다.
+    # 되살아나면 렌더되지 않는 마크업이 번들에 다시 실리므로 부재를 고정한다.
+    assert "miniSparkline" not in html and "signalMosaic" not in html
     assert "bindDynamicMotion" in html and "requestAnimationFrame(paint)" in html
     assert "--tilt-x" in html and "pointermove" in html
     assert ".filter-bar{position:sticky" in html
@@ -275,8 +276,10 @@ def test_ui_contract() -> None:
     # 시나리오 가중치를 질문 확률로 혼용하지 않음(하드코딩 금지) — FEATURE_QIDS로 데이터 참조
     assert "FEATURE_QIDS" in html
     assert 'class="mobile-bottom-nav"' in html
-    assert "decisionQueueCard" in html and "linkedSignalStrip" in html
-    assert "bindHomeSignals" in html and "lastSeenGeneratedAt" in html
+    # decisionQueueCard·linkedSignalStrip·bindHomeSignals도 같은 개편에서 호출부가
+    # 사라졌다. lastSeenGeneratedAt은 살아있는 방문 스냅샷 로직이므로 유지한다.
+    assert "decisionQueueCard" not in html and "linkedSignalStrip" not in html
+    assert "bindHomeSignals" not in html and "lastSeenGeneratedAt" in html
     assert 'class="skip-link"' in html and 'id="app" tabindex="-1"' in html
     assert "const hasNumeric=" in html and "const roundLabel=" in html
     assert "산출 전" in html
@@ -438,8 +441,6 @@ def test_workspace_utility_contract() -> None:
         "IntersectionObserver",
         "workspace-note",
         "setMotion",
-        "changeRadarData",
-        "vintageReceipt",
         "humanDomain",
         "humanDriver",
         "myRadarPanel",
@@ -451,7 +452,6 @@ def test_workspace_utility_contract() -> None:
         "reviewQueueData",
         "reviewQueuePanel",
         "dismissReviewQuestion",
-        "renderAsofTimeMachine",
         "downloadQuestionCalendar",
         "signal-lens-readout",
         "researchPriority",
@@ -485,9 +485,10 @@ def test_workspace_utility_contract() -> None:
     assert "한 줄 해석" in html and "관찰 변수" in html
     assert "probability==null||probability===''" in html
     assert "WHAT CHANGED" in html and "MY RADAR" in html
-    assert "SCENARIO VINTAGE" in html and "As-of Time Machine" in html
+    # 'SCENARIO VINTAGE' 라벨은 렌더되지 않던 vintageReceipt 안에만 있었다.
+    # 신선도 판정 로직 자체(scenarioVintage)는 그대로 살아 있어야 한다.
+    assert "function scenarioVintage()" in html and "SCENARIO VINTAGE" not in html
     assert "businessDayDiff" in html and "is-stale" in html
-    assert "askPresets" in html and "nearestWeekIndex" in html
     assert "answer(25)" not in html
     assert "확률은 예측 모델 앙상블 산출값" not in html
     assert "gbm-daily-252d" in html
@@ -683,6 +684,31 @@ def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
     assert "#0a0e1a" not in html, "다크 테마 색값을 복구하면 안 됨"
 
 
+def test_dead_render_paths_are_not_shipped() -> None:
+    """도달 불가 렌더러가 번들에 다시 실리지 않는지 고정."""
+    html = dashboard.load_template()
+    for dead in (
+        "renderAsk",
+        "renderAsof",
+        "renderAsofTimeMachine",
+        "changeRadarPanel",
+        "decisionQueueCard",
+        "linkedSignalStrip",
+        "homeFeatureQuestions",
+        "bindHomeSignals",
+        "miniSparkline",
+        "signalMosaic",
+    ):
+        assert dead not in html, f"죽은 렌더러가 다시 포함됨: {dead}"
+    # 일지는 VIEWS에서 곧바로 살아있는 렌더러를 가리킨다 (사후 재할당 없음)
+    assert "asof:renderDecisionJournal" in html
+    assert "VIEWS.asof=" not in html
+    assert "ask:renderAsk" not in html
+    # 살아있는 이웃 심볼은 그대로 유지
+    for kept in ("featureQs", "FEATURE_QIDS", "reviewQueuePanel", "renderDecisionJournal"):
+        assert kept in html, kept
+
+
 def test_three_tier_information_architecture_midlevel_navigation() -> None:
     """대분류 6개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/06)."""
     html = dashboard.load_template()
@@ -826,9 +852,10 @@ def test_u1d_mobile_layout_contract() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
 
-    assert 'id="dchart" class="ask-daily-chart"' in html
-    assert 'id="dchart" style="min-width:640px"' not in html
-    assert ".ask-daily-chart{width:100%;min-width:0!important}" in css
+    # ask 뷰(#ask)는 #future/lookup으로 대체되며 렌더러가 제거됐다. 되살아나면
+    # 라우터가 닿지 못하는 차트가 다시 번들에 실리므로 부재를 고정한다.
+    assert "dchart" not in html and "ask-daily-chart" not in html
+    assert "ask-daily-chart" not in css
     assert ".detail-hero .prob-orb{margin:18px auto 34px}" in css
     assert ".track-page .ledger-status-grid strong" in css
     assert "overflow-wrap:anywhere" in css

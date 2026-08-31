@@ -1062,7 +1062,7 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
 @media(max-width:760px){.method-change-feed{min-width:0;padding:14px}.method-change-feed article{min-width:0;grid-template-columns:1fr;gap:4px}.method-change-feed article>div{min-width:0}.method-change-feed small{overflow-wrap:anywhere}.method-change-feed article a{margin:6px 0 0}}
 
 /* U1d: measured mobile layout repairs and horizontal-chart affordance. */
-.ask-daily-chart{width:100%;min-width:0!important}
+
 .track-page article,.track-page strong,.track-page p,.track-page small,.track-page code{min-width:0;overflow-wrap:anywhere;word-break:break-word}.track-page .ledger-status-grid strong{overflow:visible;text-overflow:clip;white-space:normal}
 @media(max-width:620px){.detail-hero .prob-orb{margin:18px auto 34px}.track-page .track-kpis>div{min-width:0}}
 
