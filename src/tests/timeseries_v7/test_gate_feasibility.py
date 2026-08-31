@@ -1,5 +1,4 @@
 from datetime import date
-import pytest
 from ai_fc.timeseries_v7.gate_linter import GateWindow,lint_gate_windows
 from ai_fc.timeseries_v7.gates import RegimeScore,evaluate_prospective_regimes
 from ai_fc.timeseries_v7.models.e8_events import eligibility
