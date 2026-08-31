@@ -41,4 +41,8 @@ jobs:
           fi
           asof="$(python -c "import json; print(json.load(open('data/source_monitoring/defillama_stablecoins_status.json', encoding='utf-8'))['asof'])")"
           git commit -m "data: monitor candidate sources ${asof}"
+          # main advances while pip/monitor run (other data-writer workflows and
+          # PR merges); replay the append-only receipt commit on the fresh tip
+          # instead of failing non-fast-forward (2026-08-25/27/28/29 failures).
+          git pull --rebase origin main
           git push

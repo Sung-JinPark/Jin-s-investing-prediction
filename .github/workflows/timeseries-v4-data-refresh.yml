@@ -69,6 +69,10 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "data(timeseries): refresh V4 research sources"
+          # The long collect/backtest window lets main advance before the push;
+          # replay the isolated V4 append commit on the fresh tip (same
+          # non-fast-forward protection as the other data-writer workflows).
+          git pull --rebase origin main
           git push
       - name: Upload V4 evidence
         if: always()

@@ -10,11 +10,11 @@ import os
 from dataclasses import replace
 from datetime import date, datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 import numpy as np
 
-from ai_fc.facts import as_of_rows, assert_no_leakage
+from ai_fc.facts import ObservationFact, as_of_rows, assert_no_leakage
 from ai_fc.scenario import future_trading_days, load_calendar_contract
 
 from .artifact import (
@@ -43,6 +43,7 @@ from .events import apply_event_overlay, read_events
 from .ledger import (
     collect_alfred,
     incremental_realtime_window,
+    read_fact_rows,
     read_facts,
     rebuild_facts_from_raw,
     registered_series,
@@ -114,13 +115,12 @@ def refresh_timeseries(root: Path, *, api_key: str) -> dict[str, Any]:
     return {"recovered_from_raw": recovered, **result}
 
 
-def _source_hash(
-    root: Path, facts: list[Any] | None = None, *, knowledge_cutoff: str | None = None,
-) -> str:
-    material = facts if facts is not None else read_facts(root)
-    if knowledge_cutoff is None:
-        return canonical_hash([fact.model_dump(mode="json") for fact in material])
-    cutoff = datetime.fromisoformat(knowledge_cutoff)
+SOURCE_BACKFILL_AUDIT_NAME = "source_backfill_audit.jsonl"
+_DIFF_SAMPLE_LIMIT = 50
+
+
+def _cutoff_rows(material: Iterable[Any], cutoff: datetime) -> list[dict[str, Any]]:
+    """Masked point-in-time rows that were knowable at the knowledge cutoff."""
     rows: list[dict[str, Any]] = []
     for fact in material:
         if datetime.fromisoformat(fact.available_at) > cutoff:
@@ -134,7 +134,245 @@ def _source_hash(
         if vintage_end is not None and datetime.fromisoformat(vintage_end) > cutoff:
             row["vintage_end"] = None
         rows.append(row)
-    return canonical_hash(rows)
+    return rows
+
+
+def _source_hash(
+    root: Path, facts: list[Any] | None = None, *, knowledge_cutoff: str | None = None,
+) -> str:
+    material = facts if facts is not None else read_facts(root)
+    if knowledge_cutoff is None:
+        return canonical_hash([fact.model_dump(mode="json") for fact in material])
+    return canonical_hash(_cutoff_rows(material, datetime.fromisoformat(knowledge_cutoff)))
+
+
+def _snapshot_series_structure(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    """Per-series count plus a Merkle root over sorted per-fact content hashes."""
+    per_series: dict[str, list[str]] = {}
+    for row in rows:
+        per_series.setdefault(str(row["series_id"]), []).append(canonical_hash(row))
+    return {
+        series_id: {
+            "count": len(hashes),
+            "merkle_root": hashlib.sha256("".join(sorted(hashes)).encode("ascii")).hexdigest(),
+        }
+        for series_id, hashes in sorted(per_series.items())
+    }
+
+
+def _source_snapshot(facts: list[Any], *, knowledge_cutoff: str) -> dict[str, Any]:
+    """Compact immutable digest of the cutoff-filtered facts at record time.
+
+    ALFRED retroactively backfills pre-cutoff rows (a same-day observation can
+    arrive hours after the cutoff carrying an earlier vintage/available_at), so
+    "what was knowable at the cutoff" legitimately changes after recording and
+    no pure recomputation of the cutoff hash is stable. This snapshot pins what
+    was actually in the store when the artifact was recorded, so verification
+    can separate upstream backfill (WARN) from local corruption (FAIL).
+    """
+    rows = _cutoff_rows(facts, datetime.fromisoformat(knowledge_cutoff))
+    return {
+        "schema_version": 1,
+        "recorded_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "row_count": len(rows),
+        "series": _snapshot_series_structure(rows),
+    }
+
+
+def _facts_as_of_record(root: Path, recorded_at: str) -> list[ObservationFact]:
+    """Replay the fact view exactly as it stood at record time.
+
+    The observation ledger is append-only: rows are never deleted or rewritten
+    in place, and corrections append a superseding revision retrieved later.
+    Restricting to rows physically retrieved by the record time therefore
+    reproduces the exact fact view the recorded source hash was computed from —
+    unless local rows were removed or altered, which is what verification must
+    distinguish from upstream backfill.
+    """
+    boundary = datetime.fromisoformat(recorded_at)
+    latest: dict[tuple[str, str, str, str], dict[str, Any]] = {}
+    for row in read_fact_rows(root):
+        if datetime.fromisoformat(str(row["retrieved_at"])) > boundary:
+            continue
+        key = (row["source_id"], row["series_id"], row["observation_time"], row["vintage_start"])
+        prior = latest.get(key)
+        if prior is None or int(row["revision_seq"]) > int(prior["revision_seq"]):
+            latest[key] = row
+    ignored = {"observation_id", "revision_seq", "supersedes_observation_id"}
+    return [
+        ObservationFact.model_validate({key: value for key, value in row.items() if key not in ignored})
+        for row in sorted(latest.values(), key=lambda item: (
+            item["series_id"], item["observation_time"], item["vintage_start"],
+        ))
+    ]
+
+
+def _row_key(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    return (
+        str(row["source_id"]), str(row["series_id"]),
+        str(row["observation_time"]), str(row["vintage_start"]),
+    )
+
+
+def _classify_source_mismatch(
+    root: Path, facts: list[Any], *, knowledge_cutoff: str,
+    recorded_hash: str | None, snapshot: dict[str, Any] | None,
+) -> dict[str, Any]:
+    """Diff the recorded cutoff view against the live one and classify the cause.
+
+    ``upstream_backfill``: every row knowable at record time still replays from
+    the append-only ledger; the mismatch is fully explained by rows ALFRED
+    delivered after recording (new pre-cutoff vintages, or supersedes whose
+    original rows remain intact). ``local_corruption``: the as-of-record replay
+    itself no longer matches what was recorded — rows are missing or altered.
+    ``legacy_unclassified``: the artifact predates source_snapshot and the
+    knowledge-cutoff proxy reconstruction cannot explain the mismatch either.
+    """
+    cutoff = datetime.fromisoformat(knowledge_cutoff)
+    live_rows = _cutoff_rows(facts, cutoff)
+    live_view = {_row_key(row): row for row in live_rows}
+    recorded_at = str(snapshot["recorded_at"]) if snapshot is not None else knowledge_cutoff
+    as_of_rows_list = _cutoff_rows(_facts_as_of_record(root, recorded_at), cutoff)
+    as_of_view = {_row_key(row): row for row in as_of_rows_list}
+    reconstructed_hash = canonical_hash(as_of_rows_list)
+    reconstruction_matches = reconstructed_hash == recorded_hash
+    snapshot_matches: bool | None = None
+    structure_mismatch: list[str] = []
+    if snapshot is not None:
+        recorded_series = dict(snapshot.get("series") or {})
+        reconstructed_series = _snapshot_series_structure(as_of_rows_list)
+        structure_mismatch = sorted(
+            (set(recorded_series) ^ set(reconstructed_series))
+            | {
+                series_id
+                for series_id in set(recorded_series) & set(reconstructed_series)
+                if recorded_series[series_id] != reconstructed_series[series_id]
+            }
+        )
+        snapshot_matches = (
+            int(snapshot.get("row_count", -1)) == len(as_of_rows_list)
+            and not structure_mismatch
+        )
+    original_rows_intact = reconstruction_matches and snapshot_matches is not False
+    if original_rows_intact:
+        classification = "upstream_backfill"
+    elif snapshot is None:
+        classification = "legacy_unclassified"
+    else:
+        classification = "local_corruption"
+    added = sorted(set(live_view) - set(as_of_view))
+    removed = sorted(set(as_of_view) - set(live_view))
+    changed = sorted(
+        key for key in set(live_view) & set(as_of_view)
+        if live_view[key] != as_of_view[key]
+    )
+    series_delta: dict[str, dict[str, int]] = {}
+    for label, keys in (("added", added), ("removed", removed), ("changed", changed)):
+        for key in keys:
+            series_delta.setdefault(key[1], {"added": 0, "removed": 0, "changed": 0})[label] += 1
+
+    def _added_sample(key: tuple[str, str, str, str]) -> dict[str, Any]:
+        row = live_view[key]
+        return {
+            "series_id": key[1], "observation_time": key[2], "vintage_start": key[3],
+            "value": row.get("value"), "available_at": row.get("available_at"),
+            "retrieved_at": row.get("retrieved_at"),
+        }
+
+    def _changed_sample(key: tuple[str, str, str, str]) -> dict[str, Any]:
+        before, after = as_of_view[key], live_view[key]
+        fields = sorted(name for name in set(before) | set(after) if before.get(name) != after.get(name))
+        return {
+            "series_id": key[1], "observation_time": key[2], "vintage_start": key[3],
+            "fields": {
+                name: {"recorded": before.get(name), "current": after.get(name)}
+                for name in fields
+            },
+        }
+
+    return {
+        "classification": classification,
+        "recorded_source_hash": recorded_hash,
+        "reconstructed_source_hash": reconstructed_hash,
+        "reconstruction_matches_record": reconstruction_matches,
+        "snapshot_matches_reconstruction": snapshot_matches,
+        "reconstructed_row_count": len(as_of_rows_list),
+        "current_row_count": len(live_rows),
+        "added_count": len(added),
+        "removed_count": len(removed),
+        "changed_count": len(changed),
+        "added": [_added_sample(key) for key in added[:_DIFF_SAMPLE_LIMIT]],
+        "removed": [
+            {"series_id": key[1], "observation_time": key[2], "vintage_start": key[3]}
+            for key in removed[:_DIFF_SAMPLE_LIMIT]
+        ],
+        "changed": [_changed_sample(key) for key in changed[:_DIFF_SAMPLE_LIMIT]],
+        "series_delta": series_delta,
+        "series_structure_mismatch": structure_mismatch,
+    }
+
+
+def _append_backfill_audit(root: Path, row: dict[str, Any]) -> bool:
+    """Append one diff report to the append-only source-backfill audit ledger."""
+    path = root / LEDGER_RELATIVE / SOURCE_BACKFILL_AUDIT_NAME
+    path.parent.mkdir(parents=True, exist_ok=True)
+    if str(row["audit_id"]) in {str(item.get("audit_id")) for item in _jsonl(path)}:
+        return False
+    with path.open("a", encoding="utf-8", newline="\n") as handle:
+        handle.write(json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n")
+    return True
+
+
+def _source_lineage_status(
+    root: Path, facts: list[Any], *, artifact_kind: str, payload: dict[str, Any],
+) -> dict[str, Any]:
+    """Verify one recorded artifact's source lineage against the live fact store."""
+    cutoff = str(payload["knowledge_cutoff"])
+    recorded = payload.get("source_hash")
+    snapshot = payload.get("source_snapshot")
+    current = _source_hash(root, facts, knowledge_cutoff=cutoff)
+    base = {
+        "artifact_kind": artifact_kind,
+        "run_id": payload.get("run_id"),
+        "generation": "snapshot" if snapshot is not None else "legacy",
+        "knowledge_cutoff": cutoff,
+        "current_source_hash": current,
+    }
+    if current == recorded:
+        return {**base, "status": "ok", "classification": None}
+    report = _classify_source_mismatch(
+        root, facts, knowledge_cutoff=cutoff, recorded_hash=recorded, snapshot=snapshot,
+    )
+    note = None
+    if snapshot is None:
+        note = (
+            "legacy artifact without source_snapshot; the next fit/backtest "
+            "re-record upgrades this check to full backfill/corruption classification"
+        )
+    audit_seed = {
+        "schema_version": 1,
+        "artifact_kind": artifact_kind,
+        "run_id": payload.get("run_id"),
+        "knowledge_cutoff": cutoff,
+        "generation": base["generation"],
+        "current_source_hash": current,
+        **report,
+    }
+    audit_row = {
+        "audit_id": canonical_hash(audit_seed),
+        **audit_seed,
+        "observed_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        **({"note": note} if note else {}),
+    }
+    _append_backfill_audit(root, audit_row)
+    status = "fail" if report["classification"] == "local_corruption" else "warn"
+    return {
+        **base,
+        "status": status,
+        **report,
+        "audit_id": audit_row["audit_id"],
+        **({"note": note} if note else {}),
+    }
 
 
 def _validate_bundle(bundle: FeatureBundle, contract: dict[str, Any]) -> None:
@@ -213,6 +451,7 @@ def fit_timeseries(
                 "mode": factor_history.get("parameter_estimation_mode"),
             },
             "source_hash": hold_seed["source_hash"],
+            "source_snapshot": _source_snapshot(facts, knowledge_cutoff=cutoff),
             "contract_hash": canonical_hash(contract),
             "reasons": [str(exc)],
         }
@@ -297,6 +536,7 @@ def fit_timeseries(
             "path_count": contract["model"]["distribution"]["path_count"],
         },
         "source_hash": run_seed["source_hash"],
+        "source_snapshot": _source_snapshot(facts, knowledge_cutoff=cutoff),
         "contract_hash": canonical_hash(contract),
         "arrays_path": arrays_path.relative_to(root).as_posix(),
         "arrays_sha256": _file_sha256(arrays_path),
@@ -395,6 +635,7 @@ def backtest_timeseries(
             "model_version": contract["model_version"],
             "knowledge_cutoff": cutoff,
             "source_hash": run_seed["source_hash"],
+            "source_snapshot": _source_snapshot(facts, knowledge_cutoff=cutoff),
             "pit_leakage_count": 0,
             "purge_sessions": contract["evaluation"]["purge_sessions"],
             "embargo_sessions": contract["evaluation"]["embargo_sessions"],
@@ -445,6 +686,7 @@ def backtest_timeseries(
         "model_version": contract["model_version"],
         "knowledge_cutoff": cutoff,
         "source_hash": run_seed["source_hash"],
+        "source_snapshot": _source_snapshot(facts, knowledge_cutoff=cutoff),
         "pit_leakage_count": 0 if factor_history.get("origin_specific_parameter_pit") else 1,
         "factor_parameter_pit": {
             "origin_specific": bool(factor_history.get("origin_specific_parameter_pit")),
@@ -736,7 +978,14 @@ def resolve_timeseries(
 
 
 def verify_timeseries(root: Path) -> dict[str, Any]:
-    """Replay the complete shadow chain without mutating any durable artifact."""
+    """Replay the complete shadow chain without mutating any recorded artifact.
+
+    Source-hash mismatches against recorded fit/backtest artifacts are
+    classified: pure upstream backfill (ALFRED delivering pre-cutoff rows after
+    recording) is downgraded to a WARN whose diff is appended to the
+    append-only source-backfill audit ledger, while local corruption (rows
+    knowable at record time missing or altered) still fails verification.
+    """
     contract = load_contract(root)
     forecast = verify_latest(root)
     latest = load_latest(root)
@@ -768,29 +1017,40 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
         fact.key for fact in facts
         if datetime.fromisoformat(fact.available_at) > cutoff_dt
     ]
+    warnings: list[str] = []
     model_status: dict[str, Any] = {"present": False}
     if (root / MODEL_RELATIVE / "latest.json").is_file():
         model, _, _ = _load_fit(root)
-        model_status = {"present": True, "run_id": model["run_id"], "model_hash": model["model_hash"]}
-        expected_model_source = _source_hash(
-            root, facts, knowledge_cutoff=str(model["knowledge_cutoff"]),
+        model_lineage = _source_lineage_status(
+            root, facts, artifact_kind="model", payload=model,
         )
-        if model.get("source_hash") != expected_model_source:
-            raw_errors.append(f"model-source-cutoff-hash:{model['run_id']}")
+        model_status = {
+            "present": True,
+            "run_id": model["run_id"],
+            "model_hash": model["model_hash"],
+            "source_lineage": model_lineage,
+        }
+        if model_lineage["status"] == "fail":
+            raw_errors.append(f"model-source-local-corruption:{model['run_id']}")
+        elif model_lineage["status"] == "warn":
+            warnings.append(f"model-source-{model_lineage['classification']}:{model['run_id']}")
     backtest_status: dict[str, Any] = {"present": False}
     backtest = _load_backtest(root)
     if backtest is not None:
+        backtest_lineage = _source_lineage_status(
+            root, facts, artifact_kind="backtest", payload=backtest,
+        )
         backtest_status = {
             "present": True,
             "run_id": backtest["run_id"],
             "content_hash": backtest["content_hash"],
             "gate_pass": bool(backtest["summary"]["gate_pass"]),
+            "source_lineage": backtest_lineage,
         }
-        expected_backtest_source = _source_hash(
-            root, facts, knowledge_cutoff=str(backtest["knowledge_cutoff"]),
-        )
-        if backtest.get("source_hash") != expected_backtest_source:
-            raw_errors.append(f"backtest-source-cutoff-hash:{backtest['run_id']}")
+        if backtest_lineage["status"] == "fail":
+            raw_errors.append(f"backtest-source-local-corruption:{backtest['run_id']}")
+        elif backtest_lineage["status"] == "warn":
+            warnings.append(f"backtest-source-{backtest_lineage['classification']}:{backtest['run_id']}")
     events = read_events(root, knowledge_cutoff=cutoff)
     event_receipt_ids = {str(row["receipt_id"]) for row in event_receipts}
     orphan_events = [
@@ -825,5 +1085,6 @@ def verify_timeseries(root: Path) -> dict[str, Any]:
         "orphan_events": orphan_events[:10],
         "model": model_status,
         "backtest": backtest_status,
+        "warnings": warnings,
         "failures": failures,
     }

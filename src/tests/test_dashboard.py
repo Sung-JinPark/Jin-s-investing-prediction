@@ -128,6 +128,36 @@ def test_embed_compaction_archives_resolved_body_without_mutating_pages_model() 
         == "historical reasoning"
 
 
+def test_embed_compaction_archives_band_calibration_rows_without_mutating_pages_model() -> None:
+    model = {
+        "band_calibration": {
+            "status": "ready",
+            "probability_space": "scenario_conditional",
+            "source_path": "data/scenarios/band_calibration.csv",
+            "observations": 2,
+            "minimum_observations": 60,
+            "gate_pass": False,
+            "latest_asof": "2026-08-29",
+            "rows": [{"asof": "2026-08-28"}, {"asof": "2026-08-29"}],
+        },
+    }
+    compacted = dashboard._compact_embed_band_calibration(model)
+    archived = compacted["band_calibration"]
+    # 렌더되는 집계 지표(관측 수·게이트 상태)는 전부 유지, 원시 행만 이관.
+    assert "rows" not in archived
+    assert archived["observations"] == 2
+    assert archived["gate_pass"] is False
+    assert archived["rows_archived"] == {
+        "archived": True,
+        "row_count": 2,
+        "reason": "embed_size_budget",
+        "source_path": "data/scenarios/band_calibration.csv",
+        "full_payload": "data.json",
+    }
+    # Pages/data.json 경로가 쓰는 원본 모델은 무수정.
+    assert len(model["band_calibration"]["rows"]) == 2
+
+
 def test_template_self_contained() -> None:
     """외부 리소스 로드 0 — report.py 자기완결 원칙 승계.
 

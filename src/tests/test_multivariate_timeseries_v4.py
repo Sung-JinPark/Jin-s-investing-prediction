@@ -3,11 +3,13 @@ from __future__ import annotations
 import gzip
 import io
 import json
+import urllib.error
 import zipfile
 from pathlib import Path
 
 import pytest
 
+from ai_fc.cli import _v4_retrying_fetcher
 from ai_fc.timeseries_v4.contracts import MODEL_ID, contract_hash, load_v4_contract
 from ai_fc.timeseries_v4.source_store import (
     ParsedValue,
@@ -161,3 +163,43 @@ def test_repository_v4_run_is_hash_bound_and_fail_closed():
     assert result["gate_pass"] is False
     assert result["status"] == "shadow_gate_hold"
     assert result["customer_numbers_visible"] is False
+
+
+def test_v4_collect_fetcher_retries_read_timeouts_with_backoff_then_succeeds():
+    calls = {"count": 0}
+    naps: list[float] = []
+
+    def flaky(url: str):
+        calls["count"] += 1
+        if calls["count"] < 3:
+            raise TimeoutError("The read operation timed out")
+        return 200, b"DATE,VALUE\n2026-08-29,100\n", "text/csv"
+
+    fetch = _v4_retrying_fetcher(flaky, sleep=naps.append)
+    status, payload, content_type = fetch("https://example.invalid/fredgraph.csv")
+    assert status == 200
+    assert payload.startswith(b"DATE")
+    assert content_type == "text/csv"
+    assert calls["count"] == 3
+    assert naps == [2.0, 4.0]
+
+
+def test_v4_collect_fetcher_is_bounded_and_never_retries_http_answers():
+    naps: list[float] = []
+
+    def always_times_out(url: str):
+        raise TimeoutError("The read operation timed out")
+
+    with pytest.raises(TimeoutError):
+        _v4_retrying_fetcher(always_times_out, attempts=3, sleep=naps.append)("https://example.invalid/x")
+    assert len(naps) == 2  # bounded: attempts-1 backoffs, no infinite loop
+
+    http_calls = {"count": 0}
+
+    def definitive_answer(url: str):
+        http_calls["count"] += 1
+        raise urllib.error.HTTPError(url, 404, "not found", None, None)
+
+    with pytest.raises(urllib.error.HTTPError):
+        _v4_retrying_fetcher(definitive_answer, sleep=naps.append)("https://example.invalid/x")
+    assert http_calls["count"] == 1  # an HTTP status is information, not noise

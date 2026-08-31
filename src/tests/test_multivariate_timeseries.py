@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import gzip
+import hashlib
 import json
 import math
 import shutil
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -23,7 +25,7 @@ from ai_fc.timeseries.backtest import (
     sample_crps,
     summarize_backtest,
 )
-from ai_fc.timeseries.contracts import load_contract
+from ai_fc.timeseries.contracts import canonical_hash, load_contract
 from ai_fc.timeseries.ledger import (
     AlfredFetchError,
     _fetch_alfred,
@@ -64,6 +66,7 @@ from ai_fc.timeseries.pipeline import (
     fit_timeseries,
     forecast_timeseries,
     refresh_timeseries,
+    verify_timeseries,
 )
 from ai_fc.timeseries.workbook import export_timeseries_workbook
 
@@ -983,3 +986,211 @@ def test_later_vintage_cannot_mutate_earlier_release_feature_bytes() -> None:
     after, manifest_after = build_release_state_history([earlier, later], **kwargs)
     assert before.to_json(double_precision=15) == after.to_json(double_precision=15)
     assert manifest_before == manifest_after
+
+
+def _receipted_fact(
+    root: Path,
+    *,
+    series_id: str = "NASDAQCOM",
+    observation_time: str = "2020-01-02",
+    value: float = 100.0,
+    available_at: str = "2020-01-03T13:30:00+00:00",
+    retrieved_at: str = "2026-08-19T00:00:00+00:00",
+) -> ObservationFact:
+    payload = json.dumps({
+        "observations": [],
+        "hermetic_fixture": [series_id, observation_time, value, retrieved_at],
+    }).encode("utf-8")
+    receipt = persist_response(
+        root,
+        series_id=series_id,
+        status=200,
+        payload=payload,
+        retrieved_at=retrieved_at,
+        request_url=(
+            "https://api.stlouisfed.org/fred/series/observations"
+            f"?series_id={series_id}&api_key=SECRET"
+        ),
+    )
+    return ObservationFact(
+        source_id="alfred",
+        series_id=series_id,
+        observation_time=observation_time,
+        value=value,
+        available_at=available_at,
+        vintage_start=available_at,
+        vintage_end=None,
+        retrieved_at=retrieved_at,
+        source_revision_id=f"{series_id}:{available_at[:10]}",
+        source_hash=receipt.raw_sha256,
+        parser_version="test-v1",
+        timezone="America/New_York",
+        calendar_id="US_FED",
+    )
+
+
+def _verified_shadow_root(
+    tmp_path: Path, *, cutoff: str = "2026-08-20T00:00:00+00:00",
+) -> tuple[Path, dict, dict]:
+    root = _root(tmp_path)
+    append_facts(root, [_receipted_fact(root)])
+    fitted = fit_timeseries(root, knowledge_cutoff=cutoff)
+    backtest = backtest_timeseries(root, knowledge_cutoff=cutoff, path_count=100)
+    forecast_timeseries(root, knowledge_cutoff=cutoff)
+    return root, fitted, backtest
+
+
+def _tamper_recorded_chunk_value(root: Path) -> None:
+    """Adversarially rewrite one observation chunk consistently (value change)."""
+    manifest_path = root / "data/timeseries/ledgers/observation_chunks.jsonl"
+    manifests = [
+        json.loads(line)
+        for line in manifest_path.read_text(encoding="utf-8").splitlines() if line
+    ]
+    target = manifests[0]
+    chunk_path = root / target["chunk_path"]
+    rows = [
+        json.loads(line)
+        for line in gzip.decompress(chunk_path.read_bytes()).decode("utf-8").splitlines()
+        if line
+    ]
+    rows[0]["value"] = float(rows[0]["value"]) + 999.0
+    body = "".join(
+        json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+        for row in rows
+    ).encode("utf-8")
+    digest = hashlib.sha256(body).hexdigest()
+    new_path = chunk_path.with_name(f"{digest}.jsonl.gz")
+    with new_path.open("wb") as raw_handle:
+        with gzip.GzipFile(filename="", fileobj=raw_handle, mode="wb", mtime=0) as handle:
+            handle.write(body)
+    chunk_path.unlink()
+    target["chunk_id"] = digest
+    target["content_sha256"] = digest
+    target["chunk_path"] = new_path.relative_to(root).as_posix()
+    manifest_path.write_text(
+        "".join(
+            json.dumps(row, ensure_ascii=False, sort_keys=True, separators=(",", ":")) + "\n"
+            for row in manifests
+        ),
+        encoding="utf-8",
+    )
+
+
+def _audit_rows(root: Path) -> list[dict]:
+    path = root / "data/timeseries/ledgers/source_backfill_audit.jsonl"
+    if not path.is_file():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
+
+
+def test_source_snapshot_is_recorded_and_replays_clean(tmp_path: Path) -> None:
+    root, fitted, backtest = _verified_shadow_root(tmp_path)
+    for artifact in (fitted, backtest):
+        snapshot = artifact["source_snapshot"]
+        assert snapshot["schema_version"] == 1
+        assert snapshot["row_count"] == 1
+        assert snapshot["series"]["NASDAQCOM"]["count"] == 1
+        assert len(snapshot["series"]["NASDAQCOM"]["merkle_root"]) == 64
+    result = verify_timeseries(root)
+    assert result["ok"] is True
+    assert result["warnings"] == []
+    assert result["backtest"]["source_lineage"]["status"] == "ok"
+    assert _audit_rows(root) == []
+
+
+def test_upstream_backfill_downgrades_verify_to_warn_with_audit(tmp_path: Path) -> None:
+    root, _, backtest = _verified_shadow_root(tmp_path)
+    recorded_at = backtest["source_snapshot"]["recorded_at"]
+    late = (datetime.fromisoformat(recorded_at) + timedelta(days=365)).isoformat()
+    backfill = _receipted_fact(
+        root,
+        series_id="VIXCLS",
+        observation_time="2020-01-02",
+        value=14.51,
+        available_at="2020-01-03T13:30:00+00:00",
+        retrieved_at=late,
+    )
+    append_facts(root, [backfill])
+    result = verify_timeseries(root)
+    assert result["ok"] is True
+    lineage = result["backtest"]["source_lineage"]
+    assert lineage["status"] == "warn"
+    assert lineage["classification"] == "upstream_backfill"
+    assert lineage["reconstruction_matches_record"] is True
+    assert lineage["added_count"] == 1
+    assert lineage["removed_count"] == 0
+    assert lineage["changed_count"] == 0
+    assert lineage["added"][0]["series_id"] == "VIXCLS"
+    assert lineage["added"][0]["retrieved_at"] == late
+    assert result["warnings"] == [
+        f"backtest-source-upstream_backfill:{backtest['run_id']}",
+    ]
+    rows = _audit_rows(root)
+    assert len(rows) == 1
+    assert rows[0]["classification"] == "upstream_backfill"
+    assert rows[0]["series_delta"] == {"VIXCLS": {"added": 1, "removed": 0, "changed": 0}}
+    again = verify_timeseries(root)
+    assert again["ok"] is True
+    assert len(_audit_rows(root)) == 1
+
+
+def test_local_corruption_of_recorded_rows_still_fails_verify(tmp_path: Path) -> None:
+    root, _, backtest = _verified_shadow_root(tmp_path)
+    _tamper_recorded_chunk_value(root)
+    result = verify_timeseries(root)
+    assert result["ok"] is False
+    lineage = result["backtest"]["source_lineage"]
+    assert lineage["status"] == "fail"
+    assert lineage["classification"] == "local_corruption"
+    assert lineage["reconstruction_matches_record"] is False
+    assert lineage["series_structure_mismatch"] == ["NASDAQCOM"]
+    assert f"backtest-source-local-corruption:{backtest['run_id']}" in result["raw_errors"]
+    rows = _audit_rows(root)
+    assert len(rows) == 1
+    assert rows[0]["classification"] == "local_corruption"
+
+
+def test_legacy_artifact_without_snapshot_downgrades_to_warn(tmp_path: Path) -> None:
+    # Records with a cutoff that predates the retrieval timestamp so the
+    # knowledge-cutoff proxy reconstruction cannot explain the mismatch.
+    root, _, backtest = _verified_shadow_root(tmp_path, cutoff="2026-08-18T00:00:00+00:00")
+    run_path = root / f"data/timeseries/runs/{backtest['run_id']}.json"
+    payload = json.loads(run_path.read_text(encoding="utf-8"))
+    payload.pop("source_snapshot")
+    payload.pop("content_hash")
+    payload["content_hash"] = canonical_hash(payload)
+    run_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    pointer_path = root / "data/timeseries/runs/backtest_latest.json"
+    pointer = json.loads(pointer_path.read_text(encoding="utf-8"))
+    pointer["content_hash"] = payload["content_hash"]
+    pointer_path.write_text(
+        json.dumps(pointer, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    backfill = _receipted_fact(
+        root,
+        series_id="VIXCLS",
+        observation_time="2020-01-02",
+        value=14.51,
+        available_at="2020-01-03T13:30:00+00:00",
+        retrieved_at="2036-01-01T00:00:00+00:00",
+    )
+    append_facts(root, [backfill])
+    result = verify_timeseries(root)
+    assert result["ok"] is True
+    lineage = result["backtest"]["source_lineage"]
+    assert lineage["status"] == "warn"
+    assert lineage["generation"] == "legacy"
+    assert lineage["classification"] == "legacy_unclassified"
+    assert "re-record" in lineage["note"]
+    assert result["warnings"] == [
+        f"backtest-source-legacy_unclassified:{backtest['run_id']}",
+    ]
+    rows = _audit_rows(root)
+    assert len(rows) == 1
+    assert rows[0]["classification"] == "legacy_unclassified"
+    assert "re-record" in rows[0]["note"]
