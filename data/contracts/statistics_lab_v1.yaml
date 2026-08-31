@@ -67,6 +67,16 @@ sources:
       FL663067003: {member: csv/F4_6_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: household_margin_loan_proxy_not_FINRA}
       FL103163005: {member: csv/S11_1_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: nonfinancial_corporate_debt_securities_outstanding}
       FA103163005: {member: csv/S11_1_t.csv, native_frequency: quarterly, unit: millions_usd_saar, aggregation: last, role: nonfinancial_corporate_debt_securities_net_issuance}
+  census_c30:
+    endpoint: https://www.census.gov/construction/c30/xls/privtime.xlsx
+    provider: U.S. Census Bureau
+    note: value of private construction put in place, not seasonally adjusted; one workbook, one raw receipt, multiple declared columns
+    series:
+      C30_MFG_COMPUTER_ELECTRONIC: {column: Computer/ electronic/ electrical, native_frequency: monthly, unit: millions_usd, aggregation: last, role: chip_fab_structures_buildout}
+      C30_POWER: {column: Power (inc. Gas and Oil), native_frequency: monthly, unit: millions_usd, aggregation: last, role: power_structures_buildout}
+      C30_COMMUNICATION: {column: Communication, native_frequency: monthly, unit: millions_usd, aggregation: last, role: communication_structures_buildout}
+      C30_OFFICE_TOTAL: {column: Office, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_share_denominator}
+      C30_OFFICE_DATA_CENTER: {column: Data center, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_structures, history: begins_2014_01_no_dotcom_counterpart}
   yahoo_chart:
     endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
     series:

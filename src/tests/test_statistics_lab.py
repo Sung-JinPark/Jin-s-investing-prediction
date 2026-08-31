@@ -21,6 +21,7 @@ from ai_fc.authoritative_statistics import (
     read_raw_receipt_corrections,
 )
 from ai_fc.statistics_lab import (
+    CENSUS_C30_SERIES,
     Z1_SERIES,
     DAILY_MARKET_SERIES,
     FRED_ENDPOINT,
@@ -33,6 +34,7 @@ from ai_fc.statistics_lab import (
     _parse_ici_weekly_html,
     _parse_nyu_returns_xlsx,
     _parse_sec_ipo_xlsx,
+    _parse_census_c30,
     _parse_z1,
     _persist_authoritative_inputs,
     _request,
@@ -244,6 +246,40 @@ def _z1_bytes() -> bytes:
     return target.getvalue()
 
 
+def _c30_bytes() -> bytes:
+    """A C30-shaped workbook: title rows, a header row, newest month first.
+
+    The data-centre column is deliberately left blank before 2014 so the
+    fixture reproduces the real file's ragged history.
+    """
+    header = ["Date"]
+    for spec in CENSUS_C30_SERIES.values():
+        header.append(spec["column"])
+    rows: list[list[object]] = [
+        ["Value of Private Construction Put in Place"],
+        ["(Millions of dollars.)"],
+        [],
+        header,
+    ]
+    months = [
+        "jan", "feb", "mar", "apr", "may", "jun",
+        "jul", "aug", "sep", "oct", "nov", "dec",
+    ]
+    for year in range(2026, 1992, -1):
+        for index in range(11, -1, -1):
+            if year == 2026 and index > 5:
+                continue
+            label = f"{months[index].capitalize()}-{year % 100:02d}"
+            row: list[object] = [label]
+            for offset, series_id in enumerate(CENSUS_C30_SERIES):
+                if series_id == "C30_OFFICE_DATA_CENTER" and year < 2014:
+                    row.append(None)
+                else:
+                    row.append(1000 + offset * 100 + (year - 1993) * 10 + index)
+            rows.append(row)
+    return _xlsx_fixture("Private NSA", rows)
+
+
 def _xlsx_fixture(sheet_name: str, rows: list[list[object]]) -> bytes:
     def column_name(index: int) -> str:
         result = ""
@@ -257,7 +293,10 @@ def _xlsx_fixture(sheet_name: str, rows: list[list[object]]) -> bytes:
         cells = []
         for column_index, value in enumerate(row, start=1):
             ref = f"{column_name(column_index)}{row_index}"
-            if isinstance(value, str):
+            if value is None:
+                # A blank cell, as a real workbook writes a missing observation.
+                cells.append(f'<c r="{ref}"/>')
+            elif isinstance(value, str):
                 cells.append(
                     f'<c r="{ref}" t="inlineStr"><is><t>{html.escape(value)}</t></is></c>'
                 )
@@ -336,6 +375,9 @@ def _payload_inputs() -> tuple[dict, dict]:
     z1 = _z1_bytes()
     for z1_series_id in Z1_SERIES:
         rows[z1_series_id] = _parse_z1(z1, z1_series_id)
+    c30 = _c30_bytes()
+    for c30_series_id in CENSUS_C30_SERIES:
+        rows[c30_series_id] = _parse_census_c30(c30, c30_series_id)
     receipts = {
         series_id: {"raw_sha256": hashlib.sha256(series_id.encode()).hexdigest()}
         for series_id in rows
@@ -647,7 +689,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 24
+    assert len(payload["charts"]) == 25
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -709,7 +751,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 24
+    assert len(payload["charts"]) == 25
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -789,6 +831,10 @@ def _append_official_persistence_batch(
         source_rows[z1_series_id] = [
             {"date": "2026-01-01", "value": 50.0},
         ]
+    for c30_series_id in CENSUS_C30_SERIES:
+        source_rows[c30_series_id] = [
+            {"date": "2026-01-01", "value": 75.0},
+        ]
     source_rows["SEC_IPO_QUARTERLY"] = [{
         "date": "2026-03-31",
         "period_label": "2026:Q1",
@@ -803,7 +849,7 @@ def _append_official_persistence_batch(
         "spac_proceeds_mn": 200.0,
         "fund_proceeds_mn": 100.0,
     }]
-    series_ids = [*FRED_SERIES, *Z1_SERIES, "SEC_IPO_QUARTERLY"]
+    series_ids = [*FRED_SERIES, *Z1_SERIES, *CENSUS_C30_SERIES, "SEC_IPO_QUARTERLY"]
     raw_payloads = {
         series_id: f"{raw_tag}:{series_id}".encode()
         for series_id in series_ids
@@ -922,6 +968,9 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         )
 
     z1 = _z1_bytes()
+    # Built once: zipfile stamps entry times, so a fresh call would change
+    # the artifact hash and make an unchanged refresh look changed.
+    c30 = _c30_bytes()
     policy = load_authoritative_source_policy(
         Path(__file__).resolve().parents[2]
         / "data/contracts/authoritative_statistics_sources.yaml"
@@ -949,6 +998,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
+        census_c30_fetcher=lambda _url: c30,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed is True
@@ -959,6 +1009,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
+        census_c30_fetcher=lambda _url: c30,
         now=datetime(2026, 12, 31, tzinfo=timezone.utc),
     )
     assert changed_again is False
@@ -968,6 +1019,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
+        census_c30_fetcher=lambda _url: c30,
         now=datetime(2027, 1, 7, tzinfo=timezone.utc),
     )
     corrections = read_raw_receipt_corrections(

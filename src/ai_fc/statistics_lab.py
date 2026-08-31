@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import math
+import re
 import statistics
 import time
 import urllib.error
@@ -717,6 +718,126 @@ Z1_SERIES: dict[str, dict[str, str]] = {
 }
 
 Z1_PRIMARY_SERIES = "FL663067003"
+
+CENSUS_C30_ENDPOINT = "https://www.census.gov/construction/c30/xls/privtime.xlsx"
+
+# Value of private construction put in place, not seasonally adjusted.  The
+# data-centre column starts in 2014 and therefore has no dot-com counterpart;
+# it is collected for the ledger but is not drawn as a two-era chart line.
+CENSUS_C30_SERIES: dict[str, dict[str, str]] = {
+    "C30_MFG_COMPUTER_ELECTRONIC": {
+        "column": "Computer/ electronic/ electrical",
+        "title": "Private construction: computer, electronic and electrical manufacturing structures",
+        "unit": "millions_usd",
+    },
+    "C30_POWER": {
+        "column": "Power (inc. Gas and Oil)",
+        "title": "Private construction: power structures",
+        "unit": "millions_usd",
+    },
+    "C30_COMMUNICATION": {
+        "column": "Communication",
+        "title": "Private construction: communication structures",
+        "unit": "millions_usd",
+    },
+    "C30_OFFICE_TOTAL": {
+        "column": "Office",
+        "title": "Private construction: office structures",
+        "unit": "millions_usd",
+    },
+    "C30_OFFICE_DATA_CENTER": {
+        "column": "Data center",
+        "title": "Private construction: data centre structures",
+        "unit": "millions_usd",
+        "history_note": "series begins 2014-01; no dot-com era counterpart",
+    },
+}
+
+CENSUS_C30_PRIMARY_SERIES = "C30_MFG_COMPUTER_ELECTRONIC"
+CENSUS_C30_SHEET = "Private NSA"
+
+
+def _c30_header_key(value: object) -> str:
+    """Normalize a C30 header cell for exact matching.
+
+    The workbook embeds carriage-return escapes and footnote digits in the
+    header text, so raw equality would silently miss a column and hand back an
+    empty series instead of failing.
+    """
+    text = "" if value is None else str(value)
+    text = text.replace("_x000D_", " ").replace("\r", " ").replace("\n", " ")
+    text = "".join(char for char in text if not char.isdigit())
+    return " ".join(text.split()).strip().lower()
+
+
+def _c30_month(value: object) -> str | None:
+    """Parse a C30 period label such as ``Jun-26p`` into a first-of-month date."""
+    text = "" if value is None else str(value).strip()
+    match = re.fullmatch(r"([A-Za-z]{3})-(\d{2})([pr])?", text)
+    if match is None:
+        return None
+    try:
+        month = MONTH_ABBREVIATIONS.index(match.group(1).lower()) + 1
+    except ValueError:
+        return None
+    year_part = int(match.group(2))
+    year = 1900 + year_part if year_part >= 90 else 2000 + year_part
+    return date(year, month, 1).isoformat()
+
+
+MONTH_ABBREVIATIONS = [
+    "jan", "feb", "mar", "apr", "may", "jun",
+    "jul", "aug", "sep", "oct", "nov", "dec",
+]
+
+
+def _parse_census_c30(
+    raw: bytes, series_id: str = CENSUS_C30_PRIMARY_SERIES,
+) -> list[dict[str, Any]]:
+    try:
+        spec = CENSUS_C30_SERIES[series_id]
+    except KeyError as exc:
+        raise StatisticsLabError(f"unknown Census C30 series: {series_id}") from exc
+    # The repository already reads XLSX with the standard library; reusing that
+    # reader keeps the collector dependency-free and keeps the test fixtures
+    # byte-compatible with the other workbook sources.
+    grid = _xlsx_sheet_rows(raw, CENSUS_C30_SHEET)
+    wanted = _c30_header_key(spec["column"])
+    header_index = None
+    column_index = None
+    for row_index, row in enumerate(grid[:12]):
+        keys = [_c30_header_key(cell) for cell in row]
+        if "date" in keys and wanted in keys:
+            header_index = row_index
+            column_index = keys.index(wanted)
+            break
+    if header_index is None or column_index is None:
+        raise StatisticsLabError(f"Census C30 column missing: {spec['column']}")
+    rows: list[dict[str, Any]] = []
+    for row in grid[header_index + 1:]:
+        if not row:
+            continue
+        observed = _c30_month(row[0])
+        if observed is None:
+            continue
+        if column_index >= len(row):
+            continue
+        value = row[column_index]
+        if value in (None, "", "(NA)", "(S)", "(D)"):
+            continue
+        try:
+            parsed = float(value)
+        except (TypeError, ValueError) as exc:
+            raise StatisticsLabError(
+                f"invalid Census C30 value for {series_id}: {observed}={value!r}"
+            ) from exc
+        if math.isfinite(parsed):
+            rows.append({"date": observed, "value": parsed})
+    if not rows:
+        raise StatisticsLabError(f"Census C30 series {series_id} is empty")
+    rows.sort(key=lambda item: item["date"])
+    deduped: dict[str, dict[str, Any]] = {row["date"]: row for row in rows}
+    return list(deduped.values())
 
 
 def _parse_z1(raw: bytes, series_id: str = Z1_PRIMARY_SERIES) -> list[dict[str, Any]]:
@@ -2815,7 +2936,10 @@ def build_statistics_lab(
     ``hmi_reference`` remains accepted for backwards-compatible callers and ignored.
     """
     del hmi_reference
-    required_sources = set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | set(Z1_SERIES)
+    required_sources = (
+        set(FRED_SERIES) | set(SUPPLEMENTAL_SOURCES) | set(Z1_SERIES)
+        | set(CENSUS_C30_SERIES)
+    )
     missing = sorted(required_sources - set(source_rows))
     if missing:
         raise StatisticsLabError(f"missing authoritative source series: {missing}")
@@ -2826,6 +2950,8 @@ def build_statistics_lab(
     }
     for z1_series_id in Z1_SERIES:
         monthly[z1_series_id] = _monthly(source_rows[z1_series_id], "last")
+    for c30_series_id in CENSUS_C30_SERIES:
+        monthly[c30_series_id] = _monthly(source_rows[c30_series_id], "last")
     comparison_months = COMPARISON_MONTHS
 
     def cycles(rows: list[dict[str, Any]], *, indexed: bool = False):
@@ -2885,6 +3011,21 @@ def build_statistics_lab(
     ]
     dot_bond_stock, cur_bond_stock = cycles(bond_outstanding_tn)
     dot_bond_flow, cur_bond_flow = cycles(bond_issuance_bn)
+    # Physical build-out.  Chip-fab, power and communication structures all run
+    # back to 1993 and therefore carry a dot-com line; the data-centre column
+    # only starts in 2014, so it is reported in the conclusion text instead of
+    # being drawn as a two-era series that would have no comparison.
+    dot_fab, cur_fab = cycles(monthly["C30_MFG_COMPUTER_ELECTRONIC"], indexed=True)
+    dot_power, cur_power = cycles(monthly["C30_POWER"], indexed=True)
+    dot_comm, cur_comm = cycles(monthly["C30_COMMUNICATION"], indexed=True)
+    data_centre_rows = monthly["C30_OFFICE_DATA_CENTER"]
+    office_rows = {row["date"]: float(row["value"]) for row in monthly["C30_OFFICE_TOTAL"]}
+    data_centre_latest = float(data_centre_rows[-1]["value"]) if data_centre_rows else 0.0
+    data_centre_date = data_centre_rows[-1]["date"] if data_centre_rows else None
+    office_latest = office_rows.get(data_centre_date or "", 0.0)
+    data_centre_share = (
+        data_centre_latest / office_latest * 100.0 if office_latest else 0.0
+    )
     dot_equities, cur_equities = cycles(monthly["BOGZ1LM893064105Q"], indexed=True)
     dot_credit, cur_credit = cycles(_yoy(monthly["TOTALSL"]))
     dot_standards, cur_standards = cycles(monthly["DRTSCILM"])
@@ -3042,6 +3183,10 @@ def build_statistics_lab(
              [_series("닷컴 장비", "dotcom", dot_equipment_share, "#8d2943"), _series("닷컴 장비+지식재산", "dotcom", dot_broad_share, "#d47f52"), _series("현재 장비", "current", cur_equipment_share, "#28756a"), _series("현재 장비+지식재산", "current", cur_broad_share, "#4aa18d")],
              ["Y034RC1Q027SBEA", "Y001RC1Q027SBEA", "GDP"], "*미국 명목 분기 연율 기준",
              "투자 규모를 경제 크기로 나눠 두 정의로 함께 봅니다. 장비만 보면 닷컴 정점보다 낮고, 소프트웨어·연구개발을 더하면 더 높습니다."),
+        make("structures_buildout", "반도체·전력·통신 시설 건설", "economy", "cycle_start_100",
+             [_series("닷컴 반도체시설", "dotcom", dot_fab, "#8d2943"), _series("닷컴 전력", "dotcom", dot_power, "#d47f52"), _series("닷컴 통신", "dotcom", dot_comm, "#b58b2a"), _series("현재 반도체시설", "current", cur_fab, "#28756a"), _series("현재 전력", "current", cur_power, "#4aa18d"), _series("현재 통신", "current", cur_comm, "#11110f")],
+             ["C30_MFG_COMPUTER_ELECTRONIC", "C30_POWER", "C30_COMMUNICATION"], "*미국 민간 건설 기준",
+             "설비가 실제로 지어지는 속도를 봅니다. 컴퓨터·전자 제조시설, 전력, 통신 세 축을 같은 시작점에서 비교합니다."),
         make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
              ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
@@ -3202,6 +3347,17 @@ def build_statistics_lab(
             f"은행 대출기준 순강화 비율이 {standards_now:.1f}%로 올라 기업 자금조달 "
             "경계가 필요한 상태입니다."
         ),
+        "structures_buildout": (
+            f"컴퓨터·전자 제조시설 건설은 현재 지수 {endpoint(cur_fab):.0f}로 닷컴 같은 시점의 "
+            f"{endpoint(dot_fab):.0f}과 견줍니다. 전력은 {endpoint(cur_power):.0f}, 통신은 "
+            f"{endpoint(cur_comm):.0f}입니다. "
+            + (
+                f"데이터센터 건설은 {data_centre_date} 기준 민간 오피스 건설의 "
+                f"{data_centre_share:.0f}%를 차지하지만 2014년부터만 집계돼 닷컴 비교선이 없습니다."
+                if data_centre_date else
+                "데이터센터 계열은 2014년부터만 집계돼 닷컴 비교선이 없습니다."
+            )
+        ),
         "corporate_bond_issuance": (
             f"비금융기업 회사채 잔액은 현재 {endpoint(cur_bond_stock):.1f}조 달러로 닷컴 같은 시점의 "
             f"{endpoint(dot_bond_stock):.1f}조 달러보다 큽니다. 분기 순발행은 현재 "
@@ -3335,6 +3491,27 @@ def build_statistics_lab(
         if z1_spec.get("proxy_warning"):
             z1_meta["proxy_warning"] = z1_spec["proxy_warning"]
         source_meta.append(z1_meta)
+    for c30_series_id, c30_spec in CENSUS_C30_SERIES.items():
+        c30_rows = source_rows[c30_series_id]
+        c30_receipt = receipts[c30_series_id]
+        c30_meta = {
+            "series_id": c30_series_id, "title": c30_spec["title"],
+            "provider": "U.S. Census Bureau",
+            "unit": c30_spec["unit"], "native_frequency": "monthly",
+            "source_url": "https://www.census.gov/construction/c30/c30index.html",
+            "request_url": CENSUS_C30_ENDPOINT,
+            "authority_class": "official_statistical_agency",
+            "policy_source_id": "census", "usage_role": "numeric_input",
+            "numeric_input_allowed": True,
+            "available_at": c30_receipt.get("available_at", generated_at),
+            "latest_observation": c30_rows[-1]["date"], "row_count": len(c30_rows),
+            "raw_sha256": c30_receipt["raw_sha256"],
+            "raw_path": c30_receipt.get("raw_path"),
+            "vintage": c30_receipt.get("vintage", "current_release_reconstructed"),
+        }
+        if c30_spec.get("history_note"):
+            c30_meta["history_note"] = c30_spec["history_note"]
+        source_meta.append(c30_meta)
     observation_through = max(row["latest_observation"] for row in source_meta)
     payload = {
         "schema_version": 1, "dataset_id": "dotcom_statistics_lab_v1", "status": "ok",
@@ -3627,6 +3804,11 @@ def _persist_authoritative_inputs(
         source_policy[z1_series_id] = (
             "federal_reserve_board", Z1_ENDPOINT, "application/zip",
         )
+    for c30_series_id in CENSUS_C30_SERIES:
+        source_policy[c30_series_id] = (
+            "census", CENSUS_C30_ENDPOINT,
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        )
 
     receipt_models: dict[str, Any] = {}
     for series_id, raw in raw_payloads.items():
@@ -3635,6 +3817,8 @@ def _persist_authoritative_inputs(
         declared_series = [series_id]
         if series_id == Z1_PRIMARY_SERIES:
             declared_series = list(Z1_SERIES)
+        if series_id == CENSUS_C30_PRIMARY_SERIES:
+            declared_series = list(CENSUS_C30_SERIES)
         if series_id == "SEC_IPO_QUARTERLY":
             declared_series = [
                 f"SEC_IPO_QUARTERLY.{field}"
@@ -3664,6 +3848,14 @@ def _persist_authoritative_inputs(
                 continue
             receipt_models[z1_series_id] = z1_receipt_model
             receipts[z1_series_id].update(receipts[Z1_PRIMARY_SERIES])
+
+    c30_receipt_model = receipt_models.get(CENSUS_C30_PRIMARY_SERIES)
+    if c30_receipt_model is not None:
+        for c30_series_id in CENSUS_C30_SERIES:
+            if c30_series_id == CENSUS_C30_PRIMARY_SERIES:
+                continue
+            receipt_models[c30_series_id] = c30_receipt_model
+            receipts[c30_series_id].update(receipts[CENSUS_C30_PRIMARY_SERIES])
 
     current_sec_receipt = receipt_models.get("SEC_IPO_QUARTERLY")
     if (
@@ -3766,6 +3958,14 @@ def _persist_authoritative_inputs(
                 observed=str(row["date"]), value=row["value"], unit=z1_spec["unit"],
                 raw_sha256=z1_receipt.raw_sha256,
             )
+    for c30_series_id, c30_spec in CENSUS_C30_SERIES.items():
+        c30_receipt = receipt_models[c30_series_id]
+        for row in source_rows[c30_series_id]:
+            add_candidate(
+                policy_source_id="census", series_id=c30_series_id,
+                observed=str(row["date"]), value=row["value"], unit=c30_spec["unit"],
+                raw_sha256=c30_receipt.raw_sha256,
+            )
     sec_receipt = receipt_models["SEC_IPO_QUARTERLY"]
     sec_units = {
         "total_count": "count", "us_count": "count", "non_us_count": "count",
@@ -3799,6 +3999,8 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
     rows: dict[str, list[dict[str, Any]]] = {series_id: [] for series_id in FRED_SERIES}
     for z1_series_id in Z1_SERIES:
         rows[z1_series_id] = []
+    for c30_series_id in CENSUS_C30_SERIES:
+        rows[c30_series_id] = []
     sec_by_date: dict[str, dict[str, Any]] = {}
     for row in latest.values():
         if row.source_id == "fred_market_signals" and row.series_id in FRED_SERIES:
@@ -3807,6 +4009,11 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
                 "value": float(row.value),
             })
         elif row.source_id == "federal_reserve_board" and row.series_id in Z1_SERIES:
+            rows[row.series_id].append({
+                "date": row.observation_date,
+                "value": float(row.value),
+            })
+        elif row.source_id == "census" and row.series_id in CENSUS_C30_SERIES:
             rows[row.series_id].append({
                 "date": row.observation_date,
                 "value": float(row.value),
@@ -3821,7 +4028,7 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
             sec_row[field] = float(row.value)
 
     rows["SEC_IPO_QUARTERLY"] = list(sec_by_date.values())
-    required = [*FRED_SERIES, *Z1_SERIES, "SEC_IPO_QUARTERLY"]
+    required = [*FRED_SERIES, *Z1_SERIES, *CENSUS_C30_SERIES, "SEC_IPO_QUARTERLY"]
     missing = [series_id for series_id in required if not rows.get(series_id)]
     if missing:
         raise StatisticsLabError(
@@ -3844,6 +4051,7 @@ def refresh_statistics_lab(
         | tuple[list[dict[str, Any]], bytes, str],
     ] = _fetch_supplemental,
     z1_fetcher: Callable[[str], bytes] | None = None,
+    census_c30_fetcher: Callable[[str], bytes] | None = None,
     now: datetime | None = None,
 ) -> tuple[Path, dict[str, Any], bool]:
     generated_time = now or datetime.now(timezone.utc)
@@ -3880,6 +4088,13 @@ def refresh_statistics_lab(
     # One archive, one raw artifact: the receipt declares every series it covers,
     # mirroring how the SEC IPO workbook declares its subseries.
     raw_payloads[Z1_PRIMARY_SERIES] = z1_raw
+    fetch_c30 = census_c30_fetcher or (lambda url: _request(url, timeout=90))
+    c30_raw = fetch_c30(CENSUS_C30_ENDPOINT)
+    c30_digest = hashlib.sha256(c30_raw).hexdigest()
+    for c30_series_id in CENSUS_C30_SERIES:
+        source_rows[c30_series_id] = _parse_census_c30(c30_raw, c30_series_id)
+        receipts[c30_series_id] = {"raw_sha256": c30_digest}
+    raw_payloads[CENSUS_C30_PRIMARY_SERIES] = c30_raw
     pending_observations = _persist_authoritative_inputs(
         root, source_rows=source_rows, raw_payloads=raw_payloads,
         receipts=receipts, fetched_at=generated_at, source_uris=source_uris,
