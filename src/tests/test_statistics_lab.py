@@ -1209,3 +1209,28 @@ def test_approach_alert_status_tiers_fire_before_the_boundary_is_touched() -> No
         assert result["status"] == expected, (value, result["status"])
         assert result["proximity_percent"] == value
     assert _approach_alert("dotcom_peak", "닷컴 정점", 0.0, 50.0) is None
+
+
+def test_review_c5_c6_caveats_disclose_definition_break_and_small_sample() -> None:
+    """종합검토 260901 C-5·C-6 — 표기 레이어 caveat 강화.
+
+    C-5: valuation_proxy는 2026-09-01 분모 교체(전체 경제→비금융 세후이익)로
+    절대수준이 이동했으므로, 이전 배율과의 시계열 연속성 단절을 명시해야 한다.
+    C-6: 가계 보유채권 추세는 연간 11개 관측 회귀라 이탈률 점추정의 불확실성이
+    크다는 사실을 caveat가 구체적으로 말해야 한다.
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    by_id = {chart["id"]: chart for chart in payload["charts"]}
+    valuation = by_id["valuation_proxy"]["caveat"]
+    assert "2026-09-01 분모 정의 변경" in valuation
+    assert "수준 비교가 불가" in valuation
+    household = by_id["household_balance_sheet_trend_gap"]["caveat"]
+    assert "11개 관측" in household
+    assert "불확실성이 큽니다" in household
