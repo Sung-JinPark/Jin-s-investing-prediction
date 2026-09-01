@@ -1868,16 +1868,20 @@ def build_statistics_lab(
     # macro denominator the "AI-related issuance" headlines lack: no official
     # taxonomy marks a bond as AI-related, so only the whole-economy total is
     # reproducible from official data.
-    bond_outstanding_tn = [
-        {"date": row["date"], "value": float(row["value"]) / 1_000_000.0}
-        for row in monthly["FL103163005"]
+    # Both are shown as % of nominal GDP: dollar levels 27 years apart are not
+    # comparable (GDP tripled), and a $tn stock next to a $bn SAAR flow on one
+    # axis flattens whichever line is smaller.  Z.1 is millions, GDP billions,
+    # so the raw ratio is 1000x; x0.1 lands on percent.
+    bond_outstanding_gdp_pct = [
+        {"date": row["date"], "value": float(row["value"]) * 0.1}
+        for row in _ratio(monthly["FL103163005"], monthly["GDP"])
     ]
-    bond_issuance_bn = [
-        {"date": row["date"], "value": float(row["value"]) / 1_000.0}
-        for row in monthly["FA103163005"]
+    bond_issuance_gdp_pct = [
+        {"date": row["date"], "value": float(row["value"]) * 0.1}
+        for row in _ratio(monthly["FA103163005"], monthly["GDP"])
     ]
-    dot_bond_stock, cur_bond_stock = cycles(bond_outstanding_tn)
-    dot_bond_flow, cur_bond_flow = cycles(bond_issuance_bn)
+    dot_bond_stock, cur_bond_stock = cycles(bond_outstanding_gdp_pct)
+    dot_bond_flow, cur_bond_flow = cycles(bond_issuance_gdp_pct)
     # Physical build-out.  Chip-fab, power and communication structures all run
     # back to 1993 and therefore carry a dot-com line; the data-centre column
     # only starts in 2014, so it is reported in the conclusion text instead of
@@ -2060,10 +2064,10 @@ def build_statistics_lab(
         make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
              ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
-        make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행", "credit", "trillions_and_billions_usd",
-             [_series("닷컴 잔액(조 달러)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(십억 달러)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(조 달러)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(십억 달러)", "current", cur_bond_flow, "#4aa18d")],
-             ["FL103163005", "FA103163005"], "*미국 비금융기업 기준",
-             "기업이 채권으로 조달한 잔액과 분기 순발행을 함께 봅니다. 공식 통계에 \"AI 채권\" 분류는 없으므로 경제 전체 규모만 재현할 수 있습니다."),
+        make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행 (GDP 대비 %)", "credit", "percent_of_gdp",
+             [_series("닷컴 잔액(GDP %)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(GDP %)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(GDP %)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(GDP %)", "current", cur_bond_flow, "#4aa18d")],
+             ["FL103163005", "FA103163005", "GDP"], "*미국 비금융기업 기준",
+             "기업이 채권으로 조달한 잔액과 순발행을 경제 크기(GDP)로 나눠 두 시대를 비교합니다. 공식 통계에 \"AI 채권\" 분류는 없으므로 경제 전체 규모만 재현할 수 있습니다."),
         make("household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit", "percent_vs_trend",
              [_series("주식", "current", equity_gap, "#11110f"), _series("현금성 자산", "current", cash_gap, "#b58b2a"), _series("채권", "current", debt_gap, "#28756a")],
              ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"], "*미국 가계·비영리 자산 기준", "2009~2019 추세에서 주식·현금·채권이 얼마나 벗어났는지 비교합니다."),
@@ -2125,6 +2129,11 @@ def build_statistics_lab(
     # 사용자에게 반드시 보여야 하는 한계(대용치·명목·표본). 투영이 이 문구를
     # 카드의 접힘 블록으로 내보낸다 — 데이터에만 남는 경고는 경고가 아니다.
     chart_caveats = {
+        "corporate_bond_issuance": (
+            "잔액(저량)과 순발행(연율화 유량)을 모두 명목 GDP 대비 %로 나타냅니다. "
+            "두 선은 수준이 달라 서로 더하지 않으며, GDP 정규화는 시대 간 명목 "
+            "규모 차이를 보정한 것이지 실질 가치 조정이 아닙니다."
+        ),
         "margin_credit_proxy": (
             "고객 신용은 연준 Z.1 분기 대용치이며 FINRA 월간 신용잔고가 아닙니다. "
             "지수는 각 시대 시작=100의 명목 비교입니다."
@@ -2338,11 +2347,12 @@ def build_statistics_lab(
             )
         ),
         "corporate_bond_issuance": (
-            f"비금융기업 회사채 잔액은 현재 {endpoint(cur_bond_stock):.1f}조 달러로 닷컴 같은 "
-            f"{months_elapsed(cur_bond_stock)}개월차의 {matched(dot_bond_stock, cur_bond_stock):.1f}조 달러"
-            f"{'보다 큽니다' if endpoint(cur_bond_stock) > matched(dot_bond_stock, cur_bond_stock) else '보다 작습니다'}"
-            f"(닷컴 말기 {endpoint(dot_bond_stock):.1f}조). 분기 순발행은 현재 "
-            f"{endpoint(cur_bond_flow):.0f}십억 달러입니다. 이 총액에는 AI 목적 여부를 구분하는 공식 분류가 "
+            f"비금융기업 회사채 잔액은 현재 GDP의 {endpoint(cur_bond_stock):.1f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_bond_stock)}개월차의 {matched(dot_bond_stock, cur_bond_stock):.1f}%"
+            f"{'보다 높습니다' if endpoint(cur_bond_stock) > matched(dot_bond_stock, cur_bond_stock) else '보다 낮습니다'}"
+            f"(닷컴 말기 {endpoint(dot_bond_stock):.1f}%). 순발행은 연율 기준 GDP의 "
+            f"{endpoint(cur_bond_flow):.1f}%로 닷컴 같은 시점 {matched(dot_bond_flow, cur_bond_flow):.1f}%와 "
+            "비교됩니다. 이 총액에는 AI 목적 여부를 구분하는 공식 분류가 "
             "없으므로, 특정 기업군의 AI 조달액을 이 계열에서 뽑아낼 수는 없습니다."
         ),
         "investment_share_of_gdp": (
