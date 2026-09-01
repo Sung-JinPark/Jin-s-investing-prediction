@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-01T01:51:57+00:00",
+  "generated_at": "2026-09-01T06:23:06+00:00",
   "market_cutoff": "2026-08-31",
   "summary": {
-    "accumulating": 30,
-    "stalled": 7,
+    "accumulating": 32,
+    "stalled": 5,
     "inactive": 5,
     "violation": 0,
     "planned": 3,
@@ -354,9 +354,9 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "stalled",
-      "file_count": 25,
+      "file_count": 26,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [
         "2026-08-04",
         "2026-08-25"
@@ -437,6 +437,10 @@
         {
           "date": "2026-08-28",
           "count": 19
+        },
+        {
+          "date": "2026-08-31",
+          "count": 20
         }
       ]
     },
@@ -446,10 +450,10 @@
       "kind": "singleton",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "stalled",
+      "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -457,7 +461,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-28",
+          "date": "2026-08-31",
           "count": 1
         }
       ]
@@ -485,10 +489,10 @@
       "kind": "append_csv",
       "cadence": "trading_daily",
       "criticality": "high",
-      "status": "stalled",
+      "status": "accumulating",
       "file_count": 1,
-      "row_count": 54,
-      "latest_date": "2026-08-28",
+      "row_count": 57,
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -566,6 +570,10 @@
         {
           "date": "2026-08-28",
           "count": 18
+        },
+        {
+          "date": "2026-08-31",
+          "count": 19
         }
       ]
     },
@@ -756,9 +764,9 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 20,
+      "file_count": 21,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -836,6 +844,10 @@
         {
           "date": "2026-08-28",
           "count": 19
+        },
+        {
+          "date": "2026-08-31",
+          "count": 20
         }
       ]
     },
@@ -846,9 +858,9 @@
       "cadence": "monthly",
       "criticality": "medium",
       "status": "accumulating",
-      "file_count": 20,
+      "file_count": 21,
       "row_count": null,
-      "latest_date": "2026-08-28",
+      "latest_date": "2026-08-31",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -926,6 +938,10 @@
         {
           "date": "2026-08-28",
           "count": 19
+        },
+        {
+          "date": "2026-08-31",
+          "count": 20
         }
       ]
     },
@@ -937,8 +953,8 @@
       "criticality": "medium",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 343,
-      "latest_date": "2026-08-03",
+      "row_count": 344,
+      "latest_date": "2026-09-01",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -948,6 +964,10 @@
         {
           "date": "2026-08-03",
           "count": 1
+        },
+        {
+          "date": "2026-09-01",
+          "count": 2
         }
       ]
     },
@@ -1182,7 +1202,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-31",
+      "latest_date": "2026-09-01",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1190,7 +1210,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-31",
+          "date": "2026-09-01",
           "count": 1
         }
       ]
