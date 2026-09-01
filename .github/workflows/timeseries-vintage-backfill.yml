@@ -11,7 +11,7 @@ name: timeseries-vintage-backfill
 # 백필 후 verify의 upstream_backfill WARN·source_backfill_audit 행 추가는
 # 설계된 정상 동작이다 — 침묵시키려 재적합하지 않는다.
 #
-# backfill-request: 2026-09-02T0 (스탬프를 바꿔 푸시하면 재실행)
+# backfill-request: 2026-09-02T1 (스탬프를 바꿔 푸시하면 재실행)
 on:
   workflow_dispatch:
     inputs:
@@ -42,7 +42,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install pipeline
-        run: pip install -e "." pytest
+        run: pip install -e ".[pit,timeseries]" pytest
       - name: Collect the full ALFRED vintage history for the new series
         env:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
