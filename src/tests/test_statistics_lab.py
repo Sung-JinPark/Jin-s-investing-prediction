@@ -1081,7 +1081,7 @@ def test_spx_debt_full_history_walks_from_the_first_observation_with_peak_events
     )
 
     assert chart["source_ids"] == ["SPASTT01USM661N", "GFDEBTN"]
-    (series,) = chart["series"]
+    series = next(row for row in chart["series"] if row["era"] == "current")
     points = series["points"]
     assert abs(float(points[0]["value"]) - 100.0) < 1e-6, "첫 관측=100"
     assert points[0]["period"] == 0
@@ -1104,3 +1104,50 @@ def test_spx_debt_full_history_walks_from_the_first_observation_with_peak_events
     assert "고점" in events[0]["label"]
     assert chart["axis_note"].endswith("첫 관측=100.")
     assert "1966" in chart["conclusion"] or "첫 관측" in chart["axis_note"]
+
+
+def test_full_history_resistance_trendline_joins_the_two_peaks_and_stops_at_now() -> None:
+    """빨간 저항 추세선은 두 고점을 지나는 직선이고 관측 범위 밖으로 연장하지 않는다.
+
+    사용자가 "파란 선이 빨간 선에 닿으면 위험 신호"로 읽는 참고선이므로,
+    (1) 두 고점을 정확히 지나고 (2) 끝점이 마지막 관측 시점이어야 하며
+    (3) 결론에 저항선까지의 거리가 수치로 나가야 한다.
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    chart = next(
+        row for row in payload["charts"]
+        if row["id"] == "spx_per_federal_debt_full_history"
+    )
+    main = next(row for row in chart["series"] if row["era"] == "current")
+    line = next(row for row in chart["series"] if row["label"] == "고점 저항 추세선")
+
+    assert line["era"] == "dotcom", "참고선은 점선 스타일(era=dotcom)로 그린다"
+    assert line["color"] == "#c70039"
+    assert len(line["points"]) == 2, "직선은 두 점이면 충분하다"
+    start, end = line["points"]
+
+    # 시작점 = 데이터 최대 고점.
+    top = max(main["points"], key=lambda row: row["value"])
+    assert start["period"] == top["period"] and start["value"] == top["value"]
+
+    # 끝점 = 마지막 관측 시점 (미래 연장 없음), 값은 두 고점을 잇는 직선의 연장.
+    last = main["points"][-1]
+    assert end["period"] == last["period"], "관측 범위 밖으로 긋지 않는다"
+    second = next(
+        row for row in sorted(main["points"], key=lambda r: r["value"], reverse=True)
+        if abs(row["period"] - top["period"]) > 120
+    )
+    slope = (second["value"] - top["value"]) / (second["period"] - top["period"])
+    expected_end = top["value"] + slope * (last["period"] - top["period"])
+    assert abs(end["value"] - expected_end) < 0.01, "직선이 두 번째 고점을 정확히 지난다"
+
+    assert "저항 추세선" in chart["conclusion"]
+    assert "% " in chart["conclusion"] or "%" in chart["conclusion"]
+    assert "저항 추세선" in chart["caveat"] and "매매 신호가 아닙니다" in chart["caveat"]

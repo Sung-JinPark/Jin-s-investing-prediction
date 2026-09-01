@@ -1764,6 +1764,24 @@ def build_statistics_lab(
         (row for row in full_peaks if first_peak and abs(row["period"] - first_peak["period"]) > 120),
         None,
     )
+    resistance_line: list[dict[str, Any]] = []
+    resistance_now = None
+    if first_peak and second_peak and second_peak["period"] > first_peak["period"]:
+        slope = (second_peak["value"] - first_peak["value"]) / (
+            second_peak["period"] - first_peak["period"]
+        )
+        last_row = spx_debt_full[-1]
+        resistance_now = round(
+            first_peak["value"] + slope * (last_row["period"] - first_peak["period"]), 2,
+        )
+        # 직선은 두 점이면 충분하다 — 첫 고점과, 마지막 관측 시점의 연장값.
+        # 관측 범위 밖(미래)으로는 긋지 않는다 (미래 연장 없음 원칙).
+        resistance_line = [
+            {"period": first_peak["period"], "date": first_peak["date"],
+             "value": first_peak["value"]},
+            {"period": last_row["period"], "date": last_row["date"],
+             "value": resistance_now},
+        ]
     dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
     dot_curve3m, cur_curve3m = cycles(monthly["T10Y3M"])
     dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
@@ -1944,8 +1962,9 @@ def build_statistics_lab(
              [_series("닷컴", "dotcom", dot_spx_debt, "#5a3d7a"), _series("현재", "current", cur_spx_debt, "#2e6bd4")],
              ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "연방부채 증가보다 주가가 얼마나 빠르게 움직였는지 보여줍니다."),
         make("spx_per_federal_debt_full_history", "미국 주가 ÷ 연방부채: 1966년부터의 전체 경로", "liquidity", "cycle_start_100",
-             [_series("주가/연방부채 (1966=100)", "current", spx_debt_full, "#31456e")],
-             ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "1968·2000 고점과 지금 위치를 60년 한 선으로 봅니다. 주가가 연방부채보다 빨리 오르면 선이 오르고, 부채가 빨리 늘면 내려갑니다."),
+             [_series("주가/연방부채 (1966=100)", "current", spx_debt_full, "#31456e")]
+             + ([_series("고점 저항 추세선", "dotcom", resistance_line, "#c70039")] if resistance_line else []),
+             ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "1968·2000 고점과 지금 위치를 60년 한 선으로 봅니다. 두 고점을 이은 빨간 추세선에 파란 선이 닿으면 과거 두 정점과 같은 과열 구간에 들어섰다는 경고 참고선입니다."),
         make("yield_curve", "장단기 금리차: 10년−2년과 10년−3개월", "rates", "percent",
              [_series("닷컴 10y−2y", "dotcom", dot_curve, "#8d2943"), _series("현재 10y−2y", "current", cur_curve, "#28756a"), _series("닷컴 10y−3m", "dotcom", dot_curve3m, "#c98a9b"), _series("현재 10y−3m", "current", cur_curve3m, "#7fb3a5")],
              ["T10Y2Y", "T10Y3M"], "*미국 국채 기준", "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다."),
@@ -2117,7 +2136,10 @@ def build_statistics_lab(
         "spx_per_federal_debt_full_history": (
             "분자는 OECD 미국 주가지수(S&P 계열 월평균)로 S&P 500 종가가 아니고, "
             "분모가 분기 잔액이라 관측 밀도는 분기입니다. 1966년 첫 관측=100의 "
-            "명목 지수이며, 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다."
+            "명목 지수이며, 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다. "
+            "빨간 저항 추세선은 1968·2000 두 고점을 지나는 직선 참고선(차트 기법)으로 "
+            "공식 통계가 아니며, 관측 범위 밖 미래로는 연장하지 않습니다. 접근·터치는 "
+            "경고 참고이지 기계적 매매 신호가 아닙니다."
         ),
         "korea_semiconductor_cycle": (
             "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
@@ -2243,6 +2265,12 @@ def build_statistics_lab(
                 if first_peak else ""
             )
             + "주가가 연방부채 팽창을 따라잡는 중이지만 두 차례 고점에는 아직 못 미칩니다."
+            + (
+                f" 두 고점을 이은 저항 추세선은 현재 시점 {resistance_now:.0f}에 내려와 있고, "
+                f"현재 값은 그 {spx_debt_full[-1]['value'] / resistance_now * 100.0:.0f}% "
+                "수준입니다 — 파란 선이 빨간 선에 닿으면 과열 경고 참고 구간입니다."
+                if resistance_now else ""
+            )
         ) if spx_debt_full else "관측 준비 중입니다.",
         "spx_per_federal_debt": (
             f"연방부채 대비 미국 주가 속도지수는 현재 {endpoint(cur_spx_debt):.0f}로 닷컴 같은 "
