@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "dataset_id": "statistics_approach_alert_notify_state_v1",
+  "checked_at": "2026-09-01T09:09:11+00:00",
+  "statuses": {
+    "m2_nasdaq": "ok",
+    "margin_credit_proxy": "ok",
+    "nasdaq_per_household_liquid_assets": "ok",
+    "nasdaq_per_m2": "ok",
+    "spx_per_federal_debt": "ok",
+    "spx_per_federal_debt_full_history": "ok",
+    "valuation_proxy": "ok"
+  },
+  "signal_semantics": "display_convention_not_trade_signal"
+}

@@ -194,6 +194,13 @@ ledgers:
     criticality: medium
     schema_ref: json_object
     timestamp_field: checked_at
+  - id: statistics_alert_notify_state
+    path: data/statistics/alert_notify_state.json
+    kind: mutable_snapshot
+    cadence: event
+    criticality: low
+    schema_ref: json_object
+    timestamp_field: checked_at
   - id: timeseries_raw_receipts
     path: data/timeseries/ledgers/raw_receipts.jsonl
     kind: jsonl

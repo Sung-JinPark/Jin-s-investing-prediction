@@ -1,0 +1,97 @@
+name: statistics-alert-email
+
+# 통계 경계 접근-경보의 단계 전이를 91ssjj@gmail.com 으로 이메일 발송한다.
+# 봇의 데이터 커밋은 push 이벤트를 만들지 않으므로(재귀 차단) 주간 갱신은
+# workflow_run 구독으로, 사용자의 수동 갱신 push는 paths 트리거로 잡는다.
+# 전이가 없으면 메일 없이 상태 파일만 갱신된다 — 반복 발송 없음.
+on:
+  workflow_run:
+    workflows: [statistics-refresh, statistics-backfill]
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - "data/statistics/dotcom_statistics_latest.json"
+  workflow_dispatch:
+    inputs:
+      test_email:
+        description: "전이가 없어도 개통 확인 메일을 1통 보낸다"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pipeline
+        run: pip install -e "."
+      - name: Detect approach-alert transitions
+        id: detect
+        shell: bash
+        run: |
+          flags=""
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.test_email }}" = "true" ]; then
+            flags="--test"
+          fi
+          python -m ai_fc alert-notify --body-out "$RUNNER_TEMP/alert_email_body.md" $flags | tee notify.out
+          grep -E '^(send|subject)=' notify.out >> "$GITHUB_OUTPUT"
+      - name: Send the alert email
+        if: steps.detect.outputs.send == 'true'
+        shell: bash
+        env:
+          MAIL_APP_PASSWORD: ${{ secrets.MAIL_APP_PASSWORD }}
+        run: |
+          if [ -z "$MAIL_APP_PASSWORD" ]; then
+            echo "::warning::MAIL_APP_PASSWORD 시크릿이 없어 이메일을 건너뜁니다."
+            echo "gh secret set MAIL_APP_PASSWORD 로 Gmail 앱 비밀번호를 등록하세요."
+            exit 0
+          fi
+          echo "sendable=true" >> "$GITHUB_ENV"
+      - name: Deliver via Gmail SMTP
+        if: steps.detect.outputs.send == 'true' && env.sendable == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: 91ssjj@gmail.com
+          password: ${{ secrets.MAIL_APP_PASSWORD }}
+          from: "Jin Investing Dashboard <91ssjj@gmail.com>"
+          to: 91ssjj@gmail.com
+          subject: ${{ steps.detect.outputs.subject }}
+          body: "file://${{ runner.temp }}/alert_email_body.md"
+      - name: Commit the notify state
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/statistics/alert_notify_state.json
+          unexpected="$(git diff --cached --name-only | grep -Ev '^data/statistics/alert_notify_state\.json$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected path staged by the alert notifier:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No state change to commit."
+            exit 0
+          fi
+          git commit -m "data: approach-alert notify state $(date -u +%F)"
+          git pull --rebase origin main
+          git push origin HEAD:main

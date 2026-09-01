@@ -1117,6 +1117,26 @@ def cmd_ipo_reference_batch() -> None:
     )
 
 
+@app.command("alert-notify")
+def cmd_alert_notify(
+    body_out: str = typer.Option(
+        "alert_email_body.md", help="발송 본문(markdown)을 쓸 경로 — 커밋하지 않는다."),
+    test: bool = typer.Option(
+        False, "--test", help="전이가 없어도 개통 확인 메일 본문을 만든다."),
+) -> None:
+    """접근-경보 단계 전이를 감지해 이메일 발송 여부·본문·상태 파일을 만든다."""
+    from .alert_notify import STATE_PATH, run_alert_notify
+
+    result = run_alert_notify(
+        config.ROOT, body_out=Path(body_out), force_test=test)
+    typer.echo(f"send={'true' if result['send'] else 'false'}")
+    typer.echo(f"subject={result['subject']}")
+    typer.echo(
+        f"경보 전이 {len(result['transitions'])}건 · 추적 차트 {result['tracked_charts']}개 · "
+        f"상태 {STATE_PATH}"
+    )
+
+
 @app.command("ipo-edgar-watch")
 def cmd_ipo_edgar_watch() -> None:
     """EDGAR 424B4 완료 공모를 격주로 훑어 IPO 검토 대기열을 적재한다."""
