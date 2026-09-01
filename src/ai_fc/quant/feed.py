@@ -196,6 +196,55 @@ def yahoo_price_series(symbol: str, start: date, end: date, interval: str = "1mo
     return result.dates, result.closes, result.adjusted
 
 
+
+def fred_price_series_detail(series_id: str, start: date, end: date,
+                             interval: str = "1d") -> YahooPriceSeriesResult:
+    """FRED 관측치를 가격 시계열 결과 모양으로 돌려준다 (DECISIONS 12-9).
+
+    NASDAQ 종가는 9-5가 FRED(NASDAQCOM)를 정본으로 승격했고, Yahoo 약관은
+    자동 수집을 명시 금지한다(12-5·12-8).  지수·BTC처럼 배당 조정 개념이 없는
+    시리즈는 adjusted == closes이므로 의미 손실 없이 옮길 수 있다 — 배당조정이
+    필요한 개별주(O·DHI)는 이 함수의 대상이 아니다.
+
+    "1mo"는 달력 월초일로 라벨하고 값은 그 달 마지막 관측 종가다 — Yahoo 월봉과
+    같은 의미이며, 소스가 갈린 월간 시계열의 교집합이 바 라벨 일자 차이로 비지
+    않게 한다.  결측(".")은 관측이 아니므로 건너뛴다 (0으로 만들지 않는다).
+    """
+    from .. import fred_api
+
+    raw = fred_api.observations_csv(series_id, observation_start=start.isoformat())
+    dates: list[date] = []
+    values: list[float] = []
+    reader = csv.reader(io.StringIO(raw))
+    next(reader, None)
+    for row in reader:
+        if len(row) < 2 or not row[1] or row[1] == ".":
+            continue
+        day = date.fromisoformat(row[0])
+        if not (start <= day < end):
+            continue
+        dates.append(day)
+        values.append(float(row[1]))
+    if interval == "1mo":
+        monthly: dict[date, float] = {}
+        for day, value in zip(dates, values):
+            monthly[date(day.year, day.month, 1)] = value  # 마지막 관측이 월말 종가로 남는다
+        dates = sorted(monthly)
+        values = [monthly[day] for day in dates]
+    receipt = {
+        "source": "fred-observations",
+        "series_id": series_id,
+        "interval": interval,
+        # 키 없는 공개 URL만 기록한다 — 요청 URL을 그대로 적으면 시크릿이 남는다.
+        "request_url": fred_api.observations_public_url(
+            series_id, observation_start=start.isoformat()),
+        "response_sha256": hashlib.sha256(raw.encode("utf-8")).hexdigest(),
+        "fetched_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+    }
+    quality = {"status": "ok", "source": "fred-api", "dropped_rows": 0,
+               "rows": len(dates)}
+    return YahooPriceSeriesResult(dates, values, list(values), receipt, quality)
+
 def yahoo_dividends(symbol: str, start: date, end: date) -> YahooDividendResult:
     """Return explicit cash-dividend events with a reproducibility receipt."""
     p1 = int(datetime(start.year, start.month, start.day, tzinfo=timezone.utc).timestamp())

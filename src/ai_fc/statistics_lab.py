@@ -5,6 +5,7 @@ import hashlib
 import io
 import json
 import math
+import os
 import re
 import statistics
 import time
@@ -48,7 +49,29 @@ Z1_ENDPOINT = "https://www.federalreserve.gov/releases/z1/current/z1_csv_files.z
 SEC_IPO_ENDPOINT = "https://www.sec.gov/data-research/statistics-data-visualizations/initial-public-offerings-ipos"
 ICI_ETF_ENDPOINT = "https://www.ici.org/research/stats/etf_flows"
 NYU_RETURNS_ENDPOINT = "https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xlsx"
-USER_AGENT = "JinsInvestingStatisticsLab/1.0 (+public research dashboard)"
+#: SEC는 자동 접근 클라이언트에 **연락처를 밝힌** User-Agent를 요구하고, 연락처가
+#: 없으면 403을 돌려준다(실측 2026-08-31 — 이 워크플로가 8/22부터 멈춰 있던 원인).
+#: 우회가 아니라 SEC가 문서로 지시한 준수 방법이다.  주소는 저장소 소유자가 지정했고
+#: `ipo_edgar_watch`가 이미 같은 주소를 쓴다.  형제 모듈
+#: (`ai_capital_cycle`·`segment_filing_inventory`)과 같은 환경변수로 교체할 수 있다.
+SEC_CONTACT = "91ssjj@gmail.com"
+DEFAULT_USER_AGENT = f"JinsInvestingStatisticsLab/1.0 ({SEC_CONTACT})"
+
+
+def _user_agent() -> str:
+    """연락처를 포함한 UA를 돌려준다.
+
+    연락처 없는 값으로 덮어쓰면 SEC가 다시 403을 주므로, 환경변수로 교체하더라도
+    `@`가 있어야 한다 — `official_sources.edgar_companyfacts_request`가 같은 불변식을
+    이미 강제하고 있다.
+    """
+    agent = os.getenv("AI_FC_SEC_USER_AGENT", DEFAULT_USER_AGENT)
+    if "@" not in agent:
+        raise StatisticsLabError(
+            "SEC 요청에는 연락처를 포함한 User-Agent가 필요합니다 "
+            "(AI_FC_SEC_USER_AGENT에 연락 가능한 주소를 넣으세요)"
+        )
+    return agent
 
 FRED_SERIES: dict[str, dict[str, str]] = {
     "M2SL": {
@@ -424,7 +447,7 @@ def _request(url: str, *, timeout: int = 45, attempts: int = 3) -> bytes:
         raise ValueError("request attempts must be positive")
     last_error: BaseException | None = None
     for attempt in range(attempts):
-        request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+        request = urllib.request.Request(url, headers={"User-Agent": _user_agent()})
         try:
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return response.read()
