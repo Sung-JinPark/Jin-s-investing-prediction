@@ -139,6 +139,29 @@ cd src && python -m ai_fc ipo-edgar-watch
 gh workflow run ipo-edgar-watch.yml --ref main
 ```
 
+### 경계 접근-경보 이메일 (`statistics-alert-email.yml`)
+
+통계 비교의 접근-경보(닷컴 정점·고점 저항 추세선 근접도) 단계가 **바뀔 때만**
+91ssjj@gmail.com 으로 이메일이 온다. 주의 단계에 머무는 동안 반복 발송하지 않는다.
+
+- 트리거: 주간 `statistics-refresh` 완료(workflow_run) + 수동 갱신 push + 수동 dispatch.
+- 상태는 `data/statistics/alert_notify_state.json`에 기록해 전이를 추적한다.
+- **1회 설정 필요**: Gmail 앱 비밀번호(2단계 인증 필요, https://myaccount.google.com/apppasswords)를
+  발급해 리포 시크릿으로 등록한다 — 값은 명령이 프롬프트로 받으므로 채팅·파일에 남기지 않는다.
+
+```bash
+gh secret set MAIL_APP_PASSWORD --repo Sung-JinPark/Jin-s-investing-prediction
+```
+
+개통 확인 (전이가 없어도 확인 메일 1통):
+
+```bash
+gh workflow run statistics-alert-email.yml --ref main -f test_email=true
+```
+
+시크릿이 없으면 메일 단계는 경고 로그만 남기고 건너뛴다 (워크플로는 green 유지).
+로컬 점검: `cd src && python -m ai_fc alert-notify --test` (발송 없이 본문만 생성).
+
 ## 매일 아침 due 다이제스트 (Windows Task Scheduler, 선택)
 
 관리자 PowerShell에서 1회:

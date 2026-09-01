@@ -4,6 +4,13 @@
 
 ## 통계 비교: 연방부채 대비 미국 주가 비율 — 2026-09-01
 
+- **접근-경보 이메일**: 경보 단계가 바뀔 때만 91ssjj@gmail.com 으로 발송
+  (`statistics-alert-email.yml` + `src/ai_fc/alert_notify.py`). 상태 파일로 전이를
+  추적해 같은 단계 반복 발송을 막고, 완화(하락 전이)도 알린다. 첫 실행 기준선은
+  전부 여유라 침묵. Gmail 앱 비밀번호 시크릿(MAIL_APP_PASSWORD) 1회 등록 필요 —
+  없으면 메일 단계만 건너뛴다. 원장 등록: `statistics_alert_notify_state`
+  (mutable_snapshot, cadence event).
+
 - **접근-경보(approach alert) 공통 계약**: "경계선에 닿기 전에" 단계가 올라가는
   근접도 게이지를 카드에 상시 표시 — 여유 <80% ≤ 주의 <95% ≤ 경고 <100% ≤ 도달.
   경계값은 전부 데이터 파생: 전 구간 차트는 고점 저항 추세선(71.4%), 비교 차트
