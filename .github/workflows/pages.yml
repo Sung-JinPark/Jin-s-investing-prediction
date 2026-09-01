@@ -23,7 +23,7 @@ on:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)
   workflow_dispatch:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow"]
     types: [completed]
 
 permissions:
