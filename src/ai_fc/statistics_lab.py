@@ -2110,7 +2110,12 @@ def build_statistics_lab(
         "household_balance_sheet_trend_gap": (
             f"장기 추세 대비 주식은 {endpoint(equity_gap):+.0f}%, 현금은 "
             f"{endpoint(cash_gap):+.0f}%, 채권은 {endpoint(debt_gap):+.0f}%입니다. "
-            "유동성 고갈은 아니지만 주식의 추세 이탈이 가장 커 조정 민감도가 높습니다."
+            + (lambda gaps: (
+                f"추세 이탈이 가장 큰 항목은 {max(gaps, key=lambda kv: abs(kv[1]))[0]}"
+                f"({max(gaps, key=lambda kv: abs(kv[1]))[1]:+.0f}%)입니다. "
+                "적정가치 판정이 아니라 추세 대비 위치의 서술입니다."
+            ))([("주식", endpoint(equity_gap)), ("현금", endpoint(cash_gap)),
+                ("채권", endpoint(debt_gap))])
         ),
     }
     missing_conclusions = sorted(set(by_id) - set(current_conclusions))
