@@ -80,3 +80,44 @@ def test_timeseries_shadow_cannot_silently_combine_or_show_failed_gate_numbers()
     errors = validate(model)
     assert "timeseries must remain isolated from existing probability spaces" in errors
     assert "timeseries validation-pending surface must hide numbers" in errors
+
+
+def _v8_visible_timeseries() -> dict:
+    return {
+        "schema_version": 1,
+        "status": "shadow_live",
+        "display_state": "research_reference",
+        "model_id": "shadow.mf_dfm_varx_calibrated_v8",
+        "model_version": 8,
+        "probability_space": "research_timeseries_v8_conditional",
+        "combined_with_existing_models": False,
+        "numbers_visible": True,
+        "gate": {"sealed_gate_pass": True, "operational_pass": True, "reasons": []},
+        "publication": {"reference_opinion_only": True},
+        "horizons": {"1": {"probability_up": 0.5}},
+    }
+
+
+def test_timeseries_v8_visible_surface_passes_when_both_gates_hold() -> None:
+    model = _minimal_model()
+    model["timeseries"] = _v8_visible_timeseries()
+    assert not [error for error in validate(model) if "timeseries" in error]
+
+
+def test_timeseries_v8_cannot_show_numbers_past_a_failed_operational_gate() -> None:
+    model = _minimal_model()
+    model["timeseries"] = _v8_visible_timeseries()
+    model["timeseries"]["gate"]["operational_pass"] = False
+    assert "timeseries V8 visibility must equal both Gate decisions" in validate(model)
+
+
+def test_timeseries_v8_must_keep_its_space_and_reference_opinion_status() -> None:
+    model = _minimal_model()
+    model["timeseries"] = _v8_visible_timeseries()
+    model["timeseries"]["probability_space"] = "research_timeseries_v2_conditional"
+    model["timeseries"]["publication"]["reference_opinion_only"] = False
+    model["timeseries"]["display_state"] = "customer_default"
+    errors = validate(model)
+    assert "timeseries V8 probability space mismatch" in errors
+    assert "timeseries V8 must keep reference-opinion-only status" in errors
+    assert "timeseries V8 visible surface must declare research_reference" in errors

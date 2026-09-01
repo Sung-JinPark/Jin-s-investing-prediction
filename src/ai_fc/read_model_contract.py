@@ -298,6 +298,7 @@ def validate(model: dict[str, Any]) -> list[str]:
         if model_id not in {
             "shadow.mf_dfm_ridge_varx_v1", "shadow.mf_dfm_ridge_varx_v2",
             "shadow.nasdaq_pit_hybrid_distribution_v5",
+            "shadow.mf_dfm_varx_calibrated_v8",
         }:
             errors.append("timeseries model id mismatch")
         if timeseries.get("combined_with_existing_models") is not False:
@@ -306,6 +307,7 @@ def validate(model: dict[str, Any]) -> list[str]:
         expected_visible_status = {
             "shadow.mf_dfm_ridge_varx_v2": "shadow_research_published",
             "shadow.nasdaq_pit_hybrid_distribution_v5": "shadow_research_visible",
+            "shadow.mf_dfm_varx_calibrated_v8": "shadow_live",
         }.get(model_id, "ready")
         if visible is not (timeseries.get("status") == expected_visible_status):
             errors.append("timeseries visibility/status mismatch")
@@ -321,6 +323,19 @@ def validate(model: dict[str, Any]) -> list[str]:
             operational = (timeseries.get("operational_gate") or {}).get("pass") is True
             if visible is not (research and operational):
                 errors.append("timeseries V5 visibility must equal both Gate decisions")
+        if model_id == "shadow.mf_dfm_varx_calibrated_v8":
+            if timeseries.get("probability_space") != "research_timeseries_v8_conditional":
+                errors.append("timeseries V8 probability space mismatch")
+            gate = timeseries.get("gate") or {}
+            sealed = gate.get("sealed_gate_pass") is True
+            operational = gate.get("operational_pass") is True
+            if visible is not (sealed and operational):
+                errors.append("timeseries V8 visibility must equal both Gate decisions")
+            publication = timeseries.get("publication") or {}
+            if publication.get("reference_opinion_only") is not True:
+                errors.append("timeseries V8 must keep reference-opinion-only status")
+            if visible and timeseries.get("display_state") != "research_reference":
+                errors.append("timeseries V8 visible surface must declare research_reference")
         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
             errors.append("timeseries validation-pending surface must hide numbers")
     multi_year_stress = model.get("multi_year_stress")

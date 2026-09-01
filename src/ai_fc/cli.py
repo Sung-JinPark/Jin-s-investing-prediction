@@ -154,10 +154,15 @@ def cmd_timeseries_v2_bootstrap() -> None:
 
 @app.command("timeseries-v2-refresh")
 def cmd_timeseries_v2_refresh() -> None:
-    """공식 시장 아카이브의 신규 관측·수정치를 V2에 append한다."""
-    from .timeseries_v2.pipeline import refresh_timeseries_v2
+    """공식 시장 아카이브의 신규 관측·수정치를 V2에 append한다.
 
-    result = _timeseries_exit(refresh_timeseries_v2, config.ROOT)
+    FRED 계열은 약관 준수 경로(공식 API, DECISIONS 12-6)로만 수집한다 —
+    봉인된 수집기의 fredgraph 스크랩은 451로 거부되고, 같은 계열이
+    official_api_transport를 통해 키 없는 영수증과 함께 append된다.
+    """
+    from .timeseries_v2.official_api_transport import refresh_timeseries_v2_official
+
+    result = _timeseries_exit(refresh_timeseries_v2_official, config.ROOT)
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 

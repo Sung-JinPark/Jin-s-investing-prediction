@@ -390,3 +390,23 @@ or business", Finnhub "deduct this expense as a business expense", EODHD의 Prof
 유예" 결정은 그에 따라 소멸하며, BEA 3계열(`GDP`·`Y034RC1Q027SBEA`·`Y001RC1Q027SBEA`)은
 다른 FRED 계열과 함께 API 경로(`fred_api.observations_csv`, 영수증에는 무키 공개 URL)로
 취득된다. 원생산자 직접 취득 대비 트레이드오프 논거는 여전히 유효하다.
+
+## 2026-09-01 — R8-D3: V8 다변량 시계열의 연구 참고 표면 공개 (display-promotion)
+
+**결정.** 봉인 게이트를 통과한 V8(`shadow.mf_dfm_varx_calibrated_v8`)의 latest 포인터가
+`sealed_gate_pass ∧ operational_pass`를 만족하는 동안, 대시보드 `#timeseries` 슬롯에
+연구 참고(research_reference) 표면을 표시한다. 근거 지시: 사용자 메시지 2026-09-01
+("예측 레이어 바뀐것으로 … GATE 성공시키고 싶은데 … 아직 사이트에 배포가 안되고 있잖아
+다변량 시계열 데이터가"). 설계서: `docs/design/v8_publication_48h_loop_260901.md`.
+
+**이것이 아닌 것.**
+- 챔피언 승격 아님 — `promotion` 계약(automatic_champion=false, minimum_shadow_sessions=126,
+  explicit_owner_approval) 무변경. V8은 공식 예측·시나리오와 결합되지 않는 격리 연구 표면.
+- 재학습 아님 — 봉인 평가는 모델 버전당 1회로 종결(R8-D2). 표시 레이어만 추가되며
+  `src/ai_fc/timeseries_v8/`(model_code_hash 의존 집합)은 1바이트도 바뀌지 않는다.
+
+**fail-closed 규약.** HOLD(신선도 초과·게이트 불일치·해시 불일치) 시 숫자는 서버 단계에서
+제거되고 기존 검증 대기 화면이 렌더된다. read-model 가드가 `visible ⟺ 두 게이트 동시 통과`,
+`reference_opinion_only=true`, HOLD 숫자 은닉을 CI에서 강제한다.
+
+**기록.** method_changes r19 (`method:timeseries-v8-research-reference-display:2026-09-01:r19`).

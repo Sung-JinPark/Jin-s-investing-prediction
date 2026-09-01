@@ -1139,8 +1139,31 @@ function timeseriesTabsMarkup(active,enabled){
     return `<button type="button" id="lab-tab-ts-${key}" role="tab" data-ts-tab="${key}" aria-selected="${String(key===active)}" aria-controls="lab-ts-${key}"${on?'':' disabled'}><span>${code}</span> ${label}<small>${on?'':'검증 대기'}</small></button>`;
   }).join('')}</nav>`;
 }
+function renderTimeseriesV8(ts,initialState){
+  // Research-reference surface: rendered only while the sealed gate AND the
+  // operational freshness gate both hold (the server hides numbers otherwise).
+  // The v2-schema tabs (path/drivers/backtest) stay disabled: V8 publishes
+  // per-horizon distributions plus its sealed evidence, nothing more.
+  const requested=typeof initialState==='string'?initialState:initialState?.tsTab;
+  const enabled=['summary'];
+  const footnote=`<footer class="timeseries-footnote">${esc(ts.footnote||'*미국 시장·미국 공식 거시자료 기준 · 참고 의견')}</footer>`;
+  const panel=(key,inner)=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}"${key==='summary'?'':' hidden'}>${inner}</div>`;
+  const level=value=>Number(value||0).toLocaleString(undefined,{maximumFractionDigits:0});
+  const horizons=['1','5','21','63'];
+  const last=ts.horizons?.['63']||{};
+  const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),band=row.band_index||{};return `<article><span>${key}거래일</span><strong>${level(row.median_index)}</strong><p>${ret>=0?'+':''}${(ret*100).toFixed(1)}% · 상승 가능성 ${Math.round(up*100)}%</p><small>p10–p90 ${level(band.p10)}–${level(band.p90)}</small></article>`;}).join('');
+  const sealed=ts.sealed_metrics||{},sealedRows=sealed.horizons||{};
+  const sealedCell=key=>{const row=sealedRows[key]||{};const gain=Number(row.crps_improvement_vs_best||0),cover=row.coverage_p10_p90;return `<p><span>${key}일 CRPS 개선</span><b>${gain>=0?'+':''}${(gain*100).toFixed(1)}%</b></p><p><span>${key}일 p10–p90 적중률</span><b>${cover==null?'—':(Number(cover)*100).toFixed(1)+'%'}</b></p>`;};
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가(예측 원점) 기준 1·5·21·63거래일 분포 · 주 1회 갱신</p></div><div class="timeseries-next"><span>63거래일 중앙 예상</span><strong>${level(last.median_index)}</strong><p>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(1)}% · p10–p90 ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup('summary',enabled)}${panel('summary',`<section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section><section class="timeseries-evidence"><article class="timeseries-score"><header><span>봉인 검증 성적 · 원점 ${Number(sealed.origin_count||0).toLocaleString()}개</span><strong>단 1회 공개된 봉인 평가</strong></header><div>${sealedCell('21')}${sealedCell('63')}</div></article></section><section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>RESEARCH REFERENCE</span><h2>참고 의견입니다 — 매매 신호가 아닙니다</h2><p>봉인 게이트와 운영 신선도 게이트를 모두 통과한 동안에만 수치가 표시되며, 신선도가 무너지면 이 표면은 자동으로 검증 대기 화면으로 돌아갑니다.</p></div></section>`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${footnote}</div>`);
+  mount(root);
+  if(requested&&requested!=='summary')syncMidHash('#timeseries');
+}
+
 function renderTimeseries(initialState){
   const ts=DATA.timeseries||{},visible=ts.numbers_visible===true;
+  if(ts.model_id==='shadow.mf_dfm_varx_calibrated_v8'){
+    if(visible){renderTimeseriesV8(ts,initialState);return;}
+  }
   const requested=typeof initialState==='string'?initialState:initialState?.tsTab;
   const enabled=visible?TS_TABS.map(([key])=>key):['summary'];
   const active=enabled.includes(requested)?requested:'summary';

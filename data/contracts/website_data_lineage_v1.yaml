@@ -212,12 +212,19 @@ surfaces:
       - data/contracts/multivariate_timeseries_v2.yaml
       - data/timeseries_v2/README.md
       - data/contracts/multivariate_timeseries_v1.yaml
+      - data/contracts/multivariate_timeseries_v8.yaml
+      - data/timeseries_v8/multivariate_v8_latest.json
+      - data/timeseries_v8/ledgers/sealed_evaluations.jsonl
     payload_locations:
       - {artifact: dashboard_base, key: timeseries, materialization: base}
     artifact_gate: >-
-      V2 requires 100% raw receipt linkage, origin-specific PIT DFM replay, frozen
-      C1-C5 development selection, one-time 2019+ sealed evaluation, CRPS and interval
-      coverage gates; V1 remains a validation-pending fallback only
+      V8 (research_timeseries_v8_conditional) owns the slot only while its
+      one-time sealed 2019+ evaluation PASS and the operational freshness gate
+      both hold, rendered as a reference-opinion research surface with the
+      sealed metrics disclosed; V2 requires 100% raw receipt linkage,
+      origin-specific PIT DFM replay, frozen C1-C5 development selection,
+      one-time 2019+ sealed evaluation, CRPS and interval coverage gates;
+      V1 remains a validation-pending fallback only
     time_fields:
       observation_through: as_of
       knowledge_cutoff: knowledge_cutoff
