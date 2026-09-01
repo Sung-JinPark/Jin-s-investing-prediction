@@ -2291,8 +2291,10 @@ def build_statistics_lab(
             "경계가 필요한 상태입니다."
         ),
         "structures_buildout": (
-            f"컴퓨터·전자 제조시설 건설은 현재 지수 {endpoint(cur_fab):.0f}로 닷컴 같은 시점의 "
-            f"{endpoint(dot_fab):.0f}과 견줍니다. 전력은 {endpoint(cur_power):.0f}, 통신은 "
+            f"컴퓨터·전자 제조시설 건설은 현재 지수 {endpoint(cur_fab):.0f}로 닷컴 같은 "
+            f"{months_elapsed(cur_fab)}개월차의 {matched(dot_fab, cur_fab):.0f}"
+            f"{'보다 높습니다' if endpoint(cur_fab) > matched(dot_fab, cur_fab) else '보다 낮습니다'}"
+            f"(닷컴 말기 {endpoint(dot_fab):.0f}). 전력은 {endpoint(cur_power):.0f}, 통신은 "
             f"{endpoint(cur_comm):.0f}입니다. "
             + (
                 f"데이터센터 건설은 {data_centre_date} 기준 민간 오피스 건설의 "
@@ -2302,15 +2304,21 @@ def build_statistics_lab(
             )
         ),
         "corporate_bond_issuance": (
-            f"비금융기업 회사채 잔액은 현재 {endpoint(cur_bond_stock):.1f}조 달러로 닷컴 같은 시점의 "
-            f"{endpoint(dot_bond_stock):.1f}조 달러보다 큽니다. 분기 순발행은 현재 "
+            f"비금융기업 회사채 잔액은 현재 {endpoint(cur_bond_stock):.1f}조 달러로 닷컴 같은 "
+            f"{months_elapsed(cur_bond_stock)}개월차의 {matched(dot_bond_stock, cur_bond_stock):.1f}조 달러"
+            f"{'보다 큽니다' if endpoint(cur_bond_stock) > matched(dot_bond_stock, cur_bond_stock) else '보다 작습니다'}"
+            f"(닷컴 말기 {endpoint(dot_bond_stock):.1f}조). 분기 순발행은 현재 "
             f"{endpoint(cur_bond_flow):.0f}십억 달러입니다. 이 총액에는 AI 목적 여부를 구분하는 공식 분류가 "
             "없으므로, 특정 기업군의 AI 조달액을 이 계열에서 뽑아낼 수는 없습니다."
         ),
         "investment_share_of_gdp": (
-            f"설비 투자만 보면 현재 GDP의 {endpoint(cur_equipment_share):.2f}%로 닷컴 같은 시점의 "
-            f"{endpoint(dot_equipment_share):.2f}%와 견줍니다. 소프트웨어·연구개발을 더하면 "
-            f"{endpoint(cur_broad_share):.2f}%로 닷컴의 {endpoint(dot_broad_share):.2f}%를 넘습니다. "
+            f"설비 투자만 보면 현재 GDP의 {endpoint(cur_equipment_share):.2f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_equipment_share)}개월차의 {matched(dot_equipment_share, cur_equipment_share):.2f}%"
+            f"{'보다 높습니다' if endpoint(cur_equipment_share) > matched(dot_equipment_share, cur_equipment_share) else '보다 낮습니다'}"
+            f"(닷컴 말기 {endpoint(dot_equipment_share):.2f}%). 소프트웨어·연구개발을 더하면 "
+            f"{endpoint(cur_broad_share):.2f}%로 닷컴 같은 시점 {matched(dot_broad_share, cur_broad_share):.2f}%"
+            f"{'를 넘습니다' if endpoint(cur_broad_share) > matched(dot_broad_share, cur_broad_share) else '에 못 미칩니다'}"
+            f"(닷컴 말기 {endpoint(dot_broad_share):.2f}%). "
             "정의에 따라 결론이 갈리므로 두 선을 함께 봐야 합니다."
         ),
         "profit_growth": (
