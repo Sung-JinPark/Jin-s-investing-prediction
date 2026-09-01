@@ -50,9 +50,14 @@ def test_gate_arithmetic_may_not_be_relaxed(tmp_path: Path) -> None:
 def test_feature_sets_outside_the_preregistered_grid_are_refused() -> None:
     contract = load_contract_v9(ROOT)
     assert _validate_feature_set(contract, []) == []
-    assert _validate_feature_set(contract, ["F1_m2sl_liquidity"]) == ["F1_m2sl_liquidity"]
+    for single in ("F1_m2sl_liquidity", "F2_totci_credit",
+                   "F3_totll_credit", "F4_wrmfns_mmf"):
+        assert _validate_feature_set(contract, [single]) == [single]
     with pytest.raises(TimeSeriesV9PipelineError, match="outside the preregistered grid"):
         _validate_feature_set(contract, ["F1_m2sl_liquidity", "surprise_feature"])
+    # 조합은 사전등록 그리드 밖 — 별도 개정 없이는 거부된다.
+    with pytest.raises(TimeSeriesV9PipelineError, match="outside the preregistered grid"):
+        _validate_feature_set(contract, ["F2_totci_credit", "F3_totll_credit"])
 
 
 def test_holdout_without_an_explicit_user_approval_string_is_refused() -> None:

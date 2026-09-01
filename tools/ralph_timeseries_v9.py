@@ -26,6 +26,9 @@ from ai_fc.timeseries_v9.contracts import (  # noqa: E402
 PREREGISTERED_CONFIGS = {
     "V9_E0_identity_no_new_features": {"features": []},
     "V9_E1_m2sl_liquidity": {"features": ["F1_m2sl_liquidity"]},
+    "V9_E2_totci_credit": {"features": ["F2_totci_credit"]},
+    "V9_E3_totll_credit": {"features": ["F3_totll_credit"]},
+    "V9_E4_wrmfns_mmf": {"features": ["F4_wrmfns_mmf"]},
 }
 
 

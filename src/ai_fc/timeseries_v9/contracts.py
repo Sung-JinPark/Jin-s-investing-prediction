@@ -126,7 +126,10 @@ def load_contract_v9(root: Path) -> dict[str, Any]:
         raise TimeSeriesV9ContractError("V9 regime coverage minimum drifted")
     features = payload["features"]
     registered = features.get("registered") or {}
-    if set(registered) != {"F1_m2sl_liquidity"}:
+    # 사전등록 개정 2026-09-02 (V9-D5): F2~F4는 E2~E4 결과가 존재하기 전에 등록됐다.
+    if set(registered) != {
+        "F1_m2sl_liquidity", "F2_totci_credit", "F3_totll_credit", "F4_wrmfns_mmf",
+    }:
         raise TimeSeriesV9ContractError("V9 registered feature set drifted from preregistration")
     rules = features["rejection_rules"]
     if float(rules["max_abs_correlation_vs_existing_exog"]) != 0.85:
