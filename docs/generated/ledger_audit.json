@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-31T23:40:44+00:00",
+  "generated_at": "2026-09-01T01:51:57+00:00",
   "market_cutoff": "2026-08-31",
   "summary": {
     "accumulating": 30,
@@ -1443,7 +1443,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-08-31",
+      "latest_date": "2026-09-01",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1451,7 +1451,7 @@
       "reversed_timestamps": 0,
       "growth_last_30d": [
         {
-          "date": "2026-08-31",
+          "date": "2026-09-01",
           "count": 1
         }
       ]

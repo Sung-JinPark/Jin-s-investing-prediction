@@ -28873,12 +28873,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "ba89bd247abefcd153fcc645a763566c45755ecc63c3f50667e8ad0990f4e1ef",
-  "generated_at": "2026-08-31T23:39:51+00:00",
+  "generated_at": "2026-09-01T01:51:05+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "ba89bd247abefcd153fcc645a763566c45755ecc63c3f50667e8ad0990f4e1ef",
-    "generated_at": "2026-08-31T23:39:51+00:00",
+    "generated_at": "2026-09-01T01:51:05+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -29042,7 +29042,7 @@
         "calibration/ledger.csv": "78b83c33d0f70c53eaeccd97571bef35ddbf82612e2dd18edd08ff72afaee94c",
         "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
         "calibration/research_status_overrides.csv": "8bc6e87d8a062840758d7db554a56b4cf58fe083d386e05e57d76efc3aa5735e",
-        "questions/registry.yaml": "74c9cfa5dd0c8c4743229e7857a37851628bdfc1fe4851306d696ec0a8240c06",
+        "questions/registry.yaml": "3bf1e213763854bc063202811748e8c949092a61702d74bb804a05b19a5d4557",
         "data/ml_history/2026.jsonl": "70d60c7a38e8b6d1e00c6829b94615d88af41e47ec18f0f27a3506d5a6ca41cc",
         "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
         "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
@@ -29128,15 +29128,15 @@
         "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
       },
       "missing_roots": [],
-      "manifest_sha256": "d63649ee0a8f59c2269a2d23f2a9a46002779baa95e244e90aaf1893ab863493"
+      "manifest_sha256": "223ef71b1e1c8f3d5ddf229a6aec5ec18ab693b1e147d8717ee8a39de883b777"
     },
     "build_context": {
-      "head": "c637978ec247f37260cf72334047b7f3ffa97a81",
+      "head": "aba1f46f2ac44c7c4e4c6f7def23465b3bd2de6b",
       "branch": "main",
       "dirty": false,
       "status_entry_count": 0,
       "python": "3.12.14"
     }
   },
-  "build_receipt_sha256": "ffdec02626575d42f17e909f9766e8a0e182721c637daf6d4ca2110405b4a740"
+  "build_receipt_sha256": "673335653d834981689886b2eb07751ab06633fe0d342c11e2f95f9b3875fc23"
 }

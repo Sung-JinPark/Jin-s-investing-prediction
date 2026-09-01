@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-08-31T23:40:44+00:00",
+  "baseline_at": "2026-09-01T01:51:57+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "18f4c3184f04681353e4249c32fef19ee6ba9fbd28d94f87ab40bd0726fed162",
     "calibration/corrections.csv": "0ac002f49601e1ba94eff34a6c467ae08833a8446ee3786ae56f456ea6ef3d9d",
@@ -47,7 +47,7 @@
     "data/liquidity/archive/2026-08-14.json": "5fbb124ab285351ed951dda6a87baf1f1ac3fe2a7ca37edc8f1735465a24b2e6",
     "data/liquidity/archive/2026-08-21.json": "579076a5af83e0c63acf60f03b5ea1171db46016b41406a78af840fe89e179b3",
     "data/liquidity/archive/2026-08-28.json": "ec93362f8f74f7ddaafe5cc8b4871f06005e165ce2c24f091307c6e2fc9606d9",
-    "data/method_changes.jsonl": "4252f03ef91ab7aae798bd9103bd43ef9fe05291e9e8ecf03a3a936ac849a229",
+    "data/method_changes.jsonl": "b1252b609c087b52d52ddb867fbeb58ee6dbb192f828a1015f89de11a91df13d",
     "data/ml_history/2026.jsonl": "70d60c7a38e8b6d1e00c6829b94615d88af41e47ec18f0f27a3506d5a6ca41cc",
     "data/rate_events/archive/2026-07-31.json": "3f4d9b8ac58cf488b20bb7ecdfe1d314aa662abb1728726c5ffbad79d0a837be",
     "data/rate_events/archive/2026-08-03.json": "b7640421a41f082617d8ceba4840cc51858cceda2b5df0e04ea25f9a8984362d",
