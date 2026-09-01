@@ -1022,6 +1022,18 @@ function statisticsLiquidityBars(chart){
     return `<section class="statistics-liquidity-panel" data-mode="${esc(panel.mode)}" role="img" aria-label="${esc(`${panel.title}: ${aria}`)}"><header><strong>${esc(panel.title)}</strong><span>${esc(panel.basis)}</span></header><div class="statistics-liquidity-rows">${rows}</div><div class="statistics-liquidity-axis">${axis}</div></section>`;
   }).join('')}</div>`;
 }
+function statisticsApproachAlert(chart){
+  const alert=chart.approach_alert;
+  if(!alert||!hasNumeric(alert.proximity_percent))return '';
+  const pct=Math.max(0,Math.min(130,Number(alert.proximity_percent)));
+  const width=Math.min(100,pct);
+  const icon=alert.status==='ok'?'●':'⚠';
+  return `<div class="statistics-approach-alert" data-alert-status="${esc(alert.status)}" role="status" aria-label="${esc(alert.boundary_label)} 접근 ${esc(String(alert.proximity_percent))}% — ${esc(alert.status_label)}">
+    <div class="statistics-alert-head"><b>${icon} ${esc(alert.status_label)}</b><span>${esc(alert.boundary_label)} 접근 <strong>${esc(String(alert.proximity_percent))}%</strong></span><small>현재 ${esc(statisticsValue(chart.unit,alert.current_value))} / 경계 ${esc(statisticsValue(chart.unit,alert.boundary_value))}</small></div>
+    <div class="statistics-alert-track"><i style="width:${width.toFixed(1)}%"></i><em style="left:${alert.thresholds.watch_percent}%"></em><em style="left:${alert.thresholds.alert_percent}%"></em></div>
+    <small class="statistics-alert-note">주의 ${esc(String(alert.thresholds.watch_percent))}% · 경고 ${esc(String(alert.thresholds.alert_percent))}% — 표시 규약이며 매매 신호가 아닙니다</small>
+  </div>`;
+}
 function statisticsChartSvg(chart,alignment={}){
   const series=(chart.series||[]).filter(row=>(row.points||[]).length),points=series.flatMap(row=>row.points||[]);
   if(!points.length)return '<div class="empty-block">표시할 통계가 없습니다.</div>';
@@ -1081,7 +1093,7 @@ function renderStatistics(initialState){
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`);
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<details class="chart-method statistics-caveat"><summary>이 수치의 한계</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<details class="chart-method statistics-caveat"><summary>이 수치의 한계</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);

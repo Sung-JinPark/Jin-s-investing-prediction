@@ -45,6 +45,7 @@ from ai_fc.statistics_lab import (
     statistics_dashboard_projection,
     validate_ipo_reference,
     validate_statistics_lab,
+    DOTCOM_PEAK_ALERTS,
 )
 
 
@@ -1151,3 +1152,61 @@ def test_full_history_resistance_trendline_joins_the_two_peaks_and_stops_at_now(
     assert "저항 추세선" in chart["conclusion"]
     assert "% " in chart["conclusion"] or "%" in chart["conclusion"]
     assert "저항 추세선" in chart["caveat"] and "매매 신호가 아닙니다" in chart["caveat"]
+
+
+def test_approach_alerts_grade_proximity_to_data_derived_boundaries() -> None:
+    """경계선 접근 경보 — 닿기 전에 단계가 올라가고, 경계값은 전부 데이터 파생이다.
+
+    사용자 요구: 전 구간 차트의 빨간 저항선에 "닿기 전에" 알 수 있어야 하고,
+    다른 비교 차트들도 닷컴 정점이라는 경계에 같은 방식의 경보를 갖는다.
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    by_id = {chart["id"]: chart for chart in payload["charts"]}
+
+    # 1) 전 구간 차트 — 경계 = 저항 추세선의 현재 시점 값.
+    full = by_id["spx_per_federal_debt_full_history"]
+    alert = full["approach_alert"]
+    line = next(row for row in full["series"] if row["label"] == "고점 저항 추세선")
+    main = next(row for row in full["series"] if row["era"] == "current")
+    assert alert["kind"] == "resistance_trendline"
+    assert alert["boundary_value"] == line["points"][-1]["value"]
+    assert alert["current_value"] == main["points"][-1]["value"]
+    expected = round(alert["current_value"] / alert["boundary_value"] * 100.0, 1)
+    assert alert["proximity_percent"] == expected
+
+    # 2) 닷컴 정점 경계 차트들 — 지정한 6개 전부 경보를 갖는다.
+    for chart_id, _, _ in DOTCOM_PEAK_ALERTS:
+        chart = by_id[chart_id]
+        peak_alert = chart.get("approach_alert")
+        assert peak_alert, chart_id
+        assert peak_alert["kind"] == "dotcom_peak", chart_id
+        assert peak_alert["boundary_value"] > 0
+
+    # 3) 높을수록 좋은 지표에는 경보를 달지 않는다.
+    assert "approach_alert" not in by_id["profit_growth"]
+
+    # 4) 단계 규약 — 임계는 계약에 담겨 화면과 데이터가 같은 숫자를 쓴다.
+    assert alert["thresholds"] == {"watch_percent": 80.0, "alert_percent": 95.0}
+    assert alert["signal_semantics"] == "display_convention_not_trade_signal"
+    assert alert["status"] in {"ok", "watch", "alert", "reached"}
+    assert (alert["status"] == "ok") == (alert["proximity_percent"] < 80.0)
+
+
+def test_approach_alert_status_tiers_fire_before_the_boundary_is_touched() -> None:
+    """단계 함수 자체를 고정 — 79.9 여유 / 80 주의 / 95 경고 / 100 도달."""
+    from ai_fc.statistics_lab import _approach_alert
+
+    cases = [(79.9, "ok"), (80.0, "watch"), (94.9, "watch"),
+             (95.0, "alert"), (99.9, "alert"), (100.0, "reached"), (120.0, "reached")]
+    for value, expected in cases:
+        result = _approach_alert("dotcom_peak", "닷컴 정점", 100.0, value)
+        assert result["status"] == expected, (value, result["status"])
+        assert result["proximity_percent"] == value
+    assert _approach_alert("dotcom_peak", "닷컴 정점", 0.0, 50.0) is None

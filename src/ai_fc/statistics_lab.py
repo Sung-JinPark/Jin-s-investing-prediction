@@ -978,6 +978,60 @@ def _cycle_series(
     return dotcom, current
 
 
+# 접근-경보 표시 임계 (표시 규약 — 분석 결론이 아니라 화면 단계 구분).
+# 여유 <80% < 주의 <95% < 경고 <100% <= 도달.
+ALERT_WATCH_PERCENT = 80.0
+ALERT_ALERT_PERCENT = 95.0
+
+#: 닷컴 정점을 경계선으로 갖는 비교 차트 — (chart_id, 경계 시리즈 라벨, 현재 시리즈 라벨).
+#: 값이 높을수록 과열인 지표만 넣는다 (이익 증가율처럼 높을수록 좋은 지표는 제외).
+DOTCOM_PEAK_ALERTS: tuple[tuple[str, str, str], ...] = (
+    ("spx_per_federal_debt", "닷컴", "현재"),
+    ("nasdaq_per_m2", "닷컴", "현재"),
+    ("nasdaq_per_household_liquid_assets", "닷컴", "현재"),
+    ("m2_nasdaq", "닷컴 NASDAQ", "현재 NASDAQ"),
+    ("valuation_proxy", "닷컴", "현재"),
+    ("margin_credit_proxy", "닷컴 고객 신용", "현재 고객 신용"),
+)
+
+
+def _approach_alert(
+    kind: str, boundary_label: str, boundary_value: float, current_value: float,
+) -> dict[str, Any] | None:
+    """경계선 접근 경보 — 닿기 전에 단계가 올라가는 근접도 게이지.
+
+    경계값은 데이터에서 파생된 것만 받는다 (닷컴 정점, 고점 추세선).
+    임계 %는 표시 규약이며 매매 신호가 아니다 — 카드에 그 지위를 함께 내보낸다.
+    """
+    if not (math.isfinite(boundary_value) and math.isfinite(current_value)):
+        return None
+    if boundary_value <= 0:
+        return None
+    proximity = round(current_value / boundary_value * 100.0, 1)
+    if proximity >= 100.0:
+        status, label = "reached", "도달"
+    elif proximity >= ALERT_ALERT_PERCENT:
+        status, label = "alert", "경고"
+    elif proximity >= ALERT_WATCH_PERCENT:
+        status, label = "watch", "주의"
+    else:
+        status, label = "ok", "여유"
+    return {
+        "kind": kind,
+        "boundary_label": boundary_label,
+        "boundary_value": round(boundary_value, 2),
+        "current_value": round(current_value, 2),
+        "proximity_percent": proximity,
+        "status": status,
+        "status_label": label,
+        "thresholds": {
+            "watch_percent": ALERT_WATCH_PERCENT,
+            "alert_percent": ALERT_ALERT_PERCENT,
+        },
+        "signal_semantics": "display_convention_not_trade_signal",
+    }
+
+
 def _ratio(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> list[dict[str, Any]]:
     right_by_month = {_month_key(row["date"]): float(row["value"]) for row in right}
     result = []
@@ -2099,6 +2153,33 @@ def build_statistics_lab(
             {"period": peak["period"], "label": f"{peak['date'][:4]} 고점 {peak['value']:.0f}"}
             for peak in (first_peak, second_peak) if peak
         ]
+        if resistance_now:
+            full_chart["approach_alert"] = _approach_alert(
+                "resistance_trendline", "고점 저항 추세선",
+                resistance_now, spx_debt_full[-1]["value"],
+            )
+    # 닷컴 정점을 경계로 갖는 비교 차트들 — 현재 선이 닷컴 최대값에 얼마나
+    # 근접했는지 같은 규약으로 표시한다.
+    for alert_chart_id, boundary_series_label, current_series_label in DOTCOM_PEAK_ALERTS:
+        alert_chart = by_id.get(alert_chart_id)
+        if alert_chart is None:
+            continue
+        by_label = {series["label"]: series for series in alert_chart.get("series", [])}
+        boundary_series = by_label.get(boundary_series_label)
+        current_series = by_label.get(current_series_label)
+        if not boundary_series or not current_series:
+            continue
+        boundary_points = boundary_series.get("points") or []
+        current_points = current_series.get("points") or []
+        if not boundary_points or not current_points:
+            continue
+        alert = _approach_alert(
+            "dotcom_peak", "닷컴 정점",
+            max(float(row["value"]) for row in boundary_points),
+            float(current_points[-1]["value"]),
+        )
+        if alert:
+            alert_chart["approach_alert"] = alert
     # 사용자에게 반드시 보여야 하는 한계(대용치·명목·표본). 투영이 이 문구를
     # 카드의 접힘 블록으로 내보낸다 — 데이터에만 남는 경고는 경고가 아니다.
     chart_caveats = {
