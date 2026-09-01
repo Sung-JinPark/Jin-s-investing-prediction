@@ -53,9 +53,13 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     verify = (ROOT / ".github" / "workflows" / "verify.yml").read_text(encoding="utf-8")
 
     assert '"Pillow>=10"' in pages, "Pages OG image build requires Pillow"
+    # V2/V8 data commits are pushed with GITHUB_TOKEN, which never fires push
+    # events for other workflows — without these workflow_run entries the V8
+    # gate flip stayed invisible on the live site (observed 2026-09-01).
     expected = (
         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
-        '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh"]'
+        '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
+        '"timeseries-v2-refresh", "timeseries-v8-shadow"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow
