@@ -1,7 +1,7 @@
 {
-  "content_hash": "b266ee9405cd6943cfc74850165fa388160d60463a7acf66056a3eadc24d334e",
+  "content_hash": "330c11af36e57a5cdff77ae9421d689a210c1af08cd4cb2cf186c3e095e548b6",
   "derived_pointer": true,
-  "model_path": "data/timeseries/models/ts-fit-hold-d480787891faab0be6c9346d.json",
-  "run_id": "ts-fit-hold-d480787891faab0be6c9346d",
+  "model_path": "data/timeseries/models/ts-fit-hold-4765fff93fc243f3646710df.json",
+  "run_id": "ts-fit-hold-4765fff93fc243f3646710df",
   "schema_version": 1
 }
