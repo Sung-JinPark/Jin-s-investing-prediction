@@ -227,6 +227,8 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "SPASTT01KRM661N": 100.0,
             "HOUST": 1400.0,
             "GDP": 20_000.0,
+            "SPASTT01USM661N": 45.0,
+            "GFDEBTN": 4_900_000.0,
             "Y034RC1Q027SBEA": 500.0,
             "Y001RC1Q027SBEA": 1_000.0,
         }[series_id]
@@ -706,7 +708,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 25
+    assert len(payload["charts"]) == 26  # spx_per_federal_debt 추가로 25→26
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -768,7 +770,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 25
+    assert len(payload["charts"]) == 26  # spx_per_federal_debt 추가로 25→26
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -1264,3 +1266,40 @@ def test_sec_user_agent_carries_a_contact(monkeypatch: pytest.MonkeyPatch) -> No
     # 정상 교체는 허용된다.
     monkeypatch.setenv("AI_FC_SEC_USER_AGENT", "Other/1.0 (someone@example.org)")
     assert statistics_lab._user_agent() == "Other/1.0 (someone@example.org)"
+
+
+def test_spx_per_federal_debt_compares_both_eras_from_full_history_sources() -> None:
+    """연방부채 대비 미국 주가 비율 차트가 두 시대를 같은 시작=100으로 비교한다.
+
+    FRED SP500은 최근 10년만 제공해 닷컴 구간이 없으므로, 분자는 전 구간이 열린
+    OECD 미국 주가지수(SPASTT01USM661N)여야 한다. 분모는 재무부 GFDEBTN.
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    chart = next(row for row in payload["charts"] if row["id"] == "spx_per_federal_debt")
+
+    assert chart["category"] == "liquidity"
+    assert chart["unit"] == "cycle_start_100"
+    assert chart["source_ids"] == ["SPASTT01USM661N", "GFDEBTN"]
+    eras = {series["era"] for series in chart["series"]}
+    assert eras == {"dotcom", "current"}, "닷컴·현재 두 시대가 모두 있어야 한다"
+    for series in chart["series"]:
+        points = series["points"]
+        assert points, series["label"]
+        assert abs(float(points[0]["value"]) - 100.0) < 1e-6, "시작=100 지수화"
+    assert "S&P 500 종가가" in chart["caveat"], "OECD 월평균 대용임을 명시"
+    assert "조 달러" in chart["conclusion"], "최근 연방부채 수준을 결론에 병기"
+
+    registered = {source["series_id"] for source in payload["sources"]}
+    assert {"SPASTT01USM661N", "GFDEBTN"} <= registered
+    us_share = next(
+        source for source in payload["sources"]
+        if source["series_id"] == "SPASTT01USM661N"
+    )
+    assert "OECD" in us_share["provider"]
