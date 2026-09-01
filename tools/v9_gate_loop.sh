@@ -84,7 +84,7 @@ run_explore(){
   { [ -z "$LABEL" ] || [ -z "$CFG" ]; } && { log "next() parse mismatch -> stop explore"; return 1; }
   log "EXPLORE run $LABEL budget=$U/$MAX_BUDGET"
   [ "$DRY_RUN" = 1 ] && { log "DRY: v9-dev-backtest --label $LABEL"; return 0; }
-  "$PY" -m ai_fc timeseries-v9-dev-backtest --label "$LABEL" --config "$CFG" >> "$LOOPDIR/backtest_$LABEL.log" 2>&1
+  ( cd src && "../$PY" -m ai_fc timeseries-v9-dev-backtest --label "$LABEL" --config "$CFG" ) >> "$LOOPDIR/backtest_$LABEL.log" 2>&1
   RC=$?; [ $RC -ne 0 ] && { log "backtest rc=$RC ($LABEL)"; setstate EXPLORE "fail $LABEL | $(tnote)"; return 0; }
   "$PY" tools/ralph_timeseries_v9.py record --label "$LABEL" >>"$LOOPDIR/harness.err" 2>&1 || log "WARN record failed $LABEL"
   git add "$LEDGER" "outputs/timeseries_v9" 2>/dev/null
@@ -97,7 +97,7 @@ run_explore(){
 run_shadow(){
   log "SHADOW monitor"
   [ "$DRY_RUN" = 1 ] && { log "DRY: v9-verify + hermetic"; return 0; }
-  "$PY" -m ai_fc timeseries-v9-verify >> "$LOOPDIR/verify.log" 2>&1 || log "WARN verify failed"
+  ( cd src && "../$PY" -m ai_fc timeseries-v9-verify ) >> "$LOOPDIR/verify.log" 2>&1 || log "WARN verify failed"
   ( cd src && "../$PY" -m pytest tests/test_multivariate_timeseries_v9.py -q ) >> "$LOOPDIR/hermetic.log" 2>&1 || log "WARN hermetic failed"
   setstate SHADOW "monitor done | $(tnote)"
 }

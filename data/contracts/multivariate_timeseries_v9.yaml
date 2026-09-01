@@ -1,0 +1,223 @@
+# V9 다변량 시계열 연구 트랙 — 사전등록 계약 (DRAFT)
+#
+# 지위: 개발 사전등록. frozen_winner·freeze_note가 없는 동안은 DRAFT이며,
+# 봉인 평가는 계약 동결 + 사용자 사인오프(R9-D2류) 후 별도 세션에서만 1회.
+# 게이트 판정식·임계는 V8 계약(data/contracts/multivariate_timeseries_v8.yaml)
+# 원문에서 그대로 복제했다 — 이 루프는 판정을 바꾸지 않는다 (G0 원문 인용:
+# outputs/timeseries_v9/reports/G0_RECON_20260901.md).
+
+schema_version: 1
+contract_id: multivariate_timeseries_v9
+model_id: shadow.mf_dfm_varx_liquidity_v9
+model_version: 9
+status: draft
+
+target:
+  series_id: NASDAQCOM
+  asset: NASDAQ Composite
+  transform: daily_log_return
+  stored_return_unit: fraction
+  display_price_unit: index
+  horizons_sessions: [1, 5, 21, 63]
+
+probability_contract:
+  space: research_timeseries_v9_conditional
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+  combine_with_v8_surface: false
+
+# 불변 선행자 벤치마크: V8 봉인 공개 run의 정체성 핀. V9는 V8을 읽기만 한다.
+v8_benchmark:
+  immutable: true
+  retune_prohibited: true
+  sealed_ledger: data/timeseries_v8/ledgers/sealed_evaluations.jsonl
+  run_id: tsv8-sealed-64345a816b4857171915d5b8
+  content_hash: aeec9c050c0c7b504c74e1b088f49311c39da7f6ed46586f518569916572cfbe
+  contract_hash: 7c56ee4eaa5697823c71c504e524354a70d643d20b555de69120f11ac55f785b
+  model_code_hash: 8361899fd79713934fb9b5727937d334a0105ef68cf7a71c1d2b1bb0ece1f3e7
+
+data_policy:
+  inherit_v2_pit_ledgers_read_only: true
+  v2_store_write: prohibited
+  v8_store_write: prohibited
+  feature_bundle: v2_candidate_C1_readonly_via_v8_development_bundle
+  dfm_cache: v2_origin_cache_readonly
+  # 신규 피처 원천: V1 정본 ALFRED PIT 파케이(네이티브 vintage).
+  v1_canonical_facts_read_only: data/timeseries/facts/observations.parquet
+  release_alignment: first_public_vintage_by_observation_period
+  grades: [native_pit, reconstructed_market_archive, captured_forward]
+
+model:
+  windows:
+    warmup: ["1996-01-01", "2006-12-31"]
+    development: ["2007-01-01", "2018-12-31"]
+    design: ["2007-01-01", "2014-12-31"]
+    holdout: ["2015-01-01", "2018-12-31"]
+    development_truncation_after: "2019-04-30"
+    sealed: ["2019-01-01", "latest"]
+    rolling_sessions: 2520
+  varx:
+    lag_candidates: [1, 2, 5]
+    ridge_alpha_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+  distribution:
+    development_path_count: 2000
+    sealed_path_count: 20000
+    block_length_candidates: [5, 10, 21]
+    ewma_lambda_candidates: [0.94, 0.97]
+    quantiles: [0.1, 0.25, 0.5, 0.75, 0.9]
+    seed_rule: sha256_model_version_and_as_of
+  # V9의 시작점은 V8 동결 승자 그대로다 — 탐색은 신규 피처 추가 여부에만 열려 있다.
+  base_configuration_overrides:
+    fhs_horizons: [21, 63]
+    blend_weight_by_horizon: {"21": 0.75, "63": 0.75}
+    pit_recalibration_shrinkage: 0.5
+  sealed_evaluation:
+    maximum_disclosures_per_model_version: 1
+    retune_after_failure: prohibited
+    requires_explicit_user_signoff: true
+
+# ── 사전등록 피처 (G0 실측 감사 기반 — 2026-09-01) ─────────────────────────
+# 자격 기준: 설계창(2007–2014) 전 구간에서 first-release vintage가 관측과
+# 동시대에 존재(available_at ≤ origin 충족 가능)해야 한다.
+features:
+  registered:
+    F1_m2sl_liquidity:
+      series_id: M2SL
+      source: v1_canonical_alfred_parquet
+      native_frequency: monthly
+      transform: log_change_of_first_release
+      session_alignment: forward_fill_from_release_date
+      standardization: trailing_z_2520_sessions
+      pit_grade: native_alfred_vintage
+      design_window_coverage: full            # 2007-01 관측의 첫 공개 2007-02-16 실측
+      channel: liquidity
+  conditionally_registered:                   # 온셋이 설계창 중간 — 1차 탐색에서 제외
+    NFCI:  {onset_first_vintage: "2011-07-14", reason: design_window_partial}
+    WALCL: {onset_first_vintage: "2013-04-19", reason: design_window_partial}
+    T10Y2Y: {onset_first_vintage: "2014-01-29", reason: design_window_partial}
+  blocked_features:                           # 미수집 또는 PIT 부적격 — 수집 트랙 선행 필요
+    TOTCI: {status: not_collected, required: alfred_vintage_collection}
+    TOTLL: {status: not_collected, required: alfred_vintage_collection}
+    loan_deposit_ratio: {status: not_collected, required: numerator_and_denominator_receipts}
+    WRMFNS: {status: not_collected, required: alfred_vintage_collection}
+    MMMFFAQ027S: {status: current_vintage_only_in_statistics_store, required: alfred_vintage_collection}
+    VXNCLS: {status: not_collected, required: alfred_vintage_collection}
+    BAMLH0A0HYM2: {status: observations_start_2023_in_v1_store, required: alfred_vintage_backfill}
+    RRPONTSYD: {status: first_vintage_2021, required: none_design_window_impossible}
+    ai_buildout_layer: {status: current_vintage_only_and_starts_2013plus, required: none_design_window_impossible}
+  rejection_rules:
+    max_abs_correlation_vs_existing_exog: 0.85
+    frequency_mixing: prohibited
+    verdict_language_rendering: prohibited
+
+research_grids:
+  V9_F1_liquidity_exog:
+    feature_sets: [[], ["F1_m2sl_liquidity"]]   # E0 항등(빈 셋) + E1(M2SL)
+    note: >-
+      빈 피처 셋은 V8 동결 승자 구성의 순수 통과(passthrough)여야 하며,
+      E0 내포 테스트가 1e-12 동일성을 강제한다.
+
+development_protocol:
+  maximum_development_evaluations: 24
+  design_window_only_for_iteration: true
+  holdout_maximum_finalists: 3
+  holdout_single_scoring_per_finalist: true
+  holdout_requires_explicit_user_approval: true
+  comparison_method: paired_per_origin_differences_vs_current_best
+  experiment_ledger: data/timeseries_v9/ledgers/development_experiments.jsonl
+  holdout_ledger: data/timeseries_v9/ledgers/holdout_scorings.jsonl
+  ledger_append_only: true
+  preregistered_first_experiments:
+    - V9_E0_identity_no_new_features
+    - V9_E1_m2sl_liquidity
+  stop_loss:
+    projected_design_improvement_minimum: 0.02
+    action_on_trigger: stop_and_report_evidence
+
+# ── 게이트 (V8 원문 복제 — 값 변경 금지) ──────────────────────────────────
+dev_gate_proxy:
+  design_long_horizon_mean_crps_min_improvement: 0.025
+  design_paired_se_max: 0.001
+  projected_full_window_ci90_upper_max: -0.0004
+  projection_reference_origins: 1011
+  design_short_horizon_crps_max_underperformance: 0.01
+  design_p10_p90_coverage: [0.76, 0.84]
+  design_p25_p75_coverage: [0.45, 0.55]
+  design_gfc_regime_p10_p90_minimum: 0.72
+  holdout_long_horizon_mean_crps_min_improvement: 0.02
+  holdout_paired_bootstrap_ci90_upper_max: 0.0
+  pit_leakage_count: 0
+  receipt_linkage: 1.0
+
+publication_gate:
+  pit_leakage_count: 0
+  market_common_start_not_after: "2007-01-03"
+  receipt_linkage: 1.0
+  short_horizon_crps_max_underperformance: 0.02
+  long_horizon_mean_crps_min_improvement: 0.02
+  long_horizon_stationary_bootstrap_ci_upper: 0.0
+  p10_p90_coverage: [0.76, 0.84]
+  p25_p75_coverage: [0.45, 0.55]
+  regime_p10_p90_minimum: 0.70
+  failure_surface: validation_pending_without_numbers
+
+evaluation:
+  outer_start: "2007-01-01"
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  minimum_origins: 250
+  required_regimes: [great_financial_crisis_2008, pandemic_2020, tightening_2022]
+  baselines: [random_walk, drift_random_walk, ar1, gbm, historical_simulation, block_bootstrap]
+  qualification_statistics:
+    paired_same_coordinates: true
+    stationary_block_bootstrap: {block_length_rule: two_times_horizon, replicates: 2000}
+    mde_per_horizon_published_before_holdout: true
+
+operational_gate:
+  required_market_max_age_hours: 48
+  per_group_max_age_hours_override: {DTWEXBGS_or_DTWEXB: 216}
+  required_market_groups: [[NASDAQCOM], [VIX], [DGS2], [DGS10], [DTWEXBGS, DTWEXB]]
+  recent_origins: 26
+  crps_max_underperformance: 0.05
+  coverage_must_remain_in_publication_contract: true
+  failure_action: hide_new_numbers_validation_pending
+
+promotion:
+  automatic_champion: false
+  minimum_shadow_sessions: 126
+  explicit_owner_approval: required
+
+role_separation:
+  train: [features.py, pipeline.py]
+  selection: [contracts.py]
+  holdout: [pipeline.py, contracts.py]
+  note: 역할 해시는 timeseries_v9.contracts.role_hashes()가 산출하고 루프가 대사한다.
+
+disclosure_caveat:
+  v8_2019_scores_published_before_design: true
+  candidate_selection_must_be_2019_blind: true
+  m2sl_first_release_is_schedule_reconstruction: false   # M2SL은 네이티브 ALFRED vintage — 재구축 아님
+
+prohibitions:
+  mutate_v2: true
+  retune_v2: true
+  v2_store_write: true
+  mutate_v8: true
+  retune_v8: true
+  v8_store_write: true
+  sealed_2019_access_during_development: true
+  dev_gate_threshold_relaxation: true
+  direct_index_level_training: true
+  forced_endpoint: true
+  future_actual_exogenous: true
+  silent_feature_drop: true
+  silent_normalization: true
+  official_ledger_write: true
+  scenario_v5_2_mutation: true
+  automatic_sealed_disclosure: true
+  automatic_holdout_consumption: true
+  automatic_main_self_modification_in_production: true
+  secret_loading_in_loops: true
