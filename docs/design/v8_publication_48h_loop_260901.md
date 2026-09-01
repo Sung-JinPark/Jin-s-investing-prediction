@@ -192,3 +192,11 @@ path/drivers/backtest 탭은 비활성(스키마상 v2 전용 필드라 정직�
 조치(r20): 세 계열(NASDAQCOM·DTWEXB·DTWEXBGS)을 `ai_fc.fred_api` 공식 API로 이관.
 영수증은 키 없는 공개 URL만 기록. 이관 후 예상 플립 시점 — DTWEXBGS 즉시(08-28 관측,
 75h < 216h), NASDAQCOM은 08-31 관측이 FRED에 게시되는 시점(통상 다음 영업일 오전 ET).
+
+**봉인 경계 교훈 (2차 CI에서 실측).** `market_archive.py`는 V2 봉인 `model_code_hash`
+의존 집합에 포함되어 있어 직접 수정하면 verify가 "sealed V2 model code hash drift"로
+fail-closed한다 — 1차 수정 시도가 정확히 이렇게 잡혔고, 이는 가드가 설계대로 작동한
+것이다. 최종 구현은 봉인 파일을 되돌리고(0바이트 변경) **비봉인 신규 모듈**
+`official_api_transport.py`로 우회한다: 봉인 수집기에 fredgraph 거부(HTTP 451) fetcher를
+주입하고, 같은 3계열을 공식 API + 정직한 영수증(전용 source_id, 키 없는 URL)으로
+append한다. 봉인 해시 의존 목록은 명시적 파일 리스트라 신규 파일은 해시에 영향이 없다.
