@@ -4,8 +4,14 @@ name: statistics-backfill
 # 로컬에는 FRED_API_KEY가 없고(DECISIONS 12-6 — API 경로만 허용) 키는 CI 시크릿에만
 # 있으므로, 시리즈 추가 PR은 이 워크플로를 자기 브랜치에 dispatch해 데이터를 받는다.
 # statistics-refresh와 달리 main이 아니라 **실행한 브랜치**에 커밋한다.
+# dispatch는 기본 브랜치에 파일이 있어야 등록되므로, 브랜치 단계에서는
+# 이 파일 자체를 바꿔 푸시하는 것이 실행 요청이다.
+# backfill-request: 2026-09-01T1 (스탬프를 바꿔 푸시하면 재실행)
 on:
   workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/statistics-backfill.yml"
 
 permissions:
   contents: write
