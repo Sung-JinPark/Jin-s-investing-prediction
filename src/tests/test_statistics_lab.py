@@ -200,6 +200,7 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "BOGZ1FL154022375A": 6_000_000.0,
             "NASDAQCOM": 900.0,
             "T10Y2Y": 0.5,
+            "T10Y3M": 0.6,
             "FEDFUNDS": 5.0,
             "TOTALSL": 1_000_000.0,
             "TDSP": 12.0,
@@ -207,6 +208,7 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "DRTSCILM": 5.0,
             "NCBEILQ027S": 8_000_000.0,
             "CPATAX": 600.0,
+            "W328RC1Q027SBEA": 480.0,
             "UNRATE": 4.0,
             "CPIAUCSL": 160.0,
             "NFCI": -0.3,
@@ -222,10 +224,12 @@ def _rows(series_id: str) -> list[dict[str, float | str]]:
             "SPASTT01KRM661N": 100.0,
             "HOUST": 1400.0,
         }[series_id]
-        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
+        growth = 1.0 + offset * (0.001 if series_id not in {"T10Y2Y", "T10Y3M", "FEDFUNDS", "TDSP", "BOGZ1FL010000346Q", "DRTSCILM", "UNRATE", "NFCI", "HQMCB10YR", "GS10", "GACDFSA066MSFRBPHI"} else 0.0)
         value = baseline * growth
         if series_id == "T10Y2Y":
             value = ((offset % 30) - 12) / 10
+        elif series_id == "T10Y3M":
+            value = ((offset % 30) - 10) / 10
         elif series_id == "DRTSCILM":
             value = ((offset % 20) - 6) * 2.0
         elif series_id == "UNRATE":
@@ -514,7 +518,7 @@ def _legacy_build_statistics_lab_contract() -> None:
     assert household_trend == {
         "start": "2009-01-01",
         "end": "2019-12-31",
-        "method": "ordinary_least_squares_on_levels",
+        "method": "ordinary_least_squares_on_log_levels",
         "training_observations": {
             "corporate_equities": 44,
             "cash_and_deposits": 44,
@@ -1024,7 +1028,11 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" not in script
-    assert "esc(chart.caveat)" not in script
+    # 검수 결정: 대용치·명목 경고(caveat)는 화면에 도달해야 한다.
+    # 카드마다 '이 수치의 한계' 접힘 블록으로 렌더한다.
+    assert 'class="chart-method statistics-caveat"' in script
+    assert "이 수치의 한계" in script
+    assert "esc(chart.caveat)" in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" not in script
     assert "percent_20d_log_return" in script
@@ -1088,17 +1096,13 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
     assert len(payload["sources"]) == 27
     assert all(source["raw_sha256"] for source in payload["sources"])
+    # IPO 참고 원장은 FRED를 쓰지 않는다 — 여기서 all()로 FRED URL을 검사하면
+    # 빈 리스트에 대한 공허참이 된다. 부재 자체를 단언하는 것이 올바른 검사다.
     fred_sources = [source for source in payload["sources"] if source["series_id"] in FRED_SERIES]
-    # 영수증은 실제 취득 경로를 가리켜야 한다 — 전송은 공식 API다 (DECISIONS 12-6).
-    assert all(
-        source["request_url"].startswith(
-            "https://api.stlouisfed.org/fred/series/observations?"
-        )
-        for source in fred_sources
-    )
-    assert not any("fredgraph.csv" in source["request_url"] for source in fred_sources)
-    # 키가 영수증에 새어 들어가면 안 된다.
-    assert not any("api_key" in source["request_url"] for source in fred_sources)
+    assert fred_sources == [], "IPO 참고 원장에 FRED 원천이 섞이면 안 된다"
+    # 키·비공식 경로 유출 검사는 원천 전체에 적용한다.
+    assert not any("api_key" in str(source.get("request_url", "")) for source in payload["sources"])
+    assert not any("fredgraph.csv" in str(source.get("request_url", "")) for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
     assert len(sec_sources) == 7
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)

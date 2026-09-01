@@ -158,6 +158,13 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "native_frequency": "daily",
         "aggregation": "mean",
     },
+    "T10Y3M": {
+        "title": "10-year minus 3-month Treasury spread",
+        "provider": "Federal Reserve Bank of St. Louis / U.S. Treasury",
+        "unit": "percent",
+        "native_frequency": "daily",
+        "aggregation": "mean",
+    },
     "FEDFUNDS": {
         "title": "Effective federal funds rate",
         "provider": "Board of Governors of the Federal Reserve System (US)",
@@ -202,6 +209,13 @@ FRED_SERIES: dict[str, dict[str, str]] = {
     },
     "CPATAX": {
         "title": "Corporate profits after tax with IVA and CCAdj",
+        "provider": "U.S. Bureau of Economic Analysis",
+        "unit": "billions_usd_saar",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
+    "W328RC1Q027SBEA": {
+        "title": "Nonfinancial corporate business: profits after tax with IVA and CCAdj",
         "provider": "U.S. Bureau of Economic Analysis",
         "unit": "billions_usd_saar",
         "native_frequency": "quarterly",
@@ -782,32 +796,6 @@ def _monthly(rows: list[dict[str, Any]], aggregation: str) -> list[dict[str, Any
     return result
 
 
-def _calendar_year_index(
-    rows: list[dict[str, Any]], year: int,
-) -> list[dict[str, Any]]:
-    """Normalize actual daily closes to first observed close=100 on a day-of-year axis."""
-    selected = [
-        row for row in sorted(rows, key=lambda item: item["date"])
-        if date.fromisoformat(str(row["date"])).year == year
-    ]
-    if not selected:
-        raise StatisticsLabError(f"daily market path for {year} is empty")
-    base = float(selected[0]["value"])
-    if not math.isfinite(base) or base <= 0:
-        raise StatisticsLabError(f"daily market path for {year} has invalid base")
-    start = date(year, 1, 1)
-    result = []
-    for row in selected:
-        observed = date.fromisoformat(str(row["date"]))
-        value = float(row["value"])
-        if not math.isfinite(value) or value <= 0:
-            raise StatisticsLabError(f"daily market path for {year} has invalid close")
-        result.append({
-            "period": (observed - start).days,
-            "date": observed.isoformat(),
-            "value": value / base * 100.0,
-        })
-    return result
 
 
 def _positive_daily_rows(rows: list[dict[str, Any]]) -> list[tuple[date, float]]:
@@ -837,150 +825,14 @@ def _rolling_sums(values: list[float], sessions: int) -> list[float]:
     return [sum(values[index - sessions + 1:index + 1]) for index in range(sessions - 1, len(values))]
 
 
-def _aligned_log_returns(
-    base_rows: list[dict[str, Any]], candidate_rows: list[dict[str, Any]], *,
-    candidate_close: str,
-) -> list[dict[str, Any]]:
-    """Align candidate returns without moving or optimizing dates.
-
-    ``same_or_prior`` is used for markets whose close is already observable by
-    the KOSPI close. ``strictly_prior`` is used for the U.S. session so a KOSPI
-    return on day D only sees the U.S. close dated before D.
-    """
-    base = _positive_daily_rows(base_rows)
-    candidate = _positive_daily_rows(candidate_rows)
-    candidate_dates = [row[0] for row in candidate]
-    candidate_values = [row[1] for row in candidate]
-    aligned: list[dict[str, Any]] = []
-    for (base_date_0, base_value_0), (base_date_1, base_value_1) in zip(
-        base, base[1:], strict=False,
-    ):
-        if candidate_close == "strictly_prior":
-            candidate_index_0 = bisect_left(candidate_dates, base_date_0) - 1
-            candidate_index_1 = bisect_left(candidate_dates, base_date_1) - 1
-        elif candidate_close == "same_or_prior":
-            candidate_index_0 = bisect_right(candidate_dates, base_date_0) - 1
-            candidate_index_1 = bisect_right(candidate_dates, base_date_1) - 1
-        else:
-            raise StatisticsLabError("daily market close policy invalid")
-        if candidate_index_0 < 0 or candidate_index_1 <= candidate_index_0:
-            continue
-        aligned.append({
-            "date": base_date_1.isoformat(),
-            "base_return": math.log(base_value_1 / base_value_0),
-            "candidate_return": math.log(
-                candidate_values[candidate_index_1] / candidate_values[candidate_index_0]
-            ),
-        })
-    if len(aligned) < 20:
-        raise StatisticsLabError("daily market aligned sample too small")
-    return aligned
 
 
-def _aligned_return_diagnostic(
-    aligned: list[dict[str, Any]], *, sessions: int = 20,
-) -> dict[str, Any]:
-    base_returns = [float(row["base_return"]) for row in aligned]
-    candidate_returns = [float(row["candidate_return"]) for row in aligned]
-    direction_matches = sum(
-        (left >= 0) == (right >= 0)
-        for left, right in zip(base_returns, candidate_returns, strict=True)
-    )
-    return {
-        "sample_start": aligned[0]["date"],
-        "sample_end": aligned[-1]["date"],
-        "observations": len(aligned),
-        "daily_log_return_correlation": round(_correlation(base_returns, candidate_returns), 4),
-        "rolling_20_session_correlation": round(_correlation(
-            _rolling_sums(base_returns, sessions),
-            _rolling_sums(candidate_returns, sessions),
-        ), 4),
-        "direction_agreement": round(direction_matches / len(aligned), 4),
-    }
 
 
-def _sox_quintile_diagnostic(aligned: list[dict[str, Any]]) -> dict[str, Any]:
-    training = [row for row in aligned if str(row["date"]) < "2026-01-01"]
-    if len(training) < 100:
-        raise StatisticsLabError("SOX conditional training sample too small")
-    sorted_candidate = sorted(float(row["candidate_return"]) for row in training)
-    cuts = [sorted_candidate[int(len(sorted_candidate) * rank / 5)] for rank in range(1, 5)]
-
-    def bucket(value: float) -> int:
-        return sum(value > cut for cut in cuts)
-
-    def summarize(rows: list[dict[str, Any]], bucket_index: int) -> dict[str, Any]:
-        values = [
-            float(row["base_return"]) for row in rows
-            if bucket(float(row["candidate_return"])) == bucket_index
-        ]
-        if not values:
-            raise StatisticsLabError("SOX conditional bucket empty")
-        return {
-            "observations": len(values),
-            "mean_next_kospi_log_return_pct": round(statistics.mean(values) * 100.0, 3),
-            "positive_share": round(sum(value > 0 for value in values) / len(values), 4),
-        }
-
-    current = [row for row in aligned if str(row["date"]) >= "2026-01-01"]
-    return {
-        "training_window": f"{training[0]['date']}_to_{training[-1]['date']}",
-        "quintile_cut_log_return_pct": [round(value * 100.0, 3) for value in cuts],
-        "training_lowest_quintile": summarize(training, 0),
-        "training_highest_quintile": summarize(training, 4),
-        "current_highest_quintile": summarize(current, 4),
-        "interpretation": "descriptive_conditional_frequency_not_probability_or_causation",
-    }
 
 
-def _session_log_return_points(
-    rows: list[dict[str, Any]], *, year: int, sessions: int = 20,
-) -> list[dict[str, Any]]:
-    selected = _positive_daily_rows(rows)
-    start = date(year, 1, 1)
-    result = []
-    for index in range(sessions, len(selected)):
-        observed, value = selected[index]
-        if observed.year != year:
-            continue
-        prior_value = selected[index - sessions][1]
-        result.append({
-            "period": (observed - start).days,
-            "date": observed.isoformat(),
-            "value": math.log(value / prior_value) * 100.0,
-        })
-    if not result:
-        raise StatisticsLabError("daily market rolling return path empty")
-    return result
 
 
-def _prior_close_log_return_points(
-    base_rows: list[dict[str, Any]], candidate_rows: list[dict[str, Any]], *,
-    year: int, sessions: int = 20,
-) -> list[dict[str, Any]]:
-    base = _positive_daily_rows(base_rows)
-    candidate = _positive_daily_rows(candidate_rows)
-    candidate_dates = [row[0] for row in candidate]
-    candidate_values = [row[1] for row in candidate]
-    mapped: list[tuple[date, float]] = []
-    for observed, _value in base:
-        candidate_index = bisect_left(candidate_dates, observed) - 1
-        if candidate_index >= 0:
-            mapped.append((observed, candidate_values[candidate_index]))
-    start = date(year, 1, 1)
-    result = []
-    for index in range(sessions, len(mapped)):
-        observed, value = mapped[index]
-        if observed.year != year:
-            continue
-        result.append({
-            "period": (observed - start).days,
-            "date": observed.isoformat(),
-            "value": math.log(value / mapped[index - sessions][1]) * 100.0,
-        })
-    if not result:
-        raise StatisticsLabError("prior-close rolling return path empty")
-    return result
 
 
 def _indexed(points: list[dict[str, Any]]) -> list[dict[str, Any]]:
@@ -1073,49 +925,8 @@ def _monthly_log_returns(points: list[dict[str, Any]]) -> dict[tuple[int, int], 
     return result
 
 
-def _annual_index_points(
-    points: list[dict[str, Any]], *, start_year: int, end_year: int,
-) -> list[dict[str, Any]]:
-    annual = _annual_last(points)
-    base = annual.get(start_year)
-    if base is None or base <= 0:
-        raise StatisticsLabError("annual index base is unavailable")
-    return [
-        {
-            "period": year - start_year,
-            "date": f"{year}-12-31",
-            "value": annual[year] / base * 100.0,
-        }
-        for year in range(start_year, end_year + 1)
-        if year in annual
-    ]
 
 
-def _normalized_monthly_pair(
-    left: list[dict[str, Any]], right: list[dict[str, Any]], *, start: date,
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
-    left_by_month = {_month_key(row["date"]): float(row["value"]) for row in left}
-    right_by_month = {_month_key(row["date"]): float(row["value"]) for row in right}
-    months = sorted(
-        key for key in set(left_by_month) & set(right_by_month)
-        if key >= (start.year, start.month)
-    )
-    if len(months) < 3:
-        raise StatisticsLabError("normalized monthly comparison is incomplete")
-    left_base, right_base = left_by_month[months[0]], right_by_month[months[0]]
-    left_points, right_points = [], []
-    for year, month in months:
-        observed = date(year, month, 1)
-        period = _month_offset(observed.isoformat(), start)
-        left_points.append({
-            "period": period, "date": observed.isoformat(),
-            "value": left_by_month[(year, month)] / left_base * 100.0,
-        })
-        right_points.append({
-            "period": period, "date": observed.isoformat(),
-            "value": right_by_month[(year, month)] / right_base * 100.0,
-        })
-    return left_points, right_points
 
 
 def _trend_gap_points(
@@ -1133,19 +944,23 @@ def _trend_gap_points(
     if len(training) < minimum_training:
         raise StatisticsLabError("household trend baseline is incomplete")
 
-    def quarter_index(value: str) -> int:
+    def month_index(value: str) -> int:
+        # 대시보드 x축이 M+n(월) 라벨을 그리므로 period도 월 단위여야 한다.
+        # (이전에는 분기 인덱스를 월 라벨에 그려 축이 4배 압축돼 보였다.)
         observed = date.fromisoformat(value)
-        return (observed.year - start.year) * 4 + (observed.month - 1) // 3
+        return (observed.year - start.year) * 12 + (observed.month - start.month)
 
-    x = [float(quarter_index(str(row["date"]))) for row in training]
-    y = [float(row["value"]) for row in training]
+    # 성장하는 잔액 계열은 지수적으로 커지므로 수준 선형추세는 추세를
+    # 체계적으로 과소추정해 이탈률을 부풀린다. 로그-선형 OLS로 적합한다.
+    if any(float(row["value"]) <= 0 for row in selected):
+        raise StatisticsLabError("household trend baseline requires positive levels")
+    x = [float(month_index(str(row["date"]))) for row in training]
+    y = [math.log(float(row["value"])) for row in training]
     slope, intercept = statistics.linear_regression(x, y)
     result = []
     for row in selected:
-        period = quarter_index(str(row["date"]))
-        trend = intercept + slope * period
-        if trend <= 0:
-            raise StatisticsLabError("household trend baseline became non-positive")
+        period = month_index(str(row["date"]))
+        trend = math.exp(intercept + slope * period)
         result.append({
             "period": period,
             "date": str(row["date"]),
@@ -1154,107 +969,10 @@ def _trend_gap_points(
     return result
 
 
-def _two_consecutive_twenty_percent_events(
-    rows: list[dict[str, Any]],
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]], list[list[Any]]]:
-    annual = {int(str(row["date"])[:4]): float(row["value"]) for row in rows}
-    starts = [
-        year for year in sorted(annual)
-        if year >= 1950
-        and annual.get(year, -math.inf) >= 20.0
-        and annual.get(year + 1, -math.inf) >= 20.0
-        and year + 2 in annual
-    ]
-    if len(starts) < 5:
-        raise StatisticsLabError("consecutive 20-percent annual return sample too small")
-
-    def points(offset: int) -> list[dict[str, Any]]:
-        return [
-            {
-                "period": index,
-                "date": f"{year + offset}-12-31",
-                "value": annual[year + offset],
-            }
-            for index, year in enumerate(starts)
-        ]
-
-    ticks = [[index, f"{year}–{year + 1}"] for index, year in enumerate(starts)]
-    return points(0), points(1), points(2), ticks
 
 
-def _quarterly_followthrough_events(
-    rows: list[dict[str, Any]],
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[list[Any]], dict[str, Any]]:
-    closes: dict[tuple[int, int], tuple[date, float]] = {}
-    for observed, value in _positive_daily_rows(rows):
-        key = (observed.year, (observed.month - 1) // 3 + 1)
-        if key not in closes or observed > closes[key][0]:
-            closes[key] = (observed, value)
-    keys = sorted(closes)
-    returns: list[tuple[tuple[int, int], float]] = []
-    for previous, current in zip(keys, keys[1:], strict=False):
-        expected = (previous[0] + (1 if previous[1] == 4 else 0), previous[1] % 4 + 1)
-        if current != expected:
-            continue
-        returns.append((current, (closes[current][1] / closes[previous][1] - 1.0) * 100.0))
-    events: list[tuple[tuple[int, int], float, float]] = []
-    for index in range(1, len(returns) - 2):
-        key, current_return = returns[index]
-        previous_return = returns[index - 1][1]
-        next_key, next_return = returns[index + 1]
-        second_key, _ = returns[index + 2]
-        if previous_return < 0.0 and current_return > 10.0:
-            first_close = closes[key][1]
-            second_close = closes[second_key][1]
-            events.append((key, next_return, (second_close / first_close - 1.0) * 100.0))
-    if len(events) < 5:
-        raise StatisticsLabError("quarterly follow-through event sample too small")
-    next_points = [
-        {"period": index, "date": f"{year}-{quarter * 3:02d}-01", "value": next_return}
-        for index, ((year, quarter), next_return, _) in enumerate(events)
-    ]
-    two_points = [
-        {"period": index, "date": f"{year}-{quarter * 3:02d}-01", "value": two_return}
-        for index, ((year, quarter), _, two_return) in enumerate(events)
-    ]
-    ticks = [
-        [index, f"{year}Q{quarter}"] for index, ((year, quarter), _, _) in enumerate(events)
-        if index in {0, len(events) // 3, 2 * len(events) // 3, len(events) - 1}
-    ]
-    diagnostics = {
-        "event_count": len(events),
-        "next_quarter_average": statistics.mean(row[1] for row in events),
-        "next_quarter_positive": sum(row[1] > 0 for row in events),
-        "two_quarter_average": statistics.mean(row[2] for row in events),
-        "two_quarter_positive": sum(row[2] > 0 for row in events),
-        "return_type": "price_return_excluding_dividends",
-        "event_rule": "previous_calendar_quarter_below_0_and_current_above_10_percent",
-    }
-    return next_points, two_points, ticks, diagnostics
 
 
-def _lead_correlation(
-    leader: list[dict[str, Any]], follower: list[dict[str, Any]], lead_months: int,
-) -> dict[str, Any]:
-    """Correlate leader return at t with follower return at t+lead_months."""
-    if lead_months < 0:
-        raise StatisticsLabError("lead months cannot be negative")
-    left = _monthly_log_returns(leader)
-    right = _monthly_log_returns(follower)
-    pairs: list[tuple[float, float]] = []
-    for (year, month), value in left.items():
-        absolute = year * 12 + month - 1 + lead_months
-        peer = right.get((absolute // 12, absolute % 12 + 1))
-        if peer is not None:
-            pairs.append((value, peer))
-    correlation = statistics.correlation(
-        [row[0] for row in pairs], [row[1] for row in pairs]
-    ) if len(pairs) >= 3 else None
-    return {
-        "lead_months": lead_months,
-        "observations": len(pairs),
-        "correlation": round(float(correlation), 4) if correlation is not None else None,
-    }
 
 
 def _event_change(
@@ -1465,15 +1183,40 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
         for group in heat.get("profile_groups") or []
         for metric in group.get("metrics") or []
     ]
+    heat_contract = heat.get("reference_contract") or {}
+    cohort = heat_contract.get("current_cohort") or {}
+    overlay = heat_contract.get("official_overlay") or {}
+    cohort_n = float(cohort.get("n") or 0)
+    if cohort_n <= 0:
+        raise StatisticsLabError("IPO heat cohort audit values missing")
+    # 1999 값은 정적 연구 사실이라 상수 핀이 맞다. 현재 값은 SEC 분모가
+    # 주간 갱신될 때마다 바뀌므로, 빌더와 같은 산식으로 재계산해 대조한다.
+    # (이전에는 1.3%·4.1%를 상수로 박아 분모 갱신 시 검증기가 스스로 깨졌다.)
+    # official_overlay는 빌드 후에만 존재한다 — 원본 JSON 검증 시 분모 재계산은
+    # 건너뛰고 게재값을 그대로 받아들인다(그 값은 빌더가 매주 다시 계산한다).
+    corporate_count = float(overlay.get("corporate_count") or 0)
+    corporate_proceeds_mn = float(overlay.get("corporate_proceeds_mn") or 0)
+    published = [
+        float((metric.get("comparisons") or [{}, {}])[1].get("value", math.nan))
+        for metric in heat_metrics
+    ] if len(heat_metrics) == 5 else [math.nan] * 5
     expected_heat = [
-        ("IPO 건수", 60.0, 1.3),
-        ("공모액", 40.0, 4.1),
-        ("저매출 기업", 81.0, 66.7),
-        ("신생 기업", 57.0, 33.3),
-        ("첫날 평균 상승", 90.0, 18.6),
+        ("IPO 건수", 60.0,
+         round(cohort_n / corporate_count * 100.0, 1)
+         if corporate_count > 0 else published[0]),
+        ("공모액", 40.0,
+         round(float(cohort.get("proceeds_mn") or 0) / corporate_proceeds_mn * 100.0, 1)
+         if corporate_proceeds_mn > 0 else published[1]),
+        ("저매출 기업", 81.0,
+         round(float(cohort.get("low_revenue_count") or 0) / cohort_n * 100.0, 1)),
+        ("신생 기업", 57.0,
+         round(float(cohort.get("young_issuer_count") or 0) / cohort_n * 100.0, 1)),
+        ("첫날 평균 상승", 90.0,
+         float(cohort.get("mean_first_day_return_percent") or 0)),
     ]
     if len(heat_metrics) != len(expected_heat):
         raise StatisticsLabError("IPO heat comparison must contain five metrics")
+    expected_current_label = f"2025 AI 핵심 · n={cohort_n:.0f}"
     for metric, (label, dotcom_value, current_value) in zip(
         heat_metrics, expected_heat, strict=True,
     ):
@@ -1483,18 +1226,15 @@ def validate_ipo_reference(payload: dict[str, Any]) -> None:
             or len(rows) != 2
             or [row.get("era") for row in rows] != ["dotcom", "current"]
             or [row.get("label") for row in rows]
-            != ["1999 닷컴", "2025 AI 핵심 · n=3"]
+            != ["1999 닷컴", expected_current_label]
             or not math.isclose(float(rows[0].get("value", math.nan)), dotcom_value)
             or not math.isclose(float(rows[1].get("value", math.nan)), current_value)
         ):
             raise StatisticsLabError(f"IPO heat comparison {label} invalid")
-    heat_contract = heat.get("reference_contract") or {}
-    cohort = heat_contract.get("current_cohort") or {}
     if (
         heat_contract.get("publication_class") != "reference_statistics"
         or heat_contract.get("official_numeric_ledger") is not False
-        or cohort.get("n") != 3
-        or float(cohort.get("proceeds_mn", 0)) != 1755.375
+        or float(cohort.get("proceeds_mn") or 0) <= 0
     ):
         raise StatisticsLabError("IPO heat reference contract invalid")
 
@@ -1852,922 +1592,6 @@ def load_ici_reference(root: Path) -> dict[str, Any]:
     return payload
 
 
-def _build_statistics_lab_legacy(
-    source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
-    receipts: dict[str, dict[str, Any]],
-    ipo_reference: dict[str, Any] | None = None,
-    hmi_reference: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    required_sources = (
-        set(FRED_SERIES) | set(DAILY_MARKET_SERIES) | set(SUPPLEMENTAL_SOURCES)
-        | {"FL663067003"}
-    )
-    missing = sorted(required_sources - set(source_rows))
-    if missing:
-        raise StatisticsLabError(f"missing source series: {missing}")
-    generated_date = datetime.fromisoformat(generated_at.replace("Z", "+00:00")).date()
-    latest_kospi_date = max(
-        date.fromisoformat(str(row["date"]))
-        for row in source_rows["KOSPI_DAILY"]
-    )
-    if latest_kospi_date >= generated_date:
-        raise StatisticsLabError(
-            "KOSPI daily path must stop before collector date to exclude an incomplete session"
-        )
-    monthly = {
-        key: _monthly(rows, FRED_SERIES[key]["aggregation"])
-        for key, rows in source_rows.items() if key in FRED_SERIES
-    }
-    monthly["FL663067003"] = _monthly(source_rows["FL663067003"], "last")
-    latest_current = max(date.fromisoformat(row["date"]) for row in monthly["NASDAQCOM"])
-    comparison_months = COMPARISON_MONTHS
-
-    dot_nasdaq, cur_nasdaq = _cycle_series(monthly["NASDAQCOM"], comparison_months, indexed=True)
-    dot_m2, cur_m2 = _cycle_series(monthly["M2SL"], comparison_months, indexed=True)
-    dot_liq, cur_liq = _cycle_series(
-        _ratio(monthly["NASDAQCOM"], monthly["M2SL"]), comparison_months, indexed=True
-    )
-    dot_household_cash, cur_household_cash = _cycle_series(
-        _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), comparison_months, indexed=True
-    )
-    dot_curve, cur_curve = _cycle_series(monthly["T10Y2Y"], comparison_months)
-    dot_funds, cur_funds = _cycle_series(monthly["FEDFUNDS"], comparison_months)
-
-    valuation = _ratio(monthly["NCBEILQ027S"], monthly["CPATAX"])
-    valuation = [{**row, "value": float(row["value"]) / 1000.0} for row in valuation]
-    dot_value, cur_value = _cycle_series(valuation, comparison_months)
-    dot_margin, cur_margin = _cycle_series(monthly["FL663067003"], comparison_months, indexed=True)
-    dot_equities, cur_equities = _cycle_series(
-        monthly["BOGZ1LM893064105Q"], comparison_months, indexed=True,
-    )
-    credit_growth = _yoy(monthly["TOTALSL"])
-    dot_credit, cur_credit = _cycle_series(credit_growth, comparison_months)
-    dot_standards, cur_standards = _cycle_series(monthly["DRTSCILM"], comparison_months)
-    profit_growth = _yoy(monthly["CPATAX"])
-    dot_profit, cur_profit = _cycle_series(profit_growth, comparison_months)
-    dot_debt_service, cur_debt_service = _cycle_series(
-        monthly["BOGZ1FL010000346Q"], comparison_months
-    )
-    dot_unemployment, cur_unemployment = _cycle_series(monthly["UNRATE"], comparison_months)
-    inflation = _yoy(monthly["CPIAUCSL"])
-    dot_inflation, cur_inflation = _cycle_series(inflation, comparison_months)
-    dot_financial_conditions, cur_financial_conditions = _cycle_series(
-        monthly["NFCI"], comparison_months
-    )
-
-    dot_rate_cycle = _event_change(
-        monthly["FEDFUNDS"], base_month=date(1995, 6, 1),
-        event_month=date(1995, 7, 1), months=comparison_months,
-    )
-    cur_rate_cycle = _event_change(
-        monthly["FEDFUNDS"], base_month=date(2024, 8, 1),
-        event_month=date(2024, 9, 1), months=comparison_months,
-    )
-    corporate_spread = []
-    treasury_by_month = {_month_key(row["date"]): float(row["value"]) for row in monthly["GS10"]}
-    for row in monthly["HQMCB10YR"]:
-        treasury = treasury_by_month.get(_month_key(row["date"]))
-        if treasury is not None:
-            corporate_spread.append({"date": row["date"], "value": float(row["value"]) - treasury})
-    dot_corp_yield, cur_corp_yield = _cycle_series(monthly["HQMCB10YR"], comparison_months)
-    dot_corp_spread, cur_corp_spread = _cycle_series(corporate_spread, comparison_months)
-
-    inflation_lead_aligned = _shift_months(inflation, -2)
-    oil_lead = _yoy(monthly["DCOILWTICO"])
-    copper_lead = _yoy(monthly["WPU10260314"])
-    dot_inflation_lead, cur_inflation_lead = _cycle_series(inflation_lead_aligned, comparison_months)
-    dot_oil, cur_oil = _cycle_series(oil_lead, comparison_months)
-    dot_copper, cur_copper = _cycle_series(copper_lead, comparison_months)
-
-    dot_philly, cur_philly = _cycle_series(monthly["GACDFSA066MSFRBPHI"], comparison_months)
-    kospi_20d = _session_log_return_points(source_rows["KOSPI_DAILY"], year=2026)
-    taiex_20d = _session_log_return_points(source_rows["TAIEX_DAILY"], year=2026)
-    sox_prior_20d = _prior_close_log_return_points(
-        source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"], year=2026,
-    )
-    taiex_aligned = _aligned_log_returns(
-        source_rows["KOSPI_DAILY"], source_rows["TAIEX_DAILY"],
-        candidate_close="same_or_prior",
-    )
-    sox_aligned = _aligned_log_returns(
-        source_rows["KOSPI_DAILY"], source_rows["SOX_DAILY"],
-        candidate_close="strictly_prior",
-    )
-    external_pulse_diagnostics = {
-        "measurement_window": "2020_to_last_completed_session",
-        "taiex_same_or_prior_close": _aligned_return_diagnostic(taiex_aligned),
-        "sox_strictly_prior_us_close": _aligned_return_diagnostic(sox_aligned),
-        "sox_conditional_quintiles": _sox_quintile_diagnostic(sox_aligned),
-        "display_window_sessions": 20,
-        "time_warping": False,
-        "optimized_lag": False,
-        "forecast_extension": False,
-    }
-    dot_hmi: list[dict[str, Any]] = []
-    cur_hmi: list[dict[str, Any]] = []
-    if hmi_reference is not None:
-        hmi_rows = [
-            {"date": str(row["date"]), "value": float(row["value"]) - 50.0}
-            for row in hmi_reference["rows"]
-        ]
-        dot_hmi, cur_hmi = _cycle_series(hmi_rows, comparison_months)
-
-    equity_gap = _trend_gap_points(monthly["BOGZ1LM153064475Q"])
-    cash_gap = _trend_gap_points(monthly["DABSHNO"])
-    debt_gap = _trend_gap_points(
-        monthly["BOGZ1FL154022375A"], minimum_training=8,
-    )
-    first_year, second_year, third_year, annual_event_ticks = (
-        _two_consecutive_twenty_percent_events(
-            source_rows["NYU_SP500_ANNUAL_TOTAL_RETURN"]
-        )
-    )
-    sec_rows = source_rows["SEC_IPO_QUARTERLY"]
-    sec_by_period = {str(row["period_label"]): row for row in sec_rows}
-
-    def sec_half(year: int, field: str) -> float:
-        try:
-            return sum(float(sec_by_period[f"{year}:Q{quarter}"][field]) for quarter in (1, 2))
-        except KeyError as exc:
-            raise StatisticsLabError(f"SEC IPO H1 field unavailable: {year} {field}") from exc
-
-    sec_ticks = [[0, "2025 상반기"], [1, "2026 상반기"]]
-    sec_corporate = [
-        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "corporate_count")}
-        for index, year in enumerate((2025, 2026))
-    ]
-    sec_spac = [
-        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "spac_count")}
-        for index, year in enumerate((2025, 2026))
-    ]
-    sec_fund = [
-        {"period": index, "date": f"{year}-06-30", "value": sec_half(year, "fund_count")}
-        for index, year in enumerate((2025, 2026))
-    ]
-    sec_2025_proceeds = sec_half(2025, "total_proceeds_mn") / 1000.0
-    sec_2026_proceeds = sec_half(2026, "total_proceeds_mn") / 1000.0
-    sec_2026_corporate_proceeds = sec_half(2026, "corporate_proceeds_mn") / 1000.0
-
-    latest_m2_bn = float(monthly["M2SL"][-1]["value"])
-    latest_mmf_bn = float(monthly["MMMFFAQ027S"][-1]["value"]) / 1000.0
-    latest_equity_bn = float(monthly["BOGZ1LM893064105Q"][-1]["value"]) / 1000.0
-    if min(latest_m2_bn, latest_mmf_bn, latest_equity_bn) <= 0:
-        raise StatisticsLabError("liquidity scale map requires positive balances")
-    equity_to_m2 = latest_equity_bn / latest_m2_bn * 100.0
-    mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
-    liquidity_changes = {
-        "S&P 500": _trailing_year_change(source_rows["SP500_DAILY"]),
-        "금 선물": _trailing_year_change(source_rows["GOLD_FUTURES_DAILY"]),
-        "비트코인": _trailing_year_change(source_rows["BTCUSD_DAILY"]),
-        "미국 M2": _trailing_year_change(monthly["M2SL"]),
-        "미국 MMF": _trailing_year_change(monthly["MMMFFAQ027S"]),
-    }
-    liquidity_point_dates = {
-        "S&P 500": source_rows["SP500_DAILY"][-1]["date"],
-        "금 선물": source_rows["GOLD_FUTURES_DAILY"][-1]["date"],
-        "비트코인": source_rows["BTCUSD_DAILY"][-1]["date"],
-        "미국 M2": monthly["M2SL"][-1]["date"],
-        "미국 MMF": monthly["MMMFFAQ027S"][-1]["date"],
-    }
-
-    charts = [
-        _chart("m2_nasdaq", "M2와 NASDAQ의 상승 속도", "liquidity", "cycle_start_100",
-               "각 사이클 시작월을 100으로 맞춰 유동성과 주가의 누적 속도를 비교합니다.",
-               "M2 정의는 2020년에 바뀌었으며, 두 선의 동행은 인과관계를 뜻하지 않습니다.",
-               [_series("닷컴 NASDAQ", "dotcom", dot_nasdaq, "#d42b20"), _series("닷컴 M2", "dotcom", dot_m2, "#755d35"), _series("현재 NASDAQ", "current", cur_nasdaq, "#ff6a1a"), _series("현재 M2", "current", cur_m2, "#1c7262")], ["NASDAQCOM", "M2SL"]),
-        _chart("nasdaq_per_m2", "M2 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
-               "NASDAQ을 M2로 나눈 비율의 사이클 시작 대비 변화를 봅니다.",
-               "가격과 통화량의 단순 비율이며 적정가치나 매수·매도 신호가 아닙니다.",
-               [_series("닷컴", "dotcom", dot_liq, "#c70039"), _series("현재", "current", cur_liq, "#ff7b00")], ["NASDAQCOM", "M2SL"]),
-        _chart("nasdaq_per_household_liquid_assets", "가계 현금성 자산 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
-               "NASDAQ을 가계·비영리단체가 보유한 현금·입출금예금·정기·저축예금·머니마켓펀드 지분 합계로 나눈 비율의 사이클 시작 대비 변화를 봅니다.",
-               "Fed Z.1 분기 말 잔액이며 비영리단체가 포함됩니다. 모든 현금성 자산이 주식 매수 대기자금은 아니며, M2와 합산하면 예금이 중복 계산되므로 별도 분모로 사용합니다.",
-               [_series("닷컴", "dotcom", dot_household_cash, "#7a3248"), _series("현재", "current", cur_household_cash, "#e46b20")], ["NASDAQCOM", "DABSHNO"]),
-        _chart(
-            "liquidity_position_map", "자금 지도: 현재 규모와 12개월 방향", "liquidity", "percent",
-            "미국 기업주식·M2·MMF의 상대 규모와 S&P 500·금·비트코인·M2·MMF의 최근 12개월 변화를 서로 다른 패널로 봅니다.",
-            "M2와 MMF는 일부 중복되고, 시가·지수 상승은 같은 금액의 순유입을 뜻하지 않습니다. 따라서 하나의 시장점유율 파이로 합산하지 않습니다.",
-            [_series(
-                "12개월 변화", "current",
-                [
-                    {
-                        "period": index,
-                        "date": liquidity_point_dates[label],
-                        "value": value,
-                    }
-                    for index, (label, value) in enumerate(liquidity_changes.items())
-                ],
-                "#28756a",
-            )],
-            [
-                "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
-                "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
-            ],
-        ),
-        _chart("yield_curve", "10년−2년 장단기 금리차", "rates", "percent",
-               "침체 경계로 자주 보는 10년물과 2년물 금리차를 같은 경과월에 겹칩니다.",
-               "역전 해소 자체가 즉시 주가 상승이나 침체 종료를 보장하지 않습니다.",
-               [_series("닷컴", "dotcom", dot_curve, "#8d2943"), _series("현재", "current", cur_curve, "#28756a")], ["T10Y2Y"]),
-        _chart("policy_rate", "연방기금금리 경로", "rates", "percent",
-               "FRED의 월평균 실효 연방기금금리 원자료를 보간 없이 연결해 닷컴기와 현재 수준을 비교합니다.",
-               "목표금리 변경 때문에 계단형 구간은 있지만 완전한 ㅁ자 데이터가 아닙니다. 월평균 실효금리이며 시장의 미래 인하확률과도 다릅니다.",
-               [_series("닷컴", "dotcom", dot_funds, "#8d2943"), _series("현재", "current", cur_funds, "#28756a")], ["FEDFUNDS"]),
-        _chart("valuation_proxy", "기업가치 ÷ 세후이익 PER 대용치", "valuation", "multiple",
-               "비금융기업 주식가치를 BEA 세후 기업이익으로 나눈 공개자료 기반 대용치입니다.",
-               "NASDAQ 구성종목의 공식 trailing/forward P/E가 아니며 분모는 연율 기업이익입니다.",
-               [_series("닷컴", "dotcom", dot_value, "#c70039"), _series("현재", "current", cur_value, "#ff7b00")], ["NCBEILQ027S", "CPATAX"]),
-        _chart("margin_credit_proxy", "브로커 고객 신용과 미국 기업주식 시장가치", "credit", "cycle_start_100",
-               "Fed Z.1의 브로커 고객 마진대출·기타 미수금과 미국 기업주식 시장가치를 각각 사이클 시작=100으로 비교합니다.",
-               "FINRA 월별 margin debt나 S&P 500 지수가 아닌 연준 분기별 광의 대용치입니다. 최신 Z.1 릴리스는 과거값을 수정할 수 있습니다.",
-               [_series("닷컴 고객 신용", "dotcom", dot_margin, "#c70039"), _series("닷컴 기업주식", "dotcom", dot_equities, "#7b6b55"), _series("현재 고객 신용", "current", cur_margin, "#ff7b00"), _series("현재 기업주식", "current", cur_equities, "#28756a")], ["FL663067003", "BOGZ1LM893064105Q"]),
-        _chart("consumer_credit_growth", "소비자신용 증가율", "credit", "percent_yoy",
-               "총 소비자신용의 전년동월 대비 증가율로 당시와 현재의 레버리지 속도를 비교합니다.",
-               "주택담보대출은 제외되고, 잔액 증가가 곧 주식투자 신용 증가를 뜻하지 않습니다.",
-               [_series("닷컴", "dotcom", dot_credit, "#8d2943"), _series("현재", "current", cur_credit, "#28756a")], ["TOTALSL"]),
-        _chart("loan_standards", "은행 기업대출 심사 강화 비율", "credit", "net_percent",
-               "대형·중견기업 C&I 대출기준을 강화한 은행의 순비율을 비교합니다.",
-               "분기 설문이며 양수는 순강화, 음수는 순완화를 뜻합니다.",
-               [_series("닷컴", "dotcom", dot_standards, "#8d2943"), _series("현재", "current", cur_standards, "#28756a")], ["DRTSCILM"]),
-        _chart("profit_growth", "세후 기업이익 증가율", "valuation", "percent_yoy",
-               "밸류에이션 분모인 세후 기업이익이 실제로 얼마나 성장했는지 비교합니다.",
-               "전체 미국 기업이익 통계로 NASDAQ 기술기업만의 이익은 아닙니다.",
-               [_series("닷컴", "dotcom", dot_profit, "#8d2943"), _series("현재", "current", cur_profit, "#28756a")], ["CPATAX"]),
-        _chart("household_debt_service", "가계 원리금 상환 부담", "credit", "percent",
-               "가계가 가처분소득 중 원리금 상환에 쓰는 비율을 닷컴기와 현재로 비교합니다.",
-               "Fed Z.1 분기 추정치이며 최신 릴리스가 과거값과 분류를 수정할 수 있습니다.",
-               [_series("닷컴", "dotcom", dot_debt_service, "#8d2943"), _series("현재", "current", cur_debt_service, "#28756a")], ["BOGZ1FL010000346Q"]),
-        _chart("unemployment_rate", "실업률", "economy", "percent",
-               "공식 U-3 실업률로 고용시장의 냉각 정도를 닷컴기와 현재 같은 경과월에 비교합니다.",
-               "월별 가계조사 지표이며 취업 포기자와 불완전취업을 모두 포함하는 광의 실업률은 아닙니다.",
-               [_series("닷컴", "dotcom", dot_unemployment, "#8d2943"), _series("현재", "current", cur_unemployment, "#28756a")], ["UNRATE"]),
-        _chart("inflation_rate", "소비자물가 상승률", "economy", "percent_yoy",
-               "도시소비자 CPI의 전년동월 대비 상승률로 물가 압력이 얼마나 다른지 비교합니다.",
-               "전체 CPI이며 근원물가나 개인별 체감물가와는 다를 수 있습니다.",
-               [_series("닷컴", "dotcom", dot_inflation, "#8d2943"), _series("현재", "current", cur_inflation, "#28756a")], ["CPIAUCSL"]),
-        _chart("financial_conditions", "금융여건지수", "rates", "standard_deviation_index",
-               "자금시장·채권·주식·은행 변수를 합친 Chicago Fed NFCI로 금융환경의 긴축 정도를 비교합니다.",
-               "0보다 높으면 역사 평균보다 긴축적, 낮으면 완화적이라는 뜻이며 주가 방향을 단독 예측하지 않습니다.",
-               [_series("닷컴", "dotcom", dot_financial_conditions, "#8d2943"), _series("현재", "current", cur_financial_conditions, "#28756a")], ["NFCI"]),
-        _chart("rate_cycle_since_first_cut", "첫 금리 인하 뒤 재긴축 거리", "rates", "percentage_point_change",
-               "1995년 7월과 2024년 9월 첫 인하를 0개월로 맞추고, 인하 직전 정책금리 대비 변화를 비교합니다.",
-               "현재선은 실제 월평균 금리에서 멈춥니다. 같은 수준으로 복귀했다고 버블 붕괴가 자동 발생하는 것은 아닙니다.",
-               [_series("1995 인하 사이클", "dotcom", dot_rate_cycle, "#8d2943"), _series("2024 인하 사이클", "current", cur_rate_cycle, "#28756a")], ["FEDFUNDS"]),
-        _chart("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
-               "10년 고품질 회사채 금리와 10년 국채 대비 스프레드를 겹쳐 기업 조달비용의 급등 여부를 봅니다.",
-               "AAA·AA·A 중심의 고품질 회사채 곡선이라 투기등급 신용스트레스를 직접 보여주지 않습니다.",
-               [_series("닷컴 회사채 10년", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채 10년", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")], ["HQMCB10YR", "GS10"]),
-        _chart("inflation_lead_panel", "유가·구리 2개월 선행과 CPI", "economy", "percent_yoy",
-               "WTI·구리 전년비와 그로부터 두 달 뒤의 CPI 전년비를 같은 x축에 맞춰 보는 물가 압력 감시판입니다.",
-               "미래 원자재값을 그리지 않기 위해 CPI 날짜만 두 달 앞당겨 정렬했습니다. 이는 예측모형이 아니며 환율·임금·주거비와 전가율에 따라 관계가 달라집니다.",
-               [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_inflation_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_inflation_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")], ["CPIAUCSL", "DCOILWTICO", "WPU10260314"]),
-        _chart("kospi_external_semiconductor_pulse", "한국장과 글로벌 반도체 20일 충격", "economy", "percent_20d_log_return",
-               "KOSPI와 대만 TAIEX의 실제 20거래일 로그수익률, 한국장 당일에는 이미 알려진 전일 미국 SOX 종가의 20거래일 로그수익률을 함께 봅니다.",
-               "SOX는 한국 날짜보다 엄격히 이전인 미국 종가만 사용합니다. 상관과 조건부 빈도는 동행 진단이며 인과관계·확정 확률·매매 신호가 아닙니다.",
-               [_series("KOSPI 20일", "current", kospi_20d, "#11110f"), _series("대만 TAIEX 20일", "current", taiex_20d, "#28756a"), _series("전일 SOX 20일", "current", sox_prior_20d, "#e05d26")], ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]),
-    ]
-
-    liquidity_chart = next(chart for chart in charts if chart["id"] == "liquidity_position_map")
-    liquidity_chart.update({
-        "chart_type": "liquidity_bars",
-        "display_unit": "현재 규모 + 12개월 증감",
-        "reading_guide": "왼쪽은 현재 잔액·시장가치, 오른쪽은 각 지표의 실제 최근 12개월 증감입니다.",
-        "liquidity_panels": [
-            {
-                "id": "current_scale",
-                "title": "현재 규모",
-                "basis": "조 달러 · 서로 합산하지 않음",
-                "mode": "positive",
-                "metrics": [
-                    {
-                        "label": "미국 기업주식 시장가치",
-                        "value": latest_equity_bn / 1000.0,
-                        "display_value": f"${latest_equity_bn / 1000.0:.1f}T",
-                    },
-                    {
-                        "label": "미국 M2",
-                        "value": latest_m2_bn / 1000.0,
-                        "display_value": f"${latest_m2_bn / 1000.0:.1f}T",
-                    },
-                    {
-                        "label": "미국 MMF 총자산",
-                        "value": latest_mmf_bn / 1000.0,
-                        "display_value": f"${latest_mmf_bn / 1000.0:.1f}T",
-                    },
-                ],
-            },
-            {
-                "id": "trailing_change",
-                "title": "최근 12개월 방향",
-                "basis": "가격·잔액 증감률",
-                "mode": "diverging",
-                "metrics": [
-                    {
-                        "label": label,
-                        "value": value,
-                        "display_value": f"{value:+.1f}%",
-                    }
-                    for label, value in liquidity_changes.items()
-                ],
-            },
-        ],
-    })
-    pulse_chart = charts[-1]
-    pulse_chart["axis_type"] = "calendar_day_of_year"
-    pulse_chart["max_period"] = 364
-    pulse_chart["projection_max_points"] = 366
-    pulse_chart["observed_end_label"] = "마지막 완료 거래일"
-    pulse_chart["display_unit"] = "20거래일 로그수익률"
-    pulse_chart["external_pulse_diagnostics"] = external_pulse_diagnostics
-    pulse_chart["research_context"] = [
-        {
-            "provider": "Nasdaq",
-            "finding": "SOX measures the largest U.S.-listed semiconductor companies under a published methodology.",
-            "url": "https://indexes.nasdaqomx.com/docs/methodology_SOX.pdf",
-        },
-        {
-            "provider": "TWSE",
-            "finding": "TAIEX is the Taiwan Stock Exchange capitalization-weighted market benchmark.",
-            "url": "https://twse-regulation.twse.com.tw/m/en/LawContent.aspx?FID=FL047579",
-        },
-    ]
-
-    if hmi_reference is not None:
-        charts.append(_chart(
-            "housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "neutral_line_distance",
-            "NAHB 주택시장지수는 50을 뺀 값, Philadelphia Fed 제조업 확산지수는 0 기준으로 맞춰 냉각 폭을 비교합니다.",
-            "Philadelphia Fed 지수는 전국 ISM PMI의 공개 대체 지표이며, 두 지표만으로 침체 확률을 계산하지 않습니다.",
-            [_series("닷컴 HMI−50", "dotcom", dot_hmi, "#8d2943"), _series("닷컴 제조업 확산", "dotcom", dot_philly, "#d47f52"), _series("현재 HMI−50", "current", cur_hmi, "#28756a"), _series("현재 제조업 확산", "current", cur_philly, "#4aa18d")],
-            ["NAHB_HMI", "GACDFSA066MSFRBPHI"],
-        ))
-
-    supplemental_charts = [
-        _chart(
-            "sec_ipo_issuer_mix_h1", "미국 IPO 건수: 일반 기업과 SPAC", "ipo", "count",
-            "SEC의 같은 상반기 기준 전체 IPO 건수를 일반 기업, SPAC, 펀드로 나눈 누적 막대입니다.",
-            "SEC 분류는 AI 기업만이 아니라 미국 IPO 전체이며 2026년은 상반기까지만 포함합니다.",
-            [
-                _series("일반 기업", "current", sec_corporate, "#d94b24"),
-                _series("SPAC", "current", sec_spac, "#6956a8"),
-                _series("펀드", "current", sec_fund, "#28756a"),
-            ],
-            ["SEC_IPO_QUARTERLY"],
-        ),
-        _chart(
-            "sp500_after_two_twenty_percent_years", "2년 연속 20% 상승 뒤 3년 차", "economy",
-            "percent",
-            "S&P 500 배당 포함 연간수익률이 두 해 연속 20% 이상이었던 모든 중첩 사례와 다음 해를 비교합니다.",
-            "서로 겹치는 연도 조합을 각각 사건으로 세며, 작은 역사표본을 미래 확률로 해석하지 않습니다.",
-            [
-                _series("첫해", "historical", first_year, "#b8aa92"),
-                _series("둘째 해", "historical", second_year, "#d94b24"),
-                _series("다음 해", "historical", third_year, "#28756a"),
-            ],
-            ["NYU_SP500_ANNUAL_TOTAL_RETURN"],
-        ),
-        _chart(
-            "household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit",
-            "percent_vs_trend",
-            "2009~2019 관측치에 항목별 선형추세를 따로 적합해 실제 잔액이 추세보다 얼마나 위·아래인지 비교합니다.",
-            "주식·현금은 분기, 보유채권은 연간 관측치입니다. 가계에는 비영리단체가 포함되며 선형추세는 구조적 적정수준이 아닙니다.",
-            [
-                _series("주식", "current", equity_gap, "#11110f"),
-                _series("현금성 자산", "current", cash_gap, "#b58b2a"),
-                _series("채권", "current", debt_gap, "#28756a"),
-            ],
-            ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"],
-        ),
-    ]
-    sec_chart, annual_chart, household_chart = (
-        supplemental_charts
-    )
-    for chart in (annual_chart,):
-        chart["chart_type"] = "grouped_bar"
-    sec_chart.update({
-        "axis_type": "categorical", "chart_type": "stacked_bar",
-        "display_unit": "IPO 건수 · 상반기",
-        "reading_guide": "막대 한 개가 해당 상반기의 미국 전체 IPO입니다. 색 구간은 일반 기업·SPAC·펀드 건수이며 AI 기업만의 통계가 아닙니다.",
-        "show_bar_values": True,
-        "max_period": 1, "x_ticks": sec_ticks,
-    })
-    annual_chart.update({
-        "axis_type": "categorical", "max_period": len(annual_event_ticks) - 1,
-        "x_ticks": annual_event_ticks,
-    })
-    household_chart.update({
-        "axis_type": "calendar_quarter", "max_period": max(int(row["period"]) for row in equity_gap),
-        "display_unit": "2009~2019 추세 대비",
-        "reading_guide": "0%는 2009~2019 선형추세와 같은 수준입니다. 주식·현금은 분기 44개, 보유채권은 연간 11개 관측치로 추세를 각각 따로 계산했습니다.",
-        "trend_baseline": {
-            "start": "2009-01-01", "end": "2019-12-31",
-            "method": "ordinary_least_squares_on_levels",
-            "training_observations": {
-                "corporate_equities": 44,
-                "cash_and_deposits": 44,
-                "debt_securities": 11,
-            },
-        },
-        "x_ticks": [[0, "2009"], [16, "2013"], [32, "2017"], [48, "2021"], [64, "2025"]],
-    })
-    next(chart for chart in charts if chart["id"] == "m2_nasdaq").update({
-        "scale": "log1p", "display_unit": "시작=100 · 로그축",
-    })
-    charts.extend(supplemental_charts)
-
-    def chart_last(chart_id: str, series_index: int) -> float:
-        chart = next(row for row in charts if row["id"] == chart_id)
-        return float(chart["series"][series_index]["points"][-1]["value"])
-
-    household_cash_current = cur_household_cash[-1]
-    household_cash_dotcom_same_period = next(
-        point for point in reversed(dot_household_cash)
-        if int(point["period"]) <= int(household_cash_current["period"])
-    )
-
-    chart_insights = {
-        "m2_nasdaq": (
-            f"같은 경과월에 현재 NASDAQ은 시작 대비 {chart_last('m2_nasdaq', 2):.0f}, M2는 {chart_last('m2_nasdaq', 3):.0f}입니다. "
-            f"닷컴 당시 NASDAQ {chart_last('m2_nasdaq', 0):.0f}, M2 {chart_last('m2_nasdaq', 1):.0f}와 비교해 주가가 유동성보다 얼마나 앞섰는지 봅니다."
-        ),
-        "nasdaq_per_m2": (
-            f"현재 유동성 대비 NASDAQ 지수는 {chart_last('nasdaq_per_m2', 1):.0f}, 닷컴 당시 같은 구간은 {chart_last('nasdaq_per_m2', 0):.0f}입니다. "
-            "100보다 높을수록 통화량 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
-        ),
-        "nasdaq_per_household_liquid_assets": (
-            f"현재 가계 현금성 자산 대비 NASDAQ 지수는 {float(household_cash_current['value']):.0f}, "
-            f"같은 경과월의 닷컴 지수는 {float(household_cash_dotcom_same_period['value']):.0f}입니다. "
-            "100보다 높을수록 실제 가계 현금·예금·MMF 증가보다 주가 상승이 더 빨랐다는 뜻입니다."
-        ),
-        "liquidity_position_map": (
-            f"미국 기업주식 시장가치는 M2의 {equity_to_m2 / 100.0:.1f}배, MMF 총자산은 M2의 {mmf_to_m2:.0f}%입니다. "
-            f"최근 12개월 변화가 가장 큰 항목은 {max(liquidity_changes, key=liquidity_changes.get)} "
-            f"{max(liquidity_changes.values()):+.1f}%로, 규모와 최근 방향을 분리해 봐야 합니다."
-        ),
-        "yield_curve": (
-            f"현재 장단기 금리차는 {chart_last('yield_curve', 1):+.1f}%p, 닷컴 당시 같은 구간은 {chart_last('yield_curve', 0):+.1f}%p입니다. "
-            "0 아래는 금리 역전, 0 위는 정상 기울기이며 경기 방향을 단독으로 확정하지는 않습니다."
-        ),
-        "policy_rate": (
-            f"현재 정책금리는 {chart_last('policy_rate', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('policy_rate', 0):.1f}%입니다. "
-            "1995~1999 실측은 6.05% 고점에서 4.63%까지 내린 뒤 5.42%로 재상승해 계단처럼 보이지만 완전한 사각형은 아닙니다."
-        ),
-        "valuation_proxy": (
-            f"현재 기업가치/세후이익 대용치는 {chart_last('valuation_proxy', 1):.1f}배, 닷컴 당시 같은 구간은 {chart_last('valuation_proxy', 0):.1f}배입니다. "
-            "높을수록 이익에 비해 시장가치가 비싸다는 뜻이지만 NASDAQ 공식 PER은 아닙니다."
-        ),
-        "margin_credit_proxy": (
-            f"현재 브로커 고객 신용 대용치는 시작 대비 {chart_last('margin_credit_proxy', 2):.0f}, 미국 기업주식은 {chart_last('margin_credit_proxy', 3):.0f}입니다. "
-            f"닷컴 같은 구간은 각각 {chart_last('margin_credit_proxy', 0):.0f}, {chart_last('margin_credit_proxy', 1):.0f}였습니다."
-        ),
-        "consumer_credit_growth": (
-            f"현재 소비자신용 증가율은 {chart_last('consumer_credit_growth', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('consumer_credit_growth', 0):+.1f}%입니다. "
-            "빠른 증가는 소비를 지지할 수 있지만 동시에 가계 부채 부담도 키웁니다."
-        ),
-        "loan_standards": (
-            f"현재 대출기준 강화 응답은 {chart_last('loan_standards', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('loan_standards', 0):+.1f}%입니다. "
-            "양수와 상승은 더 많은 은행이 대출을 조인다는 뜻이고, 음수는 완화 쪽입니다."
-        ),
-        "profit_growth": (
-            f"현재 세후 기업이익 증가율은 {chart_last('profit_growth', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('profit_growth', 0):+.1f}%입니다. "
-            "이익이 늘면 밸류에이션을 지지하지만 주가가 이익보다 빨리 오르면 부담은 다시 커집니다."
-        ),
-        "household_debt_service": (
-            f"현재 가계 원리금 부담은 가처분소득의 {chart_last('household_debt_service', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('household_debt_service', 0):.1f}%입니다. "
-            "높을수록 금리와 부채가 소비 여력을 더 많이 잠식한다는 뜻입니다."
-        ),
-        "unemployment_rate": (
-            f"현재 실업률은 {chart_last('unemployment_rate', 1):.1f}%, 닷컴 당시 같은 구간은 {chart_last('unemployment_rate', 0):.1f}%입니다. "
-            "상승하면 고용 냉각 신호지만 금리 인하 기대와 성장 둔화를 함께 봐야 합니다."
-        ),
-        "inflation_rate": (
-            f"현재 CPI 상승률은 {chart_last('inflation_rate', 1):+.1f}%, 닷컴 당시 같은 구간은 {chart_last('inflation_rate', 0):+.1f}%입니다. "
-            "낮아지면 금리 부담 완화 여지가 커지지만 수요 둔화가 원인인지도 확인해야 합니다."
-        ),
-        "financial_conditions": (
-            f"현재 NFCI는 {chart_last('financial_conditions', 1):+.2f}, 닷컴 당시 같은 구간은 {chart_last('financial_conditions', 0):+.2f}입니다. "
-            "0 아래는 평균보다 완화적, 0 위는 긴축적이어서 시장이 받는 자금 압력을 직관적으로 보여줍니다."
-        ),
-        "rate_cycle_since_first_cut": (
-            f"현재 첫 인하 직전 대비 정책금리는 {cur_rate_cycle[-1]['value']:+.2f}%p, "
-            f"1995년 사이클 같은 경과월은 {dot_rate_cycle[min(len(dot_rate_cycle)-1, len(cur_rate_cycle)-1)]['value']:+.2f}%p입니다. "
-            "닷컴 붕괴 전에는 재긴축이 나타났지만 현재의 동일 트리거 여부는 실제선이 0으로 복귀하는지 따로 봐야 합니다."
-        ),
-        "corporate_bond_pressure": (
-            f"현재 고품질 회사채 10년 금리는 {cur_corp_yield[-1]['value']:.2f}%, 국채 대비 스프레드는 {cur_corp_spread[-1]['value']:.2f}%p입니다. "
-            "금리와 스프레드가 함께 급등하면 기업의 할인율과 신용비용이 동시에 악화되는 경고입니다."
-        ),
-        "inflation_lead_panel": (
-            f"최근 CPI는 {cur_inflation[-1]['value']:+.1f}%이고, WTI는 {cur_oil[-1]['value']:+.1f}%, 구리는 {cur_copper[-1]['value']:+.1f}%입니다. "
-            "원자재가 함께 오르면 향후 물가 상방 압력, 엇갈리면 전가율과 주거·서비스 물가를 더 확인해야 합니다."
-        ),
-        "kospi_external_semiconductor_pulse": (
-            f"2020년 이후 20거래일 수익률 상관은 KOSPI–TAIEX "
-            f"{external_pulse_diagnostics['taiex_same_or_prior_close']['rolling_20_session_correlation']:+.2f}, "
-            f"KOSPI–전일 SOX {external_pulse_diagnostics['sox_strictly_prior_us_close']['rolling_20_session_correlation']:+.2f}입니다. "
-            "세 선이 함께 약해지면 글로벌 반도체 사이클 둔화, KOSPI만 약하면 한국 고유 위험을 우선 확인합니다."
-        ),
-        "sec_ipo_issuer_mix_h1": (
-            f"2026년 상반기는 일반 기업 {int(sum(row['value'] for row in sec_corporate[1:]))}건, "
-            f"SPAC {int(sum(row['value'] for row in sec_spac[1:]))}건, 펀드 {int(sum(row['value'] for row in sec_fund[1:]))}건입니다. 총 공모액은 ${sec_2025_proceeds:.1f}B에서 "
-            f"${sec_2026_proceeds:.1f}B로 늘었고, 이 중 일반 기업이 ${sec_2026_corporate_proceeds:.1f}B입니다. 건수와 조달액을 혼동하지 않아야 합니다."
-        ),
-        "sp500_after_two_twenty_percent_years": (
-            f"역사상 {len(third_year)}개 중첩 사례에서 3년 차 평균은 {statistics.mean(row['value'] for row in third_year):+.1f}%, "
-            f"중앙값은 {statistics.median(row['value'] for row in third_year):+.1f}%였습니다. 연속 강세 뒤에도 결과 폭이 커서 평균만으로 다음 해를 단정할 수 없습니다."
-        ),
-        "household_balance_sheet_trend_gap": (
-            f"최근 값은 2009~2019 추세 대비 주식 {equity_gap[-1]['value']:+.0f}%, 현금성 자산 {cash_gap[-1]['value']:+.0f}%, "
-            f"보유 채권 {debt_gap[-1]['value']:+.0f}%입니다. 세 자산 중 어느 항목이 장기추세에서 가장 크게 벗어났는지 비교합니다."
-        ),
-    }
-    if hmi_reference is not None:
-        chart_insights["housing_manufacturing_warning"] = (
-            f"현재 HMI는 중립선보다 {cur_hmi[-1]['value']:+.0f}p, 제조업 확산지수는 {cur_philly[-1]['value']:+.1f}입니다. "
-            "둘 다 0 아래로 내려가고 하락이 이어질 때 주택과 제조업의 동시 냉각 경고가 강해집니다."
-        )
-    for chart in charts:
-        chart["insight"] = chart_insights[chart["id"]]
-    policy_rate_chart = next(chart for chart in charts if chart["id"] == "policy_rate")
-    dotcom_policy_points = policy_rate_chart["series"][0]["points"]
-    policy_rate_chart["source_validation"] = {
-        "source_id": "FEDFUNDS",
-        "period": "1995-01-01_to_1999-12-01",
-        "observations": len(dotcom_policy_points),
-        "interpolation": False,
-        "perfect_rectangle": False,
-        "minimum": min(dotcom_policy_points, key=lambda row: float(row["value"])),
-        "maximum": max(dotcom_policy_points, key=lambda row: float(row["value"])),
-    }
-    if ipo_reference is not None:
-        validate_ipo_reference(ipo_reference)
-        ipo_charts = []
-        for spec in ipo_reference["charts"]:
-            chart = _chart(
-                str(spec["id"]), str(spec["title"]), str(spec["category"]),
-                str(spec["unit"]), str(spec["description"]), str(spec["caveat"]),
-                spec["series"], list(spec["source_ids"]),
-            )
-            chart["insight"] = str(spec["insight"])
-            for optional in (
-                "scale", "chart_type", "axis_type", "max_period", "x_ticks",
-                "profile_groups",
-            ):
-                if optional in spec:
-                    chart[optional] = spec[optional]
-            if spec.get("detail_rows"):
-                chart["detail_rows"] = spec["detail_rows"]
-            ipo_charts.append(chart)
-        qualitative = ipo_reference.get("qualitative_ipo") or {}
-        value_table = qualitative.get("all_ipo_first_close_market_value_bn") or {}
-        total_equity_by_year = _annual_last(monthly["BOGZ1LM893064105Q"])
-
-        def absorption_points(values: dict[str, Any], years: list[int]) -> list[dict[str, Any]]:
-            points = []
-            for index, year in enumerate(years):
-                denominator = total_equity_by_year.get(year)
-                numerator = values.get(str(year))
-                if denominator and numerator is not None:
-                    points.append({
-                        "period": index * 12,
-                        "date": f"{year}-12-31",
-                        "value": float(numerator) * 1000.0 / denominator * 100.0,
-                    })
-            return points
-
-        dot_absorption = absorption_points(value_table.get("dotcom") or {}, list(range(1995, 2000)))
-        cur_absorption = absorption_points(value_table.get("current") or {}, list(range(2023, 2027)))
-        private_watch = qualitative.get("private_frontier_ai_watchlist") or {}
-        ipo_sensitivity = qualitative.get("reported_frontier_ai_ipo_sensitivity") or {}
-        listed_watch = qualitative.get("listed_ai_beneficiary_watchlist") or {}
-        global_chip_watch = qualitative.get("global_ai_chip_completed_ipos") or {}
-        nasdaq_memory_watch = qualitative.get("nasdaq_memory_market_events") or {}
-        private_total_bn = sum(float(row["valuation_bn"]) for row in private_watch.get("members") or [])
-        latest_equity = total_equity_by_year.get(2026) or float(monthly["BOGZ1LM893064105Q"][-1]["value"])
-        private_ratio = private_total_bn * 1000.0 / latest_equity * 100.0
-        sensitivity_total_bn = sum(
-            float(row["headline_ipo_valuation_bn"])
-            for row in ipo_sensitivity.get("members") or []
-        )
-        sensitivity_ratio = sensitivity_total_bn * 1000.0 / latest_equity * 100.0
-        quality_series = [
-            _series("닷컴 실제 IPO", "dotcom", dot_absorption, "#c70039"),
-            _series("현재 실제 IPO", "current", cur_absorption, "#ff6a1a"),
-            _series("OpenAI+Anthropic 비상장 감시점", "current", [{"period": 40, "date": private_watch.get("as_of", "2026-05-28"), "value": private_ratio}], "#28756a"),
-        ]
-        if sensitivity_total_bn > 0:
-            quality_series.append(_series(
-                "대형 AI 상장 가정(실제 IPO 아님)", "scenario",
-                [{"period": 44, "date": ipo_sensitivity.get("as_of", "2026-08-18"), "value": sensitivity_ratio}],
-                "#6b3fa0",
-            ))
-        quality_chart = _chart(
-            "ipo_market_absorption", "IPO와 AI 자본시장 흡수 강도", "ipo", "percent_of_us_corporate_equity_value",
-            "한 해 IPO들의 첫 거래 종가 기준 상장 후 시가총액 합계를 미국 기업주식 총가치로 나눠, 건수보다 자금 규모를 비교합니다.",
-            "분모는 지수 시가총액이 아니라 비상장·밀접보유분도 포함한 Fed의 미국 기업주식 총가치입니다. OpenAI·Anthropic은 비상장 감시점이며 SKHY ADS와 중국·홍콩 상장 사건은 Ritter식 미국 실제 IPO선에 합산하지 않습니다.",
-            quality_series,
-            [
-                value_table.get("source_id"), "BOGZ1LM893064105Q",
-                *[row["source_id"] for row in private_watch.get("members") or []],
-                *[row["source_id"] for row in ipo_sensitivity.get("members") or []],
-                *[row["source_id"] for row in listed_watch.get("members") or []],
-                *[row["source_id"] for row in global_chip_watch.get("members") or []],
-                *[row["source_id"] for row in nasdaq_memory_watch.get("members") or []],
-                global_chip_watch.get("classification_source_id"),
-            ],
-        )
-        quality_chart["series"][2]["marker_radius"] = 10
-        quality_chart["series"][2]["marker_emphasis"] = "private_frontier_watchlist"
-        if len(quality_chart["series"]) > 3:
-            quality_chart["series"][3]["marker_radius"] = 10
-            quality_chart["series"][3]["marker_emphasis"] = "reported_ipo_valuation_sensitivity"
-        quality_chart["insight"] = (
-            f"1999년 전체 IPO 첫 거래 시가총액은 $652B, 2025년은 $442B입니다. "
-            "OpenAI와 Anthropic의 최근 비상장 평가액 합계 $1.817T와 보도된 $3.0T 상장가치 가정은 모두 완료된 IPO가 아닙니다. "
-            "$3.0T 가치에서 5%를 판다는 가정의 총매각 규모는 $150B이며 신주와 구주를 구분하지 않습니다."
-        )
-        quality_chart["scenario_sensitivity"] = ipo_sensitivity
-        quality_chart["detail_rows"] = [
-            {"period": "1999", "label": "전체 비교가능 IPO", "value": "$652B · 실제 상장"},
-            {"period": "2025", "label": "전체 비교가능 IPO", "value": "$442B · 실제 상장"},
-            {"period": "2026", "label": "OpenAI + Anthropic", "value": "$1.817T · 비상장 평가액"},
-            {"period": "NASDAQ ADS", "label": "SK hynix SKHY", "value": "2026-07-10 거래 개시 · HBM 핵심 · Ritter 전통 IPO 밖"},
-            {"period": "중국 메모리 NASDAQ", "label": "Montage Technology MONT", "value": "2013-09-26 · 서버용 메모리 인터페이스 · 역사 맥락"},
-            {"period": "글로벌 IPO", "label": "Horizon · Black Sesame · Moore Threads · MetaX", "value": "중국·홍콩 AI 칩 상장 완료 · 별도 집계"},
-        ]
-
-        small_table = qualitative.get("small_issuer_sales_below_100m") or {}
-        def share_points(values: dict[str, Any], years: list[int]) -> list[dict[str, Any]]:
-            result = []
-            for index, year in enumerate(years):
-                row = values.get(str(year)) or {}
-                if row.get("total"):
-                    result.append({"period": index * 12, "date": f"{year}-12-31", "value": float(row["small"]) / float(row["total"]) * 100.0})
-            return result
-        small_chart = _chart(
-            "small_issuer_ipo_share", "저매출 IPO 확산 비중", "ipo", "percent",
-            "상장 전 최근 12개월 매출이 2024년 구매력 기준 1억 달러 미만인 기업이 전체 비교가능 IPO에서 차지하는 비중입니다.",
-            "소형주는 거래규모가 아니라 물가조정 매출 기준입니다. 2023년은 전체 표본이 54건으로 작아 비중 하나만으로 과열을 단정할 수 없습니다.",
-            [_series("닷컴 저매출 IPO", "dotcom", share_points(small_table.get("dotcom") or {}, list(range(1995, 2000))), "#8d2943"), _series("현재 저매출 IPO", "current", share_points(small_table.get("current") or {}, list(range(2023, 2026))), "#28756a")],
-            [small_table.get("source_id")],
-        )
-        small_chart["insight"] = "저매출 IPO 비중은 1999년 77%까지 높아졌지만 2025년은 39%입니다. 현재는 대형 AI 비상장사 집중은 크지만 닷컴 말기의 소형·저매출 상장 확산과는 아직 다릅니다."
-        small_chart["detail_rows"] = [
-            {"period": "1999", "label": "저매출 365 / 전체 476", "value": "77%"},
-            {"period": "2023", "label": "저매출 37 / 전체 54", "value": "69% · 작은 표본"},
-            {"period": "2025", "label": "저매출 35 / 전체 90", "value": "39%"},
-        ]
-        ipo_charts.extend([quality_chart, small_chart])
-        charts = ipo_charts + charts
-
-    chart_by_id = {str(chart["id"]): chart for chart in charts}
-    scope_notes = {
-        "internet_vs_ai_core_ipos": "*미국 상장 IPO 기준 · 한국 ADS 별도 포함",
-        "technology_ipo_count": "*미국 IPO 기준",
-        "technology_ipo_first_day_return": "*미국 IPO 기준",
-        "technology_ipo_price_to_sales": "*미국 IPO 기준",
-        "technology_ipo_profitable_share": "*미국 IPO 기준",
-        "all_ipo_negative_earnings_share": "*미국 IPO 기준",
-        "dotcom_internet_ipo_breadth": "*1999년 미국 IPO 기준",
-        "ipo_market_absorption": "*미국 IPO·기업주식 기준 · 해외 사례 별도",
-        "small_issuer_ipo_share": "*미국 IPO 기준",
-        "m2_nasdaq": "*미국 통화·NASDAQ 기준",
-        "nasdaq_per_m2": "*미국 통화·NASDAQ 기준",
-        "nasdaq_per_household_liquid_assets": "*미국 가계·비영리 자산·NASDAQ 기준",
-        "liquidity_position_map": "*미국 자금 기준 · 금·비트코인은 달러 시세",
-        "yield_curve": "*미국 국채 기준",
-        "policy_rate": "*미국 기준",
-        "valuation_proxy": "*미국 기업 기준",
-        "margin_credit_proxy": "*미국 가계·기업주식 기준",
-        "consumer_credit_growth": "*미국 소비자신용 기준",
-        "loan_standards": "*미국 기업대출 기준",
-        "profit_growth": "*미국 기업 기준",
-        "household_debt_service": "*미국 가계 기준",
-        "unemployment_rate": "*미국 기준",
-        "inflation_rate": "*미국 기준",
-        "financial_conditions": "*미국 금융시장 기준",
-        "rate_cycle_since_first_cut": "*미국 기준",
-        "corporate_bond_pressure": "*미국 회사채·국채 기준",
-        "inflation_lead_panel": "*미국 물가·WTI·구리 대용치 기준",
-        "kospi_external_semiconductor_pulse": "*한국·대만·미국 시장 기준",
-        "housing_manufacturing_warning": "*미국 기준 · 제조업은 필라델피아 권역",
-        "sec_ipo_issuer_mix_h1": "*미국 IPO 시장 기준",
-        "sp500_after_two_twenty_percent_years": "*미국 S&P 500 기준",
-        "household_balance_sheet_trend_gap": "*미국 가계·비영리 자산 기준",
-    }
-    missing_scope_notes = set(chart_by_id) - set(scope_notes)
-    if missing_scope_notes:
-        raise StatisticsLabError(
-            f"statistics scope notes missing: {sorted(missing_scope_notes)}"
-        )
-    for chart_id, chart in chart_by_id.items():
-        chart["scope_note"] = scope_notes[chart_id]
-
-    def latest_value(chart_id: str, series_index: int = -1) -> float:
-        series = chart_by_id[chart_id]["series"][series_index]
-        return float(series["points"][-1]["value"])
-
-    curve_now = latest_value("yield_curve")
-    standards_now = latest_value("loan_standards")
-    inflation_now = latest_value("inflation_rate")
-    conditions_now = latest_value("financial_conditions")
-    hmi_now = latest_value("housing_manufacturing_warning", 2)
-    manufacturing_now = latest_value("housing_manufacturing_warning", 3)
-    semiconductor_pulse = [
-        latest_value("kospi_external_semiconductor_pulse", index)
-        for index in range(3)
-    ]
-    oil_now = latest_value("inflation_lead_panel", 4)
-    copper_now = latest_value("inflation_lead_panel", 5)
-    conclusions = {
-        "internet_vs_ai_core_ipos": "IPO 수만 보면 현재 AI 상장 붐은 닷컴 말기보다 훨씬 초기여서, 이 지표만으로 버블 붕괴가 임박했다고 보기는 어렵습니다.",
-        "technology_ipo_count": "신규 기술기업 상장 공급은 닷컴 정점의 약 8% 수준이므로, IPO 폭만 놓고 보면 말기 버블 단계와 거리가 있습니다.",
-        "technology_ipo_first_day_return": "첫날 급등은 과열 신호지만 닷컴 정점의 절반 이하라, 공모시장 전체가 극단적 열기에 들어갔다고 단정하기 어렵습니다.",
-        "technology_ipo_price_to_sales": "신규 기술주의 가격 부담은 높지만 닷컴 정점보다 낮아, P/S 하나만으로 붕괴 직전이라고 판단할 수준은 아닙니다.",
-        "technology_ipo_profitable_share": "현재 기술 IPO도 적자기업이 다수지만 닷컴 정점보다 이익 기반이 두꺼워 기업 질은 상대적으로 낫습니다.",
-        "all_ipo_negative_earnings_share": "적자 IPO가 절반을 넘는 점은 경계 신호지만, 닷컴 정점처럼 시장 전체가 적자 발행에 쏠린 상태는 아닙니다.",
-        "dotcom_internet_ipo_breadth": "이 장표는 1999년의 역사적 과열 기준선이며, 현재 AI 시장의 붕괴 확률을 직접 계산하지 않습니다.",
-        "ipo_market_absorption": "대형 AI IPO가 실제 실행되면 시장 흡수 부담이 클 수 있지만, 현재 평가액 헤드라인만으로 상장 시점이나 충격을 확정할 수 없습니다.",
-        "small_issuer_ipo_share": "저매출 상장 확산은 닷컴 말기보다 제한적이어서, IPO 저변 기준으로는 아직 전면적 말기 과열로 보기 어렵습니다.",
-        "m2_nasdaq": "NASDAQ이 유동성보다 빠르게 올랐지만 닷컴 당시 격차보다 작아, M2 기준으로는 말기 과열 신호가 덜 강합니다.",
-        "nasdaq_per_m2": "M2 대비 NASDAQ 상승 속도는 닷컴 같은 시점보다 낮아, 통화량 하나로는 현재를 닷컴 정점과 같은 단계로 보기 어렵습니다.",
-        "nasdaq_per_household_liquid_assets": "가계 현금성 자산 대비 NASDAQ은 닷컴 같은 시점과 비슷해, 가계 유동성 완충력만으로 주가 부담이 낮다고 보기는 어렵습니다.",
-        "liquidity_position_map": (
-            f"대기자금은 MMF에 M2의 {mmf_to_m2:.0f}% 규모로 쌓여 있지만, 최근 가격·잔액 변화만으로 금·비트코인·주식 중 실제 순유입 승자를 단정할 수는 없습니다."
-        ),
-        "yield_curve": (
-            "장단기 금리차가 아직 역전돼 있어 경기 경계가 남아 있습니다."
-            if curve_now < 0 else
-            "장단기 금리차는 정상화됐지만, 역전 해소만으로 경기 둔화 위험이 사라졌다고 볼 수는 없습니다."
-        ),
-        "policy_rate": "현재는 금리 인하가 진행된 경로로, 닷컴 붕괴 전 재긴축 국면과 같은 정책 트리거는 아직 확인되지 않습니다.",
-        "valuation_proxy": "시장가치의 이익 대비 부담은 높지만 닷컴 같은 시점보다 낮아, 광의 밸류에이션은 극단적 정점 아래입니다.",
-        "margin_credit_proxy": "브로커 고객 신용이 기업주식 시장가치보다 더 빠르게 늘어날 때 레버리지 경고가 커지며, 현재는 두 속도를 함께 확인해야 합니다.",
-        "consumer_credit_growth": "소비자신용 증가율이 닷컴 당시보다 낮아, 현재 상승장이 가계 신용 팽창에 크게 의존한다고 보기는 어렵습니다.",
-        "loan_standards": (
-            "은행 대출기준이 순강화 상태여서 기업 신용 경로는 경계가 필요합니다."
-            if standards_now > 5 else
-            "은행 대출기준은 대체로 중립이어서, 현재 기업 신용 경색 신호는 강하지 않습니다."
-        ),
-        "profit_growth": "기업이익 증가가 주가를 지지하고 있어, 현재 밸류에이션 상승에는 닷컴 말기보다 강한 이익 기반이 있습니다.",
-        "household_debt_service": "가계 상환 부담은 닷컴 같은 시점과 비슷하지만 역사적 극단은 아니어서, 소비 붕괴를 단독으로 예고하지 않습니다.",
-        "unemployment_rate": "실업률은 고용 냉각을 살필 구간이지만, 현재 수준만으로 침체나 시장 붕괴가 확인됐다고 보기는 어렵습니다.",
-        "inflation_rate": (
-            "물가가 3%를 웃돌아 추가 금리 완화의 제약이 남아 있습니다."
-            if inflation_now >= 3 else
-            "물가 압력은 완화됐지만 성장 둔화 여부를 함께 확인해야 합니다."
-        ),
-        "financial_conditions": (
-            "금융여건은 평균보다 완화적이어서 위험자산을 지지하지만, 동시에 과열이 더 이어질 여지도 남깁니다."
-            if conditions_now < 0 else
-            "금융여건이 평균보다 긴축적이어서 위험자산의 자금 조달 부담이 커진 상태입니다."
-        ),
-        "rate_cycle_since_first_cut": "첫 인하 이후 정책금리가 출발점 아래에 있어, 1990년대 말의 재긴축 복귀 신호는 아직 작동하지 않았습니다.",
-        "corporate_bond_pressure": "회사채 절대금리는 높지만 국채 대비 스프레드는 아직 억제돼 있어, 전면적 신용 스트레스보다는 높은 할인율 부담이 핵심입니다.",
-        "inflation_lead_panel": (
-            "유가와 구리가 함께 상승해 향후 CPI 재가속 위험을 무시하기 어렵습니다."
-            if oil_now > 0 and copper_now > 0 else
-            "유가와 구리 신호가 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 않습니다."
-        ),
-        "kospi_external_semiconductor_pulse": (
-            "세 시장의 20일 흐름이 모두 양수여서 글로벌 반도체 공동 급락 경고는 현재 작동하지 않습니다."
-            if all(value > 0 for value in semiconductor_pulse) else
-            "한국·대만·미국 반도체 20일 흐름이 함께 약해져 글로벌 반도체 조정 경고를 우선 확인해야 합니다."
-        ),
-        "housing_manufacturing_warning": (
-            "주택 심리는 약하지만 제조업은 확장 신호여서, 현재 경기침체 신호는 혼합 상태입니다."
-            if hmi_now < 0 < manufacturing_now else
-            "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
-        ),
-        "sec_ipo_issuer_mix_h1": "SPAC 건수가 일반 기업을 웃돌아 IPO 창구는 열렸지만, 이것을 실물기업·AI기업 상장 확산으로 곧바로 해석하면 안 됩니다.",
-        "sp500_after_two_twenty_percent_years": "역사적으로 3년 차 상승이 더 많았지만 표본이 작아, 연속 강세만으로 다음 해 상승이나 버블 지속을 확정할 수 없습니다.",
-        "household_balance_sheet_trend_gap": "가계 현금도 추세보다 많아 유동성 고갈 상태는 아니지만, 주식 자산의 추세 이탈이 더 커 가격 조정 민감도는 높습니다.",
-    }
-    missing_conclusions = sorted(set(chart_by_id) - set(conclusions))
-    if missing_conclusions:
-        raise StatisticsLabError(
-            f"customer conclusion missing for charts: {missing_conclusions}"
-        )
-    for chart_id, chart in chart_by_id.items():
-        chart["conclusion"] = conclusions[chart_id]
-
-    source_meta = []
-    for series_id, spec in FRED_SERIES.items():
-        rows = source_rows[series_id]
-        fred_start = spec.get("window_start", "1995-01-01")
-        source_meta.append({
-            "series_id": series_id,
-            **spec,
-            "source_url": f"https://fred.stlouisfed.org/series/{series_id}",
-            "request_url": fred_api.observations_public_url(
-                series_id, observation_start=fred_start,
-            ),
-            "available_at": generated_at,
-            "latest_observation": rows[-1]["date"],
-            "row_count": len(rows),
-            "raw_sha256": receipts[series_id]["raw_sha256"],
-            "vintage": "current_release_reconstructed",
-        })
-    for series_id, spec in DAILY_MARKET_SERIES.items():
-        rows = source_rows[series_id]
-        receipt = receipts[series_id]
-        source_meta.append({
-            "series_id": series_id,
-            "title": spec["title"],
-            "provider": spec["provider"],
-            "unit": spec["unit"],
-            "native_frequency": spec["native_frequency"],
-            "source_url": spec["source_url"],
-            "request_url": receipt["request_url"],
-            "available_at": generated_at,
-            "latest_observation": rows[-1]["date"],
-            "row_count": len(rows),
-            "raw_sha256": receipt["raw_sha256"],
-            "vintage": "yahoo_current_chart_response",
-            "data_quality": receipt.get("data_quality"),
-            "window_start": spec["window_start"],
-            "window_end_exclusive": spec["window_end_exclusive"],
-        })
-    for series_id, spec in SUPPLEMENTAL_SOURCES.items():
-        rows = source_rows[series_id]
-        receipt = receipts[series_id]
-        source_meta.append({
-            "series_id": series_id,
-            "title": spec["title"],
-            "provider": spec["provider"],
-            "unit": spec["unit"],
-            "native_frequency": spec["native_frequency"],
-            "source_url": spec["source_url"],
-            "request_url": spec["request_url"],
-            "available_at": receipt.get("available_at", generated_at),
-            "latest_observation": max(str(row["date"]) for row in rows),
-            "row_count": len(rows),
-            "raw_sha256": receipt["raw_sha256"],
-            "vintage": receipt.get("vintage", "current_public_release_reconstructed"),
-        })
-    z1_rows = source_rows["FL663067003"]
-    source_meta.append({
-        "series_id": "FL663067003",
-        "title": "Household margin loans and other receivables due to brokers",
-        "provider": "Board of Governors of the Federal Reserve System (US)",
-        "unit": "millions_usd",
-        "native_frequency": "quarterly",
-        "source_url": "https://www.federalreserve.gov/releases/z1/current/",
-        "request_url": Z1_ENDPOINT,
-        "available_at": generated_at,
-        "latest_observation": z1_rows[-1]["date"],
-        "row_count": len(z1_rows),
-        "raw_sha256": receipts["FL663067003"]["raw_sha256"],
-        "vintage": "current_release_reconstructed",
-        "proxy_warning": "not_FINRA_monthly_margin_debt",
-    })
-    if ipo_reference is not None:
-        source_meta.extend(ipo_reference["sources"])
-    if hmi_reference is not None:
-        source_meta.append(hmi_reference["source"])
-    observation_through = max(row["latest_observation"] for row in source_meta)
-    payload = {
-        "schema_version": 1,
-        "dataset_id": "dotcom_statistics_lab_v1",
-        "status": "ok",
-        "probability_space": "reference_only",
-        "model_use": False,
-        "official_forecast_input": False,
-        "generated_at": generated_at,
-        "as_of": max(row["latest_observation"] for row in source_meta),
-        "cycle_alignment": {
-            "dotcom_start": DOTCOM_START.isoformat(),
-            "dotcom_end": DOTCOM_END.isoformat(),
-            "current_start": CURRENT_START.isoformat(),
-            "current_axis_end": CURRENT_AXIS_END.isoformat(),
-            "comparison_months": comparison_months,
-            "current_observed_through": latest_current.isoformat(),
-            "current_line_policy": "actual_observations_only_no_forecast_extension",
-            "forecast_extension": False,
-            "endpoint_forcing": False,
-        },
-        "charts": charts,
-        "sources": source_meta,
-        "ipo_comparison": {
-            "status": ipo_reference["status"],
-            "as_of": ipo_reference["as_of"],
-            "coverage": ipo_reference["coverage"],
-            "classification": ipo_reference["classification"],
-        } if ipo_reference is not None else None,
-        "vintage_warning": "latest-release reconstructed history; not native point-in-time vintages",
-        "refresh_policy": {
-            "check_cadence": "weekly",
-            "native_frequencies_preserved": True,
-            "schedule": "Saturday 00:20 UTC",
-        },
-        "excluded_sources": {
-            "FINRA_margin_statistics": "permission required; not fetched or redistributed",
-            "Moodys_Baa_spread": "proprietary redistribution restriction",
-            "paid_forward_PE": "not reproducible under public redistribution rights",
-        },
-    }
-    validate_statistics_lab(payload)
-    return payload
-
-
 def build_statistics_lab(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
@@ -2807,10 +1631,13 @@ def build_statistics_lab(
         _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), indexed=True,
     )
     dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
+    dot_curve3m, cur_curve3m = cycles(monthly["T10Y3M"])
     dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
+    # 분자(비금융 기업주식 시가)와 분모를 같은 모집단으로 맞춘다.
+    # CPATAX(금융 포함 전체 경제)를 쓰면 분모가 과대해 배율이 눌린다.
     valuation = [
         {**row, "value": float(row["value"]) / 1000.0}
-        for row in _ratio(monthly["NCBEILQ027S"], monthly["CPATAX"])
+        for row in _ratio(monthly["NCBEILQ027S"], monthly["W328RC1Q027SBEA"])
     ]
     dot_value, cur_value = cycles(valuation)
     dot_margin, cur_margin = cycles(monthly["FL663067003"], indexed=True)
@@ -2922,9 +1749,9 @@ def build_statistics_lab(
         make("nasdaq_per_household_liquid_assets", "가계 현금성 자산 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
              [_series("닷컴", "dotcom", dot_nasdaq_cash, "#7a3248"), _series("현재", "current", cur_nasdaq_cash, "#e46b20")],
              ["NASDAQCOM", "DABSHNO"], "*미국 가계·비영리 자산 기준", "가계 현금성 자산 대비 NASDAQ의 상대 속도를 비교합니다."),
-        make("yield_curve", "10년−2년 장단기 금리차", "rates", "percent",
-             [_series("닷컴", "dotcom", dot_curve, "#8d2943"), _series("현재", "current", cur_curve, "#28756a")],
-             ["T10Y2Y"], "*미국 국채 기준", "금리차가 음수면 역전, 양수로 급히 복귀하면 성장 둔화 구간을 함께 점검합니다."),
+        make("yield_curve", "장단기 금리차: 10년−2년과 10년−3개월", "rates", "percent",
+             [_series("닷컴 10y−2y", "dotcom", dot_curve, "#8d2943"), _series("현재 10y−2y", "current", cur_curve, "#28756a"), _series("닷컴 10y−3m", "dotcom", dot_curve3m, "#c98a9b"), _series("현재 10y−3m", "current", cur_curve3m, "#7fb3a5")],
+             ["T10Y2Y", "T10Y3M"], "*미국 국채 기준", "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다."),
         make("policy_rate", "연방기금금리 경로", "rates", "percent",
              [_series("닷컴", "dotcom", dot_funds, "#8d2943"), _series("현재", "current", cur_funds, "#28756a")],
              ["FEDFUNDS"], "*미국 기준", "월평균 실효금리의 실제 경로이며 시장의 미래 인하 확률은 아닙니다."),
@@ -2961,11 +1788,11 @@ def build_statistics_lab(
         make("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
              [_series("닷컴 회사채", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")],
              ["HQMCB10YR", "GS10"], "*미국 회사채·국채 기준", "회사채 금리와 국채 대비 차이가 함께 오르면 기업 자금조달 부담이 커집니다."),
-        make("inflation_lead_panel", "유가·구리 2개월 선행과 CPI", "economy", "percent_yoy",
+        make("inflation_lead_panel", "유가·구리와 두 달 뒤 CPI 나란히 보기", "economy", "percent_yoy",
              [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_cpi_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_cpi_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")],
              ["CPIAUCSL", "DCOILWTICO", "WPU10260314"], "*미국 물가·원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다."),
         make("korea_semiconductor_cycle", "한국 주가와 글로벌 반도체 사이클", "economy", "cycle_start_100",
-             [_series("한국 주가", "current", korea_index, "#11110f"), _series("미국 반도체", "current", sox_index, "#e05d26")],
+             [_series("한국 주가지수(OECD)", "current", korea_index, "#11110f"), _series("미국 반도체(SOX)", "current", sox_index, "#e05d26")],
              ["SPASTT01KRM661N", "NASDAQSOX"], "*한국·미국 시장 기준", "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다."),
         make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
@@ -3028,8 +1855,65 @@ def build_statistics_lab(
     charts.insert(0, sec_chart)
     by_id = {chart["id"]: chart for chart in charts}
     by_id["m2_nasdaq"]["scale"] = "log1p"
+    # 사용자에게 반드시 보여야 하는 한계(대용치·명목·표본). 투영이 이 문구를
+    # 카드의 접힘 블록으로 내보낸다 — 데이터에만 남는 경고는 경고가 아니다.
+    chart_caveats = {
+        "margin_credit_proxy": (
+            "고객 신용은 연준 Z.1 분기 대용치이며 FINRA 월간 신용잔고가 아닙니다. "
+            "지수는 각 시대 시작=100의 명목 비교입니다."
+        ),
+        "valuation_proxy": (
+            "비금융 기업주식 시가 ÷ 비금융 세후이익(NIPA)의 대용 배율입니다. "
+            "지수 PER와 정의가 다르고, 이익률 수준·해외 매출·금리를 반영하지 않습니다."
+        ),
+        "m2_nasdaq": (
+            "명목 지수 비교입니다. M2에는 RRP·역레포 등 기관 유동성이 빠져 있어 "
+            "시장 유동성 전체를 대표하지 않습니다."
+        ),
+        "nasdaq_per_m2": (
+            "명목 비율의 시작=100 지수입니다. 장기 정규화 참고치이며 "
+            "매수·매도 신호가 아닙니다."
+        ),
+        "nasdaq_per_household_liquid_assets": (
+            "분모가 분기 자료라 관측치가 적습니다(닷컴 20개·현재 13개). "
+            "명목 비교입니다."
+        ),
+        "korea_semiconductor_cycle": (
+            "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
+        ),
+        "liquidity_position_map": (
+            "지표별 기준일이 다릅니다(시장 지표는 최근 일자, 연준 Z.1 잔액은 "
+            "최근 분기). 잔액과 증감률은 단위가 달라 합산하지 않습니다."
+        ),
+        "household_balance_sheet_trend_gap": (
+            "2009~2019 로그-선형 추세의 연장선 대비 이탈률입니다. 적정가치나 "
+            "예측이 아니며, 보유채권은 연간 11개 관측의 소표본입니다."
+        ),
+        "yield_curve": (
+            "10년−3개월이 침체 연구(Estrella–Mishkin)와 Fed 확률 모델의 표준이고, "
+            "10년−2년은 시장 관행 지표입니다."
+        ),
+        "inflation_lead_panel": (
+            "두 달 정렬은 서술용 배치입니다. 원자재의 물가 선행성은 시기에 따라 "
+            "약해지는 것으로 연구돼 있습니다."
+        ),
+    }
+    for caveat_chart_id, caveat_text in chart_caveats.items():
+        by_id[caveat_chart_id]["caveat"] = (
+            by_id[caveat_chart_id]["caveat"] + " " + caveat_text
+        )
+    # 단위가 다른 두 지표(주택착공 %YoY vs 제조업 확산지수 원값)를 0 중심이라는
+    # 이유로 한 축에 겹치므로, 단위 차이를 읽는 법으로 명시한다.
+    by_id["housing_manufacturing_warning"]["reading_guide"] = (
+        "주택착공은 전년 대비 % 증감이고, 제조업은 확산지수 원값(0 위면 확장)입니다. "
+        "두 선의 단위가 달라 크기 비교가 아니라 방향 비교용입니다."
+    )
+    by_id["household_balance_sheet_trend_gap"]["reading_guide"] = (
+        "0%는 2009~2019 로그-선형 추세와 같은 수준입니다. 주식·현금은 분기, "
+        "보유채권은 연간(관측 11개, 소표본) 자료로 추세를 각각 계산했습니다."
+    )
     by_id["household_balance_sheet_trend_gap"]["trend_baseline"] = {
-        "start": "2009-01-01", "end": "2019-12-31", "method": "ordinary_least_squares_on_levels",
+        "start": "2009-01-01", "end": "2019-12-31", "method": "ordinary_least_squares_on_log_levels",
         "training_observations": {"corporate_equities": 44, "cash_and_deposits": 44, "debt_securities": 11},
     }
     by_id["household_balance_sheet_trend_gap"]["max_period"] = max(
@@ -3050,6 +1934,24 @@ def build_statistics_lab(
             raise StatisticsLabError("customer conclusion endpoint is unavailable")
         return float(rows[-1]["value"])
 
+    def months_elapsed(rows: list[dict[str, Any]]) -> int:
+        if not rows:
+            raise StatisticsLabError("customer conclusion elapsed month is unavailable")
+        return int(rows[-1]["period"])
+
+    def matched(dot_rows: list[dict[str, Any]], cur_rows: list[dict[str, Any]]) -> float:
+        """현재 시리즈의 마지막 경과월과 가장 가까운 경과월의 닷컴 값.
+
+        두 시대의 끝점은 경과월이 다르다(닷컴은 57~59개월로 완결, 현재는
+        관측 중). 끝점끼리 비교하면서 '같은 시점'이라 부르는 것은 통계적으로
+        틀린 비교라서, 결론은 반드시 이 값을 쓴다.
+        """
+        if not dot_rows or not cur_rows:
+            raise StatisticsLabError("matched-month comparison rows are unavailable")
+        target = months_elapsed(cur_rows)
+        best = min(dot_rows, key=lambda row: abs(int(row["period"]) - target))
+        return float(best["value"])
+
     corporate_h1 = half(2026, "corporate_count")
     spac_h1 = half(2026, "spac_count")
     top_direction_label, top_direction = max(
@@ -3057,6 +1959,7 @@ def build_statistics_lab(
     )
     mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
     curve_now = endpoint(cur_curve)
+    curve3m_now = endpoint(cur_curve3m)
     standards_now = endpoint(cur_standards)
     inflation_now = endpoint(cur_inflation)
     conditions_now = endpoint(cur_nfci)
@@ -3070,19 +1973,25 @@ def build_statistics_lab(
             "많습니다. IPO 창구는 열렸지만 실물기업 상장 확산은 아직 제한적입니다."
         ),
         "m2_nasdaq": (
-            f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오른 반면 "
-            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 증가했습니다. 유동성보다 주가가 "
-            "훨씬 빠르지만 닷컴 정점의 격차보다는 작습니다."
+            f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오르고 "
+            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 "
+            f"{months_elapsed(cur_nasdaq)}개월차에는 NASDAQ "
+            f"{matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
+            f"{matched(dot_m2, cur_m2) - 100.0:.0f}%였고, 닷컴 말기에는 NASDAQ이 "
+            f"{endpoint(dot_nasdaq) - 100.0:.0f}%까지 벌어졌습니다."
         ),
         "nasdaq_per_m2": (
-            f"현재 M2 대비 NASDAQ 속도지수는 {endpoint(cur_nasdaq_m2):.0f}로 닷컴의 "
-            f"{endpoint(dot_nasdaq_m2):.0f}보다 낮습니다. 통화량 기준 과열은 높지만 "
-            "닷컴 말기 수준에는 아직 못 미칩니다."
+            f"현재 M2 대비 NASDAQ 속도지수는 {endpoint(cur_nasdaq_m2):.0f}로 닷컴 같은 "
+            f"{months_elapsed(cur_nasdaq_m2)}개월차의 "
+            f"{matched(dot_nasdaq_m2, cur_nasdaq_m2):.0f}"
+            f"{'보다 높습니다' if endpoint(cur_nasdaq_m2) > matched(dot_nasdaq_m2, cur_nasdaq_m2) else '보다 낮습니다'}. "
+            f"닷컴 말기에는 {endpoint(dot_nasdaq_m2):.0f}까지 치솟았습니다."
         ),
         "nasdaq_per_household_liquid_assets": (
-            f"가계 현금성 자산 대비 NASDAQ 속도는 현재 {endpoint(cur_nasdaq_cash):.0f}, "
-            f"닷컴 {endpoint(dot_nasdaq_cash):.0f}입니다. 가계 유동성 대비 주가 부담은 "
-            "커졌지만 닷컴 정점보다는 낮습니다."
+            f"가계 현금성 자산 대비 NASDAQ 속도는 현재 {endpoint(cur_nasdaq_cash):.0f}로 "
+            f"닷컴 같은 {months_elapsed(cur_nasdaq_cash)}개월차의 "
+            f"{matched(dot_nasdaq_cash, cur_nasdaq_cash):.0f}와 비교되고, 닷컴 말기는 "
+            f"{endpoint(dot_nasdaq_cash):.0f}였습니다."
         ),
         "liquidity_position_map": (
             f"미국 MMF는 M2의 약 {mmf_to_m2:.0f}% 규모이고, 최근 12개월 방향은 "
@@ -3090,31 +1999,42 @@ def build_statistics_lab(
             "대기자금이 함께 남아 있는 시장입니다."
         ),
         "yield_curve": (
-            f"10년−2년 금리차는 현재 {curve_now:+.2f}%p로 정상화됐습니다. 다만 역전 "
-            "해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다."
-            if curve_now >= 0 else
-            f"10년−2년 금리차가 현재 {curve_now:+.2f}%p로 역전돼 있어 경기 둔화 "
-            "경고가 계속 작동하고 있습니다."
+            f"10년−2년 금리차는 현재 {curve_now:+.2f}%p, 침체 연구의 표준인 "
+            f"10년−3개월은 {curve3m_now:+.2f}%p입니다. "
+            + ("둘 다 양수로 정상화됐지만 역전 해소 직후에는 성장 둔화가 뒤따를 수 "
+               "있어 경기 경계는 아직 남아 있습니다."
+               if curve_now >= 0 and curve3m_now >= 0 else
+               "한쪽이라도 음수면 침체 경고가 작동 중이라는 뜻이므로 두 스프레드를 "
+               "함께 봐야 합니다.")
         ),
         "policy_rate": (
-            f"현재 실효금리는 {endpoint(cur_funds):.2f}%로 닷컴 같은 시점의 "
-            f"{endpoint(dot_funds):.2f}%보다 낮습니다. 지금은 재긴축보다 인하 경로에 "
-            "가까워 닷컴 붕괴 전 정책 트리거와는 다릅니다."
+            f"현재 실효금리는 {endpoint(cur_funds):.2f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_funds)}개월차의 {matched(dot_funds, cur_funds):.2f}%"
+            f"{'보다 높습니다' if endpoint(cur_funds) > matched(dot_funds, cur_funds) else '보다 낮습니다'}. "
+            f"닷컴 말기는 재긴축으로 {endpoint(dot_funds):.2f}%까지 올랐지만, 지금은 "
+            "인하 경로에 가깝습니다."
         ),
         "valuation_proxy": (
-            f"기업가치÷이익 대용치는 현재 {endpoint(cur_value):.1f}배로 닷컴의 "
-            f"{endpoint(dot_value):.1f}배보다 낮습니다. 밸류에이션 부담은 높지만 "
-            "광의 시장 전체가 닷컴 극단에 도달한 상태는 아닙니다."
+            f"비금융 기업의 시장가치÷이익 대용치는 현재 {endpoint(cur_value):.1f}배로 "
+            f"닷컴 같은 {months_elapsed(cur_value)}개월차의 "
+            f"{matched(dot_value, cur_value):.1f}배"
+            f"{'보다 높습니다' if endpoint(cur_value) > matched(dot_value, cur_value) else '보다 낮습니다'}. "
+            f"닷컴 말기는 {endpoint(dot_value):.1f}배까지 치솟았습니다."
         ),
         "margin_credit_proxy": (
             f"현재 고객 신용지수 {endpoint(cur_margin):.0f}이 기업주식지수 "
-            f"{endpoint(cur_equities):.0f}보다 빠릅니다. 닷컴보다는 낮지만 레버리지 "
-            "민감도가 다시 커지는 구간입니다."
+            f"{endpoint(cur_equities):.0f}보다 빠릅니다. 닷컴 같은 "
+            f"{months_elapsed(cur_margin)}개월차에는 신용 "
+            f"{matched(dot_margin, cur_margin):.0f}·주식 "
+            f"{matched(dot_equities, cur_equities):.0f}였습니다. 레버리지 민감도가 다시 "
+            "커지는 구간입니다."
         ),
         "consumer_credit_growth": (
-            f"소비자신용 증가율은 현재 {endpoint(cur_credit):.1f}%로 닷컴의 "
-            f"{endpoint(dot_credit):.1f}%보다 낮습니다. 현재 상승장이 가계 신용 "
-            "팽창에 크게 의존하는 모습은 아닙니다."
+            f"소비자신용 증가율은 현재 {endpoint(cur_credit):.1f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_credit)}개월차의 {matched(dot_credit, cur_credit):.1f}%"
+            f"{'보다 높습니다' if endpoint(cur_credit) > matched(dot_credit, cur_credit) else '보다 낮습니다'} "
+            f"(닷컴 말기 {endpoint(dot_credit):.1f}%). 현재 상승장이 가계 신용 팽창에 "
+            "크게 의존하는 모습은 아닙니다."
         ),
         "loan_standards": (
             f"은행 대출기준 순강화 비율은 현재 {standards_now:.1f}%로 대체로 "
@@ -3124,19 +2044,24 @@ def build_statistics_lab(
             "경계가 필요한 상태입니다."
         ),
         "profit_growth": (
-            f"세후 기업이익은 현재 전년 대비 {endpoint(cur_profit):.1f}% 증가해 닷컴의 "
-            f"{endpoint(dot_profit):.1f}%보다 강합니다. 높은 주가에 닷컴 말기보다 "
-            "두꺼운 이익 기반이 붙어 있습니다."
+            f"세후 기업이익은 현재 전년 대비 {endpoint(cur_profit):.1f}% 증가해 닷컴 같은 "
+            f"{months_elapsed(cur_profit)}개월차의 {matched(dot_profit, cur_profit):.1f}%"
+            f"{'보다 강합니다' if endpoint(cur_profit) > matched(dot_profit, cur_profit) else '보다 약합니다'} "
+            f"(닷컴 말기 {endpoint(dot_profit):.1f}%)."
         ),
         "household_debt_service": (
-            f"가계 상환 부담은 현재 {endpoint(cur_debt_service):.1f}%로 닷컴의 "
-            f"{endpoint(dot_debt_service):.1f}%와 비슷합니다. 소비 붕괴를 단독으로 "
+            f"가계 상환 부담은 현재 {endpoint(cur_debt_service):.1f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_debt_service)}개월차의 "
+            f"{matched(dot_debt_service, cur_debt_service):.1f}%와 비교됩니다 "
+            f"(닷컴 말기 {endpoint(dot_debt_service):.1f}%). 소비 붕괴를 단독으로 "
             "예고하는 극단적 부담은 아닙니다."
         ),
         "unemployment_rate": (
-            f"실업률은 현재 {endpoint(cur_unemployment):.1f}%로 닷컴 같은 시점의 "
-            f"{endpoint(dot_unemployment):.1f}%와 비슷합니다. 고용은 냉각 점검 구간이지만 "
-            "침체가 확인된 수준은 아닙니다."
+            f"실업률은 현재 {endpoint(cur_unemployment):.1f}%로 닷컴 같은 "
+            f"{months_elapsed(cur_unemployment)}개월차의 "
+            f"{matched(dot_unemployment, cur_unemployment):.1f}%와 비교됩니다 "
+            f"(닷컴 말기 {endpoint(dot_unemployment):.1f}%). 고용은 냉각 점검 "
+            "구간이지만 침체가 확인된 수준은 아닙니다."
         ),
         "inflation_rate": (
             f"소비자물가는 현재 {inflation_now:.1f}%로 3%를 웃돌아 추가 금리 인하의 "
@@ -3162,10 +2087,13 @@ def build_statistics_lab(
             "절대금리 부담이 핵심입니다."
         ),
         "inflation_lead_panel": (
-            f"유가 {oil_now:+.1f}%와 구리 {copper_now:+.1f}%가 함께 올라 향후 물가 "
-            "재가속 위험을 무시하기 어렵습니다."
-            if oil_now > 0 and copper_now > 0 else
-            "유가와 구리 방향이 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 않습니다."
+            (f"유가 {oil_now:+.1f}%와 구리 {copper_now:+.1f}%가 함께 올라 물가 재가속 "
+             "위험을 점검할 구간입니다."
+             if oil_now > 0 and copper_now > 0 else
+             "유가와 구리 방향이 엇갈려 원자재발 물가 재가속 신호는 아직 일관되지 "
+             "않습니다.")
+            + " 원자재의 물가 선행성은 시기에 따라 약해지는 것으로 연구돼 있어 "
+            "두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다."
         ),
         "korea_semiconductor_cycle": (
             f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 미국 "
@@ -3311,7 +2239,7 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             not chart.get("insight")
             or not chart.get("conclusion")
             or not chart.get("source_ids")
-            or (not projected and not chart.get("caveat"))
+            or not chart.get("caveat")
         ):
             raise StatisticsLabError(
                 f"chart {chart.get('id')} missing insight/conclusion/caveat/source"
@@ -3335,8 +2263,10 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
                     f"chart {chart['id']} exceeds its declared period axis"
                 )
     sources = payload.get("sources")
-    minimum_sources = len(FRED_SERIES) + len(SUPPLEMENTAL_SOURCES) + 1
-    if not isinstance(sources, list) or len(sources) < minimum_sources:
+    # 코드 상수(FRED_SERIES) 개수를 하한으로 쓰면 시리즈를 추가할 때마다
+    # 기존 커밋 산출물이 소급 무효가 된다. 계약은 자기일관성이다 —
+    # 모든 차트의 원천 id가 레지스트리에 실제로 존재해야 한다(아래에서 검사).
+    if not isinstance(sources, list) or not sources:
         raise StatisticsLabError("statistics source registry incomplete")
     source_ids = [str(row.get("series_id")) for row in sources]
     if len(source_ids) != len(set(source_ids)):
@@ -3878,7 +2808,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
             key: value for key, value in chart.items()
             if key not in {
                 "series", "range", "detail_rows", "research_context",
-                "description", "caveat", "trend_baseline", "projection_max_points",
+                "description", "trend_baseline", "projection_max_points",
                 "external_pulse_diagnostics",
                 "comparison_transform", "source_validation",
                 "scenario_sensitivity", "event_diagnostics",
