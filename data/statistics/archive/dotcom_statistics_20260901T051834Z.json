@@ -5,8 +5,8 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-09-01T05:31:11+00:00",
-  "knowledge_cutoff": "2026-09-01T05:31:11+00:00",
+  "generated_at": "2026-09-01T05:18:34+00:00",
+  "knowledge_cutoff": "2026-09-01T05:18:34+00:00",
   "observation_through": "2026-08-31",
   "as_of": "2026-08-31",
   "cycle_alignment": {
@@ -2360,1283 +2360,6 @@
         "GFDEBTN"
       ],
       "research_context_source_ids": []
-    },
-    {
-      "id": "spx_per_federal_debt_full_history",
-      "title": "미국 주가 ÷ 연방부채: 1966년부터의 전체 경로",
-      "category": "liquidity",
-      "unit": "cycle_start_100",
-      "description": "1968·2000 고점과 지금 위치를 60년 한 선으로 봅니다. 주가가 연방부채보다 빨리 오르면 선이 오르고, 부채가 빨리 늘면 내려갑니다.",
-      "caveat": "공식 원천의 실제 관측치만 사용하며 미래 구간을 연장하지 않습니다. 분자는 OECD 미국 주가지수(S&P 계열 월평균)로 S&P 500 종가가 아니고, 분모가 분기 잔액이라 관측 밀도는 분기입니다. 1966년 첫 관측=100의 명목 지수이며, 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다.",
-      "series": [
-        {
-          "label": "주가/연방부채 (1966=100)",
-          "era": "current",
-          "color": "#31456e",
-          "points": [
-            {
-              "period": 0,
-              "date": "1966-01-01",
-              "value": 100.0
-            },
-            {
-              "period": 3,
-              "date": "1966-04-01",
-              "value": 99.62
-            },
-            {
-              "period": 6,
-              "date": "1966-07-01",
-              "value": 90.85
-            },
-            {
-              "period": 9,
-              "date": "1966-10-01",
-              "value": 80.0
-            },
-            {
-              "period": 12,
-              "date": "1967-01-01",
-              "value": 88.29
-            },
-            {
-              "period": 15,
-              "date": "1967-04-01",
-              "value": 98.15
-            },
-            {
-              "period": 18,
-              "date": "1967-07-01",
-              "value": 97.66
-            },
-            {
-              "period": 21,
-              "date": "1967-10-01",
-              "value": 97.87
-            },
-            {
-              "period": 24,
-              "date": "1968-01-01",
-              "value": 96.71
-            },
-            {
-              "period": 27,
-              "date": "1968-04-01",
-              "value": 97.84
-            },
-            {
-              "period": 30,
-              "date": "1968-07-01",
-              "value": 100.96
-            },
-            {
-              "period": 33,
-              "date": "1968-10-01",
-              "value": 103.41
-            },
-            {
-              "period": 36,
-              "date": "1969-01-01",
-              "value": 102.08
-            },
-            {
-              "period": 39,
-              "date": "1969-04-01",
-              "value": 101.83
-            },
-            {
-              "period": 42,
-              "date": "1969-07-01",
-              "value": 92.23
-            },
-            {
-              "period": 45,
-              "date": "1969-10-01",
-              "value": 91.83
-            },
-            {
-              "period": 48,
-              "date": "1970-01-01",
-              "value": 86.21
-            },
-            {
-              "period": 51,
-              "date": "1970-04-01",
-              "value": 81.5
-            },
-            {
-              "period": 54,
-              "date": "1970-07-01",
-              "value": 68.98
-            },
-            {
-              "period": 57,
-              "date": "1970-10-01",
-              "value": 75.13
-            },
-            {
-              "period": 60,
-              "date": "1971-01-01",
-              "value": 83.13
-            },
-            {
-              "period": 63,
-              "date": "1971-04-01",
-              "value": 90.77
-            },
-            {
-              "period": 66,
-              "date": "1971-07-01",
-              "value": 84.42
-            },
-            {
-              "period": 69,
-              "date": "1971-10-01",
-              "value": 80.47
-            },
-            {
-              "period": 72,
-              "date": "1972-01-01",
-              "value": 84.95
-            },
-            {
-              "period": 75,
-              "date": "1972-04-01",
-              "value": 90.29
-            },
-            {
-              "period": 78,
-              "date": "1972-07-01",
-              "value": 86.62
-            },
-            {
-              "period": 81,
-              "date": "1972-10-01",
-              "value": 84.93
-            },
-            {
-              "period": 84,
-              "date": "1973-01-01",
-              "value": 89.13
-            },
-            {
-              "period": 87,
-              "date": "1973-04-01",
-              "value": 81.44
-            },
-            {
-              "period": 90,
-              "date": "1973-07-01",
-              "value": 77.35
-            },
-            {
-              "period": 93,
-              "date": "1973-10-01",
-              "value": 80.22
-            },
-            {
-              "period": 96,
-              "date": "1974-01-01",
-              "value": 68.88
-            },
-            {
-              "period": 99,
-              "date": "1974-04-01",
-              "value": 65.87
-            },
-            {
-              "period": 102,
-              "date": "1974-07-01",
-              "value": 57.05
-            },
-            {
-              "period": 105,
-              "date": "1974-10-01",
-              "value": 47.18
-            },
-            {
-              "period": 108,
-              "date": "1975-01-01",
-              "value": 48.03
-            },
-            {
-              "period": 111,
-              "date": "1975-04-01",
-              "value": 53.48
-            },
-            {
-              "period": 114,
-              "date": "1975-07-01",
-              "value": 56.81
-            },
-            {
-              "period": 117,
-              "date": "1975-10-01",
-              "value": 51.6
-            },
-            {
-              "period": 120,
-              "date": "1976-01-01",
-              "value": 54.25
-            },
-            {
-              "period": 123,
-              "date": "1976-04-01",
-              "value": 55.54
-            },
-            {
-              "period": 126,
-              "date": "1976-07-01",
-              "value": 55.69
-            },
-            {
-              "period": 129,
-              "date": "1976-10-01",
-              "value": 52.88
-            },
-            {
-              "period": 132,
-              "date": "1977-01-01",
-              "value": 53.39
-            },
-            {
-              "period": 135,
-              "date": "1977-04-01",
-              "value": 50.75
-            },
-            {
-              "period": 138,
-              "date": "1977-07-01",
-              "value": 49.91
-            },
-            {
-              "period": 141,
-              "date": "1977-10-01",
-              "value": 45.36
-            },
-            {
-              "period": 144,
-              "date": "1978-01-01",
-              "value": 42.92
-            },
-            {
-              "period": 147,
-              "date": "1978-04-01",
-              "value": 43.86
-            },
-            {
-              "period": 150,
-              "date": "1978-07-01",
-              "value": 44.93
-            },
-            {
-              "period": 153,
-              "date": "1978-10-01",
-              "value": 45.37
-            },
-            {
-              "period": 156,
-              "date": "1979-01-01",
-              "value": 44.43
-            },
-            {
-              "period": 159,
-              "date": "1979-04-01",
-              "value": 45.35
-            },
-            {
-              "period": 162,
-              "date": "1979-07-01",
-              "value": 44.84
-            },
-            {
-              "period": 165,
-              "date": "1979-10-01",
-              "value": 44.53
-            },
-            {
-              "period": 168,
-              "date": "1980-01-01",
-              "value": 46.97
-            },
-            {
-              "period": 171,
-              "date": "1980-04-01",
-              "value": 42.29
-            },
-            {
-              "period": 174,
-              "date": "1980-07-01",
-              "value": 47.95
-            },
-            {
-              "period": 177,
-              "date": "1980-10-01",
-              "value": 51.3
-            },
-            {
-              "period": 180,
-              "date": "1981-01-01",
-              "value": 50.18
-            },
-            {
-              "period": 183,
-              "date": "1981-04-01",
-              "value": 50.73
-            },
-            {
-              "period": 186,
-              "date": "1981-07-01",
-              "value": 47.7
-            },
-            {
-              "period": 189,
-              "date": "1981-10-01",
-              "value": 42.83
-            },
-            {
-              "period": 192,
-              "date": "1982-01-01",
-              "value": 40.62
-            },
-            {
-              "period": 195,
-              "date": "1982-04-01",
-              "value": 39.38
-            },
-            {
-              "period": 198,
-              "date": "1982-07-01",
-              "value": 34.92
-            },
-            {
-              "period": 201,
-              "date": "1982-10-01",
-              "value": 40.36
-            },
-            {
-              "period": 204,
-              "date": "1983-01-01",
-              "value": 42.47
-            },
-            {
-              "period": 207,
-              "date": "1983-04-01",
-              "value": 43.59
-            },
-            {
-              "period": 210,
-              "date": "1983-07-01",
-              "value": 44.59
-            },
-            {
-              "period": 213,
-              "date": "1983-10-01",
-              "value": 43.55
-            },
-            {
-              "period": 216,
-              "date": "1984-01-01",
-              "value": 41.75
-            },
-            {
-              "period": 219,
-              "date": "1984-04-01",
-              "value": 38.05
-            },
-            {
-              "period": 222,
-              "date": "1984-07-01",
-              "value": 35.17
-            },
-            {
-              "period": 225,
-              "date": "1984-10-01",
-              "value": 36.3
-            },
-            {
-              "period": 228,
-              "date": "1985-01-01",
-              "value": 36.78
-            },
-            {
-              "period": 231,
-              "date": "1985-04-01",
-              "value": 37.44
-            },
-            {
-              "period": 234,
-              "date": "1985-07-01",
-              "value": 38.88
-            },
-            {
-              "period": 237,
-              "date": "1985-10-01",
-              "value": 35.09
-            },
-            {
-              "period": 240,
-              "date": "1986-01-01",
-              "value": 38.39
-            },
-            {
-              "period": 243,
-              "date": "1986-04-01",
-              "value": 42.32
-            },
-            {
-              "period": 246,
-              "date": "1986-07-01",
-              "value": 41.32
-            },
-            {
-              "period": 249,
-              "date": "1986-10-01",
-              "value": 39.19
-            },
-            {
-              "period": 252,
-              "date": "1987-01-01",
-              "value": 42.72
-            },
-            {
-              "period": 255,
-              "date": "1987-04-01",
-              "value": 45.05
-            },
-            {
-              "period": 258,
-              "date": "1987-07-01",
-              "value": 47.08
-            },
-            {
-              "period": 261,
-              "date": "1987-10-01",
-              "value": 41.02
-            },
-            {
-              "period": 264,
-              "date": "1988-01-01",
-              "value": 35.87
-            },
-            {
-              "period": 267,
-              "date": "1988-04-01",
-              "value": 36.99
-            },
-            {
-              "period": 270,
-              "date": "1988-07-01",
-              "value": 37.11
-            },
-            {
-              "period": 273,
-              "date": "1988-10-01",
-              "value": 36.98
-            },
-            {
-              "period": 276,
-              "date": "1989-01-01",
-              "value": 37.15
-            },
-            {
-              "period": 279,
-              "date": "1989-04-01",
-              "value": 38.4
-            },
-            {
-              "period": 282,
-              "date": "1989-07-01",
-              "value": 41.12
-            },
-            {
-              "period": 285,
-              "date": "1989-10-01",
-              "value": 41.38
-            },
-            {
-              "period": 288,
-              "date": "1990-01-01",
-              "value": 39.0
-            },
-            {
-              "period": 291,
-              "date": "1990-04-01",
-              "value": 37.48
-            },
-            {
-              "period": 294,
-              "date": "1990-07-01",
-              "value": 38.61
-            },
-            {
-              "period": 297,
-              "date": "1990-10-01",
-              "value": 31.71
-            },
-            {
-              "period": 300,
-              "date": "1991-01-01",
-              "value": 32.6
-            },
-            {
-              "period": 303,
-              "date": "1991-04-01",
-              "value": 37.27
-            },
-            {
-              "period": 306,
-              "date": "1991-07-01",
-              "value": 36.08
-            },
-            {
-              "period": 309,
-              "date": "1991-10-01",
-              "value": 35.59
-            },
-            {
-              "period": 312,
-              "date": "1992-01-01",
-              "value": 37.51
-            },
-            {
-              "period": 315,
-              "date": "1992-04-01",
-              "value": 35.78
-            },
-            {
-              "period": 318,
-              "date": "1992-07-01",
-              "value": 35.64
-            },
-            {
-              "period": 321,
-              "date": "1992-10-01",
-              "value": 34.5
-            },
-            {
-              "period": 324,
-              "date": "1993-01-01",
-              "value": 35.96
-            },
-            {
-              "period": 327,
-              "date": "1993-04-01",
-              "value": 35.7
-            },
-            {
-              "period": 330,
-              "date": "1993-07-01",
-              "value": 35.67
-            },
-            {
-              "period": 333,
-              "date": "1993-10-01",
-              "value": 36.05
-            },
-            {
-              "period": 336,
-              "date": "1994-01-01",
-              "value": 36.36
-            },
-            {
-              "period": 339,
-              "date": "1994-04-01",
-              "value": 33.88
-            },
-            {
-              "period": 342,
-              "date": "1994-07-01",
-              "value": 33.72
-            },
-            {
-              "period": 345,
-              "date": "1994-10-01",
-              "value": 33.75
-            },
-            {
-              "period": 348,
-              "date": "1995-01-01",
-              "value": 33.09
-            },
-            {
-              "period": 351,
-              "date": "1995-04-01",
-              "value": 35.18
-            },
-            {
-              "period": 354,
-              "date": "1995-07-01",
-              "value": 38.06
-            },
-            {
-              "period": 357,
-              "date": "1995-10-01",
-              "value": 39.68
-            },
-            {
-              "period": 360,
-              "date": "1996-01-01",
-              "value": 40.84
-            },
-            {
-              "period": 363,
-              "date": "1996-04-01",
-              "value": 42.74
-            },
-            {
-              "period": 366,
-              "date": "1996-07-01",
-              "value": 41.98
-            },
-            {
-              "period": 369,
-              "date": "1996-10-01",
-              "value": 44.55
-            },
-            {
-              "period": 372,
-              "date": "1997-01-01",
-              "value": 47.62
-            },
-            {
-              "period": 375,
-              "date": "1997-04-01",
-              "value": 47.35
-            },
-            {
-              "period": 378,
-              "date": "1997-07-01",
-              "value": 56.4
-            },
-            {
-              "period": 381,
-              "date": "1997-10-01",
-              "value": 57.6
-            },
-            {
-              "period": 384,
-              "date": "1998-01-01",
-              "value": 57.74
-            },
-            {
-              "period": 387,
-              "date": "1998-04-01",
-              "value": 66.15
-            },
-            {
-              "period": 390,
-              "date": "1998-07-01",
-              "value": 67.36
-            },
-            {
-              "period": 393,
-              "date": "1998-10-01",
-              "value": 57.84
-            },
-            {
-              "period": 396,
-              "date": "1999-01-01",
-              "value": 66.88
-            },
-            {
-              "period": 399,
-              "date": "1999-04-01",
-              "value": 70.68
-            },
-            {
-              "period": 402,
-              "date": "1999-07-01",
-              "value": 72.82
-            },
-            {
-              "period": 405,
-              "date": "1999-10-01",
-              "value": 65.84
-            },
-            {
-              "period": 408,
-              "date": "2000-01-01",
-              "value": 69.8
-            },
-            {
-              "period": 411,
-              "date": "2000-04-01",
-              "value": 72.18
-            },
-            {
-              "period": 414,
-              "date": "2000-07-01",
-              "value": 73.07
-            },
-            {
-              "period": 417,
-              "date": "2000-10-01",
-              "value": 72.49
-            },
-            {
-              "period": 420,
-              "date": "2001-01-01",
-              "value": 71.53
-            },
-            {
-              "period": 423,
-              "date": "2001-04-01",
-              "value": 67.27
-            },
-            {
-              "period": 426,
-              "date": "2001-07-01",
-              "value": 67.11
-            },
-            {
-              "period": 429,
-              "date": "2001-10-01",
-              "value": 59.39
-            },
-            {
-              "period": 432,
-              "date": "2002-01-01",
-              "value": 61.5
-            },
-            {
-              "period": 435,
-              "date": "2002-04-01",
-              "value": 60.89
-            },
-            {
-              "period": 438,
-              "date": "2002-07-01",
-              "value": 49.67
-            },
-            {
-              "period": 441,
-              "date": "2002-10-01",
-              "value": 45.58
-            },
-            {
-              "period": 444,
-              "date": "2003-01-01",
-              "value": 46.98
-            },
-            {
-              "period": 447,
-              "date": "2003-04-01",
-              "value": 44.81
-            },
-            {
-              "period": 450,
-              "date": "2003-07-01",
-              "value": 49.28
-            },
-            {
-              "period": 453,
-              "date": "2003-10-01",
-              "value": 50.57
-            },
-            {
-              "period": 456,
-              "date": "2004-01-01",
-              "value": 55.26
-            },
-            {
-              "period": 459,
-              "date": "2004-04-01",
-              "value": 54.5
-            },
-            {
-              "period": 462,
-              "date": "2004-07-01",
-              "value": 52.46
-            },
-            {
-              "period": 465,
-              "date": "2004-10-01",
-              "value": 52.24
-            },
-            {
-              "period": 468,
-              "date": "2005-01-01",
-              "value": 54.48
-            },
-            {
-              "period": 471,
-              "date": "2005-04-01",
-              "value": 54.23
-            },
-            {
-              "period": 474,
-              "date": "2005-07-01",
-              "value": 55.87
-            },
-            {
-              "period": 477,
-              "date": "2005-10-01",
-              "value": 54.18
-            },
-            {
-              "period": 480,
-              "date": "2006-01-01",
-              "value": 57.35
-            },
-            {
-              "period": 483,
-              "date": "2006-04-01",
-              "value": 59.51
-            },
-            {
-              "period": 486,
-              "date": "2006-07-01",
-              "value": 57.24
-            },
-            {
-              "period": 489,
-              "date": "2006-10-01",
-              "value": 59.84
-            },
-            {
-              "period": 492,
-              "date": "2007-01-01",
-              "value": 61.96
-            },
-            {
-              "period": 495,
-              "date": "2007-04-01",
-              "value": 64.66
-            },
-            {
-              "period": 498,
-              "date": "2007-07-01",
-              "value": 66.57
-            },
-            {
-              "period": 501,
-              "date": "2007-10-01",
-              "value": 66.09
-            },
-            {
-              "period": 504,
-              "date": "2008-01-01",
-              "value": 58.36
-            },
-            {
-              "period": 507,
-              "date": "2008-04-01",
-              "value": 58.03
-            },
-            {
-              "period": 510,
-              "date": "2008-07-01",
-              "value": 50.49
-            },
-            {
-              "period": 513,
-              "date": "2008-10-01",
-              "value": 34.4
-            },
-            {
-              "period": 516,
-              "date": "2009-01-01",
-              "value": 29.6
-            },
-            {
-              "period": 519,
-              "date": "2009-04-01",
-              "value": 27.77
-            },
-            {
-              "period": 522,
-              "date": "2009-07-01",
-              "value": 30.33
-            },
-            {
-              "period": 525,
-              "date": "2009-10-01",
-              "value": 34.07
-            },
-            {
-              "period": 528,
-              "date": "2010-01-01",
-              "value": 34.12
-            },
-            {
-              "period": 531,
-              "date": "2010-04-01",
-              "value": 34.58
-            },
-            {
-              "period": 534,
-              "date": "2010-07-01",
-              "value": 30.09
-            },
-            {
-              "period": 537,
-              "date": "2010-10-01",
-              "value": 32.03
-            },
-            {
-              "period": 540,
-              "date": "2011-01-01",
-              "value": 34.07
-            },
-            {
-              "period": 543,
-              "date": "2011-04-01",
-              "value": 35.46
-            },
-            {
-              "period": 546,
-              "date": "2011-07-01",
-              "value": 33.67
-            },
-            {
-              "period": 549,
-              "date": "2011-10-01",
-              "value": 28.61
-            },
-            {
-              "period": 552,
-              "date": "2012-01-01",
-              "value": 29.7
-            },
-            {
-              "period": 555,
-              "date": "2012-04-01",
-              "value": 30.46
-            },
-            {
-              "period": 558,
-              "date": "2012-07-01",
-              "value": 29.05
-            },
-            {
-              "period": 561,
-              "date": "2012-10-01",
-              "value": 30.28
-            },
-            {
-              "period": 564,
-              "date": "2013-01-01",
-              "value": 31.32
-            },
-            {
-              "period": 567,
-              "date": "2013-04-01",
-              "value": 32.61
-            },
-            {
-              "period": 570,
-              "date": "2013-07-01",
-              "value": 33.89
-            },
-            {
-              "period": 573,
-              "date": "2013-10-01",
-              "value": 34.44
-            },
-            {
-              "period": 576,
-              "date": "2014-01-01",
-              "value": 34.96
-            },
-            {
-              "period": 579,
-              "date": "2014-04-01",
-              "value": 35.79
-            },
-            {
-              "period": 582,
-              "date": "2014-07-01",
-              "value": 37.0
-            },
-            {
-              "period": 585,
-              "date": "2014-10-01",
-              "value": 34.66
-            },
-            {
-              "period": 588,
-              "date": "2015-01-01",
-              "value": 35.34
-            },
-            {
-              "period": 591,
-              "date": "2015-04-01",
-              "value": 36.68
-            },
-            {
-              "period": 594,
-              "date": "2015-07-01",
-              "value": 35.92
-            },
-            {
-              "period": 597,
-              "date": "2015-10-01",
-              "value": 32.76
-            },
-            {
-              "period": 600,
-              "date": "2016-01-01",
-              "value": 29.68
-            },
-            {
-              "period": 603,
-              "date": "2016-04-01",
-              "value": 32.03
-            },
-            {
-              "period": 606,
-              "date": "2016-07-01",
-              "value": 32.75
-            },
-            {
-              "period": 609,
-              "date": "2016-10-01",
-              "value": 31.79
-            },
-            {
-              "period": 612,
-              "date": "2017-01-01",
-              "value": 33.92
-            },
-            {
-              "period": 615,
-              "date": "2017-04-01",
-              "value": 34.65
-            },
-            {
-              "period": 618,
-              "date": "2017-07-01",
-              "value": 35.21
-            },
-            {
-              "period": 621,
-              "date": "2017-10-01",
-              "value": 36.17
-            },
-            {
-              "period": 624,
-              "date": "2018-01-01",
-              "value": 37.77
-            },
-            {
-              "period": 627,
-              "date": "2018-04-01",
-              "value": 35.51
-            },
-            {
-              "period": 630,
-              "date": "2018-07-01",
-              "value": 35.61
-            },
-            {
-              "period": 633,
-              "date": "2018-10-01",
-              "value": 34.25
-            },
-            {
-              "period": 636,
-              "date": "2019-01-01",
-              "value": 32.35
-            },
-            {
-              "period": 639,
-              "date": "2019-04-01",
-              "value": 35.23
-            },
-            {
-              "period": 642,
-              "date": "2019-07-01",
-              "value": 34.83
-            },
-            {
-              "period": 645,
-              "date": "2019-10-01",
-              "value": 33.53
-            },
-            {
-              "period": 648,
-              "date": "2020-01-01",
-              "value": 36.13
-            },
-            {
-              "period": 651,
-              "date": "2020-04-01",
-              "value": 24.65
-            },
-            {
-              "period": 654,
-              "date": "2020-07-01",
-              "value": 27.38
-            },
-            {
-              "period": 657,
-              "date": "2020-10-01",
-              "value": 28.06
-            },
-            {
-              "period": 660,
-              "date": "2021-01-01",
-              "value": 31.64
-            },
-            {
-              "period": 663,
-              "date": "2021-04-01",
-              "value": 33.77
-            },
-            {
-              "period": 666,
-              "date": "2021-07-01",
-              "value": 34.9
-            },
-            {
-              "period": 669,
-              "date": "2021-10-01",
-              "value": 33.95
-            },
-            {
-              "period": 672,
-              "date": "2022-01-01",
-              "value": 33.34
-            },
-            {
-              "period": 675,
-              "date": "2022-04-01",
-              "value": 32.21
-            },
-            {
-              "period": 678,
-              "date": "2022-07-01",
-              "value": 28.5
-            },
-            {
-              "period": 681,
-              "date": "2022-10-01",
-              "value": 26.93
-            },
-            {
-              "period": 684,
-              "date": "2023-01-01",
-              "value": 29.96
-            },
-            {
-              "period": 687,
-              "date": "2023-04-01",
-              "value": 28.78
-            },
-            {
-              "period": 690,
-              "date": "2023-07-01",
-              "value": 29.14
-            },
-            {
-              "period": 693,
-              "date": "2023-10-01",
-              "value": 26.75
-            },
-            {
-              "period": 696,
-              "date": "2024-01-01",
-              "value": 29.17
-            },
-            {
-              "period": 699,
-              "date": "2024-04-01",
-              "value": 30.69
-            },
-            {
-              "period": 702,
-              "date": "2024-07-01",
-              "value": 31.1
-            },
-            {
-              "period": 705,
-              "date": "2024-10-01",
-              "value": 32.45
-            },
-            {
-              "period": 708,
-              "date": "2025-01-01",
-              "value": 32.4
-            },
-            {
-              "period": 711,
-              "date": "2025-04-01",
-              "value": 30.63
-            },
-            {
-              "period": 714,
-              "date": "2025-07-01",
-              "value": 32.92
-            },
-            {
-              "period": 717,
-              "date": "2025-10-01",
-              "value": 33.61
-            },
-            {
-              "period": 720,
-              "date": "2026-01-01",
-              "value": 34.79
-            }
-          ]
-        }
-      ],
-      "source_ids": [
-        "SPASTT01USM661N",
-        "GFDEBTN"
-      ],
-      "range": {
-        "minimum": 24.65,
-        "maximum": 103.41
-      },
-      "scope_note": "*미국 주가·연방부채 기준",
-      "insight": "1968·2000 고점과 지금 위치를 60년 한 선으로 봅니다. 주가가 연방부채보다 빨리 오르면 선이 오르고, 부채가 빨리 늘면 내려갑니다.",
-      "conclusion": "1966년을 100으로 두면 현재 35입니다. 1968년 고점 103·2000년 고점 73 대비 34% 수준으로, 주가가 연방부채 팽창을 따라잡는 중이지만 두 차례 고점에는 아직 못 미칩니다.",
-      "metric_source_ids": [
-        "SPASTT01USM661N",
-        "GFDEBTN"
-      ],
-      "research_context_source_ids": [],
-      "max_period": 720,
-      "x_ticks": [
-        [
-          48,
-          "1970"
-        ],
-        [
-          168,
-          "1980"
-        ],
-        [
-          288,
-          "1990"
-        ],
-        [
-          408,
-          "2000"
-        ],
-        [
-          528,
-          "2010"
-        ],
-        [
-          648,
-          "2020"
-        ]
-      ],
-      "axis_note": "1966년부터 현재까지 분기 관측 경로. 첫 관측=100.",
-      "observed_end_label": "실제 관측 종료",
-      "events": [
-        {
-          "period": 33,
-          "label": "1968 고점 103"
-        },
-        {
-          "period": 414,
-          "label": "2000 고점 73"
-        }
-      ]
     },
     {
       "id": "yield_curve",
@@ -16277,7 +15000,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "a4f368e7eeffbc660edd56646d0aa9e53615aea7667335f47709096c45ced98b",
@@ -16297,7 +15020,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "230b66df0828437c2bc1c7d40ed18fbda731f4f312e483a7e0c36da0178da9c2",
@@ -16317,7 +15040,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "29acfd235beec736488c727bf501066ef7e05b737ca01965351078345d0dd71d",
@@ -16337,7 +15060,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "a1f3869c1cecf7784ef456c48c287dd007e0f2dec42e86fececad11e621d094c",
@@ -16357,7 +15080,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "6ef60ed8c2152213b41933debbe9ac738448581c5c42447586f3814506fdcac8",
@@ -16377,7 +15100,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "a101f9c4a5446c6f8746d3b19b35f1910556b74e25f43b9e69be31c60cc3ab22",
@@ -16397,7 +15120,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "484fae26cd00092a4a48eed62eda7ef82719b6b3173ca5c769866cf8c2cfa52b",
@@ -16417,7 +15140,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "3f12d055372d3a0cfc4d8d8e89457709aac9e3d70370e1c8125a848a99414cc8",
@@ -16437,7 +15160,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "2f9bfbfb1690e2ad382ee0e0eca60330aa7e4ee48478a230f3adbafee2309082",
@@ -16457,7 +15180,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "9822c3d45f96edc1291a704c62e067094517662b0fd26a7c0012dc9d36fdb578",
@@ -16478,7 +15201,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 10497,
       "raw_sha256": "3d4107ab817dc21b34e68d23deba9a7968eef3df9013ce9a47e1c888e0a3866a",
@@ -16498,7 +15221,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 7922,
       "raw_sha256": "a7e80d1eeeeee7831f4a9212d2288945ca066d7b38c825211c49189a67f80b34",
@@ -16518,7 +15241,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 7922,
       "raw_sha256": "75803cbaaa46e7dcf4705cc8c6d2266c40b7f63555d3c51027dca9d7bd2bf32c",
@@ -16538,11 +15261,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
-      "raw_sha256": "a8e464292fe10443671ab2f869132b5498dc65cdc0f826e81e3d478a9d22eb73",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/a8e464292fe10443671ab2f869132b5498dc65cdc0f826e81e3d478a9d22eb73.bin",
+      "raw_sha256": "bfc9a9372def7a3187f4e78afc43c8e586a72043a84d2644079bfd0a8d420f0c",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/bfc9a9372def7a3187f4e78afc43c8e586a72043a84d2644079bfd0a8d420f0c.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -16558,7 +15281,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 378,
       "raw_sha256": "3e05939218c4000fb2a5b2c051100fb45c9cf999df8fe2872e6306da7ebb18bd",
@@ -16578,7 +15301,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 85,
       "raw_sha256": "35ecaa61f3f458548767769239e9682a658cff8e3e444274951d432d8352fb4a",
@@ -16598,7 +15321,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2025-10-01",
       "row_count": 124,
       "raw_sha256": "63456b1c6b917e6b208ef1b2edc71423e8c93b279eb80e22a193b8d621fc0f0b",
@@ -16618,11 +15341,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
-      "raw_sha256": "2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be.bin",
+      "raw_sha256": "47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -16638,7 +15361,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "93993f9812706253bca9f84ff1db5e9aee20d29166dfb6812df5c7fba42118b6",
@@ -16658,7 +15381,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "44012619891d16d350d3b04512e62769396ded3188fc357ae3a5cb0909f62ae7",
@@ -16678,7 +15401,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c726c7e517010411938abf792d77c9167472c44b03373f770d18504ad903bd33",
@@ -16698,7 +15421,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "11432d12678315c09a3c0483d95b636d0b1cb916db8f645d0fe876f873d44177",
@@ -16718,7 +15441,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "98d1c845bd8b2be84573c7086414cd2e3364f7773818bc5cb6501fb3bd77b357",
@@ -16738,7 +15461,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-21",
       "row_count": 1651,
       "raw_sha256": "5e154a5dcf438c456475b071112faa1644c46d6a3f0a21abfce9762ca2765090",
@@ -16758,7 +15481,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "d4947a481a938a15d8e3cf45cd129c718ffb09d21f29b40c8f91e0879e248570",
@@ -16778,7 +15501,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "209a8f85182e2b539ce0ff1dd3995bfddc809de2bbdcda625d7e15e448e1c4e0",
@@ -16798,7 +15521,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "96c1c641415ecf14427607d76fa0666d17150296314de041ce26b8f67bc87953",
@@ -16818,7 +15541,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-25",
       "row_count": 7940,
       "raw_sha256": "0a5a7bd9d0778f03a5e9e3b83b59654d04027fc4a04d813fefc53f2e810fa7a3",
@@ -16838,7 +15561,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 378,
       "raw_sha256": "0e735a1d86e2d706939a872e3af789ea5a73b6d0ec767d36860c1338ea7ea283",
@@ -16858,7 +15581,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "e0374ae81cd938bbc288c3348e920d74f8dd3b9c9e333b188dd875162828cef5",
@@ -16879,7 +15602,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 918,
       "raw_sha256": "9bc6f60aeaafd9f66d86517b0da4e4187659bd60365cb62bfc0e1e3d642525db",
@@ -16900,7 +15623,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 1339,
       "raw_sha256": "be6877ba7279d0dffbad6702f805f8f3b8378a86551550b88ddfda8b6fc7cc1d",
@@ -16921,7 +15644,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-08-31",
       "row_count": 1674,
       "raw_sha256": "3f064e194888d9361ff1bfbfee03cef163b5bf28ae740578a85ce5cb6dad27ad",
@@ -16942,7 +15665,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 78,
       "raw_sha256": "ec74e610fd69dad001f3851e073d9f93dafe35dc1ca1e138e3bad683ea7231ed",
@@ -16956,18 +15679,17 @@
       "unit": "index_2015_100",
       "native_frequency": "monthly",
       "aggregation": "last",
-      "window_start": "1966-01-01",
       "source_url": "https://fred.stlouisfed.org/series/SPASTT01USM661N",
-      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=SPASTT01USM661N&file_type=json&observation_start=1966-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=SPASTT01USM661N&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
-      "row_count": 726,
-      "raw_sha256": "02b48d2306e997cb5675b01ad48b6b06d280b7aa6c4fcb646a6720050c782d38",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/02b48d2306e997cb5675b01ad48b6b06d280b7aa6c4fcb646a6720050c782d38.bin",
+      "row_count": 378,
+      "raw_sha256": "63758e25d29f86f33f1f189af84439d31c2c7963e549f7d071b9e5bbd45ada15",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/63758e25d29f86f33f1f189af84439d31c2c7963e549f7d071b9e5bbd45ada15.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -16977,18 +15699,17 @@
       "unit": "millions_usd",
       "native_frequency": "quarterly",
       "aggregation": "last",
-      "window_start": "1966-01-01",
       "source_url": "https://fred.stlouisfed.org/series/GFDEBTN",
-      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=GFDEBTN&file_type=json&observation_start=1966-01-01",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=GFDEBTN&file_type=json&observation_start=1995-01-01",
       "authority_class": "authoritative_public_distributor",
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
-      "row_count": 241,
-      "raw_sha256": "dc2cb3b98a164ff1c9f55ef4b03398243ae678869309ebe14e549957f14297f3",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/dc2cb3b98a164ff1c9f55ef4b03398243ae678869309ebe14e549957f14297f3.bin",
+      "row_count": 125,
+      "raw_sha256": "0f5473710fefa4396965deec4b2b167db5eeb49bad70383bbc87b459c4a190ae",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/0f5473710fefa4396965deec4b2b167db5eeb49bad70383bbc87b459c4a190ae.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17004,7 +15725,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 379,
       "raw_sha256": "acd29c2a89a22246c964b577ad6a25f6dbd618d2f3976920b1177f644e5db385",
@@ -17024,7 +15745,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "6479ba6dd3b37f165f4a29c165e300e8bfcd8a94a5b5491a4402d9d298d23b78",
@@ -17044,7 +15765,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "322b12abf92786e998609665bf844e1f5efd311decb0b8c6bafe19feac2039c4",
@@ -17064,7 +15785,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "ccb461aa2f38ec720ed3d1f0c03c9b9d9c0b47ead192384b8009060a8bc99b6d",
@@ -17083,7 +15804,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "41ec9bc4ac8191be7d6db38c467550e7b6a4108370885f41e7b6b899117ee5c0",
@@ -17102,7 +15823,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
@@ -17122,7 +15843,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
@@ -17141,7 +15862,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "b23e0ad3a5afc700c3608863707b0514e6e119b43efeaf89ec6e746da8dbea24",
@@ -17160,7 +15881,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 402,
       "raw_sha256": "969e4be6389bb00be34cc2fd1757f5ba17a24817a62d075932226b89d57a04b4",
@@ -17179,7 +15900,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 402,
       "raw_sha256": "969e4be6389bb00be34cc2fd1757f5ba17a24817a62d075932226b89d57a04b4",
@@ -17198,7 +15919,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 402,
       "raw_sha256": "969e4be6389bb00be34cc2fd1757f5ba17a24817a62d075932226b89d57a04b4",
@@ -17217,7 +15938,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 402,
       "raw_sha256": "969e4be6389bb00be34cc2fd1757f5ba17a24817a62d075932226b89d57a04b4",
@@ -17236,7 +15957,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-09-01T05:31:11+00:00",
+      "available_at": "2026-09-01T05:18:34+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 150,
       "raw_sha256": "969e4be6389bb00be34cc2fd1757f5ba17a24817a62d075932226b89d57a04b4",
