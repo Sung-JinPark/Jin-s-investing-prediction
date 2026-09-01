@@ -118,6 +118,7 @@ statistics:
     nasdaq_per_m2: [NASDAQCOM, M2SL]
     nasdaq_per_household_liquid_assets: [NASDAQCOM, DABSHNO]
     spx_per_federal_debt: [SPASTT01USM661N, GFDEBTN]
+    spx_per_federal_debt_full_history: [SPASTT01USM661N, GFDEBTN]
     liquidity_position_map: [BOGZ1LM893064105Q, FGDSLAQ027S, TSDABSHNO, CDCABSHNO, M2SL, MMMFFAQ027S, BOGZ1FL153064235Q, SP500, NASDAQCOM, CBBTCUSD, IQ12260]
     yield_curve: [T10Y2Y, T10Y3M]
     policy_rate: [FEDFUNDS]
