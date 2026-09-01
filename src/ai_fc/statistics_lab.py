@@ -317,6 +317,20 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "aggregation": "last",
         "window_start": "2020-01-01",
     },
+    "SPASTT01USM661N": {
+        "title": "U.S. share-price index (S&P family, monthly average)",
+        "provider": "OECD Main Economic Indicators via Federal Reserve Bank of St. Louis",
+        "unit": "index_2015_100",
+        "native_frequency": "monthly",
+        "aggregation": "last",
+    },
+    "GFDEBTN": {
+        "title": "Federal debt: total public debt",
+        "provider": "U.S. Department of the Treasury, Fiscal Service via Federal Reserve Bank of St. Louis",
+        "unit": "millions_usd",
+        "native_frequency": "quarterly",
+        "aggregation": "last",
+    },
     "HOUST": {
         "title": "Housing starts: total new privately owned housing units",
         "provider": "U.S. Census Bureau via Federal Reserve Bank of St. Louis",
@@ -1812,6 +1826,9 @@ def build_statistics_lab(
     dot_nasdaq_cash, cur_nasdaq_cash = cycles(
         _ratio(monthly["NASDAQCOM"], monthly["DABSHNO"]), indexed=True,
     )
+    dot_spx_debt, cur_spx_debt = cycles(
+        _ratio(monthly["SPASTT01USM661N"], monthly["GFDEBTN"]), indexed=True,
+    )
     dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
     dot_curve3m, cur_curve3m = cycles(monthly["T10Y3M"])
     dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
@@ -1984,6 +2001,9 @@ def build_statistics_lab(
         make("nasdaq_per_household_liquid_assets", "가계 현금성 자산 한 단위 대비 NASDAQ", "liquidity", "cycle_start_100",
              [_series("닷컴", "dotcom", dot_nasdaq_cash, "#7a3248"), _series("현재", "current", cur_nasdaq_cash, "#e46b20")],
              ["NASDAQCOM", "DABSHNO"], "*미국 가계·비영리 자산 기준", "가계 현금성 자산 대비 NASDAQ의 상대 속도를 비교합니다."),
+        make("spx_per_federal_debt", "연방부채 한 단위 대비 미국 주가", "liquidity", "cycle_start_100",
+             [_series("닷컴", "dotcom", dot_spx_debt, "#5a3d7a"), _series("현재", "current", cur_spx_debt, "#2e6bd4")],
+             ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "연방부채 증가보다 주가가 얼마나 빠르게 움직였는지 보여줍니다."),
         make("yield_curve", "장단기 금리차: 10년−2년과 10년−3개월", "rates", "percent",
              [_series("닷컴 10y−2y", "dotcom", dot_curve, "#8d2943"), _series("현재 10y−2y", "current", cur_curve, "#28756a"), _series("닷컴 10y−3m", "dotcom", dot_curve3m, "#c98a9b"), _series("현재 10y−3m", "current", cur_curve3m, "#7fb3a5")],
              ["T10Y2Y", "T10Y3M"], "*미국 국채 기준", "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다."),
@@ -2125,6 +2145,12 @@ def build_statistics_lab(
             "분모가 분기 자료라 관측치가 적습니다(닷컴 20개·현재 13개). "
             "명목 비교입니다."
         ),
+        "spx_per_federal_debt": (
+            "분자는 OECD 미국 주가지수(S&P 계열 월평균, 2015=100)로 S&P 500 종가가 "
+            "아니며 — FRED의 S&P 500은 최근 10년만 제공해 닷컴 구간 비교가 불가능합니다 — "
+            "분모는 재무부 분기말 연방부채 잔액입니다. 명목 비율의 시작=100 지수이며 "
+            "매수·매도 신호가 아닙니다."
+        ),
         "korea_semiconductor_cycle": (
             "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
         ),
@@ -2239,6 +2265,14 @@ def build_statistics_lab(
             f"닷컴 같은 {months_elapsed(cur_nasdaq_cash)}개월차의 "
             f"{matched(dot_nasdaq_cash, cur_nasdaq_cash):.0f}와 비교되고, 닷컴 말기는 "
             f"{endpoint(dot_nasdaq_cash):.0f}였습니다."
+        ),
+        "spx_per_federal_debt": (
+            f"연방부채 대비 미국 주가 속도지수는 현재 {endpoint(cur_spx_debt):.0f}로 닷컴 같은 "
+            f"{months_elapsed(cur_spx_debt)}개월차의 "
+            f"{matched(dot_spx_debt, cur_spx_debt):.0f}"
+            f"{'보다 높습니다' if endpoint(cur_spx_debt) > matched(dot_spx_debt, cur_spx_debt) else '보다 낮습니다'}. "
+            f"닷컴 말기에는 {endpoint(dot_spx_debt):.0f}였습니다. 최근 연방부채는 "
+            f"{float(monthly['GFDEBTN'][-1]['value']) / 1_000_000.0:.1f}조 달러입니다."
         ),
         "liquidity_position_map": (
             f"미국 MMF는 M2의 약 {mmf_to_m2:.0f}% 규모이고, 최근 12개월 방향은 "

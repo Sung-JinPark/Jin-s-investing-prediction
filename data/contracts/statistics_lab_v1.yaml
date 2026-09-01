@@ -55,6 +55,8 @@ sources:
       CBBTCUSD: {native_frequency: daily_close, unit: dollars, aggregation: last, role: crypto_risk_appetite_reference}
       NASDAQSOX: {native_frequency: daily_close, unit: index, aggregation: last, role: us_semiconductor_index_reference}
       SPASTT01KRM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: korea_share_price_reference}
+      SPASTT01USM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: us_share_price_full_history_sp_family_monthly_average}
+      GFDEBTN: {native_frequency: quarterly, unit: millions_usd, aggregation: last, role: federal_total_public_debt_denominator}
       HOUST: {native_frequency: monthly, unit: thousands_saar, aggregation: last, role: housing_starts_cycle_reference}
       GDP: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: investment_share_denominator}
       Y034RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: information_processing_equipment_investment}
