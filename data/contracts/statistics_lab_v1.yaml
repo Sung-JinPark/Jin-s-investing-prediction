@@ -77,19 +77,6 @@ sources:
       C30_COMMUNICATION: {column: Communication, native_frequency: monthly, unit: millions_usd, aggregation: last, role: communication_structures_buildout}
       C30_OFFICE_TOTAL: {column: Office, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_share_denominator}
       C30_OFFICE_DATA_CENTER: {column: Data center, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_structures, history: begins_2014_01_no_dotcom_counterpart}
-  yahoo_chart:
-    endpoint: https://query1.finance.yahoo.com/v8/finance/chart/
-    series:
-      KOSPI_DAILY: {symbol: ^KS11, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: Korea_main_board_benchmark_and_base_calendar}
-      TAIEX_DAILY: {symbol: ^TWII, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: external_Asia_semiconductor_market_confirmation}
-      SOX_DAILY: {symbol: ^SOX, native_frequency: daily_close, unit: index, window: [2020-01-01, last_completed_session_only], active_session_excluded: true, role: strictly_prior_US_semiconductor_close_impulse}
-      SP500_DAILY: {symbol: ^GSPC, native_frequency: daily_close, unit: index, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: price_change_context_not_fund_flow}
-      GOLD_FUTURES_DAILY: {symbol: GC=F, native_frequency: daily_close, unit: dollars_per_troy_ounce, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: gold_price_change_context_not_ETF_flow}
-      BTCUSD_DAILY: {symbol: BTC-USD, native_frequency: daily_close, unit: dollars_per_bitcoin, window: [2023-01-01, last_completed_session_only], active_session_excluded: true, role: bitcoin_price_change_context_not_fund_flow}
-  federal_reserve_z1:
-    endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
-    table: F4.6.s
-    series: FL663067003.Q
     label: Household margin loans and other receivables due to brokers
     unit: millions_usd
     role: margin_credit_proxy_not_finra_margin_debt
@@ -126,11 +113,6 @@ sources:
     discovery: newest_sec-stats-ipos-YYYYMMDD_xlsx_link_on_official_page
     native_frequency: quarterly
     role: us_ipo_issuer_type_counts_and_proceeds
-  nyu_stern_annual_returns:
-    endpoint: https://pages.stern.nyu.edu/~adamodar/pc/datasets/histretSP.xlsx
-    page: https://pages.stern.nyu.edu/~adamodar/New_Home_Page/datafile/histretSP.html
-    native_frequency: annual
-    role: sp500_total_return_historical_event_study
   wilmerhale_1999_internet_ipo_review:
     page: https://www.wilmerhale.com/en/insights/publications/internet-ipos-conclude-a-sensational-year-in-1999-december-1999
     native_frequency: historical_research
@@ -189,23 +171,10 @@ macro_warning_policy:
   first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
   inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
-  recession_panel: {housing: NAHB_HMI_minus_50, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited}
-  kospi_external_semiconductor_pulse:
-    series: [KOSPI_DAILY, TAIEX_DAILY, SOX_DAILY]
-    display: rolling_20_session_log_return_percent
-    taiex_alignment: latest_close_on_or_before_each_KOSPI_date
-    sox_alignment: latest_close_strictly_before_each_KOSPI_date
-    history_diagnostic_window: 2020_to_last_completed_session
-    time_warping: prohibited
-    optimized_lag: prohibited
-    future_extension: prohibited
-    interpretation: descriptive_correlation_and_conditional_frequency_not_causation_or_forecast
-    probability_output: prohibited
-  historical_event_studies:
-    two_consecutive_twenty_percent_years: {source: NYU_SP500_ANNUAL_TOTAL_RETURN, return_type: total_return_including_dividends, overlap: retained, probability_output: prohibited}
+  recession_panel: {housing: HOUST_yoy_percent, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited, axis_note: units_differ_direction_comparison_only}
   household_balance_sheet_trend_gap:
     series: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
-    baseline: separate_linear_trend_fitted_on_observations_from_2009-01-01_through_2019-12-31
+    baseline: separate_log_linear_trend_fitted_on_observations_from_2009-01-01_through_2019-12-31
     training_observations: {corporate_equities_quarterly: 44, currency_deposits_money_market_funds_quarterly: 44, debt_securities_annual: 11}
     output: percent_above_or_below_own_trend
     interpretation: descriptive_not_fair_value_or_forecast
@@ -306,4 +275,4 @@ excluded_sources:
     reason: proprietary_redistribution_restriction
   paid_index_forward_pe:
     reason: no_redistribution_rights_or_reproducible_public_history
-    replacement: NCBEILQ027S_divided_by_CPATAX_reference_proxy
+    replacement: NCBEILQ027S_divided_by_W328RC1Q027SBEA_reference_proxy
