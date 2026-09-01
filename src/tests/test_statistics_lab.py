@@ -23,7 +23,6 @@ from ai_fc.authoritative_statistics import (
 from ai_fc.statistics_lab import (
     CENSUS_C30_SERIES,
     Z1_SERIES,
-    DAILY_MARKET_SERIES,
     FRED_SERIES,
     IPO_REFERENCE_CHART_IDS,
     StatisticsLabError,
@@ -344,36 +343,6 @@ def _xlsx_fixture(sheet_name: str, rows: list[list[object]]) -> bytes:
 
 def _payload_inputs() -> tuple[dict, dict]:
     rows = {series_id: _rows(series_id) for series_id in FRED_SERIES}
-    market_rows = {series_id: [] for series_id in DAILY_MARKET_SERIES}
-    market_values = {
-        "KOSPI_DAILY": 2200.0,
-        "TAIEX_DAILY": 12_000.0,
-        "SOX_DAILY": 1800.0,
-        "SP500_DAILY": 3200.0,
-        "GOLD_FUTURES_DAILY": 1600.0,
-        "BTCUSD_DAILY": 9000.0,
-    }
-    observed = date(2020, 1, 1)
-    session = 0
-    while observed <= date(2026, 12, 30):
-        if observed.weekday() < 5:
-            common = math.sin(session * 0.17) * 0.008 + math.cos(session * 0.047) * 0.003
-            returns = {
-                "KOSPI_DAILY": 0.0005 + common,
-                "TAIEX_DAILY": 0.0005 + common * 0.93 + math.sin(session * 0.07) * 0.002,
-                "SOX_DAILY": 0.0007 + common * 1.35 + math.cos(session * 0.13) * 0.005,
-                "SP500_DAILY": 0.0004 + common * 0.78,
-                "GOLD_FUTURES_DAILY": 0.0002 + common * 0.35,
-                "BTCUSD_DAILY": 0.0008 + common * 1.9 + math.sin(session * 0.19) * 0.007,
-            }
-            for series_id, daily_return in returns.items():
-                market_values[series_id] *= math.exp(daily_return)
-                market_rows[series_id].append({
-                    "date": observed.isoformat(), "value": market_values[series_id],
-                })
-            session += 1
-        observed = date.fromordinal(observed.toordinal() + 1)
-    rows.update(market_rows)
     rows["SEC_IPO_QUARTERLY"] = [
         {"date": "2025-03-01", "period_label": "2025:Q1", "total_count": 84, "us_count": 45, "non_us_count": 39, "corporate_count": 63, "spac_count": 20, "fund_count": 1, "total_proceeds_mn": 11867.2, "corporate_proceeds_mn": 8814.8, "spac_proceeds_mn": 3052.0, "fund_proceeds_mn": 0.4},
         {"date": "2025-06-01", "period_label": "2025:Q2", "total_count": 96, "us_count": 59, "non_us_count": 37, "corporate_count": 48, "spac_count": 46, "fund_count": 2, "total_proceeds_mn": 15808.4, "corporate_proceeds_mn": 7029.6, "spac_proceeds_mn": 8722.5, "fund_proceeds_mn": 56.3},
@@ -401,11 +370,6 @@ def _payload_inputs() -> tuple[dict, dict]:
         series_id: {"raw_sha256": hashlib.sha256(series_id.encode()).hexdigest()}
         for series_id in rows
     }
-    for series_id in DAILY_MARKET_SERIES:
-        receipts[series_id].update({
-            "request_url": f"https://query1.finance.yahoo.com/v8/finance/chart/{series_id}",
-            "data_quality": {"status": "ok"},
-        })
     return rows, receipts
 
 
@@ -494,208 +458,6 @@ def test_manual_reference_staleness_stops_weekly_republication() -> None:
     _validate_manual_reference_freshness(ipo, hmi, "2026-08-13T00:00:00+00:00")
     with pytest.raises(StatisticsLabError, match="IPO reviewed cohort stale"):
         _validate_manual_reference_freshness(ipo, hmi, "2026-09-01T00:00:00+00:00")
-
-
-def _legacy_build_statistics_lab_contract() -> None:
-    rows, receipts = _payload_inputs()
-    payload = build_statistics_lab(
-        rows,
-        generated_at="2026-12-31T00:00:00+00:00",
-        receipts=receipts,
-        ipo_reference=_repo_ipo_reference(),
-        hmi_reference=_repo_hmi_reference(),
-    )
-    validate_statistics_lab(payload)
-    assert payload["probability_space"] == "reference_only"
-    assert payload["model_use"] is False
-    assert payload["official_forecast_input"] is False
-    assert payload["cycle_alignment"] == {
-        "dotcom_start": "1995-01-01",
-        "dotcom_end": "1999-12-31",
-        "current_start": "2023-01-01",
-        "current_axis_end": "2027-12-31",
-        "comparison_months": 59,
-        "current_observed_through": "2026-12-01",
-        "current_line_policy": "actual_observations_only_no_forecast_extension",
-        "forecast_extension": False,
-        "endpoint_forcing": False,
-    }
-    assert len(payload["charts"]) == 32
-    assert all(chart["insight"] for chart in payload["charts"])
-    assert all(chart["conclusion"] for chart in payload["charts"])
-    assert {chart["id"] for chart in payload["charts"]} >= {
-        "m2_nasdaq", "nasdaq_per_m2", "nasdaq_per_household_liquid_assets",
-        "liquidity_position_map",
-        "yield_curve", "valuation_proxy", "margin_credit_proxy",
-        "household_debt_service", "unemployment_rate", "inflation_rate",
-        "financial_conditions",
-        "internet_vs_ai_core_ipos", "technology_ipo_count",
-        "technology_ipo_first_day_return", "technology_ipo_price_to_sales",
-        "technology_ipo_profitable_share", "all_ipo_negative_earnings_share",
-        "ipo_market_absorption", "small_issuer_ipo_share",
-        "dotcom_internet_ipo_breadth",
-        "sec_ipo_issuer_mix_h1", "sp500_after_two_twenty_percent_years",
-        "household_balance_sheet_trend_gap",
-        "rate_cycle_since_first_cut", "corporate_bond_pressure",
-        "inflation_lead_panel", "housing_manufacturing_warning",
-        "kospi_external_semiconductor_pulse",
-    }
-    assert {chart["id"] for chart in payload["charts"]}.isdisjoint({
-        "ici_weekly_equity_etf_flow",
-        "negative_then_strong_quarter_followthrough",
-        "gold_vs_us_m2",
-        "nasdaq_tech_cycle_milestones",
-        "kospi_market_breadth_2026_daily",
-    })
-    by_id = {chart["id"]: chart for chart in payload["charts"]}
-    assert by_id["m2_nasdaq"]["scale"] == "log1p"
-    liquidity_map = by_id["liquidity_position_map"]
-    assert liquidity_map["chart_type"] == "liquidity_bars"
-    assert liquidity_map["source_ids"] == [
-        "BOGZ1LM893064105Q", "M2SL", "MMMFFAQ027S",
-        "SP500_DAILY", "GOLD_FUTURES_DAILY", "BTCUSD_DAILY",
-    ]
-    assert [panel["title"] for panel in liquidity_map["liquidity_panels"]] == [
-        "현재 규모", "최근 12개월 방향",
-    ]
-    assert [panel["mode"] for panel in liquidity_map["liquidity_panels"]] == [
-        "positive", "diverging",
-    ]
-    assert all(chart["scope_note"].startswith("*") for chart in payload["charts"])
-    assert liquidity_map["scope_note"] == "*미국 자금 기준 · 금·비트코인은 달러 시세"
-    sec_mix = by_id["sec_ipo_issuer_mix_h1"]
-    assert sec_mix["chart_type"] == "stacked_bar"
-    assert sec_mix["show_bar_values"] is True
-    assert "AI 기업만의 통계가 아닙니다" in sec_mix["reading_guide"]
-    household_trend = by_id["household_balance_sheet_trend_gap"]["trend_baseline"]
-    assert household_trend == {
-        "start": "2009-01-01",
-        "end": "2019-12-31",
-        "method": "ordinary_least_squares_on_log_levels",
-        "training_observations": {
-            "corporate_equities": 44,
-            "cash_and_deposits": 44,
-            "debt_securities": 11,
-        },
-    }
-    ipo_chart = next(chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos")
-    assert ipo_chart["scale"] == "log1p"
-    assert ipo_chart["series"][0]["points"][-1]["value"] == 273
-    assert ipo_chart["series"][1]["points"][-1] == {
-        "period": 36, "date": "2026-08-12", "value": 5
-    }
-    assert ipo_chart["series"][2]["points"][-1] == {
-        "period": 36, "date": "2026-08-12", "value": 6
-    }
-    assert ipo_chart["series"][3]["points"][-1] == {
-        "period": 36, "date": "2026-08-12", "value": 1
-    }
-    assert "SK hynix SKHY(NASDAQ ADS)" in ipo_chart["detail_rows"][-2]["label"]
-    assert "Montage Technology MONT" in ipo_chart["detail_rows"][-1]["label"]
-    assert ipo_chart["detail_rows"][0]["label"] == "Arm · Klaviyo"
-    assert all(chart["id"] != "global_ai_capital_map" for chart in payload["charts"])
-    dotcom_profile = next(
-        chart for chart in payload["charts"]
-        if chart["id"] == "dotcom_internet_ipo_breadth"
-    )
-    assert dotcom_profile["chart_type"] == "profile_cards"
-    assert [group["title"] for group in dotcom_profile["profile_groups"]] == [
-        "시장에 얼마나 퍼졌나",
-        "상장사가 얼마나 초기였나",
-        "투자자가 얼마나 몰렸나",
-    ]
-    assert [
-        metric["value"]
-        for group in dotcom_profile["profile_groups"]
-        for metric in group["metrics"]
-    ] == [60, 40, 81, 57, 90]
-    absorption = next(chart for chart in payload["charts"] if chart["id"] == "ipo_market_absorption")
-    assert absorption["series"][2]["marker_radius"] == 10
-    assert any(row["period"] == "NASDAQ ADS" and row["label"] == "SK hynix SKHY" for row in absorption["detail_rows"])
-    assert any(row["period"] == "중국 메모리 NASDAQ" and "MONT" in row["label"] for row in absorption["detail_rows"])
-    assert any(row["period"] == "글로벌 IPO" for row in absorption["detail_rows"])
-    assert [len(row["issuers"]) for row in _repo_ipo_reference()["ai_broad_cohort"]] == [2, 5, 10, 5]
-    assert payload["ipo_comparison"]["classification"]["ai_broad_limit"].startswith(
-        "This is a reviewed market-narrative"
-    )
-    assert payload["ipo_comparison"]["classification"]["ai_core_limit"].startswith("This is a conservative")
-    valuation = next(chart for chart in payload["charts"] if chart["id"] == "valuation_proxy")
-    assert "대용치" in valuation["title"]
-    assert {row["era"] for row in valuation["series"]} == {"dotcom", "current"}
-    household_cash = next(
-        chart for chart in payload["charts"] if chart["id"] == "nasdaq_per_household_liquid_assets"
-    )
-    assert household_cash["source_ids"] == ["NASDAQCOM", "DABSHNO"]
-    assert "M2와 합산하면 예금이 중복 계산" in household_cash["caveat"]
-    assert {row["era"] for row in household_cash["series"]} == {"dotcom", "current"}
-    assert all(
-        point["period"] % 3 == 0
-        for series in household_cash["series"]
-        for point in series["points"]
-    )
-    assert "같은 경과월의 닷컴 지수" in household_cash["insight"]
-    pulse = next(
-        chart for chart in payload["charts"]
-        if chart["id"] == "kospi_external_semiconductor_pulse"
-    )
-    assert pulse["source_ids"] == ["KOSPI_DAILY", "TAIEX_DAILY", "SOX_DAILY"]
-    assert pulse["unit"] == "percent_20d_log_return"
-    assert pulse["axis_type"] == "calendar_day_of_year"
-    assert [row["label"] for row in pulse["series"]] == [
-        "KOSPI 20일", "대만 TAIEX 20일", "전일 SOX 20일",
-    ]
-    pulse_diagnostic = pulse["external_pulse_diagnostics"]
-    assert pulse_diagnostic["sox_strictly_prior_us_close"]["observations"] > 1000
-    assert pulse_diagnostic["sox_conditional_quintiles"]["training_highest_quintile"]["observations"] > 100
-    assert pulse_diagnostic["time_warping"] is False
-    assert pulse_diagnostic["optimized_lag"] is False
-    assert pulse_diagnostic["forecast_extension"] is False
-    policy_rate = next(chart for chart in payload["charts"] if chart["id"] == "policy_rate")
-    assert policy_rate["source_validation"]["source_id"] == "FEDFUNDS"
-    assert policy_rate["source_validation"]["observations"] == 60
-    assert policy_rate["source_validation"]["interpolation"] is False
-    assert policy_rate["source_validation"]["perfect_rectangle"] is False
-    for chart in payload["charts"]:
-        dotcom = [row for row in chart["series"] if row["era"] == "dotcom"]
-        current = [row for row in chart["series"] if row["era"] == "current"]
-        if dotcom:
-            assert max(point["period"] for row in dotcom for point in row["points"]) <= 59
-        if current and int(chart.get("max_period", 59)) == 59:
-            assert max(point["period"] for row in current for point in row["points"]) < 59
-    invalid = json.loads(json.dumps(payload))
-    invalid["cycle_alignment"]["forecast_extension"] = True
-    try:
-        validate_statistics_lab(invalid)
-    except Exception as exc:
-        assert "alignment contract" in str(exc)
-    else:
-        raise AssertionError("forecast extension must be rejected")
-
-    future_leak = json.loads(json.dumps(payload))
-    future_leak["sources"][0]["latest_observation"] = "2027-01-01"
-    with pytest.raises(StatisticsLabError, match="future-data leakage"):
-        validate_statistics_lab(future_leak)
-
-    invalid_liquidity = json.loads(json.dumps(payload))
-    next(
-        chart for chart in invalid_liquidity["charts"]
-        if chart["id"] == "liquidity_position_map"
-    )["chart_type"] = "pie"
-    with pytest.raises(StatisticsLabError, match="liquidity position map"):
-        validate_statistics_lab(invalid_liquidity)
-
-    incomplete_session_rows = json.loads(json.dumps(rows))
-    incomplete_session_rows["KOSPI_DAILY"].append({
-        "date": "2026-12-31", "value": 7000.0,
-    })
-    with pytest.raises(StatisticsLabError, match="incomplete session"):
-        build_statistics_lab(
-            incomplete_session_rows,
-            generated_at="2026-12-31T00:00:00+00:00",
-            receipts=receipts,
-            ipo_reference=_repo_ipo_reference(),
-            hmi_reference=_repo_hmi_reference(),
-        )
 
 
 def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
@@ -972,12 +734,6 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         raw = f"fixture:{series_id}".encode()
         return rows[series_id], raw
 
-    def market_fetcher(series_id: str, _start: date, _end: date):
-        return rows[series_id], {
-            "raw_sha256": hashlib.sha256(f"fixture:{series_id}".encode()).hexdigest(),
-            "request_url": f"https://example.test/{series_id}",
-            "data_quality": {"status": "ok"},
-        }
 
     def supplemental_fetcher(series_id: str):
         raw = f"supplemental-fixture:{series_id}".encode()
@@ -1014,7 +770,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
         series_ids=sec_fields,
     )
     path, payload, changed = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        tmp_path, fred_fetcher=fred_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
         census_c30_fetcher=lambda _url: c30,
@@ -1025,7 +781,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     archives = list((tmp_path / "data/statistics/archive").glob("*.json"))
     assert len(archives) == 1
     _, second, changed_again = refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        tmp_path, fred_fetcher=fred_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
         census_c30_fetcher=lambda _url: c30,
@@ -1035,7 +791,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     assert second["as_of"] == payload["as_of"]
     assert len(list((tmp_path / "data/statistics/archive").glob("*.json"))) == 1
     refresh_statistics_lab(
-        tmp_path, fred_fetcher=fred_fetcher, market_fetcher=market_fetcher,
+        tmp_path, fred_fetcher=fred_fetcher,
         supplemental_fetcher=supplemental_fetcher,
         z1_fetcher=lambda _url: z1,
         census_c30_fetcher=lambda _url: c30,

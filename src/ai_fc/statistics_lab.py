@@ -361,69 +361,6 @@ FRED_SERIES: dict[str, dict[str, str]] = {
     },
 }
 
-DAILY_MARKET_SERIES: dict[str, dict[str, str]] = {
-    "KOSPI_DAILY": {
-        "symbol": "^KS11",
-        "title": "KOSPI daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: Korea Exchange KOSPI)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "2020-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5EKS11/history/",
-    },
-    "TAIEX_DAILY": {
-        "symbol": "^TWII",
-        "title": "Taiwan Stock Exchange Capitalization Weighted Stock Index daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: Taiwan Stock Exchange TAIEX)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "2020-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5ETWII/history/",
-    },
-    "SOX_DAILY": {
-        "symbol": "^SOX",
-        "title": "PHLX Semiconductor Sector Index daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: Nasdaq PHLX SOX)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "2020-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5ESOX/history/",
-    },
-    "SP500_DAILY": {
-        "symbol": "^GSPC",
-        "title": "S&P 500 daily close",
-        "provider": "Yahoo Finance chart API (underlying benchmark: S&P Dow Jones Indices)",
-        "unit": "index",
-        "native_frequency": "daily_close",
-        "window_start": "2023-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/%5EGSPC/history/",
-    },
-    "GOLD_FUTURES_DAILY": {
-        "symbol": "GC=F",
-        "title": "COMEX gold futures front-month daily close",
-        "provider": "Yahoo Finance chart API (underlying market: COMEX)",
-        "unit": "dollars_per_troy_ounce",
-        "native_frequency": "daily_close",
-        "window_start": "2023-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/GC%3DF/history/",
-    },
-    "BTCUSD_DAILY": {
-        "symbol": "BTC-USD",
-        "title": "Bitcoin U.S. dollar daily close",
-        "provider": "Yahoo Finance chart API",
-        "unit": "dollars_per_bitcoin",
-        "native_frequency": "daily_close",
-        "window_start": "2023-01-01",
-        "window_end_exclusive": "2027-01-01",
-        "source_url": "https://finance.yahoo.com/quote/BTC-USD/history/",
-    },
-}
-
 SUPPLEMENTAL_SOURCES: dict[str, dict[str, str]] = {
     "SEC_IPO_QUARTERLY": {
         "title": "U.S. IPO counts and proceeds by issuer type",
@@ -720,31 +657,6 @@ def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
         series_id, observation_start=start, timeout=45,
     ).encode("utf-8")
     return _parse_fred_csv(raw, series_id), raw
-
-
-def _fetch_daily_market(
-    series_id: str, start: date, end_exclusive: date,
-) -> tuple[list[dict[str, Any]], dict[str, Any]]:
-    """Fetch an explicitly bounded daily close series with a raw-response receipt."""
-    try:
-        spec = DAILY_MARKET_SERIES[series_id]
-    except KeyError as exc:
-        raise StatisticsLabError(f"unknown daily market series: {series_id}") from exc
-    result = feed.yahoo_price_series_detail(
-        spec["symbol"], start, end_exclusive, interval="1d",
-    )
-    rows = [
-        {"date": observed.isoformat(), "value": float(value)}
-        for observed, value in zip(result.dates, result.closes, strict=True)
-        if start <= observed < end_exclusive
-    ]
-    if not rows:
-        raise StatisticsLabError(f"daily market series {series_id} is empty")
-    return rows, {
-        "raw_sha256": result.receipt["response_sha256"],
-        "request_url": result.receipt["request_url"],
-        "data_quality": result.data_quality,
-    }
 
 
 Z1_SERIES: dict[str, dict[str, str]] = {
@@ -3046,9 +2958,6 @@ def _load_authoritative_current_rows(root: Path) -> dict[str, list[dict[str, Any
 def refresh_statistics_lab(
     root: Path, *,
     fred_fetcher: Callable[[str], tuple[list[dict[str, Any]], bytes]] = _fetch_fred,
-    market_fetcher: Callable[
-        [str, date, date], tuple[list[dict[str, Any]], dict[str, Any]]
-    ] = _fetch_daily_market,
     supplemental_fetcher: Callable[
         [str],
         tuple[list[dict[str, Any]], bytes]
@@ -3069,10 +2978,6 @@ def refresh_statistics_lab(
         source_rows[series_id] = rows
         receipts[series_id] = {"raw_sha256": hashlib.sha256(raw).hexdigest()}
         raw_payloads[series_id] = raw
-    # ``market_fetcher`` is retained in the public signature for compatible
-    # callers, but authoritative statistics no longer consume Yahoo/aggregator
-    # chart responses.
-    del market_fetcher
     for series_id in SUPPLEMENTAL_SOURCES:
         fetched = supplemental_fetcher(series_id)
         if len(fetched) == 3:
