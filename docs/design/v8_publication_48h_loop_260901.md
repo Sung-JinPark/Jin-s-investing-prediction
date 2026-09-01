@@ -180,3 +180,15 @@ path/drivers/backtest 탭은 비활성(스키마상 v2 전용 필드라 정직�
 | Actions 이벤트 유실 재발 | 플레이북: 로컬 pytest+sync/inventory/audit 복제 → 수동 머지 판단 |
 | CRPS 모니터링 게이트 발동(26 원점 후) | 표면 자동 HOLD — 정상 동작, 재개입 금지 |
 | 병렬 세션 main 이동 | 리베이스 후 재검증 (reset 금지·경로 지정 add) |
+
+### 3.6 1차 사이클에서 실측된 근본 원인 (2026-09-01 02:30 UTC, 사후 기록)
+
+첫 dispatch 사이클이 신선도 5건 중 3건(VIX·DGS2·DGS10)만 해소했다. 남은 2건의 원인은
+데이터 지연이 아니라 **수집 경로**였다: `timeseries_v2/market_archive.py`의 FRED 계열이
+아직 fredgraph.csv 스크랩(12-6 금지 대상의 마지막 잔존 사용처)을 쓰고 있었고, 이 경로는
+공식 API 대비 ~10일 지연된 관측(NASDAQCOM 08-19 vs API 08-28)을 반환했다. 스크랩 경로가
+살아있는 한 48h 게이트는 구조적으로 통과 불가능했다.
+
+조치(r20): 세 계열(NASDAQCOM·DTWEXB·DTWEXBGS)을 `ai_fc.fred_api` 공식 API로 이관.
+영수증은 키 없는 공개 URL만 기록. 이관 후 예상 플립 시점 — DTWEXBGS 즉시(08-28 관측,
+75h < 216h), NASDAQCOM은 08-31 관측이 FRED에 게시되는 시점(통상 다음 영업일 오전 ET).

@@ -25,6 +25,7 @@ from zoneinfo import ZoneInfo
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from .contracts import LEDGER_RELATIVE, PARQUET_RELATIVE, RAW_RELATIVE, canonical_hash
+from ..fred_api import FredApiError
 
 
 ARCHIVE_RECEIPTS = LEDGER_RELATIVE / "market_raw_receipts.jsonl"
@@ -283,10 +284,17 @@ def _append_observations(
     return {"appended": appended, "unchanged": unchanged, "received": appended + unchanged}
 
 
+# FRED-hosted series go through the official API (DECISIONS 12-6): the old
+# fredgraph.csv scrape is a terms-of-use violation AND was observed serving
+# observations ~10 days behind the API (NASDAQCOM stuck at 8/19 while the API
+# carried 8/28), which starved the V8 operational freshness gate.  The "url"
+# recorded here and on receipts is the KEYLESS public form; the key only ever
+# rides the transport inside ai_fc.fred_api.
 MARKET_ARCHIVE_SPECS: dict[str, dict[str, str]] = {
     "NASDAQCOM": {
         "source_id": "fred_nasdaqcom_archive",
-        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQCOM&cosd=1995-01-01",
+        "fred_observation_start": "1995-01-01",
+        "url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&file_type=json&observation_start=1995-01-01",
     },
     "VIX": {
         "source_id": "cboe_vix_archive",
@@ -298,11 +306,13 @@ MARKET_ARCHIVE_SPECS: dict[str, dict[str, str]] = {
     },
     "DTWEXB": {
         "source_id": "federal_reserve_h10_broad_archive",
-        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXB&cosd=1995-01-01",
+        "fred_observation_start": "1995-01-01",
+        "url": "https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXB&file_type=json&observation_start=1995-01-01",
     },
     "DTWEXBGS": {
         "source_id": "federal_reserve_h10_broad_goods_services_archive",
-        "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DTWEXBGS&cosd=2006-01-01",
+        "fred_observation_start": "2006-01-01",
+        "url": "https://api.stlouisfed.org/fred/series/observations?series_id=DTWEXBGS&file_type=json&observation_start=2006-01-01",
     },
     "FED_EBP": {
         "source_id": "federal_reserve_excess_bond_premium",
@@ -353,7 +363,17 @@ def collect_official_market_archives(
                             aggregate[series_id][field] += outcome[field]
                 result["series"].update(aggregate)
                 continue
-            status, payload, content_type = fetcher(spec["url"])
+            if "fred_observation_start" in spec and fetcher is _fetch:
+                # Official FRED API transport; the keyed URL never leaves
+                # fred_api and the receipt records the keyless public URL.
+                from ..fred_api import observations_csv
+
+                status, content_type = 200, "text/csv"
+                payload = observations_csv(
+                    key, observation_start=spec["fred_observation_start"],
+                ).encode("utf-8")
+            else:
+                status, payload, content_type = fetcher(spec["url"])
             if status != 200:
                 raise MarketArchiveError(f"{key} returned HTTP {status}")
             receipt = persist_market_raw(
@@ -384,7 +404,7 @@ def collect_official_market_archives(
                     unit="index", values=rows, receipt=receipt, available_at=_market_available_at,
                     data_grade=data_grade,
                 )
-        except (OSError, ValueError, ET.ParseError, MarketArchiveError) as exc:
+        except (OSError, ValueError, ET.ParseError, MarketArchiveError, FredApiError) as exc:
             result["failures"].append({"series": key, "reason": str(exc)})
     result["ok"] = not result["failures"]
     return result
