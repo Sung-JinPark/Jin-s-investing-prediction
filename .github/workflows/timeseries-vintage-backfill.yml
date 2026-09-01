@@ -1,0 +1,82 @@
+name: timeseries-vintage-backfill
+
+# V1 정본 ALFRED 로스터에 새로 등록된 시리즈의 전체 vintage 이력을 백필한다 (V9-D5).
+# 로컬에는 FRED_API_KEY가 없고(DECISIONS 12-6) 키는 CI 시크릿에만 있으므로,
+# 시리즈 추가 PR은 이 워크플로를 자기 브랜치에서 실행해 데이터를 받는다.
+# statistics-backfill과 같은 규약: main이 아니라 **실행한 브랜치**에 커밋한다.
+#
+# 순서가 계약이다: collect-series → fit → forecast → verify.
+# 로스터 수정으로 계약 canonical hash가 바뀌면 forecast 재기록 전의 verify는
+# "forecast contract hash is stale"로 FAIL한다 (timeseries/pipeline.py:1071).
+# 백필 후 verify의 upstream_backfill WARN·source_backfill_audit 행 추가는
+# 설계된 정상 동작이다 — 침묵시키려 재적합하지 않는다.
+#
+# backfill-request: 2026-09-02T0 (스탬프를 바꿔 푸시하면 재실행)
+on:
+  workflow_dispatch:
+    inputs:
+      series:
+        description: "쉼표 구분 시리즈 ID (로스터 등록분만)"
+        required: true
+        default: "TOTCI,TOTLL,WRMFNS"
+  push:
+    paths:
+      - ".github/workflows/timeseries-vintage-backfill.yml"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install pipeline
+        run: pip install -e "." pytest
+      - name: Collect the full ALFRED vintage history for the new series
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: >-
+          python -m ai_fc timeseries-collect-series
+          --series "${{ github.event.inputs.series || 'TOTCI,TOTLL,WRMFNS' }}"
+      - name: Re-record the fit under the amended contract
+        run: python -m ai_fc timeseries-fit
+      - name: Re-record the forecast (re-pins the contract hash)
+        run: python -m ai_fc timeseries-forecast
+      - name: Verify the canonical store (upstream_backfill WARN is expected)
+        run: python -m ai_fc timeseries-verify
+      - name: Focused regression tests
+        run: >-
+          pytest -q
+          src/tests/test_multivariate_timeseries.py
+          src/tests/test_multivariate_timeseries_v9.py
+      - name: Refresh generated repository inventory
+        run: cd src && python -m ai_fc inventory
+      - name: Commit the backfilled vintages to this branch
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/timeseries docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/.*|docs/generated/inventory.generated.md)$' || true)"
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected path staged by the vintage backfill:"
+            echo "$unexpected"
+            exit 1
+          fi
+          if git diff --cached --quiet; then
+            echo "No vintage changes to commit."
+            exit 0
+          fi
+          git commit -m "data: backfill ALFRED vintages for new roster series $(date -u +%F)"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

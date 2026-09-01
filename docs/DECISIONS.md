@@ -410,3 +410,37 @@ or business", Finnhub "deduct this expense as a business expense", EODHD의 Prof
 `reference_opinion_only=true`, HOLD 숫자 은닉을 CI에서 강제한다.
 
 **기록.** method_changes r19 (`method:timeseries-v8-research-reference-display:2026-09-01:r19`).
+
+## 2026-09-02 — V9-D5: 신용·유동성 vintage 수집 트랙 개시 (사용자 결정)
+
+**결정.** V9 G3 보고의 권고안대로 blocked 피처의 ALFRED 네이티브 vintage 수집 트랙을
+개시한다. 승인 근거: 사용자 지시 2026-09-02 ("다 푸시부터 배포까지하고 다음단계 까지 설계 후
+진행해") — G3 보고가 제시한 V9-D5(a) 권고에 대한 진행 지시. **V9-D4(E1 홀드아웃 소모)는
+별개 사안으로 계속 보류** — 명시 승인이 아니므로 소모하지 않는다.
+
+**수집 대상 (ALFRED vintage 실측 2026-09-02, 공식 API).** TOTCI(첫 vintage 1996-12-06)·
+TOTLL(1996-12-06)·WRMFNS(2002-10-31) — 설계창(2007–2014) 완전 적격 3계열만.
+예금(2012-08)·VXNCLS(2014-04)·MMMFFAQ027S(2013-06)·NFCI(2011-05)는 온셋 부족으로 보류.
+
+**선례와의 긴장 (BEA 유예 선례 형식으로 명시).**
+`reports/md/bank_credit_layer_contract_260805.md` §1은 신규 자동 수집에 원생산자(Fed Board
+H.8/H.6) 공식 다운로드를 지정했다. 이 결정은 그 조항을 이번 트랙에 적용하지 않는다 —
+사유: ① Board 다운로드에는 first-release vintage 이력이 없어(현행 vintage만 제공) PIT
+요건(available_at ≤ origin, first-release 불변 객체)을 기계적으로 충족할 수 없고,
+② DECISIONS 12-6이 FRED 공식 API를 유일 준수 자동수집 경로로 확정했으며, ③ V9 계약이
+`required: alfred_vintage_collection`으로 이 경로를 명시 요구한다. 은행 계약의 나머지
+규율(approved 상속 금지·WRMFSL 금지·주기 분리·reference_only)은 전부 승계한다.
+
+**approved 상속 아님.** `fred_market_signals: approved`(current-vintage 레인)를 상속하는
+것이 아니라 이미 `vintage_observation` 역할로 등록된 alfred 레인(V1 정본 스토어)에
+시리즈를 추가한다. `fred_market_signals.yaml`의 "historical current-vintage rows are not
+valid for backtests" 조항이 이 트랙의 필요성을 계약으로 뒷받침한다.
+
+**KNOWN_LIMITS 34 고지.** FRED 약관의 AI/ML 문언·store/cache 조항 vs PIT 아카이브 커밋
+긴장은 미해결(소유자·법률 판단 영역)이다. 본 트랙은 기존 V1 스토어 관행(NFCI 91만 행 등)의
+연장선에서 커밋 부피를 늘리는 행위임을 소유자에게 고지한다.
+
+**구현.** V1 로스터 `financial_optional` 확장 + `timeseries-collect-series` CLI(전체 창 1회
+백필) + `timeseries-vintage-backfill.yml`(브랜치 커밋, collect→fit→forecast→verify 순서
+계약). 상세: `docs/design/v9_credit_liquidity_vintage_track_260902.md`. 수집 완료 후 피처
+승격(F2~F4)은 별도 사전등록 개정 커밋으로만 한다 — 수집 ≠ 등록.
