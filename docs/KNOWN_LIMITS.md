@@ -62,14 +62,14 @@
     **남는 주의**: SEC는 이메일 '형태'만 검사하므로 임의 문자열로도 200이 나온다. 그 경로를
     택하지 않은 이유는 기술이 아니라 규제기관에 허위 연락처를 신고하지 않기 위해서다.
 
-36. **[신설 2026-09-01]** **`statistics_lab`에 도달 불가 수집 경로가 남아 있다** —
-    `_build_statistics_lab_legacy`(약 900행)는 정의만 있고 호출처가 없다. 그 안의
-    `DAILY_MARKET_SERIES`(Yahoo 6종)·`_fetch_daily_market`도 함께 도달 불가다.
-    `73d0e804`이 authoritative 소스 게이트를 도입하며 새 빌더로 갈아탄 결과이고,
-    산출물이 이를 확인한다(2026-08-18 이후 소스 60→30, Yahoo 유래 0건). **기능 결함은
-    아니지만 저장소를 읽는 사람에게 Yahoo가 살아 있는 의존으로 보인다** — 실제 약관
-    노출은 `cross_asset` 쪽에만 있다(DECISIONS 12-8). 테스트가 `DAILY_MARKET_SERIES`를
-    import하므로 제거는 테스트 동반 정리가 필요해 별도 작업으로 남긴다.
+36. ~~`statistics_lab`에 도달 불가 수집 경로(약 900행 레거시 빌더)~~ → **대부분 해소
+    (2026-09-01, PR #114 통계 전수 검수)**: `_build_statistics_lab_legacy`와 고아 헬퍼들이
+    삭제됐다. **잔재**: `DAILY_MARKET_SERIES`(Yahoo 6종 스펙)·`_fetch_daily_market`·
+    `refresh_statistics_lab`의 `market_fetcher` 파라미터는 남아 있으나 **본문 어디서도
+    호출되지 않는다** — 기본값 선언과 테스트 픽스처 주입(6곳)만 참조한다. 즉 statistics
+    쪽에 네트워크에 닿는 Yahoo 경로는 더 이상 없고 서명만 남은 vestige다. 제거는 테스트
+    6곳 동반 정리가 필요해 별도 작업으로 분리. 실제 약관 노출이었던 `cross_asset`의
+    NASDAQ·BTC는 12-9로 FRED 이관 완료, O·DHI·배당만 대안 부재로 Yahoo에 남는다(12-8).
 ## D. 해석·거버넌스
 22. "참고 의견" 지위의 실효성은 사용자 행동에 의존
 23. 앵커링 방지 실효 제한 — 밴드 역산으로 매핑 확률 2%p 내 복원(실측·테스트 고정). divergence는 "부분 독립" 신호
