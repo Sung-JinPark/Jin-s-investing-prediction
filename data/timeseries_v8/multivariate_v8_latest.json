@@ -1,55 +1,52 @@
 {
   "as_of": "2026-08-14",
-  "content_hash": "6674c2c8344ceda60923e5c256dc9b7893ed8e8bbc79444e5506f2da03810132",
+  "content_hash": "48a801ab94c9f7b5a38695e08a1dc2df4d924e36a867dc071dab9e3f2a7e9d7b",
   "display_state": "validation_pending",
   "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
   "gate": {
     "operational_pass": false,
     "reasons": [
       "필수 시장 입력 신선도 초과: NASDAQCOM",
-      "필수 시장 입력 신선도 초과: VIX",
-      "필수 시장 입력 신선도 초과: DGS2",
-      "필수 시장 입력 신선도 초과: DGS10",
       "필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"
     ],
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "knowledge_cutoff": "2026-08-31T01:31:55+00:00",
+  "knowledge_cutoff": "2026-09-01T02:29:02+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 265.5324979697222,
+        "age_hours": 290.48442657388887,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-08-19",
         "status": "stale"
       },
       {
-        "age_hours": 49.53249796972222,
+        "age_hours": 2.484426573888889,
         "group": "VIX",
         "limit_hours": 48.0,
-        "observation_time": "2026-08-28",
-        "status": "stale"
+        "observation_time": "2026-08-31",
+        "status": "fresh"
       },
       {
-        "age_hours": 49.53249796972222,
+        "age_hours": 2.484426573888889,
         "group": "DGS2",
         "limit_hours": 48.0,
-        "observation_time": "2026-08-28",
-        "status": "stale"
+        "observation_time": "2026-08-31",
+        "status": "fresh"
       },
       {
-        "age_hours": 49.53249796972222,
+        "age_hours": 2.484426573888889,
         "group": "DGS10",
         "limit_hours": 48.0,
-        "observation_time": "2026-08-28",
-        "status": "stale"
+        "observation_time": "2026-08-31",
+        "status": "fresh"
       },
       {
-        "age_hours": 385.5324979697222,
+        "age_hours": 410.48442657388887,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-08-14",
