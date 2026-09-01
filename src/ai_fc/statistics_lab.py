@@ -1757,7 +1757,7 @@ def build_statistics_lab(
              ["FEDFUNDS"], "*미국 기준", "월평균 실효금리의 실제 경로이며 시장의 미래 인하 확률은 아닙니다."),
         make("valuation_proxy", "기업가치 ÷ 세후이익 PER 대용치", "valuation", "multiple",
              [_series("닷컴", "dotcom", dot_value, "#c70039"), _series("현재", "current", cur_value, "#ff7b00")],
-             ["NCBEILQ027S", "CPATAX"], "*미국 기업 기준", "기업주식 가치가 실제 세후이익보다 얼마나 빠른지 보는 공개자료 대용치입니다."),
+             ["NCBEILQ027S", "W328RC1Q027SBEA"], "*미국 기업 기준", "기업주식 가치가 실제 세후이익보다 얼마나 빠른지 보는 공개자료 대용치입니다."),
         make("margin_credit_proxy", "브로커 고객 신용과 미국 기업주식", "credit", "cycle_start_100",
              [_series("닷컴 고객 신용", "dotcom", dot_margin, "#c70039"), _series("닷컴 기업주식", "dotcom", dot_equities, "#7b6b55"), _series("현재 고객 신용", "current", cur_margin, "#ff7b00"), _series("현재 기업주식", "current", cur_equities, "#28756a")],
              ["FL663067003", "BOGZ1LM893064105Q"], "*미국 가계·기업주식 기준", "신용과 주식가치가 함께 빨라질수록 레버리지 민감도가 커집니다."),
