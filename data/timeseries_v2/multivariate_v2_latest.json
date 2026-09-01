@@ -1,6 +1,6 @@
 {
   "as_of": "2026-08-28",
-  "content_hash": "47655c6b0d77818e1c137124a3a2b8656c8ef8fddfd6e3295d3f47dce76bb74e",
+  "content_hash": "fa99ab4d7240da1c288f24c69d89f13df66422b8d311deaa70d789be5a82866f",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,15 +21,15 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 75.17888888888889,
-          "available_at": "2026-09-01T03:07:06+00:00",
+          "age_hours": 4.18,
+          "available_at": "2026-09-01T04:06:00+00:00",
           "group": "NASDAQCOM",
-          "observation_time": "2026-08-28",
+          "observation_time": "2026-08-31",
           "selected_series": "NASDAQCOM",
-          "status": "stale"
+          "status": "fresh"
         },
         {
-          "age_hours": 3.178888888888889,
+          "age_hours": 4.18,
           "available_at": "2026-09-01T02:15:43+00:00",
           "group": "VIX",
           "observation_time": "2026-08-31",
@@ -37,7 +37,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 3.178888888888889,
+          "age_hours": 4.18,
           "available_at": "2026-09-01T02:15:43+00:00",
           "group": "DGS2",
           "observation_time": "2026-08-31",
@@ -45,7 +45,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 3.178888888888889,
+          "age_hours": 4.18,
           "available_at": "2026-09-01T02:15:43+00:00",
           "group": "DGS10",
           "observation_time": "2026-08-31",
@@ -53,7 +53,7 @@
           "status": "fresh"
         },
         {
-          "age_hours": 75.17888888888889,
+          "age_hours": 76.18,
           "available_at": "2026-09-01T03:07:06+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-08-28",
@@ -64,7 +64,6 @@
       "maximum_age_hours": 48.0,
       "ok": false,
       "stale_groups": [
-        "NASDAQCOM",
         "DTWEXBGS_or_DTWEXB"
       ]
     },
@@ -84,11 +83,10 @@
       "최근 26개 원점 CRPS가 기준선보다 5% 이상 악화",
       "최근 21일 p10-p90 적중률이 계약 범위를 이탈",
       "최근 63일 p10-p90 적중률이 계약 범위를 이탈",
-      "필수 시장 입력 48시간 SLA 초과: NASDAQCOM",
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-09-01T03:10:43+00:00",
+  "knowledge_cutoff": "2026-09-01T04:10:47+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
