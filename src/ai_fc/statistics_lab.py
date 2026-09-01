@@ -323,6 +323,8 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "unit": "index_2015_100",
         "native_frequency": "monthly",
         "aggregation": "last",
+        # 분모(GFDEBTN) 원점에 맞춘 전 구간 수집 — 장기 레벨 차트가 1966년 고점을 봐야 한다.
+        "window_start": "1966-01-01",
     },
     "GFDEBTN": {
         "title": "Federal debt: total public debt",
@@ -330,6 +332,7 @@ FRED_SERIES: dict[str, dict[str, str]] = {
         "unit": "millions_usd",
         "native_frequency": "quarterly",
         "aggregation": "last",
+        "window_start": "1966-01-01",
     },
     "HOUST": {
         "title": "Housing starts: total new privately owned housing units",
@@ -1829,6 +1832,26 @@ def build_statistics_lab(
     dot_spx_debt, cur_spx_debt = cycles(
         _ratio(monthly["SPASTT01USM661N"], monthly["GFDEBTN"]), indexed=True,
     )
+    # 전 구간(1966~) 레벨 경로.  5년 창 비교와 달리 1968·2000 고점과 현재 위치를
+    # 한 선에서 본다.  분모가 분기 잔액이라 관측 밀도는 분기다.
+    spx_debt_full_raw = _ratio(monthly["SPASTT01USM661N"], monthly["GFDEBTN"])
+    full_base = float(spx_debt_full_raw[0]["value"]) if spx_debt_full_raw else 1.0
+    full_origin = _month_key(spx_debt_full_raw[0]["date"]) if spx_debt_full_raw else (1966, 1)
+    spx_debt_full = [
+        {
+            "period": (_month_key(row["date"])[0] - full_origin[0]) * 12
+            + (_month_key(row["date"])[1] - full_origin[1]),
+            "date": row["date"],
+            "value": round(float(row["value"]) / full_base * 100.0, 2),
+        }
+        for row in spx_debt_full_raw
+    ]
+    full_peaks = sorted(spx_debt_full, key=lambda row: row["value"], reverse=True)
+    first_peak = full_peaks[0] if full_peaks else None
+    second_peak = next(
+        (row for row in full_peaks if first_peak and abs(row["period"] - first_peak["period"]) > 120),
+        None,
+    )
     dot_curve, cur_curve = cycles(monthly["T10Y2Y"])
     dot_curve3m, cur_curve3m = cycles(monthly["T10Y3M"])
     dot_funds, cur_funds = cycles(monthly["FEDFUNDS"])
@@ -2004,6 +2027,9 @@ def build_statistics_lab(
         make("spx_per_federal_debt", "연방부채 한 단위 대비 미국 주가", "liquidity", "cycle_start_100",
              [_series("닷컴", "dotcom", dot_spx_debt, "#5a3d7a"), _series("현재", "current", cur_spx_debt, "#2e6bd4")],
              ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "연방부채 증가보다 주가가 얼마나 빠르게 움직였는지 보여줍니다."),
+        make("spx_per_federal_debt_full_history", "미국 주가 ÷ 연방부채: 1966년부터의 전체 경로", "liquidity", "cycle_start_100",
+             [_series("주가/연방부채 (1966=100)", "current", spx_debt_full, "#31456e")],
+             ["SPASTT01USM661N", "GFDEBTN"], "*미국 주가·연방부채 기준", "1968·2000 고점과 지금 위치를 60년 한 선으로 봅니다. 주가가 연방부채보다 빨리 오르면 선이 오르고, 부채가 빨리 늘면 내려갑니다."),
         make("yield_curve", "장단기 금리차: 10년−2년과 10년−3개월", "rates", "percent",
              [_series("닷컴 10y−2y", "dotcom", dot_curve, "#8d2943"), _series("현재 10y−2y", "current", cur_curve, "#28756a"), _series("닷컴 10y−3m", "dotcom", dot_curve3m, "#c98a9b"), _series("현재 10y−3m", "current", cur_curve3m, "#7fb3a5")],
              ["T10Y2Y", "T10Y3M"], "*미국 국채 기준", "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다."),
@@ -2122,6 +2148,22 @@ def build_statistics_lab(
     charts.insert(0, sec_chart)
     by_id = {chart["id"]: chart for chart in charts}
     by_id["m2_nasdaq"]["scale"] = "log1p"
+    full_chart = by_id["spx_per_federal_debt_full_history"]
+    if spx_debt_full:
+        last_period = spx_debt_full[-1]["period"]
+        full_chart["max_period"] = last_period
+        full_chart["x_ticks"] = [
+            [(year - full_origin[0]) * 12, str(year)]
+            for year in range(full_origin[0] + 4, full_origin[0] + last_period // 12 + 1, 10)
+        ]
+        full_chart["axis_note"] = (
+            f"{full_origin[0]}년부터 현재까지 분기 관측 경로. 첫 관측=100."
+        )
+        full_chart["observed_end_label"] = "실제 관측 종료"
+        full_chart["events"] = [
+            {"period": peak["period"], "label": f"{peak['date'][:4]} 고점 {peak['value']:.0f}"}
+            for peak in (first_peak, second_peak) if peak
+        ]
     # 사용자에게 반드시 보여야 하는 한계(대용치·명목·표본). 투영이 이 문구를
     # 카드의 접힘 블록으로 내보낸다 — 데이터에만 남는 경고는 경고가 아니다.
     chart_caveats = {
@@ -2150,6 +2192,11 @@ def build_statistics_lab(
             "아니며 — FRED의 S&P 500은 최근 10년만 제공해 닷컴 구간 비교가 불가능합니다 — "
             "분모는 재무부 분기말 연방부채 잔액입니다. 명목 비율의 시작=100 지수이며 "
             "매수·매도 신호가 아닙니다."
+        ),
+        "spx_per_federal_debt_full_history": (
+            "분자는 OECD 미국 주가지수(S&P 계열 월평균)로 S&P 500 종가가 아니고, "
+            "분모가 분기 잔액이라 관측 밀도는 분기입니다. 1966년 첫 관측=100의 "
+            "명목 지수이며, 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다."
         ),
         "korea_semiconductor_cycle": (
             "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
@@ -2266,6 +2313,16 @@ def build_statistics_lab(
             f"{matched(dot_nasdaq_cash, cur_nasdaq_cash):.0f}와 비교되고, 닷컴 말기는 "
             f"{endpoint(dot_nasdaq_cash):.0f}였습니다."
         ),
+        "spx_per_federal_debt_full_history": (
+            f"1966년을 100으로 두면 현재 {spx_debt_full[-1]['value']:.0f}입니다. "
+            + (
+                f"{first_peak['date'][:4]}년 고점 {first_peak['value']:.0f}"
+                + (f"·{second_peak['date'][:4]}년 고점 {second_peak['value']:.0f}" if second_peak else "")
+                + f" 대비 {spx_debt_full[-1]['value'] / first_peak['value'] * 100.0:.0f}% 수준으로, "
+                if first_peak else ""
+            )
+            + "주가가 연방부채 팽창을 따라잡는 중이지만 두 차례 고점에는 아직 못 미칩니다."
+        ) if spx_debt_full else "관측 준비 중입니다.",
         "spx_per_federal_debt": (
             f"연방부채 대비 미국 주가 속도지수는 현재 {endpoint(cur_spx_debt):.0f}로 닷컴 같은 "
             f"{months_elapsed(cur_spx_debt)}개월차의 "

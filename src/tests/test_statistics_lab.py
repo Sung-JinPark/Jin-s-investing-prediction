@@ -708,7 +708,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 26  # spx_per_federal_debt 추가로 25→26
+    assert len(payload["charts"]) == 27  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -770,7 +770,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 26  # spx_per_federal_debt 추가로 25→26
+    assert len(payload["charts"]) == 27  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -1303,3 +1303,48 @@ def test_spx_per_federal_debt_compares_both_eras_from_full_history_sources() -> 
         if source["series_id"] == "SPASTT01USM661N"
     )
     assert "OECD" in us_share["provider"]
+
+
+def test_spx_debt_full_history_walks_from_the_first_observation_with_peak_events() -> None:
+    """전 구간(1966~) 레벨 차트가 첫 관측=100 경로·10년 틱·고점 이벤트를 갖는다.
+
+    5년 창 비교와 달리 이 카드는 1968·2000 고점과 현재 위치를 한 선으로 보여야
+    한다 (TradingView SPX/GFDEBTN 뷰의 공식-원천 재현).
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    chart = next(
+        row for row in payload["charts"]
+        if row["id"] == "spx_per_federal_debt_full_history"
+    )
+
+    assert chart["source_ids"] == ["SPASTT01USM661N", "GFDEBTN"]
+    (series,) = chart["series"]
+    points = series["points"]
+    assert abs(float(points[0]["value"]) - 100.0) < 1e-6, "첫 관측=100"
+    assert points[0]["period"] == 0
+    periods = [row["period"] for row in points]
+    assert periods == sorted(periods)
+    assert chart["max_period"] == periods[-1], "축은 마지막 관측까지"
+
+    # 10년 간격 연도 틱 — 관측 창 안에서 데이터로부터 파생된다.
+    ticks = chart["x_ticks"]
+    assert ticks and all(label.isdigit() for _, label in ticks)
+    tick_years = [int(label) for _, label in ticks]
+    assert tick_years == sorted(tick_years)
+    assert all(b - a == 10 for a, b in zip(tick_years, tick_years[1:]))
+
+    # 고점 이벤트는 데이터 최대값에서 나온다 — 하드코딩 연도가 아니다.
+    events = chart["events"]
+    assert events, "최소 한 개의 고점 이벤트"
+    top = max(points, key=lambda row: row["value"])
+    assert events[0]["period"] == top["period"]
+    assert "고점" in events[0]["label"]
+    assert chart["axis_note"].endswith("첫 관측=100.")
+    assert "1966" in chart["conclusion"] or "첫 관측" in chart["axis_note"]
