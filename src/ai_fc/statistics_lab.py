@@ -22,7 +22,6 @@ from pathlib import Path
 from typing import Any, Callable
 
 from ai_fc import fred_api
-from ai_fc.quant import feed
 
 
 LATEST_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
