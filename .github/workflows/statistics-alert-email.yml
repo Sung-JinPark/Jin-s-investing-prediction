@@ -67,6 +67,12 @@ jobs:
           # 정리본을 다시 마스킹해 이후 로그에 노출되지 않게 한다.
           cleaned="$(printf '%s' "$MAIL_APP_PASSWORD" | tr -d '[:space:]')"
           echo "::add-mask::$cleaned"
+          # 값은 절대 찍지 않고 형식만 진단한다 — Gmail 앱 비밀번호는 공백 제거 후
+          # 정확히 16자의 영문 소문자다. 아니면 잘못된 값(일반 비밀번호 등)이다.
+          echo "진단: 정리 후 길이=${#cleaned}자 (앱 비밀번호는 16자여야 함)"
+          if [ "${#cleaned}" -ne 16 ]; then
+            echo "::warning::시크릿이 Gmail 앱 비밀번호 형식(16자)이 아닙니다 — 일반 비밀번호는 SMTP에서 거부됩니다."
+          fi
           echo "SMTP_PASSWORD=$cleaned" >> "$GITHUB_ENV"
           echo "sendable=true" >> "$GITHUB_ENV"
       - name: Deliver via Gmail SMTP
