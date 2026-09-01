@@ -302,6 +302,49 @@ def cmd_timeseries_v8_dev_backtest(
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v9-dev-backtest")
+def cmd_timeseries_v9_dev_backtest(
+    config_json: str = typer.Option(
+        "{}", "--config", help='사전등록 grid 내 JSON (예: {"features": ["F1_m2sl_liquidity"]})'),
+    label: str = typer.Option("", "--label", help="실험 라벨 (예: V9_E1_m2sl_liquidity)"),
+    role: str = typer.Option("design", "--role", help="design 또는 holdout"),
+    holdout_approval: str = typer.Option(
+        "", "--holdout-approval", help="홀드아웃 소모 시 명시적 사용자 승인 문구 (없으면 거부)"),
+    knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
+) -> None:
+    """V9 개발(2019-blind) 워크포워드 평가 — V8 봉인 엔진을 읽기 전용으로 호출한다."""
+    from .timeseries_v9.pipeline import dev_backtest_timeseries_v9
+
+    parsed = json.loads(config_json)
+    result = _timeseries_exit(
+        dev_backtest_timeseries_v9, config.ROOT,
+        feature_set=list(parsed.get("features", [])), experiment_label=label,
+        window_role=role, holdout_user_approval=holdout_approval,
+        knowledge_cutoff=knowledge_cutoff,
+    )
+    typer.echo(json.dumps({
+        "experiment_id": result["experiment_id"],
+        "experiment_label": result["experiment_label"],
+        "window_role": result["window_role"],
+        "feature_set": result["feature_set"],
+        "horizons": result["horizons"],
+        "paired_long_horizon": result["paired_long_horizon"],
+        "gfc_regime_coverage": result.get("gfc_regime_coverage"),
+        "proxy": result["proxy"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v9-verify")
+def cmd_timeseries_v9_verify() -> None:
+    """V9 사전등록·선행자 핀·예산·원장 무결성을 검증한다."""
+    from .timeseries_v9.pipeline import verify_timeseries_v9
+
+    result = _timeseries_exit(verify_timeseries_v9, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v8-backtest")
 def cmd_timeseries_v8_backtest(
     user_signoff: str = typer.Option(..., "--user-signoff", help="명시적 사용자 승인 문구 (R8-D2)"),

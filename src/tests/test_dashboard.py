@@ -1535,3 +1535,15 @@ def test_all_page_primary_headings_are_scaled_to_seventy_percent() -> None:
         ".page-heading h1{font-size:22px}",
     ):
         assert required in css
+
+
+def test_v8_card_returns_use_two_decimal_precision() -> None:
+    """종합검토 260901 C-1 — v8 카드 수익률은 2자리 고정.
+
+    1자리 반올림은 경계값에서 과대 표기된다(h63 +4.47%가 +4.5%로 노출).
+    지수 레벨·분위수 표기는 이 결정의 대상이 아니다.
+    """
+    html = dashboard.load_template()
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "(ret*100).toFixed(2)" in v8
+    assert "*100).toFixed(1)}% · p10–p90" not in v8, "히어로 수익률도 2자리"
