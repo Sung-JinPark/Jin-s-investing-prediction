@@ -150,3 +150,14 @@ def test_e0_nesting_the_wrapper_is_a_bit_identical_passthrough() -> None:
         assert left.model_crps == right.model_crps  # bit-equal, not approx
     assert json.dumps(summary_a["horizons"], sort_keys=True) == \
         json.dumps(summary_b["horizons"], sort_keys=True)
+
+
+def test_the_identity_baseline_can_never_be_the_champion() -> None:
+    """E0(피처 0개)는 기준선이다 — V9=V8인 후보를 홀드아웃에 올릴 수 없다.
+
+    이 규칙은 V9_E1 결과가 존재하기 전에 커밋되었다(사전등록 위생).
+    """
+    from ai_fc.timeseries_v9.pipeline import design_champion
+    champion = design_champion(ROOT)
+    if champion is not None:
+        assert champion.get("feature_set"), "빈 피처 셋은 챔피언 자격이 없다"

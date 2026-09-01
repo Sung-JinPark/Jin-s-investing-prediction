@@ -249,10 +249,18 @@ def dev_backtest_timeseries_v9(
 
 
 def design_champion(root: Path) -> dict[str, Any] | None:
-    """The design champion, if any ledger row satisfies the preregistered proxy."""
+    """The design champion, if any ledger row satisfies the preregistered proxy.
+
+    An empty feature set is the V8-identity BASELINE, never a champion: a V9
+    that adds nothing over the sealed V8 has no reason to exist, so holdout
+    may only be requested for a candidate carrying at least one registered
+    feature.  (Rule committed before any feature run's results existed.)
+    """
     rows = [
         row for row in read_ledger(root, EXPERIMENT_LEDGER_RELATIVE)
-        if row.get("window_role") == "design" and (row.get("proxy") or {}).get("pass") is True
+        if row.get("window_role") == "design"
+        and (row.get("proxy") or {}).get("pass") is True
+        and row.get("feature_set")
     ]
     if not rows:
         return None
