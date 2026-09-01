@@ -51,10 +51,32 @@ sources:
       DCOILWTICO: {native_frequency: daily, unit: dollars_per_barrel, aggregation: mean, role: inflation_leading_indicator}
       WPU10260314: {native_frequency: monthly, unit: index_1982_100, aggregation: last, role: copper_inflation_leading_indicator}
       GACDFSA066MSFRBPHI: {native_frequency: monthly, unit: diffusion_index, aggregation: last, role: public_manufacturing_diffusion_proxy_not_ISM_PMI}
+      SP500: {native_frequency: daily_close, unit: index, aggregation: last, role: broad_market_index_reference}
+      CBBTCUSD: {native_frequency: daily_close, unit: dollars, aggregation: last, role: crypto_risk_appetite_reference}
+      NASDAQSOX: {native_frequency: daily_close, unit: index, aggregation: last, role: us_semiconductor_index_reference}
+      SPASTT01KRM661N: {native_frequency: monthly, unit: index_2015_100, aggregation: last, role: korea_share_price_reference}
+      HOUST: {native_frequency: monthly, unit: thousands_saar, aggregation: last, role: housing_starts_cycle_reference}
+      GDP: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: investment_share_denominator}
+      Y034RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: information_processing_equipment_investment}
+      Y001RC1Q027SBEA: {native_frequency: quarterly, unit: billions_usd_saar, aggregation: last, role: intellectual_property_products_investment}
   federal_reserve_z1:
     endpoint: https://www.federalreserve.gov/releases/z1/current/z1_csv_files.zip
-    table: F4.6.s
-    series: FL663067003.Q
+    provider: Board of Governors of the Federal Reserve System
+    note: one quarterly archive, one raw receipt, multiple declared series
+    series:
+      FL663067003: {member: csv/F4_6_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: household_margin_loan_proxy_not_FINRA}
+      FL103163005: {member: csv/S11_1_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: nonfinancial_corporate_debt_securities_outstanding}
+      FA103163005: {member: csv/S11_1_t.csv, native_frequency: quarterly, unit: millions_usd_saar, aggregation: last, role: nonfinancial_corporate_debt_securities_net_issuance}
+  census_c30:
+    endpoint: https://www.census.gov/construction/c30/xls/privtime.xlsx
+    provider: U.S. Census Bureau
+    note: value of private construction put in place, not seasonally adjusted; one workbook, one raw receipt, multiple declared columns
+    series:
+      C30_MFG_COMPUTER_ELECTRONIC: {column: Computer/ electronic/ electrical, native_frequency: monthly, unit: millions_usd, aggregation: last, role: chip_fab_structures_buildout}
+      C30_POWER: {column: Power (inc. Gas and Oil), native_frequency: monthly, unit: millions_usd, aggregation: last, role: power_structures_buildout}
+      C30_COMMUNICATION: {column: Communication, native_frequency: monthly, unit: millions_usd, aggregation: last, role: communication_structures_buildout}
+      C30_OFFICE_TOTAL: {column: Office, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_share_denominator}
+      C30_OFFICE_DATA_CENTER: {column: Data center, native_frequency: monthly, unit: millions_usd, aggregation: last, role: data_centre_structures, history: begins_2014_01_no_dotcom_counterpart}
     label: Household margin loans and other receivables due to brokers
     unit: millions_usd
     role: margin_credit_proxy_not_finra_margin_debt

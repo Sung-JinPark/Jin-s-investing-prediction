@@ -7,6 +7,7 @@ import pytest
 from ai_fc.ai_capital_cycle import (
     CIKS,
     build_ai_capital_cycle,
+    build_capital_intensity,
     validate_ai_regime,
     validate_regime_model,
 )
@@ -222,3 +223,105 @@ def test_non_usd_companyfact_is_quarantined() -> None:
     assert state["status"] == "unit_unsupported"
     assert state["units_found"] == ["EUR"]
     assert state["coverage_eligible"] is False
+
+def _annual_facts() -> tuple[dict, dict]:
+    """Annual, year-to-date and quarterly facts sharing one period end.
+
+    The year-to-date and quarterly rows exist so the tests can prove the
+    annual layer does not divide an annual numerator by a shorter-duration
+    denominator, which is the failure mode the D1 rows cannot rule out.
+    """
+    companyfacts, receipts = {}, {}
+    for symbol, cik in CIKS.items():
+        capex = {"units": {"USD": [
+            {"start": "2025-01-01", "end": "2025-12-31", "val": 60_000,
+             "form": "10-K", "filed": "2026-02-05", "fy": 2025, "fp": "FY", "accn": "a-annual"},
+            {"start": "2025-10-01", "end": "2025-12-31", "val": 20_000,
+             "form": "10-K", "filed": "2026-02-05", "fy": 2025, "fp": "Q4", "accn": "a-quarter"},
+            {"start": "2024-01-01", "end": "2024-12-31", "val": 30_000,
+             "form": "10-K", "filed": "2025-02-05", "fy": 2024, "fp": "FY", "accn": "a-prior"},
+        ]}}
+        operating = {"units": {"USD": [
+            {"start": "2025-01-01", "end": "2025-12-31", "val": 100_000,
+             "form": "10-K", "filed": "2026-02-05", "fy": 2025, "fp": "FY", "accn": "o-annual"},
+            {"start": "2025-07-01", "end": "2025-12-31", "val": 55_000,
+             "form": "10-K", "filed": "2026-02-05", "fy": 2025, "fp": "H2", "accn": "o-half"},
+            {"start": "2024-01-01", "end": "2024-12-31", "val": 90_000,
+             "form": "10-K", "filed": "2025-02-05", "fy": 2024, "fp": "FY", "accn": "o-prior"},
+        ]}}
+        depreciation = {"units": {"USD": [
+            {"start": "2025-01-01", "end": "2025-12-31", "val": 20_000,
+             "form": "10-K", "filed": "2026-02-05", "fy": 2025, "fp": "FY", "accn": "d-annual"},
+        ]}}
+        finance_lease = {"units": {"USD": [
+            {"end": "2025-12-31", "val": 42_000, "form": "10-K",
+             "filed": "2026-02-05", "accn": "l-latest"},
+            {"end": "2024-12-31", "val": 11_000, "form": "10-K",
+             "filed": "2025-02-05", "accn": "l-prior"},
+        ]}}
+        operating_lease = {"units": {"USD": [
+            {"end": "2025-12-31", "val": 33_000, "form": "10-K",
+             "filed": "2026-02-05", "accn": "ol-latest"},
+        ]}}
+        companyfacts[symbol] = {"cik": int(cik), "facts": {"us-gaap": {
+            "PaymentsToAcquirePropertyPlantAndEquipment": capex,
+            "NetCashProvidedByUsedInOperatingActivities": operating,
+            "DepreciationDepletionAndAmortization": depreciation,
+            "FinanceLeaseLiabilityPaymentsDue": finance_lease,
+            "LesseeOperatingLeaseLiabilityPaymentsDue": operating_lease,
+        }}}
+        receipts[symbol] = {
+            "request_url": f"https://data.sec.gov/{cik}",
+            "response_sha256": symbol.lower(), "fetched_at": "2026-08-31T00:00:00Z",
+        }
+    return companyfacts, receipts
+
+
+def _intensity(asof: date = date(2026, 8, 31)) -> dict:
+    facts, receipts = _annual_facts()
+    return build_capital_intensity(
+        contract=_contract(), tag_chains=_chains(), companyfacts=facts,
+        receipts=receipts, asof=asof,
+        generated_at=datetime(2026, 8, 31, tzinfo=timezone.utc))
+
+
+def test_capital_intensity_uses_only_full_year_durations() -> None:
+    payload = _intensity()
+    company = payload["companies"][0]
+    latest = company["annual"][-1]
+    assert latest["fiscal_year"] == 2025
+    # The annual capex fact, not the quarterly one that shares its period end.
+    assert latest["capex"] == 60_000
+    assert latest["operating_cashflow"] == 100_000
+    assert latest["accessions"]["capex"] == "a-annual"
+    assert latest["accessions"]["operating_cashflow"] == "o-annual"
+    assert latest["capex_to_operating_cashflow"] == pytest.approx(0.6)
+    assert latest["capex_to_depreciation"] == pytest.approx(3.0)
+    assert latest["free_cash_flow"] == pytest.approx(40_000)
+
+
+def test_capital_intensity_reports_undiscounted_lease_obligations() -> None:
+    company = _intensity()["companies"][0]
+    finance = company["lease_obligations"]["finance_lease_payments_due"]
+    assert finance["value"] == 42_000
+    assert finance["period_end"] == "2025-12-31"
+    assert finance["taxonomy_tag"] == "FinanceLeaseLiabilityPaymentsDue"
+    assert company["lease_obligations"]["operating_lease_payments_due"]["value"] == 33_000
+    # A tag the filer never used stays explicitly absent rather than zero.
+    assert company["lease_obligations"]["finance_lease_liability"] is None
+
+
+def test_capital_intensity_excludes_facts_filed_after_the_cutoff() -> None:
+    payload = _intensity(asof=date(2025, 6, 30))
+    company = payload["companies"][0]
+    assert [row["fiscal_year"] for row in company["annual"]] == [2024]
+    assert company["lease_obligations"]["finance_lease_payments_due"]["value"] == 11_000
+
+
+def test_capital_intensity_refuses_to_attribute_spending_to_ai() -> None:
+    payload = _intensity()
+    assert payload["probability_space"] == "reference_only"
+    assert payload["model_use"] is False
+    assert payload["official_forecast_input"] is False
+    assert payload["ai_attribution"] == "not_inferred"
+    assert payload["gate"] == "D2"

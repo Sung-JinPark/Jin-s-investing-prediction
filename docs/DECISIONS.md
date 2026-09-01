@@ -354,3 +354,39 @@ or business", Finnhub "deduct this expense as a business expense", EODHD의 Prof
 - **전량 실패 시 None**: 12-4a 규칙 그대로 `sentiment_overall`은 0.0이 아니라 None이다.
 - **영어 고정**: `sourcelang:english` — 필터 없이 돌리면 중국어 헤드라인이 섞이고 FinBERT는 영문 모델이다.
 - **제목 정규화**: GDELT는 제목을 토큰화해 보관해 구두점 앞에 공백이 들어간다("No . 1 Pick"). `normalize_title()`로 정리한다. 아포스트로피는 GDELT 단계에서 이미 소실돼 복원 불가.
+---
+
+## 2026-08-31 — BEA 투자 계열의 취득 경로를 fredgraph로 유예 (사용자 결정)
+
+`docs/design/ai_buildout_measurement_design_260831.md` Phase 0으로 통계 카드
+`investment_share_of_gdp`를 추가하며, BEA 원계열 3종(`GDP`, `Y034RC1Q027SBEA`,
+`Y001RC1Q027SBEA`)을 **기존 승인 경로인 fredgraph(무키 CSV)** 로 취득한다.
+
+**선례와의 긴장.** `reports/md/bank_credit_layer_contract_260805.md` §4.1은 "신규 자동
+수집은 fredgraph가 아니라 원생산자(Fed Board H.8/H.6/Z.1) 공식 다운로드를 사용하며,
+기존 `fred_market_signals: approved` 상태를 신규 레이어가 상속하면 안 된다"고 규정한다.
+이 결정은 그 선례를 이번 배치에 한해 적용하지 않는다.
+
+**유예 사유.**
+1. BEA 공식 API는 인증키를 쿼리스트링(`UserID=`)으로 요구하는데,
+   `src/ai_fc/authoritative_statistics.py:34` `_SECRET_QUERY_KEYS`가 영수증 URI의 비밀
+   쿼리를 거부한다 → **BEA 키드 API는 현재 코드로 영수증 생성이 구조적으로 불가능**하다.
+2. 남은 원생산자 경로인 `apps.bea.gov/national/Release/TXT/NipaDataQ.txt`는 35MB이며,
+   `official_store/raw/`가 content-addressed 커밋 대상이라 릴리스마다 35MB가 git 이력에
+   누적된다(현재 감당 상한의 실증은 Z.1 zip 8MB).
+3. FRED는 BEA 원계열을 변형 없이 중계하며, 본 배치의 3계열은 기존 33계열과 동일한
+   수집·영수증·정규화 경로를 그대로 사용한다(신규 원천 온보딩·정책 YAML 변경 0).
+
+**남는 부채.** 원생산자 직접 취득으로 옮기려면 (a) `timeseries_v5/sources.py`의
+`sanitized_uri` 패턴을 authoritative 레인에 이식하거나, (b) 대용량 벌크를 영수증 레인이
+아닌 파생 슬라이스 보존 레인으로 분리하는 설계가 선행되어야 한다. 둘 다 별도 승인 사안이다.
+
+**주의.** FRED 경유라도 라이선스는 원천마다 다르다. 본 배치의 3계열은 BEA(미국 정부
+저작물)이라 안전하나, 기존에 발행 중인 `SP500`(S&P DJI)·`NASDAQCOM`(Nasdaq OMX)은
+별개의 기존 노출이며 이 결정과 무관한 별도 감사 안건이다.
+
+**후속 (같은 날, 12-6에 의해 대체)**: 병렬 트랙의 12-6이 fredgraph 스크랩 자체를 약관
+위반으로 확인하고 FRED 자동 수집을 공식 API 전용으로 전환했다. 이 항목의 "fredgraph로
+유예" 결정은 그에 따라 소멸하며, BEA 3계열(`GDP`·`Y034RC1Q027SBEA`·`Y001RC1Q027SBEA`)은
+다른 FRED 계열과 함께 API 경로(`fred_api.observations_csv`, 영수증에는 무키 공개 URL)로
+취득된다. 원생산자 직접 취득 대비 트레이드오프 논거는 여전히 유효하다.

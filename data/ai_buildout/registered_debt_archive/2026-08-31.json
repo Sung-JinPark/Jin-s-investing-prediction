@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "dataset_id": "registered_debt_offerings_v1",
+  "generated_at": "2026-08-31T12:27:04+00:00",
+  "asof": "2026-08-31",
+  "window": {
+    "start": "2025-01-01",
+    "end": "2026-08-31"
+  },
+  "gate": "D2",
+  "probability_space": "reference_only",
+  "model_use": false,
+  "official_forecast_input": false,
+  "issuer_list_frozen": {
+    "MSFT": "0000789019",
+    "GOOGL": "0001652044",
+    "AMZN": "0001018724",
+    "META": "0001326801",
+    "ORCL": "0001341439"
+  },
+  "companies": [
+    {
+      "company": "AMZN",
+      "cik": "0001018724",
+      "debt_amount_usd": 0.0,
+      "filings_parsed": 0,
+      "filings_skipped": 16,
+      "coverage": "no_machine_readable_fee_table_in_window"
+    },
+    {
+      "company": "GOOGL",
+      "cik": "0001652044",
+      "debt_amount_usd": 110120530291.22,
+      "filings_parsed": 10,
+      "filings_skipped": 27,
+      "coverage": "measured"
+    },
+    {
+      "company": "META",
+      "cik": "0001326801",
+      "debt_amount_usd": 54936465000.0,
+      "filings_parsed": 2,
+      "filings_skipped": 4,
+      "coverage": "measured"
+    },
+    {
+      "company": "MSFT",
+      "cik": "0000789019",
+      "debt_amount_usd": 0.0,
+      "filings_parsed": 0,
+      "filings_skipped": 0,
+      "coverage": "no_registered_prospectus_in_window"
+    },
+    {
+      "company": "ORCL",
+      "cik": "0001341439",
+      "debt_amount_usd": 50649582500.0,
+      "filings_parsed": 3,
+      "filings_skipped": 11,
+      "coverage": "measured"
+    }
+  ],
+  "total_debt_amount_usd": 215706577791.22,
+  "ai_attribution": "not_inferred",
+  "measured_issuers": [
+    "GOOGL",
+    "META",
+    "ORCL"
+  ],
+  "unmeasured_issuers": [
+    "AMZN",
+    "MSFT"
+  ],
+  "coverage_limits": [
+    "144A 및 사모 발행은 424B를 남기지 않으므로 구조적으로 보이지 않는다 — 이 합계는 하한이다.",
+    "EX-FILING FEES 인라인 XBRL은 2022년부터 의무이므로 그 이전 발행은 집계되지 않는다.",
+    "발행사 리스트는 사전 고정값이며, 어떤 공식 분류도 채권을 AI 목적으로 표시하지 않는다.",
+    "일부 발행사(예: Amazon)는 424B에 기계판독 가능한 수수료 표를 첨부하지 않아 발행액이 집계되지 않는다. 이 경우 coverage 필드가 unmeasured로 표시되며 0으로 읽으면 안 된다.",
+    "따라서 발행사 간 합계 비교는 measured 커버리지를 가진 발행사끼리만 유효하다."
+  ]
+}

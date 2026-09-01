@@ -5,6 +5,7 @@
 ## 파일 규칙
 
 - 도메인별 1파일: `earnings.md`, `macro.md`, `volatility.md`, `market-regime.md`, `crypto.md`, `corporate-event.md`
+- 도메인에 걸치는 주제는 주제별 1파일: `ai-buildout.md` (AI 설비투자 사이클 — 여러 도메인 질문이 공유)
 - 각 항목 형식:
 
 ```markdown

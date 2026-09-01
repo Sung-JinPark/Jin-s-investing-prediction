@@ -31,6 +31,11 @@ jobs:
         env:
           AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
         run: cd src && python -m ai_fc ai-capital-cycle
+      - name: Reconstruct registered debt offerings from filing-fee exhibits
+        continue-on-error: true
+        env:
+          AI_FC_SEC_USER_AGENT: "Jin Investing Prediction research Sung-JinPark@users.noreply.github.com"
+        run: cd src && python -m ai_fc registered-debt --start 2025-01-01
       - name: Refresh O rolling-entry cohort evidence
         continue-on-error: true
         run: cd src && python -m ai_fc o-entry-cohort
@@ -50,6 +55,7 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add data/ai_capital_cycle
+          git add data/ai_buildout
           git add data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json
           git add data/realty_income/o_entry_cohort_latest.json
           git add data/realty_income/o_entry_cohort_archive
