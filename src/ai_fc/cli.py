@@ -1162,6 +1162,33 @@ def cmd_segment_filing_inventory(
     )
 
 
+@app.command("registered-debt")
+def cmd_registered_debt(
+    start: str = typer.Option("2025-01-01", "--start", help="수집 시작일 (YYYY-MM-DD)"),
+    end: str | None = typer.Option(None, "--end", help="수집 종료일 (기본: 오늘)"),
+) -> None:
+    """사전 고정 발행사의 SEC 등록채권 발행액을 수수료 명세서에서 집계한다."""
+    from .registered_debt import refresh_registered_debt
+
+    try:
+        first = date.fromisoformat(start)
+        last = date.fromisoformat(end) if end else date.today()
+    except ValueError as exc:
+        raise typer.BadParameter("--start/--end는 YYYY-MM-DD 형식이어야 합니다.") from exc
+    if last < first:
+        raise typer.BadParameter("--end는 --start보다 빠를 수 없습니다.")
+    result = refresh_registered_debt(config.ROOT, start=first, end=last)
+    summary = result["summary"]
+    measured = ", ".join(summary["measured_issuers"]) or "없음"
+    unmeasured = ", ".join(summary["unmeasured_issuers"]) or "없음"
+    typer.echo(
+        f"등록채권 {first}~{last} · 측정 {measured} · 미측정 {unmeasured} · "
+        f"합계 {summary['total_debt_amount_usd'] / 1e9:.1f}B USD "
+        f"(신규 {result['rows_appended']}건 / 누적 {result['rows_total']}건)"
+    )
+    typer.echo("미측정 발행사는 0이 아니라 기계판독 가능한 수수료 표가 없다는 뜻입니다.")
+
+
 @app.command("ai-capital-cycle")
 def cmd_ai_capital_cycle(
     asof: str | None = typer.Option(
