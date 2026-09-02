@@ -58,6 +58,44 @@ def cmd_timeseries_refresh() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-collect-series")
+def cmd_timeseries_collect_series(
+    series: str = typer.Option(..., "--series", help="쉼표 구분 시리즈 ID (로스터 등록분만)"),
+) -> None:
+    """지정 시리즈의 ALFRED 전체 vintage 이력을 1회 백필한다.
+
+    refresh의 증분 창(전 시리즈 공용 최신 수집시각 − 7일)은 신규 등록 시리즈의
+    과거 이력을 가져오지 못하므로, 로스터에 새 시리즈를 추가한 뒤 이 명령으로
+    전체 창(expanding_start=1996-01-01) 수집을 한 번 실행한다 (V9-D5 트랙).
+    """
+    from .timeseries.ledger import collect_alfred, registered_series
+    from .timeseries.contracts import load_contract
+
+    requested = [item.strip() for item in series.split(",") if item.strip()]
+    roster = set(registered_series(load_contract(config.ROOT)))
+    unknown = [item for item in requested if item not in roster]
+    if unknown:
+        raise typer.BadParameter(f"로스터에 등록되지 않은 시리즈: {unknown}")
+    result = _timeseries_exit(
+        collect_alfred, config.ROOT,
+        api_key=os.environ.get("FRED_API_KEY", ""), series_ids=requested,
+    )
+    summary = {
+        "requested": requested,
+        "realtime_window": result.get("realtime_window"),
+        "series": [
+            {key: row.get(key)
+             for key in ("series_id", "vintage_count", "batch_count", "normalized_facts")}
+            for row in result.get("series", [])
+        ],
+        "facts": result.get("facts"),
+        "failures": result.get("failures", []),
+    }
+    typer.echo(json.dumps(summary, ensure_ascii=False, indent=2))
+    if result.get("failures"):
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-fit")
 def cmd_timeseries_fit(
     knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),

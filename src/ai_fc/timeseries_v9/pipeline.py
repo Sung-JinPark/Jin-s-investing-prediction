@@ -50,9 +50,20 @@ from .contracts import (
     v8_sealed_source_hash,
     verify_v8_benchmark,
 )
-from .features import build_m2sl_feature, correlation_rejection
+from .features import (
+    build_m2sl_feature,
+    build_totci_feature,
+    build_totll_feature,
+    build_wrmfns_feature,
+    correlation_rejection,
+)
 
-FEATURE_BUILDERS = {"F1_m2sl_liquidity": build_m2sl_feature}
+FEATURE_BUILDERS = {
+    "F1_m2sl_liquidity": build_m2sl_feature,
+    "F2_totci_credit": build_totci_feature,
+    "F3_totll_credit": build_totll_feature,
+    "F4_wrmfns_mmf": build_wrmfns_feature,
+}
 
 
 class TimeSeriesV9PipelineError(RuntimeError):

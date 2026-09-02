@@ -158,16 +158,48 @@ def correlation_rejection(
     return verdict
 
 
+def build_first_release_feature(
+    root: Path, dates: tuple[str, ...], *, series_id: str, feature_id: str,
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """Generic registered-feature builder: first prints → log change → trailing z."""
+    releases = first_release_observations(root, series_id)
+    events = release_aligned_log_changes(releases)
+    if assert_pit(dates, events) != 0:
+        raise TimeSeriesV9ContractError(f"{series_id} feature failed the PIT assertion")
+    column, manifest = feature_column(dates, events)
+    manifest["series_id"] = series_id
+    manifest["feature_id"] = feature_id
+    manifest["release_events"] = len(events)
+    return column, manifest
+
+
 def build_m2sl_feature(
     root: Path, dates: tuple[str, ...],
 ) -> tuple[np.ndarray, dict[str, Any]]:
-    """The single registered V9 feature: F1_m2sl_liquidity."""
-    releases = first_release_observations(root, "M2SL")
-    events = release_aligned_log_changes(releases)
-    if assert_pit(dates, events) != 0:
-        raise TimeSeriesV9ContractError("M2SL feature failed the PIT assertion")
-    column, manifest = feature_column(dates, events)
-    manifest["series_id"] = "M2SL"
-    manifest["feature_id"] = "F1_m2sl_liquidity"
-    manifest["release_events"] = len(events)
-    return column, manifest
+    """F1_m2sl_liquidity — 월간 M2 (V9_E1에서 무효익 판정, 기준 기록 유지)."""
+    return build_first_release_feature(
+        root, dates, series_id="M2SL", feature_id="F1_m2sl_liquidity")
+
+
+def build_totci_feature(
+    root: Path, dates: tuple[str, ...],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """F2_totci_credit — 주간 C&I 대출 (H.8, ALFRED vintage 1996-12+)."""
+    return build_first_release_feature(
+        root, dates, series_id="TOTCI", feature_id="F2_totci_credit")
+
+
+def build_totll_feature(
+    root: Path, dates: tuple[str, ...],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """F3_totll_credit — 주간 은행 총여신 (H.8, ALFRED vintage 1996-12+)."""
+    return build_first_release_feature(
+        root, dates, series_id="TOTLL", feature_id="F3_totll_credit")
+
+
+def build_wrmfns_feature(
+    root: Path, dates: tuple[str, ...],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """F4_wrmfns_mmf — 주간 소매 MMF (H.6, ALFRED vintage 2002-10+)."""
+    return build_first_release_feature(
+        root, dates, series_id="WRMFNS", feature_id="F4_wrmfns_mmf")

@@ -20,7 +20,9 @@ sources:
   daily_required: [NASDAQCOM, VIXCLS, DGS2, T10Y2Y, BAMLH0A0HYM2, DTWEXBGS]
   growth_required: [PAYEMS, UNRATE, INDPRO, RSAFS, HOUST, GDPC1]
   inflation_required: [CPIAUCSL, CPILFESL, PCEPI, PCEPILFE]
-  financial_optional: [NFCI, M2SL, WALCL, WTREGEN, RRPONTSYD, DFF]
+  # TOTCI·TOTLL·WRMFNS: V9 신용·유동성 트랙(V9-D5) — ALFRED 네이티브 vintage로만 수집,
+  # V1 모델 피처는 하드코딩이라 무영향. 폐지 시리즈 WRMFSL은 등록 금지.
+  financial_optional: [NFCI, M2SL, WALCL, WTREGEN, RRPONTSYD, DFF, TOTCI, TOTLL, WRMFNS]
   historical_bridge: [DTWEXB]
   event_optional: [NFP_CONSENSUS, CPI_CONSENSUS, FED_RATE_PROBABILITY]
   authority:
