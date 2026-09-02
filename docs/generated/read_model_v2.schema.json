@@ -515,6 +515,7 @@
           "enum": [
             "ok",
             "degraded",
+            "stale_last_valid",
             "stale_or_invalid",
             "unavailable"
           ]

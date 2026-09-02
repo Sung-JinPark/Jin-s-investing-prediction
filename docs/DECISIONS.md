@@ -476,3 +476,30 @@ continue-on-error로 배포를 막지 않는다(통계·v8 표면 갱신과 디�
 **비결정 (소유자 승인 대기).** 게이트 닫힘 화면에 "마지막 유효 후보 차트 + 기준일
 라벨 + 게이트 사유"를 표시하는 완화(B안)는 fail-closed 표시 규약의 변경이므로
 소유자 승인 항목으로 분리 제안만 한다 — 이 커밋은 구현하지 않았다.
+
+## 2026-09-02 — B안 승인: 게이트 닫힘 시 마지막 유효 후보 표시 (사용자 결정)
+
+**결정.** 같은 날 "Pages 배포시점 V5.2 재봉인" 항목에서 분리 제안으로 남긴 B안을
+사용자가 명시 승인했다 (사용자 메시지 2026-09-02 "승인이야"). fail-closed 표시 규약은
+"후보 실패가 요청된 차트를 **조용히** 대체하지 않는다"로 개정된다 — 명시 공시를 동반한
+마지막 유효 후보 표시는 허용, 조용한 대체와 다른 모델 차트로의 자동 전환은 계속 금지.
+
+**구현 계약.**
+- `dashboard_projection`: 게이트 사유가 있어도 봉인 산출물이 **내부적으로 온전**하면
+  (`validate_candidate(payload, root=None)` 통과 — 모델 해시·스키마·표시 계약 검증,
+  환경 의존 검사 제외) 전체 내용을 유지한 채 `status="stale_last_valid"`,
+  `display_eligible=false`, `fallback_mode="last_valid_candidate_with_explicit_disclosure"`,
+  게이트 사유 목록을 공시한다. 내부 무결성이 깨진 산출물(모델 해시 불일치 등)은 종전대로
+  내용 0의 `stale_or_invalid` — B안의 한계선.
+- 프런트(renderFlow → renderScenarioV52): `stale_last_valid` + 경로 데이터 존재 시
+  마지막 유효 차트를 렌더하되, 상단에 게이트 공시 배너(`scenario-v52-gate-notice`)로
+  **기준일 라벨 + 게이트 사유**를 표시한다. 완전 실패 화면(`renderFuturePathsLoadState`)도
+  이제 사유 문자열을 렌더한다(종전에는 불리언으로만 사용).
+- `split_future_paths`: 분리 조건을 게이트 상태에서 **경로 데이터 존재**로 변경 —
+  stale_last_valid는 정상 분리(semantic reference 존재), 내용 없는 요약만 인라인.
+- read-model 계약(`read_model_contract.py`)의 scenario_v5_2 status enum에
+  `stale_last_valid` 추가.
+
+**적용 범위.** 배포시점 재봉인(결정 1) 이후 이 상태가 나타나는 잔여 경로는
+① pages 재빌드 실패(continue-on-error 경로), ② cron 2+거래일 연속 누락(age 게이트) —
+두 경우 모두 이제 빈 화면 대신 "기준일 명시된 마지막 유효 차트 + 사유"가 보인다.

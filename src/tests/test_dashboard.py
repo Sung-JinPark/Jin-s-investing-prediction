@@ -736,7 +736,11 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     assert "renderScenarioV52(candidate52,initialState);" in html
     assert "const researchPathsRequested=v==='flow'&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
-    assert "if(candidate52Requested&&candidate52Eligible)" in html
+    # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
+    # (게이트 닫힘 + 봉인 산출물 온전)도 같은 V5.2 차트를 명시 공시와 함께 렌더.
+    # legacy 차트로의 자동 전환 금지는 그대로다.
+    assert "if(candidate52Requested&&(candidate52Eligible||candidate52LastValid))" in html
+    assert "candidate52.status==='stale_last_valid'" in html
     assert "if(candidate52Requested){" in html
     assert "이전 방식의 그래프로 자동 전환하지 않습니다" in html
     assert "if(parts[1]==='champion')return {section:'future',view:'flow',arg:{modelView:'champion'}}" in html
@@ -1429,10 +1433,11 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> No
 
 
 def test_future_paths_split_keeps_gated_candidate_inline_without_deferred_marker() -> None:
-    """게이트 닫힌 후보는 경로 배열이 없으므로 deferred 마커를 달면 프런트가
-    실패가 예정된 fetch(semantic reference null 불일치)로 빠진다. 요약을 그대로
-    인라인해 renderFlow의 게이트 사유 분기에 도달하게 한다 — 차트 대체는 없다
-    (fail-closed 유지)."""
+    """경로 배열이 없는 요약(후보 부재·내용 무결성 실패)에 deferred 마커를 달면
+    프런트가 실패가 예정된 fetch(semantic reference null 불일치)로 빠진다. 요약을
+    그대로 인라인해 renderFlow의 게이트 사유 분기에 도달하게 한다 — 차트 대체는
+    없다(fail-closed 유지). 내용이 있는 stale_last_valid는 아래 별도 테스트처럼
+    정상 분리된다."""
     gated = {
         "schema_version": 1,
         "status": "stale_or_invalid",
@@ -1465,6 +1470,41 @@ def test_future_paths_split_keeps_gated_candidate_inline_without_deferred_marker
     # 두 번째 분리(임베드 렌더 경로)에서도 결과가 달라지지 않는다.
     again, _ = dashboard.split_future_paths(base)
     assert again["scenario_v5_2"] == gated
+
+
+def test_future_paths_split_defers_last_valid_gated_candidate() -> None:
+    """소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트가 닫혀도 봉인 산출물이
+    온전하면(stale_last_valid) 경로 데이터는 정상 분리되어 프런트가 마지막 유효
+    차트를 명시 공시 배너와 함께 렌더할 수 있어야 한다."""
+    candidate_path = (
+        dashboard.config.ROOT
+        / "data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json"
+    )
+    candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+    stale_now = dashboard.datetime.fromisoformat(
+        candidate["knowledge_cutoff"]
+    ) + dashboard.timedelta(days=10)
+    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    try:
+        model = dashboard.build_read_model(
+            conn, dashboard.config.ROOT, now=stale_now,
+        )
+    finally:
+        conn.close()
+    base, _ = dashboard.split_statistics_data(model)
+    base, future = dashboard.split_future_paths(base)
+    summary = base["scenario_v5_2"]
+    assert summary["status"] == "stale_last_valid"
+    assert summary["runtime_gate"]["display_eligible"] is False
+    assert summary["runtime_gate"]["reasons"]
+    assert summary["deferred_paths"]["required"] is True
+    assert summary["semantic_reference"]
+    assert future is not None
+    assert future["semantic_reference"] == summary["semantic_reference"]
+    assert future["data"]["scenario_v5_2"]["conditional_small_multiples"]
+    assert len(json.dumps(future, ensure_ascii=False, default=str,
+                          separators=(",", ":")).encode("utf-8")) \
+        <= dashboard.FUTURE_PATHS_BUDGET_BYTES
 
 
 def test_server_is_read_only() -> None:

@@ -780,17 +780,30 @@ def dashboard_projection(
         reasons.extend(validation["errors"])
     if age > maximum_age_trading_days:
         reasons.append(f"candidate age {age} trading days exceeds {maximum_age_trading_days}")
+    closed_gate: dict[str, Any] | None = None
     if reasons:
-        return {
-            "schema_version": 1, "status": "stale_or_invalid",
-            "candidate_id": CANDIDATE_ID, "banner": "STALE/INVALID V5.2 RESEARCH CANDIDATE",
-            "runtime_gate": {
-                "display_eligible": False,
-                "age_trading_days": age,
-                "reasons": reasons,
-                "fallback_mode": "previous_approved_model",
-                "fallback_banner": "후보 검증 게이트 차단 — 이전 승인 모델 표시 중",
-            },
+        # Owner-approved last-valid fallback (DECISIONS.md 2026-09-02): when the
+        # gate closed because the environment moved on (age, protected-input
+        # drift) but the sealed artifact itself is still internally intact,
+        # keep its content visible with the closed gate and reasons disclosed.
+        # An artifact that fails its own integrity checks stays fully
+        # fail-closed with no content.
+        if not validate_candidate(payload, None, replay=False)["ok"]:
+            return {
+                "schema_version": 1, "status": "stale_or_invalid",
+                "candidate_id": CANDIDATE_ID, "banner": "STALE/INVALID V5.2 RESEARCH CANDIDATE",
+                "runtime_gate": {
+                    "display_eligible": False,
+                    "age_trading_days": age,
+                    "reasons": reasons,
+                    "fallback_mode": "none_content_integrity_failed",
+                },
+            }
+        closed_gate = {
+            "display_eligible": False,
+            "age_trading_days": age,
+            "reasons": reasons,
+            "fallback_mode": "last_valid_candidate_with_explicit_disclosure",
         }
     dates = payload["distribution"]["dates"]
     indexes = _sample_indexes(len(dates), dates=dates)
@@ -856,16 +869,21 @@ def dashboard_projection(
         }
     return {
         "schema_version": 1,
-        "status": "degraded" if "LIMITED" in payload["status"] else "ok",
+        "status": "stale_last_valid" if closed_gate
+        else ("degraded" if "LIMITED" in payload["status"] else "ok"),
         "candidate_id": CANDIDATE_ID,
         "semantic_reference": {
             "candidate_id": CANDIDATE_ID,
             "model_version": SEMANTIC_MODEL_VERSION,
             "rules_version": SEMANTIC_RULES_VERSION,
         },
-        "banner": "RESEARCH CANDIDATE · NOT OFFICIAL · LIMITED EVENT MAP",
+        "banner": (
+            "RESEARCH CANDIDATE · NOT OFFICIAL · GATE CLOSED — LAST VALID SNAPSHOT"
+            if closed_gate else
+            "RESEARCH CANDIDATE · NOT OFFICIAL · LIMITED EVENT MAP"
+        ),
         "as_of": payload["as_of"],
-        "runtime_gate": {
+        "runtime_gate": closed_gate or {
             "display_eligible": True,
             "age_trading_days": age,
             "reasons": [],
