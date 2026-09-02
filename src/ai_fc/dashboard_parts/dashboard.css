@@ -6,7 +6,7 @@
   --lime:#ff4f17; --lime-deep:#db351b; --coral:#c9002d; --teal:#247d78; --slate:#706f68;
   --violet:#ff9d19;
   --muted:#706f68;
-  --line:#d9d8d1; --dark-line:#b8b6ad;
+  --line:#d9d8d1; --dark-line:#b8b6ad; --line-strong:#b8b6ad;
   --shadow:0 22px 50px rgba(18,17,15,.08);
   --inner:inset 0 1px rgba(255,255,255,.72);
   --rail:208px;
@@ -451,7 +451,7 @@ td small{color:rgba(255,255,255,.35);font-family:var(--mono);font-size:9px}
   --white:#11110f;--white-warm:#11110f;
   --lime:#ff4f17;--lime-deep:#db351b;--coral:#c9002d;--teal:#247d78;--slate:#706f68;--violet:#ff9d19;
   --orange:#ff4f17;--amber:#ff9d19;--red:#e30b17;--crimson:#c9002d;--positive:#147a55;
-  --muted:#706f68;--line:#d9d8d1;--dark-line:#b8b6ad;
+  --muted:#706f68;--line:#d9d8d1;--dark-line:#b8b6ad;--line-strong:#b8b6ad;
   --shadow:0 22px 50px rgba(18,17,15,.08);--inner:inset 0 1px rgba(255,255,255,.72);
   --rail:208px;
 }
