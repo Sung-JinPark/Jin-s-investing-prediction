@@ -12,3 +12,4 @@
 2026-09-02 17:12:21 BOOT branch=claude/v10-gate sealed_baseline=e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224 deadline_epoch=1788393600
 2026-09-02 17:12:24 EXPLORE run V10_E0_identity budget=0/24
 2026-09-02 17:25:08 EXPLORE run V10_W1_kappa_05 budget=1/24
+2026-09-02 17:39:05 EXPLORE run V10_W1_kappa_10 budget=2/24
