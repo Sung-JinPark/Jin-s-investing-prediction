@@ -1099,11 +1099,6 @@ function renderStatistics(initialState){
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
-  // 경계 접근 요약 스트립 — 기존 approach_alert(데이터 파생 경계) 재사용, 신규 판정 0.
-  const alertCharts=charts.filter(chart=>chart.approach_alert&&chart.approach_alert.status);
-  if(alertCharts.length){
-    root.appendChild(el(`<section class="statistics-alert-strip" aria-label="경계 접근 요약">${alertCharts.map(chart=>{const alert=chart.approach_alert;return `<button type="button" data-alert-target="${esc(chart.id)}" class="alert-${esc(alert.status)}"><i aria-hidden="true"></i><span>${esc(chart.title)}</span><b>${esc(alert.status_label||alert.status)}</b></button>`;}).join('')}<small>경계 접근 표시는 표시 관행이며 매매 신호가 아닙니다</small></section>`));
-  }
   const grid=el('<div class="statistics-grid"></div>');
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
@@ -1131,11 +1126,6 @@ function renderStatistics(initialState){
     if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);
   };
   root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
-  root.querySelectorAll('[data-alert-target]').forEach(button=>{button.onclick=()=>{
-    applyStatCategory('all',false);
-    const card=root.querySelector(`[data-stat-id="${button.dataset.alertTarget}"]`);
-    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
-  };});
   applyStatCategory(requestedCategory||'all',false);
 }
 
@@ -1323,7 +1313,71 @@ function renderTimeseries(initialState){
   activateTs(active,Boolean(requested)&&requested!==active);
 }
 
-const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare};
+/* ── 관리자 전용 방문 통계 (#admin-stats, 내비 미노출) ──
+   게이트는 GoatCounter API 토큰 자체다: 토큰은 관리자가 자기 브라우저에서 입력해
+   localStorage에만 저장되고, 사이트 코드·저장소에는 존재하지 않는다. 토큰 없이는
+   API가 401을 돌려주므로 이 화면은 껍데기 외에 아무 데이터도 보여줄 수 없다.
+   토큰은 오직 GoatCounter 도메인(GC_API)으로만 전송된다. */
+const GC_API='https://jin-investing.goatcounter.com/api/v0';
+const GC_TOKEN_KEY='gc_api_token';
+function gcToken(){try{return localStorage.getItem(GC_TOKEN_KEY)||'';}catch(_){return '';}}
+function gcSetToken(value){try{if(value)localStorage.setItem(GC_TOKEN_KEY,value);else localStorage.removeItem(GC_TOKEN_KEY);}catch(_){}}
+async function gcFetch(path,params){
+  const query=new URLSearchParams(params||{}).toString();
+  const res=await fetch(GC_API+path+(query?'?'+query:''),{headers:{Authorization:'Bearer '+gcToken()},cache:'no-store'});
+  if(res.status===401||res.status===403)throw new Error('401');
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  return res.json();
+}
+function gcDate(daysAgo){const d=new Date(Date.now()-daysAgo*86400000);return d.toISOString().slice(0,10);}
+function gcBarRows(rows,nameOf){
+  const list=(rows||[]).map(row=>({name:nameOf(row),count:Number(row.count)||0})).filter(row=>row.name);
+  const peak=Math.max(1,...list.map(row=>row.count));
+  return list.map(row=>`<li><span class="admin-bar" style="width:${Math.max(2,Math.round(row.count/peak*100))}%"></span><em>${esc(row.name)}</em><strong>${row.count.toLocaleString()}</strong></li>`).join('')||'<li class="admin-empty">데이터 없음</li>';
+}
+function renderAdminStats(arg){
+  const days=Number(arg&&arg.days)||30;
+  const heading=`<div class="page-heading"><div><p class="eyebrow">관리자 전용</p><h1>사이트 방문 통계</h1><p class="page-lede">GoatCounter 집계를 사이트 안에서 직접 봅니다. 이 화면 주소는 내비게이션에 없고, 데이터는 관리자 API 토큰이 있어야만 열립니다.</p></div></div>`;
+  if(!gcToken()){
+    app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-gate"><h2>관리자 인증</h2><p>GoatCounter API 토큰을 입력하세요. 토큰은 <strong>이 브라우저의 localStorage에만</strong> 저장되며, 사이트 코드나 저장소에는 포함되지 않고 goatcounter.com 외 어디로도 전송되지 않습니다.</p><p class="admin-hint">토큰 만들기: jin-investing.goatcounter.com 로그인 → 설정 → API에서 "Read statistics" 권한으로 생성해 붙여넣으세요.</p><form data-gc-gate><input type="password" placeholder="API 토큰" autocomplete="off" required><button type="submit">저장하고 열기</button></form></div></section>`;
+    app().querySelector('[data-gc-gate]').addEventListener('submit',e=>{e.preventDefault();const value=e.target.querySelector('input').value.trim();if(!value)return;gcSetToken(value);renderAdminStats(arg);});
+    return;
+  }
+  app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-toolbar"><div class="lab-tabs admin-range">${[7,30,90].map(n=>`<button type="button" data-days="${n}" aria-selected="${n===days}">${n}일</button>`).join('')}</div><button type="button" class="admin-signout" data-gc-signout>토큰 삭제</button></div><div class="admin-body"><p class="admin-empty">불러오는 중…</p></div></section>`;
+  app().querySelectorAll('[data-days]').forEach(button=>{button.onclick=()=>renderAdminStats({days:Number(button.dataset.days)});});
+  app().querySelector('[data-gc-signout]').onclick=()=>{gcSetToken('');renderAdminStats(arg);};
+  const body=app().querySelector('.admin-body');
+  const range={start:gcDate(days-1),end:gcDate(0)};
+  (async()=>{
+    const total=await gcFetch('/stats/total',range);
+    const sections=[];
+    const dailyRows=(total.stats||[]).map(row=>({name:String(row.day||'').slice(5),count:Number(row.daily)||0}));
+    sections.push(`<div class="admin-card"><h2>일별 조회 — 합계 ${Number(total.total||0).toLocaleString()} (최근 ${days}일)</h2><ul class="admin-list admin-daily">${gcBarRows(dailyRows,row=>row.name)}</ul></div>`);
+    const panels=[
+      ['/stats/hits','화면(경로)별 방문',row=>row.path||row.event||'',{limit:'15',...range}],
+      ['/stats/toprefs','유입 경로 (referrer)',row=>row.name||'(직접 방문·없음)',{limit:'15',...range}],
+      ['/stats/locations','국가',row=>row.name||'',{limit:'15',...range}],
+      ['/stats/browsers','브라우저',row=>row.name||'',{limit:'15',...range}],
+    ];
+    for(const [path,title,nameOf,params] of panels){
+      try{
+        const data=await gcFetch(path,params);
+        const rows=data.hits||data.stats||[];
+        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><ul class="admin-list">${gcBarRows(rows,nameOf)}</ul></div>`);
+      }catch(error){
+        if(String(error.message)==='401')throw error;
+        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><p class="admin-empty">불러오기 실패 (${esc(String(error.message))})</p></div>`);
+      }
+    }
+    sections.push('<p class="admin-note">집계는 GoatCounter(쿠키 없는 방문 통계) 기준입니다. 개인 식별 정보는 수집되지 않으며, 이 화면과 토큰은 관리자 브라우저에서만 동작합니다.</p>');
+    body.innerHTML=sections.join('');
+  })().catch(error=>{
+    if(String(error.message)==='401'){gcSetToken('');body.innerHTML='<p class="admin-empty">토큰이 유효하지 않습니다. 새 토큰을 입력하세요.</p>';setTimeout(()=>renderAdminStats(arg),1200);return;}
+    body.innerHTML=`<p class="admin-empty">통계를 불러오지 못했습니다 (${esc(String(error.message))}). 네트워크 상태를 확인하고 다시 시도하세요.</p>`;
+  });
+}
+
+const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare,adminstats:renderAdminStats};
 const CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart';
 let CHART_ZOOM_LAYER=null,CHART_ZOOM_TRIGGER=null,CHART_ZOOM_SCALE=1,CHART_ZOOM_WIDTH=0;
 function chartZoomTitle(surface,index){
@@ -1398,7 +1452,7 @@ function appendContextTabs(root,group,current){const html=contextTabs(group,curr
 function legacyRouteRedirect(rawHash){
   if(!rawHash||rawHash==='#')return '#today';
   if(rawHash==='#future/range')return '#future/lookup';
-  if(/^#(?:today|future(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$)|trust(?:\/|$))/.test(rawHash))return rawHash;
+  if(/^#(?:today|admin-stats(?:\/|$)|future(?:\/|$)|statistics(?:\/|$)|timeseries(?:\/|$)|records(?:\/|$)|trust(?:\/|$))/.test(rawHash))return rawHash;
   if(rawHash==='#overview')return '#today';
   if(rawHash==='#flow')return '#future';
   if(rawHash==='#questions')return '#records';
@@ -1423,6 +1477,7 @@ function legacyRouteRedirect(rawHash){
 function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
   if(parts[0]==='today')return {section:'today',view:'overview'};
+  if(parts[0]==='admin-stats')return {section:'admin',view:'adminstats',arg:{days:Number(parts[1])||30}};
   if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}};
   if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}};
   if(parts[0]==='future'){
