@@ -643,11 +643,10 @@ def load_template(*, include_qr: bool = True) -> str:
     for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->", "<!--ANALYTICS-->"):
         if marker not in shell:
             raise ValueError(f"dashboard template marker missing: {marker}")
-    return (
-        shell.replace("<!--STYLES-->", styles)
-        .replace("<!--APP_SCRIPT-->", script)
-        .replace("<!--ANALYTICS-->", _analytics_snippet())
-    )
+    # <!--ANALYTICS-->는 여기서 치환하지 않는다 — 자기완결 감사 HTML(embed)에는
+    # 외부 스크립트가 들어가면 안 되므로, render_html이 pages 모드에서만 채운다
+    # (WEBFONTS와 같은 규칙).
+    return shell.replace("<!--STYLES-->", styles).replace("<!--APP_SCRIPT-->", script)
 
 
 def _analytics_snippet(code: str | None = None) -> str:
@@ -1005,6 +1004,9 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f'<link rel="stylesheet" href="{WANTED_SANS_CSS}" crossorigin>',
         ))
     shell = shell.replace("<!--WEBFONTS-->", webfonts)
+    shell = shell.replace(
+        "<!--ANALYTICS-->", _analytics_snippet() if mode == "pages" else ""
+    )
     scenario = read_model.get("scenario") or {}
     asof = scenario.get("asof") or "latest registered snapshot"
     og_title = f"Jin's Investing Prediction · {asof}"
