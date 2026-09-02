@@ -166,3 +166,55 @@ def test_the_identity_baseline_can_never_be_the_champion() -> None:
     champion = design_champion(ROOT)
     if champion is not None:
         assert champion.get("feature_set"), "빈 피처 셋은 챔피언 자격이 없다"
+
+
+def test_r9a_subwindow_and_market_lane_constitution(tmp_path: Path) -> None:
+    """R9-A: 서브윈도는 사전등록 값만, 시장 레인은 raw 비커밋·값 불변."""
+    from ai_fc.timeseries_v9 import market_lane
+
+    contract = load_contract_v9(ROOT)
+    assert contract["research_grids"]["subwindow_protocol"]["design_sub"] == \
+        ["2010-01-01", "2014-12-31"]
+    with pytest.raises(TimeSeriesV9PipelineError, match="design_sub"):
+        dev_backtest_timeseries_v9(
+            ROOT, feature_set=[], window_override="design_full_secret")
+    with pytest.raises(TimeSeriesV9PipelineError, match="design iterations only"):
+        dev_backtest_timeseries_v9(
+            ROOT, feature_set=[], window_role="holdout",
+            window_override="design_sub", holdout_user_approval="x")
+
+    payload = (b"DATE,OPEN,HIGH,LOW,CLOSE\n"
+               b"09/14/2009,25.0,26.0,24.0,24.93\n"
+               b"09/15/2009,25.1,26.1,24.1,25.10\n")
+    result = market_lane.collect_vxn(
+        tmp_path, fetcher=lambda url: payload, retrieved_at="2026-09-02T05:00:00+00:00")
+    assert result["appended"] == 2
+    receipts = (tmp_path / market_lane.MARKET_RECEIPTS_RELATIVE).read_text(encoding="utf-8")
+    assert "private_locator_only" in receipts and "private://timeseries-v9" in receipts
+    # 같은 페이로드 재수집 = 멱등, 확정 지수값 변경 = 거부.
+    again = market_lane.collect_vxn(tmp_path, fetcher=lambda url: payload)
+    assert again["appended"] == 0 and again["unchanged"] == 2
+    tampered = payload.replace(b"24.93", b"30.00")
+    with pytest.raises(v9_features.TimeSeriesV9ContractError, match="must not move"):
+        market_lane.collect_vxn(tmp_path, fetcher=lambda url: tampered)
+    rows = market_lane.read_vxn(tmp_path)
+    assert rows[0][1].startswith("2009-09-14T20:15")  # 16:15 ET 규약
+
+
+def test_f5_spread_feature_builds_with_pit_and_winsorize() -> None:
+    """F5는 실데이터에서 PIT 통과·±3 윈저라이즈로 빌드된다 (설계창 서브윈도 온셋)."""
+    from ai_fc.timeseries_v9.features import build_vxn_vix_spread_feature
+    import numpy as np
+
+    dates = tuple(
+        str(day) for day in np.arange(
+            np.datetime64("2009-01-02"), np.datetime64("2015-01-01"),
+            np.timedelta64(1, "D"))
+        if np.is_busday(day)
+    )
+    column, manifest = build_vxn_vix_spread_feature(ROOT, dates)
+    assert manifest["feature_id"] == "F5_vxn_vix_spread"
+    assert manifest["release_events"] > 1000
+    assert float(np.max(np.abs(column))) <= 3.0  # winsorize_z 3.0
+    onset = dates.index("2009-09-15")
+    assert not column[:onset - 1].any() or manifest["neutral_prefix_sessions"] > 0

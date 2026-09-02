@@ -54,6 +54,7 @@ from .features import (
     build_m2sl_feature,
     build_totci_feature,
     build_totll_feature,
+    build_vxn_vix_spread_feature,
     build_wrmfns_feature,
     correlation_rejection,
 )
@@ -63,6 +64,7 @@ FEATURE_BUILDERS = {
     "F2_totci_credit": build_totci_feature,
     "F3_totll_credit": build_totll_feature,
     "F4_wrmfns_mmf": build_wrmfns_feature,
+    "F5_vxn_vix_spread": build_vxn_vix_spread_feature,
 }
 
 
@@ -99,11 +101,18 @@ def dev_backtest_timeseries_v9(
     feature_set: list[str],
     experiment_label: str = "",
     window_role: str = "design",
+    window_override: str = "",
     holdout_user_approval: str = "",
     knowledge_cutoff: str | None = None,
 ) -> dict[str, Any]:
     if window_role not in ("design", "holdout"):
         raise TimeSeriesV9PipelineError("window role must be design or holdout")
+    if window_override not in ("", "design_sub"):
+        raise TimeSeriesV9PipelineError(
+            "window override must be empty or the preregistered design_sub"
+        )
+    if window_override and window_role != "design":
+        raise TimeSeriesV9PipelineError("the sub-window applies to design iterations only")
     protected_before = protected_hashes(root)
     v8_source_before = v8_sealed_source_hash(root)
     contract9 = load_contract_v9(root)
@@ -135,15 +144,21 @@ def dev_backtest_timeseries_v9(
         exog_names = exog_names + (f"v9_{name}",)
         feature_manifests.append(manifest)
 
+    windows = contract9["model"]["windows"]
+    if window_override == "design_sub":
+        sub = contract9["research_grids"]["subwindow_protocol"]["design_sub"]
+        evaluation_window = (str(sub[0]), str(sub[1]))
+    else:
+        evaluation_window = None
     bundle_hash = canonical_hash({
         "dates": bundle.dates,
         "endogenous": np.ascontiguousarray(bundle.endogenous).tobytes().hex(),
         "exogenous": exog.tobytes().hex(),
         "feature_set": features,
+        "window_override": window_override,
     })
     identity = experiment_id(config, bundle_hash=bundle_hash, code_hash=code_hash)
     identity = identity.replace("tsv8-exp-", "tsv9-exp-")
-    windows = contract9["model"]["windows"]
     if window_role == "design":
         if len(experiments) >= int(protocol["maximum_development_evaluations"]):
             raise TimeSeriesV9PipelineError(
@@ -152,7 +167,7 @@ def dev_backtest_timeseries_v9(
         prior = next((row for row in experiments if row["experiment_id"] == identity), None)
         if prior is not None:
             return prior
-        outer_start, outer_end = windows["design"]
+        outer_start, outer_end = evaluation_window or windows["design"]
         path_count = int(contract9["model"]["distribution"]["development_path_count"])
     else:
         # ★ 정지점: 홀드아웃은 무인 자동화 밖 — 명시 승인 문자열 없이는 실행 불가.
@@ -221,6 +236,7 @@ def dev_backtest_timeseries_v9(
         "experiment_label": experiment_label,
         "window_role": window_role,
         "window": {"outer_start": outer_start, "outer_end": outer_end},
+        "window_override": window_override,
         "knowledge_cutoff": cutoff,
         "model_id": MODEL_ID,
         "model_version": MODEL_VERSION,

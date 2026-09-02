@@ -357,7 +357,8 @@ def cmd_timeseries_v9_dev_backtest(
     result = _timeseries_exit(
         dev_backtest_timeseries_v9, config.ROOT,
         feature_set=list(parsed.get("features", [])), experiment_label=label,
-        window_role=role, holdout_user_approval=holdout_approval,
+        window_role=role, window_override=str(parsed.get("window", "")),
+        holdout_user_approval=holdout_approval,
         knowledge_cutoff=knowledge_cutoff,
     )
     typer.echo(json.dumps({
