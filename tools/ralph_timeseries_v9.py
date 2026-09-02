@@ -29,6 +29,8 @@ PREREGISTERED_CONFIGS = {
     "V9_E2_totci_credit": {"features": ["F2_totci_credit"]},
     "V9_E3_totll_credit": {"features": ["F3_totll_credit"]},
     "V9_E4_wrmfns_mmf": {"features": ["F4_wrmfns_mmf"]},
+    "V9_E5_subwindow_baseline": {"features": [], "window": "design_sub"},
+    "V9_E6_vxn_vix_spread": {"features": ["F5_vxn_vix_spread"], "window": "design_sub"},
 }
 
 

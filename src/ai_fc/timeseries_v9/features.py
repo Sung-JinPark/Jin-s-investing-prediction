@@ -203,3 +203,55 @@ def build_wrmfns_feature(
     """F4_wrmfns_mmf — 주간 소매 MMF (H.6, ALFRED vintage 2002-10+)."""
     return build_first_release_feature(
         root, dates, series_id="WRMFNS", feature_id="F4_wrmfns_mmf")
+
+
+def build_vxn_vix_spread_feature(
+    root: Path, dates: tuple[str, ...],
+) -> tuple[np.ndarray, dict[str, Any]]:
+    """F5_vxn_vix_spread — Δlog(VXN/VIX), winsorize z±3 (R9-A).
+
+    나스닥 상대 내재변동성: VXN(V9 시장 레인, reconstructed 16:15 ET)과
+    VIX(V2 아카이브 read-only)의 공통 관측일에서 log-비율의 일간 변화.
+    두 종가 모두 당일 폐장 후 가용이므로 이벤트 날짜 = 관측일이 PIT다
+    (V2가 VIX를 같은 규약으로 번들에 넣는 선례와 동형).  z-급변 가드로
+    표준화 후 ±3에서 윈저라이즈한다 — E2의 집중형 악화 실측에서 도출된
+    사전등록 조항이며 침묵 정규화가 아니다.
+    """
+    from ai_fc.timeseries_v2.market_archive import read_market_observations
+    from .market_lane import read_vxn
+
+    vxn = {day: value for day, _availability, value in read_vxn(root)}
+    if not vxn:
+        raise TimeSeriesV9ContractError("VXN market lane is empty — run collect_vxn first")
+    vix = {
+        row.observation_time: float(row.value)
+        for row in read_market_observations(root)
+        if row.series_id == "VIX"
+    }
+    common = sorted(set(vxn) & set(vix))
+    if len(common) < 500:
+        raise TimeSeriesV9ContractError("VXN/VIX overlap too short for a spread feature")
+    events: list[tuple[str, float]] = []
+    for prior, current in zip(common, common[1:]):
+        if min(vxn[prior], vix[prior], vxn[current], vix[current]) <= 0:
+            raise TimeSeriesV9ContractError("volatility index must be positive")
+        spread_change = float(
+            np.log(vxn[current] / vix[current]) - np.log(vxn[prior] / vix[prior])
+        )
+        events.append((current, spread_change))
+    if assert_pit(dates, events) != 0:
+        raise TimeSeriesV9ContractError("VXN/VIX spread failed the PIT assertion")
+    raw, known = aligned_raw(dates, events)
+    z = np.clip(trailing_z(raw, known), -3.0, 3.0)  # 사전등록 윈저라이즈 (winsorize_z: 3.0)
+    manifest = {
+        "alignment": "forward_fill_from_availability",
+        "standardization": f"trailing_z_{TRAILING_Z_SESSIONS}_sessions_winsorized_3",
+        "neutral_prefix_sessions": int((~known).sum()),
+        "first_event_release": events[0][0],
+        "last_event_release": events[-1][0],
+        "series_id": "VXN_over_VIX",
+        "feature_id": "F5_vxn_vix_spread",
+        "release_events": len(events),
+        "overlap_days": len(common),
+    }
+    return z, manifest

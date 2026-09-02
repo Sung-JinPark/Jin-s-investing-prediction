@@ -126,12 +126,28 @@ features:
       pit_grade: native_alfred_vintage
       design_window_coverage: full            # 첫 vintage 2002-10-31 실측
       channel: money_market_liquidity
+    # R9-A 개정 (2026-09-02, V9-D6·D7 승인) — E5·E6 결과가 존재하기 전의 사전등록.
+    F5_vxn_vix_spread:
+      series_id: VXN_over_VIX
+      source: v9_market_lane_vxn_plus_v2_vix_readonly
+      native_frequency: daily
+      transform: log_ratio_daily_change
+      winsorize_z: 3.0                        # E2 집중형 악화(2008-09-26류) 가드
+      session_alignment: forward_fill_from_availability
+      standardization: trailing_z_2520_sessions
+      pit_grade: reconstructed_market_archive
+      onset_first_observation: "2009-09-14"   # CBOE VXN_History.csv 실측
+      eligibility: subwindow_2010_2014
+      redistribution: private_locator_only    # 12-1/12-5 자세 — raw 비커밋
+      channel: nasdaq_relative_implied_volatility
+      naming_note: 기간구조 아님 — 교차지수 스프레드(원시 Δlog VXN은 ρ=0.918로 자동 기각 실측)
   conditionally_registered:                   # 온셋이 설계창 중간 — 1차 탐색에서 제외
     NFCI:  {onset_first_vintage: "2011-07-14", reason: design_window_partial}
     WALCL: {onset_first_vintage: "2013-04-19", reason: design_window_partial}
     T10Y2Y: {onset_first_vintage: "2014-01-29", reason: design_window_partial}
   blocked_features:                           # 미수집 또는 PIT 부적격 — 수집 트랙 선행 필요
     loan_deposit_ratio: {status: denominator_vintage_onset_2012, required: none_design_window_impossible}
+    daily_credit_spread: {status: source_rolling_3y_window_ice_license, required: none_design_window_impossible}  # V9-D8
     MMMFFAQ027S: {status: current_vintage_only_in_statistics_store, required: alfred_vintage_collection}
     VXNCLS: {status: not_collected, required: alfred_vintage_collection}
     BAMLH0A0HYM2: {status: observations_start_2023_in_v1_store, required: alfred_vintage_backfill}
@@ -147,13 +163,22 @@ research_grids:
     feature_sets:
       - []                        # E0 항등 기준선
       - ["F1_m2sl_liquidity"]     # E1 (무효익 판정 완료)
-      - ["F2_totci_credit"]       # E2 단독 ablation
-      - ["F3_totll_credit"]       # E3 단독 ablation
-      - ["F4_wrmfns_mmf"]         # E4 단독 ablation
+      - ["F2_totci_credit"]       # E2 단독 ablation (무효익)
+      - ["F3_totll_credit"]       # E3 단독 ablation (무효익)
+      - ["F4_wrmfns_mmf"]         # E4 단독 ablation (무효익)
+      - ["F5_vxn_vix_spread"]     # E6 단독 ablation (서브윈도 전용)
     note: >-
       빈 피처 셋은 V8 동결 승자 구성의 순수 통과(passthrough)여야 하며,
       E0 내포 테스트가 1e-12 동일성을 강제한다. 조합 실험은 단독 ablation에서
       E0 대비 쌍대 개선을 보인 피처들만으로, 별도 사전등록 개정을 거쳐서만 한다.
+  subwindow_protocol:             # R9-A — 부분-온셋 피처의 이중평가 (V9-D7 승인)
+    design_sub: ["2010-01-01", "2014-12-31"]
+    baseline_rerun_required: true       # 후보와 같은 서브창에서 E0 재기준선 필수
+    mde_republication_required: true    # 원점 감소에 따른 검출력 재공표
+    regime_note: >-
+      서브창은 GFC를 포함하지 않는다 — 국면 증거는 유로위기(2011-07~2012-12)와
+      홀드아웃 창의 2015-16으로 대체하며, 서브창 결과만으로 홀드아웃에 진입할
+      경우 그 사실을 챔피언 기록에 명기한다.
 
 development_protocol:
   maximum_development_evaluations: 24
@@ -171,6 +196,8 @@ development_protocol:
     - V9_E2_totci_credit
     - V9_E3_totll_credit
     - V9_E4_wrmfns_mmf
+    - V9_E5_subwindow_baseline
+    - V9_E6_vxn_vix_spread
   stop_loss:
     projected_design_improvement_minimum: 0.02
     action_on_trigger: stop_and_report_evidence
