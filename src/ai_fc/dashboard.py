@@ -726,17 +726,17 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
         key: base.pop(key) for key in FUTURE_DEFERRED_KEYS if key in base
     }
     candidate = deferred.get("scenario_v5_2") or {}
-    candidate_display_eligible = (
-        candidate.get("status") in ("ok", "degraded")
-        and (candidate.get("runtime_gate") or {}).get("display_eligible") is not False
-    )
-    if candidate and not candidate_display_eligible:
-        # A gated candidate has no path arrays to defer and no semantic
-        # reference to match, so a deferred_paths marker would send the front
-        # end into a fetch that can only fail with a misleading network-style
-        # error.  Keeping the (small) gated summary inline routes the front end
-        # to renderFlow's gate-reason screen instead — still fail-closed: no
-        # chart is substituted.
+    candidate_has_paths = bool(candidate.get("conditional_small_multiples"))
+    if candidate and not candidate_has_paths:
+        # A projection without path arrays (candidate missing, or its content
+        # integrity failed) has nothing to defer and no semantic reference to
+        # match, so a deferred_paths marker would send the front end into a
+        # fetch that can only fail with a misleading network-style error.
+        # Keeping the (small) summary inline routes the front end to
+        # renderFlow's gate-reason screen instead — no chart is substituted.
+        # A closed gate WITH content ("stale_last_valid", owner-approved
+        # DECISIONS.md 2026-09-02) defers normally below so the last valid
+        # chart can render with its explicit disclosure.
         base["scenario_v5_2"] = candidate
     elif candidate:
         model = candidate.get("model") or {}

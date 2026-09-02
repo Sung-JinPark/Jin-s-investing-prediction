@@ -692,9 +692,39 @@ def test_dashboard_projection_fresh_and_stale_fallback() -> None:
         if stale_now.weekday() < 5:
             elapsed_trading_days += 1
     stale = dashboard_projection(ROOT, stale_now, maximum_age_trading_days=1)
-    assert stale["status"] == "stale_or_invalid"
+    # 소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트는 닫힌 채 공시되지만,
+    # 봉인 산출물이 내부적으로 온전하면 마지막 유효 내용은 유지된다.
+    assert stale["status"] == "stale_last_valid"
     assert stale["runtime_gate"]["display_eligible"] is False
     assert any("age" in reason for reason in stale["runtime_gate"]["reasons"])
+    assert stale["runtime_gate"]["fallback_mode"] \
+        == "last_valid_candidate_with_explicit_disclosure"
+    assert set(stale["conditional_small_multiples"]["scenarios"]) == {"S1", "S2", "S3"}
+    assert stale["semantic_reference"]["candidate_id"] \
+        == "scenario_v5_2_scenario_clustered_db_v4"
+    assert "GATE CLOSED" in stale["banner"] and "NOT OFFICIAL" in stale["banner"]
+
+
+def test_projection_stays_fully_fail_closed_when_artifact_integrity_breaks(
+    tmp_path: Path,
+) -> None:
+    """B안의 한계선: 마지막 유효 표시는 봉인 산출물이 내부적으로 온전할 때만.
+    내용 자체가 깨진(모델 해시 불일치) 후보는 어떤 내용도 표시하지 않는다."""
+    payload = _candidate()
+    payload["ablations"]["full_evidence"]["probabilities"][
+        "terminal_above_anchor_2026"
+    ] = 0.5
+    target = tmp_path / CANDIDATE_RELATIVE
+    target.parent.mkdir(parents=True)
+    target.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    cutoff = datetime.fromisoformat(payload["knowledge_cutoff"])
+    broken = dashboard_projection(tmp_path, cutoff, maximum_age_trading_days=1)
+    assert broken["status"] == "stale_or_invalid"
+    assert broken["runtime_gate"]["display_eligible"] is False
+    assert broken["runtime_gate"]["fallback_mode"] == "none_content_integrity_failed"
+    assert "distribution" not in broken
+    assert "conditional_small_multiples" not in broken
+    assert "semantic_reference" not in broken
 
 
 def test_projection_preserves_direction_changes() -> None:
@@ -750,6 +780,13 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "C는 직접 입력하지 않습니다" in script
     assert "이전 방식의 그래프로 자동 전환하지 않습니다" in script
     assert "a candidate failure must never silently replace the requested chart" in script
+    # 소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트 닫힘 + 산출물 온전 시
+    # 마지막 유효 차트를 명시 공시 배너와 함께 표시한다 — 조용한 대체가 아니다.
+    assert "stale_last_valid" in script
+    assert "scenario-v52-gate-notice" in script
+    assert "게이트 차단 · 마지막 유효 후보" in script
+    assert "게이트 사유" in script
+    assert ".scenario-v52-gate-notice" in css
     assert "modelView:'research'" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script

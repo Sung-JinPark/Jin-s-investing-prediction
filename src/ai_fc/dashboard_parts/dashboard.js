@@ -1450,7 +1450,7 @@ function parseCanonicalRoute(rawHash){
 }
 function renderFuturePathsLoadState(summary,error=null){
   const checkpoints=summary?.path_checkpoints||[],failed=!!error;
-  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p></div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button></div>':''}</div>`);
+  const root=el(`<div class="future-paths-load-state" data-future-paths-state="${failed?'failed':'loading'}"><div class="page-heading"><div><p class="eyebrow">미래 탐색</p><h1>${failed?'전망 데이터를 불러오지 못했습니다':'세 가지 시나리오를 준비하고 있습니다'}</h1><p class="page-lede">${failed?'잠시 뒤 다시 시도해 주세요. 이전 방식의 그래프로 자동 전환하지 않습니다.':'상승·균형·스트레스 경로와 각 경로의 독립 DB를 불러오고 있습니다.'}</p>${failed?`<p class="future-paths-reason">사유: ${esc(String(error?.message||error))}</p>`:''}</div></div><section class="future-paths-checkpoints" aria-label="시나리오 체크포인트 요약">${checkpoints.map(row=>`<article><span>${esc(row.label)} · ${esc(row.date)}</span><div>${Object.entries(row.return_from_anchor||{}).map(([key,value])=>`<strong>${esc(key)} ${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%</strong>`).join('')}</div><small>조건부 p50 요약</small></article>`).join('')||'<p>표시할 체크포인트가 없습니다.</p>'}</section>${failed?'<div class="future-paths-actions"><button type="button" data-future-retry>다시 불러오기</button></div>':''}</div>`);
   mount(root);
   root.querySelector('[data-future-retry]')?.addEventListener('click',()=>{FUTURE_PATHS_ERROR=null;route();});
 }
@@ -1953,6 +1953,10 @@ function renderScenarioV52(candidate,initialState={}){
   const pct=value=>`${Math.round(Number(value)*100)}%`,pp=value=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%p`,weightPct=value=>`${Math.round(Number(value||0)*100)}%`;
   const full=ablations.full_evidence?.probabilities||{},terminalAttr=attr.terminal_above_anchor_2026||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow" id="v52-page-eyebrow">미래 탐색</p><h1 id="v52-page-title">세 가지 시장 경로</h1><p class="page-lede" id="v52-page-lede">상승·균형·스트레스에 맞는 서로 다른 과거 데이터로 만든 경로를 한 그래프에서 비교합니다.</p></div></div>`));
+  if(candidate.runtime_gate?.display_eligible===false){
+    const gateReasons=(candidate.runtime_gate.reasons||[]).join(' · ')||'게이트 사유 미기록';
+    root.appendChild(el(`<section class="scenario-v52-gate-notice" role="status" aria-label="게이트 차단 공시"><span>게이트 차단 · 마지막 유효 후보</span><strong>기준일 ${esc(String(candidate.as_of||'').slice(0,10))} 데이터로 표시 중 — 최신 검증 게이트를 통과하지 못했습니다</strong><p>아래 그래프는 마지막으로 검증을 통과한 후보 그대로이며, 다른 모델의 그래프로 자동 대체하지 않습니다. 다음 자동 재빌드가 통과하면 최신 데이터로 돌아옵니다.</p><small>게이트 사유: ${esc(gateReasons)}</small></section>`));
+  }
   const outlook=el(`<div id="lab-future" role="tabpanel" aria-labelledby="lab-tab-future">
     <section class="scenario-v52-overview" aria-label="전망 기준 요약"><div><span>기준일</span><strong>${esc(candidate.as_of.slice(0,10))}</strong></div><div><span>현재 지수</span><strong>${num(Math.round(anchor))}</strong></div><div><span>검토 경로</span><strong>${num(candidate.model.path_count)}개</strong></div><div><span>사용 DB</span><strong>서로 다른 3개 군집</strong></div></section>
     <div class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"><button type="button" data-future-graph="unified" aria-pressed="true">세 가지 시장 경로</button><button type="button" data-future-graph="original" aria-pressed="false">단일 시나리오 주간 흐름</button></div>
@@ -2041,8 +2045,13 @@ function renderFlow(initialLookup){
   // Customer default: V5.2's three independently clustered scenario paths.
   // The legacy champion remains available only through its direct audit route;
   // a candidate failure must never silently replace the requested chart.
+  // Owner-approved exception (DECISIONS.md 2026-09-02): when the gate closed
+  // but the sealed artifact is intact (status "stale_last_valid"), the last
+  // valid chart renders WITH an explicit disclosure banner (as-of + gate
+  // reasons) — disclosed, never silent, and never a different model's chart.
+  const candidate52LastValid=candidate52&&candidate52.status==='stale_last_valid'&&!!candidate52.conditional_small_multiples;
   const candidate52Requested=initialState.modelView!=='champion'&&!initialState.lookup&&!initialState.lookupOverlay;
-  if(candidate52Requested&&candidate52Eligible){
+  if(candidate52Requested&&(candidate52Eligible||candidate52LastValid)){
     renderScenarioV52(candidate52,initialState);
     return;
   }

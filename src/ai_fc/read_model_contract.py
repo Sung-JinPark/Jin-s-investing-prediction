@@ -137,7 +137,13 @@ def schema() -> dict[str, Any]:
         "required": ["schema_version", "status", "candidate_id", "runtime_gate"],
         "properties": {
             "schema_version": {"const": 1},
-            "status": {"enum": ["ok", "degraded", "stale_or_invalid", "unavailable"]},
+            # stale_last_valid: gate closed but the sealed artifact is intact —
+            # the last valid chart renders with an explicit disclosure
+            # (owner-approved, DECISIONS.md 2026-09-02).
+            "status": {"enum": [
+                "ok", "degraded", "stale_last_valid", "stale_or_invalid",
+                "unavailable",
+            ]},
             "candidate_id": {"const": "scenario_v5_2_scenario_clustered_db_v4"},
         },
     }
