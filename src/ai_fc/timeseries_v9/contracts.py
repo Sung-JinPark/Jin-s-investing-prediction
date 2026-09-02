@@ -126,11 +126,18 @@ def load_contract_v9(root: Path) -> dict[str, Any]:
         raise TimeSeriesV9ContractError("V9 regime coverage minimum drifted")
     features = payload["features"]
     registered = features.get("registered") or {}
-    # 사전등록 개정 2026-09-02 (V9-D5): F2~F4는 E2~E4 결과가 존재하기 전에 등록됐다.
+    # 사전등록 개정 2026-09-02: F2~F4(V9-D5)와 F5(R9-A, V9-D6·D7)는 각각 해당 실험
+    # 결과가 존재하기 전에 등록됐다.
     if set(registered) != {
         "F1_m2sl_liquidity", "F2_totci_credit", "F3_totll_credit", "F4_wrmfns_mmf",
+        "F5_vxn_vix_spread",
     }:
         raise TimeSeriesV9ContractError("V9 registered feature set drifted from preregistration")
+    subwindow = payload["research_grids"].get("subwindow_protocol") or {}
+    if subwindow.get("design_sub") != ["2010-01-01", "2014-12-31"]:
+        raise TimeSeriesV9ContractError("V9 sub-window protocol drifted")
+    if subwindow.get("baseline_rerun_required") is not True:
+        raise TimeSeriesV9ContractError("V9 sub-window baseline-rerun rule was removed")
     rules = features["rejection_rules"]
     if float(rules["max_abs_correlation_vs_existing_exog"]) != 0.85:
         raise TimeSeriesV9ContractError("V9 correlation rejection threshold drifted")
