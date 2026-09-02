@@ -444,3 +444,35 @@ valid for backtests" 조항이 이 트랙의 필요성을 계약으로 뒷받침
 백필) + `timeseries-vintage-backfill.yml`(브랜치 커밋, collect→fit→forecast→verify 순서
 계약). 상세: `docs/design/v9_credit_liquidity_vintage_track_260902.md`. 수집 완료 후 피처
 승격(F2~F4)은 별도 사전등록 개정 커밋으로만 한다 — 수집 ≠ 등록.
+
+## 2026-09-02 — Pages 배포시점 V5.2 재봉인 (미래 탐색 fail-closed 간헐 차단 해소)
+
+**문제 (실측 2026-09-02).** scenario-refresh cron(30 1 * * 2-6)의 GitHub 지연/누락 →
+커밋된 V5.2 후보가 전일 상태로 남음 → 이후 보호 경로를 움직이는 커밋(수동 dispatch의
+data/cross_asset·data/scenarios 갱신, PR 머지 등)이 후보의 `protected_before` 대비
+`compare_protected_append_only`를 `changed`로 만들어 pages 빌드에서 런타임 게이트 닫힘 →
+`future_paths.json`의 semantic_reference가 null이 되고 프런트는 semantic mismatch fetch
+오류로 "전망 데이터를 불러오지 못했습니다" 화면. 수동 scenario-refresh dispatch(run
+33592600416)로만 복구되는 구조였다.
+
+**결정 1 — 배포시점 재빌드.** `pages.yml`이 `_site` 생성 전에
+`scenario-v5-2-build --force && scenario-v5-2-verify --replay`를 실행한다.
+근거: ① 두 명령은 시크릿 0, 커밋된 데이터만 입력(FRED 키는 scenario-refresh의
+`ai_fc scenario` 단계에만 필요) — 실측 빌드 47s + replay 검증 46s로 pages 총 빌드
+~1분 → ~2.5분. ② `data/scenarios/candidates/`는 PROTECTED_PATHS가 아니고
+`build_candidate`가 빌드 전후 보호 해시 불변을 자가 검증하므로 봉인 규약과 충돌 없음.
+③ 산출물은 러너 워킹트리에만 존재(_site 입력 전용, 커밋 없음) — 배포 커밋에서 동일
+명령으로 결정론 재현 가능(replay 검증이 같은 잡에서 강제). ④ 재빌드 실패는
+continue-on-error로 배포를 막지 않는다(통계·v8 표면 갱신과 디커플). 데이터가 진짜
+낡은 경우(cron 2+거래일 연속 누락 → age 게이트)는 재빌드로도 열리지 않으며 이는 설계
+의도대로 닫힌다.
+
+**결정 2 — 게이트 닫힘의 정직한 라우팅.** `split_future_paths`는 display 게이트가 닫힌
+후보(경로 배열·semantic reference가 애초에 없음)에 `deferred_paths.required` 마커를 달지
+않고 요약을 인라인한다. 프런트는 실패가 예정된 fetch 대신 renderFlow의 게이트 사유
+분기에 도달한다. fail-closed 설계(후보 실패가 요청된 차트를 조용히 대체하지 않는다)는
+그대로 — 어떤 차트도 대체 표시하지 않는다.
+
+**비결정 (소유자 승인 대기).** 게이트 닫힘 화면에 "마지막 유효 후보 차트 + 기준일
+라벨 + 게이트 사유"를 표시하는 완화(B안)는 fail-closed 표시 규약의 변경이므로
+소유자 승인 항목으로 분리 제안만 한다 — 이 커밋은 구현하지 않았다.

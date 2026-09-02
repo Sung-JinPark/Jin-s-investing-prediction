@@ -1428,6 +1428,45 @@ def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> No
         <= dashboard.DASHBOARD_RAW_BUDGET_BYTES
 
 
+def test_future_paths_split_keeps_gated_candidate_inline_without_deferred_marker() -> None:
+    """게이트 닫힌 후보는 경로 배열이 없으므로 deferred 마커를 달면 프런트가
+    실패가 예정된 fetch(semantic reference null 불일치)로 빠진다. 요약을 그대로
+    인라인해 renderFlow의 게이트 사유 분기에 도달하게 한다 — 차트 대체는 없다
+    (fail-closed 유지)."""
+    gated = {
+        "schema_version": 1,
+        "status": "stale_or_invalid",
+        "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
+        "banner": "STALE/INVALID V5.2 RESEARCH CANDIDATE",
+        "runtime_gate": {
+            "display_eligible": False,
+            "age_trading_days": 2,
+            "reasons": ["candidate age 2 trading days exceeds 1"],
+        },
+    }
+    model = {
+        "scenario_v5_2": dict(gated),
+        "era_analog": {
+            "status": "ok",
+            "context": {"regime": {"label": "expansion"}, "breadth": {}},
+            "series": [1, 2, 3],
+        },
+        "cross_asset": {"status": "ok", "rows": [1]},
+    }
+    base, future = dashboard.split_future_paths(model)
+    assert base["scenario_v5_2"] == gated
+    assert "deferred_paths" not in base["scenario_v5_2"]
+    assert "semantic_reference" not in base["scenario_v5_2"]
+    # 다른 지연 키는 기존 예산 계약대로 계속 분리된다.
+    assert future is not None and future["contract_id"] == "future_paths_v1"
+    assert future["semantic_reference"] is None
+    assert future["data"]["cross_asset"] == {"status": "ok", "rows": [1]}
+    assert base["era_analog"]["deferred"] is True
+    # 두 번째 분리(임베드 렌더 경로)에서도 결과가 달라지지 않는다.
+    again, _ = dashboard.split_future_paths(base)
+    assert again["scenario_v5_2"] == gated
+
+
 def test_server_is_read_only() -> None:
     """serve() 핸들러가 쓰기 메서드(POST)를 405로 차단하는지 소스 계약 검증."""
     src = inspect.getsource(dashboard.serve)
