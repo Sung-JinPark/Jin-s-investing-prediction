@@ -428,7 +428,8 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     ):
         assert mapping in script
     assert 'data-home-core="true"' in html
-    assert "핵심 신호 2개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
+    assert "핵심 신호 3개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
+    assert "원장 현황" in html, "UX-U6 시스템 상태 타일"
     assert 'body[data-view="today"] .site-footer{display:none}' in css
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script
@@ -1547,3 +1548,15 @@ def test_v8_card_returns_use_two_decimal_precision() -> None:
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
     assert "(ret*100).toFixed(2)" in v8
     assert "*100).toFixed(1)}% · p10–p90" not in v8, "히어로 수익률도 2자리"
+
+
+def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
+    """UI/UX 설계 260902 PR-U1/U2/U3 — 마크업 계약."""
+    html = dashboard.load_template()
+    v8 = html[html.index("function timeseriesV8BandSvg"):html.index("const VIEWS")]
+    assert "const enabled=['summary','path']" in v8, "v8 path 탭 활성"
+    assert "봉인 평가 PASS" in v8 and "운영 신선도 OK" in v8, "게이트 위젯"
+    assert "선형 보간(참고용)" in v8, "보간 정직성 캡션"
+    assert "ts-node-dot" in v8, "실측 노드 마커"
+    assert "timeseries-hold-reasons" in v8, "HOLD 사유 노출"
+    assert "p10_p90_hint" in html and "crps_hint" in html, "UI_TERMS 확장"

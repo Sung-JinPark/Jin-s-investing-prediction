@@ -58,9 +58,13 @@ const esc=s=>(s==null?'':String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;
 const UI_TERMS={
   as_of:'데이터 기준일',ATH:'사상 최고치',GBM:'고정 가정 경로 모형',p10_p90:'넓은 구간',p25_p75:'중심 구간',p50:'중앙값',
   scenario_conditional:'시나리오 안의 조건부 값',physical_event:'사전등록 사건 확률',reference_only:'참고용',probability_space:'확률의 종류',
-  path_realism:'경로 현실성 검사',hazard:'위험 구간',regime:'시장 국면',coverage:'확보된 입력 비율',blocked:'판정 보류',vintage:'당시 공개본',PIT:'당시 정보 기준',reconstructed:'사후 복원 자료'
+  path_realism:'경로 현실성 검사',hazard:'위험 구간',regime:'시장 국면',coverage:'확보된 입력 비율',blocked:'판정 보류',vintage:'당시 공개본',PIT:'당시 정보 기준',reconstructed:'사후 복원 자료',
+  p10_p90_hint:'100번 중 80번은 이 범위 안에 들도록 설계된 구간',up_prob_hint:'분포에서 원점 종가보다 높게 끝나는 경로의 비율',
+  crps_hint:'분포 오차 점수가 최강 기준 모델보다 얼마나 작은가',coverage_hint:'설계된 구간이 실제값을 담은 비율',
+  sealed_gate_hint:'과거에 봉인해 둔 구간으로 단 1회만 치른 최종 검증',fresh_gate_hint:'필수 시장 입력 5종이 시간 한도 안에서 갱신된 상태'
 };
 const plainTerm=value=>UI_TERMS[value]||value;
+const firstSentenceOf=text=>{const s=String(text||'');const cut=s.indexOf('다.');return cut>0&&cut+2<s.length?s.slice(0,cut+2):s;};
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function mount(root){
   cleanupExperienceLayer();closeQuickPeek();
@@ -1080,12 +1084,26 @@ function renderStatistics(initialState){
   const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
   root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기, 유동성, 금리, 기업가치와 신용 흐름에서 지금 시장의 위치를 살펴봅니다.</p></div></div>`));
+  const deferredMeta=stats.deferred_data||{};
+  if(deferredMeta.required&&!deferredMeta.loaded){
+    // 조용한 빈 화면 금지 — 실패는 실패라고 말하고 재시도 버튼을 준다.
+    root.appendChild(el(`<section class="statistics-blocked"><strong>통계 데이터를 불러오지 못했습니다</strong><p>${esc(STATISTICS_ERROR||'네트워크 응답 대기 중')} · 캐시가 아닌 실데이터만 표시합니다.</p><button type="button" data-stat-retry>다시 시도</button></section>`));
+    mount(root);
+    const retry=$('[data-stat-retry]',root);
+    if(retry)retry.onclick=()=>{STATISTICS_ERROR=null;route();};
+    return;
+  }
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
+  // 경계 접근 요약 스트립 — 기존 approach_alert(데이터 파생 경계) 재사용, 신규 판정 0.
+  const alertCharts=charts.filter(chart=>chart.approach_alert&&chart.approach_alert.status);
+  if(alertCharts.length){
+    root.appendChild(el(`<section class="statistics-alert-strip" aria-label="경계 접근 요약">${alertCharts.map(chart=>{const alert=chart.approach_alert;return `<button type="button" data-alert-target="${esc(chart.id)}" class="alert-${esc(alert.status)}"><i aria-hidden="true"></i><span>${esc(chart.title)}</span><b>${esc(alert.status_label||alert.status)}</b></button>`;}).join('')}<small>경계 접근 표시는 표시 관행이며 매매 신호가 아닙니다</small></section>`));
+  }
   const grid=el('<div class="statistics-grid"></div>');
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
@@ -1093,7 +1111,7 @@ function renderStatistics(initialState){
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`);
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<details class="chart-method statistics-caveat"><summary>이 수치의 한계</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div><details class="chart-method statistics-caveat"><summary>한계 전체 보기</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -1113,6 +1131,11 @@ function renderStatistics(initialState){
     if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);
   };
   root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
+  root.querySelectorAll('[data-alert-target]').forEach(button=>{button.onclick=()=>{
+    applyStatCategory('all',false);
+    const card=root.querySelector(`[data-stat-id="${button.dataset.alertTarget}"]`);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  };});
   applyStatCategory(requestedCategory||'all',false);
 }
 
@@ -1151,6 +1174,47 @@ function timeseriesTabsMarkup(active,enabled){
     return `<button type="button" id="lab-tab-ts-${key}" role="tab" data-ts-tab="${key}" aria-selected="${String(key===active)}" aria-controls="lab-ts-${key}"${on?'':' disabled'}><span>${code}</span> ${label}<small>${on?'':'검증 대기'}</small></button>`;
   }).join('')}</nav>`;
 }
+function timeseriesV8BandSvg(ts){
+  // 4노드 실측 분위수 + 선형 보간 점선 — 보간을 실측처럼 그리지 않는 것이 핵심.
+  const history=ts.history||{},hIdx=(history.index||[]).map(Number),hDates=history.dates||[];
+  const nodes=[1,5,21,63].map(k=>({h:k,row:ts.horizons?.[String(k)]||{}}));
+  if(hIdx.length<2||nodes.some(n=>!n.row.band_index||!n.row.median_index))
+    return '<div class="timeseries-chart-empty">경로 데이터를 준비 중입니다.</div>';
+  const anchor=Number(ts.anchor?.value||hIdx[hIdx.length-1]);
+  const W=1200,H=500,padT=44,padB=58,padL=76,padR=70,plotW=W-padL-padR,plotH=H-padT-padB,split=.25;
+  const histX=i=>padL+split*plotW*(i/(hIdx.length-1));
+  const foreX=s=>padL+split*plotW+(1-split)*plotW*(s/63);
+  const seq=[{s:0,p10:anchor,p25:anchor,p50:anchor,p75:anchor,p90:anchor},
+    ...nodes.map(n=>({s:n.h,p10:n.row.band_index.p10,p25:n.row.band_index.p25,p50:n.row.median_index,p75:n.row.band_index.p75,p90:n.row.band_index.p90}))];
+  const vals=[...hIdx,...seq.flatMap(q=>[q.p10,q.p90])].map(Number);
+  const lLo=Math.log(Math.min(...vals)*.995),lHi=Math.log(Math.max(...vals)*1.005);
+  const y=v=>padT+(lHi-Math.log(Number(v)))/(lHi-lLo)*plotH;
+  const pts=list=>list.map(p=>`${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const band=(hiKey,loKey)=>pts([...seq.map(q=>[foreX(q.s),y(q[hiKey])]),...[...seq].reverse().map(q=>[foreX(q.s),y(q[loKey])])]);
+  const gridLines=[0,.25,.5,.75,1].map(t=>{const gy=padT+t*plotH,v=Math.exp(lHi-t*(lHi-lLo));
+    return `<line class="ts-grid" x1="${padL}" y1="${gy.toFixed(1)}" x2="${W-padR}" y2="${gy.toFixed(1)}"></line><text x="${padL-8}" y="${(gy+4).toFixed(1)}" text-anchor="end">${Math.round(v).toLocaleString()}</text>`;}).join('');
+  const nowX=foreX(0);
+  const markers=nodes.map(n=>{const x=foreX(n.h);
+    return `<circle class="ts-node-dot" cx="${x.toFixed(1)}" cy="${y(n.row.median_index).toFixed(1)}" r="5.5"></circle>`
+      +`<circle class="ts-node-dot" cx="${x.toFixed(1)}" cy="${y(n.row.band_index.p10).toFixed(1)}" r="3.5"></circle>`
+      +`<circle class="ts-node-dot" cx="${x.toFixed(1)}" cy="${y(n.row.band_index.p90).toFixed(1)}" r="3.5"></circle>`
+      +`<text class="ts-node-label" x="${x.toFixed(1)}" y="${(y(n.row.band_index.p90)-12).toFixed(1)}" text-anchor="middle">${n.h}일 ▲${Math.round(Number(n.row.probability_up||0)*100)}%</text>`;}).join('');
+  return `<div class="timeseries-chart" role="img" aria-label="최근 63세션 실적과 1·5·21·63거래일 분위수 대역"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">`
+    +`<rect class="ts-history-zone" x="${padL}" y="${padT}" width="${(split*plotW).toFixed(1)}" height="${plotH}"></rect>`
+    +`<rect class="ts-forecast-zone" x="${(padL+split*plotW).toFixed(1)}" y="${padT}" width="${((1-split)*plotW).toFixed(1)}" height="${plotH}"></rect>`
+    +gridLines
+    +`<polygon class="ts-band-outer" points="${band('p90','p10')}"></polygon>`
+    +`<polygon class="ts-band-inner" points="${band('p75','p25')}"></polygon>`
+    +`<polyline class="ts-history-line" points="${pts(hIdx.map((v,i)=>[histX(i),y(v)]))}"></polyline>`
+    +`<polyline class="ts-median-line ts-interp" points="${pts(seq.map(q=>[foreX(q.s),y(q.p50)]))}"></polyline>`
+    +`<line class="ts-now-line" x1="${nowX.toFixed(1)}" y1="${padT}" x2="${nowX.toFixed(1)}" y2="${padT+plotH}"></line>`
+    +`<text class="ts-now-label" x="${(nowX-6).toFixed(1)}" y="${padT-10}" text-anchor="end">${esc(ts.as_of||'')} 종가 ${Math.round(anchor).toLocaleString()}</text>`
+    +markers
+    +`<text x="${padL}" y="${H-16}">← 최근 ${hIdx.length}세션 실적</text>`
+    +`<text x="${W-padR}" y="${H-16}" text-anchor="end">63거래일 전망 →</text>`
+    +`</svg><p class="timeseries-band-caption">◦ 표시가 실측 분위수(1·5·21·63거래일)이며, 표시 사이 구간은 선형 보간(참고용)입니다. 세로축은 로그 스케일, 대역은 p10–p90(연한)·p25–p75(진한).</p></div>`;
+}
+
 // 페이지 하단 '만들어지는 방식' 안내 — 통계 화면의 chart-guide('읽는 법')를 재사용.
 // 문구는 실제 구현(고정 시드 GBM / V5.2 역사-형태 엔진 / ridge-VARX+FHS)에서 옮겼다.
 function methodGuideMarkup(title,rows,caution){
@@ -1180,23 +1244,40 @@ function modelLayerCompare(){
 function renderTimeseriesV8(ts,initialState){
   // Research-reference surface: rendered only while the sealed gate AND the
   // operational freshness gate both hold (the server hides numbers otherwise).
-  // The v2-schema tabs (path/drivers/backtest) stay disabled: V8 publishes
-  // per-horizon distributions plus its sealed evidence, nothing more.
+  // drivers/backtest tabs stay disabled (v2-only schema); the path tab shows
+  // the four measured quantile nodes with honest interpolation labelling.
   const requested=typeof initialState==='string'?initialState:initialState?.tsTab;
-  const enabled=['summary'];
+  const enabled=['summary','path'];
+  const active=enabled.includes(requested)?requested:'summary';
   const footnote=`<footer class="timeseries-footnote">${esc(ts.footnote||'*미국 시장·미국 공식 거시자료 기준 · 참고 의견')}</footer>`;
-  const panel=(key,inner)=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}"${key==='summary'?'':' hidden'}>${inner}</div>`;
+  const panel=(key,inner)=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}"${key===active?'':' hidden'}>${inner}</div>`;
   const level=value=>Number(value||0).toLocaleString(undefined,{maximumFractionDigits:0});
   const horizons=['1','5','21','63'];
   const last=ts.horizons?.['63']||{};
   // 수익률은 소수 2자리 고정 — 1자리 반올림은 경계값에서 과대 표기된다
   // (h63 +4.47%가 +4.5%로 보였던 종합검토 C-1). 지수 레벨·분위수는 무변경.
-  const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),band=row.band_index||{};return `<article><span>${key}거래일</span><strong>${level(row.median_index)}</strong><p>${ret>=0?'+':''}${(ret*100).toFixed(2)}% · 상승 가능성 ${Math.round(up*100)}%</p><small>p10–p90 ${level(band.p10)}–${level(band.p90)}</small></article>`;}).join('');
+  const bandAbbr=`<abbr title="${esc(plainTerm('p10_p90_hint'))}">p10–p90</abbr>`;
+  const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),band=row.band_index||{};return `<article><span>${key}거래일</span><strong>${level(row.median_index)}</strong><p>${ret>=0?'+':''}${(ret*100).toFixed(2)}% · <abbr title="${esc(plainTerm('up_prob_hint'))}">상승 가능성</abbr> ${Math.round(up*100)}%</p><small>${bandAbbr} ${level(band.p10)}–${level(band.p90)}</small></article>`;}).join('');
   const sealed=ts.sealed_metrics||{},sealedRows=sealed.horizons||{};
-  const sealedCell=key=>{const row=sealedRows[key]||{};const gain=Number(row.crps_improvement_vs_best||0),cover=row.coverage_p10_p90;return `<p><span>${key}일 CRPS 개선</span><b>${gain>=0?'+':''}${(gain*100).toFixed(1)}%</b></p><p><span>${key}일 p10–p90 적중률</span><b>${cover==null?'—':(Number(cover)*100).toFixed(1)+'%'}</b></p>`;};
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가(예측 원점) 기준 1·5·21·63거래일 분포 · 주 1회 갱신</p></div><div class="timeseries-next"><span>63거래일 중앙 예상</span><strong>${level(last.median_index)}</strong><p>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}% · p10–p90 ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup('summary',enabled)}${panel('summary',`<section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section><section class="timeseries-evidence"><article class="timeseries-score"><header><span>봉인 검증 성적 · 원점 ${Number(sealed.origin_count||0).toLocaleString()}개</span><strong>단 1회 공개된 봉인 평가</strong></header><div>${sealedCell('21')}${sealedCell('63')}</div></article></section><section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>RESEARCH REFERENCE</span><h2>참고 의견입니다 — 매매 신호가 아닙니다</h2><p>봉인 게이트와 운영 신선도 게이트를 모두 통과한 동안에만 수치가 표시되며, 신선도가 무너지면 이 표면은 자동으로 검증 대기 화면으로 돌아갑니다.</p></div></section>`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${timeseriesMethodGuide()}${modelLayerCompare()}${footnote}</div>`);
+  const sealedCell=key=>{const row=sealedRows[key]||{};const gain=Number(row.crps_improvement_vs_best||0),cover=row.coverage_p10_p90;return `<p><span>${key}일 <abbr title="${esc(plainTerm('crps_hint'))}">CRPS 개선</abbr></span><b>${gain>=0?'+':''}${(gain*100).toFixed(1)}%</b></p><p><span>${key}일 <abbr title="${esc(plainTerm('coverage_hint'))}">p10–p90 적중률</abbr></span><b>${cover==null?'—':(Number(cover)*100).toFixed(1)+'%'}</b></p>`;};
+  // 게이트 상태 위젯: 어떤 검증을 통과했는지가 카드 최상단에서 보인다.
+  const fresh=ts.freshness_summary||[];
+  const worst=fresh.filter(row=>row.age_hours!=null&&row.limit_hours).sort((a,b)=>(b.age_hours/b.limit_hours)-(a.age_hours/a.limit_hours))[0];
+  const gateStrip=`<section class="timeseries-gate-strip" aria-label="게이트 상태">`
+    +`<span class="ts-gate-chip pass" title="${esc(plainTerm('sealed_gate_hint'))} · run ${esc(String(sealed.run_id||''))}">봉인 평가 PASS · 원점 ${Number(sealed.origin_count||0).toLocaleString()}개</span>`
+    +`<span class="ts-gate-chip pass" title="${esc(plainTerm('fresh_gate_hint'))}">운영 신선도 OK${worst?` · 최장 ${esc(String(worst.group))} ${Math.round(worst.age_hours)}h/${Math.round(worst.limit_hours)}h`:''}</span>`
+    +`</section>`;
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가(예측 원점) 기준 1·5·21·63거래일 분포 · 주 1회 갱신</p></div><div class="timeseries-next"><span>63거래일 중앙 예상</span><strong>${level(last.median_index)}</strong><p>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}% · p10–p90 ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${gateStrip}${panel('summary',`<section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section><section class="timeseries-evidence"><article class="timeseries-score"><header><span>봉인 검증 성적 · 원점 ${Number(sealed.origin_count||0).toLocaleString()}개</span><strong>단 1회 공개된 봉인 평가</strong></header><div>${sealedCell('21')}${sealedCell('63')}</div></article></section><section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>RESEARCH REFERENCE</span><h2>참고 의견입니다 — 매매 신호가 아닙니다</h2><p>봉인 게이트와 운영 신선도 게이트를 모두 통과한 동안에만 수치가 표시되며, 신선도가 무너지면 이 표면은 자동으로 검증 대기 화면으로 돌아갑니다.</p></div></section>`)}${panel('path',`<section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 실적과 분위수 대역</h2></div><p>과거 1/4 · 전망 3/4 · ◦=실측 노드</p></header>${timeseriesV8BandSvg(ts)}</section>`)}${TS_TABS.slice(2).map(([key])=>panel(key,'')).join('')}${timeseriesMethodGuide()}${modelLayerCompare()}${footnote}</div>`);
   mount(root);
-  if(requested&&requested!=='summary')syncMidHash('#timeseries');
+  const tabs=$('.timeseries-tabs',root);
+  const activateTs=(key,sync)=>{
+    const next=enabled.includes(key)?key:'summary';
+    TS_TABS.forEach(([name])=>{const node=$(`#lab-ts-${name}`,root);if(node)node.hidden=name!==next;});
+    tabs.querySelectorAll('[data-ts-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.tsTab===next)));
+    if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);
+  };
+  tabs.querySelectorAll('[data-ts-tab]:not(:disabled)').forEach(button=>{button.onclick=()=>activateTs(button.dataset.tsTab,true);});
+  activateTs(active,Boolean(requested)&&requested!==active);
 }
 
 function renderTimeseries(initialState){
@@ -1210,7 +1291,10 @@ function renderTimeseries(initialState){
   const footnote=`<footer class="timeseries-footnote">${esc(ts.footnote||'*미국 시장·미국 공식 거시자료 기준')}</footer>`;
   const panel=(key,inner)=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}"${key===active?'':' hidden'}>${inner}</div>`;
   if(!visible){
-    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header>${timeseriesTabsMarkup('summary',enabled)}${panel('summary',`<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p></div></section>`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${modelLayerCompare()}${footnote}</div>`);
+    // 보류 사유는 숨기지 않는다 — "왜 숫자가 없는가"는 버그가 아니라 설계다.
+    const holdReasons=(ts.gate?.reasons)||(ts.operational_gate?.reasons)||[];
+    const reasonsHtml=holdReasons.length?`<ul class="timeseries-hold-reasons">${holdReasons.slice(0,5).map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>`:'';
+    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header>${timeseriesTabsMarkup('summary',enabled)}${panel('summary',`<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p>${reasonsHtml}</div></section>`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${modelLayerCompare()}${footnote}</div>`);
     mount(root);
     if(requested&&requested!=='summary')syncMidHash('#timeseries');
     return;
@@ -1432,9 +1516,10 @@ function renderOverview(){
   const status=vintage.status==='stale'?'갱신 필요':'정상';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1><p>${vintage.status==='stale'?'마지막 유효 스냅샷이며 최신 질문 기록과 결합하지 않습니다.':'시나리오 조건부 분포와 공식 질문 확률은 서로 다른 공간이며 합산하지 않습니다.'}</p></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 신호 2개">
+    <div class="today-signals" aria-label="핵심 신호 3개">
       <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`상승 경로 ${num(upProb)}%`}</strong><small>방어 경로 ${num(rangeProb)}% · ${esc(status)}</small></article>
       <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
+      <article><span>신호 03 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
     <div class="today-columns">
       <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>

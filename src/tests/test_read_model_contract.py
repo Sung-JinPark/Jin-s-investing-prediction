@@ -121,3 +121,16 @@ def test_timeseries_v8_must_keep_its_space_and_reference_opinion_status() -> Non
     assert "timeseries V8 probability space mismatch" in errors
     assert "timeseries V8 must keep reference-opinion-only status" in errors
     assert "timeseries V8 visible surface must declare research_reference" in errors
+
+
+def test_timeseries_v8_hidden_surface_must_not_leak_history_or_freshness() -> None:
+    model = _minimal_model()
+    model["timeseries"] = _v8_visible_timeseries()
+    model["timeseries"]["numbers_visible"] = False
+    model["timeseries"]["status"] = "shadow_operational_hold"
+    model["timeseries"]["gate"]["operational_pass"] = False
+    model["timeseries"]["horizons"] = {}
+    model["timeseries"]["history"] = {"index": [1.0]}
+    model["timeseries"]["freshness_summary"] = [{"group": "VIX"}]
+    errors = validate(model)
+    assert "timeseries V8 hidden surface must not carry history or freshness numbers" in errors

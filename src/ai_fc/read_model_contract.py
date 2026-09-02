@@ -336,6 +336,8 @@ def validate(model: dict[str, Any]) -> list[str]:
                 errors.append("timeseries V8 must keep reference-opinion-only status")
             if visible and timeseries.get("display_state") != "research_reference":
                 errors.append("timeseries V8 visible surface must declare research_reference")
+            if not visible and (timeseries.get("history") or timeseries.get("freshness_summary")):
+                errors.append("timeseries V8 hidden surface must not carry history or freshness numbers")
         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
             errors.append("timeseries validation-pending surface must hide numbers")
     multi_year_stress = model.get("multi_year_stress")
