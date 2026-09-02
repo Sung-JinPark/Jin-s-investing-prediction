@@ -64,6 +64,7 @@ const UI_TERMS={
   sealed_gate_hint:'과거에 봉인해 둔 구간으로 단 1회만 치른 최종 검증',fresh_gate_hint:'필수 시장 입력 5종이 시간 한도 안에서 갱신된 상태'
 };
 const plainTerm=value=>UI_TERMS[value]||value;
+const firstSentenceOf=text=>{const s=String(text||'');const cut=s.indexOf('다.');return cut>0&&cut+2<s.length?s.slice(0,cut+2):s;};
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function mount(root){
   cleanupExperienceLayer();closeQuickPeek();
@@ -1083,12 +1084,26 @@ function renderStatistics(initialState){
   const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
   root.appendChild(el(`<div class="page-heading statistics-heading"><div><p class="eyebrow">STATISTICS · DOTCOM VS NOW</p><h1>닷컴과 지금, 숫자로 나란히 보기</h1><p class="page-lede">IPO 열기, 유동성, 금리, 기업가치와 신용 흐름에서 지금 시장의 위치를 살펴봅니다.</p></div></div>`));
+  const deferredMeta=stats.deferred_data||{};
+  if(deferredMeta.required&&!deferredMeta.loaded){
+    // 조용한 빈 화면 금지 — 실패는 실패라고 말하고 재시도 버튼을 준다.
+    root.appendChild(el(`<section class="statistics-blocked"><strong>통계 데이터를 불러오지 못했습니다</strong><p>${esc(STATISTICS_ERROR||'네트워크 응답 대기 중')} · 캐시가 아닌 실데이터만 표시합니다.</p><button type="button" data-stat-retry>다시 시도</button></section>`));
+    mount(root);
+    const retry=$('[data-stat-retry]',root);
+    if(retry)retry.onclick=()=>{STATISTICS_ERROR=null;route();};
+    return;
+  }
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
+  // 경계 접근 요약 스트립 — 기존 approach_alert(데이터 파생 경계) 재사용, 신규 판정 0.
+  const alertCharts=charts.filter(chart=>chart.approach_alert&&chart.approach_alert.status);
+  if(alertCharts.length){
+    root.appendChild(el(`<section class="statistics-alert-strip" aria-label="경계 접근 요약">${alertCharts.map(chart=>{const alert=chart.approach_alert;return `<button type="button" data-alert-target="${esc(chart.id)}" class="alert-${esc(alert.status)}"><i aria-hidden="true"></i><span>${esc(chart.title)}</span><b>${esc(alert.status_label||alert.status)}</b></button>`;}).join('')}<small>경계 접근 표시는 표시 관행이며 매매 신호가 아닙니다</small></section>`));
+  }
   const grid=el('<div class="statistics-grid"></div>');
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
@@ -1096,7 +1111,7 @@ function renderStatistics(initialState){
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
     const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`);
     const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2></div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<details class="chart-method statistics-caveat"><summary>이 수치의 한계</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div><details class="chart-method statistics-caveat"><summary>한계 전체 보기</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);
@@ -1116,6 +1131,11 @@ function renderStatistics(initialState){
     if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);
   };
   root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
+  root.querySelectorAll('[data-alert-target]').forEach(button=>{button.onclick=()=>{
+    applyStatCategory('all',false);
+    const card=root.querySelector(`[data-stat-id="${button.dataset.alertTarget}"]`);
+    if(card)card.scrollIntoView({behavior:'smooth',block:'start'});
+  };});
   applyStatCategory(requestedCategory||'all',false);
 }
 
@@ -1470,9 +1490,10 @@ function renderOverview(){
   const status=vintage.status==='stale'?'갱신 필요':'정상';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1><p>${vintage.status==='stale'?'마지막 유효 스냅샷이며 최신 질문 기록과 결합하지 않습니다.':'시나리오 조건부 분포와 공식 질문 확률은 서로 다른 공간이며 합산하지 않습니다.'}</p></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 신호 2개">
+    <div class="today-signals" aria-label="핵심 신호 3개">
       <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`상승 경로 ${num(upProb)}%`}</strong><small>방어 경로 ${num(rangeProb)}% · ${esc(status)}</small></article>
       <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
+      <article><span>신호 03 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
     <div class="today-columns">
       <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>

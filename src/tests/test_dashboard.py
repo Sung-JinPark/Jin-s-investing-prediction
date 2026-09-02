@@ -428,7 +428,8 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     ):
         assert mapping in script
     assert 'data-home-core="true"' in html
-    assert "핵심 신호 2개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
+    assert "핵심 신호 3개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
+    assert "원장 현황" in html, "UX-U6 시스템 상태 타일"
     assert 'body[data-view="today"] .site-footer{display:none}' in css
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script

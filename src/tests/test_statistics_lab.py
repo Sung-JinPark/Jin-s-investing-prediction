@@ -849,9 +849,10 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" not in script
     # 검수 결정: 대용치·명목 경고(caveat)는 화면에 도달해야 한다.
-    # 카드마다 '이 수치의 한계' 접힘 블록으로 렌더한다.
+    # 카드마다 caveat 첫 문장은 상시 노출(UX-D3), 전체는 접힘 블록으로 렌더한다.
     assert 'class="chart-method statistics-caveat"' in script
-    assert "이 수치의 한계" in script
+    assert "statistics-caveat-lead" in script
+    assert "한계 전체 보기" in script
     assert "esc(chart.caveat)" in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" not in script
