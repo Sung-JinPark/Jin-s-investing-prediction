@@ -21,6 +21,11 @@ from pathlib import Path
 from . import config, scenario as scenario_data
 from .db import ingest, queries
 
+# GoatCounter 사이트 코드 (예: "jin-investing" → https://jin-investing.goatcounter.com).
+# 빈 문자열이면 분석 스니펫을 아예 넣지 않는다. 코드는 배포 페이지 소스에 공개되는
+# 값이라 저장소에 커밋해도 비밀이 아니다. 집계는 GoatCounter 계정 소유자만 본다.
+GOATCOUNTER_CODE = ""
+
 TEMPLATE = Path(__file__).parent / "dashboard_template.html"
 DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
 DASHBOARD_STYLES = DASHBOARD_PARTS / "dashboard.css"
@@ -635,10 +640,38 @@ def load_template(*, include_qr: bool = True) -> str:
         script_parts.append(DASHBOARD_QR_SCRIPT.read_text(encoding="utf-8"))
     script_parts.append(DASHBOARD_SCRIPT.read_text(encoding="utf-8"))
     script = "\n".join(script_parts)
-    for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->"):
+    for marker in ("<!--STYLES-->", "<!--APP_SCRIPT-->", "<!--ANALYTICS-->"):
         if marker not in shell:
             raise ValueError(f"dashboard template marker missing: {marker}")
-    return shell.replace("<!--STYLES-->", styles).replace("<!--APP_SCRIPT-->", script)
+    return (
+        shell.replace("<!--STYLES-->", styles)
+        .replace("<!--APP_SCRIPT-->", script)
+        .replace("<!--ANALYTICS-->", _analytics_snippet())
+    )
+
+
+def _analytics_snippet(code: str | None = None) -> str:
+    """GoatCounter 스니펫 — 쿠키 없는 집계 페이지뷰 카운터.
+
+    해시 라우팅 대시보드라 기본 pathname 집계로는 모든 방문이 "/" 하나로
+    뭉친다. path 콜백으로 해시(#statistics 등)를 경로에 포함시키고,
+    hashchange마다 수동 카운트해 화면 단위 유입·이용 통계를 만든다.
+    개인 식별 정보는 수집하지 않는다 (GoatCounter는 쿠키·핑거프린팅 없이
+    referrer·국가·브라우저·경로만 집계).
+    """
+    resolved = GOATCOUNTER_CODE if code is None else code
+    if not resolved:
+        return ""
+    endpoint = f"https://{resolved}.goatcounter.com/count"
+    return (
+        "<script>window.goatcounter={path:function(){return "
+        "location.pathname+location.search+location.hash}};"
+        "window.addEventListener('hashchange',function(){"
+        "if(window.goatcounter.count)window.goatcounter.count({"
+        "path:location.pathname+location.search+location.hash})});</script>"
+        f"<script data-goatcounter=\"{endpoint}\" async "
+        "src=\"https://gc.zgo.at/count.js\"></script>"
+    )
 
 
 def _future_path_checkpoints(candidate: dict) -> list[dict]:
