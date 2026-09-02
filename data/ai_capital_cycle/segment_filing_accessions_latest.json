@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-08-04",
-  "generated_at": "2026-08-04T09:23:05+00:00",
+  "asof": "2026-09-02",
+  "generated_at": "2026-09-02T07:52:12+00:00",
   "status": "partial",
   "probability_space": "reference_only",
   "scope": "L1-1_preparation_only",
@@ -274,7 +274,7 @@
       "source": "committed_sec_companyfacts_fallback",
       "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
       "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
-      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "fetched_at": "2026-09-02T07:52:12+00:00",
       "revision_vintage": "committed_filing_native_accessions",
       "upstream_status": "sec_submissions_unavailable",
       "upstream_error": "HTTPError"
@@ -283,7 +283,7 @@
       "source": "committed_sec_companyfacts_fallback",
       "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
       "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
-      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "fetched_at": "2026-09-02T07:52:12+00:00",
       "revision_vintage": "committed_filing_native_accessions",
       "upstream_status": "sec_submissions_unavailable",
       "upstream_error": "HTTPError"
@@ -292,7 +292,7 @@
       "source": "committed_sec_companyfacts_fallback",
       "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
       "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
-      "fetched_at": "2026-08-04T09:23:04+00:00",
+      "fetched_at": "2026-09-02T07:52:12+00:00",
       "revision_vintage": "committed_filing_native_accessions",
       "upstream_status": "sec_submissions_unavailable",
       "upstream_error": "HTTPError"
@@ -301,7 +301,7 @@
       "source": "committed_sec_companyfacts_fallback",
       "request_url": "data/ai_capital_cycle/company_capex_quarterly_latest.json",
       "response_sha256": "236a896769b433071b624eea55bc5a05f9c3cd586d072d5e4cdea0cd179f5fc2",
-      "fetched_at": "2026-08-04T09:23:05+00:00",
+      "fetched_at": "2026-09-02T07:52:12+00:00",
       "revision_vintage": "committed_filing_native_accessions",
       "upstream_status": "sec_submissions_unavailable",
       "upstream_error": "HTTPError"

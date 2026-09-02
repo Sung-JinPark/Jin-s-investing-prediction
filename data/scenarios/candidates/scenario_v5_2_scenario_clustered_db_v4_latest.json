@@ -28802,12 +28802,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "da55a729fea75092d2fba2af838dec3bb6acc04285557250dcc79848fd91a467",
-  "generated_at": "2026-09-02T06:02:39+00:00",
+  "generated_at": "2026-09-02T07:52:51+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "da55a729fea75092d2fba2af838dec3bb6acc04285557250dcc79848fd91a467",
-    "generated_at": "2026-09-02T06:02:39+00:00",
+    "generated_at": "2026-09-02T07:52:51+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -29059,18 +29059,18 @@
         "data/ai_capital_cycle/regime_archive/2026-08-04.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
         "data/ai_capital_cycle/regime_link_rules.yaml": "bb6242fdd935a66522979f4992c2784c1312a01a52425f1fa9dc959b70f87cc8",
         "data/ai_capital_cycle/regime_model.yaml": "f6bf1b78677b6b93a7e0922edb2e83e81fd73c47c97611ab322bf7eecd033927",
-        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "e3d0adac741120e23b1905baca39b16dc5fcabfb0576e4034a44b23986a1a8b9"
+        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "349f1fc8535906de6e8a47f7b6cca8040064927dadce2122b1ad17f45abe7be9"
       },
       "missing_roots": [],
-      "manifest_sha256": "2199daacd6ad03c803b9af06f1773d4d2cc1329b6b3357da63a41586e4b0e7b3"
+      "manifest_sha256": "7ae0d8cb04dd8019434cfa7c7bb5a6381fb96b9d83a05874a63c139500167da8"
     },
     "build_context": {
-      "head": "b0ced2a7128f40a3aaf1e1c2d3fb079c0c4b7f9d",
+      "head": "23085096c736364393a06d9d98e59505dc3d3aec",
       "branch": "main",
-      "dirty": false,
-      "status_entry_count": 0,
+      "dirty": true,
+      "status_entry_count": 3,
       "python": "3.12.14"
     }
   },
-  "build_receipt_sha256": "376383c9d1ba1f340bbb8b96f7ec228461754318d719706a9da09bd33109346a"
+  "build_receipt_sha256": "5382543da26c1d9d8cc927cfc869b021043818f9114965f0d94cfcf239b3440a"
 }
