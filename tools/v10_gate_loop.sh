@@ -15,6 +15,9 @@ V2_FILES="src/ai_fc/timeseries_v2/contracts.py src/ai_fc/timeseries_v2/market_ar
 MAX_BUDGET="${MAX_BUDGET:-24}"; STOPLOSS_AT=12; SLEEP_E=30; SLEEP_S=1800
 MAX_CYCLES="${MAX_CYCLES:-0}"; DRY_RUN="${DRY_RUN:-0}"; SMOKE="${SMOKE:-0}"
 DEADLINE="${LOOP_DEADLINE_EPOCH:-1788393600}"   # 2026-09-03 09:00 KST = 00:00 UTC
+# V10-D5(b) 2026-09-03: champion 존재 시에도 사전등록 단독 격자를 완주한다 (사용자 승인).
+# 홀드아웃·봉인 금지와 stop-loss(12회, <+1%)는 그대로 — 이 플래그는 정지점을 넘지 않는다.
+PAST_CHAMPION="${PAST_CHAMPION:-0}"
 
 log(){ printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$LOOPDIR/loop_$(date +%Y%m%d).log"; }
 setstate(){ "$PY" - "$STATE" "$1" "$2" <<'PYEOF'
@@ -84,7 +87,13 @@ run_explore(){
   git add "$LEDGER" data/timeseries_v10/runs outputs/timeseries_v10 2>/dev/null
   git commit -q -m "loop(v10): record $LABEL [budget $(budget_used)/$MAX_BUDGET]" 2>/dev/null || true
   CHAMP=$("$PY" tools/ralph_timeseries_v10.py status 2>/dev/null | grep -c "^champion:" || true)
-  [ "${CHAMP:-0}" -gt 0 ] && { log "CHAMPION -> HOLDOUT-READY, stopping for user"; setstate HOLDOUT-READY "champion; awaiting user"; return 2; }
+  if [ "${CHAMP:-0}" -gt 0 ]; then
+    if [ "$PAST_CHAMPION" = 1 ]; then
+      log "champion exists — continuing singles per user decision V10-D5(b)"
+    else
+      log "CHAMPION -> HOLDOUT-READY, stopping for user"; setstate HOLDOUT-READY "champion; awaiting user"; return 2
+    fi
+  fi
   return 0
 }
 run_shadow(){
