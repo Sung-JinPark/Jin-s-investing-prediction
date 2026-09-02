@@ -1,0 +1,13 @@
+2026-09-02 17:11:34 BOOT branch=claude/v10-gate sealed_baseline=e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224 deadline_epoch=1788393600
+2026-09-02 17:11:37 EXPLORE run V10_E0_identity budget=0/24
+2026-09-02 17:11:37 DRY: timeseries-v10-dev-backtest --label V10_E0_identity
+2026-09-02 17:11:37 MAX_CYCLES reached
+2026-09-02 17:11:38 SHUTDOWN clean (1 cycles)
+2026-09-02 17:11:44 stale lock reclaimed
+2026-09-02 17:11:45 BOOT branch=claude/v10-gate sealed_baseline=e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224 deadline_epoch=1788393600
+2026-09-02 17:11:46 SHADOW monitor
+2026-09-02 17:12:03 MAX_CYCLES reached
+2026-09-02 17:12:03 SHUTDOWN clean (1 cycles)
+2026-09-02 17:12:19 stale lock reclaimed
+2026-09-02 17:12:21 BOOT branch=claude/v10-gate sealed_baseline=e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224 deadline_epoch=1788393600
+2026-09-02 17:12:24 EXPLORE run V10_E0_identity budget=0/24
