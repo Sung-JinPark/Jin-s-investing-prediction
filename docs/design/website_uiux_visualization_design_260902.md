@@ -66,6 +66,7 @@ band_index{p10,p25,p75,p90}+median_index) + anchor. 기존 `timeseriesPathSvg`�
   statistics.json 추가 필드 0 — 예산 4.5KB 제약 준수.
 - 스트립 캡션: "경계 접근 표시는 표시 관행이며 매매 신호가 아닙니다"(기존 semantics 문구).
 - 미부착 20개 차트로의 확대는 **범위 밖**(경계값은 데이터 파생이어야 — 별도 결정).
+- **2026-09-02 철회**: 사용자 요청으로 스트립·캡션·클릭 스크롤 제거(dashboard.js/css). 카드 내부 `statisticsApproachAlert` 표시는 유지.
 
 ### 2-2. 카드 정보 위계 [실측으로 절반 기각]
 
