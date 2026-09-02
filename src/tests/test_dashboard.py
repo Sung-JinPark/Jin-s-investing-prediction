@@ -782,6 +782,25 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
     assert "DATA.scenario" in html
 
 
+def test_future_graph_switch_reads_as_model_cards() -> None:
+    """전환 스위치가 모델 카드 2장으로 보이는지 고정 (글리프·힌트·활성 시그니처)."""
+    html = dashboard.load_template()
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    # 카드 콘텐츠: 마이크로 힌트 + mono 라벨
+    assert "과거 국면 3개 DB의 실제 잔차" in html
+    assert "최근 1년 변동성 무작위 2만 경로" in html
+    assert "GRAPH 01" in html and "GRAPH 02" in html
+    # 글리프 색은 그래프 상수를 보간해 재사용한다 — 하드코딩 금지 계약
+    assert 'stroke="${V52_SCENARIO_META.S1.color}"' in html
+    assert 'stroke="${V52_SCENARIO_META.S3.color}"' in html
+    assert 'stroke="${CHART_COL.S1}"' in html
+    # 활성 카드 = 아래 그래프 패널과 같은 5px 상단 시그니처, hover는 오렌지 인셋
+    assert "border-top:5px solid transparent" in css
+    assert '.future-graph-switch button[aria-pressed="true"]' in css
+    assert "border-top-color:#11110f" in css
+    assert ".future-graph-switch button:hover,.future-graph-switch button:focus-visible{background:#fff;box-shadow:inset 0 -3px var(--orange)}" in css
+
+
 def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
     """복구 차트가 라이트 테마 팔레트와 기존 확대보기 계약을 그대로 쓰는지 고정."""
     html = dashboard.load_template()
