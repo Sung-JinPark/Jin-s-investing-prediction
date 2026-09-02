@@ -373,6 +373,28 @@ def cmd_timeseries_v9_dev_backtest(
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v10-dev-backtest")
+def cmd_timeseries_v10_dev_backtest(
+    label: str = typer.Option(..., "--label", help="사전등록 실험 라벨 (계약 큐 내)"),
+) -> None:
+    """V10 포크 평가 루프의 design 반복 1회를 실행하고 원장에 append한다."""
+    from .timeseries_v10 import cli as v10_cli
+
+    result = _timeseries_exit(v10_cli.run_dev_backtest, config.ROOT, label)
+    typer.echo(v10_cli.render(result))
+
+
+@app.command("timeseries-v10-verify")
+def cmd_timeseries_v10_verify() -> None:
+    """V10 계약·핀·원장·진단 의무를 검증한다."""
+    from .timeseries_v10 import cli as v10_cli
+
+    result = _timeseries_exit(v10_cli.run_verify, config.ROOT)
+    typer.echo(v10_cli.render(result))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v9-verify")
 def cmd_timeseries_v9_verify() -> None:
     """V9 사전등록·선행자 핀·예산·원장 무결성을 검증한다."""

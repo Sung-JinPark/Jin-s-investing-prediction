@@ -1,0 +1,239 @@
+# V10 분포 계층 연구 — 사전등록 계약 (개발 단계)
+#
+# 정본 계승: v10_gate_precision_design_260902.md(등록부 §3) + v10_architecture_research
+# _design_260902.md(§1 헌법). 게이트 산술은 V8 계약 원문 복제 — 이 트랙은 판정을 바꾸지
+# 않는다. 봉인 평가는 계약 동결 + 사용자 사인오프 후 별도 세션에서만 1회.
+
+schema_version: 1
+contract_id: multivariate_timeseries_v10
+model_id: shadow.mf_dfm_varx_regime_width_v10
+model_version: 10
+status: development
+
+target:
+  series_id: NASDAQCOM
+  asset: NASDAQ Composite
+  transform: daily_log_return
+  stored_return_unit: fraction
+  display_price_unit: index
+  horizons_sessions: [1, 5, 21, 63]
+
+probability_contract:
+  space: research_timeseries_v10_conditional
+  stored_unit: fraction
+  bounds: [0.0, 1.0]
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+  combine_with_v8_surface: false
+
+# 불변 선행자: V8 봉인 공개 run 4핀 + 포크 원본 2핀.
+v8_benchmark:
+  immutable: true
+  retune_prohibited: true
+  sealed_ledger: data/timeseries_v8/ledgers/sealed_evaluations.jsonl
+  run_id: tsv8-sealed-64345a816b4857171915d5b8
+  content_hash: aeec9c050c0c7b504c74e1b088f49311c39da7f6ed46586f518569916572cfbe
+  contract_hash: 7c56ee4eaa5697823c71c504e524354a70d643d20b555de69120f11ac55f785b
+  model_code_hash: 8361899fd79713934fb9b5727937d334a0105ef68cf7a71c1d2b1bb0ece1f3e7
+
+# 포크 규율: 사본(backtest_fork/model_fork)의 원본이 움직이면 검증이 fail-closed.
+source_pins:
+  src/ai_fc/timeseries_v8/backtest.py: 50d6fe056803c83e1f980adece566e3efe77098303f0683310b4f0a87306b84b
+  src/ai_fc/timeseries_v8/model.py: 4914af6c991188f17b202730654993ddcf66baa5f51ee75b836584fa39538386
+
+data_policy:
+  inherit_v2_pit_ledgers_read_only: true
+  v2_store_write: prohibited
+  v8_store_write: prohibited
+  feature_bundle: v2_candidate_C1_readonly_via_v8_development_bundle
+  dfm_cache: v2_origin_cache_readonly
+  exogenous_additions: prohibited          # V9 소진 판정 승계 — 음성 목록
+  grades: [native_pit, reconstructed_market_archive, captured_forward]
+
+model:
+  windows:
+    warmup: ["1996-01-01", "2006-12-31"]
+    development: ["2007-01-01", "2018-12-31"]
+    design: ["2007-01-01", "2014-12-31"]
+    holdout: ["2015-01-01", "2018-12-31"]
+    development_truncation_after: "2019-04-30"
+    sealed: ["2019-01-01", "latest"]
+    rolling_sessions: 2520
+  varx:
+    lag_candidates: [1, 2, 5]
+    ridge_alpha_candidates: [0.0001, 0.001, 0.01, 0.1, 1.0, 10.0, 100.0]
+  distribution:
+    development_path_count: 2000
+    sealed_path_count: 20000
+    block_length_candidates: [5, 10, 21]
+    ewma_lambda_candidates: [0.94, 0.97]
+    quantiles: [0.1, 0.25, 0.5, 0.75, 0.9]
+    seed_rule: sha256_model_version_and_as_of
+  # 퇴화 파라미터 = V8 챔피언(E10) 비트동일 — identity_test가 강제.
+  base_configuration_overrides:
+    fhs_horizons: [21, 63]
+    blend_weight_by_horizon: {"21": 0.75, "63": 0.75}
+    pit_recalibration_shrinkage: 0.5
+  sealed_evaluation:
+    maximum_disclosures_per_model_version: 1
+    retune_after_failure: prohibited
+    requires_explicit_user_signoff: true
+
+# ── 상태 정의 (W1·W3 공통) — 검토의견서 실측 선정 ─────────────────────────
+state:
+  primary:
+    id: ewma97_variance_ratio
+    definition: v_now(EWMA lambda 0.97 variance) / v_bar(trailing 2520-session mean squared return)
+    warmup_rule: baseline_incomplete_sessions_state_equals_one   # 1996~2004 s≡1 선언
+  sensitivity:
+    id: rv63_over_rv504
+    definition: trailing 63-session mean squared return / trailing 504-session mean squared return
+
+# ── 사전등록 격자 (정밀 설계서 §3 = 등록부, E5·E6류 결과 존재 전 등록) ──────
+research_grids:
+  V10_E0_identity: {}                                  # 퇴화 전체 — V10 쌍대 기준선
+  W1_regime_conditional_resampling:
+    mechanism: b5_keep_mask_weighted_quantile          # exp(−κ|s_t−s_i|), 인덱스 가중 금지
+    kappa_candidates: [0.5, 1.0]
+    sensitivity: [{kappa: 1.0, state: rv63_over_rv504}]
+  W3_state_dependent_blend:
+    functional_form: clip(0.75 + gamma*(state-1), 0.5, 0.9)
+    gamma_candidates: [-0.10, -0.20]
+  W2_k_component_mixture:
+    components: [fhs, historical_simulation, block_bootstrap]
+    weight_sets: [[0.60, 0.30, 0.10], [0.50, 0.30, 0.20], [0.70, 0.20, 0.10]]
+    e0_weights: [0.75, 0.25, 0.0]
+    precheck: pairwise_cramer_band_violation_screen    # 밴드 위반 예상 세트 등록 제외
+  W4_recalibration_map:
+    variants:
+      - {id: W4a_isotonic_unstratified, map: isotonic_pav, layers: 1, shrinkage: 0.5}
+      - {id: W4b_isotonic_two_layer, map: isotonic_pav, layers: 2, layer_rule: state_median_split, shrinkage: 0.5}
+    strengthening_below_shrinkage_0_5: prohibited      # E9 교훈
+  W5_short_horizon_fhs:
+    fhs_horizons_variants: [[5, 21, 63], [1, 5, 21, 63]]
+
+development_protocol:
+  maximum_development_evaluations: 24
+  design_window_only_for_iteration: true
+  holdout_maximum_finalists: 3
+  holdout_single_scoring_per_finalist: true
+  holdout_requires_explicit_user_approval: true
+  holdout_execution_path: absent_by_construction       # 이 단계의 CLI·하네스에 해당 verb 부재
+  comparison_method: paired_per_origin_differences_vs_v10_e0_identity
+  experiment_ledger: data/timeseries_v10/ledgers/development_experiments.jsonl
+  ledger_append_only: true
+  preregistered_first_experiments:
+    - V10_E0_identity
+    - V10_W1_kappa_05
+    - V10_W1_kappa_10
+    - V10_W3_gamma_m010
+    - V10_W3_gamma_m020
+    - V10_W1_sens_rv_kappa_10
+    - V10_W2_S1
+    - V10_W2_S2
+    - V10_W2_S3
+    - V10_W4a_isotonic
+    - V10_W4b_two_layer
+    - V10_W5_h5
+    - V10_W5_h1_h5
+  combination_rule: >-
+    조합은 단독 쌍대 개선 > +0.1%p 후보만으로, 별도 사전등록 개정 후 최대 5회.
+  stop_loss:
+    checkpoint_after_singles: 12
+    minimum_best_dual_improvement: 0.01
+    action_on_trigger: stop_and_report_evidence
+
+# 진단 의무 (정밀 설계서 §4)
+diagnostics:
+  identity_precheck_required: true                     # 실패 시 실험 무효
+  dual_statistics: {block_length_weeks: 13, bootstrap_replicates: 2000, mde50_published: true}
+  gate_margin_tracking:                                # E0 대비 여유 축 4종 직렬화 의무
+    axes: [h63_p10_p90_upper, projected_ci90_upper, p25_p75_lower, gfc_regime_minimum]
+    rule: margin_shrunk_vs_e0_flags_pass_risk
+  regime_decomposition: [great_financial_crisis_2008, euro_crisis_2011_2012, calm]
+  noise_diagnosis: {diffuse_share_check: true, concentrated_top10_check: true, zero_delta_share_expected: [0.95, 0.98]}
+
+# ── 게이트 (V8 원문 복제 — 값 변경 금지) ──────────────────────────────────
+dev_gate_proxy:
+  design_long_horizon_mean_crps_min_improvement: 0.025
+  design_paired_se_max: 0.001
+  projected_full_window_ci90_upper_max: -0.0004
+  projection_reference_origins: 1011
+  design_short_horizon_crps_max_underperformance: 0.01
+  design_p10_p90_coverage: [0.76, 0.84]
+  design_p25_p75_coverage: [0.45, 0.55]
+  design_gfc_regime_p10_p90_minimum: 0.72
+  holdout_long_horizon_mean_crps_min_improvement: 0.02
+  holdout_paired_bootstrap_ci90_upper_max: 0.0
+  pit_leakage_count: 0
+  receipt_linkage: 1.0
+
+publication_gate:
+  pit_leakage_count: 0
+  market_common_start_not_after: "2007-01-03"
+  receipt_linkage: 1.0
+  short_horizon_crps_max_underperformance: 0.02
+  long_horizon_mean_crps_min_improvement: 0.02
+  long_horizon_stationary_bootstrap_ci_upper: 0.0
+  p10_p90_coverage: [0.76, 0.84]
+  p25_p75_coverage: [0.45, 0.55]
+  regime_p10_p90_minimum: 0.70
+  failure_surface: validation_pending_without_numbers
+
+evaluation:
+  outer_start: "2007-01-01"
+  origin_frequency: weekly_last_completed_session
+  purge_sessions: 63
+  embargo_sessions: 5
+  minimum_origins: 250
+  required_regimes: [great_financial_crisis_2008, pandemic_2020, tightening_2022]
+  baselines: [random_walk, drift_random_walk, ar1, gbm, historical_simulation, block_bootstrap]
+
+operational_gate:
+  required_market_max_age_hours: 48
+  per_group_max_age_hours_override: {DTWEXBGS_or_DTWEXB: 216}
+  required_market_groups: [[NASDAQCOM], [VIX], [DGS2], [DGS10], [DTWEXBGS, DTWEXB]]
+  recent_origins: 26
+  crps_max_underperformance: 0.05
+  coverage_must_remain_in_publication_contract: true
+  failure_action: hide_new_numbers_validation_pending
+
+promotion:
+  automatic_champion: false
+  minimum_shadow_sessions: 126
+  explicit_owner_approval: required
+
+# 챔피언 자격 = 절대 proxy 통과 AND 비퇴화 파라미터 AND V10_E0 대비 쌍대 개선.
+champion_rule:
+  requires_non_degenerate_parameters: true
+  requires_dual_improvement_vs_v10_e0: true
+
+disclosure_caveat:
+  v2_2019_scores_published_before_design: true
+  v8_2019_scores_published_before_design: true
+  v9_verdicts_published_before_design: true
+  tightening_2022_regime_has_no_design_window_analog: true   # A′의 정직한 한계
+  candidate_selection_must_be_2019_blind: true
+
+prohibitions:
+  mutate_v2: true
+  retune_v2: true
+  v2_store_write: true
+  mutate_v8: true
+  retune_v8: true
+  v8_store_write: true
+  sealed_2019_access_during_development: true
+  dev_gate_threshold_relaxation: true
+  direct_index_level_training: true
+  forced_endpoint: true
+  future_actual_exogenous: true
+  exogenous_feature_additions: true
+  silent_feature_drop: true
+  silent_normalization: true
+  official_ledger_write: true
+  scenario_v5_2_mutation: true
+  automatic_sealed_disclosure: true
+  automatic_holdout_consumption: true
+  automatic_main_self_modification_in_production: true
+  secret_loading_in_loops: true
+  deep_learning_or_learned_weights: true
