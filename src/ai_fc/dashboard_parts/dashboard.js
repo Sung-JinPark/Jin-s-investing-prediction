@@ -1322,14 +1322,16 @@ const GC_API='https://jin-investing.goatcounter.com/api/v0';
 const GC_TOKEN_KEY='gc_api_token';
 function gcToken(){try{return localStorage.getItem(GC_TOKEN_KEY)||'';}catch(_){return '';}}
 function gcSetToken(value){try{if(value)localStorage.setItem(GC_TOKEN_KEY,value);else localStorage.removeItem(GC_TOKEN_KEY);}catch(_){}}
-async function gcFetch(path,params){
+async function gcFetch(path,params,retried){
   const query=new URLSearchParams(params||{}).toString();
   const res=await fetch(GC_API+path+(query?'?'+query:''),{headers:{Authorization:'Bearer '+gcToken()},cache:'no-store'});
-  if(res.status===401||res.status===403)throw new Error('401');
-  if(!res.ok)throw new Error('HTTP '+res.status);
+  if(res.status===429&&!retried){await new Promise(r=>setTimeout(r,1100));return gcFetch(path,params,true);}
+  if(res.status===401)throw new Error('401');
+  if(res.status===403)throw new Error('403');
+  if(!res.ok){let detail='';try{detail=(await res.json()).error||'';}catch(_){/* 본문 없음 */}throw new Error('HTTP '+res.status+(detail?' — '+detail:''));}
   return res.json();
 }
-function gcDate(daysAgo){const d=new Date(Date.now()-daysAgo*86400000);return d.toISOString().slice(0,10);}
+function gcDate(daysAgo){const d=new Date(Date.now()-daysAgo*86400000);return d.toISOString().slice(0,13)+':00:00Z';}
 function gcBarRows(rows,nameOf){
   const list=(rows||[]).map(row=>({name:nameOf(row),count:Number(row.count)||0})).filter(row=>row.name);
   const peak=Math.max(1,...list.map(row=>row.count));
@@ -1360,20 +1362,23 @@ function renderAdminStats(arg){
       ['/stats/browsers','브라우저',row=>row.name||'',{limit:'15',...range}],
     ];
     for(const [path,title,nameOf,params] of panels){
+      await new Promise(r=>setTimeout(r,320));
       try{
         const data=await gcFetch(path,params);
         const rows=data.hits||data.stats||[];
         sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><ul class="admin-list">${gcBarRows(rows,nameOf)}</ul></div>`);
       }catch(error){
-        if(String(error.message)==='401')throw error;
-        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><p class="admin-empty">불러오기 실패 (${esc(String(error.message))})</p></div>`);
+        if(String(error.message)==='401'||String(error.message)==='403')throw error;
+        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><p class="admin-empty">불러오기 실패 — ${esc(String(error.message))} (엔드포인트 ${esc(path)})</p></div>`);
       }
     }
     sections.push('<p class="admin-note">집계는 GoatCounter(쿠키 없는 방문 통계) 기준입니다. 개인 식별 정보는 수집되지 않으며, 이 화면과 토큰은 관리자 브라우저에서만 동작합니다.</p>');
     body.innerHTML=sections.join('');
   })().catch(error=>{
-    if(String(error.message)==='401'){gcSetToken('');body.innerHTML='<p class="admin-empty">토큰이 유효하지 않습니다. 새 토큰을 입력하세요.</p>';setTimeout(()=>renderAdminStats(arg),1200);return;}
-    body.innerHTML=`<p class="admin-empty">통계를 불러오지 못했습니다 (${esc(String(error.message))}). 네트워크 상태를 확인하고 다시 시도하세요.</p>`;
+    const message=String(error.message);
+    if(message==='401'){gcSetToken('');body.innerHTML='<p class="admin-empty">토큰이 유효하지 않습니다 (401). 새 토큰을 입력하세요.</p>';setTimeout(()=>renderAdminStats(arg),1600);return;}
+    if(message==='403'){gcSetToken('');body.innerHTML='<p class="admin-empty">토큰에 통계 읽기 권한이 없습니다 (403). GoatCounter 설정 → API에서 <strong>Read statistics</strong> 권한을 켠 토큰을 새로 만들어 입력하세요.</p>';setTimeout(()=>renderAdminStats(arg),4000);return;}
+    body.innerHTML=`<p class="admin-empty">통계를 불러오지 못했습니다 — ${esc(message)}. 잠시 뒤 기간 버튼을 눌러 다시 시도하세요.</p>`;
   });
 }
 
