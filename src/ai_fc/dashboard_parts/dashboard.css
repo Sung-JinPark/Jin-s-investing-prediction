@@ -1267,3 +1267,14 @@ body.chart-zoom-open{overflow:hidden;touch-action:none}
   .chart-zoom-canvas{padding:8px}
   .chart-zoom-help{padding-right:max(12px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left))}
 }
+/* v8 게이트 위젯·밴드 차트·보류 사유 (UI/UX 설계 260902 PR-U1/U2) */
+.timeseries-gate-strip{display:flex;gap:8px;flex-wrap:wrap}
+.ts-gate-chip{padding:7px 11px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line-strong);background:#fff;cursor:help}
+.ts-gate-chip.pass{color:#17614f;border-color:#9dc3b6;background:#f2f8f5}
+.ts-node-dot{fill:var(--orange);stroke:#fff;stroke-width:1.5}
+.ts-node-label{fill:#11110f;font-weight:700}
+.ts-median-line.ts-interp{stroke-dasharray:7 6}
+.timeseries-band-caption{margin:6px 4px 10px;color:#777168;font-family:var(--mono);font-size:10px;line-height:1.6}
+.timeseries-hold-reasons{margin:14px 0 0;padding:0 0 0 2px;list-style:none;display:grid;gap:6px}
+.timeseries-hold-reasons li{padding:8px 12px;color:#6d3f16;background:#fdf4e6;border-left:3px solid var(--orange);font-family:var(--mono);font-size:11px;word-break:keep-all}
+abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;cursor:help}

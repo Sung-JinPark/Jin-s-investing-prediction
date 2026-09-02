@@ -181,9 +181,27 @@ def test_load_projection_serves_the_visible_surface_end_to_end(
     ledger.write_text(
         json.dumps(_sealed_row(), ensure_ascii=False) + "\n", encoding="utf-8")
     monkeypatch.setattr(
-        display, "_anchor_close", lambda root, origin, cutoff: 21000.0)
+        display, "_anchor_and_history",
+        lambda root, origin, cutoff: (
+            21000.0, {"dates": ["2026-08-27", "2026-08-28"], "index": [20950.0, 21000.0]}))
     projection = load_projection(tmp_path)
     assert projection is not None
     assert projection["anchor"]["value"] == pytest.approx(21000.0)
     assert projection["as_of"] == "2026-08-28"
     assert projection["gate"]["operational_pass"] is True
+
+
+def test_projection_carries_gate_widget_and_history_only_when_visible() -> None:
+    """UI/UX 설계 260902: freshness 요약·과거선은 visible 투영에만 실린다."""
+    latest = _visible_latest()
+    body = {key: value for key, value in latest.items() if key != "content_hash"}
+    body["operational"] = {"freshness": [
+        {"group": "NASDAQCOM", "age_hours": 5.6, "limit_hours": 48.0, "status": "fresh"},
+        {"group": "DTWEXBGS_or_DTWEXB", "age_hours": 77.6, "limit_hours": 216.0, "status": "fresh"},
+    ]}
+    projection = build_projection(
+        _finish(body), anchor_value=20000.0, sealed_row=_sealed_row(),
+        history={"dates": ["2026-08-27", "2026-08-28"], "index": [19950.0, 20000.0]})
+    assert [row["group"] for row in projection["freshness_summary"]] == \
+        ["NASDAQCOM", "DTWEXBGS_or_DTWEXB"]
+    assert projection["history"]["index"][-1] == pytest.approx(20000.0)
