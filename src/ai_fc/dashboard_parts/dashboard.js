@@ -1332,10 +1332,31 @@ async function gcFetch(path,params,retried){
   return res.json();
 }
 function gcDate(daysAgo){const d=new Date(Date.now()-daysAgo*86400000);return d.toISOString().slice(0,13)+':00:00Z';}
-function gcBarRows(rows,nameOf){
+function gcDisplayPath(raw){
+  const value=String(raw||'');
+  const hashIndex=value.indexOf('#');
+  if(hashIndex>=0)return value.slice(hashIndex);
+  const clean=value.replace(/^\/Jin-s-investing-prediction/,'').split('?')[0];
+  return clean===''||clean==='/'?'/ 메인':clean;
+}
+function gcShareRows(rows,nameOf){
   const list=(rows||[]).map(row=>({name:nameOf(row),count:Number(row.count)||0})).filter(row=>row.name);
+  const sum=list.reduce((acc,row)=>acc+row.count,0)||1;
   const peak=Math.max(1,...list.map(row=>row.count));
-  return list.map(row=>`<li><span class="admin-bar" style="width:${Math.max(2,Math.round(row.count/peak*100))}%"></span><em>${esc(row.name)}</em><strong>${row.count.toLocaleString()}</strong></li>`).join('')||'<li class="admin-empty">데이터 없음</li>';
+  return list.map((row,i)=>`<li title="${esc(row.name)}"><i>${i+1}</i><em>${esc(row.name)}</em><span class="admin-share-bar"><b style="width:${Math.max(2,Math.round(row.count/peak*100))}%"></b></span><strong>${row.count.toLocaleString()}</strong><small>${(row.count/sum*100).toFixed(1)}%</small></li>`).join('')||'<li class="admin-empty">아직 데이터가 없습니다</li>';
+}
+function gcTimeSeriesSvg(rows){
+  const width=960,height=250,padL=48,padR=14,padT=14,padB=32,n=rows.length||1;
+  const step=Math.max(1,Math.ceil(Math.max(1,...rows.map(row=>row.count))/4)),peak=step*4;
+  const innerW=width-padL-padR,innerH=height-padT-padB,band=innerW/n;
+  const grid=[0,1,2,3,4].map(i=>{const y=padT+innerH-innerH*i/4;return `<line x1='${padL}' y1='${y.toFixed(1)}' x2='${width-padR}' y2='${y.toFixed(1)}'/><text x='${padL-8}' y='${(y+4).toFixed(1)}' text-anchor='end'>${(step*i).toLocaleString()}</text>`;}).join('');
+  const labelEvery=Math.max(1,Math.ceil(n/12));
+  const bars=rows.map((row,i)=>{
+    const h=innerH*row.count/peak,x=padL+i*band;
+    const label=(i%labelEvery===0||i===n-1)?`<text class='admin-x' x='${(x+band/2).toFixed(1)}' y='${height-9}' text-anchor='middle'>${esc(row.day.slice(5))}</text>`:'';
+    return `<rect x='${(x+band*0.18).toFixed(1)}' y='${(padT+innerH-h).toFixed(1)}' width='${Math.max(band*0.64,1.2).toFixed(1)}' height='${Math.max(h,row.count?1.5:0).toFixed(1)}' rx='1'><title>${esc(row.day)} · ${row.count.toLocaleString()}회</title></rect>${label}`;
+  }).join('');
+  return `<svg class='admin-ts' viewBox='0 0 ${width} ${height}' role='img' aria-label='일별 방문 추이'>${grid}${bars}</svg>`;
 }
 function renderAdminStats(arg){
   const days=Number(arg&&arg.days)||30;
@@ -1345,33 +1366,47 @@ function renderAdminStats(arg){
     app().querySelector('[data-gc-gate]').addEventListener('submit',e=>{e.preventDefault();const value=e.target.querySelector('input').value.trim();if(!value)return;gcSetToken(value);renderAdminStats(arg);});
     return;
   }
-  app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-toolbar"><div class="lab-tabs admin-range">${[7,30,90].map(n=>`<button type="button" data-days="${n}" aria-selected="${n===days}">${n}일</button>`).join('')}</div><button type="button" class="admin-signout" data-gc-signout>토큰 삭제</button></div><div class="admin-body"><p class="admin-empty">불러오는 중…</p></div></section>`;
-  app().querySelectorAll('[data-days]').forEach(button=>{button.onclick=()=>renderAdminStats({days:Number(button.dataset.days)});});
+  app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-toolbar"><div class="admin-ranges" role="tablist" aria-label="집계 기간">${[7,30,90,180].map(n=>`<button type="button" data-days="${n}" aria-selected="${n===days}">${n}일</button>`).join('')}</div><div class="admin-tools"><button type="button" data-gc-reload>새로고침</button><button type="button" class="admin-signout" data-gc-signout>토큰 삭제</button></div></div><div class="admin-body"><div class="admin-skeleton"><span></span><span></span><span></span></div></div></section>`;
+  app().querySelectorAll('[data-days]').forEach(button=>{button.onclick=()=>{location.hash='#admin-stats/'+button.dataset.days;};});
+  app().querySelector('[data-gc-reload]').onclick=()=>renderAdminStats(arg);
   app().querySelector('[data-gc-signout]').onclick=()=>{gcSetToken('');renderAdminStats(arg);};
   const body=app().querySelector('.admin-body');
   const range={start:gcDate(days-1),end:gcDate(0)};
   (async()=>{
     const total=await gcFetch('/stats/total',range);
-    const sections=[];
-    const dailyRows=(total.stats||[]).map(row=>({name:String(row.day||'').slice(5),count:Number(row.daily)||0}));
-    sections.push(`<div class="admin-card"><h2>일별 조회 — 합계 ${Number(total.total||0).toLocaleString()} (최근 ${days}일)</h2><ul class="admin-list admin-daily">${gcBarRows(dailyRows,row=>row.name)}</ul></div>`);
-    const panels=[
-      ['/stats/hits','화면(경로)별 방문',row=>row.path||row.event||'',{limit:'15',...range}],
-      ['/stats/toprefs','유입 경로 (referrer)',row=>row.name||'(직접 방문·없음)',{limit:'15',...range}],
-      ['/stats/locations','국가',row=>row.name||'',{limit:'15',...range}],
-      ['/stats/browsers','브라우저',row=>row.name||'',{limit:'15',...range}],
+    const daily=(total.stats||[]).map(row=>({day:String(row.day||''),count:Number(row.daily)||0}));
+    const sum=daily.reduce((acc,row)=>acc+row.count,0);
+    const peakRow=daily.reduce((best,row)=>row.count>(best?best.count:-1)?row:best,null);
+    const lastRow=daily[daily.length-1]||null;
+    const average=daily.length?sum/daily.length:0;
+    const kpis=[
+      ['총 방문',sum.toLocaleString(),`최근 ${days}일`],
+      ['일평균',average>=10?Math.round(average).toLocaleString():average.toFixed(1),'하루 기준'],
+      ['최고일',peakRow?peakRow.count.toLocaleString():'0',peakRow?peakRow.day.slice(5)+' 기록':'—'],
+      ['최근일',lastRow?lastRow.count.toLocaleString():'0',lastRow?lastRow.day.slice(5)+' 기준':'—'],
     ];
-    for(const [path,title,nameOf,params] of panels){
+    const sections=[];
+    sections.push(`<div class="admin-kpis">${kpis.map(([label,value,hint])=>`<article><small>${label}</small><strong>${value}</strong><span>${hint}</span></article>`).join('')}</div>`);
+    sections.push(`<div class="admin-card admin-chart-card"><div class="admin-card-head"><h2>일별 방문 추이</h2><span>${esc(daily.length?daily[0].day:'')} ~ ${esc(lastRow?lastRow.day:'')}</span></div>${gcTimeSeriesSvg(daily)}</div>`);
+    const panels=[
+      ['/stats/hits','화면별 방문',row=>gcDisplayPath(row.path||row.event),{limit:'12',...range},'어떤 화면을 봤는지'],
+      ['/stats/toprefs','유입 경로',row=>row.name||'직접 방문 · 링크 없음',{limit:'12',...range},'어디서 타고 왔는지'],
+      ['/stats/locations','국가',row=>row.name||'',{limit:'12',...range},'방문자 지역'],
+      ['/stats/browsers','브라우저',row=>row.name||'',{limit:'12',...range},'접속 환경'],
+    ];
+    const cards=[];
+    for(const [path,title,nameOf,params,hint] of panels){
       await new Promise(r=>setTimeout(r,320));
       try{
         const data=await gcFetch(path,params);
         const rows=data.hits||data.stats||[];
-        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><ul class="admin-list">${gcBarRows(rows,nameOf)}</ul></div>`);
+        cards.push(`<div class="admin-card"><div class="admin-card-head"><h2>${esc(title)}</h2><span>${esc(hint)}</span></div><ul class="admin-list">${gcShareRows(rows,nameOf)}</ul></div>`);
       }catch(error){
         if(String(error.message)==='401'||String(error.message)==='403')throw error;
-        sections.push(`<div class="admin-card"><h2>${esc(title)}</h2><p class="admin-empty">불러오기 실패 — ${esc(String(error.message))} (엔드포인트 ${esc(path)})</p></div>`);
+        cards.push(`<div class="admin-card"><div class="admin-card-head"><h2>${esc(title)}</h2></div><p class="admin-empty">불러오기 실패 — ${esc(String(error.message))} (엔드포인트 ${esc(path)})</p></div>`);
       }
     }
+    sections.push(`<div class="admin-grid">${cards.join('')}</div>`);
     sections.push('<p class="admin-note">집계는 GoatCounter(쿠키 없는 방문 통계) 기준입니다. 개인 식별 정보는 수집되지 않으며, 이 화면과 토큰은 관리자 브라우저에서만 동작합니다.</p>');
     body.innerHTML=sections.join('');
   })().catch(error=>{

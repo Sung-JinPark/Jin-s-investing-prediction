@@ -24,3 +24,8 @@ def test_token_gate_uses_local_storage_and_single_origin():
 def test_gate_copy_discloses_storage_boundary():
     assert "localStorage에만" in SCRIPT
     assert "토큰 삭제" in SCRIPT
+
+
+def test_admin_entry_link_in_template():
+    template = (Path(__file__).resolve().parents[1] / "ai_fc/dashboard_template.html").read_text(encoding="utf-8")
+    assert 'class="admin-entry" href="#admin-stats"' in template
