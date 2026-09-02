@@ -1172,6 +1172,26 @@ def cmd_market_extensions(
     )
 
 
+@app.command("admin-traffic")
+def cmd_admin_traffic(
+    render_only: bool = typer.Option(
+        False, "--render-only", help="새 스냅샷 없이 기존 이력으로 대시보드만 렌더"
+    ),
+) -> None:
+    """관리자 전용 저장소 방문 통계(Traffic API): 스냅샷 축적 + 로컬 대시보드. Pages 사이트 방문은 미포함."""
+    from .admin_traffic import render_dashboard, take_snapshot
+
+    if not render_only:
+        snapshot = take_snapshot(config.ROOT)
+        views = snapshot["views"]
+        typer.echo(
+            f"스냅샷 저장: 최근 14일 조회 {views['count']} · 고유 {views['uniques']} · "
+            f"referrer {len(snapshot['referrers'])}종 · 경로 {len(snapshot['paths'])}종"
+        )
+    path = render_dashboard(config.ROOT)
+    typer.echo(f"대시보드: {path.relative_to(config.ROOT)} (로컬 전용 — gitignore)")
+
+
 @app.command("statistics-refresh")
 def cmd_statistics_refresh() -> None:
     """닷컴과 현재 사이클의 공개 통계 비교 DB를 주간 갱신한다."""
