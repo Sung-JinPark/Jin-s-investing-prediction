@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 import json
+import re
 
 import pytest
 
@@ -109,7 +110,10 @@ def test_repository_cohort_has_full_dotcom_and_oos_evidence() -> None:
     path = config.ROOT / "data/realty_income/o_entry_cohort_latest.json"
     latest = json.loads(path.read_text(encoding="utf-8"))
     assert "entries" not in latest and latest["entry_count"] == 840
-    assert latest["entries_ref"].endswith("o_entry_cohort_archive/2026-07-30.json")
+    # entries_ref rolls forward whenever ai-regime-refresh archives a new
+    # snapshot (monthly cron), so pin the shape, not one calendar date --
+    # the 2026-07-30 pin went red the morning the 2026-08-31 archive landed.
+    assert re.search(r"o_entry_cohort_archive/\d{4}-\d{2}-\d{2}\.json$", latest["entries_ref"])
     payload = load_cohort(config.ROOT)
     validate_cohort(payload)
     assert len(payload["entries"]) == 840
