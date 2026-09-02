@@ -79,6 +79,7 @@ def validate_latest(value: dict[str, Any]) -> None:
 
 def build_projection(
     latest: dict[str, Any], *, anchor_value: float, sealed_row: dict[str, Any],
+    history: dict[str, list[Any]] | None = None,
 ) -> dict[str, Any]:
     """Map the visible latest pointer into the dashboard read-model slot.
 
@@ -142,6 +143,18 @@ def build_projection(
             "origin_count": int(summary.get("origin_count") or 0),
             "horizons": sealed_metrics,
         },
+        # 게이트 위젯용: 신선도 5그룹의 상태 요약 (visible 표면에만 존재).
+        "freshness_summary": [
+            {
+                "group": str(row.get("group")),
+                "age_hours": None if row.get("age_hours") is None else float(row["age_hours"]),
+                "limit_hours": None if row.get("limit_hours") is None else float(row["limit_hours"]),
+                "status": str(row.get("status")),
+            }
+            for row in (latest.get("operational", {}).get("freshness") or [])
+        ],
+        # 밴드 차트 좌측 실적선: 최근 63세션 종가 (visible 표면에만 존재).
+        "history": history or None,
         "footnote": latest["footnote"],
     }
 
@@ -159,16 +172,35 @@ def _sealed_row(root: Path, run_id: str) -> dict[str, Any]:
     raise TimeSeriesV8DisplayError(f"sealed evaluation {run_id} missing from the ledger")
 
 
-def _anchor_close(root: Path, origin: str, knowledge_cutoff: str) -> float:
+def _anchor_and_history(
+    root: Path, origin: str, knowledge_cutoff: str, *, sessions: int = 63,
+) -> tuple[float, dict[str, list[Any]]]:
+    """Anchor close at the origin plus the trailing session history up to it.
+
+    Display-layer join only: the sealed latest pointer never carries these
+    numbers (its HOLD surface must stay number-free), so the band chart's
+    history line is assembled here from the same read-only market archive that
+    already supplies the anchor.
+    """
     from .timeseries_v2.market_archive import read_market_observations
 
-    rows = read_market_observations(root, knowledge_cutoff=knowledge_cutoff)
-    for row in rows:
-        if row.series_id == TARGET_SERIES and row.observation_time == origin:
-            return float(row.value)
-    raise TimeSeriesV8DisplayError(
-        f"anchor close for {TARGET_SERIES} at {origin} missing from the market archive"
+    rows = sorted(
+        (
+            row for row in read_market_observations(root, knowledge_cutoff=knowledge_cutoff)
+            if row.series_id == TARGET_SERIES and row.observation_time <= origin
+        ),
+        key=lambda row: row.observation_time,
     )
+    if not rows or rows[-1].observation_time != origin:
+        raise TimeSeriesV8DisplayError(
+            f"anchor close for {TARGET_SERIES} at {origin} missing from the market archive"
+        )
+    tail = rows[-sessions:]
+    history = {
+        "dates": [row.observation_time for row in tail],
+        "index": [float(row.value) for row in tail],
+    }
+    return float(rows[-1].value), history
 
 
 def load_projection(root: Path) -> dict[str, Any] | None:
@@ -186,5 +218,7 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     if latest.get("publication", {}).get("customer_numbers_visible") is not True:
         return None
     sealed_row = _sealed_row(root, str(latest["gate"]["sealed_run_id"]))
-    anchor_value = _anchor_close(root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
-    return build_projection(latest, anchor_value=anchor_value, sealed_row=sealed_row)
+    anchor_value, history = _anchor_and_history(
+        root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    return build_projection(
+        latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history)
