@@ -766,6 +766,21 @@ def test_pages_rebuilds_when_v5_2_projection_changes() -> None:
     assert '- "src/ai_fc/scenario_v5_2/**"' in workflow
 
 
+def test_pages_deploy_rebuilds_and_replay_verifies_v5_2_before_dashboard() -> None:
+    """배포 시점 재봉인 계약: 어떤 커밋이 보호 경로를 움직였든 pages 빌드는
+    현재 트리로 후보를 재빌드해 런타임 게이트가 열린 채 배포한다. 커밋 없음
+    (repo 미기록 — _site 입력 전용), 실패 시에도 배포는 계속(fail-closed 화면이
+    게이트 사유를 공시)."""
+    workflow = (ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
+    assert "scenario-v5-2-build --force" in workflow
+    assert "scenario-v5-2-verify --replay" in workflow
+    assert "git add" not in workflow  # pages는 어떤 산출물도 커밋하지 않는다
+    assert "continue-on-error: true" in workflow
+    rebuild = workflow.index("scenario-v5-2-build --force")
+    assert workflow.index("sync --rebuild") < rebuild
+    assert rebuild < workflow.index("dashboard --pages-out")
+
+
 def test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2() -> None:
     workflows = [
         ROOT / ".github/workflows/scenario-refresh.yml",
