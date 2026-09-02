@@ -1,0 +1,3 @@
+2026-09-03 07:49:16 stale lock reclaimed
+2026-09-03 07:49:18 BOOT branch=claude/v10-gate sealed_baseline=e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224 deadline_epoch=1788994155
+2026-09-03 07:49:20 EXPLORE run V10_W3_gamma_m020 budget=4/24
