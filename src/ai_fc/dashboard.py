@@ -24,7 +24,7 @@ from .db import ingest, queries
 # GoatCounter 사이트 코드 (예: "jin-investing" → https://jin-investing.goatcounter.com).
 # 빈 문자열이면 분석 스니펫을 아예 넣지 않는다. 코드는 배포 페이지 소스에 공개되는
 # 값이라 저장소에 커밋해도 비밀이 아니다. 집계는 GoatCounter 계정 소유자만 본다.
-GOATCOUNTER_CODE = ""
+GOATCOUNTER_CODE = "jin-investing"
 
 TEMPLATE = Path(__file__).parent / "dashboard_template.html"
 DASHBOARD_PARTS = Path(__file__).parent / "dashboard_parts"
