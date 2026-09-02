@@ -688,29 +688,29 @@ function renderUtilityPanel(){
   const active=questions.filter(q=>q.status==='active').length,resolved=questions.length-active;
   const rounds=Object.values(history).reduce((n,x)=>n+(Array.isArray(x)?x.length:0),0);
   const generated=(DATA?.meta?.generated||'—').replace('T',' ').slice(0,16)+' KST',note=currentNote(),pinnedQs=myRadarQuestions();
-  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label">Data status</div>
-    <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>SELF-CONTAINED SNAPSHOT</small></div><strong>${esc(generated)}</strong></div>
-    <div class="utility-stats"><div><span>QUESTIONS</span><strong>${questions.length}</strong></div><div><span>ACTIVE</span><strong>${active}</strong></div><div><span>RESOLVED</span><strong>${resolved}</strong></div><div><span>ROUNDS</span><strong>${rounds}</strong></div></div></section>
-    <section class="utility-section"><div class="utility-label">View density</div><div class="segmented-control">
-      <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">Comfortable</button>
-      <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">Compact</button></div></section>
-    <section class="utility-section"><div class="utility-label">Motion</div><div class="segmented-control">
-      <button type="button" data-util="motion" data-value="adaptive" class="${UI_STATE.motion==='adaptive'?'active':''}">Adaptive</button>
-      <button type="button" data-util="motion" data-value="reduced" class="${UI_STATE.motion==='reduced'?'active':''}">Reduced</button></div></section>
-    <section class="utility-section"><div class="utility-label">Workspace</div><div class="utility-list">
+  utilityContent.innerHTML=`${reviewQueuePanel()}<section class="utility-section"><div class="utility-label"><b>데이터 상태</b><small>이 사이트가 언제 데이터로 만들어졌는지</small></div>
+    <div class="freshness-card ${f.cls}"><div><b>${f.label}</b><small>자기완결 스냅샷</small></div><strong>${esc(generated)}</strong></div>
+    <div class="utility-stats"><div><span>질문</span><strong>${questions.length}</strong></div><div><span>진행 중</span><strong>${active}</strong></div><div><span>판정 완료</span><strong>${resolved}</strong></div><div><span>예측 회차</span><strong>${rounds}</strong></div></div></section>
+    <section class="utility-section"><div class="utility-label"><b>보기 방식</b><small>글자 간격과 화면 움직임을 취향대로</small></div><div class="segmented-control">
+      <button type="button" data-util="density" data-value="comfortable" class="${UI_STATE.density==='comfortable'?'active':''}">여유 있게<small>Comfortable</small></button>
+      <button type="button" data-util="density" data-value="compact" class="${UI_STATE.density==='compact'?'active':''}">빽빽하게<small>Compact</small></button></div>
+    <div class="segmented-control" style="margin-top:8px">
+      <button type="button" data-util="motion" data-value="adaptive" class="${UI_STATE.motion==='adaptive'?'active':''}">움직임 기본<small>Adaptive</small></button>
+      <button type="button" data-util="motion" data-value="reduced" class="${UI_STATE.motion==='reduced'?'active':''}">움직임 줄이기<small>Reduced</small></button></div></section>
+    <section class="utility-section"><div class="utility-label"><b>빠른 작업</b><small>자주 쓰는 기능 모음</small></div><div class="utility-list">
       <button type="button" data-util="pin">현재 화면 ${isCurrentPinned()?'고정 해제':'고정'}<span>${isCurrentPinned()?'★':'☆'}</span></button>
       <button type="button" data-util="briefing">3단계 시장 브리핑<span>B</span></button>
       <button type="button" data-util="focus">${document.body.classList.contains('focus-mode')?'집중 모드 종료':'집중 모드 시작'}<span>F</span></button>
       <button type="button" data-util="shortcuts">키보드 단축키<span>?</span></button></div></section>
-    <section class="utility-section"><div class="utility-label">My Radar · ${pinnedQs.length}</div><div class="utility-list">
+    <section class="utility-section"><div class="utility-label"><b>내 레이더</b><small>고정한 질문 ${pinnedQs.length}개 — 확률을 바로 확인</small></div><div class="utility-list">
       ${pinnedQs.length?pinnedQs.slice(0,5).map(q=>`<button type="button" data-open-q="${esc(q.id)}">${esc(q.title)}<span>${p1(q.latest_prob)}</span></button>`).join(''):
-      '<button type="button" data-util-route="#records">고정한 질문이 없습니다<span>＋</span></button>'}</div></section>
-    <section class="utility-section"><div class="utility-label">Research note · This device</div><div class="note-editor">
+      '<button type="button" data-util-route="#records">아직 없습니다 — 기록 화면에서 ☆을 눌러 추가<span>＋</span></button>'}</div></section>
+    <section class="utility-section"><div class="utility-label"><b>화면 메모</b><small>이 기기에만 저장 — 서버로 안 감</small></div><div class="note-editor">
       <label for="workspace-note" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">현재 화면 메모</label>
       <textarea id="workspace-note" maxlength="700" placeholder="이 화면에 대한 판단, 확인할 조건, 다음 행동을 기록하세요.">${esc(note)}</textarea>
       <div class="note-meta"><span id="note-save-state">현재 기기에 저장됨 · <b id="note-count">${note.length}</b>/700</span><button type="button" data-util="copy-note">메모 복사</button></div>
     </div></section>
-    <section class="utility-section"><div class="utility-label">Output</div><div class="utility-list">
+    <section class="utility-section"><div class="utility-label"><b>내보내기 · 공유</b><small>지금 보는 화면 그대로</small></div><div class="utility-list">
       <button type="button" data-util="share">현재 화면 공유<span>↗</span></button>
       <button type="button" data-util="copy">링크 복사<span>⌘C</span></button>
       <button type="button" data-util="summary">화면 요약 복사<span>TXT</span></button>
@@ -886,23 +886,32 @@ function commandCatalog(){
   return actions.concat(pins,recent,routes,qs);
 }
 let activeCommandItems=[];
+const COMMAND_GROUP_HINTS={'화면':'번호를 눌러 바로 이동','고정':'별표로 즐겨찾기한 곳','최근':'최근에 본 곳','작업':'자주 쓰는 기능','예측 질문':'질문 제목·도메인으로 검색'};
 function renderCommandResults(query=''){
   const needle=query.trim().toLowerCase();
   const catalog=commandCatalog();
   let items;
   if(needle)items=catalog.filter(x=>x.title.toLowerCase().includes(needle)||(x.hint||'').toLowerCase().includes(needle)||(x.search||'').includes(needle)).slice(0,12);
   else{
-    const limits={작업:7,고정:5,최근:4,화면:6,'예측 질문':3},counts={};
-    items=catalog.filter(x=>{counts[x.group]=(counts[x.group]||0)+1;return counts[x.group]<=limits[x.group];});
+    /* 빈 상태는 '어디로 갈까'가 먼저다: 화면 → 고정 → 최근 → 작업 → 예측 질문 */
+    const order=['화면','고정','최근','작업','예측 질문'],limits={화면:6,고정:4,최근:4,작업:6,'예측 질문':3};
+    items=order.flatMap(group=>catalog.filter(x=>x.group===group).slice(0,limits[group]));
   }
-  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.</div>';return;}
+  if(!items.length){activeCommandItems=[];commandResults.innerHTML='<div class="command-empty">일치하는 화면이나 예측 질문이 없습니다.<small>화면 이름(오늘·통계·기록…), 기능(공유·메모…), 질문 키워드로 검색해 보세요.</small></div>';return;}
   activeCommandItems=items;
-  let group='';
-  commandResults.innerHTML=items.map((x,i)=>{
-    const heading=x.group!==group?`<div class="command-group">${esc(group=x.group)}</div>`:'';
-    return `${heading}<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}">
-      <i>${esc(x.code)}</i><span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></span><kbd>↵</kbd></button>`;
-  }).join('');
+  const emptyState=!needle;
+  let html='',group='',screenTiles=[];
+  const flush=()=>{if(screenTiles.length){html+=`<div class="command-screens">${screenTiles.join('')}</div>`;screenTiles=[];}};
+  items.forEach((x,i)=>{
+    if(x.group!==group){flush();group=x.group;html+=`<div class="command-group"><b>${esc(group)}</b><small>${esc(COMMAND_GROUP_HINTS[group]||'')}</small></div>`;}
+    if(emptyState&&group==='화면'&&!x.title.includes('·')){
+      screenTiles.push(`<button type="button" class="command-result command-screen${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></button>`);
+      return;
+    }
+    html+=`<button type="button" class="command-result${i===0?' is-active':''}" data-command-index="${i}"><i>${esc(x.code)}</i><span><b>${esc(x.title)}</b><small>${esc(x.hint)}</small></span><kbd class="command-enter">열기 ↵</kbd></button>`;
+  });
+  flush();
+  commandResults.innerHTML=html;
 }
 function setCommand(open,restoreFocus=true){
   if(open&&document.body.classList.contains('drawer-open'))setDrawer(false,false);
