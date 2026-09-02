@@ -1,0 +1,72 @@
+{
+  "experiment_id": "tsv10-exp-3b0b213faea4ee7fa9ee",
+  "experiment_label": "V10_W1_sens_rv_kappa_10",
+  "degenerate": false,
+  "horizons": {
+    "1": {
+      "origins": 417,
+      "crps": 0.007421269424248898,
+      "best_baseline": "block_bootstrap",
+      "best_baseline_crps": 0.007799081908543968,
+      "crps_improvement_vs_best": 0.04844319994654409,
+      "coverage_p10_p90": 0.7985611510791367,
+      "coverage_p25_p75": 0.5371702637889688
+    },
+    "5": {
+      "origins": 417,
+      "crps": 0.015059918494076695,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.01576318343922592,
+      "crps_improvement_vs_best": 0.044614398345399195,
+      "coverage_p10_p90": 0.8105515587529976,
+      "coverage_p25_p75": 0.5155875299760192
+    },
+    "21": {
+      "origins": 417,
+      "crps": 0.030863230440726603,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.03206233695952998,
+      "crps_improvement_vs_best": 0.03739922390301507,
+      "coverage_p10_p90": 0.8345323741007195,
+      "coverage_p25_p75": 0.5251798561151079
+    },
+    "63": {
+      "origins": 417,
+      "crps": 0.055935771632850566,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.05775618491309095,
+      "crps_improvement_vs_best": 0.03151893226638267,
+      "coverage_p10_p90": 0.8369304556354916,
+      "coverage_p25_p75": 0.5323741007194245
+    }
+  },
+  "paired_long_horizon": {
+    "origin_count": 417,
+    "mean": -0.0015097598995218843,
+    "ci90": {
+      "lower": -0.0027890285145493847,
+      "upper": -0.00019270699953722798
+    },
+    "best_baselines": {
+      "21": "historical_simulation",
+      "63": "historical_simulation"
+    }
+  },
+  "proxy_pass": true,
+  "gate_margin": {
+    "h63_p10_p90_upper": 0.0030695443645083476,
+    "projected_ci90_upper": 0.00027603854341709235,
+    "p25_p75_lower": 0.06558752997601919,
+    "gfc_regime_minimum": 0.062051282051282075
+  },
+  "dual_vs_e0": {
+    "origin_count": 417,
+    "mean": 0.00020815653428685025,
+    "ci90": [
+      -1.9188304976205948e-05,
+      0.00044385267331743024
+    ],
+    "bootstrap_se": 0.00014147621290027537,
+    "mde50": 0.000232728370220953
+  }
+}
