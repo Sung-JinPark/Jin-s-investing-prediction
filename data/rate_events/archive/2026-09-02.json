@@ -1,0 +1,183 @@
+{
+  "schema_version": 1,
+  "asof": "2026-09-02",
+  "generated_at": "2026-09-03T05:59:29+00:00",
+  "probability_space": "reference_only",
+  "status": "ok",
+  "registry_version": "2026-08-04.v1",
+  "events": [
+    {
+      "event_id": "dotcom_easing",
+      "type": "easing",
+      "start": "2001-01-03",
+      "end": "2003-06-25",
+      "description": "Dot-com unwind with cumulative Federal Reserve easing",
+      "returns_pct": {
+        "realty_income_price": 50.2,
+        "realty_income_total_return": 79.1,
+        "nasdaq_price": -38.8,
+        "reit_sector_total_return": 24.2
+      },
+      "macro_change_bp": {
+        "dgs10": -176.0,
+        "hy_oas": -298.0
+      },
+      "observations": {
+        "realty_income": 620,
+        "nasdaq": 620,
+        "sector": 620,
+        "dgs10": 618,
+        "hy_oas": 644
+      },
+      "hy_status": "available_full_history"
+    },
+    {
+      "event_id": "tightening_2004_2006",
+      "type": "tightening",
+      "start": "2004-06-30",
+      "end": "2006-06-29",
+      "description": "Measured tightening cycle after the post-dot-com rate trough",
+      "returns_pct": {
+        "realty_income_price": 7.5,
+        "realty_income_total_return": 20.8,
+        "nasdaq_price": 5.8,
+        "reit_sector_total_return": 52.4
+      },
+      "macro_change_bp": {
+        "dgs10": 60.0,
+        "hy_oas": -77.0
+      },
+      "observations": {
+        "realty_income": 505,
+        "nasdaq": 505,
+        "sector": 505,
+        "dgs10": 501,
+        "hy_oas": 523
+      },
+      "hy_status": "available_full_history"
+    },
+    {
+      "event_id": "taper_2013",
+      "type": "tightening",
+      "start": "2013-05-22",
+      "end": "2013-12-31",
+      "description": "Taper repricing window",
+      "returns_pct": {
+        "realty_income_price": -28.8,
+        "realty_income_total_return": -26.2,
+        "nasdaq_price": 20.6,
+        "reit_sector_total_return": -11.9
+      },
+      "macro_change_bp": {
+        "dgs10": 101.0,
+        "hy_oas": -27.0
+      },
+      "observations": {
+        "realty_income": 155,
+        "nasdaq": 155,
+        "sector": 155,
+        "dgs10": 153,
+        "hy_oas": 160
+      },
+      "hy_status": "available_full_history"
+    },
+    {
+      "event_id": "hikes_2015_2018",
+      "type": "tightening",
+      "start": "2015-12-16",
+      "end": "2018-12-19",
+      "description": "Multi-year policy-rate normalization",
+      "returns_pct": {
+        "realty_income_price": 26.1,
+        "realty_income_total_return": 43.8,
+        "nasdaq_price": 30.9,
+        "reit_sector_total_return": 15.1
+      },
+      "macro_change_bp": {
+        "dgs10": 47.0,
+        "hy_oas": -214.0
+      },
+      "observations": {
+        "realty_income": 758,
+        "nasdaq": 758,
+        "sector": 758,
+        "dgs10": 753,
+        "hy_oas": 787
+      },
+      "hy_status": "available_full_history"
+    },
+    {
+      "event_id": "acute_crisis_2020",
+      "type": "acute_crisis",
+      "start": "2020-02-19",
+      "end": "2020-03-23",
+      "description": "COVID liquidity shock from equity peak to emergency trough",
+      "returns_pct": {
+        "realty_income_price": -45.6,
+        "realty_income_total_return": -45.4,
+        "nasdaq_price": -30.1,
+        "reit_sector_total_return": -41.5
+      },
+      "macro_change_bp": {
+        "dgs10": -80.0,
+        "hy_oas": 730.0
+      },
+      "observations": {
+        "realty_income": 24,
+        "nasdaq": 24,
+        "sector": 24,
+        "dgs10": 24,
+        "hy_oas": 25
+      },
+      "hy_status": "available_full_history"
+    },
+    {
+      "event_id": "hikes_2022_2023",
+      "type": "tightening",
+      "start": "2022-03-16",
+      "end": "2023-07-26",
+      "description": "Rapid inflation-response hiking cycle",
+      "returns_pct": {
+        "realty_income_price": -2.8,
+        "realty_income_total_return": 3.4,
+        "nasdaq_price": 5.1,
+        "reit_sector_total_return": -10.6
+      },
+      "macro_change_bp": {
+        "dgs10": 167.0,
+        "hy_oas": -5.0
+      },
+      "observations": {
+        "realty_income": 342,
+        "nasdaq": 342,
+        "sector": 342,
+        "dgs10": 341,
+        "hy_oas": 356
+      },
+      "hy_status": "available_full_history"
+    }
+  ],
+  "hy_history_receipt": {
+    "source": "fred_historical_event_study",
+    "series_id": "BAMLH0A0HYM2",
+    "fetched_at": "2026-09-03T05:59:29+00:00",
+    "revision_vintage": "captured_current",
+    "primary_request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=1996-01-01",
+    "primary_response_sha256": "3a81f4e11c5c3dd2914b7caa4244d124c58ee9333897e951d533c22eb688ae6a",
+    "primary_coverage_start": "2023-09-04",
+    "redistribution_policy": "derived_event_diagnostics_only",
+    "history_status": "legacy_public_fred_capture_plus_current",
+    "fallback_request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+    "fallback_response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+    "fallback_coverage_start": "1996-12-31",
+    "request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+    "response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+    "limitation": "The current official FRED graph feed exposes only three years; older observations come from a commit-pinned public capture of the FRED series."
+  },
+  "sector_comparison": {
+    "source": "IYR",
+    "status": "available",
+    "primary_willreitind": "unavailable_http_404"
+  },
+  "warning": "사전 등록 사건의 구간 진단이며 인과 추정이나 미래 확률이 아닙니다."
+}

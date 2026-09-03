@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-09-01",
-  "generated_at": "2026-09-02T04:55:13+00:00",
+  "asof": "2026-09-02",
+  "generated_at": "2026-09-03T05:59:29+00:00",
   "probability_space": "reference_only",
   "status": "ok",
   "beta_rate": {
@@ -26,12 +26,12 @@
     "market_control": "NASDAQ weekly log return"
   },
   "beta_credit": {
-    "measured_effect_per_100bp_pct": -6.222,
+    "measured_effect_per_100bp_pct": -6.233,
     "bootstrap_10_90_pct": [
       -8.091,
       -4.512
     ],
-    "used_effect_per_100bp_pct": -6.222,
+    "used_effect_per_100bp_pct": -6.233,
     "status": "eligible",
     "observations": 156,
     "minimum_observations": 156,
@@ -46,9 +46,9 @@
     "block_weeks": 4,
     "market_control": "NASDAQ weekly log return"
   },
-  "dividend_yield_ttm_pct": 5.73,
-  "spread_vs_10y_pp": 0.98,
-  "spread_percentile_since_2000": 11.6,
+  "dividend_yield_ttm_pct": 5.28,
+  "spread_vs_10y_pp": 0.49,
+  "spread_percentile_since_2000": 0.9,
   "spread_percentile_observations": 319,
   "dividend_monitor": {
     "status": "maintained_or_increased",
@@ -104,42 +104,42 @@
     ],
     "warning": "The official table is dividends paid during the calendar year; Yahoo events are grouped by ex-date. Exact annual totals are therefore not asserted equal. The cross-check validates the continuous-increase direction and discloses the basis mismatch."
   },
-  "observation_period": "2026-09-01",
-  "available_at": "2026-09-02T04:55:12+00:00",
+  "observation_period": "2026-09-02",
+  "available_at": "2026-09-03T05:59:28+00:00",
   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
-  "source_fingerprint": "8727856079f77618a73415878b8b4d9621d7d642b0dd4e4c442ccdd10536b4ec",
+  "source_fingerprint": "76bb66e085b5b7ebb9a7e62b062598a54d075b4ff550a717374774ad766a4085",
   "revision_vintage": "captured_current",
   "receipts": [
     {
       "source": "fred_market_signals",
       "series_id": "DGS10",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01",
-      "response_sha256": "0e3a109f61fdea2a3aaa5153a4c08c25eed5e77ac680820e62270e3effcd807e",
-      "fetched_at": "2026-09-02T04:55:10+00:00",
+      "response_sha256": "a8f678373fa8c76b000203a93442785bf4f245ad7e95fd1bdc1124e919805805",
+      "fetched_at": "2026-09-03T05:59:27+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "DFII10",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01",
-      "response_sha256": "96b3926240f0dd3f66e45f8698e0112e3b9cd3c5724072b43e72043e715d269e",
-      "fetched_at": "2026-09-02T04:55:11+00:00",
+      "response_sha256": "6b4cd11c48cf120ee576f7a94e5567e9498d2ecdc1e7d90a9d20085ed5d3da63",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "BAMLH0A0HYM2",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01",
-      "response_sha256": "b79760d8f1e54680292fc3be3a406b6e2a0a688f8fc55805c45a7fdb9b64f8fe",
-      "fetched_at": "2026-09-02T04:55:11+00:00",
+      "response_sha256": "3a81f4e11c5c3dd2914b7caa4244d124c58ee9333897e951d533c22eb688ae6a",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "BAMLC0A0CM",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01",
-      "response_sha256": "9d65c998c4e6904461c3c09ce550e258981e20a9fe15494db717c0419a231f76",
-      "fetched_at": "2026-09-02T04:55:11+00:00",
+      "response_sha256": "8e40ccf71770b9002bfcf7440436d6bc842a046c33890af641212243b699046f",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
       "revision_vintage": "captured_current"
     },
     {
@@ -147,7 +147,7 @@
       "series_id": "FEDFUNDS",
       "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
       "response_sha256": "b57dc507b83fe7fe4e9ff20981eb937d9c8e2849b9e7ac401863327b069cf051",
-      "fetched_at": "2026-09-02T04:55:12+00:00",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
       "revision_vintage": "captured_current"
     }
   ],
