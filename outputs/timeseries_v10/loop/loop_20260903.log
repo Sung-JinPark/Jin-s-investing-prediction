@@ -15,3 +15,8 @@
 2026-09-03 09:56:21 EXPLORE run V10_W4b_two_layer budget=10/24
 2026-09-03 10:25:42 champion exists — continuing singles per user decision V10-D5(b)
 2026-09-03 10:26:17 EXPLORE run V10_W5_h5 budget=11/24
+2026-09-03 10:54:06 champion exists — continuing singles per user decision V10-D5(b)
+2026-09-03 10:54:40 STOP-LOSS: best dual improvement 0.0064 < 0.01 after 12 singles
+2026-09-03 10:55:11 SHADOW monitor
+2026-09-03 11:55:49 SHADOW monitor
+2026-09-03 12:56:15 SHADOW monitor
