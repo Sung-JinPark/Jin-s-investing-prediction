@@ -122,3 +122,63 @@ process.stdout.write(JSON.stringify(out));
     assert abs(out["log_r10"] - (-0.0952)) < 0.001, "log_return 있으면 expm1"
     assert out["sealed"] == ["21"], "CRPS 개선율이 숫자인 기간만"
     assert out["footnote_once"] == 1 and out["footnote_added"] is True
+
+
+def test_phase2_separates_sealed_window_from_development_inclusive_backtest() -> None:
+    """R8-D4 — 봉인창(2019+)과 개발기간 포함 전체창을 절대 섞지 않는다."""
+    html = _html()
+    assert "sealed_window" in html and "full_backtest" in html
+    assert "2019년 이후 검증 원점" in html and "전체 기간 원점" in html
+    assert "개발기간" in html, "전체창은 개발기간 포함 사실과 함께만"
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "봉인 원점 ${Number(sealed.origin_count" not in v8, "1,011원점을 '봉인 원점'이라 부르지 않는다"
+    assert "2019년 이후 봉인 구간" in v8
+    # 봉인창 자체 판정(보류)과 사유를 화면에 인쇄한다
+    verdict = html[html.index("function timeseriesSealedVerdict"):html.index("function bindTimeseriesV8Interactions")]
+    assert "win.reasons" in verdict and "금융위기급 급락에서 검증된 적이 없습니다" in verdict
+
+
+def test_phase2_charts_are_wired_with_hover_and_honest_labels() -> None:
+    html = _html()
+    for key in ("skill", "coverage", "rank", "regime", "sealedtable", "forward"):
+        assert f'data-ts-chart="{key}"' in html, key
+    binder = html[html.index("function bindTimeseriesV8Interactions"):html.index("function tsBandModel")]
+    for key in ("rank", "regime", "sealedtable", "forward"):
+        assert f'[data-ts-chart="{key}"]' in binder, f"{key} 바인딩 누락"
+    # 유의하지 않은 기간을 숨기지 않는다
+    assert "유의하지 않음" in html and "ts-bar-weak" in html
+    # 봉인창에 원점이 없는 국면은 0%가 아니라 '자료 없음'
+    assert "자료 없음 · 봉인창에 원점 0개" in html
+    # 게이트 밴드는 계약 값 그대로
+    assert "TS_GATE_BANDS={p1090:[0.76,0.84],p2575:[0.45,0.55],gfc_min:0.72}" in html
+    # 공개하지 않기로 한 지표는 시계열 구역에 없다
+    region = html[html.index("const tsLevel="):html.index("const GC_API=")]
+    for banned in ("방향 적중률", "directional_accuracy", "first_touch", "mase", "distribution_selection"):
+        assert banned not in region, banned
+
+
+def test_phase2_projection_shape_and_honesty(tmp_path) -> None:
+    """빌더가 원장의 두 블록을 분리해 싣고, 순위 칸 합이 공표 적중률과 일치한다."""
+    from pathlib import Path
+
+    from ai_fc import config
+    from ai_fc.timeseries_v8_display import load_projection
+
+    projection = load_projection(Path(config.ROOT))
+    if projection is None:
+        pytest.skip("V8 surface is on HOLD")
+    sealed = projection["sealed_metrics"]
+    window, full = sealed["sealed_window"], sealed["full_backtest"]
+    assert window["origin_count"] < full["origin_count"], "봉인창은 전체창의 부분집합"
+    assert full["includes_development_window"] is True
+    assert window["gate_pass"] is False and window["reasons"], "봉인창 자체 판정과 사유 보존"
+    for key in ("1", "5", "21", "63"):
+        row = window["horizons"][key]
+        bins = sealed["rank_bins"][key]
+        # 가운데 네 칸의 합 = 공표된 p10–p90 적중률 (새 확률이 아니라 재계수임의 증명)
+        inner = sum(bins["counts"][1:5]) / bins["n"]
+        assert abs(inner - row["coverage_p10_p90"]) < 1e-6, key
+        assert sum(bins["counts"]) == bins["n"]
+    gfc = [r for r in sealed["regimes"] if r["key"] == "great_financial_crisis_2008"][0]
+    assert gfc["origins"] == 0 and gfc["coverage_p10_p90"] is None, "원점 0개는 0%가 아니라 None"
+    assert sealed["forward"]["matured_origins"] == 0
