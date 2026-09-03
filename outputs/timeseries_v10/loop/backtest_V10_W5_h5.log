@@ -1,0 +1,72 @@
+{
+  "experiment_id": "tsv10-exp-b7948da06476b21fa161",
+  "experiment_label": "V10_W5_h5",
+  "degenerate": true,
+  "horizons": {
+    "1": {
+      "origins": 417,
+      "crps": 0.007421269424248898,
+      "best_baseline": "block_bootstrap",
+      "best_baseline_crps": 0.007799081908543968,
+      "crps_improvement_vs_best": 0.04844319994654409,
+      "coverage_p10_p90": 0.7985611510791367,
+      "coverage_p25_p75": 0.5371702637889688
+    },
+    "5": {
+      "origins": 417,
+      "crps": 0.015078687434155484,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.01576318343922592,
+      "crps_improvement_vs_best": 0.0434237162632454,
+      "coverage_p10_p90": 0.8081534772182254,
+      "coverage_p25_p75": 0.5227817745803357
+    },
+    "21": {
+      "origins": 417,
+      "crps": 0.030995676361279728,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.03206233695952998,
+      "crps_improvement_vs_best": 0.03326833597927132,
+      "coverage_p10_p90": 0.829736211031175,
+      "coverage_p25_p75": 0.5227817745803357
+    },
+    "63": {
+      "origins": 417,
+      "crps": 0.05621963878087113,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.05775618491309095,
+      "crps_improvement_vs_best": 0.026604010194439857,
+      "coverage_p10_p90": 0.8393285371702638,
+      "coverage_p25_p75": 0.5275779376498801
+    }
+  },
+  "paired_long_horizon": {
+    "origin_count": 417,
+    "mean": -0.0013016033652350342,
+    "ci90": {
+      "lower": -0.0026056091549025396,
+      "upper": 6.156382171104573e-05
+    },
+    "best_baselines": {
+      "21": "historical_simulation",
+      "63": "historical_simulation"
+    }
+  },
+  "proxy_pass": true,
+  "gate_margin": {
+    "h63_p10_p90_upper": 0.0006714628297361802,
+    "projected_ci90_upper": 4.513044453903118e-05,
+    "p25_p75_lower": 0.07278177458033569,
+    "gfc_regime_minimum": 0.0492307692307693
+  },
+  "dual_vs_e0": {
+    "origin_count": 417,
+    "mean": 0.0,
+    "ci90": [
+      0.0,
+      0.0
+    ],
+    "bootstrap_se": 0.0,
+    "mde50": 0.0
+  }
+}
