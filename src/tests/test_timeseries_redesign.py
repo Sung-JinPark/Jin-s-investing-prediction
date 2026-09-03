@@ -19,13 +19,17 @@ def test_method_box_is_last_child_of_summary_panel_only() -> None:
     assert "timeseriesSpecCard()" not in html, "패널 밖 구 호출이 남아 있다"
     assert len(re.findall(r"\$\{timeseriesSpecCard\(ts\)\}", html)) == 3, "V8·HOLD·레거시 세 경로에 각 1회"
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
-    assert "${timeseriesSpecCard(ts)}</div>`;" in v8
-    assert v8.index("${timeseriesSpecCard(ts)}") < v8.index("const pathPanel"), "summary 문자열 안에서만"
-    assert "${panel('summary',summaryPanel)}" in v8
-    legacy = html[html.index("function renderTimeseries("):html.index("/* ── 관리자 전용")]
-    hold, visible = legacy.split("if(!visible){", 1)[1].split("const one=ts.horizons", 1)
-    assert "${timeseriesSpecCard(ts)}`)}" in hold and "${timeseriesSpecCard(ts)}${footnote}" not in hold
-    assert "${timeseriesSpecCard(ts)}`)}" in visible
+    summary_literal = v8[v8.index("const summaryPanel"):v8.index("const pathPanel")]
+    assert "${timeseriesSpecCard(ts)}</div>`;" in summary_literal, "summary 패널 문자열의 마지막 자식"
+    assert "timeseriesSpecCard" not in v8[v8.index("const pathPanel"):v8.index("const root=el(")], "path/drivers/backtest 문자열에 없음"
+    assert "${panel('summary',summaryPanel)}" in v8 and "timeseriesSpecCard" not in v8[v8.index("const root=el("):], "패널 밖(root 템플릿)에 없음"
+    legacy = html[html.index("function renderTimeseries("):html.index("const GC_API=")]
+    hold_start = legacy.index("if(!visible){")
+    hold = legacy[hold_start:legacy.index("mount(root);", hold_start)]
+    visible = legacy[legacy.index("mount(root);", hold_start) + 12:]
+    assert hold.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in hold, "HOLD: summary 패널 마지막 자식"
+    assert visible.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in visible, "레거시: summary 패널 마지막 자식"
+    assert "${timeseriesSpecCard(ts)}${footnote}" not in legacy
     assert visible.index("${timeseriesSpecCard(ts)}") < visible.index("${panel('path'")
 
 
@@ -59,7 +63,11 @@ def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
     assert "매매 신호가 아닙니다" in foot, "방법 박스가 첫 탭으로 들어가도 4탭 공통 공시 유지"
     assert "기여도(가중치×변화)가 아닙니다" in v8, "기여 요인 탭 정직성 리드"
     assert "선형 보간(참고용)" in html, "보간 정직성 캡션 유지"
-    assert "아래에 있을 가능성" not in html, "가격 레벨+확률 결합 문장 금지"
+    # 가격 레벨+확률 결합 문장·새 확률 파생 금지 — 시계열 구역 전체를 패턴으로 검사
+    ts_region = html[html.index("const tsLevel="):html.index("const GC_API=")]
+    assert re.search(r"(아래|밑|이하|미만|초과)[^<`'\"]{0,8}(가능성|확률)", ts_region) is None, "임계 확률 문장 금지"
+    assert re.search(r"1\s*-\s*(row\.up|[A-Za-z_.]*probability_up)|erf\(|normalCdf|cdf\(", ts_region) is None, "확률 파생 금지"
+    assert ts_region.count("probability_up") >= 1, "표시되는 확률은 read model의 probability_up뿐"
 
 
 def test_compacted_bundle_parses_with_node() -> None:
