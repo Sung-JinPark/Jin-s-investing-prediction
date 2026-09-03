@@ -1,0 +1,222 @@
+{
+  "summary": "V11 진단 통과 4후보(P1 모멘텀·P7 growth)를 포크 이전에 6렌즈로 적대 검증",
+  "agentCount": 7,
+  "logs": [
+    "검증 6/6 반환"
+  ],
+  "result": {
+    "verdicts": [
+      {
+        "lens": "렌즈1 — 검정 A (P1_ret_mom_21 | pit_location u−0.5 | h21) 집중도·leave-out. calm n=356, tertile b=118, 기준선 Δ=−0.1200 재현(사전등록치와 일치), 블록부트(L=13,B=2000,SEED=20260901) CI90=[−0.192,−0.031]로 사전등록 [−0.192,−0.035] 재현.",
+        "verdict": "real_signal",
+        "key_metrics": "(a) 영향도: 단일 origin leave-one-out 최대 |ΔΔ|=0.0053(=Δ의 4.4%), 상위5개 합 0.026 — 스파이크 없음, 분산된 효과. (b) tertile 분해: TOP(고모멘텀) mean(u−.5)=−0.0005(사실상 0), median=+0.036(양수!), pos66/neg52 ; BOT(저모멘텀) mean=+0.119, median=+0.163, pos77/neg41. Δ 전량이 BOT tertile의 양(+)편의에서 나옴, TOP은 무신호. (c) 방향일관성: TOP tertile에서 u−.5<0 비율 0.441 (과반 미달) ; BOT에서 u−.5>0 비율 0.653. → 한쪽(저모멘텀)만 신호. (d) V10식 극단제거: HIGH mom top5%↓ Δ=−0.135, top10%↓ Δ=−0.131(오히려 강화) ; LOW mom bot5%↓ Δ=−0.116, bot10%↓ Δ=−0.091(약화) ; 양끝 5%+5% Δ=−0.134, 10%+10% Δ=−0.138 ; |mom−med|top10%↓ Δ=−0.084. 전 변형에서 부호유지 & CI90 0배제(최약 [−0.172,−0.011]). 부호반전 0건. (GFC검정) 2008+09 제거 Δ=−0.125, 2008-10 제거 Δ=−0.158, post-GFC 2011-14 ONLY Δ=−0.166 CI90[−0.277,−0.043], 2010-14 Δ=−0.150 — 위기창 밖에서 오히려 강화. 연단위 LOO: 2014 제거만 유의성 상실(CI90[−0.165,+0.011]), 나머지 전부 0배제·무반전.",
+        "attack": "V10 킬러(극단꼬리 제거→부호반전)와 GFC-인공물 두 축으로 공격. (1) 모멘텀 상/하/양끝 5~10% 및 |편차|10% 제거 — 어느 변형도 부호반전·유의성상실 없음(V10은 상위5%로 반전했으나 A는 불변, HIGH꼬리 제거는 오히려 강화). (2) 2008-09 회복장 제거 및 post-GFC 전용 표본 — 신호가 사라지기는커녕 clean 2011-14에서 Δ=−0.166로 최강. 즉 V10을 무효화한 두 취약성 모두 A에는 부재. 유일하게 깬 지점: 저모멘텀(BOT) 끝단 제거 시 약화, 단년 2014 제거 시 유의성 marginal 상실(단 무반전). 구조적 약점은 fragility가 아니라 '편측성' — 효과가 BOT tertile 단독이고 TOP은 median 양수·44% 일관성으로 무신호, 따라서 '고모멘텀→낮은 PIT'라는 대칭 서사는 거짓이고 실제는 '저/음 모멘텀→모델 과소예측(PIT 상향)'의 조건부 재중심 편의.",
+        "conclusion": "leave-out·집중도 축에서 검정 A는 V10과 근본적으로 다르게 견고 — V10을 죽인 극단꼬리 제거로 부호반전 0건, GFC 인공물 검정에서 위기 제거 후 오히려 강화(post-GFC Δ=−0.166 유의). 단일점 스파이크 아님. 따라서 이 렌즈 판정은 real_signal. 다만 두 개의 실질 caveat를 포크 설계에 반드시 반영: ① 편측 신호 — Δ 전량이 저모멘텀 tertile의 과소예측 편의에서 나오고 고모멘텀 절반은 사실상 캘리브레이션됨(대칭 모멘텀 피처가 아니라 '저모멘텀 조건부 PIT 재중심'으로 모델링해야 함), ② 규모의 2014 의존(단년 제거 시 유의성 경계로 하락, 무반전). 효과크기 ~0.12 PIT단위의 방향(위치)성 편의로 exploitable하나 modest — 비싼 격자 이전에 이 편측·directional 성격을 전제한 저비용 조건부 보정으로 먼저 검증할 가치."
+      },
+      {
+        "lens": "렌즈2 — 검정A(P1_ret_mom_21 | pit_location | h21) 하위기간 강도 + 더 엄격한 calm (잔여-vol 교란 판별)",
+        "verdict": "real_signal",
+        "key_metrics": "기준선 재현 OK: bottom80% 전구간 Δ=−0.1200, CI90=[−0.192,−0.031], P(Δ<0)=0.987 (SEED=20260901, L=13, B=2000 — 사전등록 −0.120과 일치).\n\n(a) 하위기간(전역 calm80 마스크를 날짜로 분할):\n· 2007-2010(GFC기) n=170 Δ=−0.0568 CI90=[−0.174,+0.051] P(Δ<0)=0.82 → 부호는 음(−)이나 CI가 0을 넘고 유의 아님, 약함.\n· 2011-2014(위기後 평시) n=186 Δ=−0.1655 CI90=[−0.277,−0.043] P(Δ<0)=0.98 → 유의 + 기준선보다 큼.\n· 하위기간별로 calm 임계 재산출해도 동일 방향(2011-2014 Δ=−0.201, 2007-2010 Δ=−0.057). 두 반기 부호는 일치(둘 다 −), 크기만 후반에 집중.\n핵심 함의: V10 챔피언식 'GFC 인공물' 패턴과 반대. 신호는 위기기가 아니라 평온한 위기後 국면에 살아있다.\n\n(b) calm을 조일수록(vol 더 제거):\n· bottom80% Δ=−0.1200 (n=356)\n· bottom60%(top40 제외) Δ=−0.1437 (n=250)\n· bottom50% Δ=−0.1463 (n=209)\n단조 강화. P(Δ<0)이 0.986~0.987로 유지. → 잔여-vol 교란(ρ=−0.19)이 원인이라는 가설이면 vol 걷어낼수록 사라져야 하나 정반대로 강해짐 → artifact 가설 기각, real 쪽.\n· 교차(2011-2014에 엄격 calm): −0.166→−0.207→−0.192, 조여도 유지.",
+        "attack": "깨보려 한 것: (1) 잔여-vol 교란 — calm을 bottom60/50으로 조여도 소멸은커녕 Δ가 −0.120→−0.144→−0.146로 단조 강화, 사인-일관성 0.986 유지. 교란 가설 깨짐(신호가 안 깨짐). (2) 단일 에피소드/연도 구동 — leave-one-year-out(전구간): 어느 해를 빼도 Δ∈[−0.083,−0.147], 전부 명확히 음(−). 2011-2014 내부 LOYO도 Δ∈[−0.107,−0.260] 전부 음. 특정 연도(2011 유로위기·2013 테이퍼)가 끌고 가지 않음 → 블록부트 L=13이 못 잡는 클러스터 인공물 아님. 깨진 지점: 하위기간 대칭성만 깨짐 — 2007-2010은 약하고(P=0.82, CI가 0 포함) 신호가 2011-2014에 편중. 즉 시간-집중(레짐 의존)은 남는 취약점이나, 두 반기 부호는 일치.",
+        "conclusion": "렌즈2가 겨냥한 핵심 가설(ρ=−0.19 잔여-vol 교란)은 명확히 기각된다: vol을 더 걷어낼수록 Δ가 사라지지 않고 단조 강화되며, LOYO로도 단일-연도 인공물이 아님이 확인됐다 — 프롬프트 판정기준상 real 쪽. 이는 V10 챔피언의 GFC-인공물 실패모드와 반대 방향(신호가 위기기가 아니라 평온기에 거주)이라는 점에서 오히려 안심 재료다. 남는 단 하나의 취약점: 강도가 2011-2014에 편중되고 2007-2010에는 약하다(시간-집중/레짐 의존). 두 반기 부호는 일치하므로 방향은 견고하나, 순방향 배치는 '2011-2014류 평시 레짐 지속'에 베팅하는 셈이다. 종합: 잔여-vol 축에서는 real, 시간 안정성 축에서는 절반만 확인 — 비싼 포크를 지을 근거로는 검정A가 렌즈2 스트레스를 통과했으나, 하위기간 편중을 다른 렌즈(레짐 전이·표본외)에서 반드시 교차검증할 것."
+      },
+      {
+        "lens": "렌즈3 — P1(검정 A) exploitability 반사실: 모멘텀 조건부 median 이동을 design 내부 표본외(2007-2010 적합 → 2011-2014 적용)에서 CRPS/pinball 이득으로 전환할 수 있는가.",
+        "verdict": "artifact",
+        "key_metrics": "데이터 재구성: resid_iqr=(actual−median)/IQR(부호가 u−0.5와 일치, 1.349·resid_iqr≈Φ⁻¹(u), corr=0.93). z=Φ⁻¹(u), 원장 crps로 스케일 역산 σ=crps/cs(z) → CRPS_old가 주어진 crps와 항등, 차이는 median 이동만 반영.\n\n사전등록 신호 재현: calm(primary≤p80, n=356) tertile Δ pit_location(P1,h21)=−0.1200 (prereg −0.120 정확 일치) → in-sample 신호는 실재.\n\nFORWARD(렌즈 명세 그대로: raw_err~P1 적합, train 2007-10 n=170 → test 2011-14 n=186):\n- 적합 계수 b=+0.0124, corr(P1,raw_err)=+0.011 (≈0) — 전반부엔 모멘텀→편의 관계 자체가 없음.\n- mean CRPS base 0.022228 → 상수 recenter 0.022385(+0.71%) → P1조건부 0.022444(+0.97% 악화). P1조건부−recenter = +0.27% (recenter보다도 나쁨).\n- mean MAE +0.000295 악화. CRPS 개선 origin 비율 44.6% (동전던지기 이하).\n- 정상블록 부트스트랩(L=13,B=2000,seed=12345) dCRPS(Pcond−base)=+0.000216, CI90=[+0.000021,+0.000406] 전 구간 양수(=악화), P(개선<0)=3.9%.\n\nREVERSE(train 2011-14 b=−0.2507 → test 2007-10): +1.49% CRPS 악화, MAE +0.00206. 양방향 모두 전이 실패.\n\nIn-sample 상한: test 절반 자기계수 −2.94%지만 full-design 자기적합은 −0.20%뿐(게다가 MAE +1.1% 악화) — in-sample 상한에서도 sharpness 전환이 거의 0.\n\n계수 안정성(smoking gun): corr(P1,raw_err) 2007-10 +0.011 / 2009-10 −0.059 / 2011-12 −0.166 / 2013-14 −0.455. 관계가 2013-2014 저변동 구간에 전량 집중, 전반부엔 부재(이번엔 GFC가 원인도 아님).\n\nP7 동반후보(C,D) 동일 진단: FORWARD dCRPS h21 +0.29%, h63 +0.10% (둘 다 악화); train(2007-10) corr +0.014/+0.124 vs 2nd-half +0.213/+0.422 — P1과 똑같은 후반부 집중·전이 실패.",
+        "attack": "(1) 렌즈 명세 순방향 OOS 전이 — 실패(+0.97% 악화, 부트스트랩 CI 전부 악화쪽, P(개선)=3.9%). (2) 역방향 split — 실패(+1.49%). (3) in-sample 상한(자기계수) — full design에서 −0.20%에 불과, MAE는 오히려 악화. (4) 하위기간별 계수 안정성 — 신호가 2013-14에 전량 집중, 전반부 corr≈0. (5) 상수 recenter 플라시보 — recenter 자체가 CRPS를 +0.7% 악화(=이용할 미보정 편의 없음)이고 P1조건부는 recenter를 넘는 증분 이득 0/음수. (6) 표준화 적합 변형 — −0.68%로 부호는 뒤집히나 b=−2.42 과적합에 의존하는 <1% 소음(명세 방식과 부호 불일치 자체가 fragile 증거). (7) P7 h21/h63 교차확인 — 동일한 후반부 집중·전이 실패. 어느 각도로도 표본외 CRPS 이득으로 깨지지 않고, 오히려 악화로 무너짐.",
+        "conclusion": "ARTIFACT — 정확히 V10식 'coverage만' 함정. PIT location은 모멘텀에 따라 in-sample으로 움직이지만(tertile Δ −0.12 재현), 그 이동은 design 내부 표본외에서 CRPS/pinball 오차를 줄이지 못하고 부호까지 악화시킨다(순방향 +0.97%, 부트스트랩 96% 신뢰로 악화쪽). 신호의 실체는 exploitable·직교 edge가 아니라 2013-2014 저변동 tail에 국한된 기간 종속 잔차 구조이며, 전반부(2007-2010)엔 관계가 존재하지 않아 전이가 원천 불가하다. 상수 recenter조차 손해라 이용할 미보정도 없다. 동반 P7(C,D)도 동일 패턴. 결론: 이 4후보를 위해 값비싼 포크·격자를 지을 근거 없음 — fragile 판정. 필요조건 스크린(PIT tertile)은 통과했으나 exploitability 필요조건에서 탈락."
+      },
+      {
+        "lens": "렌즈4 — P7 growth_factor CRPS(검정 C h21·D h63)의 실현 변동성 교란 여부. calm origin(primary≤80pct, n=356)에서 (a) 상관, (b) 변동성 층화, (c) growth를 primary·|resid_iqr|에 회귀한 잔차로 tertile Δ 재계산 + 부분상관·이중잔차화. SEED=0, L=13, B=2000로 파이프라인 재현.",
+        "verdict": "mixed",
+        "key_metrics": "파이프라인 재현 OK: baseline Δ(growth|crps) C=−0.0166 CI90[−0.027,−0.008], D=−0.0563 CI90[−0.107,−0.018] — 사전등록치와 일치.\n(a) corr(P7,crps)=−0.31(h21)/−0.40(h63)이나 corr(P7,|resid_iqr|)=−0.11/−0.27, corr(P7,primary)=−0.12/−0.19. corr(|resid_iqr|,crps)=+0.90/+0.93 → |resid_iqr|은 사실상 crps의 대리(순수 실현vol 컬럼은 프레임에 없음).\n(b) |resid_iqr| 3분위 층화 시 효과가 최상위 vol층에 집중: h21 lo/mid/hi=−0.006/−0.010/−0.029, h63=−0.010/−0.016/−0.125. 헤드라인 Δ은 대부분 hi-vol 3분위 희석분.\n(c) growth 잔차화 후 raw crps Δ(요청한 정확한 검정): primary+|riqr| 통제 시 h21=−0.0078 CI[−0.018,+0.004](0교차), h63=−0.0263 CI[−0.067,+0.004](0교차). |riqr|만 통제 시 h21=−0.0082 CI[−0.020,+0.002](0접촉), h63=−0.0381 CI[−0.076,−0.001](간신히 배제).\n(c') 이중잔차화(growth·crps 모두 |riqr|에 회귀) Δ: h21=−0.0139 CI[−0.018,−0.008], h63=−0.0300 CI[−0.041,−0.018] — 명확히 생존. 부분상관 pcorr(growth,crps||riqr|)=−0.49/−0.40 (raw보다 강함).",
+        "attack": "4각도로 깨봄. (1) 부분상관·이중잔차화(c')로 vol 대리를 선형 제거 → 살아남고 h21에선 오히려 강해짐(−0.31→−0.49) → 순수 artifact 아님. (2) hi-vol 3분위의 연도 분포가 GFC 집중이 아니라 2007–2014 전역 분산(2008:14, 2010:25, 2014:23) → V10식 GFC-달력 인공물 가설 반박. (3) hi-vol 3분위 제거(lo+mid만)해도 Δ 생존(h21 −0.0086 CI[−0.010,−0.007], h63 −0.0127 CI[−0.016,−0.010], 좁고 0배제). (4) calm 스크린 강화(pct 80→60) 안정, pct=50에서만 h21 CI 0접촉·절반 감쇠.\n그러나 정확히 요청된 검정 — growth 잔차화 후 raw crps tertile Δ — 은 양 horizon 모두 CI가 0을 접촉/교차하며 ~절반 감쇠. |resid_iqr|이 실현vol이 아닌 예보폭 대리라 '순수 실현변동성' 통제는 프레임 내 불가(crps_self 통제 시 Δ→−0.0005/−0.0076로 자명 소멸). 남은 기작 가설: growth가 primary·예보폭이 못 잡은 미래 실현vol을 예측하는 채널 — 이는 방향/직교 신호가 아니라 고차 vol-타이밍 교란.",
+        "conclusion": "완전 소멸(→artifact 확정)도 완전 생존(→real 확정)도 아님 → mixed. growth↔CRPS 연관은 이용 가능한 vol 대리(|resid_iqr|·primary)의 순수 인공물이 아니다: 부분상관·이중잔차화·hi-vol 제거·스크린 강화를 모두 통과한다. 그러나 (i) 헤드라인 Δ의 대부분이 elevated-but-sub-crisis vol 3분위 집중분이고, (ii) 정확히 사전 지정된 잔차화 검정에서 CI가 0을 접촉하며, (iii) 프레임에 순수 실현변동성 컬럼이 없어 남은 신호가 'growth→미래 실현vol' 교란(예보폭 미반영분)일 개연성이 높다 → 깨끗한 직교·상시 방향 edge 아님. 판정: growth CRPS는 vol-레짐 조건부 sharpness 오버레이이지 단독으로 값비싼 포크·격자를 정당화할 exploitable 직교 신호는 아니다. 진행 시 반드시 프레임 밖 순수 실현vol(예: 미래 21/63일 realized RV) 통제로 재검증 필요. 불확실 시 fragile 원칙에 따라 저확신 mixed로 표기."
+      },
+      {
+        "lens": "렌즈5 — 다중검정 위양성 (순열 귀무 200회 + L·calm_pct 설정 강건성). 4중 기준(bootstrap CI90 유의 + 효과크기 + 직교 |ρ_primary|<0.25 + 하위기간 부호일치)을 그대로 역설계해 재현했고, calm origin의 metric을 무작위 순열(proxy 고정)해 '통과 개수' 귀무분포를 구성. 유의성은 순열에서도 실제 스크린과 동일한 정상블록 부트스트랩 CI90 게이트를 벡터화(테스트별 TOP/BOT 인덱스 사전계산)로 유지 — |z|>1.645 근사보다 충실.",
+        "verdict": "artifact",
+        "key_metrics": "재현: A P1|pit_loc|h21 Δ=−0.1200 CI90≈[−0.194,−0.027] ρ_S=−0.192; B P1|pit_tail Δ=−0.0542; C P7|crps|h21 Δ=−0.0166; D P7|crps|h63 Δ=−0.0563 — 4개 전부 정확 재현. ρ_primary는 Spearman(−0.185~−0.192)와 일치. 4중 기준 {CI90유의 ∧ |ρ|<0.25 ∧ 2분할 부호일치}이 실제 데이터에서 정확히 A,B,C,D 4개만 통과(효과크기 게이트는 비구속). 가용 격자=48셀(P4 전량 None으로 소거; P2·P3는 직교 고정 위반 |ρ|=0.38·0.48 → 영구탈락), 직교통과=36셀. ■ 순열 귀무(200회): 관측 4통과는 상위꼬리 아님 — 독립 순열 mean=2.57 sd=1.60, 관측 4는 75퍼센타일, P(≥4)=0.250; 상관보존 결합 순열 mean=2.66 sd=1.72, 68퍼센타일, P(≥4)=0.317. 관측치는 귀무평균 대비 +0.9σ에 불과. 4중 기준의 테스트당 위양성률≈2.6/36≈7.5%(CI90 양측≈10% × 부호일치 통과율). 개별로도 '대표' A는 순열에서 순수 우연으로 19/200=9.5% 통과, B 8%, C 5%, D 4.5% — A,B는 P1의 동일 u에서, C,D는 P7의 동일 crps에서 파생돼 결합 순열이 이런 4개 상관 클러스터를 오히려 더 자주 생성. ■ 유의게이트·부호일치 변형 4종 전부 P(≥4)=0.175~0.36으로 절대 <0.05 미달. ■ 설정 강건성: L∈{8,13,21}×calm_pct∈{75,80,85} 9개 조합 전부에서 총통과=4 불변, A·B·C·D 전원 생존(A 소멸 없음).",
+        "attack": "(1) 순열 귀무 200회로 '4개 통과'가 우연 대비 초과인지 직접 검정. (2) 상관보존 결합순열을 추가 — A·B가 동일 PIT, C·D가 동일 crps 파생이라 상관 무시(독립순열)는 클러스터 위양성을 과소평가하기 때문. (3) 유의게이트를 실제 스크린과 동일한 블록부트스트랩 CI90로 유지(lens 허용 |z|>1.645 근사는 h63 중첩구간 자기상관을 무시해 위양성 폭증 — 관측·귀무 모두 팽창시키므로 회피). (4) 유의(ci/z)×부호일치(2분할/3분할) 4변형 교차검정. (5) L·calm_pct 9격자 재실행으로 knob-picking 여부 확인.",
+        "conclusion": "다중검정 위양성 lens 기준으로 명백한 artifact. lens 판정규칙(\"귀무에서 4통과가 흔하거나 설정 바꿔 A가 사라지면 artifact\")의 첫 조건이 결정적으로 충족: 관측 4통과는 귀무분포의 68~75퍼센타일에 불과하고 P(≥4)=0.25(독립)~0.32(결합), 어떤 게이트 변형에서도 0.175~0.36으로 5% 유의선을 넘지 못한다. 즉 36개 직교통과 검정에 테스트당 7.5% 위양성이면 우연히 ~2.6개가 통과하고 4개는 +0.9σ의 평범한 결과 — '4개 생존'은 신호가 아니라 다중검정 셈법의 산물이다. 둘째 조건(A 소멸)은 미충족: A·B·C·D는 L·calm_pct 9격자 전부에서 안정적으로 생존한다. 그러나 이 내부 안정성은 판정을 뒤집지 못한다 — 겹치는 표본에서 knob 불변성은 '안정적인 우연 효과'의 전형적 거동이며, 상관 클러스터(동일 u→A·B, 동일 crps→C·D)가 결합순열에서 오히려 더 흔히 재현됨이 이를 뒷받침한다. 따라서 A를 '진짜 exploitable·직교 신호'로 개별 승격할 근거는 없고, 4후보 전체가 우연 생존자와 구별되지 않는다. 불확실하면 fragile 쪽으로 — 비싼 포크·격자 투자 부적격. (판정 오탐 방지 주의: 유의게이트를 느슨한 |z| 또는 3분할로 바꾸면 관측치가 8·6으로 동반상승해 P(≥obs)가 0.005~0.03로 낮아 보이나, 이는 사전등록된 '4개/CI90' 주장이 아닌 이동표적이며 P(≥4)는 여전히 비유의.)"
+      },
+      {
+        "lens": "렌즈6 — 4후보 헤드라인 독립 재현 (aligned frame에서 calm 마스크·tertile Δ·정상블록 부트스트랩 CI·ρ_primary·하위기간 부호를 처음부터 재계산)",
+        "verdict": "real_signal",
+        "key_metrics": "헤드라인 Δ 소수자리까지 정확 재현 (calm origin nc=356, tertile k=118, 두 horizon에서 proxy/primary 배열 동일·u/crps만 상이):\n(A) P1|pit_location|h21: Δ=−0.1200 (BRIEF −0.120 정확), CI90[−0.2014,−0.0319] (BRIEF [−0.192,−0.035], seed차 MC노이즈 내 부호일치), ρ=−0.1922\n(B) P1|pit_tail|h21: Δ=−0.0542→−0.054, CI90[−0.0935,−0.0128] (BRIEF [−0.096,−0.015]), ρ=−0.1922\n(C) P7|crps|h21: Δ=−0.0166 정확, CI90[−0.0265,−0.0079] (BRIEF [−0.026,−0.008] 거의완전일치), ρ=−0.1847\n(D) P7|crps|h63: Δ=−0.0563→−0.056, CI90[−0.1041,−0.0178] (BRIEF [−0.104,−0.019]), ρ=−0.1847\nρ_primary 불일치 해소: BRIEF의 −0.19/−0.18은 Pearson이 아니라 calm표본 Spearman (P1 −0.1922→−0.19, P7 −0.1847→−0.18). Pearson-calm(−0.175/−0.116)·Pearson-full(−0.299/−0.630)은 불일치 → 정의는 Spearman-on-calm으로 확정.\n사전등록 4중기준 정확 복원: 전체격자 54셀 중 CI90이 0을 배제하는 셀 8개 → 그중 {하위기간 부호일치 AND |ρ_primary|<~0.20} 필터 후 정확히 {A,B,C,D}만 생존. 탈락한 4개는 P2_crps(ρ=−0.377)·P3_crps(ρ=+0.480, primary와 사실상 중복) — orthogonality 기준으로 정당 탈락.",
+        "attack": "① 모듈 버그 의심 → 독립 코드로 calm/tertile/부트스트랩 전량 재구현, Δ 4개 전부 소수자리 일치 → 버그 없음. ② CI가 seed-lucky인지 → 8개 seed(20260903 계열+임의)로 A~D 상단경계 재검, 최대값 A −0.029/B −0.013/C −0.0075/D −0.018 모두 <0 → 전부 견고히 0 배제 (knife-edge 아님). ③ 위양성 통제 붕괴 의심 → P9_dfm_age_control 음성대조군: 6셀(3지표×2horizon) 전부 CI가 0 포함, ρ_primary=+0.0138(사실상 독립) → 대조군 완전 clean, 스크린이 노이즈에 유의를 안 찍음. ④ pit_location 직교성 → pit_location 지표에서 CI가 0을 배제하는 proxy는 P1(=A) 단 하나 (P8 Δ=−0.118은 CI[−0.217,+0.002]로 미배제). A 외 유의한 직교 pit_location 검정 없음 확인.",
+        "conclusion": "재현 무결성 확인: A~D 헤드라인은 모듈 버그가 아니라 정직하게 계산된 in-sample 스크린 결과이며, 음성대조군(P9)과 pit_location 직교성 통제가 정상 작동한다. 단 이 렌즈는 '재현+위양성통제'만 인증할 뿐 표본외 exploitability는 인증하지 않는다. 파서용 스코프 경고 두 가지: (1) '4검정'의 유효 차원은 2다 — A·B는 동일 proxy P1이 pit_location/pit_tail로 두 번 표현된 사실상 한 신호(momentum→PIT 편의), C·D는 동일 proxy P7이 두 horizon에 걸친 한 신호. 독립 proxy-신호는 {P1→PIT}·{P7→crps} 둘뿐. (2) P7쌍(C·D)은 전적으로 crps 지표에 의존하는데 BRIEF 자신이 crps를 실현변동성 교란지표로 경고했다 — CI배제 8셀 중 5셀이 crps이고 P1의 crps(h21 Δ=−0.0070, CI[−0.015,+0.0004])는 오히려 미배제 → P7-crps 이득이 캘리브레이션 edge인지 vol 교란인지는 별도 렌즈에서 crps를 resid_iqr/실현변동성으로 통제해 반드시 분리검증 요망. 재현 자체는 real_signal, 그러나 exploitability는 P1→PIT 축(척도무관·직교) 하나에 실질적으로 걸려 있고 P7 축은 crps-교란 리스크가 미해소."
+      }
+    ],
+    "synthesis": {
+      "recommendation": "FREEZE_V11",
+      "p1_verdict": "mixed — 인샘플로는 real. 렌즈1·2·6이 Δ=−0.120을 독립 재현하고 V10 킬러(극단꼬리 제거·GFC 제거)를 모두 통과하며 calm을 조일수록 단조 강화(잔여-vol 교란 기각)돼 vol-직교·leave-out·하위기간 부호 축은 견고. 그러나 exploitability(기준 e)에서 렌즈3이 결정적 artifact: 순방향 OOS +0.97%·역방향 +1.49% 악화, 인샘플 상한 ~0, 상수 recenter조차 손해(이용할 미보정 없음), 관계가 2013-14 저변동 tail에 전량 집중되고 2007-10엔 부재라 전이 원천 불가. 편측(BOT tertile 단독)·2014 의존 caveat까지 감안하면 CRPS 이득으로 전환 안 되는 기간종속 잔차 구조 → 포크 목적상 non-exploitable.",
+      "p7_verdict": "mixed→fail — 렌즈4에서 부분상관·이중잔차화·hi-vol 제거·스크린 강화는 통과하나, 헤드라인 Δ 대부분이 elevated-but-sub-crisis vol 3분위 집중분이고 사전지정 잔차화 검정에서 CI가 0을 접촉하며 프레임에 순수 실현vol 컬럼이 없어 잔여가 'growth→미래 실현vol' 교란(예보폭 미반영분)일 개연성 높음 → 깨끗한 직교·상시 방향 edge 아님, vol-교란 검정 clean-pass 아님. 렌즈3에서 P7 동반후보(C·D)도 P1과 동일한 후반부 집중·OOS 전이 실패. 결국 vol-레짐 조건부 sharpness 오버레이이지 exploitable 직교 신호 아님.",
+      "multiple_testing": "넘지 못함 — 렌즈5 순열 귀무 200회에서 관측 '4통과'는 상위꼬리가 아니라 68~75퍼센타일(독립 mean 2.57, 결합 mean 2.66, +0.9σ), P(≥4)=0.25(독립)~0.32(결합), 게이트 변형 4종 전부 0.175~0.36으로 0.05 미달. 테스트당 위양성 ~7.5%면 36직교셀에서 우연히 ~2.6개 통과가 기대치. L·calm_pct 9격자 knob-불변성은 겹치는 표본에서 '안정적 우연 효과'의 전형이고, 렌즈6대로 유효차원은 2(A·B=한 P1 신호, C·D=한 P7 신호)라 위양성 셈법을 악화. 사전등록 '4개/CI90' 주장은 귀무를 초과하지 못함.",
+      "rationale": "두 독립 신호축 모두 GREENLIGHT의 결정적 필요조건에서 탈락한다. P1→PIT는 인샘플 real·vol-직교·leave-out·GFC 강건까지 (a)(b)(c)(d)를 통과하지만 (e) exploitability에서 렌즈3이 순방향·역방향·인샘플상한·상수recenter 전 각도로 CRPS 전환 실패(부호까지 악화)를 확정했다 — 2013-14 저변동 tail에 국한된 기간종속 잔차라 전이가 구조적으로 불가능하다. P7→crps는 렌즈4에서 vol 대리 선형제거는 견디나 헤드라인이 elevated-vol 집중분이고 사전지정 검정 CI가 0을 접촉, 순수 실현vol 통제가 프레임 내 불가라 vol-교란 검정을 clean-pass하지 못하며 렌즈3에서 OOS 전이도 실패한다. 결정 규칙상 real+exploitable 후보가 하나도 없고, 동시에 렌즈5가 다중검정 귀무(P(≥4)=0.25~0.32)를 넘지 못함을 보여 FREEZE 조건이 독립적으로 충족된다. 렌즈1·2·6의 real_signal 판정은 '인샘플 재현+위양성통제'만 인증할 뿐 표본외 exploitability를 인증하지 않으며, 유효차원 2·crps-교란 미해소가 이를 뒷받침한다. 25~30분×N 백테스트 격자를 지을 근거는 없다 — 남는 유일한 저비용 옵션은 렌즈1이 제안한 저모멘텀 tertile 조건부 recenter 사전검증뿐이나, 상수 recenter조차 손해라 이마저 low-prior다.",
+      "if_proceed_state_signal": ""
+    }
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Synthesize"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "P1-concentration-leaveout",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a480f32cb84eb8290",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734806,
+      "queuedAt": 1788426734769,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈1 — 검정 A (P1_ret_mom_21 | pit_location u−0.5 | h21) …",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788426959657,
+      "tokens": 62195,
+      "toolCalls": 6,
+      "durationMs": 224845,
+      "resultPreview": "{\"lens\":\"렌즈1 — 검정 A (P1_ret_mom_21 | pit_location u−0.5 | h21) 집중도·leave-out. calm n=356, tertile b=118, 기준선 Δ=−0.1200 재현(사전등록치와 일치), 블록부트(L=13,B=2000,SEED=20260901) CI90=[−0.192,−0.031]로 사전등록 [−0.192,−0.035] 재현.\",\"verdict\":\"real_signal\",\"key_metrics\":\"(a) 영향도: 단일 origin leave-one-out 최대 |ΔΔ|=0.0053(=Δ의 4.4%), 상위5개 합 0.026 — 스파이크 없음, 분산된 효과. (b) tertile 분해: TOP(고모멘텀) mean(u−.5)=−0.0005(사실상 0), med…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "P1-subperiod-and-tighter-calm",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a57cea1459eb61755",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734807,
+      "queuedAt": 1788426734770,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈2 — 검정A(P1_ret_mom_21 | pit_location | h21) 하위기간 …",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788426913304,
+      "tokens": 57880,
+      "toolCalls": 6,
+      "durationMs": 176734,
+      "resultPreview": "{\"lens\":\"렌즈2 — 검정A(P1_ret_mom_21 | pit_location | h21) 하위기간 강도 + 더 엄격한 calm (잔여-vol 교란 판별)\",\"verdict\":\"real_signal\",\"key_metrics\":\"기준선 재현 OK: bottom80% 전구간 Δ=−0.1200, CI90=[−0.192,−0.031], P(Δ<0)=0.987 (SEED=20260901, L=13, B=2000 — 사전등록 −0.120과 일치).\\n\\n(a) 하위기간(전역 calm80 마스크를 날짜로 분할):\\n· 2007-2010(GFC기) n=170 Δ=−0.0568 CI90=[−0.174,+0.051] P(Δ<0)=0.82 → 부호는 음(−)이나 CI가 0을 넘고 유의 아님, 약함.\\n· 2011-201…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "P1-exploitability-counterfactual",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a5276deec3cf17e06",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734808,
+      "queuedAt": 1788426734770,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈3 — P1(검정 A) exploitability 반사실: 모멘텀 조건부 med…",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788427023627,
+      "tokens": 68591,
+      "toolCalls": 6,
+      "durationMs": 287056,
+      "resultPreview": "{\"lens\":\"렌즈3 — P1(검정 A) exploitability 반사실: 모멘텀 조건부 median 이동을 design 내부 표본외(2007-2010 적합 → 2011-2014 적용)에서 CRPS/pinball 이득으로 전환할 수 있는가.\",\"verdict\":\"artifact\",\"key_metrics\":\"데이터 재구성: resid_iqr=(actual−median)/IQR(부호가 u−0.5와 일치, 1.349·resid_iqr≈Φ⁻¹(u), corr=0.93). z=Φ⁻¹(u), 원장 crps로 스케일 역산 σ=crps/cs(z) → CRPS_old가 주어진 crps와 항등, 차이는 median 이동만 반영.\\n\\n사전등록 신호 재현: calm(primary≤p80, n=356) tertile Δ pi…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "P7-growth-vol-confound",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "ac8086665dd304859",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734809,
+      "queuedAt": 1788426734770,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈4 — P7 growth_factor CRPS(검정 C h21·D h63)의 실현 변동…",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788426970939,
+      "tokens": 63382,
+      "toolCalls": 6,
+      "durationMs": 234368,
+      "resultPreview": "{\"lens\":\"렌즈4 — P7 growth_factor CRPS(검정 C h21·D h63)의 실현 변동성 교란 여부. calm origin(primary≤80pct, n=356)에서 (a) 상관, (b) 변동성 층화, (c) growth를 primary·|resid_iqr|에 회귀한 잔차로 tertile Δ 재계산 + 부분상관·이중잔차화. SEED=0, L=13, B=2000로 파이프라인 재현.\",\"verdict\":\"mixed\",\"key_metrics\":\"파이프라인 재현 OK: baseline Δ(growth|crps) C=−0.0166 CI90[−0.027,−0.008], D=−0.0563 CI90[−0.107,−0.018] — 사전등록치와 일치.\\n(a) corr(P7,crps)=−0.31(h21)/…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "multiple-testing-permutation-null",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "a740b3a19275a6e67",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734810,
+      "queuedAt": 1788426734770,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈5 — 다중검정 위양성 (순열 귀무 200회 + L·calm_pct 설정 …",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788427497844,
+      "tokens": 95341,
+      "toolCalls": 15,
+      "durationMs": 761272,
+      "resultPreview": "{\"lens\":\"렌즈5 — 다중검정 위양성 (순열 귀무 200회 + L·calm_pct 설정 강건성). 4중 기준(bootstrap CI90 유의 + 효과크기 + 직교 |ρ_primary|<0.25 + 하위기간 부호일치)을 그대로 역설계해 재현했고, calm origin의 metric을 무작위 순열(proxy 고정)해 '통과 개수' 귀무분포를 구성. 유의성은 순열에서도 실제 스크린과 동일한 정상블록 부트스트랩 CI90 게이트를 벡터화(테스트별 TOP/BOT 인덱스 사전계산)로 유지 — |z|>1.645 근사보다 충실.\",\"verdict\":\"artifact\",\"key_metrics\":\"재현: A P1|pit_loc|h21 Δ=−0.1200 CI90≈[−0.194,−0.027] ρ_S=−0.192; B P1|p…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "headline-replication",
+      "phaseIndex": 1,
+      "phaseTitle": "Verify",
+      "agentId": "acae633a3f86273b2",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788426734811,
+      "queuedAt": 1788426734770,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "렌즈6 — 4후보 헤드라인 독립 재현 (aligned frame에서 calm 마…",
+      "promptPreview": "작업 디렉터리 C:/workspace/ai-investing (Git Bash /c/workspace/ai-investing). 파이썬:\n  cd /c/workspace/ai-investing && PYTHONUTF8=1 .venv/Scripts/python.exe - <<'PYEOF'\n  ...코드...\n  PYEOF\n\n입력(값싼 재계산용, 번들 로드 불필요): data/timeseries_v11/diagnostics/aligned_origin_frame.json\n구조: {\"design\":[\"2007-01-01\",\"2014-12-31\"],\"calm_pct\":80.0,\"horizons\":{\"21\":{...},\"63\":{...}}}\n각 horizon rec 필드(전부 길이 417 리스트, origin 순): …",
+      "lastProgressAt": 1788426951282,
+      "tokens": 65991,
+      "toolCalls": 7,
+      "durationMs": 214710,
+      "resultPreview": "{\"lens\":\"렌즈6 — 4후보 헤드라인 독립 재현 (aligned frame에서 calm 마스크·tertile Δ·정상블록 부트스트랩 CI·ρ_primary·하위기간 부호를 처음부터 재계산)\",\"verdict\":\"real_signal\",\"key_metrics\":\"헤드라인 Δ 소수자리까지 정확 재현 (calm origin nc=356, tertile k=118, 두 horizon에서 proxy/primary 배열 동일·u/crps만 상이):\\n(A) P1|pit_location|h21: Δ=−0.1200 (BRIEF −0.120 정확), CI90[−0.2014,−0.0319] (BRIEF [−0.192,−0.035], seed차 MC노이즈 내 부호일치), ρ=−0.1922\\n(B) P1|pit_tail|h…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "final-judge",
+      "phaseIndex": 2,
+      "phaseTitle": "Synthesize",
+      "agentId": "ad5a866ff59cad263",
+      "model": "claude-opus-4-8",
+      "state": "done",
+      "startedAt": 1788427497862,
+      "queuedAt": 1788427497847,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "FREEZE_V11",
+      "promptPreview": "너는 V11 트랙 판정관이다. 값싼 직교 진단에서 4검정이 통과해 적대적 검증을 돌렸다. 아래 6렌즈를 종합해, 비싼 V11 포크·격자(25~30분×N 백테스트)를 지을 가치가 있는 진짜 exploitable·직교·평시 신호가 있는지 판정하라. 기준: 신호가 (a) vol-state에 직교, (b) 집중/leave-out에 강건, (c) 하위기간 안정, (d) calm을 조여도 유지, (e) CRPS 이득으로 전환(exploitable)돼야 GREENLIGHT. P7은 vol 교란 검정을 통과해야 한다. 다중검정 귀무를 넘지 못하면 FREEZE. 하나라도 real+exploitable이면 GREENLIGHT하되 어떤 상태 신호를 포크에 사전등록할지 적어라.\n\n검증:\n## 렌즈1 — 검정 A (P1_ret_m…",
+      "lastProgressAt": 1788427577826,
+      "tokens": 58141,
+      "toolCalls": 1,
+      "durationMs": 79964,
+      "resultPreview": "{\"recommendation\":\"FREEZE_V11\",\"p1_verdict\":\"mixed — 인샘플로는 real. 렌즈1·2·6이 Δ=−0.120을 독립 재현하고 V10 킬러(극단꼬리 제거·GFC 제거)를 모두 통과하며 calm을 조일수록 단조 강화(잔여-vol 교란 기각)돼 vol-직교·leave-out·하위기간 부호 축은 견고. 그러나 exploitability(기준 e)에서 렌즈3이 결정적 artifact: 순방향 OOS +0.97%·역방향 +1.49% 악화, 인샘플 상한 ~0, 상수 recenter조차 손해(이용할 미보정 없음), 관계가 2013-14 저변동 tail에 전량 집중되고 2007-10엔 부재라 전이 원천 불가. 편측(BOT tertile 단독)·2014 의존 caveat까지 감안하면 C…"
+    }
+  ],
+  "totalTokens": 471521,
+  "totalToolCalls": 47
+}
