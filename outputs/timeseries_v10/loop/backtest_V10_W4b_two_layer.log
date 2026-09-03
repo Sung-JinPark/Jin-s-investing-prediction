@@ -1,0 +1,72 @@
+{
+  "experiment_id": "tsv10-exp-0737ad6322580b1395d7",
+  "experiment_label": "V10_W4b_two_layer",
+  "degenerate": false,
+  "horizons": {
+    "1": {
+      "origins": 417,
+      "crps": 0.007427766978972523,
+      "best_baseline": "block_bootstrap",
+      "best_baseline_crps": 0.007799081908543968,
+      "crps_improvement_vs_best": 0.04761008204884543,
+      "coverage_p10_p90": 0.7961630695443646,
+      "coverage_p25_p75": 0.539568345323741
+    },
+    "5": {
+      "origins": 417,
+      "crps": 0.015066154374051175,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.01576318343922592,
+      "crps_improvement_vs_best": 0.04421880059076271,
+      "coverage_p10_p90": 0.815347721822542,
+      "coverage_p25_p75": 0.5203836930455635
+    },
+    "21": {
+      "origins": 417,
+      "crps": 0.03102881812512489,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.03206233695952998,
+      "crps_improvement_vs_best": 0.03223466947246012,
+      "coverage_p10_p90": 0.8321342925659473,
+      "coverage_p25_p75": 0.5323741007194245
+    },
+    "63": {
+      "origins": 417,
+      "crps": 0.05624697510490499,
+      "best_baseline": "historical_simulation",
+      "best_baseline_crps": 0.05775618491309095,
+      "crps_improvement_vs_best": 0.026130704624222578,
+      "coverage_p10_p90": 0.8393285371702638,
+      "coverage_p25_p75": 0.5491606714628298
+    }
+  },
+  "paired_long_horizon": {
+    "origin_count": 417,
+    "mean": -0.001271364321295525,
+    "ci90": {
+      "lower": -0.002557119188984231,
+      "upper": 8.251919796397947e-05
+    },
+    "best_baselines": {
+      "21": "historical_simulation",
+      "63": "historical_simulation"
+    }
+  },
+  "proxy_pass": true,
+  "gate_margin": {
+    "h63_p10_p90_upper": 0.0006714628297361802,
+    "projected_ci90_upper": 2.3733208250412152e-05,
+    "p25_p75_lower": 0.07038369304556352,
+    "gfc_regime_minimum": 0.0492307692307693
+  },
+  "dual_vs_e0": {
+    "origin_count": 417,
+    "mean": -3.0239043939509047e-05,
+    "ci90": [
+      -0.0002153261837901609,
+      0.0001346663774707291
+    ],
+    "bootstrap_se": 0.00010697903834550758,
+    "mde50": 0.00017598051807835998
+  }
+}
