@@ -2,15 +2,15 @@
   "schema_version": 1,
   "source_id": "defillama_stablecoins",
   "status": "monitoring",
-  "asof": "2026-09-02",
-  "latest_observation": "2026-09-02",
-  "consecutive_successful_days": 4,
+  "asof": "2026-09-03",
+  "latest_observation": "2026-09-03",
+  "consecutive_successful_days": 5,
   "required_successful_days": 14,
   "schema_stable": true,
   "monitoring_gate_met": false,
   "license_status": "review_required",
   "activation_eligible": false,
   "raw_values_redistributed": false,
-  "latest_receipt": "data/source_monitoring/defillama_stablecoins/2026-09-02.json",
-  "reason": "daily schema monitoring in progress (4/14)"
+  "latest_receipt": "data/source_monitoring/defillama_stablecoins/2026-09-03.json",
+  "reason": "daily schema monitoring in progress (5/14)"
 }
