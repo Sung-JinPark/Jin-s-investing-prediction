@@ -1339,6 +1339,26 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .admin-list.ts-inputs li{grid-template-columns:20px minmax(0,1fr) auto}
 .admin-list.ts-inputs li small{color:#85827b;font:600 10.5px var(--mono);white-space:nowrap}
 @media(max-width:799px){.admin-kpis.ts-kpis{grid-template-columns:1fr}.admin-list.ts-fresh li{grid-template-columns:minmax(0,1fr) 64px 44px 88px}.admin-list.ts-fresh i{display:none}.timeseries-hero .timeseries-gate-strip{margin-top:12px}}
+/* 2단계 봉인 지표 공개 (R8-D4) — 스킬·커버리지 편차·순위 빈도·국면·전진 실적 */
+.ts-bar-weak{fill-opacity:.42;stroke:#28756a;stroke-width:1.5;stroke-dasharray:5 3}
+.ts-full-mark{fill:none;stroke:#85827b;stroke-width:2}
+.ts-sig-ok{fill:#17614f;font:700 11px var(--mono)}
+.ts-sig-weak{fill:#9b2c0b;font:700 11px var(--mono)}
+.ts-band-line{stroke:#b8b5ac;stroke-width:1.5;stroke-dasharray:3 3}
+.ts-dot-50{fill:#eaaa50;stroke:#fff;stroke-width:2}
+.ts-nodata{fill:#85827b;font:600 13px var(--mono)}
+.ts-bar-value{fill:#fff;font:700 13px var(--mono)}
+.ts-rank-bar{fill:#28756a}
+.ts-rank-bar[data-active]{fill:#11110f}
+.ts-rank-expected{stroke:#11110f;stroke-width:2;stroke-dasharray:4 3}
+.ts-rank-tick{fill:#9b988f;font:600 10px var(--mono)}
+.ts-verdict{margin:0;padding:11px 14px;border:1px solid var(--line-strong);font-size:12.5px;line-height:1.6;word-break:keep-all}
+.ts-verdict.is-hold{color:#6d3f16;background:#fdf4e6;border-left:3px solid var(--orange)}
+.ts-verdict.is-pass{color:#17614f;background:#f2f8f5;border-left:3px solid #28756a}
+.ts-forward-copy{margin:0;color:#3d3b36;font-size:12.5px;line-height:1.7;word-break:keep-all}
+.ts-sealed-table td small{display:block;color:#9b988f;font:600 10px var(--mono)}
+[data-ts-chart="forward"][data-active]{box-shadow:inset 3px 0 0 var(--orange)}
+@media(max-width:799px){.ts-sealed-table{font-size:12px}.ts-verdict{font-size:12px}}
 /* 관리자 전용 방문 통계 (#admin-stats) — 전문 분석 대시보드 스타일 */
 .admin-entry{position:fixed;top:10px;right:14px;z-index:60;font:700 10px/1 var(--mono);letter-spacing:.14em;color:#85827b;text-decoration:none;padding:6px 9px;border:1px solid transparent;opacity:.5;transition:opacity .15s,border-color .15s}
 .admin-entry:hover,.admin-entry:focus-visible{opacity:1;border-color:var(--line-strong);background:var(--paper)}
