@@ -1290,6 +1290,53 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .statistics-caveat-lead{padding:10px 19px;color:#6d3f16;background:#fdf7ec;border-top:1px solid var(--line);font-size:12px;word-break:keep-all}
 .statistics-blocked [data-stat-retry]{margin-top:12px;padding:9px 16px;font-family:var(--mono);font-size:12px;background:#11110f;color:#fff;border:0;cursor:pointer}
 @media(max-width:620px){.timeseries-gate-strip{gap:6px}.ts-gate-chip{font-size:10px;padding:6px 8px}}
+/* 시계열 재설계 (docs/design/timeseries_view_redesign_260903.md) — 공유 호버·범위 막대·사다리 표·검증 도표 */
+.timeseries-hero .timeseries-gate-strip{margin-top:16px}
+.ts-panel{display:grid;gap:14px}
+.ts-card{border:1px solid var(--line-strong);background:#fff;padding:14px 16px}
+.ts-card .admin-card-head h2{font-size:15px}
+.ts-card .chart-guide{margin-top:10px}
+.timeseries-chart{touch-action:pan-y}
+.timeseries-chart svg[tabindex]:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.ts-readout{margin:6px 4px 0;min-height:18px;color:#59554e;font:600 11px/1.5 var(--mono);word-break:keep-all}
+.ts-hover .ts-cross{stroke:rgba(17,17,15,.55);stroke-width:1.2;stroke-dasharray:4 3}
+.ts-hover .ts-rowhl{fill:#11110f;fill-opacity:.06}
+.ts-hover .ts-hover-dot{fill:#11110f;stroke:#fff;stroke-width:2}
+.ts-hover [data-ts-overlay]{cursor:crosshair}
+.ts-zero-line{stroke:#11110f;stroke-width:1.5}
+.ts-range-label{fill:#11110f;font-weight:700;font-size:13px}
+.ts-range-value{fill:#59554e;font-weight:600;font-size:11px}
+.ts-median-tick{stroke:#11110f;stroke-width:2.5}
+.ts-axis-text{fill:#85827b;font-weight:600;font-size:10.5px}
+.ts-axis-title{fill:#59554e;font-weight:600;font-size:11px}
+.ts-target-line{stroke:#11110f;stroke-width:1.5;stroke-dasharray:6 4}
+.ts-zone-conservative{fill:#f2f8f5}.ts-zone-overconfident{fill:#fdf4e6}
+.ts-bar-pos{fill:#28756a}.ts-bar-neg{fill:#9b2c0b}
+.ts-dot{fill:#28756a;stroke:#fff;stroke-width:2}.ts-dot.off{fill:var(--amber)}
+.ts-node-dot[data-active]{stroke:#11110f;stroke-width:3}
+.timeseries-horizons article[data-active],.ts-kpis article[data-active]{background:#f7f5ef;box-shadow:inset 3px 0 0 var(--orange)}
+.timeseries-horizons[tabindex]:focus-visible,.ts-kpis[tabindex]:focus-visible,.ts-fresh[tabindex]:focus-visible,.ts-ladder[tabindex]:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
+.timeseries-path-panel .ts-ladder-wrap{padding:0 14px 14px}
+.ts-ladder-wrap{overflow-x:auto;margin-top:6px}
+.ts-ladder{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+.ts-ladder th,.ts-ladder td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
+.ts-ladder th:first-child,.ts-ladder td:first-child,.ts-ladder tbody th{text-align:left;font:700 12.5px var(--mono);color:#11110f}
+.ts-ladder thead th{color:#85827b;font:700 10.5px var(--mono);letter-spacing:.06em;background:#f7f5ef}
+.ts-ladder td strong{font:700 13px var(--mono);font-variant-numeric:tabular-nums;color:#11110f}
+.ts-ladder td small{display:block;color:#85827b;font:600 10px var(--mono)}
+.ts-ladder td.q-outer{background:rgba(243,214,168,.28)}.ts-ladder td.q-inner{background:rgba(234,170,80,.22)}
+.ts-ladder tr[data-active] td,.ts-ladder tr[data-active] th{background:#f7f5ef;box-shadow:inset 0 -2px 0 var(--orange)}
+.ts-ladder caption{caption-side:bottom;padding:8px 4px 0;color:#85827b;font:600 10px/1.5 var(--mono);text-align:left;word-break:keep-all}
+.ts-lead,.timeseries-notice{margin:0;padding:10px 14px;color:#6d3f16;background:#fdf7ec;border:1px solid var(--line);font-size:12.5px;line-height:1.6;word-break:keep-all}
+.timeseries-notice a{color:#9b2c0b;font-weight:700}
+.ts-kpis{grid-template-columns:repeat(3,1fr)}
+.ts-fresh li{grid-template-columns:104px minmax(0,1fr) minmax(90px,1.2fr) 52px 96px}
+.ts-fresh i{text-align:left;color:#85827b;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-fresh li small{white-space:nowrap}
+.ts-fresh .admin-share-bar b.is-warn{background:#9b2c0b}
+.ts-inputs li{grid-template-columns:20px minmax(0,1fr) auto}
+.ts-inputs li small{color:#85827b;font:600 10.5px var(--mono);white-space:nowrap}
+@media(max-width:799px){.ts-kpis{grid-template-columns:1fr}.ts-fresh li{grid-template-columns:minmax(0,1fr) 64px 44px 88px}.ts-fresh i{display:none}.timeseries-hero .timeseries-gate-strip{margin-top:12px}}
 /* 관리자 전용 방문 통계 (#admin-stats) — 전문 분석 대시보드 스타일 */
 .admin-entry{position:fixed;top:10px;right:14px;z-index:60;font:700 10px/1 var(--mono);letter-spacing:.14em;color:#85827b;text-decoration:none;padding:6px 9px;border:1px solid transparent;opacity:.5;transition:opacity .15s,border-color .15s}
 .admin-entry:hover,.admin-entry:focus-visible{opacity:1;border-color:var(--line-strong);background:var(--paper)}
