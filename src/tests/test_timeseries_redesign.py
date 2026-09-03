@@ -19,13 +19,17 @@ def test_method_box_is_last_child_of_summary_panel_only() -> None:
     assert "timeseriesSpecCard()" not in html, "패널 밖 구 호출이 남아 있다"
     assert len(re.findall(r"\$\{timeseriesSpecCard\(ts\)\}", html)) == 3, "V8·HOLD·레거시 세 경로에 각 1회"
     v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
-    assert "${timeseriesSpecCard(ts)}</div>`;" in v8
-    assert v8.index("${timeseriesSpecCard(ts)}") < v8.index("const pathPanel"), "summary 문자열 안에서만"
-    assert "${panel('summary',summaryPanel)}" in v8
-    legacy = html[html.index("function renderTimeseries("):html.index("/* ── 관리자 전용")]
-    hold, visible = legacy.split("if(!visible){", 1)[1].split("const one=ts.horizons", 1)
-    assert "${timeseriesSpecCard(ts)}`)}" in hold and "${timeseriesSpecCard(ts)}${footnote}" not in hold
-    assert "${timeseriesSpecCard(ts)}`)}" in visible
+    summary_literal = v8[v8.index("const summaryPanel"):v8.index("const pathPanel")]
+    assert "${timeseriesSpecCard(ts)}</div>`;" in summary_literal, "summary 패널 문자열의 마지막 자식"
+    assert "timeseriesSpecCard" not in v8[v8.index("const pathPanel"):v8.index("const root=el(")], "path/drivers/backtest 문자열에 없음"
+    assert "${panel('summary',summaryPanel)}" in v8 and "timeseriesSpecCard" not in v8[v8.index("const root=el("):], "패널 밖(root 템플릿)에 없음"
+    legacy = html[html.index("function renderTimeseries("):html.index("const GC_API=")]
+    hold_start = legacy.index("if(!visible){")
+    hold = legacy[hold_start:legacy.index("mount(root);", hold_start)]
+    visible = legacy[legacy.index("mount(root);", hold_start) + 12:]
+    assert hold.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in hold, "HOLD: summary 패널 마지막 자식"
+    assert visible.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in visible, "레거시: summary 패널 마지막 자식"
+    assert "${timeseriesSpecCard(ts)}${footnote}" not in legacy
     assert visible.index("${timeseriesSpecCard(ts)}") < visible.index("${panel('path'")
 
 
@@ -39,6 +43,16 @@ def test_every_timeseries_chart_has_hover_and_readout() -> None:
     assert "data-ts-overlay" in html and 'role="status" aria-live="polite"' in html
     for key in ("cards", "ladder", "fresh", "kpis"):
         assert f'data-ts-chart="{key}"' in html, key
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "bindTimeseriesV8Interactions(root,ts);" in v8, "마운트 직후 바인딩"
+    binder = html[html.index("function bindTimeseriesV8Interactions"):html.index("function tsBandModel")]
+    for key in ("cards", "range", "band", "ladder", "fresh", "kpis", "skill", "coverage"):
+        assert f'[data-ts-chart="{key}"]' in binder, f"{key} 표면 바인딩 누락"
+    # SVG 도표는 svg 직후, DOM 표면은 바로 뒤 형제로 리드아웃을 둔다
+    assert html.count("</svg>${tsReadout()}") >= 4
+    assert "</section>${tsReadout()}" in html and "</ul>${tsReadout()}" in html and "</table>${tsReadout()}" in html
+    # 툴팁은 고정 여부와 무관하게 pointerleave에서 숨긴다 (고정 툴팁 잔류 방지)
+    assert "const hide=()=>{if(tip)tip.style.display='none';if(pinned)return;" in html
 
 
 def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
@@ -49,7 +63,11 @@ def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
     assert "매매 신호가 아닙니다" in foot, "방법 박스가 첫 탭으로 들어가도 4탭 공통 공시 유지"
     assert "기여도(가중치×변화)가 아닙니다" in v8, "기여 요인 탭 정직성 리드"
     assert "선형 보간(참고용)" in html, "보간 정직성 캡션 유지"
-    assert "아래에 있을 가능성" not in html, "가격 레벨+확률 결합 문장 금지"
+    # 가격 레벨+확률 결합 문장·새 확률 파생 금지 — 시계열 구역 전체를 패턴으로 검사
+    ts_region = html[html.index("const tsLevel="):html.index("const GC_API=")]
+    assert re.search(r"(아래|밑|이하|미만|초과)[^<`'\"]{0,8}(가능성|확률)", ts_region) is None, "임계 확률 문장 금지"
+    assert re.search(r"1\s*-\s*(row\.up|[A-Za-z_.]*probability_up)|erf\(|normalCdf|cdf\(", ts_region) is None, "확률 파생 금지"
+    assert ts_region.count("probability_up") >= 1, "표시되는 확률은 read model의 probability_up뿐"
 
 
 def test_compacted_bundle_parses_with_node() -> None:
@@ -65,3 +83,42 @@ def test_compacted_bundle_parses_with_node() -> None:
             path.write_text(body, encoding="utf-8")
             result = subprocess.run([node, "--check", str(path)], capture_output=True, text=True)
             assert result.returncode == 0, result.stderr[:2000]
+
+
+def test_timeseries_pure_helpers_behave() -> None:
+    """tsHorizonRows 폴백·tsSealedRows 필터·tsFootnote 중복 방지·spec card 분기를 node로 실행 검증."""
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    html = _html()
+    script = html[html.index("const tsLevel="):html.index("function tsHoverLayer")]
+    footnote = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
+    sealed = html[html.index("function tsSealedRows(ts)"):html.index("function tsSkillModel")]
+    probe = """
+const esc=s=>String(s==null?'':s);
+""" + script + sealed + footnote + """
+const ts={anchor:{value:100},horizons:{'1':{median_index:101,point_return:0.01,probability_up:0.6,band_index:{p10:98,p25:99,p75:102,p90:104}},'5':{}, '21':{median_index:0},'63':{median_index:110,point_return:0.1,probability_up:0.7,band_index:{p10:90,p25:100,p75:115,p90:120},log_return:{p10:-0.1,p25:0,p50:0.0953,p75:0.14,p90:0.18}}},
+  sealed_metrics:{horizons:{'21':{crps_improvement_vs_best:0.02,coverage_p10_p90:0.79},'63':{crps_improvement_vs_best:null,coverage_p10_p90:0.8},'5':{crps_improvement_vs_best:'x'}}},footnote:'*기준 · 매매 신호가 아닙니다'};
+const rows=tsHorizonRows(ts);
+const out={
+  keys:rows.map(r=>r.h),
+  fallback_r10:Number(rows[0].r10.toFixed(3)),
+  log_r10:Number(rows[1].r10.toFixed(4)),
+  sealed:tsSealedRows(ts).map(r=>r.h),
+  footnote_once:(tsFootnote(ts).match(/매매 신호/g)||[]).length,
+  footnote_added:tsFootnote({}).includes('매매 신호가 아닙니다'),
+};
+process.stdout.write(JSON.stringify(out));
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "probe.js"
+        path.write_text(probe, encoding="utf-8")
+        result = subprocess.run([node, str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr[:2000]
+    import json
+    out = json.loads(result.stdout)
+    assert out["keys"] == ["1", "63"], "중앙값 없는 기간은 제외"
+    assert out["fallback_r10"] == -0.02, "log_return 없으면 band_index/anchor 폴백"
+    assert abs(out["log_r10"] - (-0.0952)) < 0.001, "log_return 있으면 expm1"
+    assert out["sealed"] == ["21"], "CRPS 개선율이 숫자인 기간만"
+    assert out["footnote_once"] == 1 and out["footnote_added"] is True

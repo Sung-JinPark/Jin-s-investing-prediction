@@ -67,7 +67,7 @@ const plainTerm=value=>UI_TERMS[value]||value;
 const firstSentenceOf=text=>{const s=String(text||'');const cut=s.indexOf('다.');return cut>0&&cut+2<s.length?s.slice(0,cut+2):s;};
 function el(html){const t=document.createElement('template');t.innerHTML=html.trim();return t.content.firstChild;}
 function mount(root){
-  cleanupExperienceLayer();closeQuickPeek();
+  cleanupExperienceLayer();closeQuickPeek();const tipNode=document.getElementById('tip');if(tipNode)tipNode.style.display='none';
   root.classList.add('view-enter');app().innerHTML='';app().appendChild(root);
   requestAnimationFrame(()=>{root.classList.add('is-ready');bindDynamicMotion(root);bindExperienceLayer(root);syncQuestionActions(root);});
 }
@@ -1178,7 +1178,7 @@ function timeseriesTabsMarkup(active,enabled){
 const tsLevel=value=>Number(value||0).toLocaleString(undefined,{maximumFractionDigits:0});
 const tsPct=(value,digits=2)=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(digits)}%`;
 const TS_INPUT_LABELS={NASDAQCOM:'NASDAQ 종가',VIX:'변동성(VIX)',DGS2:'2년물 금리',DGS10:'10년물 금리',DTWEXBGS_or_DTWEXB:'달러지수',DTWEXBGS:'달러지수',DTWEXB:'달러지수(구 지수)'};
-const TS_INPUT_BUNDLE=[['nasdaq_return','일간 % · VARX 내생'],['vix_change','pt · VARX 내생'],['dgs2_change_bps','bp · VARX 내생'],['curve_change_bps','bp · VARX 내생'],['dollar_change','% · VARX 내생'],['growth_factor','DFM 요인 · 외생'],['inflation_factor','DFM 요인 · 외생']];
+const TS_INPUT_BUNDLE=[['nasdaq_return','일간 % · VARX 내생'],['vix_change','pt · VARX 내생'],['dgs2_change_bps','bp · VARX 내생'],['curve_change_bps','bp · VARX 내생'],['dollar_change','% · VARX 내생'],['growth_factor','DFM 요인 · 외생'],['inflation_factor','DFM 요인 · 외생'],['dfm_age_since_release','일 · DFM 요인 경과일 · 외생']];
 const TS_Q_COLORS={outer:'#f3d6a8',inner:'#eaaa50',median:'#11110f',up:'#28756a',warn:'#9b2c0b'};
 function tsHorizonRows(ts){
   const anchor=Number(ts.anchor?.value||0);
@@ -1230,7 +1230,8 @@ function bindTsHover(host,spec){
     if(readout)readout.textContent=detail.speak||'';
     if(tip&&event&&finePointer&&spec.tip!==false){tip.innerHTML=tsTipMarkup(detail);tsPlaceTip(tip,event);}
   };
-  const hide=()=>{if(pinned)return;if(tip)tip.style.display='none';if(spec.clear)spec.clear();stops.forEach(node=>node.removeAttribute('data-active'));};
+  const hide=()=>{if(tip)tip.style.display='none';if(pinned)return;stops.forEach(node=>node.removeAttribute('data-active'));if(spec.clear)spec.clear();};
+  const setPinned=value=>{pinned=value;if(spec.onPin)spec.onPin(pinned?current:-1);};
   const indexFromPointer=event=>{
     const rect=svg.getBoundingClientRect();if(!rect.width||!rect.height)return 0;
     const local=spec.axis==='y'?(event.clientY-rect.top)*(spec.H/rect.height):(event.clientX-rect.left)*(spec.W/rect.width);
@@ -1240,32 +1241,34 @@ function bindTsHover(host,spec){
   };
   if(svg&&overlay&&spec.positions){
     overlay.addEventListener('pointermove',event=>{if(!pinned)show(indexFromPointer(event),event);});
-    overlay.addEventListener('pointerdown',event=>{const index=indexFromPointer(event);pinned=!(pinned&&index===current);show(index,event);if(!finePointer&&tip)tip.style.display='none';});
+    overlay.addEventListener('pointerdown',event=>{const index=indexFromPointer(event);show(index,finePointer?event:null);setPinned(!(pinned&&index===current));});
+    overlay.addEventListener('pointercancel',hide);
     overlay.addEventListener('pointerleave',hide);
   }
   stops.forEach((node,index)=>{
     node.addEventListener('pointerenter',event=>{if(!pinned)show(index,event);});
     node.addEventListener('pointermove',event=>{if(!pinned&&tip&&finePointer&&spec.tip!==false&&tip.style.display==='block')tsPlaceTip(tip,event);});
     node.addEventListener('pointerleave',hide);
-    node.addEventListener('click',()=>{pinned=!(pinned&&current===index);show(index,null);if(tip)tip.style.display='none';});
+    node.addEventListener('click',()=>{show(index,null);setPinned(!(pinned&&current===index));if(tip)tip.style.display='none';});
   });
   const focusHost=svg&&svg.hasAttribute('tabindex')?svg:(host.hasAttribute('tabindex')?host:host.querySelector('[tabindex]'));
   if(focusHost){
     focusHost.addEventListener('keydown',event=>{
       const forward=event.key==='ArrowRight'||event.key==='ArrowDown',backward=event.key==='ArrowLeft'||event.key==='ArrowUp';
-      if(event.key==='Escape'){pinned=false;hide();return;}
-      if(event.key==='Enter'||event.key===' '){event.preventDefault();if(current<0)show(0,null);pinned=!pinned;return;}
+      if(event.key==='Escape'){setPinned(false);hide();return;}
+      if(event.key==='Enter'||event.key===' '){event.preventDefault();if(current<0)show(0,null);setPinned(!pinned);return;}
       if(!forward&&!backward)return;
       event.preventDefault();show(current<0?0:Math.min(count-1,Math.max(0,current+(forward?1:-1))),null);
     });
     focusHost.addEventListener('focus',()=>{if(current<0)show(0,null);});
-    focusHost.addEventListener('blur',()=>{if(!pinned)hide();});
+    focusHost.addEventListener('blur',()=>{if(!pinned){hide();current=-1;}});
   }
 }
 function tsRangeModel(ts){
   const rows=tsHorizonRows(ts),anchor=Number(ts.anchor?.value||0);
   const W=1200,H=340,padL=118,padR=64,padT=52,padB=46,plotW=W-padL-padR,plotH=H-padT-padB;
-  const lo=Math.min(0,...rows.map(r=>r.r10))-0.005,hi=Math.max(0,...rows.map(r=>r.r90))+0.005,span=Math.max(1e-6,hi-lo);
+  const rawLo=Math.min(0,...rows.map(r=>r.r10)),rawHi=Math.max(0,...rows.map(r=>r.r90)),pad=Math.max(0.012,(rawHi-rawLo)*0.14);
+  const lo=rawLo-pad,hi=rawHi+pad*0.6,span=Math.max(1e-6,hi-lo);
   const x=value=>padL+(value-lo)/span*plotW,rowH=plotH/Math.max(1,rows.length),cy=index=>padT+rowH*index+rowH/2;
   const step=span>0.4?0.1:span>0.2?0.05:span>0.08?0.02:0.01,ticks=[];
   for(let t=Math.ceil(lo/step)*step;t<=hi+1e-9;t+=step)ticks.push(Math.round(t*10000)/10000);
@@ -1302,7 +1305,7 @@ function timeseriesInputBundle(){
 }
 function tsSealedRows(ts){
   const h=ts.sealed_metrics?.horizons||{};
-  return Object.keys(h).map(Number).filter(Number.isFinite).sort((a,b)=>a-b).map(k=>{const row=h[String(k)]||{};return {h:String(k),gain:Number(row.crps_improvement_vs_best),cover:row.coverage_p10_p90==null?null:Number(row.coverage_p10_p90)};}).filter(r=>Number.isFinite(r.gain));
+  return Object.keys(h).map(Number).filter(Number.isFinite).sort((a,b)=>a-b).map(k=>{const row=h[String(k)]||{};return {h:String(k),gain:row.crps_improvement_vs_best==null?NaN:Number(row.crps_improvement_vs_best),cover:row.coverage_p10_p90==null?null:Number(row.coverage_p10_p90)};}).filter(r=>Number.isFinite(r.gain));
 }
 function tsSkillModel(rows){
   const W=960,H=280,padL=76,padR=30,padT=40,padB=54,plotW=W-padL-padR,plotH=H-padT-padB;
@@ -1331,7 +1334,7 @@ function timeseriesCoverageSvg(rows){
     +ticks.map(t=>`<line class="ts-grid" x1="${m.x(t).toFixed(1)}" x2="${m.x(t).toFixed(1)}" y1="${m.padT}" y2="${(m.padT+m.plotH).toFixed(1)}"></line><text class="ts-axis-text" x="${m.x(t).toFixed(1)}" y="${m.H-14}" text-anchor="middle">${Math.round(t*100)}%</text>`).join('')
     +`<line class="ts-target-line" x1="${m.x(m.target).toFixed(1)}" x2="${m.x(m.target).toFixed(1)}" y1="${(m.padT-8).toFixed(1)}" y2="${(m.padT+m.plotH).toFixed(1)}"></line><text class="ts-axis-title" x="${m.x(m.target).toFixed(1)}" y="${(m.padT-16).toFixed(1)}" text-anchor="middle">설계 목표 80% (p10–p90)</text>`
     +`<text class="ts-axis-text" x="${(m.x(m.target)-10).toFixed(1)}" y="${(m.padT+14).toFixed(1)}" text-anchor="end">← 과신 (실제보다 좁음)</text><text class="ts-axis-text" x="${(m.x(m.target)+10).toFixed(1)}" y="${(m.padT+14).toFixed(1)}">보수적 (실제보다 넓음) →</text>`
-    +m.data.map((r,i)=>{const dev=(r.cover-m.target)*100,off=Math.abs(dev)>3;return `<text class="ts-range-label" x="${(m.padL-14).toFixed(1)}" y="${(m.cy(i)+5).toFixed(1)}" text-anchor="end">${r.h}거래일</text><line class="ts-grid" x1="${m.padL}" x2="${m.x(r.cover).toFixed(1)}" y1="${m.cy(i).toFixed(1)}" y2="${m.cy(i).toFixed(1)}"></line><circle class="ts-dot${off?' off':''}" cx="${m.x(r.cover).toFixed(1)}" cy="${m.cy(i).toFixed(1)}" r="8"></circle><text class="ts-range-value" x="${(m.x(r.cover)+14).toFixed(1)}" y="${(m.cy(i)+4).toFixed(1)}">${(r.cover*100).toFixed(1)}% (${dev>=0?'+':''}${dev.toFixed(1)}pp)</text>`;}).join('')
+    +m.data.map((r,i)=>{const dev=(r.cover-m.target)*100;return `<text class="ts-range-label" x="${(m.padL-14).toFixed(1)}" y="${(m.cy(i)+5).toFixed(1)}" text-anchor="end">${r.h}거래일</text><line class="ts-grid" x1="${m.padL}" x2="${m.x(r.cover).toFixed(1)}" y1="${m.cy(i).toFixed(1)}" y2="${m.cy(i).toFixed(1)}"></line><circle class="ts-dot" cx="${m.x(r.cover).toFixed(1)}" cy="${m.cy(i).toFixed(1)}" r="8"></circle><text class="ts-range-value" x="${(m.x(r.cover)+14).toFixed(1)}" y="${(m.cy(i)+4).toFixed(1)}">${(r.cover*100).toFixed(1)}% (${dev>=0?'+':''}${dev.toFixed(1)}pp)</text>`;}).join('')
     +`${tsHoverLayer(m.padL,m.padT,m.plotW,m.plotH,{rowhl:true})}</svg>${tsReadout()}</div>`;
 }
 function timeseriesSealedKpis(ts,rows){
@@ -1348,29 +1351,31 @@ function tsFootnote(ts){
 function bindTimeseriesV8Interactions(root,ts){
   const rows=tsHorizonRows(ts),asOf=ts.as_of,byH=Object.fromEntries(rows.map(r=>[r.h,r]));
   const cards=root.querySelector('[data-ts-chart="cards"]');
-  if(cards){const items=[...cards.querySelectorAll('article')];bindTsHover(cards,{stopEls:items,describe:i=>tsDescribeHorizon(rows[i],asOf)});}
+  if(cards){const items=[...cards.querySelectorAll('article')],keys=['1','5','21','63'];bindTsHover(cards,{stopEls:items,describe:i=>tsDescribeHorizon(byH[keys[i]],asOf)});}
   const range=root.querySelector('[data-ts-chart="range"]');
   if(range&&range.querySelector('svg')){const m=tsRangeModel(ts),rowhl=range.querySelector('.ts-rowhl');
     bindTsHover(range,{W:m.W,H:m.H,axis:'y',positions:m.rows.map((_,i)=>m.cy(i)),describe:i=>tsDescribeHorizon(m.rows[i],asOf),
       paint:i=>{if(!rowhl)return;rowhl.setAttribute('y',(m.cy(i)-m.rowH/2).toFixed(1));rowhl.setAttribute('height',m.rowH.toFixed(1));rowhl.setAttribute('opacity','1');},
       clear:()=>{if(rowhl)rowhl.setAttribute('opacity','0');}});}
   const band=root.querySelector('[data-ts-chart="band"]'),ladder=root.querySelector('[data-ts-chart="ladder"]');
+  let pinnedH=null;
   const setNode=h=>{if(!band)return;band.querySelectorAll('[data-ts-node]').forEach(node=>node.toggleAttribute('data-active',h!=null&&node.dataset.tsNode===String(h)));};
   const setRow=h=>{if(!ladder)return;ladder.querySelectorAll('tr[data-ts-h]').forEach(tr=>tr.toggleAttribute('data-active',h!=null&&tr.dataset.tsH===String(h)));};
   if(band&&band.querySelector('svg')){const m=tsBandModel(ts);
     if(m){const cross=band.querySelector('.ts-cross'),dot=band.querySelector('.ts-hover-dot');
-      const stops=[...m.hIdx.map((value,i)=>({x:m.histX(i),y:m.y(value),kind:'history',i})),{x:m.foreX(0),y:m.y(m.anchor),kind:'anchor'},...m.nodes.map(n=>({x:m.foreX(n.h),y:m.y(n.row.median_index),kind:'node',h:String(n.h)}))];
+      const lastIndex=m.hIdx.length-1;
+      const stops=[...m.hIdx.map((value,i)=>({x:m.histX(i),y:m.y(value),kind:'history',i})),...m.nodes.map(n=>({x:m.foreX(n.h),y:m.y(n.row.median_index),kind:'node',h:String(n.h)}))];
       bindTsHover(band,{W:m.W,H:m.H,axis:'x',positions:stops.map(s=>s.x),
         describe:i=>{const s=stops[i];
-          if(s.kind==='history')return {head:`${m.hDates[s.i]||''} · 실제 기록`,rows:[{color:TS_Q_COLORS.median,name:'NASDAQ 종가',value:tsLevel(m.hIdx[s.i])}],speak:`${m.hDates[s.i]||''} 실제 종가 ${tsLevel(m.hIdx[s.i])}`};
-          if(s.kind==='anchor')return {head:`${asOf||''} 종가 · 예측 원점`,rows:[{color:TS_Q_COLORS.median,name:'원점 종가',value:tsLevel(m.anchor)}],speak:`예측 원점 ${asOf||''} 종가 ${tsLevel(m.anchor)}`};
+          if(s.kind==='history'){const origin=s.i===lastIndex;return {head:`${m.hDates[s.i]||''} · ${origin?'실제 종가 · 예측 원점':'실제 기록'}`,rows:[{color:TS_Q_COLORS.median,name:origin?'원점 종가':'NASDAQ 종가',value:tsLevel(m.hIdx[s.i])}],speak:`${m.hDates[s.i]||''} ${origin?'예측 원점 종가':'실제 종가'} ${tsLevel(m.hIdx[s.i])}`};}
           return tsDescribeHorizon(byH[s.h],asOf);},
         paint:i=>{const s=stops[i];
           if(cross){cross.setAttribute('x1',s.x.toFixed(1));cross.setAttribute('x2',s.x.toFixed(1));cross.setAttribute('opacity','1');}
           if(dot){dot.setAttribute('cx',s.x.toFixed(1));dot.setAttribute('cy',s.y.toFixed(1));dot.setAttribute('opacity','1');}
           setNode(s.kind==='node'?s.h:null);setRow(s.kind==='node'?s.h:null);},
-        clear:()=>{if(cross)cross.setAttribute('opacity','0');if(dot)dot.setAttribute('opacity','0');setNode(null);setRow(null);}});}}
-  if(ladder){const trs=[...ladder.querySelectorAll('tr[data-ts-h]')];bindTsHover(ladder,{stopEls:trs,tip:false,describe:i=>tsDescribeHorizon(byH[trs[i].dataset.tsH],asOf),paint:i=>setNode(trs[i].dataset.tsH),clear:()=>setNode(null)});}
+        clear:()=>{if(cross)cross.setAttribute('opacity','0');if(dot)dot.setAttribute('opacity','0');setNode(pinnedH);setRow(pinnedH);},
+        onPin:i=>{const s=i>=0?stops[i]:null;pinnedH=s&&s.kind==='node'?s.h:null;}});}}
+  if(ladder){const trs=[...ladder.querySelectorAll('tr[data-ts-h]')];bindTsHover(ladder,{stopEls:trs,tip:false,describe:i=>tsDescribeHorizon(byH[trs[i].dataset.tsH],asOf),paint:i=>setNode(trs[i].dataset.tsH),clear:()=>{setNode(pinnedH);setRow(pinnedH);},onPin:i=>{pinnedH=i>=0?trs[i].dataset.tsH:null;}});}
   const fresh=root.querySelector('[data-ts-chart="fresh"]');
   if(fresh){const items=[...fresh.querySelectorAll('li')],list=ts.freshness_summary||[];
     bindTsHover(fresh,{stopEls:items,describe:i=>{const row=list[i]||{},label=TS_INPUT_LABELS[row.group]||row.group||'',ok=String(row.status||'')==='fresh',age=Math.round(Number(row.age_hours||0)),limit=Math.round(Number(row.limit_hours||0));
@@ -1509,7 +1514,7 @@ function renderTimeseriesV8(ts,initialState){
   const pathPanel=`<div class="ts-panel"><section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 실적과 분위수 대역</h2></div><p>과거 1/4 · 전망 3/4 · ◦=실측 노드 · 마우스를 올리면 값</p></header>${timeseriesV8BandSvg(ts)}${timeseriesLadderTable(ts)}</section></div>`;
   const driversPanel=`<div class="ts-panel"><p class="ts-lead"><b>기여도(가중치×변화)가 아닙니다.</b> 봉인 모델은 요인 기여도를 산출하지 않으므로, 이 화면은 모델이 무엇을 입력으로 보고 그 입력이 얼마나 신선한지만 보여줍니다.</p>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>입력 신호 신선도</h2><span>운영 신선도 게이트 입력 · 경과시간/한도</span></div>${timeseriesFreshnessList(ts)}</section>`
-    +`<section class="ts-card"><div class="admin-card-head"><h2>모델이 함께 보는 입력 요인</h2><span>계약 고정 · 재학습 없음 · 값·부호 표시 없음</span></div>${timeseriesInputBundle()}</section></div>`;
+    +`<section class="ts-card"><div class="admin-card-head"><h2>모델이 함께 보는 입력 요인</h2><span>계약 그리드 고정 · 원점마다 그리드 안에서 재추정 · 값·부호 표시 없음</span></div>${timeseriesInputBundle()}</section></div>`;
   const backtestPanel=`<div class="ts-panel"><p class="ts-lead"><b>단 1회 공개된 봉인 평가</b>${sealed.run_id?` (run ${esc(String(sealed.run_id))})`:''} — 재조정 불가. 과거 원점마다 예측을 내고 실제와 비교한 워크포워드 성적입니다.</p>`
     +timeseriesSealedKpis(ts,sealedRows)+tsReadout()
     +`<section class="ts-card"><div class="admin-card-head"><h2>기준선 대비 CRPS 개선율</h2><span>0 = 최선 기준선과 동일 · 위쪽이 개선</span></div>${timeseriesSkillBarsSvg(sealedRows)}</section>`
@@ -1520,6 +1525,7 @@ function renderTimeseriesV8(ts,initialState){
   const tabs=$('.timeseries-tabs',root);
   const activateTs=(key,sync)=>{
     const next=enabled.includes(key)?key:'summary';
+    const tipNode=document.getElementById('tip');if(tipNode)tipNode.style.display='none';
     TS_TABS.forEach(([name])=>{const node=$(`#lab-ts-${name}`,root);if(node)node.hidden=name!==next;});
     tabs.querySelectorAll('[data-ts-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.tsTab===next)));
     if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);
@@ -1558,6 +1564,7 @@ function renderTimeseries(initialState){
   const tabs=$('.timeseries-tabs',root);
   const activateTs=(key,sync)=>{
     const next=enabled.includes(key)?key:'summary';
+    const tipNode=document.getElementById('tip');if(tipNode)tipNode.style.display='none';
     TS_TABS.forEach(([name])=>{const node=$(`#lab-ts-${name}`,root);if(node)node.hidden=name!==next;});
     tabs.querySelectorAll('[data-ts-tab]').forEach(button=>button.setAttribute('aria-selected',String(button.dataset.tsTab===next)));
     if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);
