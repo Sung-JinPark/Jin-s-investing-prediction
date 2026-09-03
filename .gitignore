@@ -44,3 +44,4 @@ Thumbs.db
 
 # 관리자 전용 방문 통계 (로컬 전용 — 공개 저장소에 커밋 금지)
 /outputs/admin/
+outputs/timeseries_v10/loop/lock/
