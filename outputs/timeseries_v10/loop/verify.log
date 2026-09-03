@@ -6,3 +6,43 @@
   "best_dual_improvement": 0.0,
   "champion": null
 }
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_regime_width_v10",
+  "experiments": 12,
+  "best_dual_improvement": 0.006369348077880995,
+  "champion": "V10_W3_gamma_m010"
+}
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_regime_width_v10",
+  "experiments": 12,
+  "best_dual_improvement": 0.006369348077880995,
+  "champion": "V10_W3_gamma_m010"
+}
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_regime_width_v10",
+  "experiments": 12,
+  "best_dual_improvement": 0.006369348077880995,
+  "champion": "V10_W3_gamma_m010"
+}
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_regime_width_v10",
+  "experiments": 12,
+  "best_dual_improvement": 0.006369348077880995,
+  "champion": "V10_W3_gamma_m010"
+}
+{
+  "ok": true,
+  "errors": [],
+  "model_id": "shadow.mf_dfm_varx_regime_width_v10",
+  "experiments": 12,
+  "best_dual_improvement": 0.006369348077880995,
+  "champion": "V10_W3_gamma_m010"
+}

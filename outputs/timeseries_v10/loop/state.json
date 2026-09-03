@@ -1,6 +1,6 @@
 {
- "cycle": 24,
- "mode": "SHADOW",
- "note": "monitor done",
- "ts": "2026-09-03T12:56:43.244130"
+ "cycle": 30,
+ "mode": "SHUTDOWN",
+ "note": "clean exit after 18 cycles",
+ "ts": "2026-09-03T15:27:52.448401"
 }
