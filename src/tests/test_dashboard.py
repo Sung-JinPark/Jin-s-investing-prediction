@@ -1652,7 +1652,7 @@ def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
     """UI/UX 설계 260902 PR-U1/U2/U3 — 마크업 계약."""
     html = dashboard.load_template()
     v8 = html[html.index("function timeseriesV8BandSvg"):html.index("const VIEWS")]
-    assert "const enabled=['summary','path']" in v8, "v8 path 탭 활성"
+    assert "const enabled=['summary','path','drivers','backtest']" in v8, "v8 4탭 활성 (재설계 260903: 입력 신선도·봉인 지표로 채움)"
     assert "봉인 평가 PASS" in v8 and "운영 신선도 OK" in v8, "게이트 위젯"
     assert "선형 보간(참고용)" in v8, "보간 정직성 캡션"
     assert "ts-node-dot" in v8, "실측 노드 마커"
