@@ -35,13 +35,18 @@ def _sha256(path: Path) -> str:
 
 
 def sealed_hash() -> str:
-    """`sha256sum` 라인(해시 + 두 칸 + POSIX 상대경로) 정렬 후 재해시."""
+    """`sha256sum` 라인 정렬 후 재해시.
+
+    구분자는 ``" *"`` — Git Bash(MSYS2) 의 sha256sum 은 Windows 에서 **바이너리 모드가
+    기본**이라 `hash *path` 로 출력한다. POSIX 텍스트모드(`hash  path`)로 재현하면
+    정본 e3ff2fdb… 가 아니라 f1108f52… 가 나온다 (S1-1 실측, tools/v12_seal_debug.py).
+    """
     lines = []
     for path in sorted((ROOT / "src/ai_fc/timeseries_v8").rglob("*.py")):
         rel = path.relative_to(ROOT).as_posix()
-        lines.append(f"{_sha256(path)}  {rel}\n")
+        lines.append(f"{_sha256(path)} *{rel}\n")
     for rel in V2_SEALED:
-        lines.append(f"{_sha256(ROOT / rel)}  {rel}\n")
+        lines.append(f"{_sha256(ROOT / rel)} *{rel}\n")
     lines.sort()
     return hashlib.sha256("".join(lines).encode()).hexdigest()
 

@@ -34,7 +34,7 @@ import json
 import math
 import statistics
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any, Sequence
 
 import numpy as np
 
@@ -186,6 +186,13 @@ def _norm_crps_unit(z: float) -> float:
     return z * (2.0 * _NORM.cdf(z) - 1.0) + 2.0 * _NORM.pdf(z) - _INV_SQRT_PI
 
 
+def _norm_crps_unit_vec(z: np.ndarray) -> np.ndarray:
+    """``_norm_crps_unit`` 의 벡터판 (순열 귀무 1000회용). scalar 판과 1e-12 이내 일치 검증."""
+    from scipy.special import ndtr  # noqa: PLC0415 — 벡터 경로에서만 필요
+    pdf = np.exp(-0.5 * z * z) / math.sqrt(2.0 * math.pi)
+    return z * (2.0 * ndtr(z) - 1.0) + 2.0 * pdf - _INV_SQRT_PI
+
+
 def _load_v11_frame(horizon: int) -> dict[str, list]:
     path = ROOT / "data/timeseries_v11/diagnostics/aligned_origin_frame.json"
     frame = json.loads(path.read_text(encoding="utf-8"))
@@ -212,6 +219,49 @@ def _v11_calm_rows(horizon: int, calm_pct: float = 80.0) -> list[dict[str, float
     return rows
 
 
+def _v11_arrays(horizon: int) -> dict[str, Any]:
+    """``_v11_calm_rows`` 를 열 배열로 — 관측·순열 귀무가 같은 코드를 쓰게 한다."""
+    rows = _v11_calm_rows(horizon)
+    return {
+        "date": [str(r["date"]) for r in rows],
+        "sigma": np.array([r["sigma"] for r in rows], dtype=float),
+        "raw_err": np.array([r["raw_err"] for r in rows], dtype=float),
+        "crps": np.array([r["crps"] for r in rows], dtype=float),
+        "p1": np.array([r["p1"] for r in rows], dtype=float),
+    }
+
+
+def _fit_shifts(p1_train: np.ndarray, err_train: np.ndarray,
+                p1_test: np.ndarray, variant: str) -> tuple[np.ndarray, float, float]:
+    """학습창에서 median 이동 맵을 적합해 검정창 shift 를 낸다. → (shifts, 절편, 기울기)."""
+    a, b = _ols(p1_train, err_train)
+    if variant == "p1_linear":                     # 변형1 — 렌즈3 명세 그대로
+        shifts = a + b * p1_test
+    elif variant == "low_mom_tertile":             # 변형2 — 저모멘텀 tertile 조건부 상수 이동
+        cut = float(np.percentile(p1_train, 100.0 / 3.0))
+        low = err_train[p1_train <= cut]
+        shift = float(low.mean()) if low.size else 0.0
+        shifts = np.where(p1_test <= cut, shift, 0.0)
+    elif variant == "constant_placebo":            # 플라시보 — 학습창 raw_err 평균 이동(P1 정보 없음)
+        # 렌즈3 원본의 '상수 recenter'와 동일 정의(OLS 절편 a 가 아니라 평균).
+        # a 를 쓰면 b·x̄ 만큼 어긋나 원본 +0.71% 대신 +0.738% 가 나온다.
+        shifts = np.full(p1_test.shape, float(err_train.mean()), dtype=float)
+    else:
+        raise ValueError(variant)
+    return shifts, a, b
+
+
+def _cell_improvements(arrays: dict[str, Any], train_idx: np.ndarray, test_idx: np.ndarray,
+                       variant: str, p1: np.ndarray | None = None) -> tuple[np.ndarray, float, float]:
+    """origin별 개선량 d_i = crps_base_i − crps_after_i (양수 = 개선). → (d, 절편, 기울기)."""
+    p1 = arrays["p1"] if p1 is None else p1
+    shifts, a, b = _fit_shifts(p1[train_idx], arrays["raw_err"][train_idx],
+                               p1[test_idx], variant)
+    sigma, raw_err = arrays["sigma"][test_idx], arrays["raw_err"][test_idx]
+    after = sigma * _norm_crps_unit_vec((raw_err - shifts) / sigma)
+    return arrays["crps"][test_idx] - after, a, b
+
+
 def _ols(x: Sequence[float], y: Sequence[float]) -> tuple[float, float]:
     """절편 포함 단순 OLS → (a, b). 분산 0이면 (mean(y), 0)."""
     xa, ya = np.asarray(x, dtype=float), np.asarray(y, dtype=float)
@@ -222,82 +272,132 @@ def _ols(x: Sequence[float], y: Sequence[float]) -> tuple[float, float]:
     return float(ya.mean() - b * xa.mean()), b
 
 
-def _crps_after_shift(rows: Iterable[dict], shifts: Sequence[float]) -> float:
-    """median 이동만 반영한 CRPS 평균. σ 불변, z' = (raw_err − shift)/σ."""
-    total = [
-        row["sigma"] * _norm_crps_unit((row["raw_err"] - shift) / row["sigma"])
-        for row, shift in zip(rows, shifts)
-    ]
-    return float(np.mean(total))
+def _transfer_once(arrays: dict[str, Any], train_idx: np.ndarray, test_idx: np.ndarray,
+                   variant: str) -> dict[str, Any]:
+    """한 셀(지평×경계×변형×방향)의 전이 결과 + 블록부트 CI90.
 
-
-def _transfer_once(train: list[dict], test: list[dict], variant: str) -> dict[str, Any]:
-    base = float(np.mean([r["crps"] for r in test]))
-    a, b = _ols([r["p1"] for r in train], [r["raw_err"] for r in train])
-
-    if variant == "p1_linear":                         # 변형1 — 렌즈3 명세 그대로
-        shifts = [a + b * r["p1"] for r in test]
-    elif variant == "low_mom_tertile":                 # 변형2 — 저모멘텀 tertile 조건부 상수 이동
-        cut = float(np.percentile([r["p1"] for r in train], 100.0 / 3.0))
-        low = [r["raw_err"] for r in train if r["p1"] <= cut]
-        shift = float(np.mean(low)) if low else 0.0
-        shifts = [shift if r["p1"] <= cut else 0.0 for r in test]
-    elif variant == "constant_placebo":                # 플라시보 — 절편만
-        shifts = [a for _ in test]
-    else:
-        raise ValueError(variant)
-
-    after = _crps_after_shift(test, shifts)
-    corr = (float(np.corrcoef([r["p1"] for r in train], [r["raw_err"] for r in train])[0, 1])
-            if len(train) > 2 else None)
+    개선량 d_i 는 origin 쌍대 차이이므로 V10/V9 와 **같은** 부트스트랩(ℓ=13·B=2000·seed 20260902)을
+    쓴다. 채택 기준(설계 §2)은 양방향 모두 CI90 하한 > 0.
+    """
+    d, a, b = _cell_improvements(arrays, train_idx, test_idx, variant)
+    base = float(arrays["crps"][test_idx].mean())
+    after = base - float(d.mean())
+    ci = dual_ci90(d)
+    train_p1, train_err = arrays["p1"][train_idx], arrays["raw_err"][train_idx]
+    corr = float(np.corrcoef(train_p1, train_err)[0, 1]) if train_idx.size > 2 else None
     return {
         "variant": variant,
-        "train_n": len(train), "test_n": len(test),
+        "train_n": int(train_idx.size), "test_n": int(test_idx.size),
         "fit_intercept": a, "fit_slope": b, "train_corr_p1_rawerr": corr,
         "crps_base": base, "crps_after": after,
         "crps_delta": after - base,
         "crps_relative_change": (after - base) / base if base else None,
         # 양수 = 악화. 전이 성공은 음수(개선)여야 한다.
         "improved": after < base,
+        "improvement_mean": float(d.mean()),
+        "improvement_ci90": [ci["ci90_lower"], ci["ci90_upper"]],
+        "improvement_ci90_lower_positive": ci["ci90_lower"] > 0,
+        "bootstrap_se": ci["bootstrap_se"],
     }
+
+
+def _v11_null_pass_count(arrays_by_h: dict[int, dict[str, Any]], boundaries: Sequence[str],
+                         variants: Sequence[str], p1_by_h: dict[int, np.ndarray]) -> int:
+    """주어진 p1 배치에서 '양방향 부호 개선' 조합 수 — 관측 통계량과 동일 정의."""
+    passes = 0
+    for horizon, arrays in arrays_by_h.items():
+        dates = arrays["date"]
+        for boundary in boundaries:
+            first = np.array([i for i, d in enumerate(dates) if d <= boundary])
+            second = np.array([i for i, d in enumerate(dates) if d > boundary])
+            if min(first.size, second.size) < 30:
+                continue
+            for variant in variants:
+                ok = all(
+                    _cell_improvements(arrays, tr, te, variant, p1=p1_by_h[horizon])[0].mean() > 0
+                    for tr, te in ((first, second), (second, first))
+                )
+                passes += int(ok)
+    return passes
 
 
 def recompute_v11(horizons: Sequence[int] = (21, 63),
                   boundaries: Sequence[str] = ("2009-12-31", "2010-12-31", "2011-12-31"),
                   variants: Sequence[str] = ("p1_linear", "low_mom_tertile", "constant_placebo"),
+                  permutations: int = 1000, perm_seed: int = 20260904,
                   ) -> dict[str, Any]:
-    """3 split(경계 ±1y) × 변형 × 양방향 전이. 경계 중앙값이 캠페인 정본(2007-10 / 2011-14)."""
+    """3 split(경계 ±1y) × 변형 × 양방향 전이 + CI90 + 순열 귀무.
+
+    경계 중앙값이 캠페인 정본(2007-10 / 2011-14). 순열 귀무는 p1 을 섞어 **P1 정보만** 파괴한다
+    (절편·분산 구조는 보존) — 즉 "상수 recenter 를 넘는 P1 전이력이 있는가"의 귀무.
+    """
+    canonical_variants = tuple(v for v in variants if v != "constant_placebo")
+    arrays_by_h = {h: _v11_arrays(h) for h in horizons}
     out: dict[str, Any] = {"boundaries": list(boundaries), "results": []}
+
+    # 벡터 CRPS 가 scalar 정본과 같은지 자체 검증 (렌즈3 재현 보증)
+    grid = np.linspace(-4.0, 4.0, 401)
+    out["crps_vec_vs_scalar_max_abs_diff"] = float(
+        np.max(np.abs(_norm_crps_unit_vec(grid) - np.array([_norm_crps_unit(z) for z in grid]))))
+
     for horizon in horizons:
-        rows = _v11_calm_rows(horizon)
+        arrays = arrays_by_h[horizon]
+        dates = arrays["date"]
         for boundary in boundaries:
-            first = [r for r in rows if r["date"] <= boundary]
-            second = [r for r in rows if r["date"] > boundary]
-            if min(len(first), len(second)) < 30:
+            first = np.array([i for i, d in enumerate(dates) if d <= boundary])
+            second = np.array([i for i, d in enumerate(dates) if d > boundary])
+            if min(first.size, second.size) < 30:
                 out["results"].append({"horizon": horizon, "boundary": boundary,
                                        "skipped": "sub-window < 30 origins"})
                 continue
             for variant in variants:
                 for direction, (train, test) in (("forward", (first, second)),
                                                  ("reverse", (second, first))):
-                    record = _transfer_once(train, test, variant)
+                    record = _transfer_once(arrays, train, test, variant)
                     record.update({"horizon": horizon, "boundary": boundary,
                                    "direction": direction})
                     out["results"].append(record)
 
     canonical = [r for r in out["results"]
-                 if r.get("variant") in ("p1_linear", "low_mom_tertile") and "improved" in r]
+                 if r.get("variant") in canonical_variants and "improved" in r]
+
+    def _cells(h: int, bd: str, v: str) -> list[dict[str, Any]]:
+        return [r for r in canonical
+                if r["horizon"] == h and r["boundary"] == bd and r["variant"] == v]
+
+    combos = [(h, bd, v) for h in horizons for bd in boundaries for v in canonical_variants]
+    both_sign = [{"horizon": h, "boundary": bd, "variant": v} for h, bd, v in combos
+                 if _cells(h, bd, v) and all(r["improved"] for r in _cells(h, bd, v))]
+    both_ci = [{"horizon": h, "boundary": bd, "variant": v,
+                "ci90_lowers": [r["improvement_ci90"][0] for r in _cells(h, bd, v)]}
+               for h, bd, v in combos
+               if _cells(h, bd, v)
+               and all(r["improvement_ci90_lower_positive"] for r in _cells(h, bd, v))]
+
+    # 순열 귀무: p1 을 지평별로 섞어 관측 통계량(양방향 부호 개선 조합 수) 분포를 만든다.
+    rng = np.random.default_rng(perm_seed)
+    null_counts = [
+        _v11_null_pass_count(arrays_by_h, boundaries, canonical_variants,
+                             {h: rng.permutation(arrays_by_h[h]["p1"]) for h in horizons})
+        for _ in range(permutations)
+    ]
+    observed = len(both_sign)
+    null_arr = np.array(null_counts)
+
     out["summary"] = {
         "cells": len(canonical),
         "cells_improved": sum(1 for r in canonical if r["improved"]),
-        "both_directions_improved": [
-            {"horizon": h, "boundary": bd, "variant": v}
-            for h in horizons for bd in boundaries for v in ("p1_linear", "low_mom_tertile")
-            if all(r["improved"] for r in canonical
-                   if r["horizon"] == h and r["boundary"] == bd and r["variant"] == v)
-            and any(r["horizon"] == h and r["boundary"] == bd and r["variant"] == v
-                    for r in canonical)
-        ],
+        "both_directions_improved": both_sign,
+        "both_directions_ci90_positive": both_ci,
+        "combos_tested": len(combos),
+        "permutation_null": {
+            "replicates": permutations, "seed": perm_seed,
+            "statistic": "양방향 부호 개선 조합 수 (12 조합 중)",
+            "observed": observed,
+            "null_mean": float(null_arr.mean()),
+            "null_p_ge_observed": float((null_arr >= observed).mean()),
+            "null_quantiles": {q: float(np.percentile(null_arr, q)) for q in (50, 90, 95, 99)},
+        },
     }
     return out
 
@@ -346,6 +446,57 @@ def recompute_v9() -> dict[str, Any]:
 
 # --------------------------------------------------------------------------- main
 
+# --------------------------------------------------------------------------- 판정 규칙
+
+def _verdicts(payload: dict[str, Any]) -> dict[str, Any]:
+    """동결 유지/번복을 **사전 규칙**으로 판정한다 (서술이 아니라 술어).
+
+    번복(overturn) = 동결 근거가 재계산에서 무너지는 경우. 각 트랙의 규칙은 그 트랙이
+    동결될 때 쓰인 기준을 그대로 뒤집어 적용한다 — 사후 기준 신설 없음.
+    """
+    out: dict[str, Any] = {}
+
+    if "v10" in payload:
+        v10 = payload["v10"]
+        t = v10["top5pct_removal"]
+        flips = t["mean_after_removal"] < 0
+        calm_mean = v10["gfc_canonical"]["mean_excluding_window"]
+        calm_below_mde = calm_mean is not None and calm_mean < v10["mde50"]
+        out["v10"] = {
+            "criterion": "동결 유지 = 상위5% 원점 제거 시 부호반전 AND GFC 창 제외 평균 Δ < mde50 "
+                         "(즉 이득이 위기원점에 국소적)",
+            "sign_flips_on_top5pct_removal": flips,
+            "calm_mean_below_mde50": bool(calm_below_mde),
+            "calm_mean": calm_mean, "mde50": v10["mde50"],
+            "verdict": "유지" if (flips and calm_below_mde) else "번복",
+        }
+
+    if "v11" in payload:
+        s = payload["v11"]["summary"]
+        adopted = s["both_directions_ci90_positive"]
+        null_p = s["permutation_null"]["null_p_ge_observed"]
+        out["v11"] = {
+            "criterion": "동결 번복 = 설계 §2 채택 규칙(양방향 CI90 하한 > 0) 충족 조합 ≥1 "
+                         "AND 순열 귀무 p ≤ 0.05",
+            "combos_meeting_adoption_rule": len(adopted),
+            "sign_only_both_direction_combos": len(s["both_directions_improved"]),
+            "permutation_null_p": null_p,
+            "verdict": "번복" if (adopted and null_p <= 0.05) else "유지",
+        }
+
+    if "v9" in payload:
+        helped = [r["experiment"] for r in payload["v9"]["pairs"]
+                  if r["paired_mean_delta"] > 0 and r["ci90"][0] > 0]
+        out["v9"] = {
+            "criterion": "동결 번복 = 쌍대 평균 Δ > 0 이고 CI90 하한 > 0 인 exog 실험 ≥1",
+            "experiments_with_positive_ci90": helped,
+            "max_abs_mean_delta": payload["v9"]["max_abs_mean_delta"],
+            "verdict": "번복" if helped else "유지",
+        }
+
+    return out
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="S1-1 세 동결 독립 재계산 (읽기 전용)")
     parser.add_argument("--out", default="docs/review/verdict_recompute.json")
@@ -374,6 +525,7 @@ def main() -> int:
         payload["v11"] = recompute_v11()
     if "v9" in wanted:
         payload["v9"] = recompute_v9()
+    payload["verdicts"] = _verdicts(payload)
 
     out_path = ROOT / args.out
     out_path.parent.mkdir(parents=True, exist_ok=True)
