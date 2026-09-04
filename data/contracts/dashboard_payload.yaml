@@ -3,8 +3,11 @@ contract_id: dashboard_payload_split_v1
 status: active
 
 budgets:
-  embed_html_max_bytes: 921600
-  embed_html_max_kib: 900
+  # ADR-002(2026-08-31)로 코드 상수는 1536 KiB로 올렸는데 계약 선언만 900 KiB에
+  # 머물러 있었다(실제 산출물 1,025,465 B는 이미 옛 선언을 넘김). 선언을 실측·코드와 맞춘다.
+  embed_html_max_bytes: 1572864
+  embed_html_max_kib: 1536
+  data_json_max_bytes: 900000
   future_paths_json_max_bytes: 240000
 
 future_paths:

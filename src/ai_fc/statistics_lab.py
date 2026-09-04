@@ -2071,9 +2071,10 @@ def build_statistics_lab(
              [_series("닷컴 반도체시설", "dotcom", dot_fab, "#8d2943"), _series("닷컴 전력", "dotcom", dot_power, "#d47f52"), _series("닷컴 통신", "dotcom", dot_comm, "#b58b2a"), _series("현재 반도체시설", "current", cur_fab, "#28756a"), _series("현재 전력", "current", cur_power, "#4aa18d"), _series("현재 통신", "current", cur_comm, "#11110f")],
              ["C30_MFG_COMPUTER_ELECTRONIC", "C30_POWER", "C30_COMMUNICATION"], "*미국 민간 건설 기준",
              "설비가 실제로 지어지는 속도를 봅니다. 컴퓨터·전자 제조시설, 전력, 통신 세 축을 같은 시작점에서 비교합니다."),
-        make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
+        make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "mixed_percent_and_diffusion",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
-             ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
+             ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 주택착공 · 필라델피아 연준 관할(제3연준구) 제조업 서베이",
+             "주택착공 증가율(%)과 제조업 확산지수(0 중심 지수)가 함께 약해지면 경기 냉각 신호가 강해집니다. 두 계열은 단위가 다릅니다."),
         make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행 (GDP 대비 %)", "credit", "percent_of_gdp",
              [_series("닷컴 잔액(GDP %)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(GDP %)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(GDP %)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(GDP %)", "current", cur_bond_flow, "#4aa18d")],
              ["FL103163005", "FA103163005", "GDP"], "*미국 비금융기업 기준",
@@ -2224,7 +2225,12 @@ def build_statistics_lab(
             "경고 참고이지 기계적 매매 신호가 아닙니다."
         ),
         "korea_semiconductor_cycle": (
-            "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
+            "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다. "
+            "OECD 월간 집계라 미국 반도체 지수보다 갱신이 늦습니다."
+        ),
+        "structures_buildout": (
+            "각 시대 시작=100의 명목 건설지출 지수로, 시대별 건설비 물가 차이는 "
+            "보정하지 않았습니다."
         ),
         "liquidity_position_map": (
             "지표별 기준일이 다릅니다(시장 지표는 최근 일자, 연준 Z.1 잔액은 "
@@ -2303,6 +2309,13 @@ def build_statistics_lab(
     top_direction_label, top_direction = max(
         changes.items(), key=lambda item: float(item[1]),
     )
+    # 지역 서베이 단월값은 변동이 커서 부호 하나로 국면을 단정할 수 없다.
+    philly_recent = [float(row["value"]) for row in cur_philly[-3:]]
+    manufacturing_trend = sum(philly_recent) / len(philly_recent) if philly_recent else 0.0
+    philly_all = sorted(float(row["value"]) for row in cur_philly)
+    manufacturing_extreme = bool(
+        philly_all and endpoint(cur_philly) >= philly_all[int(len(philly_all) * 0.9)]
+    )
     mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
     curve_now = endpoint(cur_curve)
     curve3m_now = endpoint(cur_curve3m)
@@ -2320,10 +2333,10 @@ def build_statistics_lab(
         ),
         "m2_nasdaq": (
             f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오르고 "
-            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 "
-            f"{months_elapsed(cur_nasdaq)}개월차에는 NASDAQ "
-            f"{matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
-            f"{matched(dot_m2, cur_m2) - 100.0:.0f}%였고, 닷컴 말기에는 NASDAQ이 "
+            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 시점에는 NASDAQ "
+            f"{months_elapsed(cur_nasdaq)}개월차 {matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
+            f"{months_elapsed(cur_m2)}개월차 {matched(dot_m2, cur_m2) - 100.0:.0f}%였고"
+            "(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 "
             f"{endpoint(dot_nasdaq) - 100.0:.0f}%까지 벌어졌습니다."
         ),
         "nasdaq_per_m2": (
@@ -2342,9 +2355,14 @@ def build_statistics_lab(
         "spx_per_federal_debt_full_history": (
             f"1966년을 100으로 두면 현재 {spx_debt_full[-1]['value']:.0f}입니다. "
             + (
-                f"{first_peak['date'][:4]}년 고점 {first_peak['value']:.0f}"
-                + (f"·{second_peak['date'][:4]}년 고점 {second_peak['value']:.0f}" if second_peak else "")
-                + f" 대비 {spx_debt_full[-1]['value'] / first_peak['value'] * 100.0:.0f}% 수준으로, "
+                f"{first_peak['date'][:4]}년 고점 {first_peak['value']:.0f}의 "
+                f"{spx_debt_full[-1]['value'] / first_peak['value'] * 100.0:.0f}%"
+                + (
+                    f"·{second_peak['date'][:4]}년 고점 {second_peak['value']:.0f}의 "
+                    f"{spx_debt_full[-1]['value'] / second_peak['value'] * 100.0:.0f}%"
+                    if second_peak else ""
+                )
+                + " 수준으로, "
                 if first_peak else ""
             )
             + "주가가 연방부채 팽창을 따라잡는 중이지만 두 차례 고점에는 아직 못 미칩니다."
@@ -2498,15 +2516,21 @@ def build_statistics_lab(
             "두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다."
         ),
         "korea_semiconductor_cycle": (
-            f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 미국 "
-            f"반도체는 {endpoint(sox_index) - 100.0:.0f}% 상승했습니다. 두 시장 모두 "
-            "AI·반도체 사이클 의존도가 높아 글로벌 반도체 조정에 민감한 구간입니다."
+            f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 같은 "
+            f"{months_elapsed(korea_index)}개월차 미국 반도체는 "
+            f"{matched(sox_index, korea_index) - 100.0:.0f}% 상승했습니다"
+            f"(미국 반도체 최신치는 {endpoint(sox_index) - 100.0:.0f}%). 한국 지수는 "
+            "OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 "
+            "두 시장의 상대 위치가 뒤집히지 않습니다."
         ),
         "housing_manufacturing_warning": (
-            f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 "
-            f"{manufacturing_now:.1f}로 확장 신호입니다. 현재 침체 신호는 한 방향으로 "
-            "모이지 않은 혼합 상태입니다."
-            if housing_now < 0 < manufacturing_now else
+            f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 최근 3개월 평균 "
+            f"{manufacturing_trend:+.1f}(최신 단월 {manufacturing_now:+.1f})로 확장 쪽입니다. "
+            + (f"단, 최신값은 현 사이클 표본의 상위 10% 안에 드는 단월 극단값입니다. "
+               if manufacturing_extreme else "")
+            + "현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태이며, 제조업 계열은 "
+            "전국이 아니라 필라델피아 연준 관할 지역 서베이입니다."
+            if housing_now < 0 < manufacturing_trend else
             "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
         ),
         "household_balance_sheet_trend_gap": (
