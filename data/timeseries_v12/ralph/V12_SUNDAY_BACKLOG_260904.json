@@ -1,0 +1,173 @@
+{
+ "schema": "v12_sunday_backlog_v1",
+ "created": "2026-09-04",
+ "window": {
+  "start_epoch": 1788652800,
+  "monday_ckpt_epoch": 1788706800,
+  "deadline_epoch": 1788739200
+ },
+ "pick_rule": "deps 완료된 최소 priority",
+ "statuses": [
+  "대기",
+  "진행",
+  "완료",
+  "부분완료",
+  "차단"
+ ],
+ "tasks": [
+  {
+   "id": "S1-1",
+   "priority": 1,
+   "deps": [],
+   "stage_budget_sec": 14400,
+   "status": "대기",
+   "title": "세 동결 독립 재계산",
+   "spec": "data/runs·ledgers로 V10 GFC 인공물(쌍대·GFC 비중·상위5% 제거 부호·CI90)·V11 전이 split 민감도(3 split×2 변형)·V9 쌍대 재계산. 결과 JSON+판정.",
+   "accept": "verdict_recompute.json 존재, 세 트랙 유지/번복 각 1건"
+  },
+  {
+   "id": "S1-2",
+   "priority": 2,
+   "deps": [
+    "S1-1"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "공통 방법론 민감도",
+   "spec": "블록길이 ℓ∈{5,13,26}·창 경계 ±1y·calm 60/80/90%로 V10 챔피언 CI 재산출. 결론 변동 여부 표.",
+   "accept": "민감도 표 커밋"
+  },
+  {
+   "id": "S1-3",
+   "priority": 3,
+   "deps": [
+    "S1-2"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "저비용 옵션 판정 + PROMPT 5문 답",
+   "spec": "V10 조합·V11 조건부 recenter·트랙 결합·다른 데이터 컴플라이언스 상태를 각 1문단 판정. docs/review/V9_V10_V11_INDEPENDENT_VERDICT.md",
+   "accept": "5문 답 + 트랙별 최종 권고"
+  },
+  {
+   "id": "S2-1",
+   "priority": 4,
+   "deps": [
+    "S1-3"
+   ],
+   "stage_budget_sec": 18000,
+   "status": "대기",
+   "title": "first_touch 실력 계측",
+   "spec": "h21/h63 Brier·기후 Brier·skill·Brier 분해(rel/res/unc)·5분위 신뢰도·국면(GFC/평온) 분해. first_touch_diagnostic.json",
+   "accept": "과신 구조 재현 여부 명시"
+  },
+  {
+   "id": "S2-2",
+   "priority": 5,
+   "deps": [
+    "S2-1"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "반사원리 기계 기준선",
+   "spec": "p_reflect=2Φ(−ln(S/K)/(σ√T)), σ=EWMA λ=.97 로 각 origin 산출, V8 first_touch 대비 Brier 비교 표.",
+   "accept": "기준선 Brier 표 커밋"
+  },
+  {
+   "id": "S2-3",
+   "priority": 6,
+   "deps": [
+    "S2-2"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "S2 진단서",
+   "spec": "docs/design/v12_event_target_diagnostic.md — S3 진입 조건(두 지평·국면 초월 과신) 판정.",
+   "accept": "진입/중단 판정 1건"
+  },
+  {
+   "id": "S3-0",
+   "priority": 7,
+   "deps": [
+    "S2-3"
+   ],
+   "stage_budget_sec": 21600,
+   "status": "대기",
+   "title": "가설 사전등록 커밋",
+   "spec": "설계도 §2 T1~T5를 data/timeseries_v12/prereg/hypotheses.json 으로 결과 보기 전 커밋(해시 기록).",
+   "accept": "커밋 해시 로그"
+  },
+  {
+   "id": "S3-1",
+   "priority": 8,
+   "deps": [
+    "S3-0"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "T1~T4 양방향 전이 + CI + 귀무",
+   "spec": "각 가설: 전→후·후→전 Brier 개선, 블록부트(ℓ=13,B=2000) CI90, 순열 귀무 1000회. T5 음성대조. transfer_results.json",
+   "accept": "전 가설 결과 + P(≥k 통과)"
+  },
+  {
+   "id": "S3-2",
+   "priority": 9,
+   "deps": [
+    "S3-1"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "S3 판정",
+   "spec": "채택=양방향 CI90 하한>0. 채택 0이면 '전이 불가' 부정 결과 확정. docs/design/v12_s3_verdict.md",
+   "accept": "채택 목록 또는 부정 결과"
+  },
+  {
+   "id": "CKPT",
+   "priority": 10,
+   "deps": [
+    "S3-2"
+   ],
+   "stage_budget_sec": 600,
+   "status": "대기",
+   "title": "월요일 체크포인트 봉인",
+   "spec": "S1~S3 산출물 sha256·state 기록. 봉인 해시 재대사.",
+   "accept": "state.json 봉인"
+  },
+  {
+   "id": "S4-1",
+   "priority": 11,
+   "deps": [
+    "CKPT"
+   ],
+   "stage_budget_sec": 21600,
+   "status": "대기",
+   "title": "V12 계약 draft",
+   "spec": "multivariate_timeseries_v12.draft.yaml: 표적 first_touch h21/h63, 게이트(Brier skill vs 기후·반사원리 기준선, 양방향 전이, reliability), CRPS 게이트 무손상 제약, 정지점2·봉인0·retune 금지 승계. S3 부정이면 부정결과 계약.",
+   "accept": "계약 draft 커밋"
+  },
+  {
+   "id": "S4-2",
+   "priority": 12,
+   "deps": [
+    "S4-1"
+   ],
+   "stage_budget_sec": 0,
+   "status": "대기",
+   "title": "V12 게이트 설계서",
+   "spec": "docs/design/v12_gate_design.md — 게이트 산술·MDE·예산·파생층 배포 경계.",
+   "accept": "설계서 커밋"
+  },
+  {
+   "id": "S5-1",
+   "priority": 13,
+   "deps": [
+    "S4-2"
+   ],
+   "stage_budget_sec": 10800,
+   "status": "대기",
+   "title": "최종 보고·결정표·inventory",
+   "spec": "docs/review/SUNDAY_LOOP_FINAL_REPORT.md + V12-D1~D4 + 미완 정직 기록. cd src && python -m ai_fc inventory. PR 준비(push 금지).",
+   "accept": "보고 커밋"
+  }
+ ]
+}
