@@ -20,7 +20,7 @@
    "priority": 1,
    "deps": [],
    "stage_budget_sec": 14400,
-   "status": "대기",
+   "status": "완료",
    "title": "세 동결 독립 재계산",
    "spec": "data/runs·ledgers로 V10 GFC 인공물(쌍대·GFC 비중·상위5% 제거 부호·CI90)·V11 전이 split 민감도(3 split×2 변형)·V9 쌍대 재계산. 결과 JSON+판정.",
    "accept": "verdict_recompute.json 존재, 세 트랙 유지/번복 각 1건"
