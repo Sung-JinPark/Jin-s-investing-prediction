@@ -13,7 +13,10 @@ MODEL="${LOOP_MODEL:-opus}"; DRY_RUN="${DRY_RUN:-0}"; MAX_ITER="${MAX_ITER:-40}"
 SEALED_PREFIX="e3ff2fdb"
 log(){ printf '%s %s\n' "$(date '+%F %T')" "$*" >> "$LOOPDIR/logs/loop_$(date +%Y%m%d).log"; }
 halt(){ log "HALT: $1"; rmdir "$LOCK" 2>/dev/null; exit 1; }
-sealed_hash(){ { find src/ai_fc/timeseries_v8 -type f -name '*.py' -exec sha256sum {} \; ; find src/ai_fc/timeseries_v2 -maxdepth 1 -type f -name '*.py' -exec sha256sum {} \; ; } 2>/dev/null | sort | sha256sum | cut -d' ' -f1; }
+# 봉인 정본 = V8 전체 py + V2 봉인 8개 파일(명시 목록). 비봉인(official_api_transport/__init__/workbook)은
+# 의도적으로 봉인 밖 — 해시에 포함하지 않는다. 이 방식이 캠페인 정본 해시 e3ff2fdb…를 재현한다.
+V2_SEALED="src/ai_fc/timeseries_v2/contracts.py src/ai_fc/timeseries_v2/market_archive.py src/ai_fc/timeseries_v2/dfm_cache.py src/ai_fc/timeseries_v2/features.py src/ai_fc/timeseries_v2/model.py src/ai_fc/timeseries_v2/backtest.py src/ai_fc/timeseries_v2/pipeline.py src/ai_fc/timeseries_v2/artifact.py"
+sealed_hash(){ { find src/ai_fc/timeseries_v8 -type f -name '*.py' -exec sha256sum {} \; ; sha256sum $V2_SEALED ; } 2>/dev/null | sort | sha256sum | cut -d' ' -f1; }
 if mkdir "$LOCK" 2>/dev/null; then echo $$ > "$LOCK/pid"; else
   OLD=$(cat "$LOCK/pid" 2>/dev/null || echo 0); kill -0 "$OLD" 2>/dev/null && { echo "running pid=$OLD"; exit 0; } || { log "stale lock reclaimed"; echo $$ > "$LOCK/pid"; }; fi
 trap 'log "signal shutdown"; rmdir "$LOCK" 2>/dev/null; exit 0' INT TERM
@@ -27,6 +30,7 @@ if [ "$(date +%s)" -lt "$START" ]; then
   while [ "$(date +%s)" -lt "$START" ]; do [ -f "$ABORT" ] && { log "ABORT during pre-start"; rmdir "$LOCK" 2>/dev/null; exit 0; }; sleep 60; done
 fi
 BASE=$(sealed_hash); echo "$BASE" > "$LOOPDIR/sealed_baseline.hash"; log "BOOT sealed_baseline=$BASE deadline=$DEADLINE model=$MODEL"
+case "$BASE" in "$SEALED_PREFIX"*) : ;; *) halt "sealed baseline $BASE does not start with $SEALED_PREFIX — sealed files not in known-good state" ;; esac
 LEDGER_BASE=$(cat data/timeseries_v8/ledgers/*.jsonl 2>/dev/null | sha256sum | cut -d' ' -f1); echo "$LEDGER_BASE" > "$LOOPDIR/ledger_baseline.hash"
 check_invariants(){ [ "$(sealed_hash)" = "$BASE" ] || halt "SEALED FILES CHANGED"; [ "$(cat data/timeseries_v8/ledgers/*.jsonl 2>/dev/null | sha256sum | cut -d' ' -f1)" = "$LEDGER_BASE" ] || halt "LEDGER CHANGED"; }
 next_task(){ "$PY" - "$BACKLOG" <<'PYEOF'
