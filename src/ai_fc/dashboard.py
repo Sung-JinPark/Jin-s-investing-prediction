@@ -50,7 +50,12 @@ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 1536 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
-STATISTICS_DATA_BUDGET_BYTES = 120_000
+# 실측 2026-09-04: 라이브 statistics.json은 115,536 B로 120,000 B 가드의 96.3%였다
+# (차트 27개 74.2KB + sources 21.9KB + IPO 참고 25.6KB). 여유가 3.7%뿐이라 차트 하나만
+# 더해도 빌드가 실패한다. 페이로드는 이 화면이 실제로 그리는 내용이고 라우트 지연 로드라
+# 크기 자체가 문제가 아니므로, ADR-002(대시보드 예산 상향)와 같은 방식으로 가드를 올린다.
+# 33% 여유 = 통계 검수에서 늘어난 결론·caveat 문장과 차트 2~3개를 더 받을 수 있는 폭.
+STATISTICS_DATA_BUDGET_BYTES = 160_000
 STATISTICS_DATA_FILENAME = "statistics.json"
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
