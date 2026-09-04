@@ -57,6 +57,10 @@ FUTURE_PATHS_FILENAME = "future_paths.json"
 # 33% 여유 = 통계 검수에서 늘어난 결론·caveat 문장과 차트 2~3개를 더 받을 수 있는 폭.
 STATISTICS_DATA_BUDGET_BYTES = 160_000
 STATISTICS_DATA_FILENAME = "statistics.json"
+# 첫 화면을 막는 payload는 예산 없이 자라면 안 된다 — 실측 633KB에서 시작한다.
+DATA_JSON_BUDGET_BYTES = 900_000
+# 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
+PAYLOAD_WARN_RATIO = 0.9
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -113,19 +117,30 @@ _PRESENTATION_COPY_REPLACEMENTS = (
     ("목표가", "단일 가격 제시"),
 )
 
+# 불변 기록을 그대로 전재하는 필드는 어휘 규정의 대상이 아니다.  여기까지 치환하면
+# 인용된 제3자 사실(예: "Citi 목표가 $1,400→$1,150")이 개작되고, 화면과 GitHub의
+# 불변 파일이 달라져 독자에게는 사후 편집으로 보인다.  규정은 사이트가 스스로 쓰는
+# 문장에 적용하고, 전재 필드는 원문 그대로 둔다.
+_IMMUTABLE_TRANSCRIPT_KEYS = frozenset({"body", "change_note", "notes"})
 
-def _normalize_presentation_copy(value):
+
+def _normalize_presentation_copy(value, *, key=None):
     """Return a JSON-compatible copy with prohibited UI wording normalized."""
+    if key in _IMMUTABLE_TRANSCRIPT_KEYS:
+        return value
     if isinstance(value, str):
         for source, replacement in _PRESENTATION_COPY_REPLACEMENTS:
             value = value.replace(source, replacement)
         return value
     if isinstance(value, dict):
-        return {key: _normalize_presentation_copy(item) for key, item in value.items()}
+        return {
+            item_key: _normalize_presentation_copy(item, key=item_key)
+            for item_key, item in value.items()
+        }
     if isinstance(value, list):
-        return [_normalize_presentation_copy(item) for item in value]
+        return [_normalize_presentation_copy(item, key=key) for item in value]
     if isinstance(value, tuple):
-        return tuple(_normalize_presentation_copy(item) for item in value)
+        return tuple(_normalize_presentation_copy(item, key=key) for item in value)
     return value
 
 # ── 시나리오 흐름 데이터 (정본: reports/md/nasdaq_weekly_scenario_v3_1_1) ──
@@ -791,6 +806,11 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
         raise ValueError(
             f"future paths budget exceeded: {payload_size} > {FUTURE_PATHS_BUDGET_BYTES}"
         )
+    if payload_size > FUTURE_PATHS_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: future_paths.json {payload_size}B is "
+            f"{payload_size / FUTURE_PATHS_BUDGET_BYTES:.1%} of its budget"
+        )
     return base, payload
 
 
@@ -833,6 +853,11 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     if payload_size > STATISTICS_DATA_BUDGET_BYTES:
         raise ValueError(
             f"statistics data budget exceeded: {payload_size} > {STATISTICS_DATA_BUDGET_BYTES}"
+        )
+    if payload_size > STATISTICS_DATA_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: statistics.json {payload_size}B is "
+            f"{payload_size / STATISTICS_DATA_BUDGET_BYTES:.1%} of its budget"
         )
     return base, payload
 
@@ -1179,10 +1204,18 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
     _write_og_image(model, out_dir / "og" / "market-snapshot.png")
-    (out_dir / "data.json").write_text(
-        json.dumps(base, ensure_ascii=False, default=str, separators=(",", ":")),
-        encoding="utf-8",
-    )
+    base_json = json.dumps(base, ensure_ascii=False, default=str, separators=(",", ":"))
+    base_size = len(base_json.encode("utf-8"))
+    if base_size > DATA_JSON_BUDGET_BYTES:
+        raise ValueError(
+            f"data.json budget exceeded: {base_size} > {DATA_JSON_BUDGET_BYTES}"
+        )
+    if base_size > DATA_JSON_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: data.json {base_size}B is "
+            f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
+        )
+    (out_dir / "data.json").write_text(base_json, encoding="utf-8")
     if future_paths is not None:
         (out_dir / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(

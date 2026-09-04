@@ -1315,7 +1315,10 @@ def test_decision_journal_share_and_contrast_contract() -> None:
     for required in (
         "예측 변경 일지", "그날로 돌아가기", "APPEND-ONLY PROVENANCE",
         'role="feed"', "change_note", "#asof=", "share-popover",
-        "시장 기준 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
+        "기준일 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
+        # 화면마다 기준일과 확률 공간이 다르다 — 공유 텍스트도 그 화면 것을 쓴다(검수 260904).
+        "function shareContext()", "연구 참고 · 참고 의견이며 매매 신호가 아닙니다",
+        "공식 원천 기술통계 · 예측이 아닙니다",
         "blog.naver.com/openapi/share", "band.us/plugin/share",
         "social-plugins.line.me/lineit/share", "t.me/share/url", "QrCreator.render",
     ):
@@ -1583,10 +1586,22 @@ def test_write_pages(repo: Path) -> None:
         (out_dir / "future_paths.json").read_text(encoding="utf-8")
     )
     assert future_payload["contract_id"] == "future_paths_v1"
-    public_text = index.read_text(encoding="utf-8") + json.dumps(payload, ensure_ascii=False)
+    # 어휘 규정은 사이트가 스스로 쓰는 문장에만 적용된다. 불변 기록을 그대로 전재하는
+    # 필드(body/change_note/notes)는 원문을 보존해야 하므로 검사 대상에서 뺀다 —
+    # 여기까지 치환하면 인용된 제3자 사실이 개작되고 불변 파일과 화면이 달라진다.
+    authored = dict(payload)
+    transcripts = {
+        "forecast_history": authored.pop("forecast_history", {}),
+        "resolutions": authored.pop("resolutions", []),
+    }
+    public_text = index.read_text(encoding="utf-8") + json.dumps(authored, ensure_ascii=False)
     assert "목표가" not in public_text
     assert "목표가격" not in public_text
     assert "불확실성" in public_text
+    # 전재 필드는 불변 파일과 글자 단위로 같아야 한다(치환 흔적이 없어야 한다).
+    assert "단일 가격 제시" not in json.dumps(transcripts, ensure_ascii=False), (
+        "불변 기록 전재 필드에 표시용 치환이 새어 들어갔다"
+    )
 
 
 def test_presentation_copy_normalization_preserves_source_and_nested_shape() -> None:
@@ -1653,7 +1668,12 @@ def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
     html = dashboard.load_template()
     v8 = html[html.index("function timeseriesV8BandSvg"):html.index("const VIEWS")]
     assert "const enabled=['summary','path','drivers','backtest']" in v8, "v8 4탭 활성 (재설계 260903: 입력 신선도·봉인 지표로 채움)"
-    assert "봉인 평가 PASS" in v8 and "운영 신선도 OK" in v8, "게이트 위젯"
+    # 히어로 칩은 out-of-sample 봉인창(2019+) 판정을 말한다 — 개발기간이 섞인 전체창
+    # 원점을 'PASS'로 단정하면 과대 신뢰가 된다(사이트 검수 260904).
+    assert "봉인창(2019+) ${gateWinPass?'통과':'보류'}" in v8, "게이트 칩은 봉인창 판정 분기"
+    assert "gateWin.gate_pass===true" in v8, "칩 상태는 봉인창 gate_pass에 연동"
+    assert "운영 신선도 OK" in v8, "신선도 칩"
+    assert "봉인 평가 PASS" not in v8, "PASS 단정 문자열 제거"
     assert "선형 보간(참고용)" in v8, "보간 정직성 캡션"
     assert "ts-node-dot" in v8, "실측 노드 마커"
     assert "timeseries-hold-reasons" in v8, "HOLD 사유 노출"

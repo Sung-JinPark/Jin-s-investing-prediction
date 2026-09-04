@@ -135,7 +135,7 @@ def parse_forecast_file(path: Path) -> ForecastRecord:
         model=str(fm.get("model", "")),
         prompt_version=str(fm.get("prompt_version", "")),
         phase=str(fm.get("phase", "")),
-        method=str(fm.get("method", "full")),
+        method=(str(fm["method"]) if fm.get("method") is not None else None),
         sources_count=int(fm["sources_count"]) if fm.get("sources_count") is not None else None,
         path=path,
         file_sha256=sha256_file(path),

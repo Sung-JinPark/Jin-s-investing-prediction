@@ -98,7 +98,7 @@ def test_timeseries_pure_helpers_behave() -> None:
 const esc=s=>String(s==null?'':s);
 """ + script + sealed + footnote + """
 const ts={anchor:{value:100},horizons:{'1':{median_index:101,point_return:0.01,probability_up:0.6,band_index:{p10:98,p25:99,p75:102,p90:104}},'5':{}, '21':{median_index:0},'63':{median_index:110,point_return:0.1,probability_up:0.7,band_index:{p10:90,p25:100,p75:115,p90:120},log_return:{p10:-0.1,p25:0,p50:0.0953,p75:0.14,p90:0.18}}},
-  sealed_metrics:{horizons:{'21':{crps_improvement_vs_best:0.02,coverage_p10_p90:0.79},'63':{crps_improvement_vs_best:null,coverage_p10_p90:0.8},'5':{crps_improvement_vs_best:'x'}}},footnote:'*기준 · 매매 신호가 아닙니다'};
+  sealed_metrics:{sealed_window:{origin_count:385,horizons:{'21':{crps_improvement_vs_best:0.02,coverage_p10_p90:0.79},'63':{crps_improvement_vs_best:null,coverage_p10_p90:0.8},'5':{crps_improvement_vs_best:'x'}}}},footnote:'*기준 · 매매 신호가 아닙니다'};
 const rows=tsHorizonRows(ts);
 const out={
   keys:rows.map(r=>r.h),
@@ -182,3 +182,39 @@ def test_phase2_projection_shape_and_honesty(tmp_path) -> None:
     gfc = [r for r in sealed["regimes"] if r["key"] == "great_financial_crisis_2008"][0]
     assert gfc["origins"] == 0 and gfc["coverage_p10_p90"] is None, "원점 0개는 0%가 아니라 None"
     assert sealed["forward"]["matured_origins"] == 0
+
+
+def test_compacted_bundle_rejects_trailing_line_comments() -> None:
+    """컴팩터는 줄을 공백으로 잇는다 — 줄 끝 // 주석 하나가 전체 스크립트를 죽인다.
+
+    소스가 아니라 '컴팩트된 결과'를 파싱해야 이 사고를 잡을 수 있다(검수 260904).
+    """
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    from ai_fc import dashboard
+
+    compacted = dashboard._compact_static_bundle(dashboard.load_template())
+    scripts = re.findall(r"<script>(.*?)</script>", compacted, re.S)
+    assert scripts, "컴팩트 번들에 인라인 스크립트가 없다"
+    with tempfile.TemporaryDirectory() as tmp:
+        for index, body in enumerate(scripts):
+            path = Path(tmp) / f"compact_{index}.js"
+            path.write_text(body, encoding="utf-8")
+            result = subprocess.run([node, "--check", str(path)], capture_output=True, text=True)
+            assert result.returncode == 0, result.stderr[:2000]
+
+
+def test_payload_budget_declarations_match_code() -> None:
+    """계약 선언과 코드 상수가 어긋나면 어느 쪽이 진짜인지 알 수 없다."""
+    import yaml
+
+    from ai_fc import config, dashboard
+
+    contract = yaml.safe_load(
+        (Path(config.ROOT) / "data/contracts/dashboard_payload.yaml").read_text(encoding="utf-8")
+    )
+    budgets = contract["budgets"]
+    assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    assert budgets["future_paths_json_max_bytes"] == dashboard.FUTURE_PATHS_BUDGET_BYTES
+    assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES
