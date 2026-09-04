@@ -6,6 +6,11 @@ docs/design/V12_EVENT_TRACK_SUNDAY_OPUS_LOOP_DESIGN_260904.md. 아래가 헌법�
 ## 절대 규율 (위반 시 즉시 BLOCKED 기록·중단)
 1. 백테스트·dev-backtest·holdout·sealed·refresh 실행 0회. 실행 가능한 것은 읽기 전용 파이썬 재분석
    (tools/v12_*.py, 네가 작성), git add/commit(현재 로컬 브랜치), hermetic pytest 뿐이다.
+   ★ 파이썬 실행 경로 (권한 제약 — 반드시 준수): 분석 스크립트는 `tools/v12_<name>.py`로 작성하고,
+   실행은 **반드시** `.venv/Scripts/python.exe tools/v12_run.py tools/v12_<name>.py [args]` 형태로만 한다
+   (직접 `python tools/v12_<name>.py`·`python -c`·`python -m ai_fc …`는 권한 목록 밖이라 거부된다).
+   래퍼 tools/v12_run.py 는 대상이 tools/v12_*.py 인지 검증만 하고 그대로 실행한다(scipy/numpy 가용).
+   pytest 는 `.venv/Scripts/python.exe -m pytest …`. git 은 `git add`/`git commit`만 허용(push 거부).
 2. V8/V2 봉인 파일 0바이트(BOOT 해시와 대사). forecasts/·calibration/·원장(.jsonl) 무수정. main 커밋·push 금지.
 3. 사전등록 우선: S3 가설·검정식은 결과 보기 전 커밋(S3-0). 사후 가설 추가·실패 은폐·재서술 금지.
 4. 수치는 스크립트 산출만 인용. "유망/확인" 서술은 CI90·귀무 p 동반 필수. 추측으로 메우지 말고 [미검증].

@@ -58,7 +58,11 @@ while :; do
   ENV="[TASK ENVELOPE]\nnow_epoch=$NOW deadline_epoch=$DEADLINE stage_budget_sec=$BUD\n$T\n[END ENVELOPE]\n$(cat "$MASTER")"
   if [ "$DRY_RUN" = 1 ]; then log "DRY: would run claude -p --model $MODEL for $TID"; set_status "$TID" 완료; else
     OUT="$LOOPDIR/logs/${TID}_$(date +%H%M%S).log"
-    printf '%b' "$ENV" | timeout "${BUD:-14400}" claude -p --model "$MODEL" --permission-mode acceptEdits > "$OUT" 2>&1; RC=$?
+    # 화이트리스트: v12 파이썬은 래퍼(tools/v12_run.py)로만 — 토큰 정확 매칭이라 임의 스크립트명을 직접
+    # 허용할 수 없어 고정 래퍼 1개를 허용하고 래퍼가 대상 경로를 tools/v12_*.py로 강제한다. git add/commit·
+    # pytest만 추가 허용. push·backtest verb·임의 python(-c/-m ai_fc)은 목록 밖이라 -p 세션이 거부한다.
+    printf '%b' "$ENV" | timeout "${BUD:-14400}" claude -p --model "$MODEL" --permission-mode acceptEdits \
+      --allowedTools 'Bash(.venv/Scripts/python.exe tools/v12_run.py:*)' 'Bash(python tools/v12_run.py:*)' 'Bash(git add:*)' 'Bash(git commit:*)' 'Bash(.venv/Scripts/python.exe -m pytest:*)' 'Bash(python -m pytest:*)' > "$OUT" 2>&1; RC=$?
     ST=$(grep -oE 'RESULT: (완료|부분완료|차단)' "$OUT" | tail -1 | awk '{print $2}')
     [ $RC -eq 124 ] && ST=부분완료; [ -z "$ST" ] && ST=차단
     set_status "$TID" "$ST"; log "ITER $N task=$TID rc=$RC status=$ST"
