@@ -2216,7 +2216,7 @@ function scenarioV5EvidenceMarkup(candidate){
 }
 const V52_SCENARIO_META={
   S1:{title:'확장 경로',copy:'닷컴·완화·AI 확장 6개 등록 에피소드',color:'#147a5b'},
-  S2:{title:'균형 경로',copy:'비위기 연착륙·횡보 4개 등록 에피소드',color:'#d98600'},
+  S2:{title:'균형 경로',copy:'비위기 연착륙·횡보 4개 등록 에피소드',color:'#9a6200'},
   S3:{title:'스트레스 경로',copy:'닷컴 붕괴·GFC·긴축 5개 등록 에피소드',color:'#be123c'}
 };
 // V5.2 paths are daily observations. Resolve month controls by calendar date,
