@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "dataset_id": "ipo_reference_current_era_batch_v1",
-  "checked_at": "2026-09-02T01:55:20+00:00",
+  "checked_at": "2026-09-05T04:39:34+00:00",
   "status": "current",
   "cadence": "weekly",
   "historical_rows_locked": true,
@@ -11,7 +11,7 @@
     {
       "schema_version": 1,
       "source_id": "RITTER_TECH_IPO_2025",
-      "checked_at": "2026-09-02T01:55:20+00:00",
+      "checked_at": "2026-09-05T04:39:34+00:00",
       "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Tech.pdf",
       "http_status": 200,
       "observed_sha256": "4b46b97a921ac46b26b1c95fca3222eb8998f0ac0b1b20196a6779b9afcab252",
@@ -28,7 +28,7 @@
     {
       "schema_version": 1,
       "source_id": "RITTER_INTERNET_IPO_2025",
-      "checked_at": "2026-09-02T01:55:20+00:00",
+      "checked_at": "2026-09-05T04:39:34+00:00",
       "source_url": "https://site.warrington.ufl.edu/ritter/files/IPO-age.xlsx",
       "http_status": 200,
       "observed_sha256": "409919bc5ace44ca42bc38838a80caa3655d0a39375c54cb4f24c1943cb7ce47",
@@ -45,7 +45,7 @@
     {
       "schema_version": 1,
       "source_id": "RITTER_IPO_SALES_2025",
-      "checked_at": "2026-09-02T01:55:20+00:00",
+      "checked_at": "2026-09-05T04:39:34+00:00",
       "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Sales.pdf",
       "http_status": 200,
       "observed_sha256": "ba46b7c6e812599b9e05ec562064a0f9f9c0f5d48ae13b7d2b75dfda9ed2caf4",
@@ -62,7 +62,7 @@
     {
       "schema_version": 1,
       "source_id": "RITTER_IPO_UNDERPRICING_2025",
-      "checked_at": "2026-09-02T01:55:20+00:00",
+      "checked_at": "2026-09-05T04:39:34+00:00",
       "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOs-Underpricing.pdf",
       "http_status": 200,
       "observed_sha256": "2d595cd02217f5d72189efd7eac3c5ccc1476d7ff533788bfcd30f511d924460",
