@@ -1,0 +1,128 @@
+{
+  "task_id": "S1-3",
+  "title": "저비용 옵션 판정 + PROMPT 5문 답",
+  "status": "완료",
+  "stage": "S1",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "note": "봉인 14파일 무변경. forecasts/·calibration/·src/·data/timeseries_v8·v2 무접촉(git status 확인)."
+  },
+  "artifacts": {
+    "docs/review/V9_V10_V11_INDEPENDENT_VERDICT.md": "dc677f56ea81f1b42b0fa2498aea0cfac0ae172474e4988e30e6f140be81d76f",
+    "docs/review/lowcost_options.json": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+    "tools/v12_lowcost_options.py": "6d8b45b65f01311c74b42fcd089ac7d05ba16e65ad33b32dcd1ee91d9548da6f",
+    "tools/v12_lowcost_tables.py": "d0ec13d42049362352a940a1384ebaac6491fa3a0710e9b82f205a39a8982eec",
+    "outputs/timeseries_v12/loop/_s1_3_tables.md": "4fd4637764219a4a4f923453294c6c8dc21a03ab03f2e97ba219ef5daad96eca"
+  },
+  "accept_check": {
+    "requirement": "5문 답 + 트랙별 최종 권고",
+    "prompt_questions_answered": 5,
+    "track_recommendations": 3,
+    "one_paragraph_verdicts": ["V10 조합 격자", "V11 저모멘텀 조건부 recenter", "트랙 결합",
+                               "다른 데이터 컴플라이언스 상태"],
+    "verdict_doc_exists": true
+  },
+  "answers": {
+    "Q1_freezes_correct": {
+      "verdict": "세 트랙 모두 유지 (번복 0)",
+      "v10": "GFC 견인 83.8% · 상위5% 제거 −1.154e-05 · 순이득의 103.95%가 21원점",
+      "v11": "양방향 CI90 하한>0 조합 0/12 · 순열 귀무 p=0.118 · h63 12셀 전부 악화",
+      "v9": "5쌍 평균 Δ 양수 0건 · 최대 |Δ| 4.335e-05 (V9 E0 장기 CRPS 0.043566의 0.1%) · 쌍대 se 4.04e-06~2.11e-05 로 검정력은 있었음 = 측정된 영(null)"
+    },
+    "Q2_common_methodology": {
+      "verdict": "결론을 몬 결함 없음. 판정 지표 2종 정밀화 필요 (신규)",
+      "gfc_share_denominator_unstable": "단독 10실험 중 6건이 순델타 < mde50/2 라 견인 비중 해석 불가 (최대 1203.2%, 조합에서 −2427.1%)",
+      "top5pct_sign_flip_is_knife_edge": "적격 12조합 전부 상위5% 제거 후 CI90 하한 음수 — 정확한 진술은 '잔여 효과가 0과 구분 불가'"
+    },
+    "Q3_efficient_market_wall": {
+      "verdict": "부분 방어 — 표적·창 한정 서술 필요",
+      "cross_track_delta_correlation": {"v10_v9": -0.1543331207893415,
+                                        "v10_v11": 0.06785692404856829,
+                                        "v9_v11": 0.031465037627968276},
+      "overgeneralization_corrected": "'계보 미세조정 소진'은 단독 격자에 한해 참 — 축 곱공간은 미표집"
+    },
+    "Q4_missed_lowcost_options": {
+      "v10_combination_grid": {
+        "verdict": "실재한 저비용 옵션 · 미실행 사유가 사실과 다름 · 단 채택 가능성은 낮음",
+        "d7_premise_contradicted": "V10-D7 의 'W3 외 축이 모두 0 또는 음'은 자체 SINGLES 보고 §2 표와 모순 — W1_sens_rv_kappa_10 +0.477%(프록시 PASS), W4a_isotonic +0.033%(CI90 하한>0, 프록시 PASS)",
+        "admissible_combos": 12,
+        "combos_over_1pct_with_ci90_lower_positive": 6,
+        "best_combo": {"members": ["V10_W1_sens_rv_kappa_10", "V10_W3_gamma_m020", "V10_W4a_isotonic"],
+                       "mean_delta": 0.0005001716353588282, "relative_improvement": 0.011469812028853105,
+                       "ci90": [0.00010671256325447043, 0.0009989859094628273],
+                       "gfc_delta_share": 0.5316635330489892,
+                       "top5pct_mean_after_removal": 7.27804753938615e-05,
+                       "top5pct_ci90_after_removal": [-0.00019875125480987702, 0.00033157427302684913],
+                       "post2010_mean": 0.0001549374242707377,
+                       "post2010_ci90_lower_positive": false},
+        "why_adoption_still_unlikely": [
+          "적격 12조합 전부 상위5% 제거 후 CI90 하한 음수 (0/12)",
+          "후반창(2011–14) CI90 하한 양수는 W3+W4a 2조합뿐이고 크기는 챔피언과 대동소이(+0.67%)",
+          "최상 +1.147% 도 홀드아웃 게이트(+2% AND 쌍대 CI 상한 ≤0) 미달",
+          "조합의 커버리지 프록시는 Δ 합에서 계산 불가 — 성분 PASS 가 조합 PASS 를 보장하지 않음",
+          "12조합 최선 선택에 다중비교 보정 없음"
+        ],
+        "cost_if_reopened": "잔여 dev 예산 12셀 · 홀드아웃 슬롯 0 소모 · 계약에 조합 격자 사전등록 선행 필수"
+      },
+      "v11_conditional_recenter": {
+        "verdict": "이미 시험됐고 구제 실패 (S1-1)",
+        "both_direction_ci90_positive_combos": 0,
+        "permutation_null_p": 0.118,
+        "h63_forward_crps_worsening": [0.0808, 0.14716, 0.18152]
+      },
+      "track_combination": {
+        "verdict": "결합할 양(+) 성분이 하나뿐 — 기대 이득 구조적 부재",
+        "v9_best_mean_delta": -3.2224981142147853e-06,
+        "v11_recenter_mean_delta": -0.001429189452811739,
+        "v10_plus_v9": 0.00027389051418214125,
+        "v10_plus_v11": -0.001152076440515383,
+        "all_three": -0.0011552989386295978,
+        "baseline_identity": {"v11_frame_vs_v10_e0_max_abs_diff": 0.0,
+                              "v9_e0_vs_v10_e0_mean_abs_diff": 0.000618,
+                              "note": "V9 기준선 차이(6.18e-04)가 결합하려는 효과(2.8e-04)보다 큼"}
+      },
+      "other_data_compliance": {
+        "verdict": "옵션 표면은 벽 · 일중은 미조사",
+        "cboe_permission_request": "미발송 (초안 docs/cboe_permission_request_draft.md, 소유자 직접 발송 사항)",
+        "options_alternative_survey": "DECISIONS 12-5 — 무료 공개표시 허용 미국 지수 옵션 소스 부재 (OPRA Vendor Agreement 구조 제약)",
+        "pit_archive_conflict": "KNOWN_LIMITS 34 — store·cache 금지 ↔ PIT 아카이브 커밋 미해결",
+        "intraday": "[미검증] — 설계도 §0 의 '합법 일중 소스 부재'를 뒷받침하는 조사 기록이 저장소에 없음 (12-8 전수 조사는 일별 대체만 다룸)"
+      }
+    },
+    "Q5_next_track": {
+      "verdict": "다른 표적(이벤트 확률화) 우선 — 다른 데이터는 컴플라이언스 벽",
+      "reasons": ["새 데이터 0 (V8 이 이미 first_touch 산출)",
+                  "이벤트 확률 쪽 skill 은 0이 아니라 약하고 과신은 방향성 결함",
+                  "CLAUDE.md 1차 목표로의 복귀"],
+      "most_promising_hypotheses": ["T3 반사원리 앵커(기계 기준선 혼합 — GFC 의존 구조적으로 낮음)",
+                                    "T4 지평 단조 제약(자유도 0)"],
+      "design_section0_claim_not_recomputed": "first_touch skill h21 +4.6%·h63 +9.9%, 과신 h63 0.61→0.43 — S2-1 에서 재계측"
+    }
+  },
+  "track_recommendations": {
+    "v9": {"verdict": "동결 유지", "followup": "없음"},
+    "v10": {"verdict": "동결 유지 (홀드아웃 3/3 보존 결정 옳음)",
+            "required_followup": "V10-D7 스킵 사유 정정 기록 — 적격 축은 W1_sens_rv(+0.48%)·W4a(+0.03%, CI90 하한>0)를 포함하며 조합 격자는 미표집 영역",
+            "proposed_decision_item": "V12-D5 (조합 격자 재개 여부) — 설계도 §5 의 D1~D4 에 추가 제안"},
+    "v11": {"verdict": "동결 유지", "followup": "추가 형태 탐색은 사후 가설 추가에 해당 — 금지"}
+  },
+  "bootstrap_usage": {"calls": 106, "budget": 140, "refused_due_to_budget": 0},
+  "open_questions": [
+    "V10 조합 격자 재개 여부는 사용자 결정 — 본 태스크는 판정만 하고 실행하지 않음(백테스트 금지 verb).",
+    "가법 대리지표의 정확도는 층 간 독립성에 의존 — W1(상태 가중 FHS)·W3(블렌드 γ)은 같은 분산 축이라 근사. 실측 검증은 파이프라인 재실행이 필요해 이 루프에서 불가.",
+    "일중 데이터 합법 소스 전수 조사는 12-8 형식(엔드포인트 실호출 + 약관 원문)으로 별도 수행 필요 — 현재 [미검증].",
+    "S1-2 이월: calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 S4-1 V12 계약에서 명문화 필요.",
+    "S1-1 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "V9 트랙의 ℓ·calm 민감도는 여전히 미수행 (S1-2 이월) — 5쌍 전부 측정 하한 아래라 우선순위 낮음.",
+    "hermetic pytest 미실행 — src/ 변경 0 (신규 tools/ 스크립트와 docs/ 산출물만), 제품 코드 무영향.",
+    "조합 격자의 커버리지·게이트 마진은 원리적으로 산출 불가 — 파이프라인 재실행 필요(금지 verb)."
+  ],
+  "next_task": "S2-1"
+}

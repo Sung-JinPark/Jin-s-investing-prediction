@@ -32,7 +32,7 @@
     "S1-1"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "공통 방법론 민감도",
    "spec": "블록길이 ℓ∈{5,13,26}·창 경계 ±1y·calm 60/80/90%로 V10 챔피언 CI 재산출. 결론 변동 여부 표.",
    "accept": "민감도 표 커밋"
@@ -44,7 +44,7 @@
     "S1-2"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "저비용 옵션 판정 + PROMPT 5문 답",
    "spec": "V10 조합·V11 조건부 recenter·트랙 결합·다른 데이터 컴플라이언스 상태를 각 1문단 판정. docs/review/V9_V10_V11_INDEPENDENT_VERDICT.md",
    "accept": "5문 답 + 트랙별 최종 권고"
