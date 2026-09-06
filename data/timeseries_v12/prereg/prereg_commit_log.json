@@ -1,0 +1,65 @@
+{
+  "schema": "v12_prereg_commit_log_v1",
+  "task_id": "S3-0",
+  "purpose": "사전등록이 '결과를 보기 전' 시점에 저장소에 고정됐음을 커밋 해시로 앵커한다. accept 조건('커밋 해시 로그')의 산출물.",
+  "prereg_commit": {
+    "commit": "ec49646345f1f60292e418a366cb07c3e822f49c",
+    "tree": "9bde126c95c9ac1793bcd8a8b18349c656fb6ed2",
+    "parent": "dc368ed340d3cef1574f39e0465811aa763d7188",
+    "subject": "loop(v12): S3-0 가설 사전등록 커밋 — T1~T5 결과 보기 전 고정",
+    "author_date": "2026-09-06T11:08:17+09:00",
+    "branch": "claude/v12-sunday",
+    "pushed": false,
+    "push_note": "루프 헌법상 push 금지. 원격 앵커는 S5-1 이후 사용자 결정."
+  },
+  "registered_artifacts": {
+    "data/timeseries_v12/prereg/hypotheses.json": {
+      "sha256": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+      "git_blob_sha1": "36f91f4e2ef428727736d129fc6ba09b7ee41203",
+      "bytes": 21669,
+      "role": "등록부 정본"
+    },
+    "tools/v12_prereg_check.py": {
+      "sha256": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+      "git_blob_sha1": "99ceb937273e285e685cd6f44f3b0b48ef84b43c",
+      "role": "등록부 검증기 (61항목)"
+    },
+    "tools/v12_prereg_tables.py": {
+      "git_blob_sha1_at_prereg_commit": "6338f5d9f53cceca7a100cffb0ea1dc0d01370c2",
+      "sha256_current": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+      "role": "요약표 렌더러",
+      "amended_after_prereg_commit": "줄바꿈을 LF 로 고정하는 한 줄 수정. 등록부·판정 기준과 무관한 해시 안정화다. 커밋 시점의 sha256 은 산출하지 않았으므로 적지 않는다 — 그 시점의 앵커는 git_blob_sha1_at_prereg_commit 하나뿐이다."
+    },
+    "outputs/timeseries_v12/loop/_s3_0_tables.md": {
+      "sha256_current": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a",
+      "git_blob_sha1_at_prereg_commit": "2cc62a1fc360b7855aac68bf46c3b5af80695879",
+      "role": "등록부 자동 렌더 요약 (수기 전사 없음)",
+      "note": "LF 재렌더로 내용은 동일하고 줄끝만 바뀌었다. 정본은 항상 hypotheses.json."
+    }
+  },
+  "verification_at_registration": {
+    "checker": "tools/v12_prereg_check.py",
+    "checks_total": 61,
+    "checks_failed": 0,
+    "key_claims_verified": [
+      "C2 — 다섯 가설의 식·사전기대가 설계도 §2 원문의 바이트 부분문자열 (등록부가 원문에서 표류하지 않음)",
+      "C3 — ℓ=13·B=2000·seed=20260902·분할 2010-12-31·EWMA λ=0.97·격자 101점이 코드 상수와 일치",
+      "C5 — 417 원점 · 전반 209/후반 208 · 창 2007-01-05~2014-12-24 · run sha256 38dde7a8… · 2015+ 원점 0건",
+      "C6 — S2-1/S2-2/S2-3 입력 산출물 sha256 3종 일치",
+      "C7-a — tools/·src/ 495파일의 실행 토큰에서 p′ 생성 코드 0건 (주석·문자열 제외)",
+      "C8 — 등록부에 결과성 수치 필드 0건, 1차 채택 규칙 문장 무완화"
+    ]
+  },
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "checked_before_and_after": true,
+    "matches_boot_baseline": true
+  },
+  "chain": {
+    "S2-3_verdict_commit": "65061b4d (산출물) / dc368ed3 (result JSON)",
+    "S3-0_prereg_commit": "ec49646345f1f60292e418a366cb07c3e822f49c",
+    "next": "S3-1 — 이 커밋 이후의 어떤 커밋도 hypotheses.json 을 수정할 수 없다. 수정이 필요하면 수정이 아니라 '사전등록 위반' 으로 기록할 것."
+  },
+  "immutability_rule": "hypotheses.json 은 이 커밋 이후 수정·삭제 금지. S3-1/S3-2 는 읽기만 한다. 오기가 발견돼도 파일을 고치지 말고 S3-2 판정문에 정정 사실을 적는다 — forecasts/ 불변성 규칙과 같은 취급."
+}

@@ -114,7 +114,8 @@ def main() -> int:
     L.append("")
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text("\n".join(L) + "\n", encoding="utf-8")
+    # LF 고정 — 작업본과 git blob 의 해시가 갈리면 앵커로 못 쓴다.
+    OUT.write_text("\n".join(L) + "\n", encoding="utf-8", newline="\n")
     print(f"wrote {OUT.relative_to(ROOT).as_posix()} ({len(L)} lines)")
     print(f"prereg sha256 {digest}")
     return 0
