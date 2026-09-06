@@ -1,0 +1,130 @@
+{
+  "task_id": "S1-2",
+  "title": "공통 방법론 민감도",
+  "status": "완료",
+  "stage": "S1",
+  "commit": "76fe01d0 (산출물) + 후속 커밋(§4·§6 CI 정밀화 + result JSON)",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "note": "봉인 14파일 무변경. forecasts/·calibration/·src/ 무접촉(git status 확인)."
+  },
+  "artifacts": {
+    "docs/review/V12_S1_2_SENSITIVITY.md": "76d19cad029b0e4dca73af28b09ce614ffca3325f090e5838824d6b8bcf88efb",
+    "docs/review/v10_sensitivity_grid.json": "ddbf9e0f06446589702edf2e6405a11ecbcc195963416489aa8c57a233569ef2",
+    "docs/review/v11_sensitivity_grid.json": "c500cda80e5eb8783519dfa2a9190bffda3aadf21bf358459ea9d96c696ecadc",
+    "tools/v12_sensitivity_v10.py": "cd50ed5648c015a3f7fccc4a5cc5b36c623ea49052e8785494296e0dc056c79c",
+    "tools/v12_sensitivity_v11.py": "6fd240e896bbf7d3615c5bf4cdfe3de95a070052438237fe5270458be645eeab",
+    "tools/v12_sensitivity_tables.py": "73e5b5f5b0f07eb8121fcc30cd3588c5f8d2397d7e7f657111bfa01fb847f26c"
+  },
+  "accept_check": {
+    "requirement": "민감도 표 커밋",
+    "sensitivity_tables_committed": true,
+    "tables": ["축 A 블록길이", "축 B 위기창 ±1y", "축 B 부속 3분할", "축 C calm 백분위",
+               "판정 격자 33셀", "V11 부속 격자 9셀"],
+    "verdict_cells_v10": 33,
+    "verdict_cells_v11": 9
+  },
+  "axes": {
+    "block_lengths": [5, 13, 26],
+    "window_boundary_offsets_years": [-1, 0, 1],
+    "calm_pcts": [60.0, 80.0, 90.0],
+    "canonical": {"block_length": 13, "window": ["2008-01-01", "2009-06-30"], "calm_pct": 80.0},
+    "verdict_rule_inherited_from": "S1-1 (유지 = 상위5% 제거 시 부호반전 AND 위기 제외 평균 Δ < mde50)"
+  },
+  "headline": {
+    "conclusion_changes": true,
+    "cells_total": 33,
+    "cells_overturn": 2,
+    "overturn_cells": ["win[-1y,-1y] | ℓ=5", "win[+1y,+1y] | ℓ=5"],
+    "overturn_character": "위기창이 순이득 81.0%를 담은 2008H2 를 미포함 → 판정식 전제 붕괴형. 비율 1.12·1.09 이고 같은 창이 ℓ=13/26 에서는 0.96~0.99 로 임계 바로 아래 — 부호 변화가 아니라 mde50 문턱 하락(se −11%)으로 뒤집힘.",
+    "canonical_cell_verdict": "유지",
+    "state_percentile_cells_verdict": "유지 (3/3, 모든 ℓ)",
+    "v10_freeze_recommendation": "변경 없음"
+  },
+  "key_numbers": {
+    "paired_mean_delta": 0.00027711301229635605,
+    "relative_improvement": 0.006354686945628619,
+    "ci90_by_block": {
+      "5": [4.0950344695690156e-05, 0.0006177651100665065],
+      "13": [1.6385889763018458e-05, 0.0006794259629344273],
+      "26": [2.4511828427659008e-05, 0.00069055290523945]
+    },
+    "ci90_lower_positive_all_blocks": true,
+    "bootstrap_se_by_block": {"5": 0.0001842734527583376, "13": 0.00020804434573036063,
+                              "26": 0.00021008794529742491},
+    "mde50_by_block": {"5": 0.0003031298297874653, "13": 0.00034223294872644326,
+                       "26": 0.00034559467001426397},
+    "top5pct_removal_mean": -1.153645521611733e-05,
+    "top5pct_sign_flips_all_blocks": true,
+    "top5pct_trimmed_ci90_contains_zero_all_blocks": true,
+    "localization_2008H2": {
+      "window": ["2008-07-01", "2008-12-31"],
+      "origins": 26, "origin_share": 0.06235011990407674, "delta_share": 0.8095827231553798,
+      "mean_delta": 0.0035981632026020434, "ratio_vs_2008H1_mean": 535.1,
+      "outside_canonical_window_delta_share": 0.16192849069242554
+    },
+    "canonical_window_calm": {
+      "window": ["2008-01-01", "2009-06-30"],
+      "crisis_delta_share": 0.8380715093075743,
+      "calm_mean_delta": 5.5197135970804325e-05,
+      "calm_relative_improvement": 0.001265767047469573,
+      "calm_ci90_block13": [1.9567828690686538e-05, 9.083850084657493e-05],
+      "calm_ci90_lower_positive_all_blocks": true,
+      "calm_mean_over_mde50_block13": 0.1612852771079181
+    },
+    "state_percentile_calm": {
+      "p60": {"calm_mean_delta": 3.609658455973131e-05, "crisis_delta_share": 0.9219068132314362,
+              "ci90_lower_by_block": {"5": 2.632372777884616e-06, "13": 1.3499715570826953e-07,
+                                      "26": 3.0656363286849862e-06},
+              "lower_positive_by_block": {"5": true, "13": true, "26": true},
+              "effective_calm_share": 0.5995203836930456},
+      "p80": {"calm_mean_delta": 2.583341432471066e-05, "crisis_delta_share": 0.9204136049918866,
+              "ci90_lower_by_block": {"5": -3.688616125180119e-06, "13": -4.8481282001849395e-06,
+                                      "26": -3.2705736289801977e-06},
+              "lower_positive_by_block": {"5": false, "13": false, "26": false},
+              "effective_calm_share": 0.8537170263788969},
+      "p90": {"calm_mean_delta": 2.9628600904009858e-05, "crisis_delta_share": 0.9038499670131133,
+              "ci90_lower_by_block": {"5": 4.803877989371914e-07, "13": -2.5109165267211503e-06,
+                                      "26": 7.374186736731582e-07},
+              "lower_positive_by_block": {"5": true, "13": false, "26": true},
+              "effective_calm_share": 0.8992805755395683}
+    },
+    "crisis_delta_share_range": [0.0015129050364626976, 0.9219068132314362],
+    "primary_mass_point": {"value": 1.0, "count": 54, "share": 0.12949640287769784,
+                           "effect": "calm p80 임계가 정확히 1.0 → '≤' 규약으로 실효 calm 85.4%(명목 80%)"},
+    "v11_supplement": {
+      "cells": 9, "distinct_verdicts": ["유지"], "conclusion_changes": false,
+      "max_combos_meeting_adoption_rule": 0,
+      "both_directions_by_sign": {"p60": 0, "p80": 2, "p90": 0},
+      "calm_origins": {"p60": 250, "p80": 356, "p90": 375},
+      "cross_check": "p80·ℓ=13 의 양방향 부호개선 2/12 가 S1-1 재계산값과 일치 (독립 경로 교차검증)"
+    }
+  },
+  "counter_evidence": [
+    "날짜창 8칸 전부에서 calm 평균 Δ 의 CI90 하한이 양수(ℓ=13 정본창 [+1.96e-05, +9.08e-05]). '이득이 전적으로 GFC 국소'는 문자 그대로는 거짓 — 정본창 밖 339 origin 이 순이득 16.2%, 평온분 상대개선 +0.127%.",
+    "그 잔여 이득은 세 ℓ 전부에서 CI90 하한 양수로 유지 — 블록길이로 지워지지 않는다.",
+    "상태분위에서도 calm p60 은 세 ℓ 전부 하한 양수, p90 은 ℓ=5(+4.804e-07)·ℓ=26(+7.374e-07)에서 하한 양수. 0을 포함하는 것은 p80 세 ℓ 전부와 p90 의 ℓ=13 뿐.",
+    "반대편 수치: 크기가 mde50 대비 0.07~0.26배(정본 셀 0.161)이고, 상태분위 p80 은 세 ℓ 전부 CI90 이 0을 포함하며 p90 하한은 0 근방에서 부호가 흔들린다(칼날 경계). 표본내·선택 후 통계이며 33셀 다중비교 미보정."
+  ],
+  "limits": [
+    "부분표본(calm·상위5% 제거) 부트스트랩은 비연속 시간축에 블록 적용 — se 과소추정 편향 가능(S1-1 과 동일 취급).",
+    "모든 CI 는 명목 CI90, 다중비교 보정 없음.",
+    "전부 표본내(design 2007–2014). 홀드아웃(2015–2018) 재현과 무관하며, V10 동결 결정 자체는 홀드아웃 미소모 근거(V10_FREEZE_DECISION_20260903.md §4).",
+    "축 B 격자 9칸 중 start ≥ end 인 1칸(2009-01-01~2008-06-30)은 공집합이라 제외 — 8칸만 판정."
+  ],
+  "open_questions": [
+    "날짜창 calm 의 유의성이 상태분위 calm 에서 사라지는 원인 귀속(2010H2 이후 고변동 origin 기여 가설)은 [미검증] — 국면별 분해 필요, S2 국면 분해에서 부수적으로 확인 가능.",
+    "calm p80 규약 슬랙(명목 80% vs 실효 85.4%)은 V10·V11·V12 공유 정의 문제 — S4-1 V12 계약에서 '≤ 임계' vs 순위 기반 중 택일 명문화 필요.",
+    "S1-1 미해소 이월: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902)는 본 태스크에서도 20260902 유지 — 결론 동일, 병기 필요."
+  ],
+  "not_done": [
+    "V9 트랙의 ℓ·calm 민감도는 미수행 — envelope spec 이 'V10 챔피언 CI 재산출'로 한정. V9 는 5쌍 전부 |Δ| ≤ 4.3e-05 로 손잡이와 무관하게 무효익이라 우선순위 낮음(S1-3 판정 시 필요하면 같은 스크립트로 확장 가능).",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/ 스크립트와 docs/ 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S1-3"
+}
