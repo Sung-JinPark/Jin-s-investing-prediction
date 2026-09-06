@@ -1,0 +1,157 @@
+{
+  "task_id": "S2-3",
+  "title": "S2 진단서",
+  "status": "완료",
+  "stage": "S2",
+  "commit": "65061b4d (산출물) + 후속 커밋(본 필드 기록)",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경 확인."
+  },
+  "artifacts": {
+    "docs/design/v12_event_target_diagnostic.md": "53e4818e4936ec88284a084b75ae6d65f6ac929b931626213a7eb46f7a6e4fea",
+    "data/timeseries_v12/diagnostics/s2_entry_verdict.json": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+    "outputs/timeseries_v12/loop/_s2_3_tables.md": "ae86e6870061c92f6513924f4d6756fa9ee6822a6c2a097f112a1f2136bbe15f",
+    "tools/v12_s2_verdict.py": "8d2dba02bf80d89af3ed910e7672e43f5927e91b2da5acd51695ae2e13dc8627",
+    "tools/v12_s2_tables.py": "cc31649baa49fbfd76e078bb5328b549bc32c517f326d6d427c9859e72a3b1ba",
+    "tools/v12_s2_verify.py": "d3719cb0ea4e70ce4c85e7b616edebb0901a7a48a77695aa4432833c7ee2a792",
+    "tools/v12_s2_doc_check.py": "140b76a38972afebdc47d3ee23259ab9845a71faab21849389f97d959e0ff314",
+    "tools/v12_s2_probe.py": "49a95f4bfd9e4b1c27e9411755db46ae43e756f07d35bb05caa04bcde3ec9559",
+    "tools/v12_s2_probe2.py": "41eac1fbb1965ff0408dfdd62f7c0de6e90436e58152fb967909af6aa30cf43c"
+  },
+  "accept_check": {
+    "requirement": "진입/중단 판정 1건",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "docs/design/v12_event_target_diagnostic.md",
+    "decision": "진입",
+    "decision_count_in_doc": 1,
+    "decision_verified_mechanically": "tools/v12_s2_doc_check.py D3 — 진단서의 판정 문장이 산출 JSON 의 decision 과 일치, 반대 판정 단정 없음",
+    "adoption_rule_fixed_before_reading_result": "tools/v12_s2_verdict.py::ADOPTION 상수에 문자열로 고정, V7 검증이 entry == (R0 ∧ R2) 를 대사"
+  },
+  "inputs": {
+    "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+    "data/timeseries_v12/diagnostics/reflection_baseline.json": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+    "note": "두 해시 모두 S2-1·S2-2 result JSON 의 artifacts 항목과 일치 — 입력 산출물 무변경."
+  },
+  "target": {
+    "run": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "experiment_label": "E0_neutral_v2_identity",
+    "origins": 417,
+    "window": ["2007-01-05", "2014-12-24"],
+    "event": "지평 내 지수 경로 최소값 ≤ 0.90 (원점 대비 −10% first-passage)",
+    "holdout_policy": "2015+ 봉인창 미계산 — S2-1·S2-2 와 동일 정책. 본 태스크의 어떤 수치도 봉인창을 보지 않았다."
+  },
+  "method": {
+    "no_new_measurement_of_models": "본 태스크는 어떤 후보 맵도 만들지 않았다. 새로 계산한 것은 (a) 네 조작화의 부울, (b) 분할창 쌍대 대비의 분산·집중도, (c) 게이트 산술 재산출뿐이다.",
+    "bootstrap": "정상 블록 부트스트랩 ℓ=13, B=2000, seed 20260902, percentile[5,95] (S1·S2-1·S2-2 규약 동일)",
+    "split": "2010-12-31 — 설계도 §2 전반(2007–10)/후반(2011–14)",
+    "gate_arithmetic": "문턱 BSS = 1 − (BS_기준선 − 1.645·se)/BS_기후. 상한 BSS = 1 − (BS_V8 − REL)/BS_기후, 두 binning 산출 후 최대값. 둘 다 S2-2 가 산문으로 이월한 값을 기계 필드로 재산출한 것이며 네 문턱 모두 S2-2 수치와 소수 넷째 자리까지 일치.",
+    "independent_recheck": "tools/v12_s2_verify.py 18 항목 전부 PASS — V1 R0~R3 부울 원본 JSON 직접 재구성 / V2 분할창 점추정 부트스트랩 없이 직접 계산 Δ<1e-12 / V3 분해 항등식 n_e·Δ_e+n_l·Δ_l=n·Δ_full 이 S2-2 풀표본과 1e-12 이내 / V4 집중도 재계산 / V5 p_reflect→반사 Brier 재현 1e-12 / V6 셀 카운트 재계수 / V7 채택 규칙 무결성",
+    "doc_reconciliation": "tools/v12_s2_doc_check.py 20 항목 전부 PASS — 진단서의 표 A/B/B2/C/D 22 행이 렌더 출력과 바이트 일치, 산문·제약표 16 수치가 JSON 필드와 일치, 판정 1건, CI 없는 단정 서술 0건. 초안의 수기 오기 2건(h63 전반 집중도 12.5%→16.4%, 완전보정 상한 19.9%→19.8%)을 이 검사가 잡아 정정했다."
+  },
+  "headline_note": "아래 headline 은 s2_entry_verdict.json 필드 그대로. 진단서 본문 표는 tools/v12_s2_tables.py 가 직접 렌더 — 수기 전사 없음.",
+  "headline": {
+    "R0_design_literal_prereg": {
+      "pass": true,
+      "by_horizon": {"h21": true, "h63": true},
+      "regime_cells_both_positive": "8/8"
+    },
+    "R1_strict_subject_v8": {
+      "pass": false,
+      "ci90_lower": {"h21": -0.009725483011325746, "h63": 0.035458080808080765}
+    },
+    "R2_strict_subject_target_structure": {
+      "pass": true,
+      "ci90_lower": {"h21": 0.007791958738629742, "h63": 0.06544053564927471}
+    },
+    "R3_slope_supporting_only": {
+      "pass": false,
+      "ci90_upper_h21": {"v8": 1.1096301633497565, "reflection": 1.20966347336374},
+      "ci90_upper_h63": {"v8": 1.0888240471090451, "reflection": 1.4711320646850696}
+    },
+    "regime_cell_summary": {
+      "cells": 8,
+      "both_top_gap_positive": 8,
+      "both_mean_gap_positive": 7,
+      "reflection_ci90_lower_positive": 5,
+      "v8_ci90_lower_positive": 3
+    },
+    "split_power": {
+      "h21_early": {"n": 209, "touches": 22, "paired_v8_minus_reflection": -0.003707190471913539,
+                    "mde_1645se": 0.00885843141161074, "mde_share_of_brier": 0.09702,
+                    "top5_abs_share": 0.239, "sign_flips_after_top5pct_drop": true},
+      "h21_late": {"n": 208, "touches": 7, "paired_v8_minus_reflection": 0.0010175215772999283,
+                   "ci90_lower": 1.0294246404339351e-05,
+                   "mde_1645se": 0.0011764112054729937, "mde_share_of_brier": 0.03732,
+                   "top5_abs_share": 0.345, "sign_flips_after_top5pct_drop": false},
+      "h63_early": {"n": 209, "touches": 59, "paired_v8_minus_reflection": 0.0024898347939002054,
+                    "mde_1645se": 0.012224953068627028, "mde_share_of_brier": 0.06649,
+                    "top5_abs_share": 0.164, "sign_flips_after_top5pct_drop": false},
+      "h63_late": {"n": 208, "touches": 24, "paired_v8_minus_reflection": 0.007355192091005033,
+                   "ci90_lower": 0.002956064205081112,
+                   "mde_1645se": 0.0044140396282506275, "mde_share_of_brier": 0.04168,
+                   "top5_abs_share": 0.185, "sign_flips_after_top5pct_drop": false}
+    },
+    "gate_arithmetic": {
+      "required_bss_h21_2phi": 0.14281892571483878,
+      "required_bss_h21_bgk": 0.21121434259351823,
+      "required_bss_h63_2phi": 0.1017616912912217,
+      "required_bss_h63_bgk": 0.15075370757545992,
+      "perfect_recalibration_ceiling_h21": 0.19836770667219594,
+      "perfect_recalibration_ceiling_h63": 0.163927706265803
+    }
+  },
+  "key_findings": [
+    "accept 충족 — 진입/중단 판정 1건. **S3 진입**. 채택 규칙을 결과 보기 전에 스크립트 상수로 고정했고(ADOPTION), 네 조작화의 결과를 전부 공표했다.",
+    "채택 = R0(설계도 문자·2026-09-04 사전등록) AND R2(엄격·주체=표적 구조). R0 충족(두 지평 부호 양수·국면 8/8), R2 충족(h21 CI90 하한 +0.0078, h63 +0.0654) → 진입.",
+    "진입이 뜻하지 않는 것을 같은 무게로 기록 — R1(엄격·주체=V8)은 h21 에서 미달(CI90 하한 −0.0097). 확립된 것은 **표적의 과신 구조**이지 **V8 의 과신**이 아니다. S2-2 의 '자유 파라미터 0 개 공식을 못 이긴다' 는 결론은 유지된다.",
+    "채택 근거가 사후 선택이 아닌 이유: 설계도 §1 문장의 주어가 '과신 구조'이고 S2-2 가 그 담지자를 기준선으로 식별했다(ρ_s 0.9514/0.9126, AUC 차 0.008/0.019). 다만 이 논증은 S2-2 결과를 본 뒤에 쓰였으므로, 유일한 사전등록 조작화 R0 을 AND 로 함께 요구해 사후 완화 경로를 막았다.",
+    "R3(로짓 기울기)은 네 칸 전부 미달을 그대로 공표 — 점추정은 넷 다 1 미만(0.679~0.863)이지만 CI90 상한은 넷 다 1 을 넘는다. 과신 판정을 지탱하는 지표는 상위분위 gap 하나뿐이며, 같은 표본에서 두 지표가 갈린다는 사실 자체가 이 진단의 한계다.",
+    "'국면 초월'의 실제 강도를 좁혀 기록 — 부호로는 8/8 이지만 셀 수준 CI90 하한>0 은 반사 5/8·V8 3/8 이고, 위기 국면(GFC·storm)은 두 모델 모두 0 을 걸친다. 초월성 주장은 이 범위 안에서만 유효.",
+    "S2-1 의 통념 하나를 정정 — 'h21 후반창은 터치 7 건이라 검정력이 없다'는 상대 MDE 로 보면 반대다(후반 3.7% of BS < 전반 9.7%). 저기저율 창은 손실 자체가 작아 se 도 작다. h21 의 진짜 취약점은 검정력이 아니라 **집중도**: 후반창 손실차 절대합의 34.5% 를 원점 5 개가 만든다.",
+    "전반창 h21 은 상위 5% 제거 시 부호가 뒤집힌다(−0.003707 → 제거 후 평균 +0.003754). V10 챔피언을 기각한 것과 같은 형태의 취약성이 이 표적에도 있다 — S3 채택 판정에 집중도 검사를 사전 제약으로 넣은 이유.",
+    "분해 항등식 대사 — n_early·Δ_early + n_late·Δ_late = n·Δ_full 이 두 지평 모두 S2-2 풀표본 값과 1e-12 이내로 일치(검증 V3). 분할이 표본을 왜곡하지 않았음을 기계로 확인.",
+    "S2-2 가 산문으로 이월한 게이트 문턱을 기계 필드로 재산출 — h21 +14.28%(BGK +21.12%), h63 +10.18%(BGK +15.08%), 완전보정 상한 h21 +19.84%·h63 +16.39%. 네 문턱 모두 S2-2 수치와 일치하며 이제 수기 이월분이 남지 않는다.",
+    "문서 대사가 초안의 수기 오기 2건을 잡았다(h63 전반 집중도 12.5%→16.4%, 상한 19.9%→19.8%). 표 22 행 바이트 일치 검사가 없었다면 둘 다 진단서에 남았을 것."
+  ],
+  "verdict": {
+    "decision": "진입",
+    "accept_artifact": "docs/design/v12_event_target_diagnostic.md §0",
+    "adoption_rule": "채택 = R0(설계도 문자·사전등록) AND R2(엄격·주체=표적 구조). R1 은 함께 공표, R3 는 보강 증거로만 사용(S2-1 gate_definition 승계).",
+    "R0_pass": true,
+    "R1_pass": false,
+    "R2_pass": true,
+    "R3_pass": false,
+    "dissent_recorded": "R1(주체=V8)은 h21 에서 미달(CI90 하한 −0.009725). 진입은 '표적의 과신 구조가 확립됐다'는 뜻이지 'V8 의 과신이 확립됐다'는 뜻이 아니다.",
+    "prereg_constraints_for_S3_0": [
+      "K-power-h21 / K-power-h63 — 지평별 MDE 병기 의무, MDE 미만 개선은 방향 무관 '결정적 증거 없음', 후반창 결과는 집중도(상위5% 제거 후 부호) 동반 필수.",
+      "K-split-contrast — 본 태스크가 낸 분할창 대비(후반창 두 지평 CI90 하한>0)는 사전등록 검정도 다중검정 보정도 아니다. 'V8 이 기준선을 이긴다'의 근거로 인용 금지, 가설 승격 금지. 풀표본 판정(두 지평 모두 0 포함)이 정본.",
+      "K-T3 — T3 는 설계도 §2 원문대로 등록하되 사전 기대를 '비GFC·calm 에서 w>0 은 악화 방향'으로 정정 기록. 가설 삭제 금지.",
+      "K-baseline — 1차 채택 기준은 §2 원문 불변. 2차 기준 'p′ vs p_reflect 쌍대 CI90 하한>0' 을 추가 등록(강화 방향이므로 사후 완화 아님). S3 통과·2차 미달은 그대로 공표.",
+      "K-gate-arith — S3 통과해도 S4 게이트 미달 가능함을 지금 못박음. S4-2 에서 문턱을 낮추는 기준선 선택(원식·λ=0.99)은 사후 완화이며 근거 명문화 없이 금지."
+    ]
+  },
+  "open_questions": [
+    "채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단 — S4-2/V12-D2 에서 V12 게이트로 승계할 때 재확인 필요. 본 태스크는 R0 AND 로 묶어 위험을 줄였을 뿐 논쟁을 종결하지 않았다.",
+    "R3(기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증] — 소표본 로짓 편의인지 과신의 형태가 상단 국소적이어서인지 식별하지 않았다. S4-2 게이트가 어느 지표를 쓸지 결정 필요.",
+    "h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정 — 원점 격자 조밀화 없이는 분리 불가.",
+    "국면 부분표본 CI 의 층화 부트스트랩 미적용(S2-1·S2-2 이월). calm/storm 은 시간축 비연속.",
+    "과신 잔여분의 기제 [미검증] — 연속 모니터링이 기준선분의 20~45%, 드리프트 0. 나머지(첨도·변동성 평균회귀·군집) 미식별.",
+    "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+    "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "후보 맵(T1~T5) 미생성·미평가 — S3-0 사전등록 전이므로 의도적. p′ 를 만드는 코드는 본 태스크에 없다.",
+    "2015+ 봉인창 미계산 — 의도적 홀드아웃 보존.",
+    "S3-0 사전등록 파일(data/timeseries_v12/prereg/hypotheses.json) 미작성 — S3-0 소관. 본 태스크는 그 파일에 들어갈 제약 6종을 공표만 했다.",
+    "국면 셀 CI 층화 미적용 · h1/h5 판정 제외 — S2-1/S2-2 규약 그대로 승계.",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·docs/·data/timeseries_v12·outputs/ 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S3-0"
+}
