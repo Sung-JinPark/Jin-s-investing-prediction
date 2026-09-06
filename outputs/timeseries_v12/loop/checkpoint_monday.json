@@ -1,0 +1,723 @@
+{
+  "schema": "v12_monday_checkpoint_v1",
+  "task_id": "CKPT",
+  "title": "월요일 체크포인트 봉인",
+  "branch": "claude/v12-sunday",
+  "head_commit": "96f705d18d6f58051e82b0cbea7c3215918c7dc9",
+  "head_subject": "loop(v12): S3-2 result JSON + 자기주장 대사 자동화",
+  "window": {
+    "start_epoch": 1788652800,
+    "monday_ckpt_epoch": 1788706800,
+    "deadline_epoch": 1788739200
+  },
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_baseline": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_match": true,
+    "sealed_prefix_ok": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_baseline": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_match": true,
+    "source": "tools/v12_seal_check.py (sunday_opus_loop.sh sealed_hash() 규약 재현)"
+  },
+  "immutable_paths_checked": [
+    "forecasts",
+    "calibration",
+    "src",
+    "data/timeseries_v8",
+    "data/timeseries_v2",
+    "questions"
+  ],
+  "immutable_paths_dirty": [],
+  "stages": {
+    "S1-1": {
+      "task_id": "S1-1",
+      "title": "세 동결 독립 재계산",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S1-1.json",
+      "result_json_sha256": "2733986cd10b8107cddf81c3e87a16e1c5316678e9182d12f551b5b77682a884",
+      "artifact_count": 3,
+      "artifacts_matching_declared": 3,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S1-2": {
+      "task_id": "S1-2",
+      "title": "공통 방법론 민감도",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S1-2.json",
+      "result_json_sha256": "614da556a4b19090524a88b67b5e99ab19a46e254214ed1adc29ea1fcef4acf0",
+      "artifact_count": 6,
+      "artifacts_matching_declared": 6,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S1-3": {
+      "task_id": "S1-3",
+      "title": "저비용 옵션 판정 + PROMPT 5문 답",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S1-3.json",
+      "result_json_sha256": "f640216100babbef2bbdf555ddaffa8ef58c3321cf2701b44d0ad185fec8f724",
+      "artifact_count": 5,
+      "artifacts_matching_declared": 5,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S2-1": {
+      "task_id": "S2-1",
+      "title": "first_touch 실력 계측",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S2-1.json",
+      "result_json_sha256": "68e5613a985dc0e69a8475af644b935833b8385291e1c47ba759f149763c0288",
+      "artifact_count": 8,
+      "artifacts_matching_declared": 8,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S2-2": {
+      "task_id": "S2-2",
+      "title": "반사원리 기계 기준선",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S2-2.json",
+      "result_json_sha256": "32ddc6793a2f7a3c755b1d1930ae7f04e86eb9635ed81626c970fde70d103fc7",
+      "artifact_count": 12,
+      "artifacts_matching_declared": 12,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S2-3": {
+      "task_id": "S2-3",
+      "title": "S2 진단서",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S2-3.json",
+      "result_json_sha256": "1b960d08a1edb67816184d89b37fcfa3eec38c7ae3eda61d069bc184f46ff6c0",
+      "artifact_count": 9,
+      "artifacts_matching_declared": 9,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S3-0": {
+      "task_id": "S3-0",
+      "title": "가설 사전등록 커밋",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S3-0.json",
+      "result_json_sha256": "b4ed358e44f1c539f3c10b989040808ce3b6619094f39fac7e430c186cdc7f86",
+      "artifact_count": 6,
+      "artifacts_matching_declared": 6,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S3-1": {
+      "task_id": "S3-1",
+      "title": "T1~T4 양방향 전이 + CI + 귀무",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S3-1.json",
+      "result_json_sha256": "404214ff74abb99e89bb7251e4dfe16cdc119fe6613c68914e5139771f0f2c01",
+      "artifact_count": 6,
+      "artifacts_matching_declared": 6,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    },
+    "S3-2": {
+      "task_id": "S3-2",
+      "title": "S3 판정",
+      "status": "완료",
+      "result_json": "outputs/timeseries_v12/loop/results/S3-2.json",
+      "result_json_sha256": "a9b4452a9a2cd2c3afba62e2714047071d1889a11018f4da3d396a57a386a018",
+      "artifact_count": 8,
+      "artifacts_matching_declared": 8,
+      "artifacts_missing": [],
+      "artifacts_drifted": []
+    }
+  },
+  "artifact_totals": {
+    "declared": 63,
+    "present": 63,
+    "missing": 0,
+    "drifted": 0,
+    "result_json_count": 9
+  },
+  "git_reconciliation": {
+    "files_checked": 72,
+    "untracked": [],
+    "dirty_or_uncommitted": [],
+    "clean": true
+  },
+  "anchors": {
+    "convention": "sha256 over sorted '<sha256> *<relpath>' lines (sealed_hash() 규약)",
+    "artifacts_anchor": "cdf359100d55097a13392a8105f45b4f161be4a87ec291a51c6cfcf46711c75f",
+    "results_anchor": "7a50cb3c58dbe1a3935ccc2fad444330fef198aa8da7e584bcbd2a69f054f2d0",
+    "checkpoint_anchor": "a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e"
+  },
+  "backlog_state": {
+    "path": "data/timeseries_v12/ralph/V12_SUNDAY_BACKLOG_260904.json",
+    "done": [
+      "S1-1",
+      "S1-2",
+      "S1-3",
+      "S2-1",
+      "S2-2",
+      "S2-3",
+      "S3-0",
+      "S3-1",
+      "S3-2"
+    ],
+    "pending": [
+      "S4-1",
+      "S4-2",
+      "S5-1"
+    ],
+    "s3_outcome": "채택 0/8 — 전이 불가 부정 결과 확정 (S3-2)",
+    "next_stage": "S4-1 (부정 결과 계약)"
+  },
+  "files": [
+    {
+      "task": "S1-1",
+      "path": "docs/review/verdict_recompute.json",
+      "declared": "671ed504f6ea0273a00b112480d8e62fec02a6ce8410a48dd9d0545e8f92ded8",
+      "actual": "671ed504f6ea0273a00b112480d8e62fec02a6ce8410a48dd9d0545e8f92ded8",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-1",
+      "path": "docs/review/V12_S1_1_RECOMPUTE_VERDICT.md",
+      "declared": "44b90d40fbe7243af3b6e039bc56bb8a3658c8f7cabe27497dff7c600f537dce",
+      "actual": "44b90d40fbe7243af3b6e039bc56bb8a3658c8f7cabe27497dff7c600f537dce",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-1",
+      "path": "tools/v12_recompute_verdict.py",
+      "declared": "7bec8545e758ad642ef4548568702b452dbf6e2473f1db4ce936fefbd209857c",
+      "actual": "7bec8545e758ad642ef4548568702b452dbf6e2473f1db4ce936fefbd209857c",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "docs/review/V12_S1_2_SENSITIVITY.md",
+      "declared": "76d19cad029b0e4dca73af28b09ce614ffca3325f090e5838824d6b8bcf88efb",
+      "actual": "76d19cad029b0e4dca73af28b09ce614ffca3325f090e5838824d6b8bcf88efb",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "docs/review/v10_sensitivity_grid.json",
+      "declared": "ddbf9e0f06446589702edf2e6405a11ecbcc195963416489aa8c57a233569ef2",
+      "actual": "ddbf9e0f06446589702edf2e6405a11ecbcc195963416489aa8c57a233569ef2",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "docs/review/v11_sensitivity_grid.json",
+      "declared": "c500cda80e5eb8783519dfa2a9190bffda3aadf21bf358459ea9d96c696ecadc",
+      "actual": "c500cda80e5eb8783519dfa2a9190bffda3aadf21bf358459ea9d96c696ecadc",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "tools/v12_sensitivity_v10.py",
+      "declared": "cd50ed5648c015a3f7fccc4a5cc5b36c623ea49052e8785494296e0dc056c79c",
+      "actual": "cd50ed5648c015a3f7fccc4a5cc5b36c623ea49052e8785494296e0dc056c79c",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "tools/v12_sensitivity_v11.py",
+      "declared": "6fd240e896bbf7d3615c5bf4cdfe3de95a070052438237fe5270458be645eeab",
+      "actual": "6fd240e896bbf7d3615c5bf4cdfe3de95a070052438237fe5270458be645eeab",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-2",
+      "path": "tools/v12_sensitivity_tables.py",
+      "declared": "73e5b5f5b0f07eb8121fcc30cd3588c5f8d2397d7e7f657111bfa01fb847f26c",
+      "actual": "73e5b5f5b0f07eb8121fcc30cd3588c5f8d2397d7e7f657111bfa01fb847f26c",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-3",
+      "path": "docs/review/V9_V10_V11_INDEPENDENT_VERDICT.md",
+      "declared": "dc677f56ea81f1b42b0fa2498aea0cfac0ae172474e4988e30e6f140be81d76f",
+      "actual": "dc677f56ea81f1b42b0fa2498aea0cfac0ae172474e4988e30e6f140be81d76f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-3",
+      "path": "docs/review/lowcost_options.json",
+      "declared": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+      "actual": "839c6d72a0a6a0fe290f732f54cfbc86140cdb7cfa82337b9c308b02a579ba92",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-3",
+      "path": "tools/v12_lowcost_options.py",
+      "declared": "6d8b45b65f01311c74b42fcd089ac7d05ba16e65ad33b32dcd1ee91d9548da6f",
+      "actual": "6d8b45b65f01311c74b42fcd089ac7d05ba16e65ad33b32dcd1ee91d9548da6f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-3",
+      "path": "tools/v12_lowcost_tables.py",
+      "declared": "d0ec13d42049362352a940a1384ebaac6491fa3a0710e9b82f205a39a8982eec",
+      "actual": "d0ec13d42049362352a940a1384ebaac6491fa3a0710e9b82f205a39a8982eec",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S1-3",
+      "path": "outputs/timeseries_v12/loop/_s1_3_tables.md",
+      "declared": "4fd4637764219a4a4f923453294c6c8dc21a03ab03f2e97ba219ef5daad96eca",
+      "actual": "4fd4637764219a4a4f923453294c6c8dc21a03ab03f2e97ba219ef5daad96eca",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "data/timeseries_v12/diagnostics/first_touch_diagnostic.json",
+      "declared": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+      "actual": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "docs/review/V12_S2_1_FIRST_TOUCH_MEASUREMENT.md",
+      "declared": "274fda6c4e85eead730f3eb4ca21627f659c44067c90ab7edf63141e6f1d0104",
+      "actual": "274fda6c4e85eead730f3eb4ca21627f659c44067c90ab7edf63141e6f1d0104",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "outputs/timeseries_v12/loop/_s2_1_tables.md",
+      "declared": "13c5dae9ae3dc6a00be1c3f2bed9dc8e6e7718ebe2b1c6c4f33db8bc84af20f0",
+      "actual": "13c5dae9ae3dc6a00be1c3f2bed9dc8e6e7718ebe2b1c6c4f33db8bc84af20f0",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "tools/v12_first_touch_diag.py",
+      "declared": "bdaaa6d6c67a28ce0426e5f76eab4485d069c48702fc40a09f86925e31e23207",
+      "actual": "bdaaa6d6c67a28ce0426e5f76eab4485d069c48702fc40a09f86925e31e23207",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "tools/v12_ft_tables.py",
+      "declared": "7256a4e1c37411e6f7eb3ce56374a03ffbe9828853c0574825a459d5753c166a",
+      "actual": "7256a4e1c37411e6f7eb3ce56374a03ffbe9828853c0574825a459d5753c166a",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "tools/v12_ft_verify.py",
+      "declared": "058b8c84e9c76bf8826fff25104a71b8cb3a4b0ee702f3c6213034c323142b60",
+      "actual": "058b8c84e9c76bf8826fff25104a71b8cb3a4b0ee702f3c6213034c323142b60",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "tools/v12_ft_check.py",
+      "declared": "1df5ac065224faa4d9d28477498167696575964c24d0faa01776ac9d9acca162",
+      "actual": "1df5ac065224faa4d9d28477498167696575964c24d0faa01776ac9d9acca162",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-1",
+      "path": "tools/v12_ft_probe.py",
+      "declared": "ff36a7720b00c1556baf873c15d5967e90919928569eafacf8a5cb2988ea4a65",
+      "actual": "ff36a7720b00c1556baf873c15d5967e90919928569eafacf8a5cb2988ea4a65",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "data/timeseries_v12/diagnostics/reflection_baseline.json",
+      "declared": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+      "actual": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "docs/review/V12_S2_2_REFLECTION_BASELINE.md",
+      "declared": "000a6f7b0e3a62f5db417f570e257d89ccc7744de200b2d944eaa51c97f25890",
+      "actual": "000a6f7b0e3a62f5db417f570e257d89ccc7744de200b2d944eaa51c97f25890",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "outputs/timeseries_v12/loop/_s2_2_tables.md",
+      "declared": "fbbcafad40759d74a8b3f6970353f33cf97461675349cfc76540b843bf4fd4fb",
+      "actual": "fbbcafad40759d74a8b3f6970353f33cf97461675349cfc76540b843bf4fd4fb",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_baseline.py",
+      "declared": "8bd481277f1ba93bd6690ad82f4ccdfe0dfa2b1e0befbf1db75bb16a0152ec82",
+      "actual": "8bd481277f1ba93bd6690ad82f4ccdfe0dfa2b1e0befbf1db75bb16a0152ec82",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_tables.py",
+      "declared": "5b2d844d557ace05cb00f6093208260548fbe1793d3e34d9d54444d8392027b9",
+      "actual": "5b2d844d557ace05cb00f6093208260548fbe1793d3e34d9d54444d8392027b9",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_verify.py",
+      "declared": "df550b8c84af619ca108dcf45fb6733540f63e9096390362c9bc95ddec98b5fc",
+      "actual": "df550b8c84af619ca108dcf45fb6733540f63e9096390362c9bc95ddec98b5fc",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_dump.py",
+      "declared": "31bec300e56bd4a709644792c7a09e854971bbd159458548eb028f7dbf3254e1",
+      "actual": "31bec300e56bd4a709644792c7a09e854971bbd159458548eb028f7dbf3254e1",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_mde.py",
+      "declared": "93914876a021d1a50fca82e043056a76ae0624516a140d1ab189723e57c090aa",
+      "actual": "93914876a021d1a50fca82e043056a76ae0624516a140d1ab189723e57c090aa",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_probe.py",
+      "declared": "b14e7d6404a6e9f10e41eb693e485bb31569a31777a37feba9b3cac4a472e68f",
+      "actual": "b14e7d6404a6e9f10e41eb693e485bb31569a31777a37feba9b3cac4a472e68f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_headline.py",
+      "declared": "d7c7ae023d2a31ed231c2add03b3ff90b30b5c102d4a77dec3d189c4d36c8367",
+      "actual": "d7c7ae023d2a31ed231c2add03b3ff90b30b5c102d4a77dec3d189c4d36c8367",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_result_check.py",
+      "declared": "c411fcc83e23dcfcc7e07a2af84737a7d5baea195528ee52c7a58200517188a5",
+      "actual": "c411fcc83e23dcfcc7e07a2af84737a7d5baea195528ee52c7a58200517188a5",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-2",
+      "path": "tools/v12_reflect_doc_check.py",
+      "declared": "0979675be3ad5df5bf3669e76dd30b99fba2cceadcba7098ebb523ae9ea47546",
+      "actual": "0979675be3ad5df5bf3669e76dd30b99fba2cceadcba7098ebb523ae9ea47546",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "docs/design/v12_event_target_diagnostic.md",
+      "declared": "53e4818e4936ec88284a084b75ae6d65f6ac929b931626213a7eb46f7a6e4fea",
+      "actual": "53e4818e4936ec88284a084b75ae6d65f6ac929b931626213a7eb46f7a6e4fea",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "data/timeseries_v12/diagnostics/s2_entry_verdict.json",
+      "declared": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+      "actual": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "outputs/timeseries_v12/loop/_s2_3_tables.md",
+      "declared": "ae86e6870061c92f6513924f4d6756fa9ee6822a6c2a097f112a1f2136bbe15f",
+      "actual": "ae86e6870061c92f6513924f4d6756fa9ee6822a6c2a097f112a1f2136bbe15f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_verdict.py",
+      "declared": "8d2dba02bf80d89af3ed910e7672e43f5927e91b2da5acd51695ae2e13dc8627",
+      "actual": "8d2dba02bf80d89af3ed910e7672e43f5927e91b2da5acd51695ae2e13dc8627",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_tables.py",
+      "declared": "cc31649baa49fbfd76e078bb5328b549bc32c517f326d6d427c9859e72a3b1ba",
+      "actual": "cc31649baa49fbfd76e078bb5328b549bc32c517f326d6d427c9859e72a3b1ba",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_verify.py",
+      "declared": "d3719cb0ea4e70ce4c85e7b616edebb0901a7a48a77695aa4432833c7ee2a792",
+      "actual": "d3719cb0ea4e70ce4c85e7b616edebb0901a7a48a77695aa4432833c7ee2a792",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_doc_check.py",
+      "declared": "140b76a38972afebdc47d3ee23259ab9845a71faab21849389f97d959e0ff314",
+      "actual": "140b76a38972afebdc47d3ee23259ab9845a71faab21849389f97d959e0ff314",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_probe.py",
+      "declared": "49a95f4bfd9e4b1c27e9411755db46ae43e756f07d35bb05caa04bcde3ec9559",
+      "actual": "49a95f4bfd9e4b1c27e9411755db46ae43e756f07d35bb05caa04bcde3ec9559",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S2-3",
+      "path": "tools/v12_s2_probe2.py",
+      "declared": "41eac1fbb1965ff0408dfdd62f7c0de6e90436e58152fb967909af6aa30cf43c",
+      "actual": "41eac1fbb1965ff0408dfdd62f7c0de6e90436e58152fb967909af6aa30cf43c",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "data/timeseries_v12/prereg/hypotheses.json",
+      "declared": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+      "actual": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "data/timeseries_v12/prereg/prereg_commit_log.json",
+      "declared": "4ac4b9dc498090c4f23c8156b7cc04ee99ef53d124ecf145077164a475837717",
+      "actual": "4ac4b9dc498090c4f23c8156b7cc04ee99ef53d124ecf145077164a475837717",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "tools/v12_prereg_check.py",
+      "declared": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+      "actual": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "tools/v12_prereg_tables.py",
+      "declared": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+      "actual": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "tools/v12_s3_0_result_check.py",
+      "declared": "af80726af8f3d165bfceddc5b5212b38531421b0f8805d9b089528635eae54ff",
+      "actual": "af80726af8f3d165bfceddc5b5212b38531421b0f8805d9b089528635eae54ff",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-0",
+      "path": "outputs/timeseries_v12/loop/_s3_0_tables.md",
+      "declared": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a",
+      "actual": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "data/timeseries_v12/diagnostics/transfer_results.json",
+      "declared": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+      "actual": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "tools/v12_transfer_test.py",
+      "declared": "7637fb966a051ca56574c9f9780bfe89a23a7fe599d96b58725ad3ff9de24ddb",
+      "actual": "7637fb966a051ca56574c9f9780bfe89a23a7fe599d96b58725ad3ff9de24ddb",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "tools/v12_transfer_verify.py",
+      "declared": "66432a24e6b47c828472dfc5a157793da486ba1f7b72355c142372eba3b1c1b6",
+      "actual": "66432a24e6b47c828472dfc5a157793da486ba1f7b72355c142372eba3b1c1b6",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "tools/v12_transfer_tables.py",
+      "declared": "94018ac95928ca757cd67535a730cd04c77b8472f7f14377931fa37818f0be50",
+      "actual": "94018ac95928ca757cd67535a730cd04c77b8472f7f14377931fa37818f0be50",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "tools/v12_s3_1_result_check.py",
+      "declared": "5e7b29b7e6a68ef2f15b0ec308a525e0ce9c80f8f1f2aa68929358a3532a9933",
+      "actual": "5e7b29b7e6a68ef2f15b0ec308a525e0ce9c80f8f1f2aa68929358a3532a9933",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-1",
+      "path": "outputs/timeseries_v12/loop/_s3_1_tables.md",
+      "declared": "cbce2cdbf21832b6b3fe58027a4f3491c707b3e0ecf9767154db7bc6b0153bd0",
+      "actual": "cbce2cdbf21832b6b3fe58027a4f3491c707b3e0ecf9767154db7bc6b0153bd0",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "docs/design/v12_s3_verdict.md",
+      "declared": "2020b95b6899e3376c6d2faaad6f304d9271fd07ee817d61eeb96a987b0dbe74",
+      "actual": "2020b95b6899e3376c6d2faaad6f304d9271fd07ee817d61eeb96a987b0dbe74",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "data/timeseries_v12/diagnostics/s3_verdict.json",
+      "declared": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+      "actual": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "outputs/timeseries_v12/loop/_s3_2_tables.md",
+      "declared": "4f7c7a31897f94d88d6ca1d5a8bc408e7aeab1b274c36f739273c796c0dbd36e",
+      "actual": "4f7c7a31897f94d88d6ca1d5a8bc408e7aeab1b274c36f739273c796c0dbd36e",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "tools/v12_s3_verdict.py",
+      "declared": "06e91f1940c058293e87ad855fef29806dfe04b6dd04a086d4bade94d72ff0f3",
+      "actual": "06e91f1940c058293e87ad855fef29806dfe04b6dd04a086d4bade94d72ff0f3",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "tools/v12_s3_tables.py",
+      "declared": "ab4ffe96de9268acf9ff150dc33cfa09a2b822c699ec9b1460314bf9386ca6e8",
+      "actual": "ab4ffe96de9268acf9ff150dc33cfa09a2b822c699ec9b1460314bf9386ca6e8",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "tools/v12_s3_verify.py",
+      "declared": "61695aee668e607c8c04a28c5cb21c8bb96323050fe3eefcad9f5cc1e1b34af2",
+      "actual": "61695aee668e607c8c04a28c5cb21c8bb96323050fe3eefcad9f5cc1e1b34af2",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "tools/v12_s3_doc_check.py",
+      "declared": "20f8f16d8d69ba77603066003fc5ff5064147800af528e6198ee48dcb342ce5c",
+      "actual": "20f8f16d8d69ba77603066003fc5ff5064147800af528e6198ee48dcb342ce5c",
+      "match": true,
+      "state": "OK"
+    },
+    {
+      "task": "S3-2",
+      "path": "tools/v12_s3_2_result_check.py",
+      "declared": "b9c2745b64769d4497fe4a848947d179b68c1ebc1aba07fe01737e0d01f0a9f0",
+      "actual": "b9c2745b64769d4497fe4a848947d179b68c1ebc1aba07fe01737e0d01f0a9f0",
+      "match": true,
+      "state": "OK"
+    }
+  ],
+  "result_files": [
+    {
+      "path": "outputs/timeseries_v12/loop/results/S1-1.json",
+      "sha256": "2733986cd10b8107cddf81c3e87a16e1c5316678e9182d12f551b5b77682a884"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S1-2.json",
+      "sha256": "614da556a4b19090524a88b67b5e99ab19a46e254214ed1adc29ea1fcef4acf0"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S1-3.json",
+      "sha256": "f640216100babbef2bbdf555ddaffa8ef58c3321cf2701b44d0ad185fec8f724"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S2-1.json",
+      "sha256": "68e5613a985dc0e69a8475af644b935833b8385291e1c47ba759f149763c0288"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S2-2.json",
+      "sha256": "32ddc6793a2f7a3c755b1d1930ae7f04e86eb9635ed81626c970fde70d103fc7"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S2-3.json",
+      "sha256": "1b960d08a1edb67816184d89b37fcfa3eec38c7ae3eda61d069bc184f46ff6c0"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S3-0.json",
+      "sha256": "b4ed358e44f1c539f3c10b989040808ce3b6619094f39fac7e430c186cdc7f86"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S3-1.json",
+      "sha256": "404214ff74abb99e89bb7251e4dfe16cdc119fe6613c68914e5139771f0f2c01"
+    },
+    {
+      "path": "outputs/timeseries_v12/loop/results/S3-2.json",
+      "sha256": "a9b4452a9a2cd2c3afba62e2714047071d1889a11018f4da3d396a57a386a018"
+    }
+  ],
+  "notes": [
+    "이 파일이 체크포인트 봉인 정본이다. state.json 은 감독 스크립트가 종료 시 {'ended','iters'} 로 덮어쓰므로(sunday_opus_loop.sh:75) 같은 앵커를 심되 정본이 아니다.",
+    "감독 스크립트의 00:00 KST 자동 체크포인트(monday_ckpt.sha256)는 epoch 1788706800 이후 별도로 기록된다 — 본 태스크는 그와 독립인 태스크 봉인이다.",
+    "백테스트·홀드아웃·refresh·push 0회. 이 스크립트는 읽기 + 봉인 파일 2개 쓰기만 한다."
+  ],
+  "ok": true
+}

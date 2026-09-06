@@ -92,7 +92,7 @@
     "S2-3"
    ],
    "stage_budget_sec": 21600,
-   "status": "대기",
+   "status": "완료",
    "title": "가설 사전등록 커밋",
    "spec": "설계도 §2 T1~T5를 data/timeseries_v12/prereg/hypotheses.json 으로 결과 보기 전 커밋(해시 기록).",
    "accept": "커밋 해시 로그"
@@ -104,7 +104,7 @@
     "S3-0"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "T1~T4 양방향 전이 + CI + 귀무",
    "spec": "각 가설: 전→후·후→전 Brier 개선, 블록부트(ℓ=13,B=2000) CI90, 순열 귀무 1000회. T5 음성대조. transfer_results.json",
    "accept": "전 가설 결과 + P(≥k 통과)"
@@ -116,7 +116,7 @@
     "S3-1"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "S3 판정",
    "spec": "채택=양방향 CI90 하한>0. 채택 0이면 '전이 불가' 부정 결과 확정. docs/design/v12_s3_verdict.md",
    "accept": "채택 목록 또는 부정 결과"
@@ -128,7 +128,7 @@
     "S3-2"
    ],
    "stage_budget_sec": 600,
-   "status": "대기",
+   "status": "진행",
    "title": "월요일 체크포인트 봉인",
    "spec": "S1~S3 산출물 sha256·state 기록. 봉인 해시 재대사.",
    "accept": "state.json 봉인"
