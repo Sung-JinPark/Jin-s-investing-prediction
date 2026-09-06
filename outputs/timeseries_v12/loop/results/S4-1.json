@@ -1,0 +1,186 @@
+{
+  "task_id": "S4-1",
+  "title": "V12 계약 draft",
+  "status": "완료",
+  "stage": "S4",
+  "commit": "7f75d46f (계약 draft·생성기·검증기·표 렌더러·탐침·요약표) · 후속 커밋(본 result JSON + result_check)",
+  "read_only": true,
+  "corrections": [
+    "커밋 7f75d46f 의 메시지가 계약을 '25개 절' 로 적었으나 실제 최상위 절은 27개다. 초안 시점의 절 수를 그대로 둔 오기이며, 커밋 메시지는 고치지 않고 여기에 정정을 남긴다(사후 수정보다 정정 기록이 원칙). 실제 값은 headline.top_level_sections=27 이고 tools/v12_s4_1_result_check.py R5-d 가 계약 파일에서 재계수해 대사한다 — 이 검사가 초안의 오기를 잡았다.",
+    "이 result JSON 의 verification V5·V8·V9·V12 항목 수 초안값(21·74·19·5)이 실제(24·62·18·6)와 달랐다. R9-c 가 검증기를 재실행해 그룹별로 재계수하며 잡았고, 실제 값으로 정정했다. 합계 218 은 초안부터 일치했다."
+  ],
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경. data/contracts/ 는 신규 draft 1개만 추가되고 기존 계약 9종 무수정 — v12_s4_contract_check.py V7-g/V7-h 가 V8 계약 sha256 과 git 청결을 기계로 대사한다."
+  },
+  "artifacts": {
+    "data/contracts/multivariate_timeseries_v12.draft.yaml": "0f68455fb6a5fc9dbcc41f6b0c61d92e0c0f285c00bb945e767f3bf168ae495b",
+    "tools/v12_s4_contract.py": "b77f47f68f64cb537708e3dedfbacaf45e0754cb653bdcd07c4d13527e4d0185",
+    "tools/v12_s4_contract_check.py": "97c3c52be30acf833f6e779a8c78d3549287e28df5cfd338adaf4f415323bf6f",
+    "tools/v12_s4_tables.py": "0f811f676eade331ee180af855ad8c2f572eefa08a6929188cfa3c7f951913e6",
+    "tools/v12_s4_probe.py": "e0d7b7f62d7a81c1e071750882a567d6f508f944898a9fe9ddef0daf2b3bbf39",
+    "outputs/timeseries_v12/loop/_s4_1_tables.md": "344d87d7f083dfbe85aa00a256063fb49a9831c1df9a83b9bbbe7e9a67461c8f"
+  },
+  "accept_check": {
+    "requirement": "계약 draft 커밋",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "data/contracts/multivariate_timeseries_v12.draft.yaml",
+    "committed": true,
+    "commit": "7f75d46f",
+    "spec_clauses_delivered": {
+      "표적 first_touch h21/h63": "target.horizons_sessions=[21,63] · target.event=first_touch · h1/h5 배제 사유 승계",
+      "게이트 Brier skill vs 기후": "G1_skill_vs_climatology — 두 지평 CI90 하한>0, expanding climatology 병기 의무",
+      "게이트 Brier skill vs 반사원리 기준선": "G2_skill_vs_reflection — 구속 기준선 BGK, 2Φ 병기, 지평별 요구 Brier·요구 BSS 등록",
+      "게이트 양방향 전이": "G3_bidirectional_transfer — 등록부 A1 원문 그대로, 부트스트랩 상수 승계",
+      "게이트 reliability": "G4_reliability — Murphy REL 두 binning 감소 + 상위분위 gap CI90 하한이 0 이하로",
+      "CRPS 게이트 무손상 제약": "crps_gate_intact — V8 dev_gate_proxy 12조건·publication_gate 10조건·operational_gate 값 무변경 복제 + 무손상 요건 4종",
+      "정지점2 승계": "stopping_points.count=2 (홀드아웃 승인 문자열 · 봉인 사인오프 별도 세션), 창·상한·retune 금지 값 V8 일치",
+      "봉인0 승계": "stopping_points.loop_execution_record 5종 전부 0 · predecessor_immutability 봉인 해시 핀",
+      "retune 금지 승계": "prohibitions.inherited_from_v8_and_v10 의 retune_v2·retune_v8·mutate_v8 + sealed.retune_after_failure=prohibited",
+      "S3 부정이면 부정결과 계약": "status=negative_result_draft · gates.armed=false · evaluated_candidates=0 · negative_result 절이 S3-2 판정 전재"
+    },
+    "verified_mechanically": "tools/v12_s4_contract_check.py — 218항목 전부 PASS. 생성기의 롤업을 읽지 않고 계약 YAML 을 파싱해 원천 JSON·V8/V10 계약·봉인 해시와 대사하는 독립 경로다."
+  },
+  "headline": {
+    "contract_kind": "negative_result_contract",
+    "status": "negative_result_draft",
+    "gates_armed": false,
+    "evaluated_candidates": 0,
+    "top_level_sections": 27,
+    "gates_registered": ["G0_crps_no_damage", "G1_skill_vs_climatology", "G2_skill_vs_reflection", "G3_bidirectional_transfer", "G4_reliability", "G5_reporting_obligations"],
+    "binding_baseline": "reflection_bgk",
+    "prohibitions_total": 31,
+    "prohibitions_inherited": 21,
+    "prohibitions_v12_specific": 10,
+    "known_limits": 11,
+    "decisions_pending": ["V12-D1", "V12-D2", "V12-D3", "V12-D4", "V12-D5"]
+  },
+  "gate_thresholds": {
+    "convention": "요구 후보 Brier = 기준선 Brier − MDE(1.645·se 규약은 gate_arithmetic 의 z(0.95)). 요구 BSS = 1 − 요구 Brier / 기후 Brier. 전부 S2-3 gate_arithmetic 실측 파생이며 임의 상수 0.",
+    "h21": {
+      "climatology_brier": 0.064708,
+      "bgk_baseline_brier": 0.05814,
+      "bgk_required_candidate_brier_max": 0.051041,
+      "bgk_required_bss_min": 0.211214,
+      "2phi_required_candidate_brier_max": 0.055466,
+      "2phi_required_bss_min": 0.142819
+    },
+    "h63": {
+      "climatology_brier": 0.159424,
+      "bgk_baseline_brier": 0.145938,
+      "bgk_required_candidate_brier_max": 0.13539,
+      "bgk_required_bss_min": 0.150754,
+      "2phi_required_candidate_brier_max": 0.1432,
+      "2phi_required_bss_min": 0.101762
+    }
+  },
+  "gate_feasibility": {
+    "definition": "재보정 상한 = 1 − (BS_V8 − REL)/BS_기후 — Murphy REL 을 0 으로 만든 가상 후보의 BSS. 상한 < 요구 BSS 면 재보정 경로로는 도달 불가.",
+    "h21": {
+      "ceiling_fixed_bins": 0.198368,
+      "ceiling_quantile_bins": 0.101276,
+      "bgk_required": 0.211214,
+      "bgk_reachable": false,
+      "bgk_headroom": -0.012847,
+      "2phi_required": 0.142819,
+      "2phi_reachable_under_any_binning": true,
+      "2phi_reachable_under_quantile_binning": false
+    },
+    "h63": {
+      "ceiling_fixed_bins": 0.163928,
+      "ceiling_quantile_bins": 0.15599,
+      "bgk_required": 0.150754,
+      "bgk_reachable": true,
+      "bgk_headroom": 0.013174,
+      "2phi_required": 0.101762,
+      "2phi_reachable_under_any_binning": true
+    },
+    "caveat": "상한의 REL 이 in-sample 추정이라 상한 자체가 낙관 편의를 안는다. '도달 가능' 은 가능성 진술이지 예측이 아니며, 이 산술은 어떤 문턱도 낮추지 않는다 (C-gate-arith)."
+  },
+  "current_status_of_v8_raw_probability": {
+    "note": "오늘의 V8 원값이 게이트 앞에 선 위치. 후보 평가가 아니다 — 게이트는 armed=false.",
+    "h21": {"G1_vs_climatology": "미달", "G1_ci90_lower": -0.011884, "G2_vs_bgk": "미달", "G2_bgk_ci90_lower": -0.011147, "G4_overconfidence_significant": true},
+    "h63": {"G1_vs_climatology": "미달", "G1_ci90_lower": -0.022054, "G2_vs_bgk": "미달", "G2_bgk_ci90_lower": -0.010022, "G4_overconfidence_significant": true}
+  },
+  "key_findings": [
+    "accept 충족 — 계약 draft 를 spec 이 지정한 경로(data/contracts/multivariate_timeseries_v12.draft.yaml)에 작성하고 커밋(7f75d46f)했다. spec 이 열거한 10개 조항을 절 단위로 전부 실었고 accept_check.spec_clauses_delivered 가 조항↔절 매핑을 남긴다.",
+    "S3 부정 결과 분기를 계약의 '성격' 으로 못박았다 — status=negative_result_draft · gates.armed=false · evaluated_candidates=0 · development_protocol.track_open=false. 게이트를 지우지 않고 산술까지 등록하되 무장하지 않는 형태라, '게이트가 없어서 통과할 수 없다' 가 아니라 '게이트는 있고 무장되지 않았다' 가 된다.",
+    "판정을 요약하지 않고 전재했다 — negative_result 절의 19개 필드가 s3_verdict.json 의 필드와 값이 같음을 V4 가 대사한다. 요약 과정에서 완화되는 경로를 없앤 것.",
+    "게이트 문턱에 임의 상수를 두지 않았다 — 지평별 요구 Brier·요구 BSS 8개 값이 전부 S2-3 gate_arithmetic 실측 파생이고, V5-b 가 '요구 Brier = 기준선 − MDE' 산술을 원본 값으로 재계산해 확인한다.",
+    "구속 기준선을 BGK 로 등록했다 — 판정이 일간 종가 최소값 기준이므로 이산 모니터링 보정판이 규약과 정합하는 기준선이다. 연속식 2Φ 는 구조적으로 터치를 과대추정해 더 느슨하다. V5-d 가 '두 지평 모두 BGK 요구 Brier < 2Φ 요구 Brier' 를 확인해 이 선택이 완화가 아니라 강화임을 기계로 보인다.",
+    "게이트 도달 가능성을 계량해 계약 본문에 실었다 — h21 은 BGK 요구 BSS 0.211214 가 완전 재보정 상한 0.198368 을 넘어선다(여유 -0.012847). 재보정 경로만으로는 도달할 수 없다는 뜻이고, S3 가 T1~T4 로 확인한 부정 결과와 같은 방향을 독립 산술로 가리킨다. h63 은 상한 안이나 여유가 0.013174 로 좁다.",
+    "도달 가능성이 binning 에 의존한다는 사실을 숨기지 않았다 — h21/2Φ 는 fixed-bin 상한에서는 도달 가능이고 quantile-bin 상한에서는 불가다. 한쪽만 인용해 통과를 주장하는 것을 G4.note 가 금지한다.",
+    "CRPS 게이트 무손상을 '선언' 이 아니라 '값 동일성' 으로 만들었다 — V8 계약의 dev_gate_proxy·publication_gate·operational_gate 를 값 그대로 복제하고, V7-a~V7-d 가 키 집합·값을 재귀 비교한다. 복제본이 한 자리라도 완화되면 검증기가 걸린다. V7-e 는 V10 계약도 같은 proxy 를 쓴다는 사실로 복제의 일관성을 교차 확인한다.",
+    "헌법 승계를 집합 연산으로 바꿨다 — prohibitions.inherited_from_v8_and_v10 은 V8·V10 금지 키의 합집합(21종)을 코드로 만들고, V11-h 가 누락 0 을 확인한다. 파생층이 구조적으로 저촉될 수 없는 항목(분포 학습·강제 종점 등)도 완화하지 않고 그대로 실었다 — '해당 없음' 으로 빼는 순간 승계 주장이 약해지기 때문이다.",
+    "상류 두 산출물의 MDE 승수 규약이 다르다는 것을 발견해 계량 공시했다 — S2-1/S2-2 진단의 mde50 은 리터럴 1.645, S2-3 gate_arithmetic 의 mde_1645se 는 정규분위 정확값 z(0.95)=1.6448536 이다. h21/2Φ 에서 차이는 4.15e-07 로 어떤 판정도 바꾸지 않지만, 두 규약을 섞어 유리한 쪽을 고르는 것을 mde_convention 이 금지하고 V14 가 승수를 역산해 대사한다.",
+    "계약이 자기 자신을 되살릴 수 없게 만들었다 — 금지 어휘 스캔이 '조건부 통과' 류를 부정문 밖에서 쓰는 것을 막고(V10-a), 면제한 3줄을 전부 공시한다. 통째 면제였다면 검사가 무의미해지므로 줄 단위 부정 마커 동반을 요구하도록 좁혔다.",
+    "재개 경로를 '되살리기' 가 아니라 '새 검정' 으로 규정했다 — reopen_protocol 은 전제 5종(사용자 결정·검정 기계 수리·새 사전등록·데이터 등급·봉인 무변경)을 모두 요구하고, 금지된 지름길 5종(사후 가설·귀무 교체·기준선 완화·분할창 대비 인용·홀드아웃 조기 개봉)을 나열한다. T5 실패를 '수리 대상' 으로 명시해, 같은 기계로 얻을 통과가 증거가 되지 못한다는 S3 기록을 계약 조건으로 옮겼다.",
+    "홀드아웃 무접촉을 기계로 확인했다 — V12-a 가 파싱된 구조를 경로째 걸어 2015~2025 연도 문자열이 정지점 창 또는 '미소모/미계산/미실행' 서술에만 실렸음을 본다. 초안의 원문 줄 스캔은 YAML 블록 시퀀스에서 맥락 키가 앞줄로 밀려 오판했고, 그 오판을 구조 순회로 고쳤다.",
+    "계약이 결정론적으로 재생성됨을 확인했다 — V13-a 가 생성기를 모듈로 적재해 build()/render() 를 다시 돌리고 바이트 동일을 대사한다. 수기 편집이 섞이면 여기서 걸린다.",
+    "부수 확인 — data/contracts/ 를 glob 하는 제품 코드는 src/ai_fc/inventory.py 의 계약 수 계수 하나뿐이다. 신규 draft 추가 후 test_inventory.py 2건·test_multivariate_timeseries_v9/v10 20건 전부 통과해 부작용 0 을 확인했다."
+  ],
+  "verification": {
+    "V1": "봉인 4항목 — e3ff2fdb…·원장 b9c492be… 가 BOOT 기준선과 일치하고 계약 핀과도 일치.",
+    "V2": "입력 무변경 12항목 — 입력 7종 sha256 실측 일치 + CKPT 선언값과 교차 대사 5종.",
+    "V3": "계약 성격 8항목 — status·armed·후보 0·채택 0·decision_code·트랙 미개시·미공개·kind.",
+    "V4": "판정 전재 22항목 — s3_verdict.json 필드와 값 동일, T5 문구가 실측 통과율을 인용하는지 포함.",
+    "V5": "게이트 문턱 재유도 24항목 — 지평×기준선 4조합의 4개 값 + 기후 Brier 2종 + 요구 Brier 산술 재계산 4종 + 구속 기준선 지정·BGK 가 2Φ 보다 엄격함.",
+    "V6": "도달 가능성 재계산 26항목 — 상한 2종·max 정의·도달 판정 3종·여유를 원본에서 재유도, h21/BGK 불가와 reading 서술 방향 확인.",
+    "V7": "CRPS 무손상 8항목 — dev_gate_proxy 키집합·값, publication_gate, operational_gate 재귀 동일 + V10 교차 + 완화 금지 조항 + V8 계약 sha256·git 청결.",
+    "V8": "실측값 대사 62항목 — n·touches·기저율·Brier·BSS·expanding 2종·Murphy 4필드×2binning·상위분위 gap 3종·쌍대 3종×4필드.",
+    "V9": "등록부 원문 18항목 — A1 규칙·출처·불변, 적합 목표·고정 nuisance·검정통계량, MDE·집중도·다중검정 의무, A2 근거, 파생층 제약, 분할 동결, y·p 정의 14종이 바이트 그대로 + 부트스트랩 상수·run 핀·원점수·분할.",
+    "V10": "금지 서술 4항목 — 부정문 밖 0건, 면제 3건 전부 부정·금지문, C-S4-contract 조항 존재, 되살리기 금지.",
+    "V11": "정지점·승계 10항목 — 창·승인·상한·retune 이 V8 일치, 루프 실행 기록 5종 0, V8∪V10 금지 키 승계 누락 0.",
+    "V12": "홀드아웃 무접촉 6항목 — 구조 순회 연도 스캔·2026 문자열 경로·창 경로·미소모 명시·C-holdout·홀드아웃 산출물 0.",
+    "V13": "결정론 2항목 — 생성기 재실행 바이트 동일, 유효 YAML.",
+    "V14": "MDE 규약 6항목 — 진단 승수 1.645 확인, 게이트 승수 z(0.95) 역산, 차이 계량 일치, 6째 자리 이하, 한계 대장 등재.",
+    "V15": "accept 6항목 — 파일 존재·파일명·contract_id/version·요구 절 7종·표적 지평·게이트 5종 이상.",
+    "total": "218항목 전부 PASS",
+    "pytest": "src/tests/test_inventory.py 2 passed · src/tests/test_multivariate_timeseries_v10.py + _v9.py 20 passed — data/contracts/ 신규 파일 추가의 부작용 0 확인 (hermetic, src/ 변경 없음)"
+  },
+  "prereg_compliance": {
+    "branch_used": "T5_fail (등록부 pre_committed_interpretation, adopted_0 보다 우선)",
+    "branch_text_quoted_verbatim": true,
+    "hypotheses_added_after_results": 0,
+    "thresholds_relaxed": 0,
+    "baseline_swapped_to_easier": false,
+    "baseline_choice_note": "구속 기준선을 2Φ 가 아니라 더 엄격한 BGK 로 등록했다 — 완화가 아니라 강화 방향이며 V5-d 가 기계로 확인한다.",
+    "K_constraints_honored": {
+      "C-S4-contract": "부정 결과 계약으로 작성. '조건부 통과' 류 어휘를 부정문 밖에서 쓰지 못하도록 스캔.",
+      "C-null-redesign": "귀무 재설계를 하지 않았고 prohibitions.null_redesign_after_results 로 금지 등재. 대안 귀무는 여전히 미계산.",
+      "C-gate-arith": "문턱을 낮추지 않았다. 도달 가능성 산술에 does_not_lower_thresholds 를 명기하고 기준선 교체를 금지 등재.",
+      "C-split-contrast": "S2-3 분할창 대비를 계약의 어떤 근거로도 인용하지 않았고 금지 등재.",
+      "C-holdout": "2015+ 미계산 유지. V12-a 가 구조 순회로 확인."
+    },
+    "post_hoc_additions_declared": [
+      "구속 기준선을 BGK 로 지정한 것은 S3 등록부에 없던 계약 단계의 선택이다. 근거(판정 규약이 일간 종가)를 명기했고 방향이 강화임을 기계로 보였으나, 사전등록된 규칙은 아니다.",
+      "G4 의 'reliability 두 binning 모두 감소 + 상위분위 gap CI90 하한 0 이하' 형태는 S2 실측값에 앵커한 계약 단계의 신설 게이트다. S3 채택 규칙이 아니며 S3 판정을 바꾸지 않는다.",
+      "gate_feasibility_arithmetic(재보정 상한 vs 요구 BSS)은 S2-3 이 계산해 둔 값의 재조합이며, 문턱 조정 근거로 쓰지 않는다."
+    ]
+  },
+  "open_questions": [
+    "G4 의 reliability 감소 요건을 '얼마나' 로 정량화하지 않았다 — 현재는 부등호(V8 실측값보다 작을 것)뿐이고 최소 감소폭이 없다. S4-2 게이트 설계서에서 MDE 와 함께 정할 사항.",
+    "구속 기준선 BGK 지정이 사용자 승인 대상인지 [미확정] — V12-D2 의 범위에 기준선 선택이 포함되는지 명시적 결정 필요.",
+    "h21 의 재보정 상한 초과(도달 불가)가 '재보정류 전부' 에 대한 진술인지, Murphy REL 정의가 포착하는 재보정에 한한 진술인지 [미검증] — 후자가 정확하나 그 경계를 계량하지 않았다.",
+    "expanding climatology 는 eligible_n 이 in-sample 기후와 달라(h21 392·h63 384) 두 기후 대비 skill 이 직접 비교되지 않는다 — G1 의 병기 의무를 어떤 표본으로 맞출지 S4-2 소관.",
+    "N1 귀무의 적법성 [미검증] — S3-2 이월 유지. 대안 귀무 미계산이며 재개 프로토콜 P2 의 대상이다.",
+    "S3-2 이월 유지 — 채택 규칙의 주체 선택(R2=표적 구조)이 옳은 독해인지는 사용자 판단(V12-D2). 계약은 R2 를 쓰되 R1 기준 h21 이 0 을 포함한다는 사실을 한계 대장에 실었다.",
+    "S3-2 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 갈리는 이유 [미검증] · h21 후반창 집중도가 구조인지 표본 인공물인지 미확정.",
+    "S1 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5) · V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "docs/design/v12_gate_design.md 미작성 — S4-2 소관. 본 태스크는 계약 YAML 만 냈고 게이트 산술의 서술적 설계서·예산·파생층 배포 경계는 다음 태스크다.",
+    "게이트 무장 0 — 어떤 후보도 이 게이트로 평가하지 않았다 (설계상 의도).",
+    "대안 귀무 미계산 — 결과를 본 뒤 귀무 추가는 등록부 위반. 재개 프로토콜 P2 로 이월.",
+    "국면(GFC/calm) 층화 CI 미산출 · h1·h5 지평 미평가 — S2 규약 승계.",
+    "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+    "data/timeseries_v12/ledgers/ 미생성 — 트랙이 열리지 않아 실험 원장을 만들지 않았다. 계약은 경로만 등록하고 ledger_exists=false 를 싣는다.",
+    "전체 pytest 미실행 — src/ 변경 0. 계약 파일 추가가 닿는 경로(inventory glob)와 인접 계약 테스트만 선별 실행했다."
+  ],
+  "next_task": "S4-2"
+}
