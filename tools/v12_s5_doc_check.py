@@ -162,7 +162,12 @@ def main() -> int:
 
     pool: set[str] = set()
     collect_numbers(R, pool)
+    # S5-1 자신의 result JSON 은 후보 집합에서 뺀다 — 보고서보다 뒤에 쓰이는 파일이라
+    # 여기 넣으면 '보고서가 자기 result 를 근거로 자기를 증명하는' 회로가 되고,
+    # 실제로 음성 대조 값까지 result 본문에서 새어 들어와 검사가 무의미해진다.
     for path in sorted(RESULTS.glob("*.json")):
+        if path.stem == "S5-1":
+            continue
         collect_numbers(json.loads(path.read_text(encoding="utf-8")), pool)
     for rel in R["provenance"]["inputs_sha256"]:
         p = ROOT / rel

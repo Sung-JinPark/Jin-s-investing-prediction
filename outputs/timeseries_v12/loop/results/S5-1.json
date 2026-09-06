@@ -1,0 +1,203 @@
+{
+  "task_id": "S5-1",
+  "title": "최종 보고·결정표·inventory",
+  "status": "완료",
+  "stage": "S5",
+  "commit": "b0982528 (최종 보고·산출 JSON·표·PR 초안·생성기/렌더러/검사기/inventory 러너/정찰 + inventory 갱신 + 백로그 완료) · 후속 커밋(본 result JSON + tools/v12_s5_result_check.py + doc_check 음성대조 수정본)",
+  "artifact_hash_note": "tools/v12_s5_doc_check.py 의 해시는 후속 커밋의 수정본(4110e7e7…)이다 — b0982528 에 실린 초판(1f7c5ee5…)이 아니다. corrections[0] 이 그 수정 사유이며, result_check R1 은 항상 현재 파일과 대사한다.",
+  "commit_sha": "b098252838130e5fdc1794f60fd245fbe6ba1015",
+  "read_only": false,
+  "corrections": [
+    "doc_check 초안의 음성 대조(D2-c)가 자기 자신 때문에 무너졌다 — 산문 수치 후보 집합에 results/*.json 을 전부 넣었는데 이 result JSON 도 거기 들어가면서, 여기 적은 대조값이 '원천에 있는 수' 가 됐다. S5-1 result JSON 을 집합에서 제외해 고쳤다. 이 오류는 result_check R8 이 doc_check 를 재실행하면서 잡았다.",
+    "result_check 초안의 금지 verb 검사(R10)가 자기 코드를 22건 적발했다 — Path.resolve()·ingest.sync()·'…/holdout' 경로 문자열을 낱말로 매칭한 탓이다. 헌법이 실제로 금지한 5종만, 호출 형태(`-m ai_fc <verb>`·`git push`)로만 찾도록 좁히고 양방향 대조를 추가했다.",
+    "result_check 초안의 R7-c 가 known_staleness 문자열에서 '렌더 시점' 을 찾지 못했다 — 서술이 '렌더한 뒤' 로만 돼 있었다. 표 K 값이 렌더 시점 값임을 명시하도록 문구를 고쳤다(수치는 바뀌지 않았다)."
+  ],
+  "read_only_note": "이 태스크는 두 곳에 쓴다 — 자기 산출물, 그리고 envelope 가 지시한 inventory 재생성분(docs/generated/inventory.generated.md). 후자는 원천에서 결정론적으로 파생되는 생성 문서이며 그 외 저장소 상태는 읽기만 했다. gitignore 된 db/index.db 도 sync 로 재구축된다(파생 인덱스).",
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "convention": "tools/v12_seal_check.py 의 sealed_hash()/ledger_hash() 직접 호출 (S4-2 와 동일한 정본 규약).",
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경 — v12_s5_report.py 와 doc_check D9-a 가 각각 기계로 확인한다. inventory 러너도 실행 전후로 같은 대사를 하고 더러워지면 비정상 종료하도록 만들었다."
+  },
+  "artifacts": {
+    "docs/review/SUNDAY_LOOP_FINAL_REPORT.md": "418942eb673ce53113c0380740f64e2402fc391dec5cb320950e417ab0290378",
+    "data/timeseries_v12/reports/final_report.json": "9dadabac982d01ea12ec6901d9e40f25e231a0dd6ac9a8dd4568ed1fc3832642",
+    "data/timeseries_v12/reports/inventory_result.json": "7db7e555ce5f911d573ef9fb8861d861e85fae3fc7249410499e8415fd8270d1",
+    "outputs/timeseries_v12/loop/_s5_1_tables.md": "cbf11e9c70dd74c264c6fac03ee95e6ea778ffd96e672e5c5481a2c9ff4223c3",
+    "outputs/timeseries_v12/loop/PR_BODY.md": "52822c3b9d2165fcfff47a2947fad7c755f9038fad692629043ebd2fb8c6ad2f",
+    "tools/v12_s5_report.py": "16b8bd6b70dd385e082c95c5c2bcae90dc2cb6f546c8d48de56bf67caf88be90",
+    "tools/v12_s5_tables.py": "f96d7727c39f7095adfa28c2dc41689e9ce75024b6cdaef898e48e5d713137f5",
+    "tools/v12_s5_doc_check.py": "4110e7e7a6f5f033e40e7e2361d8b4302eaafe8975c92150203a216477239049",
+    "tools/v12_s5_inventory.py": "8c930478b2940d366d51e4abcc52274f97ea8a9657b32d70543f80e3ddbcda6c",
+    "tools/v12_s5_probe.py": "8a7969e711091a8cd221e63a4761a68a5bedbc2771b4c5ced84f7c0d9baf0625"
+  },
+  "regenerated_not_authored": {
+    "docs/generated/inventory.generated.md": "5527962187a75245b91247e5c0de84991b74db4982f3d9a4a6ab69263bd1d26b",
+    "why_separate": "이 파일은 본 태스크가 쓴 문서가 아니라 원천에서 결정론적으로 다시 만들어진 생성물이다. artifacts 에 섞으면 '작성한 것'과 '재생성한 것'의 구분이 사라진다."
+  },
+  "inputs": {
+    "note": "12 개 태스크 result JSON + 진단 5종 + 설계 1종 + 등록부 1종 + 계약 1종 + S1 검토 2종 + CKPT 봉인 1종. 전체 해시는 final_report.json 의 provenance.inputs_sha256 에 있고, 산출물 83개의 재해시 대사는 artifact_inventory 에 있다.",
+    "run_path": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727",
+    "upstream_artifacts_rehashed": 83,
+    "upstream_drift": 0,
+    "upstream_missing": 0
+  },
+  "accept_check": {
+    "requirement": "보고 커밋",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "docs/review/SUNDAY_LOOP_FINAL_REPORT.md",
+    "committed": true,
+    "commit": "b0982528",
+    "spec_items_delivered": {
+      "docs/review/SUNDAY_LOOP_FINAL_REPORT.md": "작성·커밋 — §0 판정 · §1 규율 증거 · §2 단계별 결과(S1~S4) · §3 결정표 · §4 미완 정직 기록 · §5 무결성·inventory · §6 PR 준비 · §7 반대 읽기 · §8 한계 · §9 남는 것. 표 11종은 전부 렌더러 출력 복사본.",
+      "V12-D1~D4": "결정표에 D1~D4 를 설계도 §5 문구대로 싣고, S1-3 이 제안한 D5(V10 조합 격자)를 '설계도 §5 밖 신규 제안' 으로 명시해 추가. 각 결정에 상태·선택지·근거 목록·권고·되돌릴 수 없는 것을 붙였다.",
+      "미완 정직 기록": "12 태스크의 not_done 57건·open_questions 76건을 전량 수집해 분류(사람이 고른 목록이 아니라 코드 상수 규칙). '후속 태스크가 실제로 낸 것' 8건을 분리해 루프 밖으로 나가는 미완 49건을 따로 셈했다.",
+      "cd src && python -m ai_fc inventory": "권한 제약으로 CLI 직접 호출 불가 — tools/v12_s5_inventory.py 가 cmd_inventory 의 호출(connect → sync(strict) → write_inventory)을 같은 순서·인자로 재현했다. 실행 결과는 data/timeseries_v12/reports/inventory_result.json 에 기록.",
+      "PR 준비(push 금지)": "outputs/timeseries_v12/loop/PR_BODY.md 초안 작성. 원격 접촉 0 — push·PR 생성·gh 호출 어느 것도 하지 않았다."
+    },
+    "verified_mechanically": "tools/v12_s5_doc_check.py — 29항목 전부 PASS. 표 140행 바이트 일치 · 산문 소수 27개 전부 원천 유래 · 금지 서술 0 · 결정표 문자열 일치 · 봉인/앵커 일치 · 2015+ 보존 문맥 · 정직 기록 실재 · 상태 대사. 음성 대조 2종(D2-c·D3-c)이 두 검사가 헛돌지 않음을 보인다."
+  },
+  "headline": {
+    "loop_tasks": 13,
+    "tasks_completed": 13,
+    "tasks_partial": 0,
+    "tasks_blocked": 0,
+    "forbidden_verbs_executed_total": 0,
+    "backtests_run": 0,
+    "holdout_touched": false,
+    "upstream_artifacts_rehashed": 83,
+    "result_json_count": 12,
+    "files_rehashed_total": 95,
+    "drift": 0,
+    "missing": 0,
+    "loop_anchor": "c2d28a6c4ccaf59c8457d36e5fc6bb24855aef05ae5e71b0473f9b3cf055ccaf",
+    "artifacts_anchor": "4553b841cf691ba81b6c2b1a73ea904a54d665e98b0996750ac396610d11f2d9",
+    "results_anchor": "6f63ae94f4af8dd925aa7359205cf7793c88e717b3abb2bded88b0692743c787",
+    "ckpt_anchor_reproduced": true,
+    "decisions_tabled": ["V12-D1", "V12-D2", "V12-D3", "V12-D4", "V12-D5"],
+    "not_done_collected": 57,
+    "not_done_excluding_followup": 49,
+    "open_questions_collected": 76,
+    "open_questions_distinct": 56,
+    "unverified_flagged_in_open_questions": 28,
+    "doc_check_items": 29,
+    "doc_check_pass": 29,
+    "gates_armed": false,
+    "candidates_created": 0,
+    "thresholds_changed": 0,
+    "new_hypotheses": 0,
+    "new_measurements": 0
+  },
+  "inventory_result": {
+    "equivalent_cli": "cd src && python -m ai_fc inventory",
+    "entrypoint_used": "tools/v12_s5_inventory.py (라이브러리 호출 재현)",
+    "why": "루프 헌법 §1 은 파이썬 실행을 tools/v12_run.py 경유로만 허용한다 — python -m ai_fc 는 권한 목록 밖이라 거부된다. cmd_inventory 의 호출 순서·인자·대상 파일을 그대로 재현했고 차이는 진입점뿐이다.",
+    "sync_ok": true,
+    "sync_errors": 0,
+    "sync_warnings": 8,
+    "sync_warning_note": "W8(저장소 컨텍스트 변경 → 인덱스 재구축) 1건 + W2 등록필터 5건 + Q1 격리 확률 2건. 전부 기존 경고이며 본 태스크가 만든 것이 아니고 inventory 생성과 무관하다.",
+    "was_current_before_run": false,
+    "files_changed": ["docs/generated/inventory.generated.md"],
+    "change_content": "source fingerprint 8f499a80… → 7812ab59… · Source contracts 53 → 54. 계약 수 증가는 S4-1 이 추가한 V12 draft 때문이고, 질문 43·예측 51·근거 20·해소 9·벤치마크 9·정정 22 는 변하지 않았다.",
+    "is_current_after_run": true,
+    "immutable_paths_dirty_after": 0,
+    "license_manifest_changed": false,
+    "read_model_schema_changed": false
+  },
+  "pr_preparation": {
+    "pushed": false,
+    "pr_opened": false,
+    "remote_contacted": false,
+    "branch": "claude/v12-sunday",
+    "base": "main",
+    "pr_body_draft": "outputs/timeseries_v12/loop/PR_BODY.md",
+    "loop_range": "af7b8d63^..HEAD",
+    "loop_commits_at_report_render": 30,
+    "loop_files_changed_at_report_render": 123,
+    "branch_commits_ahead_of_main": 545,
+    "scope_warning_recorded": "브랜치가 main 보다 545 커밋 앞서 있어 브랜치 전체를 PR 로 열면 루프 밖 작업이 함께 실린다. 범위 분리는 사람 결정 — 보고서 §6 과 PR 초안 양쪽에 적었다."
+  },
+  "known_staleness": [
+    "보고서 표 K 의 HEAD 는 6058aa07 (S4-2 result 커밋)이고 루프 커밋 수 30·파일 123 은 렌더 시점 값이다. 보고서 자신의 커밋(b0982528)과 이 result JSON 커밋은 그 표에 실릴 수 없다 — 문서는 자기 커밋 해시를 담을 수 없기 때문이다(S3-0 의 2-커밋 근거와 같은 구조). 커밋 후 실제 값은 result_check R7 이 재계수해 렌더 시점 값과 함께 남긴다.",
+    "표 A 의 S5-1 행은 산출물·금지 verb 가 '—' 다. 이 result JSON 이 표를 렌더한 뒤에 기록되기 때문이며, 렌더러가 그 사실을 표 아래 각주로 출력한다. S5-1 의 산출물 수는 이 파일의 artifacts 10건이다."
+  ],
+  "key_findings": [
+    "accept 충족 — spec 이 지정한 경로에 최종 보고를 쓰고 커밋(b0982528)했다. spec 의 다섯 항목(보고서·V12-D1~D4·미완 정직 기록·inventory·PR 준비)을 accept_check.spec_items_delivered 가 항목↔산출물로 매핑한다.",
+    "S5 를 '요약' 이 아니라 '재대사' 로 만들었다 — 12 태스크가 선언한 산출물 83개를 전부 다시 해시해 선언값과 맞췄고(drift 0·missing 0), CKPT 가 S1~S3 에 대해 만든 앵커 3종을 지금 다시 계산해 재현했다. 체크포인트 이후 상류 산출물이 손대어지지 않았음이 이로써 확인된다. 루프 앵커 c2d28a6c… 하나로 95개 파일 전체를 재검증할 수 있다.",
+    "판정 수치를 result JSON 의 서술이 아니라 기계 산출 필드에서 읽었다 — 생성기가 진단·판정·설계 JSON 의 필드를 직접 인용하고, 렌더러가 그 JSON 에서만 표를 만들며, doc_check 가 보고서의 표 140행이 렌더 출력과 바이트 일치함을 대사한다. 사람이 수치를 옮겨 적을 자리가 문서 어디에도 없다.",
+    "미완 목록을 '고르지' 않았다 — 12 태스크의 not_done·open_questions 를 전량 수집하고 코드 상수 규칙으로 분류했다. 그 과정에서 '그 단계의 미완' 과 '루프의 미완' 이 다르다는 것이 드러났다: 57건 중 8건은 뒤 태스크가 실제로 낸 것이고(4건은 이름 붙인 경로의 실재로 기계 확인), 루프 밖으로 나가는 미완은 49건이다.",
+    "결정표를 '권고 목록' 이 아니라 '되돌릴 수 있는가' 축으로 세웠다 — D1·D2·D5 는 되돌릴 수 있고(홀드아웃 미소모·게이트 미무장·슬롯 3/3 보존), D3 는 표시 후 되돌리기 어렵고, D4 는 외부 발송이라 되돌릴 수 없다. 이 축이 '지금 결정해야 하는 것'과 '미뤄도 되는 것'을 가른다.",
+    "D2 의 시점 의존성을 못박았다 — 지금은 평가된 후보가 0 이라 임계를 사후 완화 없이 정할 수 있는 마지막 시점이다. 후보를 한 번이라도 본 뒤의 임계 변경은 완화가 된다. 결정을 미루는 것 자체가 비용이 되는 유일한 항목이다.",
+    "envelope 지시와 루프 헌법이 충돌하는 지점을 숨기지 않고 처리했다 — spec 은 `python -m ai_fc inventory` 를 지시했지만 헌법 §1 이 그 실행을 금지한다. CLI 를 우회한 것이 아니라 cmd_inventory 의 호출을 같은 순서·인자로 재현했고, 그 사실과 근거를 스크립트 독스트링·보고서 §5·이 result JSON 세 곳에 적었다.",
+    "inventory 갱신 내용이 이 루프의 산출물과 정확히 대응한다 — 바뀐 것은 source fingerprint 와 Source contracts 53→54 뿐이고, 그 1 증가는 S4-1 이 추가한 V12 계약 draft 다. 질문·예측·근거·해소·벤치마크·정정 수는 전부 불변이다. 즉 이 루프는 예측 체계의 원장을 건드리지 않았다.",
+    "doc_check 에 음성 대조를 넣어 검사가 헛돌지 않음을 보였다 — 산문 수치 검사의 후보 집합이 57,976 개로 넓어서 '무엇이든 통과' 가 될 위험이 있는데, 원천에 없는 소수 3종이 집합에 새지 않음을 확인했다. 금지 서술 검사도 부정 마커 없는 되살리기 문장을 실제로 적발하는지 같은 함수로 확인했다.",
+    "그 음성 대조가 실제로 자기 자신을 잡았다 — 초안에서는 이 result JSON 도 후보 집합에 들어가는 바람에 여기 적힌 대조값 자체가 '원천에 있는 수' 가 되어 검사가 무너졌다. S5-1 result JSON 을 집합에서 빼는 것으로 고쳤다. 보고서보다 뒤에 쓰이는 파일을 근거 집합에 넣으면 '보고서가 자기 result 로 자기를 증명하는' 회로가 되기 때문이며, 고치기 전후 모두 산문 수치 27개는 상류 원천에서 유래한다.",
+    "금지 서술 검사의 부정 마커에서 '0' 을 뺐다 — 초안은 '0 ' 과 '0.' 을 부정 마커로 넣었는데, 그러면 수치가 실린 거의 모든 줄이 면제돼 검사가 무의미해진다. 좁힌 뒤에도 보고서는 0건이다.",
+    "금지 verb 검사도 같은 함정에서 좁혔다 — 초안은 CLI 하위명령을 낱말 단위로 찾다가 Path.resolve()·ingest.sync()·'…/holdout' 경로 문자열을 스스로 적발했다(S3-2 가 기록한 실패 양상 그대로). 헌법이 실제로 금지한 5종(dev-backtest·holdout·sealed·refresh·push)만, **호출 형태**(`-m ai_fc <verb>` · `git push`)로만 찾도록 고쳤고, 양방향 대조(실제 실행 문자열은 잡고 resolve()/sync()/경로는 안 잡음)를 검사에 넣었다.",
+    "보고서가 자기 검증의 경계를 스스로 적었다(§7-6) — doc_check 는 '보고서가 상류 산출물을 왜곡 없이 옮겼는가' 만 보장하고 상류 판정의 정오는 재검증하지 않는다. 그것은 각 단계의 verify·result_check 가 이미 한 일이고 다시 돌리면 같은 코드를 두 번 도는 것이지 독립 검증이 아니다.",
+    "부수 확인 — src/ 변경 0. 생성 문서가 바뀌었으므로 그 경로를 검사하는 테스트(test_inventory 2건·test_integrity_context 2건)를 선별 실행해 4건 통과."
+  ],
+  "verification": {
+    "D1": "표 3항목 — 렌더 표 절 11종, 보고서에 바이트 일치로 실리지 않은 표 0, 표 140행.",
+    "D2": "산문 수치 3항목 — 소수 리터럴 27개 전부 원천 유래(허용 목록 1건은 CLAUDE.md P3 문턱 0.18), 음성 대조 3종 미유출.",
+    "D3": "금지 서술 3항목 — 부정문 밖 0건, 미무장 명시, 음성 대조 적발 확인.",
+    "D4": "절 1항목 — 필수 절 §0~§9 전부.",
+    "D5": "결정표 3항목 — ID 5종·권고 요약·현재 상태가 산출 JSON 문자열 그대로.",
+    "D6": "봉인·앵커 4항목 — 봉인/원장이 실측=산출 JSON=BOOT 기준선, 보고서 sha256 7개 전부 원천 대응, drift 0·CKPT 앵커 재현.",
+    "D7": "홀드아웃 2항목 — 보존 문맥 밖 2015+ 언급 0, 홀드아웃 디렉터리 부재.",
+    "D8": "정직 기록 5항목 — [미검증] 7건·반대 읽기 절·항목 7건·한계 9건·미완 절.",
+    "D9": "상태 5항목 — 불변 경로 청결, 백로그 13/13 완료, 금지 verb 누계 0, inventory 무오염, PR 초안 존재.",
+    "total": "29항목 전부 PASS",
+    "result_check": "tools/v12_s5_result_check.py — 71항목 전부 PASS. 본 result JSON 의 주장(산출물 해시 10종·재생성물 해시·커밋 blob 동일성·headline 수치 24종·inputs·inventory 주장 7종·PR 무접촉 4종·커밋 후 루프 범위 재계수·doc_check 재실행과 그룹별 항목 수 역검증·미완 주장·금지 verb 양방향 대조)을 파일·git·재실행 출력과 맞춘다. 초안의 오류 3종을 이 검사가 잡았다(corrections 참조).",
+    "pytest": "src/tests/test_inventory.py + test_integrity_context.py 4 passed — src/ 변경 0, 생성 문서 갱신의 부작용 0 확인 (hermetic)"
+  },
+  "prereg_compliance": {
+    "new_hypotheses": 0,
+    "new_candidates": 0,
+    "new_measurements_of_models": 0,
+    "thresholds_changed": 0,
+    "null_redesigned": false,
+    "baseline_swapped": false,
+    "K_constraints_honored": {
+      "C-S4-contract": "보고서는 부정 결과를 되살리지 않는다 — '조건부 통과' 류 어휘가 부정문 밖에 0건이고(D3-a), 게이트 armed=false 를 명시한다.",
+      "C-null-redesign": "대안 귀무를 계산하지 않았다. §4 에 재개의 첫 번째 조건으로만 적었다.",
+      "C-gate-arith": "문턱을 하나도 바꾸지 않았다. 표 F 는 S4-2 산출 JSON 의 값을 그대로 렌더한다.",
+      "C-split-contrast": "S2-3 분할창 대비를 어떤 근거로도 인용하지 않았다.",
+      "C-holdout": "2015+ 미계산 유지. D7-a 가 문서의 모든 2015+ 언급이 보존 문맥임을 확인."
+    },
+    "post_hoc_additions_declared": [
+      "미완 항목의 4분류(후속 태스크 소관·의도적 보존·규약 승계 미산출·자원·범위 밖)는 본 태스크가 신설한 정리 규칙이다. 등록부 필드가 아니고 어떤 판정도 바꾸지 않으며, 규칙은 생성기의 코드 상수로 공개돼 있다.",
+      "'되돌릴 수 있는가' 축으로 결정을 정렬한 것은 본 태스크의 서술 선택이다. 각 결정의 선택지·근거는 상류 산출물에서 왔고, 권고는 이 보고의 판단임을 결정표가 '권고' 열로 구분한다.",
+      "V12-D5(V10 조합 격자)는 설계도 §5 의 D1~D4 에 없는 항목이다. S1-3 이 제안한 것이며 보고서가 '설계도 §5 밖 신규 제안' 으로 표시한다.",
+      "루프 앵커(95 파일)는 CKPT 앵커(72 파일)의 확장으로 본 태스크가 신설했다. CKPT 앵커를 대체하지 않고 재현과 함께 병기한다."
+    ]
+  },
+  "open_questions": [
+    "산문 수치 검사(D2)의 후보 집합이 57,976 개로 넓다 — 원천 JSON 의 모든 수치를 0~8 자리 표기와 ×100 표기로 편 결과다. 음성 대조로 '무엇이든 통과' 가 아님은 보였으나, 우연 일치로 잘못된 인용이 통과할 확률은 계량하지 않았다 [미검증].",
+    "'후속 태스크 소관' 8건 중 4건은 경로를 이름 붙이지 않아 기계 확인이 불가능했고 해당 태스크의 accept 충족으로만 확인된다 [부분 미검증].",
+    "outputs/timeseries_v12/loop/_s1_2_tables.md 가 추적되지 않은 채 남아 있다 — S1-2 result JSON 의 artifacts 에 선언되지 않아 CKPT 봉인 63개에도, 본 태스크의 재대사 83개에도 들어가지 않는다. 커밋 여부는 S1-2 소관이었고 본 태스크가 사후에 편입하면 선언 없는 산출물을 만드는 셈이라 손대지 않았다 [미해소].",
+    "보고서 표 K 의 커밋 수치는 렌더 시점 값이라 자기 커밋을 포함하지 않는다 — 구조적 한계이며 result_check 가 커밋 후 값을 따로 남긴다.",
+    "S4-2 이월 유지 — 쌍대 ΔREL 의 se [미검증] · n* 외삽의 타당성 [미검증] · 귀무 통과율의 지평 비대칭 기전 [미검증] · N1 귀무의 적법성 [미검증] · P1~P5 계약 반영 시점 [미확정] · 배포 사다리 T2 와 기존 UI 라벨 체계의 결합 [미확정].",
+    "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2)이 옳은 독해인지는 사용자 판단(V12-D2) · R3(로짓 기울기)과 상위분위 gap 이 갈리는 이유 [미검증] · h21 후반창 집중도가 구조인지 표본 인공물인지 미확정.",
+    "S1 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5) · V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요 · 일중 합법 소스 전수 조사 [미검증]."
+  ],
+  "not_done": [
+    "push·PR 생성 미실행 — envelope spec 이 금지. PR 본문 초안만 냈고 원격에 아무것도 보내지 않았다.",
+    "계약 YAML 미개정 — P1~P5 는 제안이며 사용자 결정(V12-D2) 뒤의 별도 작업이다.",
+    "V12-D1~D5 미결정 — 사용자 결정 사항이며 이 보고가 대신 내리지 않는다. 권고만 적었다.",
+    "새 측정 0 — 새 가설·새 후보·새 검정·문턱 조정을 하지 않았다(설계상 의도). S5 가 계산한 것은 산출물 해시와 앵커뿐이다.",
+    "상류 판정의 재검증 미수행 — 각 단계의 verify·result_check 가 이미 한 일이라 다시 돌리지 않았다. 본 태스크가 보장하는 것은 '보고서가 상류를 왜곡 없이 옮겼는가' 뿐이다.",
+    "대안 귀무 미계산 · 쌍대 ΔREL se 미계량 · 국면 층화 CI 미산출 · h1·h5 미평가 — 상류 규약 승계.",
+    "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+    "outputs/timeseries_v12/loop/_s1_2_tables.md 미편입 — 위 open_questions 참조.",
+    "전체 pytest 미실행 — src/ 변경 0. 생성 문서가 닿는 경로(inventory·integrity context)만 선별 실행했다.",
+    "감독 스크립트의 종료 처리(state.json 덮어쓰기·monday_ckpt.sha256)는 본 태스크 범위 밖 — 루프 종료 시 스크립트가 수행한다."
+  ],
+  "next_task": null,
+  "loop_terminal": "S5-1 이 백로그의 마지막 태스크다. 종료 상태는 이 보고로만 정의된다 — 13/13 완료, 부정 결과 확정, 사용자 결정 5건 대기."
+}
