@@ -5,6 +5,8 @@
 > 스크립트: `tools/v12_reflect_baseline.py` (표 렌더 `tools/v12_reflect_tables.py`,
 > 독립 재검증 `tools/v12_reflect_verify.py`, 게이트 산술 `tools/v12_reflect_mde.py`,
 > 전체 표 `outputs/timeseries_v12/loop/_s2_2_tables.md`)
+> 전사 대사: `tools/v12_reflect_doc_check.py` (본 문서의 수치 52 항목을 원본 JSON 과 자동 대조 — PASS),
+> `tools/v12_reflect_result_check.py` (result JSON), `tools/v12_reflect_headline.py` (headline 생성)
 > 백테스트·홀드아웃·봉인 실행 0회. 봉인 대사 `e3ff2fdb…` · 원장 `b9c492be…` 무변경.
 
 ---
