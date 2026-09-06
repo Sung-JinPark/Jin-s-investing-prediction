@@ -3,6 +3,7 @@
   "title": "저비용 옵션 판정 + PROMPT 5문 답",
   "status": "완료",
   "stage": "S1",
+  "commit": "7400f994 (산출물) + 후속 커밋(본 필드 기록)",
   "read_only": true,
   "forbidden_verbs_executed": [],
   "seal_reconciliation": {
