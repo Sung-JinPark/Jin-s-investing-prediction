@@ -1,0 +1,123 @@
+{
+  "task_id": "S3-0",
+  "title": "가설 사전등록 커밋",
+  "status": "완료",
+  "stage": "S3",
+  "commit": "ec496463 (등록부) · 74bd474a (커밋 해시 로그) · 후속 커밋(본 result JSON)",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경 확인."
+  },
+  "artifacts": {
+    "data/timeseries_v12/prereg/hypotheses.json": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df",
+    "data/timeseries_v12/prereg/prereg_commit_log.json": "4ac4b9dc498090c4f23c8156b7cc04ee99ef53d124ecf145077164a475837717",
+    "tools/v12_prereg_check.py": "1c64ce52edfdefcf73bfc9d426ebeb576fcbed9b0e92ff1c736652d2cab1b557",
+    "tools/v12_prereg_tables.py": "15ba7efac733873c376a7d14f7221e54b9611833b41fbb4e7191b70ff9cb86fe",
+    "tools/v12_s3_0_result_check.py": "af80726af8f3d165bfceddc5b5212b38531421b0f8805d9b089528635eae54ff",
+    "outputs/timeseries_v12/loop/_s3_0_tables.md": "d12db2320b0e5d7f2a0fd8aa18cf01014b7ae6118c993d98af17bea604bd7b7a"
+  },
+  "accept_check": {
+    "requirement": "커밋 해시 로그",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "data/timeseries_v12/prereg/hypotheses.json",
+    "commit_hash_log_path": "data/timeseries_v12/prereg/prereg_commit_log.json",
+    "prereg_commit": "ec49646345f1f60292e418a366cb07c3e822f49c",
+    "prereg_commit_tree": "9bde126c95c9ac1793bcd8a8b18349c656fb6ed2",
+    "prereg_commit_parent": "dc368ed340d3cef1574f39e0465811aa763d7188",
+    "prereg_commit_date_kst": "2026-09-06T11:08:17+09:00",
+    "prereg_blob_sha1": "36f91f4e2ef428727736d129fc6ba09b7ee41203",
+    "log_commit": "74bd474a",
+    "prereg_check_items": 61,
+    "prereg_check_failed": 0,
+    "two_commit_rationale": "커밋 해시는 그 해시를 담을 파일 안에 들어갈 수 없다. 그래서 등록부를 먼저 커밋(ec496463)하고 해시 로그를 뒤에 커밋(74bd474a)했다.",
+    "verified_mechanically": "tools/v12_s3_0_result_check.py — 이 result JSON 의 모든 주장(아티팩트 해시·커밋 존재·등록부 무수정·봉인·검증기 재실행·결과 미계산)을 재대사"
+  },
+  "prereg": {
+    "hypotheses_registered": ["T1", "T2", "T3", "T4", "T5"],
+    "adoption_eligible": ["T1", "T2", "T3", "T4"],
+    "family_cells": 8,
+    "results_seen_at_registration": false,
+    "primary_adoption_rule": "양방향(전→후·후→전) 모두 Δ 의 CI90 하한 > 0 — 설계도 §2 원문 불변",
+    "secondary_criterion": "p′ vs p_reflect 쌍대 Δ 의 CI90 하한 > 0 (K-baseline 지시로 추가 등록 — 강화 방향)",
+    "frozen_knobs": {
+      "grid": "λ·w ∈ [0,1] step 0.01 (101점), 동점 시 최소값",
+      "tau": "학습창 p 의 80분위 (numpy.percentile 선형보간)",
+      "b": "학습창 터치율",
+      "split": "2010-12-31 — 전반 209 / 후반 208",
+      "bootstrap": "정상 블록 ℓ=13, B=2000, seed 20260902, percentile[5,95]",
+      "permutation_null": "N1 — 창 안에서 p 치환(y 고정), 1000회, seed 20260906+perm_index",
+      "T5_failure_threshold": 0.10
+    },
+    "obligations": [
+      "MDE(1.645·se) 셀마다 병기 — |Δ| < MDE 는 부호 무관 '결정적 증거 없음' (K-power)",
+      "상위 5% |d_i| 제거 후 부호 셀마다 보고 — 뒤집히면 '집중도 취약' 라벨, 채택 시 판정문 병기 (K-concentration)",
+      "16 결과(8셀 × 2방향) 전부 기록, 미달·퇴화도 사유와 함께",
+      "판정문 수치는 스크립트 렌더만 — 수기 전사 금지"
+    ],
+    "pre_committed_interpretation": {
+      "adopted_ge_1": "S4-1 을 V12 계약 draft 로 작성, 채택 셀을 후보 승계 (S4 게이트는 별도)",
+      "adopted_0": "S4 를 'V12 부정 결과 계약 — 이벤트 확률 재보정도 전이 불가' 로 대체 작성",
+      "T5_pass_rate_over_10pct": "채택 전부 무효 + 부정 결과 계약 (이 경로가 우선)"
+    }
+  },
+  "verification": {
+    "prereg_check": "tools/v12_prereg_check.py 61항목 전부 PASS",
+    "C2_design_reconciliation": "다섯 가설의 식·사전기대 10개 문자열이 설계도 §2 원문의 바이트 부분문자열. 등록부가 원문에서 표류하면 여기서 걸린다. 초안의 3건을 이 검사가 잡아 정정했다 — T4 는 '교정 (터치는' 을 원문 '교정(터치는' 으로, T5 는 가설 셀과 기대 셀을 붙여 쓴 것을 분리, T3 은 원문 기대에 주석을 덧붙인 것을 분리.",
+    "C3_constant_reconciliation": "ℓ=13·B=2000·seed=20260902·분할 2010-12-31·EWMA λ=0.97·격자 101점·자유도(1/1/1/0)이 코드 상수 및 설계도 표와 일치",
+    "C5_data_reconciliation": "417 원점 · 전반 209/후반 208 · 창 2007-01-05~2014-12-24 · run sha256 38dde7a8… · h21∩h63 = 417 · 2015+ 원점 0건",
+    "C6_input_reconciliation": "S2-1·S2-2·S2-3 산출물 sha256 3종 일치 — 입력 무변경",
+    "C7_no_result_code": "tools/·src/ 495파일의 **실행 토큰**에서 p′ 생성 지문 0건",
+    "result_check": "tools/v12_s3_0_result_check.py 19항목 전부 PASS"
+  },
+  "key_findings": [
+    "accept 충족 — 커밋 해시 로그 생성. 등록부 커밋 ec496463(blob 36f91f4e…, tree 9bde126c…), 로그 커밋 74bd474a. 등록부 작업본 blob 이 커밋본과 동일함을 R3-d 가 확인 — 커밋 이후 무수정.",
+    "설계도 §2 다섯 가설을 실행 가능한 명세로 좁혔고, 좁힌 부분이 원문을 완화하지 않음을 기계로 보장했다. C2 가 각 가설의 식·기대를 설계도 바이트와 대사하므로, 등록부가 원문에서 미끄러지면 검증기가 먼저 걸린다.",
+    "'결과 보기 전' 이라는 주장을 서술이 아니라 증거로 만들었다 — C7-a 가 tools/·src/ 495파일을 토큰화해 주석·문자열을 버린 뒤 p′ 생성 코드를 찾고 0건임을 확인한다. 산문 언급 3건(S2 산출물이 '미계산·S3-1 소관' 이라고 적어 둔 문장)은 별도 계수해 분리했다 — 검사가 주장하는 것과 검사하는 것을 일치시키기 위해서다.",
+    "§2 가 비워 둔 자유 선택을 전부 사전에 못박았다. 결과를 본 뒤 만질 수 있었을 손잡이 — 격자 해상도·동점 처리·τ 분위 규약·학습창 모수의 평가창 재계산 여부·p_reflect 변형 선택·T4 교정 방식 — 을 각각 하나로 고정하고 교체를 금지했다.",
+    "T4 의 교정 방식으로 PAV(두 값을 평균)를 택한 이유를 자유도로 설명해 등록했다 — PAV 는 단조 원뿔로의 유일한 L2 사영이라 파라미터가 0 이다. 한쪽만 내리는/올리는 변형은 '선택지' 가 되는 순간 자유도가 되므로 등록하지 않았고, 결과를 본 뒤 추가할 수 없다.",
+    "T4 의 양방향 요건이 퇴화하는 문제를 사전에 처리했다 — 자유 파라미터가 0 이라 학습창이 없으므로, 방향 두 개를 창 두 개(early·late 각각 CI90 하한>0)로 치환했다. 요건 수를 줄이지 않았음을 명시.",
+    "T2 와 T1 의 퇴화 경로를 '결과 없음' 이 아니라 '미달' 로 미리 규정했다 — λ*=0 이면 p′=p 라 Δ=0 이고 CI 가 0 에서 퇴화한다. 평가창 상단집합이 비는 경우도 같다. 사후에 '해당 없음' 으로 빠져나갈 구멍을 막은 것.",
+    "T3 의 사전 기대만이 S2 오염 지점임을 특정해 공표했다 — §2 원문 기대('기계적 기준선이 과신 교정')를 삭제하지 않고, K-T3 정정 기대('비GFC·calm 에서 w>0 은 악화 방향')를 병기했다. 어느 쪽이 맞았는지는 S3-2 에서 둘 다 대조한다.",
+    "S2-3 이 이월한 제약 6종(K-power·K-concentration·K-T3·K-baseline·K-split-contrast·K-gate-arith)을 전부 조항으로 편입했다. 특히 K-split-contrast — S2-3 이 낸 분할창 대비는 사전등록 검정이 아니므로 S3 근거 인용 금지·가설 승격 금지를 명문화.",
+    "다중검정 귀무의 한계를 미리 적었다 — N1 은 p 의 주변분포와 y 의 기저율을 보존하되 시계열 의존을 파괴한다. 블록 부트스트랩이 보존하려는 구조를 귀무는 없애므로, N1 은 '짝짓기 없음' 귀무이지 '시계열 구조 없음' 귀무가 아니다. 이 비대칭을 S3-1 보고서 caveat 의무로 걸었다.",
+    "T5 실패 문턱 10.0% 의 근거를 결과 전에 적었다 — 명목 단측 5%·R=1000 에서 몬테카를로 오차의 99.9% 상한이 약 7.3% 이므로 그보다 여유를 둔 값이다. 통과율 ≤10% 가 '결함 없음' 이 아니라 '결함 미검출' 이라는 문장도 등록부에 고정.",
+    "계산 예산 초과 시의 행동을 미리 등록했다 — 순열 내부 부트스트랩 복제수만 2000→500 으로 낮출 수 있고, 낮춘 사실·근거·실측 시간을 공시해야 한다. 판정 기준(CI90 하한>0)·순열 1000회·family 정의는 어떤 경우에도 불변. 사후 재량을 미리 좁혀 둔 것.",
+    "S3 채택이 뜻하지 않는 것을 등록부 본문에 못박았다 — 채택은 '파생층 맵이 표적의 과신 구조를 교정하고 그 교정이 창을 넘어 전이된다' 는 뜻이며, 'V8 이 반사원리 기준선을 이긴다' 는 뜻이 아니다(S2-3 R1 미달·S2-2 결론 유지). 실전 자금 결정 근거도 아니다(CLAUDE.md P3 게이트).",
+    "부수 확인 — 원점 격자의 중앙 간격은 7일(주간)이다. ℓ=13 블록은 약 13주 ≈ 63 세션으로 h63 지평을 덮는다. S1 에서 고정된 ℓ 의 근거가 이 표본에서 성립함을 확인했다(등록부에는 정성 서술로만, 이 수치는 result 에만 기록)."
+  ],
+  "sample_facts_verified": {
+    "note": "표본의 성질이며 어떤 맵의 성능도 아니다. 등록부에는 기재하지 않았다.",
+    "n_origins": 417,
+    "split": {"early": 209, "late": 208},
+    "window": ["2007-01-05", "2014-12-24"],
+    "median_origin_gap_days": 7.0,
+    "touch_rate": {"h21": 0.06954436450839328, "h63": 0.19904076738609114},
+    "p_range": {"h21": [0.0, 0.766], "h63": [0.0015, 0.9585]},
+    "h21_h63_intersection": 417,
+    "origins_beyond_2014": 0
+  },
+  "open_questions": [
+    "N1 귀무가 시계열 의존을 파괴한다는 비대칭을 보정하지 않았다 [미검증] — 블록 순열(시간 구조 보존 귀무)이 더 옳은 귀무일 수 있으나, 결과를 본 뒤 귀무를 바꾸는 것이 더 큰 위험이라 등록된 N1 을 그대로 간다. S4-2 에서 재검토 대상.",
+    "T4 의 두 셀(h21·h63)은 같은 교정에서 파생돼 독립이 아니다. family 8셀의 다중검정 산술이 이 상관을 무시한다 — P(≥k) 는 보수/비보수 중 어느 쪽으로 치우치는지 미확정 [미검증].",
+    "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단. S4-2/V12-D2 에서 재확인 필요.",
+    "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증]. S4-2 게이트가 어느 지표를 쓸지 결정 필요.",
+    "S2-3 이월 유지 — h21 후반창 집중도 34.5% 가 구조인지 표본 인공물인지 미확정.",
+    "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+    "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "T1~T5 의 어떤 맵도 계산하지 않았다 — 사전등록의 정의상 의도적. p′ 를 만드는 코드가 저장소에 없음을 C7-a 가 증명한다.",
+    "transfer_results.json 미작성 — S3-1 소관 (R7 이 부재를 확인).",
+    "2015+ 봉인창 미계산 — 의도적 홀드아웃 보존.",
+    "순열 귀무의 실제 소요 시간 미측정 — 계산 예산 초과 시의 행동은 등록했으나 투영치는 S3-1 이 실측해야 한다.",
+    "국면 셀 CI 층화 미적용 · h1/h5 판정 제외 — S2-1/S2-2 규약 그대로 승계.",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/prereg·outputs/ 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S3-1"
+}
