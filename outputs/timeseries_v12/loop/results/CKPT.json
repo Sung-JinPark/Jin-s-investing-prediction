@@ -1,0 +1,86 @@
+{
+  "task_id": "CKPT",
+  "title": "월요일 체크포인트 봉인",
+  "status": "완료",
+  "stage": "CKPT",
+  "commit": "efa20d0b (봉인 JSON·표·봉인 스크립트·표 렌더·정찰 스크립트·백로그 상태) · 후속 커밋(본 result JSON + 자기주장 대사 스크립트)",
+  "commit_sha": "efa20d0bf332abb5b9a2b3ac23e7b9a50a799c93",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "artifacts_in_seal_commit": [
+    "outputs/timeseries_v12/loop/checkpoint_monday.json",
+    "outputs/timeseries_v12/loop/_ckpt_tables.md",
+    "tools/v12_ckpt_seal.py",
+    "tools/v12_ckpt_tables.py",
+    "tools/v12_ckpt_probe.py"
+  ],
+  "artifacts_follow_up_commit": [
+    "tools/v12_ckpt_result_check.py"
+  ],
+  "artifacts": {
+    "outputs/timeseries_v12/loop/checkpoint_monday.json": "e15733b1d697f6a92e5d1af09f2e961b2bb05346e6047bf778b765b45de3fe1f",
+    "outputs/timeseries_v12/loop/_ckpt_tables.md": "e9e7b8f80b1314d04f186a4a50046068980a618133794301f312b4e50e128c8e",
+    "outputs/timeseries_v12/loop/state.json": "1c6ea866e2dcdcfbb1fe13433104a9be6d3f82d6a2060388d581ddbd9340ecef",
+    "tools/v12_ckpt_seal.py": "02e77ac13c6a8b6d2a3aa035ad32a1215b596b5dead6e76a6e7cd06b84e8b636",
+    "tools/v12_ckpt_tables.py": "0e9eed40485719908f3232e27fca4ef378db27b331fc538132167e7819279ed8",
+    "tools/v12_ckpt_probe.py": "7cb66e9c327bb1239ea9a01b9fd4b9e168d91c352bad8bfc45b4f97246aab35b",
+    "tools/v12_ckpt_result_check.py": "e443a7edb2fecffb5064e8c87f65981657dfffaa6094da56150a6ceb3f35d07a"
+  },
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "봉인 재대사는 tools/v12_seal_check.py 의 sealed_hash()·ledger_hash() 를 v12_ckpt_seal.py 가 그대로 호출해 수행한다(sunday_opus_loop.sh 와 같은 ' *' 바이너리모드 규약). 불변 경로 forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ 의 워킹트리 변경 0건을 git status 로 기계 확인했다."
+  },
+  "accept_check": {
+    "requirement": "state.json 봉인",
+    "state_json_sealed": true,
+    "state_json_path": "outputs/timeseries_v12/loop/state.json",
+    "state_json_checkpoint_anchor": "a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e",
+    "state_json_preserves_supervisor_fields": true,
+    "canonical_record": "outputs/timeseries_v12/loop/checkpoint_monday.json",
+    "why_two_files": "state.json 은 .gitignore 대상이라 커밋할 수 없고(git add 거부 실측), 감독 스크립트가 종료 시 {'ended','iters'} 로 덮어쓴다(tools/sunday_opus_loop.sh:75). 그래서 봉인 내용을 state.json 에 심되(accept 문구 충족) 커밋되는 정본은 checkpoint_monday.json 으로 두고, state.json 의 checkpoint 블록에 정본 경로와 덮어쓰기 경고를 함께 기록했다.",
+    "delivered": "S1~S3 산출물 63개 + result JSON 9종 = 72개 파일의 sha256 봉인, 앵커 3종, 봉인 해시 재대사, 불변 경로 무변경 대사"
+  },
+  "headline": {
+    "sealed": true,
+    "stages_sealed": ["S1-1", "S1-2", "S1-3", "S2-1", "S2-2", "S2-3", "S3-0", "S3-1", "S3-2"],
+    "artifacts_sealed": 63,
+    "result_json_sealed": 9,
+    "files_sealed": 72,
+    "missing": 0,
+    "drifted": 0,
+    "checkpoint_anchor": "a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e",
+    "artifacts_anchor": "cdf359100d55097a13392a8105f45b4f161be4a87ec291a51c6cfcf46711c75f",
+    "results_anchor": "7a50cb3c58dbe1a3935ccc2fad444330fef198aa8da7e584bcbd2a69f054f2d0",
+    "anchor_convention": "'<sha256> *<relpath>' 라인 정렬 후 재해시 — sunday_opus_loop.sh sealed_hash() 와 동일",
+    "head_at_seal": "96f705d18d6f58051e82b0cbea7c3215918c7dc9",
+    "next_stage": "S4-1 (부정 결과 계약)"
+  },
+  "key_findings": [
+    "S1~S3 아홉 태스크가 result JSON 에 선언한 산출물 63개를 전부 재계산해 대사한 결과 선언 sha256 과 63/63 일치 — 단계 종료 후 산출물이 손대어진 흔적(drift) 0건, 유실 0건. 체크포인트가 잡으려던 유일한 실패 양상이 이것이므로 이 값이 봉인의 본문이다.",
+    "V8/V2 봉인 해시 e3ff2fdb64ac71c0… 와 v8 원장 해시 b9c492be276f6848… 가 BOOT 기준선과 재대사 일치. 불변 경로 6종 워킹트리 변경 0건.",
+    "봉인 산출물 72개 경로가 전부 git 추적 상태이고 미커밋 0 — 체크포인트 시점 HEAD 는 96f705d1 (S3-2 result JSON 커밋).",
+    "체크포인트 앵커 a4b817d445847d18… 하나로 S1~S3 전체를 재검증할 수 있다: 이후 어떤 파일이 한 바이트라도 바뀌면 재실행 앵커가 달라진다(v12_ckpt_seal.py --check 로 무기록 재대사 가능).",
+    "S3 결과(채택 0/8 · 전이 불가 부정 결과)가 백로그·봉인 기록에 그대로 실려 S4-1 로 넘어간다 — S4 는 설계도 §1 각주에 따라 부정 결과 계약으로 작성된다."
+  ],
+  "verification": {
+    "seal_script": "tools/v12_ckpt_seal.py — 봉인 계산과 기록을 한 곳에 둔다. --check 로 쓰기 없이 대사만 가능하고, 출력에 시각을 담지 않아 재실행 시 바이트 동일(멱등)이다.",
+    "tables": "tools/v12_ckpt_tables.py — 표는 checkpoint_monday.json 에서만 렌더한다. 사람이 수치를 옮겨 적지 않으므로 전사 오류가 구조적으로 불가능하다.",
+    "result_json_self_check": "tools/v12_ckpt_result_check.py — 이 result JSON 의 주장(아티팩트 해시 7종·커밋 blob 동일성·accept 주장·봉인 해시·headline 수치 8종·멱등성·표 바이트 일치·not_done 4건)을 파일·git·재실행 출력과 대사한다.",
+    "idempotence_checked": true
+  },
+  "not_done": [
+    "S4 산출물(data/contracts/multivariate_timeseries_v12.draft.yaml · docs/design/v12_gate_design.md)은 이 태스크 범위 밖 — 미작성 상태를 자기검사가 확인한다.",
+    "감독 스크립트가 00:00 KST(epoch 1788706800)에 자동으로 남기는 monday_ckpt.sha256 은 아직 발동 전이다. 본 태스크는 그와 독립인 태스크 단위 봉인이며, 두 기록은 나중에 공존한다.",
+    "state.json 은 .gitignore 대상이라 커밋되지 않는다(git add 거부 실측). 봉인의 git 내구성은 checkpoint_monday.json 이 담당한다.",
+    "봉인은 '선언 해시 vs 현재 파일' 대사다. 각 단계가 선언한 해시 자체가 그 단계에서 옳았는지는 해당 단계의 result_check·verify 스크립트가 이미 검증했고, 여기서 다시 계산하지 않는다."
+  ],
+  "open_questions": [
+    "S4-1 부정 결과 계약의 서술 범위: '이벤트 확률 재보정도 전이 불가'를 계약 문서에 어느 강도로 못 박을지(트랙 종료 vs 조건부 재개 조항) — 설계도 §5 V12-D1 사용자 결정 대상.",
+    "체크포인트 앵커를 S5 최종 보고에도 인용해 루프 전체 산출물의 단일 지문으로 쓸지 여부."
+  ],
+  "next_task": "S4-1 — V12 계약 draft (S3 부정 결과이므로 부정 결과 계약)"
+}
