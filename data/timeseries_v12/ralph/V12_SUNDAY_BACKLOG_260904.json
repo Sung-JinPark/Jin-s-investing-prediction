@@ -68,7 +68,7 @@
     "S2-1"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "반사원리 기계 기준선",
    "spec": "p_reflect=2Φ(−ln(S/K)/(σ√T)), σ=EWMA λ=.97 로 각 origin 산출, V8 first_touch 대비 Brier 비교 표.",
    "accept": "기준선 Brier 표 커밋"
@@ -80,7 +80,7 @@
     "S2-2"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "S2 진단서",
    "spec": "docs/design/v12_event_target_diagnostic.md — S3 진입 조건(두 지평·국면 초월 과신) 판정.",
    "accept": "진입/중단 판정 1건"

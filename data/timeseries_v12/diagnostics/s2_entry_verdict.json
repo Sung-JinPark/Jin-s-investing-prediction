@@ -1,0 +1,595 @@
+{
+  "design_condition": "설계도 §1 S2 통과 조건 — '과신 구조가 두 지평·국면 초월로 재현되면 S3 진입'",
+  "gate_arithmetic": {
+    "definition": "문턱 BSS = 1 − (BS_기준선 − 1.645·se)/BS_기후 — se 를 후보 모델에서도 같다고 본 근사(S2-2 규약). 상한 BSS = 1 − (BS_V8 − REL)/BS_기후, REL 은 in-sample 추정이라 상한 자체가 낙관 편의.",
+    "h21": {
+      "brier_v8": 0.061485287170263796,
+      "bss_v8_vs_climatology": 0.049803137153394794,
+      "ceiling_max_bss": 0.19836770667219594,
+      "climatology_brier": 0.06470794587351701,
+      "perfect_recalibration_ceiling": {
+        "murphy_fixed_bins": {
+          "bss_if_rel_zero": 0.19836770667219594,
+          "reliability": 0.009613308123144938
+        },
+        "murphy_quantile_bins": {
+          "bss_if_rel_zero": 0.10127553412896906,
+          "reliability": 0.0033306730774756363
+        }
+      },
+      "reflection_2phi": {
+        "baseline_brier": 0.06013478760059581,
+        "baseline_bss_vs_climatology": 0.07067382855670057,
+        "mde_1645se": 0.00466836104194843,
+        "paired_se": 0.0028381619892832934,
+        "required_bss_vs_climatology": 0.14281892571483878,
+        "required_candidate_brier": 0.05546642655864738
+      },
+      "reflection_bgk": {
+        "baseline_brier": 0.05814044800432014,
+        "baseline_bss_vs_climatology": 0.10149445760547238,
+        "mde_1645se": 0.007099748379054985,
+        "paired_se": 0.004316340531900987,
+        "required_bss_vs_climatology": 0.21121434259351823,
+        "required_candidate_brier": 0.051040699625265154
+      }
+    },
+    "h63": {
+      "brier_v8": 0.1449727356115108,
+      "bss_v8_vs_climatology": 0.09064410855097005,
+      "ceiling_max_bss": 0.163927706265803,
+      "climatology_brier": 0.15942354030444705,
+      "perfect_recalibration_ceiling": {
+        "murphy_fixed_bins": {
+          "bss_if_rel_zero": 0.163927706265803,
+          "reliability": 0.01168313059394556
+        },
+        "murphy_quantile_bins": {
+          "bss_if_rel_zero": 0.15598987119361285,
+          "reliability": 0.010417652824384211
+        }
+      },
+      "reflection_2phi": {
+        "baseline_brier": 0.1498894152922163,
+        "baseline_bss_vs_climatology": 0.05980374663631027,
+        "mde_1645se": 0.006689084080784044,
+        "paired_se": 0.004066674366144916,
+        "required_bss_vs_climatology": 0.1017616912912217,
+        "required_candidate_brier": 0.14320033121143227
+      },
+      "reflection_bgk": {
+        "baseline_brier": 0.145938111458916,
+        "baseline_bss_vs_climatology": 0.08458869260949964,
+        "mde_1645se": 0.010548260930170123,
+        "paired_se": 0.00641288729728492,
+        "required_bss_vs_climatology": 0.15075370757545992,
+        "required_candidate_brier": 0.1353898505287459
+      }
+    }
+  },
+  "generated_by": "tools/v12_s2_verdict.py",
+  "inputs": {
+    "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+    "data/timeseries_v12/diagnostics/reflection_baseline.json": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f"
+  },
+  "rules": {
+    "R0": {
+      "by_horizon": {
+        "h21": true,
+        "h63": true
+      },
+      "cells_all_positive": true,
+      "cells_both_positive": "8/8",
+      "name": "설계도 §1 문자 기준 (2026-09-04 사전등록) — 두 지평·국면 초월 부호 재현",
+      "pass": true
+    },
+    "R1": {
+      "by_horizon": {
+        "h21": false,
+        "h63": true
+      },
+      "ci90_lower": {
+        "h21": -0.009725483011325746,
+        "h63": 0.035458080808080765
+      },
+      "name": "엄격 · 주체=V8 — 두 지평 top-quintile gap CI90 하한 > 0",
+      "pass": false
+    },
+    "R2": {
+      "by_horizon": {
+        "h21": true,
+        "h63": true
+      },
+      "ci90_lower": {
+        "h21": 0.007791958738629742,
+        "h63": 0.06544053564927471
+      },
+      "name": "엄격 · 주체=표적 구조(반사 기준선) — 두 지평 top-quintile gap CI90 하한 > 0",
+      "pass": true
+    },
+    "R3": {
+      "by_horizon": {
+        "h21": {
+          "reflection_slope": 0.7231477876814061,
+          "reflection_slope_ci90_upper": 1.20966347336374,
+          "reflection_upper_below_1": false,
+          "v8_slope": 0.7014446137110134,
+          "v8_slope_ci90_upper": 1.1096301633497565,
+          "v8_upper_below_1": false
+        },
+        "h63": {
+          "reflection_slope": 0.8624567459118198,
+          "reflection_slope_ci90_upper": 1.4711320646850696,
+          "reflection_upper_below_1": false,
+          "v8_slope": 0.6789194214994463,
+          "v8_slope_ci90_upper": 1.0888240471090451,
+          "v8_upper_below_1": false
+        }
+      },
+      "name": "보강(판정 미포함) · 로짓 기울기 CI90 상한 < 1",
+      "pass": false
+    },
+    "horizons": {
+      "h21": {
+        "base_rate": 0.06954436450839328,
+        "n": 417,
+        "reflection_slope": 0.7231477876814061,
+        "reflection_slope_ci90": {
+          "bootstrap_se": 0.31357947384082563,
+          "ci90_lower": 0.2983043941182962,
+          "ci90_upper": 1.20966347336374,
+          "mde50": 0.5158382344681581,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap": 0.12320407313041853,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.06720744499341778,
+          "ci90_lower": 0.007791958738629742,
+          "ci90_upper": 0.22327382767806073,
+          "mde50": 0.11055624701417226,
+          "replicates_used": 2000
+        },
+        "touches": 29,
+        "v8_slope": 0.7014446137110134,
+        "v8_slope_ci90": {
+          "bootstrap_se": 0.26469259626009695,
+          "ci90_lower": 0.3391621845440225,
+          "ci90_upper": 1.1096301633497565,
+          "mde50": 0.4354193208478595,
+          "replicates_used": 2000
+        },
+        "v8_top_gap": 0.12295833333333331,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.07743186675275979,
+          "ci90_lower": -0.009725483011325746,
+          "ci90_upper": 0.2394382539682539,
+          "mde50": 0.12737542080828984,
+          "replicates_used": 2000
+        }
+      },
+      "h63": {
+        "base_rate": 0.19904076738609114,
+        "n": 417,
+        "reflection_slope": 0.8624567459118198,
+        "reflection_slope_ci90": {
+          "bootstrap_se": 0.3694670184139875,
+          "ci90_lower": 0.22979983562397877,
+          "ci90_upper": 1.4711320646850696,
+          "mde50": 0.6077732452910094,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap": 0.241699501765125,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.10232549139429657,
+          "ci90_lower": 0.06544053564927471,
+          "ci90_upper": 0.40688665618727177,
+          "mde50": 0.16832543334361785,
+          "replicates_used": 2000
+        },
+        "touches": 83,
+        "v8_slope": 0.6789194214994463,
+        "v8_slope_ci90": {
+          "bootstrap_se": 0.25401366149445037,
+          "ci90_lower": 0.26721948130217243,
+          "ci90_upper": 1.0888240471090451,
+          "mde50": 0.4178524731583709,
+          "replicates_used": 2000
+        },
+        "v8_top_gap": 0.21066666666666667,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.10665088649930674,
+          "ci90_lower": 0.035458080808080765,
+          "ci90_upper": 0.38166,
+          "mde50": 0.17544070829135958,
+          "replicates_used": 2000
+        }
+      }
+    },
+    "regime_cell_summary": {
+      "both_mean_gap_positive": 7,
+      "both_top_gap_positive": 8,
+      "cells": 8,
+      "note": "부호는 8/8 이지만 셀 수준 CI90 하한>0 은 그보다 적다 — 국면 부분표본은 S2-1 과 동일한 비층화 블록부트 근사이며 storm_p80 은 전역 상위분위 경계가 부분표본을 거의 덮어 독립 정보가 아니다(S2-2 이월).",
+      "reflection_ci90_lower_positive": 5,
+      "v8_ci90_lower_positive": 3
+    },
+    "regime_cells": [
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 21,
+        "n": 78,
+        "reflection_mean_gap": 0.047568488701274114,
+        "reflection_top_gap": 0.11105636963496202,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.11058844264100319,
+          "ci90_lower": -0.09337330094963499,
+          "ci90_upper": 0.2639861070161888,
+          "mde50": 0.18191798814445026,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap_ci90_lower_positive": false,
+        "regime": "gfc",
+        "touches": 18,
+        "v8_mean_gap": 0.08486538461538462,
+        "v8_top_gap": 0.12976363636363641,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.10715050742180429,
+          "ci90_lower": -0.06704339622641507,
+          "ci90_upper": 0.2797759803921569,
+          "mde50": 0.17626258470886808,
+          "replicates_used": 2000
+        },
+        "v8_top_gap_ci90_lower_positive": false
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 21,
+        "n": 339,
+        "reflection_mean_gap": 0.015936349973975625,
+        "reflection_top_gap": 0.13940101112436065,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.034411257644919334,
+          "ci90_lower": 0.09038778276364753,
+          "ci90_upper": 0.198076860742367,
+          "mde50": 0.05660651882589231,
+          "replicates_used": 1990
+        },
+        "reflection_top_gap_ci90_lower_positive": true,
+        "regime": "non_gfc",
+        "touches": 11,
+        "v8_mean_gap": 0.01307079646017699,
+        "v8_top_gap": 0.11005172413793106,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.049342712664625886,
+          "ci90_lower": 0.04465381263616559,
+          "ci90_upper": 0.19979285714285713,
+          "mde50": 0.08116876233330958,
+          "replicates_used": 1985
+        },
+        "v8_top_gap_ci90_lower_positive": true
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 21,
+        "n": 356,
+        "reflection_mean_gap": 0.007846737482587351,
+        "reflection_top_gap": 0.17520938812517953,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.008044117565160373,
+          "ci90_lower": 0.16454290076049935,
+          "ci90_upper": 0.1890692909342917,
+          "mde50": 0.013232573394688814,
+          "replicates_used": 1968
+        },
+        "reflection_top_gap_ci90_lower_positive": true,
+        "regime": "calm_p80",
+        "touches": 13,
+        "v8_mean_gap": 0.007665730337078652,
+        "v8_top_gap": 0.08855999999999999,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.06942534821787028,
+          "ci90_lower": -0.020909821428571417,
+          "ci90_upper": 0.17482907268170428,
+          "mde50": 0.11420469781839661,
+          "replicates_used": 1989
+        },
+        "v8_top_gap_ci90_lower_positive": false
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 21,
+        "n": 61,
+        "reflection_mean_gap": 0.10359551173895121,
+        "reflection_top_gap": 0.10359551173895121,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.08567561514165117,
+          "ci90_lower": -0.04309558107437498,
+          "ci90_upper": 0.23476855250500053,
+          "mde50": 0.1409363869080162,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap_ci90_lower_positive": false,
+        "regime": "storm_p80",
+        "touches": 16,
+        "v8_mean_gap": 0.13641803278688525,
+        "v8_top_gap": 0.13753389830508472,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.0901482802514544,
+          "ci90_lower": -0.016673333333333276,
+          "ci90_upper": 0.27181014865240344,
+          "mde50": 0.14829392101364247,
+          "replicates_used": 2000
+        },
+        "v8_top_gap_ci90_lower_positive": false
+      },
+      {
+        "both_mean_gap_positive": false,
+        "both_top_gap_positive": true,
+        "horizon": 63,
+        "n": 78,
+        "reflection_mean_gap": -0.0019943496811281047,
+        "reflection_top_gap": 0.1473742662505631,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.1527075427838358,
+          "ci90_lower": -0.10765980624138978,
+          "ci90_upper": 0.409380893508102,
+          "mde50": 0.2512039078794099,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap_ci90_lower_positive": false,
+        "regime": "gfc",
+        "touches": 40,
+        "v8_mean_gap": 0.08053846153846167,
+        "v8_top_gap": 0.19307758620689636,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.14028186813752044,
+          "ci90_lower": -0.05005597826086958,
+          "ci90_upper": 0.41660501587301596,
+          "mde50": 0.23076367308622114,
+          "replicates_used": 2000
+        },
+        "v8_top_gap_ci90_lower_positive": false
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 63,
+        "n": 339,
+        "reflection_mean_gap": 0.08082141287037625,
+        "reflection_top_gap": 0.3674664824512075,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.050555492944489654,
+          "ci90_lower": 0.2989481586431297,
+          "ci90_upper": 0.4509993594337092,
+          "mde50": 0.08316378589368548,
+          "replicates_used": 1990
+        },
+        "reflection_top_gap_ci90_lower_positive": true,
+        "regime": "non_gfc",
+        "touches": 43,
+        "v8_mean_gap": 0.054747787610619464,
+        "v8_top_gap": 0.24990384615384614,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.11055546118749603,
+          "ci90_lower": 0.053614999999999934,
+          "ci90_upper": 0.4329694444444443,
+          "mde50": 0.18186373365343098,
+          "replicates_used": 1987
+        },
+        "v8_top_gap_ci90_lower_positive": true
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 63,
+        "n": 356,
+        "reflection_mean_gap": 0.04467135704169081,
+        "reflection_top_gap": 0.38968963335577744,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.0467810663333331,
+          "ci90_lower": 0.30433027635396154,
+          "ci90_upper": 0.446145894722612,
+          "mde50": 0.07695485411833296,
+          "replicates_used": 1968
+        },
+        "reflection_top_gap_ci90_lower_positive": true,
+        "regime": "calm_p80",
+        "touches": 58,
+        "v8_mean_gap": 0.025626404494382,
+        "v8_top_gap": 0.11263461538461533,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.13846510529067865,
+          "ci90_lower": -0.08790000000000003,
+          "ci90_upper": 0.38097916666666676,
+          "mde50": 0.22777509820316638,
+          "replicates_used": 1991
+        },
+        "v8_top_gap_ci90_lower_positive": false
+      },
+      {
+        "both_mean_gap_positive": true,
+        "both_top_gap_positive": true,
+        "horizon": 63,
+        "n": 61,
+        "reflection_mean_gap": 0.18589994395225606,
+        "reflection_top_gap": 0.18589994395225606,
+        "reflection_top_gap_ci90": {
+          "bootstrap_se": 0.11450373989369596,
+          "ci90_lower": 0.00046487108455635395,
+          "ci90_upper": 0.37851610809937475,
+          "mde50": 0.18835865212512987,
+          "replicates_used": 2000
+        },
+        "reflection_top_gap_ci90_lower_positive": true,
+        "regime": "storm_p80",
+        "touches": 25,
+        "v8_mean_gap": 0.2576803278688524,
+        "v8_top_gap": 0.25461206896551714,
+        "v8_top_gap_ci90": {
+          "bootstrap_se": 0.1015872218054216,
+          "ci90_lower": 0.08694102831594631,
+          "ci90_upper": 0.4247986350574711,
+          "mde50": 0.16711097986991852,
+          "replicates_used": 2000
+        },
+        "v8_top_gap_ci90_lower_positive": true
+      }
+    ]
+  },
+  "schema": "v12_s2_entry_verdict_v1",
+  "split_power": {
+    "convention": "1.645·se, 블록부트 ℓ=13 B=2000 seed 20260902",
+    "h21": {
+      "early_2007_2010": {
+        "base_rate": 0.10526315789473684,
+        "brier_v8": 0.0913030633971292,
+        "concentration": {
+          "mean_after_dropping_top5pct_by_abs": 0.003753996770175105,
+          "sign_flips_after_drop": true,
+          "top5_abs_share_of_sum": 0.23888277945863234,
+          "top5pct_origins": 10
+        },
+        "mde_1645se": 0.00885843141161074,
+        "mde_as_share_of_window_brier": 0.09702228032678772,
+        "n": 209,
+        "paired_ci90": {
+          "bootstrap_se": 0.0053855438967105665,
+          "ci90_lower": -0.013769516805266217,
+          "ci90_upper": 0.003580686378070703,
+          "mde50": 0.008859219710088882,
+          "replicates_used": 2000
+        },
+        "paired_se": 0.0053855438967105665,
+        "paired_v8_minus_reflection": -0.003707190471913539,
+        "touches": 22
+      },
+      "late_2011_2014": {
+        "base_rate": 0.03365384615384615,
+        "brier_v8": 0.03152415625,
+        "concentration": {
+          "mean_after_dropping_top5pct_by_abs": 0.0009565719180129414,
+          "sign_flips_after_drop": false,
+          "top5_abs_share_of_sum": 0.3454850743808289,
+          "top5pct_origins": 10
+        },
+        "mde_1645se": 0.0011764112054729937,
+        "mde_as_share_of_window_brier": 0.03731776978084842,
+        "n": 208,
+        "paired_ci90": {
+          "bootstrap_se": 0.0007152072295048665,
+          "ci90_lower": 1.0294246404339351e-05,
+          "ci90_upper": 0.002287210728201151,
+          "mde50": 0.0011765158925355055,
+          "replicates_used": 2000
+        },
+        "paired_se": 0.0007152072295048665,
+        "paired_v8_minus_reflection": 0.0010175215772999283,
+        "touches": 7
+      }
+    },
+    "h63": {
+      "early_2007_2010": {
+        "base_rate": 0.2822966507177033,
+        "brier_v8": 0.18384792822966506,
+        "concentration": {
+          "mean_after_dropping_top5pct_by_abs": 0.010092516202215764,
+          "sign_flips_after_drop": false,
+          "top5_abs_share_of_sum": 0.164184490517659,
+          "top5pct_origins": 10
+        },
+        "mde_1645se": 0.012224953068627028,
+        "mde_as_share_of_window_brier": 0.06649491885138607,
+        "n": 209,
+        "paired_ci90": {
+          "bootstrap_se": 0.0074322437378725485,
+          "ci90_lower": -0.009978739301121482,
+          "ci90_upper": 0.014545344771729802,
+          "mde50": 0.012226040948800343,
+          "replicates_used": 2000
+        },
+        "paired_se": 0.0074322437378725485,
+        "paired_v8_minus_reflection": 0.0024898347939002054,
+        "touches": 59
+      },
+      "late_2011_2014": {
+        "base_rate": 0.11538461538461539,
+        "brier_v8": 0.10591064302884617,
+        "concentration": {
+          "mean_after_dropping_top5pct_by_abs": 0.00844173900732193,
+          "sign_flips_after_drop": false,
+          "top5_abs_share_of_sum": 0.18476973623079204,
+          "top5pct_origins": 10
+        },
+        "mde_1645se": 0.0044140396282506275,
+        "mde_as_share_of_window_brier": 0.04167701660586089,
+        "n": 208,
+        "paired_ci90": {
+          "bootstrap_se": 0.0026835455483242548,
+          "ci90_lower": 0.002956064205081112,
+          "ci90_upper": 0.011895687506416796,
+          "mde50": 0.004414432426993399,
+          "replicates_used": 2000
+        },
+        "paired_se": 0.0026835455483242548,
+        "paired_v8_minus_reflection": 0.007355192091005033,
+        "touches": 24
+      }
+    },
+    "note": "후보 맵 미생성 — 분산 규모만. T1~T5 어느 가설도 평가하지 않음.",
+    "split": "2010-12-31"
+  },
+  "task_id": "S2-3",
+  "verdict": {
+    "R0_pass": true,
+    "R1_pass": false,
+    "R2_pass": true,
+    "R3_pass": false,
+    "adoption_rule": "채택 = R0(설계도 문자·사전등록) AND R2(엄격·주체=표적 구조). R1(엄격·주체=V8) 은 더 좁은 질문이며 결과와 무관하게 함께 공표한다. R3(로짓 기울기 CI90 상한<1) 은 보강 증거로만 쓰고 판정에 넣지 않는다(S2-1 gate_definition 승계).",
+    "decision": "진입",
+    "dissent": "R1(주체=V8) 은 h21 에서 미달한다 — CI90 하한 -0.009725. 진입은 '표적의 과신 구조가 확립됐다' 는 뜻이지 'V8 의 과신이 확립됐다' 는 뜻이 아니다.",
+    "entry": true,
+    "next": "S3-0",
+    "prereg_constraints": [
+      {
+        "fact": "전반창 터치 22/209 · 후반창 터치 7/208. 쌍대 손실차 MDE(1.645·se) = 전반 0.008858(9.7% of BS) · 후반 0.001176(3.7% of BS). 후반창 손실차 절대합의 상위 5 원점 비중 34.5%.",
+        "id": "K-power-h21",
+        "prescription": "S3 보고 시 지평별로 이 MDE 를 병기한다. MDE 미만의 개선은 방향과 무관하게 '결정적 증거 없음'. 후반창 결과는 집중도(상위5% 제거 후 부호)를 반드시 함께 낸다 — 소수 원점이 부호를 만드는지 확인 없이 채택 금지."
+      },
+      {
+        "fact": "전반창 터치 59/209 · 후반창 터치 24/208. 쌍대 손실차 MDE(1.645·se) = 전반 0.012225(6.6% of BS) · 후반 0.004414(4.2% of BS). 후반창 손실차 절대합의 상위 5 원점 비중 18.5%.",
+        "id": "K-power-h63",
+        "prescription": "S3 보고 시 지평별로 이 MDE 를 병기한다. MDE 미만의 개선은 방향과 무관하게 '결정적 증거 없음'. 후반창 결과는 집중도(상위5% 제거 후 부호)를 반드시 함께 낸다 — 소수 원점이 부호를 만드는지 확인 없이 채택 금지."
+      },
+      {
+        "fact": "본 태스크가 새로 낸 분할창 대비(V8 vs 반사 기준선)는 후반창에서 두 지평 모두 CI90 하한>0 이다 — h21 +0.001018 CI90 하한 +1.03e-05, h63 +0.007355 CI90 하한 +0.002956. 전반창은 두 지평 모두 0 을 걸친다.",
+        "id": "K-split-contrast",
+        "prescription": "이것은 사전등록 검정이 아니라 S2-2 공표 뒤의 부분표본 분할이며 다중검정 보정도 없다. 'V8 이 기준선을 이긴다' 는 주장의 근거로 인용 금지 — 풀표본 판정(두 지평 모두 0 포함)이 정본이다. S3-0 은 이 대비를 가설로 승격시키지 않는다."
+      },
+      {
+        "fact": "반사 앵커가 V8 보다 더 과신한 국면 셀 4개 h21/non_gfc(+0.1394 vs +0.1101), h21/calm_p80(+0.1752 vs +0.0886), h63/non_gfc(+0.3675 vs +0.2499), h63/calm_p80(+0.3897 vs +0.1126)",
+        "id": "K-T3",
+        "prescription": "T3 는 설계도 §2 원문 그대로 등록하되 '사전 기대' 를 '비GFC·calm 에서 w>0 은 악화 방향' 으로 정정 기록한다. 가설 삭제 금지 — 실패도 원장에 남긴다."
+      },
+      {
+        "fact": "S3 채택 기준(설계도 §2)은 'p′ 가 p 를 양방향으로 개선' 이며 기준선 대비가 아니다. S2-2 는 V8 이 자유 파라미터 0 개 기준선을 두 지평 어디서도 엄밀히 이기지 못함을 확정했다.",
+        "id": "K-baseline",
+        "prescription": "1차 채택 기준은 §2 원문 불변. 그 위에 2차 기준 'p′ vs p_reflect 쌍대 CI90 하한 > 0' 을 S3-0 에 **추가** 등록한다 — 강화 방향이므로 사후 완화가 아니다. S3 통과·2차 미달은 그대로 공표."
+      },
+      {
+        "fact": "게이트 산술(본 태스크 재산출): 현 표본에서 기준선을 CI90 하한>0 으로 이기려면 기후 대비 BSS 가 h21 ≥ +14.28%(BGK 판 ≥ +21.12%), h63 ≥ +10.18%(BGK 판 ≥ +15.08%). 완전보정 상한은 h21 +19.84%·h63 +16.39% — h21 은 BGK 문턱 미달, h63 은 간발 통과.",
+        "id": "K-gate-arith",
+        "prescription": "S3 가 통과해도 S4 게이트 미달일 수 있음을 지금 못박는다. S4-2 에서 이 문턱을 낮추는 방향의 기준선 선택(원식·λ=0.99)은 사후 완화이며 근거 명문화 없이는 금지."
+      }
+    ],
+    "published_readings": {
+      "R0": "설계도 §1 문자 기준 (2026-09-04 사전등록) — 두 지평·국면 초월 부호 재현",
+      "R1": "엄격 · 주체=V8 — 두 지평 top-quintile gap CI90 하한 > 0",
+      "R2": "엄격 · 주체=표적 구조(반사 기준선) — 두 지평 top-quintile gap CI90 하한 > 0",
+      "R3": "보강(판정 미포함) · 로짓 기울기 CI90 상한 < 1"
+    }
+  }
+}
