@@ -1,0 +1,166 @@
+{
+  "task_id": "S3-1",
+  "title": "T1~T4 양방향 전이 + CI + 귀무",
+  "status": "완료",
+  "stage": "S3",
+  "commit": "2020047f (산출물) · 후속 커밋(본 result JSON)",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경 확인. V8 run sha256 38dde7a8… 도 적재 시점에 재대사."
+  },
+  "artifacts": {
+    "data/timeseries_v12/diagnostics/transfer_results.json": "b2c0f0c511bab590c3ca84b4376b116ab8715bd5d7a2c202c49149b1fa3db394",
+    "tools/v12_transfer_test.py": "7637fb966a051ca56574c9f9780bfe89a23a7fe599d96b58725ad3ff9de24ddb",
+    "tools/v12_transfer_verify.py": "66432a24e6b47c828472dfc5a157793da486ba1f7b72355c142372eba3b1c1b6",
+    "tools/v12_transfer_tables.py": "94018ac95928ca757cd67535a730cd04c77b8472f7f14377931fa37818f0be50",
+    "tools/v12_s3_1_result_check.py": "5e7b29b7e6a68ef2f15b0ec308a525e0ce9c80f8f1f2aa68929358a3532a9933",
+    "outputs/timeseries_v12/loop/_s3_1_tables.md": "cbce2cdbf21832b6b3fe58027a4f3491c707b3e0ecf9767154db7bc6b0153bd0"
+  },
+  "accept_check": {
+    "requirement": "전 가설 결과 + P(≥k 통과)",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "data/timeseries_v12/diagnostics/transfer_results.json",
+    "all_hypotheses_reported": "T1·T2·T3·T4 × h21·h63 × 방향 2 = 16 결과 전부 기록. 미달·퇴화도 사유와 함께 남겼고 생략 0 (등록부 no_cell_dropping).",
+    "T5_reported": true,
+    "p_ge_k_reported": {
+      "k_obs": 0,
+      "P(k>=k_obs)": 1.0,
+      "note": "k_obs=0 이므로 P(k≥0)=1 은 자명하다. 정보가 있는 것은 귀무분포 전체이며 아래 multiplicity 에 P(k≥j) 를 j=0..8 전부 기록했다.",
+      "P(k>=j)": {"1": 0.904, "2": 0.792, "3": 0.564, "4": 0.443, "5": 0.06, "6": 0.001, "7": 0.0, "8": 0.0}
+    },
+    "verified_mechanically": "tools/v12_transfer_verify.py — 30항목 전부 PASS. 검정 코드가 쓰는 2차식 항등식을 쓰지 않고 격자 101점마다 p′ 배열을 만들어 전수 재적합하는 독립 경로로 λ̂·ŵ 를 재현했다.",
+    "result_json_self_check": "tools/v12_s3_1_result_check.py — 25항목 전부 PASS. 이 result JSON 이 적은 모든 수치(발췌 표·산문 수치 9종 포함)를 transfer_results.json·git·봉인과 대사한다. 초안의 전사 오류 1건(S4 계약 문자열)을 이 검사가 잡아 정정했다."
+  },
+  "headline": {
+    "adopted_cells": 0,
+    "adopted_cells_list": [],
+    "k_obs": 0,
+    "T5_failed": true,
+    "T5_pass_rate_pooled": 0.254,
+    "T5_pass_rate_by_cell": {"h21": 0.503, "h63": 0.005},
+    "T5_threshold": 0.1,
+    "s4_contract": "부정 결과 계약 (T5 실패 — 등록부 pre_committed_interpretation.T5_fail 우선)",
+    "s4_contract_note": "등록부는 T5_fail 경로가 adopted_0 경로보다 우선한다고 명시한다. 이 표본에서는 둘 다 발동했다.",
+    "two_paths_converge": "채택도 0 이고 T5 도 실패했다. 두 사전등록 경로(adopted_0 · T5_fail)가 같은 결론으로 수렴하므로 S4 계약의 성격은 어느 규칙을 먼저 적용하든 동일하다."
+  },
+  "results_16": {
+    "convention": "Δ = mean[(p−y)² − (p′−y)²] (평가창, 양수 = 개선). CI90 = 블록부트 ℓ=13 B=2000 seed 20260902.",
+    "rounding": "아래 수치는 전부 소수 6자리 반올림값이다. 정본은 transfer_results.json 의 원 필드이며 tools/v12_s3_1_result_check.py 가 round(원값, 6) 과 대사한다.",
+    "T1_h21": {"early_to_late": {"lambda": 0.46, "delta": 0.000444, "ci90": [-0.000751, 0.001992], "A1": false},
+               "late_to_early": {"lambda": 0.47, "delta": 0.008237, "ci90": [-0.008377, 0.027367], "A1": false}},
+    "T1_h63": {"early_to_late": {"lambda": 0.39, "delta": 0.001744, "ci90": [-0.000522, 0.005142], "A1": false},
+               "late_to_early": {"lambda": 0.73, "delta": -0.014269, "ci90": [-0.084943, 0.04911], "A1": false}},
+    "T2_h21": {"lambda_star": 0.46, "early_to_late": {"delta": 0.000444, "A1": false}, "late_to_early": {"delta": 0.008286, "A1": false}},
+    "T2_h63": {"lambda_star": 0.39, "early_to_late": {"delta": 0.001744, "A1": false}, "late_to_early": {"delta": 0.008047, "A1": false}},
+    "T3_h21": {"early_to_late": {"w": 1.0, "delta": -0.001018, "ci90": [-0.002287, -0.00001], "A1": false},
+               "late_to_early": {"w": 0.0, "delta": 0.0, "degenerate": "w*=0 → p′=p", "A1": false}},
+    "T3_h63": {"early_to_late": {"w": 0.33, "delta": -0.001564, "ci90": [-0.002965, -0.000123], "A1": false},
+               "late_to_early": {"w": 0.0, "delta": 0.0, "degenerate": "w*=0 → p′=p", "A1": false}},
+    "T4_h21": {"early_window": {"delta": 0.0, "A1": false}, "late_window": {"delta": 0.0, "A1": false},
+               "monotonicity_violations": 0},
+    "T4_h63": {"early_window": {"delta": 0.0, "A1": false}, "late_window": {"delta": 0.0, "A1": false},
+               "monotonicity_violations": 0},
+    "note": "표의 정본은 transfer_results.json 의 records 16개다. 여기 옮긴 수는 판정에 쓰이는 값만 발췌한 것이며, 판정문(S3-2)은 스크립트 렌더(_s3_1_tables.md)만 인용한다."
+  },
+  "multiplicity": {
+    "null_id": "N1",
+    "replicates": 1000,
+    "inner_bootstrap_replicates": 2000,
+    "computational_fallback_used": false,
+    "measured_runtime_sec": 67.1,
+    "projection_note": "등록부가 예산 초과 시 내부 복제수 2000→500 축소를 허용했으나, 실측 67초라 축소가 불필요했다. 판정 기준·순열 1000회·family 정의는 애초에 축소 대상이 아니다.",
+    "k_distribution": {"0": 96, "1": 112, "2": 228, "3": 121, "4": 383, "5": 59, "6": 1, "7": 0, "8": 0},
+    "k_mean": 2.764,
+    "k_max": 6,
+    "cell_pass_rate_under_null": {"T1_h21": 0.503, "T1_h63": 0.005, "T2_h21": 0.576, "T2_h63": 0.005,
+                                  "T3_h21": 0.739, "T3_h63": 0.148, "T4_h21": 0.788, "T4_h63": 0.0},
+    "family_claim_supported": false
+  },
+  "key_findings": [
+    "accept 충족 — 16 결과 전부와 P(≥k) 표를 산출했다. 채택 셀 0/8, k_obs=0. 양방향 CI90 하한>0 을 만족한 셀은 하나도 없다. 여덟 셀 중 다섯이 '결정적 증거 없음'(|Δ| < MDE) 라벨을 최소 한 방향에서 달았고, 16 방향 중 9 개가 그 라벨에 해당한다.",
+    "T5 음성 대조가 실패했다 — N1 아래 T1 통과율이 h21 50.3%·h63 0.5%, pooled 25.4% 로 문턱 10.0% 를 넘었다. 등록부 규칙에 따라 S3 채택은 전부 무효이고 S4 는 부정 결과 계약이 된다. 채택이 애초에 0 이므로 이 발동이 결론을 바꾸지는 않지만, '이 검정 기계로 얻은 통과'는 증거로 쓸 수 없다는 사실은 바뀌지 않는다.",
+    "T5 실패의 기전을 특정했다 [부분 미검증] — N1 은 p 를 섞어 정보를 없애지만 그렇게 만들어진 p 는 상단에서 극단적으로 과신하게 된다(상위분위 평균 p 는 그대로인데 관측빈도는 기저율로 붕괴). T1 의 맵은 바로 그 과신을 b 로 수축시키는 맵이라 귀무 아래에서 진짜 개선을 만들고, 그 개선은 창을 넘어서도 재현된다. 즉 N1 은 T1 의 대립가설을 파괴하지 못하는 귀무다. 이 진단은 사후 관찰이며 등록부의 판정을 뒤집는 데 쓰지 않는다 — S4-2 재검토 항목으로만 이월한다.",
+    "귀무 아래 통과율이 h21(50.3%)과 h63(0.5%)에서 100배 갈린다. 기전 가설과 정합적이다 — h21 은 후반창 터치가 208 중 7 건(기저율 3.4%)인데 τ 위 원점의 p 는 그보다 훨씬 높으므로 섞은 p 의 상단 과신 폭이 크고, h63 은 후반창 24 건(11.5%)으로 그 폭이 작다. [미검증 — 이 스크립트는 귀무 아래 상단 gap 을 따로 계측하지 않았다.]",
+    "양방향 요건이 왜 T1·T2 를 막았는지가 상단집합 전이 구조에 그대로 나온다. τ 는 학습창 80분위인데 전반창(GFC 포함)의 τ 는 높아서(h21 0.1942·h63 0.4942) 후반창에서 208 중 14·9 개만 덮고, 후반창의 τ 는 낮아서(h21 0.0373·h63 0.2188) 전반창 209 중 156·151 개를 덮는다. 같은 맵이 한 방향에서는 거의 무작동, 반대 방향에서는 표본 4분의 3에 대한 전면 재보정이 된다. 이 비대칭이 두 방향 CI 를 동시에 0 위로 올리지 못하게 만든다.",
+    "h63 전→후 T1/T2 의 Δ(+0.001744)는 평가창 208 원점 중 9 개에서만 나온다 — 상위 5%(10 원점) 제거 시 잔여 Δ 가 정확히 0 이다. 부호가 반대로 뒤집힌 것은 아니지만 Δ 전부가 10 원점 안에 있다는 뜻이며, MDE(0.002988)보다도 작다.",
+    "T1 h63 후→전 Δ = −0.014269 로 설계도 §0 이 적어 둔 '역방향 실패'(−4.63%)가 부호·규모 방향에서 재현됐다. 다만 CI90 [−0.0849, +0.0491] 이 0 을 크게 포함하므로 '역방향에서 유의하게 나쁘다' 고도 말할 수 없다 — MDE 가 창 Brier 의 37.0% 라 이 방향은 사실상 무판정 구간이다.",
+    "T3 의 두 사전 기대 중 정정본이 맞았다. 설계도 §2 원문 기대는 '기계적 기준선이 과신 교정' 이었고 K-T3 정정 기대는 '비GFC·calm 에서 w>0 은 악화 방향' 이었다. 전→후 두 지평 모두 Δ<0 이고 CI90 **상한**이 0 미만(h21 −0.00001, h63 −0.000123)이다 — 반사 앵커를 섞으면 후반창에서 유의하게 나빠진다. 정정 기대 쪽이 관측과 일치한다.",
+    "T3 의 후→전 방향은 두 지평 모두 w*=0 으로 적합됐다 — 후반창에서는 반사 앵커에 어떤 가중치도 주지 않는 것이 학습창 Brier 최소다. 그래서 p′=p, Δ=0 이 되어 '결과 없음' 이 아니라 등록부가 규정한 '미달' 로 기록했다. T3 은 한 방향에서 악화, 반대 방향에서 무작동이라 양방향 요건에 두 번 걸린다.",
+    "T4 는 자유도 0 의 구조 제약인데 이 표본에서 단조 위반이 0 건이라 p′=p, Δ=0 이다. S2-1 의 horizon_monotonicity(위반 0)와 일치하며 풀표본 417 에서도 0 이다. '무비용' 이라는 사전 기대는 맞았지만 동시에 무효과다 — 제약이 이미 만족돼 있어 교정할 것이 없다.",
+    "A2(반사 기준선 대비)는 A1 없이는 의미가 없지만 기록 의무라 전부 남겼다. 통과한 다섯 방향 중 T4 의 두 개(h21·h63 late_window)는 p′=p 이므로 실질은 'V8 원값이 후반창에서 반사 기준선을 이긴다' 는 S2-3 의 분할창 대비 그 자체다. 등록부 K-split-contrast 가 이 대비를 S3 근거로 인용하는 것을 금지하므로 증거로 쓰지 않는다.",
+    "T2 의 λ* 가 평가창 적합값에 묶이는 방향을 표시했다 — h21 후→전과 h63 후→전에서 λ* 는 early 창 적합값이고 그 방향의 평가창이 early 이므로 순수 표본외가 아니다(uses_eval_window_information=true). 등록부가 정의한 대로 실행했지만 이 정보 누출을 안고도 A1 을 통과하지 못했다는 점은 T2 에 불리한 증거다.",
+    "집중도 라벨의 두 읽기를 병기했다 — '제거 후 부호가 원래와 다름'(0 포함)과 '반대 부호'와 '제거 후 Δ 정확히 0' 을 각각 기록했다. 등록부는 '부호가 뒤집히는 셀' 이라고만 적었고 이 표본에서 Δ 가 정확히 0 이 되는 셀이 실제로 나왔기 때문이다. 어느 읽기를 택해도 채택 판정은 바뀌지 않는다(채택 0).",
+    "S2-3 이 남긴 집중도 수치와의 비교 가능성을 복구했다 — S2-3 의 top5_abs_share_of_sum 은 상위 '5개 원점' 이었고 등록부 정의는 상위 '5%'(이 표본에서 10 원점)다. 둘을 다른 필드(top5_abs_share / top5count_abs_share)로 분리해 34.5% 와 직접 비교할 수 있게 했다.",
+    "계산 예산 축소를 쓰지 않았다 — 등록부가 허용한 내부 복제수 2000→500 축소는 실측 67.1초라 불필요했다. 파일럿 10회로 24초를 투영한 뒤 본 실행에서 67초를 실측했다(투영보다 느린 것은 초반 캐시 효과)."
+  ],
+  "sample_facts_verified": {
+    "note": "표본의 성질 — S2 에서 이미 확정된 값의 재확인이며 어떤 맵의 성능도 아니다.",
+    "split": {"early": 209, "late": 208, "boundary": "2010-12-31"},
+    "window": ["2007-01-05", "2014-12-24"],
+    "touches": {"h21_early": 22, "h21_late": 7, "h63_early": 59, "h63_late": 24},
+    "brier_p_by_window": {"h21_early": 0.091303, "h21_late": 0.031524,
+                          "h63_early": 0.183848, "h63_late": 0.105911},
+    "tau_by_window": {"h21_early": 0.1942, "h21_late": 0.0373,
+                      "h63_early": 0.4942, "h63_late": 0.2188},
+    "monotonicity_violations_full_sample": 0,
+    "p_reflect_identical_to_S2_2": true
+  },
+  "verification": {
+    "C1": "봉인 e3ff2fdb…·원장 b9c492be…·V8 run 38dde7a8…·등록부 a2c1a9e7…(S3-0 기록과 동일) 전부 일치. 분할 209/208 확인.",
+    "C2": "λ̂·ŵ 를 격자 101점 전수 재적합으로 재현 — 검정 코드의 2차식 항등식을 쓰지 않는 독립 경로. 16/16 일치.",
+    "C3": "τ·b 가 학습창 값과 일치하고, 8개 전이 방향 전부에서 학습창 τ ≠ 평가창 τ 임을 확인(평가창 재계산이 아님).",
+    "C4": "Δ = BS(p) − BS(p′) 항등 + p′ 재구성 일치 16/16.",
+    "C5": "draws 를 새로 만들어 부트스트랩 CI90·se 재현 16/16 (ft.ci90 경로).",
+    "C6": "상위5%·MDE·집중도 세 라벨 재계산 16/16.",
+    "C7": "A2(p_reflect 대비) Δ·CI·불리언 재현 16/16.",
+    "C8": "T4 단조 위반 0(풀표본)·네 레코드 Δ=0 확인.",
+    "C9": "A1_pass = (CI90 하한>0), 셀 롤업 = 두 방향 AND, k_obs 가 레코드에서 유도됨.",
+    "C10": "순열 20회 재실행이 같은 k 열 재현(seed 결정성) · T5 통과율 산식 · k 분포 합 1000 · P(k≥k_obs) 재계산 일치.",
+    "C11-C13": "레코드 16·셀 8·중복 0·홀드아웃 무접촉(최대 원점 2014-12-24)·mandatory 필드 23/23·상단집합 구조 재계산.",
+    "total": "30항목 전부 PASS"
+  },
+  "prereg_compliance": {
+    "hypotheses_added_after_results": 0,
+    "knobs_changed_after_results": 0,
+    "cells_dropped": 0,
+    "adoption_rule_used": "등록부 A1 원문 그대로 (양방향 CI90 하한 > 0). 완화·재해석 없음.",
+    "post_hoc_additions_declared": [
+      "집중도 라벨의 좁은 읽기(concentration_sign_reversed)와 소멸(concentration_sign_vanishes)을 **추가 필드로** 신설했다. 등록부 필드 concentration_fragile 의 정의는 바꾸지 않았고, 셋 다 기록한다. 채택 요건이 아니므로 판정에 영향 0.",
+      "상단집합 전이 구조(upper_set_transfer_structure)를 기록했다 — 가설이 아니라 τ·상단집합 크기라는 표본 사실이며 채택 판정에 쓰지 않았다."
+    ],
+    "K_constraints_honored": {
+      "K-power": "모든 셀에 MDE=1.645·se 와 MDE/BS 병기, |Δ|<MDE 는 '결정적 증거 없음' 라벨.",
+      "K-concentration": "모든 셀에 상위5% 비중·제거 후 Δ·부호 기록.",
+      "K-T3": "원문 기대와 정정 기대를 둘 다 대조해 보고 — 정정 기대가 관측과 일치.",
+      "K-baseline": "A2 를 전 셀에 계산·기록.",
+      "K-split-contrast": "T4 의 A2 통과가 실질적으로 S2-3 분할창 대비임을 명시하고 증거로 인용하지 않음.",
+      "K-gate-arith": "S3 통과가 S4 게이트 통과가 아님 — 채택 0 이라 적용 대상 자체가 없음."
+    }
+  },
+  "open_questions": [
+    "N1 이 T1 의 대립가설을 파괴하지 못한다는 진단은 사후 관찰이며 정량 검증이 없다 [미검증]. 올바른 귀무의 후보 — (a) y 를 섞는 귀무, (b) p 와 y 를 블록 단위로 함께 섞어 시계열 구조를 보존하는 귀무, (c) 창 안에서 p 의 순위는 유지하고 y 만 재배치하는 귀무 — 중 무엇이 T1 류 수축 맵의 적법한 귀무인지 S4-2 에서 결정해야 한다. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다.",
+    "N1 이 p_reflect(T3)와 상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율(T3_h21 73.9%·T4_h21 78.8%)은 '맵이 쓰는 외생 정보가 살아 있는' 귀무의 값이다. family P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 얼마나 커지는지는 미계량].",
+    "T4 의 두 셀은 같은 교정에서 파생돼 독립이 아니다. family 8셀 산술이 이 상관을 무시한다 [미검증] (S3-0 이월).",
+    "귀무 통과율의 지평 간 100배 격차(h21 50.3% vs h63 0.5%)의 기전은 상단 과신 폭 차이로 설명했으나 계측하지 않았다 [미검증].",
+    "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단(V12-D2).",
+    "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증].",
+    "S2-3 이월 유지 — h21 후반창 집중도가 구조인지 표본 인공물인지 미확정.",
+    "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+    "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "S3-2 판정 문서(docs/design/v12_s3_verdict.md) 미작성 — 다음 태스크 소관.",
+    "대안 귀무(블록 순열·y 치환)를 계산하지 않았다 — 사전등록된 귀무는 N1 하나뿐이고, 결과를 본 뒤 귀무를 추가하는 것이 등록부 위반이기 때문. S4-2 재검토 항목으로 이월.",
+    "국면(GFC/calm) 층화 CI 미산출 — S2 규약 승계.",
+    "h1·h5 지평 미평가 — S2 에서 이미 판정 제외.",
+    "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/diagnostics·outputs/ 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S3-2"
+}
