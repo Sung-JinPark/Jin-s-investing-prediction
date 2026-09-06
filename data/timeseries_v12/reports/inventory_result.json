@@ -1,0 +1,86 @@
+{
+  "schema": "v12.s5_inventory/1",
+  "task_id": "S5-1",
+  "generated_by": "tools/v12_s5_inventory.py",
+  "equivalent_cli": "cd src && python -m ai_fc inventory",
+  "why_not_cli": "루프 헌법 §1 — python -m ai_fc 는 권한 목록 밖. cmd_inventory 의 호출을 그대로 재현했다.",
+  "output_target": "docs/generated/inventory.generated.md",
+  "sync": {
+    "ok": true,
+    "summary": "[경고] W8 repository context changed; rebuilding the SQLite read index from source files\n[경고] W2 등록필터: amzn-fcf-negative-fy2026: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: ai-investment-gdp-share-2026q4: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: fedfunds-upper-550-2027h1: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: fedfunds-upper-hold-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] W2 등록필터: sox-ndx-relative-strength-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행\n[경고] Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range\n[경고] Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range",
+    "errors": [],
+    "warnings": [
+      "W8 repository context changed; rebuilding the SQLite read index from source files",
+      "W2 등록필터: amzn-fcf-negative-fy2026: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+      "W2 등록필터: ai-investment-gdp-share-2026q4: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+      "W2 등록필터: fedfunds-upper-550-2027h1: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+      "W2 등록필터: fedfunds-upper-hold-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+      "W2 등록필터: sox-ndx-relative-strength-2026ye: created 2026-08-31 ≥ 2026-07-21 인데 notes에 '등록필터:' 근거 없음 — FACTORY_GUIDE.md 필터 (a)/(b) 충족 근거를 기재 후 재실행",
+      "Q1 quarantined probability benchmark/2026-07-10_fomc-2026-07-29-hike_r1@2026-07-31|market: probability 22.0 (fraction) is outside the canonical [0, 1] range",
+      "Q1 quarantined probability benchmark/2026-07-20_fomc-2026-07-29-hike_r4@2026-07-31|market: probability 5.0 (fraction) is outside the canonical [0, 1] range"
+    ],
+    "db_path": "db/index.db (gitignore — 파생 인덱스)"
+  },
+  "snapshot": {
+    "source_fingerprint": "7812ab59c4c285e7cc542deacf492b5c6a0c803fa0be9466995b95c500fd9941",
+    "questions": 43,
+    "forecast_files": 51,
+    "evidence_files": 20,
+    "resolution_rows": 9,
+    "benchmark_rows": 9,
+    "correction_rows": 22,
+    "contracts": 54,
+    "dualdb_eras": 8,
+    "tables": {
+      "questions": 43,
+      "forecasts": 51,
+      "resolutions": 9,
+      "benchmark_scores": 9,
+      "resolution_event": 5,
+      "score_observation": 9,
+      "probability_record": 158,
+      "source_registry": 14,
+      "model_registry": 14
+    }
+  },
+  "was_current_before_run": false,
+  "mode": "write",
+  "files": {
+    "docs/generated/inventory.generated.md": {
+      "sha256_before": "0c1e8a1800db3845644d91148f94567f45f987c38f41386fd2d0a8f4bc515a49",
+      "sha256_after": "5527962187a75245b91247e5c0de84991b74db4982f3d9a4a6ab69263bd1d26b",
+      "changed": true,
+      "created": false
+    },
+    "docs/generated/licenses.generated.md": {
+      "sha256_before": "ff50ebf488e8a5b696b8ac6e0fb73c1d9afe81f986819e69df4de4724b509599",
+      "sha256_after": "ff50ebf488e8a5b696b8ac6e0fb73c1d9afe81f986819e69df4de4724b509599",
+      "changed": false,
+      "created": false
+    },
+    "docs/generated/read_model_v2.schema.json": {
+      "sha256_before": "ce4f0d50399af7a06aa19efa8ece0937d8374c7564d8268d56ecb5400aadd72e",
+      "sha256_after": "ce4f0d50399af7a06aa19efa8ece0937d8374c7564d8268d56ecb5400aadd72e",
+      "changed": false,
+      "created": false
+    }
+  },
+  "files_changed": [
+    "docs/generated/inventory.generated.md"
+  ],
+  "is_current_after_run": true,
+  "immutable_paths": {
+    "checked": [
+      "forecasts",
+      "calibration",
+      "src",
+      "data/timeseries_v8",
+      "data/timeseries_v2",
+      "questions"
+    ],
+    "dirty_before": [],
+    "dirty_after": [],
+    "clean": true
+  },
+  "status": "완료"
+}

@@ -128,7 +128,7 @@
     "S3-2"
    ],
    "stage_budget_sec": 600,
-   "status": "진행",
+   "status": "완료",
    "title": "월요일 체크포인트 봉인",
    "spec": "S1~S3 산출물 sha256·state 기록. 봉인 해시 재대사.",
    "accept": "state.json 봉인"
@@ -140,7 +140,7 @@
     "CKPT"
    ],
    "stage_budget_sec": 21600,
-   "status": "대기",
+   "status": "완료",
    "title": "V12 계약 draft",
    "spec": "multivariate_timeseries_v12.draft.yaml: 표적 first_touch h21/h63, 게이트(Brier skill vs 기후·반사원리 기준선, 양방향 전이, reliability), CRPS 게이트 무손상 제약, 정지점2·봉인0·retune 금지 승계. S3 부정이면 부정결과 계약.",
    "accept": "계약 draft 커밋"
@@ -152,7 +152,7 @@
     "S4-1"
    ],
    "stage_budget_sec": 0,
-   "status": "대기",
+   "status": "완료",
    "title": "V12 게이트 설계서",
    "spec": "docs/design/v12_gate_design.md — 게이트 산술·MDE·예산·파생층 배포 경계.",
    "accept": "설계서 커밋"
@@ -164,7 +164,7 @@
     "S4-2"
    ],
    "stage_budget_sec": 10800,
-   "status": "대기",
+   "status": "완료",
    "title": "최종 보고·결정표·inventory",
    "spec": "docs/review/SUNDAY_LOOP_FINAL_REPORT.md + V12-D1~D4 + 미완 정직 기록. cd src && python -m ai_fc inventory. PR 준비(push 금지).",
    "accept": "보고 커밋"
