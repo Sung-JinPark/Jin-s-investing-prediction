@@ -1,0 +1,138 @@
+{
+  "task_id": "S3-2",
+  "title": "S3 판정",
+  "status": "완료",
+  "stage": "S3",
+  "commit": "a2107f42 (판정서·판정 JSON·표·검증 스크립트) · 후속 커밋(본 result JSON + result_check + V13 낱말단위 정확일치 수정본 v12_s3_verify.py)",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·data/timeseries_v2·questions/ git status 무변경 확인 (v12_s3_verify.py V1-c 가 기계로 대사)."
+  },
+  "artifacts": {
+    "docs/design/v12_s3_verdict.md": "2020b95b6899e3376c6d2faaad6f304d9271fd07ee817d61eeb96a987b0dbe74",
+    "data/timeseries_v12/diagnostics/s3_verdict.json": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+    "outputs/timeseries_v12/loop/_s3_2_tables.md": "4f7c7a31897f94d88d6ca1d5a8bc408e7aeab1b274c36f739273c796c0dbd36e",
+    "tools/v12_s3_verdict.py": "06e91f1940c058293e87ad855fef29806dfe04b6dd04a086d4bade94d72ff0f3",
+    "tools/v12_s3_tables.py": "ab4ffe96de9268acf9ff150dc33cfa09a2b822c699ec9b1460314bf9386ca6e8",
+    "tools/v12_s3_verify.py": "61695aee668e607c8c04a28c5cb21c8bb96323050fe3eefcad9f5cc1e1b34af2",
+    "tools/v12_s3_doc_check.py": "20f8f16d8d69ba77603066003fc5ff5064147800af528e6198ee48dcb342ce5c",
+    "tools/v12_s3_2_result_check.py": "b9c2745b64769d4497fe4a848947d179b68c1ebc1aba07fe01737e0d01f0a9f0"
+  },
+  "accept_check": {
+    "requirement": "채택 목록 또는 부정 결과",
+    "artifact_named_in_spec_exists": true,
+    "artifact_path": "docs/design/v12_s3_verdict.md",
+    "delivered": "부정 결과",
+    "adopted_cells_list": [],
+    "adopted_count": 0,
+    "verdict_line": "채택 목록: 없음 (0/8 셀). → 전이 불가 — 부정 결과 확정.",
+    "verified_mechanically": "tools/v12_s3_verify.py — 49항목 전부 PASS. S3-1 의 롤업 필드(adoption·verdict)를 쓰지 않고 16 개 원 레코드의 ci90_lower 에서 A1·A2·셀 롤업·k_obs 를 재유도하는 독립 경로로 판정을 재현했다.",
+    "result_json_self_check": "tools/v12_s3_2_result_check.py — 43항목 전부 PASS. 이 result JSON 이 적은 모든 수치·주장(아티팩트 해시 8종·커밋 blob 동일성·headline·failure_modes·산문 수치 10종·not_done 주장)을 판정 JSON·git·봉인·검증기 재실행과 대사한다. 초안이 인용한 검증기 해시 1건이 V13 수정으로 바뀐 것을 이 검사가 잡아 갱신했다.",
+    "doc_reconciled": "tools/v12_s3_doc_check.py — 전부 PASS. 판정서의 표 53 행이 렌더 출력과 바이트 일치하고, 산문 수치 25종이 s3_verdict.json·transfer_results.json·s2_entry_verdict.json 필드와 일치하며, 등록부 인용 5건이 원문의 바이트 부분문자열임을 대사한다. 초안의 전사 오류 2건(s2_entry_verdict sha256 뒷자리 조작·A1 인용 마침표 누락)을 이 검사가 잡아 정정했다."
+  },
+  "headline": {
+    "decision": "전이 불가 (부정 결과 확정)",
+    "decision_code": "NEGATIVE_RESULT",
+    "adopted_cells": 0,
+    "k_obs": 0,
+    "directions_with_lower_gt_0": 0,
+    "governing_branch": "T5_fail",
+    "branches_fired": ["T5_fail", "adopted_0"],
+    "s4_contract": "부정 결과 계약 — 'V12 부정 결과 계약: 이벤트 확률 재보정도 전이 불가'",
+    "s4_contract_source": "prereg.pre_committed_interpretation.T5_fail (등록부가 adopted_0 보다 우선한다고 명시)",
+    "two_paths_converge": true
+  },
+  "failure_modes": {
+    "convention": "A1 은 엄격 부등호(CI90 하한 > 0). 미달은 두 성격으로 갈린다.",
+    "lower_lt_0": 10,
+    "lower_eq_0": 6,
+    "lower_gt_0": 0,
+    "degenerate_directions": ["T3_h21 후→전", "T3_h63 후→전", "T4_h21 전반창", "T4_h63 전반창", "T4_h21 후반창", "T4_h63 후반창"],
+    "inconclusive_by_mde_directions": 9,
+    "inconclusive_by_mde_cells": 5,
+    "a2_pass_directions": 5,
+    "a2_pass_cells": 0
+  },
+  "key_findings": [
+    "accept 충족 — 판정서 docs/design/v12_s3_verdict.md 를 작성했고 accept 두 갈래 중 '부정 결과' 로 확정했다. 채택 목록은 빈 목록이며 그 사실을 목록 자리에 명시했다(생략·회피 없음).",
+    "판정을 S3-1 의 결론에 기대지 않고 다시 유도했다 — 판정 스크립트는 롤업 필드를 읽지 않고 16 개 원 레코드의 ci90_lower 에서 방향 A1 → 셀 AND → k_obs 를 재구성하며, 그 재유도가 S3-1 롤업과 일치함을 대사한다(derivation.matches_transfer_rollup=true). 불일치였다면 그 자체가 실패로 처리된다.",
+    "미달을 한 덩어리로 묶지 않고 두 성격으로 갈랐다 — 하한<0 이 10 방향(개선의 증거가 CI90 으로 지지되지 않음), 하한=0 이 6 방향(맵이 평가창에서 아무 일도 하지 않음, p′=p). 후자는 등록부가 '결과 없음' 이 아니라 '미달' 로 미리 규정해 둔 경우이며, A1 이 엄격 부등호이기 때문에 미달이다.",
+    "채택을 막은 지점을 셀마다 특정했다 — T1·T2 네 셀 전부 구속 방향이 후→전이다. 전→후에서 점추정이 양수(+0.000444·+0.001744)여도 반대 방향 하한이 0 아래로 떨어진다. 원인은 상단집합 비대칭이다(전반 τ 는 후반 208 중 14·9 개만, 후반 τ 는 전반 209 중 156·151 개를 덮는다).",
+    "T3 는 미달을 넘어 악화다 — 전→후 두 지평에서 CI90 상한이 0 미만(h21 -0.000010, h63 -0.000123)이다. 설계도 §2 원문 기대('기계적 기준선이 과신 교정')와 반대이고 S2-3 의 K-T3 정정 기대와 일치한다. 원문 기대를 삭제하지 않고 둘을 대조해 남겼다.",
+    "채택까지의 거리를 창 Brier 단위로 계량했다 — 가장 가까운 방향이 T1/T2 h63 전→후 0.49%, 가장 먼 방향이 T1 h63 후→전 46.20%. '아깝게 놓쳤다' 와 '한참 멀다' 를 구분해 기록했고, 어느 쪽도 채택 판정을 바꾸지 않는다.",
+    "family 수치의 정보가 어디에 있는지 바로잡아 적었다 — k_obs=0 이므로 P(k≥0)=1 은 자명하다. 정보는 귀무분포 자체에 있다: p 를 무작위로 섞어도 평균 2.764 개 셀이 채택 요건을 만족하는 기계에서 실측 p 는 0 개를 만족했다.",
+    "[사후 관찰] 미달의 증거력이 셀마다 다름을 공시했다 — 귀무 통과율이 명목 단측 5% 를 넘는 관대한 셀 5 개(T1_h21 0.503·T2_h21 0.576·T3_h21 0.739·T3_h63 0.148·T4_h21 0.788)에서는 무작위 p 가 실측 p 보다 자주 요건을 만족하므로 '검정력 부족' 으로 미달을 설명할 수 없다. 보수적인 3 셀(T1_h63 0.005·T2_h63 0.005·T4_h63 0.000)의 미달은 검정력 부족과 구분되지 않는다. 등록부에 없는 사후 라벨이며 판정을 바꾸지 않음을 판정서·JSON 양쪽에 명기했다.",
+    "T5 실패가 이 판정에서 실제로 한 일이 없음을 숨기지 않고 적었다 — 무효화할 채택이 애초에 0 이다. 그러나 '이 검정 기계로 얻었을 통과는 증거로 쓸 수 없었다' 는 기록은 남는다. T5 의 해석 한계(통과해도 면죄부가 아님)도 등록부 원문 그대로 인용했다.",
+    "부정 결과의 범위를 네 가지로 못박았다 — (1) 'V8 확률이 잘 보정돼 있다' 가 아니다(S2 과신 구조 유지), (2) '어떤 재보정도 불가능하다' 가 아니다(부정된 것은 등록된 네 맵과 이 검정 절차), (3) 'V8 이 기준선을 이긴다/진다' 를 새로 말하지 않는다(A2 는 기록 전용), (4) 2015+ 봉인창에 대한 주장이 아니다.",
+    "S4 로 넘기는 조항 5종을 명문화했다 — C-S4-contract(부정 결과 계약을 '조건부 통과' 로 되살리는 서술 금지)·C-null-redesign(결과를 본 뒤 귀무 교체로 판정 되살리기 금지)·C-gate-arith·C-split-contrast·C-holdout. 앞의 두 개가 이 판정을 사후에 뒤집는 두 경로를 미리 막는다.",
+    "판정서의 수치를 사람이 옮기지 않도록 만들었다 — 표 7종은 전부 tools/v12_s3_tables.py 렌더의 복사본이고 doc_check 가 53 행 바이트 일치를 대사한다. 산문 수치도 25종을 JSON 필드에서 재포맷해 대사하며, 실제로 이 검사가 초안의 sha256 뒷자리 조작 1건을 잡았다(등록부 numbers_from_scripts_only 조항이 겨냥한 실패 양상 그대로).",
+    "등록부 원문이 판정서에서 완화·재서술되지 않았음을 기계로 보장했다 — D5 가 A1 규칙·T5 규칙·T5 해석 한계·분기 원문 2종을 판정서의 바이트 부분문자열로 확인한다(마크다운 인용부호만 걷어내고 글자는 그대로). 판정서가 규칙을 느슨하게 바꿔 적으면 여기서 걸린다.",
+    "금지 verb 검사를 정직하게 고쳤다 — 부분 문자열 매칭은 봉인 '대사' 코드(sealed_hash·SEALED_BASELINE·sealed_sha256)를 스스로 적발해 검사를 무의미하게 만든다. 그래서 식별자는 CLI 하위명령과 **정확히 같은 토큰**만, 호출 인자 문자열은 **낱말 단위 정확 일치**만 적발하도록 두 번에 걸쳐 좁혔고, 면제한 이름 5건을 출력에 공시한다. 이 과정에서 본 태스크 스크립트의 변수명 하나를 바꿨다(sealed → seal_now). 좁힌 뒤에도 'python -m ai_fc dev-backtest …' 같은 실제 실행 문자열은 낱말로 걸린다."
+  ],
+  "verification": {
+    "V1": "봉인 e3ff2fdb…·원장 b9c492be… BOOT 기준선 일치 · 보호 경로 git status 무변경.",
+    "V2": "입력 3종 sha256 = 판정 JSON 의 inputs · 등록부 커밋 ec496463 실재 · 커밋본 blob 36f91f4e… 과 작업본 동일.",
+    "V3": "A1 재유도 — 레코드 16·셀 8×방향 2, 채택 없음, k_obs=0, 레코드 A1_pass=(하한>0) 16/16.",
+    "V4": "A2 재유도 — 방향 5/16·셀 0/8.",
+    "V5": "미달 양상 계수 재현(10/6/0) · 퇴화 6 방향이 하한 0 집합과 정확히 일치 · |Δ|<MDE 9/16.",
+    "V6": "T5 재적용 — pooled 0.2540 이 두 셀 통과율의 산술평균임을 확인, 문턱 0.1 초과 → 실패. 통과 카운트/1000 = 통과율.",
+    "V7": "분기 재현 — T5_fail 지배, 동시 발동 2종, s4_contract 가 등록부 원문과 바이트 동일, decision_code=NEGATIVE_RESULT.",
+    "V8": "family — k 분포 합 1000 · k_mean 2.764 재계산 · P(k≥0)=1.0 재계산 · k_max 6 재계산 · family 주장 미지지.",
+    "V9": "귀무 관대/보수 분류 재계산 (관대 5 · 보수 3) · 사후 라벨 공시 확인.",
+    "V10": "등록부 규칙 문자열 5종이 판정 JSON 에 바이트 그대로 실렸는지 — A1·A2·T5·'채택이 뜻하지 않는 것'·A1 문자 유지.",
+    "V11": "mandatory_fields_per_cell 23종이 16 레코드 전부에 존재 · 판정 JSON 방향 16·셀 8.",
+    "V12": "홀드아웃 무접촉 — 창 종료 2014-12-31 · 판정 JSON 의 2015 언급은 '미계산' 문장뿐.",
+    "V13": "금지 verb — S3-2 스크립트 8개의 실행 토큰·호출 인자 문자열에 CLI 하위명령 0 건(봉인 대사 이름 2건은 면제로 공시).",
+    "V14": "입력 무수정 — transfer_results·등록부가 S3-1·S3-0 result JSON 이 기록한 해시 그대로.",
+    "V15": "accept 대사 — 채택 목록 빈 목록 + '부정 결과' 명시.",
+    "total": "49항목 전부 PASS",
+    "doc_check": "D1 표 53행 바이트 일치 · D1-b 렌더 요약문 4/4 · D2 산문 수치 25종 · D3 판정 문장·반대 판정 미단정 · D4 금지 서술 0 · D5 등록부 인용 5종 원문 대사 · D6 재검 재실행(49항목 실패 0) · D7 sha256 3종 · D8 봉인·원장 · D9 홀드아웃 — 전부 PASS"
+  },
+  "prereg_compliance": {
+    "hypotheses_added_after_results": 0,
+    "knobs_changed_after_results": 0,
+    "cells_dropped": 0,
+    "adoption_rule_used": "등록부 A1 원문 그대로 (양방향 CI90 하한 > 0). 완화·재해석 없음. 하한=0 인 퇴화 방향도 엄격 부등호로 미달 처리.",
+    "branch_selection": "등록부 pre_committed_interpretation 의 문자열을 스크립트가 인용해 분기를 골랐다. T5_fail 우선 규칙은 등록부 원문에 있다.",
+    "post_hoc_additions_declared": [
+      "귀무 통과율의 관대/보수 분류(null_liberality)를 신설했다 — 명목 단측 5% 대비 라벨이며 채택 요건이 아니다. 판정서·JSON 양쪽에 [사후 관찰] 로 표기했고 판정에 영향 0.",
+      "'하한 부족분(%BS)' 을 계량했다 — 채택까지의 거리를 보여 주는 서술 통계이며 등록부 필드가 아니다. 판정에 쓰지 않았다.",
+      "'미달의 두 양상'(하한<0 / 하한=0) 분류를 신설했다 — 등록부의 '미달' 판정을 쪼개 성격을 보인 것이며 판정 자체는 동일하다."
+    ],
+    "K_constraints_honored": {
+      "K-power": "MDE 를 표 B 전 방향에 병기하고 |Δ|<MDE 9/16 을 명시.",
+      "K-concentration": "S3-1 이 계산한 집중도 라벨을 승계하고, 채택 0 이라 라벨 선택이 판정을 바꾸지 않음을 명기.",
+      "K-T3": "설계도 §2 원문 기대와 K-T3 정정 기대를 판정서에서 대조 — 정정 기대가 관측과 일치.",
+      "K-baseline": "A2 를 셀·방향 단위로 보고(5/16 방향·0/8 셀). A1 이 0 이므로 독립 근거가 아님을 명기.",
+      "K-split-contrast": "T4 의 A2 통과가 실질적으로 S2-3 분할창 대비임을 명시하고 증거로 인용하지 않음. S4 이월 조항으로도 유지.",
+      "K-gate-arith": "채택 0 이라 적용 대상이 없음을 명기하고, S4 에서 문턱을 낮추는 기준선 교체 금지를 이월 조항으로 유지."
+    }
+  },
+  "open_questions": [
+    "N1 이 T1 류 상단 수축 맵의 적법한 귀무인지 [미검증] — S3-1 의 기전 진단(귀무 p 의 상단 과신을 T1 이 교정한다)은 사후 관찰이고 정량 검증이 없다. 대안 귀무 후보(y 치환·블록 순열·창 내 순위 보존) 중 무엇이 옳은지는 S4-2 결정 사항. 결과를 본 뒤 귀무를 갈아끼우는 것은 이 태스크에서 하지 않았다.",
+    "귀무 통과율의 지평 간 100배 격차(h21 0.503 vs h63 0.005)의 기전 [미검증].",
+    "N1 이 p_reflect(T3)·상대 지평 확률(T4)을 치환하지 않으므로 그 두 가설의 귀무 통과율은 '외생 정보가 살아 있는' 귀무의 값이다. P(k≥·) 가 그만큼 보수적으로 커진다 [미검증 — 미계량].",
+    "T4 두 셀의 비독립성을 family 8셀 산술이 무시한다 [미검증] (S3-0 이월).",
+    "관대/보수 분류의 문턱을 명목 단측 5% 로 잡은 것은 A1 이 단측 검정이라는 사실에서 왔지만, 다중검정 하에서 셀별 명목 수준이 적절한 기준인지는 [미검증].",
+    "S2-3 이월 유지 — 채택 규칙의 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 최종적으로 사용자 판단(V12-D2).",
+    "S2-3 이월 유지 — R3(로짓 기울기)과 상위분위 gap 이 같은 표본에서 갈리는 이유 [미검증].",
+    "S2-3 이월 유지 — h21 후반창 집중도가 구조인지 표본 인공물인지 미확정.",
+    "S1-3 이월 유지 — V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+    "S1-1 이월 유지 — V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "S4 부정 결과 계약 미작성 — 다음 단계(S4-1) 소관. 본 태스크는 계약의 성격만 등록부 원문으로 확정했다.",
+    "대안 귀무 미계산 — 결과를 본 뒤 귀무 추가는 등록부 위반. S4-2 이월.",
+    "국면(GFC/calm) 층화 CI 미산출 — S2 규약 승계.",
+    "h1·h5 지평 미평가 — S2 에서 판정 제외.",
+    "2015+ 봉인창 미계산 — 홀드아웃 보존.",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·data/timeseries_v12/diagnostics·docs/·outputs/ 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S4-1"
+}

@@ -243,7 +243,9 @@ def main() -> int:
                 hits.append(f"{rel}:{t}")
             elif any(vb in low for vb in FORBIDDEN_VERBS):
                 exempt.append(f"{rel}:{t}")
-    # subprocess 호출 인자에 금지 verb 가 문자열로 들어간 경우도 본다 (실제 실행 경로).
+    # subprocess 등 호출 인자에 금지 verb 가 문자열로 들어간 경우도 본다 (실제 실행 경로).
+    # 여기서도 **낱말 단위 정확 일치**만 적발한다 — 'sealed_sha256'(봉인 대사 필드명)처럼
+    # verb 를 부분 문자열로 품은 이름을 적발하면 검사가 자기 자신을 잡아 무의미해진다.
     for rel in S3_2_SCRIPTS:
         path = ROOT / rel
         if not path.exists():
@@ -253,8 +255,11 @@ def main() -> int:
             if isinstance(node, ast.Call):
                 for lit in [a for a in ast.walk(node) if isinstance(a, ast.Constant)
                             and isinstance(a.value, str)]:
-                    if any(vb in lit.value.lower() for vb in FORBIDDEN_VERBS):
+                    words = [w.strip("\"'`,.;:()[]{}") for w in lit.value.lower().split()]
+                    if any(w in FORBIDDEN_VERBS for w in words):
                         hits.append(f"{rel}:call-arg:{lit.value[:30]}")
+                    elif any(vb in lit.value.lower() for vb in FORBIDDEN_VERBS):
+                        exempt.append(f"{rel}:call-arg:{lit.value[:24]}")
     add("V13-a", not hits, f"S3-2 스크립트의 금지 verb 실행 {len(hits)} 건{'' if not hits else ' → ' + str(hits[:3])} "
                            f"(봉인 대사 이름 {len(exempt)} 건은 면제: {sorted(set(exempt))[:3]})")
 
