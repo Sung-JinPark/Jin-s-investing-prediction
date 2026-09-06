@@ -1,0 +1,278 @@
+{
+  "schema": "v12_s3_prereg_v1",
+  "task_id": "S3-0",
+  "title": "V12 이벤트 트랙 S3 사전등록 가설·검정식 (결과 보기 전 커밋)",
+  "registered_epoch": 1788659863,
+  "registered_kst": "2026-09-06 (일) — 태스크 envelope 의 now_epoch",
+  "authority": {
+    "design_doc": "docs/design/V12_EVENT_TRACK_SUNDAY_OPUS_LOOP_DESIGN_260904.md",
+    "design_section": "§2 (이 절이 등록부 — 결과 보기 전 커밋)",
+    "governing_rule": "설계도 §2 원문이 1차 기준의 정본. 이 파일은 §2 를 실행 가능한 명세로 좁힌 것이며, 원문 기준을 완화하지 않는다. 완화는 금지, 강화(추가 요건)는 이 파일에 한해 허용되고 그 사실을 각 항목에 명시했다.",
+    "loop_constitution": "OPUS MASTER PROMPT — 백테스트·holdout·sealed·refresh 0회, 읽기 전용 재분석만."
+  },
+
+  "results_seen": false,
+  "results_seen_statement": [
+    "본 파일 작성 시점에 어떤 T1~T5 맵(p′)도 계산된 적이 없다. p′ 를 만드는 코드는 저장소에 존재하지 않는다 (tools/v12_prereg_check.py C7 이 기계로 확인).",
+    "작성자가 본 것은 S1·S2 산출물뿐이다 — first_touch_diagnostic.json(S2-1), reflection_baseline.json(S2-2), s2_entry_verdict.json(S2-3). 세 파일 모두 원(raw) p 와 p_reflect 의 성질이며 어떤 재보정 맵의 성능도 포함하지 않는다.",
+    "S2 를 본 것이 사전등록을 오염시키는 부분은 딱 하나 — T3 의 사전 기대다. §2 원문 기대('기계적 기준선이 과신 교정')를 삭제하지 않고 보존한 채, S2-2 를 보고 쓴 정정 기대를 병기했다(K-T3). 가설 자체·검정식·채택 규칙은 §2 원문 그대로다."
+  ],
+
+  "target": {
+    "y": "first_touch_actual — 지평 내 지수 경로 최소값 ≤ 0.90 × S0 (원점 대비 −10% first-passage). run 의 scores[].first_touch_actual 을 1.0/0.0 으로.",
+    "p": "V8 first_touch_probability — run 의 scores[].first_touch_probability. 어떤 재보정도 거치지 않은 원값.",
+    "run_path": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727",
+    "run_sha256_note": "V8 봉인 대상 — 본 태스크에서 무수정. tools/v12_seal_check.py(전체 봉인 e3ff2fdb…)와 tools/v12_prereg_check.py C5-c 가 이중 대사. S3-1 은 이 해시를 재확인한 뒤에만 검정을 시작한다.",
+    "experiment_label": "E0_neutral_v2_identity",
+    "loader": "tools/v12_first_touch_diag.py::load_first_touch()",
+    "n_origins": 417,
+    "window": ["2007-01-05", "2014-12-24"],
+    "horizons": [21, 63],
+    "horizons_excluded": {
+      "values": [1, 5],
+      "reason": "S2-1·S2-2 규약 승계 — h1/h5 는 터치 기저율이 판정 불가 수준. 결과를 본 뒤의 배제가 아니라 S2 에서 이미 고정된 범위."
+    },
+    "derived_layer_constraint": "모든 맵은 파생층이다. V8 분포·run 파일·계약·봉인 산출물을 어떤 형태로도 수정하지 않는다. p′ 는 새 배열로만 존재한다."
+  },
+
+  "holdout": {
+    "policy": "2015+ 봉인창은 S3 의 어떤 셀에서도 계산하지 않는다.",
+    "inherited_from": "S2-1·S2-2·S2-3 동일 정책",
+    "violation_is_blocking": true
+  },
+
+  "split": {
+    "boundary": "2010-12-31",
+    "early": {"definition": "date ≤ 2010-12-31", "label": "전반(2007–10)", "n_expected": 209},
+    "late": {"definition": "date > 2010-12-31", "label": "후반(2011–14)", "n_expected": 208},
+    "source": "설계도 §2 / tools/v12_first_touch_diag.py::S3_SPLIT",
+    "frozen": "분할 경계 변경 금지. ±1y 경계 민감도는 S1-2 에서 이미 수행됐고 S3 채택 근거로 인용 금지."
+  },
+
+  "estimation_protocol": {
+    "directions": [
+      {"id": "early_to_late", "fit_on": "early", "evaluate_on": "late", "label": "전→후"},
+      {"id": "late_to_early", "fit_on": "late", "evaluate_on": "early", "label": "후→전"}
+    ],
+    "fit_objective": "학습창 Brier 최소화 (평가창 정보 일절 미사용).",
+    "grid": {"support": [0.0, 1.0], "step": 0.01, "points": 101, "tie_break": "동점 시 가장 작은 값 (변화 없음 쪽 = 보수적)"},
+    "frozen_nuisance": "τ(분위 문턱)·b(터치율)·λ·w 는 전부 학습창 값이며 평가창에서 재계산하지 않는다. 재계산은 전이 검정을 in-sample 로 되돌리는 행위이므로 금지.",
+    "quantile_convention": "numpy.percentile 기본(linear interpolation). 다른 분위 규약으로의 사후 교체 금지.",
+    "clipping": "T1·T2·T3 의 p′ 는 구성상 [min(p,anchor), max(p,anchor)] 안에 있어 [0,1] 을 벗어날 수 없다. 별도 클리핑을 두지 않는다 — 클리핑은 자유도이기 때문.",
+    "test_statistic": "Δ = mean_i[ (p_i − y_i)² − (p′_i − y_i)² ] (평가창). 양수 = 개선. 쌍대(paired) 손실차 d_i = (p_i−y_i)² − (p′_i−y_i)² 의 표본평균과 동일.",
+    "ordering": "d_i 는 원점 날짜 오름차순 벡터로 정렬한 뒤 부트스트랩에 넣는다 (블록이 시간 의존을 보존해야 하므로)."
+  },
+
+  "uncertainty": {
+    "bootstrap": {
+      "type": "stationary block bootstrap (감싸기)",
+      "block_length": 13,
+      "replicates": 2000,
+      "seed": 20260902,
+      "interval": "percentile [5, 95] = CI90",
+      "implementation": "tools/v12_first_touch_diag.py::block_index_draws / ::ci90 그대로 재사용",
+      "draw_sharing": "같은 n 이면 같은 draws 를 모든 가설·지평이 공유한다. 가설 간 차이가 RNG 잡음이 되지 않게 하기 위한 사전 고정이며, 결과를 본 뒤 seed 를 바꾸는 것은 금지.",
+      "block_rationale": "원점 격자 간격 × 13 이 h63 지평을 덮도록 S1 에서 고정된 값. ℓ∈{5,26} 민감도는 S1-2 소관이며 S3 채택 근거로 인용 금지."
+    },
+    "mde_obligation": {
+      "id": "K-power-h21 / K-power-h63 (S2-3 이월)",
+      "rule": "모든 셀에 MDE = 1.645 × bootstrap_se 를 병기한다. |Δ| < MDE 인 셀은 부호와 무관하게 '결정적 증거 없음' 으로 라벨하고, 개선 주장에 인용할 수 없다.",
+      "mandatory_field": "mde_1645se, mde_share_of_brier"
+    },
+    "concentration_obligation": {
+      "id": "K-concentration (S2-3 이월 — 후반창 결과는 집중도 동반 필수)",
+      "rule": "모든 셀에 (a) 상위 5% |d_i| 가 |d| 총합에서 차지하는 비중, (b) 그 상위 5% 를 제거한 뒤의 Δ 부호를 보고한다. 부호가 뒤집히는 셀은 '집중도 취약' 라벨을 달고, 라벨이 달린 셀은 채택되더라도 그 사실을 판정문에 병기해야 한다.",
+      "rationale": "V10 챔피언을 기각한 것과 같은 형태의 취약성이 이 표적에도 있음을 S2-3 이 확인했다(전반창 h21 상위5% 제거 시 부호 반전).",
+      "does_not_override_adoption": "집중도 취약은 채택을 자동 무효화하지 않는다 — 라벨 의무일 뿐. 결과를 본 뒤 이 항목을 채택 요건으로 승격시키는 것도, 강등시키는 것도 금지."
+    }
+  },
+
+  "adoption": {
+    "primary": {
+      "id": "A1",
+      "source": "설계도 §2 원문 — '채택 = 양방향 모두 CI90 하한 > 0'",
+      "rule": "가설 H, 지평 h 의 셀이 채택되려면 early_to_late 와 late_to_early 두 방향 **모두** Δ 의 CI90 하한 > 0.",
+      "frozen": "§2 원문 불변. 완화·재해석 금지 (K-baseline)."
+    },
+    "secondary": {
+      "id": "A2",
+      "source": "S2-3 verdict.prereg_constraints_for_S3_0::K-baseline 이 추가 등록을 지시",
+      "rule": "p′ vs p_reflect 쌍대 Δ_ref = mean[(p_reflect−y)² − (p′−y)²] 의 CI90 하한이 두 방향 모두 > 0.",
+      "status": "강화 방향의 추가 기준이므로 사후 완화가 아니다. A1 통과·A2 미달은 그대로 공표하며, A2 미달이 A1 채택을 취소하지 않는다.",
+      "rationale": "S2-2 가 확인한 사실 — V8 first_touch 는 자유 파라미터 0 개의 반사원리 공식을 이기지 못한다. 기후 대비 개선만으로는 '쓸모'를 주장할 수 없다."
+    },
+    "cell_definition": "셀 = (가설, 지평). 채택 대상 family = {T1,T2,T3,T4} × {h21,h63} = 8 셀.",
+    "no_pooling": "지평 간·가설 간 결과를 합산해 채택하지 않는다. 셀 단위로만 판정."
+  },
+
+  "multiplicity": {
+    "family_size": 8,
+    "null": {
+      "id": "N1",
+      "definition": "각 창 안에서 p 를 무작위 치환(y 고정, 창별 독립). 설계도 §2 의 '순열 섞은 p' 문자 그대로.",
+      "preserves": "p 의 주변분포(따라서 τ)와 y 의 주변분포(따라서 b) 둘 다 보존 — 맵의 구조적 입력은 그대로 두고 p↔y 짝짓기만 파괴한다.",
+      "destroys": "시계열 의존. 블록 부트스트랩이 보존하려는 구조를 귀무는 파괴하므로, N1 은 '짝짓기 없음' 귀무이지 '시계열 구조 없음' 귀무가 아니다. 이 비대칭을 보고서에 caveat 로 명기할 것.",
+      "replicates": 1000,
+      "seed": "20260906 + perm_index (0-based)",
+      "procedure": "각 순열마다 적합→전이→부트스트랩 CI 전 파이프라인을 재실행하고 A1 통과 셀 수 k 를 센다."
+    },
+    "report": "k 의 경험분포와 P(k ≥ k_obs) 를 공표한다.",
+    "family_claim_threshold": "family 수준의 증거 주장은 P(k ≥ k_obs) ≤ 0.05 일 때만. 초과 시 개별 셀이 채택돼도 'family 수준에서는 다중검정으로 설명 가능' 을 판정문에 병기.",
+    "computational_fallback": {
+      "registered_in_advance": true,
+      "rule": "순열 내부 부트스트랩 복제수는 2000 이 기본이다. S3-1 실측 소요가 단계 예산을 넘길 것으로 투영되면 순열 내부에 한해 500 으로 낮출 수 있고, 낮춘 사실·투영 근거·실측 시간을 결과 JSON 에 반드시 공시한다.",
+      "never_changes": "판정 기준(CI90 하한 > 0)·순열 횟수 1000·family 정의는 어떤 경우에도 바꾸지 않는다. 낮출 수 있는 것은 내부 복제수 하나뿐."
+    }
+  },
+
+  "hypotheses": [
+    {
+      "id": "T1",
+      "name": "상단 수축",
+      "adoption_eligible": true,
+      "design_literal": "p′=p−λ(p−b)·1{p>τ}, τ=학습창 80분위, b=학습창 터치율",
+      "formula": "p′_i = p_i − λ·(p_i − b)·1{p_i > τ}",
+      "free_parameters": {"lambda": {"support": [0.0, 1.0], "count": 1}},
+      "fixed_from_training_window": {
+        "tau": "학습창 p 의 80분위 (numpy.percentile(p_train, 80))",
+        "b": "학습창 터치율 mean(y_train)"
+      },
+      "indicator": "strict 부등호 p_i > τ. 평가창에서도 학습창 τ 를 쓴다.",
+      "degenerate_case": "평가창에 p > τ 인 원점이 하나도 없으면 p′ = p, Δ = 0 → 미달로 기록하고 사유(빈 상단집합)를 명기.",
+      "prior_expectation_design": "h21 유망·h63 역방향 위험 (§0 실측)",
+      "prior_expectation_note": "설계도 §0 실측치 — h21 +0.81%/+9.59%(양방향 양수, 단 전방 터치 7건), h63 +0.96%/−4.63%(역방향 실패).",
+      "prior_expectation_amended": null
+    },
+    {
+      "id": "T2",
+      "name": "양방향 최소 λ",
+      "adoption_eligible": true,
+      "design_literal": "λ=min(λ_전→후, λ_후→전) 고정 후 재검정",
+      "formula": "T1 과 동일한 맵. λ 만 λ* = min(λ̂_early, λ̂_late) 로 교체.",
+      "free_parameters": {"lambda": {"support": [0.0, 1.0], "count": 1, "note": "보수적 — 두 학습창 적합값의 최소"}},
+      "fixed_from_training_window": {
+        "tau": "각 방향의 학습창 값 (T1 과 동일 — 공유되는 것은 λ 뿐)",
+        "b": "각 방향의 학습창 값"
+      },
+      "lambda_star_definition": "λ̂_early = early 창 Brier 최소화 적합값, λ̂_late = late 창 적합값. λ* = min(둘).",
+      "degenerate_case": "λ* = 0 이면 p′ = p 이고 Δ = 0, CI 가 0 에서 퇴화한다 → A1 자동 미달로 기록. 이 경우를 '결과 없음' 이 아니라 '미달' 로 적는다.",
+      "prior_expectation_design": "h63 역방향 실패 완화",
+      "prior_expectation_amended": null
+    },
+    {
+      "id": "T3",
+      "name": "반사원리 앵커",
+      "adoption_eligible": true,
+      "design_literal": "p′=(1−w)p + w·p_reflect, p_reflect=2Φ(−ln(S/K)/(σ√T)) (σ=EWMA λ=.97)",
+      "formula": "p′_i = (1−w)·p_i + w·p_reflect_i",
+      "free_parameters": {"w": {"support": [0.0, 1.0], "count": 1}},
+      "p_reflect_spec": {
+        "definition": "2·Φ(ln(0.90) / (σ_i·√h))",
+        "sigma": "원점별 EWMA 일간 변동성, decay λ=0.97, V8 의 _ewma_variance_series 와 동일 재귀 (v[t] 는 r[t] 를 아직 보지 않음)",
+        "implementation": "tools/v12_reflect_baseline.py::sigma_at_origins(series, dates, 0.97) → ::p_reflect(sigma, horizon)",
+        "variant": "S2-2 의 헤드라인 변형 하나 — 연속 모니터링·μ=0·원점 수익률 미포함. 이것이 T3 의 정본이다.",
+        "forbidden_substitution": "λ=0.94/0.99, BGK 이산 보정, drift(μ≠0), V8 선택 λ per-origin 등 S2-2 의 다른 변형으로 결과를 본 뒤 갈아타는 것 금지. 민감도 보고용 인용만 허용."
+      },
+      "prior_expectation_design": "기계적 기준선이 과신 교정",
+      "prior_expectation_note": "설계도 §2 원문 기대. 아래 amended 가 있어도 이 문장을 삭제하지 않는다.",
+      "prior_expectation_amended": {
+        "id": "K-T3 (S2-3 지시)",
+        "text": "비GFC·calm 국면에서 w>0 은 악화 방향일 것으로 기대를 정정한다. S2-2 가 확인한 국면 의존성(반사 기준선이 V8 을 지배하는 구간이 국면에 따라 갈림) 때문이다.",
+        "honesty_note": "이 정정은 S2-2 결과를 본 뒤 쓰였다. 그래서 원문 기대를 지우지 않고 병기하며, 어느 쪽 기대가 맞았는지를 S3-2 에서 둘 다 대조해 보고한다."
+      }
+    },
+    {
+      "id": "T4",
+      "name": "지평 간 정합",
+      "adoption_eligible": true,
+      "design_literal": "p_h21′ ≤ p_h63′ 단조 제약 위반 시 교정(터치는 지평 단조)",
+      "formula": "동일 원점 d 에서 p_h21(d) > p_h63(d) 이면 두 값을 그 평균으로 대체(2점 PAV). 아니면 그대로.",
+      "correction_choice_rationale": "PAV(pool-adjacent-violators)는 단조 원뿔로의 유일한 L2 사영이므로 자유 파라미터가 0 이다. 한쪽만 내리는/올리는 변형(clip-down·clip-up)은 선택지가 되는 순간 자유도가 되므로 **등록하지 않으며, 결과를 본 뒤 추가할 수 없다**.",
+      "free_parameters": {},
+      "origin_alignment": "h21·h63 의 date 집합 교집합에서만 정의. 교집합 크기와 제외된 원점 수를 보고 의무.",
+      "bidirectional_degeneracy": {
+        "fact": "자유 파라미터가 0 이므로 학습창이 없고 '전이' 개념이 퇴화한다.",
+        "registered_analogue": "A1 의 대응물로 'early 창·late 창 각각에서 CI90 하한 > 0' 을 요구한다. 두 창 모두 통과해야 채택 — 방향 두 개를 창 두 개로 치환한 것이며 요건 수를 줄이지 않는다.",
+        "full_sample": "풀표본 Δ 는 보고만 하고 채택 근거로 쓰지 않는다."
+      },
+      "cell_dependence": "h21 셀과 h63 셀은 같은 교정에서 파생되므로 독립이 아니다. family 다중검정 해석 시 이 상관을 명기할 것.",
+      "prior_expectation_design": "구조 제약 — 무비용",
+      "prior_expectation_amended": null
+    },
+    {
+      "id": "T5",
+      "name": "음성 대조 (순열 섞은 p 로 T1 재검정)",
+      "adoption_eligible": false,
+      "design_literal": "순열 섞은 p로 T1 재검정",
+      "prior_expectation_design": "통과 시 검정 자체 결함",
+      "procedure": "N1 순열 1000회 각각에 T1 전 절차를 적용하고, T1 의 두 셀(h21·h63)이 A1 을 통과하는 비율을 센다.",
+      "failure_threshold": {
+        "value": 0.10,
+        "rule": "통과율 > 10.0% 이면 검정 기계 결함으로 판정하고 **S3 채택 전부를 무효화**한다. S4 는 부정 결과 계약으로 작성한다.",
+        "calibration_note": "명목 단측 5% 기준에서 R=1000 이면 몬테카를로 오차의 99.9% 상한이 약 7.3% 다. 10.0% 는 그보다 여유를 둔 값이며, 결과를 본 뒤 조정하지 않는다."
+      },
+      "interpretation_limit": "통과율 ≤ 10% 는 '검정에 결함이 없다' 가 아니라 '이 음성 대조가 결함을 잡아내지 못했다' 는 뜻이다. 보고서에 이 문장 그대로 유지할 것."
+    }
+  ],
+
+  "prohibitions": {
+    "no_post_hoc_hypotheses": "T6 이후는 없다. 결과를 본 뒤 가설을 추가·삭제·재정의하지 않는다. 실패한 가설도 원장에 남긴다.",
+    "no_knob_swapping": [
+      "그리드 지지집합·해상도(0.01) 변경 금지",
+      "τ 분위(80) 변경 금지",
+      "분할 경계·블록길이 ℓ=13·복제수 B=2000·seed 20260902 변경 금지",
+      "p_reflect 변형 교체 금지 (T3.p_reflect_spec.forbidden_substitution)",
+      "T4 교정 방식 교체 금지 (PAV 고정)"
+    ],
+    "K-split-contrast": {
+      "source": "S2-3 verdict",
+      "rule": "S2-3 이 낸 분할창 대비(후반창 두 지평 CI90 하한>0)는 사전등록 검정도 다중검정 보정도 아니다. 'V8 이 기준선을 이긴다' 의 근거로 인용 금지, 가설 승격 금지. 풀표본 판정(두 지평 모두 0 포함)이 정본."
+    },
+    "K-gate-arith": {
+      "source": "S2-3 verdict",
+      "rule": "S3 통과가 S4 게이트 통과를 뜻하지 않음을 지금 못박는다. S2-3 이 재산출한 문턱 — 필요 BSS h21 +14.28%(BGK +21.12%)·h63 +10.18%(BGK +15.08%), 완전보정 상한 h21 +19.84%·h63 +16.39%. S4-2 에서 문턱을 낮추는 기준선 선택(원식·λ=0.99)은 사후 완화이며 근거 명문화 없이 금지."
+    },
+    "no_seal_touch": "forecasts/·calibration/·data/timeseries_v8·data/timeseries_v2·questions/·src/ 무수정. 봉인 해시 e3ff2fdb… 와 원장 해시 b9c492be… 를 태스크 전후로 대사.",
+    "no_holdout": "2015+ 창 계산 금지."
+  },
+
+  "reporting_contract": {
+    "output_path": "data/timeseries_v12/diagnostics/transfer_results.json (S3-1)",
+    "verdict_path": "docs/design/v12_s3_verdict.md (S3-2)",
+    "mandatory_fields_per_cell": [
+      "hypothesis_id", "horizon", "direction", "n_eval", "touches_eval",
+      "fitted_parameter", "tau", "b",
+      "brier_p", "brier_p_prime", "delta", "ci90_lower", "ci90_upper", "bootstrap_se",
+      "mde_1645se", "mde_share_of_brier",
+      "top5_abs_share", "sign_after_top5pct_drop", "concentration_fragile",
+      "delta_vs_reflection", "ci90_lower_vs_reflection",
+      "A1_pass", "A2_pass"
+    ],
+    "no_cell_dropping": "8 셀 × 2 방향 = 16 결과를 전부 기록한다. 미달·퇴화·빈 상단집합도 사유와 함께 기록하며 생략하지 않는다.",
+    "numbers_from_scripts_only": "판정문의 모든 수치는 스크립트 산출 필드를 그대로 렌더한 것이어야 한다. 수기 전사 금지 — S2-3 에서 수기 오기 2건이 실제로 발생했다."
+  },
+
+  "pre_committed_interpretation": {
+    "adopted_ge_1": "채택 셀 ≥ 1 → S4-1 은 V12 계약 draft 를 작성하고 채택 셀을 후보로 승계한다. 단 S4 게이트 통과는 별도 판정이며 K-gate-arith 가 적용된다.",
+    "adopted_0": "채택 0 → 설계도 §1 각주대로 S4 를 'V12 부정 결과 계약 — 이벤트 확률 재보정도 전이 불가' 로 대체 작성한다. 이후 유일한 경로가 '다른 데이터'(사용자 결정 V12-D4)임을 명시.",
+    "T5_fail": "T5 통과율 > 10% → 채택 전부 무효 + 부정 결과 계약. 이 경로가 adopted_0 보다 우선한다.",
+    "what_adoption_does_not_mean": "채택은 '표적의 과신 구조를 파생층 맵이 교정하고 그 교정이 창을 넘어 전이된다' 는 뜻이다. 'V8 이 기준선을 이긴다' 는 뜻이 아니며(S2-3 R1 미달·S2-2 결론 유지), 실전 자금 결정 근거가 아니다(CLAUDE.md P3 게이트)."
+  },
+
+  "power_notice_inherited": {
+    "source": "S2-3 headline.split_power — 결과가 아니라 표본의 성질이므로 사전등록 시점에 알고 있어도 오염이 아니다.",
+    "h21_late": {"n": 208, "touches": 7, "top5_abs_share": 0.345, "note": "저기저율이라 se 도 작다 — 상대 MDE 는 오히려 전반창보다 작다(3.7% vs 9.7% of BS). 진짜 취약점은 검정력이 아니라 집중도."},
+    "h63_late": {"n": 208, "touches": 24},
+    "h21_early": {"n": 209, "touches": 22, "note": "S2-3 에서 상위 5% 제거 시 V8−반사 부호가 뒤집힌 창."},
+    "h63_early": {"n": 209, "touches": 59},
+    "implication": "h21 두 방향은 집중도 라벨이 붙을 가능성이 높다. 붙어도 채택을 취소하지 않되 판정문 병기가 의무다(K-concentration)."
+  },
+
+  "inputs_anchored": {
+    "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+    "data/timeseries_v12/diagnostics/reflection_baseline.json": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+    "data/timeseries_v12/diagnostics/s2_entry_verdict.json": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+    "note": "세 해시는 S2-1·S2-2·S2-3 result JSON 의 artifacts 항목과 일치해야 한다. tools/v12_prereg_check.py C6 이 대사."
+  }
+}
