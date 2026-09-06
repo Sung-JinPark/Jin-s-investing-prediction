@@ -1,0 +1,1154 @@
+{
+  "schema": "v12_v10_sensitivity_v1",
+  "task": "S1-2",
+  "read_only": true,
+  "champion": "V10_W3_gamma_m010",
+  "baseline": "V10_E0_identity",
+  "origin_count": 417,
+  "origin_range": [
+    "2007-01-05",
+    "2014-12-24"
+  ],
+  "paired_mean_delta": 0.00027711301229635605,
+  "e0_mean_long_crps": 0.04360765757107543,
+  "relative_improvement": 0.006354686945628619,
+  "ledger_recorded_dual_vs_e0": {
+    "bootstrap_se": 0.00020804434573036063,
+    "ci90": [
+      1.6385889763018458e-05,
+      0.0006794259629344273
+    ],
+    "mde50": 0.00034223294872644326,
+    "mean": 0.00027711301229635605,
+    "origin_count": 417
+  },
+  "axes": {
+    "block_lengths": [
+      5,
+      13,
+      26
+    ],
+    "boundary_offsets_years": [
+      -1,
+      0,
+      1
+    ],
+    "calm_pcts": [
+      60.0,
+      80.0,
+      90.0
+    ],
+    "canonical": {
+      "block_length": 13,
+      "window": [
+        "2008-01-01",
+        "2009-06-30"
+      ],
+      "calm_pct": 80.0
+    }
+  },
+  "verdict_rule": "유지 = 상위5% 원점 제거 시 부호반전 AND 위기 제외 평균 Δ < mde50 (S1-1 승계)",
+  "axis_a_block_length": {
+    "5": {
+      "block_length": 5,
+      "is_canonical": false,
+      "mean_delta": 0.00027711301229635605,
+      "relative_improvement": 0.006354686945628619,
+      "ci90": [
+        4.0950344695690156e-05,
+        0.0006177651100665065
+      ],
+      "ci90_lower_positive": true,
+      "bootstrap_se": 0.0001842734527583376,
+      "mde50": 0.0003031298297874653,
+      "trimmed": {
+        "origins_dropped": 21,
+        "top5pct_delta_sum": 0.12012456239316294,
+        "mean_after_removal": -1.153645521611733e-05,
+        "sign_after_removal": "negative",
+        "sign_flips": true,
+        "ci90": [
+          -8.242966848051674e-05,
+          4.34950414892436e-05
+        ],
+        "ci90_upper_negative": false
+      }
+    },
+    "13": {
+      "block_length": 13,
+      "is_canonical": true,
+      "mean_delta": 0.00027711301229635605,
+      "relative_improvement": 0.006354686945628619,
+      "ci90": [
+        1.6385889763018458e-05,
+        0.0006794259629344273
+      ],
+      "ci90_lower_positive": true,
+      "bootstrap_se": 0.00020804434573036063,
+      "mde50": 0.00034223294872644326,
+      "trimmed": {
+        "origins_dropped": 21,
+        "top5pct_delta_sum": 0.12012456239316294,
+        "mean_after_removal": -1.153645521611733e-05,
+        "sign_after_removal": "negative",
+        "sign_flips": true,
+        "ci90": [
+          -9.505725200077415e-05,
+          4.956700340935982e-05
+        ],
+        "ci90_upper_negative": false
+      }
+    },
+    "26": {
+      "block_length": 26,
+      "is_canonical": false,
+      "mean_delta": 0.00027711301229635605,
+      "relative_improvement": 0.006354686945628619,
+      "ci90": [
+        2.4511828427659008e-05,
+        0.00069055290523945
+      ],
+      "ci90_lower_positive": true,
+      "bootstrap_se": 0.00021008794529742491,
+      "mde50": 0.00034559467001426397,
+      "trimmed": {
+        "origins_dropped": 21,
+        "top5pct_delta_sum": 0.12012456239316294,
+        "mean_after_removal": -1.153645521611733e-05,
+        "sign_after_removal": "negative",
+        "sign_flips": true,
+        "ci90": [
+          -9.706898342294876e-05,
+          5.138973306544383e-05
+        ],
+        "ci90_upper_negative": false
+      }
+    }
+  },
+  "axis_b_date_window": [
+    {
+      "definition": "date_window",
+      "cell_id": "win[-1y,-1y]",
+      "start": "2007-01-01",
+      "end": "2008-06-30",
+      "start_offset_years": -1,
+      "end_offset_years": -1,
+      "is_canonical": false,
+      "crisis_origins": 78,
+      "calm_origins": 339,
+      "crisis_origin_share": 0.18705035971223022,
+      "crisis_delta_sum": 0.00017482544521253522,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_mean_delta": 0.0003403578191220293,
+      "calm_relative_improvement": 0.007805001187401214,
+      "crisis_mean_delta": 2.2413518616991694e-06,
+      "calm_ci90_by_block": {
+        "5": [
+          3.877930509736093e-05,
+          0.0007620766896679021
+        ],
+        "13": [
+          2.6479737156833017e-05,
+          0.0008217369126339229
+        ],
+        "26": [
+          2.214663107127036e-05,
+          0.0008483386749461504
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[-1y,+0y]",
+      "start": "2007-01-01",
+      "end": "2009-06-30",
+      "start_offset_years": -1,
+      "end_offset_years": 0,
+      "is_canonical": false,
+      "crisis_origins": 130,
+      "calm_origins": 287,
+      "crisis_origin_share": 0.3117505995203837,
+      "crisis_delta_sum": 0.0968442970334778,
+      "crisis_delta_share": 0.8380715093075745,
+      "calm_mean_delta": 6.519801078084553e-05,
+      "calm_relative_improvement": 0.0014951046309832241,
+      "crisis_mean_delta": 0.0007449561310267523,
+      "calm_ci90_by_block": {
+        "5": [
+          2.7863263061929855e-05,
+          0.0001026009363646634
+        ],
+        "13": [
+          2.4006032559337754e-05,
+          0.00010684482681210386
+        ],
+        "26": [
+          2.3100289796656526e-05,
+          0.00010720657379473405
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[-1y,+1y]",
+      "start": "2007-01-01",
+      "end": "2010-06-30",
+      "start_offset_years": -1,
+      "end_offset_years": 1,
+      "is_canonical": false,
+      "crisis_origins": 182,
+      "calm_origins": 235,
+      "crisis_origin_share": 0.4364508393285372,
+      "crisis_delta_sum": 0.09684585186296532,
+      "crisis_delta_share": 0.838084964496318,
+      "calm_mean_delta": 7.961818836006443e-05,
+      "calm_relative_improvement": 0.0018257845707556294,
+      "crisis_mean_delta": 0.0005321200651811281,
+      "calm_ci90_by_block": {
+        "5": [
+          3.813044925016604e-05,
+          0.00012217388428336365
+        ],
+        "13": [
+          3.568307483335703e-05,
+          0.00012475937221645677
+        ],
+        "26": [
+          3.101134369134958e-05,
+          0.00012759274873303734
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[+0y,-1y]",
+      "start": "2008-01-01",
+      "end": "2008-06-30",
+      "start_offset_years": 0,
+      "end_offset_years": -1,
+      "is_canonical": false,
+      "crisis_origins": 26,
+      "calm_origins": 391,
+      "crisis_origin_share": 0.06235011990407674,
+      "crisis_delta_sum": 0.00017482544521253522,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_mean_delta": 0.0002950928406198668,
+      "calm_relative_improvement": 0.006766995914396449,
+      "crisis_mean_delta": 6.724055585097509e-06,
+      "calm_ci90_by_block": {
+        "5": [
+          3.356946281585261e-05,
+          0.0006756468799805857
+        ],
+        "13": [
+          2.1610547189392086e-05,
+          0.0007118328051964667
+        ],
+        "26": [
+          2.4982499115659673e-05,
+          0.0007217384106906315
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[+0y,+0y]",
+      "start": "2008-01-01",
+      "end": "2009-06-30",
+      "start_offset_years": 0,
+      "end_offset_years": 0,
+      "is_canonical": true,
+      "crisis_origins": 78,
+      "calm_origins": 339,
+      "crisis_origin_share": 0.18705035971223022,
+      "crisis_delta_sum": 0.09684429703347779,
+      "crisis_delta_share": 0.8380715093075743,
+      "calm_mean_delta": 5.5197135970804325e-05,
+      "calm_relative_improvement": 0.001265767047469573,
+      "crisis_mean_delta": 0.0012415935517112538,
+      "calm_ci90_by_block": {
+        "5": [
+          2.2816763678807098e-05,
+          8.977946021504681e-05
+        ],
+        "13": [
+          1.9567828690686538e-05,
+          9.083850084657493e-05
+        ],
+        "26": [
+          1.8961149090548728e-05,
+          9.289633511342197e-05
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[+0y,+1y]",
+      "start": "2008-01-01",
+      "end": "2010-06-30",
+      "start_offset_years": 0,
+      "end_offset_years": 1,
+      "is_canonical": false,
+      "crisis_origins": 130,
+      "calm_origins": 287,
+      "crisis_origin_share": 0.3117505995203837,
+      "crisis_delta_sum": 0.09684585186296531,
+      "crisis_delta_share": 0.8380849644963179,
+      "calm_mean_delta": 6.519259325649874e-05,
+      "calm_relative_improvement": 0.0014949803976570485,
+      "crisis_mean_delta": 0.0007449680912535793,
+      "calm_ci90_by_block": {
+        "5": [
+          3.419294407709657e-05,
+          9.901285986663827e-05
+        ],
+        "13": [
+          2.741311728646324e-05,
+          0.00010288524670717032
+        ],
+        "26": [
+          2.6676238399072903e-05,
+          0.0001066643903961215
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "start": "2009-01-01",
+      "end": "2008-06-30",
+      "start_offset_years": 1,
+      "end_offset_years": -1,
+      "skipped": "start >= end"
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[+1y,+0y]",
+      "start": "2009-01-01",
+      "end": "2009-06-30",
+      "start_offset_years": 1,
+      "end_offset_years": 0,
+      "is_canonical": false,
+      "crisis_origins": 26,
+      "calm_origins": 391,
+      "crisis_origin_share": 0.06235011990407674,
+      "crisis_delta_sum": 0.003117228320612125,
+      "crisis_delta_share": 0.026975881115731844,
+      "calm_mean_delta": 0.00028756751357280903,
+      "calm_relative_improvement": 0.006594426978887992,
+      "crisis_mean_delta": 0.0001198933969466202,
+      "calm_ci90_by_block": {
+        "5": [
+          5.226226647122774e-05,
+          0.0006320437730060395
+        ],
+        "13": [
+          2.9759582747956462e-05,
+          0.000703348693365794
+        ],
+        "26": [
+          2.9207479062937496e-05,
+          0.000702699087041373
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    },
+    {
+      "definition": "date_window",
+      "cell_id": "win[+1y,+1y]",
+      "start": "2009-01-01",
+      "end": "2010-06-30",
+      "start_offset_years": 1,
+      "end_offset_years": 1,
+      "is_canonical": false,
+      "crisis_origins": 78,
+      "calm_origins": 339,
+      "crisis_origin_share": 0.18705035971223022,
+      "crisis_delta_sum": 0.003118783150099648,
+      "crisis_delta_share": 0.02698933630447542,
+      "calm_mean_delta": 0.0003316735781046632,
+      "calm_relative_improvement": 0.007605856323836558,
+      "crisis_mean_delta": 3.9984399360251895e-05,
+      "calm_ci90_by_block": {
+        "5": [
+          5.573213622467434e-05,
+          0.000703061701152969
+        ],
+        "13": [
+          3.5736898027593265e-05,
+          0.0008113344545582398
+        ],
+        "26": [
+          3.10314580453177e-05,
+          0.0007723158390369265
+        ]
+      },
+      "calm_ci90_lower_positive_by_block": {
+        "5": true,
+        "13": true,
+        "26": true
+      }
+    }
+  ],
+  "axis_b_localization": {
+    "pieces": [
+      {
+        "piece": "2008H1",
+        "start": "2008-01-01",
+        "end": "2008-06-30",
+        "origins": 26,
+        "origin_share": 0.06235011990407674,
+        "delta_sum": 0.00017482544521253522,
+        "delta_share": 0.0015129050364626976,
+        "mean_delta": 6.724055585097509e-06
+      },
+      {
+        "piece": "2008H2",
+        "start": "2008-07-01",
+        "end": "2008-12-31",
+        "origins": 26,
+        "origin_share": 0.06235011990407674,
+        "delta_sum": 0.09355224326765313,
+        "delta_share": 0.8095827231553798,
+        "mean_delta": 0.0035981632026020434
+      },
+      {
+        "piece": "2009H1",
+        "start": "2009-01-01",
+        "end": "2009-06-30",
+        "origins": 26,
+        "origin_share": 0.06235011990407674,
+        "delta_sum": 0.003117228320612125,
+        "delta_share": 0.026975881115731844,
+        "mean_delta": 0.0001198933969466202
+      }
+    ],
+    "outside_canonical": {
+      "origins": 339,
+      "origin_share": 0.8129496402877698,
+      "delta_share": 0.16192849069242554
+    },
+    "max_piece": "2008H2"
+  },
+  "axis_c_calm_percentile": {
+    "coverage": {
+      "v10_origins": 417,
+      "primary_min": 0.18617493852466963,
+      "primary_max": 4.4155390824017715,
+      "primary_largest_mass_point": {
+        "value": 1.0,
+        "count": 54,
+        "share": 0.12949640287769784
+      },
+      "primary_matched": 417,
+      "primary_missing": 0,
+      "matched_share": 1.0,
+      "matched_mean_delta": 0.00027711301229635605,
+      "unmatched_dates_sample": [],
+      "frame_design_window": [
+        "2007-01-01",
+        "2014-12-31"
+      ],
+      "frame_calm_pct": 80.0,
+      "per_horizon_counts": {
+        "21": 417,
+        "63": 417
+      },
+      "cross_horizon_max_abs_diff": 0.0
+    },
+    "rows": [
+      {
+        "definition": "state_percentile",
+        "cell_id": "calm p60",
+        "calm_pct": 60.0,
+        "is_canonical": false,
+        "primary_threshold": 0.623581808639147,
+        "ties_at_threshold": 0,
+        "nominal_calm_share": 0.6,
+        "effective_calm_share": 0.5995203836930456,
+        "crisis_origins": 167,
+        "calm_origins": 250,
+        "crisis_origin_share": 0.40047961630695444,
+        "crisis_delta_sum": 0.10653197998764762,
+        "crisis_delta_share": 0.9219068132314362,
+        "calm_mean_delta": 3.609658455973131e-05,
+        "calm_relative_improvement": 0.0008277579345072149,
+        "crisis_mean_delta": 0.0006379160478302252,
+        "calm_ci90_by_block": {
+          "5": [
+            2.632372777884616e-06,
+            6.860218837152651e-05
+          ],
+          "13": [
+            1.3499715570826953e-07,
+            7.244665253732993e-05
+          ],
+          "26": [
+            3.0656363286849862e-06,
+            6.71462036787965e-05
+          ]
+        },
+        "calm_ci90_lower_positive_by_block": {
+          "5": true,
+          "13": true,
+          "26": true
+        }
+      },
+      {
+        "definition": "state_percentile",
+        "cell_id": "calm p80",
+        "calm_pct": 80.0,
+        "is_canonical": true,
+        "primary_threshold": 1.0,
+        "ties_at_threshold": 54,
+        "nominal_calm_share": 0.8,
+        "effective_calm_share": 0.8537170263788969,
+        "crisis_origins": 61,
+        "calm_origins": 356,
+        "crisis_origin_share": 0.14628297362110312,
+        "crisis_delta_sum": 0.10635943062798348,
+        "crisis_delta_share": 0.9204136049918866,
+        "calm_mean_delta": 2.583341432471066e-05,
+        "calm_relative_improvement": 0.0005924054572893577,
+        "crisis_mean_delta": 0.001743597223409565,
+        "calm_ci90_by_block": {
+          "5": [
+            -3.688616125180119e-06,
+            5.3637958111365556e-05
+          ],
+          "13": [
+            -4.8481282001849395e-06,
+            5.589803703823432e-05
+          ],
+          "26": [
+            -3.2705736289801977e-06,
+            5.209085950327783e-05
+          ]
+        },
+        "calm_ci90_lower_positive_by_block": {
+          "5": false,
+          "13": false,
+          "26": false
+        }
+      },
+      {
+        "definition": "state_percentile",
+        "cell_id": "calm p90",
+        "calm_pct": 90.0,
+        "is_canonical": false,
+        "primary_threshold": 1.5892192745416014,
+        "ties_at_threshold": 0,
+        "nominal_calm_share": 0.9,
+        "effective_calm_share": 0.8992805755395683,
+        "crisis_origins": 42,
+        "calm_origins": 375,
+        "crisis_origin_share": 0.10071942446043165,
+        "crisis_delta_sum": 0.10444540078857677,
+        "crisis_delta_share": 0.9038499670131133,
+        "calm_mean_delta": 2.9628600904009858e-05,
+        "calm_relative_improvement": 0.000679435735701205,
+        "crisis_mean_delta": 0.0024867952568708752,
+        "calm_ci90_by_block": {
+          "5": [
+            4.803877989371914e-07,
+            5.7958969261490496e-05
+          ],
+          "13": [
+            -2.5109165267211503e-06,
+            6.0515725621452965e-05
+          ],
+          "26": [
+            7.374186736731582e-07,
+            5.790596478805936e-05
+          ]
+        },
+        "calm_ci90_lower_positive_by_block": {
+          "5": true,
+          "13": false,
+          "26": true
+        }
+      }
+    ]
+  },
+  "verdict_grid": [
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003403578191220293,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 1.1228120286303258,
+      "calm_mean_below_mde50": false,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "번복"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519801078084553e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.2150827941498139,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075745,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 7.961818836006443e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.2626537560354501,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.838084964496318,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0002950928406198668,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.9734866437485432,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 5.5197135970804325e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.18209074312978343,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075743,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519259325649874e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.2150649221893058,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380849644963179,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.00028756751357280903,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.948661218113811,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.026975881115731844,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003316735781046632,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 1.094163442565883,
+      "calm_mean_below_mde50": false,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.02698933630447542,
+      "calm_ci90_lower_positive": true,
+      "verdict": "번복"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p60",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 3.609658455973131e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.11907961873973227,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9219068132314362,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p80",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 2.583341432471066e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.08522227701187755,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9204136049918866,
+      "calm_ci90_lower_positive": false,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 5,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p90",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 2.9628600904009858e-05,
+      "mde50": 0.0003031298297874653,
+      "calm_mean_over_mde50": 0.09774228067486292,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9038499670131133,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003403578191220293,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.9945208969171673,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519801078084553e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.19050769665360362,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075745,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 7.961818836006443e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.23264325850666576,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.838084964496318,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0002950928406198668,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.862257248222301,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+0y]",
+      "is_canonical_cell": true,
+      "calm_mean_delta": 5.5197135970804325e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.1612852771079181,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075743,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519259325649874e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.1904918667214859,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380849644963179,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.00028756751357280903,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.8402683454148364,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.026975881115731844,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003316735781046632,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.9691456633235497,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.02698933630447542,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p60",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 3.609658455973131e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.10547372686954336,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9219068132314362,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p80",
+      "is_canonical_cell": true,
+      "calm_mean_delta": 2.583341432471066e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.07548488367600181,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9204136049918866,
+      "calm_ci90_lower_positive": false,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 13,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p90",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 2.9628600904009858e-05,
+      "mde50": 0.00034223294872644326,
+      "calm_mean_over_mde50": 0.08657436700430869,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9038499670131133,
+      "calm_ci90_lower_positive": false,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003403578191220293,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.984846841266335,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519801078084553e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.18865456107339434,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075745,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[-1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 7.961818836006443e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.2303802554500574,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.838084964496318,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,-1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0002950928406198668,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.8538697677475385,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.0015129050364626976,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 5.5197135970804325e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.15971639831287368,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380715093075743,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[+0y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 6.519259325649874e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.18863888512461147,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.8380849644963179,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+0y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.00028756751357280903,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.8320947587557993,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.026975881115731844,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "date_window",
+      "cell_id": "win[+1y,+1y]",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 0.0003316735781046632,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.9597184415227636,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.02698933630447542,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p60",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 3.609658455973131e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.10444774671507946,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9219068132314362,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p80",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 2.583341432471066e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.07475061557993479,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9204136049918866,
+      "calm_ci90_lower_positive": false,
+      "verdict": "유지"
+    },
+    {
+      "block_length": 26,
+      "regime_definition": "state_percentile",
+      "cell_id": "calm p90",
+      "is_canonical_cell": false,
+      "calm_mean_delta": 2.9628600904009858e-05,
+      "mde50": 0.00034559467001426397,
+      "calm_mean_over_mde50": 0.08573222759131956,
+      "calm_mean_below_mde50": true,
+      "sign_flips_on_top5pct_removal": true,
+      "full_ci90_lower_positive": true,
+      "crisis_delta_share": 0.9038499670131133,
+      "calm_ci90_lower_positive": true,
+      "verdict": "유지"
+    }
+  ],
+  "summary": {
+    "cells": 33,
+    "distinct_verdicts": [
+      "번복",
+      "유지"
+    ],
+    "conclusion_changes": true,
+    "overturn_cells": [
+      "win[-1y,-1y] | ℓ=5",
+      "win[+1y,+1y] | ℓ=5"
+    ],
+    "canonical_cell_verdict": "유지",
+    "sign_flip_all_blocks": true,
+    "full_ci90_lower_positive_all_blocks": true,
+    "calm_ci90_lower_positive_cells": [
+      "win[-1y,-1y] | ℓ=5",
+      "win[-1y,+0y] | ℓ=5",
+      "win[-1y,+1y] | ℓ=5",
+      "win[+0y,-1y] | ℓ=5",
+      "win[+0y,+0y] | ℓ=5",
+      "win[+0y,+1y] | ℓ=5",
+      "win[+1y,+0y] | ℓ=5",
+      "win[+1y,+1y] | ℓ=5",
+      "calm p60 | ℓ=5",
+      "calm p90 | ℓ=5",
+      "win[-1y,-1y] | ℓ=13",
+      "win[-1y,+0y] | ℓ=13",
+      "win[-1y,+1y] | ℓ=13",
+      "win[+0y,-1y] | ℓ=13",
+      "win[+0y,+0y] | ℓ=13",
+      "win[+0y,+1y] | ℓ=13",
+      "win[+1y,+0y] | ℓ=13",
+      "win[+1y,+1y] | ℓ=13",
+      "calm p60 | ℓ=13",
+      "win[-1y,-1y] | ℓ=26",
+      "win[-1y,+0y] | ℓ=26",
+      "win[-1y,+1y] | ℓ=26",
+      "win[+0y,-1y] | ℓ=26",
+      "win[+0y,+0y] | ℓ=26",
+      "win[+0y,+1y] | ℓ=26",
+      "win[+1y,+0y] | ℓ=26",
+      "win[+1y,+1y] | ℓ=26",
+      "calm p60 | ℓ=26",
+      "calm p90 | ℓ=26"
+    ],
+    "calm_mean_over_mde50_max": 1.1228120286303258,
+    "crisis_delta_share_range": [
+      0.0015129050364626976,
+      0.9219068132314362
+    ]
+  }
+}
