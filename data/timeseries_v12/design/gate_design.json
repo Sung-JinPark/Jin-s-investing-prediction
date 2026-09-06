@@ -1,0 +1,803 @@
+{
+  "A_gate_arithmetic": {
+    "by_horizon": {
+      "h21": {
+        "base_rate": 0.06954436450839328,
+        "baselines": {
+          "reflection_2phi": {
+            "baseline_brier_contract": 0.060135,
+            "baseline_brier_recomputed": 0.06013478760059581,
+            "baseline_brier_residual": -2.1239940418971148e-07,
+            "mde_contract": 0.004668,
+            "mde_residual": 3.610419484281757e-07,
+            "mde_z95_recomputed": 0.0046683610419484284,
+            "paired_bootstrap_se": 0.0028381619892832934,
+            "paired_ci90_lower": -0.006667905993966078,
+            "paired_ci90_upper": 0.0025106697143828785,
+            "paired_v8_minus_baseline_loss_diff": -0.0013504995696679725,
+            "reachable_by_recalibration_point_estimate": true,
+            "required_brier_reduction_from_v8": 0.006018860611616411,
+            "required_brier_reduction_share_of_v8": 0.0978910709963687,
+            "required_bss_contract": 0.142819,
+            "required_bss_recomputed": 0.14281892571483867,
+            "required_bss_residual": -7.428516132779173e-08,
+            "required_bss_vs_recalibration_ceiling_headroom": 0.05554878095735727,
+            "required_candidate_brier_contract": 0.055466,
+            "required_candidate_brier_recomputed": 0.055466426558647385,
+            "required_candidate_brier_residual": 4.265586473831129e-07
+          },
+          "reflection_bgk": {
+            "baseline_brier_contract": 0.05814,
+            "baseline_brier_recomputed": 0.05814044800432014,
+            "baseline_brier_residual": 4.4800432014158176e-07,
+            "mde_contract": 0.0071,
+            "mde_residual": -2.5162094501821747e-07,
+            "mde_z95_recomputed": 0.007099748379054982,
+            "paired_bootstrap_se": 0.004316340531900987,
+            "paired_ci90_lower": -0.011146916834499336,
+            "paired_ci90_upper": 0.0029041290422744765,
+            "paired_v8_minus_baseline_loss_diff": -0.003344839165943647,
+            "reachable_by_recalibration_point_estimate": false,
+            "required_brier_reduction_from_v8": 0.010444587544998642,
+            "required_brier_reduction_share_of_v8": 0.1698713306172858,
+            "required_bss_contract": 0.211214,
+            "required_bss_recomputed": 0.21121434259351823,
+            "required_bss_residual": 3.425935182210793e-07,
+            "required_bss_vs_recalibration_ceiling_headroom": -0.012846635921322291,
+            "required_candidate_brier_contract": 0.051041,
+            "required_candidate_brier_recomputed": 0.051040699625265154,
+            "required_candidate_brier_residual": -3.003747348490071e-07
+          }
+        },
+        "brier_climatology_insample": 0.06470794587351701,
+        "brier_v8": 0.061485287170263796,
+        "bss_v8_vs_insample_climatology": 0.049803137153394794,
+        "climatology_identity_base_times_1_minus_base": 0.06470794587351701,
+        "climatology_identity_residual": 0.0,
+        "n": 417,
+        "recalibration_ceiling_bss": {
+          "contract_fixed_bins": 0.198368,
+          "contract_quantile_bins": 0.101276,
+          "definition": "1 − (BS_V8 − REL)/BS_기후 — REL 을 0 으로 만든 가상 후보의 BSS. 점추정 상한이며 CI 를 만족시킨다는 뜻이 아니다.",
+          "fixed_bins": 0.19836770667219594,
+          "max": 0.19836770667219594,
+          "quantile_bins": 0.10127553412896906,
+          "residual_fixed_bins": -2.933278040462284e-07,
+          "residual_quantile_bins": -4.658710309468628e-07
+        },
+        "touches": 29
+      },
+      "h63": {
+        "base_rate": 0.19904076738609114,
+        "baselines": {
+          "reflection_2phi": {
+            "baseline_brier_contract": 0.149889,
+            "baseline_brier_recomputed": 0.1498894152922163,
+            "baseline_brier_residual": 4.1529221631031454e-07,
+            "mde_contract": 0.006689,
+            "mde_residual": 8.408078404180397e-08,
+            "mde_z95_recomputed": 0.0066890840807840414,
+            "paired_bootstrap_se": 0.004066674366144916,
+            "paired_ci90_lower": -0.0018552566258136375,
+            "paired_ci90_upper": 0.010981973134203677,
+            "paired_v8_minus_baseline_loss_diff": 0.004916679680705491,
+            "reachable_by_recalibration_point_estimate": true,
+            "required_brier_reduction_from_v8": 0.001772404400078531,
+            "required_brier_reduction_share_of_v8": 0.012225777437408047,
+            "required_bss_contract": 0.101762,
+            "required_bss_recomputed": 0.1017616912912217,
+            "required_bss_residual": -3.087087783043563e-07,
+            "required_bss_vs_recalibration_ceiling_headroom": 0.062166014974581296,
+            "required_candidate_brier_contract": 0.1432,
+            "required_candidate_brier_recomputed": 0.14320033121143227,
+            "required_candidate_brier_residual": 3.3121143228065364e-07
+          },
+          "reflection_bgk": {
+            "baseline_brier_contract": 0.145938,
+            "baseline_brier_recomputed": 0.145938111458916,
+            "baseline_brier_residual": 1.114589159856294e-07,
+            "mde_contract": 0.010548,
+            "mde_residual": 2.6093017011993846e-07,
+            "mde_z95_recomputed": 0.01054826093017012,
+            "paired_bootstrap_se": 0.00641288729728492,
+            "paired_ci90_lower": -0.010022102098993587,
+            "paired_ci90_upper": 0.01117852878651741,
+            "paired_v8_minus_baseline_loss_diff": 0.0009653758474051881,
+            "reachable_by_recalibration_point_estimate": true,
+            "required_brier_reduction_from_v8": 0.00958288508276492,
+            "required_brier_reduction_share_of_v8": 0.06610129168317935,
+            "required_bss_contract": 0.150754,
+            "required_bss_recomputed": 0.15075370757545992,
+            "required_bss_residual": -2.924245400826031e-07,
+            "required_bss_vs_recalibration_ceiling_headroom": 0.01317399869034308,
+            "required_candidate_brier_contract": 0.13539,
+            "required_candidate_brier_recomputed": 0.1353898505287459,
+            "required_candidate_brier_residual": -1.4947125412390072e-07
+          }
+        },
+        "brier_climatology_insample": 0.15942354030444705,
+        "brier_v8": 0.1449727356115108,
+        "bss_v8_vs_insample_climatology": 0.09064410855097005,
+        "climatology_identity_base_times_1_minus_base": 0.1594235403044471,
+        "climatology_identity_residual": -5.551115123125783e-17,
+        "n": 417,
+        "recalibration_ceiling_bss": {
+          "contract_fixed_bins": 0.163928,
+          "contract_quantile_bins": 0.15599,
+          "definition": "1 − (BS_V8 − REL)/BS_기후 — REL 을 0 으로 만든 가상 후보의 BSS. 점추정 상한이며 CI 를 만족시킨다는 뜻이 아니다.",
+          "fixed_bins": 0.163927706265803,
+          "max": 0.163927706265803,
+          "quantile_bins": 0.15598987119361285,
+          "residual_fixed_bins": -2.937341969933005e-07,
+          "residual_quantile_bins": -1.28806387139635e-07
+        },
+        "touches": 83
+      }
+    },
+    "contract_reconciliation": {
+      "all_within_tolerance": true,
+      "max_abs_residual": 4.658710309468628e-07,
+      "note": "계약 YAML 은 6자리 반올림 저장이라 잔차는 반올림 오차 규모여야 한다.",
+      "tolerance": 1e-06,
+      "values_compared": 20
+    },
+    "identity": "요구 후보 BS = 기준선 BS − z·se(쌍대 V8−기준선) · 요구 BSS = 1 − 요구 후보 BS / 기후 BS",
+    "z_convention": {
+      "diagnostic_multiplier": 1.645,
+      "difference": 0.00014637304852849198,
+      "gate_multiplier": 1.6448536269514715
+    }
+  },
+  "B_mde_layer": {
+    "by_cell": {
+      "h21|vs_climatology_insample": {
+        "abs_effect_over_mde": 0.1919657396763333,
+        "baseline": "vs_climatology_insample",
+        "bootstrap_se": 0.010206182513953383,
+        "ci90_lower": -0.01188400194829748,
+        "ci90_upper": 0.02055859491651282,
+        "horizon": 21,
+        "loss_diff_v8_minus_baseline": 0.0032226587032532224,
+        "mde_in_bss_units": 0.25943763318061985,
+        "mde_share_of_baseline_brier": 0.25943763318061985,
+        "mde_z95": 0.01678767632540491,
+        "n": 417,
+        "n_star_extra_origins": 10898.886993351929,
+        "n_star_extra_years": 208.23266578132396,
+        "n_star_multiple_of_current": 27.13641964832597,
+        "n_star_origins": 11315.886993351929,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      },
+      "h21|vs_reflection_2phi": {
+        "abs_effect_over_mde": 0.2892877302189798,
+        "baseline": "vs_reflection_2phi",
+        "bootstrap_se": 0.0028381619892832934,
+        "ci90_lower": -0.006667905993966078,
+        "ci90_upper": 0.0025106697143828785,
+        "horizon": 21,
+        "loss_diff_v8_minus_baseline": -0.0013504995696679725,
+        "mde_in_bss_units": 0.07214509715813813,
+        "mde_share_of_baseline_brier": 0.077631621033649,
+        "mde_z95": 0.0046683610419484284,
+        "n": 417,
+        "n_star_note": "Δ̂ ≤ 0 — 표본을 늘려도 이 방향으로는 통과하지 않는다.",
+        "n_star_origins": null,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      },
+      "h21|vs_reflection_bgk": {
+        "abs_effect_over_mde": 0.4711208041979742,
+        "baseline": "vs_reflection_bgk",
+        "bootstrap_se": 0.004316340531900987,
+        "ci90_lower": -0.011146916834499336,
+        "ci90_upper": 0.0029041290422744765,
+        "horizon": 21,
+        "loss_diff_v8_minus_baseline": -0.003344839165943647,
+        "mde_in_bss_units": 0.10971988498804584,
+        "mde_share_of_baseline_brier": 0.12211375424089325,
+        "mde_z95": 0.007099748379054982,
+        "n": 417,
+        "n_star_note": "Δ̂ ≤ 0 — 표본을 늘려도 이 방향으로는 통과하지 않는다.",
+        "n_star_origins": null,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      },
+      "h63|vs_climatology_insample": {
+        "abs_effect_over_mde": 0.3514908352164772,
+        "baseline": "vs_climatology_insample",
+        "bootstrap_se": 0.024994863477115898,
+        "ci90_lower": -0.02205399343532367,
+        "ci90_upper": 0.05764263979499854,
+        "horizon": 63,
+        "loss_diff_v8_minus_baseline": 0.014450804692936312,
+        "mde_in_bss_units": 0.25788469988170326,
+        "mde_share_of_baseline_brier": 0.25788469988170326,
+        "mde_z95": 0.041112891845490954,
+        "n": 417,
+        "n_star_extra_origins": 2958.2663025299125,
+        "n_star_extra_years": 56.520237217122705,
+        "n_star_multiple_of_current": 8.094163795035762,
+        "n_star_origins": 3375.2663025299125,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      },
+      "h63|vs_reflection_2phi": {
+        "abs_effect_over_mde": 0.7350303302106492,
+        "baseline": "vs_reflection_2phi",
+        "bootstrap_se": 0.004066674366144916,
+        "ci90_lower": -0.0018552566258136375,
+        "ci90_upper": 0.010981973134203677,
+        "horizon": 63,
+        "loss_diff_v8_minus_baseline": 0.004916679680705491,
+        "mde_in_bss_units": 0.0419579446549115,
+        "mde_share_of_baseline_brier": 0.04462679414515938,
+        "mde_z95": 0.0066890840807840414,
+        "n": 417,
+        "n_star_extra_origins": 354.836895045247,
+        "n_star_extra_years": 6.779465886554289,
+        "n_star_multiple_of_current": 1.8509278058639016,
+        "n_star_origins": 771.8368950452469,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      },
+      "h63|vs_reflection_bgk": {
+        "abs_effect_over_mde": 0.0915199058684661,
+        "baseline": "vs_reflection_bgk",
+        "bootstrap_se": 0.00641288729728492,
+        "ci90_lower": -0.010022102098993587,
+        "ci90_upper": 0.01117852878651741,
+        "horizon": 63,
+        "loss_diff_v8_minus_baseline": 0.0009653758474051881,
+        "mde_in_bss_units": 0.06616501496596033,
+        "mde_share_of_baseline_brier": 0.0722790011787951,
+        "mde_z95": 0.01054826093017012,
+        "n": 417,
+        "n_star_extra_origins": 49368.735267608754,
+        "n_star_extra_years": 943.2324013724806,
+        "n_star_multiple_of_current": 119.39025244030876,
+        "n_star_origins": 49785.735267608754,
+        "origins_per_year_measured": 52.339948453608244,
+        "significant_ci90_lower_gt_0": false,
+        "window_years": 7.967145790554415
+      }
+    },
+    "definition_mde": "MDE = z(0.95)·se_boot(쌍대 손실차). |Δ| < MDE 인 셀은 부호와 무관하게 '결정적 증거 없음' (계약 G5.mde).",
+    "definition_n_star": "n* = n·(z·se/|Δ̂|)² — se ∝ n^(−1/2) 와 효과·의존구조 불변을 가정한 1차 근사. 현재 점추정을 CI90 하한>0 으로 만들려면 필요한 원점 수.",
+    "n_star_caveats": [
+      "se ∝ n^(−1/2) 는 블록부트에서 근사일 뿐 — 블록 길이 대비 표본이 커질수록만 성립.",
+      "|Δ̂| 가 참값이라는 가정 — 점추정은 그 자체가 잡음이며 winner's curse 로 과대일 수 있다.",
+      "Δ̂ ≤ 0 인 셀에는 정의되지 않는다 (개선이 없으므로 표본을 늘려도 통과하지 않는다).",
+      "새 표본은 새 국면이므로 효과가 유지된다는 보장이 없다 — 이 수는 '필요 조건의 하한'."
+    ]
+  },
+  "C_g4_reliability_quantification": {
+    "by_horizon": {
+      "h21": {
+        "reliability": {
+          "fixed_bins": {
+            "armable_under_unpaired_se": false,
+            "bootstrap_mean": 0.01306011319505221,
+            "bootstrap_se": 0.006213872035809189,
+            "ci90_lower": 0.004546237014393039,
+            "ci90_upper": 0.02431601561302443,
+            "interpretation": "비쌍대 se 는 쌍대 se 의 상한이다(양의 상관 가정). 따라서 '무장 불가' 는 비쌍대 규약 아래에서의 진술이며, 실제 쌍대 se 는 후보가 존재해야 잴 수 있다. 후보를 지금 만들면 등록부 no_post_hoc_hypotheses 위반이므로 여기서는 상한만 말한다.",
+            "max_possible_reduction_perfect_recalibration": 0.009613308123144938,
+            "reliability_v8": 0.009613308123144938,
+            "required_min_reduction_z95_unpaired": 0.010220909955513068,
+            "required_reduction_share_of_rel": 1.063204239850096,
+            "shortfall": 0.0006076018323681303
+          },
+          "quantile_bins": {
+            "armable_under_unpaired_se": false,
+            "bootstrap_mean": 0.005665916866768442,
+            "bootstrap_se": 0.004414820124713611,
+            "ci90_lower": 0.0006111242895105197,
+            "ci90_upper": 0.01430382048107077,
+            "interpretation": "비쌍대 se 는 쌍대 se 의 상한이다(양의 상관 가정). 따라서 '무장 불가' 는 비쌍대 규약 아래에서의 진술이며, 실제 쌍대 se 는 후보가 존재해야 잴 수 있다. 후보를 지금 만들면 등록부 no_post_hoc_hypotheses 위반이므로 여기서는 상한만 말한다.",
+            "max_possible_reduction_perfect_recalibration": 0.0033306730774756363,
+            "reliability_v8": 0.0033306730774756363,
+            "required_min_reduction_z95_unpaired": 0.007261732894473531,
+            "required_reduction_share_of_rel": 2.1802598830796387,
+            "shortfall": 0.0039310598169978945
+          }
+        },
+        "top_quintile_gap": {
+          "reflection_2phi": {
+            "already_satisfies_gate": false,
+            "gap": 0.12320407313041853,
+            "gap_bootstrap_se": 0.06720744499341778,
+            "gap_ci90_lower": 0.007791958738629742,
+            "note": "se 가 후보에서도 같다고 본 1차 근사 — 실제로는 후보의 se 를 다시 재야 한다.",
+            "required_reduction_of_lower_bound": 0.007791958738629742,
+            "required_reduction_share_of_gap": 0.06324432740451291
+          },
+          "v8": {
+            "already_satisfies_gate": true,
+            "gap": 0.12295833333333331,
+            "gap_bootstrap_se": 0.07743186675275979,
+            "gap_ci90_lower": -0.009725483011325746,
+            "note": "se 가 후보에서도 같다고 본 1차 근사 — 실제로는 후보의 se 를 다시 재야 한다.",
+            "required_reduction_of_lower_bound": 0.0,
+            "required_reduction_share_of_gap": 0.0
+          }
+        }
+      },
+      "h63": {
+        "reliability": {
+          "fixed_bins": {
+            "armable_under_unpaired_se": false,
+            "bootstrap_mean": 0.01983791646860032,
+            "bootstrap_se": 0.012363406960598372,
+            "ci90_lower": 0.004892953623070986,
+            "ci90_upper": 0.04368913870869443,
+            "interpretation": "비쌍대 se 는 쌍대 se 의 상한이다(양의 상관 가정). 따라서 '무장 불가' 는 비쌍대 규약 아래에서의 진술이며, 실제 쌍대 se 는 후보가 존재해야 잴 수 있다. 후보를 지금 만들면 등록부 no_post_hoc_hypotheses 위반이므로 여기서는 상한만 말한다.",
+            "max_possible_reduction_perfect_recalibration": 0.01168313059394556,
+            "reliability_v8": 0.01168313059394556,
+            "required_min_reduction_z95_unpaired": 0.0203359947806173,
+            "required_reduction_share_of_rel": 1.7406289022529486,
+            "shortfall": 0.00865286418667174
+          },
+          "quantile_bins": {
+            "armable_under_unpaired_se": false,
+            "bootstrap_mean": 0.01631710503982164,
+            "bootstrap_se": 0.011492755764038189,
+            "ci90_lower": 0.003038200263251775,
+            "ci90_upper": 0.03825986181288133,
+            "interpretation": "비쌍대 se 는 쌍대 se 의 상한이다(양의 상관 가정). 따라서 '무장 불가' 는 비쌍대 규약 아래에서의 진술이며, 실제 쌍대 se 는 후보가 존재해야 잴 수 있다. 후보를 지금 만들면 등록부 no_post_hoc_hypotheses 위반이므로 여기서는 상한만 말한다.",
+            "max_possible_reduction_perfect_recalibration": 0.010417652824384211,
+            "reliability_v8": 0.010417652824384211,
+            "required_min_reduction_z95_unpaired": 0.018903901002145646,
+            "required_reduction_share_of_rel": 1.8146027056975818,
+            "shortfall": 0.008486248177761434
+          }
+        },
+        "top_quintile_gap": {
+          "reflection_2phi": {
+            "already_satisfies_gate": false,
+            "gap": 0.241699501765125,
+            "gap_bootstrap_se": 0.10232549139429657,
+            "gap_ci90_lower": 0.06544053564927471,
+            "note": "se 가 후보에서도 같다고 본 1차 근사 — 실제로는 후보의 se 를 다시 재야 한다.",
+            "required_reduction_of_lower_bound": 0.06544053564927471,
+            "required_reduction_share_of_gap": 0.27075163652123496
+          },
+          "v8": {
+            "already_satisfies_gate": false,
+            "gap": 0.21066666666666667,
+            "gap_bootstrap_se": 0.10665088649930674,
+            "gap_ci90_lower": 0.035458080808080765,
+            "note": "se 가 후보에서도 같다고 본 1차 근사 — 실제로는 후보의 se 를 다시 재야 한다.",
+            "required_reduction_of_lower_bound": 0.035458080808080765,
+            "required_reduction_share_of_gap": 0.16831367472190237
+          }
+        }
+      }
+    },
+    "contract_reconciliation": {
+      "all_within_tolerance": true,
+      "max_abs_residual": 3.471756157887723e-07,
+      "tolerance": 1e-06,
+      "values_compared": 4
+    },
+    "elapsed_sec": 1.6931647000019439,
+    "method": {
+      "ceiling_rule": "완전 재보정(REL→0)의 감소폭 = REL_V8. ΔREL_min > REL_V8 이면 REL 다리는 구조적으로 무장 불가.",
+      "convention": "정상 블록 부트스트랩 ℓ=13, B=2000, seed 20260902 — S1~S3 규약 동일.",
+      "floor_rule": "설계 단계 최소 감소폭 ΔREL_min = z(0.95)·se_boot(REL_V8). 후보가 없으므로 쌍대 se 를 쓸 수 없고, 단일 추정량의 se 는 쌍대 se 보다 크므로 이 문턱은 보수적(더 엄격)이다.",
+      "rel_bootstrap": "각 복제표본에서 binning 을 다시 만들고 Murphy REL 을 재계산 (분위 경계도 복제표본에서 재산출 — 고정하면 se 가 과소평가된다)."
+    },
+    "question": "S4-1 open_question 1 — G4 의 'reliability 가 V8 실측값보다 작을 것' 에 최소 감소폭이 없었다. 여기서 MDE 로 정량화한다."
+  },
+  "D_g1_companion_sample": {
+    "by_horizon": {
+      "h21": {
+        "base_rate_eligible": 0.07397959183673469,
+        "base_rate_full": 0.06954436450839328,
+        "baseline_effect": 0.05023406453442647,
+        "both_paired_ci90_lower_gt_0": false,
+        "brier_climatology_expanding_on_eligible": 0.07233477183638182,
+        "brier_climatology_insample_full": 0.06470794587351701,
+        "brier_climatology_insample_on_eligible": 0.06852628306985889,
+        "brier_climatology_insample_on_eligible_own_base": 0.06850661182840483,
+        "brier_v8_eligible": 0.0653807551020408,
+        "brier_v8_full": 0.061485287170263796,
+        "bss_expanding_on_eligible": 0.09613656831697348,
+        "bss_insample_full": 0.049803137153394794,
+        "bss_insample_on_eligible": 0.04590250378254701,
+        "bss_insample_on_eligible_own_base": 0.045628540704854226,
+        "dropped_origins": 25,
+        "eligible_n": 392,
+        "identity_residual": 0.0,
+        "maturity_days": 37,
+        "min_train": 20,
+        "n_full": 417,
+        "paired_v8_vs_expanding_on_eligible": {
+          "bootstrap_se": 0.010960642983953715,
+          "ci90_lower": -0.00950545935887783,
+          "ci90_upper": 0.026075595417719696,
+          "loss_diff": 0.006954016734341007,
+          "mde50_diag": 0.01803025770860386,
+          "mde_z95": 0.018028653365876467,
+          "n": 392,
+          "replicates": 2000
+        },
+        "paired_v8_vs_insample_climatology_on_eligible": {
+          "bootstrap_se": 0.010619685706847666,
+          "ci90_lower": -0.012454667744846482,
+          "ci90_upper": 0.021535385327848416,
+          "loss_diff": 0.003145527967818077,
+          "mde50_diag": 0.01746938298776441,
+          "mde_z95": 0.017467828551993084,
+          "n": 392,
+          "replicates": 2000
+        },
+        "sample_effect": -0.0039006333708477836,
+        "sample_effect_own_base_variant": -0.0041745964485405684,
+        "total_difference": 0.04633343116357869,
+        "upstream_reconciliation": {
+          "bootstrap_se_residual": 0.0,
+          "bss_expanding_residual": 0.0,
+          "ci90_lower_residual": 0.0,
+          "loss_diff_residual": 0.0,
+          "seed_convention": "부분표본 draw 는 seed=SEED+1 (S2-1 규약) — 본 재현도 동일.",
+          "source": "first_touch_diagnostic.json per_horizon.h.ci90.loss_diff_expanding · point_estimates.loss_diff_expanding (S2-1)"
+        }
+      },
+      "h63": {
+        "base_rate_eligible": 0.21614583333333334,
+        "base_rate_full": 0.19904076738609114,
+        "baseline_effect": 0.12193276842413003,
+        "both_paired_ci90_lower_gt_0": false,
+        "brier_climatology_expanding_on_eligible": 0.19586731338846344,
+        "brier_climatology_insample_full": 0.15942354030444705,
+        "brier_climatology_insample_on_eligible": 0.16971939534703173,
+        "brier_climatology_insample_on_eligible_own_base": 0.16942681206597224,
+        "brier_v8_eligible": 0.15501608398437497,
+        "brier_v8_full": 0.1449727356115108,
+        "bss_expanding_on_eligible": 0.20856583315189636,
+        "bss_insample_full": 0.09064410855097005,
+        "bss_insample_on_eligible": 0.08663306472776633,
+        "bss_insample_on_eligible_own_base": 0.08505577072409265,
+        "dropped_origins": 33,
+        "eligible_n": 384,
+        "identity_residual": 0.0,
+        "maturity_days": 96,
+        "min_train": 20,
+        "n_full": 417,
+        "paired_v8_vs_expanding_on_eligible": {
+          "bootstrap_se": 0.023132291996675772,
+          "ci90_lower": 0.004900624367821013,
+          "ci90_upper": 0.08040840064121645,
+          "loss_diff": 0.04085122940408847,
+          "mde50_diag": 0.03805262033453165,
+          "mde_z95": 0.03804923439043264,
+          "n": 384,
+          "replicates": 2000
+        },
+        "paired_v8_vs_insample_climatology_on_eligible": {
+          "bootstrap_se": 0.02659488603117701,
+          "ci90_lower": -0.026411916441428117,
+          "ci90_upper": 0.061454459385176234,
+          "loss_diff": 0.014703311362656743,
+          "mde50_diag": 0.04374858752128618,
+          "mde_z95": 0.04374469474674253,
+          "n": 384,
+          "replicates": 2000
+        },
+        "sample_effect": -0.004011043823203719,
+        "sample_effect_own_base_variant": -0.005588337826877399,
+        "total_difference": 0.11792172460092631,
+        "upstream_reconciliation": {
+          "bootstrap_se_residual": 0.0,
+          "bss_expanding_residual": 0.0,
+          "ci90_lower_residual": 0.0,
+          "loss_diff_residual": 0.0,
+          "seed_convention": "부분표본 draw 는 seed=SEED+1 (S2-1 규약) — 본 재현도 동일.",
+          "source": "first_touch_diagnostic.json per_horizon.h.ci90.loss_diff_expanding · point_estimates.loss_diff_expanding (S2-1)"
+        }
+      }
+    },
+    "decomposition_identity": "BSS_expanding(적격) − BSS_insample(전표본) = [표본 효과] + [기준선 효과]. 표본 효과 = BSS_insample(적격) − BSS_insample(전표본), 기준선 효과 = BSS_expanding(적격) − BSS_insample(적격).",
+    "question": "S4-1 open_question 4 — expanding 기후는 eligible_n 이 달라(h21 392·h63 384) in-sample 기후 대비 skill 과 직접 비교되지 않는다. 병기를 어떤 표본으로 맞출 것인가."
+  },
+  "E_budget": {
+    "compute_budget": {
+      "api_cost_note": "이 층은 결정론 수치 계산이며 LLM 호출이 없다 (CLAUDE.md 비용 가드레일 무관).",
+      "api_cost_usd": 0.0,
+      "note": "게이트 1회 평가의 비용은 이 규모 — 초 단위다. 예산의 제약은 계산이 아니라 표본과 다중검정이다.",
+      "rel_bootstrap_elapsed_sec_measured": 1.6931647000019439,
+      "rel_bootstrap_scope": "2 지평 × 2 binning × B=2000 복제 (분위 경계 재산출 포함)"
+    },
+    "contract_caps": {
+      "evaluations_spent_recorded": 0,
+      "holdout_maximum_finalists": 3,
+      "maximum_development_evaluations": 24,
+      "sealed_maximum_disclosures_per_model_version": 1,
+      "track_open": false
+    },
+    "data_budget": {
+      "by_cell": {
+        "h21|vs_climatology_insample": {
+          "defined": true,
+          "extra_years": 208.23266578132396,
+          "multiple": 27.13641964832597,
+          "n_star_origins": 11315.886993351929
+        },
+        "h21|vs_reflection_2phi": {
+          "defined": false,
+          "extra_years": null,
+          "multiple": null,
+          "n_star_origins": null
+        },
+        "h21|vs_reflection_bgk": {
+          "defined": false,
+          "extra_years": null,
+          "multiple": null,
+          "n_star_origins": null
+        },
+        "h63|vs_climatology_insample": {
+          "defined": true,
+          "extra_years": 56.520237217122705,
+          "multiple": 8.094163795035762,
+          "n_star_origins": 3375.2663025299125
+        },
+        "h63|vs_reflection_2phi": {
+          "defined": true,
+          "extra_years": 6.779465886554289,
+          "multiple": 1.8509278058639016,
+          "n_star_origins": 771.8368950452469
+        },
+        "h63|vs_reflection_bgk": {
+          "defined": true,
+          "extra_years": 943.2324013724806,
+          "multiple": 119.39025244030876,
+          "n_star_origins": 49785.735267608754
+        }
+      },
+      "definition": "현 점추정을 CI90 하한>0 으로 만드는 데 필요한 추가 원점·연수 (섹션 B n*).",
+      "note": "정의되지 않은 셀(Δ̂ ≤ 0)은 표본 증설이 해법이 아님을 뜻한다."
+    },
+    "multiplicity_budget": {
+      "budget_rule": "검정 기계가 수리되기 전에는 예산을 1 단위도 배정하지 않는다 — 현재 기계에서 얻는 통과는 P(귀무 통과)≈0.345/셀 이라 증거가 아니다.",
+      "cells_above_nominal_h21": 4,
+      "cells_above_nominal_h63": 1,
+      "family_cells": 8,
+      "familywise_any_pass_independent_approx": 0.9663273569106348,
+      "horizon_asymmetry": "h21 셀은 귀무 통과율이 명목 5% 를 크게 넘고(평균 0.651) h63 셀은 명목 이하다(평균 0.040). 같은 기계가 지평별로 반대 방향의 오차를 낸다.",
+      "implied_per_cell_null_pass_rate": 0.3455,
+      "independence_caveat": "셀은 지평·방향으로 겹치므로 독립이 아니다 — 위 근사는 상한도 하한도 아니고 규모 감각용이다.",
+      "inflation_factor": 6.909999999999999,
+      "k_mean_under_permutation_null": 2.764,
+      "machine_repair_thresholds": {
+        "implied_gap": 0.154,
+        "negative_control_pooled_pass_rate_max": 0.1,
+        "observed_pooled_pass_rate": 0.254,
+        "observed_pooled_pass_rate_source_check": 0.254,
+        "per_cell_null_pass_rate_max_proposed": 0.05,
+        "source_check_residual": 0.0
+      },
+      "nominal_per_cell_rate": 0.05,
+      "per_cell_mean_h21": 0.6515,
+      "per_cell_mean_h63": 0.0395,
+      "per_cell_null_pass_rate_measured": {
+        "T1_h21": 0.503,
+        "T1_h63": 0.005,
+        "T2_h21": 0.576,
+        "T2_h63": 0.005,
+        "T3_h21": 0.739,
+        "T3_h63": 0.148,
+        "T4_h21": 0.788,
+        "T4_h63": 0.0
+      },
+      "sum_check_vs_k_mean": 0.0
+    },
+    "s3_consumption": {
+      "accounting_question": "S3 의 8 셀을 트랙 예산에 계상할 것인가 — 계약은 evaluations_spent=0 (트랙 미개시)으로 적었다. 계상하면 잔여 예산은 24−4=20 development evaluation.",
+      "adoption_eligible_hypotheses": 4,
+      "development_evaluations_equivalent": 4.0,
+      "directions_evaluated": 16,
+      "family_cells": 8,
+      "hypotheses_registered": 5,
+      "negative_control_runs": 1,
+      "permutation_replicates": 1000,
+      "recommended_accounting": "계상한다 (보수적). 같은 표본에서 이미 소모된 검정력을 0 으로 적으면 예산이 다중검정을 통제하지 못한다.",
+      "remaining_if_counted": 20.0
+    },
+    "unit_definition": {
+      "cell": "(후보 맵, 지평) — 계약 gates.unit_of_judgement 원문.",
+      "development_evaluation": "예산 단위. 한 후보 맵을 전 셀 격자에서 재는 1회 = 지평 2 × 방향 2 = 4 방향검정.",
+      "direction": "(셀, 전이 방향) — 셀 하나가 2 방향을 요구하므로 방향 = 2×셀."
+    }
+  },
+  "F_deployment_boundary": {
+    "collision_risk": {
+      "difference": {
+        "scenario_v5_2": "몬테카를로 경로 비율 · 달력 기한(10월 말) · 보정 안 됨(화면 명시)",
+        "timeseries_v1_artifact": "몬테카를로 경로 비율 (model.py: min ≤ 0.90·anchor) · future_paths 배포 산출물에 실림",
+        "v12_derived": "V8 first_touch 확률의 파생 재보정 · 21/63 세션 지평 · 게이트 미통과(현재 armed=false)"
+      },
+      "finding": "표시 계통에 이미 '−10% 접촉' 계열 확률이 있다 — 산출기(model/engine/paths), 배포 산출물 빌더(artifact.py), 대시보드(dashboard.js), 콘솔(cli.py).",
+      "published_artifacts": {
+        "reports/future_paths.json": {
+          "key_occurrences": 11,
+          "sha256": "2847050eac82a96adbe699b8cf688601f6d5ef004409e716770ad1606a0aad48"
+        }
+      },
+      "required_before_any_display": "두 수의 라벨·지평·보정 상태를 화면에서 구분할 수 없다면 표시하지 않는다.",
+      "sites_by_role": {
+        "audit": [
+          "src/ai_fc/scenario_v5_2/audit.py:155",
+          "src/ai_fc/scenario_v5_2/audit.py:359"
+        ],
+        "console_output": [
+          "src/ai_fc/cli.py:1035"
+        ],
+        "display_dashboard": [
+          "src/ai_fc/dashboard_parts/dashboard.js:2141"
+        ],
+        "producer": [
+          "src/ai_fc/scenario_v5_2/engine.py:850",
+          "src/ai_fc/scenario_v5_2/engine.py:1213",
+          "src/ai_fc/scenario_v5_2/engine.py:1643",
+          "src/ai_fc/scenario_v5_2/engine.py:1766",
+          "src/ai_fc/scenario_v5_2/engine.py:1767",
+          "src/ai_fc/timeseries/model.py:401",
+          "src/ai_fc/timeseries_v7/paths.py:35"
+        ],
+        "published_artifact_builder": [
+          "src/ai_fc/timeseries/artifact.py:161"
+        ],
+        "test": [
+          "src/tests/test_multivariate_timeseries.py:578",
+          "src/tests/test_scenario_v5_2.py:371",
+          "src/tests/test_scenario_v5_2.py:572",
+          "src/tests/timeseries_v7/test_v7_ensemble_and_qualification.py:46"
+        ]
+      },
+      "why_it_matters": "V12 파생층이 표시되면 같은 화면에 뜻이 다른 '−10% 접촉 확률' 이 둘 이상 생긴다. 산출 모델·지평 규약·보정 상태가 모두 다르다."
+    },
+    "current_layer_state": {
+      "combine_with_official_forecasts": false,
+      "combine_with_scenario_v5_2": false,
+      "combine_with_v8_surface": false,
+      "derived_layer_constraint": "모든 맵은 파생층이다. V8 분포·run 파일·계약·봉인 산출물을 어떤 형태로도 수정하지 않는다. p′ 는 새 배열로만 존재한다.",
+      "p3_gate_status": "미통과 — 모든 출력은 '참고 의견' 지위 (CLAUDE.md 하드 게이트)",
+      "publication_status": "not_published"
+    },
+    "measured_surface": {
+      "code_paths_globbing_contracts": [
+        "src/ai_fc/inventory.py:58"
+      ],
+      "files_scanned": 435,
+      "minus10_sites_by_role": {
+        "audit": [
+          "src/ai_fc/scenario_v5_2/audit.py:155",
+          "src/ai_fc/scenario_v5_2/audit.py:359"
+        ],
+        "console_output": [
+          "src/ai_fc/cli.py:1035"
+        ],
+        "display_dashboard": [
+          "src/ai_fc/dashboard_parts/dashboard.js:2141"
+        ],
+        "producer": [
+          "src/ai_fc/scenario_v5_2/engine.py:850",
+          "src/ai_fc/scenario_v5_2/engine.py:1213",
+          "src/ai_fc/scenario_v5_2/engine.py:1643",
+          "src/ai_fc/scenario_v5_2/engine.py:1766",
+          "src/ai_fc/scenario_v5_2/engine.py:1767",
+          "src/ai_fc/timeseries/model.py:401",
+          "src/ai_fc/timeseries_v7/paths.py:35"
+        ],
+        "published_artifact_builder": [
+          "src/ai_fc/timeseries/artifact.py:161"
+        ],
+        "test": [
+          "src/tests/test_multivariate_timeseries.py:578",
+          "src/tests/test_scenario_v5_2.py:371",
+          "src/tests/test_scenario_v5_2.py:572",
+          "src/tests/timeseries_v7/test_v7_ensemble_and_qualification.py:46"
+        ]
+      },
+      "minus10_sites_by_role_counts": {
+        "audit": 2,
+        "console_output": 1,
+        "display_dashboard": 1,
+        "producer": 7,
+        "published_artifact_builder": 1,
+        "test": 4
+      },
+      "minus10_touch_probability_count": 16,
+      "minus10_touch_probability_sites": [
+        "src/ai_fc/cli.py:1035",
+        "src/ai_fc/scenario_v5_2/audit.py:155",
+        "src/ai_fc/scenario_v5_2/audit.py:359",
+        "src/ai_fc/scenario_v5_2/engine.py:850",
+        "src/ai_fc/scenario_v5_2/engine.py:1213",
+        "src/ai_fc/scenario_v5_2/engine.py:1643",
+        "src/ai_fc/scenario_v5_2/engine.py:1766",
+        "src/ai_fc/scenario_v5_2/engine.py:1767",
+        "src/ai_fc/timeseries/artifact.py:161",
+        "src/ai_fc/timeseries/model.py:401",
+        "src/ai_fc/timeseries_v7/paths.py:35",
+        "src/tests/test_multivariate_timeseries.py:578",
+        "src/tests/test_scenario_v5_2.py:371",
+        "src/tests/test_scenario_v5_2.py:572",
+        "src/tests/timeseries_v7/test_v7_ensemble_and_qualification.py:46",
+        "src/ai_fc/dashboard_parts/dashboard.js:2141"
+      ],
+      "published_artifacts_carrying_minus10": {
+        "reports/future_paths.json": {
+          "key_occurrences": 11,
+          "sha256": "2847050eac82a96adbe699b8cf688601f6d5ef004409e716770ad1606a0aad48"
+        }
+      },
+      "src_references_to_first_touch_probability": [
+        "src/ai_fc/timeseries/backtest.py:159",
+        "src/ai_fc/timeseries/backtest.py:210",
+        "src/ai_fc/timeseries/backtest.py:213",
+        "src/ai_fc/timeseries/backtest.py:215",
+        "src/ai_fc/timeseries/backtest.py:382",
+        "src/ai_fc/timeseries_v10/backtest_fork.py:321",
+        "src/ai_fc/timeseries_v2/backtest.py:286",
+        "src/ai_fc/timeseries_v2/pipeline.py:155",
+        "src/ai_fc/timeseries_v3/pipeline.py:286",
+        "src/ai_fc/timeseries_v8/backtest.py:246",
+        "src/tests/test_multivariate_timeseries.py:636",
+        "src/tests/test_multivariate_timeseries_v2.py:87",
+        "src/tests/test_multivariate_timeseries_v3.py:247",
+        "src/tests/test_multivariate_timeseries_v8.py:815"
+      ],
+      "src_references_to_first_touch_probability_count": 14,
+      "src_references_to_timeseries_v12": [],
+      "src_references_to_timeseries_v12_count": 0
+    },
+    "no_write_path_check": {
+      "meaning": "제품 코드가 V12 산출물을 읽지도 쓰지도 않는다 — 파생층은 현재 표시면과 배선되어 있지 않다.",
+      "src_references_to_timeseries_v12": 0
+    }
+  },
+  "generated_by": "tools/v12_s4_2_gate_design.py",
+  "provenance": {
+    "convention": {
+      "bootstrap": "stationary block, block=13, replicates=2000, seed=20260902, percentile[5,95]",
+      "loss_diff_sign": "양수 = V8 우수 (기준선 손실 − V8 손실)",
+      "z_diagnostic": 1.645,
+      "z_gate": 1.6448536269514715
+    },
+    "inputs_sha256": {
+      "data/contracts/multivariate_timeseries_v12.draft.yaml": "0f68455fb6a5fc9dbcc41f6b0c61d92e0c0f285c00bb945e767f3bf168ae495b",
+      "data/contracts/multivariate_timeseries_v8.yaml": "6d9b7f6fd20e52f310d21ce744449f577c667bf6eb04dc41cdf817e839e2ffe8",
+      "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+      "data/timeseries_v12/diagnostics/reflection_baseline.json": "86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f",
+      "data/timeseries_v12/diagnostics/s2_entry_verdict.json": "13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216",
+      "data/timeseries_v12/diagnostics/s3_verdict.json": "c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f",
+      "data/timeseries_v12/prereg/hypotheses.json": "a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df"
+    },
+    "run_path": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727"
+  },
+  "purpose": "V12 게이트 설계서(docs/design/v12_gate_design.md)의 수치 원천. 새 가설·새 후보·문턱 조정 0.",
+  "read_only": true,
+  "seal_state": {
+    "git_status_immutable_paths": "",
+    "immutable_paths_clean": true,
+    "ledger_baseline": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "ledger_matches_contract_pin": true,
+    "sealed_baseline": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_baseline": true,
+    "sealed_matches_contract_pin": true,
+    "sealed_source_hash": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "v8_contract_matches_pin": true,
+    "v8_contract_sha256": "6d9b7f6fd20e52f310d21ce744449f577c667bf6eb04dc41cdf817e839e2ffe8",
+    "v8_ledger_hash": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803"
+  },
+  "stage": "S4-2"
+}
