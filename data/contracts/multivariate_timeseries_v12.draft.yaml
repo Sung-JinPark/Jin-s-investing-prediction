@@ -1,0 +1,673 @@
+# V12 이벤트 확률 트랙 — 부정 결과 계약 (draft)
+#
+# 성격: S3-2 판정이 NEGATIVE_RESULT(채택 0/8, T5 음성 대조 실패)이므로 이 계약은
+# 설계도 §1 각주가 정한 '부정 결과 계약' 이다. 표적·기준선·게이트 산술은 사전등록하되
+# 게이트는 armed=false 이며 어떤 후보도 평가된 적이 없다.
+#
+# 생성: tools/v12_s4_contract.py — 본문의 모든 수치는 S2/S3 산출 JSON 과 V8 계약에서
+# 읽은 값이다. 사람이 옮겨 적은 수치는 0 이며 tools/v12_s4_contract_check.py 가 대사한다.
+#
+# 이 파일은 draft 다. 동결·개시는 사용자 결정(V12-D1)이며 계약 자체가 승인이 아니다.
+
+schema_version: 1
+
+contract_id: multivariate_timeseries_v12
+
+model_id: derived.first_touch_event_probability_v12
+
+model_version: 12
+
+# status = negative_result_draft — '개발 중' 이 아니다. 트랙이 개시되지 않았고
+# 게이트는 한 번도 무장되지 않았다. S3-2 판정(NEGATIVE_RESULT)이 이 상태의 근거다.
+status: negative_result_draft
+
+track: event_probability_first_touch
+
+supersedes: none — V9·V10·V11 은 각각 동결됐고 이 계약은 그것들을 대체하지 않는다.
+
+drafted_by: tools/v12_s4_contract.py (S4-1, V12 일요일 Opus 루프)
+
+drafted_during:
+  loop_window_start_kst: 2026-09-06 09:00 KST
+  loop_deadline_kst: 2026-09-07 09:00 KST
+  stage: S4-1
+
+# 이 계약이 무엇인가 — 성격을 본문 맨 앞에 못박는다. S3-2 이월 조항 C-S4-contract:
+# '계약 draft 를 조건부 통과로 되살리는 서술은 등록부 위반'.
+contract_character:
+  kind: negative_result_contract
+  meaning: 표적·기준선·게이트 산술을 사전등록하되, 이 표본에서 채택 가능한 후보가 없음을 계약 본문에 확정한다. 게이트는 armed=false 이며 어떤 후보도 평가되지 않았다.
+  is_not:
+  - 개시 승인이 아니다 — 트랙 개시는 사용자 결정 V12-D1.
+  - 조건부 통과가 아니다 — 통과·잠정통과·유예 어느 것도 아니다.
+  - V8 분포 계약의 개정이 아니다 — V8 계약의 어떤 좌표도 건드리지 않는다.
+  - 실전 자금 결정 근거가 아니다 — CLAUDE.md P3 게이트 미통과. 게이트 수치의 정본은 CLAUDE.md 이며 여기에 옮겨 적지 않는다.
+  authority_order:
+  - docs/design/V12_EVENT_TRACK_SUNDAY_OPUS_LOOP_DESIGN_260904.md §1·§2 (설계 정본)
+  - data/timeseries_v12/prereg/hypotheses.json (S3 등록부 — 규칙 정본)
+  - data/timeseries_v12/diagnostics/s3_verdict.json (S3-2 판정 — 결과 정본)
+  - 이 계약은 위 셋을 완화하지 않는다. 충돌 시 위가 이긴다.
+
+# 출처 — 이 계약의 모든 수치는 아래 파일에서 읽었다. 파일이 바뀌면 해시로 걸린다.
+provenance:
+  design_doc: docs/design/V12_EVENT_TRACK_SUNDAY_OPUS_LOOP_DESIGN_260904.md
+  prereg_commit: ec49646345f1f60292e418a366cb07c3e822f49c
+  prereg_blob_sha1: 36f91f4e2ef428727736d129fc6ba09b7ee41203
+  prereg_committed_kst: '2026-09-06T11:08:17+09:00'
+  prereg_immutability_rule: hypotheses.json 은 이 커밋 이후 수정·삭제 금지. S3-1/S3-2 는 읽기만 한다. 오기가 발견돼도 파일을 고치지 말고 S3-2 판정문에 정정 사실을 적는다 — forecasts/ 불변성 규칙과 같은 취급.
+  checkpoint_anchor: a4b817d445847d18302c7c6dd8da28915e36842f6e071404193e828113eaeb9e
+  loop_head_commit_at_checkpoint: 96f705d18d6f58051e82b0cbea7c3215918c7dc9
+  inputs_sha256:
+    data/timeseries_v12/diagnostics/first_touch_diagnostic.json: 42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39
+    data/timeseries_v12/diagnostics/reflection_baseline.json: 86b1253acde3a10d463891d975f4b7eee5599cc5a62868e9a286fb94b1786c2f
+    data/timeseries_v12/diagnostics/s2_entry_verdict.json: 13ad17295ca681c217f0c31c10cf380f4fadfebdc067c970de676754cba14216
+    data/timeseries_v12/diagnostics/s3_verdict.json: c406e30652130388fdc4eb6b915f95d8b3bc2eb66c15a058a7d5fc27eac10f4f
+    data/timeseries_v12/prereg/hypotheses.json: a2c1a9e72a1265dc68bf3e9d4660ce6c4095dc0e943f46d1cb3c61fb7a3bf4df
+    data/contracts/multivariate_timeseries_v8.yaml: 6d9b7f6fd20e52f310d21ce744449f577c667bf6eb04dc41cdf817e839e2ffe8
+    data/contracts/multivariate_timeseries_v10.yaml: 7aaedb295b2f89edd1c39a211d1022263a62d1f79b3520c1010354343ace9d4b
+  numbers_from_scripts_only: true
+
+# S3-2 판정의 전재 — 요약이 아니라 판정 JSON 의 필드 그대로다.
+negative_result:
+  decision: 전이 불가 (부정 결과 확정)
+  decision_code: NEGATIVE_RESULT
+  adopted_cells: []
+  adopted_count: 0
+  k_obs: 0
+  family_cells: 8
+  directions_evaluated: 16
+  directions_with_ci90_lower_gt_0: 0
+  failure_modes:
+    ci90_lower_below_zero: 10
+    ci90_lower_equal_zero_map_inert: 6
+  negative_control_T5:
+    failed: true
+    pass_rate_pooled: 0.254
+    threshold: 0.1
+    meaning: 귀무로 섞은 p 로도 채택 요건이 pooled 25.4% 확률로 충족된다 — 이 검정 기계가 낸 '통과' 는 증거로 쓸 수 없었다.
+    interpretation_limit: 통과율 ≤ 10% 는 '검정에 결함이 없다' 가 아니라 '이 음성 대조가 결함을 잡아내지 못했다' 는 뜻이다.
+  permutation_null:
+    replicates: 1000
+    k_mean_under_null: 2.764
+    p_k_ge_kobs: 1.0
+    family_claim_supported: false
+  governing_branch: T5_fail
+  branches_fired:
+  - T5_fail
+  - adopted_0
+  branch_precedence: T5_fail > adopted_0 (등록부 pre_committed_interpretation.T5_fail 원문)
+  s4_contract_mandate: T5 통과율 > 10% → 채택 전부 무효 + 부정 결과 계약. 이 경로가 adopted_0 보다 우선한다.
+  s4_contract_source: prereg.pre_committed_interpretation.T5_fail
+  established:
+  - 이 표본·이 창·이 분할에서 사전등록된 네 파생층 맵(T1~T4) 중 어느 것도 두 방향 모두에서 Brier 개선의 CI90 하한을 0 위로 올리지 못했다.
+  - T3(반사 앵커 혼합)은 전→후 두 지평에서 CI90 상한이 0 미만 — 미달을 넘어 악화다.
+  - T4(지평 단조 제약)는 이 표본에서 위반 0 건이라 무비용이자 무효과다.
+  - 음성 대조 T5 가 실패했다 — 검정 기계 결함의 증거다.
+  not_established:
+  - '''V8 first_touch 가 잘 보정돼 있다'' 가 아니다 — S2-1 과신 구조는 그대로다.'
+  - '''어떤 재보정도 불가능하다'' 가 아니다 — 부정된 것은 등록된 네 맵과 이 검정 절차다.'
+  - '''V8 이 반사원리 기준선을 이긴다/진다'' 를 새로 말하지 않는다 — 풀표본 판정(S2-2)이 정본.'
+  - 2015+ 봉인창에 대한 어떤 주장도 아니다 — 홀드아웃 미계산.
+  carryover_clauses_from_s3:
+    C-S4-contract: 이 계약을 '조건부 통과' 로 되살리는 서술 금지.
+    C-null-redesign: 결과를 본 뒤 귀무를 갈아끼워 판정을 되살리는 것 금지.
+    C-gate-arith: 기준선을 바꿔 문턱을 낮추는 것은 근거 명문화 없이 금지.
+    C-split-contrast: S2-3 분할창 대비를 S3/S4 근거로 인용 금지.
+    C-holdout: 2015+ 봉인창 미계산 유지 — 부정 결과가 홀드아웃을 여는 근거가 되지 않는다.
+
+# 표적 — 설계도 §1·등록부 target 승계. 판정기준은 첫 예측 이후 변경 금지(CLAUDE.md).
+target:
+  event: first_touch — 지평 내 지수 경로 최소값 ≤ 0.90 × S0 (원점 대비 −10% first-passage)
+  resolution_source: 일간 종가 최소값 (연속 모니터링 아님 — 기준선 선택의 근거)
+  y: first_touch_actual — 지평 내 지수 경로 최소값 ≤ 0.90 × S0 (원점 대비 −10% first-passage). run 의 scores[].first_touch_actual 을 1.0/0.0 으로.
+  p: V8 first_touch_probability — run 의 scores[].first_touch_probability. 어떤 재보정도 거치지 않은 원값.
+  asset: NASDAQ Composite
+  series_id: NASDAQCOM
+  horizons_sessions:
+  - 21
+  - 63
+  horizons_excluded:
+    values:
+    - 1
+    - 5
+    reason: S2-1·S2-2 규약 승계 — h1/h5 는 터치 기저율이 판정 불가 수준. 결과를 본 뒤의 배제가 아니라 S2 에서 이미 고정된 범위.
+  origin_frequency: weekly_last_completed_session
+  sample:
+    run_path: data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json
+    run_sha256: 38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727
+    experiment_label: E0_neutral_v2_identity
+    n_origins: 417
+    window:
+    - '2007-01-05'
+    - '2014-12-24'
+  split:
+    boundary: '2010-12-31'
+    early_n: 209
+    late_n: 208
+    frozen: 분할 경계 변경 금지. ±1y 경계 민감도는 S1-2 에서 이미 수행됐고 S3 채택 근거로 인용 금지.
+
+# 확률 계약 — 파생층 전용. V8 분포를 만들지도 바꾸지도 않는다.
+probability_contract:
+  space: derived_event_probability_v12
+  stored_unit: fraction
+  bounds:
+  - 0.0
+  - 1.0
+  layer: derived_from_v8_first_touch_probability
+  derived_layer_constraint: 모든 맵은 파생층이다. V8 분포·run 파일·계약·봉인 산출물을 어떤 형태로도 수정하지 않는다. p′ 는 새 배열로만 존재한다.
+  combine_with_official_forecasts: false
+  combine_with_scenario_v5_2: false
+  combine_with_v8_surface: false
+  publication_status: not_published
+  p3_gate_status: 미통과 — 모든 출력은 '참고 의견' 지위 (CLAUDE.md 하드 게이트)
+
+# 선행자 불변 — V8/V2 봉인 0바이트. 루프 전 구간 대사된 해시를 계약에 핀으로 박는다.
+predecessor_immutability:
+  v8_contract: data/contracts/multivariate_timeseries_v8.yaml
+  v8_contract_sha256: 6d9b7f6fd20e52f310d21ce744449f577c667bf6eb04dc41cdf817e839e2ffe8
+  v8_status: frozen_for_sealed_evaluation
+  v8_frozen_on: '2026-08-30'
+  sealed_source_hash: e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224
+  sealed_hash_convention: tools/v12_seal_check.py (sunday_opus_loop.sh sealed_hash() 규약 재현)
+  v8_ledger_hash: b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803
+  immutable: true
+  retune_prohibited: true
+  v2_benchmark_retune_prohibited: true
+  immutable_paths:
+  - forecasts
+  - calibration
+  - src
+  - data/timeseries_v8
+  - data/timeseries_v2
+  - questions
+  fail_closed: 위 해시 중 하나라도 달라지면 이 계약 아래의 어떤 평가도 무효다.
+
+# CRPS 게이트 무손상 제약 — V8 계약의 분포 게이트를 값 그대로 복제해 싣는다.
+# V12 는 이 값을 바꾸지 않고, 이 게이트의 판정을 다시 열지도 않는다. V8 은 이미 PASS 상태이며
+# 파생층은 분포를 건드리지 않으므로 CRPS 판정에 영향이 없어야 한다 — 그 '없음' 이 제약이다.
+crps_gate_intact:
+  principle: V12 이벤트 확률 트랙은 V8 분포 계층의 CRPS/coverage 게이트를 무손상으로 둔다.
+  v8_gate_is_settled: V8 은 design·holdout proxy 를 이미 통과했고, 이 계약은 그 판정을 재개하지도 번복하지도 않는다.
+  no_damage_requirements:
+  - V8 run·분포 산출물·봉인 원장에 쓰기 0 (data_policy.v8_store_write=prohibited).
+  - 파생층 p′ 는 새 배열로만 존재하며 CRPS·coverage 계산 입력에 들어가지 않는다.
+  - CRPS 게이트 수치의 완화·재산정 금지 — 아래 복제값은 참조 사본이지 개정 대상이 아니다.
+  - 파생층 도입이 V8 게이트 여유(margin)를 바꿀 수 없음을 배포 전 대사한다.
+  copied_from: data/contracts/multivariate_timeseries_v8.yaml (값 무변경 복제)
+  dev_gate_proxy:
+    design_long_horizon_mean_crps_min_improvement: 0.025
+    design_paired_se_max: 0.001
+    projected_full_window_ci90_upper_max: -0.0004
+    projection_reference_origins: 1011
+    design_short_horizon_crps_max_underperformance: 0.01
+    design_p10_p90_coverage:
+    - 0.76
+    - 0.84
+    design_p25_p75_coverage:
+    - 0.45
+    - 0.55
+    design_gfc_regime_p10_p90_minimum: 0.72
+    holdout_long_horizon_mean_crps_min_improvement: 0.02
+    holdout_paired_bootstrap_ci90_upper_max: 0.0
+    pit_leakage_count: 0
+    receipt_linkage: 1.0
+  publication_gate:
+    pit_leakage_count: 0
+    market_common_start_not_after: 2007-01-03
+    receipt_linkage: 1.0
+    short_horizon_crps_max_underperformance: 0.02
+    long_horizon_mean_crps_min_improvement: 0.02
+    long_horizon_stationary_bootstrap_ci_upper: 0.0
+    p10_p90_coverage:
+    - 0.76
+    - 0.84
+    p25_p75_coverage:
+    - 0.45
+    - 0.55
+    regime_p10_p90_minimum: 0.7
+    failure_surface: validation_pending_without_numbers
+  operational_gate:
+    required_market_max_age_hours: 48
+    per_group_max_age_hours_override:
+      DTWEXBGS_or_DTWEXB: 216
+    required_market_groups:
+    - - NASDAQCOM
+    - - VIX
+    - - DGS2
+    - - DGS10
+    - - DTWEXBGS
+      - DTWEXB
+    recent_origins: 26
+    crps_max_underperformance: 0.05
+    coverage_must_remain_in_publication_contract: true
+    failure_action: hide_new_numbers_validation_pending
+
+# 기준선 — 게이트가 이길 것을 요구하는 상대. 기후는 하한, 반사원리는 실질 상대다.
+# 판정이 일간 종가 기준이므로 이산 모니터링 보정판(BGK)이 정합 기준선이고, 연속식 2Φ 는
+# 구조적으로 터치를 과대추정한다 — 그래서 BGK 가 더 엄격한 쪽이며 구속 기준선으로 등록한다.
+baselines:
+  climatology_insample:
+    definition: 표본 기저율 상수 예측 (in-sample)
+    role: 하한 기준선 — 이기지 못하면 skill 주장 불가
+    caveat: in-sample 이라 낙관 편의. 병기 기준선은 expanding_climatology.
+  climatology_expanding:
+    definition: 만기 도래 원점만 · Jeffreys 평활 · 달력 근사 만기
+    role: 표본외 기후 — 병기 의무
+  reflection_2phi:
+    formula: p_reflect = 2·Φ(−ln(S/K)/(σ√T)) = 2·Φ(ln(0.90)/(σ√T))
+    sigma: EWMA λ=0.97 일간 변동성 — V8 _ewma_variance_series 재귀·같은 학습 슬라이스
+    barrier_k_over_s: 0.9
+    free_parameters: 0
+    assumptions:
+    - 드리프트 0
+    - 상수 변동성
+    - 연속 모니터링
+    - 정규 증분
+    known_biases:
+    - 연속 모니터링 가정 — 실제 판정은 일간 종가 최소값이므로 구조적 과대추정 (variants.discrete_monitoring_bgk 로 계량)
+    - 드리프트 0 — 표본 기간 나스닥 μ̂>0 이면 하방 터치 과대추정 (variants.drift_mu_hat)
+    - 정규 증분 — 실수익률 첨도로 짧은 지평 과소·긴 지평 과대 방향 불명확 [미검증]
+    role: 보조 기준선 (연속 모니터링 가정)
+  reflection_bgk:
+    definition: 일간 종가 모니터링 보정 — 연속식은 구조적으로 터치를 과대추정한다
+    beta: 0.582597
+    beta_note: β 는 지평에 의존하지 않는 보정 상수다 — h21·h63 이 같은 값인 것은 복제 오류가 아니라 정의상 그렇다.
+    beta_identical_across_horizons: true
+    free_parameters: 0
+    role: 구속 기준선 — 판정 규약(일간 종가)과 정합하며 2Φ 보다 엄격하다
+    binding: true
+  baseline_swap_prohibited: 결과를 본 뒤 구속 기준선을 2Φ 로 바꿔 문턱을 낮추는 것은 C-gate-arith 위반이다.
+
+# 실측 현황 — S2 가 계측한 V8 first_touch 의 상태. 후보 평가가 아니라 출발점 기록이다.
+measured_state_v8_first_touch:
+  h21:
+    n: 417
+    touches: 29
+    base_rate: 0.069544
+    brier_v8_first_touch: 0.061485
+    climatology_brier_insample: 0.064708
+    brier_skill_vs_insample_climatology: 0.049803
+    expanding_climatology:
+      eligible_n: 392
+      climatology_brier: 0.072335
+      model_brier_on_eligible: 0.065381
+      brier_skill: 0.096137
+    murphy_decomposition:
+      quantile_bins:
+        reliability: 0.003331
+        resolution: 0.005711
+        uncertainty: 0.064708
+        binning_residual: -0.000843
+      fixed_bins:
+        reliability: 0.009613
+        resolution: 0.011475
+        uncertainty: 0.064708
+        binning_residual: -0.001361
+    top_quintile_overconfidence:
+      v8_gap: 0.122958
+      v8_gap_ci90_lower: -0.009725
+      reflection_gap: 0.123204
+      reflection_gap_ci90_lower: 0.007792
+    paired_v8_vs_climatology:
+      loss_diff: 0.003223
+      ci90_lower: -0.011884
+      ci90_upper: 0.020559
+      bootstrap_se: 0.010206
+      mde50: 0.016789
+      n: 417
+    paired_v8_vs_reflection_2phi:
+      loss_diff: -0.00135
+      ci90_lower: -0.006668
+      ci90_upper: 0.002511
+      bootstrap_se: 0.002838
+      mde50: 0.004669
+      n: 417
+    paired_v8_vs_reflection_bgk:
+      loss_diff: -0.003345
+      ci90_lower: -0.011147
+      ci90_upper: 0.002904
+      bootstrap_se: 0.004316
+      mde50: 0.0071
+      n: 417
+    auc: 0.805412
+    gate_reference_brier:
+      reflection_2phi_baseline_brier: 0.060135
+      reflection_bgk_baseline_brier: 0.05814
+  h63:
+    n: 417
+    touches: 83
+    base_rate: 0.199041
+    brier_v8_first_touch: 0.144973
+    climatology_brier_insample: 0.159424
+    brier_skill_vs_insample_climatology: 0.090644
+    expanding_climatology:
+      eligible_n: 384
+      climatology_brier: 0.195867
+      model_brier_on_eligible: 0.155016
+      brier_skill: 0.208566
+    murphy_decomposition:
+      quantile_bins:
+        reliability: 0.010418
+        resolution: 0.015644
+        uncertainty: 0.159424
+        binning_residual: -0.009224
+      fixed_bins:
+        reliability: 0.011683
+        resolution: 0.026965
+        uncertainty: 0.159424
+        binning_residual: 0.000831
+    top_quintile_overconfidence:
+      v8_gap: 0.210667
+      v8_gap_ci90_lower: 0.035458
+      reflection_gap: 0.2417
+      reflection_gap_ci90_lower: 0.065441
+    paired_v8_vs_climatology:
+      loss_diff: 0.014451
+      ci90_lower: -0.022054
+      ci90_upper: 0.057643
+      bootstrap_se: 0.024995
+      mde50: 0.041117
+      n: 417
+    paired_v8_vs_reflection_2phi:
+      loss_diff: 0.004917
+      ci90_lower: -0.001855
+      ci90_upper: 0.010982
+      bootstrap_se: 0.004067
+      mde50: 0.00669
+      n: 417
+    paired_v8_vs_reflection_bgk:
+      loss_diff: 0.000965
+      ci90_lower: -0.010022
+      ci90_upper: 0.011179
+      bootstrap_se: 0.006413
+      mde50: 0.010549
+      n: 417
+    auc: 0.732523
+    gate_reference_brier:
+      reflection_2phi_baseline_brier: 0.149889
+      reflection_bgk_baseline_brier: 0.145938
+
+# MDE 규약 차 — 상류 두 산출물이 서로 다른 승수를 쓴다. 계량해 공시하고, 유리한 쪽을
+# 골라 쓰는 것을 금지한다.
+mde_convention:
+  diagnostic_multiplier: 리터럴 1.645 (S2-1·S2-2 진단의 mde50)
+  gate_multiplier: 정규분위 정확값 z(0.95) (S2-3 gate_arithmetic 의 mde_1645se)
+  worked_example_h21_reflection_2phi:
+    bootstrap_se: 0.002838162
+    diagnostic_mde50: 0.004668776
+    gate_mde_1645se: 0.004668361
+    absolute_difference: 4.15e-07
+    implied_gate_multiplier: 1.6448536
+  effect_on_verdicts: 차이는 소수 6째 자리이며 이 계약의 어떤 판정도 바꾸지 않는다. 게이트 문턱은 gate_arithmetic 규약을 따르고, 진단 표는 mde50 을 그대로 싣는다 — 두 규약을 섞어 유리한 쪽을 고르는 것은 금지.
+
+# 게이트 — 산술까지 사전등록하되 armed=false. 어떤 후보도 이 게이트로 평가된 적이 없다.
+# 문턱은 전부 S2 실측에서 유도된 값이며 임의 상수는 없다.
+gates:
+  armed: false
+  armed_reason: S3-2 부정 결과 — 채택 후보 0. 무장 조건은 reopen_protocol 참조.
+  evaluated_candidates: 0
+  unit_of_judgement: 셀 = (후보, 지평). 지평·후보 간 합산 채택 금지 (등록부 no_pooling).
+  G0_crps_no_damage:
+    rule: V8 봉인 해시·원장 해시가 baseline 과 일치하고 V8 store 쓰기 0.
+    hard: true
+    failure_action: 계약 아래 모든 평가 무효
+  G1_skill_vs_climatology:
+    rule: 두 지평 모두 후보 vs 기후 쌍대 손실차의 CI90 하한 > 0.
+    strict_inequality: true
+    both_horizons_required: true
+    companion_obligation: expanding climatology 대비 값을 병기한다 (eligible_n 차이 공시).
+  G2_skill_vs_reflection:
+    rule: 두 지평 모두 후보 vs 구속 기준선(reflection_bgk) 쌍대 손실차의 CI90 하한 > 0.
+    binding_baseline: reflection_bgk
+    companion_baseline: reflection_2phi (병기 의무 — 판정에는 쓰지 않는다)
+    point_estimate_form: BS_후보 ≤ BS_기준선 − 1.645·se (S2-2 규약)
+    rationale: S2-2 가 확인한 사실 — V8 first_touch 는 자유 파라미터 0 개의 반사원리 공식을 이기지 못한다. 기후 대비 개선만으로는 '쓸모'를 주장할 수 없다.
+    thresholds:
+      h21:
+        climatology_brier: 0.064708
+        vs_reflection_2phi:
+          baseline_brier: 0.060135
+          mde_1645se: 0.004668
+          required_candidate_brier_max: 0.055466
+          required_brier_skill_vs_climatology_min: 0.142819
+        vs_reflection_bgk:
+          baseline_brier: 0.05814
+          mde_1645se: 0.0071
+          required_candidate_brier_max: 0.051041
+          required_brier_skill_vs_climatology_min: 0.211214
+      h63:
+        climatology_brier: 0.159424
+        vs_reflection_2phi:
+          baseline_brier: 0.149889
+          mde_1645se: 0.006689
+          required_candidate_brier_max: 0.1432
+          required_brier_skill_vs_climatology_min: 0.101762
+        vs_reflection_bgk:
+          baseline_brier: 0.145938
+          mde_1645se: 0.010548
+          required_candidate_brier_max: 0.13539
+          required_brier_skill_vs_climatology_min: 0.150754
+  G3_bidirectional_transfer:
+    rule: 가설 H, 지평 h 의 셀이 채택되려면 early_to_late 와 late_to_early 두 방향 **모두** Δ 의 CI90 하한 > 0.
+    source: 설계도 §2 원문 — '채택 = 양방향 모두 CI90 하한 > 0'
+    frozen: §2 원문 불변. 완화·재해석 금지 (K-baseline).
+    directions:
+    - early_to_late
+    - late_to_early
+    fit_objective: 학습창 Brier 최소화 (평가창 정보 일절 미사용).
+    frozen_nuisance: τ(분위 문턱)·b(터치율)·λ·w 는 전부 학습창 값이며 평가창에서 재계산하지 않는다. 재계산은 전이 검정을 in-sample 로 되돌리는 행위이므로 금지.
+    test_statistic: Δ = mean_i[ (p_i − y_i)² − (p′_i − y_i)² ] (평가창). 양수 = 개선. 쌍대(paired) 손실차 d_i = (p_i−y_i)² − (p′_i−y_i)² 의 표본평균과 동일.
+    uncertainty:
+      bootstrap: stationary block bootstrap (감싸기)
+      block_length: 13
+      replicates: 2000
+      seed: 20260902
+      interval: percentile [5, 95] = CI90
+  G4_reliability:
+    rule: 후보의 Murphy reliability 가 두 binning 모두에서 V8 실측값보다 작고, 상위분위 과신 gap(예측 − 관측)의 CI90 하한이 두 지평 모두 0 이하로 내려간다.
+    subject_of_gap: 표적 구조 — 반사 기준선 기준(S2-3 R2). 주체 선택은 사용자 결정 V12-D2.
+    current_v8_reliability:
+      h21:
+        quantile_bins: 0.003331
+        fixed_bins: 0.009613
+      h63:
+        quantile_bins: 0.010418
+        fixed_bins: 0.011683
+    current_gap_ci90_lower_must_fall_below_zero:
+      h21: 0.007792
+      h63: 0.065441
+    note: reliability 는 binning 의존량이다. 한 binning 만 인용해 통과를 주장하는 것 금지.
+  G5_reporting_obligations:
+    mde: 모든 셀에 MDE = 1.645 × bootstrap_se 를 병기한다. |Δ| < MDE 인 셀은 부호와 무관하게 '결정적 증거 없음' 으로 라벨하고, 개선 주장에 인용할 수 없다.
+    concentration: 모든 셀에 (a) 상위 5% |d_i| 가 |d| 총합에서 차지하는 비중, (b) 그 상위 5% 를 제거한 뒤의 Δ 부호를 보고한다. 부호가 뒤집히는 셀은 '집중도 취약' 라벨을 달고, 라벨이 달린 셀은 채택되더라도 그 사실을 판정문에 병기해야 한다.
+    no_cell_dropping: 모든 셀·방향을 미달·퇴화 포함 전수 보고한다.
+    negative_control_required: T5 류 음성 대조를 동반하지 않은 채택 주장은 무효.
+    multiplicity: family 수준의 증거 주장은 P(k ≥ k_obs) ≤ 0.05 일 때만. 초과 시 개별 셀이 채택돼도 'family 수준에서는 다중검정으로 설명 가능' 을 판정문에 병기.
+  current_status_of_v8_raw_probability:
+    h21:
+      G1_vs_climatology: 미달
+      G1_ci90_lower: -0.011884
+      G2_vs_reflection_2phi: 미달
+      G2_2phi_ci90_lower: -0.006668
+      G2_vs_reflection_bgk: 미달
+      G2_bgk_ci90_lower: -0.011147
+      G4_overconfidence_still_significant: true
+      G4_top_quintile_gap_ci90_lower: 0.007792
+    h63:
+      G1_vs_climatology: 미달
+      G1_ci90_lower: -0.022054
+      G2_vs_reflection_2phi: 미달
+      G2_2phi_ci90_lower: -0.001855
+      G2_vs_reflection_bgk: 미달
+      G2_bgk_ci90_lower: -0.010022
+      G4_overconfidence_still_significant: true
+      G4_top_quintile_gap_ci90_lower: 0.065441
+  current_status_note: 이 줄은 '오늘의 V8 원값이 게이트 앞에 어떻게 서 있는가' 의 기록이지 후보 평가가 아니다. 게이트는 armed=false 다.
+
+# 게이트 도달 가능성 산술 — 재보정만으로 구속 기준선을 넘을 수 있는가.
+# 상한 = 완전 재보정(REL=0) 가상 후보의 BSS. 상한 < 요구치면 '재보정 경로로는 도달 불가' 다.
+gate_feasibility_arithmetic:
+  definition: 문턱 BSS = 1 − (BS_기준선 − 1.645·se)/BS_기후 — se 를 후보 모델에서도 같다고 본 근사(S2-2 규약). 상한 BSS = 1 − (BS_V8 − REL)/BS_기후, REL 은 in-sample 추정이라 상한 자체가 낙관 편의.
+  by_horizon:
+    h21:
+      recalibration_ceiling_bss:
+        fixed_bins: 0.198368
+        quantile_bins: 0.101276
+        max: 0.198368
+      verdict_by_baseline:
+        reflection_2phi:
+          required_brier_skill_vs_climatology_min: 0.142819
+          reachable_under_fixed_bin_ceiling: true
+          reachable_under_quantile_bin_ceiling: false
+          reachable_under_any_binning: true
+          headroom_vs_max_ceiling: 0.055549
+        reflection_bgk:
+          required_brier_skill_vs_climatology_min: 0.211214
+          reachable_under_fixed_bin_ceiling: false
+          reachable_under_quantile_bin_ceiling: false
+          reachable_under_any_binning: false
+          headroom_vs_max_ceiling: -0.012847
+    h63:
+      recalibration_ceiling_bss:
+        fixed_bins: 0.163928
+        quantile_bins: 0.15599
+        max: 0.163928
+      verdict_by_baseline:
+        reflection_2phi:
+          required_brier_skill_vs_climatology_min: 0.101762
+          reachable_under_fixed_bin_ceiling: true
+          reachable_under_quantile_bin_ceiling: true
+          reachable_under_any_binning: true
+          headroom_vs_max_ceiling: 0.062166
+        reflection_bgk:
+          required_brier_skill_vs_climatology_min: 0.150754
+          reachable_under_fixed_bin_ceiling: true
+          reachable_under_quantile_bin_ceiling: true
+          reachable_under_any_binning: true
+          headroom_vs_max_ceiling: 0.013174
+  reading: h21 은 구속 기준선(BGK) 요구치가 재보정 상한을 넘어선다 — 상단 수축류 재보정만으로는 도달할 수 없다는 뜻이며, S3 의 부정 결과와 같은 방향을 가리킨다. h63 은 상한 안에 들어오지만 여유가 좁다.
+  caveat: 상한은 REL 이 in-sample 추정이라 그 자체로 낙관 편의를 안는다. 따라서 '도달 가능' 은 가능성 진술이지 예측이 아니다.
+  does_not_lower_thresholds: 이 산술은 문턱을 조정하는 근거가 아니다 (C-gate-arith).
+
+# 정지점 2 — V9/V10 헌법 승계. 자동 소모 경로는 코드에 존재하지 않는다.
+stopping_points:
+  count: 2
+  holdout:
+    window:
+    - '2015-01-01'
+    - '2018-12-31'
+    requires_explicit_user_approval: true
+    consumption: finalist 당 1회, 자동 소모 금지
+    execution_path: absent_by_construction — 이 단계의 CLI·하네스에 해당 verb 부재
+    current_state: 미소모 — V12 는 홀드아웃을 열지 않았다 (C-holdout)
+  sealed:
+    window:
+    - '2019-01-01'
+    - latest
+    maximum_disclosures_per_model_version: 1
+    requires_explicit_user_signoff: true
+    separate_session_required: true
+    retune_after_failure: prohibited
+    current_state: 미실행 — V12 루프의 봉인 실행 0회
+  loop_execution_record:
+    backtest_runs: 0
+    holdout_runs: 0
+    sealed_runs: 0
+    refresh_runs: 0
+    push: 0
+
+# 개발 규율 — 트랙이 열리지 않았으므로 예산은 0 이다. 열릴 때 적용될 규약만 등록한다.
+development_protocol:
+  track_open: false
+  evaluations_spent: 0
+  maximum_development_evaluations: 24
+  design_window_only_for_iteration: true
+  holdout_maximum_finalists: 3
+  experiment_ledger: data/timeseries_v12/ledgers/development_experiments.jsonl
+  ledger_append_only: true
+  ledger_exists: false
+  preregistered_hypotheses_exhausted:
+  - T1
+  - T2
+  - T3
+  - T4
+  - T5
+  exhausted_meaning: T1~T4 는 이 표본에서 소진됐다. 같은 표본에 다섯 번째 맵을 사후에 만들어 다시 재는 것은 등록부 no_post_hoc_hypotheses 위반이다.
+
+# 재개 프로토콜 — 이 부정 결과를 뒤집는 유일한 경로. 되살리기가 아니라 새 검정이다.
+reopen_protocol:
+  only_path: 다른 데이터 (사용자 결정 V12-D4)
+  why: 부정된 것은 이 표본·이 창·이 분할에서의 네 맵과 이 검정 기계다. 같은 표본에서 다섯 번째 맵을 만드는 것도, 귀무를 갈아끼우는 것도 금지돼 있다.
+  preconditions_all_required:
+  - P1 사용자 결정 V12-D1(트랙 개시) 및 V12-D4(다른 데이터) 승인.
+  - P2 검정 기계 수리 — T5 실패(pooled 0.254)의 원인을 규명하고, 수리된 기계가 새 음성 대조를 통과함을 결과 보기 전에 보인다.
+  - P3 새 사전등록 — 가설·문턱·귀무·분할을 결과 보기 전 커밋. 기존 등록부의 재사용이 아니라 새 등록이다.
+  - P4 새 데이터의 PIT·영수증 등급이 data_policy 를 만족한다.
+  - P5 V8/V2 봉인 해시 무변경.
+  prohibited_shortcuts:
+  - 같은 표본에서 T5 이후 가설 추가 (no_post_hoc_hypotheses).
+  - 결과를 본 뒤 귀무 교체로 판정 되살리기 (C-null-redesign).
+  - 구속 기준선을 완화해 문턱 낮추기 (C-gate-arith).
+  - S2-3 분할창 대비를 채택 근거로 인용 (C-split-contrast).
+  - 홀드아웃 조기 개봉으로 표본 늘리기 (C-holdout).
+  compliance_wall: 설계도 §0 — 옵션 표면·일중 데이터는 CBOE 허가 미발송·합법 일중 소스 부재로 현재 루프 밖이다. V12-D4 는 그 벽을 여는 결정이기도 하다.
+
+# 금지 — V8·V10 계약 금지 키의 합집합을 전부 승계하고 V12 고유 조항을 얹는다.
+# true = 금지된 행위. 승계 누락은 검증기가 잡는다.
+prohibitions:
+  inherited_from_v8_and_v10:
+    automatic_holdout_consumption: true
+    automatic_main_self_modification_in_production: true
+    automatic_sealed_disclosure: true
+    deep_learning_or_learned_weights: true
+    dev_gate_threshold_relaxation: true
+    direct_index_level_training: true
+    exogenous_feature_additions: true
+    forced_endpoint: true
+    future_actual_exogenous: true
+    mutate_v2: true
+    mutate_v8: true
+    official_ledger_write: true
+    retune_v2: true
+    retune_v8: true
+    scenario_v5_2_mutation: true
+    sealed_2019_access_during_development: true
+    secret_loading_in_loops: true
+    silent_feature_drop: true
+    silent_normalization: true
+    v2_store_write: true
+    v8_store_write: true
+  v12_specific:
+    crps_gate_threshold_relaxation: true
+    gate_threshold_relaxation: true
+    binding_baseline_swap_after_results: true
+    post_hoc_hypotheses_on_same_sample: true
+    null_redesign_after_results: true
+    revive_negative_result_as_conditional_pass: true
+    split_contrast_as_adoption_evidence: true
+    backtest_of_llm_questions: true
+    forecasts_directory_write: true
+    publication_without_p3_gate: true
+  inheritance_rule: 'V8·V10 금지 키는 하나도 빠지지 않는다. 파생층이 구조적으로 저촉될 수 없는 항목(예: 분포 학습 관련)도 완화하지 않고 그대로 싣는다.'
+
+# 한계 — 이 계약이 안고 있는 미검증. 숨기지 않고 계약 본문에 싣는다.
+known_limits:
+- N1 귀무가 T1 류 상단 수축 맵의 적법한 귀무인지 [미검증] — 대안 귀무 미계산.
+- 귀무 통과율의 지평 간 격차(T1 h21 0.503 vs h63 0.005) 기전 [미검증].
+- T4 두 셀의 비독립성을 family 8셀 산술이 무시한다 [미검증].
+- 국면(GFC/calm) 층화 CI 미산출 — S2 규약 승계.
+- h1·h5 지평 미평가 — 터치 기저율이 판정 불가 수준.
+- 2015+ 봉인창 미계산 — 의도적 홀드아웃 보존.
+- 공통 창(2007–14) 전반부가 GFC 로 지배돼 '전반→후반 전이' 가 곧 '위기→평온 전이' 다 (설계도 §0 인정 사항).
+- 재보정 상한의 REL 이 in-sample 추정이라 상한 자체가 낙관 편의를 안는다.
+- G4 의 gap 주체 선택(R2 = 표적 구조)이 옳은 독해인지는 사용자 판단 V12-D2.
+- 상류 두 산출물의 MDE 승수 규약이 다르다 (mde_convention) — 판정 무영향이나 미정리.
+- measured_state 의 h21 v8_gap_ci90_lower 는 0 을 포함한다 — 과신 구조의 주체를 V8 로 잡으면(S2-3 R1) 두 지평 재현이 성립하지 않는다. 이 계약은 R2 를 쓰며 그 선택은 V12-D2.
+
+# 사용자 결정 대기 — 이 계약은 어느 것도 대신 결정하지 않는다.
+decisions_pending:
+  V12-D1: 트랙 개시 여부 — S3 부정 결과를 받고도 열 것인가.
+  V12-D2: 게이트 임계와 gap 주체(R2 vs R1) 선택.
+  V12-D3: 파생층 배포 — 라이브 카드에 이벤트 확률 표시 여부 (현 계약은 not_published).
+  V12-D4: 다른 데이터 — CBOE 허가 요청 발송 여부. reopen_protocol 의 유일 경로.
+  V12-D5: V10 조합 격자 재개 여부 (S1-3 제안 — 이 계약 밖).
