@@ -3,6 +3,7 @@
   "title": "first_touch 실력 계측",
   "status": "완료",
   "stage": "S2",
+  "commit": "27dce89f (산출물) + 후속 커밋(본 필드 기록)",
   "read_only": true,
   "forbidden_verbs_executed": [],
   "seal_reconciliation": {
