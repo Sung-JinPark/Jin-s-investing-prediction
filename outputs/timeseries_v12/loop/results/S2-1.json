@@ -1,0 +1,133 @@
+{
+  "task_id": "S2-1",
+  "title": "first_touch 실력 계측",
+  "status": "완료",
+  "stage": "S2",
+  "read_only": true,
+  "forbidden_verbs_executed": [],
+  "seal_reconciliation": {
+    "sealed_sha256": "e3ff2fdb64ac71c0f05ae8e4508ef1c5a7c8fba7b78d81548918881032c8d224",
+    "sealed_matches_boot_baseline": true,
+    "ledger_sha256": "b9c492be276f684832aac373f80252b305cee980d4312ba3d1e5a707b04bf803",
+    "ledger_matches_baseline": true,
+    "checked_before_and_after": true,
+    "note": "forecasts/·calibration/·src/·data/timeseries_v8·v2 git status 무변경 확인."
+  },
+  "artifacts": {
+    "data/timeseries_v12/diagnostics/first_touch_diagnostic.json": "42b188578bc9855e3c432ec3628bbb3f22729301697ff3068fc4a4bc0dab8d39",
+    "docs/review/V12_S2_1_FIRST_TOUCH_MEASUREMENT.md": "274fda6c4e85eead730f3eb4ca21627f659c44067c90ab7edf63141e6f1d0104",
+    "outputs/timeseries_v12/loop/_s2_1_tables.md": "13c5dae9ae3dc6a00be1c3f2bed9dc8e6e7718ebe2b1c6c4f33db8bc84af20f0",
+    "tools/v12_first_touch_diag.py": "bdaaa6d6c67a28ce0426e5f76eab4485d069c48702fc40a09f86925e31e23207",
+    "tools/v12_ft_tables.py": "7256a4e1c37411e6f7eb3ce56374a03ffbe9828853c0574825a459d5753c166a",
+    "tools/v12_ft_verify.py": "058b8c84e9c76bf8826fff25104a71b8cb3a4b0ee702f3c6213034c323142b60",
+    "tools/v12_ft_check.py": "1df5ac065224faa4d9d28477498167696575964c24d0faa01776ac9d9acca162",
+    "tools/v12_ft_probe.py": "ff36a7720b00c1556baf873c15d5967e90919928569eafacf8a5cb2988ea4a65"
+  },
+  "accept_check": {
+    "requirement": "과신 구조 재현 여부 명시",
+    "artifact_named_in_spec_exists": true,
+    "verdict_stated": "방향으로는 완전 재현(8/8 지평×국면 셀), 통계적 강도로는 부분 재현(h63 풀표본·두 지평 비GFC 부분표본만 CI90 하한>0, h21 풀표본 −0.0097 미달)",
+    "both_gate_readings_published": true
+  },
+  "target": {
+    "run": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+    "experiment_label": "E0_neutral_v2_identity",
+    "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727",
+    "origins": 417,
+    "window": ["2007-01-05", "2014-12-24"],
+    "event": "지평 내 지수 경로 최소값 ≤ 0.90 (원점 대비 −10% first-passage)",
+    "holdout_policy": "2015+ 봉인창 first_touch 보정·국면 통계 미산출 — V12 잠재 홀드아웃 보존"
+  },
+  "method": {
+    "bootstrap": "정상 블록 부트스트랩 ℓ=13, B=2000, seed 20260902, percentile[5,95] (S1 규약 동일)",
+    "effective_sample": "417/13 ≈ 32 — CI 폭은 방법 결함이 아니라 표본 정보량",
+    "gfc": ["2008-01-01", "2009-06-30"],
+    "calm": "V10 primary(EWMA97 분산비) ≤ p80",
+    "independent_recheck": "tools/v12_ft_verify.py — 헤드라인 전 항목 소수 10자리 일치, Murphy 항등식 1e-12 이내"
+  },
+  "headline_note": "아래 headline 은 tools/v12_ft_exact.py 가 진단 JSON 에서 그대로 뽑은 값 (수기 전사 없음).",
+  "headline": {
+    "h21": {
+      "n": 417,
+      "touches": 29,
+      "base_rate": 0.06954436450839328,
+      "brier": 0.061485287170263796,
+      "climatology_brier_insample": 0.06470794587351701,
+      "bss_insample": 0.049803137153394794,
+      "bss_insample_ci90": [-0.3431087628145496, 0.22774368610432172],
+      "loss_diff_vs_insample_climatology": 0.0032226587032532224,
+      "loss_diff_vs_insample_climatology_ci90": [-0.01188400194829748, 0.02055859491651282],
+      "bss_vs_expanding_climatology": 0.09613656831697348,
+      "loss_diff_vs_expanding": 0.006954016734341007,
+      "loss_diff_vs_expanding_ci90": [-0.00950545935887783, 0.026075595417719696],
+      "auc": 0.8054123711340206,
+      "auc_ci90": [0.6314757660879096, 0.9038753168450843],
+      "logistic_slope": 0.7014446137110134,
+      "logistic_slope_ci90": [0.3391621845440225, 1.1096301633497565],
+      "top_quintile_mean_p": 0.3372440476190476,
+      "top_quintile_observed": 0.21428571428571427,
+      "top_quintile_gap": 0.12295833333333331,
+      "top_quintile_gap_ci90": [-0.009725483011325746, 0.2394382539682539]
+    },
+    "h63": {
+      "n": 417,
+      "touches": 83,
+      "base_rate": 0.19904076738609114,
+      "brier": 0.1449727356115108,
+      "climatology_brier_insample": 0.1594235403044471,
+      "bss_insample": 0.09064410855097038,
+      "bss_insample_ci90": [-0.23716319021244686, 0.28593452415872905],
+      "loss_diff_vs_insample_climatology": 0.014450804692936312,
+      "loss_diff_vs_insample_climatology_ci90": [-0.02205399343532367, 0.05764263979499854],
+      "bss_vs_expanding_climatology": 0.20856583315189636,
+      "loss_diff_vs_expanding": 0.04085122940408847,
+      "loss_diff_vs_expanding_ci90": [0.004900624367821013, 0.08040840064121645],
+      "auc": 0.7325229059952384,
+      "auc_ci90": [0.571301365728818, 0.8512548550855003],
+      "logistic_slope": 0.6789194214994463,
+      "logistic_slope_ci90": [0.26721948130217243, 1.0888240471090451],
+      "top_quintile_mean_p": 0.6154285714285714,
+      "top_quintile_observed": 0.40476190476190477,
+      "top_quintile_gap": 0.21066666666666667,
+      "top_quintile_gap_ci90": [0.035458080808080765, 0.38166]
+    }
+  },
+  "key_findings": [
+    "설계도 §0 의 네 수치 모두 재현 — BSS h21 +4.98%(주장 +4.6%)·h63 +9.06%(+9.9%), 상위분위 h21 0.3372→0.2143(0.34→0.21)·h63 0.6154→0.4048(0.61→0.43). 점추정 산술 오류 없음.",
+    "신규 정정: '실력 +4.6%/+9.9%' 는 0과 구분되지 않는다. 상수기후 대비 쌍대 손실차 CI90 이 두 지평 모두 0을 걸침(h21 [-0.0119,+0.0206], h63 [-0.0221,+0.0576]). CI90 하한>0 은 h63 × 전향적 확장기후 한 조합뿐(+0.0409 [+0.0049,+0.0804]). §0 수치는 앞으로 CI 병기 없이 인용 금지.",
+    "실력의 정체는 보정이 아니라 판별 — 두 지평·두 binning 모두 RES>REL, AUC h21 0.8054 CI90[0.6315,0.9039]·h63 0.7325 CI90[0.5713,0.8513] 로 두 지평 CI90 하한>0.5. 본 진단에서 CI90 으로 지지되는 가장 강한 사실.",
+    "V10/V11 과 결정적 차이 — 효과가 GFC 밖에 있다. GFC 78원점 제거한 339원점에서 상위분위 gap CI90 하한이 두 지평 모두 양수(h21 +0.0447, h63 +0.0536). V10 챔피언(순이득 103.95%가 21 위기원점)의 구조가 아님.",
+    "다만 강도는 고변동 국면에 집중 — storm_p80 h63 평균 gap +0.2577 CI90[+0.1025,+0.4213] vs calm_p80 h63 +0.0256 CI90[-0.0458,+0.0882](0과 무구분).",
+    "실패 형태가 국면마다 다름 — GFC·calm 은 기울기 문제(0.38~0.76<1), storm_p80 h63 은 기울기 1.2698>1 인데 평균 gap +0.2577 = 절편(수준) 편향. T1(상단 수축)과 전역 기울기 맵은 이 국면에서 서로 다른 처방.",
+    "국면내 BSS 8셀 중 7셀 음수(유일 양수 h63 calm_p80 +0.0601) — 기후 대비 이득의 상당 부분은 국면 간 수준 이동을 맞힌 것. S2-2 반사원리 기준선 비교가 필요한 이유.",
+    "T4(지평 단조)는 이 표본에서 효과 정확히 0 — 417 전수에서 y21>y63 위반 0건·p21>p63 위반 0건. 무비용인 동시에 무효과.",
+    "h21 전이 검정 검정력 거의 없음 — 후반창(2011–14) 터치 7건/208원점. 어느 방향 결과든 '결정적 증거 없음'으로 읽어야 함.",
+    "개입의 이론적 상한: REL→0 완전보정 시 BSS 개선 h21 +5.2~14.9%p·h63 +6.5~7.3%p. REL 이 in-sample 추정이라 상한 자체가 낙관 편의 — 1-파라미터 맵은 그 일부만 도달 가능.",
+    "S1-2 이월 확인: calm p80 실효 비중 356/417 = 85.4%(명목 80%). 임계값이 정확히 primary=1.000000 이고 그 값에 질량점이 있어 61원점이 더 남음. primary 결측 0."
+  ],
+  "verdict": {
+    "s3_entry_condition_met_strict": false,
+    "s3_entry_condition_met_design_literal": true,
+    "O1_top_quintile_gap_ci90_lower_positive": {"h21": false, "h63": true},
+    "O2_logistic_slope_ci90_upper_below_1": {"h21": false, "h63": false},
+    "O3_regime_sign_invariant": {"h21": true, "h63": true},
+    "direction_only": {"top_gap_positive_cells": "8/8", "mean_gap_positive_cells": "8/8",
+                       "slope_below_one_cells": "7/8", "slope_exception": "h63/storm_p80=1.2698"},
+    "note": "두 판정이 갈린다. S2-1 은 두 기준의 결과를 모두 공표할 뿐 기준을 사후 선택하지 않는다. 진입/중단은 S2-3 이 S2-2 반사원리 기준선 결과와 함께 판정."
+  },
+  "open_questions": [
+    "S2-3 판정 입력: 엄격 기준(O1∧O3)과 설계도 문자 기준이 갈림 — 어느 쪽을 V12 게이트로 승계할지는 S2-3/S4-2 결정 사항.",
+    "이 과신이 V8 특유인지 경로 최소값 first-passage 몬테카를로 추정의 일반 성질인지 미확정 [미검증] — S2-2 기계 기준선이 같은 방향으로 과신이면 '모델 결함'이 아니라 '표적의 구조'.",
+    "h21 풀표본이 자기 부분표본(non_gfc)보다 약한 것은 GFC 블록 55/84 원점이 상위분위를 채워 블록 부트스트랩 분산을 키우기 때문 — 표본 구조이지 방법 인공물이 아니나, S3 에서 국면 층화 부트스트랩을 쓸지 사전 결정 필요.",
+    "로짓 기울기의 소표본 편의 미보정(h21 터치 29건) — 보강 증거로만 사용, 게이트 미포함.",
+    "S1-3 이월 유지: V10 조합 격자 재개 여부는 사용자 결정(V12-D5 제안).",
+    "S1-1 이월 유지: V11 CI 난수 규약 차(원본 seed 12345 vs 재계산 20260902) 병기 필요."
+  ],
+  "not_done": [
+    "2015+ 봉인창 first_touch 진단 미산출 — 의도적 홀드아웃 보존 결정(태만 아님). 탐색 중 관측된 것은 봉인 run 전체 집계 터치율뿐이며 본 진단 어떤 수치에도 미사용.",
+    "반사원리 기계 기준선(2Φ) 대비 skill 미산출 — 백로그상 S2-2 태스크.",
+    "h1(터치 0건)·h5(4건)은 계측만 하고 국면 분해·판정에서 제외.",
+    "hermetic pytest 미실행 — src/ 변경 0(신규 tools/·docs/·data/timeseries_v12 산출물만), 제품 코드 무영향."
+  ],
+  "next_task": "S2-2"
+}

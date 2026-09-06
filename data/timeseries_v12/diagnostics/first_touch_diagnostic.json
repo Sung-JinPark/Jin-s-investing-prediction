@@ -1,0 +1,2134 @@
+{
+  "design_section0_claim_check": {
+    "claimed": {
+      "bss_h21": 0.046,
+      "bss_h63": 0.099,
+      "h21_top_bin_observed": 0.21,
+      "h21_top_bin_p": 0.34,
+      "h63_top_bin_observed": 0.43,
+      "h63_top_bin_p": 0.61
+    },
+    "recomputed": {
+      "bss_h21_vs_insample_climatology": 0.049803137153394794,
+      "bss_h63_vs_insample_climatology": 0.09064410855097038,
+      "h21_top_quintile_mean_p": 0.3372440476190476,
+      "h21_top_quintile_observed": 0.21428571428571427,
+      "h63_top_quintile_mean_p": 0.6154285714285714,
+      "h63_top_quintile_observed": 0.40476190476190477
+    },
+    "source": "docs/design/V12_EVENT_TRACK_SUNDAY_OPUS_LOOP_DESIGN_260904.md §0"
+  },
+  "generated_by": "tools/v12_first_touch_diag.py",
+  "horizon_monotonicity": {
+    "actual_violations_y21_gt_y63": 0,
+    "common_origins": 417,
+    "max_violation_magnitude": 0.0,
+    "note": "터치는 지평 단조 — 위반 0 이면 T4 제약은 이 표본에서 무비용(자유도 0)",
+    "probability_violations_p21_gt_p63": 0
+  },
+  "method": {
+    "bootstrap": {
+      "block": 13,
+      "note": "S1 규약과 동일",
+      "percentile": [
+        5,
+        95
+      ],
+      "replicates": 2000,
+      "seed": 20260902,
+      "type": "stationary block"
+    },
+    "calm_definition": "V10 primary(EWMA97 분산비) ≤ p80",
+    "expanding_climatology": "만기 도래 원점만 · Jeffreys 평활 · 달력 근사 만기",
+    "fixed_bins": 10,
+    "gfc_window": [
+      "2008-01-01",
+      "2009-06-30"
+    ],
+    "p_clip_for_logit": 0.00025,
+    "quantile_bins": 5
+  },
+  "per_horizon": {
+    "1": {
+      "auc": null,
+      "base_rate": 0.0,
+      "bootstrap_failures": {
+        "auc": 2000,
+        "logistic": 2000
+      },
+      "brier": 3.082733812949641e-06,
+      "brier_skill_vs_insample_climatology": null,
+      "ci90": {
+        "auc": null,
+        "brier": {
+          "bootstrap_se": 2.5065376206751722e-06,
+          "ci90_lower": 1.3249400479616307e-07,
+          "ci90_upper": 8.0306654676259e-06,
+          "mde50": 4.1232543860106585e-06,
+          "replicates_used": 2000
+        },
+        "bss_expanding": {
+          "bootstrap_se": 0.13784802845779345,
+          "ci90_lower": 0.5990406118928339,
+          "ci90_upper": 0.9956022131162406,
+          "mde50": 0.22676000681307024,
+          "replicates_used": 2000
+        },
+        "bss_insample": null,
+        "logistic_slope": null,
+        "loss_diff_expanding": {
+          "bootstrap_se": 1.3277781286229363e-05,
+          "ci90_lower": 7.454573311492802e-06,
+          "ci90_upper": 4.986554103427577e-05,
+          "mde50": 2.1841950215847304e-05,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_fixed_b": {
+          "bootstrap_se": 2.5065376206751722e-06,
+          "ci90_lower": -8.0306654676259e-06,
+          "ci90_upper": -1.3249400479616307e-07,
+          "mde50": 4.1232543860106585e-06,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_replicate_b": {
+          "bootstrap_se": 2.5065376206751722e-06,
+          "ci90_lower": -8.0306654676259e-06,
+          "ci90_upper": -1.3249400479616307e-07,
+          "mde50": 4.1232543860106585e-06,
+          "replicates_used": 2000
+        },
+        "top_quintile_gap": {
+          "bootstrap_se": 0.00025906796079733143,
+          "ci90_lower": 8.633093525179857e-05,
+          "ci90_upper": 0.0009184652278177458,
+          "mde50": 0.0004261667955116102,
+          "replicates_used": 2000
+        }
+      },
+      "climatology_brier_insample": 0.0,
+      "expanding_climatology": {
+        "bss_vs_expanding": 0.8891090119915819,
+        "climatology_mean": 0.0038022256433795725,
+        "eligible_n": 396,
+        "expanding_climatology_brier": 2.927390385380722e-05,
+        "maturity_days": 9,
+        "min_train": 20,
+        "model_brier_on_eligible": 3.246212121212122e-06,
+        "observed_base_on_eligible": 0.0
+      },
+      "fixed_bins": {
+        "edges": [
+          -1e-12,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.000000000001
+        ],
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.1
+            ],
+            "gap": 0.00041726618705035975,
+            "mean_p": 0.00041726618705035975,
+            "n": 417,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.006446289538683035
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.1,
+              0.2
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.2,
+              0.30000000000000004
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.30000000000000004,
+              0.4
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.4,
+              0.5
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 5,
+            "edges": [
+              0.5,
+              0.6000000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 6,
+            "edges": [
+              0.6000000000000001,
+              0.7000000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 7,
+            "edges": [
+              0.7000000000000001,
+              0.8
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 8,
+            "edges": [
+              0.8,
+              0.9
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 9,
+            "edges": [
+              0.9,
+              1.000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          }
+        ]
+      },
+      "horizon": 1,
+      "logistic_recalibration": null,
+      "mean_loss_diff_vs_climatology": -3.082733812949641e-06,
+      "murphy_fixed_bins": {
+        "binning_residual": 2.908622742094095e-06,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 1,
+        "brier": 3.082733812949641e-06,
+        "rel_minus_res_plus_unc": 1.7411107085554582e-07,
+        "reliability": 1.7411107085554582e-07,
+        "resolution": 0.0,
+        "uncertainty": 0.0
+      },
+      "murphy_quantile_bins": {
+        "binning_residual": 2.908622742094095e-06,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 1,
+        "brier": 3.082733812949641e-06,
+        "rel_minus_res_plus_unc": 1.7411107085554582e-07,
+        "reliability": 1.7411107085554582e-07,
+        "resolution": 0.0,
+        "uncertainty": 0.0
+      },
+      "n": 417,
+      "p_max": 0.017,
+      "p_mean": 0.00041726618705035975,
+      "p_median": 0.0,
+      "p_zero_count": 355,
+      "point_estimates": {
+        "loss_diff_expanding": 2.6027691732595096e-05,
+        "loss_diff_insample_fixed_b": -3.082733812949641e-06,
+        "loss_diff_insample_replicate_b": -3.082733812949641e-06
+      },
+      "quantile_bins": {
+        "edges": [
+          -1e-12,
+          0.017000000001
+        ],
+        "meta": {
+          "collapsed_by_ties": true,
+          "effective_bins": 1,
+          "raw_quantiles": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.017
+          ],
+          "requested_bins": 5
+        },
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.017000000001
+            ],
+            "gap": 0.00041726618705035975,
+            "mean_p": 0.00041726618705035975,
+            "n": 417,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.006446289538683035
+            ],
+            "touches": 0
+          }
+        ]
+      },
+      "top_quintile_gap": 0.00041726618705035975,
+      "touches": 0
+    },
+    "5": {
+      "auc": 0.950363196125908,
+      "base_rate": 0.009592326139088728,
+      "bootstrap_failures": {
+        "auc": 415,
+        "logistic": 415
+      },
+      "brier": 0.009490125899280576,
+      "brier_skill_vs_insample_climatology": 0.0010723350484259653,
+      "ci90": {
+        "auc": {
+          "bootstrap_se": 0.030094314394473846,
+          "ci90_lower": 0.889936674642557,
+          "ci90_upper": 0.9879807692307693,
+          "mde50": 0.04950514717890948,
+          "replicates_used": 1585
+        },
+        "brier": {
+          "bootstrap_se": 0.007697209946911295,
+          "ci90_lower": 0.00017307514988009593,
+          "ci90_upper": 0.024113269844124693,
+          "mde50": 0.01266191036266908,
+          "replicates_used": 2000
+        },
+        "bss_expanding": {
+          "bootstrap_se": 0.721156725875979,
+          "ci90_lower": -1.4423677710781546,
+          "ci90_upper": 0.4976578613525148,
+          "mde50": 1.1863028140659855,
+          "replicates_used": 2000
+        },
+        "bss_insample": {
+          "bootstrap_se": 0.20210696737337489,
+          "ci90_lower": -0.46683313287404754,
+          "ci90_upper": 0.13746400249920654,
+          "mde50": 0.3324659613292017,
+          "replicates_used": 1585
+        },
+        "logistic_slope": {
+          "bootstrap_se": 4.694310868820863,
+          "ci90_lower": 0.6945705083900549,
+          "ci90_upper": 2.4533380085904253,
+          "mde50": 7.72214137921032,
+          "replicates_used": 1585
+        },
+        "loss_diff_expanding": {
+          "bootstrap_se": 0.00110593616597686,
+          "ci90_lower": -0.001503257264356641,
+          "ci90_upper": 0.0022229204024585155,
+          "mde50": 0.0018192649930319346,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_fixed_b": {
+          "bootstrap_se": 0.0011313469433782575,
+          "ci90_lower": -0.0018905119966616635,
+          "ci90_upper": 0.00185562301547251,
+          "mde50": 0.0018610657218572338,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_replicate_b": {
+          "bootstrap_se": 0.001096740103101206,
+          "ci90_lower": -0.0019362493041537988,
+          "ci90_upper": 0.0017063961161286787,
+          "mde50": 0.001804137469601484,
+          "replicates_used": 2000
+        },
+        "top_quintile_gap": {
+          "bootstrap_se": 0.03223673488087581,
+          "ci90_lower": -0.036540816326530605,
+          "ci90_upper": 0.06729680503731342,
+          "mde50": 0.05302942887904071,
+          "replicates_used": 2000
+        }
+      },
+      "climatology_brier_insample": 0.009500313418330082,
+      "expanding_climatology": {
+        "bss_vs_expanding": 0.022213724949589952,
+        "climatology_mean": 0.018847412496666275,
+        "eligible_n": 396,
+        "expanding_climatology_brier": 0.010220419961531115,
+        "maturity_days": 14,
+        "min_train": 20,
+        "model_brier_on_eligible": 0.009993386363636364,
+        "observed_base_on_eligible": 0.010101010101010102
+      },
+      "fixed_bins": {
+        "edges": [
+          -1e-12,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.000000000001
+        ],
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.1
+            ],
+            "gap": 0.0029458438287153655,
+            "mean_p": 0.005464735516372796,
+            "n": 397,
+            "observed": 0.0025188916876574307,
+            "observed_ci90_wilson": [
+              0.0005621458723207226,
+              0.01121037900544802
+            ],
+            "touches": 1
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.1,
+              0.2
+            ],
+            "gap": -0.10668749999999999,
+            "mean_p": 0.1433125,
+            "n": 8,
+            "observed": 0.25,
+            "observed_ci90_wilson": [
+              0.08651484419906222,
+              0.5398469545128194
+            ],
+            "touches": 2
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.2,
+              0.30000000000000004
+            ],
+            "gap": 0.1449090909090909,
+            "mean_p": 0.23581818181818182,
+            "n": 11,
+            "observed": 0.09090909090909091,
+            "observed_ci90_wilson": [
+              0.02054953121924344,
+              0.3227818711330894
+            ],
+            "touches": 1
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.30000000000000004,
+              0.4
+            ],
+            "gap": 0.314,
+            "mean_p": 0.314,
+            "n": 1,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.7301340512159458
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.4,
+              0.5
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 5,
+            "edges": [
+              0.5,
+              0.6000000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 6,
+            "edges": [
+              0.6000000000000001,
+              0.7000000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 7,
+            "edges": [
+              0.7000000000000001,
+              0.8
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 8,
+            "edges": [
+              0.8,
+              0.9
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 9,
+            "edges": [
+              0.9,
+              1.000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          }
+        ]
+      },
+      "horizon": 5,
+      "logistic_recalibration": {
+        "intercept": -0.6618288056609337,
+        "slope": 0.9347065384461248,
+        "slope_lt_1_means_overconfident": true
+      },
+      "mean_loss_diff_vs_climatology": 1.0187519049507113e-05,
+      "murphy_fixed_bins": {
+        "binning_residual": 0.00030390035031169216,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 4,
+        "brier": 0.009490125899280576,
+        "rel_minus_res_plus_unc": 0.009186225548968883,
+        "reliability": 0.0010169880971625264,
+        "resolution": 0.0013310759665237251,
+        "uncertainty": 0.009500313418330082
+      },
+      "murphy_quantile_bins": {
+        "binning_residual": 0.0002470791831790317,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 3,
+        "brier": 0.009490125899280576,
+        "rel_minus_res_plus_unc": 0.009243046716101544,
+        "reliability": 0.00010749801220751796,
+        "resolution": 0.0003647647144360565,
+        "uncertainty": 0.009500313418330082
+      },
+      "n": 417,
+      "p_max": 0.314,
+      "p_mean": 0.014925659472422064,
+      "p_median": 0.0005,
+      "p_zero_count": 175,
+      "point_estimates": {
+        "loss_diff_expanding": 0.0002270335978947484,
+        "loss_diff_insample_fixed_b": 1.0187519049507113e-05,
+        "loss_diff_insample_replicate_b": 1.0187519049507113e-05
+      },
+      "quantile_bins": {
+        "edges": [
+          -1e-12,
+          0.0015,
+          0.005900000000000006,
+          0.314000000001
+        ],
+        "meta": {
+          "collapsed_by_ties": true,
+          "effective_bins": 3,
+          "raw_quantiles": [
+            0.0,
+            0.0,
+            0.0,
+            0.0015,
+            0.005900000000000006,
+            0.314
+          ],
+          "requested_bins": 5
+        },
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.0015
+            ],
+            "gap": 0.0001954732510288066,
+            "mean_p": 0.0001954732510288066,
+            "n": 243,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.011011324433552648
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.0015,
+              0.005900000000000006
+            ],
+            "gap": 0.0027944444444444444,
+            "mean_p": 0.0027944444444444444,
+            "n": 90,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.029184268311151257
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.005900000000000006,
+              0.314000000001
+            ],
+            "gap": 0.02291666666666667,
+            "mean_p": 0.07053571428571428,
+            "n": 84,
+            "observed": 0.047619047619047616,
+            "observed_ci90_wilson": [
+              0.02155545347990541,
+              0.10191466189701114
+            ],
+            "touches": 4
+          }
+        ]
+      },
+      "top_quintile_gap": 0.02291666666666667,
+      "touches": 4
+    },
+    "21": {
+      "auc": 0.8054123711340206,
+      "base_rate": 0.06954436450839328,
+      "bootstrap_failures": {
+        "auc": 0,
+        "logistic": 0
+      },
+      "brier": 0.061485287170263796,
+      "brier_skill_vs_insample_climatology": 0.049803137153394794,
+      "ci90": {
+        "auc": {
+          "bootstrap_se": 0.08419783172355629,
+          "ci90_lower": 0.6314757660879096,
+          "ci90_upper": 0.9038753168450843,
+          "mde50": 0.1385054331852501,
+          "replicates_used": 2000
+        },
+        "brier": {
+          "bootstrap_se": 0.022175372294975338,
+          "ci90_lower": 0.029467722062350123,
+          "ci90_upper": 0.10136076052158274,
+          "mde50": 0.036478487425234435,
+          "replicates_used": 2000
+        },
+        "bss_expanding": {
+          "bootstrap_se": 0.14345807052297024,
+          "ci90_lower": -0.17469578894096655,
+          "ci90_upper": 0.2793046256975931,
+          "mde50": 0.23598852601028605,
+          "replicates_used": 2000
+        },
+        "bss_insample": {
+          "bootstrap_se": 0.19127519233041118,
+          "ci90_lower": -0.3431087628145496,
+          "ci90_upper": 0.22774368610432172,
+          "mde50": 0.3146476913835264,
+          "replicates_used": 2000
+        },
+        "logistic_slope": {
+          "bootstrap_se": 0.26469259626009695,
+          "ci90_lower": 0.3391621845440225,
+          "ci90_upper": 1.1096301633497565,
+          "mde50": 0.4354193208478595,
+          "replicates_used": 2000
+        },
+        "loss_diff_expanding": {
+          "bootstrap_se": 0.010960642983953715,
+          "ci90_lower": -0.00950545935887783,
+          "ci90_upper": 0.026075595417719696,
+          "mde50": 0.01803025770860386,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_fixed_b": {
+          "bootstrap_se": 0.010206182513953383,
+          "ci90_lower": -0.01188400194829748,
+          "ci90_upper": 0.02055859491651282,
+          "mde50": 0.016789170235453316,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_replicate_b": {
+          "bootstrap_se": 0.00979530498147452,
+          "ci90_lower": -0.012800929318847082,
+          "ci90_upper": 0.01866904301465301,
+          "mde50": 0.016113276694525586,
+          "replicates_used": 2000
+        },
+        "top_quintile_gap": {
+          "bootstrap_se": 0.07743186675275979,
+          "ci90_lower": -0.009725483011325746,
+          "ci90_upper": 0.2394382539682539,
+          "mde50": 0.12737542080828984,
+          "replicates_used": 2000
+        }
+      },
+      "climatology_brier_insample": 0.06470794587351701,
+      "expanding_climatology": {
+        "bss_vs_expanding": 0.09613656831697348,
+        "climatology_mean": 0.09523577407238802,
+        "eligible_n": 392,
+        "expanding_climatology_brier": 0.07233477183638182,
+        "maturity_days": 37,
+        "min_train": 20,
+        "model_brier_on_eligible": 0.0653807551020408,
+        "observed_base_on_eligible": 0.07397959183673469
+      },
+      "fixed_bins": {
+        "edges": [
+          -1e-12,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.000000000001
+        ],
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.1
+            ],
+            "gap": -0.011728187919463087,
+            "mean_p": 0.025184563758389265,
+            "n": 298,
+            "observed": 0.03691275167785235,
+            "observed_ci90_wilson": [
+              0.022715838130834293,
+              0.05944275186491971
+            ],
+            "touches": 11
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.1,
+              0.2
+            ],
+            "gap": 0.1102421875,
+            "mean_p": 0.1414921875,
+            "n": 64,
+            "observed": 0.03125,
+            "observed_ci90_wilson": [
+              0.01039571665535221,
+              0.0901288140938793
+            ],
+            "touches": 2
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.2,
+              0.30000000000000004
+            ],
+            "gap": -0.007550000000000001,
+            "mean_p": 0.24245,
+            "n": 20,
+            "observed": 0.25,
+            "observed_ci90_wilson": [
+              0.1273771685203577,
+              0.4322017501601246
+            ],
+            "touches": 5
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.30000000000000004,
+              0.4
+            ],
+            "gap": 0.34825,
+            "mean_p": 0.34825,
+            "n": 8,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.25272359742376327
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.4,
+              0.5
+            ],
+            "gap": -0.03658333333333336,
+            "mean_p": 0.46341666666666664,
+            "n": 6,
+            "observed": 0.5,
+            "observed_ci90_wilson": [
+              0.22125998614034875,
+              0.7787400138596512
+            ],
+            "touches": 3
+          },
+          {
+            "bin": 5,
+            "edges": [
+              0.5,
+              0.6000000000000001
+            ],
+            "gap": 0.023416666666666752,
+            "mean_p": 0.5234166666666668,
+            "n": 6,
+            "observed": 0.5,
+            "observed_ci90_wilson": [
+              0.22125998614034875,
+              0.7787400138596512
+            ],
+            "touches": 3
+          },
+          {
+            "bin": 6,
+            "edges": [
+              0.6000000000000001,
+              0.7000000000000001
+            ],
+            "gap": 0.2302499999999999,
+            "mean_p": 0.6469166666666666,
+            "n": 12,
+            "observed": 0.4166666666666667,
+            "observed_ci90_wilson": [
+              0.2199778806917808,
+              0.6440189850994654
+            ],
+            "touches": 5
+          },
+          {
+            "bin": 7,
+            "edges": [
+              0.7000000000000001,
+              0.8
+            ],
+            "gap": 0.7236666666666666,
+            "mean_p": 0.7236666666666666,
+            "n": 3,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.4741955741575128
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 8,
+            "edges": [
+              0.8,
+              0.9
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          },
+          {
+            "bin": 9,
+            "edges": [
+              0.9,
+              1.000000000001
+            ],
+            "gap": null,
+            "mean_p": null,
+            "n": 0,
+            "observed": null,
+            "observed_ci90_wilson": null,
+            "touches": 0
+          }
+        ]
+      },
+      "horizon": 21,
+      "logistic_recalibration": {
+        "intercept": -0.894838294296164,
+        "slope": 0.7014446137110134,
+        "slope_lt_1_means_overconfident": true
+      },
+      "mean_loss_diff_vs_climatology": 0.0032226587032532224,
+      "murphy_fixed_bins": {
+        "binning_residual": -0.0013609379749681752,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 8,
+        "brier": 0.061485287170263796,
+        "rel_minus_res_plus_unc": 0.06284622514523197,
+        "reliability": 0.009613308123144938,
+        "resolution": 0.011475028851429984,
+        "uncertainty": 0.06470794587351701
+      },
+      "murphy_quantile_bins": {
+        "binning_residual": -0.0008428040677256193,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 5,
+        "brier": 0.061485287170263796,
+        "rel_minus_res_plus_unc": 0.062328091237989415,
+        "reliability": 0.0033306730774756363,
+        "resolution": 0.005710527713003235,
+        "uncertainty": 0.06470794587351701
+      },
+      "n": 417,
+      "p_max": 0.766,
+      "p_mean": 0.09604436450839328,
+      "p_median": 0.0325,
+      "p_zero_count": 7,
+      "point_estimates": {
+        "loss_diff_expanding": 0.006954016734341007,
+        "loss_diff_insample_fixed_b": 0.0032226587032532224,
+        "loss_diff_insample_replicate_b": 0.0032226587032532224
+      },
+      "quantile_bins": {
+        "edges": [
+          -1e-12,
+          0.007600000000000001,
+          0.018400000000000003,
+          0.0525,
+          0.14100000000000001,
+          0.766000000001
+        ],
+        "meta": {
+          "collapsed_by_ties": false,
+          "effective_bins": 5,
+          "raw_quantiles": [
+            0.0,
+            0.007600000000000001,
+            0.018400000000000003,
+            0.0525,
+            0.14100000000000001,
+            0.766
+          ],
+          "requested_bins": 5
+        },
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.007600000000000001
+            ],
+            "gap": 0.0037380952380952383,
+            "mean_p": 0.0037380952380952383,
+            "n": 84,
+            "observed": 0.0,
+            "observed_ci90_wilson": [
+              0.0,
+              0.031203811732381456
+            ],
+            "touches": 0
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.007600000000000001,
+              0.018400000000000003
+            ],
+            "gap": -0.01207831325301205,
+            "mean_p": 0.012018072289156625,
+            "n": 83,
+            "observed": 0.024096385542168676,
+            "observed_ci90_wilson": [
+              0.008006295467861024,
+              0.07023302469568192
+            ],
+            "touches": 2
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.018400000000000003,
+              0.0525
+            ],
+            "gap": -0.015542682926829268,
+            "mean_p": 0.03323780487804878,
+            "n": 82,
+            "observed": 0.04878048780487805,
+            "observed_ci90_wilson": [
+              0.022085706170243156,
+              0.10429968748344473
+            ],
+            "touches": 4
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.0525,
+              0.14100000000000001
+            ],
+            "gap": 0.03196428571428572,
+            "mean_p": 0.09148809523809524,
+            "n": 84,
+            "observed": 0.05952380952380952,
+            "observed_ci90_wilson": [
+              0.029271478753753404,
+              0.11726521253429692
+            ],
+            "touches": 5
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.14100000000000001,
+              0.766000000001
+            ],
+            "gap": 0.12295833333333331,
+            "mean_p": 0.3372440476190476,
+            "n": 84,
+            "observed": 0.21428571428571427,
+            "observed_ci90_wilson": [
+              0.15017241727758218,
+              0.29622976085520714
+            ],
+            "touches": 18
+          }
+        ]
+      },
+      "top_quintile_gap": 0.12295833333333331,
+      "touches": 29
+    },
+    "63": {
+      "auc": 0.7325229059952384,
+      "base_rate": 0.19904076738609114,
+      "bootstrap_failures": {
+        "auc": 0,
+        "logistic": 0
+      },
+      "brier": 0.1449727356115108,
+      "brier_skill_vs_insample_climatology": 0.09064410855097038,
+      "ci90": {
+        "auc": {
+          "bootstrap_se": 0.08400945765836629,
+          "ci90_lower": 0.571301365728818,
+          "ci90_upper": 0.8512548550855003,
+          "mde50": 0.13819555784801255,
+          "replicates_used": 2000
+        },
+        "brier": {
+          "bootstrap_se": 0.02813993083802482,
+          "ci90_lower": 0.09947456145083934,
+          "ci90_upper": 0.19109212062350117,
+          "mde50": 0.04629018622855083,
+          "replicates_used": 2000
+        },
+        "bss_expanding": {
+          "bootstrap_se": 0.10586665162390227,
+          "ci90_lower": 0.026061535190545538,
+          "ci90_upper": 0.3725787233345305,
+          "mde50": 0.17415064192131924,
+          "replicates_used": 2000
+        },
+        "bss_insample": {
+          "bootstrap_se": 0.16644314716593595,
+          "ci90_lower": -0.23716319021244686,
+          "ci90_upper": 0.28593452415872905,
+          "mde50": 0.27379897708796463,
+          "replicates_used": 2000
+        },
+        "logistic_slope": {
+          "bootstrap_se": 0.25401366149445037,
+          "ci90_lower": 0.26721948130217243,
+          "ci90_upper": 1.0888240471090451,
+          "mde50": 0.4178524731583709,
+          "replicates_used": 2000
+        },
+        "loss_diff_expanding": {
+          "bootstrap_se": 0.023132291996675772,
+          "ci90_lower": 0.004900624367821013,
+          "ci90_upper": 0.08040840064121645,
+          "mde50": 0.03805262033453165,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_fixed_b": {
+          "bootstrap_se": 0.024994863477115898,
+          "ci90_lower": -0.02205399343532367,
+          "ci90_upper": 0.05764263979499854,
+          "mde50": 0.04111655041985565,
+          "replicates_used": 2000
+        },
+        "loss_diff_insample_replicate_b": {
+          "bootstrap_se": 0.024129260584452358,
+          "ci90_lower": -0.027112881443047014,
+          "ci90_upper": 0.05134175295540542,
+          "mde50": 0.03969263366142413,
+          "replicates_used": 2000
+        },
+        "top_quintile_gap": {
+          "bootstrap_se": 0.10665088649930674,
+          "ci90_lower": 0.035458080808080765,
+          "ci90_upper": 0.38166,
+          "mde50": 0.17544070829135958,
+          "replicates_used": 2000
+        }
+      },
+      "climatology_brier_insample": 0.1594235403044471,
+      "expanding_climatology": {
+        "bss_vs_expanding": 0.20856583315189636,
+        "climatology_mean": 0.2788868332228233,
+        "eligible_n": 384,
+        "expanding_climatology_brier": 0.19586731338846344,
+        "maturity_days": 96,
+        "min_train": 20,
+        "model_brier_on_eligible": 0.15501608398437497,
+        "observed_base_on_eligible": 0.21614583333333334
+      },
+      "fixed_bins": {
+        "edges": [
+          -1e-12,
+          0.1,
+          0.2,
+          0.30000000000000004,
+          0.4,
+          0.5,
+          0.6000000000000001,
+          0.7000000000000001,
+          0.8,
+          0.9,
+          1.000000000001
+        ],
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              -1e-12,
+              0.1
+            ],
+            "gap": -0.022715447154471546,
+            "mean_p": 0.05858536585365853,
+            "n": 123,
+            "observed": 0.08130081300813008,
+            "observed_ci90_wilson": [
+              0.049217733773902386,
+              0.13140710448064058
+            ],
+            "touches": 10
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.1,
+              0.2
+            ],
+            "gap": 0.03655376344086021,
+            "mean_p": 0.14408064516129032,
+            "n": 93,
+            "observed": 0.10752688172043011,
+            "observed_ci90_wilson": [
+              0.06536802823566695,
+              0.17187573669824194
+            ],
+            "touches": 10
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.2,
+              0.30000000000000004
+            ],
+            "gap": 0.06813559322033902,
+            "mean_p": 0.2545762711864407,
+            "n": 59,
+            "observed": 0.1864406779661017,
+            "observed_ci90_wilson": [
+              0.11748709142767644,
+              0.28289093088849687
+            ],
+            "touches": 11
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.30000000000000004,
+              0.4
+            ],
+            "gap": 0.08453,
+            "mean_p": 0.34453,
+            "n": 50,
+            "observed": 0.26,
+            "observed_ci90_wilson": [
+              0.17217863209934098,
+              0.3724612970780686
+            ],
+            "touches": 13
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.4,
+              0.5
+            ],
+            "gap": 0.1300909090909091,
+            "mean_p": 0.44827272727272727,
+            "n": 44,
+            "observed": 0.3181818181818182,
+            "observed_ci90_wilson": [
+              0.21611801538722808,
+              0.44131022938363906
+            ],
+            "touches": 14
+          },
+          {
+            "bin": 5,
+            "edges": [
+              0.5,
+              0.6000000000000001
+            ],
+            "gap": 0.15730769230769232,
+            "mean_p": 0.541923076923077,
+            "n": 13,
+            "observed": 0.38461538461538464,
+            "observed_ci90_wilson": [
+              0.20159260258306821,
+              0.6073920397651268
+            ],
+            "touches": 5
+          },
+          {
+            "bin": 6,
+            "edges": [
+              0.6000000000000001,
+              0.7000000000000001
+            ],
+            "gap": 0.5058125,
+            "mean_p": 0.6308125,
+            "n": 8,
+            "observed": 0.125,
+            "observed_ci90_wilson": [
+              0.028399323737810206,
+              0.41114337433001225
+            ],
+            "touches": 1
+          },
+          {
+            "bin": 7,
+            "edges": [
+              0.7000000000000001,
+              0.8
+            ],
+            "gap": 0.3519,
+            "mean_p": 0.7519,
+            "n": 5,
+            "observed": 0.4,
+            "observed_ci90_wilson": [
+              0.1427064720192131,
+              0.7275168281338071
+            ],
+            "touches": 2
+          },
+          {
+            "bin": 8,
+            "edges": [
+              0.8,
+              0.9
+            ],
+            "gap": 0.07171428571428562,
+            "mean_p": 0.8574285714285713,
+            "n": 14,
+            "observed": 0.7857142857142857,
+            "observed_ci90_wilson": [
+              0.5679507254010008,
+              0.9109322287502919
+            ],
+            "touches": 11
+          },
+          {
+            "bin": 9,
+            "edges": [
+              0.9,
+              1.000000000001
+            ],
+            "gap": 0.17631249999999998,
+            "mean_p": 0.9263125,
+            "n": 8,
+            "observed": 0.75,
+            "observed_ci90_wilson": [
+              0.4601530454871806,
+              0.9134851558009377
+            ],
+            "touches": 6
+          }
+        ]
+      },
+      "horizon": 63,
+      "logistic_recalibration": {
+        "intercept": -0.6889719472608681,
+        "slope": 0.6789194214994463,
+        "slope_lt_1_means_overconfident": true
+      },
+      "mean_loss_diff_vs_climatology": 0.014450804692936312,
+      "murphy_fixed_bins": {
+        "binning_residual": 0.0008306216252204901,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 10,
+        "brier": 0.1449727356115108,
+        "rel_minus_res_plus_unc": 0.14414211398629032,
+        "reliability": 0.01168313059394556,
+        "resolution": 0.026964556912102346,
+        "uncertainty": 0.1594235403044471
+      },
+      "murphy_quantile_bins": {
+        "binning_residual": -0.009224213913206797,
+        "binning_residual_meaning": "BS − (REL−RES+UNC); 음수 = binning 이 구간내 판별력을 소실",
+        "bins_used": 5,
+        "brier": 0.1449727356115108,
+        "rel_minus_res_plus_unc": 0.1541969495247176,
+        "reliability": 0.010417652824384211,
+        "resolution": 0.015644243604113726,
+        "uncertainty": 0.1594235403044471
+      },
+      "n": 417,
+      "p_max": 0.9585,
+      "p_mean": 0.2586127098321343,
+      "p_median": 0.1915,
+      "p_zero_count": 0,
+      "point_estimates": {
+        "loss_diff_expanding": 0.04085122940408847,
+        "loss_diff_insample_fixed_b": 0.014450804692936312,
+        "loss_diff_insample_replicate_b": 0.014450804692936312
+      },
+      "quantile_bins": {
+        "edges": [
+          0.001499999999,
+          0.0766,
+          0.1409,
+          0.26180000000000003,
+          0.4184,
+          0.958500000001
+        ],
+        "meta": {
+          "collapsed_by_ties": false,
+          "effective_bins": 5,
+          "raw_quantiles": [
+            0.0015,
+            0.0766,
+            0.1409,
+            0.26180000000000003,
+            0.4184,
+            0.9585
+          ],
+          "requested_bins": 5
+        },
+        "table": [
+          {
+            "bin": 0,
+            "edges": [
+              0.001499999999,
+              0.0766
+            ],
+            "gap": -0.038345238095238085,
+            "mean_p": 0.044988095238095244,
+            "n": 84,
+            "observed": 0.08333333333333333,
+            "observed_ci90_wilson": [
+              0.0458110083691773,
+              0.1468588347411406
+            ],
+            "touches": 7
+          },
+          {
+            "bin": 1,
+            "edges": [
+              0.0766,
+              0.1409
+            ],
+            "gap": 0.019578313253012056,
+            "mean_p": 0.10391566265060241,
+            "n": 83,
+            "observed": 0.08433734939759036,
+            "observed_ci90_wilson": [
+              0.04637085365258683,
+              0.14854703357886204
+            ],
+            "touches": 7
+          },
+          {
+            "bin": 2,
+            "edges": [
+              0.1409,
+              0.26180000000000003
+            ],
+            "gap": 0.05083132530120485,
+            "mean_p": 0.1954096385542169,
+            "n": 83,
+            "observed": 0.14457831325301204,
+            "observed_ci90_wilson": [
+              0.09231548083514764,
+              0.21928097346420722
+            ],
+            "touches": 12
+          },
+          {
+            "bin": 3,
+            "edges": [
+              0.26180000000000003,
+              0.4184
+            ],
+            "gap": 0.05448795180722893,
+            "mean_p": 0.3315963855421687,
+            "n": 83,
+            "observed": 0.27710843373493976,
+            "observed_ci90_wilson": [
+              0.20431252570840663,
+              0.3639767761403414
+            ],
+            "touches": 23
+          },
+          {
+            "bin": 4,
+            "edges": [
+              0.4184,
+              0.958500000001
+            ],
+            "gap": 0.21066666666666667,
+            "mean_p": 0.6154285714285714,
+            "n": 84,
+            "observed": 0.40476190476190477,
+            "observed_ci90_wilson": [
+              0.3209768135878385,
+              0.4944905791230913
+            ],
+            "touches": 34
+          }
+        ]
+      },
+      "top_quintile_gap": 0.21066666666666667,
+      "touches": 83
+    }
+  },
+  "regimes": {
+    "1": [
+      {
+        "regime": "all",
+        "skipped": "터치 표본 부족 (h1=0, h5=4)"
+      }
+    ],
+    "21": [
+      {
+        "auc": 0.6259259259259259,
+        "base_rate": 0.23076923076923078,
+        "brier": 0.1886674967948718,
+        "brier_skill_vs_insample_climatology": -0.06282689861111113,
+        "caveat": "연속 구간",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 16.808176646023693,
+            "ci90_lower": -0.3538625863147348,
+            "ci90_upper": 1.9722253715108633,
+            "mde50": 27.649450582708976,
+            "replicates_used": 1989
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.09831924013482748,
+            "ci90_lower": -0.08878750000000002,
+            "ci90_upper": 0.23359102564102555,
+            "mde50": 0.1617351500217912,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.10715050742180429,
+            "ci90_lower": -0.06704339622641507,
+            "ci90_upper": 0.2797759803921569,
+            "mde50": 0.17626258470886808,
+            "replicates_used": 2000
+          }
+        },
+        "climatology_brier_insample": 0.17751479289940827,
+        "logistic_slope": 0.4654933076917822,
+        "mean_calibration_gap": 0.08486538461538462,
+        "n": 78,
+        "origin_share": 0.18705035971223022,
+        "p_mean": 0.3156346153846154,
+        "regime": "gfc",
+        "top_quintile_gap": 0.12976363636363641,
+        "top_quintile_global_edge": 0.14100000000000001,
+        "top_quintile_n": 55,
+        "touches": 18
+      },
+      {
+        "auc": 0.7190964523281597,
+        "base_rate": 0.032448377581120944,
+        "brier": 0.032222123893805306,
+        "brier_skill_vs_insample_climatology": -0.026330016629711794,
+        "caveat": "연속 구간",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 9.147044486087763,
+            "ci90_lower": 0.02695106443789764,
+            "ci90_upper": 1.5772598203997152,
+            "mde50": 15.04688817961437,
+            "replicates_used": 1987
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.010637518260436258,
+            "ci90_lower": -0.005728687315634219,
+            "ci90_upper": 0.029550442477876093,
+            "mde50": 0.017498717538417644,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.049342712664625886,
+            "ci90_lower": 0.04465381263616559,
+            "ci90_upper": 0.19979285714285713,
+            "mde50": 0.08116876233330958,
+            "replicates_used": 1985
+          }
+        },
+        "climatology_brier_insample": 0.03139548037347395,
+        "logistic_slope": 0.5836432607305234,
+        "mean_calibration_gap": 0.01307079646017699,
+        "n": 339,
+        "origin_share": 0.8129496402877698,
+        "p_mean": 0.04551917404129793,
+        "regime": "non_gfc",
+        "top_quintile_gap": 0.11005172413793106,
+        "top_quintile_global_edge": 0.14100000000000001,
+        "top_quintile_n": 29,
+        "touches": 11
+      },
+      {
+        "auc": 0.695223144202736,
+        "base_rate": 0.03651685393258427,
+        "brier": 0.036092088483146066,
+        "brier_skill_vs_insample_climatology": -0.025827971742543143,
+        "caveat": "부분표본은 시간축이 비연속 — 블록 부트스트랩은 근사",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.36872349644367,
+            "ci90_lower": 0.038857842565123896,
+            "ci90_upper": 1.1905993465345448,
+            "mde50": 0.6065501516498372,
+            "replicates_used": 1991
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.013802499778759162,
+            "ci90_lower": -0.015871488764044945,
+            "ci90_upper": 0.029163202247191013,
+            "mde50": 0.022705112136058823,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.06942534821787028,
+            "ci90_lower": -0.020909821428571417,
+            "ci90_upper": 0.17482907268170428,
+            "mde50": 0.11420469781839661,
+            "replicates_used": 1989
+          }
+        },
+        "climatology_brier_insample": 0.03518337331145057,
+        "logistic_slope": 0.5366577430955253,
+        "mean_calibration_gap": 0.007665730337078652,
+        "n": 356,
+        "nominal_share": 0.8,
+        "origin_share": 0.8537170263788969,
+        "p_mean": 0.04418258426966292,
+        "primary_matched": 417,
+        "primary_missing": 0,
+        "primary_threshold_p80": 1.0,
+        "regime": "calm_p80",
+        "top_quintile_gap": 0.08855999999999999,
+        "top_quintile_global_edge": 0.14100000000000001,
+        "top_quintile_n": 25,
+        "touches": 13
+      },
+      {
+        "auc": 0.65,
+        "base_rate": 0.26229508196721313,
+        "brier": 0.2096816598360656,
+        "brier_skill_vs_insample_climatology": -0.08364646701388923,
+        "caveat": "부분표본은 시간축이 비연속 — 블록 부트스트랩은 근사",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.740706394256429,
+            "ci90_lower": -0.10914917786279377,
+            "ci90_upper": 1.8598888393702842,
+            "mde50": 1.2184620185518258,
+            "replicates_used": 2000
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.08716290304124596,
+            "ci90_lower": -0.009837295081967203,
+            "ci90_upper": 0.2701655737704918,
+            "mde50": 0.14338297550284962,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.0901482802514544,
+            "ci90_lower": -0.016673333333333276,
+            "ci90_upper": 0.27181014865240344,
+            "mde50": 0.14829392101364247,
+            "replicates_used": 2000
+          }
+        },
+        "climatology_brier_insample": 0.19349637194302605,
+        "logistic_slope": 0.6408257687800982,
+        "mean_calibration_gap": 0.13641803278688525,
+        "n": 61,
+        "nominal_share": 0.19999999999999996,
+        "origin_share": 0.14628297362110312,
+        "p_mean": 0.3987131147540984,
+        "primary_matched": 417,
+        "primary_missing": 0,
+        "primary_threshold_p80": 1.0,
+        "regime": "storm_p80",
+        "top_quintile_gap": 0.13753389830508472,
+        "top_quintile_global_edge": 0.14100000000000001,
+        "top_quintile_n": 59,
+        "touches": 16
+      }
+    ],
+    "5": [
+      {
+        "regime": "all",
+        "skipped": "터치 표본 부족 (h1=0, h5=4)"
+      }
+    ],
+    "63": [
+      {
+        "auc": 0.5631578947368421,
+        "base_rate": 0.5128205128205128,
+        "brier": 0.26312805769230774,
+        "brier_skill_vs_insample_climatology": -0.05320467302631604,
+        "caveat": "연속 구간",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.6467704043904974,
+            "ci90_lower": -0.5989994841072517,
+            "ci90_upper": 1.0177503956634542,
+            "mde50": 1.0639373152223681,
+            "replicates_used": 2000
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.13359688902101735,
+            "ci90_lower": -0.14767147435897435,
+            "ci90_upper": 0.29617019230769226,
+            "mde50": 0.21976688243957354,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.14028186813752044,
+            "ci90_lower": -0.05005597826086958,
+            "ci90_upper": 0.41660501587301596,
+            "mde50": 0.23076367308622114,
+            "replicates_used": 2000
+          }
+        },
+        "climatology_brier_insample": 0.24983563445101906,
+        "logistic_slope": 0.3782201653640357,
+        "mean_calibration_gap": 0.08053846153846167,
+        "n": 78,
+        "origin_share": 0.18705035971223022,
+        "p_mean": 0.5933589743589744,
+        "regime": "gfc",
+        "top_quintile_gap": 0.19307758620689636,
+        "top_quintile_global_edge": 0.4184,
+        "top_quintile_n": 58,
+        "touches": 40
+      },
+      {
+        "auc": 0.6281426775612822,
+        "base_rate": 0.12684365781710916,
+        "brier": 0.11778655530973452,
+        "brier_skill_vs_insample_climatology": -0.0634937714291326,
+        "caveat": "연속 구간",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.42600533685379016,
+            "ci90_lower": -0.10187025692901772,
+            "ci90_upper": 1.269999525459889,
+            "mde50": 0.7007787791244848,
+            "replicates_used": 2000
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.03623720648431425,
+            "ci90_lower": -0.009131489675516224,
+            "ci90_upper": 0.11083067846607669,
+            "mde50": 0.05961020466669694,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.11055546118749603,
+            "ci90_lower": 0.053614999999999934,
+            "ci90_upper": 0.4329694444444443,
+            "mde50": 0.18186373365343098,
+            "replicates_used": 1987
+          }
+        },
+        "climatology_brier_insample": 0.11075434428868527,
+        "logistic_slope": 0.4696473613647382,
+        "mean_calibration_gap": 0.054747787610619464,
+        "n": 339,
+        "origin_share": 0.8129496402877698,
+        "p_mean": 0.18159144542772862,
+        "regime": "non_gfc",
+        "top_quintile_gap": 0.24990384615384614,
+        "top_quintile_global_edge": 0.4184,
+        "top_quintile_n": 26,
+        "touches": 43
+      },
+      {
+        "auc": 0.6953540847026152,
+        "base_rate": 0.16292134831460675,
+        "brier": 0.12818840308988763,
+        "brier_skill_vs_insample_climatology": 0.06005059858828987,
+        "caveat": "부분표본은 시간축이 비연속 — 블록 부트스트랩은 근사",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.4525931677319271,
+            "ci90_lower": 0.11058843411983188,
+            "ci90_upper": 1.5621029294896944,
+            "mde50": 0.74451576091902,
+            "replicates_used": 2000
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.040527482800661,
+            "ci90_lower": -0.04576130617977527,
+            "ci90_upper": 0.08821741573033708,
+            "mde50": 0.06666770920708734,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.13846510529067865,
+            "ci90_lower": -0.08790000000000003,
+            "ci90_upper": 0.38097916666666676,
+            "mde50": 0.22777509820316638,
+            "replicates_used": 1991
+          }
+        },
+        "climatology_brier_insample": 0.13637798257795733,
+        "logistic_slope": 0.7581232487884441,
+        "mean_calibration_gap": 0.025626404494382,
+        "n": 356,
+        "nominal_share": 0.8,
+        "origin_share": 0.8537170263788969,
+        "p_mean": 0.18854775280898875,
+        "primary_matched": 417,
+        "primary_missing": 0,
+        "primary_threshold_p80": 1.0,
+        "regime": "calm_p80",
+        "top_quintile_gap": 0.11263461538461533,
+        "top_quintile_global_edge": 0.4184,
+        "top_quintile_n": 26,
+        "touches": 58
+      },
+      {
+        "auc": 0.8044444444444444,
+        "base_rate": 0.4098360655737705,
+        "brier": 0.2429272008196721,
+        "brier_skill_vs_insample_climatology": -0.004369015833333156,
+        "caveat": "부분표본은 시간축이 비연속 — 블록 부트스트랩은 근사",
+        "ci90": {
+          "logistic_slope": {
+            "bootstrap_se": 0.8192204347534989,
+            "ci90_lower": 0.7252048973879868,
+            "ci90_upper": 2.271336575399063,
+            "mde50": 1.3476176151695058,
+            "replicates_used": 2000
+          },
+          "mean_calibration_gap": {
+            "bootstrap_se": 0.09637934662657763,
+            "ci90_lower": 0.10245573770491806,
+            "ci90_upper": 0.42126106557377035,
+            "mde50": 0.1585440252007202,
+            "replicates_used": 2000
+          },
+          "top_quintile_gap": {
+            "bootstrap_se": 0.1015872218054216,
+            "ci90_lower": 0.08694102831594631,
+            "ci90_upper": 0.4247986350574711,
+            "mde50": 0.16711097986991852,
+            "replicates_used": 2000
+          }
+        },
+        "climatology_brier_insample": 0.24187046492878259,
+        "logistic_slope": 1.2697787056543879,
+        "mean_calibration_gap": 0.2576803278688524,
+        "n": 61,
+        "nominal_share": 0.19999999999999996,
+        "origin_share": 0.14628297362110312,
+        "p_mean": 0.6675163934426229,
+        "primary_matched": 417,
+        "primary_missing": 0,
+        "primary_threshold_p80": 1.0,
+        "regime": "storm_p80",
+        "top_quintile_gap": 0.25461206896551714,
+        "top_quintile_global_edge": 0.4184,
+        "top_quintile_n": 58,
+        "touches": 25
+      }
+    ]
+  },
+  "s3_split_power": {
+    "h21": {
+      "early_base": 0.10526315789473684,
+      "early_n": 209,
+      "early_touches": 22,
+      "late_base": 0.03365384615384615,
+      "late_n": 208,
+      "late_touches": 7,
+      "split": "2010-12-31"
+    },
+    "h63": {
+      "early_base": 0.2822966507177033,
+      "early_n": 209,
+      "early_touches": 59,
+      "late_base": 0.11538461538461539,
+      "late_n": 208,
+      "late_touches": 24,
+      "split": "2010-12-31"
+    }
+  },
+  "schema": "v12_first_touch_diagnostic_v1",
+  "target": {
+    "event": "지평 내 지수 경로 최소값 ≤ 0.90 (원점 대비 −10% 터치)",
+    "holdout_policy": "2015 년 이후(봉인 run) first_touch 는 본 진단에서 계산하지 않는다 — V12 잠재 홀드아웃 보존. 탐색 중 관측된 것은 봉인 run 전체(1011 원점) 집계 터치율뿐이며 국면·보정 통계는 산출하지 않았다.",
+    "run": {
+      "experiment_id": "tsv8-exp-61cee7b7fb7c41399534",
+      "experiment_label": "E0_neutral_v2_identity",
+      "path_count": 2000,
+      "run_path": "data/timeseries_v8/runs/dev_tsv8-exp-61cee7b7fb7c41399534.json",
+      "run_sha256": "38dde7a8d029f2f02000d6174f995da52cdc2428e072926f0d8b08067e0a6727",
+      "window": {
+        "outer_end": "2014-12-31",
+        "outer_start": "2007-01-01"
+      },
+      "window_role": "design"
+    },
+    "source_code": "src/ai_fc/timeseries_v8/backtest.py (touch_actual/touch_probability)"
+  },
+  "task_id": "S2-1",
+  "verdict": {
+    "conditions": {
+      "O1_top_quintile_gap_positive": {
+        "by_horizon": {
+          "h21": {
+            "ci90": [
+              -0.009725483011325746,
+              0.2394382539682539
+            ],
+            "pass": false,
+            "point": 0.12295833333333331
+          },
+          "h63": {
+            "ci90": [
+              0.035458080808080765,
+              0.38166
+            ],
+            "pass": true,
+            "point": 0.21066666666666667
+          }
+        },
+        "pass": false,
+        "statement": "상위 5분위에서 평균 예측확률 > 관측빈도, CI90 하한 > 0"
+      },
+      "O2_logistic_slope_below_one": {
+        "by_horizon": {
+          "h21": {
+            "ci90": [
+              0.3391621845440225,
+              1.1096301633497565
+            ],
+            "pass": false,
+            "slope": 0.7014446137110134
+          },
+          "h63": {
+            "ci90": [
+              0.26721948130217243,
+              1.0888240471090451
+            ],
+            "pass": false,
+            "slope": 0.6789194214994463
+          }
+        },
+        "pass": false,
+        "statement": "로짓 재보정 기울기 b < 1 (예측이 실제보다 뾰족), CI90 상한 < 1"
+      },
+      "O3_regime_invariant": {
+        "by_horizon": {
+          "h21": {
+            "pair_both_positive": {
+              "calm_p80|storm_p80": true,
+              "gfc|non_gfc": true
+            },
+            "pass": true,
+            "regimes": {
+              "calm_p80": {
+                "mean_calibration_gap": 0.007665730337078652,
+                "positive": true,
+                "top_quintile_gap": 0.08855999999999999,
+                "top_quintile_n": 25
+              },
+              "gfc": {
+                "mean_calibration_gap": 0.08486538461538462,
+                "positive": true,
+                "top_quintile_gap": 0.12976363636363641,
+                "top_quintile_n": 55
+              },
+              "non_gfc": {
+                "mean_calibration_gap": 0.01307079646017699,
+                "positive": true,
+                "top_quintile_gap": 0.11005172413793106,
+                "top_quintile_n": 29
+              },
+              "storm_p80": {
+                "mean_calibration_gap": 0.13641803278688525,
+                "positive": true,
+                "top_quintile_gap": 0.13753389830508472,
+                "top_quintile_n": 59
+              }
+            }
+          },
+          "h63": {
+            "pair_both_positive": {
+              "calm_p80|storm_p80": true,
+              "gfc|non_gfc": true
+            },
+            "pass": true,
+            "regimes": {
+              "calm_p80": {
+                "mean_calibration_gap": 0.025626404494382,
+                "positive": true,
+                "top_quintile_gap": 0.11263461538461533,
+                "top_quintile_n": 26
+              },
+              "gfc": {
+                "mean_calibration_gap": 0.08053846153846167,
+                "positive": true,
+                "top_quintile_gap": 0.19307758620689636,
+                "top_quintile_n": 58
+              },
+              "non_gfc": {
+                "mean_calibration_gap": 0.054747787610619464,
+                "positive": true,
+                "top_quintile_gap": 0.24990384615384614,
+                "top_quintile_n": 26
+              },
+              "storm_p80": {
+                "mean_calibration_gap": 0.2576803278688524,
+                "positive": true,
+                "top_quintile_gap": 0.25461206896551714,
+                "top_quintile_n": 58
+              }
+            }
+          }
+        },
+        "pass": true,
+        "statement": "상위분위 gap 양수가 GFC/비GFC · calm/storm 두 쌍 모두에서 성립 (부호만, CI 미요구)"
+      }
+    },
+    "direction_only_replication": {
+      "cells": [
+        {
+          "horizon": 21,
+          "logistic_slope": 0.4654933076917822,
+          "mean_calibration_gap": 0.08486538461538462,
+          "mean_gap_positive": true,
+          "n": 78,
+          "regime": "gfc",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.12976363636363641
+        },
+        {
+          "horizon": 21,
+          "logistic_slope": 0.5836432607305234,
+          "mean_calibration_gap": 0.01307079646017699,
+          "mean_gap_positive": true,
+          "n": 339,
+          "regime": "non_gfc",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.11005172413793106
+        },
+        {
+          "horizon": 21,
+          "logistic_slope": 0.5366577430955253,
+          "mean_calibration_gap": 0.007665730337078652,
+          "mean_gap_positive": true,
+          "n": 356,
+          "regime": "calm_p80",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.08855999999999999
+        },
+        {
+          "horizon": 21,
+          "logistic_slope": 0.6408257687800982,
+          "mean_calibration_gap": 0.13641803278688525,
+          "mean_gap_positive": true,
+          "n": 61,
+          "regime": "storm_p80",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.13753389830508472
+        },
+        {
+          "horizon": 63,
+          "logistic_slope": 0.3782201653640357,
+          "mean_calibration_gap": 0.08053846153846167,
+          "mean_gap_positive": true,
+          "n": 78,
+          "regime": "gfc",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.19307758620689636
+        },
+        {
+          "horizon": 63,
+          "logistic_slope": 0.4696473613647382,
+          "mean_calibration_gap": 0.054747787610619464,
+          "mean_gap_positive": true,
+          "n": 339,
+          "regime": "non_gfc",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.24990384615384614
+        },
+        {
+          "horizon": 63,
+          "logistic_slope": 0.7581232487884441,
+          "mean_calibration_gap": 0.025626404494382,
+          "mean_gap_positive": true,
+          "n": 356,
+          "regime": "calm_p80",
+          "slope_below_one": true,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.11263461538461533
+        },
+        {
+          "horizon": 63,
+          "logistic_slope": 1.2697787056543879,
+          "mean_calibration_gap": 0.2576803278688524,
+          "mean_gap_positive": true,
+          "n": 61,
+          "regime": "storm_p80",
+          "slope_below_one": false,
+          "top_gap_positive": true,
+          "top_quintile_gap": 0.25461206896551714
+        }
+      ],
+      "cells_total": 8,
+      "definition": "설계도 §1 문자 조건 — 부호(방향)만 두 지평·네 국면 셀에서 재현되는가",
+      "mean_gap_positive_cells": 8,
+      "pass": true,
+      "pooled_horizons_top_gap_positive": 2,
+      "slope_below_one_cells": 7,
+      "slope_exceptions": [
+        "h63/storm_p80=1.2698"
+      ],
+      "top_gap_positive_cells": 8
+    },
+    "gate_definition": "재현 = O1(두 지평 CI90 하한>0) AND O3(두 국면쌍 부호 일치). O2 는 보강 증거(구조 형태)로만 사용.",
+    "note": "두 판정이 갈리면 S2-3 이 진입/중단을 결정한다 — S2-1 은 계측과 두 기준의 결과를 모두 공표할 뿐 기준을 사후 선택하지 않는다.",
+    "overconfidence_replicated_across_horizons_and_regimes": false,
+    "s3_entry_condition_met_design_literal": true,
+    "s3_entry_condition_met_strict": false
+  }
+}

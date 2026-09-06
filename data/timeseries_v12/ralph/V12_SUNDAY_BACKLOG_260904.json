@@ -56,7 +56,7 @@
     "S1-3"
    ],
    "stage_budget_sec": 18000,
-   "status": "대기",
+   "status": "완료",
    "title": "first_touch 실력 계측",
    "spec": "h21/h63 Brier·기후 Brier·skill·Brier 분해(rel/res/unc)·5분위 신뢰도·국면(GFC/평온) 분해. first_touch_diagnostic.json",
    "accept": "과신 구조 재현 여부 명시"
