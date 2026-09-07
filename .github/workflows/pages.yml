@@ -11,14 +11,10 @@ on:
       - "calibration/**"
       - "data/**"
       - "questions/**"
-      - "src/ai_fc/dashboard*"
-      - "src/ai_fc/dashboard_parts/**"
-      - "src/ai_fc/scenario_v5_2/**"
-      - "src/ai_fc/statistics_lab.py"
-      - "src/ai_fc/timeseries/**"
-      - "src/ai_fc/timeseries_v5/**"
-      - "src/ai_fc/multi_year_stress.py"
-      - "data/contracts/statistics_lab_v1.yaml"
+      # read model을 만드는 모듈은 dashboard*만이 아니다(timeseries_v8_display·files·db·
+      # read_model_contract·cross_asset…). 목록을 따라가다 빠뜨리면 대시보드 수정이 머지돼도
+      # 배포되지 않으므로 엔진 디렉터리 전체를 트리거로 둔다(테스트는 src/tests라 제외된다).
+      - "src/ai_fc/**"
       - ".github/workflows/pages.yml"
   schedule:
     - cron: "30 1 * * 6"       # 주간 리프레시 커밋 이후 (토 KST 오전)

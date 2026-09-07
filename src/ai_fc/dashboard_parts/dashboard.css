@@ -455,7 +455,11 @@ td small{color:rgba(255,255,255,.35);font-family:var(--mono);font-size:9px}
   --shadow:0 22px 50px rgba(18,17,15,.08);--inner:inset 0 1px rgba(255,255,255,.72);
   --rail:208px;
 }
-html{color-scheme:light;background:var(--paper)}
+/* 시장 스트립이 sticky top:0(높이 48px)이라 앵커 이동 시 그만큼을 비켜줘야 한다.
+   기존에는 모바일 블록에만 선언이 있어 800px 이상에서는 제목이 스트립에 가렸다.
+   포커스 모드는 헤더·스트립을 감추므로 여백을 되돌린다. */
+html{color-scheme:light;background:var(--paper);scroll-padding-top:48px}
+html:has(body.focus-mode){scroll-padding-top:0}
 body{color:#11110f;background:var(--paper)}
 body::before{opacity:.58;background-image:linear-gradient(rgba(17,17,15,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(17,17,15,.045) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 92%)}
 button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,tr:focus-visible{outline-color:var(--orange-text)}
@@ -562,7 +566,22 @@ th{color:#65635d;background:var(--paper-2);border-color:var(--line);backdrop-fil
 tbody tr{position:relative;box-shadow:inset 0 0 var(--orange);transition:background .3s ease,box-shadow .3s ease}tbody tr[tabindex]:hover{background:#fff8f1;box-shadow:inset 4px 0 var(--orange)}
 tbody tr[tabindex] td:first-child>*{transition:transform .3s ease}tbody tr[tabindex]:hover td:first-child>*{transform:translateX(8px)}
 td b{color:#2c2b27}td small{color:#6b6860}.tag{color:#5f5d57;background:var(--paper-2);border-color:var(--line);border-radius:2px}.table-prob{color:#11110f}
-.status-active{color:var(--positive);background:#eaf6f0;border-color:#bfddcf}.status-active::before{background:var(--positive);box-shadow:none}.status-resolved{color:var(--crimson);background:#fff0ee;border-color:#f2c7c0}.edge-pos{color:var(--positive)}.edge-neg{color:var(--crimson)}
+.status-active{color:var(--positive);background:#eaf6f0;border-color:#bfddcf}.status-active::before{background:var(--positive);box-shadow:none}.status-resolved{color:var(--crimson);background:#fff0ee;border-color:#f2c7c0}
+/* 폐기·무예측 만료는 '완료'와 다른 상태다 — 색을 낮추고 표식으로 구분한다. */
+.status-void{color:#59554e;background:#f1efe9;border-color:#d8d4cb}.status-void::before{background:#8a867d;box-shadow:none}
+.status-resolved.is-unscored{color:#6d3f16;background:#fdf4e6;border-color:#e6b980}.status-resolved.is-unscored::before{background:#b8772a;box-shadow:none}
+.excluded-badge{display:inline-block;margin-left:8px;padding:2px 7px;color:#6d3f16;background:#fdf4e6;border:1px solid #e6b980;font:700 10px var(--mono);letter-spacing:.04em;vertical-align:middle;cursor:help}
+.resolution-note{grid-column:1/-1;margin:0}.resolution-note>summary{cursor:pointer;color:#4d4a44;font:700 11.5px var(--mono);letter-spacing:.04em}.resolution-note>p{margin:8px 0 0;white-space:pre-wrap;word-break:keep-all;overflow-wrap:anywhere}
+.horizon-coverage-badge.is-wide{color:#6d3f16;background:#fdf4e6;border-color:#e6b980}
+.table-ci{display:block;color:#6b6860;font:600 10px var(--mono);letter-spacing:.02em}
+/* 변경 일지 인용: 회차가 적은 변경 사유인지, 사유 줄이 없어 첫 문단을 발췌한 것인지 구분한다. */
+blockquote>small{display:block;margin:0 0 5px;color:#6b6860;font:700 10px var(--mono);letter-spacing:.05em}
+blockquote.is-excerpt{border-left-color:#e6b980}blockquote.is-excerpt>small{color:#6d3f16}
+.question-criteria{margin:14px 0 0;display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:0;border:1px solid var(--line);background:#fff}
+.question-criteria>div{min-width:0;padding:14px 16px}.question-criteria>div+div{border-left:1px solid var(--line)}
+.question-criteria span{display:block;margin-bottom:6px;color:#6b6860;font:700 10.5px var(--mono);letter-spacing:.06em}
+.question-criteria p{margin:0;color:#2b2a26;font-size:13px;line-height:1.6;word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:620px){.question-criteria{grid-template-columns:1fr}.question-criteria>div+div{border-left:0;border-top:1px solid var(--line)}}.edge-pos{color:var(--positive)}.edge-neg{color:var(--crimson)}
 
 .back-button{background:#fff;border-color:var(--line);border-radius:0}.detail-hero{color:#11110f}.detail-hero .meta{color:#706f68}
 .prob-orb{color:#11110f;background:conic-gradient(var(--orange) calc(var(--prob)*1%),var(--paper-2) 0);border-radius:0;box-shadow:none;transform:rotate(45deg)}
@@ -1125,7 +1144,9 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
 /* Mobile presentation stability: layout-only repairs; copy, data, and chart logic stay unchanged. */
 .scenario-v52-method:not([open])>div{display:none}
 @media(max-width:799px){
-  html{scroll-padding-top:110px}
+  /* 고정 헤더 64px + sticky 시장 스트립 58px = 122px가 실제로 가리는 높이다.
+     110px면 앵커로 이동했을 때 제목 12px가 스트립 뒤로 들어간다. */
+  html{scroll-padding-top:122px}
   .mobile-header{padding-left:max(18px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right))}
   .mobile-brand{min-width:0;max-width:calc(100% - 58px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .market-strip{height:58px;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;overflow:hidden}
@@ -1155,8 +1176,9 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .statistics-legend>div{min-width:0;padding:12px}
   .statistics-legend strong,.trust-metrics strong,.scenario-v52-overview strong,.scenario-v52-readout strong{min-width:0;overflow-wrap:anywhere}
   .scenario-v52-main,.scenario-v52-timing{max-width:100%;padding:12px}
-  .statistics-chart{overflow-x:auto}
-  .scenario-v52-chart svg,.statistics-chart svg{min-width:640px}
+  /* 이 자리에 있던 overflow-x:auto / svg{min-width:640px}는 뒤따르는
+     @media(max-width:799px) 블록의 !important 폭 맞춤에 항상 져서 한 번도 적용된 적이
+     없다. 죽은 규칙을 남겨두면 CSS가 모바일 대책이 있는 것처럼 거짓말한다. */
   .scenario-v52-method>summary,.trust-ledger-details>summary,.statistics-sources>summary{min-width:0;gap:12px;overflow-wrap:break-word;word-break:keep-all}
   .mobile-question-facts{grid-template-columns:1fr}
   .mobile-question-facts>div{min-width:0}
@@ -1168,6 +1190,7 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .scenario-history-nav>div{width:100%;min-width:0;max-width:100%}
 }
 @media(max-width:359px){
+  html{scroll-padding-top:114px}
   .mobile-header{height:60px;padding-left:max(12px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
   .content-shell{padding-top:60px}
   .market-strip{height:54px;top:60px}
@@ -1184,6 +1207,20 @@ body:has(.track-page[data-track-mode="operator"]) .view-map{display:none}
   .mobile-bottom-nav{gap:2px;padding-inline:4px}
   .mobile-bottom-nav a,.mobile-bottom-nav button{padding-inline:2px}
   .mobile-bottom-nav small{font-size:10px}
+}
+/* 가로로 눕힌 폰(높이 360px)에서는 고정 헤더 64 + 스트립 58 + 하단 내비 64 = 186px가
+   화면의 52%를 먹어 본문에 174px만 남았다. 폭 기준 쿼리만 67개 있고 높이 기준이
+   하나도 없어 생긴 사각지대다. 크롬을 줄이되 탭 타깃이 화면 밖으로 밀리지 않도록
+   내비 높이와 함께 자식 min-height도 같이 줄인다. */
+@media(max-width:899px) and (max-height:500px){
+  .mobile-header{height:48px}
+  .content-shell{padding-top:48px}
+  .market-strip{height:40px;top:48px}
+  .market-strip span{font-size:8px}
+  .mobile-bottom-nav{height:calc(46px + env(safe-area-inset-bottom));padding-top:2px;padding-bottom:env(safe-area-inset-bottom)}
+  .mobile-bottom-nav a,.mobile-bottom-nav button{min-height:40px;gap:1px}
+  .mobile-bottom-nav small{display:none}
+  html{scroll-padding-top:88px}
 }
 
 /* Statistics consulting view: readable charts and an explicit current-state verdict. */
@@ -1273,11 +1310,29 @@ body.chart-zoom-open{overflow:hidden;touch-action:none}
   .chart-zoom-controls{padding-left:max(10px,env(safe-area-inset-left));padding-right:max(10px,env(safe-area-inset-right))}
   .chart-zoom-canvas{padding:8px}
   .chart-zoom-help{padding-right:max(12px,env(safe-area-inset-right));padding-bottom:max(10px,env(safe-area-inset-bottom));padding-left:max(12px,env(safe-area-inset-left))}
+  /* 폭 맞춤은 SVG를 통째로 축소하므로 글자도 같이 줄어든다. 375px 실측 축척은
+     통계 0.406 · 시나리오 0.272 · 시계열 0.249, 렌더 글자는 6.1px·2.99px·2.74px였다.
+     viewBox 글꼴만 키우는 방식은 실패한다 — 차트 여백·눈금 간격이 설계 글꼴 기준이라
+     확대하면 라벨이 겹치고 잘린다(시계열 46px에서 겹침 69·잘림 31, 설계값에서는 0).
+     통계 차트는 viewBox가 780으로 좁아 570px까지만 펴면 설계 글꼴 그대로 11px가 되므로
+     이 계열만 가로 스크롤을 되살린다(1.7배, 페이지 자체는 넘치지 않는다). */
+  .statistics-chart{overflow-x:auto!important}
+  .statistics-chart svg{width:570px!important;min-width:570px!important;max-width:none!important}
 }
 /* v8 게이트 위젯·밴드 차트·보류 사유 (UI/UX 설계 260902 PR-U1/U2) */
 .timeseries-gate-strip{display:flex;gap:8px;flex-wrap:wrap}
 .ts-gate-chip{padding:7px 11px;font-family:var(--mono);font-size:11px;letter-spacing:.04em;border:1px solid var(--line-strong);background:#fff;cursor:help}
 .ts-gate-chip.pass{color:#17614f;border-color:#9dc3b6;background:#f2f8f5}
+/* warn: 게이트 판정이 아니라 주의 사실(원점 경과·만기 지남)을 알리는 칩 — hold와 같은 톤. */
+.ts-gate-chip.warn{color:#6d3f16;border-color:#e6b980;background:#fdf4e6}
+/* 만기가 지난 지평: 카드·표 행을 낮추고 실측 한 줄을 붙인다. */
+.timeseries-horizons article.is-elapsed{background:#f7f5ef}
+.timeseries-horizons article.is-elapsed>strong{color:#6b6860}
+.ts-realized{display:block;margin-top:6px;color:#6d3f16;font:600 10.5px/1.45 var(--mono)}
+.ts-ladder tr.is-elapsed th small{display:block;color:#6d3f16;font:600 10px var(--mono);white-space:normal;max-width:220px}
+.ts-realized-line{fill:none;stroke:#3b3a36;stroke-width:2.4;stroke-linejoin:round}
+.ts-realized-dot{fill:#3b3a36}
+.ts-realized-label{font:600 11px var(--mono);fill:#3b3a36}
 .ts-gate-chip.hold{color:#6d3f16;border-color:#e6b980;background:#fdf4e6}
 .ts-node-dot{fill:var(--orange);stroke:#fff;stroke-width:1.5}
 .ts-node-label{fill:#11110f;font-weight:700}
@@ -1294,6 +1349,11 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 /* 시계열 재설계 (docs/design/timeseries_view_redesign_260903.md) — 공유 호버·범위 막대·사다리 표·검증 도표 */
 .timeseries-hero .timeseries-gate-strip{margin-top:16px}
 .ts-panel{display:grid;gap:14px}
+/* 그리드 항목의 자동 최소 크기(min-width:auto)는 min-content까지 부풀어, 안에 든 표
+   하나가 페이지 트랙 전체를 900px로 밀어낸다. 375px에서 검증 성적·경로 분포 탭이
+   950px로 터지고 body{overflow-x:hidden}이 그 초과분을 잘라 스크롤로도 볼 수 없었다.
+   항목이 줄어들 수 있어야 표가 .ts-ladder-wrap 안에서만 가로 스크롤한다. */
+.timeseries-page>*,.ts-panel>*{min-width:0}
 .ts-card{border:1px solid var(--line-strong);background:#fff;padding:14px 16px}
 .ts-card .admin-card-head h2{font-size:15px}
 .ts-card .chart-guide{margin-top:10px}
@@ -1321,7 +1381,9 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .timeseries-horizons[tabindex]:focus-visible,.ts-kpis[tabindex]:focus-visible,.ts-fresh[tabindex]:focus-visible,.ts-ladder[tabindex]:focus-visible{outline:2px solid var(--orange);outline-offset:2px}
 .timeseries-path-panel .ts-ladder-wrap{padding:0 14px 14px}
 .ts-ladder-wrap{overflow-x:auto;margin-top:6px}
-.ts-ladder{width:100%;border-collapse:collapse;font-size:13px;background:#fff}
+/* 전역 table{min-width:900px}은 넓은 원장 표를 위한 값이다. 사다리 표는 5열이라
+   내용 폭(약 505px)이면 충분하므로 임의의 900px를 상속하지 않는다. */
+.ts-ladder{width:100%;min-width:0;border-collapse:collapse;font-size:13px;background:#fff}
 .ts-ladder th,.ts-ladder td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
 .ts-ladder th:first-child,.ts-ladder td:first-child,.ts-ladder tbody th{text-align:left;font:700 12.5px var(--mono);color:#11110f}
 .ts-ladder thead th{color:#6b6860;font:700 10.5px var(--mono);letter-spacing:.06em;background:#f7f5ef}
