@@ -1,0 +1,42 @@
+{
+ "schema": "v13_p1_h3_prediagnosis",
+ "window": [
+  "2007-01-01",
+  "2014-12-31"
+ ],
+ "n_daily": 1984,
+ "return_acf": {
+  "lag1": -0.07615519548683725,
+  "lag2": -0.012634069326508362,
+  "lag3": 0.027520806156428115,
+  "lag4": -0.031470590379312074,
+  "lag5": -0.02202842340659433
+ },
+ "variance_ratio_returns": {
+  "5": 0.8736460586690493,
+  "21": 0.9194027918545331,
+  "63": 1.0435324159786885
+ },
+ "z_acf": {
+  "lag1": -0.052828178535509064,
+  "lag2": -0.002996198510945343,
+  "lag3": -0.021299940517609053,
+  "lag4": -0.0020671960691793505,
+  "lag5": -0.017310609742171357
+ },
+ "z_ar1_phi_hat": -0.05285212399646242,
+ "z_variance_ratio": {
+  "5": 0.8942571270231173,
+  "21": 0.8738262927443836
+ },
+ "interpretation": "VR<1 and negative lag1 ACF confirm H3 short-term reversion destroyed by i.i.d. FHS resampling -> overdiffusion at 1-5d -> uniform barrier-touch overprediction.",
+ "prereg_expectations": {
+  "block_lengths_ell_z": [
+   2,
+   3,
+   5
+  ],
+  "ar1_phi_expected_sign": "phi_hat<0 (reversion)",
+  "ell_z_1_equals_E0": true
+ }
+}
