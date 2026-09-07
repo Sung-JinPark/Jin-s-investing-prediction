@@ -1,0 +1,118 @@
+schema_version: 1
+contract_id: timeseries_v13_vol
+model_id: event_probability.volatility_v13
+model_version: 13
+status: draft_prereg          # 사전등록 — 스킬 결과 보기 전 커밋
+track: volatility_event_probability
+drafted: '2026-09-07'
+drafted_on_branch: claude/v13-next
+supersedes: none — V8~V12 와 독립. CRPS 게이트·V8 봉인과 무관한 별도 트랙(파생층 아님).
+
+character: |
+  CLAUDE.md 1차 목표(이벤트 확률화)에 직결하는 변동성 이벤트 확률 트랙. V12 부정결과 이후
+  포스트모템 T-C. 가치는 EXIT 트리거 base rate 공급이지 가격 방향 예측이 아니다.
+  결정론 수치 모델의 과거 적합·워크포워드(dualdb §8·CLAUDE.md 5원칙 예외) — 산출물은 base rate
+  참조이지 LLM 캘리브레이션 표본이 아니며, 하이퍼파라미터(문턱·창)가 정점지식을 간접 내포할 수
+  있다는 caveat 를 유지한다.
+
+# 표적 — 결과 보기 전 고정
+targets:
+  vix_touch:
+    definition: P(VIX_close >= K at any business day within horizon h) — 조건 시점 이후 h영업일 내 종가 터치
+    K: [25, 30]
+    horizons: [5, 21, 63]
+  rv_exceedance:
+    definition: P(future RV21_ann > theta at any point within horizon h)
+    rv: NASDAQCOM log-return 21일 표본표준편차 × sqrt(252)
+    theta: 0.1694        # design 창(2007-2014) RV21 중앙값 — 사전등록 고정값
+    horizons: [5, 21, 63]
+
+# 데이터 — 읽기 전용, PIT 안전
+data_policy:
+  source: ai_fc.timeseries_v2.market_archive.read_market_observations  # 봉인 모듈 read-only(무수정)
+  series: [VIX, NASDAQCOM]
+  pit: available_at <= origin (captured_forward). first/single vintage per date.
+  design_window: ['2007-01-01', '2014-12-31']   # VIX 2014거래일 · NDX 2014거래일
+  no_write_to_sealed: true
+  no_fred_key_in_loop: true    # 이미 아카이브된 관측만 사용, refresh 0
+
+# 기후 기저율 (참조 null — 스킬 아님, setup 단계 산출)
+climatology_base_rates:
+  vix_touch: {K25_h5: 0.3076, K25_h21: 0.4195, K25_h63: 0.6079, K30_h5: 0.1782, K30_h21: 0.2519, K30_h63: 0.4070}
+  rv_exceedance: {h5: 0.5523, h21: 0.6760, h63: 0.8751}
+  note: design 창이 GFC(2008-09) 포함이라 기저율이 높다. 기후 = 학습창 무조건 빈도(walk-forward).
+
+# 모형 사다리 — 전부 기후 내포(climatology=제약 특수형)
+model_ladder:
+  - climatology          # 학습창 무조건 이벤트 빈도. 기후=EWMA(λ→0)·HAR(계수 0) 특수형
+  - ewma_logit           # 현재 상태(VIX 레벨·EWMA vol)의 로지스틱 — λ 사전등록 격자
+  - har_logistic         # Corsi 2009 HAR-RV(1/5/22일) 로지스틱
+  - garch_t_sim          # GARCH(1,1)-t 시뮬레이션 터치확률
+
+# 게이트 — 결과 보기 전 형(form) 고정. 임계 magnitude 아닌 CI 형태.
+gate:
+  primary: 각 rung(≠기후)이 기후 대비 쌍대 Brier 손실차 CI90 하한 > 0 (엄격부등호)
+  bidirectional_transfer: early(2007-2010) <-> late(2011-2014) 두 방향 모두 CI90 하한 > 0
+  reliability: Murphy 신뢰도 분해(rel/res/unc) + 신뢰도 곡선 보고 의무(판정 다리 아님)
+  scoring: [brier, log_score]
+  uncertainty:
+    bootstrap: stationary_block
+    block_length: 13
+    replicates: 2000
+    seed: 20260907
+    interval: [5, 95]
+  mde: 모든 셀에 MDE=1.645·bootstrap_se 병기. |Δ|<MDE 는 '결정적 증거 없음'.
+  negative_control:
+    # T-A 교훈: p-순열 귀무는 누수. 사건 라벨(y) 블록순열 = 건전 귀무를 쓴다.
+    null: y-block-permutation (ℓ=13) — 이벤트 라벨을 블록 순열해 스킬 통과율 측정
+    threshold: 통과율 <= 0.10. 초과 시 그 rung 의 채택 무효.
+  multiplicity: family P(k>=k_obs) <= 0.05 병기.
+
+split:
+  early: ['2007-01-01', '2010-12-31']
+  late: ['2011-01-01', '2014-12-31']
+
+development_protocol:
+  track_open: true             # V13-D1 사용자 승인(2026-09-07)
+  maximum_development_evaluations: 8
+  evaluations_spent: 0
+  experiment_ledger: data/timeseries_v13/ledgers/vol_experiments.jsonl
+  ledger_append_only: true
+  preregistered_before_results: true
+  five_role_inheritance: true  # base_rate·outside_view·premortem·devils_advocate·resolution 승계
+  pit_inheritance: true
+
+stopping_points:
+  holdout:
+    window: ['2015-01-01', '2018-12-31']
+    requires_explicit_user_approval: true
+    execution_path: absent_by_construction
+    consumption: champion 당 1회, 자동 소모 금지
+  sealed:
+    window: ['2019-01-01', 'latest']
+    requires_explicit_user_approval: true
+    execution_path: absent_by_construction
+  champion_action: champion 발견 시 루프 정지·사용자 질문(홀드아웃 자동 진입 금지)
+
+prohibitions:
+  automatic_holdout_consumption: true
+  automatic_sealed_disclosure: true
+  gate_threshold_relaxation: true
+  outer_window_reuse_after_results: true
+  null_redesign_after_results: true
+  post_hoc_target_addition: true      # K·θ·h 는 이 문서로 고정, 사후 추가 금지
+  p_permutation_null_as_negative_control: true   # T-A 에서 누수 확인 — 사용 금지
+  secret_loading_in_loops: true
+  backtest_of_llm_questions: true
+  mutate_v8_v2: true
+  push_without_success: true          # 성공(게이트 통과) 전 push 금지 (사용자 규율)
+
+known_limits:
+  - design 창 GFC 지배 → early(2007-2010) 반이 위기, 전이 검정이 위기↔평온 성격(V10~V12 공통 한계).
+  - RV theta=design 중앙값은 in-sample 기준 — 사전등록 고정이나 창 의존.
+  - GARCH-t 적합은 수렴·초기값 의존 caveat.
+  - 홀드아웃 2015-2018·봉인 2019+ 미열람(의도적 보존).
+
+decisions_pending:
+  V13-D2: 게이트 임계 형 승인 (현 draft = CI90 하한>0 + 양방향 + 신뢰도 보고)
+  V13-D3: champion 시 홀드아웃 소모 여부 (비가역, 별도 승인)
