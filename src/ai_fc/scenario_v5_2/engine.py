@@ -1124,6 +1124,7 @@ def _research_distinctness(
     paths: np.ndarray, dates: list[str], weights: np.ndarray,
     masks: dict[str, np.ndarray], scenarios: dict[str, Any],
     generator_audit: dict[str, Any],
+    baseline_contract: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     anchor = float(paths[0, 0])
     metrics = _path_metrics(paths, dates)
@@ -1239,9 +1240,20 @@ def _research_distinctness(
         generator_audit["scenarios"][key]["sampling"]["residual_pool_sha256"]
         for key in ("S1", "S2", "S3")
     }
-    baseline_correlation = 0.963
-    minimum_material_reduction = 0.02
+    # 사용자 결정 2026-09-07(method_changes r24): 분리 수용 지표 = S1-S2 표준화 로그경로 DTW,
+    # 기준선(재설계 전 후보, 커밋 7ef55604) 대비 물질적 증가. 로그레벨 상관은 부호 맹점
+    # (0.963→−0.977이 '감소'로 통과)과 포화(부드러운 추세끼리 |ρ|≈1) 때문에 퇴역했고,
+    # 일간 차분 상관은 재설계 전후가 같아(+0.073→+0.080) 기준선 대비 규칙을 걸 수 없었다.
+    # 물질적 증가 폭은 절대 목표가 아니라 기준선에서 형태가 달랐던 쌍의 최소 DTW의 절반이다.
+    baseline_block = dict(baseline_contract or {})
+    baseline_dtw = float(baseline_block.get("S1_S2_standardized_log_path_dtw", 0.1175))
+    minimum_material_increase = float(baseline_block.get("minimum_material_increase", 0.8704))
+    observed_s1_s2_dtw = float(pair_metrics["S1-S2"]["standardized_log_path_dtw"])
+    superseded = dict(baseline_block.get("superseded_metric") or {})
+    baseline_correlation = float(superseded.get("S1_S2_p50_log_level_correlation", 0.963))
+    minimum_material_reduction = float(superseded.get("minimum_material_reduction", 0.02))
     observed_s1_s2 = float(pair_metrics["S1-S2"]["p50_log_level_correlation"])
+    dtw_gate_pass = observed_s1_s2_dtw >= baseline_dtw + minimum_material_increase
     descriptive_checks = {
         "cumulative_return_order_S1_gt_S2_gt_S3": all(returns_order.values()),
         "S1_and_S2_drawdown_below_S3": (
@@ -1254,9 +1266,7 @@ def _research_distinctness(
         "S1_recovery_faster_than_S2_and_S3": (
             recovery["S1"] < min(recovery["S2"], recovery["S3"])
         ),
-        "S1_S2_log_level_correlation_materially_below_0_963_baseline": (
-            observed_s1_s2 <= baseline_correlation - minimum_material_reduction
-        ),
+        "S1_S2_standardized_dtw_materially_above_baseline": dtw_gate_pass,
         "episode_interval_intersection_zero": (
             generator_audit["episode_interval_overlap_count"] == 0
         ),
@@ -1296,15 +1306,31 @@ def _research_distinctness(
         "gate_pass": None,
         "promotion_eligible": False,
         "baseline_comparison": {
-            "metric": "S1-S2_p50_log_level_correlation",
-            "baseline": baseline_correlation,
-            "redesigned_shadow": observed_s1_s2,
-            "minimum_material_reduction": minimum_material_reduction,
-            "observed_reduction": baseline_correlation - observed_s1_s2,
-            "material_reduction_gate_pass": (
-                observed_s1_s2 <= baseline_correlation - minimum_material_reduction
+            "metric": "S1-S2_standardized_log_path_dtw",
+            "baseline": baseline_dtw,
+            "baseline_source_commit": str(baseline_block.get("source_commit") or ""),
+            "redesigned_shadow": observed_s1_s2_dtw,
+            "minimum_material_increase": minimum_material_increase,
+            "minimum_material_increase_rule": str(
+                baseline_block.get("minimum_material_increase_rule")
+                or "half_of_baseline_distinct_pair_minimum_dtw"
             ),
+            "observed_increase": observed_s1_s2_dtw - baseline_dtw,
+            "material_increase_gate_pass": dtw_gate_pass,
             "fixed_absolute_target_used": False,
+            # 퇴역 지표 — 투명성용으로만 싣는다. 부호가 뒤집힌 값은 게이트에 쓰이지 않는다.
+            "superseded_log_level": {
+                "metric": "S1-S2_p50_log_level_correlation",
+                "baseline": baseline_correlation,
+                "redesigned_shadow": observed_s1_s2,
+                "minimum_material_reduction": minimum_material_reduction,
+                "retired_reason": "sign_blind_and_saturated_for_smooth_trends",
+                "retired_on": str(superseded.get("retired_on") or "2026-09-07"),
+            },
+            # S2 드리프트 제거(결정 2 유지)의 부작용 공시: S2·S3 표준화 형태가 얼마나 가까운가.
+            "S2_S3_standardized_log_path_dtw": float(
+                pair_metrics["S2-S3"]["standardized_log_path_dtw"]
+            ),
         },
         "sample_adequacy": {
             "gate_pass": generator_audit["promotion_sample_gate_pass"],
@@ -1577,7 +1603,8 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
         paths, dates, full_weights, metrics, masks
     )
     research_distinctness = _research_distinctness(
-        paths, dates, full_weights, masks, scenarios, generator_audit
+        paths, dates, full_weights, masks, scenarios, generator_audit,
+        baseline_contract=(inputs["separation_contract"] or {}).get("baseline"),
     )
     zero_structural_scores = {
         "policy_relief": {"bounded_score": 0.0},

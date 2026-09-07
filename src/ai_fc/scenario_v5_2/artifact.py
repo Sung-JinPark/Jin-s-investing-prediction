@@ -336,7 +336,8 @@ def validate_candidate(
             ) is not True:
         errors.append("30-day report-only distinctness contract failed")
     required_shape_checks = {
-        "S1_S2_log_level_correlation_materially_below_0_963_baseline",
+        # 2026-09-07: 로그레벨 상관 검사(부호 맹점·포화)를 표준화 DTW 기준선 비교로 교체.
+        "S1_S2_standardized_dtw_materially_above_baseline",
         "episode_interval_intersection_zero",
         "scenario_feature_schemas_distinct",
         "independent_residual_pool_hashes",
@@ -348,11 +349,12 @@ def validate_candidate(
     if any(shape_checks.get(name) is not True for name in required_shape_checks):
         errors.append("complete-separation scenario path gate failed")
     baseline = research_distinctness.get("baseline_comparison", {})
-    if baseline.get("baseline") != .963 \
-            or baseline.get("minimum_material_reduction") != .02 \
-            or baseline.get("material_reduction_gate_pass") is not True \
+    if baseline.get("metric") != "S1-S2_standardized_log_path_dtw" \
+            or baseline.get("baseline") != .1175 \
+            or baseline.get("minimum_material_increase") != .8704 \
+            or baseline.get("material_increase_gate_pass") is not True \
             or baseline.get("fixed_absolute_target_used") is not False:
-        errors.append("baseline distinctness reduction contract failed")
+        errors.append("baseline distinctness increase contract failed")
     circularity = payload.get("circularity_control", {})
     if not circularity.get("gate_pass"):
         errors.append("circularity gate failed")

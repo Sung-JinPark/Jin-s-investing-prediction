@@ -255,3 +255,54 @@ def test_forward_block_counts_direction_and_names_the_live_baseline() -> None:
     assert block["covered_p10_p90_rows"] == 2
     assert block["baseline"] == "historical_simulation"
     assert block["matured_origins"] == 0
+
+
+def test_origin_age_policy_holds_the_surface_after_two_missed_weekly_cycles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """사용자 결정 2026-09-07(2단 임계): 원점 경과가 hold_after_sessions(10)에 닿으면
+    load_projection은 None — 수치를 숨기고 validation_pending 표면으로 페일클로즈한다.
+    그 아래(9)에서는 표면을 유지하되 정책 임계를 투영에 싣는다."""
+    latest = _visible_latest()
+    path = tmp_path / display.LATEST_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(latest, ensure_ascii=False), encoding="utf-8")
+    ledger = tmp_path / display.SEALED_LEDGER_RELATIVE
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(json.dumps(_sealed_row(), ensure_ascii=False) + "\n", encoding="utf-8")
+    monkeypatch.setattr(
+        display, "_anchor_and_history",
+        lambda root, origin, cutoff: (
+            21000.0, {"dates": ["2026-08-27", "2026-08-28"], "index": [20950.0, 21000.0]}))
+    monkeypatch.setattr(
+        display, "_origin_age_policy",
+        lambda root: {"warn_after_sessions": 1, "hold_after_sessions": 10})
+
+    def realized(sessions: int):
+        return lambda root, origin, cutoff: {
+            "dates": [f"2026-09-{day:02d}" for day in range(1, sessions + 1)],
+            "index": [21000.0 + day for day in range(1, sessions + 1)],
+        }
+
+    monkeypatch.setattr(display, "_realized_after_origin", realized(9))
+    kept = load_projection(tmp_path)
+    assert kept is not None and kept["origin_age_sessions"] == 9
+    assert kept["origin_age_policy"] == {"warn_after_sessions": 1, "hold_after_sessions": 10}
+    monkeypatch.setattr(display, "_realized_after_origin", realized(10))
+    assert load_projection(tmp_path) is None, "보류 임계 도달 — 표면을 닫아야 한다"
+    # 정책 블록이 없으면(계약 미존재) 보류하지 않는다 — 표시 계층은 계약 없이 게이트를 지어내지 않는다.
+    monkeypatch.setattr(display, "_origin_age_policy", lambda root: {})
+    assert load_projection(tmp_path) is not None
+
+
+def test_origin_age_policy_lives_outside_the_frozen_contract_coordinates() -> None:
+    """계약 개정이 봉인·섀도 원장이 고정한 contract_hash를 바꾸면 안 된다 — 정책 섹션은
+    frozen_coordinates 밖이어야 한다."""
+    from ai_fc import config
+    from ai_fc.timeseries_v8.contracts import frozen_coordinates, frozen_hash, load_contract_v8
+
+    contract = load_contract_v8(Path(config.ROOT))
+    assert contract["origin_age_policy"]["hold_after_sessions"] == 10
+    assert contract["origin_age_policy"]["warn_after_sessions"] == 1
+    assert "origin_age_policy" not in frozen_coordinates(contract)
+    assert frozen_hash(contract).startswith("7c56ee4eaa569782"), "봉인평가 원장의 contract_hash와 달라졌다"

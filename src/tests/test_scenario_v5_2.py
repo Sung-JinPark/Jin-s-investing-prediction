@@ -350,9 +350,13 @@ def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
     ] is True
     assert distinctness["descriptive_checks"]["medoid_path_ids_unique"] is True
     assert distinctness["descriptive_checks_pass"] is True
+    # 2026-09-07 사용자 결정: 분리 수용 지표 = 표준화 로그경로 DTW, 기준선(재설계 전 0.1175) 대비
+    # 물질적 증가(≥ 0.8704 = 기준선 형태-상이 쌍 최소 DTW의 절반). 로그레벨 상관은 부호 맹점·포화로 퇴역.
     assert distinctness["descriptive_checks"][
-        "S1_S2_log_level_correlation_materially_below_0_963_baseline"
+        "S1_S2_standardized_dtw_materially_above_baseline"
     ] is True
+    assert "S1_S2_log_level_correlation_materially_below_0_963_baseline" \
+        not in distinctness["descriptive_checks"]
     assert distinctness["descriptive_checks"][
         "episode_interval_intersection_zero"
     ] is True
@@ -360,10 +364,15 @@ def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
         "independent_residual_pool_hashes"
     ] is True
     baseline = distinctness["baseline_comparison"]
-    assert baseline["baseline"] == .963
+    assert baseline["metric"] == "S1-S2_standardized_log_path_dtw"
+    assert baseline["baseline"] == .1175
+    assert baseline["minimum_material_increase"] == .8704
     assert baseline["fixed_absolute_target_used"] is False
-    assert baseline["material_reduction_gate_pass"] is True
-    assert baseline["redesigned_shadow"] <= .943
+    assert baseline["material_increase_gate_pass"] is True
+    assert baseline["redesigned_shadow"] >= .1175 + .8704
+    # 퇴역 지표는 투명성용으로만 남는다 — 부호가 뒤집힌 값이 게이트에 쓰이지 않는다.
+    assert baseline["superseded_log_level"]["baseline"] == .963
+    assert abs(baseline["superseded_log_level"]["redesigned_shadow"]) > .9
     assert len({
         row["central_path_bundle"]["medoid_path_id"]
         for row in payload["conditional_small_multiples"]["scenarios"].values()

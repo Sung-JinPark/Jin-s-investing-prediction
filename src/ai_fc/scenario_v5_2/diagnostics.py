@@ -84,6 +84,8 @@ def _path_summary(payload: dict[str, Any]) -> dict[str, Any]:
             ),
             "medoid_path_id": row["central_path_bundle"]["medoid_path_id"],
         }
+    from .engine import _standardized_log_dtw
+
     pair_rows: list[dict[str, Any]] = []
     for left, right in (("S1", "S2"), ("S1", "S3"), ("S2", "S3")):
         left_values = np.asarray(scenarios[left]["bands"]["p50"], dtype=float)
@@ -96,6 +98,8 @@ def _path_summary(payload: dict[str, Any]) -> dict[str, Any]:
             "p50_first_difference_correlation": float(np.corrcoef(
                 np.diff(np.log(left_values)), np.diff(np.log(right_values))
             )[0, 1]),
+            # 2026-09-07부터 수용 지표 — 기준선 스냅샷에도 같은 값을 남겨 비교 가능하게 한다.
+            "standardized_log_path_dtw": _standardized_log_dtw(left_values, right_values),
         })
     return {"per_scenario": per_scenario, "pairs": pair_rows}
 
