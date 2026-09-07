@@ -6,12 +6,27 @@ official_or_champion_use: false
 shared_runtime_inputs_allowed: [current_index_anchor, trading_calendar]
 all_other_state_must_be_scenario_specific: true
 
+# 사용자 결정 2026-09-07: 분리 수용 지표를 로그레벨 상관에서 표준화 로그경로 DTW로 교체.
+# 로그레벨 상관은 부호 맹점(0.963 → −0.977이 '감소'로 통과)에 더해 부드러운 추세 두 개는
+# |ρ|≈1로 포화해 형태 분리를 재지 못했다. 일간 차분 상관은 재설계 전후가 같아(+0.073 → +0.080)
+# 기준선 대비 규칙을 걸 수 없었다. DTW는 기준선 커밋에서 재계산했다(S1-S2 0.1175, S1-S3 1.7516,
+# S2-S3 1.7408). 물질적 증가 폭은 절대 목표가 아니라 기준선 자체 척도 — 기준선에서 형태가
+# 달랐던 쌍의 최소 DTW(1.7408)의 절반이다.
 baseline:
   source_model: pre_complete_separation_v5_2
-  S1_S2_p50_log_level_correlation: 0.963
-  acceptance_rule: redesigned_shadow_value_must_be_materially_lower_than_baseline
+  source_commit: 7ef55604b468104ef80f968c9e0791c37cb0eda1
+  metric: S1_S2_standardized_log_path_dtw
+  S1_S2_standardized_log_path_dtw: 0.1175
+  distinct_pair_minimum_dtw: 1.7408
+  acceptance_rule: redesigned_value_must_be_materially_higher_than_baseline
+  minimum_material_increase: 0.8704
+  minimum_material_increase_rule: half_of_baseline_distinct_pair_minimum_dtw
   fixed_numeric_target_prohibited: true
-  minimum_material_reduction: 0.02
+  superseded_metric:
+    S1_S2_p50_log_level_correlation: 0.963
+    minimum_material_reduction: 0.02
+    retired_on: "2026-09-07"
+    reason: sign_blind_and_saturated_for_smooth_trends
 
 source_mapping:
   historical_price_macro_panel:

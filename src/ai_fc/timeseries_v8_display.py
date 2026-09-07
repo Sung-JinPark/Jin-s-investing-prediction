@@ -248,6 +248,7 @@ def build_projection(
     history: dict[str, list[Any]] | None = None,
     resolutions: list[dict[str, Any]] | None = None,
     realized: dict[str, list[Any]] | None = None,
+    origin_age_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Map the visible latest pointer into the dashboard read-model slot.
 
@@ -352,6 +353,15 @@ def build_projection(
             if origin_age_sessions else None
         ),
         "origin_age_sessions": origin_age_sessions,
+        # 계약 origin_age_policy(사용자 결정 2026-09-07): 경고·보류 임계를 화면이 함께 말한다.
+        "origin_age_policy": (
+            {
+                "warn_after_sessions": int(origin_age_policy["warn_after_sessions"]),
+                "hold_after_sessions": int(origin_age_policy["hold_after_sessions"]),
+            }
+            if origin_age_policy and origin_age_policy.get("hold_after_sessions") is not None
+            else None
+        ),
         "footnote": latest["footnote"],
     }
 
@@ -442,6 +452,27 @@ def _realized_after_origin(
     }
 
 
+def _origin_age_policy(root: Path) -> dict[str, Any]:
+    """Read the contract's origin_age_policy block; absent file or block means no hold.
+
+    이 섹션은 frozen_coordinates 밖이라 frozen_hash에 영향을 주지 않는다. 계약 전체
+    검증(load_contract_v8)은 파이프라인이 맡고, 표시 계층은 이 블록만 읽는다.
+    """
+    import yaml
+
+    from .timeseries_v8.contracts import CONTRACT_RELATIVE
+
+    path = root / CONTRACT_RELATIVE
+    if not path.is_file():
+        return {}
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    policy = payload.get("origin_age_policy") if isinstance(payload, dict) else None
+    return dict(policy) if isinstance(policy, dict) else {}
+
+
 def load_projection(root: Path) -> dict[str, Any] | None:
     """Return the visible V8 projection, or None so the surface falls back.
 
@@ -461,6 +492,14 @@ def load_projection(root: Path) -> dict[str, Any] | None:
         root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
     realized = _realized_after_origin(
         root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    policy = _origin_age_policy(root)
+    hold_after = policy.get("hold_after_sessions")
+    origin_age = min(len(realized.get("dates") or []), len(realized.get("index") or []))
+    if hold_after is not None and origin_age >= int(hold_after):
+        # 계약 origin_age_policy(사용자 결정 2026-09-07): 주간 주기 2회를 놓친 원점은
+        # 열린 전망이 아니다 — 수치를 숨기고 validation_pending 표면으로 페일클로즈.
+        return None
     return build_projection(
         latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history,
-        resolutions=_forward_resolutions(root), realized=realized)
+        resolutions=_forward_resolutions(root), realized=realized,
+        origin_age_policy=policy)

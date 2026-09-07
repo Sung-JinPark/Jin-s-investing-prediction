@@ -405,9 +405,9 @@ S1 has a registered 0.60 dotcom session-share target. S2/S3 dotcom evidence stre
 """,
         "PHASE_F_SCENARIO_2027.md": f"""# Phase F — Conditional scenarios and distinctness
 
-Gate: **PASS FOR PREREGISTERED BASELINE REDUCTION; 30-DAY GATE REPORT-ONLY**
+Gate: **{'PASS' if baseline.get('material_increase_gate_pass') else 'FAIL'} FOR PREREGISTERED BASELINE SHAPE-DISTANCE INCREASE; 30-DAY GATE REPORT-ONLY**
 
-Research cohort masses are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}; these are not calibrated event probabilities. S1/S2 p50 log-level correlation moved from `{baseline['baseline']}` to `{baseline['redesigned_shadow']:.4f}`. Observed reduction is `{baseline['observed_reduction']:.4f}` and fixed absolute target used is `{baseline['fixed_absolute_target_used']}`. Episode overlap, feature-schema uniqueness, residual hashes, phase repetition, medoids, first-touch, DTW and Wasserstein metrics are serialized. Promotion thresholds remain report-only until 30 approved trading days exist.
+Research cohort masses are S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}; these are not calibrated event probabilities. S1/S2 standardized log-path DTW moved from the pre-separation baseline `{baseline['baseline']}` (commit `{baseline.get('baseline_source_commit', '')[:8]}`) to `{baseline['redesigned_shadow']:.4f}`; observed increase `{baseline.get('observed_increase', 0.0):.4f}` against the required `{baseline.get('minimum_material_increase', 0.0)}` (half of the baseline's distinct-pair minimum DTW — no fixed absolute target: `{baseline['fixed_absolute_target_used']}`). The retired log-level correlation is reported only: `{baseline.get('superseded_log_level', {}).get('baseline')}` → `{baseline.get('superseded_log_level', {}).get('redesigned_shadow', 0.0):.4f}` (sign-blind and saturated for smooth trends). S2/S3 standardized DTW is `{baseline.get('S2_S3_standardized_log_path_dtw', 0.0):.4f}` — S2's drift-removed transport leaves S2 and S3 with nearly the same standardized shape; this is disclosed, not hidden. Episode overlap, feature-schema uniqueness, residual hashes, phase repetition, medoids, first-touch, DTW and Wasserstein metrics are serialized. Promotion thresholds remain report-only until 30 approved trading days exist.
 """,
         "GATE_MATRIX.md": f"""# Scenario V5.2 Phase/Gate matrix
 
@@ -434,7 +434,7 @@ The candidate passes PIT, fraction units, dependency caps, circularity, independ
 
 - Cohort masses: S1 {_pct(scenario_probs['S1'])}, S2 {_pct(scenario_probs['S2'])}, S3 {_pct(scenario_probs['S3'])}.
 - 63-session p50: S1 {_pct(candidate['distinctness']['per_scenario']['S1']['cumulative_return_p50']['63'])}, S2 {_pct(candidate['distinctness']['per_scenario']['S2']['cumulative_return_p50']['63'])}, S3 {_pct(candidate['distinctness']['per_scenario']['S3']['cumulative_return_p50']['63'])}.
-- S1/S2 p50 log-level correlation: `{baseline['baseline']}` → `{baseline['redesigned_shadow']:.4f}`.
+- S1/S2 standardized log-path DTW (acceptance metric since 2026-09-07): `{baseline['baseline']}` → `{baseline['redesigned_shadow']:.4f}`; retired log-level correlation `{baseline.get('superseded_log_level', {}).get('baseline')}` → `{baseline.get('superseded_log_level', {}).get('redesigned_shadow', 0.0):.4f}` (report-only).
 - Candidate model: `{candidate['model_content_sha256']}`.
 - Protected unchanged: `{protected_comparison['ok']}`.
 """,
