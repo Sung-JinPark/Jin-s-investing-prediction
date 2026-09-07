@@ -21,6 +21,7 @@ future_paths:
     - era_analog
     - liquidity
     - ai_regime
+    - multi_year_stress   # 코드(dashboard.py FUTURE_PATH 키)와 실제 파일에 있던 키 — 선언 누락 정정(검수 2차)
   fetch_failure:
     silent_fallback: prohibited
     research_route: render_summary_and_explicit_failure_banner

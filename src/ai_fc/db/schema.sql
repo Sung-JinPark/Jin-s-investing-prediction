@@ -427,12 +427,16 @@ FROM resolutions GROUP BY decile;
 
 -- 게이트 판정은 primary 기준 (8-2(c) — failed 예측 제외라 표본이 작아져 더 보수적).
 -- 전량 기준은 v_gate_status_all로 참조 가능.
+-- 표본 조건(P2 30+/P3 50+)은 CLAUDE.md가 말하는 '해소 문항' 수다. 재예측 회차를 그대로
+-- 세면(COUNT(*)) 질문 10개를 5회씩 재예측한 것만으로 P3 배지가 켜진다 — 반복 업데이트는
+-- 독립 표본이 아니므로 문항(DISTINCT question_id)으로 센다. n_resolved는 행 수 그대로 둔다.
 DROP VIEW IF EXISTS v_gate_status;
 CREATE VIEW v_gate_status AS
 SELECT COUNT(*) AS n_resolved,
+       COUNT(DISTINCT r.question_id) AS n_questions,
        AVG(r.brier) AS brier,
-       (COUNT(*) >= 30 AND AVG(r.brier) < 0.20) AS gate_p2,
-       (COUNT(*) >= 50 AND AVG(r.brier) < 0.18) AS gate_p3
+       (COUNT(DISTINCT r.question_id) >= 30 AND AVG(r.brier) < 0.20) AS gate_p2,
+       (COUNT(DISTINCT r.question_id) >= 50 AND AVG(r.brier) < 0.18) AS gate_p3
 FROM resolutions r
 LEFT JOIN forecasts f ON f.forecast_id = r.forecast_id
 LEFT JOIN research_status_override o ON o.forecast_id = r.forecast_id
@@ -441,9 +445,10 @@ WHERE COALESCE(o.status, f.research_status, 'ok') != 'failed';
 DROP VIEW IF EXISTS v_gate_status_all;
 CREATE VIEW v_gate_status_all AS
 SELECT COUNT(*) AS n_resolved,
+       COUNT(DISTINCT question_id) AS n_questions,
        AVG(brier) AS brier,
-       (COUNT(*) >= 30 AND AVG(brier) < 0.20) AS gate_p2,
-       (COUNT(*) >= 50 AND AVG(brier) < 0.18) AS gate_p3
+       (COUNT(DISTINCT question_id) >= 30 AND AVG(brier) < 0.20) AS gate_p2,
+       (COUNT(DISTINCT question_id) >= 50 AND AVG(brier) < 0.18) AS gate_p3
 FROM resolutions;
 
 -- Display-only gate v2.  Promotion remains disabled until the user approves a gate

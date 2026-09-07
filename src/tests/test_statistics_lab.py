@@ -470,7 +470,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 27  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    assert len(payload["charts"]) == 28  # + 물가 선행 패널 CPI/원자재 분리(검수 2차)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -532,7 +532,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 27  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    assert len(payload["charts"]) == 28  # + 물가 선행 패널 CPI/원자재 분리(검수 2차)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -908,6 +908,27 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     )
     assert pulse["source_ids"] == ["SPASTT01KRM661N", "NASDAQSOX"]
     assert len(pulse["series"]) == 2
+
+
+def test_projection_decimation_keeps_extremes_and_endpoints() -> None:
+    """검수 2차: 균일 stride는 국소 극값을 지웠다(닷컴 신용경색 +36.4% → 표시 max +9.1%).
+    구간별 최소·최대를 남기되 점 수 상한은 그대로다."""
+    from ai_fc.statistics_lab import _decimate_preserving_extremes
+
+    # 정점(36)은 index 4, 저점(−9)은 index 10 — 옛 stride(ceil(29/13)=3)의 표본 0,3,6,…을 비켜 간다.
+    points = [{"period": i, "value": float(v)} for i, v in enumerate(
+        [0, 1, 2, 3, 36, 2, 1, 0, -1, -2, -9, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17])]
+    kept = _decimate_preserving_extremes(points, 14)
+    assert len(kept) <= 14
+    assert kept[0]["period"] == 0 and kept[-1]["period"] == 29
+    values = [row["value"] for row in kept]
+    assert max(values) == 36.0 and min(values) == -9.0, "전역 최대·최소는 반드시 살아남는다"
+    import math
+    stride_step = math.ceil((len(points) - 1) / (14 - 1))
+    stride = points[::stride_step] + [points[-1]]
+    assert max(row["value"] for row in stride) < 36.0, "대조: 옛 stride 표본은 극값을 놓친다"
+    assert min(row["value"] for row in stride) > -9.0
+    assert _decimate_preserving_extremes(points[:5], 14) == points[:5]
 
 
 def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:

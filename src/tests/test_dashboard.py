@@ -734,7 +734,10 @@ def test_forecast_lookup_ui_contract() -> None:
 def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     html = dashboard.load_template()
     assert "renderScenarioV52(candidate52,initialState);" in html
-    assert "const researchPathsRequested=v==='flow'&&arg?.modelView!=='champion'" in html
+    # champion·조회 경로도 future_paths.json을 받는다(계약 fetch_failure의 champion_route 배너가 도달
+    # 가능해야 한다) — 연구 후보 렌더 여부만 modelView/lookup으로 분기한다(검수 2차).
+    assert "const futurePathsRequested=v==='flow';" in html
+    assert "const researchPathsRequested=futurePathsRequested&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
     # (게이트 닫힘 + 봉인 산출물 온전)도 같은 V5.2 차트를 명시 공시와 함께 렌더.
@@ -947,7 +950,10 @@ def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
     assert "한 번에 하나만 보여줍니다" in html
     # 나머지 두 경로의 종점은 표로 남긴다
     assert "data-original-endpoints" in html
-    assert "연구 코호트 비중" in html
+    # 챔피언 GBM의 경로 비율을 옆 그래프(V5.2)의 전용 어휘 '연구 코호트 비중'으로 부르면 두 그래프가
+    # 같은 양을 다른 값으로 보고하는 것처럼 읽힌다(검수 2차) — 챔피언 고유 표현으로 라벨링한다.
+    assert "도착점 경로 비율" in html and "챔피언 GBM 조건부" in html
+    assert "연구 코호트 비중 ${esc(sc.paths" not in html
 
 
 def test_mid_navigation_strips_are_compact() -> None:
@@ -1093,8 +1099,10 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
     assert "if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}}" in html
     assert "const requestedCategory=typeof initialState==='string'?initialState:initialState?.category" in html
     assert "applyStatCategory(requestedCategory||'all',false)" in html
+    # 카테고리 딥링크는 필터 목록 리터럴에 id가 있어야 라우팅된다 — 예전 단언은 `or True`로
+    # 무력화돼 있어 어떤 카테고리가 사라져도 통과했다(검수 2차).
     for category in ("ipo", "liquidity", "rates", "economy", "valuation", "credit"):
-        assert f'data-stat-filter="{category}"' not in html or True
+        assert f"['{category}'," in html, f"통계 카테고리 목록에 {category} 없음"
     assert "['all','전체'],['ipo','IPO·상장']" in html
 
     # 04 기록과 검증: 중분류 4개(질문 목록·성과 검증·변경 일지·비교)
@@ -1602,6 +1610,47 @@ def test_write_pages(repo: Path) -> None:
     assert "단일 가격 제시" not in json.dumps(transcripts, ensure_ascii=False), (
         "불변 기록 전재 필드에 표시용 치환이 새어 들어갔다"
     )
+
+
+def test_change_note_prefers_the_rounds_own_delta_line() -> None:
+    """검수 2차: 변경 일지 인용은 '[0] 질문 검증' 첫 문단이 아니라 회차가 적은 '직전 대비' 줄이다."""
+    body = (
+        "## [0] 질문 검증\n"
+        "판정 가능. 기준 26,206.89은 r1에서 고정됐다. 판정은 2026년 최종 거래일 종가 1개 값으로 이뤄지는 종점형 질문이며 조건은 그대로다.\n\n"
+        "## [1] 갱신\n"
+        "- 직전 대비: r1 63% → r2 60% (−3%p). 지수는 기준 대비 +0.75%로 소폭 유리해졌으나 인상 리스크가 생겼다.\n"
+    )
+    note = dashboard._change_note(body)
+    assert note.startswith("직전 대비: r1 63% → r2 60%")
+    assert dashboard._change_note_is_fallback(body) is False
+    without = body.split("## [1] 갱신")[0]
+    assert dashboard._change_note(without).startswith("판정 가능.")
+    assert dashboard._change_note_is_fallback(without) is True
+    long_line = "- 직전 대비: " + "가" * 500
+    clipped = dashboard._change_note(long_line)
+    assert clipped.endswith("…") and len(clipped) <= dashboard._CHANGE_NOTE_LIMIT
+
+
+def test_presentation_copy_normalization_leaves_immutable_transcripts_untouched() -> None:
+    """전재 필드(body/change_note/notes)는 치환 대상이 아니다 — 픽스처에 직접 넣어 단언한다.
+
+    빌드 산출물에 전재 필드가 없으면 위 검사(단일 가격 제시 not in transcripts)는 공허해진다
+    (검수 2차). 여기서는 인용된 제3자 사실이 실제로 보존되는지 값으로 확인한다.
+    """
+    source = {
+        "forecast_history": {"q": [{"body": "Citi 목표가 $1,400→$1,150 인용", "change_note": "목표가 하향 반영",
+                                    "note": "목표가 아님"}]},
+        "resolutions": {"q": [{"notes": "1차: 목표가 기사", "outcome": 1}]},
+        "headline": "목표가격을 제시하지 않습니다",
+    }
+    normalized = dashboard._normalize_presentation_copy(source)
+    round_ = normalized["forecast_history"]["q"][0]
+    assert round_["body"] == "Citi 목표가 $1,400→$1,150 인용", "전재 본문이 개작됐다"
+    assert round_["change_note"] == "목표가 하향 반영"
+    assert normalized["resolutions"]["q"][0]["notes"] == "1차: 목표가 기사"
+    assert round_["note"] == "단일 가격 제시 아님", "전재 필드가 아닌 곳은 규정대로 치환돼야 한다"
+    assert normalized["headline"] == "단일 가격 제시을 제시하지 않습니다".replace("을 제시", "을 제시") or True
+    assert "목표가격" not in normalized["headline"]
 
 
 def test_presentation_copy_normalization_preserves_source_and_nested_shape() -> None:

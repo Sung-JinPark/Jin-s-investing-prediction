@@ -196,17 +196,51 @@ def _rows(rs) -> list[dict]:
     return [_row(r) for r in rs]
 
 
+_CHANGE_NOTE_LIMIT = 320
+
+
+def _clip_note(line: str) -> str:
+    """Truncate with a visible ellipsis — a quoted sentence must not end mid-word silently."""
+    return line if len(line) <= _CHANGE_NOTE_LIMIT else line[: _CHANGE_NOTE_LIMIT - 1].rstrip() + "…"
+
+
 def _change_note(body: str) -> str:
-    """Return one plain-language evidence sentence for the Decision Journal."""
+    """Return the round's own change reason for the Decision Journal.
+
+    예측 파일은 회차마다 ``- 직전 대비: rN X% → rM Y% (±Z%p). 근거는 …`` 줄에 변경
+    사유를 명시한다. 그 줄을 우선 찾는다 — 첫 문단을 돌려주면 항상 ``[0] 질문 검증``의
+    판정기준 재진술이 나와 '왜 확률이 바뀌었나' 자리에 엉뚱한 문장이 인용됐다(검수 2차).
+    """
+    cleaned: list[str] = []
     for raw in body.splitlines():
         line = re.sub(r"^[>#*+\-\d.\s]+", "", raw).strip()
         line = re.sub(r"[`*_\[\]]", "", line)
-        if not line or line.startswith("|") or len(line) < 18:
+        if line:
+            cleaned.append(line)
+    for line in cleaned:
+        if line.startswith(("직전 대비", "직전 회차 대비")) and len(line) >= 18:
+            return _clip_note(line)
+    return _change_note_fallback(cleaned)
+
+
+def _change_note_is_fallback(body: str) -> bool:
+    """True when no explicit delta line exists and the note is a first-paragraph excerpt."""
+    for raw in body.splitlines():
+        line = re.sub(r"^[>#*+\-\d.\s]+", "", raw).strip()
+        line = re.sub(r"[`*_\[\]]", "", line)
+        if line.startswith(("직전 대비", "직전 회차 대비")) and len(line) >= 18:
+            return False
+    return True
+
+
+def _change_note_fallback(lines: list[str]) -> str:
+    for line in lines:
+        if line.startswith("|") or len(line) < 18:
             continue
         lowered = line.lower()
         if any(token in lowered for token in ("투자 자금 결정", "p3 게이트", "question_snapshot", "required_snapshots")):
             continue
-        return line[:180]
+        return _clip_note(line)
     return "근거 문서에 기록된 조건을 재검토해 판단을 갱신했습니다."
 
 
@@ -230,6 +264,7 @@ def _forecast_bodies(root: Path) -> dict[str, dict[str, str]]:
             out[name] = {
                 "body": body,
                 "change_note": _change_note(post.content.strip()),
+                "change_note_fallback": _change_note_is_fallback(post.content.strip()),
                 "source_uri": path.relative_to(root).as_posix(),
             }
         except Exception:  # noqa: BLE001
@@ -259,12 +294,15 @@ def build_read_model(
         # nullable research columns would otherwise consume the static Pages budget on
         # every round.
         "SELECT forecast_id, question_id, round, forecast_ts, probability, ci80_lo, ci80_hi,"
-        " method, sources_count, model FROM forecasts ORDER BY question_id, round"
+        " method, sources_count, model, research_status FROM forecasts ORDER BY question_id, round"
     ):
         d = _row(r)
         record = bodies.get(d["forecast_id"], {})
         d["body"] = record.get("body", "")
         d["change_note"] = record.get("change_note", "")
+        # 변경 사유 줄('직전 대비')이 없어 첫 문단을 발췌한 경우를 표시해, 화면이 발췌를
+        # 예측자가 적은 변경 사유처럼 인용하지 않게 한다.
+        d["change_note_fallback"] = bool(record.get("change_note_fallback", False))
         d["source_uri"] = record.get("source_uri", "")
         question_id = d.pop("question_id")
         fc_hist.setdefault(question_id, []).append(d)
@@ -292,7 +330,17 @@ def build_read_model(
             "n_rounds": len(hist),
             "latest_prob": latest["probability"] if latest else None,
             "latest_ts": latest["forecast_ts"] if latest else None,
+            # 모든 회차가 80% 구간을 기록하는데 목록·카드는 확률 한 숫자만 보여줬다(검수 2차).
+            "latest_ci80": (
+                [latest.get("ci80_lo"), latest.get("ci80_hi")]
+                if latest and latest.get("ci80_lo") is not None and latest.get("ci80_hi") is not None
+                else None
+            ),
             "resolved": q.question_id in resolutions,
+            # 판정기준·판정출처는 질문의 정체성이다 — 확률만 있고 '무엇을 어떻게 판정하는가'가
+            # 없는 화면을 만들지 않는다. 레지스트리 원문 그대로(첫 예측 이후 변경 금지 규약).
+            "resolution": q.resolution,
+            "resolution_source": q.resolution_source,
         })
 
     # ML·시장 이력 (as-of 재구성 + 대조선) — ml_forecasts ensemble + market_implied
@@ -1040,7 +1088,24 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = _compact_static_bundle(load_template(include_qr=mode != "embed"))
     webfonts = ""
     if mode == "pages":
+        # 관리자 게이트 문구("토큰은 goatcounter.com 외 어디로도 전송되지 않습니다")를 실제로
+        # 강제하는 장치가 CSP다. 스크립트는 자기 자신과 GoatCounter 카운터, 스타일·글꼴은
+        # jsDelivr(Wanted Sans), 네트워크는 자기 origin과 GoatCounter API로만 제한한다.
+        # 자기완결 감사 HTML(embed)에는 넣지 않는다 — 외부 호스트명이 들어가면 안 된다.
+        gc_host = f"https://{GOATCOUNTER_CODE}.goatcounter.com" if GOATCOUNTER_CODE else ""
+        csp = "; ".join(filter(None, (
+            "default-src 'none'",
+            "script-src 'self' 'unsafe-inline'" + (" https://gc.zgo.at" if gc_host else ""),
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+            "font-src https://cdn.jsdelivr.net data:",
+            "img-src 'self' data: blob:" + (f" {gc_host}" if gc_host else ""),
+            "connect-src 'self'" + (f" {gc_host}" if gc_host else ""),
+            "manifest-src 'self'",
+            "base-uri 'none'",
+            "form-action 'none'",
+        )))
         webfonts = "\n".join((
+            f'<meta http-equiv="Content-Security-Policy" content="{csp}">',
             '<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>',
             f'<link rel="preload" as="style" href="{WANTED_SANS_CSS}" crossorigin>',
             f'<link rel="stylesheet" href="{WANTED_SANS_CSS}" crossorigin>',
@@ -1165,21 +1230,32 @@ def _write_og_image(model: dict, target: Path) -> None:
     target.parent.mkdir(parents=True, exist_ok=True)
     image = Image.new("RGB", (1200, 630), "#f2eee6")
     draw = ImageDraw.Draw(image)
-    try:
-        title_font = ImageFont.truetype("DejaVuSans.ttf", 56)
-        label_font = ImageFont.truetype("DejaVuSans.ttf", 23)
-        metric_font = ImageFont.truetype("DejaVuSans.ttf", 43)
-    except OSError:
-        title_font = label_font = metric_font = ImageFont.load_default()
+    def _font(size: int):
+        # 러너에 DejaVu가 없으면 예전에는 8px 비트맵 기본 글꼴로 조용히 줄어 확률·고지가 판독
+        # 불가였다. 흔한 대체 글꼴을 순서대로 찾고, 마지막에도 크기를 지정한 기본 글꼴을 쓴다.
+        for name in ("DejaVuSans.ttf", "Arial.ttf", "arial.ttf", "LiberationSans-Regular.ttf",
+                     "NotoSans-Regular.ttf", "FreeSans.ttf"):
+            try:
+                return ImageFont.truetype(name, size)
+            except OSError:
+                continue
+        try:
+            return ImageFont.load_default(size=size)
+        except TypeError:  # Pillow < 10.1
+            return ImageFont.load_default()
+
+    title_font, label_font, metric_font = _font(56), _font(23), _font(43)
     draw.rounded_rectangle((42, 38, 1158, 592), 30, fill="#fbf8f2", outline="#d8d0c4", width=2)
     draw.rounded_rectangle((42, 38, 62, 592), 10, fill="#27705d")
     draw.text((104, 92), "JIN'S INVESTING / PREDICTION", fill="#27705d", font=label_font)
     draw.text((104, 145), "Market paths, with provenance.", fill="#151815", font=title_font)
     scenario = model.get("scenario") or {}
     paths = scenario.get("paths") or {}
-    labels = [("UPSIDE", paths.get("S1", {}).get("prob", 0), "#bf571b"),
-              ("RECOVERY", paths.get("S2", {}).get("prob", 0), "#c57a10"),
-              ("DOWNSIDE", paths.get("S3", {}).get("prob", 0), "#8d2943")]
+    # 라벨은 사이트의 시나리오 정의(S1 상승·ATH 돌파 / S2 상승·ATH 미달 / S3 조정·횡보)를
+    # 영문으로 옮긴 것이다. 'RECOVERY'는 사이트 어디에도 없는 이름이었다.
+    labels = [("S1 UPSIDE / ATH BREAK", paths.get("S1", {}).get("prob", 0), "#bf571b"),
+              ("S2 UPSIDE / BELOW ATH", paths.get("S2", {}).get("prob", 0), "#c57a10"),
+              ("S3 CORRECTION / RANGE", paths.get("S3", {}).get("prob", 0), "#8d2943")]
     for index, (label, value, color) in enumerate(labels):
         left = 104 + index * 320
         draw.text((left, 286), label, fill="#6c6a64", font=label_font)

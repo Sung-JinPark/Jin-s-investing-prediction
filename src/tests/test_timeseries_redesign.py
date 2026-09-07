@@ -150,7 +150,9 @@ def test_phase2_charts_are_wired_with_hover_and_honest_labels() -> None:
     # 봉인창에 원점이 없는 국면은 0%가 아니라 '자료 없음'
     assert "자료 없음 · 봉인창에 원점 0개" in html
     # 게이트 밴드는 계약 값 그대로
-    assert "TS_GATE_BANDS={p1090:[0.76,0.84],p2575:[0.45,0.55],gfc_min:0.72}" in html
+    # gfc_min은 dev_gate_proxy의 GFC 설계 하한, pub_regime_min은 publication_gate의
+    # regime_p10_p90_minimum — 후자만 세 국면 전부에 걸리는 발행 구속력이다.
+    assert "TS_GATE_BANDS={p1090:[0.76,0.84],p2575:[0.45,0.55],gfc_min:0.72,pub_regime_min:0.70}" in html
     # 공개하지 않기로 한 지표는 시계열 구역에 없다
     region = html[html.index("const tsLevel="):html.index("const GC_API=")]
     for banned in ("방향 적중률", "directional_accuracy", "first_touch", "mase", "distribution_selection"):

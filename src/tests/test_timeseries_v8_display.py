@@ -205,3 +205,53 @@ def test_projection_carries_gate_widget_and_history_only_when_visible() -> None:
     assert [row["group"] for row in projection["freshness_summary"]] == \
         ["NASDAQCOM", "DTWEXBGS_or_DTWEXB"]
     assert projection["history"]["index"][-1] == pytest.approx(20000.0)
+
+
+def test_projection_marks_horizons_already_matured_by_build_time() -> None:
+    """검수 2차: 원점 이후 실측이 있으면 만기가 지난 지평은 열린 전망이 아니다.
+
+    실측은 별도 배열(realized)로만 싣고 history(원점까지의 입력 이력)에 섞지 않는다.
+    라이브 원장 채점은 별도 성숙 판정 경로가 맡으므로 여기서는 표시용 사후 대조만 한다.
+    """
+    latest = _visible_latest()
+    realized = {
+        "dates": ["2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04"],
+        "index": [19980.0, 19800.0, 19900.0, 20150.0, 20100.0],
+    }
+    projection = build_projection(
+        latest, anchor_value=20000.0, sealed_row=_sealed_row(),
+        history={"dates": ["2026-08-27", "2026-08-28"], "index": [19950.0, 20000.0]},
+        realized=realized,
+    )
+    assert projection["origin_age_sessions"] == 5
+    assert projection["realized"] == realized
+    assert projection["history"]["dates"][-1] == "2026-08-28", "history는 원점에서 끝나야 한다(PIT)"
+    h1, h5, h21 = (projection["horizons"][key] for key in ("1", "5", "21"))
+    assert h1["elapsed"] is True and h1["realized_index"] == pytest.approx(19980.0)
+    assert h1["realized_date"] == "2026-08-31"
+    assert h1["realized_return"] == pytest.approx(-0.001)
+    assert isinstance(h1["realized_inside_p10_p90"], bool)
+    assert h5["elapsed"] is True and h5["realized_date"] == "2026-09-04"
+    assert h21["elapsed"] is False and "realized_index" not in h21
+    # 실측이 없으면 아무 지평도 만기로 표시하지 않고 realized는 None이다.
+    bare = build_projection(latest, anchor_value=20000.0, sealed_row=_sealed_row())
+    assert bare["origin_age_sessions"] == 0 and bare["realized"] is None
+    assert all(row["elapsed"] is False for row in bare["horizons"].values())
+
+
+def test_forward_block_counts_direction_and_names_the_live_baseline() -> None:
+    """검수 2차: 확정 행이 있으면 그 결과(기준선 대비·방향)를 센다 — 성숙 원점 0을 근거로
+    유일한 표본외 증거의 존재를 부정하지 않는다."""
+    rows = [
+        {"forecast_id": "f1", "origin": "2026-08-14", "horizon": 1, "resolved_session": "2026-08-17",
+         "model_crps": 0.0038, "baseline_crps": 0.0034, "direction_correct": False, "covered_p10_p90": True},
+        {"forecast_id": "f1", "origin": "2026-08-14", "horizon": 5, "resolved_session": "2026-08-21",
+         "model_crps": 0.0157, "baseline_crps": 0.0153, "direction_correct": False, "covered_p10_p90": True},
+    ]
+    block = display._forward_block({"operational": {"monitoring": {"matured_shadow_origins": 0}}}, rows)
+    assert block["resolved_rows"] == 2 and block["unique_forecasts"] == 1
+    assert block["model_better_rows"] == 0
+    assert block["direction_rows"] == 2 and block["direction_correct_rows"] == 0
+    assert block["covered_p10_p90_rows"] == 2
+    assert block["baseline"] == "historical_simulation"
+    assert block["matured_origins"] == 0

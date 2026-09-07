@@ -800,7 +800,9 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
 
 def test_pages_rebuilds_when_v5_2_projection_changes() -> None:
     workflow = (ROOT / ".github/workflows/pages.yml").read_text(encoding="utf-8")
-    assert '- "src/ai_fc/scenario_v5_2/**"' in workflow
+    # 엔진 디렉터리 전체가 트리거다 — 모듈 목록을 따라가다 read model 생성 모듈을 빠뜨리던
+    # 경로 필터를 걷어냈다(검수 2차). scenario_v5_2/**는 src/ai_fc/** 안에 포함된다.
+    assert '- "src/ai_fc/**"' in workflow
 
 
 def test_pages_deploy_rebuilds_and_replay_verifies_v5_2_before_dashboard() -> None:
