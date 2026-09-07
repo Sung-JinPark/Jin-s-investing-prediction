@@ -1,0 +1,95 @@
+{
+ "schema": "v13_ta_null_repair",
+ "prereg": "docs/design/v13_next_design_prereg_260907.md §1",
+ "block": 13,
+ "threshold": 0.1,
+ "count": 40,
+ "n1_baseline_t5_pooled": 0.254,
+ "nulls": {
+  "N-p-block": {
+   "kind": "N-p-block",
+   "replicates": 40,
+   "elapsed_sec": 1.5,
+   "t1_cell_pass_counts": {
+    "h21": 11,
+    "h63": 1
+   },
+   "t1_pass_rate_pooled": 0.15,
+   "t1_pass_rate_by_cell": {
+    "h21": 0.275,
+    "h63": 0.025
+   },
+   "cell_pass_rate": {
+    "T1_h21": 0.275,
+    "T1_h63": 0.025,
+    "T2_h21": 0.275,
+    "T2_h63": 0.025,
+    "T3_h21": 0.725,
+    "T3_h63": 0.05,
+    "T4_h21": 0.525,
+    "T4_h63": 0.0
+   },
+   "k_mean": 1.9,
+   "k_max": 4
+  },
+  "N-y-block": {
+   "kind": "N-y-block",
+   "replicates": 40,
+   "elapsed_sec": 1.6,
+   "t1_cell_pass_counts": {
+    "h21": 0,
+    "h63": 0
+   },
+   "t1_pass_rate_pooled": 0.0,
+   "t1_pass_rate_by_cell": {
+    "h21": 0.0,
+    "h63": 0.0
+   },
+   "cell_pass_rate": {
+    "T1_h21": 0.0,
+    "T1_h63": 0.0,
+    "T2_h21": 0.0,
+    "T2_h63": 0.0,
+    "T3_h21": 0.0,
+    "T3_h63": 0.0,
+    "T4_h21": 0.0,
+    "T4_h63": 0.0
+   },
+   "k_mean": 0.0,
+   "k_max": 0
+  },
+  "N-blk-pair": {
+   "kind": "N-blk-pair",
+   "replicates": 40,
+   "elapsed_sec": 1.5,
+   "t1_cell_pass_counts": {
+    "h21": 0,
+    "h63": 0
+   },
+   "t1_pass_rate_pooled": 0.0,
+   "t1_pass_rate_by_cell": {
+    "h21": 0.0,
+    "h63": 0.0
+   },
+   "cell_pass_rate": {
+    "T1_h21": 0.0,
+    "T1_h63": 0.0,
+    "T2_h21": 0.0,
+    "T2_h63": 0.0,
+    "T3_h21": 0.0,
+    "T3_h63": 0.0,
+    "T4_h21": 0.075,
+    "T4_h63": 0.0
+   },
+   "k_mean": 0.075,
+   "k_max": 1
+  }
+ },
+ "t1_pooled_pass_rates": {
+  "N-p-block": 0.15,
+  "N-y-block": 0.0,
+  "N-blk-pair": 0.0
+ },
+ "repaired": false,
+ "verdict": "NOT_REPAIRED — 하나 이상 초과, 재개 금지"
+}
