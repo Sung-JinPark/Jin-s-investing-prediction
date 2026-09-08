@@ -1,0 +1,671 @@
+<title>진 인베스팅 안내서</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#FAF8F4; --surface:#FFFFFF; --ink:#20262A; --sub:#5C6670;
+  --accent:#0E6E5C; --accent-soft:#E4F0EC; --line:#E3E0D8;
+  --caveat-bg:#FBF3E2; --caveat-ink:#7A5B18; --chip-bg:#EFEDE6;
+  --insight-bg:#F1F6F4;
+}
+:root:not([data-theme="light"]){}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#15181B; --surface:#1C2024; --ink:#E6E4DE; --sub:#9AA3AB;
+    --accent:#4CC2A9; --accent-soft:#1E2E2A; --line:#2C3236;
+    --caveat-bg:#2A2417; --caveat-ink:#D9B96A; --chip-bg:#262B2F;
+    --insight-bg:#1D2826;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#15181B; --surface:#1C2024; --ink:#E6E4DE; --sub:#9AA3AB;
+  --accent:#4CC2A9; --accent-soft:#1E2E2A; --line:#2C3236;
+  --caveat-bg:#2A2417; --caveat-ink:#D9B96A; --chip-bg:#262B2F;
+  --insight-bg:#1D2826;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans KR',-apple-system,'Malgun Gothic',sans-serif;
+  font-size:16px;line-height:1.75;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding:0 22px 96px}
+header.hero{padding:64px 0 36px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:'IBM Plex Mono',monospace;font-size:12px;letter-spacing:.14em;
+  color:var(--accent);text-transform:uppercase;margin:0 0 14px}
+h1{font-family:'Gowun Batang',serif;font-size:clamp(30px,5.5vw,42px);font-weight:700;
+  line-height:1.3;margin:0 0 16px;text-wrap:balance}
+.hero p.lede{font-size:17.5px;color:var(--sub);margin:0;max-width:38em}
+.hero .site-link{display:inline-block;margin-top:20px;font-family:'IBM Plex Mono',monospace;
+  font-size:13px;color:var(--accent);text-decoration:none;border-bottom:1px solid var(--accent)}
+.dateline{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--sub);margin-top:22px}
+
+nav.toc{margin:36px 0 0;border:1px solid var(--line);background:var(--surface);padding:20px 22px}
+nav.toc p{margin:0 0 10px;font-family:'IBM Plex Mono',monospace;font-size:11px;
+  letter-spacing:.12em;color:var(--sub);text-transform:uppercase}
+nav.toc ol{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+nav.toc a{color:var(--ink);text-decoration:none;display:flex;gap:12px;align-items:baseline;padding:2px 0}
+nav.toc a:hover .toc-label,nav.toc a:focus-visible .toc-label{color:var(--accent)}
+nav.toc a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.toc-num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--accent);min-width:2em}
+.toc-label{font-weight:500}
+.toc-hint{color:var(--sub);font-size:13.5px}
+
+section.chapter{margin-top:72px}
+.ch-head{display:flex;align-items:baseline;gap:14px;border-bottom:2px solid var(--ink);padding-bottom:10px}
+.ch-num{font-family:'IBM Plex Mono',monospace;font-size:15px;color:var(--accent);font-weight:500}
+h2{font-family:'Gowun Batang',serif;font-size:26px;font-weight:700;margin:0;line-height:1.35;text-wrap:balance}
+.route{font-family:'IBM Plex Mono',monospace;font-size:12px;background:var(--chip-bg);
+  padding:2px 8px;border-radius:3px;color:var(--sub);white-space:nowrap;margin-left:auto}
+section.chapter>p{max-width:42em}
+h3{font-family:'Gowun Batang',serif;font-size:19.5px;font-weight:700;margin:44px 0 8px;line-height:1.4}
+h4{font-size:16px;font-weight:700;margin:32px 0 6px}
+
+.qa{display:grid;gap:0;margin:20px 0;border:1px solid var(--line);background:var(--surface)}
+.qa>div{padding:14px 18px;display:grid;grid-template-columns:96px 1fr;gap:14px}
+.qa>div+div{border-top:1px solid var(--line)}
+.qa dt{font-size:12.5px;font-weight:700;color:var(--accent);letter-spacing:.03em;padding-top:2px}
+.qa dd{margin:0}
+@media (max-width:520px){.qa>div{grid-template-columns:1fr;gap:4px}}
+
+.chart-cat{margin-top:48px;padding:10px 16px;background:var(--accent-soft);
+  border-left:3px solid var(--accent)}
+.chart-cat h3{margin:0;font-size:18px}
+.chart-cat p{margin:4px 0 0;font-size:14px;color:var(--sub)}
+
+article.chart{border:1px solid var(--line);background:var(--surface);margin-top:18px;padding:18px 20px}
+article.chart h4{margin:0 0 4px;font-size:16.5px;font-family:'Gowun Batang',serif;font-weight:700}
+.chart-what{margin:6px 0 0;font-size:15px}
+.chart-now{margin:12px 0 0;padding:10px 14px;background:var(--insight-bg);font-size:14.5px}
+.chart-now b{color:var(--accent)}
+.chart-src{margin:10px 0 0;font-size:13px;color:var(--sub)}
+.chart-cav{margin:10px 0 0;padding:8px 12px;background:var(--caveat-bg);color:var(--caveat-ink);
+  font-size:13px;border-left:3px solid var(--caveat-ink)}
+.num{font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;font-size:.94em}
+
+.card-mock{margin:14px 0 4px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.card-mock .cm{position:relative;display:grid;grid-template-columns:46px minmax(0,1fr);gap:2px 10px;align-items:center;
+  padding:12px 14px;background:var(--chip-bg);border:1px solid var(--line);border-top:4px solid transparent}
+.card-mock .cm.active{background:var(--surface);border-top-color:var(--ink)}
+.card-mock svg{grid-row:1/3;width:46px;height:26px;display:block}
+.card-mock b{font-size:14px}
+.card-mock small{grid-column:2;color:var(--sub);font-size:11.5px;line-height:1.4}
+.card-mock i{position:absolute;right:10px;top:8px;font:500 9px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;color:var(--sub);font-style:normal}
+.card-mock .cm.active i{color:var(--ink)}
+.mock-cap{margin:6px 0 0;font-size:12.5px;color:var(--sub)}
+@media (max-width:520px){.card-mock{grid-template-columns:1fr}}
+
+.plain{border-left:3px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;color:var(--sub);max-width:40em}
+table{border-collapse:collapse;width:100%;font-size:14.5px;margin:16px 0}
+.tablewrap{overflow-x:auto}
+th{text-align:left;font-size:12.5px;letter-spacing:.05em;color:var(--sub);
+  border-bottom:2px solid var(--ink);padding:6px 10px 6px 0;font-weight:700}
+td{border-bottom:1px solid var(--line);padding:8px 10px 8px 0;vertical-align:top}
+td:first-child{white-space:nowrap;font-weight:500}
+ul,ol{padding-left:1.3em}
+li{margin:4px 0}
+li::marker{color:var(--accent)}
+strong{font-weight:700}
+.warnbox{margin:28px 0;padding:16px 20px;border:1.5px solid var(--caveat-ink);
+  background:var(--caveat-bg);color:var(--caveat-ink);font-weight:500}
+footer{margin-top:80px;padding-top:18px;border-top:1px solid var(--line);
+  font-size:13px;color:var(--sub);font-family:'IBM Plex Mono',monospace}
+a{color:var(--accent)}
+@media print{nav.toc{page-break-after:always}section.chapter{page-break-inside:avoid}}
+</style>
+
+<div class="wrap">
+
+<header class="hero">
+  <p class="eyebrow">Site Guide · 처음 보는 사람을 위한 안내</p>
+  <h1>이 사이트는 시장을 맞히는 곳이 아니라,<br>예측을 기록하고 채점하는 곳입니다</h1>
+  <p class="lede">Jin's Investing Prediction은 "주가가 오를까 내릴까"를 외치는 사이트가 아닙니다.
+  기한과 판정 기준이 있는 질문을 미리 등록하고, 확률로 예측을 남기고, 결과가 나오면 점수를 매겨
+  그 기록을 전부 공개하는 시스템입니다. 이 문서는 사이트의 여섯 화면을 처음부터 끝까지,
+  각 화면이 무엇을 보여주고 · 무엇을 읽어낼 수 있고 · 무슨 근거로 만들어졌는지 순서대로 설명합니다.</p>
+  <a class="site-link" href="https://sung-jinpark.github.io/Jin-s-investing-prediction/" target="_blank" rel="noopener">sung-jinpark.github.io/Jin-s-investing-prediction ↗</a>
+  <p class="dateline">본문 수치 기준: 2026-09-01 스냅샷 · 사이트는 자동으로 매일/매주 갱신되므로 실제 화면의 숫자는 이 문서보다 최신일 수 있습니다</p>
+</header>
+
+<nav class="toc" aria-label="목차">
+  <p>목차 — 사이트의 실제 메뉴 순서 그대로</p>
+  <ol>
+    <li><a href="#s0"><span class="toc-num">00</span><span class="toc-label">시작하기 전에</span><span class="toc-hint">— 이 시스템의 세 가지 약속</span></a></li>
+    <li><a href="#s1"><span class="toc-num">01</span><span class="toc-label">오늘</span><span class="toc-hint">— 첫 화면: 시장 판단과 핵심 신호</span></a></li>
+    <li><a href="#s2"><span class="toc-num">02</span><span class="toc-label">미래 탐색</span><span class="toc-hint">— 시나리오 경로·교차자산·유동성</span></a></li>
+    <li><a href="#s3"><span class="toc-num">03</span><span class="toc-label">통계 비교</span><span class="toc-hint">— 닷컴과 지금, 27개 그래프 전부 설명</span></a></li>
+    <li><a href="#s4"><span class="toc-num">04</span><span class="toc-label">기록과 검증</span><span class="toc-hint">— 질문·예측·채점 결과</span></a></li>
+    <li><a href="#s5"><span class="toc-num">05</span><span class="toc-label">시계열 예측</span><span class="toc-hint">— 수치 모델의 분포 전망</span></a></li>
+    <li><a href="#s6"><span class="toc-num">06</span><span class="toc-label">데이터와 신뢰</span><span class="toc-hint">— 출처·영수증·감사 기록</span></a></li>
+    <li><a href="#s7"><span class="toc-num">07</span><span class="toc-label">데이터가 쌓이는 방식</span><span class="toc-hint">— 화면 뒤의 자동 수집과 원장</span></a></li>
+    <li><a href="#s8"><span class="toc-num">08</span><span class="toc-label">세 예측 층 비교</span><span class="toc-hint">— 주간 시나리오 · 세 경로 · 시계열</span></a></li>
+  </ol>
+</nav>
+
+<!-- ══════════════════ 00 ══════════════════ -->
+<section class="chapter" id="s0">
+  <div class="ch-head"><span class="ch-num">00</span><h2>시작하기 전에 — 이 시스템의 세 가지 약속</h2></div>
+  <p>사이트 전체를 관통하는 규칙이 세 가지 있습니다. 어느 화면을 보든 이 세 가지가 바탕에 깔려 있습니다.</p>
+
+  <h4>① 예측은 "이벤트 확률"로만 한다</h4>
+  <p>"NASDAQ이 오를 것 같다" 같은 말은 맞았는지 틀렸는지 판정할 수 없습니다. 그래서 모든 예측은
+  <strong>기한·수치 기준·판정 방법이 미리 정해진 질문</strong>에 대해 "몇 %"라는 확률로만 남깁니다.
+  예를 들어 "2026년 7월 미국 신규고용이 10만 명 아래로 나올 확률 38%"처럼요.
+  결과가 나오면 누구도 변명할 수 없이 채점됩니다.</p>
+
+  <h4>② 기록은 절대 고치지 않는다</h4>
+  <p>한 번 남긴 예측 파일과 채점 원장은 <strong>수정·삭제가 금지</strong>됩니다. 오타가 있어도 그대로 둡니다.
+  나중에 고치기 시작하면 "맞힌 것만 남긴 기록"이 되기 때문입니다. 예측을 바꾸고 싶으면
+  옛 것을 지우는 게 아니라 <strong>새 회차 파일을 추가</strong>합니다. 이 규칙은 컴퓨터가 파일 지문(해시)으로 매일 검사합니다.</p>
+
+  <h4>③ 어떤 화면도 매매 신호가 아니다</h4>
+  <p>사이트 곳곳에 "참고 의견입니다 — 매매 신호가 아닙니다"라는 문구가 반복됩니다. 장식이 아니라 실제 규칙입니다.
+  시스템이 스스로 정한 기준 — <strong>판정 완료 50건 이상, 그리고 채점 점수(Brier)가 0.18 미만</strong> —
+  을 통과하기 전까지는, 모든 출력이 "참고 의견" 지위에 묶여 있습니다. 아직 그 기준을 통과하지 않았고,
+  통과 여부는 04 화면에서 누구나 확인할 수 있습니다.</p>
+
+  <div class="plain">Brier 점수란: 예측 확률과 실제 결과(일어남=1, 안 일어남=0)의 차이를 제곱한 값.
+  0에 가까울수록 정확. 모든 질문에 50%라고만 답하면 0.25가 나오므로, 0.25보다 낮아야 "찍기보다 낫다"는 뜻.</div>
+</section>
+
+<!-- ══════════════════ 01 ══════════════════ -->
+<section class="chapter" id="s1">
+  <div class="ch-head"><span class="ch-num">01</span><h2>오늘</h2><span class="route">#today</span></div>
+  <p>사이트에 들어가면 처음 보이는 화면입니다. "지금 시장을 어떻게 판단하고 있는가"를 한 페이지로 요약합니다.</p>
+
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>현재 NASDAQ 수준, 지금 걸려 있는 대표 예측(확률 포함), 다음에 판정될 질문,
+    그리고 <strong>3단계 시장 브리핑</strong> — 버튼을 누르면 현재 데이터를 세 장면으로 차례차례 보여주는 안내가 열립니다.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>"오늘 시장에 대해 이 시스템이 실제로 걸어둔 판단이 무엇인지"를 봅니다.
+    뉴스 헤드라인이 아니라, 확률이 붙어 있고 나중에 채점될 판단만 올라옵니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>화면의 모든 숫자는 아래 04·05 화면의 예측 기록과 자동 수집 데이터에서 그대로 끌어온 것입니다.
+    이 화면만을 위해 따로 만든 숫자는 없습니다.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════ 02 ══════════════════ -->
+<section class="chapter" id="s2">
+  <div class="ch-head"><span class="ch-num">02</span><h2>미래 탐색</h2><span class="route">#future</span></div>
+  <p>"앞으로 시장이 갈 수 있는 길"을 그림으로 보는 화면입니다. 네 개의 소메뉴가 있습니다.</p>
+
+  <h3>02-1 · 전망 그래프</h3>
+  <p>화면 상단에는 <strong>모델 카드 두 장</strong>이 나란히 있습니다. 카드를 누르면 아래 그래프가 통째로 바뀌고,
+  <strong>검은 윗줄이 붙은 카드가 지금 보이는 그래프</strong>입니다 — 윗줄은 아래 그래프 박스의 검은 윗줄과 이어져
+  "이 카드가 이 그래프를 만든다"를 나타냅니다. 카드마다 미니 그래프·이름·계산 방식 한 줄이 적혀 있습니다.</p>
+  <div class="card-mock" aria-hidden="true">
+    <div class="cm active"><svg viewBox="0 0 44 24"><path d="M2 12h10" stroke="#82786a" stroke-width="1.5" fill="none"/><path d="M12 12C22 10 32 5 42 3" stroke="#147a5b" stroke-width="2" fill="none"/><path d="M12 12C22 12 32 11 42 10" stroke="#d98600" stroke-width="2" fill="none"/><path d="M12 12C22 15 32 19 42 21" stroke="#be123c" stroke-width="2" fill="none"/></svg><b>세 가지 시장 경로</b><small>과거 국면 3개 DB의 실제 잔차</small><i>GRAPH 01</i></div>
+    <div class="cm"><svg viewBox="0 0 44 24"><rect x="2" y="15" width="40" height="7" fill="rgba(255,157,25,.4)"/><path d="M2 19C9 17 11 21 16 19S23 9 28 9 37 12 42 5" stroke="#ff4f17" stroke-width="2.4" fill="none"/></svg><b>단일 시나리오 주간 흐름</b><small>최근 1년 변동성 무작위 2만 경로</small><i>GRAPH 02</i></div>
+  </div>
+  <p class="mock-cap">실제 화면의 모델 카드를 본뜬 그림입니다. 두 카드(두 모델)의 차이는 08장에서 자세히 다룹니다.</p>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>기본 카드(GRAPH 01)를 고르면 NASDAQ의 향후 경로를 <strong>세 가지 시나리오</strong>(확장·균형·스트레스)로 나눠 그린 그래프.
+    각 시나리오의 중심 경로와 확률 밴드가 함께 표시되고, 날짜에 마우스를 올리면 그날의 값이 뜹니다.
+    GRAPH 02를 고르면 최초 버전의 단일 시나리오 주간 그래프가 나옵니다.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>"한 개의 목표 주가"를 제시하지 않는다는 점이 핵심입니다.
+    미래는 하나의 선이 아니라 여러 갈래의 범위이고, 각 갈래에 확률이 붙습니다.
+    "얼마까지 간다"가 아니라 "이 범위 밖으로 나가면 내 가정이 틀린 것"을 확인하는 용도입니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>수천 개의 모의 경로를 만들어 비슷한 것끼리 묶고, 각 묶음의 실제 중심 경로를 대표선으로 씁니다.
+    입력 데이터의 지문(해시)이 결과에 봉인돼 있어서, 입력이 몰래 바뀌면 그래프 생성 자체가 거부됩니다.</dd></div>
+  </dl>
+
+  <h3>02-2 · 과거 사이클</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>과거 기술 혁신 시기(닷컴 등)의 시장 흐름을 참고용으로 나란히 놓은 화면.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>"지금이 과거 어느 국면과 비슷한 조건인지"를 눈으로 확인합니다.
+    다만 과거가 반복된다는 주장이 아니라, 비교 가능한 조건만 표시합니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>03 통계 비교와 같은 공식 통계 원천을 씁니다.</dd></div>
+  </dl>
+
+  <h3>02-3 · 교차자산 비교</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>NASDAQ · 비트코인 · 리츠(Realty Income) · 주택건설주(D.R. Horton)를 같은 시작점에서 비교.
+    상관계수(함께 움직이는 정도), 하락장에서의 민감도, 금리에 대한 리츠의 민감도 등이 표와 그래프로 나옵니다.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>"NASDAQ이 흔들릴 때 무엇이 함께 흔들리고 무엇이 버티는가"를 봅니다.
+    예: 비트코인은 하락장에서 NASDAQ보다 크게 움직이는 경향이 수치로 확인되고, 리츠는 금리에 더 민감합니다.
+    포트폴리오에서 "분산이 실제로 되고 있는지"를 점검하는 화면입니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>NASDAQ·비트코인 종가는 미국 세인트루이스 연방준비은행(FRED)의 공식 API에서,
+    개별 종목은 배당 반영 가격이 필요해 별도 경로에서 매일 수집합니다. 매일의 수집 영수증(주소·시각·데이터 지문)이 함께 저장됩니다.</dd></div>
+  </dl>
+
+  <h3>02-4 · 유동성</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>시장에 자금이 들어오는지 빠지는지 — 연준 자산, 역레포, 재무부 계정 등 자금 흐름 지표.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>주가가 오르는 이유가 "돈이 많아져서"인지 "돈은 그대로인데 쏠려서"인지를 구분하는 배경 정보입니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>연준·재무부 공식 통계, 주간 자동 갱신.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════ 03 ══════════════════ -->
+<section class="chapter" id="s3">
+  <div class="ch-head"><span class="ch-num">03</span><h2>통계 비교 — "닷컴과 지금, 숫자로 나란히"</h2><span class="route">#statistics</span></div>
+  <p>이 사이트에서 가장 큰 화면입니다. 질문은 하나입니다: <strong>"지금의 AI 상승장은 1990년대 말
+  닷컴 상승장과 얼마나 닮았고, 얼마나 다른가?"</strong> 이를 27개의 그래프로, 여섯 갈래(IPO·유동성·금리·경기물가·기업가치·신용)로 나눠 봅니다.</p>
+  <p>거의 모든 그래프는 같은 방식으로 그려집니다: <strong>두 시대를 각자의 출발점(닷컴은 1995년, 현재는 2023년)에서
+  시작해 "몇 개월째"로 정렬</strong>하고, 지금이 몇 개월째인지에 맞춰 닷컴의 <em>같은 개월차</em> 값과 비교합니다.
+  "닷컴 말기(정점)" 값은 참고로 따로 적습니다. 이렇게 해야 "지금 36개월째인데 닷컴 59개월째(정점)와 비교하는"
+  불공정한 비교를 피할 수 있습니다.</p>
+  <p>모든 그래프에는 공통 원칙이 있습니다: <strong>공식 통계의 실제 관측치만 사용하고, 미래 구간을 절대 그리지 않습니다.</strong>
+  각 그래프 카드에는 "이 수치의 한계"라는 접힘 버튼이 있어 약점을 스스로 공개합니다.
+  아래에 27개 그래프를 화면에 나오는 분류 순서대로 전부 설명합니다.</p>
+
+  <!-- IPO -->
+  <div class="chart-cat"><h3>분류 1 · IPO·상장 — 상장 시장이 얼마나 뜨거운가</h3>
+  <p>닷컴 거품의 상징이 "아무 회사나 상장하면 폭등"이었기 때문에, 상장 시장의 열기는 거품 판별의 고전적 척도입니다.</p></div>
+
+  <article class="chart"><h4>미국 IPO: 일반 기업·SPAC·펀드</h4>
+    <p class="chart-what"><strong>의미</strong> — 반년 동안 미국에서 상장한 회사를 종류별(일반 기업 / SPAC / 펀드)로 센 막대그래프.
+    SPAC은 "먼저 상장해 돈을 모으고 나중에 인수할 회사를 찾는 껍데기 회사"입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 2026년 상반기 SPAC <span class="num">118건</span> &gt; 일반 기업 <span class="num">88건</span>.
+    상장 창구는 열렸지만, 실제 사업을 가진 회사가 줄지어 상장하는 확산 단계는 아직 아닙니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 미국 증권거래위원회(SEC)가 공표하는 분기 IPO 통계 스프레드시트를 자동 수집.</p>
+  </article>
+
+  <article class="chart"><h4>IPO 참고 통계 (별도 블록)</h4>
+    <p class="chart-what"><strong>의미</strong> — 기술주 IPO의 첫날 수익률, 매출 대비 가격, 적자 기업 비율 등을 닷컴기와 비교하는 참고 표.
+    "인터넷 IPO 폭"(얼마나 다양한 회사가 상장했나) 같은 지표도 포함됩니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 닷컴기에는 적자 기업 상장과 첫날 폭등이 일반적이었습니다. 현재 그 정도의 과열은 관측되지 않습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — IPO 연구의 표준 데이터인 플로리다대 Jay Ritter 교수의 공개 통계표.
+    사이트에 실린 40개 큐레이션 수치를 원문 PDF와 대조해 40개 전부 일치를 확인했습니다.</p>
+    <p class="chart-cav">주의 — 학술 통계는 갱신 주기가 느려 "수동 검토일"이 화면에 표시되며, 오래되면 자동으로 게시가 중단됩니다.</p>
+  </article>
+
+  <!-- 유동성 -->
+  <div class="chart-cat"><h3>분류 2 · 유동성 — 돈의 양과 주가의 속도</h3>
+  <p>주가가 돈이 늘어나는 속도보다 훨씬 빨리 오르면, 그 상승의 일부는 "돈이 아니라 기대"로 지탱되고 있다는 뜻입니다.</p></div>
+
+  <article class="chart"><h4>M2와 NASDAQ의 상승 속도</h4>
+    <p class="chart-what"><strong>의미</strong> — 통화량(M2 = 현금+예금 등 쉽게 쓸 수 있는 돈의 총량)과 NASDAQ을
+    같은 출발점=100으로 놓고 누적 상승 속도를 두 선으로 비교.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 NASDAQ <span class="num">+128%</span> vs M2 <span class="num">+9%</span>.
+    닷컴 같은 43개월차는 NASDAQ +99%·M2 +20%였고, 닷컴 말기엔 NASDAQ이 +439%까지 벌어졌습니다.
+    즉 <strong>주가가 돈보다 빨리 달리는 정도가 닷컴 같은 시점보다 이미 큽니다.</strong> 다만 말기의 극단에는 못 미칩니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 M2 월간 통계 + NASDAQ 종합지수(둘 다 FRED 공식 API).</p>
+    <p class="chart-cav">주의 — 명목 비교이며, M2에는 기관 자금(역레포 등)이 빠져 있어 시장 유동성 전체를 대표하지 않습니다.</p>
+  </article>
+
+  <article class="chart"><h4>M2 한 단위 대비 NASDAQ</h4>
+    <p class="chart-what"><strong>의미</strong> — 위 두 선을 하나로 나눈 값(NASDAQ÷M2)을 지수화한 한 선.
+    "돈 한 단위당 주가가 얼마나 비싸졌나"입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">201</span>, 닷컴 같은 42개월차 <span class="num">206</span>과 거의 같은 높이.
+    닷컴 말기는 <span class="num">406</span>이었습니다. 비율로 보면 지금은 "닷컴의 같은 시점과 비슷한 수준"입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 위와 동일.</p>
+    <p class="chart-cav">주의 — 장기 정규화 참고치이며 매수·매도 신호가 아닙니다.</p>
+  </article>
+
+  <article class="chart"><h4>가계 현금성 자산 한 단위 대비 NASDAQ</h4>
+    <p class="chart-what"><strong>의미</strong> — 분모를 통화량 대신 <strong>가계가 실제 들고 있는 현금성 자산</strong>(예금+현금)으로 바꾼 같은 형식의 비율.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">177</span> vs 닷컴 같은 36개월차 <span class="num">183</span>, 닷컴 말기 <span class="num">299</span>.
+    가계의 실탄 대비로도 "같은 시점과 비슷, 말기보다는 한참 아래"입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 가계 자금순환(Z.1) 분기 통계 + NASDAQ.</p>
+    <p class="chart-cav">주의 — 분모가 분기 자료라 점 개수가 적습니다(닷컴 20개·현재 13개).</p>
+  </article>
+
+  <article class="chart"><h4>자금 지도: 현재 규모와 12개월 방향</h4>
+    <p class="chart-what"><strong>의미</strong> — 주식·MMF(초단기 금융상품)·예금 등 주요 자금 창고의 <strong>현재 크기</strong>와
+    <strong>최근 12개월 증감 방향</strong>을 한 판에 배치한 지도형 그림.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — MMF가 M2의 약 <span class="num">36%</span> 규모로 대기 중이고,
+    12개월 방향은 NASDAQ <span class="num">+22.9%</span>가 가장 강합니다. <strong>위험자산 열기와 대기자금이 동시에 존재</strong>하는 시장 —
+    아직 "모두가 올라탄" 국면은 아니라는 뜻입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 Z.1·M2·시장 지수(전부 공식 원천).</p>
+    <p class="chart-cav">주의 — 항목 간 중복이 있어 합산 금지, 지표별 기준일이 다릅니다.</p>
+  </article>
+
+  <article class="chart"><h4>연방부채 한 단위 대비 미국 주가</h4>
+    <p class="chart-what"><strong>의미</strong> — 분모를 <strong>미국 연방정부 부채 총액</strong>으로 바꾼 비율. 정부가 돈을 풀어 경제를 떠받친 규모 대비
+    주가가 얼마나 달렸는지 봅니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">116</span> vs 닷컴 같은 36개월차 <span class="num">174</span>, 말기 <span class="num">199</span>.
+    최근 연방부채는 <span class="num">39.1조 달러</span>. 부채 팽창 대비로 보면 주가는 닷컴 같은 시점보다 <strong>오히려 느립니다.</strong></p>
+    <p class="chart-src"><strong>근거</strong> — 재무부 분기말 부채 잔액 + OECD 미국 주가지수(FRED 경유).</p>
+    <p class="chart-cav">주의 — 분자는 S&amp;P 500 종가가 아니라 OECD 월평균 지수입니다(FRED의 S&amp;P 500은 최근 10년만 제공해 닷컴 비교 불가).</p>
+  </article>
+
+  <article class="chart"><h4>미국 주가 ÷ 연방부채: 1966년부터의 전체 경로</h4>
+    <p class="chart-what"><strong>의미</strong> — 위 비율을 60년 전 기간으로 늘린 한 선. 1968년과 2000년, 두 번의 역사적 고점을 잇는
+    빨간 저항 추세선이 함께 그려져 있습니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 1966=100 기준 현재 <span class="num">35</span>. 1968년 고점 <span class="num">103</span>,
+    2000년 고점 <span class="num">73</span>. 추세선은 현재 시점 <span class="num">49</span>에 내려와 있고 현재 값은 그 71% 수준.
+    <strong>파란 선이 빨간 선에 닿으면 과거 두 정점과 같은 과열 참고 구간</strong> — 아직 여유가 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 위와 동일, 1966년부터의 전 관측.</p>
+    <p class="chart-cav">주의 — 고점 표시는 데이터의 최대값이지 매매 기준선이 아닙니다.</p>
+  </article>
+
+  <!-- 금리 -->
+  <div class="chart-cat"><h3>분류 3 · 금리 — 자금의 가격과 경기 신호</h3>
+  <p>금리는 주가의 할인율이자, 역사적으로 가장 신뢰도 높은 침체 예고 지표(장단기 역전)의 재료입니다.</p></div>
+
+  <article class="chart"><h4>장단기 금리차: 10년−2년과 10년−3개월</h4>
+    <p class="chart-what"><strong>의미</strong> — 장기금리에서 단기금리를 뺀 값 두 종류. 이 값이 음수(역전)가 되면
+    역사적으로 1~2년 안에 침체가 따라오는 경우가 많았습니다. 10년−3개월이 학술 연구(Estrella–Mishkin)와
+    뉴욕연준 침체확률 모델의 표준이고, 10년−2년은 시장 관행입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 10년−2년 <span class="num">+0.47%p</span>, 10년−3개월 <span class="num">+0.81%p</span>.
+    둘 다 양수로 정상화됐지만, <strong>역전이 풀린 직후가 오히려 침체 직전이었던 사례</strong>가 있어 경계 구간은 남아 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 미 국채 수익률(FRED). 표준 지표(10y−3m)를 쓰는 이유까지 화면에 명시.</p>
+  </article>
+
+  <article class="chart"><h4>연방기금금리 경로</h4>
+    <p class="chart-what"><strong>의미</strong> — 미국 기준금리의 실제 월평균 경로를 두 시대로 비교.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">3.63%</span> vs 닷컴 같은 42개월차 <span class="num">5.54%</span>.
+    닷컴 말기는 재긴축으로 5.30%까지 다시 올렸다가 거품이 꺼졌습니다. 지금은 <strong>인하 경로에 가까워 그 방아쇠와는 다른 상태</strong>입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연방기금 실효금리(FRED). 시장의 인하 기대가 아니라 실제 금리만 그립니다.</p>
+  </article>
+
+  <article class="chart"><h4>금융여건지수</h4>
+    <p class="chart-what"><strong>의미</strong> — 금리·신용·주가를 합쳐 "돈 빌리기 쉬운 환경인가"를 하나의 숫자로 만든 시카고연준 지수.
+    0보다 위면 평균보다 긴축적, 아래면 완화적.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">−0.56</span>, 평균보다 완화적.
+    위험자산에 우호적이지만, 과열이 더 이어질 여지도 함께 남긴다는 양면 신호입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 시카고연준 NFCI 주간 지수(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>첫 금리 인하 뒤 재긴축 거리</h4>
+    <p class="chart-what"><strong>의미</strong> — 이번 사이클 첫 인하 시점 대비 정책금리가 얼마나 움직였는지.
+    닷컴 말기의 특징이 "인하했다가 다시 원점 위로 올린 재긴축"이었기 때문에 그 신호를 감시하는 그래프입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 첫 인하 전보다 <span class="num">−1.70%p</span> 낮음. 재긴축 신호는 아직 없습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연방기금금리(FRED)에서 자동 계산.</p>
+  </article>
+
+  <article class="chart"><h4>회사채 금리와 국채 대비 부담</h4>
+    <p class="chart-what"><strong>의미</strong> — 기업이 실제로 돈을 빌리는 금리(회사채)와, 안전자산(국채) 대비 웃돈(스프레드)을 함께 표시.
+    스프레드가 튀면 "기업 신용을 의심하기 시작했다"는 뜻입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 회사채 <span class="num">5.45%</span>, 스프레드 <span class="num">0.85%p</span>.
+    신용 불신(스프레드 급등)이 아니라 <strong>높은 절대금리 자체가 부담</strong>인 국면입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — ICE BofA 회사채 지수·국채 금리(FRED).</p>
+  </article>
+
+  <!-- 경기·물가 -->
+  <div class="chart-cat"><h3>분류 4 · 경기·물가 — 실물 경제가 받쳐주는가</h3>
+  <p>거품의 반대 증거는 실물입니다. 고용·물가·투자·건설이 주가의 속도를 따라오는지 확인합니다.</p></div>
+
+  <article class="chart"><h4>실업률</h4>
+    <p class="chart-what"><strong>의미</strong> — 공식 실업률(U-3)의 두 시대 비교.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">4.1%</span> vs 닷컴 같은 42개월차 <span class="num">4.5%</span>.
+    고용은 식는지 점검할 구간이지만 침체로 확인된 수준은 아닙니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 노동통계국 월간 발표(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>소비자물가 상승률</h4>
+    <p class="chart-what"><strong>의미</strong> — CPI 전년 대비 상승률. 금리 인하 여력을 결정하는 배경 변수.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">3.3%</span>로 3%를 웃돌아, <strong>연준이 마음껏 금리를 내리기 어려운 제약</strong>이 남아 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 노동통계국 CPI(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>유가·구리와 두 달 뒤 CPI 나란히 보기</h4>
+    <p class="chart-what"><strong>의미</strong> — 원자재 가격(유가·구리)과 두 달 뒤의 물가를 나란히 배치한 점검판.
+    원자재가 물가에 먼저 움직이는 경향을 참고하기 위한 배치입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 유가 <span class="num">+29.0%</span>·구리 <span class="num">+17.9%</span> 동반 상승 —
+    물가 재가속 위험을 점검할 구간입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 에너지정보청 유가·생산자물가 구리(FRED).</p>
+    <p class="chart-cav">주의 — 원자재의 물가 선행성은 시기에 따라 약해진다는 연구가 있어, 두 달 정렬은 예측 규칙이 아니라 참고 배치입니다. 이 한계가 화면 제목에도 반영돼 있습니다.</p>
+  </article>
+
+  <article class="chart"><h4>한국 주가와 글로벌 반도체 사이클</h4>
+    <p class="chart-what"><strong>의미</strong> — 한국 주가지수와 미국 반도체지수(SOX)를 2023=100으로 나란히 놓은 월간 비교.
+    한국 시장의 AI·반도체 의존도를 보는 그래프입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 2023년 대비 한국 <span class="num">+259%</span>, 미국 반도체 <span class="num">+295%</span>.
+    두 시장 모두 <strong>글로벌 반도체 조정이 오면 함께 흔들리는 구조</strong>입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — OECD 한국 주가지수·NASDAQ 반도체지수(FRED).</p>
+    <p class="chart-cav">주의 — 한국 선은 OECD 월간 지수이며 KOSPI 종가가 아닙니다(화면에도 명시).</p>
+  </article>
+
+  <article class="chart"><h4>설비·지식재산 투자의 GDP 비중</h4>
+    <p class="chart-what"><strong>의미</strong> — 미국 경제 크기 대비 기업 투자 비중을 두 가지 정의(장비만 / 장비+소프트웨어+연구개발)로 함께 표시.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 장비만 보면 <span class="num">2.45%</span>로 닷컴 같은 시점(2.68%)보다 낮고,
+    소프트웨어·연구개발까지 더하면 <span class="num">8.21%</span>로 닷컴(6.16%)을 넘습니다.
+    <strong>정의에 따라 "닷컴보다 덜하다/더하다"가 갈리므로 두 선을 함께 봐야 한다</strong>는 것 자체가 이 그래프의 결론입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 상무부 경제분석국(BEA) 국민계정(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>반도체·전력·통신 시설 건설</h4>
+    <p class="chart-what"><strong>의미</strong> — AI 붐이 "실제 공사"로 이어지는지: 컴퓨터·전자 공장, 전력, 통신 시설의 건설 지출을 같은 출발점에서 비교.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 컴퓨터·전자 공장 건설은 지수 <span class="num">71</span>로 닷컴 같은 시점(220)보다 훨씬 낮고,
+    전력 <span class="num">133</span>·통신 <span class="num">112</span>. 데이터센터 건설은 민간 오피스 건설의 <span class="num">60%</span> 규모까지 커졌지만
+    2014년부터만 집계돼 닷컴 비교선이 없습니다. <strong>이번 붐의 공사는 공장보다 전력·데이터센터에 몰려 있습니다.</strong></p>
+    <p class="chart-src"><strong>근거</strong> — 센서스국 건설지출 통계(직접 수집).</p>
+  </article>
+
+  <article class="chart"><h4>주택·제조업 경기 경고판</h4>
+    <p class="chart-what"><strong>의미</strong> — 침체 전에 먼저 식는 두 부문(주택착공·제조업 지수)을 한 판에 놓은 경고등.
+    둘 다 약해지면 경기 냉각 신호가 강해집니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 주택착공 <span class="num">−13.5%</span>(약함) vs 제조업지수 <span class="num">47.4</span>(확장 신호).
+    <strong>신호가 한 방향으로 모이지 않은 혼합 상태</strong> — 침체 확정도, 안전 확인도 아닙니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 센서스 주택착공·ISM 제조업지수 계열(공식 원천).</p>
+  </article>
+
+  <!-- 기업가치 -->
+  <div class="chart-cat"><h3>분류 5 · 기업가치 — 가격이 이익에 비해 비싼가</h3>
+  <p>거품의 정의는 "가격이 이익에서 멀어지는 것"입니다. 공개 통계로 만들 수 있는 가장 정직한 대용치를 씁니다.</p></div>
+
+  <article class="chart"><h4>기업가치 ÷ 세후이익 PER 대용치</h4>
+    <p class="chart-what"><strong>의미</strong> — 미국 비금융 기업 전체의 주식 가치를, 같은 비금융 기업의 실제 세후이익으로 나눈 배율.
+    "시장 전체의 PER"에 해당하는 공개자료 대용치입니다. 분자와 분모의 대상(비금융 기업)을 일치시켜 계산합니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">29.8배</span> vs 닷컴 같은 36개월차 <span class="num">27.4배</span> —
+    <strong>이미 닷컴의 같은 시점보다 비쌉니다.</strong> 다만 닷컴 말기의 43.7배와는 거리가 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 Z.1 기업주식 시가 + BEA 비금융 세후이익(둘 다 공식 통계).</p>
+    <p class="chart-cav">주의 — 지수 PER와 정의가 다르며, 이익률 수준·해외 매출·금리를 반영하지 않는 대용 배율입니다.</p>
+  </article>
+
+  <article class="chart"><h4>세후 기업이익 증가율</h4>
+    <p class="chart-what"><strong>의미</strong> — 주가를 지탱하는 실제 이익이 얼마나 빨리 늘고 있는지.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 전년 대비 <span class="num">+20.3%</span> vs 닷컴 같은 시점 <span class="num">−6.3%</span>.
+    <strong>이번 상승장이 닷컴과 가장 다른 지점</strong>입니다 — 닷컴은 이익이 꺾인 채 주가만 올랐고, 지금은 이익이 실제로 늘고 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — BEA 기업이익 통계(FRED).</p>
+  </article>
+
+  <!-- 신용 -->
+  <div class="chart-cat"><h3>분류 6 · 신용 — 빚으로 산 상승인가</h3>
+  <p>거품 붕괴가 폭락이 되는 조건은 레버리지(빚 투자)입니다. 빚의 총량과 상환 부담을 감시합니다.</p></div>
+
+  <article class="chart"><h4>브로커 고객 신용과 미국 기업주식</h4>
+    <p class="chart-what"><strong>의미</strong> — 증권사 고객이 빚으로 투자한 금액(신용융자에 해당)과 주식 가치를 같은 출발점에서 비교.
+    빚이 주가보다 빨리 늘면 하락 시 강제 청산 연쇄의 위험이 커집니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 신용 지수 <span class="num">168</span> &gt; 주식 지수 <span class="num">155</span> —
+    <strong>빚이 주가보다 빨리 늘고 있어 레버리지 민감도가 커지는 구간</strong>입니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 Z.1 분기 대용치.</p>
+    <p class="chart-cav">주의 — FINRA 월간 신용잔고가 아니라 분기 대용치입니다(화면에 공시).</p>
+  </article>
+
+  <article class="chart"><h4>소비자신용 증가율</h4>
+    <p class="chart-what"><strong>의미</strong> — 가계가 카드·할부 등으로 늘리는 빚의 증가 속도.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">+2.4%</span> vs 닷컴 같은 시점 <span class="num">+7.1%</span>.
+    이번 상승장은 가계 빚 팽창에 의존하고 있지 않습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 소비자신용 월간 통계(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>은행 기업대출 심사 강화 비율</h4>
+    <p class="chart-what"><strong>의미</strong> — 분기마다 은행에 "기업대출 문턱을 높였나"를 묻는 연준 설문. 양수가 클수록 돈줄이 조입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">0.0%</span>로 중립. 기업 신용 경색 신호는 아직 없습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 은행대출담당자 설문(SLOOS, FRED).</p>
+  </article>
+
+  <article class="chart"><h4>가계 원리금 상환 부담</h4>
+    <p class="chart-what"><strong>의미</strong> — 가계 가처분소득 중 빚 갚는 데 쓰는 비율.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 현재 <span class="num">11.3%</span>, 닷컴 같은 시점과 같은 수준.
+    소비 붕괴를 단독으로 부를 극단은 아닙니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 가계부채상환비율(FRED).</p>
+  </article>
+
+  <article class="chart"><h4>비금융기업 회사채 잔액과 순발행 (GDP 대비 %)</h4>
+    <p class="chart-what"><strong>의미</strong> — 기업이 채권으로 조달한 빚의 총량(잔액)과 새로 늘린 양(순발행)을 경제 크기로 나눠 비교.
+    AI 투자 자금이 채권시장에서 얼마나 조달되는지의 배경 그림입니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 잔액은 GDP의 <span class="num">25.2%</span>로 닷컴 같은 시점(20.5%)보다 높지만,
+    새로 늘리는 속도(순발행 <span class="num">1.5%</span>)는 닷컴(3.6%)보다 느립니다.
+    <strong>쌓인 빚은 많지만, 빚을 늘리는 기세는 닷컴만 못합니다.</strong></p>
+    <p class="chart-src"><strong>근거</strong> — 연준 Z.1(FRED).</p>
+    <p class="chart-cav">주의 — 공식 통계에 "AI 채권" 분류는 없어 경제 전체 규모만 볼 수 있습니다. 특정 기업군의 AI 조달액을 이 그래프에서 뽑을 수 없습니다.</p>
+  </article>
+
+  <article class="chart"><h4>가계 주식·현금·채권의 추세 이탈</h4>
+    <p class="chart-what"><strong>의미</strong> — 가계가 보유한 주식·현금·채권이 2009~2019년의 장기 추세선에서 얼마나 벗어났는지.
+    추세 계산은 성장 자료의 표준인 로그 추세를 씁니다.</p>
+    <p class="chart-now"><b>지금 읽히는 것</b> — 추세 대비 주식 <span class="num">−5%</span>, 현금 <span class="num">+23%</span>, 채권 <span class="num">+18%</span>.
+    <strong>가장 크게 추세를 벗어난 것은 주식이 아니라 현금</strong>입니다 — 가계에 실탄이 추세 이상으로 쌓여 있습니다.</p>
+    <p class="chart-src"><strong>근거</strong> — 연준 Z.1 가계 대차대조표(FRED).</p>
+    <p class="chart-cav">주의 — 적정가치 판정이 아니라 "추세 대비 위치"의 서술이며, 채권은 연 11개 관측의 소표본입니다.</p>
+  </article>
+
+  <div class="warnbox">27개 그래프를 다 본 뒤의 종합 그림 — 속도·가치 비율은 "닷컴의 같은 시점과 비슷하거나 조금 위"(과열 초입),
+  실물 이익·현금 여력은 "닷컴보다 확실히 건강"(방어 요인), 레버리지와 물가는 "감시 필요"(위험 요인).
+  사이트는 이 종합 판단을 대신 내려주지 않고, 각 그래프의 결론 문장까지만 제공합니다.</div>
+</section>
+
+<!-- ══════════════════ 04 ══════════════════ -->
+<section class="chapter" id="s4">
+  <div class="ch-head"><span class="ch-num">04</span><h2>기록과 검증</h2><span class="route">#records</span></div>
+  <p>이 사이트의 심장입니다. "예측을 잘하는가"를 말이 아니라 점수로 증명하는 화면입니다.</p>
+
+  <h3>04-1 · 질문 목록</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>등록된 모든 예측 질문(현재 38개)과 각 질문의 모든 예측 회차.
+    질문마다 기한·판정 기준·현재 확률·80% 신뢰구간·근거 요약이 있습니다. 관심 질문을 고정(MY RADAR)하거나 여러 질문을 나란히 비교할 수 있습니다.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>각 질문 상세에는 <strong>반대 증거 섹션이 의무</strong>입니다 — 예측과 반대 방향을 가리키는 사실을
+    반드시 함께 적어야 예측이 성립합니다. 확률만이 아니라 "왜"와 "왜 아닐 수도"를 같이 읽는 화면입니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>질문마다 리서치를 수행하고, 비슷한 과거 사례의 발생 빈도(기저율)에서 출발해 현재 증거로 조정하는
+    표준 절차(기저율 → 분해 → 사전부검)를 거칩니다. 모든 사실 주장에는 출처 링크와 날짜가 붙습니다.</dd></div>
+  </dl>
+
+  <h3>04-2 · 성과 검증</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>판정이 끝난 모든 예측의 Brier 점수, 신뢰도 곡선("70%라고 말한 것들이 실제로 70% 빈도로 일어났나"),
+    분야별 성적, 그리고 위 00장에서 말한 게이트(50건·0.18) 진행 상황.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>맞힌 예측만 골라 보여주는 것이 불가능한 화면입니다. 판정된 것은 <strong>전부</strong> 표에 오릅니다 —
+    잘 맞힌 것(예: NVIDIA 실적 질문 Brier 0.01)과 크게 틀린 것(예: 7월 고용 질문 0.38)이 나란히 있습니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>추가만 가능한 채점 원장(ledger) 파일. 행 수정이 발견되면 검증이 실패하도록 자동 검사가 걸려 있습니다.</dd></div>
+  </dl>
+
+  <h3>04-3 · 변경 일지</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>확률이 언제, 무엇에서 무엇으로, 왜 바뀌었는지의 전체 이력.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>"결과가 나온 뒤 예측을 슬쩍 바꾸는" 고전적 속임수가 구조적으로 불가능함을 보여줍니다.
+    재예측은 언제나 새 회차로 추가되고 옛 회차는 그대로 남습니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>모든 예측 파일의 지문(해시)이 목록으로 봉인되고, 제3자 시각 증명(OpenTimestamps)으로
+    "그 시점 이전에 존재했다"는 사실이 외부에서도 검증 가능합니다.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════ 05 ══════════════════ -->
+<section class="chapter" id="s5">
+  <div class="ch-head"><span class="ch-num">05</span><h2>시계열 예측</h2><span class="route">#timeseries</span></div>
+  <p>04까지가 "사람의 판단 + 리서치"라면, 이 화면은 <strong>순수 수치 모델</strong>이 과거 데이터의 통계적 패턴만으로
+  계산한 NASDAQ 분포 전망입니다. 두 층이 있습니다.</p>
+
+  <h3>05-1 · 운영 전망 (전망 요약 · 경로 분포 · 기여 요인 · 검증 성적)</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>기간별(예: 4주·13주) NASDAQ이 어느 범위에 있을 확률 분포, 그 전망을 올리고 내린 요인 분해,
+    그리고 <strong>워크포워드 검증 성적</strong> — 모델이 과거 각 시점에서 "그때까지의 데이터만으로" 낸 예측을 실제 결과와 대조한 점수표.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>사람의 서사 없이 데이터만 보면 어떤 전망이 나오는지, 그리고 그 모델이
+    <strong>실제로 검증에서 몇 점을 받는지</strong>를 함께 봅니다. 성적이 나쁜 구간은 숨기지 않고 그대로 표시됩니다.</dd></div>
+    <div><dt>무슨 근거</dt><dd>금리·유동성·시장 지표 등 여러 변수의 다변량 모델. 결정론적 수치 모델이므로 과거 적합이 허용되지만
+    (미래 정보를 미리 알 수 없는 구조), 그 결과는 참고 확률이지 매매 신호가 아니라고 화면에 명시됩니다.</dd></div>
+  </dl>
+
+  <h3>05-2 · 연구 참고 표면 (V8)</h3>
+  <dl class="qa">
+    <div><dt>무엇이 보이나</dt><dd>차세대 연구 모델의 봉인 평가 결과. "검증을 통과한 숫자만 표시합니다"라는 원칙 아래,
+    사전에 등록한 합격 기준을 통과한 모델만 여기 올라옵니다.</dd></div>
+    <div><dt>어떤 인사이트</dt><dd>모델 개발 과정 자체를 공개 실험처럼 운영한다는 것 — 기준을 먼저 봉인하고, 평가는 한 번만, 결과는 그대로 공개.</dd></div>
+    <div><dt>무슨 근거</dt><dd>사전등록 계약 문서 + 주간 자동 예측·성숙 채점의 해시 사슬.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════ 06 ══════════════════ -->
+<section class="chapter" id="s6">
+  <div class="ch-head"><span class="ch-num">06</span><h2>데이터와 신뢰</h2><span class="route">#trust</span></div>
+  <p>"이 숫자들을 왜 믿어야 하는가"에 답하는 화면입니다.</p>
+
+  <dl class="qa">
+    <div><dt>데이터 상태</dt><dd>각 데이터가 마지막으로 언제 갱신됐는지, 신선도 기준을 지키는지 한 판에 표시.
+    오래된 데이터는 "오래됨"으로 정직하게 표시되고 슬쩍 이전 값을 재사용하지 않습니다.</dd></div>
+    <div><dt>출처와 방법</dt><dd>모든 수집 경로와 <strong>이용 조건</strong> 목록. 이 시스템은 이용약관이 자동 수집을 명시적으로 허용하는
+    경로만 씁니다 — 예: 연준 데이터는 공식 API로만 받고(약관이 허용하는 유일한 자동 경로), 웹페이지 긁기는 하지 않으며,
+    약관이 금지한 출처(일부 뉴스·데이터 서비스)는 데이터가 공짜로 받아져도 쓰지 않습니다.</dd></div>
+    <div><dt>감사 기록</dt><dd>수집 영수증(요청 주소·시각·응답 데이터의 지문)과 정정 이력.
+    극히 드물게 값을 고쳐야 하면 원본을 덮어쓰는 게 아니라 <strong>정정 원장에 사유와 함께 새 행</strong>으로 남깁니다.</dd></div>
+  </dl>
+</section>
+
+<!-- ══════════════════ 07 ══════════════════ -->
+<section class="chapter" id="s7">
+  <div class="ch-head"><span class="ch-num">07</span><h2>데이터가 쌓이는 방식 — 화면 뒤에서 일어나는 일</h2></div>
+  <p>사이트의 모든 화면은 사람이 손으로 갱신하지 않습니다. 자동 작업이 정해진 시각에 돌고,
+  그 결과가 검사를 통과해야만 화면에 반영됩니다.</p>
+
+  <h3>매일 · 매주 도는 자동 작업</h3>
+  <div class="tablewrap"><table>
+    <tr><th>주기</th><th>작업</th><th>하는 일</th></tr>
+    <tr><td>매일 (화~토)</td><td>시나리오 갱신</td><td>NASDAQ 종가 확정 후 시나리오 그래프·교차자산·유동성 재계산</td></tr>
+    <tr><td>매주 토</td><td>통계 갱신</td><td>27개 그래프의 공식 통계 재수집 → 결론 문장 재계산 → 관측 원장에 추가</td></tr>
+    <tr><td>매주</td><td>시계열 갱신</td><td>수치 모델 재예측 + 만기 도래분 채점</td></tr>
+    <tr><td>격주</td><td>공시 감시</td><td>SEC 신규 상장 서류 감시 대기열 갱신</td></tr>
+    <tr><td>매일</td><td>밀린 일 감시</td><td>판정 기한 지난 질문·미결 정정이 쌓이면 자동으로 알림 이슈 생성</td></tr>
+    <tr><td>커밋마다</td><td>검증</td><td>불변 파일이 수정되지 않았는지, 원장이 추가만 됐는지, 화면 크기 예산을 지키는지 자동 검사 — 하나라도 실패하면 배포 중단</td></tr>
+  </table></div>
+
+  <h3>쌓이는 것들 — 다섯 층의 기록</h3>
+  <ol>
+    <li><strong>원시 영수증</strong> — 수집한 원본 데이터 그대로 + 요청 주소·시각·데이터 지문. "그날 그 출처가 정말 그 값을 줬다"의 증거.</li>
+    <li><strong>관측 원장</strong> — 모든 통계 관측치를 한 줄씩 추가만 하는 장부(현재 수만 행). 값이 나중에 개정되면 옛 값을 지우지 않고 "개정" 행이 위에 얹힙니다.</li>
+    <li><strong>예측 파일</strong> — 1예측 = 1파일, 생성 후 영구 불변. 파일 지문 목록 + 제3자 시각 증명으로 봉인.</li>
+    <li><strong>채점 원장</strong> — 판정 결과와 Brier 점수, 추가만 가능.</li>
+    <li><strong>정정 원장</strong> — 드문 정정의 사유·승인 기록. "무엇이 왜 바뀌었나"가 없으면 그것이 결함.</li>
+  </ol>
+
+  <h3>왜 이렇게까지 하나</h3>
+  <p>예측 시스템의 유일한 정직한 평가 방법은 <strong>미리 적고, 못 고치게 하고, 전부 채점하는 것</strong>이기 때문입니다.
+  과거 데이터로 "이 전략이 과거에 맞았을 것"을 보여주는 방식(백테스트)은 이 시스템에서 원칙적으로 금지입니다 —
+  과거 문제의 답을 이미 알고 있는 상태에서는 성적이 부풀려지기 때문입니다. 그래서 모든 검증은
+  <strong>실시간으로 앞으로만</strong> 진행되고, 그 성적이 04 화면에 그대로 쌓입니다.</p>
+
+  <div class="warnbox">마지막으로 다시 한 번 — 이 사이트의 어떤 숫자도 매수·매도 권유가 아닙니다.
+  시스템 스스로 정한 검증 기준(판정 50건 이상 + Brier 0.18 미만)을 통과하기 전까지 모든 출력은 "참고 의견"이며,
+  그 기준의 진행 상황 자체가 사이트에 공개돼 있습니다.</div>
+</section>
+
+<!-- ══════════════════ 08 ══════════════════ -->
+<section class="chapter" id="s8">
+  <div class="ch-head"><span class="ch-num">08</span><h2>세 예측 층 비교 — 같은 미래, 세 가지 계산법</h2></div>
+  <p>사이트에는 "앞으로의 나스닥"을 그리는 층이 세 개 있습니다. 앞의 둘은 미래 탐색 상단의
+  <strong>모델 카드 2장</strong>으로 고릅니다 — GRAPH 01 <strong>세 가지 시장 경로</strong>,
+  GRAPH 02 <strong>단일 시나리오 주간 흐름</strong>(02-1의 그림 참고). 셋째는 05 화면의 <strong>시계열 예측</strong>.
+  셋은 예측을 만드는 원리 자체가 다르고, 확률의 의미가 섞이지 않도록 일부러 분리돼 있습니다.</p>
+
+  <h3>① 단일 시나리오 주간 흐름 — 변동성 관성</h3>
+  <p>나스닥 지수 <strong>하나</strong>의 최근 252거래일에서 평균 움직임과 변동성을 재고, 고정된 난수 시드로
+  <strong>무작위 경로 20,000개</strong>를 252거래일 앞까지 그립니다. 경로를 만든 뒤에 나눕니다 —
+  전고점을 터치한 경로(S1 상승·ATH 돌파), 못 갔지만 기준가 위에서 끝난 경로(S2), 나머지(S3 조정·횡보).
+  <strong>각 그룹의 경로 개수 비율이 그대로 확률</strong>이고, 모든 경로는 동일 가중 — 조정할 가중치 자체가 없습니다.
+  매일 확정 종가 후 갱신되며, 1주~12개월 지평별로 "실제 종가가 예측 밴드 안이었나"를 원장에 적어 스스로 채점합니다.</p>
+
+  <h3>② 세 가지 시장 경로 — 역사 국면 이식</h3>
+  <p>난수를 쓰지 않습니다. <strong>서로 배타적인 과거 국면 데이터베이스 3개</strong>를 먼저 정합니다 —
+  S1은 닷컴 확장+금리 완화 국면, S2는 균형 연착륙 국면, S3는 조정 국면의 실제 기록.
+  각 DB의 <strong>실제 일별 잔차와 국면 지속기간(가속→조정→재가속)의 경험 분포</strong>를 현재 시점에 이식해
+  엔진당 3,000개의 경로를 만듭니다. ①과 반대로 시나리오가 <strong>사전 지정</strong>이고,
+  가중치는 <strong>사전등록 계약 파일에 고정</strong>돼 있습니다(예: 닷컴 관점 기여 상한 0.60).
+  입력 파일 21개의 지문(해시)이 결과에 봉인돼, 입력이 바뀌면 재현 검증이 거부합니다. 연구 전용입니다.</p>
+
+  <h3>③ 시계열 예측 — 여러 지표의 관계</h3>
+  <p>한 종목이 아니라 <strong>나스닥·장단기 금리·달러지수·변동성지수(VIX)</strong>를 함께 넣은
+  다변량 회귀(ridge-VARX)가 핵심 엔진입니다. 그 위에 변동성으로 걸러낸 실제 잔차를 다시 뽑는
+  재표집(FHS)과 분포 재보정을 얹습니다. 입력은 발표 당시 값을 그대로 보존한 시점고정 원장이라
+  "그때 알 수 없던 정보"가 스며들 수 없습니다. 셋 중 유일하게 <strong>워크포워드 검증(봉인 평가)을
+  통과해야만 화면에 숫자가 표시</strong>되고, 통과하지 못하면 "검증을 통과한 숫자만 표시합니다" 화면이 대신 나옵니다. 주 1회 갱신.</p>
+
+  <div class="tablewrap"><table>
+    <tr><th></th><th>① 주간 시나리오</th><th>② 세 가지 경로</th><th>③ 시계열</th></tr>
+    <tr><td>핵심 질문</td><td>변동성 관성이면 어디까지 퍼지나</td><td>비슷한 역사 국면이면 어떤 모양인가</td><td>지표들의 관계로 보면 분포가 어디인가</td></tr>
+    <tr><td>경로 생성</td><td>무작위 2만 개 (GBM)</td><td>실제 잔차 이식 3천 개/엔진</td><td>회귀 + 잔차 재표집</td></tr>
+    <tr><td>시나리오</td><td>사후 분류 (전고점 기준)</td><td>사전 지정 (역사 DB 3개)</td><td>없음 — 분위수 분포</td></tr>
+    <tr><td>입력</td><td>나스닥 일봉 1년 + 이벤트 달력</td><td>국면 DB 3개 + 봉인 소스 21개</td><td>다변량 시점고정 원장</td></tr>
+    <tr><td>가중치</td><td>없음 (전 경로 동일)</td><td>사전등록 계약 고정</td><td>지평별 혼합비 (계약)</td></tr>
+    <tr><td>검증</td><td>밴드 적중 자기 채점</td><td>입력 해시 봉인 + 재현 검증</td><td>봉인 평가 통과 시만 게시</td></tr>
+    <tr><td>갱신</td><td>매일</td><td>기준 시점 봉인</td><td>주 1회</td></tr>
+  </table></div>
+
+  <div class="warnbox">세 층을 평균 내거나 합치지 않는 것이 설계의 핵심입니다 — 각 층의 확률은 "그 모델의 가정 아래에서"라는
+  조건이 붙은 값이라 서로 더할 수 없고, 사이트의 검증기가 결합 자체를 거부합니다. 실제 사이트에서는 각 화면 하단에
+  그 화면의 모델 스펙 카드(예측 모델·기법·데이터·갱신 + 원리 한 줄)가 표기돼 있습니다.</div>
+</section>
+
+<footer>
+  Jin's Investing Prediction · 안내서 기준일 2026-09-01 (KST) ·
+  본문 수치는 사이트의 2026-08-31/09-01 스냅샷에서 옮긴 것으로, 사이트는 자동 갱신됩니다
+</footer>
+
+</div>

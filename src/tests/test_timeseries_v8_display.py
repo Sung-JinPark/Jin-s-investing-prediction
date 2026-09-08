@@ -205,3 +205,104 @@ def test_projection_carries_gate_widget_and_history_only_when_visible() -> None:
     assert [row["group"] for row in projection["freshness_summary"]] == \
         ["NASDAQCOM", "DTWEXBGS_or_DTWEXB"]
     assert projection["history"]["index"][-1] == pytest.approx(20000.0)
+
+
+def test_projection_marks_horizons_already_matured_by_build_time() -> None:
+    """검수 2차: 원점 이후 실측이 있으면 만기가 지난 지평은 열린 전망이 아니다.
+
+    실측은 별도 배열(realized)로만 싣고 history(원점까지의 입력 이력)에 섞지 않는다.
+    라이브 원장 채점은 별도 성숙 판정 경로가 맡으므로 여기서는 표시용 사후 대조만 한다.
+    """
+    latest = _visible_latest()
+    realized = {
+        "dates": ["2026-08-31", "2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04"],
+        "index": [19980.0, 19800.0, 19900.0, 20150.0, 20100.0],
+    }
+    projection = build_projection(
+        latest, anchor_value=20000.0, sealed_row=_sealed_row(),
+        history={"dates": ["2026-08-27", "2026-08-28"], "index": [19950.0, 20000.0]},
+        realized=realized,
+    )
+    assert projection["origin_age_sessions"] == 5
+    assert projection["realized"] == realized
+    assert projection["history"]["dates"][-1] == "2026-08-28", "history는 원점에서 끝나야 한다(PIT)"
+    h1, h5, h21 = (projection["horizons"][key] for key in ("1", "5", "21"))
+    assert h1["elapsed"] is True and h1["realized_index"] == pytest.approx(19980.0)
+    assert h1["realized_date"] == "2026-08-31"
+    assert h1["realized_return"] == pytest.approx(-0.001)
+    assert isinstance(h1["realized_inside_p10_p90"], bool)
+    assert h5["elapsed"] is True and h5["realized_date"] == "2026-09-04"
+    assert h21["elapsed"] is False and "realized_index" not in h21
+    # 실측이 없으면 아무 지평도 만기로 표시하지 않고 realized는 None이다.
+    bare = build_projection(latest, anchor_value=20000.0, sealed_row=_sealed_row())
+    assert bare["origin_age_sessions"] == 0 and bare["realized"] is None
+    assert all(row["elapsed"] is False for row in bare["horizons"].values())
+
+
+def test_forward_block_counts_direction_and_names_the_live_baseline() -> None:
+    """검수 2차: 확정 행이 있으면 그 결과(기준선 대비·방향)를 센다 — 성숙 원점 0을 근거로
+    유일한 표본외 증거의 존재를 부정하지 않는다."""
+    rows = [
+        {"forecast_id": "f1", "origin": "2026-08-14", "horizon": 1, "resolved_session": "2026-08-17",
+         "model_crps": 0.0038, "baseline_crps": 0.0034, "direction_correct": False, "covered_p10_p90": True},
+        {"forecast_id": "f1", "origin": "2026-08-14", "horizon": 5, "resolved_session": "2026-08-21",
+         "model_crps": 0.0157, "baseline_crps": 0.0153, "direction_correct": False, "covered_p10_p90": True},
+    ]
+    block = display._forward_block({"operational": {"monitoring": {"matured_shadow_origins": 0}}}, rows)
+    assert block["resolved_rows"] == 2 and block["unique_forecasts"] == 1
+    assert block["model_better_rows"] == 0
+    assert block["direction_rows"] == 2 and block["direction_correct_rows"] == 0
+    assert block["covered_p10_p90_rows"] == 2
+    assert block["baseline"] == "historical_simulation"
+    assert block["matured_origins"] == 0
+
+
+def test_origin_age_policy_holds_the_surface_after_two_missed_weekly_cycles(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """사용자 결정 2026-09-07(2단 임계): 원점 경과가 hold_after_sessions(10)에 닿으면
+    load_projection은 None — 수치를 숨기고 validation_pending 표면으로 페일클로즈한다.
+    그 아래(9)에서는 표면을 유지하되 정책 임계를 투영에 싣는다."""
+    latest = _visible_latest()
+    path = tmp_path / display.LATEST_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps(latest, ensure_ascii=False), encoding="utf-8")
+    ledger = tmp_path / display.SEALED_LEDGER_RELATIVE
+    ledger.parent.mkdir(parents=True)
+    ledger.write_text(json.dumps(_sealed_row(), ensure_ascii=False) + "\n", encoding="utf-8")
+    monkeypatch.setattr(
+        display, "_anchor_and_history",
+        lambda root, origin, cutoff: (
+            21000.0, {"dates": ["2026-08-27", "2026-08-28"], "index": [20950.0, 21000.0]}))
+    monkeypatch.setattr(
+        display, "_origin_age_policy",
+        lambda root: {"warn_after_sessions": 1, "hold_after_sessions": 10})
+
+    def realized(sessions: int):
+        return lambda root, origin, cutoff: {
+            "dates": [f"2026-09-{day:02d}" for day in range(1, sessions + 1)],
+            "index": [21000.0 + day for day in range(1, sessions + 1)],
+        }
+
+    monkeypatch.setattr(display, "_realized_after_origin", realized(9))
+    kept = load_projection(tmp_path)
+    assert kept is not None and kept["origin_age_sessions"] == 9
+    assert kept["origin_age_policy"] == {"warn_after_sessions": 1, "hold_after_sessions": 10}
+    monkeypatch.setattr(display, "_realized_after_origin", realized(10))
+    assert load_projection(tmp_path) is None, "보류 임계 도달 — 표면을 닫아야 한다"
+    # 정책 블록이 없으면(계약 미존재) 보류하지 않는다 — 표시 계층은 계약 없이 게이트를 지어내지 않는다.
+    monkeypatch.setattr(display, "_origin_age_policy", lambda root: {})
+    assert load_projection(tmp_path) is not None
+
+
+def test_origin_age_policy_lives_outside_the_frozen_contract_coordinates() -> None:
+    """계약 개정이 봉인·섀도 원장이 고정한 contract_hash를 바꾸면 안 된다 — 정책 섹션은
+    frozen_coordinates 밖이어야 한다."""
+    from ai_fc import config
+    from ai_fc.timeseries_v8.contracts import frozen_coordinates, frozen_hash, load_contract_v8
+
+    contract = load_contract_v8(Path(config.ROOT))
+    assert contract["origin_age_policy"]["hold_after_sessions"] == 10
+    assert contract["origin_age_policy"]["warn_after_sessions"] == 1
+    assert "origin_age_policy" not in frozen_coordinates(contract)
+    assert frozen_hash(contract).startswith("7c56ee4eaa569782"), "봉인평가 원장의 contract_hash와 달라졌다"

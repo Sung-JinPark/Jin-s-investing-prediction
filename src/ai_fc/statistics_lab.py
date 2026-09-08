@@ -2057,9 +2057,14 @@ def build_statistics_lab(
         make("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
              [_series("닷컴 회사채", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")],
              ["HQMCB10YR", "GS10"], "*미국 회사채·국채 기준", "회사채 금리와 국채 대비 차이가 함께 오르면 기업 자금조달 부담이 커집니다."),
-        make("inflation_lead_panel", "유가·구리와 두 달 뒤 CPI 나란히 보기", "economy", "percent_yoy",
-             [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_cpi_lead, "#8d2943"), _series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 2개월 뒤 CPI", "current", cur_cpi_lead, "#28756a"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")],
-             ["CPIAUCSL", "DCOILWTICO", "WPU10260314"], "*미국 물가·원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다."),
+        # CPI(1~5%)와 WTI(−35~+130%)를 한 축에 올리면 정작 주인공인 CPI 두 선이 세로 3px 띠에
+        # 뭉갠다(검수 2차). 이중축 렌더러를 새로 만들지 않고 두 차트로 나눈다 — 단위는 그대로.
+        make("inflation_lead_cpi", "두 달 뒤 CPI — 닷컴과 현재", "economy", "percent_yoy",
+             [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_cpi_lead, "#8d2943"), _series("현재 2개월 뒤 CPI", "current", cur_cpi_lead, "#28756a")],
+             ["CPIAUCSL"], "*미국 소비자물가 기준", "원자재 차트와 같은 두 달 정렬로 CPI만 따로 봅니다 — 아래 유가·구리 차트와 짝입니다."),
+        make("inflation_lead_commodities", "유가·구리 — 두 달 뒤 CPI의 선행 후보", "economy", "percent_yoy",
+             [_series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")],
+             ["DCOILWTICO", "WPU10260314"], "*미국 원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다. 위 CPI 차트와 짝입니다."),
         make("korea_semiconductor_cycle", "한국 주가와 글로벌 반도체 사이클", "economy", "cycle_start_100",
              [_series("한국 주가지수(OECD)", "current", korea_index, "#11110f"), _series("미국 반도체(SOX)", "current", sox_index, "#e05d26")],
              ["SPASTT01KRM661N", "NASDAQSOX"], "*한국·미국 시장 기준", "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다."),
@@ -2071,9 +2076,10 @@ def build_statistics_lab(
              [_series("닷컴 반도체시설", "dotcom", dot_fab, "#8d2943"), _series("닷컴 전력", "dotcom", dot_power, "#d47f52"), _series("닷컴 통신", "dotcom", dot_comm, "#b58b2a"), _series("현재 반도체시설", "current", cur_fab, "#28756a"), _series("현재 전력", "current", cur_power, "#4aa18d"), _series("현재 통신", "current", cur_comm, "#11110f")],
              ["C30_MFG_COMPUTER_ELECTRONIC", "C30_POWER", "C30_COMMUNICATION"], "*미국 민간 건설 기준",
              "설비가 실제로 지어지는 속도를 봅니다. 컴퓨터·전자 제조시설, 전력, 통신 세 축을 같은 시작점에서 비교합니다."),
-        make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "percent_yoy",
+        make("housing_manufacturing_warning", "주택·제조업 경기 경고판", "economy", "mixed_percent_and_diffusion",
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
-             ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 기준", "주택착공 증가율과 제조업 확산지수가 함께 약해지면 경기 냉각 신호가 강해집니다."),
+             ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 주택착공 · 필라델피아 연준 관할(제3연준구) 제조업 서베이",
+             "주택착공 증가율(%)과 제조업 확산지수(0 중심 지수)가 함께 약해지면 경기 냉각 신호가 강해집니다. 두 계열은 단위가 다릅니다."),
         make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행 (GDP 대비 %)", "credit", "percent_of_gdp",
              [_series("닷컴 잔액(GDP %)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(GDP %)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(GDP %)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(GDP %)", "current", cur_bond_flow, "#4aa18d")],
              ["FL103163005", "FA103163005", "GDP"], "*미국 비금융기업 기준",
@@ -2172,8 +2178,11 @@ def build_statistics_lab(
         current_points = current_series.get("points") or []
         if not boundary_points or not current_points:
             continue
+        # 경계값은 닷컴 비교창(1995-01~1999-12) 안의 최대값이다. 실제 닷컴 정점(2000-03)은
+        # 창 밖이라 이 값이 아니므로 '닷컴 정점'이라 부르면 근접도가 과대 표기된다.
+        boundary_last = str(boundary_points[-1].get("date") or "")[:7]
         alert = _approach_alert(
-            "dotcom_peak", "닷컴 정점",
+            "dotcom_peak", f"닷컴 비교창 최대({boundary_last or '1999-12'}까지)",
             max(float(row["value"]) for row in boundary_points),
             float(current_points[-1]["value"]),
         )
@@ -2224,7 +2233,12 @@ def build_statistics_lab(
             "경고 참고이지 기계적 매매 신호가 아닙니다."
         ),
         "korea_semiconductor_cycle": (
-            "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다."
+            "한국 선은 OECD 주가지수(2015=100 월간)이며 KOSPI 종가가 아닙니다. "
+            "OECD 월간 집계라 미국 반도체 지수보다 갱신이 늦습니다."
+        ),
+        "structures_buildout": (
+            "각 시대 시작=100의 명목 건설지출 지수로, 시대별 건설비 물가 차이는 "
+            "보정하지 않았습니다."
         ),
         "liquidity_position_map": (
             "지표별 기준일이 다릅니다(시장 지표는 최근 일자, 연준 Z.1 잔액은 "
@@ -2239,9 +2253,13 @@ def build_statistics_lab(
             "10년−3개월이 침체 연구(Estrella–Mishkin)와 Fed 확률 모델의 표준이고, "
             "10년−2년은 시장 관행 지표입니다."
         ),
-        "inflation_lead_panel": (
+        "inflation_lead_cpi": (
             "두 달 정렬은 서술용 배치입니다. 원자재의 물가 선행성은 시기에 따라 "
             "약해지는 것으로 연구돼 있습니다."
+        ),
+        "inflation_lead_commodities": (
+            "두 달 정렬은 서술용 배치입니다. 원자재의 물가 선행성은 시기에 따라 "
+            "약해지는 것으로 연구돼 있습니다. CPI 계열은 축 범위가 달라 별도 차트로 뒀습니다."
         ),
     }
     for caveat_chart_id, caveat_text in chart_caveats.items():
@@ -2266,6 +2284,21 @@ def build_statistics_lab(
         int(point["period"])
         for series in by_id["household_balance_sheet_trend_gap"]["series"]
         for point in series["points"]
+    )
+    # 17년 축인데 x_ticks가 없으면 대시보드가 닷컴 비교창용 기본 눈금(M+0~M+48)을 그려
+    # 축 폭의 77%가 라벨 없이 비고, 적합 구간의 끝도 보이지 않았다(검수 2차). 연도 눈금과
+    # 추세 추정 구간 경계(2019-12 = period 131)를 데이터 쪽에서 싣는다.
+    household_max = int(by_id["household_balance_sheet_trend_gap"]["max_period"])
+    household_origin_year = 2009
+    by_id["household_balance_sheet_trend_gap"]["x_ticks"] = [
+        [(year - household_origin_year) * 12, str(year)]
+        for year in range(household_origin_year, household_origin_year + household_max // 12 + 1, 3)
+    ] + [[household_max, "최신"]]
+    by_id["household_balance_sheet_trend_gap"]["events"] = [
+        {"period": 131, "label": "2009~2019 추세 추정 구간 끝"},
+    ]
+    by_id["household_balance_sheet_trend_gap"]["axis_note"] = (
+        "가로축은 2009년 1월 기준 경과월(연도 눈금) · 세로축은 2009~2019 로그-선형 추세 대비 이탈률 %"
     )
     policy_points = by_id["policy_rate"]["series"][0]["points"]
     by_id["policy_rate"]["source_validation"] = {
@@ -2303,6 +2336,13 @@ def build_statistics_lab(
     top_direction_label, top_direction = max(
         changes.items(), key=lambda item: float(item[1]),
     )
+    # 지역 서베이 단월값은 변동이 커서 부호 하나로 국면을 단정할 수 없다.
+    philly_recent = [float(row["value"]) for row in cur_philly[-3:]]
+    manufacturing_trend = sum(philly_recent) / len(philly_recent) if philly_recent else 0.0
+    philly_all = sorted(float(row["value"]) for row in cur_philly)
+    manufacturing_extreme = bool(
+        philly_all and endpoint(cur_philly) >= philly_all[int(len(philly_all) * 0.9)]
+    )
     mmf_to_m2 = latest_mmf_bn / latest_m2_bn * 100.0
     curve_now = endpoint(cur_curve)
     curve3m_now = endpoint(cur_curve3m)
@@ -2320,10 +2360,10 @@ def build_statistics_lab(
         ),
         "m2_nasdaq": (
             f"현재 NASDAQ은 2023년 대비 {endpoint(cur_nasdaq) - 100.0:.0f}% 오르고 "
-            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 "
-            f"{months_elapsed(cur_nasdaq)}개월차에는 NASDAQ "
-            f"{matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
-            f"{matched(dot_m2, cur_m2) - 100.0:.0f}%였고, 닷컴 말기에는 NASDAQ이 "
+            f"M2는 {endpoint(cur_m2) - 100.0:.0f}% 늘었습니다. 닷컴 같은 시점에는 NASDAQ "
+            f"{months_elapsed(cur_nasdaq)}개월차 {matched(dot_nasdaq, cur_nasdaq) - 100.0:.0f}%·M2 "
+            f"{months_elapsed(cur_m2)}개월차 {matched(dot_m2, cur_m2) - 100.0:.0f}%였고"
+            "(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 "
             f"{endpoint(dot_nasdaq) - 100.0:.0f}%까지 벌어졌습니다."
         ),
         "nasdaq_per_m2": (
@@ -2342,9 +2382,14 @@ def build_statistics_lab(
         "spx_per_federal_debt_full_history": (
             f"1966년을 100으로 두면 현재 {spx_debt_full[-1]['value']:.0f}입니다. "
             + (
-                f"{first_peak['date'][:4]}년 고점 {first_peak['value']:.0f}"
-                + (f"·{second_peak['date'][:4]}년 고점 {second_peak['value']:.0f}" if second_peak else "")
-                + f" 대비 {spx_debt_full[-1]['value'] / first_peak['value'] * 100.0:.0f}% 수준으로, "
+                f"{first_peak['date'][:4]}년 고점 {first_peak['value']:.0f}의 "
+                f"{spx_debt_full[-1]['value'] / first_peak['value'] * 100.0:.0f}%"
+                + (
+                    f"·{second_peak['date'][:4]}년 고점 {second_peak['value']:.0f}의 "
+                    f"{spx_debt_full[-1]['value'] / second_peak['value'] * 100.0:.0f}%"
+                    if second_peak else ""
+                )
+                + " 수준으로, "
                 if first_peak else ""
             )
             + "주가가 연방부채 팽창을 따라잡는 중이지만 두 차례 고점에는 아직 못 미칩니다."
@@ -2480,7 +2525,8 @@ def build_statistics_lab(
             "위험자산의 자금조달 부담이 커진 상태입니다."
         ),
         "rate_cycle_since_first_cut": (
-            f"첫 인하 전보다 정책금리가 현재 {endpoint(cur_rate_cycle):+.2f}%p 낮습니다. "
+            f"첫 인하 전 대비 정책금리는 현재 {endpoint(cur_rate_cycle):+.2f}%p"
+            f"({'낮은' if endpoint(cur_rate_cycle) < 0 else '높은'} 수준)입니다. "
             "1990년대 말처럼 금리를 다시 원점 이상으로 올린 재긴축 신호는 아직 없습니다."
         ),
         "corporate_bond_pressure": (
@@ -2488,7 +2534,13 @@ def build_statistics_lab(
             f"{endpoint(cur_corp_spread):.2f}%p입니다. 전면적 신용 스트레스보다는 높은 "
             "절대금리 부담이 핵심입니다."
         ),
-        "inflation_lead_panel": (
+        "inflation_lead_cpi": (
+            f"두 달 뒤 CPI는 현재 {endpoint(cur_cpi_lead):+.1f}%로, 닷컴 같은 "
+            f"{months_elapsed(cur_cpi_lead)}개월차 {matched(dot_cpi_lead, cur_cpi_lead):+.1f}%"
+            f"{'보다 높습니다' if endpoint(cur_cpi_lead) > matched(dot_cpi_lead, cur_cpi_lead) else '보다 낮습니다'}. "
+            "원자재 차트와 같은 두 달 정렬이며 예측이 아닙니다."
+        ),
+        "inflation_lead_commodities": (
             (f"유가 {oil_now:+.1f}%와 구리 {copper_now:+.1f}%가 함께 올라 물가 재가속 "
              "위험을 점검할 구간입니다."
              if oil_now > 0 and copper_now > 0 else
@@ -2498,15 +2550,21 @@ def build_statistics_lab(
             "두 달 정렬은 참고용 배치일 뿐 예측 규칙이 아닙니다."
         ),
         "korea_semiconductor_cycle": (
-            f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 미국 "
-            f"반도체는 {endpoint(sox_index) - 100.0:.0f}% 상승했습니다. 두 시장 모두 "
-            "AI·반도체 사이클 의존도가 높아 글로벌 반도체 조정에 민감한 구간입니다."
+            f"2023년 대비 한국 주가지수는 {endpoint(korea_index) - 100.0:.0f}%, 같은 "
+            f"{months_elapsed(korea_index)}개월차 미국 반도체는 "
+            f"{matched(sox_index, korea_index) - 100.0:.0f}% 상승했습니다"
+            f"(미국 반도체 최신치는 {endpoint(sox_index) - 100.0:.0f}%). 한국 지수는 "
+            "OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 "
+            "두 시장의 상대 위치가 뒤집히지 않습니다."
         ),
         "housing_manufacturing_warning": (
-            f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 "
-            f"{manufacturing_now:.1f}로 확장 신호입니다. 현재 침체 신호는 한 방향으로 "
-            "모이지 않은 혼합 상태입니다."
-            if housing_now < 0 < manufacturing_now else
+            f"주택착공은 {housing_now:+.1f}%로 약하지만 제조업지수는 최근 3개월 평균 "
+            f"{manufacturing_trend:+.1f}(최신 단월 {manufacturing_now:+.1f})로 확장 쪽입니다. "
+            + (f"단, 최신값은 현 사이클 표본의 상위 10% 안에 드는 단월 극단값입니다. "
+               if manufacturing_extreme else "")
+            + "현재 침체 신호는 한 방향으로 모이지 않은 혼합 상태이며, 제조업 계열은 "
+            "전국이 아니라 필라델피아 연준 관할 지역 서베이입니다."
+            if housing_now < 0 < manufacturing_trend else
             "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
         ),
         "household_balance_sheet_trend_gap": (
@@ -3262,6 +3320,34 @@ def load_statistics_lab(root: Path) -> dict[str, Any]:
     return payload
 
 
+def _decimate_preserving_extremes(points: list[dict[str, Any]], max_points: int) -> list[dict[str, Any]]:
+    """Thin a series for display without erasing its extremes.
+
+    균일 stride(points[::stride])는 구간 사이의 국소 극값을 통째로 버린다 — 닷컴 신용경색
+    +36.4%가 +9.1%로, SOX 41개월차 정점(결론이 인용하는 바로 그 값)이 보간값으로 보였다
+    (검수 2차). 구간마다 최소·최대 두 점을 남기고 양 끝점을 항상 포함한다. 점 수 상한은
+    이전과 같은 ``max_points`` 이내라 payload 예산은 늘지 않는다.
+    """
+    n = len(points)
+    if n <= max_points:
+        return list(points)
+    buckets = max(1, (max_points - 2) // 2)
+    keep: set[int] = {0, n - 1}
+    for bucket in range(buckets):
+        lo = 1 + (n - 2) * bucket // buckets
+        hi = 1 + (n - 2) * (bucket + 1) // buckets
+        candidates = [
+            (float(points[index]["value"]), index)
+            for index in range(lo, hi)
+            if points[index].get("value") is not None
+        ]
+        if not candidates:
+            continue
+        keep.add(min(candidates)[1])
+        keep.add(max(candidates)[1])
+    return [points[index] for index in sorted(keep)]
+
+
 def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
     """Return customer-facing meaning with compact chart coordinates."""
     payload = load_statistics_lab(root)
@@ -3312,10 +3398,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
             points = series.get("points") or []
             projection_max_points = max(2, int(chart.get("projection_max_points", 14)))
             if len(points) > projection_max_points:
-                stride = math.ceil((len(points) - 1) / (projection_max_points - 1))
-                display_points = points[::stride]
-                if display_points[-1] is not points[-1]:
-                    display_points.append(points[-1])
+                display_points = _decimate_preserving_extremes(points, projection_max_points)
             else:
                 display_points = points
             series_view = {

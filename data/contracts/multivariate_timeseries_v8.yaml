@@ -236,6 +236,24 @@ operational_gate:
   coverage_must_remain_in_publication_contract: true
   failure_action: hide_new_numbers_validation_pending
 
+# ── origin_age_policy: 표시 표면의 원점 경과 규율 (사용자 결정 2026-09-07, 2단 임계) ──
+# operational_gate는 입력 계열의 나이만 보고 예측 원점의 나이는 보지 않아, 주간 갱신이
+# 멈춰도 화면은 "운영 신선도 OK"로 보였다(정밀 검수 2차 #0). 이 섹션은 frozen_coordinates
+# (model·gate 좌표) 밖에 둔다 — 발행 신선도 정책이지 모델·게이트 좌표가 아니므로
+# 봉인평가·섀도 원장이 고정한 contract_hash(7c56ee4e…)는 그대로다. 측정은 대시보드
+# 빌드 시점의 지식 컷오프까지 시장 아카이브에 실제로 들어온 거래일 수로 한다.
+origin_age_policy:
+  unit: trading_sessions_after_origin
+  measured_at: dashboard_build_knowledge_cutoff
+  warn_after_sessions: 1          # 만기 지평이 하나라도 생기면 카드·표·밴드차트에 실측 병기
+  hold_after_sessions: 10         # 주간 주기 2회 누락 — 수치를 숨기고 validation_pending 표면
+  hold_action: hide_numbers_validation_pending
+  rationale: 1주 누락만으로 아직 유효한 21·63거래일 전망까지 지우지 않되, 두 주기를 놓치면 닫는다
+  decision:
+    date: "2026-09-07"
+    channel: claude_code_chat
+    note: "사용자 선택 — 2단 임계(경고 1 / 보류 10)"
+
 ralph:
   local_only: true
   branch_prefix: claude/timeseries-v8-ralph-

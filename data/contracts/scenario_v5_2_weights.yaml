@@ -111,8 +111,11 @@ sensitivity_grid:
 distinctness:
   mode_until_calibrated: report_only
   minimum_shadow_trading_days: 30
-  baseline_S1_S2_p50_log_level_correlation: 0.963
-  material_reduction_rule: redesigned_shadow_value_at_least_0.02_below_baseline
+  # 2026-09-07 사용자 결정: 수용 지표를 표준화 로그경로 DTW로 교체(scenario_v5_3_separation.yaml baseline 참조).
+  baseline_metric: S1_S2_standardized_log_path_dtw
+  baseline_S1_S2_standardized_log_path_dtw: 0.1175
+  material_increase_rule: redesigned_value_at_least_0.8704_above_baseline_half_of_baseline_distinct_pair_minimum
+  superseded_baseline_S1_S2_p50_log_level_correlation: 0.963
   arbitrary_absolute_target_prohibited: true
   threshold_method:
     upper_bounds: shadow_distribution_p75

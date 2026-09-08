@@ -311,3 +311,36 @@ ledgers:
     cadence: event
     criticality: medium
     schema_ref: json_object
+  # V8 다변량 시계열 원장 5종 — 발행 중인데 등록돼 있지 않아 신뢰 페이지의 원장 감사에서
+  # 빠져 있었다(검수 2차). 봉인 평가·홀드아웃·개발 실험은 사건 단위, 섀도 예측·해소는 주간.
+  - id: timeseries_v8_sealed_evaluations
+    path: data/timeseries_v8/ledgers/sealed_evaluations.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: timeseries_v8_shadow_forecasts
+    path: data/timeseries_v8/ledgers/shadow_forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: high
+    schema_ref: jsonl
+  - id: timeseries_v8_shadow_resolutions
+    path: data/timeseries_v8/ledgers/shadow_resolutions.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+  - id: timeseries_v8_holdout_scorings
+    path: data/timeseries_v8/ledgers/holdout_scorings.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+  - id: timeseries_v8_development_experiments
+    path: data/timeseries_v8/ledgers/development_experiments.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl

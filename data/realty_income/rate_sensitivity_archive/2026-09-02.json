@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "asof": "2026-09-02",
+  "generated_at": "2026-09-03T05:59:29+00:00",
+  "probability_space": "reference_only",
+  "status": "ok",
+  "beta_rate": {
+    "measured_effect_per_100bp_pct": -8.096,
+    "bootstrap_10_90_pct": [
+      -10.304,
+      -6.003
+    ],
+    "used_effect_per_100bp_pct": -8.096,
+    "status": "eligible",
+    "observations": 156,
+    "minimum_observations": 156,
+    "gate_margin_observations": 0,
+    "gate_proximity": "at_boundary",
+    "gate_hysteresis": {
+      "required_consecutive_failures": 2,
+      "consecutive_sample_failures": 0,
+      "held_previous_effect": false
+    },
+    "bootstrap_samples": 1000,
+    "block_weeks": 4,
+    "market_control": "NASDAQ weekly log return"
+  },
+  "beta_credit": {
+    "measured_effect_per_100bp_pct": -6.233,
+    "bootstrap_10_90_pct": [
+      -8.091,
+      -4.512
+    ],
+    "used_effect_per_100bp_pct": -6.233,
+    "status": "eligible",
+    "observations": 156,
+    "minimum_observations": 156,
+    "gate_margin_observations": 0,
+    "gate_proximity": "at_boundary",
+    "gate_hysteresis": {
+      "required_consecutive_failures": 2,
+      "consecutive_sample_failures": 0,
+      "held_previous_effect": false
+    },
+    "bootstrap_samples": 1000,
+    "block_weeks": 4,
+    "market_control": "NASDAQ weekly log return"
+  },
+  "dividend_yield_ttm_pct": 5.28,
+  "spread_vs_10y_pp": 0.49,
+  "spread_percentile_since_2000": 0.9,
+  "spread_percentile_observations": 319,
+  "dividend_monitor": {
+    "status": "maintained_or_increased",
+    "c4_met": true,
+    "latest_ex_date": "2026-08-31",
+    "latest_amount": 0.271,
+    "latest_change": 0.0,
+    "cuts_last_12_events": 0,
+    "observations": 12,
+    "semantics": "ex-date cash events; available_at is first repository capture"
+  },
+  "dividend_crosscheck": {
+    "status": "direction_confirmed",
+    "basis": {
+      "official": "dividends paid per common share",
+      "yahoo": "cash dividend events grouped by ex-date",
+      "exact_total_equality_asserted": false
+    },
+    "annual": [
+      {
+        "year": 2001,
+        "official_paid_per_share": 1.121,
+        "yahoo_ex_date_sum": 1.089631
+      },
+      {
+        "year": 2002,
+        "official_paid_per_share": 1.151,
+        "yahoo_ex_date_sum": 1.11725
+      },
+      {
+        "year": 2003,
+        "official_paid_per_share": 1.181,
+        "yahoo_ex_date_sum": 1.144864
+      },
+      {
+        "year": 2004,
+        "official_paid_per_share": 1.241,
+        "yahoo_ex_date_sum": 1.209786
+      },
+      {
+        "year": 2005,
+        "official_paid_per_share": 1.346,
+        "yahoo_ex_date_sum": 1.312014
+      }
+    ],
+    "official_continuous_increase": true,
+    "yahoo_ex_date_continuous_increase": true,
+    "source_url": "https://www.realtyincome.com/sites/realty-income/files/2005-annual.pdf",
+    "source_sha256": "c63e52b42ac882cbe94fde447a589da6afa15e07852e2ddca88660b38b6bb688",
+    "source_pages": [
+      8,
+      9
+    ],
+    "warning": "The official table is dividends paid during the calendar year; Yahoo events are grouped by ex-date. Exact annual totals are therefore not asserted equal. The cross-check validates the continuous-increase direction and discloses the basis mismatch."
+  },
+  "observation_period": "2026-09-02",
+  "available_at": "2026-09-03T05:59:28+00:00",
+  "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01 + https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
+  "source_fingerprint": "76bb66e085b5b7ebb9a7e62b062598a54d075b4ff550a717374774ad766a4085",
+  "revision_vintage": "captured_current",
+  "receipts": [
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "a8f678373fa8c76b000203a93442785bf4f245ad7e95fd1bdc1124e919805805",
+      "fetched_at": "2026-09-03T05:59:27+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "6b4cd11c48cf120ee576f7a94e5567e9498d2ecdc1e7d90a9d20085ed5d3da63",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "3a81f4e11c5c3dd2914b7caa4244d124c58ee9333897e951d533c22eb688ae6a",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLC0A0CM",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "8e40ccf71770b9002bfcf7440436d6bc842a046c33890af641212243b699046f",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "FEDFUNDS",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "b57dc507b83fe7fe4e9ff20981eb937d9c8e2849b9e7ac401863327b069cf051",
+      "fetched_at": "2026-09-03T05:59:28+00:00",
+      "revision_vintage": "captured_current"
+    }
+  ],
+  "warning": "CI가 0을 가로지르면 즉시 0, n<156은 2회 연속 미달 시 O 경로에서 0으로 둡니다."
+}

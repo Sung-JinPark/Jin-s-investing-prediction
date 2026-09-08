@@ -1,0 +1,222 @@
+"""시계열 예측 뷰 재설계 (docs/design/timeseries_view_redesign_260903.md) 마크업 계약."""
+import re
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+
+import pytest
+
+from ai_fc import dashboard
+
+
+def _html() -> str:
+    return dashboard.load_template()
+
+
+def test_method_box_is_last_child_of_summary_panel_only() -> None:
+    html = _html()
+    assert "timeseriesSpecCard()" not in html, "패널 밖 구 호출이 남아 있다"
+    assert len(re.findall(r"\$\{timeseriesSpecCard\(ts\)\}", html)) == 3, "V8·HOLD·레거시 세 경로에 각 1회"
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    summary_literal = v8[v8.index("const summaryPanel"):v8.index("const pathPanel")]
+    assert "${timeseriesSpecCard(ts)}</div>`;" in summary_literal, "summary 패널 문자열의 마지막 자식"
+    assert "timeseriesSpecCard" not in v8[v8.index("const pathPanel"):v8.index("const root=el(")], "path/drivers/backtest 문자열에 없음"
+    assert "${panel('summary',summaryPanel)}" in v8 and "timeseriesSpecCard" not in v8[v8.index("const root=el("):], "패널 밖(root 템플릿)에 없음"
+    legacy = html[html.index("function renderTimeseries("):html.index("const GC_API=")]
+    hold_start = legacy.index("if(!visible){")
+    hold = legacy[hold_start:legacy.index("mount(root);", hold_start)]
+    visible = legacy[legacy.index("mount(root);", hold_start) + 12:]
+    assert hold.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in hold, "HOLD: summary 패널 마지막 자식"
+    assert visible.count("${timeseriesSpecCard(ts)}") == 1 and "</section>${timeseriesSpecCard(ts)}`)}" in visible, "레거시: summary 패널 마지막 자식"
+    assert "${timeseriesSpecCard(ts)}${footnote}" not in legacy
+    assert visible.index("${timeseriesSpecCard(ts)}") < visible.index("${panel('path'")
+
+
+def test_every_timeseries_chart_has_hover_and_readout() -> None:
+    html = _html()
+    assert "function bindTsHover(host,spec)" in html
+    assert "matchMedia('(pointer: fine)')" in html
+    for key in ("band", "range", "skill", "coverage"):
+        assert f'data-ts-chart="{key}"' in html, key
+    assert html.count("${tsReadout()}") >= 4, "SVG 도표마다 role=status 리드아웃"
+    assert "data-ts-overlay" in html and 'role="status" aria-live="polite"' in html
+    for key in ("cards", "ladder", "fresh", "kpis"):
+        assert f'data-ts-chart="{key}"' in html, key
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "bindTimeseriesV8Interactions(root,ts);" in v8, "마운트 직후 바인딩"
+    binder = html[html.index("function bindTimeseriesV8Interactions"):html.index("function tsBandModel")]
+    for key in ("cards", "range", "band", "ladder", "fresh", "kpis", "skill", "coverage"):
+        assert f'[data-ts-chart="{key}"]' in binder, f"{key} 표면 바인딩 누락"
+    # SVG 도표는 svg 직후, DOM 표면은 바로 뒤 형제로 리드아웃을 둔다
+    assert html.count("</svg>${tsReadout()}") >= 4
+    assert "</section>${tsReadout()}" in html and "</ul>${tsReadout()}" in html and "</table>${tsReadout()}" in html
+    # 툴팁은 고정 여부와 무관하게 pointerleave에서 숨긴다 (고정 툴팁 잔류 방지)
+    assert "const hide=()=>{if(tip)tip.style.display='none';if(pinned)return;" in html
+
+
+def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
+    html = _html()
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "const enabled=['summary','path','drivers','backtest']" in v8
+    foot = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
+    assert "매매 신호가 아닙니다" in foot, "방법 박스가 첫 탭으로 들어가도 4탭 공통 공시 유지"
+    assert "기여도(가중치×변화)가 아닙니다" in v8, "기여 요인 탭 정직성 리드"
+    assert "선형 보간(참고용)" in html, "보간 정직성 캡션 유지"
+    # 가격 레벨+확률 결합 문장·새 확률 파생 금지 — 시계열 구역 전체를 패턴으로 검사
+    ts_region = html[html.index("const tsLevel="):html.index("const GC_API=")]
+    assert re.search(r"(아래|밑|이하|미만|초과)[^<`'\"]{0,8}(가능성|확률)", ts_region) is None, "임계 확률 문장 금지"
+    assert re.search(r"1\s*-\s*(row\.up|[A-Za-z_.]*probability_up)|erf\(|normalCdf|cdf\(", ts_region) is None, "확률 파생 금지"
+    assert ts_region.count("probability_up") >= 1, "표시되는 확률은 read model의 probability_up뿐"
+
+
+def test_compacted_bundle_parses_with_node() -> None:
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    html = dashboard.render_html({}, mode="embed")
+    scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+    assert scripts, "인라인 스크립트 없음"
+    with tempfile.TemporaryDirectory() as tmp:
+        for index, body in enumerate(scripts):
+            path = Path(tmp) / f"bundle_{index}.js"
+            path.write_text(body, encoding="utf-8")
+            result = subprocess.run([node, "--check", str(path)], capture_output=True, text=True)
+            assert result.returncode == 0, result.stderr[:2000]
+
+
+def test_timeseries_pure_helpers_behave() -> None:
+    """tsHorizonRows 폴백·tsSealedRows 필터·tsFootnote 중복 방지·spec card 분기를 node로 실행 검증."""
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    html = _html()
+    script = html[html.index("const tsLevel="):html.index("function tsHoverLayer")]
+    footnote = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
+    sealed = html[html.index("function tsSealedRows(ts)"):html.index("function tsSkillModel")]
+    probe = """
+const esc=s=>String(s==null?'':s);
+""" + script + sealed + footnote + """
+const ts={anchor:{value:100},horizons:{'1':{median_index:101,point_return:0.01,probability_up:0.6,band_index:{p10:98,p25:99,p75:102,p90:104}},'5':{}, '21':{median_index:0},'63':{median_index:110,point_return:0.1,probability_up:0.7,band_index:{p10:90,p25:100,p75:115,p90:120},log_return:{p10:-0.1,p25:0,p50:0.0953,p75:0.14,p90:0.18}}},
+  sealed_metrics:{sealed_window:{origin_count:385,horizons:{'21':{crps_improvement_vs_best:0.02,coverage_p10_p90:0.79},'63':{crps_improvement_vs_best:null,coverage_p10_p90:0.8},'5':{crps_improvement_vs_best:'x'}}}},footnote:'*기준 · 매매 신호가 아닙니다'};
+const rows=tsHorizonRows(ts);
+const out={
+  keys:rows.map(r=>r.h),
+  fallback_r10:Number(rows[0].r10.toFixed(3)),
+  log_r10:Number(rows[1].r10.toFixed(4)),
+  sealed:tsSealedRows(ts).map(r=>r.h),
+  footnote_once:(tsFootnote(ts).match(/매매 신호/g)||[]).length,
+  footnote_added:tsFootnote({}).includes('매매 신호가 아닙니다'),
+};
+process.stdout.write(JSON.stringify(out));
+"""
+    with tempfile.TemporaryDirectory() as tmp:
+        path = Path(tmp) / "probe.js"
+        path.write_text(probe, encoding="utf-8")
+        result = subprocess.run([node, str(path)], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr[:2000]
+    import json
+    out = json.loads(result.stdout)
+    assert out["keys"] == ["1", "63"], "중앙값 없는 기간은 제외"
+    assert out["fallback_r10"] == -0.02, "log_return 없으면 band_index/anchor 폴백"
+    assert abs(out["log_r10"] - (-0.0952)) < 0.001, "log_return 있으면 expm1"
+    assert out["sealed"] == ["21"], "CRPS 개선율이 숫자인 기간만"
+    assert out["footnote_once"] == 1 and out["footnote_added"] is True
+
+
+def test_phase2_separates_sealed_window_from_development_inclusive_backtest() -> None:
+    """R8-D4 — 봉인창(2019+)과 개발기간 포함 전체창을 절대 섞지 않는다."""
+    html = _html()
+    assert "sealed_window" in html and "full_backtest" in html
+    assert "2019년 이후 검증 원점" in html and "전체 기간 원점" in html
+    assert "개발기간" in html, "전체창은 개발기간 포함 사실과 함께만"
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    assert "봉인 원점 ${Number(sealed.origin_count" not in v8, "1,011원점을 '봉인 원점'이라 부르지 않는다"
+    assert "2019년 이후 봉인 구간" in v8
+    # 봉인창 자체 판정(보류)과 사유를 화면에 인쇄한다
+    verdict = html[html.index("function timeseriesSealedVerdict"):html.index("function bindTimeseriesV8Interactions")]
+    assert "win.reasons" in verdict and "금융위기급 급락에서 검증된 적이 없습니다" in verdict
+
+
+def test_phase2_charts_are_wired_with_hover_and_honest_labels() -> None:
+    html = _html()
+    for key in ("skill", "coverage", "rank", "regime", "sealedtable", "forward"):
+        assert f'data-ts-chart="{key}"' in html, key
+    binder = html[html.index("function bindTimeseriesV8Interactions"):html.index("function tsBandModel")]
+    for key in ("rank", "regime", "sealedtable", "forward"):
+        assert f'[data-ts-chart="{key}"]' in binder, f"{key} 바인딩 누락"
+    # 유의하지 않은 기간을 숨기지 않는다
+    assert "유의하지 않음" in html and "ts-bar-weak" in html
+    # 봉인창에 원점이 없는 국면은 0%가 아니라 '자료 없음'
+    assert "자료 없음 · 봉인창에 원점 0개" in html
+    # 게이트 밴드는 계약 값 그대로
+    # gfc_min은 dev_gate_proxy의 GFC 설계 하한, pub_regime_min은 publication_gate의
+    # regime_p10_p90_minimum — 후자만 세 국면 전부에 걸리는 발행 구속력이다.
+    assert "TS_GATE_BANDS={p1090:[0.76,0.84],p2575:[0.45,0.55],gfc_min:0.72,pub_regime_min:0.70}" in html
+    # 공개하지 않기로 한 지표는 시계열 구역에 없다
+    region = html[html.index("const tsLevel="):html.index("const GC_API=")]
+    for banned in ("방향 적중률", "directional_accuracy", "first_touch", "mase", "distribution_selection"):
+        assert banned not in region, banned
+
+
+def test_phase2_projection_shape_and_honesty(tmp_path) -> None:
+    """빌더가 원장의 두 블록을 분리해 싣고, 순위 칸 합이 공표 적중률과 일치한다."""
+    from pathlib import Path
+
+    from ai_fc import config
+    from ai_fc.timeseries_v8_display import load_projection
+
+    projection = load_projection(Path(config.ROOT))
+    if projection is None:
+        pytest.skip("V8 surface is on HOLD")
+    sealed = projection["sealed_metrics"]
+    window, full = sealed["sealed_window"], sealed["full_backtest"]
+    assert window["origin_count"] < full["origin_count"], "봉인창은 전체창의 부분집합"
+    assert full["includes_development_window"] is True
+    assert window["gate_pass"] is False and window["reasons"], "봉인창 자체 판정과 사유 보존"
+    for key in ("1", "5", "21", "63"):
+        row = window["horizons"][key]
+        bins = sealed["rank_bins"][key]
+        # 가운데 네 칸의 합 = 공표된 p10–p90 적중률 (새 확률이 아니라 재계수임의 증명)
+        inner = sum(bins["counts"][1:5]) / bins["n"]
+        assert abs(inner - row["coverage_p10_p90"]) < 1e-6, key
+        assert sum(bins["counts"]) == bins["n"]
+    gfc = [r for r in sealed["regimes"] if r["key"] == "great_financial_crisis_2008"][0]
+    assert gfc["origins"] == 0 and gfc["coverage_p10_p90"] is None, "원점 0개는 0%가 아니라 None"
+    assert sealed["forward"]["matured_origins"] == 0
+
+
+def test_compacted_bundle_rejects_trailing_line_comments() -> None:
+    """컴팩터는 줄을 공백으로 잇는다 — 줄 끝 // 주석 하나가 전체 스크립트를 죽인다.
+
+    소스가 아니라 '컴팩트된 결과'를 파싱해야 이 사고를 잡을 수 있다(검수 260904).
+    """
+    node = shutil.which("node")
+    if not node:
+        pytest.skip("node not available")
+    from ai_fc import dashboard
+
+    compacted = dashboard._compact_static_bundle(dashboard.load_template())
+    scripts = re.findall(r"<script>(.*?)</script>", compacted, re.S)
+    assert scripts, "컴팩트 번들에 인라인 스크립트가 없다"
+    with tempfile.TemporaryDirectory() as tmp:
+        for index, body in enumerate(scripts):
+            path = Path(tmp) / f"compact_{index}.js"
+            path.write_text(body, encoding="utf-8")
+            result = subprocess.run([node, "--check", str(path)], capture_output=True, text=True)
+            assert result.returncode == 0, result.stderr[:2000]
+
+
+def test_payload_budget_declarations_match_code() -> None:
+    """계약 선언과 코드 상수가 어긋나면 어느 쪽이 진짜인지 알 수 없다."""
+    import yaml
+
+    from ai_fc import config, dashboard
+
+    contract = yaml.safe_load(
+        (Path(config.ROOT) / "data/contracts/dashboard_payload.yaml").read_text(encoding="utf-8")
+    )
+    budgets = contract["budgets"]
+    assert budgets["embed_html_max_bytes"] == dashboard.DASHBOARD_RAW_BUDGET_BYTES
+    assert budgets["future_paths_json_max_bytes"] == dashboard.FUTURE_PATHS_BUDGET_BYTES
+    assert budgets["data_json_max_bytes"] == dashboard.DATA_JSON_BUDGET_BYTES

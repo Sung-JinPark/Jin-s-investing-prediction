@@ -23,6 +23,12 @@ from .timeseries_v8.contracts import MODEL_ID, MODEL_VERSION, canonical_hash
 
 LATEST_RELATIVE = Path("data/timeseries_v8/multivariate_v8_latest.json")
 SEALED_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/sealed_evaluations.jsonl")
+FORWARD_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/shadow_resolutions.jsonl")
+# 실측 순위 칸 = 이미 공개된 5개 절단점이 수직선을 6칸으로 나눈 것.
+# 완전 보정 시 기대 비율은 10/15/25/25/15/10% (JS 상수와 같은 순서).
+RANK_CUTS = ("p10", "p25", "median", "p75", "p90")
+# 게이트 사유 문자열이 참조하는 고정 국면 순서 — 정렬로 뒤바뀌면 안 된다.
+REGIME_ORDER = ("great_financial_crisis_2008", "pandemic_2020", "tightening_2022")
 PROBABILITY_SPACE = "research_timeseries_v8_conditional"
 TARGET_SERIES = "NASDAQCOM"
 HORIZONS = ("1", "5", "21", "63")
@@ -77,9 +83,172 @@ def validate_latest(value: dict[str, Any]) -> None:
             raise TimeSeriesV8DisplayError("V8 quantile crossing")
 
 
+def _num(value: Any, digits: int = 6) -> float | None:
+    """원장 값을 표시 정밀도로만 반올림한다 (없으면 None을 그대로 보존)."""
+    if value is None:
+        return None
+    number = float(value)
+    return None if not math.isfinite(number) else round(number, digits)
+
+
+def _horizon_metrics(block: dict[str, Any], *, with_dm: bool) -> dict[str, Any]:
+    rows: dict[str, Any] = {}
+    for key in HORIZONS:
+        row = (block.get("horizons") or {}).get(key)
+        if not isinstance(row, dict):
+            continue
+        entry = {
+            "crps_improvement_vs_best": _num(row.get("crps_improvement_vs_best")),
+            "coverage_p10_p90": _num(row.get("coverage_p10_p90")),
+            "coverage_p25_p75": _num(row.get("coverage_p25_p75")),
+            "origins": int(row.get("origins") or 0),
+        }
+        if with_dm:
+            # 비교 기준선은 기간마다 다를 수 있다(봉인창 5거래일은 block_bootstrap).
+            entry["best_baseline"] = str(row.get("best_baseline") or "")
+            entry["dm_p_value"] = _num((row.get("diebold_mariano") or {}).get("p_value"))
+        rows[key] = entry
+    return rows
+
+
+def _rank_bins(scores: list[dict[str, Any]], window_start: str) -> dict[str, Any]:
+    """실측값이 다섯 절단점이 만든 여섯 칸 중 어디에 떨어졌는지 센다.
+
+    새 확률을 만들지 않는다 — 이미 공개된 per-origin 점수와 이미 공개된 분위수
+    절단점을 결정론적으로 다시 세는 것뿐이며, 가운데 네 칸의 합은 정의상 공표
+    적중률(coverage_p10_p90)과 같은 값이 된다.
+    """
+    bins: dict[str, Any] = {}
+    for key in HORIZONS:
+        counts = [0] * 6
+        total = 0
+        for row in scores:
+            if str(row.get("horizon")) != key or str(row.get("date", "")) < window_start:
+                continue
+            actual = row.get("actual_log_return")
+            if actual is None:
+                continue
+            cuts = [row.get(name) for name in RANK_CUTS]
+            if any(cut is None for cut in cuts):
+                continue
+            counts[sum(1 for cut in cuts if float(actual) >= float(cut))] += 1
+            total += 1
+        if total:
+            bins[key] = {"counts": counts, "n": total}
+    return bins
+
+
+def _forward_block(latest: dict[str, Any], resolutions: list[dict[str, Any]]) -> dict[str, Any]:
+    """배포 후 전진(라이브) 실적 — 성숙 원점이 0이면 0이라고 말한다.
+
+    확정 행이 있으면 그 결과(기준선 대비·구간 포함·방향)도 그대로 센다. 성숙 원점
+    0을 근거로 확정 행의 존재 자체를 부정하면 부정적 증거가 축소된다(검수 2차).
+    """
+    monitoring = (latest.get("operational") or {}).get("monitoring") or {}
+    origins = sorted({str(row.get("origin")) for row in resolutions if row.get("origin")})
+    forecasts = sorted({str(row.get("forecast_id")) for row in resolutions if row.get("forecast_id")})
+    better = sum(
+        1 for row in resolutions
+        if row.get("model_crps") is not None and row.get("baseline_crps") is not None
+        and float(row["model_crps"]) < float(row["baseline_crps"])
+    )
+    direction_rows = [row for row in resolutions if row.get("direction_correct") is not None]
+    sessions = sorted(str(row.get("resolved_session")) for row in resolutions if row.get("resolved_session"))
+    return {
+        "matured_origins": int(monitoring.get("matured_shadow_origins") or 0),
+        "source": str(monitoring.get("source") or ""),
+        "resolved_rows": len(resolutions),
+        "unique_forecasts": len(forecasts),
+        "model_better_rows": better,
+        "covered_p10_p90_rows": sum(1 for row in resolutions if row.get("covered_p10_p90") is True),
+        "direction_rows": len(direction_rows),
+        "direction_correct_rows": sum(1 for row in direction_rows if bool(row["direction_correct"])),
+        # 라이브 기준선은 예측 시점에 저장한 historical_simulation 분위수 그리드 하나로
+        # 고정된다(timeseries_v8/backtest.py의 baseline_quantile_grid → pipeline.py 해소).
+        # 봉인 성적표의 '기간별 최선 기준선'과 다르므로 이름을 함께 싣는다.
+        "baseline": "historical_simulation",
+        "origins": origins,
+        "last_resolved_session": sessions[-1] if sessions else None,
+    }
+
+
+def _sealed_disclosure(
+    sealed_row: dict[str, Any], summary: dict[str, Any],
+    latest: dict[str, Any], resolutions: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """R8-D4 승인 범위: 이미 1회 실시된 봉인 평가의 요약값을 더 투영한다.
+
+    봉인창(2019+)이 이 표면의 out-of-sample 기준선이고, 전체창(2007~)은
+    개발기간을 포함하므로 반드시 그 사실과 함께만 실린다. 새 필드가 하나라도
+    비면 그 블록만 빠지고 기존 표면은 그대로 뜬다 — 사이트 빌드를 세우지 않는다.
+    """
+    disclosure: dict[str, Any] = {}
+    sealed = sealed_row.get("sealed_summary") or {}
+    window = [str(value) for value in (sealed_row.get("sealed_window") or [])]
+    development = [str(value) for value in (sealed_row.get("development_window") or [])]
+    scores = sealed_row.get("scores") or []
+    sealed_horizons = _horizon_metrics(sealed, with_dm=True)
+    if sealed_horizons and window:
+        dates = sorted(
+            str(row.get("date")) for row in scores
+            if str(row.get("horizon")) == "21" and str(row.get("date", "")) >= window[0]
+        )
+        disclosure["sealed_window"] = {
+            "window": window,
+            "origin_count": int(sealed.get("origin_count") or 0),
+            "status": str(sealed.get("status") or ""),
+            "gate_pass": bool(sealed.get("gate_pass")),
+            # 게이트 사유는 원장 문자열 원문 — 번역·요약하지 않는다.
+            "reasons": [str(reason) for reason in (sealed.get("reasons") or [])],
+            "first_origin": dates[0] if dates else None,
+            "last_origin": dates[-1] if dates else None,
+            "horizons": sealed_horizons,
+        }
+    full_horizons = _horizon_metrics(summary, with_dm=False)
+    if full_horizons:
+        all_dates = sorted(str(row.get("date")) for row in scores if row.get("date"))
+        disclosure["full_backtest"] = {
+            "origin_count": int(summary.get("origin_count") or 0),
+            "window": [all_dates[0], all_dates[-1]] if all_dates else [],
+            "development_window": development,
+            "includes_development_window": True,
+            "status": str(summary.get("status") or ""),
+            "gate_pass": bool(summary.get("gate_pass")),
+            "horizons": full_horizons,
+        }
+    regimes = sealed.get("regime_coverage") or {}
+    if regimes:
+        disclosure["regimes"] = [
+            {
+                "key": key,
+                # 봉인창에 원점이 없는 국면은 0이 아니라 '자료 없음'이다.
+                "coverage_p10_p90": _num((regimes.get(key) or {}).get("coverage_p10_p90")),
+                "origins": int((regimes.get(key) or {}).get("origins") or 0),
+            }
+            for key in REGIME_ORDER if key in regimes
+        ]
+    if window and scores:
+        rank_bins = _rank_bins(scores, window[0])
+        if rank_bins:
+            disclosure["rank_bins"] = rank_bins
+    ci90 = sealed.get("long_horizon_loss_difference_ci90") or {}
+    if ci90.get("lower") is not None and ci90.get("upper") is not None:
+        disclosure["loss_diff_ci90"] = {
+            "lower": _num(ci90.get("lower"), 8),
+            "upper": _num(ci90.get("upper"), 8),
+            "origin_count": int(ci90.get("origin_count") or 0),
+            "method": str(ci90.get("method") or ""),
+        }
+    disclosure["forward"] = _forward_block(latest, resolutions)
+    return disclosure
+
+
 def build_projection(
     latest: dict[str, Any], *, anchor_value: float, sealed_row: dict[str, Any],
     history: dict[str, list[Any]] | None = None,
+    resolutions: list[dict[str, Any]] | None = None,
+    realized: dict[str, list[Any]] | None = None,
+    origin_age_policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Map the visible latest pointer into the dashboard read-model slot.
 
@@ -98,20 +267,39 @@ def build_projection(
         raise TimeSeriesV8DisplayError("sealed evaluation row did not pass the gate")
     if sealed_row.get("run_id") != latest.get("gate", {}).get("sealed_run_id"):
         raise TimeSeriesV8DisplayError("sealed run id does not match the latest pointer")
+    # 원점 이후 실측(있으면): 빌드 시점에 이미 만기가 지난 지평은 열린 전망이 아니다.
+    # 사후 대조는 표시 전용이며 전진 원장(shadow_resolutions)에 기입하지 않는다 —
+    # 원장은 별도 성숙 판정 경로가 맡고, 이 값은 base rate 참조일 뿐이다.
+    realized_dates = [str(value) for value in ((realized or {}).get("dates") or [])]
+    realized_index = [float(value) for value in ((realized or {}).get("index") or [])]
+    origin_age_sessions = min(len(realized_dates), len(realized_index))
     horizons: dict[str, Any] = {}
     for key in HORIZONS:
         row = latest["horizons"][key]
         log_return = {name: float(row[name]) for name in QUANTILES}
-        horizons[key] = {
+        band_index = {
+            name: anchor_value * math.exp(log_return[name])
+            for name in ("p10", "p25", "p75", "p90")
+        }
+        horizon = {
             "log_return": log_return,
             "point_return": math.expm1(log_return["p50"]),
             "probability_up": float(row["probability_up"]),
             "median_index": anchor_value * math.exp(log_return["p50"]),
-            "band_index": {
-                name: anchor_value * math.exp(log_return[name])
-                for name in ("p10", "p25", "p75", "p90")
-            },
+            "band_index": band_index,
+            "elapsed": False,
         }
+        steps = int(key)
+        if origin_age_sessions >= steps:
+            level = realized_index[steps - 1]
+            horizon.update({
+                "elapsed": True,
+                "realized_date": realized_dates[steps - 1],
+                "realized_index": level,
+                "realized_return": level / anchor_value - 1.0,
+                "realized_inside_p10_p90": bool(band_index["p10"] <= level <= band_index["p90"]),
+            })
+        horizons[key] = horizon
     sealed_horizons = summary.get("horizons") or {}
     sealed_metrics = {
         key: {
@@ -142,6 +330,7 @@ def build_projection(
             "run_id": sealed_row["run_id"],
             "origin_count": int(summary.get("origin_count") or 0),
             "horizons": sealed_metrics,
+            **_sealed_disclosure(sealed_row, summary, latest, resolutions or []),
         },
         # 게이트 위젯용: 신선도 5그룹의 상태 요약 (visible 표면에만 존재).
         "freshness_summary": [
@@ -150,11 +339,29 @@ def build_projection(
                 "age_hours": None if row.get("age_hours") is None else float(row["age_hours"]),
                 "limit_hours": None if row.get("limit_hours") is None else float(row["limit_hours"]),
                 "status": str(row.get("status")),
+                # 포인터가 기록한 마지막 관측일 — 나이(age_hours)는 포인터 생성 시각 기준이라
+                # 화면은 관측일을 함께 보여 '언제 기준 신선도인지'를 드러낸다.
+                "observation_time": None if row.get("observation_time") is None else str(row["observation_time"]),
             }
             for row in (latest.get("operational", {}).get("freshness") or [])
         ],
         # 밴드 차트 좌측 실적선: 최근 63세션 종가 (visible 표면에만 존재).
         "history": history or None,
+        # 원점 이후 실측 종가(사후 대조용, visible 표면에만 존재)와 원점 경과 거래일 수.
+        "realized": (
+            {"dates": realized_dates[:origin_age_sessions], "index": realized_index[:origin_age_sessions]}
+            if origin_age_sessions else None
+        ),
+        "origin_age_sessions": origin_age_sessions,
+        # 계약 origin_age_policy(사용자 결정 2026-09-07): 경고·보류 임계를 화면이 함께 말한다.
+        "origin_age_policy": (
+            {
+                "warn_after_sessions": int(origin_age_policy["warn_after_sessions"]),
+                "hold_after_sessions": int(origin_age_policy["hold_after_sessions"]),
+            }
+            if origin_age_policy and origin_age_policy.get("hold_after_sessions") is not None
+            else None
+        ),
         "footnote": latest["footnote"],
     }
 
@@ -170,6 +377,18 @@ def _sealed_row(root: Path, run_id: str) -> dict[str, Any]:
         if row.get("run_id") == run_id:
             return row
     raise TimeSeriesV8DisplayError(f"sealed evaluation {run_id} missing from the ledger")
+
+
+def _forward_resolutions(root: Path) -> list[dict[str, Any]]:
+    """전진(라이브) 확정 행 — 없으면 빈 목록이며 그 자체가 정직한 상태다."""
+    path = root / FORWARD_LEDGER_RELATIVE
+    if not path.is_file():
+        return []
+    return [
+        json.loads(line)
+        for line in path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
 
 
 def _anchor_and_history(
@@ -203,6 +422,57 @@ def _anchor_and_history(
     return float(rows[-1].value), history
 
 
+def _realized_after_origin(
+    root: Path, origin: str, knowledge_cutoff: str, *, sessions: int = 63,
+) -> dict[str, list[Any]]:
+    """Closes observed after the origin, up to the knowledge cutoff.
+
+    Display-layer join like ``_anchor_and_history`` — the same read-only archive
+    that supplies the anchor already holds the sessions after it, so horizons
+    that have matured by build time can be shown against what really happened.
+    A missing or empty archive yields an empty series; it never blocks the build
+    (the live ledger is scored by its own maturity path, not here).
+    """
+    from .timeseries_v2.market_archive import read_market_observations
+
+    try:
+        rows = sorted(
+            (
+                row for row in read_market_observations(root, knowledge_cutoff=knowledge_cutoff)
+                if row.series_id == TARGET_SERIES and row.observation_time > origin
+            ),
+            key=lambda row: row.observation_time,
+        )
+    except (OSError, ValueError, KeyError):
+        rows = []
+    head = rows[:sessions]
+    return {
+        "dates": [row.observation_time for row in head],
+        "index": [float(row.value) for row in head],
+    }
+
+
+def _origin_age_policy(root: Path) -> dict[str, Any]:
+    """Read the contract's origin_age_policy block; absent file or block means no hold.
+
+    이 섹션은 frozen_coordinates 밖이라 frozen_hash에 영향을 주지 않는다. 계약 전체
+    검증(load_contract_v8)은 파이프라인이 맡고, 표시 계층은 이 블록만 읽는다.
+    """
+    import yaml
+
+    from .timeseries_v8.contracts import CONTRACT_RELATIVE
+
+    path = root / CONTRACT_RELATIVE
+    if not path.is_file():
+        return {}
+    try:
+        payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    except (OSError, yaml.YAMLError):
+        return {}
+    policy = payload.get("origin_age_policy") if isinstance(payload, dict) else None
+    return dict(policy) if isinstance(policy, dict) else {}
+
+
 def load_projection(root: Path) -> dict[str, Any] | None:
     """Return the visible V8 projection, or None so the surface falls back.
 
@@ -220,5 +490,16 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     sealed_row = _sealed_row(root, str(latest["gate"]["sealed_run_id"]))
     anchor_value, history = _anchor_and_history(
         root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    realized = _realized_after_origin(
+        root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    policy = _origin_age_policy(root)
+    hold_after = policy.get("hold_after_sessions")
+    origin_age = min(len(realized.get("dates") or []), len(realized.get("index") or []))
+    if hold_after is not None and origin_age >= int(hold_after):
+        # 계약 origin_age_policy(사용자 결정 2026-09-07): 주간 주기 2회를 놓친 원점은
+        # 열린 전망이 아니다 — 수치를 숨기고 validation_pending 표면으로 페일클로즈.
+        return None
     return build_projection(
-        latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history)
+        latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history,
+        resolutions=_forward_resolutions(root), realized=realized,
+        origin_age_policy=policy)
