@@ -1520,3 +1520,14 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .ts-ladder thead small{display:block;margin-top:2px;color:#8b877d;font-size:10px;font-weight:500;letter-spacing:0}
 .ts-ladder tbody th small{display:block;color:#8b877d;font-size:10px;font-weight:500}
 @media(max-width:620px){.ts-brief>div{grid-template-columns:1fr;gap:2px}.ts-score-row{grid-template-columns:1fr;gap:6px}.ts-score-row .ts-gate-chip{width:max-content}}
+
+/* Hero slimming: monochrome gate chips on the dark hero (status = dot),
+   prominent %-direction in the next box, two-line horizon cards. */
+.timeseries-hero .ts-gate-chip,.timeseries-hero .ts-gate-chip.pass,.timeseries-hero .ts-gate-chip.warn,.timeseries-hero .ts-gate-chip.hold{color:#cfcbc2;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.25)}
+.timeseries-hero .ts-gate-chip::before{content:'';display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#8f8b82;vertical-align:1px}
+.timeseries-hero .ts-gate-chip.pass::before{background:#3ddc97}
+.timeseries-hero .ts-gate-chip.warn::before,.timeseries-hero .ts-gate-chip.hold::before{background:var(--amber)}
+.timeseries-next em.ts-next-pct{display:block;margin-top:7px;font:750 clamp(17px,1.9vw,23px)/1 var(--mono);font-style:normal;letter-spacing:-.02em}
+.ts-next-pct.up{color:var(--positive)}.ts-next-pct.down{color:var(--crimson)}
+.timeseries-horizons strong em{margin-left:8px;font-size:.4em;font-style:normal;letter-spacing:0;vertical-align:4px}
+.timeseries-horizons strong em.up{color:var(--positive)}.timeseries-horizons strong em.down{color:var(--crimson)}
