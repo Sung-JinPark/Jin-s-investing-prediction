@@ -713,3 +713,33 @@ EWMA-logit 이 당일 수준 단독 로짓(PB) 을 양방향으로 이긴 셀 **
 발동(iso 유의 열위) → raw 유지. 스킬 라벨은 "당일 변동성 수준의 지속". method_changes r26(`champion_changed: true`).
 **V13-D3(홀드아웃 1슬롯)** 은 이제 조건 ①~④ 충족 상태 — 계획 순서대로 T2/T3 표시 뒤 사용자에게 질문한다.
 승인 원문 형식: `V13-D3 홀드아웃 1회 소모 승인 finalist=V13VOL_champion_aec80c65038b`.
+
+## 2026-09-08 — V13-D4 · V13-D5: 변동성 이벤트 기준율 카드 T2 숨김 패널 → T3 라이브 카드 (사용자 결정)
+
+**결정.** 사용자 지시 "t2 숨긴패널까지 진행하고, 라이브 카드 노출 진행 후 …" + 선택 "지금 T3 (요청대로)"
+(홀드아웃 선행 안 함). 계약 `gates.armed: true`(게이트 산술·규칙 0바이트 변경), `publication.display_tier`
+t0→t2→**t3_live_card**. 전제: 동결 계수 핀(sha256 51815bde…, 반창 대사 max|Δ| 2e-15) · champion
+persistence_pb 전 9셀 · 표시 모듈(`timeseries_v13_vol_display.py`, 항상 dict, 마지막 값 캐시 없음) ·
+읽기모델 전용 키 `timeseries_v13_vol` 가드 · 24KB 예산(실측 4KB) · 라이브 파이프라인(`timeseries-v13-vol-latest/verify`,
+포인터 `vol_latest.json` live 2026-09-04, 원장 `vol_live.jsonl` 1행) · 워크플로 `timeseries-v13-vol-live.yml`
+(화~토 03:40 UTC, pages·verify 트리거 등록) · 계보 `volatility_base_rate_v13`.
+**X1 이름충돌 6항 검수(탭 활성 상태, 1400/620/375 스크린샷):** ① 명칭 '변동성 이벤트 기준율'·셀 '기준율'(예측
+아님) ② 회색 배지 '수치모델 · 당일 수준 지속(PB)' 상시 ③ 열 머리 '5/21/63영업일(≈1주/1개월/90달력일)'
+④ caveat lead 상시 — '설계창(2007~2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호가 아닙니다' ⑤ 역할 문장
+(vix-25-90d 의 base rate 공급원, 정의·지평·산출 차이 명시) + 괴리 칩 'AI 예측 36% 대비 −8%p' 표시만 ⑥ 결합·평균
+산식 0. h63 셀 '▲ 보정 약함' 텍스트 마커 + [80%] 계수 불확실성 대역. 모바일(≤620) 지평 탭 — 전역
+`table{min-width:900px}` 상속으로 63열이 화면 밖으로 밀리던 결함을 `.v13-vol-card .v13-vol-table{min-width:0;table-layout:fixed}`
+로 수정 후 재검수 통과.
+
+**이것이 아닌 것.** 홀드아웃 소모 아님(V13-D3 — 별도 질문). 배선 아님(V13-D6). 가격 카드(V8 `timeseries` 슬롯)
+무접촉. 매매 신호 아님. T4(자본 결정)는 tier 값 자체가 없어 구조적으로 차단.
+
+**공시(D-g).** T2 '숨김 패널'은 UI 수준 숨김이며 payload 비공개가 아니다 — 숫자는 공개 `data.json`
+`timeseries_v13_vol` 키에 실린다. T3 에서는 5번째 탭·레일 항목이 활성화되고 caveat lead 의 '홀드아웃 미검증'이
+굵게 상시 표시된다(읽기모델 가드 `holdout_caveat_bold` 강제).
+
+**fail-closed 규약.** 숫자는 네 게이트(설계 증거·무장·계수 핀 3자 일치·거래일 신선도 missing_sessions ≤ 1, 빌드
+시점 재평가) 전부 성립 시에만. 하나라도 어긋나면 HOLD + 사유, 마지막 값 재사용 없음. 계수 파일은 `ledger_registry`
+immutable/frozen — 바이트 변경은 CI violation.
+
+**기록.** method_changes r27 · approvals r1(V13-D4)·r1(V13-D5) · 계약 `amendments_applied.V13-D4/V13-D5`.

@@ -62,8 +62,12 @@ def test_read_model_shape(repo: Path) -> None:
                 "resolutions", "ml_runs", "market_runs", "calibration", "due",
                 "trust", "arena", "receipts", "asof_index", "clusters", "corrections",
                 "probability_semantics", "changelog", "era_analog", "cross_asset",
-                "source_monitoring", "timeseries"):
+                "source_monitoring", "timeseries", "timeseries_v13_vol"):
         assert key in m, f"read-model 키 누락: {key}"
+    # tmp repo 에는 V13 계약·포인터가 없다 → absent, 숫자 없음
+    assert m["timeseries_v13_vol"]["status"] == "absent"
+    assert m["timeseries_v13_vol"]["numbers_visible"] is False
+    assert "cells" not in m["timeseries_v13_vol"]
     assert m["meta"]["n_questions"] == 1
     assert m["questions"][0]["drivers"] == ["test-driver"]
     assert m["questions"][0]["probability_space"] == "physical_event"

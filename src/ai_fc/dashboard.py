@@ -61,6 +61,10 @@ STATISTICS_DATA_FILENAME = "statistics.json"
 DATA_JSON_BUDGET_BYTES = 900_000
 # 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
 PAYLOAD_WARN_RATIO = 0.9
+# V13-VOL 변동성 base rate 표면은 인라인 키 `timeseries_v13_vol` 하나(실측 2~3KB)로 실린다.
+# 전용 예산 24KB(표시 설계서 §3) — 9셀·80% 대역·게이트·caveat 이상으로 자라면 빌드가 실패한다.
+TIMESERIES_V13_VOL_BUDGET_BYTES = 24_000
+TIMESERIES_V13_VOL_FILENAME = "timeseries_v13_vol.json"
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -457,6 +461,10 @@ def build_read_model(
         timeseries_v5 if timeseries_v5 is not None
         else (load_timeseries_v2_projection(root) or timeseries_v1)
     )
+    # V13-VOL 변동성 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면.
+    # 로더는 항상 dict(absent/internal/hold/live)를 돌려주고 숫자는 네 게이트·핀·빌드 시점 신선도가 전부 성립할 때만 싣는다.
+    from .timeseries_v13_vol_display import load_projection as load_timeseries_v13_vol_projection
+    timeseries_v13_vol = _guard_timeseries_v13_vol_budget(load_timeseries_v13_vol_projection(root))
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -654,6 +662,7 @@ def build_read_model(
         "liquidity": liquidity,
         "statistics_lab": statistics_lab,
         "timeseries": timeseries,
+        "timeseries_v13_vol": timeseries_v13_vol,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
@@ -860,6 +869,23 @@ def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
             f"{payload_size / FUTURE_PATHS_BUDGET_BYTES:.1%} of its budget"
         )
     return base, payload
+
+
+def _guard_timeseries_v13_vol_budget(projection: dict) -> dict:
+    """V13-VOL 인라인 표면의 크기 가드 — 예산 초과는 빌드 실패, 90% 부터 경고."""
+    payload_size = len(json.dumps(
+        projection, ensure_ascii=False, default=str, separators=(",", ":")
+    ).encode("utf-8"))
+    if payload_size > TIMESERIES_V13_VOL_BUDGET_BYTES:
+        raise ValueError(
+            f"timeseries_v13_vol budget exceeded: {payload_size} > {TIMESERIES_V13_VOL_BUDGET_BYTES}"
+        )
+    if payload_size > TIMESERIES_V13_VOL_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: timeseries_v13_vol {payload_size}B is "
+            f"{payload_size / TIMESERIES_V13_VOL_BUDGET_BYTES:.1%} of its budget"
+        )
+    return projection
 
 
 def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
@@ -1220,6 +1246,14 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
             ),
             encoding="utf-8",
         )
+    # V13-VOL 사이드카 — 로컬 검수용 (배포 형태는 data.json 인라인 키). reports/ 는 미커밋.
+    (out.parent / TIMESERIES_V13_VOL_FILENAME).write_text(
+        json.dumps(
+            model.get("timeseries_v13_vol") or {}, ensure_ascii=False, default=str,
+            separators=(",", ":"),
+        ),
+        encoding="utf-8",
+    )
     return out
 
 

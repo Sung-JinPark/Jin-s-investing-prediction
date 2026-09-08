@@ -1,0 +1,56 @@
+name: timeseries-v13-vol-live
+
+# V13-VOL 변동성 이벤트 기준율 — 동결 계수(champion_coefficients.json, sha256 핀)로 최신 관측의
+# 9셀 기준율 포인터를 fail-closed 발행하고 append-only 라이브 원장에 한 줄 남긴다. 재적합 없음,
+# 홀드아웃·봉인 무접촉, 시크릿 0 (timeseries-v2-refresh 가 채운 PIT 아카이브만 읽는다).
+# 계약: data/contracts/multivariate_timeseries_v13_vol.yaml (gates.armed · publication.display_tier).
+
+on:
+  schedule:
+    # Tue-Sat, after the V2 refresh (01:35 UTC) and the V8 shadow (03:10 UTC).
+    - cron: "40 3 * * 2-6"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer-v13
+  cancel-in-progress: false
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned numerical runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Publish the fail-closed latest pointer (frozen coefficients only)
+        run: python -m ai_fc timeseries-v13-vol-latest
+      - name: Verify pointer, ledger chain, coefficient pin and archive recompute
+        run: |
+          python -m ai_fc timeseries-v13-vol-verify
+          pytest src/tests/test_timeseries_v13_vol.py src/tests/test_timeseries_v13_vol_display.py src/tests/test_timeseries_v13_vol_contract.py -q
+      - name: Commit only the registered V13 live outputs
+        shell: bash
+        run: |
+          python -m ai_fc inventory
+          git add data/timeseries_v13/vol/vol_latest.json data/timeseries_v13/ledgers/vol_live.jsonl docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v13/(vol/vol_latest\.json|ledgers/vol_live\.jsonl)|docs/generated/inventory\.generated\.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected live paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: publish V13-VOL volatility base-rate pointer"
+            git pull --rebase origin main
+            git push
+          fi

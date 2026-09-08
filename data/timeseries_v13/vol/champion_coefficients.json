@@ -1,0 +1,615 @@
+{
+ "alpha_ewma": 0.09090909090909091,
+ "band80": {
+  "meaning": "coefficient_uncertainty_not_calibration",
+  "method": "delta_method",
+  "z": 1.2815515655446004
+ },
+ "bootstrap": {
+  "block_length": 13,
+  "method": "stationary_block",
+  "refit_tol": 1e-09,
+  "replicates": 2000,
+  "seed": 20260907
+ },
+ "cells": {
+  "rv_h21": {
+   "baseline_pb": null,
+   "beta": [
+    2.287106363584849,
+    4.416909352975096
+   ],
+   "clim_base_rate": 0.6708479678876066,
+   "cov_beta": [
+    [
+     0.23357741373260063,
+     0.21758735688427763
+    ],
+    [
+     0.21758735688427763,
+     0.45823317067548625
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "rv21_ann"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.0,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.016666666666666666,
+    "vs_climatology_bss": {
+     "early_to_late": 0.5179816484884878,
+     "late_to_early": 0.5923655796888497
+    }
+   },
+   "h": 21,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    0.20233273626734907
+   ],
+   "n_fit": 1993,
+   "sd": [
+    0.12368672368178817
+   ],
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h5": {
+   "baseline_pb": null,
+   "beta": [
+    2.677929258752112,
+    8.147788361644738
+   ],
+   "clim_base_rate": 0.5524335173105871,
+   "cov_beta": [
+    [
+     0.4440995481861721,
+     0.19582853062956754
+    ],
+    [
+     0.19582853062956754,
+     0.3569368841525187
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "rv21_ann"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.0,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.0,
+    "vs_climatology_bss": {
+     "early_to_late": 0.8248238889176074,
+     "late_to_early": 0.8793867279212948
+    }
+   },
+   "h": 5,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    0.20191101369465037
+   ],
+   "n_fit": 1993,
+   "sd": [
+    0.12392479125053785
+   ],
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h63": {
+   "baseline_pb": null,
+   "beta": [
+    2.888445716094808,
+    2.4457552718564495
+   ],
+   "clim_base_rate": 0.876473603280369,
+   "cov_beta": [
+    [
+     0.13592966527171066,
+     0.08515371260824549
+    ],
+    [
+     0.08515371260824549,
+     0.24748923532317355
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "rv21_ann"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.016666666666666666,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.03333333333333333,
+    "vs_climatology_bss": {
+     "early_to_late": 0.09536969054653288,
+     "late_to_early": 0.4373151333918438
+    }
+   },
+   "h": 63,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    0.20324782607283087
+   ],
+   "n_fit": 1951,
+   "sd": [
+    0.12466657078864077
+   ],
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "vix25_h21": {
+   "K": 25,
+   "baseline_pb": null,
+   "beta": [
+    0.20013108411346578,
+    4.128132869140334
+   ],
+   "clim_base_rate": 0.41946813848469644,
+   "cov_beta": [
+    [
+     0.24295847922910851,
+     0.15915544736352946
+    ],
+    [
+     0.15915544736352946,
+     0.383747755653481
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.008333333333333333,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.008333333333333333,
+    "vs_climatology_bss": {
+     "early_to_late": 0.7524201877719607,
+     "late_to_early": 0.6868726377082379
+    }
+   },
+   "h": 21,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    21.902318113396888
+   ],
+   "n_fit": 1993,
+   "sd": [
+    10.392864859368947
+   ],
+   "target": "vix_touch"
+  },
+  "vix25_h5": {
+   "K": 25,
+   "baseline_pb": null,
+   "beta": [
+    -1.078711300624518,
+    6.02807977523882
+   ],
+   "clim_base_rate": 0.30761572921851665,
+   "cov_beta": [
+    [
+     0.4482400999755615,
+     0.28513082395186395
+    ],
+    [
+     0.28513082395186395,
+     0.35675016003098126
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.008333333333333333,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.016666666666666666,
+    "vs_climatology_bss": {
+     "early_to_late": 0.8997168821936051,
+     "late_to_early": 0.7940877559601827
+    }
+   },
+   "h": 5,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    21.85983573917372
+   ],
+   "n_fit": 2009,
+   "sd": [
+    10.366876119677213
+   ],
+   "target": "vix_touch"
+  },
+  "vix25_h63": {
+   "K": 25,
+   "baseline_pb": null,
+   "beta": [
+    1.3641350706692974,
+    3.188520277292036
+   ],
+   "clim_base_rate": 0.6078933880061507,
+   "cov_beta": [
+    [
+     0.20320748726338272,
+     0.17059363904619823
+    ],
+    [
+     0.17059363904619823,
+     0.36905576594615175
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.016666666666666666,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.016666666666666666,
+    "vs_climatology_bss": {
+     "early_to_late": 0.45563692633123676,
+     "late_to_early": 0.6009356999682995
+    }
+   },
+   "h": 63,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    22.031542798564836
+   ],
+   "n_fit": 1951,
+   "sd": [
+    10.452966501956185
+   ],
+   "target": "vix_touch"
+  },
+  "vix30_h21": {
+   "K": 30,
+   "baseline_pb": null,
+   "beta": [
+    -1.4676048233072139,
+    3.0528170638300947
+   ],
+   "clim_base_rate": 0.25188158554942297,
+   "cov_beta": [
+    [
+     0.19885879833702944,
+     0.07279254438828464
+    ],
+    [
+     0.07279254438828464,
+     0.28609725447297696
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.0,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.0,
+    "vs_climatology_bss": {
+     "early_to_late": 0.8128214454839303,
+     "late_to_early": 0.5295334504592253
+    }
+   },
+   "h": 21,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    21.902318113396888
+   ],
+   "n_fit": 1993,
+   "sd": [
+    10.392864859368947
+   ],
+   "target": "vix_touch"
+  },
+  "vix30_h5": {
+   "K": 30,
+   "baseline_pb": null,
+   "beta": [
+    -3.1094514441648275,
+    4.6494041435417195
+   ],
+   "clim_base_rate": 0.17819810851169737,
+   "cov_beta": [
+    [
+     0.30960305177198,
+     0.2319635602972997
+    ],
+    [
+     0.2319635602972997,
+     0.3325309633923682
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.008333333333333333,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.016666666666666666,
+    "vs_climatology_bss": {
+     "early_to_late": 0.8797217599119459,
+     "late_to_early": 0.7214484015444995
+    }
+   },
+   "h": 5,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    21.85983573917372
+   ],
+   "n_fit": 2009,
+   "sd": [
+    10.366876119677213
+   ],
+   "target": "vix_touch"
+  },
+  "vix30_h63": {
+   "K": 30,
+   "baseline_pb": null,
+   "beta": [
+    -0.12558620905393206,
+    2.702496018002443
+   ],
+   "clim_base_rate": 0.40697078421322397,
+   "cov_beta": [
+    [
+     0.16643559871357588,
+     0.08160204503390714
+    ],
+    [
+     0.08160204503390714,
+     0.2718000121140966
+    ]
+   ],
+   "derived_layer": "raw",
+   "feature_names": [
+    "vix_close"
+   ],
+   "gate_evidence": {
+    "champion_rule": "persistence_pb",
+    "design_pass": true,
+    "ewma_beats_pb_both": false,
+    "neg_control_ewma_vs_clim_pass_rate": 0.008333333333333333,
+    "neg_control_increment_pass_rate": null,
+    "neg_control_pb_pass_rate": 0.016666666666666666,
+    "vs_climatology_bss": {
+     "early_to_late": 0.6115445581925676,
+     "late_to_early": 0.4929833167190629
+    }
+   },
+   "h": 63,
+   "iso_map": null,
+   "model": "persistence_pb",
+   "mu": [
+    22.031542798564836
+   ],
+   "n_fit": 1951,
+   "sd": [
+    10.452966501956185
+   ],
+   "target": "vix_touch"
+  }
+ },
+ "champion_decided_at": "2026-09-08",
+ "champion_source_content_hash": "b95b919eab5396262e3e16e5400559be2c48191eeb543a8f393c496f37ddc234",
+ "content_hash": "66c408f6b13852aa2c2be8e7d7f2ddfb3d2ad496c32456f4644653b03693ee54",
+ "ewma_seed_rule": "m0 = x[0]; non-finite carried forward; run continuously over full history",
+ "finalist_id": "V13VOL_champion_aec80c65038b",
+ "fit_window": [
+  "2007-01-03",
+  "2014-12-31"
+ ],
+ "hyperparameters": {
+  "clip": [
+   1e-06,
+   0.999999
+  ],
+  "iters": 200,
+  "l2": 0.001,
+  "optimizer": "newton",
+  "sd_floor_rule": "sd<1e-9 -> 1.0",
+  "zscore_ddof": 0
+ },
+ "inputs_sha256": {
+  "NASDAQCOM": "1be3d4849bd816a7a46348028c0b0feeadc6cffeee3a3a29304c609492010be5",
+  "VIX": "5e2dc2711ba8ce70d699e6dd26e63847e340d625e93a94ef74739c003ce78844"
+ },
+ "knowledge_cutoff": "2026-09-08T05:43:43+00:00",
+ "model_id": "event_probability.volatility_v13",
+ "model_version": 13,
+ "n_panel": 2014,
+ "prereg_commit": "afec214e",
+ "provenance": {
+  "contract_sha256": "d620c59ed64e1ba2d215d4924ddabf6c24c81cb1f0dd9cceb5b8476d862e6bff",
+  "features_sha256": "391c0544610fead3311263cd3c2ab815572bcff17a93a915205115213440270c",
+  "git_head": "9c2b912a",
+  "ladder_ewma_sha256": "bf91a1d3cd4a8d9ef6d84a9e658293cf5fe9cbbd3f2d5fd5b870d90431ed1ab0",
+  "ladder_pb_sha256": "71c92648af96fa8d37a8e1f5a0a47e1aa470ce245534b1b558fe7d64dc65c973",
+  "runner_sha256": "087e4fd419ae9d8bf67c1c3d90ad19434e98b2233be7587432e5130d12c8bab8"
+ },
+ "reconciliation": {
+  "cells": {
+   "rv_h21": {
+    "abs_diff": {
+     "early_to_late": 1.1102230246251565e-16,
+     "late_to_early": 5.551115123125783e-16
+    },
+    "ladder": {
+     "early_to_late": 0.5179816484884878,
+     "late_to_early": 0.5923655796888497
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.5179816484884877,
+     "late_to_early": 0.5923655796888503
+    }
+   },
+   "rv_h5": {
+    "abs_diff": {
+     "early_to_late": 2.220446049250313e-16,
+     "late_to_early": 3.3306690738754696e-16
+    },
+    "ladder": {
+     "early_to_late": 0.8248238889176074,
+     "late_to_early": 0.8793867279212948
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.8248238889176072,
+     "late_to_early": 0.8793867279212951
+    }
+   },
+   "rv_h63": {
+    "abs_diff": {
+     "early_to_late": 9.992007221626409e-16,
+     "late_to_early": 1.9984014443252818e-15
+    },
+    "ladder": {
+     "early_to_late": 0.09536969054653288,
+     "late_to_early": 0.4373151333918438
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.09536969054653188,
+     "late_to_early": 0.4373151333918418
+    }
+   },
+   "vix25_h21": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.7524201877719607,
+     "late_to_early": 0.6868726377082379
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.7524201877719607,
+     "late_to_early": 0.6868726377082379
+    }
+   },
+   "vix25_h5": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.8997168821936051,
+     "late_to_early": 0.7940877559601827
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.8997168821936051,
+     "late_to_early": 0.7940877559601827
+    }
+   },
+   "vix25_h63": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.45563692633123676,
+     "late_to_early": 0.6009356999682995
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.45563692633123676,
+     "late_to_early": 0.6009356999682995
+    }
+   },
+   "vix30_h21": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.8128214454839303,
+     "late_to_early": 0.5295334504592253
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.8128214454839303,
+     "late_to_early": 0.5295334504592253
+    }
+   },
+   "vix30_h5": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.8797217599119459,
+     "late_to_early": 0.7214484015444995
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.8797217599119459,
+     "late_to_early": 0.7214484015444995
+    }
+   },
+   "vix30_h63": {
+    "abs_diff": {
+     "early_to_late": 0.0,
+     "late_to_early": 0.0
+    },
+    "ladder": {
+     "early_to_late": 0.6115445581925676,
+     "late_to_early": 0.4929833167190629
+    },
+    "model": "persistence_pb",
+    "numpy": {
+     "early_to_late": 0.6115445581925676,
+     "late_to_early": 0.4929833167190629
+    }
+   }
+  },
+  "max_abs_bss_diff": 1.9984014443252818e-15,
+  "pass": true,
+  "tolerance": 1e-06
+ },
+ "rv_definition": "log(NASDAQCOM).diff().rolling(21).std(ddof=1) * sqrt(252)",
+ "rv_nan_count": 21,
+ "rv_nan_fill_median": 0.16942071054680877,
+ "schema_version": 1,
+ "theta_rv": 0.1694
+}

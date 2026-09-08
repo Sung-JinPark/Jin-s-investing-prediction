@@ -382,3 +382,11 @@ ledgers:
     cadence: event
     criticality: medium
     schema_ref: json_object
+  # 동결 계수(Phase C 2026-09-08, finalist V13VOL_champion_aec80c65038b) — 바이트 변경은 violation(재적합 금지의 기계적 강제).
+  - id: timeseries_v13_vol_coefficients
+    path: data/timeseries_v13/vol/champion_coefficients.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+    expected_state: frozen

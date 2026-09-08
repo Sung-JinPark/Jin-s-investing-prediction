@@ -158,7 +158,7 @@ baselines:
 
 # [A1] 개정기 추가 게이트 — 원문 gate: 은 무수정. 신규 키는 여기.
 gates:
-  armed: false                        # 표시 트랙 V13-D4 에서만 true 전환. 결과 후 임계 무변경.
+  armed: true                         # [V13-D4 2026-09-08] T2 진입 시 전환 — 게이트 산술·규칙 0바이트 변경(결과 후 임계 무변경)
   evaluated_candidates: 3             # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb (원장 3행 대사)
   design_evidence:
     ewma_logit:
@@ -245,15 +245,15 @@ live_display:
 # [A7] 동결 계수 — Phase C(champion 확정 뒤) 에서 채운다. 이름 정정: 설계서 §3 'ewma_logit_coefficients.json' → champion 중립 이름(셀별 champion 이 다를 수 있음)
 frozen_coefficients:
   path: data/timeseries_v13/vol/champion_coefficients.json
-  sha256: null
-  content_hash: null
-  finalist_id: null                                      # gates.champion.finalist_id 와 일치해야 한다
+  sha256: 51815bde6db0e1b1d9f206eb7fe6a05210c11531af56a7a9d7e06364a5b256f2
+  content_hash: 66c408f6b13852aa2c2be8e7d7f2ddfb3d2ad496c32456f4644653b03693ee54
+  finalist_id: V13VOL_champion_aec80c65038b                    # gates.champion.finalist_id 와 일치해야 한다
   refit_prohibited: true
   fit_window: ['2007-01-01', '2014-12-31']               # 설계창 전체 1회 적합 (반창 재적합 대사 ≤1e-6 필수)
 
 # 표시 사다리 위치 — T2/T3 전환은 이 한 줄 + amendment 로만 (코드 변경 0). T4 는 값 자체가 없다.
 publication:
-  display_tier: t0_internal                              # t2_hidden_panel(V13-D4) → t3_live_card(V13-D5)
+  display_tier: t3_live_card                             # [V13-D5 2026-09-08] T3 라이브 카드 — T2 X1 6항 검수(1400/620/375) 통과 뒤 전환. 홀드아웃 전이라 caveat 굵게(읽기모델 가드 강제)
   display_tiers_allowed: [t0_internal, t2_hidden_panel, t3_live_card]
   reference_opinion_only: true
   holdout_status: not_consumed                           # V13-D3 소모 시 pass | fail
@@ -277,12 +277,32 @@ amendments_applied:
       A6: evaluations_spent 0→2 정정 (원장 2행 대사 — 완화 아님). (정정)
       A7: live_display(신선도=거래일 달력, band80=델타법, 전용 read-model 키, 24KB) · frozen_coefficients(champion 중립 이름) · publication.display_tier. (신설·정정)
     unchanged: gate.primary · bidirectional_transfer · uncertainty(ℓ13/B2000/seed 20260907) · negative_control 임계 0.10 · targets K/θ/h · design_window · split · climatology_base_rates · 홀드아웃 미소모 · 봉인 미열람 · gates.armed=false · 기존 prohibitions 12개.
+  V13-D4:
+    display_id: V13-D4
+    approved: '2026-09-08'
+    approval_receipt: v13-approval:V13-D4:2026-09-08:r1
+    basis: 표시 설계서 §2·§7(T2 게이트 = 게이트 무장 + G0 무손상 대사 + 승인) · 계획 승인(2026-09-08)
+    preconditions_met: 동결 계수 핀(sha256 51815bde…, 반창 대사 max|Δ| 2e-15) · champion 확정(rung-3) · 표시 모듈·읽기모델 가드·테스트 · X1 6항 스크린샷 검수(1400/620/375, 탭 활성 상태)
+    changes:
+      D4-1: gates.armed false→true (게이트 산술·규칙 0바이트 변경). (전환)
+      D4-2: publication.display_tier t0_internal→t2_hidden_panel (?review=v13vol 열람 전용). (전환)
+    disclosure: T2 는 UI 수준 숨김이지 payload 비공개가 아니다 — 숫자는 공개 data.json 의 timeseries_v13_vol 키에 실린다.
+    unchanged: 게이트 임계 · 계수 · 홀드아웃 미소모 · 봉인 미열람.
+  V13-D5:
+    display_id: V13-D5
+    approved: '2026-09-08'
+    approval_receipt: v13-approval:V13-D5:2026-09-08:r1
+    basis: 사용자 결정(2026-09-08) 'T3 는 T2 검수 통과 즉시, 홀드아웃 선행 안 함' · 표시 설계서 §2 T3 대안(caveat lead '홀드아웃 미검증' 굵게 상시)
+    changes:
+      D5-1: publication.display_tier t2_hidden_panel→t3_live_card. (전환 — 코드 변경 0)
+    caveat_enforced_by: read_model_contract.validate (t3 ∧ holdout_status≠pass ⇒ holdout_caveat_bold) · dashboard.js caveat lead <b>홀드아웃 미검증</b>
+    unchanged: 게이트 임계 · 계수 · 홀드아웃 미소모(V13-D3 별도) · 배선 없음(V13-D6 별도) · T4 값 없음.
 
 decisions_resolved:
   V13-D1: 트랙 개시 (2026-09-07, 계약 주석 승계)
   V13-D2: V13-D2′ 로 대체 — 게이트 임계 형(CI90 하한>0 + 양방향 + 신뢰도 보고) 승인 + PB 기준선·홀드아웃 게이트 사전등록 (2026-09-08)
+  V13-D4: T2 숨김 패널 진입 — gates.armed true · X1 6항 검수 통과 (2026-09-08)
+  V13-D5: T3 라이브 카드 — 홀드아웃 전, caveat '홀드아웃 미검증' 굵게 상시 (2026-09-08)
 decisions_pending:
-  V13-D3: 홀드아웃 1슬롯 소모 — C-1 champion 확정 후 조건부 (§C-2 ①~④ AND hold_condition 미해당). 사용자 결정(2026-09-08) — C-1 결과 보고 직후 질문·정지, 승인 원문 수신 시에만 verb 신설 + execution_path 개정.
-  V13-D4: 표시 승격 T2 숨김 패널 (표시 설계서 §7) — gates.armed true 전환 동반
-  V13-D5: T3 라이브 카드 — 사용자 결정(2026-09-08) T2 검수 통과 즉시, 홀드아웃 전이면 caveat 굵게
+  V13-D3: 홀드아웃 1슬롯 소모 — 조건 ①~④ 충족(champion=persistence_pb 전 9셀, finalist V13VOL_champion_aec80c65038b, h63 raw, 게이트 사전등록, finalist 1) AND hold_condition 미해당. 사용자 승인 원문 수신 시에만 verb 신설 + execution_path 개정. 자동 실행 없음.
   V13-D6: EXIT 트리거 base rate 배선 (외부 검토 E표 'V13-D4' 의 이 계약 내 ID) — 홀드아웃 PASS 셀 한정
