@@ -375,7 +375,8 @@ ledgers:
     schema_ref: jsonl
     allow_empty_accumulating: true
     expected_state: planned
-    timestamp_field: as_of
+    # as_of 는 구조적으로 한 세션 뒤(T+1 아카이브)라 as_of 로 재면 만성 stalled — 행 생성 시각으로 성장을 잰다.
+    timestamp_field: knowledge_cutoff
   - id: timeseries_v13_vol_ladder_results
     path: data/timeseries_v13/vol/ladder_*.json
     kind: immutable_files

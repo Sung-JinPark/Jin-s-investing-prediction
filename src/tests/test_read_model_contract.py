@@ -215,3 +215,24 @@ def test_timeseries_v13_vol_cell_band_must_bracket_probability() -> None:
     model["timeseries_v13_vol"] = _v13_live_surface()
     model["timeseries_v13_vol"]["cells"]["rv_h5"]["band80"] = [0.5, 0.46]
     assert "timeseries_v13_vol cell rv_h5 band/probability out of order" in validate(model)
+
+
+def test_timeseries_v13_vol_visibility_status_and_display_state_and_malformed_cells() -> None:
+    model = _minimal_model()
+    model["timeseries_v13_vol"] = _v13_live_surface()
+    model["timeseries_v13_vol"]["status"] = "hold"          # numbers_visible True 인데 status hold
+    assert "timeseries_v13_vol visibility/status mismatch" in validate(model)
+    model = _minimal_model()
+    model["timeseries_v13_vol"] = _v13_live_surface()
+    model["timeseries_v13_vol"]["display_state"] = "customer_default"
+    assert "timeseries_v13_vol visible surface must declare research_reference" in validate(model)
+    model = _minimal_model()
+    model["timeseries_v13_vol"] = _v13_live_surface()
+    model["timeseries_v13_vol"]["cells"]["rv_h5"] = {"p": "x"}
+    assert "timeseries_v13_vol cell rv_h5 malformed" in validate(model)
+
+
+def test_timeseries_v13_vol_numbers_hidden_after_holdout_failure() -> None:
+    model = _minimal_model()
+    model["timeseries_v13_vol"] = _v13_live_surface(tier="t3_live_card", holdout_status="fail")
+    assert "timeseries_v13_vol numbers visible after holdout failure" in validate(model)

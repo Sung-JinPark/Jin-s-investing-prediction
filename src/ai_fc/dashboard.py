@@ -464,7 +464,7 @@ def build_read_model(
     # V13-VOL 변동성 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면.
     # 로더는 항상 dict(absent/internal/hold/live)를 돌려주고 숫자는 네 게이트·핀·빌드 시점 신선도가 전부 성립할 때만 싣는다.
     from .timeseries_v13_vol_display import load_projection as load_timeseries_v13_vol_projection
-    timeseries_v13_vol = _guard_timeseries_v13_vol_budget(load_timeseries_v13_vol_projection(root))
+    timeseries_v13_vol = _guard_timeseries_v13_vol_budget(load_timeseries_v13_vol_projection(root, now=now))
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"

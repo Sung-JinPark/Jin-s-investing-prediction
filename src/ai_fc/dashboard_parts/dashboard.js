@@ -1673,16 +1673,17 @@ function renderTimeseriesV13VolPanel(v13){
   v13=v13||{};
   const pub=v13.publication||{},gate=v13.gate||{},tier=pub.display_tier||'t0_internal';
   const live=v13.numbers_visible===true&&v13.status==='live';
-  const holdoutPass=pub.holdout_status==='pass';
+  const holdoutPass=pub.holdout_status==='pass',holdoutFail=pub.holdout_status==='fail';
+  const holdoutLabel=holdoutPass?'홀드아웃(2015~2018) 통과':holdoutFail?'<b>홀드아웃 실패</b>':(pub.holdout_caveat_bold?'<b>홀드아웃 미검증</b>':'홀드아웃 미검증');
   const badge=`<span class="timeseries-chip v13-source-badge" title="${esc(plainTerm('persistence_hint'))}">수치모델 · <abbr title="${esc(plainTerm('persistence_hint'))}">당일 수준 지속(PB)</abbr></span>`;
-  const caveat=`<p class="ts-lead v13-caveat">설계창(2007~2014) 스킬 · ${holdoutPass?'홀드아웃(2015~2018) 통과':(pub.holdout_caveat_bold?'<b>홀드아웃 미검증</b>':'홀드아웃 미검증')} · <b>참고 의견 — 매매 신호가 아닙니다.</b> 아래 숫자는 예측이 아니라 <abbr title="${esc(plainTerm('base_rate_hint'))}">기준율</abbr>입니다.</p>`;
+  const caveat=`<p class="ts-lead v13-caveat">설계창(2007~2014) 스킬 · ${holdoutLabel} · <b>참고 의견 — 매매 신호가 아닙니다.</b> 아래 숫자는 예측이 아니라 <abbr title="${esc(plainTerm('base_rate_hint'))}">기준율</abbr>입니다.</p>`;
   const preview=tier==='t2_hidden_panel'?`<p class="ts-lead">심사용 미리보기(T2 숨김 패널) — 공개 표시가 아닙니다.</p>`:'';
   const refId=v13.reference_question?.id||'vix-25-90d';
   const roleLine=`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
   const head=`<div class="admin-card-head"><h2>변동성 이벤트 기준율</h2>${badge}</div>`;
   if(!live){
     const reasons=(gate.reasons||[]).slice(0,5);
-    const title=v13.status==='absent'?'아직 발행되지 않았습니다':v13.status==='internal'?'내부 산출물 — 표시 승격(V13-D4) 전':'검증 조건이 성립하지 않아 숫자를 숨깁니다';
+    const title=v13.status==='absent'?'아직 발행되지 않았습니다':v13.status==='internal'?'내부 산출물 — 표시 승격(V13-D4) 전':holdoutFail?'홀드아웃(2015~2018) 실패 — 숫자를 표시하지 않습니다':'검증 조건이 성립하지 않아 숫자를 숨깁니다';
     return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>${v13.status==='absent'?'NOT PUBLISHED':'HOLD'}</span><h2>${title}</h2><p>계약 무장·계수 핀·설계 게이트·거래일 신선도 네 조건이 전부 성립할 때만 기준율을 표시합니다. 마지막 값을 재사용하지 않습니다.</p>${reasons.length?`<ul class="timeseries-hold-reasons">${reasons.map(r=>`<li>${esc(r)}</li>`).join('')}</ul>`:''}</div></section>${roleLine}</section></div>`;
   }
   const cells=v13.cells||{},inputs=v13.inputs||{},fresh=v13.freshness||{};
@@ -1701,7 +1702,7 @@ function renderTimeseriesV13VolPanel(v13){
   const gateStrip=`<section class="timeseries-gate-strip" aria-label="V13 게이트 상태">`
     +`<span class="ts-gate-chip ${gate.design_gate_pass?'pass':'hold'}" title="설계창(2007~2014) 기후 대비 9/9 양방향 CI90>0 · 건전 y-block 귀무 ≤0.033 · 당일 수준 기준선(PB)이 champion">설계창 게이트 ${gate.design_gate_pass?'통과':'보류'}</span>`
     +`<span class="ts-gate-chip ${gate.freshness_pass?'pass':'hold'}" title="NYSE 거래일 달력 기준 누락 세션 ${fresh.missing_sessions??'—'}/${fresh.max_missing_sessions??1}">신선도 ${gate.freshness_pass?'OK':'경고'} · 기준일 ${esc(String(v13.as_of||''))} (미국 거래일 종가)</span>`
-    +`<span class="ts-gate-chip ${holdoutPass?'pass':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다">홀드아웃 ${holdoutPass?'통과':'미검증'}</span>`
+    +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':'미검증'}</span>`
     +`<span class="ts-gate-chip pass" title="입력: VIX 종가 ${Number(inputs.vix_close||0).toFixed(1)} · 실현변동성(21일, 연율) ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%">VIX ${Number(inputs.vix_close||0).toFixed(1)} · RV21 ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%</span>`
     +divChip+`</section>`;
   const ex=cells.vix25_h63?v13Pct(cells.vix25_h63.p):'—';

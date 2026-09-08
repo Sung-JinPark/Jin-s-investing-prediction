@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -104,10 +105,14 @@ def test_design_evidence_pins_match_files_and_ledger() -> None:
     contract = _contract()
     experiments = {row["experiment_label"]: row for row in _rows(EXPERIMENTS)}
     evidence = contract["gates"]["design_evidence"]
-    for rung, label in (("ewma_logit", "V13VOL_ewma_logit"), ("har_logistic", "V13VOL_har_logit")):
+    for rung, label in (("ewma_logit", "V13VOL_ewma_logit"), ("har_logistic", "V13VOL_har_logit"),
+                        ("persistence_pb", "V13VOL_pb_baseline")):
         pin = evidence[rung]
         assert _sha256(ROOT / pin["path"]) == pin["sha256"], rung
         assert experiments[label]["content_hash"] == pin["ledger_content_hash"], rung
+    # champion 표의 원천(rung-3 결과 json)도 바이트 핀 — 원장 행이 그 파일의 sha256 을 기록한다
+    pb_row = experiments["V13VOL_pb_baseline"]
+    assert pb_row["results_sha256"] == _sha256(ROOT / "data/timeseries_v13/vol/ladder_pb_baseline.json")
 
 
 def test_champion_state_reconciles_with_rung3_ledger_row() -> None:
@@ -173,6 +178,76 @@ def test_approvals_ledger_carries_the_amendment_receipt() -> None:
     receipt = _contract()["amendments_applied"]["V13-D2prime"]["approval_receipt"]
     assert any(row["receipt_id"] == receipt and row["decision_id"] == "V13-D2′" for row in rows)
     assert _contract()["amendments_applied"]["V13-D2prime"]["unchanged"]
+
+
+def test_approval_receipts_are_not_forward_dated_and_contract_points_at_live_rows() -> None:
+    # 교훈(2026-09-08 정정): 영수증 시각은 이벤트 시각이어야 한다 — 미래 시각 금지, 정정(r2)은 supersedes 로 잇고
+    # 계약은 superseded 되지 않은 행만 가리킨다 (timeseries_v6.publication 의 non-future 규칙 승계).
+    rows = _rows(APPROVALS)
+    now = datetime.now(timezone.utc)
+    by_id = {row["receipt_id"]: row for row in rows}
+    assert len(by_id) == len(rows), "receipt_id 중복"
+    for row in rows:
+        stamp = datetime.fromisoformat(row["approved_at"])
+        assert stamp.tzinfo is not None and stamp <= now, row["receipt_id"]
+        if row.get("supersedes"):
+            assert row["supersedes"] in by_id and by_id[row["supersedes"]]["decision_id"] == row["decision_id"]
+    superseded = {row["supersedes"] for row in rows if row.get("supersedes")}
+    amendments = _contract()["amendments_applied"]
+    for key in amendments:
+        receipt = amendments[key]["approval_receipt"]
+        assert receipt in by_id, key
+        assert receipt not in superseded, f"{key} points at a superseded receipt"
+
+
+def test_arming_and_display_tier_are_backed_by_non_superseded_receipts() -> None:
+    contract = _contract()
+    rows = _rows(APPROVALS)
+    superseded = {row["supersedes"] for row in rows if row.get("supersedes")}
+    live = [row for row in rows if row["receipt_id"] not in superseded]
+
+    def has(decision: str, scope: str) -> bool:
+        return any(row["decision_id"] == decision and row["approval_scope"].get(scope) is True for row in live)
+
+    if contract["gates"]["armed"] is True:
+        assert has("V13-D4", "gates_armed"), "gates.armed 는 V13-D4 영수증(gates_armed) 이 뒷받침해야 한다"
+        assert "V13-D4" in contract["amendments_applied"]
+    tier = contract["publication"]["display_tier"]
+    if tier in {"t2_hidden_panel", "t3_live_card"}:
+        assert has("V13-D4", "display_tier_t2")
+    if tier == "t3_live_card":
+        assert has("V13-D5", "display_tier_t3") and "V13-D5" in contract["amendments_applied"]
+    # 홀드아웃 소모는 어떤 영수증도 아직 허가하지 않았다
+    assert not any(row["approval_scope"].get("holdout_consumption") is True for row in live)
+
+
+def test_live_workflow_commits_only_the_contract_declared_live_outputs() -> None:
+    contract = _contract()
+    workflow = (ROOT / ".github/workflows/timeseries-v13-vol-live.yml").read_text(encoding="utf-8")
+    pointer = contract["live_display"]["pointer"]; ledger = contract["live_display"]["ledger"]
+    assert f"git add {pointer} {ledger} docs/generated/inventory.generated.md" in workflow
+    guard = "grep -Ev '^(data/timeseries_v13/(vol/vol_latest\\.json|ledgers/vol_live\\.jsonl)|docs/generated/inventory\\.generated\\.md)$'"
+    assert guard in workflow, "allowlist 가드 정규식이 포인터·원장·인벤토리만 허용해야 한다"
+    add_lines = [line for line in workflow.splitlines() if "git add" in line]
+    assert len(add_lines) == 1
+    assert "champion_coefficients" not in add_lines[0] and "vol_experiments" not in add_lines[0]
+    assert "multivariate_timeseries_v13_vol" not in add_lines[0], "계약은 CI 가 절대 건드리지 않는다"
+    assert "python -m ai_fc timeseries-v13-vol-latest" in workflow and "timeseries-v13-vol-verify" in workflow
+    assert 'workflows: ["timeseries-v2-refresh"]' in workflow, "V2 refresh 완료에 종속"
+    assert "timeseries-v13-vol-holdout" not in workflow
+
+
+def test_live_forward_gate_is_preregistered_before_any_origin_matures() -> None:
+    gate = _contract()["live_forward_gate"]
+    assert gate["execution_path"] == "absent_by_construction"
+    assert gate["minimum_matured_origins_per_cell"] >= 60
+    assert "CI90" in gate["uncertainty"] and "hold" in gate["demotion_rule"]
+    assert "0.10" in gate["negative_control"]
+    live_rows = _rows(ROOT / _contract()["live_display"]["ledger"])
+    if live_rows:
+        # 사전등록일이 첫 라이브 원점(as_of) 이후여도, 그 원점이 성숙(+5 영업일)하기 전이어야 한다
+        first_as_of = min(row["as_of"] for row in live_rows)
+        assert gate["registered"] <= "2026-09-11" and first_as_of >= "2026-09-04"
 
 
 def test_v13_ledgers_are_registered() -> None:

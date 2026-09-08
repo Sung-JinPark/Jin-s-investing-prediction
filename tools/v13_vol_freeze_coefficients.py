@@ -174,18 +174,25 @@ def main() -> int:
         "cells": cells,
         "reconciliation": {"pass": recon_pass, "tolerance": RECON_TOL, "max_abs_bss_diff": max_diff, "cells": recon},
     }
-    payload["content_hash"] = C.canonical_hash(payload)
     out = ROOT / C.COEFFICIENTS_RELATIVE
+    if out.is_file():
+        payload["previous_artifact_sha256"] = _sha(out)   # 재동결 이력 — 이전 바이트는 git 이력에 남는다
+    payload["content_hash"] = C.canonical_hash(payload)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(payload, ensure_ascii=False, indent=1, sort_keys=True), encoding="utf-8", newline="\n")
     print(f"\nwrote {out.relative_to(ROOT)}")
     print(f"sha256={_sha(out)}")
     print(f"content_hash={payload['content_hash']}")
     print(f"finalist_id={payload['finalist_id']}  cells={len(cells)}  reconciliation max|Δ|={max_diff:.2e}")
-    # 계약 핀 자동 기입 (텍스트 치환 — 다른 줄 무변경)
+    # 계약 핀 자동 기입 (frozen_coefficients 블록 안의 세 값만 치환 — 다른 줄 무변경)
+    import re
     text = (ROOT / C.CONTRACT_RELATIVE).read_text(encoding="utf-8")
-    text = text.replace("  sha256: null\n  content_hash: null\n  finalist_id: null                                      # gates.champion.finalist_id 와 일치해야 한다",
-                        f"  sha256: {_sha(out)}\n  content_hash: {payload['content_hash']}\n  finalist_id: {payload['finalist_id']}                    # gates.champion.finalist_id 와 일치해야 한다")
+    head, sep, tail = text.partition("frozen_coefficients:\n")
+    block, sep2, rest = tail.partition("  refit_prohibited:")
+    block = re.sub(r"^  sha256: .*$", f"  sha256: {_sha(out)}", block, flags=re.M)
+    block = re.sub(r"^  content_hash: .*$", f"  content_hash: {payload['content_hash']}", block, flags=re.M)
+    block = re.sub(r"^  finalist_id: .*$", f"  finalist_id: {payload['finalist_id']}                    # gates.champion.finalist_id 와 일치해야 한다", block, flags=re.M)
+    text = head + sep + block + sep2 + rest
     (ROOT / C.CONTRACT_RELATIVE).write_text(text, encoding="utf-8", newline="\n")
     pinned = yaml.safe_load(text)["frozen_coefficients"]
     print(f"contract pin: sha256 {'OK' if pinned['sha256'] == _sha(out) else 'NOT WRITTEN — pin manually'}")

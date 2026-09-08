@@ -403,6 +403,8 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("timeseries_v13_vol numbers visible before all four gates pass")
         if visible and tier == "t0_internal":
             errors.append("timeseries_v13_vol t0 tier must not carry numbers")
+        if visible and publication.get("holdout_status") == "fail":
+            errors.append("timeseries_v13_vol numbers visible after holdout failure")
         if visible and v13.get("display_state") != "research_reference":
             errors.append("timeseries_v13_vol visible surface must declare research_reference")
         cells = v13.get("cells") or {}

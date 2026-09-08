@@ -142,7 +142,8 @@ def publish_latest_timeseries_v13_vol(root: Path, *, now: datetime | None = None
 
     appended = False
     if status == "live":
-        run_id = f"v13vol-{as_of}"
+        # run_id 는 (as_of, 계수 sha 앞 8자) — 같은 관측·같은 계수의 재실행은 한 행(멱등), 재동결은 새 행(이력 보존).
+        run_id = f"v13vol-{as_of}-{str(pin['sha256'])[:8]}"
         existing = {row.get("run_id") for row in _read_rows(root / C.LIVE_LEDGER_RELATIVE)}
         if run_id not in existing:
             row = {"schema_version": 1, "run_id": run_id, "as_of": as_of, "knowledge_cutoff": knowledge_cutoff,
@@ -181,6 +182,18 @@ def verify_timeseries_v13_vol(root: Path) -> dict[str, Any]:
             errors.append(f"ledger duplicate run_id: {row.get('run_id')}")
         seen.add(str(row.get("run_id")))
     if latest.get("status") == "live":
+        pointer_sha = (latest.get("coefficients") or {}).get("sha256")
+        # 포인터 ↔ 원장 교차검사: 같은 as_of·같은 계수의 행이 정확히 1개 있고 셀(p·band80)이 일치해야 한다
+        # (포인터는 재실행마다 knowledge_cutoff 가 바뀌어 다시 써지므로 해시가 아니라 내용을 대조한다).
+        matching = [row for row in rows if row.get("as_of") == latest.get("as_of")
+                    and row.get("coefficients_sha256") == pointer_sha]
+        if len(matching) != 1:
+            errors.append(f"ledger has {len(matching)} rows for pointer as_of/coefficients (expected 1)")
+        else:
+            for name, cell in (latest.get("cells") or {}).items():
+                recorded = (matching[0].get("cells") or {}).get(name) or {}
+                if recorded.get("p") != cell.get("p") or recorded.get("band80") != cell.get("band80"):
+                    errors.append(f"ledger/pointer cell mismatch: {name}")
         try:
             frozen = C.load_frozen_coefficients(root, expected_sha256=frozen_cfg.get("sha256"),
                                                 expected_content_hash=frozen_cfg.get("content_hash"),

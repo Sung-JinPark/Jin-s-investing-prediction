@@ -16,6 +16,7 @@ from ai_fc.timeseries_v13 import features as F
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
+import v13_vol_run as R  # noqa: E402  — 설계 러너 import 실패는 스킵이 아니라 실패여야 한다
 
 
 def _contract() -> dict:
@@ -24,8 +25,7 @@ def _contract() -> dict:
 
 @pytest.mark.skipif(not (ROOT / "data/timeseries_v2").exists(), reason="market archive not present")
 def test_features_match_pandas_design_panel() -> None:
-    pytest.importorskip("pandas")
-    R = pytest.importorskip("v13_vol_run")
+    pytest.importorskip("pandas")  # 설계 러너의 load_panel 만 pandas 를 쓴다
     from ai_fc.timeseries_v2.market_archive import read_market_observations
 
     idx, vix, ndx, rv = R.load_panel()
@@ -48,7 +48,6 @@ def test_features_match_pandas_design_panel() -> None:
 
 
 def test_logit_fit_matches_tools_reference_on_synthetic_data() -> None:
-    R = pytest.importorskip("v13_vol_run")
     rng = np.random.default_rng(7)
     X = np.column_stack([rng.normal(size=500), rng.normal(size=500)])
     y = ((X[:, 0] + 0.5 * X[:, 1] + rng.normal(size=500)) > 0).astype(float)
@@ -87,13 +86,23 @@ def test_delta_band_is_inside_unit_interval() -> None:
     assert 0 <= lo <= p <= hi <= 1
 
 
-def test_block_bootstrap_cov_is_symmetric_psd() -> None:
+def test_block_bootstrap_cov_is_symmetric_psd_and_in_frozen_coordinates() -> None:
     rng = np.random.default_rng(5)
     X = np.column_stack([rng.normal(size=200)])
     y = ((X[:, 0] + rng.normal(size=200)) > 0).astype(float)
     cov = F.block_bootstrap_cov(X, y, seed=1, b=40)
     assert cov.shape == (2, 2) and np.allclose(cov, cov.T)
     assert np.all(np.linalg.eigvalsh(cov) >= -1e-12)
+    # 좌표계 검사: 재표집 적합이 전체 표본 (μ,σ) 로 고정 표준화되어야 동결 β·delta_method_se 와 같은 좌표다.
+    # 피처를 10배 늘려도(σ 10배) 고정 표준화 β 의 공분산은 스케일 불변이어야 한다.
+    cov_scaled = F.block_bootstrap_cov(X * 10.0, y, seed=1, b=40)
+    assert np.allclose(cov, cov_scaled, rtol=1e-6, atol=1e-9)
+    # 고정 표준화 인자가 실제로 쓰인다: standardize 를 주면 반환 μ/σ 가 그대로다
+    mu, sd = F.standardize_params(X)
+    beta_fixed, mu_out, sd_out = F.logit_fit(X[:100], y[:100], standardize=(mu, sd))
+    assert np.array_equal(mu_out, mu) and np.array_equal(sd_out, sd)
+    beta_own, mu_own, _ = F.logit_fit(X[:100], y[:100])
+    assert not np.array_equal(mu_own, mu) and not np.allclose(beta_fixed, beta_own)
 
 
 def test_pav_apply_is_monotone_and_clipped() -> None:

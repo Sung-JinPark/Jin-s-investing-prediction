@@ -743,3 +743,20 @@ persistence_pb 전 9셀 · 표시 모듈(`timeseries_v13_vol_display.py`, 항상
 immutable/frozen — 바이트 변경은 CI violation.
 
 **기록.** method_changes r27 · approvals r1(V13-D4)·r1(V13-D5) · 계약 `amendments_applied.V13-D4/V13-D5`.
+
+**정정(2026-09-08 16:25, 푸시 전 적대적 검토 governance 렌즈 3/3).** 위 approvals r1 두 행의 `approved_at`
+15:05:00 은 14:59:22 에 적힌 **합성 시각**이며 사용자 이벤트가 아니다 — 무장(14:54:04)·라이브 포인터(14:54:13)·
+T3 전환(14:58:03) 보다 뒤라 "승인이 집행에 선행" 의 증거로 쓸 수 없었다(method_changes r27 의 `occurred_at` 도 동일).
+원장은 append-only 라 r1 을 고치지 않고 **r2 를 덧붙였다**: 실제 동의 = AskUserQuestion 선택(13:53:55) + 계획
+승인(ExitPlanMode 14:14:41, 계획 파일 Phase E 에 V13-D4/D5 명시) → 집행은 그 뒤. 계약 `approval_receipt` 는 r2 로,
+테스트는 영수증 `approved_at` 비미래 + 계약이 superseded 행을 가리키지 않음을 고정. method_changes r28.
+교훈: 영수증 시각은 항상 이벤트 시각(도구 호출 기록)에서 가져오고, 절대 손으로 적지 않는다.
+
+**정정 2 — band80 부트스트랩 좌표 불일치 (같은 검토, numerics 렌즈).** `block_bootstrap_cov` 가 재표집마다
+재표준화한 β_b 의 공분산을 취해 동결 μ/σ 좌표의 델타법과 어긋났다(대역 과대). 전체 표본 (μ,σ) 로 고정 표준화하도록
+수정하고 **재동결**(sha256 `51815bde…` → `1a857850…`, 반창 대사 2e-15 동일, 확률 p 무변경 — 대역만 좁아짐, 예:
+vix25_h63 [18%,38%]→[21%,36%]). 재동결은 라이브 원장에 새 행(run_id 에 계수 sha 8자 포함)으로 남고 이전 행·이전
+artifact 바이트는 git 이력에 보존. 함께 고친 것: 홀드아웃 FAIL/partial 과 계약 disarm 의 빌드 시점 페일클로즈,
+비-dict 포인터 페일클로즈, verify 의 원장↔포인터 셀 교차검사, 라이브 워크플로의 V2 refresh 완료 종속(workflow_run),
+라이브 전진 게이트 사전등록(`live_forward_gate`, 첫 원점 성숙 전), 파이프라인·신선도 테스트 신설, 부호검정 강화.
+method_changes r29.

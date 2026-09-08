@@ -58,8 +58,9 @@ def validate_latest(value: dict[str, Any]) -> None:
     status = value.get("status")
     if status not in {"live", "hold"}:
         raise TimeSeriesV13VolDisplayError("V13 pointer status must be live or hold")
-    gate = value.get("gate") or {}
-    publication = value.get("publication") or {}
+    gate = value.get("gate"); publication = value.get("publication")
+    if not isinstance(gate, dict) or not isinstance(publication, dict):
+        raise TimeSeriesV13VolDisplayError("V13 pointer gate/publication must be objects")
     visible = publication.get("customer_numbers_visible") is True
     gates_pass = all(gate.get(key) is True for key in GATE_KEYS)
     if visible is not gates_pass:
@@ -75,9 +76,11 @@ def validate_latest(value: dict[str, Any]) -> None:
             raise TimeSeriesV13VolDisplayError("V13 HOLD surface must hide base rates")
         return
     cells = value.get("cells") or {}
-    if not cells or not set(cells) <= set(CELL_ORDER):
+    if not isinstance(cells, dict) or not cells or not set(cells) <= set(CELL_ORDER):
         raise TimeSeriesV13VolDisplayError("V13 visible cell set invalid")
     for name, cell in cells.items():
+        if not isinstance(cell, dict):
+            raise TimeSeriesV13VolDisplayError(f"V13 cell {name} malformed")
         p = float(cell["p"]); lo, hi = (float(x) for x in cell["band80"])
         if not (0.0 <= lo <= p <= hi <= 1.0):
             raise TimeSeriesV13VolDisplayError(f"V13 cell {name} band/probability out of order")
@@ -113,12 +116,16 @@ def _coefficients_pinned(root: Path, latest: dict[str, Any], contract: dict[str,
 
 
 def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict[str, Any],
-                     freshness: dict[str, Any] | None, pin_ok: bool, pin_reason: str | None) -> dict[str, Any]:
+                     freshness: dict[str, Any] | None, pin_ok: bool, pin_reason: str | None,
+                     armed_now: bool | None = None) -> dict[str, Any]:
     if tier not in DISPLAY_TIERS:
         tier = DISPLAY_TIERS[0]
     publication = contract.get("publication") or {}
     holdout_status = str(publication.get("holdout_status") or "not_consumed")
+    holdout_fail_cells = [str(c) for c in (publication.get("holdout_fail_cells") or [])]
     gates = contract.get("gates") or {}
+    if armed_now is None:
+        armed_now = gates.get("armed") is True
     champion = gates.get("champion") or {}
     live_display = contract.get("live_display") or {}
     reference = dict(live_display.get("reference_question") or {})
@@ -130,6 +137,11 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
         reasons.extend(str(r) for r in ((latest.get("gate") or {}).get("reasons") or []))
         if latest.get("status") != "live":
             status = "hold"
+        elif not armed_now:
+            # 계약이 빌드 시점에 무장 해제되어 있으면 포인터가 live 여도 숫자를 내리지 않는다 (강등 = 계약 한 줄).
+            status = "hold"; reasons.append("contract_disarmed_at_build (gates.armed is not true)")
+        elif holdout_status == "fail":
+            status = "hold"; reasons.append("holdout_failed — 배선·표시 불가 (계약 wiring_eligibility)")
         elif not pin_ok:
             status = "hold"; reasons.append(f"coefficients_pin: {pin_reason}")
         elif freshness is not None and freshness.get("status") != "fresh":
@@ -175,7 +187,16 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
     }
     if live:
         projection["inputs"] = dict(latest.get("inputs") or {})  # type: ignore[union-attr]
-        projection["cells"] = {name: dict(latest["cells"][name]) for name in CELL_ORDER if name in latest["cells"]}  # type: ignore[index]
+        # 홀드아웃 부분 실패(partial) 셀은 숫자 대신 표시 불가 — PASS 셀만 싣는다 (계약 wiring_eligibility).
+        projection["cells"] = {name: dict(latest["cells"][name]) for name in CELL_ORDER  # type: ignore[index]
+                               if name in latest["cells"] and name not in holdout_fail_cells}  # type: ignore[index]
+        if holdout_fail_cells:
+            projection["holdout_fail_cells"] = [c for c in CELL_ORDER if c in holdout_fail_cells]
+        if not projection["cells"]:
+            projection.pop("cells"); projection.pop("inputs")
+            projection["status"] = "hold"; projection["numbers_visible"] = False
+            projection["display_state"] = "validation_pending"
+            projection["gate"]["reasons"] = reasons + ["holdout_failed_all_cells"]
     return projection
 
 
@@ -191,8 +212,10 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
         return build_projection(None, tier=tier, contract=contract, freshness=None, pin_ok=False, pin_reason=None)
     try:
         latest = json.loads(pointer.read_text(encoding="utf-8"))
+        if not isinstance(latest, dict):
+            raise ValueError("pointer top level is not an object")
         validate_latest(latest)
-    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as exc:
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError, AttributeError) as exc:
         reason = f"pointer invalid: {exc}"
         stub = {"status": "hold", "gate": {"reasons": [reason]}, "as_of": None, "knowledge_cutoff": None}
         return build_projection(stub, tier=tier, contract=contract, freshness=None, pin_ok=False, pin_reason=None)

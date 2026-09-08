@@ -16,7 +16,9 @@ from ai_fc import timeseries_v13_vol_display as display
 from ai_fc.timeseries_v13 import contracts as C
 
 ROOT = Path(__file__).resolve().parents[2]
-NOW = datetime(2026, 9, 8, 5, 0, tzinfo=timezone.utc)  # 월요일 05:00Z → 마지막 완료 세션 2026-09-04(금)
+CALENDAR_RELATIVE = Path("data/contracts/nyse_holidays.yaml")  # scenario.load_calendar_contract 가 읽는 실제 달력 계약
+# 2026-09-08 은 노동절(9-07, 월) 다음 화요일 05:00Z → 마지막 완료 세션 2026-09-04(금). 연휴 포함 3일 공백 케이스.
+NOW = datetime(2026, 9, 8, 5, 0, tzinfo=timezone.utc)
 
 
 def _finish(body: dict) -> dict:
@@ -62,13 +64,17 @@ def _latest(*, status: str = "live", as_of: str = "2026-09-04", sha: str = "a" *
 
 
 def _repo(tmp_path: Path, *, tier: str, latest: dict | None, sha: str | None = "a" * 64,
-          artifact_bytes: bytes | None = b"frozen") -> Path:
+          artifact_bytes: bytes | None = b"frozen", calendar: bool = True, armed: bool = True,
+          holdout_status: str = "not_consumed", holdout_fail_cells: list[str] | None = None) -> Path:
     root = tmp_path / "repo"
     (root / "data/contracts").mkdir(parents=True)
-    shutil.copy(ROOT / "data/contracts/market_calendar.yaml", root / "data/contracts/market_calendar.yaml") \
-        if (ROOT / "data/contracts/market_calendar.yaml").exists() else None
+    if calendar:
+        shutil.copy(ROOT / CALENDAR_RELATIVE, root / CALENDAR_RELATIVE)
     contract = yaml.safe_load((ROOT / C.CONTRACT_RELATIVE).read_text(encoding="utf-8"))
     contract["publication"]["display_tier"] = tier
+    contract["publication"]["holdout_status"] = holdout_status
+    contract["publication"]["holdout_fail_cells"] = list(holdout_fail_cells or [])
+    contract["gates"]["armed"] = armed
     contract["frozen_coefficients"] = {"path": C.COEFFICIENTS_RELATIVE.as_posix(), "sha256": sha,
                                        "content_hash": "c" * 64, "finalist_id": "V13VOL_champion_aec80c65038b",
                                        "refit_prohibited": True}
@@ -86,10 +92,7 @@ def _repo(tmp_path: Path, *, tier: str, latest: dict | None, sha: str | None = "
 def _pin_sha(monkeypatch):
     # 디스크 artifact 의 sha256 은 테스트 바이트 b"frozen" 이 아니라 계약 핀("a"*64)과 일치해야 live 가 된다.
     monkeypatch.setattr(display, "sha256_file", lambda path: "a" * 64 if path.read_bytes() == b"frozen" else "z" * 64)
-    # 달력 계약은 실제 repo 것을 쓴다 (신선도 규칙 실측)
-    from ai_fc import scenario
-    real = scenario.load_calendar_contract
-    monkeypatch.setattr("ai_fc.timeseries_v13.freshness.load_calendar_contract", lambda _root: real(ROOT))
+    # 달력 계약은 tmp repo 에 실제 파일을 복사해 쓴다 (_repo(calendar=True)) — 없으면 페일클로즈 분기를 검사한다.
 
 
 def test_missing_pointer_yields_absent_surface_without_numbers(tmp_path) -> None:
@@ -156,6 +159,47 @@ def test_stale_pointer_holds_at_build_time_with_weekend_allowance(tmp_path) -> N
     proj = display.load_projection(root, now=NOW)
     assert proj["status"] == "hold" and "cells" not in proj
     assert any("stale_at_build" in r for r in proj["gate"]["reasons"])
+
+
+def test_missing_calendar_contract_fails_closed_at_build(tmp_path) -> None:
+    root = _repo(tmp_path, tier="t2_hidden_panel", latest=_latest(), calendar=False)
+    proj = display.load_projection(root, now=NOW)
+    assert proj["status"] == "hold" and "cells" not in proj
+    assert proj["freshness"]["status"] == "unknown"
+    assert any("stale_at_build" in r for r in proj["gate"]["reasons"])
+
+
+def test_contract_disarmed_at_build_holds_even_with_live_pointer(tmp_path) -> None:
+    root = _repo(tmp_path, tier="t3_live_card", latest=_latest(), armed=False)
+    proj = display.load_projection(root, now=NOW)
+    assert proj["status"] == "hold" and "cells" not in proj
+    assert any("contract_disarmed_at_build" in r for r in proj["gate"]["reasons"])
+
+
+def test_holdout_failure_hides_numbers_and_partial_failure_strips_cells(tmp_path) -> None:
+    root = _repo(tmp_path, tier="t3_live_card", latest=_latest(), holdout_status="fail")
+    proj = display.load_projection(root, now=NOW)
+    assert proj["status"] == "hold" and "cells" not in proj
+    assert any("holdout_failed" in r for r in proj["gate"]["reasons"])
+    root = _repo(tmp_path / "partial", tier="t3_live_card", latest=_latest(), holdout_status="partial",
+                 holdout_fail_cells=["rv_h63", "vix25_h63"])
+    proj = display.load_projection(root, now=NOW)
+    assert proj["status"] == "live" and "rv_h63" not in proj["cells"] and "vix25_h63" not in proj["cells"]
+    assert proj["holdout_fail_cells"] == ["vix25_h63", "rv_h63"] and len(proj["cells"]) == 7
+    root = _repo(tmp_path / "all", tier="t3_live_card", latest=_latest(), holdout_status="partial",
+                 holdout_fail_cells=list(C.CELL_ORDER))
+    proj = display.load_projection(root, now=NOW)
+    assert proj["status"] == "hold" and "cells" not in proj and "holdout_failed_all_cells" in proj["gate"]["reasons"]
+
+
+def test_non_object_pointer_degrades_to_hold_instead_of_raising(tmp_path) -> None:
+    for payload in ("null", "[1,2,3]", '{"model_id": "event_probability.volatility_v13", "gate": 5}'):
+        root = _repo(tmp_path / str(abs(hash(payload))), tier="t2_hidden_panel", latest=None)
+        (root / C.LATEST_RELATIVE).parent.mkdir(parents=True, exist_ok=True)
+        (root / C.LATEST_RELATIVE).write_text(payload, encoding="utf-8")
+        proj = display.load_projection(root, now=NOW)
+        assert proj["status"] == "hold" and "cells" not in proj
+        assert any("pointer invalid" in r for r in proj["gate"]["reasons"])
 
 
 def test_t0_tier_strips_numbers_even_when_pointer_is_live(tmp_path) -> None:

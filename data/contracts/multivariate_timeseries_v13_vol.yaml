@@ -2,7 +2,7 @@ schema_version: 1
 contract_id: timeseries_v13_vol
 model_id: event_probability.volatility_v13
 model_version: 13
-status: draft_prereg          # 사전등록 — 스킬 결과 보기 전 커밋
+status: live_reference        # 2026-09-07 draft_prereg(결과 전 커밋) → 2026-09-08 rung-3 champion 확정·계수 동결·T3 라이브 카드(참고 의견). 홀드아웃 미소모
 track: volatility_event_probability
 drafted: '2026-09-07'
 drafted_on_branch: claude/v13-next
@@ -245,8 +245,8 @@ live_display:
 # [A7] 동결 계수 — Phase C(champion 확정 뒤) 에서 채운다. 이름 정정: 설계서 §3 'ewma_logit_coefficients.json' → champion 중립 이름(셀별 champion 이 다를 수 있음)
 frozen_coefficients:
   path: data/timeseries_v13/vol/champion_coefficients.json
-  sha256: 51815bde6db0e1b1d9f206eb7fe6a05210c11531af56a7a9d7e06364a5b256f2
-  content_hash: 66c408f6b13852aa2c2be8e7d7f2ddfb3d2ad496c32456f4644653b03693ee54
+  sha256: 1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1
+  content_hash: 1fdeb1364ea7eba01a1f420eebba0ad53c8339ae8be4c877c9affe0bd91e23f4
   finalist_id: V13VOL_champion_aec80c65038b                    # gates.champion.finalist_id 와 일치해야 한다
   refit_prohibited: true
   fit_window: ['2007-01-01', '2014-12-31']               # 설계창 전체 1회 적합 (반창 재적합 대사 ≤1e-6 필수)
@@ -256,8 +256,21 @@ publication:
   display_tier: t3_live_card                             # [V13-D5 2026-09-08] T3 라이브 카드 — T2 X1 6항 검수(1400/620/375) 통과 뒤 전환. 홀드아웃 전이라 caveat 굵게(읽기모델 가드 강제)
   display_tiers_allowed: [t0_internal, t2_hidden_panel, t3_live_card]
   reference_opinion_only: true
-  holdout_status: not_consumed                           # V13-D3 소모 시 pass | fail
+  holdout_status: not_consumed                           # V13-D3 소모 시 pass | partial | fail — fail 이면 표시 모듈·읽기모델 가드가 숫자를 내린다
+  holdout_fail_cells: []                                 # partial 일 때 FAIL 셀 목록 — 해당 셀은 숫자 대신 표시 불가
   t3_without_holdout_requires_bold_caveat: true          # 사용자 결정(2026-09-08): T3 는 홀드아웃 전 — caveat lead 에 '홀드아웃 미검증' 굵게 상시
+
+# 라이브 전진 게이트 — 결과 축적 전 사전등록 (표시 설계서 §5·§8-3). vol_live.jsonl 의 원점이 성숙하면 셀별 자동 강등.
+live_forward_gate:
+  registered: '2026-09-08'                               # 라이브 원장 1행 시점 — 어떤 원점도 성숙하기 전
+  scoring: 셀별 Brier — 라이브 포인터 p 와 실현 라벨(VIX>=K / RV21>theta, h 영업일 내 터치) · 기후 대비 쌍대 손실차
+  maturity: 원점 + h 영업일이 아카이브에 들어온 뒤에만 채점 (미성숙 원점은 표에서 제외)
+  minimum_matured_origins_per_cell: 60                   # 그 전에는 '표본 부족' 표시만, 판정 없음
+  uncertainty: stationary block ℓ=13 · B=2000 · seed 20260907 · CI90 (설계 게이트와 동일)
+  demotion_rule: 셀별 기후 대비 쌍대 Brier 손실차 CI90 하한 <= 0 이면 그 셀 표시 hold (holdout_fail_cells 와 같은 경로) — 자동 재무장 없음, 재개는 사용자 결정
+  negative_control: y-block(ℓ=13) 순열 통과율 <= 0.10 (판정 무효화 규칙 승계)
+  execution_path: absent_by_construction                 # 채점 verb 는 첫 원점 성숙(2026-09-11 이후) 뒤 별도 사전등록·구현 — 이 규칙은 그 전에 고정
+  outcomes_written_to: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl (append-only, 예정) — forecasts/·calibration/ 무접촉
 
 # 개정 적용 기록 — 이 계약 draft 에 사후 반영된 사용자 결정 (V12 amendments_applied 선례)
 amendments_applied:
@@ -280,7 +293,7 @@ amendments_applied:
   V13-D4:
     display_id: V13-D4
     approved: '2026-09-08'
-    approval_receipt: v13-approval:V13-D4:2026-09-08:r1
+    approval_receipt: v13-approval:V13-D4:2026-09-08:r2   # r1 의 approved_at(15:05) 은 합성 시각 — r2 가 정정(실제 동의 14:14:41 계획 승인, 집행 14:54). method_changes r28
     basis: 표시 설계서 §2·§7(T2 게이트 = 게이트 무장 + G0 무손상 대사 + 승인) · 계획 승인(2026-09-08)
     preconditions_met: 동결 계수 핀(sha256 51815bde…, 반창 대사 max|Δ| 2e-15) · champion 확정(rung-3) · 표시 모듈·읽기모델 가드·테스트 · X1 6항 스크린샷 검수(1400/620/375, 탭 활성 상태)
     changes:
@@ -291,7 +304,7 @@ amendments_applied:
   V13-D5:
     display_id: V13-D5
     approved: '2026-09-08'
-    approval_receipt: v13-approval:V13-D5:2026-09-08:r1
+    approval_receipt: v13-approval:V13-D5:2026-09-08:r2   # r1 정정 — 실제 동의 13:53:55 선택 + 14:14:41 계획 승인, 집행 14:58:03
     basis: 사용자 결정(2026-09-08) 'T3 는 T2 검수 통과 즉시, 홀드아웃 선행 안 함' · 표시 설계서 §2 T3 대안(caveat lead '홀드아웃 미검증' 굵게 상시)
     changes:
       D5-1: publication.display_tier t2_hidden_panel→t3_live_card. (전환 — 코드 변경 0)

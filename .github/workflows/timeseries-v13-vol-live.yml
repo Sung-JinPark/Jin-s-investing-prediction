@@ -6,8 +6,12 @@ name: timeseries-v13-vol-live
 # 계약: data/contracts/multivariate_timeseries_v13_vol.yaml (gates.armed · publication.display_tier).
 
 on:
+  # 1차 트리거: V2 아카이브 refresh 가 끝난 직후 (cron 지연과 무관하게 순서를 강제한다).
+  workflow_run:
+    workflows: ["timeseries-v2-refresh"]
+    types: [completed]
   schedule:
-    # Tue-Sat, after the V2 refresh (01:35 UTC) and the V8 shadow (03:10 UTC).
+    # 보조: Tue-Sat 03:40 UTC — refresh 가 그날 돌지 않았어도 최신 아카이브로 포인터·신선도를 재평가한다.
     - cron: "40 3 * * 2-6"
   workflow_dispatch:
 

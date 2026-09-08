@@ -9,7 +9,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-rung3 = pytest.importorskip("v13_vol_rung3_pb")
+import v13_vol_rung3_pb as rung3  # noqa: E402  — ImportError 는 스킵이 아니라 실패여야 한다
 
 
 def test_pb_feature_is_single_column() -> None:
@@ -75,18 +75,27 @@ def test_cross_fit_isotonic_is_leak_free_with_embargo() -> None:
     assert np.all(np.diff(out["map"]["value"]) >= 0)
 
 
-def test_paired_model_ci_sign_convention() -> None:
+def test_paired_model_ci_sign_convention_detects_the_better_model() -> None:
+    # a=PB 역할(정보 없는 잡음 피처), b=EWMA 역할(정보 피처): d = BS_a − BS_b > 0 ⇒ ewma_beats_pb True.
+    # 같은 피처를 양쪽에 넣으면 부호 뒤바뀜을 못 잡으므로(검토 지적) 서로 다른 피처로 검정한다.
     rng = np.random.default_rng(2)
-    n = 300
+    n = 400
     x = rng.normal(size=n)
-    y = (x + rng.normal(size=n) > 0).astype(float)
-    feat = np.column_stack([x])
-    me = np.zeros(n, bool); me[:150] = True; ml = ~me
-    same = rung3.paired_model_ci(feat, feat, y, me, ml, seed=3, b=50)
+    y = (2.0 * x + 0.3 * rng.normal(size=n) > 0).astype(float)
+    noise = np.column_stack([rng.normal(size=n)])
+    signal = np.column_stack([x])
+    me = np.zeros(n, bool); me[:200] = True; ml = ~me
+    out = rung3.paired_model_ci(noise, signal, y, me, ml, seed=3, b=200)
     for name in ("early_to_late", "late_to_early"):
-        assert same[name]["paired_mean_pb_minus_ewma"] == pytest.approx(0.0)
-        assert same[name]["ewma_beats_pb"] is False
-    assert same["ewma_beats_pb_both"] is False
+        assert out[name]["paired_mean_pb_minus_ewma"] > 0
+        assert out[name]["ewma_beats_pb"] is True and out[name]["ewma_significantly_worse"] is False
+    assert out["ewma_beats_pb_both"] is True
+    # 뒤집으면 부호도 뒤집힌다
+    flipped = rung3.paired_model_ci(signal, noise, y, me, ml, seed=3, b=200)
+    assert flipped["ewma_beats_pb_both"] is False
+    assert flipped["early_to_late"]["ewma_significantly_worse"] is True
+    same = rung3.paired_model_ci(signal, signal, y, me, ml, seed=3, b=50)
+    assert same["early_to_late"]["paired_mean_pb_minus_ewma"] == pytest.approx(0.0)
 
 
 def test_family_p_binomial() -> None:

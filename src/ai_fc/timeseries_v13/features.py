@@ -120,9 +120,15 @@ def _design(X: np.ndarray, mu: np.ndarray, sd: np.ndarray) -> np.ndarray:
 
 
 def logit_fit(X: np.ndarray, y: np.ndarray, *, iters: int = 200, l2: float = 1e-3,
-              tol: float | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """tools/v13_vol_run._logit_fit 동일 (tol=None → 정확히 iters 회). tol 지정 시 조기 수렴 정지(부트스트랩 전용)."""
-    mu, sd = standardize_params(X)
+              tol: float | None = None,
+              standardize: tuple[np.ndarray, np.ndarray] | None = None) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """tools/v13_vol_run._logit_fit 동일 (tol=None → 정확히 iters 회). tol 지정 시 조기 수렴 정지(부트스트랩 전용).
+
+    standardize=(mu, sd) 를 주면 그 좌표로 고정 표준화한다 — 부트스트랩 Cov(β) 는 반드시 동결 μ/σ 좌표에서
+    계산해야 delta_method_se 와 같은 좌표계가 된다 (재표집마다 재표준화하면 β_b 가 서로 다른 좌표계에 놓인다).
+    """
+    mu, sd = standardize if standardize is not None else standardize_params(X)
+    mu = np.asarray(mu, float); sd = np.asarray(sd, float)
     Xs = _design(X, mu, sd)
     beta = np.zeros(Xs.shape[1])
     n = len(y)
@@ -154,8 +160,12 @@ def delta_method_se(beta: np.ndarray, cov_beta: np.ndarray, mu: np.ndarray, sd: 
 
 def block_bootstrap_cov(X: np.ndarray, y: np.ndarray, *, seed: int, block: int = BLOCK_LENGTH,
                         b: int = BOOTSTRAP_REPLICATES) -> np.ndarray:
-    """정지 블록(기하 길이, 순환) 재표집 → 재적합 β 의 표본 공분산 (ddof=1). tools.block_boot_ci 와 같은 재표집 규칙."""
+    """정지 블록(기하 길이, 순환) 재표집 → 재적합 β 의 표본 공분산 (ddof=1). tools.block_boot_ci 와 같은 재표집 규칙.
+
+    모든 재표집 적합은 전체 표본의 (μ, σ) 로 고정 표준화한다 — 동결 계수·delta_method_se 와 같은 좌표계.
+    """
     rng = np.random.default_rng(seed); n = len(y)
+    fixed = standardize_params(X)
     betas = []
     for _ in range(b):
         idx: list[np.ndarray] = []; total = 0
@@ -163,7 +173,7 @@ def block_bootstrap_cov(X: np.ndarray, y: np.ndarray, *, seed: int, block: int =
             s = int(rng.integers(0, n)); L = int(rng.geometric(1.0 / block))
             idx.append((s + np.arange(L)) % n); total += L
         take = np.concatenate(idx)[:n]
-        beta, _, _ = logit_fit(X[take], y[take], tol=1e-9)
+        beta, _, _ = logit_fit(X[take], y[take], tol=1e-9, standardize=fixed)
         betas.append(beta)
     return np.cov(np.asarray(betas).T, ddof=1)
 
