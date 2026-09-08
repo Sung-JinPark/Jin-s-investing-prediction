@@ -83,7 +83,8 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     assert "범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다" in v8
     # 도수 표현이 1차 라벨
     assert "10번 중 8번 범위" in html
-    assert "100번 중 ${Math.round(up*100)}번은 상승" in html
+    assert "100번 중 ${Math.round(row.up*100)}번" in html  # 카드는 2줄로 줄고, 도수 표현은 툴팁 1차 행으로
+    assert "ts-next-pct" in html and "상승':'하락'} 예측" in html  # 히어로 우측 %-방향 강조
     # 달력 환산 헬퍼와 적용
     assert "TS_H_CAL={'1':'다음 거래일','5':'약 1주 뒤','21':'약 1개월 뒤','63':'약 3개월 뒤'}" in html
     assert html.count("tsCal(") >= 5

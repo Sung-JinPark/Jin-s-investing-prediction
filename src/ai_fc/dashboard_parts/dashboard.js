@@ -1216,7 +1216,7 @@ function tsDescribeHorizon(row,asOf){
     {color:TS_Q_COLORS.median,name:'중앙값',value:tsLevel(row.median),sub:tsPct(row.r50)},
     {color:TS_Q_COLORS.inner,name:'25% 분위수',value:tsLevel(row.p25),sub:tsPct(row.r25)},
     {color:TS_Q_COLORS.outer,name:'10% 분위수',value:tsLevel(row.p10),sub:tsPct(row.r10)},
-    {color:TS_Q_COLORS.up,name:'상승 가능성',value:`${Math.round(row.up*100)}%`,sub:'원점 종가보다 높게 끝나는 경로 비율'}
+    {color:TS_Q_COLORS.up,name:'상승 빈도',value:`100번 중 ${Math.round(row.up*100)}번`,sub:'원점 종가보다 높게 끝나는 경로 비율'}
   ];
   if(row.elapsed&&row.realizedIndex!=null)rows.unshift({color:TS_Q_COLORS.warn,name:'이미 경과 · 실측',value:tsLevel(row.realizedIndex),sub:`${tsPct(row.realizedReturn)} · ${row.realizedDate||''} · 80% 구간 ${row.realizedInside?'안':'밖'} · 사후 대조(라이브 원장 별도)`});
   return {head:`${row.h}거래일 뒤 · 원점 ${asOf||''}${row.elapsed?' · 만기 지남':''}`,rows,speak:`${row.h}거래일 뒤: 중앙값 ${tsLevel(row.median)} (${tsPct(row.r50)}), 80% 구간 ${tsLevel(row.p10)}~${tsLevel(row.p90)}, 상승 가능성 ${Math.round(row.up*100)}%${row.elapsed&&row.realizedIndex!=null?`, 이미 경과, 실측 ${tsLevel(row.realizedIndex)}`:''}`};
@@ -1667,7 +1667,7 @@ function renderTimeseriesV8(ts,initialState){
   const bandAbbr=`<abbr title="${esc(plainTerm('p10_p90_hint'))}">10번 중 8번 범위</abbr>`;
   const horizonRowsByH=Object.fromEntries(tsHorizonRows(ts).map(r=>[r.h,r]));
   const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),band=row.band_index||{},hr=horizonRowsByH[key];const elapsed=Boolean(hr&&hr.elapsed);
-    return `<article${elapsed?' class="is-elapsed"':''}><span>${tsCal(key)} · ${key}거래일${elapsed?' · 만기 지남':''}</span><strong>${level(row.median_index)}</strong><p>${ret>=0?'+':''}${(ret*100).toFixed(2)}% · <abbr title="${esc(plainTerm('up_prob_hint'))}">100번 중 ${Math.round(up*100)}번은 상승</abbr></p><small>${bandAbbr} ${level(band.p10)}–${level(band.p90)}</small>${elapsed?`<small class="ts-realized">${esc(tsRealizedNote(hr))}</small>`:''}</article>`;}).join('');
+    return `<article${elapsed?' class="is-elapsed"':''}><span>${tsCal(key)} · ${key}거래일${elapsed?' · 만기 지남':''}</span><strong>${level(row.median_index)}<em class="${ret>=0?'up':'down'}">${ret>=0?'+':''}${(ret*100).toFixed(2)}%</em></strong><small>${bandAbbr}: ${level(band.p10)}–${level(band.p90)} · <abbr title="${esc(plainTerm('up_prob_hint'))}">상승</abbr> ${Math.round(up*100)}%</small>${elapsed?`<small class="ts-realized">${esc(tsRealizedNote(hr))}</small>`:''}</article>`;}).join('');
   const sealed=ts.sealed_metrics||{},sealedRows=tsSealedRows(ts),lastSealed=sealedRows[sealedRows.length-1];
   /* 게이트 상태 위젯: 어떤 검증을 통과했는지가 히어로 안에서, 모든 탭에서 보인다. */
   const fresh=ts.freshness_summary||[];
@@ -1685,9 +1685,9 @@ function renderTimeseriesV8(ts,initialState){
   const gateWinCount=gateWin.origin_count==null?null:Number(gateWin.origin_count);
   const gateWinLabel=gateWin.first_origin&&gateWin.last_origin?` · ${esc(String(gateWin.first_origin).slice(0,7))}~${esc(String(gateWin.last_origin).slice(0,7))}`:'';
   const gateStrip=`<section class="timeseries-gate-strip" aria-label="게이트 상태">`
-    +`<span class="ts-gate-chip ${gateWinPass?'pass':'hold'}" title="${esc(plainTerm('sealed_gate_hint'))} · run ${esc(String(sealed.run_id||''))}${gateWin.reasons&&gateWin.reasons.length?' · '+esc(String(gateWin.reasons[0])):''}">봉인창(2019+) ${gateWinPass?'통과':'보류'}${gateWinCount==null?' · 봉인창 요약 없음':` · 검증 원점 ${gateWinCount.toLocaleString()}개`}${gateWinLabel}</span>`
-    +`<span class="ts-gate-chip ${freshAllOk?'pass':'hold'}" title="${esc(plainTerm('fresh_gate_hint'))}${worst&&worst.observation_time?` · 마지막 관측 ${esc(String(worst.observation_time))}`:''}">${freshAllOk?'운영 신선도 OK':'운영 신선도 경고'}${worst?` · 최장 ${esc(String(worst.group))} ${Math.round(worst.age_hours)}h/${Math.round(worst.limit_hours)}h`:''}</span>`
-    +(originAge==null?'':`<span class="ts-gate-chip ${elapsedKeys.length?'warn':'pass'}" title="예측 원점 이후 지난 거래일 수 — 갱신이 멈추면 이 숫자가 자랍니다. 만기가 지난 기간은 카드와 표에 실측을 함께 적습니다.${ts.origin_age_policy?` 계약 origin_age_policy: ${ts.origin_age_policy.hold_after_sessions}거래일이 지나면 수치를 숨기고 보류 표면으로 닫힙니다.`:''}">원점 경과 ${originAge}${ts.origin_age_policy?`/${ts.origin_age_policy.hold_after_sessions}`:''}거래일${elapsedKeys.length?` · ${elapsedKeys.join('·')}거래일 만기 지남`:''}</span>`)
+    +`<span class="ts-gate-chip ${gateWinPass?'pass':'hold'}" title="${esc(plainTerm('sealed_gate_hint'))} · run ${esc(String(sealed.run_id||''))}${gateWinLabel}${gateWinCount==null?' · 봉인창 요약 없음':` · 검증 원점 ${gateWinCount.toLocaleString()}개`}${gateWin.reasons&&gateWin.reasons.length?' · '+esc(String(gateWin.reasons[0])):''}">봉인창(2019+) ${gateWinPass?'통과':'보류'}${gateWinCount==null?'':` · ${gateWinCount.toLocaleString()}개`}</span>`
+    +`<span class="ts-gate-chip ${freshAllOk?'pass':'hold'}" title="${esc(plainTerm('fresh_gate_hint'))}${worst?` · 최장 ${esc(String(worst.group))} ${Math.round(worst.age_hours)}h/${Math.round(worst.limit_hours)}h`:''}${worst&&worst.observation_time?` · 마지막 관측 ${esc(String(worst.observation_time))}`:''}">${freshAllOk?'운영 신선도 OK':'운영 신선도 경고'}</span>`
+    +(originAge==null?'':`<span class="ts-gate-chip ${elapsedKeys.length?'warn':'pass'}" title="예측 원점 이후 지난 거래일 수 — 갱신이 멈추면 이 숫자가 자랍니다. 만기가 지난 기간은 카드와 표에 실측을 함께 적습니다.${elapsedKeys.length?` 만기 지남: ${elapsedKeys.join('·')}거래일.`:''}${ts.origin_age_policy?` 계약 origin_age_policy: ${ts.origin_age_policy.hold_after_sessions}거래일이 지나면 수치를 숨기고 보류 표면으로 닫힙니다.`:''}">원점 경과 ${originAge}${ts.origin_age_policy?`/${ts.origin_age_policy.hold_after_sessions}`:''}일</span>`)
     +`</section>`;
   const rangeGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.outer),'연한 막대','80% 구간(10%~90% 분위수) — 설계상 100번 중 80번은 이 안'],[GUIDE_BAND(TS_Q_COLORS.inner),'진한 막대','중심 50% 구간(25%~75% 분위수)'],[GUIDE_SOLID('#11110f'),'세로 눈금','중앙값 — 절반은 위, 절반은 아래']],'가로축은 원점 종가 대비 %, 위쪽 숫자는 같은 지점의 지수 레벨입니다. 모델 참고값이며 특정 가격을 제시하는 것이 아닙니다.');
     const briefResolved=Number((sealed.forward||{}).resolved_rows||0);
@@ -1731,7 +1731,7 @@ function renderTimeseriesV8(ts,initialState){
     +`<section class="ts-card"><div class="admin-card-head"><h2>위기 국면별 80% 구간 적중률</h2><span>63거래일 지평 기준 · 주간 원점이라 창이 중첩됩니다 · 표본이 작아 크게 흔들립니다</span></div>${timeseriesRegimeSvg(sealedMetrics.regimes)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>기간별 성적과 비교 기준선</h2><span>개선율이 무엇 대비인지</span></div>${timeseriesSealedTable(ts,sealedRows)}</section>`
     +timeseriesForwardCard(ts)+`</div>`;
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가(예측 원점) 기준 1·5·21·63거래일 분포 · 주 1회 갱신${originAge==null?'':` · 원점 이후 ${originAge}거래일 경과`}</p>${gateStrip}</div><div class="timeseries-next"><span>63거래일 중앙 예상</span><strong>${level(last.median_index)}</strong><p>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}% · 80% 구간 ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${footnote}</div>`);
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 63거래일 · 가운데 예상</span><strong>${level(last.median_index)}</strong><em class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}% ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${footnote}</div>`);
   mount(root);
   bindTimeseriesV8Interactions(root,ts);
   const tabs=$('.timeseries-tabs',root);
@@ -3995,8 +3995,7 @@ function renderHeaderStrip(){
   else if(rg.hy_spread_pct!=null)items.push({k:'신용 스프레드',v:rg.hy_spread_pct.toFixed(2)+'%',sub:'HY OAS'});
   const strip=document.getElementById('mktstrip');
   if(!items.length){strip.style.display='none';return;}
-  strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('')+
-    '<button type="button" class="command-trigger command-open" aria-label="빠른 이동 열기"><span>빠른 이동</span><kbd>⌘ K</kbd></button>';
+  strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');
   bindCommandTriggers();
   const railIndex=document.getElementById('rail-index');
   if(railIndex&&anchor!=null)railIndex.textContent='NASDAQ '+num(Math.round(anchor));
