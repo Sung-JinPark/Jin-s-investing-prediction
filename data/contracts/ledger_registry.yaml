@@ -344,3 +344,41 @@ ledgers:
     cadence: event
     criticality: medium
     schema_ref: jsonl
+  # V13-VOL 변동성 이벤트 확률 트랙 원장 — 트랙 개시(2026-09-07) 뒤 미등록 상태였다(V13-D2′ 2026-09-08).
+  # 실험·승인은 사건 단위, 홀드아웃은 사용자 승인 뒤 1회(planned), 라이브 포인터 원장은 거래일 단위(Phase E 뒤 생성).
+  - id: timeseries_v13_vol_experiments
+    path: data/timeseries_v13/ledgers/vol_experiments.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: knowledge_cutoff
+  - id: timeseries_v13_holdout_scorings
+    path: data/timeseries_v13/ledgers/holdout_scorings.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    expected_state: planned
+  - id: timeseries_v13_approvals
+    path: data/timeseries_v13/ledgers/approvals.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: approved_at
+  - id: timeseries_v13_vol_live
+    path: data/timeseries_v13/ledgers/vol_live.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    allow_empty_accumulating: true
+    expected_state: planned
+    timestamp_field: as_of
+  - id: timeseries_v13_vol_ladder_results
+    path: data/timeseries_v13/vol/ladder_*.json
+    kind: immutable_files
+    cadence: event
+    criticality: medium
+    schema_ref: json_object

@@ -18,6 +18,7 @@
 | 트윈 대조 | dualdb/analysis | reference | Q14 종목 base rate | 생존 승자 표본 — 낙관적 하한 |
 | 미드텀 시즌성 | src/ai_fc/quant | reference | **경로 리듬의 1차 근거** (v3.1.1 §3) | n=8~20 자체 산출 |
 | Hurst·오버레이·Pearson | src/ai_fc/quant | reference | 체제 진단 | 앵커 민감도 실측 완료 (T-9) |
+| **V13-VOL 변동성 지속성 로짓 (EWMA-logit / PB 기준선)** | tools/v13_vol_*.py · data/timeseries_v13 · data/contracts/multivariate_timeseries_v13_vol.yaml | candidate (T0 내부 — 표시 사다리 T2/T3 는 V13-D4/D5) | EXIT 트리거 변동성 이벤트 base rate 공급(VIX≥K·RV>θ 지평 5/21/63 영업일) — **매매 신호 아님, LLM 예측과 산술 결합 금지** | 설계창(2007-2014) 기후 대비 9/9 양방향 CI90>0·건전 귀무 ≤0.017 · HAR 증분 0/9(지속성 지배) · 홀드아웃 미소모 · **V13-D2′(2026-09-08)** PB 자명 기준선 사전등록, champion(EWMA 또는 PB) 은 C-1 뒤 확정 |
 
 ## LLM 공식·shadow 계보
 
