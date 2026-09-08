@@ -70,6 +70,37 @@ def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
     assert ts_region.count("probability_up") >= 1, "표시되는 확률은 read model의 probability_up뿐"
 
 
+def test_beginner_language_layer_leads_every_tab() -> None:
+    """초보자 언어층 계약 (docs/design/timeseries_beginner_ux_260908.md §3).
+
+    1차 언어 = 도수·달력 문장, 통계 용어는 2층 — 값·게이트는 재라벨만.
+    """
+    html = _html()
+    v8 = html[html.index("function renderTimeseriesV8"):html.index("function renderTimeseries(")]
+    # 요약: 3줄 요약 박스(BLUF)가 카드보다 앞
+    assert 'class="ts-brief"' in v8
+    assert v8.index('ts-brief') < v8.index('timeseries-horizons')
+    assert "범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다" in v8
+    # 도수 표현이 1차 라벨
+    assert "10번 중 8번 범위" in html
+    assert "100번 중 ${Math.round(up*100)}번은 상승" in html
+    # 달력 환산 헬퍼와 적용
+    assert "TS_H_CAL={'1':'다음 거래일','5':'약 1주 뒤','21':'약 1개월 뒤','63':'약 3개월 뒤'}" in html
+    assert html.count("tsCal(") >= 5
+    # 경로: 세 선의 뜻이 헤더 1차 언어
+    assert "붉은 선과의 간격이 지금까지의 오차" in html
+    # 사다리표: 분위수 용어는 2층(small)
+    assert "비관 쪽 끝<small>10% 분위수" in html and "낙관 쪽 끝<small>90% 분위수" in html
+    # 검증: 성적표 3문항이 상세 지표보다 앞, 등급은 기존 판정의 재표현
+    assert 'class="ts-scorecard"' in v8
+    assert v8.index('ts-scorecard') < v8.index('단 1회 공개된 봉인 평가')
+    for question in ("단순한 예측 방법보다 정확했나", "약속만큼 담겼나", "실전(배포 후)에서 검증됐나"):
+        assert question in v8, question
+    assert "위 성적은 전부 과거 구간 재실행입니다" in v8
+    # 성적표는 호버 의무 표면이 아니다 (배선 계약과 충돌 금지)
+    assert 'data-ts-chart="scorecard"' not in html
+
+
 def test_compacted_bundle_parses_with_node() -> None:
     node = shutil.which("node")
     if not node:

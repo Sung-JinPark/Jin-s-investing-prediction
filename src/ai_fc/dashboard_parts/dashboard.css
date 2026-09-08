@@ -1503,3 +1503,20 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .future-graph-switch button[aria-pressed="true"] i{color:#11110f}
 @media(max-width:620px){.future-graph-switch{grid-template-columns:1fr;gap:6px}.future-graph-switch button{flex:none;width:100%;min-height:64px;padding:11px 12px}}
 @media(max-width:359px){.future-graph-switch button{grid-template-columns:36px minmax(0,1fr)}.future-graph-switch button svg{width:36px}}
+
+/* Beginner language layer (timeseries_beginner_ux_260908): three-line brief,
+   plain scorecard, calendar sub-labels. Data and chart geometry untouched. */
+.ts-brief{margin:0 0 16px;display:grid;gap:1px;background:var(--line-strong);border:1px solid var(--line-strong)}
+.ts-brief>div{display:grid;grid-template-columns:64px minmax(0,1fr);gap:12px;align-items:baseline;padding:12px 16px;background:#fff}
+.ts-brief i{font:750 10px/1.6 var(--mono);letter-spacing:.1em;color:var(--orange);font-style:normal}
+.ts-brief p{margin:0;font-size:14.5px;line-height:1.65;word-break:keep-all}
+.ts-brief b{font-variant-numeric:tabular-nums}
+.ts-scorecard{margin:0 0 18px;padding:18px;background:#fff;border:1px solid var(--line-strong);border-top:5px solid #11110f}
+.ts-score-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-top:1px solid var(--line)}
+.ts-score-row:first-of-type{border-top:0}
+.ts-score-row b{font-size:14.5px}
+.ts-score-row p{grid-column:1/-1;margin:0;color:#4f4d47;font-size:13.5px;line-height:1.6;word-break:keep-all}
+.ts-cal-sub{font-size:10px;fill:#8b877d}
+.ts-ladder thead small{display:block;margin-top:2px;color:#8b877d;font-size:10px;font-weight:500;letter-spacing:0}
+.ts-ladder tbody th small{display:block;color:#8b877d;font-size:10px;font-weight:500}
+@media(max-width:620px){.ts-brief>div{grid-template-columns:1fr;gap:2px}.ts-score-row{grid-template-columns:1fr;gap:6px}.ts-score-row .ts-gate-chip{width:max-content}}
