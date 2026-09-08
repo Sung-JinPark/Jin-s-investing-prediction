@@ -75,7 +75,7 @@ split:
 development_protocol:
   track_open: true             # V13-D1 사용자 승인(2026-09-07)
   maximum_development_evaluations: 8
-  evaluations_spent: 2         # [V13-D2′ A6 정정] rung-1 ewma_logit + rung-2 har_logistic — 원장 2행 대사(이전 0 은 미갱신 오기, 완화 아님)
+  evaluations_spent: 3         # rung-1 ewma_logit + rung-2 har_logistic + rung-3 persistence_pb — 원장 3행 대사 ([V13-D2′ A6] 0→2 정정 뒤 C-1 소진 +1)
   experiment_ledger: data/timeseries_v13/ledgers/vol_experiments.jsonl
   ledger_append_only: true
   preregistered_before_results: true
@@ -159,7 +159,7 @@ baselines:
 # [A1] 개정기 추가 게이트 — 원문 gate: 은 무수정. 신규 키는 여기.
 gates:
   armed: false                        # 표시 트랙 V13-D4 에서만 true 전환. 결과 후 임계 무변경.
-  evaluated_candidates: 2             # rung-1 ewma_logit · rung-2 har_logistic (원장 2행 대사)
+  evaluated_candidates: 3             # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb (원장 3행 대사)
   design_evidence:
     ewma_logit:
       path: data/timeseries_v13/vol/ladder_ewma_logit.json
@@ -171,6 +171,11 @@ gates:
       sha256: 23f0209c1fd0c2d3746fed5d1d239ab252133e1108a0a55b8a380f764486cf3a
       ledger_content_hash: 8e721d6d0daba1d72d2216fd1268c42c6be3a2b4ca9d98ed5969d82230822c6a
       verdict: 기후 대비 9/9 통과하나 EWMA 대비 증분 0/9 — 스킬은 지속성 지배
+    persistence_pb:                   # [C-1 결과 기록 2026-09-08 — 규칙 무변경, 값만 기입]
+      path: data/timeseries_v13/vol/ladder_pb_baseline.json
+      sha256: 71c92648af96fa8d37a8e1f5a0a47e1aa470ce245534b1b558fe7d64dc65c973
+      ledger_content_hash: b95b919eab5396262e3e16e5400559be2c48191eeb543a8f393c496f37ddc234
+      verdict: PB 기후 대비 9/9 양방향 CI90 하한>0 · 귀무 0.000~0.033. EWMA 는 PB 대비 양방향 우세 0/9(h63 두 셀 한 방향 유의 열위) → G2 (b) champion=persistence_pb 전 9셀. h63 isotonic 은 fallback(raw)
   G2_champion_vs_persistence_pb:
     metric: 쌍대 Brier 손실차 d_t = BS_PB,t − BS_EWMA,t (양수 = EWMA 우세)
     directions: [early_to_late, late_to_early]
@@ -188,11 +193,24 @@ gates:
     multiplicity: family P(k >= k_obs) 병기 (binomial(9, 0.05) 참고값 — 셀 종속 caveat).
     evaluation_budget: 1              # rung-3 → evaluations_spent 2→3
     backtest_windows_opened: 0        # 설계창 원장 재분석만 — 새 창 0
-  champion:                           # C-1(rung-3) 결과로 채운다 — 결과 전 null
-    decided_at: null
-    source_content_hash: null         # vol_experiments.jsonl 행 V13VOL_pb_baseline 의 content_hash
-    cells: {}                         # cell → ewma_logit | persistence_pb | hold
-    finalist_id: null                 # "V13VOL_champion_<sha256(non-hold cells)[:12]>"
+  champion:                           # [C-1 결과 기록 2026-09-08] G2 규칙 (b) 기계 적용 — EWMA 양방향 우세 0/9, PB 기후 통과 9/9
+    decided_at: '2026-09-08'
+    decided_by_rule: gates.G2_champion_vs_persistence_pb (b) — 결과 전 고정, 사후 변경 0
+    source_content_hash: b95b919eab5396262e3e16e5400559be2c48191eeb543a8f393c496f37ddc234   # vol_experiments.jsonl 행 V13VOL_pb_baseline
+    cells:
+      vix25_h5: persistence_pb
+      vix25_h21: persistence_pb
+      vix25_h63: persistence_pb
+      vix30_h5: persistence_pb
+      vix30_h21: persistence_pb
+      vix30_h63: persistence_pb
+      rv_h5: persistence_pb
+      rv_h21: persistence_pb
+      rv_h63: persistence_pb
+    hold_cells: []
+    finalist_id: V13VOL_champion_aec80c65038b
+    skill_label: 당일 변동성 수준의 지속 (persistence of the same-day level) — EWMA 평활 증분 없음
+    h63_derived_layer: {vix25_h63: raw, vix30_h63: raw, rv_h63: raw}   # isotonic 사전등록 fallback 발동(iso 유의 열위)
 
 # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
 reliability:

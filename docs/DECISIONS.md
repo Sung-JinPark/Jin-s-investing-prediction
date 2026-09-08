@@ -703,3 +703,13 @@ AR(1) φ, ℓ_z=1·φ=0 = E0 항등) ③ 건전 y-블록 귀무(T-A 무관) ④ 
 4. **FR-1 FirstRate 구매.** 저비용·후순위(반대 아님). 구매 시 라이선스 캡처 12-6/12-8 형식
    (`data/intraday/receipts.jsonl`). 약관 재확인(§A-3: FirstRate 표시 허용·Cboe §2b·QQQ 오버레이)은
    소유자 원문 캡처 후 진행.
+
+## 2026-09-08 — V13 C-1 결과 기록: champion = persistence_pb 전 9셀 (규칙 기계 적용 — 결정 아님)
+
+rung-3(`docs/review/V13_VOL_RUNG3_PB_VERDICT_20260908.md`, 예산 3/8, 사전등록 커밋 afec214e·도구 29eaa2bc):
+EWMA-logit 이 당일 수준 단독 로짓(PB) 을 양방향으로 이긴 셀 **0/9** (h63 두 셀은 한 방향 유의 열위), PB 는 기후 대비
+9/9 양방향 CI90>0·건전 귀무 ≤0.033 → V13-D2′ G2 규칙 (b) 그대로 **champion = persistence_pb**, finalist
+`V13VOL_champion_aec80c65038b`, HOLD 0(hold_condition 미발동). h63 cross-fit isotonic 은 사전등록 fallback
+발동(iso 유의 열위) → raw 유지. 스킬 라벨은 "당일 변동성 수준의 지속". method_changes r26(`champion_changed: true`).
+**V13-D3(홀드아웃 1슬롯)** 은 이제 조건 ①~④ 충족 상태 — 계획 순서대로 T2/T3 표시 뒤 사용자에게 질문한다.
+승인 원문 형식: `V13-D3 홀드아웃 1회 소모 승인 finalist=V13VOL_champion_aec80c65038b`.
