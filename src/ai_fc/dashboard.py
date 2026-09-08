@@ -725,13 +725,25 @@ def _analytics_snippet(code: str | None = None) -> str:
     hashchange마다 수동 카운트해 화면 단위 유입·이용 통계를 만든다.
     개인 식별 정보는 수집하지 않는다 (GoatCounter는 쿠키·핑거프린팅 없이
     referrer·국가·브라우저·경로만 집계).
+
+    소유자 방문 제외(사용자 지시 2026-09-08): GoatCounter가 공식 지원하는 브라우저
+    플래그 ``localStorage.skipgc === 't'`` 를 쓴다 — count.js의 filter()가 이 값을 보면
+    초기 카운트와 우리가 hashchange마다 부르는 count() 모두 건너뛴다. 관리자 API 토큰이
+    저장된 브라우저는 기본 제외이고, 관리자 화면의 토글(``gc_owner_optout`` 't'/'f')이
+    우선한다. count.js보다 앞선 인라인 스크립트에서 플래그를 맞춰야 첫 페이지뷰부터
+    빠진다. 브라우저 단위 제외라 다른 기기는 각자 한 번 설정해야 하고, 이미 집계된 과거
+    방문은 소급 삭제되지 않는다.
     """
     resolved = GOATCOUNTER_CODE if code is None else code
     if not resolved:
         return ""
     endpoint = f"https://{resolved}.goatcounter.com/count"
     return (
-        "<script>window.goatcounter={path:function(){return "
+        "<script>(function(){try{var o=localStorage.getItem('gc_owner_optout');"
+        "if(o===null&&localStorage.getItem('gc_api_token'))o='t';"
+        "if(o==='t')localStorage.setItem('skipgc','t');"
+        "else if(o==='f')localStorage.removeItem('skipgc');}catch(e){}})();"
+        "window.goatcounter={path:function(){return "
         "location.pathname+location.search+location.hash}};"
         "window.addEventListener('hashchange',function(){"
         "if(window.goatcounter.count)window.goatcounter.count({"

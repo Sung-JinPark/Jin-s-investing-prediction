@@ -1794,7 +1794,17 @@ function renderTimeseries(initialState){
 const GC_API='https://jin-investing.goatcounter.com/api/v0';
 const GC_TOKEN_KEY='gc_api_token';
 function gcToken(){try{return localStorage.getItem(GC_TOKEN_KEY)||'';}catch(_){return '';}}
-function gcSetToken(value){try{if(value)localStorage.setItem(GC_TOKEN_KEY,value);else localStorage.removeItem(GC_TOKEN_KEY);}catch(_){}}
+function gcSetToken(value){try{if(value)localStorage.setItem(GC_TOKEN_KEY,value);else localStorage.removeItem(GC_TOKEN_KEY);}catch(_){}
+  /* 토큰을 저장하는 순간부터 이 브라우저의 방문을 빼야 로그인 세션 자체가 집계되지 않는다. */
+  if(value&&gcOwnerOptOut())try{localStorage.setItem('skipgc','t');}catch(_){}}
+/* 소유자 방문 제외 — GoatCounter가 공식 지원하는 브라우저 플래그(localStorage skipgc='t')를 쓴다.
+   count.js의 filter()가 이 값을 보면 초기 카운트와 hashchange 수동 카운트 모두 건너뛴다.
+   관리자 토큰이 있는 브라우저는 기본 제외, 명시 토글(gc_owner_optout 't'/'f')이 우선한다.
+   브라우저 단위 제외라 다른 기기는 각자 설정해야 하고, 이미 집계된 과거 방문은 소급 삭제되지 않는다. */
+const GC_OWNER_KEY='gc_owner_optout';
+function gcOwnerOptOut(){try{const flag=localStorage.getItem(GC_OWNER_KEY);if(flag==='t')return true;if(flag==='f')return false;return Boolean(gcToken());}catch(_){return false;}}
+function gcSetOwnerOptOut(on){try{localStorage.setItem(GC_OWNER_KEY,on?'t':'f');if(on)localStorage.setItem('skipgc','t');else localStorage.removeItem('skipgc');}catch(_){}}
+function gcOwnerOptOutNote(){const on=gcOwnerOptOut();return `<p class="admin-hint admin-optout-note" data-gc-optout-note>이 브라우저의 방문은 현재 <strong>${on?'통계에서 제외':'통계에 포함'}</strong>됩니다 — GoatCounter의 브라우저 플래그(skipgc)로 제외하므로 기기·브라우저마다 따로 적용됩니다. 다른 기기도 빼려면 그 기기에서 관리자 화면을 한 번 열어 토큰을 저장하거나, 주소 끝에 <code>#toggle-goatcounter</code>를 붙여 한 번 여세요. 이미 집계된 과거 방문은 소급 삭제되지 않습니다.</p>`;}
 async function gcFetch(path,params,retried){
   const query=new URLSearchParams(params||{}).toString();
   const res=await fetch(GC_API+path+(query?'?'+query:''),{headers:{Authorization:'Bearer '+gcToken()},cache:'no-store'});
@@ -1857,14 +1867,15 @@ function renderAdminStats(arg){
   const days=Number(arg&&arg.days)||30;
   const heading=`<div class="page-heading"><div><p class="eyebrow">관리자 전용</p><h1>사이트 방문 통계</h1><p class="page-lede">GoatCounter 집계를 사이트 안에서 직접 봅니다. 데이터는 관리자 API 토큰이 있어야만 열립니다.</p></div></div>`;
   if(!gcToken()){
-    app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-gate"><h2>관리자 인증</h2><p>GoatCounter API 토큰을 입력하세요. 토큰은 <strong>이 브라우저의 localStorage에만</strong> 저장되며, 사이트 코드나 저장소에는 포함되지 않고 goatcounter.com 외 어디로도 전송되지 않습니다.</p><p class="admin-hint">토큰 만들기: jin-investing.goatcounter.com 로그인 → 설정 → API에서 "Read statistics" 권한으로 생성해 붙여넣으세요.</p><form data-gc-gate><input type="password" placeholder="API 토큰" autocomplete="off" required><button type="submit">저장하고 열기</button></form></div></section>`;
+    app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-gate"><h2>관리자 인증</h2><p>GoatCounter API 토큰을 입력하세요. 토큰은 <strong>이 브라우저의 localStorage에만</strong> 저장되며, 사이트 코드나 저장소에는 포함되지 않고 goatcounter.com 외 어디로도 전송되지 않습니다.</p><p class="admin-hint">토큰 만들기: jin-investing.goatcounter.com 로그인 → 설정 → API에서 "Read statistics" 권한으로 생성해 붙여넣으세요.</p><p class="admin-hint">토큰을 저장하면 이 브라우저의 방문은 기본으로 통계에서 제외됩니다(관리자 화면에서 토글 가능).</p><form data-gc-gate><input type="password" placeholder="API 토큰" autocomplete="off" required><button type="submit">저장하고 열기</button></form></div></section>`;
     app().querySelector('[data-gc-gate]').addEventListener('submit',e=>{e.preventDefault();const value=e.target.querySelector('input').value.trim();if(!value)return;gcSetToken(value);renderAdminStats(arg);});
     return;
   }
   const rangeTabs=[[1,'오늘'],[7,'7일'],[30,'30일'],[90,'90일'],[180,'180일']];
-  app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-toolbar"><div class="admin-ranges" role="tablist" aria-label="집계 기간">${rangeTabs.map(([n,label])=>`<button type="button" data-days="${n}" aria-selected="${n===days}">${label}</button>`).join('')}</div><div class="admin-tools"><span class="admin-updated" data-gc-updated></span><button type="button" data-gc-reload>새로고침</button><button type="button" class="admin-signout" data-gc-signout>토큰 삭제</button></div></div><div class="admin-body"><div class="admin-skeleton"><span></span><span></span><span></span></div></div></section>`;
+  app().innerHTML=`${heading}<section class="admin-stats"><div class="admin-toolbar"><div class="admin-ranges" role="tablist" aria-label="집계 기간">${rangeTabs.map(([n,label])=>`<button type="button" data-days="${n}" aria-selected="${n===days}">${label}</button>`).join('')}</div><div class="admin-tools"><span class="admin-updated" data-gc-updated></span><button type="button" class="admin-optout" data-gc-optout aria-pressed="${gcOwnerOptOut()}" title="이 브라우저의 방문을 GoatCounter 집계에서 제외/포함 (localStorage skipgc)">${gcOwnerOptOut()?'내 방문 제외 중':'내 방문 집계 중'}</button><button type="button" data-gc-reload>새로고침</button><button type="button" class="admin-signout" data-gc-signout>토큰 삭제</button></div></div>${gcOwnerOptOutNote()}<div class="admin-body"><div class="admin-skeleton"><span></span><span></span><span></span></div></div></section>`;
   app().querySelectorAll('[data-days]').forEach(button=>{button.onclick=()=>{location.hash='#admin-stats/'+button.dataset.days;if(Number(button.dataset.days)===days)renderAdminStats({days});};});
   app().querySelector('[data-gc-reload]').onclick=()=>renderAdminStats(arg);
+  app().querySelector('[data-gc-optout]').onclick=()=>{gcSetOwnerOptOut(!gcOwnerOptOut());renderAdminStats(arg);};
   app().querySelector('[data-gc-signout]').onclick=()=>{gcSetToken('');renderAdminStats(arg);};
   const body=app().querySelector('.admin-body');
   const range={start:gcDate(days-1,true),end:gcDate(0)};

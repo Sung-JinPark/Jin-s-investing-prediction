@@ -1479,6 +1479,10 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .admin-skeleton span:nth-child(3){height:160px}
 @keyframes admin-shimmer{to{background-position:-200% 0}}
 .admin-gate{border:1px solid var(--line-strong);background:var(--paper);padding:18px;max-width:560px;display:grid;gap:10px}
+/* 소유자 방문 제외 토글 — 제외 중이면 진한 배경으로 상태를 분명히 한다. */
+.admin-optout{padding:9px 12px;border:1px solid var(--line-strong);background:var(--paper);color:#65635d;font:600 12px/1 var(--mono);cursor:pointer}
+.admin-optout[aria-pressed="true"]{background:#17614f;border-color:#17614f;color:#fff}
+.admin-optout-note{margin:10px 0 0;max-width:720px;line-height:1.55}.admin-optout-note code{font:600 11px var(--mono);padding:1px 5px;background:#f1efe9;border:1px solid var(--line)}
 .admin-gate h2{margin:0;font-size:15px}
 .admin-gate p{margin:0;font-size:13px;line-height:1.6}
 .admin-hint{color:#706f68}
