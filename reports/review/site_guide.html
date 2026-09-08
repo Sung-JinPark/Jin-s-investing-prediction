@@ -90,6 +90,10 @@ article.chart h4{margin:0 0 4px;font-size:16.5px;font-family:'Gowun Batang',seri
 .card-mock i{position:absolute;right:10px;top:8px;font:500 9px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;color:var(--sub);font-style:normal}
 .card-mock .cm.active i{color:var(--ink)}
 .mock-cap{margin:6px 0 0;font-size:12.5px;color:var(--sub)}
+.brief-mock{margin:14px 0 4px;display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.brief-mock>div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;align-items:baseline;padding:10px 14px;background:var(--surface)}
+.brief-mock i{font:500 10px/1.6 'IBM Plex Mono',monospace;letter-spacing:.1em;color:var(--accent);font-style:normal}
+.brief-mock p{margin:0;font-size:13.5px;line-height:1.6}
 @media (max-width:520px){.card-mock{grid-template-columns:1fr}}
 
 .plain{border-left:3px solid var(--accent);padding:2px 0 2px 16px;margin:20px 0;color:var(--sub);max-width:40em}
@@ -545,16 +549,37 @@ a{color:var(--accent)}
   <p>04까지가 "사람의 판단 + 리서치"라면, 이 화면은 <strong>순수 수치 모델</strong>이 과거 데이터의 통계적 패턴만으로
   계산한 NASDAQ 분포 전망입니다. 두 층이 있습니다.</p>
 
-  <h3>05-1 · 운영 전망 (전망 요약 · 경로 분포 · 기여 요인 · 검증 성적)</h3>
-  <dl class="qa">
-    <div><dt>무엇이 보이나</dt><dd>기간별(예: 4주·13주) NASDAQ이 어느 범위에 있을 확률 분포, 그 전망을 올리고 내린 요인 분해,
-    그리고 <strong>워크포워드 검증 성적</strong> — 모델이 과거 각 시점에서 "그때까지의 데이터만으로" 낸 예측을 실제 결과와 대조한 점수표.</dd></div>
-    <div><dt>어떤 인사이트</dt><dd>사람의 서사 없이 데이터만 보면 어떤 전망이 나오는지, 그리고 그 모델이
-    <strong>실제로 검증에서 몇 점을 받는지</strong>를 함께 봅니다. 성적이 나쁜 구간은 숨기지 않고 그대로 표시됩니다.</dd></div>
-    <div><dt>무슨 근거</dt><dd>금리·유동성·시장 지표 등 여러 변수의 다변량 모델. 결정론적 수치 모델이므로 과거 적합이 허용되지만
-    (미래 정보를 미리 알 수 없는 구조), 그 결과는 참고 확률이지 매매 신호가 아니라고 화면에 명시됩니다.</dd></div>
-  </dl>
+  <h3>05-1 · 운영 전망 — 네 개의 탭 (전망 요약 · 경로 분포 · 기여 요인 · 검증 성적)</h3>
+  <p>2026-09-08 개편으로 이 화면은 <strong>쉬운 문장이 먼저, 통계 용어는 작은 글씨로 뒤에</strong> 오는
+  구조가 됐습니다. 기간은 전부 달력으로 먼저 말하고(다음 거래일 · 약 1주 · 약 1개월 · 약 3개월),
+  확률은 "10번 중 8번"처럼 횟수로 먼저 말합니다.</p>
 
+  <h4>전망 요약 — 맨 위의 3줄 요약부터 읽으면 됩니다</h4>
+  <div class="brief-mock" aria-hidden="true">
+    <div><i>전망</i><p>약 3개월 뒤(63거래일) 가운데 예상값은 <b>27,583</b> — 지금보다 +4.47%입니다.</p></div>
+    <div><i>범위</i><p>10번 중 8번은 <b>24,276 ~ 29,724</b> 사이에 들도록 설계된 <b>범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다.</p></div>
+    <div><i>신뢰</i><p>2019년 이후 385개 시점 검증 보류(2008년급 위기 표본 없음) · 실전 확정 성적 2건</p></div>
+  </div>
+  <p class="mock-cap">실제 화면의 3줄 요약을 본뜬 그림(수치는 갱신됨). 그 아래에 기간별 카드와 범위 막대가 이어집니다.</p>
+
+  <h4>경로 분포 — 선 세 개만 구분하면 됩니다</h4>
+  <p><strong>검은 선</strong>은 예측을 시작하기 전의 실제 기록, <strong>붉은 선</strong>은 예측 중앙 경로,
+  그리고 시간이 지나면 <strong>짙은 회색 굵은 선</strong>으로 예측 이후의 실제 경로가 겹쳐 그려집니다 —
+  <strong>회색 선과 붉은 선의 간격이 지금까지의 오차</strong>입니다. 실제가 예측 범위 밖으로 나가도
+  지우지 않고 그대로 보여줍니다. 아래 표는 같은 숫자를 "비관 쪽 끝(10번 중 1번은 이 아래) ·
+  가운데 값(절반은 위·절반은 아래) · 낙관 쪽 끝"으로 풀어 적습니다.</p>
+
+  <h4>기여 요인</h4>
+  <p>이 모델이 나스닥 하나가 아니라 금리·달러·변동성(VIX)을 함께 본다는 것, 그 재료 목록과
+  각 재료가 얼마나 최신인지(오래되면 예측이 자동으로 멈춤)를 보여줍니다.
+  "어떤 요인이 몇 % 기여했다"는 기여도는 산출하지 않는다고 화면에 못 박습니다.</p>
+
+  <h4>검증 성적 — 성적표 3문항부터</h4>
+  <p>상세 지표 앞에 세 가지 질문에 대한 답이 먼저 옵니다: <strong>① 단순한 예측 방법보다 정확했나
+  ② "10번 중 8번" 약속만큼 담겼나 ③ 실전(배포 후)에서 검증됐나.</strong> 각 답에는
+  양호/주의/집계 중 등급이 붙는데, 이는 아래 상세 지표(기준선 대비 오차 개선·구간 적중률·전진 실적)의
+  <strong>재표현일 뿐 새 판정이 아닙니다</strong>. 성적이 나빠도 그대로 적습니다 — 지금도
+  "실전 확정 2건 중 기준선보다 나았던 것 0건"이 그대로 표시돼 있습니다.</p>
   <h3>05-2 · 연구 참고 표면 (V8)</h3>
   <dl class="qa">
     <div><dt>무엇이 보이나</dt><dd>차세대 연구 모델의 봉인 평가 결과. "검증을 통과한 숫자만 표시합니다"라는 원칙 아래,
@@ -645,7 +670,7 @@ a{color:var(--accent)}
   다변량 회귀(ridge-VARX)가 핵심 엔진입니다. 그 위에 변동성으로 걸러낸 실제 잔차를 다시 뽑는
   재표집(FHS)과 분포 재보정을 얹습니다. 입력은 발표 당시 값을 그대로 보존한 시점고정 원장이라
   "그때 알 수 없던 정보"가 스며들 수 없습니다. 셋 중 유일하게 <strong>워크포워드 검증(봉인 평가)을
-  통과해야만 화면에 숫자가 표시</strong>되고, 통과하지 못하면 "검증을 통과한 숫자만 표시합니다" 화면이 대신 나옵니다. 주 1회 갱신.</p>
+  통과해야만 화면에 숫자가 표시</strong>되고, 통과하지 못하면 "검증을 통과한 숫자만 표시합니다" 화면이 대신 나옵니다. 주 1회 갱신. 화면은 쉬운 문장이 먼저 오는 구조입니다 — 3줄 요약, 달력 기간 표기, "10번 중 8번" 횟수 표현, 성적표 3문항(05-1 참고).</p>
 
   <div class="tablewrap"><table>
     <tr><th></th><th>① 주간 시나리오</th><th>② 세 가지 경로</th><th>③ 시계열</th></tr>
