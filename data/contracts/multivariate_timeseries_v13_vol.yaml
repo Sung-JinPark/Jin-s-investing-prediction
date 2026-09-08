@@ -249,7 +249,7 @@ amendments_applied:
     approval_receipt: v13-approval:V13-D2prime:2026-09-08:r1   # data/timeseries_v13/ledgers/approvals.jsonl
     basis: CAMPAIGN_REVIEW_NEXT_DESIGN_260908 §C-1·C-2·D-1·D-2·D-3 (외부 검토) + 표시 설계서 §3·§7 + 계획 승인(2026-09-08)
     timing_rationale: 홀드아웃 열람 전 — 임계·기준선을 사후 완화 없이 고칠 마지막 시점 (V12-D2 와 같은 논리). 결과 전 커밋 hash 는 후속 1줄 커밋으로 기입.
-    prereg_commit: null
+    prereg_commit: afec214e                                  # 결과 전 커밋 (rung-3 실행 전)
     changes:
       A1: baselines.persistence_pb + gates.G2 champion 규칙(우월-아니면-단순-아니면-HOLD). (신설·강화)
       A2: reliability.cross_fit_isotonic_h63 파생층 + 사전등록 fallback. (신설)
