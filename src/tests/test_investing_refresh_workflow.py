@@ -56,10 +56,11 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     # V2/V8 data commits are pushed with GITHUB_TOKEN, which never fires push
     # events for other workflows — without these workflow_run entries the V8
     # gate flip stayed invisible on the live site (observed 2026-09-01).
+    # timeseries-v13-vol-live (2026-09-08): V13-VOL 포인터 커밋도 GITHUB_TOKEN 푸시라 같은 이유로 등록.
     expected = (
         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
-        '"timeseries-v2-refresh", "timeseries-v8-shadow"]'
+        '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow

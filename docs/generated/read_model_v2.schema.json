@@ -29,6 +29,7 @@
     "liquidity",
     "statistics_lab",
     "timeseries",
+    "timeseries_v13_vol",
     "multi_year_stress",
     "ai_regime",
     "o_entry_cohort",
@@ -376,6 +377,77 @@
         },
         "numbers_visible": {
           "type": "boolean"
+        }
+      }
+    },
+    "timeseries_v13_vol": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "status",
+        "model_id",
+        "model_version",
+        "probability_space",
+        "probability_unit",
+        "combined_with_existing_models",
+        "numbers_visible",
+        "publication",
+        "gate"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "status": {
+          "enum": [
+            "absent",
+            "internal",
+            "hold",
+            "live"
+          ]
+        },
+        "model_id": {
+          "const": "event_probability.volatility_v13"
+        },
+        "model_version": {
+          "const": 13
+        },
+        "probability_space": {
+          "const": "research_volatility_v13_base_rate"
+        },
+        "probability_unit": {
+          "const": "fraction"
+        },
+        "combined_with_existing_models": {
+          "const": false
+        },
+        "numbers_visible": {
+          "type": "boolean"
+        },
+        "publication": {
+          "type": "object",
+          "required": [
+            "display_tier",
+            "reference_opinion_only",
+            "holdout_status",
+            "holdout_caveat_bold",
+            "trading_signal"
+          ],
+          "properties": {
+            "display_tier": {
+              "enum": [
+                "t0_internal",
+                "t2_hidden_panel",
+                "t3_live_card"
+              ]
+            },
+            "reference_opinion_only": {
+              "const": true
+            },
+            "trading_signal": {
+              "const": false
+            }
+          }
         }
       }
     },

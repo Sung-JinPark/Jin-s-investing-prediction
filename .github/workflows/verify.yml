@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live"]
     types: [completed]
 
 jobs:

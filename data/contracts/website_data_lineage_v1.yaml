@@ -240,6 +240,40 @@ surfaces:
       knowledge_cutoff: knowledge_cutoff
     publication_failure: validation_pending_without_numbers
 
+  volatility_base_rate_v13:
+    routes: ["#timeseries/volatility"]
+    publication_class: pit_research_model
+    display_role: isolated_deterministic_base_rate_model
+    probability_space: research_volatility_v13_base_rate
+    official_forecast_write: false
+    numeric_input_policy: >-
+      V13-VOL reads only captured-forward VIX and NASDAQCOM closes from the sealed V2
+      market archive (available_at <= knowledge_cutoff), applies frozen persistence-baseline
+      logit coefficients (sha256-pinned in the contract, refit prohibited), and never combines
+      its base rates with the LLM forecast, the V8 price card or scenario v5.2
+    source_artifacts:
+      - data/contracts/multivariate_timeseries_v13_vol.yaml
+      - data/timeseries_v13/vol/champion_coefficients.json
+      - data/timeseries_v13/vol/vol_latest.json
+      - data/timeseries_v13/vol/ladder_ewma_logit.json
+      - data/timeseries_v13/vol/ladder_pb_baseline.json
+      - data/timeseries_v13/ledgers/vol_experiments.jsonl
+      - data/timeseries_v13/ledgers/vol_live.jsonl
+    payload_locations:
+      - {artifact: dashboard_base, key: timeseries_v13_vol, materialization: base}
+    artifact_gate: >-
+      Numbers appear only while the design-window gate evidence (2007-2014, 9/9 cells
+      bidirectional CI90 > 0 vs climatology, sound y-block null <= 0.033, same-day-level
+      persistence baseline PB as champion per the preregistered G2 rule), the contract
+      arming flag, the coefficient pin (contract == pointer == disk sha256) and the NYSE
+      trading-calendar freshness rule (missing sessions <= 1, re-evaluated at build time)
+      all hold; the holdout (2015-2018) is unconsumed until V13-D3 and the live card must
+      bold that caveat; display tier is a single contract field (t0/t2/t3, no t4)
+    time_fields:
+      observation_through: as_of
+      knowledge_cutoff: knowledge_cutoff
+    publication_failure: hold_without_numbers
+
   champion:
     routes: ["#today", "#future/champion", "#future/lookup", "#future/original"]
     publication_class: research_reference_proxy

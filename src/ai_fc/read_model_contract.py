@@ -48,6 +48,7 @@ V2_KEYS = {
     "liquidity": dict,
     "statistics_lab": dict,
     "timeseries": dict,
+    "timeseries_v13_vol": dict,
     "multi_year_stress": dict,
     "ai_regime": dict,
     "o_entry_cohort": dict,
@@ -213,6 +214,34 @@ def schema() -> dict[str, Any]:
             "numbers_visible": {"type": "boolean"},
         },
     }
+    properties["timeseries_v13_vol"] = {
+        "type": "object",
+        "required": [
+            "schema_version", "status", "model_id", "model_version", "probability_space",
+            "probability_unit", "combined_with_existing_models", "numbers_visible",
+            "publication", "gate",
+        ],
+        "properties": {
+            "schema_version": {"const": 1},
+            "status": {"enum": ["absent", "internal", "hold", "live"]},
+            "model_id": {"const": "event_probability.volatility_v13"},
+            "model_version": {"const": 13},
+            "probability_space": {"const": "research_volatility_v13_base_rate"},
+            "probability_unit": {"const": "fraction"},
+            "combined_with_existing_models": {"const": False},
+            "numbers_visible": {"type": "boolean"},
+            "publication": {
+                "type": "object",
+                "required": ["display_tier", "reference_opinion_only", "holdout_status",
+                             "holdout_caveat_bold", "trading_signal"],
+                "properties": {
+                    "display_tier": {"enum": ["t0_internal", "t2_hidden_panel", "t3_live_card"]},
+                    "reference_opinion_only": {"const": True},
+                    "trading_signal": {"const": False},
+                },
+            },
+        },
+    }
     properties["multi_year_stress"] = {
         "type": "object",
         "required": [
@@ -347,6 +376,55 @@ def validate(model: dict[str, Any]) -> list[str]:
                 errors.append("timeseries V8 hidden surface must not carry history or freshness numbers")
         if not visible and (timeseries.get("horizons") or timeseries.get("path")):
             errors.append("timeseries validation-pending surface must hide numbers")
+    v13 = model.get("timeseries_v13_vol")
+    if isinstance(v13, dict) and v13:
+        # V13-VOL 변동성 base rate — 전용 슬롯. 숫자는 네 게이트 전부 + tier ≥ T2 에서만, T4 값은 존재하지 않는다.
+        if v13.get("model_id") != "event_probability.volatility_v13":
+            errors.append("timeseries_v13_vol model id mismatch")
+        if v13.get("probability_space") != "research_volatility_v13_base_rate":
+            errors.append("timeseries_v13_vol probability space mismatch")
+        if v13.get("combined_with_existing_models") is not False:
+            errors.append("timeseries_v13_vol must remain isolated from existing probability spaces")
+        publication = v13.get("publication") or {}
+        if publication.get("reference_opinion_only") is not True:
+            errors.append("timeseries_v13_vol must keep reference-opinion-only status")
+        if publication.get("trading_signal") is not False:
+            errors.append("timeseries_v13_vol must not be a trading signal")
+        tier = publication.get("display_tier")
+        if tier not in {"t0_internal", "t2_hidden_panel", "t3_live_card"}:
+            errors.append("timeseries_v13_vol display tier outside the ladder")
+        visible = v13.get("numbers_visible") is True
+        if visible is not (v13.get("status") == "live"):
+            errors.append("timeseries_v13_vol visibility/status mismatch")
+        gate = v13.get("gate") or {}
+        gates_pass = all(gate.get(key) is True for key in
+                         ("design_gate_pass", "armed", "coefficients_pinned", "freshness_pass"))
+        if visible and not gates_pass:
+            errors.append("timeseries_v13_vol numbers visible before all four gates pass")
+        if visible and tier == "t0_internal":
+            errors.append("timeseries_v13_vol t0 tier must not carry numbers")
+        if visible and publication.get("holdout_status") == "fail":
+            errors.append("timeseries_v13_vol numbers visible after holdout failure")
+        if visible and v13.get("display_state") != "research_reference":
+            errors.append("timeseries_v13_vol visible surface must declare research_reference")
+        cells = v13.get("cells") or {}
+        if visible:
+            expected = {"vix25_h5", "vix25_h21", "vix25_h63", "vix30_h5", "vix30_h21", "vix30_h63",
+                        "rv_h5", "rv_h21", "rv_h63"}
+            if not cells or not set(cells) <= expected:
+                errors.append("timeseries_v13_vol visible cell set invalid")
+            for name, cell in cells.items():
+                try:
+                    p = float(cell["p"]); lo, hi = (float(x) for x in cell["band80"])
+                except (KeyError, TypeError, ValueError):
+                    errors.append(f"timeseries_v13_vol cell {name} malformed"); continue
+                if not (0.0 <= lo <= p <= hi <= 1.0):
+                    errors.append(f"timeseries_v13_vol cell {name} band/probability out of order")
+        elif cells or v13.get("inputs"):
+            errors.append("timeseries_v13_vol hidden surface must not carry cells")
+        if tier == "t3_live_card" and publication.get("holdout_status") != "pass" \
+                and publication.get("holdout_caveat_bold") is not True:
+            errors.append("timeseries_v13_vol live card without holdout pass must bold the caveat")
     multi_year_stress = model.get("multi_year_stress")
     if isinstance(multi_year_stress, dict):
         try:

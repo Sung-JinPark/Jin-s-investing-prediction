@@ -9,6 +9,8 @@ budgets:
   embed_html_max_kib: 1536
   data_json_max_bytes: 900000
   future_paths_json_max_bytes: 240000
+  # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
+  timeseries_v13_vol_max_bytes: 24000
 
 future_paths:
   filename: future_paths.json
@@ -49,3 +51,14 @@ timeseries:
   probability_space: research_timeseries_conditional
   combine_with_future_or_official: false
   publication_failure: validation_pending_without_numbers
+
+# V13-VOL 변동성 이벤트 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면. 인라인(지연 fetch 없음).
+timeseries_v13_vol:
+  route: "#timeseries/volatility"
+  payload_key: timeseries_v13_vol
+  materialization: dashboard_base
+  probability_space: research_volatility_v13_base_rate
+  combine_with_future_or_official: false
+  combine_with_timeseries_price_card: false
+  publication_failure: hold_without_numbers
+  display_tier_source: data/contracts/multivariate_timeseries_v13_vol.yaml#publication.display_tier

@@ -480,6 +480,26 @@ def cmd_timeseries_v8_verify() -> None:
         raise typer.Exit(code=1)
 
 
+@app.command("timeseries-v13-vol-latest")
+def cmd_timeseries_v13_vol_latest() -> None:
+    """V13-VOL 동결 계수로 최신 변동성 이벤트 기준율 포인터를 fail-closed 발행한다 (재적합 없음)."""
+    from .timeseries_v13.pipeline import publish_latest_timeseries_v13_vol
+
+    result = _timeseries_exit(publish_latest_timeseries_v13_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v13-vol-verify")
+def cmd_timeseries_v13_vol_verify() -> None:
+    """V13-VOL 포인터·라이브 원장 체인·계수 핀·아카이브 재계산 대사를 검증한다."""
+    from .timeseries_v13.pipeline import verify_timeseries_v13_vol
+
+    result = _timeseries_exit(verify_timeseries_v13_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v2-preflight")
 def cmd_timeseries_v2_preflight(
     knowledge_cutoff: str | None = typer.Option(None, "--knowledge-cutoff"),
