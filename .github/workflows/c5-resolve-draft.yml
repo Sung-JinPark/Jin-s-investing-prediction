@@ -1,0 +1,91 @@
+name: c5-resolve-draft
+
+# C5 캘리브레이션 프로그램 Q4 (사용자 승인 C5-A3, 2026-09-09).
+# 설계도: docs/design/c5_calibration_program_blueprint_v1_260909.md §7.2
+#
+# 하는 일: 마감이 지난 질문의 **기계 판정 초안**을 만들어 사람 앞에 큐잉한다.
+# 하지 않는 일: **원장 기입·판정 확정**. 판정은 append-only 원장에 들어가고 되돌릴 수
+#   없으므로 영구히 사람이 한다 (설계도 §7.2 "자동화는 되돌릴 수 있는 것만 한다").
+#
+# 시크릿 0 · LLM 호출 0 · 커밋 0. 결정론 검사와 초안 출력뿐이다.
+# 초안은 잡 요약(job summary)과 아티팩트로만 나가며 저장소를 건드리지 않는다.
+
+on:
+  schedule:
+    - cron: "40 3 * * 1-5"     # 평일 KST 12:40 — ops-backlog-alert(12:10) 직후
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  draft:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: deps (시크릿 불필요)
+        run: pip install -e "."
+
+      - name: Rebuild the derived index
+        run: |
+          cd src
+          python -m ai_fc sync --rebuild >/dev/null 2>&1 || true
+
+      - name: C5 status (읽기 전용)
+        id: status
+        run: |
+          PYTHONUTF8=1 python tools/c5_status.py > "$RUNNER_TEMP/c5.txt" 2>&1 || true
+          cat "$RUNNER_TEMP/c5.txt"
+
+      - name: Machine resolution drafts (원장 무기입)
+        id: drafts
+        run: |
+          cd src
+          # 인자 없이 실행하면 기한 도래 + 결정론형(가격·macro·earnings) 전체를 훑는다.
+          PYTHONUTF8=1 python -m ai_fc resolve --draft > "$RUNNER_TEMP/drafts.txt" 2>&1 || true
+          cd ..
+          cat "$RUNNER_TEMP/drafts.txt"
+          if grep -q "초안 대상 없음" "$RUNNER_TEMP/drafts.txt"; then
+            echo "pending=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "pending=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Job summary
+        if: always()
+        run: |
+          {
+            echo "## C5 판정 초안 큐"
+            echo
+            echo "판정 확정은 **사람이** 다음으로 수행합니다 (이 워크플로는 원장을 쓰지 않습니다):"
+            echo
+            echo '```'
+            echo 'cd src && python -m ai_fc resolve <qid> --outcome yes|no --evidence "<1차 출처 URL·설명>"'
+            echo '```'
+            echo
+            echo "1·2차 출처 수치가 불일치하면 확정하지 말고 \`held\` 로 두고 보고합니다."
+            echo
+            echo "### 초안"
+            echo '```'
+            cat "$RUNNER_TEMP/drafts.txt"
+            echo '```'
+            echo
+            echo "### 프로그램 상태"
+            echo '```'
+            cat "$RUNNER_TEMP/c5.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload drafts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c5-resolve-drafts
+          path: |
+            ${{ runner.temp }}/drafts.txt
+            ${{ runner.temp }}/c5.txt
+          retention-days: 14
+          if-no-files-found: ignore

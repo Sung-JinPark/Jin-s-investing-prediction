@@ -102,6 +102,24 @@ jobs:
               print(n)
           PY
           )
+          # C5 게이트 진도 (2026-09-09 C5-A3) — 백로그 숫자만으로는 "얼마나 남았나"가
+          # 안 보인다. 읽기 전용 파생이며 실패해도 알림을 죽이지 않는다.
+          c5=$(python - <<'PY'
+          import pathlib, sys
+          sys.path.insert(0, "src")
+          try:
+              from ai_fc import c5_certificate as C5
+              root = pathlib.Path(".")
+              g = C5.gate_status(root)
+              s = C5.sharpness(root)["rows"]
+              print("문항 %d/50 · Brier %s · 행 평균 p(1-p) %s"
+                    % (g["n_questions"],
+                       "n/a" if g["brier"] is None else "%.4f" % g["brier"],
+                       "n/a" if not s else "%.4f" % s["mean_pq"]))
+          except Exception:
+              print("파생 실패 (tools/c5_status.py 로 확인)")
+          PY
+          )
           total=$(( resolve + lapsed + corr ))
           {
             echo "resolve=$resolve"
@@ -110,6 +128,7 @@ jobs:
             echo "lapsed=$lapsed"
             echo "corr=$corr"
             echo "total=$total"
+            echo "c5=$c5"
           } >> "$GITHUB_OUTPUT"
 
       - name: Open, refresh, or close the standing backlog issue
@@ -121,6 +140,7 @@ jobs:
           LAPSED: ${{ steps.collect.outputs.lapsed }}
           CORR: ${{ steps.collect.outputs.corr }}
           TOTAL: ${{ steps.collect.outputs.total }}
+          C5: ${{ steps.collect.outputs.c5 }}
         run: |
           title="ops: 예측 백로그 감시"
           number="$(gh issue list --repo "$GITHUB_REPOSITORY" \
@@ -148,10 +168,15 @@ jobs:
           | (참고) 재예측 기한 도래 | ${FORECAST} | |
           | (참고) stale | ${STALE} | |
 
+          **C5 게이트 진도**: ${C5}
+          (예리도 실측이 임계 0.18 을 넘으면 완전 캘리브레이션에서도 게이트가 열리지 않습니다 —
+          설계도 \`docs/design/c5_calibration_program_blueprint_v1_260909.md\` §3 D2.)
+
           확인:
 
           \`\`\`
           cd src && python -m ai_fc due
+          PYTHONUTF8=1 python tools/c5_status.py
           \`\`\`
 
           2026-08-31 회고: due 보드가 54일 방치되어 질문 3건이 예측 없이 마감을 넘겼고(void 처리), 정정 2건이 30일 대기했습니다. 이 워크플로는 그 재발을 막기 위한 것입니다.

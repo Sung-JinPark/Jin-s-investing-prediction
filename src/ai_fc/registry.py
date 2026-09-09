@@ -297,3 +297,18 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
         return [{"per_week": int(m.group(1))}]
 
     return None
+
+
+def prioritize_forecast_targets(due: "list[DueItem]") -> "list[DueItem]":
+    """예측 due 중 **첫 예측 미실행 질문을 먼저** 놓는다 (C5-A3, 2026-09-09).
+
+    왜: P3 게이트의 문항 수는 COUNT(DISTINCT question_id)(db/schema.sql:436)라
+    **재예측은 게이트 진도에 0 기여**한다. 자동 경로가 주 1건을 재예측에만 쓰면
+    처리량이 0으로 수렴한다 (C5 설계도 §3 D4의 실측).
+
+    정렬은 안정적이므로 같은 부류 안에서는 compute_due 의 순서가 유지된다.
+    kind != 'forecast' 는 애초에 대상이 아니므로 걸러 낸다 — divergence 는
+    표시 전용이고 resolve 는 사람 확정 경로다.
+    """
+    candidates = [d for d in due if d.kind == "forecast"]
+    return sorted(candidates, key=lambda d: d.last_forecast_ts is not None)

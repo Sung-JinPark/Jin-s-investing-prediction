@@ -16,7 +16,8 @@ import typer
 
 from . import config
 from .db import ingest, queries
-from .registry import compute_due, load_registry, propose_schedule
+from .registry import (compute_due, load_registry, prioritize_forecast_targets,
+                       propose_schedule)
 from .scenario import refresh_scenario
 
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
@@ -1607,7 +1608,9 @@ def cmd_forecast(
                           queries.open_rolling_windows(conn),
                           queries.resolved_forecast_ids(conn), datetime.now())
         # divergence는 의도적으로 제외 — "재예측 트리거 후보"일 뿐, 실행은 인간 결정 (ML 게이트)
-        targets = [d.question_id for d in due if d.kind == "forecast"][:max_n]
+        # C5-A3 (2026-09-09): 첫 예측 미실행 질문 우선 — 재예측은 게이트 문항 수에
+        # 0 기여하므로 (설계도 §3 D4). 정렬 근거는 registry.prioritize_forecast_targets.
+        targets = [d.question_id for d in prioritize_forecast_targets(due)][:max_n]
         if not targets:
             typer.echo("예측 due 없음")
             return
