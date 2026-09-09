@@ -1207,12 +1207,12 @@
    "verdict": "measured_zero"
   }
  },
- "content_hash": "b359f6363a5922480f8ee5369246583024b154a18070a27c9887c91980aede2e",
+ "content_hash": "147730962f819c36c92f12c1edddee8a1be1d7f852c234ca35a7bfa5a1858e88",
  "family_p_binomial": 0.9999999999999989,
  "generated_at": "2026-09-09T05:14:54+00:00",
  "k_obs_adopted": 0,
  "n_panel": 2014,
- "prereg_commit": "7a868424",
+ "prereg_commit": "0ce8569b",
  "schema": "v13_vol_rung4_macro",
  "split": "2011-01-01",
  "tests_run": 27,

@@ -281,7 +281,7 @@ rung4_macro_blocks:
   backtest_windows_opened: 0               # 설계창 재분석만 — 홀드아웃·봉인 미열람
   result: 27검정 전부 measured_zero — 채택 0건, family P(k>=0|n=27)=1.0000 (2026-09-09). 무료 정보집합 소진
   stopping: 전 셀 '측정된 영'(MDE 미만) 이면 정상 종료. 채택 셀이 나오면 champion 재판정은 별도 결정
-  prereg_commit: 7a868424                  # 결과 전 커밋
+  prereg_commit: 0ce8569b                  # 결과 전 커밋 (병렬 세션의 브랜치 전환으로 원커밋 7a868424 를 clean 브랜치에 cherry-pick — 내용 동일)
 
 # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
 reliability:
