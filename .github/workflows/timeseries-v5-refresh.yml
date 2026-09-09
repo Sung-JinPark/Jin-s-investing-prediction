@@ -98,6 +98,8 @@ jobs:
             git config user.name github-actions[bot]
             git config user.email 41898282+github-actions[bot]@users.noreply.github.com
             git commit -m "data(timeseries): refresh V5 research read model"
+            # 병렬 데이터 라이터가 main 을 전진시킨다 — 재생 후 푸시.
+            git pull --rebase origin main
             git push
           fi
       - uses: actions/upload-artifact@v4
