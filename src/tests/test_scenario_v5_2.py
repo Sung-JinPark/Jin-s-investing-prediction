@@ -789,13 +789,10 @@ def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
     assert "C는 직접 입력하지 않습니다" in script
     assert "이전 방식의 그래프로 자동 전환하지 않습니다" in script
     assert "a candidate failure must never silently replace the requested chart" in script
-    # 소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트 닫힘 + 산출물 온전 시
-    # 마지막 유효 차트를 명시 공시 배너와 함께 표시한다 — 조용한 대체가 아니다.
     assert "stale_last_valid" in script
-    assert "scenario-v52-gate-notice" in script
-    assert "게이트 차단 · 마지막 유효 후보" in script
-    assert "게이트 사유" in script
-    assert ".scenario-v52-gate-notice" in css
+    # 게이트 닫힘 배너 철회 (DECISIONS.md 2026-09-09, 사용자 결정): 최신 후보가 아니어도
+    # 마지막 유효 차트를 조용히 표시한다 — B안(명시 공시 배너)은 더 이상 적용하지 않는다.
+    assert "scenario-v52-gate-notice" not in script
     assert "modelView:'research'" in script
     assert "research_only_explicit_route" not in script
     assert "CONDITIONAL SMALL MULTIPLES" not in script

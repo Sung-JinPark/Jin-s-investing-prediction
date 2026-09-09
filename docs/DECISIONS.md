@@ -838,3 +838,26 @@ artifact 바이트는 git 이력에 보존. 함께 고친 것: 홀드아웃 FAIL
 비-dict 포인터 페일클로즈, verify 의 원장↔포인터 셀 교차검사, 라이브 워크플로의 V2 refresh 완료 종속(workflow_run),
 라이브 전진 게이트 사전등록(`live_forward_gate`, 첫 원점 성숙 전), 파이프라인·신선도 테스트 신설, 부호검정 강화.
 method_changes r29.
+
+## 2026-09-09 — B안(게이트 닫힘 명시 공시 배너) 철회 + 대시보드 홈 문구 정리 (사용자 결정)
+
+**결정.** 2026-09-02 "B안 승인: 게이트 닫힘 시 마지막 유효 후보 표시" 에서 도입한 배너
+(`scenario-v52-gate-notice` — "게이트 차단 · 마지막 유효 후보" + 기준일 라벨 + 원문 게이트 사유
+문자열, 예: `candidate age 3 trading days exceeds 1`)를 사용자 지시(2026-09-09)로 완전히 제거한다.
+근거: 사용자가 원문 게이트 사유 등 내부 진단 문구를 화면에서 볼 필요가 없다고 명시적으로 판단.
+이는 B안의 핵심 조건("조용한 대체는 금지, 명시 공시는 필수")을 뒤집는 것임을 사용자에게 고지했고
+AskUserQuestion 으로 재확인 후 "완전 삭제"를 선택받았다.
+
+**변경 내용.** `renderScenarioV52`(dashboard.js)에서 `runtime_gate.display_eligible===false` 분기의
+배너 삽입 블록을 삭제 — `stale_last_valid` 후보는 이제 아무 공시 없이 마지막 유효 차트를 그대로
+렌더링한다(내부 `runtime_gate`/`status` 데이터 자체는 그대로 유지 — 삭제된 것은 UI 표시뿐). CSS
+`.scenario-v52-gate-notice` 규칙 제거. 대시보드 홈(TODAY 히어로)의 기술적 disclaimer 문단
+("시나리오 조건부 분포와 공식 질문 확률은 서로 다른 공간이며…")도 같은 요청으로 함께 제거.
+
+**한계.** 이제 사용자는 미래 탐색 탭이 최신 후보인지 마지막 유효 후보인지 화면만으로 구분할 수
+없다. `runtime_gate.display_eligible`/`reasons` 는 페이로드에는 남아 있으므로 필요 시 원본
+데이터로 확인 가능. 캘리브레이션 무결성(예측·원장 파일)에는 영향 없음 — 이 배너는 표시 계층
+전용이었다.
+
+**기록.** `src/ai_fc/dashboard_parts/dashboard.js`, `dashboard.css`,
+`src/tests/test_scenario_v5_2.py` 갱신.
