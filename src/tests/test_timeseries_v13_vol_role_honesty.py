@@ -125,6 +125,32 @@ def test_reading_guide_describes_the_event_of_the_cell_it_quotes(node_available:
     assert "25를 터치한" not in html, "인용하지 않은 사건을 설명하면 안 된다"
 
 
+def test_mobile_opens_on_a_horizon_that_has_numbers(node_available: None) -> None:
+    """모바일은 지평 한 칸만 보인다 — 기본 지평이 비어 있으면 카드가 대시만 남는다.
+
+    홀드아웃에서 63영업일 3셀이 모두 떨어진 뒤, 375px 화면에서 카드는 기본 탭(63)을 열고
+    대시 세 개만 보여줬다. 통과 셀 3개는 다른 지평에 멀쩡히 있는데도.
+    """
+    html = _render(_payload())
+    assert 'data-active-h="21"' in html, "숫자가 있는 지평으로 열어야 한다"
+    assert 'data-v13-h-tab="21" aria-selected="true"' in html
+    assert 'data-v13-h-tab="63" aria-selected="true"' not in html
+
+
+def test_mobile_default_prefers_the_longest_horizon_that_has_numbers(node_available: None) -> None:
+    """63 에 숫자가 있으면 설계 그대로 63 으로 연다 — 순서는 63→21→5."""
+    payload = _payload(
+        holdout_pass_cells=["vix25_h63"], holdout_fail_cells=[],
+        publication={"display_tier": "t3_live_card", "holdout_status": "pass"},
+    )
+    payload["cells"]["vix25_h63"] = {
+        "p": 0.2, "band80": [0.15, 0.26], "clim_base_rate": 0.42,
+    }
+    html = _render(payload)
+    assert 'data-active-h="63"' in html
+    assert 'data-v13-h-tab="63" aria-selected="true"' in html
+
+
 def test_no_displayable_cell_leaves_no_dangling_example(node_available: None) -> None:
     payload = _payload(cells={}, holdout_pass_cells=[])
     html = _render(payload)
