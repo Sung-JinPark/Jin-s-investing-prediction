@@ -937,3 +937,51 @@ AskUserQuestion 으로 재확인 후 "완전 삭제"를 선택받았다.
 
 **기록.** `src/ai_fc/scenario_v5_2/engine.py`(`_live_actual_gap`),
 `src/tests/test_scenario_v5_2.py`(3개 테스트 추가) 갱신.
+
+## 2026-09-09 — V5 protected 격리 판정을 '동결 매니페스트'에서 '체크아웃 대비 워킹트리'로
+
+**문제 (실측).** `timeseries-v5-refresh` 가 2026-08-25 부터 12일 연속 실패했다. compute
+잡의 `timeseries-v5-verify` 가 exit 1, `protected_non_mutation.ok=false`, errors 18건이
+전부 `protected drift:` — data/scenarios·data/timeseries·data/timeseries_v2 의 파일들.
+
+**진단 (V5 코드 무결 — 판정 기준의 오탐).** 세 갈래 증거:
+1. compute 잡 명령 5종(`mature-labels`·`train`·`gate`·`forecast`·`resolve`)을 로컬에서
+   실행 전후로 protected 매니페스트를 떠 비교 → 델타 **0건**. V5 는 보호 경로에 쓰지 않는다.
+2. `protected_baseline.json`(2026-08-24T01:34Z 동결, 4,945 파일)을 각 커밋 트리와 비교:
+   플라이휠 커밋 `3ce82b95` 에서 드리프트 0, HEAD 에서 changed 18 · added 2,669 —
+   CI 가 보고한 목록과 **1:1 일치**.
+3. 그 18개 파일을 바꾼 커밋은 전부 형제 파이프라인(scenario-refresh·timeseries-refresh
+   ·timeseries-v2-refresh)의 `github-actions[bot]` 커밋. V5 커밋은 0건(한 번도 성공 못 함).
+
+즉 `verify_v5` 는 "V5 가 보호 경로를 건드렸는가"가 아니라 "저장소가 8/24 이후 멈춰
+있는가"를 물었다. data/timeseries·data/timeseries_v2·data/scenarios 는 각자 스케줄
+라이터를 가진 **살아 있는** 디렉터리이므로 이 판정은 구조적으로 매일 실패한다.
+동일 커밋(`3ce82b95`)이 `runs/backtest_latest.json` 을 함께 넣어 워크플로의
+`if [ -f ... ]` 가드가 첫날부터 열린 것이 12일 연속 실패의 시작점이다.
+
+**결정.** protected 판정 기준을 **체크아웃 커밋 대비 워킹트리 드리프트**로 교체한다
+(`contracts.protected_worktree_drift` — `git status --porcelain -uall -- <protected_roots>`).
+이는 `backtest_v5`(런 내 before/after)와 `baseline_audit.write_audit_artifacts` 가 이미
+쓰던 의미론이고, 워크플로의 `protected and allowlist guard` 스텝과도 같은 기준이다.
+부가 효과로 추적되지 않는 신규 파일(untracked)과 오늘 존재하지 않는 보호 루트
+(data/forecasts·data/ledgers)의 **생성**까지 잡는다 — 기존 `git diff` 가드는 놓치던 경로.
+git 을 쓸 수 없으면 통과가 아니라 오류(`protected isolation unverifiable`)로 닫는다.
+
+`protected_baseline.json` 은 삭제하지 않는다 — V5 격리 시작점의 provenance 기록이자
+감사 문서(`V4_TO_V5_BASELINE_AUDIT.md`)·워크북이 인용하는 해시다. verify 출력에서
+`protected_baseline_reference`(`divergence_expected: true`)로 강등해 계속 보고한다.
+`initialize_v5` 의 동일 오탐 단언도 같은 기준으로 교체.
+
+**기록.** `src/ai_fc/timeseries_v5/contracts.py`(`protected_worktree_drift`),
+`pipeline.py`(`verify_v5`·`initialize_v5`), `src/tests/test_multivariate_timeseries_v5.py`
+(회귀 3종 — 형제 커밋 무해·실제 위반 4종 탐지·verify 기준 확인).
+
+**후속 (같은 PR).** 위 수정으로 compute 잡이 처음으로 `verify` 를 통과하자 그 다음
+스텝인 `commit research read model` 에서 새 실패가 드러났다(PR 브랜치 런). 이 워크플로는
+`fetch-depth` 기본값(얕은 체크아웃)에 `git pull --rebase origin main` 을 무조건 실행하는데,
+main 이외의 ref 에서는 그 브랜치를 main 위로 재생하려 들고 얕은 히스토리에는 공통 조상이
+없어 add/add 충돌로 죽는다. `push` 트리거 경로(`src/ai_fc/timeseries_v5/**`)가 있으므로
+V5 코드 PR 마다 재발한다. 형제 `timeseries-v4-data-refresh.yml` 과 동일하게 커밋·푸시
+스텝에 `github.event_name != 'pull_request' && github.ref == 'refs/heads/main'` 가드를
+달았다 — 브랜치 런은 검증만, 기록은 main 만. 회귀 테스트
+`test_workflow_writes_the_read_model_only_from_main` 추가.
