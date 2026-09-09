@@ -359,7 +359,7 @@ questions:
   domain: earnings
   cadence: r1 + D-3
   action_link: AI ASIC 사이클 감시 (6/4 쇼크 진원) + 캘리브레이션 표본
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (a) beat율 5년 78% + AVGO 최근 4분기 4/4 비트. 발표일 추정 (과거 9월 첫 목요일 패턴) — D-30 재확인.'
   tier: lite
@@ -567,7 +567,7 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 고용 급랭 연속성 — 10/28 인상 질문의 상쇄 변수 (nfp-jul2026 후속)
-  status: active
+  status: resolved
   created: 2026-07-20
   notes: '등록필터: (b) 정보 우위 논거 — 컨센 확정(발표 전주) 이전에 실시간 대체 데이터(주간청구·ADP·ISM 고용·Challenger)로 방향 우위 확보 가능 (7월분 r1 리서치로 검증된 추적 체계 재사용). 발표일 확정 (OMB PFEI).'
   tier: lite
