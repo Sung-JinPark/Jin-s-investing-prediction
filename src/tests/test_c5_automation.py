@@ -60,7 +60,7 @@ def test_empty_input_is_empty_output() -> None:
 def test_cli_uses_the_shared_prioritizer() -> None:
     """정렬 규칙이 CLI 에 다시 인라인되면 이 테스트가 먼저 깨진다."""
     source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
-    assert "prioritize_forecast_targets(due" in source
+    assert "prioritize_forecast_targets(" in source
     assert ".sort(key=" not in source.split("def cmd_forecast")[1].split("def ")[0], \
         "정렬을 CLI 에 다시 인라인하지 말 것 — registry 의 순수 함수를 쓴다"
 
@@ -126,8 +126,16 @@ def test_nearest_deadline_first_among_never_forecast() -> None:
         "near", "mid", "far"]
 
 
-def test_never_forecast_still_beats_urgent_reforecast() -> None:
-    """마감이 급해도 재예측은 미예측 뒤다 — 게이트 문항 수 기여가 0이기 때문."""
+def test_urgent_reforecast_beats_distant_never_forecast() -> None:
+    """마감 임박 재예측이 먼 미예측보다 앞선다 (2026-09-09 규칙 개정).
+
+    **이 테스트는 이전 규칙을 의도적으로 뒤집은 것이다.** 원래는 "미예측이 항상 먼저"
+    였는데(게이트 문항 수는 DISTINCT 라 재예측 기여가 0), 실측이 그 규칙의 대가를
+    보여줬다: 재예측은 이 시스템에서 **유일하게 측정된 양(+) 지렛대**이고
+    (다회차 13문항 첫→최신 p(1-p) −0.0209), "미예측 우선"만 적용하면 미예측 19건을
+    주 3건으로 소진하는 7주 사이에 마감되는 질문의 D-3 sharpening 회차가 영구히
+    사라진다(개정 시점 실측 4건). 마감 임박은 회차와 무관하게 '지금 아니면 없다'다.
+    """
     from datetime import date
     due = [
         _item("reforecast-urgent", last=datetime(2026, 9, 1)),
@@ -135,24 +143,67 @@ def test_never_forecast_still_beats_urgent_reforecast() -> None:
     ]
     deadlines = {"reforecast-urgent": date(2026, 9, 10),
                  "new-far": date(2027, 6, 30)}
-    assert [d.question_id for d in prioritize_forecast_targets(due, deadlines)] == [
-        "new-far", "reforecast-urgent"]
+    order = prioritize_forecast_targets(due, deadlines, today=date(2026, 9, 9))
+    assert [d.question_id for d in order] == ["reforecast-urgent", "new-far"]
+
+
+def test_never_forecast_still_wins_when_neither_is_urgent() -> None:
+    """긴급이 아니면 옛 규칙이 그대로 산다 — 미예측이 재예측보다 먼저."""
+    from datetime import date
+    due = [
+        _item("reforecast-soon", last=datetime(2026, 9, 1)),
+        _item("new-later", last=None),
+    ]
+    deadlines = {"reforecast-soon": date(2026, 10, 1),      # 긴급 창(7일) 밖
+                 "new-later": date(2027, 6, 30)}
+    order = prioritize_forecast_targets(due, deadlines, today=date(2026, 9, 9))
+    assert [d.question_id for d in order] == ["new-later", "reforecast-soon"]
+
+
+def test_urgent_bucket_is_ordered_by_deadline_regardless_of_round() -> None:
+    """긴급 묶음 안에서는 회차를 보지 않고 마감 순으로만 정렬한다."""
+    from datetime import date
+    due = [
+        _item("u-new-later", last=None),
+        _item("u-reforecast-first", last=datetime(2026, 9, 1)),
+    ]
+    deadlines = {"u-new-later": date(2026, 9, 14),
+                 "u-reforecast-first": date(2026, 9, 11)}
+    order = prioritize_forecast_targets(due, deadlines, today=date(2026, 9, 9))
+    assert [d.question_id for d in order] == ["u-reforecast-first", "u-new-later"]
+
+
+def test_urgent_window_boundary_is_inclusive() -> None:
+    """마감이 정확히 today+7 이면 긴급, +8 이면 아니다."""
+    from datetime import date, timedelta
+    from ai_fc.registry import URGENT_WINDOW_DAYS
+    assert URGENT_WINDOW_DAYS == 7
+    today = date(2026, 9, 9)
+    due = [_item("edge", last=datetime(2026, 9, 1)), _item("newq", last=None)]
+    inside = {"edge": today + timedelta(days=7), "newq": date(2027, 1, 1)}
+    outside = {"edge": today + timedelta(days=8), "newq": date(2027, 1, 1)}
+    assert [d.question_id for d in prioritize_forecast_targets(due, inside, today)][0] == "edge"
+    assert [d.question_id for d in prioritize_forecast_targets(due, outside, today)][0] == "newq"
 
 
 def test_missing_or_rolling_deadline_sorts_last() -> None:
-    """rolling·미정 마감은 '마감 없음'으로 보아 같은 부류의 뒤에 둔다."""
+    """rolling·미정 마감은 '마감 없음'으로 보아 긴급이 아니고 뒤로 간다."""
     from datetime import date
     due = [_item("rolling", last=None), _item("dated", last=None)]
-    order = prioritize_forecast_targets(due, {"dated": date(2026, 12, 1)})
+    order = prioritize_forecast_targets(due, {"dated": date(2026, 12, 1)},
+                                        today=date(2026, 9, 9))
     assert [d.question_id for d in order] == ["dated", "rolling"]
 
 
 def test_deadlines_argument_is_optional() -> None:
-    """인자를 안 주면 기존 동작(미예측 우선)만 적용되고 죽지 않는다."""
+    """인자를 안 주면 미예측 우선만 적용되고 죽지 않는다 (마감 정보 없음 = 비긴급)."""
     due = [_item("a", last=datetime(2026, 9, 1)), _item("b", last=None)]
     assert [d.question_id for d in prioritize_forecast_targets(due)] == ["b", "a"]
 
 
-def test_cli_passes_deadlines_to_prioritizer() -> None:
+def test_cli_passes_deadlines_and_today_to_prioritizer() -> None:
+    """CLI 가 마감일과 기준일을 모두 넘겨야 긴급 창이 작동한다."""
     source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
-    assert "prioritize_forecast_targets(due, deadlines)" in source
+    block = source.split("def cmd_forecast")[1].split("@app.command")[0]
+    assert "prioritize_forecast_targets(" in block
+    assert "deadlines" in block and "datetime.now().date()" in block

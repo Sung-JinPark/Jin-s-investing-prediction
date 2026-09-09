@@ -1268,12 +1268,15 @@ questions:
   domain: market-regime
   cadence: r1 + D-3
   action_link: 신용 스프레드는 주가 드로다운의 선행 지표 — EXIT 하드룰 조기경보
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (b) 정보 우위 논거 — FRED로 일간 추적이 가능해 임계 접근을 실시간으로 관측할 수 있고 판정이 단일 계열의 수치 비교라 재량이 없다. **예외 슬롯
-    3/3 사용** — 신용 축은 기존 40문항에 전혀 없는 드라이버(credit-cycle)라 ESS 개선 값이 크고, V9이 신용·유동성 계열을 *가격 분포* 표적에서 무효 판정했으나
-    여기서는 모델 입력이 아니라 **예측 대상 사건**이라 그 부정 결과와 무관하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 exception · 예상확률
-    18% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · 프리플라이트가 잡은 결함 — 기간형인데 시작일 표기 없음). ''2027-01-31까지 하루라도 5.00% 이상''이라
+    엄격히 읽으면 창이 과거 전체가 된다. 실측으로는 무해했다(FRED BAMLH0A0HYM2 2026년 최고 3.46%, 5.00% 도달 0일 — 2026-09-09 조회) 그러나
+    ai-ipo-2b-plus 를 과거 사건으로 만든 것과 **동일한 결함 유형**이라 같은 기준으로 처리한다. 대체: hy-oas-500bp-2026q4-2027q1. || 원
+    notes: 등록필터: (b) 정보 우위 논거 — FRED로 일간 추적이 가능해 임계 접근을 실시간으로 관측할 수 있고 판정이 단일 계열의 수치 비교라 재량이 없다. **예외
+    슬롯 3/3 사용** — 신용 축은 기존 40문항에 전혀 없는 드라이버(credit-cycle)라 ESS 개선 값이 크고, V9이 신용·유동성 계열을 *가격 분포* 표적에서 무효
+    판정했으나 여기서는 모델 입력이 아니라 **예측 대상 사건**이라 그 부정 결과와 무관하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 exception ·
+    예상확률 18% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
@@ -1348,6 +1351,35 @@ questions:
     아닌 회합 첫날(09-17)을 지목했고 예측 0건 상태에서 폐기했다. 예상확률은 리서치 이후 산정이라 사전추정 정확도 표본에서 제외한다. **예외 슬롯 1/3 유지** — 다만
     재산정 예상 83% 의 p(1-p)=0.1411 로 개별 상한 0.21 을 더 이상 넘지 않는다. [C5 Q3 대체 · 분류 exception · 예상확률 83% (리서치 이후
     산정 — 사전추정 정확도 표본 제외)]'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: hy-oas-500bp-2026q4-2027q1
+  drivers:
+  - credit-cycle
+  title: 하이일드 스프레드 500bp 돌파 — 2026-09-10 ~ 2027-01-31
+  question: 2026-09-10부터 2027-01-31까지 ICE BofA US High Yield Index OAS(FRED BAMLH0A0HYM2)가 하루라도 5.00%(500bp)
+    이상을 기록할 확률은?
+  deadline: '2027-01-31'
+  resolution: YES = **2026-09-10 이후** 2027-01-31 까지의 어느 일자든 BAMLH0A0HYM2 일간 값 >= 5.00. 창 시작 이전 값은 무관하다.
+    FRED 공표치 최초 공표 기준(사후 개정 무관). 결측일은 건너뛴다.
+  resolution_source: FRED BAMLH0A0HYM2 (ICE BofA US High Yield Index OAS)
+  domain: market-regime
+  cadence: r1 + D-3
+  action_link: 신용 스프레드는 주가 드로다운의 선행 지표 — EXIT 하드룰 조기경보
+  status: active
+  created: '2026-09-10'
+  preflight:
+    not_yet_occurred: FRED BAMLH0A0HYM2 직접 조회 2026-09-09 — 2026년 최고 3.46%(03-30), 5.00% 도달 0일. 최신 2026-09-07
+      = 2.68%
+    window_start: 2026-09-10 (question·resolution 양쪽에 명시)
+    resolution_wording_checked: FRED 계열 ID·단위(%) 표기 확인 2026-09-09. 단일 계열 수치 비교라 문서 표기 의존 없음
+  notes: '등록필터: (b) 정보 우위 논거 — FRED 로 일간 추적이 가능해 임계 접근을 실시간 관측할 수 있고 판정이 단일 계열의 수치 비교라 재량이 없다. 신용 축은 기존
+    질문에 없던 드라이버(credit-cycle)라 ESS 개선 값이 크다. V9 이 신용·유동성 계열을 *가격 분포* 표적에서 무효 판정했으나 여기서는 모델 입력이 아니라 **예측
+    대상 사건**이라 무관하다. **폐기된 hy-oas-500bp-by-2027-01-31 의 대체** — 원 질문은 시작일 표기가 없었다. [C5 Q3 대체 · 분류 exception
+    · 예상확률 12% (리서치 이후 산정 — 사전추정 정확도 표본 제외)]'
   tier: lite
   schedule:
   - once: true

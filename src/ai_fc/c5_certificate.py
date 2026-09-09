@@ -548,6 +548,125 @@ def shadow_coverage(root: Path) -> dict[str, int]:
     return {"total": total, "written": written}
 
 
+# ────────────────────────────────────────────────────────────────────
+# 질문 프리플라이트 (2026-09-09 신설) — Q3 에서 20건 중 6건이 결함이었던 것에 대한 대응
+# ────────────────────────────────────────────────────────────────────
+
+# 이 날짜 이후 created 된 active 질문은 preflight 블록을 요구한다 (기존은 grandfather).
+PREFLIGHT_CUTOFF = date(2026, 9, 10)
+PREFLIGHT_KEYS = ("not_yet_occurred", "window_start", "resolution_wording_checked")
+
+# 기간형인데 시작일이 없으면 과거를 포함한다 (ai-ipo-2b-plus 가 이렇게 등록 시점에 이미 YES 였다).
+_WINDOW_MARKERS = ("까지", "기간 중", "1회 이상", "하루라도")
+_START_MARKERS = ("부터", "이후", "window_start", "기산")
+# 판정을 출처 문서의 리터럴 문자열에 걸면 그 문서 표기가 바뀔 때 오판정한다
+# (fomc-2026-09-16-dissent 가 'Voting against this action' 에 걸려 있었다).
+_LITERAL_RE = re.compile(r"['‘“\"]([A-Za-z][A-Za-z ,.\-]{12,})['’”\"]")
+
+
+def question_preflight(root: Path, today: Optional[date] = None) -> list[dict[str, Any]]:
+    """등록 질문의 결함 후보를 정적으로 찾아낸다. 판정이 아니라 **점검 후보 제시**다.
+
+    Q3(2026-09-09)에서 20건 중 6건이 결함이었고 셋 다 사람이 1차 출처를 읽어야만
+    잡히는 유형이었다. 그중 둘은 정적으로도 냄새를 맡을 수 있어 여기서 잡는다:
+      · 기간형인데 시작일 없음 → 과거 사건 포함 (retrospective 위반 경로)
+      · 판정이 출처의 리터럴 문자열에 의존 → 표기 변경 시 오판정
+    '이미 일어난 사건인가'는 정적으로 불가능하므로 preflight 블록으로 **근거 기재를 강제**한다.
+    """
+    today = today or date.today()
+    out: list[dict[str, Any]] = []
+    for q in read_registry(root):
+        if q.get("status") != "active":
+            continue
+        flags: list[str] = []
+        resolution = str(q.get("resolution") or "")
+        # 시작일은 question 에 쓰고 resolution 이 "해당 기간 중" 으로 되받는 형태가 흔하다.
+        # 창 표기를 놓치지 않으려면 둘을 합쳐서 본다.
+        window_text = str(q.get("question") or "") + " " + resolution
+        created = q.get("created")
+        created = created if isinstance(created, date) else None
+
+        if any(m in window_text for m in _WINDOW_MARKERS) and                 not any(m in window_text for m in _START_MARKERS):
+            flags.append("기간형인데 시작일 표기 없음 — 과거 사건이 창에 들어올 수 있다")
+
+        # 리터럴을 인용하면서 "문구 형태와 무관하게" 판정한다고 명시한 경우는 오탐이다
+        # (fomc-2026-09-16-nonunanimous 가 바로 그 결함을 고치려고 문구를 인용한다).
+        neutralized = "문구" in resolution and "무관" in resolution
+        literal = None if neutralized else _LITERAL_RE.search(resolution)
+        if literal:
+            flags.append(f"판정이 리터럴 문자열에 의존: {literal.group(1)[:40]!r} — "
+                         "출처 표기가 바뀌면 오판정")
+
+        pre = q.get("preflight")
+        if created and created >= PREFLIGHT_CUTOFF:
+            if not isinstance(pre, dict):
+                flags.append("preflight 블록 부재 (2026-09-10 이후 등록 질문은 필수)")
+            else:
+                missing = [k for k in PREFLIGHT_KEYS if not str(pre.get(k) or "").strip()]
+                if missing:
+                    flags.append(f"preflight 항목 누락: {', '.join(missing)}")
+
+        if flags:
+            out.append({"id": q["id"], "deadline": str(q.get("deadline")), "flags": flags})
+    return out
+
+
+# ────────────────────────────────────────────────────────────────────
+# 예산 실측 대사 (사전등록 reconciliation.recompute_on_actual)
+# ────────────────────────────────────────────────────────────────────
+
+_EXPECTED_RE = re.compile(r"예상확률 (\d+)%")
+
+
+def budget_reconciliation(root: Path) -> dict[str, Any]:
+    """사전등록 예상 p 와 **실제 첫 예측 p** 를 대사한다.
+
+    사전등록은 예상 p 로 예리도 예산을 짰지만, 첫 실측에서 43%p 오차가 났다
+    (cpi-aug 예상 22% vs 실제 65%). 예산의 진위는 등록 시점이 아니라 **첫 예측 뒤**에
+    결정되므로 실측 기준 대사를 상시 인쇄한다. 리서치 이후 산정된 대체 질문은
+    사전추정 정확도 표본에서 제외한다(notes 에 명기된 것을 문자열로 식별).
+    """
+    firsts: dict[str, ForecastRecord] = {}
+    for f in read_forecasts(root):
+        cur = firsts.get(f.question_id)
+        if cur is None or f.round < cur.round:
+            firsts[f.question_id] = f
+
+    rows, errors = [], []
+    for q in read_registry(root):
+        notes = str(q.get("notes") or "")
+        if "C5 Q3" not in notes:
+            continue
+        m = _EXPECTED_RE.search(notes)
+        if not m:
+            continue
+        exp = int(m.group(1)) / 100.0
+        row = {"id": q["id"], "status": q.get("status"), "expected": exp,
+               "expected_pq": exp * (1 - exp), "actual": None, "actual_pq": None,
+               "research_informed": "리서치 이후 산정" in notes}
+        got = firsts.get(q["id"])
+        if got is not None:
+            row["actual"] = got.probability
+            row["actual_pq"] = got.pq
+            if not row["research_informed"]:
+                errors.append(abs(got.probability - exp) * 100)
+        rows.append(row)
+
+    live = [r for r in rows if r["status"] != "void"]
+    scored = [r for r in live if r["actual_pq"] is not None]
+    pending = [r for r in live if r["actual_pq"] is None]
+    blended = ([r["actual_pq"] for r in scored] + [r["expected_pq"] for r in pending])
+    return {
+        "rows": rows,
+        "n_live": len(live), "n_scored": len(scored), "n_pending": len(pending),
+        "mean_expected_pq": (sum(r["expected_pq"] for r in live) / len(live)) if live else None,
+        "mean_blended_pq": (sum(blended) / len(blended)) if blended else None,
+        "estimate_errors_pp": errors,
+        "mean_abs_error_pp": (sum(errors) / len(errors)) if errors else None,
+        "over_cap": [r["id"] for r in scored if r["actual_pq"] > 0.21],
+    }
+
+
 def report(root: Path, today: Optional[date] = None) -> dict[str, Any]:
     """전체 상태를 한 번에 파생한다 (도구·대시보드 공용)."""
     gate = gate_status(root)
@@ -567,6 +686,8 @@ def report(root: Path, today: Optional[date] = None) -> dict[str, Any]:
         "diversification": diversification_check(root),
         "stages": stages(root, gate, q),
         "prereg": prereg(root),
+        "preflight": question_preflight(root, today),
+        "budget": budget_reconciliation(root),
         "ml": {
             "extremization": extremization_observation(gate),
             "deciles": decile_fill(gate),
