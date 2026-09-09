@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-09-08T06:07:11+00:00`
-- Latest completed NYSE day: `2026-09-04`
-- Result: accumulating 36 · frozen 1 · stalled 7 · inactive 5 · violation 0 · planned 3
+- Generated: `2026-09-09T02:19:38+00:00`
+- Latest completed NYSE day: `2026-09-08`
+- Result: accumulating 36 · frozen 2 · stalled 10 · inactive 4 · violation 2 · planned 5
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -16,12 +16,12 @@
 | `cost_ledger` | event | 1 / 17 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
 | `scenario_archive` | trading_daily | 31 | 2026-09-04 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03 |
-| `scenario_latest` | trading_daily | 1 | 2026-09-04 | **accumulating** | — |
-| `cross_asset_archive` | trading_daily | 29 | 2026-09-04 | **stalled** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03 |
-| `cross_asset_latest` | trading_daily | 1 | 2026-09-04 | **accumulating** | — |
+| `scenario_latest` | trading_daily | 1 | 2026-09-04 | **stalled** | — |
+| `cross_asset_archive` | trading_daily | 29 | 2026-09-04 | **violation** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03; immutable file changed |
+| `cross_asset_latest` | trading_daily | 1 | 2026-09-04 | **stalled** | — |
 | `cross_asset_path_tracking` | trading_daily | 1 / 3 | — | **frozen** | — |
-| `cross_asset_path_tracking_v2` | trading_daily | 1 / 66 | 2026-09-04 | **accumulating** | — |
-| `scenario_band_calibration` | trading_daily | 1 / 231 | 2026-09-04 | **accumulating** | — |
+| `cross_asset_path_tracking_v2` | trading_daily | 1 / 66 | 2026-09-04 | **stalled** | — |
+| `scenario_band_calibration` | trading_daily | 1 / 231 | 2026-09-04 | **stalled** | — |
 | `market_event_calendar` | event | 1 / 53 | 2026-08-04 | **accumulating** | — |
 | `signal_archive` | weekly | 7 | 2026-08-28 | **stalled** | — |
 | `liquidity_archive` | weekly | 5 | 2026-08-28 | **stalled** | — |
@@ -30,10 +30,10 @@
 | `realty_dividends` | monthly | 1 / 344 | 2026-09-01 | **accumulating** | — |
 | `realty_o_entry_cohort_archive` | monthly | 2 | 2026-08-31 | **accumulating** | — |
 | `ai_capital_archives` | monthly | 6 | 2026-08-04 | **accumulating** | — |
-| `dualdb_model_runs` | weekly | 0 | — | **inactive** | — |
-| `source_monitoring` | trading_daily | 31 | 2026-09-07 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28 |
-| `source_monitoring_status` | trading_daily | 1 | 2026-09-07 | **accumulating** | — |
-| `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **stalled** | — |
+| `dualdb_model_runs` | weekly | 1 | 2026-07-20 | **stalled** | — |
+| `source_monitoring` | trading_daily | 32 | 2026-09-08 | **stalled** | missing trading days: 2026-08-25, 2026-08-27, 2026-08-28 |
+| `source_monitoring_status` | trading_daily | 1 | 2026-09-08 | **accumulating** | — |
+| `ipo_reference_batch_receipts` | weekly | 4 | 2026-08-19 | **violation** | immutable file changed |
 | `ipo_reference_batch_status` | weekly | 1 | 2026-09-05 | **accumulating** | — |
 | `ipo_edgar_candidates` | biweekly | 1 | 2026-09-05 | **accumulating** | — |
 | `statistics_alert_notify_state` | event | 1 | 2026-09-07 | **accumulating** | — |
@@ -41,7 +41,7 @@
 | `timeseries_observation_facts` | trading_daily | 1 | — | **accumulating** | — |
 | `timeseries_event_facts` | event | 0 | — | **inactive** | — |
 | `timeseries_event_raw_receipts` | event | 0 | — | **inactive** | — |
-| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-09-05 | **accumulating** | — |
+| `timeseries_shadow_forecasts` | trading_daily | 1 | 2026-09-08 | **accumulating** | — |
 | `timeseries_shadow_resolutions` | trading_daily | 0 | — | **inactive** | — |
 | `timeseries_shadow_corrections` | event | 0 | — | **inactive** | — |
 | `timeseries_model_runs` | weekly | 5 | — | **accumulating** | — |
@@ -58,6 +58,13 @@
 | `timeseries_v8_shadow_resolutions` | weekly | 1 | — | **accumulating** | — |
 | `timeseries_v8_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_development_experiments` | event | 1 | — | **accumulating** | — |
+| `timeseries_v13_vol_experiments` | event | 1 | 2026-09-08 | **accumulating** | — |
+| `timeseries_v13_holdout_scorings` | event | 0 | — | **planned** | — |
+| `timeseries_v13_approvals` | event | 1 | 2026-09-08 | **accumulating** | — |
+| `timeseries_v13_vol_live` | trading_daily | 1 | 2026-09-08 | **accumulating** | — |
+| `timeseries_v13_vol_live_resolutions` | trading_daily | 0 | — | **planned** | — |
+| `timeseries_v13_vol_ladder_results` | event | 3 | — | **accumulating** | — |
+| `timeseries_v13_vol_coefficients` | event | 1 | — | **frozen** | — |
 
 ## Interpretation
 

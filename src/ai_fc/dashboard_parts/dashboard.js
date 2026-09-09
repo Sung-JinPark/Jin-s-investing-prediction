@@ -70,7 +70,8 @@ const UI_TERMS={
   base_rate_hint:'과거 같은 수준에서 임계 터치가 실제로 일어난 비율(outside view) — 예측이 아니라 참고 기준율',
   business_day_hint:'미국 거래일 기준. 5영업일≈1주 · 21영업일≈1개월 · 63영업일≈3개월(≈90달력일)',
   band80_coef_hint:'계수 불확실성(블록 부트스트랩) 기준 80% 대역 — 보정 대역이 아닙니다',
-  v13_weak_hint:'설계창에서 신뢰도 오차(rel≈0.08)가 커 오보정 — 대역과 ▲ 표시 없이 읽지 마세요'
+  v13_weak_hint:'설계창에서 신뢰도 오차(rel≈0.08)가 커 오보정 — 대역과 ▲ 표시 없이 읽지 마세요',
+  v13_thin_hint:'이 셀의 설계창 근거가 독립적인 변동성 국면 4개 이하에 얹혀 있습니다(일부는 2011년 한 국면). 사건 일수는 100일이 넘어도 국면이 하나면 사실상 한 번 본 것입니다 — 숫자를 좁게 읽지 마세요'
 };
 const plainTerm=value=>UI_TERMS[value]||value;
 const firstSentenceOf=text=>{const s=String(text||'');const cut=s.indexOf('다.');return cut>0&&cut+2<s.length?s.slice(0,cut+2):s;};
@@ -1688,8 +1689,8 @@ function renderTimeseriesV13VolPanel(v13){
   }
   const cells=v13.cells||{},inputs=v13.inputs||{},fresh=v13.freshness||{};
   const hs=['5','21','63'],hNote={'5':'(≈1주)','21':'(≈1개월)','63':'(≈90달력일)'};
-  const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];if(!c)return `<td data-h="${h}">—</td>`;const weak=c.reliability==='weak',band=c.band80||[];
-    return `<td data-h="${h}"${weak?' class="is-weak"':''}><b>기준율 ${v13Pct(c.p)}</b><small>[80%: ${v13Pct(band[0])}–${v13Pct(band[1])}]</small><small>기후 ${v13Pct(c.clim_base_rate)}</small>${weak?`<i title="${esc(plainTerm('v13_weak_hint'))}">▲ 보정 약함</i>`:''}</td>`;}).join('')}</tr>`;
+  const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];if(!c)return `<td data-h="${h}">—</td>`;const weak=c.reliability==='weak',thin=c.episode_sample==='thin',band=c.band80||[];
+    return `<td data-h="${h}"${weak||thin?' class="is-weak"':''}><b>기준율 ${v13Pct(c.p)}</b><small>[80%: ${v13Pct(band[0])}–${v13Pct(band[1])}]</small><small>기후 ${v13Pct(c.clim_base_rate)}</small>${weak?`<i title="${esc(plainTerm('v13_weak_hint'))}">▲ 보정 약함</i>`:''}${thin?`<i title="${esc(plainTerm('v13_thin_hint'))}">▲ 국면 표본 얇음</i>`:''}</td>`;}).join('')}</tr>`;
   const table=`<table class="v13-vol-table" data-active-h="63"><thead><tr><th scope="col">사건</th>${hs.map(h=>`<th scope="col" data-h="${h}">${h}<abbr title="${esc(plainTerm('business_day_hint'))}">영업일</abbr><small>${hNote[h]}</small></th>`).join('')}</tr></thead><tbody>${rowFor('vix25',V13_CELL_LABELS.vix25)}${rowFor('vix30',V13_CELL_LABELS.vix30)}${rowFor('rv',V13_CELL_LABELS.rv)}</tbody></table>`;
   const hTabs=`<nav class="lab-tabs v13-h-tabs" role="tablist" aria-label="지평 선택(모바일)">${hs.map(h=>`<button type="button" role="tab" data-v13-h-tab="${h}" aria-selected="${String(h==='63')}">${h}영업일</button>`).join('')}</nav>`;
   /* 괴리 칩 — 표시만. LLM 확률과 어떤 산술 결합도 하지 않는다. latest_prob 는 퍼센트 정수. */

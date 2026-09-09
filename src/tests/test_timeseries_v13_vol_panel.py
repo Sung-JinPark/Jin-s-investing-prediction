@@ -53,8 +53,10 @@ def test_v13_vol_panel_satisfies_x1_six_items() -> None:
     assert "컨센서스" not in src and "평균(" not in src
     assert "(llm+" not in src and "+llm)" not in src and "*llm" not in src
     assert "model63-llm" in src, "괴리 = 차이 표시만"
-    # h63 보정 약함 텍스트 마커 + 80% 대역 + 기후 병기
+    # h63 보정 약함 + 국면 표본 얇음 텍스트 마커 + 80% 대역 + 기후 병기
     assert "▲ 보정 약함" in src and "[80%: " in src and "기후 ${v13Pct(c.clim_base_rate)}" in src
+    assert "▲ 국면 표본 얇음" in src and "c.episode_sample==='thin'" in src
+    assert "  v13_thin_hint:'" in SCRIPT and "국면" in SCRIPT
     # hold 분기: 사유 목록 + 마지막 값 재사용 금지 문구, 숫자 없음
     assert "timeseries-hold-reasons" in src and "마지막 값을 재사용하지 않습니다" in src
     for term in ("persistence_hint", "base_rate_hint", "business_day_hint", "band80_coef_hint", "v13_weak_hint"):

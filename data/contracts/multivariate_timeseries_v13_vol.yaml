@@ -111,7 +111,10 @@ stopping_points:
       pass_rule: 셀별 PASS = G1 AND G2 AND G4 (G3 보고). family P(k >= k_obs) <= 0.05 병기.
     hold_condition: C-1 결과 finalist 표가 비면(전 셀 HOLD) 소모하지 않는다 (외부 검토 §C-2 '보류가 옳은 경우').
     ledger_append: PASS/FAIL 무관 append — holdout_user_approval 원문 · approval_receipt_id · coefficients_sha256 · contract_hash · git_head
-    wiring_eligibility: PASS 셀만 (V13-D6). 홀드아웃 FAIL 셀은 배선 불가이며 라이브 카드에서도 숫자 대신 '홀드아웃 실패' 로 페일클로즈(소모 후 적용).
+    wiring_eligibility: |
+      PASS 셀만 (V13-D6). 홀드아웃 FAIL 셀은 배선 불가이며 라이브 카드에서도 숫자 대신 '홀드아웃 실패' 로
+      페일클로즈(소모 후 적용). [P0 2026-09-09 강화] degeneracy_guard 의 episode_thin 셀은 PASS 여도 배선 불가.
+    degeneracy_guard_applied: true    # 실행 시점 계산 — 사건 수 미달은 채점 제외, 국면 수 미달은 episode_thin 라벨
   sealed:
     window: ['2019-01-01', 'latest']
     requires_explicit_user_approval: true
@@ -141,6 +144,7 @@ known_limits:
   - GARCH-t 적합은 수렴·초기값 의존 caveat.
   - 홀드아웃 2015-2018·봉인 2019+ 미열람(의도적 보존).
   - 80% 대역(band80)은 계수 불확실성(델타법)만 반영 — 보정 대역이 아니다. h63 셀 신뢰도 rel≈0.08(설계창) 오보정.
+  - '[P0 2026-09-09] 9셀 중 6셀이 국면 가드 미달 — vix30 계열 후반창은 2011년 단일 변동성 국면에 얹혀 있다(vix30_h21·vix30_h63은 국면 1개). 사건 수(최소 27)는 전부 통과하므로 사건 수만 보면 이 취약성이 보이지 않는다. 깨끗한 셀은 vix25_h5·rv_h5·rv_h21 셋뿐.'
 
 # ── [V13-D2′ 사전등록 개정 2026-09-08 — 홀드아웃 열람 전 · 완화 0 · 결과 전 커밋] ──
 # 외부 검토(CAMPAIGN_REVIEW_NEXT_DESIGN_260908 §C-1·C-2·D-1~D-3) 채택. 원문 gate:(사전등록 형) 은 1바이트도 바꾸지 않는다.
@@ -212,6 +216,39 @@ gates:
     skill_label: 당일 변동성 수준의 지속 (persistence of the same-day level) — EWMA 평활 증분 없음
     h63_derived_layer: {vix25_h63: raw, vix30_h63: raw, rv_h63: raw}   # isotonic 사전등록 fallback 발동(iso 유의 열위)
 
+# [P0 2026-09-09] 퇴화·국면 가드 — 유효 표본의 정직한 척도. 사전등록 게이트를 바꾸지 않는다.
+degeneracy_guard:
+  registered: '2026-09-09'
+  measured_by: tools/v13_guard_mde.py → data/timeseries_v13/vol/guard_mde_design.json
+  provenance: |
+    임계 min_episodes=5 는 설계창을 실측한 뒤 정한 값이다 — 숨기지 않고 공시한다. 그래서 이 값의 사용처를
+    엄격히 제한한다: (a) 이미 실행된 rung 판정과 gate.primary·stopping_points.holdout.gate 는 소급 변경하지
+    않는다(결과 후 문턱 교체 금지), (b) 홀드아웃 창에서 '채점 자체가 불가능한 셀'의 제외와 (c) 표시·배선
+    자격 제한에만 쓴다. 즉 게이트를 느슨하게 하는 방향으로는 절대 쓰이지 않는다.
+  rules:
+    min_events_per_half_per_class: 20        # 필요조건 — 설계창은 9/9 통과(최소 27)라 구속력이 없었다
+    min_episodes_per_half_per_class: 5       # 실질 구속 — 설계창 6/9 실패
+    episode_definition: |
+      라벨의 연속 구간(run) 수. 라벨은 h영업일 전방창으로 만들어 이웃 원점이 강하게 겹치므로 사건 '개수'는
+      유효 표본을 과대평가한다. 독립 국면 수가 진짜 자유도다.
+  applied_at:
+    design_window: 공시 전용 (소급 판정 변경 없음)
+    holdout_window: |
+      verb 실행 시점에 계산한다 — 사전 점검은 홀드아웃 미열람 위반이다. 사건 수 미달 셀은
+      untestable_by_construction 으로 원장에 기록하고 채점·family 분모에서 제외한다(페일클로즈).
+      국면 수 미달 셀은 채점하되 episode_thin 라벨을 붙인다.
+  consequences:
+    display: episode_thin 셀은 라이브 카드에 '국면 표본 얇음' 마커 상시 (h63 '보정 약함'과 같은 층위)
+    wiring: episode_thin 셀은 홀드아웃 PASS 여도 V13-D6 배선 불가 — wiring_eligibility 강화
+  design_window_result:
+    counts_failures: []
+    episode_failures: [vix25_h21, vix25_h63, vix30_h5, vix30_h21, vix30_h63, rv_h63]
+    worst_cases: |
+      vix30_h21 후반창 사건 109개 = 1국면(2011-07-06~2011-12-07) · vix30_h63 후반창 151개 = 1국면
+      (2011-05-05~2011-12-07) · vix30_h5 후반창 = 2 run(같은 2011 국면) · rv_h63 전반창 비사건 27개 = 1구간.
+      즉 vix30 계열의 후반창 판정은 '2011년 미국 신용등급 강등·유로 위기'라는 단일 사건에 얹혀 있다.
+    clean_cells: [vix25_h5, rv_h5, rv_h21]
+
 # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
 reliability:
   cross_fit_isotonic_h63:
@@ -239,6 +276,7 @@ live_display:
     z: 1.2816
     meaning: coefficient_uncertainty_not_calibration
   reliability_markers: {h63: weak}                       # 설계창 rel≈0.08 — 화면 텍스트 마커 '▲ 보정 약함' 병기
+  episode_thin_cells: [vix25_h21, vix25_h63, vix30_h5, vix30_h21, vix30_h63, rv_h63]   # degeneracy_guard 실측 — '▲ 국면 표본 얇음' 마커
   reference_question: {id: vix-25-90d, horizon_calendar_days: 90, divergence_threshold_pp: 15, action: display_only}
   x1_name_collision_rule: 표시 설계서 §1.2 6항 — 명칭·출처 배지·지평 단위·caveat lead·역할 관계·결합 금지
 
@@ -269,8 +307,9 @@ live_forward_gate:
   uncertainty: stationary block ℓ=13 · B=2000 · seed 20260907 · CI90 (설계 게이트와 동일)
   demotion_rule: 셀별 기후 대비 쌍대 Brier 손실차 CI90 하한 <= 0 이면 그 셀 표시 hold (holdout_fail_cells 와 같은 경로) — 자동 재무장 없음, 재개는 사용자 결정
   negative_control: y-block(ℓ=13) 순열 통과율 <= 0.10 (판정 무효화 규칙 승계)
-  execution_path: absent_by_construction                 # 채점 verb 는 첫 원점 성숙(2026-09-11 이후) 뒤 별도 사전등록·구현 — 이 규칙은 그 전에 고정
-  outcomes_written_to: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl (append-only, 예정) — forecasts/·calibration/ 무접촉
+  execution_path: named_verb_guarded                     # [P1 2026-09-09] timeseries-v13-vol-resolve — 규칙(위)은 원점 성숙 전에 고정됐고 verb 는 그 규칙을 실행만 한다
+  verb: timeseries-v13-vol-resolve — 성숙 원점만 채점·append. 강등 판정은 하지 않는다(표본 부족 표시까지)
+  outcomes_written_to: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl (append-only) — forecasts/·calibration/ 무접촉
 
 # 개정 적용 기록 — 이 계약 draft 에 사후 반영된 사용자 결정 (V12 amendments_applied 선례)
 amendments_applied:

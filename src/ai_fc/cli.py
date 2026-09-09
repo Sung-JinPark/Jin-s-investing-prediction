@@ -489,12 +489,26 @@ def cmd_timeseries_v13_vol_latest() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v13-vol-resolve")
+def cmd_timeseries_v13_vol_resolve() -> None:
+    """성숙한 V13-VOL 라이브 원점을 채점해 append-only 해상 원장에 남긴다 (판정 없음)."""
+    from .timeseries_v13.resolve import resolve_live_timeseries_v13_vol
+
+    result = _timeseries_exit(resolve_live_timeseries_v13_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-v13-vol-verify")
 def cmd_timeseries_v13_vol_verify() -> None:
     """V13-VOL 포인터·라이브 원장 체인·계수 핀·아카이브 재계산 대사를 검증한다."""
     from .timeseries_v13.pipeline import verify_timeseries_v13_vol
+    from .timeseries_v13.resolve import verify_live_resolutions
 
     result = _timeseries_exit(verify_timeseries_v13_vol, config.ROOT)
+    resolutions = _timeseries_exit(verify_live_resolutions, config.ROOT)
+    result["resolutions"] = resolutions
+    result["ok"] = bool(result["ok"] and resolutions["ok"])
+    result["errors"] = list(result["errors"]) + list(resolutions["errors"])
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     if not result["ok"]:
         raise typer.Exit(code=1)

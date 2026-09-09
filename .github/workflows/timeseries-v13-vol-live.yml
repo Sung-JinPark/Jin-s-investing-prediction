@@ -40,16 +40,18 @@ jobs:
         run: pip install -e ".[pit,timeseries]" pytest
       - name: Publish the fail-closed latest pointer (frozen coefficients only)
         run: python -m ai_fc timeseries-v13-vol-latest
+      - name: Score matured live-forward origins (no verdict — accumulation only)
+        run: python -m ai_fc timeseries-v13-vol-resolve
       - name: Verify pointer, ledger chain, coefficient pin and archive recompute
         run: |
           python -m ai_fc timeseries-v13-vol-verify
-          pytest src/tests/test_timeseries_v13_vol.py src/tests/test_timeseries_v13_vol_display.py src/tests/test_timeseries_v13_vol_contract.py -q
+          pytest src/tests/test_timeseries_v13_vol.py src/tests/test_timeseries_v13_vol_display.py src/tests/test_timeseries_v13_vol_contract.py src/tests/test_timeseries_v13_resolve.py src/tests/test_timeseries_v13_scoring.py -q
       - name: Commit only the registered V13 live outputs
         shell: bash
         run: |
           python -m ai_fc inventory
-          git add data/timeseries_v13/vol/vol_latest.json data/timeseries_v13/ledgers/vol_live.jsonl docs/generated/inventory.generated.md
-          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v13/(vol/vol_latest\.json|ledgers/vol_live\.jsonl)|docs/generated/inventory\.generated\.md)$' || true)"
+          git add data/timeseries_v13/vol/vol_latest.json data/timeseries_v13/ledgers/vol_live.jsonl data/timeseries_v13/ledgers/vol_live_resolutions.jsonl docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v13/(vol/vol_latest\.json|ledgers/vol_live(_resolutions)?\.jsonl)|docs/generated/inventory\.generated\.md)$' || true)"
           test -z "$unexpected" || { echo "unexpected live paths: $unexpected"; exit 1; }
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
