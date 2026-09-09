@@ -345,6 +345,36 @@ def _historical_returns(
     return returns, dates, values
 
 
+def _live_actual_gap(
+    root: Path, after: date, through: date,
+) -> tuple[list[str], list[float]]:
+    """Daily NASDAQ closes committed by scenario-refresh between the frozen
+    point-in-time history cutoff (``after``, exclusive) and the live forecast
+    anchor (``through``, inclusive). Display-only: fills the gap in the
+    'historical_actual' chart trend line without touching the frozen episode
+    database that the research prior is calibrated against."""
+    archive_dir = root / "data/scenarios/archive"
+    rows: list[tuple[str, float]] = []
+    if archive_dir.is_dir():
+        for path in sorted(archive_dir.glob("*.json")):
+            try:
+                session = date.fromisoformat(path.stem)
+            except ValueError:
+                continue
+            if not (after < session <= through):
+                continue
+            try:
+                close = _finite_number(
+                    json.loads(path.read_text(encoding="utf-8"))["anchor"],
+                    f"archive.{session}.anchor",
+                )
+            except (OSError, json.JSONDecodeError, KeyError):
+                continue
+            rows.append((session.isoformat(), round(close, 2)))
+    rows.sort(key=lambda row: row[0])
+    return [row[0] for row in rows], [row[1] for row in rows]
+
+
 def generate_prior(
     root: Path, inputs: dict[str, Any], *, seed: int = SEED,
     path_count_per_engine: int = PATH_COUNT_PER_ENGINE, block_restart_probability: float = .10,
@@ -395,8 +425,15 @@ def generate_prior(
     actual_dates = history_dates[-60:]
     actual_values = [round(float(value), 2) for value in history_levels[-60:]]
     if actual_dates[-1] != anchor_date.isoformat():
-        actual_dates = [*actual_dates, anchor_date.isoformat()]
-        actual_values = [*actual_values, round(anchor, 2)]
+        gap_dates, gap_values = _live_actual_gap(
+            root, date.fromisoformat(actual_dates[-1]), anchor_date
+        )
+        if gap_dates and gap_dates[-1] == anchor_date.isoformat():
+            actual_dates = [*actual_dates, *gap_dates][-60:]
+            actual_values = [*actual_values, *gap_values][-60:]
+        else:
+            actual_dates = [*actual_dates, anchor_date.isoformat()]
+            actual_values = [*actual_values, round(anchor, 2)]
     historical_actual = {
         "dates": actual_dates,
         "values": actual_values,

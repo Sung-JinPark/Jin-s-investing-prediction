@@ -878,3 +878,30 @@ AskUserQuestion 으로 재확인 후 "완전 삭제"를 선택받았다.
 현재 실측치(~7.8~8.0KB) 대비 여유를 두면서도 실제 폭주는 계속 잡아낸다.
 `validate_scenario_tracker` 오류 문구·`test_market_extensions.py`
 (`test_tracker_budget_is_enforced`)의 "8KB budget" → "9KB budget" 동시 갱신.
+
+## 2026-09-09 — '세 가지 시장 경로' 실제 기록 라인의 한 달 공백 브리지 (사용자 결정)
+
+**문제 (실측, 사용자 보고).** 미래 탐색 GRAPH 01("세 가지 시장 경로")의 검은 실선(실제
+기록)이 8/7 이후로 끊겨 보였다. 원인: V5.2 챔피언 엔진(`engine.py`)의 연구용 통계
+프라이어는 `ANCHOR_DATE=2026-08-07` 로 사전등록·해시 고정된 point-in-time 역사
+데이터베이스(`history_manifest`)에서만 나온다 — 이는 의도된 동결(라이브 포워드
+원칙, 사전지식 오염 방지)로 절대 건드리지 않는다. 문제는 표시 전용 `historical_actual`
+트렌드 라인 조립부(`generate_prior` 내 `actual_dates`/`actual_values`)가 이 동결된
+8/7 종가 뒤에 **오늘자 라이브 anchor 한 점만 이어 붙이고 그 사이 20여 거래일을
+비워둔 것** — 계산·캘리브레이션과 무관한 순수 조립 버그.
+
+**결정.** `_live_actual_gap()` 헬퍼를 추가해 동결 종가(8/7) 이후 ~ 라이브 anchor 사이의
+거래일을 `data/scenarios/archive/*.json`(scenario-refresh 가 매일 커밋하는 실측 종가)
+에서 읽어 채운다. 프라이어의 통계 계산(에피소드 선택·클러스터·경로 생성)은 여전히
+동결 데이터만 사용 — 이 브리지는 순수 표시용이며 `historical_actual` 배열에만
+영향을 준다. 아카이브에 특정일이 없으면(주말·공휴일·과거 커밋 누락) 그 날은 그냥
+건너뛴다 — 값을 보간·추정하지 않는다. 아카이브 자체가 없거나 오늘자 파일이 아직
+없으면(빌드 시점 레이스) 예전 동작(anchor 단일 점 추가)으로 안전하게 폴백한다.
+
+**한계.** 과거 scenario-refresh 실행이 실패해 특정 거래일의 archive 파일이 아예
+없었다면(예: 9/3) 그 날짜는 여전히 비어 있다 — 이 커밋이 소급 채우지 않는다. 차트의
+`gapBefore` 로직(10일 초과 공백만 끊어 그림)은 유지되므로 이런 단일 결측일은 시각적
+문제를 일으키지 않는다.
+
+**기록.** `src/ai_fc/scenario_v5_2/engine.py`(`_live_actual_gap`),
+`src/tests/test_scenario_v5_2.py`(3개 테스트 추가) 갱신.
