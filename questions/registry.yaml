@@ -1148,11 +1148,14 @@ questions:
   domain: corporate-event
   cadence: r1 + D-3
   action_link: 원자력·AI 전력 수요 테마의 자본시장 접근성 지표
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (b) 정보 우위 논거 — S-1이 2026-03에 공개 제출돼 EDGAR로 진행 상황(S-1/A 개정·가격 범위 제출)을 실시간 추적할 수 있고, 기존
-    ipo-edgar-watch 배관이 이미 EDGAR를 감시한다. 판정이 공시 존재 여부라 출처 불일치 여지가 없다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류
-    corporate_event · 예상확률 12% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · **결과가 이미 확정된 과거 사건** — CLAUDE.md 5원칙 5 라이브 포워드 only 위반, 사전등록 prohibited_forms.retrospective).
+    X-Energy 는 **2026-04-23 공모가 $23 확정, 2026-04-24 Nasdaq(XE) 거래 개시**, 약 $10.2억 조달. SEC EDGAR CIK 0002088896
+    의 424B4(2026-04-27) 및 이후 10-Q 2건으로 확인. 등록 시 2차 ''IPO 파이프라인 2026'' 기사를 근거로 ''3월 S-1 제출 후 대기 중''으로 오인했고
+    EDGAR 를 대조하지 않았다. || 원 notes: 등록필터: (b) 정보 우위 논거 — S-1이 2026-03에 공개 제출돼 EDGAR로 진행 상황(S-1/A 개정·가격 범위
+    제출)을 실시간 추적할 수 있고, 기존 ipo-edgar-watch 배관이 이미 EDGAR를 감시한다. 판정이 공시 존재 여부라 출처 불일치 여지가 없다. [C5 Q3 · 사전등록
+    C5_PORTFOLIO_V1 · 분류 corporate_event · 예상확률 12% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
@@ -1170,11 +1173,13 @@ questions:
   domain: corporate-event
   cadence: r1 + D-3
   action_link: AI 반도체 2차 공급자의 공모시장 수용도 — ai-capex 사이클의 자금조달 측면
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (b) 정보 우위 논거 — 이미 IPO 서류를 제출했고(2026-02 기준 기업가치 $23.1B) EDGAR에서 개정 이력을 추적할 수 있다. 드라이버를
-    ai-capex-cycle이 아니라 ipo-window로 두어 기존 17문항 집중을 키우지 않는다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 corporate_event
-    · 예상확률 25% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · **결과가 이미 확정된 과거 사건** — 위와 동일 사유). Cerebras Systems 는 **2026-05-14 Nasdaq(CBRS)
+    거래 개시**, 공모가 $185(밴드 $150~160 상회), 3,000만주로 **약 $5.5B 조달** — 2026년 최대 테크 IPO. 등록 시 ''2026-02 기업가치
+    $23.1B 로 IPO 서류 제출'' 이라는 2차 정보만 보고 미상장으로 오인했다. || 원 notes: 등록필터: (b) 정보 우위 논거 — 이미 IPO 서류를 제출했고(2026-02
+    기준 기업가치 $23.1B) EDGAR에서 개정 이력을 추적할 수 있다. 드라이버를 ai-capex-cycle이 아니라 ipo-window로 두어 기존 17문항 집중을 키우지
+    않는다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 corporate_event · 예상확률 25% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
@@ -1192,11 +1197,13 @@ questions:
   domain: corporate-event
   cadence: r1 + D-3
   action_link: AI 테마의 1차 시장 흡수력 — 사이클 과열/냉각의 자금조달 측 신호
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (b) 정보 우위 논거 — 2026-07 시점에 GS·MS·JPM이 10월 조기 상장을 목표로 AI 관련 발행사의 투자자 미팅을 준비 중이라는 보도가 있어
-    파이프라인 관측이 가능하고, EDGAR 424B로 조달액이 기계 판정된다. 임계 $2.0B는 결과 관측 전 고정. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류
-    corporate_event · 예상확률 18% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · **결과가 이미 확정된 과거 사건**). resolution 에 **시작일을 명시하지 않아** 2026년 전체가 창이 되는데,
+    Cerebras(2026-05-14, AI 반도체, $5.5B)가 이미 임계 $2.0B 를 크게 초과해 질문이 등록 시점에 이미 YES 였다. SpaceX($85.7B)도 2026년
+    상장. **교훈: 기간형 질문에 시작일을 안 쓰면 과거 사건을 포함하게 된다.** || 원 notes: 등록필터: (b) 정보 우위 논거 — 2026-07 시점에 GS·MS·JPM이
+    10월 조기 상장을 목표로 AI 관련 발행사의 투자자 미팅을 준비 중이라는 보도가 있어 파이프라인 관측이 가능하고, EDGAR 424B로 조달액이 기계 판정된다. 임계 $2.0B는
+    결과 관측 전 고정. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 corporate_event · 예상확률 18% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
