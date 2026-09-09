@@ -3,6 +3,7 @@ from __future__ import annotations
 import gzip
 import importlib.util
 import json
+import subprocess
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -11,14 +12,14 @@ import pytest
 
 from ai_fc.read_model_contract import validate as validate_read_model
 from ai_fc.timeseries_v5.artifact import validate_latest
-from ai_fc.timeseries_v5.contracts import MODEL_ID, PROBABILITY_SPACE, load_contract
+from ai_fc.timeseries_v5.contracts import MODEL_ID, PROBABILITY_SPACE, compare_protected, load_contract, protected_manifest, protected_worktree_drift
 from ai_fc.timeseries_v5.evaluation import evaluate
 from ai_fc.timeseries_v5.features import _align_available
 from ai_fc.timeseries_v5.identifiers import content_hash
 from ai_fc.timeseries_v5.lineage import ParsedObservation, RawReceipt, build_versions, make_outcome, verify_lineage
 from ai_fc.timeseries_v5.market_calendar import market_feature_is_eligible, missing_completed_sessions, session_records
 from ai_fc.timeseries_v5.models import FROZEN_SPECS, QUANTILE_LEVELS, DirectDistributionModel
-from ai_fc.timeseries_v5.pipeline import _apply_quantile_calibration, _select_weight, train_v5
+from ai_fc.timeseries_v5.pipeline import _apply_quantile_calibration, _select_weight, train_v5, verify_v5
 from ai_fc.timeseries_v5.sources import SOURCE_REGISTRY, parse_body, sanitized_uri
 from ai_fc.timeseries_v5.storage.local_store import LocalControlPlane
 from ai_fc.timeseries_v5.storage.object_store import LocalObjectStore
@@ -230,3 +231,71 @@ def test_workflow_separates_collection_secrets_from_compute() -> None:
     assert "TSV5_DATABASE_URL" in collect and "FRED_API_KEY" in collect
     assert "TSV5_DATABASE_URL" not in compute and "FRED_API_KEY" not in compute
     assert "protected and allowlist guard" in compute
+
+
+def _protected_repo(tmp_path: Path) -> Path:
+    """A throwaway repository carrying the real V5 contract and one protected root."""
+    root = tmp_path / "repo"
+    (root / "data/contracts").mkdir(parents=True)
+    (root / "data/contracts/multivariate_timeseries_v5.yaml").write_bytes((ROOT / "data/contracts/multivariate_timeseries_v5.yaml").read_bytes())
+    (root / "data/scenarios").mkdir(parents=True)
+    (root / "data/scenarios/nasdaq_latest.json").write_text(json.dumps({"as_of": "2026-08-24"}), encoding="utf-8")
+    _git(root, "init", "-q")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "baseline")
+    return root
+
+
+def _git(root: Path, *args: str) -> None:
+    subprocess.run(["git", "-C", str(root), "-c", "user.email=t@test", "-c", "user.name=test", *args], check=True, capture_output=True)
+
+
+def test_protected_isolation_survives_sibling_pipeline_commits(tmp_path: Path) -> None:
+    """A scenario/timeseries refresh advancing a protected root is not a V5 violation.
+
+    Regression for the 2026-08-25 timeseries-v5-refresh outage: verify compared the
+    live tree against a manifest frozen once, so every sibling pipeline commit was
+    reported as `protected drift:` and the compute job failed for twelve days.
+    """
+    root = _protected_repo(tmp_path)
+    frozen = protected_manifest(root)
+    target = root / "data/scenarios/nasdaq_latest.json"
+    target.write_text(json.dumps({"as_of": "2026-09-08"}), encoding="utf-8")
+    (root / "data/scenarios/archive").mkdir()
+    (root / "data/scenarios/archive/2026-09-08.json").write_text("{}", encoding="utf-8")
+    _git(root, "add", "-A")
+    _git(root, "commit", "-qm", "data: refresh Nasdaq scenario 2026-09-08")
+
+    assert compare_protected(frozen, protected_manifest(root))["ok"] is False  # the criterion that broke CI
+    drift = protected_worktree_drift(root)
+    assert drift["ok"] is True and drift == {**drift, "changed": [], "added": [], "removed": []}
+    assert drift["reference"] == "worktree_vs_head"
+
+
+def test_protected_isolation_still_catches_a_run_writing_protected_paths(tmp_path: Path) -> None:
+    root = _protected_repo(tmp_path)
+    target = root / "data/scenarios/nasdaq_latest.json"
+
+    target.write_text(json.dumps({"as_of": "tampered"}), encoding="utf-8")
+    assert protected_worktree_drift(root)["changed"] == ["data/scenarios/nasdaq_latest.json"]
+    _git(root, "checkout", "--", "data/scenarios/nasdaq_latest.json")
+
+    (root / "data/scenarios/injected.json").write_text("{}", encoding="utf-8")
+    assert protected_worktree_drift(root)["added"] == ["data/scenarios/injected.json"]
+    (root / "data/scenarios/injected.json").unlink()
+
+    target.unlink()
+    assert protected_worktree_drift(root)["removed"] == ["data/scenarios/nasdaq_latest.json"]
+    _git(root, "checkout", "--", "data/scenarios/nasdaq_latest.json")
+
+    # A protected root absent today is still watched, so a run cannot create one unseen.
+    (root / "data/ledgers").mkdir()
+    (root / "data/ledgers/official.jsonl").write_text("{}\n", encoding="utf-8")
+    assert protected_worktree_drift(root)["added"] == ["data/ledgers/official.jsonl"]
+
+
+def test_verify_reports_protected_isolation_against_the_checkout_not_a_frozen_manifest() -> None:
+    result = verify_v5(ROOT)
+    assert result["protected_non_mutation"]["reference"] == "worktree_vs_head"
+    assert result["protected_baseline_reference"]["divergence_expected"] is True
+    assert [error for error in result["errors"] if error.startswith("protected drift:")] == []

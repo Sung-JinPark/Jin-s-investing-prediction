@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import fnmatch
 import hashlib
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -73,6 +74,41 @@ def compare_protected(before: dict[str, str], after: dict[str, str]) -> dict[str
     added = sorted(set(after) - set(before)); removed = sorted(set(before) - set(after))
     changed = sorted(path for path in set(before) & set(after) if before[path] != after[path])
     return {"ok": not (added or removed or changed), "added": added, "removed": removed, "changed": changed}
+
+
+def protected_worktree_drift(root: Path) -> dict[str, Any]:
+    """Report protected-root mutation by *this run* as uncommitted worktree drift.
+
+    The V5 isolation claim is "the V5 pipeline never writes the V1-V4, scenario
+    or official surfaces" — not "those surfaces never change". ``data/timeseries``,
+    ``data/timeseries_v2`` and ``data/scenarios`` carry their own scheduled writers
+    that legitimately advance them every session, so a manifest frozen at one
+    instant answers the second question and turns every sibling refresh into a
+    false V5 violation. Drift against the checked-out commit answers the first.
+    """
+    contract = load_contract(root)
+    # Absent roots stay in the pathspec on purpose: git tolerates a pathspec that
+    # matches nothing, so a run that *creates* one is still caught.
+    roots = list(contract["isolation"]["protected_roots"])
+    result: dict[str, Any] = {"ok": True, "added": [], "removed": [], "changed": [], "reference": "worktree_vs_head", "checked_roots": roots}
+    if not roots:
+        return result
+    try:
+        completed = subprocess.run(["git", "-C", str(root), "status", "--porcelain", "-z", "--untracked-files=all", "--", *roots], capture_output=True, check=True)
+    except (OSError, subprocess.SubprocessError) as exc:
+        return {**result, "ok": False, "unverifiable": f"protected isolation unverifiable: {type(exc).__name__}: {exc}"}
+    added: list[str] = []; removed: list[str] = []; changed: list[str] = []
+    fields = completed.stdout.decode("utf-8", "surrogateescape").split("\0"); index = 0
+    while index < len(fields):
+        entry = fields[index]; index += 1
+        if len(entry) < 4:
+            continue
+        code, path = entry[:2], entry[3:]
+        if code[0] in {"R", "C"}: index += 1  # a rename/copy emits its origin path as the next field
+        if code == "??" or "A" in code: added.append(path)
+        elif "D" in code: removed.append(path)
+        else: changed.append(path)
+    return {**result, "ok": not (added or removed or changed), "added": sorted(added), "removed": sorted(removed), "changed": sorted(changed)}
 
 
 def path_allowed(path: str, patterns: list[str]) -> bool:
