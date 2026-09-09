@@ -861,3 +861,20 @@ AskUserQuestion 으로 재확인 후 "완전 삭제"를 선택받았다.
 
 **기록.** `src/ai_fc/dashboard_parts/dashboard.js`, `dashboard.css`,
 `src/tests/test_scenario_v5_2.py` 갱신.
+
+## 2026-09-09 — scenario_tracker 페이로드 예산 8KB→9KB (사용자 결정)
+
+**문제 (실측 2026-09-05, 2026-09-08 scenario-refresh 실행 실패).** 보조 지표
+`scenario_tracker`(`market_extensions.py`)의 payload가 `TRACKER_BUDGET_BYTES=8_000`
+을 각 37바이트·초과분 초과해 `MarketExtensionError` 로 워크플로 최종 단계가 실패
+표시됐다. 커밋된 스냅샷은 7,828바이트로 여유가 172바이트뿐 — signals(9개
+방향성 신호)·realty_income_hypothesis(4개 조건) 본문 길이가 날짜마다 자연
+변동하는 정상 콘텐츠이며 버그가 아니다. 예산 자체가 실측 변동폭에 비해 너무
+빡빡했다. 핵심 asof 갱신·커밋·푸시는 이 실패와 무관하게 이미 정상 진행 중이었음
+(파이프라인 안전에는 영향 없었음).
+
+**결정.** `TRACKER_BUDGET_BYTES` 를 8,000 → 9,000 바이트로 상향. 이 예산은 외부
+하드 제약(고정 크기 API 등)에 묶여 있지 않은 내부 폭주 감지용 sanity guard —
+현재 실측치(~7.8~8.0KB) 대비 여유를 두면서도 실제 폭주는 계속 잡아낸다.
+`validate_scenario_tracker` 오류 문구·`test_market_extensions.py`
+(`test_tracker_budget_is_enforced`)의 "8KB budget" → "9KB budget" 동시 갱신.
