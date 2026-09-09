@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import math
 from copy import deepcopy
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import numpy as np
@@ -21,8 +21,8 @@ from ai_fc.scenario_v5.contracts import (
 from ai_fc.scenario_v5_2.artifact import _model_content, dashboard_projection, validate_candidate
 from ai_fc.scenario_v5_2.audit import PACKAGE_RELATIVE, render_dashboard
 from ai_fc.scenario_v5_2.engine import (
-    CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
-    SOURCE_PATHS, generate_prior, load_inputs, source_file_hash,
+    ANCHOR_DATE, CANDIDATE_RELATIVE, KNOWLEDGE_CUTOFF, ScenarioV52Error,
+    SOURCE_PATHS, _live_actual_gap, generate_prior, load_inputs, source_file_hash,
 )
 from ai_fc.scenario_v5_2.event_learning import (
     EventLearningError, active_events, append_event, event_score_summary,
@@ -446,6 +446,43 @@ def test_generator_dependency_cap_blocks_above_060_outside_shadow() -> None:
     )
     assert paths.shape[0] == 90 and set(engines) == {0, 1, 2}
     assert audit["B_above_cap_shadow_only"] is True
+
+
+def test_live_actual_gap_reads_daily_archive_anchors_between_dates(tmp_path: Path) -> None:
+    archive = tmp_path / "data/scenarios/archive"
+    archive.mkdir(parents=True)
+    for day, close in (
+        ("2026-08-10", 100.0), ("2026-08-11", 101.5), ("2026-08-07", 999.0),
+        ("2026-08-13", 103.0),
+    ):
+        (archive / f"{day}.json").write_text(json.dumps({"anchor": close}), encoding="utf-8")
+    dates, values = _live_actual_gap(tmp_path, date(2026, 8, 7), date(2026, 8, 13))
+    assert dates == ["2026-08-10", "2026-08-11", "2026-08-13"]
+    assert values == [100.0, 101.5, 103.0]
+
+
+def test_live_actual_gap_is_empty_without_an_archive_directory(tmp_path: Path) -> None:
+    dates, values = _live_actual_gap(tmp_path, date(2026, 8, 7), date(2026, 8, 13))
+    assert dates == [] and values == []
+
+
+def test_historical_actual_bridges_the_frozen_cutoff_with_live_daily_closes() -> None:
+    """§8-2c fix: the display-only 'historical_actual' trend line used to jump directly
+    from the frozen point-in-time history cutoff (ANCHOR_DATE) to today's anchor,
+    leaving a multi-week gap on the '세 가지 시장 경로' chart. It must now be bridged
+    with the daily closes scenario-refresh has already committed to data/scenarios/archive
+    — without touching the frozen research prior itself."""
+    inputs = load_inputs(ROOT)
+    _, _, _, historical_actual, _ = generate_prior(ROOT, inputs, path_count_per_engine=30)
+    dates = historical_actual["dates"]
+    live_anchor_date = date.fromisoformat(inputs["forecast_anchor"]["date"])
+    assert dates[-1] == live_anchor_date.isoformat()
+    if live_anchor_date > ANCHOR_DATE:
+        gaps = [
+            (date.fromisoformat(dates[i]) - date.fromisoformat(dates[i - 1])).days
+            for i in range(1, len(dates))
+        ]
+        assert max(gaps) <= 10, f"historical_actual still has an unbridged gap: {gaps}"
 
 
 def _cpi_event(revision_id: str = "cpi-2026-08-r1") -> dict:
