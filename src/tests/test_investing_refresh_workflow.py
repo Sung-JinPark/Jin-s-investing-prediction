@@ -70,3 +70,24 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
         encoding="utf-8"
     )
     assert 'workflows: ["investing-refresh"]' in ots
+
+
+def test_every_data_commit_replays_on_the_fresh_tip() -> None:
+    """봇 데이터 커밋의 `git push` 는 반드시 rebase 재생을 앞세운다.
+
+    checkout 과 push 사이에 main 은 늘 움직인다 — 다른 데이터 라이터 워크플로,
+    그리고 PR 병합. 재생이 없으면 non-fast-forward 로 그 회차 산출물이 통째로
+    버려진다(2026-08-25·27·28·29 source-monitoring, 2026-09-09 scenario-refresh).
+    산출물이 전부 추가·재생성형이라 재생은 안전하다.
+    """
+    import re
+
+    bare: list[str] = []
+    for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        lines = path.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            if re.fullmatch(r"\s*git push\s*", line):
+                window = "\n".join(lines[max(0, index - 10):index])
+                if "pull --rebase" not in window:
+                    bare.append(f"{path.name}:{index + 1}")
+    assert not bare, f"rebase 재생 없는 데이터 푸시: {bare}"

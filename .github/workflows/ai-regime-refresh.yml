@@ -65,4 +65,7 @@ jobs:
           fi
           asof="$(python -c "import json; print(json.load(open('data/ai_capital_cycle/coverage_latest.json', encoding='utf-8'))['asof'])")"
           git commit -m "data: refresh AI capital-cycle coverage ${asof}"
+          # 병렬 데이터 라이터·PR 병합이 checkout 이후 main 을 전진시킨다 —
+          # 추가 전용 커밋을 새 tip 위에 재생해 non-fast-forward 실패를 막는다.
+          git pull --rebase origin main
           git push

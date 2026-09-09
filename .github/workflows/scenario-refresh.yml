@@ -83,6 +83,8 @@ jobs:
           fi
           asof="$(python -c "import json; print(json.load(open('data/scenarios/nasdaq_latest.json', encoding='utf-8'))['asof'])")"
           git commit -m "data: refresh Nasdaq scenario ${asof}"
+          # PR 병합이 스냅샷 산출 중 main 을 전진시켜 푸시가 거부됐다(2026-09-09).
+          git pull --rebase origin main
           git push
       - name: Report partial refresh failures
         if: ${{ always() && (steps.cross_asset.outcome == 'failure' || steps.market_extensions.outcome == 'failure') }}
