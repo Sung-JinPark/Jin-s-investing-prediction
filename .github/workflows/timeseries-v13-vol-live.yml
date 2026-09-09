@@ -50,7 +50,10 @@ jobs:
         shell: bash
         run: |
           python -m ai_fc inventory
-          git add data/timeseries_v13/vol/vol_latest.json data/timeseries_v13/ledgers/vol_live.jsonl data/timeseries_v13/ledgers/vol_live_resolutions.jsonl docs/generated/inventory.generated.md
+          # 허용 목록. 해상 원장은 첫 원점이 성숙하기 전까지 존재하지 않으므로 있는 것만 add 한다
+          # (없는 경로를 git add 하면 fatal 로 죽는다 — 2026-09-09 실측).
+          allow="data/timeseries_v13/vol/vol_latest.json data/timeseries_v13/ledgers/vol_live.jsonl data/timeseries_v13/ledgers/vol_live_resolutions.jsonl docs/generated/inventory.generated.md"
+          for f in $allow; do if [ -f "$f" ]; then git add "$f"; fi; done
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v13/(vol/vol_latest\.json|ledgers/vol_live(_resolutions)?\.jsonl)|docs/generated/inventory\.generated\.md)$' || true)"
           test -z "$unexpected" || { echo "unexpected live paths: $unexpected"; exit 1; }
           if ! git diff --cached --quiet; then

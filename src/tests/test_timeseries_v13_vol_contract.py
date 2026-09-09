@@ -226,14 +226,16 @@ def test_live_workflow_commits_only_the_contract_declared_live_outputs() -> None
     workflow = (ROOT / ".github/workflows/timeseries-v13-vol-live.yml").read_text(encoding="utf-8")
     pointer = contract["live_display"]["pointer"]; ledger = contract["live_display"]["ledger"]
     resolutions = contract["live_forward_gate"]["outcomes_written_to"].split()[0]
-    assert f"git add {pointer} {ledger} {resolutions} docs/generated/inventory.generated.md" in workflow
+    allow = next(line for line in workflow.splitlines() if line.strip().startswith("allow="))
+    for path in (pointer, ledger, resolutions, "docs/generated/inventory.generated.md"):
+        assert path in allow, path
+    # 없는 경로를 add 하면 워크플로가 죽는다 — 해상 원장은 첫 성숙 전까지 부재하므로 존재 검사가 필수
+    assert 'for f in $allow; do if [ -f "$f" ]; then git add "$f"; fi; done' in workflow
     guard = ("grep -Ev '^(data/timeseries_v13/(vol/vol_latest\\.json|ledgers/vol_live(_resolutions)?\\.jsonl)"
              "|docs/generated/inventory\\.generated\\.md)$'")
     assert guard in workflow, "allowlist 가드 정규식이 포인터·원장 2종·인벤토리만 허용해야 한다"
-    add_lines = [line for line in workflow.splitlines() if "git add" in line]
-    assert len(add_lines) == 1
-    assert "champion_coefficients" not in add_lines[0] and "vol_experiments" not in add_lines[0]
-    assert "multivariate_timeseries_v13_vol" not in add_lines[0], "계약은 CI 가 절대 건드리지 않는다"
+    assert "champion_coefficients" not in allow and "vol_experiments" not in allow
+    assert "multivariate_timeseries_v13_vol" not in allow, "계약은 CI 가 절대 건드리지 않는다"
     assert "python -m ai_fc timeseries-v13-vol-latest" in workflow and "timeseries-v13-vol-verify" in workflow
     assert 'workflows: ["timeseries-v2-refresh"]' in workflow, "V2 refresh 완료에 종속"
     assert "timeseries-v13-vol-holdout" not in workflow
