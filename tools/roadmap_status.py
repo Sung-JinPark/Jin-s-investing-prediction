@@ -191,8 +191,36 @@ STAGES: list[tuple[str, str, Callable[[], tuple[bool, list[str]]], str, str]] = 
 ]
 
 
+def _provenance() -> str:
+    """어느 체크아웃을 읽었는지 밝힌다.
+
+    ROOT 는 이 스크립트 파일이 있는 체크아웃이다. 워크트리가 여럿이면 다른 데서 실행해도
+    항상 여기를 읽는다 — 그 체크아웃이 옛 브랜치에 머물러 있으면 원장이 뒤처진 채로
+    '라이브 원점 1' 같은 숫자가 나온다(2026-09-09 실측: 실제 2, 보고 1). 파생 상태를
+    믿으려면 출처를 봐야 한다.
+    """
+    import subprocess
+
+    def _git(*args: str) -> str:
+        try:
+            out = subprocess.run(["git", "-C", str(ROOT), *args], capture_output=True,
+                                 text=True, encoding="utf-8", timeout=20)
+            return (out.stdout or "").strip() if out.returncode == 0 else ""
+        except (OSError, subprocess.SubprocessError):
+            return ""
+
+    branch = _git("rev-parse", "--abbrev-ref", "HEAD") or "?"
+    head = _git("rev-parse", "--short", "HEAD") or "?"
+    behind = _git("rev-list", "--count", "HEAD..origin/main")
+    lag = ""
+    if behind.isdigit() and int(behind) > 0:
+        lag = f" · origin/main 보다 {behind}커밋 뒤 — 아래 숫자는 그만큼 낡았다"
+    return f"읽은 체크아웃: {ROOT} [{branch} @ {head}]{lag}"
+
+
 def main() -> int:
-    print("MTS 로드맵 상태 — 원장·계약에서 파생 (설계도 §9). 읽기 전용.\n")
+    print("MTS 로드맵 상태 — 원장·계약에서 파생 (설계도 §9). 읽기 전용.")
+    print(_provenance() + "\n")
     contract = _contract()
     if not contract:
         print("V13 계약을 읽을 수 없다 — 저장소 루트에서 실행했는지 확인하라.")
