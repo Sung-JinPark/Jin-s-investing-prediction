@@ -72,6 +72,42 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     assert 'workflows: ["investing-refresh"]' in ots
 
 
+def test_every_unattended_data_writer_is_watched_for_failure() -> None:
+    """사람이 안 보는 자리에서 데이터를 쓰는 워크플로는 전부 실패 감시 대상이다.
+
+    감시가 timeseries-refresh·timeseries-v2-refresh 두 개뿐이던 동안
+    timeseries-v5-refresh 는 2026-08-25 부터 12일 연속 실패했고,
+    timeseries-v13-vol-live 는 사흘간 라이브 전진 표본을 못 쌓았다. 둘 다 아무
+    신호도 남기지 않았다. 예약·연쇄 트리거는 지켜보는 사람이 없다는 뜻이므로
+    푸시하는 워크플로라면 감시 목록에 있어야 한다.
+    """
+    import re
+
+    import yaml
+
+    directory = ROOT / ".github" / "workflows"
+    alert = yaml.safe_load((directory / "ops-failure-alert.yml").read_text(encoding="utf-8"))
+    # PyYAML 은 YAML 1.1 규칙으로 `on:` 키를 True 로 읽는다
+    triggers = alert.get(True) or alert.get("on")
+    watched = set(triggers["workflow_run"]["workflows"])
+
+    unwatched: list[str] = []
+    for path in sorted(directory.glob("*.yml")):
+        text = path.read_text(encoding="utf-8")
+        if not re.search(r"\bgit push\b", text):
+            continue
+        document = yaml.safe_load(text)
+        on = document.get(True) or document.get("on") or {}
+        if not isinstance(on, dict):
+            continue
+        if not {"schedule", "workflow_run"} & set(on):
+            continue  # push·dispatch 전용은 방금 행동한 사람이 결과를 본다
+        name = document["name"]
+        if name not in watched and name != "ops-failure-alert":
+            unwatched.append(f"{path.name} ({name})")
+    assert not unwatched, f"실패가 조용히 묻히는 데이터 라이터: {unwatched}"
+
+
 def test_every_data_commit_replays_on_the_fresh_tip() -> None:
     """봇 데이터 커밋의 `git push` 는 반드시 rebase 재생을 앞세운다.
 
