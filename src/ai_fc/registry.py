@@ -297,3 +297,35 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
         return [{"per_week": int(m.group(1))}]
 
     return None
+
+
+def prioritize_forecast_targets(
+    due: "list[DueItem]",
+    deadlines: Optional[dict[str, Optional[date]]] = None,
+) -> "list[DueItem]":
+    """예측 due 를 ① 첫 예측 미실행 먼저 ② 그 안에서 마감 임박 순으로 놓는다.
+
+    ① 왜 미예측 우선인가 (C5-A3, 2026-09-09): P3 게이트의 문항 수는
+       COUNT(DISTINCT question_id)(db/schema.sql:436)라 **재예측은 게이트 진도에
+       0 기여**한다. 자동 경로가 주 1건을 재예측에만 쓰면 처리량이 0으로 수렴한다
+       (C5 설계도 §3 D4의 실측).
+
+    ② 왜 마감 임박 순인가: compute_due 는 레지스트리 순서를 따르므로 미예측 묶음이
+       사실상 등록 순이 된다. 그대로 두면 마감이 코앞인 질문이 뒤로 밀려 **예측 없이
+       마감을 넘긴다** — 소급 삽입 금지 원칙상 그 질문은 영구 채점 불가(void)이며,
+       ops-backlog-alert 가 '가장 치명적'으로 분류하는 실패다 (2026-08-31 회고에서
+       질문 3건이 실제로 이렇게 소실됐다).
+
+    `deadlines` 가 없거나 값이 None 인 질문(rolling·미정)은 마감 없음으로 보아
+    같은 부류의 뒤에 놓는다. 정렬은 안정적이라 동률은 compute_due 순서를 유지한다.
+    kind != 'forecast' 는 대상이 아니므로 걸러 낸다 — divergence 는 표시 전용이고
+    resolve 는 사람 확정 경로다.
+    """
+    deadlines = deadlines or {}
+    far = date.max
+
+    def key(item: "DueItem") -> tuple[bool, date]:
+        return (item.last_forecast_ts is not None,
+                deadlines.get(item.question_id) or far)
+
+    return sorted([d for d in due if d.kind == "forecast"], key=key)

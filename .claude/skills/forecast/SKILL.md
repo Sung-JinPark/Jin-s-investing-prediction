@@ -16,6 +16,8 @@ description: Run a superforecaster prediction on a registered question (base rat
 3. **리서치 (L2)**: 서브에이전트(Agent tool)로 병렬 리서치. P0 표준 구성은 2개 — ① 종합 리서치(펀더멘털+매크로+수급), ② **데블스 애드버킷(반대증거 전담 — 생략 시 예측 무효)**. 중요 질문은 4개(펀더멘털/매크로/수급/데블스)로 확장 가능. 모든 사실에 출처 URL+날짜 요구, 못 찾은 수치는 NOT FOUND로 보고하게 할 것 (수치 조작 금지).
 4. **추론 (L3)**: reasoning_core [0]~[5] 절차를 본문에 그대로 수행. base rate anchor → inside view 보정(항목별 ±%p 명시) → 분해 트리 → premortem 3개 → 최종 확률(1% 단위) + 80% CI.
 5. **기록 (L7)**: `forecasts/TEMPLATE.md` 양식으로 `forecasts/YYYY/YYYY-MM-DD_<question-id>_r<N>.md` 생성. 회차 N은 기존 파일 수 + 1. **기존 예측 파일은 절대 수정하지 않는다.**
+   - **관측 채널 (2026-09-09 신설, 생략 금지)**: frontmatter에 `anchor_pct`(= [1]의 anchor 정수)와 `shadow_extremized`를 반드시 기입한다. 후자는 `round(100 / (1 + exp(-sqrt(3) * log(p/(100-p)))))` — p는 최종 확률(%), 결과는 1~99로 클램프. **표시·관측 전용이며 공식 확률이 아니다.**
+     이 두 필드는 CLI 경로만 기록해 왔고 생산의 대부분인 스킬 경로에 공백이 있었다 — 그래서 C5 부수 증명서(BSS)와 ML M1(extremization) 관측 표본이 각각 결손·0이었다. 비용 0의 관측이므로 빠뜨리지 않는다.
 6. **새 base rate 등록**: 리서치 중 발견한 base rate를 `data/base_rates/<domain>.md`에 추가.
 7. **보고**: 사용자에게 최종 확률·CI·핵심 근거 3줄·관찰 지표 2개·직전 예측 대비 변화(재예측 시)를 요약 보고. **말미에 반드시 "P0 참고 의견 — 자금 결정의 단독 근거 아님" 명시** (P3 게이트 통과 전까지).
 

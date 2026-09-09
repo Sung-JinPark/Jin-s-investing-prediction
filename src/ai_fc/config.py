@@ -115,13 +115,16 @@ REASONING_MAX_TOKENS = int(os.environ.get("AI_FC_REASONING_MAX_TOKENS", "16000")
 # ── 예산 (USD) ────────────────────────────────────────────────────
 DEFAULT_PIPELINE_BUDGET = float(os.environ.get("AI_FC_PIPELINE_BUDGET", "4.00"))
 # 사용자 결정 2026-07-20: 월 상한 $20 (기존 $100에서 하향).
-# 함의: 월 실행 가능 예측 ~5~8회 — WS1 표본 속도 목표(월 8~12 해소)와 상충하므로
-# 우선순위 규율 필수 (FACTORY_GUIDE §3 개정). 초과 시 프리플라이트 자동 차단.
-MONTHLY_BUDGET = float(os.environ.get("AI_FC_MONTHLY_BUDGET", "20.00"))
+# 사용자 결정 2026-09-09 (C5-A2): 월 상한 $20 -> $40. C5 캘리브레이션 프로그램의
+# 처리량 요구(설계도 §7.4: 월 $31~49 추정)를 감당하기 위한 인상이며, 인상분은
+# 신규 문항 첫 예측과 마감 직전 재예측에 쓴다. 초과 시 프리플라이트 자동 차단은 무변경.
+MONTHLY_BUDGET = float(os.environ.get("AI_FC_MONTHLY_BUDGET", "40.00"))
 ANTHROPIC_MONTHLY_BUDGET = float(
     os.environ.get("AI_FC_ANTHROPIC_MONTHLY_BUDGET", str(MONTHLY_BUDGET))
 )
-OPENAI_MONTHLY_BUDGET = float(os.environ.get("AI_FC_OPENAI_MONTHLY_BUDGET", "10.00"))
+# 자동 경로(GitHub Actions)의 공식 생산자 sub-cap. C5-A3 자동화가 주 1건에서
+# 주 2~3건으로 늘어나므로 $10 -> $25 (전역 $40 안의 하위 상한).
+OPENAI_MONTHLY_BUDGET = float(os.environ.get("AI_FC_OPENAI_MONTHLY_BUDGET", "25.00"))
 
 # ── 알림 (선택) ───────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")

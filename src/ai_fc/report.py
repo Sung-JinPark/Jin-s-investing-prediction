@@ -167,6 +167,9 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
     # WS9: 드라이버 일관성 표 (자동 판정 없음 — 점검 후보 하이라이트만)
     driver_section = _driver_section(conn, root)
 
+    # C5 부수 증명서 (설계도 §8) — 표시 계층 전용, 게이트 판정에 다리를 놓지 않는다
+    c5_section = _c5_section(root)
+
     html = f"""<!DOCTYPE html><html lang="ko"><head><meta charset="utf-8">
 <title>ai-fc 캘리브레이션</title><style>{CSS}</style></head><body>
 <h1>캘리브레이션 대시보드</h1>
@@ -186,6 +189,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <p class="note">{"⚠ 표본 5 미만 — 다이어그램 해석 불가 구간 (빈 10개는 표본 5+부터 유의미)."
                 if n_resolved < 5 else "빈 10개 십분위."} rolling 질문의 겹치는 윈도우는 독립 표본이 아님.</p></div>
 {murphy_section}
+{c5_section}
 {driver_section}
 
 <h2>벤치마크 3자 비교 — LLM vs ML앙상블 vs 시장내재 (쌍대 표본만)</h2>
@@ -211,3 +215,61 @@ P3 게이트 통과 전 모든 예측은 참고 의견.</p>
     out = out_dir / "calibration.html"
     out.write_text(html, encoding="utf-8")
     return out
+
+
+def _c5_section(root) -> str:
+    """C5 부수 증명서 — 예리도·BSS·ESS·부트스트랩·경로 (설계도 §8.2).
+
+    전부 **표시 계층**이다. 게이트 산술(v_gate_status)은 이 함수가 건드리지 않는다.
+    파생 실패는 숨기지 않고 그 사실을 인쇄한다 (페일클로즈).
+    """
+    try:
+        from . import c5_certificate as c5
+        r = c5.report(root)
+    except Exception as exc:  # noqa: BLE001 — 대시보드가 증명서 때문에 죽으면 안 된다
+        return ('<h2>C5 부수 증명서</h2><div class="card">'
+                f'<p class="note">파생 실패: {exc}</p></div>')
+
+    sharp = r["sharpness"].get("rows")
+    if sharp:
+        verdict = ("<b>임계 초과</b> — 완전 캘리브레이션에서도 미달"
+                   if sharp["mean_pq"] >= c5.BRIER_THRESHOLD_P3 else "임계 이하")
+        rf = r["sharpness"].get("reforecast")
+        rf_txt = (f" · 재예측 예리화 {rf['first']:.4f}→{rf['latest']:.4f} "
+                  f"({rf['delta']:+.4f}, {rf['sharpened']}/{rf['n']}문항)" if rf else "")
+        sharp_txt = (f"행 평균 p(1−p) = <b>{sharp['mean_pq']:.4f}</b> "
+                     f"(임계 {c5.BRIER_THRESHOLD_P3}) → {verdict} · n={sharp['n']}행"
+                     f" · 결손 {sharp['deficit']:+.4f}{rf_txt}")
+    else:
+        sharp_txt = "예측 표본 없음"
+
+    bss = r["bss"]
+    bss_txt = (f"{bss['bss']:+.4f} (모델 {bss['brier_model']:.4f} / anchor "
+               f"{bss['brier_anchor']:.4f}, n={bss['n']}, 미회수 {bss['missing']})"
+               if bss["bss"] is not None else f"표본 없음 (anchor 미회수 {bss['missing']})")
+    bss_warn = ('<p class="note">⚠ BSS ≤ 0 — base rate 대비 증분 실력이 측정되지 않았다. '
+                '게이트를 통과해도 자동 활성화하지 않는다 (C5-A4).</p>'
+                if bss["bss"] is not None and bss["bss"] <= 0 else "")
+
+    ess, essr = r["ess"], r["ess_registry"]
+    bs = r["bootstrap"]
+    bs_txt = (bs["note"] if bs and bs["note"] else
+              (f"[{bs['ci_lo']:.4f}, {bs['ci_hi']:.4f}] · 클러스터 {bs['n_clusters']}개"
+               if bs else "표본 없음"))
+    paths = " · ".join(f"{k} n={v}" for k, v in sorted(r["paths"].items())) or "없음"
+    viol = r["diversification"]["violations"]
+    viol_txt = ("<br>".join(f"⚠ {v}" for v in viol) if viol else "없음")
+
+    return f"""<h2>C5 부수 증명서 — 게이트가 못 보는 것 (표시 전용)</h2>
+<div class="card">
+<p><b>예리도 (D2)</b>: {sharp_txt}</p>
+<p><b>BSS vs anchor</b>: {bss_txt}
+<span class="sub">— 쉬운 질문을 고르면 anchor 도 같이 예리해지므로 패딩에 면역</span></p>{bss_warn}
+<p><b>유효표본 (D3)</b>: 해소 명목 {ess['nominal']} · ESS 하한 {ess['ess_lower']:.1f} ·
+레지스트리 명목 {essr['nominal']} · ESS 하한 {essr['ess_lower']:.1f}</p>
+<p><b>클러스터 부트스트랩 CI90</b>: {bs_txt}</p>
+<p><b>생산 경로</b>: {paths}
+<span class="sub">— claude_code 경로는 cost_log 에 계측되지 않는다 (0 이 아니라 '모름')</span></p>
+<p><b>분산 규칙 위반</b>: {viol_txt}</p>
+<p class="note">전부 표시 계층 — 게이트 판정식(v_gate_status)은 무변경.
+설계도 docs/design/c5_calibration_program_blueprint_v1_260909.md §8.</p></div>"""
