@@ -1,12 +1,31 @@
 name: ops-failure-alert
 
-# Deterministic failure surfacing for the two FRED refresh pipelines: when a
-# run fails, create or update one labeled issue so failures are visible
+# Deterministic failure surfacing for every scheduled data-writer pipeline:
+# when a run fails, create or update one labeled issue so failures are visible
 # without watching the Actions tab. No LLM, no new secrets.
+#
+# 2026-09-09: 감시 범위를 2개에서 데이터 라이터 전부로 넓혔다. 좁은 감시 탓에
+# timeseries-v5-refresh 는 2026-08-25 부터 12일 연속 실패한 채로, timeseries-v13-vol-live
+# 는 사흘 동안 라이브 전진 표본을 못 쌓은 채로 아무 신호 없이 지나갔다.
 
 on:
   workflow_run:
-    workflows: [timeseries-refresh, timeseries-v2-refresh]
+    workflows:
+      - timeseries-refresh
+      - timeseries-v2-refresh
+      - timeseries-v5-refresh
+      - timeseries-v4-data-refresh
+      - timeseries-v8-shadow
+      - timeseries-v13-vol-live
+      - scenario-refresh
+      - ai-regime-refresh
+      - statistics-refresh
+      - source-monitoring
+      - investing-refresh
+      - ipo-edgar-watch
+      - monthly-research-pack
+      - ots-stamp
+      - statistics-alert-email
     types: [completed]
 
 permissions:
