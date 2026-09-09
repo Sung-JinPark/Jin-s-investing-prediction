@@ -75,7 +75,7 @@ split:
 development_protocol:
   track_open: true             # V13-D1 사용자 승인(2026-09-07)
   maximum_development_evaluations: 8
-  evaluations_spent: 3         # rung-1 ewma_logit + rung-2 har_logistic + rung-3 persistence_pb — 원장 3행 대사 ([V13-D2′ A6] 0→2 정정 뒤 C-1 소진 +1)
+  evaluations_spent: 4         # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb · rung-4 macro_blocks — 원장 4행 대사
   experiment_ledger: data/timeseries_v13/ledgers/vol_experiments.jsonl
   ledger_append_only: true
   preregistered_before_results: true
@@ -279,8 +279,9 @@ rung4_macro_blocks:
     degeneracy: degeneracy_guard 적용 — 국면 미달 셀의 채택은 episode_thin 라벨을 달고 배선 불가
   evaluation_budget: 1                     # evaluations_spent 3→4 (최대 8)
   backtest_windows_opened: 0               # 설계창 재분석만 — 홀드아웃·봉인 미열람
+  result: 27검정 전부 measured_zero — 채택 0건, family P(k>=0|n=27)=1.0000 (2026-09-09). 무료 정보집합 소진
   stopping: 전 셀 '측정된 영'(MDE 미만) 이면 정상 종료. 채택 셀이 나오면 champion 재판정은 별도 결정
-  prereg_commit: null                      # 실행 전 커밋 해시를 후속 1줄 커밋으로 기입
+  prereg_commit: 7a868424                  # 결과 전 커밋
 
 # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
 reliability:
