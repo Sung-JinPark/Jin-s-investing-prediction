@@ -1612,8 +1612,8 @@ def cmd_forecast(
         # ② 그 안에서 마감 임박 순 (예측 없이 마감을 넘기면 영구 채점 불가).
         # 정렬 근거는 registry.prioritize_forecast_targets.
         deadlines = {q.question_id: q.deadline for q in questions}
-        targets = [d.question_id
-                   for d in prioritize_forecast_targets(due, deadlines)][:max_n]
+        targets = [d.question_id for d in prioritize_forecast_targets(
+            due, deadlines, datetime.now().date())][:max_n]
         if not targets:
             typer.echo("예측 due 없음")
             return

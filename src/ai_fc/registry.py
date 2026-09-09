@@ -299,11 +299,17 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
     return None
 
 
+# 마감이 이 일수 안에 있으면 회차와 무관하게 최우선. D-3 세그먼트(마감 3일 전 활성)를
+# 여유 있게 덮도록 7일로 둔다 — 2026-09-09 실측 근거는 함수 docstring 참조.
+URGENT_WINDOW_DAYS = 7
+
+
 def prioritize_forecast_targets(
     due: "list[DueItem]",
     deadlines: Optional[dict[str, Optional[date]]] = None,
+    today: Optional[date] = None,
 ) -> "list[DueItem]":
-    """예측 due 를 ① 첫 예측 미실행 먼저 ② 그 안에서 마감 임박 순으로 놓는다.
+    """예측 due 를 ① 마감 임박 ② 미예측 ③ 마감 순으로 놓는다.
 
     ① 왜 미예측 우선인가 (C5-A3, 2026-09-09): P3 게이트의 문항 수는
        COUNT(DISTINCT question_id)(db/schema.sql:436)라 **재예측은 게이트 진도에
@@ -316,16 +322,34 @@ def prioritize_forecast_targets(
        ops-backlog-alert 가 '가장 치명적'으로 분류하는 실패다 (2026-08-31 회고에서
        질문 3건이 실제로 이렇게 소실됐다).
 
+    ③ 왜 마감 임박이 회차보다 앞서는가 (2026-09-09 개정, 실측 근거):
+       **재예측은 이 시스템에서 유일하게 측정된 양(+) 지렛대다** — 다회차 13문항에서
+       첫→최신 평균 p(1-p) 가 0.1845 → 0.1636 (−0.0209) 로 예리해졌고 7/13 이 개선됐다.
+       게이트의 Brier 는 행 평균이라 이 sharpening 회차가 한 행씩 평균을 끌어내린다
+       (active 전건에 D-3 회차를 붙이면 행 평균 0.1842 → 0.1743, 임계 0.18 아래).
+
+       그런데 "미예측 우선"만 적용하면 미예측 19건을 주 3건으로 소진하는 데 7주가 걸리고,
+       **그 사이 마감되는 질문의 D-3 회차는 영구히 사라진다**(개정 시점 실측 4건).
+       마감 임박은 미예측이든 재예측이든 '지금 아니면 없다'이므로 회차보다 앞선다.
+
     `deadlines` 가 없거나 값이 None 인 질문(rolling·미정)은 마감 없음으로 보아
-    같은 부류의 뒤에 놓는다. 정렬은 안정적이라 동률은 compute_due 순서를 유지한다.
-    kind != 'forecast' 는 대상이 아니므로 걸러 낸다 — divergence 는 표시 전용이고
-    resolve 는 사람 확정 경로다.
+    긴급이 아닌 것으로 취급하고 같은 부류의 뒤에 놓는다. 정렬은 안정적이라 동률은
+    compute_due 순서를 유지한다. kind != 'forecast' 는 대상이 아니므로 걸러 낸다 —
+    divergence 는 표시 전용이고 resolve 는 사람 확정 경로다.
     """
     deadlines = deadlines or {}
+    today = today or date.today()
     far = date.max
+    cutoff = today + timedelta(days=URGENT_WINDOW_DAYS)
 
-    def key(item: "DueItem") -> tuple[bool, date]:
-        return (item.last_forecast_ts is not None,
-                deadlines.get(item.question_id) or far)
+    def key(item: "DueItem") -> tuple[int, int, date]:
+        deadline = deadlines.get(item.question_id) or far
+        urgent = deadline <= cutoff
+        # ① 긴급(마감 임박) 먼저 — 회차 무관
+        # ② 비긴급 안에서는 미예측 먼저 (게이트 문항 수 기여)
+        # ③ 각 묶음 안에서는 마감 순
+        return (0 if urgent else 1,
+                0 if (urgent or item.last_forecast_ts is None) else 1,
+                deadline)
 
     return sorted([d for d in due if d.kind == "forecast"], key=key)

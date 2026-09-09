@@ -164,6 +164,30 @@ def main() -> int:
     print(f"          M6 쌍대 표본: 벤치마크 {pw['rows']}행 · ML 동반 {pw['with_ml']} · "
           f"시장 동반 {pw['with_market']} · 3자 {pw['all_three']}")
 
+    # ── 프리플라이트·예산 실측 대사 (2026-09-09 신설) ──────────────
+    pf = r["preflight"]
+    if pf:
+        print(f"\n[프리플라이트] 점검 후보 {len(pf)}건 (판정 아님 — 사람이 1차 출처로 확인)")
+        for item in pf[:6]:
+            print(f"            - {item['id']:<34} 마감 {item['deadline']}")
+            for flag in item["flags"]:
+                print(f"                {flag}")
+    else:
+        print("\n[프리플라이트] 점검 후보 없음")
+
+    b = r["budget"]
+    if b["n_live"]:
+        print(f"\n[예산대사]  Q3 생존 {b['n_live']}문항 · 첫 예측 완료 {b['n_scored']} · 대기 {b['n_pending']}")
+        print(f"            예상 기준 평균 p(1-p) {b['mean_expected_pq']:.4f} → "
+              f"**실측 혼합 {b['mean_blended_pq']:.4f}** (목표 0.15)")
+        if b["mean_abs_error_pp"] is not None:
+            print(f"            사전추정 오차 |예상-실제| 평균 {b['mean_abs_error_pp']:.1f}%p "
+                  f"(표본 {len(b['estimate_errors_pp'])} · 리서치 이후 산정분 제외)")
+        else:
+            print("            사전추정 오차: 표본 없음")
+        if b["over_cap"]:
+            print(f"            ⚠ 실측이 개별 상한 0.21 을 넘은 질문: {', '.join(b['over_cap'])}")
+
     pre = r["prereg"]
     print("[사전등록] " + ("승인 " + str(pre.get("approved")) + " · " + pre.get("prereg_id", "")
                           if pre else "**부재 — Q2 미종료 (페일클로즈)**"))
