@@ -233,6 +233,18 @@ def test_workflow_separates_collection_secrets_from_compute() -> None:
     assert "protected and allowlist guard" in compute
 
 
+def test_workflow_writes_the_read_model_only_from_main() -> None:
+    """A branch run validates; only main may commit and push.
+
+    `git pull --rebase origin main` on a push-triggered V5 code branch replays that
+    branch onto main, and a shallow checkout has no common ancestor to replay from.
+    """
+    text = (ROOT / ".github/workflows/timeseries-v5-refresh.yml").read_text(encoding="utf-8")
+    step = text.split("- name: commit research read model", 1)[1].split("- uses:", 1)[0]
+    assert "github.ref == 'refs/heads/main'" in step and "github.event_name != 'pull_request'" in step
+    assert step.index("if:") < step.index("git push")
+
+
 def _protected_repo(tmp_path: Path) -> Path:
     """A throwaway repository carrying the real V5 contract and one protected root."""
     root = tmp_path / "repo"

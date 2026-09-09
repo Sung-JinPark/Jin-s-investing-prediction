@@ -92,6 +92,10 @@ jobs:
           unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v5/.*|docs/generated/inventory.generated.md)$' || true)"
           test -z "$unexpected" || { echo "$unexpected"; exit 1; }
       - name: commit research read model
+        # main 이외의 ref 는 검증만 한다. push 트리거로 도는 V5 코드 브랜치에서
+        # `git pull --rebase origin main` 은 그 브랜치를 main 위로 재생하려 들고,
+        # 얕은 체크아웃에는 공통 조상이 없어 add/add 충돌로 죽는다 (V4 형제와 동일 가드).
+        if: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/main' }}
         shell: bash
         run: |
           if ! git diff --cached --quiet; then

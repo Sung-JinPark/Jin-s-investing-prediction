@@ -975,3 +975,13 @@ git 을 쓸 수 없으면 통과가 아니라 오류(`protected isolation unveri
 **기록.** `src/ai_fc/timeseries_v5/contracts.py`(`protected_worktree_drift`),
 `pipeline.py`(`verify_v5`·`initialize_v5`), `src/tests/test_multivariate_timeseries_v5.py`
 (회귀 3종 — 형제 커밋 무해·실제 위반 4종 탐지·verify 기준 확인).
+
+**후속 (같은 PR).** 위 수정으로 compute 잡이 처음으로 `verify` 를 통과하자 그 다음
+스텝인 `commit research read model` 에서 새 실패가 드러났다(PR 브랜치 런). 이 워크플로는
+`fetch-depth` 기본값(얕은 체크아웃)에 `git pull --rebase origin main` 을 무조건 실행하는데,
+main 이외의 ref 에서는 그 브랜치를 main 위로 재생하려 들고 얕은 히스토리에는 공통 조상이
+없어 add/add 충돌로 죽는다. `push` 트리거 경로(`src/ai_fc/timeseries_v5/**`)가 있으므로
+V5 코드 PR 마다 재발한다. 형제 `timeseries-v4-data-refresh.yml` 과 동일하게 커밋·푸시
+스텝에 `github.event_name != 'pull_request' && github.ref == 'refs/heads/main'` 가드를
+달았다 — 브랜치 런은 검증만, 기록은 main 만. 회귀 테스트
+`test_workflow_writes_the_read_model_only_from_main` 추가.
