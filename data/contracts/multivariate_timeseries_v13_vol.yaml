@@ -86,7 +86,7 @@ development_protocol:
   holdout_finalists_preregistered: [V13VOL_champion]   # 지금 소모 가능한 finalist 는 이것 하나. 추가는 결과 전 개정으로만.
   holdout_single_scoring_per_finalist: true
   holdout_requires_explicit_user_approval: true
-  holdout_execution_path: absent_by_construction        # V13-D3 승인 후에만 named_verb_guarded 로 개정
+  holdout_execution_path: named_verb_guarded            # [V13-D3 2026-09-09] 승인 원문 수신 후 개정 — verb: timeseries-v13-vol-holdout (영수증 없이는 데이터 읽기 전 거부)
   holdout_ledger: data/timeseries_v13/ledgers/holdout_scorings.jsonl
   approvals_ledger: data/timeseries_v13/ledgers/approvals.jsonl
 
@@ -94,7 +94,7 @@ stopping_points:
   holdout:
     window: ['2015-01-01', '2018-12-31']
     requires_explicit_user_approval: true
-    execution_path: absent_by_construction
+    execution_path: named_verb_guarded    # [V13-D3 2026-09-09] 개정 — 게이트 산술·창·finalist 는 무변경
     consumption: champion 당 1회, 자동 소모 금지
     # [V13-D2′ A3] 절차·게이트 사전등록 (외부 검토 D-1) — 홀드아웃 열람 전 커밋. 아래는 전부 구체화·강화, 완화 0.
     procedure: 사전등록 커밋 → 사용자 승인 원문(literal 'V13-D3' + 승인 + 정확한 finalist_id) → approvals.jsonl receipt → 계약 execution_path 개정 커밋 → verb 1회 실행 → 결과 무관 holdout_scorings.jsonl append → DECISIONS. 자동화(cron·루프) 밖.
@@ -277,7 +277,7 @@ live_display:
     meaning: coefficient_uncertainty_not_calibration
   reliability_markers: {h63: weak}                       # 설계창 rel≈0.08 — 화면 텍스트 마커 '▲ 보정 약함' 병기
   episode_thin_cells: [vix25_h21, vix25_h63, vix30_h5, vix30_h21, vix30_h63, rv_h63]   # degeneracy_guard 실측 — '▲ 국면 표본 얇음' 마커
-  reference_question: {id: vix-25-90d, horizon_calendar_days: 90, divergence_threshold_pp: 15, action: display_only}
+  reference_question: {id: vix-25-90d, horizon_calendar_days: 90, cell: vix25_h63, divergence_threshold_pp: 15, action: display_only}
   x1_name_collision_rule: 표시 설계서 §1.2 6항 — 명칭·출처 배지·지평 단위·caveat lead·역할 관계·결합 금지
 
 # [A7] 동결 계수 — Phase C(champion 확정 뒤) 에서 채운다. 이름 정정: 설계서 §3 'ewma_logit_coefficients.json' → champion 중립 이름(셀별 champion 이 다를 수 있음)
@@ -294,8 +294,11 @@ publication:
   display_tier: t3_live_card                             # [V13-D5 2026-09-08] T3 라이브 카드 — T2 X1 6항 검수(1400/620/375) 통과 뒤 전환. 홀드아웃 전이라 caveat 굵게(읽기모델 가드 강제)
   display_tiers_allowed: [t0_internal, t2_hidden_panel, t3_live_card]
   reference_opinion_only: true
-  holdout_status: not_consumed                           # V13-D3 소모 시 pass | partial | fail — fail 이면 표시 모듈·읽기모델 가드가 숫자를 내린다
-  holdout_fail_cells: []                                 # partial 일 때 FAIL 셀 목록 — 해당 셀은 숫자 대신 표시 불가
+  holdout_status: partial                                # [V13-D3 소모 2026-09-09] 9셀 중 3셀 통과 — 원장 data/timeseries_v13/ledgers/holdout_scorings.jsonl
+  holdout_fail_cells: [vix25_h5, vix25_h63, vix30_h5, vix30_h21, vix30_h63, rv_h63]   # 표시 계층이 이 셀의 숫자를 내린다
+  holdout_pass_cells: [vix25_h21, rv_h5, rv_h21]
+  holdout_family_p: 0.008361                             # P(k>=3 | n=9, p=0.05) — 다중비교 후에도 유의
+  wiring_eligible_cells: [rv_h5, rv_h21]                 # PASS ∧ 설계창 국면 가드 통과. vix25_h21 은 PASS 이나 설계창 late 국면 4개라 배선 불가(degeneracy_guard.consequences.wiring)
   t3_without_holdout_requires_bold_caveat: true          # 사용자 결정(2026-09-08): T3 는 홀드아웃 전 — caveat lead 에 '홀드아웃 미검증' 굵게 상시
 
 # 라이브 전진 게이트 — 결과 축적 전 사전등록 (표시 설계서 §5·§8-3). vol_live.jsonl 의 원점이 성숙하면 셀별 자동 강등.
@@ -349,6 +352,20 @@ amendments_applied:
       D5-1: publication.display_tier t2_hidden_panel→t3_live_card. (전환 — 코드 변경 0)
     caveat_enforced_by: read_model_contract.validate (t3 ∧ holdout_status≠pass ⇒ holdout_caveat_bold) · dashboard.js caveat lead <b>홀드아웃 미검증</b>
     unchanged: 게이트 임계 · 계수 · 홀드아웃 미소모(V13-D3 별도) · 배선 없음(V13-D6 별도) · T4 값 없음.
+
+  V13-D3:
+    display_id: V13-D3
+    approved: '2026-09-09'
+    approval_receipt: v13-approval:V13-D3:2026-09-09:r1
+    approval_text: V13-D3 홀드아웃 1회 소모 승인 finalist=V13VOL_champion_aec80c65038b
+    basis: 계약 stopping_points.holdout.procedure 의 승인 원문 요건 충족 — 사용자가 그 문장을 그대로 선택
+    changes:
+      D3-1: development_protocol.holdout_execution_path absent_by_construction→named_verb_guarded. (전환)
+      D3-2: stopping_points.holdout.execution_path 동일 전환. (전환)
+    unchanged: |
+      홀드아웃 창·finalist·G1~G4 산술·family P·기후 고정값·동결 계수·degeneracy_guard 임계 무변경.
+      verb 는 사전등록된 규칙을 실행만 하며 재적합 경로가 모듈에 존재하지 않는다.
+    consumption_budget: 슬롯 1/3 소모 예정 — 남은 2는 이후 신규 정보집합 finalist 용
 
 decisions_resolved:
   V13-D1: 트랙 개시 (2026-09-07, 계약 주석 승계)

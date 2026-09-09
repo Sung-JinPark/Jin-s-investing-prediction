@@ -1674,8 +1674,12 @@ function renderTimeseriesV13VolPanel(v13){
   v13=v13||{};
   const pub=v13.publication||{},gate=v13.gate||{},tier=pub.display_tier||'t0_internal';
   const live=v13.numbers_visible===true&&v13.status==='live';
-  const holdoutPass=pub.holdout_status==='pass',holdoutFail=pub.holdout_status==='fail';
-  const holdoutLabel=holdoutPass?'홀드아웃(2015~2018) 통과':holdoutFail?'<b>홀드아웃 실패</b>':(pub.holdout_caveat_bold?'<b>홀드아웃 미검증</b>':'홀드아웃 미검증');
+  const holdoutPass=pub.holdout_status==='pass',holdoutFail=pub.holdout_status==='fail',holdoutPartial=pub.holdout_status==='partial';
+  const passN=(v13.holdout_pass_cells||[]).length,cellN=passN+(v13.holdout_fail_cells||[]).length;
+  const holdoutLabel=holdoutPass?'홀드아웃(2015~2018) 통과'
+    :holdoutFail?'<b>홀드아웃 실패</b>'
+    :holdoutPartial?`<b>홀드아웃 부분 통과</b>(${cellN}셀 중 ${passN}셀만 통과 — 나머지는 표시하지 않습니다)`
+    :(pub.holdout_caveat_bold?'<b>홀드아웃 미검증</b>':'홀드아웃 미검증');
   const badge=`<span class="timeseries-chip v13-source-badge" title="${esc(plainTerm('persistence_hint'))}">수치모델 · <abbr title="${esc(plainTerm('persistence_hint'))}">당일 수준 지속(PB)</abbr></span>`;
   const caveat=`<p class="ts-lead v13-caveat">설계창(2007~2014) 스킬 · ${holdoutLabel} · <b>참고 의견 — 매매 신호가 아닙니다.</b> 아래 숫자는 예측이 아니라 <abbr title="${esc(plainTerm('base_rate_hint'))}">기준율</abbr>입니다.</p>`;
   const preview=tier==='t2_hidden_panel'?`<p class="ts-lead">심사용 미리보기(T2 숨김 패널) — 공개 표시가 아닙니다.</p>`:'';
@@ -1703,7 +1707,7 @@ function renderTimeseriesV13VolPanel(v13){
   const gateStrip=`<section class="timeseries-gate-strip" aria-label="V13 게이트 상태">`
     +`<span class="ts-gate-chip ${gate.design_gate_pass?'pass':'hold'}" title="설계창(2007~2014) 기후 대비 9/9 양방향 CI90>0 · 건전 y-block 귀무 ≤0.033 · 당일 수준 기준선(PB)이 champion">설계창 게이트 ${gate.design_gate_pass?'통과':'보류'}</span>`
     +`<span class="ts-gate-chip ${gate.freshness_pass?'pass':'hold'}" title="NYSE 거래일 달력 기준 누락 세션 ${fresh.missing_sessions??'—'}/${fresh.max_missing_sessions??1}">신선도 ${gate.freshness_pass?'OK':'경고'} · 기준일 ${esc(String(v13.as_of||''))} (미국 거래일 종가)</span>`
-    +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':'미검증'}</span>`
+    +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다. 기후 대비 통과여도 라벨 블록순열(건전 귀무) 통과율이 0.10을 넘으면 실패입니다.">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':holdoutPartial?`부분 통과 ${passN}/${cellN}`:'미검증'}</span>`
     +`<span class="ts-gate-chip pass" title="입력: VIX 종가 ${Number(inputs.vix_close||0).toFixed(1)} · 실현변동성(21일, 연율) ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%">VIX ${Number(inputs.vix_close||0).toFixed(1)} · RV21 ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%</span>`
     +divChip+`</section>`;
   const ex=cells.vix25_h63?v13Pct(cells.vix25_h63.p):'—';

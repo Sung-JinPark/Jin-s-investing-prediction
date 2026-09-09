@@ -1,13 +1,13 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-09T02:19:38+00:00",
+  "generated_at": "2026-09-09T02:56:08+00:00",
   "market_cutoff": "2026-09-08",
   "summary": {
-    "accumulating": 36,
+    "accumulating": 37,
     "stalled": 10,
     "inactive": 4,
     "violation": 2,
-    "planned": 5,
+    "planned": 4,
     "frozen": 2
   },
   "ledgers": [
@@ -1651,8 +1651,8 @@
       "kind": "jsonl",
       "cadence": "event",
       "criticality": "high",
-      "status": "planned",
-      "file_count": 0,
+      "status": "accumulating",
+      "file_count": 1,
       "row_count": null,
       "latest_date": null,
       "missing_trading_days": [],
@@ -1671,7 +1671,7 @@
       "status": "accumulating",
       "file_count": 1,
       "row_count": null,
-      "latest_date": "2026-09-08",
+      "latest_date": "2026-09-09",
       "missing_trading_days": [],
       "immutable_changes": [],
       "schema_errors": [],
@@ -1681,6 +1681,10 @@
         {
           "date": "2026-09-08",
           "count": 1
+        },
+        {
+          "date": "2026-09-09",
+          "count": 2
         }
       ]
     },

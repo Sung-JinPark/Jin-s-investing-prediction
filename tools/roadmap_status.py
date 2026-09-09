@@ -101,14 +101,27 @@ def _holdout_ok() -> tuple[bool, list[str]]:
 
 
 def _wiring_ok() -> tuple[bool, list[str]]:
+    """배선은 '자격 있는 셀'과 '그 셀로 채점 가능한 등록 질문'이 **둘 다** 있어야 시작할 수 있다."""
     contract = _contract()
+    publication = contract.get("publication") or {}
     missing: list[str] = []
+    if publication.get("holdout_status") not in {"pass", "partial"}:
+        missing.append("홀드아웃 PASS/부분PASS 전에는 배선 불가")
+        return False, missing
+    eligible = list(publication.get("wiring_eligible_cells") or [])
+    reference = ((contract.get("live_display") or {}).get("reference_question") or {})
+    mapped = str(reference.get("cell") or "vix25_h63")
+    if not eligible:
+        missing.append("배선 자격 셀 0 — 홀드아웃 PASS ∧ 국면 가드 통과 셀이 없다")
+    elif mapped not in eligible:
+        missing.append(
+            f"구조적 차단: 등록 질문 {reference.get('id', 'vix-25-90d')} 에 대응하는 셀 {mapped} 이 자격 없음 "
+            f"(자격 셀 {eligible} 에 대응하는 등록 질문이 없다). "
+            "해소는 사용자 결정 — 질문 레지스트리 신설 또는 배선 보류")
     if not _decisions("V13-D6"):
         missing.append("approvals 에 V13-D6 승인 영수증 부재")
     if not (ROOT / "data/base_rates/volatility_v13_auto.md").is_file():
         missing.append("data/base_rates/volatility_v13_auto.md 부재")
-    if (contract.get("publication") or {}).get("holdout_status") not in {"pass", "partial"}:
-        missing.append("홀드아웃 PASS/부분PASS 전에는 배선 불가")
     return (not missing), missing
 
 
@@ -158,8 +171,9 @@ STAGES: list[tuple[str, str, Callable[[], tuple[bool, list[str]]], str, str]] = 
     ("P2", "홀드아웃 1회 소모", _holdout_ok,
      "V13-D3 원문: 'V13-D3 홀드아웃 1회 소모 승인 finalist=<finalist_id>'",
      "cd src && python -m ai_fc timeseries-v13-vol-holdout --approval-receipt <id>"),
-    ("P3", "EXIT base rate 배선", _wiring_ok, "V13-D6",
-     "cd src && python -m ai_fc timeseries-v13-vol-base-rates"),
+    ("P3", "EXIT base rate 배선", _wiring_ok,
+     "V13-D6 — 단 구조적 차단 시 먼저 '질문 신설 vs 보류' 결정",
+     "차단 해소 전에는 명령 없음 — docs/review/V13_HOLDOUT_VERDICT_20260909.md §4 참조"),
     ("P4", "봉인 아카이브 내 신규 피처블록", _new_block_ok, "없음(예산 내)",
      "신규 rung 사전등록 후 실행"),
     ("P5", "외부 정보집합(옵션·일중)", _paid_data_ok, "구매·발송(사용자)",

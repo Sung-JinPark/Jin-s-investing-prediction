@@ -1,8 +1,8 @@
 # Ledger accumulation audit
 
-- Generated: `2026-09-09T02:19:38+00:00`
+- Generated: `2026-09-09T02:56:08+00:00`
 - Latest completed NYSE day: `2026-09-08`
-- Result: accumulating 36 · frozen 2 · stalled 10 · inactive 4 · violation 2 · planned 5
+- Result: accumulating 37 · frozen 2 · stalled 10 · inactive 4 · violation 2 · planned 4
 
 | Ledger | Cadence | Files / rows | Latest | Status | Finding |
 |---|---:|---:|---:|---:|---|
@@ -59,8 +59,8 @@
 | `timeseries_v8_holdout_scorings` | event | 1 | — | **accumulating** | — |
 | `timeseries_v8_development_experiments` | event | 1 | — | **accumulating** | — |
 | `timeseries_v13_vol_experiments` | event | 1 | 2026-09-08 | **accumulating** | — |
-| `timeseries_v13_holdout_scorings` | event | 0 | — | **planned** | — |
-| `timeseries_v13_approvals` | event | 1 | 2026-09-08 | **accumulating** | — |
+| `timeseries_v13_holdout_scorings` | event | 1 | — | **accumulating** | — |
+| `timeseries_v13_approvals` | event | 1 | 2026-09-09 | **accumulating** | — |
 | `timeseries_v13_vol_live` | trading_daily | 1 | 2026-09-08 | **accumulating** | — |
 | `timeseries_v13_vol_live_resolutions` | trading_daily | 0 | — | **planned** | — |
 | `timeseries_v13_vol_ladder_results` | event | 3 | — | **accumulating** | — |

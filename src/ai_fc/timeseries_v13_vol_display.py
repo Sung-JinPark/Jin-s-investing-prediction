@@ -197,6 +197,8 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
                                if name in latest["cells"] and name not in holdout_fail_cells}  # type: ignore[index]
         if holdout_fail_cells:
             projection["holdout_fail_cells"] = [c for c in CELL_ORDER if c in holdout_fail_cells]
+            projection["holdout_pass_cells"] = [c for c in CELL_ORDER
+                                                if c in (publication.get("holdout_pass_cells") or [])]
         if not projection["cells"]:
             projection.pop("cells"); projection.pop("inputs")
             projection["status"] = "hold"; projection["numbers_visible"] = False
