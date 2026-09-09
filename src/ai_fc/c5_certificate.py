@@ -476,6 +476,78 @@ def stages(root: Path, gate: dict[str, Any], q: dict[str, Any]) -> list[Stage]:
     ]
 
 
+# ────────────────────────────────────────────────────────────────────
+# ML 층위 관측 (ML 설계도 §8) — 전부 관측 전용, 어떤 것도 공식 확률을 바꾸지 않는다
+# ────────────────────────────────────────────────────────────────────
+
+# 사전등록 격자 (ML 설계도 §6). **결과를 보고 확장하지 않는다.**
+EXTREMIZATION_GRID = (1.0, 1.2, 1.5, math.sqrt(3), 2.0)
+EXTREMIZATION_MIN_SAMPLE = 30
+
+
+def _extremize(p: float, alpha: float) -> float:
+    """σ(α·logit(p)). 결정론 변환 — 기록된 확률에만 적용한다 (LLM 재실행 아님)."""
+    p = min(max(p, 0.01), 0.99)
+    return 1.0 / (1.0 + math.exp(-math.log(p / (1 - p)) * alpha))
+
+
+def extremization_observation(gate: dict[str, Any]) -> Optional[dict[str, Any]]:
+    """M1 — 사전등록 α 격자의 가상 Brier. 표본 미달이면 판정하지 않는다."""
+    rows = gate["rows"]
+    if not rows:
+        return None
+    pairs = [(float(r["probability"]) / 100.0, int(r["outcome"])) for r in rows]
+    base = sum((p - o) ** 2 for p, o in pairs) / len(pairs)
+    grid = [{"alpha": a,
+             "brier": sum((_extremize(p, a) - o) ** 2 for p, o in pairs) / len(pairs)}
+            for a in EXTREMIZATION_GRID]
+    for item in grid:
+        item["delta"] = item["brier"] - base
+    best = min(grid, key=lambda x: x["brier"])
+    return {"n": len(pairs), "base": base, "grid": grid, "best_alpha": best["alpha"],
+            "sufficient": len(pairs) >= EXTREMIZATION_MIN_SAMPLE,
+            "min_sample": EXTREMIZATION_MIN_SAMPLE}
+
+
+def decile_fill(gate: dict[str, Any], n_bins: int = 10) -> dict[int, int]:
+    """M5 — 십분위 빈 채움. isotonic 보정(해소 100+)이 언제 가능해지는지의 선행 지표."""
+    counts = {i: 0 for i in range(n_bins)}
+    for r in gate["rows"]:
+        p = float(r["probability"]) / 100.0
+        counts[min(int(p * n_bins), n_bins - 1)] += 1
+    return counts
+
+
+def pairwise_benchmark_count(root: Path) -> dict[str, int]:
+    """M6 — LLM/ML/시장 쌍대 표본. 학습 결합(해소 200+)의 선행 조건."""
+    path = root / "calibration" / "benchmark_ledger.csv"
+    if not path.exists():
+        return {"rows": 0, "with_ml": 0, "with_market": 0, "all_three": 0}
+    with path.open(encoding="utf-8", newline="") as fh:
+        rows = list(csv.DictReader(fh))
+
+    def has(row: dict[str, Any], key: str) -> bool:
+        return bool((row.get(key) or "").strip())
+
+    return {"rows": len(rows),
+            "with_ml": sum(1 for r in rows if has(r, "ml_prob")),
+            "with_market": sum(1 for r in rows if has(r, "market_prob")),
+            "all_three": sum(1 for r in rows if has(r, "ml_prob") and has(r, "market_prob"))}
+
+
+def shadow_coverage(root: Path) -> dict[str, int]:
+    """관측 채널 커버리지 — shadow_extremized 를 실제로 기록한 예측 비율."""
+    total = written = 0
+    for path in sorted((root / "forecasts").glob("*/*.md")) if (root / "forecasts").exists() else []:
+        head = path.read_text(encoding="utf-8", errors="replace")[:4000]
+        if "probability:" not in head:
+            continue
+        total += 1
+        if "shadow_extremized:" in head:
+            written += 1
+    return {"total": total, "written": written}
+
+
 def report(root: Path, today: Optional[date] = None) -> dict[str, Any]:
     """전체 상태를 한 번에 파생한다 (도구·대시보드 공용)."""
     gate = gate_status(root)
@@ -495,4 +567,10 @@ def report(root: Path, today: Optional[date] = None) -> dict[str, Any]:
         "diversification": diversification_check(root),
         "stages": stages(root, gate, q),
         "prereg": prereg(root),
+        "ml": {
+            "extremization": extremization_observation(gate),
+            "deciles": decile_fill(gate),
+            "pairwise": pairwise_benchmark_count(root),
+            "shadow_coverage": shadow_coverage(root),
+        },
     }

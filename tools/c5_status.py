@@ -132,6 +132,38 @@ def main() -> int:
     else:
         print("\n[다음]    전 단계 완료")
 
+    # ── ML 층위 관측 (ML 설계도 §8) ────────────────────────────────
+    ml = r["ml"]
+    ex = ml["extremization"]
+    if ex:
+        verdict = ("판정 가능" if ex["sufficient"]
+                   else f"표본 미달 ({ex['n']}/{ex['min_sample']}) — 판정하지 않는다")
+        print(f"\n[ML]      M1 extremization: 기준 {ex['base']:.4f} · {verdict}")
+        for item in ex["grid"]:
+            mark = " ← 최적" if item["alpha"] == ex["best_alpha"] else ""
+            print(f"            α={item['alpha']:.3f} → {item['brier']:.4f} "
+                  f"({item['delta']:+.4f}){mark}")
+        mu = r["murphy"]
+        if mu:
+            # 1차 증거는 위 격자(실측)다. REL/RES 는 보조 진단일 뿐 판정 다리가 아니다 —
+            # 둘이 어긋나면 격자를 믿고, 어긋났다는 사실 자체를 인쇄한다.
+            heuristic_ok = mu["reliability"] <= mu["resolution"]
+            grid_ok = ex["best_alpha"] > 1.0
+            note = "격자와 일치" if heuristic_ok == grid_ok else "**격자와 불일치 — 격자를 따른다**"
+            print(f"            보조 진단: REL {mu['reliability']:.4f} "
+                  f"{'<=' if heuristic_ok else '>'} RES {mu['resolution']:.4f} · {note}")
+    cov = ml["shadow_coverage"]
+    print(f"          관측 채널 커버리지: shadow_extremized {cov['written']}/{cov['total']} 예측")
+    dec = ml["deciles"]
+    print("          M5 십분위 빈: " + " ".join(
+        f"{i*10}s={n}" for i, n in sorted(dec.items())))
+    filled = sum(1 for n in dec.values() if n >= 10)
+    print(f"            10건 이상 채워진 빈 {filled}/10 · isotonic 게이트(해소 100+)까지 "
+          f"{max(0, 100 - r['gate']['n_rows_primary'])}행")
+    pw = ml["pairwise"]
+    print(f"          M6 쌍대 표본: 벤치마크 {pw['rows']}행 · ML 동반 {pw['with_ml']} · "
+          f"시장 동반 {pw['with_market']} · 3자 {pw['all_three']}")
+
     pre = r["prereg"]
     print("[사전등록] " + ("승인 " + str(pre.get("approved")) + " · " + pre.get("prereg_id", "")
                           if pre else "**부재 — Q2 미종료 (페일클로즈)**"))

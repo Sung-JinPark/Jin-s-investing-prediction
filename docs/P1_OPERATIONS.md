@@ -53,6 +53,15 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 - 예측 파이프라인은 신선한(7일 내) ml 실행이 있으면 분위수 밴드·감성 다이제스트를 추론 프롬프트에 자동 주입한다 (질문별 ML 매핑 확률은 앵커링 방지를 위해 의도적으로 미주입)
 - `forecast --dry-run`: 실 LLM로 배선 점검하되 `db/scratch/`에만 기록 (forecasts/ 무접촉)
 - `--agents 4`: 중요 질문은 펀더멘털/매크로/수급/데블스 4에이전트로 확장
+- **예측 frontmatter 신설 필드 (2026-09-09, 전방 전용)**: `anchor_pct`(= [1] outside view anchor 정수)와
+  `shadow_extremized`(= σ(√3·logit(p)), 표시·관측 전용이며 공식 확률 아님)를 신규 예측에 기입한다.
+  CLI 경로는 자동, Claude Code 스킬 경로는 손으로 계산해 넣는다.
+  **주의 — 이 규약을 `forecasts/TEMPLATE.md` 에 적을 수 없다.** 공증 검증기
+  `tools/verify_track_record.py` [2](a)는 `git log --diff-filter=MD -- forecasts` 로 `forecasts/`
+  아래 **모든 .md 의 수정 이력**을 불변성 위반으로 잡는다 — 예측 기록뿐 아니라 TEMPLATE 도 포함이다
+  (CLAUDE.md "forecasts/ 아래 파일은 생성 후 절대 수정·삭제 금지"의 문언 그대로). 따라서 양식 변경은
+  이 문서와 `/forecast` 스킬에만 기록한다. 2026-09-09 세션에서 TEMPLATE 을 고쳤다가 검증기가
+  잡아내 되돌렸다.
 - `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 전역 월 상한 **$40** — 환경변수 `AI_FC_MONTHLY_BUDGET`. C5-A2 2026-09-09 승인으로 $20에서 인상)
 - deadline이 null인 질문은 실행 거부됨 → 발표일 확인 후 registry에 deadline 기록하고 재실행
 

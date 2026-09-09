@@ -232,3 +232,72 @@ def test_module_is_read_only() -> None:
     source = (ROOT / "src" / "ai_fc" / "c5_certificate.py").read_text(encoding="utf-8")
     for forbidden in ("write_text(", "open(.*'w'", ".unlink(", "shutil."):
         assert forbidden not in source, f"읽기 전용 위반 후보: {forbidden}"
+
+
+# ── ML 층위 관측 (ML 설계도 §4·§8) ─────────────────────────────────
+
+def test_extremization_grid_is_preregistered_and_frozen() -> None:
+    """격자는 결과 전 고정. 사후 확장은 모든 측정을 무효로 만든다 (ML 설계도 §6)."""
+    import math
+    assert C5.EXTREMIZATION_GRID == (1.0, 1.2, 1.5, math.sqrt(3), 2.0)
+    assert C5.EXTREMIZATION_MIN_SAMPLE == 30
+
+
+def test_extremization_withholds_verdict_below_min_sample(repo: Path) -> None:
+    ex = C5.extremization_observation(C5.gate_status(repo))
+    assert ex["n"] == 3
+    assert ex["sufficient"] is False      # 표본 미달이면 판정하지 않는다
+
+
+def test_extremization_alpha_one_is_identity(repo: Path) -> None:
+    """α=1 은 항등 — 기준선과 정확히 같아야 한다 (변환 구현의 무결성 고정)."""
+    gate = C5.gate_status(repo)
+    ex = C5.extremization_observation(gate)
+    identity = next(x for x in ex["grid"] if x["alpha"] == 1.0)
+    assert identity["delta"] == pytest.approx(0.0, abs=1e-9)
+    assert ex["base"] == pytest.approx(gate["brier"], abs=1e-9)
+
+
+def test_extremization_punishes_confident_misses(repo: Path) -> None:
+    """확신 있게 틀린 예측은 극단화로 악화된다 — M1 이 음(-)으로 측정된 기제."""
+    gate = C5.gate_status(repo)
+    gate["rows"] = [{"probability": "80", "outcome": "0", "brier": "0.64",
+                     "question_id": "q", "forecast_id": "f"}]
+    ex = C5.extremization_observation(gate)
+    assert all(x["delta"] > 0 for x in ex["grid"] if x["alpha"] > 1.0)
+
+
+def test_decile_fill_counts_bins(repo: Path) -> None:
+    """M5 — isotonic(해소 100+) 가능 시점의 선행 지표."""
+    dec = C5.decile_fill(C5.gate_status(repo))
+    assert dec[4] == 1 and dec[2] == 1 and dec[8] == 1   # p=40, 20, 80
+    assert sum(dec.values()) == 3
+
+
+def test_shadow_coverage_reports_channel_gap(repo: Path) -> None:
+    """관측 채널이 안 뚫려 있으면 그 사실이 보여야 한다."""
+    cov = C5.shadow_coverage(repo)
+    assert cov == {"total": 3, "written": 0}
+    p = repo / "forecasts/2026/2026-01-01_q2_r1.md"
+    p.write_text(p.read_text(encoding="utf-8").replace(
+        "probability: 80", "probability: 80\nshadow_extremized: 94"), encoding="utf-8")
+    assert C5.shadow_coverage(repo)["written"] == 1
+
+
+def test_pairwise_benchmark_count_handles_missing_file(tmp_path: Path) -> None:
+    assert C5.pairwise_benchmark_count(tmp_path)["rows"] == 0
+
+
+def test_pairwise_benchmark_treats_blank_as_absent(tmp_path: Path) -> None:
+    """부재는 NULL — 빈 문자열을 0 으로 세면 불공정 비교가 된다."""
+    _write(tmp_path / "calibration/benchmark_ledger.csv",
+           "forecast_id,ml_prob,market_prob\na,,\nb,0.4,\nc,0.4,0.5\n")
+    pw = C5.pairwise_benchmark_count(tmp_path)
+    assert pw == {"rows": 3, "with_ml": 2, "with_market": 1, "all_three": 1}
+
+
+def test_ml_layer_never_touches_official_probability() -> None:
+    """ML 관측은 전부 표시 계층 — 원장·예측 파일 쓰기 경로가 없어야 한다."""
+    source = (ROOT / "src" / "ai_fc" / "c5_certificate.py").read_text(encoding="utf-8")
+    assert "ledger.csv" in source                      # 읽기는 한다
+    assert ".write" not in source                      # 그러나 쓰지 않는다
