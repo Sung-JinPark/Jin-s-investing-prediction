@@ -91,7 +91,7 @@ jobs:
           if [[ "$RUN_MODE" == "smoke" ]]; then
             python -m ai_fc openai-smoke
           else
-            python -m ai_fc forecast --due --max 1 --agents 2 --budget 1.50 --yes
+            python -m ai_fc forecast --due --max 3 --agents 2 --budget 1.50 --yes
           fi
 
       - name: Rebuild and replay-verify V5.2 after every protected write

@@ -60,7 +60,9 @@ def test_empty_input_is_empty_output() -> None:
 def test_cli_uses_the_shared_prioritizer() -> None:
     """정렬 규칙이 CLI 에 다시 인라인되면 이 테스트가 먼저 깨진다."""
     source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
-    assert "prioritize_forecast_targets(due)" in source
+    assert "prioritize_forecast_targets(due" in source
+    assert ".sort(key=" not in source.split("def cmd_forecast")[1].split("def ")[0], \
+        "정렬을 CLI 에 다시 인라인하지 말 것 — registry 의 순수 함수를 쓴다"
 
 
 # ── 2. 판정 확정 자동화 금지 ───────────────────────────────────────
@@ -100,5 +102,57 @@ def test_investing_refresh_still_caps_paid_work() -> None:
     """자동 예측 경로의 상한이 사라지지 않았는지 (C5-A2 인상 후에도 상한은 유지)."""
     text = (ROOT / ".github" / "workflows" / "investing-refresh.yml").read_text(
         encoding="utf-8")
-    assert "--max 1" in text
+    assert "--max 3" in text      # C5-A3 2026-09-09: 1 -> 3 (신규 26문항 소화)
     assert 'AI_FC_MONTHLY_BUDGET: "25.00"' in text
+
+
+# ── 마감 임박 우선 (2026-09-09 추가) ───────────────────────────────
+
+def test_nearest_deadline_first_among_never_forecast() -> None:
+    """미예측 묶음 안에서는 마감이 가까운 질문이 먼저다.
+
+    실측 계기: Q3 신규 20문항 등록 직후 due 큐가 사실상 등록 순이라,
+    마감 2일 남은 질문이 마감 6개월 남은 질문보다 뒤에 있었다.
+    """
+    from datetime import date
+    due = [
+        _item("far", last=None),
+        _item("near", last=None),
+        _item("mid", last=None),
+    ]
+    deadlines = {"far": date(2027, 3, 31), "near": date(2026, 9, 11),
+                 "mid": date(2026, 10, 14)}
+    assert [d.question_id for d in prioritize_forecast_targets(due, deadlines)] == [
+        "near", "mid", "far"]
+
+
+def test_never_forecast_still_beats_urgent_reforecast() -> None:
+    """마감이 급해도 재예측은 미예측 뒤다 — 게이트 문항 수 기여가 0이기 때문."""
+    from datetime import date
+    due = [
+        _item("reforecast-urgent", last=datetime(2026, 9, 1)),
+        _item("new-far", last=None),
+    ]
+    deadlines = {"reforecast-urgent": date(2026, 9, 10),
+                 "new-far": date(2027, 6, 30)}
+    assert [d.question_id for d in prioritize_forecast_targets(due, deadlines)] == [
+        "new-far", "reforecast-urgent"]
+
+
+def test_missing_or_rolling_deadline_sorts_last() -> None:
+    """rolling·미정 마감은 '마감 없음'으로 보아 같은 부류의 뒤에 둔다."""
+    from datetime import date
+    due = [_item("rolling", last=None), _item("dated", last=None)]
+    order = prioritize_forecast_targets(due, {"dated": date(2026, 12, 1)})
+    assert [d.question_id for d in order] == ["dated", "rolling"]
+
+
+def test_deadlines_argument_is_optional() -> None:
+    """인자를 안 주면 기존 동작(미예측 우선)만 적용되고 죽지 않는다."""
+    due = [_item("a", last=datetime(2026, 9, 1)), _item("b", last=None)]
+    assert [d.question_id for d in prioritize_forecast_targets(due)] == ["b", "a"]
+
+
+def test_cli_passes_deadlines_to_prioritizer() -> None:
+    source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
+    assert "prioritize_forecast_targets(due, deadlines)" in source
