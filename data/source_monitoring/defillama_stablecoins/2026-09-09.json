@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "source_id": "defillama_stablecoins",
+  "checked_date": "2026-09-09",
+  "status": "success",
+  "http_status": 200,
+  "observations": 3207,
+  "schema_fingerprint": "18f698352ecd4d4c76659fbbf12cf883a37bb101068ae42c8143b09a53252f59",
+  "response_sha256": "123094db9a60dbc8ddbce66134d4152256872ca9209ba5a7f1762284ed6ddab7",
+  "observation_period": "2026-09-09",
+  "available_at": "2026-09-09T07:42:13+00:00",
+  "source_url": "https://stablecoins.llama.fi/stablecoincharts/all",
+  "source_fingerprint": "18f698352ecd4d4c76659fbbf12cf883a37bb101068ae42c8143b09a53252f59",
+  "revision_vintage": "captured_current",
+  "raw_values_redistributed": false
+}
