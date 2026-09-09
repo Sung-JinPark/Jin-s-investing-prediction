@@ -1704,8 +1704,11 @@ function renderTimeseriesV13VolPanel(v13){
   const hs=['5','21','63'],hNote={'5':'(≈1주)','21':'(≈1개월)','63':'(≈90달력일)'};
   const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];if(!c)return `<td data-h="${h}">—</td>`;const weak=c.reliability==='weak',thin=c.episode_sample==='thin',band=c.band80||[];
     return `<td data-h="${h}"${weak||thin?' class="is-weak"':''}><b>기준율 ${v13Pct(c.p)}</b><small>[80%: ${v13Pct(band[0])}–${v13Pct(band[1])}]</small><small>기후 ${v13Pct(c.clim_base_rate)}</small>${weak?`<i title="${esc(plainTerm('v13_weak_hint'))}">▲ 보정 약함</i>`:''}${thin?`<i title="${esc(plainTerm('v13_thin_hint'))}">▲ 국면 표본 얇음</i>`:''}</td>`;}).join('')}</tr>`;
-  const table=`<table class="v13-vol-table" data-active-h="63"><thead><tr><th scope="col">사건</th>${hs.map(h=>`<th scope="col" data-h="${h}">${h}<abbr title="${esc(plainTerm('business_day_hint'))}">영업일</abbr><small>${hNote[h]}</small></th>`).join('')}</tr></thead><tbody>${rowFor('vix25',V13_CELL_LABELS.vix25)}${rowFor('vix30',V13_CELL_LABELS.vix30)}${rowFor('rv',V13_CELL_LABELS.rv)}</tbody></table>`;
-  const hTabs=`<nav class="lab-tabs v13-h-tabs" role="tablist" aria-label="지평 선택(모바일)">${hs.map(h=>`<button type="button" role="tab" data-v13-h-tab="${h}" aria-selected="${String(h==='63')}">${h}영업일</button>`).join('')}</nav>`;
+  /* 모바일은 지평 한 칸만 보여준다. 기본 63 을 그대로 두면 홀드아웃에서 63 이 전부 떨어진 지금
+     휴대폰 사용자는 대시 세 개만 보게 된다 — 숫자가 있는 지평으로 열되 순서(63→21→5)는 지킨다. */
+  const defaultH=hs.slice().reverse().find(h=>['vix25','vix30','rv'].some(p=>cells[`${p}_h${h}`]))||'63';
+  const table=`<table class="v13-vol-table" data-active-h="${defaultH}"><thead><tr><th scope="col">사건</th>${hs.map(h=>`<th scope="col" data-h="${h}">${h}<abbr title="${esc(plainTerm('business_day_hint'))}">영업일</abbr><small>${hNote[h]}</small></th>`).join('')}</tr></thead><tbody>${rowFor('vix25',V13_CELL_LABELS.vix25)}${rowFor('vix30',V13_CELL_LABELS.vix30)}${rowFor('rv',V13_CELL_LABELS.rv)}</tbody></table>`;
+  const hTabs=`<nav class="lab-tabs v13-h-tabs" role="tablist" aria-label="지평 선택(모바일)">${hs.map(h=>`<button type="button" role="tab" data-v13-h-tab="${h}" aria-selected="${String(h===defaultH)}">${h}영업일</button>`).join('')}</nav>`;
   /* 괴리 칩 — 표시만. LLM 확률과 어떤 산술 결합도 하지 않는다. latest_prob 는 퍼센트 정수. */
   const q=(DATA.questions||[]).find(x=>x.id===refId);
   const llm=q&&hasNumeric(q.latest_prob)?Number(q.latest_prob):null;
