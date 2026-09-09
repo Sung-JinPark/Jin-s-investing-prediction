@@ -489,12 +489,45 @@ def cmd_timeseries_v13_vol_latest() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v13-vol-resolve")
+def cmd_timeseries_v13_vol_resolve() -> None:
+    """성숙한 V13-VOL 라이브 원점을 채점해 append-only 해상 원장에 남긴다 (판정 없음)."""
+    from .timeseries_v13.resolve import resolve_live_timeseries_v13_vol
+
+    result = _timeseries_exit(resolve_live_timeseries_v13_vol, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v13-vol-holdout")
+def cmd_timeseries_v13_vol_holdout(
+    approval_receipt: str = typer.Option("", "--approval-receipt",
+                                         help="approvals.jsonl 의 V13-D3 영수증 id (없으면 거부)"),
+) -> None:
+    """★ 비가역: V13-VOL 홀드아웃(2015-2018) 1회 채점. 승인 영수증 없이는 데이터를 읽기 전에 거부한다."""
+    from .timeseries_v13.holdout import score_holdout
+
+    result = _timeseries_exit(score_holdout, config.ROOT, approval_receipt_id=approval_receipt)
+    typer.echo(json.dumps({
+        "status": result["status"], "finalist_id": result["finalist_id"],
+        "pass_cells": result["pass_cells"], "fail_cells": result["fail_cells"],
+        "episode_thin_pass_cells": result["episode_thin_pass_cells"],
+        "wiring_eligible_cells": result["wiring_eligible_cells"],
+        "untestable_cells": result["untestable_cells"],
+        "family_p_binomial": result["family_p_binomial"],
+    }, ensure_ascii=False, indent=2))
+
+
 @app.command("timeseries-v13-vol-verify")
 def cmd_timeseries_v13_vol_verify() -> None:
     """V13-VOL 포인터·라이브 원장 체인·계수 핀·아카이브 재계산 대사를 검증한다."""
     from .timeseries_v13.pipeline import verify_timeseries_v13_vol
+    from .timeseries_v13.resolve import verify_live_resolutions
 
     result = _timeseries_exit(verify_timeseries_v13_vol, config.ROOT)
+    resolutions = _timeseries_exit(verify_live_resolutions, config.ROOT)
+    result["resolutions"] = resolutions
+    result["ok"] = bool(result["ok"] and resolutions["ok"])
+    result["errors"] = list(result["errors"]) + list(resolutions["errors"])
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
     if not result["ok"]:
         raise typer.Exit(code=1)

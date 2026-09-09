@@ -34,7 +34,8 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
-def compute_cells(frozen: dict[str, Any], panel: dict[str, np.ndarray]) -> tuple[dict[str, Any], dict[str, float]]:
+def compute_cells(frozen: dict[str, Any], panel: dict[str, np.ndarray],
+                  *, episode_thin: Any = None) -> tuple[dict[str, Any], dict[str, float]]:
     """전체 이력 패널의 마지막 행에 대해 셀별 (p, se, band80). EWMA 는 전체 이력에 연속 실행."""
     vix, rv = panel["vix"], panel["rv21"]
     vix_ewma = F.ewma(vix, frozen["alpha_ewma"])
@@ -42,6 +43,7 @@ def compute_cells(frozen: dict[str, Any], panel: dict[str, np.ndarray]) -> tuple
     rv_ewma = F.ewma(rv_f, frozen["alpha_ewma"])
     inputs = {"vix_close": float(vix[-1]), "vix_close_ewma21": float(vix_ewma[-1]),
               "rv21_ann": float(rv_f[-1]), "rv21_ann_ewma21": float(rv_ewma[-1])}
+    thin = set(episode_thin or ())
     cells: dict[str, Any] = {}
     for name in C.CELL_ORDER:
         cell = frozen["cells"].get(name)
@@ -63,6 +65,8 @@ def compute_cells(frozen: dict[str, Any], panel: dict[str, np.ndarray]) -> tuple
             "band80": [round(lo, 6), round(hi, 6)], "derived_layer": cell.get("derived_layer", "raw"),
             "clim_base_rate": round(float(cell["clim_base_rate"]), 6),
             "reliability": "weak" if cell["h"] == 63 else "good",
+            # degeneracy_guard(설계창 실측): 국면 표본이 얇은 셀 — 숫자는 싣되 해석 경고를 붙인다
+            "episode_sample": "thin" if name in thin else "ok",
         }
     return cells, inputs
 
@@ -128,7 +132,8 @@ def publish_latest_timeseries_v13_vol(root: Path, *, now: datetime | None = None
     status = "live" if not reasons else "hold"
     inputs = cells = None
     if status == "live":
-        cells, inputs = compute_cells(frozen, panel)  # type: ignore[arg-type]
+        thin = (live_display.get("episode_thin_cells") or [])
+        cells, inputs = compute_cells(frozen, panel, episode_thin=thin)  # type: ignore[arg-type]
     pin = {"path": str(C.COEFFICIENTS_RELATIVE.as_posix()), "sha256": frozen_cfg.get("sha256"),
            "content_hash": frozen_cfg.get("content_hash"), "finalist_id": frozen_cfg.get("finalist_id")}
     body = _pointer_body(status=status, as_of=as_of, knowledge_cutoff=knowledge_cutoff, gate=gate,

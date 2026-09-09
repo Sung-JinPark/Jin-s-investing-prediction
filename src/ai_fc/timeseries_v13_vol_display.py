@@ -86,6 +86,8 @@ def validate_latest(value: dict[str, Any]) -> None:
             raise TimeSeriesV13VolDisplayError(f"V13 cell {name} band/probability out of order")
         if cell.get("reliability") not in {"good", "weak"}:
             raise TimeSeriesV13VolDisplayError(f"V13 cell {name} reliability marker invalid")
+        if cell.get("episode_sample") not in {"ok", "thin", None}:
+            raise TimeSeriesV13VolDisplayError(f"V13 cell {name} episode marker invalid")
         if cell.get("model") not in {"ewma_logit", "persistence_pb"}:
             raise TimeSeriesV13VolDisplayError(f"V13 cell {name} model invalid")
 
@@ -178,6 +180,9 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
             "ewma_verdict": ((gates.get("design_evidence") or {}).get("ewma_logit") or {}).get("verdict"),
             "har_verdict": ((gates.get("design_evidence") or {}).get("har_logistic") or {}).get("verdict"),
             "reliability_note": "h63 셀 설계창 rel≈0.08 — 오보정(▲ 보정 약함)",
+            "episode_thin_cells": [str(c) for c in (live_display.get("episode_thin_cells") or [])],
+            "episode_note": ((contract.get("degeneracy_guard") or {}).get("design_window_result") or {}).get(
+                "worst_cases", ""),
         },
         "reference_question": {"id": reference.get("id", "vix-25-90d"),
                                "horizon_calendar_days": int(reference.get("horizon_calendar_days", 90)),
@@ -192,6 +197,8 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
                                if name in latest["cells"] and name not in holdout_fail_cells}  # type: ignore[index]
         if holdout_fail_cells:
             projection["holdout_fail_cells"] = [c for c in CELL_ORDER if c in holdout_fail_cells]
+            projection["holdout_pass_cells"] = [c for c in CELL_ORDER
+                                                if c in (publication.get("holdout_pass_cells") or [])]
         if not projection["cells"]:
             projection.pop("cells"); projection.pop("inputs")
             projection["status"] = "hold"; projection["numbers_visible"] = False

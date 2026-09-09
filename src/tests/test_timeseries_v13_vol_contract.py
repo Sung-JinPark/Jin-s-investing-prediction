@@ -225,9 +225,11 @@ def test_live_workflow_commits_only_the_contract_declared_live_outputs() -> None
     contract = _contract()
     workflow = (ROOT / ".github/workflows/timeseries-v13-vol-live.yml").read_text(encoding="utf-8")
     pointer = contract["live_display"]["pointer"]; ledger = contract["live_display"]["ledger"]
-    assert f"git add {pointer} {ledger} docs/generated/inventory.generated.md" in workflow
-    guard = "grep -Ev '^(data/timeseries_v13/(vol/vol_latest\\.json|ledgers/vol_live\\.jsonl)|docs/generated/inventory\\.generated\\.md)$'"
-    assert guard in workflow, "allowlist 가드 정규식이 포인터·원장·인벤토리만 허용해야 한다"
+    resolutions = contract["live_forward_gate"]["outcomes_written_to"].split()[0]
+    assert f"git add {pointer} {ledger} {resolutions} docs/generated/inventory.generated.md" in workflow
+    guard = ("grep -Ev '^(data/timeseries_v13/(vol/vol_latest\\.json|ledgers/vol_live(_resolutions)?\\.jsonl)"
+             "|docs/generated/inventory\\.generated\\.md)$'")
+    assert guard in workflow, "allowlist 가드 정규식이 포인터·원장 2종·인벤토리만 허용해야 한다"
     add_lines = [line for line in workflow.splitlines() if "git add" in line]
     assert len(add_lines) == 1
     assert "champion_coefficients" not in add_lines[0] and "vol_experiments" not in add_lines[0]
@@ -237,9 +239,42 @@ def test_live_workflow_commits_only_the_contract_declared_live_outputs() -> None
     assert "timeseries-v13-vol-holdout" not in workflow
 
 
+def test_degeneracy_guard_is_registered_and_matches_the_measured_artifact() -> None:
+    contract = _contract()
+    guard = contract["degeneracy_guard"]
+    assert guard["rules"]["min_events_per_half_per_class"] == 20
+    assert guard["rules"]["min_episodes_per_half_per_class"] == 5
+    # 사후 완화 방지: 가드는 게이트를 바꾸지 않고 표시·배선 자격에만 쓴다고 못박혀 있어야 한다
+    assert "소급" in guard["provenance"] and "느슨" in guard["provenance"]
+    assert "untestable_by_construction" in guard["applied_at"]["holdout_window"]
+    assert "episode_thin" in guard["consequences"]["display"]
+    assert "배선 불가" in guard["consequences"]["wiring"]
+
+    measured = ROOT / "data/timeseries_v13/vol/guard_mde_design.json"
+    assert measured.is_file(), "가드 실측 산출물이 있어야 한다"
+    payload = json.loads(measured.read_text(encoding="utf-8"))
+    body = {k: v for k, v in payload.items() if k != "content_hash"}
+    from ai_fc.timeseries_v13.contracts import canonical_hash
+    assert canonical_hash(body) == payload["content_hash"]
+    assert payload["thresholds"] == {"min_events_per_half_per_class": 20,
+                                     "min_episodes_per_half_per_class": 5}
+    # 계약이 선언한 실패 셀 = 실측 실패 셀 = 표시 마커 대상
+    measured_failures = sorted(payload["summary"]["episode_guard_failures"])
+    assert sorted(guard["design_window_result"]["episode_failures"]) == measured_failures
+    assert sorted(contract["live_display"]["episode_thin_cells"]) == measured_failures
+    assert payload["summary"]["counts_guard_failures"] == []
+    assert sorted(guard["design_window_result"]["clean_cells"]) == sorted(
+        set(payload["cells"]) - set(measured_failures))
+
+
 def test_live_forward_gate_is_preregistered_before_any_origin_matures() -> None:
     gate = _contract()["live_forward_gate"]
-    assert gate["execution_path"] == "absent_by_construction"
+    # 규칙은 어떤 원점도 성숙하기 전(2026-09-08)에 고정됐다. verb 는 그 규칙을 실행만 한다.
+    assert gate["registered"] == "2026-09-08"
+    assert gate["execution_path"] in {"absent_by_construction", "named_verb_guarded"}
+    if gate["execution_path"] == "named_verb_guarded":
+        assert "timeseries-v13-vol-resolve" in gate["verb"]
+        assert "강등 판정은 하지 않는다" in gate["verb"], "채점 verb 가 스스로 강등하면 안 된다"
     assert gate["minimum_matured_origins_per_cell"] >= 60
     assert "CI90" in gate["uncertainty"] and "hold" in gate["demotion_rule"]
     assert "0.10" in gate["negative_control"]

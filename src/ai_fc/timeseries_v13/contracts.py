@@ -19,6 +19,9 @@ COEFFICIENTS_RELATIVE = Path("data/timeseries_v13/vol/champion_coefficients.json
 LATEST_RELATIVE = Path("data/timeseries_v13/vol/vol_latest.json")
 LIVE_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/vol_live.jsonl")
 EXPERIMENT_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/vol_experiments.jsonl")
+HOLDOUT_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/holdout_scorings.jsonl")
+APPROVALS_LEDGER_RELATIVE = Path("data/timeseries_v13/ledgers/approvals.jsonl")
+HOLDOUT_WINDOW = ("2015-01-01", "2018-12-31")
 LADDER_EWMA_RELATIVE = Path("data/timeseries_v13/vol/ladder_ewma_logit.json")
 LADDER_PB_RELATIVE = Path("data/timeseries_v13/vol/ladder_pb_baseline.json")
 CELL_ORDER = ("vix25_h5", "vix25_h21", "vix25_h63", "vix30_h5", "vix30_h21", "vix30_h63",
@@ -35,6 +38,7 @@ BOOTSTRAP_SEED = 20260907
 __all__ = [
     "MODEL_ID", "MODEL_VERSION", "PROBABILITY_SPACE", "CONTRACT_RELATIVE", "COEFFICIENTS_RELATIVE",
     "LATEST_RELATIVE", "LIVE_LEDGER_RELATIVE", "EXPERIMENT_LEDGER_RELATIVE", "LADDER_EWMA_RELATIVE",
+    "HOLDOUT_LEDGER_RELATIVE", "APPROVALS_LEDGER_RELATIVE", "HOLDOUT_WINDOW",
     "LADDER_PB_RELATIVE", "CELL_ORDER", "DISPLAY_TIERS", "EWMA_ALPHA", "DESIGN_WINDOW", "THETA_RV", "Z80",
     "BLOCK_LENGTH", "BOOTSTRAP_REPLICATES", "BOOTSTRAP_SEED", "TimeSeriesV13VolError", "canonical_hash",
     "sha256_file", "load_contract_v13", "display_tier", "load_frozen_coefficients", "cell_specs",
