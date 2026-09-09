@@ -57,9 +57,9 @@ jobs:
           cd src
           python -m ai_fc scenario-v5-2-build --force
           python -m ai_fc scenario-v5-2-verify --replay
-      - name: V5.2 재빌드 실패 고지 (배포는 계속 — 게이트 사유가 화면에 표시됨)
+      - name: V5.2 재빌드 실패 고지 (배포는 계속 — 마지막 유효 후보로 조용히 표시됨)
         if: ${{ steps.v52_rebuild.outcome == 'failure' }}
-        run: echo "::warning::V5.2 candidate rebuild failed; deploying with the committed candidate (runtime gate will disclose the reason on #future)."
+        run: echo "::warning::V5.2 candidate rebuild failed; deploying with the last valid committed candidate (no on-screen gate banner — see runtime_gate in the data payload)."
       - name: 대시보드 정적 빌드 (읽기 전용, API 키 불필요)
         run: cd src && python -m ai_fc dashboard --pages-out ../_site
       # Pages는 repo Settings→Pages→Source="GitHub Actions"로 1회 수동 활성화 필요
