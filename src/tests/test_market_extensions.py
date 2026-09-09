@@ -112,7 +112,7 @@ def test_tracker_budget_is_enforced() -> None:
     payload = build_scenario_tracker(
         rules=_rules(), asof=asof, fred=fred, prices=prices, dividends=dividends)
     payload["warning"] = "x" * 8_000
-    with np.testing.assert_raises_regex(MarketExtensionError, "8KB budget"):
+    with np.testing.assert_raises_regex(MarketExtensionError, "9KB budget"):
         validate_scenario_tracker(payload)
 
 

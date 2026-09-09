@@ -37,7 +37,7 @@ FRED_SERIES = (
 )
 DISPLAY_WEEKS = 78
 LEAD_LAG_MIN_WEEKS = 156
-TRACKER_BUDGET_BYTES = 8_000
+TRACKER_BUDGET_BYTES = 9_000
 
 
 class MarketExtensionError(ValueError):
@@ -421,7 +421,7 @@ def validate_scenario_tracker(payload: dict[str, Any]) -> dict[str, Any]:
         payload, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
     if payload_bytes > TRACKER_BUDGET_BYTES:
         raise MarketExtensionError(
-            f"scenario_tracker payload exceeds 8KB budget ({payload_bytes} bytes)")
+            f"scenario_tracker payload exceeds 9KB budget ({payload_bytes} bytes)")
     return payload
 
 
