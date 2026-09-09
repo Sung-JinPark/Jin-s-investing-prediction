@@ -249,6 +249,39 @@ degeneracy_guard:
       즉 vix30 계열의 후반창 판정은 '2011년 미국 신용등급 강등·유로 위기'라는 단일 사건에 얹혀 있다.
     clean_cells: [vix25_h5, rv_h5, rv_h21]
 
+# [P4 사전등록 2026-09-09 — 결과 전 커밋] 봉인 아카이브 내 신규 피처블록 (rung-4)
+# 새 데이터 적재 0·비용 0·라이선스 위험 0. 표적(K·θ·h)은 그대로 — post_hoc_target_addition 금지 준수.
+rung4_macro_blocks:
+  registered: '2026-09-09'
+  rationale: |
+    V9 가 이 계열들을 시험했으나 표적이 '가격 분포(CRPS)'였다. 여기 표적은 '변동성 사건(Brier)'이며 손실함수도
+    다르므로 미시험 조합이다. 다만 V9 의 무효익은 약한 부정 사전확률을 준다 — 기대 부정 종료 75%.
+  series_added_for_this_rung: [DGS2, DGS10, DTWEXBGS, FED_EBP]   # 전부 봉인 V2 아카이브 보유. 적재·수집 0
+  cells: 전체 9셀 — 홀드아웃 결과로 셀을 고르지 않는다(홀드아웃 정보가 새 설계창 시험에 새면 다음 홀드아웃이 오염된다)
+  baseline: persistence_pb (현 champion). 후보 = logit[PB 피처 + β·F_k] — 피처당 파라미터 1개 추가
+  blocks:
+    F1_term_spread:
+      definition: DGS10 − DGS2 (수준), 관측일 기준
+      pit_grade: archive_verified          # 과거 행의 available_at 이 당일 22:00 UTC = H.15 발행 후. 실측 확인
+      lag_sessions: 0
+    F2_dollar:
+      definition: DTWEXBGS 21세션 로그변화율
+      pit_grade: assumed_lag               # available_at 이 2026 수집 시각이라 PIT 증거 없음
+      lag_sessions: 10                     # 실측 발행 간격(약 2주)을 덮는 보수적 지연. 채택 시 PIT 확인 후에만 배선
+    F3_ebp:
+      definition: FED_EBP 수준(월간)
+      pit_grade: assumed_lag
+      lag_sessions: 42                     # 약 2개월 — 월간 발행 + 공표 지연을 덮는 보수적 지연
+  gate:
+    per_cell: 쌍대 Brier(PB − 후보) 양방향 CI90 하한 > 0 (엄격) AND 증분 y-block(ℓ=13) 귀무 통과율 <= 0.10
+    family: binomial P(k >= k_obs | n=27, p=0.05) <= 0.05 병기 — 셀 종속 caveat 유지
+    uncertainty: gate.uncertainty 동일 (stationary block ℓ=13 · B=2000 · seed 20260907 · [5,95])
+    degeneracy: degeneracy_guard 적용 — 국면 미달 셀의 채택은 episode_thin 라벨을 달고 배선 불가
+  evaluation_budget: 1                     # evaluations_spent 3→4 (최대 8)
+  backtest_windows_opened: 0               # 설계창 재분석만 — 홀드아웃·봉인 미열람
+  stopping: 전 셀 '측정된 영'(MDE 미만) 이면 정상 종료. 채택 셀이 나오면 champion 재판정은 별도 결정
+  prereg_commit: null                      # 실행 전 커밋 해시를 후속 1줄 커밋으로 기입
+
 # [A2] h63 오보정 셀의 파생 확률층 — 게이트 판정은 raw 확률로, 파생층만 보정. V8 무접촉.
 reliability:
   cross_fit_isotonic_h63:
