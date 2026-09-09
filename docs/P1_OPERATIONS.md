@@ -53,7 +53,7 @@ python -m ai_fc sync --check           # 파일↔DB 정합·불변성 검사 (�
 - 예측 파이프라인은 신선한(7일 내) ml 실행이 있으면 분위수 밴드·감성 다이제스트를 추론 프롬프트에 자동 주입한다 (질문별 ML 매핑 확률은 앵커링 방지를 위해 의도적으로 미주입)
 - `forecast --dry-run`: 실 LLM로 배선 점검하되 `db/scratch/`에만 기록 (forecasts/ 무접촉)
 - `--agents 4`: 중요 질문은 펀더멘털/매크로/수급/데블스 4에이전트로 확장
-- `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 전역 월 상한 $20 — 환경변수 `AI_FC_MONTHLY_BUDGET`)
+- `--budget 4.00`: 파이프라인당 비용 상한 (기본 $4, 전역 월 상한 **$40** — 환경변수 `AI_FC_MONTHLY_BUDGET`. C5-A2 2026-09-09 승인으로 $20에서 인상)
 - deadline이 null인 질문은 실행 거부됨 → 발표일 확인 후 registry에 deadline 기록하고 재실행
 
 ## LLM provider 운영과 비용

@@ -11,7 +11,7 @@ def test_investing_refresh_scopes_secret_and_caps_paid_work() -> None:
 
     assert "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}" in workflow
     assert "python -m ai_fc forecast --due --max 1 --agents 2 --budget 1.50 --yes" in workflow
-    assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "10.00"' in workflow
+    assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "25.00"' in workflow  # C5-A2 2026-09-09
     assert "gpt-5.6-terra" in workflow
     assert "cancel-in-progress: false" in workflow
 

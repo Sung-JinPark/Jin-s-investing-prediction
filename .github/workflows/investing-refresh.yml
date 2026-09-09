@@ -78,8 +78,10 @@ jobs:
           AI_FC_OPENAI_OFFICIAL_MODEL: gpt-5.6-terra
           AI_FC_OPENAI_REASONING_EFFORT: medium
           AI_FC_PIPELINE_BUDGET: "1.50"
-          AI_FC_MONTHLY_BUDGET: "10.00"
-          AI_FC_OPENAI_MONTHLY_BUDGET: "10.00"
+          # C5-A2 (2026-09-09): 자동 경로 상한 $10 -> $25. 주 1건 재예측에서
+          # 주 2~3건(신규 질문 우선)으로 늘리려면 이 핀이 실질 병목이었다.
+          AI_FC_MONTHLY_BUDGET: "25.00"
+          AI_FC_OPENAI_MONTHLY_BUDGET: "25.00"
           AI_FC_SEARCH_MAX_USES: "4"
           AI_FC_LITE_SEARCH_MAX_USES: "3"
           AI_FC_RESEARCH_MAX_TOKENS: "6000"
