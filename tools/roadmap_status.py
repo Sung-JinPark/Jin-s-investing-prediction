@@ -101,10 +101,18 @@ def _holdout_ok() -> tuple[bool, list[str]]:
 
 
 def _wiring_ok() -> tuple[bool, list[str]]:
-    """배선은 '자격 있는 셀'과 '그 셀로 채점 가능한 등록 질문'이 **둘 다** 있어야 시작할 수 있다."""
+    """배선은 '자격 있는 셀'과 '그 셀로 채점 가능한 등록 질문'이 **둘 다** 있어야 시작할 수 있다.
+
+    사용자가 보류를 결정했으면(V13-D6-defer 영수증) 미종료가 아니라 **보류**로 보고한다 — 다음 세션이
+    닫힌 결정을 다시 열지 않도록.
+    """
     contract = _contract()
     publication = contract.get("publication") or {}
     missing: list[str] = []
+    if _decisions("V13-D6-defer") and not _decisions("V13-D6"):
+        gate = contract.get("live_forward_gate") or {}
+        return False, [f"DEFERRED 사용자 보류(2026-09-09) — 재개 조건: 셀당 성숙 원점 "
+                       f"{gate.get('minimum_matured_origins_per_cell', 60)} 도달 후 재판단"]
     if publication.get("holdout_status") not in {"pass", "partial"}:
         missing.append("홀드아웃 PASS/부분PASS 전에는 배선 불가")
         return False, missing
@@ -191,11 +199,16 @@ def main() -> int:
         return 1
     results = [(sid, name, *check(), approval, command)
                for sid, name, check, approval, command in STAGES]
+
+    def _deferred(missing: list[str]) -> bool:
+        return any(str(m).startswith("DEFERRED") for m in missing)
+
     print(f"{'단계':5s} {'상태':8s} 이름")
     current = None
-    for sid, name, ok, _missing, _approval, _command in results:
-        print(f"{sid:5s} {'완료' if ok else '미종료':8s} {name}")
-        if not ok and current is None:
+    for sid, name, ok, missing, _approval, _command in results:
+        state = "완료" if ok else ("보류" if _deferred(missing) else "미종료")
+        print(f"{sid:5s} {state:8s} {name}")
+        if not ok and not _deferred(missing) and current is None:
             current = (sid, name)
     print()
     blockers = [(sid, m) for sid, _n, ok, missing, _a, _c in results if not ok for m in missing]

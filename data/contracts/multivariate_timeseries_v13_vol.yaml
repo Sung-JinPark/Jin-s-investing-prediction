@@ -374,4 +374,8 @@ decisions_resolved:
   V13-D5: T3 라이브 카드 — 홀드아웃 전, caveat '홀드아웃 미검증' 굵게 상시 (2026-09-08)
 decisions_pending:
   V13-D3: 홀드아웃 1슬롯 소모 — 조건 ①~④ 충족(champion=persistence_pb 전 9셀, finalist V13VOL_champion_aec80c65038b, h63 raw, 게이트 사전등록, finalist 1) AND hold_condition 미해당. 사용자 승인 원문 수신 시에만 verb 신설 + execution_path 개정. 자동 실행 없음.
-  V13-D6: EXIT 트리거 base rate 배선 (외부 검토 E표 'V13-D4' 의 이 계약 내 ID) — 홀드아웃 PASS 셀 한정
+  V13-D6: |
+    [2026-09-09 보류 결정] EXIT 트리거 base rate 배선을 지금 열지 않는다. 배선 자격 셀은 rv_h5·rv_h21 둘뿐이고
+    대응하는 등록 질문이 없으며, 유일한 대응 질문 vix-25-90d 의 셀(vix25_h63)은 홀드아웃 실패다. 지금 질문을
+    신설하면 통과한 셀에 맞춰 질문을 짜는 것이 되어 사전등록 정신에 어긋난다. 재개 조건: live_forward_gate 의
+    셀당 성숙 원점 60 도달 → 독립 표본으로 재판단. 현재 0/60.
