@@ -1608,12 +1608,27 @@ def cmd_forecast(
                           queries.open_rolling_windows(conn),
                           queries.resolved_forecast_ids(conn), datetime.now())
         # divergence는 의도적으로 제외 — "재예측 트리거 후보"일 뿐, 실행은 인간 결정 (ML 게이트)
-        # C5-A3 (2026-09-09): ① 첫 예측 미실행 우선 (재예측은 게이트 문항 수에 0 기여)
-        # ② 그 안에서 마감 임박 순 (예측 없이 마감을 넘기면 영구 채점 불가).
+        # C5-A3 (2026-09-09): ① 마감 임박 ② 첫 예측 미실행 ③ 마감 순.
         # 정렬 근거는 registry.prioritize_forecast_targets.
         deadlines = {q.question_id: q.deadline for q in questions}
-        targets = [d.question_id for d in prioritize_forecast_targets(
-            due, deadlines, datetime.now().date())][:max_n]
+        ordered = prioritize_forecast_targets(due, deadlines, datetime.now().date())
+
+        # 2026-09-10 수정: 등록필터 위반 질문은 **배치에서 건너뛴다**.
+        # 이전에는 run_forecast 의 PreflightError 가 배치 전체를 죽여서,
+        # 2026-08-31 에 근거 없이 등록된 질문 5건 때문에 주간 자동화가 9/5 부터
+        # 매주 실패했다(그 사이 자동 예측 0건). 한 질문의 등록 하자가 나머지
+        # 준수 질문의 예측까지 막는 것은 과잉 차단이다.
+        # 명시적으로 지목한 실행(`forecast <qid>`)에서는 여전히 하드 에러 —
+        # 사용자가 그 질문을 요청했으므로 조용히 건너뛰면 안 된다.
+        from .registry import factory_filter_violation
+        by_id = {q.question_id: q for q in questions}
+        skipped = [d.question_id for d in ordered
+                   if factory_filter_violation(by_id[d.question_id])]
+        for qid in skipped:
+            typer.echo(f"[건너뜀] {qid}: 등록필터 근거 없음 — "
+                       "notes에 '등록필터:' 기재 후 재실행 (배치는 계속)", err=True)
+        targets = [d.question_id for d in ordered
+                   if d.question_id not in set(skipped)][:max_n]
         if not targets:
             typer.echo("예측 due 없음")
             return

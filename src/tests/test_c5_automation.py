@@ -207,3 +207,49 @@ def test_cli_passes_deadlines_and_today_to_prioritizer() -> None:
     block = source.split("def cmd_forecast")[1].split("@app.command")[0]
     assert "prioritize_forecast_targets(" in block
     assert "deadlines" in block and "datetime.now().date()" in block
+
+
+# ── 등록필터 위반 질문의 배치 격리 (2026-09-10) ────────────────────
+
+def test_due_batch_skips_filter_violations_instead_of_dying() -> None:
+    """등록필터 위반 질문은 **건너뛰고 배치를 계속**해야 한다.
+
+    실측 계기: 2026-08-31 에 '등록필터:' 근거 없이 등록된 질문 5건 때문에
+    run_forecast 의 PreflightError 가 배치 전체를 죽여 주간 자동화가
+    2026-09-05 부터 매주 실패했다(그 사이 자동 예측 0건). 한 질문의 등록 하자가
+    나머지 준수 질문까지 막는 것은 과잉 차단이다.
+    """
+    source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
+    block = source.split("def cmd_forecast")[1].split("@app.command")[0]
+    assert "factory_filter_violation" in block, "배치가 등록필터 위반을 걸러내지 않는다"
+    assert "건너뜀" in block, "건너뛴 질문을 사용자에게 알리지 않는다"
+
+
+def test_named_forecast_still_hard_fails_on_violation() -> None:
+    """명시적으로 지목한 실행은 여전히 하드 에러 — 조용히 건너뛰면 안 된다."""
+    orch = (ROOT / "src" / "ai_fc" / "orchestrator.py").read_text(encoding="utf-8")
+    assert 'PreflightError(f"등록필터 위반' in orch,         "orchestrator 의 하드 게이트를 없애면 안 된다 (배치만 완화한다)"
+
+
+def test_repo_has_no_unjustified_active_questions_in_the_top_queue() -> None:
+    """실제 레지스트리 회귀 — 위반 질문이 있어도 배치 대상은 남아야 한다."""
+    import sqlite3
+    from datetime import datetime as _dt
+    from ai_fc import config
+    from ai_fc.registry import (compute_due, factory_filter_violation, load_registry,
+                                prioritize_forecast_targets)
+    from ai_fc.db import queries
+    if not config.DB_PATH.exists():
+        import pytest
+        pytest.skip("파생 인덱스 미빌드")
+    conn = sqlite3.connect(config.DB_PATH)
+    conn.row_factory = sqlite3.Row
+    qs = load_registry(config.ROOT / "questions" / "registry.yaml")
+    due = compute_due(qs, queries.latest_forecasts(conn), queries.open_rolling_windows(conn),
+                      queries.resolved_forecast_ids(conn), _dt.now())
+    by_id = {q.question_id: q for q in qs}
+    ordered = prioritize_forecast_targets(
+        due, {q.question_id: q.deadline for q in qs}, _dt.now().date())
+    survivors = [d.question_id for d in ordered
+                 if not factory_filter_violation(by_id[d.question_id])]
+    assert survivors, "등록필터 위반을 걸러내고 나면 배치 대상이 하나도 없다"
