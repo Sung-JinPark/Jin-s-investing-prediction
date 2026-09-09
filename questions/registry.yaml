@@ -842,11 +842,14 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 위원회 분열도 = fed-path 불확실성의 선행 지표
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (a) base rate 강함 — 2026-07-29 회의가 9-3 표결(3명이 +25bp 인상 반대의견)이었고 인상 여부 자체가 시장에서 갈리는 국면이라
-    만장일치 확률이 낮다. 판정은 성명 문면 한 줄로 결정되어 출처 불일치 여지가 없다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 policy_decision
-    · 예상확률 88% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · 판정기준 결함). resolution 이 성명 문자열 ''Voting against this action'' 에 의존하는데,
+    Warsh 체제 성명은 문구가 바뀌어 2026-07 은 ''Voting against the monetary policy action were'', 2026-06 은 반대 문장
+    없이 ''by a 12 - 0 vote'' 만 싣는다. 문언 그대로 적용하면 반대표 3인이 있어도 NO 가 되는 판정 오류가 발생한다. 대체: fomc-2026-09-16-nonunanimous
+    (표결 집계 기준으로 일반화). || 원 notes: 등록필터: (a) base rate 강함 — 2026-07-29 회의가 9-3 표결(3명이 +25bp 인상 반대의견)이었고
+    인상 여부 자체가 시장에서 갈리는 국면이라 만장일치 확률이 낮다. 판정은 성명 문면 한 줄로 결정되어 출처 불일치 여지가 없다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1
+    · 분류 policy_decision · 예상확률 88% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
@@ -864,11 +867,14 @@ questions:
   domain: macro
   cadence: r1 + D-3
   action_link: 점도표는 회의 1회 결정보다 경로 정보를 담는다 — fed-path 시리즈의 상류
-  status: active
+  status: void
   created: '2026-09-09'
-  notes: '등록필터: (b) 정보 우위 논거 — 회의 전 fed funds 선물 내재확률·위원 발언으로 방향 추정이 가능하고, 현 목표범위 상단이 3.75%라 ''중간값이 상단
-    초과 = 연내 추가 인상 시사''로 임계가 기계적이다. 6월 SEP 대비 비교가 아니라 절대 임계라 사후 기준 이동이 불가능하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1
-    · 분류 policy_decision · 예상확률 72% (첫 예측 전 고정)]'
+  notes: 'VOID 2026-09-09 (예측 0건 · 판정기준 모호 = 사전등록 prohibited_forms.ambiguous_resolution). 2026-06 SEP
+    는 표에 3.8 을 인쇄했으나 실제 중간값은 정확히 3.750 이었다(18명 제출, 가운데 두 점 3.625/3.875 의 평균). resolution 이 ''SEP 표의 median
+    > 3.75%'' 라 표 인쇄값을 읽는 판정자는 YES, 점도표 산출값을 계산하는 판정자는 NO(동률)로 정반대 결론에 도달한다. 대체: fomc-sep-2027-below-2026
+    (같은 규칙으로 산출한 두 중간값의 비교라 인쇄값과 산출값이 같은 결론을 준다). || 원 notes: 등록필터: (b) 정보 우위 논거 — 회의 전 fed funds 선물 내재확률·위원
+    발언으로 방향 추정이 가능하고, 현 목표범위 상단이 3.75%라 ''중간값이 상단 초과 = 연내 추가 인상 시사''로 임계가 기계적이다. 6월 SEP 대비 비교가 아니라 절대
+    임계라 사후 기준 이동이 불가능하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 policy_decision · 예상확률 72% (첫 예측 전 고정)]'
   tier: lite
   schedule:
   - once: true
@@ -1257,6 +1263,56 @@ questions:
     3/3 사용** — 신용 축은 기존 40문항에 전혀 없는 드라이버(credit-cycle)라 ESS 개선 값이 크고, V9이 신용·유동성 계열을 *가격 분포* 표적에서 무효 판정했으나
     여기서는 모델 입력이 아니라 **예측 대상 사건**이라 그 부정 결과와 무관하다. [C5 Q3 · 사전등록 C5_PORTFOLIO_V1 · 분류 exception · 예상확률
     18% (첫 예측 전 고정)]'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: fomc-2026-09-16-nonunanimous
+  drivers:
+  - fed-path
+  title: 2026-09-16 FOMC — 만장일치 아님 (반대표 1명 이상)
+  question: 2026-09-16 FOMC 성명에 기록된 통화정책 표결이 만장일치가 아닐(반대표 1명 이상) 확률은?
+  deadline: '2026-09-16'
+  resolution: 'YES = 성명에 기재된 표결 집계의 반대 측 수가 1 이상(예: ''9 - 3 vote'' 의 3), 또는 반대 표결자 실명이 1명 이상 기재. **문구
+    형태와 무관하게 집계·실명 기준으로 판정한다** (''Voting against this action'' / ''Voting against the monetary policy
+    action'' / 집계만 기재 모두 동일하게 취급). 통화정책 표결에 한하며 대차대조표 등 별도 표결은 성명의 통화정책 표결란에 반대로 기재된 경우에만 포함. 결원·불참은 반대표로
+    세지 않는다. 성명과 의사록이 불일치하면 성명이 우선.'
+  resolution_source: '연준 공식 성명 (federalreserve.gov/newsevents/pressreleases) — 2차: FOMC 의사록'
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 위원회 분열도 = fed-path 불확실성의 선행 지표
+  status: active
+  created: '2026-09-09'
+  notes: '등록필터: (a) base rate 강함 — 현 위원회 실측으로 최근 13회 중 10회(77%), 2026년 5회 중 4회(80%)에 반대표가 있었다. 2026-07
+    은 9-3(Hammack·Kashkari·Logan 이 인상 선호), 세 사람 모두 2026년 순환 투표권자로 9월에도 투표권을 유지한다. **폐기된 fomc-2026-09-16-dissent
+    의 대체** — 원 질문은 성명 문자열에 의존해 판정 오류 위험이 있었고 예측 0건 상태에서 폐기했다. 예상확률은 리서치 이후 산정이라 ''사전 추정 정확도'' 측정 표본에서
+    제외한다. [C5 Q3 대체 · 분류 policy_decision · 예상확률 78% (리서치 이후 산정 — 사전추정 정확도 표본 제외)]'
+  tier: lite
+  schedule:
+  - once: true
+  - from: D-3
+    once: true
+- id: fomc-sep-2027-below-2026
+  drivers:
+  - fed-path
+  title: 2026-09 SEP — 2027년말 중간값이 2026년말보다 낮음
+  question: 2026-09-16 공표되는 SEP에서 2027년말 연방기금금리 중간값이 2026년말 중간값보다 낮을 확률은?
+  deadline: '2026-09-16'
+  resolution: YES = 2027년말 중간값 < 2026년말 중간값. 두 중간값 모두 **SEP 점도표(Figure 2)에서 SEP 각주 규칙 그대로 산출** — 제출 참가자
+    수가 홀수면 가운데 점, 짝수면 가운데 두 점의 평균. 표 1 인쇄 반올림값과 산출값이 다를 경우 산출값이 우선하나, 두 값을 같은 방식으로 비교하므로 통상 결론이 일치한다.
+    동률이면 NO. 판정은 9/16 최초 공표 SEP 기준(사후 수정 무관).
+  resolution_source: 연준 SEP 공식 PDF/HTML (federalreserve.gov/monetarypolicy/fomccalendars.htm)
+  domain: macro
+  cadence: r1 + D-3
+  action_link: 긴축 후 완화 경로를 위원회가 여전히 그리는가 — 경로의 모양을 묻는다
+  status: active
+  created: '2026-09-09'
+  notes: '등록필터: (a) base rate 강함 — 2026-06 SEP 는 2026년말 3.750 / 2027년말 3.625 로 이미 YES 형태였고, 2028년말 3.375
+    · longer run 3.125 로 하향 경사가 일관된다. 점도표가 장기 중립으로 수렴하는 형태는 SEP 의 구조적 성질이라 base rate 가 높다. **폐기된 fomc-sep-2026ye-dot-above-375
+    의 대체** — 원 질문은 인쇄값(3.8)과 산출값(3.750)이 정반대 결론을 주는 모호형이었고 예측 0건 상태에서 폐기했다. 이 대체 질문은 두 중간값을 같은 방식으로 비교해
+    그 모호성이 소거된다. 예상확률은 리서치 이후 산정이라 ''사전 추정 정확도'' 측정 표본에서 제외한다. [C5 Q3 대체 · 분류 policy_decision · 예상확률 80%
+    (리서치 이후 산정 — 사전추정 정확도 표본 제외)]'
   tier: lite
   schedule:
   - once: true
