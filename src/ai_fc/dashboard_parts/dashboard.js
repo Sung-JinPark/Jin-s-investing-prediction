@@ -1669,6 +1669,8 @@ function timeseriesV13TabEnabled(v13){
   return false;
 }
 const V13_CELL_LABELS={vix25:'VIX 25 이상 터치',vix30:'VIX 30 이상 터치',rv:'실현변동성 > 16.9%(연율)'};
+const V13_GUIDE_EVENT={vix25:'25를 터치한',vix30:'30을 터치한',rv:'16.9%(연율)를 넘은'};
+const V13_GUIDE_ORDER=['vix25_h63','vix25_h21','vix25_h5','vix30_h63','vix30_h21','vix30_h5','rv_h63','rv_h21','rv_h5'];
 const v13Pct=p=>(p==null?'—':`${Math.round(Number(p)*100)}%`);
 function renderTimeseriesV13VolPanel(v13){
   v13=v13||{};
@@ -1684,7 +1686,14 @@ function renderTimeseriesV13VolPanel(v13){
   const caveat=`<p class="ts-lead v13-caveat">설계창(2007~2014) 스킬 · ${holdoutLabel} · <b>참고 의견 — 매매 신호가 아닙니다.</b> 아래 숫자는 예측이 아니라 <abbr title="${esc(plainTerm('base_rate_hint'))}">기준율</abbr>입니다.</p>`;
   const preview=tier==='t2_hidden_panel'?`<p class="ts-lead">심사용 미리보기(T2 숨김 패널) — 공개 표시가 아닙니다.</p>`:'';
   const refId=v13.reference_question?.id||'vix-25-90d';
-  const roleLine=`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
+  /* 대응 셀이 홀드아웃에서 떨어지면 그 숫자는 표에서 내려간다 — 그런데도 '공급원입니다'를
+     그대로 두면 독자가 남아 있는 다른 지평의 기준율을 이 질문 값으로 읽는다. 역할 문구는
+     대응 셀의 홀드아웃 결과를 따라간다. */
+  const refCellName=v13.reference_question?.cell||'vix25_h63';
+  const refCellFailed=(v13.holdout_fail_cells||[]).indexOf(refCellName)>=0;
+  const roleLine=refCellFailed
+    ?`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)에 대응하는 셀(63영업일)은 <b>홀드아웃(2015~2018)을 통과하지 못해 base rate를 공급하지 않습니다.</b> 위 숫자는 지평·사건이 다른 기준율이며 이 질문에 대입하지 않습니다.</p>`
+    :`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
   const head=`<div class="admin-card-head"><h2>변동성 이벤트 기준율</h2>${badge}</div>`;
   if(!live){
     const reasons=(gate.reasons||[]).slice(0,5);
@@ -1710,8 +1719,14 @@ function renderTimeseriesV13VolPanel(v13){
     +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다. 기후 대비 통과여도 라벨 블록순열(건전 귀무) 통과율이 0.10을 넘으면 실패입니다.">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':holdoutPartial?`부분 통과 ${passN}/${cellN}`:'미검증'}</span>`
     +`<span class="ts-gate-chip pass" title="입력: VIX 종가 ${Number(inputs.vix_close||0).toFixed(1)} · 실현변동성(21일, 연율) ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%">VIX ${Number(inputs.vix_close||0).toFixed(1)} · RV21 ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%</span>`
     +divChip+`</section>`;
-  const ex=cells.vix25_h63?v13Pct(cells.vix25_h63.p):'—';
-  const guide=`<p class="v13-role">읽는 법: "기준율 ${ex}"는 과거 같은 VIX 수준에서 63영업일 안에 25를 터치한 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. [80%] 대역은 <abbr title="${esc(plainTerm('band80_coef_hint'))}">계수 불확실성</abbr>이지 보정 구간이 아닙니다.</p>`;
+  /* 읽는 법은 화면에 실제로 실린 셀을 인용한다 — 홀드아웃에서 떨어져 숨긴 셀을 예로 들면
+     없는 숫자를 설명하는 문장이 된다. */
+  const guideName=cells[refCellName]?refCellName:V13_GUIDE_ORDER.find(k=>cells[k]);
+  const gm=guideName?guideName.match(/^(vix25|vix30|rv)_h(\d+)$/):null;
+  const band80Note=`[80%] 대역은 <abbr title="${esc(plainTerm('band80_coef_hint'))}">계수 불확실성</abbr>이지 보정 구간이 아닙니다.`;
+  const guide=gm
+    ?`<p class="v13-role">읽는 법: "기준율 ${v13Pct(cells[guideName].p)}"는 ${gm[1]==='rv'?'과거 같은 실현변동성 수준에서':'과거 같은 VIX 수준에서'} ${gm[2]}영업일 안에 ${V13_GUIDE_EVENT[gm[1]]} 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. ${band80Note}</p>`
+    :`<p class="v13-role">읽는 법: 표시 조건을 만족한 셀이 없어 인용할 기준율이 없습니다. ${band80Note}</p>`;
   return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}${gateStrip}${hTabs}${table}${guide}${roleLine}</section></div>`;
 }
 function bindTimeseriesV13VolInteractions(root){
