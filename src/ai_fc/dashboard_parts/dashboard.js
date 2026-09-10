@@ -2600,11 +2600,19 @@ function chartGuide(rows,caution){
 const GUIDE_SOLID=color=>`background:${color};height:3px`;
 const GUIDE_DASH=color=>`background:repeating-linear-gradient(90deg,${color} 0 4px,transparent 4px 8px);height:3px`;
 const GUIDE_BAND=color=>`background:${color};height:11px;border-radius:2px`;
-function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
+function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horizon='compare'){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=620,ML=58,MR=148,MT=120,MB=30,HCH=550;
-  const weeks=sc.weeks||[],n=weeks.length,riskValues=sc.risk||[];
-  if(n<2){host.replaceChildren(el('<p class="chart-note">주간 시나리오 데이터가 없어 이 그래프를 그릴 수 없습니다.</p>'));return;}
+  const weeks=sc.weeks||[],riskValues=sc.risk||[];
+  if(weeks.length<2){host.replaceChildren(el('<p class="chart-note">주간 시나리오 데이터가 없어 이 그래프를 그릴 수 없습니다.</p>'));return;}
+  /* 실제 종가와 지난 빈티지를 같은 그래프에 겹친다. 가로축을 주차 인덱스가 아니라 날짜로
+     잡아야 앵커 왼쪽(이미 지나간 구간)이 자리를 얻는다 — 인덱스 축에서는 실제 선이 그릴
+     자리가 없어 한 점에서만 만났다. 날짜가 없는 옛 스냅샷은 종전 인덱스 축으로 돌아간다. */
+  const track=DATA.scenario_track&&DATA.scenario_track.status==='ok'?DATA.scenario_track:null;
+  const dates=(sc.week_dates||[]).map(String);
+  const overlay=Boolean(track&&dates.length===weeks.length&&track.actual?.length>1);
+  const cut=overlay&&horizon!=='full'?track.cut:(dates[weeks.length-1]||'');
+  const n=overlay?Math.max(2,dates.filter(day=>day<=cut).length):weeks.length;
   const structuralSource=Object.fromEntries(['S1','S2','S3'].map(key=>[key,flowDisplayPath(sc,key)]));
   const rawSource=Object.fromEntries(['S1','S2','S3'].map(key=>[key,sc.paths?.[key]?.values||[]]));
   const usingStructural=hasStructuralPaths(sc);
@@ -2614,21 +2622,35 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
   const sampleRows=showSamples?[activeKey].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).map((row,order)=>({key,order,percentile:Number(row.terminal_percentile),values:(row.values||[]).slice(0,n).map(Number)}))).filter(row=>row.values.length===n):[];
   const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
   const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues].map(Number).filter(Number.isFinite);
-  const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartPad=Math.max(500,(chartHigh-chartLow)*.08);
-  const Y0=Math.floor((chartLow-chartPad)/500)*500,Y1=Math.ceil((chartHigh+chartPad)/500)*500;
-  const PW=W-ML-MR,PH=HCH-MT-MB,X=index=>ML+PW*index/Math.max(1,n-1),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
+  /* 겹칠 실제 종가(일간)와 지난 빈티지의 S1 경로. 둘 다 창(cut) 안으로 자른다. */
+  const actual=overlay?track.actual.filter(row=>row[0]<=cut):[];
+  const priorVintages=overlay?track.vintages
+    .filter(row=>row.asof<sc.asof)
+    .map(row=>({asof:row.asof,points:row.values.filter(point=>point[0]<=cut)}))
+    .filter(row=>row.points.length>1):[];
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...priorVintages.flatMap(row=>row.points.map(point=>point[1]))].map(Number).filter(Number.isFinite);
+  const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
+  const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
+  const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
+  const PW=W-ML-MR,PH=HCH-MT-MB;
+  const startDay=overlay?Math.min(trackDay(actual[0][0]),trackDay(dates[0])):0;
+  const endDay=overlay?trackDay(dates[n-1]):0;
+  const dateX=day=>ML+PW*(trackDay(day)-startDay)/Math.max(1,endDay-startDay);
+  const X=index=>overlay?dateX(dates[Math.max(0,Math.min(n-1,index))]):ML+PW*index/Math.max(1,n-1);
+  const Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
   svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. ${esc(sc.paths?.[activeKey]?.label||activeKey)} ${usingStructural?'과거 조정 모양을 입힌 경로':'한가운데 경로'}와 혁신사이클 참조선${usingStructural?', 굴곡 적용 전 GBM 중앙값 고스트 선':''}${showSamples?', 실제 모의 경로 표본':''}, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
   const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
-  const gridStep=Math.max(500,Math.ceil(((Y1-Y0)/6)/500)*500);
+  const gridStep=Math.max(chartStep,Math.ceil(((Y1-Y0)/6)/chartStep)*chartStep);
   for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){
     svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
-    svg.appendChild(tx(ML-8,Y(value)+4,(value/1000)+'k',{anc:'end',fill:'#5f5d57'}));
+    svg.appendChild(tx(ML-8,Y(value)+4,gridStep<500?num(value):(value/1000)+'k',{anc:'end',fill:'#5f5d57',fs:gridStep<500?11:12}));
   }
+  /* 앵커 오른쪽은 아직 실현되지 않은 구간이다 — 옅은 바탕으로 갈라 놓는다. */
+  if(overlay)svg.appendChild(mk('rect',{x:X(0),y:MT,width:Math.max(0,ML+PW-X(0)),height:PH,fill:'rgba(17,17,15,.04)'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.ath),x2:ML+PW,y2:Y(sc.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
   svg.appendChild(mk('line',{x1:ML,y1:Y(sc.corr10),x2:ML+PW,y2:Y(sc.corr10),stroke:'rgba(255,128,102,.55)','stroke-width':1,'stroke-dasharray':'5 4'}));
   const eventRows=(sc.events||[]).filter(row=>Array.isArray(row)&&Number.isFinite(Number(row[0]))).map(row=>[Number(row[0]),String(row[1]||'')]);
@@ -2640,6 +2662,12 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
     svg.appendChild(halo(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:700})));
   });
   const rightLabels=[];
+  /* 지난 빈티지의 같은 S1 경로. 옅게 깔아 두면 굵은 현재 경로와 검은 실제 선이 겹치는
+     구간이 생겨, 그때 그린 선이 실제를 얼마나 따라갔는지 한 그래프에서 읽힌다. */
+  priorVintages.forEach(row=>{
+    const d=row.points.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':1,'stroke-linejoin':'round',opacity:.28,'data-track-vintage':row.asof}));
+  });
   if(analogValues.length===n){
     let analogPath='';analogValues.forEach((value,index)=>{analogPath+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
     svg.appendChild(mk('path',{d:analogPath,fill:'none',stroke:'#706f68','stroke-width':1.6,'stroke-dasharray':'6 5','stroke-linejoin':'round',opacity:.72,'data-reference-path':'innovation-cycle'}));
@@ -2671,12 +2699,27 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
     svg.appendChild(mk('path',{d:`M${ML+PW+5},${item.y} L${ML+PW+12},${item.y} L${labelX-3},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:item.opacity*.72}));
     svg.appendChild(halo(tx(labelX,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
   });
+  /* 실제 종가는 일간이다 — 아카이브마다 그날 확정 종가로 기록된 anchor 를 이은 선이라
+     주차 격자에 얽매이지 않는다. 가장 위에 그려 어느 선과도 가려지지 않게 한다. */
+  if(actual.length>1){
+    const d=actual.map((row,index)=>(index?'L':'M')+dateX(row[0]).toFixed(1)+','+Y(row[1]).toFixed(1)).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:'#11110f','stroke-width':2.6,'stroke-linejoin':'round','data-track-actual':'1'}));
+    svg.appendChild(mk('line',{x1:X(0),y1:MT,x2:X(0),y2:MT+PH,stroke:'rgba(17,17,15,.4)','stroke-width':1.2,'stroke-dasharray':'4 4'}));
+    svg.appendChild(halo(tx(dateX(actual[0][0])+4,Y(actual[0][1])-10,'실제 종가 '+actual[0][0].slice(5).replace('-','/')+' 부터',{fill:'#11110f',fs:11,w:700})));
+  }
   svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
-  svg.appendChild(halo(tx(X(0)-6,Y(sc.anchor)-11,'현재 '+num(Math.round(Number(sc.anchor))),{fill:'#11110f',w:600})));
+  svg.appendChild(halo(tx(X(0)-6,Y(sc.anchor)-11,'현재 '+num(Math.round(Number(sc.anchor))),{anc:'end',fill:'#11110f',w:600})));
   flowAxisTickIndexes(n,7).forEach((index,tickPosition)=>{
     svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
     svg.appendChild(tx(X(index),MT+PH+18,tickPosition===0?'현재 · '+weeks[index]:weeks[index],{anc:'middle',fs:12,fill:tickPosition?'#5f5d57':'#174c49',w:tickPosition?500:750}));
   });
+  /* 앵커 왼쪽(실현 구간)에는 주차 눈금이 닿지 않는다 — 실제 선의 날짜로 눈금을 채운다. */
+  if(actual.length>1)actual.filter(row=>row[0]<sc.asof)
+    .filter((row,index,rows)=>index===0||index===rows.length-1||index%5===0)
+    .forEach(row=>{
+      svg.appendChild(mk('line',{x1:dateX(row[0]),y1:MT+PH,x2:dateX(row[0]),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
+      svg.appendChild(tx(dateX(row[0]),MT+PH+18,row[0].slice(5).replace('-','/'),{anc:'middle',fs:12,fill:'#5f5d57',w:500}));
+    });
   const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'−10%선 누적 터치확률',{anc:'end',fill:'#5f5d57',fs:11}));
   let segmentStart=0;
   for(let index=1;index<=n;index++){
@@ -2689,24 +2732,32 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
     segmentStart=index;
   }
   const xh=mk('line',{stroke:'rgba(17,17,15,.44)','stroke-width':1.2,'stroke-dasharray':'4 3'});svg.appendChild(xh);
-  const cursorMarkers=[activeKey].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length===n?1:0});svg.appendChild(marker);return marker;});
-  const overlay=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(overlay);
+  const cursorMarkers=[activeKey].map(key=>{const marker=mk('circle',{r:5.2,fill:CHART_COL[key],stroke:'#fff','stroke-width':2,opacity:paths[key].length>=n?1:0});svg.appendChild(marker);return marker;});
+  const hitArea=mk('rect',{x:ML,y:MT,width:PW,height:PH,fill:'transparent'});svg.appendChild(hitArea);
   const tip=document.getElementById('tip'),finePointer=window.matchMedia('(pointer: fine)').matches;
   let cursorIndex=0;
   const paintCursor=index=>{
     cursorIndex=Math.max(0,Math.min(n-1,index));const x=X(cursorIndex);
     xh.setAttribute('x1',x);xh.setAttribute('x2',x);xh.setAttribute('y1',MT);xh.setAttribute('y2',MT+PH);
-    [activeKey].forEach((key,markerIndex)=>{if(paths[key].length!==n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
+    [activeKey].forEach((key,markerIndex)=>{if(paths[key].length<n)return;cursorMarkers[markerIndex].setAttribute('cx',x);cursorMarkers[markerIndex].setAttribute('cy',Y(paths[key][cursorIndex]));});
   };
-  const indexFromPointer=event=>{const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));};
-  overlay.addEventListener('pointermove',event=>{
+  /* 날짜 축에서는 인덱스 0 이 더 이상 왼쪽 끝이 아니다 — 균등 간격을 가정하면 커서가
+     어긋난다. X(index) 에 가장 가까운 인덱스를 직접 찾는다. */
+  const indexFromPointer=event=>{
+    const rect=svg.getBoundingClientRect(),mouseX=(event.clientX-rect.left)*(W/rect.width);
+    if(!overlay)return Math.max(0,Math.min(n-1,Math.round((mouseX-ML)/(PW/Math.max(1,n-1)))));
+    let best=0,bestGap=Infinity;
+    for(let index=0;index<n;index++){const gap=Math.abs(X(index)-mouseX);if(gap<bestGap){bestGap=gap;best=index;}}
+    return best;
+  };
+  hitArea.addEventListener('pointermove',event=>{
     const index=indexFromPointer(event);paintCursor(index);
     if(!finePointer)return;
     tip.style.display='block';tip.style.left=(event.clientX+14)+'px';tip.style.top=(event.clientY-10)+'px';
     tip.innerHTML=`<b>${esc(weeks[index])}</b> · −10%선 누적 터치확률 ${esc(riskValues[index]||'—')}<br>${[activeKey].filter(key=>paths[key].length===n).map(key=>`<span style="color:${CHART_COL[key]}">${esc(sc.paths?.[key]?.label||key)} ${num(paths[key][index])}</span>`).join('<br>')}${analogValues[index]!=null?`<br><span style="color:#706f68">혁신사이클 참조 ${num(analogValues[index])} · 확률 아님</span>`:''}`;
   });
-  overlay.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
-  overlay.addEventListener('pointerleave',()=>{tip.style.display='none';});
+  hitArea.addEventListener('pointerdown',event=>{paintCursor(indexFromPointer(event));if(!finePointer)tip.style.display='none';svg.focus();});
+  hitArea.addEventListener('pointerleave',()=>{tip.style.display='none';});
   svg.addEventListener('keydown',event=>{
     if(event.key==='ArrowLeft'||event.key==='ArrowRight'){event.preventDefault();paintCursor(cursorIndex+(event.key==='ArrowLeft'?-1:1));}
     else if(event.key==='Home'){event.preventDefault();paintCursor(0);}
@@ -2715,73 +2766,12 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
   host.replaceChildren(svg);paintCursor(0);
 }
 const ORIGINAL_FLOW_KEY='S1';
-const TRACK_ACTUAL_COL='#11110f';
 const trackDay=value=>Date.UTC(+String(value).slice(0,4),+String(value).slice(5,7)-1,+String(value).slice(8,10))/86400000;
-/* 기록된 S1 빈티지를 그 뒤 실제 종가와 겹쳐 그린다. 선은 전부 자기 예측일에 커밋된
-   값이고, 지금 모형을 과거로 되돌려 그리지 않는다(5원칙 ⑤ 백테스트 금지). */
-function drawScenarioTrack(host,track,showAll){
-  const NS='http://www.w3.org/2000/svg';
-  const W=1160,H=430,ML=58,MR=152,MT=26,MB=42;
-  const actual=track.actual||[],vintages=track.vintages||[];
-  if(actual.length<2||!vintages.length){host.replaceChildren(el('<p class="chart-note">대조할 기록이 아직 없습니다.</p>'));return;}
-  const latest=vintages[vintages.length-1];
-  const shown=showAll?vintages:[latest];
-  const startX=Math.min(trackDay(actual[0][0]),trackDay(vintages[0].asof)),endX=trackDay(track.cut);
-  const values=[...actual.map(row=>row[1]),...vintages.flatMap(row=>row.values.map(point=>point[1]))];
-  if(Number.isFinite(Number(track.ath)))values.push(Number(track.ath));
-  const low=Math.min(...values),high=Math.max(...values),padY=Math.max(150,(high-low)*.08);
-  const Y0=Math.floor((low-padY)/250)*250,Y1=Math.ceil((high+padY)/250)*250;
-  const PW=W-ML-MR,PH=H-MT-MB;
-  const X=day=>ML+PW*(trackDay(day)-startX)/Math.max(1,endX-startX),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
-  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width','100%');
-  svg.setAttribute('role','img');
-  svg.setAttribute('aria-label',`${track.stats.first_asof}부터 기록된 상승 시나리오 경로 ${vintages.length}건과 실제 ${track.index} 종가를 겹친 대조 그래프. 겹치는 구간 ${track.stats.scored_point_count}개 점의 평균 절대오차 ${track.stats.mean_abs_error_pct}%`);
-  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
-  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
-  const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
-  const line=points=>points.map((point,index)=>(index?'L':'M')+X(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
-  const lastActual=actual[actual.length-1];
-  svg.appendChild(mk('rect',{x:X(lastActual[0]),y:MT,width:Math.max(0,ML+PW-X(lastActual[0])),height:PH,fill:'rgba(17,17,15,.045)'}));
-  const gridStep=Math.max(250,Math.ceil(((Y1-Y0)/6)/250)*250);
-  for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){
-    svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
-    svg.appendChild(tx(ML-8,Y(value)+4,num(value),{anc:'end',fill:'#5f5d57',fs:11}));
-  }
-  let tickYear=+String(actual[0][0]).slice(0,4),tickMonth=+String(actual[0][0]).slice(5,7);
-  for(let step=0;step<24;step++){
-    const day=tickYear+'-'+String(tickMonth).padStart(2,'0')+'-01';
-    if(trackDay(day)>endX)break;
-    if(trackDay(day)>=startX){
-      svg.appendChild(mk('line',{x1:X(day),y1:MT+PH,x2:X(day),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
-      svg.appendChild(tx(X(day),MT+PH+19,tickMonth+'월',{anc:'middle',fs:12,fill:'#5f5d57'}));
-    }
-    tickMonth++;if(tickMonth>12){tickMonth=1;tickYear++;}
-  }
-  const rightLabels=[];
-  if(Number.isFinite(Number(track.ath))){
-    svg.appendChild(mk('line',{x1:ML,y1:Y(track.ath),x2:ML+PW,y2:Y(track.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
-    rightLabels.push({y:Y(track.ath),text:'ATH '+num(Math.round(Number(track.ath))),color:'rgba(17,17,15,.62)',fontSize:11,weight:650});
-  }
-  shown.forEach(row=>{
-    const isLatest=row.asof===latest.asof;
-    svg.appendChild(mk('path',{d:line(row.values),fill:'none',stroke:CHART_COL[ORIGINAL_FLOW_KEY],'stroke-width':isLatest?2.6:1.1,'stroke-linejoin':'round',opacity:isLatest?1:(showAll?.34:1),'data-track-vintage':row.asof}));
-  });
-  svg.appendChild(mk('path',{d:line(actual),fill:'none',stroke:TRACK_ACTUAL_COL,'stroke-width':2.8,'stroke-linejoin':'round','data-track-actual':'1'}));
-  svg.appendChild(mk('line',{x1:X(lastActual[0]),y1:MT,x2:X(lastActual[0]),y2:MT+PH,stroke:'rgba(17,17,15,.42)','stroke-width':1.2,'stroke-dasharray':'4 4'}));
-  svg.appendChild(mk('circle',{cx:X(lastActual[0]),cy:Y(lastActual[1]),r:4,fill:TRACK_ACTUAL_COL,stroke:'#fff','stroke-width':1.5}));
-  svg.appendChild(halo(tx(X(lastActual[0])-7,MT+14,'오늘 '+num(Math.round(lastActual[1])),{anc:'end',fill:'#11110f',fs:12,w:700})));
-  svg.appendChild(halo(tx(X(lastActual[0])+7,MT+14,'→ 아직 실현 안 된 구간',{fill:'#5f5d57',fs:11})));
-  const latestEnd=latest.values[latest.values.length-1];
-  if(latestEnd)rightLabels.push({y:Y(latestEnd[1]),text:'최신 S1 '+num(Math.round(latestEnd[1])),color:CHART_LABEL_COL[ORIGINAL_FLOW_KEY],fontSize:12,weight:750});
-  resolveEndpointLabels(rightLabels,20,MT+10,MT+PH-10).forEach(item=>{
-    svg.appendChild(mk('path',{d:`M${ML+PW+3},${item.y} L${ML+PW+9},${item.y} L${ML+PW+14},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:.7}));
-    svg.appendChild(halo(tx(ML+PW+17,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
-  });
-  host.replaceChildren(svg);
-}
-function scenarioTrackPanel(){
+/* 대조 요약과 빈티지 표. 그래프는 따로 두지 않는다 — 실제 선과 지난 빈티지는
+   최초 버전 그래프(drawOriginalWeeklyFlow) 안에 그대로 겹쳐 그린다. */
+function scenarioTrackSummary(){
   const track=DATA.scenario_track;
-  if(!track||track.status!=='ok'||!(track.vintages||[]).length)return null;
+  if(!track||track.status!=='ok'||!(track.vintages||[]).length)return '';
   const stats=track.stats||{};
   const rows=track.vintages.slice().reverse().map(row=>{
     const hit=row.realized;
@@ -2789,50 +2779,28 @@ function scenarioTrackPanel(){
       (hit?`<td>${esc(hit.date)}</td><td>${num(Math.round(hit.predicted))}</td><td>${num(Math.round(hit.actual))}</td><td class="track-error">${hit.error_pct>=0?'+':''}${Number(hit.error_pct).toFixed(2)}%</td>`
           :'<td colspan="4">아직 실현 구간 없음</td>')+'</tr>';
   }).join('');
-  const panel=el(`<section class="chart-panel scenario-track-panel" aria-labelledby="scenario-track-title">
-    <div class="panel-head"><div><p class="eyebrow">전진 트랙레코드 · 라이브 포워드 · 참고 의견</p>
-      <h2 id="scenario-track-title">그때 그린 상승 경로는 실제를 얼마나 따라갔나</h2>
-      <p>위 그래프와 <b>같은 S1 상승 경로</b>를, 기록이 시작된 ${esc(stats.first_asof)}부터 빈티지별로 겹쳐 그렸습니다.
-      한 점에서 만나는 대신 겹치는 구간이 생기므로 예측과 실제를 직접 대조할 수 있습니다.</p></div>
-      <span class="count-chip">${esc(stats.vintage_count)}건 기록</span></div>
-    <div class="flow-shape-controls" role="group" aria-label="표시할 빈티지">
-      <span>VINTAGES</span>
-      <button type="button" data-track-mode="all" aria-pressed="true"><i></i>전체 ${esc(stats.vintage_count)}건</button>
-      <button type="button" data-track-mode="latest" aria-pressed="false"><i></i>최신 1건만</button>
-      <small>선 하나가 그날 커밋된 예측 하나입니다</small></div>
-    <div class="chart-wrap"><div data-scenario-track-chart></div></div>
+  return `<div class="scenario-track-summary">
     <div class="scenario-v52-readout">
       <div><span>겹치는 구간 평균 절대오차</span><strong>${esc(stats.mean_abs_error_pct)}%</strong><small>중앙값 ${esc(stats.median_abs_error_pct)}% · 채점점 ${esc(stats.scored_point_count)}개</small></div>
       <div><span>채점된 예측</span><strong>${esc(stats.scored_vintage_count)}건</strong><small>전체 ${esc(stats.vintage_count)}건 중 · 나머지는 아직 실현 구간 없음</small></div>
-      <div><span>기록 구간</span><strong>${esc(stats.first_asof)} ~ ${esc(stats.last_asof)}</strong><small>대조 지평 ${esc(track.cut)}까지</small></div>
+      <div><span>실제 종가 기록</span><strong>${esc(stats.first_asof)} ~ ${esc(stats.last_asof)}</strong><small>일간 · 각 아카이브의 확정 종가</small></div>
     </div>
-    ${chartGuide([
-      [GUIDE_SOLID(TRACK_ACTUAL_COL),'검은 선','실제 '+esc(track.index)+' 종가 — 각 아카이브에 기록된 그날 확정 종가'],
-      [GUIDE_SOLID(CHART_COL[ORIGINAL_FLOW_KEY]),'주황 선',esc(track.label)+' 경로 — 굵은 선이 최신, 옅은 선이 과거 빈티지'],
-      [GUIDE_DASH('rgba(17,17,15,.42)'),'세로 점선','오늘 — 오른쪽은 아직 실현되지 않았습니다']
-    ],'S1은 한가운데 예측이 아니라 상승·ATH 돌파라는 조건부 경로입니다. 구조상 실제보다 위로 치우치므로 오차의 부호를 실력으로 읽으면 안 됩니다. 특정 날짜의 가격을 맞히는 그래프가 아니며 투자 자문이 아닙니다.')}
-    <details class="chart-method"><summary>이 대조는 어떻게 만들었나</summary>
-      <p>예측선은 <code>${esc(track.source_path)}</code>의 커밋된 아카이브에서 각 파일의 <code>asof</code>와
-      <code>paths.S1.values</code>를 그대로 읽습니다. 지금 모형을 과거로 되돌려 그리지 않습니다 —
-      백테스트 금지 원칙(5원칙 ⑤)에 걸리기 때문이며, 그래서 기록이 없는 기간은 그리지 않습니다.</p>
-      <p>실제 종가도 외부 조회 없이 같은 아카이브의 <code>anchor</code>에서 가져옵니다. 그 값은
-      해당 날짜에 확정 종가로 기록된 값이라, 대조 전체가 커밋된 저장소만으로 재현됩니다.</p>
+    <details class="chart-method"><summary>실제 선과 지난 빈티지는 어디서 왔나</summary>
+      <p>옅은 주황 선은 <code>${esc(track.source_path)}</code>의 커밋된 아카이브에서 각 파일의 <code>asof</code>와
+      <code>paths.S1.values</code>를 그대로 읽은 것입니다. 선 하나가 그날 커밋된 예측 하나이고,
+      지금 모형을 과거로 되돌려 그리지 않습니다 — 백테스트 금지 원칙(5원칙 ⑤)에 걸리기 때문이며,
+      그래서 기록이 없는 기간은 그리지 않습니다.</p>
+      <p>검은 실제 선도 외부 조회 없이 같은 아카이브의 <code>anchor</code>에서 가져옵니다. 그 값은
+      해당 날짜에 확정 종가로 기록된 값이라 <b>일간</b>이고, 대조 전체가 커밋된 저장소만으로 재현됩니다.</p>
       <p>오차는 예측일 이후 주차점 중 실제 종가가 있는 <b>전부</b>를 채점합니다. 마지막 한 점만 쓰면
-      같은 선의 앞구간 오차가 통계에서 사라지기 때문입니다.</p></details>
+      같은 선의 앞구간 오차가 통계에서 사라지기 때문입니다. S1은 한가운데 예측이 아니라
+      상승·ATH 돌파라는 조건부 경로이므로 구조상 실제보다 위로 치우칩니다 —
+      <b>오차의 부호를 실력으로 읽으면 안 됩니다.</b></p></details>
     <div class="table-shell"><table class="scenario-track-table">
-      <caption>빈티지별 최종 실현 구간</caption>
+      <caption>빈티지별 최종 실현 구간 — 선 하나가 그날 커밋된 예측 하나입니다</caption>
       <thead><tr><th>예측일</th><th>S1 경로 비율</th><th>당일 지수</th><th>대조 시점</th><th>예측</th><th>실제</th><th>오차</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
-  </section>`);
-  const host=$('[data-scenario-track-chart]',panel);
-  let showAll=true;
-  const paint=()=>{
-    drawScenarioTrack(host,track,showAll);
-    panel.querySelectorAll('[data-track-mode]').forEach(button=>button.setAttribute('aria-pressed',String((button.dataset.trackMode==='all')===showAll)));
-  };
-  panel.querySelectorAll('[data-track-mode]').forEach(button=>{button.onclick=()=>{showAll=button.dataset.trackMode==='all';paint();};});
-  paint();
-  return panel;
+  </div>`;
 }
 function originalFlowPanel(){
   const sc=DATA.scenario;
@@ -2840,15 +2808,29 @@ function originalFlowPanel(){
   const structural=hasStructuralPaths(sc);
   const memberCount=['S1','S2','S3'].reduce((total,key)=>total+((sc.path_realism?.[key]?.sample_paths||[]).length),0);
   const analogLegend=sc.analog?.values?.length?`<span><b style="background:#706f68"></b>${esc(sc.analog.label||'혁신사이클 참조선 — 시나리오 아님')}</span>`:'';
+  /* 실제 종가를 겹치려면 가로축이 날짜여야 한다 — week_dates 가 있는 스냅샷에서만 가능하다. */
+  const track=DATA.scenario_track&&DATA.scenario_track.status==='ok'?DATA.scenario_track:null;
+  const canOverlay=Boolean(track&&(sc.week_dates||[]).length===sc.weeks.length&&track.actual?.length>1);
+  const actualLegend=canOverlay?'<span><b style="background:#11110f"></b>실제 종가 (일간)</span>':'';
+  const priorLegend=canOverlay?`<span><b style="background:${CHART_COL.S1};opacity:.34"></b>지난 예측일의 같은 경로</span>`:'';
+  /* 시나리오 지평은 252거래일까지 뻗는다. 전량을 실으면 겹치는 구간이 가로폭의 10%대로
+     눌려 대조가 안 보이므로, 기본은 실현 구간에 맞춘 창으로 연다. */
+  const horizonControl=canOverlay?`<div class="flow-shape-controls" role="group" aria-label="가로축 기간">
+      <span>기간</span>
+      <button type="button" data-original-horizon="compare" aria-pressed="true"><i></i>실제와 겹치는 구간 (${esc(track.stats.first_asof)} ~ ${esc(track.cut)})</button>
+      <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망까지</button>
+      <small>기본은 대조 구간 — 전체를 열면 겹침이 화면 왼쪽으로 눌립니다</small></div>`:'';
   const ghostLegend=structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중앙값</span>':'';
   const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>PATH LAYERS</span><button type="button" data-original-samples aria-pressed="false"><i></i>실제 모의 경로 ${num(memberCount)}개 같이 보기</button><small>기본 숨김 · 대표선으로 쓰지 않습니다</small></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
     <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
       <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
-      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나만</b> 그립니다 — 뒤에 붙는 실제 대조 그래프와 같은 선입니다.
+      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나만</b> 그리고, 그 위에 <b>실제 종가(검은 선, 일간)</b>와
+      지난 예측일의 같은 S1 경로를 옅게 겹칩니다 — 겹치는 구간이 곧 채점 가능한 부분입니다.
       기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
-    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${ghostLegend}${analogLegend}</div>
+    ${horizonControl}
+    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${actualLegend}${priorLegend}${ghostLegend}${analogLegend}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
     <details class="chart-method"><summary>이 그래프는 어떻게 만들었나</summary><p>${esc(sc.note||'')}</p><p>굵은 선은 과거 조정 모양을 입힌 경로이고, 회색 점선은 그 모양을 입히기 전의 밋밋한 평균입니다. 굴곡은 '이 달쯤 위험했다'는 과거 형태이지 특정 날짜 예측이 아니며, 모의 표본을 대표선으로 쓰지 않습니다.</p></details>
@@ -2861,15 +2843,18 @@ function originalFlowPanel(){
     ],'특정 날짜의 가격을 맞히는 그래프가 아닙니다. 투자 자문이 아닙니다.')}
     <div class="scenario-v52-readout" data-original-endpoints><div><span>S1 · ${esc(sc.paths?.S1?.label||'')}</span><strong style="color:${CHART_LABEL_COL.S1}">${num(Math.round(Number((flowDisplayPath(sc,'S1')||[]).at(-1)||0)))}</strong><small>도착점 경로 비율 ${esc(sc.paths?.S1?.prob)}% · 챔피언 GBM 조건부</small></div></div>
     ${memberCount?'<p class="chart-note chart-note-accent" data-original-sample-note hidden>얇은 점선은 <b>실제로 나온 경로 하나하나</b>입니다. 표본일 뿐 대표선이 아니고, 날짜별 값을 맞히려는 선도 아닙니다.</p>':''}
+    ${scenarioTrackSummary()}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
-  let samplesOn=false;
+  let samplesOn=false,horizon='compare';
   const paintOriginal=()=>{
-    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY);
+    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon);
     if(sampleButton)sampleButton.setAttribute('aria-pressed',String(samplesOn));
     if(sampleNote)sampleNote.hidden=!samplesOn;
+    panel.querySelectorAll('[data-original-horizon]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.originalHorizon===horizon)));
   };
   if(sampleButton)sampleButton.onclick=()=>{samplesOn=!samplesOn;paintOriginal();};
+  panel.querySelectorAll('[data-original-horizon]').forEach(button=>{button.onclick=()=>{horizon=button.dataset.originalHorizon;paintOriginal();};});
   paintOriginal();
   return panel;
 }
@@ -2941,7 +2926,6 @@ function renderScenarioV52(candidate,initialState={}){
   const originalPanel=originalFlowPanel();
   if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(originalPanel);
   if(graphPanels.unified)graphPanels.unified.appendChild(el(v52SpecCard()));
-  if(originalPanel&&graphPanels.original){const track=scenarioTrackPanel();if(track)graphPanels.original.appendChild(track);}
   if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(el(weeklySpecCard()));
   if(!originalPanel)$('.future-graph-switch',outlook)?.remove();
   let graphKey='unified';

@@ -118,14 +118,31 @@ def test_real_repository_track_starts_at_the_first_archived_record() -> None:
     assert realized / span > 1 / 3
 
 
-def test_track_panel_is_rendered_next_to_the_single_scenario_flow() -> None:
+def test_actual_is_overlaid_inside_the_original_graph_not_a_second_one() -> None:
+    """대조는 별도 그래프가 아니라 최초 버전 그래프 안에서 겹쳐 그린다.
+
+    인덱스 축에서는 앵커 왼쪽(이미 지나간 구간)에 자리가 없어 실제 선과 예측선이 한 점에서만
+    만난다. 가로축을 날짜로 잡아야 겹치는 구간이 생긴다.
+    """
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    assert "function scenarioTrackPanel()" in script
-    assert "const track=scenarioTrackPanel();if(track)graphPanels.original.appendChild(track);" \
-        in script
+
+    # 별도 그래프 패널은 없다 — 요약과 표만 같은 패널 안으로 접힌다
+    assert "function scenarioTrackPanel" not in script
+    assert "function drawScenarioTrack" not in script
+    assert "data-scenario-track-chart" not in html
+    assert "function scenarioTrackSummary()" in script
+    assert "${scenarioTrackSummary()}" in script
+
+    # 최초 버전 그래프가 실제 선·지난 빈티지를 직접 그린다
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "data-track-actual" in flow, "실제 종가 선을 그래프 안에서 그려야 한다"
+    assert "data-track-vintage" in flow, "지난 예측일의 경로도 같은 그래프에 겹친다"
+    assert "const dateX=day=>" in flow, "가로축은 날짜 기반이어야 겹침이 생긴다"
+
     # 조건부 경로임을 화면에서 밝힌다 — 오차 부호를 실력으로 읽으면 안 된다
     assert "오차의 부호를 실력으로 읽으면 안 됩니다" in html
     # 백테스트 금지 원칙을 산출 방법에 명시한다
     assert "지금 모형을 과거로 되돌려 그리지 않습니다" in html
-    assert "data-scenario-track-chart" in html
+    # 실제 선은 일간이라고 밝힌다
+    assert "실제 종가 (일간)" in html
