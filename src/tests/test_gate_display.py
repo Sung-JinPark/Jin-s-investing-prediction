@@ -116,3 +116,15 @@ def test_ledger_is_not_modified_by_reading() -> None:
     before = hashlib.sha256(ledger.read_bytes()).hexdigest()
     _facts()
     assert hashlib.sha256(ledger.read_bytes()).hexdigest() == before
+
+
+def test_report_panel_tolerates_a_thin_sample() -> None:
+    """primary 행이 0~1개면 표시층 값이 None 이다 — 리포트가 죽으면 안 된다.
+
+    실측 계기: T01 최초 구현이 `{gd["se"]:.5f}` 로 직접 포맷해 픽스처 저장소
+    (해소 1건 이하)에서 TypeError 로 리포트 생성을 통째로 막았다.
+    """
+    source = (ROOT / "src/ai_fc/report.py").read_text(encoding="utf-8")
+    assert "def _num(" in source, "이중 단위 패널은 None 안전 포맷터를 거쳐야 한다"
+    for key in ("brier_primary_rows", "brier_per_question", "se", "margin_se"):
+        assert f'gd["{key}"]:' not in source, f"{key} 를 직접 포맷하면 얇은 표본에서 죽는다"

@@ -146,15 +146,20 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
         share = (sum(rounds.values()) / gd["n_rows_primary"]) if rounds and gd.get("n_rows_primary") else 0.0
         ci = gd.get("ci90") or []
         ci_txt = f"[{ci[0]:.5f}, {ci[1]:.5f}]" if len(ci) == 2 else "—"
+
+        def _num(key: str, spec: str) -> str:
+            """표본이 얇으면 표시층 값이 None 이다 — 판정 대신 대시를 낸다."""
+            v = gd.get(key)
+            return format(v, spec) if isinstance(v, (int, float)) else "—"
         dual = (
             '<div class="card"><h2>게이트 Brier — 두 단위</h2>'
             '<table><tr><th>단위</th><th>값</th><th>비고</th></tr>'
-            f'<tr><td><b>행 평균</b></td><td><b>{gd["brier_primary_rows"]:.5f}</b></td>'
+            f'<tr><td><b>행 평균</b></td><td><b>{_num("brier_primary_rows", ".5f")}</b></td>'
             '<td>게이트 <b>정본</b> — v_gate_status 와 같은 산술</td></tr>'
-            f'<tr><td>문항 등가중</td><td>{gd["brier_per_question"]:.5f}</td>'
+            f'<tr><td>문항 등가중</td><td>{_num("brier_per_question", ".5f")}</td>'
             '<td>게이밍 감시용 병기값 (판정 아님)</td></tr>'
-            f'<tr><td>SE</td><td>{gd["se"]:.4f}</td>'
-            f'<td>문턱 0.18 까지 <b>{gd["margin_se"]:.2f} SE</b></td></tr>'
+            f'<tr><td>SE</td><td>{_num("se", ".4f")}</td>'
+            f'<td>문턱 0.18 까지 <b>{_num("margin_se", ".2f")} SE</b></td></tr>'
             f'<tr><td>CI90</td><td>{ci_txt}</td><td>문항 클러스터 부트스트랩 B=2000</td></tr>'
             '</table>'
             '<p class="note">게이트 정본은 <b>행 평균</b>이고, 문항 등가중은 게이밍 감시용이다. '
