@@ -55,6 +55,7 @@ V2_KEYS = {
     "method_changes": list,
     "calendar_events": list,
     "scenario_v5": dict,
+    "scenario_track": dict,
 }
 
 

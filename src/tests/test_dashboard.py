@@ -933,11 +933,12 @@ def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
     assert "굵은 선=실제로 나온 경로 하나 · 점선=수천 번 돌린 한가운데" in html
 
 
-def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
-    """구조 경로 세 개는 같은 월별 굴곡 형태를 진폭만 바꿔 쓴다.
+def test_single_scenario_chart_draws_only_the_upside_path() -> None:
+    """단일 시나리오 그래프는 상승(S1) 경로 하나만 그린다.
 
-    겹쳐 그리면 '서로 다른 세 경로'처럼 보이므로 한 번에 하나만 굵게 그리고,
-    형태를 공유한다는 사실을 화면에 밝힌다.
+    세 경로는 같은 월별 굴곡 형태를 진폭만 바꿔 쓰므로 겹쳐 그리면 '서로 다른 세 경로'처럼
+    보인다. 선택기로 바꿔 보게 하는 대신 상승 경로 하나로 고정한다 — 뒤에 붙는 실제 대조
+    그래프가 같은 S1 선을 채점하므로, 두 그래프가 같은 선을 가리켜야 읽기가 맞는다.
     """
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -948,15 +949,16 @@ def test_single_scenario_chart_draws_one_path_at_a_time() -> None:
         assert single in body, single
     assert body.count("['S1','S2','S3'].forEach") == 0, "세 경로를 한꺼번에 그리면 안 된다"
 
-    # 선택기와 공시
-    assert 'data-original-scenario="${key}"' in html
-    assert "조정 모양이 같고 크기만 다릅니다" in html
-    assert "한 번에 하나만 보여줍니다" in html
-    # 나머지 두 경로의 종점은 표로 남긴다
+    # 선택기는 제거됐고 상승 경로로 고정된다
+    assert "const ORIGINAL_FLOW_KEY='S1';" in script
+    assert "drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY)" in script
+    assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
+    assert "original-scenario-switch" not in html
+    assert "상승(S1) 경로 하나만" in html
+    # 도착점 판독도 S1 하나만 남는다
     assert "data-original-endpoints" in html
-    # 챔피언 GBM의 경로 비율을 옆 그래프(V5.2)의 전용 어휘 '연구 코호트 비중'으로 부르면 두 그래프가
-    # 같은 양을 다른 값으로 보고하는 것처럼 읽힌다(검수 2차) — 챔피언 고유 표현으로 라벨링한다.
-    assert "도착점 경로 비율" in html and "챔피언 GBM 조건부" in html
+    assert html.count("도착점 경로 비율") == 1
+    assert "챔피언 GBM 조건부" in html
     assert "연구 코호트 비중 ${esc(sc.paths" not in html
 
 

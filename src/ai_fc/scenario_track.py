@@ -1,0 +1,160 @@
+"""기록된 S1(상승) 경로 빈티지를 그 뒤 실제 종가와 대조한다.
+
+라이브 포워드 전용이다. 선 하나는 그날 `data/scenarios/archive/<asof>.json` 에
+기록돼 커밋된 값 그대로이며, 지금 모형을 과거로 되돌려 그리지 않는다
+(CLAUDE.md 5원칙 ⑤ 백테스트 금지).
+
+실제 종가도 외부 조회 없이 같은 아카이브에서 가져온다 — 각 파일의 `anchor` 는
+그 `asof` 날짜에 확정 종가로 기록된 값이라, 빈티지 집합이 곧 실제 종가 계열이다.
+따라서 이 대조는 커밋된 repo 만으로 재현되며 네트워크에 의존하지 않는다.
+
+산출은 참고 의견이다. S1 은 중앙 예측이 아니라 '상승·ATH 돌파' **조건부** 경로라
+구조상 실제보다 위로 치우친다 — 오차의 부호를 실력으로 읽으면 안 된다.
+"""
+from __future__ import annotations
+
+import json
+from datetime import date, timedelta
+from pathlib import Path
+from statistics import fmean, median
+from typing import Any
+
+from .scenario import ARCHIVE_RELATIVE_DIR
+
+SCENARIO_KEY = "S1"
+# 대조 지평. 빈티지는 최장 252거래일(2027-08)까지 뻗지만, 이 화면의 용도는 '예측과 실제가
+# 겹치는 구간'을 보는 것이다. 연말까지 실으면 겹침이 가로폭의 20% 밑으로 눌리고 세로 축도
+# 미래 경로가 다 잡아먹어 실제 선이 납작해진다. 마지막 실제 종가에서 이만큼만 더 보여준다 —
+# 겹침이 화면 절반쯤을 차지하면서 경로가 향하는 방향도 남는다.
+LEAD_DAYS = 42
+
+
+def _dates_from_week_labels(weeks: list[Any], asof: str) -> list[str] | None:
+    """schema_version 1 아카이브의 'M/D' 주차 라벨을 ISO 날짜로 되돌린다.
+
+    v1 에는 `week_dates` 가 없고 `weeks` 라벨만 있다. 라벨은 asof 연도에서 시작해
+    월이 단조 증가하므로, 월이 줄어드는 지점을 연도 롤오버로 읽는다.
+    """
+    try:
+        year = int(asof[:4])
+    except (TypeError, ValueError):
+        return None
+    out: list[str] = []
+    previous: int | None = None
+    for label in weeks:
+        try:
+            month_text, day_text = str(label).split("/")
+            month, day = int(month_text), int(day_text)
+            if previous is not None and month < previous:
+                year += 1
+            previous = month
+            out.append(date(year, month, day).isoformat())
+        except (ValueError, TypeError):
+            return None
+    return out
+
+
+def _week_dates(payload: dict[str, Any], asof: str) -> list[str] | None:
+    dates = payload.get("week_dates")
+    if isinstance(dates, list) and dates:
+        return [str(day) for day in dates]
+    weeks = payload.get("weeks")
+    if isinstance(weeks, list) and weeks:
+        return _dates_from_week_labels(weeks, asof)
+    return None
+
+
+def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
+    asof = payload.get("asof")
+    path = ((payload.get("paths") or {}).get(SCENARIO_KEY)) or {}
+    values = path.get("values")
+    anchor = payload.get("anchor")
+    if not asof or not isinstance(values, list) or anchor is None:
+        return None
+    dates = _week_dates(payload, str(asof))
+    # 길이가 어긋나면 날짜 정렬을 신뢰할 수 없다 — 조용히 어긋난 선을 그리느니 버린다.
+    if dates is None or len(dates) != len(values):
+        return None
+    try:
+        series = [[day, float(value)] for day, value in zip(dates, values)]
+        return {
+            "asof": str(asof),
+            "prob": path.get("prob"),
+            "label": path.get("label"),
+            "anchor": float(anchor),
+            "values": series,
+        }
+    except (TypeError, ValueError):
+        return None
+
+
+def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]:
+    """아카이브 전량에서 S1 빈티지와 실제 종가 계열을 만든다."""
+    archive_dir = root / ARCHIVE_RELATIVE_DIR
+    by_day: dict[str, dict[str, Any]] = {}
+    if archive_dir.exists():
+        for file in sorted(archive_dir.glob("*.json")):
+            try:
+                payload = json.loads(file.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(payload, dict):
+                continue
+            row = _vintage(payload)
+            if row is not None:
+                by_day.setdefault(row["asof"], row)
+                if payload.get("ath") is not None:
+                    row["ath"] = payload["ath"]
+
+    vintages = [by_day[day] for day in sorted(by_day)]
+    if len(vintages) < 2:
+        return {"status": "unavailable", "reason": "S1 빈티지가 2건 미만"}
+
+    actual = [[row["asof"], row["anchor"]] for row in vintages]
+    if cut is None:
+        last_actual = date.fromisoformat(actual[-1][0])
+        cut = (last_actual + timedelta(days=LEAD_DAYS)).isoformat()
+    closes = dict(actual)
+
+    out_vintages = []
+    errors: list[float] = []
+    for row in vintages:
+        series = [[day, value] for day, value in row["values"] if day <= cut]
+        if not series:
+            continue
+        # 예측일 이후의 주차점 중 실제 종가가 있는 전부를 채점한다 — 마지막 한 점만
+        # 쓰면 같은 선의 앞구간 오차가 통계에서 사라진다.
+        matches = [{
+            "date": day, "predicted": value, "actual": closes[day],
+            "error_pct": round((value - closes[day]) / closes[day] * 100, 2),
+        } for day, value in series if day > row["asof"] and day in closes]
+        errors.extend(abs(match["error_pct"]) for match in matches)
+        out_vintages.append({
+            "asof": row["asof"], "prob": row["prob"], "label": row["label"],
+            "anchor": round(row["anchor"], 2),
+            "values": [[day, round(value)] for day, value in series],
+            "match_count": len(matches),
+            "realized": matches[-1] if matches else None,
+        })
+
+    ath = next((row["ath"] for row in reversed(vintages) if row.get("ath") is not None), None)
+    return {
+        "status": "ok",
+        "index": "^IXIC",
+        "scenario_key": SCENARIO_KEY,
+        "label": vintages[-1].get("label") or SCENARIO_KEY,
+        "source_path": ARCHIVE_RELATIVE_DIR.as_posix(),
+        "cut": cut,
+        "ath": ath,
+        "actual": [[day, round(value, 2)] for day, value in actual],
+        "vintages": out_vintages,
+        "stats": {
+            "vintage_count": len(out_vintages),
+            "scored_point_count": len(errors),
+            "scored_vintage_count": sum(1 for row in out_vintages if row["realized"]),
+            "mean_abs_error_pct": round(fmean(errors), 2) if errors else None,
+            "median_abs_error_pct": round(median(errors), 2) if errors else None,
+            "first_asof": out_vintages[0]["asof"] if out_vintages else None,
+            "last_asof": out_vintages[-1]["asof"] if out_vintages else None,
+        },
+    }

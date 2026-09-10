@@ -430,6 +430,8 @@ def build_read_model(
     from .event_calendar import load_events
     calendar_events = load_events(root)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
+    from .scenario_track import load_scenario_track
+    scenario_track = load_scenario_track(root)
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
     era_analog = build_era_analog(legacy_context)
@@ -625,6 +627,7 @@ def build_read_model(
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "scenario_history": scenario_history,
+        "scenario_track": scenario_track,
         "analog_context": {
             "status": era_analog["status"],
             "migrated_to": "era_analog",
