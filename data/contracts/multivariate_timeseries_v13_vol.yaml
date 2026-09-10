@@ -430,7 +430,7 @@ rung5_shape_blocks:
 # 키는 영수증에 남기지 않는다 — 공개형 URL 만 기록.
 rung6_vxn_pit_spread:
   registered: "2026-09-10"
-  prereg_commit: PREREG6_PLACEHOLDER
+  prereg_commit: f72895ba
   orthogonality_evidence: data/timeseries_v13/prereg/rung6_vxn_orthogonality.json
   vintage_audit: data/timeseries_v13/exog/vxn_vintage_vs_current_audit.json
   data_source:
