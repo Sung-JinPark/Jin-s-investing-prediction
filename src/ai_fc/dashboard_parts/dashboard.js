@@ -1702,7 +1702,8 @@ function renderTimeseriesV13VolPanel(v13){
   }
   const cells=v13.cells||{},inputs=v13.inputs||{},fresh=v13.freshness||{};
   const hs=['5','21','63'],hNote={'5':'(≈1주)','21':'(≈1개월)','63':'(≈90달력일)'};
-  const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];if(!c)return `<td data-h="${h}">—</td>`;const weak=c.reliability==='weak',thin=c.episode_sample==='thin',band=c.band80||[];
+  const rowFor=(prefix,label)=>`<tr><th scope="row">${label}</th>${hs.map(h=>{const c=cells[`${prefix}_h${h}`];const bd=(v13.cell_badges||{})[`${prefix}_h${h}`]||{};
+    if(!c)return `<td data-h="${h}">—<small>${bd.holdout==='untestable'?'판정불가':bd.holdout==='fail'?'홀드아웃 실패':''}</small></td>`;const weak=c.reliability==='weak',thin=c.episode_sample==='thin',band=c.band80||[];
     return `<td data-h="${h}"${weak||thin?' class="is-weak"':''}><b>기준율 ${v13Pct(c.p)}</b><small>[80%: ${v13Pct(band[0])}–${v13Pct(band[1])}]</small><small>기후 ${v13Pct(c.clim_base_rate)}</small>${weak?`<i title="${esc(plainTerm('v13_weak_hint'))}">▲ 보정 약함</i>`:''}${thin?`<i title="${esc(plainTerm('v13_thin_hint'))}">▲ 국면 표본 얇음</i>`:''}</td>`;}).join('')}</tr>`;
   /* 모바일은 지평 한 칸만 보여준다. 기본 63 을 그대로 두면 홀드아웃에서 63 이 전부 떨어진 지금
      휴대폰 사용자는 대시 세 개만 보게 된다 — 숫자가 있는 지평으로 열되 순서(63→21→5)는 지킨다. */
@@ -1721,6 +1722,10 @@ function renderTimeseriesV13VolPanel(v13){
     +`<span class="ts-gate-chip ${gate.freshness_pass?'pass':'hold'}" title="NYSE 거래일 달력 기준 누락 세션 ${fresh.missing_sessions??'—'}/${fresh.max_missing_sessions??1}">신선도 ${gate.freshness_pass?'OK':'경고'} · 기준일 ${esc(String(v13.as_of||''))} (미국 거래일 종가)</span>`
     +`<span class="ts-gate-chip ${holdoutPass?'pass':holdoutFail?'hold':'warn'}" title="홀드아웃(2015~2018)은 사용자 승인 뒤 1회만 채점합니다. 기후 대비 통과여도 라벨 블록순열(건전 귀무) 통과율이 0.10을 넘으면 실패입니다.">홀드아웃 ${holdoutPass?'통과':holdoutFail?'실패':holdoutPartial?`부분 통과 ${passN}/${cellN}`:'미검증'}</span>`
     +`<span class="ts-gate-chip pass" title="입력: VIX 종가 ${Number(inputs.vix_close||0).toFixed(1)} · 실현변동성(21일, 연율) ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%">VIX ${Number(inputs.vix_close||0).toFixed(1)} · RV21 ${(Number(inputs.rv21_ann||0)*100).toFixed(1)}%</span>`
+    +(function(){const lf=v13.live_forward||{};const need=Number(lf.minimum_matured_origins_per_cell||60);
+      const got=Number(lf.matured_origins_min_across_pass_cells||0);const cells=(lf.pass_cells||[]).length;
+      if(!cells)return '';
+      return `<span class="ts-gate-chip ${got>=need?'pass':'warn'}" title="홀드아웃 통과 ${cells}셀에 대해 원점이 성숙해야 라이브 전진 판정이 열린다. 이 수치는 해상 원장에서 파생하며 산문이 아니다. 미달이면 '표본 부족' 표시만 하고 판정하지 않는다.">라이브 전진 ${got}/${need} 원점</span>`;})()
     +divChip+`</section>`;
   /* 읽는 법은 화면에 실제로 실린 셀을 인용한다 — 홀드아웃에서 떨어져 숨긴 셀을 예로 들면
      없는 숫자를 설명하는 문장이 된다. */
