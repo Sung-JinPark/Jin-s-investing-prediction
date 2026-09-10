@@ -1,0 +1,38 @@
+{
+ "blocks": {
+  "G1_signed_jump": {
+   "abs_corr_vs_rv21": 0.3819,
+   "abs_corr_vs_vix": 0.4176,
+   "auto_reject_limit_0_85": false,
+   "missing": 21,
+   "usable_rows": 1993
+  },
+  "G2_semivariance_ratio": {
+   "abs_corr_vs_rv21": 0.295,
+   "abs_corr_vs_vix": 0.2897,
+   "auto_reject_limit_0_85": false,
+   "missing": 21,
+   "usable_rows": 1993
+  },
+  "G3_vrp_log": {
+   "abs_corr_vs_rv21": 0.4973,
+   "abs_corr_vs_vix": 0.1513,
+   "auto_reject_limit_0_85": false,
+   "missing": 0,
+   "usable_rows": 2014
+  }
+ },
+ "content_hash": "8170a85ce23a830a71ef422a300819b45f88ca82296b1cc18c2a19e00ee12143",
+ "cross_pair_auto_rejected": true,
+ "cross_pair_level_corr_vix_rv21": 0.909,
+ "holdout_read": false,
+ "labels_touched": false,
+ "n_panel": 2014,
+ "new_data_ingested": false,
+ "purpose": "rung-5 후보 블록의 champion 피처 대비 직교성. 봉인 read-only 파생 · 라벨 미사용 · 신규 데이터 0.",
+ "schema": "v13_p5_rung5_feature_only_orthogonality",
+ "window": [
+  "2007-01-01",
+  "2014-12-31"
+ ]
+}
