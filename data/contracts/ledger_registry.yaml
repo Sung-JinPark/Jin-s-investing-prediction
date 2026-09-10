@@ -377,6 +377,22 @@ ledgers:
     expected_state: planned
     # as_of 는 구조적으로 한 세션 뒤(T+1 아카이브)라 as_of 로 재면 만성 stalled — 행 생성 시각으로 성장을 잰다.
     timestamp_field: knowledge_cutoff
+  - id: timeseries_v13_external_vol_indices
+    path: data/timeseries_v13/external/vol_indices.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: available_at
+    # P5 외부 정보집합. 봉인 V2 에 쓰지 않고 별도 비봉인 스토어에 적재한다(계약 36행 no_write_to_sealed).
+    # 출처는 licenses.generated.md 17행에서 approved 인 fred_market_signals 뿐 — CBOE 직접 CDN 은 쓰지 않는다.
+  - id: timeseries_v13_external_raw_receipts
+    path: data/timeseries_v13/external/raw_receipts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: medium
+    schema_ref: jsonl
+    timestamp_field: fetched_at
   - id: timeseries_v13_vol_live_resolutions
     path: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl
     kind: jsonl
