@@ -82,6 +82,13 @@ def _driver_section(conn: sqlite3.Connection, root: Path) -> str:
 
 def render_report(conn: sqlite3.Connection, root: Path) -> Path:
     gate = queries.gate_status(conn)
+    # T01 — 표시층 이중 단위. 게이트 산술은 무변경이며 이 값들은 판정에 쓰이지 않는다.
+    from .gate_display import gate_display_facts, gate_display_lines
+    try:
+        gd = gate_display_facts(root)
+        gd_lines = gate_display_lines(gd)
+    except Exception:
+        gd, gd_lines = {}, []
     briers = queries.brier_summary(conn)
     curve = queries.calibration_curve(conn)
     skills = queries.domain_skill(conn)
@@ -127,6 +134,35 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
     p3 = f'<span class="gate {"pass" if gate["gate_p3"] else "fail"}">P3 게이트 (50+/&lt;0.18): {"통과" if gate["gate_p3"] else "미달"}</span>'
     maturity = ('<p class="note">⚠ 표본 30 미만 — 통계적으로 미성숙. 모든 수치는 참고용.</p>'
                 if n_resolved < 30 else "")
+
+    # T01 — 이중 단위 패널. "행 평균 통과"가 단위 의존 진술임을 상시 노출한다.
+    dual = ""
+    if gd:
+        rounds = gd.get("questions_with_multiple_rounds") or {}
+        hist = "".join(
+            f"<tr><td>{q}</td><td>{n}</td></tr>"
+            for q, n in sorted((gd.get("rounds_per_question") or {}).items(),
+                               key=lambda kv: (-kv[1], kv[0]))) or "<tr><td colspan=2>표본 없음</td></tr>"
+        share = (sum(rounds.values()) / gd["n_rows_primary"]) if rounds and gd.get("n_rows_primary") else 0.0
+        ci = gd.get("ci90") or []
+        ci_txt = f"[{ci[0]:.5f}, {ci[1]:.5f}]" if len(ci) == 2 else "—"
+        dual = (
+            '<div class="card"><h2>게이트 Brier — 두 단위</h2>'
+            '<table><tr><th>단위</th><th>값</th><th>비고</th></tr>'
+            f'<tr><td><b>행 평균</b></td><td><b>{gd["brier_primary_rows"]:.5f}</b></td>'
+            '<td>게이트 <b>정본</b> — v_gate_status 와 같은 산술</td></tr>'
+            f'<tr><td>문항 등가중</td><td>{gd["brier_per_question"]:.5f}</td>'
+            '<td>게이밍 감시용 병기값 (판정 아님)</td></tr>'
+            f'<tr><td>SE</td><td>{gd["se"]:.4f}</td>'
+            f'<td>문턱 0.18 까지 <b>{gd["margin_se"]:.2f} SE</b></td></tr>'
+            f'<tr><td>CI90</td><td>{ci_txt}</td><td>문항 클러스터 부트스트랩 B=2000</td></tr>'
+            '</table>'
+            '<p class="note">게이트 정본은 <b>행 평균</b>이고, 문항 등가중은 게이밍 감시용이다. '
+            '쉬운 질문을 여러 회차 재예측하면 행 평균은 내려가지만 <b>문항 수는 늘지 않는다</b> — '
+            f'현재 복수 회차 문항 {len(rounds)}개가 primary 행의 <b>{share:.0%}</b> 를 차지한다.</p>'
+            '<table><tr><th>문항</th><th>회차</th></tr>' + hist + '</table>'
+            f'<p class="note">해소 문항 {gd["n_questions_primary"]}/{gd["threshold_questions"]} — '
+            '<b>미결</b>. 이 패널은 표시 전용이며 게이트 판정을 하지 않는다.</p></div>')
 
     # WS8-3: 대표 Brier에 제외표본 상시 병기 (검토질문 #3 응답)
     n_excl = queries.n_excluded_from_primary(conn)
@@ -182,6 +218,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <p class="note">{primary_txt}</p>
 <p class="note">rolling Brier(윈도우 10): {roll_txt}</p>
 <p class="note">{shadow_txt}</p>{maturity}</div>
+{dual}
 
 <h2>신뢰도 다이어그램 (캘리브레이션 커브) — "70%라고 한 것들이 실제 70% 실현되나"</h2>
 <div class="card"><table>
