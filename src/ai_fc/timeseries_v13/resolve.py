@@ -36,12 +36,40 @@ def _read_rows(path: Path) -> list[dict[str, Any]]:
     return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line]
 
 
-def climatology_map(contract: dict[str, Any]) -> dict[str, float]:
-    """계약의 고정 기후 기저율을 셀 이름으로 색인한다 (라이브 재추정 금지)."""
+def climatology_map(contract: dict[str, Any], frozen: dict[str, Any] | None = None) -> dict[str, float]:
+    """고정 기후 기저율을 셀 이름으로 색인한다 (라이브 재추정 금지).
+
+    **출처는 동결 계수 아티팩트가 정본이다.** 계약 `climatology_base_rates` 표는 그 값의
+    소수 4자리 전사인데, 2026-09-10 실측에서 RV 3셀의 전사가 어긋났다 —
+    `rv_h21` 0.6760 vs 0.67084797(차 0.005152) · `rv_h63` 0.8751 vs 0.87647360 ·
+    `rv_h5` 0.5523 vs 0.55243352. VIX 6셀은 4자리 반올림으로 일치한다.
+
+    홀드아웃 채점(`holdout.py` G1)은 아티팩트 값을 썼다 — 기록된 `bs_baseline` 에서
+    `BS = r(1-p)^2 + (1-r)p^2` 로 역산해 9/9 셀 잔차 1e-16 으로 확인했다. 라이브가 계약 표를
+    쓰면 **같은 '기후 기준선'이 두 경로에서 달라지고**, 성숙 원점 60개 뒤 라이브 BSS 를
+    홀드아웃 BSS 와 비교할 때 기준이 어긋난다. 배선 자격 셀(rv_h5·rv_h21)이 둘 다 그 안에 있다.
+
+    계약 105행은 기후를 "climatology_base_rates 고정값(**설계창**)"이라 정의한다. 설계창의
+    실제 무조건 빈도는 아티팩트 값이므로, 아티팩트를 읽는 것이 계약의 **정의**를 따르는 것이다.
+    계약 표의 바이트는 건드리지 않는다 — 동결 좌표를 결과 후에 고치지 않기 위해서다.
+
+    `frozen` 이 없으면 계약 표로 되돌아간다(과거 동작). 호출부는 아티팩트를 넘긴다.
+    """
+    if frozen:
+        cells = frozen.get("cells") or {}
+        out: dict[str, float] = {}
+        for spec in C.cell_specs():
+            cell = cells.get(spec["name"]) or {}
+            if "clim_base_rate" not in cell:
+                break
+            out[spec["name"]] = float(cell["clim_base_rate"])
+        else:
+            return out
+
     base = contract.get("climatology_base_rates") or {}
     vix = base.get("vix_touch") or {}
     rv = base.get("rv_exceedance") or {}
-    out: dict[str, float] = {}
+    out = {}
     for spec in C.cell_specs():
         if spec["target"] == "vix_touch":
             out[spec["name"]] = float(vix[f"K{spec['K']}_h{spec['h']}"])
@@ -65,7 +93,17 @@ def resolve_live_timeseries_v13_vol(root: Path, *, now: datetime | None = None) 
     contract = C.load_contract_v13(root)
     gate = contract.get("live_forward_gate") or {}
     minimum = int(gate.get("minimum_matured_origins_per_cell") or 60)
-    clim = climatology_map(contract)
+    pin = contract.get("frozen_coefficients") or {}
+    try:
+        frozen = C.load_frozen_coefficients(
+            root,
+            expected_sha256=pin.get("sha256"),
+            expected_content_hash=pin.get("content_hash"),
+            expected_finalist_id=(contract.get("gates", {}).get("champion") or {}).get("finalist_id"),
+        )
+    except Exception:
+        frozen = None      # 핀이 어긋나면 계약 표로 되돌아간다 — 조용히 틀린 값을 쓰지 않는다
+    clim = climatology_map(contract, frozen)
 
     live_rows = _read_rows(root / C.LIVE_LEDGER_RELATIVE)
     if not live_rows:
