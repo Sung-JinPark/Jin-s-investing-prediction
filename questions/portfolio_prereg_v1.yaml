@@ -100,6 +100,41 @@ new_registration:
   user_approval_required: true
   approval_note: "최종 12건 목록은 사용자 승인 후에만 registry.yaml 에 등록한다."
   registration_blocked_until: "이 파일 커밋 + 사용자 12건 승인"
+  # ── 사용자 승인 기록 (2026-09-10) ──────────────────────────────────────────
+  user_approved_at: "2026-09-10"
+  user_approved_option: "A — 채택 9 + 예외 슬롯 3 = 12건 전부"
+  user_approved_rationale: |
+    포트폴리오 산술에서 문항 수가 꼬리 위험의 방어로 작동한다. 2건 YES 시나리오에서
+    A(12건) 0.1607 vs B(9건) 0.2080 — 분모가 손실을 희석한다. 기대 바닥은 B 가 낫지만(0.0675)
+    꼬리에 취약하다. 이 설계에서 문항 수는 비용이 아니라 보험이다.
+  user_approved_conflict_handling: |
+    기등록 충돌 2건은 '거부 유지 + 부정합 기록'으로 처리한다 — 기등록 질문은 건드리지 않는다.
+    ① mu-gm-qoq-drop10pp-fq1-2027 은 기등록 mu-margin-qoq-fq1fy27 의 진부분집합이라 거부 유지.
+    ② fedfunds-upper-450-2026-12-09 은 기등록 fedfunds-upper-425-2026-12-09(예상 12%)와
+       P(3회째|2회)=58% 를 함의하는 부정합이 있다. 예외 슬롯으로 등록하되 이 부정합을
+       탈락 로그가 아니라 **질문 파일과 아래 known_inconsistencies 에 기록**한다.
+  known_inconsistencies:
+    - pair: [fedfunds-upper-450-2026-12-09, fedfunds-upper-425-2026-12-09]
+      issue: "신규 p=0.07 과 기등록 예상확률 12% 가 P(3회째|2회)=58% 를 함의 — 조건부 정합 미검증"
+      handling: "기등록 질문 무수정. 신규 질문 파일에 이 사실을 기재하고 예측 시 양쪽을 함께 본다."
+  user_approved_list:
+    - adbe-eps-surprise-ge4pct-fq4-2026
+    - nvda-rev-surprise-ge6pct-fq3-2027
+    - nvda-rev-miss-fq3-2027
+    - avgo-eps-surprise-ge5pct-fq4-2026
+    - avgo-eps-miss-fq4-2026
+    - nfp-dec2026-below-neg75k
+    - vix-40-touch-by-2027-01-15
+    - vix-above20-40days-by-2027-01-15
+    - t10y2y-100bp-by-2027-01-15
+    - adbe-eps-above-guide-top-fq4-2026
+    - fedfunds-upper-450-2026-12-09
+    - nasdaq-comp-30000-close-2027-01-15
+  exception_slots_consumed: 3
+  exception_slot_assignments:
+    - {id: adbe-eps-above-guide-top-fq4-2026, reason: "실효 z 1.040 — 0.7<=z<1.0 밴드 인접, n=4 표본"}
+    - {id: fedfunds-upper-450-2026-12-09, reason: "실효 z 0.810 — σ 의미론(위원 이견 SD 를 예측오차 SD 로 사용)"}
+    - {id: nasdaq-comp-30000-close-2027-01-15, reason: "실효 z 0.954 — 사구간 하한과 여유 0.065"}
 
 # ────────────────────────────────────────────────────────────────────
 # L3 / L4 — 표본 선택 위험이 있으므로 발동조건을 결과 전에 고정한다
