@@ -2709,22 +2709,141 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1'){
   });
   host.replaceChildren(svg);paintCursor(0);
 }
+const ORIGINAL_FLOW_KEY='S1';
+const TRACK_ACTUAL_COL='#11110f';
+const trackDay=value=>Date.UTC(+String(value).slice(0,4),+String(value).slice(5,7)-1,+String(value).slice(8,10))/86400000;
+/* 기록된 S1 빈티지를 그 뒤 실제 종가와 겹쳐 그린다. 선은 전부 자기 예측일에 커밋된
+   값이고, 지금 모형을 과거로 되돌려 그리지 않는다(5원칙 ⑤ 백테스트 금지). */
+function drawScenarioTrack(host,track,showAll){
+  const NS='http://www.w3.org/2000/svg';
+  const W=1160,H=430,ML=58,MR=152,MT=26,MB=42;
+  const actual=track.actual||[],vintages=track.vintages||[];
+  if(actual.length<2||!vintages.length){host.replaceChildren(el('<p class="chart-note">대조할 기록이 아직 없습니다.</p>'));return;}
+  const latest=vintages[vintages.length-1];
+  const shown=showAll?vintages:[latest];
+  const startX=Math.min(trackDay(actual[0][0]),trackDay(vintages[0].asof)),endX=trackDay(track.cut);
+  const values=[...actual.map(row=>row[1]),...vintages.flatMap(row=>row.values.map(point=>point[1]))];
+  if(Number.isFinite(Number(track.ath)))values.push(Number(track.ath));
+  const low=Math.min(...values),high=Math.max(...values),padY=Math.max(150,(high-low)*.08);
+  const Y0=Math.floor((low-padY)/250)*250,Y1=Math.ceil((high+padY)/250)*250;
+  const PW=W-ML-MR,PH=H-MT-MB;
+  const X=day=>ML+PW*(trackDay(day)-startX)/Math.max(1,endX-startX),Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
+  const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 '+W+' '+H);svg.setAttribute('width','100%');
+  svg.setAttribute('role','img');
+  svg.setAttribute('aria-label',`${track.stats.first_asof}부터 기록된 상승 시나리오 경로 ${vintages.length}건과 실제 ${track.index} 종가를 겹친 대조 그래프. 겹치는 구간 ${track.stats.scored_point_count}개 점의 평균 절대오차 ${track.stats.mean_abs_error_pct}%`);
+  const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
+  const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
+  const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
+  const line=points=>points.map((point,index)=>(index?'L':'M')+X(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
+  const lastActual=actual[actual.length-1];
+  svg.appendChild(mk('rect',{x:X(lastActual[0]),y:MT,width:Math.max(0,ML+PW-X(lastActual[0])),height:PH,fill:'rgba(17,17,15,.045)'}));
+  const gridStep=Math.max(250,Math.ceil(((Y1-Y0)/6)/250)*250);
+  for(let value=Math.ceil(Y0/gridStep)*gridStep;value<=Y1;value+=gridStep){
+    svg.appendChild(mk('line',{x1:ML,y1:Y(value),x2:ML+PW,y2:Y(value),stroke:'rgba(17,17,15,.09)','stroke-width':1}));
+    svg.appendChild(tx(ML-8,Y(value)+4,num(value),{anc:'end',fill:'#5f5d57',fs:11}));
+  }
+  let tickYear=+String(actual[0][0]).slice(0,4),tickMonth=+String(actual[0][0]).slice(5,7);
+  for(let step=0;step<24;step++){
+    const day=tickYear+'-'+String(tickMonth).padStart(2,'0')+'-01';
+    if(trackDay(day)>endX)break;
+    if(trackDay(day)>=startX){
+      svg.appendChild(mk('line',{x1:X(day),y1:MT+PH,x2:X(day),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
+      svg.appendChild(tx(X(day),MT+PH+19,tickMonth+'월',{anc:'middle',fs:12,fill:'#5f5d57'}));
+    }
+    tickMonth++;if(tickMonth>12){tickMonth=1;tickYear++;}
+  }
+  const rightLabels=[];
+  if(Number.isFinite(Number(track.ath))){
+    svg.appendChild(mk('line',{x1:ML,y1:Y(track.ath),x2:ML+PW,y2:Y(track.ath),stroke:'rgba(17,17,15,.3)','stroke-width':1,'stroke-dasharray':'5 4'}));
+    rightLabels.push({y:Y(track.ath),text:'ATH '+num(Math.round(Number(track.ath))),color:'rgba(17,17,15,.62)',fontSize:11,weight:650});
+  }
+  shown.forEach(row=>{
+    const isLatest=row.asof===latest.asof;
+    svg.appendChild(mk('path',{d:line(row.values),fill:'none',stroke:CHART_COL[ORIGINAL_FLOW_KEY],'stroke-width':isLatest?2.6:1.1,'stroke-linejoin':'round',opacity:isLatest?1:(showAll?.34:1),'data-track-vintage':row.asof}));
+  });
+  svg.appendChild(mk('path',{d:line(actual),fill:'none',stroke:TRACK_ACTUAL_COL,'stroke-width':2.8,'stroke-linejoin':'round','data-track-actual':'1'}));
+  svg.appendChild(mk('line',{x1:X(lastActual[0]),y1:MT,x2:X(lastActual[0]),y2:MT+PH,stroke:'rgba(17,17,15,.42)','stroke-width':1.2,'stroke-dasharray':'4 4'}));
+  svg.appendChild(mk('circle',{cx:X(lastActual[0]),cy:Y(lastActual[1]),r:4,fill:TRACK_ACTUAL_COL,stroke:'#fff','stroke-width':1.5}));
+  svg.appendChild(halo(tx(X(lastActual[0])-7,MT+14,'오늘 '+num(Math.round(lastActual[1])),{anc:'end',fill:'#11110f',fs:12,w:700})));
+  svg.appendChild(halo(tx(X(lastActual[0])+7,MT+14,'→ 아직 실현 안 된 구간',{fill:'#5f5d57',fs:11})));
+  const latestEnd=latest.values[latest.values.length-1];
+  if(latestEnd)rightLabels.push({y:Y(latestEnd[1]),text:'최신 S1 '+num(Math.round(latestEnd[1])),color:CHART_LABEL_COL[ORIGINAL_FLOW_KEY],fontSize:12,weight:750});
+  resolveEndpointLabels(rightLabels,20,MT+10,MT+PH-10).forEach(item=>{
+    svg.appendChild(mk('path',{d:`M${ML+PW+3},${item.y} L${ML+PW+9},${item.y} L${ML+PW+14},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:.7}));
+    svg.appendChild(halo(tx(ML+PW+17,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
+  });
+  host.replaceChildren(svg);
+}
+function scenarioTrackPanel(){
+  const track=DATA.scenario_track;
+  if(!track||track.status!=='ok'||!(track.vintages||[]).length)return null;
+  const stats=track.stats||{};
+  const rows=track.vintages.slice().reverse().map(row=>{
+    const hit=row.realized;
+    return `<tr><td>${esc(row.asof)}</td><td>${esc(row.prob)}%</td><td>${num(Math.round(row.anchor))}</td>`+
+      (hit?`<td>${esc(hit.date)}</td><td>${num(Math.round(hit.predicted))}</td><td>${num(Math.round(hit.actual))}</td><td class="track-error">${hit.error_pct>=0?'+':''}${Number(hit.error_pct).toFixed(2)}%</td>`
+          :'<td colspan="4">아직 실현 구간 없음</td>')+'</tr>';
+  }).join('');
+  const panel=el(`<section class="chart-panel scenario-track-panel" aria-labelledby="scenario-track-title">
+    <div class="panel-head"><div><p class="eyebrow">전진 트랙레코드 · 라이브 포워드 · 참고 의견</p>
+      <h2 id="scenario-track-title">그때 그린 상승 경로는 실제를 얼마나 따라갔나</h2>
+      <p>위 그래프와 <b>같은 S1 상승 경로</b>를, 기록이 시작된 ${esc(stats.first_asof)}부터 빈티지별로 겹쳐 그렸습니다.
+      한 점에서 만나는 대신 겹치는 구간이 생기므로 예측과 실제를 직접 대조할 수 있습니다.</p></div>
+      <span class="count-chip">${esc(stats.vintage_count)}건 기록</span></div>
+    <div class="flow-shape-controls" role="group" aria-label="표시할 빈티지">
+      <span>VINTAGES</span>
+      <button type="button" data-track-mode="all" aria-pressed="true"><i></i>전체 ${esc(stats.vintage_count)}건</button>
+      <button type="button" data-track-mode="latest" aria-pressed="false"><i></i>최신 1건만</button>
+      <small>선 하나가 그날 커밋된 예측 하나입니다</small></div>
+    <div class="chart-wrap"><div data-scenario-track-chart></div></div>
+    <div class="scenario-v52-readout">
+      <div><span>겹치는 구간 평균 절대오차</span><strong>${esc(stats.mean_abs_error_pct)}%</strong><small>중앙값 ${esc(stats.median_abs_error_pct)}% · 채점점 ${esc(stats.scored_point_count)}개</small></div>
+      <div><span>채점된 예측</span><strong>${esc(stats.scored_vintage_count)}건</strong><small>전체 ${esc(stats.vintage_count)}건 중 · 나머지는 아직 실현 구간 없음</small></div>
+      <div><span>기록 구간</span><strong>${esc(stats.first_asof)} ~ ${esc(stats.last_asof)}</strong><small>대조 지평 ${esc(track.cut)}까지</small></div>
+    </div>
+    ${chartGuide([
+      [GUIDE_SOLID(TRACK_ACTUAL_COL),'검은 선','실제 '+esc(track.index)+' 종가 — 각 아카이브에 기록된 그날 확정 종가'],
+      [GUIDE_SOLID(CHART_COL[ORIGINAL_FLOW_KEY]),'주황 선',esc(track.label)+' 경로 — 굵은 선이 최신, 옅은 선이 과거 빈티지'],
+      [GUIDE_DASH('rgba(17,17,15,.42)'),'세로 점선','오늘 — 오른쪽은 아직 실현되지 않았습니다']
+    ],'S1은 한가운데 예측이 아니라 상승·ATH 돌파라는 조건부 경로입니다. 구조상 실제보다 위로 치우치므로 오차의 부호를 실력으로 읽으면 안 됩니다. 특정 날짜의 가격을 맞히는 그래프가 아니며 투자 자문이 아닙니다.')}
+    <details class="chart-method"><summary>이 대조는 어떻게 만들었나</summary>
+      <p>예측선은 <code>${esc(track.source_path)}</code>의 커밋된 아카이브에서 각 파일의 <code>asof</code>와
+      <code>paths.S1.values</code>를 그대로 읽습니다. 지금 모형을 과거로 되돌려 그리지 않습니다 —
+      백테스트 금지 원칙(5원칙 ⑤)에 걸리기 때문이며, 그래서 기록이 없는 기간은 그리지 않습니다.</p>
+      <p>실제 종가도 외부 조회 없이 같은 아카이브의 <code>anchor</code>에서 가져옵니다. 그 값은
+      해당 날짜에 확정 종가로 기록된 값이라, 대조 전체가 커밋된 저장소만으로 재현됩니다.</p>
+      <p>오차는 예측일 이후 주차점 중 실제 종가가 있는 <b>전부</b>를 채점합니다. 마지막 한 점만 쓰면
+      같은 선의 앞구간 오차가 통계에서 사라지기 때문입니다.</p></details>
+    <div class="table-shell"><table class="scenario-track-table">
+      <caption>빈티지별 최종 실현 구간</caption>
+      <thead><tr><th>예측일</th><th>S1 경로 비율</th><th>당일 지수</th><th>대조 시점</th><th>예측</th><th>실제</th><th>오차</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>
+  </section>`);
+  const host=$('[data-scenario-track-chart]',panel);
+  let showAll=true;
+  const paint=()=>{
+    drawScenarioTrack(host,track,showAll);
+    panel.querySelectorAll('[data-track-mode]').forEach(button=>button.setAttribute('aria-pressed',String((button.dataset.trackMode==='all')===showAll)));
+  };
+  panel.querySelectorAll('[data-track-mode]').forEach(button=>{button.onclick=()=>{showAll=button.dataset.trackMode==='all';paint();};});
+  paint();
+  return panel;
+}
 function originalFlowPanel(){
   const sc=DATA.scenario;
   if(!sc||!Array.isArray(sc.weeks)||sc.weeks.length<2||!sc.paths)return null;
   const structural=hasStructuralPaths(sc);
   const memberCount=['S1','S2','S3'].reduce((total,key)=>total+((sc.path_realism?.[key]?.sample_paths||[]).length),0);
-  const scenarioPick=`<div class="cross-view-switch original-scenario-switch" role="group" aria-label="표시할 시나리오">${['S1','S2','S3'].map(key=>`<button type="button" data-original-scenario="${key}" aria-pressed="${String(key==='S1')}">${key} ${esc(sc.paths?.[key]?.label||'')} · 경로 비율 ${esc(sc.paths?.[key]?.prob)}%</button>`).join('')}</div>`;
   const analogLegend=sc.analog?.values?.length?`<span><b style="background:#706f68"></b>${esc(sc.analog.label||'혁신사이클 참조선 — 시나리오 아님')}</span>`:'';
   const ghostLegend=structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중앙값</span>':'';
   const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>PATH LAYERS</span><button type="button" data-original-samples aria-pressed="false"><i></i>실제 모의 경로 ${num(memberCount)}개 같이 보기</button><small>기본 숨김 · 대표선으로 쓰지 않습니다</small></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
     <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
       <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
-      <p>최초 버전의 그래프입니다. 한 번에 한 경로만 그립니다. 기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
+      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나만</b> 그립니다 — 뒤에 붙는 실제 대조 그래프와 같은 선입니다.
+      기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
-    ${scenarioPick}
-    <div class="band-inline"><span><b data-original-active-swatch style="background:${CHART_COL.S1}"></b><b data-original-active-label>${esc(sc.paths?.S1?.label||'S1')} 경로</b></span>${ghostLegend}${analogLegend}</div>
+    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${ghostLegend}${analogLegend}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
     <details class="chart-method"><summary>이 그래프는 어떻게 만들었나</summary><p>${esc(sc.note||'')}</p><p>굵은 선은 과거 조정 모양을 입힌 경로이고, 회색 점선은 그 모양을 입히기 전의 밋밋한 평균입니다. 굴곡은 '이 달쯤 위험했다'는 과거 형태이지 특정 날짜 예측이 아니며, 모의 표본을 대표선으로 쓰지 않습니다.</p></details>
@@ -2735,23 +2854,17 @@ function originalFlowPanel(){
       sc.analog?.values?.length?[GUIDE_DASH('#706f68'),'긴 회색 대시','닷컴 때 흐름 — 참조선일 뿐 시나리오 아님']:null,
       memberCount?[GUIDE_DASH('#5f6470'),'얇은 점선','켜면 보이는 실제 모의 경로 (표본이지 대표선 아님)']:null
     ],'특정 날짜의 가격을 맞히는 그래프가 아닙니다. 투자 자문이 아닙니다.')}
-    ${structural?'<p class="chart-note">세 경로는 <b>조정 모양이 같고 크기만 다릅니다.</b> 겹치면 서로 다른 세 경로처럼 보여서 한 번에 하나만 보여줍니다.</p>':''}
-    <div class="scenario-v52-readout" data-original-endpoints>${['S1','S2','S3'].map(key=>`<div><span>${key} · ${esc(sc.paths?.[key]?.label||'')}</span><strong style="color:${CHART_LABEL_COL[key]}">${num(Math.round(Number((flowDisplayPath(sc,key)||[]).at(-1)||0)))}</strong><small>도착점 경로 비율 ${esc(sc.paths?.[key]?.prob)}% · 챔피언 GBM 조건부</small></div>`).join('')}</div>
+    <div class="scenario-v52-readout" data-original-endpoints><div><span>S1 · ${esc(sc.paths?.S1?.label||'')}</span><strong style="color:${CHART_LABEL_COL.S1}">${num(Math.round(Number((flowDisplayPath(sc,'S1')||[]).at(-1)||0)))}</strong><small>도착점 경로 비율 ${esc(sc.paths?.S1?.prob)}% · 챔피언 GBM 조건부</small></div></div>
     ${memberCount?'<p class="chart-note chart-note-accent" data-original-sample-note hidden>얇은 점선은 <b>실제로 나온 경로 하나하나</b>입니다. 표본일 뿐 대표선이 아니고, 날짜별 값을 맞히려는 선도 아닙니다.</p>':''}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
-  const activeSwatch=$('[data-original-active-swatch]',panel),activeLabel=$('[data-original-active-label]',panel);
-  let samplesOn=false,scenarioKey='S1';
+  let samplesOn=false;
   const paintOriginal=()=>{
-    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,scenarioKey);
-    panel.querySelectorAll('[data-original-scenario]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.originalScenario===scenarioKey)));
-    if(activeSwatch)activeSwatch.style.background=CHART_COL[scenarioKey];
-    if(activeLabel)activeLabel.textContent=`${sc.paths?.[scenarioKey]?.label||scenarioKey} 경로`;
+    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY);
     if(sampleButton)sampleButton.setAttribute('aria-pressed',String(samplesOn));
     if(sampleNote)sampleNote.hidden=!samplesOn;
   };
   if(sampleButton)sampleButton.onclick=()=>{samplesOn=!samplesOn;paintOriginal();};
-  panel.querySelectorAll('[data-original-scenario]').forEach(button=>{button.onclick=()=>{scenarioKey=button.dataset.originalScenario;paintOriginal();};});
   paintOriginal();
   return panel;
 }
@@ -2823,6 +2936,7 @@ function renderScenarioV52(candidate,initialState={}){
   const originalPanel=originalFlowPanel();
   if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(originalPanel);
   if(graphPanels.unified)graphPanels.unified.appendChild(el(v52SpecCard()));
+  if(originalPanel&&graphPanels.original){const track=scenarioTrackPanel();if(track)graphPanels.original.appendChild(track);}
   if(originalPanel&&graphPanels.original)graphPanels.original.appendChild(el(weeklySpecCard()));
   if(!originalPanel)$('.future-graph-switch',outlook)?.remove();
   let graphKey='unified';
