@@ -1,0 +1,31 @@
+{
+ "auto_reject_limit": 0.85,
+ "candidates": {
+  "H1_vxn_level": {
+   "abs_corr_vs_rv21": 0.9179,
+   "abs_corr_vs_vix": 0.988,
+   "auto_rejected_over_0_85": true,
+   "usable": 2014
+  },
+  "H2_vxn_vix_spread": {
+   "abs_corr_vs_rv21": 0.1868,
+   "abs_corr_vs_vix": 0.3382,
+   "auto_rejected_over_0_85": false,
+   "usable": 2014
+  }
+ },
+ "content_hash": "88b54c319372e9ef6a65d9494d5a6578308346909f066e0a39f5c482d07e3304",
+ "early_usable": 1008,
+ "holdout_read": false,
+ "labels_touched": false,
+ "late_usable": 1006,
+ "purpose": "rung-6 후보 직교성. PIT VXN(ALFRED 빈티지) 기준. 라벨 미사용·홀드아웃 미열람.",
+ "schema": "v13_p6_vxn_pit_feature_orthogonality",
+ "split": "2011-01-01",
+ "vxn_missing_on_panel": 0,
+ "vxn_rows_on_panel": 2014,
+ "window": [
+  "2007-01-01",
+  "2014-12-31"
+ ]
+}

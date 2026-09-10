@@ -119,7 +119,8 @@ def _coefficients_pinned(root: Path, latest: dict[str, Any], contract: dict[str,
 
 def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict[str, Any],
                      freshness: dict[str, Any] | None, pin_ok: bool, pin_reason: str | None,
-                     armed_now: bool | None = None) -> dict[str, Any]:
+                     armed_now: bool | None = None,
+                     matured: dict[str, int] | None = None) -> dict[str, Any]:
     if tier not in DISPLAY_TIERS:
         tier = DISPLAY_TIERS[0]
     publication = contract.get("publication") or {}
@@ -190,6 +191,32 @@ def build_projection(latest: dict[str, Any] | None, *, tier: str, contract: dict
                                "action": "display_only"},
         "footnote": (latest or {}).get("footnote") or "참고 의견 — 매매 신호 아님",
     }
+    # 셀별 상태 배지 — **원장·계약에서 파생**한다. 산문으로 적지 않는다(외부 검토 RQ9).
+    # 카드가 통과/실패까지는 구분했으나 '판정불가'와 '성숙 원점 몇 개'를 보여주지 않았다.
+    gate_block = contract.get("live_forward_gate") or {}
+    minimum = int(gate_block.get("minimum_matured_origins_per_cell") or 60)
+    pass_cells = [str(c) for c in (publication.get("holdout_pass_cells") or [])]
+    thin_cells = [str(c) for c in (live_display.get("episode_thin_cells") or [])]
+    counts = dict(matured or {})
+    badges: dict[str, dict[str, Any]] = {}
+    for name in CELL_ORDER:
+        if name in holdout_fail_cells:
+            state = "untestable" if name in thin_cells else "fail"
+        elif name in pass_cells:
+            state = "pass"
+        else:
+            state = "not_consumed" if holdout_status == "not_consumed" else "unknown"
+        badges[name] = {"holdout": state,
+                        "matured_origins": int(counts.get(name, 0)),
+                        "minimum_required": minimum}
+    projection["cell_badges"] = badges
+    projection["live_forward"] = {
+        "minimum_matured_origins_per_cell": minimum,
+        "matured_origins_min_across_pass_cells": (
+            min((int(counts.get(c, 0)) for c in pass_cells), default=0)),
+        "pass_cells": pass_cells,
+        "derived_from_ledger": True,
+    }
     if live:
         projection["inputs"] = dict(latest.get("inputs") or {})  # type: ignore[union-attr]
         # 홀드아웃 부분 실패(partial) 셀은 숫자 대신 표시 불가 — PASS 셀만 싣는다 (계약 wiring_eligibility).
@@ -214,9 +241,16 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
         current = current.replace(tzinfo=timezone.utc)
     contract = _contract(root)
     tier = display_tier(root)
+    # 셀별 배지는 해상 원장에서 파생한다 — 원장이 없으면 0. 산문으로 적지 않는다.
+    try:
+        from .timeseries_v13.resolve import matured_counts
+        matured = matured_counts(root)
+    except Exception:
+        matured = {}
     pointer = root / LATEST_RELATIVE
     if not pointer.is_file():
-        return build_projection(None, tier=tier, contract=contract, freshness=None, pin_ok=False, pin_reason=None)
+        return build_projection(None, tier=tier, contract=contract, freshness=None, pin_ok=False,
+                                pin_reason=None, matured=matured)
     try:
         latest = json.loads(pointer.read_text(encoding="utf-8"))
         if not isinstance(latest, dict):
@@ -225,7 +259,8 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
     except (json.JSONDecodeError, KeyError, TypeError, ValueError, AttributeError) as exc:
         reason = f"pointer invalid: {exc}"
         stub = {"status": "hold", "gate": {"reasons": [reason]}, "as_of": None, "knowledge_cutoff": None}
-        return build_projection(stub, tier=tier, contract=contract, freshness=None, pin_ok=False, pin_reason=None)
+        return build_projection(stub, tier=tier, contract=contract, freshness=None, pin_ok=False,
+                                pin_reason=None, matured=matured)
     pin_ok, pin_reason = _coefficients_pinned(root, latest, contract)
     max_missing = int(((contract.get("live_display") or {}).get("freshness") or {}).get("max_missing_sessions", 1))
     freshness = None
@@ -236,4 +271,5 @@ def load_projection(root: Path, *, now: datetime | None = None) -> dict[str, Any
             freshness = {"status": "unknown", "missing_sessions": None, "max_missing_sessions": max_missing,
                          "error": str(exc)}
     return build_projection(latest, tier=tier, contract=contract, freshness=freshness, pin_ok=pin_ok,
+                            matured=matured,
                             pin_reason=pin_reason)

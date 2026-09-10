@@ -1,0 +1,407 @@
+{
+ "adopted": [
+  "vix30_h5"
+ ],
+ "block": {
+  "definition": "x_t = VXN_t − VIX_t — 나스닥 초과 내재변동성(교차지수 스프레드, 기간구조 아님)",
+  "finite": 2014,
+  "lag_sessions": 0,
+  "name": "H2_vxn_vix_spread"
+ },
+ "cells": {
+  "rv_h21": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "ok",
+    "late": "ok",
+    "min_episodes": 5
+   },
+   "n_early": 1008,
+   "n_late": 985,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.17452910968010263,
+     "bs_b_ewma": 0.196226737090973,
+     "ci90": [
+      -0.03127131778973658,
+      -0.013172179752073432
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.009094368954927745,
+     "n_eval": 985,
+     "paired_mean_pb_minus_ewma": -0.021697627410870328
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.10149201333287933,
+     "bs_b_ewma": 0.1261527091969461,
+     "ci90": [
+      -0.045107214273245926,
+      -0.0038210783968016877
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.0207740112842516,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": -0.02466069586406678
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "rv_h5": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "ok",
+    "late": "ok",
+    "min_episodes": 7
+   },
+   "n_early": 992,
+   "n_late": 1001,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.06662436591165763,
+     "bs_b_ewma": 0.06942227155476738,
+     "ci90": [
+      -0.005082317125247735,
+      -0.0010089660582634041
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.0020473892698037025,
+     "n_eval": 1001,
+     "paired_mean_pb_minus_ewma": -0.002797905643109735
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.04089172260111408,
+     "bs_b_ewma": 0.04793193722197493,
+     "ci90": [
+      -0.01273334207660823,
+      -0.0015591765018485467
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.005653054719618954,
+     "n_eval": 992,
+     "paired_mean_pb_minus_ewma": -0.007040214620860847
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "rv_h63": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "episode_thin",
+    "late": "ok",
+    "min_episodes": 1
+   },
+   "n_early": 1008,
+   "n_late": 943,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.19494379560627714,
+     "bs_b_ewma": 0.20697403281331098,
+     "ci90": [
+      -0.02039129796973993,
+      -0.004916962430203436
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.007674927088547855,
+     "n_eval": 943,
+     "paired_mean_pb_minus_ewma": -0.01203023720703387
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.03720928202442179,
+     "bs_b_ewma": 0.04332693833220806,
+     "ci90": [
+      -0.014324783814714878,
+      0.0009147122453267554
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": false,
+     "mde": 0.007897357479589242,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": -0.006117656307786285
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "vix25_h21": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "ok",
+    "late": "episode_thin",
+    "min_episodes": 4
+   },
+   "n_early": 1008,
+   "n_late": 985,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.08736438059603127,
+     "bs_b_ewma": 0.0918020757164437,
+     "ci90": [
+      -0.006492005105621131,
+      -0.002539669736651722
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.001974323184408233,
+     "n_eval": 985,
+     "paired_mean_pb_minus_ewma": -0.004437695120412422
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.13348967298227843,
+     "bs_b_ewma": 0.14073282941968548,
+     "ci90": [
+      -0.02767556893860581,
+      0.012911743094321262
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": false,
+     "mde": 0.019881397531296807,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": -0.007243156437407066
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "vix25_h5": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "ok",
+    "late": "ok",
+    "min_episodes": 5
+   },
+   "n_early": 1008,
+   "n_late": 1001,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.024261678983991484,
+     "bs_b_ewma": 0.02474489253151016,
+     "ci90": [
+      -0.0011036565724431484,
+      -4.38319855116655e-05
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.0005398468750152265,
+     "n_eval": 1001,
+     "paired_mean_pb_minus_ewma": -0.0004832135475186778
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.07876790365953049,
+     "bs_b_ewma": 0.08403517023403255,
+     "ci90": [
+      -0.01373644887178273,
+      0.0030495234258739526
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": false,
+     "mde": 0.008516849652898353,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": -0.005267266574502062
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "vix25_h63": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "episode_thin",
+    "late": "episode_thin",
+    "min_episodes": 3
+   },
+   "n_early": 1008,
+   "n_late": 943,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.252090118252356,
+     "bs_b_ewma": 0.2769220192170312,
+     "ci90": [
+      -0.03567097947116708,
+      -0.013911557692280788
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.010646991643228873,
+     "n_eval": 943,
+     "paired_mean_pb_minus_ewma": -0.024831900964675156
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.14632438231926798,
+     "bs_b_ewma": 0.1407937997260228,
+     "ci90": [
+      0.0011627134130557872,
+      0.01037318658052039
+     ],
+     "ewma_beats_pb": true,
+     "ewma_significantly_worse": false,
+     "mde": 0.0047278608588671445,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": 0.005530582593245163
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "vix30_h21": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "ok",
+    "late": "episode_thin",
+    "min_episodes": 1
+   },
+   "n_early": 1008,
+   "n_late": 985,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.03301430679836563,
+     "bs_b_ewma": 0.03354428201100604,
+     "ci90": [
+      -0.001793856187294601,
+      0.0008012545364055336
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": false,
+     "mde": 0.0012986019164184892,
+     "n_eval": 985,
+     "paired_mean_pb_minus_ewma": -0.0005299752126404084
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.14859130454204553,
+     "bs_b_ewma": 0.1467641300420636,
+     "ci90": [
+      -0.0017253147813735558,
+      0.005583878437108147
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": false,
+     "mde": 0.0037322791456152237,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": 0.0018271744999819159
+    }
+   },
+   "verdict": "measured_zero"
+  },
+  "vix30_h5": {
+   "adopted": true,
+   "bidirectional_ci_pass": true,
+   "degeneracy": {
+    "early": "ok",
+    "late": "episode_thin",
+    "min_episodes": 2
+   },
+   "n_early": 1008,
+   "n_late": 1001,
+   "neg_control_pass_rate": 0.025,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.013580716723119961,
+     "bs_b_ewma": 0.012199017385830664,
+     "ci90": [
+      0.00028104303643283404,
+      0.0028124826103856143
+     ],
+     "ewma_beats_pb": true,
+     "ewma_significantly_worse": false,
+     "mde": 0.0012888410305775643,
+     "n_eval": 1001,
+     "paired_mean_pb_minus_ewma": 0.0013816993372892986
+    },
+    "ewma_beats_pb_both": true,
+    "late_to_early": {
+     "bs_a_pb": 0.06266999879654818,
+     "bs_b_ewma": 0.055723959783260585,
+     "ci90": [
+      0.00013847613241986398,
+      0.01472822210336349
+     ],
+     "ewma_beats_pb": true,
+     "ewma_significantly_worse": false,
+     "mde": 0.007458680520287028,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": 0.006946039013287593
+    }
+   },
+   "verdict": "adopted_episode_thin"
+  },
+  "vix30_h63": {
+   "adopted": false,
+   "bidirectional_ci_pass": false,
+   "degeneracy": {
+    "early": "episode_thin",
+    "late": "episode_thin",
+    "min_episodes": 1
+   },
+   "n_early": 1008,
+   "n_late": 943,
+   "neg_control_pass_rate": null,
+   "paired": {
+    "early_to_late": {
+     "bs_a_pb": 0.14091232029551962,
+     "bs_b_ewma": 0.1367472771826682,
+     "ci90": [
+      0.0028521999472983016,
+      0.0054292311687886815
+     ],
+     "ewma_beats_pb": true,
+     "ewma_significantly_worse": false,
+     "mde": 0.0013084470383158686,
+     "n_eval": 943,
+     "paired_mean_pb_minus_ewma": 0.004165043112851462
+    },
+    "ewma_beats_pb_both": false,
+    "late_to_early": {
+     "bs_a_pb": 0.23284651408678358,
+     "bs_b_ewma": 0.24763472428143554,
+     "ci90": [
+      -0.02644656261811562,
+      -0.0045414861844901115
+     ],
+     "ewma_beats_pb": false,
+     "ewma_significantly_worse": true,
+     "mde": 0.011045696298168416,
+     "n_eval": 1008,
+     "paired_mean_pb_minus_ewma": -0.014788210194651963
+    }
+   },
+   "verdict": "measured_zero"
+  }
+ },
+ "content_hash": "4cee6028faaad583c90004d2964617701ec50864a4b200a1826585b8a7782f49",
+ "family_p_binomial": 0.3697505902753905,
+ "family_representative": "binomial P(k >= k_obs | n = 9, p = 0.05)",
+ "generated_at": "2026-09-10T06:00:55+00:00",
+ "holdout_read": false,
+ "k_obs_adopted": 1,
+ "n_panel": 2014,
+ "pit_source": "ALFRED vintage (earliest_available_vintage + initial_release)",
+ "prereg_commit": "f72895ba",
+ "schema": "v13_vol_rung6_vxn_pit",
+ "split": "2011-01-01",
+ "tests_run": 9,
+ "window": [
+  "2007-01-01",
+  "2014-12-31"
+ ]
+}

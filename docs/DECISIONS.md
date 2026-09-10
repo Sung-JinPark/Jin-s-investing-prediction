@@ -1153,3 +1153,30 @@ ipo-window·ecb-normalization·boj-normalization·credit-cycle)을 도입하고 
 
 **기록.** 설계도 §13(v1.1) · `registry.prioritize_forecast_targets` · `c5_certificate`
 (`question_preflight`·`budget_reconciliation`) · `tools/c5_status` · 테스트 17건 추가.
+
+### 2026-09-10 — V13-D10: PAV(cross-fit isotonic) 예외를 ML 게이트에 대해 명문화
+
+외부 검토 판정서(2026-09-10) RQ12-1 의 권고를 받아들여 기록한다. 적대적 검증에서
+"PAV 적합이 아예 없었다"는 우리 진술이 **거짓**임이 밝혀졌기 때문에 더 필요해진 기록이다 —
+h63 3셀에 isotonic 이 **실제로 적합·평가**됐고, 사전등록 fallback 으로 **배치만** 0이었다
+(`data/timeseries_v13/vol/ladder_pb_baseline.json` 의 `cells.*.iso`, 동결 계수의 `iso_map` 9셀 전부 null).
+
+**판정.** PAV 단조맵은 CLAUDE.md 하드 게이트의 "캘리브레이션 보정(isotonic/Platt)은 해소 100+ 후"
+조항 **문면 밖**이다. 그 조항은 **LLM 예측 원장의 확률을 보정하는 것**을 규율하며, V13 은
+결정론 수치 모델의 산출을 다루고 LLM 캘리브레이션 표본이 아니다(CLAUDE.md 5원칙 5 명문화된 예외).
+그러나 PAV 는 **데이터에 적합되는 단조맵**이므로 조항의 취지에는 닿는다. 그래서 예외를 넓게
+두지 않고 네 조건으로 좁힌다.
+
+| # | 조건 |
+|---|---|
+| (a) | **판정(G1·G2·G4)은 raw PB 확률로만 한다.** 보정된 확률은 어떤 게이트 판정에도 들어가지 않는다 |
+| (b) | **표시 파생층 한정.** 계약 `reliability.cross_fit_isotonic_h63.layer: derived_probability_only` · `gate_bridge: false` |
+| (c) | **파라미터 수와 cross-fit 로그를 남긴다.** 적합이 있었는지 없었는지를 사후에 다투지 않기 위해서다 |
+| (d) | **해소 100+ 전 LLM 원장 적용 금지**를 재확인한다. 이 예외는 V13 수치 모델 산출에만 적용되며 `calibration/ledger.csv` 경로로 번지지 않는다 |
+
+**현 상태.** 사전등록 fallback(양방향 중 한 방향이라도 iso 가 유의 열위면 raw)이 발동해
+**운영 배치는 0**이다. 즉 지금 표시되는 어떤 숫자도 PAV 를 거치지 않았다. 그럼에도 이 항목을
+남기는 이유는, "적합이 없었다"와 "적합은 있었고 배치만 없었다"가 다른 진술이고 후자가 사실이기 때문이다.
+
+**기록.** `data/contracts/multivariate_timeseries_v13_vol.yaml` `reliability.cross_fit_isotonic_h63` ·
+`data/timeseries_v13/vol/ladder_pb_baseline.json` · 검토팩 정오표 A2.

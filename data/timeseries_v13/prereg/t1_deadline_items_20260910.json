@@ -1,0 +1,28 @@
+{
+ "T1_1_scoring_path_baseline": {
+  "chosen_option": "B — resolve.py 가 동결 아티팩트를 읽는다. 계약 표 바이트 무수정.",
+  "contract_bytes_changed": false,
+  "problem": "holdout.py G1 은 동결 아티팩트 clim_base_rate, resolve.py 는 계약 표 — RV 3셀에서 불일치",
+  "reversible": "한 줄 — climatology_map 호출에서 frozen 인자 제거",
+  "verification": "9셀 전부 홀드아웃 bs_baseline 을 BS=r(1-p)^2+(1-r)p^2 로 역산해 잔차 <1e-9 재현",
+  "why": "계약 105행이 기후를 \"climatology_base_rates 고정값(설계창)\"으로 정의하는데 설계창 실제 빈도는 아티팩트 값이다. B 는 계약의 정의를 따른다."
+ },
+ "T1_2_termination_trigger": {
+  "direction": "게이트 완화 아님 — 종결 조건 추가이며 트랙을 더 빨리 닫는 방향",
+  "existing_gate_bytes_changed": false,
+  "registered_before_results": true,
+  "rule": "통과 3셀 중 2셀 이상이 60원점 게이트에서 demotion 되면 트랙 종결"
+ },
+ "content_hash": "04947be0c9da4d443a5ce2ad186212096d8ef26939f5cbe718a08f497cc88d0d",
+ "deadline": {
+  "computed_on": "2026-09-10",
+  "first_h5_maturity": "2026-09-14",
+  "matured_origins_at_execution": 0,
+  "origin": "2026-09-04",
+  "resolutions_rows_at_execution": 0
+ },
+ "holdout_slots_consumed": 0,
+ "purpose": "2026-09-14 첫 h5 만기 전에 끝내야 하는 두 항목의 실행 기록.",
+ "schema": "v13_t1_deadline_items_20260910",
+ "sealed_window_read": false
+}

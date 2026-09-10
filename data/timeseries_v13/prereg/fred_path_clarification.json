@@ -1,0 +1,40 @@
+{
+ "content_hash": "4f78c654e563d0c6a0fc587ad7d21f8fbd8e854528f751887187a7a236c3a132",
+ "email_sent": false,
+ "purpose": "'FRED 는 왜 안 되는가'에 대한 정확한 답. 2026-09-10 에 내가 과잉 일반화한 것을 원문으로 정정한다.",
+ "remaining_legitimate_fred_option": {
+  "cost": "ALFRED 수집 트랙 + 개발 평가 1슬롯(5/8 → 6/8)",
+  "prior": "낮다 — 캠페인 누적 채택 0/72, VXN 원시형은 이미 ρ=0.918 로 기각, 스프레드형도 V9 에서 실패.",
+  "requires": "사용자 결정. 자동 진행하지 않는다.",
+  "what": "ALFRED 빈티지로 VXNCLS 를 수집해 PIT 적격으로 만든 뒤 V13 표적에 검정",
+  "why_it_is_not_a_duplicate": "CBOE 직행 VXN 은 설계창 early 329 / late 1006 으로 심한 불균형이다. FRED/ALFRED 경로는 2001 년부터라 early 1008 / late 1006 으로 균형이 맞는다. 즉 '균형 잡힌 양방향 검정'은 아직 한 번도 안 해봤다."
+ },
+ "schema": "v13_fred_path_clarification",
+ "three_separate_issues": {
+  "1_endpoint": {
+   "fact": "내가 쓴 것은 fredgraph.csv (그래프 페이지용 엔드포인트)",
+   "fix": "api.stlouisfed.org + FRED_API_KEY. 키는 이미 환경에 설정돼 있다(로컬 확인).",
+   "fixable": true,
+   "rule": "DECISIONS 12-6 — FRED 약관은 자동수집을 금지하되 'except as expressly allowed by the terms of use applicable to the FRED API' 단서를 단다. fredgraph.csv 는 그 단서에 해당하지 않고 공식 API 는 해당한다."
+  },
+  "2_pit": {
+   "evidence": "2026-09-10 실측 — 현재 vintage 의 VXNCLS 2010-04-27 이 전일값(17.81)으로 덮여 있다. 같은 날 VIX 는 17.47 → 22.81 로 +5.34 급등했다. 설계창 전반부의 변동성 사건일 하나가 지워졌다.",
+   "fact": "fred_market_signals.yaml 이 스스로 적는다 — point_in_time_scope: 'historical current-vintage rows are not valid for backtests'",
+   "fix": "ALFRED 빈티지 수집 트랙 신설. 실제 작업량이 있다.",
+   "fixable": true,
+   "rule": "설계창 백테스트에 쓰려면 ALFRED 빈티지 수집이 필요하다. V9 계약이 이미 VXNCLS: {status: not_collected, required: alfred_vintage_collection} 로 blocked_features 에 올려 뒀다."
+  },
+  "3_already_failed": {
+   "fact": "VXN 은 신규 후보가 아니다. data/timeseries_v9/ledgers/market_observations.jsonl 에 CBOE 직행 4,270행(2009-09-14 ~ 2026-09-01)이 이미 있다.",
+   "fixable": false,
+   "note": "1·2 를 고쳐도 이 사실은 바뀌지 않는다. 다만 V9 검정은 표적이 다르고(가격분포 CRPS) 서브윈도 n=260 한정이었으므로 V13 표적에서의 엄밀한 반복은 아니다.",
+   "prior_results": {
+    "V9_E6_vxn_vix_spread": "실행됨 — 델타 −6.180e-06 (−0.019%), CI [−1.890e-05, +3.203e-06], 채택 아니오",
+    "raw_dlog_vxn": "ρ=0.918 로 자동 기각 (V9 계약 143행 naming_note)"
+   }
+  }
+ },
+ "what_12_5_actually_says": "'FRED 금지'가 아니라 한계효용 논증이다 — 이미 다른 곳(CBOE 직행)에서 얻는 데이터를 굳이 FRED 로 옮기면 CBOE 저작권은 그대로 따라오면서 FRED 의 AI/ML 사용 금지와 store/cache 금지가 *추가*된다. 같은 문서가 'FRED 가 원 게시자인 시리즈는 계속 쓴다'고 명시하고, AI/ML 조항이 본 시스템 사용 형태를 포섭하는지는 **미해결**로 남겨 뒀다.",
+ "why_it_was_wrong": "FRED 자체는 막혀 있지 않다. 저장소는 공식 API(api.stlouisfed.org)를 키와 함께 이미 쓴다. 승인된 계약 data/contracts/fred_market_signals.yaml 의 series_ids 에는 CBOE 소유 지수인 VIXCLS 도 들어 있고 license_status: approved 다.",
+ "wrong_claim_i_made": "FRED 경유는 라이선스로 막혀 있다"
+}
