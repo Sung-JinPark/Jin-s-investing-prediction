@@ -1,0 +1,28 @@
+{
+ "alfred_first_vintage": "2014-04-17",
+ "compared": 2014,
+ "fetched_at": "2026-09-10T05:57:48+00:00",
+ "limitation": "설계창 전반부(2007-2010)에는 동시대 빈티지가 존재하지 않는다 — ALFRED 최초 빈티지가 2014-04-17 이다. 그 이전 관측은 최초 가용 빈티지의 값을 쓰며 등급은 earliest_available_vintage 다. archive_verified 가 아니다.",
+ "mismatch_count": 2,
+ "mismatches": [
+  {
+   "current": 25.41,
+   "date": "2009-11-27",
+   "delta": 0.01,
+   "grade": "earliest_available_vintage",
+   "pit": 25.4
+  },
+  {
+   "current": 17.81,
+   "date": "2010-04-27",
+   "delta": -3.49,
+   "grade": "earliest_available_vintage",
+   "pit": 21.3
+  }
+ ],
+ "rows_current": 2014,
+ "rows_pit": 2014,
+ "schema": "v13_vxn_vintage_vs_current_audit",
+ "series_id": "VXNCLS",
+ "why_it_matters": "현재본을 그대로 쓰면 원래 발표값과 다른 날이 생긴다. 아래 목록이 그 전부이며, 검정에는 PIT 열을 쓴다."
+}

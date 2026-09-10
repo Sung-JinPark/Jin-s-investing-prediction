@@ -75,7 +75,7 @@ split:
 development_protocol:
   track_open: true             # V13-D1 사용자 승인(2026-09-07)
   maximum_development_evaluations: 8
-  evaluations_spent: 5         # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb · rung-4 macro_blocks · rung-5 shape_blocks — 원장 5행 대사
+  evaluations_spent: 6         # rung-1 ewma_logit · rung-2 har_logistic · rung-3 persistence_pb · rung-4 macro_blocks · rung-5 shape_blocks · rung-6 vxn_pit — 원장 6행 대사
   experiment_ledger: data/timeseries_v13/ledgers/vol_experiments.jsonl
   ledger_append_only: true
   preregistered_before_results: true
@@ -414,6 +414,78 @@ rung5_shape_blocks:
   negative_result_protocol: |
     채택 0 이면 "봉인 아카이브에서 만들 수 있는 형상 정보도 당일 수준(PB)에 흡수된다"로 기록한다.
     그 경우 남은 갈래는 외부·유료 데이터뿐이며, 그 진입은 라이선스 결정(V13-D7~D9)에 종속된다.
+  prohibitions:
+    - 결과 후 블록 추가·정의 변경 금지
+    - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
+    - 표적(K·θ·h) 추가·변경 금지
+    - p-순열 귀무 사용 금지
+
+# ── P6 rung-6: PIT VXN 교차지수 스프레드 — 사전등록 2026-09-10 ──────────────────
+# 왜 이것이 중복이 아닌가: V9 가 이미 VXN 을 시험했으나(V9_E6, 채택 실패) 그 데이터는 CBOE 직행
+# VXN_History.csv 로 설계창 early 329 / late 1006 의 **심한 불균형** 표본이었다(V9 계약
+# eligibility: subwindow_2010_2014). ALFRED 빈티지 경로는 early 1008 / late 1006 으로
+# **균형 잡힌 양방향 검정이 처음 가능**하다. 같은 실험의 반복이 아니라 처음 하는 검정이다.
+#
+# 취득: 공식 API api.stlouisfed.org + FRED_API_KEY (DECISIONS 12-6 준수). fredgraph.csv 미사용.
+# 키는 영수증에 남기지 않는다 — 공개형 URL 만 기록.
+rung6_vxn_pit_spread:
+  registered: "2026-09-10"
+  prereg_commit: f72895ba
+  orthogonality_evidence: data/timeseries_v13/prereg/rung6_vxn_orthogonality.json
+  vintage_audit: data/timeseries_v13/exog/vxn_vintage_vs_current_audit.json
+  data_source:
+    series: VXNCLS
+    store: data/timeseries_v13/exog/vxn_vintage_observations.jsonl
+    endpoint: https://api.stlouisfed.org/fred/series/observations
+    sealed_archive_written: false
+  pit:
+    alfred_first_vintage: "2014-04-17"
+    grade_by_segment:
+      "<= 2014-04-16": earliest_available_vintage
+      ">= 2014-04-17": initial_release
+    limitation: |
+      설계창 전반부(2007-2010)에는 **동시대 빈티지가 존재하지 않는다** — ALFRED 최초 빈티지가
+      2014-04-17 이다. 그 구간은 최초 가용 빈티지의 값을 쓰며 archive_verified 가 아니다.
+      2014-04-17 빈티지와 현재본을 설계창 2,014일 전수 비교한 결과 불일치는 **2일**이다
+      (2009-11-27 25.40→25.41, 2010-04-27 21.30→17.81). 검정에는 PIT 열을 쓴다.
+      잔여 위험: 원 발표(2007-2010)와 2014-04-17 빈티지 사이의 개정은 관측 불가다.
+  window_role: design
+  window: ["2007-01-01", "2014-12-31"]
+  split: "2011-01-01"
+  backtest_windows_opened: 0
+  evaluation_index: 6                   # 예산 5/8 → 6/8
+  holdout_slot_consumed: 0              # 홀드아웃 2/3 잔여 유지
+  auto_reject_applied:
+    rule: "champion 피처(VIX_t · RV21_t) 대비 |corr| > 0.85 이면 등록하지 않는다 (rung-5 에서 사전등록한 규칙)"
+    H1_vxn_level: "**기각** — |corr| VIX 0.9880 · RV21 0.9179. 수준형은 champion 에 흡수된다."
+    note: "V9 도 원시 Δlog VXN 을 ρ=0.918 로 자동 기각했다. 같은 결론이 독립적으로 재현됐다."
+  blocks:
+    H2_vxn_vix_spread:
+      definition: "x_t = VXN_t − VIX_t — 나스닥 초과 내재변동성(교차지수 스프레드, 기간구조 아님)"
+      lag_sessions: 0
+      pit_grade: mixed_earliest_vintage_and_initial_release
+      theory: |
+        표적이 NASDAQ 사건(NASDAQCOM 실현변동성 · VIX 터치)인데 champion 피처는 S&P500 의 VIX 다.
+        VXN−VIX 는 '나스닥이 시장 전체보다 얼마나 더 불안한가'를 담으며, VIX 수준만으로는
+        보이지 않는 섹터 특이 위험을 잰다. 이것이 champion 에 없는 유일한 정보 축이다.
+      measured_abs_corr: {vs_vix: 0.3382, vs_rv21: 0.1868}
+      design_window_rows: 2014
+      early_rows: 1008
+      late_rows: 1006
+  cells: "9셀 전부. 홀드아웃 결과로 셀을 고르지 않는다."
+  candidate_form: "logit[PB 피처 + β·H2] — 파라미터 1개 추가. 상호작용·비선형 없음."
+  gate: "셀별 쌍대 Brier(PB − 후보) 양방향 CI90 하한 > 0 ∧ 증분 y-block(ℓ=13) 귀무 ≤ 0.10"
+  family:
+    representative: "binomial P(k >= k_obs | n = 9, p = 0.05)"
+    diagnostic_only: "종속조정은 병기 진단이며 판정 다리가 아니다."
+  degeneracy_guard: "계약 degeneracy_guard 를 실행 시점에 적용. 미달 셀은 untestable 로 기록하고 채점 제외."
+  stopping: |
+    ① 설계창 밖 데이터를 읽어야 하면 즉시 중단.
+    ② 블록 정의를 바꿔야 결과가 나오면 중단하고 부정 결과로 기록.
+    ③ 채택 셀이 나와도 홀드아웃은 이 rung 만으로 소모하지 않는다 — 별도 사용자 승인 사항.
+  negative_result_protocol: |
+    채택 0 이면 "나스닥 초과 내재변동성도 당일 수준에 흡수된다"로 기록한다. 그 경우 V13 설계창에서
+    시험 가능한 정보집합은 사실상 소진이며, 남는 것은 라이브 전진 표본 축적(C1)뿐이다.
   prohibitions:
     - 결과 후 블록 추가·정의 변경 금지
     - 홀드아웃(2015-2018)·봉인(2019+) 창 열람 금지
