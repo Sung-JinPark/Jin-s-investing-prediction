@@ -1,113 +1,151 @@
-# C5 질문 포트폴리오 사전등록 v1 — 결과 전 커밋 (Q2)
+# 질문 포트폴리오 사전등록 v1 — 2026-09-10
 #
-# 지위: 이 파일은 C5 캘리브레이션 프로그램(docs/design/c5_calibration_program_blueprint_v1_260909.md)
-#       §6.5의 사전등록 정본이다. 신규 질문은 이 규칙을 통과해야만 registry.yaml 에 등록된다.
+# ## 왜 이 계약이 있는가
 #
-# 불변 규율:
-#   - 이 파일은 **결과를 보기 전에** 커밋됐다. 개정은 개정 커밋 + 사용자 재승인으로만 한다.
-#   - P3 게이트 산술(50문항·Brier 0.18)은 CLAUDE.md 소관이며 이 파일이 바꾸지 않는다.
-#   - 예산을 맞추려 해소가능성을 희생하지 않는다 — 충돌 시 해소가능성이 이긴다(설계도 §5 Q3 정지 규칙).
+# P3 게이트(해소 50문항 ∧ 행 평균 Brier < 0.18)에서 우리가 통제할 수 있는 것은
+# **예측을 잘하는 방법이 아니라 채점될 수 있는 질문을 고르는 방법**이다.
+#
+# 근거(팩 §4·§13, 2026-09-10 재현):
+#   · 완전 캘리브레이션 하의 기대 Brier = E[p(1−p)]. 즉 질문을 고르는 순간 기대 성적의
+#     바닥이 정해진다. p=0.5 짜리 질문만 모으면 실력과 무관하게 0.25 에 수렴한다.
+#   · 현 원장의 행 기준 예리도는 0.16214, 문항 기준은 0.18563. 후자는 이미 문턱 위다.
+#   · 게이트 여유는 0.33 SE — 통계적으로 **미결**이다.
+#
+# ## 이 파일의 지위
+#
+# **결과를 보기 전에 커밋된다.** 아래 규칙은 등록 시점에 적용되며, 등록 이후 성적을 보고
+# 바꾸지 않는다. 규칙 변경은 새 버전 파일(v2)로만 가능하고 기존 등록분에 소급하지 않는다.
+#
+# 이 파일이 커밋되기 전에는 **어떤 신규 질문 등록도, 어떤 r2 재예측도 실행하지 않는다.**
 
 schema_version: 1
-prereg_id: C5_PORTFOLIO_V1
-committed_before_results: true
-drafted: '2026-09-09'
-approved: '2026-09-09'
-approval_channel: user_chat_verbatim
-approval_text: "다 승인이야. 월예산도 40불로 늘려. 그리고 둘다 단계별로 진행해."
-approval_received_at: '2026-09-09T05:45:30+00:00'   # 도구 호출 기록 기준 (KST 2026-09-09 14:45:30)
-decision_record: docs/DECISIONS.md#2026-09-09-c5-a1-a2-a3
-blueprint: docs/design/c5_calibration_program_blueprint_v1_260909.md
+registered: "2026-09-10"
+registered_before_results: true
+supersedes: null
+authority: |
+  이 계약은 **등록 정책**이다. 게이트 판정 산술(db/schema.sql v_gate_status)은 건드리지 않는다.
+  게이트는 여전히 DISTINCT 50 ∧ AVG(brier) < 0.18 이고 이 파일은 그 분모에 들어갈 질문을
+  고르는 규칙만 정한다.
 
-# ── 착수 시점 실측 (결과 전 고정 — 이후 진도는 이 기준선에서 잰다) ────────────
-baseline_at_prereg:
-  measured_on: '2026-09-09'
-  gate_view: v_gate_status          # src/ai_fc/db/schema.sql:433 — 판정 정본
-  n_questions_primary: 5
-  n_rows_primary: 8
-  brier_primary: 0.1273
-  registry_active: 34
-  registry_resolved: 6
-  registry_void: 3
-  structural_ceiling: 39            # 5 + 34 < 50 — 신규 신설이 산술적으로 강제됨
-  # 예리도 실측 (설계도 §3 D2). 게이트 Brier 는 행 평균이므로 행 기준이 정본.
-  sharpness_rows: {n: 51, mean_pq: 0.1841, deficit: -0.2075}
-  sharpness_latest_round: {n: 33, mean_pq: 0.1874}
-  sharpness_reforecast_effect: {n: 13, first: 0.1845, latest: 0.1636, delta: -0.0209}
+# ────────────────────────────────────────────────────────────────────
+# L1 — z 규율 (핵심)
+# ────────────────────────────────────────────────────────────────────
+z_rule:
+  definition: "z = |임계 − 중심추정| / σ"
+  sigma_source_order:
+    - "T03 공급 σ (수치 모델 트랙이 제공하는 계열별 표준편차) — 있으면 최우선"
+    - "참조클래스 표준편차 — 출처(파일·URL·기간·표본수)를 질문 파일에 필수 기재"
+  sigma_must_be_recorded: true
+  bands:
+    accept: "z >= 1.0"
+    exception_slot: "0.7 <= z < 1.0 — 예외 슬롯 최대 3건까지만 등록 가능"
+    reject: "z < 0.7 — 등록 거부"
+  exception_slot_max: 3
+  rationale: |
+    z 는 '임계에서 얼마나 멀리 떨어져 있는가'다. z 가 크면 정직한 확률이 0/1 에 가까워지고
+    p(1−p) 가 작아져 기대 Brier 바닥이 내려간다. z=1.0 이면 정직 확률 약 0.16 또는 0.84 이고
+    p(1−p) ≈ 0.134 로 문턱 0.18 아래다. z=0.7 이면 약 0.242/0.758 로 p(1−p) ≈ 0.183 —
+    문턱 경계다. 그래서 0.7 이 거부선이다.
+  required_fields_on_registration: [z, sigma, sigma_source, honest_probability_estimate]
 
-# ── 예리도 예산 ───────────────────────────────────────────────────────────
-# p(1-p) = 완전 캘리브레이션 하의 기대 Brier. 이 값이 임계를 넘으면 실력과 무관하게 탈락.
-sharpness_budget:
-  threshold: 0.18                   # P3 임계 — 변경 불가
-  target_mean_pq_new: 0.15          # 신규 20문항 목표 평균 (전형 확률 ~18% / ~82%)
-  per_question_cap: 0.21            # 개별 상한 (p ~30%~70% 구간 배제)
-  exception_slots: 3                # 전략적으로 중요하나 예리하지 않은 질문용
-  reconciliation:
-    estimate_before_first_forecast: true   # 예상 확률대를 첫 예측 전에 기입 (사후 합리화 차단)
-    record_estimate_error: true            # 예상 vs 실제 첫 확률 15%p+ 괴리는 기록
-    recompute_on_actual: true              # 예산 대사는 실제 첫 예측 확률로 재계산
+# ────────────────────────────────────────────────────────────────────
+# 사구간 — 등록해도 게이트에 도움이 되지 않는 확률대
+# ────────────────────────────────────────────────────────────────────
+dead_zone:
+  band: [0.235, 0.765]
+  reason: |
+    p(1−p) 가 0.18 이상이 되는 구간이다(0.235 × 0.765 = 0.17978).
+    이 구간에 정직 확률이 떨어지는 질문은 **완전 캘리브레이션이어도** 기대 Brier 가 문턱 위다.
+    등록 자체를 막는다.
+  per_question_expected_brier_cap: 0.21
+  cap_exception_slots: 3
+  cap_note: |
+    0.18 이 아니라 0.21 을 문항 상한으로 두는 이유: 0.18 은 **포트폴리오 평균** 제약이지
+    문항별 제약이 아니다. 낮은 문항들이 평균을 끌어내리므로 개별 문항은 약간의 여유를 갖는다.
+    다만 0.21 을 넘는 문항은 예외 슬롯을 소모한다.
 
-# ── 분산 규칙 (독립성 — 설계도 §3 D3) ─────────────────────────────────────
-diversification:
-  max_driver_share: 0.40            # 현재 ai-capex-cycle 19/40 = 48% (이미 위반 상태)
-  max_same_deadline: 3              # 현재 2026-12-31 에 7문항
-  min_domains: 4
-  min_short_horizon_share: 0.50     # 신규의 50%+ 는 90일 이내 마감 (처리량 D4)
-  drivers_tag_required: true        # 신규는 drivers 태그 필수 — ESS 계산 가능성
+# ────────────────────────────────────────────────────────────────────
+# 도메인 믹스
+# ────────────────────────────────────────────────────────────────────
+domain_mix:
+  earnings_like_properties:
+    - "임계 원거리 — 컨센서스와 임계 사이 거리가 σ 대비 크다"
+    - "비개정 판정 — 판정 근거가 사후 개정되지 않는다(발표 수치 확정)"
+    - "발행자 예보 존재 — 회사 가이던스·컨센서스 같은 공개 중심추정이 있다"
+  priority: "위 세 성질을 모두 충족하는 질문을 우선 등록한다. 셋 중 둘만 충족해도 z 규율을 통과하면 가능."
+  market_daily:
+    status: permanently_excluded
+    reason: coin_flip
+    evidence: "원장 실측 Brier 0.2708 (n=2) — 구조적 사구간. 일간 방향은 z 가 원리적으로 0 에 가깝다."
+  macro:
+    status: conditional
+    conditions:
+      - "공개 컨센서스가 존재할 것"
+      - "정직 확률이 사구간 [0.235, 0.765] 밖일 것"
+    note: "컨센서스가 없으면 σ 를 세울 수 없고 z 규율이 성립하지 않는다 — L3 유예 대상."
 
-# ── 조합 (승인된 20문항) ──────────────────────────────────────────────────
-composition:
-  policy_decision:                  # D군 — FOMC 등. 예산 흑자 최대
-    count: 4
-    target_pq: 0.09
-  macro_threshold:                  # C군 — 임계 설계로 예리도 조절 가능
-    count: 6
-    target_pq: 0.15
-  volatility_event:                 # E군 — EXIT 트리거 직결. §6.6 특별 규율 적용
-    count: 4
-    target_pq: 0.13
-  corporate_event:                  # F군 — IPO/인수 등
-    count: 3
-    target_pq: 0.16
-  exception:                        # 전략 중요 · 예산 무관 슬롯
-    count: 3
-    target_pq: 0.22
-projected:
-  new_questions: 20
-  assumed_rounds_per_question: 2
-  new_rows: 40
-  new_mean_pq: 0.1425
-  combined_row_mean_pq: 0.1658      # (51*0.1841 + 40*0.1425) / 91
-  headroom_to_threshold: 0.0142     # 관측 잡음(~0.015~0.02)과 같은 크기 — 얇다
-  note: 재예측 예리화(-0.02급)는 예산에 미리 반영하지 않는다 (보수).
+# ────────────────────────────────────────────────────────────────────
+# 신규 등록 계획
+# ────────────────────────────────────────────────────────────────────
+new_registration:
+  target_count: 12
+  deadline_cap: "2027-01-15"
+  expected_void_rate: 0.149
+  expected_survivors: 10.2
+  selection_procedure:
+    - "후보 20건 초안을 먼저 작성한다"
+    - "각 후보에 z·σ·σ출처·정직확률 추정을 기재한다"
+    - "z 규율로 12건을 선택한다"
+    - "탈락 8건은 사유와 함께 파일로 남긴다 — 선택되지 않은 것도 기록한다"
+  user_approval_required: true
+  approval_note: "최종 12건 목록은 사용자 승인 후에만 registry.yaml 에 등록한다."
+  registration_blocked_until: "이 파일 커밋 + 사용자 12건 승인"
 
-# ── 금지 질문형 (설계도 §6.4) ─────────────────────────────────────────────
-prohibited_forms:
-  - coin_flip              # 예상 확률 40~60% 가 base rate 상 불가피한 질문 (일간 등락 등)
-  - near_certain           # 예상 확률 < 3% 또는 > 97% — 정보가치 0, 패딩
-  - ambiguous_resolution   # 1·2차 출처가 다른 숫자를 낼 것이 예견되는 질문
-  - self_referential       # 우리 시스템 출력에 의존하는 질문
-  - retrospective          # 과거 사건 (CLAUDE.md 5원칙 5)
+# ────────────────────────────────────────────────────────────────────
+# L3 / L4 — 표본 선택 위험이 있으므로 발동조건을 결과 전에 고정한다
+# ────────────────────────────────────────────────────────────────────
+L3_defer_r1_if_no_consensus:
+  status: registered
+  trigger: "공개 컨센서스 검색 결과가 NOT FOUND 이고 σ 를 세울 참조클래스도 없을 때"
+  scope: "이 계약 등록일(2026-09-10) 이후 신규 등록 질문만. 기존 질문에 소급 적용 금지."
+  action: "r1 을 유예한다. 유예는 예측 부재이지 예측 철회가 아니다."
+  non_selection_log_required: true
+  non_selection_log_path: "calibration/deferral_log.csv"
+  log_fields: [question_id, deferred_at, trigger, searched_sources, next_attempt_after]
+  prohibition: |
+    유예를 **결과를 보고 나서** 발동하는 것은 표본 선택이며 프로그램 중단 사유다.
+    유예 판단은 예측 실행 전에만 가능하고, 유예된 회차도 반드시 로그에 남는다.
 
-# ── E군 특별 규율 (V13-D6 승계 — 설계도 §6.6) ────────────────────────────
-volatility_event_rules:
-  do_not_justify_v13_wiring: true   # C5 표본 목적. V13 배선(V13-D6) 근거로 쓰지 않는다
-  avoid_v13_passed_cells: true      # rv_h5 / rv_h21 / vix25_h21 과 임계·지평 겹침 회피 우선
-  disclose_overlap_if_unavoidable: true
-  cite_v13_if_used_as_anchor: true  # V13 카드 숫자를 앵커로 쓰면 예측 파일에 계보 명기
+L4_research_depth_floor:
+  status: registered
+  trigger: "리서치 검색 성공 건수 < k (k=2) 이거나 데블스 애드버킷 섹션 생성 실패"
+  scope: "이 계약 등록일 이후 신규 등록 질문만. 소급 금지."
+  action: "예측을 생산하지 않고 유예한다. 이미 생산된 예측을 사후에 failed 로 재분류하지 않는다."
+  non_selection_log_required: true
+  non_selection_log_path: "calibration/deferral_log.csv"
+  prohibition: "사후 failed 태깅 금지 — 성적을 본 뒤 표본을 빼는 것과 구별되지 않는다."
 
-# ── 게이트 대면 시 필수 공시 (부수 증명서 — 설계도 §8) ────────────────────
-certificate_required_at_gate:
-  - n_questions            # v_gate_status 정본
-  - brier_primary
-  - bss_vs_anchor          # 패딩 면역 실력 측정. <= 0 이면 자동 활성화하지 않는다 (C5-A4)
-  - murphy_rel_res_unc
-  - ess_cluster            # 하한으로만 보고 (클러스터 내 완전 상관 가정)
-  - bootstrap_ci90         # 클러스터 단위 리샘플링
-  - production_path_split  # CLI vs Claude Code 경로별 n·Brier (계측 공백 정직 표기)
-
-# ── 중간 정지 조건 (설계도 §12) ───────────────────────────────────────────
+# ────────────────────────────────────────────────────────────────────
+# 정지 규칙
+# ────────────────────────────────────────────────────────────────────
 stopping_rules:
   interim_review_at_questions: [20, 30]
-  abort_if: 문항 30 시점 클러스터 부트스트랩 CI90 하한 > 0.20 이면 50 까지 가지 않고 부정 결과 선언
-  never: [gate_arithmetic_change, post_hoc_failed_tagging, stop_at_49_and_cherry_pick]
+  negative_declaration:
+    at_questions: 30
+    condition: "문항 클러스터 부트스트랩 CI90 하한 > 0.20"
+    action: "게이트 부정 선언 — 트랙 종결 판정서 작성, 자금 결정 경로 영구 차단 유지"
+  never:
+    - stop_at_49_and_cherry_pick
+    - post_hoc_failed_tagging
+    - gate_arithmetic_change
+  never_note: |
+    특히 49문항에서 멈춰 좋은 질문만 골라 50번째를 채우는 것은 게이트 조작이다.
+    50 도달은 등록 순서대로이며 성적을 보고 순서를 바꾸지 않는다.
+
+# ────────────────────────────────────────────────────────────────────
+# 게이트 상태 표현
+# ────────────────────────────────────────────────────────────────────
+status_wording:
+  current: "미결 (0.33 SE)"
+  forbidden_words: ["통과"]
+  note: "행 평균이 문턱 아래여도 SE 여유가 0.33 이면 통계적으로 미결이다. 표시·보고 어디에도 '통과'를 쓰지 않는다."
