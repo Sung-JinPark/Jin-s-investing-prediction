@@ -77,7 +77,10 @@ REASONING_RUNS = int(os.environ.get("AI_FC_REASONING_RUNS", "1"))
 # 실 보정(Platt/isotonic)은 해소 100+ ML 게이트 뒤 (섀도 열로 사전 성능 비교용).
 EXTREMIZE_ALPHA = 3 ** 0.5
 RESEARCH_MODEL = os.environ.get("AI_FC_RESEARCH_MODEL", "claude-opus-4-8")
-PROMPT_VERSION = "reasoning_core_v1"
+# T07-3 (2026-09-11) — 추론 코어 v1.1. 프리모템에 필수 3항(전제 개정 취약성·컨센 유무·임계 z)을
+# 추가했다. **가중 학습 아님** — 프롬프트 절차 변경이고 ML 게이트와 무관하다.
+# 예측 파일 frontmatter 의 prompt_version 이 v1 코호트와 v1.1 코호트를 구별해 준다.
+PROMPT_VERSION = os.environ.get("AI_FC_PROMPT_VERSION", "reasoning_core_v1_1")
 
 # 가격 ($/MTok) — 비용 추정용. 모델 변경 시 갱신.
 PRICES = {

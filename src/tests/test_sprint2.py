@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 
 import ai_fc.orchestrator as orch
-from ai_fc import files as F
+from ai_fc import config, files as F
 from ai_fc.db import ingest
 from ai_fc.models import EvidenceBrief
 from ai_fc.aggregator import AggregateResult
@@ -77,7 +77,7 @@ def repo(tmp_path: Path, monkeypatch) -> Path:
         "resolved_date,question_id,forecast_id,forecast_date,probability,outcome,brier,domain,notes\n",
         encoding="utf-8")
     (tmp_path / "prompts").mkdir()
-    (tmp_path / "prompts" / "reasoning_core_v1.md").write_text("절차", encoding="utf-8")
+    (tmp_path / "prompts" / f"{config.PROMPT_VERSION}.md").write_text("절차", encoding="utf-8")
 
     monkeypatch.setattr(orch, "run_research", lambda *a, **k: [
         EvidenceBrief("general", "가공 종합 보고", 5, 0.30, 1000, 200),
