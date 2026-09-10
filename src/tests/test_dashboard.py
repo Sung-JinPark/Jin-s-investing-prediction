@@ -766,7 +766,8 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
 def test_future_graph_subcategory_restores_original_single_scenario_chart() -> None:
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
-    assert "function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1')" in html
+    assert ("function drawOriginalWeeklyFlow(host,sc,showSamples=false,"
+            "scenarioKey='S1',horizon='compare')") in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -820,7 +821,7 @@ def test_original_flow_chart_reuses_light_theme_and_zoom_contract() -> None:
     assert "flowAxisTickIndexes(n,7)" in script
     assert "'−10%선 누적 터치확률'" in script
     assert "혁신사이클 참조선 — 시나리오 아님" in html
-    assert "23500" not in script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+    assert "23500" not in script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
     assert "#0a0e1a" not in html, "다크 테마 색값을 복구하면 안 됨"
 
 
@@ -937,12 +938,12 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
     """단일 시나리오 그래프는 상승(S1) 경로 하나만 그린다.
 
     세 경로는 같은 월별 굴곡 형태를 진폭만 바꿔 쓰므로 겹쳐 그리면 '서로 다른 세 경로'처럼
-    보인다. 선택기로 바꿔 보게 하는 대신 상승 경로 하나로 고정한다 — 뒤에 붙는 실제 대조
-    그래프가 같은 S1 선을 채점하므로, 두 그래프가 같은 선을 가리켜야 읽기가 맞는다.
+    보인다. 선택기로 바꿔 보게 하는 대신 상승 경로 하나로 고정한다 — 같은 그래프 안에서
+    실제 종가와 겹쳐 채점하므로, 겹쳐지는 선이 하나여야 읽기가 맞는다.
     """
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    body = script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+    body = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
 
     assert "const activeKey=['S1','S2','S3'].includes(scenarioKey)?scenarioKey:'S1';" in body
     for single in ("  [activeKey].forEach(key=>{", "if(usingStructural)[activeKey].forEach(key=>{"):
@@ -951,7 +952,7 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
 
     # 선택기는 제거됐고 상승 경로로 고정된다
     assert "const ORIGINAL_FLOW_KEY='S1';" in script
-    assert "drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY)" in script
+    assert "drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon)" in script
     assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
     assert "original-scenario-switch" not in html
     assert "상승(S1) 경로 하나만" in html
@@ -1067,7 +1068,7 @@ def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
     """복구 차트가 평평한 원시 중앙값 대신 구조 경로를 그리는지 고정."""
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    body = script.split("function drawOriginalWeeklyFlow")[1].split("function originalFlowPanel")[0]
+    body = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
 
     # 대표선은 챔피언 차트와 같은 헬퍼를 쓴다
     assert "flowDisplayPath(sc,key)" in body
