@@ -1423,6 +1423,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 FQ4 2026 최초 실적 공시 1건
     resolution_wording_checked: 2026-09-10 확인 — 판정은 회사 조정 EPS의 정의(지표 명칭 아님)와 컨센 스냅샷 배수 비교. 리터럴 문자열 의존 없음. 경계값 규칙 명시.
   prereg:
+    sigma_quantity: earnings_surprise_pct_adbe_nongaap_eps
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 3.2
     sigma: 0.465%p
@@ -1462,6 +1465,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 FQ4 2026 최초 실적 공시 1건
     resolution_wording_checked: 2026-09-10 확인 — 판정은 두 수치(A, G_high)의 대소 비교. 리터럴 문자열 의존 없음. 가이던스 미제시 시 void, 경계값 NO 를 명시.
   prereg:
+    sigma_quantity: guidance_top_overshoot_usd_adbe_nongaap_eps
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 1.04
     z_draft: 4.43
@@ -1503,6 +1509,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 Q3 FY2027 최초 실적 공시 1건
     resolution_wording_checked: 2026-09-10 확인 — 판정은 손익계산서 최상단 총매출과 컨센 스냅샷의 배수 비교. 세그먼트 수치 배제를 명시. 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: earnings_surprise_pct_nvda_total_revenue
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 1.62
     sigma: 1.463%p
@@ -1542,6 +1551,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 Q3 FY2027 최초 실적 공시 1건
     resolution_wording_checked: 2026-09-10 확인 — 상방 문항과 동일 정의·동일 스냅샷. 경계값 NO 명시. 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: earnings_surprise_pct_nvda_total_revenue
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 3.17
     sigma: 1.463%p
@@ -1583,6 +1595,9 @@ questions:
     resolution_wording_checked: 2026-09-10 확인 — 컨센 제공사 정합성 검증 규칙을 명문화(LSEG $3.238 vs Zacks $2.83 조정정의 불일치 사고의 재발 방지). 리터럴
       문자열 의존 없음.
   prereg:
+    sigma_quantity: earnings_surprise_pct_avgo_nongaap_eps
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 2.17
     sigma: 1.239%p
@@ -1622,6 +1637,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 FQ4 2026 최초 실적 공시 1건
     resolution_wording_checked: 2026-09-10 확인 — 상방 문항과 동일 정의·동일 스냅샷, 경계값 NO 명시. 임계를 −1%로 밀어 동률·1센트 미스 영역을 판정에서 제외.
   prereg:
+    sigma_quantity: earnings_surprise_pct_avgo_nongaap_eps
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 2.67
     sigma: 1.239%p
@@ -1663,6 +1681,9 @@ questions:
     resolution_wording_checked: 2026-09-10 확인 — 판정은 초판 수치의 부등호 비교. 개정 고정 규칙을 명문화해 nfp-jul2026 초판 −23K→+21K 상향 개정 사례의 재발을 차단.
       리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: consensus_error_nfp_first_print
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 1.53
     sigma: 95,000명
@@ -1705,6 +1726,9 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 2026-12-09 회의 결정 1건
     resolution_wording_checked: 2026-09-10 확인 — 판정은 목표범위 상단 수치의 부등호 비교. 성명 문구가 아니라 수치로 판정한다고 명시. intermeeting 결정 반영 규칙 명문화.
   prereg:
+    sigma_quantity: sep_dot_dispersion_2026ye
+    sigma_path: manual_reference_class
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 0.81
     z_draft: 1.52
@@ -1748,6 +1772,10 @@ questions:
     window_start: 2026-09-11 (question·resolution 양쪽에 명시)
     resolution_wording_checked: 2026-09-10 확인 — 판정은 단일 계열 종가의 부등호 비교. 장중 고가 배제·창 시작일 명시. 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: window_max
+    sigma_path: reference_class
+    sigma_reproduce: "sigma_supply.reference_class_sigma(store, VIXCLS, window_max, h=87, since=2010-01-01, start_condition=14<=v<=18) -> 6.553 (재현 확인 2026-09-11)"
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 2.18
     sigma: 6.553
@@ -1791,6 +1819,10 @@ questions:
     window_start: 2026-09-11 (question·resolution 양쪽에 명시)
     resolution_wording_checked: 2026-09-10 확인 — 판정은 거래일 카운트의 부등호 비교. 결측일 처리 규약을 명문화(CBOE 종가 공표일만 분모). 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: window_count_above
+    sigma_path: reference_class
+    sigma_reproduce: "sigma_supply.reference_class_sigma(store, VIXCLS, window_count_above, h=87, since=2010-01-01, start_condition=14<=v<=18, count_threshold=20.0) -> 19.644. 등록값 20.015 와 1.9% 차이이며 분위수 보간 방식 차이에서 온다 — z 는 1.60 vs 1.63 으로 계약 밴드 판정이 바뀌지 않는다"
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 1.6
     sigma: 20.015일
@@ -1835,6 +1867,10 @@ questions:
     window_start: 2026-09-11 (question·resolution 양쪽에 명시)
     resolution_wording_checked: 2026-09-10 확인 — FRED 계열 ID·단위(%p) 확인. 최초 공표 기준·결측일 처리 명시. 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: window_max
+    sigma_path: reference_class
+    sigma_reproduce: "sigma_supply.reference_class_sigma(store, T10Y2Y, window_max, h=87, start_condition=0.20<=v<=0.70) -> 0.230 (재현 확인 2026-09-11)"
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 1.74
     sigma: 0.230%p
@@ -1879,6 +1915,10 @@ questions:
     window_start: 해당 없음 — 종점(point-in-time) 질문. 판정 대상은 2027-01-15 종가 1건
     resolution_wording_checked: 2026-09-10 확인 — FRED 계열 ID 확인, 휴장 시 대체 규칙 명시. 리터럴 문자열 의존 없음.
   prereg:
+    sigma_quantity: terminal_log_return
+    sigma_path: v8_quantiles
+    sigma_reproduce: "sigma_supply.v8_sigma(root, h=87) -> 0.081172 (등록값 0.08117 재현 확인 2026-09-11)"
+    sigma_label_note: "T03 소급 기재(2026-09-11) — σ 값과 출처는 등록 시점 그대로다. 양 축·경로 라벨만 추가했다. 계약의 '규칙은 기존 등록분에 소급하지 않는다'에 따라 T03 채택 규칙(양 일치 + 두 경로면 큰 σ)은 이후 등록분부터 적용된다"
     contract: questions/portfolio_prereg_v1.yaml (9337f183)
     z: 0.954
     z_draft: 1.64

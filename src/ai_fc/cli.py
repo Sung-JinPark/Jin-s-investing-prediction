@@ -1810,6 +1810,91 @@ def cmd_market(
     typer.echo(f"\nbase_rates 갱신: {out.relative_to(root)} · 이력: data/ml_history/")
 
 
+@app.command("sigma-quote")
+def cmd_sigma_quote(
+    series: str = typer.Argument(..., help="정규화 저장소 계열명 (NASDAQCOM·VIXCLS·T10Y2Y·DGS2·DGS10·DFF·NFCI)"),
+    quantity: str = typer.Argument(..., help="질문이 묻는 양 — terminal_log_return | window_max | window_min | window_count_above"),
+    horizon: int = typer.Option(..., "--horizon", "-h", help="지평(영업일)"),
+    threshold: float = typer.Option(None, "--threshold", help="**사람이 정한** 임계. 주면 z 를 함께 인쇄한다"),
+    center: float = typer.Option(None, "--center", help="**사람이 정한** 중심추정. 생략하면 참조클래스 중앙값을 쓴다"),
+    since: str = typer.Option(None, "--since", help="표본 시작일 (예: 2010-01-01) — 계산 **전에** 정한다"),
+    start_min: float = typer.Option(None, "--start-min", help="출발 상태 조건 하한"),
+    start_max: float = typer.Option(None, "--start-max", help="출발 상태 조건 상한"),
+    count_threshold: float = typer.Option(None, "--count-threshold", help="window_count_above 의 초과 기준"),
+    with_v8: bool = typer.Option(False, "--with-v8", help="같은 양이면 V8 분위수 견적도 올려 큰 σ 를 채택"),
+) -> None:
+    """T03 — 등록 시점 σ 견적. **임계는 정하지 않는다.**
+
+    σ 는 자이지 과녁이 아니다. 이 명령은 질문이 묻는 양의 산포를 재서 건네고,
+    임계와 중심추정을 사람이 넣으면 z 만 계산해 계약 밴드에 비춘다.
+    조건화(--since·--start-min/max)는 **계산 전에** 정해야 한다 — 여러 조건화를
+    돌려보고 큰 σ 를 고르는 것은 조건화 쇼핑이고 adopt() 가 거부한다.
+    """
+    from . import config
+    from .sigma_supply import (SigmaSupplyError, adopt, load_store, reference_class_sigma,
+                               supply_lines, v8_sigma)
+
+    root = config.ROOT
+    try:
+        store = load_store(root)
+        cond_parts = []
+        if since:
+            cond_parts.append(f"{since} 이후")
+        if start_min is not None or start_max is not None:
+            cond_parts.append(f"출발 {start_min if start_min is not None else '-inf'}~"
+                              f"{start_max if start_max is not None else '+inf'}")
+        condition = None
+        if start_min is not None or start_max is not None:
+            lo = start_min if start_min is not None else float("-inf")
+            hi = start_max if start_max is not None else float("inf")
+            condition = lambda v: lo <= v <= hi   # noqa: E731 — 조건은 한 줄로 읽히는 게 낫다
+
+        quotes = [reference_class_sigma(
+            store, series, quantity, horizon_business_days=horizon, since=since,
+            start_condition=condition, conditioning=" & ".join(cond_parts),
+            count_threshold=count_threshold)]
+        if with_v8:
+            quotes.append(v8_sigma(root, horizon_business_days=horizon))
+
+        decision = adopt(quantity, quotes)
+    except SigmaSupplyError as exc:
+        typer.echo(f"[거부] {exc}", err=True)
+        raise typer.Exit(code=1)
+
+    for line in supply_lines(decision):
+        typer.echo(line)
+
+    if threshold is None:
+        typer.echo("")
+        typer.echo("임계(--threshold)를 주지 않았으므로 z 를 계산하지 않는다 — 임계는 사람이 정한다.")
+        return
+    c = center if center is not None else decision.adopted.center
+    if c is None:
+        typer.echo("중심추정(--center)이 필요하다 — 이 양에는 참조클래스 중앙값이 없다.", err=True)
+        raise typer.Exit(code=1)
+    z = decision.z(threshold=threshold, center=c)
+    band = ("accept (z >= 1.0)" if z >= 1.0 else
+            "exception_slot (0.7 <= z < 1.0)" if z >= 0.7 else "reject (z < 0.7)")
+    typer.echo("")
+    typer.echo(f"z = |{threshold} − {c:.6g}| / {decision.adopted.value:.6g} = {z:.3f} → 계약 밴드 {band}")
+    typer.echo("등록 여부는 이 값만으로 정해지지 않는다 — 사구간·문항 상한·예외 슬롯은 "
+               "portfolio_prereg.evaluate_candidate 가 함께 본다.")
+
+
+@app.command("vol-wiring-status")
+def cmd_vol_wiring_status() -> None:
+    """T03 — V13 기후 기저율 표시 배선 상태. 자격 미달이면 아무것도 표시하지 않는다."""
+    from . import config
+    from .vol_base_rate_wiring import wiring_status
+
+    status = wiring_status(config.ROOT)
+    typer.echo(f"자격 셀(홀드아웃 통과 ∧ 국면 가드 통과): {', '.join(status['eligible_cells']) or '(없음)'}")
+    typer.echo(f"매핑된 셀: {', '.join(status['mapped_cells']) or '(없음)'}")
+    typer.echo(f"배선 대상: {status['targets']}건 · 페일클로즈 {status['fail_closed']}")
+    typer.echo(f"사유: {status['reason']}")
+    typer.echo(f"표시층으로 넘기지 않는 모델 필드: {', '.join(status['forbidden_fields_never_exported'])}")
+
+
 @app.command("notify")
 def cmd_notify(test: bool = typer.Option(False, "--test")) -> None:
     """텔레그램 연결 테스트."""
