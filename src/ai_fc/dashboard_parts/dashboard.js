@@ -2622,13 +2622,11 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   const sampleRows=showSamples?[activeKey].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).map((row,order)=>({key,order,percentile:Number(row.terminal_percentile),values:(row.values||[]).slice(0,n).map(Number)}))).filter(row=>row.values.length===n):[];
   const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
   const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
-  /* 겹칠 실제 종가(일간)와 지난 빈티지의 S1 경로. 둘 다 창(cut) 안으로 자른다. */
+  /* 겹칠 실제 종가(일간). 창(cut) 안으로 자른다. 지난 빈티지 경로를 전부 겹쳐 그리면
+     빗각으로 퍼지는 선다발이 되어 실제 주가 그래프처럼 읽히지 않는다 — 선은 현재 경로
+     하나만 두고, 지난 예측이 얼마나 맞았는지는 아래 오차율과 표로 읽는다. */
   const actual=overlay?track.actual.filter(row=>row[0]<=cut):[];
-  const priorVintages=overlay?track.vintages
-    .filter(row=>row.asof<sc.asof)
-    .map(row=>({asof:row.asof,points:row.values.filter(point=>point[0]<=cut)}))
-    .filter(row=>row.points.length>1):[];
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...priorVintages.flatMap(row=>row.points.map(point=>point[1]))].map(Number).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1])].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2640,7 +2638,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   const Y=value=>MT+PH*(1-(value-Y0)/(Y1-Y0));
   const svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox',`0 0 ${W} ${H}`);svg.setAttribute('width','100%');
   svg.setAttribute('role','img');svg.setAttribute('tabindex','0');
-  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름. ${esc(sc.paths?.[activeKey]?.label||activeKey)} ${usingStructural?'과거 조정 모양을 입힌 경로':'한가운데 경로'}와 혁신사이클 참조선${usingStructural?', 굴곡 적용 전 GBM 중앙값 고스트 선':''}${showSamples?', 실제 모의 경로 표본':''}, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
+  svg.setAttribute('aria-label',`${sc.asof} 앵커 기준 단일 시나리오 주간 흐름.${overlay?` ${track.stats.first_asof}부터 오늘까지의 실제 ${track.index} 일간 종가를 검은 선으로 같이 그립니다.`:''} ${esc(sc.paths?.[activeKey]?.label||activeKey)} ${usingStructural?'과거 조정 모양을 입힌 경로':'한가운데 경로'}와 혁신사이클 참조선${usingStructural?', 굴곡 적용 전 GBM 중앙값 고스트 선':''}${showSamples?', 실제 모의 경로 표본':''}, 주차별 −10%선 누적 터치확률. 좌우 화살표로 기준 주차 이동`);
   const mk=(tag,attrs)=>{const node=document.createElementNS(NS,tag);for(const key in attrs)node.setAttribute(key,attrs[key]);return node;};
   const tx=(x,y,value,opts={})=>{const node=mk('text',{x,y,fill:opts.fill||'rgba(17,17,15,.66)','font-size':opts.fs||12,'text-anchor':opts.anc||'start','font-weight':opts.w||400});node.textContent=value;return node;};
   const halo=node=>{node.setAttribute('paint-order','stroke');node.setAttribute('stroke','#fff');node.setAttribute('stroke-width','4');node.setAttribute('stroke-linejoin','round');return node;};
@@ -2662,12 +2660,6 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
     svg.appendChild(halo(tx(labelX,labelY,label,{anc:'middle',fill:'#4f4d47',fs:11,w:700})));
   });
   const rightLabels=[];
-  /* 지난 빈티지의 같은 S1 경로. 옅게 깔아 두면 굵은 현재 경로와 검은 실제 선이 겹치는
-     구간이 생겨, 그때 그린 선이 실제를 얼마나 따라갔는지 한 그래프에서 읽힌다. */
-  priorVintages.forEach(row=>{
-    const d=row.points.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':1,'stroke-linejoin':'round',opacity:.28,'data-track-vintage':row.asof}));
-  });
   if(analogValues.length===n){
     let analogPath='';analogValues.forEach((value,index)=>{analogPath+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
     svg.appendChild(mk('path',{d:analogPath,fill:'none',stroke:'#706f68','stroke-width':1.6,'stroke-dasharray':'6 5','stroke-linejoin':'round',opacity:.72,'data-reference-path':'innovation-cycle'}));
@@ -2785,19 +2777,19 @@ function scenarioTrackSummary(){
       <div><span>채점된 예측</span><strong>${esc(stats.scored_vintage_count)}건</strong><small>전체 ${esc(stats.vintage_count)}건 중 · 나머지는 아직 실현 구간 없음</small></div>
       <div><span>실제 종가 기록</span><strong>${esc(stats.first_asof)} ~ ${esc(stats.last_asof)}</strong><small>일간 · 각 아카이브의 확정 종가</small></div>
     </div>
-    <details class="chart-method"><summary>실제 선과 지난 빈티지는 어디서 왔나</summary>
-      <p>옅은 주황 선은 <code>${esc(track.source_path)}</code>의 커밋된 아카이브에서 각 파일의 <code>asof</code>와
-      <code>paths.S1.values</code>를 그대로 읽은 것입니다. 선 하나가 그날 커밋된 예측 하나이고,
-      지금 모형을 과거로 되돌려 그리지 않습니다 — 백테스트 금지 원칙(5원칙 ⑤)에 걸리기 때문이며,
-      그래서 기록이 없는 기간은 그리지 않습니다.</p>
+    <details class="chart-method"><summary>오차율은 어떻게 냈나</summary>
+      <p>채점 대상은 <code>${esc(track.source_path)}</code>의 커밋된 아카이브입니다. 각 파일의
+      <code>asof</code>와 <code>paths.S1.values</code>를 그대로 읽어, 그날 예측한 값과 나중에 실제로
+      찍힌 종가를 맞대 봅니다. 지금 모형을 과거로 되돌려 계산하지 않습니다 — 백테스트 금지
+      원칙(5원칙 ⑤)에 걸리기 때문이며, 그래서 기록이 없는 기간은 채점하지 않습니다.</p>
       <p>검은 실제 선도 외부 조회 없이 같은 아카이브의 <code>anchor</code>에서 가져옵니다. 그 값은
-      해당 날짜에 확정 종가로 기록된 값이라 <b>일간</b>이고, 대조 전체가 커밋된 저장소만으로 재현됩니다.</p>
+      해당 날짜에 확정 종가로 기록된 값이라 <b>일간</b>이고, 전체가 커밋된 저장소만으로 재현됩니다.</p>
       <p>오차는 예측일 이후 주차점 중 실제 종가가 있는 <b>전부</b>를 채점합니다. 마지막 한 점만 쓰면
       같은 선의 앞구간 오차가 통계에서 사라지기 때문입니다. S1은 한가운데 예측이 아니라
       상승·ATH 돌파라는 조건부 경로이므로 구조상 실제보다 위로 치우칩니다 —
       <b>오차의 부호를 실력으로 읽으면 안 됩니다.</b></p></details>
     <div class="table-shell"><table class="scenario-track-table">
-      <caption>빈티지별 최종 실현 구간 — 선 하나가 그날 커밋된 예측 하나입니다</caption>
+      <caption>예측일별 오차 — 그날 그린 S1 경로가 나중에 실제와 얼마나 벌어졌나</caption>
       <thead><tr><th>예측일</th><th>S1 경로 비율</th><th>당일 지수</th><th>대조 시점</th><th>예측</th><th>실제</th><th>오차</th></tr></thead>
       <tbody>${rows}</tbody></table></div>
   </div>`;
@@ -2812,7 +2804,7 @@ function originalFlowPanel(){
   const track=DATA.scenario_track&&DATA.scenario_track.status==='ok'?DATA.scenario_track:null;
   const canOverlay=Boolean(track&&(sc.week_dates||[]).length===sc.weeks.length&&track.actual?.length>1);
   const actualLegend=canOverlay?'<span><b style="background:#11110f"></b>실제 종가 (일간)</span>':'';
-  const priorLegend=canOverlay?`<span><b style="background:${CHART_COL.S1};opacity:.34"></b>지난 예측일의 같은 경로</span>`:'';
+
   /* 시나리오 지평은 252거래일까지 뻗는다. 전량을 실으면 겹치는 구간이 가로폭의 10%대로
      눌려 대조가 안 보이므로, 기본은 실현 구간에 맞춘 창으로 연다. */
   const horizonControl=canOverlay?`<div class="flow-shape-controls" role="group" aria-label="가로축 기간">
@@ -2825,12 +2817,13 @@ function originalFlowPanel(){
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
     <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
       <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
-      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나만</b> 그리고, 그 위에 <b>실제 종가(검은 선, 일간)</b>와
-      지난 예측일의 같은 S1 경로를 옅게 겹칩니다 — 겹치는 구간이 곧 채점 가능한 부분입니다.
+      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나</b>와 <b>실제 종가(검은 선, 일간)</b>를
+      같은 축에 놓습니다 — 검은 선은 기록이 시작된 날부터 오늘까지, 주황 선은 오늘부터 앞으로.
+      지난 예측이 실제를 얼마나 따라갔는지는 아래 <b>오차율</b>과 빈티지 표에서 봅니다.
       기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
     ${horizonControl}
-    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${actualLegend}${priorLegend}${ghostLegend}${analogLegend}</div>
+    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${actualLegend}${ghostLegend}${analogLegend}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
     <details class="chart-method"><summary>이 그래프는 어떻게 만들었나</summary><p>${esc(sc.note||'')}</p><p>굵은 선은 과거 조정 모양을 입힌 경로이고, 회색 점선은 그 모양을 입히기 전의 밋밋한 평균입니다. 굴곡은 '이 달쯤 위험했다'는 과거 형태이지 특정 날짜 예측이 아니며, 모의 표본을 대표선으로 쓰지 않습니다.</p></details>

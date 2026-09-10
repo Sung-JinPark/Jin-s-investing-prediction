@@ -955,7 +955,7 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
     assert "drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon)" in script
     assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
     assert "original-scenario-switch" not in html
-    assert "상승(S1) 경로 하나만" in html
+    assert "상승(S1) 경로 하나</b>와 <b>실제 종가(검은 선, 일간)" in html
     # 도착점 판독도 S1 하나만 남는다
     assert "data-original-endpoints" in html
     assert html.count("도착점 경로 비율") == 1
