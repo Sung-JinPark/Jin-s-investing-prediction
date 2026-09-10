@@ -25,7 +25,7 @@ from .db import ingest, queries
 from .llm import PipelineBudget
 from .llm_provider import AnthropicProvider, OpenAIResponsesProvider
 from .models import EvidenceBrief, Question
-from .registry import load_registry
+from .registry import effective_tier, load_registry
 from .schemas import validate_forecast_consistency
 
 
@@ -417,7 +417,10 @@ def _frontmatter(q: Question, agg: AggregateResult, stem: str, now: datetime,
         "digest_hash": sha256_text(aux_context) if aux_context else None,
         "digest_inputs": aux_meta,
         # v3 WS-B: 파이프라인 티어 기록 — 추후 티어별 Brier 분해 (lite 열등 시 폐지 판정용)
-        "pipeline_tier": getattr(q, "tier", "standard"),
+        # T05: 실제로 돈 티어와 등록 시점 티어를 **둘 다** 남긴다 —
+        # 하나만 남기면 은퇴 전후 회차를 나중에 구별할 수 없다.
+        "pipeline_tier": effective_tier(q, now.date()),
+        "registered_tier": getattr(q, "tier", "standard"),
     }
 
 

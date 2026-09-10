@@ -18,10 +18,25 @@ from typing import Any, Optional
 
 import yaml
 
+from . import config
 from .config import ML_DIVERGENCE_PP, STALE_DAYS
 from .models import DueItem, Question, sha256_text
 
 ROLLING_RE = re.compile(r"^rolling-(\d+)d$")
+
+
+def _as_date(value: Any) -> Optional[date]:
+    """`created` 를 date 로 정규화한다.
+
+    레지스트리에 YAML date 와 따옴표 친 문자열이 섞여 있다. 문자열을 None 으로 떨어뜨리면
+    `factory_filter_violation` 이 grandfather 로 판단해 **등록필터가 조용히 꺼진다**.
+    """
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", str(value or "").strip())
+    return date(int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
 
 
 def load_registry(path: Path) -> list[Question]:
@@ -47,7 +62,7 @@ def load_registry(path: Path) -> list[Question]:
             schedule=q.get("schedule") or [],
             action_link=str(q.get("action_link", "")),
             status=str(q.get("status", "active")),
-            created=q.get("created") if isinstance(q.get("created"), date) else None,
+            created=_as_date(q.get("created")),   # 문자열 날짜도 받는다 — 아래 주석 참조
             notes=str(q.get("notes", "")),
             required_snapshots=q.get("required_snapshots") or [],
             src_hash=src_hash,
@@ -127,6 +142,22 @@ def active_interval_days(q: Question, today: date) -> Optional[float]:
     if "per_week" in active:
         return 7.0 / float(active["per_week"])
     return None
+
+
+# ── 티어 (T05 2026-09-11 — lite 은퇴) ──────────────────────────────
+
+def effective_tier(q: Question, today: Optional[date] = None) -> str:
+    """실행 시점에 실제로 적용되는 티어.
+
+    `tier: lite` 는 은퇴일(`config.LITE_TIER_RETIRED_AT`) 이후 **standard 로 승격**된다.
+    레지스트리 값을 고쳐 쓰지 않는 이유는, 그때 무엇으로 등록했는가가 지워지면
+    "왜 이 회차가 degraded 였나"를 나중에 되짚을 수 없기 때문이다.
+    """
+    registered = getattr(q, "tier", "standard")
+    if registered != "lite":
+        return registered
+    today = today or date.today()
+    return "standard" if today >= config.LITE_TIER_RETIRED_AT else "lite"
 
 
 # ── WS1 질문 팩토리 등록 필터 (v2 라운드, questions/FACTORY_GUIDE.md) ──

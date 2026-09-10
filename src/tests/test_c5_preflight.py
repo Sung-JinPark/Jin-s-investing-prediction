@@ -245,3 +245,53 @@ def test_repo_q3_questions_have_no_preflight_flags() -> None:
           if "C5 Q3" in str(q.get("notes") or "") and q.get("status") == "active"}
     flagged = {f["id"] for f in C5.question_preflight(ROOT)}
     assert not (q3 & flagged), f"Q3 질문에 프리플라이트 플래그: {sorted(q3 & flagged)}"
+
+
+# ── 가드가 조용히 꺼져 있던 문제 (T05, 2026-09-11) ──────────────────
+
+def test_quoted_created_string_still_triggers_the_cutoff(tmp_path: Path) -> None:
+    """`created: '2026-09-11'` 처럼 따옴표가 있으면 YAML 이 str 로 준다.
+
+    실측 계기: 79문항 중 36건이 문자열 created 였고, `isinstance(created, date)` 로만 보던
+    구현이 그 전부를 None 으로 떨어뜨려 **preflight 필수 규칙이 조용히 꺼져 있었다.**
+    가드가 꺼진 줄 모르고 통과하는 것이 가드가 없는 것보다 나쁘다.
+    """
+    repo = _registry(tmp_path, """
+  - id: quoted-created
+    status: active
+    created: '2026-09-11'
+    deadline: '2027-01-31'
+    question: 어떤 사건이 일어날 확률은?
+    resolution: YES = 사건 발생.
+""")
+    flags = C5.question_preflight(repo)
+    assert flags and any("preflight 블록 부재" in f for f in flags[0]["flags"])
+
+
+def test_quoted_created_string_still_triggers_the_factory_filter(tmp_path: Path) -> None:
+    """등록필터도 같은 경로로 꺼져 있었다."""
+    from ai_fc.registry import factory_filter_violation, load_registry
+
+    _write(tmp_path / "questions/registry.yaml", """version: 1
+questions:
+  - id: quoted-no-marker
+    status: active
+    created: '2026-09-11'
+    deadline: '2027-01-31'
+    question: 확률은?
+    resolution: YES = 발생.
+""")
+    q = load_registry(tmp_path / "questions/registry.yaml")[0]
+    assert q.created == date(2026, 9, 11), "문자열 created 가 date 로 정규화돼야 한다"
+    assert factory_filter_violation(q), "등록필터가 근거 없는 신규 등록을 잡아야 한다"
+
+
+def test_as_date_normalizes_the_forms_the_registry_actually_contains() -> None:
+    from datetime import datetime
+
+    from ai_fc.c5_certificate import as_date
+    assert as_date(date(2026, 9, 11)) == date(2026, 9, 11)
+    assert as_date("2026-09-11") == date(2026, 9, 11)
+    assert as_date(datetime(2026, 9, 11, 12, 0)) == date(2026, 9, 11)
+    assert as_date(None) is None
+    assert as_date("미정") is None

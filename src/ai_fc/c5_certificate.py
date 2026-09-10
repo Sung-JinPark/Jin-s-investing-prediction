@@ -564,6 +564,24 @@ _START_MARKERS = ("부터", "이후", "window_start", "기산")
 _LITERAL_RE = re.compile(r"['‘“\"]([A-Za-z][A-Za-z ,.\-]{12,})['’”\"]")
 
 
+def as_date(value: Any) -> Optional[date]:
+    """`created`·`deadline` 을 date 로 정규화한다.
+
+    레지스트리에는 `created: 2026-07-08`(YAML date)과 `created: '2026-09-10'`(문자열)이
+    섞여 있다. `isinstance(value, date)` 로만 보면 후자가 None 이 되고, `created` 가 None 인
+    질문은 컷오프 비교를 건너뛰어 **preflight 필수 규칙과 등록필터가 조용히 꺼진다**.
+    2026-09-11 시점 실측으로 79문항 중 36건이 문자열이었고 그중 13건이 컷오프 이후였다.
+    가드가 꺼진 줄 모르고 통과하는 것이 가드가 없는 것보다 나쁘다.
+    """
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    text = str(value or "").strip()
+    m = re.match(r"^(\d{4})-(\d{2})-(\d{2})", text)
+    return date(int(m.group(1)), int(m.group(2)), int(m.group(3))) if m else None
+
+
 def question_preflight(root: Path, today: Optional[date] = None) -> list[dict[str, Any]]:
     """등록 질문의 결함 후보를 정적으로 찾아낸다. 판정이 아니라 **점검 후보 제시**다.
 
@@ -583,8 +601,7 @@ def question_preflight(root: Path, today: Optional[date] = None) -> list[dict[st
         # 시작일은 question 에 쓰고 resolution 이 "해당 기간 중" 으로 되받는 형태가 흔하다.
         # 창 표기를 놓치지 않으려면 둘을 합쳐서 본다.
         window_text = str(q.get("question") or "") + " " + resolution
-        created = q.get("created")
-        created = created if isinstance(created, date) else None
+        created = as_date(q.get("created"))
 
         if any(m in window_text for m in _WINDOW_MARKERS) and                 not any(m in window_text for m in _START_MARKERS):
             flags.append("기간형인데 시작일 표기 없음 — 과거 사건이 창에 들어올 수 있다")

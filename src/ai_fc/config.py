@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from datetime import date
 from pathlib import Path
 
 # 프로젝트 루트: src/ai_fc/config.py → 2단계 위
@@ -108,6 +109,23 @@ WEB_SEARCH_MAX_USES = int(os.environ.get("AI_FC_SEARCH_MAX_USES", "8"))
 # 목표 단가 $1.2~1.8 (표준 $2.5~4). 적용: registry `tier: lite` (시리즈 E/M 질문 한정).
 LITE_SEARCH_MAX_USES = int(os.environ.get("AI_FC_LITE_SEARCH_MAX_USES", "4"))
 LITE_RESEARCH_WORDS = 450       # 표준 900 — profiles 공통 규칙의 분량 지시만 치환
+
+# T05 (2026-09-11, 사용자 확정) — **lite 티어 은퇴.**
+#
+# 실측: `pipeline_tier: lite` 로 태그된 회차 4건이 전부 degraded(2) 또는 failed(2)였다.
+# 같은 기간 과금 기록이 있는 cli/api 회차 4건은 4/4 가 ok. Fisher 정확검정 p=0.029.
+#
+# **주의 — 이 증거는 티어와 제공자를 분리하지 못한다.** lite 4건은 전부
+# `openai:gpt-5.6-terra`(DECISIONS 10-4 의 자동 생산자 전환 기간, 2026-08-03~08-29)이고
+# 비교군 4건은 전부 `anthropic:claude-opus-4-8` 이다. 두 축이 표본에서 완전히 겹쳐 있어
+# "lite 가 나빴다"와 "openai 경로가 나빴다"를 구별할 수 없다. 그래서 은퇴 사유를
+# '검색량 축소가 원인'이라고 적지 않는다 — **그 조합이 게이트급 회차를 내지 못했다**는
+# 사실만 적는다. openai 경로는 이미 config 기본값에서 내려와 있다.
+#
+# 은퇴 방식: 레지스트리의 `tier: lite` 값은 **역사 기록으로 보존**하고, 실행 시점에
+# `registry.effective_tier()` 가 standard 로 승격시킨다. 40문항을 일괄 수정하면
+# "그때 무엇으로 등록했는가"가 지워진다.
+LITE_TIER_RETIRED_AT = date(2026, 9, 11)
 LLM_MAX_RETRIES = 3
 RESEARCH_MAX_TOKENS = int(os.environ.get("AI_FC_RESEARCH_MAX_TOKENS", "16000"))
 REASONING_MAX_TOKENS = int(os.environ.get("AI_FC_REASONING_MAX_TOKENS", "16000"))
