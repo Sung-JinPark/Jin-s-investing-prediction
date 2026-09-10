@@ -130,8 +130,20 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
         f"<td>{'LLM 우위' if r['llm_brier'] < r['other_brier'] else 'LLM 열위'}</td></tr>"
         for r in bench if r["n"]) or '<tr><td colspan="5">쌍대 표본 없음 (비교 대상 기록이 있는 해소 0건)</td></tr>'
 
-    p2 = f'<span class="gate {"pass" if gate["gate_p2"] else "fail"}">P2 게이트 (30+/&lt;0.20): {"통과" if gate["gate_p2"] else "미달"}</span>'
-    p3 = f'<span class="gate {"pass" if gate["gate_p3"] else "fail"}">P3 게이트 (50+/&lt;0.18): {"통과" if gate["gate_p3"] else "미달"}</span>'
+    # T06 — 배지 문구는 계약 status_wording 을 따른다. 산술이 충족돼도 '통과'를 쓰지 않는다:
+    # 행 평균이 문턱 아래여도 SE 여유가 얇으면 통계적으로 **미결**이고, 그 구별이 사라지면
+    # 배지 하나가 전체 프로그램의 지위를 잘못 말하게 된다 (계약 status_wording.forbidden_words).
+    def _gate_label(met: bool) -> str:
+        if not met:
+            return "미달"
+        margin = gd.get("margin_se") if gd else None
+        return (f"산술 충족 · 통계적 <b>미결</b> ({margin:.2f} SE)"
+                if isinstance(margin, (int, float)) else "산술 충족 · 통계적 <b>미결</b>")
+
+    p2 = (f'<span class="gate {"pass" if gate["gate_p2"] else "fail"}">'
+          f'P2 게이트 (30+/&lt;0.20): {_gate_label(bool(gate["gate_p2"]))}</span>')
+    p3 = (f'<span class="gate {"pass" if gate["gate_p3"] else "fail"}">'
+          f'P3 게이트 (50+/&lt;0.18): {_gate_label(bool(gate["gate_p3"]))}</span>')
     maturity = ('<p class="note">⚠ 표본 30 미만 — 통계적으로 미성숙. 모든 수치는 참고용.</p>'
                 if n_resolved < 30 else "")
 

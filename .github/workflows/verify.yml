@@ -34,3 +34,15 @@ jobs:
         run: cd src && python -m ai_fc security-check
       - name: track record verifier
         run: python tools/verify_track_record.py
+      # T06 — 계약 stopping_rules.never 감지기. 게이트 SQL 변경 · 원장 행 삭제 ·
+      # 사후 failed 태그 변경 · forecasts/ 수정을 잡는다. 기준선을 못 읽으면 **보류가 아니라 실패**다.
+      - name: gate guard (금지 행위 감지)
+        run: |
+          if [ -n "${{ github.base_ref }}" ]; then
+            git fetch --no-tags --depth=0 origin "${{ github.base_ref }}"
+            BASE=$(git merge-base HEAD "origin/${{ github.base_ref }}")
+          else
+            BASE=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
+          fi
+          echo "baseline=$BASE"
+          python tools/gate_review.py --guard-only --baseline "$BASE"

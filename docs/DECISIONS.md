@@ -1381,3 +1381,42 @@ Fisher 정확검정 p=0.029. 팩의 lite $0.27 은 재현되지 않는다.
 **기록.** `src/ai_fc/config.py` `LITE_TIER_RETIRED_AT` · `src/ai_fc/registry.py` `effective_tier` ·
 `src/ai_fc/c5_certificate.py` `as_date` · `src/tests/test_inventory_hygiene.py`(13건) ·
 `src/tests/test_c5_preflight.py`(+3건) · `docs/p3_gate_path/T05_RESULT.md`.
+
+### 2026-09-11 — T06: 정지 규칙·부정 결과 선언을 코드로 고정 + 금지 행위 감지기
+
+부정 선언은 늦게 정할수록 안 하게 된다. 20문항에서 나쁘면 "표본이 얇다", 30에서 나쁘면
+"이번 분기가 특이했다", 49에서 나쁘면 "한 건만 더"다. 계약이 문턱을 결과 전에 고정한 이유이고,
+`gate_review` 는 그 조건을 **사람이 다시 해석할 여지 없이** 계산한다.
+
+**부정 선언은 두 조건의 논리곱**이다 — 문항 30 이상 **∧** 클러스터 CI90 하한 > 0.20.
+하나만으로는 발동하지 않는다. 문턱·조건은 전부 계약에서 읽고, 계약을 못 읽으면 페일클로즈
+기본값을 쓰되 통과 쪽으로 기울지 않는다. 현재 상태는 문항 7 · CI90 [0.06894, 0.31583] ·
+중간검토 문턱 미도달.
+
+**금지 행위 감지기 `gate_guard`.** 계약 `stopping_rules.never` 세 항목은 문장으로만 있으면
+지켜지지 않는다 — 셋 다 조용히 일어날 수 있기 때문이다.
+
+| 금지 행위 | 감지 |
+|---|---|
+| `gate_arithmetic_change` | `schema.sql` 두 SQL 리터럴 + `config.GATE_P3` 문자 일치 |
+| 원장 행 삭제 | git 기준선 대비 `ledger.csv` 의 삭제된 줄 |
+| `post_hoc_failed_tagging` | 기준선 대비 오버라이드 변경·삭제 + `forecasts/` 수정 |
+
+**기준선은 git 이다.** 저장소 안 스냅샷 파일은 같이 조작될 수 있고 낡으면 거짓 안심을 준다.
+**추가는 허용**한다(새 예측이 생기면 행도 태그도 는다) — 금지되는 것은 기존 행의 변경·삭제다.
+**보류는 통과가 아니다** — git 기준선을 못 읽으면 위반으로 세고 exit 1.
+CI 배선은 `verify.yml` 마지막 단계(PR 은 base_ref merge-base, push 는 HEAD~1).
+
+**배지 문구 — 산술 충족도 '통과'가 아니다.** 리포트 배지가
+`{"통과" if gate["gate_p3"] else "미달"}` 이었다. 지금은 "미달"이 찍히지만 산술이 충족되는 순간
+**"통과"가 렌더링된다** — 계약 `status_wording.forbidden_words` 에 등재된 단어다. 미충족이면
+`미달`, 충족이면 `산술 충족 · 통계적 미결 (N SE)` 로 바꿨다. 행 평균이 문턱 아래여도 SE 여유가
+얇으면 통계적으로 미결이고, 그 구별이 사라지면 배지 하나가 프로그램 전체의 지위를 잘못 말한다.
+남은 "통과"는 "P3 게이트 통과 전 …"(통과되지 **않았다**는 진술) 한 곳뿐이다.
+
+**상태 파일을 만들지 않는다.** 리포트는 stdout 으로만 낸다 — 손으로 갱신하는 상태 파일은
+낡으면 잘못된 다음 행동을 부른다(테스트로 고정).
+
+**기록.** `src/ai_fc/gate_review.py` · `src/ai_fc/gate_guard.py` · `tools/gate_review.py` ·
+`src/tests/test_gate_review.py`(15건) · `.github/workflows/verify.yml` ·
+`docs/p3_gate_path/T06_RESULT.md`.
