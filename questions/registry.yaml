@@ -583,6 +583,18 @@ questions:
   - once: true
   - from: D-3
     once: true
+  postmortem:
+    measured_at: "2026-09-11"
+    scope: "사후 계측 전용 — 재분류·void·research_status 변경 없음. 원장 행과 예측 파일은 그대로다. 계약 stopping_rules.never 의 post_hoc_failed_tagging 은 성적을 본 뒤 표본을 빼는 행위를 금지하며, 이 블록은 표본을 빼지 않고 등록 시점 수치를 기록만 한다"
+    z_at_registration: 0.474
+    z_method: "|임계 100K − 컨센 55K| / σ 95K. σ 는 data/base_rates/macro.md 의 2026년 7개월 컨센서스 오차 표준편차"
+    implied_honest_probability: 0.6821
+    expected_brier_floor: 0.2168
+    per_question_cap: 0.21
+    contract_band: "reject (z < 0.7)"
+    dead_zone_hit: true
+    measured_outcome: "실현 Brier 0.5476 (r1 q=0.74, 결과 NO). 앵커 차 q − p = +0.058 로 작다 — 손실의 대부분은 예측이 아니라 **질문의 기대 바닥**에서 왔다"
+    lesson: "지렛대는 무엇을 묻느냐가 아니라 임계가 어디 있느냐다. 같은 σ 95K 를 그대로 두고 임계만 100K → −75K 로 옮긴 nfp-dec2026-below-neg75k 는 z 1.526 · 정직확률 0.064 · 기대 바닥 0.059 로, 바닥이 0.2168 대비 72.6% 내려간다"
 - id: nfp-oct2026-below100k
   title: 10월분 NFP — +10만 미만
   question: 2026-11-06 발표되는 10월분 고용보고서에서 NFP 최초 공표치가 +10.0만 미만일 확률은?
@@ -601,6 +613,20 @@ questions:
   - once: true
   - from: D-3
     once: true
+  postmortem:
+    measured_at: "2026-09-11"
+    scope: "사후 계측 전용 — 재분류·void·research_status 변경 없음. 원장 행과 예측 파일은 그대로다. 계약 stopping_rules.never 의 post_hoc_failed_tagging 은 성적을 본 뒤 표본을 빼는 행위를 금지하며, 이 블록은 표본을 빼지 않고 등록 시점 수치를 기록만 한다"
+    z_at_registration: 0.228
+    z_method: "r1 시점 컨센서스가 NOT FOUND 였으므로 계열 자체 산포로 계측했다 — 2026년 1~7월 최초 공표 [130, −92, 178, 115, 172, 57, −23]K 의 평균 76.7K · 표본SD 102.0K 로 |100 − 76.7| / 102.0"
+    implied_honest_probability: 0.5903
+    expected_brier_floor: 0.2418
+    per_question_cap: 0.21
+    contract_band: "reject (z < 0.7)"
+    dead_zone_hit: true
+    r1_anchor_gap: "r1 q=0.66 vs 계측 정직확률 0.590 → +0.070"
+    r2_note: "r2 를 만들어도 r1 손실은 사라지지 않는다. 원장은 회차별로 행이 남고 대표 Brier 는 행 평균이므로, 늦게 나온 정확한 회차는 r1 행을 **덮지 않고 희석만** 한다. 재예측은 손실 취소가 아니라 표본 추가다"
+    l3_scope_note: "계약의 L3(컨센 부재 시 r1 유예)는 등록일 2026-09-10 이후 신규 등록분에만 적용되고 소급하지 않는다 — 이 질문은 2026-07-20 등록이라 L3 대상이 아니다. r2 는 등록된 자체 cadence(r1 + D-3)로 실행되며, 컨센서스는 통상 발표 1~2주 전에 형성되므로 D-3 회차는 자연히 컨센 공표 이후가 된다"
+    lesson: "지렛대는 무엇을 묻느냐가 아니라 임계가 어디 있느냐다. 같은 σ 95K 를 그대로 두고 임계만 100K → −75K 로 옮긴 nfp-dec2026-below-neg75k 는 z 1.526 · 정직확률 0.064 · 기대 바닥 0.059 로, 바닥이 0.2168 대비 72.6% 내려간다"
 - id: cpi-oct2026-reaccel
   drivers:
   - fed-path
@@ -659,6 +685,21 @@ questions:
   - once: true
   - from: D-3
     once: true
+  postmortem:
+    measured_at: "2026-09-11"
+    scope: "사후 계측 전용 — 재분류·void·research_status 변경 없음. 원장 행과 예측 파일은 그대로다. 계약 stopping_rules.never 의 post_hoc_failed_tagging 은 성적을 본 뒤 표본을 빼는 행위를 금지하며, 이 블록은 표본을 빼지 않고 등록 시점 수치를 기록만 한다"
+    z_at_registration: 0.228
+    z_method: "nfp-oct2026-below100k 과 동일 — r1 시점 컨센 NOT FOUND, 계열 자체 산포 경로"
+    implied_honest_probability: 0.5903
+    expected_brier_floor: 0.2418
+    per_question_cap: 0.21
+    contract_band: "reject (z < 0.7)"
+    dead_zone_hit: true
+    r1_anchor_gap: "r1 q=0.66 vs 계측 정직확률 0.590 → +0.070"
+    shared_premise_warning: "nfp-oct2026-below100k 과 같은 날(2026-08-31) 같은 전제로 생산돼 확률이 동일하다(66%). 두 행은 독립 표본이 아니며, 둘 다 NO 면 primary 행 평균이 0.15986 → 0.20582 로 문턱 위로 올라간다(12행 기준, 실측 반대사실 계산)"
+    r2_note: "r2 를 만들어도 r1 손실은 사라지지 않는다. 원장은 회차별로 행이 남고 대표 Brier 는 행 평균이므로, 늦게 나온 정확한 회차는 r1 행을 **덮지 않고 희석만** 한다. 재예측은 손실 취소가 아니라 표본 추가다"
+    l3_scope_note: "계약의 L3(컨센 부재 시 r1 유예)는 등록일 2026-09-10 이후 신규 등록분에만 적용되고 소급하지 않는다 — 이 질문은 2026-07-20 등록이라 L3 대상이 아니다. r2 는 등록된 자체 cadence(r1 + D-3)로 실행되며, 컨센서스는 통상 발표 1~2주 전에 형성되므로 D-3 회차는 자연히 컨센 공표 이후가 된다"
+    lesson: "지렛대는 무엇을 묻느냐가 아니라 임계가 어디 있느냐다. 같은 σ 95K 를 그대로 두고 임계만 100K → −75K 로 옮긴 nfp-dec2026-below-neg75k 는 z 1.526 · 정직확률 0.064 · 기대 바닥 0.059 로, 바닥이 0.2168 대비 72.6% 내려간다"
 - id: fomc-2026-12-09-hike
   drivers:
   - fed-path

@@ -169,6 +169,41 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
             f'<p class="note">해소 문항 {gd["n_questions_primary"]}/{gd["threshold_questions"]} — '
             '<b>미결</b>. 이 패널은 표시 전용이며 게이트 판정을 하지 않는다.</p></div>')
 
+    # T04 — 손실 3분해. 질문 선택 / 뽑기 / 앵커 초과는 대응이 다르므로 분리해 상시 인쇄한다.
+    decomp = ""
+    try:
+        from .loss_decomp import decompose_ledger, summarize
+        ds = summarize(decompose_ledger(root))
+    except Exception:
+        ds = {}
+    if ds:
+        if ds.get("mean_floor") is not None:
+            body = (
+                '<table><tr><th>조각</th><th>평균</th><th>고칠 수 있는 곳</th></tr>'
+                f'<tr><td>기대 바닥 p(1−p)</td><td>{ds["mean_floor"]:.5f}</td>'
+                '<td>등록 시점뿐 — 사후에는 손댈 수 없다</td></tr>'
+                f'<tr><td>뽑기</td><td>{ds["mean_draw"]:+.5f}</td>'
+                '<td>없음 — 기댓값 0, 표본이 쌓이면 씻긴다</td></tr>'
+                f'<tr><td>앵커 초과</td><td>{ds["mean_anchor_excess"]:+.5f}</td>'
+                '<td>예측 절차 — 유일한 실력 축</td></tr>'
+                f'<tr><td><b>합 = Brier</b></td><td><b>{ds["mean_brier_decomposed"]:.5f}</b></td>'
+                '<td>항등식</td></tr></table>')
+        else:
+            body = ('<p class="note">분해 가능한 행이 아직 없다. 정직 확률은 <b>등록 시점 고정값</b>'
+                    '에서만 가져오며, 없는 값을 지어내지 않는다.</p>')
+        reasons = "".join(f"<li>{r}</li>" for r in (ds.get("undecomposable_reasons") or []))
+        decomp = (
+            '<div class="card"><h2>손실 3분해 (T04)</h2>'
+            f'<p class="note">분해 가능 {ds["n_decomposed"]}/{ds["n_rows"]}행'
+            + (f" · 분해 불가 {ds['n_undecomposable']}행" if ds.get("n_undecomposable") else "")
+            + '</p>' + body
+            + (f'<p class="note">분해 불가 사유<ul>{reasons}</ul></p>' if reasons else "")
+            + '<p class="note">Brier 한 숫자로는 질문을 잘못 골랐는지·운이 나빴는지·예측이 정직 확률에서 '
+              '벗어났는지가 구별되지 않는다. 셋은 대응이 다르다.</p>'
+            + ("" if ds.get("identity_holds", True)
+               else '<p class="note">⚠ 항등식이 깨졌다 — 분해를 신뢰하지 말 것</p>')
+            + '</div>')
+
     # WS8-3: 대표 Brier에 제외표본 상시 병기 (검토질문 #3 응답)
     n_excl = queries.n_excluded_from_primary(conn)
     primary_txt = (f"v_brier_primary (n={n_resolved}, 제외 {n_excl}건: failed) — "
@@ -224,6 +259,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <p class="note">rolling Brier(윈도우 10): {roll_txt}</p>
 <p class="note">{shadow_txt}</p>{maturity}</div>
 {dual}
+{decomp}
 
 <h2>신뢰도 다이어그램 (캘리브레이션 커브) — "70%라고 한 것들이 실제 70% 실현되나"</h2>
 <div class="card"><table>

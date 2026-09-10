@@ -20,7 +20,7 @@ td{padding:6px 10px;border-top:1px solid var(--border)}
 .note{font-size:11px;color:var(--muted);margin-top:8px}
 </style></head><body>
 <h1>캘리브레이션 대시보드</h1>
-<p class="sub">생성 2026-09-10 18:56 · 예측 56건 · 해소 10건 ·
+<p class="sub">생성 2026-09-11 08:10 · 예측 56건 · 해소 10건 ·
 이달 비용 $0.00 / $40</p>
 
 <div class="card"><span class="gate fail">P2 게이트 (30+/&lt;0.20): 미달</span> <span class="gate fail">P3 게이트 (50+/&lt;0.18): 미달</span>
@@ -30,6 +30,7 @@ td{padding:6px 10px;border-top:1px solid var(--border)}
 <p class="note">rolling Brier(윈도우 10): 0.271 → 0.188 → 0.141 → 0.116 → 0.097 → 0.085 → 0.079 → 0.113 → 0.105 → 0.131</p>
 <p class="note">섀도 기록 표본 없음 (신규 예측부터 축적)</p><p class="note">⚠ 표본 30 미만 — 통계적으로 미성숙. 모든 수치는 참고용.</p></div>
 <div class="card"><h2>게이트 Brier — 두 단위</h2><table><tr><th>단위</th><th>값</th><th>비고</th></tr><tr><td><b>행 평균</b></td><td><b>0.15986</b></td><td>게이트 <b>정본</b> — v_gate_status 와 같은 산술</td></tr><tr><td>문항 등가중</td><td>0.22079</td><td>게이밍 감시용 병기값 (판정 아님)</td></tr><tr><td>SE</td><td>0.0617</td><td>문턱 0.18 까지 <b>0.33 SE</b></td></tr><tr><td>CI90</td><td>[0.06894, 0.31583]</td><td>문항 클러스터 부트스트랩 B=2000</td></tr></table><p class="note">게이트 정본은 <b>행 평균</b>이고, 문항 등가중은 게이밍 감시용이다. 쉬운 질문을 여러 회차 재예측하면 행 평균은 내려가지만 <b>문항 수는 늘지 않는다</b> — 현재 복수 회차 문항 2개가 primary 행의 <b>50%</b> 를 차지한다.</p><table><tr><th>문항</th><th>회차</th></tr><tr><td>fomc-2026-07-29-hike</td><td>3</td></tr><tr><td>nvda-dc-beat-2026aug</td><td>2</td></tr><tr><td>avgo-eps-beat-fq3-2026</td><td>1</td></tr><tr><td>nfp-aug2026-below100k</td><td>1</td></tr><tr><td>nfp-jul2026-below100k</td><td>1</td></tr><tr><td>soxx-up-2026-07-08</td><td>1</td></tr><tr><td>spx-up-2026-07-08</td><td>1</td></tr></table><p class="note">해소 문항 7/50 — <b>미결</b>. 이 패널은 표시 전용이며 게이트 판정을 하지 않는다.</p></div>
+<div class="card"><h2>손실 3분해 (T04)</h2><p class="note">분해 가능 0/10행 · 분해 불가 10행</p><p class="note">분해 가능한 행이 아직 없다. 정직 확률은 <b>등록 시점 고정값</b>에서만 가져오며, 없는 값을 지어내지 않는다.</p><p class="note">분해 불가 사유<ul><li>등록 시점 정직 확률이 기록돼 있지 않다 — 분해하지 않는다</li></ul></p><p class="note">Brier 한 숫자로는 질문을 잘못 골랐는지·운이 나빴는지·예측이 정직 확률에서 벗어났는지가 구별되지 않는다. 셋은 대응이 다르다.</p></div>
 
 <h2>신뢰도 다이어그램 (캘리브레이션 커브) — "70%라고 한 것들이 실제 70% 실현되나"</h2>
 <div class="card"><table>
