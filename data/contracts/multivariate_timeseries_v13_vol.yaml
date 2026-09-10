@@ -360,7 +360,7 @@ live_forward_gate:
 # 대기이며, 이 rung 은 그 결정과 **무관하게** 진행 가능한 갈래다.
 rung5_shape_blocks:
   registered: "2026-09-10"
-  prereg_commit: PREREG_COMMIT_PLACEHOLDER
+  prereg_commit: c9709f0e
   design_doc: docs/design/mts_p5_user_decision_options_260910.md
   orthogonality_evidence: data/timeseries_v13/prereg/rung5_feature_orthogonality.json
   data_sources: sealed_v2_read_only     # VIX · NASDAQCOM(ndx) 만. 신규 취득 없음
