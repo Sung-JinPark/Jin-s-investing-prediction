@@ -348,6 +348,36 @@ live_forward_gate:
   verb: timeseries-v13-vol-resolve — 성숙 원점만 채점·append. 강등 판정은 하지 않는다(표본 부족 표시까지)
   outcomes_written_to: data/timeseries_v13/ledgers/vol_live_resolutions.jsonl (append-only) — forecasts/·calibration/ 무접촉
 
+# ── T7 종결 트리거 — 사전등록 2026-09-10 ──────────────────────────────────────
+# 기존 live_forward_gate 바이트는 건드리지 않는다. 신규 키로만 추가한다.
+#
+# **왜 지금 등록하는가**: 성숙 원점이 0/60 이고 해상 원장이 0행이라 아직 **결과 전**이다.
+# 첫 h5 만기가 2026-09-14(원점 2026-09-04)로 계산됐다. 원점이 성숙하기 시작하면 같은 규칙을
+# 추가하는 것이 '결과 후 규칙 추가'가 되어 영원히 불가능해진다. 종결 조건은 결과를 보기 전에
+# 못박아야 의미가 있다. 외부 검토 판정서(2026-09-10) RQ10 권고.
+live_forward_termination:
+  registered: "2026-09-10"
+  registered_before_results: true
+  evidence_at_registration:
+    matured_origins: 0
+    resolutions_ledger_rows: 0
+    first_h5_maturity: "2026-09-14"     # 원점 2026-09-04 + 거래일 5
+  T7:
+    rule: |
+      홀드아웃 통과 3셀(rv_h5 · rv_h21 · vix25_h21)에 대해 셀당 성숙 원점이
+      minimum_matured_origins_per_cell(60)에 도달한 뒤, 그 3셀 중 **2셀 이상**이
+      demotion_rule(기후 대비 쌍대 Brier 손실차 CI90 하한 <= 0)에 걸리면 트랙을 종결한다.
+    scope: 통과 3셀만 센다. 실패·판정불가 셀은 이 판정에 들어가지 않는다.
+    on_trigger: |
+      ① 라이브 카드를 hold 로 내리고 ② 종결 판정서를 쓰고 ③ 남은 홀드아웃 슬롯을 보존한 채
+      트랙을 동결한다. 자동 재무장은 없다 — 재개는 사용자 결정.
+    not_a_gate_relaxation: |
+      이 규칙은 어떤 게이트도 느슨하게 하지 않는다. 종결 조건을 **추가**할 뿐이며,
+      추가 방향은 트랙을 더 빨리 닫는 쪽이다.
+  prohibitions:
+    - 성숙 원점이 하나라도 생긴 뒤 이 블록을 수정 금지
+    - 통과 3셀 목록을 결과 후 변경 금지
+
 # 개정 적용 기록 — 이 계약 draft 에 사후 반영된 사용자 결정 (V12 amendments_applied 선례)
 # ── P5 rung-5: 형상(shape) 파생 블록 — 사전등록 2026-09-10 ─────────────────────
 # P4 에서 봉인 아카이브의 '수준형' 무료 정보집합이 소진됐다(27검정 채택 0).
