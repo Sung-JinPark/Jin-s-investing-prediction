@@ -55,3 +55,7 @@ outputs/timeseries_v12/loop/_*.json
 
 # FirstRate raw (라이선스: raw 재배포 금지 — 로컬 전용)
 data/intraday/firstrate_raw/
+
+# 2026-09-10 백업 정리 — 유일본 보존 아카이브 (커밋 대상 아님)
+_archive_v7_rundata_20260825/
+_archive_backup_unique_20260910/
