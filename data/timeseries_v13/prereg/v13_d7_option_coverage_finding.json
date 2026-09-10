@@ -1,0 +1,41 @@
+{
+ "checked_at": "2026-09-10",
+ "conclusion": "**구매해도 이 설계창에서는 양방향 전이 게이트를 만족할 수 없다.** 게이트는 early→late 와 late→early 를 모두 요구하는데 early 반창 관측이 0이다. VIX9D 가 같은 이유로 원리적 불가 판정을 받았다(early 0행).",
+ "content_hash": "85e44117d6a287d735570decd4bf4abeee59a1c08c831889fb90cb6ed07df31d",
+ "cost_of_this_finding": "$0 — 공개 페이지 3건 조회. 메일 미발송.",
+ "coverage_against_design_window": {
+  "early_half_2007_2010": "0 — 상품이 2012년에 시작하므로 전반부가 통째로 없다",
+  "late_half_2011_2014": "부분 — 2012~2014 만. 2011 도 없다"
+ },
+ "decision": "V13-D7",
+ "design_window": [
+  "2007-01-01",
+  "2014-12-31"
+ ],
+ "email_sent": false,
+ "method": "무비용 공개 문서 확인. 메일·문의 없음. Cboe DataShop 상품 페이지의 커버리지 문구를 직접 읽었다.",
+ "products": {
+  "Option EOD Summary": {
+   "coverage_statement": "Historical Data: Available from January 2012 to present",
+   "url": "https://datashop.cboe.com/option-eod-summary"
+  },
+  "Option Quotes (NBBO)": {
+   "coverage_statement": "Available from January 2012 to present",
+   "url": "https://datashop.cboe.com/option-quotes"
+  },
+  "Option Trades": {
+   "coverage_statement": "Available from January 2012 to present",
+   "url": "https://datashop.cboe.com/option-trades"
+  }
+ },
+ "purchase_made": false,
+ "question": "QQQ 옵션 이력(2007-2014)을 살 것인가",
+ "recommendation": "A4 근접 — 이 설계창에 한해 옵션 표면 갈래를 닫는다. 다만 '영구 종결'이 아니라 '현 설계창에서 불가'로 기록한다. 새 버전 트랙을 2012+ 로 열 때 다시 살아난다.",
+ "schema": "v13_d7_option_history_coverage_finding",
+ "split": "2011-01-01",
+ "what_would_change_it": [
+  "설계창을 2012 이후로 옮기는 것 — 그러나 설계창은 계약 동결 좌표이며 결과 후 변경 금지",
+  "새 모델 버전을 2012+ 설계창으로 신설하는 것 — 별도 트랙·별도 봉인이며 이 트랙의 결정이 아니다",
+  "2007-2011 을 덮는 다른 공급자 — 12-5 가 '무료로 공개 표시가 허용되는 미국 지수 옵션 소스는 존재하지 않는다'고 이미 조사했고, 유료 공급자도 OPRA Vendor Agreement 구조 제약은 동일하다"
+ ]
+}
