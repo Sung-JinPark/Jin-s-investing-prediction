@@ -965,7 +965,7 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
             "horizon,compareAsof)") in script
     assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
     assert "original-scenario-switch" not in html
-    assert "상승(S1) 경로 하나</b>와 <b>실제 종가(검은 선, 일간)" in html
+    assert "주황 선 하나가 <b>과거와 미래를 잇습니다</b>" in html
     # 범례 라벨을 <b> 로 감싸면 .band-inline b(14px 스와치)에 걸려 찌그러진다
     assert "</b><b>S1 ${esc(sc.paths?.S1?.label" not in html
     # 도착점 판독도 S1 하나만 남는다
