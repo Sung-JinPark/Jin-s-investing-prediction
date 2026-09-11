@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import textwrap
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import ai_fc.agents.base as agents_base
@@ -78,7 +78,14 @@ def test_get_profile_words_substitution() -> None:
 
 
 def test_run_research_lite_wiring(tmp_path: Path, monkeypatch) -> None:
-    """lite: 검색 상한 4·450단어 전달, 프로필 구성(데블스 포함)은 티어 무관 동일."""
+    """lite: 검색 상한 4·450단어 전달, 프로필 구성(데블스 포함)은 티어 무관 동일.
+
+    T05(2026-09-11)에 lite 가 은퇴했으므로 **은퇴 이전 날짜**로 배선을 확인한다 —
+    배선 자체는 남아 있어야 과거 회차를 재현할 수 있다.
+    """
+    from ai_fc import config
+
+    before = config.LITE_TIER_RETIRED_AT - timedelta(days=1)
     qs = _questions(tmp_path)
     calls: list[tuple[str, object]] = []
 
@@ -89,15 +96,37 @@ def test_run_research_lite_wiring(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.setattr(agents_base, "research_call", fake_research_call)
     budget = PipelineBudget(limit_usd=10)
 
-    briefs = agents_base.run_research(None, qs["fx-lite"], 2, budget, date(2099, 7, 1))
+    briefs = agents_base.run_research(None, qs["fx-lite"], 2, budget, before)
     assert [b.profile for b in briefs] == ["general", "devil"]   # 데블스 강제 유지
     assert all(mu == 4 for _, mu in calls)                        # lite 검색 상한
     assert all("450단어 이내" in s for s, _ in calls)
 
     calls.clear()
-    briefs = agents_base.run_research(None, qs["fx-std"], 2, budget, date(2099, 7, 1))
+    briefs = agents_base.run_research(None, qs["fx-std"], 2, budget, before)
     assert [b.profile for b in briefs] == ["general", "devil"]
     assert all(mu is None for _, mu in calls)                     # 전역 기본(8) 사용
+
+
+def test_lite_wiring_is_off_after_retirement(tmp_path: Path, monkeypatch) -> None:
+    """T05 — 은퇴일 이후에는 등록값이 lite 여도 standard 로 돈다.
+
+    레지스트리 값을 고치지 않고 실행 시점에 승격시키는 방식이라, 이 테스트가
+    은퇴가 **실제로 파이프라인에 닿는지**를 확인하는 유일한 지점이다.
+    """
+    from ai_fc import config
+
+    after = config.LITE_TIER_RETIRED_AT
+    qs = _questions(tmp_path)
+    calls: list[tuple[str, object]] = []
+
+    def fake_research_call(client, system, user, budget, max_search_uses=None):
+        calls.append((system, max_search_uses))
+        return "가공 보고", 3, Usage(10, 10, 0.01)
+
+    monkeypatch.setattr(agents_base, "research_call", fake_research_call)
+    agents_base.run_research(None, qs["fx-lite"], 2, PipelineBudget(limit_usd=10), after)
+    assert qs["fx-lite"].tier == "lite", "등록값은 그대로 남아야 한다"
+    assert all(mu is None for _, mu in calls), "은퇴 후에도 lite 검색 상한이 걸린다"
     assert all("900단어 이내" in s for s, _ in calls)
 
 

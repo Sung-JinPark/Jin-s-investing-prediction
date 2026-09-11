@@ -19,6 +19,12 @@ STRUCTURED_SUFFIX = """
 [출력 형식]
 위 절차 [0]~[5]를 수행한 뒤, 지정된 구조화 스키마로 출력하라.
 - probability는 1~99 정수 (구간 표현 금지)
+- **산술 항등식(하드 계약)**: `anchor_pct + Σ(부호 있는 delta_pp) == probability` 가
+  0.5%p 이내로 성립해야 한다. 절차 [4] 프리모템에서 확률을 재조정했다면 **그 재조정도
+  adjustments 에 항목으로 기록**하라 — 기록하지 않고 확률만 옮기면 출력이 거부되고
+  회차 전체가 버려진다(비용은 이미 발생한 뒤다).
+- ci80_lo <= probability <= ci80_hi 여야 하고 세 값 모두 1~99 정수다.
+- adjustments 에 (evidence, direction, delta_pp)가 완전히 같은 항목을 중복하지 마라.
 - required_snapshots의 각 항목은 snapshots_filled에 확정 값 또는 'NOT FOUND'로
 - 증거에 없는 수치를 만들지 마라. 검증 못한 주장은 unverified_notes에
 """

@@ -31,6 +31,24 @@ td{padding:6px 10px;border-top:1px solid var(--border)}
 """
 
 
+def _budget_txt(month_cost: float) -> str:
+    """이달 비용 배지. 예비 구간에 들어갔으면 그 사실을 숨기지 않는다.
+
+    상한의 마지막 구간에서는 마감 D-30 이내 질문만 새 회차를 받는다(C5-A4).
+    배지가 `$41.20 / $50` 만 보여 주면 "아직 $8.8 남았다"로 읽히는데, 실제로 그 돈은
+    임박 질문에만 쓸 수 있다. 남은 금액과 **쓸 수 있는 대상**은 다른 값이다.
+    """
+    cap = config.MONTHLY_BUDGET
+    base = f"${month_cost:.2f} / ${cap:.0f}"
+    floor = cap * (1 - config.MONTHLY_BUDGET_RESERVE_RATIO)
+    if month_cost >= cap:
+        return f"{base} · <b>상한 도달 — 신규 회차 차단</b>"
+    if month_cost >= floor:
+        return (f"{base} · <b>예비 구간</b> (잔여 ${cap - month_cost:.2f}는 "
+                f"마감 D-{config.RESERVE_DEADLINE_DAYS} 이내 질문 전용)")
+    return base
+
+
 def _driver_section(conn: sqlite3.Connection, root: Path) -> str:
     """WS9 드라이버 일관성 표 — 그룹별 최신 확률 나열, 폭 큰 그룹만 '점검 후보' 하이라이트.
 
@@ -82,11 +100,19 @@ def _driver_section(conn: sqlite3.Connection, root: Path) -> str:
 
 def render_report(conn: sqlite3.Connection, root: Path) -> Path:
     gate = queries.gate_status(conn)
+    # T01 — 표시층 이중 단위. 게이트 산술은 무변경이며 이 값들은 판정에 쓰이지 않는다.
+    from .gate_display import gate_display_facts, gate_display_lines
+    try:
+        gd = gate_display_facts(root)
+        gd_lines = gate_display_lines(gd)
+    except Exception:
+        gd, gd_lines = {}, []
     briers = queries.brier_summary(conn)
     curve = queries.calibration_curve(conn)
     skills = queries.domain_skill(conn)
     now = datetime.now()
     month_cost = queries.month_cost(conn, now.year, now.month)
+    budget_txt = _budget_txt(month_cost)
     n_forecasts = conn.execute("SELECT COUNT(*) AS n FROM forecasts").fetchone()["n"]
 
     n_resolved = gate["n_resolved"] or 0
@@ -123,10 +149,91 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
         f"<td>{'LLM 우위' if r['llm_brier'] < r['other_brier'] else 'LLM 열위'}</td></tr>"
         for r in bench if r["n"]) or '<tr><td colspan="5">쌍대 표본 없음 (비교 대상 기록이 있는 해소 0건)</td></tr>'
 
-    p2 = f'<span class="gate {"pass" if gate["gate_p2"] else "fail"}">P2 게이트 (30+/&lt;0.20): {"통과" if gate["gate_p2"] else "미달"}</span>'
-    p3 = f'<span class="gate {"pass" if gate["gate_p3"] else "fail"}">P3 게이트 (50+/&lt;0.18): {"통과" if gate["gate_p3"] else "미달"}</span>'
+    # T06 — 배지 문구는 계약 status_wording 을 따른다. 산술이 충족돼도 '통과'를 쓰지 않는다:
+    # 행 평균이 문턱 아래여도 SE 여유가 얇으면 통계적으로 **미결**이고, 그 구별이 사라지면
+    # 배지 하나가 전체 프로그램의 지위를 잘못 말하게 된다 (계약 status_wording.forbidden_words).
+    def _gate_label(met: bool) -> str:
+        if not met:
+            return "미달"
+        margin = gd.get("margin_se") if gd else None
+        return (f"산술 충족 · 통계적 <b>미결</b> ({margin:.2f} SE)"
+                if isinstance(margin, (int, float)) else "산술 충족 · 통계적 <b>미결</b>")
+
+    p2 = (f'<span class="gate {"pass" if gate["gate_p2"] else "fail"}">'
+          f'P2 게이트 (30+/&lt;0.20): {_gate_label(bool(gate["gate_p2"]))}</span>')
+    p3 = (f'<span class="gate {"pass" if gate["gate_p3"] else "fail"}">'
+          f'P3 게이트 (50+/&lt;0.18): {_gate_label(bool(gate["gate_p3"]))}</span>')
     maturity = ('<p class="note">⚠ 표본 30 미만 — 통계적으로 미성숙. 모든 수치는 참고용.</p>'
                 if n_resolved < 30 else "")
+
+    # T01 — 이중 단위 패널. "행 평균 통과"가 단위 의존 진술임을 상시 노출한다.
+    dual = ""
+    if gd:
+        rounds = gd.get("questions_with_multiple_rounds") or {}
+        hist = "".join(
+            f"<tr><td>{q}</td><td>{n}</td></tr>"
+            for q, n in sorted((gd.get("rounds_per_question") or {}).items(),
+                               key=lambda kv: (-kv[1], kv[0]))) or "<tr><td colspan=2>표본 없음</td></tr>"
+        share = (sum(rounds.values()) / gd["n_rows_primary"]) if rounds and gd.get("n_rows_primary") else 0.0
+        ci = gd.get("ci90") or []
+        ci_txt = f"[{ci[0]:.5f}, {ci[1]:.5f}]" if len(ci) == 2 else "—"
+
+        def _num(key: str, spec: str) -> str:
+            """표본이 얇으면 표시층 값이 None 이다 — 판정 대신 대시를 낸다."""
+            v = gd.get(key)
+            return format(v, spec) if isinstance(v, (int, float)) else "—"
+        dual = (
+            '<div class="card"><h2>게이트 Brier — 두 단위</h2>'
+            '<table><tr><th>단위</th><th>값</th><th>비고</th></tr>'
+            f'<tr><td><b>행 평균</b></td><td><b>{_num("brier_primary_rows", ".5f")}</b></td>'
+            '<td>게이트 <b>정본</b> — v_gate_status 와 같은 산술</td></tr>'
+            f'<tr><td>문항 등가중</td><td>{_num("brier_per_question", ".5f")}</td>'
+            '<td>게이밍 감시용 병기값 (판정 아님)</td></tr>'
+            f'<tr><td>SE</td><td>{_num("se", ".4f")}</td>'
+            f'<td>문턱 0.18 까지 <b>{_num("margin_se", ".2f")} SE</b></td></tr>'
+            f'<tr><td>CI90</td><td>{ci_txt}</td><td>문항 클러스터 부트스트랩 B=2000</td></tr>'
+            '</table>'
+            '<p class="note">게이트 정본은 <b>행 평균</b>이고, 문항 등가중은 게이밍 감시용이다. '
+            '쉬운 질문을 여러 회차 재예측하면 행 평균은 내려가지만 <b>문항 수는 늘지 않는다</b> — '
+            f'현재 복수 회차 문항 {len(rounds)}개가 primary 행의 <b>{share:.0%}</b> 를 차지한다.</p>'
+            '<table><tr><th>문항</th><th>회차</th></tr>' + hist + '</table>'
+            f'<p class="note">해소 문항 {gd["n_questions_primary"]}/{gd["threshold_questions"]} — '
+            '<b>미결</b>. 이 패널은 표시 전용이며 게이트 판정을 하지 않는다.</p></div>')
+
+    # T04 — 손실 3분해. 질문 선택 / 뽑기 / 앵커 초과는 대응이 다르므로 분리해 상시 인쇄한다.
+    decomp = ""
+    try:
+        from .loss_decomp import decompose_ledger, summarize
+        ds = summarize(decompose_ledger(root))
+    except Exception:
+        ds = {}
+    if ds:
+        if ds.get("mean_floor") is not None:
+            body = (
+                '<table><tr><th>조각</th><th>평균</th><th>고칠 수 있는 곳</th></tr>'
+                f'<tr><td>기대 바닥 p(1−p)</td><td>{ds["mean_floor"]:.5f}</td>'
+                '<td>등록 시점뿐 — 사후에는 손댈 수 없다</td></tr>'
+                f'<tr><td>뽑기</td><td>{ds["mean_draw"]:+.5f}</td>'
+                '<td>없음 — 기댓값 0, 표본이 쌓이면 씻긴다</td></tr>'
+                f'<tr><td>앵커 초과</td><td>{ds["mean_anchor_excess"]:+.5f}</td>'
+                '<td>예측 절차 — 유일한 실력 축</td></tr>'
+                f'<tr><td><b>합 = Brier</b></td><td><b>{ds["mean_brier_decomposed"]:.5f}</b></td>'
+                '<td>항등식</td></tr></table>')
+        else:
+            body = ('<p class="note">분해 가능한 행이 아직 없다. 정직 확률은 <b>등록 시점 고정값</b>'
+                    '에서만 가져오며, 없는 값을 지어내지 않는다.</p>')
+        reasons = "".join(f"<li>{r}</li>" for r in (ds.get("undecomposable_reasons") or []))
+        decomp = (
+            '<div class="card"><h2>손실 3분해 (T04)</h2>'
+            f'<p class="note">분해 가능 {ds["n_decomposed"]}/{ds["n_rows"]}행'
+            + (f" · 분해 불가 {ds['n_undecomposable']}행" if ds.get("n_undecomposable") else "")
+            + '</p>' + body
+            + (f'<p class="note">분해 불가 사유<ul>{reasons}</ul></p>' if reasons else "")
+            + '<p class="note">Brier 한 숫자로는 질문을 잘못 골랐는지·운이 나빴는지·예측이 정직 확률에서 '
+              '벗어났는지가 구별되지 않는다. 셋은 대응이 다르다.</p>'
+            + ("" if ds.get("identity_holds", True)
+               else '<p class="note">⚠ 항등식이 깨졌다 — 분해를 신뢰하지 말 것</p>')
+            + '</div>')
 
     # WS8-3: 대표 Brier에 제외표본 상시 병기 (검토질문 #3 응답)
     n_excl = queries.n_excluded_from_primary(conn)
@@ -174,7 +281,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <title>ai-fc 캘리브레이션</title><style>{CSS}</style></head><body>
 <h1>캘리브레이션 대시보드</h1>
 <p class="sub">생성 {now.strftime("%Y-%m-%d %H:%M")} · 예측 {n_forecasts}건 · 해소 {n_resolved}건 ·
-이달 비용 ${month_cost:.2f} / ${config.MONTHLY_BUDGET:.0f}</p>
+이달 비용 {budget_txt}</p>
 
 <div class="card">{p2} {p3}
 <p style="margin-top:10px">전체 Brier: <b>{brier_txt}</b>
@@ -182,6 +289,8 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <p class="note">{primary_txt}</p>
 <p class="note">rolling Brier(윈도우 10): {roll_txt}</p>
 <p class="note">{shadow_txt}</p>{maturity}</div>
+{dual}
+{decomp}
 
 <h2>신뢰도 다이어그램 (캘리브레이션 커브) — "70%라고 한 것들이 실제 70% 실현되나"</h2>
 <div class="card"><table>

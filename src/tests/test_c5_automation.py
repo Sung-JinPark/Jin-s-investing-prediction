@@ -99,11 +99,16 @@ def test_draft_workflow_is_read_only_on_contents() -> None:
 
 
 def test_investing_refresh_still_caps_paid_work() -> None:
-    """자동 예측 경로의 상한이 사라지지 않았는지 (C5-A2 인상 후에도 상한은 유지)."""
+    """자동 경로의 유료 상한이 사라지지 않았는지.
+
+    C5-A4 (2026-09-11): 이 경로는 더 이상 공식 회차를 생산하지 않는다(T05 가 은퇴시킨
+    생산자 조합이었다). 남은 유료 호출은 키 생존 smoke 뿐이라 상한도 $25 -> $2 다.
+    상한을 지우는 것이 아니라 남은 용도에 맞춰 **내린다**.
+    """
     text = (ROOT / ".github" / "workflows" / "investing-refresh.yml").read_text(
         encoding="utf-8")
-    assert "--max 3" in text      # C5-A3 2026-09-09: 1 -> 3 (신규 26문항 소화)
-    assert 'AI_FC_MONTHLY_BUDGET: "25.00"' in text
+    assert "--max 3" not in text
+    assert 'AI_FC_MONTHLY_BUDGET: "2.00"' in text
 
 
 # ── 마감 임박 우선 (2026-09-09 추가) ───────────────────────────────

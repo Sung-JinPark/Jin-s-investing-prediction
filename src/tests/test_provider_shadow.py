@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from ai_fc import config
 from ai_fc.llm import PipelineBudget, Usage
 from ai_fc.llm_provider import ProviderIdentity
 from ai_fc.models import Question
@@ -73,7 +74,7 @@ def _question() -> Question:
 def test_shadow_is_separate_and_append_only(tmp_path: Path) -> None:
     prompts = tmp_path / "prompts"
     prompts.mkdir()
-    (prompts / "reasoning_core_v1.md").write_text("system", encoding="utf-8")
+    (prompts / f"{config.PROMPT_VERSION}.md").write_text("system", encoding="utf-8")
     observation = run_shadow(
         FakeProvider(),
         _question(),

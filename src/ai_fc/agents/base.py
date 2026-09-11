@@ -43,7 +43,9 @@ def run_research(client: anthropic.Anthropic, q: Question, n_agents: int,
     user = _user_prompt(q, today)
 
     # v3 WS-B lite 티어: 검색량·분량만 축소 — 프로필 구성(데블스 포함)은 불변 (헌법)
-    lite = getattr(q, "tier", "standard") == "lite"
+    # T05(2026-09-11): lite 은퇴 — 은퇴일 이후에는 등록값이 lite 여도 standard 로 돈다.
+    from ..registry import effective_tier
+    lite = effective_tier(q, today) == "lite"
     words = config.LITE_RESEARCH_WORDS if lite else 900
     max_uses = config.LITE_SEARCH_MAX_USES if lite else None
 

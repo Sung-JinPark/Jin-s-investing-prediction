@@ -874,9 +874,12 @@ def test_every_protected_data_refresh_rebuilds_and_replay_verifies_v5_2() -> Non
         assert "scenario-v5-2-build --force" in source
         assert "scenario-v5-2-verify --replay" in source
         assert source.index("scenario-v5-2-build --force") < source.index("git add")
+    # C5-A4 (2026-09-11): investing-refresh 는 더 이상 공식 회차를 생산하지 않는다.
+    # 예전에는 `forecast --due` 가 V5.2 재빌드보다 **앞에** 와야 했다 — 그 회차가
+    # 재빌드에 포함돼야 하기 때문이다. 생산이 사라졌으므로 그 순서 제약도 사라졌고,
+    # 대신 '무인 경로는 forecasts/ 에 쓰지 않는다'가 새 불변식이다.
     investing = workflows[1].read_text(encoding="utf-8")
-    assert investing.index("python -m ai_fc forecast --due") \
-        < investing.index("scenario-v5-2-build --force")
+    assert "python -m ai_fc forecast" not in investing
 
 
 def test_v52_method_changes_are_append_only_and_disclose_the_default_decision() -> None:
