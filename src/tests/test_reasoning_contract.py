@@ -211,3 +211,61 @@ def test_v1_1_premortem_requires_recording_the_readjustment() -> None:
     text = (ROOT / "prompts/reasoning_core_v1_1.md").read_text(encoding="utf-8")
     assert "재조정분은 반드시 `adjustments` 에 항목으로 남긴다" in text
     assert "출력 전체가 거부된다" in text
+
+
+# ── 전송 바디가 parse 와 동치인가 (2026-09-11 2차 실측 결함) ──────────
+
+def test_output_config_is_byte_identical_to_what_parse_sends() -> None:
+    """`create` 로 갈아타면서 format 래퍼를 빠뜨려 400 을 받았다.
+
+    `output_config.format` 은 `{"type": "json_schema", "schema": ...}` 여야 하는데
+    스키마만 넣어 서버가 `output_config.format.type: Input should be 'json_schema'`
+    로 거절했다. 리서치 비용 $2.67 을 태우고 나서야 드러났다 — 전송 바디는
+    **API 없이 대조할 수 있었다.** 그래서 여기서 고정한다.
+    """
+    import anthropic
+
+    captured: dict = {}
+    client = anthropic.Anthropic(api_key="sk-ant-test-not-used")
+
+    def _fake_post(path, **kwargs):
+        captured["body"] = kwargs.get("body")
+        raise _Intercepted
+
+    class _Intercepted(Exception):
+        pass
+
+    client.messages._post = _fake_post
+    with pytest.raises(_Intercepted):
+        client.messages.parse(
+            model="claude-opus-4-8", max_tokens=100,
+            system=[{"type": "text", "text": "s"}], thinking={"type": "adaptive"},
+            output_config={"effort": "high"},
+            messages=[{"role": "user", "content": "u"}],
+            output_format=ForecastResult)
+
+    sent = captured["body"]["output_config"]
+    mine = {"effort": "high", "format": llm.json_output_format()}
+    assert sent["format"]["type"] == "json_schema"
+    assert json.dumps(sent, sort_keys=True, default=str) == \
+        json.dumps(mine, sort_keys=True, default=str), \
+        "create 경로가 parse 와 다른 바디를 보낸다 — 서버가 거절한다"
+
+
+def test_reasoning_once_actually_passes_that_config() -> None:
+    """헬퍼가 맞아도 호출부가 안 쓰면 소용없다."""
+    import tempfile
+
+    from pathlib import Path as _P
+    client = _Client([json.dumps(_payload())])
+    with tempfile.TemporaryDirectory() as tmp:
+        original = llm.config.SCRATCH_DIR
+        llm.config.SCRATCH_DIR = _P(tmp)
+        try:
+            llm.reasoning_call(client, "sys", "user", PipelineBudget(limit_usd=10))
+        finally:
+            llm.config.SCRATCH_DIR = original
+    cfg = client.calls[0]["output_config"]
+    assert cfg["effort"] == "high"
+    assert cfg["format"]["type"] == "json_schema"
+    assert "properties" in cfg["format"]["schema"] or "$ref" in cfg["format"]["schema"]

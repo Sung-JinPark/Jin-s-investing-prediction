@@ -190,12 +190,32 @@ def _dump_reasoning_raw(attempt: int, text: str) -> None:
         pass
 
 
+def json_output_format() -> dict | None:
+    """`messages.parse` 가 서버로 보내는 것과 **동일한** `output_config.format` 객체.
+
+    parse 의 구성(resources/messages/messages.py)을 그대로 따른다:
+        schema = TypeAdapter(output_format).json_schema()
+        JSONOutputFormatParam(schema=transform_schema(schema), type="json_schema")
+
+    래퍼(`type: json_schema`)를 빼먹으면 서버가 400 으로 거절한다
+    (`output_config.format.type: Input should be 'json_schema'`) — 2026-09-11 실측.
+    그래서 이 구성은 테스트에서 parse 의 실제 전송 바디와 대조해 고정한다.
+    """
+    if _transform_schema is None:
+        return None
+    from pydantic import TypeAdapter
+
+    schema = TypeAdapter(ForecastResult).json_schema()
+    return {"type": "json_schema", "schema": _transform_schema(schema)}
+
+
 def _reasoning_once(client: anthropic.Anthropic, system: str, user: str,
                     budget: PipelineBudget, model: str, attempt: int) -> tuple[str, Usage]:
     """추론 API 1회. **응답을 받으면 무엇이 실패하든 비용을 먼저 계상한다.**"""
     output_config: dict = {"effort": "high"}
-    if _transform_schema is not None:
-        output_config["format"] = _transform_schema(ForecastResult)
+    fmt = json_output_format()
+    if fmt is not None:
+        output_config["format"] = fmt
 
     resp = _with_retries(lambda: client.messages.create(
         model=model,
