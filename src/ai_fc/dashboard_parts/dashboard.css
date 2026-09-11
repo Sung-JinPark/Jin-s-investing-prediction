@@ -1551,3 +1551,26 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .ts-next-pct.up{color:var(--positive)}.ts-next-pct.down{color:var(--crimson)}
 .timeseries-horizons strong em{margin-left:8px;font-size:.4em;font-style:normal;letter-spacing:0;vertical-align:4px}
 .timeseries-horizons strong em.up{color:var(--positive)}.timeseries-horizons strong em.down{color:var(--crimson)}
+/* 전진 트랙레코드 대조표. 오차 부호는 실력이 아니라 S1 이 조건부 상승 경로라는 구조에서
+   나온다 — 초록/빨강으로 칠하면 '맞았다/틀렸다'로 읽히므로 중립 단색을 쓴다. */
+.scenario-track-summary{margin-top:16px}
+.scenario-track-summary .table-shell{margin-top:14px}
+.scenario-track-summary table{min-width:720px}
+.scenario-track-summary caption{padding:11px 14px;color:var(--muted);font-size:var(--type-caption);text-align:left}
+.scenario-track-summary td{font-family:var(--mono);font-weight:700}
+.scenario-track-summary td:first-child{font-weight:600}
+.scenario-track-summary .track-error{font-variant-numeric:tabular-nums}
+.scenario-track-summary .scenario-v52-readout{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:860px){.scenario-track-summary .scenario-v52-readout{grid-template-columns:1fr}}
+/* 그래프 주변 컨트롤의 글자 넘침 정리. .band-inline b 는 14px 스와치 전용이라
+   라벨 텍스트를 그 안에 넣으면 찌그러진다 — 라벨은 span 직계 텍스트로 둔다. */
+.count-chip{white-space:nowrap}
+.band-inline span{min-width:0;white-space:nowrap}
+.band-inline b{flex:0 0 auto}
+.flow-shape-controls button{white-space:nowrap}
+.flow-shape-controls>small{flex:1 1 240px;min-width:0}
+.flow-compare-pick{margin:12px 0;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.flow-compare-pick label{color:var(--muted);font:700 var(--type-micro)/1.2 var(--mono);letter-spacing:.06em;white-space:nowrap}
+.flow-compare-pick select{max-width:100%;min-height:40px;padding:7px 11px;color:var(--ink);background:#fff;border:1px solid var(--line-strong);border-radius:9px;font-family:var(--mono);font-size:var(--type-control);font-weight:650}
+.flow-compare-pick>small{flex:1 1 240px;min-width:0;color:var(--muted);font-size:var(--type-caption);line-height:1.45}
+@media(max-width:720px){.band-inline span{white-space:normal}.flow-compare-pick select{width:100%}}

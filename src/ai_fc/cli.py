@@ -16,8 +16,8 @@ import typer
 
 from . import config
 from .db import ingest, queries
-from .registry import (compute_due, load_registry, prioritize_forecast_targets,
-                       propose_schedule)
+from .registry import (batch_should_abort, compute_due, load_registry,
+                       prioritize_forecast_targets, propose_schedule)
 from .scenario import refresh_scenario
 
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
@@ -1644,14 +1644,33 @@ def cmd_forecast(
     _spent = queries.month_cost(conn, _now.year, _now.month)
     _floor = config.MONTHLY_BUDGET * (1 - config.MONTHLY_BUDGET_RESERVE_RATIO)
     _zone = " · 예비 구간(마감 임박 전용)" if _spent >= _floor else ""
+    # 한 질문이 실패해도 배치는 계속한다. 추론 출력의 산술 정합성 위반 같은 질문 고유
+    # 사유로 뒤 질문까지 못 돌던 문제(2026-09-11: asml 실패가 배치를 두 번 끊었다)를
+    # 막는다. 판정 규칙은 registry.batch_should_abort.
+    failures: list[tuple[str, str]] = []
     for qid in targets:
         if not yes and not dry_run:
             typer.confirm(
                 f"{qid} 예측을 실행할까요? (예상 비용 ~${budget:.2f} 이내 · "
                 f"이달 ${_spent:.2f}/${config.MONTHLY_BUDGET:.0f}{_zone})", abort=True)
-        result = run_forecast(conn, root, qid, n_agents=agents,
-                              budget_usd=budget, dry_run=dry_run)
+        try:
+            result = run_forecast(conn, root, qid, n_agents=agents,
+                                  budget_usd=budget, dry_run=dry_run)
+        except BaseException as exc:
+            # 지목 실행(`forecast <qid>`)은 조용히 넘기지 않는다 — 사용자가 그 질문을 요청했다.
+            if batch_should_abort(exc) or len(targets) == 1:
+                raise
+            failures.append((qid, f"{type(exc).__name__}: {exc}"))
+            typer.echo(f"[실패] {qid}: {type(exc).__name__}: {exc} — 기록 없음, 배치는 계속",
+                       err=True)
+            continue
         typer.echo(result)
+
+    if failures:
+        typer.echo(f"\n예측 실패 {len(failures)}/{len(targets)}건 — 기록된 것은 없습니다:", err=True)
+        for qid, reason in failures:
+            typer.echo(f"  - {qid}: {reason}", err=True)
+        raise typer.Exit(code=1)
 
 
 @app.command("resolve")

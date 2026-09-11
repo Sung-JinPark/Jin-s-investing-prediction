@@ -258,3 +258,41 @@ def test_repo_has_no_unjustified_active_questions_in_the_top_queue() -> None:
     survivors = [d.question_id for d in ordered
                  if not factory_filter_violation(by_id[d.question_id])]
     assert survivors, "등록필터 위반을 걸러내고 나면 배치 대상이 하나도 없다"
+
+
+# ── 질문 단위 실패의 배치 격리 (2026-09-11) ────────────────────
+
+def test_batch_continues_past_a_single_question_failure() -> None:
+    """추론 출력 검증 실패는 그 질문만 버리고 배치를 계속해야 한다.
+
+    실측 계기: 2026-09-11 asml-eps-beat-2026q3 의 산술 정합성 위반(앵커+조정 63 vs
+    최종 64)이 CLI 전체를 abort 시켜 뒤 질문들이 돌지 않았다. 같은 배치가 두 번 끊겼다.
+    """
+    from pydantic import ValidationError
+
+    from ai_fc.registry import batch_should_abort
+
+    class _Boom(Exception):
+        pass
+
+    assert batch_should_abort(_Boom("산술 정합성 위반")) is False
+    assert batch_should_abort(RuntimeError("추론 출력 파싱 실패")) is False
+    assert batch_should_abort(ValueError("anchor + signed adjustments")) is False
+
+
+def test_budget_exhaustion_and_user_interrupt_still_stop_the_batch() -> None:
+    """예산 소진·사용자 중단은 배치 전체의 사유다 — 계속 돌리면 돈만 더 쓴다."""
+    from ai_fc.llm import BudgetExceeded
+    from ai_fc.registry import batch_should_abort
+
+    assert batch_should_abort(BudgetExceeded("파이프라인 예산 초과")) is True
+    assert batch_should_abort(KeyboardInterrupt()) is True
+    assert batch_should_abort(SystemExit(1)) is True
+
+
+def test_cli_uses_the_shared_abort_rule_and_reports_failures() -> None:
+    source = (ROOT / "src" / "ai_fc" / "cli.py").read_text(encoding="utf-8")
+    block = source.split("def cmd_forecast")[1].split("@app.command")[0]
+    assert "batch_should_abort(exc)" in block, "배치가 중단 판정을 공유 규칙에 위임하지 않는다"
+    assert "len(targets) == 1" in block, "지목 실행은 여전히 하드 에러여야 한다"
+    assert "예측 실패" in block, "실패 요약을 사용자에게 알리지 않는다"
