@@ -767,7 +767,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
     assert ("function drawOriginalWeeklyFlow(host,sc,showSamples=false,"
-            "scenarioKey='S1',horizon='compare')") in html
+            "scenarioKey='S1',horizon='compare',compareAsof='')") in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -952,10 +952,13 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
 
     # 선택기는 제거됐고 상승 경로로 고정된다
     assert "const ORIGINAL_FLOW_KEY='S1';" in script
-    assert "drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon)" in script
+    assert ("drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,"
+            "horizon,compareAsof)") in script
     assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
     assert "original-scenario-switch" not in html
     assert "상승(S1) 경로 하나</b>와 <b>실제 종가(검은 선, 일간)" in html
+    # 범례 라벨을 <b> 로 감싸면 .band-inline b(14px 스와치)에 걸려 찌그러진다
+    assert "</b><b>S1 ${esc(sc.paths?.S1?.label" not in html
     # 도착점 판독도 S1 하나만 남는다
     assert "data-original-endpoints" in html
     assert html.count("도착점 경로 비율") == 1

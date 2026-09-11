@@ -2600,7 +2600,7 @@ function chartGuide(rows,caution){
 const GUIDE_SOLID=color=>`background:${color};height:3px`;
 const GUIDE_DASH=color=>`background:repeating-linear-gradient(90deg,${color} 0 4px,transparent 4px 8px);height:3px`;
 const GUIDE_BAND=color=>`background:${color};height:11px;border-radius:2px`;
-function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horizon='compare'){
+function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horizon='compare',compareAsof=''){
   const NS='http://www.w3.org/2000/svg';
   const W=1160,H=620,ML=58,MR=148,MT=120,MB=30,HCH=550;
   const weeks=sc.weeks||[],riskValues=sc.risk||[];
@@ -2622,11 +2622,15 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   const sampleRows=showSamples?[activeKey].flatMap(key=>(sc.path_realism?.[key]?.sample_paths||[]).map((row,order)=>({key,order,percentile:Number(row.terminal_percentile),values:(row.values||[]).slice(0,n).map(Number)}))).filter(row=>row.values.length===n):[];
   const clip=Number(sc.analog?.clip),rawAnalog=(sc.analog?.values||[]).slice(0,n).map(Number);
   const analogValues=rawAnalog.map(value=>Number.isFinite(clip)?Math.min(value,clip):value).filter(Number.isFinite);
-  /* 겹칠 실제 종가(일간). 창(cut) 안으로 자른다. 지난 빈티지 경로를 전부 겹쳐 그리면
-     빗각으로 퍼지는 선다발이 되어 실제 주가 그래프처럼 읽히지 않는다 — 선은 현재 경로
-     하나만 두고, 지난 예측이 얼마나 맞았는지는 아래 오차율과 표로 읽는다. */
+  /* 겹칠 실제 종가(일간). 창(cut) 안으로 자른다. */
   const actual=overlay?track.actual.filter(row=>row[0]<=cut):[];
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1])].map(Number).filter(Number.isFinite);
+  /* 현재 경로는 오늘에서 시작하므로 이미 지나간 구간을 덮지 못한다 — 그 구간에서 얼마나
+     틀렸는지 눈으로 보려면 그때 실제로 기록된 예측이 필요하다. 빈티지 전부를 겹치면
+     빗각 선다발이 되므로 **한 건만** 골라 그린다(기본은 겹침이 가장 긴 최초 기록). */
+  const compare=overlay?(track.vintages.find(row=>row.asof===compareAsof)||track.vintages[0]):null;
+  const comparePoints=compare&&compare.asof<sc.asof
+    ?compare.values.filter(point=>point[0]<=cut):[];
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1])].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2691,6 +2695,21 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
     svg.appendChild(mk('path',{d:`M${ML+PW+5},${item.y} L${ML+PW+12},${item.y} L${labelX-3},${item.labelY}`,fill:'none',stroke:item.color,'stroke-width':1,opacity:item.opacity*.72}));
     svg.appendChild(halo(tx(labelX,item.labelY+4,item.text,{fill:item.color,fs:item.fontSize,w:item.weight})));
   });
+  /* 그때 기록된 예측 한 줄. 실제 선과 같은 구간을 덮으므로 둘 사이의 벌어짐이 곧 오차다.
+     사이를 옅게 메워 '얼마나 틀렸나'가 면적으로 보이게 한다. */
+  if(comparePoints.length>1&&actual.length>1){
+    const realizedEnd=actual[actual.length-1][0];
+    const seen=new Map(actual.map(row=>[row[0],row[1]]));
+    const paired=comparePoints.filter(point=>point[0]<=realizedEnd&&seen.has(point[0]));
+    if(paired.length>1){
+      const top=paired.map(point=>dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1));
+      const bottom=paired.slice().reverse().map(point=>dateX(point[0]).toFixed(1)+','+Y(seen.get(point[0])).toFixed(1));
+      svg.appendChild(mk('path',{d:'M'+top.join(' L')+' L'+bottom.join(' L')+' Z',fill:CHART_COL[activeKey],opacity:.13,stroke:'none','data-track-gap':'1'}));
+    }
+    const d=comparePoints.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':2,'stroke-dasharray':'7 4','stroke-linejoin':'round',opacity:.9,'data-track-compare':compare.asof}));
+    svg.appendChild(halo(tx(dateX(comparePoints[0][0])+5,Y(comparePoints[0][1])-10,compare.asof.slice(5).replace('-','/')+' 예측',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
+  }
   /* 실제 종가는 일간이다 — 아카이브마다 그날 확정 종가로 기록된 anchor 를 이은 선이라
      주차 격자에 얽매이지 않는다. 가장 위에 그려 어느 선과도 가려지지 않게 한다. */
   if(actual.length>1){
@@ -2712,7 +2731,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
       svg.appendChild(mk('line',{x1:dateX(row[0]),y1:MT+PH,x2:dateX(row[0]),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
       svg.appendChild(tx(dateX(row[0]),MT+PH+18,row[0].slice(5).replace('-','/'),{anc:'middle',fs:12,fill:'#5f5d57',w:500}));
     });
-  const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'−10%선 누적 터치확률',{anc:'end',fill:'#5f5d57',fs:11}));
+  const RY=HCH+8,RH=28;/* 축 왼쪽 여백(50px)보다 라벨이 길어 anchor:end 로는 viewBox 밖으로 잘린다 — 띠 위에 왼쪽 정렬한다. */svg.appendChild(tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11,w:650}));
   let segmentStart=0;
   for(let index=1;index<=n;index++){
     if(index<n&&riskValues[index]===riskValues[segmentStart])continue;
@@ -2804,14 +2823,22 @@ function originalFlowPanel(){
   const track=DATA.scenario_track&&DATA.scenario_track.status==='ok'?DATA.scenario_track:null;
   const canOverlay=Boolean(track&&(sc.week_dates||[]).length===sc.weeks.length&&track.actual?.length>1);
   const actualLegend=canOverlay?'<span><b style="background:#11110f"></b>실제 종가 (일간)</span>':'';
+  /* 지나간 구간을 덮는 예측은 그때 기록된 것이어야 한다 — 어느 날의 예측과 맞대 볼지 고른다.
+     기본은 겹침이 가장 긴 최초 기록이다. */
+  const comparable=canOverlay?track.vintages.filter(row=>row.asof<sc.asof&&row.realized):[];
+  const compareLegend=comparable.length?`<span><b style="background:${CHART_COL.S1};--dash:1" class="legend-dash"></b>그날 기록된 예측 (점선)</span><span><b style="background:${CHART_COL.S1};opacity:.2"></b>둘 사이 = 오차</span>`:'';
+  const comparePick=comparable.length?`<div class="flow-compare-pick">
+      <label for="original-compare-pick">맞대 볼 예측일</label>
+      <select id="original-compare-pick" data-original-compare>${comparable.map((row,index)=>`<option value="${esc(row.asof)}"${index===0?' selected':''}>${esc(row.asof)} · S1 ${esc(row.prob)}% · ${esc(row.realized.date)} 오차 ${row.realized.error_pct>=0?'+':''}${Number(row.realized.error_pct).toFixed(2)}%</option>`).join('')}</select>
+      <small>그날 커밋된 예측을 그대로 불러와 검은 실제선 위에 겹칩니다</small></div>`:'';
 
   /* 시나리오 지평은 252거래일까지 뻗는다. 전량을 실으면 겹치는 구간이 가로폭의 10%대로
      눌려 대조가 안 보이므로, 기본은 실현 구간에 맞춘 창으로 연다. */
   const horizonControl=canOverlay?`<div class="flow-shape-controls" role="group" aria-label="가로축 기간">
       <span>기간</span>
-      <button type="button" data-original-horizon="compare" aria-pressed="true"><i></i>실제와 겹치는 구간 (${esc(track.stats.first_asof)} ~ ${esc(track.cut)})</button>
-      <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망까지</button>
-      <small>기본은 대조 구간 — 전체를 열면 겹침이 화면 왼쪽으로 눌립니다</small></div>`:'';
+      <button type="button" data-original-horizon="compare" aria-pressed="true"><i></i>대조 구간</button>
+      <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망</button>
+      <small>기본 ${esc(track.stats.first_asof)} ~ ${esc(track.cut)} · 전체를 열면 겹침이 왼쪽으로 눌립니다</small></div>`:'';
   const ghostLegend=structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중앙값</span>':'';
   const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>PATH LAYERS</span><button type="button" data-original-samples aria-pressed="false"><i></i>실제 모의 경로 ${num(memberCount)}개 같이 보기</button><small>기본 숨김 · 대표선으로 쓰지 않습니다</small></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
@@ -2823,7 +2850,8 @@ function originalFlowPanel(){
       기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
     ${horizonControl}
-    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b><b>S1 ${esc(sc.paths?.S1?.label||'')} 경로 · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</b></span>${actualLegend}${ghostLegend}${analogLegend}</div>
+    ${comparePick}
+    <div class="band-inline"><span><b style="background:${CHART_COL.S1}"></b>S1 ${esc(sc.paths?.S1?.label||'')} · 경로 비율 ${esc(sc.paths?.S1?.prob)}%</span>${actualLegend}${compareLegend}${ghostLegend}${analogLegend}</div>
     ${memberControl}
     <div class="chart-wrap"><div id="original-flow-chart"></div></div>
     <details class="chart-method"><summary>이 그래프는 어떻게 만들었나</summary><p>${esc(sc.note||'')}</p><p>굵은 선은 과거 조정 모양을 입힌 경로이고, 회색 점선은 그 모양을 입히기 전의 밋밋한 평균입니다. 굴곡은 '이 달쯤 위험했다'는 과거 형태이지 특정 날짜 예측이 아니며, 모의 표본을 대표선으로 쓰지 않습니다.</p></details>
@@ -2839,15 +2867,17 @@ function originalFlowPanel(){
     ${scenarioTrackSummary()}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
-  let samplesOn=false,horizon='compare';
+  let samplesOn=false,horizon='compare',compareAsof=comparable[0]?.asof||'';
   const paintOriginal=()=>{
-    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon);
+    drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon,compareAsof);
     if(sampleButton)sampleButton.setAttribute('aria-pressed',String(samplesOn));
     if(sampleNote)sampleNote.hidden=!samplesOn;
     panel.querySelectorAll('[data-original-horizon]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.originalHorizon===horizon)));
   };
   if(sampleButton)sampleButton.onclick=()=>{samplesOn=!samplesOn;paintOriginal();};
   panel.querySelectorAll('[data-original-horizon]').forEach(button=>{button.onclick=()=>{horizon=button.dataset.originalHorizon;paintOriginal();};});
+  const comparePicker=$('[data-original-compare]',panel);
+  if(comparePicker)comparePicker.onchange=()=>{compareAsof=comparePicker.value;paintOriginal();};
   paintOriginal();
   return panel;
 }
@@ -3682,7 +3712,7 @@ function drawFlow(host,sc,focus='ALL',lookupDate=null,displayYear=2026,showSampl
   const tickIndexes=flowAxisTickIndexes(n,6);tickIndexes.forEach((index,tickPosition)=>{let label=weeks[index];
     if(tickPosition===0)label=startIndex===0?'현재 · '+label:`${String(range.year).slice(2)}년 시작 · ${label}`;
     svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));svg.appendChild(tx(X(index),MT+PH+18,label,{anc:'middle',fs:12,fill:index?'#5f5d57':'#174c49',w:index?500:750}));});
-  const RY=HCH+8,RH=28;svg.appendChild(tx(ML-8,RY+19,'−10%선 누적 터치확률',{anc:'end',fill:'#5f5d57',fs:11}));
+  const RY=HCH+8,RH=28;/* 축 왼쪽 여백(50px)보다 라벨이 길어 anchor:end 로는 viewBox 밖으로 잘린다 — 띠 위에 왼쪽 정렬한다. */svg.appendChild(tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11,w:650}));
   let segmentStart=0;for(let index=1;index<=n;index++){if(index<n&&riskValues[index]===riskValues[segmentStart])continue;const end=index-1,risk=riskValues[segmentStart];
     const left=segmentStart===0?X(0)-2:(X(segmentStart-1)+X(segmentStart))/2,right=end===n-1?X(end)+2:(X(end)+X(end+1))/2,width=Math.max(1,right-left);
     const fill=risk==='고'?'rgba(201,0,45,.92)':(risk==='중'?'rgba(255,157,25,.48)':'rgba(36,125,120,.34)'),textColor=risk==='고'?'#fff':(risk==='중'?'#513300':'#174c49');svg.appendChild(mk('rect',{x:left,y:RY,width,height:RH,fill,stroke:'rgba(17,17,15,.1)'}));

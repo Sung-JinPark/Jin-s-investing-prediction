@@ -154,3 +154,31 @@ def test_actual_is_overlaid_inside_the_original_graph_not_a_second_one() -> None
     assert "지금 모형을 과거로 되돌려 계산하지 않습니다" in html
     # 실제 선은 일간이라고 밝힌다
     assert "실제 종가 (일간)" in html
+
+
+def test_chart_labels_stay_inside_the_drawing_area() -> None:
+    """축 왼쪽 여백보다 긴 라벨을 anchor:end 로 두면 viewBox 밖으로 잘린다.
+
+    '−10%선 누적 터치확률' 은 약 104px 인데 왼쪽 여백은 ML=58 뿐이라, x=ML-8 에 오른쪽
+    정렬하면 −53px 까지 삐져나가 글자가 잘린 채 보인다. 띠 위에 왼쪽 정렬로 둔다.
+    """
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    assert "tx(ML-8,RY+19,'−10%선 누적 터치확률'" not in script, "잘리는 배치가 되돌아왔다"
+    assert script.count("tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11,w:650})") == 2,         "같은 버그가 두 그래프에 있었다 — 둘 다 고쳐진 상태여야 한다"
+
+
+def test_one_recorded_forecast_is_drawn_over_the_realized_window() -> None:
+    """지나간 구간에 주황선이 없으면 검은선과 겹칠 수가 없다.
+
+    현재 경로는 오늘에서 시작하므로 과거를 덮지 못한다. 그때 실제로 기록된 예측 **한 건**을
+    골라 겹치고, 둘 사이를 옅게 메워 오차가 면적으로 보이게 한다. 전부 겹치면 빗각 선다발이
+    되므로 한 건만 그린다 — 어느 예측일인지는 고를 수 있다.
+    """
+    html = dashboard.load_template()
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "data-track-compare" in flow, "그때 기록된 예측선을 그려야 한다"
+    assert "data-track-gap" in flow, "예측선과 실제선 사이를 메워 오차를 보여준다"
+    assert "data-original-compare" in html, "맞대 볼 예측일을 고를 수 있어야 한다"
+    # 비교선은 자기 예측일 이후만 그린다 — 과거로 되돌려 그리지 않는다
+    assert "compare.asof<sc.asof" in flow
