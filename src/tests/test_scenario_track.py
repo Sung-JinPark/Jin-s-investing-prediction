@@ -237,3 +237,20 @@ def test_legend_does_not_pull_the_next_block_over_itself() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     assert ".flow-shape-controls{margin:-8px" not in css, "음수 마진이 되돌아왔다"
     assert ".band-inline{margin-bottom:" in css
+
+
+def test_past_and_future_orange_form_one_line() -> None:
+    """주황 선은 하나여야 한다 — 오늘 왼쪽은 그날 기록된 S1, 오른쪽은 지금의 S1.
+
+    과거 구간을 점선·다른 굵기로 그리면 '다른 선'으로 읽힌다(사용자 지적). 같은 색·같은
+    굵기의 실선으로, 오늘까지만 그려 현재 경로가 이어받게 한다. 이음새에 남는 세로 단차가
+    곧 그때 예측과 실현의 차이다 — 그것을 없애려고 선을 맞추면 오차가 지워진다.
+    """
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    compare = flow.split("data-track-compare")[0]
+    assert "'stroke-dasharray':'7 4'" not in compare, "과거 구간이 다시 점선이 됐다"
+    assert "'stroke-width':2.6" in compare, "현재 경로와 굵기가 달라 다른 선으로 읽힌다"
+    assert "point[0]<=realizedEnd" in compare, "오늘 너머까지 그리면 현재 경로와 겹친다"
+    # 기본 선택은 과거 전체를 덮는 가장 이른 기록이어야 이어져 보인다
+    assert "const defaultCompare=comparable[0]?.asof||'';" in script
