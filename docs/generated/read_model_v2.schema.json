@@ -35,7 +35,8 @@
     "o_entry_cohort",
     "method_changes",
     "calendar_events",
-    "scenario_v5"
+    "scenario_v5",
+    "scenario_track"
   ],
   "properties": {
     "meta": {
@@ -570,6 +571,9 @@
           ]
         }
       }
+    },
+    "scenario_track": {
+      "type": "object"
     },
     "scenario_v5_2": {
       "type": "object",

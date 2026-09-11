@@ -335,6 +335,25 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
 URGENT_WINDOW_DAYS = 7
 
 
+def batch_should_abort(exc: BaseException) -> bool:
+    """배치 전체를 멈출 사유인가.
+
+    질문 하나가 실패했다고 뒤 질문까지 못 돌면 안 된다 — 2026-09-11 에 asml 한 건의
+    산술 정합성 위반이 배치를 두 번 끊었고, 그 전에는 등록필터 위반 5건이 주간 자동화를
+    매주 죽였다. 실패는 기록만 남기고 다음 질문으로 간다.
+
+    다만 다음 둘은 **배치 전체의 사유**라 계속 돌리는 것이 오히려 해롭다.
+    - 예산 소진: 다음 질문도 어차피 같은 벽에 부딪히고, 돈만 더 쓴다.
+    - 사용자 중단(Ctrl-C 등): 멈추라는 뜻이다.
+    """
+    from .llm import BudgetExceeded
+
+    if isinstance(exc, BudgetExceeded):
+        return True
+    # KeyboardInterrupt·SystemExit 는 Exception 이 아니다 — 통과시키면 안 된다.
+    return not isinstance(exc, Exception)
+
+
 def prioritize_forecast_targets(
     due: "list[DueItem]",
     deadlines: Optional[dict[str, Optional[date]]] = None,
