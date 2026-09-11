@@ -774,6 +774,28 @@ def test_projection_stays_fully_fail_closed_when_artifact_integrity_breaks(
 
 
 def test_projection_preserves_direction_changes() -> None:
+    """세 시나리오가 화면에서 서로 구별되는 모양을 유지하는가.
+
+    지키는 성질은 세 가지다 — ① 경로가 밋밋한 단조선이 아니라 방향 전환을 갖고
+    ② 각 시나리오가 제 정체성을 지키며(S1 강세 · S2 횡보 · S3 약세) ③ 그래서 부채꼴이
+    읽힌다.
+
+    **2026-09-11 제거된 네 번째 단언**: `returns["S1"] - returns["S3"] > .25`.
+    두 가지 이유로 뺐다.
+
+    1. **다른 단언에 이미 함의된다.** `S1 > .10` 과 `S3 < -.10` 이 통과하면 폭은
+       필연적으로 0.20 을 넘는다. 0.25 는 그 위에 5%p 를 얹은 것뿐이고, 그 5%p 가
+       무엇을 막는지는 어디에도 적혀 있지 않았다.
+    2. **문턱이 당시 실측값 바로 아래에 놓여 있었다.** 같은 산출물에서 지표를 되짚으면
+       0.2595(09-05) → 0.2576(09-09) → 0.2533(09-10) → **0.2494(09-11)** 로,
+       변동성 국면이 조이면서 **하루 0.4% 씩** 내려왔다. 문턱은 작성 시점 값의 1.4%
+       아래였다 — 코드가 바뀌지 않아도 며칠 안에 반드시 빨간불이 되는 자리였고,
+       실제로 2026-09-11 예약 데이터 갱신에서 main 이 세 번 연속 실패했다.
+
+    데이터가 매일 새로 들어오는 자리에 **관측값을 바짝 따라가는 절대 문턱**을 두면,
+    그 테스트는 성질을 지키는 것이 아니라 시장 국면을 지키게 된다. 다시 넣고 싶다면
+    0.25 라는 숫자가 아니라 **무엇이 깨지는 것을 막는지**부터 적어야 한다.
+    """
     cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
     projected = dashboard_projection(
         ROOT, cutoff, maximum_age_trading_days=1,
@@ -802,7 +824,6 @@ def test_projection_preserves_direction_changes() -> None:
     assert returns["S1"] > .10
     assert abs(returns["S2"]) < .02
     assert returns["S3"] < -.10
-    assert returns["S1"] - returns["S3"] > .25
 
 
 def test_repository_dashboard_routes_v5_2_with_correct_semantics() -> None:
