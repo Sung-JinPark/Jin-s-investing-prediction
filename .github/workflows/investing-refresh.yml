@@ -80,6 +80,11 @@ jobs:
       # 게이트 회차는 로컬 anthropic cli/api 경로 전용이다(실측 $2.303/회차, 5/5 ok).
       # 여기 남은 유료 호출은 키 생존 확인 smoke 하나(<$0.01)뿐이라 상한도 거기 맞춘다.
       # 되살리려면 이 run 과 위 두 상한을 **함께** 올려야 한다.
+      #
+      # 2026-09-11: 케이던스(주 3건)는 죽지 않았다 — 실행 주체만 옮겼다. 로컬 예약 작업
+      # `weekly-forecast-3`(토 11:30 KST, 이 워크플로의 데이터 수집 직후)이 anthropic
+      # 경로로 3건을 낸다. 여기를 되살리는 대신 그쪽을 쓴 이유는 DECISIONS.md 참조
+      # (요지: 저장소 시크릿에 ANTHROPIC_API_KEY 가 없고, 있는 것은 은퇴한 openai 경로뿐).
       - name: Verify the OpenAI key still resolves (no official forecast is produced here)
         id: openai
         continue-on-error: true
