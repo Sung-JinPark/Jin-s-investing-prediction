@@ -217,6 +217,24 @@ def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
     return parsed, usage
 
 
+def _raw_payload(api_response) -> dict:
+    """원시 응답 본문을 dict 로 읽는다.
+
+    SDK 버전마다 접근자 모양이 다르다 — 0.105 은 LegacyAPIResponse 로 `text` 가 str
+    프로퍼티이고 `json` 이 아예 없다. 1.5 는 APIResponse 로 `text`·`json` 이 둘 다
+    **메서드**다. 한쪽만 가정하면 다른 쪽에서 조용히 0 원이 된다(CI 에서 실측).
+    """
+    reader = getattr(api_response, "json", None)
+    if callable(reader):
+        payload = reader()
+        if isinstance(payload, dict):
+            return payload
+    text = getattr(api_response, "text", None)
+    if callable(text):
+        text = text()
+    return json.loads(text)
+
+
 def _reasoning_usage_from_raw(api_response, model: str) -> Usage:
     """검증 전 원시 응답에서 usage 를 뽑는다.
 
@@ -224,7 +242,7 @@ def _reasoning_usage_from_raw(api_response, model: str) -> Usage:
     진짜 사유를 가리면 안 된다. 그 경우 0 원으로 남고, 종전과 같은 누락이 된다.
     """
     try:
-        payload = json.loads(api_response.text)
+        payload = _raw_payload(api_response)
         inp, out = _usage_fields(payload.get("usage") or {})
         return Usage(inp, out, _cost(model, inp, out), request_id=payload.get("id"))
     except Exception:  # noqa: BLE001

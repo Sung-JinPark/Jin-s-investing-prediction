@@ -118,3 +118,36 @@ def test_unreadable_usage_does_not_mask_the_real_failure() -> None:
         text = "본문이 JSON 이 아님"
 
     assert llm._reasoning_usage_from_raw(_Broken(), config.REASONING_MODEL).cost_usd == 0.0
+
+
+def test_raw_payload_reads_every_sdk_response_shape() -> None:
+    """SDK 버전마다 본문 접근자 모양이 다르다 — 한쪽만 가정하면 조용히 0 원이 된다.
+
+    0.105 은 LegacyAPIResponse(`text` 가 str 프로퍼티, `json` 없음), 1.5 는
+    APIResponse(`text`·`json` 이 메서드)를 돌려준다. 실제로 CI(1.5)에서 비용이
+    통째로 0 으로 잡혀 이 케이스를 추가했다.
+    """
+    body = {"id": "msg_1", "usage": {"input_tokens": 10, "output_tokens": 2}}
+    raw = json.dumps(body)
+
+    class _Legacy:              # anthropic 0.105
+        text = raw
+
+    class _Modern:              # anthropic 1.5
+        def text(self):
+            return raw
+
+        def json(self):
+            return body
+
+    class _TextOnlyMethod:      # json 이 dict 를 안 주는 경우의 폴백
+        def text(self):
+            return raw
+
+        json = None
+
+    for shape in (_Legacy(), _Modern(), _TextOnlyMethod()):
+        assert llm._raw_payload(shape) == body, type(shape).__name__
+        usage = llm._reasoning_usage_from_raw(shape, config.REASONING_MODEL)
+        assert (usage.input_tokens, usage.output_tokens) == (10, 2), type(shape).__name__
+        assert usage.cost_usd > 0, type(shape).__name__
