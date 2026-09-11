@@ -7,10 +7,12 @@
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass, field
 
 import anthropic
+from anthropic._response import RAW_RESPONSE_HEADER
 
 from . import config
 from .schemas import ForecastResult
@@ -51,11 +53,22 @@ def _cost(model: str, input_tokens: int, output_tokens: int) -> float:
     return input_tokens / 1e6 * in_price + output_tokens / 1e6 * out_price
 
 
+def _usage_fields(usage) -> tuple[int, int]:
+    """Message.usage 객체와 원시 JSON dict 를 같은 규칙으로 읽는다."""
+    read = usage.get if isinstance(usage, dict) else (
+        lambda key, default=0: getattr(usage, key, default))
+
+    def count(key: str) -> int:
+        return int(read(key, 0) or 0)
+
+    # 캐시 읽기는 ~0.1x
+    inp = (count("input_tokens") + count("cache_creation_input_tokens")
+           + count("cache_read_input_tokens") // 10)
+    return inp, count("output_tokens")
+
+
 def _usage_of(resp, model: str) -> Usage:
-    u = resp.usage
-    inp = (u.input_tokens or 0) + (getattr(u, "cache_creation_input_tokens", 0) or 0) \
-        + (getattr(u, "cache_read_input_tokens", 0) or 0) // 10  # 캐시 읽기는 ~0.1x
-    out = u.output_tokens or 0
+    inp, out = _usage_fields(resp.usage)
     return Usage(inp, out, _cost(model, inp, out))
 
 
@@ -159,7 +172,11 @@ def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
     budget.ensure_room("reasoning")
     model = config.REASONING_MODEL
 
-    resp = _with_retries(lambda: client.messages.parse(
+    # SDK 의 messages.parse 는 응답을 받은 직후 곧바로 스키마 검증을 돌리고, 검증이
+    # 실패하면 예외가 usage 를 들고 나가 버린다 — 토큰은 청구됐는데 원장에는 0 원으로
+    # 남는다(2026-09-11 실측: 산술 정합성 위반 2건의 추론 비용이 통째로 누락됐다).
+    # raw-response 헤더로 후처리를 미뤄 **비용을 먼저 기록한 뒤** 검증한다.
+    received = _with_retries(lambda: client.messages.parse(
         model=model,
         max_tokens=config.REASONING_MAX_TOKENS,
         system=[{"type": "text", "text": system,
@@ -168,9 +185,16 @@ def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
         output_config={"effort": "high"},
         messages=[{"role": "user", "content": user}],
         output_format=ForecastResult,
+        extra_headers={RAW_RESPONSE_HEADER: "true"},
     ))
-    usage = _usage_of(resp, model)
-    budget.add(usage)
+    if hasattr(received, "parse"):      # APIResponse — 검증 전에 비용부터 확정한다
+        usage = _reasoning_usage_from_raw(received, model)
+        budget.add(usage)
+        resp = received.parse()         # 여기서 터져도 위 비용은 이미 기록됐다
+    else:                               # SDK 가 헤더를 무시하면 종전 경로 그대로
+        resp = received
+        usage = _usage_of(resp, model)
+        budget.add(usage)
 
     if getattr(resp, "stop_reason", None) == "refusal":
         raise RuntimeError("추론 호출이 refusal로 종료됨")
@@ -181,3 +205,17 @@ def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
         raise RuntimeError(f"추론 출력 검증 실패: p={parsed.probability}, "
                            f"ci=[{parsed.ci80_lo},{parsed.ci80_hi}]")
     return parsed, usage
+
+
+def _reasoning_usage_from_raw(api_response, model: str) -> Usage:
+    """검증 전 원시 응답에서 usage 를 뽑는다.
+
+    계측이 실패해도 예외로 번지게 두지 않는다 — 비용을 못 읽은 것이 예측 실패의
+    진짜 사유를 가리면 안 된다. 그 경우 0 원으로 남고, 종전과 같은 누락이 된다.
+    """
+    try:
+        payload = json.loads(api_response.text)
+        inp, out = _usage_fields(payload.get("usage") or {})
+        return Usage(inp, out, _cost(model, inp, out), request_id=payload.get("id"))
+    except Exception:  # noqa: BLE001
+        return Usage()
