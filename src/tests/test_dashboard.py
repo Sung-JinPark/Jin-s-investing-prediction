@@ -5,6 +5,9 @@ from __future__ import annotations
 import inspect
 import json
 import re
+import shutil
+import subprocess
+import tempfile
 import textwrap
 from pathlib import Path
 
@@ -321,10 +324,16 @@ def test_template_parts_bundle_and_budget() -> None:
 
 
 def test_script_compaction_preserves_token_boundaries() -> None:
+    """줄을 합칠 때 `else` + `if` 가 `elseif` 로 붙으면 안 된다.
+
+    구분자는 공백에서 줄바꿈으로 바뀌었다(줄 끝 `//` 주석이 뒤를 삼키는 것을 막으려고 —
+    test_compacted_script_survives_a_trailing_line_comment 참조). 둘 다 1바이트이고
+    토큰 경계를 지키는 성질도 같다. 그래서 검사는 '분리되어 있는가'로 본다.
+    """
     source = "<script>if (left) {} else\nif (right) { run(); }</script>"
     compact = dashboard._compact_static_bundle(source)
-    assert "else if" in compact
     assert "elseif" not in compact
+    assert "else\nif" in compact or "else if" in compact
 
 
 def test_ui_contract() -> None:
@@ -1737,3 +1746,52 @@ def test_v8_card_gate_widget_band_chart_and_hold_reasons_are_wired() -> None:
     assert "ts-node-dot" in v8, "실측 노드 마커"
     assert "timeseries-hold-reasons" in v8, "HOLD 사유 노출"
     assert "p10_p90_hint" in html and "crps_hint" in html, "UI_TERMS 확장"
+
+
+def test_compacted_script_survives_a_trailing_line_comment() -> None:
+    """줄 끝 `//` 주석이 그 뒤 파일 전체를 삼키면 안 된다.
+
+    실측 계기(2026-09-11): compact_script 가 줄을 **공백**으로 합치면서, 코드 뒤에 붙은
+    `//` 주석 하나가 이어지는 45만 자를 전부 주석으로 만들었다. 빌드는 성공했고
+    `sync --check`·테스트도 통과했는데 브라우저에서 DATA 가 정의되지 않아 화면이 통째로
+    비었다 — 빌드 산출물을 실행해 보지 않으면 잡히지 않는 종류의 결함이다.
+
+    구분자를 줄바꿈으로 두면 주석은 자기 줄에서 끝난다. 바이트 수는 공백과 같다.
+    """
+    source = "\n".join([
+        "<script>",
+        "const a = 1;   // 줄 끝 주석 — 여기서 끝나야 한다",
+        "const b = 2;",
+        "</script>",
+    ])
+    compacted = dashboard._compact_static_bundle(source)
+
+    body = compacted.split("<script>")[1].split("</script>")[0]
+    assert "const b = 2;" in body
+    # 주석 뒤의 선언이 같은 줄에 붙으면 영영 실행되지 않는다
+    comment_line = next(line for line in body.splitlines() if "//" in line)
+    assert "const b" not in comment_line
+
+
+def test_authored_dashboard_script_compacts_into_valid_javascript() -> None:
+    """실제 dashboard.js 를 압축한 결과가 **구문상 유효한 JS** 여야 한다.
+
+    압축은 줄을 합치기만 하고 JS 를 파싱하지 않는다. 그래서 줄 끝 `//` 주석 하나가
+    뒤를 통째로 삼켜도 빌드는 성공하고 다른 테스트도 전부 통과한다 — 2026-09-11 에
+    실제로 그렇게 나가서 브라우저에서만 화면이 비었다. 산출물을 한 번 파싱해 보는 것이
+    그 종류의 결함을 잡는 유일한 방법이라, node 가 있으면 그것으로 검사한다.
+    """
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node 없음 — 압축본 구문 검사 불가")
+
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    compacted = dashboard._compact_static_bundle("<script>\n" + script + "\n</script>")
+    body = compacted.split("<script>")[1].split("</script>")[0]
+
+    with tempfile.TemporaryDirectory() as directory:
+        target = Path(directory) / "compacted.js"
+        target.write_text(body, encoding="utf-8")
+        done = subprocess.run([node, "--check", str(target)],
+                              capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr[:600]

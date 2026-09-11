@@ -64,14 +64,33 @@ def _week_dates(payload: dict[str, Any], asof: str) -> list[str] | None:
     return None
 
 
+def _display_values(payload: dict[str, Any], dates_length: int) -> tuple[list, str]:
+    """그날 **화면에 실제로 그려졌던** 경로.
+
+    굵은 주황 선은 원시 GBM 중앙값이 아니라 과거 조정 모양을 입힌 구조 경로다
+    (dashboard.js 의 flowDisplayPath 와 같은 규칙). 원시 값을 쓰면 매끈한 우상향
+    직선이 되어, 그날 화면과 다른 그림을 놓고 "얼마나 맞았나"를 묻게 된다.
+
+    schema v1 아카이브(2026-07-30·07-31)에는 구조 경로가 없다 — 그때는 굴곡을 입히기
+    전이라 원시 값이 곧 그려진 선이었다. 그래서 폴백은 누락이 아니라 사실이다.
+    """
+    structural = (((payload.get("structural_forecast") or {}).get("paths") or {})
+                  .get(SCENARIO_KEY) or {}).get("values")
+    if isinstance(structural, list) and len(structural) == dates_length:
+        return structural, "structural"
+    return ((payload.get("paths") or {}).get(SCENARIO_KEY) or {}).get("values"), "gbm_median"
+
+
 def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
     asof = payload.get("asof")
     path = ((payload.get("paths") or {}).get(SCENARIO_KEY)) or {}
-    values = path.get("values")
     anchor = payload.get("anchor")
-    if not asof or not isinstance(values, list) or anchor is None:
+    if not asof or anchor is None:
         return None
     dates = _week_dates(payload, str(asof))
+    values, path_source = _display_values(payload, len(dates or []))
+    if not isinstance(values, list):
+        return None
     # 길이가 어긋나면 날짜 정렬을 신뢰할 수 없다 — 조용히 어긋난 선을 그리느니 버린다.
     if dates is None or len(dates) != len(values):
         return None
@@ -83,6 +102,7 @@ def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
             "label": path.get("label"),
             "anchor": float(anchor),
             "values": series,
+            "path_source": path_source,
         }
     except (TypeError, ValueError):
         return None
@@ -131,6 +151,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         errors.extend(abs(match["error_pct"]) for match in matches)
         out_vintages.append({
             "asof": row["asof"], "prob": row["prob"], "label": row["label"],
+            "path_source": row["path_source"],
             "anchor": round(row["anchor"], 2),
             "values": [[day, round(value)] for day, value in series],
             "match_count": len(matches),
