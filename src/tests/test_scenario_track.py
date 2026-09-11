@@ -254,3 +254,59 @@ def test_past_and_future_orange_form_one_line() -> None:
     assert "point[0]<=realizedEnd" in compare, "오늘 너머까지 그리면 현재 경로와 겹친다"
     # 기본 선택은 과거 전체를 덮는 가장 이른 기록이어야 이어져 보인다
     assert "const defaultCompare=comparable[0]?.asof||'';" in script
+
+
+def test_past_line_hands_over_to_the_curved_record(tmp_path: Path) -> None:
+    """굴곡 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다.
+
+    한 빈티지만 끝까지 끌면 굴곡 도입 전 기록이 오늘까지 매끈한 직선으로 남는다.
+    각 구간은 그때 실제로 그려졌던 선이고, 지금 만든 값은 하나도 없다.
+    """
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25200.0, 25400.0], weeks=["7/30", "8/6", "8/13"])
+    curved = {
+        "asof": "2026-08-06", "anchor": 26000.0, "ath": 27000.0,
+        "week_dates": ["2026-08-06", "2026-08-13", "2026-08-20"],
+        "paths": {"S1": {"label": "상승·ATH 돌파", "prob": 80,
+                         "values": [26000.0, 26100.0, 26200.0]}},
+        "structural_forecast": {"paths": {"S1": {"values": [26000.0, 25400.0, 26300.0]}}},
+    }
+    (tmp_path / "data" / "scenarios" / "archive" / "2026-08-06.json").write_text(
+        json.dumps(curved, ensure_ascii=False), encoding="utf-8")
+    _archive(tmp_path, "2026-08-20", anchor=26500.0, values=[26500.0],
+             week_dates=["2026-08-20"])
+
+    line = load_scenario_track(tmp_path)["past_line"]
+    assert line["curvature_from"] == "2026-08-06"
+    assert [seg["asof"] for seg in line["segments"]] == ["2026-07-30", "2026-08-06"]
+
+    first, second = line["segments"]
+    assert first["values"][-1][0] == "2026-08-06", "굴곡 기록 시작일에서 넘겨야 한다"
+    assert second["path_source"] == "structural"
+    # 굴곡 구간은 굴곡 값을 쓴다 — 원시 26100 이 아니라 25400
+    assert second["values"][1][1] == 25400
+    # 이음점 단차는 지우지 않는다 — 앞 기록이 그때까지 얼마나 빗나가 있었는지다
+    assert first["values"][-1][1] != second["values"][0][1]
+
+
+def test_past_line_reaches_the_junction_across_a_holiday_gap(tmp_path: Path) -> None:
+    """주차 격자가 휴일 보정으로 오늘을 건너뛰면, 오늘에서 끊어 빈 구간을 만들면 안 된다.
+
+    실제 저장소의 2026-08-06 빈티지는 9/03 다음이 9/11 이라 오늘(9/10)이 격자에 없다.
+    """
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25200.0, 25400.0],
+             week_dates=["2026-07-30", "2026-09-03", "2026-09-11"])
+    _archive(tmp_path, "2026-09-10", anchor=26000.0, values=[26000.0],
+             week_dates=["2026-09-10"])
+
+    line = load_scenario_track(tmp_path)["past_line"]
+    last = line["segments"][-1]["values"][-1][0]
+    assert last >= "2026-09-10", f"오늘 이전({last})에서 끊겨 현재 경로와 이어지지 않는다"
+
+
+def test_chart_draws_every_past_segment_as_the_same_solid_line() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "pastSegments" in flow, "이어붙인 과거 구간을 쓰지 않는다"
+    assert "부터 굴곡 기록" in flow, "이음점을 화면에서 밝히지 않는다"

@@ -2631,7 +2631,12 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
     ||track.vintages.find(row=>row.path_source==='structural')||track.vintages[0]):null;
   const comparePoints=compare&&compare.asof<sc.asof
     ?compare.values.filter(point=>point[0]<=cut):[];
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1])].map(Number).filter(Number.isFinite);
+  /* 기본 화면의 과거 구간은 **이어붙인 한 줄**이다 — 굴곡 기록이 생긴 날부터 그쪽으로
+     바통을 넘긴다(scenario_track._past_line). 선택기로 특정 예측일을 고르면 그 하나만
+     그려 그날의 기록을 통째로 본다. */
+  const pastSegments=(overlay&&compare.asof===track.vintages[0]?.asof
+    ?(track.past_line?.segments||[]):[]).filter(seg=>(seg.values||[]).length>1);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2711,10 +2716,25 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
       svg.appendChild(mk('path',{d:'M'+top.join(' L')+' L'+bottom.join(' L')+' Z',fill:CHART_COL[activeKey],opacity:.13,stroke:'none','data-track-gap':'1'}));
     }
     const upToToday=comparePoints.filter(point=>point[0]<=realizedEnd);
-    const drawn=upToToday.length>1?upToToday:comparePoints;
-    const d=drawn.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':2.6,'stroke-linejoin':'round','data-track-compare':compare.asof}));
-    svg.appendChild(halo(tx(dateX(drawn[0][0])+5,Y(drawn[0][1])-10,compare.asof.slice(5).replace('-','/')+' 기록',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
+    const single=upToToday.length>1?upToToday:comparePoints;
+    const drawnSegments=pastSegments.length?pastSegments.map(seg=>seg.values)
+                                           :[single];
+    drawnSegments.forEach((points,order)=>{
+      const d=points.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
+      svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':2.6,'stroke-linejoin':'round',
+        'data-track-compare':pastSegments.length?pastSegments[order].asof:compare.asof}));
+    });
+    const drawn=drawnSegments[0];
+    /* 이음점(굴곡 기록이 시작된 날)을 표시한다. 여기 단차는 앞 구간 기록이 그때까지
+       얼마나 빗나가 있었는지라, 숨기지 않고 왜 끊겼는지만 밝힌다. */
+    if(pastSegments.length>1){
+      const seam=pastSegments[1].values[0];
+      svg.appendChild(mk('line',{x1:dateX(seam[0]),y1:MT,x2:dateX(seam[0]),y2:MT+PH,
+        stroke:'rgba(17,17,15,.22)','stroke-width':1,'stroke-dasharray':'2 4'}));
+      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,seam[0].slice(5).replace('-','/')+'부터 굴곡 기록',
+        {fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
+    }
+    if(!pastSegments.length)svg.appendChild(halo(tx(dateX(drawn[0][0])+5,Y(drawn[0][1])-10,compare.asof.slice(5).replace('-','/')+' 기록',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
   }
   /* 실제 종가는 일간이다 — 아카이브마다 그날 확정 종가로 기록된 anchor 를 이은 선이라
      주차 격자에 얽매이지 않는다. 가장 위에 그려 어느 선과도 가려지지 않게 한다. */
