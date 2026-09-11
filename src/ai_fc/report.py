@@ -31,6 +31,24 @@ td{padding:6px 10px;border-top:1px solid var(--border)}
 """
 
 
+def _budget_txt(month_cost: float) -> str:
+    """이달 비용 배지. 예비 구간에 들어갔으면 그 사실을 숨기지 않는다.
+
+    상한의 마지막 구간에서는 마감 D-30 이내 질문만 새 회차를 받는다(C5-A4).
+    배지가 `$41.20 / $50` 만 보여 주면 "아직 $8.8 남았다"로 읽히는데, 실제로 그 돈은
+    임박 질문에만 쓸 수 있다. 남은 금액과 **쓸 수 있는 대상**은 다른 값이다.
+    """
+    cap = config.MONTHLY_BUDGET
+    base = f"${month_cost:.2f} / ${cap:.0f}"
+    floor = cap * (1 - config.MONTHLY_BUDGET_RESERVE_RATIO)
+    if month_cost >= cap:
+        return f"{base} · <b>상한 도달 — 신규 회차 차단</b>"
+    if month_cost >= floor:
+        return (f"{base} · <b>예비 구간</b> (잔여 ${cap - month_cost:.2f}는 "
+                f"마감 D-{config.RESERVE_DEADLINE_DAYS} 이내 질문 전용)")
+    return base
+
+
 def _driver_section(conn: sqlite3.Connection, root: Path) -> str:
     """WS9 드라이버 일관성 표 — 그룹별 최신 확률 나열, 폭 큰 그룹만 '점검 후보' 하이라이트.
 
@@ -94,6 +112,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
     skills = queries.domain_skill(conn)
     now = datetime.now()
     month_cost = queries.month_cost(conn, now.year, now.month)
+    budget_txt = _budget_txt(month_cost)
     n_forecasts = conn.execute("SELECT COUNT(*) AS n FROM forecasts").fetchone()["n"]
 
     n_resolved = gate["n_resolved"] or 0
@@ -262,7 +281,7 @@ def render_report(conn: sqlite3.Connection, root: Path) -> Path:
 <title>ai-fc 캘리브레이션</title><style>{CSS}</style></head><body>
 <h1>캘리브레이션 대시보드</h1>
 <p class="sub">생성 {now.strftime("%Y-%m-%d %H:%M")} · 예측 {n_forecasts}건 · 해소 {n_resolved}건 ·
-이달 비용 ${month_cost:.2f} / ${config.MONTHLY_BUDGET:.0f}</p>
+이달 비용 {budget_txt}</p>
 
 <div class="card">{p2} {p3}
 <p style="margin-top:10px">전체 Brier: <b>{brier_txt}</b>

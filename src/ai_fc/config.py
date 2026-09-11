@@ -134,18 +134,47 @@ RESEARCH_MAX_TOKENS = int(os.environ.get("AI_FC_RESEARCH_MAX_TOKENS", "16000"))
 REASONING_MAX_TOKENS = int(os.environ.get("AI_FC_REASONING_MAX_TOKENS", "16000"))
 
 # ── 예산 (USD) ────────────────────────────────────────────────────
+# 회차당 상한. 실측 표준 회차 $1.92~$2.75(n=5, 2026-09-11)이므로 $4 는 상단 대비
+# 45% 여유다. 내리면 회차가 중간에 끊겨 **돈만 쓰고 기록이 안 남는다** — 같은 모양의
+# 손실(원인은 다른 계약 사고였다)이 2026-09-11 에 $4.24 였다. 여유는 남겨 둔다.
 DEFAULT_PIPELINE_BUDGET = float(os.environ.get("AI_FC_PIPELINE_BUDGET", "4.00"))
 # 사용자 결정 2026-07-20: 월 상한 $20 (기존 $100에서 하향).
-# 사용자 결정 2026-09-09 (C5-A2): 월 상한 $20 -> $40. C5 캘리브레이션 프로그램의
-# 처리량 요구(설계도 §7.4: 월 $31~49 추정)를 감당하기 위한 인상이며, 인상분은
-# 신규 문항 첫 예측과 마감 직전 재예측에 쓴다. 초과 시 프리플라이트 자동 차단은 무변경.
-MONTHLY_BUDGET = float(os.environ.get("AI_FC_MONTHLY_BUDGET", "40.00"))
+# 사용자 결정 2026-09-09 (C5-A2): $20 -> $40.
+# 사용자 결정 2026-09-11 (C5-A4): **$40 -> $50**. 실측 단가가 $1.7197(n=4) 에서
+# $2.303(n=5) 으로 올라 주 3건(13회차/월) 케이던스가 $29.9 를 쓰는데, $40 체제에서는
+# 실패·재시도 여유가 $10 뿐이었다. 상한은 **전체 지출**에 걸리며 실패분(stage=failed)도
+# 포함해 센다 — 실패를 예산 밖으로 빼면 상한이 거짓말이 된다.
+MONTHLY_BUDGET = float(os.environ.get("AI_FC_MONTHLY_BUDGET", "50.00"))
+# 생산 경로(anthropic cli/api)는 전역 상한과 같다. **일부러 같게 둔다**: 게이트급
+# 회차를 내는 생산자가 하나뿐인데 그 하나에 전역보다 낮은 캡을 걸면, 남는 금액은
+# 아무도 쓸 수 없어 사용자가 정한 $50 이 사실상 그 캡으로 내려앉는다.
+# 생산을 실제로 조이는 것은 아래 예비 구간 규칙과 케이던스(주 3건)다.
 ANTHROPIC_MONTHLY_BUDGET = float(
     os.environ.get("AI_FC_ANTHROPIC_MONTHLY_BUDGET", str(MONTHLY_BUDGET))
 )
-# 자동 경로(GitHub Actions)의 공식 생산자 sub-cap. C5-A3 자동화가 주 1건에서
-# 주 2~3건으로 늘어나므로 $10 -> $25 (전역 $40 안의 하위 상한).
-OPENAI_MONTHLY_BUDGET = float(os.environ.get("AI_FC_OPENAI_MONTHLY_BUDGET", "25.00"))
+# 자동 경로(GitHub Actions)의 openai sub-cap. $25 -> $2.
+# 이 캡은 2026-09-11 까지 **아무것도 묶지 않았다** — openai 경로의 9월 지출은 $0 이고
+# 마지막 생산은 2026-08-29 다. T05 가 그 조합(openai:gpt-5.6-terra + 축소 핀)을
+# "게이트급 회차를 하나도 내지 못했다"(0/4 ok)로 은퇴시켰으므로, 자동 경로에서
+# **유료 예측 생산을 뺐다**(investing-refresh.yml). 남은 유료 호출은 키 생존 확인용
+# smoke($0.01 미만)뿐이라 캡도 거기에 맞춘다. 되살리려면 이 값과 워크플로 두 곳을
+# 함께 올려야 한다 — 한 곳만 고쳐서는 다시 돌지 않는다.
+OPENAI_MONTHLY_BUDGET = float(os.environ.get("AI_FC_OPENAI_MONTHLY_BUDGET", "2.00"))
+
+# 예비 구간 — 월 상한의 마지막 20%($40~$50)는 **마감 임박 질문 전용**이다.
+# 사문화된 '예비비'(쓸 수 없게 캡으로 떼어 둔 돈)가 아니라 우선순위 가드다:
+# 이 구간에 들어가면 마감이 D-30 이내인 질문만 새 회차를 받는다. 막으려는 실패는
+# 실측된 것이다 — `cpi-jun2026-accel` 은 예산이 앞선 질문들에 먼저 쓰여
+# **첫 예측 없이 만료**했고(처리량 소실 11.1%), 무예측 만료는 게이트 분자에 0 을 더한다.
+MONTHLY_BUDGET_RESERVE_RATIO = float(
+    os.environ.get("AI_FC_MONTHLY_BUDGET_RESERVE_RATIO", "0.20")
+)
+# 예비 구간에서 통과시키는 마감 임박 기준(일). deadline 이 없는 질문(rolling·tbd)은
+# 임박으로 보지 않는다 — 페일클로즈.
+RESERVE_DEADLINE_DAYS = int(os.environ.get("AI_FC_RESERVE_DEADLINE_DAYS", "30"))
+# 케이던스(운영 규칙, 기계 강제 아님): 주 3건 = 13회차/월 x $2.303 = $29.9 (상한의 60%).
+# 근거는 docs/P1_OPERATIONS.md '비용·처리량 규율'.
+WEEKLY_FORECAST_CADENCE = 3
 
 # ── 알림 (선택) ───────────────────────────────────────────────────
 TELEGRAM_BOT_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "")

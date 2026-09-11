@@ -59,6 +59,33 @@ def _assert_official_forecast_open(q: Question, now: datetime) -> None:
         raise PreflightError(f"{q.question_id}는 기한({q.deadline}) 경과 — resolve 대상")
 
 
+def reserve_zone_block_reason(monthly: float, q: Question, today: date) -> str | None:
+    """월 상한의 마지막 구간(예비 구간)에서 이 질문을 막아야 하면 사유를 돌려준다.
+
+    C5-A4 (2026-09-11). 상한을 올리면서 같이 들어온 규칙이다. 상한만 올리면
+    "월말에 돈이 없어 마감 임박 질문을 못 돌린다"가 그대로 남는다 — 그 실패는
+    실측됐다(`cpi-jun2026-accel`: 예산이 앞선 질문들에 먼저 쓰여 **첫 예측 없이
+    만료**, 처리량 소실 11.1%). 무예측 만료는 게이트 분자에 0 을 더한다.
+
+    그래서 마지막 20%는 **마감 임박 전용 구간**으로 둔다. 캡으로 떼어 두는 예비비가
+    아니라 우선순위 가드다 — 돈은 쓸 수 있고, 쓸 수 있는 **대상**만 좁아진다.
+    deadline 이 없는 질문(rolling·tbd)은 임박으로 보지 않는다(페일클로즈).
+    """
+    floor = config.MONTHLY_BUDGET * (1.0 - config.MONTHLY_BUDGET_RESERVE_RATIO)
+    if monthly < floor:
+        return None
+    head = (f"예비 구간 진입 (이달 ${monthly:.2f} >= ${floor:.2f}, 상한 "
+            f"${config.MONTHLY_BUDGET:.2f}의 "
+            f"{100 * (1 - config.MONTHLY_BUDGET_RESERVE_RATIO):.0f}%) — "
+            f"남은 예산은 마감 D-{config.RESERVE_DEADLINE_DAYS} 이내 질문 전용이다")
+    if q.deadline_kind != "fixed" or q.deadline is None:
+        return f"{head}. {q.question_id}는 마감 확정 질문이 아니라 임박 판정이 불가하다"
+    days = (q.deadline - today).days
+    if days <= config.RESERVE_DEADLINE_DAYS:
+        return None
+    return f"{head}. {q.question_id}의 마감은 {q.deadline} (D-{days})로 임박하지 않다"
+
+
 def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
                  n_agents: int = 2, budget_usd: float = config.DEFAULT_PIPELINE_BUDGET,
                  dry_run: bool = False) -> str:
@@ -94,6 +121,9 @@ def run_forecast(conn: sqlite3.Connection, root: Path, question_id: str,
     monthly = queries.month_cost(conn, now.year, now.month)
     if monthly >= config.MONTHLY_BUDGET:
         raise PreflightError(f"월 예산 초과: ${monthly:.2f} >= ${config.MONTHLY_BUDGET:.2f}")
+    reserve_block = reserve_zone_block_reason(monthly, q, today)
+    if reserve_block:
+        raise PreflightError(reserve_block)
 
     provider_monthly = queries.month_cost(conn, now.year, now.month, requested_provider)
     provider_limit = (

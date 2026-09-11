@@ -1638,9 +1638,17 @@ def cmd_forecast(
         typer.echo("question_id 또는 --due 필요", err=True)
         raise typer.Exit(code=2)
 
+    # 확인 프롬프트에 이달 소진을 같이 보여 준다. 회차당 상한만 보이면 "이번 건이
+    # $4 안"이라는 것만 알고 **월 상한까지 몇 건 남았는지**는 모르는 채로 누르게 된다.
+    _now = datetime.now(ZoneInfo(config.TZ_NAME))
+    _spent = queries.month_cost(conn, _now.year, _now.month)
+    _floor = config.MONTHLY_BUDGET * (1 - config.MONTHLY_BUDGET_RESERVE_RATIO)
+    _zone = " · 예비 구간(마감 임박 전용)" if _spent >= _floor else ""
     for qid in targets:
         if not yes and not dry_run:
-            typer.confirm(f"{qid} 예측을 실행할까요? (예상 비용 ~${budget:.2f} 이내)", abort=True)
+            typer.confirm(
+                f"{qid} 예측을 실행할까요? (예상 비용 ~${budget:.2f} 이내 · "
+                f"이달 ${_spent:.2f}/${config.MONTHLY_BUDGET:.0f}{_zone})", abort=True)
         result = run_forecast(conn, root, qid, n_agents=agents,
                               budget_usd=budget, dry_run=dry_run)
         typer.echo(result)

@@ -10,12 +10,37 @@ def test_investing_refresh_scopes_secret_and_caps_paid_work() -> None:
     )
 
     assert "OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}" in workflow
-    # C5-A3 (2026-09-09): 주 1건 -> 3건. 신규 26문항을 마감 전에 소화하려면
-    # 1건/주(20주 소요)로는 부족하다. 3 x $1.50 x 4.3주 = 약 $19/월 < sub-cap $25.
-    assert "python -m ai_fc forecast --due --max 3 --agents 2 --budget 1.50 --yes" in workflow
-    assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "25.00"' in workflow  # C5-A2 2026-09-09
+    # C5-A4 (2026-09-11): 자동 경로의 유료 호출은 키 생존 smoke 하나뿐이다.
+    assert "python -m ai_fc openai-smoke" in workflow
+    assert 'AI_FC_OPENAI_MONTHLY_BUDGET: "2.00"' in workflow
     assert "gpt-5.6-terra" in workflow
     assert "cancel-in-progress: false" in workflow
+
+
+def test_no_unattended_path_produces_an_official_forecast() -> None:
+    """사람이 안 보는 자리에서 게이트 표본에 회차가 들어가지 않는다.
+
+    T05 는 `openai:gpt-5.6-terra` + 축소 핀 조합을 0/4 ok 로 은퇴시켰는데, 은퇴가
+    레지스트리의 `tier: lite` **라벨**에만 걸려 그 라벨을 만들던 예약 실행은 그대로
+    남아 있었다. lite 가 standard 로 승격된 뒤에는 같은 조합이 `pipeline_tier:
+    standard` 로 게이트 표본에 들어간다 — 라벨만 바꿔 계속 돌리는 쪽이 더 나쁘다.
+    게이트 회차는 로컬 anthropic cli/api 경로 전용이다(C5-A4 2026-09-11).
+    """
+    import re
+
+    import yaml
+
+    offenders: list[str] = []
+    for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        text = path.read_text(encoding="utf-8")
+        if not re.search(r"python -m ai_fc forecast", text):
+            continue
+        document = yaml.safe_load(text)
+        # PyYAML 은 YAML 1.1 규칙으로 `on:` 키를 True 로 읽는다
+        on = document.get(True) or document.get("on") or {}
+        if isinstance(on, dict) and {"schedule", "workflow_run"} & set(on):
+            offenders.append(path.name)
+    assert not offenders, f"무인 실행이 공식 회차를 생산한다: {offenders}"
 
 
 def test_scenario_and_full_refresh_share_writer_lock() -> None:
