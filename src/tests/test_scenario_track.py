@@ -182,3 +182,58 @@ def test_one_recorded_forecast_is_drawn_over_the_realized_window() -> None:
     assert "data-original-compare" in html, "맞대 볼 예측일을 고를 수 있어야 한다"
     # 비교선은 자기 예측일 이후만 그린다 — 과거로 되돌려 그리지 않는다
     assert "compare.asof<sc.asof" in flow
+
+
+def test_vintage_uses_the_path_that_was_actually_drawn(tmp_path: Path) -> None:
+    """그날 화면에 그려진 선은 원시 GBM 중앙값이 아니라 굴곡을 입힌 구조 경로다.
+
+    원시 값을 쓰면 매끈한 우상향 직선이 나와, 그날 화면과 다른 그림을 놓고
+    "얼마나 맞았나"를 묻게 된다. dashboard.js 의 flowDisplayPath 와 같은 규칙을 쓴다.
+    """
+    payload = {
+        "asof": "2026-08-06", "anchor": 26348.0, "ath": 27000.0,
+        "week_dates": ["2026-08-06", "2026-08-13", "2026-08-20"],
+        "paths": {"S1": {"label": "상승·ATH 돌파", "prob": 80,
+                         "values": [26348.0, 26500.0, 26650.0]}},          # 매끈한 원시
+        "structural_forecast": {
+            "paths": {"S1": {"values": [26348.0, 25655.0, 26900.0]}},      # 굴곡 입힌 선
+        },
+    }
+    directory = tmp_path / "data" / "scenarios" / "archive"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "2026-08-06.json").write_text(json.dumps(payload, ensure_ascii=False),
+                                               encoding="utf-8")
+    _archive(tmp_path, "2026-08-13", anchor=26000.0, values=[26000.0],
+             week_dates=["2026-08-13"])
+
+    track = load_scenario_track(tmp_path)
+    drawn = next(row for row in track["vintages"] if row["asof"] == "2026-08-06")
+    assert drawn["path_source"] == "structural"
+    assert [value for _, value in drawn["values"]][:2] == [26348, 25655], "원시 값을 그렸다"
+    # 채점도 그려진 선으로 한다 — 음영과 표가 다른 선을 가리키면 안 된다
+    assert drawn["realized"]["predicted"] == 25655
+
+
+def test_pre_curvature_archives_fall_back_without_pretending(tmp_path: Path) -> None:
+    """굴곡 도입 전(schema v1) 아카이브는 원시 값이 곧 그려진 선이었다 — 폴백이 사실이다."""
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25500.0], weeks=["7/30", "8/6"])
+    _archive(tmp_path, "2026-08-06", anchor=25100.0, values=[25100.0],
+             week_dates=["2026-08-06"])
+    track = load_scenario_track(tmp_path)
+    assert track["vintages"][0]["path_source"] == "gbm_median"
+
+
+def test_axis_ticks_are_thinned_by_pixel_gap() -> None:
+    """'전체 전망'으로 축이 길어지면 주차 눈금과 실현 구간 날짜가 겹쳐 글자가 뭉개진다."""
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "TICK_MIN_GAP" in flow, "눈금을 픽셀 간격으로 솎지 않는다"
+    assert "tickCandidates" in flow, "두 출처의 눈금을 한 목록으로 합치지 않는다"
+
+
+def test_legend_does_not_pull_the_next_block_over_itself() -> None:
+    """범례가 두 줄로 접히면 음수 마진으로 당겨진 다음 블록이 그 위를 덮는다(실측 8px)."""
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert ".flow-shape-controls{margin:-8px" not in css, "음수 마진이 되돌아왔다"
+    assert ".band-inline{margin-bottom:" in css

@@ -1229,9 +1229,13 @@ def _compact_static_bundle(html: str) -> str:
             if stripped.startswith("//"):
                 continue
             lines.append(stripped)
-        # Keep one separator between authored lines.  Removing it can merge valid
-        # tokens such as ``else`` + ``if`` into the invalid identifier ``elseif``.
-        return "<script>" + " ".join(lines) + "</script>"
+        # 구분자는 **줄바꿈**이어야 한다. 공백으로 합치면 줄 끝 `//` 주석이 그 뒤
+        # 파일 전체를 주석으로 삼켜, 빌드는 성공한 채 완전히 죽은 페이지가 나간다
+        # (2026-09-11 실측: 주석 한 줄 때문에 DATA 가 정의되지 않아 화면이 비었다).
+        # 위 루프는 **줄 전체가 주석인 것만** 지우므로 줄 끝 주석은 그대로 남는다.
+        # 줄바꿈은 공백과 같은 1바이트라 압축 손해도 없고, `else` + `if` 가
+        # `elseif` 로 붙는 문제도 똑같이 막는다.
+        return "<script>" + "\n".join(lines) + "</script>"
 
     html = re.sub(r"<style>(.*?)</style>", compact_style, html, flags=re.S)
     html = re.sub(r"<script>(.*?)</script>", compact_script, html, flags=re.S)
