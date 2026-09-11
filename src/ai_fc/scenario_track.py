@@ -108,6 +108,44 @@ def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
 
+def _past_line(rows: list[dict[str, Any]], today: str) -> dict[str, Any]:
+    """오늘 왼쪽(이미 지나간 구간)에 그릴 **한 줄짜리** S1 경로.
+
+    한 빈티지만 끝까지 끌면 굴곡이 없는 시절의 기록(2026-07-30·07-31)이 오늘까지
+    매끈한 직선으로 남는다. 굴곡 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다 —
+    각 구간은 **그때 화면에 실제로 그려졌던 선**이고, 지금 만든 값은 하나도 없다.
+
+    이음점에 남는 단차는 지우지 않는다. 그것이 앞 구간 기록이 그 시점까지 얼마나
+    빗나가 있었는지다(2026-08-06 기준 1,045p) — 맞춰 붙이면 그 사실이 사라진다.
+    """
+    if not rows or not today:
+        return {"segments": []}
+    starts = [rows[0]]
+    curved = next((row for row in rows if row["path_source"] == "structural"), None)
+    if curved is not None and curved["asof"] != rows[0]["asof"]:
+        starts.append(curved)
+
+    segments = []
+    for index, row in enumerate(starts):
+        last = index + 1 == len(starts)
+        end = today if last else starts[index + 1]["asof"]
+        points = []
+        for day, value in row["values"]:
+            if day < row["asof"]:
+                continue
+            points.append([day, value])
+            if day >= end:
+                # 마지막 구간은 end(오늘)를 **넘어서는 첫 점까지** 포함한다. 주차 격자가
+                # 휴일 보정으로 오늘을 건너뛸 수 있어(8/06 빈티지는 9/03 → 9/11),
+                # 오늘에서 정확히 끊으면 현재 경로와 사이에 빈 구간이 생긴다.
+                break
+        if len(points) > 1:
+            segments.append({"asof": row["asof"], "path_source": row["path_source"],
+                             "values": points})
+    return {"segments": segments,
+            "curvature_from": curved["asof"] if curved is not None else None}
+
+
 def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]:
     """아카이브 전량에서 S1 빈티지와 실제 종가 계열을 만든다."""
     archive_dir = root / ARCHIVE_RELATIVE_DIR
@@ -159,6 +197,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         })
 
     ath = next((row["ath"] for row in reversed(vintages) if row.get("ath") is not None), None)
+    past_line = _past_line(out_vintages, actual[-1][0] if actual else "")
     return {
         "status": "ok",
         "index": "^IXIC",
@@ -168,6 +207,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         "cut": cut,
         "ath": ath,
         "actual": [[day, round(value, 2)] for day, value in actual],
+        "past_line": past_line,
         "vintages": out_vintages,
         "stats": {
             "vintage_count": len(out_vintages),
