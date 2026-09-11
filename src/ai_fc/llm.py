@@ -60,12 +60,32 @@ def _cost(model: str, input_tokens: int, output_tokens: int) -> float:
     return input_tokens / 1e6 * in_price + output_tokens / 1e6 * out_price
 
 
+def _usage_fields(usage) -> tuple[int, int]:
+    """usage 객체와 원시 JSON dict 를 같은 규칙으로 읽는다.
+
+    origin/main 의 `37ca3b66` 에서 가져왔다 — 그쪽은 raw-response 경로와 SDK 객체 경로를
+    맞추려고 만들었고 그 경로는 2026-09-11 병합에서 없어졌지만, 이 함수는 남길 값어치가
+    있다: **속성 접근을 기본값 있는 getattr 로 바꾼다.** `u.input_tokens` 를 직접 읽으면
+    SDK 가 필드를 바꾸는 날 `_usage_of` 가 AttributeError 로 터지고, 그 호출은
+    `budget.add` **전**이라 비용이 통째로 사라진다 — 2026-09-11 에 $1.564 를 태운 것과
+    정확히 같은 실패 모양이다.
+    """
+    read = usage.get if isinstance(usage, dict) else (
+        lambda key, default=0: getattr(usage, key, default))
+
+    def count(key: str) -> int:
+        return int(read(key, 0) or 0)
+
+    # 캐시 읽기는 ~0.1x
+    inp = (count("input_tokens") + count("cache_creation_input_tokens")
+           + count("cache_read_input_tokens") // 10)
+    return inp, count("output_tokens")
+
+
 def _usage_of(resp, model: str) -> Usage:
-    u = resp.usage
-    inp = (u.input_tokens or 0) + (getattr(u, "cache_creation_input_tokens", 0) or 0) \
-        + (getattr(u, "cache_read_input_tokens", 0) or 0) // 10  # 캐시 읽기는 ~0.1x
-    out = u.output_tokens or 0
-    return Usage(inp, out, _cost(model, inp, out))
+    inp, out = _usage_fields(resp.usage)
+    return Usage(inp, out, _cost(model, inp, out),
+                 request_id=getattr(resp, "id", None))
 
 
 def _with_retries(fn):
