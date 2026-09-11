@@ -119,10 +119,13 @@ def test_real_repository_track_starts_at_the_first_archived_record() -> None:
 
 
 def test_actual_is_overlaid_inside_the_original_graph_not_a_second_one() -> None:
-    """대조는 별도 그래프가 아니라 최초 버전 그래프 안에서 겹쳐 그린다.
+    """실제 종가는 별도 그래프가 아니라 최초 버전 그래프 안에 검은 선으로 들어간다.
 
-    인덱스 축에서는 앵커 왼쪽(이미 지나간 구간)에 자리가 없어 실제 선과 예측선이 한 점에서만
-    만난다. 가로축을 날짜로 잡아야 겹치는 구간이 생긴다.
+    인덱스 축에서는 앵커 왼쪽(이미 지나간 구간)에 자리가 없다 — 가로축을 날짜로 잡아야
+    실제 선이 그려질 자리가 생긴다.
+
+    선은 현재 S1 경로 하나만 둔다. 지난 빈티지를 전부 겹치면 빗각으로 퍼지는 선다발이 되어
+    실제 주가 그래프처럼 읽히지 않는다. 지난 예측의 적중은 선이 아니라 오차율과 표로 읽는다.
     """
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -137,12 +140,17 @@ def test_actual_is_overlaid_inside_the_original_graph_not_a_second_one() -> None
     # 최초 버전 그래프가 실제 선·지난 빈티지를 직접 그린다
     flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
     assert "data-track-actual" in flow, "실제 종가 선을 그래프 안에서 그려야 한다"
-    assert "data-track-vintage" in flow, "지난 예측일의 경로도 같은 그래프에 겹친다"
-    assert "const dateX=day=>" in flow, "가로축은 날짜 기반이어야 겹침이 생긴다"
+    assert "const dateX=day=>" in flow, "가로축은 날짜 기반이어야 실제 선 자리가 생긴다"
+    # 빗각 선다발 금지 — 그려지는 경로는 현재 S1 하나뿐이다
+    assert "data-track-vintage" not in flow
+    assert "priorVintages" not in script
+    # 대신 오차율과 빈티지 표가 같은 패널 안에 남는다
+    assert "겹치는 구간 평균 절대오차" in html
+    assert "예측일별 오차" in html
 
     # 조건부 경로임을 화면에서 밝힌다 — 오차 부호를 실력으로 읽으면 안 된다
     assert "오차의 부호를 실력으로 읽으면 안 됩니다" in html
     # 백테스트 금지 원칙을 산출 방법에 명시한다
-    assert "지금 모형을 과거로 되돌려 그리지 않습니다" in html
+    assert "지금 모형을 과거로 되돌려 계산하지 않습니다" in html
     # 실제 선은 일간이라고 밝힌다
     assert "실제 종가 (일간)" in html
