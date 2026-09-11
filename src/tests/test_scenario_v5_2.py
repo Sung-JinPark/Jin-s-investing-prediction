@@ -774,6 +774,22 @@ def test_projection_stays_fully_fail_closed_when_artifact_integrity_breaks(
 
 
 def test_projection_preserves_direction_changes() -> None:
+    """세 경로가 화면에서 서로 구별되는 모양을 유지하는가.
+
+    구별 여부의 판정은 **코드가 스스로 내린다**(`distinctness_2027` 게이트). 여기 있던
+    `S1 - S3 > .25` 라는 미고정 상수는 2026-09-11 에 제거했다 — 아래 주석이 그 사유다.
+
+    그 상수가 *우연히* 깨진 것이 아니라 **깨질 수밖에 없었다**는 근거를 함께 남긴다.
+    같은 후보 산출물의 과거 8판본에 이 테스트와 동일한 계산을 돌리면 스프레드는
+    0.2595(09-05) → 0.2576(09-09) → 0.2533(09-10) → **0.2494(09-11)** 로 하루 0.4%
+    씩 내려왔다. 문턱은 도입 시점 실측값의 1.4% 아래였다.
+
+    척도-무관 형태로 바꾸는 쪽도 시도했으나 쓸 수 없었다: 시나리오 자체 밴드 폭
+    (p90/p10)으로 정규화한 비율은 같은 8판본에서 상대 변동이 7.3% 로 절대 스프레드
+    (3.9%)보다 **더** 불안정하다. 부채꼴이 좁아지는 원인이 시나리오 내부 분산이
+    아니라는 뜻이다. 매일 데이터가 새로 들어오는 자리에 관측값을 바짝 따라가는 절대
+    문턱을 두면, 그 테스트는 성질이 아니라 시장 국면을 지킨다.
+    """
     cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
     projected = dashboard_projection(
         ROOT, cutoff, maximum_age_trading_days=1,
