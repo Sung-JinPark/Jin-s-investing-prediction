@@ -13,10 +13,16 @@ from __future__ import annotations
 import json
 
 import anthropic
-import httpx
+import anthropic._base_client as _base_client
 import pytest
 
 from ai_fc import config, llm
+
+# anthropic 0.105 은 httpx, 1.5 는 httpx2 위에 올라간다(CI 가 후자를 설치한다).
+# 둘 다 깔려 있을 수 있으므로 이름으로 고르지 않고 **SDK 가 실제로 쓰는 모듈**을 집는다 —
+# http_client 타입이 어긋나면 SDK 가 조용히 자기 클라이언트를 새로 만든다.
+_http = getattr(_base_client, "httpx", None) or getattr(_base_client, "httpx2", None)
+pytestmark = pytest.mark.skipif(_http is None, reason="SDK 의 HTTP 모듈을 찾지 못함")
 
 
 def _message(payload: dict, *, input_tokens: int = 1000, output_tokens: int = 500) -> dict:
@@ -33,9 +39,9 @@ def _message(payload: dict, *, input_tokens: int = 1000, output_tokens: int = 50
 
 
 def _client(body: dict) -> anthropic.Anthropic:
-    transport = httpx.MockTransport(lambda request: httpx.Response(200, json=body))
+    transport = _http.MockTransport(lambda request: _http.Response(200, json=body))
     return anthropic.Anthropic(api_key="test-key",
-                               http_client=httpx.Client(transport=transport))
+                               http_client=_http.Client(transport=transport))
 
 
 def _forecast_payload(*, anchor: int, deltas: list[float], probability: int) -> dict:

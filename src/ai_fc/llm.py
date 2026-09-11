@@ -12,7 +12,17 @@ import time
 from dataclasses import dataclass, field
 
 import anthropic
-from anthropic._response import RAW_RESPONSE_HEADER
+
+# SDK 내부 상수 — 0.105 과 1.5 모두 _constants 에 있고 값도 같다. 위치가 또 바뀌어도
+# 헤더 이름 자체는 계약이므로 마지막에 문자열로 떨어진다. 이 헤더가 먹지 않으면
+# reasoning_call 이 종전 경로로 내려가고, 비용 계측 테스트가 그 자리에서 실패한다.
+try:
+    from anthropic._constants import RAW_RESPONSE_HEADER
+except ImportError:  # pragma: no cover - SDK 배치 변경 대비
+    try:
+        from anthropic._response import RAW_RESPONSE_HEADER
+    except ImportError:
+        RAW_RESPONSE_HEADER = "X-Stainless-Raw-Response"
 
 from . import config
 from .schemas import ForecastResult
