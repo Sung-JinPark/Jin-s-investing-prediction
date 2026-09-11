@@ -1,19 +1,28 @@
 """Anthropic 래퍼: 재시도·토큰/검색 미터링·예산 중단.
 
 - 리서치: messages.create + 서버사이드 web_search_20260209 (pause_turn 루프 처리)
-- 추론: messages.parse + Pydantic (structured outputs)
+- 추론: messages.create + **직접 검증** (structured outputs)
+  — messages.parse 를 쓰지 않는 이유는 reasoning_call 독스트링 참조
 - 모든 호출의 비용을 계산해 PipelineBudget에 가산. 초과 시 즉시 중단.
 """
 
 from __future__ import annotations
 
+import json
 import time
 from dataclasses import dataclass, field
 
 import anthropic
+from pydantic import ValidationError
 
 from . import config
 from .schemas import ForecastResult
+
+#: SDK 가 스키마를 API 로 보내기 전에 거치는 변환. 내부 모듈이라 이동에 대비해 방어한다.
+try:  # pragma: no cover - SDK 배치에 따라 달라진다
+    from anthropic.lib._parse._transform import transform_schema as _transform_schema
+except Exception:  # noqa: BLE001
+    _transform_schema = None
 
 
 class BudgetExceeded(RuntimeError):
@@ -153,30 +162,120 @@ def structured_call(client: anthropic.Anthropic, system: str, user: str,
     return parsed, usage
 
 
-def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
-                   budget: PipelineBudget) -> tuple[ForecastResult, Usage]:
-    """추론 코어 1회 — structured output 강제. 파싱 실패 시 예외 (숫자 추측 금지)."""
-    budget.ensure_room("reasoning")
-    model = config.REASONING_MODEL
+#: 계약 위반 시 **단 한 번** 붙이는 교정 지시. 확률을 바꾸라고 하지 않는다.
+CONTRACT_RETRY_HINT = """
 
-    resp = _with_retries(lambda: client.messages.parse(
+---
+[계약 교정 — 직전 출력이 산술 계약을 위반했다]
+위반 내용: {error}
+
+**최종 확률(probability)은 절대 바꾸지 마라.** 고쳐야 하는 것은 판단이 아니라 **기록**이다.
+절차 [4] 프리모템에서 확률을 재조정했다면, 그 재조정을 `adjustments` 에 항목으로 **추가**해
+`anchor_pct + Σ(부호 있는 delta_pp) == probability` 가 성립하게 만들어라.
+같은 확률 그대로, 조정 항목만 빠짐없이 채워 다시 출력하라."""
+
+
+def _dump_reasoning_raw(attempt: int, text: str) -> None:
+    """추론 원문을 스크래치에 남긴다. 실패해도 파이프라인을 막지 않는다.
+
+    이 덤프가 없으면 계약 위반으로 죽었을 때 **무엇이 왜 틀렸는지 알 길이 없다** —
+    2026-09-11 실측에서 정확히 그 상태였다.
+    """
+    try:
+        scratch = config.SCRATCH_DIR
+        scratch.mkdir(parents=True, exist_ok=True)
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        (scratch / f"{stamp}_reasoning_attempt{attempt}.json").write_text(text, encoding="utf-8")
+    except Exception:  # noqa: BLE001 - 진단 보조는 파이프라인을 막지 않는다
+        pass
+
+
+def _reasoning_once(client: anthropic.Anthropic, system: str, user: str,
+                    budget: PipelineBudget, model: str, attempt: int) -> tuple[str, Usage]:
+    """추론 API 1회. **응답을 받으면 무엇이 실패하든 비용을 먼저 계상한다.**"""
+    output_config: dict = {"effort": "high"}
+    if _transform_schema is not None:
+        output_config["format"] = _transform_schema(ForecastResult)
+
+    resp = _with_retries(lambda: client.messages.create(
         model=model,
         max_tokens=config.REASONING_MAX_TOKENS,
         system=[{"type": "text", "text": system,
                  "cache_control": {"type": "ephemeral"}}],  # 다질문 연속 실행 시 캐시
         thinking={"type": "adaptive"},
-        output_config={"effort": "high"},
+        output_config=output_config,
         messages=[{"role": "user", "content": user}],
-        output_format=ForecastResult,
     ))
     usage = _usage_of(resp, model)
-    budget.add(usage)
+    budget.add(usage)          # ← 검증보다 먼저. 응답은 이미 과금됐다.
+
+    text = "".join(block.text for block in (resp.content or [])
+                   if getattr(block, "type", None) == "text")
+    _dump_reasoning_raw(attempt, text)
 
     if getattr(resp, "stop_reason", None) == "refusal":
         raise RuntimeError("추론 호출이 refusal로 종료됨")
-    parsed = resp.parsed_output
-    if parsed is None:
-        raise RuntimeError("추론 출력 파싱 실패 — 기록하지 않고 중단")
+    if not text.strip():
+        raise RuntimeError("추론 출력이 비어 있다 — 기록하지 않고 중단")
+    return text, usage
+
+
+def _peek_probability(text: str) -> int | None:
+    """계약 검증 **전에** 확률만 훔쳐본다 — 교정 재시도가 판단을 바꿨는지 감시하려고."""
+    try:
+        value = json.loads(text).get("probability")
+    except Exception:  # noqa: BLE001
+        return None
+    return value if isinstance(value, int) else None
+
+
+def reasoning_call(client: anthropic.Anthropic, system: str, user: str,
+                   budget: PipelineBudget) -> tuple[ForecastResult, Usage]:
+    """추론 코어 1회 — structured output 강제. 파싱 실패 시 예외 (숫자 추측 금지).
+
+    ## 왜 `messages.parse` 를 쓰지 않는가 (2026-09-11 실측 결함)
+
+    SDK 의 `messages.parse` 는 HTTP 응답을 받은 뒤 **post-parser 안에서**
+    `TypeAdapter(ForecastResult).validate_json` 을 돌린다. 그런데 `ForecastResult` 는
+    `@model_validator` 로 `anchor_pct + Σ(부호 있는 delta_pp) == probability` 항등식을
+    강제하고, 이 **교차 필드 항등식은 JSON Schema 로 표현할 수 없어 서버가 막아주지
+    못한다** (SDK 의 `transform_schema` 는 `minimum`/`maximum` 조차 description 문자열로
+    강등한다). 즉 계약 전량이 클라이언트 전용이다.
+
+    결과: 위반 응답이 오면 `ValidationError` 가 `messages.parse` **안에서** 터져
+    `budget.add()` 에 도달하지 못한다. 응답은 이미 과금됐는데 **사용량도 원문도 남지
+    않아** 사후 진단이 불가능하다. 2026-09-11 `asml-eps-beat-2026q3` 실행이 정확히 이
+    경로로 죽었다 — `cost_log.csv` 에 리서치 2행만 남고 추론 행이 없었다($1.564 소모,
+    기록 0). OpenAI 경로는 `budget.add` 가 `model_validate` 보다 먼저라 같은 위반이
+    3행을 남기므로, 이 비대칭 때문에 결함이 두 달간 드러나지 않았다.
+
+    그래서 `create` 로 받아 **먼저 계상하고 원문을 남긴 뒤** 검증한다.
+
+    ## 교정 재시도는 기록을 고치지 판단을 고치지 않는다
+
+    항등식 위반은 대개 **기록 누락**이다 — 절차 [4] 프리모템에서 확률을 재조정하고도
+    그 재조정을 `adjustments` 에 적지 않으면 합이 안 맞는다. 그래서 한 번만, 확률을
+    바꾸지 말라고 명시해 재요청한다. 재시도가 확률을 바꾸면 **그 자체를 실패로 본다** —
+    교정이 판단을 움직이면 그건 교정이 아니다.
+    """
+    budget.ensure_room("reasoning")
+    model = config.REASONING_MODEL
+
+    text, usage = _reasoning_once(client, system, user, budget, model, attempt=1)
+    try:
+        parsed = ForecastResult.model_validate_json(text)
+    except ValidationError as exc:
+        first_probability = _peek_probability(text)
+        budget.ensure_room("reasoning:contract-retry")
+        retry_user = user + CONTRACT_RETRY_HINT.format(error=str(exc)[:500])
+        text, usage = _reasoning_once(client, system, retry_user, budget, model, attempt=2)
+        parsed = ForecastResult.model_validate_json(text)   # 또 터지면 그대로 전파
+        if first_probability is not None and parsed.probability != first_probability:
+            raise RuntimeError(
+                f"계약 교정 재시도가 확률을 바꿨다: {first_probability} → {parsed.probability}. "
+                "교정은 기록을 고치는 것이지 판단을 고치는 것이 아니다 — 기록하지 않고 중단"
+            ) from exc
+
     if not (1 <= parsed.probability <= 99) or parsed.ci80_lo > parsed.ci80_hi:
         raise RuntimeError(f"추론 출력 검증 실패: p={parsed.probability}, "
                            f"ci=[{parsed.ci80_lo},{parsed.ci80_hi}]")

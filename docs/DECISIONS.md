@@ -1466,3 +1466,61 @@ V13 기후 기저율은 T03 의 대상 0건 페일클로즈. edge 활성화는 P
 **기록.** `src/ai_fc/question_discovery.py` · `src/ai_fc/dead_zone_watch.py` ·
 `prompts/reasoning_core_v1_1.md` · `src/ai_fc/config.py` `PROMPT_VERSION` ·
 `src/tests/test_question_discovery.py`(18건) · `docs/p3_gate_path/T07_RESULT.md`.
+
+### 2026-09-11 — 추론 호출이 계약 위반 시 비용도 원문도 남기지 않고 죽던 결함 (실측·수정)
+
+`asml-eps-beat-2026q3` r2 실행이 리서치 성공 직후 죽었다. `cost_log.csv` 에 `failed:pipeline:1/2`
+**2행만**(리서치 general·devil, **$1.564**) 남고 추론 행도 예측 파일도 없었다. **돈은 나가고
+기록은 0**이며, 무엇이 왜 틀렸는지 알 단서도 남지 않았다.
+
+**원인.** `llm.reasoning_call` 이 쓰던 `client.messages.parse` 는 HTTP 응답을 받은 뒤
+**post-parser 안에서** `TypeAdapter(ForecastResult).validate_json` 을 돌린다. `ForecastResult` 는
+`@model_validator` 로 `anchor_pct + Σ(부호 있는 delta_pp) == probability` 항등식을 강제하는데,
+**이 교차 필드 항등식은 JSON Schema 로 표현할 수 없어 서버가 막아주지 못한다** — SDK 의
+`transform_schema` 는 `minimum`/`maximum`/`exclusiveMinimum` 조차 description 문자열로 강등한다
+(전송 스키마에 해당 키워드 0개임을 로컬에서 확인). 즉 계약 전량이 클라이언트 전용이다.
+위반 응답이 오면 `ValidationError` 가 `messages.parse` **안에서** 터져 `_usage_of`·`budget.add`
+어느 쪽에도 도달하지 못한다. `_with_retries` 는 RateLimit/InternalServer/APIConnection 만 잡으므로
+즉시 전파된다.
+
+**왜 두 달간 안 드러났나.** ① 이 계약은 커밋 `af01a809`(2026-08-06)에서 신설됐다.
+② p1-pipeline 의 마지막 **anthropic** 회차는 2026-07-15 이고, 2026-08-03 이후 산출은 전부
+`openai/gpt-5.6-terra` 였다(DECISIONS 10-4). 즉 이번이 **계약 도입 이후 anthropic 추론 경로의
+첫 실행**이다. ③ OpenAI 경로는 `budget.add` 가 `model_validate` **보다 먼저**라 같은 위반이
+3행을 남기고 `ProviderOutputError` 로 보인다 — 이 비대칭이 결함을 가렸다.
+④ `src/tests/` 에 `reasoning_call`·`messages.parse` 를 건드리는 테스트가 **0건**이었다.
+
+**내 몫.** 결함 자체는 선행하지만 **발동 확률을 내가 올렸다.** 어제 `PROMPT_VERSION` 을
+`reasoning_core_v1_1` 로 바꿨는데(커밋 `95454428`), v1.1 의 `[4-A]` 필수 3항은 임계 z 까지
+재성찰하게 만들어 확률 재조정 유인을 키운다. 그런데 `[4]` 의 "각 원인을 반영해 최종 확률을
+재조정한다"는 v1 부터 있던 문장이고, **재조정분을 `adjustments` 에 적으라는 말이 없다** —
+적지 않고 확률만 옮기면 항등식이 깨진다. 직전 성공 회차는 65 +4 −3 −4 −5 = 57 로 맞췄다.
+만족 가능하지만 빡빡한 계약을, 모델에게 알려주지도 않은 채 성찰만 늘린 셈이다.
+
+**수정 세 가지.**
+
+| # | 무엇 | 왜 |
+|---|---|---|
+| 1 | `messages.parse` → `messages.create` + **직접 검증** | 응답을 받으면 **무엇이 실패하든 `budget.add` 를 먼저** 한다. 응답은 이미 과금됐다 |
+| 2 | 시도별 원문을 `db/scratch/*_reasoning_attemptN.json` 으로 덤프 | 원문이 없으면 사후 진단이 불가능하다 — 이번이 정확히 그 상태였다 |
+| 3 | 항등식 위반 시 **교정 재시도 1회** | 위반은 대개 판단이 아니라 **기록 누락**이다 |
+
+**교정 재시도는 기록을 고치지 판단을 고치지 않는다.** 재시도 지시는 "최종 확률은 절대 바꾸지
+마라, 재조정을 `adjustments` 에 항목으로 추가하라"이고, **재시도가 확률을 바꾸면 그 자체를
+실패로 본다**(`계약 교정 재시도가 확률을 바꿨다` → 기록 없이 중단). 교정이 판단을 움직이면
+그건 교정이 아니다.
+
+**프롬프트가 계약을 말하게 했다.** `STRUCTURED_SUFFIX` 에 항등식·CI 포함관계·중복 조정 금지를
+명시하고, `reasoning_core_v1_1.md` 의 `[4]` 에 "재조정분은 반드시 `adjustments` 에 항목으로
+남긴다 — 기록하지 않고 확률만 옮기면 출력 전체가 거부된다"를 넣었다. 모델이 모르는 규칙은
+지킬 수 없다. **한계**: `STRUCTURED_SUFFIX` 는 `prompt_version` 에 기록되지 않는 비버전 문자열이라
+이 변경은 예측 파일에서 추적되지 않는다.
+
+**남은 한계.** OpenAI 경로(`llm_provider.py`)에는 교정 재시도가 없다 — 비용은 계상되지만
+위반 시 `ProviderOutputError` 로 회차가 버려진다. 현 공식 제공자가 anthropic 이라 이번에는
+손대지 않았다.
+
+**기록.** `src/ai_fc/llm.py`(`_reasoning_once`·`_peek_probability`·`CONTRACT_RETRY_HINT`) ·
+`src/ai_fc/reasoning_core.py` · `prompts/reasoning_core_v1_1.md` ·
+`src/tests/test_reasoning_contract.py`(11건 — 계약 위반 시 비용 계상·원문 덤프·교정 재시도·
+확률 변경 거부·전송 스키마에 항등식 부재까지 고정).
