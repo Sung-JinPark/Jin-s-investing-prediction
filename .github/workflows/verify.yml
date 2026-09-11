@@ -39,7 +39,10 @@ jobs:
       - name: gate guard (금지 행위 감지)
         run: |
           if [ -n "${{ github.base_ref }}" ]; then
-            git fetch --no-tags --depth=0 origin "${{ github.base_ref }}"
+            # checkout 이 이미 fetch-depth: 0 으로 전체 이력을 받아 둔다.
+            # `--depth=0` 은 git 이 거부하는 인자다("depth 0 is not a positive number") —
+            # 얕은 클론이 아니므로 깊이 지정 없이 베이스 브랜치만 가져오면 된다.
+            git fetch --no-tags origin "${{ github.base_ref }}"
             BASE=$(git merge-base HEAD "origin/${{ github.base_ref }}")
           else
             BASE=$(git rev-parse HEAD~1 2>/dev/null || git rev-parse HEAD)
