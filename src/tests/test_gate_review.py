@@ -181,7 +181,7 @@ def test_detects_forecast_file_modification(tmp_path: Path) -> None:
     path = root / "forecasts/2026/2026-07-10_a_r1.md"
     path.write_text(path.read_text(encoding="utf-8") + "\n수정\n", encoding="utf-8")
     hits = check_all(root)
-    assert any("forecasts/ 가 수정됐다" in v.detail for v in hits)
+    assert any("기존 파일이 수정·삭제됐다" in v.detail for v in hits)
 
 
 def test_unreadable_baseline_is_not_a_pass(tmp_path: Path) -> None:
@@ -194,3 +194,64 @@ def test_unreadable_baseline_is_not_a_pass(tmp_path: Path) -> None:
 def test_live_repository_has_no_violations() -> None:
     from ai_fc.gate_guard import check_all
     assert check_all(ROOT) == [], "현 작업 트리에 금지 행위가 감지된다"
+
+
+# ── 추가는 위반이 아니다 (2026-09-11 오탐) ───────────────────────────
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_a_new_forecast_file_is_not_a_violation(tmp_path: Path) -> None:
+    """불변 규약은 '생성 후 수정·삭제 금지'이지 '새 파일 금지'가 아니다.
+
+    실측 계기: W1 배치의 신규 예측 4건을 커밋하려는데 감지기가
+    'forecasts/ 가 수정됐다'로 막았다. 새 예측은 언제나 새 파일로 들어오므로
+    (재예측도 r<N> 신규 파일) 추가를 막으면 감지기가 파이프라인 자체를 막는다.
+    """
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    (root / "forecasts/2026/2026-09-11_new_r1.md").write_text(
+        "---\nquestion_id: new\n---\n", encoding="utf-8")
+    assert check_all(root) == [], "신규 예측 파일 추가가 위반으로 잡힌다"
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_modifying_an_existing_forecast_is_still_a_violation(tmp_path: Path) -> None:
+    """추가를 허용해도 **수정은 여전히** 잡혀야 한다 — 그게 이 감지기의 본래 목적이다."""
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    path = root / "forecasts/2026/2026-07-10_a_r1.md"
+    path.write_text(path.read_text(encoding="utf-8") + "\nprobability: 99\n", encoding="utf-8")
+    hits = check_all(root)
+    assert any("기존 파일이 수정·삭제됐다" in v.detail for v in hits)
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_deleting_a_forecast_is_a_violation(tmp_path: Path) -> None:
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    (root / "forecasts/2026/2026-07-10_a_r1.md").unlink()
+    hits = check_all(root)
+    assert any("기존 파일이 수정·삭제됐다" in v.detail for v in hits)
+
+
+@pytest.mark.skipif(shutil.which("git") is None, reason="git 없음")
+def test_hashes_anchor_is_append_only_not_frozen(tmp_path: Path) -> None:
+    """.hashes 는 새 예측마다 줄이 붙는다 — 추가는 허용, 삭제는 위반."""
+    from ai_fc.gate_guard import check_all
+    root = _repo(tmp_path)
+    anchor = root / "forecasts/.hashes"
+    anchor.write_text("2026-07-10_a_r1  deadbeef\n", encoding="utf-8")
+
+    def git(*args: str) -> None:
+        subprocess.run(["git", "-C", str(root), *args], check=True,
+                       capture_output=True, text=True)
+
+    git("add", "-A")
+    git("commit", "-qm", "anchor")
+
+    with anchor.open("a", encoding="utf-8") as fh:      # 추가 — 정상
+        fh.write("2026-09-11_new_r1  cafebabe\n")
+    assert check_all(root) == []
+
+    anchor.write_text("2026-09-11_new_r1  cafebabe\n", encoding="utf-8")   # 기존 줄 삭제
+    hits = check_all(root)
+    assert any(".hashes" in v.detail and "사라지거나" in v.detail for v in hits)

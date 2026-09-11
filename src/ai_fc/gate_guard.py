@@ -123,12 +123,29 @@ def check_failed_tags_not_changed_post_hoc(root: Path,
                              f"오버라이드 메타에서 {len(removed)}줄이 사라지거나 바뀌었다: "
                              + " / ".join(r[:60] for r in removed[:3])))
 
-    # 예측 파일의 frontmatter 태그가 바뀌는 것도 같은 조작이다 — forecasts/ 는 전체가 불변이다.
-    code, diff = _git(root, "diff", "--name-only", baseline, "--", "forecasts")
+    # 예측 파일의 frontmatter 태그가 바뀌는 것도 같은 조작이다.
+    #
+    # **추가(A)는 위반이 아니다.** 불변 규약은 "생성 후 수정·삭제 금지"이지 "새 파일 금지"가
+    # 아니다 — 새 예측은 늘 새 파일로 들어온다(재예측은 r<N> 신규 파일). 그래서
+    # `--diff-filter=MDR` 로 **수정·삭제·이름변경만** 잡는다. 저장소의 기존 검증기
+    # `tools/verify_track_record.py` 도 같은 필터(`--diff-filter=MD`)를 쓴다.
+    code, diff = _git(root, "diff", "--name-only", "--diff-filter=MDR", baseline,
+                      "--", "forecasts", ":(exclude)forecasts/.hashes")
     if code == 0 and diff.strip():
         out.append(Violation("post_hoc_failed_tagging",
-                             "forecasts/ 가 수정됐다 (불변 규약 위반): "
+                             "forecasts/ 의 기존 파일이 수정·삭제됐다 (불변 규약 위반): "
                              + ", ".join(diff.split()[:5])))
+
+    # `.hashes` 는 앵커 색인이라 새 예측마다 줄이 붙는다 — 원장과 같은 append-only 규칙.
+    removed = _removed_lines(root, Path("forecasts/.hashes"), baseline)
+    if removed is None:
+        out.append(Violation("post_hoc_failed_tagging",
+                             f"git 기준선({baseline})에서 forecasts/.hashes 를 읽을 수 없어 판정을 보류한다"))
+    elif removed:
+        out.append(Violation("post_hoc_failed_tagging",
+                             f"forecasts/.hashes 에서 {len(removed)}줄이 사라지거나 바뀌었다 — "
+                             "앵커가 지워지면 과거 기록의 위변조를 검출할 수 없다: "
+                             + " / ".join(r[:60] for r in removed[:3])))
     return out
 
 
