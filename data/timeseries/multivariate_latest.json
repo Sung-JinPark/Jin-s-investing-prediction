@@ -1,7 +1,7 @@
 {
-  "artifact_path": "data/timeseries/runs/ts-337d713bfc82a7d897b7.json",
-  "content_hash": "c1b4e6a4e3b64c34e1f6040177b1d08ee79d814334fef9bdf71d6b51081ab0e3",
+  "artifact_path": "data/timeseries/runs/ts-43c7705bbcd7a2b75f49.json",
+  "content_hash": "3ac60654ee2c5d5bd47b1fca2f7283a46991040475f28b488a412ed681ce2f41",
   "derived_pointer": true,
-  "forecast_id": "ts-337d713bfc82a7d897b7",
+  "forecast_id": "ts-43c7705bbcd7a2b75f49",
   "schema_version": 1
 }

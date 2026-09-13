@@ -2627,10 +2627,16 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   /* 현재 경로는 오늘에서 시작하므로 이미 지나간 구간을 덮지 못한다 — 그 구간에서 얼마나
      틀렸는지 눈으로 보려면 그때 실제로 기록된 예측이 필요하다. 빈티지 전부를 겹치면
      빗각 선다발이 되므로 **한 건만** 골라 그린다(기본은 겹침이 가장 긴 최초 기록). */
-  const compare=overlay?(track.vintages.find(row=>row.asof===compareAsof)||track.vintages[0]):null;
+  const compare=overlay?(track.vintages.find(row=>row.asof===compareAsof)
+    ||track.vintages.find(row=>row.path_source==='structural')||track.vintages[0]):null;
   const comparePoints=compare&&compare.asof<sc.asof
     ?compare.values.filter(point=>point[0]<=cut):[];
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1])].map(Number).filter(Number.isFinite);
+  /* 기본 화면의 과거 구간은 **이어붙인 한 줄**이다 — 굴곡 기록이 생긴 날부터 그쪽으로
+     바통을 넘긴다(scenario_track._past_line). 선택기로 특정 예측일을 고르면 그 하나만
+     그려 그날의 기록을 통째로 본다. */
+  const pastSegments=(overlay&&compare.asof===track.vintages[0]?.asof
+    ?(track.past_line?.segments||[]):[]).filter(seg=>(seg.values||[]).length>1);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2699,6 +2705,9 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
      사이를 옅게 메워 '얼마나 틀렸나'가 면적으로 보이게 한다. */
   if(comparePoints.length>1&&actual.length>1){
     const realizedEnd=actual[actual.length-1][0];
+    /* 오늘까지만 그린다. 그 뒤는 현재 경로가 이어받아 **하나의 주황 선**이 된다 —
+       과거 구간은 그때 기록된 S1, 오늘부터는 지금 기록된 S1. 두 조각의 이음새에
+       남는 단차가 곧 그때 예측과 지금 현실의 차이다(2026-09-10 기준 0.5%). */
     const seen=new Map(actual.map(row=>[row[0],row[1]]));
     const paired=comparePoints.filter(point=>point[0]<=realizedEnd&&seen.has(point[0]));
     if(paired.length>1){
@@ -2706,9 +2715,26 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
       const bottom=paired.slice().reverse().map(point=>dateX(point[0]).toFixed(1)+','+Y(seen.get(point[0])).toFixed(1));
       svg.appendChild(mk('path',{d:'M'+top.join(' L')+' L'+bottom.join(' L')+' Z',fill:CHART_COL[activeKey],opacity:.13,stroke:'none','data-track-gap':'1'}));
     }
-    const d=comparePoints.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':2,'stroke-dasharray':'7 4','stroke-linejoin':'round',opacity:.9,'data-track-compare':compare.asof}));
-    svg.appendChild(halo(tx(dateX(comparePoints[0][0])+5,Y(comparePoints[0][1])-10,compare.asof.slice(5).replace('-','/')+' 예측',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
+    const upToToday=comparePoints.filter(point=>point[0]<=realizedEnd);
+    const single=upToToday.length>1?upToToday:comparePoints;
+    const drawnSegments=pastSegments.length?pastSegments.map(seg=>seg.values)
+                                           :[single];
+    drawnSegments.forEach((points,order)=>{
+      const d=points.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ');
+      svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[activeKey],'stroke-width':2.6,'stroke-linejoin':'round',
+        'data-track-compare':pastSegments.length?pastSegments[order].asof:compare.asof}));
+    });
+    const drawn=drawnSegments[0];
+    /* 이음점(굴곡 기록이 시작된 날)을 표시한다. 여기 단차는 앞 구간 기록이 그때까지
+       얼마나 빗나가 있었는지라, 숨기지 않고 왜 끊겼는지만 밝힌다. */
+    if(pastSegments.length>1){
+      const seam=pastSegments[1].values[0];
+      svg.appendChild(mk('line',{x1:dateX(seam[0]),y1:MT,x2:dateX(seam[0]),y2:MT+PH,
+        stroke:'rgba(17,17,15,.22)','stroke-width':1,'stroke-dasharray':'2 4'}));
+      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,seam[0].slice(5).replace('-','/')+'부터 굴곡 기록',
+        {fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
+    }
+    if(!pastSegments.length)svg.appendChild(halo(tx(dateX(drawn[0][0])+5,Y(drawn[0][1])-10,compare.asof.slice(5).replace('-','/')+' 기록',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
   }
   /* 실제 종가는 일간이다 — 아카이브마다 그날 확정 종가로 기록된 anchor 를 이은 선이라
      주차 격자에 얽매이지 않는다. 가장 위에 그려 어느 선과도 가려지지 않게 한다. */
@@ -2720,17 +2746,32 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   }
   svg.appendChild(mk('circle',{cx:X(0),cy:Y(sc.anchor),r:4,fill:'#11110f',stroke:'#fff','stroke-width':1.5}));
   svg.appendChild(halo(tx(X(0)-6,Y(sc.anchor)-11,'현재 '+num(Math.round(Number(sc.anchor))),{anc:'end',fill:'#11110f',w:600})));
-  flowAxisTickIndexes(n,7).forEach((index,tickPosition)=>{
-    svg.appendChild(mk('line',{x1:X(index),y1:MT+PH,x2:X(index),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
-    svg.appendChild(tx(X(index),MT+PH+18,tickPosition===0?'현재 · '+weeks[index]:weeks[index],{anc:'middle',fs:12,fill:tickPosition?'#5f5d57':'#174c49',w:tickPosition?500:750}));
+  /* 가로 눈금은 두 출처에서 온다 — 앵커 오른쪽의 주차 눈금과, 앵커 왼쪽(실현 구간)의
+     실제 선 날짜. 각각 따로 뽑아 그리면 '전체 전망'처럼 축이 길어질 때 서로 겹쳐 글자가
+     뭉개진다. 한 목록으로 합친 뒤 **픽셀 간격으로 솎아** 최소 간격을 보장한다. */
+  const tickCandidates=[
+    ...(actual.length>1?actual.filter(row=>row[0]<sc.asof).map(row=>({
+      x:dateX(row[0]),label:row[0].slice(5).replace('-','/'),lead:false})):[]),
+    ...flowAxisTickIndexes(n,7).map((index,tickPosition)=>({
+      x:X(index),label:tickPosition===0?'현재 · '+weeks[index]:weeks[index],lead:tickPosition===0})),
+  ].sort((a,b)=>a.x-b.x);
+  /* '현재 · 9/9' 가 약 56px — 그보다 좁으면 글자가 붙는다 */
+  const TICK_MIN_GAP=58;
+  const ticks=[];
+  for(const candidate of tickCandidates){
+    const previous=ticks[ticks.length-1];
+    if(previous&&candidate.x-previous.x<TICK_MIN_GAP){
+      // 겹치면 '현재' 표식이 이긴다 — 앵커 위치는 이 그래프에서 가장 중요한 눈금이다.
+      if(candidate.lead)ticks[ticks.length-1]=candidate;
+      continue;
+    }
+    ticks.push(candidate);
+  }
+  ticks.forEach(tick=>{
+    svg.appendChild(mk('line',{x1:tick.x,y1:MT+PH,x2:tick.x,y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
+    svg.appendChild(tx(tick.x,MT+PH+18,tick.label,{anc:'middle',fs:12,
+      fill:tick.lead?'#174c49':'#5f5d57',w:tick.lead?750:500}));
   });
-  /* 앵커 왼쪽(실현 구간)에는 주차 눈금이 닿지 않는다 — 실제 선의 날짜로 눈금을 채운다. */
-  if(actual.length>1)actual.filter(row=>row[0]<sc.asof)
-    .filter((row,index,rows)=>index===0||index===rows.length-1||index%5===0)
-    .forEach(row=>{
-      svg.appendChild(mk('line',{x1:dateX(row[0]),y1:MT+PH,x2:dateX(row[0]),y2:MT+PH+5,stroke:'rgba(17,17,15,.28)'}));
-      svg.appendChild(tx(dateX(row[0]),MT+PH+18,row[0].slice(5).replace('-','/'),{anc:'middle',fs:12,fill:'#5f5d57',w:500}));
-    });
   const RY=HCH+8,RH=28;/* 축 왼쪽 여백(50px)보다 라벨이 길어 anchor:end 로는 viewBox 밖으로 잘린다 — 띠 위에 왼쪽 정렬한다. */svg.appendChild(tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11,w:650}));
   let segmentStart=0;
   for(let index=1;index<=n;index++){
@@ -2826,10 +2867,15 @@ function originalFlowPanel(){
   /* 지나간 구간을 덮는 예측은 그때 기록된 것이어야 한다 — 어느 날의 예측과 맞대 볼지 고른다.
      기본은 겹침이 가장 긴 최초 기록이다. */
   const comparable=canOverlay?track.vintages.filter(row=>row.asof<sc.asof&&row.realized):[];
-  const compareLegend=comparable.length?`<span><b style="background:${CHART_COL.S1};--dash:1" class="legend-dash"></b>그날 기록된 예측 (점선)</span><span><b style="background:${CHART_COL.S1};opacity:.2"></b>둘 사이 = 오차</span>`:'';
+  /* 기본값은 **가장 이른 빈티지**다. 과거 구간 전체를 덮어야 현재 경로와 하나의
+     주황 선으로 이어져 보인다. 2026-07-30·07-31 은 구조 굴곡을 도입하기 전이라 원시
+     GBM 중앙값이 곧 그려진 선이었다 — 매끈한 것은 그날의 사실이지 그리기 선택이
+     아니다. 굴곡이 입혀진 기록을 보려면 선택지에서 2026-08-06 이후를 고르면 된다. */
+  const defaultCompare=comparable[0]?.asof||'';
+  const compareLegend=comparable.length?`<span><b style="background:${CHART_COL.S1}"></b>오늘 왼쪽 = 그날 기록된 같은 S1</span><span><b style="background:${CHART_COL.S1};opacity:.2"></b>실제와의 차이</span>`:'';
   const comparePick=comparable.length?`<div class="flow-compare-pick">
       <label for="original-compare-pick">맞대 볼 예측일</label>
-      <select id="original-compare-pick" data-original-compare>${comparable.map((row,index)=>`<option value="${esc(row.asof)}"${index===0?' selected':''}>${esc(row.asof)} · S1 ${esc(row.prob)}% · ${esc(row.realized.date)} 오차 ${row.realized.error_pct>=0?'+':''}${Number(row.realized.error_pct).toFixed(2)}%</option>`).join('')}</select>
+      <select id="original-compare-pick" data-original-compare>${comparable.map((row,index)=>`<option value="${esc(row.asof)}"${row.asof===defaultCompare?' selected':''}>${esc(row.asof)} · S1 ${esc(row.prob)}% · ${esc(row.realized.date)} 오차 ${row.realized.error_pct>=0?'+':''}${Number(row.realized.error_pct).toFixed(2)}%${row.path_source==='structural'?'':' · 굴곡 도입 전'}</option>`).join('')}</select>
       <small>그날 커밋된 예측을 그대로 불러와 검은 실제선 위에 겹칩니다</small></div>`:'';
 
   /* 시나리오 지평은 252거래일까지 뻗는다. 전량을 실으면 겹치는 구간이 가로폭의 10%대로
@@ -2844,9 +2890,9 @@ function originalFlowPanel(){
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
     <div class="panel-head"><div><p class="eyebrow">단일 시나리오 · 챔피언 GBM · 참고 의견</p>
       <h2 id="original-flow-title">주간 시나리오 흐름 · 앵커 ${num(Math.round(Number(sc.anchor)))}</h2>
-      <p>최초 버전의 그래프입니다. <b>상승(S1) 경로 하나</b>와 <b>실제 종가(검은 선, 일간)</b>를
-      같은 축에 놓습니다 — 검은 선은 기록이 시작된 날부터 오늘까지, 주황 선은 오늘부터 앞으로.
-      지난 예측이 실제를 얼마나 따라갔는지는 아래 <b>오차율</b>과 빈티지 표에서 봅니다.
+      <p>최초 버전의 그래프입니다. 주황 선 하나가 <b>과거와 미래를 잇습니다</b> —
+      오늘 왼쪽은 그날 기록된 S1 경로, 오늘 오른쪽은 지금 기록된 S1 경로입니다.
+      그 아래 검은 선이 실제 종가(일간)라, 둘 사이가 벌어진 만큼이 그때 예측의 오차입니다.
       기본 그래프인 세 가지 시장 경로를 대체하지 않습니다.</p></div>
       <span class="count-chip">기준 ${esc(sc.asof)}</span></div>
     ${horizonControl}
@@ -2867,7 +2913,7 @@ function originalFlowPanel(){
     ${scenarioTrackSummary()}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
-  let samplesOn=false,horizon='compare',compareAsof=comparable[0]?.asof||'';
+  let samplesOn=false,horizon='compare',compareAsof=defaultCompare;
   const paintOriginal=()=>{
     drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,horizon,compareAsof);
     if(sampleButton)sampleButton.setAttribute('aria-pressed',String(samplesOn));

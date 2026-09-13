@@ -64,14 +64,33 @@ def _week_dates(payload: dict[str, Any], asof: str) -> list[str] | None:
     return None
 
 
+def _display_values(payload: dict[str, Any], dates_length: int) -> tuple[list, str]:
+    """그날 **화면에 실제로 그려졌던** 경로.
+
+    굵은 주황 선은 원시 GBM 중앙값이 아니라 과거 조정 모양을 입힌 구조 경로다
+    (dashboard.js 의 flowDisplayPath 와 같은 규칙). 원시 값을 쓰면 매끈한 우상향
+    직선이 되어, 그날 화면과 다른 그림을 놓고 "얼마나 맞았나"를 묻게 된다.
+
+    schema v1 아카이브(2026-07-30·07-31)에는 구조 경로가 없다 — 그때는 굴곡을 입히기
+    전이라 원시 값이 곧 그려진 선이었다. 그래서 폴백은 누락이 아니라 사실이다.
+    """
+    structural = (((payload.get("structural_forecast") or {}).get("paths") or {})
+                  .get(SCENARIO_KEY) or {}).get("values")
+    if isinstance(structural, list) and len(structural) == dates_length:
+        return structural, "structural"
+    return ((payload.get("paths") or {}).get(SCENARIO_KEY) or {}).get("values"), "gbm_median"
+
+
 def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
     asof = payload.get("asof")
     path = ((payload.get("paths") or {}).get(SCENARIO_KEY)) or {}
-    values = path.get("values")
     anchor = payload.get("anchor")
-    if not asof or not isinstance(values, list) or anchor is None:
+    if not asof or anchor is None:
         return None
     dates = _week_dates(payload, str(asof))
+    values, path_source = _display_values(payload, len(dates or []))
+    if not isinstance(values, list):
+        return None
     # 길이가 어긋나면 날짜 정렬을 신뢰할 수 없다 — 조용히 어긋난 선을 그리느니 버린다.
     if dates is None or len(dates) != len(values):
         return None
@@ -83,9 +102,48 @@ def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
             "label": path.get("label"),
             "anchor": float(anchor),
             "values": series,
+            "path_source": path_source,
         }
     except (TypeError, ValueError):
         return None
+
+
+def _past_line(rows: list[dict[str, Any]], today: str) -> dict[str, Any]:
+    """오늘 왼쪽(이미 지나간 구간)에 그릴 **한 줄짜리** S1 경로.
+
+    한 빈티지만 끝까지 끌면 굴곡이 없는 시절의 기록(2026-07-30·07-31)이 오늘까지
+    매끈한 직선으로 남는다. 굴곡 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다 —
+    각 구간은 **그때 화면에 실제로 그려졌던 선**이고, 지금 만든 값은 하나도 없다.
+
+    이음점에 남는 단차는 지우지 않는다. 그것이 앞 구간 기록이 그 시점까지 얼마나
+    빗나가 있었는지다(2026-08-06 기준 1,045p) — 맞춰 붙이면 그 사실이 사라진다.
+    """
+    if not rows or not today:
+        return {"segments": []}
+    starts = [rows[0]]
+    curved = next((row for row in rows if row["path_source"] == "structural"), None)
+    if curved is not None and curved["asof"] != rows[0]["asof"]:
+        starts.append(curved)
+
+    segments = []
+    for index, row in enumerate(starts):
+        last = index + 1 == len(starts)
+        end = today if last else starts[index + 1]["asof"]
+        points = []
+        for day, value in row["values"]:
+            if day < row["asof"]:
+                continue
+            points.append([day, value])
+            if day >= end:
+                # 마지막 구간은 end(오늘)를 **넘어서는 첫 점까지** 포함한다. 주차 격자가
+                # 휴일 보정으로 오늘을 건너뛸 수 있어(8/06 빈티지는 9/03 → 9/11),
+                # 오늘에서 정확히 끊으면 현재 경로와 사이에 빈 구간이 생긴다.
+                break
+        if len(points) > 1:
+            segments.append({"asof": row["asof"], "path_source": row["path_source"],
+                             "values": points})
+    return {"segments": segments,
+            "curvature_from": curved["asof"] if curved is not None else None}
 
 
 def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]:
@@ -131,6 +189,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         errors.extend(abs(match["error_pct"]) for match in matches)
         out_vintages.append({
             "asof": row["asof"], "prob": row["prob"], "label": row["label"],
+            "path_source": row["path_source"],
             "anchor": round(row["anchor"], 2),
             "values": [[day, round(value)] for day, value in series],
             "match_count": len(matches),
@@ -138,6 +197,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         })
 
     ath = next((row["ath"] for row in reversed(vintages) if row.get("ath") is not None), None)
+    past_line = _past_line(out_vintages, actual[-1][0] if actual else "")
     return {
         "status": "ok",
         "index": "^IXIC",
@@ -147,6 +207,7 @@ def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]
         "cut": cut,
         "ath": ath,
         "actual": [[day, round(value, 2)] for day, value in actual],
+        "past_line": past_line,
         "vintages": out_vintages,
         "stats": {
             "vintage_count": len(out_vintages),

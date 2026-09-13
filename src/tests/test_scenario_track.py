@@ -182,3 +182,131 @@ def test_one_recorded_forecast_is_drawn_over_the_realized_window() -> None:
     assert "data-original-compare" in html, "맞대 볼 예측일을 고를 수 있어야 한다"
     # 비교선은 자기 예측일 이후만 그린다 — 과거로 되돌려 그리지 않는다
     assert "compare.asof<sc.asof" in flow
+
+
+def test_vintage_uses_the_path_that_was_actually_drawn(tmp_path: Path) -> None:
+    """그날 화면에 그려진 선은 원시 GBM 중앙값이 아니라 굴곡을 입힌 구조 경로다.
+
+    원시 값을 쓰면 매끈한 우상향 직선이 나와, 그날 화면과 다른 그림을 놓고
+    "얼마나 맞았나"를 묻게 된다. dashboard.js 의 flowDisplayPath 와 같은 규칙을 쓴다.
+    """
+    payload = {
+        "asof": "2026-08-06", "anchor": 26348.0, "ath": 27000.0,
+        "week_dates": ["2026-08-06", "2026-08-13", "2026-08-20"],
+        "paths": {"S1": {"label": "상승·ATH 돌파", "prob": 80,
+                         "values": [26348.0, 26500.0, 26650.0]}},          # 매끈한 원시
+        "structural_forecast": {
+            "paths": {"S1": {"values": [26348.0, 25655.0, 26900.0]}},      # 굴곡 입힌 선
+        },
+    }
+    directory = tmp_path / "data" / "scenarios" / "archive"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "2026-08-06.json").write_text(json.dumps(payload, ensure_ascii=False),
+                                               encoding="utf-8")
+    _archive(tmp_path, "2026-08-13", anchor=26000.0, values=[26000.0],
+             week_dates=["2026-08-13"])
+
+    track = load_scenario_track(tmp_path)
+    drawn = next(row for row in track["vintages"] if row["asof"] == "2026-08-06")
+    assert drawn["path_source"] == "structural"
+    assert [value for _, value in drawn["values"]][:2] == [26348, 25655], "원시 값을 그렸다"
+    # 채점도 그려진 선으로 한다 — 음영과 표가 다른 선을 가리키면 안 된다
+    assert drawn["realized"]["predicted"] == 25655
+
+
+def test_pre_curvature_archives_fall_back_without_pretending(tmp_path: Path) -> None:
+    """굴곡 도입 전(schema v1) 아카이브는 원시 값이 곧 그려진 선이었다 — 폴백이 사실이다."""
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25500.0], weeks=["7/30", "8/6"])
+    _archive(tmp_path, "2026-08-06", anchor=25100.0, values=[25100.0],
+             week_dates=["2026-08-06"])
+    track = load_scenario_track(tmp_path)
+    assert track["vintages"][0]["path_source"] == "gbm_median"
+
+
+def test_axis_ticks_are_thinned_by_pixel_gap() -> None:
+    """'전체 전망'으로 축이 길어지면 주차 눈금과 실현 구간 날짜가 겹쳐 글자가 뭉개진다."""
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "TICK_MIN_GAP" in flow, "눈금을 픽셀 간격으로 솎지 않는다"
+    assert "tickCandidates" in flow, "두 출처의 눈금을 한 목록으로 합치지 않는다"
+
+
+def test_legend_does_not_pull_the_next_block_over_itself() -> None:
+    """범례가 두 줄로 접히면 음수 마진으로 당겨진 다음 블록이 그 위를 덮는다(실측 8px)."""
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    assert ".flow-shape-controls{margin:-8px" not in css, "음수 마진이 되돌아왔다"
+    assert ".band-inline{margin-bottom:" in css
+
+
+def test_past_and_future_orange_form_one_line() -> None:
+    """주황 선은 하나여야 한다 — 오늘 왼쪽은 그날 기록된 S1, 오른쪽은 지금의 S1.
+
+    과거 구간을 점선·다른 굵기로 그리면 '다른 선'으로 읽힌다(사용자 지적). 같은 색·같은
+    굵기의 실선으로, 오늘까지만 그려 현재 경로가 이어받게 한다. 이음새에 남는 세로 단차가
+    곧 그때 예측과 실현의 차이다 — 그것을 없애려고 선을 맞추면 오차가 지워진다.
+    """
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    compare = flow.split("data-track-compare")[0]
+    assert "'stroke-dasharray':'7 4'" not in compare, "과거 구간이 다시 점선이 됐다"
+    assert "'stroke-width':2.6" in compare, "현재 경로와 굵기가 달라 다른 선으로 읽힌다"
+    assert "point[0]<=realizedEnd" in compare, "오늘 너머까지 그리면 현재 경로와 겹친다"
+    # 기본 선택은 과거 전체를 덮는 가장 이른 기록이어야 이어져 보인다
+    assert "const defaultCompare=comparable[0]?.asof||'';" in script
+
+
+def test_past_line_hands_over_to_the_curved_record(tmp_path: Path) -> None:
+    """굴곡 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다.
+
+    한 빈티지만 끝까지 끌면 굴곡 도입 전 기록이 오늘까지 매끈한 직선으로 남는다.
+    각 구간은 그때 실제로 그려졌던 선이고, 지금 만든 값은 하나도 없다.
+    """
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25200.0, 25400.0], weeks=["7/30", "8/6", "8/13"])
+    curved = {
+        "asof": "2026-08-06", "anchor": 26000.0, "ath": 27000.0,
+        "week_dates": ["2026-08-06", "2026-08-13", "2026-08-20"],
+        "paths": {"S1": {"label": "상승·ATH 돌파", "prob": 80,
+                         "values": [26000.0, 26100.0, 26200.0]}},
+        "structural_forecast": {"paths": {"S1": {"values": [26000.0, 25400.0, 26300.0]}}},
+    }
+    (tmp_path / "data" / "scenarios" / "archive" / "2026-08-06.json").write_text(
+        json.dumps(curved, ensure_ascii=False), encoding="utf-8")
+    _archive(tmp_path, "2026-08-20", anchor=26500.0, values=[26500.0],
+             week_dates=["2026-08-20"])
+
+    line = load_scenario_track(tmp_path)["past_line"]
+    assert line["curvature_from"] == "2026-08-06"
+    assert [seg["asof"] for seg in line["segments"]] == ["2026-07-30", "2026-08-06"]
+
+    first, second = line["segments"]
+    assert first["values"][-1][0] == "2026-08-06", "굴곡 기록 시작일에서 넘겨야 한다"
+    assert second["path_source"] == "structural"
+    # 굴곡 구간은 굴곡 값을 쓴다 — 원시 26100 이 아니라 25400
+    assert second["values"][1][1] == 25400
+    # 이음점 단차는 지우지 않는다 — 앞 기록이 그때까지 얼마나 빗나가 있었는지다
+    assert first["values"][-1][1] != second["values"][0][1]
+
+
+def test_past_line_reaches_the_junction_across_a_holiday_gap(tmp_path: Path) -> None:
+    """주차 격자가 휴일 보정으로 오늘을 건너뛰면, 오늘에서 끊어 빈 구간을 만들면 안 된다.
+
+    실제 저장소의 2026-08-06 빈티지는 9/03 다음이 9/11 이라 오늘(9/10)이 격자에 없다.
+    """
+    _archive(tmp_path, "2026-07-30", anchor=25000.0,
+             values=[25000.0, 25200.0, 25400.0],
+             week_dates=["2026-07-30", "2026-09-03", "2026-09-11"])
+    _archive(tmp_path, "2026-09-10", anchor=26000.0, values=[26000.0],
+             week_dates=["2026-09-10"])
+
+    line = load_scenario_track(tmp_path)["past_line"]
+    last = line["segments"][-1]["values"][-1][0]
+    assert last >= "2026-09-10", f"오늘 이전({last})에서 끊겨 현재 경로와 이어지지 않는다"
+
+
+def test_chart_draws_every_past_segment_as_the_same_solid_line() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "pastSegments" in flow, "이어붙인 과거 구간을 쓰지 않는다"
+    assert "부터 굴곡 기록" in flow, "이음점을 화면에서 밝히지 않는다"
