@@ -2304,6 +2304,36 @@ function marketThesis(upProb,rangeProb,closeProb){
   if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',accent:`지지선 확인 전까지 조정 가능성 ${rangeProb}%에 대비합니다.${closeTail}`};
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
 }
+/* ── 홈 신호 카드: 가격 외 두 레이어 ──────────────────────────────────────────
+   V13-VOL(변동성 기준율)과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다.
+   payload 가 스스로 결합을 금지한다 — timeseries_v13_vol.publication 은
+   combined_with_scenario_v5_2:false·trading_signal:false, statistics_lab 은
+   probability_space:'reference_only'·model_use:false 이고, 읽기모델 가드레일도
+   "서로 다른 probability_space는 산술 결합하지 않습니다" 라고 못박고 있다.
+   따라서 이 두 카드는 각자 자기 숫자만 말하고, 시나리오 확률과 섞지 않는다. */
+function v13VolSignal(v13){
+  // 변동성 탭과 같은 t3 게이트. 게이트 전에는 숫자를 내지 않는다.
+  if(v13&&v13.publication&&v13.publication.display_tier!=='t3_live_card')return null;
+  const cell=v13&&v13.cells&&v13.cells.vix25_h21;
+  if(!cell||cell.p==null)return null;
+  return {
+    pct:Math.round(Number(cell.p)*100),
+    clim:cell.clim_base_rate==null?null:Math.round(Number(cell.clim_base_rate)*100),
+    // 얇은 표본·낮은 신뢰도는 숨기지 않고 카드 위에 남긴다.
+    caution:cell.episode_sample==='thin'||cell.reliability==='weak',
+    holdout:(v13.publication||{}).holdout_status||null
+  };
+}
+function dotcomCycleSignal(lab){
+  if(!lab||lab.status!=='ok')return null;
+  const align=lab.cycle_alignment;
+  if(!align||!align.current_start||!align.current_observed_through)return null;
+  const months=(from,to)=>{const a=String(from).split('-'),b=String(to).split('-');
+    return (Number(b[0])-Number(a[0]))*12+(Number(b[1])-Number(a[1]));};
+  const elapsed=months(align.current_start,align.current_observed_through);
+  if(!Number.isFinite(elapsed)||elapsed<0)return null;
+  return {elapsed,total:align.comparison_months||null,charts:(lab.charts||[]).length};
+}
 function renderOverview(){
   const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob, closeProb=scenarioCloseAboveProb(sc);
@@ -2311,6 +2341,7 @@ function renderOverview(){
   const thesis=vintage.status==='stale'
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb,closeProb);
+  const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab);
   const decisions=selectDecisionItems({minAbsoluteDelta:1,limit:8});
   const recent=[...decisions].filter(item=>item.delta!=null||item.newSince).slice(0,3);
   decisions.filter(item=>!recent.includes(item)).slice(0,3-recent.length).forEach(item=>recent.push(item));
@@ -2320,10 +2351,12 @@ function renderOverview(){
   const status=vintage.status==='stale'?'갱신 필요':'정상';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 신호 3개">
+    <div class="today-signals" aria-label="핵심 신호 5개">
       <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
-      <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
-      <article><span>신호 03 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
+      <article><span>신호 02 · 변동성 기준율</span><strong>${vol==null?'검증 대기':`VIX 25 터치 ${vol.pct}%`}</strong><small>${vol==null?'V13-VOL 게이트 전 — 숫자 비공개':`21거래일 · 기후 기준율 ${vol.clim==null?'—':vol.clim+'%'}${vol.caution?' · 표본 얇음':''} · 결합 금지 참고값`}</small></article>
+      <article><span>신호 03 · 닷컴↔AI 대조</span><strong>${cycle==null?'집계 대기':`AI 사이클 ${cycle.elapsed}${cycle.total?'/'+cycle.total:''}개월`}</strong><small>${cycle==null?'통계 payload 미수집':`1995~1999 대조축 · 지표 ${cycle.charts}종 · 결합 금지 참고값`}</small></article>
+      <article><span>신호 04 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
+      <article><span>신호 05 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
     <div class="today-columns">
       <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>
