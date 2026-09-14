@@ -2636,7 +2636,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
      그려 그날의 기록을 통째로 본다. */
   const pastSegments=(overlay&&compare.asof===track.vintages[0]?.asof
     ?(track.past_line?.segments||[]):[]).filter(seg=>(seg.values||[]).length>1);
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...(overlay?dailyScenarioPath(sc,activeKey,cut).map(point=>point[1]):[]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2688,11 +2688,19 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   });
   [activeKey].forEach(key=>{
     const values=paths[key];if(values.length!==n)return;
-    let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.6,'stroke-linejoin':'round','data-original-path':key}));
-    const endValue=values[n-1];
-    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
-    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
+    /* 주간 52점은 같은 모형의 성긴 표본이라 점 사이가 직선으로 이어진다. quantile_table 에
+       이미 실려 있는 거래일 252개 일별 조건부 중앙값으로 그린다(추가 데이터 없음).
+       이벤트·리스크 띠·눈금·커서는 주간 격자를 그대로 쓴다 — 인덱스 의미가 다르다. */
+    const dailyPoints=overlay?dailyScenarioPath(sc,key,cut):[];
+    const useDaily=dailyPoints.length>1;
+    const d=useDaily
+      ?dailyPoints.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ')
+      :values.map((value,index)=>(index?'L':'M')+X(index)+','+Y(value)).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.6,'stroke-linejoin':'round','data-original-path':key,'data-path-grid':useDaily?'daily':'weekly'}));
+    const endValue=useDaily?dailyPoints[dailyPoints.length-1][1]:values[n-1];
+    const endX=useDaily?dateX(dailyPoints[dailyPoints.length-1][0]):X(n-1);
+    svg.appendChild(mk('circle',{cx:endX,cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
+    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(Math.round(endValue))} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
   });
   rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
   rightLabels.push({key:'corr10',y:Y(sc.corr10),text:`−10% ${num(sc.corr10)}`,color:'#c9002d',opacity:1,weight:650,fontSize:11});
@@ -2731,7 +2739,8 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
       const seam=pastSegments[1].values[0];
       svg.appendChild(mk('line',{x1:dateX(seam[0]),y1:MT,x2:dateX(seam[0]),y2:MT+PH,
         stroke:'rgba(17,17,15,.22)','stroke-width':1,'stroke-dasharray':'2 4'}));
-      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,seam[0].slice(5).replace('-','/')+'부터 굴곡 기록',
+      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,
+        seam[0].slice(5).replace('-','/')+'부터 '+(track.past_line?.handover_label||'상세 기록'),
         {fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
     }
     if(!pastSegments.length)svg.appendChild(halo(tx(dateX(drawn[0][0])+5,Y(drawn[0][1])-10,compare.asof.slice(5).replace('-','/')+' 기록',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
@@ -2816,6 +2825,23 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
     else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}
   });
   host.replaceChildren(svg);paintCursor(0);
+}
+/* quantile_table 의 거래일 252개 일별 조건부 중앙값을 [날짜, 값] 목록으로 만든다.
+   일별 축은 asof **다음** 거래일부터라, 그날 확정 종가(anchor)를 앞에 붙여야 선이
+   그날 값에서 출발한다 — 없는 값을 만드는 것이 아니라 이미 기록된 값을 잇는 것이다.
+   scenario_track._daily_series 와 같은 규칙. */
+function dailyScenarioPath(sc,key,cut){
+  const table=sc?.quantile_table||{};
+  const days=table.trading_days,values=(table.per_scenario_p50||{})[key];
+  if(!Array.isArray(days)||!Array.isArray(values)||!days.length||days.length!==values.length)return [];
+  if(sc.anchor==null||!sc.asof)return [];
+  const out=[[String(sc.asof),Number(sc.anchor)]];
+  for(let index=0;index<days.length;index++){
+    const day=String(days[index]);
+    if(cut&&day>cut)break;
+    out.push([day,Number(values[index])]);
+  }
+  return out;
 }
 const ORIGINAL_FLOW_KEY='S1';
 const trackDay=value=>Date.UTC(+String(value).slice(0,4),+String(value).slice(5,7)-1,+String(value).slice(8,10))/86400000;

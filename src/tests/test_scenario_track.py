@@ -256,11 +256,11 @@ def test_past_and_future_orange_form_one_line() -> None:
     assert "const defaultCompare=comparable[0]?.asof||'';" in script
 
 
-def test_past_line_hands_over_to_the_curved_record(tmp_path: Path) -> None:
-    """굴곡 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다.
+def test_past_line_hands_over_to_the_richer_record(tmp_path: Path) -> None:
+    """더 촘촘한 기록이 생긴 날부터는 그쪽으로 바통을 넘긴다.
 
-    한 빈티지만 끝까지 끌면 굴곡 도입 전 기록이 오늘까지 매끈한 직선으로 남는다.
-    각 구간은 그때 실제로 그려졌던 선이고, 지금 만든 값은 하나도 없다.
+    성긴 기록(주간)만 끝까지 끌면 오늘까지 직선 몇 개로 남는다. 촘촘함의 순위는
+    일별 252점 > 굴곡 주간 52점 > 원시 주간이고, 각 구간은 그때 기록된 값 그대로다.
     """
     _archive(tmp_path, "2026-07-30", anchor=25000.0,
              values=[25000.0, 25200.0, 25400.0], weeks=["7/30", "8/6", "8/13"])
@@ -277,16 +277,19 @@ def test_past_line_hands_over_to_the_curved_record(tmp_path: Path) -> None:
              week_dates=["2026-08-20"])
 
     line = load_scenario_track(tmp_path)["past_line"]
-    assert line["curvature_from"] == "2026-08-06"
+    assert line["handover_from"] == "2026-08-06"
+    assert line["handover_label"] == "굴곡 기록"
     assert [seg["asof"] for seg in line["segments"]] == ["2026-07-30", "2026-08-06"]
 
     first, second = line["segments"]
-    assert first["values"][-1][0] == "2026-08-06", "굴곡 기록 시작일에서 넘겨야 한다"
+    assert first["values"][-1][0] == "2026-08-06", "바통 넘김 지점에서 끝나야 한다"
     assert second["path_source"] == "structural"
     # 굴곡 구간은 굴곡 값을 쓴다 — 원시 26100 이 아니라 25400
     assert second["values"][1][1] == 25400
     # 이음점 단차는 지우지 않는다 — 앞 기록이 그때까지 얼마나 빗나가 있었는지다
     assert first["values"][-1][1] != second["values"][0][1]
+    # 앞 구간이 다음 구간 시작을 넘어가면 두 선이 갈래처럼 보인다
+    assert first["values"][-1][0] <= second["values"][0][0]
 
 
 def test_past_line_reaches_the_junction_across_a_holiday_gap(tmp_path: Path) -> None:
@@ -309,4 +312,53 @@ def test_chart_draws_every_past_segment_as_the_same_solid_line() -> None:
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
     assert "pastSegments" in flow, "이어붙인 과거 구간을 쓰지 않는다"
-    assert "부터 굴곡 기록" in flow, "이음점을 화면에서 밝히지 않는다"
+    assert "handover_label" in flow, "이음점이 무슨 기록으로 넘어갔는지 밝히지 않는다"
+
+
+def test_daily_series_is_preferred_over_the_weekly_grid(tmp_path: Path) -> None:
+    """주간 52점은 같은 모형의 성긴 표본이라 점 사이가 직선으로 이어진다.
+
+    아카이브는 처음부터 quantile_table 에 거래일 252개와 시나리오별 조건부 중앙값을
+    담아 왔는데(실제 저장소 34건 중 32건) 화면은 그 해상도를 버리고 있었다.
+    일별 축은 asof **다음** 거래일부터라 그날 확정 종가를 앞에 붙여 선이 그날에서 출발한다.
+    """
+    payload = {
+        "asof": "2026-08-06", "anchor": 26000.0, "ath": 27000.0,
+        "week_dates": ["2026-08-06", "2026-08-13"],
+        "paths": {"S1": {"label": "상승·ATH 돌파", "prob": 80, "values": [26000.0, 26500.0]}},
+        "quantile_table": {
+            "trading_days": ["2026-08-07", "2026-08-10", "2026-08-11"],
+            "per_scenario_p50": {"S1": [26100.0, 26050.0, 26200.0]},
+        },
+    }
+    directory = tmp_path / "data" / "scenarios" / "archive"
+    directory.mkdir(parents=True, exist_ok=True)
+    (directory / "2026-08-06.json").write_text(json.dumps(payload, ensure_ascii=False),
+                                               encoding="utf-8")
+    _archive(tmp_path, "2026-08-11", anchor=26150.0, values=[26150.0],
+             week_dates=["2026-08-11"])
+
+    row = next(v for v in load_scenario_track(tmp_path)["vintages"] if v["asof"] == "2026-08-06")
+    assert row["path_source"] == "daily_p50"
+    assert [day for day, _ in row["values"]] == \
+        ["2026-08-06", "2026-08-07", "2026-08-10", "2026-08-11"]
+    assert row["values"][0][1] == 26000, "그날 확정 종가에서 출발해야 한다"
+
+
+def test_real_repository_draws_the_scenario_daily() -> None:
+    """실제 저장소 회귀 — 주간으로 되돌아가면 선이 다시 직선 몇 개가 된다."""
+    track = load_scenario_track(ROOT)
+    daily = [row for row in track["vintages"] if row["path_source"] == "daily_p50"]
+    assert len(daily) > len(track["vintages"]) / 2, "대부분이 일별이어야 한다"
+    # 오늘까지 덮는 과거 구간이 주간(5~6점)이 아니라 일별 해상도여야 한다
+    segments = track["past_line"]["segments"]
+    assert segments and len(segments[-1]["values"]) >= 20, \
+        f"과거 구간이 {len(segments[-1]['values'])}점 — 주간 해상도로 되돌아갔다"
+
+
+def test_chart_draws_the_current_path_from_the_daily_table() -> None:
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    assert "function dailyScenarioPath(" in script
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    assert "dailyScenarioPath(sc,key,cut)" in flow, "현재 경로를 일별로 그리지 않는다"
+    assert "'data-path-grid'" in flow, "어느 격자로 그렸는지 표시하지 않는다"
