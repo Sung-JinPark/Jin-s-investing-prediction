@@ -2296,11 +2296,43 @@ function scenarioCloseAboveProb(sc){
 }
 function marketThesis(upProb,rangeProb,closeProb){
   /* quantile_table.prob_above_anchor는 payload가 scenario_conditional(모델 조건부)로 못박은 값이다 —
-     조회 카드와 같은 어휘(모의 경로 비율)로 부르고 '확률'로 승격하지 않는다. */
-  const closeTail=closeProb==null?'':` 연말 종가가 기준가를 넘는 모의 경로는 ${closeProb}%입니다.`;
+     조회 카드와 같은 어휘(모의 경로 비율)로 부르고 '확률'로 승격하지 않는다.
+     임계는 anchor(=asof 종가)이지 S2의 고정 기준가(REFERENCE_PRICE)가 아니다 —
+     둘을 같은 '기준가'로 부르면 anchor가 기준가 아래로 내려갈 때 방향까지 어긋난다. */
+  const closeTail=closeProb==null?'':` 연말 종가가 현재가를 넘는 모의 경로는 ${closeProb}%입니다.`;
   if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',accent:`연말까지 전고점을 넘거나 기준가를 지키는 경로가 ${upProb}%입니다.${closeTail}`};
   if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',accent:`지지선 확인 전까지 조정 가능성 ${rangeProb}%에 대비합니다.${closeTail}`};
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
+}
+/* ── 홈 신호 카드: 가격 외 두 레이어 ──────────────────────────────────────────
+   V13-VOL(변동성 기준율)과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다.
+   payload 가 스스로 결합을 금지한다 — timeseries_v13_vol.publication 은
+   combined_with_scenario_v5_2:false·trading_signal:false, statistics_lab 은
+   probability_space:'reference_only'·model_use:false 이고, 읽기모델 가드레일도
+   "서로 다른 probability_space는 산술 결합하지 않습니다" 라고 못박고 있다.
+   따라서 이 두 카드는 각자 자기 숫자만 말하고, 시나리오 확률과 섞지 않는다. */
+function v13VolSignal(v13){
+  // 변동성 탭과 같은 t3 게이트. 게이트 전에는 숫자를 내지 않는다.
+  if(v13&&v13.publication&&v13.publication.display_tier!=='t3_live_card')return null;
+  const cell=v13&&v13.cells&&v13.cells.vix25_h21;
+  if(!cell||cell.p==null)return null;
+  return {
+    pct:Math.round(Number(cell.p)*100),
+    clim:cell.clim_base_rate==null?null:Math.round(Number(cell.clim_base_rate)*100),
+    // 얇은 표본·낮은 신뢰도는 숨기지 않고 카드 위에 남긴다.
+    caution:cell.episode_sample==='thin'||cell.reliability==='weak',
+    holdout:(v13.publication||{}).holdout_status||null
+  };
+}
+function dotcomCycleSignal(lab){
+  if(!lab||lab.status!=='ok')return null;
+  const align=lab.cycle_alignment;
+  if(!align||!align.current_start||!align.current_observed_through)return null;
+  const months=(from,to)=>{const a=String(from).split('-'),b=String(to).split('-');
+    return (Number(b[0])-Number(a[0]))*12+(Number(b[1])-Number(a[1]));};
+  const elapsed=months(align.current_start,align.current_observed_through);
+  if(!Number.isFinite(elapsed)||elapsed<0)return null;
+  return {elapsed,total:align.comparison_months||null,charts:(lab.charts||[]).length};
 }
 function renderOverview(){
   const sc=DATA.scenario;
@@ -2309,6 +2341,7 @@ function renderOverview(){
   const thesis=vintage.status==='stale'
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb,closeProb);
+  const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab);
   const decisions=selectDecisionItems({minAbsoluteDelta:1,limit:8});
   const recent=[...decisions].filter(item=>item.delta!=null||item.newSince).slice(0,3);
   decisions.filter(item=>!recent.includes(item)).slice(0,3-recent.length).forEach(item=>recent.push(item));
@@ -2318,10 +2351,12 @@ function renderOverview(){
   const status=vintage.status==='stale'?'갱신 필요':'정상';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 신호 3개">
-      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
-      <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
-      <article><span>신호 03 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
+    <div class="today-signals" aria-label="핵심 신호 5개">
+      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
+      <article><span>신호 02 · 변동성 기준율</span><strong>${vol==null?'검증 대기':`VIX 25 터치 ${vol.pct}%`}</strong><small>${vol==null?'V13-VOL 게이트 전 — 숫자 비공개':`21거래일 · 기후 기준율 ${vol.clim==null?'—':vol.clim+'%'}${vol.caution?' · 표본 얇음':''} · 결합 금지 참고값`}</small></article>
+      <article><span>신호 03 · 닷컴↔AI 대조</span><strong>${cycle==null?'집계 대기':`AI 사이클 ${cycle.elapsed}${cycle.total?'/'+cycle.total:''}개월`}</strong><small>${cycle==null?'통계 payload 미수집':`1995~1999 대조축 · 지표 ${cycle.charts}종 · 결합 금지 참고값`}</small></article>
+      <article><span>신호 04 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
+      <article><span>신호 05 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
     <div class="today-columns">
       <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>
@@ -2636,7 +2671,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
      그려 그날의 기록을 통째로 본다. */
   const pastSegments=(overlay&&compare.asof===track.vintages[0]?.asof
     ?(track.past_line?.segments||[]):[]).filter(seg=>(seg.values||[]).length>1);
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&!usingStructural)?dailyScenarioPath(sc,activeKey,cut).map(point=>point[1]):[]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2688,11 +2723,20 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   });
   [activeKey].forEach(key=>{
     const values=paths[key];if(values.length!==n)return;
-    let d='';values.forEach((value,index)=>{d+=(index?'L':'M')+X(index)+','+Y(value)+' ';});
-    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.6,'stroke-linejoin':'round','data-original-path':key}));
-    const endValue=values[n-1];
-    svg.appendChild(mk('circle',{cx:X(n-1),cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
-    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(endValue)} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
+    /* 굵은 선은 **구조 경로**(과거 조정 모양을 입힌 주간 52점)다. quantile_table 의 일별
+       252점이 더 촘촘하지만 그것은 9,000 경로의 조건부 중앙값이라 실측 1년 최대 낙폭이
+       0.07% — 거의 단조 상승이라 가격 경로로 내보이면 비현실적이다(구조 경로는 12.15%).
+       구조 경로가 없는 스냅샷에서만 일별로 떨어진다. */
+    const dailyPoints=(overlay&&!usingStructural)?dailyScenarioPath(sc,key,cut):[];
+    const useDaily=dailyPoints.length>1;
+    const d=useDaily
+      ?dailyPoints.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ')
+      :values.map((value,index)=>(index?'L':'M')+X(index)+','+Y(value)).join(' ');
+    svg.appendChild(mk('path',{d,fill:'none',stroke:CHART_COL[key],'stroke-width':2.6,'stroke-linejoin':'round','data-original-path':key,'data-path-grid':useDaily?'daily':'weekly'}));
+    const endValue=useDaily?dailyPoints[dailyPoints.length-1][1]:values[n-1];
+    const endX=useDaily?dateX(dailyPoints[dailyPoints.length-1][0]):X(n-1);
+    svg.appendChild(mk('circle',{cx:endX,cy:Y(endValue),r:3.8,fill:CHART_COL[key],stroke:'#fff','stroke-width':1.6}));
+    rightLabels.push({key,y:Y(endValue),text:`${key} ${num(Math.round(endValue))} · ${sc.paths?.[key]?.prob}%`,color:CHART_LABEL_COL[key],opacity:1,weight:750,fontSize:12});
   });
   rightLabels.push({key:'ath',y:Y(sc.ath),text:`ATH ${num(sc.ath)}`,color:'rgba(17,17,15,.62)',opacity:1,weight:650,fontSize:11});
   rightLabels.push({key:'corr10',y:Y(sc.corr10),text:`−10% ${num(sc.corr10)}`,color:'#c9002d',opacity:1,weight:650,fontSize:11});
@@ -2731,7 +2775,8 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
       const seam=pastSegments[1].values[0];
       svg.appendChild(mk('line',{x1:dateX(seam[0]),y1:MT,x2:dateX(seam[0]),y2:MT+PH,
         stroke:'rgba(17,17,15,.22)','stroke-width':1,'stroke-dasharray':'2 4'}));
-      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,seam[0].slice(5).replace('-','/')+'부터 굴곡 기록',
+      svg.appendChild(halo(tx(dateX(seam[0])+5,Y(seam[1])-10,
+        seam[0].slice(5).replace('-','/')+'부터 '+(track.past_line?.handover_label||'상세 기록'),
         {fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
     }
     if(!pastSegments.length)svg.appendChild(halo(tx(dateX(drawn[0][0])+5,Y(drawn[0][1])-10,compare.asof.slice(5).replace('-','/')+' 기록',{fill:CHART_LABEL_COL[activeKey],fs:11,w:750})));
@@ -2816,6 +2861,23 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
     else if(event.key==='End'){event.preventDefault();paintCursor(n-1);}
   });
   host.replaceChildren(svg);paintCursor(0);
+}
+/* quantile_table 의 거래일 252개 일별 조건부 중앙값을 [날짜, 값] 목록으로 만든다.
+   일별 축은 asof **다음** 거래일부터라, 그날 확정 종가(anchor)를 앞에 붙여야 선이
+   그날 값에서 출발한다 — 없는 값을 만드는 것이 아니라 이미 기록된 값을 잇는 것이다.
+   scenario_track._daily_series 와 같은 규칙. */
+function dailyScenarioPath(sc,key,cut){
+  const table=sc?.quantile_table||{};
+  const days=table.trading_days,values=(table.per_scenario_p50||{})[key];
+  if(!Array.isArray(days)||!Array.isArray(values)||!days.length||days.length!==values.length)return [];
+  if(sc.anchor==null||!sc.asof)return [];
+  const out=[[String(sc.asof),Number(sc.anchor)]];
+  for(let index=0;index<days.length;index++){
+    const day=String(days[index]);
+    if(cut&&day>cut)break;
+    out.push([day,Number(values[index])]);
+  }
+  return out;
 }
 const ORIGINAL_FLOW_KEY='S1';
 const trackDay=value=>Date.UTC(+String(value).slice(0,4),+String(value).slice(5,7)-1,+String(value).slice(8,10))/86400000;
@@ -4277,7 +4339,7 @@ function renderHeaderStrip(){
   const items=[];
   if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;
     items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vintage.status==='stale'?`보관값 · ${sc.asof}`:`${sc.asof} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`,cls:vintage.status==='stale'?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
-  if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'52주 기준'});
+  if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
   if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
   if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});

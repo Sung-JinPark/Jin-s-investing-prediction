@@ -1728,3 +1728,39 @@ adbe 는 **기준 선택이 결과를 뒤집는** 사례로 남는다. 널리 �
 **기록.** `src/ai_fc/models.py` · `src/ai_fc/registry.py`(`estimated_deadline_block`) ·
 `src/ai_fc/cli.py`(`--due` 배치 건너뜀) · `questions/registry.yaml`(9건 표기 + 해소 3건
 status) · `src/tests/test_estimated_deadline_guard.py`(12건).
+
+## 2026-09-14 — 홈 신호 행 3장 → 5장: 가격 외 두 레이어 노출 (사용자 결정)
+
+**요청.** "다변량 시계열 쌓인 결과 + 닷컴버블 AI 통계지표 두 개를 합쳐서 %를 매겨
+메인페이지에 올리자. 어려우면 두 가지를 나누고."
+
+**합산은 불가 — 난이도가 아니라 세 겹의 차단.**
+
+1. **산술이 성립 안 함.** V13-VOL 은 변동성 초과확률(VIX 25/30 터치·실현변동성
+   > 16.9%, 5·21·63일), 시나리오는 연말 가격 경로 확률, 닷컴/AI 통계는 확률이
+   아니라 수준·비율(`cycle_start_100`·`count`) 28종이다. 사건도 단위도 다르다.
+2. **payload 가 스스로 결합을 금지.** `timeseries_v13_vol.publication` 은
+   `combined_with_official_forecasts:false` · `combined_with_scenario_v5_2:false` ·
+   `reference_opinion_only:true` · `trading_signal:false`, 통계 payload 는
+   `probability_space:'reference_only'` · `model_use:false` ·
+   `official_forecast_input:false`. 시나리오 note 는 "질문별 physical_event 확률과
+   합산하지 않는다". 읽기모델 가드레일도 "서로 다른 probability_space 는 산술
+   결합하지 않습니다" 를 싣는다.
+3. **CLAUDE.md 하드 게이트.** 가중치 학습 결합은 해소 200+ 뒤 — 현재 해소 7문항.
+
+**결정 (사용자 선택: '신호 카드 2개 추가').** 합치지 않고 **나란히** 놓는다.
+홈 신호 행에 `신호 02 · 변동성 기준율`(V13-VOL `vix25_h21`, 탭과 동일한
+`t3_live_card` 게이트)과 `신호 03 · 닷컴↔AI 대조`(`cycle_alignment` 경과 개월)를
+추가하고, 두 카드 모두 자기 copy 에 **"결합 금지 참고값"** 을 달아 세 확률공간이
+한 줄에 나란히 서는 상황을 카드 스스로 고지하게 한다. V13 카드는 기후 기준율을
+병기하고 `episode_sample:'thin'`·`reliability:'weak'` 이면 "표본 얇음" 을 남긴다.
+
+**되돌리는 것.** UX_AUDIT_260805 는 홈을 "유지·축약 — 신호 2개" 로 적었고 구현은
+3장이었다. 5장은 그 축약 방향의 반대다. 첫 viewport 정보량이 늘어나는 비용을
+알고 택한 소유자 결정이며, `test_u1a_five_section_information_architecture_contract`
+의 상한을 3 → 5 로 **명시 갱신**했다(드리프트로 흘려보내지 않음). 최근 변경 3 ·
+다음 이벤트 3 상한은 유지한다.
+
+**기록.** `dashboard.js`(`v13VolSignal`·`dotcomCycleSignal`·`renderOverview`),
+`test_dashboard_js_geometry.py`(회귀 3종 — t3 게이트·확률 아님·결합 금지 라벨),
+`test_dashboard.py`(계약 갱신).
