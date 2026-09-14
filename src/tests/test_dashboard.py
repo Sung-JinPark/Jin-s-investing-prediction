@@ -346,7 +346,8 @@ def test_ui_contract() -> None:
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
     assert "view-enter" in html, "화면 진입 전환 클래스 없음"
-    assert "today-columns" in html, "오늘의 변경·이벤트 요약 그리드 없음"
+    # 홈은 3카드 + 이벤트 레일로 단순화됐다 (소유자 지시 2026-09-14, DECISIONS).
+    assert "agenda-rail" in html, "다음 이벤트 레일 없음"
     assert "analysis-panel" in html, "분석 패널 없음"
     assert 'class="product-rail"' in html, "데스크톱 제품 rail 없음"
     assert 'class="mobile-drawer"' in html, "모바일 drawer 없음"
@@ -441,12 +442,18 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     ):
         assert mapping in script
     assert 'data-home-core="true"' in html
-    # 지표 행은 3장 → 5장 (소유자 결정 2026-09-14, docs/DECISIONS.md). UX_AUDIT_260805 의
-    # '축약' 방향을 되돌리는 변경이라 계약을 명시적으로 갱신한다 — 드리프트가 아니다.
-    # 최근 변경 3 · 다음 이벤트 3 의 상한은 그대로 둔다.
-    assert "핵심 지표 5개" in html and "최근 변경 3" in html and "다음 이벤트 3" in html
-    assert "원장 현황" in html, "UX-U6 시스템 상태 타일"
-    assert 'body[data-view="today"] .site-footer{display:none}' in css
+    # 홈 재설계 (소유자 지시 2026-09-14, docs/DECISIONS.md): 지표 5장 → 3장,
+    # 최근 변경 섹션 제거, 다음 이벤트는 레일 UI. 메타(질문·해소·대기)는 카드에서
+    # 푸터 한 줄로 내렸다. UX_AUDIT_260805 의 "축약" 방향으로 되돌아온 변경이다.
+    assert "핵심 지표 3개" in html and "다음 이벤트" in html
+    assert "최근 변경" not in html, "최근 변경 섹션은 홈에서 제거됐다"
+    # 카드 라벨이 평이한 말로 무엇을 재는지 말하므로 별도 주석줄은 두지 않는다.
+    for plain in ("연말 주가", "단기 변동성", "닷컴 대비 과열도"):
+        assert plain in html, plain
+    assert "today-context" not in html, "홈 자체 푸터는 전역 푸터로 합쳤다"
+    # 홈 자체 푸터를 없앤 뒤로 전역 푸터가 유일한 투자자문 고지 자리다 — 홈에서도 보인다.
+    assert 'body[data-view="today"] .site-footer{display:none}' not in css
+    assert "투자 자문이나 매매 권유가 아닙니다" in html, "고지가 어디에도 없으면 안 된다"
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script
     assert "numbers_visible===true" in script
