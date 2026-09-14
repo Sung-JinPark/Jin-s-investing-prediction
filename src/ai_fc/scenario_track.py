@@ -64,15 +64,35 @@ def _week_dates(payload: dict[str, Any], asof: str) -> list[str] | None:
     return None
 
 
+def _daily_series(payload: dict[str, Any]) -> tuple[list[str], list[Any]] | None:
+    """252 거래일 **일별** S1 경로.
+
+    주간 52점은 같은 모형의 성긴 표본이라 점과 점 사이가 직선으로 이어진다. 아카이브는
+    처음부터 `quantile_table` 에 거래일 252개와 시나리오별 조건부 중앙값을 함께 담아
+    왔는데(34건 중 32건), 화면은 주간만 쓰고 그 해상도를 버리고 있었다.
+
+    일별 축은 asof **다음** 거래일부터 시작한다. 그날의 확정 종가(anchor)를 앞에 붙여야
+    선이 그날 값에서 출발한다 — 없는 값을 만드는 것이 아니라 이미 기록된 값을 잇는 것이다.
+    """
+    table = payload.get("quantile_table") or {}
+    days = table.get("trading_days")
+    values = (table.get("per_scenario_p50") or {}).get(SCENARIO_KEY)
+    anchor, asof = payload.get("anchor"), payload.get("asof")
+    if not isinstance(days, list) or not isinstance(values, list):
+        return None
+    if not days or len(days) != len(values) or anchor is None or not asof:
+        return None
+    return [str(asof), *(str(day) for day in days)], [anchor, *values]
+
+
 def _display_values(payload: dict[str, Any], dates_length: int) -> tuple[list, str]:
-    """그날 **화면에 실제로 그려졌던** 경로.
+    """주간 격자에서 **그날 화면에 그려졌던** 경로 (일별이 없을 때의 대안).
 
     굵은 주황 선은 원시 GBM 중앙값이 아니라 과거 조정 모양을 입힌 구조 경로다
-    (dashboard.js 의 flowDisplayPath 와 같은 규칙). 원시 값을 쓰면 매끈한 우상향
-    직선이 되어, 그날 화면과 다른 그림을 놓고 "얼마나 맞았나"를 묻게 된다.
+    (dashboard.js 의 flowDisplayPath 와 같은 규칙).
 
-    schema v1 아카이브(2026-07-30·07-31)에는 구조 경로가 없다 — 그때는 굴곡을 입히기
-    전이라 원시 값이 곧 그려진 선이었다. 그래서 폴백은 누락이 아니라 사실이다.
+    schema v1 아카이브(2026-07-30·07-31)에는 구조 경로도 일별도 없다 — 그때는 굴곡을
+    입히기 전이라 원시 값이 곧 그려진 선이었다. 그래서 폴백은 누락이 아니라 사실이다.
     """
     structural = (((payload.get("structural_forecast") or {}).get("paths") or {})
                   .get(SCENARIO_KEY) or {}).get("values")
@@ -87,8 +107,15 @@ def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
     anchor = payload.get("anchor")
     if not asof or anchor is None:
         return None
-    dates = _week_dates(payload, str(asof))
-    values, path_source = _display_values(payload, len(dates or []))
+    # 일별 252 거래일이 있으면 그쪽을 쓴다 — 주간 52점은 같은 모형의 성긴 표본이라
+    # 점 사이가 직선으로 이어진다(실측 방향전환 주간 원시 0 · 주간 구조 8 · 일별 11).
+    daily = _daily_series(payload)
+    if daily is not None:
+        dates, values = daily
+        path_source = "daily_p50"
+    else:
+        dates = _week_dates(payload, str(asof))
+        values, path_source = _display_values(payload, len(dates or []))
     if not isinstance(values, list):
         return None
     # 길이가 어긋나면 날짜 정렬을 신뢰할 수 없다 — 조용히 어긋난 선을 그리느니 버린다.
@@ -121,9 +148,14 @@ def _past_line(rows: list[dict[str, Any]], today: str) -> dict[str, Any]:
     if not rows or not today:
         return {"segments": []}
     starts = [rows[0]]
-    curved = next((row for row in rows if row["path_source"] == "structural"), None)
-    if curved is not None and curved["asof"] != rows[0]["asof"]:
-        starts.append(curved)
+    # 성긴 기록(주간 원시)으로 시작했다면, 더 촘촘한 기록이 처음 생긴 날 바통을 넘긴다.
+    # 무엇이 '더 촘촘한가'는 아래 순위로 정한다 — 일별 252점 > 굴곡 주간 52점 > 원시 주간.
+    richer = ("daily_p50", "structural")
+    handover = None
+    if rows[0]["path_source"] not in richer:
+        handover = next((row for row in rows if row["path_source"] in richer), None)
+    if handover is not None and handover["asof"] != rows[0]["asof"]:
+        starts.append(handover)
 
     segments = []
     for index, row in enumerate(starts):
@@ -133,17 +165,25 @@ def _past_line(rows: list[dict[str, Any]], today: str) -> dict[str, Any]:
         for day, value in row["values"]:
             if day < row["asof"]:
                 continue
-            points.append([day, value])
-            if day >= end:
-                # 마지막 구간은 end(오늘)를 **넘어서는 첫 점까지** 포함한다. 주차 격자가
-                # 휴일 보정으로 오늘을 건너뛸 수 있어(8/06 빈티지는 9/03 → 9/11),
-                # 오늘에서 정확히 끊으면 현재 경로와 사이에 빈 구간이 생긴다.
+            if not last and day > end:
+                # 앞 구간이 다음 구간 시작을 넘어가면 두 선이 겹쳐 갈래처럼 보인다.
                 break
+            points.append([day, value])
+            if last and day >= end:
+                # 마지막 구간만 end(오늘)를 **넘어서는 첫 점까지** 포함한다. 격자가 휴일
+                # 보정으로 오늘을 건너뛸 수 있어(8/06 빈티지는 9/03 → 9/11), 오늘에서
+                # 정확히 끊으면 현재 경로와 사이에 빈 구간이 생긴다.
+                break
+        # 점이 하나뿐인 앞 구간은 선이 되지 않는다 — 그릴 수 없으니 버린다.
         if len(points) > 1:
             segments.append({"asof": row["asof"], "path_source": row["path_source"],
                              "values": points})
-    return {"segments": segments,
-            "curvature_from": curved["asof"] if curved is not None else None}
+    labels = {"daily_p50": "일별 기록", "structural": "굴곡 기록", "gbm_median": "주간 기록"}
+    return {
+        "segments": segments,
+        "handover_from": handover["asof"] if handover is not None else None,
+        "handover_label": labels.get(handover["path_source"]) if handover is not None else None,
+    }
 
 
 def load_scenario_track(root: Path, *, cut: str | None = None) -> dict[str, Any]:
