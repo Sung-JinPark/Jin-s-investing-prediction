@@ -277,3 +277,58 @@ console.log(JSON.stringify({
     assert result["scenarioSteps"] == [105, 102.5, 97.5]
     assert result["remaining"] == [19, 13, 4]
     assert result["ends"] == ["2026-08-22"] * 3
+
+
+def _dashboard_source() -> str:
+    return (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+
+
+def test_close_probability_is_labelled_against_the_anchor_not_the_frozen_reference() -> None:
+    """The hero sentence must name the threshold `prob_above_anchor` actually uses.
+
+    `quantile_table.prob_above_anchor` is `(future > anchor)` — anchor is the asof
+    close. S2's 기준가 is the frozen 2026-07-09 close (`REFERENCE_PRICE`). Calling
+    both "기준가" read as one number until anchor sat above the reference; once
+    anchor drops below it the sentence points the wrong way.
+    """
+    source = _dashboard_source()
+    match = re.search(r"function marketThesis\([\s\S]+?\n}\n", source)
+    assert match, "marketThesis must remain a standalone helper"
+    program = match.group(0) + r"""
+console.log(JSON.stringify({
+  up:marketThesis(86,14,69).accent,
+  range:marketThesis(30,60,69).accent,
+  none:marketThesis(86,14,null).accent
+}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",  # the sentence is Korean; the OS codepage is not
+    )
+    result = json.loads(completed.stdout)
+    assert "연말 종가가 현재가를 넘는 모의 경로는 69%입니다." in result["up"]
+    assert "기준가를 넘는" not in result["up"]
+    # S2's own wording keeps 기준가 — only the anchor-based tail was wrong.
+    assert "기준가를 지키는 경로가 86%" in result["up"]
+    assert "현재가를 넘는 모의 경로는 69%" in result["range"]
+    assert "69%" not in result["none"]
+
+
+def test_scenario_close_probability_source_still_compares_against_anchor() -> None:
+    """Pin the other half: if the engine ever switches thresholds, this fails too."""
+    engine = (Path(__file__).parents[1] / "ai_fc" / "scenario.py").read_text(encoding="utf-8")
+    assert '"prob_above_anchor": [' in engine
+    assert "(future > anchor).mean(axis=0)" in engine
+    assert "end_above_reference = classification[:, -1] > REFERENCE_PRICE" in engine
+
+
+def test_ath_chip_does_not_claim_a_52_week_window() -> None:
+    """`ath = max(closes)` spans the whole fetched series (from 2023-01-01)."""
+    source = _dashboard_source()
+    assert "sub:'52주 기준'" not in source
+    assert "sub:'2023년 이후 최고 종가'" in source
+    engine = (Path(__file__).parents[1] / "ai_fc" / "scenario.py").read_text(encoding="utf-8")
+    assert "ath = float(max(closes))" in engine
+    assert "date(2023, 1, 1)" in engine
