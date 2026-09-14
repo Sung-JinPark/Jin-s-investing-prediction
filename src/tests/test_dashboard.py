@@ -447,8 +447,13 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     # 푸터 한 줄로 내렸다. UX_AUDIT_260805 의 "축약" 방향으로 되돌아온 변경이다.
     assert "핵심 지표 3개" in html and "다음 이벤트" in html
     assert "최근 변경" not in html, "최근 변경 섹션은 홈에서 제거됐다"
-    assert "today-basis-note" in html, "서로 다른 기준임을 알리는 주석"
-    assert 'body[data-view="today"] .site-footer{display:none}' in css
+    # 카드 라벨이 평이한 말로 무엇을 재는지 말하므로 별도 주석줄은 두지 않는다.
+    for plain in ("연말 주가", "단기 변동성", "닷컴 대비 과열도"):
+        assert plain in html, plain
+    assert "today-context" not in html, "홈 자체 푸터는 전역 푸터로 합쳤다"
+    # 홈 자체 푸터를 없앤 뒤로 전역 푸터가 유일한 투자자문 고지 자리다 — 홈에서도 보인다.
+    assert 'body[data-view="today"] .site-footer{display:none}' not in css
+    assert "투자 자문이나 매매 권유가 아닙니다" in html, "고지가 어디에도 없으면 안 된다"
     assert ".today-page{min-height:calc(100dvh - 48px)" in css
     assert "function renderTimeseries(initialState)" in script
     assert "numbers_visible===true" in script

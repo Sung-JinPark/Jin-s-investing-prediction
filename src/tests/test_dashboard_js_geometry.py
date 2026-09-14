@@ -402,21 +402,23 @@ console.log(JSON.stringify({
     assert result["stale"] is None and result["noAlign"] is None and result["missing"] is None
 
 
-def test_home_cards_name_their_basis_and_the_row_says_they_are_not_combinable() -> None:
-    """세 숫자는 확률공간이 다르다. 그 사실을 어딘가에서 반드시 말해야 한다.
+def test_home_cards_say_in_plain_words_what_each_percent_counts() -> None:
+    """숫자만 크게 띄우면 86·10·61 이 같은 종류로 읽힌다.
 
-    카드마다 "결합 금지 참고값" 을 반복하던 것을 행 아래 한 줄로 옮겼다 — 카드가 셋뿐이라
-    한 줄이 더 분명하고, 반복 태그보다 읽는 부담이 작다 (홈 재설계, DECISIONS 2026-09-14).
+    라벨을 전문용어(가격 시나리오·다변량 시계열)에서 평이한 말로 바꾸고, 부제가 그 % 가
+    무엇을 센 비율인지 직접 말하게 한다 — 그러면 "서로 다른 기준" 이라는 별도 주석줄이
+    필요 없어진다 (홈 재설계, DECISIONS 2026-09-14).
     """
     source = _dashboard_source()
     assert 'aria-label="핵심 지표 3개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    for label in ("가격 시나리오", "다변량 시계열", "AI 닷컴 비교"):
+    for label in ("연말 주가", "단기 변동성", "닷컴 대비 과열도"):
         assert f"card('{label}'" in row, label
     assert "신호 0" not in row
-    # 결합 금지 고지는 사라진 게 아니라 행 주석으로 옮겨졌다.
-    note = source.split('class="today-basis-note"', 1)[1].split("</p>", 1)[0]
-    assert "서로 다른 기준" in note and "더하거나 평균하지 않습니다" in note
+    # 각 부제가 그 숫자가 무엇을 센 것인지 말해야 한다.
+    assert "끝난 모의 경로" in row, "연말 주가 % 가 무엇의 비율인지"
+    assert "약 한 달 안에 VIX 25 도달" in row, "변동성 % 의 사건과 기간"
+    assert "100이면 닷컴 버블 정점" in row, "과열도 축의 의미"
 
 
 def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> None:
@@ -440,10 +442,10 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
     assert result["unavailable"] is None and result["missing"] is None
 
-    card = source.split("'AI 닷컴 비교'", 1)[1].split("}", 1)[0] + source.split("'AI 닷컴 비교'", 1)[1][:400]
-    assert "닷컴 정점 100%" in card, "축의 의미를 카드가 직접 말해야 한다"
-    assert "부문 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
-    assert "정점 초과 ${heat.beyond}종" in card
+    card = source.split("'닷컴 대비 과열도'", 1)[1][:420]
+    assert "100이면 닷컴 버블 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
+    assert "분야별로 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
+    assert "${heat.beyond}개 지표는 이미 정점 초과" in card
 
 
 def test_home_card_subtitle_is_never_clipped_to_a_fixed_line_count() -> None:

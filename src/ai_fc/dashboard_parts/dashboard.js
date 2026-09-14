@@ -2368,23 +2368,21 @@ function renderOverview(){
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
-      ${card('가격 시나리오', stale?'판정 보류':`${num(upProb)}%`,
-             stale?`마지막 기준 ${vintage.asof}`:`전고점 돌파·기준가 상회 · 조정·횡보 ${num(rangeProb)}%`,
+      ${card('연말 주가', stale?'판정 보류':`${num(upProb)}%`,
+             stale?`마지막 기준 ${vintage.asof}`:'연말에 전고점 돌파 또는 기준가 유지로 끝난 모의 경로',
              stale?'갱신 필요':null)}
-      ${card('다변량 시계열', vol==null?'검증 대기':`${vol.pct}%`,
-             vol==null?'V13-VOL 게이트 전':`VIX 25 터치 · 21거래일 · 기후 ${vol.clim==null?'—':vol.clim+'%'}`,
+      ${card('단기 변동성', vol==null?'검증 대기':`${vol.pct}%`,
+             vol==null?'V13-VOL 게이트 전':`약 한 달 안에 VIX 25 도달 · 평소엔 ${vol.clim==null?'—':vol.clim+'%'}`,
              vol&&vol.caution?'표본 얇음':null)}
-      ${card('AI 닷컴 비교', heat==null?(cycle==null?'집계 대기':`${cycle.pct}%`):`${heat.pct}%`,
-             heat==null?(cycle==null?'통계 미수집':`닷컴 대조축 경과 · ${cycle.elapsed}/${cycle.total}개월`)
-                       :`과열도 · 닷컴 정점 100% · 부문 ${heat.lo}~${heat.hi}%`,
-             heat&&heat.beyond?`정점 초과 ${heat.beyond}종`:null)}
+      ${card('닷컴 대비 과열도', heat==null?(cycle==null?'집계 대기':`${cycle.pct}%`):`${heat.pct}%`,
+             heat==null?(cycle==null?'통계 미수집':`닷컴 대조축 ${cycle.elapsed}/${cycle.total}개월 경과`)
+                       :`100이면 닷컴 버블 정점 · 분야별로 ${heat.lo}~${heat.hi}`,
+             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null)}
     </div>
-    <p class="today-basis-note">세 숫자는 서로 다른 기준에서 나옵니다 — 더하거나 평균하지 않습니다.</p>
     <section class="today-agenda" aria-labelledby="today-events">
       <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#records/journal">전체 일정</a></div>
       <ol class="agenda-rail">${events.map(item=>`<li><a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"><time><b>${esc(String(item.date||'').slice(5))}</b><i>${esc(dday(String(item.date||'')))}</i></time><p>${esc(item.title||item.label||'일정')}</p><span>${esc(tag(item.status))}</span></a></li>`).join('')||'<li class="agenda-empty">예정된 이벤트가 없습니다.</li>'}</ol>
     </section>
-    <footer class="today-context"><span>질문 ${num((DATA.questions||[]).length)} · 해소 ${num(Object.keys(DATA.resolutions||{}).length)} · 재예측 대기 ${num((DATA.due||[]).length)}</span><span>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로</span><strong>조건부 분포 · 단일 가격 제시·사건확률·투자자문 아님</strong></footer>
   </section></div>`);
   mount(root);
 }
