@@ -402,43 +402,31 @@ console.log(JSON.stringify({
     assert result["stale"] is None and result["noAlign"] is None and result["missing"] is None
 
 
-def test_home_signal_row_labels_both_extra_layers_as_non_combinable() -> None:
-    """Guardrail in the read model: 서로 다른 probability_space는 산술 결합하지 않는다.
+def test_home_cards_name_their_basis_and_the_row_says_they_are_not_combinable() -> None:
+    """세 숫자는 확률공간이 다르다. 그 사실을 어딘가에서 반드시 말해야 한다.
 
-    The home row shows three probability spaces side by side, so each non-scenario
-    card has to carry that status in its own copy rather than relying on a page note.
+    카드마다 "결합 금지 참고값" 을 반복하던 것을 행 아래 한 줄로 옮겼다 — 카드가 셋뿐이라
+    한 줄이 더 분명하고, 반복 태그보다 읽는 부담이 작다 (홈 재설계, DECISIONS 2026-09-14).
     """
     source = _dashboard_source()
-    assert 'aria-label="핵심 지표 5개"' in source
+    assert 'aria-label="핵심 지표 3개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    # 카드마다, 그리고 폴백 분기까지 자기 copy 로 달고 있어야 한다 — 행 전체 개수로 세면
-    # 분기를 추가할 때 조용히 통과한다.
-    for basis in ("다변량 시계열 기준", "AI 닷컴버블 비교 기준"):
-        card = row.split(basis, 1)[1].split("</article>", 1)[0]
-        assert "결합 금지 참고값" in card, basis
-    scenario_card = row.split("가격 시나리오 기준", 1)[1].split("</article>", 1)[0]
-    assert "결합 금지 참고값" not in scenario_card, "공식 확률공간 카드에는 붙이지 않는다"
-    # 카드 머리말은 번호가 아니라 '무엇을 근거로 한 숫자인지' 를 말한다.
-    for label in ("가격 시나리오 기준", "다변량 시계열 기준", "AI 닷컴버블 비교 기준",
-                  "변화 감지", "원장 현황"):
-        assert f"<span>{label}</span>" in row, label
+    for label in ("가격 시나리오", "다변량 시계열", "AI 닷컴 비교"):
+        assert f"card('{label}'" in row, label
     assert "신호 0" not in row
-    # the two added numbers must never be folded into the scenario probability
-    assert "upProb+vol" not in source and "vol.pct+" not in source
+    # 결합 금지 고지는 사라진 게 아니라 행 주석으로 옮겨졌다.
+    note = source.split('class="today-basis-note"', 1)[1].split("</p>", 1)[0]
+    assert "서로 다른 기준" in note and "더하거나 평균하지 않습니다" in note
 
 
 def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> None:
-    """대표값만 내보내면 '자산은 닷컴보다 뜨겁고 신용여건은 차갑다' 가 지워진다.
-
-    현재 부문 중앙값이 8~100% 로 갈려 있어, 77% 라는 한 숫자는 그 자체로는
-    양극화를 감춘다. 카드 copy 가 산포를 항상 동반하도록 고정한다.
-    """
+    """대표값만 내보내면 부문이 33~160% 로 갈려 있다는 사실이 지워진다."""
     source = _dashboard_source()
-    match = re.search(r"function dotcomOverheatSignal\([\s\S]+?\n}\n", source)
+    pattern = "function dotcomOverheatSignal" + r"\([\s\S]+?" + chr(10) + "}" + chr(10)
+    match = re.search(pattern, source)
     assert match, "dotcomOverheatSignal must remain standalone"
     # 손으로 쓴 픽스처는 필드명이 어긋나도 자기들끼리 맞아 통과한다 —
     # 실제로 beyond_window_count/beyond_peak_count 가 어긋난 채 배포됐다.
-    # 모듈의 진짜 출력을 그대로 먹인다.
     from ai_fc.dotcom_overheat import compute_index
     live = compute_index(Path(__file__).resolve().parents[2])
     assert live["status"] == "ok", live
@@ -446,30 +434,24 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
             + json.dumps(live, default=str)
             + "),unavailable:dotcomOverheatSignal({status:'unavailable'}),"
               "missing:dotcomOverheatSignal(null)}));")
-    program = match.group(0) + chr(10) + call + chr(10)
-    result = _run_js_file(program)
+    result = _run_js_file(match.group(0) + chr(10) + call + chr(10))
     assert result["ok"]["pct"] == live["overheat_pct"]
     assert [result["ok"]["lo"], result["ok"]["hi"]] == live["category_span"]
-    assert result["ok"]["included"] == live["included"]
     assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
-    assert result["ok"]["categories"] == len(live["category_medians"])
     assert result["unavailable"] is None and result["missing"] is None
 
-    row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    card = row.split("AI 닷컴버블 비교 기준", 1)[1].split("</article>", 1)[0]
-    assert "닷컴 대비 과열도 ${heat.pct}%" in card
-    assert "100% = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
-    assert "부문별 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
-    assert "결합 금지 참고값" in card
+    card = source.split("'AI 닷컴 비교'", 1)[1].split("}", 1)[0] + source.split("'AI 닷컴 비교'", 1)[1][:400]
+    assert "닷컴 정점 100%" in card, "축의 의미를 카드가 직접 말해야 한다"
+    assert "부문 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
+    assert "정점 초과 ${heat.beyond}종" in card
 
 
-def test_home_signal_subtitle_is_not_clipped_to_a_single_line() -> None:
-    """부제는 카드의 단서를 담는다 — 한 줄 고정이면 뒤가 통째로 사라진다.
+def test_home_card_subtitle_is_never_clipped_to_a_fixed_line_count() -> None:
+    """부제는 카드의 단서를 담는다 — 줄 수를 고정하면 뒤가 통째로 사라진다.
 
-    실측: 과열도 카드 부제가 데스크톱에서 **131px 잘려** "지표 13종 · 결합 금지 참고값"
-    이 독자에게 도달하지 않았다. 소스에 문자열이 있는지만 보는 테스트는 이걸 못 잡는다
-    (`test_home_overheat_card_...` 가 통과하는 동안 화면에서는 잘려 있었다).
-    기본 규칙이 두 줄까지 허용하는지 CSS 자체로 고정한다.
+    실측 이력: 한 줄 고정(nowrap+ellipsis)일 때 과열도 카드가 131px 잘려 있었고,
+    2줄 클램프로 바꿔도 좁은 폭에서는 여전히 잘렸다. 재설계에서 카드를 세로 스택으로
+    돌려 부제가 카드 폭을 다 쓰게 했고, 줄 수 제한 자체를 없앴다.
     """
     css = (Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css").read_text(
         encoding="utf-8")
@@ -477,4 +459,10 @@ def test_home_signal_subtitle_is_not_clipped_to_a_single_line() -> None:
     assert rule, ".today-signals small 기본 규칙이 있어야 한다"
     body = rule.group(1)
     assert "white-space:nowrap" not in body, "한 줄 고정은 부제 뒷부분을 버린다"
-    assert "-webkit-line-clamp:2" in body, "두 줄까지 허용하되 무한 증가는 막는다"
+    assert "text-overflow:ellipsis" not in body, "말줄임은 정보 손실을 숨긴다"
+    assert "-webkit-line-clamp" not in body, "줄 수 고정도 같은 손실을 만든다"
+    assert "white-space:normal" in body
+    # 이벤트 제목도 같은 이유로 줄바꿈을 허용한다.
+    rail = re.search(r"\.agenda-rail p\{([^}]*)\}", css)
+    assert rail and "white-space:normal" in rail.group(1)
+

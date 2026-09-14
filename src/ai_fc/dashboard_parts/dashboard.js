@@ -2350,32 +2350,41 @@ function dotcomCycleSignal(lab){
 function renderOverview(){
   const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob, closeProb=scenarioCloseAboveProb(sc);
-  const vintage=scenarioVintage();
-  const thesis=vintage.status==='stale'
+  const vintage=scenarioVintage(), stale=vintage.status==='stale';
+  const thesis=stale
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb,closeProb);
   const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
-  const decisions=selectDecisionItems({minAbsoluteDelta:1,limit:8});
-  const recent=[...decisions].filter(item=>item.delta!=null||item.newSince).slice(0,3);
-  decisions.filter(item=>!recent.includes(item)).slice(0,3-recent.length).forEach(item=>recent.push(item));
-  const today=generatedDay(),calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,3);
-  const fallbackEvents=upcoming(3).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
-  const events=calendar.length?calendar:fallbackEvents;
-  const status=vintage.status==='stale'?'갱신 필요':'정상';
+  const today=generatedDay();
+  const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
+  const events=calendar.length?calendar:upcoming(4).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
+  /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
+     부제가 길어져 뒤가 잘리는 일이 생기지 않게 한다. */
+  const card=(label,value,note,flag)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
+    +`<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
+  const dday=date=>{const d=Math.round((Date.parse(date+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);
+    return !Number.isFinite(d)?'':d===0?'오늘':d>0?`D-${d}`:'';};
+  const tag=s=>s==='estimated'?'추정':s==='question'?'판정':'확정';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 지표 5개">
-      <article><span>가격 시나리오 기준</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
-      <article><span>다변량 시계열 기준</span><strong>${vol==null?'검증 대기':`VIX 25 터치 ${vol.pct}%`}</strong><small>${vol==null?'V13-VOL 게이트 전 — 숫자 비공개':`21거래일 · 기후 기준율 ${vol.clim==null?'—':vol.clim+'%'}${vol.caution?' · 표본 얇음':''} · 결합 금지 참고값`}</small></article>
-      <article><span>AI 닷컴버블 비교 기준</span><strong>${heat==null?(cycle==null?'집계 대기':`닷컴 대조축 ${cycle.pct}% 경과`):`닷컴 대비 과열도 ${heat.pct}%`}</strong><small>${heat==null?(cycle==null?'통계 payload 미수집':`${cycle.elapsed}/${cycle.total}개월 · 결합 금지 참고값`):`100% = 닷컴 정점 · 부문별 ${heat.lo}~${heat.hi}%${heat.beyond?` · 정점 초과 ${heat.beyond}종`:''} · 지표 ${heat.included}종 · 결합 금지 참고값`}</small></article>
-      <article><span>변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
-      <article><span>원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
+    <div class="today-signals" aria-label="핵심 지표 3개">
+      ${card('가격 시나리오', stale?'판정 보류':`${num(upProb)}%`,
+             stale?`마지막 기준 ${vintage.asof}`:`전고점 돌파·기준가 상회 · 조정·횡보 ${num(rangeProb)}%`,
+             stale?'갱신 필요':null)}
+      ${card('다변량 시계열', vol==null?'검증 대기':`${vol.pct}%`,
+             vol==null?'V13-VOL 게이트 전':`VIX 25 터치 · 21거래일 · 기후 ${vol.clim==null?'—':vol.clim+'%'}`,
+             vol&&vol.caution?'표본 얇음':null)}
+      ${card('AI 닷컴 비교', heat==null?(cycle==null?'집계 대기':`${cycle.pct}%`):`${heat.pct}%`,
+             heat==null?(cycle==null?'통계 미수집':`닷컴 대조축 경과 · ${cycle.elapsed}/${cycle.total}개월`)
+                       :`과열도 · 닷컴 정점 100% · 부문 ${heat.lo}~${heat.hi}%`,
+             heat&&heat.beyond?`정점 초과 ${heat.beyond}종`:null)}
     </div>
-    <div class="today-columns">
-      <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>
-      <section aria-labelledby="today-events"><div class="today-section-head"><h2 id="today-events">다음 이벤트 3</h2><a href="#records/journal">전체 일정</a></div><div class="today-list">${events.map(item=>`<a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"><time>${esc(String(item.date||'').slice(5))}</time><span>${esc(item.title||item.label||'일정')}</span><strong>${item.status==='estimated'?'추정':item.status==='question'?'판정':'확정'}</strong></a>`).join('')||'<p>예정된 이벤트가 없습니다.</p>'}</div></section>
-    </div>
-    <footer class="today-context"><span>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로</span><strong>조건부 분포 · 단일 가격 제시·사건확률·투자자문 아님</strong></footer>
+    <p class="today-basis-note">세 숫자는 서로 다른 기준에서 나옵니다 — 더하거나 평균하지 않습니다.</p>
+    <section class="today-agenda" aria-labelledby="today-events">
+      <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#records/journal">전체 일정</a></div>
+      <ol class="agenda-rail">${events.map(item=>`<li><a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"><time><b>${esc(String(item.date||'').slice(5))}</b><i>${esc(dday(String(item.date||'')))}</i></time><p>${esc(item.title||item.label||'일정')}</p><span>${esc(tag(item.status))}</span></a></li>`).join('')||'<li class="agenda-empty">예정된 이벤트가 없습니다.</li>'}</ol>
+    </section>
+    <footer class="today-context"><span>질문 ${num((DATA.questions||[]).length)} · 해소 ${num(Object.keys(DATA.resolutions||{}).length)} · 재예측 대기 ${num((DATA.due||[]).length)}</span><span>as_of ${esc(sc.asof)} · seed ${num(sc.model?.seed)} · ${num(sc.model?.n_paths)}경로</span><strong>조건부 분포 · 단일 가격 제시·사건확률·투자자문 아님</strong></footer>
   </section></div>`);
   mount(root);
 }
