@@ -3,10 +3,10 @@
 > 이 문서는 정적 수기 현황표가 아닙니다. `ai-fc inventory`가 원천 파일과 재구축된
 > 읽기 인덱스에서 결정론적으로 생성합니다. 숫자를 직접 수정하지 마세요.
 
-- Source fingerprint: `aa8f24c9047c7b8e3d1e14cbfae0ca8d932bad1ea82b7796cbeda5cec5e97bce`
+- Source fingerprint: `8915ce1e0229b497fe1ee9e2a9b58f033f9da19a04a1da4d42a5a42c7bf75af2`
 - Registered questions: 79
-- Forecast bodies: 63
-- Evidence files: 27
+- Forecast bodies: 66
+- Evidence files: 30
 - Resolution rows / unique events: 16 / 10
 - Benchmark rows: 16
 - Pending/approved correction rows: 22
@@ -18,12 +18,12 @@
 | Table | Rows |
 |---|---:|
 | `questions` | 79 |
-| `forecasts` | 63 |
+| `forecasts` | 66 |
 | `resolutions` | 16 |
 | `benchmark_scores` | 16 |
 | `resolution_event` | 10 |
 | `score_observation` | 16 |
-| `probability_record` | 193 |
+| `probability_record` | 196 |
 | `source_registry` | 14 |
 | `model_registry` | 14 |
 
