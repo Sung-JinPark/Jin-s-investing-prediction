@@ -28,6 +28,7 @@
     "band_calibration",
     "liquidity",
     "statistics_lab",
+    "dotcom_overheat",
     "timeseries",
     "timeseries_v13_vol",
     "multi_year_stress",
@@ -337,6 +338,9 @@
           "type": "array"
         }
       }
+    },
+    "dotcom_overheat": {
+      "type": "object"
     },
     "timeseries": {
       "type": "object",

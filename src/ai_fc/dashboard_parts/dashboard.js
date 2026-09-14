@@ -2324,6 +2324,16 @@ function v13VolSignal(v13){
     holdout:(v13.publication||{}).holdout_status||null
   };
 }
+function dotcomOverheatSignal(idx){
+  /* dotcom_overheat_index_v1 — 100% 가 닷컴 사이클 극단(정점)인 축. 100% 면 그 부문은
+     닷컴이 터지기 직전 수준이라는 뜻이다. 확률이 아니다. 부문 산포를 항상 함께 낸다 —
+     대표값만 보면 부문이 33~160% 로 갈려 있다는 사실이 지워진다. */
+  if(!idx||idx.status!=='ok'||idx.overheat_pct==null)return null;
+  const span=idx.category_span||[];
+  return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
+          categories:Object.keys(idx.category_medians||{}).length,
+          included:idx.included??null,beyond:idx.beyond_window_count??0};
+}
 function dotcomCycleSignal(lab){
   if(!lab||lab.status!=='ok')return null;
   const align=lab.cycle_alignment;
@@ -2332,7 +2342,10 @@ function dotcomCycleSignal(lab){
     return (Number(b[0])-Number(a[0]))*12+(Number(b[1])-Number(a[1]));};
   const elapsed=months(align.current_start,align.current_observed_through);
   if(!Number.isFinite(elapsed)||elapsed<0)return null;
-  return {elapsed,total:align.comparison_months||null,charts:(lab.charts||[]).length};
+  const total=align.comparison_months||null;
+  /* 대조축 경과율이다 — 확률이 아니다. 28개 지표는 실업률·물가처럼 방향이 제각각인
+     수준값이라 하나의 '과열도 %' 로 합성하지 않는다(합성하면 없는 지표를 만드는 것). */
+  return {elapsed,total,pct:total?Math.round(elapsed/total*100):null,charts:(lab.charts||[]).length};
 }
 function renderOverview(){
   const sc=DATA.scenario;
@@ -2341,7 +2354,7 @@ function renderOverview(){
   const thesis=vintage.status==='stale'
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb,closeProb);
-  const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab);
+  const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
   const decisions=selectDecisionItems({minAbsoluteDelta:1,limit:8});
   const recent=[...decisions].filter(item=>item.delta!=null||item.newSince).slice(0,3);
   decisions.filter(item=>!recent.includes(item)).slice(0,3-recent.length).forEach(item=>recent.push(item));
@@ -2351,12 +2364,12 @@ function renderOverview(){
   const status=vintage.status==='stale'?'갱신 필요':'정상';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
-    <div class="today-signals" aria-label="핵심 신호 5개">
-      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
-      <article><span>신호 02 · 변동성 기준율</span><strong>${vol==null?'검증 대기':`VIX 25 터치 ${vol.pct}%`}</strong><small>${vol==null?'V13-VOL 게이트 전 — 숫자 비공개':`21거래일 · 기후 기준율 ${vol.clim==null?'—':vol.clim+'%'}${vol.caution?' · 표본 얇음':''} · 결합 금지 참고값`}</small></article>
-      <article><span>신호 03 · 닷컴↔AI 대조</span><strong>${cycle==null?'집계 대기':`AI 사이클 ${cycle.elapsed}${cycle.total?'/'+cycle.total:''}개월`}</strong><small>${cycle==null?'통계 payload 미수집':`1995~1999 대조축 · 지표 ${cycle.charts}종 · 결합 금지 참고값`}</small></article>
-      <article><span>신호 04 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
-      <article><span>신호 05 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
+    <div class="today-signals" aria-label="핵심 지표 5개">
+      <article><span>가격 시나리오 기준</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
+      <article><span>다변량 시계열 기준</span><strong>${vol==null?'검증 대기':`VIX 25 터치 ${vol.pct}%`}</strong><small>${vol==null?'V13-VOL 게이트 전 — 숫자 비공개':`21거래일 · 기후 기준율 ${vol.clim==null?'—':vol.clim+'%'}${vol.caution?' · 표본 얇음':''} · 결합 금지 참고값`}</small></article>
+      <article><span>AI 닷컴버블 비교 기준</span><strong>${heat==null?(cycle==null?'집계 대기':`닷컴 대조축 ${cycle.pct}% 경과`):`닷컴 대비 과열도 ${heat.pct}%`}</strong><small>${heat==null?(cycle==null?'통계 payload 미수집':`${cycle.elapsed}/${cycle.total}개월 · 결합 금지 참고값`):`100% = 닷컴 정점 · 부문별 ${heat.lo}~${heat.hi}%${heat.beyond?` · 정점 초과 ${heat.beyond}종`:''} · 지표 ${heat.included}종 · 결합 금지 참고값`}</small></article>
+      <article><span>변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
+      <article><span>원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
     <div class="today-columns">
       <section aria-labelledby="today-changes"><div class="today-section-head"><h2 id="today-changes">최근 변경 3</h2><a href="#records/journal">전체 기록</a></div><div class="today-list">${recent.map(item=>`<a href="#records/question/${esc(item.q.id)}"><time>${esc(String(item.q.latest_ts||'').slice(5,10)||'—')}</time><span>${esc(item.q.title)}</span><strong class="${item.delta>0?'edge-pos':item.delta<0?'edge-neg':''}">${item.delta==null?'NEW':`${item.delta>0?'+':''}${item.delta}%p`}</strong></a>`).join('')||'<p>표시할 변경이 없습니다.</p>'}</div></section>

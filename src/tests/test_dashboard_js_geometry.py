@@ -375,15 +375,19 @@ def test_home_era_card_reports_a_cycle_position_not_a_probability() -> None:
     program = _home_signal_helpers() + r"""
 const ok={status:'ok',charts:[{},{},{}],cycle_alignment:{
   current_start:'2023-01-01',current_observed_through:'2026-09-01',comparison_months:59}};
+const noTotal={status:'ok',charts:[],cycle_alignment:{
+  current_start:'2023-01-01',current_observed_through:'2026-09-01'}};
 console.log(JSON.stringify({
-  ok:dotcomCycleSignal(ok),
+  ok:dotcomCycleSignal(ok), noTotal:dotcomCycleSignal(noTotal),
   stale:dotcomCycleSignal({status:'stale',cycle_alignment:ok.cycle_alignment}),
   noAlign:dotcomCycleSignal({status:'ok',charts:[]}),
   missing:dotcomCycleSignal(null)
 }));
 """
     result = _run_js(program)
-    assert result["ok"] == {"elapsed": 44, "total": 59, "charts": 3}
+    assert result["ok"] == {"elapsed": 44, "total": 59, "pct": 75, "charts": 3}
+    # 경과율이지 확률이 아니다 — 28개 이질 지표를 하나의 % 로 합성하지 않는다.
+    assert result["noTotal"] == {"elapsed": 44, "total": None, "pct": None, "charts": 0}
     assert result["stale"] is None and result["noAlign"] is None and result["missing"] is None
 
 
@@ -394,11 +398,50 @@ def test_home_signal_row_labels_both_extra_layers_as_non_combinable() -> None:
     card has to carry that status in its own copy rather than relying on a page note.
     """
     source = _dashboard_source()
-    assert 'aria-label="핵심 신호 5개"' in source
+    assert 'aria-label="핵심 지표 5개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    assert row.count("결합 금지 참고값") == 2
-    for label in ("신호 01 · 시나리오", "신호 02 · 변동성 기준율",
-                  "신호 03 · 닷컴↔AI 대조", "신호 04 · 변화 감지", "신호 05 · 원장 현황"):
-        assert label in row, label
+    # 카드마다, 그리고 폴백 분기까지 자기 copy 로 달고 있어야 한다 — 행 전체 개수로 세면
+    # 분기를 추가할 때 조용히 통과한다.
+    for basis in ("다변량 시계열 기준", "AI 닷컴버블 비교 기준"):
+        card = row.split(basis, 1)[1].split("</article>", 1)[0]
+        assert "결합 금지 참고값" in card, basis
+    scenario_card = row.split("가격 시나리오 기준", 1)[1].split("</article>", 1)[0]
+    assert "결합 금지 참고값" not in scenario_card, "공식 확률공간 카드에는 붙이지 않는다"
+    # 카드 머리말은 번호가 아니라 '무엇을 근거로 한 숫자인지' 를 말한다.
+    for label in ("가격 시나리오 기준", "다변량 시계열 기준", "AI 닷컴버블 비교 기준",
+                  "변화 감지", "원장 현황"):
+        assert f"<span>{label}</span>" in row, label
+    assert "신호 0" not in row
     # the two added numbers must never be folded into the scenario probability
     assert "upProb+vol" not in source and "vol.pct+" not in source
+
+
+def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> None:
+    """대표값만 내보내면 '자산은 닷컴보다 뜨겁고 신용여건은 차갑다' 가 지워진다.
+
+    현재 부문 중앙값이 8~100% 로 갈려 있어, 77% 라는 한 숫자는 그 자체로는
+    양극화를 감춘다. 카드 copy 가 산포를 항상 동반하도록 고정한다.
+    """
+    source = _dashboard_source()
+    match = re.search(r"function dotcomOverheatSignal\([\s\S]+?\n}\n", source)
+    assert match, "dotcomOverheatSignal must remain standalone"
+    program = match.group(0) + r"""
+const ok={status:'ok',overheat_pct:77,category_span:[8,100],included:13,
+          beyond_window_count:4,category_medians:{a:1,b:2,c:3,d:4,e:5}};
+console.log(JSON.stringify({
+  ok:dotcomOverheatSignal(ok),
+  unavailable:dotcomOverheatSignal({status:'unavailable'}),
+  missing:dotcomOverheatSignal(null)
+}));
+"""
+    result = _run_js(program)
+    assert result["ok"] == {"pct": 77, "lo": 8, "hi": 100,
+                            "categories": 5, "included": 13, "beyond": 4}
+    assert result["unavailable"] is None and result["missing"] is None
+
+    row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
+    card = row.split("AI 닷컴버블 비교 기준", 1)[1].split("</article>", 1)[0]
+    assert "닷컴 대비 과열도 ${heat.pct}%" in card
+    assert "100% = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
+    assert "부문별 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
+    assert "결합 금지 참고값" in card

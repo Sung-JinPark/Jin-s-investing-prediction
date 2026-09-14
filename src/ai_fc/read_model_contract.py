@@ -47,6 +47,7 @@ V2_KEYS = {
     "band_calibration": dict,
     "liquidity": dict,
     "statistics_lab": dict,
+    "dotcom_overheat": dict,
     "timeseries": dict,
     "timeseries_v13_vol": dict,
     "multi_year_stress": dict,
