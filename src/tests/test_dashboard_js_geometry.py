@@ -332,3 +332,73 @@ def test_ath_chip_does_not_claim_a_52_week_window() -> None:
     engine = (Path(__file__).parents[1] / "ai_fc" / "scenario.py").read_text(encoding="utf-8")
     assert "ath = float(max(closes))" in engine
     assert "date(2023, 1, 1)" in engine
+
+
+def _home_signal_helpers() -> str:
+    match = re.search(
+        r"function v13VolSignal\([\s\S]+?\n}\nfunction dotcomCycleSignal\([\s\S]+?\n}\n",
+        _dashboard_source(),
+    )
+    assert match, "home signal helpers must remain standalone"
+    return match.group(0)
+
+
+def _run_js(program: str) -> dict:
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    return json.loads(completed.stdout)
+
+
+def test_home_volatility_card_stays_behind_the_t3_gate() -> None:
+    """The home card must not leak V13 numbers ahead of the same gate the tab uses."""
+    cell = {"p": 0.099046, "clim_base_rate": 0.419468,
+            "episode_sample": "thin", "reliability": "good"}
+    program = _home_signal_helpers() + r"""
+const live={publication:{display_tier:'t3_live_card',holdout_status:'partial'},cells:{vix25_h21:CELL}};
+const hidden={publication:{display_tier:'t2_hidden_panel'},cells:{vix25_h21:CELL}};
+const internal={publication:{display_tier:'t0_internal'},cells:{vix25_h21:CELL}};
+console.log(JSON.stringify({
+  live:v13VolSignal(live), hidden:v13VolSignal(hidden), internal:v13VolSignal(internal),
+  empty:v13VolSignal({publication:{display_tier:'t3_live_card'},cells:{}}), missing:v13VolSignal(null)
+}));
+""".replace("CELL", json.dumps(cell))
+    result = _run_js(program)
+    assert result["live"] == {"pct": 10, "clim": 42, "caution": True, "holdout": "partial"}
+    assert result["hidden"] is None and result["internal"] is None
+    assert result["empty"] is None and result["missing"] is None
+
+
+def test_home_era_card_reports_a_cycle_position_not_a_probability() -> None:
+    """statistics_lab is reference_only — the card may show elapsed months, never a %."""
+    program = _home_signal_helpers() + r"""
+const ok={status:'ok',charts:[{},{},{}],cycle_alignment:{
+  current_start:'2023-01-01',current_observed_through:'2026-09-01',comparison_months:59}};
+console.log(JSON.stringify({
+  ok:dotcomCycleSignal(ok),
+  stale:dotcomCycleSignal({status:'stale',cycle_alignment:ok.cycle_alignment}),
+  noAlign:dotcomCycleSignal({status:'ok',charts:[]}),
+  missing:dotcomCycleSignal(null)
+}));
+"""
+    result = _run_js(program)
+    assert result["ok"] == {"elapsed": 44, "total": 59, "charts": 3}
+    assert result["stale"] is None and result["noAlign"] is None and result["missing"] is None
+
+
+def test_home_signal_row_labels_both_extra_layers_as_non_combinable() -> None:
+    """Guardrail in the read model: 서로 다른 probability_space는 산술 결합하지 않는다.
+
+    The home row shows three probability spaces side by side, so each non-scenario
+    card has to carry that status in its own copy rather than relying on a page note.
+    """
+    source = _dashboard_source()
+    assert 'aria-label="핵심 신호 5개"' in source
+    row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
+    assert row.count("결합 금지 참고값") == 2
+    for label in ("신호 01 · 시나리오", "신호 02 · 변동성 기준율",
+                  "신호 03 · 닷컴↔AI 대조", "신호 04 · 변화 감지", "신호 05 · 원장 현황"):
+        assert label in row, label
+    # the two added numbers must never be folded into the scenario probability
+    assert "upProb+vol" not in source and "vol.pct+" not in source
