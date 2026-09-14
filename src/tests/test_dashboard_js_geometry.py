@@ -343,6 +343,17 @@ def _home_signal_helpers() -> str:
     return match.group(0)
 
 
+def _run_js_file(program: str) -> dict:
+    """큰 payload 는 `node -e` 의 커맨드라인 길이 제한을 넘는다."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as folder:
+        script = Path(folder) / "check.js"
+        script.write_text(program, encoding="utf-8")
+        completed = subprocess.run(["node", str(script)], check=True,
+                                   capture_output=True, text=True, encoding="utf-8")
+    return json.loads(completed.stdout)
+
+
 def _run_js(program: str) -> dict:
     completed = subprocess.run(
         ["node", "-e", program], check=True, capture_output=True,
@@ -425,18 +436,23 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     source = _dashboard_source()
     match = re.search(r"function dotcomOverheatSignal\([\s\S]+?\n}\n", source)
     assert match, "dotcomOverheatSignal must remain standalone"
-    program = match.group(0) + r"""
-const ok={status:'ok',overheat_pct:77,category_span:[8,100],included:13,
-          beyond_window_count:4,category_medians:{a:1,b:2,c:3,d:4,e:5}};
-console.log(JSON.stringify({
-  ok:dotcomOverheatSignal(ok),
-  unavailable:dotcomOverheatSignal({status:'unavailable'}),
-  missing:dotcomOverheatSignal(null)
-}));
-"""
-    result = _run_js(program)
-    assert result["ok"] == {"pct": 77, "lo": 8, "hi": 100,
-                            "categories": 5, "included": 13, "beyond": 4}
+    # 손으로 쓴 픽스처는 필드명이 어긋나도 자기들끼리 맞아 통과한다 —
+    # 실제로 beyond_window_count/beyond_peak_count 가 어긋난 채 배포됐다.
+    # 모듈의 진짜 출력을 그대로 먹인다.
+    from ai_fc.dotcom_overheat import compute_index
+    live = compute_index(Path(__file__).resolve().parents[2])
+    assert live["status"] == "ok", live
+    call = ("console.log(JSON.stringify({ok:dotcomOverheatSignal("
+            + json.dumps(live, default=str)
+            + "),unavailable:dotcomOverheatSignal({status:'unavailable'}),"
+              "missing:dotcomOverheatSignal(null)}));")
+    program = match.group(0) + chr(10) + call + chr(10)
+    result = _run_js_file(program)
+    assert result["ok"]["pct"] == live["overheat_pct"]
+    assert [result["ok"]["lo"], result["ok"]["hi"]] == live["category_span"]
+    assert result["ok"]["included"] == live["included"]
+    assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
+    assert result["ok"]["categories"] == len(live["category_medians"])
     assert result["unavailable"] is None and result["missing"] is None
 
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]

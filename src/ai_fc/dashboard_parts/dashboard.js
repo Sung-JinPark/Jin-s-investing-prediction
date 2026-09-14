@@ -2332,7 +2332,7 @@ function dotcomOverheatSignal(idx){
   const span=idx.category_span||[];
   return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
           categories:Object.keys(idx.category_medians||{}).length,
-          included:idx.included??null,beyond:idx.beyond_window_count??0};
+          included:idx.included??null,beyond:idx.beyond_peak_count??0};
 }
 function dotcomCycleSignal(lab){
   if(!lab||lab.status!=='ok')return null;
