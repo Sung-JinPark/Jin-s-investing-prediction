@@ -2296,8 +2296,10 @@ function scenarioCloseAboveProb(sc){
 }
 function marketThesis(upProb,rangeProb,closeProb){
   /* quantile_table.prob_above_anchor는 payload가 scenario_conditional(모델 조건부)로 못박은 값이다 —
-     조회 카드와 같은 어휘(모의 경로 비율)로 부르고 '확률'로 승격하지 않는다. */
-  const closeTail=closeProb==null?'':` 연말 종가가 기준가를 넘는 모의 경로는 ${closeProb}%입니다.`;
+     조회 카드와 같은 어휘(모의 경로 비율)로 부르고 '확률'로 승격하지 않는다.
+     임계는 anchor(=asof 종가)이지 S2의 고정 기준가(REFERENCE_PRICE)가 아니다 —
+     둘을 같은 '기준가'로 부르면 anchor가 기준가 아래로 내려갈 때 방향까지 어긋난다. */
+  const closeTail=closeProb==null?'':` 연말 종가가 현재가를 넘는 모의 경로는 ${closeProb}%입니다.`;
   if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',accent:`연말까지 전고점을 넘거나 기준가를 지키는 경로가 ${upProb}%입니다.${closeTail}`};
   if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',accent:`지지선 확인 전까지 조정 가능성 ${rangeProb}%에 대비합니다.${closeTail}`};
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
@@ -2319,7 +2321,7 @@ function renderOverview(){
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
     <div class="today-signals" aria-label="핵심 신호 3개">
-      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
+      <article><span>신호 01 · 시나리오</span><strong>${vintage.status==='stale'?'판정 보류':`전고점 돌파·기준가 상회 경로 ${num(upProb)}%`}</strong><small>${closeProb==null?'':`연말 종가 현재가 상회 ${num(closeProb)}%(모델 조건부) · `}조정·횡보 ${num(rangeProb)}% · ${esc(status)}</small></article>
       <article><span>신호 02 · 변화 감지</span><strong>${recent.length}개 기록 확인</strong><small>${recent[0]?`${esc(recent[0].q.title)} ${recent[0].delta==null?'새 회차':`${recent[0].delta>0?'+':''}${recent[0].delta}%p`}`:'새 변경 없음'}</small></article>
       <article><span>신호 03 · 원장 현황</span><strong>질문 ${(DATA.questions||[]).length}건 추적</strong><small>해소 ${Object.keys(DATA.resolutions||{}).length}건 · 재예측 대기 ${(DATA.due||[]).length}건</small></article>
     </div>
@@ -4303,7 +4305,7 @@ function renderHeaderStrip(){
   const items=[];
   if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;
     items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vintage.status==='stale'?`보관값 · ${sc.asof}`:`${sc.asof} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`,cls:vintage.status==='stale'?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
-  if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'52주 기준'});
+  if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
   if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
   if(rg.recession_flag!=null)items.push({k:'경기 국면',v:rg.recession_flag?'침체':'확장',sub:'NBER 기준',cls:rg.recession_flag?'down':'up'});
