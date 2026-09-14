@@ -1,0 +1,130 @@
+version: 2026-09-14.v1
+contract_id: dotcom_overheat_index_v1
+status: preregistered_before_first_publication
+scope: dotcom_ai_comparison_display_only
+probability_space: reference_only
+model_use: false
+official_forecast_input: false
+combine_with_official_forecasts: false
+combine_with_scenario: false
+trading_signal: false
+
+# 이 지수는 확률이 아니다. "지금이 닷컴의 같은 사이클 시점 분포에서 몇 분위인가" 의
+# 부문별 중앙값이며, 사건 확률로 읽거나 다른 probability_space 와 산술 결합하지 않는다.
+
+method:
+  reference_window: dotcom_same_phase          # 닷컴 period <= 현재 최신 period
+  statistic: midrank_percentile                # (미만 + 0.5*동률) / n * 100
+  direction_adjust: "lower_is_hotter 는 100 - p"
+  minimum_reference_points: 12                 # 창이 12개 미만이면 지표 제외
+  aggregation:
+    within_category: median
+    across_category: median                    # 부문별 지표 '개수' 편향 제거
+    dispersion: category_min_max
+  fitting: none                                # 가중치 학습·임계 탐색 없음 (라이브 포워드 원칙)
+  rationale: >
+    분위수는 단위에 무관하고 유계라 이질 지표를 같은 축에 올릴 수 있다. 닷컴 전 구간이
+    아니라 같은 사이클 시점까지로 창을 자르는 이유는, 43개월차 값을 닷컴 59개월차 정점과
+    비교하면 체계적으로 낮게 나오기 때문이다(matched-month 관례).
+  known_limits:
+    - 분위수는 100% 에서 포화한다 — '조금 위' 와 '크게 위' 를 구분하지 못한다.
+      닷컴 창 최대를 넘은 지표 수를 별도로 보고한다.
+    - 지표마다 닷컴 참조점 수(n)가 12~44 로 고르지 않다. n 을 지표별로 보고한다.
+    - 지표마다 현재 최신 period 가 다르다(33~43개월차). 위상이 완전히 같지는 않다.
+
+indicators:
+  - id: nasdaq_per_m2
+    chart: nasdaq_per_m2
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 통화량보다 빠른 주가 상승
+  - id: nasdaq_per_household_liquid_assets
+    chart: nasdaq_per_household_liquid_assets
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 가계 현금성 자산 대비 주가
+  - id: spx_per_federal_debt
+    chart: spx_per_federal_debt
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 연방부채 대비 주가
+  - id: valuation_proxy
+    chart: valuation_proxy
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 밸류에이션 배수
+  - id: margin_credit
+    chart: margin_credit_proxy
+    dotcom_series: 닷컴 고객 신용
+    current_series: 현재 고객 신용
+    direction: higher_is_hotter
+    why: 증거금 신용 레버리지
+  - id: investment_share_gdp
+    chart: investment_share_of_gdp
+    dotcom_series: 닷컴 장비+지식재산
+    current_series: 현재 장비+지식재산
+    direction: higher_is_hotter
+    why: 설비·지식재산 캐펙스 붐
+  - id: corporate_bond_stock
+    chart: corporate_bond_issuance
+    dotcom_series: 닷컴 잔액(GDP %)
+    current_series: 현재 잔액(GDP %)
+    direction: higher_is_hotter
+    why: 기업 부채 레버리지
+  - id: consumer_credit_growth
+    chart: consumer_credit_growth
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 소비자 신용 팽창
+  - id: household_debt_service
+    chart: household_debt_service
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: higher_is_hotter
+    why: 가계 원리금 부담
+  - id: loan_standards
+    chart: loan_standards
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: lower_is_hotter
+    why: 대출 심사 완화 = 위험선호
+  - id: unemployment_rate
+    chart: unemployment_rate
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: lower_is_hotter
+    why: 타이트한 노동시장
+  - id: financial_conditions
+    chart: financial_conditions
+    dotcom_series: 닷컴
+    current_series: 현재
+    direction: lower_is_hotter
+    why: 금융여건지수 음수 = 완화
+  - id: bond_spread
+    chart: corporate_bond_pressure
+    dotcom_series: 닷컴 스프레드
+    current_series: 현재 스프레드
+    direction: lower_is_hotter
+    why: 스프레드 축소 = 위험선호
+
+excluded:
+  - {chart: sec_ipo_issuer_mix_h1, reason: 닷컴 계열 없음}
+  - {chart: liquidity_position_map, reason: 닷컴 계열 없음}
+  - {chart: korea_semiconductor_cycle, reason: 닷컴 계열 없음}
+  - {chart: household_balance_sheet_trend_gap, reason: 닷컴 계열 없음}
+  - {chart: m2_nasdaq, reason: nasdaq_per_m2 와 같은 두 계열의 비율 — 중복}
+  - {chart: spx_per_federal_debt_full_history, reason: spx_per_federal_debt 와 중복이고 계열이 시대쌍이 아님}
+  - {chart: yield_curve, reason: 정책 반응 변수 — 과열의 원인이자 결과라 방향이 한쪽으로 정해지지 않음}
+  - {chart: policy_rate, reason: 정책 반응 변수}
+  - {chart: rate_cycle_since_first_cut, reason: 정책 경로}
+  - {chart: inflation_rate, reason: 물가는 과열 신호이자 긴축 유발 — 방향 양면이고 아래 둘과 중복}
+  - {chart: inflation_lead_cpi, reason: inflation_rate 와 중복}
+  - {chart: inflation_lead_commodities, reason: inflation_rate 와 중복}
+  - {chart: profit_growth, reason: 이익 증가는 펀더멘털 지지이지 과열이 아니다 — 버블성은 주가가 이익을 앞지르는 것}
+  - {chart: structures_buildout, reason: 시대별 하위 계열의 의미가 다름(닷컴 통신 vs 현재 반도체·전력)}
+  - {chart: housing_manufacturing_warning, reason: 단위 혼합(percent + diffusion)이고 과열 방향 불명확}

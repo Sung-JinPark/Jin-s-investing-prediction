@@ -447,6 +447,8 @@ def build_read_model(
     scenario_tracker = load_scenario_tracker(root)
     liquidity = load_liquidity(root)
     statistics_lab = statistics_dashboard_projection(root)
+    from .dotcom_overheat import compute_index as _dotcom_overheat_index
+    dotcom_overheat = _dotcom_overheat_index(root)
     from .timeseries.artifact import load_projection as load_timeseries_projection
     from .timeseries_v2.artifact import load_projection as load_timeseries_v2_projection
     from .timeseries_v5.artifact import load_projection as load_timeseries_v5_projection
@@ -664,6 +666,7 @@ def build_read_model(
         "band_calibration": band_calibration,
         "liquidity": liquidity,
         "statistics_lab": statistics_lab,
+        "dotcom_overheat": dotcom_overheat,
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
         "multi_year_stress": multi_year_stress,
