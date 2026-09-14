@@ -375,15 +375,19 @@ def test_home_era_card_reports_a_cycle_position_not_a_probability() -> None:
     program = _home_signal_helpers() + r"""
 const ok={status:'ok',charts:[{},{},{}],cycle_alignment:{
   current_start:'2023-01-01',current_observed_through:'2026-09-01',comparison_months:59}};
+const noTotal={status:'ok',charts:[],cycle_alignment:{
+  current_start:'2023-01-01',current_observed_through:'2026-09-01'}};
 console.log(JSON.stringify({
-  ok:dotcomCycleSignal(ok),
+  ok:dotcomCycleSignal(ok), noTotal:dotcomCycleSignal(noTotal),
   stale:dotcomCycleSignal({status:'stale',cycle_alignment:ok.cycle_alignment}),
   noAlign:dotcomCycleSignal({status:'ok',charts:[]}),
   missing:dotcomCycleSignal(null)
 }));
 """
     result = _run_js(program)
-    assert result["ok"] == {"elapsed": 44, "total": 59, "charts": 3}
+    assert result["ok"] == {"elapsed": 44, "total": 59, "pct": 75, "charts": 3}
+    # 경과율이지 확률이 아니다 — 28개 이질 지표를 하나의 % 로 합성하지 않는다.
+    assert result["noTotal"] == {"elapsed": 44, "total": None, "pct": None, "charts": 0}
     assert result["stale"] is None and result["noAlign"] is None and result["missing"] is None
 
 
@@ -394,11 +398,13 @@ def test_home_signal_row_labels_both_extra_layers_as_non_combinable() -> None:
     card has to carry that status in its own copy rather than relying on a page note.
     """
     source = _dashboard_source()
-    assert 'aria-label="핵심 신호 5개"' in source
+    assert 'aria-label="핵심 지표 5개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
     assert row.count("결합 금지 참고값") == 2
-    for label in ("신호 01 · 시나리오", "신호 02 · 변동성 기준율",
-                  "신호 03 · 닷컴↔AI 대조", "신호 04 · 변화 감지", "신호 05 · 원장 현황"):
-        assert label in row, label
+    # 카드 머리말은 번호가 아니라 '무엇을 근거로 한 숫자인지' 를 말한다.
+    for label in ("가격 시나리오 기준", "다변량 시계열 기준", "AI 닷컴버블 비교 기준",
+                  "변화 감지", "원장 현황"):
+        assert f"<span>{label}</span>" in row, label
+    assert "신호 0" not in row
     # the two added numbers must never be folded into the scenario probability
     assert "upProb+vol" not in source and "vol.pct+" not in source
