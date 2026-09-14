@@ -442,5 +442,6 @@ console.log(JSON.stringify({
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
     card = row.split("AI 닷컴버블 비교 기준", 1)[1].split("</article>", 1)[0]
     assert "닷컴 대비 과열도 ${heat.pct}%" in card
+    assert "100% = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
     assert "부문별 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
     assert "결합 금지 참고값" in card

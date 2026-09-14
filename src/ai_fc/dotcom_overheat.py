@@ -1,11 +1,20 @@
 """닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v1)의 결정론적 집계.
 
-확률이 아니다. 지표마다 "현재 최신값이 닷컴의 **같은 사이클 시점까지** 분포에서 몇
-분위인가" 를 구하고, 방향을 맞춘 뒤 부문 중앙값 → 부문 중앙값들의 중앙값으로 접는다.
+읽는 사람이 알고 싶은 것은 "닷컴 정점에 얼마나 가까운가" 다. 그래서 **100% 를 닷컴
+사이클의 극단(정점)에 고정**한다 — 100% 면 그 지표는 닷컴이 터지기 직전 수준이고,
+100% 를 넘으면 닷컴 정점보다도 뜨겁다는 뜻이다.
 
-부문을 한 번 거치는 이유: 평평한 전체 중앙값은 부문별 지표 *개수* 에 좌우된다
-(credit 5종 vs valuation 1종). 개수는 설계가 아니라 어떤 차트가 존재하느냐의 부산물이라
-그대로 두면 가중치를 우연에 맡기는 셈이다.
+    higher_is_hotter : 100 * (현재 - 닷컴min) / (닷컴max - 닷컴min)
+    lower_is_hotter  : 100 * (닷컴max - 현재) / (닷컴max - 닷컴min)
+
+분모를 닷컴 **전 구간 범위**로 두는 이유는 계약의 rejected_alternatives 에 적혀 있다.
+(현재-닷컴시작)/(닷컴정점-닷컴시작) 은 시작과 정점이 가까운 지표에서 분모가 0 에
+수렴해 폭발한다 — 실측에서 -23,615% 가 나왔다. 참조창을 위상으로 자르지 않는 이유도
+같다: 위험의 기준점은 1999-2000 의 정점이지 1998 시점의 값이 아니다.
+
+집계는 부문 중앙값 → 부문 중앙값들의 중앙값. 평평한 중앙값은 부문별 지표 *개수* 에
+끌려가는데(credit 5종 vs valuation 1종), 개수는 설계가 아니라 어떤 차트가 존재하느냐의
+부산물이라 그대로 두면 가중치를 우연에 맡기는 셈이다.
 
 가중치 학습도 임계 탐색도 하지 않는다 — 전부 계약에 사전등록된 고정 규칙이다.
 """
@@ -38,11 +47,14 @@ def _series_points(chart: dict[str, Any], label: str) -> list[dict[str, Any]] | 
     return None
 
 
-def midrank_percentile(value: float, reference: list[float]) -> float:
-    """(미만 + 0.5*동률) / n — 유계 [0,100], 단위 무관."""
-    below = sum(1 for item in reference if item < value)
-    ties = sum(1 for item in reference if item == value)
-    return 100.0 * (below + 0.5 * ties) / len(reference)
+def dotcom_range_position(value: float, reference: list[float], direction: str) -> float | None:
+    """0% = 닷컴 구간의 반대 극단, 100% = 닷컴 극단(정점). 유계가 아니다 — 초과는 초과로 남긴다."""
+    low, high = min(reference), max(reference)
+    if high == low:
+        return None
+    if direction == "lower_is_hotter":
+        return 100.0 * (high - value) / (high - low)
+    return 100.0 * (value - low) / (high - low)
 
 
 def compute_index(root: Path) -> dict[str, Any]:
@@ -71,14 +83,13 @@ def compute_index(root: Path) -> dict[str, Any]:
         current = _series_points(chart, spec.get("current_series"))
         if not dotcom or not current:
             skipped.append({"id": spec.get("id"), "reason": "계열 없음"}); continue
+        if len(dotcom) < minimum:
+            skipped.append({"id": spec.get("id"), "reason": f"닷컴 참조점 부족 n={len(dotcom)}"}); continue
+        reference = [p["value"] for p in dotcom]
         latest = current[-1]
-        window = [p["value"] for p in dotcom if p.get("period") is not None
-                  and p["period"] <= latest.get("period", 10**9)]
-        if len(window) < minimum:
-            skipped.append({"id": spec.get("id"), "reason": f"닷컴 창 부족 n={len(window)}"}); continue
-        pct = midrank_percentile(float(latest["value"]), window)
-        if spec.get("direction") == "lower_is_hotter":
-            pct = 100.0 - pct
+        pct = dotcom_range_position(float(latest["value"]), reference, spec.get("direction"))
+        if pct is None:
+            skipped.append({"id": spec.get("id"), "reason": "닷컴 범위 0"}); continue
         rows.append({
             "id": spec.get("id"),
             "category": chart.get("category") or "기타",
@@ -86,11 +97,10 @@ def compute_index(root: Path) -> dict[str, Any]:
             "direction": spec.get("direction"),
             "current_value": latest.get("value"),
             "current_period": latest.get("period"),
-            "reference_n": len(window),
-            # 분위수는 100% 에서 포화한다 — 초과 폭을 구분하지 못한다는 사실을 남긴다.
-            "beyond_dotcom_window": bool(float(latest["value"]) > max(window))
-            if spec.get("direction") == "higher_is_hotter"
-            else bool(float(latest["value"]) < min(window)),
+            "dotcom_low": round(min(reference), 4),
+            "dotcom_high": round(max(reference), 4),
+            "reference_n": len(reference),
+            "beyond_dotcom_peak": pct > 100.0,
         })
 
     if not rows:
@@ -102,27 +112,29 @@ def compute_index(root: Path) -> dict[str, Any]:
     category_medians = {name: round(statistics.median(values), 1)
                         for name, values in sorted(by_category.items())}
     composite = statistics.median(category_medians.values())
-    span = [min(category_medians.values()), max(category_medians.values())]
 
     return {
         "status": "ok",
         "contract_id": contract.get("contract_id"),
         "contract_version": contract.get("version"),
+        "scale": method.get("scale"),
         "probability_space": "reference_only",
         "model_use": False,
         "official_forecast_input": False,
         "as_of": payload.get("as_of"),
         "observation_through": payload.get("observation_through"),
         "overheat_pct": int(round(composite)),
+        "anchor": "100% = 닷컴 사이클 극단(정점)",
         "category_medians": category_medians,
-        "category_span": [int(round(span[0])), int(round(span[1]))],
+        "category_span": [int(round(min(category_medians.values()))),
+                          int(round(max(category_medians.values())))],
         "indicators": sorted(rows, key=lambda row: -row["pct"]),
         "included": len(rows),
         "skipped": skipped,
         "excluded_by_contract": len(contract.get("excluded") or []),
-        "beyond_window_count": sum(1 for row in rows if row["beyond_dotcom_window"]),
+        "beyond_peak_count": sum(1 for row in rows if row["beyond_dotcom_peak"]),
         "note": (
-            "확률이 아니다. 닷컴의 같은 사이클 시점까지 분포 대비 분위수를 부문 중앙값으로 "
-            "접은 참고값이며, 다른 probability_space 와 산술 결합하지 않는다."
+            "확률이 아니다. 100% 는 닷컴 사이클 극단(정점) 수준을 뜻하며, 다른 "
+            "probability_space 와 산술 결합하지 않는다."
         ),
     }

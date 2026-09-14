@@ -13,24 +13,38 @@ trading_signal: false
 # 부문별 중앙값이며, 사건 확률로 읽거나 다른 probability_space 와 산술 결합하지 않는다.
 
 method:
-  reference_window: dotcom_same_phase          # 닷컴 period <= 현재 최신 period
-  statistic: midrank_percentile                # (미만 + 0.5*동률) / n * 100
-  direction_adjust: "lower_is_hotter 는 100 - p"
-  minimum_reference_points: 12                 # 창이 12개 미만이면 지표 제외
+  scale: dotcom_range_position          # 100% = 닷컴 사이클의 극단(정점) = 위험
+  reference_window: dotcom_full_cycle   # 1995-01 ~ 1999-12 전 구간
+  formula:
+    higher_is_hotter: "100 * (현재 - 닷컴min) / (닷컴max - 닷컴min)"
+    lower_is_hotter:  "100 * (닷컴max - 현재) / (닷컴max - 닷컴min)"
+  bounds: unclamped                     # >100% 는 닷컴 정점 초과, <0% 는 닷컴 범위 미만
+  minimum_reference_points: 12
   aggregation:
     within_category: median
-    across_category: median                    # 부문별 지표 '개수' 편향 제거
+    across_category: median             # 부문별 지표 '개수' 편향 제거
     dispersion: category_min_max
-  fitting: none                                # 가중치 학습·임계 탐색 없음 (라이브 포워드 원칙)
+  fitting: none                         # 가중치 학습·임계 탐색 없음 (라이브 포워드 원칙)
   rationale: >
-    분위수는 단위에 무관하고 유계라 이질 지표를 같은 축에 올릴 수 있다. 닷컴 전 구간이
-    아니라 같은 사이클 시점까지로 창을 자르는 이유는, 43개월차 값을 닷컴 59개월차 정점과
-    비교하면 체계적으로 낮게 나오기 때문이다(matched-month 관례).
+    읽는 사람이 알고 싶은 것은 "닷컴 정점에 얼마나 가까운가" 다. 그래서 100% 를 닷컴
+    사이클의 극단에 고정한다. 참조창을 위상(같은 개월차)으로 자르지 않는 이유도 같다 —
+    위험의 기준점은 1999-2000 의 정점이지 1998 시점의 값이 아니다.
+  rejected_alternatives:
+    - id: same_phase_percentile
+      why: >
+        닷컴의 같은 개월차까지 분위수로 재면 100% 가 "1995~98 범위보다 위" 를 뜻하게 되어
+        정점 위험과 무관해진다. 게다가 분위수는 100% 에서 포화해 초과 폭을 못 읽는다.
+    - id: cycle_start_anchor
+      why: >
+        (현재-닷컴시작)/(닷컴정점-닷컴시작) 은 시작과 정점이 가까운 지표에서 분모가 0 에
+        수렴해 폭발한다 — 실측에서 consumer_credit_growth -23,615%, loan_standards -10,200%.
+        닷컴 구간 전체 범위를 분모로 쓰면 이 불안정이 사라진다.
   known_limits:
-    - 분위수는 100% 에서 포화한다 — '조금 위' 와 '크게 위' 를 구분하지 못한다.
-      닷컴 창 최대를 넘은 지표 수를 별도로 보고한다.
-    - 지표마다 닷컴 참조점 수(n)가 12~44 로 고르지 않다. n 을 지표별로 보고한다.
-    - 지표마다 현재 최신 period 가 다르다(33~43개월차). 위상이 완전히 같지는 않다.
+    - 지표별 닷컴 참조점 수가 12~44 로 고르지 않다. reference_n 을 지표별로 보고한다.
+    - 현재 최신 period 가 33~43개월차로 지표마다 다르다. 닷컴은 전 구간을 보므로,
+      아직 사이클 중반인데 정점과 비교한다는 점을 그대로 안고 읽어야 한다.
+    - 범위 분모가 닷컴의 위기 구간(1998 신용경색 등)을 포함하면 그만큼 축이 넓어져
+      현재 값이 낮게 나온다 — loan_standards·bond_spread 가 이에 해당한다.
 
 indicators:
   - id: nasdaq_per_m2
