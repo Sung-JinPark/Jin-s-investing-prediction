@@ -107,15 +107,18 @@ def _vintage(payload: dict[str, Any]) -> dict[str, Any] | None:
     anchor = payload.get("anchor")
     if not asof or anchor is None:
         return None
-    # 일별 252 거래일이 있으면 그쪽을 쓴다 — 주간 52점은 같은 모형의 성긴 표본이라
-    # 점 사이가 직선으로 이어진다(실측 방향전환 주간 원시 0 · 주간 구조 8 · 일별 11).
-    daily = _daily_series(payload)
-    if daily is not None:
-        dates, values = daily
-        path_source = "daily_p50"
-    else:
-        dates = _week_dates(payload, str(asof))
-        values, path_source = _display_values(payload, len(dates or []))
+    # 구조 경로(주간 52점)가 최우선이다. 일별 252점이 더 촘촘하지만 그것은 9,000 경로의
+    # 조건부 **중앙값**이라 구조상 거의 단조 상승한다 — 실측 1년 최대 낙폭 0.07%, 그리는
+    # 창에서는 29점 중 하락 0점. 어떤 시장도 그렇게 움직이지 않으므로 가격 경로로 내보이면
+    # 비현실적이다. 구조 경로는 같은 기간 최대 낙폭 12.15%(창 안 4.04%)로 모양이 있다.
+    # 일별은 구조 경로가 없는 아카이브(2026-08-03 등)의 차선책으로만 쓴다.
+    dates = _week_dates(payload, str(asof))
+    values, path_source = _display_values(payload, len(dates or []))
+    if path_source != "structural":
+        daily = _daily_series(payload)
+        if daily is not None:
+            dates, values = daily
+            path_source = "daily_p50"
     if not isinstance(values, list):
         return None
     # 길이가 어긋나면 날짜 정렬을 신뢰할 수 없다 — 조용히 어긋난 선을 그리느니 버린다.
@@ -148,12 +151,18 @@ def _past_line(rows: list[dict[str, Any]], today: str) -> dict[str, Any]:
     if not rows or not today:
         return {"segments": []}
     starts = [rows[0]]
-    # 성긴 기록(주간 원시)으로 시작했다면, 더 촘촘한 기록이 처음 생긴 날 바통을 넘긴다.
-    # 무엇이 '더 촘촘한가'는 아래 순위로 정한다 — 일별 252점 > 굴곡 주간 52점 > 원시 주간.
-    richer = ("daily_p50", "structural")
+    # 더 나은 기록이 처음 생긴 날 바통을 넘긴다. 순위는 **모양의 현실성**이 먼저다 —
+    # 구조 경로(주간 52점, 실측 최대 낙폭 12.15%) > 일별 중앙값(252점이지만 낙폭 0.07%로
+    # 사실상 단조 상승) > 원시 주간. 점이 많다고 더 나은 것이 아니다.
+    #
+    # 티어 안에서 가장 이른 것을 고른다. 멤버십으로만 찾으면 낮은 티어가 먼저 나올 때
+    # 그쪽이 잡혀, 모양 있는 기록을 두고 단조 상승선으로 넘어간다.
     handover = None
-    if rows[0]["path_source"] not in richer:
-        handover = next((row for row in rows if row["path_source"] in richer), None)
+    if rows[0]["path_source"] not in ("structural", "daily_p50"):
+        for tier in ("structural", "daily_p50"):
+            handover = next((row for row in rows if row["path_source"] == tier), None)
+            if handover is not None:
+                break
     if handover is not None and handover["asof"] != rows[0]["asof"]:
         starts.append(handover)
 

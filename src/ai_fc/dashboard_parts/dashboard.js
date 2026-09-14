@@ -2636,7 +2636,7 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
      그려 그날의 기록을 통째로 본다. */
   const pastSegments=(overlay&&compare.asof===track.vintages[0]?.asof
     ?(track.past_line?.segments||[]):[]).filter(seg=>(seg.values||[]).length>1);
-  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...(overlay?dailyScenarioPath(sc,activeKey,cut).map(point=>point[1]):[]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
+  const chartValues=[sc.ath,sc.corr10,sc.anchor,...Object.values(paths).flat(),...(usingStructural?Object.values(rawPaths).flat():[]),...sampleRows.flatMap(row=>row.values),...analogValues,...actual.map(row=>row[1]),...comparePoints.map(point=>point[1]),...((overlay&&!usingStructural)?dailyScenarioPath(sc,activeKey,cut).map(point=>point[1]):[]),...((overlay&&track.past_line?.segments)||[]).flatMap(seg=>(seg.values||[]).map(point=>point[1]))].map(Number).filter(Number.isFinite);
   const chartLow=Math.min(...chartValues),chartHigh=Math.max(...chartValues),chartStep=overlay&&horizon!=='full'?250:500;
   const chartPad=Math.max(chartStep,(chartHigh-chartLow)*.08);
   const Y0=Math.floor((chartLow-chartPad)/chartStep)*chartStep,Y1=Math.ceil((chartHigh+chartPad)/chartStep)*chartStep;
@@ -2688,10 +2688,11 @@ function drawOriginalWeeklyFlow(host,sc,showSamples=false,scenarioKey='S1',horiz
   });
   [activeKey].forEach(key=>{
     const values=paths[key];if(values.length!==n)return;
-    /* 주간 52점은 같은 모형의 성긴 표본이라 점 사이가 직선으로 이어진다. quantile_table 에
-       이미 실려 있는 거래일 252개 일별 조건부 중앙값으로 그린다(추가 데이터 없음).
-       이벤트·리스크 띠·눈금·커서는 주간 격자를 그대로 쓴다 — 인덱스 의미가 다르다. */
-    const dailyPoints=overlay?dailyScenarioPath(sc,key,cut):[];
+    /* 굵은 선은 **구조 경로**(과거 조정 모양을 입힌 주간 52점)다. quantile_table 의 일별
+       252점이 더 촘촘하지만 그것은 9,000 경로의 조건부 중앙값이라 실측 1년 최대 낙폭이
+       0.07% — 거의 단조 상승이라 가격 경로로 내보이면 비현실적이다(구조 경로는 12.15%).
+       구조 경로가 없는 스냅샷에서만 일별로 떨어진다. */
+    const dailyPoints=(overlay&&!usingStructural)?dailyScenarioPath(sc,key,cut):[];
     const useDaily=dailyPoints.length>1;
     const d=useDaily
       ?dailyPoints.map((point,index)=>(index?'L':'M')+dateX(point[0]).toFixed(1)+','+Y(point[1]).toFixed(1)).join(' ')

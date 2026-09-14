@@ -315,12 +315,11 @@ def test_chart_draws_every_past_segment_as_the_same_solid_line() -> None:
     assert "handover_label" in flow, "이음점이 무슨 기록으로 넘어갔는지 밝히지 않는다"
 
 
-def test_daily_series_is_preferred_over_the_weekly_grid(tmp_path: Path) -> None:
-    """주간 52점은 같은 모형의 성긴 표본이라 점 사이가 직선으로 이어진다.
+def test_daily_series_fills_in_only_where_no_structural_path_exists(tmp_path: Path) -> None:
+    """일별은 **구조 경로가 없을 때의 차선책**이다.
 
-    아카이브는 처음부터 quantile_table 에 거래일 252개와 시나리오별 조건부 중앙값을
-    담아 왔는데(실제 저장소 34건 중 32건) 화면은 그 해상도를 버리고 있었다.
     일별 축은 asof **다음** 거래일부터라 그날 확정 종가를 앞에 붙여 선이 그날에서 출발한다.
+    구조 경로가 있으면 그쪽이 이긴다 — 점 수가 아니라 모양의 현실성이 기준이다.
     """
     payload = {
         "asof": "2026-08-06", "anchor": 26000.0, "ath": 27000.0,
@@ -345,20 +344,33 @@ def test_daily_series_is_preferred_over_the_weekly_grid(tmp_path: Path) -> None:
     assert row["values"][0][1] == 26000, "그날 확정 종가에서 출발해야 한다"
 
 
-def test_real_repository_draws_the_scenario_daily() -> None:
-    """실제 저장소 회귀 — 주간으로 되돌아가면 선이 다시 직선 몇 개가 된다."""
+def test_real_repository_draws_a_shaped_path_not_a_monotone_median() -> None:
+    """실제 저장소 회귀 — 그려지는 경로는 **모양이 있는** 구조 경로여야 한다.
+
+    일별 252점이 더 촘촘하지만 그것은 9,000 경로의 조건부 중앙값이라 거의 단조 상승한다
+    (실측 1년 최대 낙폭 0.07%, 그리는 창에서는 하락 0회). 가격 경로로 내보이면 비현실적이라
+    점이 많다고 더 나은 것이 아니다 — 구조 경로는 같은 기간 최대 낙폭 12.15%.
+    """
     track = load_scenario_track(ROOT)
-    daily = [row for row in track["vintages"] if row["path_source"] == "daily_p50"]
-    assert len(daily) > len(track["vintages"]) / 2, "대부분이 일별이어야 한다"
-    # 오늘까지 덮는 과거 구간이 주간(5~6점)이 아니라 일별 해상도여야 한다
-    segments = track["past_line"]["segments"]
-    assert segments and len(segments[-1]["values"]) >= 20, \
-        f"과거 구간이 {len(segments[-1]['values'])}점 — 주간 해상도로 되돌아갔다"
+    sources = [row["path_source"] for row in track["vintages"]]
+    assert sources.count("structural") > len(sources) / 2,         f"구조 경로가 주류여야 한다: {sorted(set(sources))}"
+
+    def max_drawdown_pct(values: list[float]) -> float:
+        peak, worst = values[0], 0.0
+        for value in values:
+            peak = max(peak, value)
+            worst = max(worst, (peak - value) / peak * 100)
+        return worst
+
+    # 오늘까지 덮는 과거 구간은 단조 상승이면 안 된다 — 그 자체가 비현실의 신호다
+    tail = track["past_line"]["segments"][-1]
+    assert tail["path_source"] == "structural", tail["path_source"]
+    assert max_drawdown_pct([value for _, value in tail["values"]]) > 1.0,         "과거 구간이 낙폭 없이 우상향한다 — 조건부 중앙값으로 되돌아갔다"
 
 
 def test_chart_draws_the_current_path_from_the_daily_table() -> None:
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     assert "function dailyScenarioPath(" in script
     flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
-    assert "dailyScenarioPath(sc,key,cut)" in flow, "현재 경로를 일별로 그리지 않는다"
+    assert "!usingStructural)?dailyScenarioPath(sc,key,cut)" in flow,         "구조 경로가 있는데도 일별로 그린다"
     assert "'data-path-grid'" in flow, "어느 격자로 그렸는지 표시하지 않는다"
