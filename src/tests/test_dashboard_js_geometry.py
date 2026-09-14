@@ -461,3 +461,20 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert "100% = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
     assert "부문별 ${heat.lo}~${heat.hi}%" in card, "산포 없이 대표값만 내보내면 안 된다"
     assert "결합 금지 참고값" in card
+
+
+def test_home_signal_subtitle_is_not_clipped_to_a_single_line() -> None:
+    """부제는 카드의 단서를 담는다 — 한 줄 고정이면 뒤가 통째로 사라진다.
+
+    실측: 과열도 카드 부제가 데스크톱에서 **131px 잘려** "지표 13종 · 결합 금지 참고값"
+    이 독자에게 도달하지 않았다. 소스에 문자열이 있는지만 보는 테스트는 이걸 못 잡는다
+    (`test_home_overheat_card_...` 가 통과하는 동안 화면에서는 잘려 있었다).
+    기본 규칙이 두 줄까지 허용하는지 CSS 자체로 고정한다.
+    """
+    css = (Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css").read_text(
+        encoding="utf-8")
+    rule = re.search(r"\.today-signals small\{([^}]*)\}", css)
+    assert rule, ".today-signals small 기본 규칙이 있어야 한다"
+    body = rule.group(1)
+    assert "white-space:nowrap" not in body, "한 줄 고정은 부제 뒷부분을 버린다"
+    assert "-webkit-line-clamp:2" in body, "두 줄까지 허용하되 무한 증가는 막는다"
