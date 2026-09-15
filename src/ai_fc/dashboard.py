@@ -468,7 +468,27 @@ def build_read_model(
     # V13-VOL 변동성 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면.
     # 로더는 항상 dict(absent/internal/hold/live)를 돌려주고 숫자는 네 게이트·핀·빌드 시점 신선도가 전부 성립할 때만 싣는다.
     from .timeseries_v13_vol_display import load_projection as load_timeseries_v13_vol_projection
-    timeseries_v13_vol = _guard_timeseries_v13_vol_budget(load_timeseries_v13_vol_projection(root, now=now))
+    timeseries_v13_vol = load_timeseries_v13_vol_projection(root, now=now)
+    # 라이브 전진 누적 — 홀드아웃(1회 소모된 과거 표본)과 **다른 절**로 싣는다.
+    # 판정은 담지 않는다(계약이 셀당 60 전에는 막는다). 예산 검사는 이것까지 포함해서 건다.
+    from .timeseries_v13.live_scoreboard import projection as load_v13_live_scoreboard
+    try:
+        timeseries_v13_vol["live_forward"] = load_v13_live_scoreboard(root)
+    except Exception:  # noqa: BLE001 — 누적 표면이 없다고 base rate 카드까지 죽이지 않는다
+        timeseries_v13_vol["live_forward"] = {"status": "unavailable"}
+    timeseries_v13_vol = _guard_timeseries_v13_vol_budget(timeseries_v13_vol)
+    # 시장 심리 표시 표면 — 둘 다 **표시 전용**이고 확률 공간이 아니다.
+    # 어떤 예측·시나리오·base rate 와도 산술 결합하지 않는다. 로더는 파일이 없거나
+    # 낡으면 숫자 대신 상태만 돌려준다(absent/stale) — 마지막 값을 재사용하지 않는다.
+    from .fear_greed import (components_projection as load_fear_greed_components,
+                             projection as load_fear_greed_projection)
+    from .vix_surface import load_projection as load_vix_projection
+    market_mood = {
+        "vix": load_vix_projection(root, today=now.date()),
+        "fear_greed": load_fear_greed_projection(root, today=now.date()),
+        # 구성요소 7종 + 같은 축의 NASDAQ — 통계 탭 전용(홈 카드는 쓰지 않는다).
+        "fear_greed_components": load_fear_greed_components(root),
+    }
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -669,6 +689,7 @@ def build_read_model(
         "dotcom_overheat": dotcom_overheat,
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
+        "market_mood": market_mood,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,

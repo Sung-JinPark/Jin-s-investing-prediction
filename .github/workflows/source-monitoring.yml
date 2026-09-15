@@ -27,6 +27,17 @@ jobs:
       - name: Record candidate-source schema health
         continue-on-error: true
         run: cd src && python -m ai_fc source-monitor
+      # 시장 심리 표시 표면 — 매일 갱신. 둘 다 표시 전용이고 어떤 예측·확률과도
+      # 결합하지 않는다. `continue-on-error` 인 이유는 외부 원천 장애가 D0 영수증
+      # 커밋까지 막으면 안 되기 때문이다 — 실패하면 그날 숫자가 비고, 화면은
+      # 마지막 값을 재사용하지 않는다(fail-closed).
+      - name: Refresh market mood surfaces (VIX · fear and greed)
+        id: mood
+        continue-on-error: true
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: cd src && python -m ai_fc signals
+
       - name: Commit append-only D0 health receipts
         shell: bash
         run: |
@@ -35,6 +46,12 @@ jobs:
           if [ -d data/source_monitoring ]; then
             git add data/source_monitoring
           fi
+          # 공포탐욕 원장은 append-only(하루 1행), VIX 투영은 재생성본이다.
+          for optional_dir in data/fear_greed data/vix; do
+            if [ -d "$optional_dir" ]; then
+              git add "$optional_dir"
+            fi
+          done
           if git diff --cached --quiet; then
             echo "No new D0 health receipt; candidate source remains disabled."
             exit 0
