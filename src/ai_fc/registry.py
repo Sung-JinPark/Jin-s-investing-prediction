@@ -69,6 +69,7 @@ def load_registry(path: Path) -> list[Question]:
             drivers=q.get("drivers") or [],
             tier=(str(q.get("tier")) if q.get("tier") in ("standard", "lite")
                   else "standard"),  # 관대한 리더 — 미지정/오타는 standard
+            deadline_estimated=bool(q.get("deadline_estimated", False)),
         ))
     ids = [q.question_id for q in questions]
     if len(ids) != len(set(ids)):
@@ -333,6 +334,45 @@ def propose_schedule(cadence: str) -> Optional[list[dict[str, Any]]]:
 # 마감이 이 일수 안에 있으면 회차와 무관하게 최우선. D-3 세그먼트(마감 3일 전 활성)를
 # 여유 있게 덮도록 7일로 둔다 — 2026-09-09 실측 근거는 함수 docstring 참조.
 URGENT_WINDOW_DAYS = 7
+
+
+# 추정 마감 질문을 무인 경로가 건드리지 못하게 하는 창(일). 실측 계기가 4일이라
+# 여유를 둬서 7일로 잡았다 — 아래 docstring 참조.
+ESTIMATED_DEADLINE_WINDOW_DAYS = 7
+
+
+def estimated_deadline_block(q: Question, today: date) -> Optional[str]:
+    """추정 마감 질문을 **무인 경로**가 마감 근처에서 예측하지 못하게 막는다.
+
+    2026-09-14 실측. `orcl-eps-beat-fq1-2027` 의 마감은 `2026-09-14` 인데 질문 본문이
+    스스로 "9/8~9/14 **추정**"이라 적었고 판정기준도 "기한은 발표 예상 상한 — 실제
+    발표일에 판정"이라고 적었다. 실제 발표는 **2026-09-10** 이었다. 그런데 D-3 재예측
+    세그먼트는 **2026-09-11**(이벤트 다음 날) 에 열렸고, 우선순위 함수는 마감이 가장
+    가깝다는 이유로 이 질문을 **1순위**로 올렸다. 그대로 `forecast --due --max 3 --yes`
+    가 돌았다면 **이미 발표된 실적을 예측하는 회차**가 캘리브레이션 표본에 조용히
+    들어갔다 — CLAUDE.md 원칙 5(라이브 포워드 only, 백테스트 절대 금지) 위반이고,
+    예측 파일은 불변이라 되돌릴 수도 없다.
+
+    기존 가드는 `now.date() > deadline` 일 때만 막는다. 마감이 **확정일**이면 맞지만
+    **추정일**이면 실제 이벤트가 그보다 먼저 올 수 있어 구멍이 난다.
+
+    무인 경로는 "그 실적이 이미 나왔는가"를 확인할 수단이 없다. 사람은 있다. 그래서
+    이 가드는 **무인 배치(`--due`)에서만** 건너뛰게 하고, 사람이 명시적으로 지목한
+    실행은 막지 않는다. 발표일이 확정되면 레지스트리에서 `deadline_estimated` 를
+    내리면 다시 돈다 — `deadline` 자체는 판정기준이라 건드리지 않는다.
+
+    현재 활성 질문 중 7건(tsmc·msft·googl·meta·amzn·aapl·nvda)이 같은 모양이다.
+    """
+    if not q.deadline_estimated:
+        return None
+    if q.deadline_kind != "fixed" or q.deadline is None:
+        return None
+    days = (q.deadline - today).days
+    if days > ESTIMATED_DEADLINE_WINDOW_DAYS:
+        return None
+    return (f"마감 {q.deadline} 이 **추정**인데 D-{days} 구간이다 — 실제 이벤트가 이미 "
+            f"지났을 수 있고, 무인 경로는 그것을 확인할 수 없다. 발표일을 확인해 "
+            f"registry 의 `deadline_estimated` 를 내린 뒤 재실행한다")
 
 
 def batch_should_abort(exc: BaseException) -> bool:

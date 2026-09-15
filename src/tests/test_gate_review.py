@@ -75,9 +75,35 @@ def test_report_badge_never_renders_the_word_pass() -> None:
 
 
 def test_markdown_carries_the_reserved_loss_and_the_never_list() -> None:
+    """예약 손실 절과 금지 목록이 살아 있는가.
+
+    **2026-09-14 정정**: 여기 원래 `"0.20582" in text` 라고 박아 뒀었다. 그 값은
+    행 평균에서 파생되는 **살아 있는 수**라, 해소가 3건 들어오자(문항 7→10,
+    행 평균 0.15986→0.13686) 0.17420 이 되면서 테스트가 깨졌다. 코드는 멀쩡했다.
+
+    사흘 전 같은 이유로 V5.2 테스트의 미고정 상수를 걷어내 놓고 내 테스트에는
+    똑같은 것을 남겨 뒀다. 지킬 값어치가 있는 것은 **숫자가 아니라 성질**이다 —
+    같은 전제로 생산된 상관 회차가 둘 다 빗나가면 행 평균이 **올라간다**는 것,
+    그리고 그 절이 두 값을 나란히 보여 준다는 것.
+    """
+    import re
+
     from ai_fc.gate_review import interim_review, render_markdown
-    text = render_markdown(interim_review(ROOT), today="2026-09-11")
-    assert "예약 손실 시나리오" in text and "0.20582" in text
+
+    review = interim_review(ROOT)
+    text = render_markdown(review, today="2026-09-11")
+    assert "예약 손실 시나리오" in text
+
+    match = re.search(
+        r"행 평균 ([0-9.]+) → \*\*([0-9.]+)\*\* \((\d+)행 → (\d+)행", text)
+    assert match, text
+    now, scenario = float(match.group(1)), float(match.group(2))
+    rows_now, rows_after = int(match.group(3)), int(match.group(4))
+
+    assert now == pytest.approx(review["brier_primary_rows"], abs=5e-6)
+    assert rows_after == rows_now + 2, "NFP 2건이 붙는 시나리오다"
+    assert scenario > now, "상관된 두 회차가 둘 다 빗나가면 평균은 올라간다"
+
     for item in ("stop_at_49_and_cherry_pick", "post_hoc_failed_tagging",
                  "gate_arithmetic_change"):
         assert item in text

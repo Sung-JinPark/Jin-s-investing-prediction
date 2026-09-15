@@ -45,6 +45,11 @@ class Question:
     # v3 WS-B 파이프라인 티어: standard | lite. lite = 검색량·분량만 경량 (2에이전트+
     # 데블스 강제는 불변 — 헌법). src_hash 미포함 — 자유 편집 가능.
     tier: str = "standard"
+    # 마감일이 **추정**인가 (발표일 미확정 실적 질문 등). src_hash 미포함 — 판정기준이
+    # 아니라 "그 날짜를 믿어도 되는가"에 대한 메타다. 실제 이벤트가 추정 마감보다
+    # 먼저 올 수 있으므로 무인 경로가 이 구간에서 회차를 만들면 **이미 알려진 결과를
+    # 예측**하게 된다 (registry.estimated_deadline_block).
+    deadline_estimated: bool = False
 
     @property
     def is_manual(self) -> bool:

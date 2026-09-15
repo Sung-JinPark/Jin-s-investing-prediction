@@ -1620,15 +1620,32 @@ def cmd_forecast(
         # 준수 질문의 예측까지 막는 것은 과잉 차단이다.
         # 명시적으로 지목한 실행(`forecast <qid>`)에서는 여전히 하드 에러 —
         # 사용자가 그 질문을 요청했으므로 조용히 건너뛰면 안 된다.
-        from .registry import factory_filter_violation
+        from .registry import estimated_deadline_block, factory_filter_violation
         by_id = {q.question_id: q for q in questions}
         skipped = [d.question_id for d in ordered
                    if factory_filter_violation(by_id[d.question_id])]
         for qid in skipped:
             typer.echo(f"[건너뜀] {qid}: 등록필터 근거 없음 — "
                        "notes에 '등록필터:' 기재 후 재실행 (배치는 계속)", err=True)
+
+        # 2026-09-14 추가: 마감이 **추정**인 질문은 무인 배치에서 건너뛴다.
+        # 기존 가드는 `오늘 > 마감` 일 때만 막는데, 추정 마감은 실제 이벤트가 그보다
+        # 먼저 올 수 있다. orcl-eps-beat-fq1-2027 이 정확히 그랬다 — 마감 09-14(추정),
+        # 실제 발표 09-10, D-3 세그먼트가 09-11 에 열려 우선순위 1위였다. 그대로
+        # 돌았다면 **이미 발표된 실적을 예측한 회차**가 표본에 들어갔다.
+        # 사람이 지목한 실행(`forecast <qid>`)은 막지 않는다 — 발표 여부를 확인할 수
+        # 있는 것은 사람뿐이고, 확인했다면 D-0 회차가 가장 값진 회차다.
+        today_kst = datetime.now(ZoneInfo(config.TZ_NAME)).date()
+        estimated = [d.question_id for d in ordered
+                     if d.question_id not in set(skipped)
+                     and estimated_deadline_block(by_id[d.question_id], today_kst)]
+        for qid in estimated:
+            typer.echo(f"[건너뜀] {qid}: "
+                       f"{estimated_deadline_block(by_id[qid], today_kst)} (배치는 계속)",
+                       err=True)
+        blocked = set(skipped) | set(estimated)
         targets = [d.question_id for d in ordered
-                   if d.question_id not in set(skipped)][:max_n]
+                   if d.question_id not in blocked][:max_n]
         if not targets:
             typer.echo("예측 due 없음")
             return
