@@ -1249,6 +1249,53 @@ def cmd_market_extensions(
     )
 
 
+@app.command("signals")
+def cmd_signals(
+    skip_vix: bool = typer.Option(False, "--skip-vix", help="VIX 갱신 건너뜀"),
+    skip_fear_greed: bool = typer.Option(False, "--skip-fear-greed", help="공포탐욕 갱신 건너뜀"),
+) -> None:
+    """시장 심리 표시 표면(VIX · 공포탐욕)을 갱신한다.
+
+    **둘 다 표시 전용이다.** 확률이 아니고 어떤 예측·시나리오·base rate 와도
+    산술 결합하지 않는다. 한쪽이 실패해도 다른 쪽은 갱신한다 — 하나의 원천 장애가
+    화면 전체를 비우게 두지 않는다. 실패는 종료코드 1 로 남긴다.
+    """
+    from .fear_greed import append_reading, read_now, write_latest
+    from .vix_surface import refresh as refresh_vix
+
+    root = config.ROOT
+    today = datetime.now(ZoneInfo(config.TZ_NAME)).date()
+    failures: list[str] = []
+
+    if not skip_vix:
+        try:
+            vix = refresh_vix(root, today=today)
+            typer.echo(
+                f"VIX {vix['level']} ({vix['band_label']}) · {vix['observed_date']} · "
+                f"하드룰 25 까지 {vix['hard_rule']['distance']:+.2f}")
+        except Exception as exc:  # noqa: BLE001 — 원천 장애가 다른 표면을 비우지 않게
+            failures.append(f"vix: {type(exc).__name__}: {exc}")
+            typer.echo(f"[실패] VIX 갱신: {exc}", err=True)
+
+    if not skip_fear_greed:
+        try:
+            reading = read_now(today=today)
+            appended = append_reading(root, reading)
+            write_latest(root, today=today)
+            typer.echo(
+                f"공포탐욕 {reading.value} ({reading.band_label}) · "
+                f"{reading.observed_date} · {'원장 추가' if appended else '이미 기록됨'}")
+        except Exception as exc:  # noqa: BLE001 — 원천 장애가 다른 표면을 비우지 않게
+            failures.append(f"fear_greed: {type(exc).__name__}: {exc}")
+            typer.echo(f"[실패] 공포탐욕 갱신: {exc}", err=True)
+
+    if failures:
+        typer.echo("표시 표면 갱신 실패 — 마지막 값을 재사용하지 않습니다:", err=True)
+        for item in failures:
+            typer.echo(f"  - {item}", err=True)
+        raise typer.Exit(code=1)
+
+
 @app.command("admin-traffic")
 def cmd_admin_traffic(
     render_only: bool = typer.Option(

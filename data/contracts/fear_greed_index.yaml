@@ -1,0 +1,90 @@
+schema_version: 1
+source_id: fear_greed_index
+name: Stock market fear and greed index (republished)
+endpoint: https://feargreedmeter.com/
+enabled: true
+status: display_only_monitoring
+license_status: review_required
+checked_at: 2026-09-15
+observed_http_status: 200
+
+# ── 지위 ────────────────────────────────────────────────────────
+# 이 값은 **표시 전용**이다. 확률이 아니고, 어떤 예측·시나리오·base rate 와도
+# 산술 결합하지 않는다. P3 게이트와 무관하며 매매 신호가 아니다.
+probability_space: not_a_probability
+model_use: false
+official_forecast_input: false
+combine_with_official_forecasts: false
+combine_with_scenario: false
+trading_signal: false
+
+# ── 왜 1차 출처가 아닌가 (2026-09-15 실측) ──────────────────────
+# CNN 공식 엔드포인트는 자동 클라이언트를 차단한다.
+#   production.dataviz.cnn.io/index/fearandgreed/graphdata  -> HTTP 418
+#   production.dataviz.cnn.io/index/fearandgreed/current    -> HTTP 418
+#   edition.cnn.com/markets/fear-and-greed                  -> HTTP 200 (숫자 없음)
+# 마지막 것은 `data-initial-fetch-delay` 속성만 있고 점수는 클라이언트가 위의 막힌
+# API 로 다시 가져온다. 브라우저 UA 위장은 봇 차단 우회라 채택하지 않았다.
+primary_source_unavailable:
+  provider: CNN Business
+  reason: non_browser_clients_blocked_http_418
+  verified_at: 2026-09-15
+  note: >
+    자동 클라이언트에만 막혀 있다. 사람이 쓰는 것과 같은 실제 브라우저로는 열린다 —
+    과거 시계열은 그 경로로 **한 번** 읽어 심었고(아래), 매일 갱신은 CI 에서 도는
+    재공표처가 이어받는다. CI 에는 브라우저가 없으므로 시드는 재현되지 않는다.
+
+# ── 과거 시드 (일회성) ──────────────────────────────────────────
+history_seed:
+  source_id: cnn_graphdata
+  endpoint: https://production.dataviz.cnn.io/index/fearandgreed/graphdata
+  method: real_browser_session          # UA 위장·봇 차단 우회 아님
+  seeded_at: 2026-09-15
+  rows: 250
+  window: ['2025-09-15', '2026-09-14']
+  row_marker: 'seeded: true + source_id'  # 행마다 출처를 남긴다
+  # 두 경로가 같은 지수임을 대조했다: CNN 30.94 -> 31, 재공표처 31 (2026-09-15).
+  cross_check: {cnn_raw: 30.94, republisher: 31, agree_rounded: true}
+  # 안정성 배지는 시드를 세지 않는다 — 그 숫자는 일일 수집의 연속성을 재는 것이다.
+  excluded_from_stability_streak: true
+
+# ── 추출 규약 ───────────────────────────────────────────────────
+# 프레젠테이션 마크업을 긁지 않는다. `application/ld+json` 안의 QuantitativeValue
+# 중 **이름이 정확히 일치하는 것 하나**만 받는다. 같은 페이지에 암호화폐 지수도 실려
+# 있어서, 이름을 고정하지 않으면 다른 자산군 숫자를 주식 지수로 표시하게 된다.
+extraction:
+  method: schema_org_ld_json
+  node_type: QuantitativeValue
+  match_name_exactly: Stock Market Fear and Greed Index
+  on_miss: fail   # 마지막 값 재사용 금지 — 조용히 틀린 값보다 빈칸이 낫다
+  value_range: [0, 100]
+
+bands:                      # CNN 이 쓰는 경계 그대로
+  - {lo: 0,  hi: 24,  slug: extreme_fear,  label: 극단적 공포}
+  - {lo: 25, hi: 44,  slug: fear,          label: 공포}
+  - {lo: 45, hi: 55,  slug: neutral,       label: 중립}
+  - {lo: 56, hi: 74,  slug: greed,         label: 탐욕}
+  - {lo: 75, hi: 100, slug: extreme_greed, label: 극단적 탐욕}
+
+cadence: daily
+freshness_sla_hours: 48
+ledger: data/fear_greed/fng_history.jsonl        # append-only, 하루 1행
+projection: data/fear_greed/fng_latest.json
+
+# ── 안정성 게이트 ───────────────────────────────────────────────
+# defillama_stablecoins 와 같은 규율(14일 연속 성공)을 쓰되, 그 원천과 달리
+# **표시는 첫날부터** 한다. 이유는 지위가 다르기 때문이다 — defillama 값은 유동성
+# 신호로 분석에 들어가지만 이 값은 화면에만 있고 어떤 계산에도 들어가지 않는다.
+# 대신 카드가 n/14 를 함께 보여 준다. 그 표기가 없으면 읽는 사람이 하루짜리
+# 관측을 검증된 계열로 오해한다.
+stability_gate:
+  consecutive_successful_days: 14
+  blocks_display: false
+  display_badge_until_met: true
+
+fallback: 수집·파싱 실패 시 숫자를 비우고 사유를 표시한다. 마지막 값을 재사용하지 않는다.
+
+known_limits:
+  - 재공표처라 CNN 원본과 값이 다르거나 지연될 수 있다. 카드에 출처를 명시한다.
+  - 재배포 약관 미확인. 약관 확인 결과에 따라 내릴 수 있도록 표시 경로를 한 곳으로 모았다.
+  - 구성요소(7개 지표)는 공표되지 않는다. 우리는 합성값만 받고 분해하지 않는다.
