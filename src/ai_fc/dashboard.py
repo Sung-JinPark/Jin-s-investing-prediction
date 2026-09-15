@@ -57,6 +57,15 @@ FUTURE_PATHS_FILENAME = "future_paths.json"
 # 33% 여유 = 통계 검수에서 늘어난 결론·caveat 문장과 차트 2~3개를 더 받을 수 있는 폭.
 STATISTICS_DATA_BUDGET_BYTES = 160_000
 STATISTICS_DATA_FILENAME = "statistics.json"
+# 근거 원문(body)은 질문 상세 드릴다운의 reasoningText() 한 곳에서만 읽힌다. 첫 화면을
+# 막는 data.json 에 실을 이유가 없는데 실측 398,438 B 로 base 의 44% 를 차지했고, 예측이
+# 쌓일수록 단조 증가해 2026-09-15 Pages 빌드를 905,556 B 로 넘겨 배포를 깼다. ADR-002 가
+# 정한 방식 그대로 — 예산을 올리지 않고 라우트 지연 로드로 쪼갠다. 지연 fetch 라 크기
+# 자체가 첫 페인트를 막지 않으므로 가드는 넉넉히 두되, 자라는 것을 모르고 지나치지
+# 않도록 90% 소프트 경고를 함께 받는다. 자기완결 embed 에는 적용하지 않는다 — 거기서
+# 쪼개기는 내용을 옮기는 게 아니라 지우는 것이다(ADR-002).
+FORECAST_BODIES_BUDGET_BYTES = 900_000
+FORECAST_BODIES_FILENAME = "forecast_bodies.json"
 # 첫 화면을 막는 payload는 예산 없이 자라면 안 된다 — 실측 633KB에서 시작한다.
 DATA_JSON_BUDGET_BYTES = 900_000
 # 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
@@ -927,6 +936,70 @@ def _guard_timeseries_v13_vol_budget(projection: dict) -> dict:
     return projection
 
 
+def split_forecast_bodies(read_model: dict) -> tuple[dict, dict | None]:
+    """Move reasoning bodies out of the first-paint payload into a deferred artifact.
+
+    ``forecast_history`` 의 구조화 필드(확률·구간·출처 수·회차)는 목록·차트·홈 화면이
+    첫 페인트에 읽으므로 base 에 남긴다. ``body`` 만 분리한다 — 이 값은 질문 상세
+    드릴다운(``renderDetail`` → ``reasoningText``)에서만 쓰인다.
+
+    키는 인덱스가 아니라 ``forecast_id`` 다. 인덱스로 묶으면 회차가 하나 끼어들 때 본문이
+    다른 회차에 붙는데, 그 오류는 화면에 아무 신호 없이 조용히 틀린다. ``forecast_id`` 가
+    없는 행은 본문을 인라인으로 남긴다 — 쪼개다 잃는 것보다 무거운 편이 낫다.
+
+    Pages 전용이다. 자기완결 embed 는 fetch 가 없어 분리가 곧 삭제이므로
+    :func:`_limit_embed_inline_bodies` 가 그대로 담당한다.
+    """
+    history = read_model.get("forecast_history")
+    if not isinstance(history, dict) or not history:
+        return read_model, None
+    bodies: dict[str, str] = {}
+    stripped: dict[str, list] = {}
+    for question_id, rows in history.items():
+        carried = []
+        for row in rows:
+            if isinstance(row, dict) and row.get("body") and row.get("forecast_id"):
+                bodies[str(row["forecast_id"])] = row["body"]
+                carried.append({k: v for k, v in row.items() if k != "body"})
+            else:
+                carried.append(row)
+        stripped[question_id] = carried
+    if not bodies:
+        return read_model, None
+    base = dict(read_model)
+    base["forecast_history"] = stripped
+    # 화면이 '본문이 원래 없는 회차'와 '지연 로드 대기 중'을 구별할 수 있어야 한다.
+    # 구별하지 못하면 로딩 중 상태를 '근거 원문 없음'으로 잘못 표시한다.
+    base["forecast_bodies"] = {
+        "required": True,
+        "loaded": False,
+        "url": FORECAST_BODIES_FILENAME,
+        "key_field": "forecast_id",
+        "count": len(bodies),
+        "reason": "data_json_size_budget",
+        "full_payload": "/api/data",
+    }
+    payload = {
+        "contract_id": "forecast_bodies_v1",
+        "key_field": "forecast_id",
+        "bodies": bodies,
+    }
+    payload_size = len(json.dumps(
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+    ).encode("utf-8"))
+    if payload_size > FORECAST_BODIES_BUDGET_BYTES:
+        raise ValueError(
+            f"forecast bodies budget exceeded: {payload_size} > "
+            f"{FORECAST_BODIES_BUDGET_BYTES}"
+        )
+    if payload_size > FORECAST_BODIES_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(
+            f"warning: {FORECAST_BODIES_FILENAME} {payload_size}B is "
+            f"{payload_size / FORECAST_BODIES_BUDGET_BYTES:.1%} of its budget"
+        )
+    return base, payload
+
+
 def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     """Move statistics-only chart coordinates into an independently bounded route artifact."""
     existing = (read_model.get("statistics_lab") or {}).get("deferred_data") or {}
@@ -1219,7 +1292,8 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         data_script = (
             '<script>window.__DATA_URL__ = "data.json";'
             f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
-            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";</script>'
+            f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
+            f'window.__FORECAST_BODIES_URL__ = "{FORECAST_BODIES_FILENAME}";</script>'
         )
     elif mode == "fetch":
         data_script = (
@@ -1353,6 +1427,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     model = build_read_model(conn, root)
     base, statistics_data = split_statistics_data(model)
     base, future_paths = split_future_paths(base)
+    base, forecast_bodies = split_forecast_bodies(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -1381,6 +1456,14 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
         (out_dir / STATISTICS_DATA_FILENAME).write_text(
             json.dumps(
                 statistics_data, ensure_ascii=False, default=str,
+                separators=(",", ":"),
+            ),
+            encoding="utf-8",
+        )
+    if forecast_bodies is not None:
+        (out_dir / FORECAST_BODIES_FILENAME).write_text(
+            json.dumps(
+                forecast_bodies, ensure_ascii=False, default=str,
                 separators=(",", ":"),
             ),
             encoding="utf-8",

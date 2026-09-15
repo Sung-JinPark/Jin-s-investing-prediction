@@ -93,6 +93,13 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
         assert expected in workflow
         assert "types: [completed]" in workflow
 
+    # 배포 빌드는 PR 에서도 돌아야 한다. 2026-09-15 에 data.json 예산 초과로 Pages 가
+    # 깨졌는데, 브랜치 CI 는 초록이었다 — 배포 빌드가 push-to-main 에서만 돌았기 때문이다.
+    # verify 가 pull_request 에 걸려 있으므로 여기서 같은 명령을 돌리면 머지 전에 잡힌다.
+    assert "pull_request:" in verify
+    assert "dashboard --pages-out" in verify, "verify must rehearse the deploy build"
+    assert "dashboard --pages-out" in pages
+
     ots = (ROOT / ".github" / "workflows" / "ots-stamp.yml").read_text(
         encoding="utf-8"
     )

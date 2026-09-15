@@ -9,8 +9,26 @@ budgets:
   embed_html_max_kib: 1536
   data_json_max_bytes: 900000
   future_paths_json_max_bytes: 240000
+  # 통계 라우트 사이드카 — 코드 상수(STATISTICS_DATA_BUDGET_BYTES)와 맞춘 선언.
+  statistics_json_max_bytes: 160000
+  # 근거 원문 사이드카 — 2026-09-15 Pages 빌드가 905,556 B 로 data.json 예산을 넘겨
+  # 깨진 뒤 분리했다. 본문은 예측 수에 비례해 단조 증가하므로 첫 화면 예산에 두지 않는다.
+  forecast_bodies_json_max_bytes: 900000
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000
+
+forecast_bodies:
+  filename: forecast_bodies.json
+  load_policy: fetch_only_on_question_detail_route_entry
+  key_field: forecast_id           # 인덱스 금지 — 회차가 끼어들면 본문이 조용히 어긋난다
+  base_payload_content: forecast_history_structured_fields_only
+  deferred_field: body
+  applies_to: pages_only           # 자기완결 embed 는 fetch 가 없어 분리가 곧 삭제다(ADR-002)
+  embed_policy: _limit_embed_inline_bodies
+  fetch_failure:
+    silent_fallback: prohibited
+    detail_route: render_structured_record_and_explicit_body_failure_message
+    pending_state: must_be_distinguishable_from_no_body_recorded
 
 future_paths:
   filename: future_paths.json

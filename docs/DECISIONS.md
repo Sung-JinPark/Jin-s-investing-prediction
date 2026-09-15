@@ -1901,3 +1901,37 @@ rates 69 · credit 61 · valuation 49 · liquidity 33. 포함 13종, 계약 제�
 
 **실측.** 1280px 에서 `.today-dashboard` 하위 전 요소 가로 잘림 **0**, 전역 푸터 노출 확인.
 계약 테스트에 "고지가 어디에도 없으면 안 된다" 단언을 추가했다.
+
+## 2026-09-16 — 12-9 첫 화면 payload 분리 · 배포 빌드를 PR 로 당김
+
+**위임 근거**: 사용자 지시 "기다리지말고 그냥 직접해" (2026-09-16) — PR #213 머지 직후
+Pages 배포가 깨진 것을 발견해 복구까지 스스로 진행.
+
+**무엇이 깨졌나.** PR #213 머지 커밋 `47ad3350` 에서 `pages.yml` 의 대시보드 정적 빌드가
+`ValueError: data.json budget exceeded: 905556 > 900000` 로 실패했다. `deploy` 는 건너뛰어
+라이브 사이트는 머지 전 `d334a7e2` 에 그대로 머물렀다 — **조용한 실패는 아니었지만
+머지 뒤에야 보이는 실패**였다.
+
+**왜 브랜치 CI 는 초록이었나.** 두 겹이다.
+① `verify` 는 단위 시험과 검사만 돌고 **배포 빌드를 돌지 않았다**. `dashboard --pages-out`
+은 `pages.yml` 에만 있었고 그건 `push: branches: [main]` 트리거다 — 배포 빌드 실패는
+구조적으로 머지 이후에만 발견될 수 있었다.
+② data.json 예산을 **실제 저장소로** 재는 시험이 없었다. embed 예산 시험
+(`test_repository_snapshot_stays_within_dashboard_budget`)은 있었지만 Pages 쪽은 없었다.
+브랜치는 `74083981` 기준으로 측정됐고, 그 사이 main 이 데이터 커밋으로 자랐다. 자란 main
+과 합쳐진 결과를 아무도 빌드해 보지 않았다.
+
+| # | 항목 | 결정 | 근거 |
+|---|---|---|---|
+| 12-9a | 근거 원문(`body`) 분리 | `split_forecast_bodies()` 로 `forecast_bodies.json` 사이드카 신설. 질문 상세 진입 때만 fetch. **Pages 전용** | 실측 398,438 B 로 base 의 44%. 그런데 `reasoningText()` 한 곳에서만 읽히고 그건 드릴다운에서만 도달한다 — 첫 페인트를 막을 이유가 없다. 905,580 → **507,319 B** (예산의 56.4%) |
+| 12-9b | 예산을 올리지 않는다 | `DATA_JSON_BUDGET_BYTES` 900,000 유지 | ADR-002 가 이미 정한 방식이다: *"The blueprint's preferred option was to split payload into static JSON and hold the core budget, and that is what Pages does."* 900 KB 는 **첫 화면을 막는** payload 예산이고, 본문은 예측 수에 비례해 단조 증가한다 — 올리면 다음 달에 같은 자리에서 다시 깨진다 |
+| 12-9c | embed 는 건드리지 않는다 | `write_dashboard`(embed)는 기존 `_limit_embed_inline_bodies` 그대로 | 자기완결 스냅샷에는 fetch 가 없다. 거기서 분리는 이동이 아니라 **삭제**다 (ADR-002 11-1 과 같은 논거). 시험으로 고정: `test_embed_keeps_bodies_inline_because_splitting_there_deletes_them` |
+| 12-9d | 키는 `forecast_id` | 인덱스 금지 | 인덱스로 묶으면 회차가 하나 끼어들 때 본문이 다른 회차에 붙는다. 그 오류는 화면에 아무 신호 없이 조용히 틀린다 — 읽는 사람은 틀린 근거를 읽는다. `forecast_id` 가 없는 행은 본문을 인라인으로 남긴다 (쪼개다 잃는 것보다 무거운 편이 낫다) |
+| 12-9e | 대기 상태를 '없음'으로 표시 금지 | `forecastBodyPending()` 로 '아직 안 옴'과 '원래 없음'을 구별. fetch 실패는 명시 문구 | 계약 `dashboard_payload.yaml` 의 `silent_fallback: prohibited` 를 본문 경로에도 적용 |
+| 12-9f | **배포 빌드를 PR 로 당긴다** | `verify.yml` 에 `sync --rebuild` + `dashboard --pages-out` 리허설 단계 추가 (시크릿 0 · 산출물 폐기) | 진짜 구멍은 예산 상수가 아니라 **배포 빌드가 머지 전에 한 번도 실행되지 않는다**는 것이었다. `verify` 는 `pull_request` 에 걸려 있고 GitHub 는 PR 체크를 머지 결과에 대해 돌린다 — 같은 명령을 여기서 돌리면 자란 main 과 합쳐진 상태를 머지 전에 빌드해 본다. 예산 초과뿐 아니라 **모든** 배포 빌드 실패를 잡는다 |
+| 12-9g | 예산 시험을 실제 저장소로 | `test_pages_payload_stays_within_budget_on_the_real_repository` | 숫자를 박지 않고 성질(예산 이내)만 단언한다 — 예측이 쌓이면 값은 매일 달라진다. 라이브 유래 숫자를 박은 단언은 이미 두 번(`test_projection_preserves_direction_changes`·`test_gate_review`) 같은 방식으로 깨졌다 |
+
+**남긴 한계.** `forecast_bodies.json` 도 예측 수에 비례해 자란다(현재 400,531 B / 900,000 B).
+지연 fetch 라 첫 페인트를 막지 않지만 무한하지 않다 — 90% 소프트 경고가 먼저 울리고,
+그때의 선택지는 질문별 본문 파일로 다시 쪼개는 것이다. 지금 하지 않는 이유는 파일 수가
+늘면 상세 진입마다 왕복이 생기기 때문이고, 그 교환은 경고가 울린 뒤에 판단할 일이다.
