@@ -187,3 +187,51 @@ def test_the_real_ledger_carries_a_year_of_history_with_provenance() -> None:
     assert all(0 <= row["value"] <= 100 for row in history)
     dates = [row["observed_date"] for row in history]
     assert dates == sorted(dates) and len(dates) == len(set(dates))
+
+
+# ── 구성요소 실험실 (통계 탭) ─────────────────────────────────────
+
+def test_components_carry_all_seven_with_raw_series() -> None:
+    """CNN 이 쓰는 7축이 전부 있어야 한다 — 하나라도 빠지면 합성값을 설명하지 못한다."""
+    lab = fg.components_projection(ROOT)
+    assert lab["status"] == "live"
+    expected = {"market_momentum_sp500", "stock_price_strength", "stock_price_breadth",
+                "put_call_options", "market_volatility_vix", "junk_bond_demand",
+                "safe_haven_demand"}
+    assert set(lab["components"]) == expected
+    for name, component in lab["components"].items():
+        assert 0 <= component["score"] <= 100, name
+        assert component["rating"] and component["label"] and component["unit"]
+        assert len(component["series"]) == len(lab["dates"]), name
+
+
+def test_nasdaq_is_joined_on_the_same_axis() -> None:
+    """겹쳐 보려면 두 계열이 **같은 날짜 축** 위에 있어야 한다.
+
+    NASDAQ 은 우리 봉인 아카이브에서 붙인다 — 상관을 주장하려는 것이 아니라 같은
+    구간을 두 눈금으로 읽게 하려는 것이다.
+    """
+    lab = fg.components_projection(ROOT)
+    assert len(lab["nasdaq"]) == len(lab["dates"])
+    filled = [v for v in lab["nasdaq"] if v is not None]
+    assert len(filled) == len(lab["dates"]), "빈 칸이 있으면 선이 끊긴다"
+    assert min(filled) > 1000, "지수 레벨이어야 한다(수익률·지수화 아님)"
+
+
+def test_component_series_are_raw_inputs_not_scores() -> None:
+    """점수 시계열은 공표되지 않는다 — 원자료를 점수처럼 그리면 없는 데이터를 지어내는 것이다.
+
+    S&P500 모멘텀 축은 지수 레벨(수천), VIX 축은 20 안팎이다. 둘 다 0~100 이 아니다.
+    """
+    lab = fg.components_projection(ROOT)
+    momentum = lab["components"]["market_momentum_sp500"]["series"]
+    vix = lab["components"]["market_volatility_vix"]["series"]
+    assert min(momentum) > 1000 and max(vix) < 60
+    assert lab["components"]["market_momentum_sp500"]["score"] <= 100
+
+
+def test_the_lab_declares_its_provenance_and_status() -> None:
+    lab = fg.components_projection(ROOT)
+    assert lab["source"] == "cnn_graphdata"
+    assert lab["license_status"] == "review_required"
+    assert lab["method"] == "real_browser_session"

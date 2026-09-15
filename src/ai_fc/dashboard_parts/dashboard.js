@@ -1111,6 +1111,65 @@ function statisticsChartSvg(chart,alignment={}){
     ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
+/* ── 공포·탐욕 구성요소 실험실 (통계 탭, 2026-09-15) ─────────────
+   CNN 은 구성요소의 **점수 시계열을 공표하지 않는다** — 현재 점수(0~100)와 그 점수를
+   만든 **원자료 시계열**만 준다. 그래서 화면도 그대로 나눈다: 점수는 막대, 원자료는
+   스파크라인. 둘을 섞어 '점수 추이'처럼 그리면 없는 데이터를 지어내는 것이다.
+   NASDAQ 겹치기는 상관을 주장하려는 것이 아니라 같은 구간을 두 눈금으로 읽게 하려는
+   것이다 — 어떤 회귀도 상관계수도 계산하지 않는다. */
+function fngOverlayChart(dates,fng,nasdaq){
+  const W=920,H=260,padL=44,padR=62,padT=16,padB=26;
+  const n=dates.length;if(n<2)return '';
+  const nq=nasdaq.filter(hasNumeric);
+  const nqLo=nq.length?Math.min(...nq):0,nqHi=nq.length?Math.max(...nq):1;
+  const x=i=>padL+i*((W-padL-padR)/(n-1));
+  const yF=v=>padT+(1-v/100)*(H-padT-padB);
+  const yN=v=>padT+(1-(v-nqLo)/((nqHi-nqLo)||1))*(H-padT-padB);
+  const bandRow=(lo,hi,c)=>`<rect x="${padL}" y="${yF(hi).toFixed(1)}" width="${W-padL-padR}" height="${(yF(lo)-yF(hi)).toFixed(1)}" fill="${c}" opacity=".07"/>`;
+  const bands=bandRow(0,25,'#c9002d')+bandRow(25,45,'#db351b')+bandRow(55,75,'#4a8f5f')+bandRow(75,100,'#247d78');
+  const line=(vals,y,cls)=>{let d='',open=false;
+    vals.forEach((v,i)=>{if(!hasNumeric(v)){open=false;return;}d+=`${open?'L':'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)} `;open=true;});
+    return `<path class="${cls}" d="${d.trim()}" fill="none"/>`;};
+  const ticks=[0,25,50,75,100].map(v=>`<text class="fl-axis" x="${padL-8}" y="${(yF(v)+4).toFixed(1)}" text-anchor="end">${v}</text>`).join('');
+  const nqTicks=[nqLo,(nqLo+nqHi)/2,nqHi].map(v=>`<text class="fl-axis fl-axis-r" x="${W-padR+8}" y="${(yN(v)+4).toFixed(1)}">${Math.round(v).toLocaleString()}</text>`).join('');
+  const every=Math.max(1,Math.floor(n/7));
+  const xTicks=dates.map((d,i)=>i%every?'':`<text class="fl-axis" x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${esc(d.slice(2,7))}</text>`).join('');
+  return `<svg class="fng-lab-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="공포탐욕 지수와 NASDAQ 종합 ${esc(dates[0])}부터 ${esc(dates[n-1])}까지">
+    ${bands}${ticks}${nqTicks}${xTicks}
+    ${line(nasdaq,yN,'fl-nasdaq')}${line(fng,yF,'fl-fng')}
+  </svg>`;
+}
+
+function fngComponentRow(key,c){
+  const score=Number(c.score),slug=String(c.rating||'').replace(/\s+/g,'_'),
+    color=MOOD_BAND_COLOR[slug]||MOOD_BAND_COLOR[score>=75?'extreme_greed':score>=56?'greed':score>=45?'neutral':score>=25?'fear':'extreme_fear'];
+  const vals=(c.series||[]).filter(hasNumeric);
+  const lo=vals.length?Math.min(...vals):0,hi=vals.length?Math.max(...vals):1;
+  return `<article class="fng-comp">
+    <div class="fng-comp-head"><b>${esc(c.label||key)}</b><span class="mood-chip" style="--chip:${color}">${esc(c.rating||'')}</span></div>
+    <div class="fng-comp-score"><span><i style="width:${Math.max(1,Math.min(100,score)).toFixed(0)}%;background:${color}"></i></span><b>${score.toFixed(1)}</b></div>
+    ${moodSpark(( c.series||[]).map((v,i)=>({d:i,v})),{lo,hi,w:210,h:38,stroke:color})}
+    <p class="fng-comp-note">${esc(c.unit||'')} · ${esc(c.hint||'')}</p>
+  </article>`;
+}
+
+function renderFearGreedLab(){
+  const lab=(DATA.market_mood||{}).fear_greed_components;
+  if(!lab||lab.status!=='live')return null;
+  const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
+  const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
+  return el(`<section class="fng-lab" aria-labelledby="fng-lab-head">
+    <div class="page-heading"><div><p class="eyebrow">MARKET SENTIMENT · FEAR &amp; GREED</p><h2 id="fng-lab-head">공포·탐욕 지수와 NASDAQ</h2>
+      <p class="fng-lab-lead">같은 구간을 두 눈금으로 나란히 둡니다. <b>상관을 주장하지 않습니다</b> — 회귀도 상관계수도 계산하지 않고, 어떤 예측·확률과도 결합하지 않습니다.</p></div></div>
+    <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · 현재 ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
+    ${fngOverlayChart(lab.dates||[],lab.fng||[],lab.nasdaq||[])}
+    <h3 class="fng-lab-sub">구성요소 7종</h3>
+    <p class="fng-lab-lead">점수(0~100)는 <b>현재값만 공표</b>되고, 아래 선은 그 점수를 만든 <b>원자료</b>입니다 — 점수 추이가 아닙니다.</p>
+    <div class="fng-comp-grid">${comps}</div>
+    <p class="fng-lab-foot">출처 CNN Business · ${esc(lab.seeded_at||'')} 기준 · 재배포 약관 미확인 · 표시 전용</p>
+  </section>`);
+}
+
 function renderStatistics(initialState){
   const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
@@ -1147,6 +1206,9 @@ function renderStatistics(initialState){
     appendCards(referenceSection.querySelector('.statistics-grid'),referenceCharts,charts.length);
     root.appendChild(referenceSection);
   }
+  /* 닷컴 대조 격자와 성격이 달라 그 안에 넣지 않고 별도 절로 붙인다. */
+  const fngLab=renderFearGreedLab();
+  if(fngLab)root.appendChild(fngLab);
   mount(root);
   const applyStatCategory=(key,sync)=>{
     const active=categories.some(([id])=>id===key)?key:'all';

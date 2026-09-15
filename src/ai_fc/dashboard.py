@@ -480,11 +480,14 @@ def build_read_model(
     # 시장 심리 표시 표면 — 둘 다 **표시 전용**이고 확률 공간이 아니다.
     # 어떤 예측·시나리오·base rate 와도 산술 결합하지 않는다. 로더는 파일이 없거나
     # 낡으면 숫자 대신 상태만 돌려준다(absent/stale) — 마지막 값을 재사용하지 않는다.
-    from .fear_greed import projection as load_fear_greed_projection
+    from .fear_greed import (components_projection as load_fear_greed_components,
+                             projection as load_fear_greed_projection)
     from .vix_surface import load_projection as load_vix_projection
     market_mood = {
         "vix": load_vix_projection(root, today=now.date()),
         "fear_greed": load_fear_greed_projection(root, today=now.date()),
+        # 구성요소 7종 + 같은 축의 NASDAQ — 통계 탭 전용(홈 카드는 쓰지 않는다).
+        "fear_greed_components": load_fear_greed_components(root),
     }
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)

@@ -1661,3 +1661,29 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .fng-value{fill:#11110f;font:800 30px/1 var(--mono)}
 .fng-mark{fill:#fbfbf8;stroke:#706f68;stroke-width:1.3}
 .mood-fng .mood-gauge{max-width:300px}
+
+/* ── 공포·탐욕 구성요소 실험실 (통계 탭) ────────────────────────
+   닷컴 대조 격자와 성격이 달라 그 안에 넣지 않고 별도 절로 둔다. */
+.fng-lab{margin-top:26px;padding-top:18px;border-top:1px solid var(--line)}
+.fng-lab-lead{margin:6px 0 0;max-width:62ch;color:#4a4842;font-size:13px;line-height:1.6;word-break:keep-all}
+.fng-lab-legend{margin:12px 0 4px;display:flex;flex-wrap:wrap;gap:14px;font:600 11px/1 var(--mono)}
+.fng-lab-legend span{display:flex;align-items:center;gap:6px;color:#6f6c65}
+.fng-lab-legend span::before{content:"";width:16px;height:2px;background:#8a877e}
+.fng-lab-legend .is-fng::before{background:#db351b}
+.fng-lab-legend .is-nq::before{background:#247d78}
+.fng-lab-chart{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
+.fl-fng{stroke:#db351b;stroke-width:1.8;stroke-linejoin:round}
+.fl-nasdaq{stroke:#247d78;stroke-width:1.4;stroke-linejoin:round;opacity:.85}
+.fl-axis{fill:#a5a29a;font:600 10px/1 var(--mono)}
+.fl-axis-r{text-anchor:start}
+.fng-lab-sub{margin:22px 0 0;font:750 14px/1.2 var(--mono)}
+.fng-comp-grid{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(238px,1fr));gap:12px}
+.fng-comp{min-width:0;padding:12px 13px;display:grid;gap:8px;align-content:start;background:#fff;border:1px solid var(--line)}
+.fng-comp-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.fng-comp-head b{font:600 13px/1.2 var(--sans)}
+.fng-comp-score{display:flex;align-items:center;gap:9px}
+.fng-comp-score span{position:relative;flex:1;height:7px;background:#f1efe8}
+.fng-comp-score i{position:absolute;inset:0 auto 0 0}
+.fng-comp-score b{font:800 15px/1 var(--mono)}
+.fng-comp-note{margin:0;color:#8a877e;font-size:10px;line-height:1.5;word-break:keep-all}
+.fng-lab-foot{margin:14px 0 0;color:#a5a29a;font-size:10px}

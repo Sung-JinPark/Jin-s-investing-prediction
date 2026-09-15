@@ -254,6 +254,51 @@ def projection(root: Path, *, today: Optional[date] = None) -> dict[str, Any]:
     }
 
 
+COMPONENTS_RELATIVE = Path("data/fear_greed/fng_components.json")
+
+
+def components_projection(root: Path) -> dict[str, Any]:
+    """통계 탭용 — 구성요소 7종 + 같은 축의 NASDAQ.
+
+    CNN 은 구성요소의 **점수 시계열을 공표하지 않는다**. 현재 점수(0~100)와 그 점수를
+    만든 **원자료 시계열**만 준다. 그래서 화면도 그대로 나눠 보여 준다 — 점수는 막대로,
+    원자료는 스파크라인으로. 둘을 섞어 "점수 추이"처럼 그리면 없는 데이터를 지어내는 것이다.
+
+    NASDAQ 은 우리 봉인 아카이브(NASDAQCOM)에서 붙인다. 겹쳐 보는 이유는 상관을
+    **주장하려는 것이 아니라** 같은 구간을 두 눈금으로 읽게 하려는 것이다 — 어떤
+    회귀도 상관계수도 계산하지 않는다.
+    """
+    path = root / COMPONENTS_RELATIVE
+    if not path.is_file():
+        return {"status": "absent"}
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    dates = payload.get("dates") or []
+    payload["status"] = "live"
+    payload["nasdaq"] = _nasdaq_on(root, dates)
+    return payload
+
+
+def _nasdaq_on(root: Path, dates: list[str]) -> list[Optional[float]]:
+    """각 날짜의 **그날 또는 그 이전 마지막** NASDAQ 종가. 없으면 None 으로 둔다."""
+    try:
+        from .timeseries_v2.market_archive import read_market_observations
+        rows = [r for r in read_market_observations(root)
+                if getattr(r, "series_id", "") == "NASDAQCOM"]
+    except Exception:  # noqa: BLE001 — 겹치기용 보조축이 없다고 본 그래프를 죽이지 않는다
+        return [None] * len(dates)
+    series = sorted(((str(r.observation_time)[:10], float(r.value)) for r in rows
+                     if r.value is not None), key=lambda item: item[0])
+    out: list[Optional[float]] = []
+    cursor = 0
+    last: Optional[float] = None
+    for day in dates:
+        while cursor < len(series) and series[cursor][0] <= day:
+            last = series[cursor][1]
+            cursor += 1
+        out.append(None if last is None else round(last, 2))
+    return out
+
+
 def write_latest(root: Path, *, today: Optional[date] = None) -> Path:
     path = root / LATEST_RELATIVE
     path.parent.mkdir(parents=True, exist_ok=True)
