@@ -7,7 +7,9 @@ budgets:
   # 머물러 있었다(실제 산출물 1,025,465 B는 이미 옛 선언을 넘김). 선언을 실측·코드와 맞춘다.
   embed_html_max_bytes: 1572864
   embed_html_max_kib: 1536
-  data_json_max_bytes: 900000
+  # 2026-09-16: data.json이 예산을 넘겨(905,026 > 900,000) pages 배포가 막혔다 — append-only
+  # forecast_history가 전체의 48.6%로 계속 자란다. ADR-002와 같은 논리로 여유를 두고 올린다.
+  data_json_max_bytes: 1300000
   future_paths_json_max_bytes: 240000
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000

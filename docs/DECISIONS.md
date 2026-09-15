@@ -1901,3 +1901,26 @@ rates 69 · credit 61 · valuation 49 · liquidity 33. 포함 13종, 계약 제�
 
 **실측.** 1280px 에서 `.today-dashboard` 하위 전 요소 가로 잘림 **0**, 전역 푸터 노출 확인.
 계약 테스트에 "고지가 어디에도 없으면 안 된다" 단언을 추가했다.
+
+### 2026-09-16 — data.json 예산 초과로 pages 배포 봉쇄 (CI 적색 해소)
+
+**증상.** 2026-09-15 22:46(#213 머지) 이후 `pages.yml`이 전부 실패. `write_pages`가
+`data.json budget exceeded: 905,556 > 900,000`에서 예외를 던져 `index.html`은 로컬
+디스크에 쓰이지만 워크플로 스텝 자체가 비정상 종료돼 이후 배포 스텝(업로드·게시)이
+실행되지 않는다 — 이 세션의 작업과 무관하게 이미 봉쇄 상태였다(가장 최근 성공 배포는
+#213 이전).
+
+**분해.** `base`(future_paths·statistics 분리 후 남는 data.json 본체) 905,026B 중
+`forecast_history` 439,580B(48.6%), `band_calibration` 111,495B(12.3%),
+`method_changes` 65,432B(7.2%) 순. 세 항목 모두 append-only 원장 계열이라 새 예측·
+채점·변경 일지가 쌓일 때마다 자연 증가하며, 이번처럼 임계를 넘기는 성장은 다시 반복된다.
+
+**결정.** ADR-002(2026-08-31, 임베드 예산 900KiB→1.5MiB)와 같은 논리 — 정적 JSON
+분리는 이미 분리된 계열이라 추가로 뺄 곳이 없고(future_paths·statistics는 이미
+별도 파일), append-only 원장을 줄이는 것은 무수정 원칙에 어긋난다. `data_json_max_bytes`를
+**900,000 → 1,300,000**(약 44% 여유)으로 올린다. 코드 상수(`dashboard.py
+DATA_JSON_BUDGET_BYTES`)와 계약 선언(`data/contracts/dashboard_payload.yaml`)을
+함께 갱신 — 어느 한쪽만 바뀌면 `test_payload_budget_declarations_match_code`가 잡는다.
+
+**후속 관찰.** 다음에 같은 벽에 부딪히면 `forecast_history`를 future_paths처럼
+지연 로드 분리하는 것이 다음 조치 — 이번엔 여유 44%로 당장 필요하지 않아 보류.

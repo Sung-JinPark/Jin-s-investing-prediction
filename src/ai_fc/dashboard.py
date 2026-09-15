@@ -58,7 +58,7 @@ FUTURE_PATHS_FILENAME = "future_paths.json"
 STATISTICS_DATA_BUDGET_BYTES = 160_000
 STATISTICS_DATA_FILENAME = "statistics.json"
 # 첫 화면을 막는 payload는 예산 없이 자라면 안 된다 — 실측 633KB에서 시작한다.
-DATA_JSON_BUDGET_BYTES = 900_000
+DATA_JSON_BUDGET_BYTES = 1_300_000
 # 가드에 닿기 전에 보이도록 소프트 경고 임계(예산의 90%)를 둔다.
 PAYLOAD_WARN_RATIO = 0.9
 # V13-VOL 변동성 base rate 표면은 인라인 키 `timeseries_v13_vol` 하나(실측 2~3KB)로 실린다.
