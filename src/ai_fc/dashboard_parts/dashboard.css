@@ -1651,3 +1651,13 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .v13-lf-progress span{position:relative;width:54px;height:4px;background:#efeee8}
 .v13-lf-progress i{position:absolute;inset:0 auto 0 0;background:#247d78}
 .v13-lf-note{margin:7px 0 0;color:#8a877e;font-size:10px;line-height:1.5}
+.fng-band path{fill:#f1efe8;stroke:#fff;stroke-width:1}
+.fng-band text{fill:#8a877e;font:700 10px/1 var(--mono);letter-spacing:.02em}
+.fng-band.is-on path{fill:color-mix(in srgb,var(--band) 26%,#fff);stroke:var(--band);stroke-width:1.5}
+.fng-band.is-on text{fill:var(--band)}
+.fng-tick{fill:#a5a29a;font:600 11px/1 var(--mono)}
+.fng-needle{stroke:#11110f;stroke-width:3.4;stroke-linecap:round}
+.fng-hub{fill:#fff;stroke:#e6e4dc;stroke-width:1}
+.fng-value{fill:#11110f;font:800 30px/1 var(--mono)}
+.fng-mark{fill:#fbfbf8;stroke:#706f68;stroke-width:1.3}
+.mood-fng .mood-gauge{max-width:300px}

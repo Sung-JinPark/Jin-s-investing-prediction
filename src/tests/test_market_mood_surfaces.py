@@ -155,3 +155,35 @@ def test_the_surfaces_declare_themselves_display_only() -> None:
     assert contract["probability_space"] == "not_a_probability"
     assert contract["model_use"] is False and contract["trading_signal"] is False
     assert contract["extraction"]["on_miss"] == "fail"
+
+
+# ── 1차 출처 시드 (2026-09-15 추가) ───────────────────────────────
+
+def test_seeded_rows_do_not_inflate_the_daily_collection_streak(tmp_path: Path) -> None:
+    """안정성 배지가 재는 것은 **우리 일일 수집**이 며칠째 끊기지 않았는가다.
+
+    과거를 한 번 심어 두고 그 행까지 세면 첫날부터 14/14 가 되어 배지가 거짓말을 한다.
+    """
+    path = tmp_path / fg.HISTORY_RELATIVE
+    path.parent.mkdir(parents=True)
+    rows = [{"observed_date": f"2026-09-{day:02d}", "value": 40, "band": "fear",
+             "band_label": "공포", "seeded": True} for day in range(1, 15)]
+    rows.append({"observed_date": "2026-09-15", "value": 31, "band": "fear",
+                 "band_label": "공포", "value_raw": 30.94})
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+                    encoding="utf-8")
+    assert fg.consecutive_successful_days(tmp_path, today=date(2026, 9, 15)) == 1
+    projection = fg.projection(tmp_path, today=date(2026, 9, 15))
+    assert projection["history_days"] == 15 and projection["seeded_days"] == 14
+    assert projection["stability"]["gate_met"] is False
+
+
+def test_the_real_ledger_carries_a_year_of_history_with_provenance() -> None:
+    """심은 행은 출처를 밝힌다 — 어느 행이 어디서 왔는지 섞이면 대조가 불가능하다."""
+    history = fg.load_history(ROOT)
+    assert len(history) >= 200, "1년치 시드가 있어야 통계 그래프가 그려진다"
+    seeded = [row for row in history if row.get("seeded")]
+    assert seeded and all(row.get("source_id") == "cnn_graphdata" for row in seeded)
+    assert all(0 <= row["value"] <= 100 for row in history)
+    dates = [row["observed_date"] for row in history]
+    assert dates == sorted(dates) and len(dates) == len(set(dates))

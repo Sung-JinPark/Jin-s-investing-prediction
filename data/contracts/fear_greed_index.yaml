@@ -29,6 +29,24 @@ primary_source_unavailable:
   provider: CNN Business
   reason: non_browser_clients_blocked_http_418
   verified_at: 2026-09-15
+  note: >
+    자동 클라이언트에만 막혀 있다. 사람이 쓰는 것과 같은 실제 브라우저로는 열린다 —
+    과거 시계열은 그 경로로 **한 번** 읽어 심었고(아래), 매일 갱신은 CI 에서 도는
+    재공표처가 이어받는다. CI 에는 브라우저가 없으므로 시드는 재현되지 않는다.
+
+# ── 과거 시드 (일회성) ──────────────────────────────────────────
+history_seed:
+  source_id: cnn_graphdata
+  endpoint: https://production.dataviz.cnn.io/index/fearandgreed/graphdata
+  method: real_browser_session          # UA 위장·봇 차단 우회 아님
+  seeded_at: 2026-09-15
+  rows: 250
+  window: ['2025-09-15', '2026-09-14']
+  row_marker: 'seeded: true + source_id'  # 행마다 출처를 남긴다
+  # 두 경로가 같은 지수임을 대조했다: CNN 30.94 -> 31, 재공표처 31 (2026-09-15).
+  cross_check: {cnn_raw: 30.94, republisher: 31, agree_rounded: true}
+  # 안정성 배지는 시드를 세지 않는다 — 그 숫자는 일일 수집의 연속성을 재는 것이다.
+  excluded_from_stability_streak: true
 
 # ── 추출 규약 ───────────────────────────────────────────────────
 # 프레젠테이션 마크업을 긁지 않는다. `application/ld+json` 안의 QuantitativeValue

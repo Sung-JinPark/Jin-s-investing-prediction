@@ -2427,30 +2427,43 @@ function renderVixCard(vix){
   </article>`;
 }
 
+/* CNN 이 쓰는 다이얼 모양 그대로 — 두꺼운 반원 띠를 5구간으로 나누고 현재 구간만
+   채운다. 구간 이름은 띠 위에, 눈금(0·25·50·75·100)은 안쪽에, 바늘은 중심에서.
+   이 모양을 고른 이유는 익숙해서가 아니라 **0~100 위에서의 위치**가 이 지수의 전부라
+   축 하나로 충분하기 때문이다. */
+const FNG_ARC={cx:150,cy:152,rOut:132,rIn:86,rTick:74,rLabel:109};
+function fngPoint(p,r){const a=Math.PI*(1-p/100);return[FNG_ARC.cx+r*Math.cos(a),FNG_ARC.cy-r*Math.sin(a)];}
+function fngSector(from,to){const{rOut,rIn}=FNG_ARC;
+  const[x1,y1]=fngPoint(from,rOut),[x2,y2]=fngPoint(to,rOut),[x3,y3]=fngPoint(to,rIn),[x4,y4]=fngPoint(from,rIn);
+  return `M${x1.toFixed(1)} ${y1.toFixed(1)} A${rOut} ${rOut} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)} L${x3.toFixed(1)} ${y3.toFixed(1)} A${rIn} ${rIn} 0 0 0 ${x4.toFixed(1)} ${y4.toFixed(1)} Z`;}
+
 function renderFearGreedCard(fng){
   if(!fng||fng.status!=='live')return `<article class="mood-card mood-empty"><h3>공포 · 탐욕</h3><p>아직 수집되지 않았습니다.</p></article>`;
-  const v=Number(fng.value),color=MOOD_BAND_COLOR[fng.band]||'#8a877e';
-  /* 반원 게이지 — 이 지수의 canonical form. 0 이 왼쪽(공포), 100 이 오른쪽(탐욕). */
-  const R=78,CX=100,CY=96,toXY=p=>{const a=Math.PI*(1-p/100);return[CX+R*Math.cos(a),CY-R*Math.sin(a)];};
-  const arc=(from,to,c)=>{const[x1,y1]=toXY(from),[x2,y2]=toXY(to);
-    return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${c}" stroke-width="15" stroke-linecap="butt"/>`;};
-  const arcs=(fng.bands||[]).map(b=>arc(b.lo,b.hi+1>100?100:b.hi+1,MOOD_BAND_COLOR[b.slug]||'#8a877e')).join('');
-  const[nx,ny]=toXY(v);
-  const marker=(p,label)=>{if(!hasNumeric(p))return '';const[mx,my]=toXY(p);
-    return `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.4" fill="#fbfbf8" stroke="#706f68" stroke-width="1.4"><title>${esc(label)} ${p}</title></circle>`;};
-  const gate=fng.stability||{};
+  const v=Number(fng.value),raw=hasNumeric(fng.value_raw)?Number(fng.value_raw):v;
+  const bands=fng.bands||[];
+  const sectors=bands.map(b=>{const on=b.slug===fng.band,to=b.hi>=100?100:b.hi+1;
+    const[lx,ly]=fngPoint((b.lo+to)/2,FNG_ARC.rLabel),ang=((b.lo+to)/2)/100*180-90;
+    return `<g class="fng-band${on?' is-on':''}" style="--band:${MOOD_BAND_COLOR[b.slug]||'#8a877e'}">`
+      +`<path d="${fngSector(b.lo,to)}"/>`
+      +`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" text-anchor="middle" dominant-baseline="middle" transform="rotate(${ang.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})">${esc(b.label)}</text></g>`;}).join('');
+  const ticks=[0,25,50,75,100].map(n=>{const[tx,ty]=fngPoint(n,FNG_ARC.rTick);
+    return `<text class="fng-tick" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${n}</text>`;}).join('');
+  const[nx,ny]=fngPoint(raw,FNG_ARC.rIn-6);
+  const mark=(p,label)=>{if(!hasNumeric(p))return '';const[mx,my]=fngPoint(p,FNG_ARC.rIn+23);
+    return `<circle class="fng-mark" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.6"><title>${esc(label)} ${p}</title></circle>`;};
+  const gate=fng.stability||{},seeded=Number(fng.seeded_days||0),hist=Number(fng.history_days||0);
   return `<article class="mood-card mood-fng">
-    <header><h3>공포 · 탐욕 <small>주식시장</small></h3><span class="mood-chip" style="--chip:${color}">${esc(fng.band_label)}</span></header>
-    <svg class="mood-gauge" viewBox="0 0 200 118" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
-      ${arcs}${marker(fng.month_ago,'1개월 전')}${marker(fng.week_ago,'1주 전')}${marker(fng.previous_close,'전일')}
-      <line x1="${CX}" y1="${CY}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#11110f" stroke-width="2.4" stroke-linecap="round"/>
-      <circle cx="${CX}" cy="${CY}" r="5" fill="#11110f"/>
-      <text class="mood-gauge-value" x="${CX}" y="${CY-22}" text-anchor="middle">${v}</text>
-      <text class="mood-gauge-end" x="14" y="112" text-anchor="start">0 공포</text>
-      <text class="mood-gauge-end" x="186" y="112" text-anchor="end">탐욕 100</text>
+    <header><h3>공포 · 탐욕 <small>주식시장</small></h3><span class="mood-chip" style="--chip:${MOOD_BAND_COLOR[fng.band]||'#8a877e'}">${esc(fng.band_label)}</span></header>
+    <svg class="mood-gauge" viewBox="0 0 300 178" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
+      ${sectors}${ticks}${mark(fng.month_ago,'1개월 전')}${mark(fng.week_ago,'1주 전')}${mark(fng.previous_close,'전일')}
+      <line class="fng-needle" x1="${FNG_ARC.cx}" y1="${FNG_ARC.cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"/>
+      <circle class="fng-hub" cx="${FNG_ARC.cx}" cy="${FNG_ARC.cy}" r="34"/>
+      <text class="fng-value" x="${FNG_ARC.cx}" y="${FNG_ARC.cy+2}" text-anchor="middle" dominant-baseline="middle">${v}</text>
     </svg>
+    ${moodSpark(fng.trail,{lo:0,hi:100,w:264,h:52,stroke:MOOD_BAND_COLOR[fng.band]||'#8a877e',
+      marks:[{v:75,c:'#247d78'},{v:55,c:'#8a877e'},{v:45,c:'#8a877e'},{v:25,c:'#c9002d'}]})}
     <dl class="mood-meta"><div><dt>전일</dt><dd>${hasNumeric(fng.previous_close)?fng.previous_close:'—'}</dd></div><div><dt>1주 전</dt><dd>${hasNumeric(fng.week_ago)?fng.week_ago:'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(fng.month_ago)?fng.month_ago:'—'}</dd></div></dl>
-    <p class="mood-note">${gate.gate_met?'원천 안정성 확인됨':`원천 안정성 확인 중 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b>`} · 재배포 약관 미확인 <span>${esc(fng.observed_date)} · <a href="${esc(fng.source_url||'#')}">재공표처</a> · 표시 전용</span></p>
+    <p class="mood-note">기록 ${num(hist)}일${seeded?` (과거 ${num(seeded)}일은 1차 출처에서 한 번 심음)`:''} · ${gate.gate_met?'일일 수집 안정':`일일 수집 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b>`} · 재배포 약관 미확인 <span>${esc(fng.observed_date)} · 표시 전용 — 어떤 예측·확률과도 결합하지 않습니다</span></p>
   </article>`;
 }
 

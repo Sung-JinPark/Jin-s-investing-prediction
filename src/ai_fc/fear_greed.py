@@ -1,24 +1,31 @@
 # -*- coding: utf-8 -*-
 """주식 공포·탐욕 지수 — 표시 전용 수집기.
 
-## 왜 CNN 에서 직접 안 가져오는가
+## 일일 수집과 과거 시드를 나눈 이유
 
-CNN 의 공식 엔드포인트 두 개(`production.dataviz.cnn.io/index/fearandgreed/graphdata`,
-`.../current`)는 **plain curl 에 HTTP 418 을 돌려준다**(2026-09-15 실측). 브라우저
-User-Agent 를 흉내 내면 뚫리지만 그것은 봇 차단 우회다 — 하지 않는다. CNN 의 HTML
-페이지(`edition.cnn.com/markets/fear-and-greed`)는 200 이지만 `data-initial-fetch-delay`
-속성만 있고 **점수는 클라이언트가 그 막힌 API 로 다시 가져온다**. 즉 서버 응답에 숫자가
-없다.
+CNN 의 공식 엔드포인트(`production.dataviz.cnn.io/index/fearandgreed/{graphdata,current}`)는
+**plain curl 에 HTTP 418** 을 돌려준다(2026-09-15 실측). HTML 페이지는 200 이지만
+`data-initial-fetch-delay` 속성만 있고 점수는 클라이언트가 그 막힌 API 로 다시 가져오므로
+서버 응답에 숫자가 없다. 브라우저 User-Agent 위장은 봇 차단 우회라 하지 않는다.
 
-그래서 같은 지수를 **서버 렌더링된 schema.org 구조화 데이터로 공표하는 재공표처**를
-쓴다. 프레젠테이션 마크업을 긁는 것이 아니라 `application/ld+json` 안의
-`QuantitativeValue` 를 읽는다 — 페이지 디자인이 바뀌어도 깨지지 않고, 깨지면
-조용히 틀린 값이 아니라 **파싱 실패로 드러난다**(페일클로즈).
+그래서 두 경로를 나눈다.
+
+- **과거 1년치(시드)**: 사람이 쓰는 것과 같은 **실제 브라우저**로 CNN 페이지를 열어
+  읽었다(2026-09-15, 251일). 행마다 `source_id: cnn_graphdata` 와 `seeded: true` 가 붙는다.
+  일회성이고 CI 에서는 재현되지 않는다.
+- **매일 갱신**: 같은 지수를 **서버 렌더링 schema.org 구조화 데이터로 공표하는 재공표처**
+  에서 받는다. 프레젠테이션 마크업을 긁는 것이 아니라 `application/ld+json` 안에서
+  이름이 정확히 일치하는 `QuantitativeValue` 하나만 읽는다 — 같은 페이지에 암호화폐
+  지수도 있어 이름을 고정하지 않으면 자산군이 섞인다. 못 찾으면 마지막 값을 재사용하지
+  않고 실패한다(페일클로즈).
+
+두 경로의 값은 같은 지수다(2026-09-15 대조: CNN 30.94 → 31, 재공표처 31). 그래도 행마다
+출처를 남겨 어디서 온 값인지 섞이지 않게 한다. **안정성 배지(n/14일)는 시드를 세지
+않는다** — 그 숫자가 재는 것은 우리 일일 수집이 며칠째 끊기지 않았는가이기 때문이다.
 
 ## 이 값의 지위
 
 - **표시 전용.** 어떤 예측·확률·시나리오와도 결합하지 않는다.
-- **1차 출처가 아니다.** 재공표처이므로 CNN 원본과 다를 수 있고 지연될 수 있다.
 - 재배포 약관 **미확인**(`license_status: review_required`). 카드에 출처와 상태를 적는다.
 - 원장은 append-only. 같은 날짜를 두 번 쓰지 않는다.
 """
@@ -185,7 +192,13 @@ def consecutive_successful_days(root: Path, *, today: Optional[date] = None) -> 
     history = load_history(root)
     if not history:
         return 0
-    seen = sorted({row["observed_date"] for row in history}, reverse=True)
+    # **심어 둔 과거 행은 세지 않는다.** 이 숫자가 재는 것은 "우리 일일 수집이 며칠째
+    # 끊기지 않았는가"이지 원장이 몇 행인가가 아니다. 시드를 세면 첫날부터 14/14 가
+    # 되어 배지가 거짓말을 한다.
+    live = [row for row in history if not row.get("seeded")]
+    if not live:
+        return 0
+    seen = sorted({row["observed_date"] for row in live}, reverse=True)
     cursor = date.fromisoformat(seen[0])
     if today is not None and (today - cursor).days > 1:
         return 0   # 최신 행이 이틀 이상 낡았으면 연속이 끊긴 것이다
@@ -205,7 +218,9 @@ def projection(root: Path, *, today: Optional[date] = None) -> dict[str, Any]:
         return {"status": "absent", "source_id": SOURCE_ID, "source_url": ENDPOINT}
     latest = history[-1]
     streak = consecutive_successful_days(root, today=today)
-    trail = [{"d": row["observed_date"], "v": row["value"]} for row in history[-90:]]
+    # 통계 그래프가 1년을 그릴 수 있도록 260영업일까지 싣는다(약 6.5KB).
+    trail = [{"d": row["observed_date"],
+              "v": row.get("value_raw", row["value"])} for row in history[-260:]]
 
     def _ago(days: int) -> Optional[int]:
         target = date.fromisoformat(latest["observed_date"]).toordinal() - days
@@ -221,6 +236,9 @@ def projection(root: Path, *, today: Optional[date] = None) -> dict[str, Any]:
         "source_label": latest.get("source_label"),
         "observed_date": latest["observed_date"],
         "value": latest["value"],
+        "value_raw": latest.get("value_raw", latest["value"]),
+        "history_days": len(history),
+        "seeded_days": sum(1 for row in history if row.get("seeded")),
         "band": latest["band"],
         "band_label": latest["band_label"],
         "previous_close": _ago(1),
