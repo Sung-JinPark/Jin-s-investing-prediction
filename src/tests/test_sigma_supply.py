@@ -14,7 +14,9 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
 
-#: 2026-09-11 기준 재현값. 저장소 스냅샷(2026-08-06)·V8 산출(as_of 2026-09-04)이 바뀌면 달라진다.
+#: 정규화 저장소는 날짜가 박힌 정적 스냅샷(2026-08-06)이라 거기서 나온 재현값은 고정해도
+#: 된다. V8 산출(`multivariate_v8_latest.json`)은 다르다 — 섀도 워크플로가 다시 쓰므로
+#: 거기서 나온 값은 **규칙으로** 단언한다.
 H87 = 87
 
 
@@ -101,11 +103,29 @@ def test_reference_class_reproduces_the_registered_t10y2y_sigma(store) -> None:
 
 
 def test_v8_sigma_reproduces_the_registered_nasdaq_sigma() -> None:
-    from ai_fc.sigma_supply import v8_sigma
+    """σ 를 **규칙**으로 단언한다 — 값을 박지 않는다.
+
+    이전에는 `== approx(0.08117)` 이었다. 그 숫자는 V8 섀도 산출
+    (`multivariate_v8_latest.json`)에서 나오는데, 그 파일은 timeseries-v8-shadow
+    워크플로가 정기적으로 다시 쓴다. 모듈 자신의 caveat 가 이미 "σ 가 모델과 함께
+    움직인다"고 말하고 있었는데 시험은 움직이지 않는다고 가정했다 — 실력과 무관하게
+    깨지는 단언이다. 실제로 2026-09-15 섀도 갱신에서 0.08117 → 0.07513 으로 움직여
+    main 을 빨갛게 만들었다.
+
+    고정할 값어치가 있는 것은 숫자가 아니라 **어느 지평의 분위수 간격을 어떻게
+    환산하는가**다. 그건 아티팩트가 갱신돼도 변하지 않는다.
+    """
+    import json
+    from ai_fc.sigma_supply import IQR_TO_SIGMA, V8_RELATIVE, v8_sigma
+    raw = json.loads((ROOT / V8_RELATIVE).read_text(encoding="utf-8"))
+    node = raw["horizons"]["63"]     # 87 에 가장 가까운 V8 산출 지평
+    expected = ((float(node["p75"]) - float(node["p25"])) / IQR_TO_SIGMA)         * math.sqrt(H87 / 63)
     quote = v8_sigma(ROOT, horizon_business_days=H87)
-    # 등록값 σ87 = 0.08117 (horizons.63 IQR/1.349 → √(87/63))
-    assert quote.value == pytest.approx(0.08117, abs=5e-5)
+    assert quote.value == pytest.approx(expected, rel=1e-12)
     assert quote.horizon_business_days == H87
+    # 단위가 틀리면(퍼센트 vs 로그수익률) 규칙 단언은 통과하고 값만 100배 어긋난다.
+    assert 0.0 < quote.value < 1.0
+    assert f"horizons.63" in quote.source and "IQR" in quote.source
     assert any("지평 환산" in c for c in quote.caveats)
     assert any("섀도" in c for c in quote.caveats)
 

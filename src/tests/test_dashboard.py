@@ -1443,6 +1443,81 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     assert embedded["embed_field_projection"]["projected"] is True
 
 
+def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
+    """실제 누적 원장으로 Pages 첫 화면 payload 가 예산 안에 있는지 본다.
+
+    2026-09-15 배포가 깨진 자리다. embed 예산을 재는 시험은 있었지만 **data.json**
+    예산을 실제 저장소로 재는 시험이 없었다. 그래서 브랜치 CI 는 초록인데 머지 뒤
+    main 에서 깨졌다 — 그 사이 main 이 데이터 커밋으로 자라 있었기 때문이다.
+    숫자를 박지 않고 성질(예산 이내)만 단언한다: 예측이 쌓이면 값은 매일 달라진다.
+    """
+    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    try:
+        model = dashboard.build_read_model(conn, dashboard.config.ROOT)
+    finally:
+        conn.close()
+    base, _ = dashboard.split_statistics_data(model)
+    base, _ = dashboard.split_future_paths(base)
+    base, bodies = dashboard.split_forecast_bodies(base)
+    encode = lambda payload: len(json.dumps(  # noqa: E731
+        payload, ensure_ascii=False, default=str, separators=(",", ":"),
+    ).encode("utf-8"))
+    assert encode(base) <= dashboard.DATA_JSON_BUDGET_BYTES
+    assert encode(bodies) <= dashboard.FORECAST_BODIES_BUDGET_BYTES
+
+
+def test_forecast_bodies_split_moves_every_body_out_keyed_by_forecast_id() -> None:
+    """본문은 전부 사이드카로 나가고, 회차와의 짝은 정확히 보존된다.
+
+    인덱스로 키를 잡으면 회차가 하나 끼어들 때 본문이 다른 회차에 붙는다. 화면에는
+    아무 신호도 없고 읽는 사람은 틀린 근거를 읽는다. 그래서 짝 자체를 단언한다.
+    """
+    model = {
+        "forecast_history": {
+            "q-1": [
+                {"forecast_id": "f1", "round": 1, "probability": 20, "body": "첫 근거"},
+                {"forecast_id": "f2", "round": 2, "probability": 25, "body": "둘째 근거"},
+            ],
+            "q-2": [{"forecast_id": "f3", "round": 1, "probability": 40, "body": "셋째 근거"}],
+        },
+    }
+    base, payload = dashboard.split_forecast_bodies(model)
+    assert payload["contract_id"] == "forecast_bodies_v1"
+    assert payload["key_field"] == "forecast_id"
+    assert payload["bodies"] == {"f1": "첫 근거", "f2": "둘째 근거", "f3": "셋째 근거"}
+    assert base["forecast_bodies"]["required"] is True
+    assert base["forecast_bodies"]["loaded"] is False
+    assert base["forecast_bodies"]["url"] == "forecast_bodies.json"
+    assert base["forecast_bodies"]["count"] == 3
+    for rows in base["forecast_history"].values():
+        for row in rows:
+            assert "body" not in row
+            assert row["probability"] is not None   # 구조화 필드는 그대로 남는다
+    assert model["forecast_history"]["q-1"][0]["body"] == "첫 근거"   # 입력 무변경
+
+
+def test_forecast_bodies_split_keeps_a_body_without_forecast_id_inline() -> None:
+    """식별자가 없으면 쪼개지 않는다 — 쪼개다 잃는 것보다 무거운 편이 낫다."""
+    model = {"forecast_history": {"q-1": [{"round": 1, "body": "식별자 없는 근거"}]}}
+    base, payload = dashboard.split_forecast_bodies(model)
+    assert payload is None
+    assert base is model
+    assert base["forecast_history"]["q-1"][0]["body"] == "식별자 없는 근거"
+
+
+def test_embed_keeps_bodies_inline_because_splitting_there_deletes_them() -> None:
+    """자기완결 embed 에는 fetch 가 없다. 거기서 분리는 이동이 아니라 삭제다(ADR-002)."""
+    source = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard.py"
+    ).read_text(encoding="utf-8")
+    # 파일 순서: write_dashboard(embed) → _write_og_image → write_pages → serve
+    write_dashboard = source[source.index("def write_dashboard("):
+                             source.index("def _write_og_image(")]
+    assert "split_forecast_bodies" not in write_dashboard
+    write_pages = source[source.index("def write_pages("):source.index("def serve(")]
+    assert "split_forecast_bodies" in write_pages
+
+
 def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
     candidate_path = (
         dashboard.config.ROOT

@@ -6,6 +6,9 @@ async function loadData(){
 }
 let FUTURE_PATHS_PROMISE=null,FUTURE_PATHS_ERROR=null;
 let STATISTICS_PROMISE=null,STATISTICS_ERROR=null;
+/* 근거 원문은 질문 상세에서만 읽힌다 — data.json 에서 분리해 상세 진입 때 받는다.
+   forecast_id 로 키를 잡는다: 인덱스로 묶으면 회차가 끼어들 때 본문이 조용히 어긋난다. */
+let FORECAST_BODIES={},FORECAST_BODIES_PROMISE=null,FORECAST_BODIES_ERROR=null;
 function semanticReferenceMatches(left={},right={}){
   return ['candidate_id','model_version','rules_version'].every(key=>left?.[key]&&left[key]===right?.[key]);
 }
@@ -45,6 +48,24 @@ async function ensureStatistics(){
     return true;
   })().catch(error=>{STATISTICS_ERROR=String(error?.message||error);STATISTICS_PROMISE=null;throw error;});
   return STATISTICS_PROMISE;
+}
+async function ensureForecastBodies(){
+  const deferred=DATA?.forecast_bodies||{};
+  if(!deferred.required||deferred.loaded)return true;
+  if(FORECAST_BODIES_PROMISE)return FORECAST_BODIES_PROMISE;
+  FORECAST_BODIES_PROMISE=(async()=>{
+    const url=window.__FORECAST_BODIES_URL__||deferred.url;
+    if(!url)throw new Error('forecast bodies URL missing');
+    const response=await fetch(url,{cache:'no-store'});
+    if(!response.ok)throw new Error(`forecast bodies HTTP ${response.status}`);
+    const payload=await response.json();
+    if(payload?.contract_id!=='forecast_bodies_v1'||!payload.bodies)throw new Error('forecast bodies contract invalid');
+    FORECAST_BODIES=payload.bodies;
+    DATA.forecast_bodies={...deferred,loaded:true,loaded_at:new Date().toISOString()};
+    FORECAST_BODIES_ERROR=null;
+    return true;
+  })().catch(error=>{FORECAST_BODIES_ERROR=String(error?.message||error);FORECAST_BODIES_PROMISE=null;throw error;});
+  return FORECAST_BODIES_PROMISE;
 }
 let DATA=null;
 const $=(s,r=document)=>r.querySelector(s);
@@ -4286,9 +4307,24 @@ function signedPoint(value){
 function confidenceBand(round){
   return hasNumeric(round?.ci80_lo)&&hasNumeric(round?.ci80_hi)?`${Number(round.ci80_lo)}–${Number(round.ci80_hi)}%`:'기록 없음';
 }
+/* 본문은 세 곳에서 올 수 있다: 인라인(embed·/api/data), 지연 저장소(Pages), 또는 없음.
+   '아직 안 옴'과 '원래 없음'을 구별하지 못하면 로딩 중 화면이 '근거 원문 없음'이라고
+   거짓말한다. 계약(dashboard_payload.yaml)이 조용한 대체를 금지하므로 실패도 말한다. */
+function forecastBodyOf(round){
+  if(round?.body)return round.body;
+  const deferred=DATA?.forecast_bodies;
+  if(deferred?.required&&round?.forecast_id)return FORECAST_BODIES[round.forecast_id]||'';
+  return '';
+}
+function forecastBodyPending(round){
+  const deferred=DATA?.forecast_bodies;
+  return !!(deferred?.required&&!deferred.loaded&&!FORECAST_BODIES_ERROR&&round?.forecast_id);
+}
 function reasoningText(round){
-  const text=decodeForecastBody(round?.body).trim();
+  const text=decodeForecastBody(forecastBodyOf(round)).trim();
   if(text)return text;
+  if(forecastBodyPending(round))return '근거 원문을 불러오는 중입니다…';
+  if(FORECAST_BODIES_ERROR&&round?.forecast_id)return `근거 원문을 불러오지 못했습니다 — ${FORECAST_BODIES_ERROR}. 구조화 기록(확률·신뢰구간·출처 수)은 위에 그대로 있고, 원문은 근거 문서 링크에서 확인할 수 있습니다.`;
   return round?.source_uri?'이전 회차 원문은 자기완결 화면의 용량을 위해 생략했습니다. 근거 문서 링크에서 원문을 확인할 수 있습니다.':'이 회차에는 저장된 근거 원문이 없습니다. 확률·신뢰구간·출처 수 등 구조화 기록은 위의 변화 요약에서 확인할 수 있습니다.';
 }
 function evidenceDeltaMarkup(current,previous){
@@ -4376,7 +4412,9 @@ function renderDetail(qid){
     ${r.notes?`<details class="resolution-note"><summary>판정 근거·출처 (원장 원문)</summary><p>${esc(r.notes)}</p></details>`:''}`;}).join('')}</div>`));}
   mount(root);
   drawHistory($('#hist',chartPanel),hist,DATA.ml_runs.filter(r=>r.question_id===qid),DATA.market_runs.filter(r=>r.question_id===qid));
+  let activeRound=null;
   const showReason=h=>{
+    activeRound=h;
     const roundIndex=hist.findIndex(item=>item===h||(h.forecast_id&&item.forecast_id===h.forecast_id)),previous=roundIndex>0?hist[roundIndex-1]:null;
     $('#rtop',layout).innerHTML=`<div><span>예측 확률</span><strong>${h.probability}%</strong></div>
       <div><span>회차</span><strong>${h.round}R</strong></div>
@@ -4400,6 +4438,12 @@ function renderDetail(qid){
     b.onclick=()=>showReason(h);rn.appendChild(b);});
   if(hist.length)showReason(hist[hist.length-1]);
   else{$('#reason',layout).textContent='기록된 회차가 없습니다.';}
+  /* 본문이 지연 분리돼 있으면 상세에 들어온 지금 받는다. 성공이든 실패든 현재 회차를
+     다시 그려야 '불러오는 중' 문구가 그대로 남지 않는다. */
+  if(hist.length&&DATA?.forecast_bodies?.required&&!DATA.forecast_bodies.loaded){
+    const redraw=()=>{if(activeRound)showReason(activeRound);};
+    ensureForecastBodies().then(redraw,redraw);
+  }
 }
 function drawHistory(host,hist,mlRuns,mktRuns){
   if(!hist.length){host.innerHTML='<span class="chart-note">기록 없음</span>';return;}
