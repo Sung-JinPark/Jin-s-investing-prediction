@@ -1577,3 +1577,77 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
    아래 여백을 줘, 한 줄이든 두 줄이든 간격이 같게 한다. */
 .band-inline{margin-bottom:10px}
 .band-inline+.flow-shape-controls,.band-inline+.flow-compare-pick{margin-top:0}
+
+/* ── 시장 심리 표시 표면 (2026-09-15) ────────────────────────────
+   VIX 와 공포·탐욕은 성격이 달라 같은 모양으로 그리지 않는다. VIX 는 수준과 구간이,
+   공포·탐욕은 0~100 위치가 뜻이다. 둘 다 표시 전용이고 확률이 아니다. */
+.mood-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(272px,1fr));gap:12px}
+.mood-card{min-width:0;padding:14px 15px 13px;display:grid;gap:10px;align-content:start;background:#fff;border:1px solid var(--line)}
+.mood-card header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.mood-card h3{margin:0;font:750 13px/1.2 var(--mono);letter-spacing:.01em}
+.mood-card h3 small{margin-left:6px;color:#8a877e;font:500 11px/1 var(--sans)}
+.mood-chip{padding:3px 8px;color:#fff;background:var(--chip,#8a877e);font:750 10px/1.3 var(--mono);white-space:nowrap}
+.mood-empty p{margin:0;color:#6f6c65;font-size:12px;line-height:1.5}
+.mood-vix-read{display:flex;align-items:baseline;gap:10px}
+.mood-vix-read strong{font:800 32px/1 var(--mono);letter-spacing:-.02em}
+.mood-vix-read span{color:#6f6c65;font:700 13px/1 var(--mono)}
+.mood-vix-read small{font-weight:500;font-size:10px}
+.mood-strip{position:relative;height:22px;display:flex;overflow:hidden;border:1px solid var(--line)}
+.mood-strip-seg{position:relative;min-width:0;background:color-mix(in srgb,var(--seg) 16%,#fff);border-right:1px solid #fff}
+.mood-strip-seg:last-child{border-right:0}
+.mood-strip-seg.is-on{background:color-mix(in srgb,var(--seg) 40%,#fff)}
+.mood-strip-seg i{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#4a4842;font:700 9px/1 var(--mono);font-style:normal;white-space:nowrap}
+.mood-strip-pin{position:absolute;top:-3px;bottom:-3px;width:2px;background:#11110f;transform:translateX(-1px)}
+.mood-spark{width:100%;height:44px;display:block}
+.mood-gauge{width:100%;max-width:230px;height:auto;justify-self:center;display:block}
+.mood-gauge-value{font:800 26px/1 var(--mono);fill:#11110f}
+.mood-gauge-end{font:700 9px/1 var(--mono);fill:#8a877e}
+.mood-meta{margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding-top:2px;border-top:1px solid #efeee8}
+.mood-meta div{min-width:0;display:grid;gap:2px}
+.mood-meta dt{color:#8a877e;font:600 10px/1 var(--mono)}
+.mood-meta dd{margin:0;font:700 14px/1 var(--mono)}
+.mood-note{margin:0;color:#6f6c65;font-size:11px;line-height:1.5;word-break:keep-all}
+.mood-note b{color:#11110f}
+.mood-note span{display:block;margin-top:3px;color:#8a877e;font-size:10px}
+.mood-note a{color:#6f6c65;text-decoration:underline}
+
+/* ── 다음 이벤트 타임라인 ───────────────────────────────────────
+   카드 격자에서는 '언제'가 글자로만 있었다. 가장 먼 이벤트를 100 으로 둔 축 위에
+   얹어 순서와 거리가 눈에 보이게 한다. */
+.event-rail{margin:0;padding:0;list-style:none;display:grid;gap:2px}
+.event-rail-item a{padding:8px 10px;display:grid;grid-template-columns:54px minmax(56px,1fr) minmax(0,2.2fr);align-items:center;gap:10px;color:#11110f;border:1px solid transparent;border-bottom-color:#efeee8}
+.event-rail-item a:hover{background:#fbfaf7;border-color:#ebe8e0}
+.event-dday{font:800 12px/1 var(--mono);color:#6f6c65;white-space:nowrap}
+.event-rail-item.is-near .event-dday{color:#db351b}
+.event-track{position:relative;height:3px;background:#efeee8}
+.event-track i{position:absolute;inset:0 auto 0 0;background:#b8b6ad}
+.event-rail-item.is-near .event-track i{background:#db351b}
+.event-rail-item.is-estimated .event-track i{background:repeating-linear-gradient(90deg,#c08a1e 0 4px,transparent 4px 8px)}
+.event-body{min-width:0;display:grid;gap:2px}
+.event-body b{font:600 13px/1.35 var(--sans);overflow-wrap:break-word;word-break:keep-all}
+.event-body small{color:#8a877e;font:500 10px/1 var(--mono)}
+@media(max-width:760px){
+  .event-rail-item a{grid-template-columns:48px 1fr;row-gap:4px}
+  .event-track{grid-column:1/-1;order:3}
+  .mood-gauge{max-width:200px}
+}
+.mood-strip-wrap{display:grid;gap:0}
+.mood-strip-ticks{position:relative;height:13px}
+.mood-strip-ticks b{position:absolute;top:1px;transform:translateX(-50%);color:#8a877e;font:600 9px/1 var(--mono)}
+.mood-strip-ticks b.is-rule{color:#db351b;font-weight:800}
+
+/* ── V13 라이브 전진 누적 ───────────────────────────────────────
+   홀드아웃 표와 시각적으로 분리한다 — 두 표본을 합치지 않는다는 계약이 화면에서도
+   보여야 한다. 판정 색(통과/실패)은 쓰지 않는다. */
+.v13-live-forward{margin-top:14px;padding-top:12px;border-top:1px dashed var(--line)}
+.v13-live-forward h3{margin:0;font:750 12px/1.2 var(--mono)}
+.v13-lf-chip{padding:2px 7px;color:#6f6c65;background:#f3f1eb;border:1px solid var(--line);font:700 9px/1.3 var(--mono)}
+.v13-lf-lead{margin:6px 0 8px;color:#4a4842;font-size:12px;line-height:1.55}
+.v13-lf-table{width:100%;border-collapse:collapse;font:500 11px/1.3 var(--mono)}
+.v13-lf-table th,.v13-lf-table td{padding:5px 6px;text-align:right;border-bottom:1px solid #efeee8}
+.v13-lf-table thead th{color:#8a877e;font-weight:700;text-align:right}
+.v13-lf-table tbody th{text-align:left;font-weight:600}
+.v13-lf-progress{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.v13-lf-progress span{position:relative;width:54px;height:4px;background:#efeee8}
+.v13-lf-progress i{position:absolute;inset:0 auto 0 0;background:#247d78}
+.v13-lf-note{margin:7px 0 0;color:#8a877e;font-size:10px;line-height:1.5}

@@ -1,0 +1,157 @@
+# -*- coding: utf-8 -*-
+"""시장 심리 표시 표면 — VIX · 공포탐욕 · V13 라이브 전진 누적 (2026-09-15).
+
+세 표면이 공유하는 성질 하나를 집중해서 고정한다: **원천이 없거나 낡으면 숫자를
+비운다.** 마지막 값을 재사용하는 순간 화면은 '어제 시장'을 오늘로 보여 주고, 그것은
+빈칸보다 나쁘다.
+"""
+
+from __future__ import annotations
+
+import json
+from datetime import date
+from pathlib import Path
+
+import pytest
+
+from ai_fc import fear_greed as fg
+from ai_fc import vix_surface as vs
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+# ── 공포탐욕 ──────────────────────────────────────────────────────
+
+LD = ('<script type="application/ld+json">'
+      '{"@graph":[{"@type":"QuantitativeValue","name":"Crypto Fear and Greed Index","value":69},'
+      '{"@type":"QuantitativeValue","name":"Stock Market Fear and Greed Index","value":31,'
+      '"unitText":"Fear"}]}</script>')
+
+
+def test_the_stock_index_is_picked_not_the_crypto_one() -> None:
+    """같은 페이지에 암호화폐 지수도 있다 — 이름을 고정하지 않으면 자산군이 섞인다."""
+    value, name = fg.extract_value(LD)
+    assert value == 31 and name == fg.SCHEMA_NAME
+
+
+def test_a_missing_node_fails_instead_of_guessing() -> None:
+    with pytest.raises(fg.FearGreedError):
+        fg.extract_value('<script type="application/ld+json">{"@type":"Thing"}</script>')
+
+
+@pytest.mark.parametrize("value,slug", [(0, "extreme_fear"), (24, "extreme_fear"),
+                                        (25, "fear"), (44, "fear"), (45, "neutral"),
+                                        (55, "neutral"), (56, "greed"), (74, "greed"),
+                                        (75, "extreme_greed"), (100, "extreme_greed")])
+def test_band_boundaries_match_the_published_scale(value: int, slug: str) -> None:
+    assert fg.band_of(value)[0] == slug
+
+
+def test_the_ledger_never_overwrites_a_day(tmp_path: Path) -> None:
+    """하루 여러 번 돌아도 **첫 값이 그날의 값**이다. 나중 값으로 덮으면 그때 무엇을
+    보고 있었는지가 지워진다."""
+    first = fg.FearGreedReading("2026-09-15", "2026-09-15T00:00:00+00:00", 31, "fear",
+                                "공포", fg.SCHEMA_NAME, fg.ENDPOINT, 200)
+    later = fg.FearGreedReading("2026-09-15", "2026-09-15T09:00:00+00:00", 44, "fear",
+                                "공포", fg.SCHEMA_NAME, fg.ENDPOINT, 200)
+    assert fg.append_reading(tmp_path, first) is True
+    assert fg.append_reading(tmp_path, later) is False
+    rows = fg.load_history(tmp_path)
+    assert len(rows) == 1 and rows[0]["value"] == 31
+
+
+def test_streak_breaks_on_a_missing_day(tmp_path: Path) -> None:
+    for day, value in (("2026-09-10", 40), ("2026-09-12", 38), ("2026-09-13", 36)):
+        fg.append_reading(tmp_path, fg.FearGreedReading(
+            day, day + "T00:00:00+00:00", value, "fear", "공포", fg.SCHEMA_NAME,
+            fg.ENDPOINT, 200))
+    # 09-11 이 비었으므로 09-13 부터 세면 2 에서 끊긴다 — '총 행 수'가 아니라 '연속'이다.
+    assert fg.consecutive_successful_days(tmp_path, today=date(2026, 9, 13)) == 2
+
+
+def test_an_empty_ledger_yields_no_number(tmp_path: Path) -> None:
+    projection = fg.projection(tmp_path)
+    assert projection["status"] == "absent" and "value" not in projection
+
+
+# ── VIX ───────────────────────────────────────────────────────────
+
+CSV = "DATE,VIXCLS\n2026-08-14,19.90\n2026-09-10,17.84\n2026-09-11,15.84\n"
+
+
+@pytest.mark.parametrize("level,slug", [(12.9, "very_low"), (13.0, "calm"),
+                                        (19.99, "calm"), (20.0, "watch"),
+                                        (24.99, "watch"), (25.0, "hard_rule"),
+                                        (29.9, "hard_rule"), (30.0, "stress"),
+                                        (40.0, "crisis"), (80.0, "crisis")])
+def test_bands_are_the_registered_question_thresholds(level: float, slug: str) -> None:
+    """구간 경계는 지어낸 것이 아니라 레지스트리의 VIX 질문 임계(13·20·25·30·40)다.
+
+    화면의 경계와 원장의 임계가 다르면 읽는 사람이 둘을 대조할 수 없다.
+    """
+    assert vs.band_of(level)[0] == slug
+
+
+def test_the_hard_rule_distance_is_reported_not_judged() -> None:
+    projection = vs.build_projection(vs.parse_csv(CSV), today=date(2026, 9, 15))
+    assert projection["level"] == 15.84
+    assert projection["hard_rule"] == {"level": 25.0, "distance": 9.16, "breached": False}
+    assert projection["change_1d"] == -2.0
+
+
+def test_an_empty_series_is_refused() -> None:
+    with pytest.raises(vs.VixSurfaceError):
+        vs.parse_csv("DATE,VIXCLS\n2026-09-11,.\n")
+
+
+def test_a_stale_projection_hides_the_number(tmp_path: Path) -> None:
+    """낡은 값을 그대로 띄우면 '어제 시장'을 오늘로 보여 주게 된다."""
+    (tmp_path / "data" / "vix").mkdir(parents=True)
+    payload = vs.build_projection(vs.parse_csv(CSV))
+    (tmp_path / vs.LATEST_RELATIVE).write_text(json.dumps(payload), encoding="utf-8")
+    fresh = vs.load_projection(tmp_path, today=date(2026, 9, 14))
+    stale = vs.load_projection(tmp_path, today=date(2026, 9, 30))
+    assert fresh["status"] == "live" and fresh["level"] == 15.84
+    assert stale["status"] == "stale" and "level" not in stale
+
+
+# ── V13 라이브 전진 누적 ──────────────────────────────────────────
+
+def test_the_live_scoreboard_never_carries_a_verdict() -> None:
+    """계약이 셀당 60 전에는 판정을 막는다 — 페이로드에 판정 자리를 비워 둬서
+    화면이 '통과/실패' 문구를 만들지 못하게 한다."""
+    from ai_fc.timeseries_v13.live_scoreboard import projection
+
+    result = projection(ROOT)
+    assert result["verdict"] is None
+    assert result["minimum"] >= 1
+    assert all(not cell["gate_met"] or cell["matured"] >= result["minimum"]
+               for cell in result["cells"])
+
+
+def test_the_scoreboard_survives_an_empty_ledger(tmp_path: Path) -> None:
+    from ai_fc.timeseries_v13.live_scoreboard import projection
+
+    result = projection(tmp_path, minimum=60)
+    assert result["status"] == "empty" and result["matured_total"] == 0
+    assert result["cells"] and all("brier_model" not in c for c in result["cells"])
+
+
+# ── 배선 ──────────────────────────────────────────────────────────
+
+def test_the_daily_batch_refreshes_both_surfaces() -> None:
+    text = (ROOT / ".github/workflows/source-monitoring.yml").read_text(encoding="utf-8")
+    assert "python -m ai_fc signals" in text
+    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in text
+    assert "data/fear_greed" in text and "data/vix" in text
+
+
+def test_the_surfaces_declare_themselves_display_only() -> None:
+    """확률 공간이 아니라는 사실이 계약·페이로드 양쪽에 있어야 한다."""
+    import yaml
+
+    contract = yaml.safe_load(
+        (ROOT / "data/contracts/fear_greed_index.yaml").read_text(encoding="utf-8"))
+    assert contract["probability_space"] == "not_a_probability"
+    assert contract["model_use"] is False and contract["trading_signal"] is False
+    assert contract["extraction"]["on_miss"] == "fail"

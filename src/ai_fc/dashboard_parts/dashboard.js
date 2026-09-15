@@ -1672,6 +1672,34 @@ const V13_CELL_LABELS={vix25:'VIX 25 이상 터치',vix30:'VIX 30 이상 터치'
 const V13_GUIDE_EVENT={vix25:'25를 터치한',vix30:'30을 터치한',rv:'16.9%(연율)를 넘은'};
 const V13_GUIDE_ORDER=['vix25_h63','vix25_h21','vix25_h5','vix30_h63','vix30_h21','vix30_h5','rv_h63','rv_h21','rv_h5'];
 const v13Pct=p=>(p==null?'—':`${Math.round(Number(p)*100)}%`);
+/* ── V13 라이브 전진 누적 (2026-09-15) ───────────────────────────
+   홀드아웃은 **1회 소모된 과거 표본**이고 이쪽은 **앞으로 쌓이는 표본**이다. 같은 칸에
+   나란히 놓으면 둘을 평균내고 싶어지므로 절을 나눈다. 계약이 셀당 60 전에는 판정을
+   막으므로 여기서도 통과·실패를 쓰지 않는다 — 진행과 누적 손실만 보여 준다. */
+function renderV13LiveForward(lf,failCells){
+  if(!lf||lf.status==='unavailable')return '';
+  const fail=new Set(failCells||[]);
+  const cells=(lf.cells||[]).filter(c=>!fail.has(c.cell));
+  if(!cells.length)return '';
+  const rows=cells.map(c=>{const pct=Math.round((c.progress||0)*100);
+    const hasScore=hasNumeric(c.brier_model);
+    const bss=hasNumeric(c.bss)?`${c.bss>=0?'+':''}${(c.bss*100).toFixed(0)}%`:'—';
+    return `<tr><th scope="row">${esc(c.cell)}</th>
+      <td class="v13-lf-progress"><span><i style="width:${pct}%"></i></span><b>${num(c.matured)}/${num(c.minimum)}</b></td>
+      <td>${hasScore?c.brier_model.toFixed(4):'—'}</td>
+      <td>${hasScore?c.brier_climatology.toFixed(4):'—'}</td>
+      <td class="${hasNumeric(c.bss)&&c.bss>0?'edge-pos':hasNumeric(c.bss)&&c.bss<0?'edge-neg':''}">${bss}</td></tr>`;}).join('');
+  const total=num(lf.matured_total),origins=num(lf.origins_recorded);
+  const empty=lf.status==='empty';
+  return `<section class="v13-live-forward" aria-labelledby="v13-lf-head">
+    <div class="today-section-head"><h3 id="v13-lf-head">라이브 전진 누적</h3><span class="v13-lf-chip">판정 없음 · 누적 중</span></div>
+    <p class="ts-lead v13-lf-lead">${empty
+      ?`원점 <b>${origins}개</b>가 쌓였고 성숙한 것은 아직 없습니다 — 가장 짧은 지평이 5거래일이라 첫 성숙이 도착하는 중입니다.`
+      :`성숙 <b>${total}건</b> · 원점 ${origins}개. 셀당 ${num(lf.minimum)}에 닿기 전에는 <b>계약이 판정을 막습니다</b> — 아래 숫자는 성적표가 아니라 누적 현황입니다.`}</p>
+    <table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table>
+    <p class="v13-lf-note">홀드아웃(2015~2018)에서 떨어진 셀은 표에서 내려갑니다. 두 표본은 <b>합치거나 평균내지 않습니다</b>.</p>
+  </section>`;
+}
 function renderTimeseriesV13VolPanel(v13){
   v13=v13||{};
   const pub=v13.publication||{},gate=v13.gate||{},tier=pub.display_tier||'t0_internal';
@@ -1735,7 +1763,8 @@ function renderTimeseriesV13VolPanel(v13){
   const guide=gm
     ?`<p class="v13-role">읽는 법: "기준율 ${v13Pct(cells[guideName].p)}"는 ${gm[1]==='rv'?'과거 같은 실현변동성 수준에서':'과거 같은 VIX 수준에서'} ${gm[2]}영업일 안에 ${V13_GUIDE_EVENT[gm[1]]} 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. ${band80Note}</p>`
     :`<p class="v13-role">읽는 법: 표시 조건을 만족한 셀이 없어 인용할 기준율이 없습니다. ${band80Note}</p>`;
-  return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}${gateStrip}${hTabs}${table}${guide}${roleLine}</section></div>`;
+  const liveForward=renderV13LiveForward(v13.live_forward,v13.holdout_fail_cells);
+  return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}${gateStrip}${hTabs}${table}${guide}${roleLine}${liveForward}</section></div>`;
 }
 function bindTimeseriesV13VolInteractions(root){
   const nav=root.querySelector('.v13-h-tabs'),table=root.querySelector('.v13-vol-table');
@@ -2347,6 +2376,111 @@ function dotcomCycleSignal(lab){
      수준값이라 하나의 '과열도 %' 로 합성하지 않는다(합성하면 없는 지표를 만드는 것). */
   return {elapsed,total,pct:total?Math.round(elapsed/total*100):null,charts:(lab.charts||[]).length};
 }
+/* ── 시장 심리 표시 표면 (2026-09-15) ────────────────────────────
+   VIX 와 공포·탐욕은 성격이 다르므로 같은 모양으로 그리지 않는다.
+   - VIX 는 **수준과 구간**이 뜻을 갖는다 → 레벨 + 구간 스트립 + 추이 스파크라인
+   - 공포·탐욕은 **0~100 합성 위치**가 전부다 → 반원 게이지(원 지수와 같은 형태)
+   둘 다 표시 전용이다. 어떤 예측·시나리오·base rate 와도 결합하지 않는다. */
+const HARD_RULE_MARK=25;   /* 사용자 하드룰 — 눈금에서 굵게 표시한다 */
+const MOOD_BAND_COLOR={very_low:'#247d78',calm:'#4a8f5f',watch:'#c08a1e',hard_rule:'#db351b',stress:'#c9002d',crisis:'#8c0020',
+  extreme_fear:'#c9002d',fear:'#db351b',neutral:'#8a877e',greed:'#4a8f5f',extreme_greed:'#247d78'};
+
+function moodSpark(trail,opts){
+  const pts=(trail||[]).filter(p=>hasNumeric(p.v));
+  if(pts.length<2)return '';
+  const o=opts||{},W=o.w||208,H=o.h||44,lo=o.lo,hi=o.hi,span=(hi-lo)||1;
+  const x=i=>i*(W/(pts.length-1)),y=v=>H-((v-lo)/span)*H;
+  const d=pts.map((p,i)=>`${i?'L':'M'}${x(i).toFixed(1)} ${y(p.v).toFixed(1)}`).join(' ');
+  const marks=(o.marks||[]).filter(m=>m.v>=lo&&m.v<=hi)
+    .map(m=>`<line x1="0" y1="${y(m.v).toFixed(1)}" x2="${W}" y2="${y(m.v).toFixed(1)}" stroke="${m.c}" stroke-width="1" stroke-dasharray="3 3" opacity=".55"/>`).join('');
+  const last=pts[pts.length-1];
+  return `<svg class="mood-spark" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="최근 추이 ${pts.length}거래일, ${lo}~${hi}">`
+    +marks+`<path d="${d}" fill="none" stroke="${o.stroke||'#11110f'}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`
+    +`<circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(last.v).toFixed(1)}" r="2.6" fill="${o.stroke||'#11110f'}"/></svg>`;
+}
+
+function renderVixCard(vix){
+  if(!vix||vix.status==='absent')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>아직 수집되지 않았습니다.</p></article>`;
+  if(vix.status==='stale')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>마지막 관측 ${esc(vix.observed_date)} · ${num(vix.stale_days)}일 경과 — 신선하지 않아 숫자를 표시하지 않습니다.</p></article>`;
+  const bands=vix.bands||[],lvl=Number(vix.level),color=MOOD_BAND_COLOR[vix.band]||'#11110f';
+  const top=Math.max(45,(bands[bands.length-1]||{}).lo+10||45);
+  /* 구간 스트립 — 등록 질문의 임계(13·20·25·30·40)를 그대로 쓴다. 화면의 경계와
+     원장의 임계가 다르면 읽는 사람이 둘을 대조할 수 없다. */
+  /* 칸마다 이름을 넣으면 10% 폭짜리 구간에서 글자가 잘린다. 이름은 위 칩이 이미
+     말하고 있으므로 스트립에는 **경계 숫자**만 드러낸다 — 읽는 사람이 원장의 임계
+     (13·20·25·30·40)와 눈으로 대조할 수 있는 것은 이름이 아니라 숫자다. */
+  const strip=bands.map(b=>{const hi=b.hi==null?top:b.hi,w=((hi-b.lo)/top)*100;
+    return `<span class="mood-strip-seg${b.slug===vix.band?' is-on':''}" style="width:${w.toFixed(2)}%;--seg:${MOOD_BAND_COLOR[b.slug]||'#8a877e'}" title="${esc(b.label)} ${b.lo}~${b.hi==null?'+':b.hi}"></span>`;}).join('');
+  const ticks=bands.slice(1).map(b=>`<b style="left:${((b.lo/top)*100).toFixed(2)}%"${b.lo===HARD_RULE_MARK?' class="is-rule"':''}>${b.lo}</b>`).join('');
+  const pos=Math.min(100,Math.max(0,(lvl/top)*100));
+  const hr=vix.hard_rule||{},dist=hr.distance;
+  const delta=hasNumeric(vix.change_1d)?`${vix.change_1d>0?'+':''}${vix.change_1d.toFixed(2)}`:'—';
+  const spark=moodSpark(vix.trail,{lo:Math.min(vix.trail_min,12),hi:Math.max(vix.trail_max,26),stroke:color,
+    marks:[{v:25,c:'#db351b'},{v:20,c:'#c08a1e'}]});
+  return `<article class="mood-card mood-vix">
+    <header><h3>VIX <small>변동성 지수</small></h3><span class="mood-chip" style="--chip:${color}">${esc(vix.band_label)}</span></header>
+    <div class="mood-vix-read"><strong>${lvl.toFixed(2)}</strong><span class="${vix.change_1d>0?'edge-neg':vix.change_1d<0?'edge-pos':''}">${delta} <small>전일</small></span></div>
+    <div class="mood-strip-wrap"><div class="mood-strip" role="img" aria-label="현재 구간 ${esc(vix.band_label)}, 경계 13·20·25·30·40">${strip}<b class="mood-strip-pin" style="left:${pos.toFixed(2)}%"></b></div><div class="mood-strip-ticks">${ticks}</div></div>
+    ${spark}
+    <dl class="mood-meta"><div><dt>1주 전</dt><dd>${hasNumeric(vix.week_ago)?vix.week_ago.toFixed(2):'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(vix.month_ago)?vix.month_ago.toFixed(2):'—'}</dd></div><div><dt>1년</dt><dd>${hasNumeric(vix.year_ago)?vix.year_ago.toFixed(2):'—'}</dd></div></dl>
+    <p class="mood-note">${hr.breached?`<b>하드룰 25 도달</b> — 확률과 무관하게 기계적으로 유지되는 EXIT 트리거입니다.`:`하드룰 25까지 <b>${hasNumeric(dist)?dist.toFixed(2):'—'}</b> 남았습니다.`} <span>${esc(vix.observed_date)} · FRED VIXCLS</span></p>
+  </article>`;
+}
+
+function renderFearGreedCard(fng){
+  if(!fng||fng.status!=='live')return `<article class="mood-card mood-empty"><h3>공포 · 탐욕</h3><p>아직 수집되지 않았습니다.</p></article>`;
+  const v=Number(fng.value),color=MOOD_BAND_COLOR[fng.band]||'#8a877e';
+  /* 반원 게이지 — 이 지수의 canonical form. 0 이 왼쪽(공포), 100 이 오른쪽(탐욕). */
+  const R=78,CX=100,CY=96,toXY=p=>{const a=Math.PI*(1-p/100);return[CX+R*Math.cos(a),CY-R*Math.sin(a)];};
+  const arc=(from,to,c)=>{const[x1,y1]=toXY(from),[x2,y2]=toXY(to);
+    return `<path d="M${x1.toFixed(1)} ${y1.toFixed(1)} A${R} ${R} 0 0 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" fill="none" stroke="${c}" stroke-width="15" stroke-linecap="butt"/>`;};
+  const arcs=(fng.bands||[]).map(b=>arc(b.lo,b.hi+1>100?100:b.hi+1,MOOD_BAND_COLOR[b.slug]||'#8a877e')).join('');
+  const[nx,ny]=toXY(v);
+  const marker=(p,label)=>{if(!hasNumeric(p))return '';const[mx,my]=toXY(p);
+    return `<circle cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.4" fill="#fbfbf8" stroke="#706f68" stroke-width="1.4"><title>${esc(label)} ${p}</title></circle>`;};
+  const gate=fng.stability||{};
+  return `<article class="mood-card mood-fng">
+    <header><h3>공포 · 탐욕 <small>주식시장</small></h3><span class="mood-chip" style="--chip:${color}">${esc(fng.band_label)}</span></header>
+    <svg class="mood-gauge" viewBox="0 0 200 118" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
+      ${arcs}${marker(fng.month_ago,'1개월 전')}${marker(fng.week_ago,'1주 전')}${marker(fng.previous_close,'전일')}
+      <line x1="${CX}" y1="${CY}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="#11110f" stroke-width="2.4" stroke-linecap="round"/>
+      <circle cx="${CX}" cy="${CY}" r="5" fill="#11110f"/>
+      <text class="mood-gauge-value" x="${CX}" y="${CY-22}" text-anchor="middle">${v}</text>
+      <text class="mood-gauge-end" x="14" y="112" text-anchor="start">0 공포</text>
+      <text class="mood-gauge-end" x="186" y="112" text-anchor="end">탐욕 100</text>
+    </svg>
+    <dl class="mood-meta"><div><dt>전일</dt><dd>${hasNumeric(fng.previous_close)?fng.previous_close:'—'}</dd></div><div><dt>1주 전</dt><dd>${hasNumeric(fng.week_ago)?fng.week_ago:'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(fng.month_ago)?fng.month_ago:'—'}</dd></div></dl>
+    <p class="mood-note">${gate.gate_met?'원천 안정성 확인됨':`원천 안정성 확인 중 <b>${num(gate.streak_days)}/${num(gate.gate_days)}일</b>`} · 재배포 약관 미확인 <span>${esc(fng.observed_date)} · <a href="${esc(fng.source_url||'#')}">재공표처</a> · 표시 전용</span></p>
+  </article>`;
+}
+
+function renderMarketMood(){
+  const mood=DATA.market_mood||{};
+  if(!mood.vix&&!mood.fear_greed)return '';
+  return `<section class="mood-row" aria-label="시장 심리 표시 표면">${renderVixCard(mood.vix)}${renderFearGreedCard(mood.fear_greed)}</section>`;
+}
+
+/* ── 다음 이벤트 타임라인 ────────────────────────────────────────
+   종전 agenda-rail 은 카드 격자라 '언제'가 보이지 않았다 — 날짜와 D-day 가 글자로만
+   있고 서로 얼마나 떨어졌는지는 읽는 사람이 계산해야 했다. 일정에서 뜻을 갖는 것은
+   순서와 거리이므로 **가장 먼 이벤트를 100 으로 둔 축** 위에 얹는다. */
+function renderEventTimeline(events,helpers){
+  const h=helpers||{},dday=h.dday,tag=h.tag,today=h.today;
+  if(!events.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
+  const gap=item=>{const d=String(item.date||'').slice(0,10);if(!d)return null;
+    return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);};
+  const span=Math.max(7,...events.map(e=>gap(e)||0));
+  return `<ol class="event-rail">${events.map(item=>{const d=gap(item);
+    const pct=d==null?0:Math.min(100,Math.max(3,(d/span)*100));
+    const near=d!=null&&d<=7;
+    return `<li class="event-rail-item${near?' is-near':''}${item.status==='estimated'?' is-estimated':''}">
+      <a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}">
+        <span class="event-dday">${d==null?'—':dday(String(item.date||'').slice(0,10))}</span>
+        <span class="event-track"><i style="width:${pct.toFixed(1)}%"></i></span>
+        <span class="event-body"><b>${esc(item.title||item.label||'일정')}</b><small>${esc(String(item.date||'').slice(0,10))} · ${esc(tag(item.status))}</small></span>
+      </a></li>`;}).join('')}</ol>`;
+}
+
 function renderOverview(){
   const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob, closeProb=scenarioCloseAboveProb(sc);
@@ -2381,8 +2515,9 @@ function renderOverview(){
     </div>
     <section class="today-agenda" aria-labelledby="today-events">
       <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#records/journal">전체 일정</a></div>
-      <ol class="agenda-rail">${events.map(item=>`<li><a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"><time><b>${esc(String(item.date||'').slice(5))}</b><i>${esc(dday(String(item.date||'')))}</i></time><p>${esc(item.title||item.label||'일정')}</p><span>${esc(tag(item.status))}</span></a></li>`).join('')||'<li class="agenda-empty">예정된 이벤트가 없습니다.</li>'}</ol>
+      ${renderEventTimeline(events,{dday,tag,today})}
     </section>
+    ${renderMarketMood()}
   </section></div>`);
   mount(root);
 }

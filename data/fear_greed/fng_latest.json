@@ -1,0 +1,58 @@
+{
+  "status": "live",
+  "source_id": "fear_greed_index",
+  "source_url": "https://feargreedmeter.com/",
+  "source_label": "Stock Market Fear and Greed Index",
+  "observed_date": "2026-09-15",
+  "value": 31,
+  "band": "fear",
+  "band_label": "공포",
+  "previous_close": null,
+  "week_ago": null,
+  "month_ago": null,
+  "bands": [
+    {
+      "lo": 0,
+      "hi": 24,
+      "slug": "extreme_fear",
+      "label": "극단적 공포"
+    },
+    {
+      "lo": 25,
+      "hi": 44,
+      "slug": "fear",
+      "label": "공포"
+    },
+    {
+      "lo": 45,
+      "hi": 55,
+      "slug": "neutral",
+      "label": "중립"
+    },
+    {
+      "lo": 56,
+      "hi": 74,
+      "slug": "greed",
+      "label": "탐욕"
+    },
+    {
+      "lo": 75,
+      "hi": 100,
+      "slug": "extreme_greed",
+      "label": "극단적 탐욕"
+    }
+  ],
+  "trail": [
+    {
+      "d": "2026-09-15",
+      "v": 31
+    }
+  ],
+  "stability": {
+    "streak_days": 1,
+    "gate_days": 14,
+    "gate_met": false
+  },
+  "license_status": "review_required",
+  "display_only": true
+}

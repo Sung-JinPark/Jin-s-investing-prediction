@@ -132,6 +132,17 @@ sources:
     license_status: review_required
     enabled: false
     contract: data/contracts/defillama_stablecoins.yaml
+  - id: fear_greed_index
+    name: Stock market fear and greed index (republished)
+    provider: feargreedmeter.com (CNN Business 지수 재공표)
+    tier: public
+    endpoint: https://feargreedmeter.com/
+    cadence: daily
+    freshness_sla_hours: 48
+    vintage_capability: captured
+    license_status: review_required
+    enabled: true
+    contract: data/contracts/fear_greed_index.yaml
   - id: btc_etf_flows
     name: Bitcoin spot ETF flow candidate
     provider: pending two-source review
