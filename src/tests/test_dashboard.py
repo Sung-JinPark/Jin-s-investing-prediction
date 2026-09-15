@@ -786,7 +786,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
     assert ("function drawOriginalWeeklyFlow(host,sc,showSamples=false,"
-            "scenarioKey='S1',horizon='compare',compareAsof='')") in html
+            "scenarioKey='S1',horizon='compare')") in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -803,7 +803,9 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
     assert "button.dataset.labTab==='future'?futureGraphHash():" in html
     assert "paintFutureGraph(initialState.futureGraph==='original'?'original':'unified',false)" in html
     assert "단일 시나리오 · 챔피언 GBM · 참고 의견" in html
-    assert "기본 그래프인 세 가지 시장 경로를 대체하지 않습니다" in html
+    # 2026-09-16: 긴 설명 문단·오차율 박스·도착점 박스는 소유자 지시로 제거됐다 —
+    # '참고 의견' 지위는 eyebrow와 아래 읽는 법 캡션으로 유지된다.
+    assert "기본 그래프인 세 가지 시장 경로를 대체하지 않습니다" not in html
     assert "참고 의견이며 투자 자문이 아닙니다" in html
     assert "id=\"original-flow-chart\"" in html
     assert "DATA.scenario" in html
@@ -972,16 +974,15 @@ def test_single_scenario_chart_draws_only_the_upside_path() -> None:
     # 선택기는 제거됐고 상승 경로로 고정된다
     assert "const ORIGINAL_FLOW_KEY='S1';" in script
     assert ("drawOriginalWeeklyFlow(chartHost,sc,samplesOn,ORIGINAL_FLOW_KEY,"
-            "horizon,compareAsof)") in script
+            "horizon)") in script
     assert "data-original-scenario" not in html, "시나리오 선택기는 더 이상 없다"
     assert "original-scenario-switch" not in html
-    assert "주황 선 하나가 <b>과거와 미래를 잇습니다</b>" in html
+    # 2026-09-16: 과거를 잇는 긴 설명문과 도착점 박스는 소유자 지시로 제거됐다
+    assert "주황 선 하나가" not in html
+    assert "data-original-endpoints" not in html
+    assert "도착점 경로 비율" not in html
     # 범례 라벨을 <b> 로 감싸면 .band-inline b(14px 스와치)에 걸려 찌그러진다
     assert "</b><b>S1 ${esc(sc.paths?.S1?.label" not in html
-    # 도착점 판독도 S1 하나만 남는다
-    assert "data-original-endpoints" in html
-    assert html.count("도착점 경로 비율") == 1
-    assert "챔피언 GBM 조건부" in html
     assert "연구 코호트 비중 ${esc(sc.paths" not in html
 
 
