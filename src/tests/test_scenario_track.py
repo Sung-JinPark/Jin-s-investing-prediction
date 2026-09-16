@@ -134,24 +134,19 @@ def test_actual_is_overlaid_inside_the_original_graph_not_a_second_one() -> None
     assert "function scenarioTrackPanel" not in script
     assert "function drawScenarioTrack" not in script
     assert "data-scenario-track-chart" not in html
-    assert "function scenarioTrackSummary()" in script
-    assert "${scenarioTrackSummary()}" in script
+    # 과거 대조 요약 박스(scenarioTrackSummary)는 2026-09-16 제거됐다 — 소유자 지시:
+    # 오차율 표·박스가 화면을 어지럽힌다. 그래프 자체(실제 선 오버레이)만 남는다.
+    assert "function scenarioTrackSummary" not in script
+    assert "겹치는 구간 평균 절대오차" not in html
+    assert "예측일별 오차" not in html
 
-    # 최초 버전 그래프가 실제 선·지난 빈티지를 직접 그린다
+    # 최초 버전 그래프는 실제 선을 직접 그린다
     flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
     assert "data-track-actual" in flow, "실제 종가 선을 그래프 안에서 그려야 한다"
     assert "const dateX=day=>" in flow, "가로축은 날짜 기반이어야 실제 선 자리가 생긴다"
     # 빗각 선다발 금지 — 그려지는 경로는 현재 S1 하나뿐이다
     assert "data-track-vintage" not in flow
     assert "priorVintages" not in script
-    # 대신 오차율과 빈티지 표가 같은 패널 안에 남는다
-    assert "겹치는 구간 평균 절대오차" in html
-    assert "예측일별 오차" in html
-
-    # 조건부 경로임을 화면에서 밝힌다 — 오차 부호를 실력으로 읽으면 안 된다
-    assert "오차의 부호를 실력으로 읽으면 안 됩니다" in html
-    # 백테스트 금지 원칙을 산출 방법에 명시한다
-    assert "지금 모형을 과거로 되돌려 계산하지 않습니다" in html
     # 실제 선은 일간이라고 밝힌다
     assert "실제 종가 (일간)" in html
 
@@ -165,23 +160,6 @@ def test_chart_labels_stay_inside_the_drawing_area() -> None:
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     assert "tx(ML-8,RY+19,'−10%선 누적 터치확률'" not in script, "잘리는 배치가 되돌아왔다"
     assert script.count("tx(ML,RY-6,'−10%선 누적 터치확률',{fill:'#5f5d57',fs:11,w:650})") == 2,         "같은 버그가 두 그래프에 있었다 — 둘 다 고쳐진 상태여야 한다"
-
-
-def test_one_recorded_forecast_is_drawn_over_the_realized_window() -> None:
-    """지나간 구간에 주황선이 없으면 검은선과 겹칠 수가 없다.
-
-    현재 경로는 오늘에서 시작하므로 과거를 덮지 못한다. 그때 실제로 기록된 예측 **한 건**을
-    골라 겹치고, 둘 사이를 옅게 메워 오차가 면적으로 보이게 한다. 전부 겹치면 빗각 선다발이
-    되므로 한 건만 그린다 — 어느 예측일인지는 고를 수 있다.
-    """
-    html = dashboard.load_template()
-    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
-    assert "data-track-compare" in flow, "그때 기록된 예측선을 그려야 한다"
-    assert "data-track-gap" in flow, "예측선과 실제선 사이를 메워 오차를 보여준다"
-    assert "data-original-compare" in html, "맞대 볼 예측일을 고를 수 있어야 한다"
-    # 비교선은 자기 예측일 이후만 그린다 — 과거로 되돌려 그리지 않는다
-    assert "compare.asof<sc.asof" in flow
 
 
 def test_vintage_uses_the_path_that_was_actually_drawn(tmp_path: Path) -> None:
@@ -224,6 +202,29 @@ def test_pre_curvature_archives_fall_back_without_pretending(tmp_path: Path) -> 
     assert track["vintages"][0]["path_source"] == "gbm_median"
 
 
+def test_past_orange_overlay_is_removed_future_line_and_actual_remain() -> None:
+    """2026-09-16 소유자 지시로 과거 구간의 주황(기록된 예측) 오버레이를 뺐다.
+
+    과거~오늘은 검은 실제 선만 남고, 오늘~미래는 지금 기록된 S1 하나로 그대로 이어진다.
+    이 테스트는 옛 드로잉 코드(비교선·이음새·간격 채움)가 되돌아오지 않는지 고정한다.
+    """
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
+    for gone in (
+        "data-track-compare", "data-track-gap", "pastSegments", "comparePoints",
+        "compare.asof<sc.asof", "realizedEnd", "handover_label",
+    ):
+        assert gone not in flow, f"과거 주황선 드로잉이 되돌아옴: {gone}"
+    html = dashboard.load_template()
+    for gone in ("comparable", "defaultCompare", "data-original-compare", "맞대 볼 예측일"):
+        assert gone not in html, f"예측일 선택기가 되돌아옴: {gone}"
+
+    # 미래 구간(오늘→앞)의 주황 선은 그대로다
+    assert "stroke:CHART_COL[key],'stroke-width':2.6" in flow
+    assert "data-original-path" in flow
+    # 검은 실제 선은 유지
+    assert "data-track-actual" in flow
+
 def test_axis_ticks_are_thinned_by_pixel_gap() -> None:
     """'전체 전망'으로 축이 길어지면 주차 눈금과 실현 구간 날짜가 겹쳐 글자가 뭉개진다."""
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
@@ -237,23 +238,6 @@ def test_legend_does_not_pull_the_next_block_over_itself() -> None:
     css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
     assert ".flow-shape-controls{margin:-8px" not in css, "음수 마진이 되돌아왔다"
     assert ".band-inline{margin-bottom:" in css
-
-
-def test_past_and_future_orange_form_one_line() -> None:
-    """주황 선은 하나여야 한다 — 오늘 왼쪽은 그날 기록된 S1, 오른쪽은 지금의 S1.
-
-    과거 구간을 점선·다른 굵기로 그리면 '다른 선'으로 읽힌다(사용자 지적). 같은 색·같은
-    굵기의 실선으로, 오늘까지만 그려 현재 경로가 이어받게 한다. 이음새에 남는 세로 단차가
-    곧 그때 예측과 실현의 차이다 — 그것을 없애려고 선을 맞추면 오차가 지워진다.
-    """
-    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
-    compare = flow.split("data-track-compare")[0]
-    assert "'stroke-dasharray':'7 4'" not in compare, "과거 구간이 다시 점선이 됐다"
-    assert "'stroke-width':2.6" in compare, "현재 경로와 굵기가 달라 다른 선으로 읽힌다"
-    assert "point[0]<=realizedEnd" in compare, "오늘 너머까지 그리면 현재 경로와 겹친다"
-    # 기본 선택은 과거 전체를 덮는 가장 이른 기록이어야 이어져 보인다
-    assert "const defaultCompare=comparable[0]?.asof||'';" in script
 
 
 def test_past_line_hands_over_to_the_richer_record(tmp_path: Path) -> None:
@@ -306,13 +290,6 @@ def test_past_line_reaches_the_junction_across_a_holiday_gap(tmp_path: Path) -> 
     line = load_scenario_track(tmp_path)["past_line"]
     last = line["segments"][-1]["values"][-1][0]
     assert last >= "2026-09-10", f"오늘 이전({last})에서 끊겨 현재 경로와 이어지지 않는다"
-
-
-def test_chart_draws_every_past_segment_as_the_same_solid_line() -> None:
-    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
-    assert "pastSegments" in flow, "이어붙인 과거 구간을 쓰지 않는다"
-    assert "handover_label" in flow, "이음점이 무슨 기록으로 넘어갔는지 밝히지 않는다"
 
 
 def test_daily_series_fills_in_only_where_no_structural_path_exists(tmp_path: Path) -> None:
