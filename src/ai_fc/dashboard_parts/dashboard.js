@@ -1153,8 +1153,11 @@ function fngOverlayChart(dates,fng,nasdaq){
     return `<path class="${cls}" d="${d.trim()}" fill="none"/>`;};
   const ticks=[0,25,50,75,100].map(v=>`<text class="fl-axis" x="${padL-8}" y="${(yF(v)+4).toFixed(1)}" text-anchor="end">${v}</text>`).join('');
   const nqTicks=[nqLo,(nqLo+nqHi)/2,nqHi].map(v=>`<text class="fl-axis fl-axis-r" x="${W-padR+8}" y="${(yN(v)+4).toFixed(1)}">${Math.round(v).toLocaleString()}</text>`).join('');
+  const spanYears=(new Date(dates[n-1])-new Date(dates[0]))/(365.25*86400000);
+  const yearStarts=spanYears>1.5?dates.reduce((acc,d,i)=>{const y=d.slice(0,4);if(!acc.seen.has(y)){acc.seen.add(y);acc.idx.push(i);}return acc;},{seen:new Set(),idx:[]}).idx:null;
   const every=Math.max(1,Math.floor(n/7));
-  const xTicks=dates.map((d,i)=>i%every?'':`<text class="fl-axis" x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${esc(d.slice(2,7))}</text>`).join('');
+  const tickIdx=yearStarts&&yearStarts.length>=2?yearStarts:dates.map((_,i)=>i).filter(i=>!(i%every));
+  const xTicks=tickIdx.map(i=>`<text class="fl-axis" x="${x(i).toFixed(1)}" y="${H-6}" text-anchor="middle">${esc(yearStarts?dates[i].slice(0,4):dates[i].slice(2,7))}</text>`).join('');
   return `<svg class="fng-lab-chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="공포탐욕 지수와 NASDAQ 종합 ${esc(dates[0])}부터 ${esc(dates[n-1])}까지">
     ${bands}${ticks}${nqTicks}${xTicks}
     ${line(nasdaq,yN,'fl-nasdaq')}${line(fng,yF,'fl-fng')}
@@ -1183,6 +1186,7 @@ function renderFearGreedLab(){
     <div class="page-heading"><div><p class="eyebrow">MARKET SENTIMENT · FEAR &amp; GREED</p><h2 id="fng-lab-head">공포·탐욕 지수와 NASDAQ</h2>
       <p class="fng-lab-lead">같은 구간을 두 눈금으로 나란히 둡니다. <b>상관을 주장하지 않습니다</b> — 회귀도 상관계수도 계산하지 않고, 어떤 예측·확률과도 결합하지 않습니다.</p></div></div>
     <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · 현재 ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
+    <div class="fng-lab-legend fng-lab-zones">${[['extreme_fear','극단적 공포'],['fear','공포'],['neutral','중립'],['greed','탐욕'],['extreme_greed','극단적 탐욕']].map(([k,label])=>`<span style="--chip:${MOOD_BAND_COLOR[k]}">${label}</span>`).join('')}</div>
     ${fngOverlayChart(lab.dates||[],lab.fng||[],lab.nasdaq||[])}
     <h3 class="fng-lab-sub">구성요소 7종</h3>
     <p class="fng-lab-lead">점수(0~100)는 <b>현재값만 공표</b>되고, 아래 선은 그 점수를 만든 <b>원자료</b>입니다 — 점수 추이가 아닙니다.</p>

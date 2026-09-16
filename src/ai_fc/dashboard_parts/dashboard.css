@@ -1656,6 +1656,8 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .fng-lab-legend span::before{content:"";width:16px;height:2px;background:#8a877e}
 .fng-lab-legend .is-fng::before{background:#db351b}
 .fng-lab-legend .is-nq::before{background:#247d78}
+.fng-lab-zones{margin-top:0}
+.fng-lab-zones span::before{width:9px;height:9px;background:var(--chip)}
 .fng-lab-chart{width:100%;height:auto;display:block;background:#fff;border:1px solid var(--line)}
 .fl-fng{stroke:#db351b;stroke-width:1.8;stroke-linejoin:round}
 .fl-nasdaq{stroke:#247d78;stroke-width:1.4;stroke-linejoin:round;opacity:.85}
