@@ -2421,23 +2421,69 @@ function marketThesis(upProb,rangeProb,closeProb){
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
 }
 /* ── 홈 신호 카드: 가격 외 두 레이어 ──────────────────────────────────────────
-   V13-VOL(변동성 기준율)과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다.
-   payload 가 스스로 결합을 금지한다 — timeseries_v13_vol.publication 은
-   combined_with_scenario_v5_2:false·trading_signal:false, statistics_lab 은
-   probability_space:'reference_only'·model_use:false 이고, 읽기모델 가드레일도
-   "서로 다른 probability_space는 산술 결합하지 않습니다" 라고 못박고 있다.
-   따라서 이 두 카드는 각자 자기 숫자만 말하고, 시나리오 확률과 섞지 않는다. */
-function v13VolSignal(v13){
-  // 변동성 탭과 같은 t3 게이트. 게이트 전에는 숫자를 내지 않는다.
-  if(v13&&v13.publication&&v13.publication.display_tier!=='t3_live_card')return null;
-  const cell=v13&&v13.cells&&v13.cells.vix25_h21;
-  if(!cell||cell.p==null)return null;
+   V8 시계열과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다. payload 가
+   스스로 결합을 금지한다 — timeseries 는 probability_space:
+   'research_timeseries_v8_conditional'·combined_with_existing_models:false·
+   publication.combined_with_scenario_v5_2:false·reference_opinion_only:true,
+   statistics_lab 은 probability_space:'reference_only'·model_use:false 이고,
+   읽기모델 가드레일도 "서로 다른 probability_space는 산술 결합하지 않습니다" 라고
+   못박고 있다. 따라서 이 두 카드는 각자 자기 숫자만 말하고, 시나리오 확률과 섞지 않는다. */
+/* ── 홈 카드 미니 그림 ────────────────────────────────────────────────
+   같은 크기의 % 세 개를 나란히 두면 경로 비율·확률·과열 위치가 같은 종류로 읽힌다.
+   그래서 카드마다 **재는 것의 모양**을 그린다 — 비율은 채움 막대, 범위 전망은 띠와
+   중앙값, 과열도는 닷컴 정점(100)을 기준선으로 둔 눈금. 숫자를 대신하지 않고 옆에 둔다.
+   글자는 넣지 않는다 — viewBox 안의 글꼴은 카드 폭을 따라 확대돼 겹친다(DECISIONS 2026-09-02).
+   설명은 언제나 카드의 <small> 부제가 말로 한다. */
+const SV={w:240,h:16,y:3,bh:10};
+function signalViz(inner,label){
+  return `<svg class="signal-viz" viewBox="0 0 ${SV.w} ${SV.h}" preserveAspectRatio="none" role="img" aria-label="${esc(label)}">`
+    +`<rect class="sv-track" x="0" y="${SV.y}" width="${SV.w}" height="${SV.bh}"/>${inner}</svg>`;
+}
+/* 비율 — 0~100 막대에 그대로 채운다. 절반 눈금 하나만 둔다. */
+function signalShareViz(pct,color,label){
+  if(!hasNumeric(pct))return '';
+  const fill=Math.max(0,Math.min(100,Number(pct)))/100*SV.w;
+  return signalViz(`<rect x="0" y="${SV.y}" width="${fill.toFixed(1)}" height="${SV.bh}" fill="${color}"/>`
+    +`<line class="sv-tick" x1="${SV.w/2}" x2="${SV.w/2}" y1="0" y2="${SV.h}"/>`,label);
+}
+/* 범위 전망 — 80% 띠 위에 중앙값과 오늘 위치를 세운다. 한 값을 맞히는 그림이 아니다. */
+function signalRangeViz(lo,hi,mid,now,label){
+  if(!hasNumeric(lo)||!hasNumeric(hi)||!hasNumeric(mid))return '';
+  const vals=[lo,hi,mid,now].filter(hasNumeric).map(Number);
+  const min=Math.min(...vals),max=Math.max(...vals),span=(max-min)||1,pad=6;
+  const X=v=>pad+((Number(v)-min)/span)*(SV.w-pad*2);
+  return signalViz(`<rect x="${X(lo).toFixed(1)}" y="${SV.y}" width="${(X(hi)-X(lo)).toFixed(1)}" height="${SV.bh}" fill="${TS_Q_COLORS.outer}"/>`
+    +(hasNumeric(now)?`<line class="sv-now" x1="${X(now).toFixed(1)}" x2="${X(now).toFixed(1)}" y1="0" y2="${SV.h}"/>`:'')
+    +`<line class="sv-median" x1="${X(mid).toFixed(1)}" x2="${X(mid).toFixed(1)}" y1="0" y2="${SV.h}"/>`,label);
+}
+/* 과열도 — 눈금 끝은 100 과 부문 최대 중 큰 쪽이다. 100(닷컴 정점)은 파선으로 못박는다. */
+function signalHeatViz(pct,lo,hi,label){
+  if(!hasNumeric(pct))return '';
+  const top=Math.max(100,Number(hi)||0,Number(pct)||0),X=v=>Math.max(0,Math.min(SV.w,(Number(v)/top)*SV.w));
+  return signalViz((hasNumeric(lo)&&hasNumeric(hi)
+      ?`<rect x="${X(lo).toFixed(1)}" y="${SV.y}" width="${(X(hi)-X(lo)).toFixed(1)}" height="${SV.bh}" fill="#f2d3cd"/>`:'')
+    +`<line class="sv-peak" x1="${X(100).toFixed(1)}" x2="${X(100).toFixed(1)}" y1="0" y2="${SV.h}"/>`
+    +`<line class="sv-pin" x1="${X(pct).toFixed(1)}" x2="${X(pct).toFixed(1)}" y1="0" y2="${SV.h}"/>`,label);
+}
+function tsForecastSignal(ts){
+  /* 시계열 탭과 **같은 공개 게이트**를 그대로 쓴다 — 홈이 탭보다 먼저 숫자를 흘리면
+     게이트가 있나 마나다. 원점이 계약의 hold 임계를 넘기면 마지막 값으로 버티지 않고
+     카드를 보류로 닫는다(fail-closed). */
+  if(!ts||ts.numbers_visible!==true)return null;
+  if((ts.publication||{}).customer_numbers_visible!==true)return null;
+  const policy=ts.origin_age_policy||{},age=ts.origin_age_sessions==null?null:Number(ts.origin_age_sessions);
+  const hold=policy.hold_after_sessions==null?null:Number(policy.hold_after_sessions);
+  if(age!=null&&hold!=null&&age>=hold)return null;
+  const row=(ts.horizons||{})['63'];
+  if(!row||row.probability_up==null||row.median_index==null)return null;
+  const band=row.band_index||{},round=v=>v==null?null:Math.round(Number(v));
+  const warn=policy.warn_after_sessions==null?null:Number(policy.warn_after_sessions);
   return {
-    pct:Math.round(Number(cell.p)*100),
-    clim:cell.clim_base_rate==null?null:Math.round(Number(cell.clim_base_rate)*100),
-    // 얇은 표본·낮은 신뢰도는 숨기지 않고 카드 위에 남긴다.
-    caution:cell.episode_sample==='thin'||cell.reliability==='weak',
-    holdout:(v13.publication||{}).holdout_status||null
+    pct:Math.round(Number(row.probability_up)*100),
+    median:round(row.median_index),lo:round(band.p10),hi:round(band.p90),now:round((ts.anchor||{}).value),
+    age:age,
+    // 원점이 낡아 가는 것은 숨기지 않고 카드 위에 남긴다.
+    stale:age!=null&&warn!=null&&age>warn
   };
 }
 function dotcomOverheatSignal(idx){
@@ -2536,13 +2582,11 @@ function renderFearGreedCard(fng){
   const ticks=[0,25,50,75,100].map(n=>{const[tx,ty]=fngPoint(n,FNG_ARC.rTick);
     return `<text class="fng-tick" x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="middle" dominant-baseline="middle">${n}</text>`;}).join('');
   const[nx,ny]=fngPoint(raw,FNG_ARC.rIn-6);
-  const mark=(p,label)=>{if(!hasNumeric(p))return '';const[mx,my]=fngPoint(p,FNG_ARC.rIn+23);
-    return `<circle class="fng-mark" cx="${mx.toFixed(1)}" cy="${my.toFixed(1)}" r="3.6"><title>${esc(label)} ${p}</title></circle>`;};
   const gate=fng.stability||{},seeded=Number(fng.seeded_days||0),hist=Number(fng.history_days||0);
   return `<article class="mood-card mood-fng">
     <header><h3>공포 · 탐욕 <small>주식시장</small></h3><span class="mood-chip" style="--chip:${MOOD_BAND_COLOR[fng.band]||'#8a877e'}">${esc(fng.band_label)}</span></header>
     <svg class="mood-gauge" viewBox="0 0 300 178" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
-      ${sectors}${ticks}${mark(fng.month_ago,'1개월 전')}${mark(fng.week_ago,'1주 전')}${mark(fng.previous_close,'전일')}
+      ${sectors}${ticks}
       <line class="fng-needle" x1="${FNG_ARC.cx}" y1="${FNG_ARC.cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"/>
       <circle class="fng-hub" cx="${FNG_ARC.cx}" cy="${FNG_ARC.cy}" r="34"/>
       <text class="fng-value" x="${FNG_ARC.cx}" y="${FNG_ARC.cy+2}" text-anchor="middle" dominant-baseline="middle">${v}</text>
@@ -2588,14 +2632,14 @@ function renderOverview(){
   const thesis=stale
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
     :marketThesis(upProb,rangeProb,closeProb);
-  const vol=v13VolSignal(DATA.timeseries_v13_vol),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
+  const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
   const today=generatedDay();
   const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const events=calendar.length?calendar:upcoming(4).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
   /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
      부제가 길어져 뒤가 잘리는 일이 생기지 않게 한다. */
-  const card=(label,value,note,flag)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
-    +`<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
+  const card=(label,value,note,flag,viz)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
+    +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
   const dday=date=>{const d=Math.round((Date.parse(date+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);
     return !Number.isFinite(d)?'':d===0?'오늘':d>0?`D-${d}`:'';};
   const tag=s=>s==='estimated'?'추정':s==='question'?'판정':'확정';
@@ -2604,20 +2648,26 @@ function renderOverview(){
     <div class="today-signals" aria-label="핵심 지표 3개">
       ${card('연말 주가', stale?'판정 보류':`${num(upProb)}%`,
              stale?`마지막 기준 ${vintage.asof}`:'연말에 전고점 돌파 또는 기준가 유지로 끝난 모의 경로',
-             stale?'갱신 필요':null)}
-      ${card('단기 변동성', vol==null?'검증 대기':`${vol.pct}%`,
-             vol==null?'V13-VOL 게이트 전':`약 한 달 안에 VIX 25 도달 · 평소엔 ${vol.clim==null?'—':vol.clim+'%'}`,
-             vol&&vol.caution?'표본 얇음':null)}
+             stale?'갱신 필요':null,
+             stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`))}
+      ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
+             tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
+                      :`NASDAQ 상승 확률 · 오늘 ${num(tsf.now)} → 중앙 ${num(tsf.median)}${tsf.lo==null||tsf.hi==null?'':` (10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)})`}`,
+             tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
+             tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
+               `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`))}
       ${card('닷컴 대비 과열도', heat==null?(cycle==null?'집계 대기':`${cycle.pct}%`):`${heat.pct}%`,
              heat==null?(cycle==null?'통계 미수집':`닷컴 대조축 ${cycle.elapsed}/${cycle.total}개월 경과`)
                        :`100이면 닷컴 버블 정점 · 분야별로 ${heat.lo}~${heat.hi}`,
-             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null)}
+             heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
+             heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
+               `닷컴 정점 100 기준 ${heat.pct}, 분야별 ${heat.lo}~${heat.hi}`))}
     </div>
+    ${renderMarketMood()}
     <section class="today-agenda" aria-labelledby="today-events">
       <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#records/journal">전체 일정</a></div>
       ${renderEventTimeline(events,{dday,tag,today})}
     </section>
-    ${renderMarketMood()}
   </section></div>`);
   mount(root);
 }

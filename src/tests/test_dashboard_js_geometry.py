@@ -336,7 +336,7 @@ def test_ath_chip_does_not_claim_a_52_week_window() -> None:
 
 def _home_signal_helpers() -> str:
     match = re.search(
-        r"function v13VolSignal\([\s\S]+?\n}\nfunction dotcomCycleSignal\([\s\S]+?\n}\n",
+        r"function tsForecastSignal\([\s\S]+?\n}\nfunction dotcomCycleSignal\([\s\S]+?\n}\n",
         _dashboard_source(),
     )
     assert match, "home signal helpers must remain standalone"
@@ -362,24 +362,39 @@ def _run_js(program: str) -> dict:
     return json.loads(completed.stdout)
 
 
-def test_home_volatility_card_stays_behind_the_t3_gate() -> None:
-    """The home card must not leak V13 numbers ahead of the same gate the tab uses."""
-    cell = {"p": 0.099046, "clim_base_rate": 0.419468,
-            "episode_sample": "thin", "reliability": "good"}
+def test_home_timeseries_card_stays_behind_the_same_gate_as_the_tab() -> None:
+    """홈 카드는 시계열 탭과 같은 공개 게이트를 써야 한다.
+
+    숫자 비공개(numbers_visible / customer_numbers_visible)이거나 예측 원점이 계약의
+    hold 임계에 닿으면, 마지막 값으로 버티지 않고 카드를 보류로 닫는다.
+    """
+    horizons = {
+        "63": {"probability_up": 0.72, "median_index": 27444.78,
+               "band_index": {"p10": 24508.33, "p90": 29340.82}},
+    }
     program = _home_signal_helpers() + r"""
-const live={publication:{display_tier:'t3_live_card',holdout_status:'partial'},cells:{vix25_h21:CELL}};
-const hidden={publication:{display_tier:'t2_hidden_panel'},cells:{vix25_h21:CELL}};
-const internal={publication:{display_tier:'t0_internal'},cells:{vix25_h21:CELL}};
+const base={numbers_visible:true,publication:{customer_numbers_visible:true},anchor:{value:26333.04},
+  origin_age_policy:{warn_after_sessions:1,hold_after_sessions:10},horizons:HORIZONS};
 console.log(JSON.stringify({
-  live:v13VolSignal(live), hidden:v13VolSignal(hidden), internal:v13VolSignal(internal),
-  empty:v13VolSignal({publication:{display_tier:'t3_live_card'},cells:{}}), missing:v13VolSignal(null)
+  live:tsForecastSignal({...base,origin_age_sessions:1}),
+  aging:tsForecastSignal({...base,origin_age_sessions:4}),
+  held:tsForecastSignal({...base,origin_age_sessions:10}),
+  hidden:tsForecastSignal({...base,origin_age_sessions:1,numbers_visible:false}),
+  internal:tsForecastSignal({...base,origin_age_sessions:1,
+    publication:{customer_numbers_visible:false}}),
+  empty:tsForecastSignal({...base,origin_age_sessions:1,horizons:{}}),
+  missing:tsForecastSignal(null)
 }));
-""".replace("CELL", json.dumps(cell))
+""".replace("HORIZONS", json.dumps(horizons))
     result = _run_js(program)
-    assert result["live"] == {"pct": 10, "clim": 42, "caution": True, "holdout": "partial"}
+    assert result["live"] == {"pct": 72, "median": 27445, "lo": 24508, "hi": 29341,
+                              "now": 26333, "age": 1, "stale": False}
+    # warn 임계를 넘기면 숫자는 내되 원점 나이를 카드 위에 남긴다.
+    assert result["aging"]["stale"] is True and result["aging"]["age"] == 4
+    # hold 임계에 닿으면 수치를 아예 내지 않는다(fail-closed).
+    assert result["held"] is None
     assert result["hidden"] is None and result["internal"] is None
     assert result["empty"] is None and result["missing"] is None
-
 
 def test_home_era_card_reports_a_cycle_position_not_a_probability() -> None:
     """statistics_lab is reference_only — the card may show elapsed months, never a %."""
@@ -412,12 +427,12 @@ def test_home_cards_say_in_plain_words_what_each_percent_counts() -> None:
     source = _dashboard_source()
     assert 'aria-label="핵심 지표 3개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    for label in ("연말 주가", "단기 변동성", "닷컴 대비 과열도"):
+    for label in ("연말 주가", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
         assert f"card('{label}'" in row, label
     assert "신호 0" not in row
     # 각 부제가 그 숫자가 무엇을 센 것인지 말해야 한다.
     assert "끝난 모의 경로" in row, "연말 주가 % 가 무엇의 비율인지"
-    assert "약 한 달 안에 VIX 25 도달" in row, "변동성 % 의 사건과 기간"
+    assert "NASDAQ 상승 확률" in row, "시계열 % 가 무엇의 확률인지"
     assert "100이면 닷컴 버블 정점" in row, "과열도 축의 의미"
 
 
