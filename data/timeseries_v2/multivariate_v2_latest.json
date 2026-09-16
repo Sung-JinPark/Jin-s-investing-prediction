@@ -1,6 +1,6 @@
 {
   "as_of": "2026-09-11",
-  "content_hash": "84b9bd3e45869a36a9e52e7e4b0ffd59816a13ce1b709b96c1dc3f57e9892fbf",
+  "content_hash": "cc4c86247005ed340a0da6ff2267b6c96d4ae15a93bfe96bd15a3a7a13a0d032",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,39 +21,39 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 6.776666666666666,
-          "available_at": "2026-09-15T06:42:43+00:00",
+          "age_hours": 6.835555555555556,
+          "available_at": "2026-09-16T06:45:06+00:00",
           "group": "NASDAQCOM",
-          "observation_time": "2026-09-14",
+          "observation_time": "2026-09-15",
           "selected_series": "NASDAQCOM",
           "status": "fresh"
         },
         {
-          "age_hours": 6.776666666666666,
-          "available_at": "2026-09-15T06:42:39+00:00",
+          "age_hours": 6.835555555555556,
+          "available_at": "2026-09-16T06:45:01+00:00",
           "group": "VIX",
-          "observation_time": "2026-09-14",
+          "observation_time": "2026-09-15",
           "selected_series": "VIX",
           "status": "fresh"
         },
         {
-          "age_hours": 6.776666666666666,
-          "available_at": "2026-09-15T06:42:39+00:00",
+          "age_hours": 6.835555555555556,
+          "available_at": "2026-09-16T06:45:01+00:00",
           "group": "DGS2",
-          "observation_time": "2026-09-14",
+          "observation_time": "2026-09-15",
           "selected_series": "DGS2",
           "status": "fresh"
         },
         {
-          "age_hours": 6.776666666666666,
-          "available_at": "2026-09-15T06:42:39+00:00",
+          "age_hours": 6.835555555555556,
+          "available_at": "2026-09-16T06:45:01+00:00",
           "group": "DGS10",
-          "observation_time": "2026-09-14",
+          "observation_time": "2026-09-15",
           "selected_series": "DGS10",
           "status": "fresh"
         },
         {
-          "age_hours": 78.77666666666667,
+          "age_hours": 102.83555555555556,
           "available_at": "2026-09-15T06:42:43+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-09-11",
@@ -86,7 +86,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-09-15T06:46:35+00:00",
+  "knowledge_cutoff": "2026-09-16T06:50:07+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
