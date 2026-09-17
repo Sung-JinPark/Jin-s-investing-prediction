@@ -419,9 +419,9 @@ console.log(JSON.stringify({
 }));
 """
     result = _run_js(program)
-    assert result["all"] == "몬테카를로 연말 78%, 시계열 3개월 72%, 닷컴 대비 과열도 61%입니다."
+    assert result["all"] == "연말 몬테카를로 예측 78%, 3개월 시계열 예측 72%, 닷컴 대비 과열도 61%입니다."
     # 빠진 신호는 자리를 비우고 넘어간다 — 없는 숫자를 지어내지 않는다.
-    assert result["noHeat"] == "몬테카를로 연말 78%, 시계열 3개월 72%입니다."
+    assert result["noHeat"] == "연말 몬테카를로 예측 78%, 3개월 시계열 예측 72%입니다."
     # 한 장짜리는 요약이 아니다 — 빈 문자열을 돌려 시나리오 문장으로 되돌아가게 한다.
     assert result["onlyOne"] == "" and result["none"] == ""
 
