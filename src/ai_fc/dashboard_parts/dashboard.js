@@ -2638,8 +2638,8 @@ function renderEventTimeline(events,helpers){
    측정이라, 같은 이름표를 붙이면 히어로가 없는 말을 하게 된다. */
 function homeSignalSummary(upProb,tsf,heat){
   const parts=[];
-  if(hasNumeric(upProb))parts.push(`몬테카를로 연말 ${num(upProb)}%`);
-  if(tsf&&hasNumeric(tsf.pct))parts.push(`시계열 3개월 ${num(tsf.pct)}%`);
+  if(hasNumeric(upProb))parts.push(`연말 몬테카를로 예측 ${num(upProb)}%`);
+  if(tsf&&hasNumeric(tsf.pct))parts.push(`3개월 시계열 예측 ${num(tsf.pct)}%`);
   if(heat&&hasNumeric(heat.pct))parts.push(`닷컴 대비 과열도 ${num(heat.pct)}%`);
   /* 한 장짜리 요약은 요약이 아니다 — 그때는 시나리오 문장(marketThesis)으로 돌아간다. */
   return parts.length<2?'':`${parts.join(', ')}입니다.`;
