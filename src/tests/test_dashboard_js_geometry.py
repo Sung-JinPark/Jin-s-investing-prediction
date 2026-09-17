@@ -398,6 +398,31 @@ console.log(JSON.stringify({
     assert result["hidden"] is None and result["internal"] is None
     assert result["empty"] is None and result["missing"] is None
 
+def test_home_hero_summarises_the_three_cards_without_mixing_them() -> None:
+    """히어로 요약줄은 카드 세 장을 이름과 함께 나열만 한다.
+
+    세 숫자는 재는 것이 서로 달라 합치거나 견주면 안 된다. 그리고 overheat 지수가
+    없을 때 cycle 경과율에 '과열도' 이름표를 붙이면 히어로가 없는 말을 하게 된다.
+    """
+    match = re.search(r"function homeSignalSummary\([\s\S]+?\n}\n", _dashboard_source())
+    assert match, "homeSignalSummary must remain a standalone helper"
+    program = match.group(0) + r"""
+const hasNumeric=v=>v!==null&&v!==undefined&&Number.isFinite(Number(v));
+const num=v=>Number(v).toLocaleString();
+console.log(JSON.stringify({
+  all:homeSignalSummary(78,{pct:72},{pct:61}),
+  noHeat:homeSignalSummary(78,{pct:72},null),
+  onlyOne:homeSignalSummary(78,null,null),
+  none:homeSignalSummary(null,null,null)
+}));
+"""
+    result = _run_js(program)
+    assert result["all"] == "몬테카를로 연말 78%, 시계열 3개월 72%, 닷컴 대비 과열도 61%입니다."
+    # 빠진 신호는 자리를 비우고 넘어간다 — 없는 숫자를 지어내지 않는다.
+    assert result["noHeat"] == "몬테카를로 연말 78%, 시계열 3개월 72%입니다."
+    # 한 장짜리는 요약이 아니다 — 빈 문자열을 돌려 시나리오 문장으로 되돌아가게 한다.
+    assert result["onlyOne"] == "" and result["none"] == ""
+
 def test_home_era_card_reports_a_cycle_position_not_a_probability() -> None:
     """statistics_lab is reference_only — the card may show elapsed months, never a %."""
     program = _home_signal_helpers() + r"""
