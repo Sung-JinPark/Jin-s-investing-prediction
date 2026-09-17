@@ -3,15 +3,15 @@
   "series_id": "VIXCLS",
   "source": "FRED (fred_market_signals 계약 · license approved)",
   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&file_type=json",
-  "observed_date": "2026-09-14",
-  "generated_at": "2026-09-16T08:01:17+00:00",
-  "level": 17.1,
+  "observed_date": "2026-09-15",
+  "generated_at": "2026-09-17T08:09:35+00:00",
+  "level": 17.2,
   "band": "calm",
   "band_label": "평시",
-  "change_1d": 1.26,
-  "week_ago": 15.3,
+  "change_1d": 0.1,
+  "week_ago": 15.72,
   "month_ago": 14.25,
-  "year_ago": 14.76,
+  "year_ago": 15.69,
   "trail": [
     {
       "d": "2026-03-16",
@@ -532,6 +532,10 @@
     {
       "d": "2026-09-14",
       "v": 17.1
+    },
+    {
+      "d": "2026-09-15",
+      "v": 17.2
     }
   ],
   "trail_min": 14.25,
@@ -576,7 +580,7 @@
   ],
   "hard_rule": {
     "level": 25.0,
-    "distance": 7.9,
+    "distance": 7.8,
     "breached": false
   },
   "stale_days": 2
