@@ -1597,25 +1597,74 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .mood-note span{display:block;margin-top:3px;color:#8a877e;font-size:10px}
 .mood-note a{color:#6f6c65;text-decoration:underline}
 
-/* ── 다음 이벤트 타임라인 ───────────────────────────────────────
-   카드 격자에서는 '언제'가 글자로만 있었다. 가장 먼 이벤트를 100 으로 둔 축 위에
-   얹어 순서와 거리가 눈에 보이게 한다. */
-.event-rail{margin:0;padding:0;list-style:none;display:grid;gap:2px}
-.event-rail-item a{padding:8px 10px;display:grid;grid-template-columns:54px minmax(56px,1fr) minmax(0,2.2fr);align-items:center;gap:10px;color:#11110f;border:1px solid transparent;border-bottom-color:#efeee8}
-.event-rail-item a:hover{background:#fbfaf7;border-color:#ebe8e0}
-.event-dday{font:800 12px/1 var(--mono);color:#6f6c65;white-space:nowrap}
-.event-rail-item.is-near .event-dday{color:#db351b}
-.event-track{position:relative;height:3px;background:#efeee8}
-.event-track i{position:absolute;inset:0 auto 0 0;background:#b8b6ad}
-.event-rail-item.is-near .event-track i{background:#db351b}
-.event-rail-item.is-estimated .event-track i{background:repeating-linear-gradient(90deg,#c08a1e 0 4px,transparent 4px 8px)}
-.event-body{min-width:0;display:grid;gap:2px}
-.event-body b{font:600 13px/1.35 var(--sans);overflow-wrap:break-word;word-break:keep-all}
-.event-body small{color:#8a877e;font:500 10px/1 var(--mono)}
+/* ── 다음 이벤트 — 종류 인덱스 보드 ─────────────────────────────
+   종전 레일은 한 행을 `54px · 진행막대 · 2.2fr` 로 나눴는데, 682px 짜리 제목 칸에 들어가는
+   글자가 51~111px 뿐이라 매 행의 84~93% 가 빈칸이었다(채움률 16%). 세로로 4행을 쌓는 대신
+   같은 폭을 3열 카드로 접으면 한 칸의 본문 폭이 287px 로 줄어 같은 글자가 칸을 채운다.
+   그리고 카드 안의 두 줄을 모두 space-between 으로 벌려 오른쪽 가장자리에 닿게 한다 —
+   '휑하다'는 잉크의 양이 아니라 오른쪽 끝이 비었다는 지각이기 때문이다.
+   진행 막대는 버린다: 4건짜리 축은 트랙의 97% 가 회색이었고 거리는 D-day 숫자가 이미 말한다.
+   `.event-track` 이름은 재사용하지 않는다 — css:203 의 6컬럼 overflow-x 컨테이너를 상속한다. */
+/* 6 은 3 으로도 2 로도 나누어떨어진다 — 어느 중단점에서도 마지막 줄에 고아 카드나
+   빈 격자 칸(회색 구멍)이 생기지 않는다. auto-fit 을 쓰지 않은 이유가 이것이다. */
+.ev-cards{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1px;background:var(--line);border:1px solid var(--line)}
+/* 칸마다 테두리를 주지 않고 1px 간격으로 격자선을 만든다 — .path-realism-grid·.ts-brief 어법 */
+.ev-card{min-width:0;padding:9px 11px 10px;display:grid;grid-template-columns:42px minmax(0,1fr);gap:10px;
+  align-items:start;background:#fff;border-top:3px solid var(--k,#747981)}
+/* 추정은 파선 테두리 + 탈채도 바탕 — css:211 `.event-card.is-estimated` 와 같은 규칙이라
+   홈과 미래 탭이 한 시스템으로 읽힌다. 새 기호(투명도·이탤릭·아이콘)를 발명하지 않는다. */
+.ev-card.is-estimated{background:#fbfbf9;border-top-style:dashed}
+
+.ev-date{display:grid;justify-items:center;gap:1px}
+.ev-date b{color:#8a877e;font:750 9px/1 var(--mono)}
+.ev-date strong{color:#11110f;font:800 19px/1 var(--mono)}
+.ev-date i{color:#8a877e;font:600 9px/1 var(--sans);font-style:normal}
+/* tear-off 39px 가 본문 35.55px 보다 높아 카드 높이를 고정한다 — 제목 길이가 바뀌어도
+   데스크톱 행 높이가 튀지 않는다(무스크롤 홈 계약이 걸려 있는 조건). */
+.ev-card.is-near .ev-date strong{color:#db351b}
+
+.ev-body{min-width:0;display:grid;gap:5px;align-content:start}
+/* 두 줄 모두 카드 양 끝까지 벌린다 — 왼쪽에 몰아 쓰면 오른쪽이 비어 보인다(사용자 지적).
+   wrap 을 허용해 좁은 폭에서 넘치는 대신 줄이 늘어나게 한다 — 말줄임은 쓰지 않는다
+   (DECISIONS 2026-09-14: 잘린 줄은 잘린 줄인지도 모른다). */
+.ev-line{min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 8px}
+.ev-title{min-width:0;display:flex;align-items:baseline;gap:5px;color:#11110f}
+.ev-title:hover b,.ev-title:hover em{text-decoration:underline}
+.ev-glyph{flex:0 0 auto;color:#4f5660;font:850 12px/1 var(--sans);font-style:normal}
+.ev-title b{min-width:0;font:600 13px/1.35 var(--sans);word-break:keep-all;overflow-wrap:break-word}
+/* 전체 제목과 짧은 라벨을 둘 다 내보내고 폭으로 바꾼다 — JS 에 중단점 분기를 두지 않기 위해서다 */
+.ev-title em{display:none;font-style:normal}
+
+/* 확정/추정 알약. 값은 css:211 `.event-status` 와 같지만 클래스명은 새로 둔다 —
+   test_dashboard.py:534 가 dashboard.js 에서 `class="event-status` 방출을 금지한다. */
+/* 추정 표식. 값은 css `.event-status.is-estimated` 와 같아 홈과 미래 탭이 한 시스템으로
+   읽힌다 — 클래스명만 새로 둔다(test_dashboard.py 가 dashboard.js 의 event-status 방출을 금지).
+   확정에는 아무것도 붙이지 않는다: 6장 중 4장에 알약을 달면 알약이 배경이 되고 예외가 묻힌다. */
+.ev-tag{flex:0 0 auto;padding:3px 6px;color:#5f6470;background:#eceef1;border:1px dashed #8b9097;
+  border-radius:999px;font:750 9px/1 var(--mono);font-style:normal}
+
+.ev-meta{min-width:0;color:#8a877e;font:500 10px/1.3 var(--mono);word-break:keep-all}
+.ev-dday{color:#6f6c65;font-weight:800}
+.ev-card.is-near .ev-dday{color:#db351b}
+
 @media(max-width:760px){
-  .event-rail-item a{grid-template-columns:48px 1fr;row-gap:4px}
-  .event-track{grid-column:1/-1;order:3}
+  .ev-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ev-title b{display:none}
+  .ev-title em{display:block;min-width:0;font:600 12px/1.35 var(--sans);word-break:keep-all;overflow-wrap:break-word}
   .mood-gauge{max-width:200px}
+}
+@media(max-width:620px){
+  /* 400px 에서 카드 폭은 163.5px, 본문은 101.5px 뿐이다 — 6장을 2열로 깔면 3행이 되어
+     세로가 도로 길어진다(불만 ①). 4장으로 줄이고 나머지는 헤더 칩과 '전체 일정'(#future)이
+     받는다. 지금 화면도 4건이므로 모바일에서 노출이 줄지는 않는다. */
+  .ev-card:nth-child(n+5){display:none}
+  .ev-card{padding:8px 9px 9px;grid-template-columns:32px minmax(0,1fr);gap:8px}
+  .ev-date strong{font-size:16px}
+  .ev-date b,.ev-date i{font-size:8px}
+  .ev-title em{font-size:11.5px}
+  .ev-tag{padding:2px 5px;font-size:8.5px}
+  .ev-meta{font-size:9px}
 }
 .mood-strip-wrap{display:grid;gap:0}
 .mood-strip-ticks{position:relative;height:13px}

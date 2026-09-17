@@ -5,6 +5,8 @@ import re
 import subprocess
 from pathlib import Path
 
+NL = chr(10)
+
 
 def test_statistics_profile_rows_supports_dotcom_and_current_bars() -> None:
     script_path = (
@@ -513,3 +515,138 @@ def test_home_card_subtitle_is_never_clipped_to_a_fixed_line_count() -> None:
     rail = re.search(r"\.agenda-rail p\{([^}]*)\}", css)
     assert rail and "white-space:normal" in rail.group(1)
 
+
+def _event_board_helpers() -> str:
+    """홈 이벤트 보드의 선정·판정 로직만 잘라 낸다 (DOM 없이 node 로 돌리기 위해)."""
+    source = (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+    picked = []
+    for name in ("const EV_BOARD_CAP", "function evConfirmed", "function evPick",
+                 "function groupFlowCalendarEvents"):
+        start = source.index(name)
+        end = source.index(NL + "}" + NL, start) + 3 if name.startswith("function")             else source.index(NL, start) + 1
+        picked.append(source[start:end])
+    return NL.join(picked)
+
+
+def test_home_event_board_selects_first_of_each_kind() -> None:
+    """선정은 시간순이 아니라 종류별 첫 회차 먼저다.
+
+    순수 시간순으로 되돌아가면 계절을 탄다 — 12월 창에서는 앞쪽을 nfp·cpi·gdp·fomc 가
+    꽉 채워 실적이 홈에서 통째로 사라진다. 사용자가 묻는 것은 '다음 실적 언제'이고
+    그 답은 데이터 밀도와 무관하게 나와야 한다.
+    """
+    program = _event_board_helpers() + r"""
+const rows=[
+  {date:'2026-12-04',kind:'nfp',status:'confirmed'},
+  {date:'2026-12-09',kind:'fomc',status:'confirmed'},
+  {date:'2026-12-10',kind:'cpi',status:'confirmed'},
+  {date:'2026-12-23',kind:'gdp',status:'confirmed'},
+  {date:'2027-01-08',kind:'nfp',status:'estimated'},
+  {date:'2027-01-13',kind:'cpi',status:'estimated'},
+  {date:'2027-02-24',kind:'earnings',status:'estimated',ticker:'NVDA'},
+];
+console.log(JSON.stringify(evPick(rows,EV_BOARD_CAP).map(r=>[r.date,r.kind])));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    picked = json.loads(completed.stdout)
+    kinds = [kind for _, kind in picked]
+    assert "earnings" in kinds, f"종류 인덱싱이 사라지면 실적이 빠진다: {picked}"
+    assert len(set(["nfp", "fomc", "cpi", "gdp", "earnings"]) - set(kinds)) == 0
+    dates = [date for date, _ in picked]
+    assert dates == sorted(dates), "읽는 순서는 시간 순서여야 한다"
+
+
+def test_home_event_board_marks_mixed_day_cluster_as_estimated() -> None:
+    """같은 날 확정과 추정이 섞이면 추정으로 그린다 — 반대로는 절대 틀리지 않는다.
+
+    groupFlowCalendarEvents 는 묶음 행에 첫 행의 status 를 물려준다. 2026-10-28 은
+    확정 FOMC 와 추정 실적 3건이 같은 날이라, 그대로 두면 추정이 확정으로 표시된다.
+    """
+    program = _event_board_helpers() + r"""
+const rows=[
+  {date:'2026-10-28',kind:'earnings',status:'confirmed',ticker:'MSFT'},
+  {date:'2026-10-28',kind:'earnings',status:'estimated',ticker:'META'},
+  {date:'2026-10-28',kind:'fomc',status:'confirmed'},
+  {date:'2026-11-06',kind:'nfp',status:'provisional'},
+];
+const grouped=groupFlowCalendarEvents(rows);
+console.log(JSON.stringify(grouped.map(r=>[r.kind,r.clusterCount||1,evConfirmed(rows,r)])));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    verdicts = {kind: (count, ok) for kind, count, ok in json.loads(completed.stdout)}
+    assert verdicts["earnings"] == (2, False), "추정이 섞인 묶음은 추정이다"
+    assert verdicts["fomc"][1] is True, "단독 확정은 확정 그대로다"
+    assert verdicts["nfp"][1] is False, "미지의 status 는 추정 쪽으로 떨어진다"
+
+
+def test_home_event_board_never_uses_time_et_as_status_proxy() -> None:
+    """time_et 공백과 estimated 가 지금 정확히 겹치지만 둘을 묶지 않는다.
+
+    실측상 time_et 공백 34건 = estimated 34건이라 '최적화'하고 싶어지는 자리다.
+    묶는 순간, 시각 없는 확정 일정이 하나 들어오면 화면이 거짓말한다.
+    """
+    source = (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.js"
+    ).read_text(encoding="utf-8")
+    decider = source[source.index("function evConfirmed"):source.index("function evPick")]
+    assert "time_et" not in decider, "확정/추정 판정에 time_et 이 들어가면 안 된다"
+    board = source[source.index("function renderEventBoard"):]
+    board = board[:board.index(NL + "}" + NL)]
+    # time_et 이 나오는 줄은 전부 '무엇을 인쇄할지'를 고르는 줄이어야 한다.
+    # 확정/추정을 가르는 이름(ok·word·is-estimated)과 같은 줄에 있으면 프록시가 된 것이다.
+    for line in board.split(NL):
+        if "time_et" not in line:
+            continue
+        assert "ev-meta" in line, f"time_et 은 메타 줄에서만 쓴다: {line.strip()[:80]}"
+        for name in ("is-estimated", "confirmed", "word", "ok?"):
+            assert name not in line, f"time_et 이 판정에 섞였다: {line.strip()[:80]}"
+    assert "시각 미정" in board, "시각이 없으면 0시로 채우지 않고 말로 적는다"
+
+
+def test_home_event_board_column_counts_collapse_without_orphans() -> None:
+    """6장은 3열로도 2열로도 나누어떨어진다 — 마지막 줄에 고아 카드가 없다.
+
+    400px 에서는 4장으로 줄인다. n+5 규칙을 지우면 2열 3행이 되어 세로 이득이 사라진다
+    (실측: 400px 에서 403px -> 268px 로 줄인 것이 이 상한 덕이다).
+    """
+    css = (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css"
+    ).read_text(encoding="utf-8")
+    assert re.search(r"\.ev-cards\{[^}]*grid-template-columns:repeat\(3,", css)
+    assert re.search(r"@media\(max-width:760px\)\{[^@]*?\.ev-cards\{grid-template-columns:repeat\(2,",
+                     css, re.S)
+    assert re.search(r"@media\(max-width:620px\)\{[\s\S]*?\.ev-card:nth-child\(n\+5\)\{display:none\}",
+                     css)
+
+
+def test_home_event_title_is_never_truncated() -> None:
+    """제목은 말줄임하지 않는다 — 잘린 줄은 잘린 줄인지도 모른다 (DECISIONS 2026-09-14)."""
+    css = (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css"
+    ).read_text(encoding="utf-8")
+    for selector in (r"\.ev-title b\{([^}]*)\}", r"\.ev-title em\{([^}]*)\}"):
+        for body in re.findall(selector, css):
+            assert "ellipsis" not in body and "line-clamp" not in body, body
+            assert "nowrap" not in body, body
+    assert re.search(r"\.ev-title b\{[^}]*word-break:keep-all", css)
+
+
+def test_unscoped_event_track_height_override_is_gone() -> None:
+    """무범위 `.event-track{height:3px}` 은 미래 탭 달력을 3px 상자에 가둔다.
+
+    css 의 `.market-event-calendar .event-track` 는 height 를 선언하지 않아, 홈 레일용으로
+    넣은 이 전역 규칙이 그대로 걸린다(min-height:138px 카드들이 뭉개진다). 이름 재사용이
+    만든 충돌이라, 다시 들어오면 같은 자리에서 같은 일이 벌어진다.
+    """
+    css = (
+        Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css"
+    ).read_text(encoding="utf-8")
+    assert re.search(r"(?<![\w.-])\.event-track\{position:relative;height:3px", css) is None

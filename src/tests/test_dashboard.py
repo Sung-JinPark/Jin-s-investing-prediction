@@ -1444,6 +1444,64 @@ def test_repository_snapshot_stays_within_dashboard_budget(tmp_path: Path) -> No
     assert embedded["embed_field_projection"]["projected"] is True
 
 
+def test_estimated_schedule_rows_stay_visually_distinct_from_confirmed() -> None:
+    """추정을 확정처럼 그리지 않는다 — 홈은 표식으로, 전체 달력은 문장으로 말한다.
+
+    홈 보드는 깔끔함을 위해 정의 문단을 싣지 않는다. 대신 **예외에만** 표식을 단다:
+    추정 카드에 파선 테두리와 `추정` 알약이 붙고, 화면 낭독기에는 확정·추정이 카드마다
+    그대로 읽힌다. 정의 문장(계약 `calendar_sources.yaml` 의 confirmed_definition /
+    estimated_definition)과 확률 비연결 고지는 `#future` 의 전체 달력이 싣고, 홈의
+    '전체 일정' 링크가 거기로 보낸다 — 지워진 것이 아니라 한 곳으로 모인 것이다.
+    """
+    script = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
+    ).read_text(encoding="utf-8")
+    board = script[script.index("function renderEventBoard"):]
+    board = board[:board.index("function renderOverview")]
+    assert 'class="ev-tag is-estimated"' in board, "추정에는 표식이 붙는다"
+    assert "${esc(word)}" in board and "'추정'" in board
+    assert "sr-only" in board, "낭독기에는 카드마다 확정·추정을 읽어 준다"
+
+    css = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.css"
+    ).read_text(encoding="utf-8")
+    assert "border-top-style:dashed" in css.split(".ev-card.is-estimated")[1][:80]
+
+    # 정의와 확률 비연결 고지는 전체 달력 쪽에 살아 있어야 한다.
+    ribbon = script[script.index("market-event-note"):][:400]
+    assert "기관·기업이 날짜를 공개한 일정" in ribbon
+    assert "이벤트와 분포 확률을 연결하지 않습니다" in ribbon
+
+
+def test_home_event_board_carries_no_prose_block() -> None:
+    """홈 보드는 카드만 싣는다 — 주석 문단·규모 칩·출처 링크를 두지 않는다(사용자 요청).
+
+    지운 것이 정보 손실이 아니어야 한다: 출처는 카드 제목이 가리키는 전체 달력에
+    행마다 '공식 근거' 로 그대로 있고, 확정·추정 건수는 그 화면의 요약 칩이 센다.
+    """
+    script = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
+    ).read_text(encoding="utf-8")
+    board = script[script.index("function renderEventBoard"):]
+    board = board[:board.index("function renderOverview")]
+    for gone in ("ev-note", "ev-src", "ev-head", "evCountChip", "근거 ↗"):
+        assert gone not in board, f"홈 보드에 남으면 안 되는 것: {gone}"
+    # 전체 달력 쪽에는 그대로 있어야 한다 — 옮긴 것이지 지운 것이 아니다.
+    assert "공식 근거 ↗" in script
+    assert "event-summary-chip" in script
+
+
+def test_home_full_schedule_link_points_at_the_calendar_not_the_changelog() -> None:
+    """'전체 일정' 이 변경 일지로 가고 있었다 — 전체 일정은 #future 의 달력 리본이다."""
+    script = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
+    ).read_text(encoding="utf-8")
+    home = script[script.index("function renderOverview"):]
+    home = home[:home.index("function upcoming")]
+    assert '<a href="#future">전체 일정</a>' in home
+    assert "#records/journal" not in home
+
+
 def test_pages_payload_stays_within_budget_on_the_real_repository() -> None:
     """실제 누적 원장으로 Pages 첫 화면 payload 가 예산 안에 있는지 본다.
 
