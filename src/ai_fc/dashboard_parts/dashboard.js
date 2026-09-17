@@ -2631,14 +2631,28 @@ function renderEventTimeline(events,helpers){
       </a></li>`;}).join('')}</ol>`;
 }
 
+/* 히어로 요약줄 — 바로 아래 카드 세 장을 한 줄로 줄인다. 세 숫자는 재는 것이 서로
+   달라(경로 비율·분포 비율·닷컴 정점 대비 위치) 더하거나 견주지 않고, 각자 이름을
+   달고 나열만 한다. 무엇을 센 값인지는 카드의 부제가 말한다.
+   과열도는 overheat 지수가 있을 때만 싣는다 — 카드가 대신 쓰는 cycle 경과율은 다른
+   측정이라, 같은 이름표를 붙이면 히어로가 없는 말을 하게 된다. */
+function homeSignalSummary(upProb,tsf,heat){
+  const parts=[];
+  if(hasNumeric(upProb))parts.push(`몬테카를로 연말 ${num(upProb)}%`);
+  if(tsf&&hasNumeric(tsf.pct))parts.push(`시계열 3개월 ${num(tsf.pct)}%`);
+  if(heat&&hasNumeric(heat.pct))parts.push(`닷컴 대비 과열도 ${num(heat.pct)}%`);
+  /* 한 장짜리 요약은 요약이 아니다 — 그때는 시나리오 문장(marketThesis)으로 돌아간다. */
+  return parts.length<2?'':`${parts.join(', ')}입니다.`;
+}
 function renderOverview(){
   const sc=DATA.scenario;
   const upProb=sc.paths.S1.prob+sc.paths.S2.prob, rangeProb=sc.paths.S3.prob, closeProb=scenarioCloseAboveProb(sc);
   const vintage=scenarioVintage(), stale=vintage.status==='stale';
+  const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
+  const base=marketThesis(upProb,rangeProb,closeProb),summary=homeSignalSummary(upProb,tsf,heat);
   const thesis=stale
     ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
-    :marketThesis(upProb,rangeProb,closeProb);
-  const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
+    :{lead:base.lead,accent:summary||base.accent};
   const today=generatedDay();
   const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
   const events=calendar.length?calendar:upcoming(4).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
