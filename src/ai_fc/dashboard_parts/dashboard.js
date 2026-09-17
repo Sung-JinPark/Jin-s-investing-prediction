@@ -2604,25 +2604,91 @@ function renderMarketMood(){
   return `<section class="mood-row" aria-label="시장 심리 표시 표면">${renderVixCard(mood.vix)}${renderFearGreedCard(mood.fear_greed)}</section>`;
 }
 
-/* ── 다음 이벤트 타임라인 ────────────────────────────────────────
-   종전 agenda-rail 은 카드 격자라 '언제'가 보이지 않았다 — 날짜와 D-day 가 글자로만
-   있고 서로 얼마나 떨어졌는지는 읽는 사람이 계산해야 했다. 일정에서 뜻을 갖는 것은
-   순서와 거리이므로 **가장 먼 이벤트를 100 으로 둔 축** 위에 얹는다. */
-function renderEventTimeline(events,helpers){
-  const h=helpers||{},dday=h.dday,tag=h.tag,today=h.today;
-  if(!events.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
-  const gap=item=>{const d=String(item.date||'').slice(0,10);if(!d)return null;
-    return Math.round((Date.parse(d+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);};
-  const span=Math.max(7,...events.map(e=>gap(e)||0));
-  return `<ol class="event-rail">${events.map(item=>{const d=gap(item);
-    const pct=d==null?0:Math.min(100,Math.max(3,(d/span)*100));
-    const near=d!=null&&d<=7;
-    return `<li class="event-rail-item${near?' is-near':''}${item.status==='estimated'?' is-estimated':''}">
-      <a href="${item.id?`#records/question/${esc(item.id)}`:'#future'}">
-        <span class="event-dday">${d==null?'—':dday(String(item.date||'').slice(0,10))}</span>
-        <span class="event-track"><i style="width:${pct.toFixed(1)}%"></i></span>
-        <span class="event-body"><b>${esc(item.title||item.label||'일정')}</b><small>${esc(String(item.date||'').slice(0,10))} · ${esc(tag(item.status))}</small></span>
-      </a></li>`;}).join('')}</ol>`;
+/* ── 다음 이벤트 — 종류 인덱스 보드 ────────────────────────────
+   종전 레일(3열: D-day · 진행막대 · 제목)은 오른쪽 2.2fr 칸 682px 에 글자가 51~111px 밖에
+   없어 매 행의 84~93% 가 빈칸이었고, 4건짜리 축 위의 막대는 트랙의 3~11% 였다. 세로로
+   쌓는 대신 3열 카드로 접어 같은 세로 예산에 6건을 넣고, 카드 두 줄을 양 끝까지 벌린다.
+   선정은 시간순이 아니라 **종류별 첫 회차 먼저**다 — 순수 시간순은 계절을 타서
+   12월 창에서는 실적이 한 장도 안 나오는데, 사용자가 실제로 묻는 것은
+   "다음 FOMC 언제 / 다음 실적 언제"이고 그건 데이터 밀도와 무관하게 답해야 한다.
+   글자는 SVG 안에 넣지 않는다(DECISIONS 2026-09-02) — 이 표면은 전부 HTML 이다. */
+const EV_WEEKDAY='일월화수목금토';          // LOOKUP_WEEKDAYS(js:2709)는 이 줄보다 뒤의 const 라 참조하면 TDZ 로 페이지가 죽는다
+const EV_KIND_COLOR={fomc:'#3f4248',cpi:'#717780',nfp:'#969ba2',gdp:'#555b63',earnings:'#20242a',question:'#6f6c65',other:'#747981'};
+const EV_BOARD_CAP=6;                       // 3 으로도 2 로도 나누어떨어져 어느 열 수에서도 고아 카드가 없다
+
+const evFuture=(rows,today)=>(rows||[]).filter(r=>String(r.date||'').slice(0,10)>=today)
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+const evMeta=item=>(item.status==='question'?['질문','◆']:(EVENT_KIND_META[item.kind]||EVENT_KIND_META.other));
+const evMd=iso=>`${Number(String(iso).slice(5,7))}/${Number(String(iso).slice(8,10))}`;
+/* 날짜 문자열이 ISO 이므로 요일도 UTC 로 뽑는다 — 로컬 시간대로 읽으면 하루가 밀린다 */
+const evWeekday=iso=>{const t=Date.parse(`${iso}T00:00:00Z`);return Number.isFinite(t)?EV_WEEKDAY[new Date(t).getUTCDay()]:'';};
+
+/* 날짜 접두는 왼쪽 tear-off 조각이 이미 말하므로 라벨에서 뗀다 */
+function evShortLabel(item){
+  if(!item.kind)return String(item.title||'일정');
+  return flowCalendarEventLabel(item).replace(/^\d+\/\d+\s*/,'');
+}
+/* 묶음 행(clusterCount>1)의 원본 제목은 3건 중 1건뿐이라 그대로 쓰면 나머지 2건을 숨긴다 —
+   이때만 '빅테크 실적 3건' 쪽을 쓴다. 괄호 안의 '(일정 추정)'·'(공식 잠정 일정)'은 떼어낸다:
+   같은 뜻을 옆의 추정 알약이 이미 말하고 있어 제목이 길어지기만 한다.
+   GDP 는 제목 끝의 '추정'이 속보→2차→3차 개정 차수를 뜻하는 통계 용어라 우리 화면의
+   '추정(일정 미확정)'과 충돌한다 — 차수 표기만 남긴다('GDP 2분기 3차 추정' → 'GDP 2분기 3차'). */
+function evFullLabel(item){
+  if(Number(item.clusterCount||1)>1)return evShortLabel(item);
+  const raw=String(item.title||'').replace(/\s*\([^)]*(?:추정|잠정)[^)]*\)\s*/g,' ').trim();
+  const title=item.kind==='gdp'?raw.replace(/\s*추정\s*$/,''):raw;
+  return title||evShortLabel(item);
+}
+/* 판정은 언제나 status 필드로만 한다. time_et 공백 34건이 estimated 34건과 정확히 겹치지만
+   그걸 신호로 쓰면 시각 없는 확정 일정이 하나 들어오는 순간 화면이 거짓말한다.
+   미지의 status 는 추정 쪽으로 떨어뜨리고(확정처럼 보이는 실수를 막는다),
+   묶음 행은 원본을 다시 훑어 추정이 하나라도 있으면 추정으로 그린다 —
+   groupFlowCalendarEvents 가 첫 행의 status 를 물려주기 때문이고(10/28 은 확정 FOMC 와
+   추정 실적이 같은 날이다), 추정을 확정처럼 그리는 쪽으로는 절대 틀리지 않기 위해서다. */
+function evConfirmed(list,item){
+  if(item.status==='question')return true;
+  if(item.status!=='confirmed')return false;
+  if(Number(item.clusterCount||1)<2)return true;
+  return !list.some(r=>r.date===item.date&&r.kind===item.kind&&r.status==='estimated');
+}
+/* 종류별 첫 회차를 먼저 집고 남는 자리만 시간순으로 채운다. 마지막에 날짜순으로 되돌려
+   읽는 순서 = 시간 순서를 지킨다. 실측: 2026-12-01 창에서 이 규칙이 2027-02-24 실적(D-85)을
+   끌어올리는데, 순수 시간순 6건은 nfp·fomc·cpi·gdp·nfp·cpi 로 실적이 한 장도 없다. */
+function evPick(list,cap){
+  const first=new Map(),rest=[];
+  groupFlowCalendarEvents(list).forEach(row=>{const k=row.kind||'other';
+    if(first.has(k))rest.push(row);else first.set(k,row);});
+  const picked=[...first.values()];
+  for(const row of rest){if(picked.length>=cap)break;picked.push(row);}
+  return picked.sort((a,b)=>String(a.date).localeCompare(String(b.date))
+    ||String(a.kind||'').localeCompare(String(b.kind||''))).slice(0,cap);
+}
+function renderEventBoard(rows,today){
+  const list=evFuture(rows,today);
+  if(!list.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
+  const cards=evPick(list,EV_BOARD_CAP).map(item=>{
+    const iso=String(item.date).slice(0,10),d=dayDiff(today,iso),wd=evWeekday(iso),meta=evMeta(item);
+    const ok=evConfirmed(list,item),near=d!=null&&d>=0&&d<=7;
+    /* 질문 폴백의 '판정'을 확정/추정 2분법에 밀어넣지 않는다 — 레지스트리에 박힌 판정일을
+       '추정'이라고 부르면 그 자체가 거짓말이다(현재 코드의 tag() 가 막고 있던 지점). */
+    const word=item.status==='question'?'판정':ok?'확정':'추정';
+    /* 알약은 **예외에만** 단다. 6장 중 4장이 확정이라 전부 붙이면 알약이 배경이 되고
+       정작 도드라져야 할 추정이 묻힌다. 확정은 파선 없는 실선 테두리가 말하고,
+       화면 낭독기에는 tear-off 의 sr-only 가 6장 모두에 확정/추정을 그대로 읽어 준다. */
+    const mo=Number(iso.slice(5,7)),day=Number(iso.slice(8,10));
+    const kindKey=item.status==='question'?'question':item.kind;
+    /* 캘린더 행에는 id 가 없다 — 제목은 전체 일정 리본(#future)으로, 공식 근거는
+       source_url 로 따로 보낸다. 카드 전체를 <a> 로 감싸면 근거 링크를 중첩할 수 없다. */
+    return `<li class="ev-card${near?' is-near':''}${ok?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[kindKey]||EV_KIND_COLOR.other}">
+      <time class="ev-date" datetime="${esc(iso)}"><span class="sr-only">${mo}월 ${day}일 ${esc(wd)}요일 · ${esc(word)}</span>
+        <b aria-hidden="true">${mo}월</b><strong aria-hidden="true">${day}</strong><i aria-hidden="true">${esc(wd)}</i></time>
+      <span class="ev-body">
+        <span class="ev-line"><a class="ev-title" href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"
+          ><i class="ev-glyph" aria-hidden="true">${meta[1]}</i><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
+          >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
+        <span class="ev-meta"><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span>
+      </span></li>`;}).join('');
+  return `<ol class="ev-cards">${cards}</ol>`;
 }
 
 function renderOverview(){
@@ -2634,15 +2700,15 @@ function renderOverview(){
     :marketThesis(upProb,rangeProb,closeProb);
   const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
   const today=generatedDay();
-  const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,4);
-  const events=calendar.length?calendar:upcoming(4).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
+  /* .slice(0,4) 를 뗐다 — 46건이 이미 payload 안에 있는데 홈이 42건을 버리고 있었다(추가 바이트 0).
+     몇 장을 보일지는 evPick 이 종류 인덱스로 정한다. */
+  const calendar=(DATA.calendar_events||[]).filter(item=>item.date>=today).sort((a,b)=>a.date.localeCompare(b.date));
+  const events=calendar.length?calendar
+    :upcoming(EV_BOARD_CAP).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
   /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
      부제가 길어져 뒤가 잘리는 일이 생기지 않게 한다. */
   const card=(label,value,note,flag,viz)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
     +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
-  const dday=date=>{const d=Math.round((Date.parse(date+'T00:00:00Z')-Date.parse(today+'T00:00:00Z'))/86400000);
-    return !Number.isFinite(d)?'':d===0?'오늘':d>0?`D-${d}`:'';};
-  const tag=s=>s==='estimated'?'추정':s==='question'?'판정':'확정';
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
@@ -2666,8 +2732,8 @@ function renderOverview(){
     </div>
     ${renderMarketMood()}
     <section class="today-agenda" aria-labelledby="today-events">
-      <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#records/journal">전체 일정</a></div>
-      ${renderEventTimeline(events,{dday,tag,today})}
+      <div class="today-section-head"><h2 id="today-events">다음 이벤트</h2><a href="#future">전체 일정</a></div>
+      ${renderEventBoard(events,today)}
     </section>
   </section></div>`);
   mount(root);
