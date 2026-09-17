@@ -448,7 +448,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     assert "핵심 지표 3개" in html and "다음 이벤트" in html
     assert "최근 변경" not in html, "최근 변경 섹션은 홈에서 제거됐다"
     # 카드 라벨이 평이한 말로 무엇을 재는지 말하므로 별도 주석줄은 두지 않는다.
-    for plain in ("연말 주가", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
+    for plain in ("몬테카를로 예측 · 연말", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
         assert plain in html, plain
     assert "today-context" not in html, "홈 자체 푸터는 전역 푸터로 합쳤다"
     # 홈 자체 푸터를 없앤 뒤로 전역 푸터가 유일한 투자자문 고지 자리다 — 홈에서도 보인다.

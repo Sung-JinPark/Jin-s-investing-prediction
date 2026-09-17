@@ -2416,7 +2416,7 @@ function marketThesis(upProb,rangeProb,closeProb){
      임계는 anchor(=asof 종가)이지 S2의 고정 기준가(REFERENCE_PRICE)가 아니다 —
      둘을 같은 '기준가'로 부르면 anchor가 기준가 아래로 내려갈 때 방향까지 어긋난다. */
   const closeTail=closeProb==null?'':` 연말 종가가 현재가를 넘는 모의 경로는 ${closeProb}%입니다.`;
-  if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',accent:`연말까지 전고점을 넘거나 기준가를 지키는 경로가 ${upProb}%입니다.${closeTail}`};
+  if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',accent:`연말 전에 전고점을 찍거나 기준가 위로 끝나는 모의 경로가 ${upProb}%입니다.${closeTail}`};
   if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',accent:`지지선 확인 전까지 조정 가능성 ${rangeProb}%에 대비합니다.${closeTail}`};
   return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
 }
@@ -2646,13 +2646,14 @@ function renderOverview(){
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
-      ${card('연말 주가', stale?'판정 보류':`${num(upProb)}%`,
-             stale?`마지막 기준 ${vintage.asof}`:'연말에 전고점 돌파 또는 기준가 유지로 끝난 모의 경로',
+      ${card('몬테카를로 예측 · 연말', stale?'판정 보류':`${num(upProb)}%`,
+             stale?`마지막 기준 ${vintage.asof}`
+                  :`주가를 100번 굴려 ${num(upProb)}번이 연말 전 전고점을 찍거나 기준가 위로 끝납니다`+`${closeProb==null?'':` · 현재가보다 높게 끝나는 건 ${num(closeProb)}번`}`,
              stale?'갱신 필요':null,
              stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`))}
       ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
              tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
-                      :`NASDAQ 상승 확률 · 오늘 ${num(tsf.now)} → 중앙 ${num(tsf.median)}${tsf.lo==null||tsf.hi==null?'':` (10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)})`}`,
+                      :`100번 중 ${tsf.pct}번이 3개월 뒤 예측 시작점 ${num(tsf.now)}보다 높게 끝납니다`+`${tsf.lo==null||tsf.hi==null?'':` · 중앙 ${num(tsf.median)} (10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)})`}`,
              tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
                `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`))}
