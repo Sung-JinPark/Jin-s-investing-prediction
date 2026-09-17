@@ -2415,10 +2415,16 @@ function marketThesis(upProb,rangeProb,closeProb){
      조회 카드와 같은 어휘(모의 경로 비율)로 부르고 '확률'로 승격하지 않는다.
      임계는 anchor(=asof 종가)이지 S2의 고정 기준가(REFERENCE_PRICE)가 아니다 —
      둘을 같은 '기준가'로 부르면 anchor가 기준가 아래로 내려갈 때 방향까지 어긋난다. */
-  const closeTail=closeProb==null?'':` 연말 종가가 현재가를 넘는 모의 경로는 ${closeProb}%입니다.`;
-  if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',accent:`연말 전에 전고점을 찍거나 기준가 위로 끝나는 모의 경로가 ${upProb}%입니다.${closeTail}`};
-  if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',accent:`지지선 확인 전까지 조정 가능성 ${rangeProb}%에 대비합니다.${closeTail}`};
-  return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${closeTail}`};
+  /* 히어로는 anchor 기준 한 줄만 싣는다 — upProb 은 '연중 한 번이라도 전고점을 찍음'(S1)과
+     '기준가 위 마감'(S2)이 섞인 합성 조건이라, 짧게 줄이면 반드시 틀린 말이 된다.
+     그 합성 조건의 설명은 바로 아래 몬테카를로 카드가 맡는다. */
+  const closeLine=closeProb==null?'':`주가를 100번 굴리면 ${closeProb}번은 연말에 지금보다 높습니다.`;
+  const tail=closeLine?` ${closeLine}`:'';
+  if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',
+    accent:closeLine||`연말 전에 전고점을 찍거나 기준가 위로 끝나는 모의 경로가 ${upProb}%입니다.`};
+  if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',
+    accent:`조정·횡보로 끝난 모의 경로가 100번 중 ${rangeProb}번입니다.${tail}`};
+  return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${tail}`};
 }
 /* ── 홈 신호 카드: 가격 외 두 레이어 ──────────────────────────────────────────
    V8 시계열과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다. payload 가

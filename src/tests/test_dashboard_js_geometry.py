@@ -310,12 +310,14 @@ console.log(JSON.stringify({
         text=True, encoding="utf-8",  # the sentence is Korean; the OS codepage is not
     )
     result = json.loads(completed.stdout)
-    assert "연말 종가가 현재가를 넘는 모의 경로는 69%입니다." in result["up"]
-    assert "기준가를 넘는" not in result["up"]
-    # S2's own wording keeps 기준가 — only the anchor-based tail was wrong.
-    assert "기준가 위로 끝나는 모의 경로가 86%" in result["up"]
-    assert "현재가를 넘는 모의 경로는 69%" in result["range"]
-    assert "69%" not in result["none"]
+    # anchor 기준 숫자는 '지금'(=asof 종가)으로 부른다. 고정 기준가와 같은 말로 부르면
+    # anchor 가 기준가 아래로 내려갈 때 문장이 반대를 가리킨다.
+    assert "주가를 100번 굴리면 69번은 연말에 지금보다 높습니다." in result["up"]
+    assert "기준가" not in result["up"], "anchor 문장에 고정 기준가 어휘가 섞이면 안 된다"
+    assert "69번은 연말에 지금보다 높습니다" in result["range"]
+    # closeProb 이 없으면 anchor 문장을 지어내지 않고, upProb 의 합성 조건을 그대로 적는다.
+    assert "69" not in result["none"]
+    assert "기준가 위로 끝나는 모의 경로가 86%" in result["none"]
 
 
 def test_scenario_close_probability_source_still_compares_against_anchor() -> None:
