@@ -311,7 +311,7 @@ console.log(JSON.stringify({
     assert "연말 종가가 현재가를 넘는 모의 경로는 69%입니다." in result["up"]
     assert "기준가를 넘는" not in result["up"]
     # S2's own wording keeps 기준가 — only the anchor-based tail was wrong.
-    assert "기준가를 지키는 경로가 86%" in result["up"]
+    assert "기준가 위로 끝나는 모의 경로가 86%" in result["up"]
     assert "현재가를 넘는 모의 경로는 69%" in result["range"]
     assert "69%" not in result["none"]
 
@@ -427,12 +427,15 @@ def test_home_cards_say_in_plain_words_what_each_percent_counts() -> None:
     source = _dashboard_source()
     assert 'aria-label="핵심 지표 3개"' in source
     row = source.split('<div class="today-signals"', 1)[1].split("</div>", 1)[0]
-    for label in ("연말 주가", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
+    for label in ("몬테카를로 예측 · 연말", "시계열 예측 · 3개월", "닷컴 대비 과열도"):
         assert f"card('{label}'" in row, label
     assert "신호 0" not in row
     # 각 부제가 그 숫자가 무엇을 센 것인지 말해야 한다.
-    assert "끝난 모의 경로" in row, "연말 주가 % 가 무엇의 비율인지"
-    assert "NASDAQ 상승 확률" in row, "시계열 % 가 무엇의 확률인지"
+    # 78% 를 '오를 확률' 로 읽지 않도록, 센 것이 무엇인지(100번 중 몇 번)와
+    # 연말 종가가 오늘보다 높은 경로 수를 부제가 함께 말해야 한다.
+    assert "주가를 100번 굴려" in row, "몬테카를로 % 가 무엇을 센 것인지"
+    assert "현재가보다 높게 끝나는 건" in row, "상승 경로 수를 따로 밝혀야 한다"
+    assert "3개월 뒤 예측 시작점" in row, "시계열 % 의 기준 시점과 임계"
     assert "100이면 닷컴 버블 정점" in row, "과열도 축의 의미"
 
 
