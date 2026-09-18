@@ -470,7 +470,7 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         hmi_reference=_repo_hmi_reference(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 28  # + 물가 선행 패널 CPI/원자재 분리(검수 2차)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    assert len(payload["charts"]) == 27  # 두 달 뒤 CPI 패널 삭제(2026-09-18 사용자 요청)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -532,7 +532,7 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
     )
-    assert len(payload["charts"]) == 28  # + 물가 선행 패널 CPI/원자재 분리(검수 2차)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    assert len(payload["charts"]) == 27  # 두 달 뒤 CPI 패널 삭제(2026-09-18 사용자 요청)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -848,12 +848,15 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "닷컴 1995~1999" in script
     assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" not in script
-    # 검수 결정: 대용치·명목 경고(caveat)는 화면에 도달해야 한다.
-    # 카드마다 caveat 첫 문장은 상시 노출(UX-D3), 전체는 접힘 블록으로 렌더한다.
-    assert 'class="chart-method statistics-caveat"' in script
+    # 검수 결정: caveat 첫 문장은 카드마다 상시 노출(UX-D3). 전체 문장을 펼치던
+    # '한계 전체 보기' 접힘 블록은 사용자 요청으로 뺐다(2026-09-18) — 전문은 데이터에 남는다.
     assert "statistics-caveat-lead" in script
-    assert "한계 전체 보기" in script
-    assert "esc(chart.caveat)" in script
+    assert "firstSentenceOf(chart.caveat)" in script
+    assert "한계 전체 보기" not in script
+    assert 'class="chart-method statistics-caveat"' not in script
+    # 닷컴 vs 지금 막대 비교 (설비·지식재산 투자 · 회사채)
+    assert "chart.chart_type==='era_compare'" in script
+    assert "function statisticsEraCompare(chart)" in script
     assert "IPO·상장" in script
     assert "statistics-detail-rows" not in script
     assert "percent_20d_log_return" in script
@@ -1256,3 +1259,84 @@ def test_review_c5_c6_caveats_disclose_definition_break_and_small_sample() -> No
     household = by_id["household_balance_sheet_trend_gap"]["caveat"]
     assert "11개 관측" in household
     assert "불확실성이 큽니다" in household
+
+
+def test_simplified_macro_charts_read_in_plain_numbers() -> None:
+    """2026-09-18 사용자 요청 — 두 달 뒤 CPI 삭제, 투자·회사채는 '닷컴 vs 지금' 막대,
+    가계 추세 차트는 일상어.
+
+    선 네 개(시대 2 × 정의 2)를 한 축에 겹치던 두 차트는 "경제 100달러당 N달러" 세 막대로
+    바꿨다. 막대의 '같은 시점' 값은 결론 문장과 같은 경과월 규칙이어야 한다 — 막대와 문장이
+    다른 닷컴 값을 말하면 화면이 스스로 모순된다.
+    """
+    rows, receipts = _payload_inputs()
+    payload = build_statistics_lab(
+        rows,
+        generated_at="2026-12-31T00:00:00+00:00",
+        receipts=receipts,
+        ipo_reference=_repo_ipo_reference(),
+        hmi_reference=_repo_hmi_reference(),
+    )
+    validate_statistics_lab(payload)
+    by_id = {chart["id"]: chart for chart in payload["charts"]}
+    assert "inflation_lead_cpi" not in by_id
+    assert "CPI 차트와 짝" not in by_id["inflation_lead_commodities"]["insight"]
+
+    for chart_id in ("investment_share_of_gdp", "corporate_bond_issuance"):
+        chart = by_id[chart_id]
+        assert chart["chart_type"] == "era_compare"
+        assert chart["display_unit"] == "미국 경제 100달러당"
+        assert chart["series"], "감사·워크북용 계열은 그대로 남는다"
+        assert len(chart["compare_rows"]) == 2
+        for row in chart["compare_rows"]:
+            assert [bar["era"] for bar in row["bars"]] == ["dotcom", "dotcom_peak", "current"]
+            assert all(bar["display_value"].endswith("달러") for bar in row["bars"])
+            assert all("분기" in bar["when"] for bar in row["bars"])
+            dotcom = next(s for s in chart["series"] if s["era"] == "dotcom"
+                          and abs(max(p["value"] for p in s["points"]) - row["bars"][1]["value"]) < 1e-3)
+            target = row["months_elapsed"]
+            same = min(dotcom["points"], key=lambda p: abs(int(p["period"]) - target))
+            assert abs(same["value"] - row["bars"][0]["value"]) < 1e-3
+            if row["bars"][2]["value"] > 0:   # 순상환이면 결론은 배수 대신 상환 문장을 쓴다
+                assert f"{row['bars'][0]['value']:.1f}달러" in chart["conclusion"]
+        assert "100달러당" in chart["conclusion"] and "GDP의" not in chart["conclusion"]
+
+    household = by_id["household_balance_sheet_trend_gap"]
+    shown = " ".join(str(household.get(key, "")) for key in (
+        "title", "insight", "conclusion", "reading_guide", "axis_note"))
+    for jargon in ("추세 이탈", "로그-선형", "이탈률", "추정 구간"):
+        assert jargon not in shown, jargon
+    assert "2010년대" in household["title"]
+    assert household["display_unit"] == "2010년대 속도 대비 %"   # 카드 모서리에 단위 코드 대신
+    assert household["conclusion"].startswith("지금 가계의 주식")
+
+    retired = json.loads(json.dumps(payload))
+    retired["charts"].append({**retired["charts"][-1], "id": "inflation_lead_cpi"})
+    with pytest.raises(StatisticsLabError, match="retired customer chart"):
+        validate_statistics_lab(retired)
+
+
+def test_household_gap_conclusion_uses_plain_more_or_less() -> None:
+    from ai_fc.statistics_lab import _household_gap_conclusion
+
+    text = _household_gap_conclusion([("주식", -4.7), ("현금·예금", 22.7), ("채권", 0.2)])
+    assert text.startswith("지금 가계의 주식은 2010년대 속도로 예상한 금액보다 5% 적고, ")
+    assert "현금·예금은 23% 많고" in text
+    assert "채권은 예상과 거의 같습니다." in text
+    assert "가장 멀리 벗어난 것은 현금·예금입니다" in text
+
+
+def test_era_compare_row_marks_net_repayment_instead_of_a_negative_multiple() -> None:
+    from ai_fc.statistics_lab import _era_compare_row
+
+    dotcom = [{"period": p, "date": f"199{5 + p // 12}-{p % 12 + 1:02d}-01", "value": v}
+              for p, v in ((0, 0.6), (3, 3.6), (6, 4.0))]
+    current = [{"period": 0, "date": "2023-01-01", "value": 2.2},
+               {"period": 3, "date": "2023-04-01", "value": -0.4}]
+    row = _era_compare_row("새로 늘리는 빚", "설명", dotcom, current)
+    assert row["direction"] == "down"
+    assert "배" not in row["verdict"] and "갚은" in row["verdict"]
+    assert [bar["value"] for bar in row["bars"]] == [3.6, 4.0, -0.4]
+    assert row["bars"][0]["when"] == "1995년 2분기"
+    rising = _era_compare_row("x", "y", dotcom, [{"period": 3, "date": "2023-04-01", "value": 4.7}])
+    assert rising["verdict"] == "닷컴 같은 시점의 1.3배" and rising["direction"] == "up"

@@ -172,7 +172,7 @@ reference_statistics_policy:
 macro_warning_policy:
   first_cut_alignment: {dotcom_event: 1995-07-01, current_event: 2024-09-01, output: change_from_pre_cut_month}
   corporate_credit: HQMCB10YR_and_HQMCB10YR_minus_GS10
-  inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi: CPI_yoy_date_shifted_minus_2_months_for_alignment, semantics: descriptive_leading_alignment_not_forecast}
+  inflation_leads: {oil: DCOILWTICO_yoy_at_observed_date, copper: WPU10260314_yoy_at_observed_date, cpi_panel: retired_2026-09-18_see_retired_customer_charts, semantics: descriptive_leading_alignment_not_forecast}
   recession_panel: {housing: HOUST_yoy_percent, manufacturing: Philadelphia_Fed_diffusion_index, PMI_disclosure: public_proxy_not_ISM_PMI, probability_output: prohibited, axis_note: units_differ_direction_comparison_only}
   household_balance_sheet_trend_gap:
     series: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
@@ -196,6 +196,15 @@ customer_chart_contract:
     momentum_axis: symmetric_zero_centered
     aggregation: prohibited
     interpretation: balances_and_price_changes_have_different_units_and_overlapping_pools_so_they_are_never_summed_or_presented_as_market_shares
+  era_compare_charts:
+    charts: [investment_share_of_gdp, corporate_bond_issuance]
+    chart_type: era_compare
+    bars: [dotcom_matched_elapsed_month, dotcom_window_maximum_1995_1999, current_latest]
+    display_value: percent_of_gdp_read_as_usd_per_100_usd_of_gdp
+    bar_scale: per_row_own_maximum_because_stock_and_flow_differ_by_an_order_of_magnitude
+    verdict: current_divided_by_dotcom_matched_month_times
+    series_retained_for_audit: true
+    reason: user_requested_plain_language_2026-09-18
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count
@@ -224,6 +233,10 @@ retired_customer_charts:
     removed_at: 2026-08-18
     reason: user_requested_removal_and_limited_consulting_relevance
     active_ingestion: false
+  inflation_lead_cpi:
+    removed_at: 2026-09-18
+    reason: user_requested_removal
+    active_ingestion: true   # CPIAUCSL 은 소비자물가 상승률 차트가 계속 쓴다
 
 ipo_classification:
   comparable_series: Jay Ritter technology-company IPO definition, applied consistently by calendar year.
