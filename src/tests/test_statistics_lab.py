@@ -253,13 +253,16 @@ def _z1_bytes() -> bytes:
     target = io.BytesIO()
     with zipfile.ZipFile(target, "w") as archive:
         for index, (series_id, spec) in enumerate(Z1_SERIES.items()):
-            lines = [f"date,{spec['field']}"]
+            subtract_field = spec.get("subtract_field")
+            columns = [spec["field"]] + ([subtract_field] if subtract_field else [])
+            lines = [f"date,{','.join(columns)}"]
             base = 100000 * (index + 1)
             for year in range(1995, 2027):
                 for quarter in range(1, 5):
-                    lines.append(
-                        f"{year}:Q{quarter},{base + (year - 1995) * 10000 + quarter}"
-                    )
+                    values = [str(base + (year - 1995) * 10000 + quarter)]
+                    if subtract_field:
+                        values.append(str(1000 * quarter))
+                    lines.append(f"{year}:Q{quarter},{','.join(values)}")
             archive.writestr(spec["member"], "\n".join(lines) + "\n")
     return target.getvalue()
 
@@ -419,6 +422,46 @@ def test_parsers_reject_missing_and_preserve_explicit_values() -> None:
     )
     assert parsed == [{"date": "2026-01-01", "value": 22000.0}]
     assert _parse_z1(_z1_bytes())[0]["date"] == "1995-01-01"
+
+
+def _z1_zip(member: str, header: list[str], rows: list[list[str]]) -> bytes:
+    target = io.BytesIO()
+    with zipfile.ZipFile(target, "w") as archive:
+        lines = [",".join(header), *(",".join(row) for row in rows)]
+        archive.writestr(member, "\n".join(lines) + "\n")
+    return target.getvalue()
+
+
+def test_z1_margin_proxy_reads_the_2026q2_release_layout() -> None:
+    # The 2026-09-11 release stopped printing FL663067003; F4.6.s now carries
+    # the customers+noncustomers total (line 35) and noncustomers (line 38).
+    # Values are the published F4.6.s cells for these quarters, and the
+    # expected results are the FL663067003 levels from the prior release (and
+    # FRED BOGZ1FL663067003Q for 2026:Q2).
+    header = [
+        "date", "FL663067005.Q", "FL153167005.Q", "FL623167003.Q",
+        "FL663067063.Q", "FL623167063.Q",
+    ]
+    rows = [
+        ["1945:Q4", "ND", "ND", "ND", "ND", "ND"],
+        ["1995:Q1", "69850", "69850", "0", "0", "0"],
+        ["2000:Q1", "286471", "264556", "0", "21915", "0"],
+        ["2026:Q1", "679291", "190413", "109991", "57092", "321795"],
+        ["2026:Q2", "812899", "227174", "131226", "70578", "383921"],
+    ]
+    parsed = _parse_z1(_z1_zip("csv/F4_6_s.csv", header, rows), "FL663067003")
+    assert parsed == [
+        {"date": "1995-01-01", "value": 69850.0},
+        {"date": "2000-01-01", "value": 264556.0},
+        {"date": "2026-01-01", "value": 622199.0},
+        {"date": "2026-04-01", "value": 742321.0},
+    ]
+
+
+def test_z1_missing_column_names_the_column() -> None:
+    raw = _z1_zip("csv/F4_6_s.csv", ["date", "FL663067005.Q"], [["2026:Q2", "812899"]])
+    with pytest.raises(StatisticsLabError, match="lacks FL663067063.Q needed for FL663067003"):
+        _parse_z1(raw, "FL663067003")
 
 
 def test_public_supplemental_parsers_preserve_source_definitions() -> None:
