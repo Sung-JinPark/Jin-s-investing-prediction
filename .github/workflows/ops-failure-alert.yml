@@ -21,6 +21,7 @@ on:
       - ai-regime-refresh
       - statistics-refresh
       - source-monitoring
+      - market-mood-refresh
       - investing-refresh
       - ipo-edgar-watch
       - monthly-research-pack
