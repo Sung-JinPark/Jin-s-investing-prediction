@@ -663,8 +663,19 @@ def _fetch_fred(series_id: str) -> tuple[list[dict[str, Any]], bytes]:
 
 Z1_SERIES: dict[str, dict[str, str]] = {
     "FL663067003": {
+        # The 2026-09-11 Z.1 release (2026:Q2) integrated hedge funds as a
+        # sector and stopped printing FL663067003 on any table, so the CSV
+        # archive lost the column (the 2026-09-12 refresh failed with
+        # "Z.1 FL663067003.Q is empty").  The series itself is still live: the
+        # Board's series analyzer defines FL663067005 (F4.6.s line 35) as
+        # FL663067003 + FL663067063 (F4.6.s line 38), so it is read back through
+        # that published identity.  The difference reproduced all 125 prior
+        # quarters (1995:Q1-2026:Q1) exactly and FRED's BOGZ1FL663067003Q for
+        # 2026:Q2 (742,321).
         "member": "csv/F4_6_s.csv",
-        "field": "FL663067003.Q",
+        "field": "FL663067005.Q",
+        "subtract_field": "FL663067063.Q",
+        "derivation": "FL663067005 - FL663067063 (Z.1 F4.6.s line 35 - line 38)",
         "title": "Household margin loans and other receivables due to brokers",
         "unit": "millions_usd",
         "proxy_warning": "not_FINRA_monthly_margin_debt",
@@ -819,27 +830,39 @@ def _parse_z1(raw: bytes, series_id: str = Z1_PRIMARY_SERIES) -> list[dict[str, 
             raise StatisticsLabError(f"Z.1 {member} missing") from exc
     reader = csv.DictReader(io.StringIO(text))
     field = spec["field"]
+    subtract_field = spec.get("subtract_field")
+    columns = [field] if subtract_field is None else [field, subtract_field]
+    label = " - ".join(columns)
+    # A release that drops a column must name the column, not just report an
+    # empty series: that is the first thing to check when the layout moves.
+    missing = [column for column in columns if column not in (reader.fieldnames or [])]
+    if missing:
+        raise StatisticsLabError(
+            f"Z.1 {member} lacks {', '.join(missing)} needed for {series_id}"
+        )
     rows = []
     for row in reader:
-        value = row.get(field)
+        values = [row.get(column) for column in columns]
         period = row.get("date", "")
-        if not value or not period or ":Q" not in period:
+        if not all(values) or not period or ":Q" not in period:
             continue
         # "ND" is the Federal Reserve's documented no-data marker; skipping it is
         # not the same as tolerating a malformed number, which still fails closed.
-        if value.strip() in {"ND", "NA"}:
+        if any(value.strip() in {"ND", "NA"} for value in values):
             continue
         try:
             year_text, quarter_text = period.split(":Q", 1)
             month = (int(quarter_text) - 1) * 3 + 1
-            parsed = float(value)
+            parsed = float(values[0])
+            if subtract_field is not None:
+                parsed -= float(values[1])
             observed = date(int(year_text), month, 1)
         except (TypeError, ValueError) as exc:
-            raise StatisticsLabError(f"invalid Z.1 row for {field}: {period}={value!r}") from exc
+            raise StatisticsLabError(f"invalid Z.1 row for {label}: {period}={values!r}") from exc
         if observed >= date(1995, 1, 1) and math.isfinite(parsed):
             rows.append({"date": observed.isoformat(), "value": parsed})
     if not rows:
-        raise StatisticsLabError(f"Z.1 {field} is empty")
+        raise StatisticsLabError(f"Z.1 {label} is empty")
     return rows
 
 
@@ -2739,6 +2762,8 @@ def build_statistics_lab(
         }
         if z1_spec.get("proxy_warning"):
             z1_meta["proxy_warning"] = z1_spec["proxy_warning"]
+        if z1_spec.get("derivation"):
+            z1_meta["derivation"] = z1_spec["derivation"]
         source_meta.append(z1_meta)
     for c30_series_id, c30_spec in CENSUS_C30_SERIES.items():
         c30_rows = source_rows[c30_series_id]
