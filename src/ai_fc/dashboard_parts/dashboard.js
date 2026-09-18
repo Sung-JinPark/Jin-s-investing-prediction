@@ -1078,6 +1078,20 @@ function statisticsLiquidityBars(chart){
     return `<section class="statistics-liquidity-panel" data-mode="${esc(panel.mode)}" role="img" aria-label="${esc(`${panel.title}: ${aria}`)}"><header><strong>${esc(panel.title)}</strong><span>${esc(panel.basis)}</span></header><div class="statistics-liquidity-rows">${rows}</div><div class="statistics-liquidity-axis">${axis}</div></section>`;
   }).join('')}</div>`;
 }
+/* 닷컴 같은 시점 · 닷컴 기간 최고 · 지금 — 선 네 개 대신 세 막대로 읽는다(2026-09-18).
+   막대 길이는 행마다 따로 맞춘다: 잔액(25달러)과 순발행(1.5달러)을 한 눈금에 두면 작은 쪽이 사라진다. */
+function statisticsEraCompare(chart){
+  const rows=(chart.compare_rows||[]).filter(row=>(row.bars||[]).length);
+  if(!rows.length)return '<div class="empty-block">표시할 비교가 없습니다.</div>';
+  const arrow={up:'▲',down:'▼',flat:'＝'};
+  return `<div class="statistics-era-compare">${rows.map(row=>{
+    const bars=(row.bars||[]).map(bar=>({...bar,value:Number(bar.value)})).filter(bar=>Number.isFinite(bar.value));
+    const maximum=Math.max(1e-9,...bars.map(bar=>Math.abs(bar.value)));
+    const direction=['up','down','flat'].includes(row.direction)?row.direction:'flat';
+    const aria=bars.map(bar=>`${bar.label} ${bar.when||''} ${bar.display_value||bar.value}`).join(', ');
+    return `<section class="statistics-era-row" data-direction="${direction}" role="img" aria-label="${esc(`${row.label}: ${aria}. ${row.verdict||''}`)}"><header><div><strong>${esc(row.label)}</strong><p>${esc(row.meaning||'')}</p></div><em>${arrow[direction]} ${esc(row.verdict||'')}</em></header><div class="statistics-era-bars">${bars.map(bar=>`<div class="statistics-era-bar${bar.value<0?' is-negative':''}" data-era="${esc(bar.era||'')}"><span>${esc(bar.label)}<small>${esc(bar.when||'')}</small></span><i aria-hidden="true"><b style="width:${Math.max(1.5,Math.abs(bar.value)/maximum*100).toFixed(1)}%"></b></i><strong>${esc(bar.display_value||String(bar.value))}</strong></div>`).join('')}</div></section>`;
+  }).join('')}</div>`;
+}
 function statisticsApproachAlert(chart){
   const alert=chart.approach_alert;
   if(!alert||!hasNumeric(alert.proximity_percent))return '';
@@ -1217,11 +1231,11 @@ function renderStatistics(initialState){
   const grid=el('<div class="statistics-grid"></div>');
   const appendCards=(target,rows,startIndex=0)=>rows.forEach((chart,index)=>{
     const latest=(chart.series||[]).map(row=>{const point=(row.points||[]).at(-1);return point?`<div><i style="background:${esc(row.color||'#111')}"></i><span>${esc(row.label)}</span><strong>${esc(statisticsValue(chart.unit,point.value))}</strong><small>${esc(row.latest_date||'최근 관측')}</small></div>`:'';}).join('');
-    const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars';
+    const profile=chart.chart_type==='profile_cards',liquidity=chart.chart_type==='liquidity_bars',era=chart.chart_type==='era_compare';
     const guide=chart.reading_guide?`<div class="statistics-reading-guide"><strong>그래프 읽는 법</strong><p>${esc(chart.reading_guide)}</p></div>`:'';
-    const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`);
-    const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}`;
-    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div><details class="chart-method statistics-caveat"><summary>한계 전체 보기</summary><p>${esc(chart.caveat)}</p></details>`:''}</section>`));
+    const visual=liquidity?statisticsLiquidityBars(chart):(profile?statisticsProfileCards(chart):(era?statisticsEraCompare(chart):`<div class="statistics-chart">${statisticsChartSvg(chart,alignment)}</div>`));
+    const cardClass=`statistics-card${profile?' is-profile-card':''}${liquidity?' is-liquidity-map':''}${era?' is-era-compare':''}`;
+    target.appendChild(el(`<section class="${cardClass}" data-stat-category="${esc(chart.category)}" data-stat-id="${esc(chart.id)}"><div class="statistics-card-head"><div><span>${String(startIndex+index+1).padStart(2,'0')} · ${esc(chart.category.toUpperCase())}</span><h2>${esc(chart.title)}</h2>${chart.conclusion?`<p class="statistics-head-conclusion">${esc(firstSentenceOf(chart.conclusion))}</p>`:''}</div><b>${esc(chart.display_unit||(profile?'핵심 지표':chart.unit))}</b></div>${profile||liquidity||era?'':`<div class="statistics-legend">${latest}</div>`}${statisticsApproachAlert(chart)}${guide}${visual}<p class="statistics-scope-note">${esc(chart.scope_note||'')}</p><div class="statistics-meaning"><strong>한눈에 보는 의미</strong><p>${esc(chart.insight||'현재 값과 닷컴 당시 같은 경과월을 비교해 과열·완화 방향을 확인합니다.')}</p><div class="statistics-now"><strong>현재 결론</strong><p>${esc(chart.conclusion||'단독 판단 신호로 사용하지 않습니다.')}</p></div></div>${chart.caveat?`<div class="statistics-caveat-lead">${esc(firstSentenceOf(chart.caveat))}</div>`:''}</section>`));
   });
   appendCards(grid,charts);
   root.appendChild(grid);

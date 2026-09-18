@@ -1041,18 +1041,6 @@ def _ratio(left: list[dict[str, Any]], right: list[dict[str, Any]]) -> list[dict
     return result
 
 
-def _shift_months(points: list[dict[str, Any]], months: int) -> list[dict[str, Any]]:
-    shifted = []
-    for row in points:
-        observed = date.fromisoformat(row["date"])
-        absolute = observed.year * 12 + observed.month - 1 + months
-        shifted.append({
-            **row,
-            "date": date(absolute // 12, absolute % 12 + 1, 1).isoformat(),
-        })
-    return shifted
-
-
 def _annual_last(points: list[dict[str, Any]]) -> dict[int, float]:
     result: dict[int, tuple[str, float]] = {}
     for row in points:
@@ -1170,6 +1158,92 @@ def _chart(
 
 def _series(label: str, era: str, points: list[dict[str, Any]], color: str) -> dict[str, Any]:
     return {"label": label, "era": era, "color": color, "points": points}
+
+
+def _times(current: float, reference: float) -> str:
+    """'닷컴 같은 시점의 1.3배'처럼 읽히는 배수. 기준이 0 이하면 배수가 뜻을 잃는다."""
+    if reference <= 0:
+        raise StatisticsLabError("ratio reference must be positive")
+    return f"{current / reference:.1f}배"
+
+
+def _topic_particle(word: str) -> str:
+    """받침이 있으면 '은', 없으면 '는'."""
+    last = word[-1]
+    if "가" <= last <= "힣":
+        return "은" if (ord(last) - ord("가")) % 28 else "는"
+    return "은"
+
+
+def _household_gap_conclusion(gaps: list[tuple[str, float]]) -> str:
+    """'예상 금액보다 23% 많고'처럼 추세 대비 위치를 일상어로 쓴다."""
+    parts = []
+    for index, (label, gap) in enumerate(gaps):
+        lead = " 2010년대 속도로 예상한 금액보다" if index == 0 else ""
+        last = index == len(gaps) - 1
+        if abs(gap) < 0.5:
+            tail = f"{lead} 예상과 거의 같{'습니다' if last else '고'}"
+        else:
+            tail = (f"{lead} {abs(gap):.0f}% {'많' if gap > 0 else '적'}"
+                    f"{'습니다' if last else '고'}")
+        parts.append(f"{label}{_topic_particle(label)}{tail}")
+    widest = max(gaps, key=lambda kv: abs(kv[1]))[0]
+    return (
+        "지금 가계의 " + ", ".join(parts) + ". "
+        f"예상에서 가장 멀리 벗어난 것은 {widest}입니다. "
+        "많다·적다는 예전 흐름과의 비교일 뿐 '적정하다·비싸다'는 판정이 아닙니다."
+    )
+
+
+def _quarter_label(iso_date: str) -> str:
+    observed = date.fromisoformat(str(iso_date)[:10])
+    return f"{observed.year}년 {(observed.month - 1) // 3 + 1}분기"
+
+
+def _era_compare_row(
+    label: str, meaning: str,
+    dot_rows: list[dict[str, Any]], cur_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """닷컴 같은 시점 · 닷컴 기간 최고 · 지금 — 세 막대와 한 줄 판정.
+
+    값은 GDP 대비 %이고, 화면에는 같은 숫자를 '경제 100달러당 N달러'로 읽힌다.
+    '같은 시점'은 결론 문장과 같은 규칙(현재 마지막 경과월에 가장 가까운 닷컴
+    경과월)이다. 닷컴 최고는 비교창(1995~1999) 안의 최대값이지 실제 닷컴 정점
+    (2000년)이 아니므로 그렇게 부른다.
+    """
+    if not dot_rows or not cur_rows:
+        raise StatisticsLabError(f"era comparison rows unavailable: {label}")
+    now = cur_rows[-1]
+    target = int(now["period"])
+    same = min(dot_rows, key=lambda row: abs(int(row["period"]) - target))
+    peak = max(dot_rows, key=lambda row: float(row["value"]))
+
+    def bar(era: str, bar_label: str, row: dict[str, Any]) -> dict[str, Any]:
+        value = float(row["value"])
+        return {
+            "era": era, "label": bar_label, "when": _quarter_label(row["date"]),
+            "value": round(value, 4), "display_value": f"{value:.1f}달러",
+        }
+
+    now_value, same_value = float(now["value"]), float(same["value"])
+    if now_value <= 0:
+        verdict, direction = "새로 빌린 것보다 갚은 것이 많음", "down"
+    else:
+        ratio = now_value / same_value if same_value > 0 else None
+        if ratio is None:
+            verdict, direction = "닷컴 같은 시점과 비교 불가", "flat"
+        else:
+            verdict = f"닷컴 같은 시점의 {_times(now_value, same_value)}"
+            direction = "up" if ratio >= 1.05 else "down" if ratio <= 0.95 else "flat"
+    return {
+        "label": label, "meaning": meaning, "verdict": verdict, "direction": direction,
+        "months_elapsed": target,
+        "bars": [
+            bar("dotcom", "닷컴 같은 시점", same),
+            bar("dotcom_peak", "닷컴 기간(1995~99) 최고", peak),
+            bar("current", "지금", now),
+        ],
+    }
 
 
 def validate_ipo_reference(payload: dict[str, Any]) -> None:
@@ -1927,7 +2001,6 @@ def build_statistics_lab(
     ]
     dot_corp_yield, cur_corp_yield = cycles(monthly["HQMCB10YR"])
     dot_corp_spread, cur_corp_spread = cycles(corporate_spread)
-    dot_cpi_lead, cur_cpi_lead = cycles(_shift_months(inflation, -2))
     dot_oil, cur_oil = cycles(_yoy(monthly["DCOILWTICO"]))
     dot_copper, cur_copper = cycles(_yoy(monthly["WPU10260314"]))
     dot_housing, cur_housing = cycles(_yoy(monthly["HOUST"]))
@@ -2057,21 +2130,18 @@ def build_statistics_lab(
         make("corporate_bond_pressure", "회사채 금리와 국채 대비 부담", "rates", "percent",
              [_series("닷컴 회사채", "dotcom", dot_corp_yield, "#9b1c31"), _series("닷컴 스프레드", "dotcom", dot_corp_spread, "#d47f52"), _series("현재 회사채", "current", cur_corp_yield, "#166a5b"), _series("현재 스프레드", "current", cur_corp_spread, "#4aa18d")],
              ["HQMCB10YR", "GS10"], "*미국 회사채·국채 기준", "회사채 금리와 국채 대비 차이가 함께 오르면 기업 자금조달 부담이 커집니다."),
-        # CPI(1~5%)와 WTI(−35~+130%)를 한 축에 올리면 정작 주인공인 CPI 두 선이 세로 3px 띠에
-        # 뭉갠다(검수 2차). 이중축 렌더러를 새로 만들지 않고 두 차트로 나눈다 — 단위는 그대로.
-        make("inflation_lead_cpi", "두 달 뒤 CPI — 닷컴과 현재", "economy", "percent_yoy",
-             [_series("닷컴 2개월 뒤 CPI", "dotcom", dot_cpi_lead, "#8d2943"), _series("현재 2개월 뒤 CPI", "current", cur_cpi_lead, "#28756a")],
-             ["CPIAUCSL"], "*미국 소비자물가 기준", "원자재 차트와 같은 두 달 정렬로 CPI만 따로 봅니다 — 아래 유가·구리 차트와 짝입니다."),
+        # "두 달 뒤 CPI — 닷컴과 현재"는 사용자 요청으로 내렸다(2026-09-18). 물가 수준은
+        # 위 소비자물가 상승률 차트가 이미 보여 준다.
         make("inflation_lead_commodities", "유가·구리 — 두 달 뒤 CPI의 선행 후보", "economy", "percent_yoy",
              [_series("닷컴 WTI", "dotcom", dot_oil, "#c46d24"), _series("닷컴 구리", "dotcom", dot_copper, "#8c6b43"), _series("현재 WTI", "current", cur_oil, "#f07822"), _series("현재 구리", "current", cur_copper, "#5aa68f")],
-             ["DCOILWTICO", "WPU10260314"], "*미국 원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다. 위 CPI 차트와 짝입니다."),
+             ["DCOILWTICO", "WPU10260314"], "*미국 원자재 기준", "유가와 구리가 함께 오르면 두 달 뒤 물가의 상방 위험을 추가 점검합니다."),
         make("korea_semiconductor_cycle", "한국 주가와 글로벌 반도체 사이클", "economy", "cycle_start_100",
              [_series("한국 주가지수(OECD)", "current", korea_index, "#11110f"), _series("미국 반도체(SOX)", "current", sox_index, "#e05d26")],
              ["SPASTT01KRM661N", "NASDAQSOX"], "*한국·미국 시장 기준", "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다."),
-        make("investment_share_of_gdp", "설비·지식재산 투자의 GDP 비중", "economy", "percent",
+        make("investment_share_of_gdp", "기업 투자 규모: 닷컴 때와 지금", "economy", "percent",
              [_series("닷컴 장비", "dotcom", dot_equipment_share, "#8d2943"), _series("닷컴 장비+지식재산", "dotcom", dot_broad_share, "#d47f52"), _series("현재 장비", "current", cur_equipment_share, "#28756a"), _series("현재 장비+지식재산", "current", cur_broad_share, "#4aa18d")],
              ["Y034RC1Q027SBEA", "Y001RC1Q027SBEA", "GDP"], "*미국 명목 분기 연율 기준",
-             "투자 규모를 경제 크기로 나눠 두 정의로 함께 봅니다. 장비만 보면 닷컴 정점보다 낮고, 소프트웨어·연구개발을 더하면 더 높습니다."),
+             "미국 경제가 100달러를 벌 때 기업이 IT 장비(컴퓨터·서버·통신장비)와 소프트웨어·연구개발에 몇 달러를 쓰는지, 닷컴 붐의 같은 시점과 나란히 봅니다."),
         make("structures_buildout", "반도체·전력·통신 시설 건설", "economy", "cycle_start_100",
              [_series("닷컴 반도체시설", "dotcom", dot_fab, "#8d2943"), _series("닷컴 전력", "dotcom", dot_power, "#d47f52"), _series("닷컴 통신", "dotcom", dot_comm, "#b58b2a"), _series("현재 반도체시설", "current", cur_fab, "#28756a"), _series("현재 전력", "current", cur_power, "#4aa18d"), _series("현재 통신", "current", cur_comm, "#11110f")],
              ["C30_MFG_COMPUTER_ELECTRONIC", "C30_POWER", "C30_COMMUNICATION"], "*미국 민간 건설 기준",
@@ -2080,13 +2150,14 @@ def build_statistics_lab(
              [_series("닷컴 주택착공", "dotcom", dot_housing, "#8d2943"), _series("닷컴 제조업", "dotcom", dot_philly, "#d47f52"), _series("현재 주택착공", "current", cur_housing, "#28756a"), _series("현재 제조업", "current", cur_philly, "#4aa18d")],
              ["HOUST", "GACDFSA066MSFRBPHI"], "*미국 주택착공 · 필라델피아 연준 관할(제3연준구) 제조업 서베이",
              "주택착공 증가율(%)과 제조업 확산지수(0 중심 지수)가 함께 약해지면 경기 냉각 신호가 강해집니다. 두 계열은 단위가 다릅니다."),
-        make("corporate_bond_issuance", "비금융기업 회사채 잔액과 순발행 (GDP 대비 %)", "credit", "percent_of_gdp",
+        make("corporate_bond_issuance", "기업 회사채 빚: 닷컴 때와 지금", "credit", "percent_of_gdp",
              [_series("닷컴 잔액(GDP %)", "dotcom", dot_bond_stock, "#8d2943"), _series("닷컴 순발행(GDP %)", "dotcom", dot_bond_flow, "#d47f52"), _series("현재 잔액(GDP %)", "current", cur_bond_stock, "#28756a"), _series("현재 순발행(GDP %)", "current", cur_bond_flow, "#4aa18d")],
              ["FL103163005", "FA103163005", "GDP"], "*미국 비금융기업 기준",
-             "기업이 채권으로 조달한 잔액과 순발행을 경제 크기(GDP)로 나눠 두 시대를 비교합니다. 공식 통계에 \"AI 채권\" 분류는 없으므로 경제 전체 규모만 재현할 수 있습니다."),
-        make("household_balance_sheet_trend_gap", "가계 주식·현금·채권의 추세 이탈", "credit", "percent_vs_trend",
-             [_series("주식", "current", equity_gap, "#11110f"), _series("현금성 자산", "current", cash_gap, "#b58b2a"), _series("채권", "current", debt_gap, "#28756a")],
-             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"], "*미국 가계·비영리 자산 기준", "2009~2019 추세에서 주식·현금·채권이 얼마나 벗어났는지 비교합니다."),
+             "기업이 채권을 찍어 빌린 돈을 두 가지로 봅니다 — 지금까지 쌓인 빚과 새로 늘리는 빚. 둘 다 미국 경제 100달러당 몇 달러인지로 바꿔 닷컴 붐의 같은 시점과 비교합니다."),
+        make("household_balance_sheet_trend_gap", "가계 주식·현금·채권: 2010년대 속도보다 더 불었나", "credit", "percent_vs_trend",
+             [_series("주식", "current", equity_gap, "#11110f"), _series("현금·예금", "current", cash_gap, "#b58b2a"), _series("채권", "current", debt_gap, "#28756a")],
+             ["BOGZ1LM153064475Q", "DABSHNO", "BOGZ1FL154022375A"], "*미국 가계·비영리 자산 기준",
+             "미국 가계가 가진 주식·현금·채권이 2010년대(2009~2019)에 늘던 속도 그대로 갔다면 지금 얼마였을지와 실제 금액을 비교합니다. 0%면 예전 속도 그대로, +20%면 그 예상보다 20% 더 많다는 뜻입니다."),
     ]
 
     liquidity = make(
@@ -2253,13 +2324,9 @@ def build_statistics_lab(
             "10년−3개월이 침체 연구(Estrella–Mishkin)와 Fed 확률 모델의 표준이고, "
             "10년−2년은 시장 관행 지표입니다."
         ),
-        "inflation_lead_cpi": (
-            "두 달 정렬은 서술용 배치입니다. 원자재의 물가 선행성은 시기에 따라 "
-            "약해지는 것으로 연구돼 있습니다."
-        ),
         "inflation_lead_commodities": (
             "두 달 정렬은 서술용 배치입니다. 원자재의 물가 선행성은 시기에 따라 "
-            "약해지는 것으로 연구돼 있습니다. CPI 계열은 축 범위가 달라 별도 차트로 뒀습니다."
+            "약해지는 것으로 연구돼 있습니다."
         ),
     }
     for caveat_chart_id, caveat_text in chart_caveats.items():
@@ -2272,9 +2339,10 @@ def build_statistics_lab(
         "주택착공은 전년 대비 % 증감이고, 제조업은 확산지수 원값(0 위면 확장)입니다. "
         "두 선의 단위가 달라 크기 비교가 아니라 방향 비교용입니다."
     )
+    by_id["household_balance_sheet_trend_gap"]["display_unit"] = "2010년대 속도 대비 %"
     by_id["household_balance_sheet_trend_gap"]["reading_guide"] = (
-        "0%는 2009~2019 로그-선형 추세와 같은 수준입니다. 주식·현금은 분기, "
-        "보유채권은 연간(관측 11개, 소표본) 자료로 추세를 각각 계산했습니다."
+        "가운데 0% 선이 '2010년대 속도대로 늘었을 때의 금액'입니다. 선이 0% 위에 있으면 "
+        "그보다 많고, 아래면 적습니다. 채권은 1년에 한 번 나오는 자료라 점이 드뭅니다."
     )
     by_id["household_balance_sheet_trend_gap"]["trend_baseline"] = {
         "start": "2009-01-01", "end": "2019-12-31", "method": "ordinary_least_squares_on_log_levels",
@@ -2295,11 +2363,53 @@ def build_statistics_lab(
         for year in range(household_origin_year, household_origin_year + household_max // 12 + 1, 3)
     ] + [[household_max, "최신"]]
     by_id["household_balance_sheet_trend_gap"]["events"] = [
-        {"period": 131, "label": "2009~2019 추세 추정 구간 끝"},
+        {"period": 131, "label": "여기까지로 2010년대 속도 계산"},
     ]
     by_id["household_balance_sheet_trend_gap"]["axis_note"] = (
-        "가로축은 2009년 1월 기준 경과월(연도 눈금) · 세로축은 2009~2019 로그-선형 추세 대비 이탈률 %"
+        "가로축 연도 · 세로축은 2010년대 속도로 계산한 예상 금액보다 많은(+)·적은(−) 정도 %"
     )
+    # 선 4개(시대 2 × 정의 2)를 한 축에 겹치면 "무엇이 닷컴보다 큰가"를 읽기 어렵다는
+    # 사용자 피드백(2026-09-18). 같은 숫자를 '경제 100달러당 N달러' 막대로 바꿔 보인다 —
+    # 계열(series)은 감사·워크북용으로 그대로 둔다.
+    era_guide = (
+        f"'같은 시점'은 닷컴 붐({DOTCOM_START.year}년 {DOTCOM_START.month}월~)과 지금 붐"
+        f"({CURRENT_START.year}년 {CURRENT_START.month}월~)이 시작된 뒤 같은 개월 수가 지난 때입니다. "
+        "막대가 길수록 경제 규모에 비해 금액이 크다는 뜻입니다."
+    )
+    by_id["investment_share_of_gdp"].update({
+        "chart_type": "era_compare",
+        "display_unit": "미국 경제 100달러당",
+        "reading_guide": era_guide,
+        "compare_rows": [
+            _era_compare_row(
+                "IT 장비 + 소프트웨어·연구개발",
+                "컴퓨터·서버·통신장비에 소프트웨어와 연구개발 투자까지 더한 넓은 기준",
+                dot_broad_share, cur_broad_share,
+            ),
+            _era_compare_row(
+                "IT 장비만",
+                "컴퓨터·서버·통신장비 같은 눈에 보이는 장비만 센 좁은 기준",
+                dot_equipment_share, cur_equipment_share,
+            ),
+        ],
+    })
+    by_id["corporate_bond_issuance"].update({
+        "chart_type": "era_compare",
+        "display_unit": "미국 경제 100달러당",
+        "reading_guide": era_guide,
+        "compare_rows": [
+            _era_compare_row(
+                "쌓인 회사채 빚",
+                "기업이 지금까지 채권을 찍어 빌리고 아직 갚지 않은 돈 전체",
+                dot_bond_stock, cur_bond_stock,
+            ),
+            _era_compare_row(
+                "새로 늘리는 빚",
+                "최근 분기에 새로 찍은 채권에서 갚은 만큼을 뺀 순증가를 1년 치로 환산",
+                dot_bond_flow, cur_bond_flow,
+            ),
+        ],
+    })
     policy_points = by_id["policy_rate"]["series"][0]["points"]
     by_id["policy_rate"]["source_validation"] = {
         "source_id": "FEDFUNDS", "period": "1995-01-01_to_1999-12-01",
@@ -2472,23 +2582,26 @@ def build_statistics_lab(
             )
         ),
         "corporate_bond_issuance": (
-            f"비금융기업 회사채 잔액은 현재 GDP의 {endpoint(cur_bond_stock):.1f}%로 닷컴 같은 "
-            f"{months_elapsed(cur_bond_stock)}개월차의 {matched(dot_bond_stock, cur_bond_stock):.1f}%"
-            f"{'보다 높습니다' if endpoint(cur_bond_stock) > matched(dot_bond_stock, cur_bond_stock) else '보다 낮습니다'}"
-            f"(닷컴 말기 {endpoint(dot_bond_stock):.1f}%). 순발행은 연율 기준 GDP의 "
-            f"{endpoint(cur_bond_flow):.1f}%로 닷컴 같은 시점 {matched(dot_bond_flow, cur_bond_flow):.1f}%와 "
-            "비교됩니다. 이 총액에는 AI 목적 여부를 구분하는 공식 분류가 "
-            "없으므로, 특정 기업군의 AI 조달액을 이 계열에서 뽑아낼 수는 없습니다."
+            f"쌓인 회사채 빚은 경제 100달러당 {endpoint(cur_bond_stock):.1f}달러로 닷컴 같은 시점"
+            f"({matched(dot_bond_stock, cur_bond_stock):.1f}달러)의 "
+            f"{_times(endpoint(cur_bond_stock), matched(dot_bond_stock, cur_bond_stock))}입니다. "
+            + (
+                f"새로 늘리는 빚은 {endpoint(cur_bond_flow):.1f}달러로 닷컴 같은 시점"
+                f"({matched(dot_bond_flow, cur_bond_flow):.1f}달러)의 "
+                f"{_times(endpoint(cur_bond_flow), matched(dot_bond_flow, cur_bond_flow))}입니다. "
+                if endpoint(cur_bond_flow) > 0 else
+                "최근 분기에는 새로 빌린 것보다 갚은 것이 더 많았습니다. "
+            )
+            + "이 통계에는 'AI 때문에 빌린 돈'을 따로 떼어 볼 수 있는 분류가 없습니다."
         ),
         "investment_share_of_gdp": (
-            f"설비 투자만 보면 현재 GDP의 {endpoint(cur_equipment_share):.2f}%로 닷컴 같은 "
-            f"{months_elapsed(cur_equipment_share)}개월차의 {matched(dot_equipment_share, cur_equipment_share):.2f}%"
-            f"{'보다 높습니다' if endpoint(cur_equipment_share) > matched(dot_equipment_share, cur_equipment_share) else '보다 낮습니다'}"
-            f"(닷컴 말기 {endpoint(dot_equipment_share):.2f}%). 소프트웨어·연구개발을 더하면 "
-            f"{endpoint(cur_broad_share):.2f}%로 닷컴 같은 시점 {matched(dot_broad_share, cur_broad_share):.2f}%"
-            f"{'를 넘습니다' if endpoint(cur_broad_share) > matched(dot_broad_share, cur_broad_share) else '에 못 미칩니다'}"
-            f"(닷컴 말기 {endpoint(dot_broad_share):.2f}%). "
-            "정의에 따라 결론이 갈리므로 두 선을 함께 봐야 합니다."
+            f"소프트웨어·연구개발까지 넣으면 지금은 경제 100달러당 {endpoint(cur_broad_share):.1f}달러로 "
+            f"닷컴 같은 시점({matched(dot_broad_share, cur_broad_share):.1f}달러)의 "
+            f"{_times(endpoint(cur_broad_share), matched(dot_broad_share, cur_broad_share))}입니다. "
+            f"컴퓨터·서버·통신장비 같은 IT 장비만 세면 {endpoint(cur_equipment_share):.1f}달러로 "
+            f"닷컴 같은 시점({matched(dot_equipment_share, cur_equipment_share):.1f}달러)의 "
+            f"{_times(endpoint(cur_equipment_share), matched(dot_equipment_share, cur_equipment_share))}입니다. "
+            "무엇까지 투자로 세느냐에 따라 답이 달라집니다."
         ),
         "profit_growth": (
             f"세후 기업이익은 현재 전년 대비 {endpoint(cur_profit):.1f}% 증가해 닷컴 같은 "
@@ -2534,12 +2647,6 @@ def build_statistics_lab(
             f"{endpoint(cur_corp_spread):.2f}%p입니다. 전면적 신용 스트레스보다는 높은 "
             "절대금리 부담이 핵심입니다."
         ),
-        "inflation_lead_cpi": (
-            f"두 달 뒤 CPI는 현재 {endpoint(cur_cpi_lead):+.1f}%로, 닷컴 같은 "
-            f"{months_elapsed(cur_cpi_lead)}개월차 {matched(dot_cpi_lead, cur_cpi_lead):+.1f}%"
-            f"{'보다 높습니다' if endpoint(cur_cpi_lead) > matched(dot_cpi_lead, cur_cpi_lead) else '보다 낮습니다'}. "
-            "원자재 차트와 같은 두 달 정렬이며 예측이 아닙니다."
-        ),
         "inflation_lead_commodities": (
             (f"유가 {oil_now:+.1f}%와 구리 {copper_now:+.1f}%가 함께 올라 물가 재가속 "
              "위험을 점검할 구간입니다."
@@ -2567,15 +2674,9 @@ def build_statistics_lab(
             if housing_now < 0 < manufacturing_trend else
             "주택과 제조업 신호가 같은 방향으로 약해져 경기 둔화 경계가 커졌습니다."
         ),
-        "household_balance_sheet_trend_gap": (
-            f"장기 추세 대비 주식은 {endpoint(equity_gap):+.0f}%, 현금은 "
-            f"{endpoint(cash_gap):+.0f}%, 채권은 {endpoint(debt_gap):+.0f}%입니다. "
-            + (lambda gaps: (
-                f"추세 이탈이 가장 큰 항목은 {max(gaps, key=lambda kv: abs(kv[1]))[0]}"
-                f"({max(gaps, key=lambda kv: abs(kv[1]))[1]:+.0f}%)입니다. "
-                "적정가치 판정이 아니라 추세 대비 위치의 서술입니다."
-            ))([("주식", endpoint(equity_gap)), ("현금", endpoint(cash_gap)),
-                ("채권", endpoint(debt_gap))])
+        "household_balance_sheet_trend_gap": _household_gap_conclusion(
+            [("주식", endpoint(equity_gap)), ("현금·예금", endpoint(cash_gap)),
+             ("채권", endpoint(debt_gap))]
         ),
     }
     missing_conclusions = sorted(set(by_id) - set(current_conclusions))
@@ -2856,6 +2957,7 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         "gold_vs_us_m2",
         "nasdaq_tech_cycle_milestones",
         "kospi_market_breadth_2026_daily",
+        "inflation_lead_cpi",
     ):
         if retired_id in by_id:
             raise StatisticsLabError(f"retired customer chart still active: {retired_id}")
