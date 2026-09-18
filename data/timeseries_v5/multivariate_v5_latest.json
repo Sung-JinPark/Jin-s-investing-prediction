@@ -2,19 +2,19 @@
   "as_of": "2026-08-14",
   "backtest_run_id": "tsv5-research-92c262efafd01118e1dd82cc",
   "combined_with_existing_models": false,
-  "content_hash": "ec0c85a7c3083d6dc3729ac5409d982a8af70e58b0d52711a96025f799b02b0f",
+  "content_hash": "b6fcfb24da875701886eafb84ecc875595caf5d2816e2c4ed47b39288a956470",
   "footnote": "*미국 시장·미국 공식 거시자료 기준",
   "horizons": {},
-  "knowledge_cutoff": "2026-09-17T01:13:28.462547+00:00",
+  "knowledge_cutoff": "2026-09-18T01:06:55.723319+00:00",
   "label": "연구모델 · 기존 전망과 미결합",
   "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
   "model_version": 5,
   "numbers_visible": false,
   "operational_gate": {
-    "missing_completed_sessions": 23,
+    "missing_completed_sessions": 24,
     "pass": false,
     "reasons": [
-      "NASDAQ target is 23 completed XNAS sessions stale"
+      "NASDAQ target is 24 completed XNAS sessions stale"
     ]
   },
   "path": {},
