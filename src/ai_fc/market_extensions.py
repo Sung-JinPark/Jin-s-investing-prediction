@@ -30,6 +30,18 @@ TRACKER_LATEST = Path("data/signals/scenario_tracker_latest.json")
 TRACKER_ARCHIVE = Path("data/signals/archive")
 LIQUIDITY_LATEST = Path("data/liquidity/liquidity_latest.json")
 LIQUIDITY_ARCHIVE = Path("data/liquidity/archive")
+# 화면용 장기 이력(2019~) — 주간 스냅샷과 달리 **재생성본**이다(VIX 투영과 같은 지위).
+# 과거 구간은 지금 공개된 자료로 다시 계산한 값이라 시점 기록(PIT)이 아니고, 그래서
+# 불변 아카이브에도, 156주 시차 상관 게이트에도 들어가지 않는다. data/liquidity 는
+# V5.2 시나리오 후보의 보호(append-only) 입력 루트라, 매주 덮어쓰는 이 파일은 밖에 둔다.
+LIQUIDITY_HISTORY = Path("data/liquidity_history/liquidity_history.json")
+HISTORY_DISPLAY_START = date(2019, 1, 1)
+# 52주 z·26주 수익률이 2019년 첫 주부터 정의되도록 1년 앞에서 받는다.
+HISTORY_FETCH_START = date(2018, 1, 1)
+HISTORY_FRED_SERIES = ("WALCL", "WTREGEN", "RRPONTSYD")
+HISTORY_BUDGET_BYTES = 32_000
+# 주간 스냅샷의 운영 수집 시작점 — 이 날짜 이전은 실시간으로 기록한 적이 없다.
+OPERATIONAL_START = date(2025, 1, 1)
 RULES_PATH = Path("data/contracts/scenario_tracker_rules.yaml")
 FRED_SERIES = (
     "BAMLH0A0HYM2", "DFII10", "DTWEXBGS", "WALCL", "WTREGEN",
@@ -468,11 +480,11 @@ def classify_liquidity_zone(four_week_change_pct: float | None,
     return "neutral"
 
 
-def build_liquidity(*, rules: dict[str, Any], asof: date,
-                    fred: dict[str, FredSeries],
-                    prices: dict[str, feed.YahooPriceSeriesResult],
-                    generated_at: datetime | None = None) -> dict[str, Any]:
-    anchors = _fridays(date(2019, 1, 4), asof)
+def _weekly_liquidity(*, rules: dict[str, Any], asof: date, anchor_start: date,
+                      fred: dict[str, FredSeries],
+                      prices: dict[str, feed.YahooPriceSeriesResult]) -> dict[str, list[Any]]:
+    """금요일 주간축의 순유동성·52주 z·26주 수익률·구간. 스냅샷과 장기 이력이 같은 식을 쓴다."""
+    anchors = _fridays(anchor_start, asof)
     net_raw = _net_liquidity(fred, anchors)
     ndx_raw = _weekly_prices(prices["nasdaq"], anchors, adjusted=True)
     btc_raw = _weekly_prices(prices["bitcoin"], anchors, adjusted=True)
@@ -481,18 +493,32 @@ def build_liquidity(*, rules: dict[str, Any], asof: date,
               if net is not None and ndx is not None and btc is not None]
     if len(common) < 52:
         raise MarketExtensionError("liquidity common weekly history is too short")
-    labels = [row[0].isoformat() for row in common]
     net = [float(row[1]) for row in common]
     ndx = [float(row[2]) for row in common]
     btc = [float(row[3]) for row in common]
-    net_z = _rolling_z(net)
-    ndx_26w, btc_26w = _return_series(ndx, 26), _return_series(btc, 26)
-    zone_by_week = [
-        classify_liquidity_zone(
-            None if index < 4 else (net[index] / net[index - 4] - 1) * 100,
-            rules,
-        ) for index in range(len(net))
-    ]
+    return {
+        "labels": [row[0].isoformat() for row in common],
+        "net": net, "ndx": ndx, "btc": btc,
+        "net_z": _rolling_z(net),
+        "ndx_26w": _return_series(ndx, 26), "btc_26w": _return_series(btc, 26),
+        "zones": [
+            classify_liquidity_zone(
+                None if index < 4 else (net[index] / net[index - 4] - 1) * 100,
+                rules,
+            ) for index in range(len(net))
+        ],
+    }
+
+
+def build_liquidity(*, rules: dict[str, Any], asof: date,
+                    fred: dict[str, FredSeries],
+                    prices: dict[str, feed.YahooPriceSeriesResult],
+                    generated_at: datetime | None = None) -> dict[str, Any]:
+    weekly = _weekly_liquidity(rules=rules, asof=asof, anchor_start=date(2019, 1, 4),
+                               fred=fred, prices=prices)
+    labels, net, ndx, btc = weekly["labels"], weekly["net"], weekly["ndx"], weekly["btc"]
+    net_z, ndx_26w, btc_26w = weekly["net_z"], weekly["ndx_26w"], weekly["btc_26w"]
+    zone_by_week = weekly["zones"]
     four_week_change = _pct_change(net, 4)
     start = max(0, len(labels) - DISPLAY_WEEKS)
     lead_lag = {"nasdaq": _lead_lag(net, ndx), "bitcoin": _lead_lag(net, btc)}
@@ -526,9 +552,78 @@ def build_liquidity(*, rules: dict[str, Any], asof: date,
     return validate_liquidity(payload)
 
 
+def build_liquidity_history(*, rules: dict[str, Any], asof: date,
+                            fred: dict[str, FredSeries],
+                            prices: dict[str, feed.YahooPriceSeriesResult],
+                            generated_at: datetime | None = None) -> dict[str, Any]:
+    """2019년부터 지금까지의 화면용 주간 이력 — 그리는 계열만, 반올림해 싣는다.
+
+    시차 상관은 여기서 계산하지 않는다. 과거 구간이 현재 빈티지 재구성이라
+    156주 게이트를 이 표본으로 채우면 게이트가 실시간 누적을 재지 못한다.
+    """
+    weekly = _weekly_liquidity(rules=rules, asof=asof, anchor_start=HISTORY_FETCH_START,
+                               fred=fred, prices=prices)
+    labels = weekly["labels"]
+    start = next((index for index, label in enumerate(labels)
+                  if label >= HISTORY_DISPLAY_START.isoformat()), None)
+    if start is None:
+        raise MarketExtensionError("liquidity history has no observations after the display start")
+
+    def rounded(values: list[float | None], digits: int) -> list[float | None]:
+        return [_round(value, digits) for value in values[start:]]
+
+    payload = {
+        "schema_version": 1, "asof": labels[-1],
+        "generated_at": (generated_at or datetime.now(timezone.utc)).isoformat(timespec="seconds"),
+        "status": "display_history", "probability_space": "reference_only",
+        "display_start": labels[start],
+        "operational_start": OPERATIONAL_START.isoformat(),
+        "vintage": "current_vintage_reconstruction",
+        "series": {
+            "labels": labels[start:],
+            "fed_net_liquidity_z_52w": rounded(weekly["net_z"], 2),
+            "nasdaq_return_26w_pct": rounded(weekly["ndx_26w"], 1),
+            "bitcoin_return_26w_pct": rounded(weekly["btc_26w"], 1),
+            "liquidity_zone": weekly["zones"][start:],
+        },
+        "receipts": [_compact_receipt(fred[key].receipt) for key in HISTORY_FRED_SERIES]
+                    + [_compact_receipt(prices[key].receipt) for key in ("nasdaq", "bitcoin")],
+        "semantics": (
+            "display-only weekly history reconstructed from the current FRED/Yahoo vintage; "
+            "not a point-in-time record, not valid for backtests or the lead/lag gate"
+        ),
+    }
+    return validate_liquidity_history(payload)
+
+
+def validate_liquidity_history(payload: dict[str, Any]) -> dict[str, Any]:
+    if payload.get("probability_space") != "reference_only":
+        raise MarketExtensionError("liquidity history must be reference_only")
+    if payload.get("vintage") != "current_vintage_reconstruction":
+        raise MarketExtensionError("liquidity history must declare its reconstructed vintage")
+    date.fromisoformat(payload["asof"])
+    series = payload.get("series") or {}
+    keys = ("labels", "fed_net_liquidity_z_52w", "nasdaq_return_26w_pct",
+            "bitcoin_return_26w_pct", "liquidity_zone")
+    lengths = {len(series.get(key) or []) for key in keys}
+    if len(lengths) != 1 or not next(iter(lengths)):
+        raise MarketExtensionError("liquidity history series length contract failed")
+    if series["labels"][0] < HISTORY_DISPLAY_START.isoformat():
+        raise MarketExtensionError("liquidity history starts before its display window")
+    if any(key in payload for key in ("probability", "weights", "expected_return", "lead_lag")):
+        raise MarketExtensionError("liquidity history probability/lag fields are prohibited")
+    if len(json.dumps(payload, ensure_ascii=False).encode("utf-8")) > HISTORY_BUDGET_BYTES:
+        raise MarketExtensionError("liquidity history payload exceeds its budget")
+    return payload
+
+
 def validate_liquidity(payload: dict[str, Any]) -> dict[str, Any]:
     if payload.get("probability_space") != "reference_only":
         raise MarketExtensionError("liquidity must be reference_only")
+    # 대시보드 투영은 화면용 장기 이력을 붙여 보낸다. 스냅샷 예산·계약은 이력을 뺀 본체에만 건다.
+    if payload.get("history") is not None:
+        validate_liquidity_history(payload["history"])
+        payload = {key: value for key, value in payload.items() if key != "history"}
     date.fromisoformat(payload["asof"])
     series = payload.get("series") or {}
     lengths = {len(series.get(key) or []) for key in (
@@ -660,6 +755,46 @@ def _persist_json(root: Path, latest_relative: Path, archive_relative: Path,
     return latest, payload, True
 
 
+def refresh_liquidity_history(root: Path, target_asof: str) -> tuple[Path, dict[str, Any], bool]:
+    """장기 이력을 주간 스냅샷과 같은 기준일로 맞춘다. 이미 맞으면 받지 않는다.
+
+    재생성본이라 아카이브를 남기지 않고 덮어쓴다 — 과거 구간은 원천이 수정되면 같이 바뀐다.
+    """
+    path = root / LIQUIDITY_HISTORY
+    if path.is_file():
+        try:
+            current = validate_liquidity_history(json.loads(path.read_text(encoding="utf-8")))
+            if current["asof"] == target_asof:
+                return path, current, False
+        except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+            pass
+    target = date.fromisoformat(target_asof)
+    fred = {series_id: fetch_fred_series(series_id, HISTORY_FETCH_START)
+            for series_id in HISTORY_FRED_SERIES}
+    prices = {
+        key: feed.yahoo_price_series_detail(symbol, HISTORY_FETCH_START,
+                                            target + timedelta(days=1), "1d")
+        for key, symbol in (("nasdaq", "^IXIC"), ("bitcoin", "BTC-USD"))
+    }
+    payload = build_liquidity_history(rules=load_rules(root), asof=target, fred=fred, prices=prices)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
+                    encoding="utf-8", newline="\n")
+    return path, payload, True
+
+
+def _with_history(root: Path, result: dict[str, Any]) -> dict[str, Any]:
+    """스냅샷 결과에 장기 이력 갱신을 붙인다. 이력 실패는 스냅샷을 되돌리지 않고 결과에 남긴다."""
+    try:
+        path, _payload, changed = refresh_liquidity_history(root, result["liquidity"]["asof"])
+        result.update({"liquidity_history_path": path, "liquidity_history_changed": changed,
+                       "liquidity_history_error": None})
+    except Exception as exc:  # noqa: BLE001 — 원천 장애가 이미 기록된 스냅샷 결과를 가리지 않게
+        result.update({"liquidity_history_path": None, "liquidity_history_changed": False,
+                       "liquidity_history_error": f"{type(exc).__name__}: {exc}"})
+    return result
+
+
 def refresh_market_extensions(root: Path, *, asof: date | None = None,
                               now: datetime | None = None) -> dict[str, Any]:
     cutoff = completed_market_cutoff(asof or date.today(), now=now)
@@ -685,14 +820,14 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
             and captured_tracker.get("asof") == weekly_asof.isoformat()
             and captured_liquidity.get("asof") == weekly_asof.isoformat()
         ):
-            return {
+            return _with_history(root, {
                 "tracker_path": tracker_latest, "tracker": captured_tracker,
                 "tracker_changed": False,
                 "liquidity_path": liquidity_latest, "liquidity": captured_liquidity,
                 "liquidity_changed": False,
                 "path_tracking_changed": False,
                 "source_check_skipped_reason": "validated_weekly_vintage_already_captured",
-            }
+            })
     # Monitoring starts with a compact, reproducible operating window.  A
     # longer current-vintage download would not make a backtest point-in-time
     # safe; the 156-week lead/lag gate therefore stays closed until enough
@@ -714,14 +849,14 @@ def refresh_market_extensions(root: Path, *, asof: date | None = None,
     tracker_path, tracker_payload, tracker_changed = _persist_tracker(root, tracker)
     liquidity_path, liquidity_payload, liquidity_changed = _persist_json(
         root, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, liquidity)
-    return {
+    return _with_history(root, {
         "tracker_path": tracker_path, "tracker": tracker_payload,
         "tracker_changed": tracker_changed,
         "liquidity_path": liquidity_path, "liquidity": liquidity_payload,
         "liquidity_changed": liquidity_changed,
         "path_tracking_changed": False,
         "source_check_skipped_reason": None,
-    }
+    })
 
 
 def _load(root: Path, relative: Path, validator) -> dict[str, Any]:
@@ -740,4 +875,34 @@ def load_scenario_tracker(root: Path) -> dict[str, Any]:
 
 
 def load_liquidity(root: Path) -> dict[str, Any]:
-    return _load(root, LIQUIDITY_LATEST, validate_liquidity)
+    """대시보드용 — 주간 스냅샷에 2019년부터의 화면용 이력을 붙인다(있고 유효할 때만)."""
+    payload = _load(root, LIQUIDITY_LATEST, validate_liquidity)
+    if payload.get("status") == "blocked":
+        return payload
+    try:
+        history = validate_liquidity_history(
+            json.loads((root / LIQUIDITY_HISTORY).read_text(encoding="utf-8")))
+    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+        return payload   # 이력이 없으면 기존 78주 스냅샷 그래프로 그린다
+    if history.get("asof") != payload.get("asof"):
+        return payload   # 기준일이 어긋난 이력은 붙이지 않는다 — 최신 주가 빠진 그래프가 된다
+    return {**payload, "history": _splice_recorded_weeks(history, payload)}
+
+
+def _splice_recorded_weeks(history: dict[str, Any], snapshot: dict[str, Any]) -> dict[str, Any]:
+    """겹치는 주는 매주 기록한 스냅샷 값을 쓴다. 재구성 값은 기록이 없는 과거에만 남긴다.
+
+    같은 금요일이라도 24시간 거래되는 Bitcoin 은 받은 시각에 따라 종가가 달라, 그대로
+    두면 차트 끝점과 스냅샷(구간 판정·시차 표)이 서로 다른 숫자를 말한다.
+    """
+    spliced = deepcopy(history)
+    series, recorded = spliced["series"], snapshot.get("series") or {}
+    position = {label: index for index, label in enumerate(series["labels"])}
+    for key, digits in (("fed_net_liquidity_z_52w", 2), ("nasdaq_return_26w_pct", 1),
+                        ("bitcoin_return_26w_pct", 1), ("liquidity_zone", None)):
+        for label, value in zip(recorded.get("labels") or [], recorded.get(key) or []):
+            index = position.get(label)
+            if index is None or value is None:
+                continue
+            series[key][index] = value if digits is None else _round(value, digits)
+    return spliced

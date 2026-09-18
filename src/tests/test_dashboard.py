@@ -1344,7 +1344,10 @@ def test_liquidity_series_share_one_plot_with_explicit_dual_axes() -> None:
     assert "Fed 순유동성 · 52주 z (왼쪽)" in html
     assert "NASDAQ · 26주 % (오른쪽)" in html
     assert "BITCOIN · 26주 % (오른쪽)" in html
-    assert "const zScale=scale(z),returnScale=scale([...ndx,...btc])" in html
+    assert "const zScale=scale(z),returnScale=scale([...ndx,...btc],returnTf)" in html
+    # 2019~ 장기 구간: Bitcoin +400%대에 NASDAQ 선이 눌리지 않게 넓을 때만 asinh 눈금(2026-09-18)
+    assert "wideReturns?v=>Math.asinh(Number(v)/25)" in html
+    assert "model.history?.series?.labels?.length?model.history:null" in html
     assert "panelTop" not in html, "유동성·수익률을 위아래 패널로 다시 분리하면 안 됨"
 
 

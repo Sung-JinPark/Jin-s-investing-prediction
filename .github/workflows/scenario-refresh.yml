@@ -72,7 +72,8 @@ jobs:
           git add data/scenarios data/cross_asset
           git add docs/generated/ledger_audit.json docs/generated/ledger_audit.md docs/generated/ledger_manifest.json
           git add docs/generated/inventory.generated.md
-          for optional_dir in data/signals data/liquidity data/realty_income data/rate_events; do
+          # data/liquidity_history: 2019~ 화면용 유동성 이력(재생성본, 2026-09-18)
+          for optional_dir in data/signals data/liquidity data/liquidity_history data/realty_income data/rate_events; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"
             fi

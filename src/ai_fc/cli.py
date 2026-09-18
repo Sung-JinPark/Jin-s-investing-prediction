@@ -1247,6 +1247,13 @@ def cmd_market_extensions(
         f"{tracker['summary']['available']}/{tracker['summary']['total']} 신호 · "
         f"liquidity zone {liquidity['zone']} · probability=표시 안 함"
     )
+    if result.get("liquidity_history_error"):
+        # 주간 스냅샷은 이미 기록됐다. 화면용 장기 이력만 실패했음을 실패로 남긴다.
+        typer.echo(f"[실패] 유동성 장기 이력(2019~): {result['liquidity_history_error']}", err=True)
+        raise typer.Exit(code=1)
+    typer.echo(
+        f"유동성 장기 이력 {'갱신' if result.get('liquidity_history_changed') else '이미 최신'}"
+    )
 
 
 @app.command("signals")
