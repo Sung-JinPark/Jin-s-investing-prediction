@@ -66,7 +66,8 @@ sources:
     provider: Board of Governors of the Federal Reserve System
     note: one quarterly archive, one raw receipt, multiple declared series
     series:
-      FL663067003: {member: csv/F4_6_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: household_margin_loan_proxy_not_FINRA}
+      # 2026-09-11 release (2026:Q2) no longer prints FL663067003 on any table; read via the Board's identity FL663067005 = FL663067003 + FL663067063.
+      FL663067003: {member: csv/F4_6_s.csv, derivation: FL663067005.Q - FL663067063.Q, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: household_margin_loan_proxy_not_FINRA}
       FL103163005: {member: csv/S11_1_s.csv, native_frequency: quarterly, unit: millions_usd, aggregation: last, role: nonfinancial_corporate_debt_securities_outstanding}
       FA103163005: {member: csv/S11_1_t.csv, native_frequency: quarterly, unit: millions_usd_saar, aggregation: last, role: nonfinancial_corporate_debt_securities_net_issuance}
   census_c30:
