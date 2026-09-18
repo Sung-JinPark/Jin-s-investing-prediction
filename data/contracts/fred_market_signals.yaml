@@ -7,6 +7,17 @@ enabled: true
 license_status: approved
 vintage_capability: captured
 point_in_time_scope: Operational observations captured from activation onward; historical current-vintage rows are not valid for backtests.
+# 화면용 장기 이력 (2026-09-18, 사용자 요청 "2019년부터 현재까지"): WALCL·WTREGEN·RRPONTSYD 를
+# 2018-01 부터 받아 data/liquidity_history/liquidity_history.json 을 매주 재생성한다. 과거 구간은 현재
+# 빈티지 재구성이라 불변 주간 아카이브에 넣지 않고, 156주 시차 상관 게이트 표본에도 쓰지 않는다.
+# 겹치는 주는 대시보드가 매주 기록한 스냅샷 값으로 덮는다.
+display_history:
+  path: data/liquidity_history/liquidity_history.json   # 보호 루트 data/liquidity 밖
+  display_start: 2019-01-01
+  fetch_start: 2018-01-01
+  vintage: current_vintage_reconstruction
+  archived: false
+  lead_lag_gate_input: false
 common_fields: [observation_period, available_at, source_url, source_fingerprint, revision_vintage]
 units:
   WALCL: millions_usd

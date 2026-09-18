@@ -179,6 +179,15 @@ def test_refresh_reuses_same_validated_weekly_vintage_without_refetch(tmp_path, 
     liquidity = build_liquidity(rules=_rules(), asof=asof, fred=fred, prices=prices)
     _persist_tracker(tmp_path, tracker)
     _persist_json(tmp_path, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, liquidity)
+    # 화면용 장기 이력도 같은 기준일이면 다시 받지 않는다(2026-09-18 2019~ 이력 추가).
+    import json
+
+    from ai_fc.market_extensions import LIQUIDITY_HISTORY, build_liquidity_history
+    long_asof, long_fred, long_prices = _long_data(date(2018, 1, 5), (asof - date(2018, 1, 5)).days // 7 + 1)
+    assert long_asof == asof
+    (tmp_path / LIQUIDITY_HISTORY).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / LIQUIDITY_HISTORY).write_text(json.dumps(build_liquidity_history(
+        rules=_rules(), asof=asof, fred=long_fred, prices=long_prices)), encoding="utf-8")
 
     def forbidden_fetch(*_args, **_kwargs):
         raise AssertionError("same weekly vintage must not be fetched twice")
@@ -188,3 +197,86 @@ def test_refresh_reuses_same_validated_weekly_vintage_without_refetch(tmp_path, 
     assert result["tracker_changed"] is False
     assert result["liquidity_changed"] is False
     assert result["source_check_skipped_reason"] == "validated_weekly_vintage_already_captured"
+    assert result["liquidity_history_changed"] is False and result["liquidity_history_error"] is None
+
+
+def _long_data(start: date = date(2018, 1, 5), weeks: int = 450):
+    """2018년부터의 주간 합성 자료 — 화면용 장기 이력(2019~) 검사용."""
+    dates = [start + timedelta(days=7 * index) for index in range(weeks)]
+    receipt = lambda key: {"request_url": f"mock://{key}", "response_sha256": key,
+                           "fetched_at": "2026-09-18T00:00:00Z", "source": "mock"}
+    wave = np.sin(np.arange(weeks) / 9.0)
+    fred = {
+        "WALCL": FredSeries("WALCL", dates, list(map(float, 7_000_000 + 400_000 * wave)), receipt("WALCL")),
+        "WTREGEN": FredSeries("WTREGEN", dates, list(map(float, np.linspace(600_000, 700_000, weeks))), receipt("WTREGEN")),
+        "RRPONTSYD": FredSeries("RRPONTSYD", dates, list(map(float, np.linspace(300, 100, weeks))), receipt("RRPONTSYD")),
+    }
+    prices = {}
+    for key, drift in (("nasdaq", .002), ("bitcoin", .004)):
+        values = list(100 * np.exp(np.arange(weeks) * drift + .1 * wave))
+        prices[key] = YahooPriceSeriesResult(dates, values, values, receipt(key), {"status": "ok", "dropped_rows": 0})
+    return dates[-1], fred, prices
+
+
+def test_liquidity_history_starts_in_2019_with_every_point_defined() -> None:
+    from ai_fc.market_extensions import build_liquidity_history, validate_liquidity_history
+
+    asof, fred, prices = _long_data()
+    payload = build_liquidity_history(rules=_rules(), asof=asof, fred=fred, prices=prices)
+    series = payload["series"]
+    assert series["labels"][0] == "2019-01-04" and payload["display_start"] == "2019-01-04"
+    assert series["labels"][-1] == asof.isoformat() == payload["asof"]
+    # 1년 앞에서 받으므로 52주 z·26주 수익률이 첫 주부터 비지 않는다.
+    for key in ("fed_net_liquidity_z_52w", "nasdaq_return_26w_pct", "bitcoin_return_26w_pct"):
+        assert None not in series[key], key
+    assert payload["vintage"] == "current_vintage_reconstruction"
+    assert "lead_lag" not in payload, "재구성 이력은 156주 시차 게이트를 채우지 않는다"
+    assert all("request_url" not in receipt for receipt in payload["receipts"])
+    early = {**payload, "series": {**series, "labels": ["2018-12-28", *series["labels"][1:]]}}
+    with np.testing.assert_raises_regex(MarketExtensionError, "display window"):
+        validate_liquidity_history(early)
+
+
+def test_dashboard_liquidity_uses_recorded_weeks_and_falls_back_when_stale(tmp_path) -> None:
+    import json
+
+    from ai_fc.market_extensions import LIQUIDITY_HISTORY, build_liquidity_history, load_liquidity
+
+    asof, fred, prices, _ = _data()
+    snapshot = build_liquidity(rules=_rules(), asof=asof, fred=fred, prices=prices)
+    _persist_json(tmp_path, LIQUIDITY_LATEST, LIQUIDITY_ARCHIVE, snapshot)
+    long_asof, long_fred, long_prices = _long_data(date(2018, 1, 5), (asof - date(2018, 1, 5)).days // 7 + 1)
+    assert long_asof == asof
+    history = build_liquidity_history(rules=_rules(), asof=asof, fred=long_fred, prices=long_prices)
+    (tmp_path / LIQUIDITY_HISTORY).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / LIQUIDITY_HISTORY).write_text(json.dumps(history), encoding="utf-8")
+
+    model = load_liquidity(tmp_path)
+    series, recorded = model["history"]["series"], snapshot["series"]
+    last = series["labels"].index(recorded["labels"][-1])
+    # 겹치는 주는 매주 기록한 스냅샷 값이 이긴다(재구성 값은 기록이 없는 과거에만).
+    assert series["bitcoin_return_26w_pct"][last] == round(recorded["bitcoin_return_26w_pct"][-1], 1)
+    assert series["liquidity_zone"][last] == recorded["liquidity_zone"][-1]
+    validate_liquidity(model)
+
+    stale = {**history, "asof": "2020-01-03"}
+    (tmp_path / LIQUIDITY_HISTORY).write_text(json.dumps(stale), encoding="utf-8")
+    assert "history" not in load_liquidity(tmp_path), "기준일이 어긋난 이력은 붙이지 않는다"
+
+
+def test_refresh_skips_history_download_when_already_current(tmp_path, monkeypatch) -> None:
+    import json
+
+    from ai_fc import market_extensions as me
+
+    asof, fred, prices = _long_data()
+    history = me.build_liquidity_history(rules=_rules(), asof=asof, fred=fred, prices=prices)
+    (tmp_path / me.LIQUIDITY_HISTORY).parent.mkdir(parents=True)
+    (tmp_path / me.LIQUIDITY_HISTORY).write_text(json.dumps(history), encoding="utf-8")
+
+    def boom(*_args, **_kwargs):
+        raise AssertionError("current history must not be re-downloaded")
+
+    monkeypatch.setattr(me, "fetch_fred_series", boom)
+    _path, payload, changed = me.refresh_liquidity_history(tmp_path, asof.isoformat())
+    assert changed is False and payload["asof"] == asof.isoformat()
