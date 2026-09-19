@@ -1,7 +1,7 @@
 {
   "canonical_ledger": "data/timeseries_v2/ledgers/market_observations.jsonl",
   "path": "data/timeseries_v2/parquet/market_observations.parquet",
-  "rows": 47783,
+  "rows": 47787,
   "schema_version": 2,
-  "sha256": "21b3b218de095548037cc382fc4e6c7f022b779da81fbd858d2518162df5a876"
+  "sha256": "e190d88932f3c3f98be942c1717eef679bcb10f03c4b05892018424e833d8bcc"
 }
