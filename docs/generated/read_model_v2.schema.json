@@ -624,6 +624,9 @@
           "const": "blocked_pending_rolling_origin_validation"
         }
       }
+    },
+    "event_forecasts": {
+      "type": "object"
     }
   },
   "additionalProperties": true
