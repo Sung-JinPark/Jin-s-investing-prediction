@@ -1317,18 +1317,19 @@ function tsHorizonRows(ts){
       elapsed:row.elapsed===true,realizedIndex:row.realized_index==null?null:Number(row.realized_index),realizedDate:row.realized_date==null?null:String(row.realized_date),realizedReturn:row.realized_return==null?null:Number(row.realized_return),realizedInside:row.realized_inside_p10_p90===true};
   }).filter(row=>row.median>0);
 }
-const tsRealizedNote=row=>row&&row.elapsed&&row.realizedIndex!=null?`만기 지남 · 실측 ${row.realizedDate||''} ${tsLevel(row.realizedIndex)} (${tsPct(row.realizedReturn)}) · 80% 구간 ${row.realizedInside?'안':'밖'}`:'';
+const tsShortDate=value=>{const m=String(value||'').match(/^\d{4}-(\d{2})-(\d{2})/);return m?`${Number(m[1])}/${Number(m[2])}`:String(value||'');};
+const tsRealizedNote=row=>row&&row.elapsed&&row.realizedIndex!=null?`실제 ${tsPct(row.realizedReturn)} (${tsShortDate(row.realizedDate)} · ${tsLevel(row.realizedIndex)}) · 범위 ${row.realizedInside?'안':'밖'}`:'';
 function tsDescribeHorizon(row,asOf){
   if(!row)return {head:'',rows:[],speak:''};
   const rows=[
-    {color:TS_Q_COLORS.outer,name:'90% 분위수',value:tsLevel(row.p90),sub:tsPct(row.r90)},
-    {color:TS_Q_COLORS.inner,name:'75% 분위수',value:tsLevel(row.p75),sub:tsPct(row.r75)},
-    {color:TS_Q_COLORS.median,name:'중앙값',value:tsLevel(row.median),sub:tsPct(row.r50)},
-    {color:TS_Q_COLORS.inner,name:'25% 분위수',value:tsLevel(row.p25),sub:tsPct(row.r25)},
-    {color:TS_Q_COLORS.outer,name:'10% 분위수',value:tsLevel(row.p10),sub:tsPct(row.r10)},
+    {color:TS_Q_COLORS.outer,name:'90% 분위수',value:tsPct(row.r90),sub:`지수 ${tsLevel(row.p90)}`},
+    {color:TS_Q_COLORS.inner,name:'75% 분위수',value:tsPct(row.r75),sub:`지수 ${tsLevel(row.p75)}`},
+    {color:TS_Q_COLORS.median,name:'중앙값',value:tsPct(row.r50),sub:`지수 ${tsLevel(row.median)}`},
+    {color:TS_Q_COLORS.inner,name:'25% 분위수',value:tsPct(row.r25),sub:`지수 ${tsLevel(row.p25)}`},
+    {color:TS_Q_COLORS.outer,name:'10% 분위수',value:tsPct(row.r10),sub:`지수 ${tsLevel(row.p10)}`},
     {color:TS_Q_COLORS.up,name:'상승 빈도',value:`100번 중 ${Math.round(row.up*100)}번`,sub:'원점 종가보다 높게 끝나는 경로 비율'}
   ];
-  if(row.elapsed&&row.realizedIndex!=null)rows.unshift({color:TS_Q_COLORS.warn,name:'이미 경과 · 실측',value:tsLevel(row.realizedIndex),sub:`${tsPct(row.realizedReturn)} · ${row.realizedDate||''} · 80% 구간 ${row.realizedInside?'안':'밖'} · 사후 대조(라이브 원장 별도)`});
+  if(row.elapsed&&row.realizedIndex!=null)rows.unshift({color:TS_Q_COLORS.warn,name:'결과 나옴 · 실제',value:tsPct(row.realizedReturn),sub:`지수 ${tsLevel(row.realizedIndex)} · ${row.realizedDate||''} · 범위 ${row.realizedInside?'안':'밖'} · 사후 대조(라이브 원장 별도)`});
   return {head:`${row.h}거래일 뒤 · 원점 ${asOf||''}${row.elapsed?' · 만기 지남':''}`,rows,speak:`${row.h}거래일 뒤: 중앙값 ${tsLevel(row.median)} (${tsPct(row.r50)}), 80% 구간 ${tsLevel(row.p10)}~${tsLevel(row.p90)}, 상승 가능성 ${Math.round(row.up*100)}%${row.elapsed&&row.realizedIndex!=null?`, 이미 경과, 실측 ${tsLevel(row.realizedIndex)}`:''}`};
 }
 const tsReadout=()=>'<div class="ts-readout" role="status" aria-live="polite" aria-atomic="true"></div>';
@@ -1422,8 +1423,9 @@ function timeseriesRangeBarsSvg(ts){
 }
 function timeseriesLadderTable(ts){
   const rows=tsHorizonRows(ts);if(!rows.length)return '';
-  const cell=(level,ret,cls)=>`<td class="${cls}"><strong>${tsLevel(level)}</strong><small>${tsPct(ret)}</small></td>`;
-  return `<div class="ts-ladder-wrap"><table class="ts-ladder" data-ts-chart="ladder" tabindex="0" aria-label="기간별 분위수 표"><caption>왼쪽일수록 비관, 오른쪽일수록 낙관 — 한 값이 아니라 범위로 읽으세요. 숫자는 모델 저장값 그대로, %는 원점 종가 대비입니다. 행에 마우스를 올리면 차트의 실측 노드가 강조됩니다.${rows.some(r=>r.elapsed)?' 만기가 지난 기간에는 실측 종가를 함께 적습니다(사후 대조 · 라이브 원장은 별도 성숙 판정).':''}</caption><thead><tr><th>기간</th><th>비관 쪽 끝<small>10% 분위수 · 10번 중 1번은 이 아래</small></th><th>중심 범위 아래끝<small>25% 분위수</small></th><th>가운데 값<small>절반은 위 · 절반은 아래</small></th><th>중심 범위 위끝<small>75% 분위수</small></th><th>낙관 쪽 끝<small>90% 분위수 · 10번 중 1번은 이 위</small></th><th>상승 빈도<small>100번 중 몇 번 상승</small></th></tr></thead><tbody>${rows.map(row=>`<tr data-ts-h="${row.h}"${row.elapsed?' class="is-elapsed"':''}><th scope="row">${tsCal(row.h)}<small>${row.h}거래일</small>${row.elapsed?`<small>${esc(tsRealizedNote(row))}</small>`:''}</th>${cell(row.p10,row.r10,'q-outer')}${cell(row.p25,row.r25,'q-inner')}${cell(row.median,row.r50,'q-mid')}${cell(row.p75,row.r75,'q-inner')}${cell(row.p90,row.r90,'q-outer')}<td><strong>${Math.round(row.up*100)}%</strong><small>상승 경로 비율</small></td></tr>`).join('')}</tbody></table>${tsReadout()}</div>`;
+  /* %가 1차 값, 지수는 아래 작게(2026-09-18). 25·75% 분위수는 표에서 빼고 행 툴팁에 남긴다. */
+  const cell=(level,ret,cls)=>`<td class="${cls}"><strong class="${ret>=0?'up':'down'}">${tsPct(ret)}</strong><small>${tsLevel(level)}</small></td>`;
+  return `<div class="ts-ladder-wrap"><table class="ts-ladder" data-ts-chart="ladder" tabindex="0" aria-label="기간별 예상 범위 표"><caption>%는 지금(원점 종가) 대비, 아래 작은 숫자는 지수입니다. 한 값이 아니라 범위로 읽으세요.${rows.some(r=>r.elapsed)?' 결과가 나온 기간은 실제 값을 함께 적었습니다.':''}</caption><thead><tr><th>기간</th><th>나쁜 경우<small>하위 10%</small></th><th>가운데<small>중앙값</small></th><th>좋은 경우<small>상위 10%</small></th><th>오를 가능성</th></tr></thead><tbody>${rows.map(row=>`<tr data-ts-h="${row.h}"${row.elapsed?' class="is-elapsed"':''}><th scope="row">${tsCal(row.h)}<small>${row.h}거래일</small>${row.elapsed?`<small>${esc(tsRealizedNote(row))}</small>`:''}</th>${cell(row.p10,row.r10,'q-outer')}${cell(row.median,row.r50,'q-mid')}${cell(row.p90,row.r90,'q-outer')}<td><strong>${Math.round(row.up*100)}%</strong></td></tr>`).join('')}</tbody></table>${tsReadout()}</div>`;
 }
 function timeseriesFreshnessList(ts){
   const rows=ts.freshness_summary||[];
@@ -1702,7 +1704,10 @@ function timeseriesV8BandSvg(ts){
       +`<circle class="ts-node-dot" cx="${x.toFixed(1)}" cy="${y(n.row.band_index.p10).toFixed(1)}" r="3.5"></circle>`
       +`<circle class="ts-node-dot" cx="${x.toFixed(1)}" cy="${y(n.row.band_index.p90).toFixed(1)}" r="3.5"></circle>`
       +`<text class="ts-node-label" x="${x.toFixed(1)}" y="${(y(n.row.band_index.p90)-12).toFixed(1)}" text-anchor="middle">${n.h}일</text>`;}).join('');
-  const growth=tsHorizonRows(ts).map(r=>`${r.h}일 ${tsPct(r.r10,1)}/${tsPct(r.r90,1)}`).join(' · ');
+  /* 그래프 위 표시 1개: 가장 먼 노드(약 3개월 뒤)의 가운데 예상이 지금보다 몇 % 인지. */
+  const goalNode=nodes[nodes.length-1],goalRow=goalNode?tsHorizonRows(ts).find(r=>r.h===String(goalNode.h)):null;
+  const goal=goalRow?(()=>{const gx=foreX(goalNode.h),gy=y(goalRow.median),bw=206,bh=56,bx=gx-16-bw,by=Math.max(padT+4,Math.min(padT+plotH-bh-4,gy-bh/2)),cls=goalRow.r50>=0?'up':'down';
+    return `<g class="ts-goal" aria-hidden="true"><line class="ts-goal-lead" x1="${(bx+bw).toFixed(1)}" y1="${(by+bh/2).toFixed(1)}" x2="${(gx-6).toFixed(1)}" y2="${gy.toFixed(1)}"></line><rect class="ts-goal-box" x="${bx.toFixed(1)}" y="${by.toFixed(1)}" width="${bw}" height="${bh}" rx="4"></rect><text class="ts-goal-pct ${cls}" x="${(bx+12).toFixed(1)}" y="${(by+29).toFixed(1)}">${esc(tsPct(goalRow.r50))}</text><text class="ts-goal-sub" x="${(bx+12).toFixed(1)}" y="${(by+47).toFixed(1)}">${esc(tsCal(goalRow.h))} 가운데 예상 · ${esc(tsLevel(goalRow.median))}</text></g>`;})():'';
   return `<div class="timeseries-chart" data-ts-chart="band"><svg viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="img" aria-label="최근 63세션 실적과 1·5·21·63거래일 분위수 대역 — 마우스나 화살표 키로 값 확인">`
     +`<rect class="ts-history-zone" x="${padL}" y="${padT}" width="${(split*plotW).toFixed(1)}" height="${plotH}"></rect>`
     +`<rect class="ts-forecast-zone" x="${(padL+split*plotW).toFixed(1)}" y="${padT}" width="${((1-split)*plotW).toFixed(1)}" height="${plotH}"></rect>`
@@ -1715,10 +1720,11 @@ function timeseriesV8BandSvg(ts){
     +`<text class="ts-now-label" x="${(nowX-6).toFixed(1)}" y="${padT-10}" text-anchor="end">${esc(ts.as_of||'')} 종가 ${Math.round(anchor).toLocaleString()}${rIdx.length?` · 이후 ${rIdx.length}세션 실측 겹침`:''}</text>`
     +markers
     +realizedSvg
+    +goal
     +`<text x="${padL}" y="${H-16}">← 최근 ${hIdx.length}세션 실적</text>`
     +`<text x="${W-padR}" y="${H-16}" text-anchor="end">63거래일 전망 →</text>`
     +tsHoverLayer(padL,padT,plotW,plotH,{cross:true,dot:true})
-    +`</svg>${tsReadout()}<p class="timeseries-band-caption">◦ 표시가 실측 분위수(1·5·21·63거래일)이며, 표시 사이 구간은 선형 보간(참고용)입니다. 세로축은 로그 스케일, 대역은 p10–p90(연한)·p25–p75(진한). 80% 구간 양끝(원점 대비): ${growth} — 먼 날일수록 벌어집니다.${rIdx.length?` 진한 회색 실선은 원점 이후 실제 종가 ${rIdx.length}세션(사후 대조 · 라이브 원장은 별도 성숙 판정으로 채점).`:''}</p></div>`;
+    +`</svg>${tsReadout()}<p class="timeseries-band-caption">◦ = 1·5·21·63거래일 계산값, 그 사이는 선형 보간(참고용). 연한 대역은 10번 중 8번, 진한 대역은 10번 중 5번이 드는 범위이고 먼 날일수록 넓어집니다. 세로축 로그 스케일.${rIdx.length?` 진한 회색 선은 예측 뒤 실제 종가 ${rIdx.length}세션(사후 대조).`:''}</p></div>`;
 }
 
 // 페이지 하단 '만들어지는 방식' 안내 — 통계 화면의 chart-guide('읽는 법')를 재사용.
@@ -1905,9 +1911,10 @@ function renderTimeseriesV8(ts,initialState){
   /* 수익률은 소수 2자리 고정 — 1자리 반올림은 경계값에서 과대 표기된다
      (h63 +4.47%가 +4.5%로 보였던 종합검토 C-1). 지수 레벨·분위수는 무변경. */
   const bandAbbr=`<abbr title="${esc(plainTerm('p10_p90_hint'))}">10번 중 8번 범위</abbr>`;
-  const horizonRowsByH=Object.fromEntries(tsHorizonRows(ts).map(r=>[r.h,r]));
-  const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),band=row.band_index||{},hr=horizonRowsByH[key];const elapsed=Boolean(hr&&hr.elapsed);
-    return `<article${elapsed?' class="is-elapsed"':''}><span>${tsCal(key)} · ${key}거래일${elapsed?' · 만기 지남':''}</span><strong>${level(row.median_index)}<em class="${ret>=0?'up':'down'}">${ret>=0?'+':''}${(ret*100).toFixed(2)}%</em></strong><small>${bandAbbr}: ${level(band.p10)}–${level(band.p90)} · <abbr title="${esc(plainTerm('up_prob_hint'))}">상승</abbr> ${Math.round(up*100)}%</small>${elapsed?`<small class="ts-realized">${esc(tsRealizedNote(hr))}</small>`:''}</article>`;}).join('');
+  const horizonRowsByH=Object.fromEntries(tsHorizonRows(ts).map(r=>[r.h,r])),last63=horizonRowsByH['63'];
+  /* 카드는 "얼마나 오르나"가 1차 — %를 크게, 지수는 그 아래(2026-09-18 사용자 요청). */
+  const cards=horizons.map(key=>{const row=ts.horizons?.[key]||{},ret=Number(row.point_return||0),up=Number(row.probability_up||0),hr=horizonRowsByH[key];const elapsed=Boolean(hr&&hr.elapsed);
+    return `<article${elapsed?' class="is-elapsed"':''} title="${key}거래일 뒤 · 지금(원점 종가) 대비"><span>${tsCal(key)}${elapsed?' · 결과 나옴':''}</span><strong class="ts-card-pct ${ret>=0?'up':'down'}">${ret>=0?'+':''}${(ret*100).toFixed(2)}%</strong><em class="ts-card-level">지수 ${level(row.median_index)}</em><small>${bandAbbr} ${hr?`${tsPct(hr.r10,1)} ~ ${tsPct(hr.r90,1)}`:'—'}</small><small><abbr title="${esc(plainTerm('up_prob_hint'))}">오를 가능성</abbr> ${Math.round(up*100)}%</small>${elapsed?`<small class="ts-realized">${esc(tsRealizedNote(hr))}</small>`:''}</article>`;}).join('');
   const sealed=ts.sealed_metrics||{},sealedRows=tsSealedRows(ts),lastSealed=sealedRows[sealedRows.length-1];
   /* 게이트 상태 위젯: 어떤 검증을 통과했는지가 히어로 안에서, 모든 탭에서 보인다. */
   const fresh=ts.freshness_summary||[];
@@ -1932,8 +1939,8 @@ function renderTimeseriesV8(ts,initialState){
   const rangeGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.outer),'연한 막대','80% 구간(10%~90% 분위수) — 설계상 100번 중 80번은 이 안'],[GUIDE_BAND(TS_Q_COLORS.inner),'진한 막대','중심 50% 구간(25%~75% 분위수)'],[GUIDE_SOLID('#11110f'),'세로 눈금','중앙값 — 절반은 위, 절반은 아래']],'가로축은 원점 종가 대비 %, 위쪽 숫자는 같은 지점의 지수 레벨입니다. 모델 참고값이며 특정 가격을 제시하는 것이 아닙니다.');
     const briefResolved=Number((sealed.forward||{}).resolved_rows||0);
   const tsBrief=`<section class="ts-brief" aria-label="세 줄 요약">
-    <div><i>전망</i><p>${tsCal('63')}(63거래일) 가운데 예상값은 <b>${level(last.median_index)}</b> — 지금보다 ${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%입니다.</p></div>
-    <div><i>범위</i><p>10번 중 8번은 <b>${level(last.band_index?.p10)} ~ ${level(last.band_index?.p90)}</b> 사이에 들도록 설계된 <b>범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다.</p></div>
+    <div><i>전망</i><p>${tsCal('63')} 가운데 예상은 지금보다 <b>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</b> (지수 ${level(last.median_index)})입니다.</p></div>
+    <div><i>범위</i><p>10번 중 8번은 <b>${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:'—'}</b> (${level(last.band_index?.p10)} ~ ${level(last.band_index?.p90)}) 사이에 들도록 설계된 <b>범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다.</p></div>
     <div><i>신뢰</i><p>${gateWinCount==null?'봉인창 요약이 없어 검증 규모를 표시하지 않습니다':`2019년 이후 ${gateWinCount.toLocaleString()}개 시점 검증 ${gateWinPass?'통과':'보류(2008년급 위기 표본 없음)'}`} · 실전 확정 성적 ${briefResolved?`${briefResolved}건`:'아직 0건'} — <a href="#timeseries/backtest">성적표 보기</a></p></div>
   </section>`;
   const summaryPanel=`<div class="ts-panel">${tsBrief}<section class="timeseries-horizons" data-ts-chart="cards" tabindex="0" role="group" aria-label="예측 기간별 요약 — 카드에 마우스를 올리거나 화살표 키로 분위수 확인">${cards}</section>${tsReadout()}`
@@ -1971,7 +1978,7 @@ function renderTimeseriesV8(ts,initialState){
     +`<section class="ts-card"><div class="admin-card-head"><h2>위기 국면별 80% 구간 적중률</h2><span>63거래일 지평 기준 · 주간 원점이라 창이 중첩됩니다 · 표본이 작아 크게 흔들립니다</span></div>${timeseriesRegimeSvg(sealedMetrics.regimes)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>기간별 성적과 비교 기준선</h2><span>개선율이 무엇 대비인지</span></div>${timeseriesSealedTable(ts,sealedRows)}</section>`
     +timeseriesForwardCard(ts)+`</div>`;
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 63거래일 · 가운데 예상</span><strong>${level(last.median_index)}</strong><em class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}% ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${level(last.band_index?.p10)}–${level(last.band_index?.p90)}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">05 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 가운데 예상</span><strong class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</strong><em class="ts-next-level">지수 ${level(last.median_index)} · ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:`${level(last.band_index?.p10)}–${level(last.band_index?.p90)}`}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
   mount(root);
   bindTimeseriesV8Interactions(root,ts);
   bindTimeseriesV13VolInteractions(root);
