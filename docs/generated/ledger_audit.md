@@ -1,6 +1,6 @@
 # Ledger accumulation audit
 
-- Generated: `2026-09-21T06:37:46+00:00`
+- Generated: `2026-09-21T06:49:40+00:00`
 - Latest completed NYSE day: `2026-09-18`
 - Result: accumulating 45 · frozen 2 · stalled 6 · inactive 5 · violation 0 · planned 3
 
@@ -11,11 +11,11 @@
 | `ml_market_history` | weekly | 1 | 2026-09-12 | **accumulating** | — |
 | `method_changes` | event | 1 | — | **accumulating** | — |
 | `calibration_ledger` | event | 1 / 16 | 2026-09-14 | **accumulating** | — |
-| `corrections_ledger` | event | 1 / 22 | — | **accumulating** | — |
+| `corrections_ledger` | event | 1 / 23 | — | **accumulating** | — |
 | `benchmark_ledger` | event | 1 / 16 | — | **accumulating** | — |
 | `cost_ledger` | event | 1 / 52 | — | **accumulating** | — |
 | `provider_shadow_ledger` | event | 1 / 0 | — | **accumulating** | — |
-| `scenario_archive` | trading_daily | 38 | 2026-09-18 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17 |
+| `scenario_archive` | trading_daily | 39 | 2026-09-18 | **stalled** | missing trading days: 2026-08-04, 2026-08-05, 2026-09-03, 2026-09-16, 2026-09-17 |
 | `scenario_latest` | trading_daily | 1 | 2026-09-18 | **accumulating** | — |
 | `cross_asset_archive` | trading_daily | 36 | 2026-09-18 | **stalled** | missing trading days: 2026-08-04, 2026-08-25, 2026-09-03, 2026-09-16, 2026-09-17 |
 | `cross_asset_latest` | trading_daily | 1 | 2026-09-18 | **accumulating** | — |

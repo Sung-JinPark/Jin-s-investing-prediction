@@ -29,11 +29,14 @@ AI_REGIME_PATH = Path("data/ai_capital_cycle/ai_regime_latest.json")
 TRACKER_PATH = Path("data/signals/scenario_tracker_latest.json")
 LIQUIDITY_PATH = Path("data/liquidity/liquidity_latest.json")
 QUESTION_ID = "nasdaq-corr10-augoct-2026"
-STRUCTURAL_CONTRACT_VERSION = "2026-08-06.v3"
+# v4 (2026-09-21, 사용자 승인): 조정 깊이 보정 창을 "원점 연도(달력)의 남은 주" → "원점부터
+# 예측 지평 전체(252거래일 ≈ 52주)"로 바꿨다. 달력 창은 연말로 갈수록 짧아져 남은 주에 조정이
+# 없는 시대 조합이 목표 깊이에 못 닿았고(2026-09-17~19 scenario-refresh 3일 연속 실패), 같은
+# 목표(다중시대 조정 깊이 중앙값)가 원점 시기마다 다른 길이의 창에 걸리는 비일관도 있었다.
+STRUCTURAL_CONTRACT_VERSION = "2026-09-21.v4"
 # 시대 교체 대안 중 강도 상한(strength_bounds)으로도 목표 깊이에 못 닿는 조합은 "보정 불가"로
-# 공시하고 깊이 불변성 판정에서 뺀다(2026-09-21). 원점 연도 창이 연말로 갈수록 짧아져, 남은
-# 주들에 조정이 거의 없는 조합이 생긴다(biotech2015→niftyfifty1972: native −1.1%). 그래도
-# 수렴 실패(did_not_converge)는 여전히 게시를 막고, 보정 가능한 대안이 절반 미만이면 막는다.
+# 공시하고 깊이 불변성 판정에서 뺀다. 수렴 실패(did_not_converge)는 여전히 게시를 막고,
+# 보정 가능한 대안이 절반 미만이면 막는다.
 MIN_FEASIBLE_ALTERNATIVE_SHARE = 0.5
 
 
@@ -272,13 +275,19 @@ def _structural_paths(
     return output
 
 
+def _origin_window_indexes(dates: list[date]) -> list[int]:
+    """보정 창 = 원점부터 예측 지평 끝까지 전체(고정 252거래일). 달력 연도와 무관하다."""
+    if len(dates) < 3:
+        raise StructuralForecastError("calibration window has fewer than three chart points")
+    return list(range(len(dates)))
+
+
 def _calibration_strength_for_key(
     scenario: dict[str, Any], dates: list[date], raw: list[float],
-    target_year: int, target_depth_pct: float, bounds: list[Any], key: str,
+    indexes: list[int], target_depth_pct: float, bounds: list[Any], key: str,
 ) -> dict[str, Any]:
-    indexes = [index for index, day in enumerate(dates) if day.year == target_year]
     if len(indexes) < 3:
-        raise StructuralForecastError("calibration year has fewer than three chart points")
+        raise StructuralForecastError("calibration window has fewer than three chart points")
     low, high = float(bounds[0]), float(bounds[1])
     low_depth = abs(float(_max_drawdown(
         _structural_paths(scenario, dates, raw, low)[key], dates, indexes
@@ -316,10 +325,10 @@ def _calibration_strength_for_key(
 
 def _calibration_strength(
     scenario: dict[str, Any], dates: list[date], raw: list[float],
-    target_year: int, target_depth_pct: float, bounds: list[Any],
+    indexes: list[int], target_depth_pct: float, bounds: list[Any],
 ) -> float:
     result = _calibration_strength_for_key(
-        scenario, dates, raw, target_year, target_depth_pct, bounds, "S1"
+        scenario, dates, raw, indexes, target_depth_pct, bounds, "S1"
     )
     if result["status"] != "ok" or result["strength"] is None:
         raise StructuralForecastError("innovation correction calibration did not converge")
@@ -353,9 +362,8 @@ def _selection_sensitivity(
     scenario: dict[str, Any], overlay: dict[str, Any], selected: list[str],
     candidates: list[str], current_phase: int, dates: list[date], asof: date,
     phase_days: float, base_raw: list[float], target_depth_pct: float,
-    strength_bounds: list[Any],
+    strength_bounds: list[Any], origin_indexes: list[int],
 ) -> dict[str, Any]:
-    origin_indexes = [index for index, day in enumerate(dates) if day.year == asof.year]
     base_window = _analog_window(base_raw, dates, origin_indexes)
     alternatives: list[dict[str, Any]] = []
     excluded = [key for key in candidates if key not in selected and isinstance(overlay.get(key), list)]
@@ -368,7 +376,7 @@ def _selection_sensitivity(
             native = _structural_paths(scenario, dates, raw, 1.0)["S1"]
             diagnostics = _max_drawdown(native, dates, origin_indexes)
             calibrated = _calibration_strength_for_key(
-                scenario, dates, raw, asof.year, target_depth_pct,
+                scenario, dates, raw, origin_indexes, target_depth_pct,
                 strength_bounds, "S1",
             )
             calibrated_mdd: float | None = None
@@ -385,8 +393,8 @@ def _selection_sensitivity(
                 "removed": removed,
                 "added": added,
                 "selected_eras": eras,
-                "origin_year_native_s1_mdd_pct": diagnostics["max_drawdown_pct"],
-                "origin_year_calibrated_s1_mdd_pct": calibrated_mdd,
+                "origin_window_native_s1_mdd_pct": diagnostics["max_drawdown_pct"],
+                "origin_window_calibrated_s1_mdd_pct": calibrated_mdd,
                 "calibrated_strength": calibrated.get("strength"),
                 "calibration_status": calibrated.get("status"),
                 "depth_at_strength_upper_bound_pct": (
@@ -397,16 +405,16 @@ def _selection_sensitivity(
                     base_window["center_month"], window["center_month"]
                 ),
             })
-    mdds = [float(row["origin_year_native_s1_mdd_pct"]) for row in alternatives]
+    mdds = [float(row["origin_window_native_s1_mdd_pct"]) for row in alternatives]
     feasible = [
         row for row in alternatives
         if row.get("calibration_status") == "ok"
-        and isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+        and isinstance(row.get("origin_window_calibrated_s1_mdd_pct"), (int, float))
     ]
     infeasible = [
         row for row in alternatives if row.get("calibration_status") == "outside_strength_bounds"
     ]
-    calibrated_mdds = [float(row["origin_year_calibrated_s1_mdd_pct"]) for row in feasible]
+    calibrated_mdds = [float(row["origin_window_calibrated_s1_mdd_pct"]) for row in feasible]
     shifts = [int(row["center_shift_months"]) for row in alternatives]
     tolerance_pct = 0.2
     # 보정 가능한 대안은 전부 목표 ±0.2%p 안이어야 하고, 나머지는 '강도 한계 밖'뿐이어야 한다
@@ -437,10 +445,10 @@ def _selection_sensitivity(
             "depth invariance; any non-converged calibratable alternative, or fewer than "
             f"{MIN_FEASIBLE_ALTERNATIVE_SHARE:.0%} feasible alternatives, blocks publication"
         ),
-        "origin_year_native_s1_mdd_range_pct": (
+        "origin_window_native_s1_mdd_range_pct": (
             [round(min(mdds), 1), round(max(mdds), 1)] if mdds else None
         ),
-        "origin_year_calibrated_s1_mdd_range_pct": (
+        "origin_window_calibrated_s1_mdd_range_pct": (
             [round(min(calibrated_mdds), 1), round(max(calibrated_mdds), 1)]
             if calibrated_mdds else None
         ),
@@ -475,15 +483,18 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
     target_depth_pct = abs(float(analog.get("correction_depth_median") or 0.0) * 100.0)
     if not 5.0 <= target_depth_pct <= 30.0:
         raise StructuralForecastError("multi-era correction depth is outside the contract gate")
+    window_contract = contract["calibration"]["window"]
+    if window_contract.get("basis") != "full_forecast_horizon_from_origin":
+        raise StructuralForecastError("calibration window contract drifted")
+    origin_indexes = _origin_window_indexes(dates)
     strength = _calibration_strength(
-        scenario, dates, raw, asof.year, target_depth_pct,
+        scenario, dates, raw, origin_indexes, target_depth_pct,
         contract["calibration"]["strength_bounds"],
     )
     paths = _structural_paths(scenario, dates, raw, strength)
     native_paths = _structural_paths(
         scenario, dates, raw, float(contract["calibration"]["native_shape_strength"])
     )
-    origin_indexes = [index for index, day in enumerate(dates) if day.year == asof.year]
     native_ensemble_values = [
         int(round(raw[index] * 100_000)) for index in origin_indexes
     ]
@@ -505,7 +516,7 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
     calibrated_origin_mdd = _max_drawdown(paths["S1"], dates, origin_indexes)
     scenario_specific = {
         key: _calibration_strength_for_key(
-            scenario, dates, raw, asof.year, target_depth_pct,
+            scenario, dates, raw, origin_indexes, target_depth_pct,
             contract["calibration"]["strength_bounds"], key,
         )
         for key in ("S1", "S2", "S3")
@@ -517,6 +528,7 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
     selection_sensitivity = _selection_sensitivity(
         scenario, overlay, selected, candidates, current_phase, dates, asof,
         phase_days, raw, target_depth_pct, contract["calibration"]["strength_bounds"],
+        origin_indexes,
     )
     if selection_sensitivity["calibrated_depth_invariant"] is not True:
         raise StructuralForecastError(
@@ -572,21 +584,29 @@ def build_structural_forecast(root: Path, scenario: dict[str, Any]) -> dict[str,
         },
         "years": year_rows,
         "calibration": {
-            "target": "S1 origin-year maximum drawdown",
+            "target": "S1 maximum drawdown over the full forecast horizon from origin",
+            "window": {
+                "basis": "full_forecast_horizon_from_origin",
+                "trading_days": int(window_contract.get("trading_days") or 0),
+                "start": dates[origin_indexes[0]].isoformat(),
+                "end": dates[origin_indexes[-1]].isoformat(),
+                "chart_points": len(origin_indexes),
+                "replaces": "origin calendar year remainder (v3)",
+            },
             "target_depth_pct": round(target_depth_pct, 2),
             "target_source": "latest innovation context correction_depth_median",
             "strength": round(strength, 6),
             "residual_exponent_amplification_ratio": round(strength, 2),
             "native_shape_strength": float(contract["calibration"]["native_shape_strength"]),
-            "native_ensemble_origin_year_max_drawdown_pct": native_ensemble_mdd["max_drawdown_pct"],
-            "native_residual_origin_year_drawdown_pct": native_residual_mdd["max_drawdown_pct"],
-            "native_shape_origin_year_s1_max_drawdown_pct": native_origin_mdd["max_drawdown_pct"],
-            "calibrated_origin_year_s1_max_drawdown_pct": calibrated_origin_mdd["max_drawdown_pct"],
+            "native_ensemble_origin_window_max_drawdown_pct": native_ensemble_mdd["max_drawdown_pct"],
+            "native_residual_origin_window_drawdown_pct": native_residual_mdd["max_drawdown_pct"],
+            "native_shape_origin_window_s1_max_drawdown_pct": native_origin_mdd["max_drawdown_pct"],
+            "calibrated_origin_window_s1_max_drawdown_pct": calibrated_origin_mdd["max_drawdown_pct"],
             "depth_invariant_to_selection": True,
             "selection_moves": "risk_window_center_month_only",
             "common_strength_scope": "S1/S2/S3 and all display years",
             "common_strength_approximation": (
-                "calibrated to origin-year S1; interpretation depends on the current "
+                "calibrated to S1 over the origin window; interpretation depends on the current "
                 f"S1 weight of {scenario['paths']['S1']['prob']}%"
             ),
             "scenario_specific_alternatives": scenario_specific,
@@ -726,19 +746,19 @@ def validate_structural_forecast(payload: Any, expected_length: int) -> dict[str
         if sensitivity.get("calibrated_depth_invariant") is not True:
             raise StructuralForecastError("selection sensitivity depth gate failed")
         if not isinstance(
-            sensitivity.get("origin_year_calibrated_s1_mdd_range_pct"), list
+            sensitivity.get("origin_window_calibrated_s1_mdd_range_pct"), list
         ):
             raise StructuralForecastError("calibrated selection range is missing")
         alternatives = sensitivity.get("alternatives") or []
         ok_rows = [
             row for row in alternatives
             if row.get("calibration_status") == "ok"
-            and isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+            and isinstance(row.get("origin_window_calibrated_s1_mdd_pct"), (int, float))
         ]
         infeasible_rows = [
             row for row in alternatives
             if row.get("calibration_status") == "outside_strength_bounds"
-            and row.get("origin_year_calibrated_s1_mdd_pct") is None
+            and row.get("origin_window_calibrated_s1_mdd_pct") is None
         ]
         if (
             not alternatives or not ok_rows

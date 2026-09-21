@@ -1402,7 +1402,7 @@ def test_structural_calibration_selection_invariance_is_visible() -> None:
         "시대 교체별 native·calibrated 낙폭 비교",
         "Native · 보정 전",
         "Calibrated · 화면",
-        "origin_year_calibrated_s1_mdd_pct",
+        "origin_window_calibrated_s1_mdd_pct",
     ):
         assert required in html
 

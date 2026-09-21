@@ -1,9 +1,9 @@
 {
   "schema_version": 1,
-  "baseline_at": "2026-09-21T06:37:46+00:00",
+  "baseline_at": "2026-09-21T06:49:40+00:00",
   "files": {
     "calibration/benchmark_ledger.csv": "0ef0efa1eda6d7edb99ad6e3af971d6946377f60b6b95b6380ed76508bf193f8",
-    "calibration/corrections.csv": "0ac002f49601e1ba94eff34a6c467ae08833a8446ee3786ae56f456ea6ef3d9d",
+    "calibration/corrections.csv": "cf777217ef95d01838e8b636fc35dcea4373ed49c155dab59ea87368bccd6bb3",
     "calibration/cost_log.csv": "c3e00117ae4f4f03cc1fa078be0c87c16c6b134a1d97b66a6094c31c44505cd2",
     "calibration/ledger.csv": "c8fc346f1c4d8a870d3d21e122db2877e3e0209c47fc8b1e8641ff7fb975ea6c",
     "calibration/provider_shadow_ledger.csv": "15d54640c1f436466d6bc7110e19ea3622d1d92fc19c15f4a37a9cf2118a2fce",
@@ -166,8 +166,9 @@
     "data/scenarios/archive/2026-09-14.json": "1d5ccc20421264d42d663740a8f479a0486eed3e4d998c7f5254aab02a1d1905",
     "data/scenarios/archive/2026-09-15.json": "5d485490c682c2f5897a27662435a5a68ba10800371f48489dab5c5a08756cce",
     "data/scenarios/archive/2026-09-18.json": "4c0c9e0ec1c400378cb552b46ccac9d0c60c26ace219f256c5fd4c410479814f",
+    "data/scenarios/archive/2026-09-18_CORR-260921-021.json": "c29b222c862c5da869ee94944e31717682a0286a5f7294be5869e78dbc5df50b",
     "data/scenarios/band_calibration.csv": "d2a322ec120cc54f7a042eb0ec5d60148c289b3b217f39f46994a1a3b7201ff2",
-    "data/scenarios/nasdaq_latest.json": "4c0c9e0ec1c400378cb552b46ccac9d0c60c26ace219f256c5fd4c410479814f",
+    "data/scenarios/nasdaq_latest.json": "c29b222c862c5da869ee94944e31717682a0286a5f7294be5869e78dbc5df50b",
     "data/signals/archive/2026-07-31.json": "96eec5903e54ee466bfdf020f3a142a2410874a1537de6cb6c6ce281e9430d41",
     "data/signals/archive/2026-07-31_CORR-260804-004.json": "8990e577a219783ae329b14bc2d40b13ee565e91e68b2e79b31f93ef8b043a30",
     "data/signals/archive/2026-07-31_CORR-260804-005.json": "ac336155115089bef7d1d0678921feb834dbabcd375dc5e8d3d9b088a03577a4",
