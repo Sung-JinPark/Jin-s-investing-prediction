@@ -2206,7 +2206,7 @@ function renderAdminStats(arg){
   });
 }
 
-const VIEWS={overview:renderOverview,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare,adminstats:renderAdminStats};
+const VIEWS={overview:renderOverview,event:renderEventForecast,flow:renderFlow,statistics:renderStatistics,timeseries:renderTimeseries,questions:renderQuestions,asof:renderDecisionJournal,track:renderTrack,q:renderDetail,compare:renderCompare,adminstats:renderAdminStats};
 const CHART_ZOOM_SELECTOR='.chart-wrap,.statistics-chart,.scenario-v52-chart,.timeseries-chart';
 let CHART_ZOOM_LAYER=null,CHART_ZOOM_TRIGGER=null,CHART_ZOOM_SCALE=1,CHART_ZOOM_WIDTH=0;
 function chartZoomTitle(surface,index){
@@ -2309,7 +2309,10 @@ function legacyRouteRedirect(rawHash){
 }
 function parseCanonicalRoute(rawHash){
   const parts=rawHash.slice(1).split('/').map(part=>decodeURIComponent(part));
-  if(parts[0]==='today')return {section:'today',view:'overview'};
+  if(parts[0]==='today'){
+    if(parts[1]==='event'&&parts[2])return {section:'today',view:'event',arg:parts[2]};
+    return {section:'today',view:'overview'};
+  }
   if(parts[0]==='admin-stats')return {section:'admin',view:'adminstats',arg:{days:Number(parts[1])||30}};
   if(parts[0]==='statistics')return {section:'statistics',view:'statistics',arg:{category:parts[1]||null}};
   if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}};
@@ -2645,7 +2648,6 @@ const EV_BOARD_CAP=6;                       // 3 으로도 2 로도 나누어떨
 
 const evFuture=(rows,today)=>(rows||[]).filter(r=>String(r.date||'').slice(0,10)>=today)
   .sort((a,b)=>String(a.date).localeCompare(String(b.date)));
-const evMeta=item=>(item.status==='question'?['질문','◆']:(EVENT_KIND_META[item.kind]||EVENT_KIND_META.other));
 const evMd=iso=>`${Number(String(iso).slice(5,7))}/${Number(String(iso).slice(8,10))}`;
 /* 날짜 문자열이 ISO 이므로 요일도 UTC 로 뽑는다 — 로컬 시간대로 읽으면 하루가 밀린다 */
 const evWeekday=iso=>{const t=Date.parse(`${iso}T00:00:00Z`);return Number.isFinite(t)?EV_WEEKDAY[new Date(t).getUTCDay()]:'';};
@@ -2694,7 +2696,7 @@ function renderEventBoard(rows,today){
   const list=evFuture(rows,today);
   if(!list.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
   const cards=evPick(list,EV_BOARD_CAP).map(item=>{
-    const iso=String(item.date).slice(0,10),d=dayDiff(today,iso),wd=evWeekday(iso),meta=evMeta(item);
+    const iso=String(item.date).slice(0,10),d=dayDiff(today,iso),wd=evWeekday(iso);
     const ok=evConfirmed(list,item),near=d!=null&&d>=0&&d<=7;
     /* 질문 폴백의 '판정'을 확정/추정 2분법에 밀어넣지 않는다 — 레지스트리에 박힌 판정일을
        '추정'이라고 부르면 그 자체가 거짓말이다(현재 코드의 tag() 가 막고 있던 지점). */
@@ -2704,14 +2706,15 @@ function renderEventBoard(rows,today){
        화면 낭독기에는 tear-off 의 sr-only 가 6장 모두에 확정/추정을 그대로 읽어 준다. */
     const mo=Number(iso.slice(5,7)),day=Number(iso.slice(8,10));
     const kindKey=item.status==='question'?'question':item.kind;
-    /* 캘린더 행에는 id 가 없다 — 제목은 전체 일정 리본(#future)으로, 공식 근거는
-       source_url 로 따로 보낸다. 카드 전체를 <a> 로 감싸면 근거 링크를 중첩할 수 없다. */
+    /* 공식 일정 event_id로 해당 발표의 예측치 화면에 연결한다. 질문 폴백만 질문 상세로 간다. */
+    const href=item.event_id?`#today/event/${encodeURIComponent(item.event_id)}`
+      :item.id?`#records/question/${encodeURIComponent(item.id)}`:'#today';
     return `<li class="ev-card${near?' is-near':''}${ok?'':' is-estimated'}" style="--k:${EV_KIND_COLOR[kindKey]||EV_KIND_COLOR.other}">
       <time class="ev-date" datetime="${esc(iso)}"><span class="sr-only">${mo}월 ${day}일 ${esc(wd)}요일 · ${esc(word)}</span>
         <b aria-hidden="true">${mo}월</b><strong aria-hidden="true">${day}</strong><i aria-hidden="true">${esc(wd)}</i></time>
       <span class="ev-body">
-        <span class="ev-line"><a class="ev-title" href="${item.id?`#records/question/${esc(item.id)}`:'#future'}"
-          ><i class="ev-glyph" aria-hidden="true">${meta[1]}</i><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
+        <span class="ev-line"><a class="ev-title" href="${esc(href)}"
+          ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
           >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
         <span class="ev-meta"><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span>
       </span></li>`;}).join('');
@@ -2777,6 +2780,35 @@ function renderOverview(){
       ${renderEventBoard(events,today)}
     </section>
   </section></div>`);
+  mount(root);
+}
+function eventForecastValue(row){
+  const value=Number(row.value);
+  if(!Number.isFinite(value))return '—';
+  if(row.unit==='thousand_people')return `${value>=0?'+':''}${num(value/10)}만 명`;
+  return `${value>=0?'+':''}${row.value}%`;
+}
+function renderEventForecast(eventId){
+  const event=(DATA.calendar_events||[]).find(row=>row.event_id===eventId);
+  if(!event){mount(el('<div class="event-forecast-page"><a class="event-forecast-back" href="#today">← 오늘로</a><h1>이벤트를 찾을 수 없습니다</h1></div>'));return;}
+  const estimates=DATA.event_forecasts?.[eventId]||[];
+  const date=String(event.date||'');
+  const past=date<generatedDay();
+  const cards=estimates.length?estimates.map(row=>`<article class="event-forecast-card">
+    <span>${esc(row.label)}</span><strong>${esc(eventForecastValue(row))}</strong>
+    <small>${esc(row.source_name)} 전망 · ${esc(row.published_on)} 기준</small>
+    <a href="${esc(row.source_url)}" target="_blank" rel="noopener noreferrer">전망 근거 ↗</a>
+  </article>`).join(''):'<p class="event-forecast-empty">확인된 공개 예상값이 아직 없습니다. 값이 확인되면 출처와 기준일을 함께 표시합니다.</p>';
+  const root=el(`<div class="event-forecast-page" data-event-id="${esc(eventId)}">
+    <a class="event-forecast-back" href="#today">← 오늘로</a>
+    <div class="page-heading"><div><p class="eyebrow">${past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(evFullLabel(event))}</h1>
+      <p class="page-lede">${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표 일정':'발표 예정'} · 아래 값은 발표 전 저장된 외부 추정치입니다.</p></div></div>
+    <section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
+      <h2>발표 예상값</h2><div class="event-forecast-grid">${cards}</div>
+      <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
+    </section>
+    <a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>
+  </div>`);
   mount(root);
 }
 function upcoming(limit=6){

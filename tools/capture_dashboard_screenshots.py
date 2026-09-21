@@ -12,7 +12,7 @@ from importlib.metadata import version
 from pathlib import Path
 from urllib.parse import quote
 
-from playwright.sync_api import Page, sync_playwright
+from playwright.sync_api import Error as PlaywrightError, Page, sync_playwright
 
 
 VIEWPORTS = {
@@ -39,6 +39,9 @@ def _routes(data: dict) -> list[tuple[str, str]]:
     question_id = quote(str(questions[0]["id"]), safe="") if questions else None
     rows = [
         ("today", "#today"),
+        ("today-gdp-forecast", "#today/event/gdp_2026_q2_3"),
+        ("today-jobs-forecast", "#today/event/nfp_2026_10"),
+        ("today-cpi-forecast", "#today/event/cpi_2026_10"),
         ("future-default", "#future"),
         ("future-research", "#future/research"),
         ("future-champion", "#future/champion"),
@@ -105,7 +108,16 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
     rows = []
     try:
         with sync_playwright() as playwright:
-            browser = playwright.chromium.launch(headless=True)
+            try:
+                browser = playwright.chromium.launch(headless=True)
+                browser_backend = "playwright_bundled_chromium"
+            except PlaywrightError as exc:
+                if "Executable doesn't exist" not in str(exc):
+                    raise
+                # Local QA can use the installed Edge when bundled Chromium is
+                # absent; CI still uses the pinned Playwright browser.
+                browser = playwright.chromium.launch(channel="msedge", headless=True)
+                browser_backend = "playwright_system_edge"
             browser_version = browser.version
             for route_name, route_hash in _routes(data):
                 for viewport_name, viewport in VIEWPORTS.items():
@@ -165,7 +177,7 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
     research_rows = [row for row in rows if row["route_name"] == "future-research"]
     proof = {
         "schema_version": 1,
-        "capture_backend": "playwright_bundled_chromium",
+        "capture_backend": browser_backend,
         "three_scenario_chart_visible": (
             len(research_rows) == 2
             and all(row["scenario_p50_paths"] >= 3 for row in research_rows)
@@ -193,7 +205,7 @@ def capture(site: Path, output: Path, proof_path: Path) -> dict:
     ]
     manifest = {
         "schema_version": 1,
-        "capture_backend": "playwright_bundled_chromium",
+        "capture_backend": browser_backend,
         "playwright_version": version("playwright"),
         "browser_version": browser_version,
         "site": str(site.resolve()),

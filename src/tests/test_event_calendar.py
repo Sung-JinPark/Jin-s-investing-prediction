@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+from datetime import datetime, timezone
 
 import pytest
 import yaml
@@ -58,3 +59,74 @@ def test_calendar_correction_is_an_appended_superseding_row(tmp_path: Path) -> N
     assert [row["event_id"] for row in active] == ["fomc_2027_03_r2"]
     with pytest.raises(event_calendar.CalendarError, match="append-only"):
         event_calendar.append_event(tmp_path, {**correction, "date": "2027-03-19"})
+
+
+def test_external_event_forecasts_have_pit_source_and_correct_event() -> None:
+    before = event_calendar.load_event_forecasts(
+        ROOT, datetime(2026, 9, 20, tzinfo=timezone.utc)
+    )
+    assert before == {}
+    forecasts = event_calendar.load_event_forecasts(
+        ROOT, datetime(2026, 9, 21, 9, tzinfo=timezone.utc)
+    )
+    assert {"gdp_2026_q2_3", "nfp_2026_10", "cpi_2026_10"} <= forecasts.keys()
+    assert len(forecasts["cpi_2026_10"]) == 2
+    assert forecasts["nfp_2026_10"][0]["unit"] == "thousand_people"
+    assert all(row["source_url"].startswith("https://") for rows in forecasts.values() for row in rows)
+
+
+def test_external_forecast_rejects_post_release_capture(tmp_path: Path) -> None:
+    import csv
+    import shutil
+
+    for relative in (event_calendar.SOURCES_PATH, event_calendar.EVENTS_PATH):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / relative, target)
+    target = tmp_path / event_calendar.FORECASTS_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=event_calendar.FORECAST_FIELDS)
+        writer.writeheader()
+        writer.writerow({
+            "snapshot_id": "bad", "event_id": "cpi_2026_10", "metric": "cpi_mom",
+            "label": "CPI", "value": "0.4", "unit": "percent",
+            "source_name": "source", "source_url": "https://example.com/x",
+            "published_on": "2026-10-13", "captured_at": "2026-10-15T00:00:00Z",
+            "supersedes": "",
+        })
+    with pytest.raises(event_calendar.CalendarError, match="not pre-release"):
+        event_calendar.load_event_forecasts(tmp_path, datetime(2026, 10, 15, tzinfo=timezone.utc))
+
+
+def test_future_correction_cannot_hide_prior_forecast_at_older_cutoff(tmp_path: Path) -> None:
+    import csv
+    import shutil
+
+    for relative in (event_calendar.SOURCES_PATH, event_calendar.EVENTS_PATH):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / relative, target)
+    target = tmp_path / event_calendar.FORECASTS_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    base = {
+        "snapshot_id": "first", "event_id": "cpi_2026_10", "metric": "cpi_mom",
+        "label": "CPI", "value": "0.4", "unit": "percent", "source_name": "source",
+        "source_url": "https://example.com/x", "published_on": "2026-09-20",
+        "captured_at": "2026-09-20T10:00:00Z", "supersedes": "",
+    }
+    with target.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=event_calendar.FORECAST_FIELDS)
+        writer.writeheader()
+        writer.writerow(base)
+        writer.writerow({**base, "snapshot_id": "second", "value": "0.5",
+                         "published_on": "2026-09-22", "captured_at": "2026-09-22T10:00:00Z",
+                         "supersedes": "first"})
+    before = event_calendar.load_event_forecasts(
+        tmp_path, datetime(2026, 9, 21, tzinfo=timezone.utc)
+    )
+    after = event_calendar.load_event_forecasts(
+        tmp_path, datetime(2026, 9, 23, tzinfo=timezone.utc)
+    )
+    assert [row["snapshot_id"] for row in before["cpi_2026_10"]] == ["first"]
+    assert [row["snapshot_id"] for row in after["cpi_2026_10"]] == ["second"]
