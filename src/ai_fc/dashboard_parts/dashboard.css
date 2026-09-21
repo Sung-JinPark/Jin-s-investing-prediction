@@ -1577,6 +1577,17 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .ts-next-pct.up{color:var(--positive)}.ts-next-pct.down{color:var(--crimson)}
 .timeseries-horizons strong em{margin-left:8px;font-size:.4em;font-style:normal;letter-spacing:0;vertical-align:4px}
 .timeseries-horizons strong em.up{color:var(--positive)}.timeseries-horizons strong em.down{color:var(--crimson)}
+/* %가 1차 숫자, 지수는 그 아래(2026-09-18) */
+.timeseries-horizons strong.ts-card-pct.up,.ts-ladder td strong.up{color:var(--positive)}
+.timeseries-horizons strong.ts-card-pct.down,.ts-ladder td strong.down{color:var(--crimson)}
+.timeseries-horizons article.is-elapsed>strong.ts-card-pct{opacity:.7}
+.timeseries-horizons em.ts-card-level{display:block;margin-top:4px;color:#34312c;font:700 15px/1.2 var(--mono);font-style:normal;letter-spacing:-.01em}
+.timeseries-horizons small{margin-top:5px}
+.timeseries-next em.ts-next-level{display:block;margin-top:8px;color:#34312c;font:700 15px/1.2 var(--mono);font-style:normal}
+.ts-goal-box{fill:#fff;stroke:#11110f;stroke-width:1.2}
+.ts-goal-lead{stroke:#11110f;stroke-width:1.2;stroke-dasharray:3 3}
+.timeseries-chart text.ts-goal-pct{font:800 24px var(--mono)}.timeseries-chart text.ts-goal-pct.up{fill:var(--positive)}.timeseries-chart text.ts-goal-pct.down{fill:var(--crimson)}
+.timeseries-chart text.ts-goal-sub{font:600 11px var(--mono);fill:#5f5b53}
 /* 그래프 주변 컨트롤의 글자 넘침 정리. .band-inline b 는 14px 스와치 전용이라
    라벨 텍스트를 그 안에 넣으면 찌그러진다 — 라벨은 span 직계 텍스트로 둔다. */
 .count-chip{white-space:nowrap}

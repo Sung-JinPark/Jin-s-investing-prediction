@@ -90,8 +90,14 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     assert html.count("tsCal(") >= 5
     # 경로: 세 선의 뜻이 헤더 1차 언어
     assert "붉은 선과의 간격이 지금까지의 오차" in html
-    # 사다리표: 분위수 용어는 2층(small)
-    assert "비관 쪽 끝<small>10% 분위수" in html and "낙관 쪽 끝<small>90% 분위수" in html
+    # 사다리표: 분위수 용어는 2층(small) — 2026-09-18 5열로 간결화, %가 1차 값·지수는 아래
+    assert "나쁜 경우<small>하위 10%" in html and "좋은 경우<small>상위 10%" in html
+    assert "<strong class=\"${ret>=0?'up':'down'}\">${tsPct(ret)}</strong><small>${tsLevel(level)}</small>" in html
+    # 카드·히어로도 +%가 크게, 지수는 그 아래(스왑)
+    assert 'class="ts-card-pct' in html and 'class="ts-card-level">지수' in html
+    assert '<strong class="ts-next-pct' in html and 'class="ts-next-level">지수' in html
+    # 경로 분포 그래프 위 "얼마나 오르나" 표시는 딱 1개
+    assert html.count('class="ts-goal-box"') == 1
     # 검증: 성적표 3문항이 상세 지표보다 앞, 등급은 기존 판정의 재표현
     assert 'class="ts-scorecard"' in v8
     assert v8.index('ts-scorecard') < v8.index('단 1회 공개된 봉인 평가')
