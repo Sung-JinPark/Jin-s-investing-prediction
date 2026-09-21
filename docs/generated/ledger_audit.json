@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-21T06:37:46+00:00",
+  "generated_at": "2026-09-21T06:49:40+00:00",
   "market_cutoff": "2026-09-18",
   "summary": {
     "accumulating": 45,
@@ -176,7 +176,7 @@
       "criticality": "high",
       "status": "accumulating",
       "file_count": 1,
-      "row_count": 22,
+      "row_count": 23,
       "latest_date": null,
       "missing_trading_days": [],
       "immutable_changes": [],
@@ -243,7 +243,7 @@
       "cadence": "trading_daily",
       "criticality": "high",
       "status": "stalled",
-      "file_count": 38,
+      "file_count": 39,
       "row_count": null,
       "latest_date": "2026-09-18",
       "missing_trading_days": [

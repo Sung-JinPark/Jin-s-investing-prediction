@@ -982,7 +982,7 @@ def refresh_scenario(root: Path, *, asof: date | None = None,
 
 
 def upgrade_scenario_structure(root: Path) -> tuple[Path, dict[str, Any], bool]:
-    """Append a v3 structural-path revision without resimulating the distribution.
+    """Append a structural-path revision (current contract) without resimulating the distribution.
 
     The immutable v2 distribution, weights, quantiles, samples and calendar are
     retained byte-for-value.  If an older snapshot predates GBM parameter
@@ -1000,7 +1000,7 @@ def upgrade_scenario_structure(root: Path) -> tuple[Path, dict[str, Any], bool]:
         and current_structure.get("version") == STRUCTURAL_CONTRACT_VERSION
         and isinstance(
             (current_structure.get("calibration") or {}).get(
-                "native_ensemble_origin_year_max_drawdown_pct"
+                "native_ensemble_origin_window_max_drawdown_pct"
             ), (int, float)
         )
     ):

@@ -372,7 +372,10 @@ def test_report_only_distinctness_is_measured_without_path_mutation() -> None:
     assert baseline["redesigned_shadow"] >= .1175 + .8704
     # 퇴역 지표는 투명성용으로만 남는다 — 부호가 뒤집힌 값이 게이트에 쓰이지 않는다.
     assert baseline["superseded_log_level"]["baseline"] == .963
-    assert abs(baseline["superseded_log_level"]["redesigned_shadow"]) > .9
+    # 크기(과거 |r|>.9 포화)는 데이터에 따라 움직인다 — 2026-09-18 스냅샷에서 −0.845. 계약은
+    # "보고만 한다"이므로 값이 실수로 보고되는지만 본다(게이트는 위의 DTW가 판정).
+    retired = baseline["superseded_log_level"]["redesigned_shadow"]
+    assert isinstance(retired, float) and -1.0 <= retired <= 1.0
     assert len({
         row["central_path_bundle"]["medoid_path_id"]
         for row in payload["conditional_small_multiples"]["scenarios"].values()

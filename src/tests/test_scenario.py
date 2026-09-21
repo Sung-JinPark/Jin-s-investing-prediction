@@ -107,8 +107,8 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert structure["guardrails"]["structural_shape_occurrence_probability_claimed"] is False
     assert structure["guardrails"]["baseline_ghost_line_default_visible"] is True
     assert structure["calibration"]["residual_exponent_amplification_ratio"] > 1
-    assert structure["calibration"]["native_ensemble_origin_year_max_drawdown_pct"] < 0
-    assert structure["calibration"]["native_residual_origin_year_drawdown_pct"] < 0
+    assert structure["calibration"]["native_ensemble_origin_window_max_drawdown_pct"] < 0
+    assert structure["calibration"]["native_residual_origin_window_drawdown_pct"] < 0
     assert set(structure["calibration"]["scenario_specific_alternatives"]) == {"S1", "S2", "S3"}
     assert structure["calibration"]["depth_invariant_to_selection"] is True
     assert structure["calibration"]["selection_moves"] == "risk_window_center_month_only"
@@ -117,11 +117,11 @@ def test_build_scenario_is_deterministic_and_partitioned() -> None:
     assert selection["selection_sensitivity"]["alternative_count"] >= 1
     sensitivity = selection["selection_sensitivity"]
     assert sensitivity["calibrated_depth_invariant"] is True
-    calibrated_range = sensitivity["origin_year_calibrated_s1_mdd_range_pct"]
+    calibrated_range = sensitivity["origin_window_calibrated_s1_mdd_range_pct"]
     assert calibrated_range == pytest.approx([-12.2, -12.1], abs=0.1)
     assert all(
         row["calibration_status"] == "ok"
-        and row["origin_year_calibrated_s1_mdd_pct"] == pytest.approx(-12.19, abs=0.2)
+        and row["origin_window_calibrated_s1_mdd_pct"] == pytest.approx(-12.19, abs=0.2)
         for row in sensitivity["alternatives"]
     )
     proximity = structure["evidence"]["physical_event"]["proximity_context"]
@@ -414,19 +414,22 @@ def test_infeasible_era_swap_is_disclosed_not_blocking_but_nonconvergence_still_
     length = len(structure["dates"])
     validate_structural_forecast(deepcopy(structure), length)
 
-    def with_alternative(status: str, count: int) -> dict:
+    def with_alternative(status: str, count_offset: int) -> dict:
+        """보정 가능한 첫 대안을 status로 바꾸고, 공시 개수를 실제 보정 불가 행 수 + offset으로 둔다."""
         payload = deepcopy(structure)
         sensitivity = payload["evidence"]["innovation_cycle"]["selection_sensitivity"]
-        row = sensitivity["alternatives"][0]
+        row = next(r for r in sensitivity["alternatives"] if r["calibration_status"] == "ok")
         row.update({"calibration_status": status, "calibrated_strength": None,
-                    "origin_year_calibrated_s1_mdd_pct": None,
+                    "origin_window_calibrated_s1_mdd_pct": None,
                     "depth_at_strength_upper_bound_pct": -11.9})
-        sensitivity["infeasible_alternative_count"] = count
+        actual = sum(1 for r in sensitivity["alternatives"]
+                     if r["calibration_status"] == "outside_strength_bounds")
+        sensitivity["infeasible_alternative_count"] = actual + count_offset
         return payload
 
-    validate_structural_forecast(with_alternative("outside_strength_bounds", 1), length)
+    validate_structural_forecast(with_alternative("outside_strength_bounds", 0), length)
     with pytest.raises(StructuralForecastError, match="incomplete"):
-        validate_structural_forecast(with_alternative("outside_strength_bounds", 0), length)
+        validate_structural_forecast(with_alternative("outside_strength_bounds", -1), length)
     with pytest.raises(StructuralForecastError, match="incomplete"):
         validate_structural_forecast(with_alternative("did_not_converge", 0), length)
 
@@ -434,9 +437,9 @@ def test_infeasible_era_swap_is_disclosed_not_blocking_but_nonconvergence_still_
     sensitivity = majority["evidence"]["innovation_cycle"]["selection_sensitivity"]
     for row in sensitivity["alternatives"]:
         row.update({"calibration_status": "outside_strength_bounds",
-                    "origin_year_calibrated_s1_mdd_pct": None})
+                    "origin_window_calibrated_s1_mdd_pct": None})
     sensitivity["alternatives"][0].update({"calibration_status": "ok",
-                                           "origin_year_calibrated_s1_mdd_pct": -12.2})
+                                           "origin_window_calibrated_s1_mdd_pct": -12.2})
     sensitivity["infeasible_alternative_count"] = len(sensitivity["alternatives"]) - 1
     with pytest.raises(StructuralForecastError, match="incomplete"):
         validate_structural_forecast(majority, length)

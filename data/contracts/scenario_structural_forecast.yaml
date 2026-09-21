@@ -1,4 +1,4 @@
-version: 2026-08-06.v3
+version: 2026-09-21.v4
 status: preregistered_before_structural_snapshot
 preregistered_at: 2026-08-06
 scope: nasdaq_scenario_display_path
@@ -28,24 +28,30 @@ innovation_cycle:
     future_outcomes_used_in_selection: false
   sensitivity:
     method: replace one selected era at a time with one non-selected candidate era
-    outputs: [origin_year_native_mdd_range, origin_year_calibrated_mdd_range, risk_window_center_month_range]
+    outputs: [origin_window_native_mdd_range, origin_window_calibrated_mdd_range, risk_window_center_month_range]
     use: disclosure_only
-    # 2026-09-21: 강도 상한으로도 목표 깊이에 못 닿는 교체는 '보정 불가'로 공시하고 깊이 불변성
-    # 판정에서 뺀다. 원점 연도 창이 연말로 갈수록 짧아져 남은 주에 조정이 거의 없는 조합이 생긴다.
+    # 강도 상한으로도 목표 깊이에 못 닿는 교체는 '보정 불가'로 공시하고 깊이 불변성 판정에서 뺀다.
     # 수렴 실패(did_not_converge)나 보정 가능 비율 50% 미만은 여전히 게시를 막는다.
     infeasible_alternatives: disclose_and_exclude_from_depth_invariance
     minimum_feasible_share: 0.5
 
 calibration:
-  target: origin-year S1 maximum drawdown
+  target: S1 maximum drawdown over the full forecast horizon from origin
   target_source: latest context analog.correction_depth_median
+  # v4 (2026-09-21, 사용자 승인): 보정 창을 원점 연도(달력)의 남은 주 → 원점부터 예측 지평 전체
+  # (252거래일 ≈ 52주)로. 달력 창은 연말로 갈수록 짧아져 같은 목표 깊이가 원점 시기마다 다른
+  # 길이의 창에 걸렸고, 2026-09-17~19에는 보정 불가 조합 때문에 게시가 멈췄다.
+  window:
+    basis: full_forecast_horizon_from_origin
+    trading_days: 252
+    replaces: origin calendar year remainder (v3)
   strength_bounds: [0.0, 5.0]
   native_shape_strength: 1.0
   required_disclosure:
-    - raw selected-era ensemble origin-year drawdown
-    - detrended residual origin-year drawdown
-    - native endpoint-preserving origin-year S1 drawdown
-    - calibrated origin-year S1 drawdown
+    - raw selected-era ensemble origin-window drawdown
+    - detrended residual origin-window drawdown
+    - native endpoint-preserving origin-window S1 drawdown
+    - calibrated origin-window S1 drawdown
     - residual exponent amplification ratio
     - common-strength dependence on the current S1 scenario weight
     - scenario-specific calibration alternatives and feasibility
