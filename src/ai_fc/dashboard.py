@@ -436,8 +436,9 @@ def build_read_model(
         for row in q_summary:
             if row["id"] == structural_event["question_id"]:
                 row["proximity_context"] = structural_event.get("proximity_context")
-    from .event_calendar import load_events
+    from .event_calendar import load_event_forecasts, load_events
     calendar_events = load_events(root)
+    event_forecasts = load_event_forecasts(root, now)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
     from .scenario_track import load_scenario_track
     scenario_track = load_scenario_track(root)
@@ -657,6 +658,7 @@ def build_read_model(
         "display_promotion": display_promotion,
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
+        "event_forecasts": event_forecasts,
         "scenario_history": scenario_history,
         "scenario_track": scenario_track,
         "analog_context": {

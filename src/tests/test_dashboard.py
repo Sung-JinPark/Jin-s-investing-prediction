@@ -1494,6 +1494,20 @@ def test_home_event_board_carries_no_prose_block() -> None:
     assert "event-summary-chip" in script
 
 
+def test_today_events_open_forecast_detail_without_shape_icons() -> None:
+    script = (
+        dashboard.config.ROOT / "src/ai_fc/dashboard_parts/dashboard.js"
+    ).read_text(encoding="utf-8")
+    board = script[script.index("function renderEventBoard"):script.index("function renderOverview")]
+    assert "#today/event/${encodeURIComponent(item.event_id)}" in board
+    assert "ev-glyph" not in board
+    assert "#future'" not in board
+    assert "event:renderEventForecast" in script
+    detail = script[script.index("function renderEventForecast"):script.index("function upcoming")]
+    assert "DATA.event_forecasts?.[eventId]" in detail
+    assert "시장 컨센서스나 확정" in detail
+
+
 def test_home_full_schedule_link_points_at_the_calendar_not_the_changelog() -> None:
     """'전체 일정' 이 변경 일지로 가고 있었다 — 전체 일정은 #future 의 달력 리본이다."""
     script = (
