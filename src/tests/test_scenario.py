@@ -398,3 +398,45 @@ def test_same_asof_archive_is_immutable_without_approved_revision(tmp_path: Path
         scenario._persist_scenario(tmp_path, drift)
     assert archive.read_bytes() == original
     assert persisted["revision"] == 1
+
+
+def test_infeasible_era_swap_is_disclosed_not_blocking_but_nonconvergence_still_blocks() -> None:
+    """2026-09-21: 강도 상한 밖 교체는 공시하고 불변성에서 빼되, 수렴 실패는 계속 막는다.
+
+    09-17~19 scenario-refresh 가 biotech2015→niftyfifty1972 교체(원점 연도 남은 주 native −1.1%,
+    강도 5배에서도 −11.9%) 하나 때문에 통째로 실패해 화면이 09-15에 멈췄다.
+    """
+    from ai_fc.scenario_structure import StructuralForecastError, validate_structural_forecast
+
+    root = Path(__file__).resolve().parents[2]
+    latest = json.loads((root / "data/scenarios/nasdaq_latest.json").read_text(encoding="utf-8"))
+    structure = latest["structural_forecast"]
+    length = len(structure["dates"])
+    validate_structural_forecast(deepcopy(structure), length)
+
+    def with_alternative(status: str, count: int) -> dict:
+        payload = deepcopy(structure)
+        sensitivity = payload["evidence"]["innovation_cycle"]["selection_sensitivity"]
+        row = sensitivity["alternatives"][0]
+        row.update({"calibration_status": status, "calibrated_strength": None,
+                    "origin_year_calibrated_s1_mdd_pct": None,
+                    "depth_at_strength_upper_bound_pct": -11.9})
+        sensitivity["infeasible_alternative_count"] = count
+        return payload
+
+    validate_structural_forecast(with_alternative("outside_strength_bounds", 1), length)
+    with pytest.raises(StructuralForecastError, match="incomplete"):
+        validate_structural_forecast(with_alternative("outside_strength_bounds", 0), length)
+    with pytest.raises(StructuralForecastError, match="incomplete"):
+        validate_structural_forecast(with_alternative("did_not_converge", 0), length)
+
+    majority = deepcopy(structure)
+    sensitivity = majority["evidence"]["innovation_cycle"]["selection_sensitivity"]
+    for row in sensitivity["alternatives"]:
+        row.update({"calibration_status": "outside_strength_bounds",
+                    "origin_year_calibrated_s1_mdd_pct": None})
+    sensitivity["alternatives"][0].update({"calibration_status": "ok",
+                                           "origin_year_calibrated_s1_mdd_pct": -12.2})
+    sensitivity["infeasible_alternative_count"] = len(sensitivity["alternatives"]) - 1
+    with pytest.raises(StructuralForecastError, match="incomplete"):
+        validate_structural_forecast(majority, length)

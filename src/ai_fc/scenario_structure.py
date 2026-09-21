@@ -30,6 +30,11 @@ TRACKER_PATH = Path("data/signals/scenario_tracker_latest.json")
 LIQUIDITY_PATH = Path("data/liquidity/liquidity_latest.json")
 QUESTION_ID = "nasdaq-corr10-augoct-2026"
 STRUCTURAL_CONTRACT_VERSION = "2026-08-06.v3"
+# 시대 교체 대안 중 강도 상한(strength_bounds)으로도 목표 깊이에 못 닿는 조합은 "보정 불가"로
+# 공시하고 깊이 불변성 판정에서 뺀다(2026-09-21). 원점 연도 창이 연말로 갈수록 짧아져, 남은
+# 주들에 조정이 거의 없는 조합이 생긴다(biotech2015→niftyfifty1972: native −1.1%). 그래도
+# 수렴 실패(did_not_converge)는 여전히 게시를 막고, 보정 가능한 대안이 절반 미만이면 막는다.
+MIN_FEASIBLE_ALTERNATIVE_SHARE = 0.5
 
 
 class StructuralForecastError(ValueError):
@@ -367,6 +372,7 @@ def _selection_sensitivity(
                 strength_bounds, "S1",
             )
             calibrated_mdd: float | None = None
+            upper_bound_depth = calibrated.get("depth_at_upper_bound_pct")
             if calibrated.get("status") == "ok" and calibrated.get("strength") is not None:
                 calibrated_values = _structural_paths(
                     scenario, dates, raw, float(calibrated["strength"])
@@ -383,24 +389,33 @@ def _selection_sensitivity(
                 "origin_year_calibrated_s1_mdd_pct": calibrated_mdd,
                 "calibrated_strength": calibrated.get("strength"),
                 "calibration_status": calibrated.get("status"),
+                "depth_at_strength_upper_bound_pct": (
+                    None if upper_bound_depth is None else -abs(float(upper_bound_depth))
+                ),
                 "risk_window_center_month": window["center_month"],
                 "center_shift_months": _month_offset(
                     base_window["center_month"], window["center_month"]
                 ),
             })
     mdds = [float(row["origin_year_native_s1_mdd_pct"]) for row in alternatives]
-    calibrated_mdds = [
-        float(row["origin_year_calibrated_s1_mdd_pct"])
-        for row in alternatives
-        if isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+    feasible = [
+        row for row in alternatives
+        if row.get("calibration_status") == "ok"
+        and isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
     ]
+    infeasible = [
+        row for row in alternatives if row.get("calibration_status") == "outside_strength_bounds"
+    ]
+    calibrated_mdds = [float(row["origin_year_calibrated_s1_mdd_pct"]) for row in feasible]
     shifts = [int(row["center_shift_months"]) for row in alternatives]
     tolerance_pct = 0.2
-    calibrated_depth_invariant = bool(alternatives) and len(calibrated_mdds) == len(
-        alternatives
-    ) and all(
-        abs(abs(value) - target_depth_pct) <= tolerance_pct
-        for value in calibrated_mdds
+    # 보정 가능한 대안은 전부 목표 ±0.2%p 안이어야 하고, 나머지는 '강도 한계 밖'뿐이어야 한다
+    # (수렴 실패는 불허). 보정 가능한 대안이 절반 미만이면 불변성 주장 자체가 약해 게시를 막는다.
+    calibrated_depth_invariant = (
+        bool(feasible)
+        and len(feasible) + len(infeasible) == len(alternatives)
+        and len(feasible) >= MIN_FEASIBLE_ALTERNATIVE_SHARE * len(alternatives)
+        and all(abs(abs(value) - target_depth_pct) <= tolerance_pct for value in calibrated_mdds)
     )
     return {
         "method": "one-selected-era replaced by one non-selected candidate era",
@@ -415,6 +430,13 @@ def _selection_sensitivity(
         "calibrated_depth_invariant": calibrated_depth_invariant,
         "base_risk_window_center_month": base_window["center_month"],
         "alternative_count": len(alternatives),
+        "feasible_alternative_count": len(feasible),
+        "infeasible_alternative_count": len(infeasible),
+        "infeasible_policy": (
+            "alternatives outside the strength bounds are disclosed and excluded from the "
+            "depth invariance; any non-converged calibratable alternative, or fewer than "
+            f"{MIN_FEASIBLE_ALTERNATIVE_SHARE:.0%} feasible alternatives, blocks publication"
+        ),
         "origin_year_native_s1_mdd_range_pct": (
             [round(min(mdds), 1), round(max(mdds), 1)] if mdds else None
         ),
@@ -708,10 +730,21 @@ def validate_structural_forecast(payload: Any, expected_length: int) -> dict[str
         ):
             raise StructuralForecastError("calibrated selection range is missing")
         alternatives = sensitivity.get("alternatives") or []
-        if not alternatives or any(
-            row.get("calibration_status") != "ok"
-            or not isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
-            for row in alternatives
+        ok_rows = [
+            row for row in alternatives
+            if row.get("calibration_status") == "ok"
+            and isinstance(row.get("origin_year_calibrated_s1_mdd_pct"), (int, float))
+        ]
+        infeasible_rows = [
+            row for row in alternatives
+            if row.get("calibration_status") == "outside_strength_bounds"
+            and row.get("origin_year_calibrated_s1_mdd_pct") is None
+        ]
+        if (
+            not alternatives or not ok_rows
+            or len(ok_rows) + len(infeasible_rows) != len(alternatives)
+            or len(ok_rows) < MIN_FEASIBLE_ALTERNATIVE_SHARE * len(alternatives)
+            or int(sensitivity.get("infeasible_alternative_count", 0)) != len(infeasible_rows)
         ):
             raise StructuralForecastError("calibrated selection alternatives are incomplete")
         selection = (evidence.get("innovation_cycle") or {}).get("selection_preregistration") or {}
