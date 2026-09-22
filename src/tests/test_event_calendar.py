@@ -74,6 +74,47 @@ def test_external_event_forecasts_have_pit_source_and_correct_event() -> None:
     assert forecasts["nfp_2026_10"][0]["unit"] == "thousand_people"
     assert all(row["source_url"].startswith("https://") for rows in forecasts.values() for row in rows)
 
+    after_fomc_capture = event_calendar.load_event_forecasts(
+        ROOT, datetime(2026, 9, 23, tzinfo=timezone.utc)
+    )
+    fomc = after_fomc_capture["fomc_2026_10"]
+    assert len(fomc) == 2
+    assert fomc[0]["unit"] == "rate_percent"
+    assert fomc[0]["value"] == "4.1"
+    assert "12/18명은 4.125%" in fomc[0]["label"]
+    assert "federalreserve.gov" in fomc[0]["source_url"]
+    assert fomc[1]["unit"] == "probability_fraction"
+    assert fomc[1]["value"] == "0.515"
+    assert "동결 YES 47~48¢" in fomc[1]["label"]
+    assert "kalshi.com" in fomc[1]["source_url"]
+
+
+def test_external_forecast_probability_requires_fraction_unit(tmp_path: Path) -> None:
+    import csv
+    import shutil
+
+    for relative in (event_calendar.SOURCES_PATH, event_calendar.EVENTS_PATH):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(ROOT / relative, target)
+    target = tmp_path / event_calendar.FORECASTS_PATH
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with target.open("w", encoding="utf-8", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=event_calendar.FORECAST_FIELDS)
+        writer.writeheader()
+        writer.writerow({
+            "snapshot_id": "bad-probability", "event_id": "fomc_2026_10",
+            "metric": "hike_25", "label": "인상", "value": "51.5",
+            "unit": "probability_fraction",
+            "source_name": "source", "source_url": "https://example.com/x",
+            "published_on": "2026-09-22", "captured_at": "2026-09-22T10:00:00Z",
+            "supersedes": "",
+        })
+    with pytest.raises(event_calendar.CalendarError, match="must be a fraction"):
+        event_calendar.load_event_forecasts(
+            tmp_path, datetime(2026, 9, 23, tzinfo=timezone.utc)
+        )
+
 
 def test_external_forecast_rejects_post_release_capture(tmp_path: Path) -> None:
     import csv

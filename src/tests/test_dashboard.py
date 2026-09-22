@@ -1503,9 +1503,13 @@ def test_today_events_open_forecast_detail_without_shape_icons() -> None:
     assert "ev-glyph" not in board
     assert "#future'" not in board
     assert "event:renderEventForecast" in script
-    detail = script[script.index("function renderEventForecast"):script.index("function upcoming")]
+    detail = script[script.index("function eventForecastValue"):script.index("function upcoming")]
     assert "DATA.event_forecasts?.[eventId]" in detail
     assert "시장 컨센서스나 확정" in detail
+    assert "row.unit==='rate_percent'" in detail
+    assert "row.unit==='probability_fraction'" in detail
+    assert "점도표는 연준 참가자의 연말 적정금리 판단" in detail
+    assert "예측시장 수치는 거래 호가" in detail
 
 
 def test_home_full_schedule_link_points_at_the_calendar_not_the_changelog() -> None:
