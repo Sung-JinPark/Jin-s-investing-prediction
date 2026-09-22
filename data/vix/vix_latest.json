@@ -4,7 +4,7 @@
   "source": "FRED (fred_market_signals 계약 · license approved)",
   "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&file_type=json",
   "observed_date": "2026-09-18",
-  "generated_at": "2026-09-22T00:49:02+00:00",
+  "generated_at": "2026-09-22T01:50:34+00:00",
   "level": 14.81,
   "band": "calm",
   "band_label": "평시",
