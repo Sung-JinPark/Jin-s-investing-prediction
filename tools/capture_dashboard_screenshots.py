@@ -42,6 +42,7 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("today-gdp-forecast", "#today/event/gdp_2026_q2_3"),
         ("today-jobs-forecast", "#today/event/nfp_2026_10"),
         ("today-cpi-forecast", "#today/event/cpi_2026_10"),
+        ("today-fomc-forecast", "#today/event/fomc_2026_10"),
         ("future-default", "#future"),
         ("future-research", "#future/research"),
         ("future-champion", "#future/champion"),

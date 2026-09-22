@@ -141,7 +141,9 @@ def load_event_forecasts(root: Path, as_of: datetime) -> dict[str, list[dict[str
             raise CalendarError(f"unknown event for forecast: {snapshot_id}")
         if not row["metric"] or not row["label"] or not row["source_name"]:
             raise CalendarError(f"incomplete event forecast: {snapshot_id}")
-        if row["unit"] not in {"percent", "thousand_people"}:
+        if row["unit"] not in {
+            "percent", "rate_percent", "thousand_people", "probability_fraction"
+        }:
             raise CalendarError(f"invalid event forecast unit: {snapshot_id}")
         try:
             value = float(row["value"])
@@ -151,6 +153,8 @@ def load_event_forecasts(root: Path, as_of: datetime) -> dict[str, list[dict[str
             raise CalendarError(f"invalid event forecast value/date: {snapshot_id}") from exc
         if not isfinite(value) or captured.tzinfo is None:
             raise CalendarError(f"invalid event forecast value/cutoff: {snapshot_id}")
+        if row["unit"] == "probability_fraction" and not 0 <= value <= 1:
+            raise CalendarError(f"event forecast probability must be a fraction: {snapshot_id}")
         if published > captured.date() or captured.date() > date.fromisoformat(events[row["event_id"]]["date"]):
             raise CalendarError(f"event forecast is not pre-release: {snapshot_id}")
         if urlparse(row["source_url"]).scheme != "https":

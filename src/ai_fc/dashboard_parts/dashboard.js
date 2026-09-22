@@ -2785,6 +2785,8 @@ function renderOverview(){
 function eventForecastValue(row){
   const value=Number(row.value);
   if(!Number.isFinite(value))return '—';
+  if(row.unit==='probability_fraction')return `${num(value*100)}%`;
+  if(row.unit==='rate_percent')return `${row.value}%`;
   if(row.unit==='thousand_people')return `${value>=0?'+':''}${num(value/10)}만 명`;
   return `${value>=0?'+':''}${row.value}%`;
 }
@@ -2805,7 +2807,7 @@ function renderEventForecast(eventId){
       <p class="page-lede">${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표 일정':'발표 예정'} · 아래 값은 발표 전 저장된 외부 추정치입니다.</p></div></div>
     <section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
       <h2>발표 예상값</h2><div class="event-forecast-grid">${cards}</div>
-      <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
+      <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':event.kind==='fomc'&&estimates.length?'점도표는 연준 참가자의 연말 적정금리 판단이며 10월 회의 확률이 아닙니다. 예측시장 수치는 거래 호가로, 공식 전망이나 확률 보장이 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
     </section>
     <a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>
   </div>`);
