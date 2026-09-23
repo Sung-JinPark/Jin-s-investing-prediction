@@ -388,10 +388,10 @@ def test_ui_contract() -> None:
     assert ".filter-bar{position:sticky" in html
     # 시장 지도 SVG 생성 함수 유지
     assert "function drawFlow" in html and "function drawOverlay" in html
-    assert "function drawCrossAsset" in html and "function drawCrossAssetHistory" in html
-    assert "BTC SENSITIVITY" in html
+    assert "function drawCrossAssetHistory" in html
+    assert "function drawCrossAsset(host" not in html
     assert "조건 4개" in html
-    assert "Realty Income 배당 포함 수익은 2001-03~2006-03 실측" in html
+    assert "NASDAQ·Realty Income·D.R. Horton은 모두 2001-03~2006-03 실측" in html
     assert "config.valueMode==='return_from_100'?signedDelta(value-100,0,'%')" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
@@ -679,9 +679,9 @@ def test_workspace_utility_contract() -> None:
     assert "data-flow-focus=\"ANALOG\"" in html
     assert "DATA.cross_asset" in html and "data-lab-tab=\"cross-asset\"" in html
     assert "교차자산 비교" in html
-    assert "NASDAQ·Bitcoin·리츠·주택주" in html
-    assert "Bitcoin</span><strong>가정 경로" in html
-    assert "BTC SENSITIVITY" in html and "data-cross-scenario" in html
+    assert "NASDAQ·리츠·주택주" in html
+    assert "닷컴 조정 뒤 5년 · NASDAQ · Bitcoin" not in html
+    assert "BTC SENSITIVITY" not in html and "data-cross-scenario" not in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
     assert 'class="plain-insight" aria-label="자산 비교 읽는 법"' in html
     assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" not in html
@@ -701,8 +701,9 @@ def test_workspace_utility_contract() -> None:
     assert "chart.chart_type==='stacked_bar'" in html
     assert "statistics-bar-total" in html
     assert "data-stat-id" in html
-    assert "paths_band" in html and "resolveEndpointLabels" in html
-    assert "aria-live','polite" in html and 'role="radiogroup"' in html
+    assert "keys:['nasdaq_price','realty_income_total_return','dr_horton_total_return']" in html
+    assert "resolveEndpointLabels" in html
+    assert "aria-live','polite" in html and "function bindCrossAsset(panel)" in html
     assert "model.history.period" in html and "label.endsWith('-06')" in html
     assert 'data-lab-tab="ai-regime"' not in html and 'data-lab-tab="liquidity"' in html
     assert "aiRegime.id='lab-ai-regime'" in html and 'href="#future/ai-regime">상태 상세' in html
@@ -1205,9 +1206,9 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "서로 다른 3개 군집",
         "분석 방법과 세부 통계",
         "모두 보정되지 않은 모의 경로 비율입니다",
-        "Bitcoin</span><strong>가정 경로",
+        "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
         "유동성이 늘고 줄어든 구간",
-        "bindCrossAsset(crossAsset,initialState.scenario)",
+        "bindCrossAsset(crossAsset)",
         "bindLiquidity(liquidity)",
     ):
         assert required in html
@@ -1373,7 +1374,7 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "하락월 β", "Bitcoin만 beta 민감도",
+        "realtyContext.condition_summary", "NASDAQ·Realty Income·D.R. Horton은 모두",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
@@ -1387,11 +1388,16 @@ def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_vi
         "혁신사이클 대표 참조선 · 확률 아님",
         "data-reference-path':'innovation-cycle'",
         "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다",
-        "실측 + BTC 반사실",
-        "2001-03부터 2006-03까지 5개년 비교",
-        "tickIndexes:[0,12,24,36,48,60]",
+        "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
+        "세 자산의 실제 경로를 시작값 100으로 맞춰",
+        "keys:['nasdaq_price','realty_income_total_return','dr_horton_total_return']",
     ):
         assert required in html
+    panel = html[html.index("function crossAssetPanel"):html.index("function cohortResultsMarkup")]
+    assert "닷컴 조정 뒤 5년 · NASDAQ · Bitcoin" not in panel
+    assert 'id="cross-chart"' not in panel
+    assert "data-cross-scenario" not in panel
+    assert "function drawCrossAsset(host" not in html
 
 
 def test_structural_calibration_selection_invariance_is_visible() -> None:
