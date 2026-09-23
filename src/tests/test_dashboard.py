@@ -426,6 +426,18 @@ def test_u1a_five_section_information_architecture_contract() -> None:
     ):
         assert html.count(f'href="#{route}"') >= 3
         assert label in html
+    rail_order = [
+        'href="#today" data-v="today"',
+        'href="#future" data-v="future"',
+        'href="#statistics" data-v="statistics"',
+        'href="#timeseries" data-v="timeseries"',
+        'href="#trust" data-v="trust"',
+        'href="#records" data-v="records"',
+    ]
+    assert [shell.index(item) for item in rail_order] == sorted(shell.index(item) for item in rail_order)
+    assert '<span class="rail-num">04</span><span class="rail-label">시계열 예측</span>' in shell
+    assert '<span class="rail-num">05</span><span class="rail-label">데이터와 신뢰</span>' in shell
+    assert '<span class="rail-num">06</span><span class="rail-label">기록과 검증</span>' in shell
     for legacy in ("overview", "flow", "questions", "ask", "asof", "track"):
         assert f'href="#{legacy}" data-v=' not in shell
     for mapping in (
@@ -1136,23 +1148,23 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
         assert f"['{category}'," in html, f"통계 카테고리 목록에 {category} 없음"
     assert "['all','전체'],['ipo','IPO·상장']" in html
 
-    # 04 기록과 검증: 중분류 4개(질문 목록·성과 검증·변경 일지·비교)
-    assert "['journal','변경 일지','#records/journal']" in html
+    # 06 기록과 검증: 중분류 4개(예측 기록·검증 결과·변경 내역·비교)
+    assert "['journal','변경 내역','#records/journal']" in html
     assert "appendContextTabs(root,'research','journal');" in html
     live_journal = html.split("function renderDecisionJournal(")[1].split("\nfunction ")[0]
     assert "appendContextTabs(root,'research','journal');" in live_journal
     assert "appendContextTabs(root,'replay','asof');" not in live_journal, "일지는 대분류 밖 replay 그룹을 쓰지 않는다"
-    assert 'href="#future/lookup">미래 탐색의 기간 조회' in html, "기간 조회 크로스링크는 본문에 유지"
+    assert 'href="#future/lookup">기간 조회' in html, "기간 조회 크로스링크는 본문에 유지"
 
-    # 06 데이터와 신뢰: 중분류 3개
+    # 05 데이터와 신뢰: 중분류 3개
     assert "if(parts[0]==='trust')" in html and "trustTab:parts[1]||null" in html
     for key in ("status", "sources", "audit"):
         assert f'data-trust-tab="${{key}}"' in html or f"'{key}'" in html, key
-    assert "const trustTabs=[['status','데이터 상태','01'],['sources','출처와 방법','02'],['audit','감사 기록','03']]" in html
+    assert "const trustTabs=[['status','현재 상태','01'],['sources','데이터 흐름','02'],['audit','변경 기록','03']]" in html
     assert "activateTrustTab(initial?.trustTab||'status',false)" in html
     assert "syncMidHash(active==='status'?'#trust':'#trust/'+active)" in html
 
-    # 05도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
+    # 04 시계열 예측도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
     assert "const TS_TABS=[['summary','전망 요약','01']" in html
     assert "const enabled=visible?TS_TABS.map(([key])=>key):['summary']" in html
     assert "if(parts[0]==='timeseries')return {section:'timeseries',view:'timeseries',arg:{tsTab:parts[1]||null}}" in html
@@ -1330,12 +1342,14 @@ def test_u1c_browser_regression_evidence() -> None:
 def test_data_trust_pipeline_is_visual_plain_language_and_live() -> None:
     html = dashboard.load_template()
     for required in (
-        "현재 데이터 상태", "공개 데이터가 그래프가 되기까지",
-        "공개 원천 수집", "시점·형식 검사", "변경 이력 보관", "화면과 모델 분리",
-        "원장별 상세 상태", "데이터 출처 상세", "확률 숫자 읽는 법",
+        "현재 데이터 상태", "수집한 값이 화면에 오기까지",
+        "공식 데이터 수집", "오류·시점 검사", "화면에 반영",
+        "항목별 상태", "출처 목록", "전망 데이터와 수정 내역",
         "ledgerSummary.accumulating", "ledgerSummary.stalled", "ledgerSummary.violation",
     ):
         assert required in html
+    assert "?mode=operator에서 열립니다" not in html
+    assert "현재 전망 영수증" not in html
     assert "매주 공개 원천을 다시 확인합니다" not in html
     assert "Trust Center" not in html
 
@@ -1355,7 +1369,7 @@ def test_liquidity_series_share_one_plot_with_explicit_dual_axes() -> None:
 def test_decision_journal_share_and_contrast_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "예측 변경 일지", "그날로 돌아가기", "APPEND-ONLY PROVENANCE",
+        "무엇이 왜 바뀌었는지 봅니다", "날짜별 비교", "이전 기록은 지우지 않습니다",
         'role="feed"', "change_note", "#asof=", "share-popover",
         "기준일 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
         # 화면마다 기준일과 확률 공간이 다르다 — 공유 텍스트도 그 화면 것을 쓴다(검수 260904).
