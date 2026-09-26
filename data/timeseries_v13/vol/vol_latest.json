@@ -1,33 +1,192 @@
 {
- "as_of": "2026-09-22",
+ "as_of": "2026-09-25",
+ "cells": {
+  "rv_h21": {
+   "band80": [
+    0.544995,
+    0.664373
+   ],
+   "clim_base_rate": 0.670848,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.604684,
+   "p_raw": 0.604684,
+   "reliability": "good",
+   "se_raw": 0.046576,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h5": {
+   "band80": [
+    0.281208,
+    0.372389
+   ],
+   "clim_base_rate": 0.552434,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.326799,
+   "p_raw": 0.326799,
+   "reliability": "good",
+   "se_raw": 0.035575,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "rv_h63": {
+   "band80": [
+    0.821917,
+    0.905752
+   ],
+   "clim_base_rate": 0.876474,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.863835,
+   "p_raw": 0.863835,
+   "reliability": "weak",
+   "se_raw": 0.032709,
+   "target": "rv_exceedance",
+   "theta": 0.1694
+  },
+  "vix25_h21": {
+   "K": 25,
+   "band80": [
+    0.042032,
+    0.097127
+   ],
+   "clim_base_rate": 0.419468,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.06958,
+   "p_raw": 0.06958,
+   "reliability": "good",
+   "se_raw": 0.021496,
+   "target": "vix_touch"
+  },
+  "vix25_h5": {
+   "K": 25,
+   "band80": [
+    0.003765,
+    0.007846
+   ],
+   "clim_base_rate": 0.307616,
+   "derived_layer": "raw",
+   "episode_sample": "ok",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.005806,
+   "p_raw": 0.005806,
+   "reliability": "good",
+   "se_raw": 0.001592,
+   "target": "vix_touch"
+  },
+  "vix25_h63": {
+   "K": 25,
+   "band80": [
+    0.225968,
+    0.385396
+   ],
+   "clim_base_rate": 0.607893,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.305682,
+   "p_raw": 0.305682,
+   "reliability": "weak",
+   "se_raw": 0.062201,
+   "target": "vix_touch"
+  },
+  "vix30_h21": {
+   "K": 30,
+   "band80": [
+    0.013325,
+    0.043435
+   ],
+   "clim_base_rate": 0.251882,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 21,
+   "model": "persistence_pb",
+   "p": 0.02838,
+   "p_raw": 0.02838,
+   "reliability": "good",
+   "se_raw": 0.011747,
+   "target": "vix_touch"
+  },
+  "vix30_h5": {
+   "K": 30,
+   "band80": [
+    0.001137,
+    0.002739
+   ],
+   "clim_base_rate": 0.178198,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 5,
+   "model": "persistence_pb",
+   "p": 0.001938,
+   "p_raw": 0.001938,
+   "reliability": "good",
+   "se_raw": 0.000625,
+   "target": "vix_touch"
+  },
+  "vix30_h63": {
+   "K": 30,
+   "band80": [
+    0.070926,
+    0.172325
+   ],
+   "clim_base_rate": 0.406971,
+   "derived_layer": "raw",
+   "episode_sample": "thin",
+   "h": 63,
+   "model": "persistence_pb",
+   "p": 0.121626,
+   "p_raw": 0.121626,
+   "reliability": "weak",
+   "se_raw": 0.039561,
+   "target": "vix_touch"
+  }
+ },
  "coefficients": {
   "content_hash": "1fdeb1364ea7eba01a1f420eebba0ad53c8339ae8be4c877c9affe0bd91e23f4",
   "finalist_id": "V13VOL_champion_aec80c65038b",
   "path": "data/timeseries_v13/vol/champion_coefficients.json",
   "sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
  },
- "content_hash": "4277fb0a3ab024b133a5791cf4c41d7323dfe81aae7d29c02ee50ac681ee0c3f",
+ "content_hash": "2beae8b052734e7eccf393951983c8a713cc315429e0552e1738dba6fa7bed9f",
  "footnote": "설계창(2007-2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호 아님. 80% 대역은 계수 불확실성(델타법)이며 보정 대역이 아니다.",
  "freshness": {
-  "as_of": "2026-09-22",
-  "evaluated_at": "2026-09-26T02:13:33+00:00",
+  "as_of": "2026-09-25",
+  "evaluated_at": "2026-09-26T06:48:28+00:00",
   "last_completed_session": "2026-09-25",
   "max_missing_sessions": 1,
-  "missing_sessions": 3,
+  "missing_sessions": 0,
   "rule": "nyse_trading_calendar",
-  "status": "stale"
+  "status": "fresh"
  },
  "gate": {
   "armed": true,
   "coefficients_pinned": true,
   "design_gate_pass": true,
-  "freshness_pass": false,
+  "freshness_pass": true,
   "holdout_status": "partial",
-  "reasons": [
-   "stale: missing_sessions=3 > 1"
-  ]
+  "reasons": []
  },
- "knowledge_cutoff": "2026-09-26T02:13:33+00:00",
+ "inputs": {
+  "rv21_ann": 0.15018871044544138,
+  "rv21_ann_ewma21": 0.14839397854763697,
+  "vix_close": 14.87,
+  "vix_close_ewma21": 15.572844508692853
+ },
+ "knowledge_cutoff": "2026-09-26T06:48:28+00:00",
  "model_id": "event_probability.volatility_v13",
  "model_version": 13,
  "probability_space": "research_volatility_v13_base_rate",
@@ -36,11 +195,11 @@
   "combined_with_official_forecasts": false,
   "combined_with_scenario_v5_2": false,
   "combined_with_timeseries_v8": false,
-  "customer_numbers_visible": false,
+  "customer_numbers_visible": true,
   "holdout_status": "partial",
   "reference_opinion_only": true,
   "trading_signal": false
  },
  "schema_version": 1,
- "status": "hold"
+ "status": "live"
 }
