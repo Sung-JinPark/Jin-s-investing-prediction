@@ -2663,6 +2663,7 @@ function evShortLabel(item){
    GDP 는 제목 끝의 '추정'이 속보→2차→3차 개정 차수를 뜻하는 통계 용어라 우리 화면의
    '추정(일정 미확정)'과 충돌한다 — 차수 표기만 남긴다('GDP 2분기 3차 추정' → 'GDP 2분기 3차'). */
 function evFullLabel(item){
+  if(item.kind==='earnings')return evShortLabel(item);
   if(Number(item.clusterCount||1)>1)return evShortLabel(item);
   const raw=String(item.title||'').replace(/\s*\([^)]*(?:추정|잠정)[^)]*\)\s*/g,' ').trim();
   const title=item.kind==='gdp'?raw.replace(/\s*추정\s*$/,''):raw;
@@ -2685,7 +2686,7 @@ function evConfirmed(list,item){
    끌어올리는데, 순수 시간순 6건은 nfp·fomc·cpi·gdp·nfp·cpi 로 실적이 한 장도 없다. */
 function evPick(list,cap){
   const first=new Map(),rest=[];
-  groupFlowCalendarEvents(list).forEach(row=>{const k=row.kind||'other';
+  groupFlowCalendarEvents(list).forEach(row=>{const k=eventBoardKindKey(row);
     if(first.has(k))rest.push(row);else first.set(k,row);});
   const picked=[...first.values()];
   for(const row of rest){if(picked.length>=cap)break;picked.push(row);}
@@ -3994,10 +3995,34 @@ function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
     return {index,label,eventX,labelX,lane,meta};
   });
 }
+function earningsGroup(event){
+  const ticker=String(event.ticker||'').toUpperCase();
+  if(['MU','NVDA','AMD','INTC','AVGO','QCOM','TSM','ASML'].includes(ticker))return 'semiconductor';
+  if(['MSFT','GOOGL','META','AAPL','AMZN'].includes(ticker))return 'bigtech';
+  return 'company';
+}
+function earningsCompanyName(event){
+  const ticker=String(event.ticker||'').toUpperCase(),names={
+    MU:'Micron',NVDA:'NVIDIA',AMD:'AMD',INTC:'Intel',AVGO:'Broadcom',QCOM:'Qualcomm',TSM:'TSMC',ASML:'ASML',
+    MSFT:'Microsoft',GOOGL:'Alphabet',META:'Meta',AAPL:'Apple',AMZN:'Amazon'
+  };
+  return names[ticker]||ticker||String(event.title||event.label||'').split(/\s+/)[0]||'기업';
+}
+function earningsMemberNames(event){
+  const tickers=Array.isArray(event.clusterTickers)&&event.clusterTickers.length?event.clusterTickers:[event.ticker];
+  return [...new Set(tickers.filter(Boolean).map(ticker=>earningsCompanyName({ticker})))];
+}
+function eventBoardKindKey(event){
+  return event.kind==='earnings'?`earnings:${event.earningsGroup||earningsGroup(event)}`:(event.kind||'other');
+}
 function flowCalendarEventLabel(event){
   const parts=String(event.date||'').split('-'),md=parts.length===3?`${Number(parts[1])}/${Number(parts[2])}`:String(event.date||'');
   const title=String(event.title||event.label||'').replace(/\s*\([^)]*추정[^)]*\)\s*/g,' ').trim(),count=Number(event.clusterCount||1);
-  if(event.kind==='earnings')return count>1?`${md} 빅테크 실적 ${count}건`:`${md} ${event.ticker||title.split(/\s+/)[0]||'기업'} 실적`;
+  if(event.kind==='earnings'){
+    const group=event.earningsGroup||earningsGroup(event),category=group==='semiconductor'?'반도체 실적':group==='bigtech'?'빅테크 실적':'기업 실적';
+    const names=earningsMemberNames(event),members=names.length?` (${names.join(' · ')})`:'';
+    return `${md} ${category}${count>1?` ${count}건`:''}${members}`;
+  }
   if(event.kind==='fomc')return `${md} ${/SEP/i.test(title)?'FOMC·SEP':'FOMC'}`;
   if(event.kind==='cpi')return `${md} CPI`;
   if(event.kind==='nfp')return `${md} 고용`;
@@ -4005,8 +4030,9 @@ function flowCalendarEventLabel(event){
   return `${md} ${title.slice(0,14)||'주요 일정'}`;
 }
 function groupFlowCalendarEvents(events){
-  const grouped=new Map();(events||[]).forEach((event,eventIndex)=>{const earnings=event.kind==='earnings',key=earnings?`${event.date}|earnings`:`${event.date}|${event.kind}|${eventIndex}`;
-    if(!grouped.has(key))grouped.set(key,{...event,clusterCount:1});else grouped.get(key).clusterCount+=1;});
+  const grouped=new Map();(events||[]).forEach((event,eventIndex)=>{const earnings=event.kind==='earnings',group=earnings?earningsGroup(event):'',key=earnings?`${event.date}|earnings|${group}`:`${event.date}|${event.kind}|${eventIndex}`;
+    if(!grouped.has(key))grouped.set(key,{...event,clusterCount:1,earningsGroup:group,clusterTickers:event.ticker?[event.ticker]:[]});
+    else{const row=grouped.get(key);row.clusterCount+=1;if(event.ticker&&!row.clusterTickers.includes(event.ticker))row.clusterTickers.push(event.ticker);}});
   return [...grouped.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.kind).localeCompare(String(b.kind)));
 }
 function buildRebasedFlowModel(sc,lookupDate){
@@ -4029,7 +4055,7 @@ function buildRebasedFlowModel(sc,lookupDate){
   });
   const events=(sc.calendar_events||sc.event_calendar||[]).filter(event=>event.date>=lookupDate&&event.date<=dates.at(-1)).map(event=>{
     let nearest=0,best=Infinity;dates.forEach((date,index)=>{const distance=Math.abs(Date.parse(date)-Date.parse(event.date));if(distance<best){best=distance;nearest=index;}});
-    return {index:nearest,date:event.date,label:event.title||event.label||event.kind||'',status:event.status||'confirmed',kind:event.kind||event.category||'other'};
+    return {index:nearest,date:event.date,label:event.title||event.label||event.kind||'',status:event.status||'confirmed',kind:event.kind||event.category||'other',ticker:event.ticker||''};
   });
   return {lookup_date:lookupDate,asof:sc.asof,remaining_trading_days:remaining,dates,offsets,series,scenario_series:scenarioSeries,scenario_basis_dates:scenarioBasisDates,events};
 }

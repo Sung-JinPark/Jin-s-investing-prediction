@@ -114,30 +114,33 @@ def test_flow_calendar_uses_readable_text_labels_and_groups_dense_earnings() -> 
     )
     source = script_path.read_text(encoding="utf-8")
     match = re.search(
-        r"function flowCalendarEventLabel\([\s\S]+?\n}\nfunction buildRebasedFlowModel",
+        r"function earningsGroup\([\s\S]+?\n}\nfunction buildRebasedFlowModel",
         source,
     )
     assert match, "calendar text helpers must remain standalone and testable"
     helpers = match.group(0).removesuffix("\nfunction buildRebasedFlowModel")
     program = helpers + r"""
 const events=[
-  {date:'2026-08-26',kind:'earnings',ticker:'NVDA',title:'NVIDIA FY27 Q2 실적'},
+  {date:'2026-09-30',kind:'earnings',ticker:'MU',title:'Micron FY2026 Q4 실적'},
   {date:'2026-09-16',kind:'fomc',title:'FOMC 결정·SEP'},
   {date:'2026-10-28',kind:'earnings',ticker:'GOOGL',title:'Alphabet 분기 실적'},
   {date:'2026-10-28',kind:'earnings',ticker:'META',title:'Meta 분기 실적'},
   {date:'2026-10-28',kind:'earnings',ticker:'MSFT',title:'Microsoft 분기 실적'}
 ];
-console.log(JSON.stringify(groupFlowCalendarEvents(events).map(flowCalendarEventLabel)));
+const grouped=groupFlowCalendarEvents(events);
+console.log(JSON.stringify({labels:grouped.map(flowCalendarEventLabel),keys:grouped.map(eventBoardKindKey)}));
 """
     completed = subprocess.run(
         ["node", "-e", program], check=True, capture_output=True,
         text=True, encoding="utf-8"
     )
-    assert json.loads(completed.stdout) == [
-        "8/26 NVDA 실적",
+    result = json.loads(completed.stdout)
+    assert result["labels"] == [
         "9/16 FOMC·SEP",
-        "10/28 빅테크 실적 3건",
+        "9/30 반도체 실적 (Micron)",
+        "10/28 빅테크 실적 3건 (Alphabet · Meta · Microsoft)",
     ]
+    assert result["keys"] == ["fomc", "earnings:semiconductor", "earnings:bigtech"]
     assert "appendCalendarEventShape" not in source
 
 
@@ -523,6 +526,7 @@ def _event_board_helpers() -> str:
     ).read_text(encoding="utf-8")
     picked = []
     for name in ("const EV_BOARD_CAP", "function evConfirmed", "function evPick",
+                 "function earningsGroup", "function eventBoardKindKey",
                  "function groupFlowCalendarEvents"):
         start = source.index(name)
         end = source.index(NL + "}" + NL, start) + 3 if name.startswith("function")             else source.index(NL, start) + 1
@@ -546,8 +550,9 @@ const rows=[
   {date:'2027-01-08',kind:'nfp',status:'estimated'},
   {date:'2027-01-13',kind:'cpi',status:'estimated'},
   {date:'2027-02-24',kind:'earnings',status:'estimated',ticker:'NVDA'},
+  {date:'2027-03-01',kind:'earnings',status:'estimated',ticker:'MSFT'},
 ];
-console.log(JSON.stringify(evPick(rows,EV_BOARD_CAP).map(r=>[r.date,r.kind])));
+console.log(JSON.stringify(evPick(rows,EV_BOARD_CAP).map(r=>[r.date,eventBoardKindKey(r)])));
 """
     completed = subprocess.run(
         ["node", "-e", program], check=True, capture_output=True,
@@ -555,8 +560,9 @@ console.log(JSON.stringify(evPick(rows,EV_BOARD_CAP).map(r=>[r.date,r.kind])));
     )
     picked = json.loads(completed.stdout)
     kinds = [kind for _, kind in picked]
-    assert "earnings" in kinds, f"종류 인덱싱이 사라지면 실적이 빠진다: {picked}"
-    assert len(set(["nfp", "fomc", "cpi", "gdp", "earnings"]) - set(kinds)) == 0
+    assert "earnings:semiconductor" in kinds, f"반도체 실적이 빠지면 안 된다: {picked}"
+    assert "earnings:bigtech" in kinds, f"빅테크 실적이 빠지면 안 된다: {picked}"
+    assert len(set(["nfp", "fomc", "cpi", "gdp", "earnings:semiconductor", "earnings:bigtech"]) - set(kinds)) == 0
     dates = [date for date, _ in picked]
     assert dates == sorted(dates), "읽는 순서는 시간 순서여야 한다"
 
@@ -614,8 +620,8 @@ def test_home_event_board_never_uses_time_et_as_status_proxy() -> None:
 def test_home_event_board_column_counts_collapse_without_orphans() -> None:
     """6장은 3열로도 2열로도 나누어떨어진다 — 마지막 줄에 고아 카드가 없다.
 
-    400px 에서는 4장으로 줄인다. n+5 규칙을 지우면 2열 3행이 되어 세로 이득이 사라진다
-    (실측: 400px 에서 403px -> 268px 로 줄인 것이 이 상한 덕이다).
+    빅테크·반도체를 별도 종류로 고른 뒤에는 모바일에서도 여섯 장을 유지해야 두 실적
+    묶음이 모두 보인다. 2열 3행이므로 마지막 줄에도 고아 카드는 생기지 않는다.
     """
     css = (
         Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css"
@@ -623,8 +629,7 @@ def test_home_event_board_column_counts_collapse_without_orphans() -> None:
     assert re.search(r"\.ev-cards\{[^}]*grid-template-columns:repeat\(3,", css)
     assert re.search(r"@media\(max-width:760px\)\{[^@]*?\.ev-cards\{grid-template-columns:repeat\(2,",
                      css, re.S)
-    assert re.search(r"@media\(max-width:620px\)\{[\s\S]*?\.ev-card:nth-child\(n\+5\)\{display:none\}",
-                     css)
+    assert ".ev-card:nth-child(n+5){display:none}" not in css
 
 
 def test_home_event_title_is_never_truncated() -> None:
