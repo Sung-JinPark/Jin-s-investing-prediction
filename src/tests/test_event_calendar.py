@@ -23,6 +23,12 @@ def test_calendar_contract_and_twelve_month_events_are_registered() -> None:
                 if row["kind"] == "cpi" and row["status"] == "confirmed"]) == 5
     assert any(row["kind"] == "earnings" and row["status"] == "estimated"
                for row in events)
+    micron = next(row for row in events if row["event_id"] == "mu_fy26_q4")
+    assert micron["date"] == "2026-09-30"
+    assert micron["time_et"] == "16:30"
+    assert micron["status"] == "confirmed"
+    assert micron["ticker"] == "MU"
+    assert micron["source_id"] == "micron_ir"
     assert all("yahoo" not in row["source_url"].lower() for row in events)
 
 
