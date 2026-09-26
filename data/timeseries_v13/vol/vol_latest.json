@@ -6,14 +6,14 @@
   "path": "data/timeseries_v13/vol/champion_coefficients.json",
   "sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
  },
- "content_hash": "c188887e377a38cab0b769db93430687d5c0cf86ae2ad4a753f9bdf3fab0a93f",
+ "content_hash": "82e6935adcb1da7d8ea71bdd8c83cfb302890d47134cdd83abfc088b8cafc6fc",
  "footnote": "설계창(2007-2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호 아님. 80% 대역은 계수 불확실성(델타법)이며 보정 대역이 아니다.",
  "freshness": {
   "as_of": "2026-09-22",
-  "evaluated_at": "2026-09-25T09:04:22+00:00",
-  "last_completed_session": "2026-09-24",
+  "evaluated_at": "2026-09-26T02:03:35+00:00",
+  "last_completed_session": "2026-09-25",
   "max_missing_sessions": 1,
-  "missing_sessions": 2,
+  "missing_sessions": 3,
   "rule": "nyse_trading_calendar",
   "status": "stale"
  },
@@ -24,10 +24,10 @@
   "freshness_pass": false,
   "holdout_status": "partial",
   "reasons": [
-   "stale: missing_sessions=2 > 1"
+   "stale: missing_sessions=3 > 1"
   ]
  },
- "knowledge_cutoff": "2026-09-25T09:04:22+00:00",
+ "knowledge_cutoff": "2026-09-26T02:03:35+00:00",
  "model_id": "event_probability.volatility_v13",
  "model_version": 13,
  "probability_space": "research_volatility_v13_base_rate",
