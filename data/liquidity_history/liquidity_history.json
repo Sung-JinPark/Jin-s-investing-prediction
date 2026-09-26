@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "asof": "2026-09-18",
-  "generated_at": "2026-09-21T06:36:30+00:00",
+  "asof": "2026-09-25",
+  "generated_at": "2026-09-26T06:14:58+00:00",
   "status": "display_history",
   "probability_space": "reference_only",
   "display_start": "2019-01-04",
@@ -411,7 +411,8 @@
       "2026-08-28",
       "2026-09-04",
       "2026-09-11",
-      "2026-09-18"
+      "2026-09-18",
+      "2026-09-25"
     ],
     "fed_net_liquidity_z_52w": [
       -1.8,
@@ -816,7 +817,8 @@
       -0.05,
       -0.13,
       0.73,
-      0.9
+      0.9,
+      -0.11
     ],
     "nasdaq_return_26w_pct": [
       -12.3,
@@ -1221,7 +1223,8 @@
       16.5,
       18.4,
       19.1,
-      22.5
+      22.5,
+      29.2
     ],
     "bitcoin_return_26w_pct": [
       -42.2,
@@ -1626,7 +1629,8 @@
       18.1,
       16.9,
       8.7,
-      14.7
+      14.7,
+      27.2
     ],
     "liquidity_zone": [
       "contraction",
@@ -2031,44 +2035,45 @@
       "contraction",
       "contraction",
       "expansion",
-      "expansion"
+      "expansion",
+      "neutral"
     ]
   },
   "receipts": [
     {
       "source": "fred_market_signals",
       "series_id": "WALCL",
-      "response_sha256": "a4001e702a9d3c23058e2d66c2fda8a7d29f66817b9d80738233095cd82cc186",
-      "fetched_at": "2026-09-21T06:36:28+00:00",
+      "response_sha256": "1836573881fb2eb7bc45ba00aa9d91de2300e4d6ee1923ebde0007c69c3ddd2c",
+      "fetched_at": "2026-09-26T06:14:57+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "WTREGEN",
-      "response_sha256": "9113f5293197343e72e675df1d715ebe3e0290eb5377d0cde8d9f7361f45af84",
-      "fetched_at": "2026-09-21T06:36:29+00:00",
+      "response_sha256": "933f968902f8a2230a2b4ba009f41a8f72830771859439a4ee752ca70de425a5",
+      "fetched_at": "2026-09-26T06:14:58+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "fred_market_signals",
       "series_id": "RRPONTSYD",
-      "response_sha256": "f948805c07a864844b8bb5b75b58f595dc550509ce0793b30cee2d97358c18c4",
-      "fetched_at": "2026-09-21T06:36:29+00:00",
+      "response_sha256": "e41be6eca791e95c43670896e499c8b9d53dfce1721dbc02838575d27589df57",
+      "fetched_at": "2026-09-26T06:14:58+00:00",
       "revision_vintage": "captured_current"
     },
     {
       "source": "yahoo-chart",
       "symbol": "^IXIC",
       "interval": "1d",
-      "response_sha256": "645ab46651e631545ef1d7fbe16ad28de00d691caafab3ac04022890e8e88f16",
-      "fetched_at": "2026-09-21T06:36:30+00:00"
+      "response_sha256": "cf3d1392562a04a94452897b057bd6f0c71f82541fc3fa4f115d3eae4262f617",
+      "fetched_at": "2026-09-26T06:14:58+00:00"
     },
     {
       "source": "yahoo-chart",
       "symbol": "BTC-USD",
       "interval": "1d",
-      "response_sha256": "9eb2a553de78194bee2333ba111248b904594e5033cd8c5a3830af3e5f69f42c",
-      "fetched_at": "2026-09-21T06:36:30+00:00"
+      "response_sha256": "d400ffa714d6ac2bbb2d53fedd6b7df182421fcba0c6cb327d742f1d5775320a",
+      "fetched_at": "2026-09-26T06:14:58+00:00"
     }
   ],
   "semantics": "display-only weekly history reconstructed from the current FRED/Yahoo vintage; not a point-in-time record, not valid for backtests or the lead/lag gate"
