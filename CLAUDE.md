@@ -48,6 +48,7 @@ data/base_rates/           ← Outside view 라이브러리 (수동 + *_auto.md 
 data/ml_history/           ← 모델 산출 이력 (append-only JSONL — DB 재구축 원천)
 src/ai_fc/                 ← 예측 엔진 (CLI: cd src && python -m ai_fc)
 .claude/                   ← Claude Code 설정: settings.json(공유 권한·불변경로 훅)·rules/·skills/·agents/·hooks/
+.mcp.json                  ← MCP 서버 연결 (현재 비어 있음 — 쓰는 서버가 생기면 여기에 등록)
 dualdb/                    ← 닷컴↔AI 이중시대 일간 비교 DB (자체 CLI·스펙·CHANGELOG)
 reports/                   ← calibration.html · md/(시나리오 스펙) · audit/(검증 패키지)
 db/                        ← SQLite 파생 인덱스 (gitignore — sync --rebuild로 재구축 가능)
