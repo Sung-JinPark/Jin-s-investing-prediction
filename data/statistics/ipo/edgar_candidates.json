@@ -1,11 +1,11 @@
 {
-  "schema_version": 1,
-  "dataset_id": "ipo_edgar_424b4_candidates_v1",
-  "cadence": "biweekly",
-  "checked_at": "2026-09-19T06:37:17+00:00",
+  "schema_version": 2,
+  "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
+  "cadence": "weekly",
+  "checked_at": "2026-09-27T23:12:23+00:00",
   "reviewed_through": "2026-08-12",
   "window_start": "2026-08-13",
-  "window_end": "2026-09-19",
+  "window_end": "2026-09-27",
   "status": "current",
   "form": "424B4",
   "source": "sec_edgar_full_text_search",
@@ -18,13 +18,18 @@
     "neural network"
   ],
   "window_clipped_to_max_lookback": false,
-  "applies_to_published_counts": false,
+  "classification_policy": "sec_424b4_ai_materiality_v1",
+  "applies_to_published_counts": true,
   "historical_rows_locked": true,
-  "allowed_update_scope": "current_era_rows_only_after_review",
+  "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
   "counts": {
-    "candidates": 15,
+    "candidates": 19,
     "already_in_cohort": 0,
-    "pending_review": 15
+    "pending_review": 0,
+    "new_decisions": 19,
+    "auto_included": 1,
+    "auto_excluded": 18,
+    "new_cohort_rows": 1
   },
   "errors": [],
   "candidates": [
@@ -39,7 +44,14 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "aeaaca9bbf404d69e5c4478662bb59a0456306d930809a36b352f2208937d027",
+      "reason_codes": [
+        "spac",
+        "not_initial_public_offering",
+        "already_public_or_follow_on",
+        "offer_price_below_5"
+      ]
     },
     {
       "company": "SunScout Holding Ltd",
@@ -54,7 +66,12 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "bb18103d7d5082581b98e56151ee22e5cca8a3ea57428717840f1a2ff99c154a",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Londian Wason New Energy Tech Inc.",
@@ -67,7 +84,11 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "f7b550ca91ecebb5a9491ecc6b436b31dbb7701047712b7724ea33591ebe9fb8",
+      "reason_codes": [
+        "offer_price_not_found"
+      ]
     },
     {
       "company": "Karman Line Acquisition Corp.",
@@ -80,7 +101,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "32059ec6d26b7521d744e53cf2444e3c72492862ac172d94d3e7da0c59614840",
+      "reason_codes": [
+        "spac",
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "Alliance Laundry Holdings Inc.",
@@ -93,7 +119,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "df36733728e157c526296a0d5a29a371b2441a87128f15e93f6bdaeb22820e5a",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Lyntris Inc.",
@@ -108,7 +139,11 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "107a5a9a2a25da2afc60b7c2450847604f2c522f3915c3d28afbe88efdb6f25e",
+      "reason_codes": [
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "Andersen Group Inc.",
@@ -122,7 +157,11 @@
         "generative AI"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "1c30662ac6cf0fc89ba3fe935f68672be49ad85d3b7dbb0a6e751a0e2fa0488d",
+      "reason_codes": [
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "JATT III Acquisition Corp",
@@ -135,7 +174,12 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "f8fdaa4fc748339242d45fbf00f5d5b1a0544990b3efeba70325b0d48ad18304",
+      "reason_codes": [
+        "spac",
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "Rainier Acquisition Corp",
@@ -149,7 +193,12 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "0a7c9085fcbe117583507d62372387d2dc76cfc983201cc857a0a945213184bf",
+      "reason_codes": [
+        "spac",
+        "offer_price_not_found"
+      ]
     },
     {
       "company": "Check-Cap Ltd",
@@ -162,7 +211,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "371fcf9e3e91a9b633789862ea7a74c9b187990bed7f831031606f2956be024b",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Republic Power Group Ltd",
@@ -178,7 +232,13 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "aa294c2da58586c9dab1da6863a0aad4eccd98b1625ccfbbfa1a9ecec9508e76",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on",
+        "offer_price_below_5"
+      ]
     },
     {
       "company": "Lianhe Sowell International Group Ltd",
@@ -194,7 +254,13 @@
         "neural network"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "17e49fae4b13bff1c5572bebd3da2a4a94c743351e131ef79c5af414bd8ccf36",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on",
+        "offer_price_below_5"
+      ]
     },
     {
       "company": "Verdera Energy Corp.",
@@ -207,7 +273,13 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "ddfbfba17efbcf6e4d88160c096c91d26bc05bef7ffdaa8ff75bf5f5a175ad70",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on",
+        "offer_price_not_found"
+      ]
     },
     {
       "company": "Haymaker Acquisition Corp V",
@@ -220,7 +292,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "6bc87f5a595046137806dc0238028861158e64993f6388c7e3d24725c337cdb8",
+      "reason_codes": [
+        "spac",
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "Electra Therapeutics, Inc.",
@@ -235,7 +312,90 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "02512a593614b6ea3e5e6712cacb79839ffe02105a53bbd725316d05bf3049f2",
+      "reason_codes": [
+        "ai_not_material_enough_in_final_prospectus"
+      ]
+    },
+    {
+      "company": "Orion180 Insurance Group Inc.",
+      "cik": "0002124472",
+      "accession": "0001628280-26-062794",
+      "filed_at": "2026-09-21",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2124472/000162828026062794/orion180-424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_include_broad",
+      "decision_id": "1081494ac7194809ee08445e3468d79aafa0999527b024ef5058999c3058521a",
+      "reason_codes": [
+        "eligible_traditional_ipo",
+        "ai_material_to_product_or_service"
+      ]
+    },
+    {
+      "company": "Black Hawk Acquisition Corp",
+      "cik": "0002000775",
+      "accession": "0001829126-26-010292",
+      "filed_at": "2026-09-22",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2000775/000182912626010292/blackhawk_424b4.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "deep learning",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "27134efdf3edf8fa975ac0b5f58e4e12172504404b9c3f155c03ac382ad989b0",
+      "reason_codes": [
+        "spac",
+        "not_initial_public_offering",
+        "offer_price_not_found"
+      ]
+    },
+    {
+      "company": "RUI Holdings Inc",
+      "cik": "0002094989",
+      "accession": "0001185185-26-004253",
+      "filed_at": "2026-09-24",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2094989/000118518526004253/ruihold424b4092326.htm",
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "2eeed47b0321d0349c7ddfba12ae2c21ee434b57dee998627a3f81226ec08f5a",
+      "reason_codes": [
+        "offer_price_below_5",
+        "ticker_not_found"
+      ]
+    },
+    {
+      "company": "Star Fashion Culture Holdings Ltd",
+      "cik": "0002003061",
+      "accession": "0001213900-26-103256",
+      "filed_at": "2026-09-25",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2003061/000121390026103256/ea0306527-424b4_starfashion.htm",
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "a1b952e640f6ca2bc9eab664e12177406977e2646e3db84d5d624588d76f42d4",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on",
+        "offer_price_below_5"
+      ]
     }
   ]
 }
