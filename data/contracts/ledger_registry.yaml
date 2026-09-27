@@ -190,10 +190,17 @@ ledgers:
   - id: ipo_edgar_candidates
     path: data/statistics/ipo/edgar_candidates.json
     kind: mutable_snapshot
-    cadence: biweekly
+    cadence: weekly
     criticality: medium
     schema_ref: json_object
     timestamp_field: checked_at
+  - id: ipo_ai_classification_decisions
+    path: data/statistics/ipo/classification_decisions.jsonl
+    kind: jsonl
+    cadence: biweekly
+    criticality: medium
+    schema_ref: json_object
+    timestamp_field: classified_at
   - id: statistics_alert_notify_state
     path: data/statistics/alert_notify_state.json
     kind: mutable_snapshot

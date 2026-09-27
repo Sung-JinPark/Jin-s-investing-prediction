@@ -1371,16 +1371,17 @@ def cmd_alert_notify(
 
 @app.command("ipo-edgar-watch")
 def cmd_ipo_edgar_watch() -> None:
-    """EDGAR 424B4 완료 공모를 격주로 훑어 IPO 검토 대기열을 적재한다."""
+    """EDGAR 424B4를 훑어 신규 AI IPO를 자동 판정·반영한다."""
     from .ipo_edgar_watch import refresh_edgar_candidates
 
-    path, payload, pending = refresh_edgar_candidates(config.ROOT)
+    path, payload, pending = refresh_edgar_candidates(config.ROOT, auto_classify=True)
     counts = payload["counts"]
     typer.echo(
         f"IPO EDGAR 감시: {path.relative_to(config.ROOT)} · "
         f"상태 {payload['status']} · 창 {payload['window_start']}~{payload['window_end']} · "
-        f"후보 {counts['candidates']}건 (검토 대기 {pending} · 코호트 기수록 "
-        f"{counts['already_in_cohort']}) · 게시 수치 무접촉"
+        f"후보 {counts['candidates']}건 (자동 편입 {counts['auto_included']} · "
+        f"자동 제외 {counts['auto_excluded']} · 미처리 {pending} · 코호트 기수록 "
+        f"{counts['already_in_cohort']})"
     )
 
 
