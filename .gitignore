@@ -59,3 +59,11 @@ data/intraday/firstrate_raw/
 # 2026-09-10 백업 정리 — 유일본 보존 아카이브 (커밋 대상 아님)
 _archive_v7_rundata_20260825/
 _archive_backup_unique_20260910/
+
+# Claude Code — 개인 설정·로컬 런타임은 공유하지 않는다
+# (.claude/settings.json · rules/ · skills/ · agents/ · hooks/ 는 추적 대상)
+.claude/settings.local.json
+.claude/launch.json
+.claude/scheduled_tasks.lock
+.claude/worktrees/
+CLAUDE.local.md
