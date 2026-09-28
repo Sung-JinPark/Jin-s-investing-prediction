@@ -77,6 +77,11 @@ def test_an_empty_ledger_yields_no_number(tmp_path: Path) -> None:
 # ── VIX ───────────────────────────────────────────────────────────
 
 CSV = "DATE,VIXCLS\n2026-08-14,19.90\n2026-09-10,17.84\n2026-09-11,15.84\n"
+CBOE_CSV = (
+    "DATE,OPEN,HIGH,LOW,CLOSE\n"
+    "09/24/2026,15.83,16.57,15.34,15.67\n"
+    "09/25/2026,15.61,15.94,14.68,14.87\n"
+)
 
 
 @pytest.mark.parametrize("level,slug", [(12.9, "very_low"), (13.0, "calm"),
@@ -102,6 +107,15 @@ def test_the_hard_rule_distance_is_reported_not_judged() -> None:
 def test_an_empty_series_is_refused() -> None:
     with pytest.raises(vs.VixSurfaceError):
         vs.parse_csv("DATE,VIXCLS\n2026-09-11,.\n")
+
+
+def test_cboe_daily_history_uses_the_close_column() -> None:
+    rows = vs.parse_cboe_csv(CBOE_CSV)
+    assert rows == [(date(2026, 9, 24), 15.67), (date(2026, 9, 25), 14.87)]
+    projection = vs.build_projection(rows, today=date(2026, 9, 28))
+    assert projection["observed_date"] == "2026-09-25"
+    assert projection["level"] == 14.87
+    assert projection["source_url"] == vs.CBOE_URL
 
 
 def test_a_stale_projection_hides_the_number(tmp_path: Path) -> None:
@@ -139,11 +153,10 @@ def test_the_scoreboard_survives_an_empty_ledger(tmp_path: Path) -> None:
 
 # ── 배선 ──────────────────────────────────────────────────────────
 
-def test_the_daily_batch_refreshes_both_surfaces() -> None:
+def test_source_monitoring_does_not_collect_vix_a_second_time() -> None:
     text = (ROOT / ".github/workflows/source-monitoring.yml").read_text(encoding="utf-8")
-    assert "python -m ai_fc signals" in text
-    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in text
-    assert "data/fear_greed" in text and "data/vix" in text
+    assert "python -m ai_fc signals --skip-vix" in text
+    assert "data/fear_greed" in text
 
 
 def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
@@ -159,7 +172,7 @@ def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
     document = yaml.safe_load(text)
     on = document.get(True) or document.get("on")
     crons = [item["cron"] for item in on["schedule"]]
-    assert crons, "예약이 없으면 사람이 돌릴 때까지 화면이 멈춘다"
+    assert len(crons) == 1, "VIX는 미국 장 마감 뒤 하루 한 번만 갱신한다"
     for cron in crons:
         minute, hour = (int(part) for part in cron.split()[:2])
         utc = hour * 60 + minute
@@ -167,8 +180,8 @@ def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
         # KST 관측일의 값으로 잠그지 않는다. 자정을 넘기는 창이라 둘로 나눠 본다.
         assert utc >= 21 * 60 + 30 or utc <= 9 * 60, cron
     assert "python -m ai_fc signals" in text
-    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in text
     assert "data/fear_greed" in text and "data/vix" in text
+    assert vs.CBOE_URL in (ROOT / "src/ai_fc/vix_surface.py").read_text(encoding="utf-8")
     assert "group: investing-data-writer" in text
     assert "steps.mood.outcome == 'failure'" in text, "부분 실패도 감시에 걸려야 한다"
 
