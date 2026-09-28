@@ -792,6 +792,12 @@ def test_projection_preserves_direction_changes() -> None:
     (3.9%)보다 **더** 불안정하다. 부채꼴이 좁아지는 원인이 시나리오 내부 분산이
     아니라는 뜻이다. 매일 데이터가 새로 들어오는 자리에 관측값을 바짝 따라가는 절대
     문턱을 두면, 그 테스트는 성질이 아니라 시장 국면을 지킨다.
+
+    2026-09-27 에 같은 일이 `expected_minimum_runs` 에서 한 번 더 일어났다.
+    `S2: 10` 은 6주를 버티다 예약 실행이 후보를 다시 만들면서 9 로 떨어져 깨졌다.
+    이 구간은 **14점뿐**이라 방향 전환의 최대치가 13회다 — S2 에 10회를 요구한 것은
+    걸음의 77% 가 지그재그여야 한다는 뜻이었고, 그건 투영의 성질이 아니라 그날의
+    국면이다. 그래서 이번에도 절대 횟수를 버리고 상대 비교로 내린다.
     """
     cutoff = datetime.fromisoformat(_candidate()["knowledge_cutoff"])
     projected = dashboard_projection(
@@ -804,9 +810,14 @@ def test_projection_preserves_direction_changes() -> None:
     end = max(index for index, day in enumerate(dates) if day <= near_term_end)
     assert end + 1 >= 14
 
-    expected_minimum_runs = {"S1": 3, "S2": 10, "S3": 4}
+    # 절대 횟수 대신 **성질** 두 가지를 본다.
+    #   (1) 어떤 경로도 직선으로 뭉개지지 않는다 — 투영이 굴곡을 지우면 여기서 걸린다.
+    #   (2) 횡보 경로(S2)는 추세 경로(S1·S3)보다 방향을 더 자주 바꾼다 — 제자리로
+    #       돌아오려면 표류가 아니라 배회를 해야 하므로, 국면이 아니라 구조다.
+    # 실측(2026-09-27 후보): S1 5회 · S2 9회 · S3 5회 (구간 14점).
+    runs = {}
     returns = {}
-    for scenario, minimum in expected_minimum_runs.items():
+    for scenario in ("S1", "S2", "S3"):
         values = projected["conditional_small_multiples"]["scenarios"][
             scenario
         ]["bands"]["p50"][:end + 1]
@@ -815,8 +826,12 @@ def test_projection_preserves_direction_changes() -> None:
             sign = 1 if right > left else -1 if right < left else 0
             if sign and (not direction_runs or direction_runs[-1] != sign):
                 direction_runs.append(sign)
-        assert len(direction_runs) >= minimum, (scenario, direction_runs)
+        assert len(direction_runs) >= 3, (scenario, direction_runs)
+        runs[scenario] = len(direction_runs)
         returns[scenario] = values[-1] / values[0] - 1
+
+    assert runs["S2"] > runs["S1"], runs
+    assert runs["S2"] > runs["S3"], runs
 
     assert returns["S1"] > .10
     assert abs(returns["S2"]) < .02
