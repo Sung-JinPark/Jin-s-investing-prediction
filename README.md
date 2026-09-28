@@ -13,7 +13,7 @@
 
 # Jin's Investing Prediction
 
-**공식 데이터의 현재 위치, 세 가지 시나리오, PIT 시계열 예측, 닷컴 사이클 비교를 연결하는 투자 리서치 솔루션입니다.**
+**공식 데이터의 현재 위치, 구조 경로와 실제 기록, PIT 시계열 예측, 변동성 기준율, 닷컴 사이클 비교를 연결하는 투자 리서치 솔루션입니다.**
 
 <p align="center">
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#today"><strong>오늘</strong></a> ·
@@ -25,13 +25,17 @@
 
 ## 무엇을 보여주나요?
 
-| 현재 시장 | 미래 전망 | 시계열 예측 | 닷컴 비교 | 검증 기록 |
-|---|---|---|---|---|
-| 핵심 가격·거시 신호 | 확장·균형·스트레스 | NASDAQ 1·5·21·63일 | 유동성·금리·신용·기업가치 | 원천·시점·수정 이력 |
+| 현재 시장 | 미래 전망 | 시계열 예측 | 변동성 기준율 | 닷컴 비교 | 검증 기록 |
+|---|---|---|---|---|---|
+| 핵심 가격·거시 신호 | 세 가지 시장 경로·단일 시나리오·기록 대비 실제 | NASDAQ 1·5·21·63거래일 | VIX·실현변동성 5·21·63영업일 | 유동성·금리·신용·기업가치 | 원천·시점·수정·전진 검증 이력 |
 
 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
 
-시계열 예측은 별도 shadow 연구모델입니다. V5는 NASDAQ의 1·5·21·63거래일 location·scale·tail을 horizon별로 직접 학습하고, V4와 같은 963개 원점에서 고정 비교군과 검증합니다. 현재 봉인 결과는 장기 CRPS 기준 미달로 **HOLD**이며 숫자를 숨깁니다. Research Gate와 운영 신선도 Gate를 모두 통과할 때만 표시하며 기존 미래전망·공식 확률과 결합하지 않습니다. [봉인 결과 보기](docs/timeseries_v5/GATE_RESULT_20260824.md)
+단일 시나리오와 기록 대비 실제 그래프는 과거 조정의 굴곡을 반영한 **주간 구조 경로를 우선 표시**합니다. 일별 중앙값은 구조 경로가 없는 기록의 대체 표시이며, 과거에 남긴 전망과 이후 실제 가격을 대조합니다. 구조 경로는 특정 하락일이나 저점 거래일을 예측하지 않습니다.
+
+시계열 예측은 별도 shadow 연구모델입니다. **V8**은 PIT 다변량 회귀와 분포 보정으로 NASDAQ의 1·5·21·63거래일 분위수·상승확률을 산출하며, 봉인 Gate 통과 모델의 전진 예측·만기 결과를 누적합니다. Research Gate와 운영 신선도 Gate를 모두 통과할 때만 참고 의견으로 표시하며 기존 미래전망·공식 확률과 결합하지 않습니다. 2019년 이후 평가창은 완전한 미열람 표본이 아니므로 별도 전진 검증을 계속합니다. 이전 V5의 **HOLD** 판정도 보존합니다. [V8 계약](data/contracts/multivariate_timeseries_v8.yaml) · [V5 봉인 결과](docs/timeseries_v5/GATE_RESULT_20260824.md)
+
+**V13-VOL**은 동결된 지속성 모델로 VIX·실현변동성 이벤트의 기준율을 제공합니다. 홀드아웃은 9셀 중 3셀(VIX 25 이상·21영업일, 실현변동성·5/21영업일)만 통과했으며 나머지 6셀의 숫자는 표시하지 않습니다. 통과 셀도 신선도·계수 무결성·라이브 검증 상태에 따라 보류할 수 있습니다. AI 질문 예측과 정의·지평·출처를 구분하며 자동 합산하거나 매매 신호로 사용하지 않습니다. [V13-VOL 계약·셀별 표시 정책](data/contracts/multivariate_timeseries_v13_vol.yaml)
 
 ## 숫자가 화면에 도착하는 과정
 
@@ -42,10 +46,12 @@ flowchart LR
     C --> D["Excel 감사본"]
     C --> E["통계 장표"]
     C --> F["연구 전망 입력 게이트"]
-    C --> T["PIT DFM + Ridge VARX"]
+    C --> T["V8 PIT 다변량 회귀 + 분포 보정"]
+    C --> V["V13-VOL 변동성 지속성 기준율"]
     E --> G["GitHub Pages"]
     F --> G
     T --> G
+    V --> G
     R["학술 · 리서치"] -. "별도 참고 통계" .-> E
     M["고용 컨센서스 · 시장 금리확률"] -. "출처·available_at 기록" .-> F
 ```
@@ -55,6 +61,8 @@ flowchart LR
 - 고용 컨센서스와 시장 금리확률은 출처와 `available_at`을 남긴 연구 후보 입력으로 사용할 수 있지만, 공식 확률이나 챔피언 승격을 뜻하지 않습니다.
 - 수정치는 기존 행을 바꾸지 않고 `revision + supersedes`로 추가합니다.
 - 과거 전망 입력은 `available_at ≤ as_of`를 만족해야 합니다.
+- 확률은 `[0, 1]` 분수로 저장하고 화면·보고서에서만 퍼센트로 변환합니다.
+- 검증 화면은 행 평균과 문항 등가중 점수를 병기하며, P3 게이트 미결 상태를 통과로 표시하지 않습니다.
 - Excel은 사람이 보는 감사본이며 정본은 append-only 관측 원장입니다.
 
 ## 현재 통계 구성
@@ -81,48 +89,9 @@ flowchart LR
 | 시계열 PIT / V2 원장 | [`data/timeseries/`](data/timeseries/) · [`data/timeseries_v2/`](data/timeseries_v2/) |
 | 시계열 V4 원천·Gate | [`multivariate_timeseries_v4.yaml`](data/contracts/multivariate_timeseries_v4.yaml) · [`data/timeseries_v4/`](data/timeseries_v4/) |
 | 시계열 V5 직접분포·공개 DB | [`multivariate_timeseries_v5.yaml`](data/contracts/multivariate_timeseries_v5.yaml) · [`V5 아키텍처`](docs/timeseries_v5/ARCHITECTURE.md) · [`데이터 카탈로그`](docs/timeseries_v5/DATA_CATALOG.md) |
-
-## 로컬 실행
-
-```bash
-uv sync
-uv run pytest -q
-uv run ai-fc statistics-refresh
-uv run ai-fc official-data-workbook
-uv sync --extra pit --extra timeseries
-uv run ai-fc timeseries-refresh
-uv run ai-fc timeseries-fit
-uv run ai-fc timeseries-backtest
-uv run ai-fc timeseries-forecast
-uv run ai-fc timeseries-verify
-uv run ai-fc timeseries-workbook
-uv run ai-fc timeseries-v2-refresh
-uv run ai-fc timeseries-v2-prepare
-uv run ai-fc timeseries-v2-backtest
-uv run ai-fc timeseries-v2-monitor-backtest
-uv run ai-fc timeseries-v2-fit
-uv run ai-fc timeseries-v2-forecast
-uv run ai-fc timeseries-v2-resolve
-uv run ai-fc timeseries-v2-verify
-uv run ai-fc timeseries-v2-workbook
-uv run ai-fc timeseries-v4-collect
-uv run ai-fc timeseries-v4-verify-sources
-uv run ai-fc timeseries-v4-backtest
-uv run ai-fc timeseries-v4-verify
-uv run ai-fc timeseries-v5-collect
-uv run ai-fc timeseries-v5-materialize
-uv run ai-fc timeseries-v5-mature-labels
-uv run ai-fc timeseries-v5-backtest
-uv run ai-fc timeseries-v5-gate
-uv run ai-fc timeseries-v5-forecast
-uv run ai-fc timeseries-v5-verify
-python tools/ralph_timeseries.py run --max-iterations 50 --max-hours 24 --auto-merge
-uv run ai-fc dashboard --serve --host 127.0.0.1
-```
-
-Ralph Loop는 격리 worktree에서 수집·PIT 정렬·계산·속도 오류만 수리합니다. 후보, 평가기간, 성능 Gate와 확률 단위는 실행 시작과 함께 잠기며 봉인 평가 실패나 보호 파일 변경 시 main을 바꾸지 않고 중단합니다.
-
-매주 공식 원천을 다시 수집해 원문 영수증과 관측 revision을 먼저 누적하고, 같은 DB에서 Excel·통계·사이트를 재생성합니다. IPO 참고 통계는 닷컴·역사 값의 출판 빈티지를 고정하고 AI·현재 값만 주간 검토 배치로 갱신합니다. `observation_through`는 마지막 관측일, `knowledge_cutoff`는 빌드가 알 수 있었던 시각입니다. 정적 연구 수치는 참고 통계로 표시하고, 전망용 시장·컨센서스 입력은 출처와 당시 이용 가능 시각을 보존한 연구 후보로만 사용합니다.
+| 시계열 V8 계약·shadow 원장 | [`multivariate_timeseries_v8.yaml`](data/contracts/multivariate_timeseries_v8.yaml) · [`data/timeseries_v8/`](data/timeseries_v8/) |
+| V13-VOL 계약·동결 계수·라이브 원장 | [`multivariate_timeseries_v13_vol.yaml`](data/contracts/multivariate_timeseries_v13_vol.yaml) · [`data/timeseries_v13/`](data/timeseries_v13/) |
+| P3 게이트·검증 기준과 실행 기록 | [`P3 문서 인덱스`](docs/p3_gate_path/00_README_INDEX.md) · [`실행 결과`](docs/p3_gate_path/00_EXECUTION_REPORT.md) |
 
 ---
 

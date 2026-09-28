@@ -84,10 +84,13 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
     # events for other workflows — without these workflow_run entries the V8
     # gate flip stayed invisible on the live site (observed 2026-09-01).
     # timeseries-v13-vol-live (2026-09-08): V13-VOL 포인터 커밋도 GITHUB_TOKEN 푸시라 같은 이유로 등록.
+    # market-mood-refresh·source-monitoring (2026-09-18): 공포·탐욕 커밋이 목록에 없어서
+    # 다른 워크플로가 우연히 재배포할 때까지 화면이 원천보다 하루 늦었다(원천 29, 화면 26).
     expected = (
         'workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", '
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
-        '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live"]'
+        '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v13-vol-live", '
+        '"market-mood-refresh", "source-monitoring"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow

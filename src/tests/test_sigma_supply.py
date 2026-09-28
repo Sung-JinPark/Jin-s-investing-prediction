@@ -118,6 +118,8 @@ def test_v8_sigma_reproduces_the_registered_nasdaq_sigma() -> None:
     import json
     from ai_fc.sigma_supply import IQR_TO_SIGMA, V8_RELATIVE, v8_sigma
     raw = json.loads((ROOT / V8_RELATIVE).read_text(encoding="utf-8"))
+    if not raw.get("horizons"):
+        pytest.skip("V8 operational HOLD artifact intentionally omits forecast horizons")
     node = raw["horizons"]["63"]     # 87 에 가장 가까운 V8 산출 지평
     expected = ((float(node["p75"]) - float(node["p25"])) / IQR_TO_SIGMA)         * math.sqrt(H87 / 63)
     quote = v8_sigma(ROOT, horizon_business_days=H87)
@@ -132,7 +134,12 @@ def test_v8_sigma_reproduces_the_registered_nasdaq_sigma() -> None:
 
 def test_both_paths_agree_within_an_order_on_nasdaq(store) -> None:
     """양이 같은 두 경로가 크게 어긋나면 그 자체가 경보다."""
+    import json
     from ai_fc.sigma_supply import TERMINAL_LOG_RETURN, adopt, reference_class_sigma, v8_sigma
+    from ai_fc.sigma_supply import V8_RELATIVE
+    raw = json.loads((ROOT / V8_RELATIVE).read_text(encoding="utf-8"))
+    if not raw.get("horizons"):
+        pytest.skip("V8 operational HOLD artifact intentionally omits forecast horizons")
     ref = reference_class_sigma(store, "NASDAQCOM", TERMINAL_LOG_RETURN,
                                 horizon_business_days=H87, since="2010-01-01",
                                 conditioning="2010년 이후")

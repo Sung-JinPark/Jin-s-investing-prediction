@@ -1,0 +1,79 @@
+name: market-mood-refresh
+
+# 시장 심리 표시 표면(공포·탐욕 · VIX)을 **미국 정규장 마감 직후**에 갱신한다.
+#
+# 왜 source-monitoring 에서 떼어냈나 (2026-09-18):
+# - source-monitoring 의 02:45 UTC 예약은 실제로 07:30~08:10 UTC(KST 16:30~17:10)에
+#   떴다 — GitHub 예약 지연이 매일 약 5시간. 그 사이 KST 오전·오후 내내 화면은 원천보다
+#   하루 늦었다(2026-09-18 13시 KST: 원천 29, 화면 26 = 9/16 종가).
+# - 게다가 source-monitoring 은 pages 의 workflow_run 목록에 없어서, 그 커밋은 다른
+#   워크플로가 우연히 재배포할 때까지 화면에 올라가지 않았다(GITHUB_TOKEN 푸시는 push
+#   트리거를 발화하지 않는다).
+#
+# 시각: 22:10 UTC = KST 07:10 — 미국 마감(EDT 20:00 · EST 21:00 UTC)에서 1시간 이상
+# 지나 종가 기준 값이 확정된 뒤다. 예약 지연이 몇 시간 붙어도 다음 정규장 개장
+# (13:30 UTC)까지 여유가 커서 장중 값을 그날 값으로 잠그지 않는다. 23:40 UTC(KST 08:40)는
+# 첫 예약이 유실될 때의 백업이다. 원장은 KST 관측일당 1행(첫 값 우선)이라 두 번째 런은
+# 공포·탐욕을 다시 쓰지 않는다. 정각은 GitHub 예약이 몰려 유실이 잦아 피했다.
+# source-monitoring 의 같은 단계는 그대로 둔다 — 오후 폴백이자 안정성 배지(연속 일수)의
+# 이중 안전망이다.
+on:
+  schedule:
+    - cron: "10 22 * * *"
+    - cron: "40 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install lightweight dependencies
+        run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      # 둘 다 표시 전용이고 어떤 예측·확률과도 결합하지 않는다. 한쪽이 실패해도 다른
+      # 쪽 결과는 커밋해야 하므로 여기서 멈추지 않고, 마지막 단계에서 실패로 남긴다.
+      - name: Refresh market mood surfaces (VIX · fear and greed)
+        id: mood
+        continue-on-error: true
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: cd src && python -m ai_fc signals
+      - name: Commit refreshed mood surfaces
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          # 공포탐욕 원장은 append-only(하루 1행), VIX 투영은 재생성본이다.
+          for optional_dir in data/fear_greed data/vix; do
+            if [ -d "$optional_dir" ]; then
+              git add "$optional_dir"
+            fi
+          done
+          if git diff --cached --quiet; then
+            echo "No new mood reading; nothing to commit."
+            exit 0
+          fi
+          observed="$(python -c "import json; print(json.load(open('data/fear_greed/fng_latest.json', encoding='utf-8')).get('observed_date', 'unknown'))")"
+          git commit -m "data: refresh market mood ${observed}"
+          # 체크아웃과 푸시 사이에 main 은 늘 움직인다 — 추가·재생성형 산출물이라 재생은 안전하다.
+          git pull --rebase origin main
+          git push
+      - name: Report refresh failure
+        if: ${{ always() && steps.mood.outcome == 'failure' }}
+        shell: bash
+        run: |
+          echo "signals=${{ steps.mood.outcome }}"
+          echo "One of the mood surfaces failed to refresh; the screen shows no number rather than a stale one."
+          exit 1

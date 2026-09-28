@@ -1,11 +1,11 @@
 {
-  "schema_version": 1,
-  "dataset_id": "ipo_edgar_424b4_candidates_v1",
-  "cadence": "biweekly",
-  "checked_at": "2026-09-05T06:18:47+00:00",
-  "reviewed_through": "2026-08-12",
-  "window_start": "2026-08-13",
-  "window_end": "2026-09-05",
+  "schema_version": 2,
+  "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
+  "cadence": "weekly",
+  "checked_at": "2026-09-28T00:14:40+00:00",
+  "reviewed_through": "2026-09-27",
+  "window_start": "2026-09-28",
+  "window_end": "2026-09-28",
   "status": "current",
   "form": "424B4",
   "source": "sec_edgar_full_text_search",
@@ -18,13 +18,18 @@
     "neural network"
   ],
   "window_clipped_to_max_lookback": false,
-  "applies_to_published_counts": false,
+  "classification_policy": "sec_424b4_ai_label_v4",
+  "applies_to_published_counts": true,
   "historical_rows_locked": true,
-  "allowed_update_scope": "current_era_rows_only_after_review",
+  "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
   "counts": {
-    "candidates": 12,
-    "already_in_cohort": 0,
-    "pending_review": 12
+    "candidates": 19,
+    "already_in_cohort": 10,
+    "pending_review": 0,
+    "new_decisions": 0,
+    "auto_included": 0,
+    "auto_excluded": 0,
+    "new_cohort_rows": 0
   },
   "errors": [],
   "candidates": [
@@ -35,11 +40,17 @@
       "filed_at": "2026-08-13",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2022416/000117891326004116/zk2635948.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "15c7ecd3303e33f3b9febb495f1591375f7527c2def6d9c96126af2fab3ec3bb",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "SunScout Holding Ltd",
@@ -48,13 +59,19 @@
       "filed_at": "2026-08-13",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2101240/000121390026088617/ea0268485-18.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "deep learning",
         "machine learning"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "603b258ccb279ed0c22d86da877f2e5376d8e51a2fccd59dee92ed3ae908e3de",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
     },
     {
       "company": "Londian Wason New Energy Tech Inc.",
@@ -63,11 +80,17 @@
       "filed_at": "2026-08-14",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2006960/000119312526351136/d476818d424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "f2545c9a1cdfc3c3162d6a68bb747a764c20ae2ff803c0bc8f8d1377a902c028",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
     },
     {
       "company": "Karman Line Acquisition Corp.",
@@ -76,11 +99,18 @@
       "filed_at": "2026-08-18",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2134856/000182912626009017/karmanlineacq_424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "420d791d6859bedca020984fdad9a21bd30badb307fa18d0a3cde409f1603a0c",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "spac_or_blank_check_vehicle"
+      ]
     },
     {
       "company": "Alliance Laundry Holdings Inc.",
@@ -89,11 +119,17 @@
       "filed_at": "2026-08-19",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/1317685/000110465926098828/tm2613541-7_424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "cae3f41156f24d3247de7f892c456448a30f0f0977134ffad62dd127040e2ed7",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Lyntris Inc.",
@@ -102,13 +138,19 @@
       "filed_at": "2026-08-19",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2132582/000119312526356916/d23330d424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "generative AI",
         "machine learning"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "242aaa56c3fee8fd16fbf7b114f929ce06338a058eb0718f4c7cd34056994443",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
     },
     {
       "company": "Andersen Group Inc.",
@@ -117,12 +159,17 @@
       "filed_at": "2026-08-20",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2065708/000119312526359181/d132575d424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "generative AI"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "0930f703c05dd4db46a6c14561fd70d4738aab28b5645c5a458d18b64ebfc0dd",
+      "reason_codes": [
+        "not_initial_public_offering"
+      ]
     },
     {
       "company": "JATT III Acquisition Corp",
@@ -131,11 +178,18 @@
       "filed_at": "2026-08-26",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2145659/000121390026093949/ea0302980-424b4_jatt3.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "machine learning"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "e623d15ec3fee354e6fb832f7ded2da61b40bcd71e55b6e3f9f7f7d521a41d94",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "spac_or_blank_check_vehicle"
+      ]
     },
     {
       "company": "Rainier Acquisition Corp",
@@ -144,12 +198,19 @@
       "filed_at": "2026-08-27",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2147219/000110465926102498/tmb-20260821x424b4.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "machine learning"
       ],
-      "already_in_cohort": false,
-      "review_status": "pending"
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "dad9f6ae3605f4cfd66c02587a1a0399603de3d3956f4e84300e88646a44a2de",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "spac_or_blank_check_vehicle"
+      ]
     },
     {
       "company": "Check-Cap Ltd",
@@ -158,11 +219,17 @@
       "filed_at": "2026-08-27",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/1610590/000121390026094129/ea0303478-424b4_checkcap.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "82fb8c8c63a47f48c7eaab79d0a5378cbc9ef3e3b6167ea60c981543b97e47ed",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Republic Power Group Ltd",
@@ -171,6 +238,7 @@
       "filed_at": "2026-08-27",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/1912884/000121390026094237/ea0303554-424b4_republic.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "generative AI",
@@ -178,7 +246,12 @@
         "machine learning"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "c1ecd1be1ca711b0bd46ed00c8331c44dc7e1559f5f2780f361abf8a88f67104",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     },
     {
       "company": "Lianhe Sowell International Group Ltd",
@@ -187,6 +260,7 @@
       "filed_at": "2026-09-03",
       "form": "424B4",
       "filing_url": "https://www.sec.gov/Archives/edgar/data/2004024/000121390026096975/ea0304365-424b4_lianhe.htm",
+      "ticker_hint": null,
       "matched_keywords": [
         "artificial intelligence",
         "deep learning",
@@ -194,7 +268,152 @@
         "neural network"
       ],
       "already_in_cohort": false,
-      "review_status": "pending"
+      "review_status": "auto_exclude",
+      "decision_id": "277969ee69829044aa5680caceee276429c9862f7cedf006b843587c382a8338",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Verdera Energy Corp.",
+      "cik": "0002111453",
+      "accession": "0001104659-26-107696",
+      "filed_at": "2026-09-15",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2111453/000110465926107696/tm267430d16_424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "8ee3717f14324a6a55821029e2f983c601993a88a34f191be3c474c0e68d33e7",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
+    },
+    {
+      "company": "Haymaker Acquisition Corp V",
+      "cik": "0002111838",
+      "accession": "0001193125-26-395319",
+      "filed_at": "2026-09-18",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2111838/000119312526395319/d86766d424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "d0c0194b91c182340e869a98dbe467084e24b3f0719af80b114be6a123630136",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus",
+        "spac_or_blank_check_vehicle"
+      ]
+    },
+    {
+      "company": "Electra Therapeutics, Inc.",
+      "cik": "0002088082",
+      "accession": "0001193125-26-395670",
+      "filed_at": "2026-09-18",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2088082/000119312526395670/d61940d424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "0e69c82c082e80cc361eb32574b41c60d2ca650786e3a118398f805382420053",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
+    },
+    {
+      "company": "Orion180 Insurance Group Inc.",
+      "cik": "0002124472",
+      "accession": "0001628280-26-062794",
+      "filed_at": "2026-09-21",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2124472/000162828026062794/orion180-424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "c8d7f4199c5f7060225973f0c7f1a69343bc1caad81c67b55248c62db546e15d",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
+    },
+    {
+      "company": "Black Hawk Acquisition Corp",
+      "cik": "0002000775",
+      "accession": "0001829126-26-010292",
+      "filed_at": "2026-09-22",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2000775/000182912626010292/blackhawk_424b4.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence",
+        "deep learning",
+        "generative AI",
+        "machine learning"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "672b8a325fee60d4bdcbcb09732bd1738d46b53635a9a34e8b7939d89a3cac40",
+      "reason_codes": [
+        "not_initial_public_offering"
+      ]
+    },
+    {
+      "company": "RUI Holdings Inc",
+      "cik": "0002094989",
+      "accession": "0001185185-26-004253",
+      "filed_at": "2026-09-24",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2094989/000118518526004253/ruihold424b4092326.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence",
+        "machine learning"
+      ],
+      "already_in_cohort": true,
+      "review_status": "auto_include_broad",
+      "decision_id": "a0f2d14faa185413bda62dba1e5fa397a9ee163b5b91061842e73d3bbf7b5dd5",
+      "reason_codes": [
+        "eligible_initial_public_offering",
+        "ai_label_present_in_final_prospectus"
+      ]
+    },
+    {
+      "company": "Star Fashion Culture Holdings Ltd",
+      "cik": "0002003061",
+      "accession": "0001213900-26-103256",
+      "filed_at": "2026-09-25",
+      "form": "424B4",
+      "filing_url": "https://www.sec.gov/Archives/edgar/data/2003061/000121390026103256/ea0306527-424b4_starfashion.htm",
+      "ticker_hint": null,
+      "matched_keywords": [
+        "artificial intelligence"
+      ],
+      "already_in_cohort": false,
+      "review_status": "auto_exclude",
+      "decision_id": "a9de3375d61c0e88bf81f828480e055cc7762b30d8309e2948282b567369f5bf",
+      "reason_codes": [
+        "not_initial_public_offering",
+        "already_public_or_follow_on"
+      ]
     }
   ]
 }

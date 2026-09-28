@@ -146,6 +146,36 @@ def test_the_daily_batch_refreshes_both_surfaces() -> None:
     assert "data/fear_greed" in text and "data/vix" in text
 
 
+def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
+    """공포·탐욕은 미국 마감 직후 갱신되고, 그 커밋이 곧바로 배포돼야 한다.
+
+    2026-09-18 KST 13시: 원천 29, 화면 26(= 9/16 종가). source-monitoring 의 02:45 UTC
+    예약이 매일 약 5시간 늦게 떴고, 그 커밋은 pages 트리거 목록에도 없었다.
+    """
+    import yaml
+
+    directory = ROOT / ".github/workflows"
+    text = (directory / "market-mood-refresh.yml").read_text(encoding="utf-8")
+    document = yaml.safe_load(text)
+    on = document.get(True) or document.get("on")
+    crons = [item["cron"] for item in on["schedule"]]
+    assert crons, "예약이 없으면 사람이 돌릴 때까지 화면이 멈춘다"
+    for cron in crons:
+        minute, hour = (int(part) for part in cron.split()[:2])
+        utc = hour * 60 + minute
+        # 미국 정규장 마감(EST 21:00 UTC) 이후 ~ 다음 개장(13:30 UTC) 이전 — 장중 값을
+        # KST 관측일의 값으로 잠그지 않는다. 자정을 넘기는 창이라 둘로 나눠 본다.
+        assert utc >= 21 * 60 + 30 or utc <= 9 * 60, cron
+    assert "python -m ai_fc signals" in text
+    assert "FRED_API_KEY: ${{ secrets.FRED_API_KEY }}" in text
+    assert "data/fear_greed" in text and "data/vix" in text
+    assert "group: investing-data-writer" in text
+    assert "steps.mood.outcome == 'failure'" in text, "부분 실패도 감시에 걸려야 한다"
+
+    pages = (directory / "pages.yml").read_text(encoding="utf-8")
+    assert '"market-mood-refresh"' in pages and '"source-monitoring"' in pages
+
+
 def test_the_surfaces_declare_themselves_display_only() -> None:
     """확률 공간이 아니라는 사실이 계약·페이로드 양쪽에 있어야 한다."""
     import yaml

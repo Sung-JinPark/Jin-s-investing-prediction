@@ -6,10 +6,12 @@ from pathlib import Path
 from ai_fc.ipo_edgar_watch import (
     AI_KEYWORDS,
     CANDIDATES_PATH,
+    DECISIONS_PATH,
     FORM,
     IPO_REFERENCE_PATH,
     USER_AGENT,
     company_from_display_name,
+    classify_final_prospectus,
     load_cohort_names,
     normalize_company,
     refresh_edgar_candidates,
@@ -112,7 +114,7 @@ def test_watch_writes_only_its_own_queue_and_never_the_published_reference(
 
     _, payload, pending = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=_fetcher_for({"artificial intelligence": _page([FRESH, SECOND])}),
         keywords=("artificial intelligence",),
     )
@@ -125,11 +127,11 @@ def test_watch_writes_only_its_own_queue_and_never_the_published_reference(
 
     assert payload["dataset_id"] == "ipo_edgar_424b4_candidates_v1"
     assert payload["schema_version"] == 1
-    assert payload["cadence"] == "biweekly"
-    assert payload["checked_at"] == "2026-08-31T00:00:00+00:00"
-    assert payload["reviewed_through"] == "2026-08-12"
-    assert payload["window_start"] == "2026-08-13", "검토 완료일 다음 날부터 묻는다"
-    assert payload["window_end"] == "2026-08-31"
+    assert payload["cadence"] == "weekly"
+    assert payload["checked_at"] == "2026-09-30T00:00:00+00:00"
+    assert payload["reviewed_through"] == "2026-09-28"
+    assert payload["window_start"] == "2026-09-29", "검토 완료일 다음 날부터 묻는다"
+    assert payload["window_end"] == "2026-09-30"
     assert payload["status"] == "current"
     assert payload["applies_to_published_counts"] is False
     assert pending == 2
@@ -137,7 +139,7 @@ def test_watch_writes_only_its_own_queue_and_never_the_published_reference(
     first = payload["candidates"][0]
     assert set(first) == {
         "company", "cik", "accession", "filed_at", "form", "filing_url",
-        "matched_keywords", "already_in_cohort", "review_status",
+        "matched_keywords", "already_in_cohort", "review_status", "ticker_hint",
     }
     assert first["company"] == "Fresh Compute Inc"
     assert first["cik"] == "0001234567"
@@ -157,7 +159,7 @@ def test_issuers_already_in_the_cohort_are_flagged_not_dropped(tmp_path: Path) -
     _install_reference(tmp_path)
     _, payload, pending = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=_fetcher_for({"artificial intelligence": _page([FRESH, KNOWN])}),
         keywords=("artificial intelligence",),
     )
@@ -174,7 +176,7 @@ def test_the_same_filing_collects_every_keyword_that_matched(tmp_path: Path) -> 
     _install_reference(tmp_path)
     _, payload, _ = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=_fetcher_for({
             "artificial intelligence": _page([FRESH]),
             "machine learning": _page([FRESH]),
@@ -206,7 +208,7 @@ def test_paging_walks_until_the_reported_total_is_covered(tmp_path: Path) -> Non
 
     _, payload, _ = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=fetcher,
         keywords=("artificial intelligence",),
     )
@@ -222,7 +224,7 @@ def test_search_failure_degrades_the_queue_without_losing_the_run(tmp_path: Path
 
     _, payload, pending = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=broken,
         keywords=("artificial intelligence", "machine learning"),
     )
@@ -235,9 +237,149 @@ def test_default_keyword_set_is_explicit_and_recorded(tmp_path: Path) -> None:
     _install_reference(tmp_path)
     _, payload, _ = refresh_edgar_candidates(
         tmp_path,
-        checked_at="2026-08-31T00:00:00+00:00",
+        checked_at="2026-09-30T00:00:00+00:00",
         fetcher=_fetcher_for({}),
     )
     assert payload["keywords"] == list(AI_KEYWORDS)
     assert "artificial intelligence" in AI_KEYWORDS
     assert payload["candidates"] == []
+
+
+def test_automatic_policy_keeps_core_strict_but_includes_any_ai_labelled_actual_ipo() -> None:
+    row = {
+        "company": "Fresh Compute Inc", "cik": "0001234567",
+        "accession": "0001234567-26-000012", "filed_at": "2026-08-14",
+        "filing_url": "https://www.sec.gov/example.htm",
+    }
+    raw = b"""<html><body>
+      This is our initial public offering. The public offering price is $18.00 per share.
+      Our common stock has been approved for listing under the symbol \"FRSH\".
+      We are an artificial intelligence company. Our proprietary AI platform is our core
+      technology. Our AI-powered product gives customers machine learning software.
+      Our artificial intelligence infrastructure generates revenue from compute services.
+      Our AI-native platform is used by enterprise customers.
+    </body></html>"""
+    decision = classify_final_prospectus(
+        row, raw, classified_at="2026-08-31T00:00:00+00:00")
+    assert decision["decision"] == "include_core"
+    assert decision["ticker"] == "FRSH"
+    assert decision["offer_price_usd"] == 18.0
+    assert decision["core_member"] is True
+    assert len(decision["raw_sha256"]) == 64
+
+    follow_on = raw.replace(
+        b"This is our initial public offering.",
+        b"Our common shares are listed on Nasdaq under the symbol \"FRSH\". "
+        b"The last reported sale price was $19.00.",
+    )
+    excluded = classify_final_prospectus(
+        row, follow_on, classified_at="2026-08-31T00:00:00+00:00")
+    assert excluded["decision"] == "exclude"
+    assert "not_initial_public_offering" in excluded["reason_codes"]
+    assert "already_public_or_follow_on" in excluded["reason_codes"]
+
+    incidental = b"""<html><body>
+      This is our initial public offering. The public offering price is $9.00 per share.
+      Our common stock has been approved for listing under the symbol "BROAD".
+      We sell industrial pumps. Artificial intelligence may affect our industry and
+      competitors, but it is not material to our current products.
+    </body></html>"""
+    broad = classify_final_prospectus(
+        row, incidental, classified_at="2026-08-31T00:00:00+00:00")
+    assert broad["decision"] == "include_broad"
+    assert broad["core_member"] is False
+    assert broad["dependency_tier"] == 2
+    assert "ai_label_present_in_final_prospectus" in broad["reason_codes"]
+
+
+def test_policy_upgrade_appends_a_superseding_decision(tmp_path: Path) -> None:
+    _install_reference(tmp_path)
+    filing = b"""<html><body>
+      This is our initial public offering. The public offering price is $9.00 per share.
+      Our common stock has been approved for listing under the symbol "FRSH".
+      Artificial intelligence may affect our industry.
+    </body></html>"""
+    candidate = {
+        "company": "Fresh Compute Inc", "cik": "0001234567",
+        "accession": "0001234567-26-000012", "filed_at": "2026-08-14",
+        "filing_url": "https://www.sec.gov/example.htm",
+    }
+    old = classify_final_prospectus(
+        candidate, filing, classified_at="2026-08-30T00:00:00+00:00")
+    old["policy_id"] = "sec_424b4_ai_materiality_v1"
+    old["decision_id"] = "old-decision"
+    old["decision"] = "exclude"
+    old["reason_codes"] = ["ai_not_material_enough_in_final_prospectus"]
+    old.pop("supersedes_decision_id", None)
+    decision_path = tmp_path / DECISIONS_PATH
+    decision_path.parent.mkdir(parents=True, exist_ok=True)
+    decision_path.write_text(json.dumps(old) + "\n", encoding="utf-8")
+
+    def fetcher(url: str) -> bytes:
+        if url.startswith("https://efts.sec.gov/"):
+            return _page([FRESH])
+        return filing
+
+    refresh_edgar_candidates(
+        tmp_path,
+        checked_at="2026-09-30T00:00:00+00:00",
+        fetcher=fetcher,
+        keywords=("artificial intelligence",),
+        auto_classify=True,
+    )
+    rows = [json.loads(line) for line in decision_path.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 2
+    assert rows[1]["supersedes_decision_id"] == "old-decision"
+    assert rows[1]["decision"] == "include_broad"
+
+
+def test_auto_classification_appends_decision_and_projects_current_year(tmp_path: Path) -> None:
+    _install_reference(tmp_path)
+    filing = b"""<html><body>
+      This is our initial public offering. The public offering price is $18.00 per share.
+      Our common stock has been approved for listing under the symbol \"FRSH\".
+      We are an artificial intelligence company. Our proprietary AI platform is our core
+      technology. Our AI-powered product gives customers machine learning software.
+      Our artificial intelligence infrastructure generates revenue from compute services.
+      Our AI-native platform is used by enterprise customers.
+    </body></html>"""
+
+    def fetcher(url: str) -> bytes:
+        if url.startswith("https://efts.sec.gov/"):
+            return _page([FRESH])
+        return filing
+
+    _, payload, pending = refresh_edgar_candidates(
+        tmp_path,
+        checked_at="2026-09-30T00:00:00+00:00",
+        fetcher=fetcher,
+        keywords=("artificial intelligence",),
+        auto_classify=True,
+    )
+    assert pending == 0
+    assert payload["schema_version"] == 2
+    assert payload["counts"]["auto_included"] == 1
+    assert payload["counts"]["new_cohort_rows"] == 1
+    assert payload["candidates"][0]["review_status"] == "auto_include_core"
+    ledger_rows = (tmp_path / DECISIONS_PATH).read_text(encoding="utf-8").splitlines()
+    assert len(ledger_rows) == 1
+
+    reference = json.loads((tmp_path / IPO_REFERENCE_PATH).read_text(encoding="utf-8"))
+    current = next(row for row in reference["ai_broad_cohort"] if row["year"] == 2026)
+    issuer = next(row for row in current["issuers"] if row["ticker"] == "FRSH")
+    assert issuer["core_member"] is True
+    assert current["through"] == "2026-09-30"
+    assert reference["classification"]["reviewed_through"] == "2026-09-30"
+
+    # 동일 accession 재실행은 원장을 다시 쓰거나 코호트를 중복시키지 않는다.
+    refresh_edgar_candidates(
+        tmp_path,
+        checked_at="2026-09-30T01:00:00+00:00",
+        fetcher=fetcher,
+        keywords=("artificial intelligence",),
+        auto_classify=True,
+    )
+    assert len((tmp_path / DECISIONS_PATH).read_text(encoding="utf-8").splitlines()) == 1
+    reference = json.loads((tmp_path / IPO_REFERENCE_PATH).read_text(encoding="utf-8"))
+    current = next(row for row in reference["ai_broad_cohort"] if row["year"] == 2026)
+    assert sum(row["ticker"] == "FRSH" for row in current["issuers"]) == 1

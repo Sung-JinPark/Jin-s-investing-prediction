@@ -1,5 +1,5 @@
 schema_version: 1
-as_of: 2026-08-04
+as_of: 2026-09-26
 policy:
   probability_linkage: forbidden
   confirmed_definition: institution_or_issuer_published_date
@@ -39,6 +39,13 @@ sources:
     authority: NVIDIA Investor Relations
     kinds: [earnings]
     url: https://investor.nvidia.com/events-and-presentations/events-and-presentations/
+    official: true
+    access: free
+    cadence: issuer_notice
+  - id: micron_ir
+    authority: Micron Technology Investor Relations
+    kinds: [earnings]
+    url: https://investors.micron.com/events-and-presentations
     official: true
     access: free
     cadence: issuer_notice
