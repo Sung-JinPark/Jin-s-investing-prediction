@@ -199,7 +199,7 @@ ledgers:
     kind: jsonl
     cadence: biweekly
     criticality: medium
-    schema_ref: json_object
+    schema_ref: jsonl
     timestamp_field: classified_at
   - id: statistics_alert_notify_state
     path: data/statistics/alert_notify_state.json
@@ -276,7 +276,7 @@ ledgers:
     kind: jsonl
     cadence: event
     criticality: medium
-    schema_ref: json_object
+    schema_ref: jsonl
     expected_state: planned
   - id: quarantine
     path: data/quarantine/**/*.json
@@ -290,7 +290,7 @@ ledgers:
     kind: jsonl
     cadence: event
     criticality: high
-    schema_ref: json_object
+    schema_ref: jsonl
     expected_state: planned
   - id: forecast_timestamp_proof
     path: forecasts/.hashes.ots
