@@ -56,3 +56,24 @@ sources:
     official: true
     access: free
     cadence: issuer_notice
+  - id: tsmc_ir
+    authority: TSMC Investor Relations
+    kinds: [earnings]
+    url: https://investor.tsmc.com/english/quarterly-results
+    official: true
+    access: free
+    cadence: issuer_notice
+  - id: samsung_ir
+    authority: Samsung Electronics Investor Relations
+    kinds: [earnings]
+    url: https://www.samsung.com/global/ir/
+    official: true
+    access: free
+    cadence: issuer_notice
+  - id: dart_kr
+    authority: DART (Korea FSS electronic disclosure)
+    kinds: [earnings]
+    url: https://englishdart.fss.or.kr/
+    official: true
+    access: free
+    cadence: issuer_notice

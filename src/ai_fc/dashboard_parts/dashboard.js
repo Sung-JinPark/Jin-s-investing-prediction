@@ -3997,13 +3997,14 @@ function flowEventLayout(events,endIndex,X,minX,maxX,laneCount=5){
 }
 function earningsGroup(event){
   const ticker=String(event.ticker||'').toUpperCase();
-  if(['MU','NVDA','AMD','INTC','AVGO','QCOM','TSM','ASML'].includes(ticker))return 'semiconductor';
+  if(['MU','NVDA','AMD','INTC','AVGO','QCOM','TSM','ASML','005930','000660'].includes(ticker))return 'semiconductor';
   if(['MSFT','GOOGL','META','AAPL','AMZN'].includes(ticker))return 'bigtech';
   return 'company';
 }
 function earningsCompanyName(event){
   const ticker=String(event.ticker||'').toUpperCase(),names={
     MU:'Micron',NVDA:'NVIDIA',AMD:'AMD',INTC:'Intel',AVGO:'Broadcom',QCOM:'Qualcomm',TSM:'TSMC',ASML:'ASML',
+    '005930':'삼성전자','000660':'SK하이닉스',
     MSFT:'Microsoft',GOOGL:'Alphabet',META:'Meta',AAPL:'Apple',AMZN:'Amazon'
   };
   return names[ticker]||ticker||String(event.title||event.label||'').split(/\s+/)[0]||'기업';
