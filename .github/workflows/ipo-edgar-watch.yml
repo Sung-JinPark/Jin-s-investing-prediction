@@ -73,6 +73,7 @@ jobs:
               print(f"| {row['filed_at']} | {row['company']} | {row['review_status']} | {reasons} "
                     f"| [{row['accession']}]({row['filing_url']}) |")
           print("")
-          print("Eligible current-year traditional IPOs are projected automatically. "
-                "Every decision is preserved in the append-only classification ledger.")
+          print("Every actual IPO found by the AI keyword search is projected into the broad "
+                "cohort automatically. Core membership still uses the strict materiality rule. "
+                "Every policy revision is preserved in the append-only classification ledger.")
           PY

@@ -129,8 +129,8 @@ def test_watch_writes_only_its_own_queue_and_never_the_published_reference(
     assert payload["schema_version"] == 1
     assert payload["cadence"] == "weekly"
     assert payload["checked_at"] == "2026-09-30T00:00:00+00:00"
-    assert payload["reviewed_through"] == "2026-09-27"
-    assert payload["window_start"] == "2026-09-28", "검토 완료일 다음 날부터 묻는다"
+    assert payload["reviewed_through"] == "2026-09-28"
+    assert payload["window_start"] == "2026-09-29", "검토 완료일 다음 날부터 묻는다"
     assert payload["window_end"] == "2026-09-30"
     assert payload["status"] == "current"
     assert payload["applies_to_published_counts"] is False
@@ -139,7 +139,7 @@ def test_watch_writes_only_its_own_queue_and_never_the_published_reference(
     first = payload["candidates"][0]
     assert set(first) == {
         "company", "cik", "accession", "filed_at", "form", "filing_url",
-        "matched_keywords", "already_in_cohort", "review_status",
+        "matched_keywords", "already_in_cohort", "review_status", "ticker_hint",
     }
     assert first["company"] == "Fresh Compute Inc"
     assert first["cik"] == "0001234567"
@@ -245,7 +245,7 @@ def test_default_keyword_set_is_explicit_and_recorded(tmp_path: Path) -> None:
     assert payload["candidates"] == []
 
 
-def test_automatic_policy_includes_only_material_traditional_ipos() -> None:
+def test_automatic_policy_keeps_core_strict_but_includes_any_ai_labelled_actual_ipo() -> None:
     row = {
         "company": "Fresh Compute Inc", "cik": "0001234567",
         "accession": "0001234567-26-000012", "filed_at": "2026-08-14",
@@ -277,6 +277,60 @@ def test_automatic_policy_includes_only_material_traditional_ipos() -> None:
     assert excluded["decision"] == "exclude"
     assert "not_initial_public_offering" in excluded["reason_codes"]
     assert "already_public_or_follow_on" in excluded["reason_codes"]
+
+    incidental = b"""<html><body>
+      This is our initial public offering. The public offering price is $9.00 per share.
+      Our common stock has been approved for listing under the symbol "BROAD".
+      We sell industrial pumps. Artificial intelligence may affect our industry and
+      competitors, but it is not material to our current products.
+    </body></html>"""
+    broad = classify_final_prospectus(
+        row, incidental, classified_at="2026-08-31T00:00:00+00:00")
+    assert broad["decision"] == "include_broad"
+    assert broad["core_member"] is False
+    assert broad["dependency_tier"] == 2
+    assert "ai_label_present_in_final_prospectus" in broad["reason_codes"]
+
+
+def test_policy_upgrade_appends_a_superseding_decision(tmp_path: Path) -> None:
+    _install_reference(tmp_path)
+    filing = b"""<html><body>
+      This is our initial public offering. The public offering price is $9.00 per share.
+      Our common stock has been approved for listing under the symbol "FRSH".
+      Artificial intelligence may affect our industry.
+    </body></html>"""
+    candidate = {
+        "company": "Fresh Compute Inc", "cik": "0001234567",
+        "accession": "0001234567-26-000012", "filed_at": "2026-08-14",
+        "filing_url": "https://www.sec.gov/example.htm",
+    }
+    old = classify_final_prospectus(
+        candidate, filing, classified_at="2026-08-30T00:00:00+00:00")
+    old["policy_id"] = "sec_424b4_ai_materiality_v1"
+    old["decision_id"] = "old-decision"
+    old["decision"] = "exclude"
+    old["reason_codes"] = ["ai_not_material_enough_in_final_prospectus"]
+    old.pop("supersedes_decision_id", None)
+    decision_path = tmp_path / DECISIONS_PATH
+    decision_path.parent.mkdir(parents=True, exist_ok=True)
+    decision_path.write_text(json.dumps(old) + "\n", encoding="utf-8")
+
+    def fetcher(url: str) -> bytes:
+        if url.startswith("https://efts.sec.gov/"):
+            return _page([FRESH])
+        return filing
+
+    refresh_edgar_candidates(
+        tmp_path,
+        checked_at="2026-09-30T00:00:00+00:00",
+        fetcher=fetcher,
+        keywords=("artificial intelligence",),
+        auto_classify=True,
+    )
+    rows = [json.loads(line) for line in decision_path.read_text(encoding="utf-8").splitlines()]
+    assert len(rows) == 2
+    assert rows[1]["supersedes_decision_id"] == "old-decision"
+    assert rows[1]["decision"] == "include_broad"
 
 
 def test_auto_classification_appends_decision_and_projects_current_year(tmp_path: Path) -> None:

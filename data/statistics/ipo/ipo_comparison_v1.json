@@ -5,7 +5,7 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "as_of": "2026-09-27",
+  "as_of": "2026-09-28",
   "coverage": {
     "dotcom_years": [
       1995,
@@ -31,10 +31,10 @@
     "ai_broad_limit": "This is a reviewed market-narrative cohort, not a complete keyword census. It is intentionally broader than the AI-core minimum and should not be read as a pure-play count.",
     "ai_core_series": "Reviewed minimum count: final SEC 424B4, traditional U.S. exchange IPO, offer price at least USD 5, excluding ADRs, SPACs, REITs and direct listings; AI/ML product or compute infrastructure must be central to the prospectus summary",
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
-    "reviewed_through": "2026-09-27",
+    "reviewed_through": "2026-09-28",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage.",
-    "automation_policy": "sec_424b4_ai_materiality_v1",
-    "automation_semantics": "SEC final 424B4 deterministic classification; eligible current-year traditional IPOs are appended without manual approval; ambiguous or incidental AI references are excluded"
+    "automation_policy": "sec_424b4_ai_label_v4",
+    "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in the broad cohort; the core cohort retains the stricter materiality rule"
   },
   "reference_publication_contract": {
     "publication_class": "reference_statistics",
@@ -42,7 +42,7 @@
     "official_forecast_input": false,
     "placement": "below_authoritative_statistics",
     "refreshable_universe": "SEC quarterly IPO workbook plus SEC EDGAR final prospectus events",
-    "classification_review": "current-year SEC 424B4 events are classified automatically by the registered deterministic materiality policy; decisions retain source hash and evidence",
+    "classification_review": "current-year SEC 424B4 events are classified automatically by the registered AI-label policy; decisions retain source hash, evidence, and append-only supersession lineage",
     "static_fallback_rule": "Historical or annual research figures without a continuously refreshable official equivalent remain explicitly marked reference-only static.",
     "batch_update": {
       "cadence": "weekly_after_authoritative_SEC_refresh",
@@ -207,7 +207,7 @@
     },
     {
       "year": 2026,
-      "through": "2026-09-27",
+      "through": "2026-09-28",
       "issuers": [
         {
           "name": "Rank One Computing",
@@ -257,6 +257,87 @@
           "basis": "SEC final prospectus: AI material to product or compute infrastructure",
           "evidence_source_id": "SEC_AUTO_2124472_000162828026062794",
           "classification_decision_id": "1081494ac7194809ee08445e3468d79aafa0999527b024ef5058999c3058521a"
+        },
+        {
+          "name": "Londian Wason New Energy Tech Inc.",
+          "ticker": "FOIL",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2006960_000119312526351136",
+          "classification_decision_id": "066d153f1c791eb2a79ef127c10e5374f0eae3c9b785961f24c7d8699e751954"
+        },
+        {
+          "name": "Rainier Acquisition Corp",
+          "ticker": "RNAQU",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2147219_000110465926102498",
+          "classification_decision_id": "2e13130cd0455bcbbf06232faaffcfc591f5d10269c621ad8fc30c15d7db84ed"
+        },
+        {
+          "name": "Electra Therapeutics, Inc.",
+          "ticker": "ETRA",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2088082_000119312526395670",
+          "classification_decision_id": "32d4caaadace86d80f1c52138dccbe7357b1dd1e12a2599fb6ad7f0bc76dbe23"
+        },
+        {
+          "name": "SunScout Holding Ltd",
+          "ticker": "SNSC",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2101240_000121390026088617",
+          "classification_decision_id": "d9c596166b362a893e67d9a7d05f206f26ec3bf59e510f6b48af1a1ba0fe4e89"
+        },
+        {
+          "name": "Karman Line Acquisition Corp.",
+          "ticker": "XTERU",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2134856_000182912626009017",
+          "classification_decision_id": "ac14af3763ff9581e9ba0c8ea9c7245255a7a5868ea8b03314e8198e4f0b2e64"
+        },
+        {
+          "name": "Lyntris Inc.",
+          "ticker": "LYNX",
+          "dependency_tier": 4,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2132582_000119312526356916",
+          "classification_decision_id": "5c1255339fbce2d7e1eb225543716140e2f3fbdae845e396d7ed8a651b9c62cf"
+        },
+        {
+          "name": "JATT III Acquisition Corp",
+          "ticker": "JTTT",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2145659_000121390026093949",
+          "classification_decision_id": "9d9bdabf247e04adc05e677ef4ea5bcb6e763e9cf6d1e653708f06d46529a727"
+        },
+        {
+          "name": "Haymaker Acquisition Corp V",
+          "ticker": "HYACU",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2111838_000119312526395319",
+          "classification_decision_id": "98ca0cdd27e6a353f76dadb566deb077255a778cd9f677a5226419b04c149bd4"
+        },
+        {
+          "name": "RUI Holdings Inc",
+          "ticker": "CIK2094989",
+          "dependency_tier": 2,
+          "core_member": false,
+          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "evidence_source_id": "SEC_AUTO_2094989_000118518526004253",
+          "classification_decision_id": "a0f2d14faa185413bda62dba1e5fa397a9ee163b5b91061842e73d3bbf7b5dd5"
         }
       ]
     }
@@ -462,9 +543,9 @@
       "category": "ipo",
       "unit": "count",
       "scale": "log1p",
-      "description": "닷컴기의 인터넷 IPO와 현재의 실제 광의 AI 연관 IPO를 비교하고, SK하이닉스의 2026 NASDAQ ADS 공모까지 더한 영향력 포함 집계를 별도 선으로 봅니다.",
-      "caveat": "SK하이닉스 SKHY는 2026년 NASDAQ ADS 공모·상장을 마쳤지만 ADR은 Ritter 전통 IPO 정의에서 제외됩니다. 따라서 영향력 포함 선만 2026년 광의 IPO 5건에 SKHY 상장 사건 1개를 더한 6이며 실제 IPO선은 바꾸지 않습니다. 세로축은 log(1+x)입니다.",
-      "insight": "실제 광의 AI 연관 전통 IPO는 2026-09-27까지 6건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 7입니다.",
+      "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선만 AI 사업 중요도를 엄격하게 적용합니다.",
+      "caveat": "현재 광의 15건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 16건이며, 세로축은 log(1+x)입니다.",
+      "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-09-28까지 15건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 16입니다.",
       "source_ids": [
         "RITTER_INTERNET_IPO_2025",
         "RC_AI_MARKET_2024",
@@ -537,8 +618,8 @@
             },
             {
               "period": 36,
-              "date": "2026-09-27",
-              "value": 6
+              "date": "2026-09-28",
+              "value": 15
             }
           ]
         },
@@ -564,8 +645,8 @@
             },
             {
               "period": 36,
-              "date": "2026-09-27",
-              "value": 7
+              "date": "2026-09-28",
+              "value": 16
             }
           ]
         },
@@ -591,7 +672,7 @@
             },
             {
               "period": 36,
-              "date": "2026-09-27",
+              "date": "2026-09-28",
               "value": 1
             }
           ]
@@ -615,8 +696,8 @@
         },
         {
           "period": "2026 YTD",
-          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. + SK hynix SKHY(NASDAQ ADS)",
-          "value": "Ritter식 실제 광의 IPO 6 · ADS 영향 포함 7 · 핵심 1"
+          "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc + SK hynix SKHY(NASDAQ ADS)",
+          "value": "AI 표방 신규 IPO 15 · ADS 영향 포함 16 · 핵심 1"
         },
         {
           "period": "역사 맥락",
@@ -1581,6 +1662,123 @@
       "row_count": 1,
       "raw_sha256": "58d3f792e58a409a1bc5a8f94afbb9d5a847cf7a03cfcf12c3d14cf18c47d664",
       "vintage": "SEC_accession_0001628280-26-062794"
+    },
+    {
+      "series_id": "SEC_AUTO_2006960_000119312526351136",
+      "title": "Londian Wason New Energy Tech Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2006960/000119312526351136/d476818d424b4.htm",
+      "available_at": "2026-08-14T00:00:00Z",
+      "latest_observation": "2026-08-14",
+      "row_count": 1,
+      "raw_sha256": "8f1b96f529e2b93ce6ed8c6876e6ee5f4a09d581405beb73e7368e69111316b9",
+      "vintage": "SEC_accession_0001193125-26-351136"
+    },
+    {
+      "series_id": "SEC_AUTO_2147219_000110465926102498",
+      "title": "Rainier Acquisition Corp final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2147219/000110465926102498/tmb-20260821x424b4.htm",
+      "available_at": "2026-08-27T00:00:00Z",
+      "latest_observation": "2026-08-27",
+      "row_count": 1,
+      "raw_sha256": "0a8ba658ca85d81fe4f23f826cd07c4a747248795a38805cac60cb8126f2924a",
+      "vintage": "SEC_accession_0001104659-26-102498"
+    },
+    {
+      "series_id": "SEC_AUTO_2088082_000119312526395670",
+      "title": "Electra Therapeutics, Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2088082/000119312526395670/d61940d424b4.htm",
+      "available_at": "2026-09-18T00:00:00Z",
+      "latest_observation": "2026-09-18",
+      "row_count": 1,
+      "raw_sha256": "2eb34f1e1ccd6ca52d2af51dc4279e5f0954b670fd997abfb12c2f41c05cc8ab",
+      "vintage": "SEC_accession_0001193125-26-395670"
+    },
+    {
+      "series_id": "SEC_AUTO_2101240_000121390026088617",
+      "title": "SunScout Holding Ltd final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2101240/000121390026088617/ea0268485-18.htm",
+      "available_at": "2026-08-13T00:00:00Z",
+      "latest_observation": "2026-08-13",
+      "row_count": 1,
+      "raw_sha256": "2c2ff439f06f50e2e5ce9f4e35309a1fcb6297a150650376d88278a876d0ada7",
+      "vintage": "SEC_accession_0001213900-26-088617"
+    },
+    {
+      "series_id": "SEC_AUTO_2134856_000182912626009017",
+      "title": "Karman Line Acquisition Corp. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2134856/000182912626009017/karmanlineacq_424b4.htm",
+      "available_at": "2026-08-18T00:00:00Z",
+      "latest_observation": "2026-08-18",
+      "row_count": 1,
+      "raw_sha256": "fb2c84cc06f339ffc1414770f553c51c42c0812e57e4ca5c0cf6b61eb79cf3af",
+      "vintage": "SEC_accession_0001829126-26-009017"
+    },
+    {
+      "series_id": "SEC_AUTO_2132582_000119312526356916",
+      "title": "Lyntris Inc. final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2132582/000119312526356916/d23330d424b4.htm",
+      "available_at": "2026-08-19T00:00:00Z",
+      "latest_observation": "2026-08-19",
+      "row_count": 1,
+      "raw_sha256": "08a1cc00833ddda2ada09eb72ca2e68ee717bd2736f831e054b6b20f0ebd1b43",
+      "vintage": "SEC_accession_0001193125-26-356916"
+    },
+    {
+      "series_id": "SEC_AUTO_2145659_000121390026093949",
+      "title": "JATT III Acquisition Corp final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2145659/000121390026093949/ea0302980-424b4_jatt3.htm",
+      "available_at": "2026-08-26T00:00:00Z",
+      "latest_observation": "2026-08-26",
+      "row_count": 1,
+      "raw_sha256": "50f324f8dd3ca2a25c71d92515375a193ef81453826d2a134646ccd3d110427c",
+      "vintage": "SEC_accession_0001213900-26-093949"
+    },
+    {
+      "series_id": "SEC_AUTO_2111838_000119312526395319",
+      "title": "Haymaker Acquisition Corp V final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2111838/000119312526395319/d86766d424b4.htm",
+      "available_at": "2026-09-18T00:00:00Z",
+      "latest_observation": "2026-09-18",
+      "row_count": 1,
+      "raw_sha256": "2c96b5d60de06ba74aa2cef962560ce5765b79296e95afb2e10fb0e86d53baad",
+      "vintage": "SEC_accession_0001193125-26-395319"
+    },
+    {
+      "series_id": "SEC_AUTO_2094989_000118518526004253",
+      "title": "RUI Holdings Inc final IPO prospectus",
+      "provider": "U.S. Securities and Exchange Commission",
+      "unit": "filing",
+      "native_frequency": "event",
+      "source_url": "https://www.sec.gov/Archives/edgar/data/2094989/000118518526004253/ruihold424b4092326.htm",
+      "available_at": "2026-09-24T00:00:00Z",
+      "latest_observation": "2026-09-24",
+      "row_count": 1,
+      "raw_sha256": "ab8ccee7aceafe2abbd638763f08713b48ae46227cf4542ff178c8d62e51819c",
+      "vintage": "SEC_accession_0001185185-26-004253"
     }
   ]
 }
