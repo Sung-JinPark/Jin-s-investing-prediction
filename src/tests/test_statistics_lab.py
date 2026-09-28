@@ -500,7 +500,7 @@ def test_manual_reference_staleness_stops_weekly_republication() -> None:
     hmi = _repo_hmi_reference()
     _validate_manual_reference_freshness(ipo, hmi, "2026-09-28T00:00:00+00:00")
     with pytest.raises(StatisticsLabError, match="IPO reviewed cohort stale"):
-        _validate_manual_reference_freshness(ipo, hmi, "2026-10-12T00:00:00+00:00")
+        _validate_manual_reference_freshness(ipo, hmi, "2026-10-13T00:00:00+00:00")
 
 
 def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
@@ -982,7 +982,7 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     validate_ipo_reference(payload)
     assert payload["coverage"]["current_axis_end"] == 2027
     assert payload["coverage"]["current_line_policy"] == "actual_observations_only_no_forecast_extension"
-    assert len(payload["sources"]) == 28
+    assert len(payload["sources"]) == 37
     assert all(source["raw_sha256"] for source in payload["sources"])
     # IPO 참고 원장은 FRED를 쓰지 않는다 — 여기서 all()로 FRED URL을 검사하면
     # 빈 리스트에 대한 공허참이 된다. 부재 자체를 단언하는 것이 올바른 검사다.
@@ -992,11 +992,11 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert not any("api_key" in str(source.get("request_url", "")) for source in payload["sources"])
     assert not any("fredgraph.csv" in str(source.get("request_url", "")) for source in payload["sources"])
     sec_sources = [source for source in payload["sources"] if source["series_id"].startswith("SEC_")]
-    assert len(sec_sources) == 8
+    assert len(sec_sources) == 17
     assert all("sec.gov/Archives/edgar/data" in source["source_url"] for source in sec_sources)
     broad = payload["ai_broad_cohort"]
     assert [row["year"] for row in broad] == [2023, 2024, 2025, 2026]
-    assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 6]
+    assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 15]
     assert all(2 <= issuer["dependency_tier"] <= 5 for row in broad for issuer in row["issuers"])
     assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 1]
     qualitative = payload["qualitative_ipo"]

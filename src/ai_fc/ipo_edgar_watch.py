@@ -8,10 +8,10 @@
 경로다.  그쪽 상태 파일도, 주간 워크플로도 건드리지 않는다.
 
 과거 행은 잠그고 현재 연도만 갱신한다. 자동 분류는 SEC 최종 투자설명서 원문에
-근거한 보수적 규칙이다. SPAC·후속 공모·ADR·직상장·REIT, 단순 규제 문구,
-내부 업무 활용, AI 수요 수혜 언급은 제외한다. 제품·서비스·컴퓨트 인프라에
-AI가 반복적으로 연결된 전통 IPO만 현재 코호트에 편입한다. 모든 판정은
-append-only 결정 원장에 원문 SHA와 근거 문장을 남긴다.
+근거한다. AI 키워드로 발견된 실제 신규 IPO는 사업상 중요도와 무관하게 광의
+코호트에 넣고, 핵심 코호트만 엄격한 중요도 규칙을 유지한다. 후속 공모·이미
+상장된 기업·직상장은 IPO 건수에서 제외한다. 모든 판정은 append-only 결정
+원장에 원문 SHA와 근거 문장을 남기며 정책 변경은 supersedes로 연결한다.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ from typing import Any, Callable
 IPO_REFERENCE_PATH = Path("data/statistics/ipo/ipo_comparison_v1.json")
 CANDIDATES_PATH = Path("data/statistics/ipo/edgar_candidates.json")
 DECISIONS_PATH = Path("data/statistics/ipo/classification_decisions.jsonl")
-POLICY_ID = "sec_424b4_ai_materiality_v1"
+POLICY_ID = "sec_424b4_ai_label_v4"
 # SEC 공정접근 정책은 UA에 연락 가능한 이메일을 요구한다 (사용자 지정 주소).
 USER_AGENT = "JinsInvestingIPOEdgarWatch/1.0 (91ssjj@gmail.com)"
 SEARCH_ENDPOINT = "https://efts.sec.gov/LATEST/search-index"
@@ -56,6 +56,7 @@ _CORPORATE_SUFFIXES = {
     "sa", "ag", "ab", "as", "oyj", "se", "the",
 }
 _DISPLAY_NAME = re.compile(r"^(?P<name>.+?)\s*(?:\((?:[A-Z0-9.,\s-]+)\)\s*)*\(CIK\s*\d+\)\s*$")
+_DISPLAY_TICKER = re.compile(r"\(([A-Z][A-Z0-9.]{0,9})\)\s*\(CIK\s*\d+\)\s*$")
 
 
 class IPOEdgarWatchError(RuntimeError):
@@ -111,8 +112,8 @@ def _offering_price(text: str) -> float | None:
 
 def _ticker(text: str) -> str | None:
     patterns = (
-        r'(?:under|using) the (?:trading )?symbol [“"\']([A-Z][A-Z0-9.]{0,9})',
-        r'ticker symbol [“"\']([A-Z][A-Z0-9.]{0,9})',
+        r'(?:under|using) the (?:trading )?symbol [“"\'‘]?([A-Z][A-Z0-9.]{0,9})',
+        r'ticker symbol [“"\'‘]?([A-Z][A-Z0-9.]{0,9})',
     )
     for pattern in patterns:
         match = re.search(pattern, text, flags=re.IGNORECASE)
@@ -121,12 +122,18 @@ def _ticker(text: str) -> str | None:
     return None
 
 
-def classify_final_prospectus(row: dict[str, Any], raw: bytes, *, classified_at: str) -> dict[str, Any]:
+def classify_final_prospectus(
+    row: dict[str, Any],
+    raw: bytes,
+    *,
+    classified_at: str,
+    supersedes_decision_id: str | None = None,
+) -> dict[str, Any]:
     """Classify one completed 424B4 without an LLM or a manual approval queue.
 
-    The rule is deliberately asymmetric: ambiguous issuers stay outside the published
-    cohort. A later accession can be evaluated independently and appended as a new
-    decision; an old decision is never rewritten.
+    AI 키워드는 EDGAR 검색 단계에서 이미 확인된다. 실제 신규 IPO이면 광의
+    코호트에 포함하고, AI가 제품·서비스의 중심이라는 증거가 충분할 때만 핵심
+    코호트로 올린다. 정책 변경 시 과거 판정은 supersedes로 연결해 보존한다.
     """
 
     text = _filing_text(raw)
@@ -135,39 +142,33 @@ def classify_final_prospectus(row: dict[str, Any], raw: bytes, *, classified_at:
     contexts = _evidence_sentences(text)
     company = str(row.get("company") or "")
     price = _offering_price(text)
-    ticker = _ticker(text)
+    detected_ticker = _ticker(text) or str(row.get("ticker_hint") or "") or None
+    ticker = detected_ticker or f"CIK{str(row.get('cik') or '').lstrip('0')}"
 
     is_spac = (
         "acquisition corp" in company.lower()
-        or "blank check company" in lower
-        or "special purpose acquisition company" in lower
+        or "blank check company" in cover
+        or "special purpose acquisition company" in cover
     )
     is_initial = (
         "this is our initial public offering" in cover
+        or "this is an initial public offering" in cover
         or "this offering is our initial public offering" in cover
         or "prior to this offering, there has been no public market" in cover
+        or "prior to this offering, there had been no public market" in cover
+        or (
+            "initial public offering price" in lower
+            and "prior to this offering, there has been no public market" in lower
+        )
     )
     already_trading = bool(re.search(
         r"(?:our|the) (?:class [a-z] )?(?:ordinary |common )?shares are listed .*? symbol",
         lower,
     )) or "last reported sale price" in cover
     excluded_structure = {
-        "spac": is_spac,
         "not_initial_public_offering": not is_initial,
         "already_public_or_follow_on": already_trading and not is_initial,
-        "adr_or_ads": (
-            "american depositary shares offered by this prospectus" in cover
-            or "offering of american depositary shares" in cover
-        ),
         "direct_listing": "this is a direct listing" in cover,
-        "reit": bool(re.search(
-            r"we (?:are|intend to be|have elected to be) "
-            r"(?:organized and operated as )?a real estate investment trust",
-            cover,
-        )),
-        "offer_price_below_5": price is not None and price < 5.0,
-        "ticker_not_found": not ticker,
-        "offer_price_not_found": price is None,
     }
 
     product_markers = (
@@ -200,26 +201,26 @@ def classify_final_prospectus(row: dict[str, Any], raw: bytes, *, classified_at:
         reason_codes = structural_reasons
         tier = None
         core = False
-    elif ai_company_identity and central_hits >= 2 and len(material_contexts) >= 3:
+    elif not is_spac and ai_company_identity and central_hits >= 2 and len(material_contexts) >= 3:
         decision = "include_core"
         reason_codes = ["eligible_traditional_ipo", "ai_central_to_product_or_infrastructure"]
         tier = 5
         core = True
-    elif central_hits >= 1 and len(material_contexts) >= 3:
-        decision = "include_broad"
-        reason_codes = ["eligible_traditional_ipo", "ai_material_to_product_or_service"]
-        tier = 4
-        core = False
     else:
-        decision = "exclude"
-        reason_codes = ["ai_not_material_enough_in_final_prospectus"]
-        tier = None
+        decision = "include_broad"
+        reason_codes = [
+            "eligible_initial_public_offering",
+            "ai_label_present_in_final_prospectus",
+        ]
+        if is_spac:
+            reason_codes.append("spac_or_blank_check_vehicle")
+        tier = 4 if central_hits >= 1 and len(material_contexts) >= 3 else 2
         core = False
 
     raw_sha = hashlib.sha256(raw).hexdigest()
     decision_seed = "|".join((POLICY_ID, str(row.get("accession")), raw_sha, decision))
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "decision_id": hashlib.sha256(decision_seed.encode()).hexdigest(),
         "policy_id": POLICY_ID,
         "classified_at": classified_at,
@@ -230,13 +231,17 @@ def classify_final_prospectus(row: dict[str, Any], raw: bytes, *, classified_at:
         "filing_url": str(row.get("filing_url") or ""),
         "raw_sha256": raw_sha,
         "decision": decision,
+        "supersedes_decision_id": supersedes_decision_id,
         "reason_codes": reason_codes,
         "ticker": ticker,
+        "ticker_source": "prospectus_or_edgar" if detected_ticker else "cik_placeholder",
         "offer_price_usd": price,
         "dependency_tier": tier,
         "core_member": core,
         "material_context_count": len(material_contexts),
         "central_pattern_count": central_hits,
+        "ai_label_rule": "matched_ai_keyword_and_actual_initial_public_offering",
+        "vehicle_type": "spac_ipo" if is_spac else "operating_company_ipo",
         "evidence_excerpts": material_contexts[:3] or contexts[:2],
     }
 
@@ -282,6 +287,13 @@ def company_from_display_name(value: str) -> str:
     return (match.group("name") if match else str(value)).strip()
 
 
+def ticker_from_display_name(value: str) -> str | None:
+    """EDGAR 표시명의 CIK 바로 앞 괄호에서 ticker 힌트를 읽는다."""
+
+    match = _DISPLAY_TICKER.search(str(value).strip())
+    return match.group(1) if match else None
+
+
 def normalize_company(value: str) -> str:
     """법인 접미사·구두점을 걷어낸 비교용 이름."""
 
@@ -316,12 +328,12 @@ def reviewed_through(root: Path) -> str:
     return str(value or payload.get("as_of") or "")
 
 
-def _load_decisions(root: Path) -> tuple[list[dict[str, Any]], set[str]]:
+def _load_decisions(root: Path) -> tuple[list[dict[str, Any]], dict[str, dict[str, Any]]]:
     path = root / DECISIONS_PATH
     if not path.is_file():
-        return [], set()
+        return [], {}
     rows: list[dict[str, Any]] = []
-    accessions: set[str] = set()
+    latest: dict[str, dict[str, Any]] = {}
     for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
         if not line.strip():
             continue
@@ -331,11 +343,15 @@ def _load_decisions(root: Path) -> tuple[list[dict[str, Any]], set[str]]:
             raise IPOEdgarWatchError(
                 f"IPO classification decision ledger invalid at line {line_number}") from exc
         accession = str(row.get("accession") or "")
-        if not accession or accession in accessions:
-            raise IPOEdgarWatchError("IPO classification decision accessions must be unique")
+        if not accession:
+            raise IPOEdgarWatchError("IPO classification decision accession is required")
+        previous = latest.get(accession)
+        if previous is not None and row.get("supersedes_decision_id") != previous.get("decision_id"):
+            raise IPOEdgarWatchError(
+                "IPO classification revisions must supersede the latest decision")
         rows.append(row)
-        accessions.add(accession)
-    return rows, accessions
+        latest[accession] = row
+    return rows, latest
 
 
 def _append_decisions(root: Path, rows: list[dict[str, Any]]) -> None:
@@ -402,7 +418,11 @@ def _apply_inclusions(
             "ticker": ticker,
             "dependency_tier": decision["dependency_tier"],
             "core_member": decision["core_member"],
-            "basis": "SEC final prospectus: AI material to product or compute infrastructure",
+            "basis": (
+                "SEC final prospectus: AI central to product or compute infrastructure"
+                if decision["core_member"] else
+                "SEC final prospectus: AI label + actual initial public offering"
+            ),
             "evidence_source_id": source_id,
             "classification_decision_id": decision["decision_id"],
         })
@@ -415,13 +435,14 @@ def _apply_inclusions(
     payload["classification"]["reviewed_through"] = reviewed_to
     payload["classification"]["automation_policy"] = POLICY_ID
     payload["classification"]["automation_semantics"] = (
-        "SEC final 424B4 deterministic classification; eligible current-year traditional IPOs "
-        "are appended without manual approval; ambiguous or incidental AI references are excluded"
+        "SEC final 424B4 deterministic classification; every current-year actual IPO found by "
+        "the registered AI keyword search is included in the broad cohort; the core cohort "
+        "retains the stricter materiality rule"
     )
     publication = payload["reference_publication_contract"]
     publication["classification_review"] = (
-        "current-year SEC 424B4 events are classified automatically by the registered "
-        "deterministic materiality policy; decisions retain source hash and evidence"
+        "current-year SEC 424B4 events are classified automatically by the registered AI-label "
+        "policy; decisions retain source hash, evidence, and append-only supersession lineage"
     )
     publication["batch_update"]["edgar_source_watch"] = (
         "discover_classify_and_project_completed_424B4_events"
@@ -446,6 +467,17 @@ def _apply_inclusions(
     comparison = next(
         chart for chart in payload["charts"] if chart["id"] == "internet_vs_ai_core_ipos"
     )
+    comparison["description"] = (
+        "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 "
+        "SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, "
+        "핵심선만 AI 사업 중요도를 엄격하게 적용합니다."
+    )
+    comparison["caveat"] = (
+        f"현재 광의 {broad_counts[current_year]}건은 AI 표방 여부를 넓게 포착한 관심도 지표라 "
+        "닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. "
+        f"SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 {influence_counts[current_year]}건이며, "
+        "세로축은 log(1+x)입니다."
+    )
     label_counts = {
         "현재 광의 AI 연관 IPO": broad_counts,
         "현재 AI IPO·NASDAQ ADS 영향 포함": influence_counts,
@@ -467,11 +499,12 @@ def _apply_inclusions(
     detail = next(row for row in comparison["detail_rows"] if row["period"] == f"{current_year} YTD")
     detail["label"] = names + (" + SK hynix SKHY(NASDAQ ADS)" if listed_count else "")
     detail["value"] = (
-        f"Ritter식 실제 광의 IPO {broad_counts[current_year]} · "
+        f"AI 표방 신규 IPO {broad_counts[current_year]} · "
         f"ADS 영향 포함 {influence_counts[current_year]} · 핵심 {core_counts[current_year]}"
     )
     comparison["insight"] = (
-        f"실제 광의 AI 연관 전통 IPO는 {reviewed_to}까지 {broad_counts[current_year]}건이고 "
+        f"SEC 공모 문서에서 AI를 표방한 신규 IPO는 {reviewed_to}까지 "
+        f"{broad_counts[current_year]}건이고 "
         f"NASDAQ ADS를 포함한 자본시장 사건 진단치는 {influence_counts[current_year]}입니다."
     )
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -498,6 +531,7 @@ def _hit_rows(payload: dict[str, Any]) -> list[dict[str, str]]:
             continue
         rows.append({
             "company": company_from_display_name(names[0]) if names else "",
+            "ticker_hint": ticker_from_display_name(names[0]) if names else None,
             "cik": ciks[0],
             "accession": str(source["adsh"]),
             "filed_at": str(source["file_date"]),
@@ -553,6 +587,29 @@ def refresh_edgar_candidates(
 
     cohort = load_cohort_names(root)
     found: dict[str, dict[str, Any]] = {}
+    # 정책 버전이 바뀌면 이미 발견한 후보도 다시 판정해야 한다. 후보 큐는
+    # 발견 증거일 뿐 정본 판정이 아니며, 원문은 아래에서 다시 받아 SHA를 남긴다.
+    if auto_classify:
+        queue_path = root / CANDIDATES_PATH
+        if queue_path.is_file():
+            try:
+                prior_queue = json.loads(queue_path.read_text(encoding="utf-8"))
+            except json.JSONDecodeError as exc:
+                raise IPOEdgarWatchError("IPO candidate queue is invalid") from exc
+            for row in prior_queue.get("candidates") or []:
+                accession = str(row.get("accession") or "")
+                if not accession:
+                    continue
+                found[accession] = {
+                    "company": str(row.get("company") or ""),
+                    "cik": str(row.get("cik") or ""),
+                    "accession": accession,
+                    "filed_at": str(row.get("filed_at") or ""),
+                    "form": FORM,
+                    "filing_url": str(row.get("filing_url") or ""),
+                    "ticker_hint": row.get("ticker_hint"),
+                    "matched_keywords": list(row.get("matched_keywords") or []),
+                }
     errors: list[dict[str, Any]] = []
     for keyword in keywords:
         offset = 0
@@ -588,6 +645,7 @@ def refresh_edgar_candidates(
             "filed_at": entry["filed_at"],
             "form": FORM,
             "filing_url": entry["filing_url"],
+            "ticker_hint": entry.get("ticker_hint"),
             "matched_keywords": sorted(entry["matched_keywords"]),
             "already_in_cohort": normalize_company(entry["company"]) in cohort,
             "review_status": "pending",
@@ -597,19 +655,25 @@ def refresh_edgar_candidates(
     new_decisions: list[dict[str, Any]] = []
     included = 0
     if auto_classify:
-        prior_decisions, decided_accessions = _load_decisions(root)
-        prior_by_accession = {row["accession"]: row for row in prior_decisions}
-        for entry in pending:
+        prior_decisions, latest_by_accession = _load_decisions(root)
+        for entry in candidates:
             accession = str(entry["accession"])
-            if accession in decided_accessions:
-                previous = prior_by_accession[accession]
+            previous = latest_by_accession.get(accession)
+            if previous is not None and previous.get("policy_id") == POLICY_ID:
                 entry["review_status"] = f"auto_{previous['decision']}"
                 entry["decision_id"] = previous["decision_id"]
                 entry["reason_codes"] = previous["reason_codes"]
                 continue
             try:
                 raw = fetcher(str(entry["filing_url"]))
-                decision = classify_final_prospectus(entry, raw, classified_at=checked)
+                decision = classify_final_prospectus(
+                    entry,
+                    raw,
+                    classified_at=checked,
+                    supersedes_decision_id=(
+                        str(previous["decision_id"]) if previous is not None else None
+                    ),
+                )
             except (OSError, urllib.error.URLError, TimeoutError) as exc:
                 errors.append({
                     "accession": accession,
@@ -623,10 +687,11 @@ def refresh_edgar_candidates(
             entry["review_status"] = f"auto_{decision['decision']}"
             entry["decision_id"] = decision["decision_id"]
             entry["reason_codes"] = decision["reason_codes"]
+            latest_by_accession[accession] = decision
         _append_decisions(root, new_decisions)
         if not errors:
             included = _apply_inclusions(
-                root, [*prior_decisions, *new_decisions], reviewed_to=window_end.isoformat())
+                root, list(latest_by_accession.values()), reviewed_to=window_end.isoformat())
         pending = [row for row in candidates if row["review_status"] in {
             "pending", "classification_fetch_failed",
         }]
