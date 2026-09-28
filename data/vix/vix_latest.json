@@ -5,7 +5,7 @@
   "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
   "source_field": "CLOSE",
   "observed_date": "2026-09-25",
-  "generated_at": "2026-09-28T05:18:31+00:00",
+  "generated_at": "2026-09-28T05:33:43+00:00",
   "level": 14.87,
   "band": "calm",
   "band_label": "평시",
