@@ -1,30 +1,19 @@
 {
   "status": "live",
-  "series_id": "VIXCLS",
-  "source": "FRED (fred_market_signals 계약 · license approved)",
-  "source_url": "https://api.stlouisfed.org/fred/series/observations?series_id=VIXCLS&file_type=json",
-  "observed_date": "2026-09-22",
-  "generated_at": "2026-09-28T01:58:17+00:00",
-  "level": 14.21,
+  "series_id": "VIX",
+  "source": "Cboe Global Markets official VIX daily prices",
+  "source_url": "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv",
+  "source_field": "CLOSE",
+  "observed_date": "2026-09-25",
+  "generated_at": "2026-09-28T05:18:31+00:00",
+  "level": 14.87,
   "band": "calm",
   "band_label": "평시",
-  "change_1d": -0.66,
-  "week_ago": 17.2,
-  "month_ago": 15.13,
-  "year_ago": 16.1,
+  "change_1d": -0.8,
+  "week_ago": 14.81,
+  "month_ago": 15.21,
+  "year_ago": 16.74,
   "trail": [
-    {
-      "d": "2026-03-23",
-      "v": 26.15
-    },
-    {
-      "d": "2026-03-24",
-      "v": 26.95
-    },
-    {
-      "d": "2026-03-25",
-      "v": 25.33
-    },
     {
       "d": "2026-03-26",
       "v": 27.44
@@ -536,6 +525,18 @@
     {
       "d": "2026-09-22",
       "v": 14.21
+    },
+    {
+      "d": "2026-09-23",
+      "v": 15.18
+    },
+    {
+      "d": "2026-09-24",
+      "v": 15.67
+    },
+    {
+      "d": "2026-09-25",
+      "v": 14.87
     }
   ],
   "trail_min": 14.21,
@@ -580,8 +581,8 @@
   ],
   "hard_rule": {
     "level": 25.0,
-    "distance": 10.79,
+    "distance": 10.13,
     "breached": false
   },
-  "stale_days": 6
+  "stale_days": 3
 }

@@ -10,17 +10,11 @@ name: market-mood-refresh
 #   워크플로가 우연히 재배포할 때까지 화면에 올라가지 않았다(GITHUB_TOKEN 푸시는 push
 #   트리거를 발화하지 않는다).
 #
-# 시각: 22:10 UTC = KST 07:10 — 미국 마감(EDT 20:00 · EST 21:00 UTC)에서 1시간 이상
-# 지나 종가 기준 값이 확정된 뒤다. 예약 지연이 몇 시간 붙어도 다음 정규장 개장
-# (13:30 UTC)까지 여유가 커서 장중 값을 그날 값으로 잠그지 않는다. 23:40 UTC(KST 08:40)는
-# 첫 예약이 유실될 때의 백업이다. 원장은 KST 관측일당 1행(첫 값 우선)이라 두 번째 런은
-# 공포·탐욕을 다시 쓰지 않는다. 정각은 GitHub 예약이 몰려 유실이 잦아 피했다.
-# source-monitoring 의 같은 단계는 그대로 둔다 — 오후 폴백이자 안정성 배지(연속 일수)의
-# 이중 안전망이다.
+# 시각: 22:40 UTC = KST 07:40 — 미국 마감(EDT 20:00 · EST 21:00 UTC) 뒤 종가가
+# 확정된 시각에 하루 한 번 실행한다. 정각은 GitHub 예약이 몰려 지연되기 쉬워 피한다.
 on:
   schedule:
-    - cron: "10 22 * * *"
-    - cron: "40 23 * * *"
+    - cron: "40 22 * * *"
   workflow_dispatch:
 
 permissions:
@@ -47,8 +41,6 @@ jobs:
       - name: Refresh market mood surfaces (VIX · fear and greed)
         id: mood
         continue-on-error: true
-        env:
-          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
         run: cd src && python -m ai_fc signals
       - name: Commit refreshed mood surfaces
         shell: bash

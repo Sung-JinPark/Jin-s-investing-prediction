@@ -2586,7 +2586,7 @@ function renderVixCard(vix){
     <div class="mood-strip-wrap"><div class="mood-strip" role="img" aria-label="현재 구간 ${esc(vix.band_label)}, 경계 13·20·25·30·40">${strip}<b class="mood-strip-pin" style="left:${pos.toFixed(2)}%"></b></div><div class="mood-strip-ticks">${ticks}</div></div>
     ${spark}
     <dl class="mood-meta"><div><dt>1주 전</dt><dd>${hasNumeric(vix.week_ago)?vix.week_ago.toFixed(2):'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(vix.month_ago)?vix.month_ago.toFixed(2):'—'}</dd></div><div><dt>1년</dt><dd>${hasNumeric(vix.year_ago)?vix.year_ago.toFixed(2):'—'}</dd></div></dl>
-    <p class="mood-note">${hr.breached?`<b>하드룰 25 도달</b> — 확률과 무관하게 기계적으로 유지되는 EXIT 트리거입니다.`:`하드룰 25까지 <b>${hasNumeric(dist)?dist.toFixed(2):'—'}</b> 남았습니다.`} <span>${esc(vix.observed_date)} · FRED VIXCLS</span></p>
+    <p class="mood-note">${hr.breached?`<b>하드룰 25 도달</b> — 확률과 무관하게 기계적으로 유지되는 EXIT 트리거입니다.`:`하드룰 25까지 <b>${hasNumeric(dist)?dist.toFixed(2):'—'}</b> 남았습니다.`} <span>${esc(vix.observed_date)} · Cboe VIX 종가</span></p>
   </article>`;
 }
 

@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 """VIX 표시 표면 — 수준 · 구간 · 최근 추이.
 
-## 원천을 FRED 로 고정하는 이유
+## 원천
 
-저장소는 CBOE 에서 직접 받은 VIX 아카이브도 갖고 있지만(`data/timeseries_v2/raw/
-market/cboe_vix_archive/`), `docs/generated/licenses.generated.md` 의 "Pending manual
-reviews" 에 **CBOE 재배포 약관 미확인**으로 남아 있다. 공개 Pages 에 띄우는 값은
-이미 승인된 경로에서만 뽑는다 — `fred_market_signals` 계약(`license_status: approved`,
-"계약 범위 내 파생 통계 표시")의 `series_ids` 에 `VIXCLS` 가 들어 있다.
-
-수집은 반드시 **API 경로**로 한다. `fredgraph.csv` 그래프 URL 은 응답하지만
-DECISIONS 12-6 이 "FRED 약관은 API 경로만 자동 수집을 허용한다"로 고정했다.
+표시값은 Cboe가 공개하는 공식 VIX 일별 종가 파일에서 읽는다. FRED `VIXCLS`는
+공식 재배포 계열이지만 2026-09-28 실측에서 마지막 관측이 6일 늦어져 매일 실행되는
+작업이 같은 오래된 값을 반복 저장했다. 저장소의 원천 검토(DECISIONS 12-5)도 VIX의
+원천은 결국 Cboe로 수렴한다고 결론냈다. 따라서 표시 전용 최신값은 Cboe를 직접
+사용하고, 원문은 커밋하지 않으며 필요한 종가·파생 표시값만 재생성한다.
 
 ## 구간 경계는 지어내지 않았다
 
@@ -24,13 +21,14 @@ from __future__ import annotations
 import csv
 import io
 import json
+import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-from . import fred_api
-
-SERIES_ID = "VIXCLS"
+SERIES_ID = "VIX"
+CBOE_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
+USER_AGENT = "JinsInvestingVixSurface/1.0 (91ssjj@gmail.com)"
 LATEST_RELATIVE = Path("data/vix/vix_latest.json")
 TRAIL_DAYS = 183          # 스파크라인 ≈ 6개월
 HISTORY_START_DAYS = 420  # 1년 비교치까지 계산할 여유
@@ -75,11 +73,40 @@ def parse_csv(raw: str) -> list[tuple[date, float]]:
     return rows
 
 
+def parse_cboe_csv(raw: str) -> list[tuple[date, float]]:
+    """Parse Cboe's ``DATE,OPEN,HIGH,LOW,CLOSE`` daily history."""
+
+    reader = csv.DictReader(io.StringIO(raw.lstrip("\ufeff")))
+    rows: list[tuple[date, float]] = []
+    for row in reader:
+        try:
+            day = datetime.strptime(str(row.get("DATE", "")).strip(), "%m/%d/%Y").date()
+            close = float(str(row.get("CLOSE", "")).strip())
+        except (TypeError, ValueError):
+            continue
+        rows.append((day, close))
+    if not rows:
+        raise VixSurfaceError("Cboe VIX 일별 종가가 비어 있다 — 표시하지 않는다")
+    rows.sort(key=lambda item: item[0])
+    return rows
+
+
 def fetch_series(*, today: Optional[date] = None, timeout: int = 45) -> list[tuple[date, float]]:
-    start = (today or date.today()) - timedelta(days=HISTORY_START_DAYS)
-    raw = fred_api.observations_csv(
-        SERIES_ID, observation_start=start.isoformat(), timeout=timeout)
-    return parse_csv(raw)
+    request = urllib.request.Request(
+        CBOE_URL,
+        headers={"User-Agent": USER_AGENT, "Accept": "text/csv,*/*;q=0.1"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            raw = response.read().decode("utf-8-sig")
+    except (OSError, UnicodeError) as exc:
+        raise VixSurfaceError(f"Cboe VIX 일별 종가 수집 실패: {type(exc).__name__}") from exc
+    end = today or date.today()
+    start = end - timedelta(days=HISTORY_START_DAYS)
+    rows = [(day, value) for day, value in parse_cboe_csv(raw) if start <= day <= end]
+    if not rows:
+        raise VixSurfaceError("Cboe VIX 관측창이 비어 있다 — 표시하지 않는다")
+    return rows
 
 
 def _value_on_or_before(rows: list[tuple[date, float]], target: date) -> Optional[float]:
@@ -104,8 +131,9 @@ def build_projection(rows: list[tuple[date, float]], *,
     return {
         "status": "live",
         "series_id": SERIES_ID,
-        "source": "FRED (fred_market_signals 계약 · license approved)",
-        "source_url": fred_api.observations_public_url(SERIES_ID),
+        "source": "Cboe Global Markets official VIX daily prices",
+        "source_url": CBOE_URL,
+        "source_field": "CLOSE",
         "observed_date": last_day.isoformat(),
         "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
         "level": round(level, 2),
