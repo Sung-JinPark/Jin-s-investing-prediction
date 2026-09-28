@@ -2,9 +2,9 @@
   "schema_version": 2,
   "dataset_id": "ipo_edgar_424b4_auto_classification_v1",
   "cadence": "weekly",
-  "checked_at": "2026-09-28T00:14:40+00:00",
-  "reviewed_through": "2026-09-27",
-  "window_start": "2026-09-28",
+  "checked_at": "2026-09-28T01:41:32+00:00",
+  "reviewed_through": "2026-09-28",
+  "window_start": "2026-09-29",
   "window_end": "2026-09-28",
   "status": "current",
   "form": "424B4",
@@ -18,7 +18,7 @@
     "neural network"
   ],
   "window_clipped_to_max_lookback": false,
-  "classification_policy": "sec_424b4_ai_label_v4",
+  "classification_policy": "sec_424b4_ai_label_v5",
   "applies_to_published_counts": true,
   "historical_rows_locked": true,
   "allowed_update_scope": "current_era_rows_only_after_automatic_sec_prospectus_classification",
@@ -26,9 +26,9 @@
     "candidates": 19,
     "already_in_cohort": 10,
     "pending_review": 0,
-    "new_decisions": 0,
-    "auto_included": 0,
-    "auto_excluded": 0,
+    "new_decisions": 19,
+    "auto_included": 10,
+    "auto_excluded": 9,
     "new_cohort_rows": 0
   },
   "errors": [],
@@ -46,7 +46,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "15c7ecd3303e33f3b9febb495f1591375f7527c2def6d9c96126af2fab3ec3bb",
+      "decision_id": "8b97d971bcdf0fd018391bcc8db3e8c24db730eb58c6f36d894674c7c66e3434",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -66,11 +66,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "603b258ccb279ed0c22d86da877f2e5376d8e51a2fccd59dee92ed3ae908e3de",
+      "review_status": "auto_include_core",
+      "decision_id": "56adaee863b8a754a21574ba00958bd8625f71d99678e8129b933cda8832b216",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -85,11 +86,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "f2545c9a1cdfc3c3162d6a68bb747a764c20ae2ff803c0bc8f8d1377a902c028",
+      "review_status": "auto_include_core",
+      "decision_id": "a795f97dd840a008302d46043b677863bf72c1a400dfccb371677894a9725ef8",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -104,11 +106,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "420d791d6859bedca020984fdad9a21bd30badb307fa18d0a3cde409f1603a0c",
+      "review_status": "auto_include_core",
+      "decision_id": "087ae483b2f64d0779bb70bac91a9ea1ead2656cf46502f6677f8a8761a2659c",
       "reason_codes": [
         "eligible_initial_public_offering",
         "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
         "spac_or_blank_check_vehicle"
       ]
     },
@@ -125,7 +128,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "cae3f41156f24d3247de7f892c456448a30f0f0977134ffad62dd127040e2ed7",
+      "decision_id": "18b0e16bf88d04269ab88b54cd8f8cb015cf3340ec924463abc064c963cfc2e5",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -145,11 +148,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "242aaa56c3fee8fd16fbf7b114f929ce06338a058eb0718f4c7cd34056994443",
+      "review_status": "auto_include_core",
+      "decision_id": "5eb67737eae6d178fd11af56c467538fe9f87236f8ac824cc69f3c3b0c1bbaae",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -166,7 +170,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "0930f703c05dd4db46a6c14561fd70d4738aab28b5645c5a458d18b64ebfc0dd",
+      "decision_id": "4c46fc341a12af24c42881f0b0736d782a67e65c4cdb9d3b7955aae3ad7e5fa2",
       "reason_codes": [
         "not_initial_public_offering"
       ]
@@ -183,11 +187,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "e623d15ec3fee354e6fb832f7ded2da61b40bcd71e55b6e3f9f7f7d521a41d94",
+      "review_status": "auto_include_core",
+      "decision_id": "0fb4b30bd69ea0866d001b700f488b2759cc4d64b684f6e518c77a305b71b388",
       "reason_codes": [
         "eligible_initial_public_offering",
         "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
         "spac_or_blank_check_vehicle"
       ]
     },
@@ -204,11 +209,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "dad9f6ae3605f4cfd66c02587a1a0399603de3d3956f4e84300e88646a44a2de",
+      "review_status": "auto_include_core",
+      "decision_id": "7fcda4ed0bc5073175a20d45dc97523234c48594ca4381268178f62041d50084",
       "reason_codes": [
         "eligible_initial_public_offering",
         "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
         "spac_or_blank_check_vehicle"
       ]
     },
@@ -225,7 +231,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "82fb8c8c63a47f48c7eaab79d0a5378cbc9ef3e3b6167ea60c981543b97e47ed",
+      "decision_id": "813a23e1f189212504151cc6b0257399c868c2f190dbac0fefc72eaba1dd555b",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -247,7 +253,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "c1ecd1be1ca711b0bd46ed00c8331c44dc7e1559f5f2780f361abf8a88f67104",
+      "decision_id": "cce7bd18a67e70b63f38b5630765dc952c51f97a84a67870c0b3ed663b48af93",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -269,7 +275,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "277969ee69829044aa5680caceee276429c9862f7cedf006b843587c382a8338",
+      "decision_id": "c0a82b73390dc39b943944ce7592069aaa370044e17d8f0e43a776d42cf1122d",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -288,7 +294,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "8ee3717f14324a6a55821029e2f983c601993a88a34f191be3c474c0e68d33e7",
+      "decision_id": "e61d0d9372de2b7e08d224103eb287f849802577d7a1584170e58155a72f3686",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"
@@ -306,11 +312,12 @@
         "artificial intelligence"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "d0c0194b91c182340e869a98dbe467084e24b3f0719af80b114be6a123630136",
+      "review_status": "auto_include_core",
+      "decision_id": "766b712a06ffb39225cc99390ffeb0595a38c565e2e737574f58d274e4f064a8",
       "reason_codes": [
         "eligible_initial_public_offering",
         "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion",
         "spac_or_blank_check_vehicle"
       ]
     },
@@ -328,11 +335,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "0e69c82c082e80cc361eb32574b41c60d2ca650786e3a118398f805382420053",
+      "review_status": "auto_include_core",
+      "decision_id": "bf86c80bd9845bc2d9a6a9e232c27895690da6a820c9845d1c94cd3710cae1f9",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -348,11 +356,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "c8d7f4199c5f7060225973f0c7f1a69343bc1caad81c67b55248c62db546e15d",
+      "review_status": "auto_include_core",
+      "decision_id": "129b9d324f525b2071b3a19fc29e05122b0853c64a3f68d8e0ec8193c9de9e33",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -371,7 +380,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "672b8a325fee60d4bdcbcb09732bd1738d46b53635a9a34e8b7939d89a3cac40",
+      "decision_id": "b7027d532dbc371098efa55b9023a9d7b05659232e9f9ce481e08c3b34df32ff",
       "reason_codes": [
         "not_initial_public_offering"
       ]
@@ -389,11 +398,12 @@
         "machine learning"
       ],
       "already_in_cohort": true,
-      "review_status": "auto_include_broad",
-      "decision_id": "a0f2d14faa185413bda62dba1e5fa397a9ee163b5b91061842e73d3bbf7b5dd5",
+      "review_status": "auto_include_core",
+      "decision_id": "3536451abeb53416e310e463f72fd7fc60269f7c2f95638aead2e43198c28c01",
       "reason_codes": [
         "eligible_initial_public_offering",
-        "ai_label_present_in_final_prospectus"
+        "ai_label_present_in_final_prospectus",
+        "user_directed_core_inclusion"
       ]
     },
     {
@@ -409,7 +419,7 @@
       ],
       "already_in_cohort": false,
       "review_status": "auto_exclude",
-      "decision_id": "a9de3375d61c0e88bf81f828480e055cc7762b30d8309e2948282b567369f5bf",
+      "decision_id": "cf5c3ce3a49b379bf8057859838bd647df3e7d552e834df2c6e47f90a5d38053",
       "reason_codes": [
         "not_initial_public_offering",
         "already_public_or_follow_on"

@@ -33,8 +33,8 @@
     "ai_core_limit": "This is a conservative reviewed minimum, not a keyword census. A company that merely uses AI is excluded.",
     "reviewed_through": "2026-09-28",
     "excluded_2026_examples": "SharonAI was already public after a business combination; QumulusAI and Ionic Digital used direct listings. They are excluded from both traditional-IPO counts. Reformation is excluded because the public tracker rates it minimal AI usage.",
-    "automation_policy": "sec_424b4_ai_label_v4",
-    "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in the broad cohort; the core cohort retains the stricter materiality rule"
+    "automation_policy": "sec_424b4_ai_label_v5",
+    "automation_semantics": "SEC final 424B4 deterministic classification; every current-year actual IPO found by the registered AI keyword search is included in both the broad and core cohorts; structural follow-ons, mergers, and already-public issuers remain excluded"
   },
   "reference_publication_contract": {
     "publication_class": "reference_statistics",
@@ -252,92 +252,92 @@
         {
           "name": "Orion180 Insurance Group Inc.",
           "ticker": "OIG",
-          "dependency_tier": 4,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI material to product or compute infrastructure",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2124472_000162828026062794",
-          "classification_decision_id": "1081494ac7194809ee08445e3468d79aafa0999527b024ef5058999c3058521a"
+          "classification_decision_id": "129b9d324f525b2071b3a19fc29e05122b0853c64a3f68d8e0ec8193c9de9e33"
         },
         {
           "name": "Londian Wason New Energy Tech Inc.",
           "ticker": "FOIL",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2006960_000119312526351136",
-          "classification_decision_id": "066d153f1c791eb2a79ef127c10e5374f0eae3c9b785961f24c7d8699e751954"
+          "classification_decision_id": "a795f97dd840a008302d46043b677863bf72c1a400dfccb371677894a9725ef8"
         },
         {
           "name": "Rainier Acquisition Corp",
           "ticker": "RNAQU",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2147219_000110465926102498",
-          "classification_decision_id": "2e13130cd0455bcbbf06232faaffcfc591f5d10269c621ad8fc30c15d7db84ed"
+          "classification_decision_id": "7fcda4ed0bc5073175a20d45dc97523234c48594ca4381268178f62041d50084"
         },
         {
           "name": "Electra Therapeutics, Inc.",
           "ticker": "ETRA",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2088082_000119312526395670",
-          "classification_decision_id": "32d4caaadace86d80f1c52138dccbe7357b1dd1e12a2599fb6ad7f0bc76dbe23"
+          "classification_decision_id": "bf86c80bd9845bc2d9a6a9e232c27895690da6a820c9845d1c94cd3710cae1f9"
         },
         {
           "name": "SunScout Holding Ltd",
           "ticker": "SNSC",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2101240_000121390026088617",
-          "classification_decision_id": "d9c596166b362a893e67d9a7d05f206f26ec3bf59e510f6b48af1a1ba0fe4e89"
+          "classification_decision_id": "56adaee863b8a754a21574ba00958bd8625f71d99678e8129b933cda8832b216"
         },
         {
           "name": "Karman Line Acquisition Corp.",
           "ticker": "XTERU",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2134856_000182912626009017",
-          "classification_decision_id": "ac14af3763ff9581e9ba0c8ea9c7245255a7a5868ea8b03314e8198e4f0b2e64"
+          "classification_decision_id": "087ae483b2f64d0779bb70bac91a9ea1ead2656cf46502f6677f8a8761a2659c"
         },
         {
           "name": "Lyntris Inc.",
           "ticker": "LYNX",
-          "dependency_tier": 4,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2132582_000119312526356916",
-          "classification_decision_id": "5c1255339fbce2d7e1eb225543716140e2f3fbdae845e396d7ed8a651b9c62cf"
+          "classification_decision_id": "5eb67737eae6d178fd11af56c467538fe9f87236f8ac824cc69f3c3b0c1bbaae"
         },
         {
           "name": "JATT III Acquisition Corp",
           "ticker": "JTTT",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2145659_000121390026093949",
-          "classification_decision_id": "9d9bdabf247e04adc05e677ef4ea5bcb6e763e9cf6d1e653708f06d46529a727"
+          "classification_decision_id": "0fb4b30bd69ea0866d001b700f488b2759cc4d64b684f6e518c77a305b71b388"
         },
         {
           "name": "Haymaker Acquisition Corp V",
           "ticker": "HYACU",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2111838_000119312526395319",
-          "classification_decision_id": "98ca0cdd27e6a353f76dadb566deb077255a778cd9f677a5226419b04c149bd4"
+          "classification_decision_id": "766b712a06ffb39225cc99390ffeb0595a38c565e2e737574f58d274e4f064a8"
         },
         {
           "name": "RUI Holdings Inc",
           "ticker": "CIK2094989",
-          "dependency_tier": 2,
-          "core_member": false,
-          "basis": "SEC final prospectus: AI label + actual initial public offering",
+          "dependency_tier": 5,
+          "core_member": true,
+          "basis": "SEC final prospectus: AI label + actual initial public offering; core under registered AI-label policy",
           "evidence_source_id": "SEC_AUTO_2094989_000118518526004253",
-          "classification_decision_id": "a0f2d14faa185413bda62dba1e5fa397a9ee163b5b91061842e73d3bbf7b5dd5"
+          "classification_decision_id": "3536451abeb53416e310e463f72fd7fc60269f7c2f95638aead2e43198c28c01"
         }
       ]
     }
@@ -543,8 +543,8 @@
       "category": "ipo",
       "unit": "count",
       "scale": "log1p",
-      "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선만 AI 사업 중요도를 엄격하게 적용합니다.",
-      "caveat": "현재 광의 15건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 16건이며, 세로축은 log(1+x)입니다.",
+      "description": "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, 핵심선도 같은 AI 표방 신규 IPO 전체를 반영합니다.",
+      "caveat": "현재 광의 15건은 AI 표방 여부를 넓게 포착한 관심도 지표라 닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. 현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 16건이며, 세로축은 log(1+x)입니다.",
       "insight": "SEC 공모 문서에서 AI를 표방한 신규 IPO는 2026-09-28까지 15건이고 NASDAQ ADS를 포함한 자본시장 사건 진단치는 16입니다.",
       "source_ids": [
         "RITTER_INTERNET_IPO_2025",
@@ -673,7 +673,7 @@
             {
               "period": 36,
               "date": "2026-09-28",
-              "value": 1
+              "value": 11
             }
           ]
         }
@@ -697,7 +697,7 @@
         {
           "period": "2026 YTD",
           "label": "Rank One Computing · Cerebras Systems · VIDA Global · Csquare · Standard Nuclear · Orion180 Insurance Group Inc. · Londian Wason New Energy Tech Inc. · Rainier Acquisition Corp · Electra Therapeutics, Inc. · SunScout Holding Ltd · Karman Line Acquisition Corp. · Lyntris Inc. · JATT III Acquisition Corp · Haymaker Acquisition Corp V · RUI Holdings Inc + SK hynix SKHY(NASDAQ ADS)",
-          "value": "AI 표방 신규 IPO 15 · ADS 영향 포함 16 · 핵심 1"
+          "value": "AI 표방 신규 IPO 15 · ADS 영향 포함 16 · 핵심 11"
         },
         {
           "period": "역사 맥락",

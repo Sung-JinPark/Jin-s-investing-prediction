@@ -245,7 +245,7 @@ def test_default_keyword_set_is_explicit_and_recorded(tmp_path: Path) -> None:
     assert payload["candidates"] == []
 
 
-def test_automatic_policy_keeps_core_strict_but_includes_any_ai_labelled_actual_ipo() -> None:
+def test_automatic_policy_includes_any_ai_labelled_actual_ipo_in_core() -> None:
     row = {
         "company": "Fresh Compute Inc", "cik": "0001234567",
         "accession": "0001234567-26-000012", "filed_at": "2026-08-14",
@@ -286,9 +286,10 @@ def test_automatic_policy_keeps_core_strict_but_includes_any_ai_labelled_actual_
     </body></html>"""
     broad = classify_final_prospectus(
         row, incidental, classified_at="2026-08-31T00:00:00+00:00")
-    assert broad["decision"] == "include_broad"
-    assert broad["core_member"] is False
-    assert broad["dependency_tier"] == 2
+    assert broad["decision"] == "include_core"
+    assert broad["core_member"] is True
+    assert broad["dependency_tier"] == 5
+    assert "user_directed_core_inclusion" in broad["reason_codes"]
     assert "ai_label_present_in_final_prospectus" in broad["reason_codes"]
 
 
@@ -330,7 +331,7 @@ def test_policy_upgrade_appends_a_superseding_decision(tmp_path: Path) -> None:
     rows = [json.loads(line) for line in decision_path.read_text(encoding="utf-8").splitlines()]
     assert len(rows) == 2
     assert rows[1]["supersedes_decision_id"] == "old-decision"
-    assert rows[1]["decision"] == "include_broad"
+    assert rows[1]["decision"] == "include_core"
 
 
 def test_auto_classification_appends_decision_and_projects_current_year(tmp_path: Path) -> None:
