@@ -3,6 +3,10 @@
 프론티어 LLM + 예측 스캐폴드로 시장 이벤트를 확률화하는 시스템.
 설계 원본: [docs/design/system_design_v1.0.html](docs/design/system_design_v1.0.html) (13개 섹션 — 모든 설계 판단의 근거 문서)
 
+@AGENTS.md
+
+작업 영역별 세부 규약은 `.claude/rules/` 에 있다 — [testing.md](.claude/rules/testing.md)(테스트 실행·대시보드 검증), [dashboard-ui.md](.claude/rules/dashboard-ui.md)(화면 문구·차트 규약).
+
 ## 목표 서열 (절대 순서 — 뒤집지 말 것)
 
 1. **1차 (검증된 영역)**: 사용자의 포트폴리오 EXIT 트리거 이벤트를 확률화한다. "주가 맞히기"가 아니라 "이벤트 확률화"가 목표.
@@ -43,6 +47,8 @@ calibration/               ← ledger.csv(append-only 원장) + research_status_
 data/base_rates/           ← Outside view 라이브러리 (수동 + *_auto.md 재생성본)
 data/ml_history/           ← 모델 산출 이력 (append-only JSONL — DB 재구축 원천)
 src/ai_fc/                 ← 예측 엔진 (CLI: cd src && python -m ai_fc)
+.claude/                   ← Claude Code 설정: settings.json(공유 권한·불변경로 훅)·rules/·skills/·agents/·hooks/
+.mcp.json                  ← MCP 서버 연결 (현재 비어 있음 — 쓰는 서버가 생기면 여기에 등록)
 dualdb/                    ← 닷컴↔AI 이중시대 일간 비교 DB (자체 CLI·스펙·CHANGELOG)
 reports/                   ← calibration.html · md/(시나리오 스펙) · audit/(검증 패키지)
 db/                        ← SQLite 파생 인덱스 (gitignore — sync --rebuild로 재구축 가능)
