@@ -9,7 +9,7 @@
 
 과거 행은 잠그고 현재 연도만 갱신한다. 자동 분류는 SEC 최종 투자설명서 원문에
 근거한다. AI 키워드로 발견된 실제 신규 IPO는 사업상 중요도와 무관하게 광의
-코호트에 넣고, 핵심 코호트만 엄격한 중요도 규칙을 유지한다. 후속 공모·이미
+코호트와 핵심 코호트에 함께 넣는다. 후속 공모·이미
 상장된 기업·직상장은 IPO 건수에서 제외한다. 모든 판정은 append-only 결정
 원장에 원문 SHA와 근거 문장을 남기며 정책 변경은 supersedes로 연결한다.
 """
@@ -32,7 +32,7 @@ from typing import Any, Callable
 IPO_REFERENCE_PATH = Path("data/statistics/ipo/ipo_comparison_v1.json")
 CANDIDATES_PATH = Path("data/statistics/ipo/edgar_candidates.json")
 DECISIONS_PATH = Path("data/statistics/ipo/classification_decisions.jsonl")
-POLICY_ID = "sec_424b4_ai_label_v4"
+POLICY_ID = "sec_424b4_ai_label_v5"
 # SEC 공정접근 정책은 UA에 연락 가능한 이메일을 요구한다 (사용자 지정 주소).
 USER_AGENT = "JinsInvestingIPOEdgarWatch/1.0 (91ssjj@gmail.com)"
 SEARCH_ENDPOINT = "https://efts.sec.gov/LATEST/search-index"
@@ -132,8 +132,8 @@ def classify_final_prospectus(
     """Classify one completed 424B4 without an LLM or a manual approval queue.
 
     AI 키워드는 EDGAR 검색 단계에서 이미 확인된다. 실제 신규 IPO이면 광의
-    코호트에 포함하고, AI가 제품·서비스의 중심이라는 증거가 충분할 때만 핵심
-    코호트로 올린다. 정책 변경 시 과거 판정은 supersedes로 연결해 보존한다.
+    코호트와 핵심 코호트에 모두 포함한다. 정책 변경 시 과거 판정은
+    supersedes로 연결해 보존한다.
     """
 
     text = _filing_text(raw)
@@ -201,21 +201,19 @@ def classify_final_prospectus(
         reason_codes = structural_reasons
         tier = None
         core = False
-    elif not is_spac and ai_company_identity and central_hits >= 2 and len(material_contexts) >= 3:
-        decision = "include_core"
-        reason_codes = ["eligible_traditional_ipo", "ai_central_to_product_or_infrastructure"]
-        tier = 5
-        core = True
     else:
-        decision = "include_broad"
+        decision = "include_core"
         reason_codes = [
             "eligible_initial_public_offering",
             "ai_label_present_in_final_prospectus",
+            "user_directed_core_inclusion",
         ]
+        if ai_company_identity and central_hits >= 2 and len(material_contexts) >= 3:
+            reason_codes.append("ai_central_to_product_or_infrastructure")
         if is_spac:
             reason_codes.append("spac_or_blank_check_vehicle")
-        tier = 4 if central_hits >= 1 and len(material_contexts) >= 3 else 2
-        core = False
+        tier = 5
+        core = True
 
     raw_sha = hashlib.sha256(raw).hexdigest()
     decision_seed = "|".join((POLICY_ID, str(row.get("accession")), raw_sha, decision))
@@ -382,9 +380,17 @@ def _apply_inclusions(
     if year_row is None:
         raise IPOEdgarWatchError(f"IPO reference has no current cohort row for {current_year}")
 
-    existing_accessions = {
-        str(source.get("vintage", "")).removeprefix("SEC_accession_")
+    source_by_accession = {
+        str(source.get("vintage", "")).removeprefix("SEC_accession_"): str(
+            source.get("series_id", ""))
         for source in payload.get("sources") or []
+        if str(source.get("vintage", "")).startswith("SEC_accession_")
+    }
+    existing_accessions = set(source_by_accession)
+    issuer_by_source_id = {
+        str(issuer.get("evidence_source_id", "")): issuer
+        for row in payload.get("ai_broad_cohort") or []
+        for issuer in row.get("issuers") or []
     }
     existing_tickers = {
         str(issuer.get("ticker", ""))
@@ -397,7 +403,21 @@ def _apply_inclusions(
             continue
         ticker = str(decision.get("ticker") or "")
         accession = str(decision["accession"])
-        if ticker in existing_tickers or accession in existing_accessions:
+        if accession in existing_accessions:
+            # The append-only policy decision is authoritative.  A later policy revision
+            # updates only this derived read-model projection; it never rewrites the
+            # earlier classification ledger row.
+            issuer = issuer_by_source_id.get(source_by_accession[accession])
+            if issuer is not None:
+                issuer["dependency_tier"] = decision["dependency_tier"]
+                issuer["core_member"] = decision["core_member"]
+                issuer["basis"] = (
+                    "SEC final prospectus: AI label + actual initial public offering; "
+                    "core under registered AI-label policy"
+                )
+                issuer["classification_decision_id"] = decision["decision_id"]
+            continue
+        if ticker in existing_tickers:
             continue
         source_id = f"SEC_AUTO_{decision['cik'].lstrip('0')}_{accession.replace('-', '')}"
         payload["sources"].append({
@@ -419,9 +439,8 @@ def _apply_inclusions(
             "dependency_tier": decision["dependency_tier"],
             "core_member": decision["core_member"],
             "basis": (
-                "SEC final prospectus: AI central to product or compute infrastructure"
-                if decision["core_member"] else
-                "SEC final prospectus: AI label + actual initial public offering"
+                "SEC final prospectus: AI label + actual initial public offering; "
+                "core under registered AI-label policy"
             ),
             "evidence_source_id": source_id,
             "classification_decision_id": decision["decision_id"],
@@ -436,8 +455,8 @@ def _apply_inclusions(
     payload["classification"]["automation_policy"] = POLICY_ID
     payload["classification"]["automation_semantics"] = (
         "SEC final 424B4 deterministic classification; every current-year actual IPO found by "
-        "the registered AI keyword search is included in the broad cohort; the core cohort "
-        "retains the stricter materiality rule"
+        "the registered AI keyword search is included in both the broad and core cohorts; "
+        "structural follow-ons, mergers, and already-public issuers remain excluded"
     )
     publication = payload["reference_publication_contract"]
     publication["classification_review"] = (
@@ -470,11 +489,13 @@ def _apply_inclusions(
     comparison["description"] = (
         "닷컴기의 인터넷 IPO와 현재의 AI 표방 신규 IPO를 함께 봅니다. 현재 광의선은 "
         "SEC 공모 문서에 AI 키워드가 있고 실제 신규 IPO인 운영회사·SPAC을 모두 포함하며, "
-        "핵심선만 AI 사업 중요도를 엄격하게 적용합니다."
+        "핵심선도 같은 AI 표방 신규 IPO 전체를 반영합니다."
     )
     comparison["caveat"] = (
         f"현재 광의 {broad_counts[current_year]}건은 AI 표방 여부를 넓게 포착한 관심도 지표라 "
         "닷컴기의 Ritter 전통 IPO 정의와 완전히 같은 모집단은 아닙니다. SPAC도 포함합니다. "
+        "현재 핵심선은 사용자 지정 AI 표방 기준으로 분류되어 과거의 엄격한 사업 중요도 "
+        "기준과 직접 비교할 때 이 정의 차이를 함께 봐야 합니다. "
         f"SK하이닉스 NASDAQ ADS 사건을 더한 영향 포함 값은 {influence_counts[current_year]}건이며, "
         "세로축은 log(1+x)입니다."
     )

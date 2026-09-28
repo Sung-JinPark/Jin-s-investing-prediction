@@ -998,7 +998,7 @@ def test_ipo_reference_is_actual_only_and_sec_auditable() -> None:
     assert [row["year"] for row in broad] == [2023, 2024, 2025, 2026]
     assert [len(row["issuers"]) for row in broad] == [2, 5, 10, 15]
     assert all(2 <= issuer["dependency_tier"] <= 5 for row in broad for issuer in row["issuers"])
-    assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 1]
+    assert [sum(issuer["core_member"] for issuer in row["issuers"]) for row in broad] == [0, 2, 3, 11]
     qualitative = payload["qualitative_ipo"]
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["name"] == "SK hynix"
     assert qualitative["listed_ai_beneficiary_watchlist"]["members"][0]["count_period"] == 2026

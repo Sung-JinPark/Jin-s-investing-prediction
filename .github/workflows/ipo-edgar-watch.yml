@@ -74,6 +74,6 @@ jobs:
                     f"| [{row['accession']}]({row['filing_url']}) |")
           print("")
           print("Every actual IPO found by the AI keyword search is projected into the broad "
-                "cohort automatically. Core membership still uses the strict materiality rule. "
+                "and core cohorts automatically under the registered AI-label policy. "
                 "Every policy revision is preserved in the append-only classification ledger.")
           PY
