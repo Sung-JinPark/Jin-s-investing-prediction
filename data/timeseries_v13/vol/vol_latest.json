@@ -1,157 +1,157 @@
 {
- "as_of": "2026-09-25",
+ "as_of": "2026-09-28",
  "cells": {
   "rv_h21": {
    "band80": [
-    0.544995,
-    0.664373
+    0.502914,
+    0.629216
    ],
    "clim_base_rate": 0.670848,
    "derived_layer": "raw",
    "episode_sample": "ok",
    "h": 21,
    "model": "persistence_pb",
-   "p": 0.604684,
-   "p_raw": 0.604684,
+   "p": 0.566065,
+   "p_raw": 0.566065,
    "reliability": "good",
-   "se_raw": 0.046576,
+   "se_raw": 0.049277,
    "target": "rv_exceedance",
    "theta": 0.1694
   },
   "rv_h5": {
    "band80": [
-    0.281208,
-    0.372389
+    0.224856,
+    0.306829
    ],
    "clim_base_rate": 0.552434,
    "derived_layer": "raw",
    "episode_sample": "ok",
    "h": 5,
    "model": "persistence_pb",
-   "p": 0.326799,
-   "p_raw": 0.326799,
+   "p": 0.265842,
+   "p_raw": 0.265842,
    "reliability": "good",
-   "se_raw": 0.035575,
+   "se_raw": 0.031982,
    "target": "rv_exceedance",
    "theta": 0.1694
   },
   "rv_h63": {
    "band80": [
-    0.821917,
-    0.905752
+    0.807748,
+    0.898684
    ],
    "clim_base_rate": 0.876474,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 63,
    "model": "persistence_pb",
-   "p": 0.863835,
-   "p_raw": 0.863835,
+   "p": 0.853216,
+   "p_raw": 0.853216,
    "reliability": "weak",
-   "se_raw": 0.032709,
+   "se_raw": 0.035479,
    "target": "rv_exceedance",
    "theta": 0.1694
   },
   "vix25_h21": {
    "K": 25,
    "band80": [
-    0.042032,
-    0.097127
+    0.070935,
+    0.144069
    ],
    "clim_base_rate": 0.419468,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 21,
    "model": "persistence_pb",
-   "p": 0.06958,
-   "p_raw": 0.06958,
+   "p": 0.107502,
+   "p_raw": 0.107502,
    "reliability": "good",
-   "se_raw": 0.021496,
+   "se_raw": 0.028533,
    "target": "vix_touch"
   },
   "vix25_h5": {
    "K": 25,
    "band80": [
-    0.003765,
-    0.007846
+    0.007915,
+    0.015279
    ],
    "clim_base_rate": 0.307616,
    "derived_layer": "raw",
    "episode_sample": "ok",
    "h": 5,
    "model": "persistence_pb",
-   "p": 0.005806,
-   "p_raw": 0.005806,
+   "p": 0.011597,
+   "p_raw": 0.011597,
    "reliability": "good",
-   "se_raw": 0.001592,
+   "se_raw": 0.002873,
    "target": "vix_touch"
   },
   "vix25_h63": {
    "K": 25,
    "band80": [
-    0.225968,
-    0.385396
+    0.307445,
+    0.469212
    ],
    "clim_base_rate": 0.607893,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 63,
    "model": "persistence_pb",
-   "p": 0.305682,
-   "p_raw": 0.305682,
+   "p": 0.388328,
+   "p_raw": 0.388328,
    "reliability": "weak",
-   "se_raw": 0.062201,
+   "se_raw": 0.063114,
    "target": "vix_touch"
   },
   "vix30_h21": {
    "K": 30,
    "band80": [
-    0.013325,
-    0.043435
+    0.020558,
+    0.059231
    ],
    "clim_base_rate": 0.251882,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 21,
    "model": "persistence_pb",
-   "p": 0.02838,
-   "p_raw": 0.02838,
+   "p": 0.039895,
+   "p_raw": 0.039895,
    "reliability": "good",
-   "se_raw": 0.011747,
+   "se_raw": 0.015089,
    "target": "vix_touch"
   },
   "vix30_h5": {
    "K": 30,
    "band80": [
-    0.001137,
-    0.002739
+    0.002043,
+    0.004586
    ],
    "clim_base_rate": 0.178198,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 5,
    "model": "persistence_pb",
-   "p": 0.001938,
-   "p_raw": 0.001938,
+   "p": 0.003315,
+   "p_raw": 0.003315,
    "reliability": "good",
-   "se_raw": 0.000625,
+   "se_raw": 0.000992,
    "target": "vix_touch"
   },
   "vix30_h63": {
    "K": 30,
    "band80": [
-    0.070926,
-    0.172325
+    0.100697,
+    0.216985
    ],
    "clim_base_rate": 0.406971,
    "derived_layer": "raw",
    "episode_sample": "thin",
    "h": 63,
    "model": "persistence_pb",
-   "p": 0.121626,
-   "p_raw": 0.121626,
+   "p": 0.158841,
+   "p_raw": 0.158841,
    "reliability": "weak",
-   "se_raw": 0.039561,
+   "se_raw": 0.04537,
    "target": "vix_touch"
   }
  },
@@ -161,12 +161,12 @@
   "path": "data/timeseries_v13/vol/champion_coefficients.json",
   "sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
  },
- "content_hash": "e9b5fcdbe85e5c2ffd79217735acf6ee3ec77669ae053d999d2ea80137e45b4a",
+ "content_hash": "4c8d797813ef6d3e376413ace1dc469ef77ee468c2f4fcc15dc57ac4a65fd336",
  "footnote": "설계창(2007-2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호 아님. 80% 대역은 계수 불확실성(델타법)이며 보정 대역이 아니다.",
  "freshness": {
-  "as_of": "2026-09-25",
-  "evaluated_at": "2026-09-28T08:13:57+00:00",
-  "last_completed_session": "2026-09-25",
+  "as_of": "2026-09-28",
+  "evaluated_at": "2026-09-29T07:41:29+00:00",
+  "last_completed_session": "2026-09-28",
   "max_missing_sessions": 1,
   "missing_sessions": 0,
   "rule": "nyse_trading_calendar",
@@ -181,12 +181,12 @@
   "reasons": []
  },
  "inputs": {
-  "rv21_ann": 0.15018871044544138,
-  "rv21_ann_ewma21": 0.14839397854763697,
-  "vix_close": 14.87,
-  "vix_close_ewma21": 15.572844508692853
+  "rv21_ann": 0.14573046805039994,
+  "rv21_ann_ewma21": 0.14815184122970634,
+  "vix_close": 16.07,
+  "vix_close_ewma21": 15.618040462448048
  },
- "knowledge_cutoff": "2026-09-28T08:13:57+00:00",
+ "knowledge_cutoff": "2026-09-29T07:41:29+00:00",
  "model_id": "event_probability.volatility_v13",
  "model_version": 13,
  "probability_space": "research_volatility_v13_base_rate",
