@@ -1,20 +1,20 @@
 {
   "as_of": "2026-08-14",
-  "backtest_run_id": "tsv5-research-92c262efafd01118e1dd82cc",
+  "backtest_run_id": "tsv5-research-4a35c26acac9761416012c64",
   "combined_with_existing_models": false,
-  "content_hash": "1a8c4cd7c0db619007e9d663c3f8ffe6cbc363c003843f61e67af18d4419bdc9",
+  "content_hash": "00ed07a634d7851f6de352b910a0bee287bbd7e9136614d8143dd1a84003b688",
   "footnote": "*미국 시장·미국 공식 거시자료 기준",
   "horizons": {},
-  "knowledge_cutoff": "2026-09-30T01:51:35.757233+00:00",
+  "knowledge_cutoff": "2026-10-01T01:58:20.232132+00:00",
   "label": "연구모델 · 기존 전망과 미결합",
   "model_id": "shadow.nasdaq_pit_hybrid_distribution_v5",
   "model_version": 5,
   "numbers_visible": false,
   "operational_gate": {
-    "missing_completed_sessions": 32,
+    "missing_completed_sessions": 33,
     "pass": false,
     "reasons": [
-      "NASDAQ target is 32 completed XNAS sessions stale"
+      "NASDAQ target is 33 completed XNAS sessions stale"
     ]
   },
   "path": {},
@@ -26,45 +26,45 @@
         "baseline_crps": 0.007204831088220281,
         "baseline_p10_p90_coverage": 0.8566978193146417,
         "count": 963,
-        "improvement": 0.002118809561585481,
-        "lower_miss_share": 0.47058823529411764,
-        "mean_width": 0.02967244874073238,
-        "model_crps": 0.0071895654232209515,
-        "p10_p90_coverage": 0.7881619937694704,
-        "p25_p75_coverage": 0.5181723779854621
+        "improvement": 0.0016356324536066875,
+        "lower_miss_share": 0.470873786407767,
+        "mean_width": 0.029458242661703434,
+        "model_crps": 0.0071930466326696335,
+        "p10_p90_coverage": 0.7860851505711319,
+        "p25_p75_coverage": 0.5025960539979232
       },
       "21": {
         "baseline_crps": 0.030049342246009376,
         "baseline_p10_p90_coverage": 0.8753894080996885,
         "count": 963,
-        "improvement": -0.10686902555835688,
-        "lower_miss_share": 0.5339366515837104,
-        "mean_width": 0.12943666033110263,
-        "model_crps": 0.033260686170509965,
-        "p10_p90_coverage": 0.770508826583593,
-        "p25_p75_coverage": 0.48701973001038423
+        "improvement": -0.02582502027417053,
+        "lower_miss_share": 0.49107142857142855,
+        "mean_width": 0.13041089924863777,
+        "model_crps": 0.030825367118738057,
+        "p10_p90_coverage": 0.7673935617860852,
+        "p25_p75_coverage": 0.4994807892004154
       },
       "5": {
         "baseline_crps": 0.015113823779926854,
         "baseline_p10_p90_coverage": 0.8618899273104881,
         "count": 963,
-        "improvement": -0.00044904274278281407,
-        "lower_miss_share": 0.5132743362831859,
-        "mean_width": 0.0659919507773051,
-        "model_crps": 0.015120610532810929,
-        "p10_p90_coverage": 0.7653167185877466,
-        "p25_p75_coverage": 0.48494288681204567
+        "improvement": 0.012909334834920402,
+        "lower_miss_share": 0.529126213592233,
+        "mean_width": 0.06496471514770831,
+        "model_crps": 0.014918714368115796,
+        "p10_p90_coverage": 0.7860851505711319,
+        "p25_p75_coverage": 0.4755970924195223
       },
       "63": {
         "baseline_crps": 0.05181759765633686,
         "baseline_p10_p90_coverage": 0.8701973001038421,
         "count": 963,
-        "improvement": -0.07379207679284785,
-        "lower_miss_share": 0.5,
-        "mean_width": 0.22010277167607115,
-        "model_crps": 0.05564132580181416,
-        "p10_p90_coverage": 0.7300103842159917,
-        "p25_p75_coverage": 0.4714434060228453
+        "improvement": -0.13079928774755956,
+        "lower_miss_share": 0.4788732394366197,
+        "mean_width": 0.22017037753371058,
+        "model_crps": 0.05859530252257533,
+        "p10_p90_coverage": 0.7050882658359294,
+        "p25_p75_coverage": 0.446521287642783
       }
     },
     "conditional": {
@@ -74,34 +74,34 @@
             "baseline_crps": 0.041988047615655145,
             "baseline_p10_p90_coverage": 0.8136645962732919,
             "count": 322,
-            "improvement": -0.1732741991197445,
+            "improvement": -0.052598783165070814,
             "lower_miss_share": 1.0,
-            "mean_width": 0.12947189957875002,
-            "model_crps": 0.04926349293885949,
-            "p10_p90_coverage": 0.639751552795031,
-            "p25_p75_coverage": 0.36645962732919257
+            "mean_width": 0.13262152611790223,
+            "model_crps": 0.04419656782771566,
+            "p10_p90_coverage": 0.6583850931677019,
+            "p25_p75_coverage": 0.37267080745341613
           },
           "up": {
             "baseline_crps": 0.024052051873113992,
             "baseline_p10_p90_coverage": 0.906396255850234,
             "count": 641,
-            "improvement": -0.04863547000612721,
-            "lower_miss_share": 0.01904761904761905,
-            "mean_width": 0.12941895824414093,
-            "model_crps": 0.025221834720574644,
-            "p10_p90_coverage": 0.8361934477379095,
-            "p25_p75_coverage": 0.5475819032761311
+            "improvement": -0.002345954938874925,
+            "lower_miss_share": 0.0,
+            "mean_width": 0.12930041274020856,
+            "model_crps": 0.0241084769029958,
+            "p10_p90_coverage": 0.8221528861154446,
+            "p25_p75_coverage": 0.5631825273010921
           }
         },
         "extreme_move_q4": {
           "baseline_crps": 0.06343534447127687,
           "baseline_p10_p90_coverage": 0.5020746887966805,
           "count": 241,
-          "improvement": -0.13097664641454373,
-          "lower_miss_share": 0.4722222222222222,
-          "mean_width": 0.1391115306635559,
-          "model_crps": 0.07174389315427608,
-          "p10_p90_coverage": 0.4024896265560166,
+          "improvement": -0.04278416812017783,
+          "lower_miss_share": 0.46308724832214765,
+          "mean_width": 0.1442713130239083,
+          "model_crps": 0.06614937291389737,
+          "p10_p90_coverage": 0.3817427385892116,
           "p25_p75_coverage": 0.03734439834024896
         },
         "stress_regime": {
@@ -120,21 +120,21 @@
             "baseline_crps": 0.0255292154696682,
             "baseline_p10_p90_coverage": 0.9025367156208278,
             "count": 749,
-            "improvement": -0.011533630236281643,
-            "lower_miss_share": 0.5032258064516129,
-            "mean_width": 0.11963059230651234,
-            "model_crps": 0.025823660001117715,
-            "p10_p90_coverage": 0.7930574098798397,
-            "p25_p75_coverage": 0.4953271028037383
+            "improvement": 0.005962599352286788,
+            "lower_miss_share": 0.49101796407185627,
+            "mean_width": 0.11862762365216017,
+            "model_crps": 0.025376994986044368,
+            "p10_p90_coverage": 0.7770360480640854,
+            "p25_p75_coverage": 0.5033377837116155
           },
           "pandemic_2020": {
             "baseline_crps": 0.11153359691933537,
             "baseline_p10_p90_coverage": 0.4444444444444444,
             "count": 9,
-            "improvement": -0.7721473675464432,
+            "improvement": -0.36813773295405977,
             "lower_miss_share": 0.25,
-            "mean_width": 0.07846499278740075,
-            "model_crps": 0.19765397017358627,
+            "mean_width": 0.09034004820052474,
+            "model_crps": 0.1525933224374314,
             "p10_p90_coverage": 0.1111111111111111,
             "p25_p75_coverage": 0.1111111111111111
           },
@@ -142,23 +142,23 @@
             "baseline_crps": 0.027646176479493127,
             "baseline_p10_p90_coverage": 0.9239130434782609,
             "count": 92,
-            "improvement": -0.22766105466841846,
+            "improvement": -0.18937745842110512,
             "lower_miss_share": 0.0,
-            "mean_width": 0.164902455365809,
-            "model_crps": 0.033940134174363756,
+            "mean_width": 0.15768997867641885,
+            "model_crps": 0.03288173911624087,
             "p10_p90_coverage": 0.8478260869565217,
-            "p25_p75_coverage": 0.5543478260869565
+            "p25_p75_coverage": 0.532608695652174
           },
           "tightening_2022": {
             "baseline_crps": 0.047205132312161634,
             "baseline_p10_p90_coverage": 0.66,
             "count": 50,
-            "improvement": -0.6430901487510434,
-            "lower_miss_share": 0.8846153846153846,
-            "mean_width": 0.12660738804036575,
-            "model_crps": 0.07756228787260235,
-            "p10_p90_coverage": 0.48,
-            "p25_p75_coverage": 0.28
+            "improvement": -0.0042858909329691955,
+            "lower_miss_share": 0.6470588235294118,
+            "mean_width": 0.17152914716840378,
+            "model_crps": 0.04740744836072794,
+            "p10_p90_coverage": 0.66,
+            "p25_p75_coverage": 0.44
           }
         }
       },
@@ -168,35 +168,35 @@
             "baseline_crps": 0.08045569473303624,
             "baseline_p10_p90_coverage": 0.7867647058823529,
             "count": 272,
-            "improvement": -0.12129198403173318,
+            "improvement": -0.13929179912011136,
             "lower_miss_share": 1.0,
-            "mean_width": 0.22211933346517876,
-            "model_crps": 0.09021432557385767,
-            "p10_p90_coverage": 0.5514705882352942,
-            "p25_p75_coverage": 0.3897058823529412
+            "mean_width": 0.2177957668558655,
+            "model_crps": 0.09166251320185932,
+            "p10_p90_coverage": 0.5367647058823529,
+            "p25_p75_coverage": 0.3602941176470588
           },
           "up": {
             "baseline_crps": 0.04054471429184738,
             "baseline_p10_p90_coverage": 0.9030390738060782,
             "count": 691,
-            "improvement": -0.036689321409544375,
-            "lower_miss_share": 0.057971014492753624,
-            "mean_width": 0.2193089875854239,
-            "model_crps": 0.04203227234595912,
-            "p10_p90_coverage": 0.8002894356005789,
-            "p25_p75_coverage": 0.5036179450072359
+            "improvement": -0.12416568380258654,
+            "lower_miss_share": 0.06329113924050633,
+            "mean_width": 0.2211051012737596,
+            "model_crps": 0.045578976466475116,
+            "p10_p90_coverage": 0.7713458755426917,
+            "p25_p75_coverage": 0.4804630969609262
           }
         },
         "extreme_move_q4": {
           "baseline_crps": 0.1086554497614901,
           "baseline_p10_p90_coverage": 0.48132780082987553,
           "count": 241,
-          "improvement": -0.024935649096424553,
-          "lower_miss_share": 0.38461538461538464,
-          "mean_width": 0.24524041908195776,
-          "model_crps": 0.1113648439291568,
-          "p10_p90_coverage": 0.35269709543568467,
-          "p25_p75_coverage": 0.07053941908713693
+          "improvement": -0.07903048643434463,
+          "lower_miss_share": 0.3885350318471338,
+          "mean_width": 0.24366820078107645,
+          "model_crps": 0.11724254280988315,
+          "p10_p90_coverage": 0.34854771784232363,
+          "p25_p75_coverage": 0.04149377593360996
         },
         "stress_regime": {
           "great_financial_crisis_2008": {
@@ -214,21 +214,21 @@
             "baseline_crps": 0.04313402110185246,
             "baseline_p10_p90_coverage": 0.8945260347129506,
             "count": 749,
-            "improvement": -0.04993789203549244,
-            "lower_miss_share": 0.46113989637305697,
-            "mean_width": 0.1997956294670395,
-            "model_crps": 0.04528804319069342,
-            "p10_p90_coverage": 0.7423230974632844,
-            "p25_p75_coverage": 0.4766355140186916
+            "improvement": -0.11568049651856735,
+            "lower_miss_share": 0.4413145539906103,
+            "mean_width": 0.19941686067734776,
+            "model_crps": 0.04812378607975711,
+            "p10_p90_coverage": 0.7156208277703605,
+            "p25_p75_coverage": 0.4459279038718291
           },
           "pandemic_2020": {
             "baseline_crps": 0.13891834013067655,
             "baseline_p10_p90_coverage": 0.3333333333333333,
             "count": 9,
-            "improvement": -0.14663160553033008,
+            "improvement": -0.20454575635590086,
             "lower_miss_share": 0.0,
-            "mean_width": 0.22052553159972646,
-            "model_crps": 0.15928815938164614,
+            "mean_width": 0.2154586260107124,
+            "model_crps": 0.1673334970844121,
             "p10_p90_coverage": 0.2222222222222222,
             "p25_p75_coverage": 0.1111111111111111
           },
@@ -236,32 +236,32 @@
             "baseline_crps": 0.045533243141750064,
             "baseline_p10_p90_coverage": 0.9130434782608695,
             "count": 92,
-            "improvement": -0.039270761559252784,
+            "improvement": -0.14399093663140966,
             "lower_miss_share": 0.0,
-            "mean_width": 0.2806827960512819,
-            "model_crps": 0.04732136827618921,
-            "p10_p90_coverage": 0.8913043478260869,
+            "mean_width": 0.2931295497384925,
+            "model_crps": 0.052089617469596367,
+            "p10_p90_coverage": 0.8478260869565217,
             "p25_p75_coverage": 0.5217391304347826
           },
           "tightening_2022": {
             "baseline_crps": 0.0755899155946913,
             "baseline_p10_p90_coverage": 0.74,
             "count": 50,
-            "improvement": -0.4553654440239897,
-            "lower_miss_share": 0.9032258064516129,
-            "mean_width": 0.22595837695653162,
-            "model_crps": 0.11001095107320381,
+            "improvement": -0.510828184368859,
+            "lower_miss_share": 0.9354838709677419,
+            "mean_width": 0.2109444384658039,
+            "model_crps": 0.11420337493452276,
             "p10_p90_coverage": 0.38,
-            "p25_p75_coverage": 0.3
+            "p25_p75_coverage": 0.28
           }
         }
       }
     },
     "lineage_linkage": 1.0,
-    "long_horizon_mean_improvement": -0.09033055117560237,
+    "long_horizon_mean_improvement": -0.07831215401086504,
     "paired_loss_difference_90_ci": [
-      0.0013300273607393233,
-      0.00607312633989535
+      0.0018544785782219205,
+      0.00586447157048013
     ],
     "pass": false,
     "pit_leakage_count": 0,
@@ -272,9 +272,10 @@
       "one return-sign side underperforms by more than 5%",
       "extreme-move Q4 coverage gate failed",
       "stress-regime coverage gate failed",
-      "p10-p90 coverage range gate failed"
+      "p10-p90 coverage range gate failed",
+      "p25-p75 coverage range gate failed"
     ],
-    "sign_side_max_underperformance": 0.1732741991197445
+    "sign_side_max_underperformance": 0.13929179912011136
   },
   "schema_version": 5,
   "status": "shadow_validation_hold"
