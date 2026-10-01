@@ -1225,6 +1225,7 @@ function renderStatistics(initialState){
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
+  root.appendChild(el(`<p class="statistics-refresh-note">매일 원천 확인 · 마지막 성공 ${esc(stats.generated_at?String(stats.generated_at).slice(0,16).replace('T',' ')+' UTC':'시각 미상')} · 월·분기 자료는 새 발표 때 값이 바뀝니다. 각 그래프의 관측일을 함께 확인하세요.</p>`));
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
@@ -2524,7 +2525,7 @@ function dotcomOverheatSignal(idx){
   const span=idx.category_span||[];
   return {pct:idx.overheat_pct,lo:span[0],hi:span[1],
           categories:Object.keys(idx.category_medians||{}).length,
-          included:idx.included??null,beyond:idx.beyond_peak_count??0};
+          included:idx.included??null,beyond:idx.beyond_peak_count??0,checkedAt:idx.generated_at??null};
 }
 function dotcomCycleSignal(lab){
   if(!lab||lab.status!=='ok')return null;
@@ -2768,9 +2769,9 @@ function renderOverview(){
              tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
                `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`))}
-      ${card('닷컴 대비 과열도', heat==null?(cycle==null?'집계 대기':`${cycle.pct}%`):`${heat.pct}%`,
-             heat==null?(cycle==null?'통계 미수집':`닷컴 대조축 ${cycle.elapsed}/${cycle.total}개월 경과`)
-                       :`100이면 닷컴 버블 정점 · 분야별로 ${heat.lo}~${heat.hi}`,
+      ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pct}%`,
+             heat==null?'과열도 통계 집계 대기'
+                       :`100이면 닷컴 버블 정점 · 분야별로 ${heat.lo}~${heat.hi} · 원천 확인 ${heat.checkedAt?String(heat.checkedAt).slice(0,16).replace('T',' ')+' UTC':'시각 미상'}`,
              heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
                `닷컴 정점 100 기준 ${heat.pct}, 분야별 ${heat.lo}~${heat.hi}`))}

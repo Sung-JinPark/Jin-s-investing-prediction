@@ -488,6 +488,7 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
               "missing:dotcomOverheatSignal(null)}));")
     result = _run_js_file(match.group(0) + chr(10) + call + chr(10))
     assert result["ok"]["pct"] == live["overheat_pct"]
+    assert result["ok"]["checkedAt"] == live["generated_at"]
     assert [result["ok"]["lo"], result["ok"]["hi"]] == live["category_span"]
     assert result["ok"]["beyond"] == live["beyond_peak_count"], "필드명이 모듈과 어긋났다"
     assert result["unavailable"] is None and result["missing"] is None
@@ -496,6 +497,7 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert "100이면 닷컴 버블 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
     assert "분야별로 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
     assert "${heat.beyond}개 지표는 이미 정점 초과" in card
+    assert "cycle.pct" not in card, "사이클 경과율을 과열도 값으로 대체하면 안 된다"
 
 
 def test_home_card_subtitle_is_never_clipped_to_a_fixed_line_count() -> None:

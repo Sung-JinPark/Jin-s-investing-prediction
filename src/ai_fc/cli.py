@@ -1325,7 +1325,7 @@ def cmd_admin_traffic(
 
 @app.command("statistics-refresh")
 def cmd_statistics_refresh() -> None:
-    """닷컴과 현재 사이클의 공개 통계 비교 DB를 주간 갱신한다."""
+    """닷컴과 현재 사이클의 공개 통계 비교 DB를 갱신한다 (매일 원천 확인)."""
     from .statistics_lab import refresh_statistics_lab
 
     path, payload, changed = refresh_statistics_lab(config.ROOT)

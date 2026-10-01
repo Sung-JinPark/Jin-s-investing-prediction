@@ -122,6 +122,7 @@ def compute_index(root: Path) -> dict[str, Any]:
         "model_use": False,
         "official_forecast_input": False,
         "as_of": payload.get("as_of"),
+        "generated_at": payload.get("generated_at"),
         "observation_through": payload.get("observation_through"),
         "overheat_pct": int(round(composite)),
         "anchor": "100% = 닷컴 사이클 극단(정점)",

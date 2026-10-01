@@ -118,3 +118,52 @@ def test_live_contract_matches_the_shipped_statistics_payload() -> None:
     assert lo <= result["overheat_pct"] <= hi
     assert result["beyond_peak_count"] == sum(
         1 for row in result["indicators"] if row["pct"] > 100)
+
+
+def test_overheat_and_statistics_share_the_refreshed_snapshot(tmp_path: Path) -> None:
+    from ai_fc.statistics_lab import statistics_dashboard_projection
+
+    for relative in ("data/contracts/dotcom_overheat_index_v1.yaml",
+                     "data/statistics/dotcom_statistics_latest.json"):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((ROOT / relative).read_bytes())
+    original = compute_index(tmp_path)
+    snapshot = tmp_path / "data/statistics/dotcom_statistics_latest.json"
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    spec = yaml.safe_load((tmp_path / "data/contracts/dotcom_overheat_index_v1.yaml")
+                          .read_text(encoding="utf-8"))["indicators"][0]
+    chart = next(c for c in payload["charts"] if c["id"] == spec["chart"])
+    series = next(s for s in chart["series"] if s["label"] == spec["current_series"])
+    series["points"][-1]["value"] *= 1.1
+    snapshot.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+    index = compute_index(tmp_path)
+    display = statistics_dashboard_projection(tmp_path)
+    shown_chart = next(c for c in display["charts"] if c["id"] == spec["chart"])
+    shown = next(s for s in shown_chart["series"] if s["label"] == spec["current_series"])
+    row = next(r for r in index["indicators"] if r["id"] == spec["id"])
+    old = next(r for r in original["indicators"] if r["id"] == spec["id"])
+    assert row["current_value"] == shown["points"][-1]["value"]
+    assert row["pct"] != old["pct"]
+    assert index["generated_at"] == display["generated_at"] == payload["generated_at"]
+    assert index["observation_through"] == display["observation_through"]
+
+
+def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
+    def workflow(name: str) -> dict:
+        return yaml.safe_load((ROOT / f".github/workflows/{name}.yml").read_text(encoding="utf-8"))
+
+    refresh = workflow("statistics-refresh")
+    triggers = refresh.get("on", refresh.get(True))
+    assert triggers["schedule"] == [{"cron": "20 6 * * *"}]
+    steps = refresh["jobs"]["refresh"]["steps"]
+    commands = "\n".join(step.get("run", "") for step in steps)
+    assert "python -m ai_fc statistics-refresh" in commands
+    assert "python -m ai_fc official-data-workbook" in commands
+    assert "data/statistics/official_store/ledgers" in commands
+    assert "src/tests/test_dotcom_overheat.py" in commands
+    for name in ("pages", "ops-failure-alert"):
+        doc = workflow(name)
+        events = doc.get("on", doc.get(True))
+        assert "statistics-refresh" in events["workflow_run"]["workflows"]
+        assert "completed" in events["workflow_run"]["types"]

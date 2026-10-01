@@ -2808,7 +2808,7 @@ def build_statistics_lab(
             "published_chart_sources": "authoritative_only",
         },
         "vintage_warning": "latest-release reconstructed history; not valid as a historical point-in-time model input",
-        "refresh_policy": {"check_cadence": "weekly", "native_frequencies_preserved": True, "schedule": "Saturday 00:20 UTC"},
+        "refresh_policy": {"check_cadence": "daily", "native_frequencies_preserved": True, "schedule": "Daily 06:20 UTC"},
         "excluded_sources": {
             "research_reports": "insight_only_not_numeric_input",
             "Yahoo_Finance": "disabled_for_statistics_numeric_input",
@@ -3440,7 +3440,7 @@ def load_statistics_lab(root: Path) -> dict[str, Any]:
             "charts": [],
             "sources": [],
             "vintage_warning": "statistics database has not been refreshed",
-            "refresh_policy": {"check_cadence": "weekly", "native_frequencies_preserved": True},
+            "refresh_policy": {"check_cadence": "daily", "native_frequencies_preserved": True},
         }
     payload = json.loads(path.read_text(encoding="utf-8"))
     validate_statistics_lab(payload)

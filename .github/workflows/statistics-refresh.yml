@@ -2,8 +2,9 @@ name: statistics-refresh
 
 on:
   schedule:
-    # 미국 금요일 장 마감 뒤 토요일 00:20 UTC (09:20 KST).
-    - cron: "20 0 * * 6"
+    # 매일 06:20 UTC (15:20 KST): 미국 전일 장 마감·원천 게시 뒤 확인.
+    # 월·분기 계열은 새 발표만 반영하고 실제 관측일을 보존한다.
+    - cron: "20 6 * * *"
   workflow_dispatch:
 
 permissions:
@@ -40,6 +41,7 @@ jobs:
           src/tests/test_authoritative_statistics.py
           src/tests/test_official_data_workbook.py
           src/tests/test_statistics_lab.py
+          src/tests/test_dotcom_overheat.py
           src/tests/test_dashboard.py
       - name: Refresh generated repository inventory
         run: cd src && python -m ai_fc inventory
@@ -67,6 +69,6 @@ jobs:
             echo "No statistics changes to commit."
             exit 0
           fi
-          git commit -m "data: weekly dotcom statistics refresh $(date -u +%F)"
+          git commit -m "data: daily dotcom statistics refresh $(date -u +%F)"
           git pull --rebase origin main
           git push origin HEAD:main
