@@ -848,7 +848,7 @@ def test_refresh_is_append_only_for_changed_weekly_snapshot(tmp_path: Path) -> N
     assert json.loads(path.read_text(encoding="utf-8"))["dataset_id"] == loaded["dataset_id"]
 
 
-def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
+def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     root = Path(__file__).resolve().parents[2]
     script = (root / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     styles = (root / "src/ai_fc/dashboard_parts/dashboard.css").read_text(encoding="utf-8")
@@ -912,7 +912,7 @@ def test_dashboard_statistics_route_and_weekly_workflow_are_wired() -> None:
     assert "unit==='percentage_point_change'" in script
     assert "unit==='neutral_line_distance'" in script
     assert "닷컴과 지금, 숫자로 나란히 보기" in script
-    assert 'cron: "20 0 * * 6"' in workflow
+    assert 'cron: "20 6 * * *"' in workflow
     assert "python -m ai_fc ipo-reference-batch" in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
     assert "data/statistics/ipo/reference_batch_receipts" in workflow
