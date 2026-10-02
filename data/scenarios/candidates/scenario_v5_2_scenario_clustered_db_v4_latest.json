@@ -27249,12 +27249,12 @@
     "archive": "not_opened_for_write"
   },
   "model_content_sha256": "2443afd07e85e39657001fea3b9ed521d690d470d201053b563ee40bc945dace",
-  "generated_at": "2026-10-02T07:09:55+00:00",
+  "generated_at": "2026-10-02T09:42:43+00:00",
   "build_receipt": {
     "artifact_type": "scenario_v5_2_research_candidate",
     "candidate_id": "scenario_v5_2_scenario_clustered_db_v4",
     "model_content_sha256": "2443afd07e85e39657001fea3b9ed521d690d470d201053b563ee40bc945dace",
-    "generated_at": "2026-10-02T07:09:55+00:00",
+    "generated_at": "2026-10-02T09:42:43+00:00",
     "source_hashes": {
       "data/raw/macro/bls_empsit_2026_07_20260807_browser_capture.txt": "9277c5da5507eda6689f9ae5a7d41063a105c3f5f03e84a33e31fc6b55b5dc79",
       "data/normalized/macro/bls_empsit_2026_07_20260807.json": "a86bd117ccb90081ae95cb59f1be7c51c59fa9061ef5023d8a11fdb0d3d0b035",
@@ -27588,18 +27588,18 @@
         "data/ai_capital_cycle/regime_archive/2026-08-04.json": "dd51fa4ad325e2f95372736d62c4d992ea9b926e64d79340997d258984eabf07",
         "data/ai_capital_cycle/regime_link_rules.yaml": "bb6242fdd935a66522979f4992c2784c1312a01a52425f1fa9dc959b70f87cc8",
         "data/ai_capital_cycle/regime_model.yaml": "f6bf1b78677b6b93a7e0922edb2e83e81fd73c47c97611ab322bf7eecd033927",
-        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "349f1fc8535906de6e8a47f7b6cca8040064927dadce2122b1ad17f45abe7be9"
+        "data/ai_capital_cycle/segment_filing_accessions_latest.json": "900a4932d904e95db35c2efa9cebeac6445105580bbef0dcf630891e6fffe43a"
       },
       "missing_roots": [],
-      "manifest_sha256": "eaef33b1edc4a4521c1e1bb10595e9b2e720082e92a4d43ab64757d31b730376"
+      "manifest_sha256": "f3e8a8596ae98767554f3d021c8f67d5dda6922af10cdd5b40767d2f33f15a8a"
     },
     "build_context": {
-      "head": "0ef6d377fcbb5797114b33adb3af6f9cdc768be0",
+      "head": "f9bd0628968dcd79d0476c6b0765475cdd217c4e",
       "branch": "main",
       "dirty": true,
-      "status_entry_count": 11,
+      "status_entry_count": 3,
       "python": "3.12.14"
     }
   },
-  "build_receipt_sha256": "3e2f4583bf308e0ca31351fd462d7de151caf2f6cdec0db450f9acb8e5ee4fad"
+  "build_receipt_sha256": "d0caab64b2daef49df774a51c548bc40c5fd69dc8f7a25fc50b7e82663b59fbd"
 }
