@@ -444,7 +444,11 @@ def build_read_model(
     scenario_track = load_scenario_track(root)
     legacy_context = _latest_context_run(root)
     from .era_analog import build_era_analog
-    era_analog = build_era_analog(legacy_context)
+    from .statistics_lab import load_innovation_cycle_current_nasdaq
+    era_analog = build_era_analog(
+        legacy_context,
+        current_ai=load_innovation_cycle_current_nasdaq(root),
+    )
     from .cross_asset import load_cross_asset, load_cross_asset_history
     cross_asset = load_cross_asset(root)
     cross_asset_history = load_cross_asset_history(root)

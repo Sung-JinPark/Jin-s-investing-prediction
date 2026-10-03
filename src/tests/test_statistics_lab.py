@@ -39,6 +39,7 @@ from ai_fc.statistics_lab import (
     build_statistics_lab,
     load_ipo_reference,
     load_hmi_reference,
+    load_innovation_cycle_current_nasdaq,
     load_statistics_lab,
     refresh_statistics_lab,
     statistics_dashboard_projection,
@@ -915,6 +916,8 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert 'cron: "20 6 * * *"' in workflow
     assert "python -m ai_fc ipo-reference-batch" in workflow
     assert "python -m ai_fc statistics-refresh" in workflow
+    dashboard = (root / "src/ai_fc/dashboard.py").read_text(encoding="utf-8")
+    assert "load_innovation_cycle_current_nasdaq" in dashboard
     assert "data/statistics/ipo/reference_batch_receipts" in workflow
     assert "python -m ai_fc inventory" in workflow
     assert "docs/generated/inventory.generated.md" in workflow
@@ -932,6 +935,18 @@ def test_dashboard_projection_preserves_endpoints_with_compact_coordinates(tmp_p
     latest = tmp_path / "data/statistics/dotcom_statistics_latest.json"
     latest.parent.mkdir(parents=True)
     latest.write_text(json.dumps(payload), encoding="utf-8")
+    current_cycle = load_innovation_cycle_current_nasdaq(tmp_path)
+    current_nasdaq = next(
+        series
+        for chart in payload["charts"] if chart["id"] == "m2_nasdaq"
+        for series in chart["series"] if series["label"] == "현재 NASDAQ"
+    )
+    assert current_cycle is not None
+    assert current_cycle["series_id"] == "NASDAQCOM"
+    assert current_cycle["values"] == [
+        float(point["value"]) for point in current_nasdaq["points"]
+    ]
+    assert current_cycle["observed_through"] == current_nasdaq["points"][-1]["date"]
     projected = statistics_dashboard_projection(tmp_path)
     assert all("range" not in chart for chart in projected["charts"])
     assert all("raw_sha256" not in source for source in projected["sources"])

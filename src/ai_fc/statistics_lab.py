@@ -3557,3 +3557,53 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
         _validate_ipo_reference_statistics(projected["reference_statistics"])
     validate_statistics_lab(projected, projected=True)
     return projected
+
+
+def load_innovation_cycle_current_nasdaq(root: Path) -> dict[str, Any] | None:
+    """Expose the live AI-cycle leg from the weekly authoritative snapshot.
+
+    Historical innovation-cycle curves are deliberately frozen.  The current
+    AI leg, however, must not inherit the stale ``ml_history`` copy.  The weekly
+    statistics collector already persists FRED ``NASDAQCOM`` observations, so
+    this adapter returns only that normalized current-era series.
+    """
+    payload = load_statistics_lab(root)
+    if payload.get("status") != "ok":
+        return None
+    chart = next(
+        (item for item in payload.get("charts", []) if item.get("id") == "m2_nasdaq"),
+        None,
+    )
+    if chart is None:
+        return None
+    series = next(
+        (item for item in chart.get("series", []) if item.get("era") == "current"
+         and item.get("label") == "현재 NASDAQ"),
+        None,
+    )
+    if series is None:
+        return None
+    points = sorted(series.get("points") or [], key=lambda item: int(item["period"]))
+    if len(points) < 2:
+        return None
+    periods = [int(item["period"]) for item in points]
+    if periods != list(range(periods[-1] + 1)):
+        raise StatisticsLabError("current NASDAQ innovation-cycle points are not contiguous")
+    values = [float(item["value"]) for item in points]
+    if any(not math.isfinite(value) or value <= 0 for value in values):
+        raise StatisticsLabError("current NASDAQ innovation-cycle values are invalid")
+    source = next(
+        (item for item in payload.get("sources", []) if item.get("series_id") == "NASDAQCOM"),
+        {},
+    )
+    return {
+        "values": values,
+        "observed_through": points[-1].get("date"),
+        "available_at": payload.get("generated_at"),
+        "refresh_cadence": (payload.get("refresh_policy") or {}).get("check_cadence"),
+        "series_id": "NASDAQCOM",
+        "source_label": source.get("title") or "NASDAQ Composite Index",
+        "source_provider": source.get("provider") or "Federal Reserve Bank of St. Louis",
+        "source_class": source.get("authority_class") or "official_statistical_agency",
+        "frequency": "monthly_last_from_daily",
+    }
