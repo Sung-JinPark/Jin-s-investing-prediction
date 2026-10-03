@@ -87,7 +87,11 @@ ERA_SOURCE_AUDIT = {
 }
 
 
-def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
+def build_era_analog(
+    context: dict[str, Any] | None,
+    *,
+    current_ai: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     if not context or not isinstance(context.get("overlay"), dict):
         return {
             "status": "empty",
@@ -96,7 +100,10 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
             "unit": "log10(index/100)",
             "series": [],
         }
-    overlay = context["overlay"]
+    overlay = dict(context["overlay"])
+    current_values = (current_ai or {}).get("values")
+    if isinstance(current_values, list) and len(current_values) >= 2:
+        overlay["ai"] = current_values[:61]
     series = []
     for era_id, values in overlay.items():
         if not isinstance(values, list) or len(values) < 2:
@@ -111,6 +118,27 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
                 normalized.append(None)
             else:
                 normalized.append(round(math.log10(numeric / 100.0), 6))
+        source_audit = ERA_SOURCE_AUDIT.get(era_id, {
+            "series_id": era_id,
+            "source_label": "unregistered overlay series",
+            "source_class": "unregistered",
+            "frequency": "unknown",
+            "peak_date": None,
+        })
+        if era_id == "ai" and isinstance(current_values, list) and len(current_values) >= 2:
+            source_audit = {
+                **source_audit,
+                "series_id": current_ai.get("series_id", "NASDAQCOM"),
+                "source_label": current_ai.get("source_label", "NASDAQ Composite Index"),
+                "source_provider": current_ai.get("source_provider"),
+                "source_class": current_ai.get(
+                    "source_class", "official_statistical_agency"
+                ),
+                "frequency": current_ai.get("frequency", "monthly_last_from_daily"),
+                "observed_through": current_ai.get("observed_through"),
+                "available_at": current_ai.get("available_at"),
+                "refresh_cadence": current_ai.get("refresh_cadence", "weekly"),
+            }
         series.append({
             "id": era_id,
             "label": label,
@@ -123,13 +151,7 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
             "log10_index": normalized,
             "alignment_mode": "cycle_start",
             "peak_aligned": False,
-            "source_audit": ERA_SOURCE_AUDIT.get(era_id, {
-                "series_id": era_id,
-                "source_label": "unregistered overlay series",
-                "source_class": "unregistered",
-                "frequency": "unknown",
-                "peak_date": None,
-            }),
+            "source_audit": source_audit,
         })
     analog = context.get("analog") or {}
     forward_dist = analog.get("fwd_return_dist") or {}
@@ -150,8 +172,10 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
     return {
         "status": "ok" if len(series) >= 2 else "blocked",
         "reason": None if len(series) >= 2 else "비교 가능한 시대 곡선이 2개 미만입니다.",
-        "asof": analog.get("asof") or context.get("run_ts") or "미산출",
-        "available_at": context.get("run_ts") or "미산출",
+        "asof": (current_ai or {}).get("observed_through")
+        or analog.get("asof") or context.get("run_ts") or "미산출",
+        "available_at": (current_ai or {}).get("available_at")
+        or context.get("run_ts") or "미산출",
         "probability_space": "reference_only",
         "unit": "log10(index/100)",
         "x_unit": "months_from_anchor",
@@ -178,6 +202,11 @@ def build_era_analog(context: dict[str, Any] | None) -> dict[str, Any]:
             "status": "not_computed",
             "offset_months": [-3, 0, 3],
             "reason": "±3개월 재정렬 거리는 아직 append-only 산출물로 보존되지 않았습니다.",
+        },
+        "refresh_policy": {
+            "current_ai": (current_ai or {}).get("refresh_cadence") or "legacy_snapshot",
+            "historical_cycles": "frozen_reference",
+            "forecast_extension": False,
         },
         "context": {
             key: context.get(key)

@@ -68,3 +68,37 @@ def test_small_knn_forward_is_case_list_only_with_run_asof() -> None:
     assert model["forward_reference"]["display_mode"] == "case_list"
     assert model["forward_reference"]["median_emphasis_allowed"] is False
     assert model["forward_reference"]["cases"][0]["date"] == "1999-01-31"
+
+
+def test_weekly_official_nasdaq_replaces_only_current_ai_leg() -> None:
+    model = build_era_analog(
+        {
+            "run_ts": "2026-07-30T00:00:00",
+            "analog": {"asof": "2026-07-29"},
+            "overlay": {"ai": [100, 105], "dotcom": [100, 110, 120]},
+        },
+        current_ai={
+            "values": [100, 110, 121, 133.1],
+            "observed_through": "2026-09-01",
+            "available_at": "2026-10-03T00:20:00Z",
+            "refresh_cadence": "weekly",
+            "series_id": "NASDAQCOM",
+            "source_label": "NASDAQ Composite Index",
+            "source_provider": "Federal Reserve Bank of St. Louis",
+            "source_class": "official_statistical_agency",
+            "frequency": "monthly_last_from_daily",
+        },
+    )
+
+    series = {item["id"]: item for item in model["series"]}
+    assert series["ai"]["log10_index"] == [0.0, 0.041393, 0.082785, 0.124178]
+    assert series["ai"]["available_through_m"] == 3
+    assert series["ai"]["source_audit"]["series_id"] == "NASDAQCOM"
+    assert series["ai"]["source_audit"]["observed_through"] == "2026-09-01"
+    assert series["dotcom"]["log10_index"] == [0.0, 0.041393, 0.079181]
+    assert model["asof"] == "2026-09-01"
+    assert model["refresh_policy"] == {
+        "current_ai": "weekly",
+        "historical_cycles": "frozen_reference",
+        "forecast_extension": False,
+    }
