@@ -32,6 +32,7 @@ CNN 의 공식 엔드포인트(`production.dataviz.cnn.io/index/fearandgreed/{gr
 
 from __future__ import annotations
 
+import bisect
 import json
 import re
 import urllib.request
@@ -272,10 +273,63 @@ def components_projection(root: Path) -> dict[str, Any]:
     if not path.is_file():
         return {"status": "absent"}
     payload = json.loads(path.read_text(encoding="utf-8"))
-    dates = payload.get("dates") or []
+    dates = list(payload.get("dates") or [])
+    sessions = _nasdaq_sessions(root)
+    tail = _daily_tail(root, dates[-1] if dates else "", sessions)
+    if tail:
+        # 시드 뒤의 공포·탐욕 선은 매일 원장(공개 재게시처 정수값)에서 잇는다.
+        # 구성요소 원자료는 CNN graphdata 만 주고 CI 에서는 받을 수 없으므로(418) 그
+        # 구간을 None 으로 비워 둔다 — 없는 값을 채워 넣지 않는다.
+        payload["tail_from"] = tail[0][0]
+        payload["tail_source"] = SOURCE_ID
+        payload["fng"] = list(payload.get("fng") or []) + [value for _, value in tail]
+        for component in (payload.get("components") or {}).values():
+            component["series"] = list(component.get("series") or []) + [None] * len(tail)
+        dates = dates + [day for day, _ in tail]
+        payload["dates"] = dates
+    payload["observed_through"] = dates[-1] if dates else None
     payload["status"] = "live"
     payload["nasdaq"] = _nasdaq_on(root, dates)
     return payload
+
+
+def _nasdaq_sessions(root: Path) -> list[str]:
+    """봉인 아카이브의 NASDAQCOM 관측일(= 미국 거래일) 목록."""
+    try:
+        from .timeseries_v2.market_archive import read_market_observations
+        rows = read_market_observations(root)
+    except Exception:  # noqa: BLE001
+        return []
+    return sorted({str(r.observation_time)[:10] for r in rows
+                   if getattr(r, "series_id", "") == "NASDAQCOM" and r.value is not None})
+
+
+def _daily_tail(root: Path, after: str, sessions: list[str]) -> list[tuple[str, float]]:
+    """시드 마지막 날 이후의 일일 수집값을 **그 값이 반영한 미국 거래일**에 붙인다.
+
+    일일 수집은 KST 아침에 돈다 — 그날 읽은 값은 직전 미국 장 마감을 반영한다. 그래서
+    관측일(KST)보다 **엄격히 앞선** 마지막 NASDAQ 거래일에 붙이고, 같은 거래일에 두 값이
+    오면(주말·휴일 재게시) 첫 값만 쓴다. NASDAQ 종가가 아직 없는 날은 싣지 않는다 —
+    두 선이 같은 축을 공유해야 하므로 한쪽만 앞서 나가지 않게 한다.
+    """
+    if not sessions or not after:
+        return []
+    out: dict[str, float] = {}
+    for row in load_history(root):
+        if row.get("seeded"):
+            continue
+        observed = str(row.get("observed_date") or "")
+        index = bisect.bisect_left(sessions, observed) - 1
+        if index < 0:
+            continue
+        session = sessions[index]
+        if session <= after or session in out:
+            continue
+        value = row.get("value_raw", row.get("value"))
+        if value is None:
+            continue
+        out[session] = float(value)
+    return sorted(out.items())
 
 
 def _nasdaq_on(root: Path, dates: list[str]) -> list[Optional[float]]:
