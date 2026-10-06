@@ -20,7 +20,7 @@
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future"><strong>미래 전망</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics"><strong>통계</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#timeseries"><strong>시계열 예측</strong></a> ·
-  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#trust"><strong>검증</strong></a>
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#records/data"><strong>검증</strong></a>
 </p>
 
 ## 무엇을 보여주나요?
