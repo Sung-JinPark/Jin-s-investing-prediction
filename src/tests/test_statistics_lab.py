@@ -883,14 +883,14 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert ".statistics-card.is-liquidity-map{grid-column:1/-1}" in styles
     assert ".statistics-liquidity-map{padding:18px;display:grid;grid-template-columns:repeat(2" in styles
     assert ".statistics-liquidity-map{padding:10px;grid-template-columns:1fr" in styles
-    assert '<div class="statistics-now"><strong>현재 결론</strong><p>' in script
+    # 머리에 실린 결론 첫 문장을 본문에서 되풀이하지 않는다 — 나머지 문장만
+    assert 'class="statistics-now-rest"' in script and '한눈에 보는 의미' not in script
     assert '<span>현재 결론</span>' not in script
     assert 'data-forecast-extension="false"' in script
     assert "AI 선은 최신 실제 관측에서 멈추며" not in script
-    assert "지금 시장의 위치를 살펴봅니다" in script
+    assert "지금 시장의 위치를 살펴봅니다" not in script
     assert "${esc(chart.description)}" not in script
     assert "닷컴 1995~1999" in script
-    assert "한눈에 보는 의미" in script
     assert "해석할 때 주의" not in script
     # 검수 결정: caveat 첫 문장은 카드마다 상시 노출(UX-D3). 전체 문장을 펼치던
     # '한계 전체 보기' 접힘 블록은 사용자 요청으로 뺐다(2026-09-18) — 전문은 데이터에 남는다.
@@ -912,7 +912,7 @@ def test_dashboard_statistics_route_and_daily_workflow_are_wired() -> None:
     assert "unit==='percent_of_us_corporate_equity_value'" in script
     assert "unit==='percentage_point_change'" in script
     assert "unit==='neutral_line_distance'" in script
-    assert "닷컴과 지금, 숫자로 나란히 보기" in script
+    assert "<h1>닷컴과 지금</h1>" in script
     assert 'cron: "20 6 * * *"' in workflow
     assert "python -m ai_fc ipo-reference-batch" in workflow
     assert "python -m ai_fc statistics-refresh" in workflow

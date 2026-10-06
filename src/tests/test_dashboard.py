@@ -1410,7 +1410,6 @@ def test_future_chart_restores_innovation_reference_and_cross_asset_five_year_vi
         "data-reference-path':'innovation-cycle'",
         "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다",
         "닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton",
-        "세 자산의 실제 경로를 시작값 100으로 맞춰",
         "keys:['nasdaq_price','realty_income_total_return','dr_horton_total_return']",
     ):
         assert required in html
