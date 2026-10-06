@@ -1450,7 +1450,7 @@ function timeseriesLadderTable(ts){
   const rows=tsHorizonRows(ts);if(!rows.length)return '';
   /* %가 1차 값, 지수는 아래 작게(2026-09-18). 25·75% 분위수는 표에서 빼고 행 툴팁에 남긴다. */
   const cell=(level,ret,cls)=>`<td class="${cls}"><strong class="${ret>=0?'up':'down'}">${tsPct(ret)}</strong><small>${tsLevel(level)}</small></td>`;
-  return `<div class="ts-ladder-wrap"><table class="ts-ladder" data-ts-chart="ladder" tabindex="0" aria-label="기간별 예상 범위 표"><caption>%는 지금(원점 종가) 대비, 아래 작은 숫자는 지수입니다. 한 값이 아니라 범위로 읽으세요.${rows.some(r=>r.elapsed)?' 결과가 나온 기간은 실제 값을 함께 적었습니다.':''}</caption><thead><tr><th>기간</th><th>나쁜 경우<small>하위 10%</small></th><th>가운데<small>중앙값</small></th><th>좋은 경우<small>상위 10%</small></th><th>오를 가능성</th></tr></thead><tbody>${rows.map(row=>`<tr data-ts-h="${row.h}"${row.elapsed?' class="is-elapsed"':''}><th scope="row">${tsCal(row.h)}<small>${row.h}거래일</small>${row.elapsed?`<small>${esc(tsRealizedNote(row))}</small>`:''}</th>${cell(row.p10,row.r10,'q-outer')}${cell(row.median,row.r50,'q-mid')}${cell(row.p90,row.r90,'q-outer')}<td><strong>${Math.round(row.up*100)}%</strong></td></tr>`).join('')}</tbody></table>${tsReadout()}</div>`;
+  return `<div class="ts-ladder-wrap"><table class="ts-ladder" data-ts-chart="ladder" tabindex="0" aria-label="기간별 예상 범위 표"><caption>% = 원점 종가 대비 · 작은 숫자 = 지수</caption><thead><tr><th>기간</th><th>나쁜 경우<small>하위 10%</small></th><th>가운데<small>중앙값</small></th><th>좋은 경우<small>상위 10%</small></th><th>오를 가능성</th></tr></thead><tbody>${rows.map(row=>`<tr data-ts-h="${row.h}"${row.elapsed?' class="is-elapsed"':''}><th scope="row">${tsCal(row.h)}<small>${row.h}거래일</small>${row.elapsed?`<small>${esc(tsRealizedNote(row))}</small>`:''}</th>${cell(row.p10,row.r10,'q-outer')}${cell(row.median,row.r50,'q-mid')}${cell(row.p90,row.r90,'q-outer')}<td><strong>${Math.round(row.up*100)}%</strong></td></tr>`).join('')}</tbody></table>${tsReadout()}</div>`;
 }
 function timeseriesFreshnessList(ts){
   const rows=ts.freshness_summary||[];
@@ -1459,7 +1459,7 @@ function timeseriesFreshnessList(ts){
     return `<li><i>${esc(row.group)}</i><em>${esc(TS_INPUT_LABELS[row.group]||row.group)}</em><span class="admin-share-bar"><b class="${ok?'':'is-warn'}" style="width:${Math.max(2,ratio)}%"></b></span><strong>${Math.round(age)}h</strong><small>/${Math.round(limit)}h · ${ok?'정상':'경고'}</small></li>`;}).join('')}</ul>${tsReadout()}`;
 }
 function timeseriesInputBundle(){
-  return `<ul class="admin-list ts-inputs" aria-label="모델 입력 요인">${TS_INPUT_BUNDLE.map(([name,unit],index)=>`<li><i>${index+1}</i><em>${esc(timeseriesFeatureLabel(name))}</em><small>${esc(name)} · ${esc(unit)}</small></li>`).join('')}</ul>`;
+  return `<ul class="admin-list ts-inputs" aria-label="모델 입력 요인">${TS_INPUT_BUNDLE.map(([name,unit],index)=>`<li><i>${index+1}</i><em>${esc(timeseriesFeatureLabel(name))}</em><small>${esc(unit.split(' · ')[0])}</small></li>`).join('')}</ul>`;
 }
 function tsSealedRows(ts){
   const sealed=ts.sealed_metrics||{},win=sealed.sealed_window||{},full=sealed.full_backtest||{};
@@ -1627,13 +1627,13 @@ const TS_SCORE_BANDS=[[0,40,'부진'],[40,60,'미흡'],[60,80,'보통'],[80,100,
 const tsScoreTone=v=>v>=80?'good':v>=60?'fair':v>=40?'weak':'poor';
 function tsScorePillarText(key,p,ts,rows){
   const d=p.detail||{},sealed=ts.sealed_metrics||{};
-  if(key==='accuracy')return `가장 강한 단순 기준선보다 예측 오차가 기간 평균 <b>${Math.abs((d.mean_improvement||0)*100).toFixed(1)}%</b> ${(d.mean_improvement||0)>=0?'작았습니다':'컸습니다'}. 기준선과 같으면 50점, 10% 더 작으면 만점입니다.`;
+  if(key==='accuracy')return `가장 강한 단순 기준선보다 예측 오차가 기간 평균 <b>${Math.abs((d.mean_improvement||0)*100).toFixed(1)}%</b> ${(d.mean_improvement||0)>=0?'작았습니다':'컸습니다'}.`;
   if(key==='confidence')return `4개 기간 중 <b>${d.significant_horizons||0}개</b>만 통계적으로 확실(p<0.05)하고, 1·3개월 합산 오차 차이는 ${d.long_ci90_below_zero?'<b>90% 신뢰구간 전체가 개선 쪽</b>입니다':'신뢰구간이 0을 걸칩니다'}.`;
   if(key==='calibration'){const c80=rows.filter(r=>r.cover!=null),avg=c80.length?c80.reduce((s,r)=>s+r.cover,0)/c80.length:null;
-    return avg==null?'적중률 지표가 없습니다.':`'10번 중 8번' 범위에 실제로 평균 <b>10번 중 ${(avg*10).toFixed(1)}번</b> 들어왔습니다. 약속과의 차이가 허용대역(±4%p) 끝이면 75점입니다.`;}
+    return avg==null?'적중률 지표가 없습니다.':`'10번 중 8번' 범위에 실제로 평균 <b>10번 중 ${(avg*10).toFixed(1)}번</b> 들어왔습니다.`;}
   if(key==='robustness'){const parts=(sealed.regimes||[]).map(r=>`${esc(TS_REGIME_LABELS[r.key]||r.key)} ${r.coverage_p10_p90==null||!r.origins?'<b>검증 표본 0개 → 0점</b>':`${(r.coverage_p10_p90*100).toFixed(0)}%`}`);
-    return `위기 국면의 '10번 중 8번' 적중: ${parts.join(' · ')||'자료 없음'}. 검증되지 않은 위기는 점수를 주지 않습니다.`;}
-  if(key==='live')return d.rows?`배포 후 확정 <b>${d.rows}건</b> 중 기준선보다 오차가 작았던 것 <b>${d.model_better_rows}건</b>, 범위 적중 ${d.covered_rows}건. 표본이 작아 중립(50점) 쪽으로 당겨 계산했습니다(증거 반영 ${Math.round((d.evidence_weight||0)*100)}%).`
+    return `위기 국면의 '10번 중 8번' 적중: ${parts.join(' · ')||'자료 없음'}.`;}
+  if(key==='live')return d.rows?`배포 후 확정 <b>${d.rows}건</b> 중 기준선보다 오차가 작았던 것 <b>${d.model_better_rows}건</b>, 범위 적중 ${d.covered_rows}건 (소표본 보정 ${Math.round((d.evidence_weight||0)*100)}%).`
     :'배포 후 결과가 확정된 예측이 아직 0건입니다 — 위 성적은 전부 과거 구간 재실행입니다.';
   return '';
 }
@@ -1652,7 +1652,7 @@ function timeseriesScore100Card(ts,rows){
     +`<div class="ts-score-top"><div class="ts-score-dial is-${tone}" style="--score:${total}" role="img" aria-label="검증 성적 100점 만점에 ${total}점, ${esc(sc.grade)}등급 ${esc(sc.label)}"><strong>${total}</strong><span>/ 100점</span></div>`
     +`<div class="ts-score-head"><p class="ts-score-eyebrow">검증 성적 · 100점 환산</p><h2><span class="ts-score-grade is-${tone}">${esc(sc.grade)}</span> ${esc(sc.label)} — ${total}점</h2><p>${summary}</p>${scale}</div></div>`
     +`<ol class="ts-pillars">${pillars}</ol>`
-    +`<details class="ts-score-method"><summary>점수는 어떻게 매기나요? (다른 곳은 어떻게 보나)</summary>`
+    +`<details class="ts-score-method"><summary>점수 기준</summary>`
     +`<p><b>정확도 30점</b> — 기상예보 검증의 CRPS 기술점수(1 − 모델 오차/기준선 오차)를 그대로 씁니다. 기준선과 같으면 50점, 오차 10% 감소면 만점, 10% 증가면 0점. M4 예측대회가 단순 기준(Naive2) 오차를 1로 놓고 상대 오차를 매기는 것과 같은 발상입니다.</p>`
     +`<p><b>확실성 10점</b> — 1·3개월 합산 오차 차이의 90% 신뢰구간이 전부 개선 쪽이면 5점, 4개 기간 중 Diebold-Mariano 검정 p<0.05인 비율만큼 5점.</p>`
     +`<p><b>약속 지킴 30점</b> — 80%·50% 범위의 실제 적중률이 공칭과 얼마나 같은지(신뢰도 진단). 설계 허용대역(80%: ±4%p, 50%: ±5%p) 끝이면 75점, 그 4배 벗어나면 0점.</p>`
@@ -1666,7 +1666,7 @@ function timeseriesErrorCompare(rows){
   if(!data.length)return '<div class="timeseries-chart-empty">오차 비교 값이 준비되면 표시됩니다.</div>';
   return `<ul class="ts-errbars" aria-label="기간별 평균 예측 오차 — 모델과 기준선">${data.map(r=>{const idx=r.crps/r.baseCrps*100,better=idx<100;
     return `<li><div class="ts-errbars-label"><b>${tsCal(r.h)}</b><small>${r.h}거래일</small></div><div class="ts-errbars-pair"><p><span>이 모델</span><b class="ts-errbars-track"><i class="is-model" style="width:${Math.min(100,idx).toFixed(1)}%"></i>${better?`<i class="is-gap" style="width:${(100-idx).toFixed(1)}%" title="기준선보다 줄인 오차 ${(100-idx).toFixed(1)}%"></i>`:''}</b><em>${(r.crps*100).toFixed(2)}%p</em></p><p><span>단순 기준선</span><b class="ts-errbars-track"><i class="is-base" style="width:${Math.min(100,10000/Math.max(idx,100)).toFixed(1)}%"></i></b><em>${(r.baseCrps*100).toFixed(2)}%p</em></p></div><div class="ts-errbars-idx ${better?'is-good':'is-bad'}"><strong>${better?'−':'+'}${Math.abs(100-idx).toFixed(1)}%</strong><small>오차 ${better?'감소':'증가'}<br>오차 지수 ${idx.toFixed(1)}</small></div></li>`;}).join('')}</ul>`
-    +`<p class="ts-help">짧을수록 덜 틀림 · 빗금 = 기준선보다 줄인 오차</p>`;
+    ;
 }
 function timeseriesHitPictograph(rows){
   const data=rows.filter(r=>r.cover!=null);
@@ -1821,7 +1821,7 @@ function timeseriesV8BandSvg(ts){
     +`<text x="${padL}" y="${H-16}">← 최근 ${hIdx.length}세션 실적</text>`
     +`<text x="${W-padR}" y="${H-16}" text-anchor="end">63거래일 전망 →</text>`
     +tsHoverLayer(padL,padT,plotW,plotH,{cross:true,dot:true})
-    +`</svg>${tsReadout()}<p class="timeseries-band-caption">◦ = 1·5·21·63거래일 계산값, 그 사이는 선형 보간(참고용). 연한 대역은 10번 중 8번, 진한 대역은 10번 중 5번이 드는 범위이고 먼 날일수록 넓어집니다. 세로축 로그 스케일.${rIdx.length?` 진한 회색 선은 예측 뒤 실제 종가 ${rIdx.length}세션(사후 대조).`:''}</p></div>`;
+    +`</svg>${tsReadout()}<p class="timeseries-band-caption">◦ = 계산 지점 · 사이는 선형 보간(참고용) · 연한 대역 10번 중 8번 · 진한 대역 10번 중 5번 · 로그 스케일</p></div>`;
 }
 
 // 페이지 하단 '만들어지는 방식' 안내 — 통계 화면의 chart-guide('읽는 법')를 재사용.
@@ -1899,9 +1899,9 @@ function renderV13LiveForward(lf,failCells){
     <div class="today-section-head"><h3 id="v13-lf-head">라이브 전진 누적</h3><span class="v13-lf-chip">판정 없음 · 누적 중</span></div>
     <p class="ts-lead v13-lf-lead">${empty
       ?`원점 <b>${origins}개</b>가 쌓였고 성숙한 것은 아직 없습니다 — 가장 짧은 지평이 5거래일이라 첫 성숙이 도착하는 중입니다.`
-      :`성숙 <b>${total}건</b> · 원점 ${origins}개. 셀당 ${num(lf.minimum)}에 닿기 전에는 <b>계약이 판정을 막습니다</b> — 아래 숫자는 성적표가 아니라 누적 현황입니다.`}</p>
+      :`성숙 <b>${total}건</b> · 원점 ${origins}개 · 셀당 ${num(lf.minimum)} 전에는 판정 없음(누적 현황)`}</p>
     <table class="v13-lf-table"><thead><tr><th scope="col">셀</th><th scope="col">성숙</th><th scope="col">Brier</th><th scope="col">기후</th><th scope="col">개선</th></tr></thead><tbody>${rows}</tbody></table>
-    <p class="v13-lf-note">홀드아웃(2015~2018)에서 떨어진 셀은 표에서 내려갑니다. 두 표본은 <b>합치거나 평균내지 않습니다</b>.</p>
+    <p class="v13-lf-note">홀드아웃 탈락 셀은 숨김 · 두 표본은 <b>합치거나 평균내지 않음</b></p>
   </section>`;
 }
 function renderTimeseriesV13VolPanel(v13){
@@ -1924,7 +1924,7 @@ function renderTimeseriesV13VolPanel(v13){
   const refCellName=v13.reference_question?.cell||'vix25_h63';
   const refCellFailed=(v13.holdout_fail_cells||[]).indexOf(refCellName)>=0;
   const roleLine=refCellFailed
-    ?`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)에 대응하는 셀(63영업일)은 <b>홀드아웃(2015~2018)을 통과하지 못해 base rate를 공급하지 않습니다.</b> 위 숫자는 지평·사건이 다른 기준율이며 이 질문에 대입하지 않습니다.</p>`
+    ?`<p class="v13-role"><b>${esc(refId)}</b> 대응 셀(63영업일)은 홀드아웃 미통과 — <b>base rate를 공급하지 않습니다</b> · 이 질문에 대입하지 않습니다</p>`
     :`<p class="v13-role">역할: 등록 질문 <b>${esc(refId)}</b>(AI 예측 · 90달력일)의 <abbr title="${esc(plainTerm('base_rate_hint'))}">base rate(outside view)</abbr> 공급원입니다. 두 값은 정의(≥25 vs >25.00)·지평(63영업일 vs 90달력일)·산출(수치모델 vs LLM)이 달라 <b>합치거나 평균내지 않습니다</b>.</p>`;
   const head=`<div class="admin-card-head"><h2>변동성 이벤트 기준율</h2>${badge}</div>`;
   if(!live){
@@ -1965,7 +1965,7 @@ function renderTimeseriesV13VolPanel(v13){
   const gm=guideName?guideName.match(/^(vix25|vix30|rv)_h(\d+)$/):null;
   const band80Note=`[80%] 대역은 <abbr title="${esc(plainTerm('band80_coef_hint'))}">계수 불확실성</abbr>이지 보정 구간이 아닙니다.`;
   const guide=gm
-    ?`<p class="v13-role">읽는 법: "기준율 ${v13Pct(cells[guideName].p)}"는 ${gm[1]==='rv'?'과거 같은 실현변동성 수준에서':'과거 같은 VIX 수준에서'} ${gm[2]}영업일 안에 ${V13_GUIDE_EVENT[gm[1]]} 비율이 기후(무조건 빈도)와 얼마나 다른지 보여주는 <abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>입니다. ${band80Note}</p>`
+    ?`<p class="v13-role">"기준율 ${v13Pct(cells[guideName].p)}" = ${gm[1]==='rv'?'과거 같은 실현변동성 수준에서':'과거 같은 VIX 수준에서'} ${gm[2]}영업일 안에 ${V13_GUIDE_EVENT[gm[1]]} 비율(<abbr title="${esc(plainTerm('base_rate_hint'))}">outside view</abbr>) · ${band80Note}</p>`
     :`<p class="v13-role">읽는 법: 표시 조건을 만족한 셀이 없어 인용할 기준율이 없습니다. ${band80Note}</p>`;
   const liveForward=renderV13LiveForward(v13.live_forward,v13.holdout_fail_cells);
   return `<div class="ts-panel"><section class="ts-card v13-vol-card">${head}${caveat}${preview}${gateStrip}${hTabs}${table}${guide}${roleLine}${liveForward}</section></div>`;
@@ -2033,27 +2033,26 @@ function renderTimeseriesV8(ts,initialState){
     +`<span class="ts-gate-chip ${freshAllOk?'pass':'hold'}" title="${esc(plainTerm('fresh_gate_hint'))}${worst?` · 최장 ${esc(String(worst.group))} ${Math.round(worst.age_hours)}h/${Math.round(worst.limit_hours)}h`:''}${worst&&worst.observation_time?` · 마지막 관측 ${esc(String(worst.observation_time))}`:''}">${freshAllOk?'운영 신선도 OK':'운영 신선도 경고'}</span>`
     +(originAge==null?'':`<span class="ts-gate-chip ${elapsedKeys.length?'warn':'pass'}" title="예측 원점 이후 지난 거래일 수 — 갱신이 멈추면 이 숫자가 자랍니다. 만기가 지난 기간은 카드와 표에 실측을 함께 적습니다.${elapsedKeys.length?` 만기 지남: ${elapsedKeys.join('·')}거래일.`:''}${ts.origin_age_policy?` 계약 origin_age_policy: ${ts.origin_age_policy.hold_after_sessions}거래일이 지나면 수치를 숨기고 보류 표면으로 닫힙니다.`:''}">원점 경과 ${originAge}${ts.origin_age_policy?`/${ts.origin_age_policy.hold_after_sessions}`:''}일</span>`)
     +`</section>`;
-  const rangeGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.outer),'연한 막대','80% 구간(10%~90% 분위수) — 설계상 100번 중 80번은 이 안'],[GUIDE_BAND(TS_Q_COLORS.inner),'진한 막대','중심 50% 구간(25%~75% 분위수)'],[GUIDE_SOLID('#11110f'),'세로 눈금','중앙값 — 절반은 위, 절반은 아래']],'가로축은 원점 종가 대비 %, 위쪽 숫자는 같은 지점의 지수 레벨입니다. 모델 참고값이며 특정 가격을 제시하는 것이 아닙니다.');
+  const rangeGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.outer),'연한 막대','80% 구간'],[GUIDE_BAND(TS_Q_COLORS.inner),'진한 막대','50% 구간'],[GUIDE_SOLID('#11110f'),'세로 눈금','중앙값']],'모델 참고값 · 특정 가격 제시 아님.');
     const briefResolved=Number((sealed.forward||{}).resolved_rows||0);
   const tsBrief=`<section class="ts-brief" aria-label="세 줄 요약">
-    <div><i>전망</i><p>${tsCal('63')} 가운데 예상은 지금보다 <b>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</b> (지수 ${level(last.median_index)})입니다.</p></div>
-    <div><i>범위</i><p>10번 중 8번은 <b>${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:'—'}</b> (${level(last.band_index?.p10)} ~ ${level(last.band_index?.p90)}) 사이에 들도록 설계된 <b>범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다.</p></div>
+    <div><i>전망</i><p>${tsCal('63')} 중앙 <b>${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</b> (지수 ${level(last.median_index)})</p></div>
+    <div><i>범위</i><p>10번 중 8번은 <b>${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:'—'}</b> (${level(last.band_index?.p10)} ~ ${level(last.band_index?.p90)}) · 범위 전망(한 값 예측 아님)</p></div>
     <div><i>신뢰</i><p>${gateWinCount==null?'봉인창 요약이 없어 검증 규모를 표시하지 않습니다':`2019년 이후 ${gateWinCount.toLocaleString()}개 시점 검증 ${gateWinPass?'통과':'보류(2008년급 위기 표본 없음)'}`} · 실전 확정 성적 ${briefResolved?`${briefResolved}건`:'아직 0건'}${sealed.score100?` · <b>검증 성적 ${Number(sealed.score100.total)}/100점(${esc(sealed.score100.grade)} ${esc(sealed.score100.label)})</b>`:''} — <a href="#timeseries/backtest">성적표 보기</a></p></div>
   </section>`;
   const summaryPanel=`<div class="ts-panel">${tsBrief}<section class="timeseries-horizons" data-ts-chart="cards" tabindex="0" role="group" aria-label="예측 기간별 요약 — 카드에 마우스를 올리거나 화살표 키로 분위수 확인">${cards}</section>${tsReadout()}`
     +`<section class="ts-card"><div class="admin-card-head"><h2>기간별 예상 범위</h2><span>원점 종가 대비 % · 막대가 길수록 불확실</span></div>${timeseriesRangeBarsSvg(ts)}${rangeGuide}</section>`
-    +`<p class="timeseries-notice"><b>참고 의견입니다 — 매매 신호가 아닙니다.</b> ${gateWinCount==null?'봉인창(2019년 이후) 요약이 없어 검증 원점 수를 표시하지 않습니다':`2019년 이후 봉인 구간 ${gateWinCount.toLocaleString()}개 원점으로 검증`}${lastSealed?` · ${lastSealed.h}일 CRPS 개선 ${tsPct(lastSealed.gain,1)}${tsSignificant(lastSealed.p)?'':' (우연일 여지 남음)'}`:''} · <a href="#timeseries/backtest">검증 성적 전체 보기 →</a></p>`
     +`${timeseriesSpecCard(ts)}</div>`;
   const pathPanel=`<div class="ts-panel"><section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 실적과 분위수 대역</h2></div><p>검은 선=예측 전 실제 · 붉은 선=예측 중앙 · 회색 굵은 선=예측 뒤 실제</p></header>${timeseriesV8BandSvg(ts)}${timeseriesLadderTable(ts)}</section></div>`;
   const driversPanel=`<div class="ts-panel"><p class="ts-lead">입력 재료와 최신 여부 · 기여도(가중치×변화) 아님</p>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>입력 신호 신선도</h2><span>재료가 오래되면 예측을 멈춥니다 · 경과시간/한도</span></div>${timeseriesFreshnessList(ts)}</section>`
-    +`<section class="ts-card"><div class="admin-card-head"><h2>모델이 함께 보는 입력 요인</h2><span>계약 그리드 고정 · 원점마다 그리드 안에서 재추정 · 값·부호 표시 없음</span></div>${timeseriesInputBundle()}</section></div>`;
+    +`<section class="ts-card"><div class="admin-card-head"><h2>모델이 함께 보는 입력 요인</h2><span>값·부호 표시 없음</span></div>${timeseriesInputBundle()}</section></div>`;
   const sealedMetrics=ts.sealed_metrics||{},sealedWin=sealedMetrics.sealed_window||{},fullBacktest=sealedMetrics.full_backtest||{};
   const skillGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.up),'채운 막대',`봉인창 ${Number(sealedWin.origin_count||0).toLocaleString()}개 원점 (2019년 이후, 모델을 고른 뒤의 구간)`],[GUIDE_SOLID('#85827b'),'속빈 마름모',`전체 기간 ${Number(fullBacktest.origin_count||0).toLocaleString()}개 원점 — 개발기간(모델을 고른 구간)이 섞여 있어 참고용`],[GUIDE_DASH('#9b2c0b'),'빗금 막대','우연으로 설명될 여지가 남는 기간 (p ≥ 0.05)']],'개선율은 각 기간의 최선 기준선 대비입니다. 기준선은 기간마다 다를 수 있습니다.');
   const rankGuide=chartGuide([[GUIDE_BAND(TS_Q_COLORS.up),'막대','실제값이 그 칸에 떨어진 비율'],[GUIDE_DASH('#11110f'),'파선 캡','고르게 맞았다면 나올 비율 (10·15·25·25·15·10%)']],'예측 분포를 그린 곡선이 아니라, 실제값이 다섯 분위수가 나눈 여섯 칸 중 어디에 떨어졌는지 센 표입니다. 가운데 네 칸의 합은 위의 80% 구간 적중률과 같은 값입니다.');
   const tsScorecard=timeseriesScore100Card(ts,sealedRows);
   const backtestPanel=`<div class="ts-panel">${tsScorecard}`
-    +`<section class="ts-card"><div class="admin-card-head"><h2>얼마나 틀렸나 — 평균 예측 오차</h2><span>2019년 이후 봉인 구간 · 짧을수록 정확</span></div>${timeseriesErrorCompare(sealedRows)}</section>`
+    +`<section class="ts-card"><div class="admin-card-head"><h2>얼마나 틀렸나 — 평균 예측 오차</h2><span>2019년 이후 봉인 구간 · 짧을수록 정확 · 빗금 = 기준선 대비 줄인 오차</span></div>${timeseriesErrorCompare(sealedRows)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>'10번 중 8번' 약속을 지켰나</h2><span>범위 안에 실제로 들어온 횟수</span></div>${timeseriesHitPictograph(sealedRows)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>실전 승패표</h2><span>배포 후 결과가 확정된 예측 · 기준선과 1:1 비교</span></div>${timeseriesLiveTiles(ts)}</section>`
     +`<details class="ts-expert"><summary>전문가용 상세 지표 펼치기 <small>CRPS 개선율·DM 검정·순위 빈도·국면별 적중률·봉인 판정</small></summary>`
@@ -2067,7 +2066,7 @@ function renderTimeseriesV8(ts,initialState){
     +`<section class="ts-card"><div class="admin-card-head"><h2>위기 국면별 80% 구간 적중률</h2><span>63거래일 지평 기준 · 주간 원점이라 창이 중첩됩니다 · 표본이 작아 크게 흔들립니다</span></div>${timeseriesRegimeSvg(sealedMetrics.regimes)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>기간별 성적과 비교 기준선</h2><span>개선율이 무엇 대비인지</span></div>${timeseriesSealedTable(ts,sealedRows)}</section>`
     +timeseriesForwardCard(ts)+`</details></div>`;
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><p class="eyebrow">04 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 가운데 예상</span><strong class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</strong><em class="ts-next-level">지수 ${level(last.median_index)} · ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:`${level(last.band_index?.p10)}–${level(last.band_index?.p90)}`}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 가운데 예상</span><strong class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</strong><em class="ts-next-level">지수 ${level(last.median_index)} · ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:`${level(last.band_index?.p10)}–${level(last.band_index?.p90)}`}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
   mount(root);
   bindTimeseriesV8Interactions(root,ts);
   bindTimeseriesV13VolInteractions(root);
@@ -2099,7 +2098,7 @@ function renderTimeseries(initialState){
     // 보류 사유는 숨기지 않는다 — "왜 숫자가 없는가"는 버그가 아니라 설계다.
     const holdReasons=(ts.gate?.reasons)||(ts.operational_gate?.reasons)||[];
     const reasonsHtml=holdReasons.length?`<ul class="timeseries-hold-reasons">${holdReasons.slice(0,5).map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>`:'';
-    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">04 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p>${reasonsHtml}</div></section>${timeseriesSpecCard(ts)}`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p>${reasonsHtml}</div></section>${timeseriesSpecCard(ts)}`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
     mount(root);
     bindTimeseriesV13VolInteractions(root);
     bindTimeseriesTabs(root,enabled,'summary');
@@ -2112,7 +2111,7 @@ function renderTimeseries(initialState){
   const positive=components.filter(row=>row.value>0).sort((a,b)=>b.value-a.value).slice(0,3),negative=components.filter(row=>row.value<0).sort((a,b)=>a.value-b.value).slice(0,3);
   const contributionRows=(rows,tone)=>rows.map(row=>`<li><span>${esc(timeseriesFeatureLabel(row.name))}</span><strong class="${tone}">${row.value>=0?'+':''}${(row.value*100).toFixed(3)}%p</strong></li>`).join('')||'<li><span>뚜렷한 요인 없음</span><strong>—</strong></li>';
   const metrics=ts.backtest?.metrics?.horizons||{},long=[metrics['21'],metrics['63']].filter(Boolean),improvement=long.length?long.reduce((sum,row)=>sum+Number(row.crps_improvement_vs_best||0),0)/long.length:null,coverage=metrics['63']?.coverage_p10_p90;
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><p class="eyebrow">04 · MULTIVARIATE TIME SERIES</p><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 이후 1·5·21·63거래일 분포입니다.</p></div><div class="timeseries-next"><span>다음 거래일 중앙 예상</span><strong>${Number(one.median_index||0).toLocaleString(undefined,{maximumFractionDigits:0})}</strong><p>${Number(one.point_return||0)>=0?'+':''}${(Number(one.point_return||0)*100).toFixed(2)}% · p10–p90 ${Number(one.quantiles?.p10||0).toLocaleString(undefined,{maximumFractionDigits:0})}–${Number(one.quantiles?.p90||0).toLocaleString(undefined,{maximumFractionDigits:0})}</p></div></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`<section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section>${timeseriesSpecCard(ts)}`)}${panel('path',`<section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 흐름과 향후 분포</h2></div><p>과거 1/4 · 전망 3/4</p></header>${timeseriesPathSvg(ts)}</section>`)}${panel('drivers',`<section class="timeseries-evidence"><article><header><span>올린 요인</span><strong>상방 기여</strong></header><ul>${contributionRows(positive,'up')}</ul></article><article><header><span>내린 요인</span><strong>하방 기여</strong></header><ul>${contributionRows(negative,'down')}</ul></article></section>`)}${panel('backtest',`<section class="timeseries-evidence"><article class="timeseries-score"><header><span>검증 성적</span><strong>워크포워드</strong></header><div><p><span>기준선 대비 CRPS</span><b>${improvement==null?'—':`${improvement>=0?'+':''}${(improvement*100).toFixed(1)}%`}</b></p><p><span>63일 넓은 구간 적중률</span><b>${coverage==null?'—':`${(Number(coverage)*100).toFixed(1)}%`}</b></p><p><span>경로 수</span><b>${Number(ts.ensemble?.path_count||0).toLocaleString()}</b></p></div></article></section>`)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 이후 1·5·21·63거래일 분포입니다.</p></div><div class="timeseries-next"><span>다음 거래일 중앙 예상</span><strong>${Number(one.median_index||0).toLocaleString(undefined,{maximumFractionDigits:0})}</strong><p>${Number(one.point_return||0)>=0?'+':''}${(Number(one.point_return||0)*100).toFixed(2)}% · p10–p90 ${Number(one.quantiles?.p10||0).toLocaleString(undefined,{maximumFractionDigits:0})}–${Number(one.quantiles?.p90||0).toLocaleString(undefined,{maximumFractionDigits:0})}</p></div></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`<section class="timeseries-horizons" aria-label="예측 기간별 요약">${cards}</section>${timeseriesSpecCard(ts)}`)}${panel('path',`<section class="timeseries-path-panel"><header><div><span>LOG SCALE · 63 + 63 SESSIONS</span><h2>최근 흐름과 향후 분포</h2></div><p>과거 1/4 · 전망 3/4</p></header>${timeseriesPathSvg(ts)}</section>`)}${panel('drivers',`<section class="timeseries-evidence"><article><header><span>올린 요인</span><strong>상방 기여</strong></header><ul>${contributionRows(positive,'up')}</ul></article><article><header><span>내린 요인</span><strong>하방 기여</strong></header><ul>${contributionRows(negative,'down')}</ul></article></section>`)}${panel('backtest',`<section class="timeseries-evidence"><article class="timeseries-score"><header><span>검증 성적</span><strong>워크포워드</strong></header><div><p><span>기준선 대비 CRPS</span><b>${improvement==null?'—':`${improvement>=0?'+':''}${(improvement*100).toFixed(1)}%`}</b></p><p><span>63일 넓은 구간 적중률</span><b>${coverage==null?'—':`${(Number(coverage)*100).toFixed(1)}%`}</b></p><p><span>경로 수</span><b>${Number(ts.ensemble?.path_count||0).toLocaleString()}</b></p></div></article></section>`)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
   mount(root);
   bindTimeseriesV13VolInteractions(root);
   const tabs=$('.timeseries-tabs',root);

@@ -80,7 +80,7 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     # 요약: 3줄 요약 박스(BLUF)가 카드보다 앞
     assert 'class="ts-brief"' in v8
     assert v8.index('ts-brief') < v8.index('timeseries-horizons')
-    assert "범위 전망</b>입니다 — 한 값을 맞히는 예측이 아닙니다" in v8
+    assert "범위 전망(한 값 예측 아님)" in v8
     # 도수 표현이 1차 라벨
     assert "10번 중 8번 범위" in html
     assert "100번 중 ${Math.round(row.up*100)}번" in html  # 카드는 2줄로 줄고, 도수 표현은 툴팁 1차 행으로
