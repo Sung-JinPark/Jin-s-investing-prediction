@@ -31,6 +31,9 @@ jobs:
         run: pip install -e "." pytest
       - name: Check academic IPO sources for current-era batch updates
         run: python -m ai_fc ipo-reference-batch
+      - name: Refresh monthly IPO counts (Ritter confirmed + Nasdaq provisional)
+        # Fail-soft by design: a failed fetch keeps the stored tables and records the reason.
+        run: python -m ai_fc ipo-monthly-counts
       - name: Fetch authoritative sources and append the official observation ledger
         run: python -m ai_fc statistics-refresh
       - name: Export the cumulative Excel audit view
@@ -55,11 +58,14 @@ jobs:
             data/statistics/archive \
             data/statistics/ipo/reference_batch_status.json \
             data/statistics/ipo/reference_batch_receipts \
+            data/statistics/ipo/ritter_ipoall_monthly.json \
+            data/statistics/ipo/nasdaq_calendar_monthly.json \
+            data/statistics/ipo/monthly_counts_status.json \
             data/statistics/official_store/raw \
             data/statistics/official_store/ledgers \
             data/statistics/workbooks/official_data_latest.xlsx \
             docs/generated/inventory.generated.md
-          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|ipo/reference_batch_(status.json|receipts/.*)|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/statistics/(dotcom_statistics_latest.json|archive/.*|ipo/(reference_batch_(status.json|receipts/.*)|ritter_ipoall_monthly.json|nasdaq_calendar_monthly.json|monthly_counts_status.json)|official_store/(raw|ledgers)/.*|workbooks/official_data_latest.xlsx)|docs/generated/inventory.generated.md)$' || true)"
           if [ -n "$unexpected" ]; then
             echo "Unexpected or protected path staged by statistics refresh:"
             echo "$unexpected"

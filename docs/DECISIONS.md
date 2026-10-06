@@ -1992,3 +1992,91 @@ Pages 배포가 깨진 것을 발견해 복구까지 스스로 진행.
 매핑은 고정 규칙(학습·적합 아님)이며 앵커를 바꾸려면 새 `method` 버전과 이 기록의 후속 항목이 필요하다.
 
 **기록.** method_changes r34 (`method:timeseries-v8-score100-display:2026-10-06:r34`, display_only).
+
+## 2026-10-06 — 닷컴 대비 과열도 v2: 미국 IPO 건수(운영기업 12개월 합) 편입 (사용자 결정)
+
+**결정 (사용자, 2026-10-06).** 닷컴 대비 과열도에 **미국 IPO 건수**를 새 부문 `ipo` 로 넣는다.
+같은 경과월 비교(닷컴 1995-01 시작 · 현재 2023-01 시작)이고 데이터는 자동 갱신한다. 사용자가
+승인한 세 가지:
+1. **원천** — Jay Ritter `IPOALL.xlsx`(월별 1960-01~2025-12, gross·net) + SEC 공식 IPO 통계(이미
+   공식 저장소에 있음) + **Nasdaq IPO 캘린더 API**(비공식).
+2. **정의** — 운영기업만 = Ritter **net**(SPAC·폐쇄형 펀드·REIT·유닛·ADR·공모가 $5 미만·은행/S&L·
+   LP·CRSP 미등재 제외).
+3. **편입 방식** — 새 계약 버전 `dotcom_overheat_index_v2`(v1 파일은 역사 기록으로 무수정) + 이 기록.
+
+**계열 = 12개월 합.** 월 단건은 잡음이 너무 크다(2025년 net 3~12건/월). 같은 경과월끼리 맞추되
+값은 직전 12개월 합으로 쓴다 — 닷컴 첫 점(1995-01)은 1994-02~1995-01 합이라 Ritter 1994 행이
+필요하고, 있다. 빈 달은 0 으로 채우지 않는다(연속 12개월이 다 있을 때만 합계).
+
+**지수 입력 = Ritter 확정치만.** 방향 `higher_is_hotter`. 실측(2026-10-06, IPOALL sha256
+`00f2f3ae…ce25`, Last-Modified 2026-01-19):
+- 닷컴 12개월 합 범위 **258~711건**(60개 점), 현재 2025-12 **90건** → 위치 **−37.1%**(닷컴 범위 아래,
+  축은 v1 그대로 unclamped). 닷컴 같은 35개월차(1997-12)는 473건.
+
+**전후 (같은 통계 스냅샷 · 다른 12개 지표 값 불변).**
+
+| | v1 (2026-10-05 스냅샷) | v2 (이번 재구축) |
+|---|---|---|
+| 대표값(부문 중앙값의 중앙값) | **63%** | **54%** (53.7) |
+| 부문 중앙값 | credit 44.7 · economy 161.7 · liquidity 35.2 · rates 69.5 · valuation 62.7 | 같음 + **ipo −37.1** |
+| 부문 산포(span) | 35~162% | **−37~162%** |
+| 포함 지표 | 13 | 14 |
+| 닷컴 정점 초과(beyond) | 2 | 2 |
+
+부문이 5개 → 6개(짝수)가 되면서 대표값이 가운데 한 부문(valuation 62.7)에서 가운데 두 부문
+(credit 44.7 · valuation 62.7)의 평균으로 바뀐 것이 63→54 의 기계적 이유다. 지표 하나가 대표값을 9%p 움직이므로
+산포 동반 표시 규약(2026-09-14)이 더 중요해졌다.
+
+**잠정 연장 (차트 전용, 지수 아님).** Ritter 는 대략 연 1회 개정·연장한다 → 확정치가 최대 1년
+남짓 늦다. 그래서 Ritter 마지막 확정월 **이후** 달만 Nasdaq 캘린더(`/api/ipo/calendar?date=YYYY-MM`,
+`data.priced.rows`)로 세어 점선 `현재 잠정` 계열로 그린다. 운영기업 근사 필터 v1: 이름이
+acquisition/merger/SPAC/blank check/capital corp·fund/trust/REIT/ETF/notes/units 이면 제외,
+5자리 티커 접미 U(유닛) 제외, 제시가 $5 미만 제외(가격 미공시는 유지). ADR·은행·LP·CRSP 미등재는
+못 거르므로 **과대계상**한다 — 같은 필터의 실측 2023·2024·2025 = **87·103·116건 vs Ritter net
+54·72·90건**. 그래서:
+- 확정 계열·지수에 섞지 않는다(검증기: 잠정 계열은 `잠정` 라벨+점선 필수, 차트 `source_ids` 에
+  들어가면 거부, 지수는 `provisional` 계열을 계약이 가리켜도 건너뜀).
+- Ritter 가 새 달을 게시하면 그 달은 확정치가 대체하고 잠정 표에서 내려간다.
+- 현재 잠정: 2026-01~09 완결 월 10·18·6·15·20·18·15·11·6건(2026-10 은 미완결이라 제외) →
+  잠정 12개월 합 2026-09 **141건**(Ritter 2025-10~12 확정 22건 + Nasdaq 근사 119건).
+
+**SEC 교차 확인 (지수 입력 아님).** Ritter gross 연간 vs SEC 전체 IPO 건수(4분기 합): 2023 153 vs
+169(−9.5%) · 2024 221 vs 246(−10.2%) · 2025 352 vs 375(−6.1%). 허용 ±20% 안 — 차트 `cross_check`
+에 남기고 테스트로 고정한다.
+
+**원천 정책 변경 (좁게).** `authoritative_statistics_sources.yaml` 에 권위 클래스
+`academic_curated_dataset` 를 추가하고 **`ritter_ipoall_monthly`(IPOALL 월별 건수 한 표)만** 숫자
+입력으로 등록했다. 다른 Ritter 표(기술주 IPO·저평가·매출·업력)는 `ritter_ipo_research` =
+insight-only 그대로다. 혈통: 원본 바이트를 공식 저장소 raw 에 content-addressed 로 남기고(영수증
+`raw_receipts.jsonl`), 파싱 표 `data/statistics/ipo/ritter_ipoall_monthly.json` 이 그 sha256 을
+고정한다(정규화 원장 행은 만들지 않음 — `website_data_lineage_v1.yaml` `academic_numeric_tables`).
+`nasdaq_ipo_calendar` 는 `market_data_aggregator` · insight-only · `provisional_display_only`.
+
+**Nasdaq User-Agent 승인 (기록).** 이 엔드포인트는 브라우저형 User-Agent 없이는 응답하지 않는다.
+저장소는 UA 위장을 하지 않는다는 입장(CNN 공포·탐욕 사례)이었으나, **사용자가 2026-10-06
+`api.nasdaq.com/api/ipo/calendar` 하나에 한해 명시 승인**했다. 다른 원천에는 적용하지 않는다.
+거래 목록은 저장하지 않고 월별 건수만 남긴다(재배포 주의). 요청 간격 0.5초.
+
+**갱신.** `statistics-refresh` 워크플로에 `python -m ai_fc ipo-monthly-counts` 단계를
+`statistics-refresh` 앞에 넣었다. Ritter 는 sha 가 바뀔 때만 raw 영수증·표를 다시 쓰고(개정 이력은
+표의 `revisions`), Nasdaq 은 확정월 이후 빈 달을 한 번 채운 뒤 이번 달·지난달만 매일 다시 센다.
+**실패는 fail-soft** — 기존 표를 두고 `monthly_counts_status.json`·`stale` 로 남기며 통계 갱신을
+막지 않는다. 확정치 정의가 깨지는 파싱 실패도 표를 덮지 않는다(`parse_failed`).
+
+**스냅샷 재구축.** 라이브 refresh 대신 커밋된 공식 원장 + 게시본 영수증으로 **오프라인 재구축**했다
+(무관한 계열이 같이 바뀌지 않게). 기존 코드로 재현 시 차이는 `household_balance_sheet_trend_gap`
+한 점의 1e−14 부동소수 잡음(Windows/Linux libm)뿐이라 게시본 차트 객체를 그대로 유지했고, 새
+차트 `ipo_count_operating_12m` 만 추가됐다.
+
+**한계.** ① 확정치가 연 1회 늦게 오고 개정 시 과거 달도 바뀐다. ② 닷컴은 전 구간(258~711)을 보고
+현재는 35개월차다(v1 한계 ② 와 같음). ③ 잠정 필터는 이름 규칙이라 정의상 Ritter 와 같아질 수 없다.
+
+**지위.** `reference_only` · `model_use: false` · `official_forecast_input: false`. 참고 의견이며
+매매 신호가 아니다.
+
+**기록.** `data/contracts/dotcom_overheat_index_v2.yaml`(신규), `src/ai_fc/ipo_monthly_counts.py`(신규),
+`src/ai_fc/statistics_lab.py`(차트·검증기·투영), `src/ai_fc/dotcom_overheat.py`(v2·잠정 가드),
+`src/ai_fc/authoritative_statistics.py`(클래스), `src/ai_fc/cli.py`(`ipo-monthly-counts`),
+`dashboard.js`(점선 `dash`·마커 끄기), 계약 3종(`authoritative_statistics_sources`·
+`website_data_lineage_v1`·`statistics_lab_v1`), `.github/workflows/statistics-refresh.yml`,
+테스트(`test_ipo_monthly_counts.py` 신규·`test_statistics_lab.py`·`test_dotcom_overheat.py`).

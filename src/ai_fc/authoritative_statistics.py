@@ -63,6 +63,10 @@ class AuthorityClass(StrEnum):
     OFFICIAL_REGULATOR = "official_regulator"
     OFFICIAL_SRO = "official_sro"
     OFFICIAL_EXCHANGE = "official_exchange"
+    # 2026-10-06 사용자 승인: 학술 큐레이션 공개 데이터셋 중 정책에 개별 등록된 표만
+    # 숫자 입력이 된다(현재 Ritter IPOALL 월별 건수 하나). 학술 '연구'(보고서·표)는
+    # 여전히 ACADEMIC_RESEARCH = insight-only 다.
+    ACADEMIC_CURATED_DATASET = "academic_curated_dataset"
     ACADEMIC_RESEARCH = "academic_research"
     INVESTMENT_RESEARCH = "investment_research"
     MEDIA = "media"

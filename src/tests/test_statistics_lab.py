@@ -377,6 +377,39 @@ def _payload_inputs() -> tuple[dict, dict]:
     return rows, receipts
 
 
+def _ipo_monthly_fixture(*, provisional: bool = True) -> dict:
+    """Ritter 형식 월별 표(1994-01~2025-12) + 확정월 이후 Nasdaq 잠정 3개월."""
+    months = []
+    for year in range(1994, 2026):
+        for month in range(1, 13):
+            net = 40 + (year - 1994) * 2 + month if year < 2001 else 5 + month % 4
+            months.append({"month": f"{year:04d}-{month:02d}", "gross": net + 6, "net": net})
+    ritter = {
+        "title": "U.S. IPO monthly gross and net counts (IPOALL)",
+        "provider": "Jay R. Ritter, University of Florida",
+        "policy_source_id": "ritter_ipoall_monthly",
+        "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOALL.xlsx",
+        "raw_sha256": hashlib.sha256(b"ipoall-fixture").hexdigest(),
+        "raw_path": "raw/ritter_ipoall_monthly/fixture.bin",
+        "fetched_at": "2026-10-06T00:00:00+00:00",
+        "available_at": "2026-10-06T00:00:00+00:00",
+        "revision_cadence": "author_revises_roughly_annually",
+        "last_confirmed_month": "2025-12",
+        "months": months,
+    }
+    nasdaq = {
+        "policy_source_id": "nasdaq_ipo_calendar",
+        "filter_version": "nasdaq-operating-approx-v1",
+        "status": "current",
+        "months": {
+            f"2026-{m:02d}": {"priced_total": 30, "operating_approx": 12, "complete": True,
+                              "fetched_at": "2026-10-06T00:00:00+00:00"}
+            for m in (1, 2, 3)
+        },
+    }
+    return {"ritter": ritter, "nasdaq": nasdaq if provisional else None}
+
+
 def _repo_ipo_reference() -> dict:
     root = Path(__file__).resolve().parents[2]
     return load_ipo_reference(root)
@@ -512,9 +545,11 @@ def test_build_statistics_lab_uses_authoritative_numeric_sources_only() -> None:
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
         hmi_reference=_repo_hmi_reference(),
+        ipo_monthly=_ipo_monthly_fixture(),
     )
     validate_statistics_lab(payload)
-    assert len(payload["charts"]) == 27  # 두 달 뒤 CPI 패널 삭제(2026-09-18 사용자 요청)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    # 두 달 뒤 CPI 패널 삭제(2026-09-18) · IPO 건수 12개월 합 추가(2026-10-06 사용자 결정)
+    assert len(payload["charts"]) == 28
     assert payload["numeric_source_policy"] == {
         "reports_and_media": "insight_only",
         "raw_required_before_derive": True,
@@ -575,8 +610,10 @@ def test_ipo_reference_statistics_use_sec_denominator_and_stay_separate() -> Non
         generated_at="2026-12-31T00:00:00+00:00",
         receipts=receipts,
         ipo_reference=_repo_ipo_reference(),
+        ipo_monthly=_ipo_monthly_fixture(),
     )
-    assert len(payload["charts"]) == 27  # 두 달 뒤 CPI 패널 삭제(2026-09-18 사용자 요청)  # spx_per_federal_debt 2종(5년 비교+전 구간) 추가
+    assert len(payload["charts"]) == 28  # IPO 건수 12개월 합 추가(2026-10-06)
+    assert "technology_ipo_count" not in {chart["id"] for chart in payload["charts"]}
     assert "dotcom_internet_ipo_breadth" not in {
         chart["id"] for chart in payload["charts"]
     }
@@ -1398,3 +1435,105 @@ def test_era_compare_row_marks_net_repayment_instead_of_a_negative_multiple() ->
     assert row["bars"][0]["when"] == "1995년 2분기"
     rising = _era_compare_row("x", "y", dotcom, [{"period": 3, "date": "2023-04-01", "value": 4.7}])
     assert rising["verdict"] == "닷컴 같은 시점의 1.3배" and rising["direction"] == "up"
+
+
+def _ipo_payload(**kwargs) -> dict:
+    rows, receipts = _payload_inputs()
+    return build_statistics_lab(
+        rows, generated_at="2026-12-31T00:00:00+00:00", receipts=receipts,
+        ipo_monthly=_ipo_monthly_fixture(**kwargs),
+    )
+
+
+def test_ipo_count_chart_compares_confirmed_eras_and_isolates_provisional() -> None:
+    payload = _ipo_payload()
+    validate_statistics_lab(payload)
+    chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert chart["category"] == "ipo" and chart["unit"] == "count"
+    assert chart["source_ids"] == chart["metric_source_ids"] == ["RITTER_IPOALL_MONTHLY"]
+    assert chart["provisional_source_ids"] == ["NASDAQ_IPO_CALENDAR_MONTHLY"]
+    by_label = {s["label"]: s for s in chart["series"]}
+    assert list(by_label) == ["닷컴", "현재", "현재 잠정"]
+    dotcom, current, provisional = by_label["닷컴"], by_label["현재"], by_label["현재 잠정"]
+    assert [p["period"] for p in dotcom["points"]] == list(range(60))
+    assert dotcom["points"][0]["date"] == "1995-01-01"
+    # 1995-01 의 12개월 합 = 1994-02 ~ 1995-01 net 합
+    assert dotcom["points"][0]["value"] == sum(40 + m for m in range(2, 13)) + (40 + 2 + 1)
+    assert current["points"][-1]["date"] == "2025-12-01" and current["points"][-1]["period"] == 35
+    assert not current.get("provisional") and current.get("dash") is None
+    # 잠정 계열은 확정 끝점에서 이어져 확정월 이후만 연장한다.
+    assert provisional["provisional"] is True and provisional["dash"]
+    assert provisional["points"][0] == current["points"][-1]
+    assert [p["period"] for p in provisional["points"][1:]] == [36, 37, 38]
+    confirmed_tail = sum(5 + m % 4 for m in range(4, 13))
+    assert provisional["points"][-1]["value"] == confirmed_tail + 36
+    assert chart["confirmed_through"] == "2025-12"
+    assert "잠정" in chart["conclusion"] and "잠정" in chart["caveat"].split(". ")[0]
+    sources = {row["series_id"]: row for row in payload["sources"]}
+    ritter = sources["RITTER_IPOALL_MONTHLY"]
+    assert ritter["authority_class"] == "academic_curated_dataset"
+    assert ritter["policy_source_id"] == "ritter_ipoall_monthly"
+    assert ritter["latest_observation"] == "2025-12-01"
+    assert "NASDAQ_IPO_CALENDAR_MONTHLY" not in sources
+    provisional_meta = payload["provisional_sources"][0]
+    assert provisional_meta["usage_role"] == "provisional_display_only"
+    assert provisional_meta["index_input"] is False and provisional_meta["numeric_input_allowed"] is False
+
+
+def test_ipo_count_chart_without_provisional_months_has_no_dashed_series() -> None:
+    payload = _ipo_payload(provisional=False)
+    chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert [s["label"] for s in chart["series"]] == ["닷컴", "현재"]
+    assert "provisional_source_ids" not in chart and "provisional_sources" not in payload
+    assert "잠정" not in chart["conclusion"]
+
+
+def test_validator_rejects_provisional_series_mixed_into_numeric_lineage() -> None:
+    payload = _ipo_payload()
+    chart_id = "ipo_count_operating_12m"
+
+    def variant() -> tuple[dict, dict]:
+        copy = json.loads(json.dumps(payload))
+        return copy, next(c for c in copy["charts"] if c["id"] == chart_id)
+
+    mixed, mixed_chart = variant()
+    mixed_chart["source_ids"] = mixed_chart["metric_source_ids"] = [
+        "RITTER_IPOALL_MONTHLY", "NASDAQ_IPO_CALENDAR_MONTHLY"]
+    with pytest.raises(StatisticsLabError):
+        validate_statistics_lab(mixed)
+    unlabelled, unlabelled_chart = variant()
+    unlabelled_chart["series"][2]["label"] = "현재 2"
+    with pytest.raises(StatisticsLabError, match="labelled and dashed"):
+        validate_statistics_lab(unlabelled)
+    numeric, _ = variant()
+    numeric["provisional_sources"][0]["policy_source_id"] = "nasdaq_official"
+    with pytest.raises(StatisticsLabError, match="must not be a numeric source"):
+        validate_statistics_lab(numeric)
+    undeclared, undeclared_chart = variant()
+    del undeclared_chart["provisional_source_ids"]
+    with pytest.raises(StatisticsLabError, match="lacks a source"):
+        validate_statistics_lab(undeclared)
+
+
+def test_ipo_count_cross_checks_ritter_gross_against_sec_totals() -> None:
+    payload = _ipo_payload()
+    chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
+    check = chart["cross_check"]
+    assert check["role"] == "cross_check_only_not_index_input"
+    assert check["years"] == []          # 픽스처 SEC 는 완결 연도가 없다 → 대조 보류, 판정 False
+    assert check["within_tolerance"] is False
+    root = Path(__file__).resolve().parents[2]
+    shipped = json.loads((root / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8"))
+    live = next(c for c in shipped["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert live["cross_check"]["within_tolerance"] is True, live["cross_check"]
+    assert len(live["cross_check"]["years"]) == 3
+
+
+def test_projection_keeps_the_provisional_dash_for_the_browser() -> None:
+    root = Path(__file__).resolve().parents[2]
+    projected = statistics_dashboard_projection(root)
+    chart = next(c for c in projected["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert "cross_check" not in chart
+    provisional = [s for s in chart["series"] if s.get("provisional")]
+    assert provisional and all(s["dash"] and "잠정" in s["label"] for s in provisional)
+    assert chart["line_markers"] is False

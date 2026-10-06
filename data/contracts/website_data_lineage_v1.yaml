@@ -114,6 +114,7 @@ statistics:
   official_forecast_input: false
   consumers:
     sec_ipo_issuer_mix_h1: [SEC_IPO_QUARTERLY]
+    ipo_count_operating_12m: [RITTER_IPOALL_MONTHLY]
     m2_nasdaq: [NASDAQCOM, M2SL]
     nasdaq_per_m2: [NASDAQCOM, M2SL]
     nasdaq_per_household_liquid_assets: [NASDAQCOM, DABSHNO]
@@ -140,6 +141,25 @@ statistics:
     structures_buildout: [C30_MFG_COMPUTER_ELECTRONIC, C30_POWER, C30_COMMUNICATION]
     housing_manufacturing_warning: [HOUST, GACDFSA066MSFRBPHI]
     household_balance_sheet_trend_gap: [BOGZ1LM153064475Q, DABSHNO, BOGZ1FL154022375A]
+  # 2026-10-06 user decision: Ritter IPOALL monthly counts are the one academic curated dataset
+  # admitted as a numeric chart input (policy source ritter_ipoall_monthly). Its lineage is
+  # raw artifact + raw receipt + a parsed monthly table pinned to that raw sha256 (no rows in the
+  # normalized observation ledger).
+  academic_numeric_tables:
+    RITTER_IPOALL_MONTHLY:
+      policy_source_id: ritter_ipoall_monthly
+      table: data/statistics/ipo/ritter_ipoall_monthly.json
+      controls: [registered_source, raw_receipt, raw_sha256_pinned_table, pit_gate]
+      scope: monthly_gross_and_net_ipo_counts_only
+  # Display-only provisional extension inside an authoritative chart. It is never listed in a
+  # chart's source_ids, never an index input, and is superseded by confirmed months.
+  provisional_display_series:
+    NASDAQ_IPO_CALENDAR_MONTHLY:
+      policy_source_id: nasdaq_ipo_calendar
+      table: data/statistics/ipo/nasdaq_calendar_monthly.json
+      charts: [ipo_count_operating_12m]
+      payload_key: provisional_sources
+      gate: provisional_series_labelled_dashed_and_excluded_from_source_ids_and_overheat_index
 
 reference_statistics:
   publication_status: separated_reference_only
@@ -173,6 +193,9 @@ reference_statistics:
       static_reference: [WILMERHALE_INTERNET_IPO_1999, RITTER_IPO_UNDERPRICING_2025]
   batch_gate: historical_era_frozen_and_only_current_era_rows_may_change_after_source_review
   gate: no_reference_value_in_authoritative_chart_collection
+  gate_exception: >-
+    2026-10-06 user decision — Ritter IPOALL monthly net counts (statistics.academic_numeric_tables)
+    feed the authoritative chart ipo_count_operating_12m; all other Ritter tables stay reference-only.
 
 retired_numeric_consumers:
   reason: secondary_research_or_unapproved_aggregator_cannot_supply_published_numbers

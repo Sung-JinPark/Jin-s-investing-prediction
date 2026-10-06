@@ -1847,11 +1847,173 @@ def load_ici_reference(root: Path) -> dict[str, Any]:
     return payload
 
 
+IPO_COUNT_CHART_ID = "ipo_count_operating_12m"
+IPO_COUNT_SERIES_ID = "RITTER_IPOALL_MONTHLY"
+IPO_PROVISIONAL_SERIES_ID = "NASDAQ_IPO_CALENDAR_MONTHLY"
+IPO_PROVISIONAL_LABEL = "현재 잠정"
+#: Ritter gross 와 SEC 전체 IPO 건수(같은 연도)의 허용 괴리 — 교차 확인용, 지수 입력 아님.
+IPO_SEC_CROSS_CHECK_TOLERANCE_PERCENT = 20.0
+
+
+def _ipo_sec_cross_check(
+    ritter: dict[str, Any], sec_rows: list[dict[str, Any]], years: int = 3,
+) -> dict[str, Any]:
+    """Ritter gross(연간) vs SEC total_count(4분기 합) — 최근 완결 연도만 비교한다."""
+    gross: dict[int, list[int | None]] = defaultdict(list)
+    for row in ritter.get("months") or []:
+        gross[int(str(row["month"])[:4])].append(row.get("gross"))
+    sec: dict[int, list[float]] = defaultdict(list)
+    for row in sec_rows:
+        label = str(row.get("period_label") or "")
+        if ":Q" in label and row.get("total_count") is not None:
+            sec[int(label.split(":")[0])].append(float(row["total_count"]))
+    complete = sorted(
+        year for year in set(gross) & set(sec)
+        if len(gross[year]) == 12 and all(value is not None for value in gross[year])
+        and len(sec[year]) == 4
+    )[-years:]
+    rows = []
+    for year in complete:
+        ritter_gross = int(sum(gross[year]))  # type: ignore[arg-type]
+        sec_total = int(sum(sec[year]))
+        gap = (ritter_gross / sec_total - 1.0) * 100.0 if sec_total else float("inf")
+        rows.append({"year": year, "ritter_gross": ritter_gross, "sec_total": sec_total,
+                     "gap_percent": round(gap, 1)})
+    worst = max((abs(row["gap_percent"]) for row in rows), default=None)
+    return {
+        "method": "ritter_gross_annual_vs_sec_total_count_four_quarters",
+        "role": "cross_check_only_not_index_input",
+        "years": rows,
+        "tolerance_percent": IPO_SEC_CROSS_CHECK_TOLERANCE_PERCENT,
+        "max_abs_gap_percent": worst,
+        "within_tolerance": worst is not None and worst <= IPO_SEC_CROSS_CHECK_TOLERANCE_PERCENT,
+    }
+
+
+def _build_ipo_count_chart(
+    ipo_monthly: dict[str, Any], sec_rows: list[dict[str, Any]],
+    make: Callable[..., dict[str, Any]], generated_at: str,
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any] | None]:
+    """운영기업 IPO 12개월 합 — 확정(Ritter net) 두 시대 + 확정월 이후 잠정(Nasdaq 근사).
+
+    잠정 계열은 점선·별도 라벨로만 그리며 ``source_ids`` 에 넣지 않는다. 과열도 지수는
+    라벨로 확정 계열만 읽는다.
+    """
+    from .ipo_monthly_counts import NASDAQ_OVERCOUNT_MEASURED, ipo_count_series, month_start
+
+    ritter = ipo_monthly["ritter"]
+    nasdaq = ipo_monthly.get("nasdaq")
+    built = ipo_count_series(ritter, nasdaq)
+    confirmed_points = [
+        {"date": month_start(month), "value": float(value)}
+        for month, value in sorted(built["confirmed"].items())
+    ]
+    dot_ipo = _window(confirmed_points, DOTCOM_START, COMPARISON_MONTHS)
+    cur_ipo = _window(confirmed_points, CURRENT_START, COMPARISON_MONTHS)
+    if len(dot_ipo) <= COMPARISON_MONTHS or not cur_ipo:
+        raise StatisticsLabError("IPO 12-month series does not cover both eras")
+    provisional_points = _window(
+        [{"date": month_start(month), "value": float(value)}
+         for month, value in sorted(built["provisional"].items())],
+        CURRENT_START, COMPARISON_MONTHS,
+    )
+    series = [
+        _series("닷컴", "dotcom", dot_ipo, "#8d2943"),
+        _series("현재", "current", cur_ipo, "#28756a"),
+    ]
+    if provisional_points:
+        provisional = _series(
+            IPO_PROVISIONAL_LABEL, "current", [cur_ipo[-1], *provisional_points], "#7fb3a5",
+        )
+        provisional.update({"provisional": True, "dash": "2 5"})
+        series.append(provisional)
+    chart = make(
+        IPO_COUNT_CHART_ID, "미국 IPO 건수: 최근 12개월", "ipo", "count",
+        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO 기준",
+        "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
+    )
+    measured = " · ".join(
+        f"{row['year']} {row['nasdaq_operating_approx']}건 vs {row['ritter_net']}건"
+        for row in NASDAQ_OVERCOUNT_MEASURED
+    )
+    chart["caveat"] = (
+        ("점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. "
+         if provisional_points else "")
+        + "확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 "
+        "빼며 연 1회 개정됩니다. 잠정 근사 필터 대 확정치 실측: " + measured + "."
+    )
+    chart.update({
+        "display_unit": "건 · 12개월 합",
+        "line_markers": False,
+        "projection_max_points": 24,
+        "observed_end_label": "최신",
+        "definition": "ritter_net_operating_company_ipos_trailing_12_month_sum",
+        "confirmed_through": built["last_confirmed_month"],
+        "index_input_series": ["닷컴", "현재"],
+        "cross_check": _ipo_sec_cross_check(ritter, sec_rows),
+    })
+    if provisional_points:
+        chart["provisional_source_ids"] = [IPO_PROVISIONAL_SERIES_ID]
+    latest = cur_ipo[-1]
+    target = int(latest["period"])
+    matched = min(dot_ipo, key=lambda row: abs(int(row["period"]) - target))
+    conclusion = (
+        f"최근 12개월 {latest['value']:.0f}건({built['last_confirmed_month']} 확정) — "
+        f"닷컴 같은 {target}개월차 {matched['value']:.0f}건, "
+        f"닷컴 최대 {max(row['value'] for row in dot_ipo):.0f}건."
+    )
+    if provisional_points:
+        conclusion += (
+            f" 잠정 {provisional_points[-1]['value']:.0f}건"
+            f"({provisional_points[-1]['date'][:7]}까지)."
+        )
+    chart["conclusion"] = conclusion
+    source_meta = {
+        "series_id": IPO_COUNT_SERIES_ID,
+        "title": str(ritter.get("title") or "U.S. IPO monthly counts"),
+        "provider": str(ritter.get("provider") or "Jay R. Ritter, University of Florida"),
+        "unit": "count", "native_frequency": "monthly",
+        "source_url": ritter["source_url"], "request_url": ritter["source_url"],
+        "authority_class": "academic_curated_dataset",
+        "policy_source_id": str(ritter.get("policy_source_id") or "ritter_ipoall_monthly"),
+        "usage_role": "numeric_input", "numeric_input_allowed": True,
+        "available_at": ritter.get("available_at") or generated_at,
+        "latest_observation": month_start(built["last_confirmed_month"]),
+        "row_count": len(ritter.get("months") or []),
+        "raw_sha256": ritter["raw_sha256"],
+        "raw_path": ritter.get("raw_path"),
+        "vintage": f"author_release_fetched_{str(ritter.get('fetched_at') or '')[:10]}",
+        "definition": "net_operating_company_count",
+        "revision_cadence": ritter.get("revision_cadence"),
+    }
+    provisional_meta = None
+    if provisional_points and nasdaq:
+        provisional_meta = {
+            "series_id": IPO_PROVISIONAL_SERIES_ID,
+            "policy_source_id": str(nasdaq.get("policy_source_id") or "nasdaq_ipo_calendar"),
+            "usage_role": "provisional_display_only",
+            "numeric_input_allowed": False,
+            "index_input": False,
+            "filter_version": nasdaq.get("filter_version"),
+            "known_bias": nasdaq.get("known_bias"),
+            "status": nasdaq.get("status"),
+            "provisional_after": built["last_confirmed_month"],
+            "months": built["provisional_months"],
+            "available_at": max(
+                (str(row.get("fetched_at")) for row in (nasdaq.get("months") or {}).values()
+                 if row.get("fetched_at")),
+                default=generated_at,
+            ),
+        }
+    return chart, source_meta, provisional_meta
+
+
 def build_statistics_lab(
     source_rows: dict[str, list[dict[str, Any]]], *, generated_at: str,
     receipts: dict[str, dict[str, Any]],
     ipo_reference: dict[str, Any] | None = None,
     hmi_reference: dict[str, Any] | None = None,
+    ipo_monthly: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build official charts and an explicitly separate reference-statistics layer.
 
@@ -2234,6 +2396,12 @@ def build_statistics_lab(
     )
     sec_chart.update({"chart_type": "stacked_bar", "show_bar_values": True, "x_ticks": [[0, "2025 상반기"], [1, "2026 상반기"]], "max_period": 1})
     charts.insert(0, sec_chart)
+    ipo_count_chart = ipo_source_meta = ipo_provisional_meta = None
+    if ipo_monthly is not None:
+        ipo_count_chart, ipo_source_meta, ipo_provisional_meta = _build_ipo_count_chart(
+            ipo_monthly, sec_rows, make, generated_at,
+        )
+        charts.insert(1, ipo_count_chart)
     by_id = {chart["id"]: chart for chart in charts}
     by_id["m2_nasdaq"]["scale"] = "log1p"
     full_chart = by_id["spx_per_federal_debt_full_history"]
@@ -2702,6 +2870,8 @@ def build_statistics_lab(
              ("채권", endpoint(debt_gap))]
         ),
     }
+    if ipo_count_chart is not None:
+        current_conclusions[IPO_COUNT_CHART_ID] = ipo_count_chart["conclusion"]
     missing_conclusions = sorted(set(by_id) - set(current_conclusions))
     if missing_conclusions:
         raise StatisticsLabError(
@@ -2786,6 +2956,8 @@ def build_statistics_lab(
         if c30_spec.get("history_note"):
             c30_meta["history_note"] = c30_spec["history_note"]
         source_meta.append(c30_meta)
+    if ipo_source_meta is not None:
+        source_meta.append(ipo_source_meta)
     observation_through = max(row["latest_observation"] for row in source_meta)
     payload = {
         "schema_version": 1, "dataset_id": "dotcom_statistics_lab_v1", "status": "ok",
@@ -2816,6 +2988,8 @@ def build_statistics_lab(
             "manual_NAHB_snapshot": "replaced_by_Census_HOUST",
         },
     }
+    if ipo_provisional_meta is not None:
+        payload["provisional_sources"] = [ipo_provisional_meta]
     if ipo_reference is not None:
         reference_statistics = _build_ipo_reference_statistics(
             ipo_reference, source_rows["SEC_IPO_QUARTERLY"],
@@ -2927,7 +3101,7 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             raise StatisticsLabError(f"source {row.get('series_id')} is not approved for numbers")
         if row.get("authority_class") not in {
             "authoritative_public_distributor", "official_regulator",
-            "official_statistical_agency",
+            "official_statistical_agency", "academic_curated_dataset",
         }:
             raise StatisticsLabError(f"source {row.get('series_id')} authority invalid")
         if projected:
@@ -2975,6 +3149,7 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
             raise StatisticsLabError(
                 f"chart {chart.get('id')} scope note must be a short market boundary"
             )
+    _validate_provisional_series(payload, charts, policy)
     by_id = {str(chart.get("id")): chart for chart in charts}
     for retired_id in (
         "ici_weekly_equity_etf_flow",
@@ -3027,6 +3202,51 @@ def validate_statistics_lab(payload: dict[str, Any], *, projected: bool = False)
         _validate_ipo_reference_statistics(
             reference_statistics, allow_legacy_single=not projected,
         )
+
+
+def _validate_provisional_series(
+    payload: dict[str, Any], charts: list[dict[str, Any]], policy: Any,
+) -> None:
+    """잠정(provisional) 계열은 표시 전용 — 숫자 원천 목록과 섞이지 않는다.
+
+    잠정 계열이 있는 차트는 ``provisional_source_ids`` 를 밝혀야 하고, 그 원천은
+    ``provisional_sources`` 에 표시 전용으로 등록돼 있어야 하며 정책상 숫자 입력이 아니어야
+    한다. 반대로 숫자 원천(``source_ids``)에 잠정 원천이 끼면 거부한다.
+    """
+    registered = {
+        str(row.get("series_id")): row for row in payload.get("provisional_sources") or []
+    }
+    for row in registered.values():
+        if (
+            row.get("usage_role") != "provisional_display_only"
+            or row.get("numeric_input_allowed") is not False
+            or row.get("index_input") is not False
+        ):
+            raise StatisticsLabError(f"provisional source {row.get('series_id')} role invalid")
+        try:
+            rule = policy.rule_for(str(row.get("policy_source_id")))
+        except Exception as exc:  # SourcePolicyViolation — unregistered
+            raise StatisticsLabError(
+                f"provisional source {row.get('series_id')} is not registered"
+            ) from exc
+        if rule.numeric_input_allowed:
+            raise StatisticsLabError(
+                f"provisional source {row.get('series_id')} must not be a numeric source"
+            )
+    for chart in charts:
+        declared = list(chart.get("provisional_source_ids") or [])
+        provisional = [row for row in chart.get("series", []) if row.get("provisional")]
+        if set(declared) & set(chart.get("source_ids") or []):
+            raise StatisticsLabError(f"chart {chart.get('id')} mixes provisional into numeric sources")
+        if provisional and not declared:
+            raise StatisticsLabError(f"chart {chart.get('id')} provisional series lacks a source")
+        if any(source_id not in registered for source_id in declared):
+            raise StatisticsLabError(f"chart {chart.get('id')} provisional source unregistered")
+        for row in provisional:
+            if "잠정" not in str(row.get("label") or "") or not row.get("dash"):
+                raise StatisticsLabError(
+                    f"chart {chart.get('id')} provisional series must be labelled and dashed"
+                )
 
 
 def _semantic_snapshot(value: Any) -> Any:
@@ -3386,6 +3606,8 @@ def refresh_statistics_lab(
         pending_observations,
     )
     canonical_rows = _load_authoritative_current_rows(root)
+    from .ipo_monthly_counts import load_ipo_monthly_tables
+
     payload = build_statistics_lab(
         canonical_rows,
         generated_at=generated_at,
@@ -3395,6 +3617,7 @@ def refresh_statistics_lab(
             if (root / IPO_REFERENCE_RELATIVE).is_file()
             else None
         ),
+        ipo_monthly=load_ipo_monthly_tables(root),
     )
 
     latest = root / LATEST_RELATIVE
@@ -3506,7 +3729,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                 "description", "trend_baseline", "projection_max_points",
                 "external_pulse_diagnostics",
                 "comparison_transform", "source_validation",
-                "scenario_sensitivity", "event_diagnostics",
+                "scenario_sensitivity", "event_diagnostics", "cross_check",
             }
         }
         for diagnostics_key in ("external_pulse_diagnostics",):
@@ -3541,7 +3764,7 @@ def statistics_dashboard_projection(root: Path) -> dict[str, Any]:
                     for point in display_points
                 ],
             }
-            for optional in ("marker_radius", "marker_emphasis"):
+            for optional in ("marker_radius", "marker_emphasis", "provisional", "dash"):
                 if optional in series:
                     series_view[optional] = series[optional]
             chart_view["series"].append(series_view)
