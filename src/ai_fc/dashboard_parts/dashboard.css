@@ -1868,3 +1868,19 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 .ts-errbars-pair,.ts-hits-dots{grid-column:1/-1;grid-row:2}
 .ts-errbars-pair p{grid-template-columns:64px minmax(0,1fr) 56px}
 }
+
+/* 설명은 접어 둔다 — 읽는 법·예측 방식은 필요할 때만 펼친다 */
+details.chart-guide>summary{cursor:pointer;list-style:none;line-height:1.4}
+details.chart-guide>summary::-webkit-details-marker{display:none}
+details.chart-guide>summary::after{content:" ＋";color:var(--muted)}
+details.chart-guide[open]>summary::after{content:" −"}
+details.chart-guide:not([open]){gap:0}
+details.statistics-reading-guide{display:block;padding:8px 15px}
+details.statistics-reading-guide>summary{cursor:pointer;font-size:12px;font-weight:700;color:#8a4a0e}
+details.statistics-reading-guide>p{margin-top:8px}
+.statistics-now-rest{margin:0 26px 16px;font-size:13px;line-height:1.6;color:#304d47;word-break:keep-all}
+@media(max-width:760px){.statistics-now-rest{margin-inline:16px}}
+body[data-view="statistics"] .page-heading,body[data-view="future"] .page-heading{margin-bottom:18px;padding:20px 26px}
+body[data-view="statistics"] .page-heading::after,body[data-view="future"] .page-heading::after{display:none}
+body[data-view="statistics"] .page-heading h1,body[data-view="future"] .page-heading h1{margin:0;font-size:clamp(24px,2.4vw,32px)}
+body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}

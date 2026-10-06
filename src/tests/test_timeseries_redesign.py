@@ -61,7 +61,7 @@ def test_v8_enables_four_tabs_and_keeps_disclosure_on_every_tab() -> None:
     assert "const enabled=['summary','path','drivers','backtest']" in v8
     foot = html[html.index("function tsFootnote(ts)"):html.index("function bindTimeseriesV8Interactions")]
     assert "매매 신호가 아닙니다" in foot, "방법 박스가 첫 탭으로 들어가도 4탭 공통 공시 유지"
-    assert "기여도(가중치×변화)가 아닙니다" in v8, "기여 요인 탭 정직성 리드"
+    assert "기여도(가중치×변화) 아님" in v8, "기여 요인 탭 정직성 리드"
     assert "선형 보간(참고용)" in html, "보간 정직성 캡션 유지"
     # 가격 레벨+확률 결합 문장·새 확률 파생 금지 — 시계열 구역 전체를 패턴으로 검사
     ts_region = html[html.index("const tsLevel="):html.index("const GC_API=")]
@@ -89,7 +89,7 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     assert "TS_H_CAL={'1':'다음 거래일','5':'약 1주 뒤','21':'약 1개월 뒤','63':'약 3개월 뒤'}" in html
     assert html.count("tsCal(") >= 5
     # 경로: 세 선의 뜻이 헤더 1차 언어
-    assert "붉은 선과의 간격이 지금까지의 오차" in html
+    assert "회색 굵은 선=예측 뒤 실제" in html
     # 사다리표: 분위수 용어는 2층(small) — 2026-09-18 5열로 간결화, %가 1차 값·지수는 아래
     assert "나쁜 경우<small>하위 10%" in html and "좋은 경우<small>상위 10%" in html
     assert "<strong class=\"${ret>=0?'up':'down'}\">${tsPct(ret)}</strong><small>${tsLevel(level)}</small>" in html
@@ -110,7 +110,7 @@ def test_beginner_language_layer_leads_every_tab() -> None:
         assert question in pillars, question
     assert "위 성적은 전부 과거 구간 재실행입니다" in pillars
     # 점수는 빌더가 싣는 값을 그대로 그린다 — 화면에서 재계산하지 않는다
-    assert "sealed_metrics||{}).score100" in card and "게이트 판정·모델·확률을 바꾸지 않으며" in card
+    assert "sealed_metrics||{}).score100" in card and "게이트·모델·확률 무변경" in card
     # 성적표는 호버 의무 표면이 아니다 (배선 계약과 충돌 금지)
     assert 'data-ts-chart="scorecard"' not in html
 
