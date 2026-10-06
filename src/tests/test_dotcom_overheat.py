@@ -167,3 +167,30 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
         events = doc.get("on", doc.get(True))
         assert "statistics-refresh" in events["workflow_run"]["workflows"]
         assert "completed" in events["workflow_run"]["types"]
+
+
+def test_indicators_carry_display_labels_from_the_statistics_cards() -> None:
+    """통계 화면 패널이 지표를 통계 카드 제목으로 부르고 그 카드로 이동할 수 있어야 한다."""
+    result = compute_index(ROOT)
+    if result.get("status") != "ok":
+        import pytest
+        pytest.skip("statistics snapshot unavailable")
+    payload = json.loads((ROOT / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8"))
+    titles = {chart["id"]: chart.get("title") for chart in payload["charts"]}
+    for row in result["indicators"]:
+        assert row["chart"] in titles
+        assert row["title"] == titles[row["chart"]]
+        assert row["why"]
+
+
+def test_statistics_page_leads_with_the_overheat_panel() -> None:
+    """2026-10-06 사용자 지시: 통계 화면은 제목 바로 아래 닷컴 대비 과열도부터 보인다."""
+    from ai_fc import dashboard
+
+    html = dashboard.render_html({}, mode="embed")
+    render = html[html.index("function renderStatistics("):html.index("function timeseriesFeatureLabel")]
+    assert render.index("statisticsOverheatPanel(DATA.dotcom_overheat)") < render.index("statistics-filters")
+    panel = html[html.index("function statisticsOverheatPanel"):html.index("function renderStatistics(")]
+    # 대표값은 산포와 함께, 확률 아님·100%=정점 라벨 유지
+    assert "부문별 ${sig.lo}~${sig.hi}%" in panel
+    assert "확률 아님 · 100% = 닷컴 사이클 정점" in panel and "참고 의견" in panel

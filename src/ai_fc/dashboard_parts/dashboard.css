@@ -1896,3 +1896,43 @@ body[data-view="statistics"] .page-heading,body[data-view="future"] .page-headin
 body[data-view="statistics"] .page-heading::after,body[data-view="future"] .page-heading::after{display:none}
 body[data-view="statistics"] .page-heading h1,body[data-view="future"] .page-heading h1{margin:0;font-size:clamp(24px,2.4vw,32px)}
 body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
+/* ── 통계: 닷컴 대비 과열도 (dotcom_overheat_index_v1) ── */
+.statistics-overheat{--oh-cool:#2d6fa8;--oh-warm:#c08a1e;--oh-hot:#db351b;--oh-over:#8c0020;margin:0 0 22px;padding:22px 24px 16px;background:#fff;border:1px solid var(--line-strong);border-top:5px solid #11110f;min-width:0}
+.statistics-overheat .is-cool{--oh:var(--oh-cool)}.statistics-overheat .is-warm{--oh:var(--oh-warm)}.statistics-overheat .is-hot{--oh:var(--oh-hot)}.statistics-overheat .is-over{--oh:var(--oh-over)}
+.statistics-overheat>h2{margin:0 0 14px;font-size:22px;letter-spacing:-.01em}
+.oh-hero{display:grid;grid-template-columns:220px minmax(0,1fr);gap:28px;align-items:center}
+.oh-score span{display:block;color:#706f68;font:700 11px/1 var(--mono);letter-spacing:.08em}
+.oh-score strong{display:block;margin:6px 0 4px;color:var(--oh);font:800 64px/1 var(--mono);letter-spacing:-.04em}
+.oh-score strong small{font-size:28px;margin-left:2px}
+.oh-score p{margin:0;color:#4f4d47;font-size:13px}
+.oh-gauge{min-width:0}
+.oh-gauge-bar{position:relative;height:22px;border-radius:11px;background:linear-gradient(90deg,#dbe7f1 0%,#f5e7c8 45%,#f6cfc5 75%,#e8b3bd 100%)}
+.oh-span{position:absolute;top:5px;height:12px;border-radius:6px;background:rgba(17,17,15,.18)}
+.oh-peak{position:absolute;top:-6px;bottom:-6px;width:0;border-left:2px dashed #8c0020}
+.oh-pin{position:absolute;top:-9px;bottom:-9px;width:5px;margin-left:-2.5px;background:#11110f;border-radius:3px;box-shadow:0 0 0 2px #fff}
+.oh-gauge-scale{position:relative;height:22px;margin-top:8px}
+.oh-gauge-scale span{position:absolute;transform:translateX(-50%);color:#8a877e;font:600 11px/1 var(--mono);white-space:nowrap}
+.oh-gauge-scale span:first-child{transform:none}
+.oh-gauge-scale span.is-peak{color:#8c0020}
+.oh-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);gap:28px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line)}
+.oh-grid h3{margin:0 0 8px;color:#65635d;font-size:12px;font-weight:700}
+.oh-list{list-style:none;margin:0;padding:0}
+.oh-list li,.oh-list button{display:grid;grid-template-columns:92px minmax(0,1fr) 62px;gap:10px;align-items:center}
+.oh-list li{padding:6px 0}
+.oh-list.is-indicators li{display:block;padding:0}
+.oh-list button{width:100%;padding:6px 0;border:0;border-bottom:1px solid #f0efea;background:none;text-align:left;cursor:pointer;font:inherit;color:inherit;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr) 62px}
+.oh-list button:hover{background:#faf9f5}
+.oh-list em{font-style:normal;font-size:13px;font-weight:650;min-width:0;word-break:keep-all;line-height:1.35}
+.oh-list em small{display:block;color:#8a877e;font-size:10.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.oh-list strong{color:var(--oh);font:800 14px/1.1 var(--mono);text-align:right}
+.oh-list strong small{display:block;font-size:9.5px;font-weight:600}
+.oh-track{position:relative;display:block;height:10px;border-radius:5px;background:#efeee8}
+.oh-fill{display:block;height:100%;border-radius:5px;background:var(--oh)}
+.oh-track .oh-peak{top:-3px;bottom:-3px}
+.oh-note{margin:14px 0 0;color:#8a877e;font-size:11.5px}
+@media(max-width:799px){
+.statistics-overheat{margin-inline:16px;padding:18px 16px 14px}
+.oh-hero{grid-template-columns:1fr;gap:14px}
+.oh-score strong{font-size:52px}
+.oh-grid{grid-template-columns:1fr;gap:18px}
+}

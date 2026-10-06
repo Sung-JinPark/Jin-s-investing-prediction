@@ -1204,6 +1204,33 @@ function renderFearGreedLab(){
   </section>`);
 }
 
+/* 닷컴 대비 과열도 (dotcom_overheat_index_v1) — 통계 화면 맨 위. 100% = 닷컴 사이클 정점.
+   확률이 아니다. 대표값은 언제나 부문 산포와 함께 낸다(홈 카드와 같은 규칙). */
+const OVERHEAT_CATEGORY_LABELS={economy:'경기·물가',rates:'금리',valuation:'기업가치',credit:'신용',liquidity:'유동성',ipo:'IPO·상장'};
+const overheatTone=v=>v>=100?'is-over':v>=80?'is-hot':v>=50?'is-warm':'is-cool';
+function statisticsOverheatPanel(idx){
+  const sig=dotcomOverheatSignal(idx);
+  if(!sig)return null;
+  const rows=idx.indicators||[],cats=Object.entries(idx.category_medians||{}).sort((a,b)=>b[1]-a[1]);
+  const top=Math.max(120,...rows.map(r=>Number(r.pct)||0),...cats.map(c=>Number(c[1])||0));
+  const X=v=>Math.max(0,Math.min(100,Number(v)/top*100));
+  const bar=(v,cls='')=>`<span class="oh-track"><i class="oh-fill ${cls||overheatTone(v)}" style="width:${X(v).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b></span>`;
+  const catRows=cats.map(([key,v])=>`<li><em>${esc(OVERHEAT_CATEGORY_LABELS[key]||key)}</em>${bar(v)}<strong class="${overheatTone(v)}">${Math.round(v)}%</strong></li>`).join('');
+  const indRows=rows.map(r=>`<li><button type="button" data-oh-jump="${esc(r.chart||'')}" title="${esc(r.why||'')}"><em>${esc(r.title||r.id)}<small>${esc(OVERHEAT_CATEGORY_LABELS[r.category]||r.category)}${r.why?` · ${esc(r.why)}`:''}</small></em>${bar(r.pct)}<strong class="${overheatTone(r.pct)}">${Math.round(r.pct)}%${r.beyond_dotcom_peak?'<small>정점 초과</small>':''}</strong></button></li>`).join('');
+  const node=el(`<section class="statistics-overheat" aria-labelledby="statistics-overheat-title"><h2 id="statistics-overheat-title">닷컴 대비 과열도</h2>`
+    +`<div class="oh-hero"><div class="oh-score ${overheatTone(sig.pct)}"><span>현재</span><strong>${sig.pct}<small>%</small></strong><p>부문별 ${sig.lo}~${sig.hi}% · 정점 초과 ${sig.beyond}개 / ${sig.included}개</p></div>`
+    +`<div class="oh-gauge"><div class="oh-gauge-bar"><i class="oh-span" style="left:${X(sig.lo).toFixed(1)}%;width:${(X(sig.hi)-X(sig.lo)).toFixed(1)}%"></i><b class="oh-peak" style="left:${X(100).toFixed(1)}%"></b><b class="oh-pin" style="left:${X(sig.pct).toFixed(1)}%"></b></div>`
+    +`<div class="oh-gauge-scale"><span style="left:0">0%</span><span style="left:${X(50).toFixed(1)}%">50%</span><span class="is-peak" style="left:${X(100).toFixed(1)}%">닷컴 정점 100%</span></div></div></div>`
+    +`<div class="oh-grid"><div><h3>부문별</h3><ul class="oh-list">${catRows}</ul></div><div><h3>지표별 ${rows.length}개</h3><ul class="oh-list is-indicators">${indRows}</ul></div></div>`
+    +`<p class="oh-note">확률 아님 · 100% = 닷컴 사이클 정점(1995~1999 범위 위치) · 부문 중앙값의 중앙값 · 참고 의견${idx.as_of?` · ${esc(idx.as_of)} 기준`:''}</p></section>`);
+  node.querySelectorAll('[data-oh-jump]').forEach(button=>button.onclick=()=>{
+    const card=document.querySelector(`[data-stat-id="${CSS.escape(button.dataset.ohJump)}"]`);
+    if(!card)return;
+    if(card.hidden){const all=document.querySelector('[data-stat-filter="all"]');if(all)all.click();}
+    card.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+  return node;
+}
 function renderStatistics(initialState){
   const requestedCategory=typeof initialState==='string'?initialState:initialState?.category;
   const stats=DATA.statistics_lab||{},root=el('<div class="statistics-page"></div>');
@@ -1220,7 +1247,9 @@ function renderStatistics(initialState){
   if(stats.status!=='ok'){
     root.appendChild(el('<section class="statistics-blocked"><strong>통계 DB 갱신 대기</strong><p>공개 원천 검증을 마친 뒤 이 화면에 표시합니다.</p></section>'));mount(root);return;
   }
-  root.appendChild(el(`<p class="statistics-refresh-note">원천 확인 ${esc(stats.generated_at?String(stats.generated_at).slice(0,16).replace('T',' ')+' UTC':'시각 미상')}</p>`));
+  const overheat=statisticsOverheatPanel(DATA.dotcom_overheat);
+  if(overheat)root.appendChild(overheat);
+  root.appendChild(el(`<p class="statistics-refresh-note">원천 확인${esc(stats.generated_at?String(stats.generated_at).slice(0,16).replace('T',' ')+' UTC':'시각 미상')}</p>`));
   const alignment=stats.cycle_alignment||{},charts=stats.charts||[];
   const categories=[['all','전체'],['ipo','IPO·상장'],['liquidity','유동성'],['rates','금리'],['economy','경기·물가'],['valuation','기업가치'],['credit','신용']];
   root.appendChild(el(`<nav class="statistics-filters" aria-label="통계 그래프 분류">${categories.map(([key,label])=>`<button type="button" data-stat-filter="${key}" aria-pressed="${key==='all'}">${label}</button>`).join('')}</nav>`));
