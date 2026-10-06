@@ -92,6 +92,10 @@ def compute_index(root: Path) -> dict[str, Any]:
             skipped.append({"id": spec.get("id"), "reason": "닷컴 범위 0"}); continue
         rows.append({
             "id": spec.get("id"),
+            # 표시 라벨 — 통계 카드 제목과 계약의 why. 집계에는 쓰지 않는다.
+            "chart": spec.get("chart"),
+            "title": chart.get("title") or spec.get("id"),
+            "why": str(spec.get("why") or "").strip(),
             "category": chart.get("category") or "기타",
             "pct": round(pct, 1),
             "direction": spec.get("direction"),
