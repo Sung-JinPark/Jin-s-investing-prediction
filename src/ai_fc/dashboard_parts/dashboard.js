@@ -2627,6 +2627,19 @@ function moodSpark(trail,opts){
     +`<circle cx="${x(pts.length-1).toFixed(1)}" cy="${y(last.v).toFixed(1)}" r="2.6" fill="${o.stroke||'#11110f'}"/></svg>`;
 }
 
+/* VIX 를 '하루 등락'으로 옮긴다. 이 지수는 **연율** 변동성이라 거래일 수의 제곱근
+   (√252 ≈ 15.9)으로 나누면 하루치가 된다 — 앞날을 점치는 것이 아니라 지수가 이미
+   뜻하는 바를 다시 말하는 것이다. '15.31 · 평시' 만 띄우면 15 와 25 가 서로 얼마나
+   다른 장인지 읽히지 않는다. 숫자가 어떤 하루를 뜻하는지까지 적어야 읽은 것이 된다. */
+const VIX_DAY=level=>Number(level)/Math.sqrt(252);
+const VIX_PLAIN={
+  very_low:'거의 흔들리지 않는 장입니다. 조용한 만큼 방심이 쌓이는 구간이기도 합니다.',
+  calm:'보통 장세입니다. 오르내림이 하루치 소음 안에 머뭅니다.',
+  watch:'긴장이 올라왔습니다. 내리는 날의 낙폭이 눈에 띄게 커집니다.',
+  hard_rule:'EXIT 기준선에 들어온 구간입니다. 확률과 무관하게 기계적으로 지킵니다.',
+  stress:'급락장에서 나오는 수준입니다. 장중에 방향이 몇 번씩 뒤집힙니다.',
+  crisis:'2008·2020 급의 공포 구간입니다.'
+};
 function renderVixCard(vix){
   if(!vix||vix.status==='absent')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>아직 수집되지 않았습니다.</p></article>`;
   if(vix.status==='stale')return `<article class="mood-card mood-empty"><h3>VIX</h3><p>마지막 관측 ${esc(vix.observed_date)} · ${num(vix.stale_days)}일 경과 — 신선하지 않아 숫자를 표시하지 않습니다.</p></article>`;
@@ -2646,12 +2659,13 @@ function renderVixCard(vix){
   const spark=moodSpark(vix.trail,{lo:Math.min(vix.trail_min,12),hi:Math.max(vix.trail_max,26),stroke:color,
     marks:[{v:25,c:'#db351b'},{v:20,c:'#c08a1e'}]});
   return `<article class="mood-card mood-vix">
-    <header><h3>VIX <small>변동성 지수</small></h3><span class="mood-chip" style="--chip:${color}">${esc(vix.band_label)}</span></header>
+    <header><h3>VIX <small>시장이 보는 하루 등락</small></h3><span class="mood-chip" style="--chip:${color}">${esc(vix.band_label)}</span></header>
     <div class="mood-vix-read"><strong>${lvl.toFixed(2)}</strong><span class="${vix.change_1d>0?'edge-neg':vix.change_1d<0?'edge-pos':''}">${delta} <small>전일</small></span></div>
     <div class="mood-strip-wrap"><div class="mood-strip" role="img" aria-label="현재 구간 ${esc(vix.band_label)}, 경계 13·20·25·30·40">${strip}<b class="mood-strip-pin" style="left:${pos.toFixed(2)}%"></b></div><div class="mood-strip-ticks">${ticks}</div></div>
     ${spark}
     <dl class="mood-meta"><div><dt>1주 전</dt><dd>${hasNumeric(vix.week_ago)?vix.week_ago.toFixed(2):'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(vix.month_ago)?vix.month_ago.toFixed(2):'—'}</dd></div><div><dt>1년</dt><dd>${hasNumeric(vix.year_ago)?vix.year_ago.toFixed(2):'—'}</dd></div></dl>
-    <p class="mood-note">${hr.breached?`<b>하드룰 25 도달</b> — 확률과 무관하게 기계적으로 유지되는 EXIT 트리거입니다.`:`하드룰 25까지 <b>${hasNumeric(dist)?dist.toFixed(2):'—'}</b> 남았습니다.`} <span>${esc(vix.observed_date)} · Cboe VIX 종가</span></p>
+    <p class="mood-note"><b>지금 ${lvl.toFixed(2)} — 하루 ±${VIX_DAY(lvl).toFixed(1)}% 안팎 오르내리는 장이라는 뜻입니다.</b> ${esc(VIX_PLAIN[vix.band]||'')}
+      <span>${hr.breached?'EXIT 기준선 25 도달':`EXIT 기준선 25까지 ${hasNumeric(dist)?dist.toFixed(2):'—'} 남음`} · ${esc(vix.observed_date)} 종가 · Cboe VIX</span></p>
   </article>`;
 }
 
