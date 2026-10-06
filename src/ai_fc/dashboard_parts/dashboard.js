@@ -3379,7 +3379,7 @@ function originalFlowPanel(){
       <span>기간</span>
       <button type="button" data-original-horizon="compare" aria-pressed="true"><i></i>대조 구간</button>
       <button type="button" data-original-horizon="full" aria-pressed="false"><i></i>전체 전망</button>
-      <small>기본 ${esc(track.stats.first_asof)} ~ ${esc(track.cut)} · 전체를 열면 과거 구간이 왼쪽으로 눌립니다</small></div>`:'';
+      <small>기본 ${esc(track.stats.first_asof)} ~ ${esc(track.cut)}</small></div>`:'';
   const ghostLegend=structural?'<span><b class="baseline-swatch"></b>굴곡 적용 전 GBM 중앙값</span>':'';
   const memberControl=memberCount?`<div class="flow-shape-controls" role="group" aria-label="실제 모의 경로 표시"><span>PATH LAYERS</span><button type="button" data-original-samples aria-pressed="false"><i></i>실제 모의 경로 ${num(memberCount)}개 같이 보기</button><small>기본 숨김 · 대표선으로 쓰지 않습니다</small></div>`:'';
   const panel=el(`<section class="chart-panel original-flow-panel" aria-labelledby="original-flow-title">
@@ -3397,7 +3397,7 @@ function originalFlowPanel(){
       [GUIDE_BAND('rgba(255,157,25,.48)'),'아래 띠','이 주까지 −10%선 누적 터치확률 (저·중·고)'],
       sc.analog?.values?.length?[GUIDE_DASH('#706f68'),'긴 회색 대시','닷컴 때 흐름 — 참조선일 뿐 시나리오 아님']:null,
       memberCount?[GUIDE_DASH('#5f6470'),'얇은 점선','켜면 보이는 실제 모의 경로 (표본이지 대표선 아님)']:null
-    ],'특정 날짜의 가격을 맞히는 그래프가 아닙니다. 투자 자문이 아닙니다.')}
+    ],'날짜별 가격 예측 아님 · 투자 자문 아님.')}
     ${memberCount?'<p class="chart-note chart-note-accent" data-original-sample-note hidden>얇은 점선은 <b>실제로 나온 경로 하나하나</b>입니다. 표본일 뿐 대표선이 아니고, 날짜별 값을 맞히려는 선도 아닙니다.</p>':''}
   </section>`);
   const chartHost=$('#original-flow-chart',panel),sampleNote=$('[data-original-sample-note]',panel),sampleButton=$('[data-original-samples]',panel);
@@ -3425,7 +3425,7 @@ function renderScenarioV52(candidate,initialState={}){
     <div data-future-graph-panel="unified">
     <section class="scenario-v52-main" data-chart-role="unified-scenarios"><div class="panel-head"><div><p class="eyebrow">SAME SCALE · LOG VIEW</p><h2 id="scenario-v52-chart-title">3개월 · 세 시나리오 한눈에</h2></div><span class="count-chip">로그 스케일</span></div>
       <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.entries(V52_RANGE_META).map(([key,row])=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${row[0]}</button>`).join('')}</div>
-      <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small><em>등록 에피소드 ${num(clusters[key]?.episode_count||0)}개 → 국면 구간 ${num(clusters[key]?.unique_sampled_source_origins||0)}개(재사용) · 모의 ${num(clusters[key]?.simulation_path_count||scenarios[key]?.path_count||0)}경로</em></span>`).join('')}<span class="is-path-key"><i></i><b>선 읽는 법</b><small>굵은 선=실제로 나온 경로 하나 · 점선=수천 번 돌린 한가운데 · 회색 영역=전체 중심 구간</small><em>과거 1/4 · 전망 3/4 · 가로축은 날짜 비례</em></span></div>
+      <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small></span>`).join('')}<span class="is-path-key"><i></i><b>선</b><small>굵은 선=실제 모의 경로 하나(평균 아님) · 점선=중앙 · 회색=중심 구간</small></span></div>
       <div class="scenario-v52-chart" id="scenario-v52-unified-chart">${scenarioV52UnifiedChart(candidate,'quarter')}</div>
       <div class="scenario-v52-readout" id="scenario-v52-readout">${scenarioV52RangeReadout(candidate,'quarter')}</div>
       ${chartGuide([
@@ -3433,13 +3433,13 @@ function renderScenarioV52(candidate,initialState={}){
         [GUIDE_DASH(V52_SCENARIO_META.S1.color),'같은 색 점선','수천 번 돌린 결과의 한가운데'],
         [GUIDE_BAND('rgba(136,147,164,.28)'),'회색 영역','전체 경로의 중심 구간'],
         ['background:#82786a;height:14px;width:2px','세로 점선','여기서부터 전망 (왼쪽은 실제 기록)']
-      ],'굵은 선은 평균이 아니라 가능한 경로 하나입니다. 특정 날짜의 가격을 맞히는 그래프가 아닙니다.')}
+      ],'날짜별 가격 예측 아님.')}
     </section>
-    <section class="scenario-v52-insights scenario-v52-core-insights" aria-labelledby="scenario-v52-insights-title"><div class="scenario-v52-section-title"><p class="eyebrow">경로별 핵심</p><h2 id="scenario-v52-insights-title">어떤 데이터가 어떤 방향을 만드는가</h2></div><div>
-      <article style="--scenario-accent:${V52_SCENARIO_META.S1.color}"><span>S1 · 확장</span><strong>닷컴 + 완화 + AI 성장</strong><p>닷컴 성장 국면과 금리 부담 완화, AI 확장 구간을 묶습니다. 닷컴 강도는 S1에만 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)}로 적용합니다.</p></article>
-      <article style="--scenario-accent:${V52_SCENARIO_META.S2.color}"><span>S2 · 균형</span><strong>연착륙 + 중립 금융여건</strong><p>비위기 연착륙과 중간 변동성 구간을 사용합니다. 급등·급락보다 평균 회귀와 안정 구간을 더 많이 반영합니다. <b>S2만 각 에피소드의 실현 평균수익률을 제거한 '모양만' 이식</b>하므로 평탄함은 관측 결과가 아니라 생성 규칙입니다${['S1','S2','S3'].every(key=>clusters[key]?.selected_outcome_medians?.forward_return_horizon!=null)?` — 등록 클러스터의 실측 중앙값은 S1 ${pp(clusters.S1.selected_outcome_medians.forward_return_horizon).replace('%p','%')} · S2 ${pp(clusters.S2.selected_outcome_medians.forward_return_horizon).replace('%p','%')} · S3 ${pp(clusters.S3.selected_outcome_medians.forward_return_horizon).replace('%p','%')}입니다`:''}.</p></article>
-      <article style="--scenario-accent:${V52_SCENARIO_META.S3.color}"><span>S3 · 스트레스</span><strong>긴축 + 신용 위험 + 성장 둔화</strong><p>긴축과 금융 스트레스 구간만 사용합니다. 반등 뒤 재하락과 스트레스 지속 사례를 별도 DB에서 가져옵니다.</p></article>
-      <article class="is-current-reading"><span>현재 읽기</span><strong>고용 ${pp(terminalAttr.labor_growth_risk_effect)} · 금리 ${pp(terminalAttr.policy_relief_effect)}</strong><p>고용 둔화의 성장 위험과 금리 부담 완화를 분리해 반영합니다. 세 경로 비중은 보정된 발생확률이 아니라 연구용 코호트 비중입니다.</p></article>
+    <section class="scenario-v52-insights scenario-v52-core-insights" aria-labelledby="scenario-v52-insights-title"><div class="scenario-v52-section-title"><h2 id="scenario-v52-insights-title">경로별 데이터</h2></div><div>
+      <article style="--scenario-accent:${V52_SCENARIO_META.S1.color}"><span>S1 · 확장</span><strong>닷컴 + 완화 + AI 성장</strong><p>닷컴 강도 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)} (S1만)</p></article>
+      <article style="--scenario-accent:${V52_SCENARIO_META.S2.color}"><span>S2 · 균형</span><strong>연착륙 + 중립 금융여건</strong><p><b>모양만 이식</b> — 평탄함은 관측이 아니라 생성 규칙${['S1','S2','S3'].every(key=>clusters[key]?.selected_outcome_medians?.forward_return_horizon!=null)?` · 실측 중앙값 S1 ${pp(clusters.S1.selected_outcome_medians.forward_return_horizon).replace('%p','%')} · S2 ${pp(clusters.S2.selected_outcome_medians.forward_return_horizon).replace('%p','%')} · S3 ${pp(clusters.S3.selected_outcome_medians.forward_return_horizon).replace('%p','%')}`:''}</p></article>
+      <article style="--scenario-accent:${V52_SCENARIO_META.S3.color}"><span>S3 · 스트레스</span><strong>긴축 + 신용 위험 + 성장 둔화</strong><p>긴축·금융 스트레스 구간만</p></article>
+      <article class="is-current-reading"><span>현재 읽기</span><strong>고용 ${pp(terminalAttr.labor_growth_risk_effect)} · 금리 ${pp(terminalAttr.policy_relief_effect)}</strong><p>경로 비중은 연구용 코호트 비중 — 발생확률 아님</p></article>
     </div></section>
     <section class="scenario-v52-timing"><div class="scenario-v52-section-title"><p class="eyebrow">세부 통계</p><h2>−10%선을 처음 만나는 시기</h2><p>정확한 날짜 예측이 아니라, 조정이 발생한 경로들의 시점 분포입니다.</p></div><div>${(touch.density||[]).map((value,index)=>`<i title="${esc(touch.dates[index])}" style="height:${Math.max(1,Number(value)/Math.max(...(touch.density||[]),1e-12)*100)}%"></i>`).join('')}</div><p>중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')} · 특정 날짜 확정 아님</p></section>
     <details class="scenario-v52-method"></details>
@@ -3711,7 +3711,7 @@ function analogPanel(){
     ${forwardMarkup}
     ${focusControls}
     <div class="chart-wrap"><div id="ovchart"></div></div>
-    <p class="chart-note innovation-anchor-note">모든 선은 각 사이클 시작월을 100으로 맞췄습니다. 정점 정렬이 아니며, 다우는 1925-01 시작 후 1929-09 정점이 M+56에 표시됩니다.</p>
+    <p class="chart-note innovation-anchor-note">정점 정렬 아님 · 다우 1929-09 정점 = M+56</p>
     <div class="context-grid">${ctxItems.map(([k,v])=>`<div><span>${esc(k)}</span><strong>${esc(v)}</strong></div>`).join('')}</div>
   </div>`);
   w._eras=eras;w._overlay=o;w._eraStarts=starts;
@@ -3740,7 +3740,7 @@ function crossAssetPanel(){
   const w=el(`<div class="chart-panel analysis-panel cross-asset-panel">
     <p class="eyebrow">자산 비교 · 시작값 100</p>
     <div class="panel-head"><div><h2>닷컴 조정 뒤 5년 · NASDAQ · Realty Income · D.R. Horton</h2></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
-    <section class="plain-insight" aria-label="자산 비교 읽는 법"><article><span>NASDAQ</span><strong>실제 가격</strong><p>2001년 3월 이후 실제 움직임입니다.</p></article><article><span>Realty Income</span><strong>배당 포함 실제 수익</strong><p>수정종가를 사용해 배당 재투자 효과까지 한 선에 담았습니다.</p></article><article><span>D.R. Horton</span><strong>배당 포함 실제 수익</strong><p>같은 2001-03~2006-03의 주택건설주 실측 경로입니다.</p></article></section>
+    
     <section data-cross-panel="history">
       <div class="chart-wrap"><div id="cross-history-chart"></div></div>
       <div class="history-score-grid">
@@ -3794,9 +3794,8 @@ function crossAssetPanel(){
     ${cohortResultsMarkup(DATA.o_entry_cohort)}
     ${scenarioTrackerMarkup(DATA.scenario_tracker)}
     </details>
-    <p class="chart-note realty-fixed-warning"><strong>고정 해석:</strong> NASDAQ·Realty Income·D.R. Horton은 모두 2001-03~2006-03 실측입니다. DHI의 당시 상승은 다음 기술주 조정기의 수혜를 보장하지 않습니다.</p>
-    <p class="cross-condition-note">60일 상관은 전체 최근 구간의 동행성을, 하락꼬리 beta는 NASDAQ 하위 10% 거래일의 조건부 민감도를 봅니다. 서로 다른 질문이므로 같은 값처럼 비교하지 않습니다. 주간 금요일→금요일: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
-    <p class="chart-note"><strong>해석:</strong> 세 선은 모두 <b>2001-03 이후 실제로 있었던 수익</b>입니다. Realty Income과 D.R. Horton은 배당 포함 수정종가를 사용했습니다.</p>
+    <p class="chart-note realty-fixed-warning">모두 2001-03~2006-03 실측 · 다음 조정기의 수혜를 보장하지 않음</p>
+    <p class="cross-condition-note">60일 상관 ≠ 하락꼬리 beta(서로 다른 값) · 주간: BTC corr ${hasNumeric(weeklyCorr.bitcoin_nasdaq)?Number(weeklyCorr.bitcoin_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.bitcoin_to_nasdaq)?Number(weeklyBeta.bitcoin_to_nasdaq).toFixed(2):'–'}, O corr ${hasNumeric(weeklyCorr.realty_income_nasdaq)?Number(weeklyCorr.realty_income_nasdaq).toFixed(2):'–'} / beta ${hasNumeric(weeklyBeta.realty_income_to_nasdaq)?Number(weeklyBeta.realty_income_to_nasdaq).toFixed(2):'–'}.</p>
     ${DATA.multi_year_stress?.presentation_html||''}
     <details class="analog-limit"><summary>모델 영수증과 한계</summary><p>${esc((model.limitations||[]).join(' '))} 출처: ${esc((model.sources||[]).map(source=>source.label).join(' · '))}</p></details>
   </div>`);
@@ -3855,15 +3854,15 @@ function liquidityPanel(){
   // 2019년부터의 화면용 이력이 있으면 그 기간으로 그린다(없으면 주간 스냅샷 78주).
   const since=model.history?.display_start,sinceText=since?`${since.slice(0,4)}년 ${Number(since.slice(5,7))}월부터 지금까지, `:'';
   const historyReturns=[...(model.history?.series?.nasdaq_return_26w_pct||[]),...(model.history?.series?.bitcoin_return_26w_pct||[])].filter(hasNumeric).map(Number);
-  const peakReturn=historyReturns.length?Math.max(...historyReturns):null,wideNote=hasNumeric(peakReturn)&&Math.max(...historyReturns.map(Math.abs))>150?` 26주 수익률이 최고 +${Math.round(peakReturn)}%까지 올라, 오른쪽 수익률 눈금은 큰 값일수록 간격을 좁혀 그립니다(눈금 숫자는 실제 %).`:'';
+  const peakReturn=historyReturns.length?Math.max(...historyReturns):null,wideNote=hasNumeric(peakReturn)&&Math.max(...historyReturns.map(Math.abs))>150?` · 오른쪽 눈금은 큰 값일수록 압축(최고 +${Math.round(peakReturn)}%)`:'';
   const lagRows=asset=>(model.lead_lag?.[asset]||[]).map(row=>`<tr><td>${row.lag_weeks}주</td><td>${row.correlation==null?`표본 축적 중 ${num(row.observations)}/${num(row.minimum_observations)}`:Number(row.correlation).toFixed(2)}</td><td>${num(row.observations)}</td></tr>`).join('');
   const w=el(`<div class="chart-panel analysis-panel liquidity-panel">
     <p class="eyebrow">시장 자금 흐름 · 참고 지표</p>
-    <div class="panel-head"><div><h2>유동성이 늘고 줄어든 구간</h2><p>${esc(sinceText)}시장에 풀린 자금과 NASDAQ·Bitcoin의 실제 26주 수익률을 같은 주간축에서 봅니다.</p></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
+    <div class="panel-head"><div><h2>유동성이 늘고 줄어든 구간</h2></div><span class="count-chip">기준 ${esc(model.asof)}</span></div>
     <section class="plain-insight" aria-label="유동성 그래프 읽는 법"><article><span>한 그래프 · 왼쪽 축</span><strong>Fed 순유동성 52주 z</strong><p>0 = 최근 1년 평균</p></article><article><span>한 그래프 · 오른쪽 축</span><strong>26주 실제 수익률</strong></article><article><span>주의</span><strong>축과 단위가 다릅니다</strong><p>겹쳐 움직여도 인과관계나 상승 보장은 아닙니다.</p></article></section>
     <div class="liquidity-zone zone-${esc(model.zone)}"><span>현재 구간</span><strong>${esc(zoneLabel)}</strong><small>최근 4주 Fed 순유동성 ${signedDelta(model.zone_metric?.value,2,'%')}</small></div>
     <div class="chart-wrap"><div id="liquidity-chart"></div></div>
-    ${model.history?`<p class="chart-note liquidity-vintage-note">${esc(String(model.history.operational_start||'').slice(0,4))}년 이전 구간은 지금 공개된 자료로 다시 계산한 값입니다(당시 실시간 기록이 아님). 아래 시차 상관 진단은 매주 실시간으로 기록한 구간만 씁니다.${esc(wideNote)}</p>`:''}
+    ${model.history?`<p class="chart-note liquidity-vintage-note">${esc(String(model.history.operational_start||'').slice(0,4))}년 이전은 재계산값(실시간 기록 아님)${esc(wideNote)}</p>`:''}
     <details class="scenario-v52-method liquidity-details"><summary>데이터 출처와 시차 통계 보기</summary><div class="liquidity-source-grid"><div><span>실질 M2 전년비</span><strong>수집 전</strong><small>${esc(model.real_m2?.reason||'시점별 원본 자료가 필요합니다.')}</small></div><div><span>스테이블코인 공급</span><strong>${stablecoinProgress}</strong><small>원천 안정성 확인 중 · 자동 반영하지 않음</small></div><div><span>BTC ETF 자금 흐름</span><strong>수집 전</strong><small>독립 출처 두 곳의 교차검증이 필요합니다.</small></div></div>
     <details class="analog-limit liquidity-lag"><summary>0·4·8·12주 시차 상관 진단</summary><div class="lag-table-grid"><div><h3>NASDAQ</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('nasdaq')}</tbody></table></div></div><div><h3>Bitcoin</h3><div class="table-shell"><table><thead><tr><th>시차</th><th>상관 또는 게이트</th><th>n</th></tr></thead><tbody>${lagRows('bitcoin')}</tbody></table></div></div></div></details>
     </details>

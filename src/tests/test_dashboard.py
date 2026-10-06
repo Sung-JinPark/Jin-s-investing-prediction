@@ -391,7 +391,7 @@ def test_ui_contract() -> None:
     assert "function drawCrossAssetHistory" in html
     assert "function drawCrossAsset(host" not in html
     assert "조건 4개" in html
-    assert "NASDAQ·Realty Income·D.R. Horton은 모두 2001-03~2006-03 실측" in html
+    assert "모두 2001-03~2006-03 실측" in html
     assert "config.valueMode==='return_from_100'?signedDelta(value-100,0,'%')" in html
     assert "rates_stay_high_support" in html
     # 핵심 확률 대형 타이포 (72px+ clamp)
@@ -664,7 +664,7 @@ def test_workspace_utility_contract() -> None:
     assert "tip-series" in html and "--tip-series" in html
     assert "크립토 2019 시작" in html
     assert "<h2>과거 혁신 사이클 비교</h2>" in html
-    assert "다우는 1925-01 시작 후 1929-09 정점이 M+56" in html
+    assert "다우 1929-09 정점 = M+56" in html
     assert "crypto2021:['크립토 2019 시작','#1f6feb'" in html
     assert "biotech2015:['바이오 2013','#a43c82'" in html
     assert "dow1929:['다우 1925','#6b5845'" in html
@@ -696,7 +696,7 @@ def test_workspace_utility_contract() -> None:
     assert "닷컴 조정 뒤 5년 · NASDAQ · Bitcoin" not in html
     assert "BTC SENSITIVITY" not in html and "data-cross-scenario" not in html
     assert "drawIndexedCompare" in html and "하락꼬리 BTC beta" in html
-    assert 'class="plain-insight" aria-label="자산 비교 읽는 법"' in html
+    assert 'aria-label="자산 비교 읽는 법"' not in html
     assert "가중치 없음 — 반사실 사례를 확률처럼 합산하지 않음" not in html
     assert "정점에서 12개월 지난 실측 월을 100" not in html
     assert "${esc(chart.description)}" not in html
@@ -744,7 +744,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "2027년까지 주요 일정", "확정·추정 분리 · 전망성 해석 제외",
         "flowEventLayout", "조회 · ",
         "DB-CONDITIONED PATH · MONTHLY RISK WINDOW", "과거 조정 모양을 입힌 경로",
-        "월 단위 위험창", "2001-03 이후 실제로 있었던 수익",
+        "월 단위 위험창",
         "특정 9월 하락일이나 저점 거래일을 지정하지 않습니다", "AI 버블 붕괴일이 아니라", "flowDisplayPath", "flowPathStats",
         "선택일을 100으로 재기준", "현재 원점 유지", "buildRebasedFlowModel",
         "D = 100 · CURRENT SNAPSHOT REINDEXED", "#future/lookup/${mapped.requested}/${lookupMode}",
@@ -916,7 +916,7 @@ def test_chart_notes_use_one_scannable_guide_block() -> None:
 
     # 그래도 지켜야 하는 지위 표시는 남아 있다
     assert "투자 자문이 아닙니다" in html
-    assert "특정 날짜의 가격을 맞히는 그래프가 아닙니다" in html
+    assert "날짜별 가격 예측 아님" in html
 
 
 def test_forecast_chart_shows_date_and_index_on_hover() -> None:
@@ -965,8 +965,8 @@ def test_forecast_chart_primary_line_is_the_actual_medoid() -> None:
 
     # 주선이 모의 멤버 한 개라는 사실을 반드시 함께 밝힌다
     assert "그 시나리오에서 실제로 나온 경로 하나" in html
-    assert "굵은 선은 평균이 아니라 가능한 경로 하나입니다" in html
-    assert "굵은 선=실제로 나온 경로 하나 · 점선=수천 번 돌린 한가운데" in html
+    assert "굵은 선=실제 모의 경로 하나" in html
+    assert "굵은 선=실제 모의 경로 하나(평균 아님)" in html
 
 
 def test_single_scenario_chart_draws_only_the_upside_path() -> None:
@@ -1395,7 +1395,7 @@ def test_decision_journal_share_and_contrast_contract() -> None:
 def test_round2_cross_asset_explanations_and_method_event_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "realtyContext.condition_summary", "NASDAQ·Realty Income·D.R. Horton은 모두",
+        "realtyContext.condition_summary", "모두 2001-03~2006-03 실측",
         "gate 경계(n=156)", "DATA.method_changes", "public_repository_url",
     ):
         assert required in html
