@@ -67,12 +67,14 @@ bands:                      # CNN 이 쓰는 경계 그대로
   - {lo: 75, hi: 100, slug: extreme_greed, label: 극단적 탐욕}
 
 cadence: daily
-# 수집 시각 (2026-09-18): market-mood-refresh 22:10 UTC(KST 07:10 — 미국 마감 뒤) + 23:40 UTC
-# 백업, source-monitoring(02:45 UTC 예약 · 실측 ~08:00 UTC)은 오후 폴백. 원장은 KST 관측일당
+# 수집 시각: market-mood-refresh 22:40 UTC(KST 07:40 — 미국 마감 뒤), source-monitoring(02:45 UTC 예약 · 실측 ~08:00 UTC)은 오후 폴백. 원장은 KST 관측일당
 # 첫 값이라 어느 런이 먼저 쓰든 같은 날 같은 종가 기준 값이다. 이전에는 폴백 쪽이 유일한
 # 수집기였고 pages 트리거에도 없어서, KST 낮 내내 화면이 원천보다 하루 늦었다.
 freshness_sla_hours: 48
 ledger: data/fear_greed/fng_history.jsonl        # append-only, 하루 1행
+# 통계 탭 실험실(2026-10-06): 시드(fng_components.json) 뒤의 지수 선은 이 원장의 일일 값을
+# 그 값이 반영한 미국 거래일(관측일 KST 직전의 NASDAQCOM 거래일)에 붙여 매일 잇는다.
+# 구성요소 원자료는 graphdata 전용이라 시드 이후 구간은 비워 둔다(채우지 않는다).
 projection: data/fear_greed/fng_latest.json
 
 # ── 안정성 게이트 ───────────────────────────────────────────────

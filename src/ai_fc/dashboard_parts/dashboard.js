@@ -1200,7 +1200,7 @@ function renderFearGreedLab(){
     <h3 class="fng-lab-sub">구성요소 7종</h3>
     <p class="fng-lab-lead">점수는 현재값만 공표 · 아래 선은 원자료(점수 추이 아님)</p>
     <div class="fng-comp-grid">${comps}</div>
-    <p class="fng-lab-foot">출처 CNN Business · ${esc(lab.seeded_at||'')} 기준 · 재배포 약관 미확인 · 표시 전용</p>
+    <p class="fng-lab-foot">지수·NASDAQ ${esc(lab.observed_through||lab.seeded_at||'')}까지 · 구성요소 원자료 ${esc(lab.seeded_at||'')}까지(CNN)${lab.tail_from?` · ${esc(lab.tail_from)}부터 지수는 일일 수집값`:''} · 재배포 약관 미확인 · 표시 전용</p>
   </section>`);
 }
 

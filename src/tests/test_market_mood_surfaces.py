@@ -267,8 +267,9 @@ def test_component_series_are_raw_inputs_not_scores() -> None:
     S&P500 모멘텀 축은 지수 레벨(수천), VIX 축은 20 안팎이다. 둘 다 0~100 이 아니다.
     """
     lab = fg.components_projection(ROOT)
-    momentum = lab["components"]["market_momentum_sp500"]["series"]
-    vix = lab["components"]["market_volatility_vix"]["series"]
+    # 시드 뒤 구간은 원자료가 없어 None 으로 비어 있다 — 관측값만 본다
+    momentum = [v for v in lab["components"]["market_momentum_sp500"]["series"] if v is not None]
+    vix = [v for v in lab["components"]["market_volatility_vix"]["series"] if v is not None]
     assert min(momentum) > 1000 and max(vix) < 60
     assert lab["components"]["market_momentum_sp500"]["score"] <= 100
 
@@ -278,3 +279,20 @@ def test_the_lab_declares_its_provenance_and_status() -> None:
     assert lab["source"] == "cnn_graphdata"
     assert lab["license_status"] == "review_required"
     assert lab["method"] == "real_browser_session"
+
+
+def test_the_lab_line_continues_daily_past_the_seed() -> None:
+    """시드(2026-09-15) 뒤에도 지수·NASDAQ 선이 매일 이어진다 — 일일 원장에서.
+
+    구성요소 원자료는 CNN graphdata 전용이라 시드 뒤 구간은 None 으로 비운다.
+    """
+    lab = fg.components_projection(ROOT)
+    assert lab["observed_through"] >= lab["seeded_at"]
+    if lab.get("tail_from"):
+        assert lab["tail_source"] == fg.SOURCE_ID
+        start = lab["dates"].index(lab["tail_from"])
+        assert lab["tail_from"] > lab["seeded_at"]
+        assert lab["dates"] == sorted(set(lab["dates"])), "거래일 중복 없이 정렬"
+        for component in lab["components"].values():
+            assert all(v is None for v in component["series"][start:]), "원자료를 지어내지 않는다"
+        assert all(v is not None for v in lab["fng"][start:])
