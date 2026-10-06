@@ -4684,6 +4684,28 @@ function renderDecisionJournal(initial){
   setMode(state.mode==='replay'?'replay':'feed');
 }
 
+/* 누적 막대 안에 숫자를 적으면 좁은 칸에서 글자가 **양쪽이 잘려 중간만** 남는다
+   (overflow:hidden + justify-content:center). 실측 2026-10-06: '준비 3' 은 4.8% 칸
+   (18px)에 34px 짜리 글자를 넣고 있었고, 0건인 '문제 0' 은 폭이 0% 인데도 좌우
+   패딩 9px 때문에 칸이 남아 잘린 글자를 보였다 — 화면에서는 색 블록이 글자를 덮은
+   것처럼 읽힌다. 그래서 막대는 **비율만** 그리고 숫자는 범례로 뺀다. 0건은 막대에서
+   빼되 범례에는 남긴다 — 0 이라는 사실도 읽어야 하는 정보다. */
+function trustStateFigure(summary,total){
+  const rows=[
+    ['is-good','정상',Number(summary.accumulating||0)],
+    ['is-warn','지연',Number(summary.stalled||0)],
+    ['is-bad','문제',Number(summary.violation||0)],
+    ['is-plan','준비',Number(summary.planned||0)]
+  ];
+  const denom=Number(total)||rows.reduce((a,r)=>a+r[2],0)||1;
+  const bars=rows.filter(([,,n])=>n>0).map(([cls,label,n])=>
+    `<span class="${cls}" style="width:${(n/denom*100).toFixed(4)}%" title="${esc(label)} ${num(n)}"></span>`).join('');
+  const legend=rows.map(([cls,label,n])=>
+    `<li class="${cls}"><span>${esc(label)}</span><b>${num(n)}</b></li>`).join('');
+  const words=rows.map(([,label,n])=>`${label} ${n}`).join(', ');
+  return `<div class="trust-state-figure" role="img" aria-label="데이터 상태 분포 — ${esc(words)}">${bars}</div>`
+    +`<ul class="trust-state-legend">${legend}</ul>`;
+}
 function renderTrack(initial){
   const trackMode=initial?.trackMode==='performance'?'performance':initial?.trackMode==='operator'?'operator':'data';
   const c=DATA.calibration,g=c.gate,gv2=c.gate_v2||{},clusters=DATA.clusters||[],unique=gv2.n_events??clusters.length;
@@ -4723,7 +4745,7 @@ function renderTrack(initial){
   const trust=DATA.trust||{sources:[]},arena=DATA.arena||[],corrections=DATA.corrections||[],receipt=(DATA.receipts||[])[0]||{};
   const ledgerRows=trust.ledgers||[],ledgerSummary=trust.ledger_summary||{},sourceRows=trust.sources||[],healthySources=sourceRows.filter(row=>row.status==='ok').length,totalLedgers=Math.max(1,ledgerRows.length);
   const dataPage=el('<div class="records-data"></div>'),trustStatus=dataPage,trustSources=dataPage,trustAudit=dataPage;
-  trustStatus.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><h2 id="trust-overview-title">요약</h2><small>마지막 검사 ${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</small></div><strong class="trust-health-state ${trust.status==='ok'?'is-ok':'is-warn'}">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics trust-status-metrics"><article><span>정상 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong></article><article><span>업데이트 중</span><strong>${num(ledgerSummary.accumulating||0)}</strong></article><article><span>확인할 문제</span><strong>${num((ledgerSummary.violation||0)+(ledgerSummary.stalled||0))}</strong><small>위반 ${num(ledgerSummary.violation||0)} · 지연 ${num(ledgerSummary.stalled||0)}</small></article></div><div class="trust-state-figure" aria-label="데이터 상태 분포"><span class="is-good" style="width:${Number(ledgerSummary.accumulating||0)/totalLedgers*100}%">정상 ${num(ledgerSummary.accumulating||0)}</span><span class="is-warn" style="width:${Number(ledgerSummary.stalled||0)/totalLedgers*100}%">지연 ${num(ledgerSummary.stalled||0)}</span><span class="is-bad" style="width:${Number(ledgerSummary.violation||0)/totalLedgers*100}%">문제 ${num(ledgerSummary.violation||0)}</span><span class="is-plan" style="width:${Number(ledgerSummary.planned||0)/totalLedgers*100}%">준비 ${num(ledgerSummary.planned||0)}</span></div></section>`));
+  trustStatus.appendChild(el(`<section class="trust-overview" aria-labelledby="trust-overview-title"><div class="trust-overview-head"><div><h2 id="trust-overview-title">요약</h2><small>마지막 검사 ${esc(String(trust.ledger_audit_at||'미산출').slice(0,10))}</small></div><strong class="trust-health-state ${trust.status==='ok'?'is-ok':'is-warn'}">${trust.status==='ok'?'정상':'확인 필요'}</strong></div><div class="trust-metrics trust-status-metrics"><article><span>정상 출처</span><strong>${num(healthySources)} / ${num(sourceRows.length)}</strong></article><article><span>업데이트 중</span><strong>${num(ledgerSummary.accumulating||0)}</strong></article><article><span>확인할 문제</span><strong>${num((ledgerSummary.violation||0)+(ledgerSummary.stalled||0))}</strong><small>위반 ${num(ledgerSummary.violation||0)} · 지연 ${num(ledgerSummary.stalled||0)}</small></article></div>${trustStateFigure(ledgerSummary,totalLedgers)}</section>`));
   if(ledgerRows.length)trustStatus.appendChild(el(`<details class="trust-ledger-details"><summary><span><strong>항목별 상태</strong><small>${num(ledgerRows.length)}개 데이터 묶음</small></span><b>문제 ${num(ledgerSummary.violation||0)}</b></summary><div class="ledger-status-grid">${ledgerRows.map(row=>{const points=row.growth_last_30d||[],growth=points.length>1?points.at(-1).count-points[0].count:0;return `<article class="ledger-state-${esc(row.status)}"><div><strong>${esc(row.id)}</strong><span data-badge-type="state">${esc(row.status)}</span></div><p>${row.file_count} files${row.row_count!=null?` · ${row.row_count} rows`:''}</p><small>latest ${esc(row.latest_date||'not started')} · 30일 +${growth}</small>${row.missing_trading_days?.length?`<em>누락 거래일 ${row.missing_trading_days.map(esc).join(', ')}</em>`:''}</article>`;}).join('')}</div></details>`));
   if(trackMode==='operator')trustStatus.appendChild(el(`<section class="operator-due" aria-label="운영자 갱신 점검"><div><p class="eyebrow">OPERATOR DUE</p><h2>정체·계획 원장 점검</h2></div><strong>${num((ledgerSummary.stalled||0)+(ledgerSummary.planned||0))}건</strong><p>stalled ${num(ledgerSummary.stalled||0)} · planned ${num(ledgerSummary.planned||0)} · violation ${num(ledgerSummary.violation||0)}</p></section>`));
   const arenaMarkup=trackMode==='operator'?`<div class="panel model-arena"><div class="panel-head"><div><p class="eyebrow">MODEL ARENA</p><h2>기준선과 shadow 후보</h2></div><span class="semantic-state" data-badge-type="state">승격 비활성</span></div>

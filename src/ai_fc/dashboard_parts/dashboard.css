@@ -757,6 +757,10 @@ td{font-size:var(--type-data);line-height:1.5}
 td b{font-size:.875rem}
 td small{font-size:var(--type-micro);line-height:1.4}
 .tag,.status{padding:6px 8px;font-size:var(--type-micro);line-height:1.35}
+/* .status 는 왼쪽 7~12px 에 상태 점을 절대배치로 깐다 — 위 줄의 padding 단축
+   속성이 그 자리를 지워(16px → 8px) 점이 첫 글자를 덮었다.
+   글꼴이 커진 만큼 자리도 조금 넓혀 되돌린다. */
+.status{padding-left:18px}
 .command-group,.command-result>i,.command-foot,.site-footer{font-size:var(--type-micro);line-height:1.45}
 .command-result small{font-size:var(--type-micro);line-height:1.4}
 .utility-action>small{font-size:var(--type-micro);line-height:1.35}
@@ -993,14 +997,22 @@ body.motion-reduced .forecast-card,body.motion-reduced .forecast-card>p,body.mot
 .trust-metrics small{line-height:1.45;overflow-wrap:anywhere;word-break:break-word}
 .trust-audit-metrics strong{color:#176453}
 .trust-state-figure{min-height:38px;display:flex;overflow:hidden;border-top:1px solid var(--line);background:#ece9e2}
-.trust-state-figure span{min-width:0;padding:0 9px;display:flex;align-items:center;justify-content:center;overflow:hidden;color:#fff;font:750 11px/1 var(--mono);white-space:nowrap}
+.trust-state-figure span{min-width:0;padding:0;display:block;overflow:hidden}
+.trust-state-legend{margin:0;padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px 18px;list-style:none;border-top:1px solid var(--line)}
+.trust-state-legend li{display:flex;align-items:center;gap:6px;color:#5f5b53;font:700 11px/1 var(--mono)}
+.trust-state-legend li::before{content:"";width:9px;height:9px;border-radius:2px;background:#ece9e2}
+.trust-state-legend .is-good::before{background:#28756a}
+.trust-state-legend .is-warn::before{background:#9a6200}
+.trust-state-legend .is-bad::before{background:#be123c}
+.trust-state-legend .is-plan::before{background:#858079}
+.trust-state-legend b{color:#11110f;font-size:12px}
 .trust-state-figure .is-good{background:#28756a}.trust-state-figure .is-warn{background:#9a6200}.trust-state-figure .is-bad{background:#be123c}.trust-state-figure .is-plan{background:#858079}
 .trust-ledger-details>summary{min-height:68px;padding:0 22px;display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer}
 .trust-ledger-details>summary span{display:grid;gap:4px}.trust-ledger-details>summary small{color:var(--muted);font-size:12px}.trust-ledger-details>summary b{color:#7a3e00;font-size:12px}
 .trust-ledger-details .ledger-status-grid{padding:0 20px 20px;border-top:1px solid var(--line)}
 .trust-ledger-details footer{padding:0 20px 18px;color:var(--muted);font-size:11px}
 @media(max-width:980px){.trust-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:620px){.trust-overview-head{align-items:flex-start;flex-direction:column}.trust-metrics{grid-template-columns:1fr}.trust-metrics article{padding:15px}.trust-state-figure{display:grid;grid-template-columns:repeat(2,1fr)}.trust-state-figure span{width:auto!important;min-height:32px}.trust-ledger-details .ledger-status-grid{padding:0 14px 14px}}
+@media(max-width:620px){.trust-overview-head{align-items:flex-start;flex-direction:column}.trust-metrics{grid-template-columns:1fr}.trust-metrics article{padding:15px}.trust-ledger-details .ledger-status-grid{padding:0 14px 14px}}
 @media(max-width:620px){.question-proximity{grid-template-columns:1fr}.question-proximity p{grid-column:1}}
 @media(max-width:620px){.market-event-head{align-items:flex-start;flex-direction:column}.market-event-year{grid-template-columns:1fr}.market-event-year-label{grid-template-columns:auto 1fr;align-items:baseline}.event-card{flex-basis:150px}}
 
