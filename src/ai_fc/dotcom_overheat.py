@@ -1,4 +1,7 @@
-"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v1)의 결정론적 집계.
+"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v2)의 결정론적 집계.
+
+v2(2026-10-06): IPO 건수(운영기업 12개월 합, Ritter 확정치만) 지표·`ipo` 부문 추가. v1 은
+역사 기록으로 남아 있다.
 
 읽는 사람이 알고 싶은 것은 "닷컴 정점에 얼마나 가까운가" 다. 그래서 **100% 를 닷컴
 사이클의 극단(정점)에 고정**한다 — 100% 면 그 지표는 닷컴이 터지기 직전 수준이고,
@@ -28,7 +31,7 @@ from typing import Any
 
 import yaml
 
-CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v1.yaml")
+CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v2.yaml")
 STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 
 
@@ -40,9 +43,14 @@ def load_contract(root: Path) -> dict[str, Any]:
     return yaml.safe_load((root / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
 
 
+def _is_provisional(chart: dict[str, Any], label: str) -> bool:
+    return any(series.get("label") == label and series.get("provisional")
+               for series in chart.get("series") or [])
+
+
 def _series_points(chart: dict[str, Any], label: str) -> list[dict[str, Any]] | None:
     for series in chart.get("series") or []:
-        if series.get("label") == label:
+        if series.get("label") == label and not series.get("provisional"):
             return [p for p in (series.get("points") or []) if p.get("value") is not None]
     return None
 
@@ -79,6 +87,9 @@ def compute_index(root: Path) -> dict[str, Any]:
         chart = charts.get(spec.get("chart"))
         if chart is None:
             skipped.append({"id": spec.get("id"), "reason": "chart 없음"}); continue
+        if _is_provisional(chart, spec.get("dotcom_series")) or _is_provisional(chart, spec.get("current_series")):
+            # 잠정(표시 전용) 계열은 계약이 잘못 가리켜도 지수에 들어가지 않는다.
+            skipped.append({"id": spec.get("id"), "reason": "잠정 계열은 지수 입력 아님"}); continue
         dotcom = _series_points(chart, spec.get("dotcom_series"))
         current = _series_points(chart, spec.get("current_series"))
         if not dotcom or not current:

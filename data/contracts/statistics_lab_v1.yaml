@@ -116,6 +116,28 @@ sources:
     discovery: newest_sec-stats-ipos-YYYYMMDD_xlsx_link_on_official_page
     native_frequency: quarterly
     role: us_ipo_issuer_type_counts_and_proceeds
+  ritter_ipoall_monthly:
+    endpoint: https://site.warrington.ufl.edu/ritter/files/IPOALL.xlsx
+    provider: Jay R. Ritter, University of Florida
+    approved: 2026-10-06 user decision (numeric input; monthly counts only)
+    sheet: IPOALL
+    columns: {month: 0, two_digit_year: 1, gross: 3, net: 4}
+    parsing: two_digit_year_60_99_is_1900s_else_2000s; text_cells_like_see_1975_or_na_are_missing_not_zero
+    native_frequency: monthly
+    revision_cadence: author_revises_roughly_annually
+    table: data/statistics/ipo/ritter_ipoall_monthly.json
+    refresh: daily_ipo_monthly_counts_step_raw_receipt_only_when_sha256_changes
+    role: us_operating_company_ipo_count_net_definition
+  nasdaq_ipo_calendar:
+    endpoint: https://api.nasdaq.com/api/ipo/calendar?date=YYYY-MM
+    usage: provisional_display_only_after_last_ritter_confirmed_month
+    index_input: false
+    user_agent: browser_like_authorized_by_user_2026-10-06_for_this_endpoint_only
+    filter: nasdaq-operating-approx-v1 (names acquisition/merger/SPAC/blank check/capital corp/fund/trust/REIT/ETF/notes/units, 5-letter ticker ending U, price below $5)
+    known_bias: overcounts_vs_ritter_net_2023_2025_87_103_116_vs_54_72_90
+    stores: monthly_counts_only_no_deal_lists
+    table: data/statistics/ipo/nasdaq_calendar_monthly.json
+    failure_mode: keep_last_values_mark_stale_never_block_statistics_refresh
   wilmerhale_1999_internet_ipo_review:
     page: https://www.wilmerhale.com/en/insights/publications/internet-ipos-conclude-a-sensational-year-in-1999-december-1999
     native_frequency: historical_research
@@ -206,6 +228,12 @@ customer_chart_contract:
     verdict: current_divided_by_dotcom_matched_month_times
     series_retained_for_audit: true
     reason: user_requested_plain_language_2026-09-18
+  ipo_count_operating_12m:
+    measure: ritter_net_operating_company_ipos_trailing_12_month_sum
+    series: {dotcom: 닷컴, current_confirmed: 현재, current_provisional: 현재 잠정}
+    provisional: dashed_labelled_display_only_never_index_input_superseded_by_confirmed_months
+    cross_check: ritter_gross_vs_SEC_IPO_QUARTERLY_total_count_annual_tolerance_20_percent
+    overheat_index: dotcom_overheat_index_v2 indicator ipo_count_operating_12m (category ipo)
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count

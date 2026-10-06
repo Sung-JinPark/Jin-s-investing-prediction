@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "dataset_id": "ipo_monthly_counts_status_v1",
+  "checked_at": "2026-10-06T11:31:32+00:00",
+  "ritter": {
+    "status": "current",
+    "raw_sha256": "00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25",
+    "last_confirmed_month": "2025-12"
+  },
+  "nasdaq": {
+    "status": "current",
+    "requested": 2,
+    "errors": [],
+    "months": {
+      "2026-01": 10,
+      "2026-02": 18,
+      "2026-03": 6,
+      "2026-04": 15,
+      "2026-05": 20,
+      "2026-06": 18,
+      "2026-07": 15,
+      "2026-08": 11,
+      "2026-09": 6,
+      "2026-10": 1
+    }
+  },
+  "index_input": "ritter_net_confirmed_only"
+}

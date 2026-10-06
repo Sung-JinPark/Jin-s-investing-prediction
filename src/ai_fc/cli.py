@@ -1349,6 +1349,20 @@ def cmd_ipo_reference_batch() -> None:
     )
 
 
+@app.command("ipo-monthly-counts")
+def cmd_ipo_monthly_counts() -> None:
+    """미국 운영기업 IPO 월별 건수 — Ritter IPOALL(확정) + Nasdaq 캘린더(잠정) 갱신."""
+    from .ipo_monthly_counts import refresh_ipo_monthly_counts
+
+    path, status = refresh_ipo_monthly_counts(config.ROOT)
+    ritter, nasdaq = status["ritter"], status["nasdaq"]
+    typer.echo(
+        f"IPO 월별 건수: {path.relative_to(config.ROOT)} · Ritter {ritter['status']}"
+        f"(확정 {ritter.get('last_confirmed_month') or '-'}) · Nasdaq 잠정 {nasdaq['status']}"
+        " · 지수 입력=Ritter 확정치만"
+    )
+
+
 @app.command("alert-notify")
 def cmd_alert_notify(
     body_out: str = typer.Option(

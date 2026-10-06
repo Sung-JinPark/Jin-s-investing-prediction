@@ -1111,7 +1111,7 @@ function statisticsChartSvg(chart,alignment={}){
   const domainValues=rawValues.concat(stackTotals),rawMin=Math.min(...domainValues),rawMax=Math.max(...domainValues);
   const useLog=chart.scale==='log1p'&&rawMin>=0,transform=value=>useLog?Math.log1p(Number(value)):Number(value),inverse=value=>useLog?Math.expm1(value):value;
   const transformed=domainValues.map(transform),transformedMin=Math.min(...transformed),transformedMax=Math.max(...transformed);
-  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),logLow=rawMin>0?Math.max(0,transformedMin-span*.12):0,low=useLog?logLow:(barChart?Math.min(0,transformedMin):transformedMin-span*.12),high=transformedMax+span*.12;
+  const span=Math.max(Math.abs(transformedMax-transformedMin),Math.abs(transformedMax)*.08,useLog?.4:1),logLow=rawMin>0?Math.max(0,transformedMin-span*.12):0,low=useLog?logLow:(barChart?Math.min(0,transformedMin):(rawMin>=0?Math.max(0,transformedMin-span*.12):transformedMin-span*.12)),high=transformedMax+span*.12;
   const X=value=>barChart?ML+PW*((Number(value)||0)+.5)/(maxPeriod+1):ML+PW*(Number(value)||0)/maxPeriod,Y=value=>MT+PH*(1-(transform(value)-low)/(high-low));
   const yTicks=Array.from({length:5},(_,i)=>low+(high-low)*i/4);
   const calendarAxis=chart.axis_type==='calendar_day_of_year';
@@ -1137,8 +1137,8 @@ function statisticsChartSvg(chart,alignment={}){
     ${xTicks.map(([value,label])=>{const x=X(value).toFixed(1),y=H-17;return denseCategorical?`<text x="${x}" y="${y}" text-anchor="end" transform="rotate(-34 ${x} ${y})">${esc(label)}</text>`:`<text x="${x}" y="${y}" text-anchor="middle">${esc(label)}</text>`;}).join('')}
     ${currentEnd!==null&&currentEnd<maxPeriod?`<line x1="${X(currentEnd).toFixed(1)}" x2="${X(currentEnd).toFixed(1)}" y1="${MT}" y2="${H-MB}" stroke="#28756a" stroke-dasharray="3 5" opacity=".55"/><text x="${X(currentEnd).toFixed(1)}" y="${MT-8}" text-anchor="middle" fill="#28756a">${esc(chart.observed_end_label||'AI 실제 관측 종료')}</text>`:''}
     ${eventLines}
-    ${stackedBar?stackedBars:barChart?groupedBars:series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.4'}" stroke-dasharray="${row.era==='dotcom'?'6 5':'none'}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"/>`).join('')}
-    ${chart.category==='ipo'&&!barChart?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
+    ${stackedBar?stackedBars:barChart?groupedBars:series.map(row=>`<path d="${line(row.points)}" fill="none" stroke="${esc(row.color||'#111')}" stroke-width="${row.era==='current'?'3.2':'2.4'}" stroke-dasharray="${esc(row.dash||(row.era==='dotcom'?'6 5':'none'))}" stroke-linejoin="round" data-stat-series="${esc(row.label)}"${row.provisional?' data-stat-provisional="true"':''}/>`).join('')}
+    ${chart.category==='ipo'&&!barChart&&chart.line_markers!==false?series.flatMap(row=>(row.points||[]).map(point=>{const radius=Math.max(3,Math.min(12,Number(point.marker_radius??row.marker_radius??4)));const emphasized=radius>4;return `<circle cx="${X(point.period).toFixed(1)}" cy="${Y(point.value).toFixed(1)}" r="${radius}" fill="${emphasized?esc(row.color||'#111'):'#fff'}" fill-opacity="${emphasized?'.24':'1'}" stroke="${esc(row.color||'#111')}" stroke-width="${emphasized?'3':'2'}" data-marker-emphasis="${emphasized?'true':'false'}"/>`;}).join('')).join(''):''}
   </svg>`;
 }
 /* ── 공포·탐욕 구성요소 실험실 (통계 탭, 2026-09-15) ─────────────

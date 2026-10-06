@@ -8,7 +8,7 @@ from pathlib import Path
 
 import yaml
 
-from ai_fc.dotcom_overheat import compute_index, dotcom_range_position
+from ai_fc.dotcom_overheat import CONTRACT_RELATIVE, compute_index, dotcom_range_position
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -25,7 +25,7 @@ def _write(root: Path, charts: list[dict], indicators: list[dict], *, minimum: i
     (root / "data/statistics/dotcom_statistics_latest.json").write_text(
         json.dumps({"status": "ok", "as_of": "2026-09-04", "charts": charts}, ensure_ascii=False),
         encoding="utf-8")
-    (root / "data/contracts/dotcom_overheat_index_v1.yaml").write_text(
+    (root / CONTRACT_RELATIVE).write_text(
         yaml.safe_dump({"contract_id": "t", "version": "t",
                         "method": {"scale": "dotcom_range_position",
                                    "minimum_reference_points": minimum},
@@ -123,7 +123,7 @@ def test_live_contract_matches_the_shipped_statistics_payload() -> None:
 def test_overheat_and_statistics_share_the_refreshed_snapshot(tmp_path: Path) -> None:
     from ai_fc.statistics_lab import statistics_dashboard_projection
 
-    for relative in ("data/contracts/dotcom_overheat_index_v1.yaml",
+    for relative in (CONTRACT_RELATIVE.as_posix(),
                      "data/statistics/dotcom_statistics_latest.json"):
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -131,7 +131,7 @@ def test_overheat_and_statistics_share_the_refreshed_snapshot(tmp_path: Path) ->
     original = compute_index(tmp_path)
     snapshot = tmp_path / "data/statistics/dotcom_statistics_latest.json"
     payload = json.loads(snapshot.read_text(encoding="utf-8"))
-    spec = yaml.safe_load((tmp_path / "data/contracts/dotcom_overheat_index_v1.yaml")
+    spec = yaml.safe_load((tmp_path / CONTRACT_RELATIVE)
                           .read_text(encoding="utf-8"))["indicators"][0]
     chart = next(c for c in payload["charts"] if c["id"] == spec["chart"])
     series = next(s for s in chart["series"] if s["label"] == spec["current_series"])
@@ -162,6 +162,13 @@ def test_daily_refresh_reaches_pages_and_failure_monitor() -> None:
     assert "python -m ai_fc official-data-workbook" in commands
     assert "data/statistics/official_store/ledgers" in commands
     assert "src/tests/test_dotcom_overheat.py" in commands
+    # IPO 월별 건수는 통계 빌드 전에 갱신되고, 그 표들이 커밋 대상이어야 한다.
+    assert commands.index("python -m ai_fc ipo-monthly-counts") < commands.index(
+        "python -m ai_fc statistics-refresh")
+    for path in ("data/statistics/ipo/ritter_ipoall_monthly.json",
+                 "data/statistics/ipo/nasdaq_calendar_monthly.json",
+                 "data/statistics/ipo/monthly_counts_status.json"):
+        assert path in commands
     for name in ("pages", "ops-failure-alert"):
         doc = workflow(name)
         events = doc.get("on", doc.get(True))
@@ -194,3 +201,55 @@ def test_statistics_page_leads_with_the_overheat_panel() -> None:
     # 대표값은 산포와 함께, 확률 아님·100%=정점 라벨 유지
     assert "부문별 ${sig.lo}~${sig.hi}%" in panel
     assert "확률 아님 · 100% = 닷컴 사이클 정점" in panel and "참고 의견" in panel
+
+
+def test_v2_contract_adds_the_ipo_count_and_keeps_v1_as_history() -> None:
+    """2026-10-06 사용자 결정: IPO 건수(운영기업 12개월 합)를 새 계약 버전으로 편입."""
+    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v2.yaml"
+    v1 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v1.yaml").read_text(encoding="utf-8"))
+    v2 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    assert v1["contract_id"] == "dotcom_overheat_index_v1"
+    assert all(row["id"] != "ipo_count_operating_12m" for row in v1["indicators"])
+    assert v2["contract_id"] == "dotcom_overheat_index_v2" and v2["supersedes"] == "dotcom_overheat_index_v1"
+    assert v2["method"] == v1["method"] | {"known_limits": v2["method"]["known_limits"]}
+    assert v1["indicators"] == v2["indicators"][:len(v1["indicators"])]
+    ipo = next(row for row in v2["indicators"] if row["id"] == "ipo_count_operating_12m")
+    assert ipo["chart"] == "ipo_count_operating_12m"
+    assert (ipo["dotcom_series"], ipo["current_series"]) == ("닷컴", "현재")
+    assert ipo["direction"] == "higher_is_hotter"
+    assert ipo["sources"]["index_input"] == "ritter_ipoall_monthly"
+    assert str(ipo["nasdaq_user_agent_authorization"]["authorized_on"]) == "2026-10-06"
+
+
+def test_live_index_includes_the_confirmed_ipo_count_in_its_own_category() -> None:
+    result = compute_index(ROOT)
+    assert result["contract_id"] == "dotcom_overheat_index_v2"
+    row = next(r for r in result["indicators"] if r["id"] == "ipo_count_operating_12m")
+    assert row["category"] == "ipo"
+    assert "ipo" in result["category_medians"]
+    payload = json.loads((ROOT / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8"))
+    chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
+    confirmed = next(s for s in chart["series"] if s["label"] == "현재")
+    assert not confirmed.get("provisional")
+    # 지수 입력은 확정 계열의 마지막 점이다 — 잠정 계열의 끝점이 아니다.
+    assert row["current_value"] == confirmed["points"][-1]["value"]
+    assert row["current_period"] == confirmed["points"][-1]["period"]
+
+
+def test_provisional_series_never_enters_the_index(tmp_path: Path) -> None:
+    """계약이 잠정 계열 라벨을 가리켜도 지수는 그 지표를 건너뛴다."""
+    dotcom = list(range(10, 23))
+    charts = [{"id": "ipo", "category": "ipo", "series": [
+        _series("닷컴", "dotcom", dotcom),
+        _series("현재", "current", [12] * 13),
+        {**_series("현재 잠정", "current", [22] * 14), "provisional": True, "dash": "2 5"},
+    ]}]
+    spec = {"chart": "ipo", "dotcom_series": "닷컴", "direction": "higher_is_hotter"}
+    _write(tmp_path, charts, [
+        {"id": "confirmed", "current_series": "현재", **spec},
+        {"id": "wrong", "current_series": "현재 잠정", **spec},
+    ])
+    result = compute_index(tmp_path)
+    assert [row["id"] for row in result["indicators"]] == ["confirmed"]
+    assert result["indicators"][0]["current_value"] == 12
+    assert result["skipped"] == [{"id": "wrong", "reason": "잠정 계열은 지수 입력 아님"}]

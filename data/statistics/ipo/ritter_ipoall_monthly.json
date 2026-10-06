@@ -1,0 +1,3988 @@
+{
+  "schema_version": 1,
+  "dataset_id": "ritter_ipoall_monthly_v1",
+  "series_id": "RITTER_IPOALL_MONTHLY",
+  "policy_source_id": "ritter_ipoall_monthly",
+  "title": "U.S. IPO monthly gross and net counts (IPOALL)",
+  "provider": "Jay R. Ritter, University of Florida",
+  "source_url": "https://site.warrington.ufl.edu/ritter/files/IPOALL.xlsx",
+  "parser_version": "ritter-ipoall-monthly-v1",
+  "definition": {
+    "net": "operating-company IPOs; excludes SPACs, closed-end funds, REITs, unit offers, ADRs, offer prices below $5, banks and S&Ls, limited partnerships, and non-CRSP listings",
+    "gross": "all IPOs including SPACs, direct listings, penny stocks, units and closed-end funds"
+  },
+  "revision_cadence": "author_revises_roughly_annually",
+  "raw_sha256": "00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25",
+  "raw_path": "raw/ritter_ipoall_monthly/00f2f3ae0badd4566e3f4f10ead1936c0a0e9e983d70c0eac52d77728ac1ce25.bin",
+  "receipt_id": "1da391d5f2d89c2180d337305ea29aff0c05339ac31ef3544d22bb3fd1bcbaaa",
+  "http_status": 200,
+  "last_modified": "Mon, 19 Jan 2026 16:37:49 GMT",
+  "fetched_at": "2026-10-06T11:28:28+00:00",
+  "available_at": "2026-10-06T11:28:28+00:00",
+  "first_month": "1960-01",
+  "last_month": "2025-12",
+  "last_confirmed_month": "2025-12",
+  "months": [
+    {
+      "month": "1960-01",
+      "gross": 16,
+      "net": null
+    },
+    {
+      "month": "1960-02",
+      "gross": 16,
+      "net": null
+    },
+    {
+      "month": "1960-03",
+      "gross": 21,
+      "net": null
+    },
+    {
+      "month": "1960-04",
+      "gross": 16,
+      "net": null
+    },
+    {
+      "month": "1960-05",
+      "gross": 19,
+      "net": null
+    },
+    {
+      "month": "1960-06",
+      "gross": 40,
+      "net": null
+    },
+    {
+      "month": "1960-07",
+      "gross": 17,
+      "net": null
+    },
+    {
+      "month": "1960-08",
+      "gross": 23,
+      "net": null
+    },
+    {
+      "month": "1960-09",
+      "gross": 20,
+      "net": null
+    },
+    {
+      "month": "1960-10",
+      "gross": 27,
+      "net": null
+    },
+    {
+      "month": "1960-11",
+      "gross": 38,
+      "net": null
+    },
+    {
+      "month": "1960-12",
+      "gross": 16,
+      "net": null
+    },
+    {
+      "month": "1961-01",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1961-02",
+      "gross": 27,
+      "net": null
+    },
+    {
+      "month": "1961-03",
+      "gross": 25,
+      "net": null
+    },
+    {
+      "month": "1961-04",
+      "gross": 27,
+      "net": null
+    },
+    {
+      "month": "1961-05",
+      "gross": 42,
+      "net": null
+    },
+    {
+      "month": "1961-06",
+      "gross": 29,
+      "net": null
+    },
+    {
+      "month": "1961-07",
+      "gross": 29,
+      "net": null
+    },
+    {
+      "month": "1961-08",
+      "gross": 50,
+      "net": null
+    },
+    {
+      "month": "1961-09",
+      "gross": 37,
+      "net": null
+    },
+    {
+      "month": "1961-10",
+      "gross": 53,
+      "net": null
+    },
+    {
+      "month": "1961-11",
+      "gross": 53,
+      "net": null
+    },
+    {
+      "month": "1961-12",
+      "gross": 52,
+      "net": null
+    },
+    {
+      "month": "1962-01",
+      "gross": 40,
+      "net": null
+    },
+    {
+      "month": "1962-02",
+      "gross": 31,
+      "net": null
+    },
+    {
+      "month": "1962-03",
+      "gross": 50,
+      "net": null
+    },
+    {
+      "month": "1962-04",
+      "gross": 74,
+      "net": null
+    },
+    {
+      "month": "1962-05",
+      "gross": 40,
+      "net": null
+    },
+    {
+      "month": "1962-06",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1962-07",
+      "gross": 6,
+      "net": null
+    },
+    {
+      "month": "1962-08",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1962-09",
+      "gross": 17,
+      "net": null
+    },
+    {
+      "month": "1962-10",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1962-11",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1962-12",
+      "gross": 10,
+      "net": null
+    },
+    {
+      "month": "1963-01",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1963-02",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1963-03",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1963-04",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1963-05",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1963-06",
+      "gross": 10,
+      "net": null
+    },
+    {
+      "month": "1963-07",
+      "gross": 6,
+      "net": null
+    },
+    {
+      "month": "1963-08",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1963-09",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1963-10",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1963-11",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1963-12",
+      "gross": 6,
+      "net": null
+    },
+    {
+      "month": "1964-01",
+      "gross": 10,
+      "net": null
+    },
+    {
+      "month": "1964-02",
+      "gross": 4,
+      "net": null
+    },
+    {
+      "month": "1964-03",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1964-04",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1964-05",
+      "gross": 12,
+      "net": null
+    },
+    {
+      "month": "1964-06",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1964-07",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1964-08",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1964-09",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1964-10",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1964-11",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1964-12",
+      "gross": 10,
+      "net": null
+    },
+    {
+      "month": "1965-01",
+      "gross": 6,
+      "net": null
+    },
+    {
+      "month": "1965-02",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1965-03",
+      "gross": 13,
+      "net": null
+    },
+    {
+      "month": "1965-04",
+      "gross": 24,
+      "net": null
+    },
+    {
+      "month": "1965-05",
+      "gross": 13,
+      "net": null
+    },
+    {
+      "month": "1965-06",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1965-07",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1965-08",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1965-09",
+      "gross": 17,
+      "net": null
+    },
+    {
+      "month": "1965-10",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1965-11",
+      "gross": 20,
+      "net": null
+    },
+    {
+      "month": "1965-12",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1966-01",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1966-02",
+      "gross": 4,
+      "net": null
+    },
+    {
+      "month": "1966-03",
+      "gross": 9,
+      "net": null
+    },
+    {
+      "month": "1966-04",
+      "gross": 16,
+      "net": null
+    },
+    {
+      "month": "1966-05",
+      "gross": 10,
+      "net": null
+    },
+    {
+      "month": "1966-06",
+      "gross": 13,
+      "net": null
+    },
+    {
+      "month": "1966-07",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1966-08",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1966-09",
+      "gross": 1,
+      "net": null
+    },
+    {
+      "month": "1966-10",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1966-11",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1966-12",
+      "gross": 3,
+      "net": null
+    },
+    {
+      "month": "1967-01",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1967-02",
+      "gross": 4,
+      "net": null
+    },
+    {
+      "month": "1967-03",
+      "gross": 4,
+      "net": null
+    },
+    {
+      "month": "1967-04",
+      "gross": 12,
+      "net": null
+    },
+    {
+      "month": "1967-05",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1967-06",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1967-07",
+      "gross": 7,
+      "net": null
+    },
+    {
+      "month": "1967-08",
+      "gross": 12,
+      "net": null
+    },
+    {
+      "month": "1967-09",
+      "gross": 9,
+      "net": null
+    },
+    {
+      "month": "1967-10",
+      "gross": 12,
+      "net": null
+    },
+    {
+      "month": "1967-11",
+      "gross": 14,
+      "net": null
+    },
+    {
+      "month": "1967-12",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1968-01",
+      "gross": 15,
+      "net": null
+    },
+    {
+      "month": "1968-02",
+      "gross": 14,
+      "net": null
+    },
+    {
+      "month": "1968-03",
+      "gross": 21,
+      "net": null
+    },
+    {
+      "month": "1968-04",
+      "gross": 18,
+      "net": null
+    },
+    {
+      "month": "1968-05",
+      "gross": 28,
+      "net": null
+    },
+    {
+      "month": "1968-06",
+      "gross": 23,
+      "net": null
+    },
+    {
+      "month": "1968-07",
+      "gross": 30,
+      "net": null
+    },
+    {
+      "month": "1968-08",
+      "gross": 24,
+      "net": null
+    },
+    {
+      "month": "1968-09",
+      "gross": 29,
+      "net": null
+    },
+    {
+      "month": "1968-10",
+      "gross": 53,
+      "net": null
+    },
+    {
+      "month": "1968-11",
+      "gross": 52,
+      "net": null
+    },
+    {
+      "month": "1968-12",
+      "gross": 61,
+      "net": null
+    },
+    {
+      "month": "1969-01",
+      "gross": 68,
+      "net": null
+    },
+    {
+      "month": "1969-02",
+      "gross": 54,
+      "net": null
+    },
+    {
+      "month": "1969-03",
+      "gross": 88,
+      "net": null
+    },
+    {
+      "month": "1969-04",
+      "gross": 76,
+      "net": null
+    },
+    {
+      "month": "1969-05",
+      "gross": 72,
+      "net": null
+    },
+    {
+      "month": "1969-06",
+      "gross": 78,
+      "net": null
+    },
+    {
+      "month": "1969-07",
+      "gross": 34,
+      "net": null
+    },
+    {
+      "month": "1969-08",
+      "gross": 33,
+      "net": null
+    },
+    {
+      "month": "1969-09",
+      "gross": 54,
+      "net": null
+    },
+    {
+      "month": "1969-10",
+      "gross": 85,
+      "net": null
+    },
+    {
+      "month": "1969-11",
+      "gross": 68,
+      "net": null
+    },
+    {
+      "month": "1969-12",
+      "gross": 71,
+      "net": null
+    },
+    {
+      "month": "1970-01",
+      "gross": 76,
+      "net": null
+    },
+    {
+      "month": "1970-02",
+      "gross": 38,
+      "net": null
+    },
+    {
+      "month": "1970-03",
+      "gross": 38,
+      "net": null
+    },
+    {
+      "month": "1970-04",
+      "gross": 34,
+      "net": null
+    },
+    {
+      "month": "1970-05",
+      "gross": 11,
+      "net": null
+    },
+    {
+      "month": "1970-06",
+      "gross": 26,
+      "net": null
+    },
+    {
+      "month": "1970-07",
+      "gross": 23,
+      "net": null
+    },
+    {
+      "month": "1970-08",
+      "gross": 17,
+      "net": null
+    },
+    {
+      "month": "1970-09",
+      "gross": 20,
+      "net": null
+    },
+    {
+      "month": "1970-10",
+      "gross": 23,
+      "net": null
+    },
+    {
+      "month": "1970-11",
+      "gross": 30,
+      "net": null
+    },
+    {
+      "month": "1970-12",
+      "gross": 22,
+      "net": null
+    },
+    {
+      "month": "1971-01",
+      "gross": 17,
+      "net": null
+    },
+    {
+      "month": "1971-02",
+      "gross": 19,
+      "net": null
+    },
+    {
+      "month": "1971-03",
+      "gross": 32,
+      "net": null
+    },
+    {
+      "month": "1971-04",
+      "gross": 32,
+      "net": null
+    },
+    {
+      "month": "1971-05",
+      "gross": 29,
+      "net": null
+    },
+    {
+      "month": "1971-06",
+      "gross": 30,
+      "net": null
+    },
+    {
+      "month": "1971-07",
+      "gross": 32,
+      "net": null
+    },
+    {
+      "month": "1971-08",
+      "gross": 31,
+      "net": null
+    },
+    {
+      "month": "1971-09",
+      "gross": 37,
+      "net": null
+    },
+    {
+      "month": "1971-10",
+      "gross": 35,
+      "net": null
+    },
+    {
+      "month": "1971-11",
+      "gross": 49,
+      "net": null
+    },
+    {
+      "month": "1971-12",
+      "gross": 48,
+      "net": null
+    },
+    {
+      "month": "1972-01",
+      "gross": 39,
+      "net": null
+    },
+    {
+      "month": "1972-02",
+      "gross": 38,
+      "net": null
+    },
+    {
+      "month": "1972-03",
+      "gross": 66,
+      "net": null
+    },
+    {
+      "month": "1972-04",
+      "gross": 66,
+      "net": null
+    },
+    {
+      "month": "1972-05",
+      "gross": 49,
+      "net": null
+    },
+    {
+      "month": "1972-06",
+      "gross": 66,
+      "net": null
+    },
+    {
+      "month": "1972-07",
+      "gross": 32,
+      "net": null
+    },
+    {
+      "month": "1972-08",
+      "gross": 51,
+      "net": null
+    },
+    {
+      "month": "1972-09",
+      "gross": 32,
+      "net": null
+    },
+    {
+      "month": "1972-10",
+      "gross": 43,
+      "net": null
+    },
+    {
+      "month": "1972-11",
+      "gross": 40,
+      "net": null
+    },
+    {
+      "month": "1972-12",
+      "gross": 40,
+      "net": null
+    },
+    {
+      "month": "1973-01",
+      "gross": 31,
+      "net": null
+    },
+    {
+      "month": "1973-02",
+      "gross": 21,
+      "net": null
+    },
+    {
+      "month": "1973-03",
+      "gross": 9,
+      "net": null
+    },
+    {
+      "month": "1973-04",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1973-05",
+      "gross": 8,
+      "net": null
+    },
+    {
+      "month": "1973-06",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1973-07",
+      "gross": 1,
+      "net": null
+    },
+    {
+      "month": "1973-08",
+      "gross": 6,
+      "net": null
+    },
+    {
+      "month": "1973-09",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1973-10",
+      "gross": 9,
+      "net": null
+    },
+    {
+      "month": "1973-11",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1973-12",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-01",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-02",
+      "gross": 5,
+      "net": null
+    },
+    {
+      "month": "1974-03",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1974-04",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-05",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-06",
+      "gross": 2,
+      "net": null
+    },
+    {
+      "month": "1974-07",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-08",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-09",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-10",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-11",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1974-12",
+      "gross": 0,
+      "net": null
+    },
+    {
+      "month": "1975-01",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1975-02",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "1975-03",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "1975-04",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "1975-05",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "1975-06",
+      "gross": 2,
+      "net": 2
+    },
+    {
+      "month": "1975-07",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1975-08",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1975-09",
+      "gross": 3,
+      "net": 2
+    },
+    {
+      "month": "1975-10",
+      "gross": 3,
+      "net": 3
+    },
+    {
+      "month": "1975-11",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1975-12",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "1976-01",
+      "gross": 6,
+      "net": 4
+    },
+    {
+      "month": "1976-02",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1976-03",
+      "gross": 2,
+      "net": 2
+    },
+    {
+      "month": "1976-04",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "1976-05",
+      "gross": 4,
+      "net": 4
+    },
+    {
+      "month": "1976-06",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "1976-07",
+      "gross": 4,
+      "net": 3
+    },
+    {
+      "month": "1976-08",
+      "gross": 2,
+      "net": 2
+    },
+    {
+      "month": "1976-09",
+      "gross": 6,
+      "net": 3
+    },
+    {
+      "month": "1976-10",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "1976-11",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1976-12",
+      "gross": 4,
+      "net": 3
+    },
+    {
+      "month": "1977-01",
+      "gross": 4,
+      "net": 3
+    },
+    {
+      "month": "1977-02",
+      "gross": 2,
+      "net": 1
+    },
+    {
+      "month": "1977-03",
+      "gross": 3,
+      "net": 0
+    },
+    {
+      "month": "1977-04",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "1977-05",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "1977-06",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "1977-07",
+      "gross": 3,
+      "net": 0
+    },
+    {
+      "month": "1977-08",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "1977-09",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "1977-10",
+      "gross": 4,
+      "net": 1
+    },
+    {
+      "month": "1977-11",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "1977-12",
+      "gross": 3,
+      "net": 3
+    },
+    {
+      "month": "1978-01",
+      "gross": 3,
+      "net": 0
+    },
+    {
+      "month": "1978-02",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "1978-03",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "1978-04",
+      "gross": 6,
+      "net": 2
+    },
+    {
+      "month": "1978-05",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "1978-06",
+      "gross": 4,
+      "net": 1
+    },
+    {
+      "month": "1978-07",
+      "gross": 3,
+      "net": 1
+    },
+    {
+      "month": "1978-08",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "1978-09",
+      "gross": 6,
+      "net": 5
+    },
+    {
+      "month": "1978-10",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "1978-11",
+      "gross": 5,
+      "net": 1
+    },
+    {
+      "month": "1978-12",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "1979-01",
+      "gross": 6,
+      "net": 2
+    },
+    {
+      "month": "1979-02",
+      "gross": 3,
+      "net": 1
+    },
+    {
+      "month": "1979-03",
+      "gross": 6,
+      "net": 2
+    },
+    {
+      "month": "1979-04",
+      "gross": 5,
+      "net": 4
+    },
+    {
+      "month": "1979-05",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "1979-06",
+      "gross": 9,
+      "net": 4
+    },
+    {
+      "month": "1979-07",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "1979-08",
+      "gross": 5,
+      "net": 1
+    },
+    {
+      "month": "1979-09",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "1979-10",
+      "gross": 11,
+      "net": 5
+    },
+    {
+      "month": "1979-11",
+      "gross": 6,
+      "net": 0
+    },
+    {
+      "month": "1979-12",
+      "gross": 13,
+      "net": 9
+    },
+    {
+      "month": "1980-01",
+      "gross": 14,
+      "net": 1
+    },
+    {
+      "month": "1980-02",
+      "gross": 8,
+      "net": 2
+    },
+    {
+      "month": "1980-03",
+      "gross": 9,
+      "net": 5
+    },
+    {
+      "month": "1980-04",
+      "gross": 9,
+      "net": 1
+    },
+    {
+      "month": "1980-05",
+      "gross": 13,
+      "net": 4
+    },
+    {
+      "month": "1980-06",
+      "gross": 18,
+      "net": 8
+    },
+    {
+      "month": "1980-07",
+      "gross": 26,
+      "net": 9
+    },
+    {
+      "month": "1980-08",
+      "gross": 24,
+      "net": 3
+    },
+    {
+      "month": "1980-09",
+      "gross": 25,
+      "net": 8
+    },
+    {
+      "month": "1980-10",
+      "gross": 34,
+      "net": 8
+    },
+    {
+      "month": "1980-11",
+      "gross": 23,
+      "net": 7
+    },
+    {
+      "month": "1980-12",
+      "gross": 35,
+      "net": 17
+    },
+    {
+      "month": "1981-01",
+      "gross": 24,
+      "net": 8
+    },
+    {
+      "month": "1981-02",
+      "gross": 32,
+      "net": 14
+    },
+    {
+      "month": "1981-03",
+      "gross": 39,
+      "net": 15
+    },
+    {
+      "month": "1981-04",
+      "gross": 56,
+      "net": 29
+    },
+    {
+      "month": "1981-05",
+      "gross": 46,
+      "net": 23
+    },
+    {
+      "month": "1981-06",
+      "gross": 62,
+      "net": 21
+    },
+    {
+      "month": "1981-07",
+      "gross": 42,
+      "net": 15
+    },
+    {
+      "month": "1981-08",
+      "gross": 37,
+      "net": 12
+    },
+    {
+      "month": "1981-09",
+      "gross": 20,
+      "net": 10
+    },
+    {
+      "month": "1981-10",
+      "gross": 37,
+      "net": 22
+    },
+    {
+      "month": "1981-11",
+      "gross": 27,
+      "net": 14
+    },
+    {
+      "month": "1981-12",
+      "gross": 28,
+      "net": 14
+    },
+    {
+      "month": "1982-01",
+      "gross": 15,
+      "net": 6
+    },
+    {
+      "month": "1982-02",
+      "gross": 14,
+      "net": 5
+    },
+    {
+      "month": "1982-03",
+      "gross": 13,
+      "net": 4
+    },
+    {
+      "month": "1982-04",
+      "gross": 18,
+      "net": 7
+    },
+    {
+      "month": "1982-05",
+      "gross": 19,
+      "net": 3
+    },
+    {
+      "month": "1982-06",
+      "gross": 14,
+      "net": 4
+    },
+    {
+      "month": "1982-07",
+      "gross": 14,
+      "net": 6
+    },
+    {
+      "month": "1982-08",
+      "gross": 11,
+      "net": 5
+    },
+    {
+      "month": "1982-09",
+      "gross": 16,
+      "net": 7
+    },
+    {
+      "month": "1982-10",
+      "gross": 22,
+      "net": 6
+    },
+    {
+      "month": "1982-11",
+      "gross": 22,
+      "net": 7
+    },
+    {
+      "month": "1982-12",
+      "gross": 44,
+      "net": 21
+    },
+    {
+      "month": "1983-01",
+      "gross": 24,
+      "net": 6
+    },
+    {
+      "month": "1983-02",
+      "gross": 41,
+      "net": 17
+    },
+    {
+      "month": "1983-03",
+      "gross": 60,
+      "net": 28
+    },
+    {
+      "month": "1983-04",
+      "gross": 43,
+      "net": 17
+    },
+    {
+      "month": "1983-05",
+      "gross": 68,
+      "net": 30
+    },
+    {
+      "month": "1983-06",
+      "gross": 85,
+      "net": 54
+    },
+    {
+      "month": "1983-07",
+      "gross": 95,
+      "net": 50
+    },
+    {
+      "month": "1983-08",
+      "gross": 104,
+      "net": 53
+    },
+    {
+      "month": "1983-09",
+      "gross": 84,
+      "net": 40
+    },
+    {
+      "month": "1983-10",
+      "gross": 86,
+      "net": 52
+    },
+    {
+      "month": "1983-11",
+      "gross": 84,
+      "net": 47
+    },
+    {
+      "month": "1983-12",
+      "gross": 109,
+      "net": 57
+    },
+    {
+      "month": "1984-01",
+      "gross": 67,
+      "net": 32
+    },
+    {
+      "month": "1984-02",
+      "gross": 61,
+      "net": 16
+    },
+    {
+      "month": "1984-03",
+      "gross": 56,
+      "net": 18
+    },
+    {
+      "month": "1984-04",
+      "gross": 39,
+      "net": 12
+    },
+    {
+      "month": "1984-05",
+      "gross": 50,
+      "net": 15
+    },
+    {
+      "month": "1984-06",
+      "gross": 49,
+      "net": 10
+    },
+    {
+      "month": "1984-07",
+      "gross": 39,
+      "net": 9
+    },
+    {
+      "month": "1984-08",
+      "gross": 51,
+      "net": 19
+    },
+    {
+      "month": "1984-09",
+      "gross": 28,
+      "net": 10
+    },
+    {
+      "month": "1984-10",
+      "gross": 40,
+      "net": 11
+    },
+    {
+      "month": "1984-11",
+      "gross": 40,
+      "net": 13
+    },
+    {
+      "month": "1984-12",
+      "gross": 32,
+      "net": 13
+    },
+    {
+      "month": "1985-01",
+      "gross": 30,
+      "net": 8
+    },
+    {
+      "month": "1985-02",
+      "gross": 26,
+      "net": 1
+    },
+    {
+      "month": "1985-03",
+      "gross": 39,
+      "net": 11
+    },
+    {
+      "month": "1985-04",
+      "gross": 40,
+      "net": 12
+    },
+    {
+      "month": "1985-05",
+      "gross": 40,
+      "net": 14
+    },
+    {
+      "month": "1985-06",
+      "gross": 40,
+      "net": 16
+    },
+    {
+      "month": "1985-07",
+      "gross": 45,
+      "net": 18
+    },
+    {
+      "month": "1985-08",
+      "gross": 46,
+      "net": 19
+    },
+    {
+      "month": "1985-09",
+      "gross": 44,
+      "net": 10
+    },
+    {
+      "month": "1985-10",
+      "gross": 65,
+      "net": 28
+    },
+    {
+      "month": "1985-11",
+      "gross": 49,
+      "net": 30
+    },
+    {
+      "month": "1985-12",
+      "gross": 43,
+      "net": 19
+    },
+    {
+      "month": "1986-01",
+      "gross": 37,
+      "net": 7
+    },
+    {
+      "month": "1986-02",
+      "gross": 52,
+      "net": 16
+    },
+    {
+      "month": "1986-03",
+      "gross": 71,
+      "net": 28
+    },
+    {
+      "month": "1986-04",
+      "gross": 48,
+      "net": 22
+    },
+    {
+      "month": "1986-05",
+      "gross": 88,
+      "net": 38
+    },
+    {
+      "month": "1986-06",
+      "gross": 122,
+      "net": 55
+    },
+    {
+      "month": "1986-07",
+      "gross": 95,
+      "net": 52
+    },
+    {
+      "month": "1986-08",
+      "gross": 92,
+      "net": 30
+    },
+    {
+      "month": "1986-09",
+      "gross": 67,
+      "net": 23
+    },
+    {
+      "month": "1986-10",
+      "gross": 86,
+      "net": 45
+    },
+    {
+      "month": "1986-11",
+      "gross": 90,
+      "net": 39
+    },
+    {
+      "month": "1986-12",
+      "gross": 105,
+      "net": 37
+    },
+    {
+      "month": "1987-01",
+      "gross": 38,
+      "net": 15
+    },
+    {
+      "month": "1987-02",
+      "gross": 58,
+      "net": 28
+    },
+    {
+      "month": "1987-03",
+      "gross": 73,
+      "net": 30
+    },
+    {
+      "month": "1987-04",
+      "gross": 57,
+      "net": 16
+    },
+    {
+      "month": "1987-05",
+      "gross": 51,
+      "net": 31
+    },
+    {
+      "month": "1987-06",
+      "gross": 80,
+      "net": 40
+    },
+    {
+      "month": "1987-07",
+      "gross": 84,
+      "net": 33
+    },
+    {
+      "month": "1987-08",
+      "gross": 63,
+      "net": 36
+    },
+    {
+      "month": "1987-09",
+      "gross": 60,
+      "net": 33
+    },
+    {
+      "month": "1987-10",
+      "gross": 38,
+      "net": 20
+    },
+    {
+      "month": "1987-11",
+      "gross": 21,
+      "net": 2
+    },
+    {
+      "month": "1987-12",
+      "gross": 7,
+      "net": 0
+    },
+    {
+      "month": "1988-01",
+      "gross": 12,
+      "net": 2
+    },
+    {
+      "month": "1988-02",
+      "gross": 14,
+      "net": 5
+    },
+    {
+      "month": "1988-03",
+      "gross": 19,
+      "net": 9
+    },
+    {
+      "month": "1988-04",
+      "gross": 19,
+      "net": 10
+    },
+    {
+      "month": "1988-05",
+      "gross": 24,
+      "net": 13
+    },
+    {
+      "month": "1988-06",
+      "gross": 26,
+      "net": 14
+    },
+    {
+      "month": "1988-07",
+      "gross": 24,
+      "net": 12
+    },
+    {
+      "month": "1988-08",
+      "gross": 20,
+      "net": 10
+    },
+    {
+      "month": "1988-09",
+      "gross": 11,
+      "net": 5
+    },
+    {
+      "month": "1988-10",
+      "gross": 25,
+      "net": 13
+    },
+    {
+      "month": "1988-11",
+      "gross": 13,
+      "net": 3
+    },
+    {
+      "month": "1988-12",
+      "gross": 20,
+      "net": 6
+    },
+    {
+      "month": "1989-01",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "1989-02",
+      "gross": 13,
+      "net": 3
+    },
+    {
+      "month": "1989-03",
+      "gross": 11,
+      "net": 1
+    },
+    {
+      "month": "1989-04",
+      "gross": 12,
+      "net": 8
+    },
+    {
+      "month": "1989-05",
+      "gross": 24,
+      "net": 10
+    },
+    {
+      "month": "1989-06",
+      "gross": 17,
+      "net": 12
+    },
+    {
+      "month": "1989-07",
+      "gross": 18,
+      "net": 11
+    },
+    {
+      "month": "1989-08",
+      "gross": 15,
+      "net": 10
+    },
+    {
+      "month": "1989-09",
+      "gross": 13,
+      "net": 8
+    },
+    {
+      "month": "1989-10",
+      "gross": 17,
+      "net": 11
+    },
+    {
+      "month": "1989-11",
+      "gross": 31,
+      "net": 14
+    },
+    {
+      "month": "1989-12",
+      "gross": 25,
+      "net": 19
+    },
+    {
+      "month": "1990-01",
+      "gross": 12,
+      "net": 4
+    },
+    {
+      "month": "1990-02",
+      "gross": 13,
+      "net": 8
+    },
+    {
+      "month": "1990-03",
+      "gross": 19,
+      "net": 13
+    },
+    {
+      "month": "1990-04",
+      "gross": 22,
+      "net": 17
+    },
+    {
+      "month": "1990-05",
+      "gross": 19,
+      "net": 14
+    },
+    {
+      "month": "1990-06",
+      "gross": 22,
+      "net": 16
+    },
+    {
+      "month": "1990-07",
+      "gross": 24,
+      "net": 19
+    },
+    {
+      "month": "1990-08",
+      "gross": 15,
+      "net": 9
+    },
+    {
+      "month": "1990-09",
+      "gross": 7,
+      "net": 5
+    },
+    {
+      "month": "1990-10",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "1990-11",
+      "gross": 5,
+      "net": 0
+    },
+    {
+      "month": "1990-12",
+      "gross": 10,
+      "net": 3
+    },
+    {
+      "month": "1991-01",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "1991-02",
+      "gross": 7,
+      "net": 5
+    },
+    {
+      "month": "1991-03",
+      "gross": 18,
+      "net": 14
+    },
+    {
+      "month": "1991-04",
+      "gross": 28,
+      "net": 20
+    },
+    {
+      "month": "1991-05",
+      "gross": 28,
+      "net": 24
+    },
+    {
+      "month": "1991-06",
+      "gross": 47,
+      "net": 40
+    },
+    {
+      "month": "1991-07",
+      "gross": 38,
+      "net": 31
+    },
+    {
+      "month": "1991-08",
+      "gross": 35,
+      "net": 28
+    },
+    {
+      "month": "1991-09",
+      "gross": 23,
+      "net": 17
+    },
+    {
+      "month": "1991-10",
+      "gross": 46,
+      "net": 37
+    },
+    {
+      "month": "1991-11",
+      "gross": 51,
+      "net": 37
+    },
+    {
+      "month": "1991-12",
+      "gross": 42,
+      "net": 32
+    },
+    {
+      "month": "1992-01",
+      "gross": 42,
+      "net": 32
+    },
+    {
+      "month": "1992-02",
+      "gross": 46,
+      "net": 38
+    },
+    {
+      "month": "1992-03",
+      "gross": 67,
+      "net": 57
+    },
+    {
+      "month": "1992-04",
+      "gross": 45,
+      "net": 37
+    },
+    {
+      "month": "1992-05",
+      "gross": 48,
+      "net": 40
+    },
+    {
+      "month": "1992-06",
+      "gross": 44,
+      "net": 37
+    },
+    {
+      "month": "1992-07",
+      "gross": 34,
+      "net": 26
+    },
+    {
+      "month": "1992-08",
+      "gross": 36,
+      "net": 31
+    },
+    {
+      "month": "1992-09",
+      "gross": 22,
+      "net": 16
+    },
+    {
+      "month": "1992-10",
+      "gross": 51,
+      "net": 42
+    },
+    {
+      "month": "1992-11",
+      "gross": 27,
+      "net": 18
+    },
+    {
+      "month": "1992-12",
+      "gross": 47,
+      "net": 37
+    },
+    {
+      "month": "1993-01",
+      "gross": 22,
+      "net": 19
+    },
+    {
+      "month": "1993-02",
+      "gross": 36,
+      "net": 30
+    },
+    {
+      "month": "1993-03",
+      "gross": 62,
+      "net": 57
+    },
+    {
+      "month": "1993-04",
+      "gross": 31,
+      "net": 25
+    },
+    {
+      "month": "1993-05",
+      "gross": 48,
+      "net": 33
+    },
+    {
+      "month": "1993-06",
+      "gross": 57,
+      "net": 45
+    },
+    {
+      "month": "1993-07",
+      "gross": 58,
+      "net": 48
+    },
+    {
+      "month": "1993-08",
+      "gross": 54,
+      "net": 46
+    },
+    {
+      "month": "1993-09",
+      "gross": 47,
+      "net": 36
+    },
+    {
+      "month": "1993-10",
+      "gross": 58,
+      "net": 48
+    },
+    {
+      "month": "1993-11",
+      "gross": 78,
+      "net": 61
+    },
+    {
+      "month": "1993-12",
+      "gross": 76,
+      "net": 61
+    },
+    {
+      "month": "1994-01",
+      "gross": 26,
+      "net": 22
+    },
+    {
+      "month": "1994-02",
+      "gross": 62,
+      "net": 49
+    },
+    {
+      "month": "1994-03",
+      "gross": 61,
+      "net": 46
+    },
+    {
+      "month": "1994-04",
+      "gross": 48,
+      "net": 34
+    },
+    {
+      "month": "1994-05",
+      "gross": 71,
+      "net": 49
+    },
+    {
+      "month": "1994-06",
+      "gross": 53,
+      "net": 39
+    },
+    {
+      "month": "1994-07",
+      "gross": 41,
+      "net": 22
+    },
+    {
+      "month": "1994-08",
+      "gross": 43,
+      "net": 29
+    },
+    {
+      "month": "1994-09",
+      "gross": 37,
+      "net": 28
+    },
+    {
+      "month": "1994-10",
+      "gross": 46,
+      "net": 31
+    },
+    {
+      "month": "1994-11",
+      "gross": 44,
+      "net": 30
+    },
+    {
+      "month": "1994-12",
+      "gross": 36,
+      "net": 24
+    },
+    {
+      "month": "1995-01",
+      "gross": 18,
+      "net": 10
+    },
+    {
+      "month": "1995-02",
+      "gross": 37,
+      "net": 25
+    },
+    {
+      "month": "1995-03",
+      "gross": 29,
+      "net": 26
+    },
+    {
+      "month": "1995-04",
+      "gross": 31,
+      "net": 24
+    },
+    {
+      "month": "1995-05",
+      "gross": 35,
+      "net": 29
+    },
+    {
+      "month": "1995-06",
+      "gross": 55,
+      "net": 49
+    },
+    {
+      "month": "1995-07",
+      "gross": 50,
+      "net": 43
+    },
+    {
+      "month": "1995-08",
+      "gross": 53,
+      "net": 37
+    },
+    {
+      "month": "1995-09",
+      "gross": 35,
+      "net": 32
+    },
+    {
+      "month": "1995-10",
+      "gross": 62,
+      "net": 50
+    },
+    {
+      "month": "1995-11",
+      "gross": 84,
+      "net": 69
+    },
+    {
+      "month": "1995-12",
+      "gross": 77,
+      "net": 63
+    },
+    {
+      "month": "1996-01",
+      "gross": 29,
+      "net": 22
+    },
+    {
+      "month": "1996-02",
+      "gross": 65,
+      "net": 58
+    },
+    {
+      "month": "1996-03",
+      "gross": 73,
+      "net": 61
+    },
+    {
+      "month": "1996-04",
+      "gross": 67,
+      "net": 53
+    },
+    {
+      "month": "1996-05",
+      "gross": 94,
+      "net": 76
+    },
+    {
+      "month": "1996-06",
+      "gross": 87,
+      "net": 73
+    },
+    {
+      "month": "1996-07",
+      "gross": 66,
+      "net": 49
+    },
+    {
+      "month": "1996-08",
+      "gross": 58,
+      "net": 51
+    },
+    {
+      "month": "1996-09",
+      "gross": 59,
+      "net": 46
+    },
+    {
+      "month": "1996-10",
+      "gross": 106,
+      "net": 90
+    },
+    {
+      "month": "1996-11",
+      "gross": 81,
+      "net": 60
+    },
+    {
+      "month": "1996-12",
+      "gross": 60,
+      "net": 36
+    },
+    {
+      "month": "1997-01",
+      "gross": 35,
+      "net": 26
+    },
+    {
+      "month": "1997-02",
+      "gross": 62,
+      "net": 48
+    },
+    {
+      "month": "1997-03",
+      "gross": 39,
+      "net": 29
+    },
+    {
+      "month": "1997-04",
+      "gross": 33,
+      "net": 22
+    },
+    {
+      "month": "1997-05",
+      "gross": 43,
+      "net": 28
+    },
+    {
+      "month": "1997-06",
+      "gross": 63,
+      "net": 53
+    },
+    {
+      "month": "1997-07",
+      "gross": 55,
+      "net": 44
+    },
+    {
+      "month": "1997-08",
+      "gross": 48,
+      "net": 35
+    },
+    {
+      "month": "1997-09",
+      "gross": 54,
+      "net": 39
+    },
+    {
+      "month": "1997-10",
+      "gross": 65,
+      "net": 55
+    },
+    {
+      "month": "1997-11",
+      "gross": 80,
+      "net": 64
+    },
+    {
+      "month": "1997-12",
+      "gross": 35,
+      "net": 30
+    },
+    {
+      "month": "1998-01",
+      "gross": 21,
+      "net": 13
+    },
+    {
+      "month": "1998-02",
+      "gross": 51,
+      "net": 40
+    },
+    {
+      "month": "1998-03",
+      "gross": 41,
+      "net": 29
+    },
+    {
+      "month": "1998-04",
+      "gross": 42,
+      "net": 34
+    },
+    {
+      "month": "1998-05",
+      "gross": 51,
+      "net": 37
+    },
+    {
+      "month": "1998-06",
+      "gross": 61,
+      "net": 47
+    },
+    {
+      "month": "1998-07",
+      "gross": 50,
+      "net": 38
+    },
+    {
+      "month": "1998-08",
+      "gross": 20,
+      "net": 17
+    },
+    {
+      "month": "1998-09",
+      "gross": 7,
+      "net": 1
+    },
+    {
+      "month": "1998-10",
+      "gross": 6,
+      "net": 2
+    },
+    {
+      "month": "1998-11",
+      "gross": 19,
+      "net": 11
+    },
+    {
+      "month": "1998-12",
+      "gross": 23,
+      "net": 14
+    },
+    {
+      "month": "1999-01",
+      "gross": 26,
+      "net": 9
+    },
+    {
+      "month": "1999-02",
+      "gross": 36,
+      "net": 30
+    },
+    {
+      "month": "1999-03",
+      "gross": 22,
+      "net": 19
+    },
+    {
+      "month": "1999-04",
+      "gross": 37,
+      "net": 33
+    },
+    {
+      "month": "1999-05",
+      "gross": 55,
+      "net": 49
+    },
+    {
+      "month": "1999-06",
+      "gross": 60,
+      "net": 52
+    },
+    {
+      "month": "1999-07",
+      "gross": 64,
+      "net": 60
+    },
+    {
+      "month": "1999-08",
+      "gross": 40,
+      "net": 38
+    },
+    {
+      "month": "1999-09",
+      "gross": 43,
+      "net": 40
+    },
+    {
+      "month": "1999-10",
+      "gross": 62,
+      "net": 56
+    },
+    {
+      "month": "1999-11",
+      "gross": 58,
+      "net": 51
+    },
+    {
+      "month": "1999-12",
+      "gross": 41,
+      "net": 39
+    },
+    {
+      "month": "2000-01",
+      "gross": 15,
+      "net": 13
+    },
+    {
+      "month": "2000-02",
+      "gross": 60,
+      "net": 58
+    },
+    {
+      "month": "2000-03",
+      "gross": 60,
+      "net": 52
+    },
+    {
+      "month": "2000-04",
+      "gross": 37,
+      "net": 34
+    },
+    {
+      "month": "2000-05",
+      "gross": 23,
+      "net": 21
+    },
+    {
+      "month": "2000-06",
+      "gross": 36,
+      "net": 31
+    },
+    {
+      "month": "2000-07",
+      "gross": 46,
+      "net": 41
+    },
+    {
+      "month": "2000-08",
+      "gross": 65,
+      "net": 63
+    },
+    {
+      "month": "2000-09",
+      "gross": 25,
+      "net": 24
+    },
+    {
+      "month": "2000-10",
+      "gross": 26,
+      "net": 19
+    },
+    {
+      "month": "2000-11",
+      "gross": 22,
+      "net": 18
+    },
+    {
+      "month": "2000-12",
+      "gross": 9,
+      "net": 7
+    },
+    {
+      "month": "2001-01",
+      "gross": 10,
+      "net": 3
+    },
+    {
+      "month": "2001-02",
+      "gross": 10,
+      "net": 7
+    },
+    {
+      "month": "2001-03",
+      "gross": 15,
+      "net": 9
+    },
+    {
+      "month": "2001-04",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "2001-05",
+      "gross": 12,
+      "net": 8
+    },
+    {
+      "month": "2001-06",
+      "gross": 16,
+      "net": 14
+    },
+    {
+      "month": "2001-07",
+      "gross": 15,
+      "net": 7
+    },
+    {
+      "month": "2001-08",
+      "gross": 5,
+      "net": 4
+    },
+    {
+      "month": "2001-09",
+      "gross": 6,
+      "net": 0
+    },
+    {
+      "month": "2001-10",
+      "gross": 10,
+      "net": 7
+    },
+    {
+      "month": "2001-11",
+      "gross": 16,
+      "net": 9
+    },
+    {
+      "month": "2001-12",
+      "gross": 13,
+      "net": 10
+    },
+    {
+      "month": "2002-01",
+      "gross": 6,
+      "net": 3
+    },
+    {
+      "month": "2002-02",
+      "gross": 9,
+      "net": 5
+    },
+    {
+      "month": "2002-03",
+      "gross": 15,
+      "net": 6
+    },
+    {
+      "month": "2002-04",
+      "gross": 14,
+      "net": 7
+    },
+    {
+      "month": "2002-05",
+      "gross": 18,
+      "net": 14
+    },
+    {
+      "month": "2002-06",
+      "gross": 17,
+      "net": 10
+    },
+    {
+      "month": "2002-07",
+      "gross": 12,
+      "net": 5
+    },
+    {
+      "month": "2002-08",
+      "gross": 7,
+      "net": 0
+    },
+    {
+      "month": "2002-09",
+      "gross": 9,
+      "net": 0
+    },
+    {
+      "month": "2002-10",
+      "gross": 20,
+      "net": 6
+    },
+    {
+      "month": "2002-11",
+      "gross": 23,
+      "net": 7
+    },
+    {
+      "month": "2002-12",
+      "gross": 10,
+      "net": 3
+    },
+    {
+      "month": "2003-01",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "2003-02",
+      "gross": 6,
+      "net": 3
+    },
+    {
+      "month": "2003-03",
+      "gross": 4,
+      "net": 0
+    },
+    {
+      "month": "2003-04",
+      "gross": 3,
+      "net": 0
+    },
+    {
+      "month": "2003-05",
+      "gross": 5,
+      "net": 1
+    },
+    {
+      "month": "2003-06",
+      "gross": 10,
+      "net": 1
+    },
+    {
+      "month": "2003-07",
+      "gross": 16,
+      "net": 8
+    },
+    {
+      "month": "2003-08",
+      "gross": 11,
+      "net": 2
+    },
+    {
+      "month": "2003-09",
+      "gross": 13,
+      "net": 6
+    },
+    {
+      "month": "2003-10",
+      "gross": 15,
+      "net": 11
+    },
+    {
+      "month": "2003-11",
+      "gross": 20,
+      "net": 15
+    },
+    {
+      "month": "2003-12",
+      "gross": 28,
+      "net": 16
+    },
+    {
+      "month": "2004-01",
+      "gross": 11,
+      "net": 3
+    },
+    {
+      "month": "2004-02",
+      "gross": 26,
+      "net": 16
+    },
+    {
+      "month": "2004-03",
+      "gross": 22,
+      "net": 9
+    },
+    {
+      "month": "2004-04",
+      "gross": 19,
+      "net": 11
+    },
+    {
+      "month": "2004-05",
+      "gross": 20,
+      "net": 13
+    },
+    {
+      "month": "2004-06",
+      "gross": 32,
+      "net": 23
+    },
+    {
+      "month": "2004-07",
+      "gross": 34,
+      "net": 22
+    },
+    {
+      "month": "2004-08",
+      "gross": 22,
+      "net": 11
+    },
+    {
+      "month": "2004-09",
+      "gross": 20,
+      "net": 10
+    },
+    {
+      "month": "2004-10",
+      "gross": 40,
+      "net": 21
+    },
+    {
+      "month": "2004-11",
+      "gross": 21,
+      "net": 12
+    },
+    {
+      "month": "2004-12",
+      "gross": 36,
+      "net": 23
+    },
+    {
+      "month": "2005-01",
+      "gross": 14,
+      "net": 8
+    },
+    {
+      "month": "2005-02",
+      "gross": 32,
+      "net": 20
+    },
+    {
+      "month": "2005-03",
+      "gross": 13,
+      "net": 7
+    },
+    {
+      "month": "2005-04",
+      "gross": 13,
+      "net": 7
+    },
+    {
+      "month": "2005-05",
+      "gross": 21,
+      "net": 10
+    },
+    {
+      "month": "2005-06",
+      "gross": 34,
+      "net": 17
+    },
+    {
+      "month": "2005-07",
+      "gross": 29,
+      "net": 14
+    },
+    {
+      "month": "2005-08",
+      "gross": 37,
+      "net": 25
+    },
+    {
+      "month": "2005-09",
+      "gross": 20,
+      "net": 14
+    },
+    {
+      "month": "2005-10",
+      "gross": 23,
+      "net": 12
+    },
+    {
+      "month": "2005-11",
+      "gross": 21,
+      "net": 15
+    },
+    {
+      "month": "2005-12",
+      "gross": 23,
+      "net": 12
+    },
+    {
+      "month": "2006-01",
+      "gross": 16,
+      "net": 10
+    },
+    {
+      "month": "2006-02",
+      "gross": 23,
+      "net": 16
+    },
+    {
+      "month": "2006-03",
+      "gross": 14,
+      "net": 7
+    },
+    {
+      "month": "2006-04",
+      "gross": 19,
+      "net": 12
+    },
+    {
+      "month": "2006-05",
+      "gross": 17,
+      "net": 13
+    },
+    {
+      "month": "2006-06",
+      "gross": 26,
+      "net": 17
+    },
+    {
+      "month": "2006-07",
+      "gross": 17,
+      "net": 5
+    },
+    {
+      "month": "2006-08",
+      "gross": 10,
+      "net": 5
+    },
+    {
+      "month": "2006-09",
+      "gross": 18,
+      "net": 8
+    },
+    {
+      "month": "2006-10",
+      "gross": 25,
+      "net": 17
+    },
+    {
+      "month": "2006-11",
+      "gross": 32,
+      "net": 26
+    },
+    {
+      "month": "2006-12",
+      "gross": 38,
+      "net": 21
+    },
+    {
+      "month": "2007-01",
+      "gross": 18,
+      "net": 8
+    },
+    {
+      "month": "2007-02",
+      "gross": 23,
+      "net": 14
+    },
+    {
+      "month": "2007-03",
+      "gross": 21,
+      "net": 12
+    },
+    {
+      "month": "2007-04",
+      "gross": 13,
+      "net": 8
+    },
+    {
+      "month": "2007-05",
+      "gross": 28,
+      "net": 26
+    },
+    {
+      "month": "2007-06",
+      "gross": 20,
+      "net": 14
+    },
+    {
+      "month": "2007-07",
+      "gross": 19,
+      "net": 15
+    },
+    {
+      "month": "2007-08",
+      "gross": 17,
+      "net": 12
+    },
+    {
+      "month": "2007-09",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "2007-10",
+      "gross": 23,
+      "net": 15
+    },
+    {
+      "month": "2007-11",
+      "gross": 39,
+      "net": 21
+    },
+    {
+      "month": "2007-12",
+      "gross": 23,
+      "net": 12
+    },
+    {
+      "month": "2008-01",
+      "gross": 14,
+      "net": 3
+    },
+    {
+      "month": "2008-02",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "2008-03",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "2008-04",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "2008-05",
+      "gross": 7,
+      "net": 4
+    },
+    {
+      "month": "2008-06",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "2008-07",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "2008-08",
+      "gross": 5,
+      "net": 1
+    },
+    {
+      "month": "2008-09",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "2008-10",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "2008-11",
+      "gross": 1,
+      "net": 1
+    },
+    {
+      "month": "2008-12",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "2009-01",
+      "gross": 1,
+      "net": 0
+    },
+    {
+      "month": "2009-02",
+      "gross": 2,
+      "net": 1
+    },
+    {
+      "month": "2009-03",
+      "gross": 2,
+      "net": 0
+    },
+    {
+      "month": "2009-04",
+      "gross": 7,
+      "net": 2
+    },
+    {
+      "month": "2009-05",
+      "gross": 4,
+      "net": 3
+    },
+    {
+      "month": "2009-06",
+      "gross": 8,
+      "net": 2
+    },
+    {
+      "month": "2009-07",
+      "gross": 4,
+      "net": 0
+    },
+    {
+      "month": "2009-08",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "2009-09",
+      "gross": 12,
+      "net": 5
+    },
+    {
+      "month": "2009-10",
+      "gross": 13,
+      "net": 11
+    },
+    {
+      "month": "2009-11",
+      "gross": 11,
+      "net": 10
+    },
+    {
+      "month": "2009-12",
+      "gross": 7,
+      "net": 4
+    },
+    {
+      "month": "2010-01",
+      "gross": 12,
+      "net": 3
+    },
+    {
+      "month": "2010-02",
+      "gross": 8,
+      "net": 5
+    },
+    {
+      "month": "2010-03",
+      "gross": 15,
+      "net": 12
+    },
+    {
+      "month": "2010-04",
+      "gross": 16,
+      "net": 9
+    },
+    {
+      "month": "2010-05",
+      "gross": 14,
+      "net": 7
+    },
+    {
+      "month": "2010-06",
+      "gross": 15,
+      "net": 9
+    },
+    {
+      "month": "2010-07",
+      "gross": 15,
+      "net": 7
+    },
+    {
+      "month": "2010-08",
+      "gross": 16,
+      "net": 8
+    },
+    {
+      "month": "2010-09",
+      "gross": 15,
+      "net": 4
+    },
+    {
+      "month": "2010-10",
+      "gross": 25,
+      "net": 10
+    },
+    {
+      "month": "2010-11",
+      "gross": 26,
+      "net": 11
+    },
+    {
+      "month": "2010-12",
+      "gross": 20,
+      "net": 11
+    },
+    {
+      "month": "2011-01",
+      "gross": 16,
+      "net": 4
+    },
+    {
+      "month": "2011-02",
+      "gross": 21,
+      "net": 14
+    },
+    {
+      "month": "2011-03",
+      "gross": 13,
+      "net": 6
+    },
+    {
+      "month": "2011-04",
+      "gross": 22,
+      "net": 8
+    },
+    {
+      "month": "2011-05",
+      "gross": 29,
+      "net": 12
+    },
+    {
+      "month": "2011-06",
+      "gross": 18,
+      "net": 6
+    },
+    {
+      "month": "2011-07",
+      "gross": 17,
+      "net": 11
+    },
+    {
+      "month": "2011-08",
+      "gross": 5,
+      "net": 1
+    },
+    {
+      "month": "2011-09",
+      "gross": 3,
+      "net": 0
+    },
+    {
+      "month": "2011-10",
+      "gross": 8,
+      "net": 2
+    },
+    {
+      "month": "2011-11",
+      "gross": 18,
+      "net": 11
+    },
+    {
+      "month": "2011-12",
+      "gross": 10,
+      "net": 6
+    },
+    {
+      "month": "2012-01",
+      "gross": 6,
+      "net": 4
+    },
+    {
+      "month": "2012-02",
+      "gross": 20,
+      "net": 16
+    },
+    {
+      "month": "2012-03",
+      "gross": 24,
+      "net": 17
+    },
+    {
+      "month": "2012-04",
+      "gross": 20,
+      "net": 12
+    },
+    {
+      "month": "2012-05",
+      "gross": 13,
+      "net": 6
+    },
+    {
+      "month": "2012-06",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "2012-07",
+      "gross": 19,
+      "net": 9
+    },
+    {
+      "month": "2012-08",
+      "gross": 11,
+      "net": 6
+    },
+    {
+      "month": "2012-09",
+      "gross": 10,
+      "net": 2
+    },
+    {
+      "month": "2012-10",
+      "gross": 28,
+      "net": 14
+    },
+    {
+      "month": "2012-11",
+      "gross": 12,
+      "net": 3
+    },
+    {
+      "month": "2012-12",
+      "gross": 8,
+      "net": 2
+    },
+    {
+      "month": "2013-01",
+      "gross": 13,
+      "net": 7
+    },
+    {
+      "month": "2013-02",
+      "gross": 10,
+      "net": 4
+    },
+    {
+      "month": "2013-03",
+      "gross": 17,
+      "net": 9
+    },
+    {
+      "month": "2013-04",
+      "gross": 16,
+      "net": 10
+    },
+    {
+      "month": "2013-05",
+      "gross": 31,
+      "net": 17
+    },
+    {
+      "month": "2013-06",
+      "gross": 25,
+      "net": 18
+    },
+    {
+      "month": "2013-07",
+      "gross": 23,
+      "net": 15
+    },
+    {
+      "month": "2013-08",
+      "gross": 16,
+      "net": 12
+    },
+    {
+      "month": "2013-09",
+      "gross": 24,
+      "net": 18
+    },
+    {
+      "month": "2013-10",
+      "gross": 33,
+      "net": 19
+    },
+    {
+      "month": "2013-11",
+      "gross": 31,
+      "net": 20
+    },
+    {
+      "month": "2013-12",
+      "gross": 13,
+      "net": 9
+    },
+    {
+      "month": "2014-01",
+      "gross": 19,
+      "net": 15
+    },
+    {
+      "month": "2014-02",
+      "gross": 23,
+      "net": 20
+    },
+    {
+      "month": "2014-03",
+      "gross": 32,
+      "net": 23
+    },
+    {
+      "month": "2014-04",
+      "gross": 28,
+      "net": 19
+    },
+    {
+      "month": "2014-05",
+      "gross": 23,
+      "net": 12
+    },
+    {
+      "month": "2014-06",
+      "gross": 32,
+      "net": 23
+    },
+    {
+      "month": "2014-07",
+      "gross": 37,
+      "net": 27
+    },
+    {
+      "month": "2014-08",
+      "gross": 14,
+      "net": 7
+    },
+    {
+      "month": "2014-09",
+      "gross": 17,
+      "net": 11
+    },
+    {
+      "month": "2014-10",
+      "gross": 36,
+      "net": 20
+    },
+    {
+      "month": "2014-11",
+      "gross": 28,
+      "net": 17
+    },
+    {
+      "month": "2014-12",
+      "gross": 16,
+      "net": 12
+    },
+    {
+      "month": "2015-01",
+      "gross": 14,
+      "net": 10
+    },
+    {
+      "month": "2015-02",
+      "gross": 12,
+      "net": 5
+    },
+    {
+      "month": "2015-03",
+      "gross": 10,
+      "net": 4
+    },
+    {
+      "month": "2015-04",
+      "gross": 17,
+      "net": 13
+    },
+    {
+      "month": "2015-05",
+      "gross": 23,
+      "net": 12
+    },
+    {
+      "month": "2015-06",
+      "gross": 30,
+      "net": 24
+    },
+    {
+      "month": "2015-07",
+      "gross": 23,
+      "net": 15
+    },
+    {
+      "month": "2015-08",
+      "gross": 10,
+      "net": 8
+    },
+    {
+      "month": "2015-09",
+      "gross": 7,
+      "net": 2
+    },
+    {
+      "month": "2015-10",
+      "gross": 20,
+      "net": 15
+    },
+    {
+      "month": "2015-11",
+      "gross": 14,
+      "net": 9
+    },
+    {
+      "month": "2015-12",
+      "gross": 2,
+      "net": 1
+    },
+    {
+      "month": "2016-01",
+      "gross": 0,
+      "net": 0
+    },
+    {
+      "month": "2016-02",
+      "gross": 5,
+      "net": 3
+    },
+    {
+      "month": "2016-03",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "2016-04",
+      "gross": 8,
+      "net": 5
+    },
+    {
+      "month": "2016-05",
+      "gross": 19,
+      "net": 11
+    },
+    {
+      "month": "2016-06",
+      "gross": 9,
+      "net": 6
+    },
+    {
+      "month": "2016-07",
+      "gross": 11,
+      "net": 8
+    },
+    {
+      "month": "2016-08",
+      "gross": 8,
+      "net": 6
+    },
+    {
+      "month": "2016-09",
+      "gross": 17,
+      "net": 10
+    },
+    {
+      "month": "2016-10",
+      "gross": 21,
+      "net": 18
+    },
+    {
+      "month": "2016-11",
+      "gross": 3,
+      "net": 1
+    },
+    {
+      "month": "2016-12",
+      "gross": 8,
+      "net": 5
+    },
+    {
+      "month": "2017-01",
+      "gross": 10,
+      "net": 7
+    },
+    {
+      "month": "2017-02",
+      "gross": 8,
+      "net": 3
+    },
+    {
+      "month": "2017-03",
+      "gross": 14,
+      "net": 10
+    },
+    {
+      "month": "2017-04",
+      "gross": 20,
+      "net": 14
+    },
+    {
+      "month": "2017-05",
+      "gross": 19,
+      "net": 11
+    },
+    {
+      "month": "2017-06",
+      "gross": 23,
+      "net": 10
+    },
+    {
+      "month": "2017-07",
+      "gross": 15,
+      "net": 7
+    },
+    {
+      "month": "2017-08",
+      "gross": 8,
+      "net": 5
+    },
+    {
+      "month": "2017-09",
+      "gross": 19,
+      "net": 6
+    },
+    {
+      "month": "2017-10",
+      "gross": 22,
+      "net": 10
+    },
+    {
+      "month": "2017-11",
+      "gross": 32,
+      "net": 17
+    },
+    {
+      "month": "2017-12",
+      "gross": 12,
+      "net": 6
+    },
+    {
+      "month": "2018-01",
+      "gross": 20,
+      "net": 12
+    },
+    {
+      "month": "2018-02",
+      "gross": 19,
+      "net": 11
+    },
+    {
+      "month": "2018-03",
+      "gross": 17,
+      "net": 7
+    },
+    {
+      "month": "2018-04",
+      "gross": 13,
+      "net": 9
+    },
+    {
+      "month": "2018-05",
+      "gross": 23,
+      "net": 13
+    },
+    {
+      "month": "2018-06",
+      "gross": 36,
+      "net": 24
+    },
+    {
+      "month": "2018-07",
+      "gross": 25,
+      "net": 14
+    },
+    {
+      "month": "2018-08",
+      "gross": 15,
+      "net": 6
+    },
+    {
+      "month": "2018-09",
+      "gross": 24,
+      "net": 13
+    },
+    {
+      "month": "2018-10",
+      "gross": 27,
+      "net": 18
+    },
+    {
+      "month": "2018-11",
+      "gross": 11,
+      "net": 4
+    },
+    {
+      "month": "2018-12",
+      "gross": 9,
+      "net": 3
+    },
+    {
+      "month": "2019-01",
+      "gross": 8,
+      "net": 1
+    },
+    {
+      "month": "2019-02",
+      "gross": 20,
+      "net": 8
+    },
+    {
+      "month": "2019-03",
+      "gross": 13,
+      "net": 4
+    },
+    {
+      "month": "2019-04",
+      "gross": 18,
+      "net": 13
+    },
+    {
+      "month": "2019-05",
+      "gross": 33,
+      "net": 16
+    },
+    {
+      "month": "2019-06",
+      "gross": 24,
+      "net": 18
+    },
+    {
+      "month": "2019-07",
+      "gross": 24,
+      "net": 12
+    },
+    {
+      "month": "2019-08",
+      "gross": 10,
+      "net": 4
+    },
+    {
+      "month": "2019-09",
+      "gross": 15,
+      "net": 12
+    },
+    {
+      "month": "2019-10",
+      "gross": 20,
+      "net": 13
+    },
+    {
+      "month": "2019-11",
+      "gross": 28,
+      "net": 5
+    },
+    {
+      "month": "2019-12",
+      "gross": 13,
+      "net": 6
+    },
+    {
+      "month": "2020-01",
+      "gross": 13,
+      "net": 6
+    },
+    {
+      "month": "2020-02",
+      "gross": 20,
+      "net": 8
+    },
+    {
+      "month": "2020-03",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "2020-04",
+      "gross": 9,
+      "net": 3
+    },
+    {
+      "month": "2020-05",
+      "gross": 17,
+      "net": 6
+    },
+    {
+      "month": "2020-06",
+      "gross": 36,
+      "net": 20
+    },
+    {
+      "month": "2020-07",
+      "gross": 46,
+      "net": 24
+    },
+    {
+      "month": "2020-08",
+      "gross": 46,
+      "net": 15
+    },
+    {
+      "month": "2020-09",
+      "gross": 65,
+      "net": 22
+    },
+    {
+      "month": "2020-10",
+      "gross": 92,
+      "net": 31
+    },
+    {
+      "month": "2020-11",
+      "gross": 42,
+      "net": 7
+    },
+    {
+      "month": "2020-12",
+      "gross": 73,
+      "net": 21
+    },
+    {
+      "month": "2021-01",
+      "gross": 119,
+      "net": 19
+    },
+    {
+      "month": "2021-02",
+      "gross": 131,
+      "net": 25
+    },
+    {
+      "month": "2021-03",
+      "gross": 151,
+      "net": 30
+    },
+    {
+      "month": "2021-04",
+      "gross": 48,
+      "net": 30
+    },
+    {
+      "month": "2021-05",
+      "gross": 43,
+      "net": 16
+    },
+    {
+      "month": "2021-06",
+      "gross": 79,
+      "net": 42
+    },
+    {
+      "month": "2021-07",
+      "gross": 98,
+      "net": 55
+    },
+    {
+      "month": "2021-08",
+      "gross": 40,
+      "net": 4
+    },
+    {
+      "month": "2021-09",
+      "gross": 53,
+      "net": 21
+    },
+    {
+      "month": "2021-10",
+      "gross": 101,
+      "net": 35
+    },
+    {
+      "month": "2021-11",
+      "gross": 92,
+      "net": 26
+    },
+    {
+      "month": "2021-12",
+      "gross": 63,
+      "net": 6
+    },
+    {
+      "month": "2022-01",
+      "gross": 37,
+      "net": 5
+    },
+    {
+      "month": "2022-02",
+      "gross": 34,
+      "net": 6
+    },
+    {
+      "month": "2022-03",
+      "gross": 14,
+      "net": 1
+    },
+    {
+      "month": "2022-04",
+      "gross": 17,
+      "net": 5
+    },
+    {
+      "month": "2022-05",
+      "gross": 15,
+      "net": 3
+    },
+    {
+      "month": "2022-06",
+      "gross": 9,
+      "net": 3
+    },
+    {
+      "month": "2022-07",
+      "gross": 4,
+      "net": 2
+    },
+    {
+      "month": "2022-08",
+      "gross": 19,
+      "net": 5
+    },
+    {
+      "month": "2022-09",
+      "gross": 11,
+      "net": 3
+    },
+    {
+      "month": "2022-10",
+      "gross": 6,
+      "net": 2
+    },
+    {
+      "month": "2022-11",
+      "gross": 5,
+      "net": 2
+    },
+    {
+      "month": "2022-12",
+      "gross": 7,
+      "net": 1
+    },
+    {
+      "month": "2023-01",
+      "gross": 8,
+      "net": 5
+    },
+    {
+      "month": "2023-02",
+      "gross": 14,
+      "net": 3
+    },
+    {
+      "month": "2023-03",
+      "gross": 18,
+      "net": 3
+    },
+    {
+      "month": "2023-04",
+      "gross": 15,
+      "net": 4
+    },
+    {
+      "month": "2023-05",
+      "gross": 9,
+      "net": 3
+    },
+    {
+      "month": "2023-06",
+      "gross": 9,
+      "net": 7
+    },
+    {
+      "month": "2023-07",
+      "gross": 14,
+      "net": 5
+    },
+    {
+      "month": "2023-08",
+      "gross": 12,
+      "net": 6
+    },
+    {
+      "month": "2023-09",
+      "gross": 17,
+      "net": 6
+    },
+    {
+      "month": "2023-10",
+      "gross": 15,
+      "net": 4
+    },
+    {
+      "month": "2023-11",
+      "gross": 15,
+      "net": 8
+    },
+    {
+      "month": "2023-12",
+      "gross": 7,
+      "net": 0
+    },
+    {
+      "month": "2024-01",
+      "gross": 11,
+      "net": 5
+    },
+    {
+      "month": "2024-02",
+      "gross": 15,
+      "net": 9
+    },
+    {
+      "month": "2024-03",
+      "gross": 12,
+      "net": 6
+    },
+    {
+      "month": "2024-04",
+      "gross": 21,
+      "net": 8
+    },
+    {
+      "month": "2024-05",
+      "gross": 13,
+      "net": 5
+    },
+    {
+      "month": "2024-06",
+      "gross": 15,
+      "net": 6
+    },
+    {
+      "month": "2024-07",
+      "gross": 18,
+      "net": 5
+    },
+    {
+      "month": "2024-08",
+      "gross": 18,
+      "net": 3
+    },
+    {
+      "month": "2024-09",
+      "gross": 24,
+      "net": 8
+    },
+    {
+      "month": "2024-10",
+      "gross": 35,
+      "net": 10
+    },
+    {
+      "month": "2024-11",
+      "gross": 19,
+      "net": 4
+    },
+    {
+      "month": "2024-12",
+      "gross": 20,
+      "net": 3
+    },
+    {
+      "month": "2025-01",
+      "gross": 27,
+      "net": 7
+    },
+    {
+      "month": "2025-02",
+      "gross": 29,
+      "net": 8
+    },
+    {
+      "month": "2025-03",
+      "gross": 19,
+      "net": 5
+    },
+    {
+      "month": "2025-04",
+      "gross": 33,
+      "net": 1
+    },
+    {
+      "month": "2025-05",
+      "gross": 35,
+      "net": 7
+    },
+    {
+      "month": "2025-06",
+      "gross": 26,
+      "net": 12
+    },
+    {
+      "month": "2025-07",
+      "gross": 37,
+      "net": 10
+    },
+    {
+      "month": "2025-08",
+      "gross": 28,
+      "net": 7
+    },
+    {
+      "month": "2025-09",
+      "gross": 31,
+      "net": 11
+    },
+    {
+      "month": "2025-10",
+      "gross": 35,
+      "net": 9
+    },
+    {
+      "month": "2025-11",
+      "gross": 19,
+      "net": 6
+    },
+    {
+      "month": "2025-12",
+      "gross": 33,
+      "net": 7
+    }
+  ],
+  "revisions": []
+}

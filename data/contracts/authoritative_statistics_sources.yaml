@@ -13,6 +13,9 @@ authoritative_classes:
   - official_regulator
   - official_sro
   - official_exchange
+  # 2026-10-06 user decision (DECISIONS 2026-10-06 IPO overheat): an academic curated public
+  # dataset may supply numbers only when it is registered below as its own narrowly scoped source.
+  - academic_curated_dataset
 insight_only_classes:
   - academic_research
   - investment_research
@@ -172,6 +175,30 @@ sources:
     numeric_input_allowed: false
     insight_only: true
     usage_roles: [narrative_context, hypothesis_generation]
+  # 2026-10-06 user decision: IPOALL.xlsx monthly gross/net IPO counts ONLY. Every other Ritter
+  # table (tech IPOs, underpricing, sales, age) stays under ritter_ipo_research = insight-only.
+  - source_id: ritter_ipoall_monthly
+    display_name: Ritter IPOALL monthly IPO counts (gross/net)
+    authority_class: academic_curated_dataset
+    owner: Jay R. Ritter, University of Florida
+    allowed_domains: [site.warrington.ufl.edu]
+    numeric_input_allowed: true
+    insight_only: false
+    usage_roles: [raw_observation, monthly_ipo_count]
+  # 2026-10-06 user decision: Nasdaq IPO calendar API month counts as a PROVISIONAL display
+  # extension after Ritter's last confirmed month. Never an index or numeric chart input.
+  # Access note: the endpoint requires a browser-like User-Agent. The repository owner
+  # explicitly authorized that on 2026-10-06 for api.nasdaq.com/api/ipo/calendar ONLY;
+  # the general no-UA-spoofing stance (CNN fear-greed) is otherwise unchanged.
+  # Only monthly counts are stored, never deal lists (redistribution caution).
+  - source_id: nasdaq_ipo_calendar
+    display_name: Nasdaq IPO calendar API (provisional monthly counts)
+    authority_class: market_data_aggregator
+    owner: Nasdaq, Inc.
+    allowed_domains: [api.nasdaq.com]
+    numeric_input_allowed: false
+    insight_only: true
+    usage_roles: [provisional_display_only, cross_check]
   - source_id: renaissance_capital_research
     display_name: Renaissance Capital IPO research
     authority_class: investment_research
