@@ -341,7 +341,7 @@ def test_ui_contract() -> None:
     html = dashboard.load_template()
     assert "<h1" in html, "대형 H1 없음"
     # U1a의 4개 핵심 목적지. 보조 화면은 문맥 탭/빠른 이동에서 제공한다.
-    for v in ("today", "future", "timeseries", "records", "trust"):
+    for v in ("today", "future", "timeseries", "records"):
         assert f'href="#{v}"' in html, f"nav 실제 링크 누락: {v}"
     assert 'aria-current' in html, "aria-current 처리 없음"
     assert "prefers-reduced-motion" in html
@@ -421,8 +421,7 @@ def test_u1a_five_section_information_architecture_contract() -> None:
         ("future", "미래 탐색"),
         ("statistics", "통계 비교"),
         ("timeseries", "시계열 예측"),
-        ("records", "기록과 검증"),
-        ("trust", "데이터와 신뢰"),
+        ("records", "기록"),
     ):
         assert html.count(f'href="#{route}"') >= 3
         assert label in html
@@ -431,13 +430,15 @@ def test_u1a_five_section_information_architecture_contract() -> None:
         'href="#future" data-v="future"',
         'href="#statistics" data-v="statistics"',
         'href="#timeseries" data-v="timeseries"',
-        'href="#trust" data-v="trust"',
         'href="#records" data-v="records"',
     ]
     assert [shell.index(item) for item in rail_order] == sorted(shell.index(item) for item in rail_order)
     assert '<span class="rail-num">04</span><span class="rail-label">시계열 예측</span>' in shell
-    assert '<span class="rail-num">05</span><span class="rail-label">데이터와 신뢰</span>' in shell
-    assert '<span class="rail-num">06</span><span class="rail-label">기록과 검증</span>' in shell
+    assert '<span class="rail-num">05</span><span class="rail-label">기록</span>' in shell
+    # 데이터와 신뢰는 기록의 '데이터' 탭으로 합쳐졌다 — 독립 대분류 링크가 남으면 안 된다
+    assert 'href="#trust"' not in shell
+    assert "데이터와 신뢰" not in html and "기록과 검증" not in html
+    assert "if(rawHash==='#trust'||rawHash.startsWith('#trust/'))return '#records/data';" in script
     for legacy in ("overview", "flow", "questions", "ask", "asof", "track"):
         assert f'href="#{legacy}" data-v=' not in shell
     for mapping in (
@@ -541,7 +542,7 @@ def test_u1c_split_surfaces_event_summary_and_glossary_contract() -> None:
     assert "rawHash==='#track')return '#records/performance'" in script
     assert "new URLSearchParams(location.search).get('mode')==='operator'" in script
     assert "trackMode==='performance'" in script and "trackMode==='operator'" in script
-    assert 'href="?mode=standard#trust"' in html
+    assert 'href="?mode=standard#records/data"' in html
     assert 'data-event-summary-toggle' in html and 'data-event-details hidden' in html
     assert 'class="event-status' not in script
     assert 'data-badge-type="event-summary"' in html
@@ -757,7 +758,7 @@ def test_forecast_lookup_ui_contract() -> None:
         "선택 3시대 원형 → 목표", "기하 detrend 잔차", "공용 strength",
         "무드리프트 기계적 기준", "임계까지 ${num(proximity.threshold_distance_pct)}%",
         "trailing 252거래일 μ의 추세 지속 가정", "physicalEventContextMarkup",
-        "등록된 사건 확률이나 다른 확률공간과 합산하지 않습니다",
+        "예측 확률과 합산하지 않습니다",
     ):
         assert required in html
     assert "lookup-metrics" in html and "lookup-primary" in html
@@ -1039,7 +1040,6 @@ def test_mid_category_registry_drives_rail_hierarchy() -> None:
     assert "paintRailSubNav(document.body.dataset.view||'today',hash);" in html
     for wired in (
         "if(sync)syncMidHash(active==='all'?'#statistics':'#statistics/'+active);",
-        "if(sync)syncMidHash(active==='status'?'#trust':'#trust/'+active);",
         "if(sync)syncMidHash(futureGraphHash());",
         "if(sync)syncMidHash(next==='summary'?'#timeseries':'#timeseries/'+next);",
     ):
@@ -1123,14 +1123,14 @@ def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
 
 
 def test_three_tier_information_architecture_midlevel_navigation() -> None:
-    """대분류 6개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/06)."""
+    """대분류 5개 아래의 중분류가 해시로 딥링크되는지 고정 (02/03/04/05)."""
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
 
-    # 서브패스를 허용하는 대분류: future / records 에 statistics / trust 추가
-    assert "statistics(?:\\/|$)|timeseries(?:\\/|$)|records(?:\\/|$)|trust(?:\\/|$)" in script
-    # 기존 대분류 라우트는 하나도 사라지지 않는다
-    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records", "#trust"):
+    # 서브패스를 허용하는 대분류: future / statistics / timeseries / records
+    assert "statistics(?:\\/|$)|timeseries(?:\\/|$)|records(?:\\/|$))/" in script
+    # 대분류는 5개 — 데이터와 신뢰는 기록의 데이터 탭으로 합쳐졌다
+    for kept in ("#today", "#future", "#statistics", "#timeseries", "#records"):
         assert f'href="{kept}"' in html, kept
 
     # 02 미래 탐색: 중분류 4개 유지 + 전망 그래프의 소분류 2개
@@ -1148,21 +1148,19 @@ def test_three_tier_information_architecture_midlevel_navigation() -> None:
         assert f"['{category}'," in html, f"통계 카테고리 목록에 {category} 없음"
     assert "['all','전체'],['ipo','IPO·상장']" in html
 
-    # 06 기록과 검증: 중분류 4개(예측 기록·검증 결과·변경 내역·비교)
-    assert "['journal','변경 내역','#records/journal']" in html
+    # 05 기록: 중분류 4개(예측·성적·변경·데이터) + 선택 시 질문 비교
+    assert "['journal','변경','#records/journal']" in html
+    assert "['data','데이터','#records/data']" in html
     assert "appendContextTabs(root,'research','journal');" in html
     live_journal = html.split("function renderDecisionJournal(")[1].split("\nfunction ")[0]
     assert "appendContextTabs(root,'research','journal');" in live_journal
     assert "appendContextTabs(root,'replay','asof');" not in live_journal, "일지는 대분류 밖 replay 그룹을 쓰지 않는다"
     assert 'href="#future/lookup">기간 조회' in html, "기간 조회 크로스링크는 본문에 유지"
 
-    # 05 데이터와 신뢰: 중분류 3개
-    assert "if(parts[0]==='trust')" in html and "trustTab:parts[1]||null" in html
-    for key in ("status", "sources", "audit"):
-        assert f'data-trust-tab="${{key}}"' in html or f"'{key}'" in html, key
-    assert "const trustTabs=[['status','현재 상태','01'],['sources','데이터 흐름','02'],['audit','변경 기록','03']]" in html
-    assert "activateTrustTab(initial?.trustTab||'status',false)" in html
-    assert "syncMidHash(active==='status'?'#trust':'#trust/'+active)" in html
+    # 옛 데이터와 신뢰는 #records/data 한 페이지 — 안쪽 탭 단계를 다시 만들지 않는다
+    assert "if(parts[1]==='data')return {section:'records',view:'track'" in html
+    assert "if(parts[0]==='trust')" not in html
+    assert "data-trust-tab" not in html and "trustTabs" not in html
 
     # 04 시계열 예측도 중분류를 갖는다. 게이트 통과 전에는 탭을 노출하되 비활성으로 둔다.
     assert "const TS_TABS=[['summary','전망 요약','01']" in html
@@ -1342,12 +1340,21 @@ def test_u1c_browser_regression_evidence() -> None:
 def test_data_trust_pipeline_is_visual_plain_language_and_live() -> None:
     html = dashboard.load_template()
     for required in (
-        "현재 데이터 상태", "수집한 값이 화면에 오기까지",
-        "공식 데이터 수집", "오류·시점 검사", "화면에 반영",
-        "항목별 상태", "출처 목록", "전망 데이터와 수정 내역",
+        "데이터 상태", "항목별 상태", "출처 목록", "현재 전망 데이터 보기", "수정 기록 ${corrections.length}건 보기",
         "ledgerSummary.accumulating", "ledgerSummary.stalled", "ledgerSummary.violation",
     ):
         assert required in html
+    # 화면이 자기 자신을 설명하는 문장은 두지 않는다 — 숫자·상태·라벨만 남긴다
+    for removed in (
+        "수집한 값이 화면에 오기까지", "데이터가 믿을 만한지 확인합니다", "예측 기록을 한눈에 봅니다",
+        "예측은 실제로 얼마나 맞았나", "무엇이 왜 바뀌었는지 봅니다", "이전 기록은 지우지 않습니다",
+        "현재 결론:", "최근 기록부터 보여줍니다", "이 회차가 이후 변화를 비교하는 기준입니다",
+    ):
+        assert removed not in html, removed
+    # 하드 규칙 라벨은 남는다: 옵션 위험중립·프록시 병기, P3 게이트 50문항, Brier>0.22 정보 제공만
+    assert "위험중립·프록시" in html
+    assert "/ 50 질문" in html
+    assert "정보 제공만 · 오차 기준 초과" in html
     assert "?mode=operator에서 열립니다" not in html
     assert "현재 전망 영수증" not in html
     assert "매주 공개 원천을 다시 확인합니다" not in html
@@ -1369,7 +1376,7 @@ def test_liquidity_series_share_one_plot_with_explicit_dual_axes() -> None:
 def test_decision_journal_share_and_contrast_contract() -> None:
     html = dashboard.load_template()
     for required in (
-        "무엇이 왜 바뀌었는지 봅니다", "날짜별 비교", "이전 기록은 지우지 않습니다",
+        "변경 내역", "날짜별 비교",
         'role="feed"', "change_note", "#asof=", "share-popover",
         "기준일 ${asof}", "조건부 시나리오이며 단일 가격 제시·투자자문이 아닙니다",
         # 화면마다 기준일과 확률 공간이 다르다 — 공유 텍스트도 그 화면 것을 쓴다(검수 260904).

@@ -60,9 +60,7 @@ def _routes(data: dict) -> list[tuple[str, str]]:
         ("records", "#records"),
         ("records-performance", "#records/performance"),
         ("records-journal", "#records/journal"),
-        ("trust", "#trust"),
-        ("trust-sources", "#trust/sources"),
-        ("trust-audit", "#trust/audit"),
+        ("records-data", "#records/data"),
     ]
     rows.append((
         "records-question",
