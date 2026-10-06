@@ -306,3 +306,91 @@ def test_origin_age_policy_lives_outside_the_frozen_contract_coordinates() -> No
     assert contract["origin_age_policy"]["warn_after_sessions"] == 1
     assert "origin_age_policy" not in frozen_coordinates(contract)
     assert frozen_hash(contract).startswith("7c56ee4eaa569782"), "봉인평가 원장의 contract_hash와 달라졌다"
+
+
+def _score_disclosure(**overrides):
+    horizons = {
+        key: {
+            "crps_improvement_vs_best": 0.0, "coverage_p10_p90": 0.8,
+            "coverage_p25_p75": 0.5, "dm_p_value": 0.5,
+        }
+        for key in ("1", "5", "21", "63")
+    }
+    disclosure = {
+        "sealed_window": {"horizons": horizons},
+        "loss_diff_ci90": {"lower": -0.01, "upper": 0.01},
+        "regimes": [
+            {"key": "great_financial_crisis_2008", "coverage_p10_p90": 0.8, "origins": 10},
+            {"key": "pandemic_2020", "coverage_p10_p90": 0.8, "origins": 10},
+            {"key": "tightening_2022", "coverage_p10_p90": 0.8, "origins": 10},
+        ],
+        "forward": {"resolved_rows": 0, "model_better_rows": 0, "covered_p10_p90_rows": 0},
+    }
+    disclosure.update(overrides)
+    return disclosure
+
+
+def test_score100_anchors_are_fixed_rules() -> None:
+    """100점 환산 앵커: 기준선 동급=정확도 50, 공칭 일치=만점, 표본 0개 위기=0점."""
+    from ai_fc.timeseries_v8_display import SCORE100_WEIGHTS, score100
+
+    assert sum(SCORE100_WEIGHTS.values()) == 100
+    neutral = score100(_score_disclosure())
+    assert neutral["pillars"]["accuracy"]["score"] == 50.0
+    assert neutral["pillars"]["calibration"]["score"] == 100.0
+    assert neutral["pillars"]["robustness"]["score"] == 100.0
+    assert neutral["pillars"]["confidence"]["score"] == 0.0
+    # 라이브 0건 = 사전값 그대로 중립(승률 50점·적중 만점의 평균)
+    assert neutral["pillars"]["live"]["score"] == 75.0
+    # 15 + 0 + 30 + 15 + 11.25 = 71.25
+    assert neutral["total"] == 71 and neutral["grade"] == "B"
+
+    better = _score_disclosure()
+    for row in better["sealed_window"]["horizons"].values():
+        row["crps_improvement_vs_best"] = 0.10
+    assert score100(better)["pillars"]["accuracy"]["score"] == 100.0
+
+    # 허용대역 끝(80% 구간 −4pp) = 75점, 그 4배 = 0점
+    edge = _score_disclosure()
+    for row in edge["sealed_window"]["horizons"].values():
+        row["coverage_p10_p90"] = 0.76
+        row["coverage_p25_p75"] = None
+    assert score100(edge)["pillars"]["calibration"]["score"] == 75.0
+
+    untested = _score_disclosure()
+    untested["regimes"][0] = {"key": "great_financial_crisis_2008", "coverage_p10_p90": None, "origins": 0}
+    robust = score100(untested)["pillars"]["robustness"]
+    assert robust["score"] == round(200 / 3, 1)
+    assert robust["detail"]["untested"] == ["great_financial_crisis_2008"]
+
+
+def test_score100_live_shrinks_small_samples_and_needs_sealed_window() -> None:
+    from ai_fc.timeseries_v8_display import score100
+
+    lucky = score100(_score_disclosure(forward={
+        "resolved_rows": 2, "model_better_rows": 2, "covered_p10_p90_rows": 2}))
+    # 2전 2승이어도 승률 점수는 (2+5)/12 → 58.3, 만점 근처로 튀지 않는다
+    assert lucky["pillars"]["live"]["detail"]["evidence_weight"] == 2 / 12
+    assert lucky["pillars"]["live"]["score"] < 80
+    # 봉인창이 없으면 점수 자체가 없다 — 전체창(개발기간 포함)으로 대체하지 않는다
+    assert score100({"full_backtest": {"horizons": {"21": {"crps_improvement_vs_best": 0.05}}}}) is None
+
+
+def test_score100_rides_on_live_projection() -> None:
+    from pathlib import Path
+
+    from ai_fc import config
+    from ai_fc.timeseries_v8_display import load_projection
+
+    projection = load_projection(Path(config.ROOT))
+    if projection is None:
+        import pytest
+        pytest.skip("V8 projection not visible in this checkout")
+    sealed = projection["sealed_metrics"]
+    score = sealed["score100"]
+    assert 0 <= score["total"] <= 100
+    points = sum(pillar["points"] for pillar in score["pillars"].values())
+    assert abs(points - score["total"]) <= 1.0
+    row = sealed["sealed_window"]["horizons"]["63"]
+    # 절대 CRPS는 공개 개선율의 분자·분모와 정확히 맞물린다
+    assert abs((1 - row["crps"] / row["best_baseline_crps"]) - row["crps_improvement_vs_best"]) < 1e-4

@@ -99,11 +99,18 @@ def test_beginner_language_layer_leads_every_tab() -> None:
     # 경로 분포 그래프 위 "얼마나 오르나" 표시는 딱 1개
     assert html.count('class="ts-goal-box"') == 1
     # 검증: 성적표 3문항이 상세 지표보다 앞, 등급은 기존 판정의 재표현
-    assert 'class="ts-scorecard"' in v8
-    assert v8.index('ts-scorecard') < v8.index('단 1회 공개된 봉인 평가')
+    # 2026-10-06: 성적표는 100점 환산 카드(timeseriesScore100Card)로 대체 — 같은 3문항이 5항목 안에
+    # 남고, 상세 지표는 그 뒤 '전문가용' 접힘 안으로 내려간다.
+    card = html[html.index("function timeseriesScore100Card"):html.index("function timeseriesErrorCompare")]
+    pillars = html[html.index("const TS_SCORE_PILLARS="):html.index("function timeseriesScore100Card")]
+    assert 'class="ts-scorecard ts-score100"' in card
+    assert v8.index('timeseriesScore100Card(') < v8.index('단 1회 공개된 봉인 평가')
+    assert v8.index('<details class="ts-expert">') < v8.index('단 1회 공개된 봉인 평가')
     for question in ("단순한 예측 방법보다 정확했나", "약속만큼 담겼나", "실전(배포 후)에서 검증됐나"):
-        assert question in v8, question
-    assert "위 성적은 전부 과거 구간 재실행입니다" in v8
+        assert question in pillars, question
+    assert "위 성적은 전부 과거 구간 재실행입니다" in pillars
+    # 점수는 빌더가 싣는 값을 그대로 그린다 — 화면에서 재계산하지 않는다
+    assert "sealed_metrics||{}).score100" in card and "게이트 판정·모델·확률을 바꾸지 않으며" in card
     # 성적표는 호버 의무 표면이 아니다 (배선 계약과 충돌 금지)
     assert 'data-ts-chart="scorecard"' not in html
 
