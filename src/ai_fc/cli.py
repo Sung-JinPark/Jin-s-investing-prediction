@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import os
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -1260,23 +1260,27 @@ def cmd_market_extensions(
 def cmd_signals(
     skip_vix: bool = typer.Option(False, "--skip-vix", help="VIX 갱신 건너뜀"),
     skip_fear_greed: bool = typer.Option(False, "--skip-fear-greed", help="공포탐욕 갱신 건너뜀"),
+    skip_nasdaq: bool = typer.Option(False, "--skip-nasdaq", help="NASDAQ 최신 종가 갱신 건너뜀"),
 ) -> None:
-    """시장 심리 표시 표면(VIX · 공포탐욕)을 갱신한다.
+    """시장 심리 표시 표면(VIX · 공포탐욕 · NASDAQ 최신 종가)을 갱신한다.
 
     **둘 다 표시 전용이다.** 확률이 아니고 어떤 예측·시나리오·base rate 와도
     산술 결합하지 않는다. 한쪽이 실패해도 다른 쪽은 갱신한다 — 하나의 원천 장애가
     화면 전체를 비우게 두지 않는다. 실패는 종료코드 1 로 남긴다.
     """
     from .fear_greed import append_reading, read_now, write_latest
+    from .market_quotes import refresh_nasdaq
+    from .market_session import is_regular_session_open
     from .vix_surface import refresh as refresh_vix
 
     root = config.ROOT
-    today = datetime.now(ZoneInfo(config.TZ_NAME)).date()
+    now_utc = datetime.now(timezone.utc)
+    today = now_utc.astimezone(ZoneInfo(config.TZ_NAME)).date()
     failures: list[str] = []
 
     if not skip_vix:
         try:
-            vix = refresh_vix(root, today=today)
+            vix = refresh_vix(root, today=today, now=now_utc)
             typer.echo(
                 f"VIX {vix['level']} ({vix['band_label']}) · {vix['observed_date']} · "
                 f"하드룰 25 까지 {vix['hard_rule']['distance']:+.2f}")
@@ -1284,7 +1288,19 @@ def cmd_signals(
             failures.append(f"vix: {type(exc).__name__}: {exc}")
             typer.echo(f"[실패] VIX 갱신: {exc}", err=True)
 
-    if not skip_fear_greed:
+    if not skip_nasdaq:
+        try:
+            quote = refresh_nasdaq(root, now=now_utc)
+            typer.echo(f"NASDAQ {quote['close']:,.2f} · {quote['session_date']} 종가 · "
+                       f"{quote.get('source')}")
+        except Exception as exc:  # noqa: BLE001 — 원천 장애가 다른 표면을 비우지 않게
+            failures.append(f"nasdaq: {type(exc).__name__}: {exc}")
+            typer.echo(f"[실패] NASDAQ 최신 종가: {exc}", err=True)
+
+    if not skip_fear_greed and is_regular_session_open(now_utc, root=root):
+        # 장중 값은 그날(KST)의 값으로 잠그지 않는다 — 원장은 하루 첫 값이 이긴다.
+        typer.echo("공포탐욕 건너뜀 — 미국 정규장 중(09:30~16:15 ET)에는 기록하지 않습니다")
+    elif not skip_fear_greed:
         try:
             reading = read_now(today=today)
             appended = append_reading(root, reading)
@@ -1301,6 +1317,48 @@ def cmd_signals(
         for item in failures:
             typer.echo(f"  - {item}", err=True)
         raise typer.Exit(code=1)
+
+
+@app.command("wait-for-close")
+def cmd_wait_for_close(
+    deadline_utc: str = typer.Option("23:30", "--deadline-utc", help="이 시각(UTC)까지만 기다린다"),
+    interval: int = typer.Option(300, "--interval", help="원천 재확인 간격(초)"),
+    max_wait_minutes: int = typer.Option(330, "--max-wait-minutes", help="최대 대기(분)"),
+) -> None:
+    """아침 8시 최신성 규칙 — 미국 세션 종가가 원천(Cboe 지연 시세·Nasdaq 시세)에 실릴 때까지 대기.
+
+    이미 세 표면이 그 세션을 싣고 있으면 곧바로 끝내고 GITHUB_OUTPUT 에
+    already_recorded=true 를 남긴다(다음 단계가 건너뛴다). 마감을 넘기면 있는 값으로
+    진행한다 — 종료코드는 언제나 0 이다.
+    """
+    from .market_quotes import wait_for_close
+
+    result = wait_for_close(config.ROOT, deadline_utc=deadline_utc, interval=interval,
+                            max_wait_minutes=max_wait_minutes, log=typer.echo)
+    typer.echo(f"대상 세션 {result['target']} — {result['status']}")
+    output = os.environ.get("GITHUB_OUTPUT")
+    if output:
+        with open(output, "a", encoding="utf-8") as handle:
+            recorded = "true" if result["status"] == "already_recorded" else "false"
+            handle.write(f"already_recorded={recorded}\n")
+            handle.write(f"wait_status={result['status']}\n")
+
+
+@app.command("freshness-check")
+def cmd_freshness_check() -> None:
+    """아침 8시 최신성 규칙 — 공포·탐욕 · VIX · NASDAQ 이 마지막 마감 세션을 싣는지 검사.
+
+    결과는 data/market_quotes/freshness_status.json 에 쓰고 화면이 '지연' 칩으로 드러낸다.
+    위반이어도 종료코드는 0 이다 — 갱신 작업을 실패로 멈추지 않고 상태를 커밋한다.
+    """
+    from .market_quotes import write_freshness_status
+
+    status = write_freshness_status(config.ROOT)
+    marks = " · ".join(f"{key} {item['session'] or '없음'} {'OK' if item['ok'] else '지연'}"
+                       for key, item in status["items"].items())
+    typer.echo(f"기대 세션 {status['expected_session']} — {marks}")
+    if not status["all_ok"]:
+        typer.echo("[지연] 최신 마감 세션을 싣지 못한 표면이 있습니다", err=True)
 
 
 @app.command("admin-traffic")

@@ -1191,7 +1191,7 @@ function renderFearGreedLab(){
   if(!lab||lab.status!=='live')return null;
   const comps=Object.entries(lab.components||{}).map(([k,c])=>fngComponentRow(k,c)).join('');
   const nqEnd=(lab.nasdaq||[]).filter(hasNumeric).at(-1);
-  return el(`<section class="fng-lab" aria-labelledby="fng-lab-head">
+  return el(`<section class="fng-lab" id="fear-greed" aria-labelledby="fng-lab-head">
     <div class="page-heading"><div><p class="eyebrow">MARKET SENTIMENT · FEAR &amp; GREED</p><h2 id="fng-lab-head">공포·탐욕 지수와 NASDAQ</h2>
       <p class="fng-lab-lead">같은 구간을 두 눈금으로 나란히 둡니다. <b>상관을 주장하지 않습니다</b> — 회귀도 상관계수도 계산하지 않고, 어떤 예측·확률과도 결합하지 않습니다.</p></div></div>
     <div class="fng-lab-legend"><span class="is-fng">공포·탐욕 (좌 0~100)</span><span class="is-nq">NASDAQ 종합 (우${hasNumeric(nqEnd)?` · 현재 ${Math.round(nqEnd).toLocaleString()}`:''})</span></div>
@@ -1284,6 +1284,20 @@ function renderStatistics(initialState){
   };
   root.querySelectorAll('[data-stat-filter]').forEach(button=>{button.onclick=()=>applyStatCategory(button.dataset.statFilter,true);});
   applyStatCategory(requestedCategory||'all',false);
+  /* #statistics/fear-greed — 분류가 아니라 절 앵커다. 전체를 보이고 공포·탐욕 절로 내린다.
+     route() 가 렌더 직후 scrollTo(0,0) 을 하고, 위쪽 차트 카드가 그 뒤에 그려지며 높이가 늘어
+     절을 밀어낸다(실측: 146px 에서 29,000px 아래로). 그래서 레이아웃이 자리 잡는 동안 몇 번 다시
+     맞추고, 사용자가 직접 스크롤하면 즉시 멈춘다. */
+  if(requestedCategory==='fear-greed'){
+    const lab=root.querySelector('.fng-lab');
+    if(lab){
+      let stopped=false;const stop=()=>{stopped=true;};
+      ['wheel','touchstart','keydown','mousedown'].forEach(type=>window.addEventListener(type,stop,{once:true,passive:true}));
+      const align=()=>{if(!stopped&&lab.isConnected)lab.scrollIntoView({block:'start'});};
+      requestAnimationFrame(()=>requestAnimationFrame(align));
+      [250,700,1500,2500].forEach(ms=>setTimeout(align,ms));
+    }
+  }
 }
 
 function timeseriesFeatureLabel(name){
@@ -2682,7 +2696,7 @@ function renderVixCard(vix){
   const spark=moodSpark(vix.trail,{lo:Math.min(vix.trail_min,12),hi:Math.max(vix.trail_max,26),stroke:color,
     marks:[{v:25,c:'#db351b'},{v:20,c:'#c08a1e'}]});
   return `<article class="mood-card mood-vix">
-    <header><h3>VIX <small>시장이 보는 하루 등락</small></h3><span class="mood-chip" style="--chip:${color}">${esc(vix.band_label)}</span></header>
+    <header><h3>VIX <small>시장이 보는 하루 등락</small></h3>${moodLagChip('vix')}<span class="mood-chip" style="--chip:${color}">${esc(vix.band_label)}</span></header>
     <div class="mood-vix-read"><strong>${lvl.toFixed(2)}</strong><span class="${vix.change_1d>0?'edge-neg':vix.change_1d<0?'edge-pos':''}">${delta} <small>전일</small></span></div>
     <div class="mood-strip-wrap"><div class="mood-strip" role="img" aria-label="현재 구간 ${esc(vix.band_label)}, 경계 13·20·25·30·40">${strip}<b class="mood-strip-pin" style="left:${pos.toFixed(2)}%"></b></div><div class="mood-strip-ticks">${ticks}</div></div>
     ${spark}
@@ -2716,7 +2730,7 @@ function renderFearGreedCard(fng){
   const[nx,ny]=fngPoint(raw,FNG_ARC.rIn-6);
   const gate=fng.stability||{},seeded=Number(fng.seeded_days||0),hist=Number(fng.history_days||0);
   return `<article class="mood-card mood-fng">
-    <header><h3>공포 · 탐욕 <small>주식시장</small></h3><span class="mood-chip" style="--chip:${MOOD_BAND_COLOR[fng.band]||'#8a877e'}">${esc(fng.band_label)}</span></header>
+    <header><h3>공포 · 탐욕 <small>주식시장</small></h3>${moodLagChip('fng')}<span class="mood-chip" style="--chip:${MOOD_BAND_COLOR[fng.band]||'#8a877e'}">${esc(fng.band_label)}</span></header>
     <svg class="mood-gauge" viewBox="0 0 300 178" role="img" aria-label="공포탐욕 지수 ${v}, ${esc(fng.band_label)}">
       ${sectors}${ticks}
       <line class="fng-needle" x1="${FNG_ARC.cx}" y1="${FNG_ARC.cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}"/>
@@ -2730,10 +2744,21 @@ function renderFearGreedCard(fng){
   </article>`;
 }
 
+/* 홈 카드 → 상세 화면. 카드 전체를 덮는 링크 하나(stretched anchor)라 기존 선택자를 깨지 않는다. */
+function withCardLink(html,href,label){
+  const i=html.lastIndexOf('</article>');
+  if(i<0)return html;
+  return html.slice(0,i).replace('<article class="','<article class="has-card-link ')
+    +`<a class="card-link" href="${esc(href)}" aria-label="${esc(label)}"></a></article>`+html.slice(i+10);
+}
+function vixDetailHref(){
+  const vol=(MID_CATEGORIES.timeseries||[]).find(item=>item.key==='volatility');
+  return vol&&(!vol.available||vol.available())?'#timeseries/volatility':'#timeseries';
+}
 function renderMarketMood(){
   const mood=DATA.market_mood||{};
   if(!mood.vix&&!mood.fear_greed)return '';
-  return `<section class="mood-row" aria-label="시장 심리 표시 표면">${renderVixCard(mood.vix)}${renderFearGreedCard(mood.fear_greed)}</section>`;
+  return `<section class="mood-row" aria-label="시장 심리 표시 표면">${withCardLink(renderVixCard(mood.vix),vixDetailHref(),'VIX 상세 보기')}${withCardLink(renderFearGreedCard(mood.fear_greed),'#statistics/fear-greed','공포·탐욕 상세 보기')}</section>`;
 }
 
 /* ── 다음 이벤트 — 종류 인덱스 보드 ────────────────────────────
@@ -2854,8 +2879,9 @@ function renderOverview(){
     :upcoming(EV_BOARD_CAP).map(item=>({date:item.deadline,title:item.title,status:'question',id:item.id}));
   /* 카드는 라벨·숫자·한 줄만 싣는다. 경고는 산문에 이어 붙이지 않고 칩으로 빼서,
      부제가 길어져 뒤가 잘리는 일이 생기지 않게 한다. */
-  const card=(label,value,note,flag,viz)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
-    +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
+  const card=(label,value,note,flag,viz,href,aria)=>`<article class="has-card-link"><span>${esc(label)}</span><strong>${esc(value)}</strong>`
+    +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}`
+    +`<a class="card-link" href="${esc(href)}" aria-label="${esc(aria)}"></a></article>`;
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
     <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)}${thesis.accent?` <em>${esc(thesis.accent)}</em>`:''}</h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">30초 브리핑</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
@@ -2863,19 +2889,22 @@ function renderOverview(){
              stale?`마지막 기준 ${vintage.asof}`
                   :`모의 경로 중 전고점 터치·기준가 위 마감${closeProb==null?'':` · 현재가 위 마감 ${num(closeProb)}%`}`,
              stale?'갱신 필요':null,
-             stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`))}
+             stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`),
+             '#future/original','몬테카를로 예측 상세 보기')}
       ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
              tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
                       :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}`,
              tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
-               `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`))}
+               `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`),
+             '#timeseries','시계열 예측 상세 보기')}
       ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pct}%`,
              heat==null?'과열도 통계 집계 대기'
                        :`100 = 닷컴 정점 · 분야별 ${heat.lo}~${heat.hi}`,
              heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
-               `닷컴 정점 100 기준 ${heat.pct}, 분야별 ${heat.lo}~${heat.hi}`))}
+               `닷컴 정점 100 기준 ${heat.pct}, 분야별 ${heat.lo}~${heat.hi}`),
+             '#statistics','닷컴 대비 과열도 상세 보기')}
     </div>
     ${renderMarketMood()}
     <section class="today-agenda" aria-labelledby="today-events">
@@ -4799,12 +4828,30 @@ function renderTrack(initial){
 // ── 기간 조회 ──
 
 // ── 시장 지표 바 ──
+/* 아침 8시 최신성 규칙(2026-10-07) — 헤더·레일의 NASDAQ 은 시나리오 anchor 와 최신 마감 종가
+   (market_mood.nasdaq_latest, 표시 전용) 중 **더 새 세션**을 쓴다. 시나리오 데이터는 바꾸지 않는다. */
+function latestNasdaqClose(){
+  const sc=DATA.scenario||{},q=(DATA.market_mood||{}).nasdaq_latest||{};
+  const quoteOk=q.status==='live'&&hasNumeric(q.close)&&q.session_date;
+  if(quoteOk&&(!sc.asof||String(q.session_date)>=String(sc.asof)))return {value:Number(q.close),session:String(q.session_date),source:'quote'};
+  if(sc.anchor!=null)return {value:Number(sc.anchor),session:sc.asof||null,source:'scenario'};
+  return null;
+}
+/* 표면이 기대 세션보다 늦으면 '지연 · 세션' 칩. 판정은 빌드 시점 freshness 가 한다. */
+function moodLagChip(key){
+  const item=(((DATA.market_mood||{}).freshness||{}).items||{})[key];
+  return item&&item.session&&!item.ok?`<em class="lag-chip">지연 · ${esc(item.session)}</em>`:'';
+}
 function renderHeaderStrip(){
   const sc=DATA.scenario||{},ctx=DATA.era_analog?.context||{},rg=ctx.regime||{},br=ctx.breadth||{};
-  const anchor=sc.anchor,ath=sc.ath,corr=sc.corr10,vintage=scenarioVintage();
+  const corr=sc.corr10,vintage=scenarioVintage(),latest=latestNasdaqClose();
+  const ath=latest&&sc.ath!=null?Math.max(Number(sc.ath),latest.value):sc.ath;
+  const lag=(((DATA.market_mood||{}).freshness||{}).items||{}).nasdaq;
   const items=[];
-  if(anchor!=null){const vsAth=ath?((anchor/ath-1)*100):null;
-    items.push({k:'NASDAQ 종합',v:num(Math.round(anchor)),sub:vintage.status==='stale'?`보관값 · ${sc.asof}`:`${sc.asof} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`,cls:vintage.status==='stale'?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
+  if(latest){const vsAth=ath?((latest.value/ath-1)*100):null;
+    const stale=latest.source==='scenario'&&vintage.status==='stale';
+    const lagNote=lag&&lag.session&&!lag.ok?`지연 · ${lag.session}`:'';
+    items.push({k:'NASDAQ 종합',v:num(Math.round(latest.value)),sub:stale?`보관값 · ${latest.session}`:(lagNote||`${latest.session} · 전고점 대비 ${vsAth>=0?'+':''}${vsAth.toFixed(1)}%`),cls:stale||lagNote?'stale':vsAth!=null?(vsAth>=0?'up':'down'):''});}
   if(ath!=null)items.push({k:'전고점 ATH',v:num(Math.round(ath)),sub:'2023년 이후 최고 종가'});
   if(corr!=null)items.push({k:'−10% 조정선',v:num(Math.round(corr)),sub:'지지 기준'});
   if(br.pct_above_200dma!=null)items.push({k:'시장 폭',v:br.pct_above_200dma+'%',sub:'200일선 상회'});
@@ -4815,7 +4862,7 @@ function renderHeaderStrip(){
   strip.innerHTML=items.map(it=>`<div><span>${esc(it.k)}</span>${it.sub?`<small>${esc(it.sub)}</small>`:''}<strong class="${it.cls||''}">${esc(it.v)}</strong></div>`).join('');
   bindCommandTriggers();
   const railIndex=document.getElementById('rail-index');
-  if(railIndex&&anchor!=null)railIndex.textContent='NASDAQ '+num(Math.round(anchor));
+  if(railIndex&&latest)railIndex.textContent='NASDAQ '+num(Math.round(latest.value));
 }
 
 // ── 부트 ──

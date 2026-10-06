@@ -1986,3 +1986,24 @@ def test_authored_dashboard_script_compacts_into_valid_javascript() -> None:
         done = subprocess.run([node, "--check", str(target)],
                               capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[:600]
+
+
+def test_home_cards_link_to_their_detail_pages() -> None:
+    """홈 카드 다섯 장은 상세 화면으로 간다 — 카드를 덮는 링크 하나 + 낭독용 이름."""
+    script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
+    css = dashboard.DASHBOARD_STYLES.read_text(encoding="utf-8")
+    overview = script[script.index("function renderOverview()"):script.index("function eventForecastValue(")]
+    assert "'#future/original','몬테카를로 예측 상세 보기'" in overview
+    assert "'#timeseries','시계열 예측 상세 보기'" in overview
+    assert "'#statistics','닷컴 대비 과열도 상세 보기'" in overview
+    assert '<a class="card-link" href="${esc(href)}" aria-label="${esc(aria)}"></a>' in overview
+    mood = script[script.index("function withCardLink("):script.index("function renderMarketMood()") + 600]
+    assert "withCardLink(renderVixCard(mood.vix),vixDetailHref(),'VIX 상세 보기')" in mood
+    assert "'#statistics/fear-greed','공포·탐욕 상세 보기'" in mood
+    assert "?'#timeseries/volatility':'#timeseries'" in mood
+    # #statistics/fear-greed 는 전체를 보이고 공포·탐욕 절로 내린다.
+    stats = script[script.index("function renderStatistics("):script.index("function timeseriesFeatureLabel(")]
+    assert "requestedCategory==='fear-greed'" in stats and "lab.scrollIntoView" in stats
+    assert 'class="fng-lab" id="fear-greed"' in script
+    assert ".has-card-link{position:relative" in css and ".card-link{position:absolute;inset:0" in css
+    assert ".has-card-link:hover" in css and ".has-card-link:focus-within" in css

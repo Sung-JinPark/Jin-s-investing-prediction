@@ -10,16 +10,27 @@ name: market-mood-refresh
 #   워크플로가 우연히 재배포할 때까지 화면에 올라가지 않았다(GITHUB_TOKEN 푸시는 push
 #   트리거를 발화하지 않는다).
 #
-# 시각: 22:40 UTC = KST 07:40 — 미국 마감(EDT 20:00 · EST 21:00 UTC) 뒤 종가가
-# 확정된 시각에 하루 한 번 실행한다. 정각은 GitHub 예약이 몰려 지연되기 쉬워 피한다.
+# 아침 8시 최신성 규칙 (2026-10-07 사용자 지시, CLAUDE.md · data/contracts/morning_freshness_v1.yaml):
+# KST 08:00 까지 화면의 공포·탐욕 · VIX · NASDAQ 이 마지막 마감 미국 세션을 싣는다.
+# - 일찍 띄우고 잡 안에서 기다린다: 17:30 · 18:30 UTC(KST 02:30 · 03:30) 예약. GitHub 예약은
+#   2~5시간 늦게 뜬다(종전 22:40 UTC 예약이 실제로 00:42~02:27 UTC 에 떠서 늘 08시를 넘김,
+#   2026-10-07 실측) — 일찍 걸어 두면 늦게 떠도 마감(EDT 20:00 · EST 21:00 UTC) 전후에 뜬다.
+# - wait-for-close 가 원천(Cboe 지연 시세 · Nasdaq 시세)에 그 세션 종가가 실릴 때까지 5분
+#   간격으로 기다리고, 23:30 UTC(KST 08:30)를 넘기면 있는 값으로 갱신한다(화면은 '지연').
+# - 두 번째 예약(또는 수동 실행)은 세 표면이 이미 그 세션을 싣고 있으면 무변경으로 끝난다.
+# - 수동 workflow_dispatch 는 예비 경로다.
 on:
   schedule:
-    - cron: "40 22 * * *"
+    - cron: "30 17 * * *"
+    - cron: "30 18 * * *"
   workflow_dispatch:
 
 permissions:
   contents: write
 
+# 기다리는 잡은 쓰기 잠금을 대략 17:30~21:30 UTC 동안 쥔다. 그 창에 예약된 다른
+# investing-data-writer 워크플로는 없다(2026-10-07 확인 — ipo-edgar-watch 금 23:40 UTC 가 가장
+# 가깝다). 진행 중인 실행은 취소하지 않는다.
 concurrency:
   group: investing-data-writer
   cancel-in-progress: false
@@ -27,6 +38,10 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      # NASDAQ 폴백은 FRED 공식 API 경로만 쓴다(DECISIONS 12-6).
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,19 +51,34 @@ jobs:
           python-version: "3.12"
       - name: Install lightweight dependencies
         run: pip install typer pydantic pyyaml python-frontmatter numpy scipy
+      - name: Wait for the US session close in the sources
+        id: wait
+        # 대기 자체가 죽어도 갱신은 한다 — 출력이 비면 아래 단계가 그대로 돈다.
+        continue-on-error: true
+        run: cd src && python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300
+      # 기다리는 동안 main 이 움직였다 — 갱신은 최신 위에서 한다.
+      - name: Sync to latest main
+        if: ${{ steps.wait.outputs.already_recorded != 'true' }}
+        run: git pull --ff-only origin main
       # 둘 다 표시 전용이고 어떤 예측·확률과도 결합하지 않는다. 한쪽이 실패해도 다른
       # 쪽 결과는 커밋해야 하므로 여기서 멈추지 않고, 마지막 단계에서 실패로 남긴다.
-      - name: Refresh market mood surfaces (VIX · fear and greed)
+      - name: Refresh market mood surfaces (VIX · fear and greed · NASDAQ close)
         id: mood
+        if: ${{ steps.wait.outputs.already_recorded != 'true' }}
         continue-on-error: true
         run: cd src && python -m ai_fc signals
+      # 최신성 판정은 실패로 멈추지 않는다 — 상태 파일을 커밋하고 화면이 '지연'을 말한다.
+      - name: Check morning freshness
+        if: ${{ always() && steps.wait.outputs.already_recorded != 'true' }}
+        continue-on-error: true
+        run: cd src && python -m ai_fc freshness-check
       - name: Commit refreshed mood surfaces
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          # 공포탐욕 원장은 append-only(하루 1행), VIX 투영은 재생성본이다.
-          for optional_dir in data/fear_greed data/vix; do
+          # 공포탐욕·NASDAQ 종가 원장은 append-only(하루/세션 1행), VIX 투영은 재생성본이다.
+          for optional_dir in data/fear_greed data/vix data/market_quotes; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"
             fi

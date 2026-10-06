@@ -22,13 +22,17 @@ import csv
 import io
 import json
 import urllib.request
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 from typing import Any, Optional
 
 SERIES_ID = "VIX"
 CBOE_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv"
 USER_AGENT = "JinsInvestingVixSurface/1.0 (91ssjj@gmail.com)"
+# 일별 CSV 는 마감 직후(KST 06~08시)에 아직 그날 종가가 없다(2026-10-07 실측). 같은 Cboe 의
+# 지연 시세는 이미 정규장 종가를 싣고 있어, CSV 뒤에 **마감된 세션 한 행만** 덧붙인다.
+QUOTE_URL = "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_VIX.json"
+QUOTE_USER_AGENT = "JinsInvestingMarketQuotes/1.0 (+public research dashboard)"
 LATEST_RELATIVE = Path("data/vix/vix_latest.json")
 TRAIL_DAYS = 183          # 스파크라인 ≈ 6개월
 HISTORY_START_DAYS = 420  # 1년 비교치까지 계산할 여유
@@ -109,6 +113,56 @@ def fetch_series(*, today: Optional[date] = None, timeout: int = 45) -> list[tup
     return rows
 
 
+def fetch_quote(*, timeout: int = 20) -> dict[str, Any]:
+    request = urllib.request.Request(
+        QUOTE_URL,
+        headers={"User-Agent": QUOTE_USER_AGENT, "Accept": "application/json"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except (OSError, UnicodeError, ValueError) as exc:
+        raise VixSurfaceError(f"Cboe VIX 지연 시세 수집 실패: {type(exc).__name__}") from exc
+
+
+def quote_close(payload: dict[str, Any], *,
+                now: Optional[datetime] = None) -> Optional[tuple[date, float]]:
+    """지연 시세에서 **마감된 정규장 종가**만 꺼낸다. 아니면 None.
+
+    - last_trade_time(ET)이 그 날짜 16:00 이후여야 한다 — 장중 값은 종가가 아니다.
+    - 20:15 ET 부터는 VIX 야간(GTH) 산출이 시작돼 같은 필드가 야간값이 된다 — 받지 않는다.
+    - 지금 시각 기준으로도 그 세션이 마감(16:15 ET)됐어야 한다.
+    """
+    from .market_session import NEW_YORK, session_closed
+
+    data = (payload or {}).get("data") or {}
+    try:
+        stamp = datetime.fromisoformat(str(data.get("last_trade_time") or ""))
+        close = float(data.get("close"))
+    except (TypeError, ValueError):
+        return None
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=NEW_YORK)
+    local = stamp.astimezone(NEW_YORK)
+    clock = local.time().replace(tzinfo=None)
+    if not (time(16, 0) <= clock < time(20, 15)):
+        return None
+    if close <= 0 or not session_closed(local.date(), now=now):
+        return None
+    return local.date(), close
+
+
+def merge_quote(rows: list[tuple[date, float]], payload: Optional[dict[str, Any]], *,
+                now: Optional[datetime] = None) -> tuple[list[tuple[date, float]], bool]:
+    """CSV 마지막 날짜보다 새 세션이면 그 종가를 맨 뒤에 붙인다. (rows, 덧붙였는가)"""
+    if not payload or not rows:
+        return rows, False
+    found = quote_close(payload, now=now)
+    if found is None or found[0] <= rows[-1][0]:
+        return rows, False
+    return rows + [found], True
+
+
 def _value_on_or_before(rows: list[tuple[date, float]], target: date) -> Optional[float]:
     found = None
     for day, value in rows:
@@ -161,9 +215,19 @@ def _round(value: Optional[float]) -> Optional[float]:
 
 
 def refresh(root: Path, *, today: Optional[date] = None,
-            timeout: int = 45) -> dict[str, Any]:
+            timeout: int = 45, now: Optional[datetime] = None,
+            quote_fetcher=None) -> dict[str, Any]:
     rows = fetch_series(today=today, timeout=timeout)
+    try:
+        payload = (quote_fetcher or fetch_quote)()
+    except Exception:  # noqa: BLE001 — 지연 시세가 없으면 CSV 만으로 간다
+        payload = None
+    rows, appended = merge_quote(rows, payload, now=now)
     projection = build_projection(rows, today=today)
+    if appended:
+        # 마지막 한 행만 지연 시세에서 왔다 — 어디서 온 값인지 섞이지 않게 남긴다.
+        projection["latest_source"] = "cboe_delayed_quote"
+        projection["latest_source_url"] = QUOTE_URL
     path = root / LATEST_RELATIVE
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(projection, ensure_ascii=False, indent=2) + "\n",
