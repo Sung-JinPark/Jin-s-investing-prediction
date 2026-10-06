@@ -621,7 +621,7 @@ def test_workspace_utility_contract() -> None:
     assert "body.density-compact" in html
     assert "body.motion-reduced" in html
     assert "body.briefing-open" in html
-    assert "3 STEP BRIEFING" in html
+    assert "30초 브리핑" in html
     assert "Shift B" in html and "Shift N" in html
     assert "maxlength=\"700\"" in html
     assert "@media print" in html
