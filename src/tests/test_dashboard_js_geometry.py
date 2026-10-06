@@ -465,10 +465,10 @@ def test_home_cards_say_in_plain_words_what_each_percent_counts() -> None:
     # 각 부제가 그 숫자가 무엇을 센 것인지 말해야 한다.
     # 78% 를 '오를 확률' 로 읽지 않도록, 센 것이 무엇인지(100번 중 몇 번)와
     # 연말 종가가 오늘보다 높은 경로 수를 부제가 함께 말해야 한다.
-    assert "주가를 100번 굴려" in row, "몬테카를로 % 가 무엇을 센 것인지"
-    assert "현재가보다 높게 끝나는 건" in row, "상승 경로 수를 따로 밝혀야 한다"
-    assert "3개월 뒤 예측 시작점" in row, "시계열 % 의 기준 시점과 임계"
-    assert "100이면 닷컴 버블 정점" in row, "과열도 축의 의미"
+    assert "모의 경로 중 전고점 터치·기준가 위 마감" in row, "몬테카를로 % 가 무엇을 센 것인지"
+    assert "현재가 위 마감 ${num(closeProb)}%" in row, "상승 경로 수를 따로 밝혀야 한다"
+    assert "3개월 뒤 ${num(tsf.now)} 위 마감" in row, "시계열 % 의 기준 시점과 임계"
+    assert "100 = 닷컴 정점" in row, "과열도 축의 의미"
 
 
 def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> None:
@@ -494,8 +494,8 @@ def test_home_overheat_card_never_shows_the_composite_without_its_spread() -> No
     assert result["unavailable"] is None and result["missing"] is None
 
     card = source.split("'닷컴 대비 과열도'", 1)[1][:420]
-    assert "100이면 닷컴 버블 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
-    assert "분야별로 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
+    assert "100 = 닷컴 정점" in card, "축의 의미를 카드가 직접 말해야 한다"
+    assert "분야별 ${heat.lo}~${heat.hi}" in card, "산포 없이 대표값만 내보내면 안 된다"
     assert "${heat.beyond}개 지표는 이미 정점 초과" in card
     assert "cycle.pct" not in card, "사이클 경과율을 과열도 값으로 대체하면 안 된다"
 

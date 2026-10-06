@@ -2504,11 +2504,11 @@ function marketThesis(upProb,rangeProb,closeProb){
      그 합성 조건의 설명은 바로 아래 몬테카를로 카드가 맡는다. */
   const closeLine=closeProb==null?'':`주가를 100번 굴리면 ${closeProb}번은 연말에 지금보다 높습니다.`;
   const tail=closeLine?` ${closeLine}`:'';
-  if(upProb>=60)return {lead:'단기 조정 위험은 남아 있지만,',
+  if(upProb>=60)return {headline:'상승 경로 우세 · 단기 조정 위험은 남음',lead:'단기 조정 위험은 남아 있지만,',
     accent:closeLine||`연말 전에 전고점을 찍거나 기준가 위로 끝나는 모의 경로가 ${upProb}%입니다.`};
-  if(rangeProb>=55)return {lead:'방어 경로의 무게가 커졌습니다.',
+  if(rangeProb>=55)return {headline:'방어 경로의 무게가 커졌습니다',lead:'방어 경로의 무게가 커졌습니다.',
     accent:`조정·횡보로 끝난 모의 경로가 100번 중 ${rangeProb}번입니다.${tail}`};
-  return {lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${tail}`};
+  return {headline:'상승과 조정 경로가 맞서는 중',lead:'상승과 조정 경로가 맞서고 있습니다.',accent:`핵심 이벤트 전까지 변동성 우위입니다.${tail}`};
 }
 /* ── 홈 신호 카드: 가격 외 두 레이어 ──────────────────────────────────────────
    V8 시계열과 닷컴↔AI 통계는 시나리오와 다른 probability_space 다. payload 가
@@ -2659,7 +2659,7 @@ function renderVixCard(vix){
     <div class="mood-strip-wrap"><div class="mood-strip" role="img" aria-label="현재 구간 ${esc(vix.band_label)}, 경계 13·20·25·30·40">${strip}<b class="mood-strip-pin" style="left:${pos.toFixed(2)}%"></b></div><div class="mood-strip-ticks">${ticks}</div></div>
     ${spark}
     <dl class="mood-meta"><div><dt>1주 전</dt><dd>${hasNumeric(vix.week_ago)?vix.week_ago.toFixed(2):'—'}</dd></div><div><dt>1개월</dt><dd>${hasNumeric(vix.month_ago)?vix.month_ago.toFixed(2):'—'}</dd></div><div><dt>1년</dt><dd>${hasNumeric(vix.year_ago)?vix.year_ago.toFixed(2):'—'}</dd></div></dl>
-    <p class="mood-note"><b>지금 ${lvl.toFixed(2)} — 하루 ±${VIX_DAY(lvl).toFixed(1)}% 안팎 오르내리는 장이라는 뜻입니다.</b> ${esc(VIX_PLAIN[vix.band]||'')}
+    <p class="mood-note"><b>하루 ±${VIX_DAY(lvl).toFixed(1)}% 안팎 등락</b>
       <span>${hr.breached?'EXIT 기준선 25 도달':`EXIT 기준선 25까지 ${hasNumeric(dist)?dist.toFixed(2):'—'} 남음`} · ${esc(vix.observed_date)} 종가 · Cboe VIX</span></p>
   </article>`;
 }
@@ -2816,8 +2816,8 @@ function renderOverview(){
   const tsf=tsForecastSignal(DATA.timeseries),cycle=dotcomCycleSignal(DATA.statistics_lab),heat=dotcomOverheatSignal(DATA.dotcom_overheat);
   const base=marketThesis(upProb,rangeProb,closeProb),summary=homeSignalSummary(upProb,tsf,heat);
   const thesis=stale
-    ?{lead:'시장 시나리오 갱신이 필요합니다.',accent:`마지막 유효 기준은 ${vintage.asof}입니다.`}
-    :{lead:base.lead,accent:summary||base.accent};
+    ?{lead:'시나리오 갱신 필요',accent:`마지막 기준 ${vintage.asof}`}
+    :{lead:base.headline,accent:''};
   const today=generatedDay();
   /* .slice(0,4) 를 뗐다 — 46건이 이미 payload 안에 있는데 홈이 42건을 버리고 있었다(추가 바이트 0).
      몇 장을 보일지는 evPick 이 종류 인덱스로 정한다. */
@@ -2829,22 +2829,22 @@ function renderOverview(){
   const card=(label,value,note,flag,viz)=>`<article><span>${esc(label)}</span><strong>${esc(value)}</strong>`
     +`${viz||''}<small>${esc(note)}</small>${flag?`<em>${esc(flag)}</em>`:''}</article>`;
   const root=el(`<div class="overview-page today-page"><section class="today-dashboard" data-home-core="true" aria-labelledby="market-thesis">
-    <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)} <em>${esc(thesis.accent)}</em></h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">3 STEP BRIEFING · 30초</button></div></header>
+    <header class="today-hero"><div><p class="eyebrow">TODAY · ${esc(sc.asof)}</p><h1 id="market-thesis">${esc(thesis.lead)}${thesis.accent?` <em>${esc(thesis.accent)}</em>`:''}</h1></div><div class="today-actions"><a href="#future">미래 경로 보기 <span>↗</span></a><button type="button" data-action="briefing">30초 브리핑</button></div></header>
     <div class="today-signals" aria-label="핵심 지표 3개">
       ${card('몬테카를로 예측 · 연말', stale?'판정 보류':`${num(upProb)}%`,
              stale?`마지막 기준 ${vintage.asof}`
-                  :`주가를 100번 굴려 ${num(upProb)}번이 연말 전 전고점을 찍거나 기준가 위로 끝납니다`+`${closeProb==null?'':` · 현재가보다 높게 끝나는 건 ${num(closeProb)}번`}`,
+                  :`모의 경로 중 전고점 터치·기준가 위 마감${closeProb==null?'':` · 현재가 위 마감 ${num(closeProb)}%`}`,
              stale?'갱신 필요':null,
              stale?'':signalShareViz(upProb,CHART_COL.S1,`모의 경로 100개 중 ${num(upProb)}개`))}
       ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
              tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
-                      :`100번 중 ${tsf.pct}번이 3개월 뒤 예측 시작점 ${num(tsf.now)}보다 높게 끝납니다`+`${tsf.lo==null||tsf.hi==null?'':` · 중앙 ${num(tsf.median)} (10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)})`}`,
+                      :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}`,
              tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
                `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`))}
       ${card('닷컴 대비 과열도', heat==null?'집계 대기':`${heat.pct}%`,
              heat==null?'과열도 통계 집계 대기'
-                       :`100이면 닷컴 버블 정점 · 분야별로 ${heat.lo}~${heat.hi} · 원천 확인 ${heat.checkedAt?String(heat.checkedAt).slice(0,16).replace('T',' ')+' UTC':'시각 미상'}`,
+                       :`100 = 닷컴 정점 · 분야별 ${heat.lo}~${heat.hi}`,
              heat&&heat.beyond?`${heat.beyond}개 지표는 이미 정점 초과`:null,
              heat==null?'':signalHeatViz(heat.pct,heat.lo,heat.hi,
                `닷컴 정점 100 기준 ${heat.pct}, 분야별 ${heat.lo}~${heat.hi}`))}
