@@ -880,12 +880,21 @@ def _probability_metrics(
     oct_end = max(i for i, value in enumerate(dates) if value <= "2026-10-31")
     touch = (paths[:, :oct_end + 1] <= anchor * .90).any(axis=1)
     ath = (paths[:, :end_2026 + 1] > ATH).any(axis=1)
+    total = float(weights.sum())
+
+    def share(mask: np.ndarray) -> float:
+        # 가중 비율 = 조건을 만족한 가중치 / 전체 가중치. `weights @ mask` 는 마스크가 전부 참일
+        # 때 부동소수 합이 1.0000000000000002 가 되어 [0,1] 검증에 걸렸다(2026-10-03 갱신 실패,
+        # 기준가가 전고점 위라 모든 경로가 신고가). 같은 배열을 같은 순서로 더하므로 전부 참이면
+        # 정확히 1.0 — 값을 자르는 것이 아니라 비율의 정의대로 계산한다.
+        return float(weights[mask].sum()) / total
+
     return {
-        "terminal_above_anchor_2026": float(weights @ (paths[:, end_2026] > anchor)),
-        "terminal_above_v51_reference_2026": float(weights @ (paths[:, end_2026] > REFERENCE_PRICE)),
-        "new_ath_by_2026": float(weights @ ath),
-        "first_touch_minus_10_by_october_end": float(weights @ touch),
-        "terminal_above_anchor_2027": float(weights @ (paths[:, -1] > anchor)),
+        "terminal_above_anchor_2026": share(paths[:, end_2026] > anchor),
+        "terminal_above_v51_reference_2026": share(paths[:, end_2026] > REFERENCE_PRICE),
+        "new_ath_by_2026": share(ath),
+        "first_touch_minus_10_by_october_end": share(touch),
+        "terminal_above_anchor_2027": share(paths[:, -1] > anchor),
         "year_end_p50": float(weighted_quantile(
             paths[:, end_2026], weights, (.50,)
         )[0]),
@@ -923,8 +932,17 @@ def _first_touch_distribution(
         "cdf": [round(float(value), 10) for value in cdf],
         "never_touched_by_october_end": round(float(weights[~any_hit].sum()), 10),
         "conditional_on_touch_quantiles": conditional_dates,
-        "october_2_role": "ordinary CDF coordinate only; no target or forced trough",
-        "cdf_at_2026_10_02": round(float(cdf[dates.index("2026-10-02")]), 10),
+        # 10월 2일은 감사용 CDF 좌표일 뿐이다. 기준일이 그 날을 지나면 전방 경로에 그 날짜가
+        # 없다 — 좌표를 지어내지 않고 None 으로 둔다(2026-10-06 갱신이 여기서 ValueError 로 죽었다).
+        "october_2_role": (
+            "ordinary CDF coordinate only; no target or forced trough"
+            if "2026-10-02" in dates[:oct_end + 1]
+            else "coordinate passed: anchor is after 2026-10-02"
+        ),
+        "cdf_at_2026_10_02": (
+            round(float(cdf[dates.index("2026-10-02")]), 10)
+            if "2026-10-02" in dates[:oct_end + 1] else None
+        ),
     }
 
 
