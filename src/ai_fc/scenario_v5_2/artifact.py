@@ -34,6 +34,7 @@ from .engine import (
     WEIGHT_CONTRACT_RELATIVE,
     ScenarioV52Error,
     assemble_candidate,
+    horizon_windows_payload,
     source_file_hash,
 )
 
@@ -56,6 +57,42 @@ def _git_context(root: Path) -> dict[str, Any]:
         "status_entry_count": len(status.splitlines()) if status else 0,
         "python": platform.python_version(),
     }
+
+
+def _validate_horizon_windows(
+    payload: dict[str, Any], dates: list[str], first_touch: dict[str, Any],
+    errors: list[str],
+) -> None:
+    """Rolling touch/year-end windows (2026-10-07 decision) must match the path axis.
+
+    Artifacts built before the rule carry no ``horizon_windows``; they are accepted
+    only while their touch window is the registered fixed 2026-10-31 one.
+    """
+    touch_dates = first_touch.get("dates", [])
+    windows = payload.get("horizon_windows")
+    if windows is None:
+        if "window_end" in first_touch or (touch_dates and touch_dates[-1] > "2026-10-31"):
+            errors.append("rolling horizon windows metadata missing")
+        return
+    if not isinstance(windows, dict) or not dates:
+        errors.append("horizon windows metadata malformed")
+        return
+    try:
+        expected = horizon_windows_payload(dates)
+    except ScenarioV52Error as exc:
+        errors.append(f"horizon windows cannot be resolved: {exc}")
+        return
+    if windows != expected:
+        errors.append("horizon windows disagree with the rolling rule on the path axis")
+    window_end = windows.get("touch_window_end")
+    if first_touch.get("window_end") != window_end:
+        errors.append("first-touch window_end disagrees with horizon windows")
+    if touch_dates and (
+        touch_dates != dates[:len(touch_dates)]
+        or touch_dates[-1] > str(window_end)
+        or (len(dates) > len(touch_dates) and dates[len(touch_dates)] <= str(window_end))
+    ):
+        errors.append("first-touch dates do not end at the last session within window_end")
 
 
 def _model_content(payload: dict[str, Any]) -> dict[str, Any]:
@@ -297,6 +334,7 @@ def validate_candidate(
         errors.append("October 2 audit coordinate missing")
     if (touch_dates and touch_dates[0] > "2026-10-02") != (first_touch.get("cdf_at_2026_10_02") is None):
         errors.append("October 2 coordinate must be None exactly when the anchor is past it")
+    _validate_horizon_windows(payload, dates, first_touch, errors)
     cdf = first_touch.get("cdf", [])
     density = first_touch.get("density", [])
     if len(cdf) != len(density) or any(b + 1e-12 < a for a, b in zip(cdf, cdf[1:])):
@@ -973,6 +1011,7 @@ def dashboard_projection(
             name: {"probabilities": row["probabilities"]}
             for name, row in payload["ablations"].items()
         },
+        "horizon_windows": payload.get("horizon_windows"),
         "first_touch_distribution": payload["first_touch_distribution"],
         "distinctness_2027": {
             "gate_pass": payload["distinctness_2027"]["gate_pass"],
