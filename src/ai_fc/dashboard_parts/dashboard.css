@@ -1944,3 +1944,36 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .card-link:focus-visible{outline:none}
 /* 아침 8시 최신성 규칙 — 기대 세션보다 늦은 표면에만 붙는다. */
 .lag-chip{margin-left:auto;padding:2px 7px;color:#a76500;background:#fff3e5;border:1px solid #f0d9b8;font:750 10px/1.25 var(--mono);font-style:normal;white-space:nowrap}
+/* ── 발표값 표: 실제 · 예상 · 이전 (investing.com 경제 캘린더 형식, event_consensus) ── */
+.ev-afp{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-top:3px;padding-top:6px;border-top:1px solid #efeee8}
+.ev-afp>span{display:grid;gap:2px;min-width:0;text-align:right;padding-left:4px}
+.ev-afp>span:first-child{text-align:left;padding-left:0}
+.ev-afp i{color:#8a877e;font:500 9.5px/1.2 var(--sans);font-style:normal}
+.ev-afp b{color:#4f4d47;font:600 12px/1.2 var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ev-afp b.afp-actual{color:#11110f;font-weight:800}
+.afp-table-wrap{overflow-x:auto}
+.afp-table{width:100%;min-width:0;border-collapse:collapse;font-size:14px}
+.afp-table thead th{padding:10px 12px;color:#4f4d47;font-size:13px;font-weight:600;text-align:right;border-bottom:1px solid #e6e5df;background:#fafaf8}
+.afp-table thead th:first-child{text-align:left}
+.afp-table tbody th{padding:13px 12px;text-align:left;font-weight:650;font-size:14px;border-bottom:1px solid #f0efea}
+.afp-table tbody th small{display:block;margin-top:2px;color:#8a877e;font-size:11px;font-weight:500}
+.afp-table td{padding:13px 12px;text-align:right;color:#3b3a36;font:500 15px/1.2 var(--mono);border-bottom:1px solid #f0efea;white-space:nowrap}
+.afp-table td.afp-actual,.ev-afp b.afp-actual{font-weight:800;color:#11110f}
+.afp-table td.afp-actual.is-beat,.ev-afp b.afp-actual.is-beat{color:#0e8a4f}
+.afp-table td.afp-actual.is-miss,.ev-afp b.afp-actual.is-miss{color:#c9002d}
+.afp-empty{color:#b8b6ad}
+.afp-source{margin:10px 0 0;color:#8a877e;font-size:11.5px}
+.afp-source a{color:#2d6fa8}
+@media(max-width:799px){.afp-table{font-size:13px}.afp-table thead th,.afp-table tbody th,.afp-table td{padding:10px 8px}.afp-table td{font-size:13.5px}}
+.afp-table thead th:not(:first-child),.afp-table td{width:92px}
+.afp-table tbody th{background:none;font-family:var(--sans);letter-spacing:0;color:#11110f}
+.afp-table thead th{font-family:var(--sans);letter-spacing:0}
+.ev-afp.is-multi{display:grid;grid-template-columns:1fr;gap:2px}
+.ev-afp-head,.ev-afp-row{display:grid;grid-template-columns:44px repeat(3,minmax(0,1fr));gap:4px;align-items:baseline;text-align:right}
+.ev-afp-head i:first-child,.ev-afp-row em{text-align:left}
+.ev-afp-row em{color:#4f4d47;font:700 10.5px/1.2 var(--mono);font-style:normal}
+.ev-card>.ev-afp{grid-column:1/-1}
+.ev-afp.is-multi>span{text-align:right;padding-left:0}
+.ev-afp.is-multi>span>i:first-child,.ev-afp-row em{text-align:left}
+.ev-afp-row b{font-size:11.5px}
+@media(max-width:799px){.ev-afp b{font-size:11px;overflow:visible;text-overflow:clip}.ev-afp i{font-size:9px}.ev-afp-head,.ev-afp-row{grid-template-columns:38px repeat(3,minmax(0,1fr));gap:2px}.ev-afp-row b{font-size:10.5px}.ev-afp-row em{font-size:9.5px}}

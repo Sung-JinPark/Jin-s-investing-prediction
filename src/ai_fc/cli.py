@@ -1361,6 +1361,23 @@ def cmd_freshness_check() -> None:
         typer.echo("[지연] 최신 마감 세션을 싣지 못한 표면이 있습니다", err=True)
 
 
+@app.command("consensus")
+def cmd_consensus() -> None:
+    """이벤트 발표값 표(실제·예상·이전)를 공개 캘린더에서 받아 append-only 원장에 덧붙인다.
+
+    표시 전용 — 어떤 예측·확률과도 결합하지 않는다. 일부 이벤트 수집이 실패해도 받은 행은
+    남기고 종료코드 1 로 실패를 드러낸다.
+    """
+    from .event_consensus import refresh
+
+    result = refresh(config.ROOT)
+    typer.echo(f"이벤트 {result['events']}개 · 값 {result['rows_seen']}행 · 새 행 {result['appended']}")
+    for failure in result["failures"]:
+        typer.echo(f"[실패] {failure}", err=True)
+    if result["failures"]:
+        raise typer.Exit(1)
+
+
 @app.command("admin-traffic")
 def cmd_admin_traffic(
     render_only: bool = typer.Option(
