@@ -161,11 +161,11 @@
   "path": "data/timeseries_v13/vol/champion_coefficients.json",
   "sha256": "1a85785056738775f732531dc442616908e20ca0f356187eb5fd1adb614b3ac1"
  },
- "content_hash": "37354f470e6c5676099543ffe31c7ef12a5eae4a688c00efdde5cf12c167d512",
+ "content_hash": "e79bb1fbfa1c50ebc4da0c4f026076752dd5a6946cb40747c251c086eb5316c7",
  "footnote": "설계창(2007-2014) 스킬 · 홀드아웃 미검증 · 참고 의견 — 매매 신호 아님. 80% 대역은 계수 불확실성(델타법)이며 보정 대역이 아니다.",
  "freshness": {
   "as_of": "2026-10-05",
-  "evaluated_at": "2026-10-07T00:07:48+00:00",
+  "evaluated_at": "2026-10-07T02:24:19+00:00",
   "last_completed_session": "2026-10-06",
   "max_missing_sessions": 1,
   "missing_sessions": 1,
@@ -186,7 +186,7 @@
   "vix_close": 15.52,
   "vix_close_ewma21": 15.717179441573196
  },
- "knowledge_cutoff": "2026-10-07T00:07:48+00:00",
+ "knowledge_cutoff": "2026-10-07T02:24:19+00:00",
  "model_id": "event_probability.volatility_v13",
  "model_version": 13,
  "probability_space": "research_volatility_v13_base_rate",
