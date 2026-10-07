@@ -290,8 +290,13 @@ def validate_candidate(
     first_touch = payload.get("first_touch_distribution", {})
     if first_touch.get("exact_date_forecast") is not False:
         errors.append("first touch is incorrectly exact-date")
-    if "2026-10-02" not in first_touch.get("dates", []):
+    touch_dates = first_touch.get("dates", [])
+    # 10월 2일 좌표는 기준일이 그 날 이전일 때만 요구한다 — 지난 날짜를 전방 경로에서 찾으면
+    # 기준일이 넘어가는 순간 매일 실패한다.
+    if touch_dates and touch_dates[0] <= "2026-10-02" and "2026-10-02" not in touch_dates:
         errors.append("October 2 audit coordinate missing")
+    if (touch_dates and touch_dates[0] > "2026-10-02") != (first_touch.get("cdf_at_2026_10_02") is None):
+        errors.append("October 2 coordinate must be None exactly when the anchor is past it")
     cdf = first_touch.get("cdf", [])
     density = first_touch.get("density", [])
     if len(cdf) != len(density) or any(b + 1e-12 < a for a, b in zip(cdf, cdf[1:])):

@@ -156,9 +156,16 @@ def test_growth_risk_policy_relief_and_attribution_are_separate() -> None:
     scores = payload["evidence_scores"]
     assert scores["labor_growth_risk"]["bounded_score"] > 0
     assert scores["policy_relief"]["bounded_score"] > 0
+    checked = 0
     for row in payload["evidence_attribution"].values():
         assert abs(row["additivity_residual"]) < 1e-12
+        # 포화된 지표(예: 기준가가 전고점 위라 모든 경로가 신고가 → new_ath_by_2026 = 1.0)는
+        # 두 효과가 정확히 0 으로 같다. 그 행은 분리 여부를 말해 주지 않으므로 건너뛴다.
+        if row["labor_growth_risk_effect"] == 0 and row["policy_relief_effect"] == 0:
+            continue
         assert row["labor_growth_risk_effect"] != row["policy_relief_effect"]
+        checked += 1
+    assert checked >= 1
     above = payload["evidence_attribution"]["terminal_above_anchor_2026"]
     assert above["labor_growth_risk_effect"] < 0
     assert above["policy_relief_effect"] > 0
@@ -584,9 +591,14 @@ def test_october_2_is_not_an_exact_date_forecast() -> None:
     timing = payload["first_touch_distribution"]
     assert timing["exact_date_forecast"] is False
     assert payload["display_contract"]["october_2_exact_date_forecast"] is False
-    assert timing["october_2_role"].startswith("ordinary CDF coordinate")
-    index = timing["dates"].index("2026-10-02")
-    assert math.isclose(timing["cdf_at_2026_10_02"], timing["cdf"][index], abs_tol=1e-10)
+    if timing["dates"] and timing["dates"][0] <= "2026-10-02":
+        assert timing["october_2_role"].startswith("ordinary CDF coordinate")
+        index = timing["dates"].index("2026-10-02")
+        assert math.isclose(timing["cdf_at_2026_10_02"], timing["cdf"][index], abs_tol=1e-10)
+    else:
+        # 기준일이 10월 2일을 지났다 — 좌표를 지어내지 않는다.
+        assert timing["cdf_at_2026_10_02"] is None
+        assert timing["october_2_role"].startswith("coordinate passed")
     assert np.all(np.diff(timing["cdf"]) >= -1e-12)
 
 
