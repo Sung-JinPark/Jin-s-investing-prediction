@@ -2838,11 +2838,13 @@ function evAfpStrip(row){
 }
 /* 묶음 실적 카드(같은 날 여러 회사)는 회사마다 한 줄 — 첫 회사 값만 보이면 나머지를 숨긴다. */
 function evAfpCluster(item){
+  /* 값이 없어도 칸은 그린다 — 모든 카드의 가운데 선이 같은 높이에 오도록(사용자 지시 2026-10-07). */
+  const empty=`<span class="ev-afp is-empty" aria-label="발표값 없음"><span><i>실제</i><b><span class="afp-empty">—</span></b></span><span><i>예상</i><b><span class="afp-empty">—</span></b></span><span><i>이전</i><b><span class="afp-empty">—</span></b></span></span>`;
   const ids=Array.isArray(item.clusterIds)&&item.clusterIds.length>1?item.clusterIds:null;
-  if(!ids)return item.event_id?evAfpStrip(evConsensusRows(item.event_id)[0]):'';
+  if(!ids){const row=item.event_id?evConsensusRows(item.event_id)[0]:null;return row?evAfpStrip(row):empty;}
   const byId=new Map((DATA.calendar_events||[]).map(r=>[r.event_id,r]));
   const rows=ids.map(id=>[byId.get(id),evConsensusRows(id)[0]]).filter(([ev,row])=>ev&&row);
-  if(!rows.length)return '';
+  if(!rows.length)return empty;
   return `<span class="ev-afp is-multi"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${rows.map(([ev,row])=>`<span class="ev-afp-row"><em>${esc(ev.ticker||'')}</em><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b>${evAfpCell(row.consensus)}</b><b>${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
 }
 function evAfpTable(rows){
@@ -2874,8 +2876,9 @@ function renderEventBoard(rows,today){
       <span class="ev-body">
         <span class="ev-line"><a class="ev-title" href="${esc(href)}"
           ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
+          ></span>
+        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
           >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
-        <span class="ev-meta"><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span>
       </span>${evAfpCluster(item)}</li>`;}).join('');
   return `<ol class="ev-cards">${cards}</ol>`;
 }
