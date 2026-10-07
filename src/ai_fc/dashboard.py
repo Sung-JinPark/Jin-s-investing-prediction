@@ -439,6 +439,8 @@ def build_read_model(
     from .event_calendar import load_event_forecasts, load_events
     calendar_events = load_events(root)
     event_forecasts = load_event_forecasts(root, now)
+    from .event_consensus import load_event_consensus
+    event_consensus = load_event_consensus(root, now)
     scenario_history = scenario_data.load_scenario_history(root, scenario)
     from .scenario_track import load_scenario_track
     scenario_track = load_scenario_track(root)
@@ -672,6 +674,7 @@ def build_read_model(
         "scenario_v4_shadow": scenario_v4_shadow,
         "calendar_events": calendar_events,
         "event_forecasts": event_forecasts,
+        "event_consensus": event_consensus,
         "scenario_history": scenario_history,
         "scenario_track": scenario_track,
         "analog_context": {

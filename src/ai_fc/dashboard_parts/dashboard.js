@@ -2820,6 +2820,37 @@ function evPick(list,cap){
   return picked.sort((a,b)=>String(a.date).localeCompare(String(b.date))
     ||String(a.kind||'').localeCompare(String(b.kind||''))).slice(0,cap);
 }
+/* 발표값 표 — 실제(Actual) · 예상(Forecast) · 이전(Previous). investing.com 경제 캘린더와 같은 세 칸.
+   값은 원천 표기 그대로(event_consensus 원장, 표시 전용). 빈 칸은 '—' — 지난 값을 끌어오지 않는다.
+   실적(EPS)만 예상 대비 상회·하회를 색으로 말한다. 경제지표는 높고 낮음의 좋고 나쁨이 지표마다
+   달라(CPI 상회는 악재, 고용 상회는 호재) 색을 칠하지 않는다. */
+const evConsensusRows=id=>(DATA.event_consensus||{})[id]||[];
+const evAfpNum=text=>{const m=String(text||'').replace(/[$,\s]/g,'').match(/^([+-]?\d*\.?\d+)([KMBT%]?)$/);if(!m)return null;return Number(m[1])*({K:1e3,M:1e6,B:1e9,T:1e12}[m[2]]||1);};
+function evAfpTone(row){
+  if(row.metric!=='eps')return '';
+  const a=evAfpNum(row.actual),c=evAfpNum(row.consensus);
+  return a==null||c==null||a===c?'':a>c?' is-beat':' is-miss';
+}
+const evAfpCell=v=>v==null||v===''?'<span class="afp-empty">—</span>':esc(v);
+function evAfpStrip(row){
+  if(!row)return '';
+  return `<span class="ev-afp" aria-label="${esc(row.label)} 실제 ${esc(row.actual||'미발표')}, 예상 ${esc(row.consensus||'없음')}, 이전 ${esc(row.previous||'없음')}"><span><i>실제</i><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b></span><span><i>예상</i><b>${evAfpCell(row.consensus)}</b></span><span><i>이전</i><b>${evAfpCell(row.previous)}</b></span></span>`;
+}
+/* 묶음 실적 카드(같은 날 여러 회사)는 회사마다 한 줄 — 첫 회사 값만 보이면 나머지를 숨긴다. */
+function evAfpCluster(item){
+  const ids=Array.isArray(item.clusterIds)&&item.clusterIds.length>1?item.clusterIds:null;
+  if(!ids)return item.event_id?evAfpStrip(evConsensusRows(item.event_id)[0]):'';
+  const byId=new Map((DATA.calendar_events||[]).map(r=>[r.event_id,r]));
+  const rows=ids.map(id=>[byId.get(id),evConsensusRows(id)[0]]).filter(([ev,row])=>ev&&row);
+  if(!rows.length)return '';
+  return `<span class="ev-afp is-multi"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${rows.map(([ev,row])=>`<span class="ev-afp-row"><em>${esc(ev.ticker||'')}</em><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b>${evAfpCell(row.consensus)}</b><b>${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
+}
+function evAfpTable(rows){
+  if(!rows.length)return '';
+  const src=[...new Map(rows.map(r=>[r.source,r])).values()];
+  return `<div class="afp-table-wrap"><table class="afp-table"><thead><tr><th scope="col">지표</th><th scope="col">실제</th><th scope="col">예상</th><th scope="col">이전</th></tr></thead><tbody>${rows.map(r=>`<tr><th scope="row">${esc(r.label)}${r.period||r.note?`<small>${esc([r.period,r.note].filter(Boolean).join(' · '))}</small>`:''}</th><td class="afp-actual${evAfpTone(r)}">${evAfpCell(r.actual)}</td><td>${evAfpCell(r.consensus)}</td><td>${evAfpCell(r.previous)}</td></tr>`).join('')}</tbody></table></div>`
+    +`<p class="afp-source">${src.map(r=>`<a href="${esc(r.source_url)}" target="_blank" rel="noopener noreferrer">${esc(r.source)} ↗</a>`).join(' · ')} · 수집 ${esc(String(rows.map(r=>r.captured_at).sort().at(-1)||'').slice(0,16).replace('T',' '))} UTC · 외부 공개값 · 참고 의견</p>`;
+}
 function renderEventBoard(rows,today){
   const list=evFuture(rows,today);
   if(!list.length)return '<p class="agenda-empty">예정된 이벤트가 없습니다.</p>';
@@ -2845,7 +2876,7 @@ function renderEventBoard(rows,today){
           ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
           >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
         <span class="ev-meta"><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span>
-      </span></li>`;}).join('');
+      </span>${evAfpCluster(item)}</li>`;}).join('');
   return `<ol class="ev-cards">${cards}</ol>`;
 }
 
@@ -2926,6 +2957,10 @@ function renderEventForecast(eventId){
   const event=(DATA.calendar_events||[]).find(row=>row.event_id===eventId);
   if(!event){mount(el('<div class="event-forecast-page"><a class="event-forecast-back" href="#today">← 오늘로</a><h1>이벤트를 찾을 수 없습니다</h1></div>'));return;}
   const estimates=DATA.event_forecasts?.[eventId]||[];
+  /* 같은 날 같은 묶음의 실적은 한 화면에 — 홈 카드가 묶어 보여 주는 단위와 같다. */
+  const peers=event.kind==='earnings'?(DATA.calendar_events||[]).filter(r=>r.kind==='earnings'&&r.date===event.date&&earningsGroup(r)===earningsGroup(event)):[event];
+  const afp=peers.flatMap(peer=>evConsensusRows(peer.event_id).map(row=>peers.length>1?{...row,label:`${earningsCompanyName(peer)} · ${row.label}`}:row));
+  const heading=peers.length>1?evFullLabel(groupFlowCalendarEvents(peers)[0]):evFullLabel(event);
   const date=String(event.date||'');
   const past=date<generatedDay();
   const cards=estimates.length?estimates.map(row=>`<article class="event-forecast-card">
@@ -2935,12 +2970,13 @@ function renderEventForecast(eventId){
   </article>`).join(''):'<p class="event-forecast-empty">확인된 공개 예상값이 아직 없습니다. 값이 확인되면 출처와 기준일을 함께 표시합니다.</p>';
   const root=el(`<div class="event-forecast-page" data-event-id="${esc(eventId)}">
     <a class="event-forecast-back" href="#today">← 오늘로</a>
-    <div class="page-heading"><div><p class="eyebrow">${past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(evFullLabel(event))}</h1>
-      <p class="page-lede">${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표 일정':'발표 예정'} · 아래 값은 발표 전 저장된 외부 추정치입니다.</p></div></div>
-    <section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
-      <h2>발표 예상값</h2><div class="event-forecast-grid">${cards}</div>
+    <div class="page-heading"><div><p class="eyebrow">${past?'지난 이벤트':'다음 이벤트'} · ${esc(date)}</p><h1>${esc(heading)}</h1>
+      <p class="page-lede">${esc(date)} ${event.time_et?`${esc(event.time_et)} ET`:''} ${past?'발표':'발표 예정'}</p></div></div>
+    ${afp.length?`<section class="event-forecast-panel event-afp-panel" aria-label="${esc(evFullLabel(event))} 발표값"><h2>발표값</h2>${evAfpTable(afp)}</section>`:''}
+    ${estimates.length||!afp.length?`<section class="event-forecast-panel" aria-label="${esc(evFullLabel(event))} 예측치">
+      <h2>${afp.length?'기관 전망':'발표 예상값'}</h2><div class="event-forecast-grid">${cards}</div>
       <p class="event-forecast-note">${event.kind==='cpi'?'클리블랜드 연은의 물가 나우캐스트입니다. 시장 컨센서스나 확정 CPI가 아닙니다.':event.kind==='fomc'&&estimates.length?'점도표는 연준 참가자의 연말 적정금리 판단이며 10월 회의 확률이 아닙니다. 예측시장 수치는 거래 호가로, 공식 전망이나 확률 보장이 아닙니다.':estimates.length?'한 기관의 공개 전망입니다. 시장 컨센서스나 확정 발표값이 아닙니다.':'공식 발표 전 예상값을 임의로 만들지 않습니다.'}</p>
-    </section>
+    </section>`:''}
     <a class="event-forecast-official" href="${esc(event.source_url)}" target="_blank" rel="noopener noreferrer">공식 발표 일정 확인 ↗</a>
   </div>`);
   mount(root);
@@ -4174,8 +4210,8 @@ function flowCalendarEventLabel(event){
 }
 function groupFlowCalendarEvents(events){
   const grouped=new Map();(events||[]).forEach((event,eventIndex)=>{const earnings=event.kind==='earnings',group=earnings?earningsGroup(event):'',key=earnings?`${event.date}|earnings|${group}`:`${event.date}|${event.kind}|${eventIndex}`;
-    if(!grouped.has(key))grouped.set(key,{...event,clusterCount:1,earningsGroup:group,clusterTickers:event.ticker?[event.ticker]:[]});
-    else{const row=grouped.get(key);row.clusterCount+=1;if(event.ticker&&!row.clusterTickers.includes(event.ticker))row.clusterTickers.push(event.ticker);}});
+    if(!grouped.has(key))grouped.set(key,{...event,clusterCount:1,earningsGroup:group,clusterTickers:event.ticker?[event.ticker]:[],clusterIds:event.event_id?[event.event_id]:[]});
+    else{const row=grouped.get(key);row.clusterCount+=1;if(event.ticker&&!row.clusterTickers.includes(event.ticker))row.clusterTickers.push(event.ticker);if(event.event_id)row.clusterIds.push(event.event_id);}});
   return [...grouped.values()].sort((a,b)=>String(a.date).localeCompare(String(b.date))||String(a.kind).localeCompare(String(b.kind)));
 }
 function buildRebasedFlowModel(sc,lookupDate){

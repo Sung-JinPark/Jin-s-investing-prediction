@@ -72,13 +72,20 @@ jobs:
         if: ${{ always() && steps.wait.outputs.already_recorded != 'true' }}
         continue-on-error: true
         run: cd src && python -m ai_fc freshness-check
+      # 이벤트 발표값 표(실제·예상·이전) — 경제지표·실적 컨센서스. 표시 전용, append-only.
+      # 이미 그 세션을 실은 두 번째 실행에서도 돈다(발표값은 장 마감과 무관하게 바뀐다).
+      - name: Capture event consensus (actual · forecast · previous)
+        id: consensus
+        if: ${{ always() }}
+        continue-on-error: true
+        run: cd src && python -m ai_fc consensus
       - name: Commit refreshed mood surfaces
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           # 공포탐욕·NASDAQ 종가 원장은 append-only(하루/세션 1행), VIX 투영은 재생성본이다.
-          for optional_dir in data/fear_greed data/vix data/market_quotes; do
+          for optional_dir in data/fear_greed data/vix data/market_quotes data/calendar; do
             if [ -d "$optional_dir" ]; then
               git add "$optional_dir"
             fi
@@ -88,7 +95,7 @@ jobs:
             exit 0
           fi
           observed="$(python -c "import json; print(json.load(open('data/fear_greed/fng_latest.json', encoding='utf-8')).get('observed_date', 'unknown'))")"
-          git commit -m "data: refresh market mood ${observed}"
+          git commit -m "data: refresh market mood ${observed} (+event consensus)"
           # 체크아웃과 푸시 사이에 main 은 늘 움직인다 — 추가·재생성형 산출물이라 재생은 안전하다.
           git pull --rebase origin main
           git push

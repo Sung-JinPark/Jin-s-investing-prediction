@@ -277,6 +277,7 @@ def schema() -> dict[str, Any]:
         },
     }
     properties["event_forecasts"] = {"type": "object"}
+    properties["event_consensus"] = {"type": "object"}
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://jin-investing.local/schemas/read-model-v2.json",
