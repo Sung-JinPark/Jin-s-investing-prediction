@@ -3068,6 +3068,17 @@ const V52_SCENARIO_META={
 // V5.2 paths are daily observations. Resolve month controls by calendar date,
 // never by array index: index 3 is three days, not three months.
 const V52_RANGE_META={month:['다음 1개월',{months:1}],quarter:['3개월',{months:3}],year2026:['2026 연말',null],year2027:['2027 연말',null]};
+// Touch window and year-end roll with the anchor (DECISIONS 2026-10-07); labels follow horizon_windows.
+function scenarioV52Windows(candidate){
+  const hw=candidate?.horizon_windows||{},touch=candidate?.first_touch_distribution||{},dates=candidate?.distribution?.dates||[];
+  return {touchEnd:hw.touch_window_end||touch.window_end||(touch.dates||[]).at(-1)||'2026-10-31',yearEnd:hw.year_end||'2026-12-31',horizonEnd:dates.at(-1)||'2027-12-31'};
+}
+function scenarioV52RangeLabel(candidate,key){
+  const w=scenarioV52Windows(candidate);
+  if(key==='year2026')return `${w.yearEnd.slice(0,4)} 연말`;
+  if(key==='year2027')return `${w.horizonEnd.slice(0,4)} 연말`;
+  return V52_RANGE_META[key]?.[0]||V52_RANGE_META.quarter[0];
+}
 function scenarioV52CalendarEnd(dates,months){
   if(!dates.length)return 0;
   const start=new Date(`${dates[0]}T00:00:00Z`),target=new Date(start);
@@ -3079,10 +3090,10 @@ function scenarioV52Range(candidate,key='month'){
   const dates=candidate?.conditional_small_multiples?.dates||candidate?.distribution?.dates||[];
   const rule=V52_RANGE_META[key]?.[1];
   let end=rule?.months?scenarioV52CalendarEnd(dates,rule.months):dates.length-1;
-  if(key==='year2026'){const found=dates.findLastIndex(day=>day<='2026-12-31');end=found>=0?found:end;}
+  if(key==='year2026'){const yearEnd=scenarioV52Windows(candidate).yearEnd,found=dates.findLastIndex(day=>day<=yearEnd);end=found>=0?found:end;}
   if(key==='year2027'){const found=dates.findLastIndex(day=>day<='2027-12-31');end=found>=0?found:end;}
   end=Math.max(1,Math.min(end,dates.length-1));
-  return {key,label:V52_RANGE_META[key]?.[0]||V52_RANGE_META.quarter[0],dates:dates.slice(0,end+1),end};
+  return {key,label:scenarioV52RangeLabel(candidate,key),dates:dates.slice(0,end+1),end};
 }
 function scenarioV5FlowModel(legacy,candidate){
   if(!candidate||!['ok','degraded'].includes(candidate.status)||candidate.runtime_gate?.display_eligible===false)return legacy;
@@ -3473,6 +3484,7 @@ function originalFlowPanel(){
 function renderScenarioV52(candidate,initialState={}){
   const root=el('<div></div>'),scenarios=candidate.conditional_small_multiples?.scenarios||{},touch=candidate.first_touch_distribution||{},attr=candidate.evidence_attribution||{},ablations=candidate.ablations||{},dotcom=candidate.dotcom_scenario_weighting||{},governance=candidate.governance||{},hard=candidate.model?.hard_event_mapping||{},clusters=candidate.model?.cluster_disclosure||{},layerGate=candidate.model?.database_layer_gate||{},promotionGates=governance.gates||{},weightSpaces=candidate.weight_spaces||{},distinctness=candidate.distinctness||{};
   const pct=value=>`${Math.round(Number(value)*100)}%`,pp=value=>`${Number(value)>=0?'+':''}${(Number(value)*100).toFixed(1)}%p`,weightPct=value=>`${Math.round(Number(value||0)*100)}%`;
+  const v52Windows=scenarioV52Windows(candidate);
   const full=ablations.full_evidence?.probabilities||{},terminalAttr=attr.terminal_above_anchor_2026||{},anchor=Number(candidate.anchor?.close??candidate.anchor??candidate.distribution?.bands?.p50?.[0]);
   root.appendChild(el(`<div class="page-heading"><div><p class="eyebrow" id="v52-page-eyebrow">미래 탐색</p><h1 id="v52-page-title">세 가지 시장 경로</h1><p class="page-lede" id="v52-page-lede">참고 의견 · 투자 자문 아님</p></div></div>`));
   const outlook=el(`<div id="lab-future" role="tabpanel" aria-labelledby="lab-tab-future">
@@ -3481,7 +3493,7 @@ function renderScenarioV52(candidate,initialState={}){
     <p class="chart-note">두 그래프의 %는 서로 다른 값(연구 코호트 가중치 / 모의 경로 비율) — 더하거나 비교하지 않습니다.</p>
     <div data-future-graph-panel="unified">
     <section class="scenario-v52-main" data-chart-role="unified-scenarios"><div class="panel-head"><div><p class="eyebrow">SAME SCALE · LOG VIEW</p><h2 id="scenario-v52-chart-title">3개월 · 세 시나리오 한눈에</h2></div><span class="count-chip">로그 스케일</span></div>
-      <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.entries(V52_RANGE_META).map(([key,row])=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${row[0]}</button>`).join('')}</div>
+      <div class="scenario-v52-range" role="group" aria-label="전망 기간">${Object.keys(V52_RANGE_META).map(key=>`<button type="button" data-v52-range="${key}" aria-pressed="${key==='quarter'}">${esc(scenarioV52RangeLabel(candidate,key))}</button>`).join('')}</div>
       <div class="scenario-v52-legend">${['S1','S2','S3'].map(key=>`<span><i style="background:${V52_SCENARIO_META[key].color}"></i><b>${key} ${V52_SCENARIO_META[key].title}</b><small>${esc(V52_SCENARIO_META[key].copy)}</small></span>`).join('')}<span class="is-path-key"><i></i><b>선</b><small>굵은 선=실제 모의 경로 하나(평균 아님) · 점선=중앙 · 회색=중심 구간</small></span></div>
       <div class="scenario-v52-chart" id="scenario-v52-unified-chart">${scenarioV52UnifiedChart(candidate,'quarter')}</div>
       <div class="scenario-v52-readout" id="scenario-v52-readout">${scenarioV52RangeReadout(candidate,'quarter')}</div>
@@ -3509,8 +3521,8 @@ function renderScenarioV52(candidate,initialState={}){
   const methodDetails=$('.scenario-v52-method',outlook);
   if(methodDetails)methodDetails.innerHTML=`<summary>분석 방법과 세부 통계</summary><div>
     <article><strong>연구 상태</strong><p>${esc(candidate.banner)} · 적격 사건 ${num(hard.eligible_historical_event_count||0)}/${num(hard.preferred_minimum||60)} · band calibration ${num(promotionGates.band_calibration?.observations||0)}/${num(promotionGates.band_calibration?.minimum||60)} · champion이 아닌 참고 경로입니다.</p></article>
-    <article><strong>결과 비율</strong><p>2026 연말 기준점 상회 ${pct(full.terminal_above_anchor_2026)} · 2027 연말 상회 ${pct(full.terminal_above_anchor_2027)} · 2026 최고치 ${pct(full.new_ath_by_2026)} · 10월 말까지 −10%선 접촉 ${pct(full.first_touch_minus_10_by_october_end)}. 모두 보정되지 않은 모의 경로 비율입니다.</p></article>
-    <article><strong>조정 시점 범위</strong><p>${esc((touch.dates||[]).at(-1)||'2026-10-30')}까지 −10%선(${num(Math.round(Number(touch.barrier||0)))})을 만난 경로 ${pct((touch.cdf||[]).at(-1)||0)}에 한정한 값입니다 — 중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')}. 나머지 ${pct(touch.never_touched_by_october_end||0)}는 이 창 안에서 접촉하지 않으며, 11월 이후 최초 접촉은 이 분포에 포함되지 않습니다. 정확한 날짜 예측이 아닙니다.</p></article>
+    <article><strong>결과 비율</strong><p>${esc(v52Windows.yearEnd.slice(0,4))} 연말 기준점 상회 ${pct(full.terminal_above_anchor_2026)} · ${esc(v52Windows.horizonEnd.slice(0,4))} 연말 상회 ${pct(full.terminal_above_anchor_2027)} · ${esc(v52Windows.yearEnd.slice(0,4))} 최고치 ${pct(full.new_ath_by_2026)} · ${esc(v52Windows.touchEnd)}까지 −10%선 접촉 ${pct(full.first_touch_minus_10_by_october_end)}. 모두 보정되지 않은 모의 경로 비율입니다.</p></article>
+    <article><strong>조정 시점 범위</strong><p>${esc((touch.dates||[]).at(-1)||v52Windows.touchEnd)}까지 −10%선(${num(Math.round(Number(touch.barrier||0)))})을 만난 경로 ${pct((touch.cdf||[]).at(-1)||0)}에 한정한 값입니다 — 중앙 시점 ${esc(touch.conditional_on_touch_quantiles?.p50||'–')} · 빠른 25% ${esc(touch.conditional_on_touch_quantiles?.p25||'–')} · 늦은 25% ${esc(touch.conditional_on_touch_quantiles?.p75||'–')}. 나머지 ${pct(touch.never_touched_by_october_end||0)}는 이 창 안에서 접촉하지 않으며, ${esc(v52Windows.touchEnd)} 이후 최초 접촉은 이 분포에 포함되지 않습니다. 정확한 날짜 예측이 아닙니다.</p></article>
     <article><strong>증거 효과 분리</strong><p>고용 성장위험 ${pp(terminalAttr.labor_growth_risk_effect)} · 금리 부담완화 ${pp(terminalAttr.policy_relief_effect)}. 가산 잔차는 항등 분해상 정의상 0이며 독립 성과 검정이 아닙니다.</p></article>
     <article><strong>닷컴 가중치 계약</strong><p>S1 닷컴 강도 ${Number(dotcom.scenario_strength?.S1||0).toFixed(2)} · 의존도 cap ${Number(dotcom.dependency_cap||0).toFixed(2)}. 0.40/0.60은 감도 비교, 0.80은 cap 초과로 차단합니다.</p></article>
     <article><strong>A · B · C 분리</strong><p>A ${Number(weightSpaces.A_evidence_strength?.value||0).toFixed(2)}는 증거 강도, B ${Number(weightSpaces.B_generator_dotcom_block_share?.value||0).toFixed(2)}는 S1 생성기의 닷컴 블록 비중, C ${weightPct(weightSpaces.C_mixture_probability?.value?.S1)}는 계산된 연구 코호트 질량입니다. C는 직접 입력하지 않습니다.</p></article>
@@ -3532,7 +3544,7 @@ function renderScenarioV52(candidate,initialState={}){
   const labTabs=el(`<nav class="lab-tabs scenario-v52-tabs" role="tablist" aria-label="미래 탐색 화면"><button type="button" id="lab-tab-future" role="tab" data-lab-tab="future" aria-selected="true" aria-controls="lab-future"><span>01</span> 전망 그래프<small>3개월·1개월·2026·2027</small></button><button type="button" id="lab-tab-history" role="tab" data-lab-tab="history" aria-selected="false" aria-controls="lab-history" ${historyPanel?'':'disabled'}><span>02</span> 과거 사이클<small>참고 비교</small></button><button type="button" id="lab-tab-cross-asset" role="tab" data-lab-tab="cross-asset" aria-selected="false" aria-controls="lab-cross-asset" ${crossAsset?'':'disabled'}><span>03</span> 교차자산 비교<small>NASDAQ·리츠·주택주</small></button><button type="button" id="lab-tab-liquidity" role="tab" data-lab-tab="liquidity" aria-selected="false" aria-controls="lab-liquidity" ${liquidity?'':'disabled'}><span>04</span> 유동성<small>시장 자금 흐름</small></button></nav>`);
   root.appendChild(labTabs);root.appendChild(outlook);if(historyPanel)root.appendChild(historyPanel);if(crossAsset)root.appendChild(crossAsset);if(liquidity)root.appendChild(liquidity);mount(root);
   let rangeKey='quarter';const chartHost=$('#scenario-v52-unified-chart',outlook),readout=$('#scenario-v52-readout',outlook),chartTitle=$('#scenario-v52-chart-title',outlook);
-  const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);bindScenarioV52Hover(chartHost,candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${V52_RANGE_META[rangeKey][0]} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
+  const paintRange=key=>{rangeKey=V52_RANGE_META[key]?key:'quarter';chartHost.innerHTML=scenarioV52UnifiedChart(candidate,rangeKey);bindScenarioV52Hover(chartHost,candidate,rangeKey);readout.innerHTML=scenarioV52RangeReadout(candidate,rangeKey);chartTitle.textContent=`${scenarioV52RangeLabel(candidate,rangeKey)} · 세 시나리오 한눈에`;outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.v52Range===rangeKey)));};
   outlook.querySelectorAll('[data-v52-range]').forEach(button=>button.onclick=()=>paintRange(button.dataset.v52Range));
   const graphPanels={unified:$('[data-future-graph-panel="unified"]',outlook),original:$('[data-future-graph-panel="original"]',outlook)};
   const originalPanel=originalFlowPanel();

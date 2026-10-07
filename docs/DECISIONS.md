@@ -2080,3 +2080,40 @@ insight-only 그대로다. 혈통: 원본 바이트를 공식 저장소 raw 에 
 `dashboard.js`(점선 `dash`·마커 끄기), 계약 3종(`authoritative_statistics_sources`·
 `website_data_lineage_v1`·`statistics_lab_v1`), `.github/workflows/statistics-refresh.yml`,
 테스트(`test_ipo_monthly_counts.py` 신규·`test_statistics_lab.py`·`test_dotcom_overheat.py`).
+
+## 2026-10-07 — V5.2 기간 창 자동 롤링 (사용자 결정)
+
+**결정.** "연말 남기고, 그 다음 1분기나 반기까지 연장. 항상 기간을 그런 식으로 유연하게." V5.2
+시나리오 엔진(`src/ai_fc/scenario_v5_2/engine.py`)의 고정 달력 날짜(−10% 최초 접촉 창
+`2026-10-31`, 연말 `2026-12-31`, 다음 해 시작 `2027-01-01`)는 기준일이 그 날을 지나면 일일
+`scenario-refresh` 를 죽인다(10월 2일 좌표 사례, #264). 창은 기준일을 따라 굴러간다.
+
+**규칙** (`rolling_windows(dates)` 한 곳에서 계산, `MIN_WINDOW_SESSIONS = 5` 전방 거래일):
+- **접촉 창 끝**: 일정 = 등록일 `2026-10-31` → 분기말(`2026-12-31`, `03-31`, `06-30`, `09-30`, `12-31` …).
+  기준일 뒤 전방 세션이 5개 이상 들어가는 첫 날짜. S1 닷컴 무반복 조건(코호트 가중)도 같은 창을 쓴다.
+- **연말**: 전방 세션 5개 이상이 들어가는 첫 12-31. **다음 해 시작** = 그 연말 다음 1월 1일.
+- 경로 지평이 창을 담지 못하면 `ScenarioV52Error`(불투명한 ValueError 금지).
+- 페이로드 필드명(`first_touch_minus_10_by_october_end` · `new_ath_by_2026` ·
+  `terminal_above_anchor_2026` · `never_touched_by_october_end` · `cdf_at_2026_10_02`)은 계약 호환을
+  위해 유지하고, 의미는 새 메타데이터가 말한다: 페이로드 `horizon_windows`
+  {`touch_window_end`, `touch_window_last_session`, `year_end`, `year_end_last_session`,
+  `next_year_start`, `min_window_sessions`, `rule`} · `first_touch_distribution.window_end`.
+  즉 `*_october_end` = "`touch_window_end` 까지", `*_2026` = "`year_end` 까지/에서".
+- 검증기(`artifact.py`)는 `horizon_windows` 가 경로 축에서 규칙으로 재계산한 값과 같고
+  `first_touch.window_end`·날짜 끝이 일치하는지 본다. 규칙 이전 산출물(메타 없음)은 접촉 창이
+  고정 10-31 일 때만 통과한다.
+- 화면(`dashboard.js` 결과 비율·조정 시점·기간 버튼, `audit.py`)의 날짜 문구는 `horizon_windows` 에서 온다.
+
+**섀도 검증 (AGENTS.md — 모델 출력 변경).** 같은 입력(기준일 2026-10-06, scenario·cross-asset·
+market-extensions 재실행 없이 build 만 재실행)으로 BEFORE/AFTER 를 비교했다. 숫자 리프 22,080개
+전부 **완전 일치(차이 0)** — 확률·ablation·시나리오 가중·first-touch CDF 모두 동일. 오늘의 창이
+옛 고정 날짜와 같기 때문이다(`touch_window_end=2026-10-31`, `year_end=2026-12-31`). 차이는 추가 필드
+4개(`horizon_windows`, `first_touch_distribution.window_end` ×3)와 그에 따른
+`model_content_sha256` 변경(`3c36c0b5…` → `ffc004d5…`)뿐이며, 추가 필드를 빼고 다시 해시하면
+BEFORE 해시 `3c36c0b5…` 가 그대로 재현된다. `scenario-v5-2-verify --replay` ok.
+
+**지평도 롤링.** 생성기 지평 끝(종전 고정 `2027-12-31`)도 같은 지시("항상 기간을 유연하게")로
+`research_horizon_end` = **롤링 연말의 다음 해 12-31** 로 바꿨다 — 다음 해 지표가 늘 한 해치 세션을
+갖는다. 기준일이 2026 연말 전이면 정확히 `2027-12-31` 이라 오늘 경로·확률은 무변경(위 그림자 대조와
+같은 입력에서 날짜축이 동일). 기준일 2026-12-28 무렵부터 지평은 `2028-12-31` 로 늘어난다(경로 수·길이가
+늘어 산출 시간이 약간 늘 수 있음).

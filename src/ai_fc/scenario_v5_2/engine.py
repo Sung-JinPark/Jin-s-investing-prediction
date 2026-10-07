@@ -80,6 +80,112 @@ class ScenarioV52Error(RuntimeError):
     """A fail-closed V5.2 input or model gate."""
 
 
+# 기간 창은 기준일을 따라 굴러간다(2026-10-07 사용자 결정, DECISIONS). 고정 달력 날짜는
+# 기준일이 그 날을 지나는 순간 일일 갱신을 죽였다(10월 2일 좌표, #264).
+MIN_WINDOW_SESSIONS = 5
+REGISTERED_TOUCH_WINDOW_END = "2026-10-31"
+HORIZON_WINDOW_RULE = (
+    "registered 2026-10-31 then quarter-ends; year-end rolls to next Dec-31"
+)
+
+
+def _window_contained(window_end: str, last_date: str) -> bool:
+    """True when every business day up to ``window_end`` lies inside the path horizon."""
+    if window_end <= last_date:
+        return True
+    cursor = date.fromisoformat(last_date) + timedelta(days=1)
+    end = date.fromisoformat(window_end)
+    while cursor <= end:
+        if cursor.weekday() < 5:
+            return False
+        cursor += timedelta(days=1)
+    return True
+
+
+def _first_fitting_window(
+    forward: list[str], schedule: Any, label: str, min_window_sessions: int,
+) -> str:
+    last_date = forward[-1]
+    for window_end in schedule:
+        if not _window_contained(window_end, last_date):
+            raise ScenarioV52Error(
+                f"model horizon ending {last_date} cannot contain a {label} window "
+                f"with {min_window_sessions}+ forward sessions (next candidate {window_end})"
+            )
+        if sum(1 for value in forward if value <= window_end) >= min_window_sessions:
+            return window_end
+    raise ScenarioV52Error(f"no {label} window candidate")  # pragma: no cover
+
+
+def _touch_window_schedule() -> Any:
+    yield REGISTERED_TOUCH_WINDOW_END
+    yield "2026-12-31"
+    year = 2027
+    while True:
+        for month_day in ("03-31", "06-30", "09-30", "12-31"):
+            yield f"{year}-{month_day}"
+        year += 1
+
+
+def _year_end_schedule() -> Any:
+    year = 2026
+    while True:
+        yield f"{year}-12-31"
+        year += 1
+
+
+def rolling_windows(
+    dates: list[str], *, min_window_sessions: int = MIN_WINDOW_SESSIONS,
+) -> dict[str, Any]:
+    """Resolve the rolling touch window and year-end for a path date axis.
+
+    ``dates[0]`` is the anchor; forward sessions are ``dates[1:]``.  The touch window
+    is the registered 2026-10-31 and then calendar quarter-ends; the year-end is the
+    next Dec-31.  Each picks the first candidate holding ``min_window_sessions``
+    forward sessions.  A window the path horizon cannot contain fails closed.
+    """
+    forward = list(dates[1:])
+    if not forward:
+        raise ScenarioV52Error("path date axis has no forward sessions for horizon windows")
+    if forward != sorted(forward) or forward[0] <= dates[0]:
+        raise ScenarioV52Error("path date axis is not strictly forward of the anchor")
+    touch_end = _first_fitting_window(
+        forward, _touch_window_schedule(), "touch", min_window_sessions
+    )
+    year_end = _first_fitting_window(
+        forward, _year_end_schedule(), "year-end", min_window_sessions
+    )
+    touch_index = max(i for i, value in enumerate(dates) if value <= touch_end)
+    year_end_index = max(i for i, value in enumerate(dates) if value <= year_end)
+    next_year_start = f"{int(year_end[:4]) + 1}-01-01"
+    next_year_index = next(
+        (i for i, value in enumerate(dates) if value >= next_year_start), None
+    )
+    return {
+        "touch_window_end": touch_end,
+        "touch_window_last_session": dates[touch_index],
+        "touch_window_index": touch_index,
+        "year_end": year_end,
+        "year_end_last_session": dates[year_end_index],
+        "year_end_index": year_end_index,
+        "next_year_start": next_year_start,
+        "next_year_start_index": next_year_index,
+        "min_window_sessions": min_window_sessions,
+        "rule": HORIZON_WINDOW_RULE,
+    }
+
+
+def horizon_windows_payload(dates: list[str]) -> dict[str, Any]:
+    """Public metadata subset (no array indexes) for the candidate payload."""
+    windows = rolling_windows(dates)
+    return {
+        key: windows[key] for key in (
+            "touch_window_end", "touch_window_last_session", "year_end",
+            "year_end_last_session", "next_year_start", "min_window_sessions", "rule",
+        )
+    }
+
+
 def source_file_hash(root: Path, relative: str | Path) -> str:
     """Hash sources portably while preserving raw-capture bytes exactly."""
     relative_path = Path(relative)
@@ -375,6 +481,20 @@ def _live_actual_gap(
     return [row[0] for row in rows], [row[1] for row in rows]
 
 
+def research_horizon_end(anchor_date: date, *,
+                         min_window_sessions: int = MIN_WINDOW_SESSIONS) -> date:
+    """경로 지평 끝 = 롤링 연말의 **다음 해** 12-31 (2026-10-07 사용자 결정 — 기간은 늘 유연하게 롤링).
+
+    롤링 연말은 rolling_windows 와 같은 규칙으로 정한다: 기준일 뒤 영업일이
+    min_window_sessions 이상 남은 첫 12-31. 지평은 그 다음 해 말까지라 '다음 해' 지표가
+    항상 한 해치 세션을 갖는다. 기준일이 2026 연말 전이면 종전 고정값 2027-12-31 과 같다.
+    """
+    year = anchor_date.year
+    while len(_business_dates(anchor_date + timedelta(days=1), date(year, 12, 31))) < min_window_sessions:
+        year += 1
+    return date(year + 1, 12, 31)
+
+
 def generate_prior(
     root: Path, inputs: dict[str, Any], *, seed: int = SEED,
     path_count_per_engine: int = PATH_COUNT_PER_ENGINE, block_restart_probability: float = .10,
@@ -385,11 +505,10 @@ def generate_prior(
 ) -> tuple[np.ndarray, list[str], np.ndarray, dict[str, Any], dict[str, Any]]:
     anchor_date = date.fromisoformat(inputs["forecast_anchor"]["date"])
     anchor = float(inputs["forecast_anchor"]["close"])
-    if anchor_date >= date(2027, 12, 31):
-        raise ScenarioV52Error("current anchor leaves no 2027 research horizon")
+    horizon_end = research_horizon_end(anchor_date)
     dates = [
         anchor_date.isoformat(),
-        *_business_dates(anchor_date + timedelta(days=1), date(2027, 12, 31)),
+        *_business_dates(anchor_date + timedelta(days=1), horizon_end),
     ]
     horizon = len(dates) - 1
     if not 0 < block_restart_probability <= 1:
@@ -483,7 +602,7 @@ def _path_metrics(paths: np.ndarray, dates: list[str]) -> dict[str, np.ndarray]:
     returns = np.diff(np.log(paths), axis=1)
     running_max = np.maximum.accumulate(paths, axis=1)
     drawdowns = paths / running_max - 1.0
-    date_2026 = max(index for index, value in enumerate(dates) if value <= "2026-12-31")
+    date_2026 = rolling_windows(dates)["year_end_index"]
     returns_2026 = returns[:, :date_2026]
     running_max_2026 = running_max[:, :date_2026 + 1]
     drawdowns_2026 = paths[:, :date_2026 + 1] / running_max_2026 - 1.0
@@ -735,7 +854,7 @@ def build_weights(
         axis=1,
     ))
     dotcom_compatibility = _robust_z(-dotcom_distance)
-    october_end = max(index for index, value in enumerate(dates) if value <= "2026-10-31")
+    october_end = rolling_windows(dates)["touch_window_index"]
     no_repeat_condition = (
         (paths[:, :october_end + 1].min(axis=1) > anchor * .90)
         & (metrics["terminal_2026"] > anchor)
@@ -876,8 +995,9 @@ def _probability_metrics(
     masks: dict[str, np.ndarray],
 ) -> dict[str, Any]:
     anchor = float(paths[0, 0])
-    end_2026 = max(i for i, value in enumerate(dates) if value <= "2026-12-31")
-    oct_end = max(i for i, value in enumerate(dates) if value <= "2026-10-31")
+    windows = rolling_windows(dates)
+    end_2026 = windows["year_end_index"]
+    oct_end = windows["touch_window_index"]
     touch = (paths[:, :oct_end + 1] <= anchor * .90).any(axis=1)
     ath = (paths[:, :end_2026 + 1] > ATH).any(axis=1)
     total = float(weights.sum())
@@ -908,7 +1028,8 @@ def _first_touch_distribution(
     paths: np.ndarray, dates: list[str], weights: np.ndarray,
 ) -> dict[str, Any]:
     anchor = float(paths[0, 0])
-    oct_end = max(i for i, value in enumerate(dates) if value <= "2026-10-31")
+    windows = rolling_windows(dates)
+    oct_end = windows["touch_window_index"]
     hit = paths[:, :oct_end + 1] <= anchor * .90
     any_hit = hit.any(axis=1)
     first = np.where(any_hit, np.argmax(hit, axis=1), -1)
@@ -927,6 +1048,7 @@ def _first_touch_distribution(
         "barrier_definition": "10 percent below the post-event anchor",
         "probability_unit": "fraction",
         "exact_date_forecast": False,
+        "window_end": windows["touch_window_end"],
         "dates": dates[:oct_end + 1],
         "density": [round(float(value), 10) for value in density],
         "cdf": [round(float(value), 10) for value in cdf],
@@ -1073,6 +1195,13 @@ def _scenario_outputs(
         }
     pairs: list[dict[str, Any]] = []
     keys = list(scenarios)
+    windows = rolling_windows(dates)
+    next_year_start = windows["next_year_start_index"]
+    if next_year_start is None:
+        raise ScenarioV52Error(
+            f"model horizon ending {dates[-1]} has no session after year-end "
+            f"{windows['year_end']} for the next-year distinctness segment"
+        )
     for left_index in range(len(keys)):
         for right_index in range(left_index + 1, len(keys)):
             left, right = keys[left_index], keys[right_index]
@@ -1089,7 +1218,7 @@ def _scenario_outputs(
             left_mask, right_mask = masks[left], masks[right]
             left_weights = weights[left_mask] / weights[left_mask].sum()
             right_weights = weights[right_mask] / weights[right_mask].sum()
-            start_2027 = next(i for i, value in enumerate(dates) if value >= "2027-01-01")
+            start_2027 = next_year_start
             left_p50 = np.asarray(scenarios[left]["bands"]["p50"][start_2027:], dtype=float)
             right_p50 = np.asarray(scenarios[right]["bands"]["p50"][start_2027:], dtype=float)
             level_correlation = float(np.corrcoef(
@@ -1189,7 +1318,7 @@ def _research_distinctness(
         sessions: min(sessions, len(dates) - 1)
         for sessions in (21, 42, 52, 63, 84, 105, 126, 252)
     }
-    end_2026 = max(index for index, value in enumerate(dates) if value <= "2026-12-31")
+    end_2026 = rolling_windows(dates)["year_end_index"]
     per_scenario: dict[str, Any] = {}
     touch_cdfs: dict[str, np.ndarray] = {}
     for scenario, mask in masks.items():
@@ -2121,6 +2250,7 @@ def assemble_candidate(root: Path) -> dict[str, Any]:
             "dates": dates,
             "scenarios": scenarios,
         },
+        "horizon_windows": horizon_windows_payload(dates),
         "first_touch_distribution": _first_touch_distribution(paths, dates, full_weights),
         "pre_post_jobs_comparison": {
             "comparison_basis": "same post-event anchor counterfactual to isolate evidence; not an archived pre-event forecast",

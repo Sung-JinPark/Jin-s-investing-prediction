@@ -1256,3 +1256,107 @@ def test_protected_hashes_normalize_git_text_eol_but_keep_ledgers_byte_exact(
     ledger.write_bytes(b"a,b\n1,2\n")
     ledger_lf = protected_hashes(tmp_path)["files"][ledger.relative_to(tmp_path).as_posix()]
     assert ledger_crlf != ledger_lf
+
+
+# ── 굴러가는 기간 창 (DECISIONS 2026-10-07 사용자 결정) ──────────────────────────
+def _axis(anchor: str, end: str = "2027-12-31") -> list[str]:
+    from ai_fc.scenario_v5_2.engine import _business_dates
+    start = date.fromisoformat(anchor)
+    return [anchor, *_business_dates(start + timedelta(days=1), date.fromisoformat(end))]
+
+
+@pytest.mark.parametrize(("anchor", "touch_end", "year_end"), [
+    ("2026-10-06", "2026-10-31", "2026-12-31"),   # 오늘: 등록된 고정 날짜와 같다
+    ("2026-10-27", "2026-12-31", "2026-12-31"),   # 10월 말까지 3세션 → 연말로
+    ("2026-12-28", "2027-03-31", "2027-12-31"),   # 연말까지 3세션 → 1분기 말 · 다음 연말
+    ("2027-03-27", "2027-06-30", "2027-12-31"),   # 1분기 말까지 3세션 → 반기 말
+])
+def test_rolling_windows_pick_first_window_with_five_forward_sessions(
+    anchor: str, touch_end: str, year_end: str,
+) -> None:
+    from ai_fc.scenario_v5_2.engine import MIN_WINDOW_SESSIONS, rolling_windows
+    dates = _axis(anchor)
+    windows = rolling_windows(dates)
+    assert windows["touch_window_end"] == touch_end
+    assert windows["year_end"] == year_end
+    assert windows["next_year_start"] == f"{int(year_end[:4]) + 1}-01-01"
+    assert windows["min_window_sessions"] == MIN_WINDOW_SESSIONS == 5
+    for key, end in (("touch_window_index", touch_end), ("year_end_index", year_end)):
+        index = windows[key]
+        assert dates[index] <= end and (index + 1 == len(dates) or dates[index + 1] > end)
+        assert index >= MIN_WINDOW_SESSIONS
+
+
+def test_rolling_windows_fail_closed_when_horizon_cannot_contain_a_window() -> None:
+    from ai_fc.scenario_v5_2.engine import rolling_windows
+    with pytest.raises(ScenarioV52Error, match="cannot contain"):
+        rolling_windows(_axis("2027-12-27"))
+    with pytest.raises(ScenarioV52Error, match="no forward sessions"):
+        rolling_windows(["2026-10-06"])
+    # 다음 연도가 지평 밖이면 인덱스는 None — 지어내지 않는다.
+    assert rolling_windows(_axis("2026-12-28"))["next_year_start_index"] is None
+
+
+def test_engine_window_metrics_accept_an_axis_starting_after_october() -> None:
+    from ai_fc.scenario_v5_2.engine import (
+        _first_touch_distribution, _path_metrics, _probability_metrics,
+        horizon_windows_payload,
+    )
+    dates = _axis("2026-11-02")
+    rng = np.random.default_rng(7)
+    steps = rng.normal(0.0, 0.012, size=(60, len(dates) - 1))
+    paths = 27000.0 * np.exp(np.concatenate([np.zeros((60, 1)), steps.cumsum(axis=1)], axis=1))
+    weights = np.full(60, 1 / 60)
+    engines = np.repeat([0, 1, 2], 20)
+    masks = {f"S{key + 1}": engines == key for key in range(3)}
+    metrics = _path_metrics(paths, dates)
+    assert metrics["terminal_2026"].shape == (60,)
+    probabilities = _probability_metrics(paths, dates, weights, masks)
+    assert 0.0 <= probabilities["first_touch_minus_10_by_october_end"] <= 1.0
+    touch = _first_touch_distribution(paths, dates, weights)
+    assert touch["window_end"] == "2026-12-31"
+    assert touch["dates"][-1] == "2026-12-31"
+    assert touch["cdf_at_2026_10_02"] is None
+    assert math.isclose(touch["cdf"][-1] + touch["never_touched_by_october_end"], 1.0, abs_tol=1e-8)
+    windows = horizon_windows_payload(dates)
+    assert windows["touch_window_end"] == "2026-12-31"
+    assert windows["year_end"] == "2026-12-31"
+    assert windows["next_year_start"] == "2027-01-01"
+
+
+def test_horizon_windows_validator_checks_rule_and_legacy_state() -> None:
+    from ai_fc.scenario_v5_2.artifact import _validate_horizon_windows
+    from ai_fc.scenario_v5_2.engine import horizon_windows_payload
+    dates = _axis("2026-11-02")
+    windows = horizon_windows_payload(dates)
+    touch_dates = [day for day in dates if day <= windows["touch_window_end"]]
+    first_touch = {"window_end": windows["touch_window_end"], "dates": touch_dates}
+
+    def errors_for(payload: dict, touch: dict) -> list[str]:
+        errors: list[str] = []
+        _validate_horizon_windows(payload, dates, touch, errors)
+        return errors
+
+    assert errors_for({"horizon_windows": windows}, first_touch) == []
+    assert errors_for({"horizon_windows": {**windows, "year_end": "2027-12-31"}}, first_touch)
+    assert errors_for({"horizon_windows": windows}, {**first_touch, "window_end": "2026-10-31"})
+    assert errors_for({"horizon_windows": windows}, {**first_touch, "dates": touch_dates[:-1]})
+    # 규칙 이전 산출물: 고정 10-31 창일 때만 메타데이터 없이 통과한다.
+    assert errors_for({}, {"dates": touch_dates}) == ["rolling horizon windows metadata missing"]
+    legacy_dates = _axis("2026-10-06")
+    errors: list[str] = []
+    _validate_horizon_windows(
+        {}, legacy_dates, {"dates": [d for d in legacy_dates if d <= "2026-10-31"]}, errors,
+    )
+    assert errors == []
+
+
+@pytest.mark.parametrize("anchor,expected", [
+    ("2026-10-05", "2027-12-31"),   # 오늘 — 종전 고정 지평과 같아야 한다
+    ("2026-12-23", "2027-12-31"),   # 12-31 까지 영업일 6일 → 연말 2026 유지
+    ("2026-12-28", "2028-12-31"),   # 영업일 3일 → 연말 2027 로 롤링, 지평은 그 다음 해
+    ("2027-06-01", "2028-12-31"),
+])
+def test_research_horizon_rolls_one_year_past_the_rolling_year_end(anchor: str, expected: str) -> None:
+    from ai_fc.scenario_v5_2.engine import research_horizon_end
+    assert research_horizon_end(date.fromisoformat(anchor)).isoformat() == expected

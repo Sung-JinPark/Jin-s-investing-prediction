@@ -1203,6 +1203,11 @@ def test_v5_2_future_view_uses_one_log_scale_and_restores_research_panels() -> N
         "다음 1개월",
         "2026 연말",
         "2027 연말",
+        # 기간 창은 기준일을 따라 굴러간다(DECISIONS 2026-10-07) — 라벨은 horizon_windows 에서.
+        "function scenarioV52Windows(candidate)",
+        "scenarioV52RangeLabel(candidate,key)",
+        "${esc(v52Windows.touchEnd)}까지 −10%선 접촉",
+        "${esc(v52Windows.touchEnd)} 이후 최초 접촉",
         "세 시나리오 한눈에",
         "연구 코호트 가중치",
         "0.80은 cap 초과로 차단",
