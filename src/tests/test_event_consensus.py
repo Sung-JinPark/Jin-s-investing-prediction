@@ -157,3 +157,19 @@ def test_dashboard_renders_actual_forecast_previous() -> None:
     # 경제지표는 상회·하회에 색을 칠하지 않는다 — 좋고 나쁨이 지표마다 다르다
     tone = html[html.index("function evAfpTone"):html.index("const evAfpCell")]
     assert "row.metric!=='eps'" in tone
+
+
+def test_event_cards_are_uniform_with_the_divider_at_the_middle() -> None:
+    """2026-10-07 사용자 지시: 카드 크기 통일 · 가운데 선은 정확히 가운데 · 값이 없어도 칸은 그린다."""
+    import re
+
+    css = (ROOT / "src/ai_fc/dashboard_parts/dashboard.css").read_text(encoding="utf-8")
+    assert ".ev-cards{grid-auto-rows:1fr}" in css, "모든 카드가 같은 높이"
+    assert "grid-template-rows:minmax(0,1fr) minmax(0,1fr)" in css, "위·아래 두 칸이 같은 높이"
+    # 위 테두리 3px 을 아래 여백으로 갚아야 선이 카드의 정확한 가운데에 온다
+    top, bottom = (int(v) for v in re.search(
+        r"\.ev-card\{grid-template-rows:[^}]*padding:(\d+)px \d+px (\d+)px", css).groups())
+    assert bottom == top + 3
+    js = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    cluster = js[js.index("function evAfpCluster"):js.index("function evAfpTable")]
+    assert "return row?evAfpStrip(row):empty" in cluster and "if(!rows.length)return empty" in cluster

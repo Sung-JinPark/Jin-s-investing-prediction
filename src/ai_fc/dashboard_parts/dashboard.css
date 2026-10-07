@@ -1977,3 +1977,16 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .ev-afp.is-multi>span>i:first-child,.ev-afp-row em{text-align:left}
 .ev-afp-row b{font-size:11.5px}
 @media(max-width:799px){.ev-afp b{font-size:11px;overflow:visible;text-overflow:clip}.ev-afp i{font-size:9px}.ev-afp-head,.ev-afp-row{grid-template-columns:38px repeat(3,minmax(0,1fr));gap:2px}.ev-afp-row b{font-size:10.5px}.ev-afp-row em{font-size:9.5px}}
+/* ── 다음 이벤트 카드: 크기 통일 · 가운데 선 (2026-10-07 사용자 지시) ──
+   모든 카드를 같은 높이로(grid-auto-rows:1fr — 가장 큰 카드가 기준), 카드 안은 위(일정)·아래(실제·예상·이전)
+   두 칸을 1fr 1fr 로 똑같이 나눈다. 위 테두리 3px 만큼 아래 여백을 더 줘서 선이 카드의 정확히 가운데에 온다
+   (3 + 위 여백 = 아래 여백). 아래 칸은 값이 없어도 그린다 — 선의 높이가 카드마다 같아야 한다. */
+.ev-cards{grid-auto-rows:1fr}
+.ev-card{grid-template-rows:minmax(0,1fr) minmax(0,1fr);row-gap:0;align-items:stretch;padding:9px 11px 12px}
+.ev-card>.ev-date,.ev-card>.ev-body{grid-row:1;align-self:start;padding-bottom:8px}
+.ev-card>.ev-afp{grid-row:2;grid-column:1/-1;align-self:stretch;align-content:start;margin-top:0;padding-top:8px;border-top:1px solid #e6e5df}
+.ev-afp.is-multi{grid-auto-rows:max-content}
+.ev-afp-head,.ev-afp-row{min-width:0}
+.ev-afp-row b,.ev-afp-row em{min-width:0;white-space:nowrap}
+@media(max-width:620px){.ev-card{padding:8px 9px 11px}}
+.ev-card .ev-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
