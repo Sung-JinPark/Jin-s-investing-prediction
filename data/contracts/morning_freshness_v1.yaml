@@ -1,0 +1,77 @@
+schema_version: 1
+contract_id: morning_freshness_v1
+registered_at: 2026-10-07
+origin: user_directive_2026-10-07
+summary: >-
+  매일 KST 08:00 까지 사이트의 공포·탐욕 · VIX · NASDAQ 은 마지막으로 마감된 미국 정규장
+  세션을 반영한다. 이 규칙을 바꾸는 변경은 규칙 자체를 유지해야 한다(CLAUDE.md 같은 절).
+
+deadline_kst: "08:00"
+timezone_session: America/New_York
+session_close_guard_et: "16:15"        # 정규장 16:00 + 정착 버퍼 15분 (market_session.SESSION_FINAL_AT)
+holiday_calendar: data/contracts/nyse_holidays.yaml
+
+# 이 표면들은 모두 표시 전용이다 — 확률이 아니고 어떤 예측·시나리오와도 결합하지 않는다.
+probability_space: not_a_probability
+display_only: true
+
+surfaces:
+  fng:
+    label: 공포·탐욕
+    record: data/fear_greed/fng_history.jsonl
+    session_mapping: kst_observed_date_to_previous_us_session   # fear_greed._daily_tail 과 같은 규칙
+  vix:
+    label: VIX
+    record: data/vix/vix_latest.json
+    session_field: observed_date
+  nasdaq:
+    label: NASDAQ 종합
+    record: data/market_quotes/nasdaq_latest.json
+    ledger: data/market_quotes/nasdaq_closes.jsonl
+    session_field: session_date
+
+sources:
+  fng:
+    - id: feargreedmeter
+      url: https://feargreedmeter.com/
+  vix:
+    - id: cboe_delayed_quote
+      url: https://cdn.cboe.com/api/global/delayed_quotes/quotes/_VIX.json
+      fields: [data.close, data.last_trade_time]
+      accept_window_et: ["16:00", "20:15"]   # 20:15 ET 부터는 야간(GTH) 산출값
+    - id: cboe_daily_csv
+      url: https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv
+  nasdaq:
+    - id: nasdaq_quote_api
+      url: https://api.nasdaq.com/api/quote/COMP/info?assetclass=index
+      fields: [data.primaryData.lastSalePrice, data.primaryData.lastTradeTimestamp, data.marketStatus]
+    - id: fred_nasdaqcom_official_api
+      role: fallback_only_if_newer
+      requires: FRED_API_KEY       # DECISIONS 12-6 — fredgraph.csv 스크랩 금지
+  user_agent: "JinsInvestingMarketQuotes/1.0 (+public research dashboard)"   # 연락처·개인 이메일 없음
+
+triggers:
+  primary: github_schedule_early_start_with_wait
+  workflow: .github/workflows/market-mood-refresh.yml
+  crons_utc: ["30 17 * * *", "30 18 * * *"]   # KST 02:30 · 03:30 — 예약 지연 2~5시간 실측
+  wait:
+    command: python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300
+    ready_when: cboe_delayed_quote AND nasdaq_quote_api report the target session closed
+    give_up_utc: "23:30"                      # KST 08:30 — 이후 있는 값으로 갱신, 화면은 '지연'
+    already_recorded: exit_without_changes
+  job_timeout_minutes: 360
+  concurrency_group: investing-data-writer
+  fallback: workflow_dispatch_manual
+
+guard:
+  intraday_values_never_recorded: true
+  fng_skip_during_regular_session_et: ["09:30", "16:15"]
+  nasdaq_reject_market_status: [Open]
+  ledgers_append_only_first_value_wins: true
+
+check:
+  command: python -m ai_fc freshness-check
+  status_file: data/market_quotes/freshness_status.json
+  evaluated_again_at_dashboard_build: true
+  on_violation: screen_chip_지연   # 실패로 멈추지 않는다 — 상태를 커밋하고 화면이 말한다
+  exit_code: 0

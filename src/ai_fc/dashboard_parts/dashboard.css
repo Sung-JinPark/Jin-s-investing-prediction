@@ -1936,3 +1936,11 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .oh-score strong{font-size:52px}
 .oh-grid{grid-template-columns:1fr;gap:18px}
 }
+/* 홈 카드 → 상세 화면 (2026-10-07). 카드를 덮는 링크 하나 — 기존 카드 선택자는 그대로 둔다. */
+.has-card-link{position:relative;transition:border-color .15s ease,box-shadow .15s ease}
+.has-card-link:hover{border-color:#11110f;box-shadow:0 2px 0 #11110f}
+.has-card-link:focus-within{border-color:var(--crimson);box-shadow:0 0 0 2px var(--crimson)}
+.card-link{position:absolute;inset:0;z-index:2}
+.card-link:focus-visible{outline:none}
+/* 아침 8시 최신성 규칙 — 기대 세션보다 늦은 표면에만 붙는다. */
+.lag-chip{margin-left:auto;padding:2px 7px;color:#a76500;background:#fff3e5;border:1px solid #f0d9b8;font:750 10px/1.25 var(--mono);font-style:normal;white-space:nowrap}

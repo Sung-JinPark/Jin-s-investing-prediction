@@ -503,6 +503,15 @@ def build_read_model(
         # 구성요소 7종 + 같은 축의 NASDAQ — 통계 탭 전용(홈 카드는 쓰지 않는다).
         "fear_greed_components": load_fear_greed_components(root),
     }
+    # 아침 8시 최신성 규칙(2026-10-07) — NASDAQ 최신 마감 종가(표시 전용, 시나리오 anchor 와
+    # 별개)와 표면별 최신성 판정. 헤더·홈 카드가 '지연' 칩을 그릴 때 쓴다.
+    # 판정은 **빌드 시점**에 다시 한다 — 갱신 작업이 통째로 멈춘 날에도 화면이 '지연'을 말하게.
+    from .market_quotes import freshness_status, projection as load_nasdaq_latest
+    market_mood["nasdaq_latest"] = load_nasdaq_latest(root)
+    try:
+        market_mood["freshness"] = freshness_status(root, now=now)
+    except Exception:  # noqa: BLE001 — 판정 실패가 심리 카드를 죽이지 않게
+        market_mood["freshness"] = {"status": "unavailable"}
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"

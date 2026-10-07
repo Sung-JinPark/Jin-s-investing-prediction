@@ -32,7 +32,7 @@ jobs:
       - name: Refresh fear and greed fallback
         id: mood
         continue-on-error: true
-        run: cd src && python -m ai_fc signals --skip-vix
+        run: cd src && python -m ai_fc signals --skip-vix --skip-nasdaq
 
       - name: Commit append-only D0 health receipts
         shell: bash

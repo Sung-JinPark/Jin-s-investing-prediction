@@ -172,13 +172,25 @@ def test_mood_refresh_runs_after_the_us_close_and_deploys() -> None:
     document = yaml.safe_load(text)
     on = document.get(True) or document.get("on")
     crons = [item["cron"] for item in on["schedule"]]
-    assert len(crons) == 1, "VIX는 미국 장 마감 뒤 하루 한 번만 갱신한다"
+    # 아침 8시 최신성 규칙(2026-10-07): 예약은 2~5시간 늦게 뜬다 — 마감 **전**에 일찍 띄우고
+    # 잡 안에서 종가를 기다린다(wait-for-close). 장중 값은 가드가 막는다.
+    assert crons == ["30 17 * * *", "30 18 * * *"], crons
     for cron in crons:
         minute, hour = (int(part) for part in cron.split()[:2])
-        utc = hour * 60 + minute
-        # 미국 정규장 마감(EST 21:00 UTC) 이후 ~ 다음 개장(13:30 UTC) 이전 — 장중 값을
-        # KST 관측일의 값으로 잠그지 않는다. 자정을 넘기는 창이라 둘로 나눠 본다.
-        assert utc >= 21 * 60 + 30 or utc <= 9 * 60, cron
+        # 미국 정규장 마감(EDT 20:00 · EST 21:00 UTC) 전이어야 기다릴 의미가 있다.
+        assert hour * 60 + minute < 20 * 60, cron
+    assert "workflow_dispatch" in on
+    assert "python -m ai_fc wait-for-close --deadline-utc 23:30 --interval 300" in text
+    assert text.index("wait-for-close") < text.index("python -m ai_fc signals")
+    assert "steps.wait.outputs.already_recorded != 'true'" in text
+    job = document["jobs"]["refresh"]
+    assert job["timeout-minutes"] == 360
+    assert document["concurrency"]["group"] == "investing-data-writer"
+    assert document["concurrency"]["cancel-in-progress"] is False
+    assert "python -m ai_fc freshness-check" in text
+    assert text.index("python -m ai_fc signals") < text.index("freshness-check") < text.index("git commit")
+    assert "data/market_quotes" in text
+    assert "cloud routine" not in text.lower() and "클라우드 루틴" not in text
     assert "python -m ai_fc signals" in text
     assert "data/fear_greed" in text and "data/vix" in text
     assert vs.CBOE_URL in (ROOT / "src/ai_fc/vix_surface.py").read_text(encoding="utf-8")
