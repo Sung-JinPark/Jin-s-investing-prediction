@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "asof": "2026-10-07",
+  "available_at": "2026-10-08T07:38:31+00:00",
+  "source_fingerprint": "913f42f9bcf8ba15848ce167d7474bfea73ca1e8989cd6e6cabaacd4ccfe40fc",
+  "revision_vintage": "captured_current",
+  "requests": [
+    {
+      "source": "fred-observations",
+      "series_id": "NASDAQCOM",
+      "interval": "1mo",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&file_type=json&observation_start=1998-01-01",
+      "response_sha256": "d845009779600b1193829e0984d74ad1c31caefe16c07521d20e83eb0b4fca37",
+      "fetched_at": "2026-10-08T07:38:28+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=883612800&period2=1143936000&events=div%2Csplits",
+      "response_sha256": "f1a905f62e2538b586917d73ef98b74d7a5c7bb2ece4ca38b81801a880998300",
+      "fetched_at": "2026-10-08T07:38:28+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "DHI",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/DHI?interval=1mo&period1=883612800&period2=1143936000&events=div%2Csplits",
+      "response_sha256": "719be06cd618fc2626eb1f5fc6279c466b47dbe2a5aedf4b652bd4e243993d43",
+      "fetched_at": "2026-10-08T07:38:28+00:00"
+    },
+    {
+      "source": "fred-observations",
+      "series_id": "NASDAQCOM",
+      "interval": "1mo",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&file_type=json&observation_start=2000-03-01",
+      "response_sha256": "e9676a82be358565be399c7896abe9cc496b3b7358541f51108c7bc604c0d011",
+      "fetched_at": "2026-10-08T07:38:28+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1mo",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1mo&period1=883612800&period2=1791417600&events=div%2Csplits",
+      "response_sha256": "53ee5f0e058861ef3468f0e57ca3aface2ffaf8a84d77e7c66e228ce06f130a9",
+      "fetched_at": "2026-10-08T07:38:30+00:00"
+    },
+    {
+      "source": "fred-observations",
+      "series_id": "NASDAQCOM",
+      "interval": "1d",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=NASDAQCOM&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "e377bc1f5ae4faaaf6899687d6f604bf5e783073d78d9b5d9bf4e0733d286f24",
+      "fetched_at": "2026-10-08T07:38:29+00:00"
+    },
+    {
+      "source": "fred-observations",
+      "series_id": "CBBTCUSD",
+      "interval": "1d",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=CBBTCUSD&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "e7cd1f15db4ee1569740017f1b235107d6ae47d3d68954d1b89f6a5f86aa1317",
+      "fetched_at": "2026-10-08T07:38:29+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=946684800&period2=1791417600&events=div%2Csplits",
+      "response_sha256": "d277e5f73c190fdcc4dba699a5711bddaf4333673bd1d4cecfa288b7c4da6ff4",
+      "fetched_at": "2026-10-08T07:38:29+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "O",
+      "interval": "dividend_events",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/O?interval=1d&period1=883612800&period2=1791417600&events=div",
+      "response_sha256": "6a4c773889376a7018caf7332666f9136975eb4f54bba85086952e9c9792ee36",
+      "fetched_at": "2026-10-08T07:38:29+00:00"
+    },
+    {
+      "source": "yahoo-chart",
+      "symbol": "IYR",
+      "interval": "1d",
+      "request_url": "https://query1.finance.yahoo.com/v8/finance/chart/IYR?interval=1d&period1=959817600&period2=1791417600&events=div%2Csplits",
+      "response_sha256": "af56b48956ac58a64dd4cb4489346221a86388c8d9e74b02d6324ea14bbc0c39",
+      "fetched_at": "2026-10-08T07:38:31+00:00"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DGS10",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DGS10&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "13e1939636794405f0a062d92e8a5bbe4fc059aab919b5d3f9a9de6e577746b1",
+      "fetched_at": "2026-10-08T07:38:30+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "DFII10",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=DFII10&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "7b694460a6ca8602dbb027b3c68fe04eeb08196a168635776c04a11c962616da",
+      "fetched_at": "2026-10-08T07:38:30+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLH0A0HYM2",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "b95116f1cc2b22d6ea10ff74e4d08bc001319377fe1b37559fa132c0015875a2",
+      "fetched_at": "2026-10-08T07:38:30+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "BAMLC0A0CM",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLC0A0CM&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "16625905b789c5d7c331013eb02cc7c411dcae0ab52ca49f2212fd2d72454a53",
+      "fetched_at": "2026-10-08T07:38:30+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_market_signals",
+      "series_id": "FEDFUNDS",
+      "request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=FEDFUNDS&file_type=json&observation_start=2000-01-01",
+      "response_sha256": "ec96119987f4ed728f4c5aa4d819ca6099478cdfbaf38e2081e8a9f526e55f41",
+      "fetched_at": "2026-10-08T07:38:31+00:00",
+      "revision_vintage": "captured_current"
+    },
+    {
+      "source": "fred_historical_event_study",
+      "series_id": "BAMLH0A0HYM2",
+      "fetched_at": "2026-10-08T07:38:31+00:00",
+      "revision_vintage": "captured_current",
+      "primary_request_url": "https://api.stlouisfed.org/fred/series/observations?series_id=BAMLH0A0HYM2&file_type=json&observation_start=1996-01-01",
+      "primary_response_sha256": "b95116f1cc2b22d6ea10ff74e4d08bc001319377fe1b37559fa132c0015875a2",
+      "primary_coverage_start": "2023-10-09",
+      "redistribution_policy": "derived_event_diagnostics_only",
+      "history_status": "legacy_public_fred_capture_plus_current",
+      "fallback_request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+      "fallback_response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+      "fallback_coverage_start": "1996-12-31",
+      "request_url": "https://raw.githubusercontent.com/maaurocp/Trading_Protocol/bf64e83fa4c2a6e72c37d3883476dc81bd9d2e31/data/raw/fred_BAMLH0A0HYM2.csv",
+      "response_sha256": "98c4ee48d97653d52835850e321b8a79d555c49dc9645736ace2a3df3ee998ea",
+      "limitation": "The current official FRED graph feed exposes only three years; older observations come from a commit-pinned public capture of the FRED series."
+    }
+  ]
+}
