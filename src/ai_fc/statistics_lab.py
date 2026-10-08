@@ -1903,7 +1903,8 @@ def _build_ipo_count_chart(
 
     ritter = ipo_monthly["ritter"]
     nasdaq = ipo_monthly.get("nasdaq")
-    built = ipo_count_series(ritter, nasdaq)
+    theme_adr = ipo_monthly.get("theme_adr") or []
+    built = ipo_count_series(ritter, nasdaq, theme_adr)
     confirmed_points = [
         {"date": month_start(month), "value": float(value)}
         for month, value in sorted(built["confirmed"].items())
@@ -1929,7 +1930,7 @@ def _build_ipo_count_chart(
         series.append(provisional)
     chart = make(
         IPO_COUNT_CHART_ID, "미국 IPO 건수: 최근 12개월", "ipo", "count",
-        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO 기준",
+        series, [IPO_COUNT_SERIES_ID], "*미국 운영기업 IPO + 시대 핵심 ADR 기준",
         "운영기업 IPO 12개월 합계, 닷컴과 같은 경과월 비교.",
     )
     measured = " · ".join(
@@ -1940,14 +1941,22 @@ def _build_ipo_count_chart(
         ("점선 잠정치는 거래소 캘린더 근사라 확정치보다 많이 세며 과열도 지수에 쓰지 않습니다. "
          if provisional_points else "")
         + "확정치는 Ritter 순(net) 건수로 SPAC·펀드·REIT·유닛·ADR·공모가 $5 미만·은행·LP를 "
-        "빼며 연 1회 개정됩니다. 잠정 근사 필터 대 확정치 실측: " + measured + "."
+        "빼며 연 1회 개정됩니다. 단 시대 핵심 외국기업의 미국 ADR 상장(닷컴: 반도체·인터넷, "
+        "현재: 반도체·AI)은 출처를 단 목록만 다시 더합니다. SPAC은 닷컴기(1995~99) 7건뿐인 소형 "
+        "장외 블랭크체크라 비교 계열이 없어 계속 뺍니다. 잠정 근사 필터 대 확정치 실측: "
+        + measured + "."
     )
     chart.update({
         "display_unit": "건 · 12개월 합",
         "line_markers": False,
         "projection_max_points": 24,
         "observed_end_label": "최신",
-        "definition": "ritter_net_operating_company_ipos_trailing_12_month_sum",
+        "definition": "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum",
+        "theme_adr_additions": [
+            {key: row[key] for key in ("month", "era", "theme", "company", "ticker", "exchange", "source_url")}
+            for row in theme_adr
+        ],
+        "theme_adr_added_to_confirmed": built.get("theme_adr_added", {}),
         "confirmed_through": built["last_confirmed_month"],
         "index_input_series": ["닷컴", "현재"],
         "cross_check": _ipo_sec_cross_check(ritter, sec_rows),

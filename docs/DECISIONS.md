@@ -2139,3 +2139,34 @@ EPS만 예상 대비 상회·하회를 색으로 표시하고, 경제지표는 �
 **알려진 한계.** Nasdaq 경제 캘린더의 date 파라미터는 하루 밀려 있다(실측) — 발표일·다음날을 함께
 조회하고 같은 ET 시각 행만 취한다. 한국 상장사(삼성전자 등)는 이 원천에 없어 빈 칸이다. 경제지표
 컨센서스는 보통 발표 1주 안쪽에야 원천에 실린다.
+
+## 2026-10-08 — 닷컴 대비 과열도 v3: IPO 건수에 시대 핵심 ADR 가산 · SPAC 제외 유지 (사용자 결정)
+
+**지시 (사용자, 2026-10-08).** "SPAC 이 AI 관련이면 중요하다 — 닷컴 때 닷컴 관련 SPAC 이 통계에 있으면
+넣고 없으면 빼라. ADR 은 SK 하이닉스·중국 메모리칩 같은 아주 중요한 반도체·AI 회사는 추가하라."
+
+**SPAC — 계속 뺀다.** Jay Ritter Table 15b(2026-10-05 판, `site.warrington.ufl.edu/ritter/files/IPOs-SPACs.pdf`)
+의 SPAC IPO 는 1995~1999 년 **2·4·1·0·0건**(소형 장외 블랭크체크 유닛, 닷컴 테마 아님) vs 2023~2025 년
+**31·57·144건**. 닷컴 쪽 비교 계열이 사실상 없고, 건수만으로 'AI 관련 SPAC' 을 가를 수도 없다. 현재 쪽만
+더하면 두 시대 비교가 한쪽으로 기운다 → 지시의 조건("닷컴 때 지표 없으면 빼")대로 제외 유지.
+
+**ADR — 출처를 단 목록만 더한다.** Ritter net 은 ADR 을 **전부** 뺀다(Table 15 연간 ADR 1995~99:
+16·34·34·13·26, 2023~25: 13·10·8 — 월별 내역 없음). 그래서 `data/statistics/ipo/theme_adr_additions.csv`
+에 행마다 출처(SEC 424B4·20-F·회사 공시·당시 보도)를 단 **미국 ADR/ADS 상장**만 올려 확정 계열에 더한다.
+같은 규칙을 두 시대에 건다 — 닷컴: 반도체·인터넷, 현재: 반도체·AI.
+- 닷컴(8): Macronix 1996-05 · TSMC 1997-10 · ARM 1998-04 · Freeserve 1999-07 · QXL.com·Satyam Infoway·
+  Chartered Semiconductor 1999-10 · Terra Networks 1999-11
+- 현재(4): Arm 2023-09 · WeRide 2024-10 · Pony AI 2024-11 · SK hynix 2026-07(Nasdaq SKHY, $26.5B)
+- **CXMT(창신메모리)는 넣지 않는다** — 2026-07 상하이 STAR 상장으로 미국 ADR 이 아니다. 미국 IPO 건수에
+  외국 거래소 상장을 섞으면 닷컴 쪽에도 같은 것을 넣어야 비교가 성립한다.
+- 잠정(Nasdaq 근사) 구간에는 더하지 않는다 — 근사 필터가 ADR 을 이미 센다(2026-07 캘린더에 SKHY 실측).
+  SK hynix 는 Ritter 가 2026 년을 확정하면 그때 확정 계열에 들어간다.
+- 목록은 검증된 것만이라 **완전하지 않다**(닷컴기 인터넷 ADR 이 더 있을 수 있음) — 근사로 공시한다.
+
+**영향 (같은 스냅샷).** 닷컴 12개월 합 범위 258~711 → **258~712**, 같은 35개월차 473 → 474, 현재
+2025-12 **90 그대로**(2025 년 반도체·AI ADR IPO 없음) → IPO 위치 −37.1% → **−37.0%**, 대표값 **54% 그대로**.
+
+**기록.** `data/contracts/dotcom_overheat_index_v3.yaml`(신규, v1·v2 역사 보존), `ipo_monthly_counts.py`
+(`load_theme_adr_additions`·확정월 가산), `statistics_lab.py`(차트 정의·caveat·가산 목록 공시),
+`statistics_lab_v1.yaml`, 통계 스냅샷 오프라인 재구축(IPO 차트만 교체, 아카이브
+`dotcom_statistics_20261007T132608Z_theme_adr.json`). 지위: reference_only · 참고 의견.

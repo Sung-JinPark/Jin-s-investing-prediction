@@ -229,11 +229,12 @@ customer_chart_contract:
     series_retained_for_audit: true
     reason: user_requested_plain_language_2026-09-18
   ipo_count_operating_12m:
-    measure: ritter_net_operating_company_ipos_trailing_12_month_sum
+    measure: ritter_net_plus_theme_adr_ipos_trailing_12_month_sum
+    theme_adr_additions: data/statistics/ipo/theme_adr_additions.csv (sourced rows, confirmed months only)
     series: {dotcom: 닷컴, current_confirmed: 현재, current_provisional: 현재 잠정}
     provisional: dashed_labelled_display_only_never_index_input_superseded_by_confirmed_months
     cross_check: ritter_gross_vs_SEC_IPO_QUARTERLY_total_count_annual_tolerance_20_percent
-    overheat_index: dotcom_overheat_index_v2 indicator ipo_count_operating_12m (category ipo)
+    overheat_index: dotcom_overheat_index_v3 indicator ipo_count_operating_12m (category ipo)
   sec_ipo_issuer_mix_h1:
     chart_type: stacked_bar
     measure: issuer_count
