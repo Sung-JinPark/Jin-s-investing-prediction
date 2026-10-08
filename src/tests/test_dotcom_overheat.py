@@ -205,9 +205,8 @@ def test_statistics_page_leads_with_the_overheat_panel() -> None:
 
 def test_v2_contract_adds_the_ipo_count_and_keeps_v1_as_history() -> None:
     """2026-10-06 사용자 결정: IPO 건수(운영기업 12개월 합)를 새 계약 버전으로 편입."""
-    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v2.yaml"
     v1 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v1.yaml").read_text(encoding="utf-8"))
-    v2 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    v2 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v2.yaml").read_text(encoding="utf-8"))
     assert v1["contract_id"] == "dotcom_overheat_index_v1"
     assert all(row["id"] != "ipo_count_operating_12m" for row in v1["indicators"])
     assert v2["contract_id"] == "dotcom_overheat_index_v2" and v2["supersedes"] == "dotcom_overheat_index_v1"
@@ -221,9 +220,23 @@ def test_v2_contract_adds_the_ipo_count_and_keeps_v1_as_history() -> None:
     assert str(ipo["nasdaq_user_agent_authorization"]["authorized_on"]) == "2026-10-06"
 
 
+def test_v3_contract_changes_only_what_the_ipo_indicator_counts() -> None:
+    """2026-10-08 사용자 결정: 시대 핵심 ADR 은 더하고 SPAC 은 계속 뺀다 — v2 는 역사로 무수정."""
+    assert CONTRACT_RELATIVE.name == "dotcom_overheat_index_v3.yaml"
+    v2 = yaml.safe_load((ROOT / "data/contracts/dotcom_overheat_index_v2.yaml").read_text(encoding="utf-8"))
+    v3 = yaml.safe_load((ROOT / CONTRACT_RELATIVE).read_text(encoding="utf-8"))
+    assert v3["contract_id"] == "dotcom_overheat_index_v3" and v3["supersedes"] == "dotcom_overheat_index_v2"
+    assert v3["method"] == v2["method"], "축·집계 규칙은 그대로"
+    strip = lambda rows: [{k: v for k, v in r.items() if k not in {"definition", "theme_adr_rule", "spac_rule"}} for r in rows]
+    assert strip(v3["indicators"]) == strip(v2["indicators"])
+    ipo = next(row for row in v3["indicators"] if row["id"] == "ipo_count_operating_12m")
+    assert "theme_adr_additions.csv" in ipo["definition"]
+    assert "1995~1999" in ipo["spac_rule"] and "CXMT" in ipo["theme_adr_rule"]
+
+
 def test_live_index_includes_the_confirmed_ipo_count_in_its_own_category() -> None:
     result = compute_index(ROOT)
-    assert result["contract_id"] == "dotcom_overheat_index_v2"
+    assert result["contract_id"] == "dotcom_overheat_index_v3"
     row = next(r for r in result["indicators"] if r["id"] == "ipo_count_operating_12m")
     assert row["category"] == "ipo"
     assert "ipo" in result["category_medians"]

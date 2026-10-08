@@ -43,6 +43,13 @@ NASDAQ_CALENDAR_URL = "https://api.nasdaq.com/api/ipo/calendar?date={month}"
 NASDAQ_SOURCE_ID = "NASDAQ_IPO_CALENDAR_MONTHLY"
 NASDAQ_POLICY_SOURCE_ID = "nasdaq_ipo_calendar"
 NASDAQ_TABLE_RELATIVE = Path("data/statistics/ipo/nasdaq_calendar_monthly.json")
+# 테마 ADR 가산(2026-10-08 사용자 결정) — Ritter net 은 ADR 을 모두 빼므로 SK hynix·TSMC·Arm 같은
+# 시대 핵심 반도체·AI(닷컴: 반도체·인터넷) 외국기업의 미국 ADR 상장이 사라진다. 출처를 단 행만
+# 확정 계열에 더한다. 잠정(Nasdaq 근사) 구간에는 더하지 않는다 — 근사 필터가 ADR 을 이미 센다.
+THEME_ADR_RELATIVE = Path("data/statistics/ipo/theme_adr_additions.csv")
+THEME_ADR_FIELDS = ["month", "era", "theme", "company", "ticker", "exchange", "instrument",
+                    "source_url", "note"]
+THEME_ADR_THEMES = {"dotcom": {"semiconductor", "internet"}, "ai": {"semiconductor", "ai"}}
 NASDAQ_FILTER_VERSION = "nasdaq-operating-approx-v1"
 #: 2026-10-06 사용자 승인 — 이 엔드포인트에 한한 브라우저형 UA. 다른 원천에 쓰지 않는다.
 NASDAQ_USER_AGENT = (
@@ -236,8 +243,38 @@ def nasdaq_month_is_complete(month: str, fetched_at: str) -> bool:
     return _month_index(month) < fetched.year * 12 + fetched.month - 1
 
 
+def load_theme_adr_additions(root: Path) -> list[dict[str, str]]:
+    """테마 ADR 가산 목록 — 행마다 https 출처·시대별 허용 테마를 검증한다(실패는 거부)."""
+    import csv
+
+    path = root / THEME_ADR_RELATIVE
+    if not path.is_file():
+        return []
+    with path.open(encoding="utf-8", newline="") as handle:
+        reader = csv.DictReader(handle)
+        if reader.fieldnames != THEME_ADR_FIELDS:
+            raise IPOMonthlyCountsError("theme ADR additions schema drift")
+        rows = list(reader)
+    seen: set[tuple[str, str]] = set()
+    for row in rows:
+        if not re.fullmatch(r"\d{4}-\d{2}", row["month"]):
+            raise IPOMonthlyCountsError(f"theme ADR month invalid: {row['company']}")
+        if row["theme"] not in THEME_ADR_THEMES.get(row["era"], set()):
+            raise IPOMonthlyCountsError(f"theme ADR theme not allowed for era: {row['company']}")
+        if row["instrument"] not in {"ADR", "ADS"}:
+            raise IPOMonthlyCountsError(f"theme ADR must be an ADR/ADS listing: {row['company']}")
+        if not row["source_url"].startswith("https://") and not row["source_url"].startswith("http://"):
+            raise IPOMonthlyCountsError(f"theme ADR needs a source: {row['company']}")
+        key = (row["company"], row["month"])
+        if key in seen:
+            raise IPOMonthlyCountsError(f"duplicate theme ADR row: {row['company']}")
+        seen.add(key)
+    return rows
+
+
 def ipo_count_series(
     ritter: dict[str, Any], nasdaq: dict[str, Any] | None,
+    theme_adr: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     """확정 12개월 합계(월별) + 확정월 이후 잠정 12개월 합계.
 
@@ -250,6 +287,14 @@ def ipo_count_series(
     if last is None:
         raise IPOMonthlyCountsError("Ritter table has no confirmed month")
     confirmed_net = {month: value for month, value in net.items() if _month_index(month) <= _month_index(last)}
+    added: dict[str, int] = {}
+    for row in theme_adr or []:
+        month = row["month"]
+        # 확정월 이후(잠정)는 더하지 않는다 — Nasdaq 근사 필터가 ADR 을 이미 센다.
+        if month in confirmed_net and confirmed_net[month] is not None:
+            added[month] = added.get(month, 0) + 1
+    for month, count in added.items():
+        confirmed_net[month] = int(confirmed_net[month]) + count  # type: ignore[arg-type]
     confirmed = trailing_sums(confirmed_net)
     provisional: dict[str, int] = {}
     provisional_months: list[dict[str, Any]] = []
@@ -277,6 +322,7 @@ def ipo_count_series(
         "confirmed": confirmed,
         "provisional": provisional,
         "provisional_months": [row for row in provisional_months if row["month"] in provisional],
+        "theme_adr_added": dict(sorted(added.items())),
     }
 
 
@@ -509,7 +555,8 @@ def load_ipo_monthly_tables(root: Path) -> dict[str, Any] | None:
     raw_path = root / "data/statistics/official_store" / str(ritter.get("raw_path") or "")
     if raw_path.is_file() and hashlib.sha256(raw_path.read_bytes()).hexdigest() != ritter.get("raw_sha256"):
         raise IPOMonthlyCountsError("Ritter table raw_sha256 does not match its raw artifact")
-    return {"ritter": ritter, "nasdaq": _read_json(root / NASDAQ_TABLE_RELATIVE)}
+    return {"ritter": ritter, "nasdaq": _read_json(root / NASDAQ_TABLE_RELATIVE),
+            "theme_adr": load_theme_adr_additions(root)}
 
 
 def month_start(month: str) -> str:

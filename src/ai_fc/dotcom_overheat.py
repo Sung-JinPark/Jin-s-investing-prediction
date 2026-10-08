@@ -1,4 +1,4 @@
-"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v2)의 결정론적 집계.
+"""닷컴 대비 과열도 지수 — 사전등록 계약(dotcom_overheat_index_v3)의 결정론적 집계.
 
 v2(2026-10-06): IPO 건수(운영기업 12개월 합, Ritter 확정치만) 지표·`ipo` 부문 추가. v1 은
 역사 기록으로 남아 있다.
@@ -31,7 +31,7 @@ from typing import Any
 
 import yaml
 
-CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v2.yaml")
+CONTRACT_RELATIVE = Path("data/contracts/dotcom_overheat_index_v3.yaml")
 STATISTICS_RELATIVE = Path("data/statistics/dotcom_statistics_latest.json")
 
 

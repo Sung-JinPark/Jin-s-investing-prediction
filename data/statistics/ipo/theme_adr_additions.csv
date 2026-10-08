@@ -1,0 +1,13 @@
+month,era,theme,company,ticker,exchange,instrument,source_url,note
+1996-05,dotcom,semiconductor,Macronix International,,Nasdaq,ADS,https://www.sec.gov/Archives/edgar/data/0001009680/000114554906001020/h00650e20vf.htm,20-F: ADS listed on Nasdaq from May 1996
+1997-10,dotcom,semiconductor,Taiwan Semiconductor Manufacturing,TSM,NYSE,ADR,https://pr.tsmc.com/english/news/2085,first Taiwan company on NYSE; ADRs debuted 1997-10-08
+1998-04,dotcom,semiconductor,ARM Holdings,ARMHY,Nasdaq,ADS,http://media.corporate-ir.net/media_files/irol/19/197211/ar/ar98.pdf,1998 annual report: joint LSE·Nasdaq IPO April 1998
+1999-07,dotcom,internet,Freeserve,,Nasdaq,ADS,https://www.bloomberg.com/news/articles/1999-07-25/freeserve-will-test-appetite-for-u-k-internet-stocks-repeat,UK ISP; London·Nasdaq offering 1999-07-26
+1999-10,dotcom,internet,QXL.com,,Nasdaq,ADS,https://money.cnn.com/1999/10/07/europe/qxl/,UK online auctions; flotation in London and on Nasdaq; ADR priced $16.15
+1999-10,dotcom,internet,Satyam Infoway,SIFY,Nasdaq,ADS,https://www.sec.gov/Archives/edgar/data/0001094324/000101287099003688/0001012870-99-003688.txt,Indian ISP; Nasdaq trading began 1999-10-19
+1999-10,dotcom,semiconductor,Chartered Semiconductor Manufacturing,CHRT,Nasdaq,ADS,https://www.sec.gov/Archives/edgar/data/0001095270/000095015099001186/0000950150-99-001186.txt,424B4 ADS $20.00; IPO completed 1999-10-29
+1999-11,dotcom,internet,Terra Networks,TRRA,Nasdaq,ADS,https://money.cnn.com/1999/11/17/europe/terra/,Spanish internet portal; Madrid·Nasdaq IPO 1999-11-17
+2023-09,ai,semiconductor,Arm Holdings,ARM,Nasdaq,ADS,https://www.sec.gov/Archives/edgar/data/1973239/000119312523235320/d550931d424b4.htm,424B4 ADS IPO 2023-09-14
+2024-10,ai,ai,WeRide,WRD,Nasdaq,ADS,https://ir.weride.ai/news-releases/news-release-details/weride-inc-announces-pricing-initial-public-offering,autonomous-driving AI; trading began 2024-10-25
+2024-11,ai,ai,Pony AI,PONY,Nasdaq,ADS,https://ir.pony.ai/news-releases/news-release-details/pony-ai-inc-announces-pricing-initial-public-offering,autonomous-driving AI; trading began 2024-11-27
+2026-07,ai,semiconductor,SK hynix,SKHY,Nasdaq,ADS,https://www.sec.gov/Archives/edgar/data/0002120882/000119312526299963/d32785d424b4.htm,424B4; ADSs listed on Nasdaq 2026-07-10 (USD 26.5B new shares)

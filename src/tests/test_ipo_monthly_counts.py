@@ -368,3 +368,58 @@ def test_policy_admits_only_the_ipoall_counts_as_numeric() -> None:
         with pytest.raises(SourcePolicyViolation):
             policy.require_numeric_source(insight_only)
     assert "provisional_display_only" in policy.rule_for("nasdaq_ipo_calendar").usage_roles
+
+
+def test_theme_adr_additions_are_sourced_symmetric_and_confirmed_only(tmp_path: Path) -> None:
+    """2026-10-08 사용자 결정: 시대 핵심 ADR(닷컴 반도체·인터넷 / 현재 반도체·AI)은 확정 계열에 더한다.
+
+    잠정(Nasdaq 근사) 구간에는 더하지 않는다 — 근사 필터가 ADR 을 이미 센다(SK hynix 2026-07).
+    """
+    from ai_fc.ipo_monthly_counts import ipo_count_series, load_theme_adr_additions
+
+    rows = load_theme_adr_additions(ROOT)
+    assert {row["era"] for row in rows} == {"dotcom", "ai"}
+    names = {row["company"] for row in rows}
+    assert {"SK hynix", "Arm Holdings", "Taiwan Semiconductor Manufacturing"} <= names
+    assert all(row["source_url"].startswith(("https://", "http://")) for row in rows)
+    assert all(row["instrument"] in {"ADR", "ADS"} for row in rows)
+    ritter = {"last_confirmed_month": "2024-12", "months": [
+        {"month": f"{2024 if i >= 12 else 2023}-{(i % 12) + 1:02d}", "net": 5, "gross": 9} for i in range(24)]}
+    nasdaq = {"months": {"2025-01": {"complete": True, "operating_approx": 7, "priced_total": 9}}}
+    extra = [
+        {"month": "2024-10", "era": "ai", "theme": "ai", "company": "X", "ticker": "", "exchange": "Nasdaq",
+         "instrument": "ADS", "source_url": "https://example.org", "note": ""},
+        {"month": "2025-01", "era": "ai", "theme": "semiconductor", "company": "Y", "ticker": "", "exchange": "Nasdaq",
+         "instrument": "ADS", "source_url": "https://example.org", "note": ""},
+    ]
+    built = ipo_count_series(ritter, nasdaq, extra)
+    assert built["confirmed"]["2024-12"] == 61, "확정월 가산 1건"
+    assert built["theme_adr_added"] == {"2024-10": 1}, "확정월 이후(잠정) 행은 더하지 않는다"
+    assert built["provisional"]["2025-01"] == 61 - 5 + 7
+    base = ipo_count_series(ritter, nasdaq)
+    assert base["confirmed"]["2024-12"] == 60 and base["theme_adr_added"] == {}
+
+
+def test_theme_adr_rows_outside_the_era_theme_are_rejected(tmp_path: Path) -> None:
+    from ai_fc.ipo_monthly_counts import (
+        THEME_ADR_FIELDS, THEME_ADR_RELATIVE, IPOMonthlyCountsError, load_theme_adr_additions,
+    )
+
+    path = tmp_path / THEME_ADR_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(",".join(THEME_ADR_FIELDS) + "\n"
+                    "1999-10,dotcom,ai,Bad,,Nasdaq,ADS,https://example.org,\n", encoding="utf-8")
+    with pytest.raises(IPOMonthlyCountsError):
+        load_theme_adr_additions(tmp_path)
+    path.write_text(",".join(THEME_ADR_FIELDS) + "\n"
+                    "2026-07,ai,semiconductor,CXMT,,Shanghai STAR,A-share,https://example.org,\n", encoding="utf-8")
+    with pytest.raises(IPOMonthlyCountsError):
+        load_theme_adr_additions(tmp_path)
+
+
+def test_published_ipo_chart_discloses_the_additions_and_spac_rule() -> None:
+    payload = json.loads((ROOT / "data/statistics/dotcom_statistics_latest.json").read_text(encoding="utf-8"))
+    chart = next(c for c in payload["charts"] if c["id"] == "ipo_count_operating_12m")
+    assert chart["definition"] == "ritter_net_plus_theme_adr_ipos_trailing_12_month_sum"
+    assert any(row["company"] == "SK hynix" for row in chart["theme_adr_additions"])
+    assert "SPAC은 닷컴기" in chart["caveat"]
