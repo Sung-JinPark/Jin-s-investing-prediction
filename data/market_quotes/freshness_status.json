@@ -1,19 +1,19 @@
 {
-  "checked_at": "2026-10-07T22:13:35+00:00",
+  "checked_at": "2026-10-08T22:21:18+00:00",
   "rule": "morning_freshness_v1",
   "deadline_kst": "08:00",
-  "expected_session": "2026-10-07",
+  "expected_session": "2026-10-08",
   "items": {
     "fng": {
-      "session": "2026-10-07",
+      "session": "2026-10-08",
       "ok": true
     },
     "vix": {
-      "session": "2026-10-07",
+      "session": "2026-10-08",
       "ok": true
     },
     "nasdaq": {
-      "session": "2026-10-07",
+      "session": "2026-10-08",
       "ok": true
     }
   },
