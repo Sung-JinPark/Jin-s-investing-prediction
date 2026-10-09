@@ -5,10 +5,10 @@
   "probability_space": "reference_only",
   "model_use": false,
   "official_forecast_input": false,
-  "generated_at": "2026-10-08T13:31:25+00:00",
-  "knowledge_cutoff": "2026-10-08T13:31:25+00:00",
-  "observation_through": "2026-10-07",
-  "as_of": "2026-10-07",
+  "generated_at": "2026-10-09T13:19:06+00:00",
+  "knowledge_cutoff": "2026-10-09T13:19:06+00:00",
+  "observation_through": "2026-10-08",
+  "as_of": "2026-10-08",
   "cycle_alignment": {
     "dotcom_start": "1995-01-01",
     "dotcom_end": "1999-12-31",
@@ -1702,7 +1702,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 237.71911727257424
+              "value": 234.73799154908912
             }
           ]
         },
@@ -1944,7 +1944,7 @@
       },
       "scope_note": "*미국 통화·NASDAQ 기준",
       "insight": "주가와 통화량의 누적 속도를 같은 시작점에서 비교합니다.",
-      "conclusion": "현재 NASDAQ은 2023년 대비 138% 오르고 M2는 10% 늘었습니다. 닷컴 같은 시점에는 NASDAQ 45개월차 135%·M2 43개월차 21%였고(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 439%까지 벌어졌습니다.",
+      "conclusion": "현재 NASDAQ은 2023년 대비 135% 오르고 M2는 10% 늘었습니다. 닷컴 같은 시점에는 NASDAQ 45개월차 135%·M2 43개월차 21%였고(두 계열은 발표 주기가 달라 경과월이 한 달 어긋납니다), 닷컴 말기에는 NASDAQ이 439%까지 벌어졌습니다.",
       "metric_source_ids": [
         "NASDAQCOM",
         "M2SL"
@@ -1955,8 +1955,8 @@
         "kind": "dotcom_peak",
         "boundary_label": "닷컴 비교창 최대(1999-12까지)",
         "boundary_value": 538.84,
-        "current_value": 237.72,
-        "proximity_percent": 44.1,
+        "current_value": 234.74,
+        "proximity_percent": 43.6,
         "status": "ok",
         "status_label": "여유",
         "thresholds": {
@@ -2779,18 +2779,18 @@
           "points": [
             {
               "period": 0,
-              "date": "2026-10-07",
-              "value": 16.19130877685757
+              "date": "2026-10-08",
+              "value": 14.979004163631293
             },
             {
               "period": 1,
-              "date": "2026-10-07",
-              "value": 20.845422838677273
+              "date": "2026-10-08",
+              "value": 18.00933717189057
             },
             {
               "period": 2,
-              "date": "2026-10-07",
-              "value": -32.51394786500275
+              "date": "2026-10-08",
+              "value": -32.91088301633059
             },
             {
               "period": 3,
@@ -2839,7 +2839,7 @@
         "IQ12260"
       ],
       "range": {
-        "minimum": -32.51394786500275,
+        "minimum": -32.91088301633059,
         "maximum": 22.824183705342584
       },
       "scope_note": "*미국 기준 · 금은 공식 가격지수",
@@ -2914,18 +2914,18 @@
           "metrics": [
             {
               "label": "S&P 500",
-              "value": 16.19130877685757,
-              "display_value": "+16.2%"
+              "value": 14.979004163631293,
+              "display_value": "+15.0%"
             },
             {
               "label": "NASDAQ",
-              "value": 20.845422838677273,
-              "display_value": "+20.8%"
+              "value": 18.00933717189057,
+              "display_value": "+18.0%"
             },
             {
               "label": "비트코인",
-              "value": -32.51394786500275,
-              "display_value": "-32.5%"
+              "value": -32.91088301633059,
+              "display_value": "-32.9%"
             },
             {
               "label": "금 가격지수",
@@ -5046,7 +5046,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 0.47400000000000003
+              "value": 0.47333333333333333
             }
           ]
         },
@@ -5590,7 +5590,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 1.074
+              "value": 1.06
             }
           ]
         }
@@ -5605,7 +5605,7 @@
       },
       "scope_note": "*미국 국채 기준",
       "insight": "금리차가 음수면 역전입니다. 침체 예측 연구와 Fed 확률 모델의 표준은 10년−3개월 스프레드이고, 10년−2년은 시장 관행입니다.",
-      "conclusion": "10년−2년 금리차는 현재 +0.47%p, 침체 연구의 표준인 10년−3개월은 +1.07%p입니다. 둘 다 양수로 정상화됐지만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
+      "conclusion": "10년−2년 금리차는 현재 +0.47%p, 침체 연구의 표준인 10년−3개월은 +1.06%p입니다. 둘 다 양수로 정상화됐지만 역전 해소 직후에는 성장 둔화가 뒤따를 수 있어 경기 경계는 아직 남아 있습니다.",
       "metric_source_ids": [
         "T10Y2Y",
         "T10Y3M"
@@ -12564,7 +12564,7 @@
             {
               "period": 45,
               "date": "2026-10-01",
-              "value": 447.17685631365674
+              "value": 432.0347579673639
             }
           ]
         }
@@ -12579,7 +12579,7 @@
       },
       "scope_note": "*한국·미국 시장 기준",
       "insight": "2023년을 100으로 맞춰 한국 주가와 미국 반도체 지수의 실제 월별 속도를 봅니다.",
-      "conclusion": "2023년 대비 한국 주가지수는 181%, 같은 43개월차 미국 반도체는 295% 상승했습니다(미국 반도체 최신치는 347%). 한국 지수는 OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 두 시장의 상대 위치가 뒤집히지 않습니다.",
+      "conclusion": "2023년 대비 한국 주가지수는 181%, 같은 43개월차 미국 반도체는 295% 상승했습니다(미국 반도체 최신치는 332%). 한국 지수는 OECD 월간 집계라 미국 반도체보다 늦게 갱신되므로, 같은 경과월끼리 비교해야 두 시장의 상대 위치가 뒤집히지 않습니다.",
       "metric_source_ids": [
         "SPASTT01KRM661N",
         "NASDAQSOX"
@@ -17077,7 +17077,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "28d8293a228a0a10f973b820fc3c456438e365cc8931c56b9134e1da40218b7d",
@@ -17097,7 +17097,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "d335ffcb6c5e92dd59fed845f5650d62124a7bd4522fbf755355ab015a41957b",
@@ -17117,7 +17117,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c41624b65b3de00f361cb75dc8c917f3dd4f5f29903a757b3bb81eb429c95214",
@@ -17137,7 +17137,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "820c4fd496881fb3adef393c6541bc7765c7ccae9393dee80c2d98dca2bc9630",
@@ -17157,7 +17157,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "c8bf5626bae11f9ec3ba53dba822486869b4283001001c5bec832e14ee7308f5",
@@ -17177,7 +17177,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "57e0c19c7263e86e49aa0a17e589081eccc44a69e68af7785d0201d07c02cf1d",
@@ -17197,7 +17197,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "10a063c1d66f23e05713235a08da2512e14802910b3996fb935ac51c0805f0c5",
@@ -17217,7 +17217,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db46a88ef69316d8b923ecc52f531b185f7b22816b5b8223843eccdc167589c9",
@@ -17237,7 +17237,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "75ff74f8f1e14f3066f8f5b0b3cd865404b82b8eea230a04cb20ffa81b1793ab",
@@ -17257,7 +17257,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2025-01-01",
       "row_count": 31,
       "raw_sha256": "7d58e253925702f5205712a0e286c5bfb8441ce9e00845c032364b496c0d7bc9",
@@ -17278,11 +17278,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 10523,
-      "raw_sha256": "d0b57f808df0ae1a356a249b3145a347c3bd3fd05cfb5ac3741c8d2de07c3448",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/d0b57f808df0ae1a356a249b3145a347c3bd3fd05cfb5ac3741c8d2de07c3448.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 10524,
+      "raw_sha256": "383d29fc8eae380cbb561301f2b1871d01813b3d9f89f6e99e94776a126adb27",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/383d29fc8eae380cbb561301f2b1871d01813b3d9f89f6e99e94776a126adb27.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17298,11 +17298,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 7948,
-      "raw_sha256": "299d96c15ecf3083cd9716e59fcb90c89e440eee1218dea1dea893d7fa53e71f",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/299d96c15ecf3083cd9716e59fcb90c89e440eee1218dea1dea893d7fa53e71f.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 7949,
+      "raw_sha256": "994dec9bc469abaf7388dae12bab42b80608f3cc232880d8b1096f33e60364a2",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/994dec9bc469abaf7388dae12bab42b80608f3cc232880d8b1096f33e60364a2.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17318,11 +17318,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 7948,
-      "raw_sha256": "f061911e474e731c6840132e260417c689bf511b3ee0fefc696aad2a7342cf82",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/f061911e474e731c6840132e260417c689bf511b3ee0fefc696aad2a7342cf82.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 7949,
+      "raw_sha256": "99d083b1f0de2ccf823e7de695da3f6270180c5d83bd2e89e6e9e65b739be448",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/99d083b1f0de2ccf823e7de695da3f6270180c5d83bd2e89e6e9e65b739be448.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17338,7 +17338,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "e1935f11db469dfb9f03d0064243f1018de9d4661c9ed56f5ab9096f10461a8e",
@@ -17358,7 +17358,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "71832a3c352328a943b41d88c7ba5f10b82fb885e94cfbd368212ebffb0d2867",
@@ -17378,7 +17378,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 86,
       "raw_sha256": "d823f31ec373375d0936996a4f3d80e2b5f54a1d83567f8be766b32bc2a65dad",
@@ -17398,7 +17398,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-01-01",
       "row_count": 125,
       "raw_sha256": "076c941b2c8cf02a70c37dc498e13670102f938a8ad5a946ea94bde034604a86",
@@ -17418,11 +17418,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-07-01",
       "row_count": 127,
-      "raw_sha256": "2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/2d9f6b5e7930a1810e277c726cd88c404603d72893adf128c5e8cf3e920228be.bin",
+      "raw_sha256": "47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/47292361660c78acc82f6f2231ffc86c28e5831de234ab784b3f2d7750919a20.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17438,7 +17438,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "ec285bef5e2e93ec02a5dbb4888afbbb6a1fa69e5c57e5fb5065c4b05096d257",
@@ -17458,7 +17458,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "36f18a0f9ed66fbcc73c97c59e58b547112aef04a7f38a4f989511f82026d88f",
@@ -17478,7 +17478,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "e0d1a194ffb701e611c7e0960f53c5b29d399d07533f2012d9be45fecc90f6da",
@@ -17498,7 +17498,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 380,
       "raw_sha256": "3cfd38a124c11dce914b2f922098b5f9d08c5dfebf76e32d4e7a68394e670fc7",
@@ -17518,7 +17518,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 379,
       "raw_sha256": "b8ba2a343be1721e5097483772d115c225a6c14f3124e1f67d1d6478c3a91220",
@@ -17538,7 +17538,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-10-02",
       "row_count": 1657,
       "raw_sha256": "44544ab16903d62b4efd2f04582b50ba70bf5af733fc50f9c8c34a4e8a1cf8c6",
@@ -17558,7 +17558,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "db53d750408c3dad226327e965fb099205b58d533e8328a5c3bc70a49e41cfc6",
@@ -17578,7 +17578,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "6f88d5e44b02a3f97c158976d4fcd77a2b907eff4f3d8e24545edd581f30bfe0",
@@ -17598,7 +17598,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "be681ac7f9152e3ae14f1c12d5b777ccd5a87ffc1bfeb67a76c4711e16c6895e",
@@ -17618,7 +17618,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-10-06",
       "row_count": 7969,
       "raw_sha256": "cdd6836272d76ba50bba706e4f2b63892edf3f1940708410b54e81af0566100d",
@@ -17638,7 +17638,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 379,
       "raw_sha256": "b3bca866b2d2bfcc71e71427bac0e17d96d1be418312c3723aa9fe308795c560",
@@ -17658,7 +17658,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-09-01",
       "row_count": 381,
       "raw_sha256": "1754151727cd1eb40b5f96794a3ede23856d941baf39c9063d5f11eac6574001",
@@ -17679,11 +17679,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 944,
-      "raw_sha256": "9fd28b7e89f73fef5abb01f7946d6e347ad151c423103e25e486f513e44600e1",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/9fd28b7e89f73fef5abb01f7946d6e347ad151c423103e25e486f513e44600e1.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 945,
+      "raw_sha256": "3c5f8c6ee4833735caeedd9a62a64b593348fcb6c259a862ace62dad0340e7c8",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/3c5f8c6ee4833735caeedd9a62a64b593348fcb6c259a862ace62dad0340e7c8.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17700,11 +17700,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 1376,
-      "raw_sha256": "5d2a624087a828a87eb6637a2d7da98494da309129ea8e08cda4d47eaa9b7ee7",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5d2a624087a828a87eb6637a2d7da98494da309129ea8e08cda4d47eaa9b7ee7.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 1377,
+      "raw_sha256": "01e7b5c82efe53c49f62b20ce9b1b0b363e99a7b2c01a8ef88185467f4fe6244",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/01e7b5c82efe53c49f62b20ce9b1b0b363e99a7b2c01a8ef88185467f4fe6244.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17721,11 +17721,11 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
-      "latest_observation": "2026-10-07",
-      "row_count": 1700,
-      "raw_sha256": "734ea8b28c4be4fee7ccf823f44a826fc75c29a69c22aa1306ca830fe17cad31",
-      "raw_path": "data/statistics/official_store/raw/fred_market_signals/734ea8b28c4be4fee7ccf823f44a826fc75c29a69c22aa1306ca830fe17cad31.bin",
+      "available_at": "2026-10-09T13:19:06+00:00",
+      "latest_observation": "2026-10-08",
+      "row_count": 1701,
+      "raw_sha256": "5a4e2bda48f379d20550acf3963953509e4096e2a44978ba10e2500cedbe00fe",
+      "raw_path": "data/statistics/official_store/raw/fred_market_signals/5a4e2bda48f379d20550acf3963953509e4096e2a44978ba10e2500cedbe00fe.bin",
       "vintage": "current_release_reconstructed"
     },
     {
@@ -17742,7 +17742,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 80,
       "raw_sha256": "89a0fa8df81ec389ed49ec645031a701c15c0aaa3cca7b1dd67d4a88f4257274",
@@ -17763,7 +17763,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 728,
       "raw_sha256": "9327506679f6a02e94404fef0ebe8368f8bcc4226214a48b5c09ef0206f22f2c",
@@ -17784,7 +17784,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 242,
       "raw_sha256": "668cfc7020db17069cccb95a2975c5fe9db791beeabe2dd30876abfc9dcd6074",
@@ -17804,7 +17804,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 380,
       "raw_sha256": "f9e42f79d37d7e928cf0d34123c4541ab3191b84779f38bc3ca23d813eeafbba",
@@ -17824,7 +17824,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b8de167e9d96779d7545b6fb3c2dc99f17ba04d07eb14f173507389ba9ca3f7e",
@@ -17844,7 +17844,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "603f431ac814fbccc6c9b3112e80afe80a6a22725dff720f9ffcfa840c00cc54",
@@ -17864,7 +17864,7 @@
       "policy_source_id": "fred_market_signals",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "971220711ed8cb3dd53fdc0a74cf999583159f94388712f99caa181f48ac729c",
@@ -17883,7 +17883,7 @@
       "policy_source_id": "sec_edgar",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-06-01",
       "row_count": 106,
       "raw_sha256": "8499e48223bb72d93cd5919a4f3b2f84776d020b120e3133d992841da5ba5450",
@@ -17902,7 +17902,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17923,7 +17923,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17942,7 +17942,7 @@
       "policy_source_id": "federal_reserve_board",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-04-01",
       "row_count": 126,
       "raw_sha256": "b63af9755437df0fb88b7cf346f8f9eaeb22bf1aa2b5df1709334135c43de4b6",
@@ -17961,7 +17961,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -17980,7 +17980,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -17999,7 +17999,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18018,7 +18018,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 404,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18037,7 +18037,7 @@
       "policy_source_id": "census",
       "usage_role": "numeric_input",
       "numeric_input_allowed": true,
-      "available_at": "2026-10-08T13:31:25+00:00",
+      "available_at": "2026-10-09T13:19:06+00:00",
       "latest_observation": "2026-08-01",
       "row_count": 152,
       "raw_sha256": "ff77dfdd4617c2a21b8446a06fc80cfb86ef5888a47e8bad85852767c7c911b8",
@@ -18143,7 +18143,7 @@
           "priced_total": 11
         }
       ],
-      "available_at": "2026-10-08T13:31:20+00:00"
+      "available_at": "2026-10-09T13:19:02+00:00"
     }
   ],
   "reference_statistics": {
