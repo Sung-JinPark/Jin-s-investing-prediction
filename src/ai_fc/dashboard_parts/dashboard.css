@@ -1990,3 +1990,6 @@ body[data-view="future"] .page-heading .page-lede{margin:6px 0 0;font-size:12px}
 .ev-afp-row b,.ev-afp-row em{min-width:0;white-space:nowrap}
 @media(max-width:620px){.ev-card{padding:8px 9px 11px}}
 .ev-card .ev-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap}
+.ev-afp.is-metrics .ev-afp-head,.ev-afp.is-metrics .ev-afp-row{grid-template-columns:58px repeat(3,minmax(0,1fr))}
+.ev-afp.is-metrics .ev-afp-row em{font-family:var(--sans);font-weight:650}
+@media(max-width:799px){.ev-afp.is-metrics .ev-afp-head,.ev-afp.is-metrics .ev-afp-row{grid-template-columns:48px repeat(3,minmax(0,1fr))}}

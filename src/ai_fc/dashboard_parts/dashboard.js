@@ -2837,11 +2837,22 @@ function evAfpStrip(row){
   return `<span class="ev-afp" aria-label="${esc(row.label)} 실제 ${esc(row.actual||'미발표')}, 예상 ${esc(row.consensus||'없음')}, 이전 ${esc(row.previous||'없음')}"><span><i>실제</i><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b></span><span><i>예상</i><b>${evAfpCell(row.consensus)}</b></span><span><i>이전</i><b>${evAfpCell(row.previous)}</b></span></span>`;
 }
 /* 묶음 실적 카드(같은 날 여러 회사)는 회사마다 한 줄 — 첫 회사 값만 보이면 나머지를 숨긴다. */
+/* 카드 안 행 이름 — 상세 화면은 전체 라벨(title 속성에도 실림), 카드는 좁아서 짧게. */
+const EV_AFP_SHORT={headline_cpi_mom:'전월',headline_cpi_yoy:'전년',core_cpi_mom:'근원 전월',core_cpi_yoy:'근원 전년',
+  payroll_change:'고용',unemployment_rate:'실업률',avg_hourly_earnings_mom:'임금 전월',
+  real_gdp:'GDP',gdp_price_index:'물가지수',policy_rate:'기준금리',eps:'EPS'};
 function evAfpCluster(item){
   /* 값이 없어도 칸은 그린다 — 모든 카드의 가운데 선이 같은 높이에 오도록(사용자 지시 2026-10-07). */
   const empty=`<span class="ev-afp is-empty" aria-label="발표값 없음"><span><i>실제</i><b><span class="afp-empty">—</span></b></span><span><i>예상</i><b><span class="afp-empty">—</span></b></span><span><i>이전</i><b><span class="afp-empty">—</span></b></span></span>`;
   const ids=Array.isArray(item.clusterIds)&&item.clusterIds.length>1?item.clusterIds:null;
-  if(!ids){const row=item.event_id?evConsensusRows(item.event_id)[0]:null;return row?evAfpStrip(row):empty;}
+  if(!ids){
+    /* 한 이벤트의 지표가 여럿이면(CPI 전월·전년·근원 전월·근원 전년 등) 전부 행으로 — 첫 지표만 보이면
+       나머지가 숨는다(사용자 지시 2026-10-11). */
+    const all=item.event_id?evConsensusRows(item.event_id):[];
+    if(!all.length)return empty;
+    if(all.length===1)return evAfpStrip(all[0]);
+    return `<span class="ev-afp is-multi is-metrics"><span class="ev-afp-head"><i></i><i>실제</i><i>예상</i><i>이전</i></span>${all.map(row=>`<span class="ev-afp-row" title="${esc(row.label)}"><em>${esc(EV_AFP_SHORT[row.metric]||row.label)}</em><b class="afp-actual${evAfpTone(row)}">${evAfpCell(row.actual)}</b><b>${evAfpCell(row.consensus)}</b><b>${evAfpCell(row.previous)}</b></span>`).join('')}</span>`;
+  }
   const byId=new Map((DATA.calendar_events||[]).map(r=>[r.event_id,r]));
   const rows=ids.map(id=>[byId.get(id),evConsensusRows(id)[0]]).filter(([ev,row])=>ev&&row);
   if(!rows.length)return empty;
