@@ -63,6 +63,14 @@ sources:
     official: true
     access: free
     cadence: issuer_notice
+  - id: asml_ir
+    authority: ASML Investor Relations
+    kinds: [earnings]
+    url: https://investor.asml.com/quarterly-results
+    official: true
+    access: free
+    cadence: issuer_notice
+    note: 07:00 CET/CEST Veldhoven release — stored as ET (01:00 ET while Europe is on summer time).
   - id: samsung_ir
     authority: Samsung Electronics Investor Relations
     kinds: [earnings]
