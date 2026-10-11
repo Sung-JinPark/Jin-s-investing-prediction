@@ -172,4 +172,16 @@ def test_event_cards_are_uniform_with_the_divider_at_the_middle() -> None:
     assert bottom == top + 3
     js = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
     cluster = js[js.index("function evAfpCluster"):js.index("function evAfpTable")]
-    assert "return row?evAfpStrip(row):empty" in cluster and "if(!rows.length)return empty" in cluster
+    assert "if(!all.length)return empty" in cluster and "if(!rows.length)return empty" in cluster
+
+
+def test_event_card_shows_every_metric_of_a_single_event() -> None:
+    """2026-10-11 사용자 지시: CPI 카드는 전월만이 아니라 전년·근원 전월·근원 전년까지 전부."""
+    js = (ROOT / "src/ai_fc/dashboard_parts/dashboard.js").read_text(encoding="utf-8")
+    cluster = js[js.index("function evAfpCluster"):js.index("function evAfpTable")]
+    assert "evConsensusRows(item.event_id):[]" in cluster and "all.map(row=>" in cluster
+    short = js[js.index("const EV_AFP_SHORT="):js.index("function evAfpCluster")]
+    for rows in ec.MACRO_METRICS.values():
+        for metric, *_ in rows:
+            assert f"{metric}:'" in short, metric
+    assert "core_cpi_yoy:'근원 전년'" in short
