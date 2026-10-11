@@ -2811,9 +2811,27 @@ function evConfirmed(list,item){
 /* 종류별 첫 회차를 먼저 집고 남는 자리만 시간순으로 채운다. 마지막에 날짜순으로 되돌려
    읽는 순서 = 시간 순서를 지킨다. 실측: 2026-12-01 창에서 이 규칙이 2027-02-24 실적(D-85)을
    끌어올리는데, 순수 시간순 6건은 nfp·fomc·cpi·gdp·nfp·cpi 로 실적이 한 장도 없다. */
+/* 같은 주(월~일)의 같은 분류 실적은 홈 보드에서 한 카드로 묶는다 — 분류당 첫 카드만 남기는
+   선택 규칙 탓에 ASML(10-14)을 넣자 TSMC(10-15)가 밀려났다(2026-10-11). 미래 탐색 차트 표식은
+   groupFlowCalendarEvents 의 같은 날 묶음을 그대로 쓴다. */
+function evWeekStart(iso){const d=new Date(`${String(iso).slice(0,10)}T12:00:00Z`);d.setUTCDate(d.getUTCDate()-((d.getUTCDay()+6)%7));return d.toISOString().slice(0,10);}
+function evMergeWeekEarnings(rows){
+  const out=[];
+  rows.forEach(row=>{
+    if(row.kind!=='earnings'){out.push(row);return;}
+    const group=row.earningsGroup||earningsGroup(row),prev=out.find(item=>item.kind==='earnings'&&(item.earningsGroup||earningsGroup(item))===group&&evWeekStart(item.date)===evWeekStart(row.date));
+    if(!prev){out.push({...row,clusterDates:[String(row.date).slice(0,10)]});return;}
+    prev.clusterCount=Number(prev.clusterCount||1)+Number(row.clusterCount||1);
+    (row.clusterTickers||[row.ticker]).filter(Boolean).forEach(t=>{if(!prev.clusterTickers.includes(t))prev.clusterTickers.push(t);});
+    (row.clusterIds||[row.event_id]).filter(Boolean).forEach(id=>prev.clusterIds.push(id));
+    const day=String(row.date).slice(0,10);if(!prev.clusterDates.includes(day))prev.clusterDates.push(day);
+    if(row.status!=='confirmed')prev.status=row.status;
+  });
+  return out;
+}
 function evPick(list,cap){
   const first=new Map(),rest=[];
-  groupFlowCalendarEvents(list).forEach(row=>{const k=eventBoardKindKey(row);
+  evMergeWeekEarnings(groupFlowCalendarEvents(list)).forEach(row=>{const k=eventBoardKindKey(row);
     if(first.has(k))rest.push(row);else first.set(k,row);});
   const picked=[...first.values()];
   for(const row of rest){if(picked.length>=cap)break;picked.push(row);}
@@ -2888,7 +2906,7 @@ function renderEventBoard(rows,today){
         <span class="ev-line"><a class="ev-title" href="${esc(href)}"
           ><b>${esc(evFullLabel(item))}</b><em>${esc(evShortLabel(item))}</em></a
           ></span>
-        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
+        <span class="ev-meta"><span><b class="ev-dday">${d==null?'—':d===0?'오늘':`D-${d}`}</b> · ${(item.clusterDates||[]).length>1?esc(item.clusterDates.map(x=>`${Number(x.slice(5,7))}/${Number(x.slice(8,10))}`).join(' · ')):item.time_et?`${esc(item.time_et)} ET`:'시각 미정'}</span
           >${ok?'':`<em class="ev-tag is-estimated">${esc(word)}</em>`}</span>
       </span>${evAfpCluster(item)}</li>`;}).join('');
   return `<ol class="ev-cards">${cards}</ol>`;
