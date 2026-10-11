@@ -5,6 +5,6 @@
   "market_status": "Closed",
   "source": "Nasdaq quote API (COMP)",
   "source_url": "https://api.nasdaq.com/api/quote/COMP/info?assetclass=index",
-  "fetched_at": "2026-10-10T20:39:50+00:00",
+  "fetched_at": "2026-10-11T21:03:29+00:00",
   "display_only": true
 }
