@@ -527,7 +527,8 @@ def _event_board_helpers() -> str:
         Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.js"
     ).read_text(encoding="utf-8")
     picked = []
-    for name in ("const EV_BOARD_CAP", "function evConfirmed", "function evPick",
+    for name in ("const EV_BOARD_CAP", "function evConfirmed", "function evWeekStart",
+                 "function evMergeWeekEarnings", "function evPick",
                  "function earningsGroup", "function eventBoardKindKey",
                  "function groupFlowCalendarEvents"):
         start = source.index(name)
@@ -657,3 +658,26 @@ def test_unscoped_event_track_height_override_is_gone() -> None:
         Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css"
     ).read_text(encoding="utf-8")
     assert re.search(r"(?<![\w.-])\.event-track\{position:relative;height:3px", css) is None
+
+
+def test_home_event_board_keeps_both_semis_of_one_week() -> None:
+    """ASML(10-14)·TSMC(10-15)처럼 같은 주 같은 분류 실적은 한 카드로 묶여 둘 다 남는다."""
+    program = _event_board_helpers() + r"""
+const rows=[
+  {date:'2026-10-14',kind:'cpi',status:'confirmed'},
+  {date:'2026-10-14',kind:'earnings',status:'confirmed',ticker:'ASML',event_id:'asml'},
+  {date:'2026-10-15',kind:'earnings',status:'confirmed',ticker:'TSM',event_id:'tsmc'},
+  {date:'2026-10-28',kind:'earnings',status:'estimated',ticker:'MSFT',event_id:'msft'},
+  {date:'2026-10-28',kind:'fomc',status:'confirmed'},
+  {date:'2026-10-29',kind:'gdp',status:'confirmed'},
+  {date:'2026-11-06',kind:'nfp',status:'confirmed'},
+];
+const semi=evPick(rows,EV_BOARD_CAP).find(r=>eventBoardKindKey(r)==='earnings:semiconductor');
+console.log(JSON.stringify({tickers:semi.clusterTickers,dates:semi.clusterDates,count:semi.clusterCount}));
+"""
+    completed = subprocess.run(
+        ["node", "-e", program], check=True, capture_output=True,
+        text=True, encoding="utf-8",
+    )
+    semi = json.loads(completed.stdout)
+    assert semi == {"tickers": ["ASML", "TSM"], "dates": ["2026-10-14", "2026-10-15"], "count": 2}

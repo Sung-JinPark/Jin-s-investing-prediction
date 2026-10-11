@@ -2012,3 +2012,14 @@ def test_home_cards_link_to_their_detail_pages() -> None:
     assert 'class="fng-lab" id="fear-greed"' in script
     assert ".has-card-link{position:relative" in css and ".card-link{position:absolute;inset:0" in css
     assert ".has-card-link:hover" in css and ".has-card-link:focus-within" in css
+
+
+def test_event_board_merges_same_week_earnings_of_one_category() -> None:
+    """분류당 첫 카드만 남기는 선택 규칙이 같은 주 실적을 떨어뜨리지 않게 한 카드로 묶는다
+    (2026-10-11: ASML 10-14 를 넣자 TSMC 10-15 가 홈 보드에서 사라졌다)."""
+    html = dashboard.load_template()
+    assert "function evMergeWeekEarnings(rows)" in html
+    assert "evMergeWeekEarnings(groupFlowCalendarEvents(list))" in html
+    assert "evWeekStart(item.date)===evWeekStart(row.date)" in html
+    # 여러 날에 걸친 묶음 카드는 한 회사의 시각 대신 날짜들을 보인다
+    assert "(item.clusterDates||[]).length>1" in html
