@@ -254,6 +254,31 @@ origin_age_policy:
     channel: claude_code_chat
     note: "사용자 선택 — 2단 임계(경고 1 / 보류 10)"
 
+# ── daily_display_policy: 화면은 매일, 채점은 주간 (사용자 결정 2026-10-07) ──
+# origin_age_policy 와 같이 frozen_coordinates 밖에 둔다 — 표시 주기 정책이지 모델·게이트·
+# 평가 좌표가 아니다. evaluation.origin_frequency(weekly_last_completed_session)·섀도 원장·해소·
+# score100·봉인 지표는 그대로이며 contract_hash(7c56ee4e…)도 그대로다.
+daily_display_policy:
+  purpose: 시계열 탭·홈 카드의 원점을 마지막 마감 미국 세션으로 매일 갱신 (표시 전용)
+  model: 동결 승자 그대로 — 주간 shadow 예측과 같은 설정·같은 추론 호출(src/ai_fc/timeseries_v8_daily.py frozen_inference)
+  origin: 마지막 마감 미국 정규장 세션(market_session.expected_latest_session · NYSE 휴장 계약). 필수 계열이 모두 있는 마지막 세션으로 내려간다 — 값을 지어내지 않는다
+  ledger: data/timeseries_v8/ledgers/daily_display_forecasts.jsonl   # append-only 해시체인, 원점+입력상태당 1행
+  pointer: data/timeseries_v8/daily_display_latest.json
+  provisional_fills:
+    rule: 아카이브에 아직 없는 필수 세션만 메모리에서 채운다 · 행마다 {source, provisional:true} · 아카이브에 쓰지 않는다 · 아카이브 마지막 세션부터 빈틈 없이 이어질 때만
+    DGS2_DGS10: US Treasury daily par yield curve XML (아카이브 Treasury 수집기와 같은 엔드포인트·파서)
+    VIX: data/vix/vix_latest.json(Cboe VIX_History · 지연 시세) → Cboe 지연 시세 _VIX.json(16:00~20:15 ET 종가만)
+    NASDAQCOM: FRED NASDAQCOM(아카이브 원천) → data/market_quotes/nasdaq_closes.jsonl · nasdaq_latest.json
+    DTWEXBGS: 주간 발행 — 잠정 채움 없음. 운영 SLA(216h) 안에서 아카이브 as-of 값을 이어 쓴다(carried_forward)
+  supersede: 같은 원점의 입력 상태가 바뀌면(아카이브 확정 등) 새 행을 append 하고 supersedes 로 앞 행을 가리킨다. confirmed 행은 provisional 행으로 대체하지 않는다
+  scoring: excluded   # 해소·채점·score100·봉인 지표·라이브 전진 타일은 주간 shadow 원장만 쓴다
+  display_label: "{origin} 종가 기준 · 매일 갱신 (잠정 입력이면 '잠정')"
+  origin_age: origin_age_policy 를 일일 원점에서 잰다
+  decision:
+    date: "2026-10-07"
+    channel: claude_code_chat
+    note: "사용자 지시 — 시계열 예측 매일 갱신, 10/7 이면 최소 10/6 기준"
+
 ralph:
   local_only: true
   branch_prefix: claude/timeseries-v8-ralph-

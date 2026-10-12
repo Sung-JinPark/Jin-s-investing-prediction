@@ -1606,7 +1606,7 @@ function timeseriesForwardCard(ts){
   const detail=resolved
     ?`확정 원점 ${esc((forward.origins||[]).join(', '))}${forward.last_resolved_session?` · 마지막 확정 ${esc(forward.last_resolved_session)}`:''}. 63거래일 성숙 원점은 ${matured}개입니다.`
     :`63거래일 성숙 원점 ${matured}개.`;
-  return `<section class="ts-card" data-ts-chart="forward" tabindex="0"><div class="admin-card-head"><h2>라이브(전진) 실적</h2><span>배포 후 쌓인 실제 성적</span></div><p class="ts-forward-copy">${lead} ${detail} 위 봉인 성적은 전부 과거 구간을 다시 돌린 결과이고, 라이브 기준선은 예측 시점에 저장한 ${esc(baseline)} 하나로 고정돼 봉인 성적표의 '기간별 최선 기준선'과 다릅니다.</p>${tsReadout()}</section>`;
+  return `<section class="ts-card" data-ts-chart="forward" tabindex="0"><div class="admin-card-head"><h2>라이브(전진) 실적</h2><span>주간 원점 · 배포 후 쌓인 실제 성적</span></div><p class="ts-forward-copy">${lead} ${detail} 위 봉인 성적은 전부 과거 구간을 다시 돌린 결과이고, 라이브 기준선은 예측 시점에 저장한 ${esc(baseline)} 하나로 고정돼 봉인 성적표의 '기간별 최선 기준선'과 다릅니다.</p>${tsReadout()}</section>`;
 }
 function timeseriesSealedKpis(ts,rows){
   const sealed=ts.sealed_metrics||{},win=sealed.sealed_window||{},full=sealed.full_backtest||{},ci=sealed.loss_diff_ci90||{},forward=sealed.forward||{};
@@ -1664,7 +1664,7 @@ function timeseriesScore100Card(ts,rows){
     return `<li class="ts-pillar is-${tsScoreTone(s)}" data-ts-pillar="${key}"><div class="ts-pillar-head"><b>${esc(name)}</b><span>${esc(question)}</span><strong>${Number(p.points).toFixed(1)}<small>/${p.weight}점</small></strong></div><div class="ts-pillar-bar" role="img" aria-label="${esc(name)} ${s.toFixed(0)}점(100점 기준)"><i style="width:${s.toFixed(1)}%"></i></div><p>${tsScorePillarText(key,p,ts,rows)}</p></li>`;}).join('');
   return `<section class="ts-scorecard ts-score100" aria-label="100점 환산 검증 성적">`
     +`<div class="ts-score-top"><div class="ts-score-dial is-${tone}" style="--score:${total}" role="img" aria-label="검증 성적 100점 만점에 ${total}점, ${esc(sc.grade)}등급 ${esc(sc.label)}"><strong>${total}</strong><span>/ 100점</span></div>`
-    +`<div class="ts-score-head"><p class="ts-score-eyebrow">검증 성적 · 100점 환산</p><h2><span class="ts-score-grade is-${tone}">${esc(sc.grade)}</span> ${esc(sc.label)} — ${total}점</h2><p>${summary}</p>${scale}</div></div>`
+    +`<div class="ts-score-head"><p class="ts-score-eyebrow">검증 성적 · 100점 환산 · 주간 원점</p><h2><span class="ts-score-grade is-${tone}">${esc(sc.grade)}</span> ${esc(sc.label)} — ${total}점</h2><p>${summary}</p>${scale}</div></div>`
     +`<ol class="ts-pillars">${pillars}</ol>`
     +`<details class="ts-score-method"><summary>점수 기준</summary>`
     +`<p><b>정확도 30점</b> — 기상예보 검증의 CRPS 기술점수(1 − 모델 오차/기준선 오차)를 그대로 씁니다. 기준선과 같으면 50점, 오차 10% 감소면 만점, 10% 증가면 0점. M4 예측대회가 단순 기준(Naive2) 오차를 1로 놓고 상대 오차를 매기는 것과 같은 발상입니다.</p>`
@@ -1694,7 +1694,7 @@ function timeseriesLiveTiles(ts){
   const forward=(ts.sealed_metrics||{}).forward||{},rows=forward.rows||[];
   if(!rows.length)return `<p class="ts-help">배포 후 결과가 확정된 예측이 아직 없습니다.</p>`;
   const wins=rows.filter(r=>r.model_crps<r.baseline_crps).length;
-  return `<div class="ts-live-head"><strong class="is-good">${wins}<small>승</small></strong><strong class="is-bad">${rows.length-wins}<small>패</small></strong><span>기준선(${esc(tsBaselineLabel(forward.baseline||'historical_simulation'))}) 대비 · 확정 ${rows.length}건 · 원점 ${Number(forward.unique_forecasts||0)}개</span></div>`
+  return `<div class="ts-live-head"><strong class="is-good">${wins}<small>승</small></strong><strong class="is-bad">${rows.length-wins}<small>패</small></strong><span>기준선(${esc(tsBaselineLabel(forward.baseline||'historical_simulation'))}) 대비 · 확정 ${rows.length}건 · 주간 원점 ${Number(forward.unique_forecasts||0)}개</span></div>`
     +`<ul class="ts-live-tiles">${rows.map(r=>{const win=r.model_crps<r.baseline_crps,gap=(r.baseline_crps-r.model_crps)/r.baseline_crps;
       return `<li class="${win?'is-win':'is-loss'}" title="${esc(r.origin)} 예측 · ${esc(tsCal(r.horizon))} · 모델 오차 ${(r.model_crps*100).toFixed(2)}%p vs 기준선 ${(r.baseline_crps*100).toFixed(2)}%p"><b>${win?'승':'패'}</b><span>${esc(String(r.origin).slice(5))}</span><small>${esc(tsCal(r.horizon))}</small><em>${gap>=0?'오차 −':'오차 +'}${Math.abs(gap*100).toFixed(0)}%</em>${r.covered_p10_p90?'<i>범위 적중</i>':'<i class="is-miss">범위 밖</i>'}</li>`;}).join('')}</ul>`
     +`<p class="ts-help">독립 표본은 원점 ${Number(forward.unique_forecasts||0)}개 — 아직 판단 단계 아님</p>`;
@@ -2080,7 +2080,7 @@ function renderTimeseriesV8(ts,initialState){
     +`<section class="ts-card"><div class="admin-card-head"><h2>위기 국면별 80% 구간 적중률</h2><span>63거래일 지평 기준 · 주간 원점이라 창이 중첩됩니다 · 표본이 작아 크게 흔들립니다</span></div>${timeseriesRegimeSvg(sealedMetrics.regimes)}</section>`
     +`<section class="ts-card"><div class="admin-card-head"><h2>기간별 성적과 비교 기준선</h2><span>개선율이 무엇 대비인지</span></div>${timeseriesSealedTable(ts,sealedRows)}</section>`
     +timeseriesForwardCard(ts)+`</details></div>`;
-  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><h1>NASDAQ 시계열 예측</h1><p>${esc(ts.as_of)} 종가 기준 · 주 1회 갱신</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 가운데 예상</span><strong class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</strong><em class="ts-next-level">지수 ${level(last.median_index)} · ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:`${level(last.band_index?.p10)}–${level(last.band_index?.p90)}`}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+  const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 참고 · 참고 의견</span><h1>NASDAQ 시계열 예측</h1><p>${esc(tsCadenceLabel(ts))}${ts.input_state==='provisional'?` <span class="ts-provisional" title="${esc(tsProvisionalTitle(ts))}">잠정</span>`:''}</p>${gateStrip}</div><div class="timeseries-next"><span>약 3개월 뒤 · 가운데 예상</span><strong class="ts-next-pct ${Number(last.point_return||0)>=0?'up':'down'}">${Number(last.point_return||0)>=0?'+':''}${(Number(last.point_return||0)*100).toFixed(2)}%</strong><em class="ts-next-level">지수 ${level(last.median_index)} · ${Number(last.point_return||0)>=0?'상승':'하락'} 예측</em><p>10번 중 8번: ${last63?`${tsPct(last63.r10,1)} ~ ${tsPct(last63.r90,1)}`:`${level(last.band_index?.p10)}–${level(last.band_index?.p90)}`}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',summaryPanel)}${panel('path',pathPanel)}${panel('drivers',driversPanel)}${panel('backtest',backtestPanel)}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
   mount(root);
   bindTimeseriesV8Interactions(root,ts);
   bindTimeseriesV13VolInteractions(root);
@@ -2597,6 +2597,9 @@ function signalHeatViz(pct,lo,hi,label){
     +`<line class="sv-peak" x1="${X(100).toFixed(1)}" x2="${X(100).toFixed(1)}" y1="0" y2="${SV.h}"/>`
     +`<line class="sv-pin" x1="${X(pct).toFixed(1)}" x2="${X(pct).toFixed(1)}" y1="0" y2="${SV.h}"/>`,label);
 }
+/* 화면 원점 주기 라벨 — 일일 표시(2026-10-07 사용자 결정)는 매일, 채점은 주간 원점이다. */
+function tsCadenceLabel(ts){return `${ts.as_of||''} 종가 기준 · ${ts.cadence==='daily'?'매일 갱신':'주 1회 갱신'}`;}
+function tsProvisionalTitle(ts){const s=(ts.provisional_series||[]).join('·');return `원천 발표치로 먼저 채운 입력${s?`: ${s}`:''} — 공식 시계열 확정 후 같은 원점으로 다시 계산`;}
 function tsForecastSignal(ts){
   /* 시계열 탭과 **같은 공개 게이트**를 그대로 쓴다 — 홈이 탭보다 먼저 숫자를 흘리면
      게이트가 있나 마나다. 원점이 계약의 hold 임계를 넘기면 마지막 값으로 버티지 않고
@@ -2613,7 +2616,7 @@ function tsForecastSignal(ts){
   return {
     pct:Math.round(Number(row.probability_up)*100),
     median:round(row.median_index),lo:round(band.p10),hi:round(band.p90),now:round((ts.anchor||{}).value),
-    age:age,
+    age:age,origin:ts.as_of||null,provisional:ts.input_state==='provisional',
     // 원점이 낡아 가는 것은 숨기지 않고 카드 위에 남긴다.
     stale:age!=null&&warn!=null&&age>warn
   };
@@ -2956,7 +2959,7 @@ function renderOverview(){
              '#future/original','몬테카를로 예측 상세 보기')}
       ${card('시계열 예측 · 3개월', tsf==null?'갱신 대기':`${tsf.pct}%`,
              tsf==null?'원점 갱신을 기다립니다 · 시계열 탭에 전체 표시'
-                      :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}`,
+                      :`3개월 뒤 ${num(tsf.now)} 위 마감${tsf.median==null?'':` · 중앙 ${num(tsf.median)}`}${tsf.origin?` · ${String(tsf.origin).slice(5)} 종가 기준${tsf.provisional?' 잠정':''}`:''}`,
              tsf&&tsf.stale?`원점 ${tsf.age}일 경과`:null,
              tsf==null?'':signalRangeViz(tsf.lo,tsf.hi,tsf.median,tsf.now,
                `10번 중 8번 ${num(tsf.lo)}~${num(tsf.hi)} 범위, 중앙 ${num(tsf.median)}`),

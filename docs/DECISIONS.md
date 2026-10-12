@@ -2170,3 +2170,29 @@ EPS만 예상 대비 상회·하회를 색으로 표시하고, 경제지표는 �
 (`load_theme_adr_additions`·확정월 가산), `statistics_lab.py`(차트 정의·caveat·가산 목록 공시),
 `statistics_lab_v1.yaml`, 통계 스냅샷 오프라인 재구축(IPO 차트만 교체, 아카이브
 `dotcom_statistics_20261007T132608Z_theme_adr.json`). 지위: reference_only · 참고 의견.
+
+## 2026-10-07 — 시계열 예측 화면 매일 갱신 (사용자 결정, 표시 전용)
+
+**지시 (사용자, 2026-10-07).** "시계열 예측도 매일 갱신할 수 있도록 — 오늘 10/7 이면 최소 10/6 기준으로."
+
+**결정.** 화면 원점은 **매일**, 채점·성적은 **주간** 그대로.
+- 동결 V8 승자를 같은 설정·같은 추론 호출로 돌려 마지막 마감 미국 세션 원점의 **표시 전용** 예측을 쓴다
+  (`src/ai_fc/timeseries_v8_daily.py`). 해시 대상 패키지(`timeseries_v8/`·`timeseries_v2/features.py`)는
+  바이트 그대로라 주간 원장의 `model_code_hash` 와 계약 `contract_hash` 는 변하지 않는다.
+- 별도 append-only 해시체인 원장 `data/timeseries_v8/ledgers/daily_display_forecasts.jsonl` ·
+  포인터 `daily_display_latest.json`. 행은 `display_only`·`scoring_excluded` — 해소·score100·봉인 지표·
+  라이브 전진 타일은 주간 shadow 원장만 쓴다.
+- FRED 가 아직 안 올린 세션(VIX·DGS2·DGS10·NASDAQ)은 원 발표처(Cboe·US Treasury·Nasdaq/FRED)
+  값으로 **메모리에서만** 채우고 행에 `provisional` 로 남긴다(아카이브 무기록). 주간 발행 달러지수는
+  216h SLA 안에서 as-of 이월(`carried_forward`). 아카이브가 확정되면 같은 원점의 `confirmed` 행을
+  `supersedes` 로 덧붙인다. 필수 계열이 없으면 원점은 모두 있는 마지막 세션으로 내려간다 — 값을 짓지 않는다.
+- 공개 게이트는 주간 포인터와 같다(봉인·입력 신선도·CRPS 모니터) — HOLD 면 화면을 닫는다(fail-closed).
+- 화면: "MM-DD 종가 기준 · 매일 갱신", 잠정 입력이면 '잠정' 배지. 성적 영역은 "주간 원점" 라벨.
+
+**섀도 검증 (AGENTS.md).** 모델 출력 변경이 아니라 표시 주기 변경이다. 일일 경로가 주간 경로와 같은
+인자로 추론함을 테스트로 고정했고, 실제 2026-10-02 주간 행을 이 경로로 다시 계산해 비트 단위로 같음을
+확인했다. 주간 원장은 일일 실행 전후 바이트 동일(테스트).
+
+**운영.** `timeseries-v8-daily` 워크플로(market-mood-refresh·timeseries-v2-refresh 완료 직후 +
+예비 예약 09:40·23:40 UTC). 계산 잡은 잠금 없이, 커밋 잡만 `investing-data-writer`. pages·verify·
+ops-failure-alert 에 등록. 계약 `daily_display_policy` 는 frozen_coordinates 밖. 지위: 참고 의견.
