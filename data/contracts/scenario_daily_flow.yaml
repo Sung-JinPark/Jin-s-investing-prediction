@@ -1,0 +1,69 @@
+schema_version: 1
+version: daily-flow-modal-medoid-v1
+status: registered_display_contract
+scope: illustrative_daily_member_of_unchanged_champion_gbm_ensemble
+source:
+  methods: [gbm-daily-252d-v2-lookup]
+  legacy_probability_unit_metadata:
+    schema_versions: [2, 3]
+    paths_probability_field: paths.*.prob
+    unit: percent
+    quantile_table_probability_fields: [prob_above_anchor, prob_above_ath]
+    quantile_table_probability_unit: percent
+  inputs: retained_source_snapshot_only
+  reestimate_or_fetch_latest_inputs: prohibited
+  drift: mu_daily_log_return - sigma_daily_log_return^2 / 2
+  full_ensemble_required: true
+  reconstruction_gate: exact_equality_at_source_serialization_precision
+  future_replay_parameters:
+    schema_version: 1
+    required_raw_fields: [anchor, ath, corr10, mu_daily_log_return, sigma_daily_log_return]
+    raw_price_agreement: round_raw_to_2_decimals_equals_reported_source
+    raw_parameter_agreement: round_raw_to_12_decimals_equals_reported_source
+    applies: only_snapshots_that_retained_metadata_at_original_generation
+    absent_metadata: retained_rounded_parameters_with_exact_serialization_gate
+  official_snapshot_or_ledger_mutation: prohibited
+output:
+  probability_unit: fraction
+  dates: anchor_plus_retained_252_future_trading_sessions
+  calendar_end: asof_plus_six_calendar_months_clamped_to_calendar_month_end
+  default_end_index: last_retained_session_on_or_before_calendar_end
+  value_precision: actual_simulated_member_float_values
+  cross_platform_raw_verification:
+    absolute_price_tolerance: 0.00000001
+    absolute_fraction_tolerance: 0.000000000001
+    relative_tolerance: 0
+    source_hash_and_member_ids: exact
+    official_serialized_distributions: exact
+    rewrite_or_clip_values: prohibited
+  risk_probability_space: original_all_gbm_ensemble
+selection:
+  horizon: first_six_calendar_months
+  features: [log_return_month_1, log_return_month_2, log_return_month_3, log_return_month_4, log_return_month_5, log_return_month_6, daily_realized_volatility, maximum_drawdown, direction_switch_rate]
+  month_observation: last_session_on_or_before_each_calendar_month_boundary
+  daily_volatility: standard_deviation_of_daily_log_returns_ddof_1
+  drawdown: positive_fraction_magnitude_from_running_high_including_anchor
+  direction_switch: opposite_sign_adjacent_daily_returns_divided_by_all_adjacent_pairs
+  scaling: conditional_median_and_IQR
+  constant_features: exclude_with_audit
+  nonconstant_zero_IQR: population_standard_deviation_with_audit
+  neighbor_count: ceil_sqrt_conditional_sample_size
+  radius: exact_kth_other_Euclidean_distance
+  density_center: smallest_radius_ties_lowest_original_path_id
+  cluster: center_plus_k_nearest_other_paths
+  member: eligible_actual_member_minimizing_sum_daily_scaled_log_price_L1_distance_to_cluster
+  daily_distance_scaling: full_conditional_daily_log_price_IQR_with_same_audited_fallbacks
+  eligible_volatility_percentiles: [10, 90]
+  eligible_drawdown_percentiles: [5, 95]
+  eligible_switch_percentiles: [5, 95]
+  minimum_conditional_paths: 200
+  minimum_eligible_cluster_members: 9
+  zero_or_nonfinite_density_radius: blocked
+  sensitivity: [max_9_ceil_half_k, min_N_minus_1_double_k]
+  forced_endpoints_or_artificial_jaggedness: prohibited
+publication:
+  required: [exact_champion_shadow_match, dominant_scenario_member_available]
+  minority_blocked_scenarios: explicit_reason_and_no_representative
+  exact_trajectory_occurrence_probability_claim: prohibited
+  model_accuracy_promotion_claim: prohibited
+  unavailable_display_fallback: fail_closed

@@ -729,6 +729,18 @@ def build_scenario(dates: list[date], closes: list[float], *,
                 "mu_annualized_252": round(mu_daily * 252.0, 10),
                 "sigma_annualized_252": round(sigma_daily * math.sqrt(252.0), 10),
                 "estimation_end": asof.isoformat(),
+                # Retain the actual simulation inputs for a byte-for-value display
+                # replay. Rounded report parameters can straddle an integer/10pt
+                # serialization boundary; adding this metadata changes no output.
+                "replay_parameters": {
+                    "schema_version": 1,
+                    "return_basis": "daily close-to-close log return",
+                    "anchor": anchor,
+                    "ath": ath,
+                    "corr10": corr10,
+                    "mu_daily_log_return": mu_daily,
+                    "sigma_daily_log_return": sigma_daily,
+                },
             },
             "partition": {
                 "S1": "연말까지 현재 cycle ATH 신규 돌파",

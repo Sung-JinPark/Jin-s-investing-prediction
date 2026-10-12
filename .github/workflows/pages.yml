@@ -44,6 +44,14 @@ jobs:
         run: pip install anthropic typer pydantic pyyaml python-frontmatter numpy scipy "Pillow>=10"
       - name: 파생 인덱스 재구축 (불변 파일 → SQLite)
         run: cd src && python -m ai_fc sync --rebuild
+      # 대표선은 전체 고정-seed 경로에서 재현하고 기존 공식 분포와 exact shadow 비교한다.
+      # 이 게이트는 V5.2의 continue-on-error와 별개다. 실패하면 Pages 배포를 차단한다.
+      - name: 일간 대표선 생성 + shadow/replay 검증 (필수 배포 게이트)
+        run: |
+          cd src
+          python -m ai_fc scenario-daily-flow-build
+          python -m ai_fc scenario-daily-flow-verify --replay
+          python -m ai_fc sync --rebuild
       # V5.2 후보를 배포 시점 데이터로 재빌드한다 (시크릿 0 — 커밋된 데이터만 입력).
       # 어떤 워크플로/PR 머지가 보호 경로(data/cross_asset 등)를 움직였든, 여기서
       # protected_before가 현재 트리로 재봉인되어 런타임 게이트가 열린 채 배포된다.

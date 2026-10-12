@@ -1,0 +1,66 @@
+{
+  "url": "http://127.0.0.1:64963",
+  "browser_version": "154.0.4258.62",
+  "renders": [
+    {
+      "title": "일간 시나리오 흐름 · 앵커 27,366",
+      "source_snapshot_id": "nasdaq-scenario:2026-10-09:r1",
+      "asof": "2026-10-09",
+      "anchor": 27366.17,
+      "calendar_end": "2027-04-09",
+      "expected_nodes": 125,
+      "rendered_nodes": 125,
+      "visible_end_date": "2027-04-09",
+      "visible_end_value": 29219.40817707207,
+      "expected_end_date": "2027-04-09",
+      "expected_end_value": 29219.40817707207,
+      "member_path_index": 1880,
+      "shadow_passed": true,
+      "same_anchor": true,
+      "probability": 0.92,
+      "horizontal_overflow_px": 0,
+      "selected_horizon": "six_months",
+      "keyboard_cursor_before": "2026-10-09",
+      "keyboard_cursor_after": "2026-10-12",
+      "viewport": {
+        "width": 1280,
+        "height": 900
+      },
+      "screenshot": "scenario_daily_flow_1280.png",
+      "screenshot_sha256": "5f3c6ab075def3fbaf1ea566263d7e6db1aade36a1cf49848c8fb17ff4d784e6",
+      "page_errors": []
+    },
+    {
+      "title": "일간 시나리오 흐름 · 앵커 27,366",
+      "source_snapshot_id": "nasdaq-scenario:2026-10-09:r1",
+      "asof": "2026-10-09",
+      "anchor": 27366.17,
+      "calendar_end": "2027-04-09",
+      "expected_nodes": 125,
+      "rendered_nodes": 125,
+      "visible_end_date": "2027-04-09",
+      "visible_end_value": 29219.40817707207,
+      "expected_end_date": "2027-04-09",
+      "expected_end_value": 29219.40817707207,
+      "member_path_index": 1880,
+      "shadow_passed": true,
+      "same_anchor": true,
+      "probability": 0.92,
+      "horizontal_overflow_px": 0,
+      "selected_horizon": "six_months",
+      "keyboard_cursor_before": "2026-10-09",
+      "keyboard_cursor_after": "2026-10-12",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "screenshot": "scenario_daily_flow_390.png",
+      "screenshot_sha256": "ffce22e9f9f38a8f7c5cf2da2920ebeb2dc36b41095d59d216321ddde02c9954",
+      "page_errors": [],
+      "mobile_detail_svg_width": 1160,
+      "mobile_detail_nodes": 125,
+      "mobile_detail_screenshot": "scenario_daily_flow_390_detail.png",
+      "mobile_detail_screenshot_sha256": "7c63d438de93c9aee1a0d350bd8e7a8e7192ff59daef085585e0607e83339ebf"
+    }
+  ]
+}

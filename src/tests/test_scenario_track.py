@@ -345,9 +345,12 @@ def test_real_repository_draws_a_shaped_path_not_a_monotone_median() -> None:
     assert max_drawdown_pct([value for _, value in tail["values"]]) > 1.0,         "과거 구간이 낙폭 없이 우상향한다 — 조건부 중앙값으로 되돌아갔다"
 
 
-def test_chart_draws_the_current_path_from_the_daily_table() -> None:
+def test_chart_draws_selected_daily_member_without_median_substitution() -> None:
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
-    assert "function dailyScenarioPath(" in script
     flow = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
-    assert "!usingStructural)?dailyScenarioPath(sc,key,cut)" in flow,         "구조 경로가 있는데도 일별로 그린다"
-    assert "'data-path-grid'" in flow, "어느 격자로 그렸는지 표시하지 않는다"
+    assert "buildOriginalDailyFlowModel(sc,DATA.daily_flow" in flow
+    assert "drawOriginalDailyFlow(host,sc,model,showSamples)" in flow
+    assert "'data-path-role':'daily-representative'" in flow
+    assert "'data-path-role':'legacy-weekly-baseline'" in flow
+    assert "dailyScenarioPath(sc,key,cut)" not in flow, "조건부 중앙값으로 대표선을 대신하면 안 된다"
+    assert "'data-path-grid':'daily'" in flow

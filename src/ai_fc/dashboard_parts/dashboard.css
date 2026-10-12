@@ -1619,6 +1619,9 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
    아래 여백을 줘, 한 줄이든 두 줄이든 간격이 같게 한다. */
 .band-inline{margin-bottom:10px}
 .band-inline+.flow-shape-controls{margin-top:0}
+.original-flow-panel{min-width:0}.daily-flow-status{margin:0 0 12px;padding:12px 14px;display:grid;gap:5px;color:#755017;background:#fff5df;border:1px solid #dfc89c;font-size:13px;line-height:1.5}.daily-flow-status strong{font-weight:750}.daily-flow-status span{overflow-wrap:anywhere}.daily-flow-readout{min-width:0;margin:10px 0 0;padding:12px 14px;display:flex;flex-wrap:wrap;align-items:baseline;gap:7px 18px;color:#5f5d57;background:#f7f7f3;border:1px solid var(--line);font-size:13px;line-height:1.5}.daily-flow-readout>b{color:#34322e;font-family:var(--mono)}.daily-flow-readout strong{color:var(--orange);font-family:var(--mono)}.original-flow-panel .band-inline{justify-content:flex-start}.original-flow-panel .band-inline span{font-size:12px;white-space:normal}.original-flow-panel .chart-method p{line-height:1.7}
+.daily-flow-events{margin-top:10px;font-size:13px;line-height:1.6;color:#5f5d57}.daily-flow-events summary{padding:8px 0;cursor:pointer;font-weight:700}.daily-flow-events ol{padding-left:20px}.daily-flow-events li{padding:4px 0}.daily-flow-events time{margin-right:12px;font-family:var(--mono)}.daily-flow-events span{overflow-wrap:anywhere}
+@media(max-width:720px){.daily-flow-readout{display:grid;gap:5px;padding:11px 12px}.original-flow-panel .flow-shape-controls{gap:6px}.original-flow-panel .flow-shape-controls button{flex:1 1 auto;padding:0 9px;font-size:12px}.original-flow-panel .flow-shape-controls>small{flex-basis:100%;line-height:1.5}.original-flow-panel .panel-head{align-items:flex-start}}
 
 /* ── 시장 심리 표시 표면 (2026-09-15) ────────────────────────────
    VIX 와 공포·탐욕은 성격이 달라 같은 모양으로 그리지 않는다. VIX 는 수준과 구간이,

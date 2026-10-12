@@ -774,7 +774,7 @@ def test_future_default_uses_three_scenarios_without_legacy_fallback() -> None:
     # champion·조회 경로도 future_paths.json을 받는다(계약 fetch_failure의 champion_route 배너가 도달
     # 가능해야 한다) — 연구 후보 렌더 여부만 modelView/lookup으로 분기한다(검수 2차).
     assert "const futurePathsRequested=v==='flow';" in html
-    assert "const researchPathsRequested=futurePathsRequested&&arg?.modelView!=='champion'" in html
+    assert "const researchPathsRequested=futurePathsRequested&&arg?.futureGraph!=='original'&&arg?.modelView!=='champion'" in html
     assert "const candidate52Requested=initialState.modelView!=='champion'" in html
     # 소유자 승인 B안 (DECISIONS.md 2026-09-02): eligible 외에 stale_last_valid
     # (게이트 닫힘 + 봉인 산출물 온전)도 같은 V5.2 차트를 명시 공시와 함께 렌더.
@@ -800,7 +800,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
     """전망 그래프 중분류가 두 소분류(세 경로 · 복구된 단일 시나리오)를 갖는지 고정."""
     html = dashboard.load_template()
     assert ("function drawOriginalWeeklyFlow(host,sc,showSamples=false,"
-            "scenarioKey='S1',horizon='compare')") in html
+            "scenarioKey='S1',horizon='six_months')") in html
     assert "function originalFlowPanel()" in html
     for required in (
         'class="cross-view-switch future-graph-switch" role="group" aria-label="전망 그래프 보기"',
@@ -809,7 +809,7 @@ def test_future_graph_subcategory_restores_original_single_scenario_chart() -> N
         'data-future-graph-panel="unified"',
         'data-future-graph-panel="original" hidden',
         "세 가지 시장 경로",
-        "단일 시나리오 주간 흐름",
+        "단일 시나리오 일간 흐름",
     ):
         assert required in html, required
     assert "if(parts[1]==='original')return {section:'future',view:'flow',arg:{futureGraph:'original'}}" in html
@@ -1100,8 +1100,8 @@ def test_mid_category_numbers_are_derived_after_filtering_not_hardcoded() -> Non
         assert f"hash:'#statistics/{key}'" in html
 
 
-def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
-    """복구 차트가 평평한 원시 중앙값 대신 구조 경로를 그리는지 고정."""
+def test_original_daily_chart_selects_member_and_preserves_labelled_baseline() -> None:
+    """일간 대표선은 실제 구성원이고, 기존 구조선은 명시적 보류 폴백으로 보존한다."""
     html = dashboard.load_template()
     script = dashboard.DASHBOARD_SCRIPT.read_text(encoding="utf-8")
     body = script.split("function drawOriginalWeeklyFlow")[1].split("const ORIGINAL_FLOW_KEY")[0]
@@ -1118,8 +1118,12 @@ def test_restored_chart_uses_structural_path_not_the_flat_median() -> None:
     assert "sc.path_realism?.[key]?.sample_paths" in body
     assert 'data-original-samples aria-pressed="false"' in html, "모의 경로는 기본 숨김"
     # 공시는 사라지지 않고 접힌 방법 설명으로 자리를 옮겼다
-    assert "모의 표본을 대표선으로 쓰지 않습니다" in html
-    assert "얇은 점선은 <b>실제로 나온 경로 하나하나</b>입니다" in html
+    assert "전체 일별 경로를 사용" in html
+    assert "최빈군 대표 경로" in html
+    assert "굵은 대표선은 전체 일별 모의 경로에서 수학적으로 선정" in html
+    assert "일간 대표 경로 보류 · 기존 주간 기준선 표시" in html
+    assert "data-path-role':'daily-representative" in body
+    assert "data-daily-p50" in body
 
 
 def test_three_tier_information_architecture_midlevel_navigation() -> None:
