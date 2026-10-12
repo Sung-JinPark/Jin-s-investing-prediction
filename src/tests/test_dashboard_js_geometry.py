@@ -395,13 +395,49 @@ console.log(JSON.stringify({
 """.replace("HORIZONS", json.dumps(horizons))
     result = _run_js(program)
     assert result["live"] == {"pct": 72, "median": 27445, "lo": 24508, "hi": 29341,
-                              "now": 26333, "age": 1, "stale": False}
+                              "now": 26333, "age": 1, "origin": None, "provisional": False,
+                              "stale": False}
     # warn 임계를 넘기면 숫자는 내되 원점 나이를 카드 위에 남긴다.
     assert result["aging"]["stale"] is True and result["aging"]["age"] == 4
     # hold 임계에 닿으면 수치를 아예 내지 않는다(fail-closed).
     assert result["held"] is None
     assert result["hidden"] is None and result["internal"] is None
     assert result["empty"] is None and result["missing"] is None
+
+
+def test_home_timeseries_card_carries_the_daily_origin_and_provisional_flag() -> None:
+    """사용자 결정 2026-10-07: 홈 카드도 매일 갱신되는 표시 원점을 쓴다(잠정이면 표시)."""
+    source = _dashboard_source()
+    labels = re.search(
+        r"function tsCadenceLabel\([\s\S]+?\n(?=function tsForecastSignal)", source)
+    assert labels, "cadence label helpers must sit right before tsForecastSignal"
+    horizons = {"63": {"probability_up": 0.7, "median_index": 27900.0,
+                       "band_index": {"p10": 25000.0, "p90": 30000.0}}}
+    program = labels.group(0) + _home_signal_helpers() + r"""
+const base={numbers_visible:true,publication:{customer_numbers_visible:true},anchor:{value:27599.89},
+  origin_age_policy:{warn_after_sessions:1,hold_after_sessions:10},horizons:HORIZONS,origin_age_sessions:0};
+const daily={...base,as_of:'2026-10-06',cadence:'daily',input_state:'provisional',provisional_series:['DGS10','DGS2','VIX']};
+console.log(JSON.stringify({
+  signal:tsForecastSignal(daily),
+  confirmed:tsForecastSignal({...daily,input_state:'confirmed'}),
+  dailyLabel:tsCadenceLabel(daily),
+  weeklyLabel:tsCadenceLabel({...base,as_of:'2026-10-02',cadence:'weekly'}),
+  title:tsProvisionalTitle(daily)
+}));
+""".replace("HORIZONS", json.dumps(horizons))
+    result = _run_js(program)
+    assert result["signal"]["origin"] == "2026-10-06" and result["signal"]["provisional"] is True
+    assert result["confirmed"]["provisional"] is False
+    assert result["dailyLabel"] == "2026-10-06 종가 기준 · 매일 갱신"
+    assert result["weeklyLabel"] == "2026-10-02 종가 기준 · 주 1회 갱신"
+    assert "DGS10·DGS2·VIX" in result["title"]
+    # 히어로는 잠정 배지를, 홈 카드는 원점 날짜를 싣는다. 채점 표면은 주간이라고 말한다.
+    assert "ts.input_state==='provisional'" in source and ">잠정</span>" in source
+    assert "종가 기준${tsf.provisional?' 잠정':''}" in source
+    assert "<span>주간 원점 · 배포 후 쌓인 실제 성적</span>" in source
+    assert "검증 성적 · 100점 환산 · 주간 원점" in source
+    assert "주 1회 갱신</p>" not in source, "히어로 주기 라벨은 cadence 에서 온다"
+
 
 def test_home_hero_summarises_the_three_cards_without_mixing_them() -> None:
     """히어로 요약줄은 카드 세 장을 이름과 함께 나열만 한다.

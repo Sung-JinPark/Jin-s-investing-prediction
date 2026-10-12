@@ -1,0 +1,121 @@
+name: timeseries-v8-daily
+
+# 시계열 예측 화면을 매일 갱신한다 (사용자 결정 2026-10-07, 계약 daily_display_policy).
+# 동결 V8 승자를 그대로 돌려 마지막 마감 미국 세션 원점의 '표시 전용' 예측을 쓴다.
+# 채점·성적(해소·score100·라이브 전진)은 주간 timeseries-v8-shadow 원장이 그대로 맡는다.
+#
+# - 트리거: market-mood-refresh(미국 마감 직후 VIX·NASDAQ 종가)와 timeseries-v2-refresh
+#   (아카이브 확정 → 같은 원점 confirmed 행) 완료 직후. 둘 다 GITHUB_TOKEN 푸시라
+#   push 트리거가 없어 workflow_run 으로 잇는다. 예약은 그 연쇄가 빠졌을 때의 예비다.
+# - 아카이브에 아직 없는 VIX·DGS2·DGS10·NASDAQ 세션은 원 발표처(Cboe·US Treasury·FRED)
+#   값으로 메모리에서만 채우고 행에 provisional 로 남긴다. 아카이브에는 쓰지 않는다.
+# - 워크포워드 재생이 길다(봉인 방법론 2007~ 재생). 계산 잡은 공용 쓰기 잠금을 쥐지 않고,
+#   짧은 커밋 잡만 investing-data-writer 를 쥔다 — 긴 잡이 잠금을 쥐면 그 사이 대기 중인
+#   다른 라이터 실행이 밀려 취소된다.
+on:
+  workflow_run:
+    workflows: ["market-mood-refresh", "timeseries-v2-refresh"]
+    types: [completed]
+  workflow_dispatch:
+  schedule:
+    - cron: "40 23 * * *"
+    - cron: "40 9 * * *"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: timeseries-v8-daily
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: "1"
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned numerical runtime
+        run: pip install -e ".[pit,timeseries]" pytest
+      - name: Daily display forecast (idempotent per origin and input state)
+        run: python -m ai_fc timeseries-v8-daily
+      - name: Verify ledgers and chains
+        run: |
+          python -m ai_fc timeseries-v8-daily-verify
+          python -m ai_fc timeseries-v8-verify
+          pytest src/tests/test_timeseries_v8_daily.py src/tests/test_timeseries_v8_display.py -q
+      - name: Collect changed display outputs
+        id: diff
+        shell: bash
+        run: |
+          mkdir -p out
+          changed=false
+          for path in data/timeseries_v8/ledgers/daily_display_forecasts.jsonl data/timeseries_v8/daily_display_latest.json; do
+            [ -f "$path" ] || continue
+            if ! git ls-files --error-unmatch "$path" >/dev/null 2>&1 || ! git diff --quiet -- "$path"; then
+              mkdir -p "out/$(dirname "$path")"
+              cp "$path" "out/$path"
+              changed=true
+            fi
+          done
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: ${{ steps.diff.outputs.changed == 'true' }}
+        with:
+          name: timeseries-v8-daily
+          path: out/
+          retention-days: 3
+
+  commit:
+    needs: forecast
+    if: ${{ needs.forecast.outputs.changed == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    concurrency:
+      group: investing-data-writer
+      cancel-in-progress: false
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install the pinned numerical runtime
+        run: pip install -e ".[pit,timeseries]"
+      - uses: actions/download-artifact@v4
+        with:
+          name: timeseries-v8-daily
+          path: .
+      - name: Commit only the daily display outputs
+        shell: bash
+        run: |
+          python -m ai_fc timeseries-v8-daily-verify
+          python -m ai_fc inventory
+          git add data/timeseries_v8/ledgers/daily_display_forecasts.jsonl \
+                  data/timeseries_v8/daily_display_latest.json \
+                  docs/generated/inventory.generated.md
+          unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries_v8/ledgers/daily_display_forecasts\.jsonl|data/timeseries_v8/daily_display_latest\.json|docs/generated/inventory\.generated\.md)$' || true)"
+          test -z "$unexpected" || { echo "unexpected daily paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: refresh V8 daily display forecast"
+            git pull --rebase origin main
+            git push
+          fi

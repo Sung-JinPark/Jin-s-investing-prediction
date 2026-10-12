@@ -470,6 +470,38 @@ def cmd_timeseries_v8_latest() -> None:
     }, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-v8-daily")
+def cmd_timeseries_v8_daily(
+    offline: bool = typer.Option(False, "--offline", help="원천 잠정치 수집 없이 아카이브만 쓴다"),
+) -> None:
+    """동결 V8로 마지막 마감 세션 원점의 '표시 전용' 일일 예측을 쓰고 표시 포인터를 갱신한다.
+
+    채점·성적은 주간 shadow 원장이 맡는다 — 이 행은 해소·채점·score100에서 제외된다.
+    """
+    from .timeseries_v8_daily import daily_forecast_timeseries_v8, publish_daily_display_latest
+
+    kwargs = {"fetcher": None} if offline else {}
+    result = _timeseries_exit(daily_forecast_timeseries_v8, config.ROOT, **kwargs)
+    pointer = _timeseries_exit(publish_daily_display_latest, config.ROOT)
+    typer.echo(json.dumps({
+        **result,
+        "pointer_as_of": pointer["as_of"],
+        "customer_numbers_visible": pointer["publication"]["customer_numbers_visible"],
+        "reasons": pointer["gate"]["reasons"],
+    }, ensure_ascii=False, indent=2))
+
+
+@app.command("timeseries-v8-daily-verify")
+def cmd_timeseries_v8_daily_verify() -> None:
+    """일일 표시 원장의 해시체인·supersede 규율·채점 제외를 검증한다."""
+    from .timeseries_v8_daily import verify_daily_display
+
+    result = _timeseries_exit(verify_daily_display, config.ROOT)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("timeseries-v8-verify")
 def cmd_timeseries_v8_verify() -> None:
     """V8 사전등록·V2 predecessor 핀·실험 원장 규율을 fail-closed 검증한다."""

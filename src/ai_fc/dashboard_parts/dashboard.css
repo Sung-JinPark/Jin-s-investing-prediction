@@ -1587,6 +1587,7 @@ abbr[title]{text-decoration:underline dotted 1px;text-underline-offset:2px;curso
 /* Hero slimming: monochrome gate chips on the dark hero (status = dot),
    prominent %-direction in the next box, two-line horizon cards. */
 .timeseries-hero .ts-gate-chip,.timeseries-hero .ts-gate-chip.pass,.timeseries-hero .ts-gate-chip.warn,.timeseries-hero .ts-gate-chip.hold{color:#cfcbc2;background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.25)}
+.timeseries-hero .ts-provisional{margin-left:6px;padding:2px 7px;color:#11110f;background:var(--amber);font-family:var(--mono);font-size:11px;font-weight:700;cursor:help}
 .timeseries-hero .ts-gate-chip::before{content:'';display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#8f8b82;vertical-align:1px}
 .timeseries-hero .ts-gate-chip.pass::before{background:#3ddc97}
 .timeseries-hero .ts-gate-chip.warn::before,.timeseries-hero .ts-gate-chip.hold::before{background:var(--amber)}

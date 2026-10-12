@@ -22,6 +22,8 @@ from typing import Any
 from .timeseries_v8.contracts import MODEL_ID, MODEL_VERSION, canonical_hash
 
 LATEST_RELATIVE = Path("data/timeseries_v8/multivariate_v8_latest.json")
+# 매일 갱신 표시 포인터(사용자 결정 2026-10-07) — 표시 전용, 채점·성적은 주간 원장이 맡는다.
+DAILY_LATEST_RELATIVE = Path("data/timeseries_v8/daily_display_latest.json")
 SEALED_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/sealed_evaluations.jsonl")
 FORWARD_LEDGER_RELATIVE = Path("data/timeseries_v8/ledgers/shadow_resolutions.jsonl")
 # 실측 순위 칸 = 이미 공개된 5개 절단점이 수직선을 6칸으로 나눈 것.
@@ -614,23 +616,71 @@ def _origin_age_policy(root: Path) -> dict[str, Any]:
     return dict(policy) if isinstance(policy, dict) else {}
 
 
+def _daily_anchor_and_history(
+    root: Path, origin: str, knowledge_cutoff: str, anchor_value: float, *, sessions: int = 63,
+) -> dict[str, list[Any]]:
+    """History line for the daily surface: archive closes before the origin + the row's anchor.
+
+    The daily row may sit on a provisional NASDAQ close that the archive has not
+    confirmed yet, so the origin point is the anchor the forecast actually used.
+    """
+    from .timeseries_v2.market_archive import read_market_observations
+
+    rows = sorted(
+        (
+            row for row in read_market_observations(root, knowledge_cutoff=knowledge_cutoff)
+            if row.series_id == TARGET_SERIES and row.observation_time < origin
+        ),
+        key=lambda row: row.observation_time,
+    )[-(sessions - 1):]
+    return {
+        "dates": [row.observation_time for row in rows] + [origin],
+        "index": [float(row.value) for row in rows] + [float(anchor_value)],
+    }
+
+
+def _read_pointer(root: Path, relative: Path) -> dict[str, Any] | None:
+    path = root / relative
+    if not path.is_file():
+        return None
+    value = json.loads(path.read_text(encoding="utf-8"))
+    validate_latest(value)
+    return value
+
+
 def load_projection(root: Path) -> dict[str, Any] | None:
     """Return the visible V8 projection, or None so the surface falls back.
 
     None covers both "no pointer yet" and an operational HOLD: in either case
     the predecessor governance (V5/V2 validation-pending card) already renders
     the honest state, so V8 adds nothing until its gates hold.
+
+    The daily display pointer (user decision 2026-10-07) owns the surface when it
+    is at least as new as the weekly pointer — including its HOLD (fail-closed).
+    Scoring blocks (sealed metrics, live forward, score100) always come from the
+    weekly shadow ledgers either way.
     """
-    path = root / LATEST_RELATIVE
-    if not path.is_file():
+    weekly = _read_pointer(root, LATEST_RELATIVE)
+    daily = _read_pointer(root, DAILY_LATEST_RELATIVE)
+    use_daily = daily is not None and daily.get("as_of") is not None and (
+        weekly is None or str(daily["as_of"]) >= str(weekly.get("as_of") or ""))
+    latest = daily if use_daily else weekly
+    if latest is None:
         return None
-    latest = json.loads(path.read_text(encoding="utf-8"))
-    validate_latest(latest)
     if latest.get("publication", {}).get("customer_numbers_visible") is not True:
         return None
     sealed_row = _sealed_row(root, str(latest["gate"]["sealed_run_id"]))
-    anchor_value, history = _anchor_and_history(
-        root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    if use_daily:
+        info = latest.get("daily") or {}
+        anchor = info.get("anchor") or {}
+        if anchor.get("series_id") != TARGET_SERIES:
+            raise TimeSeriesV8DisplayError("daily pointer lacks its NASDAQ anchor")
+        anchor_value = float(anchor["value"])
+        history = _daily_anchor_and_history(
+            root, str(latest["as_of"]), str(latest["knowledge_cutoff"]), anchor_value)
+    else:
+        anchor_value, history = _anchor_and_history(
+            root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
     realized = _realized_after_origin(
         root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
     policy = _origin_age_policy(root)
@@ -640,7 +690,16 @@ def load_projection(root: Path) -> dict[str, Any] | None:
         # 계약 origin_age_policy(사용자 결정 2026-09-07): 주간 주기 2회를 놓친 원점은
         # 열린 전망이 아니다 — 수치를 숨기고 validation_pending 표면으로 페일클로즈.
         return None
-    return build_projection(
+    projection = build_projection(
         latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history,
         resolutions=_forward_resolutions(root), realized=realized,
         origin_age_policy=policy)
+    # 표시 주기: 화면 원점은 매일, 채점·성적은 주간 원점(weekly_as_of)이다.
+    projection["cadence"] = "daily" if use_daily else "weekly"
+    projection["weekly_as_of"] = None if weekly is None else weekly.get("as_of")
+    if use_daily:
+        info = latest.get("daily") or {}
+        projection["input_state"] = str(info.get("input_state") or "")
+        projection["provisional_series"] = [str(item) for item in info.get("provisional_series") or []]
+        projection["anchor"]["provisional"] = bool((info.get("anchor") or {}).get("provisional"))
+    return projection
