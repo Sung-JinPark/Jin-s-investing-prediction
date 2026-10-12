@@ -1,0 +1,70 @@
+name: timeseries-daily6m
+
+# Run after the existing source collector completes. The later fallback also
+# clears native ALFRED's conservative New York availability cutoff and allows
+# delayed source checkpoints to reach main before the research run.
+# Forecasts deduplicate by ISO week; outcomes resolve each completed day.
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["timeseries-v2-refresh"]
+    types: [completed]
+  schedule:
+    - cron: "20 9 * * 2-6"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: investing-data-writer-daily6m
+  cancel-in-progress: false
+
+jobs:
+  research:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Use the already declared numerical dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5" pytest
+      - name: Append this week's separate daily research forecast
+        run: python -m ai_fc timeseries-daily6m-forecast
+      - name: Score only completed and published daily outcomes
+        run: python -m ai_fc timeseries-daily6m-resolve
+      - name: Recheck preview gates and publish current HOLD or ready pointer
+        run: python -m ai_fc timeseries-daily6m-latest
+      - name: Verify the separate research chain and targeted contracts
+        run: |
+          python -m ai_fc timeseries-daily6m-verify
+          pytest src/tests/test_timeseries_daily6m_model.py src/tests/test_timeseries_daily6m_pipeline.py -q
+      - name: Preserve full simulated paths as research artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily6m-paths-${{ github.run_id }}
+          path: outputs/timeseries_daily6m/
+          if-no-files-found: ignore
+      - name: Commit only the new research ledger and derived pointer
+        shell: bash
+        run: |
+          if test -d data/timeseries_daily6m; then
+            git add data/timeseries_daily6m
+          fi
+          unexpected="$(git diff --cached --name-only | grep -Ev '^data/timeseries_daily6m/' || true)"
+          test -z "$unexpected" || { echo "unexpected daily6m paths: $unexpected"; exit 1; }
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "data: append six-month daily research forecast and outcomes"
+            git pull --rebase origin main
+            git push
+          fi

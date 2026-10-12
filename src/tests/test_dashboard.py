@@ -1633,14 +1633,15 @@ def test_embed_keeps_bodies_inline_because_splitting_there_deletes_them() -> Non
     assert "split_forecast_bodies" in write_pages
 
 
-def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets() -> None:
+def test_future_paths_are_split_with_semantic_identity_and_fixed_budgets(tmp_path: Path) -> None:
     candidate_path = (
         dashboard.config.ROOT
         / "data/scenarios/candidates/scenario_v5_2_scenario_clustered_db_v4_latest.json"
     )
     candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
     stable_now = dashboard.datetime.fromisoformat(candidate["generated_at"])
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
     try:
         model = dashboard.build_read_model(
             conn, dashboard.config.ROOT, now=stable_now,
@@ -1721,7 +1722,7 @@ def test_future_paths_split_keeps_gated_candidate_inline_without_deferred_marker
     assert again["scenario_v5_2"] == gated
 
 
-def test_future_paths_split_defers_last_valid_gated_candidate() -> None:
+def test_future_paths_split_defers_last_valid_gated_candidate(tmp_path: Path) -> None:
     """소유자 승인 B안 (DECISIONS.md 2026-09-02): 게이트가 닫혀도 봉인 산출물이
     온전하면(stale_last_valid) 경로 데이터는 정상 분리되어 프런트가 마지막 유효
     차트를 명시 공시 배너와 함께 렌더할 수 있어야 한다."""
@@ -1733,7 +1734,8 @@ def test_future_paths_split_defers_last_valid_gated_candidate() -> None:
     stale_now = dashboard.datetime.fromisoformat(
         candidate["knowledge_cutoff"]
     ) + dashboard.timedelta(days=10)
-    conn = ingest.connect(dashboard.config.ROOT / "db" / "index.db")
+    conn = ingest.connect(tmp_path / "index.db")
+    ingest.sync(conn, dashboard.config.ROOT)
     try:
         model = dashboard.build_read_model(
             conn, dashboard.config.ROOT, now=stale_now,

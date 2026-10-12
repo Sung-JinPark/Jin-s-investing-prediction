@@ -27,7 +27,10 @@ def test_v13_vol_panel_is_wired_hidden_by_default() -> None:
     assert "tier==='t3_live_card')return true" in SCRIPT
     # 세 렌더 경로(V8 · HOLD · 레거시) 모두 패널을 싣고 탭 토글이 5번째 패널을 안다
     assert SCRIPT.count("${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}") == 3
-    assert SCRIPT.count("if(timeseriesV13TabEnabled(DATA.timeseries_v13_vol))enabled.push('volatility');") == 2
+    legacy_renderers = SCRIPT[SCRIPT.index("function renderTimeseriesV8"):SCRIPT.index("const GC_API=")]
+    assert legacy_renderers.count("if(timeseriesV13TabEnabled(DATA.timeseries_v13_vol))enabled.push('volatility');") == 2
+    daily_renderer = SCRIPT[SCRIPT.index("function renderTimeseriesDaily"):SCRIPT.index("function bindTimeseriesTabs")]
+    assert "if(timeseriesV13TabEnabled(DATA.timeseries_v13_vol))enabled.push('volatility');" in daily_renderer
     assert "[...TS_TABS,TS_V13_TAB].forEach(([name])=>{const node=$(`#lab-ts-${name}`,root);if(node)node.hidden=name!==next;});" in SCRIPT
     assert "bindTimeseriesTabs(root,enabled,'summary');" in SCRIPT, "V8 HOLD 경로에도 탭 바인더"
 
