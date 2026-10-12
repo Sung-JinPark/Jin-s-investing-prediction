@@ -16,7 +16,6 @@ CONTRACT_RELATIVE = Path("data/contracts/timeseries_daily6m_v1.yaml")
 STORE_RELATIVE = Path("data/timeseries_daily6m")
 FORECAST_LEDGER = STORE_RELATIVE / "ledgers/forecasts.jsonl"
 RESOLUTION_LEDGER = STORE_RELATIVE / "ledgers/resolutions.jsonl"
-CORRECTION_LEDGER = STORE_RELATIVE / "ledgers/corrections.jsonl"
 LATEST_RELATIVE = STORE_RELATIVE / "latest.json"
 PATH_COUNT = 20000
 MINIMUM_TRAINING_SESSIONS = 800
@@ -98,6 +97,14 @@ def load_contract(root: Path) -> dict[str, Any]:
     }
     if tail != tail_policy:
         raise Daily6mContractError("daily6m permits only the registered current-session captured VIX tail")
+    resolution_policy = {
+        "ledger": "resolutions", "revision_policy": "append_with_supersedes_for_changed_published_close",
+        "revision_key": ["source_id", "series_id", "observation_time", "value", "available_at", "vintage_start", "source_hash"],
+        "capture_only_changes_create_revision": False, "preserves_all_revisions": True,
+        "verify_replays_immutable_forecast_and_pinned_outcomes": True,
+    }
+    if contract.get("evaluation", {}).get("resolution") != resolution_policy:
+        raise Daily6mContractError("daily6m requires append-only native-outcome revisions and scoring replay")
     if (publication.get("predictive_validation") != "not_established"
             or publication.get("official_ledger_write") is not False
             or publication.get("automatic_promotion") is not False):

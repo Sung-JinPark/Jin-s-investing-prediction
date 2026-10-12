@@ -161,6 +161,9 @@ def test_daily6m_waits_for_main_source_refresh_and_has_a_late_fallback() -> None
     assert "conclusion == 'success'" in guard
     assert "head_branch == 'main'" in guard
     assert "git add data/timeseries_daily6m" in text
+    collector = yaml.safe_load((ROOT / ".github" / "workflows" / "timeseries-v2-refresh.yml").read_text(encoding="utf-8"))
+    source_triggers = collector.get(True) or collector.get("on")
+    assert source_triggers["schedule"] == [{"cron": "20 8 * * 2-6"}]
 
 
 def test_every_data_commit_replays_on_the_fresh_tip() -> None:

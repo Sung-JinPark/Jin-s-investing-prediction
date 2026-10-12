@@ -21,8 +21,9 @@ on:
       - "data/contracts/multivariate_timeseries_v2.yaml"
       - "src/ai_fc/timeseries_v2/**"
   schedule:
-    # Tue-Sat after the US close. Weekly/monthly work is selected inside the job.
-    - cron: "35 1 * * 2-6"
+    # Tue-Sat after the native availability cutoff and observed 07-08 UTC
+    # official archive captures. Weekly/monthly UTC-day rules stay unchanged.
+    - cron: "20 8 * * 2-6"
   workflow_dispatch:
     inputs:
       run_backtest:

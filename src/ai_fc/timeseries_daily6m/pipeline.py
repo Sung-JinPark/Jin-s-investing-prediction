@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import gzip
 import json
 import math
 import os
@@ -17,6 +18,8 @@ import numpy as np
 
 from . import contracts as C
 from . import features as F
+
+_SOURCE_REVISION_KEYS = ("source_id", "series_id", "observation_time", "value", "available_at", "vintage_start", "source_hash")
 
 
 class Daily6mPipelineError(RuntimeError):
@@ -92,6 +95,8 @@ def read_chain(root: Path, relative: Path) -> list[dict[str, Any]]:
     identities = set()
     active_weeks: dict[str, str] = {}
     seen_forecasts: dict[str, dict[str, Any]] = {}
+    active_resolutions: dict[tuple[str, str], str] = {}
+    seen_resolutions: dict[str, dict[str, Any]] = {}
     for row in rows:
         body = {key: value for key, value in row.items() if key != "content_hash"}
         if row.get("previous_hash") != previous or row.get("content_hash") != C.canonical_hash(body):
@@ -112,6 +117,24 @@ def read_chain(root: Path, relative: Path) -> list[dict[str, Any]]:
                 raise Daily6mPipelineError("supersedes must refer to an earlier active forecast in the same ISO week")
             active_weeks[week] = str(identity)
             seen_forecasts[str(identity)] = row
+        elif relative == C.RESOLUTION_LEDGER:
+            key = (row.get("forecast_id"), row.get("date"))
+            target = row.get("supersedes")
+            if not all(isinstance(value, str) and value for value in key):
+                raise Daily6mPipelineError("resolution forecast/date identity missing")
+            if target is None:
+                if key in active_resolutions:
+                    raise Daily6mPipelineError("multiple active resolutions for one forecast/date")
+            elif (not isinstance(target, str) or target not in seen_resolutions
+                  or active_resolutions.get(key) != target):
+                raise Daily6mPipelineError("resolution supersedes must identify the earlier active revision for the same forecast/date")
+            if target is not None:
+                prior = seen_resolutions[target]
+                if (F.aware_time(row["resolved_as_of"]) < F.aware_time(prior["resolved_as_of"])
+                        or row.get("source_revision_hash") == prior.get("source_revision_hash")):
+                    raise Daily6mPipelineError("resolution correction must preserve time order and change a source revision")
+            active_resolutions[key] = str(identity)
+            seen_resolutions[str(identity)] = row
         previous = row["content_hash"]
     return rows
 
@@ -213,12 +236,132 @@ def _active(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return [row for row in rows if row["forecast_id"] not in superseded]
 
 
+def _outcome_source(source: Any) -> dict[str, Any]:
+    """Pin the exact native close, publication vintage, and source capture."""
+    end = source.get("vintage_end")
+    end = None if end is None or str(end) in {"NaT", "nan", "<NA>"} else F.aware_time(str(end)).isoformat()
+    return {
+        "source_id": str(source["source_id"]), "series_id": str(source["series_id"]),
+        "observation_time": str(source["observation_time"]), "value": float(source["value"]),
+        "available_at": F.aware_time(str(source["available_at"])).isoformat(),
+        "vintage_start": F.aware_time(str(source["vintage_start"])).isoformat(),
+        "vintage_end": end, "retrieved_at": F.aware_time(str(source["retrieved_at"])).isoformat(),
+        "source_hash": str(source["source_hash"]), "data_grade": str(source.get("data_grade", "native_pit")),
+    }
+
+
+def _source_revision_hash(actual: dict[str, Any], previous: dict[str, Any]) -> str:
+    # A receipt recapture alone is not a published-close correction. Retain the
+    # initial capture provenance when only retrieved_at or vintage_end changes.
+    return C.canonical_hash({"actual": {key: actual[key] for key in _SOURCE_REVISION_KEYS}, "previous": {key: previous[key] for key in _SOURCE_REVISION_KEYS}})
+
+
+def _pinned_source_hash(source: dict[str, Any]) -> str:
+    return C.canonical_hash({key: source[key] for key in (*_SOURCE_REVISION_KEYS, "retrieved_at", "data_grade")})
+
+
+def _native_outcome_source_index(root: Path) -> set[str]:
+    """Replay preserved facts, including same-vintage corrections no longer in Parquet."""
+    rows = _rows(root / "data/timeseries/ledgers/observations.jsonl")
+    chunk_root = (root / "data/timeseries/facts/observation_chunks").resolve()
+    for manifest in _rows(root / "data/timeseries/ledgers/observation_chunks.jsonl"):
+        if manifest.get("series_id") != "NASDAQCOM":
+            continue
+        path = (root / manifest["chunk_path"]).resolve()
+        if not path.is_relative_to(chunk_root):
+            raise Daily6mPipelineError("resolution native fact chunk escaped its registered container")
+        body = gzip.decompress(path.read_bytes())
+        digest = hashlib.sha256(body).hexdigest()
+        if digest != manifest.get("content_sha256") or digest != manifest.get("chunk_id"):
+            raise Daily6mPipelineError("resolution native fact chunk SHA256 mismatch")
+        chunk_rows = [json.loads(line) for line in body.decode("utf-8").splitlines() if line.strip()]
+        if len(chunk_rows) != manifest.get("row_count"):
+            raise Daily6mPipelineError("resolution native fact chunk row count mismatch")
+        rows.extend(chunk_rows)
+    return {_pinned_source_hash(_outcome_source(row)) for row in rows
+            if row.get("source_id") == "alfred" and row.get("series_id") == "NASDAQCOM" and row.get("value_status") == "ok"}
+
+
+def _validate_resolution_source_replay(row: dict[str, Any], source_index: set[str]) -> None:
+    if any(_pinned_source_hash(row[key]) not in source_index for key in ("actual_source", "previous_source")):
+        raise Daily6mPipelineError("resolution close or capture provenance does not match a preserved native fact")
+
+
+def _resolution_id(row: dict[str, Any]) -> str:
+    initial = row["forecast_id"] + ":" + row["date"]
+    if row.get("supersedes") is None:
+        return initial
+    return initial + ":" + C.canonical_hash({"source_revision_hash": row["source_revision_hash"], "supersedes": row["supersedes"]})[:24]
+
+
+def validate_resolution(row: dict[str, Any], run: dict[str, Any]) -> None:
+    """Replay scoring against the immutable forecast and pinned native facts."""
+    if row.get("schema_version") != 1 or row.get("forecast_id") != run["run_id"] or row.get("probability_unit") != "fraction":
+        raise Daily6mPipelineError("resolution forecast/unit contract mismatch")
+    dates = run["dates"]
+    day = row.get("date")
+    if day not in dates:
+        raise Daily6mPipelineError("resolution date is not an immutable forecast target")
+    index = dates.index(day)
+    previous_day = dates[index - 1] if index else run["anchor_date"]
+    if row.get("previous_session") != previous_day:
+        raise Daily6mPipelineError("resolution previous session differs from the immutable forecast")
+    if not isinstance(row.get("resolved_as_of"), str) or not row["resolved_as_of"].strip():
+        raise Daily6mPipelineError("resolution time must be explicit and timezone aware")
+    cutoff = F.aware_time(row["resolved_as_of"])
+    if cutoff < F.aware_time(run["as_of"]) or day > F.last_completed_session(cutoff):
+        raise Daily6mPipelineError("resolution target close was not completed at resolution time")
+    for key in ("actual_index", "actual_previous_index", "probability_up_from_previous", "brier"):
+        value = row.get(key)
+        if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+            raise Daily6mPipelineError("resolution numerical values must be finite and explicit")
+    actual, previous = row["actual_index"], row["actual_previous_index"]
+    p, brier = row["probability_up_from_previous"], row["brier"]
+    record = run["records"][index]
+    if actual <= 0 or previous <= 0 or not 0 <= p <= 1 or not math.isclose(p, record["probability_up_from_previous"], rel_tol=0, abs_tol=1e-12):
+        raise Daily6mPipelineError("resolution close or immutable forecast probability mismatch")
+    outcome = actual > previous
+    inside = record["band_index"]["p10"] <= actual <= record["band_index"]["p90"]
+    if type(row.get("outcome_up")) is not bool or row["outcome_up"] != outcome:
+        raise Daily6mPipelineError("resolution outcome does not match the two native closes")
+    if not 0 <= brier <= 1 or not math.isclose(brier, (p - int(outcome)) ** 2, rel_tol=0, abs_tol=1e-12):
+        raise Daily6mPipelineError("resolution Brier score differs from the immutable probability and outcome")
+    if type(row.get("inside_p10_p90")) is not bool or row["inside_p10_p90"] != inside:
+        raise Daily6mPipelineError("resolution band inclusion differs from the immutable forecast")
+    for key, expected_day, value in (("actual_source", day, actual), ("previous_source", previous_day, previous)):
+        source = row.get(key)
+        if (not isinstance(source, dict) or source.get("source_id") != "alfred" or source.get("series_id") != "NASDAQCOM"
+                or source.get("observation_time") != expected_day or source.get("data_grade") != "native_pit"
+                or not isinstance(source.get("source_hash"), str) or re.fullmatch(r"[0-9a-f]{64}", source["source_hash"]) is None):
+            raise Daily6mPipelineError("resolution native close source identity or SHA256 missing")
+        source_value = source.get("value")
+        if isinstance(source_value, bool) or not isinstance(source_value, (int, float)) or not math.isfinite(source_value) or source_value != value:
+            raise Daily6mPipelineError("resolution native source close differs from the scored close")
+        timestamps = ("available_at", "vintage_start", "retrieved_at")
+        if any(not isinstance(source.get(name), str) or not source[name].strip() for name in timestamps):
+            raise Daily6mPipelineError("resolution native publication, vintage and capture times must be explicit")
+        if any(F.aware_time(source[name]) > cutoff for name in timestamps):
+            raise Daily6mPipelineError("resolution native source publication or capture is after resolution time")
+        if source.get("vintage_end") is not None:
+            if not isinstance(source["vintage_end"], str) or F.aware_time(source["vintage_end"]) <= cutoff:
+                raise Daily6mPipelineError("resolution native close vintage was expired or invalid at resolution time")
+    current_source, prior_source = row["actual_source"], row["previous_source"]
+    aliases = {"available_at": current_source["available_at"], "source_vintage_start": current_source["vintage_start"], "previous_available_at": prior_source["available_at"], "previous_vintage_start": prior_source["vintage_start"]}
+    if any(row.get(key) != value for key, value in aliases.items()) or row.get("source_revision_hash") != _source_revision_hash(current_source, prior_source):
+        raise Daily6mPipelineError("resolution source revision provenance mismatch")
+    supersedes = row.get("supersedes")
+    if (row.get("resolution_id") != _resolution_id(row)
+            or row.get("resolution_kind") != ("initial" if supersedes is None else "correction")
+            or (supersedes is not None and (not isinstance(row.get("revision_reason"), str) or not row["revision_reason"].strip()))):
+        raise Daily6mPipelineError("resolution identity or explicit correction reason mismatch")
+
+
 @serialized_writer
 def forecast_timeseries_daily6m(root: Path, *, as_of: str | datetime | None = None, supersedes: str | None = None, save_paths: bool = True, path_count: int = C.PATH_COUNT) -> dict[str, Any]:
     """Append one independent forecast per ISO week, or an explicit revision."""
     from .model import future_session_dates, generate_forecast_with_paths
     cutoff = F.aware_time(as_of)
-    stamp = cutoff.isoformat(timespec="seconds")
+    stamp = cutoff.isoformat()
     contract = C.load_contract(root)
     try:
         frame = F.read_native_frame(root, as_of=cutoff)
@@ -284,26 +427,68 @@ def resolve_timeseries_daily6m(root: Path, *, as_of: str | datetime | None = Non
     observed = frame[frame["series_id"] == "NASDAQCOM"].set_index("day")
     forecasts = read_chain(root, C.FORECAST_LEDGER)
     resolved = read_chain(root, C.RESOLUTION_LEDGER)
-    keys = {(row["forecast_id"], row["date"]) for row in resolved}
-    appended = 0
+    runs = {forecast["forecast_id"]: load_run(root, forecast) for forecast in forecasts}
+    source_index = _native_outcome_source_index(root) if forecasts else set()
+    active: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in resolved:
+        if row["forecast_id"] not in runs:
+            raise Daily6mPipelineError("resolution references a missing forecast")
+        validate_resolution(row, runs[row["forecast_id"]])
+        _validate_resolution_source_replay(row, source_index)
+        active[(row["forecast_id"], row["date"])] = row
+    completed = F.last_completed_session(cutoff)
+    latest_observed = str(observed.index.max()) if not observed.empty else None
+    # Missing unpublished closes wait. A hole before a later published close
+    # is an input error, checked before any resolution append in this run.
+    for run in runs.values():
+        previous_day = run["anchor_date"]
+        for day in run["dates"]:
+            if latest_observed is not None and day <= min(completed, latest_observed):
+                if day not in observed.index or previous_day not in observed.index:
+                    raise Daily6mPipelineError("resolution native close gap " + (day if day not in observed.index else previous_day))
+            previous_day = day
+    appended = corrected = 0
     # Every preserved issuance keeps accruing outcomes, including superseded
     # revisions. Selecting a current display must not hide historical results.
     for forecast in forecasts:
-        run = load_run(root, forecast)
+        run = runs[forecast["forecast_id"]]
         previous_day = run["anchor_date"]
         for record in run["records"]:
             day = record["date"]
             key = (run["run_id"], day)
-            if day <= F.last_completed_session(cutoff) and day in observed.index and previous_day in observed.index and key not in keys:
-                actual = float(observed.loc[day, "value"])
-                previous = float(observed.loc[previous_day, "value"])
+            if day <= completed and day in observed.index and previous_day in observed.index:
+                actual_source = _outcome_source(observed.loc[day])
+                previous_source = _outcome_source(observed.loc[previous_day])
+                revision_hash = _source_revision_hash(actual_source, previous_source)
+                prior = active.get(key)
+                if prior is not None and prior["source_revision_hash"] == revision_hash:
+                    previous_day = day
+                    continue
+                if prior is not None and cutoff < F.aware_time(prior["resolved_as_of"]):
+                    raise Daily6mPipelineError("resolution correction cannot precede the active resolution time")
+                actual, previous = actual_source["value"], previous_source["value"]
                 outcome = bool(actual > previous)
                 p = float(record["probability_up_from_previous"])
-                available = str(observed.loc[day, "available_at"])
-                _append(root, C.RESOLUTION_LEDGER, {"resolution_id": run["run_id"] + ":" + day, "forecast_id": run["run_id"], "date": day, "previous_session": previous_day, "available_at": available, "resolved_as_of": cutoff.isoformat(timespec="seconds"), "actual_index": actual, "actual_previous_index": previous, "previous_available_at": str(observed.loc[previous_day, "available_at"]), "previous_vintage_start": str(observed.loc[previous_day, "vintage_start"]), "probability_up_from_previous": p, "probability_unit": "fraction", "outcome_up": outcome, "brier": (p - int(outcome)) ** 2, "inside_p10_p90": record["band_index"]["p10"] <= actual <= record["band_index"]["p90"], "source_vintage_start": str(observed.loc[day, "vintage_start"]), "supersedes": None}, identity="resolution_id")
+                payload = {
+                    "schema_version": 1, "forecast_id": run["run_id"], "date": day, "previous_session": previous_day,
+                    "available_at": actual_source["available_at"], "resolved_as_of": cutoff.isoformat(),
+                    "actual_index": actual, "actual_previous_index": previous,
+                    "previous_available_at": previous_source["available_at"], "previous_vintage_start": previous_source["vintage_start"],
+                    "probability_up_from_previous": p, "probability_unit": "fraction", "outcome_up": outcome,
+                    "brier": (p - int(outcome)) ** 2, "inside_p10_p90": record["band_index"]["p10"] <= actual <= record["band_index"]["p90"],
+                    "source_vintage_start": actual_source["vintage_start"], "actual_source": actual_source, "previous_source": previous_source,
+                    "source_revision_hash": revision_hash, "supersedes": prior["resolution_id"] if prior is not None else None,
+                    "resolution_kind": "correction" if prior is not None else "initial",
+                    "revision_reason": "native published close or source vintage revised; previous resolution preserved" if prior is not None else None,
+                }
+                payload["resolution_id"] = _resolution_id(payload)
+                validate_resolution(payload, run)
+                _validate_resolution_source_replay(payload, source_index)
+                active[key] = _append(root, C.RESOLUTION_LEDGER, payload, identity="resolution_id")
                 appended += 1
+                corrected += int(prior is not None)
             previous_day = day
-    return {"resolved": appended, "total_resolutions": len(resolved) + appended, "probability_unit": "fraction", "predictive_validation": "not_established"}
+    return {"resolved": appended, "corrected": corrected, "total_resolutions": len(resolved) + appended, "active_resolutions": len(active), "probability_unit": "fraction", "predictive_validation": "not_established"}
 
 
 @serialized_writer
@@ -328,7 +513,7 @@ def publish_latest_timeseries_daily6m(root: Path, *, as_of: str | datetime | Non
         except (OSError, ValueError, RuntimeError, ImportError) as exc:
             reasons.append("current preflight rejected: " + str(exc))
             state = "hold"
-        result = hold_payload(reasons, as_of=cutoff.isoformat(timespec="seconds"), status=state, evidence=evidence)
+        result = hold_payload(reasons, as_of=cutoff.isoformat(), status=state, evidence=evidence)
     if result["numbers_visible"]:
         body = {"schema_version": 1, "model_id": C.MODEL_ID, "run_id": result["run_id"], "run_path": active[-1]["run_path"], "run_content_hash": result["content_hash"], "status": "research_preview", "numbers_visible": True, "as_of": result["as_of"]}
         pointer = {**body, "content_hash": C.canonical_hash(body)}
@@ -346,10 +531,12 @@ def verify_timeseries_daily6m(root: Path) -> dict[str, Any]:
         forecasts = read_chain(root, C.FORECAST_LEDGER)
         resolutions = read_chain(root, C.RESOLUTION_LEDGER)
         by_id = {row["forecast_id"]: row for row in forecasts}
+        runs = {}
         for row in forecasts:
             if row.get("supersedes") and row["supersedes"] not in by_id:
                 raise Daily6mPipelineError("supersedes missing prior forecast")
             run = load_run(root, row)
+            runs[row["forecast_id"]] = run
             artifact = run.get("joint_path_artifact")
             if artifact:
                 path = (root / artifact["path"]).resolve()
@@ -369,9 +556,14 @@ def verify_timeseries_daily6m(root: Path) -> dict[str, Any]:
                         if records != run["records"] or samples != run["sample_paths"]:
                             raise Daily6mPipelineError("joint-path summary or sample members mismatch")
         for row in resolutions:
-            if row["forecast_id"] not in by_id or row.get("probability_unit") != "fraction" or not 0 <= row["probability_up_from_previous"] <= 1:
+            if row["forecast_id"] not in by_id:
                 raise Daily6mPipelineError("resolution forecast/unit contract mismatch")
+            validate_resolution(row, runs[row["forecast_id"]])
+        if resolutions:
+            source_index = _native_outcome_source_index(root)
+            for row in resolutions:
+                _validate_resolution_source_replay(row, source_index)
         return {"ok": True, "errors": [], "forecasts": len(forecasts), "resolutions": len(resolutions), "missing_optional_path_artifacts": missing_artifacts, "predictive_validation": "not_established"}
-    except (OSError, ValueError, KeyError, Daily6mPipelineError, C.Daily6mContractError) as exc:
+    except (OSError, EOFError, ValueError, KeyError, TypeError, Daily6mPipelineError, C.Daily6mContractError) as exc:
         errors.append(str(exc))
     return {"ok": False, "errors": errors}
