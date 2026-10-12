@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "contract_id": "daily_flow_artifact_v1",
+  "kind": "latest_reference",
+  "archive_path": "data/scenarios/daily_flow/archive/2026-10-09_r002_94b57f273f3d.json",
+  "artifact_sha256": "216f87912525808a2a3266838814b4f65745c0612f95e48c2415088181e40fc4",
+  "semantic_reference": {
+    "contract_id": "daily_flow_artifact_v1",
+    "artifact_id": "daily-flow:2026-10-09:r2",
+    "source_snapshot_id": "nasdaq-scenario:2026-10-09:r1",
+    "source_snapshot_sha256": "37c1c726ba5b675bdedb3af7afe8de71f82ef9f414c8570a29f58a40ad925c5a",
+    "input_sha256": "6308c76eaa9050be3467bd6d65fde27858eb3b546a37d888c7cb40352339cf1d",
+    "version": "daily-flow-modal-medoid-v1",
+    "model_content_sha256": "94b57f273f3d23ee18522b3eeef6848d36d249a9ac2b9d79f95fd6894777977a",
+    "model_content_hash_algorithm": "canonical_numerical_sha256_decimal_8"
+  }
+}

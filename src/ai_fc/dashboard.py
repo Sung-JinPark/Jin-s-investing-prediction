@@ -50,6 +50,10 @@ DASHBOARD_SCRIPT = DASHBOARD_PARTS / "dashboard.js"
 DASHBOARD_RAW_BUDGET_BYTES = 1536 * 1024
 FUTURE_PATHS_BUDGET_BYTES = 240_000
 FUTURE_PATHS_FILENAME = "future_paths.json"
+# Daily representative paths are a separate lazy route so the unchanged future
+# bundle budget remains meaningful as the number of daily points grows.
+DAILY_FLOW_BUDGET_BYTES = 160_000
+DAILY_FLOW_FILENAME = "daily_flow.json"
 # 실측 2026-09-04: 라이브 statistics.json은 115,536 B로 120,000 B 가드의 96.3%였다
 # (차트 27개 74.2KB + sources 21.9KB + IPO 참고 25.6KB). 여유가 3.7%뿐이라 차트 하나만
 # 더해도 빌드가 실패한다. 페이로드는 이 화면이 실제로 그리는 내용이고 라우트 지연 로드라
@@ -120,6 +124,7 @@ FORECAST_BODY_DICTIONARY = (
     "| ↓ | −2%p |", "| ↓ | −3%p |", "| ↓ | −1%p |", "| ↑ | +2%p |",
     "CME FedWatch", "- **직전 대비**:",
     "| ↓ | −4%p |", "| base rate | 값 |", "| ↑ | +1%p |", "| ↑ | +3%p |", "| ↑ | +4%p |",
+    "가이던스", "컨센서스", "서프라이즈", "미검증", "조건부", "인상",
 )
 
 # Public UI copy must not imply a target-price product.  Historical ledgers and
@@ -400,6 +405,8 @@ def build_read_model(
 
     scenario = scenario_data.load_latest_scenario(root, SCENARIO)
     scenario["horizon_coverage"] = scenario_data.summarize_horizon_coverage(root)
+    from .scenario_daily_flow_artifact import dashboard_projection as load_daily_flow_projection
+    daily_flow = load_daily_flow_projection(root, scenario)
     from .scenario_v5 import load_current_candidate as load_scenario_v5_candidate
     scenario_v5 = load_scenario_v5_candidate(root, now, maximum_age_trading_days=1)
     if (scenario_v5.get("status") == "unavailable"
@@ -668,6 +675,7 @@ def build_read_model(
             "public_repository_url": config.PUBLIC_REPOSITORY_URL,
         },
         "scenario": scenario,
+        "daily_flow": daily_flow,
         "scenario_v5": scenario_v5,
         "scenario_v5_2": scenario_v5_2,
         "display_promotion": display_promotion,
@@ -859,8 +867,36 @@ def _future_path_checkpoints(candidate: dict) -> list[dict]:
     return checkpoints
 
 
+def split_daily_flow(read_model: dict) -> tuple[dict, dict | None]:
+    """Defer the validated daily chart projection under its own fixed budget."""
+    daily = read_model.get("daily_flow") or {}
+    if (daily.get("deferred_paths") or {}).get("required") or not daily.get("dates"):
+        return read_model, None
+    base = dict(read_model)
+    base["daily_flow"] = {
+        key: daily.get(key) for key in (
+            "schema_version", "version", "status", "asof", "anchor", "calendar_end",
+            "default_end_index", "source_snapshot_id", "semantic_reference",
+            "display_projection_version",
+        )
+    }
+    base["daily_flow"]["deferred_paths"] = {
+        "required": True, "loaded": False, "url": DAILY_FLOW_FILENAME,
+        "failure_mode": "explicit_daily_flow_unavailable",
+    }
+    payload = {"schema_version": 1, "contract_id": "daily_flow_route_v1",
+               "semantic_reference": daily.get("semantic_reference"), "data": {"daily_flow": daily}}
+    size = len(json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8"))
+    if size > DAILY_FLOW_BUDGET_BYTES:
+        raise ValueError(f"daily flow budget exceeded: {size} > {DAILY_FLOW_BUDGET_BYTES}")
+    if size > DAILY_FLOW_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(f"warning: daily_flow.json {size}B is {size / DAILY_FLOW_BUDGET_BYTES:.1%} of its budget")
+    return base, payload
+
+
 def split_future_paths(read_model: dict) -> tuple[dict, dict | None]:
     """Move route-only arrays into a bounded lazy artifact without mutating input."""
+    read_model, _ = split_daily_flow(read_model)
     existing = (read_model.get("scenario_v5_2") or {}).get("deferred_paths") or {}
     if existing.get("required"):
         return read_model, None
@@ -1291,6 +1327,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
     shell = shell.replace("<!--OG_META-->", og_meta)
     if mode == "embed":
         read_model, _ = split_statistics_data(read_model)
+        read_model, _ = split_daily_flow(read_model)
         read_model, _ = split_future_paths(read_model)
         read_model = _compact_embed_forecast_history(read_model)
         read_model = _limit_embed_inline_bodies(read_model)
@@ -1303,6 +1340,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         )
         data_script = (
             f'<script>window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
+            f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
             f"window.__DATA__ = {blob};</script>"
         )
@@ -1310,6 +1348,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         data_script = (
             '<script>window.__DATA_URL__ = "data.json";'
             f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
+            f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
             f'window.__FORECAST_BODIES_URL__ = "{FORECAST_BODIES_FILENAME}";</script>'
         )
@@ -1317,6 +1356,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         data_script = (
             '<script>window.__DATA_URL__ = "/api/data";'
             'window.__FUTURE_PATHS_URL__ = "/api/future-paths";'
+            'window.__DAILY_FLOW_URL__ = "/api/daily-flow";'
             'window.__STATISTICS_URL__ = "/api/statistics";</script>'
         )
     else:
@@ -1361,10 +1401,16 @@ def _compact_static_bundle(html: str) -> str:
 def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     model = build_read_model(conn, root)
     base, statistics_data = split_statistics_data(model)
+    base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
+    if daily_flow is not None:
+        (out.parent / DAILY_FLOW_FILENAME).write_text(
+            json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
     if future_paths is not None:
         (out.parent / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
@@ -1444,6 +1490,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     """
     model = build_read_model(conn, root)
     base, statistics_data = split_statistics_data(model)
+    base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
     base, forecast_bodies = split_forecast_bodies(base)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -1462,6 +1509,11 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
             f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
+    if daily_flow is not None:
+        (out_dir / DAILY_FLOW_FILENAME).write_text(
+            json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
     if future_paths is not None:
         (out_dir / FUTURE_PATHS_FILENAME).write_text(
             json.dumps(
@@ -1515,10 +1567,20 @@ def serve(root: Path, host: str, port: int) -> None:
                 conn = ingest.connect(db_path)
                 try:
                     model, _ = split_statistics_data(build_read_model(conn, root))
+                    model, _ = split_daily_flow(model)
                     model, _ = split_future_paths(model)
                 finally:
                     conn.close()
                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/daily-flow"):
+                conn = ingest.connect(db_path)
+                try:
+                    _, daily_flow = split_daily_flow(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                body = json.dumps(daily_flow, ensure_ascii=False, default=str,
+                                  separators=(",", ":")).encode("utf-8")
                 self._send(body, "application/json; charset=utf-8")
             elif self.path.startswith("/api/future-paths"):
                 conn = ingest.connect(db_path)

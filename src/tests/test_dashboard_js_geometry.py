@@ -717,3 +717,158 @@ console.log(JSON.stringify({tickers:semi.clusterTickers,dates:semi.clusterDates,
     )
     semi = json.loads(completed.stdout)
     assert semi == {"tickers": ["ASML", "TSM"], "dates": ["2026-10-14", "2026-10-15"], "count": 2}
+
+
+def _original_daily_flow_helpers() -> str:
+    source = _dashboard_source()
+    model = re.search(
+        r"function addFlowCalendarMonths\([\s\S]+?\n}\nfunction drawOriginalWeeklyFlow", source)
+    calendar = re.search(
+        r"function earningsGroup\([\s\S]+?\n}\nfunction buildRebasedFlowModel", source)
+    assert model and calendar, "daily model and calendar mapping must remain testable"
+    metadata = re.search(r"const EVENT_KIND_META=.*?;", source)
+    assert metadata
+    return (metadata.group(0) + NL + model.group(0).removesuffix("\nfunction drawOriginalWeeklyFlow") + NL
+            + calendar.group(0).removesuffix("\nfunction buildRebasedFlowModel") + NL
+            + "const trackDay=value=>Date.parse(value+'T00:00:00Z')/86400000;" + NL)
+
+
+def _original_daily_fixture(asof: str = "2026-10-09", calendar_end: str = "2027-04-09") -> dict:
+    from datetime import date
+    from ai_fc.scenario import future_trading_days, load_calendar_contract
+
+    root = Path(__file__).resolve().parents[2]
+    dates = [asof] + [day.isoformat() for day in future_trading_days(
+        date.fromisoformat(asof), 252, load_calendar_contract(root))]
+    values = [100.0] + [100.0 + index * 0.12 + (-1.0 if index % 2 else 1.0)
+                       for index in range(1, 253)]
+    bands = {q: [100.0] + [100.0 + index * 0.1 + offset for index in range(1, 253)]
+             for q, offset in (("p10", -6), ("p25", -3), ("p50", 0), ("p75", 3), ("p90", 6))}
+    return {
+        "status": "ok", "asof": asof, "anchor": 100.0,
+        "calendar_end": calendar_end, "probability_unit": "fraction",
+        "source_snapshot_id": "baseline-fixture", "shadow": {"passed": True},
+        "default_end_index": max(i for i, day in enumerate(dates) if day <= calendar_end),
+        "dates": dates,
+        "scenarios": {"S1": {"status": "ok", "probability": 0.92,
+                             "probability_unit": "fraction", "member_path_index": 123,
+                             "values": values, "conditional_bands": bands}},
+        "risk": {"probability_unit": "fraction", "probability_space": "original_all_gbm_ensemble",
+                 "threshold": 90.0, "cumulative_touch": [index / 1000 for index in range(253)],
+                 "levels": ["저"] * 253},
+    }
+
+
+def test_original_daily_default_uses_six_calendar_months_and_raw_member_values() -> None:
+    fixture = _original_daily_fixture()
+    program = _original_daily_flow_helpers() + "const daily=" + json.dumps(fixture) + r""";
+const sc={asof:daily.asof,anchor:daily.anchor,corr10:90,snapshot_id:daily.source_snapshot_id};
+const track={status:'ok',cut:'2026-11-20',actual:[['2026-07-30',95],['2026-10-09',100]]};
+const six=buildOriginalDailyFlowModel(sc,daily,track),compare=buildOriginalDailyFlowModel(sc,daily,track,'S1','compare');
+const full=buildOriginalDailyFlowModel(sc,daily,track,'S1','full');
+console.log(JSON.stringify({status:six.status,count:six.dates.length,end:six.calendarEnd,last:six.dates.at(-1),
+  startDay:six.startDay,expectedStart:trackDay('2026-07-30'),endValue:six.values.at(-1),raw:daily.scenarios.S1.values[124],
+  median:six.conditionalBands.p50.at(-1),risk:six.riskValues.at(-1),share:six.scenarioProbability,
+  compareEnd:compare.calendarEnd,fullCount:full.dates.length,months:[
+    addFlowCalendarMonths('2026-08-31'),addFlowCalendarMonths('2023-08-31'),
+    addFlowCalendarMonths('2026-12-31'),addFlowCalendarMonths('2026-02-30')]}));
+"""
+    result = _run_js_file(program)
+    assert result["status"] == "ok"
+    assert result["count"] == 125 and result["end"] == result["last"] == "2027-04-09"
+    assert result["endValue"] == result["raw"] != result["median"]
+    assert result["risk"] == 0.124 and result["share"] == 0.92
+    assert result["startDay"] == result["expectedStart"]
+    assert result["compareEnd"] == "2026-11-20" and result["fullCount"] == 253
+    assert result["months"] == ["2027-02-28", "2024-02-29", "2027-06-30", None]
+
+
+def test_original_daily_holiday_endpoint_and_calendar_events_share_trade_grid() -> None:
+    fixture = _original_daily_fixture("2026-08-31", "2027-02-28")
+    program = _original_daily_flow_helpers() + "const daily=" + json.dumps(fixture) + r""";
+const sc={asof:daily.asof,anchor:daily.anchor,corr10:90,snapshot_id:daily.source_snapshot_id};
+const events=[{date:'2026-12-25',kind:'fomc',title:'휴장일 일정'},
+ {date:'2027-01-20',kind:'cpi',title:'CPI'}, {date:'2027-03-01',kind:'fomc',title:'범위 밖'}];
+const m=buildOriginalDailyFlowModel(sc,daily,null,'S1','six_months',events);
+console.log(JSON.stringify({status:m.status,end:m.calendarEnd,last:m.dates.at(-1),
+  events:m.events,holidayPoint:m.dates.includes('2026-12-25'),weekendPoint:m.dates.includes('2027-02-28')}));
+"""
+    result = _run_js_file(program)
+    assert result["status"] == "ok" and result["end"] == "2027-02-28"
+    assert result["last"] == "2027-02-26"
+    assert result["holidayPoint"] is False and result["weekendPoint"] is False
+    assert [event["date"] for event in result["events"]] == ["2026-12-25", "2027-01-20"]
+    assert result["events"][0]["mapped_date"] == "2026-12-28"
+    assert result["events"][0]["short_label"] == "12/25 FOMC"
+    assert result["events"][0]["full_label"] == "휴장일 일정"
+    for event in result["events"]:
+        assert fixture["dates"][event["index"]] == event["mapped_date"]
+
+
+def test_original_daily_model_fails_closed_for_mixed_snapshots_units_and_bad_grid() -> None:
+    fixture = _original_daily_fixture()
+    program = _original_daily_flow_helpers() + "const daily=" + json.dumps(fixture) + r""";
+const sc={asof:daily.asof,anchor:daily.anchor,corr10:90,snapshot_id:daily.source_snapshot_id};
+const checks=[null,{...daily,status:'blocked',reason:'selection blocked'},
+ {...daily,source_snapshot_id:'wrong'}, {...daily,shadow:{passed:false}}, {...daily,probability_unit:'percent'},
+ {...daily,calendar_end:'2026-12-31'}, {...daily,dates:daily.dates.slice(0,20)},
+ {...daily,risk:{...daily.risk,cumulative_touch:daily.risk.cumulative_touch.slice(1)}},
+ {...daily,scenarios:{S1:{...daily.scenarios.S1,status:'blocked',reason:'too few eligible members'}}},
+ {...daily,scenarios:{S1:{...daily.scenarios.S1,probability_unit:'percent',probability:92}}},
+ {...daily,scenarios:{S1:{...daily.scenarios.S1,values:daily.scenarios.S1.values.slice(1)}}},
+ {...daily,dates:daily.dates.map((day,i)=>i===1?'2026-02-30':day)}];
+console.log(JSON.stringify({results:checks.map(item=>buildOriginalDailyFlowModel(sc,item)),
+ wrongAnchor:buildOriginalDailyFlowModel({...sc,anchor:101},daily)}));
+"""
+    result = _run_js_file(program)
+    for blocked in [*result["results"], result["wrongAnchor"]]:
+        assert blocked["status"] == "blocked" and blocked["reason"]
+        assert "values" not in blocked and "scenarioProbability" not in blocked
+    source = _dashboard_source()
+    assert "일간 대표 경로 보류 · 기존 주간 기준선 표시" in source
+    assert "S1 시나리오 비중" in source and "최빈군 대표 경로" in source
+    assert "horizon='six_months'" in source
+    css = (Path(__file__).parents[1] / "ai_fc" / "dashboard_parts" / "dashboard.css").read_text(encoding="utf-8")
+    assert ".daily-flow-readout{display:grid" in css, "모바일도 선택 거래일·값을 그림 밖에서 읽어야 한다"
+
+
+def test_daily_flow_fetch_rejects_mixed_artifact_identity_before_assigning() -> None:
+    source = _dashboard_source()
+    reference = re.search(r"function dailyFlowSemanticReferenceMatches\([\s\S]+?\n}\n", source)
+    loader = re.search(r"async function ensureDailyFlow\([\s\S]+?\n}\n", source)
+    assert reference and loader
+    program = reference.group(0) + loader.group(0) + r"""
+let DAILY_FLOW_PROMISE=null,DAILY_FLOW_ERROR=null;
+const window={},ref={contract_id:'daily_flow_artifact_v1',artifact_id:'daily-flow:2026-10-09:r1',
+ source_snapshot_id:'scenario:2026-10-09:r1',source_snapshot_sha256:'sourcehash',input_sha256:'inputhash',
+ version:'daily-flow-modal-medoid-v1',model_content_sha256:'modelhash'};
+const summary={status:'ok',semantic_reference:ref,deferred_paths:{required:true,loaded:false,url:'daily_flow.json'}};
+let DATA={daily_flow:summary},fetch=async()=>({ok:true,json:async()=>({contract_id:'daily_flow_route_v1',
+ semantic_reference:ref,data:{daily_flow:{status:'ok',semantic_reference:{...ref,input_sha256:'mixed'},dates:['wrong']}}})});
+(async()=>{
+ let rejected='';try{await ensureDailyFlow();}catch(error){rejected=error.message;}
+ const preserved=DATA.daily_flow===summary&&!DATA.daily_flow.dates&&!DATA.daily_flow.deferred_paths.loaded;
+ fetch=async()=>({ok:true,json:async()=>({contract_id:'daily_flow_route_v1',semantic_reference:ref,
+ data:{daily_flow:{status:'ok',semantic_reference:{...ref},dates:['2026-10-09']}}})});
+ await ensureDailyFlow();
+ console.log(JSON.stringify({rejected,preserved,loaded:DATA.daily_flow.deferred_paths.loaded,
+  dates:DATA.daily_flow.dates,error:DAILY_FLOW_ERROR}));
+})().catch(error=>{console.error(error);process.exitCode=1;});
+"""
+    result = _run_js_file(program)
+    assert result["rejected"] == "daily flow semantic reference mismatch" and result["preserved"] is True
+    assert result["loaded"] is True and result["dates"] == ["2026-10-09"] and result["error"] is None
+
+
+def test_daily_chart_mobile_zoom_starts_at_readable_native_width_only_for_daily_flow() -> None:
+    source = _dashboard_source()
+    match = re.search(r"function chartZoomInitialWidth\([\s\S]+?\n}\n", source)
+    assert match
+    result = _run_js(match.group(0) + r"""
+const daily={querySelector:()=>({viewBox:{baseVal:{width:1160}}})},other={querySelector:()=>null};
+console.log(JSON.stringify({dailyMobile:chartZoomInitialWidth(daily,366,true),
+  otherMobile:chartZoomInitialWidth(other,366,true),desktop:chartZoomInitialWidth(daily,900,false)}));
+""")
+    assert result == {"dailyMobile": 1160, "otherMobile": 366, "desktop": 900}
+    assert "events.map(event=>[event.index,event.short_label])" in source
+    assert 'class="daily-flow-events"' in source and "esc(event.full_label)" in source

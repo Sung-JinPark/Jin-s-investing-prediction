@@ -1027,6 +1027,40 @@ def cmd_scenario_structure() -> None:
     )
 
 
+@app.command("scenario-daily-flow-build")
+def cmd_scenario_daily_flow_build() -> None:
+    """Build an immutable daily display derivative from the committed snapshot."""
+    from .scenario_daily_flow import DailyFlowError
+    from .scenario_daily_flow_artifact import build_artifact
+
+    try:
+        path, payload, changed = build_artifact(config.ROOT)
+    except (DailyFlowError, OSError, KeyError, TypeError, ValueError) as exc:
+        typer.echo(f"Daily scenario flow build blocked: {exc}", err=True)
+        raise typer.Exit(code=1) from exc
+    typer.echo(
+        f"{'updated' if changed else 'content no-op'}: {path.relative_to(config.ROOT)} | "
+        f"artifact={payload['artifact_id']} | source={payload['source_snapshot_id']} | "
+        f"through={payload['calendar_end']} | DISPLAY DERIVATIVE - NOT A MODEL PROMOTION"
+    )
+
+
+@app.command("scenario-daily-flow-verify")
+def cmd_scenario_daily_flow_verify(
+    path: Path | None = typer.Option(None, "--path", help="Daily flow archive or latest reference to verify"),
+    replay: bool = typer.Option(True, "--replay/--no-replay", help="Exactly reproduce the deterministic derivative"),
+) -> None:
+    """Verify same-input shadow checks, source binding and daily-path replay."""
+    from .scenario_daily_flow_artifact import verify_artifact
+
+    if path is not None and not path.is_absolute():
+        path = config.ROOT / path
+    result = verify_artifact(config.ROOT, path, replay=replay)
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if not result["ok"]:
+        raise typer.Exit(code=1)
+
+
 @app.command("scenario-v5-build")
 def cmd_scenario_v5_build(
     force: bool = typer.Option(False, "--force", help="Rewrite even when inputs are unchanged"),

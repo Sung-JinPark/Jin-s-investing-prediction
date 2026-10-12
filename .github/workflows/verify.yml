@@ -41,6 +41,9 @@ jobs:
         run: |
           cd src
           python -m ai_fc sync --rebuild
+          python -m ai_fc scenario-daily-flow-build
+          python -m ai_fc scenario-daily-flow-verify --replay
+          python -m ai_fc sync --rebuild
           python -m ai_fc dashboard --pages-out "$RUNNER_TEMP/_site_rehearsal"
       - name: track record verifier
         run: python tools/verify_track_record.py
