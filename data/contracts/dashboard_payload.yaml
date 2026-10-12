@@ -16,6 +16,7 @@ budgets:
   forecast_bodies_json_max_bytes: 900000
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000
+  timeseries_daily_json_max_bytes: 131072
 
 forecast_bodies:
   filename: forecast_bodies.json
@@ -69,6 +70,22 @@ timeseries:
   probability_space: research_timeseries_conditional
   combine_with_future_or_official: false
   publication_failure: validation_pending_without_numbers
+
+timeseries_daily:
+  route: "#timeseries/daily"
+  payload_key: timeseries_daily
+  filename: timeseries_daily.json
+  api_path: /api/timeseries-daily
+  materialization: fetch_only_on_daily_route_entry
+  probability_unit: fraction
+  event: target_session_close_greater_than_previous_session_close
+  snapshot_pins: [run_id, as_of, anchor_date, content_hash, payload_sha256]
+  client_probability_derivation: prohibited
+  daily_downsampling: prohibited
+  combine_with_future_or_official: false
+  publication_failure: explicit_hold_without_numbers
+  fetch_failure: explicit_error_without_substitution
+  validation_tier: research_preview_predictive_performance_not_established
 
 # V13-VOL 변동성 이벤트 base rate — 가격 카드(timeseries 슬롯)와 결합하지 않는 별도 표면. 인라인(지연 fetch 없음).
 timeseries_v13_vol:

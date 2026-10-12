@@ -53,6 +53,10 @@ outputs/timeseries_v12/loop/*nohup*
 outputs/timeseries_v12/loop/*head_before*
 outputs/timeseries_v12/loop/_*.json
 
+# Daily6m full simulated paths and local writer locks are artifact-only.
+/outputs/timeseries_daily6m/paths/
+/outputs/timeseries_daily6m/.writer.lock
+
 # FirstRate raw (라이선스: raw 재배포 금지 — 로컬 전용)
 data/intraday/firstrate_raw/
 

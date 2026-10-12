@@ -88,6 +88,34 @@ ledgers:
     criticality: medium
     schema_ref: csv
     expected_state: frozen
+  # Independent unvalidated research history; never an official forecast gate.
+  - id: timeseries_daily6m_research_forecasts
+    path: data/timeseries_daily6m/ledgers/forecasts.jsonl
+    kind: jsonl
+    cadence: weekly
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: as_of
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_research_resolutions
+    path: data/timeseries_daily6m/ledgers/resolutions.jsonl
+    kind: jsonl
+    cadence: trading_daily
+    criticality: high
+    schema_ref: jsonl
+    timestamp_field: resolved_as_of
+    allow_empty_accumulating: true
+    expected_state: planned
+  - id: timeseries_daily6m_research_runs
+    path: data/timeseries_daily6m/runs/*.json
+    kind: immutable_files
+    cadence: weekly
+    criticality: high
+    schema_ref: json_object
+    timestamp_field: as_of
+    allow_empty_accumulating: true
+    expected_state: planned
   - id: cross_asset_path_tracking_v2
     path: data/cross_asset/path_tracking_v2.csv
     kind: append_csv

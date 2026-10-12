@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import csv
+import hashlib
 import html as html_lib
 import json
 import re
@@ -78,6 +79,8 @@ PAYLOAD_WARN_RATIO = 0.9
 # 전용 예산 24KB(표시 설계서 §3) — 9셀·80% 대역·게이트·caveat 이상으로 자라면 빌드가 실패한다.
 TIMESERIES_V13_VOL_BUDGET_BYTES = 24_000
 TIMESERIES_V13_VOL_FILENAME = "timeseries_v13_vol.json"
+TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
+TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -521,6 +524,8 @@ def build_read_model(
         market_mood["freshness"] = freshness_status(root, now=now)
     except Exception:  # noqa: BLE001 — 판정 실패가 심리 카드를 죽이지 않게
         market_mood["freshness"] = {"status": "unavailable"}
+    from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
+    timeseries_daily = load_timeseries_daily_projection(root, now=now)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -725,6 +730,7 @@ def build_read_model(
         "timeseries": timeseries,
         "timeseries_v13_vol": timeseries_v13_vol,
         "market_mood": market_mood,
+        "timeseries_daily": timeseries_daily,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
@@ -1102,6 +1108,45 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     return base, payload
 
 
+def split_timeseries_daily_data(read_model: dict) -> tuple[dict, dict | None]:
+    """Pin one bounded daily route artifact without changing forecast history."""
+    projection = read_model.get("timeseries_daily")
+    if not projection or (projection.get("deferred_data") or {}).get("required"):
+        return read_model, None
+    if projection.get("numbers_visible") is not True:
+        return read_model, None
+    payload = {
+        "schema_version": 1,
+        "contract_id": "timeseries_daily_route_v1",
+        "data": {"timeseries_daily": projection},
+    }
+    serialized = json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False)
+    size = len(serialized.encode("utf-8"))
+    if size > TIMESERIES_DAILY_BUDGET_BYTES:
+        raise ValueError(f"timeseries daily budget exceeded: {size} > {TIMESERIES_DAILY_BUDGET_BYTES}")
+    if size > TIMESERIES_DAILY_BUDGET_BYTES * PAYLOAD_WARN_RATIO:
+        print(f"warning: timeseries_daily.json {size}B is {size / TIMESERIES_DAILY_BUDGET_BYTES:.1%} of its budget")
+    # Fits and audit comparisons travel with the detailed route payload too.
+    # Keeping them in the base defeats lazy delivery when a HOLD becomes ready.
+    summary_keys = {
+        "schema_version", "model_id", "model_version", "status", "numbers_visible",
+        "probability_unit", "probability_space", "run_id", "as_of", "anchor_date",
+        "anchor", "content_hash", "projection_hash", "calendar_end_date",
+        "forecast_end_date", "horizon_sessions", "path_count", "gate", "evidence",
+        "predictive_validation", "exogenous_assumption", "combined_with_existing_models",
+        "footnote",
+    }
+    summary = {key: value for key, value in projection.items() if key in summary_keys}
+    summary["deferred_data"] = {
+        "required": True, "loaded": False, "url": TIMESERIES_DAILY_FILENAME,
+        "run_id": projection.get("run_id"), "as_of": projection.get("as_of"),
+        "anchor_date": projection.get("anchor_date"), "content_hash": projection.get("content_hash"),
+        "payload_sha256": hashlib.sha256(serialized.encode("utf-8")).hexdigest(),
+        "failure_mode": "explicit_error_without_substitution",
+    }
+    return {**read_model, "timeseries_daily": summary}, payload
+
+
 def _compact_embed_forecast_history(read_model: dict) -> dict:
     """Keep active latest reasoning inline and link archived rounds to source.
 
@@ -1329,6 +1374,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_statistics_data(read_model)
         read_model, _ = split_daily_flow(read_model)
         read_model, _ = split_future_paths(read_model)
+        read_model, _ = split_timeseries_daily_data(read_model)
         read_model = _compact_embed_forecast_history(read_model)
         read_model = _limit_embed_inline_bodies(read_model)
         read_model = _compact_embed_band_calibration(read_model)
@@ -1342,6 +1388,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f'<script>window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
             f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
+            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";'
             f"window.__DATA__ = {blob};</script>"
         )
     elif mode == "pages":
@@ -1350,14 +1397,16 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f'window.__FUTURE_PATHS_URL__ = "{FUTURE_PATHS_FILENAME}";'
             f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
-            f'window.__FORECAST_BODIES_URL__ = "{FORECAST_BODIES_FILENAME}";</script>'
+            f'window.__FORECAST_BODIES_URL__ = "{FORECAST_BODIES_FILENAME}";'
+            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";</script>'
         )
     elif mode == "fetch":
         data_script = (
             '<script>window.__DATA_URL__ = "/api/data";'
             'window.__FUTURE_PATHS_URL__ = "/api/future-paths";'
             'window.__DAILY_FLOW_URL__ = "/api/daily-flow";'
-            'window.__STATISTICS_URL__ = "/api/statistics";</script>'
+            'window.__STATISTICS_URL__ = "/api/statistics";'
+            'window.__TIMESERIES_DAILY_URL__ = "/api/timeseries-daily";</script>'
         )
     else:
         raise ValueError(f"unknown dashboard render mode: {mode}")
@@ -1371,7 +1420,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
 
 
 def _compact_static_bundle(html: str) -> str:
-    """Compact authored static assets without parsing or rewriting JavaScript tokens."""
+    """Compact authored assets while preserving JavaScript tokens and literal text."""
     def compact_style(match: re.Match[str]) -> str:
         body = re.sub(r"/\*.*?\*/", "", match.group(1), flags=re.S)
         body = "".join(line.strip() for line in body.splitlines())
@@ -1379,8 +1428,134 @@ def _compact_static_bundle(html: str) -> str:
         return f"<style>{body}</style>"
 
     def compact_script(match: re.Match[str]) -> str:
+        # Line-leading block comments are a substantial part of this source.
+        # Keep literals and inline comments intact: a regular expression can
+        # contain comment-like text, but cannot start a line with bare /*.
+        # Templates and their expressions are retained verbatim, including
+        # nested templates and visible multi-line comment-like text.
+        body = match.group(1)
+        output: list[str] = []
+        frames = [{"template": False, "braces": None, "regex": True,
+                   "parentheses": [], "control": False}]
+        index = 0
+        expression_keywords = {
+            "return", "throw", "case", "delete", "void", "typeof",
+            "instanceof", "in", "of", "yield", "await", "else", "do", "new",
+        }
+        control_keywords = {"if", "while", "for", "with", "switch", "catch"}
+        while index < len(body):
+            frame = frames[-1]
+            char = body[index]
+            if frame["template"]:
+                if char == "\\":
+                    output.append(body[index:index + 2])
+                    index += 2
+                    continue
+                if char == "`":
+                    frames.pop()
+                    frames[-1]["regex"] = False
+                elif body.startswith("${", index):
+                    output.append("${")
+                    index += 2
+                    frames.append({"template": False, "braces": 1, "regex": True,
+                                   "parentheses": [], "control": False})
+                    continue
+                output.append(char)
+                index += 1
+                continue
+            if char in "\"'":
+                end = index + 1
+                while end < len(body):
+                    if body[end] == "\\":
+                        end += 2
+                    elif body[end] == char:
+                        end += 1
+                        break
+                    else:
+                        end += 1
+                output.append(body[index:end])
+                index = end
+                frame["regex"] = False
+                continue
+            if body.startswith("//", index):
+                end = body.find("\n", index)
+                end = len(body) if end < 0 else end
+                output.append(body[index:end])
+                index = end
+                continue
+            if body.startswith("/*", index):
+                end = body.find("*/", index + 2)
+                end = len(body) if end < 0 else end + 2
+                comment = body[index:end]
+                line_leading = not body[body.rfind("\n", 0, index) + 1:index].strip()
+                if not line_leading or any(context["template"] for context in frames):
+                    output.append(comment)
+                else:
+                    # A newline in a comment participates in automatic
+                    # semicolon insertion; an inline comment separates tokens.
+                    output.append("\n" * comment.count("\n") or " ")
+                index = end
+                continue
+            if char == "/" and frame["regex"]:
+                end = index + 1
+                in_class = False
+                matched_regex = False
+                while end < len(body) and body[end] not in "\r\n":
+                    if body[end] == "\\":
+                        end += 2
+                        continue
+                    if body[end] == "[":
+                        in_class = True
+                    elif body[end] == "]":
+                        in_class = False
+                    elif body[end] == "/" and not in_class:
+                        end += 1
+                        while end < len(body) and body[end].isalpha():
+                            end += 1
+                        output.append(body[index:end])
+                        index = end
+                        frame["regex"] = False
+                        matched_regex = True
+                        break
+                    end += 1
+                if matched_regex:
+                    continue
+            if char == "`":
+                frames.append({"template": True, "braces": None, "regex": False})
+            elif char == "(":
+                frame["parentheses"].append(frame["control"])
+                frame["control"] = False
+                frame["regex"] = True
+            elif char == ")":
+                frame["regex"] = frame["parentheses"].pop() if frame["parentheses"] else False
+                frame["control"] = False
+            elif char == "{":
+                if frame["braces"] is not None:
+                    frame["braces"] += 1
+                frame["regex"] = True
+            elif char == "}" and frame["braces"] is not None:
+                frame["braces"] -= 1
+                if frame["braces"] == 0:
+                    frames.pop()
+                else:
+                    frame["regex"] = False
+            elif char.isalpha() or char in "_$":
+                end = index + 1
+                while end < len(body) and (body[end].isalnum() or body[end] in "_$"):
+                    end += 1
+                word = body[index:end]
+                output.append(word)
+                frame["regex"] = word in expression_keywords
+                frame["control"] = word in control_keywords
+                index = end
+                continue
+            elif not char.isspace():
+                frame["regex"] = char in "([{,:;=!?&|+-*%^~<>"
+                frame["control"] = False
+            output.append(char)
+            index += 1
         lines = []
-        for line in match.group(1).splitlines():
+        for line in "".join(output).splitlines():
             stripped = line.strip()
             if stripped.startswith("//"):
                 continue
@@ -1403,12 +1578,18 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     base, statistics_data = split_statistics_data(model)
     base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
+    base, timeseries_daily = split_timeseries_daily_data(base)
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
     if daily_flow is not None:
         (out.parent / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    if timeseries_daily is not None:
+        (out.parent / TIMESERIES_DAILY_FILENAME).write_text(
+            json.dumps(timeseries_daily, ensure_ascii=False, default=str, separators=(",", ":")),
             encoding="utf-8",
         )
     if future_paths is not None:
@@ -1493,6 +1674,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
     base, forecast_bodies = split_forecast_bodies(base)
+    base, timeseries_daily = split_timeseries_daily_data(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -1512,6 +1694,11 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     if daily_flow is not None:
         (out_dir / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
+            encoding="utf-8",
+        )
+    if timeseries_daily is not None:
+        (out_dir / TIMESERIES_DAILY_FILENAME).write_text(
+            json.dumps(timeseries_daily, ensure_ascii=False, default=str, separators=(",", ":")),
             encoding="utf-8",
         )
     if future_paths is not None:
@@ -1569,6 +1756,7 @@ def serve(root: Path, host: str, port: int) -> None:
                     model, _ = split_statistics_data(build_read_model(conn, root))
                     model, _ = split_daily_flow(model)
                     model, _ = split_future_paths(model)
+                    model, _ = split_timeseries_daily_data(model)
                 finally:
                     conn.close()
                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
@@ -1592,6 +1780,14 @@ def serve(root: Path, host: str, port: int) -> None:
                     future_paths, ensure_ascii=False, default=str,
                     separators=(",", ":"),
                 ).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/timeseries-daily"):
+                conn = ingest.connect(db_path)
+                try:
+                    _, daily = split_timeseries_daily_data(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                body = json.dumps(daily, ensure_ascii=False, default=str, separators=(",", ":")).encode("utf-8")
                 self._send(body, "application/json; charset=utf-8")
             elif self.path.startswith("/api/statistics"):
                 conn = ingest.connect(db_path)

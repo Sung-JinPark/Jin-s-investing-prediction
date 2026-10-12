@@ -92,7 +92,7 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
         '"statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", '
         '"timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", '
         '"timeseries-v13-vol-live", '
-        '"market-mood-refresh", "source-monitoring"]'
+        '"market-mood-refresh", "source-monitoring", "timeseries-daily6m"]'
     )
     for workflow in (pages, verify):
         assert expected in workflow
@@ -145,6 +145,22 @@ def test_every_unattended_data_writer_is_watched_for_failure() -> None:
         if name not in watched and name != "ops-failure-alert":
             unwatched.append(f"{path.name} ({name})")
     assert not unwatched, f"실패가 조용히 묻히는 데이터 라이터: {unwatched}"
+
+
+def test_daily6m_waits_for_main_source_refresh_and_has_a_late_fallback() -> None:
+    import yaml
+
+    text = (ROOT / ".github" / "workflows" / "timeseries-daily6m.yml").read_text(encoding="utf-8")
+    document = yaml.safe_load(text)
+    triggers = document.get(True) or document.get("on")
+    assert triggers["workflow_run"] == {
+        "workflows": ["timeseries-v2-refresh"], "types": ["completed"]
+    }
+    assert triggers["schedule"] == [{"cron": "20 9 * * 2-6"}]
+    guard = document["jobs"]["research"]["if"]
+    assert "conclusion == 'success'" in guard
+    assert "head_branch == 'main'" in guard
+    assert "git add data/timeseries_daily6m" in text
 
 
 def test_every_data_commit_replays_on_the_fresh_tip() -> None:
