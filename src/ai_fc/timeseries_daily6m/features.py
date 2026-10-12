@@ -156,15 +156,15 @@ def eligible_frame(rows: pd.DataFrame | Iterable[dict[str, Any]], *, as_of: str 
     for key in ("available_at", "vintage_start"):
         for value in frame[key].unique():
             aware_time(str(value))
-        frame[key + "_utc"] = pd.to_datetime(frame[key], utc=True, errors="raise")
+        frame[key + "_utc"] = pd.to_datetime(frame[key], utc=True, format="ISO8601", errors="raise")
     valid = (frame["available_at_utc"] <= cutoff) & (frame["vintage_start_utc"] <= cutoff)
     if "vintage_end" in frame:
-        end = pd.to_datetime(frame["vintage_end"], utc=True, errors="raise")
+        end = pd.to_datetime(frame["vintage_end"], utc=True, format="ISO8601", errors="raise")
         valid &= end.isna() | (end > cutoff)
     frame = frame[valid].copy()
     for value in frame["retrieved_at"].unique():
         aware_time(str(value))
-    frame["retrieved_at_utc"] = pd.to_datetime(frame["retrieved_at"], utc=True, errors="raise")
+    frame["retrieved_at_utc"] = pd.to_datetime(frame["retrieved_at"], utc=True, format="ISO8601", errors="raise")
     if (frame["retrieved_at_utc"] > cutoff).any():
         raise Daily6mFeatureError("native source was captured after requested issuance; source publication and capture are distinct")
     if "value_status" in frame:

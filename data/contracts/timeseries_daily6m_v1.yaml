@@ -107,4 +107,11 @@ evaluation:
   genuine_pit_only_for_predictive_scoring: true
   late_capture_history_is_not_a_pit_validation_pass: true
   forward_resolutions: append_only_after_close_and_observation_availability
+  resolution:
+    ledger: resolutions
+    revision_policy: append_with_supersedes_for_changed_published_close
+    revision_key: [source_id, series_id, observation_time, value, available_at, vintage_start, source_hash]
+    capture_only_changes_create_revision: false
+    preserves_all_revisions: true
+    verify_replays_immutable_forecast_and_pinned_outcomes: true
   future_promotion: separate_preregistered_contract_and_owner_decision

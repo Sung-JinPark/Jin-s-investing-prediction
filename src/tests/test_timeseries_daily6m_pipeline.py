@@ -216,6 +216,7 @@ def test_supersedes_preserves_prior_and_scoring_covers_both_revisions(published,
     with pytest.raises(P.Daily6mPipelineError, match="active revision"):
         P.forecast_timeseries_daily6m(root, as_of="2026-09-12T12:02:00+00:00", supersedes=run["run_id"])
     actual = F.eligible_frame([_fact("NASDAQCOM", "2026-09-11", 100), _fact("NASDAQCOM", "2026-09-14", 102, available="2026-09-15T00:00:00+00:00")], as_of="2026-09-15T12:00:00+00:00")
+    _pin_native_resolution_facts(root, actual)
     monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: actual)
     assert P.resolve_timeseries_daily6m(root, as_of="2026-09-15T12:00:00+00:00")["resolved"] == 2
     assert P.resolve_timeseries_daily6m(root, as_of="2026-09-15T12:00:00+00:00")["resolved"] == 0
@@ -295,3 +296,196 @@ def test_no_forecast_pointer_preserves_real_stale_preflight_reasons(tmp_path, mo
     assert not (tmp_path / C.FORECAST_LEDGER).exists()
     assert "records" not in stale and "dates" not in stale
     assert D.load_projection(tmp_path)["gate"]["reasons"] == stale["gate"]["reasons"]
+
+
+def _pin_native_resolution_facts(root, frame):
+    path = root / "data/timeseries/ledgers/observations.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    existing = {C.canonical_hash(row) for row in P._rows(path)}
+    with path.open("a", encoding="utf-8") as handle:
+        for _, source in frame.iterrows():
+            fact = {**P._outcome_source(source), "value_status": "ok"}
+            if C.canonical_hash(fact) not in existing:
+                handle.write(json.dumps(fact, sort_keys=True, allow_nan=False) + "\n")
+                existing.add(C.canonical_hash(fact))
+
+
+def _resolve_fixture(published, monkeypatch, *, actual=100, previous=100, as_of="2026-09-15T12:00:00+00:00", revised=None):
+    root, run, _ = published
+    prior = _fact("NASDAQCOM", run["anchor_date"], previous)
+    current = _fact("NASDAQCOM", run["dates"][0], actual, available="2026-09-15T00:00:00+00:00")
+    if revised == "actual":
+        current.update(available_at="2026-09-16T00:00:00+00:00", vintage_start="2026-09-16T00:00:00+00:00", retrieved_at="2026-09-16T00:00:00+00:00", source_hash="b" * 64)
+    if revised == "previous":
+        prior.update(available_at="2026-09-17T00:00:00+00:00", vintage_start="2026-09-17T00:00:00+00:00", retrieved_at="2026-09-17T00:00:00+00:00", source_hash="c" * 64)
+        current.update(available_at="2026-09-16T00:00:00+00:00", vintage_start="2026-09-16T00:00:00+00:00", retrieved_at="2026-09-16T00:00:00+00:00", source_hash="b" * 64)
+    frame = F.eligible_frame([prior, current], as_of=as_of)
+    _pin_native_resolution_facts(root, frame)
+    monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: frame.copy())
+    return P.resolve_timeseries_daily6m(root, as_of=as_of), frame
+
+
+def _rewrite_temporary_resolution_chain(root, rows):
+    previous = None
+    output = []
+    for row in rows:
+        body = {key: value for key, value in row.items() if key not in {"content_hash", "previous_hash"}}
+        body["previous_hash"] = previous
+        written = {**body, "content_hash": C.canonical_hash(body)}
+        output.append(json.dumps(written, sort_keys=True, allow_nan=False))
+        previous = written["content_hash"]
+    (root / C.RESOLUTION_LEDGER).write_text("\n".join(output) + "\n", encoding="utf-8")
+
+
+def test_resolution_corrections_preserve_original_actual_and_previous_vintages(published, monkeypatch):
+    root, run, _ = published
+    forecast_bytes = (root / C.FORECAST_LEDGER).read_bytes()
+    initial, _ = _resolve_fixture(published, monkeypatch)
+    assert initial["resolved"] == 1 and initial["corrected"] == 0
+    first_bytes = (root / C.RESOLUTION_LEDGER).read_bytes()
+    first = P.read_chain(root, C.RESOLUTION_LEDGER)[0]
+    assert first["resolution_id"] == run["run_id"] + ":" + run["dates"][0]
+    assert first["outcome_up"] is False and first["inside_p10_p90"] is True
+    assert _resolve_fixture(published, monkeypatch)[0]["resolved"] == 0
+    revised, _ = _resolve_fixture(published, monkeypatch, actual=102, as_of="2026-09-16T12:00:00+00:00", revised="actual")
+    assert revised["resolved"] == revised["corrected"] == 1
+    rows = P.read_chain(root, C.RESOLUTION_LEDGER)
+    assert rows[1]["supersedes"] == first["resolution_id"]
+    assert rows[1]["outcome_up"] is True and rows[1]["inside_p10_p90"] is False
+    assert rows[1]["actual_source"]["source_hash"] == "b" * 64
+    assert rows[0]["actual_source"]["source_hash"] == "a" * 64
+    assert (root / C.RESOLUTION_LEDGER).read_bytes().startswith(first_bytes)
+    assert _resolve_fixture(published, monkeypatch, actual=102, as_of="2026-09-16T12:00:00+00:00", revised="actual")[0]["resolved"] == 0
+    revised_previous, _ = _resolve_fixture(published, monkeypatch, actual=102, previous=103, as_of="2026-09-17T12:00:00+00:00", revised="previous")
+    assert revised_previous["corrected"] == 1 and revised_previous["active_resolutions"] == 1
+    rows = P.read_chain(root, C.RESOLUTION_LEDGER)
+    assert rows[2]["supersedes"] == rows[1]["resolution_id"]
+    assert rows[2]["outcome_up"] is False and rows[2]["previous_source"]["source_hash"] == "c" * 64
+    assert P.verify_timeseries_daily6m(root)["ok"]
+    assert (root / C.FORECAST_LEDGER).read_bytes() == forecast_bytes
+
+
+def test_resolution_recapture_alone_does_not_append_correction(published, monkeypatch):
+    root, _, _ = published
+    _, frame = _resolve_fixture(published, monkeypatch)
+    original = (root / C.RESOLUTION_LEDGER).read_bytes()
+    frame["retrieved_at"] = "2026-09-16T00:00:00+00:00"
+    monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: frame.copy())
+    result = P.resolve_timeseries_daily6m(root, as_of="2026-09-16T12:00:00+00:00")
+    assert result["resolved"] == 0 and result["corrected"] == 0
+    assert (root / C.RESOLUTION_LEDGER).read_bytes() == original
+
+
+def test_resolution_preserves_subsecond_publication_and_cutoff(published, monkeypatch):
+    root, run, _ = published
+    cutoff = "2026-09-15T00:00:00.700000+00:00"
+    available = "2026-09-15T00:00:00.500000+00:00"
+    frame = F.eligible_frame([_fact("NASDAQCOM", run["anchor_date"], 100), _fact("NASDAQCOM", run["dates"][0], 102, available=available)], as_of=cutoff)
+    _pin_native_resolution_facts(root, frame)
+    monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: frame.copy())
+    assert P.resolve_timeseries_daily6m(root, as_of=cutoff)["resolved"] == 1
+    row = P.read_chain(root, C.RESOLUTION_LEDGER)[0]
+    assert row["resolved_as_of"] == cutoff and row["actual_source"]["available_at"] == available
+    assert P.verify_timeseries_daily6m(root)["ok"]
+
+
+@pytest.mark.parametrize("field", ["brier", "probability", "outcome", "band", "previous", "date", "actual", "boolean", "available", "capture", "missing_time", "consistent_actual", "unrecorded_capture", "hash"])
+def test_hash_valid_resolution_with_invalid_scoring_or_source_is_rejected(published, monkeypatch, field):
+    root, _, _ = published
+    _resolve_fixture(published, monkeypatch)
+    rows = P.read_chain(root, C.RESOLUTION_LEDGER)
+    row = rows[0]
+    if field == "brier":
+        row["brier"] = 0.1
+    elif field == "probability":
+        row["probability_up_from_previous"] = 0.6
+    elif field == "outcome":
+        row["outcome_up"] = True
+    elif field == "band":
+        row["inside_p10_p90"] = False
+    elif field == "previous":
+        row["previous_session"] = "2026-09-10"
+    elif field == "date":
+        row["date"] = "2026-09-13"
+    elif field == "actual":
+        row["actual_index"] = -1
+    elif field == "boolean":
+        row["outcome_up"] = 0
+    elif field == "available":
+        row["actual_source"]["available_at"] = "2026-09-16T00:00:00+00:00"
+    elif field == "capture":
+        row["previous_source"]["retrieved_at"] = "2026-09-16T00:00:00+00:00"
+    elif field == "missing_time":
+        row["actual_source"]["available_at"] = None
+    elif field == "consistent_actual":
+        row["actual_index"] = row["actual_source"]["value"] = 105
+        row["outcome_up"] = True
+        row["inside_p10_p90"] = False
+        row["source_revision_hash"] = P._source_revision_hash(row["actual_source"], row["previous_source"])
+    elif field == "unrecorded_capture":
+        row["actual_source"]["retrieved_at"] = "2026-09-14T00:00:00+00:00"
+    else:
+        row["actual_source"]["source_hash"] = "missing"
+    _rewrite_temporary_resolution_chain(root, rows)
+    assert P.verify_timeseries_daily6m(root)["ok"] is False
+    with pytest.raises(P.Daily6mPipelineError):
+        P.resolve_timeseries_daily6m(root, as_of="2026-09-17T12:00:00+00:00")
+
+
+@pytest.mark.parametrize("target", ["self", "future", "old", "other_date"])
+def test_hash_valid_resolution_correction_requires_active_prior_same_forecast_date(published, monkeypatch, target):
+    root, _, _ = published
+    _resolve_fixture(published, monkeypatch)
+    _resolve_fixture(published, monkeypatch, actual=102, as_of="2026-09-16T12:00:00+00:00", revised="actual")
+    _resolve_fixture(published, monkeypatch, actual=102, previous=103, as_of="2026-09-17T12:00:00+00:00", revised="previous")
+    rows = P.read_chain(root, C.RESOLUTION_LEDGER)
+    if target == "self":
+        rows[-1]["supersedes"] = rows[-1]["resolution_id"]
+    elif target == "future":
+        rows[0]["supersedes"] = rows[-1]["resolution_id"]
+    elif target == "old":
+        rows[-1]["supersedes"] = rows[0]["resolution_id"]
+    else:
+        rows[-1]["date"] = "2026-09-15"
+    _rewrite_temporary_resolution_chain(root, rows)
+    result = P.verify_timeseries_daily6m(root)
+    assert result["ok"] is False and "supersedes" in result["errors"][0]
+
+
+def test_resolution_unpublished_closes_wait_but_interior_gap_rejects_before_append(published, monkeypatch):
+    root, run, frame = published
+    monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: frame.copy())
+    assert P.resolve_timeseries_daily6m(root, as_of="2026-09-16T12:00:00+00:00")["resolved"] == 0
+    assert not (root / C.RESOLUTION_LEDGER).exists()
+    frame = F.eligible_frame([_fact("NASDAQCOM", run["anchor_date"], 100), _fact("NASDAQCOM", "2026-09-15", 102, available="2026-09-16T00:00:00+00:00")], as_of="2026-09-16T12:00:00+00:00")
+    monkeypatch.setattr(F, "read_native_frame", lambda *args, **kwargs: frame.copy())
+    with pytest.raises(P.Daily6mPipelineError, match="gap 2026-09-14"):
+        P.resolve_timeseries_daily6m(root, as_of="2026-09-16T12:00:00+00:00")
+    assert not (root / C.RESOLUTION_LEDGER).exists()
+
+
+@pytest.mark.parametrize("invalid", [None, "hash", "count", "path"])
+def test_resolution_native_chunk_replay_preserves_all_vintages_and_checks_integrity(tmp_path, invalid):
+    original = _fact("NASDAQCOM", "2026-09-14", 100, available="2026-09-15T00:00:00+00:00")
+    correction = {**original, "value": 105, "source_hash": "b" * 64}
+    body = (json.dumps(original) + "\n" + json.dumps(correction) + "\n").encode()
+    digest = hashlib.sha256(body).hexdigest()
+    relative = Path("data/timeseries/facts/observation_chunks") / (digest + ".jsonl.gz")
+    (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
+    (tmp_path / relative).write_bytes(gzip.compress(body))
+    manifest = {"series_id": "NASDAQCOM", "chunk_id": digest, "content_sha256": digest, "chunk_path": relative.as_posix(), "row_count": 2}
+    if invalid == "hash":
+        manifest["content_sha256"] = "c" * 64
+    elif invalid == "count":
+        manifest["row_count"] = 1
+    elif invalid == "path":
+        manifest["chunk_path"] = "data/timeseries/outside.jsonl.gz"
+    path = tmp_path / "data/timeseries/ledgers/observation_chunks.jsonl"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(manifest) + "\n", encoding="utf-8")
+    if invalid:
+        with pytest.raises(P.Daily6mPipelineError):
+            P._native_outcome_source_index(tmp_path)
+    else:
+        actual = P._native_outcome_source_index(tmp_path)
+        assert actual == {P._pinned_source_hash(P._outcome_source(source)) for source in (original, correction)}
