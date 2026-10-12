@@ -13,29 +13,37 @@
 
 # Jin's Investing Prediction
 
-**공식 데이터의 현재 위치, 구조 경로와 실제 기록, PIT 시계열 예측, 변동성 기준율, 닷컴 사이클 비교를 연결하는 투자 리서치 솔루션입니다.**
+**최신 시장 지표와 이벤트, 구조 경로와 실제 기록, PIT 시계열 예측, 변동성 기준율, 닷컴 대비 과열도를 연결하는 투자 리서치 솔루션입니다.**
+
+문서 기준: **2026-10-12** · 최신 `main`에 반영된 기능과 데이터 계약 기준
 
 <p align="center">
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#today"><strong>오늘</strong></a> ·
-  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future"><strong>미래 전망</strong></a> ·
-  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics"><strong>통계</strong></a> ·
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#future"><strong>미래 탐색</strong></a> ·
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#statistics"><strong>통계 비교</strong></a> ·
   <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#timeseries"><strong>시계열 예측</strong></a> ·
-  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#records/data"><strong>검증</strong></a>
+  <a href="https://sung-jinpark.github.io/Jin-s-investing-prediction/#records/data"><strong>기록</strong></a>
 </p>
 
 ## 무엇을 보여주나요?
 
 | 현재 시장 | 미래 전망 | 시계열 예측 | 변동성 기준율 | 닷컴 비교 | 검증 기록 |
 |---|---|---|---|---|---|
-| 핵심 가격·거시 신호 | 세 가지 시장 경로·단일 시나리오·기록 대비 실제 | NASDAQ 1·5·21·63거래일 | VIX·실현변동성 5·21·63영업일 | 유동성·금리·신용·기업가치 | 원천·시점·수정·전진 검증 이력 |
+| NASDAQ·VIX·공포탐욕·이벤트 실제/예상/이전 | 세 가지 시장 경로·단일 시나리오·기록 대비 실제 | 마지막 마감 세션 기준 1·5·21·63거래일 | VIX·실현변동성 5·21·63영업일 | 과열도·유동성·금리·신용·기업가치·IPO | 원천·시점·수정 이력·검증 성적 |
+
+오늘 화면의 주요 숫자 카드는 해당 상세 화면으로 이어집니다. 경제지표·실적 일정에는 **실제·예상·이전 값**을 표시하고, CPI처럼 여러 지표가 있는 이벤트는 전월·전년·근원 지표를 함께 보여줍니다. 같은 주·같은 분류의 기업 실적은 한 카드로 묶어 표시합니다.
 
 미래 전망은 연구 후보이며 공식 확률이나 매매 신호가 아닙니다. 세 경로는 현재 기준점만 공유하고 서로 다른 역사 군집·특징·국면 전환 규칙을 사용합니다.
 
-단일 시나리오와 기록 대비 실제 그래프는 과거 조정의 굴곡을 반영한 **주간 구조 경로를 우선 표시**합니다. 일별 중앙값은 구조 경로가 없는 기록의 대체 표시이며, 과거에 남긴 전망과 이후 실제 가격을 대조합니다. 구조 경로는 특정 하락일이나 저점 거래일을 예측하지 않습니다.
+단일 시나리오와 기록 대비 실제 그래프는 과거 조정의 굴곡을 반영한 **주간 구조 경로를 우선 표시**합니다. 일별 중앙값은 구조 경로가 없는 기록의 대체 표시이며, 과거에 남긴 전망과 이후 실제 가격을 대조합니다. 구조 경로는 특정 하락일이나 저점 거래일을 예측하지 않습니다. V5.2의 조정 관측 창과 연말·연구 지평은 기준일에 맞춰 순차적으로 이동하며, 화면의 기간은 해당 전망의 메타데이터를 따릅니다.
 
 시계열 예측은 별도 shadow 연구모델입니다. **V8**은 PIT 다변량 회귀와 분포 보정으로 NASDAQ의 1·5·21·63거래일 분위수·상승확률을 산출하며, 봉인 Gate 통과 모델의 전진 예측·만기 결과를 누적합니다. Research Gate와 운영 신선도 Gate를 모두 통과할 때만 참고 의견으로 표시하며 기존 미래전망·공식 확률과 결합하지 않습니다. 2019년 이후 평가창은 완전한 미열람 표본이 아니므로 별도 전진 검증을 계속합니다. 이전 V5의 **HOLD** 판정도 보존합니다. [V8 계약](data/contracts/multivariate_timeseries_v8.yaml) · [V5 봉인 결과](docs/timeseries_v5/GATE_RESULT_20260824.md)
 
+**V8 일일 표시**는 동결 모델을 사용해 마지막 마감 미국 세션 기준의 전망을 별도 원장에 기록합니다. 아카이브 미확정 입력을 원 발표처 자료로 보완한 경우에는 **잠정**으로 표시하고, 확정 시 기존 행을 보존한 새 revision을 추가합니다. 해소·채점·라이브 전진 검증은 **주간 shadow 원장**만 사용합니다. 검증 화면의 100점 환산 성적과 오차 그래프는 공개 검증 지표를 읽기 쉽게 표시한 것이며, 모델 확률을 바꾸지 않습니다. [일일 표시 정책](data/contracts/multivariate_timeseries_v8.yaml) · [성적 표시 기준](docs/design/timeseries_score100_261006.md)
+
 **V13-VOL**은 동결된 지속성 모델로 VIX·실현변동성 이벤트의 기준율을 제공합니다. 홀드아웃은 9셀 중 3셀(VIX 25 이상·21영업일, 실현변동성·5/21영업일)만 통과했으며 나머지 6셀의 숫자는 표시하지 않습니다. 통과 셀도 신선도·계수 무결성·라이브 검증 상태에 따라 보류할 수 있습니다. AI 질문 예측과 정의·지평·출처를 구분하며 자동 합산하거나 매매 신호로 사용하지 않습니다. [V13-VOL 계약·셀별 표시 정책](data/contracts/multivariate_timeseries_v13_vol.yaml)
+
+**닷컴 대비 과열도 v3**는 통계페이지의 같은 자료에서 계산해 메인 카드와 통계 상단에 함께 표시합니다. 100%는 닷컴 비교 구간의 극단 수준이며, 확률이 아닙니다. 부문별 중앙값을 다시 중앙값으로 집계하고 100% 초과도 그대로 표시합니다. IPO 부문은 최근 12개월 운영기업 IPO 건수에 출처가 확인된 시대 핵심 ADR 상장을 가산하며 SPAC은 제외합니다. [과열도 v3 계약](data/contracts/dotcom_overheat_index_v3.yaml)
 
 ## 숫자가 화면에 도착하는 과정
 
@@ -48,7 +56,9 @@ flowchart LR
     C --> F["연구 전망 입력 게이트"]
     C --> T["V8 PIT 다변량 회귀 + 분포 보정"]
     C --> V["V13-VOL 변동성 지속성 기준율"]
+    E --> H["닷컴 과열도 v3"]
     E --> G["GitHub Pages"]
+    H --> G
     F --> G
     T --> G
     V --> G
@@ -65,13 +75,25 @@ flowchart LR
 - 검증 화면은 행 평균과 문항 등가중 점수를 병기하며, P3 게이트 미결 상태를 통과로 표시하지 않습니다.
 - Excel은 사람이 보는 감사본이며 정본은 append-only 관측 원장입니다.
 
+## 갱신 주기
+
+| 화면·자료 | 갱신 방식 |
+|---|---|
+| NASDAQ·VIX·공포탐욕 | 마지막 마감 미국 세션 기준으로 갱신하며 KST 오전 8시 최신성을 목표로 합니다. 원천 게시·실행이 늦으면 화면에 지연 상태를 표시합니다. |
+| 통계·닷컴 과열도·Excel 감사본 | 매일 **15:20 KST** 수집 예약 → 원장 추가 → 같은 스냅샷으로 재계산 → Pages 자동 배포 |
+| V8 일일 시계열 표시 | 시장 지표·PIT 아카이브 갱신 완료에 연동하고 별도 예약 실행으로 보완합니다. 일일 표시와 주간 검증 표본은 분리합니다. |
+| V13-VOL 기준율 | PIT 아카이브 갱신과 별도 예약에 연동하며 동결 계수로 산출하고 만기 결과를 누적합니다. |
+| 경제지표·실적 컨센서스 | 시장 지표 갱신 시 함께 확인하고 값이 바뀌면 출처와 함께 이벤트 원장에 추가합니다. |
+
+매일 확인해도 새 발표가 없는 월·분기 자료는 값이 유지됩니다. 수집·생성 시각과 실제 관측일을 구분하고, 역사·학술 참고 자료는 등록된 출판 빈티지와 검토 절차를 보존합니다. 예약 시각은 실행·배포 완료를 보장하는 시각이 아닙니다.
+
 ## 현재 통계 구성
 
 - **유동성** — M2, MMF, 가계 현금성 자산, S&P 500, NASDAQ, Bitcoin
 - **금리·신용** — 장단기 금리차, 정책금리, 회사채 부담, 대출기준, 가계부채
 - **경기·물가** — 실업률, CPI, WTI, 구리, Census 주택착공, 제조업 확산
 - **기업가치** — 기업주식 가치, 세후이익, 기업이익 증가율
-- **자본시장** — SEC 공식 IPO 구성 + 기술 IPO 수·첫날 수익률·P/S·흑자/적자 비중·AI 핵심 IPO 비교
+- **자본시장** — SEC 공식 IPO 구성 + 운영기업·시대 핵심 ADR의 최근 12개월 IPO 건수 + 기술 IPO 첫날 수익률·P/S·흑자/적자 비중·AI 핵심 IPO 비교
 - **한국·반도체** — OECD 한국 주가지수와 Nasdaq SOX 공식 배포 계열
 
 현재선은 마지막 실제 관측에서 멈추며 미래 값을 임의로 이어 붙이지 않습니다.
@@ -80,6 +102,9 @@ flowchart LR
 
 | 계약 | 위치 |
 |---|---|
+| 닷컴 대비 과열도 v3 | [`dotcom_overheat_index_v3.yaml`](data/contracts/dotcom_overheat_index_v3.yaml) |
+| 아침 시장 지표 최신성 | [`morning_freshness_v1.yaml`](data/contracts/morning_freshness_v1.yaml) |
+| 이벤트 실제·예상·이전 값 원장 | [`event_consensus.jsonl`](data/calendar/event_consensus.jsonl) |
 | 공식 숫자 원천 허용목록 | [`authoritative_statistics_sources.yaml`](data/contracts/authoritative_statistics_sources.yaml) |
 | 웹 장표·전망 계보 | [`website_data_lineage_v1.yaml`](data/contracts/website_data_lineage_v1.yaml) |
 | 누적 관측 DB | [`normalized_observations.jsonl`](data/statistics/official_store/ledgers/normalized_observations.jsonl) |
