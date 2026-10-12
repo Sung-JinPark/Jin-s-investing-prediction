@@ -1,13 +1,13 @@
 {
-  "as_of": "2026-10-12T10:09:48+00:00",
+  "as_of": "2026-10-12T10:38:42+00:00",
   "combined_with_existing_models": false,
-  "content_hash": "68c6609df4829cee6b19dcae1710c9d011b387b1024a8f6b36f2a4335249816b",
+  "content_hash": "12528737bc763c80cb3d72986bb0fd1ed4852fba66af97e3bb430d63fb2911c8",
   "evidence": {
     "predictive_validation": "not_established",
     "research_only": true,
     "source_freshness": [
       {
-        "age_hours": 58.163839,
+        "age_hours": 58.645386,
         "available_at": "2026-10-10T03:59:59+00:00",
         "group": "NASDAQCOM",
         "limit_hours": 48,
@@ -16,7 +16,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 58.163839,
+        "age_hours": 58.645386,
         "available_at": "2026-10-10T07:48:15+00:00",
         "group": "VIX",
         "limit_hours": 48,
@@ -25,7 +25,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 82.163839,
+        "age_hours": 82.645386,
         "available_at": "2026-10-10T03:59:59+00:00",
         "group": "DGS2",
         "limit_hours": 48,
@@ -34,7 +34,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 58.163839,
+        "age_hours": 58.645386,
         "available_at": "2026-10-10T03:59:59+00:00",
         "group": "curve",
         "limit_hours": 48,
@@ -43,7 +43,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 226.163839,
+        "age_hours": 226.645386,
         "available_at": "2026-10-06T03:59:59+00:00",
         "group": "dollar",
         "limit_hours": 216,
