@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-02",
-  "content_hash": "501b30a16f8a05c3b996eb12327a1f27ba68d3cd6c3b5ddf45dd60c4d59b66be",
+  "content_hash": "936daa37989fb4541643ca23d59655a1de460aa043e9a0528832d6acb71976c1",
   "data_summary": {
     "candidate": "C1",
     "data_grades": [
@@ -21,7 +21,7 @@
     "required_market_freshness": {
       "groups": [
         {
-          "age_hours": 58.602777777777774,
+          "age_hours": 59.069722222222225,
           "available_at": "2026-10-10T07:48:19+00:00",
           "group": "NASDAQCOM",
           "observation_time": "2026-10-09",
@@ -29,7 +29,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 58.602777777777774,
+          "age_hours": 59.069722222222225,
           "available_at": "2026-10-10T07:48:15+00:00",
           "group": "VIX",
           "observation_time": "2026-10-09",
@@ -37,7 +37,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 58.602777777777774,
+          "age_hours": 59.069722222222225,
           "available_at": "2026-10-10T07:48:15+00:00",
           "group": "DGS2",
           "observation_time": "2026-10-09",
@@ -45,7 +45,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 58.602777777777774,
+          "age_hours": 59.069722222222225,
           "available_at": "2026-10-10T07:48:15+00:00",
           "group": "DGS10",
           "observation_time": "2026-10-09",
@@ -53,7 +53,7 @@
           "status": "stale"
         },
         {
-          "age_hours": 226.6027777777778,
+          "age_hours": 227.06972222222223,
           "available_at": "2026-10-06T08:09:42+00:00",
           "group": "DTWEXBGS_or_DTWEXB",
           "observation_time": "2026-10-02",
@@ -94,7 +94,7 @@
       "필수 시장 입력 48시간 SLA 초과: DTWEXBGS_or_DTWEXB"
     ]
   },
-  "knowledge_cutoff": "2026-10-12T10:36:09+00:00",
+  "knowledge_cutoff": "2026-10-12T11:04:10+00:00",
   "model_id": "shadow.mf_dfm_ridge_varx_v2",
   "model_version": 2,
   "probability_space": "research_timeseries_v2_conditional",
