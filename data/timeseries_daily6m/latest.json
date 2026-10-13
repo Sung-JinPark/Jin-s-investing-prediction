@@ -1,31 +1,31 @@
 {
-  "as_of": "2026-10-13T03:14:52.696926+00:00",
+  "as_of": "2026-10-13T09:52:00.947123+00:00",
   "combined_with_existing_models": false,
-  "content_hash": "c51743592fa2d8d6321e275265c5085fac44f3955d3a9b516327d175b4229a87",
+  "content_hash": "fe7aee0d97b897a25c26682f103e5ef5b997af74a0a431c531b3de5f8edc34fc",
   "evidence": {
     "predictive_validation": "not_established",
     "research_only": true,
     "source_freshness": [
       {
-        "age_hours": 75.248249,
-        "available_at": "2026-10-10T03:59:59+00:00",
+        "age_hours": 9.867208,
+        "available_at": "2026-10-13T03:59:59+00:00",
         "group": "NASDAQCOM",
         "limit_hours": 48,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-12",
         "series_id": "NASDAQCOM",
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 75.248249,
-        "available_at": "2026-10-10T03:59:59+00:00",
+        "age_hours": 9.867208,
+        "available_at": "2026-10-13T02:36:35.392412+00:00",
         "group": "VIX",
         "limit_hours": 48,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-12",
         "series_id": "VIXCLS",
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 99.248249,
+        "age_hours": 105.867208,
         "available_at": "2026-10-10T03:59:59+00:00",
         "group": "DGS2",
         "limit_hours": 48,
@@ -34,7 +34,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 75.248249,
+        "age_hours": 81.867208,
         "available_at": "2026-10-10T03:59:59+00:00",
         "group": "curve",
         "limit_hours": 48,
@@ -43,7 +43,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 243.248249,
+        "age_hours": 249.867208,
         "available_at": "2026-10-06T03:59:59+00:00",
         "group": "dollar",
         "limit_hours": 216,
@@ -59,8 +59,6 @@
     "pass": false,
     "reasons": [
       "no independent daily6m forecast exists",
-      "required source NASDAQCOM stale",
-      "required source VIX stale",
       "required source DGS2 stale",
       "required source curve stale",
       "required source dollar stale"
