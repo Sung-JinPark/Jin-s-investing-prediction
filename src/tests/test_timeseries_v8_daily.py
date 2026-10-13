@@ -438,13 +438,22 @@ def test_display_prefers_the_daily_pointer_and_labels_it(
     assert fallback["as_of"] == "2026-10-02" and fallback["cadence"] == "weekly"
 
 
-def test_daily_hold_pointer_closes_the_surface(tmp_path: Path) -> None:
+def test_daily_hold_pointer_keeps_metadata_without_numbers(tmp_path: Path) -> None:
     root = _root(tmp_path)
     _sealed_ledger(root)
     pointer = daily.publish_daily_display_latest(root, now=NOW)   # 일일 행 없음 → HOLD
     assert pointer["publication"]["customer_numbers_visible"] is False
     assert pointer["as_of"] is None
-    assert display.load_projection(root) is None
+    original = (root / display.DAILY_LATEST_RELATIVE).read_bytes()
+    projection = display.load_projection(root)
+    assert projection["model_id"] == pointer["model_id"]
+    assert projection["as_of"] is None and projection["cadence"] == "daily"
+    assert projection["knowledge_cutoff"] == pointer["knowledge_cutoff"]
+    assert projection["gate"]["reasons"] == pointer["gate"]["reasons"]
+    assert projection["numbers_visible"] is False
+    assert projection["horizons"] == {} and projection["path"] == {}
+    assert "anchor" not in projection and "history" not in projection
+    assert (root / display.DAILY_LATEST_RELATIVE).read_bytes() == original
 
 
 # ── contract and workflow ───────────────────────────────────────────────────

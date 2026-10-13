@@ -212,7 +212,7 @@ def test_phase2_projection_shape_and_honesty(tmp_path) -> None:
     from ai_fc.timeseries_v8_display import load_projection
 
     projection = load_projection(Path(config.ROOT))
-    if projection is None:
+    if projection is None or projection.get("numbers_visible") is not True:
         pytest.skip("V8 surface is on HOLD")
     sealed = projection["sealed_metrics"]
     window, full = sealed["sealed_window"], sealed["full_backtest"]

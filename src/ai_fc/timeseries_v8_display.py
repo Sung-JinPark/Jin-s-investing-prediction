@@ -648,12 +648,51 @@ def _read_pointer(root: Path, relative: Path) -> dict[str, Any] | None:
     return value
 
 
-def load_projection(root: Path) -> dict[str, Any] | None:
-    """Return the visible V8 projection, or None so the surface falls back.
+def _hold_projection(
+    latest: dict[str, Any], *, use_daily: bool, weekly: dict[str, Any] | None,
+    origin_age_reason: str | None = None,
+) -> dict[str, Any]:
+    """Keep the selected V8 decision visible without carrying numerical data."""
+    gate = latest.get("gate") or {}
+    reasons = [str(reason) for reason in (gate.get("reasons") or [])]
+    if origin_age_reason is not None:
+        reasons.append(origin_age_reason)
+    return {
+        "model_id": MODEL_ID,
+        "model_version": MODEL_VERSION,
+        "status": "shadow_operational_hold" if origin_age_reason is not None else latest["status"],
+        "display_state": "validation_pending",
+        "numbers_visible": False,
+        "probability_space": PROBABILITY_SPACE,
+        "probability_unit": "fraction",
+        "combined_with_existing_models": False,
+        "as_of": latest.get("as_of"),
+        "knowledge_cutoff": latest.get("knowledge_cutoff"),
+        "gate": {
+            "sealed_gate_pass": gate.get("sealed_gate_pass") is True,
+            "sealed_run_id": gate.get("sealed_run_id"),
+            "operational_pass": False if origin_age_reason is not None else gate.get("operational_pass") is True,
+            "reasons": reasons,
+        },
+        "publication": {
+            "customer_numbers_visible": False,
+            "combined_with_official_forecasts": False,
+            "combined_with_scenario_v5_2": False,
+            "reference_opinion_only": True,
+        },
+        "horizons": {},
+        "path": {},
+        "cadence": "daily" if use_daily else "weekly",
+        "weekly_as_of": None if weekly is None else weekly.get("as_of"),
+        "footnote": latest.get("footnote"),
+    }
 
-    None covers both "no pointer yet" and an operational HOLD: in either case
-    the predecessor governance (V5/V2 validation-pending card) already renders
-    the honest state, so V8 adds nothing until its gates hold.
+
+def load_projection(root: Path) -> dict[str, Any] | None:
+    """Return the selected V8 decision, or None only when no pointer exists.
+
+    HOLD keeps V8's own metadata and reasons on the surface while omitting all
+    numerical data; it must not expose an older model's decision as V8's state.
 
     The daily display pointer (user decision 2026-10-07) owns the surface when it
     is at least as new as the weekly pointer — including its HOLD (fail-closed).
@@ -662,13 +701,24 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     """
     weekly = _read_pointer(root, LATEST_RELATIVE)
     daily = _read_pointer(root, DAILY_LATEST_RELATIVE)
-    use_daily = daily is not None and daily.get("as_of") is not None and (
-        weekly is None or str(daily["as_of"]) >= str(weekly.get("as_of") or ""))
+    use_daily = daily is not None and (
+        weekly is None or (daily.get("as_of") is not None
+                           and str(daily["as_of"]) >= str(weekly.get("as_of") or "")))
     latest = daily if use_daily else weekly
     if latest is None:
         return None
     if latest.get("publication", {}).get("customer_numbers_visible") is not True:
-        return None
+        return _hold_projection(latest, use_daily=use_daily, weekly=weekly)
+    realized = _realized_after_origin(
+        root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
+    policy = _origin_age_policy(root)
+    hold_after = policy.get("hold_after_sessions")
+    origin_age = min(len(realized.get("dates") or []), len(realized.get("index") or []))
+    if hold_after is not None and origin_age >= int(hold_after):
+        # Display-only closure: preserve the pointer's gate and numbers on disk.
+        return _hold_projection(
+            latest, use_daily=use_daily, weekly=weekly,
+            origin_age_reason=f"예측 원점 경과 거래일 {origin_age}: 보류 임계 {int(hold_after)} 도달")
     sealed_row = _sealed_row(root, str(latest["gate"]["sealed_run_id"]))
     if use_daily:
         info = latest.get("daily") or {}
@@ -681,15 +731,6 @@ def load_projection(root: Path) -> dict[str, Any] | None:
     else:
         anchor_value, history = _anchor_and_history(
             root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
-    realized = _realized_after_origin(
-        root, str(latest["as_of"]), str(latest["knowledge_cutoff"]))
-    policy = _origin_age_policy(root)
-    hold_after = policy.get("hold_after_sessions")
-    origin_age = min(len(realized.get("dates") or []), len(realized.get("index") or []))
-    if hold_after is not None and origin_age >= int(hold_after):
-        # 계약 origin_age_policy(사용자 결정 2026-09-07): 주간 주기 2회를 놓친 원점은
-        # 열린 전망이 아니다 — 수치를 숨기고 validation_pending 표면으로 페일클로즈.
-        return None
     projection = build_projection(
         latest, anchor_value=anchor_value, sealed_row=sealed_row, history=history,
         resolutions=_forward_resolutions(root), realized=realized,

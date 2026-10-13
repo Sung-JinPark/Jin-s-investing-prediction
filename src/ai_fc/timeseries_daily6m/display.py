@@ -23,7 +23,12 @@ def project_run(root: Path, run: dict[str, Any], *, now: datetime | None = None)
         reasons.append("forecast origin age reaches 10 completed sessions")
     if reasons:
         stable_freshness = [{key: value for key, value in row.items() if key != "age_hours"} for row in freshness]
-        return hold_payload(reasons, as_of=run["as_of"], evidence={"source_freshness": stable_freshness, "origin_age_sessions": age})
+        held = hold_payload(reasons, as_of=run["as_of"], evidence={"source_freshness": stable_freshness, "origin_age_sessions": age})
+        # Preserve issuance identity on HOLD so the UI does not describe this
+        # original issue time as a new preflight check or an unpublished run.
+        body = {key: value for key, value in held.items() if key != "content_hash"}
+        body.update({"run_id": run["run_id"], "anchor_date": run["anchor_date"]})
+        return {**body, "content_hash": C.canonical_hash(body)}
     actual = frame[(frame["series_id"] == "NASDAQCOM") & (frame["day"] > run["anchor_date"]) & frame["day"].isin(run["dates"])].sort_values("day")
     lineage = run.get("source_lineage") or {}
     body = {key: value for key, value in run.items() if key not in {"source_lineage", "joint_path_artifact", "content_hash"}}

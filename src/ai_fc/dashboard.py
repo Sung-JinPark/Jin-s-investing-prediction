@@ -480,9 +480,9 @@ def build_read_model(
     from .timeseries_v5.artifact import load_projection as load_timeseries_v5_projection
     from .timeseries_v8_display import load_projection as load_timeseries_v8_projection
     timeseries_v1 = load_timeseries_projection(root)
-    # V8 owns this surface only while BOTH its sealed and operational gates
-    # hold (the loader returns None otherwise, including on HOLD, so the
-    # honest validation-pending governance below keeps rendering).  If a V5
+    # An existing V8 pointer owns this surface, including its metadata-only
+    # HOLD. Numbers appear only while BOTH sealed and operational gates hold;
+    # only a missing V8 pointer falls back to predecessor governance. If a V5
     # pointer exists its PASS/HOLD decision owns the fallback: falling through
     # to an older model would silently hide a V5 operational failure.
     timeseries_v8 = load_timeseries_v8_projection(root)

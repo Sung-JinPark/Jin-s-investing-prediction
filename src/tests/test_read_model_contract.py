@@ -136,6 +136,30 @@ def test_timeseries_v8_hidden_surface_must_not_leak_history_or_freshness() -> No
     assert "timeseries V8 hidden surface must not carry history or freshness numbers" in errors
 
 
+def test_timeseries_v8_hold_projection_passes_read_model_contract(tmp_path) -> None:
+    import json
+
+    from ai_fc import timeseries_v8_display as display
+    from ai_fc.timeseries_v8.contracts import canonical_hash
+
+    pointer = {
+        **_v8_visible_timeseries(), "status": "shadow_operational_hold",
+        "display_state": "validation_pending", "probability_unit": "fraction",
+        "as_of": "2026-10-02", "knowledge_cutoff": "2026-10-13T00:58:05+00:00",
+        "gate": {"sealed_gate_pass": True, "operational_pass": False, "reasons": ["stale NASDAQCOM"]},
+        "publication": {"customer_numbers_visible": False, "reference_opinion_only": True,
+                        "combined_with_official_forecasts": False, "combined_with_scenario_v5_2": False},
+        "horizons": {},
+    }
+    pointer.pop("numbers_visible")
+    path = tmp_path / display.DAILY_LATEST_RELATIVE
+    path.parent.mkdir(parents=True)
+    path.write_text(json.dumps({**pointer, "content_hash": canonical_hash(pointer)}), encoding="utf-8")
+    model = _minimal_model()
+    model["timeseries"] = display.load_projection(tmp_path)
+    assert not [error for error in validate(model) if "timeseries" in error]
+
+
 def _v13_live_surface(tier: str = "t2_hidden_panel", holdout_status: str = "not_consumed") -> dict:
     cells = {name: {"p": 0.42, "band80": [0.38, 0.46], "model": "persistence_pb", "reliability": "good"}
              for name in ("vix25_h5", "vix25_h21", "vix25_h63", "vix30_h5", "vix30_h21", "vix30_h63",

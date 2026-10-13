@@ -68,7 +68,8 @@ def _helpers() -> str:
     source = _source()
     formatting = source[source.index("const tsLevel="):source.index("function tsTipMarkup")]
     daily = source[source.index("function tsDailyMonthEnd"):source.index("let TIMESERIES_DAILY_RESIZE")]
-    return "const esc=s=>String(s==null?'':s);\n" + formatting + daily
+    escaping = next(line for line in source.splitlines() if line.startswith("const esc="))
+    return escaping + "\n" + formatting + daily
 
 
 def _run(tmp_path: Path, program: str, *, helpers: bool = True) -> dict:
@@ -124,6 +125,114 @@ process.stdout.write(JSON.stringify({display:tsDailyIssuedAt(asOf),source:asOf})
     source = _source()
     assert 'title="${esc(ts.as_of||\'\')}"' in source
     assert "미국 거래일 종가 기준" in source
+
+
+def test_hold_without_a_run_labels_check_time_without_relabeling_published_run(tmp_path: Path) -> None:
+    out = _run(tmp_path, """
+const as_of='2026-10-12T11:06:27.237443+00:00';
+const absent={status:'hold',numbers_visible:false,as_of,gate:{reasons:['no independent daily6m forecast exists']}};
+const published={...absent,run_id:'original-run',anchor_date:'2026-10-09'};
+const before=JSON.stringify([absent,published]);
+process.stdout.write(JSON.stringify({unissued:tsDailyMetadataMarkup(absent),published:tsDailyMetadataMarkup(published),
+  missing:tsDailyMetadataMarkup({status:'absent'}),unknown:tsDailyMetadataMarkup({status:'hold',as_of,gate:{reasons:['required source NASDAQCOM stale']}}),
+  unchanged:before===JSON.stringify([absent,published])}));
+""")
+    assert "아직 발행된 일별 전망이 없습니다" in out["unissued"]
+    assert "검사 시각 2026. 10. 12. 20:06 KST" in out["unissued"]
+    assert "발행 2026. 10. 12. 20:06 KST" in out["published"]
+    assert "검사 시각" not in out["published"]
+    assert "2026-10-09 미국 거래일 종가 기준" in out["published"]
+    for key in ("unissued", "published"):
+        assert 'title="2026-10-12T11:06:27.237443+00:00"' in out[key]
+    assert "검사 시각" not in out["missing"] and "발행 준비 중" not in out["missing"]
+    assert "기준 시각 2026. 10. 12. 20:06 KST" in out["unknown"]
+    assert "검사 시각" not in out["unknown"] and "아직 발행된" not in out["unknown"]
+    assert out["unchanged"]
+
+
+def test_hold_reasons_have_readable_labels_and_retain_every_original_reason(tmp_path: Path) -> None:
+    reasons = [
+        "no independent daily6m forecast exists",
+        "required source NASDAQCOM stale", "required source VIX stale",
+        "required source DGS2 missing", "required source curve stale",
+        "required source dollar stale", "필수 시장 입력 신선도 초과: DGS10",
+        "예측 원점 경과 거래일 10: 보류 임계 10 도달", "unrecognized audit reason",
+    ]
+    out = _run(tmp_path, "const reasons=" + json.dumps(reasons) + """;
+process.stdout.write(JSON.stringify({labels:reasons.map(tsHoldReasonLabel),html:tsHoldReasonsMarkup(reasons)}));
+""")
+    assert out["labels"][:7] == [
+        "아직 발행된 6개월 일별 전망이 없습니다.",
+        "NASDAQ 종가 자료가 갱신 기준을 넘었습니다.", "변동성(VIX) 자료가 갱신 기준을 넘었습니다.",
+        "2년물 금리 필수 자료가 없습니다.", "장단기 금리차 자료가 갱신 기준을 넘었습니다.",
+        "달러지수 자료가 갱신 기준을 넘었습니다.", "10년물 금리 자료가 갱신 기준을 넘었습니다.",
+    ]
+    assert out["labels"][7:] == reasons[7:]
+    assert out["html"].count("<li ") == len(reasons)
+    for reason in reasons:
+        assert f'title="{reason}"' in out["html"]
+
+
+def test_hold_reason_markup_escapes_unknown_audit_text(tmp_path: Path) -> None:
+    out = _run(tmp_path, r'''
+const reason='<img src=x onerror="bad()"> & source';
+process.stdout.write(JSON.stringify({label:tsHoldReasonLabel(reason),html:tsHoldReasonsMarkup([reason])}));
+''')
+    assert out["label"] == '<img src=x onerror="bad()"> & source'
+    assert "<img" not in out["html"]
+    assert out["html"].count("&lt;img") == 2
+    assert out["html"].count("&quot;bad()&quot;") == 2
+    assert out["html"].count("&amp; source") == 2
+
+
+def test_failed_validation_is_not_described_as_only_waiting_for_new_inputs(tmp_path: Path) -> None:
+    out = _run(tmp_path, """
+const model_id='shadow.mf_dfm_varx_calibrated_v8';
+const failed={model_id,numbers_visible:false,gate:{sealed_gate_pass:false,operational_pass:false}};
+const before=JSON.stringify(failed);
+process.stdout.write(JSON.stringify({copy:tsHoldCopy(failed),missing:tsHoldCopy({model_id,numbers_visible:false}),unchanged:before===JSON.stringify(failed)}));
+""")
+    for key in ("copy", "missing"):
+        assert out[key]["title"] == "표시 조건 확인 대기"
+        assert "검증과 입력 자료" in out[key]["lead"]
+        assert out[key]["metadata"] == ""
+    assert out["unchanged"]
+
+
+def test_v8_hold_renderer_uses_latest_input_status_and_keeps_numbers_hidden(tmp_path: Path) -> None:
+    source = _source()
+    render = source[source.index("function renderTimeseries(initialState)"):source.index("const GC_API=")]
+    out = _run(tmp_path, """
+let captured='';
+let DATA={timeseries:{model_id:'shadow.mf_dfm_varx_calibrated_v8',status:'shadow_operational_hold',
+  numbers_visible:false,as_of:'2026-10-02',knowledge_cutoff:'2026-10-13T00:58:05+00:00',
+  gate:{sealed_gate_pass:true,operational_pass:false,reasons:['필수 시장 입력 신선도 초과: NASDAQCOM']},
+  anchor:{value:987654},horizons:{'1':{median_index:123456}},path:{index:[654321]}}};
+const before=JSON.stringify(DATA);
+const TS_TABS=[['summary'],['path'],['drivers'],['backtest']];
+const el=html=>({html}),mount=root=>{captured=root.html;};
+const tsDailyCta=()=>'<a href="#timeseries/daily">향후 6개월을 하루씩 보기</a>';
+const tsFootnote=()=>'',timeseriesTabsMarkup=()=>'',timeseriesSpecCard=()=>'';
+const timeseriesV13TabEnabled=()=>false,renderTimeseriesV13VolPanel=()=>'';
+const bindTimeseriesV13VolInteractions=()=>{},bindTimeseriesTabs=()=>{};
+""" + render + """
+renderTimeseries('summary');const v8=captured,unchanged=before===JSON.stringify(DATA);
+DATA.timeseries={model_id:'shadow.nasdaq_pit_hybrid_distribution_v5',numbers_visible:false};
+renderTimeseries('summary');const legacy=captured;
+process.stdout.write(JSON.stringify({v8,legacy,unchanged}));
+""")
+    assert "최신 입력 자료 갱신 대기" in out["v8"]
+    assert "예측 숫자와 그래프를 숨겼습니다" in out["v8"]
+    assert "NASDAQ 종가 자료가 갱신 기준을 넘었습니다" in out["v8"]
+    assert "예측 기준일 2026-10-02" in out["v8"]
+    assert "마지막 확인 2026. 10. 13. 09:58 KST" in out["v8"]
+    assert 'title="2026-10-13T00:58:05+00:00"' in out["v8"]
+    assert "워크포워드와 구간 적중률 검사가 끝나기 전" not in out["v8"]
+    assert "워크포워드와 구간 적중률 검사가 끝나기 전" in out["legacy"]
+    assert '#timeseries/daily' in out["v8"]
+    for hidden in ("987654", "123456", "654321", "<svg"):
+        assert hidden not in out["v8"]
+    assert out["unchanged"]
 
 
 @pytest.mark.parametrize("problem", ["probability", "crossing", "date", "sample", "hold"])
