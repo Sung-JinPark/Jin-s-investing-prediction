@@ -75,3 +75,5 @@ CLAUDE.local.md
 # Independent trendline runtime locks and disposable QA artifacts.
 outputs/trendlines/
 outputs/trendlines_preview/
+# Provider research originals and prices are personal files, never public assets.
+/data/trendlines_research/

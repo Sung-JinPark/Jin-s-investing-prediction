@@ -1,0 +1,152 @@
+"""Offline private-tool boundaries, with disposable HTML and checkout copies."""
+
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import json
+import os
+import shutil
+from pathlib import Path
+from types import SimpleNamespace
+from urllib.error import URLError
+
+import pytest
+
+from ai_fc.trendlines import contracts as C, research as R
+
+REPOSITORY = Path(__file__).resolve().parents[2]
+FETCHED = "2024-01-03T00:30:00+00:00"
+
+
+@pytest.fixture
+def tool(tmp_path, monkeypatch):
+    spec = importlib.util.spec_from_file_location("private_trendlines_tool", REPOSITORY / "tools/refresh_private_trendlines.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    checkout = tmp_path / "checkout"
+    for relative in (C.CONTRACT_RELATIVE, C.ASSET_REGISTRY_RELATIVE, C.SOURCE_POLICY_RELATIVE):
+        target = checkout / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(REPOSITORY / relative, target)
+    monkeypatch.setattr(module, "PROJECT", checkout)
+    return module
+
+
+def fixture_document(*, invalid=False):
+    item = {"meta": {"symbol": "BTC-USD", "currency": "USD", "exchangeTimezoneName": "UTC",
+                     "dataGranularity": "1d", "instrumentType": "CRYPTOCURRENCY",
+                     "regularMarketTime": 1704240000, "regularMarketPrice": 102},
+            "timestamp": [1704067200, 1704153600],
+            "indicators": {"quote": [{"open": [100, 101], "high": [1 if invalid else 102, 103],
+                                       "low": [99, 100], "close": [101, 102], "volume": [10, 12]}]}}
+    envelope = {"status": 200, "body": json.dumps({"chart": {"result": [item], "error": None}})}
+    raw = ('<script type="application/json" data-sveltekit-fetched '
+           'data-url="https://query1.finance.yahoo.com/v8/finance/chart/BTC-USD?interval=1d">'
+           + json.dumps(envelope) + '</script>').encode()
+    note = {"url": "https://finance.yahoo.com/quote/BTC-USD/history/", "http_status": 200,
+            "retrieved_at": FETCHED, "sha256": hashlib.sha256(raw).hexdigest(), "bytes": len(raw)}
+    return raw, note
+
+
+def options(tool, tmp_path, *, invalid=False):
+    raw, note = fixture_document(invalid=invalid)
+    raw_path, note_path = tmp_path / "input.html", tmp_path / "receipt.json"
+    raw_path.write_bytes(raw)
+    note_path.write_text(json.dumps(note), encoding="utf-8")
+    return SimpleNamespace(asset="bitcoin", out=tool.PROJECT / "outputs/private", fetch=False,
+                           raw=raw_path, receipt=note_path, allow_rejected_rows=False)
+
+
+def source_bytes(project):
+    return {path.relative_to(project).as_posix(): path.read_bytes()
+            for path in (project / "data").rglob("*") if path.is_file()}
+
+
+def directory_link(link, target):
+    link.parent.mkdir(parents=True, exist_ok=True)
+    target.mkdir(parents=True, exist_ok=True)
+    try:
+        link.symlink_to(target, target_is_directory=True)
+    except OSError:
+        if os.name != "nt":
+            pytest.skip("directory symlinks unavailable on this host")
+        import _winapi
+        _winapi.CreateJunction(str(target), str(link))
+
+
+@pytest.mark.parametrize("relative", ["site/private", "data/trendlines_research", "outputs/../site/private"])
+def test_private_output_outside_ignored_outputs_is_rejected_before_network(tool, tmp_path, monkeypatch, relative):
+    request = options(tool, tmp_path)
+    request.fetch, request.raw, request.receipt = True, None, None
+    request.out = tool.PROJECT / relative
+    before = source_bytes(tool.PROJECT)
+    monkeypatch.setattr(tool, "public_page", lambda *_: pytest.fail("network called before private output guard"))
+    with pytest.raises(C.TrendlinesError, match="outputs directory"):
+        tool.run(request)
+    assert source_bytes(tool.PROJECT) == before
+    assert not request.out.exists()
+
+
+@pytest.mark.parametrize("relative", ["data/contracts", "data/trendlines", "data/trendlines_research", "data/trendlines_research/raw",
+                                      "outputs/trendlines"])
+def test_nested_redirected_contract_and_research_destinations_are_rejected(tool, tmp_path, relative):
+    output = tool.PROJECT / "outputs/private"
+    outside = tmp_path / "outside"
+    directory_link(output / relative, outside)
+    with pytest.raises(C.TrendlinesError, match="redirected data path"):
+        tool.private_root(output)
+    assert not list(outside.iterdir())
+
+
+def test_redirected_outputs_container_cannot_redefine_the_private_boundary(tool, tmp_path):
+    outside = tmp_path / "public-site"
+    directory_link(tool.PROJECT / "outputs", outside)
+    with pytest.raises(C.TrendlinesError, match="outputs|redirected"):
+        tool.private_root(tool.PROJECT / "outputs/private")
+    assert not list(outside.iterdir())
+
+
+def test_raw_receipt_replay_never_calls_network_and_writes_only_private_outputs(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    before = source_bytes(tool.PROJECT)
+    raw = request.raw.read_bytes()
+    monkeypatch.setattr(tool, "public_page", lambda *_: pytest.fail("raw replay tried public acquisition"))
+    monkeypatch.setattr(tool, "urlopen", lambda *_args, **_kwargs: pytest.fail("raw replay tried network"))
+    result = tool.run(request)
+    assert result["publication_scope"] == "private_only" and result["public_prices_published"] is False
+    assert result["independent_replay"]["ok"] and result["bars"] == 2
+    export = Path(result["browser_import_file"])
+    assert export.is_relative_to(request.out.resolve()) and export.is_file()
+    assert source_bytes(tool.PROJECT) == before and request.raw.read_bytes() == raw
+    originals = list((request.out / R.ROOT / "raw").glob("*.bin"))
+    assert len(originals) == 1 and originals[0].read_bytes() == raw
+    assert tool.run(request)["changed"] is False
+
+
+def test_invalid_capture_keeps_original_and_failure_only_in_private_output(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path, invalid=True)
+    before = source_bytes(tool.PROJECT)
+    monkeypatch.setattr(tool, "urlopen", lambda *_args, **_kwargs: pytest.fail("offline invalid capture tried network"))
+    with pytest.raises(C.TrendlinesError, match="containment"):
+        tool.run(request)
+    assert source_bytes(tool.PROJECT) == before
+    originals = list((request.out / R.ROOT / "raw").glob("*.bin"))
+    assert len(originals) == 1 and originals[0].read_bytes() == request.raw.read_bytes()
+    failures = list((request.out / R.ROOT / "failures").glob("*.json"))
+    assert len(failures) == 1 and json.loads(failures[0].read_text())["numeric_input_allowed"] is False
+    assert not (request.out / R.ROOT / "latest.json").exists()
+    assert not (request.out / "bitcoin.trendlines.json").exists()
+
+
+def test_acquisition_error_never_creates_public_or_price_exports(tool, tmp_path, monkeypatch):
+    request = options(tool, tmp_path)
+    request.fetch, request.raw, request.receipt = True, None, None
+    before = source_bytes(tool.PROJECT)
+    def failed_acquisition(_asset):
+        raise URLError("offline simulated public source unavailable")
+    monkeypatch.setattr(tool, "public_page", failed_acquisition)
+    with pytest.raises(URLError):
+        tool.run(request)
+    assert source_bytes(tool.PROJECT) == before
+    assert not (request.out / R.ROOT).exists() and not (request.out / "bitcoin.trendlines.json").exists()

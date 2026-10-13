@@ -84,20 +84,32 @@ def _select_rows(bars: list[dict[str, Any]], asset: dict[str, Any], cutoff: str,
     return selected
 
 
-def _atr(rows: list[dict[str, Any]], period: int) -> list[float | None]:
+def _atr(rows: list[dict[str, Any]], period: int, *, segmented: bool = False) -> list[float | None]:
     ranges: list[float] = []
     result: list[float | None] = [None]
     for index in range(1, len(rows)):
         row, prior = rows[index], rows[index - 1]
+        if segmented and row["session_index"] - prior["session_index"] != 1:
+            ranges.clear()
+            result.append(None)
+            continue
         ranges.append(max(row["high"] - row["low"], abs(row["high"] - prior["close"]), abs(row["low"] - prior["close"])))
         result.append(math.fsum(ranges[-period:]) / period if len(ranges) >= period else None)
     return result
 
 
-def _pivots(rows: list[dict[str, Any]], start: int, left: int, right: int, side: str) -> list[dict[str, Any]]:
+def _contiguous(rows: list[dict[str, Any]], first: int, last: int) -> bool:
+    return all(b["session_index"] - a["session_index"] == 1
+               for a, b in zip(rows[first:last], rows[first + 1:last + 1]))
+
+
+def _pivots(rows: list[dict[str, Any]], start: int, left: int, right: int, side: str,
+            *, segmented: bool = False) -> list[dict[str, Any]]:
     column = "low" if side == "support" else "high"
     output = []
     for index in range(max(start, left), len(rows) - right):
+        if segmented and not _contiguous(rows, index - left, index + right):
+            continue
         value = rows[index][column]
         lhs = [row[column] for row in rows[index - left:index]]
         rhs = [row[column] for row in rows[index + 1:index + right + 1]]
@@ -130,11 +142,16 @@ def _epsilon(value: float, atr: float, asset: dict[str, Any], settings: dict[str
     return max(tick, settings[block]["atr_multiple"] * atr, settings[block]["price_fraction"] * value, 1e-12 * value)
 
 
-def _formation(rows: list[dict[str, Any]], first: dict[str, Any], second: dict[str, Any]) -> tuple[int, str]:
+def _formation(rows: list[dict[str, Any]], first: dict[str, Any], second: dict[str, Any],
+               *, retrospective: bool = False) -> tuple[int, str]:
     """Late bootstrap/backfill receipts move activation forward, never backward."""
     start = first["row_index"]
     activation = second["confirmation_row_index"]
     known = max(C.aware_time(first["confirmed_at"]), C.aware_time(second["confirmed_at"]))
+    if retrospective:
+        known = max([known, *(C.aware_time(row[field]) for row in rows[start:activation + 1]
+                             for field in ("available_at", "fetched_at"))])
+        return activation, known.isoformat()
     while True:
         known = max([known, *(C.aware_time(row[field]) for row in rows[start:activation + 1]
                              for field in ("available_at", "fetched_at"))])
@@ -194,14 +211,16 @@ def _states(line: dict[str, Any], rows: list[dict[str, Any]], atr: list[float | 
 
 def _make_line(first: dict[str, Any], second: dict[str, Any], pivots: list[dict[str, Any]], rows: list[dict[str, Any]],
                atr: list[float | None], asset: dict[str, Any], settings: dict[str, Any], axis: str, spec: dict[str, Any],
-               config_hash: str) -> tuple[dict[str, Any] | None, str | None]:
+               config_hash: str, *, research: bool = False) -> tuple[dict[str, Any] | None, str | None]:
     gap = second["index"] - first["index"]
     if gap < spec["min_anchor_gap"]:
         return None, "anchor_gap"
     if first["price"] == second["price"]:
         return None, "horizontal_pair"
     transform = math.log if axis == "log" else float
-    activation, known = _formation(rows, first, second)
+    activation, known = _formation(rows, first, second, retrospective=research)
+    if research and not _contiguous(rows, max(0, first["row_index"] - spec["left"]), activation):
+        return None, "missing_formation_sessions"
     formation_hash = C.canonical_hash([row["bar_id"] for row in rows[first["row_index"]:activation + 1]])
     identity = {"asset_id": asset["asset_id"], "axis": axis, "window": spec["bars"], "side": first["side"],
                 "first_bar_id": first["bar_id"], "second_bar_id": second["bar_id"], "config_sha256": config_hash,
@@ -228,14 +247,18 @@ def _make_line(first: dict[str, Any], second: dict[str, Any], pivots: list[dict[
     for pivot in pivots:
         if pivot["index"] < first["index"]:
             continue
+        if research and (atr[pivot["row_index"]] is None or not _contiguous(rows, first["row_index"], pivot["row_index"])):
+            continue
         price = _value(line, pivot["index"])
         if price is not None and abs(pivot["price"] - price) <= _epsilon(price, float(atr[pivot["row_index"]]), asset, settings, "touch"):
             contacts.append({key: pivot[key] for key in ("session", "index", "price", "bar_id", "confirmed_at")})
     line.update({"contacts": contacts, "touch_count": len(contacts), "geometry_status": "confirmed" if len(contacts) >= 3 else "candidate",
                  "anchor_span": gap, "latest_touch_index": max(item["index"] for item in contacts), "formation_penetration": penetration})
-    state, events, last_break = _states(line, rows, atr, activation, asset, settings)
+    state, events, last_break = (("research_reference", [], None) if research else
+                                _states(line, rows, atr, activation, asset, settings))
     current = _value(line, rows[-1]["session_index"])
-    distance = None if current is None else abs(current - rows[-1]["close"]) / _epsilon(current, float(atr[-1]), asset, settings, "touch")
+    distance = None if current is None or atr[-1] is None else abs(current - rows[-1]["close"]) / _epsilon(
+        current, float(atr[-1]), asset, settings, "touch")
     line.update({"state": state, "current_price": current, "distance_score": distance, "last_break_index": last_break, "events": events})
     return line, None
 
@@ -272,31 +295,33 @@ def _border(line: dict[str, Any]) -> dict[str, Any]:
 
 
 def _analyze(rows: list[dict[str, Any]], asset: dict[str, Any], settings: dict[str, Any], axis: str, spec: dict[str, Any],
-             projections: list[dict[str, Any]], config_hash: str) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+             projections: list[dict[str, Any]], config_hash: str, *, research: bool = False
+             ) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
     if len(rows) < spec["minimum_bars"]:
         return _empty_analysis(["insufficient_history"], spec, axis), [], []
     required = rows[-spec["minimum_bars"]:]
-    if any(b["session_index"] - a["session_index"] != 1 for a, b in zip(required, required[1:])):
+    if not research and any(b["session_index"] - a["session_index"] != 1 for a, b in zip(required, required[1:])):
         return _empty_analysis(["missing_completed_sessions"], spec, axis), [], []
-    atr = _atr(rows, settings["atr"]["period"])
+    atr = _atr(rows, settings["atr"]["period"], segmented=research)
     start = len(rows) - spec["bars"]
     # ATR is not computed across a gap, even if a gap preceded this window.
-    if any(row is None for row in atr[start:]):
+    if not research and any(row is None for row in atr[start:]):
         return _empty_analysis(["missing_atr_warmup"], spec, axis), [], []
     all_lines, all_pivots, rejected = [], [], {}
     for side in ("support", "resistance"):
-        pivots = _pivots(rows, start, spec["left"], spec["right"], side)
+        pivots = _pivots(rows, start, spec["left"], spec["right"], side, segmented=research)
         all_pivots.extend(pivots)
         for offset, first in enumerate(pivots):
             for second in pivots[offset + 1:]:
-                line, reason = _make_line(first, second, pivots, rows, atr, asset, settings, axis, spec, config_hash)
+                line, reason = _make_line(first, second, pivots, rows, atr, asset, settings, axis, spec, config_hash, research=research)
                 if line is None:
                     rejected[reason] = rejected.get(reason, 0) + 1
                 else:
                     all_lines.append(line)
     selected, recent_broken = [], []
     for side in ("support", "resistance"):
-        candidates = sorted((line for line in all_lines if line["side"] == side and line["state"] in {"active", "break_pending", "reclaimed"}), key=_rank)
+        eligible_states = {"research_reference"} if research else {"active", "break_pending", "reclaimed"}
+        candidates = sorted((line for line in all_lines if line["side"] == side and line["state"] in eligible_states), key=_rank)
         for rank, line in enumerate(candidates[:settings["max_selected_per_side"]], 1):
             selected.append({**line, "rank": rank})
         broken = sorted((line for line in all_lines if line["side"] == side and line["state"] in {"broken", "reclaim_pending"}
@@ -304,7 +329,7 @@ def _analyze(rows: list[dict[str, Any]], asset: dict[str, Any], settings: dict[s
         for rank, line in enumerate(broken[:settings["max_recent_broken_per_side"]], 1):
             recent_broken.append({**line, "rank": rank})
     close = rows[-1]["close"]
-    active = [line for line in all_lines if line["state"] in {"active", "break_pending", "reclaimed"} and line["current_price"] is not None]
+    active = [line for line in all_lines if line["state"] in eligible_states and line["current_price"] is not None]
     down = sorted((line for line in active if line["current_price"] <= close), key=lambda item: (-item["current_price"], *_rank(item)))[:3]
     up = sorted((line for line in active if line["current_price"] > close), key=lambda item: (item["current_price"], *_rank(item)))[:3]
     # Every displayed border must have its corresponding actual line in the chart.
@@ -325,24 +350,82 @@ def _analyze(rows: list[dict[str, Any]], asset: dict[str, Any], settings: dict[s
 def build_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], knowledge_cutoff: str, *,
                          config: dict[str, Any] | None = None, source_policy: dict[str, Any] | None = None,
                          previous_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
+    return _build_asset_snapshot(asset, bars, knowledge_cutoff, config=config, source_policy=source_policy,
+                                 previous_snapshot=previous_snapshot, research=False)
+
+
+def build_research_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], knowledge_cutoff: str, *,
+                                  config: dict[str, Any] | None = None, source_policy: dict[str, Any] | None = None,
+                                  previous_snapshot: dict[str, Any] | None = None) -> dict[str, Any]:
+    """Current-vintage public HTML geometry, explicitly outside approved data.
+
+    Historical candles may describe geometric contacts. They cannot issue
+    historical break/reclaim signals or be used as a point-in-time backtest.
+    """
+    C.validate_research_source(asset, source_policy)
+    return _build_asset_snapshot(asset, bars, knowledge_cutoff, config=config, source_policy=source_policy,
+                                 previous_snapshot=previous_snapshot, research=True)
+
+
+def _completed(asset: dict[str, Any], cutoff: str, settings: dict[str, Any], source_policy: dict[str, Any] | None,
+               *, research: bool) -> str | None:
+    calendar_asset = deepcopy(asset)
+    if research:
+        source = C.validate_research_source(asset, source_policy)
+        calendar_asset["publication_lag_minutes"] = C.publication_lag(asset, source)
+    return C.latest_completed_session(calendar_asset, cutoff, buffer_minutes=settings["settlement_buffer_minutes"],
+                                      source_policy=None if research else source_policy)
+
+
+def _research_metadata(asset: dict[str, Any], rows: list[dict[str, Any]], expected: str | None,
+                       schedule: tuple) -> dict[str, Any]:
+    observed = {row["session_date"] for row in rows}
+    missing = [day for day, _opened, _closed in schedule if expected is not None and day <= expected and day not in observed]
+    stale = bool(rows and rows[-1]["session_date"] != expected)
+    return {"source_context": C.RESEARCH_SOURCE_CONTEXT, "verified_source": False, "adjustment_verified": False,
+            "research_bootstrap": True, "historical_signals_available": False,
+            "quality": {"expected_completed_session": expected, "latest_completed_observation": rows[-1]["session_date"] if rows else None,
+                        "missing_session_dates": missing, "stale": stale,
+                        "reasons": (["missing_latest_completed_session"] if stale else []) + (["missing_completed_sessions"] if missing else []),
+                        "gap_policy": "segmented_geometry_no_synthetic_bars"}}
+
+
+def _research_hold(asset: dict[str, Any], reasons: list[str], settings: dict[str, Any]) -> dict[str, Any]:
+    original = hold_snapshot(asset, reasons, config=settings)
+    body = {key: value for key, value in original.items() if key not in {"snapshot_id", "content_hash"}}
+    body["publication_class"] = "research_source"
+    body.update(_research_metadata(asset, [], None, ()))
+    body["source_identity"].update({"rights_status": "uncertified_research_source", "source_context": C.RESEARCH_SOURCE_CONTEXT,
+                                    "verified_source": False, "adjustment_verified": False, "provider_symbol": asset["provider_symbol"]})
+    return _finish(body)
+
+
+def _build_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], knowledge_cutoff: str, *,
+                          config: dict[str, Any] | None, source_policy: dict[str, Any] | None,
+                          previous_snapshot: dict[str, Any] | None, research: bool) -> dict[str, Any]:
     settings = deepcopy(config or C.default_config())
     C.validate_config(settings)
-    if asset.get("enabled") is not True or not asset.get("source_id"):
+    if not research and (asset.get("enabled") is not True or not asset.get("source_id")):
         return hold_snapshot(asset, [asset.get("hold_reason") or "missing_approved_ohlc"], config=settings)
-    source = C.validate_source(asset, source_policy)
+    source = C.validate_research_source(asset, source_policy) if research else C.validate_source(asset, source_policy)
     cutoff = C.aware_time(knowledge_cutoff).isoformat()
-    rows = _select_rows(bars, asset, cutoff, source_policy)
+    rows = _select_rows(bars, asset, cutoff, None if research else source_policy)
     if not rows:
-        return hold_snapshot(asset, ["missing_approved_ohlc"], config=settings)
-    expected = C.latest_completed_session(asset, cutoff, buffer_minutes=settings["settlement_buffer_minutes"], source_policy=source_policy)
-    if rows[-1]["session_date"] != expected:
+        return (_research_hold(asset, ["missing_research_ohlc"], settings) if research else
+                hold_snapshot(asset, ["missing_approved_ohlc"], config=settings))
+    if research and any(C.aware_time(row["available_at"]) != C.aware_time(row["fetched_at"]) for row in rows):
+        raise C.TrendlinesError("research current-vintage availability must equal actual first capture")
+    expected = _completed(asset, cutoff, settings, source_policy, research=research)
+    if not research and rows[-1]["session_date"] != expected:
         return hold_snapshot(asset, ["missing_latest_completed_session"], config=settings)
     first_day, last_day = rows[0]["session_date"], rows[-1]["session_date"]
-    future_end = (date.fromisoformat(last_day) + timedelta(days=120)).isoformat()
+    future_end = max((date.fromisoformat(last_day) + timedelta(days=120)).isoformat(), expected or last_day)
     schedule = C.session_schedule(asset["calendar_id"], first_day, future_end)
     coordinates = {day: index for index, (day, _opened, _closed) in enumerate(schedule)}
     for row in rows:
         row.update({"session": row["session_date"], "session_index": coordinates[row["session_date"]]})
+    if research and any(expected is None or row["session_date"] > expected for row in rows):
+        raise C.TrendlinesError("research candle is not past completed-session buffer")
     last_index = rows[-1]["session_index"]
     offsets = settings["projections"]["crypto" if asset.get("kind") == "crypto" else "exchange"]
     future = [{"offset": offset, "session": schedule[last_index + offset][0], "index": last_index + offset} for offset in offsets]
@@ -351,15 +434,15 @@ def build_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], know
     for axis in settings["axes"]:
         analyses[axis] = {}
         for key, spec in settings["windows"].items():
-            analyses[axis][key], issued, candidate_manifest = _analyze(rows, asset, settings, axis, spec, future, config_hash)
+            analyses[axis][key], issued, candidate_manifest = _analyze(rows, asset, settings, axis, spec, future, config_hash, research=research)
             events.extend(issued)
             audit_lines.extend(candidate_manifest)
-    if not any(analysis["status"] == "ready" for windows in analyses.values() for analysis in windows.values()):
+    if not research and not any(analysis["status"] == "ready" for windows in analyses.values() for analysis in windows.values()):
         reasons = [reason for windows in analyses.values() for analysis in windows.values() for reason in analysis["reason_codes"]]
         return hold_snapshot(asset, reasons, config=settings)
     body = {"schema_version": 1, "contract_id": "trendlines_display_v1", "engine_version": C.ENGINE_VERSION,
-            "asset_id": asset["asset_id"], "asset": deepcopy(asset), "status": "ready", "reason_codes": [], "numbers_visible": True,
-            "publication_class": "research_reference_proxy", "probability_space": "reference_only", "official_forecast_write": False,
+            "asset_id": asset["asset_id"], "asset": deepcopy(asset), "status": "unverified_display" if research else "ready", "reason_codes": [], "numbers_visible": True,
+            "publication_class": "research_source" if research else "research_reference_proxy", "probability_space": "reference_only", "official_forecast_write": False,
             "as_of": cutoff, "knowledge_cutoff": cutoff, "observation_through": last_day,
             "source_identity": {"source_id": asset["source_id"], "rights_status": source["rights_status"],
                                 "price_basis": asset["price_basis"], "calendar_id": asset["calendar_id"]},
@@ -367,8 +450,12 @@ def build_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], know
             "bars": rows[-max(spec["bars"] for spec in settings["windows"].values()):], "analyses": analyses,
             "audit_lines": audit_lines,
             "events": sorted(events, key=lambda event: (event["issued_at"], event["line_id"], event["effective_session"], event["event_id"])),
-            "guards": {"approved_free_ohlc": True, "atomic_ohlc": True, "pit": True, "calendar": True,
+            "guards": {"approved_free_ohlc": not research, "atomic_ohlc": True, "pit": True, "calendar": True,
                        "no_official_append": True, "no_manual_anchor_inheritance": True}}
+    if research:
+        body.update(_research_metadata(asset, rows, expected, schedule))
+        body["source_identity"].update({"source_context": C.RESEARCH_SOURCE_CONTEXT, "verified_source": False,
+                                        "adjustment_verified": False, "provider_symbol": asset["provider_symbol"]})
     if previous_snapshot:
         previous_ids = {line["line_id"] for windows in previous_snapshot.get("analyses", {}).values()
                         for analysis in windows.values() for line in analysis.get("lines", [])}
@@ -380,6 +467,18 @@ def build_asset_snapshot(asset: dict[str, Any], bars: list[dict[str, Any]], know
 def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], asset: dict[str, Any],
                           config: dict[str, Any] | None = None, source_policy: dict[str, Any] | None = None,
                           replay: bool = True) -> dict[str, Any]:
+    return _verify_asset_snapshot(snapshot, bars, asset, config=config, source_policy=source_policy, replay=replay, research=False)
+
+
+def verify_research_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], asset: dict[str, Any],
+                                   config: dict[str, Any] | None = None, source_policy: dict[str, Any] | None = None,
+                                   replay: bool = True) -> dict[str, Any]:
+    return _verify_asset_snapshot(snapshot, bars, asset, config=config, source_policy=source_policy, replay=replay, research=True)
+
+
+def _verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], asset: dict[str, Any], *,
+                           config: dict[str, Any] | None, source_policy: dict[str, Any] | None, replay: bool,
+                           research: bool) -> dict[str, Any]:
     """Independent scalar replay of published geometry, contacts and states.
 
     The oracle intentionally does not call _atr, _pivots, _value or _states.
@@ -399,7 +498,7 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
         if snapshot.get("asset_id") != asset["asset_id"] or snapshot.get("official_forecast_write") is not False:
             raise C.TrendlinesError("snapshot identity or official write gate mismatch")
         if (snapshot.get("schema_version") != 1 or snapshot.get("contract_id") != "trendlines_display_v1"
-                or snapshot.get("engine_version") != C.ENGINE_VERSION or snapshot.get("publication_class") != "research_reference_proxy"
+                or snapshot.get("engine_version") != C.ENGINE_VERSION or snapshot.get("publication_class") != ("research_source" if research else "research_reference_proxy")
                 or snapshot.get("probability_space") != "reference_only" or snapshot.get("asset") != asset):
             raise C.TrendlinesError("snapshot semantic contract mismatch")
         if set(snapshot.get("analyses", {})) != set(settings["axes"]) or any(
@@ -407,7 +506,18 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
             raise C.TrendlinesError("snapshot axes/windows missing or unsupported")
         if snapshot.get("config_sha256") != C.canonical_hash(settings):
             raise C.TrendlinesError("snapshot config mismatch")
+        if research:
+            C.validate_research_source(asset, source_policy)
+            if any(snapshot.get(key) is not expected for key, expected in (
+                    ("verified_source", False), ("adjustment_verified", False), ("historical_signals_available", False), ("research_bootstrap", True))):
+                raise C.TrendlinesError("research provenance or historical signal gate mismatch")
+            if snapshot.get("source_context") != C.RESEARCH_SOURCE_CONTEXT or snapshot.get("events"):
+                raise C.TrendlinesError("research context mismatch or historical signals issued")
         if snapshot.get("status") == "hold":
+            if research:
+                expected_hold = _research_hold(asset, snapshot.get("reason_codes", []), settings)
+                if snapshot != expected_hold:
+                    raise C.TrendlinesError("research HOLD provenance/metadata mismatch")
             if snapshot.get("bars") or snapshot.get("events") or snapshot.get("audit_lines") or snapshot.get("numbers_visible") is not False:
                 raise C.TrendlinesError("HOLD contains numbers")
             for windows in snapshot.get("analyses", {}).values():
@@ -417,17 +527,25 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
             if snapshot.get("as_of") is not None or snapshot.get("knowledge_cutoff") is not None:
                 raise C.TrendlinesError("HOLD is backdated or timestamp-only")
             return {"ok": True, "errors": [], "replay": "hold_no_numeric_input"}
-        if snapshot.get("status") != "ready" or snapshot.get("numbers_visible") is not True:
+        if snapshot.get("status") != ("unverified_display" if research else "ready") or snapshot.get("numbers_visible") is not True:
             raise C.TrendlinesError("unsupported snapshot state")
-        C.validate_source(asset, source_policy)
-        expected_source = {"source_id": asset["source_id"], "rights_status": "approved_free",
+        if not research:
+            C.validate_source(asset, source_policy)
+        expected_source = {"source_id": asset["source_id"], "rights_status": "uncertified_research_source" if research else "approved_free",
                            "price_basis": asset["price_basis"], "calendar_id": asset["calendar_id"]}
+        if research:
+            expected_source.update({"source_context": C.RESEARCH_SOURCE_CONTEXT, "verified_source": False,
+                                    "adjustment_verified": False, "provider_symbol": asset["provider_symbol"]})
         if snapshot.get("source_identity") != expected_source:
             raise C.TrendlinesError("snapshot source identity mismatch")
         cutoff = snapshot["knowledge_cutoff"]
-        rows = _select_rows(bars, asset, cutoff, source_policy)
+        rows = _select_rows(bars, asset, cutoff, None if research else source_policy)
+        if research and any(C.aware_time(row["available_at"]) != C.aware_time(row["fetched_at"]) for row in rows):
+            raise C.TrendlinesError("research current-vintage availability must equal actual first capture")
+        expected = _completed(asset, cutoff, settings, source_policy, research=research)
         schedule = C.session_schedule(asset["calendar_id"], rows[0]["session_date"],
-                                      (date.fromisoformat(rows[-1]["session_date"]) + timedelta(days=120)).isoformat())
+                                      max((date.fromisoformat(rows[-1]["session_date"]) + timedelta(days=120)).isoformat(),
+                                          expected or rows[-1]["session_date"]))
         coordinates = {day: index for index, (day, _opened, _closed) in enumerate(schedule)}
         for row in rows:
             row.update({"session": row["session_date"], "session_index": coordinates[row["session_date"]]})
@@ -437,8 +555,18 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
             raise C.TrendlinesError("snapshot candles differ from frozen inputs")
         if snapshot.get("as_of") != cutoff or snapshot.get("observation_through") != rows[-1]["session_date"]:
             raise C.TrendlinesError("snapshot time mismatch")
-        if rows[-1]["session_date"] != C.latest_completed_session(asset, cutoff, buffer_minutes=settings["settlement_buffer_minutes"], source_policy=source_policy):
+        expected = _completed(asset, cutoff, settings, source_policy, research=research)
+        if not research and rows[-1]["session_date"] != expected:
             raise C.TrendlinesError("snapshot lacks latest completed session")
+        if research:
+            if any(expected is None or row["session_date"] > expected for row in rows):
+                raise C.TrendlinesError("research candle is not past completed-session buffer")
+            metadata = _research_metadata(asset, rows, expected, schedule)
+            if any(snapshot.get(key) != value for key, value in metadata.items()):
+                raise C.TrendlinesError("research quality/current-vintage metadata mismatch")
+            if snapshot.get("guards") != {"approved_free_ohlc": False, "atomic_ohlc": True, "pit": True, "calendar": True,
+                                           "no_official_append": True, "no_manual_anchor_inheritance": True}:
+                raise C.TrendlinesError("research approval/write guards mismatch")
         if not replay:
             return {"ok": True, "errors": [], "replay": "metadata_only"}
         if not isinstance(snapshot.get("audit_lines"), list):
@@ -457,8 +585,11 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
             return math.isclose(a, b, rel_tol=relative, abs_tol=absolute)
 
         @lru_cache(maxsize=None)
-        def scalar_atr(index: int) -> float:
+        def scalar_atr(index: int) -> float | None:
             period = settings["atr"]["period"]
+            if research and (index < period or any(rows[position]["session_index"] - rows[position - 1]["session_index"] != 1
+                                                   for position in range(index - period + 1, index + 1))):
+                return None
             terms = []
             for position in range(index - period + 1, index + 1):
                 high, low = rows[position]["high"], rows[position]["low"]
@@ -467,7 +598,10 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
             return sum(terms) / period
 
         def scalar_eps(price: float, index: int, block: str) -> float:
-            return max(asset.get("tick_size", 0.0), settings[block]["atr_multiple"] * scalar_atr(index),
+            atr = scalar_atr(index)
+            if atr is None:
+                raise C.TrendlinesError("research ATR crossed a missing session")
+            return max(asset.get("tick_size", 0.0), settings[block]["atr_multiple"] * atr,
                        settings[block]["price_fraction"] * price, 1e-12 * price)
 
         last_index = rows[-1]["session_index"]
@@ -480,9 +614,9 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                 if analysis["status"] == "hold":
                     if analysis["lines"] or analysis["events"] or any(analysis["borders"].values()) or analysis.get("projection_sessions"):
                         errors.append("held range has numbers")
-                    if len(rows) >= spec["minimum_bars"] and all(
+                    if len(rows) >= spec["minimum_bars"] and (research or all(
                         b["session_index"] - a["session_index"] == 1
-                        for a, b in zip(rows[-spec["minimum_bars"]:], rows[-spec["minimum_bars"] + 1:])):
+                        for a, b in zip(rows[-spec["minimum_bars"]:], rows[-spec["minimum_bars"] + 1:]))):
                         errors.append("eligible range was hidden by HOLD")
                     continue
                 reported_future = analysis.get("projection_sessions")
@@ -490,19 +624,29 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                                                               for field in ("offset", "index"))):
                     errors.append("projection session horizon/calendar replay mismatch")
                 pivot_oracle = {}
+                expected_pivot_records = []
                 for side, column in (("support", "low"), ("resistance", "high")):
                     pivots = []
                     for index in range(max(len(rows) - spec["bars"], spec["left"]), len(rows) - spec["right"]):
                         segment = rows[index - spec["left"]:index + spec["right"] + 1]
+                        if research and any(b["session_index"] - a["session_index"] != 1 for a, b in zip(segment, segment[1:])):
+                            continue
                         values = [row[column] for row in segment]
                         extreme = min(values) if side == "support" else max(values)
                         if rows[index][column] == extreme and values.index(extreme) == spec["left"]:
                             pivots.append(index)
+                            confirmed = max(C.aware_time(item[field]) for item in segment for field in ("available_at", "fetched_at"))
+                            expected_pivot_records.append({"session": rows[index]["session_date"], "index": rows[index]["session_index"],
+                                                           "price": rows[index][column], "bar_id": rows[index]["bar_id"],
+                                                           "confirmation_session": rows[index + spec["right"]]["session_date"],
+                                                           "confirmed_at": confirmed.isoformat(), "side": side})
                     pivot_oracle[side] = pivots
                 reported_pivots = {(pivot["side"], pivot["bar_id"]) for pivot in analysis["pivots"]}
                 expected_pivots = {(side, rows[index]["bar_id"]) for side, indices in pivot_oracle.items() for index in indices}
                 if reported_pivots != expected_pivots:
                     errors.append("pivot replay mismatch")
+                if analysis["pivots"] != expected_pivot_records:
+                    errors.append("pivot price/confirmation metadata replay mismatch")
                 candidates = [line for line in snapshot["audit_lines"] if line["axis"] == axis and line["window"] == spec["bars"]]
                 if len(candidates) != analysis["candidate_count"]:
                     errors.append("candidate manifest count mismatch")
@@ -526,12 +670,20 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                             while True:
                                 known = max([known, *(C.aware_time(item[field]) for item in rows[ia:activation + 1]
                                                      for field in ("available_at", "fetched_at"))])
+                                if research:
+                                    break
                                 end = max(activation, max((index for index, item in enumerate(rows)
                                                           if C.aware_time(item["finalized_at"]) <= known), default=activation))
                                 if end == activation:
                                     break
                                 activation = end
-                            admitted = True
+                            admitted = not research or all(
+                                rows[position]["session_index"] - rows[position - 1]["session_index"] == 1
+                                for position in range(max(0, ia - spec["left"]) + 1, activation + 1))
+                            if research and any(scalar_atr(index) is None for index in range(ia, activation + 1)):
+                                admitted = False
+                            if not admitted:
+                                continue
                             for index in range(ia, activation + 1):
                                 weight = (rows[index]["session_index"] - a["session_index"]) / span
                                 try:
@@ -570,6 +722,8 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                         errors.append("line anchor is not confirmed pivot")
                     if first["price"] != a[column] or second["price"] != b[column]:
                         errors.append("line anchor price mismatch")
+                    if line["direction"] != ("rising" if b[column] > a[column] else "falling"):
+                        errors.append("line direction replay mismatch")
                     for anchor, row, index in ((first, a, ia), (second, b, ib)):
                         known = max(C.aware_time(item[field]) for item in rows[index - spec["left"]:index + spec["right"] + 1]
                                     for field in ("available_at", "fetched_at"))
@@ -659,11 +813,19 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                     contacts = []
                     for index in pivot_oracle[line["side"]]:
                         if index >= ia:
+                            if research and (scalar_atr(index) is None or any(
+                                    rows[position]["session_index"] - rows[position - 1]["session_index"] != 1
+                                    for position in range(ia + 1, index + 1))):
+                                continue
                             price = oracle(rows[index]["session_index"])
                             if price is not None and abs(rows[index][column] - price) <= scalar_eps(price, index, "touch"):
                                 contacts.append(rows[index]["bar_id"])
                     if contacts != [pivot["bar_id"] for pivot in line["contacts"]] or len(contacts) != line["touch_count"]:
                         errors.append("contact replay mismatch")
+                    expected_contacts = [{field: pivot[field] for field in ("session", "index", "price", "bar_id", "confirmed_at")}
+                                         for pivot in expected_pivot_records if pivot["side"] == line["side"] and pivot["bar_id"] in contacts]
+                    if line["contacts"] != expected_contacts:
+                        errors.append("contact price/confirmation metadata replay mismatch")
                     confirmed = "confirmed" if len(contacts) >= 3 else "candidate"
                     if line["geometry_status"] != confirmed:
                         errors.append("two-anchor line promoted to confirmed geometry")
@@ -690,13 +852,16 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                     if not equal(line["formation_penetration"], max_penetration) or line["anchor_span"] != span:
                         errors.append("candidate rank geometry mismatch")
                     last_touch = max(lookup[bar_id][1]["session_index"] for bar_id in contacts)
-                    distance = None if current is None else abs(current - rows[-1]["close"]) / scalar_eps(current, len(rows) - 1, "touch")
+                    distance = None if current is None or scalar_atr(len(rows) - 1) is None else abs(
+                        current - rows[-1]["close"]) / scalar_eps(current, len(rows) - 1, "touch")
                     if line["latest_touch_index"] != last_touch or (distance is None) != (line["distance_score"] is None) or (
                         distance is not None and not equal(distance, line["distance_score"])):
                         errors.append("candidate rank contact/distance mismatch")
-                    state, is_broken, count, last_break = "active", False, 0, None
+                    state, is_broken, count, last_break = "research_reference" if research else "active", False, 0, None
                     expected_events = []
                     for index in range(activation + 1, len(rows)):
+                        if research:
+                            break
                         price = oracle(rows[index]["session_index"])
                         if price is None:
                             state = "projection_invalid"
@@ -749,7 +914,8 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                 expected_selected = set()
                 expected_broken = []
                 for side in ("support", "resistance"):
-                    active_candidates = sorted((line for line in candidates if line["side"] == side and line["state"] in {"active", "break_pending", "reclaimed"}), key=rank_oracle)
+                    eligible_states = {"research_reference"} if research else {"active", "break_pending", "reclaimed"}
+                    active_candidates = sorted((line for line in candidates if line["side"] == side and line["state"] in eligible_states), key=rank_oracle)
                     for rank, line in enumerate(active_candidates[:settings["max_selected_per_side"]], 1):
                         expected_selected.add(line["line_id"])
                         if displayed.get(line["line_id"], {}).get("rank") != rank:
@@ -761,7 +927,7 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                         expected_broken.append(line)
                         if displayed.get(line["line_id"], {}).get("rank") != rank:
                             errors.append("broken line rank replay mismatch")
-                active_candidates = [line for line in candidates if line["state"] in {"active", "break_pending", "reclaimed"} and line["current_price"] is not None]
+                active_candidates = [line for line in candidates if line["state"] in eligible_states and line["current_price"] is not None]
                 close = rows[-1]["close"]
                 expected_down = sorted((line for line in active_candidates if line["current_price"] <= close), key=lambda item: (-item["current_price"], *rank_oracle(item)))[:3]
                 expected_up = sorted((line for line in active_candidates if line["current_price"] > close), key=lambda item: (item["current_price"], *rank_oracle(item)))[:3]
@@ -775,6 +941,9 @@ def verify_asset_snapshot(snapshot: dict[str, Any], bars: list[dict[str, Any]], 
                     for border in analysis["borders"][side]:
                         if border["line_id"] not in displayed or not equal(border["price"], displayed[border["line_id"]]["current_price"]):
                             errors.append("border lacks corresponding verified line")
+                        elif border != {"line_id": displayed[border["line_id"]]["line_id"], "price": displayed[border["line_id"]]["current_price"],
+                                        **{field: displayed[border["line_id"]][field] for field in ("state", "geometry_status", "touch_count", "side", "direction")}}:
+                            errors.append("border state/geometry metadata replay mismatch")
     except (C.TrendlinesError, ValueError, KeyError, TypeError, IndexError, ArithmeticError) as exc:
         errors.append(str(exc))
     return {"ok": not errors, "errors": sorted(set(errors)), "replay": "independent_scalar_geometry_and_states" if replay else "metadata_only"}

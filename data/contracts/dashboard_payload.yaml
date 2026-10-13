@@ -80,6 +80,19 @@ trendlines:
   client_line_fitting: prohibited
   publication_failure: explicit_hold_without_numbers
   fetch_failure: explicit_error_without_substitution
+  research_source_display:
+    delivery: explicit_private_local_preview_only
+    public_pages_export: prohibited
+    asset_status: unverified_display
+    detail_contract_id: trendlines_research_display_v1
+    publication_class: research_source
+    verified_source: false
+    official_snapshot_status: hold
+    source_context: user_authorized_public_html_research
+    source_basis: provider_reported_ohlc_current_vintage
+    mixed_provider_candles: prohibited
+    missing_bars: explicit_gaps_without_imputation
+    intraday_quote: separate_from_finalized_candles
 
 timeseries:
   route: "#timeseries"

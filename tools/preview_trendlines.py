@@ -119,7 +119,34 @@ def build_preview(output: Path):
     return output / "index.html"
 
 
-def capture_preview(output: Path):
+def build_research_preview(research_root: Path, output: Path):
+    """Opt-in private display; the normal read model and Pages never attach research."""
+    from ai_fc.trendlines import display, research
+    research_root, output = research_root.resolve(), output.resolve()
+    if not output.is_relative_to(research_root):
+        raise ValueError("private research preview must remain inside its local research root")
+    projection = research.attach_projection(research_root, display.load_projection(research_root), allow_private_research=True)
+    if not any(row['status'] == 'unverified_display' for row in projection['assets']):
+        raise ValueError("no replayed private research snapshot is available")
+    model = {"meta": {"generated": projection.get("generated_at"), "phase": "개인 연구", "n_questions": 0},
+             "questions": [], "forecast_history": {}, "resolutions": {}, "clusters": [], "scenario": {},
+             "trendlines": projection}
+    base, sidecars = dashboard.split_trendlines_data(model)
+    output.mkdir(parents=True, exist_ok=True)
+    html = dashboard.render_html(base, mode="embed")
+    html = html.replace("</head>", '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    (output / "index.html").write_text(html, encoding="utf-8")
+    (output / "data.json").write_text(json.dumps(base, ensure_ascii=False, separators=(',', ':'), allow_nan=False), encoding="utf-8")
+    dashboard._write_trendlines_sidecars(sidecars, output)
+    (output / "private_preview_manifest.json").write_text(json.dumps({
+        "private_research_only": True, "public_export_allowed": False,
+        "official_forecast_write": False, "summary_bytes": len(json.dumps(base['trendlines'], ensure_ascii=False, separators=(',', ':')).encode()),
+        "assets": [{"asset_id": asset, "sidecar_bytes": (output / f'trendlines/{asset}.json').stat().st_size} for asset in sidecars],
+    }, ensure_ascii=False, indent=2), encoding="utf-8")
+    return output / 'index.html'
+
+
+def capture_preview(output: Path, *, research=False):
     from playwright.sync_api import sync_playwright
     class QuietHandler(SimpleHTTPRequestHandler):
         def log_message(self, *args):
@@ -141,7 +168,9 @@ def capture_preview(output: Path):
                 svg = page.locator('.trend-chart svg')
                 svg.wait_for(state="visible")
                 assert page.locator('[data-trend-bar]').count() == 63
-                assert page.locator('.trend-fixture').count() == 1
+                assert page.locator('.trend-fixture').count() == (0 if research else 1)
+                if research:
+                    assert page.locator('[data-trend-research]').count() == 1
                 assert page.evaluate('document.documentElement.scrollWidth <= innerWidth'), "body overflow"
                 linear_points = page.locator('[data-trend-projection]').first.get_attribute('points')
                 page.get_by_role('button', name='로그', exact=True).click()
@@ -193,9 +222,11 @@ def capture_preview(output: Path):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--out', type=Path, default=PROJECT / 'outputs/trendlines_preview')
+    parser.add_argument('--out', type=Path)
+    parser.add_argument('--research-root', type=Path, help='Explicit local-only public-HTML research root; writes its private site subdirectory')
     parser.add_argument('--capture', action='store_true')
     options = parser.parse_args()
-    print(build_preview(options.out).resolve())
+    output = options.out or (options.research_root / 'site' if options.research_root else PROJECT / 'outputs/trendlines_preview')
+    print((build_research_preview(options.research_root, output) if options.research_root else build_preview(output)).resolve())
     if options.capture:
-        capture_preview(options.out)
+        capture_preview(output, research=bool(options.research_root))

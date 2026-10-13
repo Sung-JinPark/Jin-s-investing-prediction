@@ -357,3 +357,152 @@ def test_existing_line_identity_anchor_activation_and_events_are_prefix_preserve
                                                                  for analysis in windows.values() for line in analysis["lines"]} -
                                                                 {line["line_id"] for windows in earlier["analyses"].values()
                                                                  for analysis in windows.values() for line in analysis["lines"]})
+
+
+def research_inputs(count: int = 100) -> tuple[dict, list[dict], str, dict, dict]:
+    asset, bars, cutoff, config, _approved = fixture_inputs(count, break_and_reclaim=True)
+    asset.update({"source_id": C.RESEARCH_SOURCE_ID, "price_basis": C.RESEARCH_PRICE_BASIS, "provider_symbol": "BTC-USD"})
+    source = {"rights_status": "uncertified_research_source", "source_context": C.RESEARCH_SOURCE_CONTEXT,
+              "verified_source": False, "adjustment_verified": False, "asset_ids": ["bitcoin"],
+              "allowed_price_bases": [C.RESEARCH_PRICE_BASIS], "calendar_ids": ["24/7"], "allowed_symbols": ["BTC-USD"],
+              "allowed_domains": ["finance.yahoo.com"], "parser_id": "yahoo_history_html_v1"}
+    for row in bars:
+        row.update({"source_id": C.RESEARCH_SOURCE_ID, "price_basis": C.RESEARCH_PRICE_BASIS,
+                    "available_at": cutoff, "fetched_at": cutoff})
+    return asset, bars, cutoff, config, {"sources": {C.RESEARCH_SOURCE_ID: source}}
+
+
+def research_build(inputs: tuple) -> dict:
+    asset, bars, cutoff, config, policy = inputs
+    return E.build_research_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+
+
+def test_research_context_is_explicit_and_never_claims_approval_or_historical_signals() -> None:
+    inputs = research_inputs()
+    asset, bars, cutoff, config, policy = inputs
+    snapshot = research_build(inputs)
+    assert snapshot["status"] == "unverified_display" and snapshot["numbers_visible"] is True
+    assert snapshot["publication_class"] == "research_source" and snapshot["official_forecast_write"] is False
+    assert snapshot["verified_source"] is False and snapshot["adjustment_verified"] is False
+    assert snapshot["historical_signals_available"] is False and snapshot["research_bootstrap"] is True
+    assert snapshot["guards"]["approved_free_ohlc"] is False and not snapshot["events"]
+    assert snapshot["audit_lines"] and all(line["state"] == "research_reference" and line["last_break_index"] is None
+                                          for line in snapshot["audit_lines"])
+    assert all(C.aware_time(line["activation_asof"]) == C.aware_time(cutoff) for line in snapshot["audit_lines"])
+    assert E.verify_research_asset_snapshot(snapshot, bars, asset, config=config, source_policy=policy)["ok"]
+    with pytest.raises(C.TrendlinesError, match="not_approved_free"):
+        E.build_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+    assert not E.verify_asset_snapshot(snapshot, bars, asset, config=config, source_policy=policy)["ok"]
+
+
+@pytest.mark.parametrize("mutation", ["approval", "context", "basis", "currency", "symbol", "calendar", "adjustment", "mag7"])
+def test_research_identity_cannot_substitute_or_promote_source(mutation: str) -> None:
+    asset, bars, cutoff, config, policy = research_inputs()
+    source = policy["sources"][C.RESEARCH_SOURCE_ID]
+    if mutation == "approval": source["rights_status"] = "approved_free"
+    elif mutation == "context": source["source_context"] = "inferred_permission"
+    elif mutation == "adjustment": source["adjustment_verified"] = True
+    elif mutation == "basis": asset["price_basis"] = "split_adjusted_price"
+    elif mutation == "currency": asset["currency"] = "KRW"
+    elif mutation == "symbol": asset["provider_symbol"] = "BTC-EUR"
+    elif mutation == "calendar": asset["calendar_id"] = "XNYS"
+    else: asset["asset_id"] = "mag7"
+    with pytest.raises(C.TrendlinesError):
+        E.build_research_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+
+
+def test_research_gap_is_visible_and_never_bridges_atr_pivot_formation_or_contacts() -> None:
+    asset, bars, cutoff, config, policy = research_inputs(150)
+    removed = bars[90]
+    selected = bars[:90] + bars[91:]
+    snapshot = E.build_research_asset_snapshot(asset, selected, cutoff, config=config, source_policy=policy)
+    assert snapshot["status"] == "unverified_display" and snapshot["numbers_visible"]
+    assert removed["session_date"] in snapshot["quality"]["missing_session_dates"]
+    displayed = snapshot["bars"]
+    assert next(row for row in displayed if row["bar_id"] == bars[91]["bar_id"])["session_index"] == 91
+    assert not snapshot["events"]
+    for line in snapshot["audit_lines"]:
+        first, second = line["first_anchor"]["index"], line["second_anchor"]["index"]
+        assert not first < 90 < second
+        assert all(not first < 90 < contact["index"] for contact in line["contacts"])
+    assert E.verify_research_asset_snapshot(snapshot, selected, asset, config=config, source_policy=policy)["ok"]
+    coordinates = [{**row, "session_index": index} for index, row in enumerate(bars)]
+    atr = E._atr(coordinates[:90] + coordinates[91:], 14, segmented=True)
+    assert all(value is None for value in atr[90:104]) and atr[104] is not None
+
+
+def test_research_missing_latest_and_insufficient_history_keep_only_actual_candles() -> None:
+    asset, bars, cutoff, config, policy = research_inputs()
+    snapshot = E.build_research_asset_snapshot(asset, bars[:-1], cutoff, config=config, source_policy=policy)
+    assert snapshot["quality"]["stale"] is True
+    assert snapshot["observation_through"] == bars[-2]["session_date"]
+    assert snapshot["quality"]["expected_completed_session"] == bars[-1]["session_date"]
+    assert len(snapshot["bars"]) == 99
+    assert E.verify_research_asset_snapshot(snapshot, bars[:-1], asset, config=config, source_policy=policy)["ok"]
+    short = E.build_research_asset_snapshot(asset, bars[-20:], cutoff, config=config, source_policy=policy)
+    assert short["numbers_visible"] is True and len(short["bars"]) == 20
+    assert all(analysis["status"] == "hold" and not analysis["lines"]
+               for windows in short["analyses"].values() for analysis in windows.values())
+    assert E.verify_research_asset_snapshot(short, bars[-20:], asset, config=config, source_policy=policy)["ok"]
+
+
+def test_research_current_vintage_cannot_backdate_first_capture_or_use_intraday() -> None:
+    asset, bars, cutoff, config, policy = research_inputs()
+    bars[-1]["available_at"] = (C.aware_time(bars[-1]["finalized_at"]) + timedelta(minutes=5)).isoformat()
+    with pytest.raises(C.TrendlinesError, match="availability must equal actual first capture"):
+        E.build_research_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+    asset, bars, cutoff, config, policy = research_inputs()
+    bars[-1]["fetched_at"] = (C.aware_time(cutoff) + timedelta(days=1)).isoformat()
+    with pytest.raises(C.TrendlinesError, match="future bar"):
+        C.validate_bar(bars[-1], asset, cutoff)
+    snapshot = E.build_research_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+    assert snapshot["observation_through"] == bars[-2]["session_date"]
+    asset, bars, _cutoff, config, policy = research_inputs()
+    before_buffer = (C.aware_time(bars[-1]["finalized_at"]) + timedelta(minutes=10)).isoformat()
+    for row in bars: row["available_at"] = row["fetched_at"] = before_buffer
+    with pytest.raises(C.TrendlinesError, match="completed-session buffer"):
+        E.build_research_asset_snapshot(asset, bars, before_buffer, config=config, source_policy=policy)
+
+
+@pytest.mark.parametrize("mutation", ["line", "contact", "gap", "state", "approval", "signal", "candles", "horizon"])
+def test_research_independent_replay_rejects_rehashed_geometry_and_provenance_tampering(mutation: str) -> None:
+    asset, bars, cutoff, config, policy = research_inputs()
+    snapshot = E.build_research_asset_snapshot(asset, bars, cutoff, config=config, source_policy=policy)
+    line = snapshot["analyses"]["linear"]["63"]["lines"][0]
+    if mutation == "line": line["slope"] += 1
+    elif mutation == "contact": line["touch_count"] += 1
+    elif mutation == "state": line["state"] = "broken"
+    elif mutation == "approval": snapshot["guards"]["approved_free_ohlc"] = True
+    elif mutation == "signal": snapshot["historical_signals_available"] = True
+    elif mutation == "gap": snapshot["quality"]["missing_session_dates"].append("2024-01-05")
+    elif mutation == "candles": snapshot["bars"][-1]["close"] += 1
+    else: line["projections"][0]["offset"] = 999
+    assert not E.verify_research_asset_snapshot(rehash(snapshot), bars, asset, config=config, source_policy=policy)["ok"]
+
+
+def test_research_empty_capture_remains_auditable_hold() -> None:
+    asset, _bars, cutoff, config, policy = research_inputs()
+    snapshot = E.build_research_asset_snapshot(asset, [], cutoff, config=config, source_policy=policy)
+    assert snapshot["status"] == "hold" and snapshot["numbers_visible"] is False and not snapshot["bars"]
+    assert snapshot["publication_class"] == "research_source" and snapshot["verified_source"] is False
+    assert E.verify_research_asset_snapshot(snapshot, [], asset, config=config, source_policy=policy)["ok"]
+
+
+@pytest.mark.parametrize("research", [False, True])
+@pytest.mark.parametrize("mutation", ["contact_price", "contact_confirmation", "pivot_price", "pivot_confirmation", "direction", "border_state", "border_side"])
+def test_independent_replay_binds_all_displayed_contact_pivot_and_border_metadata(research: bool, mutation: str) -> None:
+    asset, bars, cutoff, config, policy = research_inputs() if research else fixture_inputs()
+    builder = E.build_research_asset_snapshot if research else E.build_asset_snapshot
+    verifier = E.verify_research_asset_snapshot if research else E.verify_asset_snapshot
+    snapshot = builder(asset, bars, cutoff, config=config, source_policy=policy)
+    analysis = snapshot["analyses"]["linear"]["63"]
+    line = analysis["lines"][0]
+    if mutation == "contact_price": line["contacts"][0]["price"] += 1
+    elif mutation == "contact_confirmation": line["contacts"][0]["confirmed_at"] = "2027-01-01T00:00:00+00:00"
+    elif mutation == "pivot_price": analysis["pivots"][0]["price"] += 1
+    elif mutation == "pivot_confirmation": analysis["pivots"][0]["confirmation_session"] = "2027-01-01"
+    elif mutation == "direction": line["direction"] = "falling" if line["direction"] == "rising" else "rising"
+    else:
+        side = next(key for key in ("down", "up", "broken") if analysis["borders"][key])
+        analysis["borders"][side][0]["state" if mutation == "border_state" else "side"] = "invalid_label"
+    assert not verifier(rehash(snapshot), bars, asset, config=config, source_policy=policy)["ok"]

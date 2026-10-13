@@ -317,9 +317,16 @@ def validate(model: dict[str, Any]) -> list[str]:
             errors.append("trendlines must preserve all seven asset identities")
         else:
             for row in assets:
-                if row.get("status") not in {"hold", "ready", "stale"}:
+                if row.get("status") not in {"hold", "ready", "stale", "unverified_display"}:
                     errors.append("trendlines asset state invalid")
-                if row.get("status") != "ready" and any(key in row for key in ("bars", "lines", "borders", "analyses")):
+                if row.get("status") == "unverified_display" and (
+                    row.get("publication_class") != "research_source" or row.get("verified_source") is not False
+                    or row.get("numbers_visible") is not True or row.get("official_snapshot_status") != "hold"
+                    or row.get("source_context") != "user_authorized_public_html_research"
+                    or row.get("rights_status") != "uncertified_research_source"
+                ):
+                    errors.append("trendlines unverified research summary disclosure invalid")
+                if row.get("status") not in {"ready", "stale", "unverified_display"} and any(key in row for key in ("bars", "lines", "borders", "analyses")):
                     errors.append("trendlines held summary must not expose numeric analysis")
     era = model.get("era_analog")
     if isinstance(era, dict):
