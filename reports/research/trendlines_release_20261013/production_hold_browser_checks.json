@@ -1,0 +1,184 @@
+{
+  "production_hold_only": true,
+  "index_sha256": "a6d48f8c5a61d2929f08c4d0d11e7221817572ab7bff2d4706d70c6cc4822591",
+  "data_sha256": "427778f5e135f9692d58e55657d8f39546d03ddcd16b2ddb3feb1754ffa74188",
+  "summary_sha256": "fe5db574c0eb7352d5d23e54ff1b485f375e89fb619525453c05034be95c6f20",
+  "summary_bytes": 2647,
+  "asset_integrity": [
+    {
+      "kind": "js",
+      "bytes": 19882,
+      "sri_match": true
+    },
+    {
+      "kind": "css",
+      "bytes": 4341,
+      "sri_match": true
+    }
+  ],
+  "viewports": [
+    {
+      "width": 1280,
+      "page_errors": [],
+      "routes": [
+        {
+          "asset_id": "sk-hynix",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "soxx",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "nasdaq",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "sp500",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "bitcoin",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "dow",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "mag7",
+          "status": "hold",
+          "numeric_chart": false
+        }
+      ],
+      "malformed_routes": [
+        {
+          "hash": "#future/trendlines/%",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/%E0%A4%A",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/sk-hynix/unexpected",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        }
+      ],
+      "unknown_asset_fails_closed": true,
+      "no_numeric_detail_requests": true,
+      "overflow": false
+    },
+    {
+      "width": 390,
+      "page_errors": [],
+      "routes": [
+        {
+          "asset_id": "sk-hynix",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "soxx",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "nasdaq",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "sp500",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "bitcoin",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "dow",
+          "status": "hold",
+          "numeric_chart": false
+        },
+        {
+          "asset_id": "mag7",
+          "status": "hold",
+          "numeric_chart": false
+        }
+      ],
+      "malformed_routes": [
+        {
+          "hash": "#future/trendlines/%",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/%E0%A4%A",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/sk-hynix/unexpected",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        }
+      ],
+      "unknown_asset_fails_closed": true,
+      "no_numeric_detail_requests": true,
+      "overflow": false
+    }
+  ],
+  "direct_asset_urls": [
+    {
+      "asset_id": "sk-hynix",
+      "status": 404
+    },
+    {
+      "asset_id": "soxx",
+      "status": 404
+    },
+    {
+      "asset_id": "nasdaq",
+      "status": 404
+    },
+    {
+      "asset_id": "sp500",
+      "status": 404
+    },
+    {
+      "asset_id": "bitcoin",
+      "status": 404
+    },
+    {
+      "asset_id": "dow",
+      "status": 404
+    },
+    {
+      "asset_id": "mag7",
+      "status": 404
+    }
+  ],
+  "malformed_route_review": {
+    "current_artifact_verified": true,
+    "production_artifact_rebuild_pending": false
+  },
+  "api_route_review": {
+    "exact_canonical_asset_allowlist": true,
+    "unregistered_and_query_paths_rejected": true,
+    "held_asset_returns_404": true,
+    "post_returns_405": true,
+    "ready_transport_covered_by_final_targeted_tests": true
+  }
+}

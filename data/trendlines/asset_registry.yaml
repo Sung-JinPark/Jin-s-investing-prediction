@@ -1,0 +1,114 @@
+schema_version: 1
+registry_id: trendlines_assets_v1
+default_asset: sk-hynix
+assets:
+  sk-hynix:
+    asset_id: sk-hynix
+    name: SK하이닉스
+    symbol: '000660'
+    identity: KRX:000660
+    currency: KRW
+    unit: KRW_per_share
+    price_basis: split_adjusted_price
+    calendar_id: XKRX
+    timezone: Asia/Seoul
+    kind: equity
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  soxx:
+    asset_id: soxx
+    name: SOXX ETF
+    symbol: SOXX
+    identity: NASDAQ:SOXX
+    currency: USD
+    unit: USD_per_share
+    price_basis: split_adjusted_price
+    calendar_id: XNAS
+    timezone: America/New_York
+    kind: etf
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  nasdaq:
+    asset_id: nasdaq
+    name: 나스닥종합
+    symbol: COMP
+    identity: NASDAQ_COMPOSITE_PRICE_INDEX
+    currency: USD
+    unit: index_points
+    price_basis: published_price_index
+    calendar_id: XNAS
+    timezone: America/New_York
+    kind: index
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+    close_reference_only: NASDAQCOM
+  sp500:
+    asset_id: sp500
+    name: S&P 500
+    symbol: SPX
+    identity: SP500_PRICE_INDEX
+    currency: USD
+    unit: index_points
+    price_basis: published_price_index
+    calendar_id: XNYS
+    timezone: America/New_York
+    kind: index
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+    close_reference_only: SP500
+  bitcoin:
+    asset_id: bitcoin
+    name: 비트코인
+    symbol: BTC-USD
+    identity: BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED
+    currency: USD
+    unit: USD_per_BTC
+    price_basis: published_spot_price
+    calendar_id: 24/7
+    timezone: UTC
+    kind: crypto
+    source_day_cutoff: UTC_00_00_next_day
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+    close_reference_only: CBBTCUSD
+    close_reference_cutoff: source_notes_5_PM_PST_not_UTC_candle
+  dow:
+    asset_id: dow
+    name: 다우존스 산업평균
+    symbol: DJIA
+    identity: DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX
+    currency: USD
+    unit: index_points
+    price_basis: published_price_index
+    calendar_id: XNYS
+    timezone: America/New_York
+    kind: index
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+  mag7:
+    asset_id: mag7
+    name: Solactive Magnificent Seven 동일가중 PR
+    symbol: null
+    identity: SOLACTIVE_MAGNIFICENT_SEVEN_EQUAL_WEIGHT_PRICE_RETURN_USD
+    currency: USD
+    unit: index_points
+    price_basis: published_price_index
+    calendar_id: XNAS
+    timezone: America/New_York
+    kind: index
+    source_day_cutoff: exchange_close
+    enabled: false
+    source_id: null
+    hold_reason: missing_approved_ohlc
+    substitute_etf_or_synthetic_basket: forbidden

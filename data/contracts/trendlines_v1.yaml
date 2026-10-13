@@ -1,0 +1,37 @@
+schema_version: 1
+contract_id: trendlines_display_v1
+engine_version: trendlines-v1.0
+publication_class: research_reference_proxy
+probability_space: reference_only
+official_forecast_write: false
+price_input: atomic_approved_ohlc_only
+close_fallback: forbidden
+axes: [linear, log]
+default_axis: linear
+default_window: 63
+windows:
+  '63': {bars: 63, left: 3, right: 3, min_anchor_gap: 10, minimum_bars: 78}
+  '252': {bars: 252, left: 5, right: 5, min_anchor_gap: 20, minimum_bars: 267}
+  '756': {bars: 756, left: 10, right: 10, min_anchor_gap: 60, minimum_bars: 771}
+atr: {period: 14, averaging: simple_mean_true_range}
+touch: {atr_multiple: 0.25, price_fraction: 0.001, minimum_confirmed_pivots: 3}
+break: {atr_multiple: 0.5, price_fraction: 0.0025, consecutive_closes: 2}
+reclaim: {consecutive_closes: 2}
+max_selected_per_side: 3
+max_recent_broken_per_side: 1
+projections:
+  exchange: [1, 5, 21]
+  crypto: [1, 7, 30]
+settlement_buffer_minutes: 15
+rank_order: [touch_count_desc, latest_touch_desc, anchor_span_desc, penetration_asc, distance_asc, line_id_asc]
+comparison_tolerance: {absolute: 0.000001, relative: 0.0000000001}
+invariants:
+  - available_at_fetched_at_and_finalized_at_lte_knowledge_cutoff
+  - no_bootstrap_backdating_of_signal_issue_time
+  - calendar_session_coordinates_never_compressed_across_missing_bars
+  - preserve_raw_and_append_correction_with_supersedes
+  - split_only_price_adjustment_known_at_cutoff
+  - no_dividend_ratio_synthetic_ohlc
+  - no_historical_manual_anchor_inheritance
+  - future_points_are_line_extensions_not_forecasts
+  - no_probability_or_performance_claim

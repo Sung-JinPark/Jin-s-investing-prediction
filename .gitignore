@@ -71,3 +71,7 @@ _archive_backup_unique_20260910/
 .claude/scheduled_tasks.lock
 .claude/worktrees/
 CLAUDE.local.md
+
+# Independent trendline runtime locks and disposable QA artifacts.
+outputs/trendlines/
+outputs/trendlines_preview/

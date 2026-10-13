@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "baseline": "5fb7c24e1e5d1a71a51227836910cbde8b56fbe5",
+  "failures": [],
+  "databases": [
+    {
+      "path": "C:\\workspace\\ai-investing\\db\\index.db",
+      "integrity": [
+        "ok"
+      ],
+      "foreign_key_violations": 0,
+      "source_bytes_unchanged": true,
+      "tables": 26,
+      "prices": {},
+      "ok": true
+    },
+    {
+      "path": "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite",
+      "integrity": [
+        "ok"
+      ],
+      "foreign_key_violations": 0,
+      "source_bytes_unchanged": true,
+      "tables": 20,
+      "prices": {
+        "rows": 285289,
+        "ohlc_exact_violations": 228,
+        "ohlc_material_violations": [
+          [
+            "^IXIC",
+            "2003-10-21",
+            1929.31005859375,
+            1944.3399658203125,
+            1922.780029296875,
+            1952.48,
+            "fred-close+yahoo-ohlcv"
+          ]
+        ],
+        "mixed_source_rows": 2519
+      },
+      "ok": true
+    }
+  ],
+  "official_store": {
+    "ok": true,
+    "receipts": 1751,
+    "unique_raw_artifacts": 223,
+    "observations": 60015,
+    "lineages": 50650,
+    "market_coverage": {
+      "NASDAQCOM": {
+        "last_observation": "2026-10-09",
+        "unit": "index",
+        "source_id": "fred_market_signals",
+        "ohlc_available": false
+      },
+      "SP500": {
+        "last_observation": "2026-10-09",
+        "unit": "index",
+        "source_id": "fred_market_signals",
+        "ohlc_available": false
+      },
+      "CBBTCUSD": {
+        "last_observation": "2026-10-11",
+        "unit": "dollars_per_bitcoin",
+        "source_id": "fred_market_signals",
+        "ohlc_available": false
+      },
+      "NASDAQSOX": {
+        "last_observation": "2026-10-09",
+        "unit": "index",
+        "source_id": "fred_market_signals",
+        "ohlc_available": false
+      }
+    }
+  },
+  "registered_ledgers": {
+    "status_counts": {
+      "accumulating": 41,
+      "stalled": 14,
+      "frozen": 2,
+      "planned": 6,
+      "inactive": 12
+    },
+    "findings": []
+  },
+  "legacy_probability_findings": [
+    {
+      "forecast_id": "2026-07-10_fomc-2026-07-29-hike_r1",
+      "field": "market_prob",
+      "raw_value": 22.0,
+      "unit": "fraction",
+      "reason": "probability 22.0 (fraction) is outside the canonical [0, 1] range",
+      "source_preserved": true
+    },
+    {
+      "forecast_id": "2026-07-20_fomc-2026-07-29-hike_r4",
+      "field": "market_prob",
+      "raw_value": 5.0,
+      "unit": "fraction",
+      "reason": "probability 5.0 (fraction) is outside the canonical [0, 1] range",
+      "source_preserved": true
+    }
+  ],
+  "legacy_data_clean": false,
+  "audit_scope_note": "ok covers audit execution, physical/source-lineage guards and protected history; existing legacy data findings remain unresolved",
+  "protected_changed_paths": [],
+  "ok": true
+}

@@ -23,6 +23,66 @@ from .scenario import refresh_scenario
 app = typer.Typer(add_completion=False, help="AI Superforecaster P1 scaffold")
 
 
+def _trendlines_report(result: dict, report: Path | None = None) -> None:
+    """Keep operational decisions explicit, bounded and credential-free."""
+    output = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    if len(output.encode("utf-8")) > 16 * 1024:
+        raise ValueError("trendlines report exceeds its 16KiB contract")
+    if report is not None:
+        report.parent.mkdir(parents=True, exist_ok=True)
+        temporary = report.with_suffix(report.suffix + ".tmp")
+        temporary.write_text(output, encoding="utf-8")
+        os.replace(temporary, report)
+    typer.echo(output.rstrip())
+
+
+@app.command("trendlines-refresh")
+def cmd_trendlines_refresh(
+    root: Path | None = typer.Option(None, "--root", help="별도 배치 체크아웃 루트"),
+    as_of: str | None = typer.Option(None, "--as-of", help="시간대가 있는 공개 정보 기준 시각"),
+    capture_only: bool = typer.Option(False, "--capture-only", help="정본 변경 없이 원본 묶음만 보존"),
+    out: Path = typer.Option(Path(".tmp/trendlines-capture"), "--out"),
+    bundle: Path | None = typer.Option(None, "--bundle", help="최신 main에 재생할 원본 묶음"),
+    report: Path | None = typer.Option(None, "--report", help="변경·출판 허용 결정 JSON"),
+) -> None:
+    """승인된 OHLC로 별도 연구 추세선을 갱신한다. 미확보 자산은 미산출이다."""
+    from .trendlines.pipeline import capture, refresh
+
+    if capture_only and bundle is not None:
+        raise typer.BadParameter("--capture-only와 --bundle은 함께 사용할 수 없습니다")
+    if capture_only:
+        result = _timeseries_exit(capture, root or config.ROOT, out=out, as_of=as_of)
+    else:
+        result = _timeseries_exit(refresh, root or config.ROOT, as_of=as_of, capture_bundle=bundle)
+        if any(type(result.get(k)) is not bool for k in ("changed", "publication_allowed")):
+            raise ValueError("trendlines refresh requires explicit boolean decisions")
+    _trendlines_report(result, report)
+
+
+@app.command("trendlines-verify")
+def cmd_trendlines_verify(
+    root: Path | None = typer.Option(None, "--root"),
+    replay: bool = typer.Option(True, "--replay/--no-replay", help="원본부터 선까지 독립 재검산"),
+) -> None:
+    """불변 원본·revision·snapshot·추세선 계산을 검수한다."""
+    from .trendlines.pipeline import verify
+
+    result = _timeseries_exit(verify, root or config.ROOT, replay=replay)
+    _trendlines_report(result)
+    if result.get("ok") is not True:
+        raise typer.Exit(code=1)
+
+
+@app.command("trendlines-latest")
+def cmd_trendlines_latest(root: Path | None = typer.Option(None, "--root")) -> None:
+    """현재 검수 상태를 재확인하고 공개 포인터를 갱신한다."""
+    from .trendlines.pipeline import latest, refresh
+
+    _timeseries_exit(refresh, root or config.ROOT)
+    result = _timeseries_exit(latest, root or config.ROOT)
+    _trendlines_report(result or {"status": "hold", "reason_codes": ["missing_snapshot"]})
+
+
 def _timeseries_exit(callable_, *args, **kwargs):
     """Render fail-closed research pipeline errors without leaking credentials."""
     from .timeseries.artifact import TimeSeriesArtifactError

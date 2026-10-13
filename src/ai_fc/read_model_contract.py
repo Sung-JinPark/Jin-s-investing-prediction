@@ -49,6 +49,7 @@ V2_KEYS = {
     "statistics_lab": dict,
     "dotcom_overheat": dict,
     "timeseries": dict,
+    "trendlines": dict,
     "timeseries_v13_vol": dict,
     "multi_year_stress": dict,
     "ai_regime": dict,
@@ -278,6 +279,11 @@ def schema() -> dict[str, Any]:
     }
     properties["event_forecasts"] = {"type": "object"}
     properties["event_consensus"] = {"type": "object"}
+    properties["trendlines"] = {
+        "type": "object", "required": ["schema_version", "contract_id", "status", "assets"],
+        "properties": {"schema_version": {"const": 1}, "contract_id": {"const": "trendlines_display_v1"},
+                       "status": {"enum": ["hold", "partial", "ready"]}, "assets": {"type": "array", "minItems": 7, "maxItems": 7}},
+    }
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "https://jin-investing.local/schemas/read-model-v2.json",
@@ -299,6 +305,22 @@ def validate(model: dict[str, Any]) -> list[str]:
                 f"read-model key {key} must be {value_type.__name__}, "
                 f"got {type(model[key]).__name__}"
             )
+    trendlines = model.get("trendlines")
+    if isinstance(trendlines, dict):
+        expected = {"sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7"}
+        assets = trendlines.get("assets", [])
+        if trendlines.get("contract_id") != "trendlines_display_v1" or trendlines.get("schema_version") != 1:
+            errors.append("trendlines display contract invalid")
+        if trendlines.get("status") not in {"hold", "partial", "ready"}:
+            errors.append("trendlines display state invalid")
+        if not isinstance(assets, list) or len(assets) != 7 or {row.get("asset_id") for row in assets if isinstance(row, dict)} != expected:
+            errors.append("trendlines must preserve all seven asset identities")
+        else:
+            for row in assets:
+                if row.get("status") not in {"hold", "ready", "stale"}:
+                    errors.append("trendlines asset state invalid")
+                if row.get("status") != "ready" and any(key in row for key in ("bars", "lines", "borders", "analyses")):
+                    errors.append("trendlines held summary must not expose numeric analysis")
     era = model.get("era_analog")
     if isinstance(era, dict):
         if era.get("probability_space") != "reference_only":

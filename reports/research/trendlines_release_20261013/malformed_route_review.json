@@ -1,0 +1,47 @@
+{
+  "current_artifact_verified": true,
+  "page_errors": [],
+  "previous_asset_still_displayed": false,
+  "viewport_cases": [
+    {
+      "width": 1280,
+      "cases": [
+        {
+          "hash": "#future/trendlines/%",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/%E0%A4%A",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/sk-hynix/unexpected",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "cases": [
+        {
+          "hash": "#future/trendlines/%",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/%E0%A4%A",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        },
+        {
+          "hash": "#future/trendlines/sk-hynix/unexpected",
+          "unknown_asset_hold": true,
+          "previous_asset_cleared": true
+        }
+      ]
+    }
+  ]
+}

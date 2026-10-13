@@ -30,6 +30,7 @@
     "statistics_lab",
     "dotcom_overheat",
     "timeseries",
+    "trendlines",
     "timeseries_v13_vol",
     "multi_year_stress",
     "ai_regime",
@@ -382,6 +383,35 @@
         },
         "numbers_visible": {
           "type": "boolean"
+        }
+      }
+    },
+    "trendlines": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "status",
+        "assets"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "contract_id": {
+          "const": "trendlines_display_v1"
+        },
+        "status": {
+          "enum": [
+            "hold",
+            "partial",
+            "ready"
+          ]
+        },
+        "assets": {
+          "type": "array",
+          "minItems": 7,
+          "maxItems": 7
         }
       }
     },

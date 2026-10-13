@@ -34,3 +34,9 @@ data/timeseries_v2/raw/** -text
 data/timeseries_v2/ledgers/** -text
 data/timeseries_v4/raw/** -text
 data/timeseries_v4/ledgers/** -text
+# Preserve exact raw receipts, archive hashes and append-only ledger bytes.
+data/trendlines/raw/*.json -text
+data/trendlines/archive/**/*.json -text
+data/trendlines/ledgers/*.jsonl -text
+data/trendlines/quarantine/raw/*.bin -text
+data/trendlines/quarantine/receipts/*.json -text

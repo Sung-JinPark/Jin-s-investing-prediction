@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "feature_delivery": "implemented_verified_ready_for_CI",
+  "real_chart_activation": "not_active",
+  "asset_status": {
+    "sk-hynix": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "soxx": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "nasdaq": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "sp500": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "bitcoin": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "dow": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    },
+    "mag7": {
+      "status": "hold",
+      "reason": "missing_approved_ohlc",
+      "data_as_of": null
+    }
+  },
+  "targeted_trendlines": {
+    "passed": 138,
+    "failed": 0
+  },
+  "workflow_security_ledger_regression": {
+    "passed": 24,
+    "failed": 0
+  },
+  "frozen_v4_baseline": {
+    "passed": 5,
+    "failed": 0
+  },
+  "initial_full_src": {
+    "passed": 1922,
+    "failed": 6,
+    "skipped": 15,
+    "failures": {
+      "code_contract": {
+        "count": 1,
+        "resolution": "Required upstream subset test updated; 24 regression checks pass"
+      },
+      "pre_freeze_test": {
+        "count": 2,
+        "resolution": "Trendlines workflow and protected dashboard changed during test; final 124 + frozen baseline 5 pass"
+      },
+      "environment": {
+        "count": 3,
+        "reason": "Windows WSL bash binary exists but /bin/bash unavailable; Linux CI will recheck"
+      }
+    }
+  },
+  "disposable_dualdb_with_operating_data": {
+    "passed": 53,
+    "failed": 1,
+    "failure_category": "missing_or_stale_data",
+    "failure_reason": "existing ^IXIC local DB latest 2026-08-12 is older than 7 day gate; source not modified"
+  },
+  "batch_replay": {
+    "changed": false,
+    "publication_allowed": true,
+    "duplicates_added": 0
+  },
+  "source_integrity": "see db_audit.json; protected paths unchanged",
+  "manual_shadow": "see manual_shadow_reference.json; original preserved, no automatic promotion",
+  "scope_limits": [
+    "No approved free OHLC collector is active for the seven assets. The batch currently consumes approved portable capture inputs.",
+    "Noncanonical temporary DBs and historical bundles are inventory-only; 27 inaccessible retained test directories are listed."
+  ],
+  "CI_status": "final_head_pending",
+  "deployment_status": "pending",
+  "initial_PR_CI": {
+    "status": "success",
+    "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/38352511128",
+    "scope": "initial feature before permanent rejection audit addition"
+  },
+  "permanent_rejection_audit": "approved receipt invalid prices preserved; 14 additional tests passed",
+  "legacy_data_clean": false,
+  "legacy_quarantined_probability_rows": 2
+}
