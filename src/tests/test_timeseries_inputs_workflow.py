@@ -215,6 +215,48 @@ def test_ineligible_completions_cannot_cancel_valid_deploy_or_verification(branc
     assert _concurrency_group("verify.yml", "pull_request", pr=278) == "verify-278"
 
 
+@pytest.mark.parametrize("name,job", [("timeseries-v8-daily.yml", "commit"), ("timeseries-daily6m.yml", "research")])
+def test_explicit_forecast_triggers_deploy_only_after_verified_main_commit(name: str, job: str) -> None:
+    document = _workflow(name)
+    target = document["jobs"][job]
+    assert target["permissions"] == {"contents": "write", "actions": "write"}
+    steps = target["steps"]
+    commit = next(step for step in steps if step.get("id") == "commit")
+    deploy = steps[-1]
+    assert deploy["run"] == 'gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main'
+    assert deploy["env"] == {"GH_TOKEN": "${{ github.token }}"}
+    assert steps.index(commit) < steps.index(deploy)
+    assert 'echo "committed=false"' in commit["run"]
+    assert commit["run"].index("git push") < commit["run"].index('echo "committed=true"')
+    if name == "timeseries-v8-daily.yml":
+        assert commit["run"].index("timeseries-v8-daily-verify") < commit["run"].index("git commit")
+        assert "actions" not in (document["jobs"]["forecast"].get("permissions") or document["permissions"])
+    else:
+        verification = next(step for step in steps if "timeseries-daily6m-verify" in step.get("run", ""))
+        assert steps.index(verification) < steps.index(commit)
+
+
+@pytest.mark.parametrize("event,outcome,committed,expected", [
+    ("workflow_dispatch", "success", "true", True),
+    ("workflow_dispatch", "success", "false", False),
+    ("workflow_dispatch", "failure", "true", False),
+    ("workflow_dispatch", "skipped", "true", False),
+    ("schedule", "success", "true", False),
+    ("workflow_run", "success", "true", False),
+    ("pull_request", "success", "true", False),
+])
+def test_failed_validation_no_change_and_baseline_triggers_do_not_dispatch_pages(event: str, outcome: str, committed: str, expected: bool) -> None:
+    for name, job in (("timeseries-v8-daily.yml", "commit"), ("timeseries-daily6m.yml", "research")):
+        expression = _workflow(name)["jobs"][job]["steps"][-1]["if"]
+        expression = expression.removeprefix("${{").removesuffix("}}").strip()
+        expression = expression.replace("&&", " and ").replace("||", " or ")
+        actual = eval(expression, {"__builtins__": {}}, {
+            "github": _ExpressionContext(event_name=event),
+            "steps": _ExpressionContext(commit={"outcome": outcome, "outputs": {"committed": committed}}),
+        })
+        assert actual is expected
+
+
 def test_publisher_shell_parses_with_the_available_git_bash(tmp_path: Path) -> None:
     bash = Path("C:/Program Files/Git/bin/bash.exe")
     if not bash.is_file():

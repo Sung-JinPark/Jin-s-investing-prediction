@@ -24,6 +24,9 @@ jobs:
     if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
+    permissions:
+      contents: write
+      actions: write
     env:
       PYTHONUTF8: "1"
     steps:
@@ -54,8 +57,10 @@ jobs:
           path: outputs/timeseries_daily6m/
           if-no-files-found: ignore
       - name: Commit only the new research ledger and derived pointer
+        id: commit
         shell: bash
         run: |
+          echo "committed=false" >> "$GITHUB_OUTPUT"
           if test -d data/timeseries_daily6m; then
             git add data/timeseries_daily6m
           fi
@@ -67,4 +72,12 @@ jobs:
             git commit -m "data: append six-month daily research forecast and outcomes"
             git pull --rebase origin main
             git push
+            echo "committed=true" >> "$GITHUB_OUTPUT"
           fi
+      # The fast collector dispatches this workflow with GITHUB_TOKEN; use an
+      # explicit deployment after the final pointer is committed to main.
+      - name: Deploy committed research updates from an explicit trigger
+        if: ${{ github.event_name == 'workflow_dispatch' && steps.commit.outcome == 'success' && steps.commit.outputs.committed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
