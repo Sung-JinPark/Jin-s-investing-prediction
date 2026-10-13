@@ -59,6 +59,44 @@ def cmd_timeseries_refresh() -> None:
     typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
 
 
+@app.command("timeseries-inputs-capture")
+def cmd_timeseries_inputs_capture(
+    out: Path = typer.Option(Path(".tmp/inputs-capture"), "--out", help="키 없는 원문 캡처 묶음 디렉터리"),
+    root: Path | None = typer.Option(None, "--root", help="별도 배치 체크아웃 루트"),
+) -> None:
+    """핵심 시계열 입력만 수집한다. 모델 재적합과 원장 쓰기는 수행하지 않는다."""
+    from .timeseries_inputs import capture_timeseries_inputs
+
+    result = _timeseries_exit(
+        capture_timeseries_inputs, root or config.ROOT, output_dir=out,
+        api_key=os.environ.get("FRED_API_KEY", ""),
+    )
+    typer.echo(json.dumps(result, ensure_ascii=False, indent=2))
+    if result.get("status") != "captured":
+        raise typer.Exit(code=1)
+
+
+@app.command("timeseries-inputs-apply")
+def cmd_timeseries_inputs_apply(
+    bundle: Path = typer.Option(..., "--bundle", help="검증할 불변 원문 캡처 묶음"),
+    report: Path | None = typer.Option(None, "--report", help="배치 변경·연쇄 허용 여부 JSON"),
+    root: Path | None = typer.Option(None, "--root", help="최신 main을 담은 별도 배치 체크아웃 루트"),
+) -> None:
+    """원문을 최신 체크아웃에 재생하고 새 관측·가용성 변화만 보고한다."""
+    from .timeseries_inputs import apply_timeseries_inputs
+
+    result = _timeseries_exit(apply_timeseries_inputs, root or config.ROOT, bundle_dir=bundle)
+    output = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
+    if len(output.encode("utf-8")) > 16 * 1024:
+        raise ValueError("input refresh report exceeds its 16KiB contract")
+    if report is not None:
+        report.parent.mkdir(parents=True, exist_ok=True)
+        temporary = report.with_suffix(report.suffix + ".tmp")
+        temporary.write_text(output, encoding="utf-8")
+        os.replace(temporary, report)
+    typer.echo(output.rstrip())
+
+
 @app.command("timeseries-collect-series")
 def cmd_timeseries_collect_series(
     series: str = typer.Option(..., "--series", help="쉼표 구분 시리즈 ID (로스터 등록분만)"),

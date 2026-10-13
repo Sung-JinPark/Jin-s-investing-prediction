@@ -9,7 +9,7 @@ name: timeseries-v8-shadow
 
 on:
   schedule:
-    # Tue-Sat, after the V2 refresh window (which starts 01:35 UTC).
+    # Tue-Sat safety run against committed PIT inputs; V2 keeps its separate daily archive/DFM cadence.
     - cron: "10 3 * * 2-6"
   workflow_dispatch:
 

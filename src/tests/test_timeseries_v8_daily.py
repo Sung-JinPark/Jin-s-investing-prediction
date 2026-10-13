@@ -496,6 +496,7 @@ def test_daily_workflow_triggers_lock_and_registration() -> None:
     assert commit["concurrency"] == {"group": "investing-data-writer", "cancel-in-progress": False}
     assert "concurrency" not in document["jobs"]["forecast"], "긴 계산 잡은 공용 쓰기 잠금을 쥐지 않는다"
     assert "workflow_run.conclusion == 'success'" in document["jobs"]["forecast"]["if"]
+    assert "workflow_run.head_branch == 'main'" in document["jobs"]["forecast"]["if"]
     assert "python -m ai_fc timeseries-v8-daily" in text
     assert "unexpected daily paths" in text and "git pull --rebase origin main" in text
     assert "shadow_forecasts" not in text, "일일 워크플로는 주간 원장을 쓰지 않는다"
