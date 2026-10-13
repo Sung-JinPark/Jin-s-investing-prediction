@@ -22,6 +22,10 @@ def test_canonical_trendline_inputs_invalidate_index_but_pending_inbox_does_not(
     (folder / 'ledgers').mkdir()
     (folder / 'ledgers/bars.jsonl').write_text('{"revision":1}\n', encoding='utf-8')
     assert source_fingerprint(tmp_path) != registered
+    before_rejection = source_fingerprint(tmp_path)
+    (folder / 'quarantine/raw').mkdir(parents=True)
+    (folder / 'quarantine/raw/rejected.bin').write_bytes(b'invalid raw response')
+    assert source_fingerprint(tmp_path) != before_rejection
 
 
 def test_scoped_git_attributes_preserve_response_archive_and_ledger_bytes():

@@ -80,10 +80,30 @@
       "stalled": 14,
       "frozen": 2,
       "planned": 6,
-      "inactive": 9
+      "inactive": 12
     },
     "findings": []
   },
+  "legacy_probability_findings": [
+    {
+      "forecast_id": "2026-07-10_fomc-2026-07-29-hike_r1",
+      "field": "market_prob",
+      "raw_value": 22.0,
+      "unit": "fraction",
+      "reason": "probability 22.0 (fraction) is outside the canonical [0, 1] range",
+      "source_preserved": true
+    },
+    {
+      "forecast_id": "2026-07-20_fomc-2026-07-29-hike_r4",
+      "field": "market_prob",
+      "raw_value": 5.0,
+      "unit": "fraction",
+      "reason": "probability 5.0 (fraction) is outside the canonical [0, 1] range",
+      "source_preserved": true
+    }
+  ],
+  "legacy_data_clean": false,
+  "audit_scope_note": "ok covers audit execution, physical/source-lineage guards and protected history; existing legacy data findings remain unresolved",
   "protected_changed_paths": [],
   "ok": true
 }

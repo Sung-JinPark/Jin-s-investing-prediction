@@ -18,6 +18,8 @@ ATR14 단순평균을 사용한다. 접촉 허용폭은 `max(검증된 tick, 0.2
 
 원본 → receipt → bar revision → pivot → line → event → snapshot을 해시로 연결한다. 정정은 supersedes를 가진 새 revision, 새 앵커 선택은 새 line ID다. 원본과 이전 결과를 삭제하지 않는다. 동일 의미 재실행에는 날짜만 바뀐 새 공개본을 만들지 않는다. writer lock과 atomic latest pointer를 사용한다.
 
+승인된 receipt의 가격 검증에 실패한 자료도 quarantine 원문·영수증과 append-only rejection 원장으로 영구 보존한다. 취득 시각·당시 원천 정책·원문 SHA·거절 이유를 연결하여 임시 capture artifact가 없어도 재검수할 수 있다. 격리 자료는 수치 입력으로 사용할 수 없다.
+
 ## 실행·배포
 
 기존 환경에서 실행한다. 의존성 변경은 없다.
@@ -38,3 +40,5 @@ python -m ai_fc trendlines-latest
 원본·계보·PIT·OHLC·분할·시장 달력, 피벗 확인 지연, 이탈·재진입, 독립 재산술, revision와 멱등성, sidecar 변조, 모바일·데스크톱을 검수한다. `tools/audit_trendlines_release.py`는 운영 SQLite/WAL을 임시 사본에서 검사하고 공식 raw·관측 계보와 기존 보호 경로 불변성을 확인한다. 기존 DB의 혼합 공급원 OHLC 결함은 기록하며 이 기능에서 수정하지 않는다.
 
 코드·환경·자료 실패를 따로 보고한다. 롤백은 UI·workflow 코드와 공개 선택 포인터를 되돌리고 원본·정정·이벤트 원장은 보존한다.
+
+출시 감사의 `ok`는 감사 실행·물리 DB·원본 계보·보호 경로 검사를 뜻한다. 기존 데이터 품질은 별도 `legacy_data_clean`으로 보고한다. 구 DB의 OHLC 위반 228건과 기존 benchmark fraction 범위 위반 2건은 원문을 보존하고 감사 결과에 남겼다.

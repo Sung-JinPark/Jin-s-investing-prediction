@@ -23,6 +23,8 @@ sys.path.insert(0, str(ROOT / "src"))
 
 from ai_fc import authoritative_statistics as authority
 from ai_fc.ledger_audit import audit_ledgers
+from ai_fc.files import parse_benchmark_ledger
+from ai_fc.probability import ProbabilityUnit, normalize_probability
 
 
 def sha(path: Path) -> str:
@@ -132,6 +134,23 @@ def run(root: Path, database_root: Path, baseline: str) -> dict:
     ledgers = audit_ledgers(root, write=False)
     result["registered_ledgers"] = {"status_counts": dict(Counter(r["status"] for r in ledgers["ledgers"])),
                                      "findings": [r for r in ledgers["ledgers"] if r["status"] == "violation"]}
+    probability_findings = []
+    for row in parse_benchmark_ledger(root / "calibration/benchmark_ledger.csv"):
+        for field in ("llm_prob", "ml_prob", "market_prob"):
+            if row[field] is None:
+                continue
+            try:
+                # This ledger's ingestion contract explicitly declares fraction.
+                normalize_probability(row[field], source_unit=ProbabilityUnit.FRACTION)
+            except ValueError as exc:
+                probability_findings.append({"forecast_id": row["forecast_id"], "field": field,
+                                             "raw_value": row[field], "unit": "fraction",
+                                             "reason": str(exc), "source_preserved": True})
+    result["legacy_probability_findings"] = probability_findings
+    result["legacy_data_clean"] = not probability_findings and not any(
+        row["prices"].get("ohlc_exact_violations", 0) for row in result["databases"] if "prices" in row
+    )
+    result["audit_scope_note"] = "ok covers audit execution, physical/source-lineage guards and protected history; existing legacy data findings remain unresolved"
     protected = ["forecasts", "calibration", "questions", "data/scenarios", "data/cross_asset",
                  "data/statistics/official_store", "data/timeseries_v2", "data/timeseries_v5", "data/timeseries_v8"]
     diff = subprocess.run(["git", "diff", "--name-only", baseline, "--", *protected], cwd=root,

@@ -38,3 +38,5 @@ data/timeseries_v4/ledgers/** -text
 data/trendlines/raw/*.json -text
 data/trendlines/archive/**/*.json -text
 data/trendlines/ledgers/*.jsonl -text
+data/trendlines/quarantine/raw/*.bin -text
+data/trendlines/quarantine/receipts/*.json -text

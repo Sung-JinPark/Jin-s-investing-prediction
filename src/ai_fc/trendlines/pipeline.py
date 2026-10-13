@@ -87,6 +87,23 @@ def _entry(entry: dict[str, Any], base: Path, assets: dict[str, dict[str, Any]],
     return asset, receipt, records, raw
 
 
+def _rejected_entry(root: Path, entry: dict[str, Any], base: Path, assets: dict[str, dict[str, Any]],
+                    policy: dict[str, Any], cutoff: str, reason: str):
+    """Only authorized, hash-bound, eligible source responses can enter quarantine."""
+    try:
+        asset = assets[entry["asset_id"]]
+        if asset.get("enabled") is not True:
+            return None
+        C.validate_source(asset, policy)
+        raw = S.safe_path(base, entry["raw_path"]).read_bytes()
+        return S.prepare_rejection(root, raw=raw, receipt=entry["receipt"], asset=asset,
+                                   policy=policy, cutoff=cutoff, reason=reason)
+    except (OSError, ValueError, KeyError, TypeError):
+        # Missing authorization, unsafe URI, bad receipt hashes and late capture
+        # are audit reasons only; their bytes never become permanent source data.
+        return None
+
+
 def capture(root: Path, out: Path, as_of: str | datetime | None = None) -> dict[str, Any]:
     """Copy approved local connector bundles; this module never calls a market API."""
     _, assets, policy = _policies(root)
@@ -119,6 +136,9 @@ def capture(root: Path, out: Path, as_of: str | datetime | None = None) -> dict[
                     with target.open("xb") as handle:
                         handle.write(raw_first)
                 preserved = {"raw_sha256": actual_hash, "raw_path": relative.as_posix()}
+                validated_receipt = S.validate_receipt(entry["receipt"], raw_first, assets[asset_id], policy, stamp)
+                preserved.update({"receipt": validated_receipt, "source_policy": policy,
+                                  "source_policy_hash": S.digest(policy), "asset_definition": assets[asset_id]})
                 asset, receipt, records, raw = _entry(entry, base, assets, policy, stamp)
                 # Only explicit finalized OHLC survives capture. The write boundary
                 # repeats these gates using the publisher's current registry.
@@ -193,6 +213,7 @@ def verify(root: Path, replay: bool = True) -> dict[str, Any]:
     try:
         _policies(root)
         chains = {name: S.read_chain(root, name) for name in S.LEDGERS}
+        S.verify_rejections(root, chains["rejections"])
         receipts = {row["record_id"]: row["payload"] for row in chains["raw_receipts"]}
         raw_payloads = {}
         for receipt_id, receipt in receipts.items():
@@ -300,7 +321,7 @@ def refresh(root: Path, as_of: str | datetime | None = None,
         try:
             config, registry, policy = _policies(root)
             previous = latest(root)
-            incoming, failures = [], {}
+            incoming, failures, prepared_rejections = [], {}, []
             if capture_bundle is not None:
                 manifest, base = _read_bundle(capture_bundle)
                 if S.aware_time(manifest["captured_at"]) > S.aware_time(stamp):
@@ -314,8 +335,14 @@ def refresh(root: Path, as_of: str | datetime | None = None,
                         incoming.append(_entry(entry, base, registry, policy, stamp))
                     except (OSError, ValueError, KeyError, TypeError) as exc:
                         failures[entry.get("asset_id")] = str(exc)
+                        rejected = _rejected_entry(root, entry, base, registry, policy, stamp, str(exc))
+                        if rejected is not None:
+                            prepared_rejections.append(rejected)
                 for failure in manifest.get("failures", []):
                     failures[failure["asset_id"]] = failure["reason"]
+                    rejected = _rejected_entry(root, failure, base, registry, policy, stamp, failure["reason"])
+                    if rejected is not None:
+                        prepared_rejections.append(rejected)
             if any(asset_id not in registry for asset_id in failures):
                 raise S.TrendlinesStorageError("capture failure targets an unregistered asset")
         except (OSError, ValueError, KeyError, TypeError) as exc:
@@ -344,6 +371,12 @@ def refresh(root: Path, as_of: str | datetime | None = None,
                     raw_blobs.append((root / receipt["raw_path"], raw))
             except (ValueError, KeyError, TypeError) as exc:
                 failures[asset_id] = str(exc)
+                try:
+                    C.validate_source(asset, policy)
+                    prepared_rejections.append(S.prepare_rejection(root, raw=raw, receipt=candidate_receipt,
+                                                                   asset=asset, policy=policy, cutoff=stamp, reason=str(exc)))
+                except (ValueError, KeyError, TypeError):
+                    pass
         all_bars = stored_bars + pending_bars
         old_summaries = {row["asset_id"]: row for row in (previous or {}).get("assets", [])}
         summaries, archives, snapshot_records, event_records = [], [], [], []
@@ -457,7 +490,8 @@ def refresh(root: Path, as_of: str | datetime | None = None,
             if not path.exists():
                 with path.open("xb") as handle:
                     handle.write(raw)
-        changed = S.append_chain(root, "raw_receipts", [{"record_id": row["receipt_id"], "payload": row} for row in pending_receipts])
+        changed = S.persist_rejections(root, prepared_rejections)
+        changed = S.append_chain(root, "raw_receipts", [{"record_id": row["receipt_id"], "payload": row} for row in pending_receipts]) or changed
         changed = S.append_chain(root, "bars", [{"record_id": row["bar_id"], "payload": row} for row in pending_bars]) or changed
         for path, envelope in archives:
             S.atomic_json(path, envelope, immutable=True)

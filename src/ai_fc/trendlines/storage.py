@@ -14,7 +14,7 @@ from typing import Any
 from urllib.parse import parse_qsl, urlsplit
 
 ROOT = Path("data/trendlines")
-LEDGERS = ("raw_receipts", "bars", "snapshots", "events")
+LEDGERS = ("raw_receipts", "bars", "snapshots", "events", "rejections")
 HASH_RE = re.compile(r"[0-9a-f]{64}")
 SECRET_KEYS = {"api_key", "apikey", "api-key", "key", "token", "access_token", "accesstoken",
                "api_token", "secret", "client_secret", "password", "registrationkey", "user_id", "userid"}
@@ -281,3 +281,130 @@ def select_bars(bars: list[dict[str, Any]], asset: dict[str, Any], cutoff: str) 
                 and aware_time(bar["available_at"]) <= stamp and aware_time(bar["fetched_at"]) <= stamp):
             selected[bar["session_date"]] = bar
     return [selected[session] for session in sorted(selected)]
+
+
+def rejection_semantic(metadata: dict[str, Any]) -> dict[str, Any]:
+    """Fetch clocks do not create another rejection for identical source evidence."""
+    receipt = metadata["receipt"]
+    return {"asset_definition": metadata["asset_definition"], "source_policy": metadata["source_policy"],
+            "reason": metadata["reason"], "raw_sha256": metadata["raw_sha256"],
+            "receipt": {key: value for key, value in receipt.items()
+                        if key not in {"receipt_id", "fetched_at", "available_at"}}}
+
+
+def prepare_rejection(root: Path, *, raw: bytes, receipt: dict[str, Any], asset: dict[str, Any],
+                      policy: dict[str, Any], cutoff: str, reason: str) -> tuple[dict[str, Any], dict[str, Any], bytes]:
+    """Require a valid authorized receipt, but never validate bad prices into bars."""
+    validated = validate_receipt(receipt, raw, asset, policy, cutoff)
+    raw_path = (ROOT / "quarantine/raw" / (validated["raw_sha256"] + ".bin")).as_posix()
+    receipt_body = {key: value for key, value in validated.items() if key != "receipt_id"}
+    receipt_body["raw_path"] = raw_path
+    quarantine_receipt = {**receipt_body, "receipt_id": digest(receipt_body)}
+    metadata = {"schema_version": 1, "contract_id": "trendlines_rejection_v1",
+                "asset_id": asset["asset_id"], "source_id": asset["source_id"],
+                "raw_sha256": validated["raw_sha256"], "raw_path": raw_path,
+                "receipt": quarantine_receipt, "capture_receipt_id": validated["receipt_id"],
+                "knowledge_cutoff": cutoff, "asset_definition": asset, "source_policy": policy,
+                "source_policy_hash": digest(policy), "reason": reason,
+                "numeric_input_allowed": False}
+    semantic_hash = digest(rejection_semantic(metadata))
+    lineage = [row["payload"] for row in read_chain(root, "rejections")
+               if (row["payload"]["asset_id"], row["payload"]["source_id"], row["payload"]["raw_sha256"])
+               == (asset["asset_id"], asset["source_id"], validated["raw_sha256"])]
+    prior = lineage[-1] if lineage else None
+    if prior and prior["semantic_hash"] == semantic_hash:
+        saved = read_json(safe_path(root, prior["metadata_path"]))
+        return prior, saved, raw
+    revision = 1 if prior is None else prior["revision_seq"] + 1
+    supersedes = None if prior is None else prior["rejection_id"]
+    identity = digest({"semantic_hash": semantic_hash, "revision_seq": revision, "supersedes_rejection_id": supersedes})
+    metadata_body = {**metadata, "rejection_id": identity, "semantic_hash": semantic_hash,
+                     "revision_seq": revision, "supersedes_rejection_id": supersedes}
+    metadata = {**metadata_body, "content_hash": digest(metadata_body)}
+    metadata_path = (ROOT / "quarantine/receipts" / (identity + ".json")).as_posix()
+    record = {key: metadata[key] for key in ("rejection_id", "semantic_hash", "revision_seq", "supersedes_rejection_id",
+                                            "asset_id", "source_id", "raw_sha256", "raw_path", "reason", "source_policy_hash")}
+    record.update({"receipt_id": quarantine_receipt["receipt_id"], "metadata_path": metadata_path,
+                   "metadata_sha256": hashlib.sha256(encode(metadata)).hexdigest()})
+    return record, metadata, raw
+
+
+def persist_rejections(root: Path, prepared: list[tuple[dict[str, Any], dict[str, Any], bytes]]) -> bool:
+    """Only the separate audit ledger receives rejected evidence; numeric ledgers do not."""
+    records = []
+    unique = {}
+    blobs = {}
+    for record, metadata, raw in prepared:
+        blob_key = (record["asset_id"], record["source_id"], record["raw_sha256"])
+        existing = unique.get(record["rejection_id"])
+        if existing is not None:
+            if existing != (record, metadata, raw):
+                raise TrendlinesStorageError("ambiguous duplicate rejected capture")
+            continue
+        if blob_key in blobs:
+            raise TrendlinesStorageError("multiple rejected revisions for one blob in a capture")
+        unique[record["rejection_id"]] = (record, metadata, raw)
+        blobs[blob_key] = record["rejection_id"]
+    for record, metadata, raw in unique.values():
+        path = safe_path(root, record["raw_path"])
+        path.parent.mkdir(parents=True, exist_ok=True)
+        if path.exists() and path.read_bytes() != raw:
+            raise TrendlinesStorageError("immutable quarantine raw collision")
+        if not path.exists():
+            with path.open("xb") as handle:
+                handle.write(raw)
+                handle.flush()
+                os.fsync(handle.fileno())
+        atomic_json(safe_path(root, record["metadata_path"]), metadata, immutable=True)
+        records.append({"record_id": record["rejection_id"], "payload": record})
+    return append_chain(root, "rejections", records)
+
+
+def verify_rejections(root: Path, rows: list[dict[str, Any]]) -> None:
+    """Revalidate immutable rejection evidence under its frozen source authorization."""
+    from . import contracts as C
+    latest_by_blob = {}
+    for row in rows:
+        record = row["payload"]
+        path = safe_path(root, record["metadata_path"])
+        if record["metadata_path"] != (ROOT / "quarantine/receipts" / (row["record_id"] + ".json")).as_posix():
+            raise TrendlinesStorageError("quarantine metadata path mismatch")
+        if hashlib.sha256(path.read_bytes()).hexdigest() != record["metadata_sha256"]:
+            raise TrendlinesStorageError("quarantine metadata bytes changed")
+        metadata = read_json(path)
+        if (metadata.get("schema_version") != 1 or metadata.get("contract_id") != "trendlines_rejection_v1"
+                or metadata.get("numeric_input_allowed") is not False
+                or metadata.get("content_hash") != digest({key: value for key, value in metadata.items() if key != "content_hash"})
+                or metadata.get("source_policy_hash") != digest(metadata["source_policy"])):
+            raise TrendlinesStorageError("quarantine metadata identity mismatch")
+        for key in ("rejection_id", "semantic_hash", "revision_seq", "supersedes_rejection_id",
+                    "asset_id", "source_id", "raw_sha256", "raw_path", "reason", "source_policy_hash"):
+            if record.get(key) != metadata.get(key):
+                raise TrendlinesStorageError("quarantine ledger/metadata binding mismatch")
+        receipt = metadata["receipt"]
+        if metadata["asset_id"] not in C.ASSET_IDS:
+            raise TrendlinesStorageError("unregistered quarantine asset")
+        C.validate_source(metadata["asset_definition"], metadata["source_policy"])
+        raw = safe_path(root, metadata["raw_path"]).read_bytes()
+        source_receipt = {key: value for key, value in receipt.items() if key not in {"receipt_id", "raw_path"}}
+        validated = validate_receipt(source_receipt, raw, metadata["asset_definition"], metadata["source_policy"], metadata["knowledge_cutoff"])
+        expected_path = (ROOT / "quarantine/raw" / (validated["raw_sha256"] + ".bin")).as_posix()
+        receipt_body = {key: value for key, value in validated.items() if key != "receipt_id"}
+        receipt_body["raw_path"] = expected_path
+        if (receipt != {**receipt_body, "receipt_id": digest(receipt_body)}
+                or record["receipt_id"] != receipt["receipt_id"] or metadata["raw_path"] != expected_path
+                or metadata["capture_receipt_id"] != validated["receipt_id"] or metadata["raw_sha256"] != validated["raw_sha256"]
+                or metadata["asset_id"] != metadata["asset_definition"]["asset_id"]
+                or metadata["source_id"] != metadata["asset_definition"]["source_id"]
+                or metadata["semantic_hash"] != digest(rejection_semantic(metadata))):
+            raise TrendlinesStorageError("quarantine source/raw/receipt binding mismatch")
+        key = (metadata["asset_id"], metadata["source_id"], metadata["raw_sha256"])
+        prior = latest_by_blob.get(key)
+        if (metadata["revision_seq"] != (1 if prior is None else prior["revision_seq"] + 1)
+                or metadata["supersedes_rejection_id"] != (None if prior is None else prior["rejection_id"])):
+            raise TrendlinesStorageError("quarantine revision chain mismatch")
+        identity = digest({"semantic_hash": metadata["semantic_hash"], "revision_seq": metadata["revision_seq"],
+                           "supersedes_rejection_id": metadata["supersedes_rejection_id"]})
+        if row["record_id"] != metadata["rejection_id"] or identity != row["record_id"]:
+            raise TrendlinesStorageError("quarantine rejection content identity mismatch")
+        latest_by_blob[key] = metadata

@@ -495,3 +495,21 @@ ledgers:
     cadence: manual
     criticality: high
     schema_ref: json_object
+  - id: trendlines_rejected_raw
+    path: data/trendlines/quarantine/raw/*.bin
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: binary
+  - id: trendlines_rejection_receipts
+    path: data/trendlines/quarantine/receipts/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+  - id: trendlines_rejections
+    path: data/trendlines/ledgers/rejections.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl

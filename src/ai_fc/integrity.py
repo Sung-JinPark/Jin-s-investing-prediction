@@ -56,6 +56,7 @@ def iter_truth_files(root: Path) -> list[Path]:
         (root / "data" / "trendlines" / "raw", ("*.json",)),
         (root / "data" / "trendlines" / "archive", ("*.json",)),
         (root / "data" / "trendlines" / "ledgers", ("*.jsonl",)),
+        (root / "data" / "trendlines" / "quarantine", ("*.bin", "*.json")),
     ):
         if not base.exists():
             continue

@@ -1,8 +1,8 @@
 {
   "production_hold_only": true,
   "index_sha256": "a6d48f8c5a61d2929f08c4d0d11e7221817572ab7bff2d4706d70c6cc4822591",
-  "data_sha256": "0c32b74922c7d075624d9dff05309b95c108e3a453e0afc2af4fe54a9445a913",
-  "summary_sha256": "d3e45e28818cfd15148be42d2c6376d9176e1d92ae1b2b7fc08e440575b3d700",
+  "data_sha256": "427778f5e135f9692d58e55657d8f39546d03ddcd16b2ddb3feb1754ffa74188",
+  "summary_sha256": "fe5db574c0eb7352d5d23e54ff1b485f375e89fb619525453c05034be95c6f20",
   "summary_bytes": 2647,
   "asset_integrity": [
     {

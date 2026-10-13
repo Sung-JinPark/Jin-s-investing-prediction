@@ -534,3 +534,106 @@ def test_genuine_captured_break_and_reclaim_events_match_frozen_snapshot(store):
         snapshot = P._archive(store, snapshot_records[payload["snapshot_id"]])["snapshot"]
         assert payload["asset_id"] == snapshot["asset_id"] and payload["event"] in snapshot["events"]
     assert P.verify(store, replay=True)["ok"] is True
+
+
+def _invalid_approved_capture(root, *, portable=False):
+    asset = _enable(root)
+    records = _records()
+    records[-1]["high"] = records[-1]["close"] - 3
+    if portable:
+        _inbox(root, asset, records)
+        directory = root / "portable_rejected"
+        P.capture(root, out=directory, as_of=ISSUED)
+    else:
+        directory = _bundle(root, asset, records=records, directory="bad_prices")
+    return asset, directory
+
+
+@pytest.mark.parametrize("portable", [False, True])
+def test_rejected_approved_prices_preserve_permanent_raw_receipt_and_policy_after_artifact_removal(store, portable):
+    _, directory = _invalid_approved_capture(store, portable=portable)
+    result = P.refresh(store, as_of=ISSUED, capture_bundle=directory)
+    assert result["status"] == "hold" and result["publication_allowed"] is True
+    rows = S.read_chain(store, "rejections")
+    assert len(rows) == 1
+    record = rows[0]["payload"]
+    metadata = S.read_json(store / record["metadata_path"])
+    raw = (store / record["raw_path"]).read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == metadata["raw_sha256"]
+    assert metadata["receipt"]["raw_path"] == record["raw_path"]
+    assert metadata["receipt"]["fetched_at"] == ISSUED
+    assert metadata["source_policy_hash"] == S.digest(metadata["source_policy"])
+    assert metadata["numeric_input_allowed"] is False and "containment" in metadata["reason"]
+    assert S.read_chain(store, "bars") == S.read_chain(store, "events") == S.read_chain(store, "raw_receipts") == []
+    assert all(P._archive(store, row)["snapshot"]["bars"] == [] for row in P.latest(store)["assets"])
+    # Remove only disposable fixture inputs; the permanent evidence must still
+    # be verifiable after the Actions artifact and connector inbox expire.
+    assert store.resolve() in directory.resolve().parents
+    shutil.rmtree(directory)
+    inbox = store / S.ROOT / "inbox"
+    if inbox.exists():
+        assert store.resolve() in inbox.resolve().parents
+        shutil.rmtree(inbox)
+    assert P.verify(store, replay=True)["ok"] is True
+
+
+def test_rejected_refetch_is_idempotent_and_preserves_original_receipt_clock(store):
+    asset, directory = _invalid_approved_capture(store)
+    P.refresh(store, as_of=ISSUED, capture_bundle=directory)
+    before = _canonical_bytes(store)
+    records = _records()
+    records[-1]["high"] = records[-1]["close"] - 3
+    fetched = "2026-09-13T02:00:00+00:00"
+    second = _bundle(store, asset, records=records, fetched=fetched, directory="bad_refetch")
+    result = P.refresh(store, as_of=fetched, capture_bundle=second)
+    assert result["changed"] is False and _canonical_bytes(store) == before
+    record = S.read_chain(store, "rejections")[0]["payload"]
+    assert S.read_json(store / record["metadata_path"])["receipt"]["fetched_at"] == ISSUED
+
+
+@pytest.mark.parametrize("attack", ["raw", "receipt", "policy", "ledger", "missing_raw", "truncated_ledger"])
+def test_permanent_rejection_tamper_blocks_replay_and_publication(store, attack):
+    _, directory = _invalid_approved_capture(store)
+    P.refresh(store, as_of=ISSUED, capture_bundle=directory)
+    record = S.read_chain(store, "rejections")[0]["payload"]
+    if attack == "raw":
+        (store / record["raw_path"]).write_bytes(b"tampered")
+    elif attack == "missing_raw":
+        (store / record["raw_path"]).unlink()
+    elif attack in {"receipt", "policy"}:
+        metadata = S.read_json(store / record["metadata_path"])
+        if attack == "receipt":
+            metadata["receipt"]["source_uri"] = "https://unapproved.example/ohlc"
+        else:
+            metadata["source_policy"]["sources"]["fixture_exchange"]["allow_collection"] = False
+        S.atomic_json(store / record["metadata_path"], metadata)
+    else:
+        path = store / S.ROOT / "ledgers/rejections.jsonl"
+        path.write_bytes(b"" if attack == "truncated_ledger" else path.read_bytes().replace(b'"reason":', b'"old_reason":', 1))
+    assert P.verify(store, replay=True)["ok"] is False
+    assert P.refresh(store, as_of=ISSUED)["publication_allowed"] is False
+
+
+@pytest.mark.parametrize("attack", ["permission", "uri", "hash", "late_receipt", "backdated_receipt"])
+def test_bad_authorization_or_receipt_cannot_register_permanent_rejection_raw(store, attack):
+    asset, directory = _invalid_approved_capture(store)
+    manifest = S.read_json(directory / "manifest.json")
+    receipt = manifest["assets"][0]["receipt"]
+    if attack == "permission":
+        policy = C.load_source_policy(store)
+        policy["sources"]["fixture_exchange"]["allow_collection"] = False
+        (store / C.SOURCE_POLICY_RELATIVE).write_text(yaml.safe_dump(policy), encoding="utf-8")
+    elif attack == "uri":
+        receipt["source_uri"] = "https://fixture.example/ohlc?API_KEY=hidden"
+    elif attack == "hash":
+        receipt["raw_sha256"] = "0" * 64
+    elif attack == "late_receipt":
+        receipt["fetched_at"] = receipt["available_at"] = "2026-09-14T01:00:00+00:00"
+    else:
+        receipt["available_at"] = "2026-06-15T01:00:00+00:00"
+    manifest["content_hash"] = P._body_hash(manifest)
+    S.atomic_json(directory / "manifest.json", manifest)
+    result = P.refresh(store, as_of=ISSUED, capture_bundle=directory)
+    assert result["capture_failures"]
+    assert S.read_chain(store, "rejections") == []
+    assert not (store / S.ROOT / "quarantine/raw").exists()

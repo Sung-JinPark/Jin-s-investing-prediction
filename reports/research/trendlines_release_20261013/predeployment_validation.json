@@ -40,7 +40,7 @@
     }
   },
   "targeted_trendlines": {
-    "passed": 124,
+    "passed": 138,
     "failed": 0
   },
   "workflow_security_ledger_regression": {
@@ -87,6 +87,14 @@
     "No approved free OHLC collector is active for the seven assets. The batch currently consumes approved portable capture inputs.",
     "Noncanonical temporary DBs and historical bundles are inventory-only; 27 inaccessible retained test directories are listed."
   ],
-  "CI_status": "pending_PR",
-  "deployment_status": "pending"
+  "CI_status": "final_head_pending",
+  "deployment_status": "pending",
+  "initial_PR_CI": {
+    "status": "success",
+    "url": "https://github.com/Sung-JinPark/Jin-s-investing-prediction/actions/runs/38352511128",
+    "scope": "initial feature before permanent rejection audit addition"
+  },
+  "permanent_rejection_audit": "approved receipt invalid prices preserved; 14 additional tests passed",
+  "legacy_data_clean": false,
+  "legacy_quarantined_probability_rows": 2
 }
