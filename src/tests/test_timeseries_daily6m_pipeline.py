@@ -205,6 +205,16 @@ def test_publish_replay_and_immutable_paths_are_independent(published):
     assert "market_rows" not in first["source_lineage"]
     stale = D.load_projection(root, now=F.aware_time("2026-10-12T03:00:00+00:00"))
     assert stale["status"] == "hold" and "records" not in stale
+    assert stale["run_id"] == run["run_id"] and stale["anchor_date"] == run["anchor_date"]
+    assert stale["as_of"] == run["as_of"]
+    assert not {"records", "dates", "sample_paths", "history", "realized"}.intersection(stale)
+    assert stale["content_hash"] == C.canonical_hash({key: value for key, value in stale.items() if key != "content_hash"})
+    # A persisted HOLD keeps the same issuance identity and the append-only
+    # forecast rows, rather than becoming indistinguishable from no forecast.
+    stored = P.publish_latest_timeseries_daily6m(root, as_of="2026-10-12T03:00:00+00:00")
+    assert stored["run_id"] == run["run_id"]
+    assert D.load_projection(root)["as_of"] == run["as_of"]
+    assert (root / C.FORECAST_LEDGER).read_bytes() == prior
 
 
 def test_supersedes_preserves_prior_and_scoring_covers_both_revisions(published, monkeypatch):

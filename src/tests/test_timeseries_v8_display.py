@@ -95,12 +95,59 @@ def _sealed_row() -> dict:
     }
 
 
-def test_missing_pointer_and_operational_hold_both_fall_back_to_none(tmp_path: Path) -> None:
+def test_missing_pointer_falls_back_to_none(tmp_path: Path) -> None:
     assert load_projection(tmp_path) is None
+
+
+def test_operational_hold_keeps_v8_metadata_and_hides_all_numbers(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    body = {key: value for key, value in _hold_latest().items() if key != "content_hash"}
+    body["operational"] = {"freshness": [{"group": "NASDAQCOM", "age_hours": 50.0}]}
+    body["daily"] = {"anchor": {"series_id": "NASDAQCOM", "value": 21000.0}}
+    body["history"] = {"index": [21000.0]}
+    latest = _finish(body)
     path = tmp_path / display.LATEST_RELATIVE
     path.parent.mkdir(parents=True)
-    path.write_text(json.dumps(_hold_latest(), ensure_ascii=False), encoding="utf-8")
-    assert load_projection(tmp_path) is None
+    path.write_text(json.dumps(latest, ensure_ascii=False), encoding="utf-8")
+    original = path.read_bytes()
+
+    def unexpected_read(*args, **kwargs):
+        pytest.fail("HOLD metadata must not read numerical artifacts")
+
+    for name in ("_sealed_row", "_anchor_and_history", "_daily_anchor_and_history", "_realized_after_origin"):
+        monkeypatch.setattr(display, name, unexpected_read)
+    projection = load_projection(tmp_path)
+    assert projection is not None
+    assert projection["model_id"] == MODEL_ID and projection["model_version"] == 8
+    assert projection["status"] == latest["status"]
+    assert projection["as_of"] == latest["as_of"]
+    assert projection["knowledge_cutoff"] == latest["knowledge_cutoff"]
+    assert projection["gate"] == latest["gate"]
+    assert projection["publication"] == latest["publication"]
+    assert projection["display_state"] == "validation_pending"
+    assert projection["numbers_visible"] is False
+    assert projection["combined_with_existing_models"] is False
+    assert projection["horizons"] == {} and projection["path"] == {}
+    assert not {"anchor", "history", "realized", "freshness_summary", "operational", "daily", "sealed_metrics"}.intersection(projection)
+    assert path.read_bytes() == original
+
+
+def test_newer_daily_hold_owns_the_v8_surface(tmp_path: Path) -> None:
+    weekly = _visible_latest()
+    body = {key: value for key, value in _hold_latest().items() if key != "content_hash"}
+    body["as_of"] = "2026-09-02"
+    daily = _finish(body)
+    for relative, pointer in ((display.LATEST_RELATIVE, weekly), (display.DAILY_LATEST_RELATIVE, daily)):
+        path = tmp_path / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(pointer, ensure_ascii=False), encoding="utf-8")
+    projection = load_projection(tmp_path)
+    assert projection["cadence"] == "daily"
+    assert projection["as_of"] == daily["as_of"]
+    assert projection["weekly_as_of"] == weekly["as_of"]
+    assert projection["gate"]["reasons"] == daily["gate"]["reasons"]
+    assert projection["numbers_visible"] is False
 
 
 def test_tampered_content_hash_fails_closed() -> None:
@@ -261,7 +308,7 @@ def test_origin_age_policy_holds_the_surface_after_two_missed_weekly_cycles(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """사용자 결정 2026-09-07(2단 임계): 원점 경과가 hold_after_sessions(10)에 닿으면
-    load_projection은 None — 수치를 숨기고 validation_pending 표면으로 페일클로즈한다.
+    load_projection은 V8 HOLD 메타데이터를 유지하며 수치를 숨긴다.
     그 아래(9)에서는 표면을 유지하되 정책 임계를 투영에 싣는다."""
     latest = _visible_latest()
     path = tmp_path / display.LATEST_RELATIVE
@@ -289,7 +336,17 @@ def test_origin_age_policy_holds_the_surface_after_two_missed_weekly_cycles(
     assert kept is not None and kept["origin_age_sessions"] == 9
     assert kept["origin_age_policy"] == {"warn_after_sessions": 1, "hold_after_sessions": 10}
     monkeypatch.setattr(display, "_realized_after_origin", realized(10))
-    assert load_projection(tmp_path) is None, "보류 임계 도달 — 표면을 닫아야 한다"
+    original = path.read_bytes()
+    held = load_projection(tmp_path)
+    assert held["model_id"] == MODEL_ID and held["status"] == "shadow_operational_hold"
+    assert held["numbers_visible"] is False and held["gate"]["operational_pass"] is False
+    assert held["gate"]["sealed_gate_pass"] is True
+    assert held["gate"]["reasons"] == ["예측 원점 경과 거래일 10: 보류 임계 10 도달"]
+    assert held["as_of"] == latest["as_of"] and held["knowledge_cutoff"] == latest["knowledge_cutoff"]
+    assert held["horizons"] == {} and held["path"] == {}
+    assert not {"anchor", "history", "realized", "freshness_summary", "sealed_metrics"}.intersection(held)
+    assert path.read_bytes() == original, "표시용 보류가 저장된 포인터를 바꾸면 안 된다"
+    assert latest["gate"]["operational_pass"] is True and latest["gate"]["reasons"] == []
     # 정책 블록이 없으면(계약 미존재) 보류하지 않는다 — 표시 계층은 계약 없이 게이트를 지어내지 않는다.
     monkeypatch.setattr(display, "_origin_age_policy", lambda root: {})
     assert load_projection(tmp_path) is not None
@@ -383,7 +440,7 @@ def test_score100_rides_on_live_projection() -> None:
     from ai_fc.timeseries_v8_display import load_projection
 
     projection = load_projection(Path(config.ROOT))
-    if projection is None:
+    if projection is None or projection.get("numbers_visible") is not True:
         import pytest
         pytest.skip("V8 projection not visible in this checkout")
     sealed = projection["sealed_metrics"]

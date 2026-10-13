@@ -1927,7 +1927,7 @@ function timeseriesSpecCard(ts){
     ['예측 모델','다변량 회귀(ridge-VARX) + 분포 보정 레이어(V8)'],
     ['기법','나스닥·장단기 금리·달러·변동성(VIX)의 관계로 기간별 분포를 계산하고, 실제 잔차를 다시 뽑는 재표집(FHS)으로 보정합니다.'],
     ['데이터','발표 당시 값을 그대로 보존한 시점고정 공식 원장(FRED) + 요인모델 캐시'],
-    ['갱신','주 1회 · 워크포워드 검증(봉인 평가)을 통과한 동안에만 숫자 표시']
+    ['갱신','입력 자료를 갱신해 다시 계산하며, 검증과 최신성 조건을 통과한 발행본만 숫자 표시']
   ],'모델 참고값 — 매매 신호가 아닙니다.','참고');
 }
 /* ── V13-VOL 변동성 이벤트 기준율 패널 (docs/design/v13_vol_live_card_display_design_260908.md) ──
@@ -2063,6 +2063,40 @@ function tsDailyIssuedAt(asOf){
   const stamp=new Date(asOf);if(!Number.isFinite(stamp.getTime()))return String(asOf);
   return new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(stamp)+' KST';
 }
+function tsHoldReasonLabel(reason){
+  const raw=String(reason);
+  if(raw==='no independent daily6m forecast exists')return '아직 발행된 6개월 일별 전망이 없습니다.';
+  const source=/^required source (\S+) (stale|missing)$/.exec(raw);
+  const v8=/^필수 시장 입력 신선도 초과: (.+)$/.exec(raw);
+  if(source||v8){
+    const key=source?source[1]:v8[1],label=TS_INPUT_LABELS[key]||({VIXCLS:'변동성(VIX)',curve:'장단기 금리차',dollar:'달러지수'})[key]||key;
+    return source?.[2]==='missing'?`${label} 필수 자료가 없습니다.`:`${label} 자료가 갱신 기준을 넘었습니다.`;
+  }
+  return raw;
+}
+function tsHoldReasonsMarkup(reasons){
+  return reasons.length?`<ul class="timeseries-hold-reasons">${reasons.map(reason=>`<li title="${esc(reason)}">${esc(tsHoldReasonLabel(reason))}</li>`).join('')}</ul>`:'';
+}
+function tsDailyMetadataMarkup(ts){
+  const anchorDate=ts.anchor_date||ts.anchor?.date;
+  const unpublished=!ts.run_id&&(ts.status==='absent'||(ts.gate?.reasons||ts.reasons||[]).includes('no independent daily6m forecast exists'));
+  const anchor=anchorDate?`${esc(anchorDate)} 미국 거래일 종가 기준`:unpublished?'아직 발행된 일별 전망이 없습니다':'일별 전망 기준일 확인 대기';
+  const time=ts.as_of?`<br><span title="${esc(ts.as_of||'')}">${ts.run_id?'발행':unpublished?'검사 시각':'기준 시각'} ${esc(tsDailyIssuedAt(ts.as_of))}</span>`:'';
+  return anchor+time;
+}
+function tsHoldCopy(ts){
+  if(ts.model_id!=='shadow.mf_dfm_varx_calibrated_v8')return {
+    tag:'VALIDATION IN PROGRESS',title:'검증을 통과한 숫자만 표시합니다',
+    hero:'당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.',
+    lead:'2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.',metadata:''
+  };
+  const waiting=ts.gate?.sealed_gate_pass===true&&ts.gate?.operational_pass===false;
+  const metadata=[ts.as_of?`예측 기준일 ${esc(ts.as_of)} · 미국 거래일 종가`:'',ts.knowledge_cutoff?`<span title="${esc(ts.knowledge_cutoff)}">마지막 확인 ${esc(tsDailyIssuedAt(ts.knowledge_cutoff))}</span>`:''].filter(Boolean).join('<br>');
+  return {tag:'HOLD',title:waiting?'최신 입력 자료 갱신 대기':'표시 조건 확인 대기',
+    hero:'입력 자료 상태를 확인하고, 표시 조건을 통과한 전망을 제공합니다.',
+    lead:waiting?'필수 입력 자료 또는 예측 기준일의 최신성 조건을 충족하지 않아 예측 숫자와 그래프를 숨겼습니다. 새 자료로 확인한 발행본이 표시 조건을 통과하면 보여드립니다.':'검증과 입력 자료의 표시 조건이 모두 충족되기 전까지 예측 숫자와 그래프를 숨깁니다.',
+    metadata:metadata?`<p>${metadata}</p>`:''};
+}
 function tsDailyValidateProjection(ts){
   if(ts.schema_version!==1||ts.probability_unit!=='fraction')throw new Error('일별 전망 단위 또는 스키마가 올바르지 않습니다');
   if(ts.numbers_visible!==true){
@@ -2167,12 +2201,12 @@ function renderTimeseriesDaily(ts=DATA.timeseries_daily||{},loadState=null){
   let validityError=null;if(visible)try{tsDailyValidateProjection(ts);}catch(problem){validityError=problem;}
   const warning='<p class="ts-daily-warning"><b>연구 프리뷰 · 일별 및 6개월 전망의 전진 검증 전</b><span>과거 PIT 성능: 자료 부족 · 전진 성능: 미검증. 구간의 실제 적중률과 일별 상승 가능성의 보정 성능은 아직 검증되지 않았습니다. 기존 3개월 검증 성적은 이 모델의 성적이 아닙니다.</span></p>';
   const reasons=ts.gate?.reasons||ts.reasons||[],problem=error||validityError;
-  const pending=`<section class="timeseries-pending ts-daily-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>${loading?'LOADING':problem?'LOAD ERROR':ts.status==='absent'?'NOT PUBLISHED':'HOLD'}</span><h2>${loading?'6개월 일별 전망을 불러오고 있습니다':problem?'일별 전망을 불러오지 못했습니다':'일별 전망이 준비되면 여기에서 보여드립니다'}</h2><p>${problem?esc(String(problem.message||problem)):loading?'같은 발행본의 지수 범위와 일별 확률을 확인하고 있습니다.':'데이터와 시점 검사를 통과한 연구 발행본이 필요합니다.'}</p>${reasons.length?`<ul class="timeseries-hold-reasons">${reasons.map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>`:''}${problem?'<div class="ts-daily-load-actions"><button type="button" data-daily-retry>다시 불러오기</button><button type="button" data-daily-refresh>페이지 새로고침</button></div>':''}</div></section>`;
+  const pending=`<section class="timeseries-pending ts-daily-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>${loading?'LOADING':problem?'LOAD ERROR':ts.status==='absent'?'NOT PUBLISHED':'HOLD'}</span><h2>${loading?'6개월 일별 전망을 불러오고 있습니다':problem?'일별 전망을 불러오지 못했습니다':'일별 전망이 준비되면 여기에서 보여드립니다'}</h2><p>${problem?esc(String(problem.message||problem)):loading?'같은 발행본의 지수 범위와 일별 확률을 확인하고 있습니다.':'데이터와 시점 검사를 통과한 연구 발행본이 필요합니다. 표시 조건을 충족하기 전까지 숫자와 그래프를 숨깁니다.'}</p>${tsHoldReasonsMarkup(reasons)}${problem?'<div class="ts-daily-load-actions"><button type="button" data-daily-retry>다시 불러오기</button><button type="button" data-daily-refresh>페이지 새로고침</button></div>':''}</div></section>`;
   const controls='<div class="ts-daily-controls"><div role="group" aria-label="같은 발행본에서 전망 기간 선택"><button type="button" data-daily-months="1" aria-pressed="false">1개월</button><button type="button" data-daily-months="3" aria-pressed="false">3개월</button><button type="button" data-daily-months="6" aria-pressed="true">6개월</button></div><button type="button" data-daily-samples aria-pressed="false">가능한 일별 움직임 예시 보기</button></div>';
   const chart=`<section class="timeseries-path-panel ts-daily-main"><header><div><span>DAILY · 6 MONTHS · RESEARCH PREVIEW</span><h2>향후 6개월, 하루씩 펼쳐 보기</h2></div><p data-daily-endpoint></p></header>${controls}<div data-daily-chart-host></div><p class="ts-daily-sample-note" data-daily-sample-note hidden>점선 다섯 개는 실제로 생성된 모의 경로입니다. 굴곡을 덧붙인 중앙선이 아니며, 다섯 표본만으로 확률을 계산하지 않습니다.</p><div class="ts-daily-legend"><span><i class="is-history"></i>기준일 전 실제 종가</span><span><i class="is-median"></i>가운데 예상값</span><span><i class="is-band"></i>중심 50% / 넓은 80% 범위</span>${(ts.realized?.index||[]).length?'<span><i class="is-realized"></i>이후 실제 종가</span>':''}</div></section>`;
   const notes='<section class="ts-card ts-daily-explanation"><h2>이렇게 읽어 주세요</h2><p>위 그래프는 지수의 예상 범위, 아래 그래프는 그날 전 거래일보다 오를 가능성입니다. 마우스·터치·좌우 화살표로 같은 날짜를 함께 확인할 수 있습니다.</p><p>가운데 선은 여러 경로의 중앙값이라 매끈할 수 있습니다. 실제 하루하루의 흔들림은 움직임 예시를 켜서 볼 수 있습니다. 분위 구간은 전체 경로를 계속 담는 통로를 뜻하지 않습니다.</p><p>성장·물가 상태와 발표 경과일 등 거시 입력은 발행 시점의 마지막 알려진 값으로 유지합니다. 당시 공개 자료만 사용하며 과거·실전 예측 성능은 아직 확인되지 않았습니다.</p><p>기준일 현재 추정입니다. 미래 날짜의 전 거래일 종가도 같은 모의 경로 안에서 비교하며, 실제 종가가 관측될 때마다 다시 조건을 맞춘 예측은 아닙니다.</p></section>';
   const emptyPanels=[...TS_TABS,TS_V13_TAB].map(([key])=>`<div id="lab-ts-${key}" role="tabpanel" aria-labelledby="lab-tab-ts-${key}" hidden></div>`).join('');
-  const root=el(`<div class="timeseries-page ts-daily-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 프리뷰 · 미검증</span><h1>6개월 일별 전망</h1><p>${esc(ts.anchor_date||ts.anchor?.date||'기준일 확인 중')} 미국 거래일 종가 기준<br><span title="${esc(ts.as_of||'')}">발행 ${esc(tsDailyIssuedAt(ts.as_of))}</span></p></div><div class="ts-daily-origin">기존 3개월 전망과 별도 모델<br>모든 날짜는 같은 발행본에서 읽습니다</div></header>${timeseriesTabsMarkup('daily',enabled)}<div id="lab-ts-daily" role="tabpanel" aria-labelledby="lab-tab-ts-daily"><div class="ts-panel">${warning}${visible&&!validityError?chart:pending}${notes}</div></div>${emptyPanels}${tsFootnote(ts)}</div>`);
+  const root=el(`<div class="timeseries-page ts-daily-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구 프리뷰 · 미검증</span><h1>6개월 일별 전망</h1><p>${tsDailyMetadataMarkup(ts)}</p></div><div class="ts-daily-origin">기존 3개월 전망과 별도 모델<br>${ts.run_id?'모든 날짜는 같은 발행본에서 읽습니다':'표시 조건 통과 후 일별 그래프 제공'}</div></header>${timeseriesTabsMarkup('daily',enabled)}<div id="lab-ts-daily" role="tabpanel" aria-labelledby="lab-tab-ts-daily"><div class="ts-panel">${warning}${visible&&!validityError?chart:pending}${notes}</div></div>${emptyPanels}${tsFootnote(ts)}</div>`);
   mount(root);
   const nav=root.querySelector('.timeseries-tabs'),go=button=>{const key=button.dataset.tsTab;if(key!=='daily')location.hash=key==='summary'?'#timeseries':'#timeseries/'+key;};
   nav.querySelectorAll('[data-ts-tab]:not(:disabled)').forEach(button=>{button.onclick=()=>go(button);});bindTablistKeys(nav,'[data-ts-tab]',go);
@@ -2308,8 +2342,8 @@ function renderTimeseries(initialState){
   if(!visible){
     // 보류 사유는 숨기지 않는다 — "왜 숫자가 없는가"는 버그가 아니라 설계다.
     const holdReasons=(ts.gate?.reasons)||(ts.operational_gate?.reasons)||[];
-    const reasonsHtml=holdReasons.length?`<ul class="timeseries-hold-reasons">${holdReasons.slice(0,5).map(reason=>`<li>${esc(reason)}</li>`).join('')}</ul>`:'';
-    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><h1>NASDAQ 시계열 예측</h1><p>당시 공개된 데이터만으로 다변량 관계를 다시 맞추고 있습니다.</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`${tsDailyCta()}<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>VALIDATION IN PROGRESS</span><h2>검증을 통과한 숫자만 표시합니다</h2><p>2007년 이후 워크포워드와 구간 적중률 검사가 끝나기 전에는 예상값과 경로를 노출하지 않습니다. 기존 미래전망으로 자동 전환하지 않습니다.</p>${reasonsHtml}</div></section>${timeseriesSpecCard(ts)}`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
+    const reasonsHtml=tsHoldReasonsMarkup(holdReasons),copy=tsHoldCopy(ts);
+    const root=el(`<div class="timeseries-page"><header class="timeseries-hero"><div><span class="timeseries-chip">연구모델</span><h1>NASDAQ 시계열 예측</h1><p>${esc(copy.hero)}</p></div></header>${timeseriesTabsMarkup(active,enabled)}${panel('summary',`${tsDailyCta()}<section class="timeseries-pending"><div class="timeseries-pending-mark" aria-hidden="true">∿</div><div><span>${esc(copy.tag)}</span><h2>${esc(copy.title)}</h2><p>${esc(copy.lead)}</p>${copy.metadata}${reasonsHtml}</div></section>${timeseriesSpecCard(ts)}`)}${TS_TABS.slice(1).map(([key])=>panel(key,'')).join('')}${panel('volatility',renderTimeseriesV13VolPanel(DATA.timeseries_v13_vol))}${footnote}</div>`);
     mount(root);
     bindTimeseriesV13VolInteractions(root);
     bindTimeseriesTabs(root,enabled,'summary');
