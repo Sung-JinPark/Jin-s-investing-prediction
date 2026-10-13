@@ -1,12 +1,12 @@
 {
-  "bundle_id": "ts-inputs-0c46db2ceea0e6f58216e186",
-  "capture_completed_at": "2026-10-13T03:11:55.621412+00:00",
+  "bundle_id": "ts-inputs-870bf13d59774f20a64adc1d",
+  "capture_completed_at": "2026-10-13T09:46:28.042491+00:00",
   "changed": true,
-  "checked_at": "2026-10-13T03:13:03.394747+00:00",
-  "content_hash": "f8372a6b6c38c165ffd3d1830921c116cbe5b5d5c7e29d4a7f24cb6c15df8901",
+  "checked_at": "2026-10-13T09:50:03.879524+00:00",
+  "content_hash": "2527545b55516f75df8f4d0d39037e03a96defffc4d80db5125edc1c3de9fc35",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "ae76526b8fd8834a3f83b54af55f379027354137e85806e1ebec265e4ea09134",
+  "eligibility_hash": "f02f8ffaeb3d74c53e55dfde09e70a78e11e2161f299e2d84cf8a42a89626863",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
@@ -26,12 +26,12 @@
       "vintage_start": "2026-10-06T03:59:59+00:00"
     },
     "NASDAQCOM": {
-      "available_at": "2026-10-10T03:59:59+00:00",
-      "observation_time": "2026-10-09",
+      "available_at": "2026-10-13T03:59:59+00:00",
+      "observation_time": "2026-10-12",
       "series_id": "NASDAQCOM",
-      "source_hash": "9f9f070c29b9dc1e6256748f7f60e537e7b5b756b9a439326da7ad86380aaf8d",
-      "value": 27366.17,
-      "vintage_start": "2026-10-10T03:59:59+00:00"
+      "source_hash": "be1d12bb0d915fc33271120c8ce119efdd8722c1889959c6631571dd614086bb",
+      "value": 27245.9,
+      "vintage_start": "2026-10-13T03:59:59+00:00"
     },
     "T10Y2Y": {
       "available_at": "2026-10-10T03:59:59+00:00",
@@ -52,20 +52,20 @@
   },
   "expected_session": "2026-10-12",
   "native_watermarks": {
-    "DGS2": "2026-10-13T03:11:52.573097+00:00",
-    "DTWEXBGS": "2026-10-13T03:11:53.760746+00:00",
-    "NASDAQCOM": "2026-10-13T03:11:51.059905+00:00",
-    "T10Y2Y": "2026-10-13T03:11:53.221649+00:00",
-    "VIXCLS": "2026-10-13T03:11:51.827591+00:00"
+    "DGS2": "2026-10-13T09:46:23.710067+00:00",
+    "DTWEXBGS": "2026-10-13T09:46:26.718771+00:00",
+    "NASDAQCOM": "2026-10-13T09:46:20.378265+00:00",
+    "T10Y2Y": "2026-10-13T09:46:26.325474+00:00",
+    "VIXCLS": "2026-10-13T09:46:23.004528+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
-  "semantic_changed": false,
+  "semantic_changed": true,
   "source_failures": [],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "VIXCLS",
