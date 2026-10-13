@@ -1,42 +1,72 @@
 {
-  "as_of": "2026-10-02",
-  "content_hash": "fc2396af47e859aa8c69dcf2bde1101675835f5e723e378cd7e8b8b9721ea3b9",
+  "as_of": "2026-10-09",
+  "content_hash": "d9ef0cef9e7361c21bf80e201b48698ecd07aa209d9504d67b684909dfe359f9",
   "daily": {
     "anchor": {
       "provisional": false,
       "series_id": "NASDAQCOM",
       "source": "fred_api_nasdaqcom_archive",
-      "value": 27190.86
+      "value": 27366.17
     },
     "cadence": "daily",
     "carried_forward": [],
-    "display_id": "tsv8-daily-57a8577709001b84ab1a3fad",
+    "display_id": "tsv8-daily-4b8be590104dde5cd4bf3e79",
     "display_only": true,
     "input_state": "confirmed",
     "provisional_inputs": [],
     "provisional_series": [],
-    "row_knowledge_cutoff": "2026-10-12T00:39:03+00:00",
+    "row_knowledge_cutoff": "2026-10-13T21:56:39+00:00",
     "scoring_excluded": true
   },
-  "display_state": "validation_pending",
+  "display_state": "research_reference",
   "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
   "gate": {
-    "operational_pass": false,
-    "reasons": [
-      "필수 시장 입력 신선도 초과: DGS2",
-      "필수 시장 입력 신선도 초과: DGS10",
-      "필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"
-    ],
+    "operational_pass": true,
+    "reasons": [],
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "knowledge_cutoff": "2026-10-13T17:14:00+00:00",
+  "horizons": {
+    "1": {
+      "p10": -0.011925685241803902,
+      "p25": -0.004436769616223191,
+      "p50": 0.0008577901572970911,
+      "p75": 0.006253533000788931,
+      "p90": 0.01133922328472001,
+      "probability_up": 0.54
+    },
+    "21": {
+      "p10": -0.04689828545268399,
+      "p25": -0.014041094132557209,
+      "p50": 0.017135770549010942,
+      "p75": 0.03858830171408338,
+      "p90": 0.05624967985019502,
+      "probability_up": 0.66
+    },
+    "5": {
+      "p10": -0.023949407162092706,
+      "p25": -0.008964577358231727,
+      "p50": 0.005482833082458689,
+      "p75": 0.01781102515395804,
+      "p90": 0.028105337005919835,
+      "probability_up": 0.605
+    },
+    "63": {
+      "p10": -0.06783575386929243,
+      "p25": -0.0068673118555350465,
+      "p50": 0.040428218974986135,
+      "p75": 0.07568626847968307,
+      "p90": 0.10470413882636191,
+      "probability_up": 0.725
+    }
+  },
+  "knowledge_cutoff": "2026-10-13T22:58:23+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 17.23380246472222,
+        "age_hours": 22.97357624972222,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
         "observation_time": "2026-10-12",
@@ -44,7 +74,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 17.23380246472222,
+        "age_hours": 22.97357624972222,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-12",
@@ -52,28 +82,28 @@
         "status": "fresh"
       },
       {
-        "age_hours": 89.23380246472222,
+        "age_hours": 0.0,
         "group": "DGS2",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-13",
         "provisional": false,
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 89.23380246472222,
+        "age_hours": 0.0,
         "group": "DGS10",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-13",
         "provisional": false,
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 257.2338024647222,
+        "age_hours": 94.97357624972223,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
-        "observation_time": "2026-10-02",
+        "observation_time": "2026-10-09",
         "provisional": false,
-        "status": "stale"
+        "status": "fresh"
       }
     ],
     "monitoring": {
@@ -86,9 +116,9 @@
   "publication": {
     "combined_with_official_forecasts": false,
     "combined_with_scenario_v5_2": false,
-    "customer_numbers_visible": false,
+    "customer_numbers_visible": true,
     "reference_opinion_only": true
   },
   "schema_version": 1,
-  "status": "shadow_operational_hold"
+  "status": "shadow_live"
 }
