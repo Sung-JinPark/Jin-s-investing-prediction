@@ -9,7 +9,9 @@ on:
     types: [completed]
 
 concurrency:
-  group: verify-${{ github.event.pull_request.number || github.ref }}
+  # Ineligible upstream completions cannot cancel active main verification.
+  # PR checks retain their own number; eligible main checks coalesce normally.
+  group: ${{ github.event_name == 'workflow_run' && (github.event.workflow_run.conclusion != 'success' || github.event.workflow_run.head_branch != 'main') && format('verify-skipped-{0}', github.run_id) || format('verify-{0}', github.event.pull_request.number || github.ref) }}
   cancel-in-progress: true
 
 jobs:

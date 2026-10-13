@@ -66,6 +66,16 @@ def test_artifacts_carry_capture_bytes_instead_of_canonical_ledger_deltas() -> N
     assert "exit 1" in capture[-1]["run"]
 
 
+def test_capture_and_replay_install_the_declared_session_calendar_runtime() -> None:
+    constraint = "exchange-calendars>=4.6,<5"
+    assert constraint in (ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    for job in _workflow()["jobs"].values():
+        install = [step["run"] for step in job["steps"] if step.get("run", "").startswith("pip install ")]
+        assert len(install) == 1
+        assert f'"{constraint}"' in install[0], "Native session validation needs exchange_calendars in both jobs"
+        assert '".[pit,timeseries]"' in install[0]
+
+
 def test_every_optimistic_publish_attempt_replays_into_a_new_current_main() -> None:
     script = _step("Replay and publish against a fresh main for each attempt")["run"]
     assert "for attempt in 1 2 3; do" in script
@@ -162,6 +172,47 @@ def test_downstream_completed_events_require_successful_main_and_verify_coalesce
     assert "pull_request.number || github.ref" in verify["concurrency"]["group"]
     alert = _workflow("ops-failure-alert.yml")
     assert "timeseries-inputs-refresh" in (alert.get(True) or alert.get("on"))["workflow_run"]["workflows"]
+
+
+class _ExpressionContext(dict):
+    """Missing GitHub expression properties evaluate as an empty, false value."""
+
+    def __getattr__(self, name: str):
+        value = self.get(name, {})
+        return _ExpressionContext(value) if isinstance(value, dict) else value
+
+
+def _concurrency_group(name: str, event: str, *, branch: str = "main", conclusion: str = "success", run_id: int = 42, pr: int | None = None) -> str:
+    expression = _workflow(name)["concurrency"]["group"]
+    expression = expression.removeprefix("${{").removesuffix("}}").strip()
+    expression = expression.replace("&&", " and ").replace("||", " or ")
+    context = _ExpressionContext(event_name=event, ref="refs/heads/main", run_id=run_id,
+                                 event={"workflow_run": {"head_branch": branch, "conclusion": conclusion},
+                                        "pull_request": {} if pr is None else {"number": pr}})
+    # Execute the authored boolean-selection expression, using the equivalent
+    # Python operators and only GitHub's format function; no other builtins.
+    return eval(expression, {"__builtins__": {}, "format": lambda template, *args: template.format(*args)}, {"github": context})
+
+
+@pytest.mark.parametrize("event", ["push", "schedule", "workflow_dispatch", "workflow_run"])
+def test_eligible_events_keep_canonical_deploy_and_main_verify_groups(event: str) -> None:
+    assert _concurrency_group("pages.yml", event) == "pages"
+    assert _concurrency_group("verify.yml", event) == "verify-refs/heads/main"
+    assert _workflow("pages.yml")["concurrency"]["cancel-in-progress"] is True
+
+
+@pytest.mark.parametrize("branch,conclusion", [
+    ("feature", "success"), ("main", "failure"), ("main", "cancelled"),
+    ("main", "skipped"), ("feature", "failure"), ("", "success"), ("main", ""),
+])
+def test_ineligible_completions_cannot_cancel_valid_deploy_or_verification(branch: str, conclusion: str) -> None:
+    for name, prefix in (("pages.yml", "pages-skipped-"), ("verify.yml", "verify-skipped-")):
+        group = _concurrency_group(name, "workflow_run", branch=branch, conclusion=conclusion)
+        assert group == prefix + "42"
+        assert _concurrency_group(name, "workflow_run", branch=branch, conclusion=conclusion, run_id=43) == prefix + "43"
+        assert group != _concurrency_group(name, "workflow_run", branch="main", conclusion="success")
+    assert _concurrency_group("verify.yml", "pull_request", pr=277) == "verify-277"
+    assert _concurrency_group("verify.yml", "pull_request", pr=278) == "verify-278"
 
 
 def test_publisher_shell_parses_with_the_available_git_bash(tmp_path: Path) -> None:
