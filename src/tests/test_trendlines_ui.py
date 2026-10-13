@@ -84,6 +84,20 @@ process.stdout.write(JSON.stringify({
     assert out['barCount'] == 63 and out['counts'] == [63, 252, 756]
 
 
+def test_positive_prices_keep_nonnegative_linear_axis_without_changing_values(tmp_path):
+    detail = fixture()['details']['sk-hynix']
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + r''';
+const a=d.analyses.linear['63'],line=a.lines[0];
+line.intercept=2000000;line.slope=(20-line.intercept)/(line.points.at(-1).index-line.coordinate_origin_index);
+for(const point of line.points)point.price=trendLinePrice(line,point.index,'linear');
+line.current_price=trendLinePrice(line,d.bars.at(-1).session_index,'linear');
+for(const key of ['down','up','broken'])for(const border of a.borders[key])if(border.line_id===line.line_id)border.price=line.current_price;
+const before=JSON.stringify(d),m=trendChartModel(d,63,'linear'),prices=m.bars.flatMap(row=>[row.low,row.high]).concat(m.lines.flatMap(row=>row.points.map(point=>point.price)));
+process.stdout.write(JSON.stringify({minimumTick:m.ticks[0],unchanged:before===JSON.stringify(d),allVisible:prices.every(price=>m.y(price)>=m.T&&m.y(price)<=m.H-m.B),smallPricePreserved:line.points.at(-1).price}));''')
+    assert out['minimumTick'] == 0 and out['unchanged'] and out['allVisible']
+    assert out['smallPricePreserved'] == pytest.approx(20, abs=1e-6)
+
+
 @pytest.mark.parametrize('problem', ['ohlc', 'unit', 'order', 'point', 'equation', 'current', 'border', 'hold'])
 def test_invalid_price_or_line_fails_instead_of_clipping(problem, tmp_path):
     detail = fixture()['details']['sk-hynix']
