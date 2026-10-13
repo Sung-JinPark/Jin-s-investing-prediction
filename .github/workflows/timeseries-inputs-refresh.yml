@@ -1,0 +1,207 @@
+name: timeseries-inputs-refresh
+
+# A small capture every thirty minutes; ALFRED archive reconstruction, DFM,
+# fitting, sealed evaluation and the full regression suite stay in the daily V2 job.
+# Capture artifacts contain raw responses and a manifest, never canonical ledger deltas.
+on:
+  schedule:
+    - cron: "17,47 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: timeseries-inputs-refresh
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+      PYTHONUTF8: "1"
+    outputs:
+      bundle_ready: ${{ steps.bundle.outputs.bundle_ready }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install already declared collection dependencies
+        run: pip install -e ".[pit,timeseries]"
+      - name: Capture raw input responses and their manifest
+        id: capture
+        continue-on-error: true
+        run: python -m ai_fc timeseries-inputs-capture --out .tmp/inputs-capture
+      - name: Check that a replayable capture manifest was preserved
+        id: bundle
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [ -f .tmp/inputs-capture/manifest.json ]; then
+            echo "bundle_ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bundle_ready=false" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && steps.bundle.outputs.bundle_ready == 'true' }}
+        with:
+          name: timeseries-inputs-${{ github.run_id }}
+          path: .tmp/inputs-capture/
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: error
+      - name: Report a capture that could not preserve its manifest
+        if: ${{ always() && steps.bundle.outputs.bundle_ready != 'true' }}
+        run: |
+          echo "Input capture did not preserve a manifest; canonical replay is blocked."
+          exit 1
+
+  commit:
+    needs: capture
+    if: ${{ always() && needs.capture.outputs.bundle_ready == 'true' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      actions: write
+    # The market-mood writer can wait hours for the session close. This short,
+    # separate lock serializes input publishers without delaying their captures.
+    # Other writers are handled by fresh-tip replay and an optimistic push.
+    concurrency:
+      group: timeseries-inputs-publisher
+      cancel-in-progress: false
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install already declared replay dependencies
+        run: pip install -e ".[pit,timeseries]"
+      - uses: actions/download-artifact@v4
+        with:
+          name: timeseries-inputs-${{ github.run_id }}
+          path: .tmp/inputs-capture
+      - name: Replay and publish against a fresh main for each attempt
+        shell: bash
+        run: |
+          capture_bundle="$GITHUB_WORKSPACE/.tmp/inputs-capture"
+          report_path="$GITHUB_WORKSPACE/.tmp/inputs-report.json"
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            attempt_root="$RUNNER_TEMP/inputs-publish-attempt-$attempt"
+            git worktree add --detach "$attempt_root" origin/main
+            PYTHONPATH="$attempt_root/src" python -m ai_fc timeseries-inputs-apply --root "$attempt_root" --bundle "$capture_bundle" --report "$report_path"
+            changed="$(python - "$report_path" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          report = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          if any(type(report.get(key)) is not bool for key in ('changed', 'publication_allowed')):
+              raise SystemExit('input replay report must contain explicit boolean decisions')
+          print(str(report['changed']).lower())
+          PY
+            )"
+            if [ "$changed" = "false" ]; then
+              echo "No semantic input or eligibility change; no commit or dispatch."
+              break
+            fi
+            (
+              cd "$attempt_root"
+              PYTHONPATH="$attempt_root/src" python -m ai_fc inventory
+              for path in \
+                data/timeseries/raw \
+                data/timeseries/facts \
+                data/timeseries/ledgers/raw_receipts.jsonl \
+                data/timeseries/ledgers/observations.jsonl \
+                data/timeseries/ledgers/observation_chunks.jsonl \
+                data/timeseries_v2/raw/market \
+                data/timeseries_v2/ledgers/market_raw_receipts.jsonl \
+                data/timeseries_v2/ledgers/market_observations.jsonl \
+                data/timeseries_v2/parquet/market_observations.parquet \
+                data/timeseries_v2/parquet/market_observations.manifest.json \
+                data/timeseries_inputs/latest.json \
+                docs/generated/inventory.generated.md; do
+                if [ -e "$path" ]; then git add -- "$path"; fi
+              done
+              unexpected="$(git diff --cached --name-only | grep -Ev '^(data/timeseries/(raw/.*|facts/.*|ledgers/(raw_receipts|observations|observation_chunks)\.jsonl)|data/timeseries_v2/(raw/market/.*|ledgers/market_(raw_receipts|observations)\.jsonl|parquet/market_observations\.(parquet|manifest\.json))|data/timeseries_inputs/latest\.json|docs/generated/inventory\.generated\.md)$' || true)"
+              test -z "$unexpected" || { echo "unexpected input paths: $unexpected"; exit 1; }
+              deleted="$(git diff --cached --name-only --diff-filter=D)"
+              test -z "$deleted" || { echo "input replay cannot delete tracked data: $deleted"; exit 1; }
+              if git diff --cached --quiet; then
+                echo "Semantic input change reported without a staged source or state change."
+                exit 1
+              fi
+              git config user.name "github-actions[bot]"
+              git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+              git commit -m "data: refresh time-series inputs and eligibility"
+            )
+            if git -C "$attempt_root" push origin HEAD:main; then
+              break
+            fi
+            # No reset, forced push or conflict resolution: capture bytes are
+            # replayed into another fresh worktree if main advanced meanwhile.
+            if [ "$attempt" -eq 3 ]; then
+              echo "Input publication failed after three fresh-tip attempts."
+              exit 1
+            fi
+            sleep 15
+          done
+      - name: Read the semantic change and publication decision
+        id: decision
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          report = json.loads(Path('.tmp/inputs-report.json').read_text(encoding='utf-8'))
+          fields = ('changed', 'publication_allowed')
+          if any(type(report.get(key)) is not bool for key in fields):
+              raise SystemExit('input replay report must contain explicit boolean decisions')
+          with Path(os.environ['GITHUB_OUTPUT']).open('a', encoding='utf-8') as output:
+              for key in fields:
+                  output.write(f'{key}={str(report[key]).lower()}\n')
+          PY
+      - name: Refresh the two daily research forecasts after verified input changes
+        if: ${{ steps.decision.outputs.changed == 'true' && steps.decision.outputs.publication_allowed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          dispatch_failed=false
+          gh workflow run timeseries-v8-daily.yml --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
+          gh workflow run timeseries-daily6m.yml --repo "$GITHUB_REPOSITORY" --ref main || dispatch_failed=true
+          if [ "$dispatch_failed" = "true" ]; then
+            echo "A daily forecast dispatch failed; both dispatches were attempted."
+            exit 1
+          fi
+      - name: Deploy a meaningful source or HOLD-state change
+        if: ${{ always() && steps.decision.outputs.changed == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main
+      - name: Preserve replay decisions for audit
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: timeseries-inputs-report-${{ github.run_id }}
+          path: .tmp/inputs-report.json
+          include-hidden-files: true
+          retention-days: 3
+          if-no-files-found: ignore
+      - name: Report failed or partial source capture after preserving its checkpoint
+        if: ${{ always() && steps.decision.outputs.publication_allowed == 'false' }}
+        run: |
+          echo "Input capture or validation failed; the HOLD state was preserved and model dispatch was blocked."
+          exit 1

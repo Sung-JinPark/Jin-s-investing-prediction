@@ -8,13 +8,19 @@ on:
     workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", "timeseries-v13-vol-live", "market-mood-refresh", "source-monitoring", "timeseries-daily6m"]
     types: [completed]
 
+concurrency:
+  group: verify-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   verify:
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0          # 검증기의 git 불변성·시점 검사는 전체 이력 필요
+          ref: ${{ github.event_name == 'workflow_run' && 'main' || github.sha }}
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

@@ -1,0 +1,47 @@
+schema_version: 1
+contract_id: timeseries_inputs_refresh_v1
+scope: operational_source_collection_only
+cadence:
+  interval_minutes: 30
+  schedule_utc: "17,47 * * * *"
+  scheduler: github_actions
+  timing: best_effort_not_a_publication_or_execution_guarantee
+native:
+  series: [NASDAQCOM, VIXCLS, DGS2, T10Y2Y, DTWEXBGS]
+  realtime_overlap_days: 7
+  watermark: per_series_successful_observation_response
+  realtime_end: "9999-12-31"
+  date_only_availability: preserve_end_of_vintage_day_America_New_York
+  initial_history: existing_full_collector_required
+market:
+  sources: [cboe_vix_archive, us_treasury_yield_archive, fred_api_nasdaqcom_archive, fred_api_h10_broad_goods_services_archive]
+  fred_observation_lookback_days: 30
+  treasury_years: current_year
+  grade: captured_forward
+  available_at: actual_response_capture_time
+  fredgraph_scraping: prohibited
+publication:
+  observation_change: new_or_superseding_fact
+  eligibility_change: eligible_input_digest_or_gate_or_expected_session_or_week_changes
+  wall_clock_age_only_change: no_dispatch
+  repeated_payload_only_change: no_dispatch
+  failed_capture: no_forecast_dispatch
+  recovery: dispatch_if_changed
+  forecasts: existing_model_write_time_gates
+  six_month_forecast_cadence: weekly_unchanged
+  source_freshness_limits: unchanged
+  historical_pit_and_native_vintages: unchanged
+delivery:
+  capture: immutable_keyless_manifest_and_raw_payloads
+  apply: reparse_verified_raw_against_latest_main
+  concurrent_push: retry_against_new_main_without_overwriting_source_history
+  report_budget_bytes: 16384
+  unchanged_poll: no_commit_or_deployment
+  historical_recovery_dfm_and_validation: existing_daily_full_batch
+prohibitions:
+  model_refit_in_poller: true
+  model_or_probability_change: true
+  backdated_capture_time: true
+  recapture_as_observation_freshness: true
+  ledger_rewrite: true
+  runtime_credentials_in_artifact_or_report: true

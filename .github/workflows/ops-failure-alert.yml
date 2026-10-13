@@ -18,6 +18,7 @@ on:
       - timeseries-v8-shadow
       - timeseries-v8-daily
       - timeseries-daily6m
+      - timeseries-inputs-refresh
       - timeseries-v13-vol-live
       - scenario-refresh
       - ai-regime-refresh
