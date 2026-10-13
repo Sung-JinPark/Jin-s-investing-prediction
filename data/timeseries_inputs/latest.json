@@ -1,9 +1,9 @@
 {
-  "bundle_id": "ts-inputs-f45260123840a06cb371bd1b",
-  "capture_completed_at": "2026-10-13T02:36:36.806226+00:00",
+  "bundle_id": "ts-inputs-5391da482bd759aa7411e3c4",
+  "capture_completed_at": "2026-10-13T02:49:57.498541+00:00",
   "changed": true,
-  "checked_at": "2026-10-13T02:37:56.220467+00:00",
-  "content_hash": "b77a149ca309a27762b113a38efcd9c0713ad3744f122f456de84311e0e8aef0",
+  "checked_at": "2026-10-13T02:51:07.438882+00:00",
+  "content_hash": "be2b282e3339265258d863d439aacd37a4970f3d9fa6697c996462a27a40e0fa",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
   "eligibility_hash": "ae76526b8fd8834a3f83b54af55f379027354137e85806e1ebec265e4ea09134",
@@ -52,16 +52,24 @@
   },
   "expected_session": "2026-10-12",
   "native_watermarks": {
-    "DGS2": "2026-10-13T02:36:33.722476+00:00",
+    "DGS2": "2026-10-13T02:49:53.860620+00:00",
     "DTWEXBGS": "2026-10-13T02:36:35.068851+00:00",
-    "NASDAQCOM": "2026-10-13T02:36:31.579349+00:00",
-    "T10Y2Y": "2026-10-13T02:36:34.374789+00:00",
-    "VIXCLS": "2026-10-13T02:36:32.799906+00:00"
+    "NASDAQCOM": "2026-10-13T02:49:52.189870+00:00",
+    "T10Y2Y": "2026-10-13T02:49:55.452478+00:00",
+    "VIXCLS": "2026-10-13T02:49:53.081905+00:00"
   },
-  "publication_allowed": true,
+  "publication_allowed": false,
   "schema_version": 1,
-  "semantic_changed": true,
-  "source_failures": [],
+  "semantic_changed": false,
+  "source_failures": [
+    {
+      "http_status": 500,
+      "reason": "AlfredFetchError",
+      "series_id": "DTWEXBGS",
+      "source_id": "alfred",
+      "stage": "native"
+    }
+  ],
   "source_status": [
     {
       "series_id": "NASDAQCOM",
@@ -84,5 +92,5 @@
       "status": "stale"
     }
   ],
-  "status": "ready"
+  "status": "hold"
 }
