@@ -17,6 +17,8 @@ budgets:
   # V13-VOL 변동성 base rate 인라인 키(timeseries_v13_vol) 전용 예산 — 표시 설계서 §3 (2026-09-08).
   timeseries_v13_vol_max_bytes: 24000
   timeseries_daily_json_max_bytes: 131072
+  trendlines_summary_max_bytes: 16384
+  trendlines_asset_json_max_bytes: 262144
 
 forecast_bodies:
   filename: forecast_bodies.json
@@ -62,6 +64,22 @@ projection_integrity:
   first_three_month_direction_run_minimum: {S1: 3, S2: 10, S3: 4}
   downsample_to_twenty_sessions_for_first_three_months: prohibited
   test: test_projection_preserves_direction_changes
+
+trendlines:
+  route: "#future/trendlines/<asset-id>"
+  payload_key: trendlines
+  filename_pattern: "trendlines/<asset-id>.json"
+  api_path: "/api/trendlines/<asset-id>"
+  materialization: fetch_only_on_selected_asset_route_entry
+  default_asset: sk-hynix
+  default_window: 63
+  default_scale: linear
+  assets: [sk-hynix, soxx, nasdaq, sp500, bitcoin, dow, mag7]
+  snapshot_pins: [asset_id, snapshot_id, as_of, content_hash, payload_sha256]
+  combine_with_future_or_official: false
+  client_line_fitting: prohibited
+  publication_failure: explicit_hold_without_numbers
+  fetch_failure: explicit_error_without_substitution
 
 timeseries:
   route: "#timeseries"

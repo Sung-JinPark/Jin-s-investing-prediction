@@ -10,6 +10,7 @@
 
 from __future__ import annotations
 
+import base64
 import csv
 import hashlib
 import html as html_lib
@@ -81,6 +82,9 @@ TIMESERIES_V13_VOL_BUDGET_BYTES = 24_000
 TIMESERIES_V13_VOL_FILENAME = "timeseries_v13_vol.json"
 TIMESERIES_DAILY_BUDGET_BYTES = 128 * 1024
 TIMESERIES_DAILY_FILENAME = "timeseries_daily.json"
+TRENDLINES_SUMMARY_BUDGET_BYTES = 16 * 1024
+TRENDLINES_ASSET_BUDGET_BYTES = 256 * 1024
+TRENDLINES_ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
 WANTED_SANS_CSS = (
     "https://cdn.jsdelivr.net/gh/wanteddev/wanted-sans@v1.0.3/"
     "packages/wanted-sans/fonts/webfonts/variable/split/"
@@ -526,6 +530,8 @@ def build_read_model(
         market_mood["freshness"] = {"status": "unavailable"}
     from .timeseries_daily6m.display import load_projection as load_timeseries_daily_projection
     timeseries_daily = load_timeseries_daily_projection(root, now=now)
+    from .trendlines.display import load_projection as load_trendlines_projection
+    trendlines = load_trendlines_projection(root)
     ai_regime = load_ai_regime(root)
     o_entry_cohort = load_cohort_summary(root)
     band_calibration_path = root / "data/scenarios/band_calibration.csv"
@@ -731,6 +737,7 @@ def build_read_model(
         "timeseries_v13_vol": timeseries_v13_vol,
         "market_mood": market_mood,
         "timeseries_daily": timeseries_daily,
+        "trendlines": trendlines,
         "multi_year_stress": multi_year_stress,
         "ai_regime": ai_regime,
         "o_entry_cohort": o_entry_cohort,
@@ -1108,6 +1115,81 @@ def split_statistics_data(read_model: dict) -> tuple[dict, dict | None]:
     return base, payload
 
 
+def split_trendlines_data(read_model: dict) -> tuple[dict, dict[str, dict]]:
+    """Bound and pin independent asset files without changing source snapshots."""
+    projection = read_model.get("trendlines")
+    if not projection or "details" not in projection:
+        return read_model, {}
+    summary = {key: value for key, value in projection.items() if key != "details"}
+    assets, sidecars = [], {}
+    seen = set()
+    for original in summary.get("assets", []):
+        asset = dict(original)
+        asset_id = asset.get("asset_id")
+        if asset_id not in TRENDLINES_ASSET_IDS or asset_id in seen:
+            raise ValueError("trendlines asset identity invalid")
+        seen.add(asset_id)
+        detail = projection["details"].get(asset_id)
+        if asset.get("status") in {"ready", "stale"}:
+            if not isinstance(detail, dict) or detail.get("asset_id") != asset_id or detail.get("status") != asset.get("status"):
+                raise ValueError("trendlines ready detail missing or mismatched")
+            for key in ("snapshot_id", "as_of", "content_hash"):
+                if not asset.get(key) or asset[key] != detail.get(key):
+                    raise ValueError(f"trendlines detail metadata mismatch: {key}")
+            payload = {"schema_version": 1, "contract_id": "trendlines_asset_route_v1", "data": {"trendlines": detail}}
+            raw = json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False).encode("utf-8")
+            if len(raw) > TRENDLINES_ASSET_BUDGET_BYTES:
+                raise ValueError("trendlines asset budget exceeded")
+            asset["deferred_data"] = {
+                "required": True, "loaded": False, "url": f"trendlines/{asset_id}.json",
+                "asset_id": asset_id, "snapshot_id": asset["snapshot_id"], "as_of": asset["as_of"],
+                "content_hash": asset["content_hash"], "payload_sha256": hashlib.sha256(raw).hexdigest(),
+            }
+            sidecars[asset_id] = payload
+        assets.append(asset)
+    if seen != set(TRENDLINES_ASSET_IDS):
+        raise ValueError("trendlines summary must contain all seven assets")
+    summary["assets"] = assets
+    raw_summary = json.dumps(summary, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False).encode("utf-8")
+    if len(raw_summary) > TRENDLINES_SUMMARY_BUDGET_BYTES:
+        raise ValueError("trendlines summary budget exceeded")
+    return {**read_model, "trendlines": summary}, sidecars
+
+
+def _trendlines_output_path(output: Path, relative: str) -> Path:
+    destination = output.resolve()
+    target = (destination / relative).resolve()
+    if not target.is_relative_to(destination):
+        raise ValueError("trendlines output escapes the requested destination")
+    return target
+
+
+def _write_trendlines_sidecars(sidecars: dict[str, dict], output: Path) -> None:
+    # These seven files are replaceable public outputs. Source receipts, engine
+    # archives and ledgers are never deleted when current permission is closed.
+    for asset_id in TRENDLINES_ASSET_IDS:
+        if asset_id not in sidecars:
+            _trendlines_output_path(output, f"trendlines/{asset_id}.json").unlink(missing_ok=True)
+    for suffix in ("js", "css"):
+        target = _trendlines_output_path(output, f"assets/trendlines.{suffix}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((DASHBOARD_PARTS / f"trendlines.{suffix}").read_bytes())
+    for asset_id, payload in sidecars.items():
+        if asset_id not in TRENDLINES_ASSET_IDS:
+            raise ValueError("trendlines output asset identity invalid")
+        target = _trendlines_output_path(output, f"trendlines/{asset_id}.json")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(json.dumps(payload, ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False), encoding="utf-8")
+
+
+def _trendlines_assets_metadata(prefix: str) -> str:
+    metadata = {}
+    for suffix in ("js", "css"):
+        raw = (DASHBOARD_PARTS / f"trendlines.{suffix}").read_bytes()
+        metadata[suffix] = {"url": f"{prefix}.{suffix}", "integrity": "sha256-" + base64.b64encode(hashlib.sha256(raw).digest()).decode("ascii")}
+    return "window.__TRENDLINES_ASSETS__ = " + json.dumps(metadata, separators=(",", ":")) + ";"
+
+
 def split_timeseries_daily_data(read_model: dict) -> tuple[dict, dict | None]:
     """Pin one bounded daily route artifact without changing forecast history."""
     projection = read_model.get("timeseries_daily")
@@ -1375,6 +1457,7 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
         read_model, _ = split_daily_flow(read_model)
         read_model, _ = split_future_paths(read_model)
         read_model, _ = split_timeseries_daily_data(read_model)
+        read_model, _ = split_trendlines_data(read_model)
         read_model = _compact_embed_forecast_history(read_model)
         read_model = _limit_embed_inline_bodies(read_model)
         read_model = _compact_embed_band_calibration(read_model)
@@ -1389,7 +1472,9 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
             f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";'
-            f"window.__DATA__ = {blob};</script>"
+            'window.__TRENDLINES_URL__ = "trendlines/";'
+            + _trendlines_assets_metadata("assets/trendlines")
+            + f"window.__DATA__ = {blob};</script>"
         )
     elif mode == "pages":
         data_script = (
@@ -1398,7 +1483,9 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             f'window.__DAILY_FLOW_URL__ = "{DAILY_FLOW_FILENAME}";'
             f'window.__STATISTICS_URL__ = "{STATISTICS_DATA_FILENAME}";'
             f'window.__FORECAST_BODIES_URL__ = "{FORECAST_BODIES_FILENAME}";'
-            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";</script>'
+            f'window.__TIMESERIES_DAILY_URL__ = "{TIMESERIES_DAILY_FILENAME}";'
+            'window.__TRENDLINES_URL__ = "trendlines/";'
+            + _trendlines_assets_metadata("assets/trendlines") + '</script>'
         )
     elif mode == "fetch":
         data_script = (
@@ -1406,7 +1493,9 @@ def render_html(read_model: dict, mode: str = "embed") -> str:
             'window.__FUTURE_PATHS_URL__ = "/api/future-paths";'
             'window.__DAILY_FLOW_URL__ = "/api/daily-flow";'
             'window.__STATISTICS_URL__ = "/api/statistics";'
-            'window.__TIMESERIES_DAILY_URL__ = "/api/timeseries-daily";</script>'
+            'window.__TIMESERIES_DAILY_URL__ = "/api/timeseries-daily";'
+            'window.__TRENDLINES_URL__ = "/api/trendlines/";'
+            + _trendlines_assets_metadata("/assets/trendlines") + '</script>'
         )
     else:
         raise ValueError(f"unknown dashboard render mode: {mode}")
@@ -1579,9 +1668,11 @@ def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
+    base, trendlines_assets = split_trendlines_data(base)
     out = root / "reports" / "dashboard.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(render_html(base, mode="embed"), encoding="utf-8")
+    _write_trendlines_sidecars(trendlines_assets, out.parent)
     if daily_flow is not None:
         (out.parent / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
@@ -1675,6 +1766,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     base, future_paths = split_future_paths(base)
     base, forecast_bodies = split_forecast_bodies(base)
     base, timeseries_daily = split_timeseries_daily_data(base)
+    base, trendlines_assets = split_trendlines_data(base)
     out_dir.mkdir(parents=True, exist_ok=True)
     index = out_dir / "index.html"
     index.write_text(render_html(model, mode="pages"), encoding="utf-8")
@@ -1691,6 +1783,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
             f"{base_size / DATA_JSON_BUDGET_BYTES:.1%} of its budget"
         )
     (out_dir / "data.json").write_text(base_json, encoding="utf-8")
+    _write_trendlines_sidecars(trendlines_assets, out_dir)
     if daily_flow is not None:
         (out_dir / DAILY_FLOW_FILENAME).write_text(
             json.dumps(daily_flow, ensure_ascii=False, default=str, separators=(",", ":")),
@@ -1749,6 +1842,10 @@ def serve(root: Path, host: str, port: int) -> None:
         def do_GET(self) -> None:  # noqa: N802
             if self.path in ("/", "/index.html"):
                 self._send(shell.encode("utf-8"), "text/html; charset=utf-8")
+            elif self.path in ("/assets/trendlines.js", "/assets/trendlines.css"):
+                filename = self.path.removeprefix("/assets/")
+                mime = "text/javascript" if filename.endswith(".js") else "text/css"
+                self._send((DASHBOARD_PARTS / filename).read_bytes(), mime + "; charset=utf-8")
             elif self.path.startswith("/api/data"):
                 # 매 요청마다 라이브 재조회 (읽기 전용 — 새 연결, 쓰기 없음)
                 conn = ingest.connect(db_path)
@@ -1757,6 +1854,7 @@ def serve(root: Path, host: str, port: int) -> None:
                     model, _ = split_daily_flow(model)
                     model, _ = split_future_paths(model)
                     model, _ = split_timeseries_daily_data(model)
+                    model, _ = split_trendlines_data(model)
                 finally:
                     conn.close()
                 body = json.dumps(model, ensure_ascii=False, default=str).encode("utf-8")
@@ -1780,6 +1878,21 @@ def serve(root: Path, host: str, port: int) -> None:
                     future_paths, ensure_ascii=False, default=str,
                     separators=(",", ":"),
                 ).encode("utf-8")
+                self._send(body, "application/json; charset=utf-8")
+            elif self.path.startswith("/api/trendlines/"):
+                asset_id = self.path.removeprefix("/api/trendlines/")
+                if asset_id not in TRENDLINES_ASSET_IDS:
+                    self.send_error(404)
+                    return
+                conn = ingest.connect(db_path)
+                try:
+                    _, assets = split_trendlines_data(build_read_model(conn, root))
+                finally:
+                    conn.close()
+                if asset_id not in assets:
+                    self.send_error(404, "trendlines asset is on hold")
+                    return
+                body = json.dumps(assets[asset_id], ensure_ascii=False, default=str, separators=(",", ":"), allow_nan=False).encode("utf-8")
                 self._send(body, "application/json; charset=utf-8")
             elif self.path.startswith("/api/timeseries-daily"):
                 conn = ingest.connect(db_path)

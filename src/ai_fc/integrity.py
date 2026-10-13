@@ -43,6 +43,9 @@ def iter_truth_files(root: Path) -> list[Path]:
         root / "calibration" / "provider_shadow_ledger.csv",
         root / "calibration" / "cost_log.csv",
         root / "data" / "source_registry.yaml",
+        root / "data" / "trendlines" / "asset_registry.yaml",
+        root / "data" / "trendlines" / "source_policy.yaml",
+        root / "data" / "trendlines" / "latest.json",
     )
     candidates.extend(path for path in fixed if path.exists())
     for base, patterns in (
@@ -50,6 +53,9 @@ def iter_truth_files(root: Path) -> list[Path]:
         (root / "data" / "ml_history", ("*.jsonl",)),
         (root / "data" / "contracts", ("*.yaml", "*.yml")),
         (root / "data" / "scenarios", ("*.json",)),
+        (root / "data" / "trendlines" / "raw", ("*.json",)),
+        (root / "data" / "trendlines" / "archive", ("*.json",)),
+        (root / "data" / "trendlines" / "ledgers", ("*.jsonl",)),
     ):
         if not base.exists():
             continue

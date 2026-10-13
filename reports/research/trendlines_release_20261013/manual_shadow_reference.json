@@ -1,0 +1,76 @@
+{
+  "source_sha256": "ee91316ad8cc81ec842761db72d0e1ca44b6e5218bb71045c4a572705f20de2e",
+  "original_preserved": true,
+  "role": "manual_research_reference_not_production_input",
+  "comparisons": [
+    {
+      "reference": "short_manual",
+      "anchors": [
+        "2026-07-29",
+        "2026-09-03"
+      ],
+      "slope": 12480.0,
+      "linear_price_at_20261013": 1857520.0,
+      "baseline_price_error": 0.0,
+      "historical_low_intrusions": [],
+      "auto_promotion": false,
+      "reason": "retrospective unapproved-source reference; confirmed pivots/ATR/full source lineage independently required"
+    },
+    {
+      "reference": "long_manual",
+      "anchors": [
+        "2025-11-26",
+        "2026-03-31"
+      ],
+      "slope": 3719.512195121951,
+      "linear_price_at_20261013": 1289536.5853658537,
+      "baseline_price_error": 0.0,
+      "historical_low_intrusions": [
+        {
+          "date": "2025-12-05",
+          "observed_low": 527000.0,
+          "line_price": 527036.5853658536,
+          "relative_intrusion": -6.941712751919322e-05
+        },
+        {
+          "date": "2025-12-15",
+          "observed_low": 535000.0,
+          "line_price": 549353.6585365854,
+          "relative_intrusion": -0.026128266033254213
+        },
+        {
+          "date": "2025-12-16",
+          "observed_low": 530000.0,
+          "line_price": 553073.1707317074,
+          "relative_intrusion": -0.041718116069853664
+        },
+        {
+          "date": "2025-12-17",
+          "observed_low": 525000.0,
+          "line_price": 556792.6829268293,
+          "relative_intrusion": -0.05709967803403649
+        },
+        {
+          "date": "2025-12-18",
+          "observed_low": 537000.0,
+          "line_price": 560512.1951219512,
+          "relative_intrusion": -0.04194769592271868
+        },
+        {
+          "date": "2025-12-19",
+          "observed_low": 547000.0,
+          "line_price": 564231.7073170731,
+          "relative_intrusion": -0.030540125791600856
+        },
+        {
+          "date": "2025-12-22",
+          "observed_low": 567000.0,
+          "line_price": 567951.2195121951,
+          "relative_intrusion": -0.0016748260757536218
+        }
+      ],
+      "auto_promotion": false,
+      "reason": "retrospective unapproved-source reference; confirmed pivots/ATR/full source lineage independently required"
+    }
+  ]
+}

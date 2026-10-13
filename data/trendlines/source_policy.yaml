@@ -1,0 +1,26 @@
+schema_version: 1
+policy_id: trendlines_sources_v1
+default_action: deny
+approved_cost: free_only
+raw_before_bars: required
+atomic_ohlc: same_source_same_vintage_same_basis
+available_at: first_repository_capture_or_auditable_later_revision
+correction_policy: append_revision_with_supersedes_bar_id
+redistribution: explicit_derived_display_permission_required
+source_record_required:
+  - rights_status
+  - allow_collection
+  - allow_derived_display
+  - allow_ohlc
+  - allowed_domains
+  - allowed_price_bases
+  - asset_ids
+  - calendar_ids
+  - parser_id
+  - adjustment_method
+# split_adjusted_price additionally requires adjustment_method=split_only and
+# adjustment_vintage_guarantee=true, backed by reviewed provider/event evidence.
+publication_lag_minutes_default: 0
+# No source currently has verified free OHLC and publication permission for
+# these exact instruments. Adding a URL does not approve collection or display.
+sources: {}

@@ -1,0 +1,15 @@
+{
+  "exit_code": 0,
+  "source_unchanged": true,
+  "before": {
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite": "2d4865c7e260de94e5616b776aeb7ac7449d216e9db64705fdbc0c57573bdc1c",
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "after": {
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite": "2d4865c7e260de94e5616b776aeb7ac7449d216e9db64705fdbc0c57573bdc1c",
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite-shm": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+    "C:\\workspace\\ai-investing\\dualdb\\db\\dualdb.sqlite-wal": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "disposable_copy": "C:\\Users\\91ssj\\.codex\\worktrees\\auto-trendlines\\ai-investing\\outputs\\trendlines\\dualdb-suite"
+}

@@ -22,3 +22,21 @@ def test_secret_scan_does_not_match_sk_inside_public_url_slug(tmp_path: Path) ->
         encoding="utf-8",
     )
     assert scan(tmp_path) == []
+
+
+def test_public_trendline_snapshot_id_does_not_hide_a_key(tmp_path: Path) -> None:
+    source = tmp_path / "snapshot.json"
+    public_id = "trendlines-sk-hynix-" + "a" * 24
+    source.write_text('{"snapshot_id":"' + public_id + '"}\n', encoding="utf-8")
+    assert scan(tmp_path) == []
+    source.write_text(
+        '{"snapshot_id":"' + public_id + '","token":"sk-' + "A" * 30 + '"}\n',
+        encoding="utf-8",
+    )
+    assert scan(tmp_path) == ["snapshot.json:1"]
+
+
+def test_snapshot_slug_is_exempt_only_in_the_exact_public_field(tmp_path: Path) -> None:
+    source = tmp_path / "snapshot.json"
+    source.write_text('{"token":"trendlines-sk-hynix-' + "a" * 24 + '"}\n', encoding="utf-8")
+    assert scan(tmp_path) == ["snapshot.json:1"]

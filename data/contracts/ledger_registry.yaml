@@ -451,3 +451,47 @@ ledgers:
     criticality: high
     schema_ref: json_object
     expected_state: frozen
+  # Source calendars and complete OHLC/revision lineage are audited by trendlines-verify.
+  # Event cadence avoids applying the legacy NYSE freshness rule to KRX and BTC.
+  - id: trendlines_raw_artifacts
+    path: data/trendlines/raw/*.json
+    kind: immutable_files
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+  - id: trendlines_raw_receipts
+    path: data/trendlines/ledgers/raw_receipts.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: trendlines_bar_revisions
+    path: data/trendlines/ledgers/bars.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: trendlines_snapshot_archive
+    path: data/trendlines/archive/**/*.json
+    kind: archive_dir
+    cadence: event
+    criticality: high
+    schema_ref: json_object
+  - id: trendlines_snapshot_revisions
+    path: data/trendlines/ledgers/snapshots.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: trendlines_events
+    path: data/trendlines/ledgers/events.jsonl
+    kind: jsonl
+    cadence: event
+    criticality: high
+    schema_ref: jsonl
+  - id: trendlines_latest
+    path: data/trendlines/latest.json
+    kind: mutable_snapshot
+    cadence: manual
+    criticality: high
+    schema_ref: json_object

@@ -1,0 +1,120 @@
+name: trendlines-refresh
+
+# KST 07:17 / 09:17 / 16:17. Each asset uses its own completed-session and
+# publication-lag contract. No provider credentials or unapproved price fallback.
+on:
+  schedule:
+    - cron: "17 0,7,22 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trendlines-refresh
+  cancel-in-progress: false
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Use the existing declared research dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - name: Capture approved raw OHLC inputs without canonical writes
+        run: python -m ai_fc trendlines-refresh --capture-only --out .tmp/trendlines-capture
+      - uses: actions/upload-artifact@v4
+        with:
+          name: trendlines-capture-${{ github.run_id }}
+          path: .tmp/trendlines-capture/
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: error
+
+  publish:
+    needs: capture
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: write
+    concurrency:
+      group: trendlines-publisher
+      cancel-in-progress: false
+    env:
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Use the existing declared replay dependencies
+        run: pip install -e ".[pit,timeseries]" "exchange-calendars>=4.6,<5"
+      - uses: actions/download-artifact@v4
+        with:
+          name: trendlines-capture-${{ github.run_id }}
+          path: .tmp/trendlines-capture
+      - name: Replay raw capture on the latest main and verify before each push
+        shell: bash
+        run: |
+          bundle="$GITHUB_WORKSPACE/.tmp/trendlines-capture"
+          report="$GITHUB_WORKSPACE/.tmp/trendlines-report.json"
+          for attempt in 1 2 3; do
+            git fetch --no-tags origin main
+            attempt_root="$RUNNER_TEMP/trendlines-publish-$attempt"
+            git worktree add --detach "$attempt_root" origin/main
+            PYTHONPATH="$attempt_root/src" python -m ai_fc trendlines-refresh --root "$attempt_root" --bundle "$bundle" --report "$report"
+            PYTHONPATH="$attempt_root/src" python -m ai_fc trendlines-verify --root "$attempt_root" --replay
+            decision="$(python - "$report" <<'PY'
+          import json, sys
+          from pathlib import Path
+          value = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          if any(type(value.get(k)) is not bool for k in ('changed', 'publication_allowed')):
+              raise SystemExit('explicit trendlines publication decisions required')
+          if not value['publication_allowed']:
+              raise SystemExit('trendlines integrity or replay gate rejected publication')
+          print(str(value['changed']).lower())
+          PY
+            )"
+            if [ "$decision" = "false" ]; then break; fi
+            (
+              cd "$attempt_root"
+              PYTHONPATH="$attempt_root/src" python -m ai_fc inventory
+              git add -- data/trendlines docs/generated/inventory.generated.md
+              unexpected="$(git diff --cached --name-only | grep -Ev '^(data/trendlines/|docs/generated/inventory\.generated\.md$)' || true)"
+              test -z "$unexpected" || { echo "Unexpected publication paths: $unexpected"; exit 1; }
+              deleted="$(git diff --cached --name-only --diff-filter=D)"
+              test -z "$deleted" || { echo 'Trendlines publisher cannot delete history'; exit 1; }
+              git diff --cached --quiet && { echo 'Meaningful change reported without staged data'; exit 1; }
+              git config user.name 'github-actions[bot]'
+              git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+              git commit -m 'data: append validated trendline research state'
+            )
+            if git -C "$attempt_root" push origin HEAD:main; then break; fi
+            if [ "$attempt" -eq 3 ]; then echo 'Main advanced during all three publication attempts'; exit 1; fi
+            sleep 15
+          done
+      - name: Deploy only a meaningful verified state change
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          changed="$(python -c "import json; print(str(json.load(open('.tmp/trendlines-report.json'))['changed']).lower())")"
+          if [ "$changed" = "true" ]; then gh workflow run pages.yml --repo "$GITHUB_REPOSITORY" --ref main; fi
+      - name: Preserve the publication decision
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: trendlines-report-${{ github.run_id }}
+          path: .tmp/trendlines-report.json
+          include-hidden-files: true
+          retention-days: 7
+          if-no-files-found: ignore

@@ -94,8 +94,12 @@ def test_bot_data_commits_trigger_pages_and_verification() -> None:
         '"timeseries-v13-vol-live", '
         '"market-mood-refresh", "source-monitoring", "timeseries-daily6m"]'
     )
+    import yaml
+
+    required_upstreams = yaml.safe_load(expected)["workflows"]
     for workflow in (pages, verify):
-        assert expected in workflow
+        events = yaml.safe_load(workflow)[True]
+        assert set(required_upstreams) <= set(events["workflow_run"]["workflows"])
         assert "types: [completed]" in workflow
 
     # 배포 빌드는 PR 에서도 돌아야 한다. 2026-09-15 에 data.json 예산 초과로 Pages 가

@@ -5,7 +5,7 @@ on:
     branches: [main]
   pull_request:
   workflow_run:
-    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", "timeseries-v13-vol-live", "market-mood-refresh", "source-monitoring", "timeseries-daily6m"]
+    workflows: ["investing-refresh", "scenario-refresh", "ai-regime-refresh", "statistics-refresh", "timeseries-refresh", "timeseries-v5-refresh", "timeseries-v2-refresh", "timeseries-v8-shadow", "timeseries-v8-daily", "timeseries-v13-vol-live", "market-mood-refresh", "source-monitoring", "timeseries-daily6m", "trendlines-refresh"]
     types: [completed]
 
 concurrency:
@@ -30,6 +30,8 @@ jobs:
         run: pip install -e ".[pit,timeseries,timeseries-v5]" pytest
       - name: unit tests (src)
         run: python -m pytest src/tests -q
+      - name: Independent trendline source and replay gate
+        run: python -m ai_fc trendlines-verify --replay
       - name: immutability drift check
         run: cd src && python -m ai_fc sync --check
       - name: generated inventory drift check
