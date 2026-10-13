@@ -20,6 +20,17 @@ SOURCE_POLICY_RELATIVE = Path("data/trendlines/source_policy.yaml")
 ASSET_IDS = ("sk-hynix", "soxx", "nasdaq", "sp500", "bitcoin", "dow", "mag7")
 ENGINE_VERSION = "trendlines-v1.0"
 SHA256 = re.compile(r"[0-9a-f]{64}\Z")
+RESEARCH_SOURCE_ID = "yahoo_public_history_html"
+RESEARCH_SOURCE_CONTEXT = "user_authorized_public_html_research"
+RESEARCH_PRICE_BASIS = "provider_reported_ohlc_current_vintage"
+RESEARCH_IDENTITIES = {
+    "sk-hynix": ("000660.KS", "KRX:000660", "KRW", "KRW_per_share", "XKRX", "Asia/Seoul", "equity", "exchange_close"),
+    "soxx": ("SOXX", "NASDAQ:SOXX", "USD", "USD_per_share", "XNAS", "America/New_York", "etf", "exchange_close"),
+    "nasdaq": ("^IXIC", "NASDAQ_COMPOSITE_PRICE_INDEX", "USD", "index_points", "XNAS", "America/New_York", "index", "exchange_close"),
+    "sp500": ("^GSPC", "SP500_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
+    "bitcoin": ("BTC-USD", "BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED", "USD", "USD_per_BTC", "24/7", "UTC", "crypto", "UTC_00_00_next_day"),
+    "dow": ("^DJI", "DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX", "USD", "index_points", "XNYS", "America/New_York", "index", "exchange_close"),
+}
 
 
 class TrendlinesError(ValueError):
@@ -166,6 +177,38 @@ def publication_lag(asset: dict[str, Any], source: dict[str, Any] | None = None)
     if isinstance(value, bool) or not isinstance(value, int) or value < 0:
         raise TrendlinesError("publication_lag_minutes must be an explicit nonnegative integer")
     return value
+
+
+def validate_research_source(asset: dict[str, Any], source_policy: dict[str, Any] | None) -> dict[str, Any]:
+    """Explicit uncertified public-HTML scope; this never grants source approval.
+
+    Collection/raw metadata binding remains at the receipt/parser boundary.
+    These identities prevent a different instrument, ETF or synthetic basket
+    from being labelled as one of the user's requested research instruments.
+    """
+    identity = RESEARCH_IDENTITIES.get(asset.get("asset_id"))
+    if identity is None:
+        raise TrendlinesError("research instrument has no exact public HTML source")
+    fields = ("provider_symbol", "identity", "currency", "unit", "calendar_id", "timezone", "kind", "source_day_cutoff")
+    if any(asset.get(field) != expected for field, expected in zip(fields, identity)):
+        raise TrendlinesError("research instrument identity mismatch")
+    if asset.get("source_id") != RESEARCH_SOURCE_ID or asset.get("price_basis") != RESEARCH_PRICE_BASIS:
+        raise TrendlinesError("research source or current-vintage price basis mismatch")
+    source = (source_policy or {}).get("sources", {}).get(RESEARCH_SOURCE_ID)
+    if not isinstance(source, dict):
+        raise TrendlinesError("missing explicit research source context")
+    if (source.get("rights_status") != "uncertified_research_source"
+            or source.get("source_context") != RESEARCH_SOURCE_CONTEXT
+            or source.get("verified_source") is not False or source.get("adjustment_verified") is not False):
+        raise TrendlinesError("research source cannot claim approval or verified adjustment")
+    for field, value in (("asset_ids", asset["asset_id"]), ("allowed_price_bases", RESEARCH_PRICE_BASIS),
+                         ("calendar_ids", asset["calendar_id"]), ("allowed_symbols", asset["provider_symbol"])):
+        if value not in source.get(field, []):
+            raise TrendlinesError(f"research source identity mismatch:{field}")
+    if source.get("allowed_domains") != ["finance.yahoo.com"] or source.get("parser_id") != "yahoo_history_html_v1":
+        raise TrendlinesError("research source domain/parser mismatch")
+    publication_lag(asset, source)
+    return source
 
 
 def _finite_number(value: Any) -> bool:

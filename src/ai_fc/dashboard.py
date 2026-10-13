@@ -1130,9 +1130,25 @@ def split_trendlines_data(read_model: dict) -> tuple[dict, dict[str, dict]]:
             raise ValueError("trendlines asset identity invalid")
         seen.add(asset_id)
         detail = projection["details"].get(asset_id)
-        if asset.get("status") in {"ready", "stale"}:
+        if asset.get("status") in {"ready", "stale", "unverified_display"}:
             if not isinstance(detail, dict) or detail.get("asset_id") != asset_id or detail.get("status") != asset.get("status"):
                 raise ValueError("trendlines ready detail missing or mismatched")
+            if asset.get("status") == "unverified_display":
+                if (detail.get("contract_id") != "trendlines_research_display_v1"
+                        or detail.get("publication_class") != "research_source"
+                        or detail.get("verified_source") is not False
+                        or detail.get("numbers_visible") is not True
+                        or detail.get("official_forecast_write") is not False
+                        or detail.get("source_context") != "user_authorized_public_html_research"
+                        or detail.get("source_identity", {}).get("rights_status") != "uncertified_research_source"
+                        or detail.get("source_identity", {}).get("price_basis") != "provider_reported_ohlc_current_vintage"
+                        or detail.get("adjustment_verified") is not False
+                        or detail.get("historical_signals_available") is not False
+                        or asset.get("publication_class") != "research_source"
+                        or asset.get("verified_source") is not False
+                        or asset.get("numbers_visible") is not True
+                        or asset.get("official_snapshot_status") != "hold"):
+                    raise ValueError("trendlines unverified research disclosure invalid")
             for key in ("snapshot_id", "as_of", "content_hash"):
                 if not asset.get(key) or asset[key] != detail.get(key):
                     raise ValueError(f"trendlines detail metadata mismatch: {key}")
@@ -1154,6 +1170,14 @@ def split_trendlines_data(read_model: dict) -> tuple[dict, dict[str, dict]]:
     if len(raw_summary) > TRENDLINES_SUMMARY_BUDGET_BYTES:
         raise ValueError("trendlines summary budget exceeded")
     return {**read_model, "trendlines": summary}, sidecars
+
+
+def _reject_public_trendlines_research(model: dict) -> None:
+    projection = model.get("trendlines", {})
+    rows = list(projection.get("assets", [])) + list(projection.get("details", {}).values())
+    if any(row.get("status") == "unverified_display" or row.get("publication_class") == "research_source"
+           or row.get("contract_id") == "trendlines_research_display_v1" for row in rows):
+        raise ValueError("private research price data cannot be exported through standard dashboard writers")
 
 
 def _trendlines_output_path(output: Path, relative: str) -> Path:
@@ -1664,6 +1688,7 @@ def _compact_static_bundle(html: str) -> str:
 
 def write_dashboard(conn: sqlite3.Connection, root: Path) -> Path:
     model = build_read_model(conn, root)
+    _reject_public_trendlines_research(model)
     base, statistics_data = split_statistics_data(model)
     base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
@@ -1761,6 +1786,7 @@ def write_pages(conn: sqlite3.Connection, out_dir: Path, root: Path) -> Path:
     데이터는 전부 공개 repo에 이미 존재하는 예측 기록 — 새 노출 없음.
     """
     model = build_read_model(conn, root)
+    _reject_public_trendlines_research(model)
     base, statistics_data = split_statistics_data(model)
     base, daily_flow = split_daily_flow(base)
     base, future_paths = split_future_paths(base)
