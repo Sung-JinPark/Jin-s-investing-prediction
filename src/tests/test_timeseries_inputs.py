@@ -17,29 +17,30 @@ NOW = datetime.fromisoformat("2026-10-13T04:00:00+00:00")
 VALUES = {"NASDAQCOM": 20100.0, "VIXCLS": 15.0, "DGS2": 4.75, "T10Y2Y": 0.44, "DTWEXBGS": 120.0}
 
 
-def _seed(root: Path):
+def _seed(root: Path, *, dates=None):
     for sid, number in VALUES.items():
-        payload = json.dumps({"output_type": 3, "count": 1, "offset": 0, "observations": [{"date": "2026-10-09", sid + "_20261009": number}]}).encode()
-        stamp = "2026-10-10T08:00:00+00:00"
+        day, vintage, stamp = (dates or {}).get(sid, ("2026-10-09", "2026-10-09", "2026-10-10T08:00:00+00:00"))
+        payload = json.dumps({"output_type": 3, "count": 1, "offset": 0, "observations": [{"date": day, sid + "_" + vintage.replace("-", ""): number}]}).encode()
         N.persist_response(root, series_id=sid, status=200, payload=payload, retrieved_at=stamp, request_url="https://api.stlouisfed.org/fred/series/observations?series_id=" + sid)
         N.append_facts(root, N.normalize_alfred(payload, series_id=sid, retrieved_at=stamp))
 
 
-def _capture(root: Path, out: Path, *, now=NOW, empty_inventory=None, bad_inventory=False, truncated=False, fail_observations=None, latency=0, empty_native=False, future_value=None):
+def _capture(root: Path, out: Path, *, now=NOW, empty_inventory=None, bad_inventory=False, truncated=False, fail_observations=None, latency=0, empty_native=False, future_value=None, native_dates=None, default_native=False):
     time = [now]
     requests = []
     def native(spec):
         query = parse_qs(urlsplit(spec.url).query)
         sid = query["series_id"][0]
+        day, vintage = (native_dates or {}).get(sid, ("2026-10-12", "2026-10-12"))
         requests.append(query)
         time[0] += timedelta(seconds=latency)
         if urlsplit(spec.url).path.endswith("vintagedates"):
             empty = sid == empty_inventory or bad_inventory
-            payload = {"count": 1 if bad_inventory else 0 if empty else 1, "offset": 0, "vintage_dates": [] if empty else ["2026-10-12"]}
+            payload = {"count": 1 if bad_inventory else 0 if empty else 1, "offset": 0, "vintage_dates": [] if empty else [vintage]}
         else:
             if sid == fail_observations:
                 return 503, b"temporarily unavailable"
-            payload = {"output_type": 3, "count": 2 if truncated else 1, "offset": 0, "observations": [{"date": "2026-10-12", sid + "_20261012": VALUES[sid]}]}
+            payload = {"output_type": 3, "count": 2 if truncated else 1, "offset": 0, "observations": [{"date": day, sid + "_" + vintage.replace("-", ""): VALUES[sid]}]}
             if empty_native:
                 payload.update(count=0, observations=[])
             if future_value is not None:
@@ -56,7 +57,7 @@ def _capture(root: Path, out: Path, *, now=NOW, empty_inventory=None, bad_invent
         sid = parse_qs(urlsplit(url).query)["series_id"][0]
         return json.dumps({"observations": [{"date": "2026-10-12", "value": str(VALUES[sid])}]})
     report = I.capture_timeseries_inputs(root, output_dir=out, now=now, clock=lambda: time[0], api_key="fixture-runtime-credential",
-                                      native_fetcher=native, market_fetcher=market, fred_fetch_text=fred)
+                                      native_fetcher=None if default_native else native, market_fetcher=market, fred_fetch_text=fred)
     return report, requests
 
 
@@ -88,6 +89,67 @@ def test_capture_uses_series_specific_overlap_and_response_completion(tmp_path):
     assert all("api_key" not in r["source_uri"] and "fredgraph" not in r["source_uri"] for r in manifest["receipts"])
     with pytest.raises(I.TimeSeriesInputsError, match="immutable"):
         _capture(root, tmp_path / "capture")
+
+
+def test_repeat_capture_retains_last_weekly_publication_without_new_facts(tmp_path):
+    root = tmp_path / "repo"
+    _seed(root, dates={"DTWEXBGS": ("2026-10-02", "2026-10-05", "2026-10-06T08:00:00+00:00")})
+    source_dates = {"DTWEXBGS": ("2026-10-02", "2026-10-05")}
+    first, _ = _capture(root, tmp_path / "first", native_dates=source_dates)
+    I.apply_timeseries_inputs(root, bundle_dir=first["bundle_path"], now=NOW + timedelta(minutes=5))
+    before = _snapshot(root)
+    repeat, queries = _capture(root, tmp_path / "repeat", now=NOW + timedelta(minutes=30), native_dates=source_dates)
+    manifest = json.loads((Path(repeat["bundle_path"]) / "manifest.json").read_text())
+    assert repeat["status"] == "captured"
+    assert manifest["native_windows"]["DTWEXBGS"] == "2026-10-05"
+    assert {manifest["native_windows"][sid] for sid in I.NATIVE_SERIES if sid != "DTWEXBGS"} == {"2026-10-06"}
+    dollar_inventory = next(q for q in queries if q["series_id"] == ["DTWEXBGS"] and "limit" in q)
+    assert dollar_inventory["realtime_start"] == ["2026-10-05"]
+    result = I.apply_timeseries_inputs(root, bundle_dir=repeat["bundle_path"], now=NOW + timedelta(minutes=35))
+    assert result["publication_allowed"] is True and result["changed"] is False
+    assert result["native"] == {"appended": 0, "corrected": 0} and _snapshot(root) == before
+    assert json.loads((root / I.STATE_RELATIVE).read_text())["native_watermarks"]["DTWEXBGS"] == (NOW + timedelta(minutes=30)).isoformat()
+
+
+@pytest.mark.parametrize("vintage,stamp,reason", [
+    ("2026-09-12", "2026-10-13T02:00:00+00:00", "last known native publication"),
+    ("2026-09-11", "2026-09-12T04:00:00+00:00", "native watermark"),
+])
+def test_stale_publication_or_capture_requires_full_repair(tmp_path, vintage, stamp, reason):
+    root = tmp_path / "repo"
+    _seed(root, dates={"DTWEXBGS": (vintage, vintage, stamp)})
+    windows, failures = I._native_seed_windows(root, NOW)
+    assert "DTWEXBGS" not in windows
+    assert len(failures) == 1 and reason in failures[0]["reason"]
+    assert failures[0]["stage"] == "bootstrap"
+
+
+def test_last_publication_at_thirty_day_boundary_remains_bounded(tmp_path):
+    root = tmp_path / "repo"
+    _seed(root, dates={"DTWEXBGS": ("2026-09-11", "2026-09-13", "2026-10-13T02:00:00+00:00")})
+    windows, failures = I._native_seed_windows(root, NOW)
+    assert failures == [] and windows["DTWEXBGS"] == "2026-09-13"
+
+
+def test_default_native_transport_uses_bounded_official_retry_budget(tmp_path, monkeypatch):
+    root = tmp_path / "repo"
+    _seed(root)
+    calls = []
+    def fetch(spec, **kwargs):
+        calls.append(kwargs)
+        query = parse_qs(urlsplit(spec.url).query)
+        sid = query["series_id"][0]
+        if kwargs["endpoint"] == "vintage_dates":
+            value = {"count": 1, "offset": 0, "vintage_dates": ["2026-10-12"]}
+        else:
+            value = {"output_type": 3, "count": 1, "offset": 0, "observations": [{"date": "2026-10-12", sid + "_20261012": VALUES[sid]}]}
+        return 200, json.dumps(value).encode()
+    monkeypatch.setattr(N, "_fetch_alfred", fetch)
+    result, _ = _capture(root, tmp_path / "capture", default_native=True)
+    assert result["status"] == "captured" and len(calls) == 10
+    assert all(call["max_attempts"] == 3 and call["timeout_seconds"] == 20 for call in calls)
+    for sid in I.NATIVE_SERIES:
+        assert {call["endpoint"] for call in calls if call["series_id"] == sid} == {"vintage_dates", "observations"}
 
 
 def test_unchanged_poll_does_not_append_receipts_or_fan_out_for_model_ack(tmp_path):

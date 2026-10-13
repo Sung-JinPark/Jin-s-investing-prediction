@@ -101,7 +101,13 @@ def _native_seed_windows(root: Path, now: datetime) -> tuple[dict[str, str], lis
         if (now - latest).days > MARKET_LOOKBACK_DAYS:
             failures.append({"source_id": "alfred", "series_id": sid, "stage": "bootstrap", "reason": "native watermark exceeds bounded repair window; use the full source repair"})
             continue
-        windows[sid] = (latest - timedelta(days=OVERLAP_DAYS)).date().isoformat()
+        last_publication = max(_time(r["vintage_start"]).astimezone(ZoneInfo("America/New_York")).date() for r in rows)
+        if (now.date() - last_publication).days > MARKET_LOOKBACK_DAYS:
+            failures.append({"source_id": "alfred", "series_id": sid, "stage": "bootstrap", "reason": "last known native publication exceeds bounded repair window; use the full source repair"})
+            continue
+        # A successful recapture can move past a weekly source's last release.
+        # Retain that real publication while keeping the usual seven-day overlap.
+        windows[sid] = min((latest - timedelta(days=OVERLAP_DAYS)).date(), last_publication).isoformat()
     return windows, failures
 
 
@@ -206,7 +212,7 @@ def capture_timeseries_inputs(
             while True:
                 spec = alfred_vintage_dates_request(sid, api_key=api_key, realtime_start=start, realtime_end="9999-12-31", offset=offset)
                 requested = _time(tick())
-                status, payload = native_fetcher(spec) if native_fetcher else N._fetch_alfred(spec, series_id=sid, endpoint="vintage_dates", timeout_seconds=25, max_attempts=1)
+                status, payload = native_fetcher(spec) if native_fetcher else N._fetch_alfred(spec, series_id=sid, endpoint="vintage_dates", timeout_seconds=20, max_attempts=3)
                 item, captured = record("native_inventory", sid, "alfred", spec.url, requested, status, payload, "application/json")
                 try:
                     value = json.loads(payload)
@@ -230,7 +236,7 @@ def capture_timeseries_inputs(
                 batch = dates[index:index + N.ALFRED_VINTAGE_BATCH_SIZE]
                 spec = alfred_request(sid, api_key=api_key, realtime_start=batch[0], realtime_end=batch[-1], output_type=3)
                 requested = _time(tick())
-                status, payload = native_fetcher(spec) if native_fetcher else N._fetch_alfred(spec, series_id=sid, endpoint="observations", timeout_seconds=25, max_attempts=1)
+                status, payload = native_fetcher(spec) if native_fetcher else N._fetch_alfred(spec, series_id=sid, endpoint="observations", timeout_seconds=20, max_attempts=3)
                 item, captured = record("native_observations", sid, "alfred", spec.url, requested, status, payload, "application/json")
                 try:
                     if status != 200:
