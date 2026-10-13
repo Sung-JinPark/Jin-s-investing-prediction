@@ -1,6 +1,6 @@
 {
   "as_of": "2026-10-02",
-  "content_hash": "02efe5f0dc41ae183a18c2c0b60353740860d057c83ae40b37a6084a6d1db8df",
+  "content_hash": "64db1de9a735d2749bbe1a1ffc9e3783c06bbaaeba08ffc6175f57607aa189b4",
   "daily": {
     "anchor": {
       "provisional": false,
@@ -23,7 +23,6 @@
   "gate": {
     "operational_pass": false,
     "reasons": [
-      "필수 시장 입력 신선도 초과: NASDAQCOM",
       "필수 시장 입력 신선도 초과: DGS2",
       "필수 시장 입력 신선도 초과: DGS10",
       "필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"
@@ -31,21 +30,21 @@
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "knowledge_cutoff": "2026-10-13T03:52:10+00:00",
+  "knowledge_cutoff": "2026-10-13T09:52:36+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 75.86975296,
+        "age_hours": 9.877185412222223,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-12",
         "provisional": false,
-        "status": "stale"
+        "status": "fresh"
       },
       {
-        "age_hours": 3.86975296,
+        "age_hours": 9.877185412222223,
         "group": "VIX",
         "limit_hours": 48.0,
         "observation_time": "2026-10-12",
@@ -53,7 +52,7 @@
         "status": "fresh"
       },
       {
-        "age_hours": 75.86975296,
+        "age_hours": 81.87718541222222,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-09",
@@ -61,7 +60,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 75.86975296,
+        "age_hours": 81.87718541222222,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-09",
@@ -69,7 +68,7 @@
         "status": "stale"
       },
       {
-        "age_hours": 243.86975296,
+        "age_hours": 249.87718541222225,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-02",
