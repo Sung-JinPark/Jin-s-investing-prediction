@@ -1,87 +1,57 @@
 {
   "as_of": "2026-10-02",
-  "content_hash": "e30bada43d39d1cb3939fcb0e3cf7713a4669a980c2af8c1c699686cb9b25254",
-  "display_state": "research_reference",
+  "content_hash": "c052b5b2d459ec1e5a2541592ce007407bab13c8a4a03125b7bbe9729fd6e7c0",
+  "display_state": "validation_pending",
   "footnote": "*미국 시장·미국 공식 거시자료 기준 · 참고 의견",
   "gate": {
-    "operational_pass": true,
-    "reasons": [],
+    "operational_pass": false,
+    "reasons": [
+      "필수 시장 입력 신선도 초과: DGS2",
+      "필수 시장 입력 신선도 초과: DGS10",
+      "필수 시장 입력 신선도 초과: DTWEXBGS_or_DTWEXB"
+    ],
     "sealed_gate_pass": true,
     "sealed_run_id": "tsv8-sealed-64345a816b4857171915d5b8"
   },
-  "horizons": {
-    "1": {
-      "p10": -0.01454200133300921,
-      "p25": -0.007067368962123991,
-      "p50": -0.0013610021246579032,
-      "p75": 0.004126873986952729,
-      "p90": 0.009299867135639614,
-      "probability_up": 0.43
-    },
-    "21": {
-      "p10": -0.04613347314869243,
-      "p25": -0.013558149975930626,
-      "p50": 0.01740667136603634,
-      "p75": 0.03866782892463938,
-      "p90": 0.056032527668954384,
-      "probability_up": 0.66
-    },
-    "5": {
-      "p10": -0.02685195395516679,
-      "p25": -0.011621902168783768,
-      "p50": 0.002901079748038954,
-      "p75": 0.01522047878818936,
-      "p90": 0.0253797031642696,
-      "probability_up": 0.56
-    },
-    "63": {
-      "p10": -0.06729477895568525,
-      "p25": -0.006467057653132189,
-      "p50": 0.040436372097971685,
-      "p75": 0.07524929608258724,
-      "p90": 0.10428335281455206,
-      "probability_up": 0.725
-    }
-  },
-  "knowledge_cutoff": "2026-10-10T09:47:17+00:00",
+  "knowledge_cutoff": "2026-10-13T10:30:05+00:00",
   "model_id": "shadow.mf_dfm_varx_calibrated_v8",
   "model_version": 8,
   "operational": {
     "freshness": [
       {
-        "age_hours": 9.788532150833333,
+        "age_hours": 10.501800100277778,
         "group": "NASDAQCOM",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-12",
         "status": "fresh"
       },
       {
-        "age_hours": 9.788532150833333,
+        "age_hours": 10.501800100277778,
         "group": "VIX",
         "limit_hours": 48.0,
-        "observation_time": "2026-10-09",
+        "observation_time": "2026-10-12",
         "status": "fresh"
       },
       {
-        "age_hours": 9.788532150833333,
+        "age_hours": 82.50180010027778,
         "group": "DGS2",
         "limit_hours": 48.0,
         "observation_time": "2026-10-09",
-        "status": "fresh"
+        "status": "stale"
       },
       {
-        "age_hours": 9.788532150833333,
+        "age_hours": 82.50180010027778,
         "group": "DGS10",
         "limit_hours": 48.0,
         "observation_time": "2026-10-09",
-        "status": "fresh"
+        "status": "stale"
       },
       {
-        "age_hours": 177.78853215083333,
+        "age_hours": 250.5018001002778,
         "group": "DTWEXBGS_or_DTWEXB",
         "limit_hours": 216.0,
         "observation_time": "2026-10-02",
-        "status": "fresh"
+        "status": "stale"
       }
     ],
     "monitoring": {
@@ -94,9 +64,9 @@
   "publication": {
     "combined_with_official_forecasts": false,
     "combined_with_scenario_v5_2": false,
-    "customer_numbers_visible": true,
+    "customer_numbers_visible": false,
     "reference_opinion_only": true
   },
   "schema_version": 1,
-  "status": "shadow_live"
+  "status": "shadow_operational_hold"
 }
