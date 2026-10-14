@@ -28,12 +28,10 @@ async function ensureTrendlineData(assetId){
 const TREND_ASSETS=[['sk-hynix','SK하이닉스'],['soxx','SOXX'],['nasdaq','나스닥 종합'],['sp500','S&P 500'],['bitcoin','비트코인'],['dow','다우존스'],['mag7','빅테크 7']];
 const TREND_PRIVATE_IDENTITIES={'sk-hynix':['KRX:000660','000660.KS','KRW','XKRX','KRW_per_share','Asia/Seoul','equity','exchange_close'],soxx:['NASDAQ:SOXX','SOXX','USD','XNAS','USD_per_share','America/New_York','etf','exchange_close'],nasdaq:['NASDAQ_COMPOSITE_PRICE_INDEX','^IXIC','USD','XNAS','index_points','America/New_York','index','exchange_close'],sp500:['SP500_PRICE_INDEX','^GSPC','USD','XNYS','index_points','America/New_York','index','exchange_close'],bitcoin:['BTC_USD_SPOT_SOURCE_MUST_BE_DECLARED','BTC-USD','USD','24/7','USD_per_BTC','UTC','crypto','UTC_00_00_next_day'],dow:['DOW_JONES_INDUSTRIAL_AVERAGE_PRICE_INDEX','^DJI','USD','XNYS','index_points','America/New_York','index','exchange_close']};
 const TREND_LOCAL_BASE='http://127.0.0.1:8878/api/private-trendlines/';
-const TREND_LOCAL_PREF_KEY='ai_fc.trendlines.local.v1';
 const TREND_IMPORT_TRANSPORT=Symbol('private_import_transport');
-const TREND_VIEW_OPTIONS=new Map(),TREND_PRIVATE_ORIGINS=new Map();
+const TREND_VIEW_OPTIONS=new Map();
 let TREND_LOCAL_ENABLED=readTrendLocalPreference(),TREND_LOCAL_SESSION=null,TREND_LOCAL_EPOCH=0;
-function readTrendLocalPreference(){const localDefault=globalThis.location?.origin==='http://127.0.0.1:8878';try{const value=JSON.parse(localStorage.getItem(TREND_LOCAL_PREF_KEY)||'null');return value?.schema_version===1&&typeof value.enabled==='boolean'?value.enabled:localDefault;}catch(_){return localDefault;}}
-function setTrendLocalPreference(enabled){if(TREND_LOCAL_ENABLED===enabled)return;TREND_LOCAL_ENABLED=enabled;try{localStorage.setItem(TREND_LOCAL_PREF_KEY,JSON.stringify({schema_version:1,enabled}));}catch(_){} }
+function readTrendLocalPreference(){return ['https://sung-jinpark.github.io','http://127.0.0.1:8878'].includes(globalThis.location?.origin);}
 function trendLocalVisible(){return typeof document==='undefined'||document.visibilityState!=='hidden';}
 function trendLocalCurrent(session,sequence=session.sequence){return TREND_LOCAL_SESSION===session&&session.epoch===TREND_LOCAL_EPOCH&&session.active&&session.root.isConnected&&sequence===session.sequence&&TREND_LOCAL_ENABLED;}
 function trendLocalKst(value){return value?new Intl.DateTimeFormat('ko-KR',{timeZone:'Asia/Seoul',dateStyle:'short',timeStyle:'medium'}).format(new Date(value)):'확인 대기';}
@@ -62,13 +60,11 @@ function assertTrendLocalRevision(current,incoming,status){
 }
 function paintTrendLocalStatus(session){
   const host=session.root.querySelector('[data-trend-local-message]');if(!host)return;
-  const detail=TREND_PRIVATE_DETAILS.get(session.assetId),source=detail?.as_of||session.row?.source_asof;
-  const labels={idle:'연결하면 이 PC의 개인 자료로 자동 갱신합니다',manual:'개인 파일 모드 · 자동갱신 연결 해제',disconnected:'로컬 연결 해제',checking:'로컬 갱신 상태 확인 중',connected:'로컬 자동갱신 연결됨',stale:'연결됨 · 최근 수집 보류',paused:'화면을 다시 열면 갱신을 확인합니다',offline:'로컬 자동갱신 연결을 확인해 주세요'};
-  host.textContent=[labels[session.phase]||labels.idle,session.problem,source?`자료 기준 ${trendLocalKst(source)}`:null,session.row?.next_refresh_kst?`다음 수집 ${trendLocalKst(session.row.next_refresh_kst)}`:null,detail&&['offline','disconnected','paused','stale'].includes(session.phase)?'마지막 정상 차트를 표시합니다':null].filter(Boolean).join(' · ');
-  host.classList.toggle('trend-local-warning',['offline','stale','disconnected'].includes(session.phase));
-  const connect=session.root.querySelector('[data-trend-local-connect]'),disconnect=session.root.querySelector('[data-trend-local-disconnect]');
-  if(connect){connect.textContent=TREND_LOCAL_ENABLED?'연결 다시 확인':'로컬 자동갱신 연결';connect.disabled=session.inflight!==null;connect.setAttribute('aria-pressed',String(TREND_LOCAL_ENABLED));}
-  if(disconnect)disconnect.hidden=!TREND_LOCAL_ENABLED;
+  const detail=TREND_PRIVATE_DETAILS.get(session.assetId),labels={idle:'시세 확인 대기',checking:'시세 확인 중',connected:'자동 갱신',stale:'최근 일봉 갱신 지연',paused:'갱신 대기',offline:'시세 확인 지연',invalid:'자료 검증 보류'};
+  host.textContent=[labels[session.phase]||labels.idle,session.problem,detail&&['offline','invalid','paused','stale'].includes(session.phase)?`${detail.observation_through} 확인 자료 유지`:null].filter(Boolean).join(' · ');
+  host.dataset.trendStatus=session.phase;
+  const empty=session.root.querySelector('[data-trend-empty]');
+  if(empty)empty.innerHTML=trendEmptyMarkup(session.assetId,session.phase,session.problem);
 }
 function pauseTrendLocalSession(session){clearTimeout(session.timer);session.timer=null;session.sequence++;session.controller?.abort();}
 function stopTrendLocalSession(){const session=TREND_LOCAL_SESSION;if(!session)return;session.active=false;pauseTrendLocalSession(session);document.removeEventListener('visibilitychange',session.visibility);window.removeEventListener('pagehide',session.unload);TREND_LOCAL_SESSION=null;TREND_LOCAL_EPOCH++;}
@@ -87,12 +83,13 @@ async function refreshTrendLocalSession(session){
     if(!trendLocalCurrent(session,sequence))return;if(controller.signal.aborted)throw new DOMException('Aborted','AbortError');
     const current=TREND_PRIVATE_DETAILS.get(session.assetId);assertTrendLocalRevision(current,incoming,row);
     const changed=current?.content_hash!==incoming.content_hash;
-    TREND_PRIVATE_DETAILS.set(session.assetId,incoming);TREND_PRIVATE_ORIGINS.set(session.assetId,'local');
-    session.phase=row.stale||row.error?'stale':'connected';session.problem=row.error?'새 시세 수집을 보류해 마지막 정상 자료를 유지합니다':null;
+    TREND_PRIVATE_DETAILS.set(session.assetId,incoming);
+    session.phase=row.stale||row.error?'stale':'connected';session.problem=row.error?'마지막 확인 자료를 표시합니다':null;
     if(changed)session.onData();
   })().catch(error=>{
     if(!trendLocalCurrent(session,sequence))return;
-    session.phase=trendLocalVisible()?'offline':'paused';session.problem=error instanceof TypeError||error.name==='AbortError'?'로컬 서비스 실행 또는 브라우저의 로컬 접근 허용을 확인해 주세요':String(error.message||'로컬 연결을 확인해 주세요');
+    const validation=!(error instanceof TypeError||error.name==='AbortError')&&/기준|검수|무결성|형식|올바|제한|계산|이전|자산|내용/.test(String(error.message));
+    session.phase=trendLocalVisible()?(validation?'invalid':'offline'):'paused';session.problem=validation?'가격 기준을 확인한 뒤 갱신합니다':'자료를 불러오지 못했습니다';session.lastError=String(error.message||error);
   }).finally(()=>{
     clearTimeout(deadline);
     if(session.inflight===pending)session.inflight=null;
@@ -106,15 +103,13 @@ function bindTrendLocalConnection(root,initial,reuse=null){
   let session=reuse;
   if(!session||session!==TREND_LOCAL_SESSION||!session.active){
     stopTrendLocalSession();
-    session={assetId,initial,root,epoch:++TREND_LOCAL_EPOCH,active:true,sequence:0,inflight:null,controller:null,timer:null,row:null,problem:null,resumePending:false,phase:TREND_LOCAL_ENABLED?'checking':TREND_PRIVATE_ORIGINS.get(assetId)==='local'?'disconnected':TREND_PRIVATE_DETAILS.has(assetId)?'manual':'idle'};
+    session={assetId,initial,root,epoch:++TREND_LOCAL_EPOCH,active:true,sequence:0,inflight:null,controller:null,timer:null,row:null,problem:null,resumePending:false,phase:TREND_LOCAL_ENABLED?'checking':'idle'};
     TREND_LOCAL_SESSION=session;
     session.visibility=()=>{if(!session.active||!TREND_LOCAL_ENABLED)return;if(!trendLocalVisible()){pauseTrendLocalSession(session);session.phase='paused';paintTrendLocalStatus(session);}else if(TREND_LOCAL_ENABLED)refreshTrendLocalSession(session);};
     session.unload=()=>stopTrendLocalSession();document.addEventListener('visibilitychange',session.visibility);window.addEventListener('pagehide',session.unload);
     Promise.resolve().then(()=>{if(TREND_LOCAL_ENABLED&&trendLocalCurrent(session))refreshTrendLocalSession(session);});
   }
   session.root=root;session.initial=initial;session.onData=()=>renderTrendlinePage(initial,null,session);
-  root.querySelector('[data-trend-local-connect]').addEventListener('click',()=>{setTrendLocalPreference(true);refreshTrendLocalSession(session);});
-  root.querySelector('[data-trend-local-disconnect]').addEventListener('click',()=>{setTrendLocalPreference(false);pauseTrendLocalSession(session);session.phase='disconnected';session.problem=null;paintTrendLocalStatus(session);});
   paintTrendLocalStatus(session);return session;
 }
 async function parseTrendPrivateImport(raw,assetId){
@@ -175,12 +170,6 @@ async function parseTrendPrivateImport(raw,assetId){
   }
   return detail;
 }
-function bindTrendPrivateImport(root,initial){
-  const input=root.querySelector('[data-trend-private-file]'),button=root.querySelector('[data-trend-private-open]'),message=root.querySelector('[data-trend-private-message]'),assetId=initial.asset||'sk-hynix';
-  button.addEventListener('click',()=>input.click());
-  input.addEventListener('change',async()=>{const file=input.files?.[0];if(!file)return;button.disabled=true;message.textContent='개인 연구 파일을 확인하고 있습니다';try{if(file.size>524288)throw new Error('개인 연구 파일이 512KiB 제한을 넘었습니다');const detail=await parseTrendPrivateImport(await file.text(),assetId);if(!root.isConnected)return;setTrendLocalPreference(false);TREND_PRIVATE_DETAILS.set(assetId,detail);TREND_PRIVATE_ORIGINS.set(assetId,'manual');globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);}catch(error){message.textContent=String(error.message||'개인 연구 파일을 읽지 못했습니다');}finally{button.disabled=false;input.value='';}});
-  root.querySelector('[data-trend-private-clear]')?.addEventListener('click',()=>{setTrendLocalPreference(false);TREND_PRIVATE_DETAILS.delete(assetId);TREND_PRIVATE_ORIGINS.delete(assetId);globalThis.TrendlineUI.cleanup();renderTrendlinePage(initial);});
-}
 const TREND_BASES={split_adjusted:'주식분할 조정 시세',split_adjusted_price:'주식분할 조정 시세',published_spot_price:'일별 현물 시세',published_price_index:'공식 가격 지수',provider_reported_ohlc_current_vintage:'현재 공개된 일별 시세 이력'};
 const TREND_STATES={active:'유지',break_pending:'이탈 확인 중',broken:'이탈',reclaim_pending:'복귀 확인 중',reclaimed:'복귀',research_reference:'현재 자료로 그린 참고선'};
 const TREND_REASON_LABELS={latest_completed_session_missing:'최근 마감 시세가 아직 확인되지 않았습니다.',capture_rejected_last_good_preserved:'새 시세의 검수가 보류돼 마지막 검수 자료를 유지합니다.',missing_approved_ohlc:'공개 배포가 확인된 일별 시세를 기다리고 있습니다.',source_rights_pending:'시세의 공개 이용 조건을 확인하고 있습니다.',source_unavailable:'시세를 가져오지 못했습니다.',insufficient_history:'이 기간의 추세선을 확인할 과거 시세가 부족합니다.',insufficient_pivots:'확정된 고점·저점이 부족해 빗각선을 그리지 않았습니다.',no_valid_lines:'이 기간에서 검증을 통과한 빗각선이 없습니다.',stale_source:'새로 마감된 시세가 아직 확인되지 않았습니다.',stale_snapshot:'최근 마감 시세로 갱신이 필요합니다.',invalid_snapshot:'가격 자료 검증을 완료하지 못했습니다.'};
@@ -188,12 +177,25 @@ function trendReasons(codes){return [...new Set((codes||[]).map(code=>TREND_REAS
 function trendPrice(value,asset){return `${Number(value).toLocaleString('ko-KR',{maximumFractionDigits:asset?.price_unit==='KRW'||asset?.currency==='KRW'?0:2})}${['points','index_points'].includes(asset?.price_unit)?' pt':asset?.currency==='KRW'?'원':asset?.currency==='USD'?'달러':''}`;}
 function trendSourceUrl(value){try{const url=new URL(String(value));return ['https:','http:'].includes(url.protocol)?url.href:null;}catch(_){return null;}}
 function trendResearchMarkup(detail,asset){
-  const url=trendSourceUrl(detail.source_url||detail.source_identity?.source_url),gaps=detail.gaps||[],quote=detail.intraday_quote;
-  const source=url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">원문 시세 ↗</a>`:'원문 주소 확인 중';
-  const gapMarkup=gaps.length?`<p class="trend-gap-note" data-trend-gaps>일봉 미표시 ${gaps.length}개 · ${gaps.map(row=>`${esc(row.session)}${row.reason==='unfinished_session_not_a_final_candle'?' (장중)':''}`).join(', ')} · 원문에 없는 가격은 채우지 않습니다.</p>`:'';
-  const quality=detail.quality,qualityMarkup=quality?.stale?`<p class="trend-stale" role="status" data-trend-research-stale>최근 마감 일봉 누락 · ${esc(quality.expected_completed_session||'')}<br><small>${esc(detail.observation_through)} 공개 일봉 종가와 그 날짜 기준 경계입니다.</small></p>`:'';
-  const quoteMarkup=quote?`<aside class="trend-quote" data-trend-intraday><div><span>별도 장중 관측 · 일봉 종가 아님</span><strong>${esc(trendPrice(quote.price,asset))}</strong></div><p>${esc(quote.date)} ${esc(quote.time||'')} · 취득 ${esc(quote.retrieved_at||detail.retrieved_at||'시각 확인 중')}${trendSourceUrl(quote.source_url)?` · <a href="${esc(trendSourceUrl(quote.source_url))}" target="_blank" rel="noopener noreferrer">관측 원문 ↗</a>`:''}</p></aside>`:'';
-  return `<section class="trend-research" role="status" data-trend-research><strong>공개 시세로 그린 연구 차트</strong><span>개인 연구용 · 원천 검증 미완료 · 공식 예측과 분리</span><p>${source} · 취득 ${esc(detail.retrieved_at||detail.as_of)}</p><small>현재 공개본을 사용합니다. 과거 당시 공개된 가격 이력과 다를 수 있습니다. 과거 이탈·복귀 신호를 판정하지 않습니다.</small></section>${qualityMarkup}${gapMarkup}${quoteMarkup}`;
+  const url=trendSourceUrl(detail.source_url||detail.source_identity?.source_url),quote=detail.intraday_quote;
+  return `<details class="trend-data-meta"><summary>자료 정보</summary><p>${url?`<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">원천 시세 ↗</a>`:'원천 확인 중'} · 확인 ${esc(trendLocalKst(detail.retrieved_at||detail.as_of))}</p><p>일봉 ${esc(detail.observation_through||detail.bars.at(-1).session)} 기준${quote?` · 장중 관측 ${esc(quote.date)} ${esc(quote.time||'')} ${esc(trendPrice(quote.price,asset))}`:''}</p>${detail.status==='unverified_display'?'<p>현재 공개 시세로 그린 참고선 · 가격 조정 검증 전</p>':''}${(detail.gaps||[]).length?`<p>미표시 일봉 ${(detail.gaps||[]).length}개 · 확인되지 않은 가격은 채우지 않습니다.</p>`:''}</details>`;
+}
+function trendEmptyMarkup(assetId,phase='checking',problem=null){
+  const known=TREND_ASSETS.some(row=>row[0]===assetId),loading=['checking','idle'].includes(phase)&&Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId);
+  const title=!known?'자산을 선택해 주세요':assetId==='mag7'?'차트 자료 준비 중':loading?'시세를 확인하고 있습니다':phase==='invalid'?'자료 검증 보류':'차트 자료를 불러오지 못했습니다';
+  const text=!known?'위에서 자산을 선택하면 추세선을 확인할 수 있습니다.':assetId==='mag7'?'같은 기준의 가격 자료가 준비되면 표시합니다.':loading?'가격과 추세선을 곧 표시합니다.':problem||'자료가 확인되면 자동으로 다시 표시합니다.';
+  return `<div class="trend-empty-content${loading?' is-loading':''}"><span class="trend-empty-icon" aria-hidden="true">${loading?'⋯':'—'}</span><h2>${title}</h2><p>${esc(text)}</p></div>`;
+}
+function trendReference(detail){const last=detail.bars.at(-1),quote=detail.intraday_quote;return quote&&quote.session_index>last.session_index?{price:quote.price,index:quote.session_index,date:quote.date,time:quote.time||'',kind:'장중 관측',quote:true}:{price:last.close,index:last.session_index,date:last.session||last.session_date,time:'',kind:'종가',quote:false};}
+function trendInsightModel(detail,period,scale){
+  const analysis=detail.analyses[scale]?.[String(period)];if(analysis?.status!=='ready')return null;
+  const reference=trendReference(detail),rows=reference.quote?trendQuoteBorders(analysis,detail.intraday_quote,scale):analysis.borders;
+  const distance=row=>row?{...row,distance_percent:(row.price/reference.price-1)*100}:null;
+  return {reference,down:distance(rows.down[0]),up:distance(rows.up[0]),research:detail.status==='unverified_display'};
+}
+function trendInsightMarkup(detail,period,scale,asset){
+  const model=trendInsightModel(detail,period,scale);if(!model)return '<section class="trend-insights"><h3>가격과 가까운 경계</h3><p class="trend-insight-note">이 기간의 추세선 자료를 준비하고 있습니다.</p></section>';
+  return `<section class="trend-insights"><div class="trend-insight-heading"><h3>가격과 가까운 경계</h3><span>${esc(model.reference.date)}${model.reference.time?' '+esc(model.reference.time):''} · ${model.reference.kind} 기준</span></div><div class="trend-insight-grid">${[['down','아래 경계'],['up','위 경계']].map(([side,title])=>{const row=model[side],distance=row?`${row.distance_percent>0?'+':''}${row.distance_percent.toLocaleString('ko-KR',{minimumFractionDigits:2,maximumFractionDigits:2})}%`:null;return `<article data-trend-insight="${side}"><span>${title}</span>${row?`<strong data-trend-border="${esc(row.line_id)}">${esc(trendPrice(row.price,asset))}</strong><p data-trend-distance="${side}">${esc(distance)} <small>관측 가격 대비</small></p><small>${row.side==='support'?'지지':'저항'}선 · ${row.geometry_status==='candidate'?'후보선':`접촉 ${esc(row.touch_count)}회`}</small>`:'<strong>—</strong><p>가까운 경계 없음</p>'}</article>`;}).join('')}</div><p class="trend-insight-note">${model.research?'현재 자료로 그린 참고선이며, 추세 이탈을 확정하지 않습니다.':'기준 가격과 경계의 거리를 비교합니다.'}</p></section>`;
 }
 function trendValidateDetail(detail){
   if(!['ready','stale','unverified_display'].includes(detail?.status)||!Array.isArray(detail.bars)||detail.bars.length<2||!detail.analyses)throw new Error('표시할 일봉이 없습니다');
@@ -273,7 +275,7 @@ function bindTrendChart(host,detail,m,asset,scale){
   const svg=host.querySelector('svg'),cross=host.querySelector('[data-trend-cross]'),readout=host.querySelector('[data-trend-readout]');
   const entries=[...m.bars.map(row=>({kind:'bar',row})),...m.gaps.map(row=>({kind:'gap',row})),...(m.quote?[{kind:'quote',row:m.quote}]:[])].sort((a,b)=>a.row.session_index-b.row.session_index||Number(a.kind==='quote')-Number(b.kind==='quote'));
   let selected=entries.findIndex(entry=>entry.kind==='bar'&&entry.row===m.bars.at(-1));
-  const paint=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const {kind,row}=entries[selected];cross.setAttribute('x1',m.x(row.session_index));cross.setAttribute('x2',m.x(row.session_index));if(kind==='gap'){readout.textContent=`${row.session} · ${row.reason==='unfinished_session_not_a_final_candle'?'장중 관측은 일봉 종가로 사용하지 않습니다':'원천 결측 · 일봉 미표시'}`;return;}const lineRows=m.lines.slice(0,6).map(line=>trendLineReadout(line,row.session_index,scale,asset)).join(' · ');readout.textContent=kind==='quote'?`${row.date} ${row.time||''} · 별도 장중 관측 ${trendPrice(row.price,asset)} · 일봉 종가 아님${lineRows?' | 해당 날짜의 선 연장: '+lineRows:''}`:`${row.session||row.session_date} · 시가 ${trendPrice(row.open,asset)} · 고가 ${trendPrice(row.high,asset)} · 저가 ${trendPrice(row.low,asset)} · 종가 ${trendPrice(row.close,asset)}${lineRows?' | '+lineRows:''}`;};
+  const paint=index=>{selected=Math.max(0,Math.min(entries.length-1,index));const {kind,row}=entries[selected];cross.setAttribute('x1',m.x(row.session_index));cross.setAttribute('x2',m.x(row.session_index));if(kind==='gap'){readout.textContent=`${row.session} · 일봉 미표시`;return;}const price=value=>Number(value).toLocaleString('ko-KR',{maximumFractionDigits:asset.currency==='KRW'?0:2});readout.textContent=kind==='quote'?`${row.date} ${row.time||''} · 장중 ${trendPrice(row.price,asset)} · 종가 아님`:`${row.session||row.session_date} · 시가 ${price(row.open)} · 고가 ${price(row.high)} · 저가 ${price(row.low)} · 종가 ${price(row.close)}`;};
   const pointer=event=>{const bounds=svg.getBoundingClientRect(),x=(event.clientX-bounds.left)/bounds.width*m.W,y=(event.clientY-bounds.top)/bounds.height*m.H,index=m.first+(x-m.L)/(m.W-m.L-m.R)*(m.end-m.first);let nearest=entries.reduce((best,entry,i)=>Math.abs(entry.row.session_index-index)<Math.abs(entries[best].row.session_index-index)?i:best,0);if(m.quote&&Math.abs(m.quote.session_index-index)<.5&&Math.abs(m.y(m.quote.price)-y)<20)nearest=entries.findIndex(entry=>entry.kind==='quote');paint(nearest);};
   svg.addEventListener('pointermove',pointer);svg.addEventListener('pointerdown',pointer);
   svg.addEventListener('focus',()=>paint(selected));
@@ -283,25 +285,29 @@ function bindTrendChart(host,detail,m,asset,scale){
 let TRENDLINES_RESIZE=null;
 function renderTrendlinePage(initial={},loadState=null,localSession=null){
   if(localSession&&TRENDLINES_RESIZE){TRENDLINES_RESIZE.disconnect();TRENDLINES_RESIZE=null;}
-  const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId),asset=localDetail?{...officialAsset,asset_id:assetId,label:TREND_ASSETS.find(row=>row[0]===assetId)?.[1],currency:localDetail.asset.currency,price_unit:localDetail.asset.unit,status:'unverified_display',last_session:localDetail.observation_through}:officialAsset,detail=localDetail||projection.details?.[assetId];
-  if(localDetail)loadState=null;
+  const assetId=initial?.asset||'sk-hynix',projection=DATA?.trendlines||{},officialAsset=projection.assets?.find(row=>row.asset_id===assetId),localDetail=TREND_PRIVATE_DETAILS.get(assetId);
+  let detail=localDetail||projection.details?.[assetId],validationError=null;
+  if(detail&&['ready','stale','unverified_display'].includes(detail.status)){try{trendValidateDetail(detail);}catch(error){validationError=error;detail=null;}}
+  const asset=localDetail&&detail?{...officialAsset,asset_id:assetId,label:TREND_ASSETS.find(row=>row[0]===assetId)?.[1],currency:detail.asset.currency,price_unit:detail.asset.unit,status:'unverified_display',last_session:detail.observation_through}:officialAsset;
+  if(localDetail&&detail)loadState=null;
   const nav=TREND_ASSETS.map(([id,label])=>`<a href="#future/trendlines/${id}"${id===assetId?' aria-current="page"':''}>${esc(label)}</a>`).join('');
   const fixture=detail?.fixture_only===true?'<p class="trend-fixture" role="alert">검토용 가상 시세 · 실제 시장 분석이 아닙니다</p>':'';
-  const root=el(`<div class="trend-page"><header class="page-heading"><div><p class="eyebrow">미래 탐색 · 05</p><h1>상·하방 추세선</h1><p class="page-lede">실제 일봉의 고점·저점을 잇는 빗각선과 기준 종가 위·아래의 경계를 확인합니다.</p></div></header><nav class="trend-assets" aria-label="추세선 자산 선택">${nav}</nav>${Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)?`<section class="trend-local-controls"><div><button type="button" data-trend-local-connect aria-pressed="false">로컬 자동갱신 연결</button><button type="button" data-trend-local-disconnect hidden>연결 해제</button></div><p data-trend-local-message role="status"></p></section><section class="trend-private-controls"><button type="button" data-trend-private-open>개인 연구 차트 열기</button>${localDetail?'<button type="button" data-trend-private-clear>개인 자료 지우기</button>':''}<span>파일은 이 브라우저에서만 읽습니다</span><input type="file" accept=".json,application/json" data-trend-private-file hidden><p data-trend-private-message role="status"></p></section>`:''}${fixture}<section class="trend-body"></section></div>`),body=root.querySelector('.trend-body');
-  if(root.querySelector('[data-trend-private-file]')){bindTrendPrivateImport(root,initial);bindTrendLocalConnection(root,initial,localSession);}
+  const root=el(`<div class="trend-page"><header class="trend-heading"><p class="eyebrow">미래 탐색 · 05</p><h1>상·하방 추세선</h1></header><nav class="trend-assets" aria-label="추세선 자산 선택">${nav}</nav>${fixture}<section class="trend-body"><p class="trend-update-status" data-trend-local-message role="status"></p><div class="trend-content"></div></section></div>`),body=root.querySelector('.trend-content');
   const held=!asset||!['ready','stale','unverified_display'].includes(asset.status)||!detail||!['ready','stale','unverified_display'].includes(detail.status);
-  if(loadState||held){const error=loadState?.error,loading=loadState?.loading;body.innerHTML=`<div class="trend-hold" role="status"><span>${esc(asset?.label||'자산 확인')}</span><h2>${loading?'일봉과 빗각선을 불러오고 있습니다':error?'추세선을 불러오지 못했습니다':'추세선 확인 보류'}</h2><p>${esc(error?String(error.message||error):!asset?'요청한 자산을 찾을 수 없습니다. 위에서 자산을 선택해 주세요.':trendReasons(asset.reason_codes))}</p>${error?'<button type="button" data-trend-retry>다시 불러오기</button>':''}${asset?.last_session?`<small>확인된 마지막 시세 ${esc(asset.last_session)}</small>`:''}</div>`;mount(root);root.querySelector('[data-trend-retry]')?.addEventListener('click',()=>route());return;}
-  try{trendValidateDetail(detail);}catch(error){renderTrendlinePage(initial,{error});return;}
+  if(loadState||held){const invalid=validationError||loadState?.error,phase=invalid?'invalid':Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId)?'checking':'idle';body.innerHTML=`<div class="trend-empty" data-trend-empty role="status">${trendEmptyMarkup(assetId,phase,invalid?'가격 기준을 확인한 뒤 표시합니다.':null)}</div>`;mount(root);if(Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId))bindTrendLocalConnection(root,initial,localSession);return;}
   const previousView=TREND_VIEW_OPTIONS.get(assetId);let period=previousView?.period||63,scale=previousView?.scale||'linear';
-  const stale=asset.status==='stale',research=asset.status==='unverified_display';
-  body.innerHTML=`${research?trendResearchMarkup(detail,asset):''}${stale?`<p class="trend-stale" role="status">마지막 검수: ${esc(asset.last_session)} · 갱신 보류<br><small>기준 종가와 당시 경계를 표시합니다. ${esc(trendReasons(asset.reason_codes))}</small></p>`:''}<div class="trend-title"><div><span>${esc(asset.last_session)} · ${research?'공개 일봉 종가':stale?'기준 종가':'마감 기준'}</span><h2>${esc(asset.label)}</h2></div><strong>${esc(trendPrice(detail.bars.at(-1).close,asset))}</strong></div><div class="trend-controls"><div role="group" aria-label="추세선 기간">${[[63,'3개월'],[252,'1년'],[756,'3년']].map(([value,label])=>`<button type="button" data-trend-period="${value}" aria-pressed="${value===63}">${label}</button>`).join('')}</div><div role="group" aria-label="가격 축"><button type="button" data-trend-scale="linear" aria-pressed="true">선형</button><button type="button" data-trend-scale="log" aria-pressed="false">로그</button></div></div><div class="trend-chart"></div><div class="trend-legend">${research&&detail.intraday_quote?'<span><i class="trend-quote-dot"></i>별도 장중 관측</span>':''}<span><i class="trend-support"></i>지지 빗각선</span><span><i class="trend-resistance"></i>저항 빗각선</span><span><i class="trend-broken"></i>${research?'후보선은 점선':'이탈·후보선은 점선'}</span></div><div class="trend-borders"${research?' data-research="true"':''}></div>${research&&detail.intraday_quote?'<div data-trend-quote-borders></div>':''}<p class="trend-note">선의 연장은 가격 예상이나 도달 확률이 아닙니다. 접촉한 날짜와 기준 축이 달라지면 경계 가격도 달라집니다.</p><details class="trend-method"><summary>선을 확인하는 기준</summary><p>${research?'현재 확보한 공개 일봉에서 고점·저점을 찾아 선을 그립니다. 결측을 가로질러 고점·저점을 확정하지 않습니다. 과거 당시의 이탈·복귀 신호를 판정하지 않습니다.':'확정된 고점·저점으로 계산한 선을 그립니다. 종가 이탈과 복귀는 별도로 확인합니다.'} 접촉 횟수는 기하학적 근거이며 지지 성공 확률이 아닙니다.</p><p>기준 시각 ${esc(detail.as_of)} · ${esc(TREND_BASES[detail.source_identity?.price_basis]||'시세 기준 확인 중')}</p></details>`;
+  const research=asset.status==='unverified_display',reference=trendReference(detail),delayed=asset.status==='stale'||detail.quality?.stale;
+  body.innerHTML=`<div class="trend-title"><div><h2>${esc(asset.label)}</h2><span>${research?'참고선 · ':''}일봉 ${esc(detail.observation_through||asset.last_session)} 기준${delayed?' · 갱신 지연':''}</span></div><div class="trend-price"><strong>${esc(trendPrice(reference.price,asset))}</strong><span>${esc(reference.date)}${reference.time?' '+esc(reference.time):''} · ${reference.kind}${reference.quote?' · 지연 시세':''}</span></div></div><div class="trend-controls"><div role="group" aria-label="추세선 기간">${[[63,'3개월'],[252,'1년'],[756,'3년']].map(([value,label])=>`<button type="button" data-trend-period="${value}" aria-pressed="${value===63}">${label}</button>`).join('')}</div><div role="group" aria-label="가격 축"><button type="button" data-trend-scale="linear" aria-pressed="true">선형</button><button type="button" data-trend-scale="log" aria-pressed="false">로그</button></div></div><div class="trend-chart"></div><div class="trend-explanation"><div class="trend-legend"><span><i class="trend-support"></i>지지선</span><span><i class="trend-resistance"></i>저항선</span><span><i class="trend-broken"></i>후보·연장선</span>${reference.quote?'<span><i class="trend-quote-dot"></i>장중 관측</span>':''}</div><p>지지선은 저점을, 저항선은 고점을 잇습니다. 점선은 후보선과 선의 연장입니다.</p></div><div data-trend-insights></div><details class="trend-line-meta"><summary>선 세부</summary><div data-trend-line-details></div></details>${trendResearchMarkup(detail,asset)}`;
   mount(root);
-  const host=root.querySelector('.trend-chart'),borders=root.querySelector('.trend-borders'),quoteBorders=root.querySelector('[data-trend-quote-borders]');let drawnWidth=0;
+  if(Object.hasOwn(TREND_PRIVATE_IDENTITIES,assetId))bindTrendLocalConnection(root,initial,localSession);
+  const host=root.querySelector('.trend-chart'),insights=root.querySelector('[data-trend-insights]'),lineDetails=root.querySelector('[data-trend-line-details]');let drawnWidth=0;
   const paint=()=>{TREND_VIEW_OPTIONS.set(assetId,{period,scale});const m=trendChartModel(detail,period,scale,host.clientWidth||1000),analysis=detail.analyses[scale][String(period)];drawnWidth=host.clientWidth;
     root.querySelectorAll('[data-trend-period]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.trendPeriod)===period)));root.querySelectorAll('[data-trend-scale]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.trendScale===scale)));
-    if(!m){host.innerHTML=`<p class="trend-hold">${esc(trendReasons(analysis.reason_codes))}</p>`;borders.innerHTML='';if(quoteBorders)quoteBorders.innerHTML='';return;}
+    insights.innerHTML=trendInsightMarkup(detail,period,scale,asset);
+    lineDetails.innerHTML=(analysis.lines||[]).map(line=>{const anchors=[line.first_anchor,line.second_anchor].filter(anchor=>anchor&&typeof anchor.price==='number');return `<p>${line.side==='support'?'지지':'저항'} · ${anchors.map(anchor=>`${esc(anchor.session)} ${esc(trendPrice(anchor.price,asset))}`).join(' → ')} · ${esc(trendLineReadout(line,reference.index,scale,asset))}</p>`;}).join('');
+    if(!m){host.innerHTML='<div class="trend-empty trend-period-empty"><h3>이 기간의 추세선을 준비하고 있습니다.</h3><p>확인된 일봉이 충분해지면 표시합니다.</p></div>';return;}
     host.innerHTML=trendSvg(detail,m,asset)+'<p data-trend-readout class="trend-readout" aria-live="polite"></p>';bindTrendChart(host,detail,m,asset,scale);
-    borders.innerHTML=(research?[['down',`${asset.last_session} 일봉 기준 아래 경계`],['up',`${asset.last_session} 일봉 기준 위 경계`]]:[['down',stale?'당시 아래 경계':'아래 경계'],['up',stale?'당시 위 경계':'위 경계'],['broken',stale?'당시 이탈한 선':'이미 이탈한 선']]).map(([key,title])=>`<section><h3>${title}</h3>${analysis.borders[key].length?analysis.borders[key].slice(0,3).map((row,index)=>`<article data-trend-border="${esc(row.line_id)}"><span>${index+1}차 · ${esc(TREND_STATES[row.state]||'확인 중')}</span><strong>${esc(trendPrice(row.price,asset))}</strong><small>${row.geometry_status==='candidate'?'후보 · ':''}접촉 ${esc(row.touch_count)}회 · ${row.direction==='rising'?'상승':'하락'}선</small></article>`).join(''):'<p>해당 경계 없음</p>'}</section>`).join('');if(quoteBorders&&m.quote){const quote=detail.intraday_quote,rows=trendQuoteBorders(analysis,quote,scale);quoteBorders.innerHTML=`<h3 class="trend-quote-boundary-title">시세 시각의 추세선 연장 경계</h3><p class="trend-note">${esc(quote.date)} ${esc(quote.time||'')} · 별도 장중 관측 ${esc(trendPrice(quote.price,asset))} 기준 · 일봉 경계와 기준일이 다릅니다.</p><div class="trend-borders" data-research="true">${[['down','관측 가격 아래'],['up','관측 가격 위']].map(([key,title])=>`<section><h3>${title}</h3>${rows[key].length?rows[key].map((row,index)=>`<article data-trend-quote-border="${esc(row.line_id)}"><span>${index+1}차 · 해당 날짜의 선 연장</span><strong>${esc(trendPrice(row.price,asset))}</strong><small>${row.geometry_status==='candidate'?'후보 · ':''}접촉 ${esc(row.touch_count)}회 · ${row.direction==='rising'?'상승':'하락'}선</small></article>`).join(''):'<p>해당 경계 없음</p>'}</section>`).join('')}</div>`;}};
+  };
   root.querySelectorAll('[data-trend-period]').forEach(button=>button.onclick=()=>{period=Number(button.dataset.trendPeriod);paint();});root.querySelectorAll('[data-trend-scale]').forEach(button=>button.onclick=()=>{scale=button.dataset.trendScale;paint();});paint();
   if(globalThis.ResizeObserver){TRENDLINES_RESIZE=new ResizeObserver(()=>{if(!root.isConnected){TRENDLINES_RESIZE?.disconnect();TRENDLINES_RESIZE=null;return;}if(Math.abs(host.clientWidth-drawnWidth)>2)paint();});TRENDLINES_RESIZE.observe(host);}
 }
