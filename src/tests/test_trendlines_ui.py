@@ -7,6 +7,8 @@ import json
 import runpy
 import shutil
 import subprocess
+import math
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -269,18 +271,21 @@ def test_clean_render_orders_chart_before_explanation_insights_and_folded_source
         line.pop('second_anchor')
     program = local_browser_stub() + 'globalThis.DATA={trendlines:' + json.dumps(projection) + r'''};
 const rendered={};const box=()=>({innerHTML:'',clientWidth:1000,querySelector(){return null}});
-const pieces={'.trend-content':box(),'.trend-chart':box(),'[data-trend-insights]':box(),'[data-trend-line-details]':box(),'[data-trend-local-message]':nodes['[data-trend-local-message]']};
+const pieces={'.trend-content':box(),'[data-trend-current-chart]':box(),'[data-trend-full-chart]':box(),'[data-trend-full-coverage]':box(),'[data-trend-full-insights]':box(),'[data-trend-full-line-details]':box(),'[data-trend-direction-controls]':box(),'[data-trend-insights]':box(),'[data-trend-line-details]':box(),'[data-trend-local-message]':nodes['[data-trend-local-message]']};
 globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};
 globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
 renderTrendlinePage({asset:'sk-hynix'});stopTrendLocalSession();
-process.stdout.write(JSON.stringify({outer:rendered.outer,body:pieces['.trend-content'].innerHTML,chart:pieces['.trend-chart'].innerHTML,insights:pieces['[data-trend-insights]'].innerHTML,lines:pieces['[data-trend-line-details]'].innerHTML}));'''
+process.stdout.write(JSON.stringify({outer:rendered.outer,body:pieces['.trend-content'].innerHTML,chart:pieces['[data-trend-current-chart]'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,insights:pieces['[data-trend-insights]'].innerHTML,lines:pieces['[data-trend-line-details]'].innerHTML}));'''
     out = run(tmp_path, program)
     combined = out['outer'] + out['body']
     assert not any(token in combined for token in ('data-trend-local-connect', 'data-trend-private', 'trend-research"', 'trend-gap-note', 'input type="file"'))
     body = out['body']
-    assert body.index('class="trend-title"') < body.index('class="trend-controls"') < body.index('class="trend-chart"')
+    assert body.index('class="trend-title"') < body.index('class="trend-controls trend-axis-controls"') < body.index('class="trend-chart"')
     assert body.index('class="trend-chart"') < body.index('class="trend-explanation"') < body.index('data-trend-insights') < body.index('class="trend-data-meta"')
     assert '<svg' in out['chart'] and out['insights'].count('data-trend-insight=') == 2
+    assert '전체 추세선을 확인하고 있습니다' in out['full']
+    assert body.count('class="trend-chart"') == 2
+    assert body.index('data-trend-version="full"') < body.index('data-trend-version="current"')
     assert '<details class="trend-data-meta">' in body and '<details open' not in body
     assert 'NaN' not in out['lines'] and 'undefined' not in out['lines']
 
@@ -461,6 +466,285 @@ nodes['[data-trend-local-message]']=node();
 const root={isConnected:true,querySelector:key=>nodes[key]??null};
 const response=(raw,status=200)=>({ok:status===200,status,headers:{get:()=>null},text:async()=>raw});
 '''
+
+
+def full_transport(body):
+    payload = json.dumps(body, ensure_ascii=False, sort_keys=True, separators=(',', ':'), allow_nan=False)
+    envelope = {'schema_version': 1, 'contract_id': 'trendlines_private_full_transport_v1',
+                'publication_scope': 'private_only', 'asset_id': body['asset_id'],
+                'snapshot_id': body['snapshot_id'], 'payload_json': payload,
+                'payload_sha256': hashlib.sha256(payload.encode()).hexdigest()}
+    return json.dumps(envelope, ensure_ascii=False, sort_keys=True, separators=(',', ':'))
+
+
+@pytest.fixture(scope='module')
+def full_history_fixture(private_import_envelope):
+    """Synthetic older OHLC and supplied equations; no provider fetch or model fitting."""
+    current = json.loads(private_import_envelope['payload_json'])
+    current['content_hash'] = private_import_envelope['payload_sha256']
+    for bar in current['bars']:
+        bar['session_index'] += 800
+    for windows in current['analyses'].values():
+        for analysis in windows.values():
+            for row in analysis.get('projection_sessions', []): row['index'] += 800
+            for line in analysis['lines']:
+                line['coordinate_origin_index'] += 800
+                for anchor in (line['first_anchor'], line['second_anchor']): anchor['index'] += 800
+                for point in line['points']: point['index'] += 800
+                for projection in line['projections']: projection['index'] += 800
+    first = date.fromisoformat(current['bars'][0]['session'])
+    older = []
+    for index in range(800):
+        session = (first - timedelta(days=800 - index)).isoformat()
+        low = 70 + .02 * index
+        older.append({'session': session, 'session_index': index, 'open': low + 1,
+                      'high': low + 4, 'low': low, 'close': low + 2,
+                      'bar_id': 'research-bar-' + hashlib.sha256(session.encode()).hexdigest()})
+    bars = older + copy.deepcopy(current['bars'])
+    last = bars[-1]
+    snapshot_id = 'research-full-snapshot-' + 'a' * 64
+    manifest = {key: copy.deepcopy(value) for key, value in current.items() if key not in ('bars', 'analyses', 'content_hash')}
+    manifest.update(schema_version=1, contract_id='trendlines_private_full_manifest_v1',
+                    snapshot_id=snapshot_id, source_snapshot_id=current['snapshot_id'],
+                    source_engine_snapshot_id=current['engine_snapshot_id'],
+                    source_engine_content_hash=current['source_snapshot_hash'],
+                    publication_scope='private_only', full_scope='all_captured_finalized_sessions',
+                    points_encoding='equations', chunk_size=512, bars_sha256='e' * 64, bar_count=len(bars), observation_start=bars[0]['session'],
+                    full_config_sha256='b' * 64,
+                    full_parameters={'bars': len(bars), 'minimum_bars': 771, 'left': 10, 'right': 10, 'min_anchor_gap': 60})
+    manifest['analyses'] = {}
+    for axis in ('linear', 'log'):
+        sessions = [{'offset': offset, 'index': last['session_index'] + offset,
+                     'session': (date.fromisoformat(last['session']) + timedelta(days=offset)).isoformat()}
+                    for offset in (1, 7, 30)]
+        lines = []
+        for side, a, b in (('support', 60, 180), ('resistance', 80, 210)):
+            field = 'low' if side == 'support' else 'high'
+            transform = math.log if axis == 'log' else lambda value: value
+            p1, p2 = bars[a][field], bars[b][field]
+            origin = bars[a]['session_index']
+            intercept = transform(p1)
+            slope = (transform(p2) - intercept) / (bars[b]['session_index'] - origin)
+            price = lambda index: math.exp(intercept + slope * (index - origin)) if axis == 'log' else intercept + slope * (index - origin)
+            line = {'line_id': 'trend-line-' + hashlib.sha256(f'{axis}-{side}'.encode()).hexdigest()[:32],
+                    'axis': axis, 'window': len(bars), 'side': side, 'direction': 'rising',
+                    'state': 'research_reference', 'geometry_status': 'candidate', 'rank': 1, 'touch_count': 2,
+                    'coordinate_origin_index': origin, 'intercept': intercept, 'slope': slope,
+                    'current_price': price(last['session_index'])}
+            for key, row in (('first_anchor', bars[a]), ('second_anchor', bars[b])):
+                line[key] = {'session': row['session'], 'index': row['session_index'], 'price': row[field], 'bar_id': row['bar_id']}
+            rows = [bars[a], bars[b], last]
+            line['points'] = [{'session': row['session'], 'index': row['session_index'], 'price': price(row['session_index']), 'future': False} for row in rows]
+            line['points'] += [{**row, 'price': price(row['index']), 'future': True} for row in sessions]
+            line['projections'] = [{**row, 'price': price(row['index']), 'status': 'ready'} for row in sessions]
+            lines.append(line)
+        border = lambda line: {key: line[key] for key in ('line_id', 'side', 'direction', 'state', 'geometry_status', 'touch_count')} | {'price': line['current_price']}
+        manifest['analyses'][axis] = {'full': {'status': 'ready', 'axis': axis, 'window': len(bars), 'lines': lines,
+                                              'events': [], 'projection_sessions': sessions,
+                                              'borders': {'down': sorted((border(line) for line in lines if line['current_price'] <= last['close']), key=lambda row: -row['price']),
+                                                          'up': sorted((border(line) for line in lines if line['current_price'] > last['close']), key=lambda row: row['price']), 'broken': []}}}
+    chunks = []
+    manifest['chunks'] = []
+    columns = ['session', 'session_index', 'open', 'high', 'low', 'close', 'bar_id']
+    for index, start in enumerate(range(0, len(bars), 512)):
+        values = bars[start:start + 512]
+        body = {'schema_version': 1, 'contract_id': 'trendlines_private_full_bars_v1', 'publication_scope': 'private_only',
+                'asset_id': current['asset_id'], 'snapshot_id': snapshot_id, 'source_snapshot_id': current['snapshot_id'],
+                'chunk_index': index, 'count': len(values), 'start_index': values[0]['session_index'], 'end_index': values[-1]['session_index'],
+                'bars_packed': {'columns': columns, 'bar_id_prefix': 'research-bar-',
+                                'rows': [[row[key] if key != 'bar_id' else row[key].removeprefix('research-bar-') for key in columns] for row in values]}}
+        raw = full_transport(body)
+        chunks.append(raw)
+        manifest['chunks'].append({key: body[key] for key in ('chunk_index', 'count', 'start_index', 'end_index')} |
+                                  {'payload_sha256': json.loads(raw)['payload_sha256'], 'envelope_sha256': hashlib.sha256(raw.encode()).hexdigest()})
+    return {'current': current, 'manifest': manifest, 'raw_manifest': full_transport(manifest), 'chunks': chunks, 'bars': bars}
+
+
+def test_full_transport_restores_every_captured_bar_and_distinct_svg_with_exact_equations(tmp_path, full_history_fixture):
+    fixture = full_history_fixture
+    program = local_browser_stub() + 'const f=' + json.dumps(fixture) + r''';
+(async()=>{const decoded=await parseTrendFullTransport(f.raw_manifest,'bitcoin'),manifest=validateTrendFullManifest(decoded.body,f.current),chunks=[];
+for(const [index,raw] of f.chunks.entries())chunks.push(await parseTrendFullChunk(raw,manifest,manifest.chunks[index]));
+const before=JSON.stringify(manifest),d=buildTrendFullDetail(manifest,chunks.flat(),f.current),models=['linear','log'].map(scale=>trendPlotModel(d,d.analyses[scale].full,d.bars,scale,390));
+const current=trendChartModel(f.current,63,'linear',390),svg=trendSvg(d,models[0],{label:'TEST FIXTURE',currency:'USD'},'full'),currentSvg=trendSvg(f.current,current,{label:'TEST FIXTURE',currency:'USD'});
+process.stdout.write(JSON.stringify({count:d.bars.length,current:current.bars.length,exact:trendSameValue(d.bars,f.bars),unchanged:before===JSON.stringify(manifest),first:d.bars[0].session,svgCount:(svg.match(/data-trend-bar=/g)||[]).length,unique:svg.includes('trend-clip-bitcoin-full')&&currentSvg.includes('trend-clip-bitcoin-current'),points:models.map(model=>model.lines.every(line=>line.points.every(point=>Math.abs(point.price-trendLinePrice(line,point.index,model===models[0]?'linear':'log'))<1e-10)))}));})();'''
+    out = run(tmp_path, program)
+    assert out['count'] == 900 and out['current'] == 63 and out['svgCount'] == 900
+    assert out['exact'] and out['unchanged'] and out['unique'] and all(out['points'])
+    assert out['first'] == fixture['bars'][0]['session']
+
+
+@pytest.mark.parametrize('problem', ['wire', 'asset', 'snapshot', 'scope', 'source', 'count', 'pin', 'chunk_order',
+                                    'chunk_width', 'chunk_hash', 'ohlc', 'overlap', 'anchor', 'window', 'point', 'projection', 'approved',
+                                    'border_side', 'gap_metadata', 'unavailable_positive'])
+def test_full_data_tampering_fails_without_replacing_current_or_last_good(tmp_path, full_history_fixture, problem):
+    f = copy.deepcopy(full_history_fixture)
+    manifest = f['manifest']
+    raw = f['raw_manifest']
+    if problem in ('wire', 'asset', 'snapshot', 'scope'):
+        envelope = json.loads(raw)
+        if problem == 'wire': envelope['payload_json'] += ' '
+        elif problem == 'asset': envelope['asset_id'] = 'soxx'
+        elif problem == 'snapshot': envelope['snapshot_id'] = 'research-full-snapshot-' + 'c' * 64
+        else: envelope['publication_scope'] = 'public'
+        raw = json.dumps(envelope)
+    elif problem == 'source': manifest['source_snapshot_id'] = 'research-snapshot-' + 'f' * 64
+    elif problem == 'count': manifest['bar_count'] += 1
+    elif problem == 'pin': manifest['chunks'][0]['envelope_sha256'] = 'f' * 64
+    elif problem == 'anchor': manifest['analyses']['linear']['full']['lines'][0]['first_anchor']['price'] += 1
+    elif problem == 'window': manifest['analyses']['linear']['full']['window'] = 756
+    elif problem == 'point': manifest['analyses']['linear']['full']['lines'][0]['points'][2]['price'] += .00001
+    elif problem == 'projection': manifest['analyses']['linear']['full']['lines'][0]['projections'][-1]['session'] = '2027-01-01'
+    elif problem == 'approved': manifest['guards']['approved_free_ohlc'] = True
+    elif problem == 'border_side':
+        border = manifest['analyses']['linear']['full']['borders']['down'][0]
+        border['side'] = 'support' if border['side'] == 'resistance' else 'resistance'
+    elif problem == 'gap_metadata': manifest['gaps'] = [{'session': '2023-01-01', 'session_index': 550, 'reason': 'source_session_missing_no_fill'}]
+    elif problem == 'unavailable_positive':
+        line = manifest['analyses']['linear']['full']['lines'][0]
+        line['projections'][-1].update(status='unavailable', price=None)
+        line['points'].pop()
+    elif problem in ('chunk_order', 'chunk_width', 'chunk_hash', 'ohlc', 'overlap'):
+        index = 1 if problem == 'overlap' else 0
+        envelope = json.loads(f['chunks'][index]); body = json.loads(envelope['payload_json'])
+        if problem == 'chunk_order': body['chunk_index'] = 1
+        elif problem == 'chunk_width': body['bars_packed']['rows'][0].append(1)
+        elif problem == 'chunk_hash': envelope['payload_json'] += ' '
+        elif problem == 'ohlc': body['bars_packed']['rows'][0][3] = 1
+        elif problem == 'overlap': body['bars_packed']['rows'][-1][5] += .01
+        changed = json.dumps(envelope) if problem == 'chunk_hash' else full_transport(body)
+        f['chunks'][index] = changed
+        manifest['chunks'][index]['envelope_sha256'] = hashlib.sha256(changed.encode()).hexdigest()
+        manifest['chunks'][index]['payload_sha256'] = json.loads(changed)['payload_sha256']
+    if problem not in ('wire', 'asset', 'snapshot', 'scope'): raw = full_transport(manifest)
+    f['raw_manifest'] = raw
+    program = local_browser_stub() + 'const f=' + json.dumps(f) + r''';
+(async()=>{const before=JSON.stringify(f.current);TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',{snapshot_id:'last-good'});let rejected=false;
+try{const decoded=await parseTrendFullTransport(f.raw_manifest,'bitcoin'),manifest=validateTrendFullManifest(decoded.body,f.current),chunks=[];for(const [index,raw] of f.chunks.entries())chunks.push(await parseTrendFullChunk(raw,manifest,manifest.chunks[index]));buildTrendFullDetail(manifest,chunks.flat(),f.current);}catch(_){rejected=true;}
+process.stdout.write(JSON.stringify({rejected,current:before===JSON.stringify(TREND_PRIVATE_DETAILS.get('bitcoin')),lastGood:TREND_FULL_DETAILS.get('bitcoin').snapshot_id==='last-good'}));})();'''
+    assert run(tmp_path, program) == {'rejected': True, 'current': True, 'lastGood': True}
+
+
+def test_full_loading_is_independent_bounded_readonly_and_keeps_current_view(tmp_path, full_history_fixture):
+    program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + r''';
+const requests=[],publicData={trendlines:{status:'hold'}},before=JSON.stringify(publicData);globalThis.DATA=publicData;
+let finish;globalThis.fetch=(url,options)=>{requests.push({url,method:options.method,credentials:options.credentials,mode:options.mode,redirect:options.redirect,space:options.targetAddressSpace});return url.endsWith('/full')?new Promise(resolve=>finish=()=>resolve(response(f.raw_manifest))):Promise.resolve(response(f.chunks[Number(url.split('/').at(-1))]));};
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_LOCAL_ENABLED=true;session.fullMounted=true;let paints=0;session.onFullData=()=>paints++;TREND_VIEW_OPTIONS.set('bitcoin',{period:252,scale:'log',direction:'rising'});
+const first=refreshTrendFullSession(session),second=refreshTrendFullSession(session),whilePending={calls:requests.length,currentBars:trendChartModel(f.current,63).bars.length,full:TREND_FULL_DETAILS.size};finish();await Promise.all([first,second]);const full=TREND_FULL_DETAILS.get('bitcoin');const initialCalls=requests.length;await refreshTrendFullSession(session);const repeatedCalls=requests.length;stopTrendLocalSession();
+process.stdout.write(JSON.stringify({whilePending,count:full.bar_count,phase:session.fullPhase,requests,initialCalls,repeatedCalls,paints,view:TREND_VIEW_OPTIONS.get('bitcoin'),unchanged:before===JSON.stringify(publicData),storage:Object.keys(storage)}));})();'''
+    # A second manifest refresh returns immediately from the existing snapshot cache.
+    program = program.replace("url.endsWith('/full')?new Promise(resolve=>finish=()=>resolve(response(f.raw_manifest)))", "url.endsWith('/full')?(finish?Promise.resolve(response(f.raw_manifest)):new Promise(resolve=>finish=()=>resolve(response(f.raw_manifest))))")
+    out = run(tmp_path, program)
+    assert out['whilePending'] == {'calls': 1, 'currentBars': 63, 'full': 0}
+    assert out['count'] == 900 and out['phase'] == 'connected'
+    assert out['initialCalls'] == 3 and out['repeatedCalls'] == 4
+    assert out['view'] == {'period': 252, 'scale': 'log', 'direction': 'rising'}
+    assert out['unchanged'] and out['storage'] == []
+    assert all(row['method'] == 'GET' and row['credentials'] == 'omit' and row['mode'] == 'cors'
+               and row['redirect'] == 'error' and row['space'] == 'loopback' for row in out['requests'])
+    assert out['requests'][1]['url'].endswith('/full/' + full_history_fixture['manifest']['snapshot_id'] + '/bars/0')
+
+
+@pytest.mark.parametrize('problem', ['corrupt', 'old_source', 'route_abort', 'hidden_abort'])
+def test_full_failure_retains_last_good_without_current_data_or_route_mutation(tmp_path, full_history_fixture, problem):
+    program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + ';const problem=' + json.dumps(problem) + r''';
+(async()=>{const old=buildTrendFullDetail(f.manifest,f.bars,f.current);TREND_FULL_DETAILS.set('bitcoin',old);TREND_PRIVATE_DETAILS.set('bitcoin',f.current);const before=JSON.stringify(f.current);
+TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();session.fullMounted=true;session.onFullData=()=>{};TREND_LOCAL_ENABLED=true;let finish,calls=0;
+const envelope=JSON.parse(f.raw_manifest);if(problem==='corrupt')envelope.payload_json+=' ';if(problem==='old_source')TREND_PRIVATE_DETAILS.set('bitcoin',{...f.current,snapshot_id:'research-snapshot-'+'d'.repeat(64)});
+globalThis.fetch=(_url,options)=>{calls++;return new Promise(resolve=>finish=()=>resolve(response(JSON.stringify(envelope))));};
+const pending=refreshTrendFullSession(session),signal=session.fullController.signal;if(problem==='route_abort')stopTrendLocalSession();if(problem==='hidden_abort'){document.visibilityState='hidden';listeners.visibilitychange();}finish();await pending;
+const result={sameFull:TREND_FULL_DETAILS.get('bitcoin')===old,sameCurrent:before===JSON.stringify(f.current),aborted:signal.aborted,calls,phase:session.fullPhase};stopTrendLocalSession();process.stdout.write(JSON.stringify(result));})();'''
+    out = run(tmp_path, program)
+    assert out['sameFull'] and out['sameCurrent'] and out['calls'] == 1
+    assert out['aborted'] == (problem in ('route_abort', 'hidden_abort'))
+    if problem in ('corrupt', 'old_source'):
+        assert out['phase'] == 'invalid'
+
+
+def test_both_graphs_are_simultaneously_visible_with_actual_full_coverage(tmp_path, full_history_fixture):
+    program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + r''';
+const full=buildTrendFullDetail(f.manifest,f.bars,f.current);TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_FULL_DETAILS.set('bitcoin',full);
+globalThis.DATA={trendlines:{assets:[{asset_id:'bitcoin',label:'비트코인',status:'hold',currency:'USD',price_unit:'USD_per_BTC'}]}};
+const rendered={},box=()=>({innerHTML:'',textContent:'',clientWidth:390,querySelector(){return null}}),pieces={};
+for(const key of ['.trend-content','[data-trend-current-chart]','[data-trend-full-chart]','[data-trend-full-coverage]','[data-trend-full-insights]','[data-trend-full-line-details]','[data-trend-direction-controls]','[data-trend-insights]','[data-trend-line-details]'])pieces[key]=box();pieces['[data-trend-local-message]']=nodes['[data-trend-local-message]'];
+globalThis.el=html=>{rendered.outer=html;return {isConnected:true,querySelector:key=>pieces[key]??null,querySelectorAll:()=>[]}};globalThis.mount=()=>{};bindTrendChart=()=>{};TREND_LOCAL_ENABLED=false;
+renderTrendlinePage({asset:'bitcoin'});stopTrendLocalSession();process.stdout.write(JSON.stringify({body:pieces['.trend-content'].innerHTML,full:pieces['[data-trend-full-chart]'].innerHTML,current:pieces['[data-trend-current-chart]'].innerHTML,coverage:pieces['[data-trend-full-coverage]'].textContent,fullInsightCount:(pieces['[data-trend-full-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,currentInsightCount:(pieces['[data-trend-insights]'].innerHTML.match(/data-trend-insight=/g)||[]).length,view:TREND_VIEW_OPTIONS.get('bitcoin')}));'''
+    out = run(tmp_path, program)
+    assert out['full'].count('data-trend-bar=') == 900 and out['current'].count('data-trend-bar=') == 63
+    assert '<svg' in out['full'] and '<svg' in out['current']
+    assert '900개 일봉' in out['coverage'] and full_history_fixture['bars'][0]['session'] in out['coverage']
+    assert out['fullInsightCount'] == out['currentInsightCount'] == 2
+    assert out['view'] == {'period': 63, 'scale': 'linear', 'direction': 'all'}
+    assert '전체 추세선' in out['body'] and '현재 상·하방 추세선' in out['body']
+
+
+@pytest.mark.parametrize('raw', ['{"a":1,"a":2}', '{"a":1,"\\u0061":2}', '{"a":{"b":1,"b":2}}', '[{"a":1,"a":2}]', '{"a":[1,]}'])
+def test_full_json_rejects_duplicate_decoded_keys_and_malformed_data(tmp_path, raw):
+    out = run(tmp_path, 'const raw=' + json.dumps(raw) + r''';let rejected=false;try{trendUniqueJson(raw)}catch(_){rejected=true;}const normal='{"escaped\\"key":"\\\\\\"","array":[1,-2.0,null,true,{"nested":[]}]}';process.stdout.write(JSON.stringify({rejected,normal:trendSameValue(trendUniqueJson(normal),JSON.parse(normal))}));''')
+    assert out == {'rejected': True, 'normal': True}
+
+
+def test_full_cold_deadline_is_independent_and_does_not_change_current_8_second_budget(tmp_path, full_history_fixture):
+    program = local_browser_stub() + 'const f=' + json.dumps(full_history_fixture) + r''';
+const timers=new Map();let next=0;globalThis.setTimeout=(fn,delay)=>{const id=++next;timers.set(id,{fn,delay});return id;};globalThis.clearTimeout=id=>timers.delete(id);
+globalThis.fetch=(_url,options)=>new Promise((_resolve,reject)=>options.signal.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true}));
+(async()=>{TREND_LOCAL_ENABLED=false;const session=bindTrendLocalConnection(root,{asset:'bitcoin'});await Promise.resolve();TREND_PRIVATE_DETAILS.set('bitcoin',f.current);TREND_LOCAL_ENABLED=true;session.fullMounted=true;session.onFullData=()=>{};const pending=refreshTrendFullSession(session),deadline=[...timers.values()].find(row=>row.delay===20000);const current=trendChartModel(f.current,63);deadline.fn();await pending;const out={deadline:deadline.delay,phase:session.fullPhase,currentBars:current.bars.length,currentStillValid:trendValidateDetail(f.current)===f.current};stopTrendLocalSession();process.stdout.write(JSON.stringify(out));})();'''
+    assert run(tmp_path, program) == {'deadline': 20000, 'phase': 'offline', 'currentBars': 63, 'currentStillValid': True}
+    text = SOURCE.read_text(encoding='utf-8')
+    current = text[text.index('async function refreshTrendLocalSession'):text.index('function bindTrendLocalConnection')]
+    assert 'setTimeout(()=>controller.abort(),8000)' in current
+
+
+def test_short_full_capture_keeps_all_candles_without_inventing_a_trendline(tmp_path, full_history_fixture):
+    f = copy.deepcopy(full_history_fixture)
+    manifest, bars = f['manifest'], f['current']['bars']
+    manifest.update(bar_count=len(bars), observation_start=bars[0]['session'],
+                    full_parameters={'bars': len(bars), 'minimum_bars': 771, 'left': 10, 'right': 10, 'min_anchor_gap': 60})
+    for axis in ('linear', 'log'):
+        manifest['analyses'][axis]['full'].update(status='hold', window=len(bars), lines=[],
+                                                borders={'down': [], 'up': [], 'broken': []})
+    columns = ['session', 'session_index', 'open', 'high', 'low', 'close', 'bar_id']
+    body = {'schema_version': 1, 'contract_id': 'trendlines_private_full_bars_v1', 'publication_scope': 'private_only',
+            'asset_id': 'bitcoin', 'snapshot_id': manifest['snapshot_id'], 'source_snapshot_id': manifest['source_snapshot_id'],
+            'chunk_index': 0, 'count': len(bars), 'start_index': bars[0]['session_index'], 'end_index': bars[-1]['session_index'],
+            'bars_packed': {'columns': columns, 'bar_id_prefix': 'research-bar-',
+                            'rows': [[bar[key] if key != 'bar_id' else bar[key].removeprefix('research-bar-') for key in columns] for bar in bars]}}
+    raw = full_transport(body)
+    manifest['chunks'] = [{key: body[key] for key in ('chunk_index', 'count', 'start_index', 'end_index')} |
+                          {'payload_sha256': json.loads(raw)['payload_sha256'], 'envelope_sha256': hashlib.sha256(raw.encode()).hexdigest()}]
+    program = local_browser_stub() + 'const manifest=' + json.dumps(manifest) + ';const current=' + json.dumps(f['current']) + ';const raw=' + json.dumps(raw) + r''';
+(async()=>{const bars=await parseTrendFullChunk(raw,manifest,manifest.chunks[0]),d=buildTrendFullDetail(manifest,bars,current),m=trendPlotModel(d,d.analyses.linear.full,d.bars,'linear',390),svg=trendSvg(d,m,{label:'TEST FIXTURE'});process.stdout.write(JSON.stringify({count:m.bars.length,lines:m.lines.length,svgBars:(svg.match(/data-trend-bar=/g)||[]).length,status:m.analysis.status,insights:trendInsightMarkup(d,null,'linear',{},true)}));})();'''
+    out = run(tmp_path, program)
+    assert out['count'] == out['svgBars'] == 100 and out['lines'] == 0 and out['status'] == 'hold'
+    assert 'data-trend-border=' not in out['insights']
+
+
+@pytest.mark.parametrize('scale', ['linear', 'log'])
+@pytest.mark.parametrize('direction', ['all', 'rising', 'falling'])
+def test_direction_filter_uses_same_lines_for_chart_and_independent_nearest_prices(tmp_path, scale, direction):
+    detail = research_detail_fixture()
+    # Keep supplied directions and equations unchanged; an absent direction leaves candles visible.
+    analysis = detail['analyses'][scale]['63']
+    selected_ids = [line['line_id'] for line in analysis['lines'] if direction == 'all' or line['direction'] == direction]
+    reference = detail['bars'][-1]
+    rows = []
+    for line in analysis['lines']:
+        if line['line_id'] not in selected_ids:
+            continue
+        value = line['intercept'] + line['slope'] * (reference['session_index'] - line['coordinate_origin_index'])
+        rows.append((line['line_id'], math.exp(value) if scale == 'log' else value))
+    down = sorted((row for row in rows if row[1] <= reference['close']), key=lambda row: (-row[1], row[0]))
+    up = sorted((row for row in rows if row[1] > reference['close']), key=lambda row: (row[1], row[0]))
+    out = run(tmp_path, 'const d=' + json.dumps(detail) + ';const scale=' + json.dumps(scale) + ';const direction=' + json.dumps(direction) + r''';
+const before=JSON.stringify(d),analysis=trendDirectionalAnalysis(d,d.analyses[scale]['63'],scale,direction),model=trendPlotModel(d,analysis,d.bars.slice(-63),scale,390),insight=trendInsightFromAnalysis(d,analysis,scale);
+process.stdout.write(JSON.stringify({ids:model.lines.map(line=>line.line_id),down:insight.down?{id:insight.down.line_id,price:insight.down.price}:null,up:insight.up?{id:insight.up.line_id,price:insight.up.price}:null,bars:model.bars.length,unchanged:before===JSON.stringify(d)}));''')
+    assert out['ids'] == selected_ids and out['bars'] == 63 and out['unchanged']
+    for side, expected in (('down', down), ('up', up)):
+        if not expected:
+            assert out[side] is None
+        else:
+            assert out[side]['id'] == expected[0][0]
+            assert out[side]['price'] == pytest.approx(expected[0][1], rel=1e-10, abs=1e-6)
 
 
 @pytest.mark.parametrize('origin,stored,expected', [

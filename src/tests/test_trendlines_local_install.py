@@ -50,6 +50,32 @@ def test_installer_rejects_repository_ancestor_without_writes():
     assert 'repository ancestor' in result.stderr
 
 
+@pytest.mark.parametrize('task_arguments,accepted', [
+    ('owned-base', True),
+    ('owned-base --no-startup-refresh', True),
+    ('owned-base --no-startup-refresh --extra', False),
+    ('other-launcher', False),
+])
+def test_owned_task_allows_startup_refresh_mode_upgrade_only(tmp_path, task_arguments, accepted):
+    # Run the actual ownership guard with fake scheduler objects; no registration,
+    # process termination, collection, or writes to the installed runtime.
+    source = INSTALLER.read_text('utf-8')
+    guard = source[source.index('function Get-OwnedTask {'):source.index('function Stop-OwnedProcess {')]
+    script = tmp_path / 'ownership.ps1'
+    script.write_text(
+        "param([string]$TaskArguments)\n"
+        "$taskName='fixture'; $pythonWindowless='fixture-pythonw'; $baseArguments='owned-base'\n"
+        "$arguments=$baseArguments + ' --no-startup-refresh'\n"
+        "function Get-ScheduledTask { [pscustomobject]@{ Actions=@([pscustomobject]@{"
+        " Execute='fixture-pythonw'; Arguments=$TaskArguments }) } }\n"
+        + guard + "\ntry { $null=Get-OwnedTask; exit 0 } catch { exit 7 }\n",
+        encoding='utf-8',
+    )
+    result = subprocess.run(['powershell', '-NoProfile', '-File', str(script),
+                             '-TaskArguments', task_arguments], capture_output=True, text=True, timeout=20)
+    assert result.returncode == (0 if accepted else 7), result.stderr
+
+
 def test_installer_rejects_directory_junction(tmp_path):
     runtime, external = tmp_path / 'runtime', tmp_path / 'external'
     runtime.mkdir()

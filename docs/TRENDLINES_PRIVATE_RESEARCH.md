@@ -52,6 +52,25 @@ no separate connection button or file-opening step. Source metadata is available
 under **자료 정보**. The distance percentages compare a boundary with the
 displayed observation price; they are not forecast probabilities.
 
+Each asset has two graphs. **전체 추세선** uses every validated daily candle in
+the available capture and shows its actual first and last dates and candle
+count. **현재 상·하방 추세선** keeps the 3-month, 1-year and 3-year choices
+(63, 252 and 756 candles). Those period buttons change only the current graph;
+the linear/logarithmic axis selection applies to both. The full graph describes
+the captured history, without claiming lifetime coverage or relabeling it as
+three years. Missing or rejected daily rows remain gaps.
+
+The full graph loads independently. If it is still loading or its verification
+fails, the current graph remains usable. An already validated full graph may be
+retained with its original source date; incomplete or mismatched chunks never
+replace it. The full supplement does not rewrite the current graph's stored
+analysis or the original price evidence.
+Its manifest is bound to the current chart's exact source snapshot and capture
+time. Each full-graph chunk must match that manifest; files from different
+captures are never combined. A supplemental calculation failure does not mark
+a successful current-chart update as failed. A broken original source lineage
+still prevents either result from passing verification.
+
 Prices remain in memory and are not uploaded to GitHub, the public site, or
 another server. The page does not store chart data or a connection preference
 in browser storage. Leaving the trendline page stops its polling, and a hidden
@@ -172,6 +191,14 @@ backdated. Identical acquisitions preserve their first acquisition time.
 - Linear and logarithmic geometry are independently checked. Future points are
   trendline extensions. Quote-date reference levels and confirmed-candle levels
   have distinct dates and labels.
+- The full graph uses the separate `trendlines_private_full_geometry_v1`
+  contract and a shadow comparison on the same complete captured input. Its
+  confirmed pivots use 10 sessions on each side and a minimum anchor separation
+  of 60 sessions. The original 63/252/756 analyses remain unchanged. Full
+  geometry requires at least 771 candles; shorter captures keep their candles
+  with the line analysis on HOLD. A capture above the 4,096-candle limit is
+  rejected rather than silently shortened. Manifest and candle chunks retain
+  their exact hashes, with at most 512 candles and 256 KiB of payload per chunk.
 - Import hashes bind the exact UTF-8 `payload_json` before browser parsing.
   Python floating point encoding is not replaced with `JSON.stringify`.
   Payloads are limited to 256 KiB and envelopes to 512 KiB. Invalid, oversized,
