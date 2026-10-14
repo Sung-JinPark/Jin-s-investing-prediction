@@ -1,45 +1,45 @@
 {
-  "bundle_id": "ts-inputs-441c6cec915c72a18b0e8d65",
-  "capture_completed_at": "2026-10-14T01:14:44.583880+00:00",
+  "bundle_id": "ts-inputs-e4bc8041ead05d90ff6974e8",
+  "capture_completed_at": "2026-10-14T06:12:10.582788+00:00",
   "changed": true,
-  "checked_at": "2026-10-14T01:15:53.741737+00:00",
-  "content_hash": "61f132779620fe5818453766542e60fe520da42f1909d3aa8a1bf2c608ac08d3",
+  "checked_at": "2026-10-14T06:13:01.667449+00:00",
+  "content_hash": "d0765d744cd58ad50d6743f1f90ba9ddff560f28c2fb3ea9ad3db871e1d76f28",
   "contract_id": "timeseries_inputs_refresh_v1",
   "eligibility_changed": true,
-  "eligibility_hash": "e1c5b3bc958ab5d5414e368a5ac0c35efb5cc7dc6df6c696209fccbc9a061a74",
+  "eligibility_hash": "619a9012d0e4f62707dfb5663070f93b36d201d01b48ca7c93b508fab33a0bce",
   "eligibility_status": "hold",
   "eligible_native_latest": {
     "DGS2": {
-      "available_at": "2026-10-10T03:59:59+00:00",
-      "observation_time": "2026-10-08",
+      "available_at": "2026-10-14T03:59:59+00:00",
+      "observation_time": "2026-10-09",
       "series_id": "DGS2",
-      "source_hash": "e4fe7857f62e33634e3dc54b1c4752f04345a4f469676f7c5c6d28de76846b91",
-      "value": 4.75,
-      "vintage_start": "2026-10-10T03:59:59+00:00"
+      "source_hash": "f93d0f08baa3b5e20f6588a122031998508a2ec22c3cdf3417bae7535911404c",
+      "value": 4.8,
+      "vintage_start": "2026-10-14T03:59:59+00:00"
     },
     "DTWEXBGS": {
-      "available_at": "2026-10-06T03:59:59+00:00",
-      "observation_time": "2026-10-02",
+      "available_at": "2026-10-14T03:59:59+00:00",
+      "observation_time": "2026-10-09",
       "series_id": "DTWEXBGS",
-      "source_hash": "d0c6ac8a41ab35c170e20a1f9bee5da05587cc202e3e84927a614f05b028ff55",
-      "value": 121.3848,
-      "vintage_start": "2026-10-06T03:59:59+00:00"
+      "source_hash": "227e1cd4e9696047d8b9e48b58473da0ca8f65fb374a72644b842c52c27a96df",
+      "value": 121.6023,
+      "vintage_start": "2026-10-14T03:59:59+00:00"
     },
     "NASDAQCOM": {
-      "available_at": "2026-10-13T03:59:59+00:00",
-      "observation_time": "2026-10-12",
+      "available_at": "2026-10-14T03:59:59+00:00",
+      "observation_time": "2026-10-13",
       "series_id": "NASDAQCOM",
-      "source_hash": "be1d12bb0d915fc33271120c8ce119efdd8722c1889959c6631571dd614086bb",
-      "value": 27245.9,
-      "vintage_start": "2026-10-13T03:59:59+00:00"
+      "source_hash": "872dcadd8816b66ab989beeb9a8b90882019405abbbb93df73d5e270be415688",
+      "value": 27204.38,
+      "vintage_start": "2026-10-14T03:59:59+00:00"
     },
     "T10Y2Y": {
-      "available_at": "2026-10-10T03:59:59+00:00",
-      "observation_time": "2026-10-09",
+      "available_at": "2026-10-14T03:59:59+00:00",
+      "observation_time": "2026-10-13",
       "series_id": "T10Y2Y",
-      "source_hash": "42503136bacae73b0d264111180376356d7ca97fd899211a40bffc530afd0672",
-      "value": 0.44,
-      "vintage_start": "2026-10-10T03:59:59+00:00"
+      "source_hash": "0b377159df8fca58806f51773a4a62a5d079fba6dbd8b384b487eba4e464bae1",
+      "value": 0.42,
+      "vintage_start": "2026-10-14T03:59:59+00:00"
     },
     "VIXCLS": {
       "available_at": "2026-10-13T03:59:59+00:00",
@@ -52,11 +52,11 @@
   },
   "expected_session": "2026-10-13",
   "native_watermarks": {
-    "DGS2": "2026-10-14T01:14:33.514506+00:00",
-    "DTWEXBGS": "2026-10-14T01:14:43.234800+00:00",
-    "NASDAQCOM": "2026-10-14T01:14:32.055020+00:00",
-    "T10Y2Y": "2026-10-14T01:14:35.057349+00:00",
-    "VIXCLS": "2026-10-14T01:14:32.897358+00:00"
+    "DGS2": "2026-10-14T06:12:05.941384+00:00",
+    "DTWEXBGS": "2026-10-14T06:12:08.421244+00:00",
+    "NASDAQCOM": "2026-10-14T06:11:59.694818+00:00",
+    "T10Y2Y": "2026-10-14T06:12:06.809554+00:00",
+    "VIXCLS": "2026-10-14T06:12:04.627387+00:00"
   },
   "publication_allowed": true,
   "schema_version": 1,
@@ -77,11 +77,11 @@
     },
     {
       "series_id": "T10Y2Y",
-      "status": "stale"
+      "status": "fresh"
     },
     {
       "series_id": "DTWEXBGS",
-      "status": "stale"
+      "status": "fresh"
     }
   ],
   "status": "ready"
