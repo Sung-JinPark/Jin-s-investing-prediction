@@ -5,6 +5,7 @@ import copy
 import base64
 import hashlib
 import json
+import re
 import runpy
 import socketserver
 import threading
@@ -20,6 +21,16 @@ PREVIEW = Path(__file__).parents[2] / 'tools/preview_trendlines.py'
 
 def projection():
     return runpy.run_path(str(PREVIEW))['fixture_projection']()
+
+
+def test_pages_csp_allows_only_the_fixed_opt_in_loopback_service():
+    html = dashboard.render_html({'trendlines': projection()}, mode='pages')
+    csp = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]+)"', html).group(1)
+    connect = next(part.strip() for part in csp.split(';') if part.strip().startswith('connect-src ')).split()[1:]
+    assert 'http://127.0.0.1:8878' in connect
+    assert [target for target in connect if target.startswith('http:')] == ['http://127.0.0.1:8878']
+    assert "'self'" in connect and '*' not in connect
+    assert 'localhost' not in csp and '127.0.0.1:*' not in csp
 
 
 def test_split_preserves_input_and_pins_exact_asset_bytes():

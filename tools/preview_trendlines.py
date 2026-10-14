@@ -11,6 +11,8 @@ from datetime import date, timedelta
 from functools import partial
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 PROJECT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(PROJECT / "src"))
@@ -143,6 +145,45 @@ def build_research_preview(research_root: Path, output: Path):
         "official_forecast_write": False, "summary_bytes": len(json.dumps(base['trendlines'], ensure_ascii=False, separators=(',', ':')).encode()),
         "assets": [{"asset_id": asset, "sidecar_bytes": (output / f'trendlines/{asset}.json').stat().st_size} for asset in sidecars],
     }, ensure_ascii=False, indent=2), encoding="utf-8")
+    return output / 'index.html'
+
+
+def build_local_service_preview(research_root: Path, output: Path):
+    """Private loopback shell; candle values arrive through verified import GETs.
+
+    The shell carries the ordinary approved-source HOLD summary. It neither
+    embeds private prices nor replays the immutable history on every startup.
+    """
+    from ai_fc.trendlines import display, storage
+    from ai_fc.trendlines.local_service import _atomic_bytes
+    research_root, output = research_root.resolve(), output.resolve()
+    if not output.is_relative_to(research_root):
+        raise ValueError("local service preview must remain inside its research root")
+    projection = display.load_projection(research_root)
+    model = {"meta": {"generated": datetime.now(ZoneInfo('Asia/Seoul')).isoformat(),
+                      "phase": "개인 연구 자동갱신", "n_questions": 0},
+             "questions": [], "forecast_history": {}, "resolutions": {}, "clusters": [],
+             "scenario": {}, "trendlines": projection}
+    base, sidecars = dashboard.split_trendlines_data(model)
+    if sidecars:
+        raise ValueError("local service shell must not embed private research candles")
+    output.mkdir(parents=True, exist_ok=True)
+    html = dashboard.render_html(base, mode='embed')
+    html = html.replace('</head>', '<meta name="robots" content="noindex,nofollow"><script>if(!location.hash)location.hash="#future/trendlines/sk-hynix";</script></head>')
+    # Replace each bounded file atomically. A stale HTML/script generation pair
+    # is rejected by the existing bundle SHA check and can be retried safely.
+    for suffix in ('js', 'css'):
+        target = (output / f'assets/trendlines.{suffix}').resolve()
+        if not target.is_relative_to(output):
+            raise ValueError('local preview asset path redirected')
+        _atomic_bytes(target, (dashboard.DASHBOARD_PARTS / f'trendlines.{suffix}').read_bytes())
+    _atomic_bytes(output / 'data.json', storage.encode(base))
+    _atomic_bytes(output / 'index.html', html.encode('utf-8'))
+    storage.atomic_json(output / 'private_preview_manifest.json', {
+        'private_research_only': True, 'public_export_allowed': False,
+        'official_forecast_write': False, 'prices_via': 'read_only_private_import_api',
+        'summary_bytes': len(storage.encode(base['trendlines'])), 'embedded_private_prices': False,
+    })
     return output / 'index.html'
 
 
